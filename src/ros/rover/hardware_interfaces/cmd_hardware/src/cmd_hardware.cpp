@@ -187,20 +187,24 @@ hardware_interface::return_type CMDHardware::read(
 {
     bus_->spin();
 
+    const auto previous_position_state = hw_position_.state.value();
+
     // Transfer reference states to the actual state interfaces
 
     // Apply interpolation between CAN feedback and previous command to velocity
-    hw_velocity_.state = lerp(hw_velocity_.reference_state, hw_velocity_.reference_command,
-                              params_.velocity_integration_command_amount);
+    //hw_velocity_.state = lerp(hw_velocity_.reference_state, hw_velocity_.reference_command,
+    //                          params_.velocity_integration_command_amount);
 
     // Calculate position from resolver values
     const auto reference_resolver_state = hw_position_.raw_reference_state + 2*M_PI * hw_position_.raw_reference_state_turns;
     // Apply resolver reduction
     const auto reference_position_state = reference_resolver_state / params_.resolver_reduction;
     // Apply velocity integration to position
-    hw_position_.state = reference_position_state
-        + hw_velocity_.state.value() * params_.velocity_integration_seconds;
+    hw_position_.state = reference_position_state;
+    //    + hw_velocity_.state.value() * params_.velocity_integration_seconds;
 
+    // Infer velocity state from the resolver, since we don't trust encoder feedback
+    hw_velocity_.state = (reference_position_state - previous_position_state) / period.seconds();
 
     return hardware_interface::return_type::OK;
 }
@@ -551,7 +555,7 @@ bool CMDHardware::set_control_interface(
             bus_->add_callback_to(static_cast<uint32_t>(TelemetryPacket::RESOLVER_ARBITRATION_ID), this, &CMDHardware::resolver_callback);
         }
         bus_->set_callbacks_enabled(false);
-   }
+    }
 
     uint32_t CMDHardware::make_can_id(CMDSendCommand command) const
     {
@@ -602,7 +606,7 @@ bool CMDHardware::set_control_interface(
         const auto value = static_cast<int16_t>((static_cast<uint16_t>(frame.data[2]) << 10) | static_cast<uint16_t>(frame.data[3] << 2))
           * reverse_position_multiplier_;
 
-        RCLCPP_INFO(rclcpp::get_logger(CMDHardwareLoggerName), "%s");
+        RCLCPP_INFO(rclcpp::get_logger(CMDHardwareLoggerName), "Raw resolver: %d", value);
 
         if (!hw_position_.raw_reference_state_valid) {
           // Prevent phantom turn count increments on interface initialisation
@@ -619,20 +623,19 @@ bool CMDHardware::set_control_interface(
         // Modifying raw_reference_state_turns effectively adds or subtracts 2*M_PI, emulating multi-turn
         if (raw_delta < -M_PI) {
             hw_position_.raw_reference_state_turns++;
+            RCLCPP_INFO(rclcpp::get_logger(CMDHardwareLoggerName), "Incremented to %d turns!", hw_position_.raw_reference_state_turns);
         }
         else if (raw_delta > M_PI) {
             hw_position_.raw_reference_state_turns--;
+            RCLCPP_INFO(rclcpp::get_logger(CMDHardwareLoggerName), "Decremented to %d turns!", hw_position_.raw_reference_state_turns);
         }
         else if (abs(raw_delta) == M_PI) {
-            // In this case, it is ambiguous which direction has been turned! So, guess from the velocity
+            // This is the edge case. It is ambiguous which direction has been turned! So, guess from the velocity
             const auto velocity = hw_velocity_.state.has_value() ? hw_velocity_.state.value() : hw_velocity_.reference_command;
-
-            if (velocity >= 0) {
+            if (velocity >= 0) 
               hw_position_.raw_reference_state_turns++;
-            }
-            else {
+            else 
               hw_position_.raw_reference_state_turns--;
-            }
         }
     }
 
