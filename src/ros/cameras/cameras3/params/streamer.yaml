@@ -334,6 +334,7 @@ camera_streamer:
           arm_end_top: snail
           arm_end_finger: snail
           arm_end_side: snail
+          arm_gimbal: snail
         payload:
           mast_forward: snail
           mast_backward: snail
@@ -343,6 +344,7 @@ camera_streamer:
           arm_end_top: default
           arm_end_finger: default
           arm_end_side: default
+          arm_gimbal: default
 
       # science:
 
