@@ -5,9 +5,7 @@ It realize the methodology/mindset for writing control loops in the previous cha
 
 # ros2_control
 
-In [the previous chapter](./01_programming_control_loops.md), I talked about what control loop software should 
-theoretically look like. [ROS2 Control](https://control.ros.org/jazzy/index.html) is the framework we use to actually do this, which provides all the abstractions I 
-discussed earlier.
+In [the previous chapter](./01_programming_control_loops.md), I talked about what control loop software should theoretically look like. [ROS2 Control](https://control.ros.org/jazzy/index.html) is the framework we use to actually do this, which provides all the abstractions I discussed earlier.
 
 The new arm control code is built upon the [ros2_control](https://control.ros.org/jazzy/index.html) framework.
 
@@ -41,6 +39,8 @@ ros2_control is a framework for building up these control loops using different 
 Not to be confused with the other interfaces from ROS2,
 
 Interfaces in ros2_control are 
+
+
 
 
 

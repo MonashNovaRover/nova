@@ -9,6 +9,7 @@
 
 #include "JoyMessageListener.hpp"
 #include "teleop_arm_joy_parameters.hpp"
+#include "Input.hpp"
 
 namespace teleop_arm_joy
 {
@@ -16,7 +17,7 @@ namespace teleop_arm_joy
 /**
 * @brief Class that represents some axis from the joy_node
 */
-class JoyAxis : public JoyMessageListener {
+class JoyAxis : public JoyMessageListener, Input<float> {
 public:
 
   /**

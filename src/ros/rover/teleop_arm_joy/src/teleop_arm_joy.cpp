@@ -53,6 +53,8 @@ TeleopArmJoy::TeleopArmJoy(const rclcpp::NodeOptions &options)
 void TeleopArmJoy::initializeParams()
 {
   param_listener_ = std::make_shared<ParamListener>(this->shared_from_this());
+  this->param
+
   params_ = param_listener_->get_params();
 
   if (param_listener_->is_old(params_))
