@@ -1,0 +1,9 @@
+<library path="waratah_kinematics_plugin">
+  <class name="waratah_kinematics_plugin/WaratahKinematicsPlugin"
+         type="waratah_kinematics_plugin::WaratahKinematicsPlugin"
+         base_class_type="kinematics::KinematicsBase">
+  <description>
+    The kinematics plugin for waratah's arm special IK
+  </description>
+  </class>
+</library>
