@@ -10,4 +10,5 @@ with pkgs;
   nova-twistmapper = callPackage ./nova-twistmapper { };
   nova-path-planner = callPackage ./nova-path-planner { };
   nova-banksia-kinematics-plugin = callPackage ./nova-banksia-kinematics-plugin { };
+  nova-waratah-kinematics-plugin = callPackage ./nova-waratah-kinematics-plugin { };
 }

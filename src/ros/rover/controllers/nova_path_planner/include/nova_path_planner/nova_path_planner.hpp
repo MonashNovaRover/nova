@@ -155,7 +155,7 @@ protected:
    * @param pose the pose to publish to tf2
    * @param[in]  the time to stamp the published Transform with.
    */
-  void publish_to_tf2(const rclcpp::Time &time, const Eigen::Isometry3d& pose);
+  // void publish_to_tf2(const rclcpp::Time &time, const Eigen::Isometry3d& pose);
 
   /**
    * @brief Generates an SRDF string for use with MoveIt2 libraries, based on params_.joint_names
@@ -234,6 +234,8 @@ protected:
   static Eigen::Quaterniond slerp3(const Eigen::Quaterniond &a, const Eigen::Quaterniond &b, const Eigen::Quaterniond &c, const Eigen::Quaterniond &d, const double &t);
 
   static Eigen::Isometry3d lerp3(Eigen::Isometry3d a, Eigen::Isometry3d b, Eigen::Isometry3d c, Eigen::Isometry3d d, double t);
+
+  static std::vector<double> lerp(const std::vector<double>& a, const std::vector<double>& b, double& t);
 
   /// Holds command and state interfaces for each joint
   std::vector<JointHandle> registered_joint_handles_;

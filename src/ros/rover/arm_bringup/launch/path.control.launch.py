@@ -44,12 +44,12 @@ def launch_setup(context, *args, **kwargs):
         Node( # TODO: only when arm is enabled
             package='controller_manager',
             executable='spawner',
-            arguments=['nova_arm_position_controller', 'inactive']
+            arguments=['nova_arm_position_controller']
         ),
         Node( # TODO: only when arm is enabled
             package='controller_manager',
             executable='spawner',
-            arguments=['nova_path_planner', '--inactive'],
+            arguments=['nova_path_planner'],
         ),
         GroupAction(
             condition=UnlessCondition(gazebo),

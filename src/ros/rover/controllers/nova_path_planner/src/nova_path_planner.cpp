@@ -432,23 +432,23 @@ namespace nova_path_planner
     // TODO: Implement. Could be useful for some safety features?
   }
 
-  void NovaPathPlanner::publish_to_tf2(const rclcpp::Time &time, const Eigen::Isometry3d& pose) {
-    // Publish path_planner pose to tf2
-    geometry_msgs::msg::TransformStamped transform_stamped;
-    // transform_stamped.transform = toMsg(pose);
-    tf2::convert(pose, transform_stamped.transform);
-    transform_stamped.header.stamp = time;
-
-    // TODO: Parameterize
-    transform_stamped.child_frame_id = params_.kinematics_output_target_frame;
-    transform_stamped.header.frame_id = params_.kinematics_base_frame;
-
-    RCLCPP_INFO_ONCE(get_node()->get_logger(), "Broadcasting path_planner pose as '%s', child of '%s'.",
-                     transform_stamped.child_frame_id.c_str(),
-                     transform_stamped.header.frame_id.c_str());
-
-    path_planner_pose_tf_broadcaster_->sendTransform(transform_stamped);
-  }
+  // void NovaPathPlanner::publish_to_tf2(const rclcpp::Time &time, const Eigen::Isometry3d& pose) {
+  //   // Publish path_planner pose to tf2
+  //   geometry_msgs::msg::TransformStamped transform_stamped;
+  //   // transform_stamped.transform = toMsg(pose);
+  //   tf2::convert(pose, transform_stamped.transform);
+  //   transform_stamped.header.stamp = time;
+  //
+  //   // TODO: Parameterize
+  //   transform_stamped.child_frame_id = params_.kinematics_output_target_frame;
+  //   transform_stamped.header.frame_id = params_.kinematics_base_frame;
+  //
+  //   RCLCPP_INFO_ONCE(get_node()->get_logger(), "Broadcasting path_planner pose as '%s', child of '%s'.",
+  //                    transform_stamped.child_frame_id.c_str(),
+  //                    transform_stamped.header.frame_id.c_str());
+  //
+  //   path_planner_pose_tf_broadcaster_->sendTransform(transform_stamped);
+  // }
 
   controller_interface::CallbackReturn NovaPathPlanner::configure_joints() {
     auto logger = get_node()->get_logger();
@@ -902,6 +902,20 @@ namespace nova_path_planner
     Eigen::Isometry3d result = Eigen::Isometry3d::Identity();
     result.linear() = rotation.toRotationMatrix();
     result.translation() = translation;
+
+    return result;
+  }
+
+  inline std::vector<double> NovaPathPlanner::lerp(const std::vector<double>& a, const std::vector<double>& b, double& t) {
+    const auto length = std::min(a.size(), b.size());
+    const auto one_minus_t = 1 - t;
+
+    std::vector<double> result;
+    result.reserve(length);
+
+    for (unsigned long i = 0; i < length; i++) {
+      result[i] = one_minus_t*a[i] + t*b[i];
+    }
 
     return result;
   }
