@@ -243,7 +243,7 @@ namespace nova_path_planner
     planner_->initialize(robot_model_, kinematics_compat_node_, "");
      */
 
-    previous_update_timestamp_ = get_node()->get_clock()->now();
+    //previous_update_timestamp_ = get_node()->get_clock()->now();
     return controller_interface::CallbackReturn::SUCCESS;
   }
 
@@ -338,13 +338,6 @@ namespace nova_path_planner
       return CallbackReturn::ERROR;
     }
 
-    // Store result to path_planner_pose_
-    tf2::fromMsg(poses[0], path_planner_pose_);
-
-    // Set path_planner_pose_rpy_ to match
-    double roll, pitch, yaw;
-    path_planner_pose_.getBasis().getRPY(roll, pitch, yaw);
-
     // Set initial command interface values from state interface
     for (auto& joint : registered_joint_handles_) {
       joint.command.get().set_value(joint.state_pos.get().get_value());
@@ -354,9 +347,9 @@ namespace nova_path_planner
     action_server_ = rclcpp_action::create_server<ArmPlanPath>(
       kinematics_compat_node_,
       params_.action_name,
-      std::bind(&nova_path_planner::NovaPathPlanner::handle_action_goal, this, _1, _2),
-      std::bind(&nova_path_planner::NovaPathPlanner::handle_action_cancelled, this, _1),
-      std::bind(&nova_path_planner::NovaPathPlanner::handle_action_accepted, this, _1));
+      std::bind(&NovaPathPlanner::handle_action_goal, this, _1, _2),
+      std::bind(&NovaPathPlanner::handle_action_cancelled, this, _1),
+      std::bind(&NovaPathPlanner::handle_action_accepted, this, _1));
 
     RCLCPP_INFO(get_node()->get_logger(), "Initial path_planner pose set from forward kinematics.");
     return controller_interface::CallbackReturn::SUCCESS;
@@ -436,22 +429,14 @@ namespace nova_path_planner
 
   void NovaPathPlanner::halt()
   {
-    // Set path_planner velocities to 0
-    std::shared_ptr<geometry_msgs::msg::TwistStamped> twist_stamped;
-
-    twist_stamped->twist.linear.x = 0;
-    twist_stamped->twist.linear.y = 0;
-    twist_stamped->twist.linear.z = 0;
-
-    twist_stamped->twist.angular.x = 0;
-    twist_stamped->twist.angular.y = 0;
-    twist_stamped->twist.angular.z = 0;
+    // TODO: Implement. Could be useful for some safety features?
   }
 
-  void NovaPathPlanner::publish_to_tf2(const rclcpp::Time &time) {
+  void NovaPathPlanner::publish_to_tf2(const rclcpp::Time &time, const Eigen::Isometry3d& pose) {
     // Publish path_planner pose to tf2
     geometry_msgs::msg::TransformStamped transform_stamped;
-    transform_stamped.transform = toMsg(path_planner_pose_);
+    // transform_stamped.transform = toMsg(pose);
+    tf2::convert(pose, transform_stamped.transform);
     transform_stamped.header.stamp = time;
 
     // TODO: Parameterize

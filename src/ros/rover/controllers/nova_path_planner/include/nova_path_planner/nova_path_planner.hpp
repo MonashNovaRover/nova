@@ -151,9 +151,11 @@ protected:
   /**
    * @brief Publishes path_planner_pose_ to tf2
    *
+   * @param time the current time
+   * @param pose the pose to publish to tf2
    * @param[in]  the time to stamp the published Transform with.
    */
-  void publish_to_tf2(const rclcpp::Time &time);
+  void publish_to_tf2(const rclcpp::Time &time, const Eigen::Isometry3d& pose);
 
   /**
    * @brief Generates an SRDF string for use with MoveIt2 libraries, based on params_.joint_names
@@ -205,7 +207,7 @@ protected:
 
   rclcpp_action::CancelResponse handle_action_cancelled(const std::shared_ptr<GoalHandleArmPlanPath>& goal_handle);
 
-  void execute_action(const std::shared_ptr<GoalHandleArmPlanPath> goal_handle);
+  void execute_action(std::shared_ptr<GoalHandleArmPlanPath> goal_handle);
 
   bool try_get_pose_from_forward_kinematics(const std::vector<double> &joint_positions,
                                             Eigen::Isometry3d &result);
@@ -246,10 +248,6 @@ protected:
   std::mutex path_mutex_;
   std::atomic<bool> is_path_being_executed_{false};
 
-  /// Result of the path_planner, and input to IK. Desired position and orientation of the end effector relative to the base.
-  tf2::Transform path_planner_pose_ = tf2::Transform();
-  rclcpp::Time path_planner_pose_update_time_ = rclcpp::Time();
-
   // broadcasting path_planner
   std::shared_ptr<tf2_ros::TransformBroadcaster> path_planner_pose_tf_broadcaster_;
 
@@ -284,7 +282,7 @@ protected:
 
   // Timeout to consider cmd_vel commands old
   bool subscriber_is_active_ = false; // not sure what this is for yet
-  rclcpp::Time previous_update_timestamp_{0};
+  // rclcpp::Time previous_update_timestamp_{0};
 
   // publish rate limiter
   bool is_halted = false;
