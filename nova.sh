@@ -19,6 +19,15 @@ alias pull='. ~/nova_ws/src/core/macros/pull.sh'   # Runs a GitHub pull on all r
 # Directory Aliases
 alias nova='cd ~/nova_ws'
 alias core='cd ~/nova_ws/src/core'
+alias control='cd ~/nova_ws/src/control'
+alias electronics='cd ~/nova_ws/src/electronics'
+alias elec=electronics
+alias science='cd ~/nova_ws/src/science'
+alias cameras='cd ~/nova_ws/src/cameras'
+alias cams=cameras
+alias autonomous='cd ~/nova_ws/src/autonomous'
+alias auto=autonomous
+alias gui='cd ~/nova_ws/src/gui'
 
 # Calls bash executions
 setup                                              # Sets up the bash file
