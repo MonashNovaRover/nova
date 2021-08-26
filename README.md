@@ -37,6 +37,7 @@ This repository stores all of the relevant messages, services and action interfa
 **Template.msg**
 Inputs:
 > string param1
+
 > int64 param2
 
 <br/>
@@ -49,6 +50,7 @@ Inputs:
 **Template.srv**
 Inputs:
 > string param1
+
 > int64 param2
 
 Outputs:
@@ -64,6 +66,7 @@ Outputs:
 **Template.action**
 Inputs:
 > string param1
+
 > int64 param2
 
 Outputs:
