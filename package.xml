@@ -3,9 +3,9 @@
 <package format="3">
   <name>science</name>
   <version>1.0.0</version>
-  <description>TODO: Package description</description>
+  <description>Science scripts on the rover.</description>
   <maintainer email="novaroverteam@monash.edu">Monash Nova Rover</maintainer>
-  <license>TODO: License declaration</license>
+  <license>Only for Monash Nova Rover Team to use and distribute.</license>
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>
