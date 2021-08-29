@@ -4,8 +4,8 @@
   <name>core</name>
   <version>1.0.0</version>
   <description>Core scripts, messages and services for the MNR team</description>
-  <maintainer email="novaroverteam@monash.edu">nova</maintainer>
-  <license>TODO: License declaration</license>
+  <maintainer email="novaroverteam@monash.edu">Monash Nova Rover</maintainer>
+  <license>Only for Monash Nova Rover Team to use and distribute.</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
