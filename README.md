@@ -1,4 +1,5 @@
-# core
+# core :scroll:
+
 This is the core repository and should be installed on every Nova device. It contains all bash scripts, alias, schema and ROS 2 custom interfaces. No ROS code, excluding interfaces, should exist on this repository.
 
 ---
