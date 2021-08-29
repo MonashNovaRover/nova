@@ -26,3 +26,7 @@ alias cams=cameras
 alias autonomous='cd ~/nova_ws/src/autonomous'
 alias auto=autonomous
 alias gui='cd ~/nova_ws/src/gui'
+alias pic='cd ~/nova_ws/other/pics'
+alias pics=pic
+alias arduino='cd ~/nova_ws/other/arduinos'
+alias arduinos=arduino
