@@ -1,5 +1,5 @@
-int64 r
-int64 g
-int64 b
+uint8 r
+uint8 g
+uint8 b
 ---
-int64 sent_status
+bool sent_status
