@@ -29,32 +29,32 @@ For many of the components below, there is relevant code from our ARC 2021 packa
 
 **MVP Components:**
 
-	- Pose System:
-		1. Test and tune various pose sources (see Trello for tasks)
-		2. Create a pose system utilizing at least two sensors, for example:
-		- T265 camera + wheel odometry
-		- T265 + AR tag tracking (intending to add the active beacon inputs later on)
-		ARC 2021 code references: [T265+wheels=Pose] (https://github.com/novarover/arc_auto/blob/master/scripts/pose/wheel_yaw_pose.py)
+- Pose System:
+	1. Test and tune various pose sources (see Trello for tasks)
+	2. Create a pose system utilizing at least two sensors, for example:
+	- T265 camera + wheel odometry
+	- T265 + AR tag tracking (intending to add the active beacon inputs later on)
+	ARC 2021 code references: [T265+wheels=Pose] (https://github.com/novarover/arc_auto/blob/master/scripts/pose/wheel_yaw_pose.py)
 
-	- 3D Mapper (non-simulataneous):
-		1. Import point-cloud data into Open3D, translate by pose to global coordinates
-		2. Build a 3D map with an appropriate representation (e.g. voxel grids)
-		[Open3D](http://www.open3d.org/) 
+- 3D Mapper (non-simulataneous):
+	1. Import point-cloud data into Open3D, translate by pose to global coordinates
+	2. Build a 3D map with an appropriate representation (e.g. voxel grids)
+	Reference: [Open3D](http://www.open3d.org/) 
 
-	- Path Planner:
-		1. Use 3D information (e.g. height of obstavles) to generate a 2D representation (AKA an occupancy map)
-		2. Perform A* and/ or other path planning techniques to plan a path from current location to a goal
-		3. Implement the controller which follows the path 
-		ARC 2021 reference: 
-		- [Path Planning: A*+String Pulling](https://github.com/novarover/arc_auto/blob/master/scripts/path_planning/PathPlanner.py)
-		- [Controller (Crow's Algorithm)](https://github.com/novarover/arc_auto/blob/master/scripts/controller/Controller.py)
+- Path Planner:
+	1. Use 3D information (e.g. height of obstavles) to generate a 2D representation (AKA an occupancy map)
+	2. Perform A* and/ or other path planning techniques to plan a path from current location to a goal
+	3. Implement the controller which follows the path 
+	ARC 2021 reference: 
+	- [Path Planning: A*+String Pulling](https://github.com/novarover/arc_auto/blob/master/scripts/path_planning/PathPlanner.py)
+	- [Controller (Crow's Algorithm)](https://github.com/novarover/arc_auto/blob/master/scripts/controller/Controller.py)
 
-	- Autonomous GUI:
-		1. visualise the rover, map, goals and paths all in the one 3D view
-		Open3D Viewer: 
-		Some links worth browing:
-		[Visualising Pointclouds](https://towardsdatascience.com/guide-to-real-time-visualisation-of-massive-3d-point-clouds-in-python-ea6f00241ee0)
-		[Open3D Visualisation Examples](http://www.open3d.org/docs/0.9.0/tutorial/Basic/visualization.html)
+- Autonomous GUI:
+	1. visualise the rover, map, goals and paths all in the one 3D view
+	Open3D Viewer: 
+	Some links worth browing:
+	[Visualising Pointclouds](https://towardsdatascience.com/guide-to-real-time-visualisation-of-massive-3d-point-clouds-in-python-ea6f00241ee0)
+	[Open3D Visualisation Examples](http://www.open3d.org/docs/0.9.0/tutorial/Basic/visualization.html)
 
 
 Note: this system will run on Wombat (the 2021 Rover) but will use ROS-2. Hence, ROS-2 conversion of all other core scripts is also an important part of achieving this MVP.
