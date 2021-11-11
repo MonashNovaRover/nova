@@ -31,4 +31,4 @@ alias pic='cd ~/nova_ws/other/pics'
 alias pics=pic
 alias arduino='cd ~/nova_ws/other/arduinos'
 alias arduinos=arduino
-
+alias ik='cd ~/nova_ws/other/ik_machine'
