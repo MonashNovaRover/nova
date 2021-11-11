@@ -5,7 +5,17 @@
 # +--------------------------------------------+
 #
 # Sets up all of the repositories and the workspace
-#   for the MNR ROS code.
+#   for the MNR ROS code. Make sure that this is
+#   the first file that you execute when setting
+#   your machine up to run Nova code.
+#
+# Prior to running this code, make sure you have
+#   been added to the MonashNovaRover GitHub
+#   organisation. You must be a member to have
+#   access to this code, and will need to make
+#   sure you have SSH-key security enabled on
+#   your device. Failing to do so may result in
+#   errors when running this script. 
 #
 # +--------------------------------------------+
 
@@ -29,6 +39,7 @@ mkdir -p ~/nova_ws/other
 cd ~/nova_ws/other
 git clone https://github.com/MonashNovaRover/arduinos.git
 git clone https://github.com/MonashNovaRover/pics.git
+git clone https://github.com/MonashNovaRover/ik_machine.git
 
 # Add the nova.sh bash script to the bashrc
 sudo echo "source ~/nova_ws/src/core/nova.sh" >> ~/.bashrc

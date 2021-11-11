@@ -7,7 +7,7 @@
 # Core Repository Bash Script
 # This should be added to everyone's .bashrc file
 #       sudo echo "source ~/nova_ws/src/core" < ~/.bashrc
-# This will initialise all macros and set up ROS correctly
+# This will initialise all macros and set up ROS correctly.
 #
 # +--------------------------------------------+
 
