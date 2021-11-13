@@ -19,12 +19,96 @@
 #
 # +--------------------------------------------+
 
+# Add the colors
+TITLE='\033[0;36;1m'
+INFO='\033[0;32;1m'
+END='\033[0m'
+
+# Create a print function
+title () {
+    echo 
+    echo "------------------------------"
+    printf "${TITLE}${1^^}${END}\n"
+    echo "------------------------------"
+    echo
+}
+
+# Create an information function
+information () {
+    printf "\n${INFO}${1}${END}\n"
+}
+
+
+# Prompt the user to run program
+title "NOVA ROVER INSTALLATION SCRIPT"
+echo "This script will delete the current nova_ws folder, if it exists."
+echo "Enter (Y)es to confirm or any key to cancel."
+read confirmation
+if [[ "$confirmation" != "y"  &&  "$confirmation" != "Y" ]]; then
+    echo "Cancelling Installation."
+    exit 1;
+fi
+
+# First step is to install dependencies and packages
+title "Installing Dependencies"
+sudo apt update -y
+
+# Installing ROS 2
+information "Installing ROS 2..."
+sudo apt update && sudo apt install curl gnupg2 lsb-release -y
+curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | sudo apt-key add -
+sudo sh -c 'echo "deb [arch=$(dpkg --print-architecture)] http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" > /etc/apt/sources.list.d/ros2-latest.list'
+sudo apt update -y
+sudo apt install ros-eloquent-desktop -y
+source /opt/ros/eloquent/setup.bash
+echo "source /opt/ros/eloquent/setup.bash" >> ~/.bashrc
+sudo apt install -y python3-pip -y
+pip3 install -U argcomplete -y
+sudo apt install -y python-rosdep -y
+sudo rosdep init -y
+rosdep update -y
+sudo apt install python3-colcon-common-extensions -y
+
+# Installing Text Editors
+information "Installing Editors..."
+sudo apt-get -y install nano
+sudo apt install vim -y
+
+# Install C++
+information "Installing C++..."
+sudo apt install build-essential -y
+sudo apt-get install manpages-dev -y
+
+# Installing Cameras and GStreamer
+information "Installing Cameras..."
+sudo apt-get -y install gstreamer-1.0 python-gi gstreamer1.0-tools gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-dev python-gst-1.0 -y
+pip3 install requests -y
+
+# Installing Net Tools
+information "Installing Networking..."
+sudo apt -y install net-tools
+sudo apt -y install can-utils
+sudo apt -y install exfat-fuse exfat-utils
+sudo gpasswd --add ${USER} dialout
+
+# Adding Git permissions
+information "Setting up Git..."
+printf "Please enter your Git User Name: "
+read username
+printf "Please enter your Git Email: "
+read email
+git config --global user.name "$username"
+git config --global user.email "$email"
+
 # Create the workspace
+information "Creating Nova Workspace..."
+rm -r ~/nova_ws
 mkdir -p ~/nova_ws/src
 cd ~/nova_ws
 colcon build
 
 # Clone the ROS GitHub files
+information "Cloning Repositories..."
 cd ~/nova_ws/src
 git clone https://github.com/MonashNovaRover/autonomous.git
 git clone https://github.com/MonashNovaRover/cameras.git
@@ -42,9 +126,13 @@ git clone https://github.com/MonashNovaRover/pics.git
 git clone https://github.com/MonashNovaRover/ik_machine.git
 
 # Add the nova.sh bash script to the bashrc
+information "Setting up Workspace..."
 sudo echo "source ~/nova_ws/src/core/nova.sh" >> ~/.bashrc
 source ~/.bashrc
 
 # Build the workspace
 cd ~/nova_ws
 colcon build
+
+# Completed
+title "Installation Complete!"
