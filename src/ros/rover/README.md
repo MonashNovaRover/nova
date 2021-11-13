@@ -24,6 +24,11 @@ Please add the **nova.sh** bash script to your bashrc.
 ``sudo echo "source ~/nova_ws/src/core/nova.sh" < ~/.bashrc``
 
 This will run the main bash script after every new Terminal instance. These will be required to run the bash scripts.
+Alternatively, to install all packages, dependencies and repositories to your Linux device, run the following bash script:
+
+``sudo ./ core/macros/setup.sh``
+
+Be aware,t his script will remove the current repositories and replace them all, along with all the macros. Make sure you have no local commits prior to running this line of code.
 
 ---
 
