@@ -25,6 +25,7 @@ TODO:
 
 import rclpy
 from rclpy.node import Node
+from rclpy.timer import Rate
 from core.msg import RadioStatus
 from fabric import Connection
 import re
@@ -33,8 +34,7 @@ import psutil
 import subprocess
 import sys
 
-from rclpy.timer import Rate
-
+# Stores the device information for each of the device settings
 dev_info = {
     "METABOX": {
         "is_ros": 1,                  # ROS = 1, else standard 0
@@ -63,7 +63,7 @@ class RadioMonitor(Node):
     self.interface = dev_info[device]["interface"]
 
     self.command = "ping -c 3 -W 1 " + self.dest_IP #shell command
-    self.ssh_connection = Connection(host="nova@"+self.radio_IP, connect_kwargs={"password":self.password}, connect_timeout=3)
+    self.ssh_connection = Connection(host="nova@" + self.radio_IP, connect_kwargs={"password":self.password}, connect_timeout=3)
 
     if self.is_ros:
       super().__init__("radio_monitor")
@@ -75,7 +75,7 @@ class RadioMonitor(Node):
     '''
     print("Connecting to radio")
     self.ssh_connection.open()
-
+  
   def loop_function(self):
     '''
     Main function
@@ -145,6 +145,7 @@ class RadioMonitor(Node):
     
     return ms
 
+
 def main():
   try:
     radio_monitor.connect_to_radio()
@@ -154,21 +155,22 @@ def main():
   except Exception as e:
     print(e)
 
+
 if __name__=="__main__":
-    # Grab parameter and check if not existed
+  # Grab parameter and check if not existed
   if len(sys.argv) <= 1:
       # Output error message
       print("Please enter a configuration out of the following:")
       for dev in dev_info.keys():
           print("\t" + dev)
-      print("Using Metabox as the default settings.")
+      print("Using METABOX as the default setting.")
       device = "METABOX"
 
   # Otherwise take the parameter
   else:
       # If found an invalid parameter
       if sys.argv[1].upper() not in dev_info.keys():
-          print("Using Metabox as the default settings.")
+          print("Using METABOX as the default setting.")
           device = "METABOX"
       # Else set the device
       else:
