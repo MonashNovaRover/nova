@@ -1,267 +1,221 @@
 /*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Monash Nova Rover Team
-
-This is the description of the class. Please explain the purpose
-  of the class, what it will be used for, and how it can
-  be interfaced with.
-Try to keep this description to a maximum of 5 lines long. Use
-  multiple lines if needed like this example.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-NODE: node_name
-TOPICS:
-  - /topic_name [Message Type]
-SERVICES:
-  - /service_name [Service Type]
-ACTIONS: None
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-PACKAGE: 	control
-AUTHOR(S):	Harrison Verrios
-CREATION:	13/11/2021
-EDITED:		13/11/2021
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-TODO:
- - Test with Joysticks
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-*/
-
-// Include all relevant packages; these are all standard C++ packages that come with Linux
-#include <iostream>
-#include <fcntl.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <linux/joystick.h>
-
-// Use the appropriate namespace
-using namespace std;
-
-// Define a list of Joystick types
-enum JoystickType {
-    CONTROLLER,
-    JOYSTICK_LEFT,
-    JOYSTICK_RIGHT
-};
-
-// Define a list of Joystick inputs
-enum JoystickInput {
-    C_BTN_A,
-    C_BTN_B,
-    C_BTN_X,
-    C_BTN_Y,
-    C_BTN_SHOULDER_L,
-    C_BTN_SHOULDER_R,
-    C_BTN_BACK,
-    C_BTN_START,
-    C_BTN_XBOX,
-    C_BTN_THUMB_L,
-    C_BTN_THUMB_R,
-
-    C_STICK_L_X,
-    C_STICK_L_Y,
-    C_STICK_R_X,
-    C_STICK_R_Y,
-    C_TRIGGER_L,
-    C_TRIGGER_R,
-    C_DPAD_X,
-    C_DPAD_Y,
-
-    NONE,
-};
-
-// The deadzone of the axis controllers
-const float DEADZONE = 0.1f;
-
-// Stores a list of gamepad data
-// For buttons: 0 is nothing, 1 is pressed, -1 is released.
-// For axis: 32766 is maximum, -32767 is minimum
-float state[JoystickInput::NONE];
-
-/// @brief      Looks a specific Joystick input based on a type
-/// @param      Type - The joystick type looking for
-/// @returns    The correct joystick device name from in the system
-const char* get_device_name (const JoystickType type) {
-    // TODO
-    return "/dev/input/js2";
-}
-
-/**
- * Reads a joystick event from the joystick device.
+ *--**--..--**--..--**--..--**--..--**--..--**--..--**--..--**--..--**--
+ * A joystick class to handle xbox/arm joystick inputs 
  *
- * Returns 0 on success. Otherwise -1 is returned.
+ * Author: Marcel Masque (marcel.masques@gmail.com)
+ *
+ * Date last updated: 29/01/20 by Marcel
+ *--..--**--..--**--..--**--..--**--..--**--..--**--..--**--..--**--..--
  */
-int read_event(int fd, struct js_event *event)
-{
-    ssize_t bytes;
+#include "joystick.h"
 
-    bytes = read(fd, event, sizeof(*event));
-
-    if (bytes == sizeof(*event))
-        return 0;
-
-    /* Error, could not read full event. */
-    return -1;
-}
-
-/**
- * Returns the number of axes on the controller or 0 if an error occurs.
+/*
+ *--**--..--**----**--..--**--..--**--..--**--..--**--..--**--..--**--
+ * Constructor used when offset is needed
+ *    Initialises controller position values, offsets and controller boolean settings
+ *    Initialises controller instance 
+ *--..--**--..--**--..--**--..--**--..--**--..--**--..--**--..--**--..--
  */
-size_t get_axis_count(int fd)
-{
-    __u8 axes;
+Joystick::Joystick(GAMEPAD_DEVICE controller, float offset) {
 
-    if (ioctl(fd, JSIOCGAXES, &axes) == -1)
-        return 0;
 
-    return axes;
+    offset_ = offset;
+
+    stick_lx_ = 0.0;
+    stick_ly_ = 0.0;
+    stick_rx_ = 0.0;
+    stick_ry_ = 0.0;
+    twist_lock_ = true;
+    hat_lock_ = true;
+    controller_ = controller;
 }
-
-/**
- * Returns the number of buttons on the controller or 0 if an error occurs.
+/*
+ *--**--..--**----**--..--**--..--**--..--**--..--**--..--**--..--**--
+ * Constructor used when offset is NOT  needed
+ *    Initialises controller position values, controller boolean settings
+ *    Initialises controller instance 
+ *--..--**--..--**--..--**--..--**--..--**--..--**--..--**--..--**--..--
  */
-size_t get_button_count(int fd)
-{
-    __u8 buttons;
-    if (ioctl(fd, JSIOCGBUTTONS, &buttons) == -1)
-        return 0;
+Joystick::Joystick(GAMEPAD_DEVICE controller) {
 
-    return buttons;
+	stick_lx_ = 0.0;
+	stick_ly_ = 0.0;
+	stick_rx_ = 0.0;
+	stick_ry_ = 0.0;
+    offset_ = 0;
+    twist_lock_ = true;
+    hat_lock_ = true;
+    controller_ = controller;
+}
+/*
+ *--**--..--**----**--..--**--..--**--..--**--..--**--..--**--..--**--
+ * Fetches stick values, corrects for deadzone and sets message values.
+ *--..--**--..--**--..--**--..--**--..--**--..--**--..--**--..--**--..--
+ */
+void Joystick::update() {
+
+	// grab stick values
+    GamepadStickXY(controller_, STICK_LEFT, &stick_lx_, &stick_ly_);
+    GamepadStickXY(controller_, STICK_RIGHT, &stick_rx_, &stick_ry_);
+    
+	// correct for deadzone
+    correctForDeadzone();
+	// set all message values
+    setMessageValues();
+}
+/*
+ *--**--..--**----**--..--**--..--**--..--**--..--**--..--**--..--**--
+ * The gamepad sticks have a deadzone - which means for a small amount of
+ * movement of the stick, the reading remains at zero. This means as soon
+ * as you move the stick out of the deadzone, the reading will jump from 
+ * zero to some higher value. The calculations here account for this and 
+ * rescale the values to remove this jump.
+ *--..--**--..--**--..--**--..--**--..--**--..--**--..--**--..--**--..--
+ */
+void Joystick::correctForDeadzone() {
+
+    
+    stick_lx_f = sgn(stick_lx_)*((float) abs(stick_lx_) - GAMEPAD_DEADZONE_LEFT_STICK)/STICK_MAX_L_;
+    stick_ly_f = sgn(stick_ly_)*((float) abs(stick_ly_) - GAMEPAD_DEADZONE_LEFT_STICK)/STICK_MAX_L_;
+
+    stick_rx_f = sgn(stick_rx_)*((float) abs(stick_rx_) - GAMEPAD_DEADZONE_RIGHT_STICK)/STICK_MAX_R_;
+    stick_ry_f = sgn(stick_ry_)*((float) abs(stick_ry_) - GAMEPAD_DEADZONE_RIGHT_STICK)/STICK_MAX_R_;
+    
+    
 }
 
-
-
-/// @brief      Returns the Input action from a button pressed
-/// @param      event - The reference to the Joystick event
-/// @param      joystick - The current joystick type being used
-/// @returns    The Joystick Input type for the button event
-JoystickInput get_button (struct js_event *event, const JoystickType joystick) {
-    if (joystick == JoystickType::CONTROLLER) {
-        switch (event->number) {
-            case 0: return C_BTN_A;
-            case 1: return C_BTN_B;
-            case 2: return C_BTN_X;
-            case 3: return C_BTN_Y;
-            case 4: return C_BTN_SHOULDER_L;
-            case 5: return C_BTN_SHOULDER_R;
-            case 6: return C_BTN_BACK;
-            case 7: return C_BTN_START;
-            case 8: return C_BTN_XBOX;
-            case 9: return C_BTN_THUMB_L;
-            case 10: return C_BTN_THUMB_R;
-            default: return NONE;
-        }
-    }
-
-    return NONE;
-}
-
-int get_button_value (struct js_event *event) {
-    return event->value ? 1 : 0;
-}
-
-/// @brief      Returns the Input action from an axis event
-/// @param      event - The reference to the Joystick event
-/// @param      joystick - The current joystick type being used
-/// @returns    The Joystick Input type for the axis event
-JoystickInput get_axis (struct js_event *event, const JoystickType joystick) {
-    if (joystick == JoystickType::CONTROLLER) {
-        switch (event->number) {
-            case 0: return C_STICK_L_X;
-            case 1: return C_STICK_L_Y;
-            case 2: return C_TRIGGER_L;
-            case 3: return C_STICK_R_X;
-            case 4: return C_STICK_R_Y;
-            case 5: return C_TRIGGER_R;
-            case 6: return C_DPAD_X;
-            case 7: return C_DPAD_Y;
-            default: return NONE;
-        }
-    }
-
-    return NONE;
-}
-
-float get_axis_value (struct js_event *event, const JoystickInput input) {
-    auto value = (float)event->value / 32767.0f;
-
-    // Check for trigger inputs for remapping:
-    if (input == JoystickInput::C_TRIGGER_L || input == JoystickInput::C_TRIGGER_R)
-        value = (value + 1.0f) / 2.0f;
-    else if (input == JoystickInput::C_STICK_L_Y || input == JoystickInput::C_STICK_R_Y || input == JoystickInput::C_DPAD_Y)
-        value = -value;
-
-    // Check for deadzone
-    if (value < DEADZONE && value > -DEADZONE)
-        return 0;
-    else
-        return value;
-}
-
-int main(int argc, char *argv[])
-{
-    const char *device;
-    int joystick;
-    struct js_event event;
-    JoystickType type = JoystickType::CONTROLLER;
-    JoystickInput button;
-    JoystickInput axis;
-
-    device = get_device_name(type);
-
-    joystick = open(device, O_RDONLY);
-
-    while (1) {
-        bool valid = read_event(joystick, &event) == 0;
-        if (valid) {
-            switch (event.type) {
-                case JS_EVENT_BUTTON:
-                    button = get_button(&event, type);
-                    state[button] = get_button_value(&event);
-                    break;
-                case JS_EVENT_AXIS:
-                    axis = get_axis(&event, type);
-                    state[axis] = get_axis_value(&event, axis);
-                    break;
-                default:
-                    break;
-            }
-
-            // Print current state
-            for (int i = 0; i < sizeof(state) / sizeof(int); i++) {
-                cout << i << " : " << state[i] << endl;
-            }
-        }
-        
-        sleep(0.01);
-        fflush(stdout);
-        cout << endl;
-    }
-    /*
-
-    if (js == -1)
-        perror("Could not open joystick");
-
-    // This loop will exit if the controller is unplugged.
-    while (read_event(js, &event) == 0)
-    {
-        switch (event.type)
-        {
-            case JS_EVENT_BUTTON:
-                printf("Button %u %s\n", event.number, event.value ? "pressed" : "released");
-                break;
-            case JS_EVENT_AXIS:
-                axis = get_axis_state(&event, axes);
-                if (axis < 10)
-                    printf("Axis %zu at (%6d, %6d)\n", axis, axes[axis].x, axes[axis].y);
-                break;
-            default:
-                printf("Hi");
-                break;
-        }
-        
-        fflush(stdout);
-    }
-
-    close(js);
-    */
+int Joystick::GetButtonState (const GAMEPAD_BUTTON button) {
+    if (GamepadButtonTriggered(controller_, button))
+        return 1;
+    else if (GamepadButtonReleased(controller_, button))
+        return 3;
+    else if (GamepadButtonDown(controller_, button))
+        return 2;
+    
     return 0;
+}
+
+/*
+ *--**--..--**----**--..--**--..--**--..--**--..--**--..--**--..--**--
+ * Fetches rest of controller values and updates the message object
+ *--..--**--..--**--..--**--..--**--..--**--..--**--..--**--..--**--..--
+ */
+void Joystick::setMessageValues() {
+
+    msg_.connected = GamepadIsConnected(controller_); // Check controller connection
+    if (msg_.connected)
+    {   
+        
+        // Set the values in the ROS msg_
+        msg_.ax_stick_l_x = stick_lx_f; 
+        msg_.ax_stick_l_y = stick_ly_f;   
+        msg_.ax_stick_r_x = stick_rx_f; 
+        msg_.ax_stick_r_y = stick_ry_f;   
+
+        // Set the button messages
+        /*
+        msg_.btn_a_down = GamepadButtonDown(controller_, BUTTON_A);
+        msg_.btn_b_down = GamepadButtonDown(controller_, BUTTON_B);
+        msg_.btn_x_down = GamepadButtonDown(controller_, BUTTON_X);
+        msg_.btn_y_down = GamepadButtonDown(controller_, BUTTON_Y);
+        msg_.btn_start_down = GamepadButtonDown(controller_, BUTTON_START);
+        msg_.btn_back_down = GamepadButtonDown(controller_, BUTTON_BACK);
+        msg_.btn_shoulder_l_down = GamepadButtonDown(controller_, BUTTON_LEFT_SHOULDER);
+        msg_.btn_shoulder_r_down = GamepadButtonDown(controller_, BUTTON_RIGHT_SHOULDER);
+        msg_.btn_xbox_down = GamepadButtonDown(controller_, BUTTON_XBOX );
+        msg_.btn_thumb_l_down = GamepadButtonDown(controller_, BUTTON_LEFT_THUMB );
+        msg_.btn_thumb_r_down = GamepadButtonDown(controller_, BUTTON_RIGHT_THUMB );
+        msg_.btn_dpad_l_down = GamepadButtonDown(controller_, BUTTON_DPAD_LEFT);
+        msg_.btn_dpad_r_down = GamepadButtonDown(controller_, BUTTON_DPAD_RIGHT );
+        msg_.btn_dpad_u_down = GamepadButtonDown(controller_, BUTTON_DPAD_UP );
+        msg_.btn_dpad_d_down = GamepadButtonDown(controller_, BUTTON_DPAD_DOWN );
+        */
+
+        // Set the state messages
+        msg_.btn_a_state = GetButtonState(BUTTON_A);
+        msg_.btn_b_state = GetButtonState(BUTTON_B);
+        msg_.btn_x_state = GetButtonState(BUTTON_X);
+        msg_.btn_y_state = GetButtonState(BUTTON_Y);
+        msg_.btn_start_state = GetButtonState(BUTTON_START);
+        msg_.btn_back_state = GetButtonState(BUTTON_BACK);
+        msg_.btn_shoulder_l_state = GetButtonState(BUTTON_LEFT_SHOULDER);
+        msg_.btn_shoulder_r_state = GetButtonState(BUTTON_RIGHT_SHOULDER);
+        msg_.btn_xbox_state = GetButtonState(BUTTON_XBOX);
+        msg_.btn_thumb_l_state = GetButtonState(BUTTON_LEFT_THUMB);
+        msg_.btn_thumb_r_state = GetButtonState(BUTTON_RIGHT_THUMB);
+        msg_.btn_dpad_l_state = GetButtonState(BUTTON_DPAD_LEFT);
+        msg_.btn_dpad_r_state = GetButtonState(BUTTON_DPAD_RIGHT );
+        msg_.btn_dpad_u_state = GetButtonState(BUTTON_DPAD_UP );
+        msg_.btn_dpad_d_state = GetButtonState(BUTTON_DPAD_DOWN );
+
+        
+        //left
+        if (twist_lock_ and GamepadTriggerLength(controller_, TRIGGER_LEFT) < 0.1)
+        {
+            msg_.trg_l_val = 0.0;
+        }
+        else
+        {
+            msg_.trg_l_val = GamepadTriggerLength(controller_, TRIGGER_LEFT) - offset_;
+            msg_.trg_l_val = (msg_.trg_l_val > 0.0) ? msg_.trg_l_val/(1 - offset_): msg_.trg_l_val/(offset_);
+          
+            if ((msg_.trg_l_val < 0.01 && msg_.trg_l_val > -0.01) || isnan(msg_.trg_l_val))
+            {
+                msg_.trg_l_val = 0.0;
+            }
+
+            twist_lock_ = false;
+        }
+        // right
+        if (hat_lock_ and GamepadTriggerLength(controller_, TRIGGER_RIGHT) < 0.1)
+        {
+            msg_.trg_r_val = 0.0;
+        }
+        else
+        {
+            msg_.trg_r_val = GamepadTriggerLength(controller_, TRIGGER_RIGHT)-offset_;
+            msg_.trg_r_val = (msg_.trg_r_val>0.0) ? msg_.trg_r_val/(1-offset_): msg_.trg_r_val/(offset_); //Re-scale OFFSET value
+            if ((msg_.trg_r_val < 0.01 && msg_.trg_r_val > -0.01) || isnan(msg_.trg_r_val)) // Get rid of tiny floats
+            { 
+                msg_.trg_r_val = 0.0;
+            }
+            hat_lock_ = false;
+        }
+
+        //When the joystick is first connected the twist and hat give a 0.0 until moved, whereas their actual centre is 0.435. This ensures that they have been moved first so they don't make a full negative power to twist and hat on connection
+        msg_.btn_trigger_l_down = GamepadTriggerDown(controller_, TRIGGER_LEFT);
+        msg_.btn_trigger_r_down = GamepadTriggerDown(controller_, TRIGGER_RIGHT);
+
+        bool dpad_l = GamepadButtonDown(controller_, BUTTON_DPAD_LEFT);
+        bool dpad_r = GamepadButtonDown(controller_, BUTTON_DPAD_RIGHT);
+
+        bool dpad_u = GamepadButtonDown(controller_, BUTTON_DPAD_UP);
+        bool dpad_d = GamepadButtonDown(controller_, BUTTON_DPAD_DOWN);
+
+        msg_.ax_dpad_x = dpad_r - dpad_l; // Left -1, none/both 0, right 1
+        msg_.ax_dpad_y = dpad_u - dpad_d; // Down -1, none/both 0, up 1
+        
+    }
+    else
+    {
+        msg_.ax_stick_l_x = 0.0;
+        msg_.ax_stick_l_y = 0.0;
+        msg_.ax_stick_r_x = 0.0;
+        msg_.ax_stick_r_y = 0.0;
+        twist_lock_ = true;
+        hat_lock_ = true;
+    }
+}
+
+core::msg::InputGamepad Joystick::getMessage() {
+    return msg_;
+}
+
+//--**--..--**--..--**--..--**--..--**--..--**--..--**--..--**--..--**--
+// sgn():
+//
+//    Returns the sign of the input float (-1, 0 or 1).
+//--..--**--..--**--..--**--..--**--..--**--..--**--..--**--..--**--..--
+int Joystick::sgn(float val) {
+    return (int)(0.0 < val) - (val < 0.0);
 }
