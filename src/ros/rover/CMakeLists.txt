@@ -28,6 +28,7 @@ find_package(rosidl_default_generators REQUIRED)
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/TurtleInfo.msg"
   "msg/RadioStatus.msg"
+  "msg/InputGamepad.msg"
 )
 
 # Run build testing package nodes
