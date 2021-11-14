@@ -21,26 +21,34 @@ include_directories(
     "${PROJECT_SOURCE_DIR}/include"
 )
 
-# Find dependencies
+# Find and include all dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(core REQUIRED)
 include_directories(./include/)
 
+# Add gamepad targets, as these are located in the include folder
 if (NOT TARGET gamepad)
   add_library(gamepad SHARED include/gamepad/gamepad.c)
 endif()
 
-# Add executables
+# Add executables:
+
+# Inputs script
 add_executable(inputs src/inputs_publisher.cpp src/joystick.cpp 
   ${PROJECT_SOURCE_DIR}/include/gamepad/gamepad.c)
 target_link_libraries(inputs gamepad udev ${catkin_LIBRARIES})
 ament_target_dependencies(inputs rclcpp core)
 
+# Drive Command script
+add_executable(drive_cmd src/drive_publisher.cpp)
+ament_target_dependencies(drive_cmd rclcpp core)
+
 
 # Add all the installation targets
 install(TARGETS
   inputs
+  drive_cmd
   DESTINATION lib/${PROJECT_NAME}
 )
 

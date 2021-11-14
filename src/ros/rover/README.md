@@ -11,7 +11,7 @@ sudo apt install libudev-dev -y
 ## Script Directory
 
 - **Drive Publisher**: Publishes drive data by analysing the input and sending the required steer and RPM values to the drive node for analysing.
-    `ros2 run control drive_pub`
+    `ros2 run control drive_cmd`
 <br>
 
 - **Input Publisher**: Publishes input data from all of the currently plugged in joysticks over the ROS networks.
