@@ -29,6 +29,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/TurtleInfo.msg"
   "msg/RadioStatus.msg"
   "msg/InputGamepad.msg"
+  "msg/DriveCmd.msg"
 )
 
 # Run build testing package nodes
