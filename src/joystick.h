@@ -34,6 +34,7 @@ TODO:
 // Use the standard namespace
 using namespace std;
 
+
 // Main joystick class
 class Joystick {
 
@@ -44,65 +45,65 @@ class Joystick {
     //------------------------------------------------------------//
     protected:
 
-        core::msg::InputGamepad msg;            // Stores the message data from the gamepad
-        GAMEPAD_DEVICE controller;              // Stores the device controller ID
+    core::msg::InputGamepad msg;            // Stores the message data from the gamepad
+    GAMEPAD_DEVICE controller;              // Stores the device controller ID
 
-        float offset;                           // Stores the offset of the axis
-        int stick_lx;                           // Stores the raw input of the left stick - x axis
-        int stick_ly;                           // Stores the raw input of the left stick - y axis
-        int stick_rx;                           // Stores the raw input of the right stick - x axis
-        int stick_ry;                           // Stores the raw input of the right stick - y axis
+    float offset;                           // Stores the offset of the axis
+    int stick_lx;                           // Stores the raw input of the left stick - x axis
+    int stick_ly;                           // Stores the raw input of the left stick - y axis
+    int stick_rx;                           // Stores the raw input of the right stick - x axis
+    int stick_ry;                           // Stores the raw input of the right stick - y axis
 
-        float stick_lx_f;                       // Stores the value of the left stick - x axis
-		float stick_ly_f;                       // Stores the value of the left stick - y axis
-		float stick_rx_f;                       // Stores the value of the right stick - x axis
-		float stick_ry_f;                       // Stores the value of the right stick - y axis
-    
-        bool twist_lock;                        // Whether the twist on the axis has been locked
-	    bool hat_lock;                          // Whether the hat cap has been locked
+    float stick_lx_f;                       // Stores the value of the left stick - x axis
+    float stick_ly_f;                       // Stores the value of the left stick - y axis
+    float stick_rx_f;                       // Stores the value of the right stick - x axis
+    float stick_ry_f;                       // Stores the value of the right stick - y axis
+
+    bool twist_lock;                        // Whether the twist on the axis has been locked
+    bool hat_lock;                          // Whether the hat cap has been locked
     
 
     //------------------------------------------------------------//
     protected:
 
-        /// @brief      Corrects the data for any deadzone of the axis
-        void CorrectDeadzone();
+    /// @brief      Corrects the data for any deadzone of the axis
+    void correct_deadzone();
 
-        /// @brief      Sets the message values stored in the message object
-        void SetMessageValues();
+    /// @brief      Sets the message values stored in the message object
+    void set_message_values();
 
-        /// @brief      Gets the state of the button as an interger
-        ///                 0 - Not Pressed
-        ///                 1 - Button Triggered
-        ///                 2 - Button Down
-        ///                 3 - Button Released
-        /// @param      button - The button type looking for
-        /// @returns    The button state
-        int GetButtonState (const GAMEPAD_BUTTON button);
+    /// @brief      Gets the state of the button as an interger
+    ///                 0 - Not Pressed
+    ///                 1 - Button Triggered
+    ///                 2 - Button Down
+    ///                 3 - Button Released
+    /// @param      button - The button type looking for
+    /// @returns    The button state
+    int get_button_state (const GAMEPAD_BUTTON button);
 
-        /// @brief      Returns the sign of an input float (-1 or 1)
-        /// @param      val - The value to be calculated
-        /// @returns    The integer sign value
-		int Sign(const float val);
+    /// @brief      Returns the sign of an input float (-1 or 1)
+    /// @param      val - The value to be calculated
+    /// @returns    The integer sign value
+    int sign(const float val);
 
 
     //------------------------------------------------------------//
 	public:
 
-        /// @brief      Constructor that takes in a controller device
-        /// @param      controller - The controller of this joystick
-		Joystick(const GAMEPAD_DEVICE controller);
+    /// @brief      Constructor that takes in a controller device
+    /// @param      controller - The controller of this joystick
+    Joystick(const GAMEPAD_DEVICE controller);
 
-        /// @brief      Constructor that takes in multiple inputs
-        /// @param      controller - The controller of this joystick
-        /// @param      offset - The offset of the input axis to use
-		Joystick(const GAMEPAD_DEVICE controller, const float offset);
+    /// @brief      Constructor that takes in multiple inputs
+    /// @param      controller - The controller of this joystick
+    /// @param      offset - The offset of the input axis to use
+    Joystick(const GAMEPAD_DEVICE controller, const float offset);
 
-        /// @brief      Updates the input data and stores data to the message object
-		void Update();
+    /// @brief      Updates the input data and stores data to the message object
+    void update();
 
-        /// @brief      Gets the message object from the instance
-        /// @returns    The Input Gamepad message object with data
-		core::msg::InputGamepad GetMessage();
+    /// @brief      Gets the message object from the instance
+    /// @returns    The Input Gamepad message object with data
+    core::msg::InputGamepad get_message();
 
 };

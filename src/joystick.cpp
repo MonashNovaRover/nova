@@ -7,7 +7,9 @@ AUTHOR(S):	Marcel Masque, Harrison Verrios
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
+// Include the header file
 #include "joystick.h"
+
 
 /*
     Constructor used when offset is needed
@@ -29,6 +31,7 @@ Joystick::Joystick(const GAMEPAD_DEVICE controller, const float offset) {
     hat_lock = true;
 }
 
+
 /*
     Constructor used when offset is NOT  needed
     Initialises controller position values, controller boolean settings
@@ -38,20 +41,22 @@ Joystick::Joystick(const GAMEPAD_DEVICE controller) :
     Joystick(controller, 0.0) {
 }
 
+
 /*
     Fetches stick values, corrects for deadzone and sets message values.
 */
-void Joystick::Update() {
+void Joystick::update() {
 
 	// grab stick values
     GamepadStickXY(controller, STICK_LEFT, &stick_lx, &stick_ly);
     GamepadStickXY(controller, STICK_RIGHT, &stick_rx, &stick_ry);
     
 	// correct for deadzone
-    CorrectDeadzone();
+    correct_deadzone();
 	// set all message values
-    SetMessageValues();
+    set_message_values();
 }
+
 
 /*
     The gamepad sticks have a deadzone - which means for a small amount of
@@ -60,23 +65,24 @@ void Joystick::Update() {
     zero to some higher value. The calculations here account for this and 
     rescale the values to remove this jump.
 */
-void Joystick::CorrectDeadzone() {
+void Joystick::correct_deadzone() {
 
     // Updates the left stick float values
-    stick_lx_f = Sign(stick_lx) * ((float) abs(stick_lx) - GAMEPAD_DEADZONE_LEFT_STICK) / STICK_MAX_L;
-    stick_ly_f = Sign(stick_ly) * ((float) abs(stick_ly) - GAMEPAD_DEADZONE_LEFT_STICK) / STICK_MAX_L;
+    stick_lx_f = sign(stick_lx) * ((float) abs(stick_lx) - GAMEPAD_DEADZONE_LEFT_STICK) / STICK_MAX_L;
+    stick_ly_f = sign(stick_ly) * ((float) abs(stick_ly) - GAMEPAD_DEADZONE_LEFT_STICK) / STICK_MAX_L;
 
     // Updates the right stick float values
-    stick_rx_f = Sign(stick_rx) * ((float) abs(stick_rx) - GAMEPAD_DEADZONE_RIGHT_STICK) / STICK_MAX_R;
-    stick_ry_f = Sign(stick_ry) * ((float) abs(stick_ry) - GAMEPAD_DEADZONE_RIGHT_STICK) / STICK_MAX_R;
+    stick_rx_f = sign(stick_rx) * ((float) abs(stick_rx) - GAMEPAD_DEADZONE_RIGHT_STICK) / STICK_MAX_R;
+    stick_ry_f = sign(stick_ry) * ((float) abs(stick_ry) - GAMEPAD_DEADZONE_RIGHT_STICK) / STICK_MAX_R;
 }
+
 
 /*
     Returns the state of a particular button input based on how the button
     has been pressed. If no input, it will be a 0. If triggered, 1. If the
     button has been held, then 2 and when the button is released, 3.
 */
-int Joystick::GetButtonState (const GAMEPAD_BUTTON button) {
+int Joystick::get_button_state (const GAMEPAD_BUTTON button) {
     if (GamepadButtonTriggered(controller, button))
         return 1;
     else if (GamepadButtonReleased(controller, button))
@@ -88,10 +94,11 @@ int Joystick::GetButtonState (const GAMEPAD_BUTTON button) {
     return 0;
 }
 
+
 /*
     Fetches rest of controller values and updates the message object
 */
-void Joystick::SetMessageValues() {
+void Joystick::set_message_values() {
 
     // Checks if the gamepad is currently connected
     msg.connected = GamepadIsConnected(controller);
@@ -106,21 +113,21 @@ void Joystick::SetMessageValues() {
         msg.ax_stick_r_y = stick_ry_f;
 
         // Set the state messages of each of the buttons
-        msg.btn_a_state = GetButtonState(BUTTON_A);
-        msg.btn_b_state = GetButtonState(BUTTON_B);
-        msg.btn_x_state = GetButtonState(BUTTON_X);
-        msg.btn_y_state = GetButtonState(BUTTON_Y);
-        msg.btn_start_state = GetButtonState(BUTTON_START);
-        msg.btn_back_state = GetButtonState(BUTTON_BACK);
-        msg.btn_shoulder_l_state = GetButtonState(BUTTON_LEFT_SHOULDER);
-        msg.btn_shoulder_r_state = GetButtonState(BUTTON_RIGHT_SHOULDER);
-        msg.btn_xbox_state = GetButtonState(BUTTON_XBOX);
-        msg.btn_thumb_l_state = GetButtonState(BUTTON_LEFT_THUMB);
-        msg.btn_thumb_r_state = GetButtonState(BUTTON_RIGHT_THUMB);
-        msg.btn_dpad_l_state = GetButtonState(BUTTON_DPAD_LEFT);
-        msg.btn_dpad_r_state = GetButtonState(BUTTON_DPAD_RIGHT );
-        msg.btn_dpad_u_state = GetButtonState(BUTTON_DPAD_UP );
-        msg.btn_dpad_d_state = GetButtonState(BUTTON_DPAD_DOWN );
+        msg.btn_a_state = get_button_state(BUTTON_A);
+        msg.btn_b_state = get_button_state(BUTTON_B);
+        msg.btn_x_state = get_button_state(BUTTON_X);
+        msg.btn_y_state = get_button_state(BUTTON_Y);
+        msg.btn_start_state = get_button_state(BUTTON_START);
+        msg.btn_back_state = get_button_state(BUTTON_BACK);
+        msg.btn_shoulder_l_state = get_button_state(BUTTON_LEFT_SHOULDER);
+        msg.btn_shoulder_r_state = get_button_state(BUTTON_RIGHT_SHOULDER);
+        msg.btn_xbox_state = get_button_state(BUTTON_XBOX);
+        msg.btn_thumb_l_state = get_button_state(BUTTON_LEFT_THUMB);
+        msg.btn_thumb_r_state = get_button_state(BUTTON_RIGHT_THUMB);
+        msg.btn_dpad_l_state = get_button_state(BUTTON_DPAD_LEFT);
+        msg.btn_dpad_r_state = get_button_state(BUTTON_DPAD_RIGHT );
+        msg.btn_dpad_u_state = get_button_state(BUTTON_DPAD_UP );
+        msg.btn_dpad_d_state = get_button_state(BUTTON_DPAD_DOWN );
 
         
         // Left trigger
@@ -180,16 +187,18 @@ void Joystick::SetMessageValues() {
     }
 }
 
+
 /*
     Returns the message object from the instance
 */
-core::msg::InputGamepad Joystick::GetMessage() {
+core::msg::InputGamepad Joystick::get_message() {
     return msg;
 }
+
 
 /*
     Returns the sign of the input float (-1 or 1).
 */
-int Joystick::Sign(const float val) {
+int Joystick::sign(const float val) {
     return (int)(0.0 < val) - (val < 0.0);
 }
