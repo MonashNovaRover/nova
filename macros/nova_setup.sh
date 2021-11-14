@@ -78,6 +78,7 @@ sudo apt install vim -y
 information "Installing C++..."
 sudo apt install build-essential -y
 sudo apt-get install manpages-dev -y
+sudo apt install libudev-dev -y
 
 # Installing Cameras and GStreamer
 information "Installing Cameras..."
