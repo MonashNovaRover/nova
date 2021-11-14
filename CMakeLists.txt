@@ -32,15 +32,15 @@ if (NOT TARGET gamepad)
 endif()
 
 # Add executables
-add_executable(input src/inputs_pub.cpp src/joystick.cpp 
+add_executable(inputs src/inputs_publisher.cpp src/joystick.cpp 
   ${PROJECT_SOURCE_DIR}/include/gamepad/gamepad.c)
-target_link_libraries(input gamepad udev ${catkin_LIBRARIES})
-ament_target_dependencies(input rclcpp core)
+target_link_libraries(inputs gamepad udev ${catkin_LIBRARIES})
+ament_target_dependencies(inputs rclcpp core)
 
 
 # Add all the installation targets
 install(TARGETS
-  input
+  inputs
   DESTINATION lib/${PROJECT_NAME}
 )
 
