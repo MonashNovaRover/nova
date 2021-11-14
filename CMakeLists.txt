@@ -15,14 +15,35 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-# find dependencies
-find_package(ament_cmake REQUIRED)
-# uncomment the following section in order to fill in
-# further dependencies manually.
-# find_package(<dependency> REQUIRED)
+include_directories(
+  include
+    ${catkin_INCLUDE_DIRS}
+    "${PROJECT_SOURCE_DIR}/include"
+)
 
+# Find dependencies
+find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(core REQUIRED) 
+find_package(core REQUIRED)
+include_directories(./include/)
+
+if (NOT TARGET gamepad)
+  add_library(gamepad SHARED include/gamepad/gamepad.c)
+endif()
+
+# Add executables
+add_executable(joystick src/joystick_pub.cpp src/joystick.cpp 
+  ${PROJECT_SOURCE_DIR}/include/gamepad/gamepad.c)
+target_link_libraries(joystick gamepad udev ${catkin_LIBRARIES})
+ament_target_dependencies(joystick rclcpp core)
+
+
+# Add all the installation targets
+install(TARGETS
+  joystick
+  DESTINATION lib/${PROJECT_NAME}
+)
+
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
