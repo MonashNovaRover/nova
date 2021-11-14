@@ -39,6 +39,12 @@ using namespace std;
 using namespace std::chrono_literals;
 using std::placeholders::_1;
 
+// The minimum and maximum multipliers
+const float MIN_MULTIPLIER      = 0.1;  // The minimum multiplier value
+const float MAX_MULTIPLIER      = 1.0;  // The maximum multiplier value
+const float DELTA_MULTIPLIER    = 0.1;  // The change in multiplier
+
+
 // Main publisher class that sends input data for the gamepad and joysticks
 class DrivePublisher : public rclcpp::Node {
 
@@ -61,9 +67,30 @@ class DrivePublisher : public rclcpp::Node {
         float input_axis_x = 0.0;
         float input_axis_y = 0.0;
 
+        // The current speed and steer multipliers
+        float multiplier_speed = 0.5;
+        float multiplier_steer = 1.0;
+
     
     //------------------------------------------------------------//
     private:
+
+        /// @brief      Adjusts one of the multipliers between 0.1 and 1.0
+        /// @param      multiplier - A reference to the speed or steer multiplier
+        /// @param      increase - A boolean flag for increasing (or false to decrease)
+        /// @returns    The current value of the multiplier
+        float adjust_multiplier (float& multiplier, bool increase) {
+            multiplier += (increase) ? DELTA_MULTIPLIER : -DELTA_MULTIPLIER;
+
+            // Check for minimum and maximums
+            if (multiplier > MAX_MULTIPLIER)
+                multiplier = MAX_MULTIPLIER;
+            else if (multiplier <= MIN_MULTIPLIER)
+                multiplier = MIN_MULTIPLIER;
+
+            // Return the new multiplier
+            return multiplier;
+        }
 
         /// @brief      Publishes the drive commands from analysing
         ///                 the input data.
@@ -73,8 +100,8 @@ class DrivePublisher : public rclcpp::Node {
             auto message = core::msg::DriveCmd();
 
             // Set up the values
-            message.speed = input_axis_y;
-            message.steer = input_axis_x;
+            message.speed = input_axis_y * multiplier_speed;
+            message.steer = input_axis_x * multiplier_steer;
             
             // Publish the drive commands
             publisher->publish(message);
@@ -89,10 +116,23 @@ class DrivePublisher : public rclcpp::Node {
                 input_axis_y = 0.0;
             }
 
-            // Update the input axis
+            // If the controller is connected
             else {
+                // Update the input axis
                 input_axis_x = msg->ax_stick_r_x;
                 input_axis_y = msg->ax_stick_l_y;
+
+                // Change the speed multipliers
+                if (msg->btn_dpad_u_state == 1)
+                    adjust_multiplier(multiplier_speed, true);
+                else if (msg->btn_dpad_d_state == 1)
+                    adjust_multiplier(multiplier_speed, false);
+                
+                // Change the steer multipliers
+                if (msg->btn_dpad_r_state == 1)
+                    adjust_multiplier(multiplier_steer, true);
+                else if (msg->btn_dpad_l_state == 1)
+                    adjust_multiplier(multiplier_steer, false);
             }         
         }
 
