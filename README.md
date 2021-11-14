@@ -10,6 +10,12 @@ sudo apt install libudev-dev -y
 
 ## Script Directory
 
-- **Input Publisher**: Publishes input data from all of the currently plugged in joysticks over the ROS networks.
+- **Drive Publisher**: Publishes drive data by analysing the input and sending the required steer and RPM values to the drive node for analysing.
+    `ros2 run control drive_cmd`
+<br>
 
-- **Joystick**: Not a ROS script, but interfaces with the Gamepad library and stores data for each of the inputs and joystick actions.
+- **Input Publisher**: Publishes input data from all of the currently plugged in joysticks over the ROS networks.
+    `ros2 run control inputs`
+<br>
+
+- **Joystick**: Not a ROS script, but interfaces with the Gamepad library and stores data for each of the inputs and joystick actions. This script cannot be executed by ROS, but scripts may include this class and create instances of it (as done in the input publisher class).
