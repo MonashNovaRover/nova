@@ -44,6 +44,19 @@ const float MIN_MULTIPLIER      = 0.1;  // The minimum multiplier value
 const float MAX_MULTIPLIER      = 1.0;  // The maximum multiplier value
 const float DELTA_MULTIPLIER    = 0.1;  // The change in multiplier
 
+// The minimum trigger speed multiplier to apply when the right trigger is held
+const float MIN_TRIGGER_MULTIPLIER = 0.4;
+
+/*
+    HOW TO DRIVE THE ROVER:
+
+    Left Y Axis:    Speed (forwards and backwards)
+    Right X Axis:   Steer (left and right)
+    DPAD Y Axis:    Increase / Decrease the Speed multiplier by 10%
+    DPAD X Axis:    Increase / Decrease the Steer multiplier by 10%
+    Right Trigger:  Add Custom speed multipliers between 1.0 and 0.4
+*/
+
 
 // Main publisher class that sends input data for the gamepad and joysticks
 class DrivePublisher : public rclcpp::Node {
@@ -66,6 +79,9 @@ class DrivePublisher : public rclcpp::Node {
         // Stores the current state of the input axis
         float input_axis_x = 0.0;
         float input_axis_y = 0.0;
+
+        // Stores the current state of the trigger multiplier
+        float trigger_speed = 1.0;
 
         // The current speed and steer multipliers
         float multiplier_speed = 0.5;
@@ -92,6 +108,7 @@ class DrivePublisher : public rclcpp::Node {
             return multiplier;
         }
 
+
         /// @brief      Publishes the drive commands from analysing
         ///                 the input data.
         void publish_cmds () {
@@ -100,12 +117,13 @@ class DrivePublisher : public rclcpp::Node {
             auto message = core::msg::DriveCmd();
 
             // Set up the values
-            message.speed = input_axis_y * multiplier_speed;
+            message.speed = input_axis_y * multiplier_speed * trigger_speed;
             message.steer = input_axis_x * multiplier_steer;
             
             // Publish the drive commands
             publisher->publish(message);
         }
+
 
         /// @brief      Callback function when input messages are received.
         /// @param      msg - A pointer to the input message
@@ -114,6 +132,7 @@ class DrivePublisher : public rclcpp::Node {
             if (!msg->connected) {
                 input_axis_x = 0.0;
                 input_axis_y = 0.0;
+                trigger_speed = 1.0;
             }
 
             // If the controller is connected
@@ -121,6 +140,9 @@ class DrivePublisher : public rclcpp::Node {
                 // Update the input axis
                 input_axis_x = msg->ax_stick_r_x;
                 input_axis_y = msg->ax_stick_l_y;
+
+                // Get the trigger speed multiplier
+                trigger_speed = 1.0 - (msg->trg_r_val * (1 - MIN_TRIGGER_MULTIPLIER));
 
                 // Change the speed multipliers
                 if (msg->btn_dpad_u_state == 1)
