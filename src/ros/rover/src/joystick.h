@@ -19,8 +19,8 @@ CREATION:	29/01/2020
 EDITED:		14/11/2021
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
- - Item One
- - Item Two
+ - Implement Joystick controller inputs
+ - Perform auto checking to determine which joystick is which
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
