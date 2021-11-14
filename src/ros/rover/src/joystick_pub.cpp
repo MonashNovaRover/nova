@@ -28,9 +28,9 @@ class JoystickPublisher : public rclcpp::Node {
         // Updates the state of the gamepad
 		GamepadUpdate();
 
-		//update the status of each controller
-		xbox->update();
-        publisher_->publish(xbox->getMessage());
+		// update the status of each controller
+		xbox->Update();
+        publisher_->publish(xbox->GetMessage());
     }
 
     JoystickPublisher() : Node("joystick_pub"), count_(0)
