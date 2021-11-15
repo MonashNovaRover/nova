@@ -10,6 +10,9 @@ AUTHOR(S):	Harrison Verrios
 // Include the header file
 #include "drive_publisher.h"
 
+// Include standard output messages
+#include <iostream>
+
 
 // Adjustes the multiplier factor by some amount in some direction
 float DrivePublisher::adjust_multiplier (float& multiplier, bool increase) {
@@ -34,9 +37,16 @@ void DrivePublisher::publish_cmds () {
     // Create the message
     auto message = core::msg::DriveCmd();
 
-    // Set up the values
-    message.speed = input_axis_y * multiplier_speed * trigger_speed;
-    message.steer = input_axis_x * multiplier_steer;
+    // Set up the values if the controller is not locked
+    if (!locked) {
+        message.speed = input_axis_y * multiplier_speed * trigger_speed;
+        message.steer = input_axis_x * multiplier_steer;
+    
+    // Otherwise print lock message
+    } else {
+        cout << "Controller is Locked." << endl;
+        fflush(stdout);
+    }
     
     // Publish the drive commands
     publisher->publish(message);
@@ -60,6 +70,14 @@ void DrivePublisher::input_callback (const core::msg::InputGamepad::SharedPtr ms
 
         // Get the trigger speed multiplier
         trigger_speed = 1.0 - (msg->trg_r_val * (1 - MIN_TRIGGER_MULTIPLIER));
+
+        // Determine if the conrroller needs to be locked or not
+        if (msg->btn_xbox_state == 1)
+            locked = !locked;
+
+        // Prevent changing states if the controller is locked
+        if (locked)
+            return;
 
         // Change the speed multipliers
         if (msg->btn_dpad_u_state == 1)
