@@ -1,26 +1,23 @@
 # Autonomous Roadmap for ARC 2022:
-
 --------------------------------------------------
 
 Welcome! This document describes the current roadmap for Autonomous.
 
 We welcome **all feedback and suggestions**. Suggestions can be in the form of a Slack post, message, or a pull request.
 
-The roadmap below suggests creating an MVP before adding all the bells and whistles. 
-In the past, we have typically over promised features, started too complex, and in the weeks leading up to competition needed to scramble to get the system to work reliably, often ending up with a far simpler system than initially planned. Having said that, the MVP currently detailed below is a few notches more complex than what we used in ARC 2021. I've included a selection of features which I think are achievable to implement in one month, which will be reliable, and which will serve as a solid basis for future iterations.
-
-
 --------------------------------------------------
 ### Stage 0: Research [present - 22/11/2021]
 
 - Look through all the most promising open source code
 - Experiment with what can be installed and what can be demoed (e.g. SLAM on rosbag data)
-- Start to add some basic things to this Github repo.
+	- None of the open source SLAM packages we found work (or maybe we need to be better at CMake?) 
+	- Open3D is great
+- Beging Planning Stage 1
 
 
 -------------------------------------------------
 
-### Stage 1: MVP [22/11/2021 - 12/12/2021]
+### Stage 1: MVP [22/11/2021 - 18/12/2021]
 
 Build an MVP over a 3 week period starting (officially) 22th November:
 
