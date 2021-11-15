@@ -1,9 +1,7 @@
 # Autonomous Roadmap for ARC 2022:
 --------------------------------------------------
 
-Welcome! This document describes the current roadmap for Autonomous.
-
-We welcome **all feedback and suggestions**. Suggestions can be in the form of a Slack post, message, or a pull request.
+Mission: advance planetary self driving
 
 --------------------------------------------------
 ### Stage 0: Research [present - 22/11/2021]
@@ -14,15 +12,12 @@ We welcome **all feedback and suggestions**. Suggestions can be in the form of a
 	- Open3D is great
 - Beging Planning Stage 1
 
-
 -------------------------------------------------
 
 ### Stage 1: MVP [22/11/2021 - 18/12/2021]
 
-Build an MVP over a 3 week period starting (officially) 22th November:
-
 The MVP is both a significant step up from the 2021 ARC system, but also not so feature packed that it's unachievable.
-For many of the components below, there is relevant code from our ARC 2021 package which can be re-purposed (noting that it will need to be converted to ROS-2 and Python3). 
+For many of the components below, there is relevant code from our ARC 2021 package which can be re-purposed (noting that it will need to be converted to ROS-2 and Python3).
 
 **MVP Components:**
 
@@ -43,36 +38,34 @@ For many of the components below, there is relevant code from our ARC 2021 packa
 	2. Perform A* and/ or other path planning techniques to plan a path from current location to a goal
 	3. Implement the controller which follows the path 
 	ARC 2021 reference: 
-	- [Path Planning: A*+String Pulling](https://github.com/novarover/arc_auto/blob/master/scripts/path_planning/PathPlanner.py)
-	- [Controller (Crow's Algorithm)](https://github.com/novarover/arc_auto/blob/master/scripts/controller/Controller.py)
+		- [Path Planning: A*+String Pulling](https://github.com/novarover/arc_auto/blob/master/scripts/path_planning/PathPlanner.py)
+		- [Controller (Crow's Algorithm)](https://github.com/novarover/arc_auto/blob/master/scripts/controller/Controller.py)
 
 - Autonomous GUI:
-	1. visualise the rover, map, goals and paths all in the one 3D view
+	1. Visualise the rover, map, goals and paths all in the one 3D view
 	Open3D Viewer: 
 	Some links worth browing:
-	[Visualising Pointclouds](https://towardsdatascience.com/guide-to-real-time-visualisation-of-massive-3d-point-clouds-in-python-ea6f00241ee0)
-	[Open3D Visualisation Examples](http://www.open3d.org/docs/0.9.0/tutorial/Basic/visualization.html)
+		- [Visualising Pointclouds](https://towardsdatascience.com/guide-to-real-time-visualisation-of-massive-3d-point-clouds-in-python-ea6f00241ee0)
+		- [Open3D Visualisation Examples](http://www.open3d.org/docs/0.9.0/tutorial/Basic/visualization.html)
 
 
-Note: this system will run on Wombat (the 2021 Rover) but will use ROS-2. Hence, ROS-2 conversion of all other core scripts is also an important part of achieving this MVP.
+Note: this system will run on Wombat (the 2021 Rover) but will use ROS-2. 
+Hence, ROS-2 conversion of all other core scripts is also an important part of achieving this MVP.
 
 -----------------------------
 
 ### Stage 2: 
 
-Final ARC Autonomous System:
-
-**Boring Stuff:**
-- Standardize the ROS network and code interfaces for future development (with a view towards URC-2022 compatibility)
-- Document what we have
-- Some sort of Autonomous specific design review (tbd).
-
-**Exciting Stuff:**
+This stage will be results and research driven, meaning we will focus our time on the most promising aspects and features, such as:
 - Goal detection (incl. active beacons)
 - Fine tune components which work well
 - Implement RGB-D SLAM if feasible
-- Utilizes an EKF to fuse multiple pose sources
+- Utilize an EKF to fuse multiple pose sources
 - #MachineLearning
 
+We will also want to:
+- Standardize the ROS network and code interfaces for future development (with a view towards URC-2022 compatibility)
+- Documenting what we have
+- Some sort of Autonomous specific design review (tbd)
 
-Onward! 
+Onward!
