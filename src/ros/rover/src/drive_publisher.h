@@ -76,6 +76,9 @@ class DrivePublisher : public rclcpp::Node {
     // Stores a counter for each step
     size_t count;
 
+    // A lock on the controls - can be unlocked
+    bool locked = true;
+
     // Stores the current state of the input axis
     float input_axis_x = 0.0;
     float input_axis_y = 0.0;
