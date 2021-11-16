@@ -76,6 +76,9 @@ class DrivePublisher : public rclcpp::Node {
     // Stores a counter for each step
     size_t count;
 
+    // A flag for whether the controller is connected
+    bool connected = false;
+
     // A lock on the controls - can be unlocked
     bool locked = true;
 

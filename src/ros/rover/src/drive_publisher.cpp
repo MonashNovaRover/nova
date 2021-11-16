@@ -38,13 +38,13 @@ void DrivePublisher::publish_cmds () {
     auto message = core::msg::DriveCmd();
 
     // Set up the values if the controller is not locked
-    if (!locked) {
+    if (!locked && connected) {
         message.speed = input_axis_y * multiplier_speed * trigger_speed;
         message.steer = input_axis_x * multiplier_steer;
     
     // Otherwise print lock message
-    } else {
-        cout << "Controller is Locked." << endl;
+    } else if (locked) {
+        cout << "Controller LOCKED." << endl;
         fflush(stdout);
     }
     
@@ -55,11 +55,19 @@ void DrivePublisher::publish_cmds () {
 
 // Receives input from the gamepad
 void DrivePublisher::input_callback (const core::msg::InputGamepad::SharedPtr msg) {
+
+    // Get the connection state
+    connected = msg->connected;
+
     // If no connection, reset the state
     if (!msg->connected) {
         input_axis_x = 0.0;
         input_axis_y = 0.0;
         trigger_speed = 1.0;
+
+        // Publish no connection message
+        cout << "No Controller Connected." << endl;
+        fflush(stdout);
     }
 
     // If the controller is connected
