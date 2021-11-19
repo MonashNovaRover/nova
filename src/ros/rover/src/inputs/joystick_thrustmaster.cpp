@@ -47,19 +47,19 @@ void JoystickThrustmaster::set_message_values() {
         msg.btn_thumb_u_state = get_button_state(BUTTON_A);
         msg.btn_thumb_d_state = get_button_state(BUTTON_B);
 
-        msg.btn_bottom_l1_state = get_button_state(BUTTON_RIGHT_THUMB);
-        msg.btn_bottom_l2_state = get_button_state(BUTTON_EXTRA_1);
-        msg.btn_bottom_l3_state = get_button_state(BUTTON_EXTRA_2);
-        msg.btn_bottom_l4_state = get_button_state(BUTTON_EXTRA_5);
-        msg.btn_bottom_l5_state = get_button_state(BUTTON_EXTRA_4);
-        msg.btn_bottom_l6_state = get_button_state(BUTTON_EXTRA_3);
+        msg.btn_bottom_l1_state = get_button_state(BUTTON_LEFT_SHOULDER);
+        msg.btn_bottom_l2_state = get_button_state(BUTTON_RIGHT_SHOULDER);
+        msg.btn_bottom_l3_state = get_button_state(BUTTON_BACK);
+        msg.btn_bottom_l4_state = get_button_state(BUTTON_LEFT_THUMB);
+        msg.btn_bottom_l5_state = get_button_state(BUTTON_XBOX);
+        msg.btn_bottom_l6_state = get_button_state(BUTTON_START);
 
-        msg.btn_bottom_r1_state = get_button_state(BUTTON_BACK);
-        msg.btn_bottom_r2_state = get_button_state(BUTTON_RIGHT_SHOULDER);
-        msg.btn_bottom_r3_state = get_button_state(BUTTON_LEFT_SHOULDER);
-        msg.btn_bottom_r4_state = get_button_state(BUTTON_START);
-        msg.btn_bottom_r5_state = get_button_state(BUTTON_XBOX);
-        msg.btn_bottom_r6_state = get_button_state(BUTTON_LEFT_THUMB);
+        msg.btn_bottom_r1_state = get_button_state(BUTTON_EXTRA_2);
+        msg.btn_bottom_r2_state = get_button_state(BUTTON_EXTRA_1);
+        msg.btn_bottom_r3_state = get_button_state(BUTTON_RIGHT_THUMB);
+        msg.btn_bottom_r4_state = get_button_state(BUTTON_EXTRA_3);
+        msg.btn_bottom_r5_state = get_button_state(BUTTON_EXTRA_4);
+        msg.btn_bottom_r6_state = get_button_state(BUTTON_EXTRA_5);
     }
 
     // If the input is not connected, lock the inputs and reset the message
