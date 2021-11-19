@@ -24,7 +24,7 @@ InputsPublisher::InputsPublisher()
     // Creates all the joysticks (gamepads and thrustmasters)
     gamepad     = new JoystickGamepad(0.0);
     joystick_l  = new JoystickThrustmaster(true, -0.06445);
-    joystick_r  = new JoystickThrustmaster(false, 0.0);
+    joystick_r  = new JoystickThrustmaster(false, -0.06445);
 
     // Creates the publishers   
     gamepad_publisher       = this->create_publisher<core::msg::InputGamepad>("/control/input_gamepad", 10);
