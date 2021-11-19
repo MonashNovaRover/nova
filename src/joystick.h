@@ -54,10 +54,7 @@ class Joystick {
     //------------------------------------------------------------//
     protected:
 
-    core::msg::InputGamepad msg_gamepad;    // Stores the message data from the gamepad
-    core::msg::InputJoystick msg_joystick;  // Stores the message data from the joystick
     GAMEPAD_DEVICE controller;              // Stores the device controller ID
-    InputType type;                        // The type of input used
 
     float offset;                           // Stores the offset of the axis
     int stick_lx;                           // Stores the raw input of the left stick - x axis
@@ -81,12 +78,9 @@ class Joystick {
     void correct_deadzone();
 
     /// @brief      Sets the message values stored in the message object
-    void set_message_values_gamepad();
+    virtual void set_message_values();
 
-    /// @brief      Sets the message values stored in the message object
-    void set_message_values_joystick();
-
-    /// @brief      Gets the state of the button as an interger
+    /// @brief      Gets the state of
     ///                 0 - Not Pressed
     ///                 1 - Button Triggered
     ///                 2 - Button Down
@@ -114,10 +108,6 @@ class Joystick {
     //------------------------------------------------------------//
 	public:
 
-    /// @brief      Constructor that takes in a controller device
-    /// @param      input - The input device used
-    Joystick(const InputType input);
-
     /// @brief      Constructor that takes in multiple inputs
     /// @param      input - The input device used
     /// @param      offset - The offset of the input axis to use
@@ -126,12 +116,71 @@ class Joystick {
     /// @brief      Updates the input data and stores data to the message object
     void update();
 
+};
+
+
+// Gamepad class
+class JoystickGamepad : public Joystick {
+
+    // Stores the maximum axis stick values, based on the gamepad deadzones
+    const float STICK_MAX_L = 32767 - GAMEPAD_DEADZONE_LEFT_STICK;
+    const float STICK_MAX_R = 32767 - GAMEPAD_DEADZONE_RIGHT_STICK;
+
+    //------------------------------------------------------------//
+    protected:
+
+    core::msg::InputGamepad msg;    // Stores the message data from the gamepad
+    
+
+    //------------------------------------------------------------//
+    protected:
+
+    /// @brief      Sets the message values stored in the message object
+    void set_message_values() override;
+
+
+    //------------------------------------------------------------//
+	public:
+
+    /// @brief      Constructor called when the object is created
+    /// @param      offset - The offset of the input axis to use
+    JoystickGamepad(const float offset);
+
     /// @brief      Gets the message object from the instance
     /// @returns    The Input Gamepad message object with data
-    core::msg::InputGamepad get_message_gamepad();
+    core::msg::InputGamepad get_message();
+};
+
+
+// Thrustmaster class
+class JoystickThrustmaster : public Joystick {
+
+    // Stores the maximum axis stick values, based on the gamepad deadzones
+    const float STICK_MAX_L = 32767 - GAMEPAD_DEADZONE_LEFT_STICK;
+    const float STICK_MAX_R = 32767 - GAMEPAD_DEADZONE_RIGHT_STICK;
+
+    //------------------------------------------------------------//
+    protected:
+
+    core::msg::InputJoystick msg;    // Stores the message data from the gamepad
+    
+
+    //------------------------------------------------------------//
+    protected:
+
+    /// @brief      Sets the message values stored in the message object
+    void set_message_values() override;
+
+
+    //------------------------------------------------------------//
+	public:
+
+    /// @brief      Constructor called when the object is created
+    /// @param      left - Is this the left or the right joystick
+    /// @param      offset - The offset of the input axis to use
+    JoystickThrustmaster(const bool left, const float offset);
 
     /// @brief      Gets the message object from the instance
     /// @returns    The Input Joystick message object with data
-    core::msg::InputJoystick get_message_joystick();
-
+    core::msg::InputJoystick get_message();
 };

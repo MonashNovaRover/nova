@@ -23,9 +23,9 @@ void InputsPublisher::publish_input () {
     joystick_r->update();
     
     // Publish each of the data streams
-    gamepad_publisher->publish(gamepad->get_message_gamepad());
-    joystick_l_publisher->publish(joystick_l->get_message_joystick());
-    joystick_r_publisher->publish(joystick_r->get_message_joystick());
+    gamepad_publisher->publish(gamepad->get_message());
+    joystick_l_publisher->publish(joystick_l->get_message());
+    joystick_r_publisher->publish(joystick_r->get_message());
 }
 
 
@@ -37,9 +37,9 @@ InputsPublisher::InputsPublisher()
     GamepadInit();
 
     // Creates all the joysticks
-    gamepad = new Joystick(InputType::INPUT_XBOX);
-    joystick_l = new Joystick(InputType::INPUT_THRUST_LEFT);
-    joystick_r = new Joystick(InputType::INPUT_THRUST_RIGHT);
+    gamepad = new JoystickGamepad(0.0);
+    joystick_l = new JoystickThrustmaster(true, 0.0);
+    joystick_r = new JoystickThrustmaster(false, 0.0);
 
     // Creates the publishers   
     gamepad_publisher = this->create_publisher<core::msg::InputGamepad>("/control/input_gamepad", 10);
