@@ -25,7 +25,6 @@ TODO:
 */
 
 // Include Message Types
-#include "core/msg/input_gamepad.hpp"
 #include "core/msg/input_joystick.hpp"
 
 // General includes
@@ -116,71 +115,4 @@ class Joystick {
     /// @brief      Updates the input data and stores data to the message object
     void update();
 
-};
-
-
-// Gamepad class
-class JoystickGamepad : public Joystick {
-
-    // Stores the maximum axis stick values, based on the gamepad deadzones
-    const float STICK_MAX_L = 32767 - GAMEPAD_DEADZONE_LEFT_STICK;
-    const float STICK_MAX_R = 32767 - GAMEPAD_DEADZONE_RIGHT_STICK;
-
-    //------------------------------------------------------------//
-    protected:
-
-    core::msg::InputGamepad msg;    // Stores the message data from the gamepad
-    
-
-    //------------------------------------------------------------//
-    protected:
-
-    /// @brief      Sets the message values stored in the message object
-    void set_message_values() override;
-
-
-    //------------------------------------------------------------//
-	public:
-
-    /// @brief      Constructor called when the object is created
-    /// @param      offset - The offset of the input axis to use
-    JoystickGamepad(const float offset);
-
-    /// @brief      Gets the message object from the instance
-    /// @returns    The Input Gamepad message object with data
-    core::msg::InputGamepad get_message();
-};
-
-
-// Thrustmaster class
-class JoystickThrustmaster : public Joystick {
-
-    // Stores the maximum axis stick values, based on the gamepad deadzones
-    const float STICK_MAX_L = 32767 - GAMEPAD_DEADZONE_LEFT_STICK;
-    const float STICK_MAX_R = 32767 - GAMEPAD_DEADZONE_RIGHT_STICK;
-
-    //------------------------------------------------------------//
-    protected:
-
-    core::msg::InputJoystick msg;    // Stores the message data from the gamepad
-    
-
-    //------------------------------------------------------------//
-    protected:
-
-    /// @brief      Sets the message values stored in the message object
-    void set_message_values() override;
-
-
-    //------------------------------------------------------------//
-	public:
-
-    /// @brief      Constructor called when the object is created
-    /// @param      left - Is this the left or the right joystick
-    /// @param      offset - The offset of the input axis to use
-    JoystickThrustmaster(const bool left, const float offset);
-
-    /// @brief      Gets the message object from the instance
-    /// @returns    The Input Joystick message object with data
-    core::msg::InputJoystick get_message();
 };

@@ -19,3 +19,10 @@ sudo apt install libudev-dev -y
 <br>
 
 - **Joystick**: Not a ROS script, but interfaces with the Gamepad library and stores data for each of the inputs and joystick actions. This script cannot be executed by ROS, but scripts may include this class and create instances of it (as done in the input publisher class).
+<br>
+
+- **Joystick Gamepad**: Inherits from the Joystick script and is able to store messages from a gamepad such as an Xbox controller device.
+<br>
+
+- **Joystick Thrustmaster**: Inherits from the Joystick script and is able to store messages from the Thrustmaster joystick devices.
+<br>
