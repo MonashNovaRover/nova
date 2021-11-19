@@ -16,7 +16,7 @@ This code requires the message types from the core
 PACKAGE: 	control
 AUTHOR(S):	Marcel Masque, Harrison Verrios
 CREATION:	29/01/2020
-EDITED:		14/11/2021
+EDITED:		19/11/2021
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
  - Implement Joystick controller inputs
@@ -26,13 +26,22 @@ TODO:
 
 // Include Message Types
 #include "core/msg/input_gamepad.hpp"
+#include "core/msg/input_joystick.hpp"
 
 // General includes
 #include <gamepad/gamepad.h>
 #include <cmath>
+#include <iostream>
 
 // Use the standard namespace
 using namespace std;
+
+// Type of Input used
+enum InputType {
+    INPUT_XBOX,         // Xbox Controller
+    INPUT_THRUST_LEFT,  // Thurstmaster Left Handed Joystick
+    INPUT_THRUST_RIGHT  // Thurstmaster Right Handed Joystick
+};
 
 
 // Main joystick class
@@ -45,8 +54,10 @@ class Joystick {
     //------------------------------------------------------------//
     protected:
 
-    core::msg::InputGamepad msg;            // Stores the message data from the gamepad
+    core::msg::InputGamepad msg_gamepad;    // Stores the message data from the gamepad
+    core::msg::InputJoystick msg_joystick;  // Stores the message data from the joystick
     GAMEPAD_DEVICE controller;              // Stores the device controller ID
+    InputType type;                        // The type of input used
 
     float offset;                           // Stores the offset of the axis
     int stick_lx;                           // Stores the raw input of the left stick - x axis
@@ -70,7 +81,10 @@ class Joystick {
     void correct_deadzone();
 
     /// @brief      Sets the message values stored in the message object
-    void set_message_values();
+    void set_message_values_gamepad();
+
+    /// @brief      Sets the message values stored in the message object
+    void set_message_values_joystick();
 
     /// @brief      Gets the state of the button as an interger
     ///                 0 - Not Pressed
@@ -86,24 +100,38 @@ class Joystick {
     /// @returns    The integer sign value
     int sign(const float val);
 
+    /// @brief      Converts a trigger range into an axis one (0 to 1) to (-1 to 1)
+    /// @param      val - The value to adjust
+    /// @returns    The converted value
+    float convert_trg2ax (const float val);
+
+    /// @brief      Converts an axis range into a trigger one (-1 to 1) to (0 to 1)
+    /// @param      val - The value to adjust
+    /// @returns    The converted value
+    float convert_ax2trg (const float val);
+
 
     //------------------------------------------------------------//
 	public:
 
     /// @brief      Constructor that takes in a controller device
-    /// @param      controller - The controller of this joystick
-    Joystick(const GAMEPAD_DEVICE controller);
+    /// @param      input - The input device used
+    Joystick(const InputType input);
 
     /// @brief      Constructor that takes in multiple inputs
-    /// @param      controller - The controller of this joystick
+    /// @param      input - The input device used
     /// @param      offset - The offset of the input axis to use
-    Joystick(const GAMEPAD_DEVICE controller, const float offset);
+    Joystick(const InputType input, const float offset);
 
     /// @brief      Updates the input data and stores data to the message object
     void update();
 
     /// @brief      Gets the message object from the instance
     /// @returns    The Input Gamepad message object with data
-    core::msg::InputGamepad get_message();
+    core::msg::InputGamepad get_message_gamepad();
+
+    /// @brief      Gets the message object from the instance
+    /// @returns    The Input Joystick message object with data
+    core::msg::InputJoystick get_message_joystick();
 
 };
