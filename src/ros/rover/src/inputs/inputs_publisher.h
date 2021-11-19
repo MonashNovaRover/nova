@@ -19,17 +19,12 @@ AUTHOR(S):	Harrison Verrios
 CREATION:	  13/11/2021
 EDITED:		  19/11/2021
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-TODO:
- - Implement joystick controls (along with gamepad)
- - Create automatic assigning of joysticks with correct device
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
 // General includes
 #include <gamepad/gamepad.h>
 #include "joystick_gamepad.h"
 #include "joystick_thrustmaster.h"
-
 
 // Include ROS packages
 #include "rclcpp/rclcpp.hpp"

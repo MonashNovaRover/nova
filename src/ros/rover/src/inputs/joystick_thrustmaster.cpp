@@ -11,14 +11,14 @@ AUTHOR(S):	Harrison Verrios
 #include "joystick_thrustmaster.h"
 
 
+// Constructor for the thrustmaster joysticks
 JoystickThrustmaster::JoystickThrustmaster(const bool left, const float offset)
     : Joystick((left) ? INPUT_THRUST_LEFT : INPUT_THRUST_RIGHT, offset) {
 
 }
 
-/*
-    Fetches rest of controller values and updates the message object
-*/
+
+// Updates the message values for the joysticks
 void JoystickThrustmaster::set_message_values() {
 
     // Checks if the gamepad is currently connected
@@ -30,11 +30,13 @@ void JoystickThrustmaster::set_message_values() {
         // Set the values in the ROS msg to the main stick
         msg.ax_stick_x = stick_lx_f;
         msg.ax_stick_y = stick_ly_f;
-        msg.ax_stick_twist = convert_trg2ax(GamepadTriggerLength(controller, TRIGGER_LEFT));
+        msg.ax_stick_twist = convert_trg2ax(GamepadTriggerLength(controller, TRIGGER_LEFT) - offset);
+        if (msg.ax_stick_twist > -0.05 && msg.ax_stick_twist < 0.05) msg.ax_stick_twist = 0.0;
+        if (msg.ax_stick_twist >= 0.99 - 2 * offset || msg.ax_stick_twist <= -0.99 - 2 * offset) msg.ax_stick_twist = sign(msg.ax_stick_twist);
 
         // Set the values in the ROS msg to thumb stick
         msg.ax_thumb_x = -stick_ry_f;
-        msg.ax_thumb_y = -convert_trg2ax(GamepadTriggerLength(controller, TRIGGER_RIGHT));
+        msg.ax_thumb_y = to_int(-convert_trg2ax(GamepadTriggerLength(controller, TRIGGER_RIGHT)));
 
         // Set the values of the slider
         msg.ax_slider = convert_ax2trg(-stick_rx_f);
@@ -58,42 +60,6 @@ void JoystickThrustmaster::set_message_values() {
         msg.btn_bottom_r4_state = get_button_state(BUTTON_START);
         msg.btn_bottom_r5_state = get_button_state(BUTTON_XBOX);
         msg.btn_bottom_r6_state = get_button_state(BUTTON_LEFT_THUMB);
-
-        return;
-
-        /*
-        // Left trigger
-        if (twist_lock && GamepadTriggerLength(controller, TRIGGER_LEFT) < 0.1)
-            msg.trg_l_val = 0.0;
-
-        else
-        {
-            msg.trg_l_val = GamepadTriggerLength(controller, TRIGGER_LEFT) - offset;
-            msg.trg_l_val = (msg.trg_l_val > 0.0) ? msg.trg_l_val/(1 - offset): msg.trg_l_val/(offset);
-          
-            // Look for invalid input
-            if ((msg.trg_l_val < 0.01 && msg.trg_l_val > -0.01) || isnan(msg.trg_l_val))
-                msg.trg_l_val = 0.0;
-
-            twist_lock = false;
-        }
-
-        // Right trigger
-        if (hat_lock && GamepadTriggerLength(controller, TRIGGER_RIGHT) < 0.1)
-            msg.trg_r_val = 0.0;
-
-        else
-        {
-            msg.trg_r_val = GamepadTriggerLength(controller, TRIGGER_RIGHT)-offset;
-            msg.trg_r_val = (msg.trg_r_val>0.0) ? msg.trg_r_val/(1-offset): msg.trg_r_val/(offset); //Re-scale OFFSET value
-            
-            // Look for invalid input
-            if ((msg.trg_r_val < 0.01 && msg.trg_r_val > -0.01) || isnan(msg.trg_r_val)) // Get rid of tiny floats
-                msg.trg_r_val = 0.0;
-            
-            hat_lock = false;
-        }
-        */
     }
 
     // If the input is not connected, lock the inputs and reset the message
@@ -105,9 +71,8 @@ void JoystickThrustmaster::set_message_values() {
     }
 }
 
-/*
-    Returns the message object from the instance
-*/
+
+// Returns the input joystick message object
 core::msg::InputJoystick JoystickThrustmaster::get_message() {
     return msg;
 }

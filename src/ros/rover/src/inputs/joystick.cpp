@@ -11,11 +11,7 @@ AUTHOR(S):	Marcel Masque, Harrison Verrios
 #include "joystick.h"
 
 
-/*
-    Constructor used when offset is needed
-    Initialises controller position values, offsets and controller boolean settings
-    Initialises controller instance 
-*/
+// Base constructor that takes in some input and an offset
 Joystick::Joystick(const InputType input, const float offset) {
 
     // Set the controller and offset instance variables
@@ -39,9 +35,7 @@ Joystick::Joystick(const InputType input, const float offset) {
 }
 
 
-/*
-    Fetches stick values, corrects for deadzone and sets message values.
-*/
+// Updates the gamepad and corrects for a deadzone
 void Joystick::update() {
 
 	// grab stick values
@@ -55,19 +49,18 @@ void Joystick::update() {
     set_message_values();
 }
 
-// Overriden in base classes
+
+// Overriden by base classes to update the message data
 void Joystick::set_message_values() {
 
 }
 
 
-/*
-    The gamepad sticks have a deadzone - which means for a small amount of
-    movement of the stick, the reading remains at zero. This means as soon
-    as you move the stick out of the deadzone, the reading will jump from 
-    zero to some higher value. The calculations here account for this and 
-    rescale the values to remove this jump.
-*/
+// The gamepad sticks have a deadzone - which means for a small amount of
+//    movement of the stick, the reading remains at zero. This means as soon
+//    as the stick moves out of the deadzone, the reading will jump from 
+//    zero to some higher value. The calculations here account for this and 
+//    rescale the values to remove this jump.
 void Joystick::correct_deadzone() {
 
     // Updates the left stick float values
@@ -80,11 +73,7 @@ void Joystick::correct_deadzone() {
 }
 
 
-/*
-    Returns the state of a particular button input based on how the button
-    has been pressed. If no input, it will be a 0. If triggered, 1. If the
-    button has been held, then 2 and when the button is released, 3.
-*/
+// Returns the state of a button input based on how it is pressed
 int Joystick::get_button_state (const GAMEPAD_BUTTON button) {
     if (GamepadButtonTriggered(controller, button))
         return 1;
@@ -97,19 +86,31 @@ int Joystick::get_button_state (const GAMEPAD_BUTTON button) {
     return 0;
 }
 
-/*
-    Returns the sign of the input float (-1 or 1).
-*/
+
+// Returns the sign of the input float (-1 or 1).
 int Joystick::sign(const float val) {
     return (int)(0.0 < val) - (val < 0.0);
 }
+
 
 // (0 to 1) to (-1 to 1)
 float Joystick::convert_trg2ax (const float val) {
     return val * 2.0 - 1.0;
 }
 
+
 // (-1 to 1) to (0 to 1)
 float Joystick::convert_ax2trg (const float val) {
     return (val + 1.0) / 2.0;
+}
+
+
+// Converts a float to an integer float
+float Joystick::to_int (const float val) {
+    if (val >= 1.0)
+        return 1.0;
+    else if (val <= -1.0)
+        return -1.0;
+    else
+        return 0.0;
 }

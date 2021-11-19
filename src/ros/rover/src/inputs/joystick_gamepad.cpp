@@ -10,14 +10,15 @@ AUTHOR(S):	Harrison Verrios
 // Include the header file
 #include "joystick_gamepad.h"
 
+
+// Constructor for the gamepad
 JoystickGamepad::JoystickGamepad(const float offset)
     : Joystick(INPUT_XBOX, offset) {
 
 }
 
-/*
-    Fetches rest of controller values and updates the message object
-*/
+
+// Updates the message values for the gamepad
 void JoystickGamepad::set_message_values() {
 
     // Checks if the gamepad is currently connected
@@ -57,7 +58,7 @@ void JoystickGamepad::set_message_values() {
         else
         {
             msg.trg_l_val = GamepadTriggerLength(controller, TRIGGER_LEFT) - offset;
-            msg.trg_l_val = (msg.trg_l_val > 0.0) ? msg.trg_l_val/(1 - offset): msg.trg_l_val/(offset);
+            msg.trg_l_val = (msg.trg_l_val > 0.0) ? msg.trg_l_val / (1 - offset) : msg.trg_l_val / (offset);
           
             // Look for invalid input
             if ((msg.trg_l_val < 0.01 && msg.trg_l_val > -0.01) || isnan(msg.trg_l_val))
@@ -72,8 +73,8 @@ void JoystickGamepad::set_message_values() {
 
         else
         {
-            msg.trg_r_val = GamepadTriggerLength(controller, TRIGGER_RIGHT)-offset;
-            msg.trg_r_val = (msg.trg_r_val>0.0) ? msg.trg_r_val/(1-offset): msg.trg_r_val/(offset); //Re-scale OFFSET value
+            msg.trg_r_val = GamepadTriggerLength(controller, TRIGGER_RIGHT) - offset;
+            msg.trg_r_val = (msg.trg_r_val > 0.0) ? msg.trg_r_val / ( 1 - offset) : msg.trg_r_val / (offset); //Re-scale OFFSET value
             
             // Look for invalid input
             if ((msg.trg_r_val < 0.01 && msg.trg_r_val > -0.01) || isnan(msg.trg_r_val)) // Get rid of tiny floats
@@ -107,9 +108,8 @@ void JoystickGamepad::set_message_values() {
     }
 }
 
-/*
-    Returns the message object from the instance
-*/
+
+// Returns the input gamepad message object
 core::msg::InputGamepad JoystickGamepad::get_message() {
     return msg;
 }

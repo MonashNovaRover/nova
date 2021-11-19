@@ -19,13 +19,15 @@ EDITED:		19/11/2021
 #include "joystick.h"
 #include "core/msg/input_gamepad.hpp"
 
+
 // Gamepad class
 class JoystickGamepad : public Joystick {
 
     //------------------------------------------------------------//
     protected:
 
-    core::msg::InputGamepad msg;    // Stores the message data from the gamepad
+    /// @brief      Stores the message data from the gamepad
+    core::msg::InputGamepad msg;
     
 
     //------------------------------------------------------------//

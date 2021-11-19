@@ -20,13 +20,15 @@ EDITED:		19/11/2021
 #include "joystick.h"
 #include "core/msg/input_joystick.hpp"
 
+
 // Thrustmaster class
 class JoystickThrustmaster : public Joystick {
 
     //------------------------------------------------------------//
     protected:
 
-    core::msg::InputJoystick msg;    // Stores the message data from the gamepad
+    /// @brief      Stores the message data from the joystick
+    core::msg::InputJoystick msg;
     
 
     //------------------------------------------------------------//
