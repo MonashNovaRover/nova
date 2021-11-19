@@ -57,13 +57,13 @@ class InputsPublisher : public rclcpp::Node {
     size_t count;
 
     // A pointer to the joystick object stored (for the gamepad)
-    Joystick* gamepad;
+    JoystickGamepad* gamepad;
 
     // A pointer to the joystick object stored (for the left joystick)
-    Joystick* joystick_l;
+    JoystickThrustmaster* joystick_l;
 
     // A pointer to the joystick object stored (for the right joystick)
-    Joystick* joystick_r;
+    JoystickThrustmaster* joystick_r;
 
     
     //------------------------------------------------------------//
