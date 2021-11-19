@@ -48,11 +48,11 @@ void JoystickThrustmaster::set_message_values() {
         msg.btn_thumb_d_state = get_button_state(BUTTON_B);
 
         msg.btn_bottom_l1_state = get_button_state(BUTTON_RIGHT_THUMB);
-        msg.btn_bottom_l2_state = get_button_state(BUTTON_DPAD_UP);
-        msg.btn_bottom_l3_state = 0;
-        msg.btn_bottom_l4_state = 0;
-        msg.btn_bottom_l5_state = 0;
-        msg.btn_bottom_l6_state = 0;
+        msg.btn_bottom_l2_state = get_button_state(BUTTON_EXTRA_1);
+        msg.btn_bottom_l3_state = get_button_state(BUTTON_EXTRA_2);
+        msg.btn_bottom_l4_state = get_button_state(BUTTON_EXTRA_5);
+        msg.btn_bottom_l5_state = get_button_state(BUTTON_EXTRA_4);
+        msg.btn_bottom_l6_state = get_button_state(BUTTON_EXTRA_3);
 
         msg.btn_bottom_r1_state = get_button_state(BUTTON_BACK);
         msg.btn_bottom_r2_state = get_button_state(BUTTON_RIGHT_SHOULDER);

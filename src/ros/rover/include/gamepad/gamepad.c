@@ -322,6 +322,12 @@ static void GamepadUpdateDevice(GAMEPAD_DEVICE gamepad) {
 				case 8: button = BUTTON_XBOX; break;
 				case 9: button = BUTTON_LEFT_THUMB; break;
 				case 10: button = BUTTON_RIGHT_THUMB; break;
+				case 11: button = BUTTON_EXTRA_1; break;
+				case 12: button = BUTTON_EXTRA_2; break;
+				case 13: button = BUTTON_EXTRA_3; break;
+				case 14: button = BUTTON_EXTRA_4; break;
+				case 15: button = BUTTON_EXTRA_5; break;
+				case 16: button = BUTTON_EXTRA_6; break;
 				default: button = 0; break;
 				}
 
