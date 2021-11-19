@@ -18,10 +18,6 @@ AUTHOR(S):	Marcel Masque, Harrison Verrios
 CREATION:	29/01/2020
 EDITED:		19/11/2021
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-TODO:
- - Implement Joystick controller inputs
- - Perform auto checking to determine which joystick is which
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
 // General includes
