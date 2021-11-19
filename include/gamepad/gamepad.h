@@ -62,11 +62,11 @@ enum GAMEPAD_BUTTON {
 	BUTTON_Y				= 15,	/**< Y button */
     BUTTON_XBOX             = 16,   /**< Xbox button */
 	BUTTON_EXTRA_1			= 17,	/**< Extra button 1*/
-	BUTTON_EXTRA_2			= 18,	/**< Extra button 1*/
-	BUTTON_EXTRA_3			= 19,	/**< Extra button 1*/
-	BUTTON_EXTRA_4			= 20,	/**< Extra button 1*/
-	BUTTON_EXTRA_5			= 21,	/**< Extra button 1*/
-	BUTTON_EXTRA_6			= 22,	/**< Extra button 1*/
+	BUTTON_EXTRA_2			= 18,	/**< Extra button 2*/
+	BUTTON_EXTRA_3			= 19,	/**< Extra button 3*/
+	BUTTON_EXTRA_4			= 20,	/**< Extra button 4*/
+	BUTTON_EXTRA_5			= 21,	/**< Extra button 5*/
+	BUTTON_EXTRA_6			= 22,	/**< Extra button 6*/
 
 	BUTTON_COUNT					/**< Maximum number of supported buttons */
 };
