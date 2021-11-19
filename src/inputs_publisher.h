@@ -17,7 +17,7 @@ ACTIONS:  None
 PACKAGE: 	  control
 AUTHOR(S):	Harrison Verrios
 CREATION:	  13/11/2021
-EDITED:		  14/11/2021
+EDITED:		  19/11/2021
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
  - Implement joystick controls (along with gamepad)
@@ -32,6 +32,7 @@ TODO:
 // Include ROS packages
 #include "rclcpp/rclcpp.hpp"
 #include "core/msg/input_gamepad.hpp"
+#include "core/msg/input_joystick.hpp"
 
 // Use the standard namespaces
 using namespace std;
@@ -49,12 +50,20 @@ class InputsPublisher : public rclcpp::Node {
 
     // Stores the publishers for each of the controllers
     rclcpp::Publisher<core::msg::InputGamepad>::SharedPtr gamepad_publisher;
+    rclcpp::Publisher<core::msg::InputJoystick>::SharedPtr joystick_l_publisher;
+    rclcpp::Publisher<core::msg::InputJoystick>::SharedPtr joystick_r_publisher;
 
     // Stores a counter
     size_t count;
 
     // A pointer to the joystick object stored (for the gamepad)
     Joystick* gamepad;
+
+    // A pointer to the joystick object stored (for the left joystick)
+    Joystick* joystick_l;
+
+    // A pointer to the joystick object stored (for the right joystick)
+    Joystick* joystick_r;
 
     
     //------------------------------------------------------------//

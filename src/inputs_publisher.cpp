@@ -14,14 +14,18 @@ AUTHOR(S):	Harrison Verrios
 // Input function that publishes al of the inputs from the controllers
 void InputsPublisher::publish_input () {
 
-    // Updates the state of the gamepad
+    // Updates the state of the gamepad controller
     GamepadUpdate();
 
     // Update the status of each controller
     gamepad->update();
+    joystick_l->update();
+    joystick_r->update();
     
     // Publish each of the data streams
-    gamepad_publisher->publish(gamepad->get_message());
+    gamepad_publisher->publish(gamepad->get_message_gamepad());
+    joystick_l_publisher->publish(joystick_l->get_message_joystick());
+    joystick_r_publisher->publish(joystick_r->get_message_joystick());
 }
 
 
@@ -33,11 +37,15 @@ InputsPublisher::InputsPublisher()
     GamepadInit();
 
     // Creates all the joysticks
-    gamepad = new Joystick(GAMEPAD_0);  
+    gamepad = new Joystick(InputType::INPUT_XBOX);
+    joystick_l = new Joystick(InputType::INPUT_THRUST_LEFT);
+    joystick_r = new Joystick(InputType::INPUT_THRUST_RIGHT);
 
     // Creates the publishers   
     gamepad_publisher = this->create_publisher<core::msg::InputGamepad>("/control/input_gamepad", 10);
-    
+    joystick_l_publisher = this->create_publisher<core::msg::InputJoystick>("/control/input_joystick_l", 10);
+    joystick_r_publisher = this->create_publisher<core::msg::InputJoystick>("/control/input_joystick_r", 10);
+
     // Creates a timer function that runs a function on loop every 0.01 seconds
     timer = this->create_wall_timer(10ms, std::bind(&InputsPublisher::publish_input, this));
 }
