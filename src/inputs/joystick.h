@@ -24,9 +24,6 @@ TODO:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-// Include Message Types
-#include "core/msg/input_joystick.hpp"
-
 // General includes
 #include <gamepad/gamepad.h>
 #include <cmath>
@@ -102,6 +99,11 @@ class Joystick {
     /// @param      val - The value to adjust
     /// @returns    The converted value
     float convert_ax2trg (const float val);
+
+    /// @brief      Gets the integer value of some number
+    /// @param      val - The value to adjust
+    /// @returns    The integer value as a float
+    float to_int (const float val);
 
 
     //------------------------------------------------------------//
