@@ -29,6 +29,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/TurtleInfo.msg"
   "msg/RadioStatus.msg"
   "msg/InputGamepad.msg"
+  "msg/InputJoystick.msg"
   "msg/DriveCmd.msg"
 )
 
