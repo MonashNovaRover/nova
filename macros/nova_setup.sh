@@ -111,20 +111,20 @@ colcon build
 # Clone the ROS GitHub files
 information "Cloning Repositories..."
 cd ~/nova_ws/src
-git clone https://github.com/MonashNovaRover/autonomous.git
-git clone https://github.com/MonashNovaRover/cameras.git
-git clone https://github.com/MonashNovaRover/control.git
-git clone https://github.com/MonashNovaRover/core.git
-git clone https://github.com/MonashNovaRover/electronics.git
-git clone https://github.com/MonashNovaRover/gui.git
-git clone https://github.com/MonashNovaRover/science.git
+git clone git@github.com:MonashNovaRover/autonomous.git
+git clone git@github.com:MonashNovaRover/cameras.git
+git clone git@github.com:MonashNovaRover/control.git
+git clone git@github.com:MonashNovaRover/core.git
+git clone git@github.com:MonashNovaRover/electronics.git
+git clone git@github.com:MonashNovaRover/gui.git
+git clone git@github.com:MonashNovaRover/science.git
 
 # Clone the other GitHub files
 mkdir -p ~/nova_ws/other
 cd ~/nova_ws/other
-git clone https://github.com/MonashNovaRover/arduinos.git
-git clone https://github.com/MonashNovaRover/pics.git
-git clone https://github.com/MonashNovaRover/ik_machine.git
+git clone git@github.com:MonashNovaRover/arduinos.git
+git clone git@github.com:MonashNovaRover/pics.git
+git clone git@github.com:MonashNovaRover/ik_machine.git
 
 # Add the nova.sh bash script to the bashrc
 information "Setting up Workspace..."
