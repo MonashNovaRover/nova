@@ -125,12 +125,14 @@ typedef enum GAMEPAD_BOOL GAMEPAD_BOOL;
 #define	GAMEPAD_DEADZONE_RIGHT_STICK	8689	/**< Suggested deadzone magnitude for right analog stick */
 #define GAMEPAD_DEADZONE_TRIGGER		30		/**< Suggested deadzone for triggers */
 
+// 0003:044F:B10A
+
 /**
  * Initialize the library.
  *
  * This is critical on non-Windows platforms.
  */
-GAMEPAD_API void GamepadInit(void);
+GAMEPAD_API void GamepadInit(const char* JoystickDeviceID);
 
 /**
  * Shutdown the library.

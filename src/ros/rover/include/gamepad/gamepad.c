@@ -32,6 +32,8 @@
 
 #define BUTTON_TO_FLAG(b) (1 << (b))
 
+static const char* JoystickDevice; 		// Joystick Device Identifier
+
 /* Axis information */
 typedef struct GAMEPAD_AXIS GAMEPAD_AXIS;
 struct GAMEPAD_AXIS {
@@ -86,7 +88,8 @@ static void GamepadUpdateTrigger	(GAMEPAD_TRIGINFO* trig);
 /* Platform-specific implementation code */
 #if defined(_WIN32)
 
-void GamepadInit(void) {
+void GamepadInit(const char* JoystickDeviceID) {
+	JoystickDevice = JoystickDeviceID;
 	int i;
 	for (i = 0; i != GAMEPAD_COUNT; ++i) {
 		STATE[i].flags = 0;
@@ -149,9 +152,9 @@ static int GetGamepadDeviceIndex(const char* sysPath);
 static int GetGamepadDeviceIndex(const char* sysPath) {
 	/* try to find a free controller */
 	int i = 0;
-
+	
 	// If this is a joystick
-	if (strstr(sysPath, "/0003:044F:B10A") != 0) {
+	if (strstr(sysPath, JoystickDevice) != 0) {
 		// Left first, then right
 		for (i = 1; i != GAMEPAD_COUNT; ++i) {
 			if ((STATE[i].flags & FLAG_CONNECTED) == 0) {
@@ -230,7 +233,10 @@ static void GamepadRemoveDevice(const char* devPath) {
 	}
 }
 
-void GamepadInit(void) {
+void GamepadInit(const char* JoystickDeviceID) {
+
+	JoystickDevice = JoystickDeviceID;
+
 	struct udev_list_entry* devices;
 	struct udev_list_entry* item;
 	struct udev_enumerate* enu;
