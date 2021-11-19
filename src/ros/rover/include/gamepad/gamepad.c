@@ -142,22 +142,46 @@ void GamepadSetRumble(GAMEPAD_DEVICE gamepad, float left, float right) {
 static struct udev* UDEV = NULL;
 static struct udev_monitor* MON = NULL;
 
-static void GamepadAddDevice(const char* devPath);
+static void GamepadAddDevice(const char* sysPath, const char* devPath);
 static void GamepadRemoveDevice(const char* devPath);
+static int GetGamepadDeviceIndex(const char* sysPath);
 
-/* Helper to add a new device */
-static void GamepadAddDevice(const char* devPath) {
-	int i;
-
+static int GetGamepadDeviceIndex(const char* sysPath) {
 	/* try to find a free controller */
-	for (i = 0; i != GAMEPAD_COUNT; ++i) {
+	int i = 0;
+
+	// If this is a joystick
+	if (strstr(sysPath, "/0003:044F:B10A") != 0) {
+		// Left first, then right
+		for (i = 1; i != GAMEPAD_COUNT; ++i) {
+			if ((STATE[i].flags & FLAG_CONNECTED) == 0) {
+				return i;
+			}
+		}
+
+		// Max devices
+		return -1;
+	}
+
+	// If this is a gamepad
+	else {
+		// Check if the spot is free
 		if ((STATE[i].flags & FLAG_CONNECTED) == 0) {
-			break;
+			return 0;
+
+		// Spot taken already
+		} else {
+			return -1;
 		}
 	}
-	if (i == GAMEPAD_COUNT) {
-		return;
-	}
+}
+
+/* Helper to add a new device */
+static void GamepadAddDevice(const char* sysPath, const char* devPath) {
+	int i = GetGamepadDeviceIndex(sysPath);
+
+	// Prevent invalid controllers
+	if (i < 0) return;
 
 	/* copy the device path */
 	STATE[i].device = strdup(devPath);
@@ -251,7 +275,7 @@ void GamepadInit(void) {
 		devPath = udev_device_get_devnode(dev);
 
 		if (sysPath != NULL && devPath != NULL && strstr(sysPath, "/js") != 0) {
-			GamepadAddDevice(devPath);
+			GamepadAddDevice(sysPath, devPath);
 		}
 
 		udev_device_unref(dev);
@@ -283,6 +307,7 @@ void GamepadUpdate(void) {
 				const char* devNode = udev_device_get_devnode(dev);
 				const char* sysPath = udev_device_get_syspath(dev);
 				const char* action = udev_device_get_action(dev);
+
 				sysPath = udev_device_get_syspath(dev);
 				action = udev_device_get_action(dev);
 
@@ -290,7 +315,7 @@ void GamepadUpdate(void) {
 					if (strcmp(action, "remove") == 0) {
 						GamepadRemoveDevice(devNode);
 					} else if (strcmp(action, "add") == 0) {
-						GamepadAddDevice(devNode);
+						GamepadAddDevice(sysPath, devNode);
 					}
 				}
 
