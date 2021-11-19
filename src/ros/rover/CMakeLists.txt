@@ -35,7 +35,8 @@ endif()
 # Add executables:
 
 # Inputs script
-add_executable(inputs src/inputs_publisher.cpp src/joystick.cpp 
+add_executable(inputs src/inputs/inputs_publisher.cpp src/inputs/joystick.cpp 
+  src/inputs/joystick_gamepad.cpp src/inputs/joystick_thrustmaster.cpp 
   ${PROJECT_SOURCE_DIR}/include/gamepad/gamepad.c)
 target_link_libraries(inputs gamepad udev ${catkin_LIBRARIES})
 ament_target_dependencies(inputs rclcpp core)

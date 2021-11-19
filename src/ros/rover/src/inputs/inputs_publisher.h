@@ -27,7 +27,9 @@ TODO:
 
 // General includes
 #include <gamepad/gamepad.h>
-#include "joystick.h"
+#include "joystick_gamepad.h"
+#include "joystick_thrustmaster.h"
+
 
 // Include ROS packages
 #include "rclcpp/rclcpp.hpp"
