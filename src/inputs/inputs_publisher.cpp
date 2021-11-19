@@ -16,7 +16,10 @@ InputsPublisher::InputsPublisher()
   : Node("input_pub"), count(0) {
 
     // Initialises the Gamepad inputs
-    GamepadInit();
+    // Pass in the Joystick Identifier. You can find this by:
+    //  cat /sys/class/input/js2/device/id/version on the correct js2 (input device)
+    //  and then use VENDOR:PRODUCT
+    GamepadInit("044F:B10A");
 
     // Creates all the joysticks (gamepads and thrustmasters)
     gamepad     = new JoystickGamepad(0.0);
