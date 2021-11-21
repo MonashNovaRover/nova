@@ -13,7 +13,7 @@ AUTHOR(S):	Harrison Verrios
 
 // Main consrtuctor sets up the node and the publishers
 InputsPublisher::InputsPublisher() 
-  : Node("input_pub"), count(0) {
+    : Node("input_pub"), count(0) {
 
     // Initialises the Gamepad inputs
     // Pass in the Joystick Identifier. You can find this by:
