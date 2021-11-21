@@ -10,9 +10,10 @@ AUTHOR(S):	Harrison Verrios
 // Include the header file
 #include "wheel.h"
 
-Wheel::Wheel (const bool clockwise) {
+Wheel::Wheel (const int id, const bool clockwise) {
 
     // Update the variables
+    this->id = id;
     this->clockwise = clockwise;
 }
 

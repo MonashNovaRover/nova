@@ -65,7 +65,7 @@ DriveSubscriber::DriveSubscriber()
     // Initialise the wheels in the correct direction
     for (int i = 0; i < NUM_WHEELS; i++) {
         bool clockwise = i >= NUM_WHEELS / 2;
-        wheels[i] = new Wheel (clockwise);
+        wheels[i] = new Wheel (i, clockwise);
     }
 
     // Creates the commands subscription
