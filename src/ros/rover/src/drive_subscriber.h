@@ -1,9 +1,13 @@
+#pragma once
+
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team
 
 This class interfaces with the wheels and ROS and
     is able to publish data over CAN to the wheels.
+The wheels are indexed with 0, 1, 2 on the left and
+    3, 4, 5 on the right, with the largest at the back.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: drive_sub
@@ -29,7 +33,8 @@ TODO:
 #include "core/msg/input_gamepad.hpp"
 #include "core/msg/drive_cmd.hpp"
 
-#include <iostream>
+// Include wheel class
+#include "wheel.h"
 
 // Use the standard namespaces
 using namespace std;
@@ -39,6 +44,10 @@ using std::placeholders::_1;
 
 // Main subscriber class that receives drives commands and interfaces with the wheel
 class DriveSubscriber : public rclcpp::Node {
+
+    // The number of wheels on the rover
+    static const int NUM_WHEELS = 6;
+
 
     //------------------------------------------------------------//
     private:
@@ -54,6 +63,12 @@ class DriveSubscriber : public rclcpp::Node {
 
     // A flag for whether to apply the handbrake or not
     bool handbrake;
+
+    // A flag for whether it has sent its first zero speed
+    bool stopped_sent;
+
+    // An array of wheel instances
+    Wheel* wheels[NUM_WHEELS];
 
     
     //------------------------------------------------------------//
