@@ -45,11 +45,16 @@ ament_target_dependencies(inputs rclcpp core)
 add_executable(drive_cmd src/drive_publisher.cpp)
 ament_target_dependencies(drive_cmd rclcpp core)
 
+# Drive Receiver script
+add_executable(driver src/drive_subscriber.cpp)
+ament_target_dependencies(driver rclcpp core)
+
 
 # Add all the installation targets
 install(TARGETS
   inputs
   drive_cmd
+  driver
   DESTINATION lib/${PROJECT_NAME}
 )
 
