@@ -28,6 +28,9 @@ class Wheel {
     //------------------------------------------------------------//
     protected:
 
+    // The identification id for the wheel
+    int id;
+
     // The direction that the wheel will turn with positive speed
     bool clockwise;
     
@@ -43,8 +46,9 @@ class Wheel {
     public:
 
     /// @brief      Default constructor for setting up the wheel
+    /// @param      id - The new ID for the wheel for CAN commands
     /// @param      clockwise - Direction the wheel will spin by default
-    Wheel (const bool clockwise);
+    Wheel (const int id, const bool clockwise);
 
     /// @brief      Spins the wheel based on a speed
     /// @param      speed - The speed to move, between -1 and 1

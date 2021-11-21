@@ -42,11 +42,11 @@ target_link_libraries(inputs gamepad udev ${catkin_LIBRARIES})
 ament_target_dependencies(inputs rclcpp core)
 
 # Drive Command script
-add_executable(drive_cmd src/drive_publisher.cpp)
+add_executable(drive_cmd src/drive/drive_publisher.cpp)
 ament_target_dependencies(drive_cmd rclcpp core)
 
 # Drive Receiver script
-add_executable(driver src/drive_subscriber.cpp src/wheel.cpp)
+add_executable(driver src/drive/drive_subscriber.cpp src/drive/wheel.cpp)
 ament_target_dependencies(driver rclcpp core)
 
 
