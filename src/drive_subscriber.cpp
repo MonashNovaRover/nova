@@ -15,19 +15,58 @@ AUTHOR(S):	Harrison Verrios
 
 // Receives drive commands
 void DriveSubscriber::drive_callback (const core::msg::DriveCmd::SharedPtr msg) {
-    cout << msg->speed << " " << msg->steer << endl;
-    fflush(stdout);
+
+    // Check if wheels should spin
+    if (msg->speed != 0.0 || msg->steer != 0.0) {
+        // Spin the wheels
+        for (Wheel* wheel : wheels) {
+            wheel->spin(msg->speed, msg->steer);
+        }
+
+        // Reset the zero flag
+        stopped_sent = false;
+    }
+
+    // Otherwise, if handbrake is on, send zeros
+    else if (handbrake) {
+        // Spin the wheels for 0 speed
+        for (Wheel* wheel : wheels) {
+            wheel->spin(0.0);
+        }
+    }
+
+    // Otherwise, if handbrake is not on, only send on lot of zero speeds
+    else if (!stopped_sent) {
+        // Spin the wheels for 0 speed
+        for (Wheel* wheel : wheels) {
+            wheel->spin(0.0);
+        }
+
+        // Set the stopped flag so it doesn't run again
+        stopped_sent = true;
+    }
 }
 
 // Receives input from the gamepad
 void DriveSubscriber::input_callback (const core::msg::InputGamepad::SharedPtr msg) {
 
+    // Enable or Disable handbraking based on the thumb buttons
+    if (msg->connected && msg->btn_thumb_l_state == 1)
+        handbrake = true;
+    else if (msg->connected && msg->btn_thumb_r_state == 1)
+        handbrake = false;
 }
 
 
 // Main constructor that sets up the node
 DriveSubscriber::DriveSubscriber() 
   : Node("drive_sub"), count(0) {
+
+    // Initialise the wheels in the correct direction
+    for (int i = 0; i < NUM_WHEELS; i++) {
+        bool clockwise = i >= NUM_WHEELS / 2;
+        wheels[i] = new Wheel (clockwise);
+    }
 
     // Creates the commands subscription
     subscription_cmds = this->create_subscription<core::msg::DriveCmd>(
