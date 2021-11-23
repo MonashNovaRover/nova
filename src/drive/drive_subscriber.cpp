@@ -68,6 +68,8 @@ DriveSubscriber::DriveSubscriber()
         wheels[i] = new Wheel (i, clockwise);
     }
 
+    // TODO QoS Profiles
+
     // Creates the commands subscription
     subscription_cmds = this->create_subscription<core::msg::DriveCmd>(
         "/control/drive_cmds", 10, std::bind(&DriveSubscriber::drive_callback, this, _1));
