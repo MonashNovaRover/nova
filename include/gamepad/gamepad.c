@@ -68,6 +68,9 @@ struct GAMEPAD_STATE {
 /* State of the four gamepads */
 static GAMEPAD_STATE STATE[4];
 
+// Stores the gamepad index for the gamepad, left joystick and right joystick
+static int GamepadIndex[3] = {-1, -1, -1};
+
 /* Note whether a gamepad is currently connected */
 #define FLAG_CONNECTED	(1<<0)
 #define FLAG_RUMBLE		(1<<1)
@@ -101,6 +104,9 @@ void GamepadUpdate(void) {
 }
 
 static void GamepadUpdateDevice(GAMEPAD_DEVICE gamepad) {
+	if (GamepadIndex[gamepad] == -1) return;
+	gamepad = GamepadIndex[gamepad];
+
 	XINPUT_STATE xs;
 	if (XInputGetState(gamepad, &xs) == 0) {
 		/* reset if the device was not already connected */
@@ -130,6 +136,9 @@ void GamepadShutdown(void) {
 }
 
 void GamepadSetRumble(GAMEPAD_DEVICE gamepad, float left, float right) {
+	if (GamepadIndex[gamepad] == -1) return;
+	gamepad = GamepadIndex[gamepad];
+
 	if ((STATE[gamepad].flags & FLAG_RUMBLE) != 0) {
 		XINPUT_VIBRATION vib;
 		ZeroMemory(&vib, sizeof(vib));
@@ -156,8 +165,12 @@ static int GetGamepadDeviceIndex(const char* sysPath) {
 	// If this is a joystick
 	if (strstr(sysPath, JoystickDevice) != 0) {
 		// Left first, then right
-		for (i = 1; i != GAMEPAD_COUNT; ++i) {
+		for (i = 0; i != GAMEPAD_COUNT; ++i) {
 			if ((STATE[i].flags & FLAG_CONNECTED) == 0) {
+				// Update the gamepad indexes
+				if (GamepadIndex[1] == -1) GamepadIndex[1] = i;
+				else GamepadIndex[2] = i;
+
 				return i;
 			}
 		}
@@ -168,15 +181,18 @@ static int GetGamepadDeviceIndex(const char* sysPath) {
 
 	// If this is a gamepad
 	else {
-		// Check if the spot is free
-		if ((STATE[i].flags & FLAG_CONNECTED) == 0) {
-			return 0;
-
-		// Spot taken already
-		} else {
-			return -1;
+		for (i = 0; i != GAMEPAD_COUNT; ++i) {
+			if ((STATE[i].flags & FLAG_CONNECTED) == 0) {
+				// Update the gamepad indexes
+				GamepadIndex[0] = i;
+				return i;
+			}
 		}
+		
+		// Spots taken already
 	}
+
+	return -1;
 }
 
 /* Helper to add a new device */
@@ -228,6 +244,16 @@ static void GamepadRemoveDevice(const char* devPath) {
 			free(STATE[i].device);
 			STATE[i].device = 0;
 			STATE[i].flags = 0;
+
+
+			// Remove the gamepad index
+			for (int j = 0; j < 3; j++) {
+				if (GamepadIndex[j] == i) {
+					GamepadIndex[j] = -1;
+					break;
+				}
+			}
+
 			break;
 		}
 	}
@@ -334,6 +360,9 @@ void GamepadUpdate(void) {
 }
 
 static void GamepadUpdateDevice(GAMEPAD_DEVICE gamepad) {
+	if (GamepadIndex[gamepad] == -1) return;
+	gamepad = GamepadIndex[gamepad];
+
 	if (STATE[gamepad].flags & FLAG_CONNECTED) {
 		struct js_event je;
 		while (read(STATE[gamepad].fd, &je, sizeof(je)) > 0) {
@@ -432,6 +461,9 @@ void GamepadShutdown(void) {
 }
 
 void GamepadSetRumble(GAMEPAD_DEVICE gamepad, float left, float right) {
+	if (GamepadIndex[gamepad] == -1) return;
+	gamepad = GamepadIndex[gamepad];
+
 	if (STATE[gamepad].fd != -1) {
 		struct input_event play;
 
@@ -482,74 +514,122 @@ void GamepadSetRumble(GAMEPAD_DEVICE gamepad, float left, float right) {
 #endif /* end of platform implementations */
 
 GAMEPAD_BOOL GamepadIsConnected(GAMEPAD_DEVICE device) {
+	if (GamepadIndex[device] == -1) return GAMEPAD_FALSE;
+	device = GamepadIndex[device];
+
 	return (STATE[device].flags & FLAG_CONNECTED) != 0 ? GAMEPAD_TRUE : GAMEPAD_FALSE;
 }
 
 GAMEPAD_BOOL GamepadButtonDown(GAMEPAD_DEVICE device, GAMEPAD_BUTTON button) {
+	if (GamepadIndex[device] == -1) return GAMEPAD_FALSE;
+	device = GamepadIndex[device];
+
 	return (STATE[device].bCurrent & BUTTON_TO_FLAG(button)) != 0 ? GAMEPAD_TRUE : GAMEPAD_FALSE;
 }
 
 GAMEPAD_BOOL GamepadButtonTriggered(GAMEPAD_DEVICE device, GAMEPAD_BUTTON button) {
+	if (GamepadIndex[device] == -1) return GAMEPAD_FALSE;
+	device = GamepadIndex[device];
+
 	return ((STATE[device].bLast & BUTTON_TO_FLAG(button)) == 0 &&
 			(STATE[device].bCurrent & BUTTON_TO_FLAG(button)) != 0) ? GAMEPAD_TRUE : GAMEPAD_FALSE;
 }
 
 GAMEPAD_BOOL GamepadButtonReleased(GAMEPAD_DEVICE device, GAMEPAD_BUTTON button) {
+	if (GamepadIndex[device] == -1) return GAMEPAD_FALSE;
+	device = GamepadIndex[device];
+
 	return ((STATE[device].bCurrent & BUTTON_TO_FLAG(button)) == 0 &&
 			(STATE[device].bLast & BUTTON_TO_FLAG(button)) != 0) ? GAMEPAD_TRUE : GAMEPAD_FALSE;
 }
 
 int GamepadTriggerValue(GAMEPAD_DEVICE device, GAMEPAD_TRIGGER trigger) {
+	if (GamepadIndex[device] == -1) return GAMEPAD_FALSE;
+	device = GamepadIndex[device];
+
 	return STATE[device].trigger[trigger].value;
 }
 
 float GamepadTriggerLength(GAMEPAD_DEVICE device, GAMEPAD_TRIGGER trigger) {
+	if (GamepadIndex[device] == -1) return GAMEPAD_FALSE;
+	device = GamepadIndex[device];
+
 	return STATE[device].trigger[trigger].length;
 }
 
 GAMEPAD_BOOL GamepadTriggerDown(GAMEPAD_DEVICE device, GAMEPAD_TRIGGER trigger) {
+	if (GamepadIndex[device] == -1) return GAMEPAD_FALSE;
+	device = GamepadIndex[device];
+
 	return STATE[device].trigger[trigger].pressedCurrent;
 }
 
 GAMEPAD_BOOL GamepadTriggerTriggered(GAMEPAD_DEVICE device, GAMEPAD_TRIGGER trigger) {
+	if (GamepadIndex[device] == -1) return GAMEPAD_FALSE;
+	device = GamepadIndex[device];
+
 	return (STATE[device].trigger[trigger].pressedCurrent &&
 			!STATE[device].trigger[trigger].pressedLast) ? GAMEPAD_TRUE : GAMEPAD_FALSE;
 }
 
 GAMEPAD_BOOL GamepadTriggerReleased(GAMEPAD_DEVICE device, GAMEPAD_TRIGGER trigger) {
+	if (GamepadIndex[device] == -1) return GAMEPAD_FALSE;
+	device = GamepadIndex[device];
+
 	return (!STATE[device].trigger[trigger].pressedCurrent &&
 			STATE[device].trigger[trigger].pressedLast) ? GAMEPAD_TRUE : GAMEPAD_FALSE;
 }
 
 void GamepadStickXY(GAMEPAD_DEVICE device, GAMEPAD_STICK stick, int *outX, int *outY) {
+	if (GamepadIndex[device] == -1) return;
+	device = GamepadIndex[device];
+
 	*outX = STATE[device].stick[stick].x;
 	*outY = STATE[device].stick[stick].y;
 }
 
 float GamepadStickLength(GAMEPAD_DEVICE device, GAMEPAD_STICK stick) {
+	if (GamepadIndex[device] == -1) return 0.0;
+	device = GamepadIndex[device];
+
 	return STATE[device].stick[stick].length;
 }
 
 void GamepadStickNormXY(GAMEPAD_DEVICE device, GAMEPAD_STICK stick, float *outX, float *outY) {
+	if (GamepadIndex[device] == -1) return;
+	device = GamepadIndex[device];
+
 	*outX = STATE[device].stick[stick].nx;
 	*outY = STATE[device].stick[stick].ny;
 }
 
-float GamepadStickAngle(GAMEPAD_DEVICE device, GAMEPAD_STICK stick) {
+float GamepadStickAngle(GAMEPAD_DEVICE device, GAMEPAD_STICK stick) {	
+	if (GamepadIndex[device] == -1) return 0.0;
+	device = GamepadIndex[device];
+
 	return STATE[device].stick[stick].angle;
 }
 
 GAMEPAD_STICKDIR GamepadStickDir(GAMEPAD_DEVICE device, GAMEPAD_STICK stick) {
+	if (GamepadIndex[device] == -1) return 0;
+	device = GamepadIndex[device];
+
 	return STATE[device].stick[stick].dirCurrent;
 }
 
-GAMEPAD_BOOL GamepadStickDirTriggered(GAMEPAD_DEVICE device, GAMEPAD_STICK stick, GAMEPAD_STICKDIR dir) {
+GAMEPAD_BOOL GamepadStickDirTriggered(GAMEPAD_DEVICE device, GAMEPAD_STICK stick, GAMEPAD_STICKDIR dir) {	
+	if (GamepadIndex[device] == -1) return GAMEPAD_FALSE;
+	device = GamepadIndex[device];
+	
 	return (STATE[device].stick[stick].dirCurrent == dir &&
 			STATE[device].stick[stick].dirCurrent != STATE[device].stick[stick].dirLast) ? GAMEPAD_TRUE : GAMEPAD_FALSE;
 }
 
 /* initialize common gamepad state */
 static void GamepadResetState(GAMEPAD_DEVICE gamepad) {
+	if (GamepadIndex[gamepad] == -1) return;
+	gamepad = GamepadIndex[gamepad];
+	
 	memset(STATE[gamepad].stick, 0, sizeof(STATE[gamepad].stick));
 	memset(STATE[gamepad].trigger, 0, sizeof(STATE[gamepad].trigger));
 	STATE[gamepad].bLast = STATE[gamepad].bCurrent = 0;

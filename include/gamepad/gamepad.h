@@ -43,6 +43,16 @@ enum GAMEPAD_DEVICE {
 };
 
 /**
+ * Enumeration of possible tyoes
+ * 
+ */
+enum GAMEPAD_TYPE {
+	GAMEPAD 	= 0,	// General Gamepad
+	JOYSTICK_L  = 1,	// Left Joystick
+	JOYSTICK_R  = 2,	// Right Joystick
+};
+
+/**
  * Enumeration of the possible buttons.
  */
 enum GAMEPAD_BUTTON {
