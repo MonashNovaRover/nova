@@ -89,7 +89,7 @@ int Joystick::get_button_state (const GAMEPAD_BUTTON button) {
 
 // Returns the sign of the input float (-1 or 1).
 int Joystick::sign(const float val) {
-    return (int)(0.0 < val) - (val < 0.0);
+    return (val > 0) ? 1 : -1;
 }
 
 
