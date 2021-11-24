@@ -15,14 +15,49 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-# find dependencies
-find_package(ament_cmake REQUIRED)
-# uncomment the following section in order to fill in
-# further dependencies manually.
-# find_package(<dependency> REQUIRED)
+include_directories(
+  include
+    ${catkin_INCLUDE_DIRS}
+    "${PROJECT_SOURCE_DIR}/include"
+)
 
+# Find and include all dependencies
+find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(core REQUIRED) 
+find_package(core REQUIRED)
+include_directories(./include/)
+
+# Add gamepad targets, as these are located in the include folder
+if (NOT TARGET gamepad)
+  add_library(gamepad SHARED include/gamepad/gamepad.c)
+endif()
+
+# Add executables:
+
+# Inputs script
+add_executable(inputs src/inputs/inputs_publisher.cpp src/inputs/joystick.cpp 
+  src/inputs/joystick_gamepad.cpp src/inputs/joystick_thrustmaster.cpp 
+  ${PROJECT_SOURCE_DIR}/include/gamepad/gamepad.c)
+target_link_libraries(inputs gamepad udev ${catkin_LIBRARIES})
+ament_target_dependencies(inputs rclcpp core)
+
+# Drive Command script
+add_executable(drive_cmd src/drive/drive_publisher.cpp)
+ament_target_dependencies(drive_cmd rclcpp core)
+
+# Drive Receiver script
+add_executable(driver src/drive/drive_subscriber.cpp src/drive/wheel.cpp)
+ament_target_dependencies(driver rclcpp core)
+
+
+# Add all the installation targets
+install(TARGETS
+  inputs
+  drive_cmd
+  driver
+  DESTINATION lib/${PROJECT_NAME}
+)
+
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
