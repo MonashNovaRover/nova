@@ -13,6 +13,7 @@
 alias build='. ~/nova_ws/src/core/macros/build.sh' # Runs colcon build
 alias setup='. ~/nova_ws/install/setup.bash'       # Sets up the ROS repository when scripts change
 alias pull='. ~/nova_ws/src/core/macros/pull.sh'   # Runs a GitHub pull on all repositories
+alias can='. ~/nova_ws/src/core/macros/can.sh'     # Sets up the CAN lines with a virtual or real CAN
 
 # Directory Aliases
 alias nova='cd ~/nova_ws'
