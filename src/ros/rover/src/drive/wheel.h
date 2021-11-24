@@ -19,6 +19,9 @@ EDITED:		21/11/2021
 // General includes
 #include <iostream>
 
+// CAN include
+#include "socketcan/socketcan_cpp.h"
+
 // Use the standard namespace
 using namespace std;
 
