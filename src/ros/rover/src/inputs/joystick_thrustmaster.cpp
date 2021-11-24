@@ -30,7 +30,7 @@ void JoystickThrustmaster::set_message_values() {
         // Set the values in the ROS msg to the main stick
         msg.ax_stick_x = stick_lx_f;
         msg.ax_stick_y = stick_ly_f;
-        msg.ax_stick_twist = convert_trg2ax(GamepadTriggerLength(controller, TRIGGER_LEFT) - offset);
+        msg.ax_stick_twist = -convert_trg2ax(GamepadTriggerLength(controller, TRIGGER_LEFT) + offset);
         if (msg.ax_stick_twist > -0.05 && msg.ax_stick_twist < 0.05) msg.ax_stick_twist = 0.0;
         if (msg.ax_stick_twist >= 0.99 - 2 * offset || msg.ax_stick_twist <= -0.99 - 2 * offset) msg.ax_stick_twist = sign(msg.ax_stick_twist);
 

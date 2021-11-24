@@ -12,7 +12,7 @@ This class inherits from the base Joystick code and
 PACKAGE: 	control
 AUTHOR(S):	Harrison Verrios
 CREATION:	19/11/2021
-EDITED:		19/11/2021
+EDITED:		24/11/2021
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
