@@ -85,6 +85,14 @@ information "Installing Cameras..."
 sudo apt-get -y install gstreamer-1.0 python-gi gstreamer1.0-tools gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-dev python-gst-1.0 -y
 pip3 install requests -y
 
+# Installing GUI tools
+information "Installing GUI Tools..."
+sudo apt-get -y install nodejs-dev node-gyp libssl1.0-dev
+sudo apt-get -y install npm
+curl -fsSL https://deb.nodesource.com/setup_current.x | sudo -E bash -
+sudo apt-get install -y nodejs
+sudo npm install -g npm@7.11.2
+
 # Installing Net Tools
 information "Installing Networking..."
 sudo apt -y install net-tools
@@ -129,12 +137,18 @@ git clone git@github.com:MonashNovaRover/ik_machine.git
 # Add the nova.sh bash script to the bashrc
 information "Setting up Workspace..."
 sudo echo "source ~/nova_ws/src/core/nova.sh" >> ~/.bashrc
-source ~/.bashrc
+source ~/nova_ws/src/core/nova.sh
 
 # Build the workspace
 cd ~/nova_ws
 colcon build
 
+# Installing GUI packages
+cd ~/nova_ws/src/gui/wombatx
+npm install
+npm update
+
 # Completed
 title "Installation Complete!"
 echo "All Nova files are now located in ~/nova_ws in your home directory."
+cd ~/nova_ws
