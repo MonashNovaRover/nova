@@ -104,8 +104,6 @@ void GamepadUpdate(void) {
 }
 
 static void GamepadUpdateDevice(GAMEPAD_DEVICE gamepad) {
-	if (GamepadIndex[gamepad] == -1) return;
-	gamepad = GamepadIndex[gamepad];
 
 	XINPUT_STATE xs;
 	if (XInputGetState(gamepad, &xs) == 0) {
@@ -360,8 +358,6 @@ void GamepadUpdate(void) {
 }
 
 static void GamepadUpdateDevice(GAMEPAD_DEVICE gamepad) {
-	if (GamepadIndex[gamepad] == -1) return;
-	gamepad = GamepadIndex[gamepad];
 
 	if (STATE[gamepad].flags & FLAG_CONNECTED) {
 		struct js_event je;
@@ -626,10 +622,7 @@ GAMEPAD_BOOL GamepadStickDirTriggered(GAMEPAD_DEVICE device, GAMEPAD_STICK stick
 }
 
 /* initialize common gamepad state */
-static void GamepadResetState(GAMEPAD_DEVICE gamepad) {
-	if (GamepadIndex[gamepad] == -1) return;
-	gamepad = GamepadIndex[gamepad];
-	
+static void GamepadResetState(GAMEPAD_DEVICE gamepad) {	
 	memset(STATE[gamepad].stick, 0, sizeof(STATE[gamepad].stick));
 	memset(STATE[gamepad].trigger, 0, sizeof(STATE[gamepad].trigger));
 	STATE[gamepad].bLast = STATE[gamepad].bCurrent = 0;
