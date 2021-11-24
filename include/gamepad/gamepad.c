@@ -159,6 +159,9 @@ static int GetGamepadDeviceIndex(const char* sysPath);
 static int GetGamepadDeviceIndex(const char* sysPath) {
 	/* try to find a free controller */
 	int i = 0;
+
+	// Remove bad devices
+	if (strstr(sysPath, "apple")) return -1;
 	
 	// If this is a joystick
 	if (strstr(sysPath, JoystickDevice) != 0) {
