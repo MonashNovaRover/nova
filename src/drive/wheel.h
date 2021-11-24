@@ -22,8 +22,15 @@ EDITED:		21/11/2021
 // CAN include
 #include "socketcan/socketcan_cpp.h"
 
-// Use the standard namespace
-using namespace std;
+enum WheelCommand {
+    STOP = 0,
+    FORWARD_FULL,
+    REVERSE_FULL,
+    SET_PWM,
+    SET_VELOCITY,
+    PID_TUNE,
+    SET_LINEAR_ACTUATOR //TODO: Remove because only for arm?
+};
 
 // Wheel class for communicating with wheel CMDs
 class Wheel {
@@ -37,6 +44,7 @@ class Wheel {
     // The direction that the wheel will turn with positive speed
     bool clockwise;
     
+    scpp::SocketCan can_socket;
 
     //------------------------------------------------------------//
     protected:
