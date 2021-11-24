@@ -19,5 +19,3 @@ setup                                              # Sets up the bash file
 source /opt/ros/eloquent/setup.bash                # Sources ROS 2 Eloquent
 . ~/nova_ws/install/setup.bash                     # Runs the workspace setup file
 
-# Command to run GUI correctly
-export NODE_OPTIONS=--openssl-legacy-provider
