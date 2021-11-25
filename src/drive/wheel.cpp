@@ -3,7 +3,7 @@
 Monash Nova Rover Team
 
 PACKAGE: 	control
-AUTHOR(S):	Harrison Verrios
+AUTHOR(S):	Harrison Verrios, Josh Cherubino
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
@@ -61,8 +61,20 @@ void Wheel::spin (float speed) {
 void Wheel::spin (float speed, const float steer) {
 
     // Calculate the new speed based on the steer
-    speed = speed + (steer * ((clockwise) ? 1.0 : -1.0));
+    if (clockwise)
+        speed = speed + steer;
+    else
+        speed = speed - steer;
 
     // Call the base spin function
     spin (speed);
+}
+
+void Wheel::stop () {
+    //embed command in arbitration id
+    scpp::CanFrame frame;
+    frame.id = (this->id << 4) | STOP;
+    frame.len = 0;
+    
+    this->can_socket.write(frame);
 }

@@ -18,13 +18,9 @@ SERVICES: None
 ACTIONS:  None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	control
-AUTHOR(S):  Harrison Verrios
+AUTHOR(S):  Harrison Verrios, Josh Cherubino
 CREATION:	21/11/2021
-EDITED:		21/11/2021
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-TODO:
- - Test with the CAN classes
- - Test with real rover driving
+EDITED:		25/11/2021
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
