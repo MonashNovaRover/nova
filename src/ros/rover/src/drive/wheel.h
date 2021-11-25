@@ -10,9 +10,9 @@ This code interfaces with the CAN classes and is
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	control
-AUTHOR(S):	Harrison Verrios
+AUTHOR(S):	Harrison Verrios, Josh Cherubino
 CREATION:	21/11/2021
-EDITED:		21/11/2021
+EDITED:		25/11/2021
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
@@ -70,4 +70,6 @@ class Wheel {
     /// @param      steer - The steer where + is right and - is left
     void spin (float speed, const float steer);
     
+    /// @brief      Sends ALL STOPS commands to the wheels
+    void stop ();
 };
