@@ -33,3 +33,6 @@ alias pics=pic
 alias arduino='cd ~/nova_ws/other/arduinos'
 alias arduinos=arduino
 alias ik='cd ~/nova_ws/other/ik_machine'
+
+# Networking Aliases
+alias jetson='ssh -Y nova@192.168.1.204'
