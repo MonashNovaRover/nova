@@ -14,8 +14,5 @@
 # Source the aliases
 source ~/nova_ws/src/core/macros/alias.sh
 
-# Calls bash executions
-setup                                              # Sets up the bash file
-source /opt/ros/eloquent/setup.bash                # Sources ROS 2 Eloquent
-. ~/nova_ws/install/setup.bash                     # Runs the workspace setup file
-
+# Sources the correct ROS bash file
+source ~/nova_ws/src/core/macros/ros.sh

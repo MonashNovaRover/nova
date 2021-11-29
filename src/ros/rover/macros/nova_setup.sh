@@ -61,7 +61,6 @@ sudo sh -c 'echo "deb [arch=$(dpkg --print-architecture)] http://packages.ros.or
 sudo apt update -y
 sudo apt install ros-eloquent-desktop -y
 source /opt/ros/eloquent/setup.bash
-echo "source /opt/ros/eloquent/setup.bash" >> ~/.bashrc
 sudo apt install -y python3-pip -y
 pip3 install -U argcomplete -y
 sudo apt install -y python-rosdep -y
