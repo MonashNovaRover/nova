@@ -20,10 +20,11 @@ then
 # Otherwise create it
 else
 
-    # Create and populate the file
+    # Create and populates the file
     mkdir -p ~/nova_ws/src/core/settings
     touch $FILE
     echo "export ROS_VERSION=2" > $FILE
+    export ROS_VERSION=2
 
 fi
 

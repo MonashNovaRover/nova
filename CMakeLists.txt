@@ -26,7 +26,6 @@ find_package(rosidl_default_generators REQUIRED)
 
 # Include all messages, services and actions
 rosidl_generate_interfaces(${PROJECT_NAME}
-  "msg/TurtleInfo.msg"
   "msg/RadioStatus.msg"
   "msg/InputGamepad.msg"
   "msg/InputJoystick.msg"
