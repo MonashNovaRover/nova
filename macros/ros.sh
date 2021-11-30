@@ -9,7 +9,7 @@
 #
 # +--------------------------------------------+
 
-# Finds if the ROS settinsg file exists
+# Finds if the ROS settings file exists
 FILE=~/nova_ws/src/core/settings/ROS_SETTINGS.sh
 if [[ -f "$FILE" ]]
 then
@@ -44,4 +44,3 @@ else
     source ~/nova_ws/install/setup.bash
 
 fi
-
