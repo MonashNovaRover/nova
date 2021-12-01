@@ -4,9 +4,10 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team
 
-This code interfaces with the CAN classes and is
-    able to communicate with all of the wheel CMDs
-    by creating instances of each class.
+This code interfaces with the CMD class that is able
+    to send CAN messages. It can send wheel data from
+    each of the wheels with the correct PID or PWM
+    speeds.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	control
@@ -17,34 +18,18 @@ EDITED:		25/11/2021
 */
 
 // General includes
-#include <iostream>
+#include "../cmd/cmd.h"
 
-// CAN include
-#include "socketcan/socketcan_cpp.h"
-
-enum WheelCommand {
-    STOP = 0,
-    FORWARD_FULL,
-    REVERSE_FULL,
-    SET_PWM,
-    SET_VELOCITY,
-    PID_TUNE,
-    SET_LINEAR_ACTUATOR //TODO: Remove because only for arm?
-};
 
 // Wheel class for communicating with wheel CMDs
-class Wheel {
+class Wheel : public CMD {
 
     //------------------------------------------------------------//
     protected:
 
-    // The identification id for the wheel
-    int id;
-
     // The direction that the wheel will turn with positive speed
     bool clockwise;
-    
-    scpp::SocketCan can_socket;
+
 
     //------------------------------------------------------------//
     protected:
@@ -71,5 +56,5 @@ class Wheel {
     void spin (float speed, const float steer);
     
     /// @brief      Sends ALL STOPS commands to the wheels
-    void stop ();
+    void stop () override;
 };
