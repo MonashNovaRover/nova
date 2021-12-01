@@ -21,6 +21,14 @@ setup           # Call the setup macro
 # Check if a keyword used
 if [[ -z $1 ]]; then
     colcon build;   # Build the workspace
+
+# Check for clean
+elif [[ $1 = "clean" ]]
+then
+    rm -r build install log
+    colcon build
+
+# Build only a certain package
 else
     colcon build --packages-select $1
 fi
