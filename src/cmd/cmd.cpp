@@ -30,15 +30,36 @@ CMD::~CMD () {
 }
 
 
-void CMD::stop () {
+void CMD::call_empty (const CMDCommand command) {
 
     // Creates a new CAN frame
     scpp::CanFrame frame;
-    frame.id = (this->id << 4) | CMDCommand::STOP;
+    frame.id = (this->id << 4) | command;
     frame.len = 0;
 
     // Writes the frame
     this->can_socket.write(frame);
+}
+
+
+void CMD::stop () {
+
+    // Calls the empty frame
+    call_empty(CMDCommand::STOP);
+}
+
+
+void CMD::forward () {
+
+    // Calls the empty frame
+    call_empty(CMDCommand::FORWARD);
+}
+
+
+void CMD::reverse () {
+
+    // Calls the empty frame
+    call_empty(CMDCommand::REVERSE);
 }
 
 

@@ -13,7 +13,7 @@ This code interfaces with the CMD class that is able
 PACKAGE: 	control
 AUTHOR(S):	Harrison Verrios, Josh Cherubino
 CREATION:	21/11/2021
-EDITED:		25/11/2021
+EDITED:		01/12/2021
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
