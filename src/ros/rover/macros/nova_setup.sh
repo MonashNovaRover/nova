@@ -110,7 +110,7 @@ git config --global user.email "$email"
 
 # Create the workspace
 information "Creating Nova Workspace..."
-rm -rf ~/nova_ws
+sudo rm -rf ~/nova_ws
 mkdir -p ~/nova_ws/src
 cd ~/nova_ws
 colcon build
