@@ -52,6 +52,10 @@ class CMD {
     //------------------------------------------------------------//
     protected:
 
+    /// @brief      Calls an empty data frame packet for some command
+    /// @param      command - The command to send
+    void call_empty (const CMDCommand command);
+
     /// @brief      Destructor is called when object is deleted
     ~CMD ();
 
@@ -66,6 +70,12 @@ class CMD {
 
     /// @brief      Stops all speeds on this particular CMD
     virtual void stop ();
+
+    /// @brief      Drives forward at full speed to the CMD
+    void forward ();
+
+    /// @brief      Drives reverse at full speed to the CMD
+    void reverse ();
 
     /// @brief      Sends PWM commands to the CMD on the CAN line
     /// @param      power - The fraction between -1.0 and 1.0 to send
