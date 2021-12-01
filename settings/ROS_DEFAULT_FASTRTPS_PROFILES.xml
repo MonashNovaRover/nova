@@ -23,6 +23,11 @@
                     </locator>
                     <locator>
                         <udpv4>
+                            <address>192.168.3.200</address>
+                        </udpv4>
+                    </locator>
+                    <locator>
+                        <udpv4>
                             <address>192.168.3.201</address>
                         </udpv4>
                     </locator>
