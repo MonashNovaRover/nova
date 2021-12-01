@@ -49,6 +49,12 @@ if [[ "$confirmation" != "y"  &&  "$confirmation" != "Y" ]]; then
     exit 1;
 fi
 
+echo "Would you like to skip dependency installation? (Y) to skip."
+read dependencies
+
+# Check if requiring to install dependencies
+if [[ "$dependencies" != "y" && "$dependencies" != "Y" ]]; then
+
 # First step is to install dependencies and packages
 title "Installing Dependencies"
 sudo apt update -y
@@ -98,6 +104,11 @@ sudo apt -y install net-tools
 sudo apt -y install can-utils
 sudo apt -y install exfat-fuse exfat-utils
 sudo gpasswd --add ${USER} dialout
+
+# ---------------------------------------- #
+
+# End dependencies
+fi
 
 # Adding Git permissions
 information "Setting up Git..."
