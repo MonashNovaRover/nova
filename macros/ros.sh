@@ -44,3 +44,6 @@ else
     source ~/nova_ws/install/setup.bash
 
 fi
+
+# Source the ROS profile
+export FASTRTPS_DEFAULT_PROFILES_FILE=~/nova_ws/src/core/settings/ROS_DEFAULT_FASTRTPS_PROFILES.xml
