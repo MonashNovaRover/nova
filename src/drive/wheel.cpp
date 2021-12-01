@@ -7,17 +7,17 @@ AUTHOR(S):	Harrison Verrios, Josh Cherubino
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
+// General includes
+#include <iostream>
+
 // Include the header file
 #include "wheel.h"
 
-Wheel::Wheel (const int id, const bool clockwise) {
+Wheel::Wheel (const int id, const bool clockwise) :
+    CMD (1, id) {
 
     // Update the variables
-    this->id = id;
     this->clockwise = clockwise;
-    
-    //startup CAN interface.
-    this->can_socket.open("can1");
     
     //TODO: Send PID gains on startup...
 }
@@ -26,7 +26,6 @@ Wheel::Wheel (const int id, const bool clockwise) {
 Wheel::~Wheel () {
     // Ensure the spinning stops
     spin(0.0);
-    this->can_socket.close();
 }
 
 
@@ -40,21 +39,8 @@ void Wheel::spin (float speed) {
     if (speed > 1.0) speed = 1.0;
     else if (speed < -1.0) speed = -1.0;
 
-    //Send data on wire
-    scpp::CanFrame frame;
-    
-    //embed command in arbitration id
-    frame.id = (this->id << 4) | SET_VELOCITY;
-    
-    //scale to range
-    int16_t scaled_speed = (int16_t)(speed*32767.0f);
-
-    //Order data in big-endian order (MSB first)
-    frame.data[0] = scaled_speed >> 8;
-    frame.data[1] = scaled_speed & 0xFF; 
-    frame.len = 2;
-    
-    this->can_socket.write(frame);
+    // Call the PID function
+    set_pid(speed);
 }
 
 
@@ -70,11 +56,9 @@ void Wheel::spin (float speed, const float steer) {
     spin (speed);
 }
 
+
 void Wheel::stop () {
-    //embed command in arbitration id
-    scpp::CanFrame frame;
-    frame.id = (this->id << 4) | STOP;
-    frame.len = 0;
     
-    this->can_socket.write(frame);
+    // Call base class stop
+    CMD::stop();
 }

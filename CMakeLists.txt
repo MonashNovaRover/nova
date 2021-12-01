@@ -51,7 +51,7 @@ add_executable(drive_cmd src/drive/drive_publisher.cpp)
 ament_target_dependencies(drive_cmd rclcpp core)
 
 # Drive Receiver script
-add_executable(driver src/drive/drive_subscriber.cpp src/drive/wheel.cpp ${PROJECT_SOURCE_DIR}/include/socketcan/socketcan_cpp.cpp)
+add_executable(driver src/drive/drive_subscriber.cpp src/drive/wheel.cpp src/cmd/cmd.cpp ${PROJECT_SOURCE_DIR}/include/socketcan/socketcan_cpp.cpp)
 ament_target_dependencies(driver rclcpp core)
 
 
