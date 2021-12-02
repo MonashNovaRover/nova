@@ -41,7 +41,7 @@ from nav_msgs.msg import Odometry
 import ArrayGrid
 
 # off, dynamic, static
-VIS = "static"
+VIS = "dynamic"
 
 
 class SubscriberNode(Node):
@@ -53,14 +53,17 @@ class SubscriberNode(Node):
         self.subscriber_tracking = self.create_subscription(Odometry, '/T265/odom/sample', self.tracking_callback, 100)
 
         self.msg = None
-        
+
+        self.count = 0
+        self.start = time.time()
+
         # self.subscriber_tracking = self.create_subscription(Odometry, "/T265/odom/sample", self.position_callback, 10)
         # o3d.utility.set_verbosity_level(o3d.utility.VerbosityLevel.Debug)
 
-        self.grid = ArrayGrid.ArrayGrid(8, 8, 5, .1)
+        self.grid = ArrayGrid.ArrayGrid(8, 8, 8, .2)
 
         if VIS == "dynamic":
-            self.vis = o3d.visualization.Visualizer() 
+            self.vis = o3d.visualization.Visualizer()
             self.vis.create_window()
             self.vis.get_render_option().load_from_json("view.json")
 
@@ -76,7 +79,7 @@ class SubscriberNode(Node):
         zquar = self.msg.pose.pose.orientation.z
         wquar = self.msg.pose.pose.orientation.w
 
-        quar = np.array([xquar, yquar, zquar, wquar])
+        quar = np.array([wquar, xquar, yquar, zquar])
 
         mat = np.zeros((4, 4))
         mat[:3, :3] = o3d.geometry.get_rotation_matrix_from_quaternion(quar)
@@ -116,9 +119,10 @@ class SubscriberNode(Node):
         # swap red and blue
         colors = colors[:, [2, 1, 0]]
 
-        colors = colors[(abs(pts[:, 0]) < 2.0) & (abs(pts[:, 1]) < 2.0) & (abs(pts[:, 2]) < 2.0)]
-        pts = pts[(abs(pts[:, 0]) < 2.0) & (abs(pts[:, 1]) < 2.0) & (abs(pts[:, 2]) < 2.0)]
+        max_dist = 3.0
 
+        colors = colors[(abs(pts[:, 0]) < max_dist) & (abs(pts[:, 1]) < max_dist) & (abs(pts[:, 2]) < max_dist)]
+        pts = pts[(abs(pts[:, 0]) < max_dist) & (abs(pts[:, 1]) < max_dist) & (abs(pts[:, 2]) < max_dist)]
         return pts, colors
 
     def points_callback(self, msg):
@@ -128,6 +132,9 @@ class SubscriberNode(Node):
         """
 
         pts, colors = self.get_points_and_colors(msg)
+
+        if pts.shape[0] < 10:
+            return
 
         if self.msg:
             mat = self.get_transform()
@@ -144,11 +151,14 @@ class SubscriberNode(Node):
         point_set.points = o3d.utility.Vector3dVector(pts)
         point_set.colors = o3d.utility.Vector3dVector(colors)
 
-        if VIS == "dynamic":
-            self.visualize_pc(point_set)
-            # self.visualize_pc(point_set)
-        elif VIS == "static":
-            open3d.visualization.draw_geometries([point_set])
+        if time.time() - self.start > 3.0 and self.count >= 2:
+            if VIS == "dynamic":
+                self.visualize_pc(point_set)
+                # self.visualize_pc(point_set)
+            elif VIS == "static":
+                open3d.visualization.draw_geometries([point_set])
+        self.count += 1
+        print(self.count)
 
     def tracking_callback(self, msg):
         self.msg = msg
