@@ -30,6 +30,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/InputGamepad.msg"
   "msg/InputJoystick.msg"
   "msg/DriveCmd.msg"
+  "msg/ArmInput.msg"
 )
 
 # Run build testing package nodes
