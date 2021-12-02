@@ -38,6 +38,7 @@ from sensor_msgs.msg import PointField
 from open3d import *
 import matplotlib.pyplot as plt
 from nav_msgs.msg import Odometry
+import ArrayGrid
 
 # off, dynamic, static
 VIS = "static"
@@ -56,7 +57,7 @@ class SubscriberNode(Node):
         # self.subscriber_tracking = self.create_subscription(Odometry, "/T265/odom/sample", self.position_callback, 10)
         # o3d.utility.set_verbosity_level(o3d.utility.VerbosityLevel.Debug)
 
-        self.grid = None
+        self.grid = ArrayGrid.ArrayGrid(8, 8, 5, .1)
 
         if VIS == "dynamic":
             self.vis = o3d.visualization.Visualizer() 
@@ -68,21 +69,33 @@ class SubscriberNode(Node):
         self.vis.update_geometry(pc)
         self.vis.poll_events()
         self.vis.update_renderer()
-        self.vis.get_render_option().load_from_json("view.json")
 
-    def visualize(self, voxel_grid):
-        # Non-blocking visualisation of point cloud, very lagy
-        self.vis.add_geometry(voxel_grid)
-        self.vis.update_geometry(voxel_grid)
-        self.vis.poll_events()
-        self.vis.update_renderer()
-        self.vis.get_render_option().load_from_json("view.json")
+    def get_transform(self):
+        xquar = self.msg.pose.pose.orientation.x
+        yquar = self.msg.pose.pose.orientation.y
+        zquar = self.msg.pose.pose.orientation.z
+        wquar = self.msg.pose.pose.orientation.w
 
-    def points_callback(self, msg):
+        quar = np.array([xquar, yquar, zquar, wquar])
+
+        mat = np.zeros((4, 4))
+        mat[:3, :3] = o3d.geometry.get_rotation_matrix_from_quaternion(quar)
+        mat[3, 3] = 1
+        return mat
+
+    def get_translation(self):
+        x = self.msg.pose.pose.position.x
+        y = self.msg.pose.pose.position.y
+        z = self.msg.pose.pose.position.z
+        return np.array([x, y, z])
+
+    def get_points_and_colors(self, msg):
         """
-        Parses positional data, calculates the average value and publishes
-        it to the topic /obstacle_proximity.
+        Gets points and colors as
+        :param msg: PointCloud2
+        :return:
         """
+
         # we need to re-set the field names to extract the unsigned ints from the msg type (one for r, g, b)
         msg.fields = msg.fields[0:3]
         msg.fields.append(PointField(name="r", offset=16, datatype=2, count=1))
@@ -93,16 +106,10 @@ class SubscriberNode(Node):
         # arr = list(pc2.read_points(msg, field_names=("x", "y", "z"), skip_nans=True))
         arr = list(pc2.read_points(msg, field_names=("x", "y", "z", "r", "g", "b"), skip_nans=True))
 
-        # 2. Wrap the point-cloud array in an o3d.geometry.PointCloud
+        # 2. Wrap the point-cloud array in a numpy array
         np_arr = np.array(arr)
         print(arr[:2])
         pts = np_arr[:, 0:3]
-
-        # points = [p for p in pts[:,1] if abs(p) < 1.5]
-
-        zmin = min(pts[:,2])
-
-        print(zmin)
 
         colors = np_arr[:, 3:6] / 255.0
 
@@ -112,59 +119,39 @@ class SubscriberNode(Node):
         colors = colors[(abs(pts[:, 0]) < 2.0) & (abs(pts[:, 1]) < 2.0) & (abs(pts[:, 2]) < 2.0)]
         pts = pts[(abs(pts[:, 0]) < 2.0) & (abs(pts[:, 1]) < 2.0) & (abs(pts[:, 2]) < 2.0)]
 
-        colors = o3d.utility.Vector3dVector(colors)
-        pts = o3d.utility.Vector3dVector(pts)
+        return pts, colors
 
-        point_set = o3d.geometry.PointCloud()
-        point_set.points = pts
-        point_set.colors = colors
+    def points_callback(self, msg):
+        """
+        Parses positional data, calculates the average value and publishes
+        it to the topic /obstacle_proximity.
+        """
+
+        pts, colors = self.get_points_and_colors(msg)
 
         if self.msg:
-            x = self.msg.pose.pose.position.x
-            y = self.msg.pose.pose.position.y
-            z = self.msg.pose.pose.position.z
-            xquar = self.msg.pose.pose.orientation.x
-            yquar = self.msg.pose.pose.orientation.y
-            zquar = self.msg.pose.pose.orientation.z
-            wquar = self.msg.pose.pose.orientation.w
+            mat = self.get_transform()
+            trans = self.get_translation()
 
-            quar = np.array([xquar, yquar, zquar, wquar])
+            # transform then translate
+            pts = np.matmul(mat[:3, :3], pts.transpose()).transpose()
+            pts = pts + trans
 
-            mat = np.zeros((4, 4))
-            mat[:3, :3] = o3d.geometry.get_rotation_matrix_from_quaternion(quar)
-            mat[3, 3] = 1
+        self.grid.add_pc(pts, colors)
+        pts, colors = self.grid.get_as_pc()
 
-            point_set.transform(mat)
-
-        # fit into unit cube
-        # point_set.scale(1 / np.max(point_set.get_max_bound() - point_set.get_min_bound()), center=point_set.get_center())
-
-        # colour is determined by the average of all the points within the voxel
-        # point_set.colors = o3d.utility.Vector3dVector(np.random.uniform(0, 1, size=(N, 3)))
-        if not self.grid:
-            self.grid = o3d.geometry.VoxelGrid.create_from_point_cloud(point_set, voxel_size=0.02)
-        else:
-            voxel = o3d.geometry.VoxelGrid.create_from_point_cloud(point_set, voxel_size=0.02)
-            voxel.origin = self.grid.origin
-            self.grid += voxel
-            print(self.grid)
-
-        print(self.grid)
-        # time.sleep(.1)
+        point_set = o3d.geometry.PointCloud()
+        point_set.points = o3d.utility.Vector3dVector(pts)
+        point_set.colors = o3d.utility.Vector3dVector(colors)
 
         if VIS == "dynamic":
-            self.visualize(self.grid)
+            self.visualize_pc(point_set)
             # self.visualize_pc(point_set)
         elif VIS == "static":
-            # axis_pcd = open3d.geometry.TriangleMesh.create_coordinate_frame(size= 0.5)
-            # axis_test = open3d.geometry.TriangleMesh.create_coordinate_frame(size=0.1,origin=[0,0,-zmin])
-            # open3d.visualization.draw_geometries([point_set]+[axis_test])
-            open3d.visualization.draw_geometries([self.grid])
-            # open3d.visualization.draw_geometries([voxel_grid])
+            open3d.visualization.draw_geometries([point_set])
 
     def tracking_callback(self, msg):
         self.msg = msg
-
 
 
 def position_callback(msg):
