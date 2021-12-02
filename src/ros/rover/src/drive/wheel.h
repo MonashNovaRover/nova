@@ -4,36 +4,32 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team
 
-This code interfaces with the CAN classes and is
-    able to communicate with all of the wheel CMDs
-    by creating instances of each class.
+This code interfaces with the CMD class that is able
+    to send CAN messages. It can send wheel data from
+    each of the wheels with the correct PID or PWM
+    speeds.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	control
-AUTHOR(S):	Harrison Verrios
+AUTHOR(S):	Harrison Verrios, Josh Cherubino
 CREATION:	21/11/2021
-EDITED:		21/11/2021
+EDITED:		01/12/2021
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
 // General includes
-#include <iostream>
+#include "../cmd/cmd.h"
 
-// Use the standard namespace
-using namespace std;
 
 // Wheel class for communicating with wheel CMDs
-class Wheel {
+class Wheel : public CMD {
 
     //------------------------------------------------------------//
     protected:
 
-    // The identification id for the wheel
-    int id;
-
     // The direction that the wheel will turn with positive speed
     bool clockwise;
-    
+
 
     //------------------------------------------------------------//
     protected:
@@ -59,4 +55,6 @@ class Wheel {
     /// @param      steer - The steer where + is right and - is left
     void spin (float speed, const float steer);
     
+    /// @brief      Sends ALL STOPS commands to the wheels
+    void stop () override;
 };

@@ -3,18 +3,23 @@
 Monash Nova Rover Team
 
 PACKAGE: 	control
-AUTHOR(S):	Harrison Verrios
+AUTHOR(S):	Harrison Verrios, Josh Cherubino
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
+
+// General includes
+#include <iostream>
 
 // Include the header file
 #include "wheel.h"
 
-Wheel::Wheel (const int id, const bool clockwise) {
+Wheel::Wheel (const int id, const bool clockwise) :
+    CMD (1, id) {
 
     // Update the variables
-    this->id = id;
     this->clockwise = clockwise;
+    
+    //TODO: Send PID gains on startup...
 }
 
 
@@ -24,6 +29,7 @@ Wheel::~Wheel () {
 }
 
 
+//TODO: Add mode as parameter to function (i.e. PID etc.)
 void Wheel::spin (float speed) {
 
     // Adjust for directional spinning
@@ -33,17 +39,26 @@ void Wheel::spin (float speed) {
     if (speed > 1.0) speed = 1.0;
     else if (speed < -1.0) speed = -1.0;
 
-    // TODO remove when CAN classes exists
-    cout << "Wheel Spin: " << speed << endl;
-    fflush(stdout);
+    // Call the PID function
+    set_pid(speed);
 }
 
 
 void Wheel::spin (float speed, const float steer) {
 
     // Calculate the new speed based on the steer
-    speed = speed + (steer * ((clockwise) ? 1.0 : -1.0));
+    if (clockwise)
+        speed = speed + steer;
+    else
+        speed = speed - steer;
 
     // Call the base spin function
     spin (speed);
+}
+
+
+void Wheel::stop () {
+    
+    // Call base class stop
+    CMD::stop();
 }
