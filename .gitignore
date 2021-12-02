@@ -129,4 +129,4 @@ dmypy.json
 .pyre/
 
 # Ignore the settings
-settings/*
+settings/ROS_SETTINGS.sh

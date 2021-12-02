@@ -102,17 +102,17 @@ elif [[ $failed != "1" ]]
 then
 
     # Run the CAN
-    echo sudo modprobe can
-    echo sudo modprobe can-raw
-    echo sudo modprobe mttcan
+    sudo modprobe can
+    sudo modprobe can-raw
+    sudo modprobe mttcan
 
     # If turning on CAN
     if [[ $command == "start" ]]
     then
 
         # Create the CAN link
-        echo sudo ip link set $can type can bitrate $bitrate dbitrate 2000000 berr-reporting on fd on 
-        echo sudo ip link set up $can
+        sudo ip link set $can type can bitrate $bitrate dbitrate 2000000 berr-reporting on fd on 
+        sudo ip link set up $can
 
     # If turning off CAN
     else
