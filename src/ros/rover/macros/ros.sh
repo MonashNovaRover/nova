@@ -46,4 +46,4 @@ else
 fi
 
 # Source the ROS profile for multi-network connections
-export FASTRTPS_DEFAULT_PROFILES_FILE=~/nova_ws/src/core/set
+export FASTRTPS_DEFAULT_PROFILES_FILE=~/nova_ws/src/core/settings/ROS_DEFAULT_FASTRTPS_PROFILES.xml
