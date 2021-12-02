@@ -49,12 +49,16 @@ ament_target_dependencies(drive_cmd rclcpp core)
 add_executable(driver src/drive/drive_subscriber.cpp src/drive/wheel.cpp)
 ament_target_dependencies(driver rclcpp core)
 
+# Arm Publisher script
+add_executable(arm_input src/arm/arm_publisher.cpp)
+ament_target_dependencies(arm_input rclcpp core)
 
 # Add all the installation targets
 install(TARGETS
   inputs
   drive_cmd
   driver
+  arm_input
   DESTINATION lib/${PROJECT_NAME}
 )
 
