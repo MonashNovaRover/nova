@@ -3,7 +3,7 @@
 Monash Nova Rover Team
 
 PACKAGE: 	control
-AUTHOR(S):	Harrison Verrios
+AUTHOR(S):	Harrison Verrios, Josh Cherubino
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
@@ -39,7 +39,7 @@ void DriveSubscriber::drive_callback (const core::msg::DriveCmd::SharedPtr msg) 
     else if (!stopped_sent) {
         // Spin the wheels for 0 speed
         for (Wheel* wheel : wheels) {
-            wheel->spin(0.0);
+            wheel->stop();
         }
 
         // Set the stopped flag so it doesn't run again
@@ -64,8 +64,8 @@ DriveSubscriber::DriveSubscriber()
 
     // Initialise the wheels in the correct direction
     for (int i = 0; i < NUM_WHEELS; i++) {
-        bool clockwise = i >= NUM_WHEELS / 2;
-        wheels[i] = new Wheel (i, clockwise);
+        bool clockwise = i < NUM_WHEELS / 2;
+        wheels[i] = new Wheel (i + 1, clockwise);
     }
 
     // TODO QoS Profiles
