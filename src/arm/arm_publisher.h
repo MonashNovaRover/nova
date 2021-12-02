@@ -4,20 +4,29 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team
 
+This class reads data from the raw joystick inputs
+    and converts them to arm input messages.
+This does not interface with the CMD library, but
+    instead can be run on the base station to send
+    arm data across the network.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-NODE: 
+NODE: arm_pub
 TOPICS:
+  - /control/input_joystick_l   [InputJoystick]     [Subscribed]
+  - /control/input_joystick_r   [InputJoystick]     [Subscribed]
+  - /control/arm_input          [ArmInput]          [Published]
 SERVICES: None
 ACTIONS:  None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	control
-AUTHOR(S):  
-CREATION:	
-EDITED:		
+AUTHOR(S):  Jess Hepworth
+CREATION:	02/12/2021
+EDITED:		03/12/2021
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
- 
+ - Add in additional inputs for linear actuate
+ - Test with CMD code with subscriber
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
@@ -26,13 +35,12 @@ TODO:
 #include "core/msg/input_joystick.hpp"
 #include "core/msg/arm_input.hpp"
 
-#include <iostream>
-
 // Use the standard namespaces
-using namespace std;
 using namespace std::chrono_literals;
 using std::placeholders::_1;
 
+// Define constants
+#define NUM_JOINTS 6    // Number of joints in the arm
 
 /* 
 Arm input class that handles input data from joysticks and publishes 
@@ -46,25 +54,29 @@ class ArmPublisher : public rclcpp::Node {
     // Stores the loop timer for the update function
     rclcpp::TimerBase::SharedPtr timer;
 
+    // Stores a counter for each step
+    size_t count;
+
     // Stores the publisher for arm inputs
-    rclcpp::Publisher<core::msg::ArmInput>::SharedPtr arm_input_publisher;
+    rclcpp::Publisher<core::msg::ArmInput>::SharedPtr arm_publisher;
 
     // Stores the subscribers to the joystick inputs
     rclcpp::Subscription<core::msg::InputJoystick>::SharedPtr joystick_l_subscription;
     rclcpp::Subscription<core::msg::InputJoystick>::SharedPtr joystick_r_subscription;
 
     // Stores task space inputs
-    float task_velocity[6];
+    float task_velocity[NUM_JOINTS];
 
-    //Stores joint space inputs
-    float joint_velocity[6];
+    // Stores joint space inputs
+    float joint_velocity[NUM_JOINTS];
 
-    //IK on wrist 
-    bool IK_wrist = false
+    // flag for IK on wrist 
+    bool IK_wrist = false;
 
-    //IK on lower joints
-    bool IK_lower_joints = false
+    // flag for IK on lower joints
+    bool IK_lower_joints = false;
  
+
     //------------------------------------------------------------//
     private:
 
@@ -77,7 +89,8 @@ class ArmPublisher : public rclcpp::Node {
     void joystick_r_callback (const core::msg::InputJoystick::SharedPtr msg);
 
     /// @brief      Function for publishing arm input message
-    void publish_arm_inputs ()
+    void publish_arm_inputs ();
+
 
     //------------------------------------------------------------//
     public:
