@@ -63,11 +63,13 @@ class ArrayGrid:
         """
         t = time.time()
         indexes = self.get_indexes(points)
+        print("getting indexes took: " + str(time.time() - t))
 
         # todo: if there's a way to do this efficiently (i.e. without looping) that would probably save a lot of time
         for i in range(len(points)):
             count = self.map[indexes[i][0], indexes[i][1], indexes[i][2]][0]
             self.map[indexes[i][0], indexes[i][1], indexes[i][2]] = np.append([count + 1, t], colors[i])
+        print("add_pc took: " + str(time.time() - t))
 
     def get_as_pc(self):
         """
@@ -75,6 +77,8 @@ class ArrayGrid:
         Inefficient as needs to look through entire map :)))
         :return: ((n, 3) numpy array of points, (n, 3) numpy array of colors)
         """
+
+        t = time.time()
         points = []
         colors = []
         for l in range(self.map.shape[0]):
@@ -83,4 +87,6 @@ class ArrayGrid:
                     if self.map[l, w, h][0]:
                         points.append([l, w, h])
                         colors.append(self.map[l, w, h, 2:])
+        print("looking through map took: " + str(time.time() - t))
+
         return self.get_points(np.array(points)), np.array(colors)
