@@ -67,8 +67,12 @@ class ArrayGrid:
 
         # todo: if there's a way to do this efficiently (i.e. without looping) that would probably save a lot of time
         for i in range(len(points)):
-            count = self.map[indexes[i][0], indexes[i][1], indexes[i][2]][0]
-            self.map[indexes[i][0], indexes[i][1], indexes[i][2]] = np.append([count + 1, t], colors[i])
+            
+            # only add if the translated point-cloud fits within the bounds of the map we have created
+            if indexes[i][0] < self.map.shape[0] and indexes[i][1] < self.map.shape[1] and indexes[i][2] < self.map.shape[2]:
+                count = self.map[indexes[i][0], indexes[i][1], indexes[i][2]][0]
+                self.map[indexes[i][0], indexes[i][1], indexes[i][2]] = np.append([count + 1, t], colors[i])
+        
         print("add_pc took: " + str(time.time() - t))
 
     def get_as_pc(self):

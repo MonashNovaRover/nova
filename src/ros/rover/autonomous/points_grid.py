@@ -39,9 +39,10 @@ from open3d import *
 import matplotlib.pyplot as plt
 from nav_msgs.msg import Odometry
 import ArrayGrid
+import transform
 
 # off, dynamic, static
-VIS = "off"
+VIS = "static"
 
 
 class SubscriberNode(Node):
@@ -49,9 +50,20 @@ class SubscriberNode(Node):
 
         # init node with node name points
         super().__init__('points')
-        self.subscriber_points = self.create_subscription(PointCloud2, '/D435/depth/color/points', self.points_callback, 100)
         self.subscriber_tracking = self.create_subscription(Odometry, '/T265/odom/sample', self.tracking_callback, 100)
-
+        
+        
+        example = "ob"
+        if example == "tree":
+            self.subscriber_points = self.create_subscription(PointCloud2, '/D400/depth/color/points', self.points_callback, 10)
+            self.max_dist = 4.0
+            self.grid = ArrayGrid.ArrayGrid(12, 12, 5, .1)
+        
+        else:
+            self.subscriber_points = self.create_subscription(PointCloud2, '/D435/depth/color/points', self.points_callback, 10)
+            self.max_dist = 2.0
+            self.grid = ArrayGrid.ArrayGrid(4, 4, 2.5, .02)
+        
         self.msg = None
 
         self.count = 0
@@ -59,8 +71,6 @@ class SubscriberNode(Node):
 
         # self.subscriber_tracking = self.create_subscription(Odometry, "/T265/odom/sample", self.position_callback, 10)
         # o3d.utility.set_verbosity_level(o3d.utility.VerbosityLevel.Debug)
-
-        self.grid = ArrayGrid.ArrayGrid(8, 8, 8, .1)
 
         if VIS == "dynamic":
             self.vis = o3d.visualization.Visualizer()
@@ -73,7 +83,7 @@ class SubscriberNode(Node):
         self.vis.poll_events()
         self.vis.update_renderer()
 
-    def get_transform(self):
+    def get_transform_old(self):
         xquar = self.msg.pose.pose.orientation.x
         yquar = self.msg.pose.pose.orientation.y
         zquar = self.msg.pose.pose.orientation.z
@@ -86,6 +96,9 @@ class SubscriberNode(Node):
         mat[3, 3] = 1
         return mat
 
+    def get_transform(self):
+        return transform.get_pc_transformation(self.msg)
+    
     def get_translation(self):
         x = self.msg.pose.pose.position.x
         y = self.msg.pose.pose.position.y
@@ -119,10 +132,16 @@ class SubscriberNode(Node):
         # swap red and blue
         colors = colors[:, [2, 1, 0]]
 
-        max_dist = 3.0
+        max_dist = self.max_dist 
 
         colors = colors[(abs(pts[:, 0]) < max_dist) & (abs(pts[:, 1]) < max_dist) & (abs(pts[:, 2]) < max_dist)]
         pts = pts[(abs(pts[:, 0]) < max_dist) & (abs(pts[:, 1]) < max_dist) & (abs(pts[:, 2]) < max_dist)]
+        
+        
+        # optional -- only taking every 10th value (cos 2 much data)
+        colors = colors[list(range(0, len(colors), 10))]
+        pts = pts[list(range(0, len(pts), 10))]
+
         return pts, colors
 
     def points_callback(self, msg):
@@ -138,12 +157,22 @@ class SubscriberNode(Node):
 
         if self.msg:
             mat = self.get_transform()
-            trans = self.get_translation()
 
             # transform then translate
             pts = np.matmul(mat[:3, :3], pts.transpose()).transpose()
-            pts = pts + trans
+            
+            print(mat.shape)
+            print(pts.shape)
 
+            # commenting this line out because the new transformation method includes the translation
+            
+            print("adding mat: ")
+            print(pts[0])
+            print(mat[:3 ,3])
+            print(str(self.msg.pose.pose.position.x) + ", " + str(self.msg.pose.pose.position.y) + ", " + str(self.msg.pose.pose.position.z))
+            pts = pts + mat[:3, 3]
+            print(pts[0])
+        
         self.grid.add_pc(pts, colors)
         pts, colors = self.grid.get_as_pc()
 
@@ -151,7 +180,8 @@ class SubscriberNode(Node):
         point_set.points = o3d.utility.Vector3dVector(pts)
         point_set.colors = o3d.utility.Vector3dVector(colors)
 
-        if time.time() - self.start > 3.0 and self.count >= 2:
+        # just waiting for a number of steps before visulising since visulisation is blocking
+        if time.time() - self.start > 3.0 and self.count >= 15:
             if VIS == "dynamic":
                 self.visualize_pc(point_set)
                 # self.visualize_pc(point_set)
