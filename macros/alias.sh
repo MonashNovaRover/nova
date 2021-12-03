@@ -37,3 +37,6 @@ alias ik='cd ~/nova_ws/other/ik_machine'
 
 # Networking Aliases
 alias jetson='ssh -Y nova@192.168.1.204'
+
+# GUI Aliases
+alias wombat='cd ~/nova_ws/src/gui/wombatx; npm run start'
