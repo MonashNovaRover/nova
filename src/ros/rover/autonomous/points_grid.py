@@ -41,7 +41,7 @@ from nav_msgs.msg import Odometry
 import ArrayGrid
 
 # off, dynamic, static
-VIS = "dynamic"
+VIS = "off"
 
 
 class SubscriberNode(Node):
@@ -60,7 +60,7 @@ class SubscriberNode(Node):
         # self.subscriber_tracking = self.create_subscription(Odometry, "/T265/odom/sample", self.position_callback, 10)
         # o3d.utility.set_verbosity_level(o3d.utility.VerbosityLevel.Debug)
 
-        self.grid = ArrayGrid.ArrayGrid(8, 8, 8, .2)
+        self.grid = ArrayGrid.ArrayGrid(8, 8, 8, .1)
 
         if VIS == "dynamic":
             self.vis = o3d.visualization.Visualizer()
