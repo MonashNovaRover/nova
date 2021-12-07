@@ -33,7 +33,7 @@ class SubscriberNode(Node):
         mat[3,3] = 1
 
 
-        print(mat)
+        # print(mat)
         mesh_translate = copy.deepcopy(mesh).translate((x, y, z))
         x = "x: " + str(round(x, 4)).rjust(6)
         y = "y: " + str(round(y, 4)).rjust(6)

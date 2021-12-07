@@ -43,7 +43,7 @@ import transform
 
 # off, dynamic, static
 VIS = "static"
-
+GET_BEFORE_VIS = 40
 
 class SubscriberNode(Node):
     def __init__(self):
@@ -52,17 +52,22 @@ class SubscriberNode(Node):
         super().__init__('points')
         self.subscriber_tracking = self.create_subscription(Odometry, '/T265/odom/sample', self.tracking_callback, 100)
         
-        
-        example = "ob"
+        example = "real"
         if example == "tree":
-            self.subscriber_points = self.create_subscription(PointCloud2, '/D400/depth/color/points', self.points_callback, 10)
-            self.max_dist = 4.0
-            self.grid = ArrayGrid.ArrayGrid(12, 12, 5, .1)
-        
-        else:
             self.subscriber_points = self.create_subscription(PointCloud2, '/D435/depth/color/points', self.points_callback, 10)
+            self.max_dist = 4.0
+            self.grid = ArrayGrid.ArrayGrid(8, 8, 6, .075)
+        
+        elif example == "ob":
+            self.subscriber_points = self.create_subscription(PointCloud2, '/D400/depth/color/points', self.points_callback, 10)
             self.max_dist = 2.0
             self.grid = ArrayGrid.ArrayGrid(4, 4, 2.5, .02)
+        
+        # real 
+        else:
+            self.subscriber_points = self.create_subscription(PointCloud2, '/D400/depth/color/points', self.points_callback, 10)
+            self.max_dist = 3.5
+            self.grid = ArrayGrid.ArrayGrid(8, 8, 5, .05)
         
         self.msg = None
 
@@ -75,26 +80,16 @@ class SubscriberNode(Node):
         if VIS == "dynamic":
             self.vis = o3d.visualization.Visualizer()
             self.vis.create_window()
+            # frame = open3d.geometry.create_mesh_coordinate_frame(size=1.0, origin=array([0., 0., 0.]))
             self.vis.get_render_option().load_from_json("view.json")
 
     def visualize_pc(self, pc):
+        frame = open3d.geometry.create_mesh_coordinate_frame(size=1.0, origin=array([0., 0., 0.]))
+        self.vis.add_geometry(frame)
         self.vis.add_geometry(pc)
         self.vis.update_geometry(pc)
         self.vis.poll_events()
         self.vis.update_renderer()
-
-    def get_transform_old(self):
-        xquar = self.msg.pose.pose.orientation.x
-        yquar = self.msg.pose.pose.orientation.y
-        zquar = self.msg.pose.pose.orientation.z
-        wquar = self.msg.pose.pose.orientation.w
-
-        quar = np.array([wquar, xquar, yquar, zquar])
-
-        mat = np.zeros((4, 4))
-        mat[:3, :3] = o3d.geometry.get_rotation_matrix_from_quaternion(quar)
-        mat[3, 3] = 1
-        return mat
 
     def get_transform(self):
         return transform.get_pc_transformation(self.msg)
@@ -131,47 +126,73 @@ class SubscriberNode(Node):
 
         # swap red and blue
         colors = colors[:, [2, 1, 0]]
+        
+        # transform to tracking camera coordinates
+        # tracking camera coordinates are: 
+        ### DANGER
+        pts = pts[:, [2, 0, 1]]
+        pts[:, 2] = -pts[:, 2]
+        pts[:, 1] = -pts[:, 1]
+
 
         max_dist = self.max_dist 
 
-        colors = colors[(abs(pts[:, 0]) < max_dist) & (abs(pts[:, 1]) < max_dist) & (abs(pts[:, 2]) < max_dist)]
-        pts = pts[(abs(pts[:, 0]) < max_dist) & (abs(pts[:, 1]) < max_dist) & (abs(pts[:, 2]) < max_dist)]
-        
-        
         # optional -- only taking every 10th value (cos 2 much data)
         colors = colors[list(range(0, len(colors), 10))]
         pts = pts[list(range(0, len(pts), 10))]
+        
+        # reminder: x = forward, y = right, z = up
+        
+        # limiting the the field of view the 4 degrees up and down to reduce noisy data points. 0.349066 radians == 20 degrees
+        # (we take 20 either side of the depth axis)
+        max_angle = 0.349066
+        
+        indexes = (self.row_norm(pts) < max_dist) & (abs(np.arctan(pts[:,1] / pts[:,0])) < max_angle) & (abs(np.arctan(pts[:,2] / pts[:,0])) < max_angle) 
+        
+        pts = pts[indexes]
+        colors = colors[indexes]
+
+        # colors = colors[(abs(pts[:, 0]) < max_dist) & (abs(pts[:, 1]) < max_dist) & (abs(pts[:, 2]) < max_dist)]
 
         return pts, colors
+    
+    @staticmethod
+    def row_norm(pts):
+        """
+        Efficient numpy way of doing euclidean distance over each row 
+        (just takes all the values in the column, which will be 3 for our purposes, and calculates the lenght)
+        :param pts: (n, 3) array of points
+        :return: what we need to
+        """
+        return np.sum(np.abs(pts)**2,axis=-1)**(1./2)
+
+    @staticmethod
+    def pts_range(pts):
+        """
+        :param pts: (n, 3) ndarray of points
+        :return: true if the point is within the specified range based on angle and distance, else false
+        """
+        pass 
 
     def points_callback(self, msg):
         """
         Parses positional data, calculates the average value and publishes
         it to the topic /obstacle_proximity.
         """
-
+        
+        self.msg = self.last_msg
         pts, colors = self.get_points_and_colors(msg)
+        
+        print("shape: " + str(pts.shape))
 
         if pts.shape[0] < 10:
             return
 
         if self.msg:
             mat = self.get_transform()
-
             # transform then translate
-            pts = np.matmul(mat[:3, :3], pts.transpose()).transpose()
-            
-            print(mat.shape)
-            print(pts.shape)
-
-            # commenting this line out because the new transformation method includes the translation
-            
-            print("adding mat: ")
-            print(pts[0])
-            print(mat[:3 ,3])
-            print(str(self.msg.pose.pose.position.x) + ", " + str(self.msg.pose.pose.position.y) + ", " + str(self.msg.pose.pose.position.z))
-            pts = pts + mat[:3, 3]
-            print(pts[0])
+            pts = np.matmul(mat, pts.transpose()).transpose()
+            pts = pts + self.get_translation()
         
         self.grid.add_pc(pts, colors)
         pts, colors = self.grid.get_as_pc()
@@ -181,17 +202,17 @@ class SubscriberNode(Node):
         point_set.colors = o3d.utility.Vector3dVector(colors)
 
         # just waiting for a number of steps before visulising since visulisation is blocking
-        if time.time() - self.start > 3.0 and self.count >= 15:
-            if VIS == "dynamic":
-                self.visualize_pc(point_set)
-                # self.visualize_pc(point_set)
-            elif VIS == "static":
+        if VIS == "static":
+            if time.time() - self.start > 3.0 and self.count >= GET_BEFORE_VIS:
                 open3d.visualization.draw_geometries([point_set])
+        elif VIS == "dynamic":
+            self.visualize_pc(point_set)
+        
         self.count += 1
         print(self.count)
 
     def tracking_callback(self, msg):
-        self.msg = msg
+        self.last_msg = msg
 
 
 def position_callback(msg):
