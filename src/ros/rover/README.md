@@ -1,4 +1,4 @@
-# ELECTRONCIS :zap:
+# ELECTRONICS :zap:
 
 This repository is to be used by the **Monash Nova Rover** team for all ROS electronics code. This includes the likes of batteries, sensors, radios and data scripts. This is a ROS 2 python repository and should be found inside of the suitable Nova workspace.
 
