@@ -186,22 +186,6 @@ class Controller(Node):
                 self.publish(0.0, 0.0)
                 sleep(1)
 
-    """def control(self, ask_for_input=False):
-        
-        Pops waypoints from the waypoints list and navigates to them consecutively by calling go_to_waypoint
-        
-        while rclpy.ok():
-            self.__get_updates()
-
-            if self.waypoints and self.target_waypoint != None:
-                # get permission to go to next waypoint
-                if ask_for_input:
-                    input("Please press enter before heading to way-point: " + str(self.waypoints[0]))
-
-                self.go_to_waypoint(self.waypoints.pop(0))
-
-        self.__publish(0.0,0.0)"""
-
 
 def main(args = None):
     rclpy.init(args=args)
