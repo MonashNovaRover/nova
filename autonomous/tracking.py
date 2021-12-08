@@ -32,13 +32,11 @@ class SubscriberNode(Node):
         mat[:3,:3] = o3d.geometry.get_rotation_matrix_from_quaternion(quar)
         mat[3,3] = 1
 
-
         # print(mat)
         mesh_translate = copy.deepcopy(mesh).translate((x, y, z))
         x = "x: " + str(round(x, 4)).rjust(6)
         y = "y: " + str(round(y, 4)).rjust(6)
         z = "z: " + str(round(z, 4)).rjust(6)
-
 
         #print(f'Center: {mesh.get_center()}')
         print(x + " | " + y + " | " + z)

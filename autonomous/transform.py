@@ -1,23 +1,30 @@
-# quat2mat is adapted from example.hpp in librealsense (I would not be able to derive these formulae lmao) 
+"""
+The 2022 Autonomous package performs many geometric transformations on point-clouds, and converts to 
+and from point-clouds frequently. This file contains pure functions to do just that!
+
+References: quat2mat is adapted from example.hpp in librealsense (I would not be able to derive these formulae lmao) 
+
+Coordinate Standards:
+
+Nova standard coordinate system (left handed coordinates) AND raw data from the tracking camera:
+    +x : forward
+    +y : right
+    +z : up
+
+Raw data from the depth camera:
+    +z : forward
+    +x : right
+    +y : down
+"""
+
 
 import numpy as np
 
-"""
-On the tracking camera:
-    x : forward
-    y : right
-    z : up
-
-On the depth camera:
-    z : forward
-    x : right
-    y : down
-
-so we should have swapped the depth value indexes like so, and made the last value negative
-[2, 0, 1]
-"""
 
 class Q:
+    """
+    Basic structure for storing quaternions
+    """
     def __init__(self, x, y, z, w):
         self.x = x
         self.y = y
@@ -25,7 +32,10 @@ class Q:
         self.w = w
 
 def camera_extrinsics():
-    # according to librealsense, we need to have the 2nd and 3rd ones negative (why not first and 2nd? I thought z was depth...)
+    """
+    A camera extrinsics matrix is useful for when the cameras are offset by significant distances. 
+    We will assume the cameras have the same optical center, despite them being a couple centimeters apart.
+    """
     m = \
     [[1, 0, 0],
      [0, 1, 0],
@@ -34,7 +44,9 @@ def camera_extrinsics():
 
 def quat2mat(q):
     """
-    Assume q is a quaternion with y
+    This function is adapted from example.h in librealsense
+    :param q: q is a Q quaternion with respect to the left handed coordinate system described above
+    :return: (3, 3) ndarray
     """
     m = \
     [[1 - 2 * q.y * q.y - 2 * q.z * q.z, 2 * q.x * q.y - 2 * q.z * q.w, 2 * q.x * q.z + 2 * q.y * q.w],
