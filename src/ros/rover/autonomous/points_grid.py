@@ -4,7 +4,7 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-NODE: 
+NODE: points_grid
 TOPICS:
   
   - /D435/depth/color/points [sensor_msgs.msg.PointCloud2]
@@ -17,13 +17,13 @@ SERVICES:
   - 
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-PACKAGE: 	task
+PACKAGE: 	autonomous
 AUTHOR(S):	Lucas, Kelly, Kelvin, Amesh, Liam
 CREATION:	27/09/2021
-EDITED:		30/09/2021
+EDITED:		8/12/2021
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
- - 
+ - a lot 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 import open3d.cpu.pybind.visualization
@@ -41,60 +41,31 @@ from nav_msgs.msg import Odometry
 import ArrayGrid
 import transform
 
-# off, dynamic, static
-VIS = "static"
-GET_BEFORE_VIS = 10
 
 class SubscriberNode(Node):
     def __init__(self):
 
         # init node with node name points
-        super().__init__('points')
+        super().__init__('points_grid')
         self.subscriber_tracking = self.create_subscription(Odometry, '/T265/odom/sample', self.tracking_callback, 100)
         
-        example = "real"
-        if example == "tree":
-            self.subscriber_points = self.create_subscription(PointCloud2, '/D435/depth/color/points', self.points_callback, 10)
-            self.max_dist = 4.0
-            self.grid = ArrayGrid.ArrayGrid(8, 8, 6, .075)
+        self.subscriber_points = self.create_subscription(PointCloud2, '/D400/depth/color/points', self.points_callback, 10)
         
-        elif example == "ob":
-            self.subscriber_points = self.create_subscription(PointCloud2, '/D400/depth/color/points', self.points_callback, 10)
-            self.max_dist = 2.0
-            self.grid = ArrayGrid.ArrayGrid(4, 4, 2.5, .02)
+        # constants for pruning the point-clouds
+        self.max_dist = 3.5
+        # limiting the the field of view to 4 degrees up and down to reduce noisy data points. 0.349066 radians == 20 degrees
+        self.max_angle = 0.349066
         
-        # real 
-        else:
-            self.subscriber_points = self.create_subscription(PointCloud2, '/D400/depth/color/points', self.points_callback, 10)
-            self.max_dist = 3.5
-            self.grid = ArrayGrid.ArrayGrid(8, 8, 5, .05)
-        
+        self.grid = ArrayGrid.ArrayGrid(8, 8, 5, .05)
         self.msg = None
-
-        self.count = 0
-        self.start = time.time()
-
-        # self.subscriber_tracking = self.create_subscription(Odometry, "/T265/odom/sample", self.position_callback, 10)
-        # o3d.utility.set_verbosity_level(o3d.utility.VerbosityLevel.Debug)
-
-        if VIS == "dynamic":
-            self.vis = o3d.visualization.Visualizer()
-            self.vis.create_window()
-            frame = open3d.geometry.create_mesh_coordinate_frame(size=1.0, origin=np.array([0., 0., 0.]))
-            self.vis.get_render_option().load_from_json("view.json")
-
-    def visualize_pc(self, pc):
-        frame = open3d.geometry.create_mesh_coordinate_frame(size=1.0, origin=array([0., 0., 0.]))
-        self.vis.add_geometry(frame)
-        self.vis.add_geometry(pc)
-        self.vis.update_geometry(pc)
-        self.vis.poll_events()
-        self.vis.update_renderer()
 
     def get_transform(self):
         return transform.get_pc_transformation(self.msg)
     
     def get_translation(self):
+        """
+        :return: (3) ndarray for positional translation
+        """
         x = self.msg.pose.pose.position.x
         y = self.msg.pose.pose.position.y
         z = self.msg.pose.pose.position.z
@@ -102,9 +73,10 @@ class SubscriberNode(Node):
 
     def get_points_and_colors(self, msg):
         """
-        Gets points and colors as
+        Gets points and colors as ndarrays from PointCloud2 data from the D415 depth camera.
+        Also transforms into the Nova left handed coordinate system.
         :param msg: PointCloud2
-        :return:
+        :return: (n, 3) ndarray, (n, 3) ndarray
         """
 
         # we need to re-set the field names to extract the unsigned ints from the msg type (one for r, g, b)
@@ -114,44 +86,34 @@ class SubscriberNode(Node):
         msg.fields.append(PointField(name="b", offset=18, datatype=2, count=1))
 
         # 1. Parse raw point-cloud data into array of (x, y, z) tuples
-        # arr = list(pc2.read_points(msg, field_names=("x", "y", "z"), skip_nans=True))
         arr = list(pc2.read_points(msg, field_names=("x", "y", "z", "r", "g", "b"), skip_nans=True))
 
         # 2. Wrap the point-cloud array in a numpy array
         np_arr = np.array(arr)
-        print(arr[:2])
+        
+        # 3. Split into points (x, y, z) and colors (r, g, b) 
         pts = np_arr[:, 0:3]
-
         colors = np_arr[:, 3:6] / 255.0
 
-        # swap red and blue
+        # 4. Swap red and blue (for some reason it's not stored how it should be)
         colors = colors[:, [2, 1, 0]]
         
-        # transform to tracking camera coordinates
-        # tracking camera coordinates are: 
-        ### DANGER
+        # 5. Transform to tracking camera coordinates
+
+        # converting from (x=right, y=down, z=forward) -> (x=forward, y=right, z=up)
         pts = pts[:, [2, 0, 1]]
         pts[:, 2] = -pts[:, 2]
         pts[:, 1] = -pts[:, 1]
 
-        max_dist = self.max_dist 
-
-        # optional -- only taking every 10th value (cos 2 much data)
+        # 6. only taking every 10th value (cos 2 much data)
         colors = colors[list(range(0, len(colors), 10))]
         pts = pts[list(range(0, len(pts), 10))]
         
-        # reminder: x = forward, y = right, z = up
-        
-        # limiting the the field of view the 4 degrees up and down to reduce noisy data points. 0.349066 radians == 20 degrees
-        # (we take 20 either side of the depth axis)
-        max_angle = 0.349066
-        
-        indexes = (self.row_norm(pts) < max_dist) & (abs(np.arctan(pts[:,1] / pts[:,0])) < max_angle) & (abs(np.arctan(pts[:,2] / pts[:,0])) < max_angle) 
+        # 7. further pruning out points which are either beyond the max dist, or are outside the max angle
+        indexes = (self.row_norm(pts) < self.max_dist) & (abs(np.arctan(pts[:,1] / pts[:,0])) < max_angle) & (abs(np.arctan(pts[:,2] / pts[:,0])) < max_angle) 
         
         pts = pts[indexes]
         colors = colors[indexes]
-
-        # colors = colors[(abs(pts[:, 0]) < max_dist) & (abs(pts[:, 1]) < max_dist) & (abs(pts[:, 2]) < max_dist)]
 
         return pts, colors
     
@@ -163,16 +125,8 @@ class SubscriberNode(Node):
         :param pts: (n, 3) array of points
         :return: what we need to
         """
-        return np.sum(np.abs(pts)**2,axis=-1)**(1./2)
-
-    @staticmethod
-    def pts_range(pts):
-        """
-        :param pts: (n, 3) ndarray of points
-        :return: true if the point is within the specified range based on angle and distance, else false
-        """
-        pass 
-
+        return np.sum(np.abs(pts) ** 2, axis=-1) ** (1.0 / 2)
+    
     def points_callback(self, msg):
         """
         Parses positional data, calculates the average value and publishes
