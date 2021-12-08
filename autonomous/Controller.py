@@ -28,15 +28,15 @@ EDITED:         07/12/2021
 import rclpy
 from rclpy.node import Node
 from controller_math import *
-import controller_params
+from controller_params import *
 from core.msg import DriveCmd, RoverPose, Waypoint
 import sys
 
 """
-TODO: publish drive commands
-TODO: yaw_to method
 TODO: update led according to distance?
-TODO: go_to_waypoint
+TODO: test rate object
+TODO: test all publishers and subscribers
+TODO: investigate more efficient/accurate drive control methods than repeated tank turning and forward driving
 """
 
 class Controller(Node):
@@ -53,8 +53,12 @@ class Controller(Node):
         self.max_distance = 0.0001      # furthest distance to an object? not sure
 
         self.drive_cmd_publisher = self.create_publisher(DriveCmd, "auto_drive_commands", 10)
-        self.pose_subscriber = self.create_subscription(Pose, "auto_command_pose_updates", self.update_pose, 10)
+        self.pose_subscriber = self.create_subscription(RoverPose, "auto_command_pose_updates", self.update_pose, 10)
         self.waypt_subscriber = self.create_subscription(Waypoint, "auto_command_waypoints", self.add_waypoint, 10)
+
+        # Controls the rate at which drive commands are sent - sleeps for the necessary time to maintain the frequency given
+        # I think this is a ros2 implementation of the ros1 Rate object - need to check it works
+        self.loop_rate = self.create_rate(controller_ros_rate, self.get_clock())
 
     def update_pose(self, msg):
         """
@@ -96,20 +100,71 @@ class Controller(Node):
                           + " | yaw diff: " + str(round(yaw_diff, 4)).ljust(pad) + " | distance: " + str(round(dist, 4)).ljust(pad))
         sys.stdout.flush()
 
-    def __clear_waypoints(self):
+    def clear_waypoints(self):
         """
         empties the waypoints list - prevents further coordinates from being travelled to and allows path planning to be reset
         """
         self.waypoints = []
 
-    def yaw_to(self, way_point):
+    def go_to_waypoint(self, waypoint):
         """
-        TODO
+        Drives to a given waypoint in a straight line. Begins by tank turning (turning in place with 0 drive fraction)
+        until facing in the direction of the target waypoint. Then drives forwards until waypoint is reached. Continually
+        re-calculates target yaw and yaw_diff with each iteration to ensure the rover is not going off course.
         """
-        pass
+        while distance((self.state.x, self.state.y), waypoint) >= min_waypoint_distance:
+            # calculate target yaw and signed yaw difference using the controller_math module
+            target_yaw = desired_heading((self.state.x, self.state.y), waypoint)
+            yaw_diff = yaw_difference(self.state.yaw, target_yaw)
 
-    def go_to_waypoint(self, waypoint, ask_for_input=False):
-        pass
+            completed_turn = False
 
-    def control(self):
-        pass
+            # re-adjusts yaw to ensure we aren't going off track
+            while abs(yaw_diff) >= (min_yaw_difference / 2.0):
+                # Steering the rover to face in the desired direction before driving forward
+                target_yaw = desired_heading((self.state.x, self.state.y), waypoint)
+                yaw_diff = yaw_difference(self.state.yaw, target_yaw)
+
+                steer_fraction = tank_turn_target_yaw_rate(self.state.yaw, target_yaw)
+
+                self.__publish(0, steer_fraction)
+
+                Controller.print_update("yawing", waypoint, yaw_diff, distance((self.state.x, self.state.y), waypoint))
+
+                completed_turn = True
+
+                # waits until 0.1 seconds since last sleep to publish next command
+                self.loop_rate.sleep()
+                
+            if completed_turn:
+                # need to send a zero wheel command after turning before we drive
+                self.__publish(0, 0)
+                self.loop_rate.sleep()
+
+            # drive in straight line toward waypoint
+            drive_fraction = crow_fly_target_velocity((self.state.x, self.state.y), waypoint)
+            self.__publish(drive_fraction, 0)
+            self.loop_rate.sleep()
+
+            Controller.print_update("heading", waypoint, yaw_diff, distance((self.state.x, self.state.y), waypoint))
+
+        print("Reached way-point: " + str(waypoint))
+        for _ in range(5):
+            self.publish(0.0, 0.0)
+            self.loop_rate.sleep()
+
+    def control(self, ask_for_input=False):
+        """
+        Pops waypoints from the waypoints list and navigates to them consecutively by calling go_to_waypoint
+        """
+        while rclpy.ok():
+            if self.waypoints:
+                # get permission to go to next waypoint
+                if ask_for_input and self.way_points:
+                    input("Please press enter before heading to way-point: " + str(self.way_points[0]))
+
+                self.go_to_waypoint(self.waypoints.pop(0))
+            else:
+                break
+
+        self.__publish(0,0)
