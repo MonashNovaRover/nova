@@ -44,7 +44,8 @@ class Controller(Node):
     """
     Controls the movement of the rover between waypoints determined by the path planner.
     Receives updates about the current pose of the rover and the waypoints to 
-    navigate between via ros topics ------. Publishes drive commands to ---- 
+    navigate between via ros topics autonomous/pose and autonomous/goals. Publishes drive 
+    commands to auto_drive_commands
     """
     def __init__(self):
         super().__init__('autonomous_controller_node')
@@ -72,16 +73,11 @@ class Controller(Node):
         self.state.velocity = msg.velocity
         self.state.angular_velocity = msg.angular_velocity
 
-        # testing pose subscriber
-        print("new pose: x = %.2f, y = %.2f, yaw = %.2f, vel = %.2f, omega = %.2f" % (self.state.x, self.state.y, self.state.yaw, self.state.velocity, self.state.angular_velocity))
-
     def add_waypoint(self, msg):
         """
-        Callback that appends the x-y position of a waypoint to the back of the waypoints list
+        Callback that appends the x-y position of a waypoint to the waypoints list
         """
         self.waypoints.append([msg.x, msg.y])
-
-        print("new waypoint: x = %.2f, y = %.2f" % (msg.x, msg.y))
 
     def __publish(self, drive_fraction, angular_fraction):
         """
@@ -114,26 +110,6 @@ class Controller(Node):
         self.waypoints = []
         self.target_waypoint = None
 
-    def tank_turn(self, yaw_diff, target_yaw):
-        """
-        turns the rover to face towards the target waypoint
-        :returns: True if the rover needed to turn, False if it was already on course
-        """
-
-        # re-adjusts yaw to ensure we aren't going off track
-        if abs(yaw_diff) >= (min_yaw_difference / 2.0):
-            steer_fraction = tank_turn_target_yaw_rate(self.state.yaw, target_yaw)
-
-            self.__publish(0.0, steer_fraction)
-
-            Controller.print_update("yawing", self.target_waypoint, yaw_diff, distance((self.state.x, self.state.y), self.target_waypoint))
-            
-            self.previously_turned = True
-
-            return True
-
-        return False
-
     def go_to_target(self):
         """
         Publishes a single drive commmand to navigate to the current target waypoint. 
@@ -145,20 +121,26 @@ class Controller(Node):
         target_yaw = desired_heading((self.state.x, self.state.y), self.target_waypoint)
         yaw_diff = yaw_difference(self.state.yaw, target_yaw)
 
-        if self.tank_turn(yaw_diff, target_yaw): return # turns the rover if necessary
+        if abs(yaw_diff) >= (min_yaw_difference / 2.0): 
+            # turn at a rate determined by the tank_turn_target_yaw_rate function
+            steer_fraction = tank_turn_target_yaw_rate(self.state.yaw, target_yaw)
+            self.__publish(0.0, steer_fraction)
+
+            Controller.print_update("yawing", self.target_waypoint, yaw_diff, distance((self.state.x, self.state.y), self.target_waypoint))
+            
+            self.previously_turned = True 
             
         elif self.previously_turned:
             # need to send a zero wheel command after turning before we drive
             self.__publish(0.0, 0.0)
-            return
+            self.previously_turned = False
 
         else:
-            # drive in straight line toward waypoint
+            # drive in straight line toward waypoint at determined velocity
             drive_fraction = crow_fly_target_velocity((self.state.x, self.state.y), self.target_waypoint)
             self.__publish(drive_fraction, 0.0)
 
             Controller.print_update("heading", self.target_waypoint, yaw_diff, distance((self.state.x, self.state.y), self.target_waypoint))
-
 
     def control(self):
         """
