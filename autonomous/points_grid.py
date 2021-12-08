@@ -43,7 +43,7 @@ import transform
 
 # off, dynamic, static
 VIS = "static"
-GET_BEFORE_VIS = 40
+GET_BEFORE_VIS = 10
 
 class SubscriberNode(Node):
     def __init__(self):
@@ -80,7 +80,7 @@ class SubscriberNode(Node):
         if VIS == "dynamic":
             self.vis = o3d.visualization.Visualizer()
             self.vis.create_window()
-            # frame = open3d.geometry.create_mesh_coordinate_frame(size=1.0, origin=array([0., 0., 0.]))
+            frame = open3d.geometry.create_mesh_coordinate_frame(size=1.0, origin=np.array([0., 0., 0.]))
             self.vis.get_render_option().load_from_json("view.json")
 
     def visualize_pc(self, pc):
@@ -133,7 +133,6 @@ class SubscriberNode(Node):
         pts = pts[:, [2, 0, 1]]
         pts[:, 2] = -pts[:, 2]
         pts[:, 1] = -pts[:, 1]
-
 
         max_dist = self.max_dist 
 

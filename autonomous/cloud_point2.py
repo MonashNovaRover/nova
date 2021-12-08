@@ -45,7 +45,7 @@ import struct
 
 from sensor_msgs.msg import PointCloud2, PointField
 
-_DATATYPES = {}
+_DATATYPES = dict()
 _DATATYPES[PointField.INT8]    = ('b', 1)
 _DATATYPES[PointField.UINT8]   = ('B', 1)
 _DATATYPES[PointField.INT16]   = ('h', 2)
@@ -112,6 +112,7 @@ def read_points(cloud, field_names=None, skip_nans=False, uvs=[]):
                     yield unpack_from(data, offset)
                     offset += point_step
 
+
 def read_points_list(cloud, field_names=None, skip_nans=False, uvs=[]):
     """
     Read points from a L{sensor_msgs.PointCloud2} message.
@@ -137,6 +138,7 @@ def read_points_list(cloud, field_names=None, skip_nans=False, uvs=[]):
     Point = namedtuple("Point", field_names)
 
     return [Point._make(l) for l in read_points(cloud, field_names, skip_nans, uvs)]
+
 
 def create_cloud(header, fields, points):
     """
@@ -172,6 +174,7 @@ def create_cloud(header, fields, points):
                        row_step=cloud_struct.size * len(points),
                        data=buff.raw)
 
+
 def create_cloud_xyz32(header, points):
     """
     Create a L{sensor_msgs.msg.PointCloud2} message with 3 float32 fields (x, y, z).
@@ -187,6 +190,7 @@ def create_cloud_xyz32(header, points):
               PointField('z', 8, PointField.FLOAT32, 1)]
     return create_cloud(header, fields, points)
 
+
 def _get_struct_fmt(is_bigendian, fields, field_names=None):
     fmt = '>' if is_bigendian else '<'
     offset = 0
@@ -198,7 +202,7 @@ def _get_struct_fmt(is_bigendian, fields, field_names=None):
             print('Skipping unknown PointField datatype [%d]' % field.datatype, file=sys.stderr)
         else:
             datatype_fmt, datatype_length = _DATATYPES[field.datatype]
-            fmt    += field.count * datatype_fmt
+            fmt += field.count * datatype_fmt
             offset += field.count * datatype_length
 
     return fmt
