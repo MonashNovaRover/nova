@@ -1,7 +1,7 @@
-#!usr/bin/env python3
+#!/usr/bin/env python3
 
 import rclpy
-from rcply.node import Node
+from rclpy.node import Node
 from core.msg import DriveCmd, RoverPose, Waypoint
 import random
 import numpy as np
@@ -12,42 +12,42 @@ class TestController(Node):
 
         self.pose_publisher = self.create_publisher(RoverPose, "autonomous/pose", 10)
         self.waypt_publisher = self.create_publisher(Waypoint, "autonomous/goals", 10)
-        self.timer = self.create_timer(2, self.callback_func)
+        self.timer = self.create_timer(0.1, self.callback_func)
 
     def callback_func(self):
         self.publish_waypoint()
-        self.publish_poses()
+        self.publish_pose()
 
     def publish_waypoint(self):
-        x = random.randint(-20, 20)
-        y = random.randint(-20, 20)
+        x = random.randrange(-20.0, 20.0)
+        y = random.randrange(-20.0, 20.0)
 
         msg = Waypoint()
-        msg.data.x = x
-        msg.data.y = y
+        msg.x = float(x)
+        msg.y = float(y)
 
         self.waypt_publisher.publish(msg)
 
-        print("published waypoint: x = %.2f, y = %.2f" % x, y)
+        print("published waypoint: x = %.2f, y = %.2f" % (x, y))
 
     def publish_pose(self):
-        x = random.randint(-20, 20)
-        y = random.randint(-20, 20)
-        yaw = random.randrange(-np.pi, np.pi)
-        vel = 0
-        ang_vel = 0
+        x = random.random() * 40 - 20
+        y = random.random() * 40 - 20
+        yaw = random.random() * 2 * np.pi
+        vel = 0.0
+        ang_vel = 0.0
 
         msg = RoverPose()
 
-        msg.data.x = x
-        msg.data.y = y
-        msg.data.yaw = yaw
-        msg.data.velocity = vel
-        msg.data.angular_velocity = ang_vel
+        msg.x = x
+        msg.y = y
+        msg.yaw = yaw
+        msg.velocity = vel
+        msg.angular_velocity = ang_vel
 
         self.pose_publisher.publish(msg)
 
-        print("published pose: x = %.2f, y = %.2f, yaw = %.2f, vel = %.2f, omega = %.2f" % x, y, yaw, vel, ang_vel)
+        print("published pose: x = %.2f, y = %.2f, yaw = %.2f, vel = %.2f, omega = %.2f" % (x, y, yaw, vel, ang_vel))
 
 def main(args = None):
     rclpy.init(args = args)
