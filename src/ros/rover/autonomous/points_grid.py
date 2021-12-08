@@ -40,7 +40,7 @@ import matplotlib.pyplot as plt
 from nav_msgs.msg import Odometry
 import ArrayGrid
 import transform
-
+import PCPub
 
 class SubscriberNode(Node):
     def __init__(self):
@@ -49,7 +49,7 @@ class SubscriberNode(Node):
         super().__init__('points_grid')
         self.subscriber_tracking = self.create_subscription(Odometry, '/T265/odom/sample', self.tracking_callback, 100)
         
-        self.subscriber_points = self.create_subscription(PointCloud2, '/D400/depth/color/points', self.points_callback, 10)
+        self.subscriber_points = self.create_subscription(PointCloud2, '/D435/depth/color/points', self.points_callback, 10)
         
         # constants for pruning the point-clouds
         self.max_dist = 3.5
@@ -58,6 +58,9 @@ class SubscriberNode(Node):
         
         self.grid = ArrayGrid.ArrayGrid(8, 8, 5, .05)
         self.msg = None
+        
+        # for visualising the map
+        self.pc_pub = PCPub.PCPub("map_cloud")
 
     def get_transform(self):
         return transform.get_pc_transformation(self.msg)
@@ -110,7 +113,7 @@ class SubscriberNode(Node):
         pts = pts[list(range(0, len(pts), 10))]
         
         # 7. further pruning out points which are either beyond the max dist, or are outside the max angle
-        indexes = (self.row_norm(pts) < self.max_dist) & (abs(np.arctan(pts[:,1] / pts[:,0])) < max_angle) & (abs(np.arctan(pts[:,2] / pts[:,0])) < max_angle) 
+        indexes = (self.row_norm(pts) < self.max_dist) & (abs(np.arctan(pts[:,1] / pts[:,0])) < self.max_angle) & (abs(np.arctan(pts[:,2] / pts[:,0])) < self.max_angle) 
         
         pts = pts[indexes]
         colors = colors[indexes]
@@ -128,11 +131,6 @@ class SubscriberNode(Node):
         return np.sum(np.abs(pts) ** 2, axis=-1) ** (1.0 / 2)
     
     def points_callback(self, msg):
-        """
-        Parses positional data, calculates the average value and publishes
-        it to the topic /obstacle_proximity.
-        """
-        
         self.msg = self.last_msg
         pts, colors = self.get_points_and_colors(msg)
         
@@ -143,26 +141,14 @@ class SubscriberNode(Node):
 
         if self.msg:
             mat = self.get_transform()
-            # transform then translate
             pts = np.matmul(mat, pts.transpose()).transpose()
             pts = pts + self.get_translation()
         
+
+        colors = colors * 255
         self.grid.add_pc(pts, colors)
         pts, colors = self.grid.get_as_pc()
-
-        point_set = o3d.geometry.PointCloud()
-        point_set.points = o3d.utility.Vector3dVector(pts)
-        point_set.colors = o3d.utility.Vector3dVector(colors)
-
-        # just waiting for a number of steps before visulising since visulisation is blocking
-        if VIS == "static":
-            if time.time() - self.start > 3.0 and self.count >= GET_BEFORE_VIS:
-                open3d.visualization.draw_geometries([point_set])
-        elif VIS == "dynamic":
-            self.visualize_pc(point_set)
-        
-        self.count += 1
-        print(self.count)
+        self.pc_pub.pub_pts_colors(pts, colors)
 
     def tracking_callback(self, msg):
         self.last_msg = msg
