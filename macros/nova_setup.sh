@@ -97,6 +97,9 @@ sudo apt-get -y install npm
 curl -fsSL https://deb.nodesource.com/setup_current.x | sudo -E bash -
 sudo apt-get install -y nodejs
 sudo npm install -g npm@7.11.2
+pip3 install flask_cors
+pip3 install flask_socketio
+pip3 install flask_cors
 
 # Installing Net Tools
 information "Installing Networking..."
