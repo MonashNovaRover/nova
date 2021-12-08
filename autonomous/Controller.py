@@ -46,15 +46,15 @@ class Controller(Node):
     navigate between via ros topics ------. Publishes drive commands to ---- 
     """
     def __init__(self):
-        super.__init__('autonomous_controller_node')
+        super().__init__('autonomous_controller_node')
 
         self.state = State()     # from controller_math
         self.waypoints = []
         self.max_distance = 0.0001      # furthest distance to an object? not sure
 
         self.drive_cmd_publisher = self.create_publisher(DriveCmd, "auto_drive_commands", 10)
-        self.pose_subscriber = self.create_subscription(RoverPose, "auto_command_pose_updates", self.update_pose, 10)
-        self.waypt_subscriber = self.create_subscription(Waypoint, "auto_command_waypoints", self.add_waypoint, 10)
+        self.pose_subscriber = self.create_subscription(RoverPose, "autonomous/pose", self.update_pose, 10)
+        self.waypt_subscriber = self.create_subscription(Waypoint, "autonomous/goals", self.add_waypoint, 10)
 
         # Controls the rate at which drive commands are sent - sleeps for the necessary time to maintain the frequency given
         # I think this is a ros2 implementation of the ros1 Rate object - need to check it works
@@ -70,11 +70,16 @@ class Controller(Node):
         self.state.velocity = msg.data.velocity
         self.state.angular_velocity = msg.data.angular_velocity
 
+        # testing pose subscriber
+        print("new pose: x = %.2f, y = %.2f, yaw = %.2f, vel = %.2f, omega = %.2f" % self.state.x, self.state.y, self.state.yaw, self.state.velocity, self.state.angular_velocity)
+
     def add_waypoint(self, msg):
         """
         Callback that appends the x-y position of a waypoint to the back of the waypoints list
         """
         self.waypoints.append([msg.data.x, msg.data.y])
+
+        print("new waypoint: x = %.2f, y = %.2f" % msg.data.x, msg.data.y)
 
     def __publish(self, drive_fraction, angular_fraction):
         """
@@ -168,3 +173,18 @@ class Controller(Node):
                 break
 
         self.__publish(0,0)
+
+
+def main(args = None):
+    rclpy.init(args=args)
+    controller = Controller()
+
+    while rclpy.ok():
+        controller.control(True)
+        rclpy.spin_once(controller)
+    controller.destroy_node()
+    rclpy.shutdown()
+
+
+if __name__ == "__main__":
+    main()
