@@ -12,11 +12,12 @@ class TestController(Node):
 
         self.pose_publisher = self.create_publisher(RoverPose, "autonomous/pose", 10)
         self.waypt_publisher = self.create_publisher(Waypoint, "autonomous/goals", 10)
-        self.timer = self.create_timer(0.1, self.callback_func)
+        self.drive_subscriber = self.create_subscripion(DriveCmd, "auto_drive_commands", self.update_pose, 10)
+        self.timer = self.create_timer(0.1, self.publish_waypoint)
 
-    def callback_func(self):
-        self.publish_waypoint()
-        self.publish_pose()
+    def update_pose(self, msg):
+        dist = msg.drive * 0.1
+        steer = msg.steer * 0.1
 
     def publish_waypoint(self):
         x = random.randrange(-20.0, 20.0)
@@ -30,10 +31,7 @@ class TestController(Node):
 
         print("published waypoint: x = %.2f, y = %.2f" % (x, y))
 
-    def publish_pose(self):
-        x = random.random() * 40 - 20
-        y = random.random() * 40 - 20
-        yaw = random.random() * 2 * np.pi
+    def publish_pose(self, x, y, yaw):
         vel = 0.0
         ang_vel = 0.0
 
