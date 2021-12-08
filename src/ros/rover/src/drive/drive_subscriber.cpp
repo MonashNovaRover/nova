@@ -13,9 +13,9 @@ AUTHOR(S):	Harrison Verrios, Josh Cherubino
 // Include standard output messages
 #include <iostream>
 
-// Receives drive commands
-void DriveSubscriber::drive_callback (const core::msg::DriveCmd::SharedPtr msg) {
-
+// Sends commands to the wheels
+void DriveSubscriber::send_commands (const core::msg::DriveCmd::SharedPtr msg) {
+    
     // Check if wheels should spin
     if (msg->speed != 0.0 || msg->steer != 0.0) {
         // Spin the wheels
@@ -47,6 +47,25 @@ void DriveSubscriber::drive_callback (const core::msg::DriveCmd::SharedPtr msg) 
     }
 }
 
+
+// Receives drive commands
+void DriveSubscriber::drive_callback (const core::msg::DriveCmd::SharedPtr msg) {
+
+    // If manual driving state, call the commands
+    if (!is_autonomous)
+        send_commands(msg);    
+}
+
+
+// Receives autonomous commands
+void DriveSubscriber::auto_callback (const core::msg::DriveCmd::SharedPtr msg) {
+
+    // If autonomous driving state, call the commands
+    if (is_autonomous)
+        send_commands(msg); 
+}
+
+
 // Receives input from the gamepad
 void DriveSubscriber::input_callback (const core::msg::InputGamepad::SharedPtr msg) {
 
@@ -55,6 +74,12 @@ void DriveSubscriber::input_callback (const core::msg::InputGamepad::SharedPtr m
         handbrake = true;
     else if (msg->connected && msg->btn_thumb_r_state == 1)
         handbrake = false;
+
+    // Enable or disable autonomous
+    if (msg->connected && msg->btn_a_state == 1)
+        is_autonomous = true;
+    else if (msg->connected && msg->btn_b_state == 1)
+        is_autonomous = false;
 }
 
 
@@ -70,9 +95,13 @@ DriveSubscriber::DriveSubscriber()
 
     // TODO QoS Profiles
 
-    // Creates the commands subscription
-    subscription_cmds = this->create_subscription<core::msg::DriveCmd>(
+    // Creates the commands subscription (manual)
+    subscription_cmds_man = this->create_subscription<core::msg::DriveCmd>(
         "/control/drive_cmds", 10, std::bind(&DriveSubscriber::drive_callback, this, _1));
+    
+    // Creates the commands subscription (autonomous)
+    subscription_cmds_auto = this->create_subscription<core::msg::DriveCmd>(
+        "/autonomous/drive_cmds", 10, std::bind(&DriveSubscriber::auto_callback, this, _1));
     
     // Creates the input subscription
     subscription_inputs = this->create_subscription<core::msg::InputGamepad>(
