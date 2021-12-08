@@ -10,7 +10,7 @@ Mission: advance planetary self driving
 - Experiment with what can be installed and what can be demoed (e.g. SLAM on rosbag data)
 	- None of the open source SLAM packages we found work (or maybe we need to be better at CMake?) 
 	- Open3D is great
-- Beging Planning Stage 1
+- Begin Planning Stage 1
 
 -------------------------------------------------
 
