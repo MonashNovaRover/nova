@@ -147,6 +147,7 @@ cd ~/nova_ws/other
 git clone git@github.com:MonashNovaRover/arduinos.git
 git clone git@github.com:MonashNovaRover/pics.git
 git clone git@github.com:MonashNovaRover/ik_machine.git
+git clone git@github.com:MonashNovaRover/coms_utils.git
 
 # Add the nova.sh bash script to the bashrc
 information "Setting up Workspace..."
