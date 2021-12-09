@@ -49,7 +49,7 @@ class SubscriberNode(Node):
         super().__init__('points_grid')
         self.subscriber_tracking = self.create_subscription(Odometry, '/T265/odom/sample', self.tracking_callback, 100)
         
-        self.subscriber_points = self.create_subscription(PointCloud2, '/D435/depth/color/points', self.points_callback, 10)
+        self.subscriber_points = self.create_subscription(PointCloud2, '/D400/depth/color/points', self.points_callback, 10)
         
         # constants for pruning the point-clouds
         self.max_dist = 3.5
@@ -99,7 +99,7 @@ class SubscriberNode(Node):
         colors = np_arr[:, 3:6] / 255.0
 
         # 4. Swap red and blue (for some reason it's not stored how it should be)
-        colors = colors[:, [2, 1, 0]]
+        colors = colors[:, [0, 1, 2]]
         
         # 5. Transform to tracking camera coordinates
 
