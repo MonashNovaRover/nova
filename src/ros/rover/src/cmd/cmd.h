@@ -84,6 +84,10 @@ class CMD {
     /// @brief      Sends PID commands to the CMD on the CAN line
     /// @param      speed - The fraction between -1.0 and 1.0 to send
     void set_pid (float speed);
+
+    /// @brief      Function for sending linear actuator command to CMD
+    /// @param      value - number from thumb stick (-1, 0, 1)
+    void set_linear_actuator (float value);
     
 
 };

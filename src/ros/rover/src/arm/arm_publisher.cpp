@@ -13,11 +13,14 @@ AUTHOR(S):	Jess Hepworth
 // Receives input from left joystick
 void ArmPublisher::joystick_l_callback (const core::msg::InputJoystick::SharedPtr msg) {
     
-    // If using the wrist IK
-    if (IK_wrist) {
-        task_velocity[0] = msg->ax_stick_twist;
-        task_velocity[1] = msg->ax_stick_x;
-        task_velocity[2] = msg->ax_stick_y;
+    // linear actuator
+    linear_actuation = msg->ax_thumb_y;
+
+    // If using the lower joints IK
+    if (IK_lower_joints) {
+        task_velocity[0] = msg->ax_stick_x;
+        task_velocity[1] = msg->ax_stick_y;
+        task_velocity[2] = msg->ax_stick_twist;
     }
 
     // If using standard velocity
@@ -29,9 +32,13 @@ void ArmPublisher::joystick_l_callback (const core::msg::InputJoystick::SharedPt
 }
 
 
-// Receives input from left joystick
+// Receives input from right joystick
 void ArmPublisher::joystick_r_callback (const core::msg::InputJoystick::SharedPtr msg) {
     
+    // end effector actuation
+    end_effector_actuation = calculate_direction(msg->ax_thumb_y);
+
+    // Wrist joints
     // If using the wrist IK
     if (IK_wrist) {
         task_velocity[3] = msg->ax_stick_twist;
@@ -41,10 +48,13 @@ void ArmPublisher::joystick_r_callback (const core::msg::InputJoystick::SharedPt
 
     // If using standard velocity
     else {
-        joint_velocity[3] = msg->ax_stick_twist;
+        joint_velocity[3] = msg->ax_stick_y;
         joint_velocity[4] = msg->ax_stick_x;
-        joint_velocity[5] = msg->ax_stick_y;
+        joint_velocity[5] = msg->ax_stick_twist;
     }
+
+    //Get the speed multiplier from slider
+    speed_multiplier = scale_speed(msg->ax_slider); 
 }
 
 // Publishes data on the arm input
@@ -53,11 +63,15 @@ void ArmPublisher::publish_arm_inputs () {
     // Create a new message
     auto message = core::msg::ArmInput();
 
-    // Set the values from the array of data
+    // Set the values for first 6 joints from the array of data
     for (auto i = 0; i < NUM_JOINTS; i++) {
-        message.task_velocity[i]    = task_velocity[i];
-        message.joint_velocity[i]   = joint_velocity[i];
+        message.task_velocity[i]    = speed_multiplier * task_velocity[i];
+        message.joint_velocity[i]   = speed_multiplier * joint_velocity[i];
     }
+
+    // Set the values for linear actuator and end effector actuation
+    message.linear_actuation = linear_actuation;
+    message.end_effector_actuation = end_effector_actuation;
 
     // Publish the arm inputs
     arm_publisher->publish(message);
@@ -69,6 +83,23 @@ void ArmPublisher::publish_arm_inputs () {
     }
 }
 
+float ArmPublisher::calculate_direction (float value){
+    if (value > 0){
+        return 1.0;
+    }
+    else if (value < 0){
+        return -1.0;
+    }
+    else{
+        return 0.0;
+    }
+}
+
+float ArmPublisher::scale_speed (float value){
+    //max scale factor 0.95, min scale factor 0.05
+    // return (((value - 1) / -2.0) * 0.9) + 0.05;
+    return (value * 0.9) + 0.05;
+}
 
 // Main constructor that sets up the node
 ArmPublisher::ArmPublisher() 
