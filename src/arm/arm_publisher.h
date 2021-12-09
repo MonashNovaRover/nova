@@ -75,7 +75,15 @@ class ArmPublisher : public rclcpp::Node {
 
     // flag for IK on lower joints
     bool IK_lower_joints = false;
+
+    // Stores end effector actuation data
+    float end_effector_actuation;
+
+    // Stores linear actuator data
+    float linear_actuation;
  
+    // Stores variable for inputs (i.e. speeds)
+    float speed_multiplier;
 
     //------------------------------------------------------------//
     private:
@@ -91,7 +99,17 @@ class ArmPublisher : public rclcpp::Node {
     /// @brief      Function for publishing arm input message
     void publish_arm_inputs ();
 
+    /// @brief      Function for calculating a direction from a fraction
+    /// @param      value - A fraction to be converted to a direction
+    /// @returns    The calculated direction (-1, 0 or 1) 
+    float calculate_direction (float value);
 
+    /// @brief      Function for obtaining postive scaling factor from slider input
+    /// @param      value - number in range [-1, 1] to map to [0, 1]
+    /// @returns    The new scale factor in range [0, 1]
+    float scale_speed (float value);
+
+    
     //------------------------------------------------------------//
     public:
 
