@@ -31,7 +31,7 @@ class PCPub(Node):
 
     def pub(self, points):
         # final transformations JUST for visualization
-        points = np.array(points)[:, [1, 0, 2, 3, 4, 5, 6]]
+        points = np.array(points)[:, :]
         points = [pt[0:3].tolist() + pt[3:7].astype(int).tolist() for pt in points]
         pc2 = create_cloud_color(points)
         self.publisher.publish(pc2)

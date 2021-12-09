@@ -34,7 +34,7 @@ class RoverCloud(Node):
         pts = pts / 1344
         pts = pts[:, [0, 2, 1]]
         #pts = pts - np.array([.4, .3, -0.11])
-        pts = pts - np.array([.4, .3, .2])
+        pts = pts - np.array([.4, .3, .6])
         self.origin_rover_pts = pts
         
         self.subscriber_points = self.create_subscription(Odometry, '/T265/odom/sample', self.callback, 10)
