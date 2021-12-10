@@ -1,9 +1,12 @@
-#!/usr/bin/env
+#!/usr/bin/env python3
 import numpy as np
 import matplotlib.pyplot as plt
 import time
-from Queue import PriorityQueue
-from ArrayMap import ArrayGrid
+from queue import PriorityQueue
+import rclpy
+from controller_params import *
+from rclpy.node import Node
+import ArrayGrid
 from core.msg import Waypoint
 from os.path import expanduser
 
@@ -23,14 +26,13 @@ Services:
 """
 
 
-class PathPlanner:
-    def __init__(self, controller, array_grid: ArrayGrid, end, x_length=20, y_length=20):
-        """
-        x is height, y is width
-        """
-        # NOTE - Max - why do we need to reverse x and y coords?
-        # NOTE: we are REVERSING the coordinates of start to end so that path planning works
+class PathPlanner(Node):
+    def __init__(self, controller, array_grid: ArrayGrid, dest):
+        super().__init__("path_planner_node")
 
+        self.waypt_publisher = self.create_publisher(Waypoint, "autonomous/goals", 10)
+
+        # controller that controls autonomous driving and grid that stores the current map
         self.controller = controller
         self.array_grid = array_grid
 
@@ -42,18 +44,19 @@ class PathPlanner:
         self.scale_x = self.array_grid.map.shape[0]
         self.scale_y = self.array_grid.map.shape[0]
 
+        # gets 2d array of obstacles
         self.extract_obstacle_map(10)
+
+        self.start = [self.controller.state.x, self.controller.state.y]
+        self.goal = dest
 
         self.route = []
 
         # calculations
         self.scale(self.scale_x, self.scale_y)
 
-    def add_destination(self, dest):
-        """
-        Adds destination node to plan path to (from present rover pose)
-        """
-        self.end = dest
+        # running A* every second to re-evaluate
+        self.timer = self.create_timer(a_star_rate, self.get_path)
 
     def extract_obstacle_map(self, layers: int):
         """
@@ -61,20 +64,20 @@ class PathPlanner:
         """
 
         self.map = self.array_grid.map[:,:,0,0]
-        for i in range(1: layers):
+        for i in range(1, layers):
             self.map += self.array_grid.map[:,:,i,0]
 
     def scale(self, scale_x, scale_y):
         """
         Calculate start and goal with respect of pixels, given local coordinates and total pixel height and width
         """ 
-        self.pixel_goal = (self.scale_x - int(float(self.end[0]) * (float(scale_x) / self.x_length_meters)),
-                           int(float(self.end[1]) * (float(scale_y) / self.y_length_meters)))
+        self.pixel_goal = (self.scale_x - int(float(self.goal[0]) * (float(scale_x) / self.x_length_meters)),
+                           int(float(self.goal[1]) * (float(scale_y) / self.y_length_meters)))
 
         self.pixel_start = (self.scale_x - int(float(self.start[0]) * (float(scale_x) / self.x_length_meters)),
                            (int(float(self.start[1]) * (float(scale_y) / self.y_length_meters))))
         
-        print("Navigating from pixel coordinates (%d, %d) to (%d, %d)" % (self.pixel_start, self.pixel_goal))
+        print("Navigating from pixel coordinates (%d, %d) to (%d, %d)" % (self.pixel_start[0], self.pixel_start[1], self.pixel_goal[0], self.pixel_goal[1]))
         
         return scale_x, scale_y
 
@@ -84,12 +87,12 @@ class PathPlanner:
     The octile heuristic is admissible and consistent for octile movements where diagonal movements incur cost sqrt(2)
     """
     @staticmethod
-    def heuristic(a, b, heuristic_type="distance"):
+    def heuristic(a, b, heuristic_type="euclidean"):
         if heuristic_type == "manhattan":
             return abs(a[0] - b[0]) + abs(a[1] - b[1])  # manhattan
         elif heuristic_type == "octile":
             return min(abs(a[0] - b[0]), abs(a[1] - b[1])) * (2 ** 0.5) + abs(abs(a[0] - b[0]) - abs(a[1] - b[1]))  # octile
-        return np.sqrt((b[0] - a[0]) ** 2 + (b[1] - a[1]) ** 2)  # straight
+        return np.sqrt((b[0] - a[0]) ** 2 + (b[1] - a[1]) ** 2)  # euclidean distance norm
 
     def aStar(self, array, start, goal, weight=5, version="octile"):
         t = time.time()
@@ -155,7 +158,7 @@ class PathPlanner:
         return [((self.scale_x - x) * (float(self.x_length_meters) / self.scale_x),
                  y * (float(self.y_length_meters) / self.scale_y)) for (x, y) in self.route]
 
-    def stringPull(self, num_map, raw_points):
+    def stringPull(self, raw_points):
         t = time.time()
         if len(raw_points) < 2:
             return raw_points
@@ -178,7 +181,7 @@ class PathPlanner:
                     unit_y = (raw_points[j][1] - raw_points[i][1]) / dist
                     candidate_x = int(raw_points[i][0] + c * unit_x)
                     candidate_y = int(raw_points[i][1] + c * unit_y)
-                    if num_map.padded_obs_np[candidate_x][candidate_y]:
+                    if self.map[candidate_x][candidate_y]:
                         obstacle = True
                         break
                 if obstacle:
@@ -199,46 +202,40 @@ class PathPlanner:
         print("start: " + str(self.pixel_start))
         print("goal: " + str(self.pixel_goal))
 
-        self.route = self.aStar(self.map.padded_obs_np, self.pixel_start, self.pixel_goal, weight)
+        self.route = self.aStar(self.map, self.pixel_start, self.pixel_goal, weight)
 
 #         self.route = self.stringPull(self.map.numArr3, self.route)
         return self.route
 
+    def get_path(self, weight=5):
+        """
+        Repeatedly run A* on the updated rover pose and map to continually redetermine the optimal path.
+        Called on a clock initialised in the add_destination method
 
-def convert_grid_to_coord_list(np_arr, factor_x, factor_y):
-    f = open("arc_crop_coords.csv", "a")
-    for x in range(0, np_arr.shape[0]):
-        for y in range(0, np_arr.shape[1]):
-            if np_arr[x][y]:
-                print("factor_x: " + str(factor_x) + " | val: " + str(x))
-                f.write(str(float(x) * factor_x) + "," + str(float(y) * factor_y) + "\n")
-    f.close()
+        NOTE: Will the map object be updated elsewhere? Or do we need to update it here?
+        """
+        # updating present coords with most recent rover pose
+        self.start = (self.controller.state.x, self.controller.state.y)
 
+        # create path object and run A*
+        self.run(weight)
 
-def get_path(start, dest, weight=5):
-    # create map object
-    home_dir = expanduser("~")
-    arc = ArrayMap(home_dir + '/catkin_ws/src/arc_auto/scripts/path_planning/arc_crop_bw_small.png')
+        self.route = self.stringPull(self.route)
 
-    # create path object and run A*
-    _path = PathPlanner(arc, start, dest)
-    _path.run(weight)
+        route_coordinates = self.get_local_coords_route()
 
-    _path.route = _path.stringPull(arc, _path.route)
+        # clear all coordinates from the previous path before adding the newly created one
+        self.controller.clear_waypoints()
 
-    if not _path.route:
-        return []
+        for wpt in route_coordinates:
+            # publishing waypoints in order 
+            waypoint = Waypoint()
+            waypoint.x = wpt[0]
+            waypoint.y = wpt[1]
 
-    convert_grid_to_coord_list(arc.padded_obs_np, 20.0 / float(arc.dim_x), 20.0 / float(arc.dim_y))
-    print(arc.padded_obs_np.shape[0])
-    print(arc.padded_obs_np.shape[1])
+            self.waypt_publisher.publish(waypoint)
 
-    print("route: " + str(_path.get_local_coords_route()))
-    _path.plot(arc.obs_np, route=_path.route)
-
-    # get_local_coords_route returns a flipped version of coordinates
-    return [(y, x) for (x, y) in _path.get_local_coords_route()]
-
+        print("route: " + str(route_coordinates))
 
 if __name__ == "__main__":
     get_path((0, 0), (6.0, 6.0))

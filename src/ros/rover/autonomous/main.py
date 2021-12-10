@@ -1,10 +1,13 @@
-import PathPlanner, Controller, ArrayGrid
+#!/usr/bin/env python3
+from PathPlanner import PathPlanner
+from Controller import Controller
+from ArrayGrid import ArrayGrid
 import rclpy
-from rclpy.node import node
-from core.msg import DriveCmd, RoverPose, way_points
 
 
-if __name__ == "__main__":
+def main(args):
+
+    rclpy.init(args = args)
 
     print("Welcome to fun car drive!")
 
@@ -19,28 +22,29 @@ if __name__ == "__main__":
     print("Input waypoints manually?")
     print("[0]: No - use autonomous path planning")
     print("[1]: Yes")
-    
+
     manual_input = int(input("Input your decision: "))
 
+    print("Current pose: (" + str(controller.state.x) + ", " + str(controller.state.y) + ")")
+
     if manual_input:
-        print("Current pose: (" + str(controller.state.x) + ", " + str(controller.state.y) + ")")
-        
+        # TODO: Setup to allow manual inputs as well as path planning
 
-        print("Calculating path...")
-        path = PathPlanner.get_path((controller.state.x, controller.state.y), dest, weight=5)
-        print("Path is: " + str(path))
-
-        print("Adding way-points...")
         for point in path:
             controller.way_points.append(point)
 
     else:
-        planner = PathPlanner(controller, grid)
-
-        dest = input("Enter Destination as tuple: ")
+        dest = [0.0, 0.0]
+        dest[0] = float(input("Enter destination x coordinate: "))
+        dest[1] = float(input("Enter destination y coordinate: "))
         
-        planner.add
+        planner = PathPlanner(controller, grid, dest)
+
+        rclpy.spin(planner)
 
 
 
-    
+
+if __name__ == "__main__":
+    main(args = None)
+     
