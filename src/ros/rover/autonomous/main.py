@@ -13,8 +13,8 @@ if __name__ == "__main__":
     # controller object to plan the path according to the output of the path planner
     controller = Controller()
 
-    # stores the map of obstacles we navigate through
-    grid = ArrayGrid()
+    # stores the map of obstacles we navigate through - dimensions and resolution are preliminary values
+    grid = ArrayGrid(20.0, 20.0, 5.0, 0.05)
 
     print("Input waypoints manually?")
     print("[0]: No - use autonomous path planning")
