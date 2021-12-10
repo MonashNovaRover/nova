@@ -18,6 +18,13 @@ cwd=$(pwd);     # Save the current directory
 cd ~/nova_ws;   # Navigate to the workspace directory
 setup           # Call the setup macro
 
+# Reinstall the communications utility package
+cd ~/nova_ws/other/coms_utils
+python3 setup.py install --user &> /dev/null
+
+# Change back to the root directory
+cd ~/nova_ws
+
 # Check if a keyword used
 if [[ -z $1 ]]; then
     colcon build;   # Build the workspace
