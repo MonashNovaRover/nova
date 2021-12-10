@@ -3,7 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 from Queue import PriorityQueue
-from ArrayMap import ArrayMap
+from ArrayMap import ArrayGrid
+from core.msg import Waypoint
 from os.path import expanduser
 
 """
@@ -23,41 +24,58 @@ Services:
 
 
 class PathPlanner:
-    def __init__(self, num_map, start, end, x_length=20, y_length=20):
+    def __init__(self, controller, array_grid: ArrayGrid, end, x_length=20, y_length=20):
         """
         x is height, y is width
         """
+        # NOTE - Max - why do we need to reverse x and y coords?
+        # NOTE: we are REVERSING the coordinates of start to end so that path planning works
+
+        self.controller = controller
+        self.array_grid = array_grid
 
         # exhaustive list of class attributes
-        self.x_length_meters = x_length
-        self.y_length_meters = y_length
+        self.x_length_meters = self.array_grid.length
+        self.y_length_meters = self.array_grid.width
 
-        self.scale_x = num_map.padded_obs_np.shape[0]
-        self.scale_y = num_map.padded_obs_np.shape[1]
+        # x and y coordinates of the map in pixels
+        self.scale_x = self.array_grid.map.shape[0]
+        self.scale_y = self.array_grid.map.shape[0]
 
-        # NOTE: we are REVERSING the coordinates of start to end so that path planning works
-        self.start = start[1], start[0]
-        self.end = end[1], end[0]
+        self.extract_obstacle_map(10)
 
-        self.map = num_map
         self.route = []
-        self.scale(20, 20)
-        self.pixel_goal = 0
-        self.pixel_start = 0
 
         # calculations
         self.scale(self.scale_x, self.scale_y)
 
-    """
-    Calculate start and goal with respect of pixels, given local coordinates and total pixel height and width
-    """
+    def add_destination(self, dest):
+        """
+        Adds destination node to plan path to (from present rover pose)
+        """
+        self.end = dest
+
+    def extract_obstacle_map(self, layers: int):
+        """
+        Extracts an obstacle map by adding the bottom layers of the map
+        """
+
+        self.map = self.array_grid.map[:,:,0,0]
+        for i in range(1: layers):
+            self.map += self.array_grid.map[:,:,i,0]
+
     def scale(self, scale_x, scale_y):
+        """
+        Calculate start and goal with respect of pixels, given local coordinates and total pixel height and width
+        """ 
         self.pixel_goal = (self.scale_x - int(float(self.end[0]) * (float(scale_x) / self.x_length_meters)),
                            int(float(self.end[1]) * (float(scale_y) / self.y_length_meters)))
 
         self.pixel_start = (self.scale_x - int(float(self.start[0]) * (float(scale_x) / self.x_length_meters)),
                            (int(float(self.start[1]) * (float(scale_y) / self.y_length_meters))))
-        print(self.pixel_start, self.pixel_goal)
+        
+        print("Navigating from pixel coordinates (%d, %d) to (%d, %d)" % (self.pixel_start, self.pixel_goal))
+        
         return scale_x, scale_y
 
     """
@@ -66,7 +84,7 @@ class PathPlanner:
     The octile heuristic is admissible and consistent for octile movements where diagonal movements incur cost sqrt(2)
     """
     @staticmethod
-    def heuristic(a, b, heuristic_type="manhattan"):
+    def heuristic(a, b, heuristic_type="distance"):
         if heuristic_type == "manhattan":
             return abs(a[0] - b[0]) + abs(a[1] - b[1])  # manhattan
         elif heuristic_type == "octile":
@@ -90,7 +108,7 @@ class PathPlanner:
         min_queue = PriorityQueue()
 
         # add the starting node to the queue
-        min_queue.put((self.heuristic(start, goal, heuristic_type=version), start))
+        min_queue.put((self.heuristic(start, goal), start))
 
         # while the heap of items still has things to look through
         while not min_queue.empty():
@@ -105,8 +123,9 @@ class PathPlanner:
 
             # children
             candidate_children = [(expand[0] + n[0], expand[1] + n[1]) for n in neighbors]
-            for node in [n for n in candidate_children if 0 < n[0] < len(array) and 0 < n[1] < len(
-                    array[0]) and n not in closed_set and not array[n[0]][n[1]]]:
+            candidate_children = [n for n in candidate_children if 0 < n[0] < len(array) and 0 < n[1] < len(
+                    array[0]) and n not in closed_set and not array[n[0]][n[1]]]
+            for node in candidate_children:
 
                 # lazy evaluation prevents key error
                 if (node in g_score.keys() and g_score[expand] + 1 < g_score[node]) or (node not in g_score.keys()):
@@ -184,31 +203,6 @@ class PathPlanner:
 
 #         self.route = self.stringPull(self.map.numArr3, self.route)
         return self.route
-
-    # plots the map as an image
-    def plot(self, image, route):
-        assert route
-        colours = ["b", "g", "r", "c", "m", "y", "k"]
-        fig, ax = plt.subplots(figsize=(20, 20))
-
-        for c in range(len(route)):
-            x_coords = []
-            y_coords = []
-            x = route[c][0]
-            y = route[c][1]
-            x_coords.append(x)
-            y_coords.append(y)
-            ax.scatter(y, x, marker="*", color="green", s=200)
-
-        # plot map and path
-        ax.imshow(self.map.padded_obs_np, cmap=plt.cm.Dark2, alpha=1)
-        ax.imshow(image,  alpha=0.5)
-        ax.scatter(self.pixel_start[1], self.pixel_start[0], marker="*", color="yellow", s=200)
-        ax.scatter(self.pixel_goal[1], self.pixel_goal[0], marker="*", color="red", s=200)
-        ax.plot(x_coords, y_coords, color=colours[1])
-        plt.show()
-        print("Yellow is start, red is end")
-        print("Path colour: b, g, r, c, m")
 
 
 def convert_grid_to_coord_list(np_arr, factor_x, factor_y):
