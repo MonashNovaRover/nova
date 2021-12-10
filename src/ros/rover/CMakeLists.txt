@@ -24,8 +24,10 @@ find_package(ament_cmake REQUIRED)
 # Find default generators
 find_package(rosidl_default_generators REQUIRED)
 
-# Include all messages, services and actions
+# Include all interfaces
 rosidl_generate_interfaces(${PROJECT_NAME}
+
+  # Message definitions
   "msg/RadioStatus.msg"
   "msg/InputGamepad.msg"
   "msg/InputJoystick.msg"
@@ -34,6 +36,12 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/RoverPose.msg"
   "msg/Waypoint.msg"
   "msg/DriveVel.msg"
+
+  # Service definitions
+  "srv/CameraCommand.srv"
+
+  # Action definitions
+  
 )
 
 # Run build testing package nodes
