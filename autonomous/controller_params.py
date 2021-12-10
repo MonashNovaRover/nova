@@ -15,3 +15,5 @@ max_speed = 7.0  # todo: determine
 min_waypoint_distance = 0.2  # todo: determine what is achievable
 
 controller_ros_rate = 0.1  # 10hz
+
+a_star_rate = 1 # 1Hz
