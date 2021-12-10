@@ -18,7 +18,7 @@ import PCPub
 import transform
 
 class RoverCloud(Node):
-    def __init__(self, mode="from_pc"):
+    def __init__(self, mode="from_file"):
         
         super().__init__("cloud_pub_test")
         
@@ -32,20 +32,28 @@ class RoverCloud(Node):
             pcd = mesh.sample_points_uniformly(number_of_points=20000)
             pts = np.asarray(pcd.points)
             
-            # the following are a bunch of transformations which will put the rover in a reasonable position
+            # the following are a bunch of (rough) transformations which will put the rover in a reasonable position
             pts = pts / 1344
             pts = pts[:, [0, 2, 1]]
             #pts = pts - np.array([.4, .3, -0.11])
             pts = pts + np.array([0, 0, 0])
-            
-            # save to file
-            np.save("rover.np", pts)
 
+            # analysis of raw points:
+            # given the rover's max length is 1080 m, but the diff between min and max x coords in the cloud is 0.8172089672994012,
+            # we can scale up the rover by:
+            # pts = pts * (1080 / 0.8172089672994012)
+
+            pts = pts * (1.080 / 0.8172089672994012)
+            
+            pts = pts + np.array([-.245,-0.39139580577343547,0.15520411544352622])
 
             # this is the thing we publish. It should be a set of points where if there is a (0,0,0) translation, the rover is 
             # just sitting on the ground at the 
             self.origin_rover_pts = pts
              
+            # save to file
+            np.save("rover", pts)
+            
             self.subscriber_points = self.create_subscription(Odometry, '/T265/odom/sample', self.callback, 10)
        
         else:
@@ -54,15 +62,12 @@ class RoverCloud(Node):
             
             # this is the thing we publish. It should be a set of points where if there is a (0,0,0) translation, the rover is 
             # just sitting on the ground at the origin
-            self.origin_rover_pts = np.load("rover.np")
+            self.origin_rover_pts = np.load("rover.npy")
             
             self.subscriber_points = self.create_subscription(Odometry, '/T265/odom/sample', self.callback, 10)
 
-        
-
     def callback(self, msg):
         self.pub_rover_at(msg)
-        
 
     def pub_rover_at(self, msg):
         
