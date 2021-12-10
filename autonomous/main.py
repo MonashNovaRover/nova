@@ -2,6 +2,7 @@
 from PathPlanner import PathPlanner
 from Controller import Controller
 from ArrayGrid import ArrayGrid
+import threading
 import rclpy
 
 
@@ -29,9 +30,7 @@ def main(args):
 
     if manual_input:
         # TODO: Setup to allow manual inputs as well as path planning
-
-        for point in path:
-            controller.way_points.append(point)
+        pass
 
     else:
         dest = [0.0, 0.0]
@@ -40,9 +39,17 @@ def main(args):
         
         planner = PathPlanner(controller, grid, dest)
 
-        rclpy.spin(planner)
+        # This allows us to spin both nodes from main.py - we are kind of misusing ros nodes here but oh well it works
+        executor = rclpy.executors.MultiThreadedExecutor()
+        
+        executor.add_node(planner)
+        executor.add_node(controller)
 
+        # Spin in a separate thread
+        executor.spin() 
 
+        # rejoinging threads before we shutdown
+        rclpy.shutdown()
 
 
 if __name__ == "__main__":

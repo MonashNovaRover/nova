@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import numpy as np
-import matplotlib.pyplot as plt
 import time
 from queue import PriorityQueue
 import rclpy
@@ -40,15 +39,15 @@ class PathPlanner(Node):
         self.x_length_meters = self.array_grid.length
         self.y_length_meters = self.array_grid.width
 
-        # x and y coordinates of the map in pixels
+        # x and y dimensions of the map in pixels
         self.scale_x = self.array_grid.map.shape[0]
-        self.scale_y = self.array_grid.map.shape[0]
+        self.scale_y = self.array_grid.map.shape[1]
 
         # gets 2d array of obstacles
         self.extract_obstacle_map(10)
 
-        self.start = [self.controller.state.x, self.controller.state.y]
-        self.goal = dest
+        self.start = (self.controller.state.x, self.controller.state.y)
+        self.goal = (dest[0], dest[1])
 
         self.route = []
 
@@ -67,27 +66,32 @@ class PathPlanner(Node):
         for i in range(1, layers):
             self.map += self.array_grid.map[:,:,i,0]
 
+        print(self.map)
+
     def scale(self, scale_x, scale_y):
         """
         Calculate start and goal with respect of pixels, given local coordinates and total pixel height and width
+        (0, 0) coordinates are located in the centre of the map, for both metric and pixel coordinates
         """ 
-        self.pixel_goal = (self.scale_x - int(float(self.goal[0]) * (float(scale_x) / self.x_length_meters)),
-                           int(float(self.goal[1]) * (float(scale_y) / self.y_length_meters)))
+        self.pixel_goal = (int(self.goal[0] * self.scale_x / self.x_length_meters), int(self.goal[1] * self.scale_y/self.y_length_meters))
 
-        self.pixel_start = (self.scale_x - int(float(self.start[0]) * (float(scale_x) / self.x_length_meters)),
-                           (int(float(self.start[1]) * (float(scale_y) / self.y_length_meters))))
+        #(self.scale_x - int(float(self.goal[0]) * (float(scale_x) / self.x_length_meters)), int(float(self.goal[1]) * (float(scale_y) / self.y_length_meters)))
+
+        self.pixel_start = (int(self.start[0] * self.scale_x / self.x_length_meters), int(self.start[1] * self.scale_y/self.y_length_meters))
+        
+        #(self.scale_x - int(float(self.start[0]) * (float(scale_x) / self.x_length_meters)), (int(float(self.start[1]) * (float(scale_y) / self.y_length_meters))))
         
         print("Navigating from pixel coordinates (%d, %d) to (%d, %d)" % (self.pixel_start[0], self.pixel_start[1], self.pixel_goal[0], self.pixel_goal[1]))
         
         return scale_x, scale_y
 
-    """
-    The manhattan heuristic works for movements up, down, left, right, and is an admissible and consistent heuristic
-    The straight line heuristic works for any problem domain in 2-d euclidean space and is admissible and consistent
-    The octile heuristic is admissible and consistent for octile movements where diagonal movements incur cost sqrt(2)
-    """
     @staticmethod
     def heuristic(a, b, heuristic_type="euclidean"):
+        """
+        The manhattan heuristic works for movements up, down, left, right, and is an admissible and consistent heuristic
+        The straight line heuristic works for any problem domain in 2-d euclidean space and is admissible and consistent
+        The octile heuristic is admissible and consistent for octile movements where diagonal movements incur cost sqrt(2)
+        """
         if heuristic_type == "manhattan":
             return abs(a[0] - b[0]) + abs(a[1] - b[1])  # manhattan
         elif heuristic_type == "octile":
@@ -118,8 +122,6 @@ class PathPlanner(Node):
             expand = min_queue.get()[1]
             closed_set.append(expand)
 
-            print(expand)
-
             # goal check - necessary to test at goal given lack of consistent heuristic
             if expand == goal:
                 break
@@ -147,15 +149,19 @@ class PathPlanner(Node):
         node = goal
         while not(node == start):
             path.append(node)
-            print("path: " + str(path))
             node = came_from[node]
         path.reverse()
+        print("path: " + str(path))
         print("A* took: " + str(time.time() - t))
         self.route = path
         return path
 
     def get_local_coords_route(self):
-        return [((self.scale_x - x) * (float(self.x_length_meters) / self.scale_x),
+        """
+        Turning a route in pixel coordinates into one in metric coordinates
+         - Modified for new map - have to check it works
+        """
+        return [(x * (float(self.x_length_meters) / self.scale_x),
                  y * (float(self.y_length_meters) / self.scale_y)) for (x, y) in self.route]
 
     def stringPull(self, raw_points):
@@ -233,9 +239,8 @@ class PathPlanner(Node):
             waypoint.x = wpt[0]
             waypoint.y = wpt[1]
 
+            print("publishing waypoint!")
             self.waypt_publisher.publish(waypoint)
 
-        print("route: " + str(route_coordinates))
+        print("route has " + str(len(route_coordinates)) + " points")
 
-if __name__ == "__main__":
-    get_path((0, 0), (6.0, 6.0))
