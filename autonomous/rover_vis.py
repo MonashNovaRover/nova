@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 """
-convert rover as .ply file to pointcloud
+Convert rover as .ply file to pointcloud
 """
 
 import open3d as o3d
@@ -18,26 +18,47 @@ import PCPub
 import transform
 
 class RoverCloud(Node):
-    def __init__(self):
+    def __init__(self, mode="from_pc"):
         
         super().__init__("cloud_pub_test")
         
-        # create the point-cloud publisher (this is how we will visualise the rover)
-        self.pc_pub = PCPub.PCPub("rover_cloud")
+        if mode == "from_pc":
+
+            # create the point-cloud publisher (this is how we will visualise the rover)
+            self.pc_pub = PCPub.PCPub("rover_cloud")
+            
+            # import the rover from mesh file
+            mesh = o3d.io.read_triangle_mesh("rover.ply")
+            pcd = mesh.sample_points_uniformly(number_of_points=20000)
+            pts = np.asarray(pcd.points)
+            
+            # the following are a bunch of transformations which will put the rover in a reasonable position
+            pts = pts / 1344
+            pts = pts[:, [0, 2, 1]]
+            #pts = pts - np.array([.4, .3, -0.11])
+            pts = pts + np.array([0, 0, 0])
+            
+            # save to file
+            np.save("rover.np", pts)
+
+
+            # this is the thing we publish. It should be a set of points where if there is a (0,0,0) translation, the rover is 
+            # just sitting on the ground at the 
+            self.origin_rover_pts = pts
+             
+            self.subscriber_points = self.create_subscription(Odometry, '/T265/odom/sample', self.callback, 10)
+       
+        else:
+            # create the point-cloud publisher (this is how we will visualise the rover)
+            self.pc_pub = PCPub.PCPub("rover_cloud")
+            
+            # this is the thing we publish. It should be a set of points where if there is a (0,0,0) translation, the rover is 
+            # just sitting on the ground at the origin
+            self.origin_rover_pts = np.load("rover.np")
+            
+            self.subscriber_points = self.create_subscription(Odometry, '/T265/odom/sample', self.callback, 10)
+
         
-        # import the rover from mesh file
-        mesh = o3d.io.read_triangle_mesh("rover.ply")
-        pcd = mesh.sample_points_uniformly(number_of_points=20000)
-        pts = np.asarray(pcd.points)
-        
-        # the following are a bunch of transformations which will put the rover in a reasonable position
-        pts = pts / 1344
-        pts = pts[:, [0, 2, 1]]
-        #pts = pts - np.array([.4, .3, -0.11])
-        pts = pts - np.array([.4, .3, .6])
-        self.origin_rover_pts = pts
-        
-        self.subscriber_points = self.create_subscription(Odometry, '/T265/odom/sample', self.callback, 10)
 
     def callback(self, msg):
         self.pub_rover_at(msg)
@@ -54,6 +75,14 @@ class RoverCloud(Node):
         mat = transform.get_pc_transformation(msg)
         pts = np.matmul(mat, pts.transpose()).transpose()
         pts = pts + [x, y, z]
+
+        # the rover signature orange^tm
+        pts = [pt.tolist() + [0,77,255,0] for pt in pts]
+        self.pc_pub.pub(pts)
+        
+    def pub_rover_at_coords(self, coords):
+        pts = self.origin_rover_pts
+        pts = pts + coords 
 
         # the rover signature orange^tm
         pts = [pt.tolist() + [0,77,255,0] for pt in pts]
