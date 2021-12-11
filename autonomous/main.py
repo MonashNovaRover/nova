@@ -4,6 +4,7 @@ from Controller import Controller
 from ArrayGrid import ArrayGrid
 import threading
 import rclpy
+from points_grid import DynamicMap
 
 
 def main(args):
@@ -38,12 +39,14 @@ def main(args):
         dest[1] = float(input("Enter destination y coordinate: "))
         
         planner = PathPlanner(controller, grid, dest)
+        dynamic_map = DynamicMap(grid=grid)
 
         # This allows us to spin both nodes from main.py - we are kind of misusing ros nodes here but oh well it works
         executor = rclpy.executors.MultiThreadedExecutor()
         
         executor.add_node(planner)
         executor.add_node(controller)
+        executor.add_node(dynamic_map)
 
         # Spin in a separate thread
         executor.spin() 
