@@ -42,8 +42,8 @@ import ArrayGrid
 import transform
 import PCPub
 
-class SubscriberNode(Node):
-    def __init__(self):
+class DynamicMap(Node):
+    def __init__(self, grid=None):
 
         # init node with node name points
         super().__init__('points_grid')
@@ -56,7 +56,11 @@ class SubscriberNode(Node):
         # limiting the the field of view to 4 degrees up and down to reduce noisy data points. 0.349066 radians == 20 degrees
         self.max_angle = 0.349066
         
-        self.grid = ArrayGrid.ArrayGrid(8, 8, 5, .05)
+        if not Grid:
+            self.grid = ArrayGrid.ArrayGrid(8, 8, 5, .05)
+        else:
+            self.grid = grid
+
         self.msg = None
         
         # for visualising the map
@@ -164,7 +168,7 @@ def position_callback(msg):
 
 def main(args=None):
     rclpy.init(args=args)
-    subscriber = SubscriberNode()
+    subscriber = DynamicMap()
     rclpy.spin(subscriber)
     subscriber.destroy_node()
     rclpy.shutdown()
