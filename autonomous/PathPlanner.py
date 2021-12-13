@@ -2,6 +2,8 @@
 import numpy as np
 import time
 from queue import PriorityQueue
+
+from numpy.lib.function_base import _angle_dispatcher, angle
 import rclpy
 ## NOTE should probably call these something else since they are not only used by controller
 from controller_params import *
@@ -213,15 +215,17 @@ class PathPlanner(Node):
         rover avoids all corners by a constant radius. Approximates the curved path around each padding cricle
         with three waypoints.
         """
+        t = time.time()
 
         current = self.start
         padded_path = []
         # adjusting each of the turning points - all string-pulled points except the destination
         for i in range(len(turning_points) - 1):
             point = turning_points[i]
+            following_point = turning_points[i+1]
 
             vec_to_pt = point - current
-            vec_from_pt = turning_points[i+1] - point
+            vec_from_pt = following_point - point
 
             # argument (from -pi to pi) of the vectors going from current to point, and out from point to the next turning point
             # theta = arctan(y/x)
@@ -235,18 +239,38 @@ class PathPlanner(Node):
                 angle_out += np.pi
 
             r = corner_padding
-            d = np.sqrt(vec_to_pt ** 2)
+            d1 = np.sqrt(vec_to_pt ** 2)
+            d2 = np.sqrt(vec_from_pt ** 2)
 
             # important for seeing which side of the padding circle we need to drive to if we want to avoid the obstacle
             angle_change = yaw_difference(angle_in, angle_out)
 
             if i == 0:
-                p1 = point + self.radial_vec_to_tangent(r, d, angle_in, angle_change)
+                # the first point on a padding circle - angles are a bit different to when we are travelling
+                # between two circles
+                p_end = point + self.radial_vec_to_tangent(r, d1, angle_in, angle_change)
+                padded_path.append(p_end)
+            elif i == len(turning_points[:-1]):
+                p_start = point + self.radial_vec_to_tangent(r, d2, angle_out - np.pi, -angle_change)
+                padded_path = self.interpolate_circle_circumference(r, p_start, circle_interpolation_num_points, padded_path, previous_angle_change)
+                padded_path.append(p_start)
             else:
-                p1 = point + self.radial_vec_to_common_circle_tangent(r, d, angle_in, )
+                radial_vec = self.radial_vec_to_common_circle_tangent(r, d1, angle_in, angle_change, previous_angle_change)
+                p_start = point + radial_vec
+                p_end = following_point + radial_vec * math.sign(angle_change/previous_angle_change)
 
-            
+                padded_path = self.interpolate_circle_circumference(r, p_start, circle_interpolation_num_points, padded_path, previous_angle_change)
+                padded_path.append(p_start)
+                padded_path.append(p_end)
 
+            previous_angle_change = angle_change
+
+        padded_path.append(turning_points[-1])
+
+        print("path with padding: " + str(padded_path))
+        print("path padding took: " + str(t - time.time()) + " s")
+
+        return padded_path
 
 
     def radial_vec_to_tangent(self, r, d, angle_in, angle_change):
@@ -268,7 +292,53 @@ class PathPlanner(Node):
 
         return r * np.array([np.cos(angle_to_tangent_point), np.sin(angle_to_tangent_point)])
 
-            
+    def radial_vec_to__common_circle_tangent(self, r, d, angle_in, angle_change, previous_angle_change):
+        """
+        calculates the radial vector to the tangent point on a circle from its centre, given the centre of another
+        circle of the same radius which must share the tangent line
+        :param: r: the radius of the circles
+        :param: d: the distance between the centres of the circles
+        :param: angle_in: The argument of the vector between the circles' centres
+        :angle_change: the signed change in angle of the rover at the turning point in the centre of the circle
+                used to determine which side of the circle to go to
+
+        :returns: a vector from the centre of the circle to its intersection with the tangent line
+        """
+
+        if angle_change / previous_angle_change > 0:
+            # the common tangent is parallel to the vector between the centres of the two circles
+            theta = np.pi
+
+        else:
+            # the acute angle between vec_to_point and the radial vector to the tangent point of a circle centred on point
+            theta = np.arccos(2 * r / d)
+
+        angle_to_tangent_point = angle_in + np.pi + math.sign(angle_change) * theta
+
+        return r * np.array([np.cos(angle_to_tangent_point), np.sin(angle_to_tangent_point)])
+       
+    def interpolate_circle_circumference(self, r, p2, centre, n, padded_path, angle_change):
+        """
+        creates points evenly spaced around a part-circle arc between the last point in padded_path and p2, appends them to the provided list, 
+        and returns the modified list
+        :param: n: the number of points to add around the circle
+        """
+        vec1 = padded_path[0] - centre
+        vec2 = p2 - centre
+
+        theta = math.sign(angle_change) * np.arccos(np.dot(vec1, vec2) / r ** 2)
+
+        for i in range(n):
+            vec1_argument = np.arctan(vec1[1] / vec1[0])
+
+            if vec1[0] < 0:
+                vec1_argument -= np.pi * math.sign(vec1[1])
+
+            point_argument = vec1_argument + theta / (n + 1)
+
+            padded_path.append(centre + r * np.array([np.cos(point_argument), np.sin(point_argument)]))
+
+        return padded_path
 
     def get_path(self, weight=5):
         """
