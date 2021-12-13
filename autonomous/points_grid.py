@@ -49,14 +49,14 @@ class DynamicMap(Node):
         super().__init__('points_grid')
         self.subscriber_tracking = self.create_subscription(Odometry, '/T265/odom/sample', self.tracking_callback, 100)
         
-        self.subscriber_points = self.create_subscription(PointCloud2, '/D400/depth/color/points', self.points_callback, 10)
+        self.subscriber_points = self.create_subscription(PointCloud2, '/D435/depth/color/points', self.points_callback, 10)
         
         # constants for pruning the point-clouds
         self.max_dist = 3.5
         # limiting the the field of view to 4 degrees up and down to reduce noisy data points. 0.349066 radians == 20 degrees
         self.max_angle = 0.349066
         
-        if not Grid:
+        if not grid:
             self.grid = ArrayGrid.ArrayGrid(8, 8, 5, .05)
         else:
             self.grid = grid
