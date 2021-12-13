@@ -19,7 +19,7 @@ def main(args):
     controller = Controller()
 
     # stores the map of obstacles we navigate through - dimensions and resolution are preliminary values
-    grid = ArrayGrid(20.0, 20.0, 5.0, 0.05)
+    grid = ArrayGrid(4.0, 4.0, 3.0, 0.05)
 
     print("Input waypoints manually?")
     print("[0]: No - use autonomous path planning")

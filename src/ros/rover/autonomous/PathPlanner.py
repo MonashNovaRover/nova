@@ -54,18 +54,23 @@ class PathPlanner(Node):
         # calculations
         self.scale(self.scale_x, self.scale_y)
 
-        # running A* every second to re-evaluate
+        # rto_lisiunning A* every second to re-evaluate
         self.timer = self.create_timer(a_star_rate, self.get_path)
 
     def extract_obstacle_map(self, layers: int):
         """
         Extracts an obstacle map by adding the bottom layers of the map
         """
+        
+        self.map = self.array_grid.map[:,:,self.array_grid.map.shape[2] // 2,0]
 
-        self.map = self.array_grid.map[:,:,0,0]
-        for i in range(1, layers):
-            self.map += self.array_grid.map[:,:,i,0]
+        # going from the middle of the map (which for flat ground, will be the pose of the camera)
+        for i in range(self.array_grid.map.shape[2] // 2, self.array_grid.map.shape[2] // 2 + layers):
+             self.map += self.array_grid.map[:,:,i,0]
+        
+        self.map = (self.map > 0.0).tolist()
 
+        print("Map: ")
         print(self.map)
 
     def scale(self, scale_x, scale_y):
@@ -81,7 +86,7 @@ class PathPlanner(Node):
         
         #(self.scale_x - int(float(self.start[0]) * (float(scale_x) / self.x_length_meters)), (int(float(self.start[1]) * (float(scale_y) / self.y_length_meters))))
         
-        print("Navigating from pixel coordinates (%d, %d) to (%d, %d)" % (self.pixel_start[0], self.pixel_start[1], self.pixel_goal[0], self.pixel_goal[1]))
+        print("Navigating from array-map-grid coordinates (%d, %d) to (%d, %d)" % (self.pixel_start[0], self.pixel_start[1], self.pixel_goal[0], self.pixel_goal[1]))
         
         return scale_x, scale_y
 
@@ -121,7 +126,7 @@ class PathPlanner(Node):
         while not min_queue.empty():
             expand = min_queue.get()[1]
             closed_set.append(expand)
-
+            print("hi")
             # goal check - necessary to test at goal given lack of consistent heuristic
             if expand == goal:
                 break
@@ -210,7 +215,7 @@ class PathPlanner(Node):
 
         self.route = self.aStar(self.map, self.pixel_start, self.pixel_goal, weight)
 
-#         self.route = self.stringPull(self.map.numArr3, self.route)
+        # self.route = self.stringPull(self.map.numArr3, self.route)
         return self.route
 
     def get_path(self, weight=5):

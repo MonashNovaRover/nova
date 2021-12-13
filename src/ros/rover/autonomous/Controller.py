@@ -32,6 +32,7 @@ from controller_math import *
 from controller_params import *
 from core.msg import DriveCmd, RoverPose, Waypoint
 import sys
+import path_vis
 
 """
 TODO: update led according to distance?
@@ -55,13 +56,15 @@ class Controller(Node):
         self.target_waypoint = None
         self.previously_turned = False
         self.max_distance = 0.0001      # furthest distance to an object? not sure
+        
+        self.path_cloud = path_vis.PathCloud()
 
         self.drive_cmd_publisher = self.create_publisher(DriveCmd, "auto_drive_commands", 10)
         self.pose_subscriber = self.create_subscription(RoverPose, "autonomous/pose", self.update_pose, 10)
         self.waypt_subscriber = self.create_subscription(Waypoint, "autonomous/goals", self.add_waypoint, 10)
 
         # Controls the rate at which drive commands are sent - sleeps for the necessary time to maintain the rate given
-        self.timer = self.create_timer(controller_ros_rate, self.control)
+        self.timer = self.create_timer(0.1, self.control)
 
     def update_pose(self, msg):
         """
@@ -147,6 +150,7 @@ class Controller(Node):
         Called once every tick by the node's timer. Identifies the next target waypoint
         and calls navigate_to_waypoint, and determines when the rover has arrived
         """
+        print("controling")
         if self.target_waypoint == None:
             # There is currently no target - take the first waypoint on the list
             if self.waypoints:
@@ -155,8 +159,11 @@ class Controller(Node):
                 return
 
         if distance((self.state.x, self.state.y), self.target_waypoint) >= min_waypoint_distance:
+            print("going to target")
             # we have not yet arrived at the waypoint
             self.go_to_target()
+            # showing where we are aiming to drive to
+            self.path_cloud.publish_path(self.waypoints) 
         
         else:
             # If distance to the waypoint is lower than the threshold distance, we have arrived
@@ -165,7 +172,7 @@ class Controller(Node):
             
             for _ in range(5):
                 # stop for 5 seconds at waypoint
-                self.publish(0.0, 0.0)
+                self.__publish(0.0, 0.0)
                 sleep(1)
 
 

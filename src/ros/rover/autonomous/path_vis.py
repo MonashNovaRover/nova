@@ -41,6 +41,8 @@ class PathCloud(Node):
         pc = [[point[0], point[1], 0.5, 0, 0, 255, 0] for point in pc]
 
         self.pc_pub.pub(pc)
+        
+        print("visualizing path: " + str(path))
 
 if __name__ == "__main__":
     rclpy.init(args=None)

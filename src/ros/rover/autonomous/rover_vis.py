@@ -67,10 +67,14 @@ class RoverCloud(Node):
             self.subscriber_points = self.create_subscription(Odometry, '/T265/odom/sample', self.callback, 10)
 
     def callback(self, msg):
-        self.pub_rover_at(msg)
+        self.pub_rover_cameras_at(msg)
 
     def pub_rover_at(self, msg):
         
+        """
+        For publishing the rover based on a center wheel bsed (0,0,0)
+        """
+
         x = msg.pose.pose.position.x
         y = msg.pose.pose.position.y
         z = msg.pose.pose.position.z
@@ -85,6 +89,29 @@ class RoverCloud(Node):
         pts = [pt.tolist() + [0,77,255,0] for pt in pts]
         self.pc_pub.pub(pts)
         
+    def pub_rover_cameras_at(self, msg):
+        """
+        For publishing the rover where the cameras represent (0,0,0)
+        """
+        
+        x = msg.pose.pose.position.x
+        y = msg.pose.pose.position.y
+        z = msg.pose.pose.position.z
+        
+        # applies transformation then translation
+        pts = self.origin_rover_pts
+
+        # apply translation to make cameras at [0,0,0]
+        pts = pts + [-0.4, 0.0, -0.4]        
+
+        mat = transform.get_pc_transformation(msg)
+        pts = np.matmul(mat, pts.transpose()).transpose()
+        pts = pts + [x, y, z]
+
+        # the rover signature orange^tm
+        pts = [pt.tolist() + [0,77,255,0] for pt in pts]
+        self.pc_pub.pub(pts)
+
     def pub_rover_at_coords(self, coords):
         pts = self.origin_rover_pts
         pts = pts + coords 
