@@ -8,7 +8,7 @@ min_yaw_difference = math.pi / 25.0  # arbitrary for now
 
 slowdown_distance = 2.0
 
-corner_padding = 0.8    # Radius by which to avoid corners, in m
+corner_padding = 0.3    # Radius by which to avoid corners, in m
 
 circle_interpolation_num_points = 1
 

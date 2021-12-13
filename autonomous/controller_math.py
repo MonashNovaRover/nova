@@ -72,8 +72,8 @@ def yaw_difference(a, b):
     Range: between -pi and pi
     """
 
-    a += math.pi * 2.0 if a < 0 else a
-    b += math.pi * 2.0 if b < 0 else b
+    a += math.pi * 2.0 if a < 0 else 0
+    b += math.pi * 2.0 if b < 0 else 0
 
     assert 0.0 <= a <= math.pi * 2.0
     assert 0.0 <= b <= math.pi * 2.0
@@ -106,6 +106,18 @@ def yaw_delta_size(a, b):
     assert 0.0 <= b <= math.pi * 2.0
     d = yaw_difference(a, b)
     return d
+
+
+def vector_argument(vector):
+    """
+    Returns the argument of a vector as an angle from -pi to pi
+    """
+    vector_argument = np.arctan(vector[1] / vector[0])
+
+    if vector[0] < 0:
+        vector_argument -= np.pi * np.sign(vector[1])
+
+    return vector_argument
 
 
 def distance(current, target):

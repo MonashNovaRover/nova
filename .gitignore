@@ -37,6 +37,7 @@ srv/_*.py
 *.pyc
 qtcreator-*
 *.user
+test_padding.py
 
 /planning/cfg
 /planning/docs
