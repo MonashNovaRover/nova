@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from typing import ContextManager
 import numpy as np
 import time
 from queue import PriorityQueue
@@ -49,15 +50,14 @@ class PathPlanner(Node):
         self.scale_y = self.array_grid.map.shape[1]
 
         # gets 2d array of obstacles
-        self.extract_obstacle_map(10)
+        # self.extract_obstacle_map(10)
 
-        self.start = np.array([self.controller.state.x, self.controller.state.y])
-        self.goal = np.array(dest)
+        # in case we want to test path planning without a controller
+        if controller:
+            self.start = (self.controller.state.x, self.controller.state.y)
+        self.goal = (dest[0], dest[1])
 
         self.route = []
-
-        # calculations
-        self.scale(self.scale_x, self.scale_y)
 
         # running A* every second to re-evaluate
         self.timer = self.create_timer(a_star_rate, self.get_path)
@@ -73,7 +73,7 @@ class PathPlanner(Node):
 
         print(self.map)
 
-    def scale(self, scale_x, scale_y):
+    def scale(self):
         """
         Calculate start and goal with respect of pixels, given local coordinates and total pixel height and width
         (0, 0) coordinates are located in the centre of the map, for both metric and pixel coordinates
@@ -87,8 +87,6 @@ class PathPlanner(Node):
         #(self.scale_x - int(float(self.start[0]) * (float(scale_x) / self.x_length_meters)), (int(float(self.start[1]) * (float(scale_y) / self.y_length_meters))))
         
         print("Navigating from pixel coordinates (%d, %d) to (%d, %d)" % (self.pixel_start[0], self.pixel_start[1], self.pixel_goal[0], self.pixel_goal[1]))
-        
-        return scale_x, scale_y
 
     @staticmethod
     def heuristic(a, b, heuristic_type="euclidean"):
@@ -103,7 +101,11 @@ class PathPlanner(Node):
             return min(abs(a[0] - b[0]), abs(a[1] - b[1])) * (2 ** 0.5) + abs(abs(a[0] - b[0]) - abs(a[1] - b[1]))  # octile
         return np.sqrt((b[0] - a[0]) ** 2 + (b[1] - a[1]) ** 2)  # euclidean distance norm
 
-    def aStar(self, array, start, goal, weight=5, version="octile"):
+    def aStar(self, start, goal, weight=5, version="octile"):
+        start = (start[0] + self.scale_x//2, start[1] + self.scale_y//2) 
+        goal = (goal[0] + self.scale_x//2, goal[1] + self.scale_y//2)    
+
+        print(start)
         t = time.time()
         # ways in which a coordinate can be expanded
         if version == "manhattan":
@@ -133,8 +135,8 @@ class PathPlanner(Node):
 
             # children
             candidate_children = [(expand[0] + n[0], expand[1] + n[1]) for n in neighbors]
-            candidate_children = [n for n in candidate_children if 0 < n[0] < len(array) and 0 < n[1] < len(
-                    array[0]) and n not in closed_set and not array[n[0]][n[1]]]
+            candidate_children = [n for n in candidate_children if 0 < n[0] < len(self.map) and 0 < n[1] < len(
+                    self.map[0]) and n not in closed_set and not self.map[n[0]][n[1]]]
             for node in candidate_children:
 
                 # lazy evaluation prevents key error
@@ -155,24 +157,25 @@ class PathPlanner(Node):
         while not(node == start):
             path.append(node)
             node = came_from[node]
+        path.append(start)
         path.reverse()
         print("path: " + str(path))
         print("A* took: " + str(time.time() - t))
         self.route = path
         return path
 
-    def get_local_coords_route(self):
+    def get_local_coords_route(self, route):
         """
         Turning a route in pixel coordinates into one in metric coordinates
          - Modified for new map - have to check it works
         """
         return [(x * (float(self.x_length_meters) / self.scale_x),
-                 y * (float(self.y_length_meters) / self.scale_y)) for (x, y) in self.route]
+                 y * (float(self.y_length_meters) / self.scale_y)) for (x, y) in route]
 
     def stringPull(self, raw_points):
         t = time.time()
         if len(raw_points) < 2:
-            return self.pad_corners([np.array(n) for n in raw_points])
+            return raw_points
 
         print("pulling strings in the background")
         # pruned_list = [raw_points[0]]
@@ -207,7 +210,8 @@ class PathPlanner(Node):
 
         pruned_list.append(np.array(raw_points[-1]))
         print("String pulling took: " + str(time.time() - t))
-        return self.pad_corners(pruned_list)
+        print(pruned_list)
+        return pruned_list
 
     def pad_corners(self, turning_points):
         """
@@ -217,60 +221,58 @@ class PathPlanner(Node):
         """
         t = time.time()
 
-        current = self.start
-        padded_path = []
+        if len(turning_points) <= 2:
+            print("No corners to pad")
+            return []
+
+        vectors = [turning_points[i + 1] - turning_points[i] for i in range(len(turning_points) - 1)]
+
+        angles = []
+        for i in range(len(vectors)):
+            angles.append(vector_argument(vectors[i]))
+
+        print("angles: " + str(angles))
+        # important for seeing which side of the padding circle we need to drive to if we want to avoid the obstacle
+        angle_changes = [yaw_difference(angles[i], angles[i + 1]) for i in range(len(angles) - 1)]
+
+        padded_path = [turning_points[0]]
+
         # adjusting each of the turning points - all string-pulled points except the destination
-        for i in range(len(turning_points) - 1):
-            point = turning_points[i]
-            following_point = turning_points[i+1]
+        for i in range(len(vectors) - 1):
+            point = turning_points[i + 1]
 
-            vec_to_pt = point - current
-            vec_from_pt = following_point - point
+            vec_to_pt = vectors[i]
+            vec_from_pt = vectors[i + 1]
 
-            # argument (from -pi to pi) of the vectors going from current to point, and out from point to the next turning point
-            # theta = arctan(y/x)
-            angle_in = np.arctan(vec_to_pt[1] / vec_to_pt[0])
-            angle_out = np.arctan(vec_from_pt[1] / vec_from_pt[0])
-
-            # converting from 180 degrees to 360 degrees
-            if vec_to_pt[0] < 0:
-                angle_in += np.pi
-            if vec_from_pt[0] < 0:
-                angle_out += np.pi
-
-            r = corner_padding
-            d1 = np.sqrt(vec_to_pt ** 2)
-            d2 = np.sqrt(vec_from_pt ** 2)
-
-            # important for seeing which side of the padding circle we need to drive to if we want to avoid the obstacle
-            angle_change = yaw_difference(angle_in, angle_out)
+            r = int(corner_padding * self.scale_x / self.x_length_meters)
+            d1 = np.sqrt(np.dot(vec_to_pt, vec_to_pt))
+            d2 = np.sqrt(np.dot(vec_from_pt, vec_from_pt))
 
             if i == 0:
                 # the first point on a padding circle - angles are a bit different to when we are travelling
                 # between two circles
-                p_end = point + self.radial_vec_to_tangent(r, d1, angle_in, angle_change)
-                padded_path.append(p_end)
-            elif i == len(turning_points[:-1]):
-                p_start = point + self.radial_vec_to_tangent(r, d2, angle_out - np.pi, -angle_change)
-                padded_path = self.interpolate_circle_circumference(r, p_start, circle_interpolation_num_points, padded_path, previous_angle_change)
-                padded_path.append(p_start)
+                p1 = point + self.radial_vec_to_tangent(r, d1, angles[i], angle_changes[i])
             else:
-                radial_vec = self.radial_vec_to_common_circle_tangent(r, d1, angle_in, angle_change, previous_angle_change)
-                p_start = point + radial_vec
-                p_end = following_point + radial_vec * math.sign(angle_change/previous_angle_change)
+                p1 = point + self.radial_vec_to_common_circle_tangent(r, d1, angles[i], angle_changes[i], angle_changes[i - 1])
+    
+            if i == len(turning_points) - 3:
+                p2 = point + self.radial_vec_to_tangent(r, d2, angles[i + 1] - np.pi, -angle_changes[i])
+            else:
+                radial_vec = self.radial_vec_to_common_circle_tangent(r, d1, angles[i], angle_changes[i], angle_changes[i + 1])
+                p2 = point + radial_vec * np.sign(angle_changes[i] / angle_changes[i + 1])
 
-                padded_path = self.interpolate_circle_circumference(r, p_start, circle_interpolation_num_points, padded_path, previous_angle_change)
-                padded_path.append(p_start)
-                padded_path.append(p_end)
-
-            previous_angle_change = angle_change
+            print("p1 = " + str(p1))
+            print(p2)
+            padded_path.append(p1)
+            padded_path = self.interpolate_circle_circumference(r, p2, point, circle_interpolation_num_points, padded_path, angle_changes[i])
+            padded_path.append(p2)
 
         padded_path.append(turning_points[-1])
 
         print("path with padding: " + str(padded_path))
-        print("path padding took: " + str(t - time.time()) + " s")
+        print("path padding took: " + str(time.time() - t) + " s")
 
-        return padded_path
+        return np.array(padded_path)
 
 
     def radial_vec_to_tangent(self, r, d, angle_in, angle_change):
@@ -288,11 +290,11 @@ class PathPlanner(Node):
         # the acute angle between vec_to_point and the radial vector to the tangent point of a circle centred on point
         theta = np.arccos(r / d)
 
-        angle_to_tangent_point = angle_in + np.pi + (theta * math.sign(angle_change))
+        angle_to_tangent_point = angle_in + np.pi + (theta * np.sign(angle_change))
 
         return r * np.array([np.cos(angle_to_tangent_point), np.sin(angle_to_tangent_point)])
 
-    def radial_vec_to__common_circle_tangent(self, r, d, angle_in, angle_change, previous_angle_change):
+    def radial_vec_to_common_circle_tangent(self, r, d, angle_in, angle_change, previous_angle_change):
         """
         calculates the radial vector to the tangent point on a circle from its centre, given the centre of another
         circle of the same radius which must share the tangent line
@@ -313,7 +315,7 @@ class PathPlanner(Node):
             # the acute angle between vec_to_point and the radial vector to the tangent point of a circle centred on point
             theta = np.arccos(2 * r / d)
 
-        angle_to_tangent_point = angle_in + np.pi + math.sign(angle_change) * theta
+        angle_to_tangent_point = angle_in + np.pi + np.sign(angle_change) * theta
 
         return r * np.array([np.cos(angle_to_tangent_point), np.sin(angle_to_tangent_point)])
        
@@ -323,20 +325,24 @@ class PathPlanner(Node):
         and returns the modified list
         :param: n: the number of points to add around the circle
         """
-        vec1 = padded_path[0] - centre
+        print(padded_path)
+        vec1 = padded_path[-1] - centre
         vec2 = p2 - centre
 
-        theta = math.sign(angle_change) * np.arccos(np.dot(vec1, vec2) / r ** 2)
+        print(vec1)
+        print(vec2)
+        print(r)
 
-        for i in range(n):
-            vec1_argument = np.arctan(vec1[1] / vec1[0])
+        theta = np.sign(angle_change) * np.arccos(np.dot(vec1, vec2) / (r ** 2))
 
-            if vec1[0] < 0:
-                vec1_argument -= np.pi * math.sign(vec1[1])
+        for _ in range(n):
+            vec1_argument = vector_argument(vec1)
 
             point_argument = vec1_argument + theta / (n + 1)
 
             padded_path.append(centre + r * np.array([np.cos(point_argument), np.sin(point_argument)]))
+
+            print("added second circle point")
 
         return padded_path
 
@@ -348,17 +354,23 @@ class PathPlanner(Node):
         NOTE: Will the map object be updated elsewhere? Or do we need to update it here?
         """
         # updating present coords with most recent rover pose
-        self.start = np.array([self.controller.state.x, self.controller.state.y])
+        if not self.controller:
+            return
+
+        self.start = (self.controller.state.x, self.controller.state.y)
+        self.scale()
 
         print("Running A*")
         print("start: " + str(self.pixel_start))
         print("goal: " + str(self.pixel_goal))
 
-        self.route = self.aStar(self.map, self.pixel_start, self.pixel_goal, weight)
+        self.route = self.aStar(self.pixel_start, self.pixel_goal, weight)
 
         self.route = self.stringPull(self.route)
 
-        route_coordinates = self.get_local_coords_route()
+        self.route = self.pad_corners(self.route)
+
+        route_coordinates = self.get_local_coords_route(self.route)
 
         # clear all coordinates from the previous path before adding the newly created one
         self.controller.clear_waypoints()
