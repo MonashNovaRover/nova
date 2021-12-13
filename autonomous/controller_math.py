@@ -71,6 +71,10 @@ def yaw_difference(a, b):
     Domain: a and be are within 0 and 2pi
     Range: between -pi and pi
     """
+
+    a += math.pi * 2.0 if a < 0 else a
+    b += math.pi * 2.0 if b < 0 else b
+
     assert 0.0 <= a <= math.pi * 2.0
     assert 0.0 <= b <= math.pi * 2.0
 

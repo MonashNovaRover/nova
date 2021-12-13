@@ -8,6 +8,8 @@ min_yaw_difference = math.pi / 25.0  # arbitrary for now
 
 slowdown_distance = 2.0
 
+corner_padding = 0.8    # Radius by which to avoid corners, in m
+
 min_speed = 2.0   # todo: determiner
 
 max_speed = 7.0  # todo: determine
