@@ -41,3 +41,7 @@ alias jetson='ssh -Y nova@192.168.1.204'
 
 # GUI Aliases
 alias wombat='cd ~/nova_ws/src/gui/wombatx; npm run start'
+
+# Launching ALaiases
+alias base='ros2 launch control base.launch.py'
+alias rover='ros2 launch control rover.launch.py'
