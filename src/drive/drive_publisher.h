@@ -22,7 +22,7 @@ ACTIONS:  None
 PACKAGE: 	control
 AUTHOR(S):  Harrison Verrios
 CREATION:	14/11/2021
-EDITED:		14/11/2021
+EDITED:		15/12/2021
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
  - Test with the driver received code (not yet created).
@@ -61,9 +61,12 @@ const float MIN_TRIGGER_MULTIPLIER = 0.4;
     DPAD Y Axis:    Increase / Decrease the Speed multiplier by 10%
     DPAD X Axis:    Increase / Decrease the Steer multiplier by 10%
     Right Trigger:  Add Custom speed multipliers between 1.0 and 0.4
+
+    Back:           Lock the controller
+    Start:          Unlock the controller
 */
 
-
+true
 // Main publisher class that sends input data for the gamepad and joysticks
 class DrivePublisher : public rclcpp::Node {
 

@@ -80,8 +80,11 @@ void DrivePublisher::input_callback (const core::msg::InputGamepad::SharedPtr ms
         trigger_speed = 1.0 - (msg->trg_r_val * (1 - MIN_TRIGGER_MULTIPLIER));
 
         // Determine if the conrroller needs to be locked or not
-        if (msg->btn_xbox_state == 1)
-            locked = !locked;
+        if (msg->btn_back_state > 0)
+            locked = true;
+        if (msg->btn_start_state > 0)
+            locked = false;
+        
 
         // Prevent changing states if the controller is locked
         if (locked)
