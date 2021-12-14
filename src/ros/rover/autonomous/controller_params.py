@@ -10,7 +10,7 @@ slowdown_distance = 2.0
 
 corner_padding = 0.3    # Radius by which to avoid corners, in m
 
-circle_interpolation_num_points = 1
+circle_interpolation_num_points = 4
 
 min_speed = 2.0   # todo: determiner
 
