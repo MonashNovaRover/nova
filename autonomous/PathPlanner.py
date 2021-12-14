@@ -251,20 +251,20 @@ class PathPlanner(Node):
             if i == 0:
                 # the first point on a padding circle - angles are a bit different to when we are travelling
                 # between two circles
-                p1 = point + self.radial_vec_to_tangent(r, d1, angles[i], angle_changes[i])
+                p1 = point + radial_vec_to_tangent(r, d1, angles[i], angle_changes[i])
             else:
-                p1 = point + self.radial_vec_to_common_circle_tangent(r, d1, angles[i], angle_changes[i], angle_changes[i - 1])
+                p1 = point + radial_vec_to_common_circle_tangent(r, d1, angles[i], angle_changes[i], angle_changes[i - 1])
     
             if i == len(turning_points) - 3:
-                p2 = point + self.radial_vec_to_tangent(r, d2, angles[i + 1] - np.pi, -angle_changes[i])
+                p2 = point + radial_vec_to_tangent(r, d2, angles[i + 1] - np.pi, -angle_changes[i])
             else:
-                radial_vec = self.radial_vec_to_common_circle_tangent(r, d1, angles[i], angle_changes[i], angle_changes[i + 1])
+                radial_vec = radial_vec_to_common_circle_tangent(r, d1, angles[i + 1], angle_changes[i + 1], angle_changes[i])
                 p2 = point + radial_vec * np.sign(angle_changes[i] / angle_changes[i + 1])
 
             print("p1 = " + str(p1))
             print(p2)
             padded_path.append(p1)
-            padded_path = self.interpolate_circle_circumference(r, p2, point, circle_interpolation_num_points, padded_path, angle_changes[i])
+            padded_path = interpolate_circle_circumference(r, p2, point, circle_interpolation_num_points, padded_path, angle_changes[i])
             padded_path.append(p2)
 
         padded_path.append(turning_points[-1])
@@ -273,78 +273,6 @@ class PathPlanner(Node):
         print("path padding took: " + str(time.time() - t) + " s")
 
         return np.array(padded_path)
-
-
-    def radial_vec_to_tangent(self, r, d, angle_in, angle_change):
-        """
-        calculates the radial vector to the tangent point on a circle from its centre
-        :param: r: the radius of the circle
-        :param: d: the distance from the point on the tangent line to the centre of the circle
-        :param: angle_in: The argument of the vector to the centre from the initial point
-        :angle_change: the signed change in angle of the rover at the turning point in the centre of the circle
-                used to determine which side of the circle to go to
-
-        :returns: a vector from the centre of the circle to its intersection with the tangent line
-        """
-
-        # the acute angle between vec_to_point and the radial vector to the tangent point of a circle centred on point
-        theta = np.arccos(r / d)
-
-        angle_to_tangent_point = angle_in + np.pi + (theta * np.sign(angle_change))
-
-        return r * np.array([np.cos(angle_to_tangent_point), np.sin(angle_to_tangent_point)])
-
-    def radial_vec_to_common_circle_tangent(self, r, d, angle_in, angle_change, previous_angle_change):
-        """
-        calculates the radial vector to the tangent point on a circle from its centre, given the centre of another
-        circle of the same radius which must share the tangent line
-        :param: r: the radius of the circles
-        :param: d: the distance between the centres of the circles
-        :param: angle_in: The argument of the vector between the circles' centres
-        :angle_change: the signed change in angle of the rover at the turning point in the centre of the circle
-                used to determine which side of the circle to go to
-
-        :returns: a vector from the centre of the circle to its intersection with the tangent line
-        """
-
-        if angle_change / previous_angle_change > 0:
-            # the common tangent is parallel to the vector between the centres of the two circles
-            theta = np.pi
-
-        else:
-            # the acute angle between vec_to_point and the radial vector to the tangent point of a circle centred on point
-            theta = np.arccos(2 * r / d)
-
-        angle_to_tangent_point = angle_in + np.pi + np.sign(angle_change) * theta
-
-        return r * np.array([np.cos(angle_to_tangent_point), np.sin(angle_to_tangent_point)])
-       
-    def interpolate_circle_circumference(self, r, p2, centre, n, padded_path, angle_change):
-        """
-        creates points evenly spaced around a part-circle arc between the last point in padded_path and p2, appends them to the provided list, 
-        and returns the modified list
-        :param: n: the number of points to add around the circle
-        """
-        print(padded_path)
-        vec1 = padded_path[-1] - centre
-        vec2 = p2 - centre
-
-        print(vec1)
-        print(vec2)
-        print(r)
-
-        theta = np.sign(angle_change) * np.arccos(np.dot(vec1, vec2) / (r ** 2))
-
-        for _ in range(n):
-            vec1_argument = vector_argument(vec1)
-
-            point_argument = vec1_argument + theta / (n + 1)
-
-            padded_path.append(centre + r * np.array([np.cos(point_argument), np.sin(point_argument)]))
-
-            print("added second circle point")
-
-        return padded_path
 
     def get_path(self, weight=5):
         """
