@@ -101,7 +101,7 @@ class PathPlanner(Node):
             return min(abs(a[0] - b[0]), abs(a[1] - b[1])) * (2 ** 0.5) + abs(abs(a[0] - b[0]) - abs(a[1] - b[1]))  # octile
         return np.sqrt((b[0] - a[0]) ** 2 + (b[1] - a[1]) ** 2)  # euclidean distance norm
 
-    def aStar(self, start, goal, weight=5, version="octile"):
+    def aStar(self, start, goal, weight=1, version="octile"):
         start = (start[0] + self.scale_x//2, start[1] + self.scale_y//2) 
         goal = (goal[0] + self.scale_x//2, goal[1] + self.scale_y//2)    
 
@@ -274,7 +274,7 @@ class PathPlanner(Node):
 
         return np.array(padded_path)
 
-    def get_path(self, weight=5):
+    def get_path(self, weight=1):
         """
         Repeatedly run A* on the updated rover pose and map to continually redetermine the optimal path.
         Called on a clock initialised in the add_destination method
