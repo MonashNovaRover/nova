@@ -101,7 +101,7 @@ class PathPlanner(Node):
             return min(abs(a[0] - b[0]), abs(a[1] - b[1])) * (2 ** 0.5) + abs(abs(a[0] - b[0]) - abs(a[1] - b[1]))  # octile
         return np.sqrt((b[0] - a[0]) ** 2 + (b[1] - a[1]) ** 2)  # euclidean distance norm
 
-    def aStar(self, start, goal, weight=1, version="octile"):
+    def aStar(self, start, goal, weight=5, version="octile"):
         start = (start[0] + self.scale_x//2, start[1] + self.scale_y//2) 
         goal = (goal[0] + self.scale_x//2, goal[1] + self.scale_y//2)    
 
@@ -177,35 +177,39 @@ class PathPlanner(Node):
         if len(raw_points) < 2:
             return raw_points
 
+        safety_radius = int(corner_padding * self.scale_x / self.x_length_meters)
         print("pulling strings in the background")
         # pruned_list = [raw_points[0]]
-        pruned_list = []
+        pruned_list = [np.array(raw_points[0])]
 
         # start of candidate string pull
-        i = 0
+        i = 1
         while i < len(raw_points):
             # end of candidate string pull
-            obstacle = False
-            j = i + 1
-            while j < len(raw_points):
-                # question: would a straight line between r1[i] and r1[j] be obstructed?
-                dist = self.heuristic(raw_points[i], raw_points[j], heuristic_type="straight_line")
-                for c in range(0, int(np.ceil(dist))):
-                    unit_x = (raw_points[j][0] - raw_points[i][0]) / dist
-                    unit_y = (raw_points[j][1] - raw_points[i][1]) / dist
-                    candidate_x = int(raw_points[i][0] + c * unit_x)
-                    candidate_y = int(raw_points[i][1] + c * unit_y)
-                    if self.map[candidate_x][candidate_y]:
-                        obstacle = True
-                        break
-                if obstacle:
-                    break
-                j += 1
+            obstacle = None
 
-            if obstacle:
+            dist = self.heuristic(pruned_list[-1], raw_points[i], heuristic_type="euclidean")
+            if dist > safety_radius:
+                # NOTE: danger! we only start looking for obstacles outside the "padding" radius
+                # from the last obstacle. On spiky / noisy maps this may be a bad assumption!
+                for c in range(safety_radius, int(np.ceil(dist))):
+                    unit_x = (raw_points[i][0] - pruned_list[-1][0]) / dist
+                    unit_y = (raw_points[i][1] - pruned_list[-1][1]) / dist
+                    candidate_x = int(pruned_list[-1][0] + c * unit_x)
+                    candidate_y = int(pruned_list[-1][1] + c * unit_y)
+                    if self.map[candidate_x][candidate_y]:
+                        obstacle = np.array((candidate_x, candidate_y))
+                        break
+
+
+            if obstacle is not None:
+                if time.time() - t > 5:
+                    break
                 # converting to numpy array for convenience later
-                pruned_list.append(np.array(raw_points[j - 1]))
-                i = j - 1
+                pruned_list.append(obstacle)
+                # don't increment i until we check we can get to the old point from new waypoint
+                continue 
+            
             i += 1
 
         pruned_list.append(np.array(raw_points[-1]))
@@ -223,7 +227,7 @@ class PathPlanner(Node):
 
         if len(turning_points) <= 2:
             print("No corners to pad")
-            return []
+            return turning_points
 
         vectors = [turning_points[i + 1] - turning_points[i] for i in range(len(turning_points) - 1)]
 
@@ -274,7 +278,7 @@ class PathPlanner(Node):
 
         return np.array(padded_path)
 
-    def get_path(self, weight=1):
+    def get_path(self, weight=5):
         """
         Repeatedly run A* on the updated rover pose and map to continually redetermine the optimal path.
         Called on a clock initialised in the add_destination method
