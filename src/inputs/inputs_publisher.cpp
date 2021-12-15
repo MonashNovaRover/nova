@@ -9,7 +9,7 @@ AUTHOR(S):	Harrison Verrios
 
 // Include the header file
 #include "inputs_publisher.h"
-#include <iostream>
+#include <debug/print.hpp>
 
 
 // Main consrtuctor sets up the node and the publishers
@@ -35,12 +35,15 @@ InputsPublisher::InputsPublisher()
     // Creates a timer function that runs a function on loop every 0.01 seconds
     timer = this->create_wall_timer(10ms, std::bind(&InputsPublisher::publish_input, this));
 
-    // Output input messages
-    cout << "INPUTS PUBLISHER" << endl;
-    cout << endl << "Valid Topics:" << endl;
-    cout << "\t/control/input_gamepad      [InputGamepad]" << endl;
-    cout << "\t/control/input_joystick_l   [InputJoystick]" << endl;
-    cout << "\t/control/input_joystick_r   [InputJoystick]" << endl;
+    // Output set-up messages
+    print("", true);
+    print("INPUTS PUBLISHER", C_TITLE);
+    print("", true);
+    print("Valid Topics:");
+    print("/control/input_gamepad      [InputGamepad]", 1);
+    print("/control/input_joystick_l   [InputJoystick]", 1);
+    print("/control/input_joystick_r   [InputJoystick]", 1);
+    print("", true);
 }
 
 
@@ -60,11 +63,19 @@ void InputsPublisher::publish_input () {
     joystick_l_publisher->publish(joystick_l->get_message());
     joystick_r_publisher->publish(joystick_r->get_message());
 
-    // Display information
+    // Display information about connections (in case they change)
     if (gamepad->is_disconnected())
-        cout << "Disconnected device: Gamepad" << endl;
+        print("Device Disconnected: 'Gamepad'", C_FAIL);
     else if (gamepad->is_reconnected())
-        cout << "Connected device: Gamepad" << endl;
+        print("Device Connected:    'Gamepad'", C_SUCCESS);
+    if (joystick_l->is_disconnected())
+        print("Device Disconnected: 'Left Joystick'", C_FAIL);
+    else if (joystick_l->is_reconnected())
+        print("Device Connected:    'Left Joystick'", C_SUCCESS);
+    if (joystick_r->is_disconnected())
+        print("Device Disconnected: 'Right Joystick'", C_FAIL);
+    else if (joystick_r->is_reconnected())
+        print("Device Connected:    'Right Joystick'", C_SUCCESS);
 }
 
 
