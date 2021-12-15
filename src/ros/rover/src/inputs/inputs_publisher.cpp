@@ -36,9 +36,7 @@ InputsPublisher::InputsPublisher()
     timer = this->create_wall_timer(10ms, std::bind(&InputsPublisher::publish_input, this));
 
     // Output set-up messages
-    print("", true);
-    print("INPUTS PUBLISHER", C_TITLE);
-    print("", true);
+    title("INPUTS PUBLISHER");
     print("Valid Topics:");
     print("/control/input_gamepad      [InputGamepad]", 1);
     print("/control/input_joystick_l   [InputJoystick]", 1);
