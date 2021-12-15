@@ -10,8 +10,8 @@ AUTHOR(S):	Harrison Verrios
 // Include the header file
 #include "drive_inputs.h"
 
-// Include standard output messages
-#include <iostream>
+// Include print messages
+#include <debug/print.hpp>
 
 
 // Adjustes the multiplier factor by some amount in some direction
@@ -44,7 +44,7 @@ void DriveInputs::publish_cmds () {
     
     // Otherwise print lock message
     } else if (locked) {
-        cout << "Controller LOCKED." << endl;
+        //cout << "Controller LOCKED." << endl;
         fflush(stdout);
     }
     
@@ -56,9 +56,6 @@ void DriveInputs::publish_cmds () {
 // Receives input from the gamepad
 void DriveInputs::input_callback (const core::msg::InputGamepad::SharedPtr msg) {
 
-    // Get the connection state
-    connected = msg->connected;
-
     // If no connection, reset the state
     if (!msg->connected) {
         input_axis_x = 0.0;
@@ -66,12 +63,17 @@ void DriveInputs::input_callback (const core::msg::InputGamepad::SharedPtr msg) 
         trigger_speed = 1.0;
 
         // Publish no connection message
-        cout << "No Controller Connected." << endl;
-        fflush(stdout);
+        if (connected)
+            print ("No Gamepad Connected", C_FAIL);
     }
 
     // If the controller is connected
     else {
+
+        // Publish connection message
+        if (!connected)
+            print ("Gamepad Connected", C_SUCCESS);
+
         // Update the input axis
         input_axis_x = msg->ax_stick_r_x;
         input_axis_y = msg->ax_stick_l_y;
@@ -87,21 +89,24 @@ void DriveInputs::input_callback (const core::msg::InputGamepad::SharedPtr msg) 
         
 
         // Prevent changing states if the controller is locked
-        if (locked)
-            return;
+        if (!locked) {
 
-        // Change the speed multipliers
-        if (msg->btn_dpad_u_state == 1)
-            adjust_multiplier(multiplier_speed, true);
-        else if (msg->btn_dpad_d_state == 1)
-            adjust_multiplier(multiplier_speed, false);
-        
-        // Change the steer multipliers
-        if (msg->btn_dpad_r_state == 1)
-            adjust_multiplier(multiplier_steer, true);
-        else if (msg->btn_dpad_l_state == 1)
-            adjust_multiplier(multiplier_steer, false);
-    }         
+            // Change the speed multipliers
+            if (msg->btn_dpad_u_state == 1)
+                adjust_multiplier(multiplier_speed, true);
+            else if (msg->btn_dpad_d_state == 1)
+                adjust_multiplier(multiplier_speed, false);
+            
+            // Change the steer multipliers
+            if (msg->btn_dpad_r_state == 1)
+                adjust_multiplier(multiplier_steer, true);
+            else if (msg->btn_dpad_l_state == 1)
+                adjust_multiplier(multiplier_steer, false);
+        }
+    }  
+
+    // Get the connection state
+    connected = msg->connected;       
 }
 
 
@@ -118,6 +123,12 @@ DriveInputs::DriveInputs()
 
     // Creates a timer function that runs a function on loop every 0.05 seconds
     timer = this->create_wall_timer(50ms, std::bind(&DriveInputs::publish_cmds, this));
+
+    // Output set-up messages
+    title("DRIVE INPUTS");
+    print("Valid Topics:");
+    print("/control/drive_cmds         [DriveInput]", 1);
+    print("", true);
 }
 
 
