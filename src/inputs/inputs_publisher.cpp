@@ -9,6 +9,7 @@ AUTHOR(S):	Harrison Verrios
 
 // Include the header file
 #include "inputs_publisher.h"
+#include <iostream>
 
 
 // Main consrtuctor sets up the node and the publishers
@@ -33,6 +34,13 @@ InputsPublisher::InputsPublisher()
 
     // Creates a timer function that runs a function on loop every 0.01 seconds
     timer = this->create_wall_timer(10ms, std::bind(&InputsPublisher::publish_input, this));
+
+    // Output input messages
+    cout << "INPUTS PUBLISHER" << endl;
+    cout << endl << "Valid Topics:" << endl;
+    cout << "\t/control/input_gamepad      [InputGamepad]" << endl;
+    cout << "\t/control/input_joystick_l   [InputJoystick]" << endl;
+    cout << "\t/control/input_joystick_r   [InputJoystick]" << endl;
 }
 
 
@@ -51,6 +59,12 @@ void InputsPublisher::publish_input () {
     gamepad_publisher->publish(gamepad->get_message());
     joystick_l_publisher->publish(joystick_l->get_message());
     joystick_r_publisher->publish(joystick_r->get_message());
+
+    // Display information
+    if (gamepad->is_disconnected())
+        cout << "Disconnected device: Gamepad" << endl;
+    else if (gamepad->is_reconnected())
+        cout << "Connected device: Gamepad" << endl;
 }
 
 
