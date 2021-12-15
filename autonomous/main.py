@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 from PathPlanner import PathPlanner
 from Controller import Controller
-from ArrayGrid import ArrayGrid
+from Grid3D import ArrayGrid
 import threading
 import rclpy
-from points_grid import DynamicMap
+from Mapper import Mapper
 
 
 def main(args):
@@ -39,7 +39,7 @@ def main(args):
         dest[1] = float(input("Enter destination y coordinate: "))
         
         planner = PathPlanner(controller, grid, dest)
-        dynamic_map = DynamicMap(grid=grid)
+        dynamic_map = Mapper(grid=grid)
 
         # This allows us to spin both nodes from main.py - we are kind of misusing ros nodes here but oh well it works
         executor = rclpy.executors.MultiThreadedExecutor()
