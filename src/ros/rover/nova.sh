@@ -11,8 +11,10 @@
 #
 # +--------------------------------------------+
 
-# Source the aliases
-source ~/nova_ws/src/core/macros/alias.sh
-
 # Sources the correct ROS bash file
 source ~/nova_ws/src/core/macros/ros.sh
+
+# Source the aliases (if ROS 2)
+if [[ $ROS_VERSION -eq 2 ]]; then
+    source ~/nova_ws/src/core/macros/alias.sh
+fi
