@@ -8,14 +8,14 @@ AUTHOR(S):	Harrison Verrios
 */
 
 // Include the header file
-#include "drive_publisher.h"
+#include "drive_inputs.h"
 
 // Include standard output messages
 #include <iostream>
 
 
 // Adjustes the multiplier factor by some amount in some direction
-float DrivePublisher::adjust_multiplier (float& multiplier, bool increase) {
+float DriveInputs::adjust_multiplier (float& multiplier, bool increase) {
 
     // Adjust the multiplier
     multiplier += (increase) ? DELTA_MULTIPLIER : -DELTA_MULTIPLIER;
@@ -32,10 +32,10 @@ float DrivePublisher::adjust_multiplier (float& multiplier, bool increase) {
 
 
 // Publishes the drive commands from the speed and steer
-void DrivePublisher::publish_cmds () {
+void DriveInputs::publish_cmds () {
 
     // Create the message
-    auto message = core::msg::DriveCmd();
+    auto message = core::msg::DriveInput();
 
     // Set up the values if the controller is not locked
     if (!locked && connected) {
@@ -54,7 +54,7 @@ void DrivePublisher::publish_cmds () {
 
 
 // Receives input from the gamepad
-void DrivePublisher::input_callback (const core::msg::InputGamepad::SharedPtr msg) {
+void DriveInputs::input_callback (const core::msg::InputGamepad::SharedPtr msg) {
 
     // Get the connection state
     connected = msg->connected;
@@ -106,18 +106,18 @@ void DrivePublisher::input_callback (const core::msg::InputGamepad::SharedPtr ms
 
 
 // Main constructor that sets up the node
-DrivePublisher::DrivePublisher() 
-  : Node("drive_pub"), count(0) {
+DriveInputs::DriveInputs() 
+  : Node("drive_inputs"), count(0) {
 
     // Creates the publisher
-    publisher = this->create_publisher<core::msg::DriveCmd>("/control/drive_cmds", 10);
+    publisher = this->create_publisher<core::msg::DriveInput>("/control/drive_inputs", 10);
     
     // Creates the input subscription
     subscription = this->create_subscription<core::msg::InputGamepad>(
-        "/control/input_gamepad", 10, std::bind(&DrivePublisher::input_callback, this, _1));
+        "/control/input_gamepad", 10, std::bind(&DriveInputs::input_callback, this, _1));
 
     // Creates a timer function that runs a function on loop every 0.05 seconds
-    timer = this->create_wall_timer(50ms, std::bind(&DrivePublisher::publish_cmds, this));
+    timer = this->create_wall_timer(50ms, std::bind(&DriveInputs::publish_cmds, this));
 }
 
 
@@ -128,7 +128,7 @@ int main(int argc, char **argv)
     rclcpp::init(argc, argv);
 
     // Runs the Publisher class
-    rclcpp::spin(std::make_shared<DrivePublisher>());
+    rclcpp::spin(std::make_shared<DriveInputs>());
 
     // Shutsdown ROS once complete
     rclcpp::shutdown();
