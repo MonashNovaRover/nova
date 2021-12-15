@@ -5,7 +5,7 @@ from queue import PriorityQueue
 import rclpy
 from controller_params import *
 from rclpy.node import Node
-import ArrayGrid
+import Grid3D
 from core.msg import Waypoint
 from os.path import expanduser
 
@@ -34,6 +34,9 @@ class PathPlanner(Node):
         # controller that controls autonomous driving and grid that stores the current map
         self.controller = controller
         self.array_grid = array_grid
+
+        # is_listener attr to be used to be return publisher
+        self.map2d = Map2D(subscirber)
 
         # exhaustive list of class attributes
         self.x_length_meters = self.array_grid.length
@@ -72,6 +75,9 @@ class PathPlanner(Node):
 
         print("Map: ")
         print(self.map)
+
+    def recieve_map2d(self):
+        return self.map2d.receive_map()
 
     def scale(self, scale_x, scale_y):
         """

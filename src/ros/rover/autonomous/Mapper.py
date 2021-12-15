@@ -38,11 +38,11 @@ from sensor_msgs.msg import PointField
 from open3d import *
 import matplotlib.pyplot as plt
 from nav_msgs.msg import Odometry
-import ArrayGrid
+import Grid3D
 import transform
 import PCPub
 
-class DynamicMap(Node):
+class Mapper(Node):
     def __init__(self, grid=None):
 
         # init node with node name points
@@ -50,7 +50,9 @@ class DynamicMap(Node):
         self.subscriber_tracking = self.create_subscription(Odometry, '/T265/odom/sample', self.tracking_callback, 100)
         
         self.subscriber_points = self.create_subscription(PointCloud2, '/D435/depth/color/points', self.points_callback, 10)
-        
+
+        #is_listener attr to be used to be return publisher
+        self.map2d = Map2D(publisher)
         # constants for pruning the point-clouds
         self.max_dist = 3.5
         # limiting the the field of view to 4 degrees up and down to reduce noisy data points. 0.349066 radians == 20 degrees
@@ -65,6 +67,11 @@ class DynamicMap(Node):
         
         # for visualising the map
         self.pc_pub = PCPub.PCPub("map_cloud")
+
+
+#use the update from 3d method form Map2D
+    def generate_map2d(self):
+        return self.map2d.update_from_3d()
 
     def get_transform(self):
         return transform.get_pc_transformation(self.msg)
@@ -168,7 +175,7 @@ def position_callback(msg):
 
 def main(args=None):
     rclpy.init(args=args)
-    subscriber = DynamicMap()
+    subscriber = Mapper()
     rclpy.spin(subscriber)
     subscriber.destroy_node()
     rclpy.shutdown()
