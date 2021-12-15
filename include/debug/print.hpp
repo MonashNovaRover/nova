@@ -80,3 +80,11 @@ void print (const char* text, const char* color, bool new_line) {
     print(text, color, 0, new_line);
 }
 
+/// @brief      Prints a title text to the screen
+/// @param      text - The text to be displayed
+void title (const char* text) {
+    print("--------------------", true);
+    print(text, C_TITLE);
+    print("--------------------", true);
+}
+
