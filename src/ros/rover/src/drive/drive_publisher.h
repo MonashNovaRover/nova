@@ -66,7 +66,6 @@ const float MIN_TRIGGER_MULTIPLIER = 0.4;
     Start:          Unlock the controller
 */
 
-true
 // Main publisher class that sends input data for the gamepad and joysticks
 class DrivePublisher : public rclcpp::Node {
 

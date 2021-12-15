@@ -23,7 +23,10 @@ include_directories(
 
 # Find and include all dependencies
 find_package(ament_cmake REQUIRED)
+find_package(ament_cmake_python REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(rclpy REQUIRED)
+
 find_package(core REQUIRED)
 include_directories(./include/)
 
@@ -67,6 +70,11 @@ install(TARGETS
 install(DIRECTORY
   launch
   DESTINATION share/${PROJECT_NAME}
+)
+
+# Add all Python executables to this list
+install(PROGRAMS
+  DESTINATION lib/${PROJECT_NAME}
 )
 
 
