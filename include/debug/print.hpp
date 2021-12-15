@@ -35,6 +35,7 @@ void print (const char* text, const char* color, int tabs, bool new_line) {
     cout << color << text << C_END;
     if (new_line)
         cout << endl;
+    fflush(stdout);
 }
 
 /// @brief      Prints some text to the screen
