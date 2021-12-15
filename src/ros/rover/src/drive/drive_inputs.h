@@ -32,7 +32,7 @@ TODO:
 // Include ROS packages
 #include "rclcpp/rclcpp.hpp"
 #include "core/msg/input_gamepad.hpp"
-#include "core/msg/drive_cmd.hpp"
+#include "core/msg/drive_input.hpp"
 
 #include <iostream>
 
@@ -67,7 +67,7 @@ const float MIN_TRIGGER_MULTIPLIER = 0.4;
 */
 
 // Main publisher class that sends input data for the gamepad and joysticks
-class DrivePublisher : public rclcpp::Node {
+class DriveInputs : public rclcpp::Node {
 
     //------------------------------------------------------------//
     private:
@@ -76,7 +76,7 @@ class DrivePublisher : public rclcpp::Node {
     rclcpp::TimerBase::SharedPtr timer;
 
     // Stores the publisher for the drive commands
-    rclcpp::Publisher<core::msg::DriveCmd>::SharedPtr publisher;
+    rclcpp::Publisher<core::msg::DriveInput>::SharedPtr publisher;
 
     // Stores the subscriber to the gamepad inputs
     rclcpp::Subscription<core::msg::InputGamepad>::SharedPtr subscription;
@@ -126,6 +126,6 @@ class DrivePublisher : public rclcpp::Node {
     public:
 
     /// @brief      Default constructor function that starts up the node
-    DrivePublisher();
+    DriveInputs();
     
 };

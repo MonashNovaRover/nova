@@ -50,18 +50,18 @@ target_link_libraries(inputs gamepad udev ${catkin_LIBRARIES})
 ament_target_dependencies(inputs rclcpp core)
 
 # Drive Command script
-add_executable(drive_cmd src/drive/drive_publisher.cpp)
-ament_target_dependencies(drive_cmd rclcpp core)
+add_executable(drive_inputs src/drive/drive_inputs.cpp)
+ament_target_dependencies(drive_inputs rclcpp core)
 
 # Drive Receiver script
-add_executable(driver src/drive/drive_subscriber.cpp src/drive/wheel.cpp src/cmd/cmd.cpp ${PROJECT_SOURCE_DIR}/include/socketcan/socketcan_cpp.cpp)
+add_executable(driver src/drive/driver.cpp src/drive/wheel.cpp src/cmd/cmd.cpp ${PROJECT_SOURCE_DIR}/include/socketcan/socketcan_cpp.cpp)
 ament_target_dependencies(driver rclcpp core)
 
 
 # Add all the installation targets
 install(TARGETS
   inputs
-  drive_cmd
+  drive_inputs
   driver
   DESTINATION lib/${PROJECT_NAME}
 )
