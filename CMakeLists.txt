@@ -15,17 +15,20 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-include_directories(
-  include
-    ${catkin_INCLUDE_DIRS}
-    "${PROJECT_SOURCE_DIR}/include"
-)
-
 # Find and include all dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(core REQUIRED)
-include_directories(./include/)
+find_package(Eigen3 REQUIRED)
+find_package(Orocos_kdl REQUIRED)
+
+# Library directories. Can import from these using <>
+include_directories(
+  include
+  ${catkin_INCLUDE_DIRS}
+  "${PROJECT_SOURCE_DIR}/include"
+  #${Eigen3_INCLUDE_DIRS}  StackOverflow said this is required, but doesn't seem to be
+)
 
 # Add gamepad targets, as these are located in the include folder
 if (NOT TARGET gamepad)
@@ -62,6 +65,11 @@ ament_target_dependencies(arm_input rclcpp core)
 add_executable(arm_driver src/arm/arm_driver.cpp src/arm/joint.cpp src/cmd/cmd.cpp ${PROJECT_SOURCE_DIR}/include/socketcan/socketcan_cpp.cpp)
 ament_target_dependencies(arm_driver rclcpp core)
 
+# Arm Kinematics script
+add_executable(arm_model src/arm/kinematics/arm_model.cpp)
+target_link_libraries(arm_model orocos-kdl)
+ament_target_dependencies(arm_model rclcpp core)
+
 # Add all the installation targets
 install(TARGETS
   inputs
@@ -69,6 +77,7 @@ install(TARGETS
   driver
   arm_input
   arm_driver
+  arm_model
   DESTINATION lib/${PROJECT_NAME}
 )
 
