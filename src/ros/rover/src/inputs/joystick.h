@@ -61,7 +61,11 @@ class Joystick {
 
     bool twist_lock;                        // Whether the twist on the axis has been locked
     bool hat_lock;                          // Whether the hat cap has been locked
-    
+
+    bool connected;                         // A flag for whether the controller is connected
+    bool reconnected;                       // A flag for whether this frame the controller connected
+    bool disconnected;                      // A flag for whether this frame the controller disconnected
+
 
     //------------------------------------------------------------//
     protected:
@@ -112,5 +116,17 @@ class Joystick {
 
     /// @brief      Updates the input data and stores data to the message object
     void update();
+
+    /// @brief      Returns whether the joystick is connected
+    /// @returns    Connected flag
+    bool is_connected ();
+
+    /// @brief      Returns whether the joystick has been reconnected in this frame
+    /// @returns    Reconnection flag
+    bool is_reconnected ();
+
+    /// @brief      Returns whether the joystick has been disconnected in this frame
+    /// @returns    Disconnection flag
+    bool is_disconnected ();
 
 };
