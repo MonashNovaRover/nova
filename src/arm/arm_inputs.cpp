@@ -8,10 +8,10 @@ AUTHOR(S):	Jess Hepworth
 */
 
 // Include the header file
-#include "arm_publisher.h"
+#include "arm_inputs.h"
 
 // Receives input from left joystick
-void ArmPublisher::joystick_l_callback (const core::msg::InputJoystick::SharedPtr msg) {
+void ArmInputs::joystick_l_callback (const core::msg::InputJoystick::SharedPtr msg) {
     
     // linear actuator
     linear_actuation = msg->ax_thumb_y;
@@ -33,7 +33,7 @@ void ArmPublisher::joystick_l_callback (const core::msg::InputJoystick::SharedPt
 
 
 // Receives input from right joystick
-void ArmPublisher::joystick_r_callback (const core::msg::InputJoystick::SharedPtr msg) {
+void ArmInputs::joystick_r_callback (const core::msg::InputJoystick::SharedPtr msg) {
     
     // end effector actuation
     end_effector_actuation = calculate_direction(msg->ax_thumb_y);
@@ -58,7 +58,7 @@ void ArmPublisher::joystick_r_callback (const core::msg::InputJoystick::SharedPt
 }
 
 // Publishes data on the arm input
-void ArmPublisher::publish_arm_inputs () {
+void ArmInputs::publish_arm_inputs () {
     
     // Create a new message
     auto message = core::msg::ArmInput();
@@ -83,7 +83,7 @@ void ArmPublisher::publish_arm_inputs () {
     }
 }
 
-float ArmPublisher::calculate_direction (float value){
+float ArmInputs::calculate_direction (float value){
     if (value > 0){
         return 1.0;
     }
@@ -95,14 +95,14 @@ float ArmPublisher::calculate_direction (float value){
     }
 }
 
-float ArmPublisher::scale_speed (float value){
+float ArmInputs::scale_speed (float value){
     //max scale factor 0.95, min scale factor 0.05
     // return (((value - 1) / -2.0) * 0.9) + 0.05;
     return (value * 0.9) + 0.05;
 }
 
 // Main constructor that sets up the node
-ArmPublisher::ArmPublisher() 
+ArmInputs::ArmInputs() 
   : Node("arm_pub"), count(0) {
 
     // Creates the publisher
@@ -110,14 +110,14 @@ ArmPublisher::ArmPublisher()
     
     // Creates the input subscription for the left joystick
     joystick_l_subscription = this->create_subscription<core::msg::InputJoystick>(
-        "/control/input_joystick_l", 10, std::bind(&ArmPublisher::joystick_l_callback, this, _1));
+        "/control/input_joystick_l", 10, std::bind(&ArmInputs::joystick_l_callback, this, _1));
 
     // Creates the input subscription for the right joystick
     joystick_r_subscription = this->create_subscription<core::msg::InputJoystick>(
-        "/control/input_joystick_r", 10, std::bind(&ArmPublisher::joystick_r_callback, this, _1));    
+        "/control/input_joystick_r", 10, std::bind(&ArmInputs::joystick_r_callback, this, _1));    
 
     // Creates a timer function that runs a function on loop every 0.05 seconds
-    timer = this->create_wall_timer(50ms, std::bind(&ArmPublisher::publish_arm_inputs, this));
+    timer = this->create_wall_timer(50ms, std::bind(&ArmInputs::publish_arm_inputs, this));
 }
 
 
@@ -128,7 +128,7 @@ int main(int argc, char **argv)
     rclcpp::init(argc, argv);
 
     // Runs the Publisher class
-    rclcpp::spin(std::make_shared<ArmPublisher>());
+    rclcpp::spin(std::make_shared<ArmInputs>());
 
     // Shutsdown ROS once complete
     rclcpp::shutdown();

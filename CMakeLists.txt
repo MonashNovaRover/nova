@@ -58,8 +58,8 @@ add_executable(driver src/drive/driver.cpp src/drive/wheel.cpp src/cmd/cmd.cpp $
 ament_target_dependencies(driver rclcpp core)
 
 # Arm Publisher script
-add_executable(arm_input src/arm/arm_publisher.cpp)
-ament_target_dependencies(arm_input rclcpp core)
+add_executable(arm_inputs src/arm/arm_inputs.cpp)
+ament_target_dependencies(arm_inputs rclcpp core)
 
 # Arm Driver script
 add_executable(arm_driver src/arm/arm_driver.cpp src/arm/joint.cpp src/cmd/cmd.cpp ${PROJECT_SOURCE_DIR}/include/socketcan/socketcan_cpp.cpp)
@@ -70,7 +70,7 @@ install(TARGETS
   inputs
   drive_inputs
   driver
-  arm_input
+  arm_inputs
   arm_driver
   DESTINATION lib/${PROJECT_NAME}
 )
