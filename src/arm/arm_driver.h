@@ -12,14 +12,14 @@ Whether to use PID or PWM is decided based on presence
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: arm_driver
 TOPICS:
-  - /control/cmd_outputs        []     [Subscribed]
+  - /control/arm_input      [ArmInput]  [Subscribed]
 SERVICES: None
 ACTIONS:  None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	control
 AUTHOR(S):  Jess Hepworth
 CREATION:	03/12/2021
-EDITED:		03/12/2021
+EDITED:		10/12/2021
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
  - create cmd_outputs message
@@ -31,6 +31,8 @@ TODO:
 #include "rclcpp/rclcpp.hpp"
 // #include "core/msg/cmd_outputs.hpp"
 #include "core/msg/arm_input.hpp"
+
+#include "joint.h"
 
 // Use the standard namespaces
 using namespace std::chrono_literals;

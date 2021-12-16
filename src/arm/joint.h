@@ -55,5 +55,5 @@ class Joint : public CMD {
 
     /// @brief      sets the CMD drive mode
     /// @param      CMD_drive_mode - Drive mode to set for the joint CMD 
-    void set_CMD_drive_mode (int CMD_drive_mode)
+    void set_CMD_drive_mode (int CMD_drive_mode);
 };
