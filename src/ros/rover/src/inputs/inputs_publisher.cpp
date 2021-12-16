@@ -28,12 +28,12 @@ InputsPublisher::InputsPublisher()
     joystick_r  = new JoystickThrustmaster(false, 0.06445);
 
     // Creates the publishers   
-    gamepad_publisher       = this->create_publisher<core::msg::InputGamepad>("/control/input_gamepad", 10);
-    joystick_l_publisher    = this->create_publisher<core::msg::InputJoystick>("/control/input_joystick_l", 10);
-    joystick_r_publisher    = this->create_publisher<core::msg::InputJoystick>("/control/input_joystick_r", 10);
+    gamepad_publisher       = this->create_publisher<core::msg::InputGamepad>("/control/input_gamepad", 1);
+    joystick_l_publisher    = this->create_publisher<core::msg::InputJoystick>("/control/input_joystick_l", 1);
+    joystick_r_publisher    = this->create_publisher<core::msg::InputJoystick>("/control/input_joystick_r", 1);
 
-    // Creates a timer function that runs a function on loop every 0.01 seconds
-    timer = this->create_wall_timer(10ms, std::bind(&InputsPublisher::publish_input, this));
+    // Creates a timer function that runs a function on loop every 0.02 seconds
+    timer = this->create_wall_timer(20ms, std::bind(&InputsPublisher::publish_input, this));
 
     // Output set-up messages
     title("INPUTS PUBLISHER");

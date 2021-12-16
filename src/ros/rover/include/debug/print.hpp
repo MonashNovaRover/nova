@@ -10,7 +10,7 @@ Public static functions for printing with colors.
 PACKAGE: 	control
 AUTHOR(S):  Harrison Verrios
 CREATION:	15/12/2021
-EDITED:		15/12/2021
+EDITED:		16/12/2021
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
