@@ -36,6 +36,8 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/RoverPose.msg"
   "msg/Waypoint.msg"
   "msg/DriveVel.msg"
+  "msg/Point2D"
+  "msg/Map2D"
 
   # Service definitions
   "srv/CameraCommand.srv"
