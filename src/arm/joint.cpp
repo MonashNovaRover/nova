@@ -14,7 +14,7 @@ AUTHOR(S):	Jess Hepworth
 #include "joint.h"
 
 Joint::Joint (const int id, int CMD_drive_mode) :
-    CMD (0, id) { 
+    CMD (1, id) { 
 
     // Update the variables
     this->CMD_drive_mode = CMD_drive_mode;
