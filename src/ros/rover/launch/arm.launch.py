@@ -6,11 +6,11 @@ Execute this code on the rover to start all
    rover control scripts.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODES:
-  - control/drive/drive_inputs      [drive_cmd]
-  - control/drive/driver            [driver]
+  - control/arm/arm_inputs              [arm_inputs]
+  - control/inputs/arm_driver           [arm_driver]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	control
-CREATION:	15/12/2021
+CREATION:	17/12/2021
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
@@ -22,7 +22,7 @@ import launch_ros.actions
 def generate_launch_description():
     return LaunchDescription([
         launch_ros.actions.Node(
-            package='control', node_executable='drive_inputs', output='screen'),
+            package='control', node_executable='arm_inputs', output='screen'),
         launch_ros.actions.Node(
-            package='control', node_executable='driver', output='screen'),
+            package='control', node_executable='arm_driver', output='screen'),
     ])

@@ -10,6 +10,10 @@ sudo apt install libudev-dev -y
 
 ## Script Directory :clipboard:
 
+- **Arm Publisher**: Publishes arm commands from reading the joystick inputs, which can be used by the arm driver or the IK machine. This script should be run on the *base station*.
+    `ros2 run control arm_input`
+<br>
+
 - **Drive Publisher**: Publishes drive data by analysing the input and sending the required steer and RPM values to the drive node for analysing. This script should be run on the *base station*.
     `ros2 run control drive_cmd`
 <br>
