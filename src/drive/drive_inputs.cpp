@@ -50,6 +50,10 @@ void DriveInputs::publish_cmds () {
     
     // Publish the drive commands
     publisher->publish(message);
+
+    // Clear the old inputs
+    input_axis_y = 0.0;
+    input_axis_x = 0.0;
 }
 
 
@@ -82,10 +86,15 @@ void DriveInputs::input_callback (const core::msg::InputGamepad::SharedPtr msg) 
         trigger_speed = 1.0 - (msg->trg_r_val * (1 - MIN_TRIGGER_MULTIPLIER));
 
         // Determine if the conrroller needs to be locked or not
-        if (msg->btn_back_state > 0)
-            locked = true;
-        if (msg->btn_start_state > 0)
-            locked = false;
+        if (msg->btn_back_state == 1) {
+            if (!locked)
+                print("Gamepad Locked");
+            locked = true;   
+        } if (msg->btn_start_state == 1) {
+            if (locked)
+                print("Gamepad Unlocked");
+            locked = false;          
+        }
         
 
         // Prevent changing states if the controller is locked
@@ -129,6 +138,24 @@ DriveInputs::DriveInputs()
     print("Valid Topics:");
     print("/control/drive_cmds         [DriveInput]", 1);
     print("", true);
+
+    // Output control messages
+    print("Drive Controls:");
+    print("     Left Stick Y  |  Forward/Back", C_INPUT);
+    print("    Right Stick X  |  Left/Right", C_INPUT);
+    print("", true);
+    print("    Right Trigger  |  Speed Multiplier", C_INPUT);
+    print("           DPAD Y  |  Speed Incr/Decr", C_INPUT);
+    print("           DPAD X  |  Steer Incr/Decr", C_INPUT);
+    print("  Left Joy Button  |  Handbrake Enabled", C_INPUT);
+    print(" Right Joy Button  |  Handbrake Disabled", C_INPUT);
+    print("", true);
+    print("             Back  |  Lock", C_INPUT);
+    print("            Start  |  Unlock", C_INPUT);
+    print("                A  |  Autonomous Control", C_INPUT);
+    print("                B  |  Manual Control", C_INPUT);
+    print("", true);
+    print("Gamepad Locked");
 }
 
 
