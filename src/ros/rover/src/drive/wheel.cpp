@@ -14,7 +14,7 @@ AUTHOR(S):	Harrison Verrios, Josh Cherubino
 #include "wheel.h"
 
 Wheel::Wheel (const int id, const bool clockwise) :
-    CMD (1, id) {
+    CMD (0, id) {
 
     // Update the variables
     this->clockwise = clockwise;
