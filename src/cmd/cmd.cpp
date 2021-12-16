@@ -99,3 +99,27 @@ void CMD::set_pid (float speed) {
     // Write the frame
     this->can_socket.write(frame);
 }
+
+void CMD::set_linear_actuator (float value){
+    int actuation = 0;
+    if (value < 0){
+        actuation = 2;
+    }
+    else if (value > 0){
+        actuation = 1;
+    }
+
+    // Creates a new CAN frame
+    scpp::CanFrame frame;
+    frame.id = (this->id << 4) | CMDCommand::ACTUATOR;
+    frame.len = 2;
+
+    // Order data in big-endian order (MSB first)
+    frame.data[0] = actuation >> 8;
+    frame.data[1] = actuation & 0xFF;
+
+    // Write the frame
+    this->can_socket.write(frame);
+
+
+}
