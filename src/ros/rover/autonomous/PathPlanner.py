@@ -194,9 +194,9 @@ class PathPlanner(Node):
             if dist > safety_radius + 0.5:
                 # NOTE: danger! we only start looking for obstacles outside the "padding" radius
                 # from the last obstacle. On spiky / noisy maps this may be a bad assumption!
-                for c in range(safety_radius, int(np.ceil(dist))):
-                    unit_x = (raw_points[i][0] - pruned_list[-1][0]) / dist
-                    unit_y = (raw_points[i][1] - pruned_list[-1][1]) / dist
+                for c in range(safety_radius, int(np.ceil(dist) * 2)):
+                    unit_x = 0.5 * (raw_points[i][0] - pruned_list[-1][0]) / dist
+                    unit_y = 0.5 * (raw_points[i][1] - pruned_list[-1][1]) / dist
 
                     # np.round() before int() to get the nearest point, rather than rounding down
                     candidate_x = int(np.round(pruned_list[-1][0] + c * unit_x))
@@ -273,7 +273,7 @@ class PathPlanner(Node):
                 p2 = point + radial_vec_to_tangent(r, d2, angles[i + 1] - np.pi, -angle_changes[i])
             else:
                 radial_vec = radial_vec_to_common_circle_tangent(r, d2, angles[i + 1] - np.pi, -angle_changes[i], -angle_changes[i + 1])
-                p2 = point + radial_vec * -np.sign(angle_changes[i] / angle_changes[i + 1])
+                p2 = point + radial_vec
 
             print("p1 = " + str(p1))
             print(p2)
@@ -288,7 +288,7 @@ class PathPlanner(Node):
 
         return np.array(padded_path)
 
-    def clear_path_to_first_waypoint(self, padded_path, distance_frac):
+    def clear_path_to_first_waypoint(self, padded_path, distance_frac, num_rays, recursion_depth=5):
         """
         Takes in a list of waypoints with padding around all the sharp corners. This preliminary list
         does not avoid any low-angle corners or corners that weren't detected by string pulling.
@@ -299,39 +299,49 @@ class PathPlanner(Node):
         :param: distance_frac: the fraction of the corner_padding distance to move the new waypoint off course by
         """
 
-        if distance_frac < 0.125 or np.isnan(padded_path[1][0]):
+        if distance_frac < 0.125 or recursion_depth == 0 or np.isnan(padded_path[0][0]) or np.isnan(padded_path[1][0]):
             return padded_path
 
         start_point = padded_path[0]
 
         dist = distance(start_point, padded_path[1])
+        # vector between start location and first waypoint
         parallel_vec = padded_path[1] - start_point
         
         parallel_angle = vector_argument(parallel_vec)
         r = int(corner_padding * 0.8 * self.scale_x / self.x_length_meters)
+        # vector between the centre line of the rover and either one of its sides
         perp_vec = r * np.array([np.cos(parallel_angle + np.pi / 2), np.sin(parallel_angle + np.pi / 2)])
 
         found_obstacle = False
+        side_step_vec = np.array([0., 0.])
 
         for c in range(r, int(np.ceil(dist))):
-            unit_vec = parallel_vec / dist
+            unit_vec = parallel_vec / dist     # unit vector in direction of vector to waypoint
+            new_waypt = (start_point + unit_vec * c)    # waypoint we will place if we need to avoid an obstacle
+            
+            for i in range(num_rays):
+                candidate_1 = (np.round(start_point + perp_vec / (i + 1) + unit_vec * c)).astype(int)
+                candidate_2 = (np.round(start_point - perp_vec / (i + 1) + unit_vec * c)).astype(int)
 
-            candidate_r = (np.round(start_point + perp_vec + unit_vec * c)).astype(int)
-            candidate_l = (np.round(start_point - perp_vec + unit_vec * c)).astype(int)
+                # If the side of the rover would go off the map, or it hits an obstacle
+                if candidate_1[0] not in range(self.scale_x) or candidate_1[1] not in range(self.scale_y) or self.map[candidate_1[0]][candidate_1[1]]:
+                    side_step_vec = -perp_vec * distance_frac * (num_rays - i) / num_rays
+                    found_obstacle = True
+                
+                # check the same for the other side
+                # NOTE: this algorithm assumes we will never find an obstacle on both sides
+                elif candidate_2[0] not in range(self.scale_x) or candidate_2[1] not in range(self.scale_y) or self.map[candidate_2[0]][candidate_2[1]]:
+                    side_step_vec = perp_vec * distance_frac * (num_rays - i) / num_rays
+                    found_obstacle = True
 
-            if candidate_r[0] not in range(self.scale_x) or candidate_r[1] not in range(self.scale_y) or self.map[candidate_r[0]][candidate_r[1]]:
-                new_waypt = (np.round(start_point - perp_vec * distance_frac + unit_vec * c)).astype(int)
-                found_obstacle = True
-                break
-
-            if candidate_l[0] not in range(self.scale_x) or candidate_l[1] not in range(self.scale_y) or self.map[candidate_l[0]][candidate_l[1]]:
-                new_waypt = (np.round(start_point + perp_vec * distance_frac + unit_vec * c)).astype(int)
-                found_obstacle = True
+            if found_obstacle:
                 break
 
         if found_obstacle:
+            new_waypt = np.round(new_waypt + side_step_vec).astype(int)
             padded_path = np.insert(padded_path, 1, new_waypt, 0)
-            return self.clear_path_to_first_waypoint(padded_path, distance_frac)
+            return self.clear_path_to_first_waypoint(padded_path, distance_frac, num_rays, recursion_depth-1)
 
         else:
             return padded_path
@@ -359,7 +369,7 @@ class PathPlanner(Node):
 
         self.route = self.pad_corners(self.route)
 
-        self.route = self.clear_path_to_first_waypoint(self.route, 1.0)
+        self.route = self.clear_path_to_first_waypoint(self.route, 1.0, 1)
 
         route_coordinates = self.get_local_coords_route(self.route)
 
