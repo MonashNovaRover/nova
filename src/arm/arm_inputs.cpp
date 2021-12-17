@@ -9,6 +9,7 @@ AUTHOR(S):	Jess Hepworth
 
 // Include the header file
 #include "arm_inputs.h"
+#include "debug/print.h"
 
 // Receives input from left joystick
 void ArmInputs::joystick_l_callback (const core::msg::InputJoystick::SharedPtr msg) {
@@ -95,11 +96,13 @@ float ArmInputs::calculate_direction (float value){
     }
 }
 
+
 float ArmInputs::scale_speed (float value){
     //max scale factor 0.95, min scale factor 0.05
     // return (((value - 1) / -2.0) * 0.9) + 0.05;
     return (value * 0.9) + 0.05;
 }
+
 
 // Main constructor that sets up the node
 ArmInputs::ArmInputs() 
@@ -118,6 +121,12 @@ ArmInputs::ArmInputs()
 
     // Creates a timer function that runs a function on loop every 0.05 seconds
     timer = this->create_wall_timer(50ms, std::bind(&ArmInputs::publish_arm_inputs, this));
+
+    // Output set-up messages
+    Print::title("ARM INPUTS");
+    Print::print("Valid Topics:");
+    Print::print("/control/arm_inputs         [ArmInput]", 1);
+    Print::print("", true);
 }
 
 

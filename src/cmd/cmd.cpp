@@ -9,6 +9,7 @@ AUTHOR(S):	Harrison Verrios, Josh Cherubino
 
 // Include the header file
 #include "cmd.h"
+#include "debug/print.h"
 
 
 CMD::CMD (const int bus, const int id) {
@@ -18,9 +19,20 @@ CMD::CMD (const int bus, const int id) {
     this->id = id;
 
     // Set up the CAN interface with the correct bus
-    this->can_socket.open(
+    scpp::SocketCanStatus status = this->can_socket.open(
         (bus == 0) ? "can0" : "can1"
     );
+
+    // Check for status
+    switch (status) {
+        case scpp::STATUS_OK:
+            Print::print("Initialised CAN device successfully.", C_SUCCESS); 
+            break;
+        default:
+            if (bus == 0)   Print::print("Error: can0 has not been initialized.", C_FAIL);
+            else            Print::print("Error: can1 has not been initialized.", C_FAIL);
+            break;
+    }
 }
 
 
