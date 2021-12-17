@@ -6,7 +6,7 @@ The benefit of using as many functions like this as possible is that we can bett
 assert the behaviour of functions, compositions of functions, and as a result, entire systems.
 """
 
-import controller_params
+from utils import controller_params
 import math
 
 

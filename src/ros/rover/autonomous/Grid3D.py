@@ -26,6 +26,14 @@ class Grid3D:
                              int(height / resolution),
                              5))
 
+    def get_slices(self, pose_msg, len_down, len_up):
+        """
+        Gets slices from pose - len_down to pose + len_up. Returns a sub-set (by height) of the self.map
+        """
+        upper_index = int((pose_msg.pose.pose.position.z + self.height / 2 + len_up) / self.resolution)
+        lower_index = int((pose_msg.pose.pose.position.z + self.height / 2 - len_down) / self.resolution)
+        return np.sum(self.map[:, :, lower_index:upper_index, 0], axis=2) > 0
+
     def get_indexes(self, points):
         """
         Gets the array indexes of 3D floating point points.
@@ -49,7 +57,7 @@ class Grid3D:
         """
         Gets the points (bottom left corner of a voxel) corresponding to a set of indexes
         :param indexes: an (n, 3) numpy array of indexes
-        :return: an (n, 3) numpy array of points referred to by those indexes
+        :return: an (n, 3) numpy array of points referred to by those umndexes
         """
         return indexes * self.resolution - np.array([self.length / 2, self.width / 2, self.height / 2])
 
@@ -87,9 +95,6 @@ class Grid3D:
 
         points = np.array(np.where(raw_indexes)).transpose()
         colors = np.array(self.map[raw_indexes][:, 2:])
-
-        print("dim colors: " + str(colors.shape))
-        print("dim points: " + str(points.shape))
 
         print("Extracting points from map took: " + str(time.time() - t))
 

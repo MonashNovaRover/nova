@@ -2,14 +2,14 @@
 import numpy as np
 import time
 from queue import PriorityQueue
-from autonomous.utils.controller_params import *
+from utils.controller_params import *
 from rclpy.node import Node
-from core.msg import Waypoint
+from core.msg import Waypoints
+from utils.controller_math import State
+from core.msg import RoverPose
 
 """
-Author: Aidan Pritchard and Liam Whittle
-
-Date last updated: 18/2/2021 by Liam Whittle
+Author: Aidan Pritchard, Max Tory and Liam Whittle
 
 Purpose: To perform A* path planning and string pulling on 2-d grid maps. 
 
@@ -23,55 +23,48 @@ Services:
 
 
 class PathPlanner(Node):
-    def __init__(self, controller, array_grid: ArrayGrid, dest):
+    def __init__(self, dest, map2d):
         super().__init__("path_planner_node")
+        
+        # way-point publisher publishes a bunch of waypoints at once (hence using the 2D map dataype
+        self.waypt_publisher = self.create_publisher(Waypoints, "autonomous/goals", 10)
+        
+        self.pose_subscriber = self.create_subscription(RoverPose, "autonomous/pose", self.update_pose, 10)
 
-        self.waypt_publisher = self.create_publisher(Waypoint, "autonomous/goals", 10)
-
-        # controller that controls autonomous driving and grid that stores the current map
-        self.controller = controller
-        self.array_grid = array_grid
-
-        # is_listener attr to be used to be return publisher
-        self.map2d = Map2D(subscirber)
+        self.map2d = map2d
 
         # exhaustive list of class attributes
-        self.x_length_meters = self.array_grid.length
-        self.y_length_meters = self.array_grid.width
+        self.x_length_meters = self.map2d.length
+        self.y_length_meters = self.map2d.width
 
         # x and y dimensions of the map in pixels
-        self.scale_x = self.array_grid.map.shape[0]
-        self.scale_y = self.array_grid.map.shape[1]
+        self.scale_x = self.map2d.grid.shape[0]
+        self.scale_y = self.map2d.grid.shape[1]
 
-        # gets 2d array of obstacles
-        self.extract_obstacle_map(10)
-
-        self.start = (self.controller.state.x, self.controller.state.y)
+        self.state = State()
+        
+        self.start = (self.state.x, self.state.y)
         self.goal = (dest[0], dest[1])
 
         self.route = []
+        
+        # create empty state
 
         # calculations
         self.scale(self.scale_x, self.scale_y)
 
-        # rto_lisiunning A* every second to re-evaluate
+        # re running A* every second to re-evaluate
         self.timer = self.create_timer(a_star_rate, self.get_path)
 
-    def extract_obstacle_map(self, layers: int):
+    def update_pose(self, msg): 
+        """ 
+        Callback function that updates the current pose of the rover from data in the auto_command_pose_updates topic
         """
-        Extracts an obstacle map by adding the bottom layers of the map
-        """
-        
-        self.map = self.array_grid.map[:,:,self.array_grid.map.shape[2] // 2,0]
-
-        # going from the middle of the map (which for flat ground, will be the pose of the camera)
-        for i in range(self.array_grid.map.shape[2] // 2, self.array_grid.map.shape[2] // 2 + layers):
-             self.map += self.array_grid.map[:,:,i,0]
-        
-        self.map = (self.map > 0.0).tolist()
-
-        print("Map: ")
-        print(self.map)
+        self.state.x = msg.x
+        self.state.y = msg.y
+        self.state.yaw = msg.yaw
+        self.state.velocity = msg.velocity
+        self.state.angular_velocity = msg.angular_velocity
 
     def recieve_map2d(self):
         return self.map2d.receive_map()
@@ -83,11 +76,13 @@ class PathPlanner(Node):
         """ 
         self.pixel_goal = (int(self.goal[0] * self.scale_x / self.x_length_meters), int(self.goal[1] * self.scale_y/self.y_length_meters))
 
-        #(self.scale_x - int(float(self.goal[0]) * (float(scale_x) / self.x_length_meters)), int(float(self.goal[1]) * (float(scale_y) / self.y_length_meters)))
+        # (self.scale_x - int(float(self.goal[0]) * (float(scale_x) / self.x_length_meters)),
+        # int(float(self.goal[1]) * (float(scale_y) / self.y_length_meters)))
 
         self.pixel_start = (int(self.start[0] * self.scale_x / self.x_length_meters), int(self.start[1] * self.scale_y/self.y_length_meters))
         
-        #(self.scale_x - int(float(self.start[0]) * (float(scale_x) / self.x_length_meters)), (int(float(self.start[1]) * (float(scale_y) / self.y_length_meters))))
+        # (self.scale_x - int(float(self.start[0]) * (float(scale_x) / self.x_length_meters)),
+        # (int(float(self.start[1]) * (float(scale_y) / self.y_length_meters))))
         
         print("Navigating from array-map-grid coordinates (%d, %d) to (%d, %d)" % (self.pixel_start[0], self.pixel_start[1], self.pixel_goal[0], self.pixel_goal[1]))
         
@@ -129,7 +124,6 @@ class PathPlanner(Node):
         while not min_queue.empty():
             expand = min_queue.get()[1]
             closed_set.append(expand)
-            print("hi")
             # goal check - necessary to test at goal given lack of consistent heuristic
             if expand == goal:
                 break
@@ -195,7 +189,7 @@ class PathPlanner(Node):
                     unit_y = (raw_points[j][1] - raw_points[i][1]) / dist
                     candidate_x = int(raw_points[i][0] + c * unit_x)
                     candidate_y = int(raw_points[i][1] + c * unit_y)
-                    if self.map[candidate_x][candidate_y]:
+                    if self.map2d[candidate_x][candidate_y]:
                         obstacle = True
                         break
                 if obstacle:
@@ -216,7 +210,7 @@ class PathPlanner(Node):
         print("start: " + str(self.pixel_start))
         print("goal: " + str(self.pixel_goal))
 
-        self.route = self.aStar(self.map, self.pixel_start, self.pixel_goal, weight)
+        self.route = self.aStar(self.map2d.grid, self.pixel_start, self.pixel_goal, weight)
 
         # self.route = self.stringPull(self.map.numArr3, self.route)
         return self.route
@@ -229,7 +223,7 @@ class PathPlanner(Node):
         NOTE: Will the map object be updated elsewhere? Or do we need to update it here?
         """
         # updating present coords with most recent rover pose
-        self.start = (self.controller.state.x, self.controller.state.y)
+        self.start = (self.state.x, self.state.y)
 
         # create path object and run A*
         self.run(weight)
@@ -237,18 +231,8 @@ class PathPlanner(Node):
         self.route = self.stringPull(self.route)
 
         route_coordinates = self.get_local_coords_route()
-
-        # clear all coordinates from the previous path before adding the newly created one
-        self.controller.clear_waypoints()
-
-        for wpt in route_coordinates:
-            # publishing waypoints in order 
-            waypoint = Waypoint()
-            waypoint.x = wpt[0]
-            waypoint.y = wpt[1]
-
-            print("publishing waypoint!")
-            self.waypt_publisher.publish(waypoint)
+        
+        self.waypt_publisher(route_coordinates)
 
         print("route has " + str(len(route_coordinates)) + " points")
 

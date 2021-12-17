@@ -28,11 +28,11 @@ EDITED:         07/12/2021
 import rclpy
 from time import sleep
 from rclpy.node import Node
-from autonomous.utils.controller_math import *
-from autonomous.utils.controller_params import *
-from core.msg import DriveCmd, RoverPose, Waypoint
+from utils.controller_math import *
+from utils.controller_params import *
+from core.msg import DriveInput, RoverPose, Waypoints
 import sys
-from autonomous.vis import path_vis
+from vis import path_vis
 
 """
 TODO: update led according to distance?
@@ -59,9 +59,9 @@ class Controller(Node):
         
         self.path_cloud = path_vis.PathCloud()
 
-        self.drive_cmd_publisher = self.create_publisher(DriveCmd, "auto_drive_commands", 10)
+        self.drive_cmd_publisher = self.create_publisher(DriveInput, "auto_drive_commands", 10)
         self.pose_subscriber = self.create_subscription(RoverPose, "autonomous/pose", self.update_pose, 10)
-        self.waypt_subscriber = self.create_subscription(Waypoint, "autonomous/goals", self.add_waypoint, 10)
+        self.waypt_subscriber = self.create_subscription(Waypoints, "autonomous/goals", self.add_waypoints, 10)
 
         # Controls the rate at which drive commands are sent - sleeps for the necessary time to maintain the rate given
         self.timer = self.create_timer(0.1, self.control)
@@ -76,11 +76,11 @@ class Controller(Node):
         self.state.velocity = msg.velocity
         self.state.angular_velocity = msg.angular_velocity
 
-    def add_waypoint(self, msg):
+    def add_waypoints(self, msg):
         """
         Callback that appends the x-y position of a waypoint to the waypoints list
         """
-        self.waypoints.append([msg.x, msg.y])
+        self.waypoints = [[point.x, point.y] for point in msg.waypoints]
 
     def __publish(self, drive_fraction, angular_fraction):
         """
@@ -90,7 +90,7 @@ class Controller(Node):
         """
 
         # construct message to publish
-        drive_cmd_msg = DriveCmd()
+        drive_cmd_msg = DriveInput()
 
         drive_cmd_msg.speed = drive_fraction
 
@@ -105,13 +105,6 @@ class Controller(Node):
         sys.stdout.write("\r" + "Action: " + action_msg.ljust(pad) + " | heading to: " + str(heading_to).ljust(pad)
                           + " | yaw diff: " + str(round(yaw_diff, 4)).ljust(pad) + " | distance: " + str(round(dist, 4)).ljust(pad))
         sys.stdout.flush()
-
-    def clear_waypoints(self):
-        """
-        empties the waypoints list - prevents further coordinates from being travelled to and allows path planning to be reset
-        """
-        self.waypoints = []
-        self.target_waypoint = None
 
     def go_to_target(self):
         """
