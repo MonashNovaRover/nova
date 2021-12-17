@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from PathPlanner import PathPlanner
 from Controller import Controller
-from Grid3D import ArrayGrid
+from Grid3D import Grid3D
 import threading
 import rclpy
 from Mapper import Mapper
@@ -19,7 +19,7 @@ def main(args):
     controller = Controller()
 
     # stores the map of obstacles we navigate through - dimensions and resolution are preliminary values
-    grid = ArrayGrid(4.0, 4.0, 3.0, 0.05)
+    grid = Grid3D(4.0, 4.0, 3.0, 0.05)
 
     print("Input waypoints manually?")
     print("[0]: No - use autonomous path planning")
