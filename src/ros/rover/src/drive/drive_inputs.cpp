@@ -9,9 +9,7 @@ AUTHOR(S):	Harrison Verrios
 
 // Include the header file
 #include "drive_inputs.h"
-
-// Include print messages
-#include <debug/print.hpp>
+#include "debug/print.h"
 
 
 // Adjustes the multiplier factor by some amount in some direction
@@ -68,7 +66,7 @@ void DriveInputs::input_callback (const core::msg::InputGamepad::SharedPtr msg) 
 
         // Publish no connection message
         if (connected)
-            print ("No Gamepad Connected", C_FAIL);
+            Print::print ("No Gamepad Connected", C_FAIL);
     }
 
     // If the controller is connected
@@ -76,7 +74,7 @@ void DriveInputs::input_callback (const core::msg::InputGamepad::SharedPtr msg) 
 
         // Publish connection message
         if (!connected)
-            print ("Gamepad Connected", C_SUCCESS);
+            Print::print ("Gamepad Connected", C_SUCCESS);
 
         // Update the input axis
         input_axis_x = msg->ax_stick_r_x;
@@ -88,11 +86,11 @@ void DriveInputs::input_callback (const core::msg::InputGamepad::SharedPtr msg) 
         // Determine if the conrroller needs to be locked or not
         if (msg->btn_back_state == 1) {
             if (!locked)
-                print("Gamepad Locked");
+                Print::print("Gamepad Locked");
             locked = true;   
         } if (msg->btn_start_state == 1) {
             if (locked)
-                print("Gamepad Unlocked");
+                Print::print("Gamepad Unlocked");
             locked = false;          
         }
         
@@ -134,28 +132,28 @@ DriveInputs::DriveInputs()
     timer = this->create_wall_timer(50ms, std::bind(&DriveInputs::publish_cmds, this));
 
     // Output set-up messages
-    title("DRIVE INPUTS");
-    print("Valid Topics:");
-    print("/control/drive_cmds         [DriveInput]", 1);
-    print("", true);
+    Print::title("DRIVE INPUTS");
+    Print::print("Valid Topics:");
+    Print::print("/control/drive_inputs         [DriveInput]", 1);
+    Print::print("", true);
 
     // Output control messages
-    print("Drive Controls:");
-    print("     Left Stick Y  |  Forward/Back", C_INPUT);
-    print("    Right Stick X  |  Left/Right", C_INPUT);
-    print("", true);
-    print("    Right Trigger  |  Speed Multiplier", C_INPUT);
-    print("           DPAD Y  |  Speed Incr/Decr", C_INPUT);
-    print("           DPAD X  |  Steer Incr/Decr", C_INPUT);
-    print("  Left Joy Button  |  Handbrake Enabled", C_INPUT);
-    print(" Right Joy Button  |  Handbrake Disabled", C_INPUT);
-    print("", true);
-    print("             Back  |  Lock", C_INPUT);
-    print("            Start  |  Unlock", C_INPUT);
-    print("                A  |  Autonomous Control", C_INPUT);
-    print("                B  |  Manual Control", C_INPUT);
-    print("", true);
-    print("Gamepad Locked");
+    Print::print("Drive Controls:");
+    Print::print("     Left Stick Y  |  Forward/Back", C_INPUT);
+    Print::print("    Right Stick X  |  Left/Right", C_INPUT);
+    Print::print("", true);
+    Print::print("    Right Trigger  |  Speed Multiplier", C_INPUT);
+    Print::print("           DPAD Y  |  Speed Incr/Decr", C_INPUT);
+    Print::print("           DPAD X  |  Steer Incr/Decr", C_INPUT);
+    Print::print("  Left Joy Button  |  Handbrake Enabled", C_INPUT);
+    Print::print(" Right Joy Button  |  Handbrake Disabled", C_INPUT);
+    Print::print("", true);
+    Print::print("             Back  |  Lock", C_INPUT);
+    Print::print("            Start  |  Unlock", C_INPUT);
+    Print::print("                A  |  Autonomous Control", C_INPUT);
+    Print::print("                B  |  Manual Control", C_INPUT);
+    Print::print("", true);
+    Print::print("Gamepad Locked");
 }
 
 

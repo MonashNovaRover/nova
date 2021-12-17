@@ -40,30 +40,53 @@ if (NOT TARGET socketcan)
   add_library(socketcan SHARED include/socketcan/socketcan_cpp.cpp)
 endif()
 
+
+
+
+
+################################################
 # Add executables:
+################################################
 
 # Inputs script
 add_executable(inputs src/inputs/inputs_publisher.cpp src/inputs/joystick.cpp 
-  src/inputs/joystick_gamepad.cpp src/inputs/joystick_thrustmaster.cpp 
-  ${PROJECT_SOURCE_DIR}/include/gamepad/gamepad.c)
+  src/inputs/joystick_gamepad.cpp 
+  src/inputs/joystick_thrustmaster.cpp 
+  ${PROJECT_SOURCE_DIR}/include/gamepad/gamepad.c
+  ${PROJECT_SOURCE_DIR}/include/debug/print.cpp)
 target_link_libraries(inputs gamepad udev ${catkin_LIBRARIES})
 ament_target_dependencies(inputs rclcpp core)
 
 # Drive Command script
-add_executable(drive_inputs src/drive/drive_inputs.cpp)
+add_executable(drive_inputs src/drive/drive_inputs.cpp
+  ${PROJECT_SOURCE_DIR}/include/debug/print.cpp)
 ament_target_dependencies(drive_inputs rclcpp core)
 
 # Drive Receiver script
-add_executable(driver src/drive/driver.cpp src/drive/wheel.cpp src/cmd/cmd.cpp ${PROJECT_SOURCE_DIR}/include/socketcan/socketcan_cpp.cpp)
+add_executable(driver src/drive/driver.cpp 
+  src/drive/wheel.cpp src/cmd/cmd.cpp 
+  ${PROJECT_SOURCE_DIR}/include/socketcan/socketcan_cpp.cpp 
+  ${PROJECT_SOURCE_DIR}/include/debug/print.cpp)
 ament_target_dependencies(driver rclcpp core)
 
 # Arm Publisher script
-add_executable(arm_inputs src/arm/arm_inputs.cpp)
+add_executable(arm_inputs src/arm/arm_inputs.cpp
+  ${PROJECT_SOURCE_DIR}/include/debug/print.cpp)
 ament_target_dependencies(arm_inputs rclcpp core)
 
 # Arm Driver script
-add_executable(arm_driver src/arm/arm_driver.cpp src/arm/joint.cpp src/cmd/cmd.cpp ${PROJECT_SOURCE_DIR}/include/socketcan/socketcan_cpp.cpp)
+add_executable(arm_driver src/arm/arm_driver.cpp 
+  src/arm/joint.cpp 
+  src/cmd/cmd.cpp
+  ${PROJECT_SOURCE_DIR}/include/socketcan/socketcan_cpp.cpp
+  ${PROJECT_SOURCE_DIR}/include/debug/print.cpp)
 ament_target_dependencies(arm_driver rclcpp core)
+
+
+
+################################################
+# Add Installations
+################################################
 
 # Add all the installation targets
 install(TARGETS

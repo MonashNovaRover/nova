@@ -9,7 +9,7 @@ AUTHOR(S):	Harrison Verrios
 
 // Include the header file
 #include "inputs_publisher.h"
-#include <debug/print.hpp>
+#include <debug/print.h>
 
 
 // Main consrtuctor sets up the node and the publishers
@@ -36,12 +36,12 @@ InputsPublisher::InputsPublisher()
     timer = this->create_wall_timer(20ms, std::bind(&InputsPublisher::publish_input, this));
 
     // Output set-up messages
-    title("INPUTS PUBLISHER");
-    print("Valid Topics:");
-    print("/control/input_gamepad      [InputGamepad]", 1);
-    print("/control/input_joystick_l   [InputJoystick]", 1);
-    print("/control/input_joystick_r   [InputJoystick]", 1);
-    print("", true);
+    Print::title("INPUTS PUBLISHER");
+    Print::print("Valid Topics:");
+    Print::print("/control/input_gamepad      [InputGamepad]", 1);
+    Print::print("/control/input_joystick_l   [InputJoystick]", 1);
+    Print::print("/control/input_joystick_r   [InputJoystick]", 1);
+    Print::print("", true);
 }
 
 
@@ -63,17 +63,17 @@ void InputsPublisher::publish_input () {
 
     // Display information about connections (in case they change)
     if (gamepad->is_disconnected())
-        print("Device Disconnected: 'Gamepad'", C_FAIL);
+        Print::print("Device Disconnected: 'Gamepad'", C_FAIL);
     else if (gamepad->is_reconnected())
-        print("Device Connected:    'Gamepad'", C_SUCCESS);
+        Print::print("Device Connected:    'Gamepad'", C_SUCCESS);
     if (joystick_l->is_disconnected())
-        print("Device Disconnected: 'Left Joystick'", C_FAIL);
+        Print::print("Device Disconnected: 'Left Joystick'", C_FAIL);
     else if (joystick_l->is_reconnected())
-        print("Device Connected:    'Left Joystick'", C_SUCCESS);
+        Print::print("Device Connected:    'Left Joystick'", C_SUCCESS);
     if (joystick_r->is_disconnected())
-        print("Device Disconnected: 'Right Joystick'", C_FAIL);
+        Print::print("Device Disconnected: 'Right Joystick'", C_FAIL);
     else if (joystick_r->is_reconnected())
-        print("Device Connected:    'Right Joystick'", C_SUCCESS);
+        Print::print("Device Connected:    'Right Joystick'", C_SUCCESS);
 }
 
 

@@ -9,9 +9,7 @@ AUTHOR(S):	Harrison Verrios, Josh Cherubino
 
 // Include the header file
 #include "driver.h"
-
-// Include standard output messages
-#include <iostream>
+#include "debug/print.h"
 
 // Sends commands to the wheels
 void Driver::send_commands (const core::msg::DriveInput::SharedPtr msg) {
@@ -86,6 +84,10 @@ void Driver::input_callback (const core::msg::InputGamepad::SharedPtr msg) {
 // Main constructor that sets up the node
 Driver::Driver() 
   : Node("drive_sub"), count(0) {
+
+    // Output set-up messages
+    Print::title("DRIVER");
+    Print::print("", true);
 
     // Initialise the wheels in the correct direction
     for (int i = 0; i < NUM_WHEELS; i++) {
