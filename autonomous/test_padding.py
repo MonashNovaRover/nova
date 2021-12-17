@@ -51,18 +51,20 @@ if __name__ == "__main__":
             planner.start = (startx, starty)
             planner.scale()
 
-            path = planner.aStar(planner.pixel_start, planner.pixel_goal)
-            path = planner.stringPull(path)
+            A_star_path = planner.aStar(planner.pixel_start, planner.pixel_goal)
+            path = planner.stringPull(A_star_path)
             padded_path = planner.pad_corners(path)
 
             route_coordinates = planner.get_local_coords_route(path)
 
             path = np.array(path)
             padded_path = np.array(padded_path)
+            A_star_path = np.array(A_star_path)
 
             plt.figure()
             
             try:
+                plt.plot(A_star_path[:,1], A_star_path[:,0])
                 plt.plot(path[:,1], path[:,0], 'o')
                 plt.plot(padded_path[:,1], padded_path[:,0])
             except Exception as e:

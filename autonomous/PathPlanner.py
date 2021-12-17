@@ -195,8 +195,10 @@ class PathPlanner(Node):
                 for c in range(safety_radius, int(np.ceil(dist))):
                     unit_x = (raw_points[i][0] - pruned_list[-1][0]) / dist
                     unit_y = (raw_points[i][1] - pruned_list[-1][1]) / dist
-                    candidate_x = int(pruned_list[-1][0] + c * unit_x)
-                    candidate_y = int(pruned_list[-1][1] + c * unit_y)
+
+                    # np.round() before int() to get the nearest point, rather than rounding down
+                    candidate_x = int(np.round(pruned_list[-1][0] + c * unit_x))
+                    candidate_y = int(np.round(pruned_list[-1][1] + c * unit_y))
                     if self.map[candidate_x][candidate_y]:
                         obstacle = np.array((candidate_x, candidate_y))
                         break
@@ -262,8 +264,8 @@ class PathPlanner(Node):
             if i == len(turning_points) - 3:
                 p2 = point + radial_vec_to_tangent(r, d2, angles[i + 1] - np.pi, -angle_changes[i])
             else:
-                radial_vec = radial_vec_to_common_circle_tangent(r, d1, angles[i + 1], angle_changes[i + 1], angle_changes[i])
-                p2 = point + radial_vec * np.sign(angle_changes[i] / angle_changes[i + 1])
+                radial_vec = radial_vec_to_common_circle_tangent(r, d2, angles[i + 1] - np.pi, -angle_changes[i], -angle_changes[i + 1])
+                p2 = point + radial_vec * -np.sign(angle_changes[i] / angle_changes[i + 1])
 
             print("p1 = " + str(p1))
             print(p2)

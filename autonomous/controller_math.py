@@ -175,7 +175,7 @@ def radial_vec_to_common_circle_tangent(r, d, angle_in, angle_change, previous_a
 
     if angle_change / previous_angle_change > 0:
         # the common tangent is parallel to the vector between the centres of the two circles
-        theta = np.pi
+        theta = np.pi / 2
 
     else:
         # the acute angle between vec_to_point and the radial vector to the tangent point of a circle centred on point
