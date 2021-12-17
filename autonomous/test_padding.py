@@ -7,20 +7,52 @@ from controller_params import *
 import matplotlib.pyplot as plt
 import rclpy
 
-def generate_obstacles(this_map):
-    for i in range(35):
-        this_map[30][20 + i] = 1
+class TestMapMaker:
+    def __init__(self, sizex, sizey):
+        self.map = [[0 for _ in range(sizex)] for _ in range(sizey)]
+        self.x = sizex
+        self.y = sizey
 
-    for i in range(20):
-        this_map[48][50 + i] = 1
+    def generate_map(self):
+        pass
 
-    for i in range(10):
-        this_map[55 + i][28] = 1
-    
-    for i in range(20):
-        this_map[15 + i][23] = 1
+class TestBoxMap(TestMapMaker):
+    def __init__(self, sizex, sizey):
+        super().__init__(sizex, sizey)
 
-    return this_map
+    def generate_obstacles(self):
+        for i in range(30):
+            self.map[15][20 + i] = 1
+
+        for i in range(20):
+            self.map[15 + i][20] = 1
+
+        for i in range(30):
+            self.map[35][20 + i] = 1
+        
+        for i in range(20):
+            self.map[15 + i][50] = 1
+
+        return self.map
+
+class TestLinesMap(TestMapMaker):
+    def __init__(self, sizex, sizey):
+        super().__init__(sizex, sizey)
+  
+    def generate_obstacles(self):
+        for i in range(25):
+            self.map[48][0 + i] = 1
+
+        for i in range(15):
+            self.map[42 + i][38] = 1
+
+        for i in range(30):
+            self.map[33][23 + i] = 1
+        
+        for i in range(20):
+            self.map[15 + i][53] = 1
+
+        return self.map
 
 if __name__ == "__main__":
     rclpy.init(args = None)
@@ -30,9 +62,13 @@ if __name__ == "__main__":
     t2 = time()
     print ("grid took " + str(t2 - t1) + " s to make")
 
-    this_map = [[0 for _ in range(70)] for _ in range(70)]
+    map_maker = TestLinesMap(70, 70)
     
-    this_map = generate_obstacles(this_map)
+    this_map = map_maker.generate_obstacles()
+
+    planner = PathPlanner(None, grid, [1.5, -1.45])
+
+    planner.map = this_map
 
     for startx in [-1.5, -1., -0.5, 0., 0.5, 1.0, 1.5]:
         for starty in [-1.5, -1, -0.5, 0, 0.5, 1.0, 1.5]:
@@ -41,32 +77,29 @@ if __name__ == "__main__":
             t3 = time()
             print("map obstacles took " + str(t3 - t2) + " s to make")
 
-            planner = PathPlanner(None, grid, [1.45, 1.])
-
-            t4 = time()
-            print("planner took " + str(t4 - t3) + " s to make")
-
-            planner.map = this_map
-
             planner.start = (startx, starty)
             planner.scale()
 
             A_star_path = planner.aStar(planner.pixel_start, planner.pixel_goal)
             path = planner.stringPull(A_star_path)
-            padded_path = planner.clear_path_to_first_waypoint(planner.pad_corners(path), 1.0)
+            padded_path = planner.pad_corners(path)
+            clear_path = planner.clear_path_to_first_waypoint(padded_path, 1.0, 1)
 
             route_coordinates = planner.get_local_coords_route(path)
 
             path = np.array(path)
             padded_path = np.array(padded_path)
             A_star_path = np.array(A_star_path)
+            clear_path = np.array(clear_path)
 
             plt.figure()
             
             try:
-                plt.plot(A_star_path[:,1], A_star_path[:,0])
+                plt.plot(A_star_path[:,1], A_star_path[:,0], label="A* path")
+                plt.plot(padded_path[:,1], padded_path[:,0], label="Circle padding")
+                plt.plot(clear_path[:,1], clear_path[:,0], label="Circles + obstacle detection")
                 plt.plot(path[:,1], path[:,0], 'o')
-                plt.plot(padded_path[:,1], padded_path[:,0])
+                
             except Exception as e:
                 print(e)
                 print("path = " + str(path))
@@ -75,6 +108,8 @@ if __name__ == "__main__":
             
             plt.xlim = [-35, 35]
             plt.ylim = [-35, 35]
+
+            plt.legend()
 
             plt.imshow(this_map)
 
