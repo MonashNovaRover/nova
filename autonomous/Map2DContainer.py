@@ -5,7 +5,7 @@ import numpy as np
 
 
 class Map2DContainer(Node):
-    def __init__(self, is_publisher=False):
+    def __init__(self, is_publisher=False, is_ros=False, length=None, width=None):
         """
         is_publisher == True => this is being created by the Map3D
 
@@ -16,13 +16,19 @@ class Map2DContainer(Node):
         """
 
         super().__init__("Map2D" + "publisher" if is_publisher else "subscriber")
+        
         self.grid = np.zeros((10, 10))
         self.is_publisher = is_publisher
+        self.is_ros = is_ros
+        
+        self.length = length
+        self.width = width
 
-        if not self.is_publisher:
-            self._subscriber = self.create_subscription(Map2D, "autonomous/map2d", self.grid_callback, 10)
-        else:
-            self._publisher = self.create_publisher(Map2D, "autonomous/map2d", 10)
+        if is_ros:
+            if not self.is_publisher:
+                self._subscriber = self.create_subscription(Map2D, "autonomous/map2d", self.grid_callback, 10)
+            else:
+                self._publisher = self.create_publisher(Map2D, "autonomous/map2d", 10)
 
     def grid_callback(self, msg):
         """
