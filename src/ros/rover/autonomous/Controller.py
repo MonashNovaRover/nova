@@ -28,11 +28,11 @@ EDITED:         07/12/2021
 import rclpy
 from time import sleep
 from rclpy.node import Node
-from controller_math import *
-from controller_params import *
+from autonomous.utils.controller_math import *
+from autonomous.utils.controller_params import *
 from core.msg import DriveCmd, RoverPose, Waypoint
 import sys
-import path_vis
+from autonomous.vis import path_vis
 
 """
 TODO: update led according to distance?
