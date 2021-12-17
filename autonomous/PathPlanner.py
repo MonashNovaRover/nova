@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
+from types import prepare_class
 from typing import ContextManager
 import numpy as np
 import time
 from queue import PriorityQueue
 
 from numpy.lib.function_base import _angle_dispatcher, angle
+from numpy.testing._private.utils import clear_and_catch_warnings
 import rclpy
 ## NOTE should probably call these something else since they are not only used by controller
 from controller_params import *
@@ -189,7 +191,7 @@ class PathPlanner(Node):
             obstacle = None
 
             dist = self.heuristic(pruned_list[-1], raw_points[i], heuristic_type="euclidean")
-            if dist > safety_radius:
+            if dist > safety_radius + 0.5:
                 # NOTE: danger! we only start looking for obstacles outside the "padding" radius
                 # from the last obstacle. On spiky / noisy maps this may be a bad assumption!
                 for c in range(safety_radius, int(np.ceil(dist))):
@@ -286,12 +288,59 @@ class PathPlanner(Node):
 
         return np.array(padded_path)
 
+    def clear_path_to_first_waypoint(self, padded_path, distance_frac):
+        """
+        Takes in a list of waypoints with padding around all the sharp corners. This preliminary list
+        does not avoid any low-angle corners or corners that weren't detected by string pulling.
+        This algorithm recursively checks that the path to the first waypoint in the list is clear. If
+        an obstacle is encountered on either side of the rover, a new waypoint is inserted to avoid it.
+        As path planning re-runs regularly, we only need to check to the first waypoint planned.
+
+        :param: distance_frac: the fraction of the corner_padding distance to move the new waypoint off course by
+        """
+
+        if distance_frac < 0.125 or np.isnan(padded_path[1][0]):
+            return padded_path
+
+        start_point = padded_path[0]
+
+        dist = distance(start_point, padded_path[1])
+        parallel_vec = padded_path[1] - start_point
+        
+        parallel_angle = vector_argument(parallel_vec)
+        r = int(corner_padding * 0.8 * self.scale_x / self.x_length_meters)
+        perp_vec = r * np.array([np.cos(parallel_angle + np.pi / 2), np.sin(parallel_angle + np.pi / 2)])
+
+        found_obstacle = False
+
+        for c in range(r, int(np.ceil(dist))):
+            unit_vec = parallel_vec / dist
+
+            candidate_r = (np.round(start_point + perp_vec + unit_vec * c)).astype(int)
+            candidate_l = (np.round(start_point - perp_vec + unit_vec * c)).astype(int)
+
+            if candidate_r[0] not in range(self.scale_x) or candidate_r[1] not in range(self.scale_y) or self.map[candidate_r[0]][candidate_r[1]]:
+                new_waypt = (np.round(start_point - perp_vec * distance_frac + unit_vec * c)).astype(int)
+                found_obstacle = True
+                break
+
+            if candidate_l[0] not in range(self.scale_x) or candidate_l[1] not in range(self.scale_y) or self.map[candidate_l[0]][candidate_l[1]]:
+                new_waypt = (np.round(start_point + perp_vec * distance_frac + unit_vec * c)).astype(int)
+                found_obstacle = True
+                break
+
+        if found_obstacle:
+            padded_path = np.insert(padded_path, 1, new_waypt, 0)
+            return self.clear_path_to_first_waypoint(padded_path, distance_frac)
+
+        else:
+            return padded_path
+
+
     def get_path(self, weight=5):
         """
         Repeatedly run A* on the updated rover pose and map to continually redetermine the optimal path.
         Called on a clock initialised in the add_destination method
-
-        NOTE: Will the map object be updated elsewhere? Or do we need to update it here?
         """
         # updating present coords with most recent rover pose
         if not self.controller:
@@ -309,6 +358,8 @@ class PathPlanner(Node):
         self.route = self.stringPull(self.route)
 
         self.route = self.pad_corners(self.route)
+
+        self.route = self.clear_path_to_first_waypoint(self.route, 1.0)
 
         route_coordinates = self.get_local_coords_route(self.route)
 
