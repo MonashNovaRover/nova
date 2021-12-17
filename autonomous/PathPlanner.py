@@ -2,12 +2,9 @@
 import numpy as np
 import time
 from queue import PriorityQueue
-import rclpy
-from controller_params import *
+from autonomous.utils.controller_params import *
 from rclpy.node import Node
-import Grid3D
 from core.msg import Waypoint
-from os.path import expanduser
 
 """
 Author: Aidan Pritchard and Liam Whittle

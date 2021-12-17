@@ -26,21 +26,15 @@ TODO:
  - a lot 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
-import open3d.cpu.pybind.visualization
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import PointCloud2
-import cloud_point2 as pc2
-import open3d as o3d
-import time
-import numpy as np
+from autonomous.utils import cloud_point2 as pc2, transform
 from sensor_msgs.msg import PointField
 from open3d import *
-import matplotlib.pyplot as plt
 from nav_msgs.msg import Odometry
-import Grid3D
-import transform
 import PCPub
+
 
 class Mapper(Node):
     def __init__(self, grid=None):

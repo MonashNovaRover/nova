@@ -6,16 +6,12 @@ Convert rover as .ply file to pointcloud
 
 import open3d as o3d
 import numpy as np
-import cloud_point2
-from builtin_interfaces.msg import Time
-import time
 import rclpy
 from rclpy.node import Node
-from std_msgs.msg import Header
-from sensor_msgs.msg import PointCloud2, PointField as PF
 from nav_msgs.msg import Odometry
 import PCPub
-import transform
+from autonomous.utils import transform
+
 
 class RoverCloud(Node):
     def __init__(self, mode="from_file"):
@@ -28,7 +24,7 @@ class RoverCloud(Node):
             self.pc_pub = PCPub.PCPub("rover_cloud")
             
             # import the rover from mesh file
-            mesh = o3d.io.read_triangle_mesh("rover.ply")
+            mesh = o3d.io.read_triangle_mesh("../resources/rover.ply")
             pcd = mesh.sample_points_uniformly(number_of_points=20000)
             pts = np.asarray(pcd.points)
             
@@ -62,7 +58,7 @@ class RoverCloud(Node):
             
             # this is the thing we publish. It should be a set of points where if there is a (0,0,0) translation, the rover is 
             # just sitting on the ground at the origin
-            self.origin_rover_pts = np.load("rover.npy")
+            self.origin_rover_pts = np.load("../resources/rover.npy")
             
             self.subscriber_points = self.create_subscription(Odometry, '/T265/odom/sample', self.callback, 10)
 
