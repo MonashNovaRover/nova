@@ -12,6 +12,8 @@ corner_padding = 0.3    # Radius by which to avoid corners, in m
 
 circle_interpolation_num_points = 4
 
+corner_angle_threshold = 0.1    # minimum angle change (radians) for a point to be considered a corner
+
 min_speed = 2.0   # todo: determiner
 
 max_speed = 7.0  # todo: determine
