@@ -232,14 +232,20 @@ class PathPlanner(Node):
             return turning_points
 
         vectors = [turning_points[i + 1] - turning_points[i] for i in range(len(turning_points) - 1)]
-
-        angles = []
-        for i in range(len(vectors)):
-            angles.append(vector_argument(vectors[i]))
-
-        print("angles: " + str(angles))
+        angles = [vector_argument(vector) for vector in vectors]
         # important for seeing which side of the padding circle we need to drive to if we want to avoid the obstacle
-        angle_changes = [yaw_difference(angles[i], angles[i + 1]) for i in range(len(angles) - 1)]
+        angle_changes = [yaw_difference(angle, angles[i + 1]) for i, angle in enumerate(angles[:-1])]
+        
+        # only including waypoints with a non-trivial angle change
+        new_turning_points = [turning_points[0]]
+        for i, d_ang in enumerate(angle_changes):
+            if abs(d_ang) > corner_angle_threshold:
+                new_turning_points.append(turning_points[i + 1])
+        
+        new_turning_points.append(turning_points[-1])
+
+        if len(new_turning_points) < len(turning_points):
+            return self.pad_corners(new_turning_points)
 
         padded_path = [turning_points[0]]
 
