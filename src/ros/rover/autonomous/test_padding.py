@@ -9,7 +9,7 @@ import rclpy
 
 def generate_obstacles(this_map):
     for i in range(35):
-        this_map[33][20 + i] = 1
+        this_map[30][20 + i] = 1
 
     for i in range(20):
         this_map[48][50 + i] = 1
@@ -53,7 +53,7 @@ if __name__ == "__main__":
 
             A_star_path = planner.aStar(planner.pixel_start, planner.pixel_goal)
             path = planner.stringPull(A_star_path)
-            padded_path = planner.pad_corners(path)
+            padded_path = planner.clear_path_to_first_waypoint(planner.pad_corners(path), 1.0)
 
             route_coordinates = planner.get_local_coords_route(path)
 
