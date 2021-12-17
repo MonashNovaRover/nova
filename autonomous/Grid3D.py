@@ -2,9 +2,8 @@ import numpy as np
 import time
 
 
-class ArrayGrid:
+class Grid3D:
     def __init__(self, length, width, height, resolution):
-
         """
         An array grid is a dense representation of a 3D occupancy grid
         :param length: refers to the x direction in a left handed coordinate system
@@ -26,6 +25,14 @@ class ArrayGrid:
                              int(width / resolution),
                              int(height / resolution),
                              5))
+
+    def get_slices(self, pose_msg, len_down, len_up):
+        """
+        Gets slices from pose - len_down to pose + len_up. Returns a sub-set (by height) of the self.map
+        """
+        upper_index = int((pose_msg.pose.pose.position.z + self.height / 2 + len_up) / self.resolution)
+        lower_index = int((pose_msg.pose.pose.position.z + self.height / 2 - len_down) / self.resolution)
+        return np.sum(self.map[:, :, lower_index:upper_index, 0], axis=2) > 0
 
     def get_indexes(self, points):
         """
@@ -50,7 +57,7 @@ class ArrayGrid:
         """
         Gets the points (bottom left corner of a voxel) corresponding to a set of indexes
         :param indexes: an (n, 3) numpy array of indexes
-        :return: an (n, 3) numpy array of points referred to by those indexes
+        :return: an (n, 3) numpy array of points referred to by those umndexes
         """
         return indexes * self.resolution - np.array([self.length / 2, self.width / 2, self.height / 2])
 
@@ -67,7 +74,6 @@ class ArrayGrid:
 
         # todo: if there's a way to do this efficiently (i.e. without looping) that would probably save a lot of time
         for i in range(len(points)):
-            
             # only add if the translated point-cloud fits within the bounds of the map we have created
             if indexes[i][0] < self.map.shape[0] and indexes[i][1] < self.map.shape[1] and indexes[i][2] < self.map.shape[2]:
                 count = self.map[indexes[i][0], indexes[i][1], indexes[i][2]][0]
@@ -83,14 +89,13 @@ class ArrayGrid:
         """
 
         t = time.time()
-        points = []
-        colors = []
-        for l in range(self.map.shape[0]):
-            for w in range(self.map.shape[1]):
-                for h in range(self.map.shape[2]):
-                    if self.map[l, w, h][0]:
-                        points.append([l, w, h])
-                        colors.append(self.map[l, w, h, 2:])
-        print("looking through map took: " + str(time.time() - t))
 
-        return self.get_points(np.array(points)), np.array(colors)
+        # the indexes (should be an nx3 array)
+        raw_indexes = self.map[:, :, :, 0] > 0
+
+        points = np.array(np.where(raw_indexes)).transpose()
+        colors = np.array(self.map[raw_indexes][:, 2:])
+
+        print("Extracting points from map took: " + str(time.time() - t))
+
+        return self.get_points(np.array(points)), colors

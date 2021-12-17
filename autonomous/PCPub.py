@@ -5,17 +5,14 @@ The class PCPub is meant to be used as an easy to create publisher of PointCloud
 of 3D data in RVIZ in the same global frame.
 """
 
-import open3d as o3d
 import numpy as np
-import cloud_point2
+from utils import cloud_point2
 from builtin_interfaces.msg import Time
 import time
-import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Header
 from sensor_msgs.msg import PointCloud2, PointField as PF
-from nav_msgs.msg import Odometry
-import transform
+
 
 def PointField(name, offset, datatype, count):
     return PF(name=name, offset=offset, datatype=datatype, count=count)

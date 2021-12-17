@@ -26,41 +26,62 @@ TODO:
  - a lot 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
-import open3d.cpu.pybind.visualization
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import PointCloud2
-import cloud_point2 as pc2
-import open3d as o3d
-import time
-import numpy as np
+from utils import cloud_point2 as pc2, transform
 from sensor_msgs.msg import PointField
 from open3d import *
-import matplotlib.pyplot as plt
 from nav_msgs.msg import Odometry
-import ArrayGrid
-import transform
 import PCPub
+from Map2DContainer import Map2DContainer
+from Grid3D import Grid3D
+import matplotlib.pyplot as plt
+import time
 
-class SubscriberNode(Node):
-    def __init__(self):
+
+class Mapper(Node):
+    def __init__(self, map2d, length=8, width=8, height=5, resolution=0.015):
 
         # init node with node name points
         super().__init__('points_grid')
         self.subscriber_tracking = self.create_subscription(Odometry, '/T265/odom/sample', self.tracking_callback, 100)
         
-        self.subscriber_points = self.create_subscription(PointCloud2, '/D400/depth/color/points', self.points_callback, 10)
-        
+        self.subscriber_points = self.create_subscription(PointCloud2, '/D435/depth/color/points', self.points_callback, 10)
+
+        # is_listener attr to be used to be return publisher
+        self.map2d = Map2DContainer(is_publisher=True)
+
         # constants for pruning the point-clouds
         self.max_dist = 3.5
-        # limiting the the field of view to 4 degrees up and down to reduce noisy data points. 0.349066 radians == 20 degrees
+            
+        self.last_msg = None
+
+        # limiting the the field of view to 4 degrees up and down to reduce noisy data points
+        # 0.349066 radians == 20 degrees
         self.max_angle = 0.349066
         
-        self.grid = ArrayGrid.ArrayGrid(8, 8, 5, .05)
+        self.map2d = map2d
+        if not map2d:
+            self.map2d = Map2DContainer(is_ros=False, length=length, width=width)
+
+        self.length = length
+        self.width = width
+        self.height = height
+        self.resolution = resolution
+        self.map3d = Grid3D(self.length, self.width, self.height, self.resolution)
+
         self.msg = None
         
         # for visualising the map
         self.pc_pub = PCPub.PCPub("map_cloud")
+
+        plt.ion()
+        plt.show()
+
+    # use the update from 3d method form Map2D
+    def generate_map2d(self):
+        return self.map2d.update_from_3d()
 
     def get_transform(self):
         return transform.get_pc_transformation(self.msg)
@@ -113,7 +134,8 @@ class SubscriberNode(Node):
         pts = pts[list(range(0, len(pts), 10))]
         
         # 7. further pruning out points which are either beyond the max dist, or are outside the max angle
-        indexes = (self.row_norm(pts) < self.max_dist) & (abs(np.arctan(pts[:,1] / pts[:,0])) < self.max_angle) & (abs(np.arctan(pts[:,2] / pts[:,0])) < self.max_angle) 
+        indexes = (self.row_norm(pts) < self.max_dist) & (abs(np.arctan(pts[:, 1] / pts[:, 0])) < self.max_angle) \
+                  & (abs(np.arctan(pts[:, 2] / pts[:, 0])) < self.max_angle)
         
         pts = pts[indexes]
         colors = colors[indexes]
@@ -131,11 +153,10 @@ class SubscriberNode(Node):
         return np.sum(np.abs(pts) ** 2, axis=-1) ** (1.0 / 2)
     
     def points_callback(self, msg):
+        # update 3D map
         self.msg = self.last_msg
         pts, colors = self.get_points_and_colors(msg)
         
-        print("shape: " + str(pts.shape))
-
         if pts.shape[0] < 10:
             return
 
@@ -144,11 +165,19 @@ class SubscriberNode(Node):
             pts = np.matmul(mat, pts.transpose()).transpose()
             pts = pts + self.get_translation()
         
-
         colors = colors * 255
-        self.grid.add_pc(pts, colors)
-        pts, colors = self.grid.get_as_pc()
+        self.map3d.add_pc(pts, colors)
+        pts, colors = self.map3d.get_as_pc()
         self.pc_pub.pub_pts_colors(pts, colors)
+
+        # update 2D map
+        # ----------------------- WARNING: JANK ----------------------
+        self.map2d.grid = self.map3d.get_slices(self.msg, 0.1, 0.1)
+
+        print(self.map2d.grid.shape)
+        plt.imshow(np.flip(self.map2d.grid, axis=0))
+        plt.draw()
+        plt.pause(0.01)
 
     def tracking_callback(self, msg):
         self.last_msg = msg
@@ -164,7 +193,7 @@ def position_callback(msg):
 
 def main(args=None):
     rclpy.init(args=args)
-    subscriber = SubscriberNode()
+    subscriber = Mapper(None)
     rclpy.spin(subscriber)
     subscriber.destroy_node()
     rclpy.shutdown()

@@ -6,11 +6,8 @@ The benefit of using as many functions like this as possible is that we can bett
 assert the behaviour of functions, compositions of functions, and as a result, entire systems.
 """
 
-import controller_params
+from utils import controller_params
 import math
-
-import numpy as np
-from numpy.linalg import norm
 
 
 class State:
@@ -137,7 +134,7 @@ def crow_fly_target_velocity(current, target):
         return controller_params.max_speed
     # in the case that we have less than 2 meters left, we should drive at speed proportional to distance left 
     speed = ((controller_params.slowdown_distance - dist) / controller_params.slowdown_distance) \
-           * (controller_params.max_speed - controller_params.min_speed) + controller_params.min_speed
+            * (controller_params.max_speed - controller_params.min_speed) + controller_params.min_speed
     assert speed <= controller_params.max_speed
     return controller_params.max_speed
 

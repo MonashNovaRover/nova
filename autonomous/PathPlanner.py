@@ -12,15 +12,14 @@ import rclpy
 from controller_params import *
 from controller_math import *
 
+from utils.controller_params import *
 from rclpy.node import Node
-import ArrayGrid
-from core.msg import Waypoint
-from os.path import expanduser
+from core.msg import Waypoints
+from utils.controller_math import State
+from core.msg import RoverPose
 
 """
-Author: Aidan Pritchard and Liam Whittle
-
-Date last updated: 18/2/2021 by Liam Whittle
+Author: Aidan Pritchard, Max Tory and Liam Whittle
 
 Purpose: To perform A* path planning and string pulling on 2-d grid maps. 
 
@@ -34,22 +33,23 @@ Services:
 
 
 class PathPlanner(Node):
-    def __init__(self, controller, array_grid: ArrayGrid, dest):
+    def __init__(self, dest, map2d):
         super().__init__("path_planner_node")
+        
+        # way-point publisher publishes a bunch of waypoints at once (hence using the 2D map dataype
+        self.waypt_publisher = self.create_publisher(Waypoints, "autonomous/goals", 10)
+        
+        self.pose_subscriber = self.create_subscription(RoverPose, "autonomous/pose", self.update_pose, 10)
 
-        self.waypt_publisher = self.create_publisher(Waypoint, "autonomous/goals", 10)
-
-        # controller that controls autonomous driving and grid that stores the current map
-        self.controller = controller
-        self.array_grid = array_grid
+        self.map2d = map2d
 
         # exhaustive list of class attributes
-        self.x_length_meters = self.array_grid.length
-        self.y_length_meters = self.array_grid.width
+        self.x_length_meters = self.map2d.length
+        self.y_length_meters = self.map2d.width
 
         # x and y dimensions of the map in pixels
-        self.scale_x = self.array_grid.map.shape[0]
-        self.scale_y = self.array_grid.map.shape[1]
+        self.scale_x = self.map2d.grid.shape[0]
+        self.scale_y = self.map2d.grid.shape[1]
 
         # gets 2d array of obstacles
         # self.extract_obstacle_map(10)
@@ -57,23 +57,34 @@ class PathPlanner(Node):
         # in case we want to test path planning without a controller
         if controller:
             self.start = (self.controller.state.x, self.controller.state.y)
+        self.state = State()
+        
+        self.start = (self.state.x, self.state.y)
         self.goal = (dest[0], dest[1])
 
         self.route = []
+        
+        # create empty state
 
         # running A* every second to re-evaluate
+        # calculations
+        self.scale(self.scale_x, self.scale_y)
+
+        # re running A* every second to re-evaluate
         self.timer = self.create_timer(a_star_rate, self.get_path)
 
-    def extract_obstacle_map(self, layers: int):
+    def update_pose(self, msg): 
+        """ 
+        Callback function that updates the current pose of the rover from data in the auto_command_pose_updates topic
         """
-        Extracts an obstacle map by adding the bottom layers of the map
-        """
+        self.state.x = msg.x
+        self.state.y = msg.y
+        self.state.yaw = msg.yaw
+        self.state.velocity = msg.velocity
+        self.state.angular_velocity = msg.angular_velocity
 
-        self.map = self.array_grid.map[:,:,0,0]
-        for i in range(1, layers):
-            self.map += self.array_grid.map[:,:,i,0]
-
-        print(self.map)
+    def recieve_map2d(self):
+        return self.map2d.receive_map()
 
     def scale(self):
         """
@@ -82,13 +93,18 @@ class PathPlanner(Node):
         """ 
         self.pixel_goal = (int(self.goal[0] * self.scale_x / self.x_length_meters), int(self.goal[1] * self.scale_y/self.y_length_meters))
 
-        #(self.scale_x - int(float(self.goal[0]) * (float(scale_x) / self.x_length_meters)), int(float(self.goal[1]) * (float(scale_y) / self.y_length_meters)))
+        # (self.scale_x - int(float(self.goal[0]) * (float(scale_x) / self.x_length_meters)),
+        # int(float(self.goal[1]) * (float(scale_y) / self.y_length_meters)))
 
         self.pixel_start = (int(self.start[0] * self.scale_x / self.x_length_meters), int(self.start[1] * self.scale_y/self.y_length_meters))
         
-        #(self.scale_x - int(float(self.start[0]) * (float(scale_x) / self.x_length_meters)), (int(float(self.start[1]) * (float(scale_y) / self.y_length_meters))))
+        # (self.scale_x - int(float(self.start[0]) * (float(scale_x) / self.x_length_meters)),
+        # (int(float(self.start[1]) * (float(scale_y) / self.y_length_meters))))
         
         print("Navigating from pixel coordinates (%d, %d) to (%d, %d)" % (self.pixel_start[0], self.pixel_start[1], self.pixel_goal[0], self.pixel_goal[1]))
+        print("Navigating from array-map-grid coordinates (%d, %d) to (%d, %d)" % (self.pixel_start[0], self.pixel_start[1], self.pixel_goal[0], self.pixel_goal[1]))
+        
+        return scale_x, scale_y
 
     @staticmethod
     def heuristic(a, b, heuristic_type="euclidean"):
@@ -130,7 +146,6 @@ class PathPlanner(Node):
         while not min_queue.empty():
             expand = min_queue.get()[1]
             closed_set.append(expand)
-
             # goal check - necessary to test at goal given lack of consistent heuristic
             if expand == goal:
                 break
@@ -203,6 +218,18 @@ class PathPlanner(Node):
                     candidate_y = int(np.round(pruned_list[-1][1] + c * unit_y))
                     if self.map[candidate_x][candidate_y]:
                         obstacle = np.array((candidate_x, candidate_y))
+            obstacle = False
+            j = i + 1
+            while j < len(raw_points):
+                # question: would a straight line between r1[i] and r1[j] be obstructed?
+                dist = self.heuristic(raw_points[i], raw_points[j], heuristic_type="straight_line")
+                for c in range(0, int(np.ceil(dist))):
+                    unit_x = (raw_points[j][0] - raw_points[i][0]) / dist
+                    unit_y = (raw_points[j][1] - raw_points[i][1]) / dist
+                    candidate_x = int(raw_points[i][0] + c * unit_x)
+                    candidate_y = int(raw_points[i][1] + c * unit_y)
+                    if self.map2d[candidate_x][candidate_y]:
+                        obstacle = True
                         break
 
 
@@ -347,6 +374,9 @@ class PathPlanner(Node):
             return padded_path
 
 
+        # self.route = self.stringPull(self.map.numArr3, self.route)
+        return self.route
+
     def get_path(self, weight=5):
         """
         Repeatedly run A* on the updated rover pose and map to continually redetermine the optimal path.
@@ -358,6 +388,7 @@ class PathPlanner(Node):
 
         self.start = (self.controller.state.x, self.controller.state.y)
         self.scale()
+        self.start = (self.state.x, self.state.y)
 
         print("Running A*")
         print("start: " + str(self.pixel_start))
@@ -384,6 +415,9 @@ class PathPlanner(Node):
 
             print("publishing waypoint!")
             self.waypt_publisher.publish(waypoint)
+        route_coordinates = self.get_local_coords_route()
+        
+        self.waypt_publisher(route_coordinates)
 
         print("route has " + str(len(route_coordinates)) + " points")
 
