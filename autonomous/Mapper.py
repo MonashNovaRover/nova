@@ -29,11 +29,13 @@ TODO:
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import PointCloud2
-from autonomous.utils import cloud_point2 as pc2, transform
+from utils import cloud_point2 as pc2, transform
 from sensor_msgs.msg import PointField
 from open3d import *
 from nav_msgs.msg import Odometry
 import PCPub
+from Map2DContainer import Map2DContainer
+from Grid3D import Grid3D
 
 
 class Mapper(Node):
@@ -43,17 +45,20 @@ class Mapper(Node):
         super().__init__('points_grid')
         self.subscriber_tracking = self.create_subscription(Odometry, '/T265/odom/sample', self.tracking_callback, 100)
         
-        self.subscriber_points = self.create_subscription(PointCloud2, '/D435/depth/color/points', self.points_callback, 10)
+        self.subscriber_points = self.create_subscription(PointCloud2, '/D400/depth/color/points', self.points_callback, 10)
 
-        #is_listener attr to be used to be return publisher
-        self.map2d = Map2D(publisher)
+        # is_listener attr to be used to be return publisher
+        self.map2d = Map2DContainer(is_publisher=True)
+
         # constants for pruning the point-clouds
         self.max_dist = 3.5
-        # limiting the the field of view to 4 degrees up and down to reduce noisy data points. 0.349066 radians == 20 degrees
+
+        # limiting the the field of view to 4 degrees up and down to reduce noisy data points
+        # 0.349066 radians == 20 degrees
         self.max_angle = 0.349066
         
         if not grid:
-            self.grid = ArrayGrid.ArrayGrid(8, 8, 5, .05)
+            self.grid = Grid3D(8, 8, 5, .015)
         else:
             self.grid = grid
 
@@ -62,8 +67,7 @@ class Mapper(Node):
         # for visualising the map
         self.pc_pub = PCPub.PCPub("map_cloud")
 
-
-#use the update from 3d method form Map2D
+    # use the update from 3d method form Map2D
     def generate_map2d(self):
         return self.map2d.update_from_3d()
 
@@ -118,7 +122,8 @@ class Mapper(Node):
         pts = pts[list(range(0, len(pts), 10))]
         
         # 7. further pruning out points which are either beyond the max dist, or are outside the max angle
-        indexes = (self.row_norm(pts) < self.max_dist) & (abs(np.arctan(pts[:,1] / pts[:,0])) < self.max_angle) & (abs(np.arctan(pts[:,2] / pts[:,0])) < self.max_angle) 
+        indexes = (self.row_norm(pts) < self.max_dist) & (abs(np.arctan(pts[:, 1] / pts[:, 0])) < self.max_angle) \
+                  & (abs(np.arctan(pts[:, 2] / pts[:, 0])) < self.max_angle)
         
         pts = pts[indexes]
         colors = colors[indexes]
@@ -149,7 +154,6 @@ class Mapper(Node):
             pts = np.matmul(mat, pts.transpose()).transpose()
             pts = pts + self.get_translation()
         
-
         colors = colors * 255
         self.grid.add_pc(pts, colors)
         pts, colors = self.grid.get_as_pc()

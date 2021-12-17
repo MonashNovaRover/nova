@@ -2,9 +2,8 @@ import numpy as np
 import time
 
 
-class ArrayGrid:
+class Grid3D:
     def __init__(self, length, width, height, resolution):
-
         """
         An array grid is a dense representation of a 3D occupancy grid
         :param length: refers to the x direction in a left handed coordinate system
@@ -67,7 +66,6 @@ class ArrayGrid:
 
         # todo: if there's a way to do this efficiently (i.e. without looping) that would probably save a lot of time
         for i in range(len(points)):
-            
             # only add if the translated point-cloud fits within the bounds of the map we have created
             if indexes[i][0] < self.map.shape[0] and indexes[i][1] < self.map.shape[1] and indexes[i][2] < self.map.shape[2]:
                 count = self.map[indexes[i][0], indexes[i][1], indexes[i][2]][0]
@@ -83,14 +81,16 @@ class ArrayGrid:
         """
 
         t = time.time()
-        points = []
-        colors = []
-        for l in range(self.map.shape[0]):
-            for w in range(self.map.shape[1]):
-                for h in range(self.map.shape[2]):
-                    if self.map[l, w, h][0]:
-                        points.append([l, w, h])
-                        colors.append(self.map[l, w, h, 2:])
-        print("looking through map took: " + str(time.time() - t))
 
-        return self.get_points(np.array(points)), np.array(colors)
+        # the indexes (should be an nx3 array)
+        raw_indexes = self.map[:, :, :, 0] > 0
+
+        points = np.array(np.where(raw_indexes)).transpose()
+        colors = np.array(self.map[raw_indexes][:, 2:])
+
+        print("dim colors: " + str(colors.shape))
+        print("dim points: " + str(points.shape))
+
+        print("Extracting points from map took: " + str(time.time() - t))
+
+        return self.get_points(np.array(points)), colors

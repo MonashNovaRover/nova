@@ -6,7 +6,7 @@ of 3D data in RVIZ in the same global frame.
 """
 
 import numpy as np
-from autonomous.utils import cloud_point2
+from utils import cloud_point2
 from builtin_interfaces.msg import Time
 import time
 from rclpy.node import Node
