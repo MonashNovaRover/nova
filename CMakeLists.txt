@@ -44,7 +44,7 @@ install(DIRECTORY
 
 # Add all Python executables to this list
 install(PROGRAMS
-  # electronics/todo.py
+  electronics/GPS_test.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
