@@ -12,6 +12,7 @@ class SubscriberNode(Node):
         super().__init__('tracking')
         self.subscriber_points = self.create_subscription(Odometry, '/T265/odom/sample', self.callback, 10)
 
+
     def callback(self, msg):
 
         mesh = o3d.geometry.TriangleMesh.create_coordinate_frame()

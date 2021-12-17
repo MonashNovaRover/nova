@@ -28,10 +28,11 @@ EDITED:         07/12/2021
 import rclpy
 from time import sleep
 from rclpy.node import Node
-from controller_math import *
-from controller_params import *
-from core.msg import DriveCmd, RoverPose, Waypoint
+from utils.controller_math import *
+from utils.controller_params import *
+from core.msg import DriveInput, RoverPose, Waypoints
 import sys
+from vis import path_vis
 
 """
 TODO: update led according to distance?
@@ -55,13 +56,15 @@ class Controller(Node):
         self.target_waypoint = None
         self.previously_turned = False
         self.max_distance = 0.0001      # furthest distance to an object? not sure
+        
+        self.path_cloud = path_vis.PathCloud()
 
-        self.drive_cmd_publisher = self.create_publisher(DriveCmd, "auto_drive_commands", 10)
+        self.drive_cmd_publisher = self.create_publisher(DriveInput, "auto_drive_commands", 10)
         self.pose_subscriber = self.create_subscription(RoverPose, "autonomous/pose", self.update_pose, 10)
-        self.waypt_subscriber = self.create_subscription(Waypoint, "autonomous/goals", self.add_waypoint, 10)
+        self.waypt_subscriber = self.create_subscription(Waypoints, "autonomous/goals", self.add_waypoints, 10)
 
         # Controls the rate at which drive commands are sent - sleeps for the necessary time to maintain the rate given
-        self.timer = self.create_timer(controller_ros_rate, self.control)
+        self.timer = self.create_timer(0.1, self.control)
 
     def update_pose(self, msg):
         """
@@ -73,11 +76,11 @@ class Controller(Node):
         self.state.velocity = msg.velocity
         self.state.angular_velocity = msg.angular_velocity
 
-    def add_waypoint(self, msg):
+    def add_waypoints(self, msg):
         """
         Callback that appends the x-y position of a waypoint to the waypoints list
         """
-        self.waypoints.append([msg.x, msg.y])
+        self.waypoints = [[point.x, point.y] for point in msg.waypoints]
 
     def __publish(self, drive_fraction, angular_fraction):
         """
@@ -87,7 +90,7 @@ class Controller(Node):
         """
 
         # construct message to publish
-        drive_cmd_msg = DriveCmd()
+        drive_cmd_msg = DriveInput()
 
         drive_cmd_msg.speed = drive_fraction
 
@@ -102,13 +105,6 @@ class Controller(Node):
         sys.stdout.write("\r" + "Action: " + action_msg.ljust(pad) + " | heading to: " + str(heading_to).ljust(pad)
                           + " | yaw diff: " + str(round(yaw_diff, 4)).ljust(pad) + " | distance: " + str(round(dist, 4)).ljust(pad))
         sys.stdout.flush()
-
-    def clear_waypoints(self):
-        """
-        empties the waypoints list - prevents further coordinates from being travelled to and allows path planning to be reset
-        """
-        self.waypoints = []
-        self.target_waypoint = None
 
     def go_to_target(self):
         """
@@ -147,6 +143,7 @@ class Controller(Node):
         Called once every tick by the node's timer. Identifies the next target waypoint
         and calls navigate_to_waypoint, and determines when the rover has arrived
         """
+        print("controling")
         if self.target_waypoint == None:
             # There is currently no target - take the first waypoint on the list
             if self.waypoints:
@@ -155,8 +152,11 @@ class Controller(Node):
                 return
 
         if distance((self.state.x, self.state.y), self.target_waypoint) >= min_waypoint_distance:
+            print("going to target")
             # we have not yet arrived at the waypoint
             self.go_to_target()
+            # showing where we are aiming to drive to
+            self.path_cloud.publish_path(self.waypoints) 
         
         else:
             # If distance to the waypoint is lower than the threshold distance, we have arrived
@@ -165,7 +165,7 @@ class Controller(Node):
             
             for _ in range(5):
                 # stop for 5 seconds at waypoint
-                self.publish(0.0, 0.0)
+                self.__publish(0.0, 0.0)
                 sleep(1)
 
 
