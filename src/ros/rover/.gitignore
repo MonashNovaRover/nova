@@ -38,6 +38,7 @@ srv/_*.py
 qtcreator-*
 *.user
 tests*
+*.png
 *.tar
 
 /planning/cfg
