@@ -45,6 +45,7 @@ install(DIRECTORY
 # Add all Python executables to this list
 install(PROGRAMS
   electronics/GPS_test.py
+  electronics/radio_monitor.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
