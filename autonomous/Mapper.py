@@ -47,7 +47,7 @@ class Mapper(Node):
         super().__init__('points_grid')
         self.subscriber_tracking = self.create_subscription(Odometry, '/T265/odom/sample', self.tracking_callback, 100)
         
-        self.subscriber_points = self.create_subscription(PointCloud2, '/D435/depth/color/points', self.points_callback, 10)
+        self.subscriber_points = self.create_subscription(PointCloud2, '/D400/depth/color/points', self.points_callback, 10)
 
         # is_listener attr to be used to be return publisher
         self.map2d = Map2DContainer(is_publisher=True)
@@ -173,7 +173,8 @@ class Mapper(Node):
         # update 2D map
         # ----------------------- WARNING: JANK ----------------------
         self.map2d.grid = self.map3d.get_slices(self.msg, 0.1, 0.1)
-
+        
+        print("updated map")
         print(self.map2d.grid.shape)
         plt.imshow(np.flip(self.map2d.grid, axis=0))
         plt.draw()

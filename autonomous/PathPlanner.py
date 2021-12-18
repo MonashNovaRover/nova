@@ -84,6 +84,9 @@ class PathPlanner(Node):
     def aStar(self, start, goal, weight=5, version="octile"):
         start = self.get_grid_coord(self.start)
         goal = self.get_grid_coord(self.goal)
+        
+        print("map len: " + str(len(self.map2d.grid)))
+        print("map width: " + str(len(self.map2d.grid[0])))
 
         print(start)
         t = time.time()
@@ -353,11 +356,10 @@ class PathPlanner(Node):
             waypoint = Waypoint()
             waypoint.x = wpt[0]
             waypoint.y = wpt[1]
+            
+            if (not math.isnan(waypoint.x)) and (not math.isnan(waypoint.y)):
+                waypoints.waypoints.append(waypoint)
 
-            waypoints.waypoints.append(waypoint)
-
-        print("publishing waypoint!")
+        print("publishing waypoints: " + str(waypoints))
         self.waypt_publisher.publish(waypoints)
-
-        print("route has " + str(len(route_coordinates)) + " points")
 
