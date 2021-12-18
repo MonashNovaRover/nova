@@ -8,7 +8,7 @@ assert the behaviour of functions, compositions of functions, and as a result, e
 
 from utils import controller_params
 import math
-
+import numpy as np
 
 class State:
     """

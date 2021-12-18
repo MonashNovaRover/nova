@@ -38,7 +38,7 @@ from Map2DContainer import Map2DContainer
 from Grid3D import Grid3D
 import matplotlib.pyplot as plt
 import time
-
+import numpy as np
 
 class Mapper(Node):
     def __init__(self, map2d, length=8, width=8, height=5, resolution=0.015):
