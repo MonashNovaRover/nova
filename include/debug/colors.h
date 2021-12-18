@@ -18,3 +18,4 @@ EDITED:		17/12/2021
 #define C_FAIL      "\033[1;31m"
 #define C_TITLE     "\033[1;34m"
 #define C_INPUT     "\033[;33m"
+#define C_MODE      "\033[;35m"
