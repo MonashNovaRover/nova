@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 from PathPlanner import PathPlanner
-from Controller import Controller
 from Map2DContainer import Map2DContainer
 import rclpy
 from Mapper import Mapper

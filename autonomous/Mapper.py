@@ -40,6 +40,8 @@ import matplotlib.pyplot as plt
 import time
 import numpy as np
 
+plot = False
+
 class Mapper(Node):
     def __init__(self, map2d, length=8, width=8, height=5, resolution=0.015):
 
@@ -76,8 +78,9 @@ class Mapper(Node):
         # for visualising the map
         self.pc_pub = PCPub.PCPub("map_cloud")
 
-        plt.ion()
-        plt.show()
+        if plot:
+            plt.ion()
+            plt.show()
 
     # use the update from 3d method form Map2D
     def generate_map2d(self):
@@ -176,9 +179,11 @@ class Mapper(Node):
         
         print("updated map")
         print(self.map2d.grid.shape)
-        plt.imshow(np.flip(self.map2d.grid, axis=0))
-        plt.draw()
-        plt.pause(0.01)
+
+        if plot:
+            plt.imshow(np.flip(self.map2d.grid, axis=0))
+            plt.draw()
+            plt.pause(0.01)
 
     def tracking_callback(self, msg):
         self.last_msg = msg
