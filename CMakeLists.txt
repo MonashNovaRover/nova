@@ -23,7 +23,10 @@ include_directories(
 
 # Find and include all dependencies
 find_package(ament_cmake REQUIRED)
+find_package(ament_cmake_python REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(rclpy REQUIRED)
+
 find_package(core REQUIRED)
 include_directories(./include/)
 
@@ -37,29 +40,72 @@ if (NOT TARGET socketcan)
   add_library(socketcan SHARED include/socketcan/socketcan_cpp.cpp)
 endif()
 
+
+
+
+
+################################################
 # Add executables:
+################################################
 
 # Inputs script
 add_executable(inputs src/inputs/inputs_publisher.cpp src/inputs/joystick.cpp 
-  src/inputs/joystick_gamepad.cpp src/inputs/joystick_thrustmaster.cpp 
-  ${PROJECT_SOURCE_DIR}/include/gamepad/gamepad.c)
+  src/inputs/joystick_gamepad.cpp 
+  src/inputs/joystick_thrustmaster.cpp 
+  ${PROJECT_SOURCE_DIR}/include/gamepad/gamepad.c
+  ${PROJECT_SOURCE_DIR}/include/debug/print.cpp)
 target_link_libraries(inputs gamepad udev ${catkin_LIBRARIES})
 ament_target_dependencies(inputs rclcpp core)
 
 # Drive Command script
-add_executable(drive_cmd src/drive/drive_publisher.cpp)
-ament_target_dependencies(drive_cmd rclcpp core)
+add_executable(drive_inputs src/drive/drive_inputs.cpp
+  ${PROJECT_SOURCE_DIR}/include/debug/print.cpp)
+ament_target_dependencies(drive_inputs rclcpp core)
 
 # Drive Receiver script
-add_executable(driver src/drive/drive_subscriber.cpp src/drive/wheel.cpp src/cmd/cmd.cpp ${PROJECT_SOURCE_DIR}/include/socketcan/socketcan_cpp.cpp)
+add_executable(driver src/drive/driver.cpp 
+  src/drive/wheel.cpp src/cmd/cmd.cpp 
+  ${PROJECT_SOURCE_DIR}/include/socketcan/socketcan_cpp.cpp 
+  ${PROJECT_SOURCE_DIR}/include/debug/print.cpp)
 ament_target_dependencies(driver rclcpp core)
 
+# Arm Publisher script
+add_executable(arm_inputs src/arm/arm_inputs.cpp
+  ${PROJECT_SOURCE_DIR}/include/debug/print.cpp)
+ament_target_dependencies(arm_inputs rclcpp core)
+
+# Arm Driver script
+add_executable(arm_driver src/arm/arm_driver.cpp 
+  src/arm/joint.cpp 
+  src/cmd/cmd.cpp
+  ${PROJECT_SOURCE_DIR}/include/socketcan/socketcan_cpp.cpp
+  ${PROJECT_SOURCE_DIR}/include/debug/print.cpp)
+ament_target_dependencies(arm_driver rclcpp core)
+
+
+
+################################################
+# Add Installations
+################################################
 
 # Add all the installation targets
 install(TARGETS
   inputs
-  drive_cmd
+  drive_inputs
   driver
+  arm_inputs
+  arm_driver
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+# Add all the installation directories
+install(DIRECTORY
+  launch
+  DESTINATION share/${PROJECT_NAME}
+)
+
+# Add all Python executables to this list
+install(PROGRAMS
   DESTINATION lib/${PROJECT_NAME}
 )
 

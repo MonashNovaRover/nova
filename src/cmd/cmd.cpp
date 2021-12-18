@@ -9,6 +9,7 @@ AUTHOR(S):	Harrison Verrios, Josh Cherubino
 
 // Include the header file
 #include "cmd.h"
+#include "debug/print.h"
 
 
 CMD::CMD (const int bus, const int id) {
@@ -18,9 +19,20 @@ CMD::CMD (const int bus, const int id) {
     this->id = id;
 
     // Set up the CAN interface with the correct bus
-    this->can_socket.open(
+    scpp::SocketCanStatus status = this->can_socket.open(
         (bus == 0) ? "can0" : "can1"
     );
+
+    // Check for status
+    switch (status) {
+        case scpp::STATUS_OK:
+            Print::print("Initialised CAN device successfully.", C_SUCCESS); 
+            break;
+        default:
+            if (bus == 0)   Print::print("Error: can0 has not been initialized.", C_FAIL);
+            else            Print::print("Error: can1 has not been initialized.", C_FAIL);
+            break;
+    }
 }
 
 
@@ -98,4 +110,28 @@ void CMD::set_pid (float speed) {
 
     // Write the frame
     this->can_socket.write(frame);
+}
+
+void CMD::set_linear_actuator (float value){
+    int actuation = 0;
+    if (value < 0){
+        actuation = 2;
+    }
+    else if (value > 0){
+        actuation = 1;
+    }
+
+    // Creates a new CAN frame
+    scpp::CanFrame frame;
+    frame.id = (this->id << 4) | CMDCommand::ACTUATOR;
+    frame.len = 2;
+
+    // Order data in big-endian order (MSB first)
+    frame.data[0] = actuation >> 8;
+    frame.data[1] = actuation & 0xFF;
+
+    // Write the frame
+    this->can_socket.write(frame);
+
+
 }
