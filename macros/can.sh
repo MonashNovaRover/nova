@@ -111,7 +111,7 @@ then
     then
 
         # Create the CAN link
-        sudo ip link set $can type can bitrate $bitrate dbitrate 2000000 berr-reporting on fd on 
+        sudo ip link set $can type can bitrate $bitrate berr-reporting on 
         sudo ip link set up $can
 
     # If turning off CAN
