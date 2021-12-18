@@ -16,12 +16,13 @@ void DriveVelocity::velocity_callback (const core::msg::DriveVel::SharedPtr msg)
     // Create the message
     auto message = core::msg::DriveInput();
 
-    message.speed = .5 * msg->linear_vel / (conversion_factor / 60.0 * 0.785398 * 0.95);
-    message.steer = .5 * msg->angular_vel * steer_factor;
+    message.speed = .5 * msg->linear_vel / (CONVERSION_FACTOR / 60.0 * 0.785398 * 0.95) / 100.0;
+    message.steer = .5 * msg->angular_vel * STEER_FACTOR;
 
     // Publish the drive commands
     publisher->publish(message);
 
+}
 
 // Main constructor that sets up the node
 DriveVelocity::DriveVelocity() 
@@ -34,6 +35,7 @@ DriveVelocity::DriveVelocity()
     subscription = this->create_subscription<core::msg::DriveVel>(
         "/autonomous/drive_velocity", 10, std::bind(&DriveVelocity::velocity_callback, this, _1));
 
+}
 
 //  Main function called when the script execution begins
 int main(int argc, char **argv)
