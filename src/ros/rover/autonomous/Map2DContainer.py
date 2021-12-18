@@ -5,7 +5,7 @@ import numpy as np
 
 
 class Map2DContainer(Node):
-    def __init__(self, is_publisher=False, is_ros=False, length=None, width=None):
+    def __init__(self, is_publisher=False, is_ros=False, length=None, width=None, resolution=None):
         """
         is_publisher == True => this is being created by the Map3D
 
@@ -23,6 +23,7 @@ class Map2DContainer(Node):
         
         self.length = length
         self.width = width
+        self.resolution = resolution
 
         if is_ros:
             if not self.is_publisher:

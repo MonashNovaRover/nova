@@ -10,7 +10,6 @@ from utils import controller_params
 import math
 import numpy as np
 
-
 class State:
     """
     Represents a state
