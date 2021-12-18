@@ -109,12 +109,9 @@ def vector_argument(vector):
     """
     Returns the argument of a vector as an angle from -pi to pi
     """
-    vector_argument = np.arctan(vector[1] / vector[0])
 
-    if vector[0] < 0:
-        vector_argument -= np.pi * np.sign(vector[1])
+    return np.arctan2(vector[1], vector[0])
 
-    return vector_argument
 
 
 def distance(current, target):
