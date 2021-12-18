@@ -62,6 +62,11 @@ add_executable(drive_inputs src/drive/drive_inputs.cpp
   ${PROJECT_SOURCE_DIR}/include/debug/print.cpp)
 ament_target_dependencies(drive_inputs rclcpp core)
 
+# Drive Velocity script
+add_executable(drive_velocity src/drive/vel_convert.cpp
+  ${PROJECT_SOURCE_DIR}/include/debug/print.cpp)
+ament_target_dependencies(drive_velocity rclcpp core)
+
 # Drive Receiver script
 add_executable(driver src/drive/driver.cpp 
   src/drive/wheel.cpp src/cmd/cmd.cpp 
@@ -95,6 +100,7 @@ install(TARGETS
   driver
   arm_inputs
   arm_driver
+  drive_velocity
   DESTINATION lib/${PROJECT_NAME}
 )
 
