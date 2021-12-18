@@ -33,6 +33,7 @@ from utils.controller_params import *
 from core.msg import DriveInput, RoverPose, Waypoints
 import sys
 from vis import path_vis
+import numpy as np
 
 """
 TODO: update led according to distance?

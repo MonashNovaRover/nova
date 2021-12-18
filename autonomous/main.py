@@ -29,12 +29,13 @@ def main(args):
         
         length = 8
         width = 8
-        
+        resolution = 0.015
+
         # in this janky night-before-mvp we will be creating a map2d object which is shared by planner and mapper.
         # Mapper updates it, planner just reads from it.
-        map2d = Map2DContainer(length=length, width=width)
+        map2d = Map2DContainer(length=length, width=width, resolution=resolution)
         planner = PathPlanner(dest, map2d)
-        mapper = Mapper(map2d, length=length, width=width)
+        mapper = Mapper(map2d, length=length, width=width, resolution=resolution)
 
         # This allows us to spin both nodes from main.py - we are kind of misusing ros nodes here but oh well it works
         executor = rclpy.executors.MultiThreadedExecutor()
