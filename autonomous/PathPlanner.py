@@ -1,22 +1,15 @@
 #!/usr/bin/env python3
-from types import prepare_class
-from typing import ContextManager
 import numpy as np
 import time
 from queue import PriorityQueue
 
-from numpy.lib.function_base import _angle_dispatcher, angle
-from numpy.testing._private.utils import clear_and_catch_warnings
 import rclpy
 ## NOTE should probably call these something else since they are not only used by controller
 from utils.controller_params import *
 from utils.controller_math import *
 
-from utils.controller_params import *
 from rclpy.node import Node
-from core.msg import Waypoints
-from utils.controller_math import State
-from core.msg import RoverPose
+from core.msg import Waypoints, Waypoint, RoverPose
 
 """
 Author: Aidan Pritchard, Max Tory and Liam Whittle
@@ -57,7 +50,7 @@ class PathPlanner(Node):
         # in case we want to test path planning without a controller
         self.state = State()
         
-        self.start = (self.state.x, self.state.y)
+        self.start = ((self.state.x, self.state.y))
         self.goal = (dest[0], dest[1])
 
         self.route = []
@@ -66,7 +59,7 @@ class PathPlanner(Node):
 
         # running A* every second to re-evaluate
         # calculations
-        self.scale(self.scale_x, self.scale_y)
+        self.scale()
 
         # re running A* every second to re-evaluate
         self.timer = self.create_timer(a_star_rate, self.get_path)
@@ -91,18 +84,13 @@ class PathPlanner(Node):
         """ 
         self.pixel_goal = (int(self.goal[0] * self.scale_x / self.x_length_meters), int(self.goal[1] * self.scale_y/self.y_length_meters))
 
-        # (self.scale_x - int(float(self.goal[0]) * (float(scale_x) / self.x_length_meters)),
-        # int(float(self.goal[1]) * (float(scale_y) / self.y_length_meters)))
+        #(self.scale_x - int(float(self.goal[0]) * (float(scale_x) / self.x_length_meters)), int(float(self.goal[1]) * (float(scale_y) / self.y_length_meters)))
 
         self.pixel_start = (int(self.start[0] * self.scale_x / self.x_length_meters), int(self.start[1] * self.scale_y/self.y_length_meters))
         
-        # (self.scale_x - int(float(self.start[0]) * (float(scale_x) / self.x_length_meters)),
-        # (int(float(self.start[1]) * (float(scale_y) / self.y_length_meters))))
+        #(self.scale_x - int(float(self.start[0]) * (float(scale_x) / self.x_length_meters)), (int(float(self.start[1]) * (float(scale_y) / self.y_length_meters))))
         
         print("Navigating from pixel coordinates (%d, %d) to (%d, %d)" % (self.pixel_start[0], self.pixel_start[1], self.pixel_goal[0], self.pixel_goal[1]))
-        print("Navigating from array-map-grid coordinates (%d, %d) to (%d, %d)" % (self.pixel_start[0], self.pixel_start[1], self.pixel_goal[0], self.pixel_goal[1]))
-        
-        return scale_x, scale_y
 
     @staticmethod
     def heuristic(a, b, heuristic_type="euclidean"):
@@ -208,6 +196,7 @@ class PathPlanner(Node):
                 # NOTE: danger! we only start looking for obstacles outside the "padding" radius
                 # from the last obstacle. On spiky / noisy maps this may be a bad assumption!
                 for c in range(safety_radius, int(np.ceil(dist) * 2)):
+                    # checking every .5 units to reduce chance of missing obstacles
                     unit_x = 0.5 * (raw_points[i][0] - pruned_list[-1][0]) / dist
                     unit_y = 0.5 * (raw_points[i][1] - pruned_list[-1][1]) / dist
 
@@ -216,20 +205,7 @@ class PathPlanner(Node):
                     candidate_y = int(np.round(pruned_list[-1][1] + c * unit_y))
                     if self.map[candidate_x][candidate_y]:
                         obstacle = np.array((candidate_x, candidate_y))
-            obstacle = False
-            j = i + 1
-            while j < len(raw_points):
-                # question: would a straight line between r1[i] and r1[j] be obstructed?
-                dist = self.heuristic(raw_points[i], raw_points[j], heuristic_type="straight_line")
-                for c in range(0, int(np.ceil(dist))):
-                    unit_x = (raw_points[j][0] - raw_points[i][0]) / dist
-                    unit_y = (raw_points[j][1] - raw_points[i][1]) / dist
-                    candidate_x = int(raw_points[i][0] + c * unit_x)
-                    candidate_y = int(raw_points[i][1] + c * unit_y)
-                    if self.map2d[candidate_x][candidate_y]:
-                        obstacle = True
                         break
-
 
             if obstacle is not None:
                 if time.time() - t > 5:
@@ -372,21 +348,14 @@ class PathPlanner(Node):
             return padded_path
 
 
-        # self.route = self.stringPull(self.map.numArr3, self.route)
-        return self.route
-
     def get_path(self, weight=5):
         """
         Repeatedly run A* on the updated rover pose and map to continually redetermine the optimal path.
         Called on a clock initialised in the add_destination method
         """
-        # updating present coords with most recent rover pose
-        if not self.controller:
-            return
 
-        self.start = (self.controller.state.x, self.controller.state.y)
-        self.scale()
         self.start = (self.state.x, self.state.y)
+        self.scale()
 
         print("Running A*")
         print("start: " + str(self.pixel_start))
@@ -402,20 +371,18 @@ class PathPlanner(Node):
 
         route_coordinates = self.get_local_coords_route(self.route)
 
-        # clear all coordinates from the previous path before adding the newly created one
-        self.controller.clear_waypoints()
+        waypoints = Waypoints()
 
         for wpt in route_coordinates:
             # publishing waypoints in order 
-            waypoint = Waypoint()
+            waypoint = Waypoints()
             waypoint.x = wpt[0]
             waypoint.y = wpt[1]
 
-            print("publishing waypoint!")
-            self.waypt_publisher.publish(waypoint)
-        route_coordinates = self.get_local_coords_route()
-        
-        self.waypt_publisher(route_coordinates)
+            waypoints.append(waypoint)
+
+        print("publishing waypoint!")
+        self.waypt_publisher.publish(waypoints)
 
         print("route has " + str(len(route_coordinates)) + " points")
 
