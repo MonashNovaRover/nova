@@ -10,7 +10,12 @@ import rclpy
 from rclpy.node import Node
 from nav_msgs.msg import Odometry
 import PCPub
-from autonomous.utils import transform
+
+import sys
+
+sys.path.append("../autonomous")
+
+from utils import transform
 
 
 class RoverCloud(Node):
