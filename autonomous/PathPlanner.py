@@ -138,8 +138,8 @@ class PathPlanner(Node):
 
             # children
             candidate_children = [(expand[0] + n[0], expand[1] + n[1]) for n in neighbors]
-            candidate_children = [n for n in candidate_children if 0 < n[0] < len(self.map) and 0 < n[1] < len(
-                    self.map[0]) and n not in closed_set and not self.map[n[0]][n[1]]]
+            candidate_children = [n for n in candidate_children if 0 < n[0] < len(self.map2d.grid) and 0 < n[1] < len(
+                    self.map2d.grid[0]) and n not in closed_set and not self.map2d.grid[n[0]][n[1]]]
             for node in candidate_children:
 
                 # lazy evaluation prevents key error
@@ -203,7 +203,7 @@ class PathPlanner(Node):
                     # np.round() before int() to get the nearest point, rather than rounding down
                     candidate_x = int(np.round(pruned_list[-1][0] + c * unit_x))
                     candidate_y = int(np.round(pruned_list[-1][1] + c * unit_y))
-                    if self.map[candidate_x][candidate_y]:
+                    if self.map2d.grid[candidate_x][candidate_y]:
                         obstacle = np.array((candidate_x, candidate_y))
                         break
 
@@ -326,13 +326,13 @@ class PathPlanner(Node):
                 candidate_2 = (np.round(start_point - perp_vec / (i + 1) + unit_vec * c)).astype(int)
 
                 # If the side of the rover would go off the map, or it hits an obstacle
-                if candidate_1[0] not in range(self.scale_x) or candidate_1[1] not in range(self.scale_y) or self.map[candidate_1[0]][candidate_1[1]]:
+                if candidate_1[0] not in range(self.scale_x) or candidate_1[1] not in range(self.scale_y) or self.map2d.grid[candidate_1[0]][candidate_1[1]]:
                     side_step_vec = -perp_vec * distance_frac * (num_rays - i) / num_rays
                     found_obstacle = True
                 
                 # check the same for the other side
                 # NOTE: this algorithm assumes we will never find an obstacle on both sides
-                elif candidate_2[0] not in range(self.scale_x) or candidate_2[1] not in range(self.scale_y) or self.map[candidate_2[0]][candidate_2[1]]:
+                elif candidate_2[0] not in range(self.scale_x) or candidate_2[1] not in range(self.scale_y) or self.map2d.grid[candidate_2[0]][candidate_2[1]]:
                     side_step_vec = perp_vec * distance_frac * (num_rays - i) / num_rays
                     found_obstacle = True
 
