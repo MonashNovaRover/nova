@@ -196,8 +196,6 @@ def controller_test():
     controller.destroy_node()
     rclpy.shutdown()
     
-    
-
 if __name__ == "__main__":
-    # main()
-    controller_test()
+    main()
+    # controller_test()

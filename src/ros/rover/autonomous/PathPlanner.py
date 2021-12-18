@@ -35,20 +35,13 @@ class PathPlanner(Node):
         self.pose_subscriber = self.create_subscription(RoverPose, "autonomous/pose", self.update_pose, 10)
 
         self.map2d = map2d
-        
-        self.map2d.grid
-
-        # exhaustive list of class attributes
-        self.x_length_meters = self.map2d.length
-        self.y_length_meters = self.map2d.width
-
-        # x and y dimensions of the map in pixels
-        self.scale_x = self.map2d.grid.shape[0]
-        self.scale_y = self.map2d.grid.shape[1]
 
         # in case we want to test path planning without a controller
         self.state = State()
-        
+
+        self.start = (0, 0)
+        self.goal = dest
+
         self.route = []
         
         # create empty state
@@ -61,7 +54,8 @@ class PathPlanner(Node):
                int((position[1] + self.map2d.width / 2) / self.map2d.resolution)
 
     def get_float_position(self, coord):
-
+        return coord[0] * self.map2d.resolution - self.map2d.length / 2, \
+               coord[1] * self.map2d.resolution - self.map2d.width / 2,
 
     def update_pose(self, msg): 
         """ 
@@ -88,8 +82,11 @@ class PathPlanner(Node):
         return np.sqrt((b[0] - a[0]) ** 2 + (b[1] - a[1]) ** 2)  # euclidean distance norm
 
     def aStar(self, start, goal, weight=5, version="octile"):
-        start = (start[0] + self.scale_x//2, start[1] + self.scale_y//2) 
-        goal = (goal[0] + self.scale_x//2, goal[1] + self.scale_y//2)    
+        start = self.get_grid_coord(self.start)
+        goal = self.get_grid_coord(self.goal)
+        
+        print("map len: " + str(len(self.map2d.grid)))
+        print("map width: " + str(len(self.map2d.grid[0])))
 
         print(start)
         t = time.time()
@@ -154,15 +151,14 @@ class PathPlanner(Node):
         Turning a route in pixel coordinates into one in metric coordinates
          - Modified for new map - have to check it works
         """
-        return [(x * (float(self.x_length_meters) / self.scale_x),
-                 y * (float(self.y_length_meters) / self.scale_y)) for (x, y) in route]
+        return [self.get_float_position((x, y)) for (x, y) in route]
 
     def stringPull(self, raw_points):
         t = time.time()
         if len(raw_points) < 2:
             return raw_points
 
-        safety_radius = int(corner_padding * self.scale_x / self.x_length_meters)
+        safety_radius = int(corner_padding / self.map2d.resolution)
         print("pulling strings in the background")
         # pruned_list = [raw_points[0]]
         pruned_list = [np.array(raw_points[0])]
@@ -241,7 +237,7 @@ class PathPlanner(Node):
             vec_to_pt = vectors[i]
             vec_from_pt = vectors[i + 1]
 
-            r = int(corner_padding * self.scale_x / self.x_length_meters)
+            r = int(corner_padding * self.map2d.resolution)
             d1 = np.sqrt(np.dot(vec_to_pt, vec_to_pt))
             d2 = np.sqrt(np.dot(vec_from_pt, vec_from_pt))
 
@@ -292,7 +288,7 @@ class PathPlanner(Node):
         parallel_vec = padded_path[1] - start_point
         
         parallel_angle = vector_argument(parallel_vec)
-        r = int(corner_padding * 0.8 * self.scale_x / self.x_length_meters)
+        r = int(corner_padding * 0.8 / self.map2d.resolution)
         # vector between the centre line of the rover and either one of its sides
         perp_vec = r * np.array([np.cos(parallel_angle + np.pi / 2), np.sin(parallel_angle + np.pi / 2)])
 
@@ -308,13 +304,17 @@ class PathPlanner(Node):
                 candidate_2 = (np.round(start_point - perp_vec / (i + 1) + unit_vec * c)).astype(int)
 
                 # If the side of the rover would go off the map, or it hits an obstacle
-                if candidate_1[0] not in range(self.scale_x) or candidate_1[1] not in range(self.scale_y) or self.map2d.grid[candidate_1[0]][candidate_1[1]]:
+
+                if candidate_1[0] not in range(len(self.map2d.grid)) \
+                        or candidate_1[1] not in range(len(self.map2d.grid[0])) or self.map2d.grid[candidate_1[0]][candidate_1[1]]:
                     side_step_vec = -perp_vec * distance_frac * (num_rays - i) / num_rays
                     found_obstacle = True
                 
                 # check the same for the other side
                 # NOTE: this algorithm assumes we will never find an obstacle on both sides
-                elif candidate_2[0] not in range(self.scale_x) or candidate_2[1] not in range(self.scale_y) or self.map2d.grid[candidate_2[0]][candidate_2[1]]:
+
+                elif candidate_2[0] not in range(len(self.map2d.grid)) or candidate_2[1] not in range(len(self.map2d.grid[0]))\
+                        or self.map2d.grid[candidate_2[0]][candidate_2[1]]:
                     side_step_vec = perp_vec * distance_frac * (num_rays - i) / num_rays
                     found_obstacle = True
 
@@ -329,7 +329,6 @@ class PathPlanner(Node):
         else:
             return padded_path
 
-
     def get_path(self, weight=5):
         """
         Repeatedly run A* on the updated rover pose and map to continually redetermine the optimal path.
@@ -337,13 +336,12 @@ class PathPlanner(Node):
         """
 
         self.start = (self.state.x, self.state.y)
-        self.scale()
 
         print("Running A*")
-        print("start: " + str(self.pixel_start))
-        print("goal: " + str(self.pixel_goal))
+        print("start: " + str(self.start))
+        print("goal: " + str(self.goal))
 
-        self.route = self.aStar(self.pixel_start, self.pixel_goal, weight)
+        self.route = self.aStar(self.get_grid_coord(self.start), self.get_grid_coord(self.goal), weight)
 
         self.route = self.stringPull(self.route)
 
@@ -360,11 +358,10 @@ class PathPlanner(Node):
             waypoint = Waypoint()
             waypoint.x = wpt[0]
             waypoint.y = wpt[1]
+            
+            if (not math.isnan(waypoint.x)) and (not math.isnan(waypoint.y)):
+                waypoints.waypoints.append(waypoint)
 
-            waypoints.waypoints.append(waypoint)
-
-        print("publishing waypoint!")
+        print("publishing waypoints: " + str(waypoints))
         self.waypt_publisher.publish(waypoints)
-
-        print("route has " + str(len(route_coordinates)) + " points")
 
