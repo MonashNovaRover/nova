@@ -12,15 +12,11 @@ def main(args):
     print("Welcome to fun car drive!")
     print("Setting up objects...")
 
-    controller = Controller()
-
     print("Input waypoints manually?")
     print("[0]: No - use autonomous path planning")
     print("[1]: Yes")
 
     manual_input = int(input("Input your decision: "))
-
-    print("Current pose: (" + str(controller.state.x) + ", " + str(controller.state.y) + ")")
 
     if manual_input:
         # TODO: Setup to allow manual inputs as well as path planning
@@ -44,7 +40,6 @@ def main(args):
         executor = rclpy.executors.MultiThreadedExecutor()
         
         executor.add_node(planner)
-        executor.add_node(controller)
         executor.add_node(mapper)
 
         # Spin in a separate thread

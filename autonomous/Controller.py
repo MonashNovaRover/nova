@@ -172,12 +172,31 @@ class Controller(Node):
 def main(args = None):
     rclpy.init(args=args)
     controller = Controller()
-
     rclpy.spin(controller)
-
     controller.destroy_node()
     rclpy.shutdown()
 
 
+def get_waypoints_from_lst(lst):
+    wpts = Waypoints()
+    for pt in lst:
+        wpt = Waypoint()
+        wpt.x = pt[0]
+        wpt.y = pt[1]
+        wpts.path.append(wpt)
+    
+    return wpts
+
+def controller_test():
+    rclpy.init(args=None)
+    controller = Controller()
+    controller.waypoints = [[0, 0], [.7, .0], [.7, .7]]
+    rclpy.spin(controller)
+    controller.destroy_node()
+    rclpy.shutdown()
+    
+    
+
 if __name__ == "__main__":
-    main()
+    # main()
+    controller_test()

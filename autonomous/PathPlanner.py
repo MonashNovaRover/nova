@@ -9,8 +9,8 @@ from numpy.lib.function_base import _angle_dispatcher, angle
 from numpy.testing._private.utils import clear_and_catch_warnings
 import rclpy
 ## NOTE should probably call these something else since they are not only used by controller
-from controller_params import *
-from controller_math import *
+from utils.controller_params import *
+from utils.controller_math import *
 
 from utils.controller_params import *
 from rclpy.node import Node
@@ -55,8 +55,6 @@ class PathPlanner(Node):
         # self.extract_obstacle_map(10)
 
         # in case we want to test path planning without a controller
-        if controller:
-            self.start = (self.controller.state.x, self.controller.state.y)
         self.state = State()
         
         self.start = (self.state.x, self.state.y)
