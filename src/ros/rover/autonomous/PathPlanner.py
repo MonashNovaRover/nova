@@ -43,8 +43,6 @@ class PathPlanner(Node):
         self.goal = dest
 
         self.route = []
-        
-        # create empty state
 
         # re running A* every second to re-evaluate
         self.timer = self.create_timer(a_star_rate, self.get_path)
@@ -173,7 +171,7 @@ class PathPlanner(Node):
             if dist > safety_radius + 0.5:
                 # NOTE: danger! we only start looking for obstacles outside the "padding" radius
                 # from the last obstacle. On spiky / noisy maps this may be a bad assumption!
-                for c in range(safety_radius, int(np.ceil(dist) * 2)):
+                for c in range(2 * safety_radius, int(np.ceil(dist) * 2)):
                     # checking every .5 units to reduce chance of missing obstacles
                     unit_x = 0.5 * (raw_points[i][0] - pruned_list[-1][0]) / dist
                     unit_y = 0.5 * (raw_points[i][1] - pruned_list[-1][1]) / dist
@@ -229,6 +227,7 @@ class PathPlanner(Node):
             return self.pad_corners(new_turning_points)
 
         padded_path = [turning_points[0]]
+        r = int(corner_padding / self.map2d.resolution)
 
         # adjusting each of the turning points - all string-pulled points except the destination
         for i in range(len(vectors) - 1):
@@ -237,7 +236,6 @@ class PathPlanner(Node):
             vec_to_pt = vectors[i]
             vec_from_pt = vectors[i + 1]
 
-            r = int(corner_padding * self.map2d.resolution)
             d1 = np.sqrt(np.dot(vec_to_pt, vec_to_pt))
             d2 = np.sqrt(np.dot(vec_from_pt, vec_from_pt))
 

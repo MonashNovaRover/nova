@@ -58,24 +58,23 @@ class TestLinesMap(TestMapMaker):
 if __name__ == "__main__":
     rclpy.init(args = None)
 
-    map_maker = TestLinesMap(70, 70)
+    map_maker = TestBoxMap(70, 70)
     
     this_map = map_maker.generate_obstacles()
 
-    map2d = Map2D(length=70, width=70)
+    map2d = Map2D(length=3.5, width=3.5, resolution=0.05)
 
     map2d.grid = np.array(this_map)
 
-    planner = PathPlanner([1.5, -1.45], map2d)
+    planner = PathPlanner([0.5, 0.0], map2d)
 
-    for startx in [-1.5, -1., -0.5, 0., 0.5, 1.0, 1.5]:
+    for startx in [-1.5]:#, -1., -0.5, 0., 0.5, 1.0, 1.5]:
         for starty in [-1.5, -1, -0.5, 0, 0.5, 1.0, 1.5]:
             this_map[int(startx * 20 + 35)][int(starty * 20 + 35)] = 2
 
             planner.start = (startx, starty)
-            planner.scale()
 
-            A_star_path = planner.aStar(planner.pixel_start, planner.pixel_goal)
+            A_star_path = planner.aStar(planner.start, planner.goal)
             path = planner.stringPull(A_star_path)
             padded_path = planner.pad_corners(path)
             clear_path = planner.clear_path_to_first_waypoint(padded_path, 1.0, 1)
