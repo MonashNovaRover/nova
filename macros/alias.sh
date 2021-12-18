@@ -37,7 +37,12 @@ alias ik='cd ~/nova_ws/other/ik_machine'
 alias coms='cd ~/nova_ws/other/coms_utils'
 
 # Networking Aliases
-alias jetson='ssh -Y nova@192.168.1.204'
+alias jetson='ssh -Y nvidia@192.168.1.204'
 
 # GUI Aliases
 alias wombat='cd ~/nova_ws/src/gui/wombatx; npm run start'
+
+# Launching ALaiases
+alias base='ros2 launch control base.launch.py'
+alias rover='ros2 launch control rover.launch.py'
+alias arm='ros2 launch control arm.launch.py'

@@ -41,7 +41,7 @@
             <userTransports>
             <transport_id>veelpeers</transport_id>
             </userTransports>
-            <useBuiltinTransports>false</useBuiltinTransports>
+            <useBuiltinTransports>true</useBuiltinTransports>
         </rtps>
     </participant>
 </profiles>
