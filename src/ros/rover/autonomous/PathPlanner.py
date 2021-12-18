@@ -35,6 +35,8 @@ class PathPlanner(Node):
         self.pose_subscriber = self.create_subscription(RoverPose, "autonomous/pose", self.update_pose, 10)
 
         self.map2d = map2d
+        
+        self.map2d.grid
 
         # exhaustive list of class attributes
         self.x_length_meters = self.map2d.length
@@ -44,25 +46,22 @@ class PathPlanner(Node):
         self.scale_x = self.map2d.grid.shape[0]
         self.scale_y = self.map2d.grid.shape[1]
 
-        # gets 2d array of obstacles
-        # self.extract_obstacle_map(10)
-
         # in case we want to test path planning without a controller
         self.state = State()
         
-        self.start = ((self.state.x, self.state.y))
-        self.goal = (dest[0], dest[1])
-
         self.route = []
         
         # create empty state
 
-        # running A* every second to re-evaluate
-        # calculations
-        self.scale()
-
         # re running A* every second to re-evaluate
         self.timer = self.create_timer(a_star_rate, self.get_path)
+
+    def get_grid_coord(self, position):
+        return int((position[0] + self.map2d.length / 2) / self.map2d.resolution), \
+               int((position[1] + self.map2d.width / 2) / self.map2d.resolution)
+
+    def get_float_position(self, coord):
+
 
     def update_pose(self, msg): 
         """ 
@@ -74,26 +73,9 @@ class PathPlanner(Node):
         self.state.velocity = msg.velocity
         self.state.angular_velocity = msg.angular_velocity
 
-    def recieve_map2d(self):
-        return self.map2d.receive_map()
-
-    def scale(self):
-        """
-        Calculate start and goal with respect of pixels, given local coordinates and total pixel height and width
-        (0, 0) coordinates are located in the centre of the map, for both metric and pixel coordinates
-        """ 
-        self.pixel_goal = (int(self.goal[0] * self.scale_x / self.x_length_meters), int(self.goal[1] * self.scale_y/self.y_length_meters))
-
-        #(self.scale_x - int(float(self.goal[0]) * (float(scale_x) / self.x_length_meters)), int(float(self.goal[1]) * (float(scale_y) / self.y_length_meters)))
-
-        self.pixel_start = (int(self.start[0] * self.scale_x / self.x_length_meters), int(self.start[1] * self.scale_y/self.y_length_meters))
-        
-        #(self.scale_x - int(float(self.start[0]) * (float(scale_x) / self.x_length_meters)), (int(float(self.start[1]) * (float(scale_y) / self.y_length_meters))))
-        
-        print("Navigating from pixel coordinates (%d, %d) to (%d, %d)" % (self.pixel_start[0], self.pixel_start[1], self.pixel_goal[0], self.pixel_goal[1]))
-
     @staticmethod
     def heuristic(a, b, heuristic_type="euclidean"):
+        
         """
         The manhattan heuristic works for movements up, down, left, right, and is an admissible and consistent heuristic
         The straight line heuristic works for any problem domain in 2-d euclidean space and is admissible and consistent
@@ -138,8 +120,8 @@ class PathPlanner(Node):
 
             # children
             candidate_children = [(expand[0] + n[0], expand[1] + n[1]) for n in neighbors]
-            candidate_children = [n for n in candidate_children if 0 < n[0] < len(self.map) and 0 < n[1] < len(
-                    self.map[0]) and n not in closed_set and not self.map[n[0]][n[1]]]
+            candidate_children = [n for n in candidate_children if 0 < n[0] < len(self.map2d.grid) and 0 < n[1] < len(
+                    self.map2d.grid[0]) and n not in closed_set and not self.map2d.grid[n[0]][n[1]]]
             for node in candidate_children:
 
                 # lazy evaluation prevents key error
@@ -203,7 +185,7 @@ class PathPlanner(Node):
                     # np.round() before int() to get the nearest point, rather than rounding down
                     candidate_x = int(np.round(pruned_list[-1][0] + c * unit_x))
                     candidate_y = int(np.round(pruned_list[-1][1] + c * unit_y))
-                    if self.map[candidate_x][candidate_y]:
+                    if self.map2d.grid[candidate_x][candidate_y]:
                         obstacle = np.array((candidate_x, candidate_y))
                         break
 
@@ -375,11 +357,11 @@ class PathPlanner(Node):
 
         for wpt in route_coordinates:
             # publishing waypoints in order 
-            waypoint = Waypoints()
+            waypoint = Waypoint()
             waypoint.x = wpt[0]
             waypoint.y = wpt[1]
 
-            waypoints.append(waypoint)
+            waypoints.waypoints.append(waypoint)
 
         print("publishing waypoint!")
         self.waypt_publisher.publish(waypoints)
