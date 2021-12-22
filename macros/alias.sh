@@ -35,6 +35,7 @@ alias arduino='cd ~/nova_ws/other/arduinos'
 alias arduinos=arduino
 alias ik='cd ~/nova_ws/other/ik_machine'
 alias coms='cd ~/nova_ws/other/coms_utils'
+alias fleet='cd ~/nova_ws/src/fleet'
 
 # Networking Aliases
 alias jetson='ssh -Y nvidia@192.168.1.204'
