@@ -52,8 +52,11 @@ class PIDTuner : public rclcpp::Node {
     //------------------------------------------------------------//
     private:
 
-    // Stores the loop timer for the update function
-    rclcpp::TimerBase::SharedPtr timer;
+    // Stores the loop timer for the velocity function
+    rclcpp::TimerBase::SharedPtr velocity_timer;
+
+    // Stores the loop timer for the feedback function
+    rclcpp::TimerBase::SharedPtr feedback_timer;
 
     // Stores the publisher for the CMD feedbcak
     rclcpp::Publisher<core::msg::CMDFeedback>::SharedPtr publisher;
@@ -109,6 +112,9 @@ class PIDTuner : public rclcpp::Node {
 
     /// @brief      Sends the velocities to the selected CMD
     void send_velocity ();
+
+    /// @brief      Publishes feedback from the selected CMD
+    void publish_velocity ();
 
 
     //------------------------------------------------------------//
