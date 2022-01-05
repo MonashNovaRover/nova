@@ -87,6 +87,12 @@ add_executable(arm_driver src/arm/arm_driver.cpp
   ${PROJECT_SOURCE_DIR}/include/debug/print.cpp)
 ament_target_dependencies(arm_driver rclcpp core)
 
+# PID Tuner script
+add_executable(pid_tuner src/cmd/pid_tuner.cpp 
+  src/cmd/cmd.cpp
+  ${PROJECT_SOURCE_DIR}/include/socketcan/socketcan_cpp.cpp
+  ${PROJECT_SOURCE_DIR}/include/debug/print.cpp)
+ament_target_dependencies(pid_tuner rclcpp core)
 
 
 ################################################
@@ -101,6 +107,7 @@ install(TARGETS
   arm_inputs
   arm_driver
   vel_convert
+  pid_tuner
   DESTINATION lib/${PROJECT_NAME}
 )
 
