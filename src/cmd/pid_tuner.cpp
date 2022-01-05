@@ -39,6 +39,7 @@ void PIDTuner::select_device (
     // Update the bus and id selected
     this->bus = request->bus;
     this->id = request->id;
+    this->velocity = request->velocity;
     this->valid = true;
 
     // Check for invalid constants
@@ -88,6 +89,30 @@ CMD* PIDTuner::get_cmd () {
 }
 
 
+// Sends the velocities
+void PIDTuner::send_velocity () {
+    
+    // Make sure it is valid
+    if (!this->valid) return;
+
+    // Make sure velocity is valid
+    if (velocity < -1.0 || velocity > 1.0) return;
+
+    // Check for all stops
+    if (velocity == 0) {
+        if (stopped) return;
+        else stopped = true;
+    } else
+        stopped = false;
+
+    // Send PID velocity data to the CMD
+    CMD* cmd = this->get_cmd();
+
+    // Send the velocity to the CMD
+    cmd->set_pid(velocity);
+}
+
+
 // Constructor initialises all the devices
 PIDTuner::PIDTuner ()
   : Node("pid_tuner"), count(0) {
@@ -105,6 +130,10 @@ PIDTuner::PIDTuner ()
     // Create the service and bind to the function
     service = this->create_service<core::srv::PIDTune>("/control/pid_tune", 
         std::bind(&PIDTuner::select_device, this, _1, _2));
+
+    // Creates a timer function that runs a function on loop every 0.1 seconds
+    timer = this->create_wall_timer(100ms, std::bind(&PIDTuner::send_velocity, this));
+
 
 }
 
