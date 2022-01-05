@@ -12,7 +12,7 @@ AUTHOR(S):	Harrison Verrios
 #include "debug/print.h"
 
 
-// Tunes the PID controls
+// Selects the device
 void PIDTuner::select_device (
     const core::srv::PIDTune::Request::SharedPtr request,
         core::srv::PIDTune::Response::SharedPtr response) 
@@ -47,9 +47,44 @@ void PIDTuner::select_device (
         return;
     }
 
+    // Check for out of range constants
+    if (request->p > 1.0 || request->i > 1.0 || request->d > 1.0 || request-> m > 1.0) {
+        response->success = false;
+        return;
+    }
+
+    // Updates the constants on the device
+    update_constants(request->p, request->i, request->d, request->m);
+
     // Return a success
     response->success = true;
 
+}
+
+
+// Updates the constanst
+void PIDTuner::update_constants (double kP, double kI, double kD, double kM) {
+
+    // Make sure a valid ID is set
+    if (!this->valid) return;
+
+    // Get the current selected CMD
+    CMD* cmd = this->get_cmd();
+
+    // Run the constants
+    cmd->set_tuning_parameters(kP, kI, kD, kM);
+}
+
+
+// Return the current valid CMD
+CMD* PIDTuner::get_cmd () {
+
+    // Check for each bus
+    if (bus == 0) return bus_0[id - 1];
+    if (bus == 1) return bus_1[id - 1];
+
+    // Invalid bus
+    return nullptr;
 }
 
 
