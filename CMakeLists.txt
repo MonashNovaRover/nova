@@ -28,21 +28,23 @@ find_package(rosidl_default_generators REQUIRED)
 rosidl_generate_interfaces(${PROJECT_NAME}
 
   # Message definitions
-  "msg/RadioStatus.msg"
+  "msg/ArmInput.msg"
+  "msg/CMDFeedback.msg"
+  "msg/DriveInput.msg"
+  "msg/DriveVel.msg"
   "msg/InputGamepad.msg"
   "msg/InputJoystick.msg"
-  "msg/DriveInput.msg"
-  "msg/ArmInput.msg"
+  "msg/Map2D.msg"
+  "msg/Point2D.msg"
+  "msg/RadioStatus.msg"
+  "msg/RoverPoseGPS.msg"
   "msg/RoverPose.msg"
   "msg/Waypoint.msg"
-  "msg/DriveVel.msg"
-  "msg/Point2D.msg"
-  "msg/Map2D.msg"
-  "msg/RoverPoseGPS.msg"
   "msg/Waypoints.msg"
 
   # Service definitions
   "srv/CameraCommand.srv"
+  "srv/PIDTune.srv"
 
   # Action definitions
   
