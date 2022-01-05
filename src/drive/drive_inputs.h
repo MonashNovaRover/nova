@@ -24,9 +24,6 @@ AUTHOR(S):  Harrison Verrios
 CREATION:	14/11/2021
 EDITED:		16/12/2021
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-TODO:
- - Test with the driver received code (not yet created).
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
 // Include ROS packages
