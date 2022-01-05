@@ -113,6 +113,32 @@ void PIDTuner::send_velocity () {
 }
 
 
+// Publishes the feedback
+void PIDTuner::publish_velocity () {
+
+    // Increase the time (in milliseconds)
+    this->count += 50;
+
+    // Check for invalid id
+    if (!valid) return;
+
+    // Construct the feedback message
+    auto message = core::msg::CMDFeedback();
+
+    // Update the IDs
+    message.bus = this->bus;
+    message.id = this->id;
+    message.time = this->count;
+
+    // Get the data
+    message.rpm = 2.0;
+    message.power = 20;
+
+    // Publish the data
+    publisher->publish(message);
+}
+
+
 // Constructor initialises all the devices
 PIDTuner::PIDTuner ()
   : Node("pid_tuner"), count(0) {
@@ -131,9 +157,14 @@ PIDTuner::PIDTuner ()
     service = this->create_service<core::srv::PIDTune>("/control/pid_tune", 
         std::bind(&PIDTuner::select_device, this, _1, _2));
 
-    // Creates a timer function that runs a function on loop every 0.1 seconds
-    timer = this->create_wall_timer(100ms, std::bind(&PIDTuner::send_velocity, this));
+    // Creates the publisher
+    publisher = this->create_publisher<core::msg::CMDFeedback>("/control/cmd_feedback", 10);
 
+    // Creates a timer function that runs a function on loop every 0.1 seconds
+    velocity_timer = this->create_wall_timer(100ms, std::bind(&PIDTuner::send_velocity, this));
+
+    // Creates a timer function that runs a function on loop every 0.05 seconds
+    feedback_timer = this->create_wall_timer(50ms, std::bind(&PIDTuner::publish_velocity, this));
 
 }
 
