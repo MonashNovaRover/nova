@@ -20,7 +20,7 @@ ACTIONS:  None
 PACKAGE: 	control
 AUTHOR(S):	Harrison Verrios
 CREATION:	05/01/2022
-EDITED:		05/01/2022
+EDITED:		06/01/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
@@ -89,7 +89,17 @@ class PIDTuner : public rclcpp::Node {
         const core::srv::PIDTune::Request::SharedPtr request,
         core::srv::PIDTune::Response::SharedPtr response);
 
+    /// @brief      Updates the constants of the selected device
+    /// @param      kP - The Proportionality constant
+    /// @param      kI - The Intergral constant
+    /// @param      kD - The Differential constant
+    /// @param      kM - The Midpoint interval
+    void update_constants (double kP = 0.0, double kI = 0.0, 
+        double kD = 0.0, double kM = 0.0);
 
+    /// @brief      Returns the currently selected CMD
+    /// @returns    A pointer to the CMD selected
+    CMD* get_cmd ();
 
 
     //------------------------------------------------------------//

@@ -12,7 +12,7 @@ This code interfaces with the CAN classes and is
 PACKAGE: 	control
 AUTHOR(S):	Harrison Verrios, Josh Cherubino
 CREATION:	01/12/2021
-EDITED:		01/12/2021
+EDITED:		06/01/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
@@ -89,5 +89,11 @@ class CMD {
     /// @param      value - number from thumb stick (-1, 0, 1)
     void set_linear_actuator (float value);
     
+    /// @brief      Sends PID commands to the device
+    /// @param      kP - The Proportionality constant
+    /// @param      kI - The Intergral constant
+    /// @param      kD - The Differential constant
+    /// @param      kM - The Midpoint interval
+    void set_tuning_parameters (double kP, double kI, double kD, double kM);
 
 };

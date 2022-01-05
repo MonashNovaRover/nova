@@ -112,6 +112,7 @@ void CMD::set_pid (float speed) {
     this->can_socket.write(frame);
 }
 
+
 void CMD::set_linear_actuator (float value){
     int actuation = 0;
     if (value < 0){
@@ -132,6 +133,32 @@ void CMD::set_linear_actuator (float value){
 
     // Write the frame
     this->can_socket.write(frame);
+}
 
 
+void CMD::set_tuning_parameters (double kP, double kI, double kD, double kM) {
+
+    // Creates a new CAN frame
+    scpp::CanFrame frame;
+    frame.id = (this->id << 4) | CMDCommand::TUNER;
+    frame.len = 8;
+
+    // Scale the constants
+    int16_t scaled_kP = (int16_t)(kP * 32767.0f);
+    int16_t scaled_kI = (int16_t)(kI * 32767.0f);
+    int16_t scaled_kD = (int16_t)(kD * 32767.0f);
+    int16_t scaled_kM = (int16_t)(kM * 32767.0f);
+
+    // Construct the data
+    frame.data[0] = scaled_kP >> 8;
+    frame.data[1] = scaled_kP & 0xFF;
+    frame.data[2] = scaled_kI >> 8;
+    frame.data[3] = scaled_kI & 0xFF;
+    frame.data[4] = scaled_kD >> 8;
+    frame.data[5] = scaled_kD & 0xFF;
+    frame.data[6] = scaled_kM >> 8;
+    frame.data[7] = scaled_kM & 0xFF;
+
+    // Write the frame
+    this->can_socket.write(frame);
 }
