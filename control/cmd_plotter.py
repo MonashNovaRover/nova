@@ -41,23 +41,36 @@ class CMDPlotter (Node):
     def __init__(self) -> None:
         super().__init__('cmd_plotter')
 
-        # Store the raw arrays
-        self.rpms = []
-        self.powers = []
-        self.times = []
+        # Store the current device
+        self.device = "00"
 
         # Create the subscriber
         self.subscription = self.create_subscription(CMDFeedback, '/control/cmd_feedback', self.feedback_callback, 10)
-        print("Initialised the plotter")
+        print("Initialised the Feedback Plotter")
 
 
     # The callback function when the message is received
     def feedback_callback (self, msg):
 
+        # Check if device is different
+        device = "%d%d" % (msg.bus, msg.id)
+        if device != self.device:
+
+            # Update the device
+            self.device = device
+
+            # Store the raw arrays
+            self.rpms = []
+            self.powers = []
+            self.times = []
+
         # Add data to the arrays
         self.rpms.append(msg.rpm)
         self.powers.append(msg.power)
         self.times.append(msg.time)
+
+        # Clear the plot
+        plt.clf()
         
         # Plot the data
         plt.plot(self.times, self.rpms, label = "RPM")
@@ -68,10 +81,11 @@ class CMDPlotter (Node):
         plt.legend()
         plt.grid()
         plt.ylim(-100, 100)
+        plt.xlim(self.times[0], self.times[0] + 10000)
         plt.xlabel("Time [ms]")
-        plt.show()
-
-        #self.get_logger().info("Received: '%s'" % msg.time)
+        plt.draw()
+        plt.pause(0.001)
+        
     
 
 # Main function for setting up the ROS node
