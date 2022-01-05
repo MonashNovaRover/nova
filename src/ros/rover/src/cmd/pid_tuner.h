@@ -77,6 +77,12 @@ class PIDTuner : public rclcpp::Node {
     // The current selected id
     int id;
 
+    // The current velocity to send
+    double velocity;
+
+    // A flag for whether to send zeroes
+    bool stopped;
+
 
 
     //------------------------------------------------------------//
@@ -100,6 +106,9 @@ class PIDTuner : public rclcpp::Node {
     /// @brief      Returns the currently selected CMD
     /// @returns    A pointer to the CMD selected
     CMD* get_cmd ();
+
+    /// @brief      Sends the velocities to the selected CMD
+    void send_velocity ();
 
 
     //------------------------------------------------------------//
