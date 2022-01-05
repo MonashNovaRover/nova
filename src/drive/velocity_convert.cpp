@@ -2,40 +2,53 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team
 
-PACKAGE:  control
-AUTHOR(S):  Himsara Gallege
+PACKAGE:    control
+AUTHOR(S):  Himsara Gallege, Harrison Verrios
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
 // Include the header file
-#include "vel_convert.h"
+#include "velocity_convert.h"
+#include "debug/print.h"
 
-// Receives velocity converters
-void DriveVelocity::velocity_callback (const core::msg::DriveVel::SharedPtr msg) {
+// Create any definitions
+#define PI      3.141593    // Mathematical constant PI
+#define S_PER_M 60          // Seconds per Minute
+
+
+// Receives velocity commands
+void VelocityConvert::velocity_callback (const core::msg::DriveVel::SharedPtr msg) {
     
     // Create the message
     auto message = core::msg::DriveInput();
 
-    message.speed = .5 * msg->linear_vel / (CONVERSION_FACTOR / 60.0 * 0.785398 * 0.95) / 100.0;
-    message.steer = .5 * msg->angular_vel * STEER_FACTOR;
+    // TODO
+    // Calculate the RPM value
+    //const float RPM = msg->linear_vel * S_PER_M / (2 * PI * WHEEL_RADIUS);
+
+    // Calculate the new message values
+    message.speed = msg->linear_vel / MAX_SPEED;
+    message.steer = msg->angular_vel * STEER_FACTOR;
 
     // Publish the drive commands
     publisher->publish(message);
 
 }
 
+
 // Main constructor that sets up the node
-DriveVelocity::DriveVelocity() 
-  : Node("drive_velocity"), count(0) {
+VelocityConvert::VelocityConvert() 
+  : Node("velocity_convert"), count(0) {
 
     // Creates the publisher
     publisher = this->create_publisher<core::msg::DriveInput>("/autonomous/drive_inputs", 10);
     
     // Creates the input subscription
     subscription = this->create_subscription<core::msg::DriveVel>(
-        "/autonomous/drive_velocity", 10, std::bind(&DriveVelocity::velocity_callback, this, _1));
+        "/autonomous/drive_velocity", 10, std::bind(&VelocityConvert::velocity_callback, this, _1));
 
 }
+
 
 //  Main function called when the script execution begins
 int main(int argc, char **argv)
@@ -44,7 +57,7 @@ int main(int argc, char **argv)
     rclcpp::init(argc, argv);
 
     // Runs the Publisher class
-    rclcpp::spin(std::make_shared<DriveVelocity>());
+    rclcpp::spin(std::make_shared<VelocityConvert>());
 
     // Shutsdown ROS once complete
     rclcpp::shutdown();
