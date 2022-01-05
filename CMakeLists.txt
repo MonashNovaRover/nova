@@ -119,6 +119,7 @@ install(DIRECTORY
 
 # Add all Python executables to this list
 install(PROGRAMS
+  control/cmd_plotter.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
