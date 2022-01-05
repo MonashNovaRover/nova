@@ -116,9 +116,6 @@ void PIDTuner::send_velocity () {
 // Publishes the feedback
 void PIDTuner::publish_velocity () {
 
-    // Increase the time (in milliseconds)
-    this->count += 50;
-
     // Check for invalid id
     if (!valid) return;
 
@@ -136,6 +133,9 @@ void PIDTuner::publish_velocity () {
 
     // Publish the data
     publisher->publish(message);
+
+    // Increase the time (in milliseconds)
+    this->count += 50;
 }
 
 
