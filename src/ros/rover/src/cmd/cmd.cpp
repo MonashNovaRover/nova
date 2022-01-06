@@ -162,3 +162,31 @@ void CMD::set_tuning_parameters (double kP, double kI, double kD, double kM) {
     // Write the frame
     this->can_socket.write(frame);
 }
+
+
+CMDData CMD::receive_feedback () {
+
+    // Creates a new CAN frame
+    scpp::CanFrame frame;
+    frame.id = (this->id << 4) | CMDCommand::TUNER;
+    frame.len = 4;
+
+    // Read the data
+    this->can_socket.read(frame);
+
+    // Get the scaled RPM
+    int16_t scaled_rpm = frame.data[0] * 256 + frame.data[1];
+
+    // Get the scaled Power
+    int16_t scaled_power = frame.data[2] * 256 + frame.data[3];
+
+    // Convert scaled data to the double
+    double rpm = static_cast<double>(scaled_rpm);
+    double power = static_cast<double>(scaled_power);
+
+    // Create a new struct
+    CMDData data = CMDData(rpm, power);
+
+    // Return the data
+    return data;
+}

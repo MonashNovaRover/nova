@@ -77,7 +77,7 @@ class CMDPlotter (Node):
         plt.plot(self.times, self.powers, label = "Power")
 
         # Improve the graph
-        plt.title("CMD Feedback. Bus: %d, ID: %d" % (msg.bus, msg.id))
+        plt.title("CMD Feedback - Bus: %d, ID: %d" % (msg.bus, msg.id))
         plt.legend()
         plt.grid()
         plt.ylim(-100, 100)

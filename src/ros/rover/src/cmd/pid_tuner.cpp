@@ -128,11 +128,18 @@ void PIDTuner::publish_velocity () {
     message.time = this->count;
 
     // Get the data
-    message.rpm = 2.0;
-    message.power = 20;
+    CMDData data = this->get_cmd()->receive_feedback();
 
-    // Publish the data
-    publisher->publish(message);
+    // Get the data
+    message.rpm = data.rpm;
+    message.power = data.power;
+
+    // Make sure data is valid
+    if (data.rpm != 0 || data.power != 0) {
+
+        // Publish the data
+        publisher->publish(message);
+    }
 
     // Increase the time (in milliseconds)
     this->count += 50;
