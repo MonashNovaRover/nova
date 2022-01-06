@@ -46,7 +46,7 @@ class VelocityConvert : public rclcpp::Node {
     const float MAX_SPEED               = 1.3759;
 
     // The radius of the wheel [m]
-    const float WHEEL_RADIUS            = 0.150;
+    const float WHEEL_RADIUS            = 0.122;
 
     // The factor to convert angular velocity to spin speed
     const float STEER_FACTOR            = 0.25;

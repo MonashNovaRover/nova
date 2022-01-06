@@ -22,6 +22,7 @@ EDITED:		06/01/2022
 // CAN include
 #include "socketcan/socketcan_cpp.h"
 
+
 // Specifies the command used
 enum CMDCommand {
     STOP        = 0,    // All stops commands
@@ -32,6 +33,27 @@ enum CMDCommand {
     TUNER       = 5,    // Sends PID tuning commands
     ACTUATOR    = 6,    // Controls the linear actuator
 };
+
+
+// Struct for CMD data
+struct CMDData {
+
+    //------------------------------------------------------------//
+    public:
+
+    // The RPM from the CMD
+    double rpm;
+
+    // The power of the CMD
+    double power;
+
+    // Constructor for setting the data
+    CMDData (double rpm, double power) {
+        this->rpm = rpm;
+        this->power = power;
+    };
+};
+
 
 // Class for storing information about the CMD
 class CMD {
@@ -95,5 +117,9 @@ class CMD {
     /// @param      kD - The Differential constant
     /// @param      kM - The Midpoint interval
     void set_tuning_parameters (double kP, double kI, double kD, double kM);
+
+    /// @brief      Receives feedback from the CMD devices on the CAN lines
+    /// @returns    A struct containing the data
+    CMDData receive_feedback ();
 
 };
