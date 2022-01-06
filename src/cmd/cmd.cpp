@@ -83,7 +83,7 @@ void CMD::set_pwm (float power) {
     frame.len = 2;
 
     // Scale the power to the range
-    int16_t scaled_power = (int16_t)(power * 32767.0f);
+    int16_t scaled_power = convert_to_int16(power);
 
     // Order data in big-endian order (MSB first)
     frame.data[0] = scaled_power >> 8;
@@ -102,7 +102,7 @@ void CMD::set_pid (float speed) {
     frame.len = 2;
 
     // Scale the speed to the range
-    int16_t scaled_speed = (int16_t)(speed * 32767.0f);
+    int16_t scaled_speed = convert_to_int16(speed);
 
     // Order data in big-endian order (MSB first)
     frame.data[0] = scaled_speed >> 8;
@@ -144,10 +144,10 @@ void CMD::set_tuning_parameters (double kP, double kI, double kD, double kM) {
     frame.len = 8;
 
     // Scale the constants
-    int16_t scaled_kP = (int16_t)(kP * 32767.0f);
-    int16_t scaled_kI = (int16_t)(kI * 32767.0f);
-    int16_t scaled_kD = (int16_t)(kD * 32767.0f);
-    int16_t scaled_kM = (int16_t)(kM * 32767.0f);
+    int16_t scaled_kP = convert_to_int16(kP);
+    int16_t scaled_kI = convert_to_int16(kI);
+    int16_t scaled_kD = convert_to_int16(kD);
+    int16_t scaled_kM = convert_to_int16(kM);
 
     // Construct the data
     frame.data[0] = scaled_kP >> 8;
@@ -174,19 +174,36 @@ CMDData CMD::receive_feedback () {
     // Read the data
     this->can_socket.read(frame);
 
-    // Get the scaled RPM
-    int16_t scaled_rpm = frame.data[0] * 256 + frame.data[1];
-
-    // Get the scaled Power
-    int16_t scaled_power = frame.data[2] * 256 + frame.data[3];
-
     // Convert scaled data to the double
-    double rpm = static_cast<double>(scaled_rpm);
-    double power = static_cast<double>(scaled_power);
+    double rpm = convert_from_bytes(&frame.data[0]);
+    double power = convert_from_bytes(&frame.data[2]);
 
     // Create a new struct
     CMDData data = CMDData(rpm, power);
 
     // Return the data
     return data;
+}
+
+
+int16_t CMD::convert_to_int16 (const double value) {
+
+    // Convert the value to an integer
+    int16_t output = (int16_t)(value * 32767.0f);
+
+    // Return the value
+    return output;
+}
+
+
+double CMD::convert_from_bytes (uint8_t* bytes) {
+
+    // Calculate the integer 16 value
+    int16_t input = (*bytes) * 256 + (*(bytes + 1));
+
+    // Scale the value to a double
+    double output = static_cast<double>(input);
+
+    // Return the value
+    return output;
 }

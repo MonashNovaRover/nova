@@ -122,4 +122,16 @@ class CMD {
     /// @returns    A struct containing the data
     CMDData receive_feedback ();
 
+
+    //------------------------------------------------------------//
+
+    /// @brief      Converts a double to an int16
+    /// @param      value - The raw value between -1.0 and 1.0
+    /// @returns    A two byte array of integers
+    static int16_t convert_to_int16 (const double value);
+
+    /// @brief      Converts a 2 byte array to a double
+    /// @param      bytes - The two byte array
+    /// @returns    A double scaled between -1 and 1
+    static double convert_from_bytes (uint8_t* bytes);
 };

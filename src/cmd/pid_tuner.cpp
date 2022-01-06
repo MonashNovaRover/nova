@@ -150,16 +150,6 @@ void PIDTuner::publish_velocity () {
 PIDTuner::PIDTuner ()
   : Node("pid_tuner"), count(0) {
 
-    // Construct the array of wheels
-    for (int i = 0; i < NUM_WHEELS; i++) {
-        bus_0[i] = new CMD(0, i + 1);
-    }
-
-    // Construct the array of arm devices
-    for (int i = 0; i < NUM_ARM_DEVICES; i++) {
-        bus_1[i] = new CMD(1, i + 1);
-    }
-
     // Create the service and bind to the function
     service = this->create_service<core::srv::PIDTune>("/control/pid_tune", 
         std::bind(&PIDTuner::select_device, this, _1, _2));
@@ -173,6 +163,24 @@ PIDTuner::PIDTuner ()
     // Creates a timer function that runs a function on loop every 0.05 seconds
     feedback_timer = this->create_wall_timer(50ms, std::bind(&PIDTuner::publish_velocity, this));
 
+    // Output set-up messages
+    Print::title("PID TUNER");
+    Print::print("Valid Topics:");
+    Print::print("/control/cmd_feedback         [CMDFeedback]", 1);
+    Print::print("", true);
+    Print::print("Valid Services:");
+    Print::print("/control/pid_tune             [PIDTune]", 1);
+    Print::print("", true);
+
+    // Construct the array of wheels
+    for (int i = 0; i < NUM_WHEELS; i++) {
+        bus_0[i] = new CMD(0, i + 1);
+    }
+
+    // Construct the array of arm devices
+    for (int i = 0; i < NUM_ARM_DEVICES; i++) {
+        bus_1[i] = new CMD(1, i + 1);
+    }
 }
 
 
