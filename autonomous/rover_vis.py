@@ -9,13 +9,8 @@ import numpy as np
 import rclpy
 from rclpy.node import Node
 from nav_msgs.msg import Odometry
-import PCPub
-
-import sys
-
-sys.path.append("../autonomous")
-
-from utils import transform
+import pc_pub
+import transform
 
 
 class RoverCloud(Node):
@@ -26,7 +21,7 @@ class RoverCloud(Node):
         if mode == "from_pc":
 
             # create the point-cloud publisher (this is how we will visualise the rover)
-            self.pc_pub = PCPub.PCPub("rover_cloud")
+            self.pc_pub = pc_pub.PCPub("rover_cloud")
             
             # import the rover from mesh file
             mesh = o3d.io.read_triangle_mesh("../resources/rover.ply")
@@ -36,20 +31,21 @@ class RoverCloud(Node):
             # the following are a bunch of (rough) transformations which will put the rover in a reasonable position
             pts = pts / 1344
             pts = pts[:, [0, 2, 1]]
-            #pts = pts - np.array([.4, .3, -0.11])
+            # pts = pts - np.array([.4, .3, -0.11])
             pts = pts + np.array([0, 0, 0])
 
             # analysis of raw points:
-            # given the rover's max length is 1080 m, but the diff between min and max x coords in the cloud is 0.8172089672994012,
+            # given the rover's max length is 1080 m, but the diff between min,
+            # and max x coords in the cloud is 0.8172089672994012,
             # we can scale up the rover by:
             # pts = pts * (1080 / 0.8172089672994012)
 
             pts = pts * (1.080 / 0.8172089672994012)
             
-            pts = pts + np.array([-.245,-0.39139580577343547,0.15520411544352622])
+            pts = pts + np.array([-.245, -0.39139580577343547, 0.15520411544352622])
 
-            # this is the thing we publish. It should be a set of points where if there is a (0,0,0) translation, the rover is 
-            # just sitting on the ground at the 
+            # this is the thing we publish. It should be a set of points where if there is a (0,0,0) translation,
+            # the rover is  just sitting on the ground at the
             self.origin_rover_pts = pts
              
             # save to file
@@ -59,10 +55,10 @@ class RoverCloud(Node):
        
         else:
             # create the point-cloud publisher (this is how we will visualise the rover)
-            self.pc_pub = PCPub.PCPub("rover_cloud")
+            self.pc_pub = pc_pub.PCPub("rover_cloud")
             
-            # this is the thing we publish. It should be a set of points where if there is a (0,0,0) translation, the rover is 
-            # just sitting on the ground at the origin
+            # this is the thing we publish. It should be a set of points where if there is a (0,0,0) translation,
+            # the rover is just sitting on the ground at the origin
             self.origin_rover_pts = np.load("../resources/rover.npy")
             
             self.subscriber_points = self.create_subscription(Odometry, '/T265/odom/sample', self.callback, 10)
@@ -87,7 +83,7 @@ class RoverCloud(Node):
         pts = pts + [x, y, z]
 
         # the rover signature orange^tm
-        pts = [pt.tolist() + [0,77,255,0] for pt in pts]
+        pts = [pt.tolist() + [0, 77, 255, 0] for pt in pts]
         self.pc_pub.pub(pts)
         
     def pub_rover_cameras_at(self, msg):
@@ -110,7 +106,7 @@ class RoverCloud(Node):
         pts = pts + [x, y, z]
 
         # the rover signature orange^tm
-        pts = [pt.tolist() + [0,77,255,0] for pt in pts]
+        pts = [pt.tolist() + [0, 77, 255, 0] for pt in pts]
         self.pc_pub.pub(pts)
 
     def pub_rover_at_coords(self, coords):
@@ -118,8 +114,9 @@ class RoverCloud(Node):
         pts = pts + coords 
 
         # the rover signature orange^tm
-        pts = [pt.tolist() + [0,77,255,0] for pt in pts]
+        pts = [pt.tolist() + [0, 77, 255, 0] for pt in pts]
         self.pc_pub.pub(pts)
+
 
 if __name__ == "__main__":
     rclpy.init(args=None)

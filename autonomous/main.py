@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-from PathPlanner import PathPlanner
-from Map2DContainer import Map2DContainer
+from path_planner import PathPlanner
+from map2d_container import Map2DContainer
 import rclpy
-from Mapper import Mapper
+from mapper import Mapper
 
 
 def main(args):

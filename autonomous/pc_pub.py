@@ -6,7 +6,7 @@ of 3D data in RVIZ in the same global frame.
 """
 
 import numpy as np
-from utils import cloud_point2
+import pc_converter
 from builtin_interfaces.msg import Time
 import time
 from rclpy.node import Node
@@ -16,6 +16,7 @@ from sensor_msgs.msg import PointCloud2, PointField as PF
 
 def PointField(name, offset, datatype, count):
     return PF(name=name, offset=offset, datatype=datatype, count=count)
+
 
 class PCPub(Node):
     """
@@ -36,6 +37,7 @@ class PCPub(Node):
     
     def pub_pts_colors(self, pts, colors):
         self.pub(np.concatenate((pts, colors, np.zeros((len(pts), 1))), axis=1))
+
 
 def create_cloud_color(points):
     """
@@ -65,7 +67,7 @@ def create_cloud_color(points):
     t.nanosec = 0  # fix this lol
     header.stamp = t 
     
-    cloud = cloud_point2.create_cloud(header, fields_for_parse, points)
+    cloud = pc_converter.create_cloud(header, fields_for_parse, points)
     cloud.fields = fields_for_msg
     return cloud
 

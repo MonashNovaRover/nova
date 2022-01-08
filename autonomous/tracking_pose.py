@@ -33,6 +33,7 @@ from core.msg import RoverPose
 import math
 import sys
 
+
 class T265(Node):
     def __init__(self):
 
@@ -49,27 +50,25 @@ class T265(Node):
         # calculate yaw - convert from quaternion to euler
         data = msg.pose.pose
         qx = data.orientation.x
-        #qy = data.orientation.z
-        #qz = data.orientation.y
         qy = data.orientation.y
         qz = data.orientation.z
         qw = data.orientation.w
 
-        # msg.yaw = euler_from_quaternion([q_x, q_y, q_z, q_w])[1]
         yaw = -math.atan2(2.0*(qx*qy + qw*qz), qw*qw + qx*qx - qy*qy - qz*qz)
         yaw = (yaw if yaw > 0 else 2.0 * math.pi + yaw) + 0
         yaw = yaw if yaw <= math.pi * 2 else yaw - math.pi * 2
         
         pose.yaw = yaw
-        sys.stdout.write("\r" + "x: " + str(round(pose.x, 4)).ljust(7) + " | y: " + str(round(pose.y, 4)).ljust(7) + " | yaw: " + str(round(pose.yaw, 4)).ljust(7))
+        sys.stdout.write("\r" + "x: " + str(round(pose.x, 4)).ljust(7) + " | y: " + str(round(pose.y, 4)).ljust(7)
+                         + " | yaw: " + str(round(pose.yaw, 4)).ljust(7))
         sys.stdout.flush()
         self.publisher.publish(pose)
+
 
 def main():
     rclpy.init(args=None)
     t265 = T265()
     rclpy.spin(t265)
-    subscriber.destroy_node()
     rclpy.shutdown()
 
 

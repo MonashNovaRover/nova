@@ -1,5 +1,4 @@
 import math
-import numpy as np
 
 # tank turning constants (test and define on a terrain basis)
 min_yaw_rate = 4.0  # what is a minimum fair speed to turn slowly

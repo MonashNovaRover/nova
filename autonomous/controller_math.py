@@ -6,9 +6,10 @@ The benefit of using as many functions like this as possible is that we can bett
 assert the behaviour of functions, compositions of functions, and as a result, entire systems.
 """
 
-from utils import controller_params
+import controller_params
 import math
 import numpy as np
+
 
 class State:
     """

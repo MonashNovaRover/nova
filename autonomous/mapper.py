@@ -29,21 +29,22 @@ TODO:
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import PointCloud2
-from utils import cloud_point2 as pc2, transform
+import pc_converter as pc2
+import transform
 from sensor_msgs.msg import PointField
-from open3d import *
 from nav_msgs.msg import Odometry
-import PCPub
-from Map2DContainer import Map2DContainer
-from Grid3D import Grid3D
+from map2d_container import Map2DContainer
+from grid_3d import Grid3D
 import matplotlib.pyplot as plt
-import time
 import numpy as np
+import pc_pub
+
 
 plot = False
 
+
 class Mapper(Node):
-    def __init__(self, map2d, length=8, width=8, height=5, resolution=0.015):
+    def __init__(self, map2d, length=20, width=20, height=6, resolution=0.05):
 
         # init node with node name points
         super().__init__('points_grid')
@@ -56,7 +57,7 @@ class Mapper(Node):
 
         # constants for pruning the point-clouds
         self.max_dist = 3.5
-            
+
         self.last_msg = None
 
         # limiting the the field of view to 4 degrees up and down to reduce noisy data points
@@ -76,7 +77,7 @@ class Mapper(Node):
         self.msg = None
         
         # for visualising the map
-        self.pc_pub = PCPub.PCPub("map_cloud")
+        self.pc_pub = pc_pub.PCPub("map_cloud")
 
         if plot:
             plt.ion()
