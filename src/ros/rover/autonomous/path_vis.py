@@ -6,12 +6,13 @@ Methods
 
 import rclpy
 from rclpy.node import Node
-import PCPub
+import pc_pub
 
 from core.msg import Waypoints
 
 # create custom msg type
 # from core.msg import Path
+
 
 class PathCloud(Node):
     def __init__(self):
@@ -19,7 +20,7 @@ class PathCloud(Node):
         super().__init__("path_cloud")
         
         # create the point-cloud publisher (this is how we will visualise the rover)
-        self.pc_pub = PCPub.PCPub("path_cloud")
+        self.pc_pub = pc_pub.PCPub("path_cloud")
          
         self.subscriber_path = self.create_subscription(Waypoints, '/autonomous/goals', self.path_callback, 10)
     

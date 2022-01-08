@@ -1,10 +1,8 @@
-from PathPlanner import PathPlanner
-import numpy as np
-from time import time
+from ..path_planner import PathPlanner
 
-from Map2DContainer import Map2DContainer as Map2D
+from ..map2d_container import Map2DContainer as Map2D
 
-from utils.controller_params import *
+from autonomous.controller_params import *
 import matplotlib.pyplot as plt
 import rclpy
 

@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
-import numpy as np
 import time
 from queue import PriorityQueue
 
-import rclpy
-## NOTE should probably call these something else since they are not only used by controller
-from utils.controller_params import *
-from utils.controller_math import *
+# NOTE should probably call these something else since they are not only used by controller
+from autonomous.controller_params import *
+from autonomous.controller_math import *
 
 from rclpy.node import Node
 from core.msg import Waypoints, Waypoint, RoverPose
