@@ -36,7 +36,7 @@ void ArmInputs::joystick_l_callback (const core::msg::InputJoystick::SharedPtr m
 void ArmInputs::joystick_r_callback (const core::msg::InputJoystick::SharedPtr msg) {
     
     // end effector actuation
-    end_effector_actuation = calculate_direction(msg->ax_thumb_y);
+    end_effector_actuation = calculate_direction(msg->ax_thumb_y) * 0.95;
 
     // Wrist joints
     // If using the wrist IK

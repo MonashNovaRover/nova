@@ -101,7 +101,7 @@ void CMD::set_pid (float speed) {
 }
 
 void CMD::set_linear_actuator (float value){
-    int actuation = 0;
+    unsigned char actuation = 0;
     if (value < 0){
         actuation = 2;
     }
@@ -115,8 +115,7 @@ void CMD::set_linear_actuator (float value){
     frame.len = 2;
 
     // Order data in big-endian order (MSB first)
-    frame.data[0] = actuation >> 8;
-    frame.data[1] = actuation & 0xFF;
+    frame.data[0] = actuation;
 
     // Write the frame
     this->can_socket.write(frame);
