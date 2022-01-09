@@ -26,11 +26,19 @@ TODO:
 class Joint : public CMD {
 
     //------------------------------------------------------------//
+    protected:
+
+    // Has the allstops been triggered
+    bool all_stopped;
+    
+
+    //------------------------------------------------------------//
     public:
 
     // Stores the drive mode for the joint's CMD
     // 0 for PWM, 1 for PID
     CMDCommand CMD_drive_mode;
+
 
     //------------------------------------------------------------//
     protected:
