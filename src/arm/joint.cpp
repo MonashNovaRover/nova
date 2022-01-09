@@ -30,6 +30,20 @@ Joint::~Joint () {
 
 void Joint::drive (float velocity) {
 
+    // Check if velocity is zero
+    if (velocity == 0) {
+        // If not all stopped
+        if (!all_stopped) {
+            all_stopped = true;
+            stop();
+        }
+
+        return;    
+    }
+
+    // Otherwise turn off all stops
+    else all_stopped = false;
+
     if(CMD_drive_mode == PID){
         // Call the PID function
         set_pid(velocity);
