@@ -178,9 +178,6 @@ class Mapper(Node):
         # ----------------------- WARNING: JANK ----------------------
         self.map2d.grid = self.map3d.get_slices(self.msg, 0.1, 0.1)
         
-        print("updated map")
-        print(self.map2d.grid.shape)
-
         if plot:
             plt.imshow(np.flip(self.map2d.grid, axis=0))
             plt.draw()

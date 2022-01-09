@@ -100,7 +100,6 @@ class Grid3D:
         indexes = self.get_indexes(points) 
         
         indexes_indexes = np.all(np.array([indexes[:, 0] < self.map.shape[0], indexes[:, 1] < self.map.shape[1], indexes[:, 2] < self.map.shape[2]]).transpose(), axis=1)
-        print(indexes_indexes)
 
         indexes = indexes[indexes_indexes]
         colors = colors[indexes_indexes]
