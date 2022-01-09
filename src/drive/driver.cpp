@@ -9,9 +9,7 @@ AUTHOR(S):	Harrison Verrios, Josh Cherubino
 
 // Include the header file
 #include "driver.h"
-
-// Include standard output messages
-#include <iostream>
+#include "debug/print.h"
 
 // Sends commands to the wheels
 void Driver::send_commands (const core::msg::DriveInput::SharedPtr msg) {
@@ -69,23 +67,39 @@ void Driver::auto_callback (const core::msg::DriveInput::SharedPtr msg) {
 // Receives input from the gamepad
 void Driver::input_callback (const core::msg::InputGamepad::SharedPtr msg) {
 
-    // Enable or Disable handbraking based on the thumb buttons
-    if (msg->connected && msg->btn_thumb_l_state == 1)
+    // Enable handbraking based on the thumb buttons
+    if (msg->connected && msg->btn_thumb_l_state == 1) {
+        if (!handbrake) Print::print("Handbrake Enabled", C_MODE);
         handbrake = true;
-    else if (msg->connected && msg->btn_thumb_r_state == 1)
+    }
+    
+    // Disable Handbrake
+    else if (msg->connected && msg->btn_thumb_r_state == 1) {
+        if (handbrake) Print::print("Handbrake Disabled", C_MODE);
         handbrake = false;
+    }
 
-    // Enable or disable autonomous
-    if (msg->connected && msg->btn_a_state == 1)
+    // Enable  autonomous
+    if (msg->connected && msg->btn_a_state == 1) {
+        if (!is_autonomous) Print::print("Mode: Autonomous", C_MODE);
         is_autonomous = true;
-    else if (msg->connected && msg->btn_b_state == 1)
+    }
+
+    // Disable autonomous
+    else if (msg->connected && msg->btn_b_state == 1) {
+        if (is_autonomous) Print::print("Mode: Manual", C_MODE);
         is_autonomous = false;
+    }
 }
 
 
 // Main constructor that sets up the node
 Driver::Driver() 
   : Node("drive_sub"), count(0) {
+
+    // Output set-up messages
+    Print::title("DRIVER");
+    Print::print("", true);
 
     // Initialise the wheels in the correct direction
     for (int i = 0; i < NUM_WHEELS; i++) {
