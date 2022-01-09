@@ -63,6 +63,10 @@ class Grid3D:
         return indexes * self.resolution - np.array([self.length / 2, self.width / 2, self.height / 2])
 
     def add_pc(self, points, colors):
+        # choosing between the fast and slow version for testing
+        self.add_pc_fast(points, colors)
+
+    def add_pc_slow(self, points, colors):
         """
         Note: this version is slower due to loops, but still here as the newer version is un-tested
         Insert a point-cloud into the map
@@ -95,7 +99,7 @@ class Grid3D:
         # parse only the indexes which are within the map bounds
         indexes = self.get_indexes(points) 
         
-        indexes_indexes = np.all(np.array([indexes[:,0] < self.map.shape[0], indexes[:,1] < self.map.shape[1], indexes[:,2] < self.map.shape[2]]).transpose(), axis=1)
+        indexes_indexes = np.all(np.array([indexes[:, 0] < self.map.shape[0], indexes[:, 1] < self.map.shape[1], indexes[:, 2] < self.map.shape[2]]).transpose(), axis=1)
         print(indexes_indexes)
 
         indexes = indexes[indexes_indexes]
@@ -104,16 +108,11 @@ class Grid3D:
         print("getting indexes took: " + str(time.time() - t))
 
         t = time.time()
-        
-        print("indexes shape: " + str(indexes.shape))
-        print(colors.shape)
 
-        # fill the all the new points with the new timestamp
-        self.map[indexes.transpose()[0], indexes.transpose()[1], indexes.transpose()[2]][:,0] = 1
-        # fill all the new points with their colors
-        self.map[indexes.transpose()[0], indexes.transpose()[1], indexes.transpose()[2]][:,1:] = colors
-        
-        print(np.sum(self.map))
+        # fill the all the new points with the new timestamp and colors
+        to_add = np.concatenate((np.full((colors.shape[0], 1), t), colors), axis=1)
+        self.map[indexes.transpose()[0], indexes.transpose()[1], indexes.transpose()[2]] = to_add
+
         print("adding point-cloud took: " + str(time.time() - t))
 
     def get_as_pc(self):
@@ -127,12 +126,10 @@ class Grid3D:
 
         # the indexes (should be an nx3 array)
         raw_indexes = self.map[:, :, :, 0] > 0
-        print(raw_indexes)
 
         points = np.array(np.where(raw_indexes)).transpose()
         colors = np.array(self.map[raw_indexes][:, 1:])
 
         print("Extracting points from map took: " + str(time.time() - t))
-        print(points.shape)
         
         return self.get_points(np.array(points)), colors
