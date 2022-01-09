@@ -29,6 +29,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
 
   # Message definitions
   "msg/ArmInput.msg"
+  "msg/CamsConnected.msg"
   "msg/CMDFeedback.msg"
   "msg/DriveInput.msg"
   "msg/DriveVel.msg"
