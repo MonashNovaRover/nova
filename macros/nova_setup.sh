@@ -88,6 +88,7 @@ sudo apt install libudev-dev -y
 # Installing Cameras and GStreamer
 information "Installing Cameras..."
 sudo apt-get -y install gstreamer-1.0 python-gi gstreamer1.0-tools gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-dev python-gst-1.0 -y
+sudo apt-get install gstreamer1.0-plugins-ugly
 pip3 install requests -y
 
 # Installing GUI tools
