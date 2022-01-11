@@ -1,0 +1,83 @@
+#pragma once
+
+/*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Monash Nova Rover Team
+
+This class simulates resolver feedback from operating the CMDs.
+It can be used in place of the arm_driver for when no physical
+  arm is connected.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+NODE: arm_model
+TOPICS:
+  - /control/cmd_outputs       [sensor_msgs/JointState]    [Subscribed]
+  - /control/resolvers         [sensor_msgs/JointState]    [Published]
+SERVICES: None
+ACTIONS: None
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PACKAGE: 	 control
+AUTHOR(S):   Jory Braun
+CREATION:	 18/12/2021
+EDITED:		 12/01/2022
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+TODO:
+ - Implement arm core
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
+
+// Include ROS client library
+#include "rclcpp/rclcpp.hpp"
+// Include message types
+#include "sensor_msgs/msg/joint_state.hpp"
+
+// Use the standard namespaces
+// For publishers
+using namespace std::chrono_literals;
+// For subscribers
+using std::placeholders::_1;
+
+
+class ArmSimulator : public rclcpp::Node
+{
+    //------------------------------------------------------------//
+    private:
+
+    // Things that will be set by arm_core node
+    // Number of joints
+    int num_joints;
+    // Period at which to publish to /control/resolvers
+    std::chrono::milliseconds timer_period;
+
+    // Track internal state of all joints
+    // Includes joint names, position, velocity, effort and the corresponding timestamp
+    // Set initial value using arm_core
+    sensor_msgs::msg::JointState joints;
+
+    // Subscriber to listen for output joint velocity commands
+    rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr outputs_subscription;
+    // Timer for publishing to /control/resolvers
+    rclcpp::TimerBase::SharedPtr publisher_timer;
+    // Publisher to resolvers
+    rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr resolver_publisher;
+
+    //------------------------------------------------------------//
+    private:
+
+    /// @brief  Integrates the joint velocities up to the current time
+    void update_joint_positions();
+
+    /// @brief  Callback for subscriber
+    ///         Updates internal joint velocities
+    void subscriber_callback(const sensor_msgs::msg::JointState::SharedPtr msg);
+    
+    /// @brief  Callback for publisher timer
+    ///         Updates position base don current velocity, publishes to resolvers
+    void publisher_callback();
+    
+    //------------------------------------------------------------//
+    public:
+
+    /// Default constructor
+    ArmSimulator();
+
+};
