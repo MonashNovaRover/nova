@@ -19,16 +19,19 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(core REQUIRED)
+find_package(sensor_msgs REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(Orocos_kdl REQUIRED)
 
-# Library directories. Can import from these using <>
+# Add include directories for all targets
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
   "${PROJECT_SOURCE_DIR}/include"
   #${Eigen3_INCLUDE_DIRS}  StackOverflow said this is required, but doesn't seem to be
 )
+
+# Add library targets:
 
 # Add gamepad targets, as these are located in the include folder
 if (NOT TARGET gamepad)
@@ -40,7 +43,7 @@ if (NOT TARGET socketcan)
   add_library(socketcan SHARED include/socketcan/socketcan_cpp.cpp)
 endif()
 
-# Add executables:
+# Add executables with relevant dependencies:
 
 # Inputs script
 add_executable(inputs src/inputs/inputs_publisher.cpp src/inputs/joystick.cpp 
@@ -50,12 +53,12 @@ target_link_libraries(inputs gamepad udev ${catkin_LIBRARIES})
 ament_target_dependencies(inputs rclcpp core)
 
 # Drive Command script
-add_executable(drive_cmd src/drive/drive_publisher.cpp)
-ament_target_dependencies(drive_cmd rclcpp core)
+#add_executable(drive_cmd src/drive/drive_publisher.cpp)
+#ament_target_dependencies(drive_cmd rclcpp core)
 
 # Drive Receiver script
-add_executable(driver src/drive/drive_subscriber.cpp src/drive/wheel.cpp src/cmd/cmd.cpp ${PROJECT_SOURCE_DIR}/include/socketcan/socketcan_cpp.cpp)
-ament_target_dependencies(driver rclcpp core)
+#add_executable(driver src/drive/drive_subscriber.cpp src/drive/wheel.cpp src/cmd/cmd.cpp ${PROJECT_SOURCE_DIR}/include/socketcan/socketcan_cpp.cpp)
+#ament_target_dependencies(driver rclcpp core)
 
 # Arm Publisher script
 add_executable(arm_input src/arm/arm_publisher.cpp)
@@ -70,14 +73,19 @@ add_executable(arm_model src/arm/kinematics/arm_model.cpp)
 target_link_libraries(arm_model orocos-kdl)
 ament_target_dependencies(arm_model rclcpp core)
 
+# Arm Simulator script
+add_executable(arm_simulator src/arm/arm_simulator.cpp)
+ament_target_dependencies(arm_simulator rclcpp sensor_msgs)
+
 # Add all the installation targets
 install(TARGETS
   inputs
-  drive_cmd
-  driver
+  #drive_cmd
+  #driver
   arm_input
   arm_driver
   arm_model
+  arm_simulator
   DESTINATION lib/${PROJECT_NAME}
 )
 
