@@ -74,7 +74,7 @@ target_link_libraries(arm_model orocos-kdl)
 ament_target_dependencies(arm_model rclcpp core)
 
 # Arm Simulator script
-add_executable(arm_simulator src/arm/arm_simulator.cpp)
+add_executable(arm_simulator src/arm/simulator/arm_simulator.cpp)
 ament_target_dependencies(arm_simulator rclcpp sensor_msgs)
 
 # Add all the installation targets
