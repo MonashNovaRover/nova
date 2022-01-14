@@ -52,6 +52,9 @@ class ArmSimulator : public rclcpp::Node
     // Includes joint names, position, velocity, effort and the corresponding timestamp
     // Set initial value using arm_core
     sensor_msgs::msg::JointState joints;
+    // Track the time that the joint velocities were last integrated to.
+    // This is distinct from the timestamp in joints, which represents the time each message was sent
+    rclcpp::Time last_integration_time;
 
     // Subscriber to listen for output joint velocity commands
     rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr outputs_subscription;
@@ -59,9 +62,6 @@ class ArmSimulator : public rclcpp::Node
     rclcpp::TimerBase::SharedPtr publisher_timer;
     // Publisher to resolvers
     rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr resolver_publisher;
-
-    //------------------------------------------------------------//
-    private:
 
     /// Converts a Real angle into the equivalent angle in [0, 2pi)
     double wrap_to_2pi(double angle);

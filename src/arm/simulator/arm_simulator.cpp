@@ -22,14 +22,15 @@ ArmSimulator::ArmSimulator() : Node("arm_simulator")
     // Will eventually be done in arm_core node and then inherited here
     num_joints = 6;
     timer_period = 200ms;
-    
     // Set up the joint names
     joints.name = std::vector<std::string> {"base-rotation", "shoulder", "elbow", "wrist-1", "wrist-2", "wrist-3"};
     // Initial state of the joints
-    joints.header.stamp = this->now();
     joints.position = std::vector<double> {0, 90, 0, 0, 0, 0};
     joints.velocity = std::vector<double> (num_joints);
     joints.effort = std::vector<double> (num_joints);
+    
+    // Initial integration time
+    last_integration_time = this->now();
     
     // Create the subscription
     outputs_subscription = this->create_subscription<sensor_msgs::msg::JointState>(
@@ -63,16 +64,15 @@ void ArmSimulator::update_joint_positions()
 
     // Update positions using duration from last recorded time to current time, and last velocity
     // Assumes joints have been moving at the last velocity they were told to
-    rclcpp::Duration duration = current_time - joints.header.stamp;
+    rclcpp::Duration duration = current_time - last_integration_time;
     for(int i = 0; i < num_joints; i++){
         if (joints.velocity[i] != 0){
             joints.position[i] = wrap_to_2pi(joints.position[i] + joints.velocity[i] * duration.seconds());
         }   
     }
-    // Update the header to record the time that was integrated to
-    joints.header.stamp = current_time;
+    // Record the time that was integrated to
+    last_integration_time = current_time;
 }
-
 
 // Receive joint velocity command, update internal joint velocities
 void ArmSimulator::subscriber_callback(const sensor_msgs::msg::JointState::SharedPtr msg)
@@ -83,12 +83,13 @@ void ArmSimulator::subscriber_callback(const sensor_msgs::msg::JointState::Share
     joints.velocity = msg->velocity;
 }
 
-
 // Create fake resolver output by integrating the joint positions up to the current time
 void ArmSimulator::publisher_callback()
 {
     // Integrate the joint positions up to the current time
     update_joint_positions();
+    // Update the header
+    joints.header.stamp = this->now();
     // Publish the current state of the joints
     resolver_publisher->publish(joints);
 }
