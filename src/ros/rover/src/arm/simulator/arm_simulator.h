@@ -63,7 +63,10 @@ class ArmSimulator : public rclcpp::Node
     //------------------------------------------------------------//
     private:
 
-    /// @brief  Integrates the joint velocities up to the current time
+    /// Converts a Real angle into the equivalent angle in [0, 2pi)
+    double wrap_to_2pi(double angle);
+    
+    /// Integrates the joint velocities up to the current time
     void update_joint_positions();
 
     /// @brief  Callback for subscriber
