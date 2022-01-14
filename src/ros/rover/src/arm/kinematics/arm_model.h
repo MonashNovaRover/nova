@@ -14,33 +14,42 @@ It reads the current task velocity and IK parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: arm_model
 TOPICS:
-  - /control/resolvers         [Message Type]    [Subscribed]
-  - /control/task_velocity     [Message Type]    [Subscribed]
-  - /control/arm_coord_frames  [Message Type]    [Published]
-  - /control/joint_velocities  [Message Type]    [Published]
+  - /control/resolvers         [sensor_msgs/JointState]          [Subscribed]
+  - /control/task_velocity     [geometry_msgs/TwistStamped]      [Subscribed]
+  - /control/arm_coord_frames  [sensor_msgs/MultiDOFJointState]  [Published]
+  - /control/joint_velocities  [sensor_msgs/JointState]          [Published]
 SERVICES: None
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	 control
 AUTHOR(S): Jory Braun
 CREATION:	 11/12/2021
-EDITED:		 11/12/2021
+EDITED:		 14/01/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
- - Item One
+ - Implement arm core
+ - Publish on timer or publish on change in state? Make consistent.
+   On timer prevents slow computations from holding up new messages being received.
+   Keeps tasks independent.
  - Item Two
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-// Include ROS packages
+// Include ROS client library
 #include "rclcpp/rclcpp.hpp"
+// Include message types
+#include "sensor_msgs/msg/joint_state.hpp"
+#include "geometry_msgs/msg/twist_stamped.hpp"
+#include "sensor_msgs/msg/multi_dof_joint_state.hpp"
 
 // Include libraries
 #include <eigen3/Eigen/Dense>
 #include <kdl/tree.hpp>
 
 // Use the standard namespaces
+// For publishers
 using namespace std::chrono_literals;
+// For subscribers
 using std::placeholders::_1;
 
 /* 
@@ -53,26 +62,52 @@ class ArmModel : public rclcpp::Node {
     //------------------------------------------------------------//
     private:
 
-    // Stores the loop timer for the update function
-    rclcpp::TimerBase::SharedPtr timer;
+    // Things that will be set by arm_core node
+    // Number of joints
+    int num_joints;
+    // Periods at which to publish
+    std::chrono::milliseconds coord_frames_timer_period;
+    std::chrono::milliseconds velocities_timer_period;
+
+    // Track internal state
+    // Resolvers
+    sensor_msgs::msg::JointState joints;
+    // Task velocity
+    geometry_msgs::msg::TwistStamped task_velocity;
+    // Arm model using KDL
+    KDL::Tree arm("root");
 
     // Subscriber to resolvers
-
-    // Subscriber to arm params
-
+    rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr resolver_sub;
     // Subscriber to task velocity
-
+    rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr task_velocity_sub;
     // Publisher to /control/arm_coord_frames
-
+    rclcpp::TimerBase::SharedPtr coord_frames_timer;
+    rclcpp::Publisher<sensor_msgs::msg::MultiDOFJointState>::SharedPtr coord_frames_pub;
     // Publisher to /control/joint_velocities
+    rclcpp::TimerBase::SharedPtr joint_velocities_timer;
+    rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr joint_velocities_pub;
 
-    //------------------------------------------------------------//
-    protected:
+    /// @brief  Callback for resolver subscription
+    ///         Updates the internal joint state, which is later used to update the model
+    void resolver_callback(const sensor_msgs::msg::JointState::SharedPtr msg);
 
+    /// @brief  Callback for task velocity subscription
+    ///         Updates the internal velocity, which is later used to calculate the inverse kinematics
+    void task_velocity_callback(const geometrymsgs::msg::TwistStamped>::SharedPtr msg);
+
+    /// @brief  Callback for arm_coord_frames publisher timer
+    ///         Updates the arm model using the latest resolver info, publishes to arm_cord_frames
+    void publish_coord_frames();
+
+    /// @brief  Callback for joint_velocities publihser timer
+    ///         Calculates the inverse kinematics using the latest arm model, publishes to joint_velocities
+    void publish_joint_velocities();
+    
     //------------------------------------------------------------//
     public:
 
-    /// @brief      Default constructor function that starts up the node
+    /// Default constructor. Builds the arm and starts the node
     ArmModel();
     
 };
