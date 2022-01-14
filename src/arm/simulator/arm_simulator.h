@@ -16,9 +16,9 @@ SERVICES: None
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	 control
-AUTHOR(S):   Jory Braun
+AUTHOR(S): Jory Braun
 CREATION:	 18/12/2021
-EDITED:		 12/01/2022
+EDITED:		 14/01/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
  - Implement arm core
