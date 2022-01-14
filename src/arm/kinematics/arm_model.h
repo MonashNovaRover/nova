@@ -28,6 +28,8 @@ EDITED:		 14/01/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
  - Implement arm core
+ - Get rid of hard-coding of arm structure
+ - Change how end effector angles are specified. Use Euler ZYX instead of XYZ.
  - Publish on timer or publish on change in state? Make consistent.
    On timer prevents slow computations from holding up new messages being received.
    Keeps tasks independent.
@@ -45,6 +47,9 @@ TODO:
 // Include libraries
 #include <eigen3/Eigen/Dense>
 #include <kdl/tree.hpp>
+
+#include <string>
+#include <vector>
 
 // Use the standard namespaces
 // For publishers
@@ -65,9 +70,11 @@ class ArmModel : public rclcpp::Node {
     // Things that will be set by arm_core node
     // Number of joints
     int num_joints;
+    // Names of the joints
+    std::vector<std::string> joint_names;
     // Periods at which to publish
     std::chrono::milliseconds coord_frames_timer_period;
-    std::chrono::milliseconds velocities_timer_period;
+    std::chrono::milliseconds joint_velocities_timer_period;
 
     // Track internal state
     // Resolvers
@@ -76,10 +83,14 @@ class ArmModel : public rclcpp::Node {
     geometry_msgs::msg::TwistStamped task_velocity;
     // Arm model using KDL
     KDL::Tree arm("root");
+    
+    // Store output messages so only need to initialise constant info once
+    sensor_msgs::msg::MultiDOFJointState coord_frames;
+    sensor_msgs::msg::JointState joint_velocities;
 
-    // Subscriber to resolvers
+    // Subscription to resolvers
     rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr resolver_sub;
-    // Subscriber to task velocity
+    // Subscription to task velocity
     rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr task_velocity_sub;
     // Publisher to /control/arm_coord_frames
     rclcpp::TimerBase::SharedPtr coord_frames_timer;
