@@ -12,6 +12,9 @@ AUTHOR(S):	Jory Braun
 #include <string>
 #include <vector>
 
+#define _USE_MATH_DEFINES
+#include <cmath>
+
 // Constructor
 ArmSimulator::ArmSimulator() : Node("arm_simulator")
 {
@@ -44,6 +47,13 @@ ArmSimulator::ArmSimulator() : Node("arm_simulator")
     );
 }
 
+// Convert a Real angle into the equivalent angle in [0, 2pi)
+double ArmSimulator::wrap_to_2pi(double angle){
+    angle = fmod(angle, 2*M_PI);
+    if (angle < 0)
+        angle += 2*M_PI;
+    return angle;
+}
 
 // Use the current joint velocities to integrate the joint positions up to the current time
 void ArmSimulator::update_joint_positions()
@@ -55,7 +65,9 @@ void ArmSimulator::update_joint_positions()
     // Assumes joints have been moving at the last velocity they were told to
     rclcpp::Duration duration = current_time - joints.header.stamp;
     for(int i = 0; i < num_joints; i++){
-        joints.position[i] += joints.velocity[i] * duration.seconds();
+        if (joints.velocity[i] != 0){
+            joints.position[i] = wrap_to_2pi(joints.position[i] + joints.velocity[i] * duration.seconds());
+        }   
     }
     // Update the header to record the time that was integrated to
     joints.header.stamp = current_time;
