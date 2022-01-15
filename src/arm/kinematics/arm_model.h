@@ -30,6 +30,8 @@ TODO:
  - Implement arm core
  - Get rid of hard-coding of arm structure
  - Change how end effector angles are specified. Use Euler ZYX instead of XYZ.
+ - Revisit FK data types wrangling
+ - Implement IK
  - Publish on timer or publish on change in state? Make consistent.
    On timer prevents slow computations from holding up new messages being received.
    Keeps tasks independent.
@@ -81,12 +83,17 @@ class ArmModel : public rclcpp::Node {
     sensor_msgs::msg::JointState joints;
     // Task velocity
     geometry_msgs::msg::TwistStamped task_velocity;
-    // Arm model using KDL
-    KDL::Tree arm("root");
     
     // Store output messages so only need to initialise constant info once
     sensor_msgs::msg::MultiDOFJointState coord_frames;
     sensor_msgs::msg::JointState joint_velocities;
+
+    // Arm model using KDL
+    KDL::Tree arm;
+    // FK solver
+    KDL::TreeFkSolverPos arm_fk_solver;
+    // IK solver
+    KDL::TreeIkSolverVel arm_ik_solver;
 
     // Subscription to resolvers
     rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr resolver_sub;

@@ -52,7 +52,7 @@ ArmModel::ArmModel () : Node("arm_model")
     joints.effort = std::vector<double> (num_joints);
 
     coord_frames.joint_names = coord_frame_names;
-    coord_frames.transforms = geometry_msgs::msg::Transforms[num_joints];
+    coord_frames.transforms = geometry_msgs::msg::Transform[num_joints];
     coord_frames.twist = geometry_msgs::msg::Twist[num_joints];
     coord_frames.wrench = geometry_msgs::msg::Wrench[num_joints];
 
@@ -108,14 +108,20 @@ ArmModel::ArmModel () : Node("arm_model")
     KDL::Segment SE1 = KDL::Segment("SE1", E1, FE1);
 
     // Create arm
+    arm = KDL::Tree("root");
     arm.addSegment(SJ1, "root");
     arm.addSegment(SJ2, "SJ1");
     arm.addSegment(SJ3, "SJ2");
     arm.addSegment(SJ4, "SJ3");
     arm.addSegment(SJ5, "SJ4");
     arm.addSegment(SJ6, "SJ5");
-    arm.addSegment(SE0, "SE0");
+    arm.addSegment(SE0, "SJ6");
     arm.addSegment(SE1, "SJ3");
+
+    // Create FK solver
+    arm_fk_solver = KDL::TreeFkSolverPos(arm);
+    // Create IK solver
+    //arm_ik_solver = KDL::TreeIkSolverVel(arm, WHAT GOES HERE);
     
 
     // Create subscription to resolvers
@@ -161,10 +167,41 @@ void task_velocity_callback(const geometrymsgs::msg::TwistStamped>::SharedPtr ms
 // Update the arm model using the latest resolver info, publish to arm_cord_frames
 void publish_coord_frames()
 {
-    // Update positions of all joints in 3D space
-    MODEL.UPDATE_ANGLES(ANGLES);
+    // Get the input positions in the form KDL likes
+    Eigen::VectorXd eigen_joints(joints.position.data());
+    KDL::JntArray kdl_joints();
+    kdl_joints.data = eigen_joints;
+    // Prepare the output data structure
+    KDL::Frame kdl_coord_frame();
+    
+    // Calculate FK for all joints
+    // This is inefficient in KDL. For n joints takes O(n^2) time but could be O(n)
     for (int i = 0; i < coord_frames.transforms.size(); i++){
-        coord_frames.transforms[i] = ADD THING FROM KDL;
+        // Calculate the FK for joint i. Store the result in kdl_coord_frame
+        int exit_value = arm_fk_solver.JntToCart(
+            kdl_joints, kdl_coord_frame, coord_frames.joint_names[i]
+        );
+        if (exit_value == -1){
+            RCLCPP_WARN(this->get_logger(), "Number of positions provided does not match number of joints in tree");
+        }
+        else if (exit_value == -2){
+            RCLCPP_WARN(this->get_logger(), "Could not find segment %s in the tree", coord_frames.joint_names[i].c_str());
+        }
+        else{
+            // Success
+            // Get the output transform in the form ROS2 likes
+            geometry_msgs::msg::Vector3 translation();
+            translation.x = kdl_coord_frame.p.x;
+            translation.y = kdl_coord_frame.p.y;
+            translation.z = kdl_coord_frame.p.z;
+            geometry_msgs::msg::Quaternion rotation();
+            kdl_coord_fram.M.GetQuaternion(rotation.x, rotation.y, rotation.z, rotation.w);
+            geometry_msgs::msg::Transform transform();
+            transform.translation = translation;
+            transform.rotation = rotation;
+            // Store the transform for this joint
+            coord_frames.transforms[i] = transform;
+        }
     }
     // Update the header
     coord_frames.header.stamp = this->now();
@@ -176,13 +213,13 @@ void publish_coord_frames()
 void publish_joint_velocities()
 {
     // Calculate the inverse kinematics
-    joint_velocities.velocity = MODEL.GET_THIS_BREAD(task_velocity);
+    //joint_velocities.velocity = MODEL.GET_THIS_BREAD(task_velocity);
     // Update the position too, since we have that info available
     joint_velocities.positions = joints.positions;
     // Update the header
     joint_velocities.header.stamp = this->now();
     // Publish the message
-    joint_velocities_pub->publish(joint_velocities);
+    //joint_velocities_pub->publish(joint_velocities);
 }
 
 
