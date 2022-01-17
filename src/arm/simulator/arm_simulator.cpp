@@ -8,26 +8,16 @@ AUTHOR(S):	Jory Braun
 */
 
 #include "arm_simulator.h"
-
-#include <string>
-#include <vector>
-
-#define _USE_MATH_DEFINES
-#include <cmath>
+#include "arm_core.h"
 
 // Constructor
 ArmSimulator::ArmSimulator() : Node("arm_simulator")
 {
     // Initialise constants
-    // Will eventually be done in arm_core node and then inherited here
-    num_joints = 6;
     timer_period = 200ms;
-    // Set up the joint names
-    joints.name = std::vector<std::string> {"base-rotation", "shoulder", "elbow", "wrist-1", "wrist-2", "wrist-3"};
-    // Initial state of the joints
-    joints.position = std::vector<double> {0, 90, 0, 0, 0, 0};
-    joints.velocity = std::vector<double> (num_joints);
-    joints.effort = std::vector<double> (num_joints);
+    
+    // Set up the jjoints structure
+    joints = ArmCore::get_empty_joint_state();
     
     // Initial integration time
     last_integration_time = this->now();

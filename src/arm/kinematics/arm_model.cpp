@@ -8,59 +8,35 @@ AUTHOR(S):	Jory Braun
 */
 
 #include "arm_model.h"
-
-#define _USE_MATH_DEFINES
-#include <cmath>
+#include "arm_core.h"
 
 ArmModel::ArmModel () : Node("arm_model")
 {
     // Initialise constants
-    // Will eventually be done in arm_core and then inherited here
-    num_joints = 6;
     coord_frames_timer_period = 200ms;
     joint_velocities_timer_period = 200ms;
-    joint_names = std::vector<std::string> {"base-rotation", "shoulder", "elbow", "wrist-1", "wrist-2", "wrist-3"};
+    
+    // Define end effectors and cameras here for now.
+    // Eventually define in a modular way based on the end effector used or something
     end_effector_names = std::vector<std::string> {"es-gripper", "er-gripper", "lc-gripper", "lower-joints-hook"};
     camera_names = std::vector<std::string> {"squooshy", "ee-front", "ee-depth", "ee-screw"};
-    // Combine the 3 vectors above
+    // Use ArmCore and the vectors above to get all coord frames
+    // Eventually define in a modular way
     coord_frame_names = std::vector<std::string>();
-    coord_frame_names.insert(coord_frame_names.end(), joint_names.begin(), joint_names.end());
+    coord_frame_names.insert(coord_frame_names.end(), ArmCore::joint_names.begin(), ArmCore::joint_names.end());
     coord_frame_names.insert(coord_frame_names.end(), end_effector_names.begin(), end_effector_names.end());
     coord_frame_names.insert(coord_frame_names.end(), camera_names.begin(), camera_names.end());
-    
-    // Arm DH geometry constants (mm). Based on model in Arm/DH parameters on GrabCAD
-    // Joints
-    // DH parameter lengths
-    double shoulder_offset = 124  // Distance from p01 to p4 along z2
-    double elbow_link_length = 485  // Distance from z2 to z3
-    double j4_link_length = 499  // Distance from z3 to z4 (not parallel to actual link)
-    double j5_offset = 104  // Distance from p4 to p56 along z5
-    // End effectors
-    // Parameters for a general transformation from end effector to the previous joint
-    double gripper_offset_z = 311  // Distance from p56 to tip of gripper end effector
-    double hook_offset_x = -99  // Distances from p4 to pE2 along axes xyzE2
-    double hook_offset_y = -24
-    double hook_offset_z = 75
-    double hook_angle_x = 5.87 * M_PI/180  // Angle from x3 to the axis of the cylindrical link (rad)
-    // Joint initial angles
-    zero_angles = std::vector<double> {0, 0, 0, 0, 0, 0};
 
-    // Initialise arrays in internal data structures (TwistStamped does not need to be initialised)
-    joints.name = joint_names;
-    joints.position = std::vector<double> (num_joints);
-    joints.velocity = std::vector<double> (num_joints);
-    joints.effort = std::vector<double> (num_joints);
-
+    // Initialise arrays in internal data structures
+    joint_velocities = ArmCore::get_empty_joint_state();
+    // TwistStamped does not need to be initialised
     coord_frames.joint_names = coord_frame_names;
     coord_frames.transforms = geometry_msgs::msg::Transform[num_joints];
     coord_frames.twist = geometry_msgs::msg::Twist[num_joints];
     coord_frames.wrench = geometry_msgs::msg::Wrench[num_joints];
 
-    joint_velocities = joints;
 
-
-    // Build the arm. Use the DH parameterisation
-    // Create the joints
+    // Build the arm.
     // Joints
     KDL::Joint J1 = KDL::Joint(joint_names[0], KDL::Joint::RotZ);  // Base rotation
     KDL::Joint J2 = KDL::Joint(joint_names[1], KDL::Joint::RotZ);  // Shoulder
@@ -76,21 +52,21 @@ ArmModel::ArmModel () : Node("arm_model")
     // Each one is a transformation from the current joint to the previous one
     // Joints
     // Use the modified DH parameters, so the origin of frame i is at the output of joint i
-    KDL::Frame FJ1 = KDL::Frame::DH_Craig1989(0, 0, 0, zero_angles[0]);
-    KDL::Frame FJ2 = KDL::Frame::DH_Craig1989(0, M_PI / 2, shoulder_offset, zero_angles[1]);
-    KDL::Frame FJ3 = KDL::Frame::DH_Craig1989(elbow_link_length, 0, 0, zero_angles[2]);
-    KDL::Frame FJ4 = KDL::Frame::DH_Craig1989(j4_link_length, 0, 0, zero_angles[3]);
-    KDL::Frame FJ5 = KDL::Frame::DH_Craig1989(0, M_PI / -2, j5_offset, zero_angles[4]);
-    KDL::Frame FJ6 = KDL::Frame::DH_Craig1989(0, M_PI / -2, 0, zero_angles[5]);
+    KDL::Frame FJ1 = KDL::Frame::DH_Craig1989(0, 0, 0, ArmCore::zero_angles[0]);
+    KDL::Frame FJ2 = KDL::Frame::DH_Craig1989(0, M_PI / 2, ArmCore::SHOULDER_OFFSET, ArmCore::zero_angles[1]);
+    KDL::Frame FJ3 = KDL::Frame::DH_Craig1989(ArmCore::ELBOW_LINK_LENGTH, 0, 0, ArmCore::zero_angles[2]);
+    KDL::Frame FJ4 = KDL::Frame::DH_Craig1989(ArmCore::J4_LINK_LENGTH, 0, 0, ArmCore::zero_angles[3]);
+    KDL::Frame FJ5 = KDL::Frame::DH_Craig1989(0, M_PI / -2, ArmCore::J5_OFFSET, ArmCore::zero_angles[4]);
+    KDL::Frame FJ6 = KDL::Frame::DH_Craig1989(0, M_PI / -2, 0, ArmCore::zero_angles[5]);
     // End effectors
     // ES gripper
-    KDL::Frame FE0 = KDL::Frame(KDL::Vector(0, 0, gripper_offset_z));
+    KDL::Frame FE0 = KDL::Frame(KDL::Vector(0, 0, ArmCore::GRIPPER_OFFSET_Z));
     // Lower-joints hook
-    KDL::Frame hook_to_j4 = KDL::Frame(KDL::Vector(hook_offset_x, hook_offset_y, hook_offset_z));
+    KDL::Frame hook_to_j4 = KDL::Frame(KDL::Vector(ArmCore::HOOK_OFFSET_X, ArmCoer::HOOK_OFFSET_Y, ArmCoer::HOOK_OFFSET_Z));
     KDL::Rotation j4_to_elbow_rot = KDL::Frame::Identity();
     j4_to_elbow_rot.DoRotZ(-M_PI);
     j4_to_elbow_rot.DoRotY(M_PI / 2);
-    j4_to_elbow_rot.DoRotX(hook_angle_x);
+    j4_to_elbow_rot.DoRotX(ArmCore::HOOK_ANGLE_X);
     // Check this rotation matrix.
     // Check j4_to_elbow_rot, make sure rotation part matches with transformation_j4_to_elbow in old model.py 
     KDL::Frame j4_to_elbow = KDL::Frame(j4_to_elbow_rot, KDL::Vector(j4_link_length, 0, 0));

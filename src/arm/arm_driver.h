@@ -34,12 +34,13 @@ TODO:
 
 #include "joint.h"
 
+// Get shared arm info
+#include "arm_core.h"
+
 // Use the standard namespaces
 using namespace std::chrono_literals;
 using std::placeholders::_1;
 
-// Define constants
-#define NUM_JOINTS 6    // Number of joints in the arm
 
 /* 
 Class which receives the commands for the CMDS and interfaces 

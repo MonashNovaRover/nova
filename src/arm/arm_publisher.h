@@ -39,8 +39,8 @@ TODO:
 using namespace std::chrono_literals;
 using std::placeholders::_1;
 
-// Define constants
-#define NUM_JOINTS 6    // Number of joints in the arm
+// Get shared arm info
+#include "arm_core.h"
 
 /* 
 Arm input class that handles input data from joysticks and publishes 
