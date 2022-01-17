@@ -22,7 +22,7 @@ ACTIONS:  None
 PACKAGE: 	control
 AUTHOR(S):  Jess Hepworth
 CREATION:	02/12/2021
-EDITED:		03/12/2021
+EDITED:		18/01/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
  - Add in additional inputs for linear actuate
