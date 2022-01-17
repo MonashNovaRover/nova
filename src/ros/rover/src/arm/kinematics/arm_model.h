@@ -30,6 +30,7 @@ TODO:
  - Implement arm core
  - Get rid of hard-coding of arm structure
  - Change how end effector angles are specified. Use Euler ZYX instead of XYZ.
+ - Try initialising message types using a different constructor.
  - Revisit FK data types wrangling
  - Implement IK
  - Publish on timer or publish on change in state? Make consistent.
@@ -50,9 +51,6 @@ TODO:
 #include <eigen3/Eigen/Dense>
 #include <kdl/tree.hpp>
 
-#include <string>
-#include <vector>
-
 // Use the standard namespaces
 // For publishers
 using namespace std::chrono_literals;
@@ -63,17 +61,12 @@ using std::placeholders::_1;
 Class which models the arm.
 Use real positions of joints and end effectors, but idealised links
 */
-class ArmModel : public rclcpp::Node {
-
+class ArmModel : public rclcpp::Node
+{
 
     //------------------------------------------------------------//
     private:
 
-    // Things that will be set by arm_core node
-    // Number of joints
-    int num_joints;
-    // Names of the joints
-    std::vector<std::string> joint_names;
     // Periods at which to publish
     std::chrono::milliseconds coord_frames_timer_period;
     std::chrono::milliseconds joint_velocities_timer_period;

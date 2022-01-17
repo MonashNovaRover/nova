@@ -21,7 +21,7 @@ CREATION:	 18/12/2021
 EDITED:		 14/01/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
- - Implement arm core
+ - Test with python plotter
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
@@ -42,9 +42,6 @@ class ArmSimulator : public rclcpp::Node
     //------------------------------------------------------------//
     private:
 
-    // Things that will be set by arm_core node
-    // Number of joints
-    int num_joints;
     // Period at which to publish to /control/resolvers
     std::chrono::milliseconds timer_period;
 
