@@ -50,7 +50,7 @@ class Mapper(Node):
         super().__init__('points_grid')
         self.subscriber_tracking = self.create_subscription(Odometry, '/T265/odom/sample', self.tracking_callback, 100)
         
-        self.subscriber_points = self.create_subscription(PointCloud2, '/D400/depth/color/points', self.points_callback, 10)
+        self.subscriber_points = self.create_subscription(PointCloud2, '/D435/depth/color/points', self.points_callback, 10)
 
         # is_listener attr to be used to be return publisher
         self.map2d = Map2DContainer(is_publisher=True)
@@ -183,6 +183,32 @@ class Mapper(Node):
             plt.draw()
             plt.pause(0.01)
 
+    def publish_vis(self):
+        pts, colors = self.map3d.get_as_pc()
+        self.pc_pub.pub_pts_colors(pts, colors)
+    
+    def publish_vis_dense(self, extra_pts=1):
+        pts, colors = self.map3d.get_as_pc()
+        colors = colors + [254,254,254]
+        print(pts)
+        pts_dense = pts[:]
+        colors_dense = colors[:]
+        self.pc_pub.pub_pts_colors(pts, colors)
+        min_z = np.min(pts[:,2])
+        max_z = np.max(pts[:,2])
+        colors[:,2] = 254 * abs(pts[:,2]) / max_z
+        colors[:,0] = 200 * (max_z - abs(pts[:,2])) / max_z
+        colors[:,1] = 100 * (max_z - abs(pts[:,2])) / max_z
+        for x in range(extra_pts + 1):
+            x_shift = [(self.resolution / (extra_pts + 1)) * x, 0, 0]
+            for y in range(extra_pts + 1):
+                y_shift = [0, (self.resolution / (extra_pts + 1)) * y, 0]
+                for z in range(extra_pts + 1):
+                    z_shift = [0, 0, (self.resolution / (extra_pts + 1)) * z]
+                    pts_dense = np.concatenate((pts_dense, pts + x_shift + y_shift + z_shift))
+                    colors_dense = np.concatenate((colors_dense, colors))
+        self.pc_pub.pub_pts_colors(pts_dense, colors_dense)
+
     def tracking_callback(self, msg):
         self.last_msg = msg
 
@@ -201,6 +227,13 @@ def main(args=None):
     rclpy.spin(subscriber)
     subscriber.destroy_node()
     rclpy.shutdown()
+
+
+def vis():
+    rclpy.init()
+    m = Mapper(None, length=10, width=10, height=5, resolution=.2)
+    m.map3d.map = np.load("resources/environment.npy")
+    m.publish_vis_dense(extra_pts=2)
 
 
 if __name__ == '__main__':
