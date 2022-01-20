@@ -23,18 +23,24 @@ class PCPub(Node):
     This creates a node which has the sole purpose of publishing transformed point-clouds to be viewed in RVIZ. 
     Therefore, the coordinates are a bit flipped to fit with rviz's stupid coordinate frame.
     """
+
+
     def __init__(self, node_name):
         super().__init__(node_name)
         self.publisher = self.create_publisher(PointCloud2, node_name + "/cloud", 10)
+        self.scale = .3
 
     def pub(self, points):
         # final transformations JUST for visualization
         points = np.array(points)
-        # OLD: points = np.array(points)[:, :]
+        
+        points[:,0:3] = points[:,0:3] * self.scale
+        
         points = [pt[0:3].tolist() + pt[3:7].astype(int).tolist() for pt in points]
+
         pc2 = create_cloud_color(points)
         self.publisher.publish(pc2)
-    
+
     def pub_pts_colors(self, pts, colors):
         self.pub(np.concatenate((pts, colors, np.zeros((len(pts), 1))), axis=1))
 
