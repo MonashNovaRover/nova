@@ -22,26 +22,11 @@ ArmKinematics::ArmKinematics (const KDL::Tree& arm) :
     // Initialise constants
     coord_frames_timer_period = 200ms;
     joint_velocities_timer_period = 200ms;
-    
-    // Define end effectors and cameras here for now.
-    // Eventually define in a modular way based on the end effector used or something
-    std::vector<std::string> end_effector_names = {"es-gripper", "er-gripper", "lc-gripper", "lower-joints-hook"};
-    std::vector<std::string> camera_names = {"squooshy", "ee-front", "ee-depth", "ee-screw"};
-    // Use ArmCore and the vectors above to get all coord frames
-    // Eventually define in a modular way
-    std::vector<std::string> coord_frame_names;
-    coord_frame_names.insert(coord_frame_names.end(), ArmCore::joint_names.begin(), ArmCore::joint_names.end());
-    coord_frame_names.insert(coord_frame_names.end(), end_effector_names.begin(), end_effector_names.end());
-    coord_frame_names.insert(coord_frame_names.end(), camera_names.begin(), camera_names.end());
 
     // Initialise arrays in internal data structures
     joint_velocities = ArmCore::get_empty_joint_state();
     // TwistStamped does not need to be initialised
-    coord_frames = sensor_msgs::msg::MultiDOFJointState();
-    coord_frames.joint_names = coord_frame_names;
-    coord_frames.transforms = std::vector<geometry_msgs::msg::Transform> (NUM_JOINTS);
-    coord_frames.twist = std::vector<geometry_msgs::msg::Twist> (NUM_JOINTS);
-    coord_frames.wrench = std::vector<geometry_msgs::msg::Wrench> (NUM_JOINTS);    
+    coord_frames = ArmCore::get_empty_multi_dof_joint_state();  
 
     // Create subscription to resolvers
     resolver_sub = this->create_subscription<sensor_msgs::msg::JointState>(

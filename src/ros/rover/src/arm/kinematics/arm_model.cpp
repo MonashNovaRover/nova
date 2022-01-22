@@ -22,8 +22,8 @@ ArmModel::ArmModel() : tree("root")
     KDL::Joint J5 = KDL::Joint(ArmCore::joint_names[4], KDL::Joint::RotZ);  // Wrist 2
     KDL::Joint J6 = KDL::Joint(ArmCore::joint_names[5], KDL::Joint::RotZ);  // Wrist 3
     // End effectors
-    KDL::Joint E0 = KDL::Joint("es-gripper");
-    KDL::Joint E1 = KDL::Joint("lower_joints_hook");
+    KDL::Joint E0 = KDL::Joint("es-gripper", KDL::Joint::None);
+    KDL::Joint E1 = KDL::Joint("lower_joints_hook", KDL::Joint::None);
 
     // Create transformations between joints
     // Each one is a transformation from the current joint to the previous one
