@@ -16,7 +16,7 @@ ArmSimulator::ArmSimulator() : Node("arm_simulator")
     // Initialise constants
     timer_period = 200ms;
     
-    // Set up the jjoints structure
+    // Set up the joints structure
     joints = ArmCore::get_empty_joint_state();
     
     // Initial integration time
@@ -55,7 +55,7 @@ void ArmSimulator::update_joint_positions()
     // Update positions using duration from last recorded time to current time, and last velocity
     // Assumes joints have been moving at the last velocity they were told to
     rclcpp::Duration duration = current_time - last_integration_time;
-    for(int i = 0; i < num_joints; i++){
+    for(int i = 0; i < NUM_JOINTS; i++){
         if (joints.velocity[i] != 0){
             joints.position[i] = wrap_to_2pi(joints.position[i] + joints.velocity[i] * duration.seconds());
         }   

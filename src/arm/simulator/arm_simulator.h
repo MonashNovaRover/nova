@@ -18,7 +18,7 @@ ACTIONS: None
 PACKAGE: 	 control
 AUTHOR(S): Jory Braun
 CREATION:	 18/12/2021
-EDITED:		 18/01/2022
+EDITED:		 22/01/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
  - Test with python plotter
