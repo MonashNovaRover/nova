@@ -12,8 +12,12 @@ include_directories(
 # Add non-executable targets
 
 # Arm Core
-add_library(arm_core arm_core.cpp)
+add_library(arm_core armcore/arm_core.cpp)
+target_include_directories(arm_core INTERFACE
+    "${CMAKE_CURRENT_SOURCE_DIR}/armcore"
+)
 ament_target_dependencies(arm_core sensor_msgs)
+
 
 # Arm Model
 add_library(arm_model kinematics/arm_model.cpp)
