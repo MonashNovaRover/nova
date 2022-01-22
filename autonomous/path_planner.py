@@ -3,8 +3,8 @@ import time
 from queue import PriorityQueue
 
 # NOTE should probably call these something else since they are not only used by controller
-from autonomous.controller_params import *
-from autonomous.controller_math import *
+from controller_params import *
+from controller_math import *
 
 from rclpy.node import Node
 from core.msg import Waypoints, Waypoint, RoverPose
