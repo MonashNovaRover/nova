@@ -9,6 +9,7 @@ AUTHOR(S):	Jess Hepworth
 
 // Include the header file
 #include "arm_driver.h"
+#include "debug/print.h"
 
 /*
 // Receives the desired commands for the CMDs and sends to CMDs
@@ -19,6 +20,7 @@ void ArmDriver::cmd_outputs_callback (const core::msg::CMDOutput::SharedPtr msg)
     }
 }
 */
+
 
 // Receives the desired commands for the CMDs and sends to CMDs
 void ArmDriver::arm_input_callback (const core::msg::ArmInput::SharedPtr msg) {
@@ -35,6 +37,7 @@ void ArmDriver::arm_input_callback (const core::msg::ArmInput::SharedPtr msg) {
     joints[6]->set_linear_actuator(msg->linear_actuation);
 }
 
+
 // Main constructor that sets up the node
 ArmDriver::ArmDriver() 
   : Node("arm_driver"), count(0) {
@@ -49,9 +52,14 @@ ArmDriver::ArmDriver()
     cmd_outputs_subscription = this->create_subscription<core::msg::CMDOutput>(
         "/control/cmd_outputs", 10, std::bind(&ArmDriver::cmd_outputs_callback, this, _1));    
     */
+
     // Creates the input subscription for the desired CMD commands
     arm_input_subscription = this->create_subscription<core::msg::ArmInput>(
         "/control/arm_input", 10, std::bind(&ArmDriver::arm_input_callback, this, _1));
+
+    // Output title messages
+    Print::title("ARM DRIVER");
+    Print::print("", true);
 
 }
 

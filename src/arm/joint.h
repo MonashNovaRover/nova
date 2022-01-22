@@ -26,11 +26,19 @@ TODO:
 class Joint : public CMD {
 
     //------------------------------------------------------------//
+    protected:
+
+    // Has the allstops been triggered
+    bool all_stopped;
+    
+
+    //------------------------------------------------------------//
     public:
 
     // Stores the drive mode for the joint's CMD
     // 0 for PWM, 1 for PID
-    int CMD_drive_mode;
+    CMDCommand CMD_drive_mode;
+
 
     //------------------------------------------------------------//
     protected:
@@ -44,7 +52,7 @@ class Joint : public CMD {
     /// @brief      Default constructor for setting up a joint
     /// @param      id - The new ID for the joint for CAN commands
     /// @param      CMD_drive_mode - Default drive mode of the joint CMD 
-    Joint (const int id, int CMD_drive_mode);
+    Joint (const int id, CMDCommand CMD_drive_mode);
 
     /// @brief      Drives the joint based on a speed
     /// @param      velocity - The speed to move, between -1 and 1
@@ -55,5 +63,5 @@ class Joint : public CMD {
 
     /// @brief      sets the CMD drive mode
     /// @param      CMD_drive_mode - Drive mode to set for the joint CMD 
-    void set_CMD_drive_mode (int CMD_drive_mode);
+    void set_CMD_drive_mode (CMDCommand CMD_drive_mode);
 };

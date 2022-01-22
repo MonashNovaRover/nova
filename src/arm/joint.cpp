@@ -13,8 +13,8 @@ AUTHOR(S):	Jess Hepworth
 // Include the header file
 #include "joint.h"
 
-Joint::Joint (const int id, int CMD_drive_mode) :
-    CMD (0, id) { 
+Joint::Joint (const int id, CMDCommand CMD_drive_mode) :
+    CMD (1, id) { 
 
     // Update the variables
     this->CMD_drive_mode = CMD_drive_mode;
@@ -30,11 +30,25 @@ Joint::~Joint () {
 
 void Joint::drive (float velocity) {
 
-    if(CMD_drive_mode){
+    // Check if velocity is zero
+    if (velocity == 0) {
+        // If not all stopped
+        if (!all_stopped) {
+            all_stopped = true;
+            stop();
+        }
+
+        return;    
+    }
+
+    // Otherwise turn off all stops
+    else all_stopped = false;
+
+    if(CMD_drive_mode == PID){
         // Call the PID function
         set_pid(velocity);
     }
-    else{
+    else if (CMD_drive_mode == PWM) {
         // Call the PWM function
         set_pwm(velocity);
     }
@@ -47,6 +61,6 @@ void Joint::stop () {
     CMD::stop();
 }
 
-void Joint::set_CMD_drive_mode (int CMD_drive_mode){
+void Joint::set_CMD_drive_mode (CMDCommand CMD_drive_mode){
     this->CMD_drive_mode = CMD_drive_mode;
 }
