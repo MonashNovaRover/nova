@@ -50,7 +50,7 @@ class Mapper(Node):
         super().__init__('points_grid')
         self.subscriber_tracking = self.create_subscription(Odometry, '/T265/odom/sample', self.tracking_callback, 100)
         
-        self.subscriber_points = self.create_subscription(PointCloud2, '/D435/depth/color/points', self.points_callback, 10)
+        self.subscriber_points = self.create_subscription(PointCloud2, '/D400/depth/color/points', self.points_callback, 10)
 
         # is_listener attr to be used to be return publisher
         self.map2d = Map2DContainer(is_publisher=True)

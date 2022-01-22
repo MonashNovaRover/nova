@@ -26,7 +26,7 @@ class WheelOdomFuse(Node):
     def __init__(self):
         super().__init__('wheel_odom_node')
 
-        #self.wheel_subscriber = self.create_subscription(RoverPose, "autonomous/pose", self.update_pose_with_wheeldata, 10)
+        self.wheel_subscriber = self.create_subscription(RoverPose, "autonomous/pose", self.update_pose_with_wheel_data, 10)
         self.v = rs.vector() # wheel velocity input
         self.pose_publisher = self.create_publisher(Odometry, '/T265/odom/sample', 10)
         #self.timer = self.create_timer(0.5, self.callback_func)
@@ -62,7 +62,7 @@ class WheelOdomFuse(Node):
                 chars.append(ord(c))  # char to uint8
         return chars
 
-    def update_pose_with_wheeldata(self, msg):
+    def update_pose_with_wheel_data(self, msg):
         self.v.x = msg.x # m/s
         self.v.y = msg.y
         self.v.z = msg.z
