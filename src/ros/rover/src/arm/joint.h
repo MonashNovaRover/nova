@@ -19,7 +19,7 @@ TODO:
 */
 
 // General includes
-#include "../cmd/cmd.h"
+#include "cmd/cmd.h"
 
 
 // Joint class for communicating with joint CMDs

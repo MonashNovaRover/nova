@@ -9,7 +9,7 @@ AUTHOR(S):	Jess Hepworth
 
 // Include the header file
 #include "arm_driver.h"
-#include "debug/print.h"
+#include "print/print.h"
 
 /*
 // Receives the desired commands for the CMDs and sends to CMDs

@@ -9,7 +9,7 @@ AUTHOR(S):	Harrison Verrios
 
 // Include the header file
 #include "drive_inputs.h"
-#include "debug/print.h"
+#include "print/print.h"
 
 
 // Adjustes the multiplier factor by some amount in some direction

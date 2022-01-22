@@ -9,7 +9,7 @@ AUTHOR(S):	Jess Hepworth
 
 // Include the header file
 #include "arm_inputs.h"
-#include "debug/print.h"
+#include "print/print.h"
 
 // Receives input from left joystick
 void ArmInputs::joystick_l_callback (const core::msg::InputJoystick::SharedPtr msg) {

@@ -9,7 +9,7 @@ AUTHOR(S):	Harrison Verrios, Josh Cherubino
 
 // Include the header file
 #include "driver.h"
-#include "debug/print.h"
+#include "print/print.h"
 
 // Sends commands to the wheels
 void Driver::send_commands (const core::msg::DriveInput::SharedPtr msg) {
