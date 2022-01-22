@@ -51,7 +51,7 @@ std::vector<std::string> ArmCore::coord_frame_names = {
     "ee-front",
     "ee-depth",
     "ee-screw"
-    };
+};
 
 std::vector<double> ArmCore::zero_angles = {
     0,
