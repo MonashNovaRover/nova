@@ -47,6 +47,24 @@ void Joystick::update() {
 
     // Set the message values from the message objects
     set_message_values();
+
+    // Get connected state
+    bool new_connected = GamepadIsConnected(controller);
+
+    // Look for reconnection
+    if (!connected && new_connected)
+        reconnected = true;
+    else
+        reconnected = false;
+
+    // Look for disconnection
+    if (connected && !new_connected)
+        disconnected = true;
+    else
+        disconnected = false;
+
+    // Updated the connection state
+    connected = new_connected;
 }
 
 
@@ -113,4 +131,22 @@ float Joystick::to_int (const float val) {
         return -1.0;
     else
         return 0.0;
+}
+
+
+// Return connection flag
+bool Joystick::is_connected () {
+    return connected;
+}
+
+
+// Return reconnection flag
+bool Joystick::is_reconnected () {
+    return reconnected;
+}
+
+
+// Return disconnection flag
+bool Joystick::is_disconnected () {
+    return disconnected;
 }

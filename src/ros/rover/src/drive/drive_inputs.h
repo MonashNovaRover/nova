@@ -15,24 +15,21 @@ The drive commands will be a RPM (desired) and a steer
 NODE: drive_pub
 TOPICS:
   - /control/input_gamepad  [InputGamepad]  [Subscribed]
-  - /control/drive_cmds     [DriveCmd]      [Published]
+  - /control/drive_cmds     [DriveInput]    [Published]
 SERVICES: None
 ACTIONS:  None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	control
 AUTHOR(S):  Harrison Verrios
 CREATION:	14/11/2021
-EDITED:		14/11/2021
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-TODO:
- - Test with the driver received code (not yet created).
+EDITED:		16/12/2021
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
 // Include ROS packages
 #include "rclcpp/rclcpp.hpp"
 #include "core/msg/input_gamepad.hpp"
-#include "core/msg/drive_cmd.hpp"
+#include "core/msg/drive_input.hpp"
 
 #include <iostream>
 
@@ -61,11 +58,13 @@ const float MIN_TRIGGER_MULTIPLIER = 0.4;
     DPAD Y Axis:    Increase / Decrease the Speed multiplier by 10%
     DPAD X Axis:    Increase / Decrease the Steer multiplier by 10%
     Right Trigger:  Add Custom speed multipliers between 1.0 and 0.4
+
+    Back:           Lock the controller
+    Start:          Unlock the controller
 */
 
-
 // Main publisher class that sends input data for the gamepad and joysticks
-class DrivePublisher : public rclcpp::Node {
+class DriveInputs : public rclcpp::Node {
 
     //------------------------------------------------------------//
     private:
@@ -74,7 +73,7 @@ class DrivePublisher : public rclcpp::Node {
     rclcpp::TimerBase::SharedPtr timer;
 
     // Stores the publisher for the drive commands
-    rclcpp::Publisher<core::msg::DriveCmd>::SharedPtr publisher;
+    rclcpp::Publisher<core::msg::DriveInput>::SharedPtr publisher;
 
     // Stores the subscriber to the gamepad inputs
     rclcpp::Subscription<core::msg::InputGamepad>::SharedPtr subscription;
@@ -124,6 +123,6 @@ class DrivePublisher : public rclcpp::Node {
     public:
 
     /// @brief      Default constructor function that starts up the node
-    DrivePublisher();
+    DriveInputs();
     
 };

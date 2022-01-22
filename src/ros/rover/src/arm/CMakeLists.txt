@@ -8,7 +8,11 @@ include_directories(
     ${EIGEN3_INCLUDE_DIRS}
 )
 
-# Add non-executable targets
+
+
+################################################
+# Add non-executable targets:
+################################################
 
 # Arm Core
 add_library(arm_core arm_core/arm_core.cpp)
@@ -27,20 +31,29 @@ target_link_libraries(arm_model orocos-kdl arm_core)
 ament_target_dependencies(arm_model sensor_msgs)
 
 
-# Add arm executables with relevant dependencies
+
+################################################
+# Add executables:
+################################################
 
 # Arm Publisher script
-add_executable(arm_input arm_publisher.cpp)
-target_include_directories(arm_input INTERFACE
+# Fix up the CMake includes and dependencies here
+add_executable(arm_inputs arm_inputs.cpp
+    ${PROJECT_SOURCE_DIR}/include/debug/print.cpp)
+target_include_directories(arm_inputs INTERFACE
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
-target_link_libraries(arm_input arm_core)
-ament_target_dependencies(arm_input rclcpp core)
+target_link_libraries(arm_inputs arm_core)
+ament_target_dependencies(arm_inputs rclcpp core)
 
 # Arm Driver script
 # Fix up the CMake includes and dependencies here
-add_executable(arm_driver arm_driver.cpp joint.cpp ${PROJECT_SOURCE_DIR}/src/cmd/cmd.cpp ${PROJECT_SOURCE_DIR}/include/socketcan/socketcan_cpp.cpp)
-target_include_directories(arm_input INTERFACE
+add_executable(arm_driver arm_driver.cpp 
+    joint.cpp 
+    ${PROJECT_SOURCE_DIR}/src/cmd/cmd.cpp
+    ${PROJECT_SOURCE_DIR}/include/socketcan/socketcan_cpp.cpp
+    ${PROJECT_SOURCE_DIR}/include/debug/print.cpp)
+target_include_directories(arm_inputs INTERFACE
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 target_link_libraries(arm_driver arm_core)
@@ -62,9 +75,15 @@ target_include_directories(arm_simulator INTERFACE
 target_link_libraries(arm_simulator arm_core)
 ament_target_dependencies(arm_simulator rclcpp sensor_msgs)
 
+
+
+################################################
+# Add installations:
+################################################
+
 # Add installation for executable targets
 install(TARGETS
-  arm_input
+  arm_inputs
   arm_driver
   arm_kinematics
   arm_simulator

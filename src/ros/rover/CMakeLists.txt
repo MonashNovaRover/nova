@@ -17,7 +17,10 @@ endif()
 
 # Find and include all dependencies
 find_package(ament_cmake REQUIRED)
+find_package(ament_cmake_python REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(rclpy REQUIRED)
+
 find_package(core REQUIRED)
 
 # Add include directories for all targets
@@ -39,32 +42,81 @@ if (NOT TARGET socketcan)
   add_library(socketcan SHARED include/socketcan/socketcan_cpp.cpp)
 endif()
 
-# Add executables with relevant dependencies:
+
+
+
+
+################################################
+# Add executables:
+################################################
 
 # Inputs script
 add_executable(inputs src/inputs/inputs_publisher.cpp src/inputs/joystick.cpp 
-  src/inputs/joystick_gamepad.cpp src/inputs/joystick_thrustmaster.cpp 
-  ${PROJECT_SOURCE_DIR}/include/gamepad/gamepad.c)
+  src/inputs/joystick_gamepad.cpp 
+  src/inputs/joystick_thrustmaster.cpp 
+  ${PROJECT_SOURCE_DIR}/include/gamepad/gamepad.c
+  ${PROJECT_SOURCE_DIR}/include/debug/print.cpp)
 target_link_libraries(inputs gamepad udev ${catkin_LIBRARIES})
 ament_target_dependencies(inputs rclcpp core)
 
 # Drive Command script
-#add_executable(drive_cmd src/drive/drive_publisher.cpp)
-#ament_target_dependencies(drive_cmd rclcpp core)
+add_executable(drive_inputs src/drive/drive_inputs.cpp
+  ${PROJECT_SOURCE_DIR}/include/debug/print.cpp)
+ament_target_dependencies(drive_inputs rclcpp core)
+
+# Velocity Converter script
+add_executable(vel_convert src/drive/velocity_convert.cpp
+  ${PROJECT_SOURCE_DIR}/include/debug/print.cpp)
+ament_target_dependencies(vel_convert rclcpp core)
 
 # Drive Receiver script
-#add_executable(driver src/drive/drive_subscriber.cpp src/drive/wheel.cpp src/cmd/cmd.cpp ${PROJECT_SOURCE_DIR}/include/socketcan/socketcan_cpp.cpp)
-#ament_target_dependencies(driver rclcpp core)
+add_executable(driver src/drive/driver.cpp 
+  src/drive/wheel.cpp src/cmd/cmd.cpp 
+  ${PROJECT_SOURCE_DIR}/include/socketcan/socketcan_cpp.cpp 
+  ${PROJECT_SOURCE_DIR}/include/debug/print.cpp)
+ament_target_dependencies(driver rclcpp core)
+
+# PID Tuner script
+add_executable(pid_tuner src/cmd/pid_tuner.cpp 
+  src/cmd/cmd.cpp
+  ${PROJECT_SOURCE_DIR}/include/socketcan/socketcan_cpp.cpp
+  ${PROJECT_SOURCE_DIR}/include/debug/print.cpp)
+ament_target_dependencies(pid_tuner rclcpp core)
+
+
+################################################
+# Add Installations
+################################################
 
 # Add all the installation targets
 install(TARGETS
   inputs
-  #drive_cmd
-  #driver
+  drive_inputs
+  driver
+  vel_convert
+  pid_tuner
   DESTINATION lib/${PROJECT_NAME}
 )
 
-# Add subdirectories
+# Add all the installation directories
+install(DIRECTORY
+  launch
+  DESTINATION share/${PROJECT_NAME}
+)
+
+# Add all Python executables to this list
+install(PROGRAMS
+  control/cmd_plotter.py
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+
+
+################################################
+# Add Subdirectories
+################################################
+
+# Arm
 add_subdirectory(src/arm)
 
 if(BUILD_TESTING)

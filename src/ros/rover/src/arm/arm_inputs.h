@@ -46,7 +46,7 @@ using std::placeholders::_1;
 Arm input class that handles input data from joysticks and publishes 
 task and joint space velocities 
 */
-class ArmPublisher : public rclcpp::Node {
+class ArmInputs : public rclcpp::Node {
 
     //------------------------------------------------------------//
     private:
@@ -114,6 +114,6 @@ class ArmPublisher : public rclcpp::Node {
     public:
 
     /// @brief      Default constructor function that starts up the node
-    ArmPublisher();
+    ArmInputs();
     
 };

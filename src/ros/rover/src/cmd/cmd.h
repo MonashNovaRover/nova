@@ -12,7 +12,7 @@ This code interfaces with the CAN classes and is
 PACKAGE: 	control
 AUTHOR(S):	Harrison Verrios, Josh Cherubino
 CREATION:	01/12/2021
-EDITED:		01/12/2021
+EDITED:		06/01/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
@@ -21,6 +21,7 @@ EDITED:		01/12/2021
 
 // CAN include
 #include "socketcan/socketcan_cpp.h"
+
 
 // Specifies the command used
 enum CMDCommand {
@@ -32,6 +33,27 @@ enum CMDCommand {
     TUNER       = 5,    // Sends PID tuning commands
     ACTUATOR    = 6,    // Controls the linear actuator
 };
+
+
+// Struct for CMD data
+struct CMDData {
+
+    //------------------------------------------------------------//
+    public:
+
+    // The RPM from the CMD
+    double rpm;
+
+    // The power of the CMD
+    double power;
+
+    // Constructor for setting the data
+    CMDData (double rpm, double power) {
+        this->rpm = rpm;
+        this->power = power;
+    };
+};
+
 
 // Class for storing information about the CMD
 class CMD {
@@ -89,5 +111,27 @@ class CMD {
     /// @param      value - number from thumb stick (-1, 0, 1)
     void set_linear_actuator (float value);
     
+    /// @brief      Sends PID commands to the device
+    /// @param      kP - The Proportionality constant
+    /// @param      kI - The Intergral constant
+    /// @param      kD - The Differential constant
+    /// @param      kM - The Midpoint interval
+    void set_tuning_parameters (double kP, double kI, double kD, double kM);
 
+    /// @brief      Receives feedback from the CMD devices on the CAN lines
+    /// @returns    A struct containing the data
+    CMDData receive_feedback ();
+
+
+    //------------------------------------------------------------//
+
+    /// @brief      Converts a double to an int16
+    /// @param      value - The raw value between -1.0 and 1.0
+    /// @returns    A two byte array of integers
+    static int16_t convert_to_int16 (const double value);
+
+    /// @brief      Converts a 2 byte array to a double
+    /// @param      bytes - The two byte array
+    /// @returns    A double scaled between -1 and 1
+    static double convert_from_bytes (uint8_t* bytes);
 };
