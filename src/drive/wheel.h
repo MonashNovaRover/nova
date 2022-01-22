@@ -18,7 +18,7 @@ EDITED:		01/12/2021
 */
 
 // General includes
-#include "../cmd/cmd.h"
+#include "cmd/cmd.h"
 
 
 // Wheel class for communicating with wheel CMDs
