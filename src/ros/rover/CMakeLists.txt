@@ -19,16 +19,12 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(core REQUIRED)
-find_package(sensor_msgs REQUIRED)
-find_package(Eigen3 REQUIRED)
-find_package(Orocos_kdl REQUIRED)
 
 # Add include directories for all targets
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
   "${PROJECT_SOURCE_DIR}/include"
-  #${Eigen3_INCLUDE_DIRS}  StackOverflow said this is required, but doesn't seem to be
 )
 
 # Add library targets:
@@ -60,35 +56,16 @@ ament_target_dependencies(inputs rclcpp core)
 #add_executable(driver src/drive/drive_subscriber.cpp src/drive/wheel.cpp src/cmd/cmd.cpp ${PROJECT_SOURCE_DIR}/include/socketcan/socketcan_cpp.cpp)
 #ament_target_dependencies(driver rclcpp core)
 
-# Arm Publisher script
-add_executable(arm_input src/arm/arm_publisher.cpp)
-ament_target_dependencies(arm_input rclcpp core)
-
-# Arm Driver script
-add_executable(arm_driver src/arm/arm_driver.cpp src/arm/joint.cpp src/cmd/cmd.cpp ${PROJECT_SOURCE_DIR}/include/socketcan/socketcan_cpp.cpp)
-ament_target_dependencies(arm_driver rclcpp core)
-
-# Arm Kinematics script
-add_executable(arm_model src/arm/kinematics/arm_model.cpp)
-target_link_libraries(arm_model orocos-kdl)
-ament_target_dependencies(arm_model rclcpp sensor_msgs)
-
-# Arm Simulator script
-add_executable(arm_simulator src/arm/simulator/arm_simulator.cpp)
-ament_target_dependencies(arm_simulator rclcpp sensor_msgs)
-
 # Add all the installation targets
 install(TARGETS
   inputs
   #drive_cmd
   #driver
-  arm_input
-  arm_driver
-  arm_model
-  arm_simulator
   DESTINATION lib/${PROJECT_NAME}
 )
 
+# Add subdirectories
+add_subdirectory(src/arm)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
