@@ -1,9 +1,10 @@
 # Find and include arm-specific dependencies
 find_package(sensor_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(Orocos_kdl REQUIRED)
 
-# Additional include for KDL and Eigen
+# Additional include for Eigen adn KDL
 include_directories(
   ${EIGEN3_INCLUDE_DIRS}
   include
@@ -32,19 +33,19 @@ ament_target_dependencies(arm_model sensor_msgs)
 # Add executables:
 ################################################
 
-# Arm Publisher script
-add_executable(arm_inputs arm_inputs.cpp)
+# Arm Inputs script
+add_executable(arm_inputs arm_inputs/arm_inputs.cpp)
 target_link_libraries(arm_inputs arm_core print)
-target_include_directories(arm_inputs INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(arm_inputs INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/arm_inputs)
 ament_target_dependencies(arm_inputs rclcpp core)
 
 # Arm Driver script
 add_executable(arm_driver
-  arm_driver.cpp
-  joint.cpp
+  arm_driver/arm_driver.cpp
+  arm_driver/joint.cpp
 )
 target_link_libraries(arm_driver arm_core cmd print)
-target_include_directories(arm_inputs INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(arm_inputs INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/arm_driver)
 ament_target_dependencies(arm_driver rclcpp core)
 
 # Arm Kinematics script
