@@ -38,18 +38,18 @@ include_directories(
 # Libraries:
 # Gamepad
 if (NOT TARGET gamepad)
-  add_library(gamepad SHARED include/gamepad/gamepad.c)
+  add_library(gamepad include/gamepad/gamepad.c)
   target_link_libraries(gamepad udev)
 endif()
 
 # CAN (socketcan)
 if (NOT TARGET socketcan)
-  add_library(socketcan SHARED include/socketcan/socketcan_cpp.cpp)
+  add_library(socketcan include/socketcan/socketcan_cpp.cpp)
 endif()
 
 # Print functions
 if (NOT TARGET print)
-  add_library(print SHARED include/print/print.cpp)
+  add_library(print include/print/print.cpp)
 endif()
 
 
