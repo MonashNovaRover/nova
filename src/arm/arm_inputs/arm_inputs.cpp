@@ -84,6 +84,50 @@ void ArmInputs::publish_arm_inputs () {
     }
 }
 
+// Publishes joint velocity data
+void ArmInputs::publish_joint_vel () {
+
+    // create a new message
+    auto message = sensor_msgs::msg::JointState();
+
+    // Set the values for first 6 joints from the array of joint space data
+    for (auto i = 0; i < NUM_JOINTS; i++) {
+        message.velocity[i]   = speed_multiplier * joint_velocity[i];
+    }
+
+    // Publish the joint space velocities
+    joint_vel_publisher->publish(message);
+
+    // Reset the raw input data back to 0 to avoid issues
+    for (auto i = 0; i < NUM_JOINTS; i++) {
+        joint_velocity[i]   = 0;
+    }
+}
+
+// Publishes task velocity data
+void ArmInputs::publish_task_vel () {
+
+    // create a new message
+    auto message = geometry_msgs::msg::TwistStamped();
+
+    // Set the values for linear velocity
+    message.twist.linear.x = speed_multiplier * task_velocity[0];
+    message.twist.linear.y = speed_multiplier * task_velocity[1];
+    message.twist.linear.z = speed_multiplier * task_velocity[2];
+    message.twist.angular.x = speed_multiplier * task_velocity[3];
+    message.twist.angular.y = speed_multiplier * task_velocity[4];
+    message.twist.angular.z = speed_multiplier * task_velocity[5];
+
+
+    // Publish the joint space velocities
+    task_vel_publisher->publish(message);
+
+    // Reset the raw input data back to 0 to avoid issues
+    for (auto i = 0; i < NUM_JOINTS; i++) {
+        task_velocity[i]   = 0;
+    }
+}
+
 float ArmInputs::calculate_direction (float value){
     if (value > 0){
         return 1.0;
@@ -108,8 +152,14 @@ float ArmInputs::scale_speed (float value){
 ArmInputs::ArmInputs() 
   : Node("arm_pub"), count(0) {
 
-    // Creates the publisher
+    // Creates the arm inputs publisher
     arm_publisher = this->create_publisher<core::msg::ArmInput>("/control/arm_input", 10);
+
+    // Creates the joint velocity publisher
+    joint_vel_publisher = this->create_publisher<sensor_msgs::msg::JointState>("/control/joint_velocities", 10);
+
+    // Creates the task velocity publisher
+    task_vel_publisher = this->create_publisher<geometry_msgs::msg::TwistStamped>("/control/task_velocity", 10);
     
     // Creates the input subscription for the left joystick
     joystick_l_subscription = this->create_subscription<core::msg::InputJoystick>(
@@ -122,10 +172,18 @@ ArmInputs::ArmInputs()
     // Creates a timer function that runs a function on loop every 0.05 seconds
     timer = this->create_wall_timer(50ms, std::bind(&ArmInputs::publish_arm_inputs, this));
 
+    // Creates a timer function that runs a function on loop every 0.05 seconds
+    timer_joint = this->create_wall_timer(50ms, std::bind(&ArmInputs::publish_joint_vel, this));
+
+    // Creates a timer function that runs a function on loop every 0.05 seconds
+    timer_task = this->create_wall_timer(50ms, std::bind(&ArmInputs::publish_task_vel, this));
+
     // Output set-up messages
     Print::title("ARM INPUTS");
     Print::print("Valid Topics:");
-    Print::print("/control/arm_inputs         [ArmInput]", 1);
+    Print::print("/control/arm_input            [ArmInput]", 1);
+    Print::print("/control/joint_velocities     [JointState]", 1);
+    Print::print("/control/task_velocity        [TwistStamped]", 1);
     Print::print("", true);
 }
 

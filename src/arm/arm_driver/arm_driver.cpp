@@ -11,17 +11,17 @@ AUTHOR(S):	Jess Hepworth
 #include "arm_driver.h"
 #include "print/print.h"
 
-/*
+
 // Receives the desired commands for the CMDs and sends to CMDs
-void ArmDriver::cmd_outputs_callback (const core::msg::CMDOutput::SharedPtr msg) {
+void ArmDriver::cmd_outputs_callback (const sensor_msgs::msg::JointState::SharedPtr msg) {
 
     for (auto i = 0; i < NUM_JOINTS; i++) {
-        joints[i]->drive(msg->velocity[i]) //TODO: fix this after message is written
+        joints[i]->drive(msg->velocity[i]); //TODO: fix this after message is written
     }
 }
-*/
 
 
+/*
 // Receives the desired commands for the CMDs and sends to CMDs
 void ArmDriver::arm_input_callback (const core::msg::ArmInput::SharedPtr msg) {
 
@@ -36,7 +36,7 @@ void ArmDriver::arm_input_callback (const core::msg::ArmInput::SharedPtr msg) {
     // Linear actuator
     joints[6]->set_linear_actuator(msg->linear_actuation);
 }
-
+*/
 
 // Main constructor that sets up the node
 ArmDriver::ArmDriver() 
@@ -47,15 +47,17 @@ ArmDriver::ArmDriver()
         joints[i] = new Joint (i + 1, CMD_drive_mode[i]);
     }
 
-    /*
+    
     // Creates the input subscription for the desired CMD commands
-    cmd_outputs_subscription = this->create_subscription<core::msg::CMDOutput>(
+    cmd_outputs_subscription = this->create_subscription<sensor_msgs::msg::JointState>(
         "/control/cmd_outputs", 10, std::bind(&ArmDriver::cmd_outputs_callback, this, _1));    
-    */
+    
 
+    /*
     // Creates the input subscription for the desired CMD commands
     arm_input_subscription = this->create_subscription<core::msg::ArmInput>(
         "/control/arm_input", 10, std::bind(&ArmDriver::arm_input_callback, this, _1));
+    */
 
     // Output title messages
     Print::title("ARM DRIVER");
