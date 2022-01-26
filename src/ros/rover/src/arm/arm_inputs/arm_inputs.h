@@ -11,7 +11,7 @@ This does not interface with the CMD library, but
     arm data across the network.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-NODE: arm_pub
+NODE: arm_inputs
 TOPICS:
   - /control/input_joystick_l   [InputJoystick]     [Subscribed]
   - /control/input_joystick_r   [InputJoystick]     [Subscribed]
@@ -27,13 +27,17 @@ EDITED:		18/01/2022
 TODO:
  - Add in additional inputs for linear actuate
  - Test with CMD code with subscriber
+ - Naming of joint_velocities topic to not clash with joint_velocities_ik
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
 // Include ROS packages
 #include "rclcpp/rclcpp.hpp"
+// Include messages types
 #include "core/msg/input_joystick.hpp"
 #include "core/msg/arm_input.hpp"
+#include "sensor_msgs/msg/joint_state.hpp"
+#include "geometry_msgs/msg/twist_stamped.hpp"
 
 // Use the standard namespaces
 using namespace std::chrono_literals;
@@ -51,14 +55,19 @@ class ArmInputs : public rclcpp::Node {
     //------------------------------------------------------------//
     private:
 
-    // Stores the loop timer for the update function
+    // Stores the loop timers for the update functions
     rclcpp::TimerBase::SharedPtr timer;
+    rclcpp::TimerBase::SharedPtr timer_joint;
+    rclcpp::TimerBase::SharedPtr timer_task;
 
     // Stores a counter for each step
     size_t count;
 
-    // Stores the publisher for arm inputs
+    // Stores the publishers for arm inputs
     rclcpp::Publisher<core::msg::ArmInput>::SharedPtr arm_publisher;
+    rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr joint_vel_publisher;
+    rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr task_vel_publisher;
+
 
     // Stores the subscribers to the joystick inputs
     rclcpp::Subscription<core::msg::InputJoystick>::SharedPtr joystick_l_subscription;
@@ -98,6 +107,12 @@ class ArmInputs : public rclcpp::Node {
 
     /// @brief      Function for publishing arm input message
     void publish_arm_inputs ();
+
+    /// @brief      Function for publishing joint velocity
+    void publish_joint_vel ();
+
+    /// @brief      Function for publishing task velocity
+    void publish_task_vel ();
 
     /// @brief      Function for calculating a direction from a fraction
     /// @param      value - A fraction to be converted to a direction
