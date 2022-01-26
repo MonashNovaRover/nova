@@ -51,7 +51,7 @@ ArmKinematics::ArmKinematics (const KDL::Tree& arm) :
         joint_velocities_timer_period, std::bind(&ArmKinematics::publish_joint_velocities, this)
     );
     joint_velocities_pub = this->create_publisher<sensor_msgs::msg::JointState>(
-        "/control/joint_velocities", 10
+        "/control/joint_velocities_ik", 10
     );
 }
 
