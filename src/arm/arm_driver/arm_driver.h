@@ -64,14 +64,14 @@ class ArmDriver : public rclcpp::Node {
     rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr cmd_outputs_subscription;
 
     // Stores the subscriber to the desired joint commands (bypassing control script for now)
-    // rclcpp::Subscription<core::msg::ArmInput>::SharedPtr arm_input_subscription;
+    rclcpp::Subscription<core::msg::ArmInput>::SharedPtr arm_input_subscription;
 
     // An array of joint instances
-    Joint* joints[NUM_JOINTS + 1];
+    Joint* joints[NUM_JOINTS + 2];
 
     // An array of cmd drive modes (mode for each joint, PWM=0, PID=1)
     // Seventh 'joint' is end effector actuation
-    CMDCommand CMD_drive_mode[NUM_JOINTS + 1] = {PID, PID, PID, PWM, PWM, PWM, PWM};
+    CMDCommand CMD_drive_mode[NUM_JOINTS + 2] = {PID, PID, PID, PWM, PWM, PWM, PWM, PWM};
 
     //------------------------------------------------------------//
     private:
@@ -82,7 +82,7 @@ class ArmDriver : public rclcpp::Node {
 
     // /// @brief      Callback function when input messages are received.
     // /// @param      msg - A pointer to the input message
-    //void arm_input_callback (const core::msg::ArmInput::SharedPtr msg);
+    void arm_input_callback (const core::msg::ArmInput::SharedPtr msg);
 
     //------------------------------------------------------------//
     public:

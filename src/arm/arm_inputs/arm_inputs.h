@@ -90,6 +90,10 @@ class ArmInputs : public rclcpp::Node {
 
     // Stores linear actuator data
     float linear_actuation;
+
+    // Stores lunar construction data
+    int lunar_construction_left;
+    int lunar_construction_right;
  
     // Stores variable for inputs (i.e. speeds)
     float speed_multiplier;
