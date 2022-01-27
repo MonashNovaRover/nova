@@ -35,6 +35,9 @@ void ArmDriver::arm_input_callback (const core::msg::ArmInput::SharedPtr msg) {
 
     // Linear actuator
     joints[6]->set_linear_actuator(msg->linear_actuation);
+
+    // Lunar construction
+    joints[7]->drive(msg->lunar_construction);
 }
 
 
@@ -43,7 +46,7 @@ ArmDriver::ArmDriver()
   : Node("arm_driver"), count(0) {
     
     // Create joint instances 
-    for (int i = 0; i < (NUM_JOINTS + 1); i++) {
+    for (int i = 0; i < (NUM_JOINTS + 2); i++) {
         joints[i] = new Joint (i + 1, CMD_drive_mode[i]);
     }
 
