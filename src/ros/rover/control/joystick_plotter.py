@@ -174,19 +174,19 @@ class Joystick_Plotter(Node):
     rjs_msg = Joy()
 
     # Update both joystick messages to match current velocity array
-    ljs_msg.ax_stick_x = self.velocity[0]
-    ljs_msg.ax_stick_y = self.velocity[1]
-    ljs_msg.ax_stick_twist = self.velocity[2]
+    ljs_msg.ax_stick_x = self.limit(self.velocity[0])
+    ljs_msg.ax_stick_y = self.limit(self.velocity[1])
+    ljs_msg.ax_stick_twist = self.limit(self.velocity[2])
 
-    rjs_msg.ax_stick_x = self.velocity[3]
-    rjs_msg.ax_stick_y = self.velocity[4]
-    rjs_msg.ax_stick_twist = self.velocity[5]
+    rjs_msg.ax_stick_x = self.limit(self.velocity[3])
+    rjs_msg.ax_stick_y = self.limit(self.velocity[4])
+    rjs_msg.ax_stick_twist = self.limit(self.velocity[5])
 
     # Send messages
     self.left_joystick_pub.publish(ljs_msg)
     self.right_joystick_pub.publish(rjs_msg)
 
-  def get_positions(msg):
+  def get_positions(self, msg):
     # Obtain list of transforms
     positions = msg.transforms.translation
     pos_array = np.array()
@@ -195,6 +195,12 @@ class Joystick_Plotter(Node):
       pos_array[i, 0] = positions[i].x
       pos_array[i, 1] = positions[i].y
       pos_array[i, 2] = positions[i].z
+
+  def limit(self, value):
+    # Returns 1.0 or -1.0 if passed value exceeds range. Otherwise, returns value
+    if (abs(value) > 1): 
+      return value/abs(value)
+    else: return value
 
     # Return position data
     return pos_array
