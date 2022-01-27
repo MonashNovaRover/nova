@@ -85,6 +85,10 @@ class ArmInputs : public rclcpp::Node {
     // Stores variable for inputs (i.e. speeds)
     float speed_multiplier;
 
+    // Lunar construction
+    int lunar_construction_left;
+    int lunar_construction_right;
+
     //------------------------------------------------------------//
     private:
 
