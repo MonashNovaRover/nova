@@ -72,6 +72,11 @@ ArmControl::ArmControl()
     // Creates a timer function that runs a function on loop every 0.05 seconds
     timer = this->create_wall_timer(50ms, std::bind(&ArmControl::publish_CMD_outputs, this));
 
+    for (auto i = 0; i < NUM_JOINTS; i++) {
+        joint_velocity[i] = 0; 
+        joint_velocity_ik[i] = 0; 
+    }
+
 }
 
 

@@ -11,7 +11,7 @@ AUTHOR(S):	Jess Hepworth
 #include "arm_driver.h"
 #include "print/print.h"
 
-
+/*
 // Receives the desired commands for the CMDs and sends to CMDs
 void ArmDriver::cmd_outputs_callback (const sensor_msgs::msg::JointState::SharedPtr msg) {
 
@@ -19,18 +19,18 @@ void ArmDriver::cmd_outputs_callback (const sensor_msgs::msg::JointState::Shared
         joints[i]->drive(msg->velocity[i]); //TODO: fix this after message is written
     }
 }
-
+*/
 
 
 // Receives the desired commands for the CMDs and sends to CMDs
 void ArmDriver::arm_input_callback (const core::msg::ArmInput::SharedPtr msg) {
 
-/*
+
     // Receiving data for first 6 joints
     for (auto i = 0; i < NUM_JOINTS; i++) {
         joints[i]->drive(msg->joint_velocity[i]);
     }
-*/
+
     // Receiving data for end effector
     joints[6]->drive(msg->end_effector_actuation); //need to create message
 
@@ -51,11 +51,11 @@ ArmDriver::ArmDriver()
         joints[i] = new Joint (i + 1, CMD_drive_mode[i]);
     }
 
-    
+    /*
     // Creates the input subscription for the desired CMD commands
     cmd_outputs_subscription = this->create_subscription<sensor_msgs::msg::JointState>(
         "/control/cmd_outputs", 10, std::bind(&ArmDriver::cmd_outputs_callback, this, _1));    
-    
+    */
 
     
     // Creates the input subscription for the desired CMD commands
