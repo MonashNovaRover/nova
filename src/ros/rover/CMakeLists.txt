@@ -33,7 +33,8 @@ include_directories(
 )
 
 # C++ executables
-#add_executable(#name #source.cpp #dependency.cpp)
+add_executable(a_star a_star.cpp)
+
 #ament_target_dependencies(#name rclcpp core)
 
 # Add all the installation directories
