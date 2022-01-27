@@ -12,3 +12,6 @@ float32[6] joint_velocity
 # Input takes value -1, 0, 1
 float32 end_effector_actuation
 float32 linear_actuation 
+
+# Actuation for lunar construction takes value -1, 0, 1
+float32 lunar_construction
