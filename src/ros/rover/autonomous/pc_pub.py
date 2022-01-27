@@ -1,11 +1,46 @@
 #!/usr/bin/python3
 
 """
-The class PCPub is meant to be used as an easy to create publisher of PointCloud2 data, so we can visualize a range 
-of 3D data in RVIZ in the same global frame.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Monash Nova Rover Team
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The class PCPub is meant to make it east to publish PointCloud2 data, so we can visualize a range
+of 3D data in RVIZ in the same global frame, as well as publish raw point-clouds from the depth camera
+for later rosbag use.
+
+Coordinate system:
+------------------
+This class publishes point-clouds exactly as it receives them in self.pub(points), where points is a
+numpy array with shape (n, 6) corresponding to x, y, z, r, g, b
+
+NODE: points_grid
+
+TOPICS:
+  - /D435/depth/color/points [sensor_msgs.msg.PointCloud2]
+  OR (can change based on BAG):
+  - /D400/depth/color/points [sensor_msgs.msg.PointCloud2]
+  
+  - /T265/odom/sample
+
+SERVICES:
+  - 
+ACTIONS: None
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PACKAGE: 	autonomous
+AUTHOR(S):	Liam
+CREATION:	27/09/2021
+EDITED:		8/12/2021
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+TODO: work on header data:
+    - adding millisecond data
+    - what is the best frame to set this to?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
 import numpy as np
+import rclpy
+
 import pc_converter
 from builtin_interfaces.msg import Time
 import time
@@ -19,16 +54,10 @@ def PointField(name, offset, datatype, count):
 
 
 class PCPub(Node):
-    """
-    This creates a node which has the sole purpose of publishing transformed point-clouds to be viewed in RVIZ. 
-    Therefore, the coordinates are a bit flipped to fit with rviz's stupid coordinate frame.
-    """
-
-
-    def __init__(self, node_name):
+    def __init__(self, node_name, scale=0.3):
         super().__init__(node_name)
         self.publisher = self.create_publisher(PointCloud2, node_name + "/cloud", 10)
-        self.scale = .3
+        self.scale = scale
 
     def pub(self, points):
         # final transformations JUST for visualization
@@ -77,3 +106,12 @@ def create_cloud_color(points):
     cloud.fields = fields_for_msg
     return cloud
 
+
+def main():
+    rclpy.init(args=None)
+    pub = PCPub("test_pc")
+    pub.pub(np.array([[1,2,3,255,0,0,0]]))
+
+
+if __name__ == "__main__":
+    main()

@@ -38,9 +38,13 @@ from grid_3d import Grid3D
 import matplotlib.pyplot as plt
 import numpy as np
 import pc_pub
-
+from depth_camera import DepthCamera
 
 plot = False
+
+# python | ros
+depth_mode = "python"
+depth_topic = '/D400/depth/color/points'
 
 
 class Mapper(Node):
@@ -49,9 +53,6 @@ class Mapper(Node):
         # init node with node name points
         super().__init__('points_grid')
         self.subscriber_tracking = self.create_subscription(Odometry, '/T265/odom/sample', self.tracking_callback, 100)
-        
-        self.subscriber_points = self.create_subscription(PointCloud2, '/D400/depth/color/points', self.points_callback, 10)
-
         # is_listener attr to be used to be return publisher
         self.map2d = Map2DContainer(is_publisher=True)
 
@@ -83,11 +84,17 @@ class Mapper(Node):
             plt.ion()
             plt.show()
 
-    # use the update from 3d method form Map2D
-    def generate_map2d(self):
-        return self.map2d.update_from_3d()
+        if depth_mode == "ros":
+            self.subscriber_points = self.create_subscription(PointCloud2, depth_topic, self.ros_points_callback, 10)
+        elif depth_mode == "python":
+            self.camera = DepthCamera(self.python_callback)
+            # starts a separate thread which will get depth frames and update mapper
+            self.camera.start()
 
     def get_transform(self):
+        """
+        hello
+        """
         return transform.get_pc_transformation(self.msg)
     
     def get_translation(self):
@@ -104,7 +111,7 @@ class Mapper(Node):
         Gets points and colors as ndarrays from PointCloud2 data from the D415 depth camera.
         Also transforms into the Nova left handed coordinate system.
         :param msg: PointCloud2
-        :return: (n, 3) ndarray, (n, 3) ndarray
+        :return: (n, 6) ndarray
         """
 
         # we need to re-set the field names to extract the unsigned ints from the msg type (one for r, g, b)
@@ -144,7 +151,10 @@ class Mapper(Node):
         pts = pts[indexes]
         colors = colors[indexes]
 
-        return pts, colors
+        # put it all in the one array of shape (n, 6)
+        points = np.concatenate((pts, colors), axis=1)
+
+        return points
     
     @staticmethod
     def row_norm(pts):
@@ -155,20 +165,22 @@ class Mapper(Node):
         :return: what we need to
         """
         return np.sum(np.abs(pts) ** 2, axis=-1) ** (1.0 / 2)
-    
-    def points_callback(self, msg):
-        # update 3D map
-        self.msg = self.last_msg
-        pts, colors = self.get_points_and_colors(msg)
-        
+
+    def update_map(self, pts):
+        """
+        :param pts: np.array(n, 6) - refers to x,y,z,r,g,b
+        """
+
         if pts.shape[0] < 10:
             return
+
+        colors = pts[:,3:]
 
         if self.msg:
             mat = self.get_transform()
             pts = np.matmul(mat, pts.transpose()).transpose()
             pts = pts + self.get_translation()
-        
+
         colors = colors * 255
         self.map3d.add_pc(pts, colors)
         pts, colors = self.map3d.get_as_pc()
@@ -177,15 +189,23 @@ class Mapper(Node):
         # update 2D map
         # ----------------------- WARNING: JANK ----------------------
         self.map2d.grid = self.map3d.get_slices(self.msg, 0.1, 0.1)
-        
+
         if plot:
             plt.imshow(np.flip(self.map2d.grid, axis=0))
             plt.draw()
             plt.pause(0.01)
 
+    def python_callback(self, msg):
+        pass
+
+    def ros_points_callback(self, msg):
+        self.msg = self.last_msg
+        pts, colors = self.get_points_and_colors(msg)
+        self.update_map(pts)
+
     def publish_vis(self):
-        pts, colors = self.map3d.get_as_pc()
-        self.pc_pub.pub_pts_colors(pts, colors)
+        pts = self.map3d.get_as_pc()
+        self.pc_pub.pub_pts_colors(pts)
     
     def publish_vis_dense(self, extra_pts=1):
         pts, colors = self.map3d.get_as_pc()
