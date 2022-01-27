@@ -1,7 +1,6 @@
 import numpy as np
 import time
 
-
 class Grid3D:
     def __init__(self, length, width, height, resolution):
         """
