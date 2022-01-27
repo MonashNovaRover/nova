@@ -33,8 +33,8 @@ import rclpy
 from rclpy.node import Node
 
 #Import the required messages
-from sensor_msgs import MultiDOFJointState
-from sensor_msgs import Joy
+from sensor_msgs.msg import MultiDOFJointState
+from sensor_msgs.msg import Joy
 
 # Import plotting tools
 import matplotlib as mpl
