@@ -1,6 +1,6 @@
 import math
 
-import pyrealsense2.pyrealsense2 as rs
+import pyrealsense2 as rs
 
 # Declare RealSense pipeline, encapsulating the actual device and sensors
 pipe = rs.pipeline()
@@ -17,7 +17,7 @@ initial_yaw = 5.0 / 4.0 * math.pi
 pipe.start(cfg)
 
 
-for i in range(0, 100):
+for i in range(0, 1000000000):
         frames = pipe.wait_for_frames()
         pose = frames.get_pose_frame()
         if pose:
