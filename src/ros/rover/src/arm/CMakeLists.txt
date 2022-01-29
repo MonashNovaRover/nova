@@ -20,6 +20,13 @@ if(Eigen3_FOUND AND Orocos_kdl_FOUND)
   # Add non-executable targets:
   ################################################
 
+  # Libraries:
+  # KDL extensions
+  add_library(kdl-extended ${PROJECT_SOURCE_DIR}/include/kdl_extended/treefksolverpos_recursive_ext.cpp)
+  target_link_libraries(kdl-extended orocos-kdl)
+
+
+  # Other non-executable targets:
   # Arm Core
   add_library(arm_core arm_core/arm_core.cpp)
   target_include_directories(arm_core INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/arm_core)
@@ -54,7 +61,7 @@ if(Eigen3_FOUND AND Orocos_kdl_FOUND)
 
   # Arm Kinematics script
   add_executable(arm_kinematics kinematics/arm_kinematics.cpp)
-  target_link_libraries(arm_kinematics orocos-kdl arm_core arm_model)
+  target_link_libraries(arm_kinematics orocos-kdl kdl-extended arm_core arm_model)
   target_include_directories(arm_kinematics INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/kinematics)
   ament_target_dependencies(arm_kinematics rclcpp sensor_msgs)
 

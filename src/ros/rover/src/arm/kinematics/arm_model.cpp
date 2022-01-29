@@ -11,7 +11,7 @@ AUTHOR(S):	Jory Braun
 #include "arm_core.h"
 
 
-ArmModel::ArmModel() : tree("root")
+ArmModel::ArmModel()
 {
     // Build the arm.
     // Joints
@@ -62,12 +62,12 @@ ArmModel::ArmModel() : tree("root")
     KDL::Segment SE1 = KDL::Segment("SE1", E1, FE1);
 
     // Add segments to the tree
-    tree.addSegment(SJ1, "root");
-    tree.addSegment(SJ2, "SJ1");
-    tree.addSegment(SJ3, "SJ2");
-    tree.addSegment(SJ4, "SJ3");
-    tree.addSegment(SJ5, "SJ4");
-    tree.addSegment(SJ6, "SJ5");
-    tree.addSegment(SE0, "SJ6");
-    tree.addSegment(SE1, "SJ3");
+    this->addSegment(SJ1, "root");
+    this->addSegment(SJ2, "SJ1");
+    this->addSegment(SJ3, "SJ2");
+    this->addSegment(SJ4, "SJ3");
+    this->addSegment(SJ5, "SJ4");
+    this->addSegment(SJ6, "SJ5");
+    this->addSegment(SE0, "SJ6");
+    this->addSegment(SE1, "SJ3");
 }

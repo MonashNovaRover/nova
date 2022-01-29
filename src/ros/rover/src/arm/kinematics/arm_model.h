@@ -16,7 +16,7 @@ ACTIONS: None
 PACKAGE: 	 control
 AUTHOR(S):   Jory Braun
 CREATION:	 22/01/2022
-EDITED:		 22/01/2022
+EDITED:		 29/01/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
  - Compare to KDL examples, see how they structure things.
@@ -29,20 +29,11 @@ TODO:
 #include <kdl/tree.hpp>
 
 
-class ArmModel
+class ArmModel : public KDL::Tree
 {
-    //------------------------------------------------------------//
-    private:
-
-    // Description of the arm structure using KDL
-    KDL::Tree tree;
-
     //------------------------------------------------------------//
     public:
 
     /// Default constructor. Builds the arm.
     ArmModel();
-
-    /// Get the tree that represents the structure of the arm
-    const KDL::Tree& get_tree() const { return tree; }
 };
