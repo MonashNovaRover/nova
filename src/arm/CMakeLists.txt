@@ -33,9 +33,9 @@ if(Eigen3_FOUND AND Orocos_kdl_FOUND)
   ament_target_dependencies(arm_core sensor_msgs)
 
   # Arm Model
-  add_library(arm_model kinematics/arm_model.cpp)
+  add_library(arm_model model/arm_model.cpp)
   target_link_libraries(arm_model orocos-kdl arm_core)
-  target_include_directories(arm_model INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/kinematics)
+  target_include_directories(arm_model INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/model)
   ament_target_dependencies(arm_model sensor_msgs)
 
 
