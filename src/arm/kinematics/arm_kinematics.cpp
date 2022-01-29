@@ -15,9 +15,9 @@ AUTHOR(S):	Jory Braun
 #include "arm_model.h"
 
 
-ArmKinematics::ArmKinematics (const KDL::Tree& arm) : 
-    // Initialise parent class and member objects
-    Node("arm_kinematics"), arm(arm), arm_fk_solver(arm)
+ArmKinematics::ArmKinematics() : 
+    // Initialise parent class and member objects with no default constructor
+    Node("arm_kinematics"), arm_fk_solver(KDL::Tree())
 {
     // Initialise constants
     coord_frames_timer_period = 200ms;
@@ -26,7 +26,11 @@ ArmKinematics::ArmKinematics (const KDL::Tree& arm) :
     // Initialise arrays in internal data structures
     joint_velocities = ArmCore::get_empty_joint_state();
     // TwistStamped does not need to be initialised
-    coord_frames = ArmCore::get_empty_multi_dof_joint_state();  
+    coord_frames = ArmCore::get_empty_multi_dof_joint_state();
+
+    // Initialise arm model and solvers
+    arm_model = ArmModel();
+    arm_fk_solver = KDL::TreeFkSolverPos_recursive_ext(arm_model);
 
     // Create subscription to resolvers
     resolver_sub = this->create_subscription<sensor_msgs::msg::JointState>(
@@ -130,14 +134,11 @@ void ArmKinematics::publish_joint_velocities()
 //  Main function called when the script execution begins
 int main(int argc, char **argv)
 {
-    // Constructs the arm model
-    ArmModel arm;
-
     // Initialises the ROS C++ class
     rclcpp::init(argc, argv);
 
     // Runs the Publisher class
-    rclcpp::spin(std::make_shared<ArmKinematics>(arm.get_tree()));
+    rclcpp::spin(std::make_shared<ArmKinematics>());
 
     // Shutsdown ROS once complete
     rclcpp::shutdown();
