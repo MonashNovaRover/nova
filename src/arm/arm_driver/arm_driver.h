@@ -74,6 +74,8 @@ class ArmDriver : public rclcpp::Node {
     // Seventh 'joint' is end effector actuation
     CMDCommand CMD_drive_mode[NUM_JOINTS + 2] = {PID, PID, PID, PWM, PWM, PWM, PWM, PWM};
 
+    float reverse[NUM_JOINTS + 2] = {-1, 1, -1, -1, -1, -1, 1, 1};
+
     //------------------------------------------------------------//
     private:
 

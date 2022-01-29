@@ -47,7 +47,7 @@ ArmDriver::ArmDriver()
     
     // Create joint instances 
     for (int i = 0; i < (NUM_JOINTS + 2); i++) {
-        joints[i] = new Joint (i + 1, CMD_drive_mode[i]);
+        joints[i] = new Joint (i + 1, CMD_drive_mode[i], reverse[i]);
     }
 
     /*
