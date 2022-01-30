@@ -1,8 +1,9 @@
 import numpy as np
 import time
 
+
 class Grid3D:
-    def __init__(self, length, width, height, resolution):
+    def __init__(self, length, width, height, resolution, has_color=True):
         """
         An array grid is a dense representation of a 3D occupancy grid
         :param length: refers to the x direction in a left handed coordinate system
@@ -19,11 +20,21 @@ class Grid3D:
         # this is the length of each cube (grid cell) in meters
         self.resolution = resolution
 
-        # the last index stores (last_update, r, g, b)
-        self.map = np.zeros((int(length / resolution),
-                             int(width / resolution),
-                             int(height / resolution),
-                             4))
+        self.has_color = has_color
+
+        if self.has_color:
+            # the last index stores (last_update, r, g, b)
+            self.map = np.zeros((int(length / resolution),
+                                 int(width / resolution),
+                                 int(height / resolution),
+                                 4))
+
+        else:
+            # the last index stores (last_update)
+            self.map = np.zeros((int(length / resolution),
+                                 int(width / resolution),
+                                 int(height / resolution),
+                                 1))
 
     def get_slices(self, pose_msg, len_down, len_up):
         """
@@ -62,30 +73,6 @@ class Grid3D:
         return indexes * self.resolution - np.array([self.length / 2, self.width / 2, self.height / 2])
 
     def add_pc(self, points, colors):
-        # choosing between the fast and slow version for testing
-        self.add_pc_fast(points, colors)
-
-    def add_pc_slow(self, points, colors):
-        """
-        Note: this version is slower due to loops, but still here as the newer version is un-tested
-        Insert a point-cloud into the map
-        :param points: (n, 3) numpy array
-        :param colors: (n, 3) numpy array
-        :return: None
-        """
-        t = time.time()
-        indexes = self.get_indexes(points)  # returns a
-        print("getting indexes took: " + str(time.time() - t))
-
-        t = time.time()
-        for i in range(len(points)):
-            # only add if the translated point-cloud fits within the bounds of the map we have created
-            if indexes[i][0] < self.map.shape[0] and indexes[i][1] < self.map.shape[1] and indexes[i][2] < self.map.shape[2]:
-                self.map[indexes[i][0], indexes[i][1], indexes[i][2]] = np.append([t], colors[i])
-
-        print("add_pc took: " + str(time.time() - t))
-
-    def add_pc_fast(self, points, colors):
         """
         Still working on this version - currently doesn't add anything to the map unfortunately
         Insert a point-cloud into the map
@@ -114,6 +101,38 @@ class Grid3D:
         print("adding " + str(colors.shape[0]) + " points took: " + str(time.time() - t) + "   (" + str(10000 * (time.time() - t) / colors.shape[0]) + " s per 10k indexes)")
         print("Map size: " + str(self.map.shape[0] * self.map.shape[1] * self.map.shape[2]))
 
+    def add_pc_points_only(self, points):
+        """
+        Still working on this version - currently doesn't add anything to the map unfortunately
+        Insert a point-cloud into the map
+        :param points: (n, 3) numpy array
+        :return: None
+        """
+        t = time.time()
+
+        # parse only the indexes which are within the map bounds
+        indexes = self.get_indexes(points)
+
+        indexes_indexes = np.all(np.array([indexes[:, 0] < self.map.shape[0], indexes[:, 1] < self.map.shape[1],
+                                           indexes[:, 2] < self.map.shape[2]]).transpose(), axis=1)
+
+        indexes = indexes[indexes_indexes]
+
+        print("getting " + str(indexes.shape[0]) + " indexes took: " + str(time.time() - t) + "   (" + str(
+            10000 * (time.time() - t) / indexes.shape[0]) + " s per 10k indexes)")
+
+        t = time.time()
+
+        # fill the all the new points with the new timestamp and colors
+
+        # todo: this could be wrong
+        to_add = np.full((indexes.shape[0], 1), t)
+        self.map[indexes.transpose()[0], indexes.transpose()[1], indexes.transpose()[2]] = to_add
+
+        print("adding " + str(indexes.shape[0]) + " points took: " + str(time.time() - t) + "   (" + str(
+            10000 * (time.time() - t) / indexes.shape[0]) + " s per 10k indexes)")
+        print("Map size: " + str(self.map.shape[0] * self.map.shape[1] * self.map.shape[2]))
+
     def get_as_pc(self):
         """
         Returns the map as a set of points and colours in a point-cloud
@@ -123,12 +142,23 @@ class Grid3D:
 
         t = time.time()
 
-        # the indexes (should be an nx3 array)
-        raw_indexes = self.map[:, :, :, 0] > 0
+        if self.has_color:
+            # the indexes (should be an nx3 array)
+            raw_indexes = self.map[:, :, :, 0] > 0
 
-        points = np.array(np.where(raw_indexes)).transpose()
-        colors = np.array(self.map[raw_indexes][:, 1:])
+            points = np.array(np.where(raw_indexes)).transpose()
+            colors = np.array(self.map[raw_indexes][:, 1:])
 
-        print("Extracting points from map took: " + str(time.time() - t))
-        
-        return self.get_points(np.array(points)), colors
+            print("Extracting points from map took: " + str(time.time() - t))
+
+            return self.get_points(np.array(points)), colors
+
+        else:
+            # the indexes (should be an nx3 array)
+            raw_indexes = self.map[:, :, :, 0] > 0
+
+            points = np.array(np.where(raw_indexes)).transpose()
+
+            print("Extracting points from map took: " + str(time.time() - t))
+
+            return self.get_points(np.array(points))

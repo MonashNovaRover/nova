@@ -48,13 +48,15 @@ depth_topic = '/D400/depth/color/points'
 
 
 class Mapper(Node):
-    def __init__(self, map2d, length=20, width=20, height=6, resolution=0.05):
+    def __init__(self, map2d, length=20, width=20, height=6, resolution=0.05, vis=True):
 
         # init node with node name points
         super().__init__('points_grid')
-        self.subscriber_tracking = self.create_subscription(Odometry, '/T265/odom/sample', self.tracking_callback, 100)
+        self.subscriber_tracking = self.create_subscription(Odometry, '/camera/odom/sample', self.tracking_callback, 100)
         # is_listener attr to be used to be return publisher
         self.map2d = Map2DContainer(is_publisher=True)
+
+        self.vis = vis
 
         # constants for pruning the point-clouds
         self.max_dist = 3.5
@@ -73,7 +75,6 @@ class Mapper(Node):
         self.width = width
         self.height = height
         self.resolution = resolution
-        self.map3d = Grid3D(self.length, self.width, self.height, self.resolution)
 
         self.msg = None
         
@@ -86,10 +87,12 @@ class Mapper(Node):
 
         if depth_mode == "ros":
             self.subscriber_points = self.create_subscription(PointCloud2, depth_topic, self.ros_points_callback, 10)
+            self.map3d = Grid3D(self.length, self.width, self.height, self.resolution, has_color=True)
         elif depth_mode == "python":
             self.camera = DepthCamera(self.python_callback)
             # starts a separate thread which will get depth frames and update mapper
             self.camera.start()
+            self.map3d = Grid3D(self.length, self.width, self.height, self.resolution, has_color=False)
 
     def get_transform(self):
         """
@@ -166,6 +169,42 @@ class Mapper(Node):
         """
         return np.sum(np.abs(pts) ** 2, axis=-1) ** (1.0 / 2)
 
+    def update_map_pts_only(self, pts):
+        """
+        :param pts: np.array(n, 6) - refers to x,y,z,r,g,b
+        """
+
+        if pts.shape[0] < 10:
+            return
+
+        # transform the points
+        if self.msg:
+            print("transforming pc")
+            mat = self.get_transform()
+            pts = np.matmul(mat, pts.transpose()).transpose()
+            pts = pts + self.get_translation()
+
+        # edit both of these to handle non coloured point-clouds
+        self.map3d.add_pc_points_only(pts)
+        pts = self.map3d.get_as_pc()
+
+        # create some colors to go with the points for visualisation
+        # todo: make colors based on height
+        colors = np.ones_like(pts) ** 255
+
+        if self.vis:
+            self.pc_pub.pub_pts_colors(pts, colors)
+
+        # update 2D map
+        # ----------------------- WARNING: JANK ----------------------
+        if self.msg:
+            self.map2d.grid = self.map3d.get_slices(self.msg, 0.1, 0.1)
+
+        if plot:
+            plt.imshow(np.flip(self.map2d.grid, axis=0))
+            plt.draw()
+            plt.pause(0.01)
+
     def update_map(self, pts):
         """
         :param pts: np.array(n, 6) - refers to x,y,z,r,g,b
@@ -195,18 +234,39 @@ class Mapper(Node):
             plt.draw()
             plt.pause(0.01)
 
+    def get_pts(self, pts):
+        # 1. Transform to tracking camera coordinates
+
+        # converting from (x=right, y=down, z=forward) -> (x=forward, y=right, z=up)
+        pts = pts[:, [2, 0, 1]]
+        pts[:, 2] = -pts[:, 2]
+        pts[:, 1] = -pts[:, 1]
+
+        # 6. only taking every 10th value (cos 2 much data)
+        pts = pts[list(range(0, len(pts), 10))]
+
+        # 7. further pruning out points which are either beyond the max dist, or are outside the max angle
+        indexes = (self.row_norm(pts) < self.max_dist) & (abs(np.arctan(pts[:, 1] / pts[:, 0])) < self.max_angle) \
+                  & (abs(np.arctan(pts[:, 2] / pts[:, 0])) < self.max_angle)
+
+        pts = pts[indexes]
+        return pts
+
     def python_callback(self, msg):
-        pass
+        """
+        This is called when the depth camera receives a new set of points via the python api. It is implemented
+        as a callback so it can happen in a separate thread.
+        It calls a function to extract and filter the points (colors are ignored) and updates the map with points only -
+        when using the python API, it should be a points only map.
+        """
+        self.msg = self.last_msg
+        self.update_map_pts_only(self.get_pts(msg))
 
     def ros_points_callback(self, msg):
         self.msg = self.last_msg
         pts, colors = self.get_points_and_colors(msg)
         self.update_map(pts)
 
-    def publish_vis(self):
-        pts = self.map3d.get_as_pc()
-        self.pc_pub.pub_pts_colors(pts)
-    
     def publish_vis_dense(self, extra_pts=1):
         pts, colors = self.map3d.get_as_pc()
         colors = colors + [254,254,254]

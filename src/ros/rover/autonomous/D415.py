@@ -38,4 +38,3 @@ class D415:
         self.align_to = rs.stream.color
         self.align = rs.align(self.align_to)
         self.align_handler = rs.align(self.align_to)
-

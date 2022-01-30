@@ -1,8 +1,14 @@
 import math
 import time
 import numpy as np
-import pyrealsense2 as rs
 from threading import Thread
+try:
+    import pyrealsense2.pyrealsense2 as rs
+except:
+    import pyrealsense2 as rs2
+from rclpy.node import Node
+from pc_pub import PCPub
+import rclpy
 
 
 class AppState:
@@ -20,8 +26,15 @@ class AppState:
 
 
 class DepthCamera(Thread):
-    def __init__(self, callback):
+    def __init__(self, callback, publish_topic=None):
+
+        # super should give the argument node name to Node's constructor as it is listed first
         super().__init__()
+        if publish_topic:
+            self.publisher = PCPub("depth_camera_pc_pub", scale=1)
+        else:
+            self.publisher = None
+
         self.state = AppState()
 
         self.running = True
@@ -64,9 +77,6 @@ class DepthCamera(Thread):
         Returning a new depth frame
 
         Coordinate Schema:
-
-
-
         :return: np.array(n, 6)
         """
 
@@ -81,9 +91,8 @@ class DepthCamera(Thread):
 
         # Grab new intrinsics (may be changed by decimation)
         depth_intrinsics = rs.video_stream_profile(depth_frame.profile).get_intrinsics()
-        w, h = depth_intrinsics.width, depth_intrinsics.height
+        # depth_image = np.asanyarray(depth_frame.get_data())
 
-        depth_image = np.asanyarray(depth_frame.get_data())
         color_image = np.asanyarray(color_frame.get_data())
 
         depth_colormap = np.asanyarray(
@@ -99,12 +108,30 @@ class DepthCamera(Thread):
 
         # Point-cloud data to arrays
         v, t = points.get_vertices(), points.get_texture_coordinates()
-
         verts = np.asanyarray(v).view(np.float32).reshape(-1, 3)  # xyz
-        texcoords = np.asanyarray(t).view(np.float32).reshape(-1, 2)  # uv
 
-        return np.concatenate((verts, texcoords), axis=1)
+        verts = verts[~((verts[:, 0] == 0) & (verts[:, 1] == 0) & (verts[:, 2] == 0))]
+
+        if self.publisher:
+            self.publisher.pub_pts_colors(verts, 255 * np.ones((verts.shape[0], 4)))
+
+        return verts
 
     def stop(self):
         # Stop streaming
         self.pipeline.stop()
+
+
+def print_points_len(points):
+    print(points.shape)
+
+
+def main():
+    rclpy.init(args=None)
+    camera = DepthCamera(print_points_len, publish_topic="/depthh_camera/points", vis=False)
+    camera.start()
+    time.sleep(20)
+
+
+if __name__ == "__main__":
+    main()
