@@ -54,7 +54,7 @@ def PointField(name, offset, datatype, count):
 
 
 class PCPub(Node):
-    def __init__(self, node_name, scale=0.3):
+    def __init__(self, node_name, scale=1.0):
         super().__init__(node_name)
         self.publisher = self.create_publisher(PointCloud2, node_name + "/cloud", 10)
         self.scale = scale
@@ -71,6 +71,10 @@ class PCPub(Node):
         self.publisher.publish(pc2)
 
     def pub_pts_colors(self, pts, colors):
+        """
+        :param pts: np.array((n, 3)) -- referring to x, y, z
+        :param colors: np.array((n, 3)) -- referring to r, g, b
+        """
         self.pub(np.concatenate((pts, colors, np.zeros((len(pts), 1))), axis=1))
 
 
