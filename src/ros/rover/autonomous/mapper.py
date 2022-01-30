@@ -48,7 +48,7 @@ depth_topic = '/D400/depth/color/points'
 
 
 class Mapper(Node):
-    def __init__(self, map2d, length=20, width=20, height=6, resolution=0.05, vis=True):
+    def __init__(self, map2d, length=6, width=6, height=5, resolution=0.06, vis=True):
 
         # init node with node name points
         super().__init__('points_grid')
@@ -190,10 +190,12 @@ class Mapper(Node):
 
         # create some colors to go with the points for visualisation
         # todo: make colors based on height
-        colors = np.ones_like(pts) ** 255
 
+        # setting colors proportional to the height of points - hopefully looks cool!
         if self.vis:
-            self.pc_pub.pub_pts_colors(pts, colors)
+            max_z = max(pts[:, 2]) + 1
+            colors = np.array([(abs(pts[:, 2]) / max_z) * 250.0 % 250, np.full(len(pts), 250), abs(max_z - abs(pts[:,2])) * 250 % 250]).transpose()
+            self.pc_pub.pub_pts_colors(pts, colors.astype(int))
 
         # update 2D map
         # ----------------------- WARNING: JANK ----------------------

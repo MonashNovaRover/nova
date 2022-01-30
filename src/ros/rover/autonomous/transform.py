@@ -31,6 +31,7 @@ class Q:
         self.z = z
         self.w = w
 
+
 def camera_extrinsics():
     """
     A camera extrinsics matrix is useful for when the cameras are offset by significant distances. 
@@ -41,6 +42,7 @@ def camera_extrinsics():
      [0, 1, 0],
      [0, 0, 1]]
     return np.array(m)
+
 
 def quat2mat(q):
     """
