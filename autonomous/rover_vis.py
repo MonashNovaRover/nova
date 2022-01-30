@@ -10,7 +10,7 @@ from rclpy.node import Node
 from nav_msgs.msg import Odometry
 import pc_pub
 import transform
-
+subscriber_topic = "/camera/odom/sample"
 
 class RoverCloud(Node):
     def __init__(self, mode="from_file"):
@@ -50,7 +50,7 @@ class RoverCloud(Node):
             # save to file
             np.save("rover", pts)
             
-            self.subscriber_points = self.create_subscription(Odometry, '/T265/odom/sample', self.callback, 10)
+            self.subscriber_points = self.create_subscription(Odometry, subscriber_topic, self.callback, 10)
        
         else:
             # create the point-cloud publisher (this is how we will visualise the rover)
@@ -60,7 +60,7 @@ class RoverCloud(Node):
             # the rover is just sitting on the ground at the origin
             self.origin_rover_pts = np.load("resources/rover.npy")
             
-            self.subscriber_points = self.create_subscription(Odometry, '/T265/odom/sample', self.callback, 10)
+            self.subscriber_points = self.create_subscription(Odometry, subscriber_topic, self.callback, 10)
 
     def callback(self, msg):
         self.pub_rover_cameras_at(msg)
