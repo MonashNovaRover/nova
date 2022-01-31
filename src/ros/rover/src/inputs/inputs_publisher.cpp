@@ -26,11 +26,16 @@ InputsPublisher::InputsPublisher()
     gamepad     = new JoystickGamepad(0.0);
     joystick_l  = new JoystickThrustmaster(true, 0.06445);
     joystick_r  = new JoystickThrustmaster(false, 0.06445);
+    
+    //Publisher options for QoS settings
+    publisher_options.event_callbacks.deadline_callback = [](rclcpp::QOSDeadlineOfferedInfo) -> void{
+      Print::print("Missed publish deadline");
+    };
 
     // Creates the publishers   
-    gamepad_publisher       = this->create_publisher<core::msg::InputGamepad>("/control/input_gamepad", 1);
-    joystick_l_publisher    = this->create_publisher<core::msg::InputJoystick>("/control/input_joystick_l", 1);
-    joystick_r_publisher    = this->create_publisher<core::msg::InputJoystick>("/control/input_joystick_r", 1);
+    gamepad_publisher       = this->create_publisher<core::msg::InputGamepad>("/control/input_gamepad", qos, publisher_options);
+    joystick_l_publisher    = this->create_publisher<core::msg::InputJoystick>("/control/input_joystick_l", qos, publisher_options);
+    joystick_r_publisher    = this->create_publisher<core::msg::InputJoystick>("/control/input_joystick_r", qos, publisher_options);
 
     // Creates a timer function that runs a function on loop every 0.02 seconds
     timer = this->create_wall_timer(20ms, std::bind(&InputsPublisher::publish_input, this));

@@ -72,6 +72,10 @@ class DriveInputs : public rclcpp::Node {
     // Stores the loop timer for the update function
     rclcpp::TimerBase::SharedPtr timer;
 
+    //Stores QoS options
+    rclcpp::QoS qos = rclcpp::QoS(1).reliability(RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT).durability(RMW_QOS_POLICY_DURABILITY_VOLATILE).deadline(200ms);
+    rclcpp::SubscriptionOptions subscriber_options;
+
     // Stores the publisher for the drive commands
     rclcpp::Publisher<core::msg::DriveInput>::SharedPtr publisher;
 
@@ -118,6 +122,9 @@ class DriveInputs : public rclcpp::Node {
     /// @param      msg - A pointer to the input message
     void input_callback (const core::msg::InputGamepad::SharedPtr msg);
 
+    /// @brief      Callback function when deadline for inputs are exceeded
+    //  @param      publisher - A pointer to the publisher
+    void deadline_exceeded();
 
     //------------------------------------------------------------//
     public:
