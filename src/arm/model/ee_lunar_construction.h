@@ -4,7 +4,7 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team
 
-This class defines the KDL model of the SPM wrist
+This class defines the KDL model of the Lunar Construction end effector
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: None
 TOPICS: None
@@ -25,11 +25,11 @@ TODO:
 #include "arm_submodule.h"
 
 
-class WristSpmModel : public ArmSubModule
+class EeLunarConstructionModel : public ArmSubModule
     //------------------------------------------------------------//
     public:
 
     /// Constructor. Build the SPM wrist
-    WristSpmModel();
+    EeLunarConstructionModel();
 
 };
