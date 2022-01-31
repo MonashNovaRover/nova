@@ -49,22 +49,16 @@ void DriveInputs::publish_cmds () {
     // Publish the drive commands
     publisher->publish(message);
 
+}
+
+// Stops driving when no input received from radios for a period of time
+void DriveInputs::deadline_exceeded (){
+
     // Clear the old inputs
     input_axis_y = 0.0;
     input_axis_x = 0.0;
-}
-
-// Publishes stopped drive commands when no input received from radios
-void DriveInputs::deadline_exceeded (){
-    auto message = core::msg::DriveInput();
-
-    message.speed = 0;
-    message.steer = 0;
     
     Print::print("No gamepad input received");
-    
-    // Publish the drive commands
-    publisher->publish(message);
 }
 
 
