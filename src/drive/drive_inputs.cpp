@@ -54,6 +54,19 @@ void DriveInputs::publish_cmds () {
     input_axis_x = 0.0;
 }
 
+// Publishes stopped drive commands when no input received from radios
+void DriveInputs::deadline_exceeded (){
+    auto message = core::msg::DriveInput();
+
+    message.speed = 0;
+    message.steer = 0;
+    
+    Print::print("No gamepad input received");
+    
+    // Publish the drive commands
+    publisher->publish(message);
+}
+
 
 // Receives input from the gamepad
 void DriveInputs::input_callback (const core::msg::InputGamepad::SharedPtr msg) {
@@ -124,9 +137,14 @@ DriveInputs::DriveInputs()
     // Creates the publisher
     publisher = this->create_publisher<core::msg::DriveInput>("/control/drive_inputs", 10);
     
+    //Sets subscriber options before subscription is made
+    subscriber_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void {
+    deadline_exceeded();
+    };
+
     // Creates the input subscription
     subscription = this->create_subscription<core::msg::InputGamepad>(
-        "/control/input_gamepad", 10, std::bind(&DriveInputs::input_callback, this, _1));
+        "/control/input_gamepad", qos, std::bind(&DriveInputs::input_callback, this, _1), subscriber_options);
 
     // Creates a timer function that runs a function on loop every 0.05 seconds
     timer = this->create_wall_timer(50ms, std::bind(&DriveInputs::publish_cmds, this));
