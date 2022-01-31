@@ -122,8 +122,7 @@ class DriveInputs : public rclcpp::Node {
     /// @param      msg - A pointer to the input message
     void input_callback (const core::msg::InputGamepad::SharedPtr msg);
 
-    /// @brief      Callback function when deadline for inputs are exceeded
-    //  @param      publisher - A pointer to the publisher
+    /// @brief      Callback function when deadline for subscriptions are exceeded
     void deadline_exceeded();
 
     //------------------------------------------------------------//
