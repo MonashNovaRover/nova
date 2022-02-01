@@ -39,17 +39,16 @@ TODO: work on header data:
 """
 
 import numpy as np
-import rclpy
+from config.ros_config import main_frame
 
 import pc_converter
 from builtin_interfaces.msg import Time
-import time
 from rclpy.node import Node
 from std_msgs.msg import Header
 from sensor_msgs.msg import PointCloud2, PointField as PF
 
 
-def PointField(name, offset, datatype, count):
+def point_field(name, offset, datatype, count):
     return PF(name=name, offset=offset, datatype=datatype, count=count)
 
 
@@ -63,11 +62,13 @@ class PCPub(Node):
         # final transformations JUST for visualization
         points = np.array(points)
         
-        points[:,0:3] = points[:,0:3] * self.scale
+        points[:, 0:3] = points[:, 0:3] * self.scale
         
         points = [pt[0:3].tolist() + pt[3:7].astype(int).tolist() for pt in points]
 
         pc2 = create_cloud_color(points)
+        pc2.header.stamp = self.get_clock().now().to_msg()
+        pc2.header.frame_id = main_frame
         self.publisher.publish(pc2)
 
     def pub_pts_colors(self, pts, colors):
@@ -83,39 +84,26 @@ def create_cloud_color(points):
     :param points: list of points with colors, where each item (point) is a 6-tuple of (x, y, z, r, g, b, 0)
     """
     # fields being passed into the actual message
-    fields_for_msg = [PointField('x', 0, PF.FLOAT32, 1),
-              PointField('y', 4, PF.FLOAT32, 1),
-              PointField('z', 8, PF.FLOAT32, 1),
-              PointField('rgb', 16, PF.FLOAT32, 1)]
+    fields_for_msg = [point_field('x', 0, PF.FLOAT32, 1),
+                      point_field('y', 4, PF.FLOAT32, 1),
+                      point_field('z', 8, PF.FLOAT32, 1),
+                      point_field('rgb', 16, PF.FLOAT32, 1)]
 
     # fields for cloud_point2 to do the nasty struct conversion
-    fields_for_parse = [PointField('x', 0, PF.FLOAT32, 1),
-              PointField('y', 4, PF.FLOAT32, 1),
-              PointField('z', 8, PF.FLOAT32, 1),
-              PointField('r', 16, PF.UINT8, 1),
-              PointField('g', 17, PF.UINT8, 1),
-              PointField('b', 18, PF.UINT8, 1),
-              PointField('x', 19, PF.UINT8, 1),
-              ]
+    fields_for_parse = [point_field('x', 0, PF.FLOAT32, 1),
+                        point_field('y', 4, PF.FLOAT32, 1),
+                        point_field('z', 8, PF.FLOAT32, 1),
+                        point_field('r', 16, PF.UINT8, 1),
+                        point_field('g', 17, PF.UINT8, 1),
+                        point_field('b', 18, PF.UINT8, 1),
+                        point_field('x', 19, PF.UINT8, 1),
+                        ]
      
     header = Header()
-    header.frame_id = "camera_depth_optical_frame"
-    
+    header.frame_id = main_frame
     t = Time()
-    t.sec = int(time.time())
-    t.nanosec = 0  # fix this lol
-    header.stamp = t 
+    header.stamp = t
     
     cloud = pc_converter.create_cloud(header, fields_for_parse, points)
     cloud.fields = fields_for_msg
     return cloud
-
-
-def main():
-    rclpy.init(args=None)
-    pub = PCPub("test_pc")
-    pub.pub(np.array([[1,2,3,255,0,0,0]]))
-
-
-if __name__ == "__main__":
-    main()

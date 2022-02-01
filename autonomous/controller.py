@@ -34,6 +34,11 @@ from core.msg import DriveInput, RoverPose, Waypoints
 import sys
 from autonomous import path_vis
 
+from config.ros_config import rover_pose_topic
+from config.ros_config import auto_drive_command_topic
+from config.ros_config import auto_goals_topic
+
+
 """
 TODO: update led according to distance?
 TODO: test rate object
@@ -61,9 +66,9 @@ class Controller(Node):
 
         self.path_cloud = path_vis.PathCloud()
 
-        self.drive_cmd_publisher = self.create_publisher(DriveInput, "auto_drive_commands", 10)
-        self.pose_subscriber = self.create_subscription(RoverPose, "autonomous/pose", self.update_pose, 10)
-        self.waypt_subscriber = self.create_subscription(Waypoints, "autonomous/goals", self.add_waypoints, 10)
+        self.drive_cmd_publisher = self.create_publisher(DriveInput, auto_drive_command_topic, 10)
+        self.pose_subscriber = self.create_subscription(RoverPose, rover_pose_topic, self.update_pose, 10)
+        self.waypt_subscriber = self.create_subscription(Waypoints, auto_goals_topic, self.add_waypoints, 10)
 
         # Controls the rate at which drive commands are sent - sleeps for the necessary time to maintain the rate given
         self.timer = self.create_timer(0.1, self.control)
@@ -158,8 +163,10 @@ class Controller(Node):
 
         if distance((self.state.x, self.state.y), self.target_waypoint) >= min_waypoint_distance:
             print("going to target")
+
             # we have not yet arrived at the waypoint
             self.go_to_target()
+
             # showing where we are aiming to drive to
             self.path_cloud.publish_path(self.waypoints)
 
