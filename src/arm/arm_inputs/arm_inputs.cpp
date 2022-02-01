@@ -82,10 +82,10 @@ void ArmInputs::publish_arm_inputs () {
 
      // Set the values for lunar construction
     if (lunar_construction_left == 2) {
-        message.lunar_construction = 1;
+        message.lunar_construction = 0.95;
     }
     else if (lunar_construction_right == 2) {
-        message.lunar_construction = -1;
+        message.lunar_construction = -0.95;
     }
     else {
         message.lunar_construction = 0;
