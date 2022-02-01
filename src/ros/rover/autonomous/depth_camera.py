@@ -11,31 +11,13 @@ from pc_pub import PCPub
 import rclpy
 
 
-class AppState:
-    def __init__(self, *args, **kwargs):
-        self.WIN_NAME = 'RealSense'
-        self.pitch, self.yaw = math.radians(-10), math.radians(-15)
-        self.translation = np.array([0, 0, -1], dtype=np.float32)
-        self.distance = 2
-        self.prev_mouse = 0, 0
-        self.mouse_btns = [False, False, False]
-        self.paused = False
-        self.decimate = 1
-        self.scale = True
-        self.color = True
-
-
 class DepthCamera(Thread):
-    def __init__(self, callback, publish_topic=None):
-
-        # super should give the argument node name to Node's constructor as it is listed first
+    def __init__(self, callback, publish_topic=None, serial_number='932122060332'):
         super().__init__()
         if publish_topic:
             self.publisher = PCPub("depth_camera_pc_pub", scale=1)
         else:
             self.publisher = None
-
-        self.state = AppState()
 
         self.running = True
 
@@ -44,15 +26,14 @@ class DepthCamera(Thread):
         # Configure depth and color streams
         self.pipeline = rs.pipeline()
         self.config = rs.config()
+        
+        self.config.enable_device('932122060332')
 
         self.pipeline_wrapper = rs.pipeline_wrapper(self.pipeline)
         self.pipeline_profile = self.config.resolve(self.pipeline_wrapper)
         self.device = self.pipeline_profile.get_device()
 
-        #self.config.enable_stream(rs.stream.pose)
-        #self.pipeline_profile = self.config.resolve(self.pipeline)
-        #self.device = self.pipeline_profile.get_device()
-
+        # enable streams for depth and color
         self.config.enable_stream(rs.stream.depth, rs.format.z16, 30)
         self.config.enable_stream(rs.stream.color, rs.format.bgr8, 30)
 
@@ -68,9 +49,8 @@ class DepthCamera(Thread):
         # Processing blocks
         self.pc = rs.pointcloud()
         self.decimate = rs.decimation_filter()
-        self.decimate.set_option(rs.option.filter_magnitude, 2 ** self.state.decimate)
+        self.decimate.set_option(rs.option.filter_magnitude, 2)
         self.colorizer = rs.colorizer()
-        out = np.empty((h, w, 3), dtype=np.uint8)
 
     def run(self):
         while self.running:
@@ -86,8 +66,12 @@ class DepthCamera(Thread):
 
         # Grab camera data
         # Wait for a coherent pair of frames: depth and color
+        t0 = time.time()
         frames = self.pipeline.wait_for_frames()
+        print("Waiting for frames: " + str(time.time() - t0))
 
+
+        t1 = time.time()
         depth_frame = frames.get_depth_frame()
         color_frame = frames.get_color_frame()
 
@@ -102,10 +86,7 @@ class DepthCamera(Thread):
         depth_colormap = np.asanyarray(
             self.colorizer.colorize(depth_frame).get_data())
 
-        if self.state.color:
-            mapped_frame, color_source = color_frame, color_image
-        else:
-            mapped_frame, color_source = depth_frame, depth_colormap
+        mapped_frame, color_source = color_frame, color_image
 
         points = self.pc.calculate(depth_frame)
         self.pc.map_to(mapped_frame)
@@ -115,9 +96,16 @@ class DepthCamera(Thread):
         verts = np.asanyarray(v).view(np.float32).reshape(-1, 3)  # xyz
 
         verts = verts[~((verts[:, 0] == 0) & (verts[:, 1] == 0) & (verts[:, 2] == 0))]
-
+        
+        verts = verts[~(verts[:, 2] > 4.5)]
+        
+        print("point processing: " + str(time.time() - t1))
+        
+        t2 = time.time()
         if self.publisher:
-            self.publisher.pub_pts_colors(verts, 255 * np.ones((verts.shape[0], 4)))
+            pass
+            # self.publisher.pub_pts_colors(verts, 255 * np.ones((verts.shape[0], 4)))
+        print("publishing: " + str(time.time() - t2))
 
         return verts
 
