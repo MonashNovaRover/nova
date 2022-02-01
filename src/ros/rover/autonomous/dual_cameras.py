@@ -43,6 +43,7 @@ try:
         color_frame_1 = frames_1.get_color_frame()
         if not depth_frame_1 or not color_frame_1:
             continue
+        print(depth_frame_1)
 
         # Camera 2
         # Wait for a coherent pair of frames: depth and color

@@ -6,7 +6,7 @@ import math
 try:
     import pyrealsense2.pyrealsense2 as rs
 except:
-    import pyrealsense2 as rs2
+    import pyrealsense2 as rs
 
 
 """

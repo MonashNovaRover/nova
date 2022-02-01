@@ -5,7 +5,7 @@ from threading import Thread
 try:
     import pyrealsense2.pyrealsense2 as rs
 except:
-    import pyrealsense2 as rs2
+    import pyrealsense2 as rs
 from rclpy.node import Node
 from pc_pub import PCPub
 import rclpy
@@ -48,6 +48,10 @@ class DepthCamera(Thread):
         self.pipeline_wrapper = rs.pipeline_wrapper(self.pipeline)
         self.pipeline_profile = self.config.resolve(self.pipeline_wrapper)
         self.device = self.pipeline_profile.get_device()
+
+        #self.config.enable_stream(rs.stream.pose)
+        #self.pipeline_profile = self.config.resolve(self.pipeline)
+        #self.device = self.pipeline_profile.get_device()
 
         self.config.enable_stream(rs.stream.depth, rs.format.z16, 30)
         self.config.enable_stream(rs.stream.color, rs.format.bgr8, 30)
@@ -128,7 +132,7 @@ def print_points_len(points):
 
 def main():
     rclpy.init(args=None)
-    camera = DepthCamera(print_points_len, publish_topic="/depthh_camera/points", vis=False)
+    camera = DepthCamera(print_points_len, publish_topic="/depth_camera/points")
     camera.start()
     time.sleep(20)
 
