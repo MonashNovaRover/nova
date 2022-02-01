@@ -1,9 +1,16 @@
+import numpy as np
 import rclpy
 from rclpy.node import Node
 from nav_msgs.msg import Odometry
 from core.msg import RoverPose
 
 import math
+
+import transform
+from config.ros_config import tracking_camera_extrinsics
+from config.ros_config import main_frame
+from config.ros_config import tracking_pose_topic
+
 try:
     import pyrealsense2.pyrealsense2 as rs
 except:
@@ -14,21 +21,22 @@ import sys
 Connects to the tracking camera and publishes various transformed pose topics. Runs in a seperate thread.
 """
 
+
 class TrackingCamera(Node):
     """
     This object runs in a separate thread and either accepts input directly from the tracking camera, from a ROS node,
     or acts as a ROS-publisher. It maintains an internal state of the most recent tracking camera pose, can be
     configured to use wheel odometry, and
     """
-    def __init__(self, mode="python", publish_to_ros=True, serial_number='952322110473'):
+    def __init__(self, serial_number='952322110473'):
 
         super().__init__("T265Node")
 
         # Declare RealSense pipeline, encapsulating the actual device and sensors
         self.pipe = rs.pipeline()
 
-        self.camera_pub = self.create_publisher(Odometry, "/t265/odom/sample", 10)
-        self.rover_pose_pub = self.create_publisher(Odometry, "/rover/pose", 10)
+        self.camera_pub = self.create_publisher(Odometry, tracking_pose_topic, 10)
+        self.rover_pose_pub = self.create_publisher(RoverPose, "/rover/pose", 10)
 
         # Build config object and request pose data
         self.cfg = rs.config()
@@ -48,34 +56,33 @@ class TrackingCamera(Node):
             data = pose.get_pose_data()
             # calculate position - flip convert to correct x and y conventions
 
-            msg = Odometry()
-            msg.header.stamp = self.get_clock().now().to_msg()
-            msg.header.frame_id = "map"
+            t265_msg = Odometry()
+            rover_msg = RoverPose()
 
-            # update translation
-            # todo: confirm these transforms
-            msg.pose.pose.position.x = -data.translation.z
-            msg.pose.pose.position.y = -data.translation.x
-            msg.pose.pose.position.z = data.translation.y
+            t265_msg.header.stamp = self.get_clock().now().to_msg()
+            t265_msg.header.frame_id = main_frame
 
-            msg.pose.pose.orientation.x = -data.rotation.z
-            msg.pose.pose.orientation.y = -data.rotation.x
-            msg.pose.pose.orientation.z = data.rotation.y
-            msg.pose.pose.orientation.w = data.rotation.w
+            t265_msg.pose.pose.position.x = -data.translation.z
+            t265_msg.pose.pose.position.y = -data.translation.x
+            t265_msg.pose.pose.position.z = data.translation.y
 
-            self.camera_pub.publish(msg)
-            self.publish_auto_pose(data)
+            t265_msg.pose.pose.orientation.x = -data.rotation.z
+            t265_msg.pose.pose.orientation.y = -data.rotation.x
+            t265_msg.pose.pose.orientation.z = data.rotation.y
+            t265_msg.pose.pose.orientation.w = data.rotation.w
 
-    def publish_auto_pose(self, data):
-            msg = RoverPose()
-            # calculate position - flip convert to correct x and y conventions
-            msg.x = -data.translation.z + self.initial_y
-            msg.y = data.translation.x + self.initial_x
+            self.camera_pub.publish(t265_msg)
 
-            # calculate yaw - convert from quaternion to euler
+            # get rover position as centre of wheel-base
+            rover_position = transform.transform_points(t265_msg, np.array([tracking_camera_extrinsics]))[0]
+
+            rover_msg.x = rover_position[0]
+            rover_msg.y = rover_position[1]
+            rover_msg.z = rover_position[2]
+
             qx = data.rotation.x
-            qy = data.rotation.z
-            qz = data.rotation.y
+            qy = data.rotation.y
+            qz = data.rotation.z
             qw = data.rotation.w
 
             # msg.yaw = euler_from_quaternion([q_x, q_y, q_z, q_w])[1]
@@ -84,21 +91,14 @@ class TrackingCamera(Node):
             yaw += self.initial_yaw
             yaw = yaw if yaw <= math.pi * 2 else yaw - math.pi * 2
 
-            msg.yaw = yaw
+            rover_msg.yaw = yaw
 
-            # calculate velocity - use pythagoras
-            x_vel = data.velocity.x
-            z_vel = data.velocity.z
-            msg.velocity = math.sqrt(x_vel ** 2 + z_vel ** 2)
+            self.rover_pose_pub.publish(rover_msg)
 
-            # calculate angular velocity - extracting correct axis
-
-            msg.angular_velocity = -data.angular_velocity.y
-
-            sys.stdout.write("\r" + "x: " + str(round(msg.x, 4)).ljust(7) + " | y: " + str(round(msg.x, 4)).ljust(7) + " | yaw: " + str(round(msg.yaw, 4)).ljust(7))
+            sys.stdout.write("\r" + "x: " + str(round(rover_msg.x, 4)).ljust(7)
+                             + " | y: " + str(round(rover_msg.x, 4)).ljust(7)
+                             + " | yaw: " + str(round(rover_msg.yaw, 4)).ljust(7))
             sys.stdout.flush()
-            # todo: create publisher
-            # publisher.publish(msg)
 
 
 def main():

@@ -7,11 +7,8 @@ Monash Nova Rover Team
 NODE: points_grid
 TOPICS:
   
-  - /D435/depth/color/points [sensor_msgs.msg.PointCloud2]
-  OR (can change based on BAG):
-  - /D400/depth/color/points [sensor_msgs.msg.PointCloud2]
-  
-  - /T265/odom/sample
+  - /camera/depth/color/points [sensor_msgs.msg.PointCloud2]
+  - /t265/odom/sample
 
 SERVICES:
   - 
@@ -33,15 +30,12 @@ import pc_converter as pc2
 import transform
 from sensor_msgs.msg import PointField
 from nav_msgs.msg import Odometry
-from map2d_container import Map2DContainer
 from grid_3d import Grid3D
 import matplotlib.pyplot as plt
 import numpy as np
 import pc_pub
 from depth_camera import DepthCamera
-import reset_cameras
-
-plot = False
+from config.ros_config import tracking_pose_topic
 
 # python | ros
 depth_mode = "python"
@@ -49,15 +43,13 @@ depth_topic = '/D400/depth/color/points'
 
 
 class Mapper(Node):
-    def __init__(self, map2d, length=6, width=6, height=5, resolution=0.04, vis=True):
+    def __init__(self, length=6, width=6, height=5, resolution=0.04, _vis=True):
 
         # init node with node name points
         super().__init__('points_grid')
-        self.subscriber_tracking = self.create_subscription(Odometry, '/t265/odom/sample', self.tracking_callback, 100)
-        # is_listener attr to be used to be return publisher
-        self.map2d = Map2DContainer(is_publisher=True)
+        self.subscriber_tracking = self.create_subscription(Odometry, tracking_pose_topic, self.tracking_callback, 100)
 
-        self.vis = vis
+        self.vis = _vis
 
         # constants for pruning the point-clouds
         self.max_dist = 3.5
@@ -67,10 +59,6 @@ class Mapper(Node):
         # limiting the the field of view to 4 degrees up and down to reduce noisy data points
         # 0.349066 radians == 20 degrees
         self.max_angle = 0.349066
-        
-        self.map2d = map2d
-        if not map2d:
-            self.map2d = Map2DContainer(is_ros=False, length=length, width=width)
 
         self.length = length
         self.width = width
@@ -82,13 +70,10 @@ class Mapper(Node):
         # for visualising the map
         self.pc_pub = pc_pub.PCPub("map_cloud")
 
-        if plot:
-            plt.ion()
-            plt.show()
-
         if depth_mode == "ros":
             self.subscriber_points = self.create_subscription(PointCloud2, depth_topic, self.ros_points_callback, 10)
             self.map3d = Grid3D(self.length, self.width, self.height, self.resolution, has_color=True)
+
         elif depth_mode == "python":
             self.camera = DepthCamera(self.python_callback)
             # starts a separate thread which will get depth frames and update mapper
@@ -97,9 +82,9 @@ class Mapper(Node):
 
     def get_transform(self):
         """
-        hello
+        Indirection (like sleight of hand, but less interesting)
         """
-        return transform.get_pc_transformation(self.msg)
+        return transform.get_pc_rotation_matrix(self.msg)
     
     def get_translation(self):
         """
@@ -189,9 +174,6 @@ class Mapper(Node):
         self.map3d.add_pc_points_only(pts)
         pts = self.map3d.get_as_pc()
 
-        # create some colors to go with the points for visualisation
-        # todo: make colors based on height
-
         # setting colors proportional to the height of points - hopefully looks cool!
         if self.vis:
             max_z = 10
@@ -201,16 +183,6 @@ class Mapper(Node):
             # colors = np.array(np.full((len(pts), 3), 255))
             self.pc_pub.pub_pts_colors(pts, colors.astype(int))
 
-        # update 2D map
-        # ----------------------- WARNING: JANK ----------------------
-        if self.msg:
-            self.map2d.grid = self.map3d.get_slices(self.msg, 0.1, 0.1)
-
-        if plot:
-            plt.imshow(np.flip(self.map2d.grid, axis=0))
-            plt.draw()
-            plt.pause(0.01)
-
     def update_map(self, pts):
         """
         :param pts: np.array(n, 6) - refers to x,y,z,r,g,b
@@ -219,7 +191,7 @@ class Mapper(Node):
         if pts.shape[0] < 10:
             return
 
-        colors = pts[:,3:]
+        colors = pts[:, 3:]
 
         if self.msg:
             mat = self.get_transform()
@@ -230,15 +202,6 @@ class Mapper(Node):
         self.map3d.add_pc(pts, colors)
         pts, colors = self.map3d.get_as_pc()
         self.pc_pub.pub_pts_colors(pts, colors)
-
-        # update 2D map
-        # ----------------------- WARNING: JANK ----------------------
-        self.map2d.grid = self.map3d.get_slices(self.msg, 0.1, 0.1)
-
-        if plot:
-            plt.imshow(np.flip(self.map2d.grid, axis=0))
-            plt.draw()
-            plt.pause(0.01)
 
     def get_pts(self, pts):
         # 1. Transform to tracking camera coordinates
@@ -274,6 +237,9 @@ class Mapper(Node):
         self.update_map(pts)
 
     def publish_vis_dense(self, extra_pts=1):
+        """
+        This was more of an experiment, but it's probably completely pointless (hehe)
+        """
         pts, colors = self.map3d.get_as_pc()
         colors = colors + [254,254,254]
         print(pts)
@@ -310,14 +276,15 @@ def position_callback(msg):
 def main(args=None):
     rclpy.init(args=args)
     # reset_cameras.reset_cameras()
-    subscriber = Mapper(None)
+    subscriber = Mapper()
     rclpy.spin(subscriber)
     subscriber.destroy_node()
     rclpy.shutdown()
 
+
 def vis():
     rclpy.init()
-    m = Mapper(None, length=10, width=10, height=5, resolution=.2)
+    m = Mapper(length=10, width=10, height=5, resolution=.2)
     m.map3d.map = np.load("resources/environment.npy")
     m.publish_vis_dense(extra_pts=2)
 

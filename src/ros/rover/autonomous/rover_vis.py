@@ -10,7 +10,8 @@ from rclpy.node import Node
 from nav_msgs.msg import Odometry
 import pc_pub
 import transform
-subscriber_topic = "/camera/odom/sample"
+from config.ros_config import tracking_pose_topic
+
 
 class RoverCloud(Node):
     def __init__(self, mode="from_file"):
@@ -35,7 +36,7 @@ class RoverCloud(Node):
 
             # analysis of raw points:
             # given the rover's max length is 1080 m, but the diff between min,
-            # and max x coords in the cloud is 0.8172089672994012,
+            # and max x co-ords in the cloud is 0.8172089672994012,
             # we can scale up the rover by:
             # pts = pts * (1080 / 0.8172089672994012)
 
@@ -50,7 +51,7 @@ class RoverCloud(Node):
             # save to file
             np.save("rover", pts)
             
-            self.subscriber_points = self.create_subscription(Odometry, subscriber_topic, self.callback, 10)
+            self.subscriber_points = self.create_subscription(Odometry, tracking_pose_topic, self.callback, 10)
        
         else:
             # create the point-cloud publisher (this is how we will visualise the rover)
@@ -60,7 +61,7 @@ class RoverCloud(Node):
             # the rover is just sitting on the ground at the origin
             self.origin_rover_pts = np.load("resources/rover.npy")
             
-            self.subscriber_points = self.create_subscription(Odometry, subscriber_topic, self.callback, 10)
+            self.subscriber_points = self.create_subscription(Odometry, tracking_pose_topic, self.callback, 10)
 
     def callback(self, msg):
         self.pub_rover_cameras_at(msg)
@@ -77,7 +78,7 @@ class RoverCloud(Node):
         
         # applies transformation then translation
         pts = self.origin_rover_pts
-        mat = transform.get_pc_transformation(msg)
+        mat = transform.get_pc_rotation_matrix(msg)
         pts = np.matmul(mat, pts.transpose()).transpose()
         pts = pts + [x, y, z]
 
@@ -100,7 +101,7 @@ class RoverCloud(Node):
         # apply translation to make cameras at [0,0,0]
         pts = pts + [-0.4, 0.0, -0.4]        
 
-        mat = transform.get_pc_transformation(msg)
+        mat = transform.get_pc_rotation_matrix(msg)
         pts = np.matmul(mat, pts.transpose()).transpose()
         pts = pts + [x, y, z]
 

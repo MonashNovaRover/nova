@@ -56,14 +56,12 @@ def quat2mat(q):
      [2 * q.x * q.z - 2 * q.y * q.w, 2 * q.y * q.z + 2 * q.x * q.w, 1 - 2 * q.x * q.x - 2 * q.y * q.y]]
     return np.array(m)
 
-def get_pc_transformation(pose_msg):
+
+def get_pc_rotation_matrix(pose_msg):
     """
     Given a raw pose message, we want to create one matrix which can transform all the points
     """
-    x = pose_msg.pose.pose.position.x 
-    y = pose_msg.pose.pose.position.y
-    z = pose_msg.pose.pose.position.z 
-    
+
     qx = pose_msg.pose.pose.orientation.x
     qy = pose_msg.pose.pose.orientation.y
     qz = pose_msg.pose.pose.orientation.z
@@ -73,3 +71,13 @@ def get_pc_transformation(pose_msg):
     
     return np.matmul(camera_extrinsics(), quat2mat(q))
 
+
+def transform_points(pose_msg, pts):
+    """
+    pose_msg: nav_msgs.msg.Odometry message
+    pts: numpy array with shape (n, 3)
+    """
+    mat = get_pc_rotation_matrix(pose_msg)
+    pts = np.matmul(mat, pts.transpose()).transpose()
+    pts = pts + [pose_msg.pose.pose.position.x, pose_msg.pose.pose.position.y, pose_msg.pose.pose.position.z]
+    return pts

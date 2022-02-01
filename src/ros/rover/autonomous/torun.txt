@@ -1,5 +1,0 @@
-camera lanuch file
-pose.py
-main.py
-Controller.py
-vis/rover_vis.py

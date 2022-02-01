@@ -20,7 +20,7 @@ import rclpy
 from rclpy.node import Node
 from nav_msgs.msg import Odometry
 
-config_file = "calibration_odometry.json"
+config_file = "config/calibration_odometry.json"
 
 class WheelOdomFuse(Node):
     def __init__(self):
