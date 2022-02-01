@@ -39,6 +39,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pc_pub
 from depth_camera import DepthCamera
+import reset_cameras
 
 plot = False
 
@@ -48,11 +49,11 @@ depth_topic = '/D400/depth/color/points'
 
 
 class Mapper(Node):
-    def __init__(self, map2d, length=6, width=6, height=5, resolution=0.06, vis=True):
+    def __init__(self, map2d, length=6, width=6, height=5, resolution=0.04, vis=True):
 
         # init node with node name points
         super().__init__('points_grid')
-        self.subscriber_tracking = self.create_subscription(Odometry, '/camera/odom/sample', self.tracking_callback, 100)
+        self.subscriber_tracking = self.create_subscription(Odometry, '/t265/odom/sample', self.tracking_callback, 100)
         # is_listener attr to be used to be return publisher
         self.map2d = Map2DContainer(is_publisher=True)
 
@@ -193,8 +194,11 @@ class Mapper(Node):
 
         # setting colors proportional to the height of points - hopefully looks cool!
         if self.vis:
-            max_z = max(pts[:, 2]) + 1
-            colors = np.array([(abs(pts[:, 2]) / max_z) * 250.0 % 250, np.full(len(pts), 250), abs(max_z - abs(pts[:,2])) * 250 % 250]).transpose()
+            max_z = 10
+            colors = np.array([(abs(pts[:, 2]) + 1 / max_z) * 250.0 % 250, np.full(len(pts), 0), abs(max_z - abs(pts[:,2]) - 1) * 250 % 250]).transpose()
+            
+            # white mode
+            # colors = np.array(np.full((len(pts), 3), 255))
             self.pc_pub.pub_pts_colors(pts, colors.astype(int))
 
         # update 2D map
@@ -305,11 +309,11 @@ def position_callback(msg):
 
 def main(args=None):
     rclpy.init(args=args)
+    # reset_cameras.reset_cameras()
     subscriber = Mapper(None)
     rclpy.spin(subscriber)
     subscriber.destroy_node()
     rclpy.shutdown()
-
 
 def vis():
     rclpy.init()

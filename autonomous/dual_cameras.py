@@ -2,7 +2,12 @@ import pyrealsense2 as rs
 import numpy as np
 #import cv2i
 import logging
+from depth_camera import DepthCamera
 
+"""
+Factory method for two cameras (D415 and T265) running in seperate threads
+Manages QOS for both and re-starts as necessary
+"""
 # reset usbs and get info
 ctx = rs.context()
 devices = ctx.query_devices()
@@ -17,9 +22,12 @@ config_1 = rs.config()
 config_1.enable_device('932122060332')
 config_1.enable_stream(rs.stream.depth, rs.format.z16, 30)
 config_1.enable_stream(rs.stream.color, rs.format.bgr8, 30)
+
 #config_1.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
 #config_1.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
 # ...from Tracking camera
+
+
 pipeline_2 = rs.pipeline()
 config_2 = rs.config()
 config_2.enable_device('952322110473')
