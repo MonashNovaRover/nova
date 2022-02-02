@@ -22,6 +22,7 @@ from nav_msgs.msg import Odometry
 
 config_file = "config/calibration_odometry.json"
 
+
 class WheelOdomFuse(Node):
     def __init__(self):
         super().__init__('wheel_odom_node')

@@ -32,7 +32,6 @@ def main(args):
 
         # in this janky night-before-mvp we will be creating a map2d object which is shared by planner and mapper.
         # Mapper updates it, planner just reads from it.
-        map2d = Map2DContainer(length=length, width=width, resolution=resolution)
         planner = PathPlanner(dest, map2d)
         mapper = Mapper(map2d, length=length, width=width, resolution=resolution)
 
