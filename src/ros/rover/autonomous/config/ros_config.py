@@ -2,8 +2,6 @@
 This file provides ROS topic names which we will use throughout the autonomous package
 """
 
-import numpy as np
-
 """
 Description: for transformed pose of the tracking camera's optical centre. 
 Type: nav_msgs.msg.Odometry

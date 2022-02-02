@@ -3,14 +3,14 @@ import rclpy
 from rclpy.node import Node
 from nav_msgs.msg import Odometry
 from core.msg import RoverPose
-
 import math
-
 import transform
 from config.ros_config import tracking_camera_extrinsics
 from config.ros_config import main_frame
 from config.ros_config import tracking_pose_topic
+from config.ros_config import rover_pose_topic
 
+# different systems seem to install the pyrealsense wrapper differently
 try:
     import pyrealsense2.pyrealsense2 as rs
 except:
@@ -18,7 +18,7 @@ except:
 import sys
 
 """
-Connects to the tracking camera and publishes various transformed pose topics. Runs in a seperate thread.
+Connects to the tracking camera and publishes various transformed pose topics. Runs in a separate thread.
 """
 
 
@@ -36,7 +36,7 @@ class TrackingCamera(Node):
         self.pipe = rs.pipeline()
 
         self.camera_pub = self.create_publisher(Odometry, tracking_pose_topic, 10)
-        self.rover_pose_pub = self.create_publisher(RoverPose, "/rover/pose", 10)
+        self.rover_pose_pub = self.create_publisher(RoverPose, rover_pose_topic, 10)
 
         # Build config object and request pose data
         self.cfg = rs.config()
