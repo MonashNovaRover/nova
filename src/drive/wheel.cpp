@@ -33,7 +33,7 @@ Wheel::~Wheel () {
 void Wheel::spin (float speed) {
 
     // Adjust for directional spinning
-    if (!this->clockwise) speed *= -1.0;
+    if (this->clockwise) speed *= -1.0;
 
     // Make sure the limits on speed
     if (speed > 1.0) speed = 1.0;
