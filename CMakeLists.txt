@@ -18,6 +18,7 @@ endif()
 # add pybind stuff so we can build pybind wrappers
 add_subdirectory(pybind11)
 pybind11_add_module(path_planner src/path_planner.cpp)
+pybind11_add_module(a_star src/a_star.cpp)
 install(TARGETS path_planner DESTINATION ~/nova_ws/install/autonomous/lib/python3.6/site-packages)
 
 # Find and include all dependencies
