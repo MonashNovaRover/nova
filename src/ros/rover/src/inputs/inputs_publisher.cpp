@@ -34,8 +34,8 @@ InputsPublisher::InputsPublisher()
 
     // Creates the publishers   
     gamepad_publisher       = this->create_publisher<core::msg::InputGamepad>("/control/input_gamepad", qos, publisher_options);
-    joystick_l_publisher    = this->create_publisher<core::msg::InputJoystick>("/control/input_joystick_l", qos, publisher_options);
-    joystick_r_publisher    = this->create_publisher<core::msg::InputJoystick>("/control/input_joystick_r", qos, publisher_options);
+    joystick_l_publisher    = this->create_publisher<core::msg::InputJoystick>("/control/input_joystick_l", 1);
+    joystick_r_publisher    = this->create_publisher<core::msg::InputJoystick>("/control/input_joystick_r", 1);
 
     // Creates a timer function that runs a function on loop every 0.02 seconds
     timer = this->create_wall_timer(20ms, std::bind(&InputsPublisher::publish_input, this));
