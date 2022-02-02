@@ -10,7 +10,12 @@
 #include <tuple>
 #include <chrono>
 #include<list>
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
+#include <pybind11/numpy.h>
 using namespace std;
+
+namespace py = pybind11;
 
 
 // Creating a shortcut for int, int pair type
@@ -36,10 +41,10 @@ struct cell {
 // A Utility Function to check whether given cell (row, col)
 // is a valid cell or not.
 template <size_t ROW, size_t COL>
-bool isValid(const array<array<int, COL>, ROW>& grid,
+bool isValid(const array<array<float, COL>, ROW>& grid,
 			const Pair& point)
 { // Returns true if row number and column number is in
-// range
+
 	if (ROW > 0 && COL > 0)
 		return (point.first >= 0) && (point.first < ROW)
 			&& (point.second >= 0)
@@ -51,7 +56,7 @@ bool isValid(const array<array<int, COL>, ROW>& grid,
 // A Utility Function to check whether the given cell is
 // blocked or not
 template <size_t ROW, size_t COL>
-bool isUnBlocked(const array<array<int, COL>, ROW>& grid,
+bool isUnBlocked(const array<array<float, COL>, ROW>& grid,
 				const Pair& point)
 {
 	// Returns true if the cell is not blocked else false
@@ -106,10 +111,14 @@ void tracePath(
 // A Function to find the shortest path between a given
 // source cell to a destination cell according to A* Search
 // Algorithm
+
 template <size_t ROW, size_t COL>
-void aStarSearch(const array<array<int, COL>, ROW>& grid,
+void aStarSearch(array<array<float, COL>, ROW> grid,
 				const Pair& src, const Pair& dest)
 {
+	// timer to check performance
+	auto start = chrono::high_resolution_clock::now();
+
 	// If the source is out of range
 	if (!isValid(grid, src)) {
 		printf("Source is invalid\n");
@@ -211,6 +220,13 @@ void aStarSearch(const array<array<int, COL>, ROW>& grid,
 						cellDetails[neighbour.first][neighbour.second].parent = { i, j };
 						printf("The destination cell is found\n");
 						tracePath(cellDetails, dest);
+
+						auto stop = chrono::high_resolution_clock::now();
+						auto duration = chrono::duration_cast<std::chrono::microseconds>(stop - start);
+					
+						// To get the value of duration use the count()
+						// member function on the duration object
+						cout << "\ntook " << duration.count() << " microseconds" << endl;
 						return;
 					}
 					// If the successor is already on the
@@ -276,31 +292,22 @@ void aStarSearch(const array<array<int, COL>, ROW>& grid,
 	printf("Failed to find the Destination Cell\n");
 }
 
-
-list<Pair> string_pull(list<Pair> raw_points ){
-	if (raw_points.size() == 2){
-		return raw_points;
-	}
-	
-}
-
-
 // Driver program to test above function
 int main()
 {
 	/* Description of the Grid-
 	1--> The cell is not blocked
 	0--> The cell is blocked */
-	array<array<int, 10>, 9> grid{
-		{ { { 1, 0, 1, 1, 1, 1, 0, 1, 1, 1 } },
-		{ { 1, 1, 1, 0, 1, 1, 1, 0, 1, 1 } },
-		{ { 1, 1, 1, 0, 1, 1, 0, 1, 0, 1 } },
-		{ { 0, 0, 1, 0, 1, 0, 0, 0, 0, 1 } },
-		{ { 1, 1, 1, 0, 1, 1, 1, 0, 1, 0 } },
-		{ { 1, 0, 1, 1, 1, 1, 0, 1, 0, 0 } },
-		{ { 1, 0, 0, 0, 0, 1, 0, 0, 0, 1 } },
-		{ { 1, 0, 1, 1, 1, 1, 0, 1, 1, 1 } },
-		{ { 1, 1, 1, 0, 0, 0, 1, 0, 0, 1 } } }
+	array<array<float, 10>, 9> grid{
+		{ { { 1., 0., 1., 1., 1., 1., 0., 1., 1., 1. } },
+		{ { 1., 1., 1., 0., 1., 1., 1., 0., 1., 1. } },
+		{ { 1., 1., 1., 0., 1., 1., 0., 1., 0., 1. } },
+		{ { 0., 0., 1., 0., 1., 0., 0., 0., 0., 1. } },
+		{ { 1., 1., 1., 0., 1., 1., 1., 0., 1., 0. } },
+		{ { 1., 0., 1., 1., 1., 1., 0., 1., 0., 0. } },
+		{ { 1., 0., 0., 0., 0., 1., 0., 0., 0., 1. } },
+		{ { 1., 0., 1., 1., 1., 1., 0., 1., 1., 1. } },
+		{ { 1., 1., 1., 0., 0., 0., 1., 0., 0., 1. } } }
 	};
 
 	// Source is the left-most bottom-most corner
@@ -308,14 +315,16 @@ int main()
 
 	// Destination is the left-most top-most corner
 	Pair dest(0, 0);
-	auto start = chrono::high_resolution_clock::now();
 	aStarSearch(grid, src, dest);
-	auto stop = chrono::high_resolution_clock::now();
-	auto duration = chrono::duration_cast<std::chrono::microseconds>(stop - start);
-  
-// To get the value of duration use the count()
-// member function on the duration object
-	cout << duration.count() << endl;
 	return 0;
+}
+
+PYBIND11_MODULE(a_star, module_handle) {
+  
+    module_handle.doc() = "Nova Rover A* C++ search algorithm binded to Python3";
+    module_handle.def("a_star", &aStarSearch<800, 800>); // 2.5 cm resolution
+    module_handle.def("a_star", &aStarSearch<400, 400>); // 5 cm resolution
+    module_handle.def("a_star", &aStarSearch<200, 200>); // 10 cm resolution
+    module_handle.def("a_star", &aStarSearch<100, 100>); // 20 cm resolution
 }
 
