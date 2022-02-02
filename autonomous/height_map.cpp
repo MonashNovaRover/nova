@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 #include "height_map.h"
-#include "rclcpp/rclcpp.hpp"
+//#include "rclcpp/rclcpp.hpp"
 
 using namespace std::chrono_literals;
 
