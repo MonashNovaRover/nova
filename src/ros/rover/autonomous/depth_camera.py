@@ -6,9 +6,9 @@ try:
     import pyrealsense2.pyrealsense2 as rs
 except:
     import pyrealsense2 as rs
-from rclpy.node import Node
 from pc_pub import PCPub
 import rclpy
+import artag_pose_detection as ar
 
 
 class DepthCamera(Thread):
@@ -69,7 +69,6 @@ class DepthCamera(Thread):
         # Wait for a coherent pair of frames: depth and color
         t0 = time.time()
         frames = self.pipeline.wait_for_frames()
-        print("Waiting for frames: " + str(time.time() - t0))
 
 
         t1 = time.time()
@@ -83,6 +82,8 @@ class DepthCamera(Thread):
         # depth_image = np.asanyarray(depth_frame.get_data())
 
         color_image = np.asanyarray(color_frame.get_data())
+
+        ar.findArTag(color_image)
 
         depth_colormap = np.asanyarray(
             self.colorizer.colorize(depth_frame).get_data())
@@ -100,13 +101,13 @@ class DepthCamera(Thread):
         
         verts = verts[~(verts[:, 2] > 4.5)]
         
-        print("point processing: " + str(time.time() - t1))
+        # print("point processing: " + str(time.time() - t1))
         
         t2 = time.time()
         if self.publisher:
             pass
             # self.publisher.pub_pts_colors(verts, 255 * np.ones((verts.shape[0], 4)))
-        print("publishing: " + str(time.time() - t2))
+        # print("publishing: " + str(time.time() - t2))
 
         return verts
 
@@ -116,12 +117,12 @@ class DepthCamera(Thread):
 
 
 def print_points_len(points):
-    print(points.shape)
-
+    # print(points.shape)
+    pass
 
 def main():
     rclpy.init(args=None)
-    camera = DepthCamera(print_points_len, publish_topic="/depth_camera/points")
+    camera = DepthCamera(print_points_len)
     camera.start()
     time.sleep(20)
 
