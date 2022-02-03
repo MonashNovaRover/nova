@@ -38,6 +38,41 @@ struct cell {
 	}
 };
 
+template <size_t ROW, size_t COL>
+array<array<float, COL>, ROW> maxPool(array<array<float, COL>, ROW> grid, const int pad_size{
+	/*
+	 * Gets the Max values for each pad_size^2 window of a ROW*COL grid
+	 * For use in basic 2D map padding.
+	 * Future improvements: only accept values within a circle (rover turning radius) instead of a square
+	 * Only accept
+	 * */
+
+    // initialize a 2D array of zeros
+	array<array<float, COL>, ROW> max_pool;
+    conv.fill({});
+
+	for (int x = 0; x < COL; x++){
+		for int y = 0; y < ROW; y++){
+            // we are doing a "padding=None" style of max_pool
+            int x_start = std::min(std::max(0, x - pad_size), COL - 1);
+            int x_end   = std::min(std::max(0, x + pad_size), COL - 1);
+            int y_start = std::min(std::max(0, y - pad_size), ROW - 1);
+            int y_end   = std::min(std::max(0, y + pad_size), ROW - 1);
+
+            // probably a statistically faster method - maybe searching from the middle and moving outward in a spiral?
+            for (int x_pad = x_start; x_pad < x_end; x += 1){
+                for (int y_pad = y_start; y_pad < y_end; x += 1){
+                    if (grid[x_pad][y_pad] != 0.0){
+                        max_pool[x][y] == 1.0;
+                        break;
+                    }
+                }
+            }
+		}
+	}
+    return max_pool;
+}
+
 // A Utility Function to check whether given cell (row, col)
 // is a valid cell or not.
 template <size_t ROW, size_t COL>
@@ -53,12 +88,12 @@ bool isValid(const array<array<float, COL>, ROW>& grid,
 	return false;
 }
 
-// A Utility Function to check whether the given cell is
-// blocked or not
 template <size_t ROW, size_t COL>
 bool isUnBlocked(const array<array<float, COL>, ROW>& grid,
 				const Pair& point)
 {
+    // A Utility Function to check whether the given cell is
+    // blocked or not
 	// Returns true if the cell is not blocked else false
 	return isValid(grid, point)
 		&& grid[point.first][point.second] == 1;
@@ -82,10 +117,7 @@ double calculateHValue(const Pair& src, const Pair& dest)
 // A Utility Function to trace the path from the source to
 // destination
 template <size_t ROW, size_t COL>
-void tracePath(
-	const array<array<cell, COL>, ROW>& cellDetails,
-	const Pair& dest)
-{
+array<Pair> tracePath(const array<array<cell, COL>, ROW>& cellDetails, const Pair& dest){
 	printf("\nThe Path is ");
 
 	stack<Pair> Path;
@@ -118,6 +150,9 @@ void aStarSearch(array<array<float, COL>, ROW> grid,
 {
 	// timer to check performance
 	auto start = chrono::high_resolution_clock::now();
+
+    // pad the map
+    array<array<float, COL>, ROW> grid = maxPool(grid, pad_size=10);
 
 	// If the source is out of range
 	if (!isValid(grid, src)) {
@@ -320,7 +355,6 @@ int main()
 }
 
 PYBIND11_MODULE(a_star, module_handle) {
-  
     module_handle.doc() = "Nova Rover A* C++ search algorithm binded to Python3";
     module_handle.def("a_star", &aStarSearch<800, 800>); // 2.5 cm resolution
     module_handle.def("a_star", &aStarSearch<400, 400>); // 5 cm resolution
