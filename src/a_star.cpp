@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <array>
+#include <vector>
 #include <chrono>
 #include <cstring>
 #include <iostream>
@@ -12,6 +13,8 @@
 #include <chrono>
 #include <iterator>
 #include<list>
+#include <fstream>
+#include <string>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <pybind11/numpy.h>
@@ -109,7 +112,7 @@ bool isUnBlocked(const array<array<float, COL>, ROW>& grid,
      blocked or not. Returns true if the cell is not blocked else false.
 	 Open cells have values less than 1 otherwise they are blocked*/
 	return (isValid(grid, point)
-		&& grid[point.first][point.second] < 1.0);
+		&& grid[point.first][point.second] != 1.0);
 }
 
 // A Utility Function to check whether destination cell has
@@ -119,14 +122,31 @@ bool isDestination(const Pair& position, const Pair& dest)
 	return position == dest;
 }
 
-double dist(const Pair& p1, const Pair& p2)
+template <size_t ROW, size_t COL>
+void print_grid(const array<array<float, COL>, ROW>& grid) {
+	ifstream f;
+    string buf;
+    f.open("data.txt");
+    for(int i=0;i<ROW;i++)
+    {
+		for (int j = 0; j < COL; j++) {
+
+        	f << grid[i][j] << "\t";
+		}
+		f << endl;
+
+    }
+    f.close();
+}
+
+float dist(const Pair& p1, const Pair& p2)
 {
 	// Finds Euclidean distance between two points
 	return sqrt(pow((p1.first - p2.first), 2.0)
 				+ pow((p1.second - p2.second), 2.0));
 }
 
-double inverse_square_decay(float dist, float scale_length) 
+float inverse_square_decay(float dist, float scale_length) 
 {
 	/* points too close are automatically impassable (use 1.1 to distinguish
 	from "1st generation" obstacles which are exactly 1.0)*/
@@ -136,7 +156,7 @@ double inverse_square_decay(float dist, float scale_length)
 }
 
 template <size_t ROW, size_t COL>
-void precompute_padding_values(array<array<float, COL>, ROW>& grid, 
+array<array<float, COL>, ROW> precompute_padding_values(array<array<float, COL>, ROW>& grid, 
 									float grid_resolution_cm) 
 {
 	/* Loops through the map, locates every obstacle tile, and maps
@@ -144,8 +164,9 @@ void precompute_padding_values(array<array<float, COL>, ROW>& grid,
 	 rover cannot travel. Weights tiles with an inverse-square decay
 	 by there distsance to the obstacle to discourage the rover from
 	 coming too close */
-	float scale_length_pixels = ROVER_WIDTH_CM / grid_resolution_cm;
+	double scale_length_pixels = ROVER_WIDTH_CM / grid_resolution_cm;
 
+	auto start = chrono::high_resolution_clock::now();
 	for (int i = 0; i < ROW; i++) {
 		for (int j = 0; j < COL; j++) {
 			if (grid[i][j] == 1.0f) {
@@ -161,14 +182,17 @@ void precompute_padding_values(array<array<float, COL>, ROW>& grid,
 						// check which neighbours need to be added to the queue
 						Pair there(this_point.first + n.first, 
 									this_point.second + n.second);
-						float grid_val = grid[there.first][there.second];
-						if (grid_val > 0.0 && grid_val != 1.0) {
-							// we need to see if we can pad it.
+						if (isValid(grid, there))
+						{
+							float grid_val = grid[there.first][there.second];
 							float new_val = inverse_square_decay(dist(this_point, there), 
-																		scale_length_pixels);
-							// update padding value
-							if (grid_val < new_val) grid[there.first][there.second] = new_val;
-							un_padded.push(there);
+																			scale_length_pixels);
+							if (new_val > grid_val && grid_val != 1.0) {
+								// we need to see if we can pad it.
+								// update padding value
+								grid[there.first][there.second] = new_val;
+								un_padded.push(there);
+							}
 						}
 					}
 					un_padded.pop();
@@ -176,40 +200,50 @@ void precompute_padding_values(array<array<float, COL>, ROW>& grid,
 			}
 		}
 	}
+
+	auto end = chrono::high_resolution_clock::now();
+	auto duration = chrono::duration_cast<std::chrono::microseconds>(end - start);
+	
+	cout << "took " << duration.count() << " microseconds" << endl;
+	print_grid(grid);
+	return grid;
 }
 
 // A Utility Function to trace the path from the source to
 // destination
-/*template <size_t ROW, size_t COL>
-array<Pair> tracePath(const array<array<cell, COL>, ROW>& cellDetails, const Pair& dest){
+template <size_t ROW, size_t COL>
+vector<Pair> tracePath(const array<array<cell, COL>, ROW>& cellDetails, const Pair& dest){
 	printf("\nThe Path is ");
 
-	stack<Pair> Path;
+	stack<Pair> backwards_path;
 
 	int row = dest.second;
 	int col = dest.second;
-	Pair next_node = cellDetails[row][col].parent;
+	Pair next_node = dest;
 	do {
-		Path.push(next_node);
+		backwards_path.push(next_node);
 		next_node = cellDetails[row][col].parent;
 		row = next_node.first;
 		col = next_node.second;
 	} while (cellDetails[row][col].parent != next_node);
 
-	Path.emplace(row, col);
-	while (!Path.empty()) {
-		Pair p = Path.top();
-		Path.pop();
-		printf("-> (%d,%d) ", p.first, p.second);
+	backwards_path.emplace(row, col);
+	vector<Pair> path;
+	while (!backwards_path.empty()){
+		Pair p = backwards_path.top();
+		backwards_path.pop();
+		path.push_back(p);
 	}
-}*/
+
+	return path;
+}
 
 // A Function to find the shortest path between a given
 // source cell to a destination cell according to A* Search
 // Algorithm
 
 template <size_t ROW, size_t COL>
-void aStarSearch(array<array<float, COL>, ROW> grid,
+vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 				const Pair& src, const Pair& dest, const float grid_resolution_cm)
 {
 	// timer to check performance
@@ -225,26 +259,22 @@ void aStarSearch(array<array<float, COL>, ROW> grid,
 	// If the source is out of range
 	if (!isValid(grid, src)) {
 		printf("Source is invalid\n");
-		return;
 	}
 
 	// If the destination is out of range
 	if (!isValid(grid, dest)) {
 		printf("Destination is invalid\n");
-		return;
 	}
 
 	// Either the source or the destination is blocked
 	if (!isUnBlocked(grid, src)
 		|| !isUnBlocked(grid, dest)) {
 		printf("Source or the destination is blocked\n");
-		return;
 	}
 
 	// If the destination cell is the same as source cell
 	if (isDestination(src, dest)) {
 		printf("We are already at the destination\n");
-		return;
 	}
 
 	// Create a closed list and initialise it to false which
@@ -312,7 +342,7 @@ void aStarSearch(array<array<float, COL>, ROW> grid,
 		*/
 		for (int add_x = -1; add_x <= 1; add_x++) {
 			for (int add_y = -1; add_y <= 1; add_y++) {
-				if (add_x == 0 && add_y == 0) continue;
+				if(add_x == 0 && add_y == 0) continue;
 
 				Pair neighbour(i + add_x, j + add_y);
 				// Only process this cell if this is a valid
@@ -323,7 +353,6 @@ void aStarSearch(array<array<float, COL>, ROW> grid,
 					if (isDestination(neighbour, dest)) { // Set the Parent of the destination cell
 						cellDetails[neighbour.first][neighbour.second].parent = { i, j };
 						printf("The destination cell is found\n");
-						//tracePath(cellDetails, dest);
 
 						auto stop = chrono::high_resolution_clock::now();
 						auto duration = chrono::duration_cast<std::chrono::microseconds>(stop - start);
@@ -331,7 +360,7 @@ void aStarSearch(array<array<float, COL>, ROW> grid,
 						// To get the value of duration use the count()
 						// member function on the duration object
 						cout << "\ntook " << duration.count() << " microseconds" << endl;
-						return;
+						return tracePath(cellDetails, dest);
 					}
 					// If the successor is already on the
 					// closed list or if it is blocked, then
@@ -344,8 +373,7 @@ void aStarSearch(array<array<float, COL>, ROW> grid,
 						// additional distance to next point
 						double g_diff = (add_y == 0 || add_x == 0) ? 1.0 : sqrt(2.0);
 						gNew = cellDetails[i][j].g + g_diff / DISTANCE_WEIGHT_PARAMETER;
-						hNew = grid[neighbour.first][neighbour.second] + 
-										dist(neighbour, dest) / DISTANCE_WEIGHT_PARAMETER;
+						hNew = grid[neighbour.first][neighbour.second] + dist(neighbour, dest) / DISTANCE_WEIGHT_PARAMETER;
 						fNew = gNew + hNew;
 
 						// If it isn’t on the open list, add
@@ -405,7 +433,7 @@ int main()
 	1--> The cell is not blocked
 	0--> The cell is blocked */
 	array<array<float, 10>, 9> grid{
-		{ { { 1., 0., 1., 1., 1., 1., 0., 1., 1., 1. } },
+		{ { { 0., 0., 1., 1., 1., 1., 0., 1., 1., 1. } },
 		{ { 1., 1., 1., 0., 1., 1., 1., 0., 1., 1. } },
 		{ { 1., 1., 1., 0., 1., 1., 0., 1., 0., 1. } },
 		{ { 0., 0., 1., 0., 1., 0., 0., 0., 0., 1. } },
