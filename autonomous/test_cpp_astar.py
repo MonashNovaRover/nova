@@ -7,6 +7,9 @@ import matplotlib.pyplot as plt
 
 def add_obs(array):
     
+    for i in range(350):
+        array[50][i] = 1.0
+
     for i in range(100):
         array[140, 399 - i] = 1.0
 
