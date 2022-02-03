@@ -28,7 +28,7 @@ namespace py = pybind11;
    parameter means we worry less about the distance taken to arrive at
    the destination.*/
 const float ROVER_WIDTH_CM = 50.0;
-const float DISTANCE_WEIGHT_PARAMETER = 200.0;
+const float DISTANCE_WEIGHT_PARAMETER = 400.0;
 
 // Creating a shortcut for int, int pair type
 typedef pair<int, int> Pair;
@@ -122,7 +122,7 @@ bool isDestination(const Pair& position, const Pair& dest)
 	return position == dest;
 }
 
-template <size_t ROW, size_t COL>
+/*template <size_t ROW, size_t COL>
 void print_grid(const array<array<float, COL>, ROW>& grid) {
 	ifstream f;
     string buf;
@@ -137,7 +137,7 @@ void print_grid(const array<array<float, COL>, ROW>& grid) {
 
     }
     f.close();
-}
+}*/
 
 float dist(const Pair& p1, const Pair& p2)
 {
@@ -152,7 +152,7 @@ float inverse_square_decay(float dist, float scale_length)
 	from "1st generation" obstacles which are exactly 1.0)*/
 	if (dist < scale_length) return 1.1;
 	if (dist > 3 * scale_length) return 0.0; // outside a certain distance we don't care
-	return (1.0 / pow(dist / scale_length, 2.0)); // inverse square decay scaled by scale length
+	return (0.99 / pow(dist / scale_length, 2.0)); // inverse square decay scaled by scale length
 }
 
 template <size_t ROW, size_t COL>
@@ -172,30 +172,20 @@ array<array<float, COL>, ROW> precompute_padding_values(array<array<float, COL>,
 			if (grid[i][j] == 1.0f) {
 				// we have encountered an obstacle! Pad around it.
 				Pair here(i, j);
-				queue<Pair> un_padded;
-				un_padded.push(here);
-				while (!un_padded.empty()) 
-				{
-					// get next point from the queue
-					Pair this_point = un_padded.front();
-					for (Pair n : NEIGHBOURS) {
-						// check which neighbours need to be added to the queue
-						Pair there(this_point.first + n.first, 
-									this_point.second + n.second);
-						if (isValid(grid, there))
-						{
+				int length = 3 * scale_length_pixels;
+				for (int k = -length; k <= length; k++) {
+					for (int l = -length; l <= length; l++) {
+						Pair there(i + k, j + l);
+						if (isValid(grid, there)) {
 							float grid_val = grid[there.first][there.second];
-							float new_val = inverse_square_decay(dist(this_point, there), 
-																			scale_length_pixels);
-							if (new_val > grid_val && grid_val != 1.0) {
-								// we need to see if we can pad it.
-								// update padding value
+							float new_val = inverse_square_decay(dist(there, here),
+												scale_length_pixels);
+
+							if (new_val > grid_val && grid_val != 1.0f) {
 								grid[there.first][there.second] = new_val;
-								un_padded.push(there);
 							}
 						}
 					}
-					un_padded.pop();
 				}
 			}
 		}
@@ -205,7 +195,7 @@ array<array<float, COL>, ROW> precompute_padding_values(array<array<float, COL>,
 	auto duration = chrono::duration_cast<std::chrono::microseconds>(end - start);
 	
 	cout << "took " << duration.count() << " microseconds" << endl;
-	print_grid(grid);
+	//print_grid(grid);
 	return grid;
 }
 
@@ -430,26 +420,21 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 int main()
 {
 	/* Description of the Grid-
-	1--> The cell is not blocked
-	0--> The cell is blocked */
-	array<array<float, 10>, 9> grid{
-		{ { { 0., 0., 1., 1., 1., 1., 0., 1., 1., 1. } },
-		{ { 1., 1., 1., 0., 1., 1., 1., 0., 1., 1. } },
-		{ { 1., 1., 1., 0., 1., 1., 0., 1., 0., 1. } },
-		{ { 0., 0., 1., 0., 1., 0., 0., 0., 0., 1. } },
-		{ { 1., 1., 1., 0., 1., 1., 1., 0., 1., 0. } },
-		{ { 1., 0., 1., 1., 1., 1., 0., 1., 0., 0. } },
-		{ { 1., 0., 0., 0., 0., 1., 0., 0., 0., 1. } },
-		{ { 1., 0., 1., 1., 1., 1., 0., 1., 1., 1. } },
-		{ { 1., 1., 1., 0., 0., 0., 1., 0., 0., 1. } } }
-	};
+	1--> The cell is blocked
+	0--> The cell is not blocked */
+	array<array<float, 200>, 200> grid;
+	grid.fill({});
 
+	for (int i = 0; i < 100; i++) {
+		grid[i][50] = 1.0;
+	}
 	// Source is the left-most bottom-most corner
-	Pair src(7, 9);
+	Pair src(0, 0);
 
 	// Destination is the left-most top-most corner
-	Pair dest(0, 0);
-	aStarSearch(grid, src, dest, 2.5);
+	Pair dest(199, 199);
+	vector<Pair> path = aStarSearch(grid, src, dest, 2.5);
+
 	return 0;
 }
 
