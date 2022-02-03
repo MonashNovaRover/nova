@@ -37,6 +37,9 @@ srv/_*.py
 *.pyc
 qtcreator-*
 *.user
+tests*
+*.png
+*.tar
 
 /planning/cfg
 /planning/docs
@@ -49,3 +52,8 @@ qtcreator-*
 
 # Catkin custom files
 CATKIN_IGNORE
+
+
+*.idea/
+.idea/
+.idea
