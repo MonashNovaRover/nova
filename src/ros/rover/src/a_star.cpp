@@ -72,13 +72,18 @@ bool isValid(const int cols, const int rows,
 	return false;
 }
 
+bool isObstacle(const float grid_value)
+{
+    // Is this square specifically blocked by a physical obstacle?
+	return grid_value == 1.0;
+}
+
 template <size_t ROW, size_t COL>
-bool isUnBlocked(const array<array<float, COL>, ROW>& grid,
+bool isSafe(const array<array<float, COL>, ROW>& grid,
 				const Pair& point)
 {
-    /*A Utility Function to check whether the given cell is
-     blocked or not. Returns true if the cell is not blocked else false.
-	 Open cells have values less than 1 otherwise they are blocked*/
+    /*is this square blocked by an obstacle or too close to one
+	to be safe?*/
 	return (isValid(COL, ROW, point)
 		&& grid[point.first][point.second] < 1.0);
 }
@@ -90,23 +95,6 @@ bool isDestination(const Pair& position, const Pair& dest)
 	return position == dest;
 }
 
-/*template <size_t ROW, size_t COL>
-void print_grid(const array<array<float, COL>, ROW>& grid) {
-	ifstream f;
-    string buf;
-    f.open("data.txt");
-    for(int i=0;i<ROW;i++)
-    {
-		for (int j = 0; j < COL; j++) {
-
-        	f << grid[i][j] << "\t";
-		}
-		f << endl;
-
-    }
-    f.close();
-}*/
-
 float dist(const Pair& p1, const Pair& p2)
 {
 	// Finds Euclidean distance between two points
@@ -116,15 +104,86 @@ float dist(const Pair& p1, const Pair& p2)
 
 float inverse_square_decay(float dist, float scale_length) 
 {
-	/* points too close are automatically impassable (use 1.1 to distinguish
-	from "1st generation" obstacles which are exactly 1.0)*/
+	/* 
+	Points too close are automatically impassable (values of 1.0 indicate obstacles,
+	values of 1.1 are points too close to an obstacle to be safe. This allows us to
+	distinguish between the two kinds of impassable points when padding)
+	*/
 	if (dist < scale_length) return 1.1;
 	if (dist > 3 * scale_length) return 0.0; // outside a certain distance we don't care
 	return (0.99 / pow(dist / scale_length, 2.0)); // inverse square decay scaled by scale length
 }
 
 template <size_t ROW, size_t COL>
-array<array<float, COL>, ROW> precompute_padding_values(array<array<float, COL>, ROW>& grid, 
+void optimise_padding_area(const array<array<float, COL>, ROW>& grid, 
+							int& min_x, int& max_x, int& min_y, int& max_y)
+{
+	/*
+	Looks for other obstacle points around the start point in all 4 directions. If there
+	is a point in one direction, we only need to pad as far as half-way to that point
+	*/
+
+	int x = (min_x + max_x) / 2;
+	int y = (min_y + max_y) / 2;
+
+	// bounding min and max values by dimensions of map
+	min_x = max(min_x, 0); 
+	min_y = max(min_y, 0);
+	max_x = min(max_x, (int) COL);
+	max_y = min(max_y, (int) ROW);
+
+	for (int i = y - 1; i >= min_y; i--) {
+		if (isObstacle(grid[i][x])) {
+			min_y = ceil((i + y)/ 2);
+		}
+	}
+
+	for (int i = y + 1; i <= max_y; i++) {
+		if (isObstacle(grid[i][x])) {
+			max_y = floor((i + y) / 2);
+		}
+	}
+
+	for (int j = x - 1; j >= min_x; j--) {
+		if (isObstacle(grid[y][j])) {
+			min_x = ceil((j + x) / 2);
+		}
+	}
+
+	for (int j = x + 1; j <= max_x; j++) {
+		if (isObstacle(grid[y][j])) {
+			max_x = floor((j + x) / 2);
+		}
+	}
+}
+
+template <size_t ROW, size_t COL> 
+void pad_point(array<array<float, COL>, ROW>& grid, const Pair& start_pt, float scale_length_pixels)
+{
+	int y = start_pt.first, x = start_pt.second;
+	int min_x = x - 3 * scale_length_pixels, min_y = y - 3 * scale_length_pixels;
+	int max_x = x + 3 * scale_length_pixels, max_y = y + 3 * scale_length_pixels;
+
+	optimise_padding_area(grid, min_x, max_x, min_y, max_y);
+
+	for (int k = min_y; k <= max_y; k++) {
+		for (int l = min_x; l <= max_x; l++) {
+			Pair there(k, l);
+			if (isValid(COL, ROW, there)) {
+				float grid_val = grid[k][l];
+				float new_val = inverse_square_decay(dist(there, start_pt),
+									scale_length_pixels);
+
+				if (new_val > grid_val && !isObstacle(grid_val)) {
+					grid[k][l] = new_val;
+				}
+			}
+		}
+	}
+}
+
+template <size_t ROW, size_t COL>
+void precompute_padding_values(array<array<float, COL>, ROW>& grid, 
 									float grid_resolution_cm) 
 {
 	/* Loops through the map, locates every obstacle tile, and maps
@@ -137,24 +196,10 @@ array<array<float, COL>, ROW> precompute_padding_values(array<array<float, COL>,
 	auto start = chrono::high_resolution_clock::now();
 	for (uint i = 0; i < ROW; i++) {
 		for (uint j = 0; j < COL; j++) {
-			if (grid[i][j] == 1.0f) {
+			if (isObstacle(grid[i][j])) {
 				// we have encountered an obstacle! Pad around it.
 				Pair here(i, j);
-				int length = 3 * scale_length_pixels;
-				for (int k = -length; k <= length; k++) {
-					for (int l = -length; l <= length; l++) {
-						Pair there(i + k, j + l);
-						if (isValid(COL, ROW, there)) {
-							float grid_val = grid[there.first][there.second];
-							float new_val = inverse_square_decay(dist(there, here),
-												scale_length_pixels);
-
-							if (new_val > grid_val && grid_val != 1.0f) {
-								grid[there.first][there.second] = new_val;
-							}
-						}
-					}
-				}
+				pad_point(grid, here, scale_length_pixels);
 			}
 		}
 	}
@@ -162,9 +207,7 @@ array<array<float, COL>, ROW> precompute_padding_values(array<array<float, COL>,
 	auto end = chrono::high_resolution_clock::now();
 	auto duration = chrono::duration_cast<std::chrono::microseconds>(end - start);
 	
-	cout << "took " << duration.count() << " microseconds" << endl;
-	//print_grid(grid);
-	return grid;
+	cout << "padding took " << duration.count() << " microseconds" << endl;
 }
 
 // A Utility Function to trace the path from the source to
@@ -215,14 +258,14 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
     //array<array<float, COL>, ROW> grid = maxPool(grid, pad_size=10);
 
 	// If the source is out of range
-	if (!isUnBlocked(grid, src)) {
-		printf("Source is invalid\n");
+	if (!isSafe(grid, src)) {
+		printf("Invalid or unsafe starting point\n");
 		return vector<Pair> {{src}};
 	}
 
 	// If the destination is out of range
-	if (!isUnBlocked(grid, src)) {
-		printf("Destination is invalid\n");
+	if (!isSafe(grid, src)) {
+		printf("Invalid or unsafe destination point\n");
 		return vector<Pair> {{src}};
 	}
 
@@ -302,7 +345,7 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 				Pair neighbour(i + add_x, j + add_y);
 				// Only process this cell if this is a valid
 				// one
-				if (isUnBlocked(grid, neighbour)) {
+				if (isSafe(grid, neighbour)) {
 					// If the destination cell is the same
 					// as the current successor
 					if (isDestination(neighbour, dest)) { // Set the Parent of the destination cell
@@ -322,7 +365,7 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 					// ignore it. Else do the following
 					else if (!closedList[neighbour.first]
 										[neighbour.second]
-							&& isUnBlocked(grid,
+							&& isSafe(grid,
 											neighbour)) {
 						double gNew, hNew, fNew;
 						// additional distance to next point
