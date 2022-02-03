@@ -10,15 +10,10 @@ AUTHOR(S):	Jory Braun
 #include "arm_core.h"
 
 
-ArmCore::ArmCore(std::string node_name) : Node(node_name)
-{
-    // Empty for now. Just initialises the node
-}
-
 // Get empty JointState for use in other nodes and topics
 sensor_msgs::msg::JointState ArmCore::get_empty_joint_state(const std::vector<std::string>& names)
 {
-    num_joints = names.size();
+    std::vector<std::string>::size_type num_joints = names.size();
     
     sensor_msgs::msg::JointState msg;
     msg.name = names;
@@ -29,9 +24,9 @@ sensor_msgs::msg::JointState ArmCore::get_empty_joint_state(const std::vector<st
 }
 
 // Get empty MultiDOFJointState for use in other nodes and topics
-sensor_msgs::msg::MultiDOFJointState ArmCore::get_empty_multi_dof_joint_state(const std::vector<std::string>& names);
+sensor_msgs::msg::MultiDOFJointState ArmCore::get_empty_multi_dof_joint_state(const std::vector<std::string>& names)
 {
-    num_joints = names.size();
+    std::vector<std::string>::size_type num_joints = names.size();
     
     sensor_msgs::msg::MultiDOFJointState msg;
     msg.joint_names = names;

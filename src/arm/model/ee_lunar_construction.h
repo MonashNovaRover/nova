@@ -26,6 +26,7 @@ TODO:
 
 
 class EeLunarConstructionModel : public ArmSubModule
+{
     //------------------------------------------------------------//
     public:
 

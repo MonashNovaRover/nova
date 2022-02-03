@@ -37,9 +37,9 @@ TODO:
 class ArmSubModule : public KDL::Tree
 {
     //------------------------------------------------------------//
-    protected:
+    public:
 
-    /// Default constructor. Make it protected so this class cannot be instantiated
+    /// Default constructor. Not used here, only relevant for inherited classes
     ArmSubModule()
     {
         // Typical structure of a module constructor:
@@ -60,9 +60,6 @@ class ArmSubModule : public KDL::Tree
         //   3. A segment. Constructed from the joint and frame, and then added to the arm at the tip of an existing
         //        segment, or "root" if there is no segment or is attached to the base of the first segment.
     };
-    
-    //------------------------------------------------------------//
-    public:
 
     // List names of all joints use for constructing JointState and MultiDOFJointState messages
     std::vector<std::string> joint_names;

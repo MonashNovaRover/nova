@@ -26,6 +26,7 @@ TODO:
 
 
 class WristSpmModel : public ArmSubModule
+{
     //------------------------------------------------------------//
     public:
 

@@ -26,6 +26,7 @@ TODO:
 
 
 class EeExtremeRetrievalModel : public ArmSubModule
+{
     //------------------------------------------------------------//
     public:
 

@@ -26,6 +26,7 @@ TODO:
 
 
 class EeEquipmentServicingModel : public ArmSubModule
+{
     //------------------------------------------------------------//
     public:
 
@@ -46,7 +47,7 @@ class EeEquipmentServicingModel : public ArmSubModule
 
         // Gripper
         KDL::Joint gripper = KDL::Joint(control_point_names[0], KDL::Joint::None);
-        KDL::Frame fgripper = KDL::Frame(KDL::Vector(0, 0, ArmCore::GRIPPER_OFFSET_Z));
+        KDL::Frame fgripper = KDL::Frame(KDL::Vector(0, 0, GRIPPER_OFFSET_Z));
         this->addSegment(KDL::Segment("sgripper", gripper, fgripper), "root");
 
         // Put all the cameras at the root for now, can move it to the correct spot later

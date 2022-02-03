@@ -28,8 +28,6 @@ TODO:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-// Include ROS client library
-#include "rclcpp.hpp"
 // Include message types
 #include "sensor_msgs/msg/joint_state.hpp"
 #include "sensor_msgs/msg/multi_dof_joint_state.hpp"
@@ -43,7 +41,7 @@ TODO:
 #define NUM_JOINTS 6
 
 
-class ArmCore : public rclcpp::Node
+class ArmCore
 {  
     //------------------------------------------------------------//
     protected:
@@ -58,24 +56,13 @@ class ArmCore : public rclcpp::Node
 
     /// @brief  Helper function to construct empty JointState message
     ///         Uses given names of joints, sizes all other parameter lists to match
-    sensor_msgs::msg::JointState get_empty_joint_state(const std::vector<std::string>& names);
+    static sensor_msgs::msg::JointState get_empty_joint_state(const std::vector<std::string>& names);
 
     /// @brief  Helper function to construct empty MultiDOFJointState message
     ///         Uses given names of joints, sizes all other parameter lists to match
-    sensor_msgs::msg::MultiDOFJointState get_empty_multi_dof_joint_state(const std::vector<std::string>& names);
+    static sensor_msgs::msg::MultiDOFJointState get_empty_multi_dof_joint_state(const std::vector<std::string>& names);
 
-    /// @brief  Constructor. Starts the node with the given name, sets up core publisher and subscriber
-    ///         Make it protected so this class cannot be instantiated
-    ArmCore(std::string node_name);
-
-};
-
-class ArmCorePublisher : public ArmCore
-{
-
-};
-
-class ArmCoreSubscriber : public ArmCore
-{
+    /// @brief  Protected constructor so the class cannot be instantiated
+    ArmCore(){}
 
 };
