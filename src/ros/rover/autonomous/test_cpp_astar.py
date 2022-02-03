@@ -28,6 +28,6 @@ plt.imshow(arr)
 plt.plot(0, 0, 'ro')
 plt.plot(399, 399, 'bo')
 plt.plot(path[:,1], path[:,0])
-plt.savefig("obstacles.png")
+plt.savefig("path.png")
 
 plt.show()
