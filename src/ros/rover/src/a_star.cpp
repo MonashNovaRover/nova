@@ -24,11 +24,14 @@ namespace py = pybind11;
 
 /* These two parameters affect how much we value safety over distance.
    Increasing rover width will padd more widely around obstacles, and 
-   the decay function will decay slower. Increasing the distance weight
-   parameter means we worry less about the distance taken to arrive at
-   the destination.*/
+   the decay function will decay slower. Increasing the safety
+   parameter means we take more care to avoid areas with any heuristic
+   padding, even if their value is small. Weight impacts how heavily we
+   weigh distance to the destination. Higher values run quicker but find
+   a less optimal path. */
 const float ROVER_WIDTH_CM = 50.0;
-const float DISTANCE_WEIGHT_PARAMETER = 400.0;
+const float SAFETY_PARAMETER = 200.0;
+const float WEIGHT = 1.0;
 
 // Creating a shortcut for int, int pair type
 typedef pair<int, int> Pair;
@@ -54,52 +57,17 @@ struct cell {
 	}
 };
 
-/*template <size_t ROW, size_t COL>
-array<array<float, COL>, ROW> maxPool(array<array<float, COL>, ROW> grid, const int pad_size{
-	/*
-	 * Gets the Max values for each pad_size^2 window of a ROW*COL grid
-	 * For use in basic 2D map padding.
-	 * Future improvements: only accept values within a circle (rover turning radius) instead of a square
-	 * Only accept
-	 * /
-
-    // initialize a 2D array of zeros
-	array<array<float, COL>, ROW> max_pool;
-    conv.fill({});
-
-	for (int x = 0; x < COL; x++){
-		for int y = 0; y < ROW; y++){
-            // we are doing a "padding=None" style of max_pool
-            int x_start = std::min(std::max(0, x - pad_size), COL - 1);
-            int x_end   = std::min(std::max(0, x + pad_size), COL - 1);
-            int y_start = std::min(std::max(0, y - pad_size), ROW - 1);
-            int y_end   = std::min(std::max(0, y + pad_size), ROW - 1);
-
-            // probably a statistically faster method - maybe searching from the middle and moving outward in a spiral?
-            for (int x_pad = x_start; x_pad < x_end; x += 1){
-                for (int y_pad = y_start; y_pad < y_end; x += 1){
-                    if (grid[x_pad][y_pad] != 0.0){
-                        max_pool[x][y] == 1.0;
-                        break;
-                    }
-                }
-            }
-		}
-	}
-    return max_pool;
-}**/
-
 // A Utility Function to check whether given cell (row, col)
 // is a valid cell or not.
-template <size_t ROW, size_t COL>
-bool isValid(const array<array<float, COL>, ROW>& grid,
+
+bool isValid(const int cols, const int rows,
 			const Pair& point)
 { // Returns true if row number and column number is in
 
-	if (ROW > 0 && COL > 0)
-		return (point.first >= 0) && (point.first < ROW)
+	if (rows > 0 && cols > 0)
+		return (point.first >= 0) && (point.first < rows)
 			&& (point.second >= 0)
-			&& (point.second < COL);
+			&& (point.second < cols);
 
 	return false;
 }
@@ -111,8 +79,8 @@ bool isUnBlocked(const array<array<float, COL>, ROW>& grid,
     /*A Utility Function to check whether the given cell is
      blocked or not. Returns true if the cell is not blocked else false.
 	 Open cells have values less than 1 otherwise they are blocked*/
-	return (isValid(grid, point)
-		&& grid[point.first][point.second] != 1.0);
+	return (isValid(COL, ROW, point)
+		&& grid[point.first][point.second] < 1.0);
 }
 
 // A Utility Function to check whether destination cell has
@@ -167,8 +135,8 @@ array<array<float, COL>, ROW> precompute_padding_values(array<array<float, COL>,
 	double scale_length_pixels = ROVER_WIDTH_CM / grid_resolution_cm;
 
 	auto start = chrono::high_resolution_clock::now();
-	for (int i = 0; i < ROW; i++) {
-		for (int j = 0; j < COL; j++) {
+	for (uint i = 0; i < ROW; i++) {
+		for (uint j = 0; j < COL; j++) {
 			if (grid[i][j] == 1.0f) {
 				// we have encountered an obstacle! Pad around it.
 				Pair here(i, j);
@@ -176,7 +144,7 @@ array<array<float, COL>, ROW> precompute_padding_values(array<array<float, COL>,
 				for (int k = -length; k <= length; k++) {
 					for (int l = -length; l <= length; l++) {
 						Pair there(i + k, j + l);
-						if (isValid(grid, there)) {
+						if (isValid(COL, ROW, there)) {
 							float grid_val = grid[there.first][there.second];
 							float new_val = inverse_square_decay(dist(there, here),
 												scale_length_pixels);
@@ -247,24 +215,21 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
     //array<array<float, COL>, ROW> grid = maxPool(grid, pad_size=10);
 
 	// If the source is out of range
-	if (!isValid(grid, src)) {
+	if (!isUnBlocked(grid, src)) {
 		printf("Source is invalid\n");
+		return vector<Pair> {{src}};
 	}
 
 	// If the destination is out of range
-	if (!isValid(grid, dest)) {
+	if (!isUnBlocked(grid, src)) {
 		printf("Destination is invalid\n");
-	}
-
-	// Either the source or the destination is blocked
-	if (!isUnBlocked(grid, src)
-		|| !isUnBlocked(grid, dest)) {
-		printf("Source or the destination is blocked\n");
+		return vector<Pair> {{src}};
 	}
 
 	// If the destination cell is the same as source cell
 	if (isDestination(src, dest)) {
 		printf("We are already at the destination\n");
+		return vector<Pair> {{src}};
 	}
 
 	// Create a closed list and initialise it to false which
@@ -337,7 +302,7 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 				Pair neighbour(i + add_x, j + add_y);
 				// Only process this cell if this is a valid
 				// one
-				if (isValid(grid, neighbour)) {
+				if (isUnBlocked(grid, neighbour)) {
 					// If the destination cell is the same
 					// as the current successor
 					if (isDestination(neighbour, dest)) { // Set the Parent of the destination cell
@@ -362,8 +327,8 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 						double gNew, hNew, fNew;
 						// additional distance to next point
 						double g_diff = (add_y == 0 || add_x == 0) ? 1.0 : sqrt(2.0);
-						gNew = cellDetails[i][j].g + g_diff / DISTANCE_WEIGHT_PARAMETER;
-						hNew = grid[neighbour.first][neighbour.second] + dist(neighbour, dest) / DISTANCE_WEIGHT_PARAMETER;
+						gNew = cellDetails[i][j].g + g_diff;
+						hNew = grid[neighbour.first][neighbour.second] * SAFETY_PARAMETER + dist(neighbour, dest) * WEIGHT;
 						fNew = gNew + hNew;
 
 						// If it isn’t on the open list, add
@@ -414,6 +379,8 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 
 
 	printf("Failed to find the Destination Cell\n");
+
+	return vector<Pair> {{src}};
 }
 
 // Driver program to test above function
