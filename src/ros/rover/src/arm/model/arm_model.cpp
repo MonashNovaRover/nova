@@ -43,7 +43,7 @@ ArmModel::ArmModel(WristType wrist_type, EndEffectorType end_effector_type)
     
     // Crete the end effector module
     ArmSubModule end_effector;
-    switch (end_efector_type){
+    switch (end_effector_type){
         case EE_EQUIPMENT_SERVICING:
             end_effector = EeEquipmentServicingModel();
         break;
@@ -55,7 +55,7 @@ ArmModel::ArmModel(WristType wrist_type, EndEffectorType end_effector_type)
     }
 
     // Add all the modules to the tree
-    std::string attachment_name = "root"
+    std::string attachment_name = "root";
     for (auto& module : std::vector<ArmSubModule> {lower_joints, wrist, end_effector} ) {
         // Add the Tree
         this->addTree(module, attachment_name);

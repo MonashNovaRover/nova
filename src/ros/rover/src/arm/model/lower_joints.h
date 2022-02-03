@@ -26,6 +26,7 @@ TODO:
 
 
 class LowerJointsModel : public ArmSubModule
+{
     //------------------------------------------------------------//
     public:
 
@@ -41,7 +42,7 @@ class LowerJointsModel : public ArmSubModule
         // Initialise public members
         joint_names = std::vector<std::string> {"base-rotation", "shoulder", "elbow"};
         // No control points
-        output_name = "sj3"
+        output_name = "sj3";
         zero_angles = std::vector<double> {0, M_PI / 2, -M_PI / 2};
         
         // Build the lower joints

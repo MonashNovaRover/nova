@@ -8,7 +8,9 @@ AUTHOR(S):	Jory Braun
 */
 
 #include "arm_simulator.h"
-#include "arm_core.h"
+
+#define _USE_MATH_DEFINES
+#include <cmath>
 
 // Constructor
 ArmSimulator::ArmSimulator() : Node("arm_simulator")
@@ -55,7 +57,7 @@ void ArmSimulator::update_joint_positions()
     // Update positions using duration from last recorded time to current time, and last velocity
     // Assumes joints have been moving at the last velocity they were told to
     rclcpp::Duration duration = current_time - last_integration_time;
-    for(int i = 0; i < NUM_JOINTS; i++){
+    for(unsigned int i = 0; i < joints.name.size(); i++){
         if (joints.velocity[i] != 0){
             joints.position[i] = wrap_to_2pi(joints.position[i] + joints.velocity[i] * duration.seconds());
         }   

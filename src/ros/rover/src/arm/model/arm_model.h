@@ -61,5 +61,5 @@ class ArmModel : public KDL::Tree
     std::vector<std::string> control_point_names;
 
     /// Constructor. Builds the arm with the given wrist and end effector
-    ArmModel(WristType wrist_type = 0, EndEffectorType end_effector_type = 0);
+    ArmModel(WristType wrist_type = WRIST_CYCLOIDAL, EndEffectorType end_effector_type = EE_EQUIPMENT_SERVICING);
 };
