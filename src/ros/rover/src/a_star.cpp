@@ -1,5 +1,6 @@
 // A C++ Program to implement A* Search Algorithm
-#include "math.h"
+
+#include <cmath>
 #include <array>
 #include <chrono>
 #include <cstring>
@@ -9,6 +10,7 @@
 #include <stack>
 #include <tuple>
 #include <chrono>
+#include <iterator>
 #include<list>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
@@ -17,11 +19,22 @@ using namespace std;
 
 namespace py = pybind11;
 
+/* These two parameters affect how much we value safety over distance.
+   Increasing rover width will padd more widely around obstacles, and 
+   the decay function will decay slower. Increasing the distance weight
+   parameter means we worry less about the distance taken to arrive at
+   the destination.*/
+const float ROVER_WIDTH_CM = 50.0;
+const float DISTANCE_WEIGHT_PARAMETER = 200.0;
 
 // Creating a shortcut for int, int pair type
 typedef pair<int, int> Pair;
 // Creating a shortcut for tuple<int, int, int> type
 typedef tuple<double, int, int> Tuple;
+
+// All possible neighbour points on an octile map
+const array<Pair, 8> NEIGHBOURS = {{{0, 1}, {0, -1}, {1, 0}, {-1, 0},
+									{1, 1}, {1, -1}, {-1, 1}, {-1, -1}}};
 
 // A structure to hold the necessary parameters
 struct cell {
@@ -38,14 +51,14 @@ struct cell {
 	}
 };
 
-template <size_t ROW, size_t COL>
+/*template <size_t ROW, size_t COL>
 array<array<float, COL>, ROW> maxPool(array<array<float, COL>, ROW> grid, const int pad_size{
 	/*
 	 * Gets the Max values for each pad_size^2 window of a ROW*COL grid
 	 * For use in basic 2D map padding.
 	 * Future improvements: only accept values within a circle (rover turning radius) instead of a square
 	 * Only accept
-	 * */
+	 * /
 
     // initialize a 2D array of zeros
 	array<array<float, COL>, ROW> max_pool;
@@ -71,7 +84,7 @@ array<array<float, COL>, ROW> maxPool(array<array<float, COL>, ROW> grid, const 
 		}
 	}
     return max_pool;
-}
+}**/
 
 // A Utility Function to check whether given cell (row, col)
 // is a valid cell or not.
@@ -92,11 +105,11 @@ template <size_t ROW, size_t COL>
 bool isUnBlocked(const array<array<float, COL>, ROW>& grid,
 				const Pair& point)
 {
-    // A Utility Function to check whether the given cell is
-    // blocked or not
-	// Returns true if the cell is not blocked else false
-	return isValid(grid, point)
-		&& grid[point.first][point.second] == 1;
+    /*A Utility Function to check whether the given cell is
+     blocked or not. Returns true if the cell is not blocked else false.
+	 Open cells have values less than 1 otherwise they are blocked*/
+	return (isValid(grid, point)
+		&& grid[point.first][point.second] < 1.0);
 }
 
 // A Utility Function to check whether destination cell has
@@ -106,17 +119,68 @@ bool isDestination(const Pair& position, const Pair& dest)
 	return position == dest;
 }
 
-// A Utility Function to calculate the 'h' heuristics.
-double calculateHValue(const Pair& src, const Pair& dest)
+double dist(const Pair& p1, const Pair& p2)
 {
-	// h is estimated with the two points distance formula
-	return sqrt(pow((src.first - dest.first), 2.0)
-				+ pow((src.second - dest.second), 2.0));
+	// Finds Euclidean distance between two points
+	return sqrt(pow((p1.first - p2.first), 2.0)
+				+ pow((p1.second - p2.second), 2.0));
+}
+
+double inverse_square_decay(float dist, float scale_length) 
+{
+	/* points too close are automatically impassable (use 1.1 to distinguish
+	from "1st generation" obstacles which are exactly 1.0)*/
+	if (dist < scale_length) return 1.1;
+	if (dist > 3 * scale_length) return 0.0; // outside a certain distance we don't care
+	return (1.0 / pow(dist / scale_length, 2.0)); // inverse square decay scaled by scale length
+}
+
+template <size_t ROW, size_t COL>
+void precompute_padding_values(array<array<float, COL>, ROW>& grid, 
+									float grid_resolution_cm) 
+{
+	/* Loops through the map, locates every obstacle tile, and maps
+	 out a region around it with a breadth-first search where the 
+	 rover cannot travel. Weights tiles with an inverse-square decay
+	 by there distsance to the obstacle to discourage the rover from
+	 coming too close */
+	float scale_length_pixels = ROVER_WIDTH_CM / grid_resolution_cm;
+
+	for (int i = 0; i < ROW; i++) {
+		for (int j = 0; j < COL; j++) {
+			if (grid[i][j] == 1.0f) {
+				// we have encountered an obstacle! Pad around it.
+				Pair here(i, j);
+				queue<Pair> un_padded;
+				un_padded.push(here);
+				while (!un_padded.empty()) 
+				{
+					// get next point from the queue
+					Pair this_point = un_padded.front();
+					for (Pair n : NEIGHBOURS) {
+						// check which neighbours need to be added to the queue
+						Pair there(this_point.first + n.first, 
+									this_point.second + n.second);
+						float grid_val = grid[there.first][there.second];
+						if (grid_val > 0.0 && grid_val != 1.0) {
+							// we need to see if we can pad it.
+							float new_val = inverse_square_decay(dist(this_point, there), 
+																		scale_length_pixels);
+							// update padding value
+							if (grid_val < new_val) grid[there.first][there.second] = new_val;
+							un_padded.push(there);
+						}
+					}
+					un_padded.pop();
+				}
+			}
+		}
+	}
 }
 
 // A Utility Function to trace the path from the source to
 // destination
-template <size_t ROW, size_t COL>
+/*template <size_t ROW, size_t COL>
 array<Pair> tracePath(const array<array<cell, COL>, ROW>& cellDetails, const Pair& dest){
 	printf("\nThe Path is ");
 
@@ -138,7 +202,7 @@ array<Pair> tracePath(const array<array<cell, COL>, ROW>& cellDetails, const Pai
 		Path.pop();
 		printf("-> (%d,%d) ", p.first, p.second);
 	}
-}
+}*/
 
 // A Function to find the shortest path between a given
 // source cell to a destination cell according to A* Search
@@ -146,13 +210,17 @@ array<Pair> tracePath(const array<array<cell, COL>, ROW>& cellDetails, const Pai
 
 template <size_t ROW, size_t COL>
 void aStarSearch(array<array<float, COL>, ROW> grid,
-				const Pair& src, const Pair& dest)
+				const Pair& src, const Pair& dest, const float grid_resolution_cm)
 {
 	// timer to check performance
 	auto start = chrono::high_resolution_clock::now();
 
-    // pad the map
-    array<array<float, COL>, ROW> grid = maxPool(grid, pad_size=10);
+	// assign heuristic values according to distance to obstacles
+
+	precompute_padding_values(grid, grid_resolution_cm);
+
+    // pad the map (ignoring for now)
+    //array<array<float, COL>, ROW> grid = maxPool(grid, pad_size=10);
 
 	// If the source is out of range
 	if (!isValid(grid, src)) {
@@ -205,8 +273,7 @@ void aStarSearch(array<array<float, COL>, ROW> grid,
 	Note that 0 <= i <= ROW-1 & 0 <= j <= COL-1
 	This open list is implemented as a set of tuple.*/
 	std::priority_queue<Tuple, std::vector<Tuple>,
-						std::greater<Tuple> >
-		openList;
+						std::greater<Tuple>> openList;
 
 	// Put the starting cell on the open list and set its
 	// 'f' as 0
@@ -245,6 +312,8 @@ void aStarSearch(array<array<float, COL>, ROW> grid,
 		*/
 		for (int add_x = -1; add_x <= 1; add_x++) {
 			for (int add_y = -1; add_y <= 1; add_y++) {
+				if (add_x == 0 && add_y == 0) continue;
+
 				Pair neighbour(i + add_x, j + add_y);
 				// Only process this cell if this is a valid
 				// one
@@ -254,7 +323,7 @@ void aStarSearch(array<array<float, COL>, ROW> grid,
 					if (isDestination(neighbour, dest)) { // Set the Parent of the destination cell
 						cellDetails[neighbour.first][neighbour.second].parent = { i, j };
 						printf("The destination cell is found\n");
-						tracePath(cellDetails, dest);
+						//tracePath(cellDetails, dest);
 
 						auto stop = chrono::high_resolution_clock::now();
 						auto duration = chrono::duration_cast<std::chrono::microseconds>(stop - start);
@@ -272,9 +341,11 @@ void aStarSearch(array<array<float, COL>, ROW> grid,
 							&& isUnBlocked(grid,
 											neighbour)) {
 						double gNew, hNew, fNew;
-						gNew = cellDetails[i][j].g + 1.0;
-						hNew = calculateHValue(neighbour,
-											dest);
+						// additional distance to next point
+						double g_diff = (add_y == 0 || add_x == 0) ? 1.0 : sqrt(2.0);
+						gNew = cellDetails[i][j].g + g_diff / DISTANCE_WEIGHT_PARAMETER;
+						hNew = grid[neighbour.first][neighbour.second] + 
+										dist(neighbour, dest) / DISTANCE_WEIGHT_PARAMETER;
 						fNew = gNew + hNew;
 
 						// If it isn’t on the open list, add
@@ -350,7 +421,7 @@ int main()
 
 	// Destination is the left-most top-most corner
 	Pair dest(0, 0);
-	aStarSearch(grid, src, dest);
+	aStarSearch(grid, src, dest, 2.5);
 	return 0;
 }
 
