@@ -18,8 +18,8 @@ rover_pose_topic = "/rover/pose"
 
 depth_point_cloud_topic = "/camera/depth/color/points"
 
-auto_drive_command_topic = "auto_drive_commands"
-auto_goals_topic = "autonomous/goals"
+auto_drive_command_topic = "/autonomous/drive_inputs"
+auto_goals_topic = "/autonomous/goals"
 
 
 # this is the ROS "Frame" which we publish everything to. We don't use ROS transforms

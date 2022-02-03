@@ -13,7 +13,9 @@ Liam Whittle
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: Controller
 TOPICS:
-  - /D435/depth/color/points [sensor_msgs.msg.PointCloud2]
+        self.drive_cmd_publisher = self.create_publisher(DriveInput, auto_drive_command_topic, 10)
+        self.pose_subscriber = self.create_subscription(RoverPose, rover_pose_topic, self.update_pose, 10)
+        self.waypt_subscriber = self.create_subscription(Waypoints, auto_goals_topic, self.add_waypoints, 10)
 SERVICES:
   - None
 ACTIONS: None
