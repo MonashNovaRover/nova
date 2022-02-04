@@ -43,7 +43,6 @@ from config.ros_config import auto_goals_topic
 
 """
 TODO: update led according to distance?
-TODO: test rate object
 TODO: test all publishers and subscribers
 TODO: investigate more efficient/accurate drive control methods than repeated tank turning and forward driving
 """
@@ -176,11 +175,6 @@ class Controller(Node):
             # If distance to the waypoint is lower than the threshold distance, we have arrived
             print("Reached way-point: " + str(self.target_waypoint))
             self.target_waypoint = None
-
-            for _ in range(5):
-                # stop for 5 seconds at waypoint
-                self.__publish(0.0, 0.0)
-                sleep(1)
 
 
 def main(args=None):
