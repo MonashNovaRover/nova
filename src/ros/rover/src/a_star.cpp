@@ -35,7 +35,7 @@ const float WEIGHT = 1.0;
 
 // Creating a shortcut for int, int pair type
 typedef pair<int, int> Pair;
-// Creating a shortcut for tuple<int, int, int> type
+// Creating a shortcut for tuple<t> type
 typedef tuple<double, int, int> Tuple;
 
 // All possible neighbour points on an octile map
@@ -47,20 +47,17 @@ struct cell {
 	// Row and Column index of its parent
 	Pair parent;
 	// f = g + h
-	double f, g, h;
+	float g;
 	cell()
 		: parent(-1, -1)
-		, f(-1)
 		, g(-1)
-		, h(-1)
-	{
-	}
+	{}
 };
 
 // A Utility Function to check whether given cell (row, col)
 // is a valid cell or not.
 
-inline bool isValid(const int cols, const int rows,
+bool isValid(const int cols, const int rows,
 			const Pair& point)
 { // Returns true if row number and column number is in
 
@@ -72,14 +69,14 @@ inline bool isValid(const int cols, const int rows,
 	return false;
 }
 
-inline bool isObstacle(const float grid_value)
+bool isObstacle(const float grid_value)
 {
     // Is this square specifically blocked by a physical obstacle?
 	return grid_value == 1.0;
 }
 
 template <size_t ROW, size_t COL>
-inline bool isSafe(const array<array<float, COL>, ROW>& grid,
+bool isSafe(const array<array<float, COL>, ROW>& grid,
 				const Pair& point)
 {
     /*is this square blocked by an obstacle or too close to one
@@ -90,7 +87,7 @@ inline bool isSafe(const array<array<float, COL>, ROW>& grid,
 
 // A Utility Function to check whether destination cell has
 // been reached or not
-inline bool isDestination(const Pair& position, const Pair& dest)
+bool isDestination(const Pair& position, const Pair& dest)
 {
 	return position == dest;
 }
@@ -102,23 +99,20 @@ float dist_squared(const Pair& p1, const Pair& p2)
 				+ pow((p1.second - p2.second), 2.0);
 }
 
-inline float heuristic(const Pair& p1, const Pair& p2) {
+float heuristic(const Pair& p1, const Pair& p2) {
 	// cheap approximation of Euclidean distance to save time
 	// weird linear interpolation of the min and max distances 
- 	int min, max, approx;
-    int dx = abs(p1.first - p2.first);
-    int dy = abs(p1.second - p2.second);
+	// https://www.flipcode.com/archives/Fast_Approximate_Distance_Functions.shtml
+	// currently using manhattan distance because it is even faster
+ 	
+    /*int min = std::min(abs(p1.first - p2.first), abs(p1.second - p2.second));
+	int max = std::max(abs(p1.first - p2.first), abs(p1.second - p2.second));
 
-	min = (dx < dy) ? dx : dy;
-	max = (dx > dy) ? dx : dy;
+    int approx = ( max * 1007 ) + ( min * 441 );
 
-    approx = ( max * 1007 ) + ( min * 441 );
-    if ( max < ( min << 4 ))
-	// additional distance modifier for more diagonal distances
-        approx -= ( max * 40 );
+    return ((float) approx) / 1024;*/
 
-    return ((float) approx) / 1024;
-	// optional - manhattan distance - even faster but less accurate: return abs(p1.first - p2.first) + abs(p1.second - p2.second);
+	return abs(p1.first - p2.first) + abs(p1.second - p2.second);
 }
 
 float inverse_square_decay(float dist_sqrd, float scale_length_sqrd) 
@@ -232,7 +226,7 @@ void precompute_padding_values(array<array<float, COL>, ROW>& grid,
 // A Utility Function to trace the path from the source to
 // destination
 template <size_t ROW, size_t COL>
-vector<Pair> tracePath(const array<array<cell, COL>, ROW>& cellDetails, const Pair& dest){
+vector<Pair> tracePath(array<array<cell, COL>, ROW>& cellDetails, const Pair& dest){
 	printf("\nThe Path is ");
 
 	stack<Pair> backwards_path;
@@ -258,7 +252,7 @@ vector<Pair> tracePath(const array<array<cell, COL>, ROW>& cellDetails, const Pa
 	return path;
 }
 
-// A Function to find the shortest path between a given
+// A Function to find the intest path between a given
 // source cell to a destination cell according to A* Search
 // Algorithm
 
@@ -303,9 +297,7 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 	int i, j;
 	// Initialising the parameters of the starting node
 	i = src.first, j = src.second;
-	cellDetails[i][j].f = 0.0;
 	cellDetails[i][j].g = 0.0;
-	cellDetails[i][j].h = 0.0;
 	cellDetails[i][j].parent = { i, j };
 
 	/*
@@ -373,12 +365,13 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 						// To get the value of duration use the count()
 						// member function on the duration object
 						cout << "\ntook " << duration.count() << " microseconds" << endl;
+						
 						return tracePath(cellDetails, dest);
 					}
 					
-					double gNew, hNew, fNew;
+					float gNew, hNew, fNew;
 					// additional distance to next point
-					double g_diff = (add_y == 0 || add_x == 0) ? 1.0 : sqrt(2.0);
+					float g_diff = (add_y == 0 || add_x == 0) ? 1.0 : sqrt(2.0);
 					gNew = cellDetails[i][j].g + g_diff;
 					hNew = grid[neighbour.first][neighbour.second] * SAFETY_PARAMETER + heuristic(neighbour, dest) * WEIGHT;
 					fNew = gNew + hNew;
@@ -393,8 +386,8 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 					// already, check to see if this
 					// path to that square is better,
 					// using 'f' cost as the measure.
-					if (cellDetails[neighbour.first][neighbour.second].f == -1
-						|| cellDetails[neighbour.first][neighbour.second].f > fNew) {
+					if (cellDetails[neighbour.first][neighbour.second].g == -1
+						|| cellDetails[neighbour.first][neighbour.second].g > gNew) {
 						openList.emplace(fNew, neighbour.first, neighbour.second);
 
 						// Update the details of this
@@ -403,14 +396,7 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 								[neighbour.second]
 									.g
 							= gNew;
-						cellDetails[neighbour.first]
-								[neighbour.second]
-									.h
-							= hNew;
-						cellDetails[neighbour.first]
-								[neighbour.second]
-									.f
-							= fNew;
+						
 						cellDetails[neighbour.first]
 								[neighbour.second]
 									.parent
