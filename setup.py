@@ -15,8 +15,8 @@ setup(
     zip_safe=True,
     maintainer='Monash Nova Rover',
     maintainer_email='novaroverteam@monash.edu',
-    description='TODO: Package description',
-    license='TODO: License declaration',
+    description='Autonomous',
+    license='',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
