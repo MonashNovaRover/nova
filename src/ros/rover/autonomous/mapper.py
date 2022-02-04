@@ -166,7 +166,7 @@ class Mapper(Node):
 
         # transform the points
         if self.msg:
-            print("transforming pc")
+            # print("transforming pc")
             mat = self.get_transform()
             pts = np.matmul(mat, pts.transpose()).transpose()
             pts = pts + self.get_translation()
@@ -230,7 +230,10 @@ class Mapper(Node):
         when using the python API, it should be a points only map.
         """
         self.msg = self.last_msg
+        
+        # t = time.time()
         self.update_map_pts_only(self.get_pts(msg))
+
 
     def ros_points_callback(self, msg):
         self.msg = self.last_msg
@@ -271,8 +274,8 @@ def position_callback(msg):
     Parses positional data, calculates the average value and publishes
     it to the topic /obstacle_proximity.
     """
-    print(msg.pose.pose.position.x)
-
+    # print(msg.pose.pose.position.x)
+    pass
 
 def main(args=None):
     rclpy.init(args=args)
