@@ -15,6 +15,12 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
+# add pybind stuff so we can build pybind wrappers
+add_subdirectory(pybind11)
+pybind11_add_module(path_planner src/path_planner.cpp)
+pybind11_add_module(a_star src/a_star.cpp)
+install(TARGETS path_planner DESTINATION ~/nova_ws/install/autonomous/lib/python3.6/site-packages)
+install(TARGETS a_star DESTINATION ~/nova_ws/install/autonomous/lib/python3.6/site-packages)
 
 # Find and include all dependencies
 find_package(ament_cmake REQUIRED)
@@ -32,8 +38,7 @@ include_directories(
     "${PROJECT_SOURCE_DIR}/include"
 )
 
-# C++ executables
-#add_executable(#name #source.cpp #dependency.cpp)
+
 #ament_target_dependencies(#name rclcpp core)
 
 # Add all the installation directories
