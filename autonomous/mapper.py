@@ -32,9 +32,11 @@ import transform
 from sensor_msgs.msg import PointField
 from nav_msgs.msg import Odometry
 from grid_3d import Grid3D
+from path_planner import PathPlanner
 import matplotlib.pyplot as plt
 import numpy as np
 import pc_pub
+import time
 from depth_camera import DepthCamera
 from config.ros_config import tracking_pose_topic
 
@@ -44,12 +46,12 @@ depth_topic = '/D400/depth/color/points'
 
 
 class Mapper(Node):
-    def __init__(self, length=6, width=6, height=5, resolution=0.04, _vis=True):
+    def __init__(self, length=6, width=6, height=5, resolution=0.04, planner = None, _vis=True):
 
         # init node with node name points
         super().__init__('points_grid')
         self.subscriber_tracking = self.create_subscription(Odometry, tracking_pose_topic, self.tracking_callback, 100)
-
+        self.planner = planner
         self.vis = _vis
 
         # constants for pruning the point-clouds
@@ -65,6 +67,8 @@ class Mapper(Node):
         self.width = width
         self.height = height
         self.resolution = resolution
+
+        previous_plan = time.perf_counter()
 
         self.msg = None
         
@@ -95,6 +99,9 @@ class Mapper(Node):
         y = self.msg.pose.pose.position.y
         z = self.msg.pose.pose.position.z
         return np.array([x, y, z])
+
+    def extract_layer(self, height_m):
+        self.map3d.extract_z_layer(height_m)
 
     def get_points_and_colors(self, msg):
         """
@@ -236,6 +243,10 @@ class Mapper(Node):
         self.msg = self.last_msg
         pts, colors = self.get_points_and_colors(msg)
         self.update_map(pts)
+        # every 2 seconds we run planning
+        if time.perf_counter() - self.previous_plan > 2:
+            self.previous_plan = time.perf_counter()
+            self.planner.get_path(self.extract_layer(2.8))
 
     def publish_vis_dense(self, extra_pts=1):
         """

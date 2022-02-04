@@ -44,6 +44,10 @@ class Grid3D:
         lower_index = int((pose_msg.pose.pose.position.z + self.height / 2 - len_down) / self.resolution)
         return np.sum(self.map[:, :, lower_index:upper_index, 0], axis=2) > 0
 
+    def extract_z_layer(self, height_m):
+        height_index = int(height_m / self.resolution)
+        return self.map[:, :, height_index]
+
     def get_indexes(self, points):
         """
         Gets the array indexes of 3D floating point points.
