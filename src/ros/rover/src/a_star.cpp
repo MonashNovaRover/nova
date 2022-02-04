@@ -258,11 +258,11 @@ vector<Pair> tracePath(array<array<cell, COL>, ROW>& cellDetails, const Pair& de
 
 template <size_t ROW, size_t COL>
 vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
-				const Pair& src, const Pair& dest, const float grid_resolution_cm)
+				const Pair& src, const Pair& dest, const float grid_resolution_m)
 {
 	// timer to check performance
 	auto start = chrono::high_resolution_clock::now();
-
+	const float grid_resolution_cm = grid_resolution_m * 100;
 	// assign heuristic values according to distance to nearest obstacle
 	precompute_padding_values(grid, grid_resolution_cm);
 
@@ -448,5 +448,7 @@ PYBIND11_MODULE(a_star, module_handle) {
     module_handle.def("a_star", &aStarSearch<400, 400>); // 5 cm resolution
     module_handle.def("a_star", &aStarSearch<200, 200>); // 10 cm resolution
     module_handle.def("a_star", &aStarSearch<100, 100>); // 20 cm resolution
+    module_handle.def("a_star", &aStarSearch<150, 150>); // 4 cm resolution on 6m map
+	
 }
 

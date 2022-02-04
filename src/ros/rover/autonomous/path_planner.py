@@ -24,7 +24,7 @@ Services:
 
 
 class PathPlanner(Node):
-    def __init__(self, dest, map2d, resolution_cm):
+    def __init__(self, dest, resolution_m):
         super().__init__("path_planner_node")
         
         # way-point publisher publishes a bunch of waypoints at once (hence using the 2D map dataype
@@ -32,8 +32,7 @@ class PathPlanner(Node):
         
         self.pose_subscriber = self.create_subscription(RoverPose, "autonomous/pose", self.update_pose, 10)
 
-        self.map2d = map2d
-        self.res = resolution_cm
+        self.res = resolution_m
 
         # in case we want to test path planning without a controller
         self.state = State()
@@ -42,9 +41,6 @@ class PathPlanner(Node):
         self.goal = dest
 
         self.route = []
-
-        # re running A* every second to re-evaluate
-        self.timer = self.create_timer(a_star_rate, self.get_path)
 
     def get_grid_coord(self, position):
         return int((position[0] + self.map2d.length / 2) / self.map2d.resolution), \
@@ -85,7 +81,7 @@ class PathPlanner(Node):
         """
         return [self.get_float_position((x, y)) for (x, y) in route]
 
-    def get_path(self, weight=5):
+    def get_path(self, map):
         """
         Repeatedly run A* on the updated rover pose and map to continually redetermine the optimal path.
         Called on a clock initialised in the add_destination method
@@ -97,7 +93,7 @@ class PathPlanner(Node):
         print("start: " + str(self.start))
         print("goal: " + str(self.goal))
 
-        self.route = a_star(self.map2d, self.get_grid_coord(self.start), self.get_grid_coord(self.goal), self.res)
+        self.route = a_star(map, self.get_grid_coord(self.start), self.get_grid_coord(self.goal), self.res)
 
         route_coordinates = self.get_local_coords_route(self.route)
 
