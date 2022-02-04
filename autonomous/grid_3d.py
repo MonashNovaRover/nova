@@ -94,16 +94,17 @@ class Grid3D:
         indexes = indexes[indexes_indexes]
         colors = colors[indexes_indexes]
 
-        print("getting " + str(indexes.shape[0]) + " indexes took: " + str(time.time() - t) + "   (" + str(10000 * (time.time() - t) / indexes.shape[0]) + " s per 10k indexes)")
+        # print("getting " + str(indexes.shape[0]) + " indexes took: " + str(time.time() - t) + "   (" + str(10000 * (time.time() - t) / indexes.shape[0]) + " s per 10k indexes)")
 
-        t = time.time()
+        # t = time.time()
 
         # fill the all the new points with the new timestamp and colors
         to_add = np.concatenate((np.full((colors.shape[0], 1), t), colors), axis=1)
         self.map[indexes.transpose()[0], indexes.transpose()[1], indexes.transpose()[2]] = to_add
 
-        print("adding " + str(colors.shape[0]) + " points took: " + str(time.time() - t) + "   (" + str(10000 * (time.time() - t) / colors.shape[0]) + " s per 10k indexes)")
-        print("Map size: " + str(self.map.shape[0] * self.map.shape[1] * self.map.shape[2]))
+        # print("adding " + str(colors.shape[0]) + " points took: " + str(time.time() - t) + "   (" + str(10000 * (time.time() - t) / colors.shape[0]) + " s per 10k indexes)")
+        # print("Map size: " + str(self.map.shape[0] * self.map.shape[1] * self.map.shape[2]))
+
 
     def add_pc_points_only(self, points):
         """
@@ -122,8 +123,8 @@ class Grid3D:
 
         indexes = indexes[indexes_indexes]
 
-        print("getting " + str(indexes.shape[0]) + " indexes took: " + str(time.time() - t) + "   (" + str(
-            10000 * (time.time() - t) / indexes.shape[0]) + " s per 10k indexes)")
+        # print("getting " + str(indexes.shape[0]) + " indexes took: " + str(time.time() - t) + "   (" + str(
+        # 10000 * (time.time() - t) / indexes.shape[0]) + " s per 10k indexes)")
 
         t = time.time()
 
@@ -133,9 +134,9 @@ class Grid3D:
         to_add = np.full((indexes.shape[0], 1), t)
         self.map[indexes.transpose()[0], indexes.transpose()[1], indexes.transpose()[2]] = to_add
 
-        print("adding " + str(indexes.shape[0]) + " points took: " + str(time.time() - t) + "   (" + str(
-            10000 * (time.time() - t) / indexes.shape[0]) + " s per 10k indexes)")
-        print("Map size: " + str(self.map.shape[0] * self.map.shape[1] * self.map.shape[2]))
+        # print("adding " + str(indexes.shape[0]) + " points took: " + str(time.time() - t) + "   (" + str(
+        # 10000 * (time.time() - t) / indexes.shape[0]) + " s per 10k indexes)")
+        # print("Map size: " + str(self.map.shape[0] * self.map.shape[1] * self.map.shape[2]))
 
     def get_as_pc(self):
         """
@@ -153,7 +154,7 @@ class Grid3D:
             points = np.array(np.where(raw_indexes)).transpose()
             colors = np.array(self.map[raw_indexes][:, 1:])
 
-            print("Extracting points from map took: " + str(time.time() - t))
+            # print("Extracting points from map took: " + str(time.time() - t))
 
             return self.get_points(np.array(points)), colors
 
@@ -163,6 +164,6 @@ class Grid3D:
 
             points = np.array(np.where(raw_indexes)).transpose()
 
-            print("Extracting points from map took: " + str(time.time() - t))
+            #print("Extracting points from map took: " + str(time.time() - t))
 
             return self.get_points(np.array(points))

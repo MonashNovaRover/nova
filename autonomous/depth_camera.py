@@ -9,6 +9,7 @@ except:
 from pc_pub import PCPub
 import rclpy
 import artag_pose_detection as ar
+import sys
 
 
 class DepthCamera(Thread):
@@ -55,7 +56,10 @@ class DepthCamera(Thread):
 
     def run(self):
         while self.running:
+            t = time.time()
             self.callback(self.get_points())
+            sys.stdout.write("\r" + "Map update completed in: " + str(round(time.time() - t, 5)) + " seconds")
+            sys.stdout.flush()
 
     def get_points(self):
         """
@@ -67,7 +71,7 @@ class DepthCamera(Thread):
 
         # Grab camera data
         # Wait for a coherent pair of frames: depth and color
-        t0 = time.time()
+        # t0 = time.time()
         frames = self.pipeline.wait_for_frames()
 
 
@@ -83,10 +87,11 @@ class DepthCamera(Thread):
 
         color_image = np.asanyarray(color_frame.get_data())
 
-        ar.findArTag(color_image)
+        # note: find better way of doing asynchronously
 
-        depth_colormap = np.asanyarray(
-            self.colorizer.colorize(depth_frame).get_data())
+        # ar.findArTag(color_image)
+
+        # depth_colormap = np.asanyarray(self.colorizer.colorize(depth_frame).get_data())
 
         mapped_frame, color_source = color_frame, color_image
 
