@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "chrono": "cpp",
+        "memory": "cpp",
+        "regex": "cpp",
+        "utility": "cpp"
+    }
+}
