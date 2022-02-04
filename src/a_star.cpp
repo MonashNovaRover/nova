@@ -30,7 +30,7 @@ namespace py = pybind11;
    weigh distance to the destination. Higher values run quicker but find
    a less optimal path. */
 const float ROVER_WIDTH_CM = 50.0;
-const float SAFETY_PARAMETER = 200.0;
+const float SAFETY_PARAMETER = 300.0;
 const float WEIGHT = 1.0;
 
 // Creating a shortcut for int, int pair type
@@ -60,7 +60,7 @@ struct cell {
 // A Utility Function to check whether given cell (row, col)
 // is a valid cell or not.
 
-bool isValid(const int cols, const int rows,
+inline bool isValid(const int cols, const int rows,
 			const Pair& point)
 { // Returns true if row number and column number is in
 
@@ -72,14 +72,14 @@ bool isValid(const int cols, const int rows,
 	return false;
 }
 
-bool isObstacle(const float grid_value)
+inline bool isObstacle(const float grid_value)
 {
     // Is this square specifically blocked by a physical obstacle?
 	return grid_value == 1.0;
 }
 
 template <size_t ROW, size_t COL>
-bool isSafe(const array<array<float, COL>, ROW>& grid,
+inline bool isSafe(const array<array<float, COL>, ROW>& grid,
 				const Pair& point)
 {
     /*is this square blocked by an obstacle or too close to one
@@ -90,28 +90,47 @@ bool isSafe(const array<array<float, COL>, ROW>& grid,
 
 // A Utility Function to check whether destination cell has
 // been reached or not
-bool isDestination(const Pair& position, const Pair& dest)
+inline bool isDestination(const Pair& position, const Pair& dest)
 {
 	return position == dest;
 }
 
-float dist(const Pair& p1, const Pair& p2)
+float dist_squared(const Pair& p1, const Pair& p2)
 {
-	// Finds Euclidean distance between two points
-	return sqrt(pow((p1.first - p2.first), 2.0)
-				+ pow((p1.second - p2.second), 2.0));
+	// Finds square of the Euclidean distance between two points - sqrt is expensive
+	return pow((p1.first - p2.first), 2.0)
+				+ pow((p1.second - p2.second), 2.0);
 }
 
-float inverse_square_decay(float dist, float scale_length) 
+inline float heuristic(const Pair& p1, const Pair& p2) {
+	// cheap approximation of Euclidean distance to save time
+	// weird linear interpolation of the min and max distances 
+ 	int min, max, approx;
+    int dx = abs(p1.first - p2.first);
+    int dy = abs(p1.second - p2.second);
+
+	min = (dx < dy) ? dx : dy;
+	max = (dx > dy) ? dx : dy;
+
+    approx = ( max * 1007 ) + ( min * 441 );
+    if ( max < ( min << 4 ))
+	// additional distance modifier for more diagonal distances
+        approx -= ( max * 40 );
+
+    return ((float) approx) / 1024;
+	// optional - manhattan distance - even faster but less accurate: return abs(p1.first - p2.first) + abs(p1.second - p2.second);
+}
+
+float inverse_square_decay(float dist_sqrd, float scale_length_sqrd) 
 {
 	/* 
 	Points too close are automatically impassable (values of 1.0 indicate obstacles,
 	values of 1.1 are points too close to an obstacle to be safe. This allows us to
 	distinguish between the two kinds of impassable points when padding)
 	*/
-	if (dist < scale_length) return 1.1;
-	if (dist > 3 * scale_length) return 0.0; // outside a certain distance we don't care
-	return (0.99 / pow(dist / scale_length, 2.0)); // inverse square decay scaled by scale length
+	if (dist_sqrd < scale_length_sqrd) return 1.1;
+	if (dist_sqrd > 9 * scale_length_sqrd) return 0.0; // outside a certain distance we don't care
+	return (0.99 * scale_length_sqrd/ (dist_sqrd)); // inverse square decay scaled by scale length
 }
 
 template <size_t ROW, size_t COL>
@@ -171,8 +190,8 @@ void pad_point(array<array<float, COL>, ROW>& grid, const Pair& start_pt, float 
 			Pair there(k, l);
 			if (isValid(COL, ROW, there)) {
 				float grid_val = grid[k][l];
-				float new_val = inverse_square_decay(dist(there, start_pt),
-									scale_length_pixels);
+				float new_val = inverse_square_decay(dist_squared(there, start_pt),
+									pow(scale_length_pixels, 2.0));
 
 				if (new_val > grid_val && !isObstacle(grid_val)) {
 					grid[k][l] = new_val;
@@ -250,12 +269,8 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 	// timer to check performance
 	auto start = chrono::high_resolution_clock::now();
 
-	// assign heuristic values according to distance to obstacles
-
+	// assign heuristic values according to distance to nearest obstacle
 	precompute_padding_values(grid, grid_resolution_cm);
-
-    // pad the map (ignoring for now)
-    //array<array<float, COL>, ROW> grid = maxPool(grid, pad_size=10);
 
 	// If the source is out of range
 	if (!isSafe(grid, src)) {
@@ -264,7 +279,7 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 	}
 
 	// If the destination is out of range
-	if (!isSafe(grid, src)) {
+	if (!isSafe(grid, dest)) {
 		printf("Invalid or unsafe destination point\n");
 		return vector<Pair> {{src}};
 	}
@@ -345,7 +360,7 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 				Pair neighbour(i + add_x, j + add_y);
 				// Only process this cell if this is a valid
 				// one
-				if (isSafe(grid, neighbour)) {
+				if (isSafe(grid, neighbour) && !closedList[neighbour.first][neighbour.second]) {
 					// If the destination cell is the same
 					// as the current successor
 					if (isDestination(neighbour, dest)) { // Set the Parent of the destination cell
@@ -360,53 +375,46 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 						cout << "\ntook " << duration.count() << " microseconds" << endl;
 						return tracePath(cellDetails, dest);
 					}
-					// If the successor is already on the
-					// closed list or if it is blocked, then
-					// ignore it. Else do the following
-					else if (!closedList[neighbour.first]
-										[neighbour.second]
-							&& isSafe(grid,
-											neighbour)) {
-						double gNew, hNew, fNew;
-						// additional distance to next point
-						double g_diff = (add_y == 0 || add_x == 0) ? 1.0 : sqrt(2.0);
-						gNew = cellDetails[i][j].g + g_diff;
-						hNew = grid[neighbour.first][neighbour.second] * SAFETY_PARAMETER + dist(neighbour, dest) * WEIGHT;
-						fNew = gNew + hNew;
+					
+					double gNew, hNew, fNew;
+					// additional distance to next point
+					double g_diff = (add_y == 0 || add_x == 0) ? 1.0 : sqrt(2.0);
+					gNew = cellDetails[i][j].g + g_diff;
+					hNew = grid[neighbour.first][neighbour.second] * SAFETY_PARAMETER + heuristic(neighbour, dest) * WEIGHT;
+					fNew = gNew + hNew;
 
-						// If it isn’t on the open list, add
-						// it to the open list. Make the
-						// current square the parent of this
-						// square. Record the f, g, and h
-						// costs of the square cell
-						//			 OR
-						// If it is on the open list
-						// already, check to see if this
-						// path to that square is better,
-						// using 'f' cost as the measure.
-						if (cellDetails[neighbour.first][neighbour.second].f == -1
-							|| cellDetails[neighbour.first][neighbour.second].f > fNew) {
-							openList.emplace(fNew, neighbour.first, neighbour.second);
+					// If it isn’t on the open list, add
+					// it to the open list. Make the
+					// current square the parent of this
+					// square. Record the f, g, and h
+					// costs of the square cell
+					//			 OR
+					// If it is on the open list
+					// already, check to see if this
+					// path to that square is better,
+					// using 'f' cost as the measure.
+					if (cellDetails[neighbour.first][neighbour.second].f == -1
+						|| cellDetails[neighbour.first][neighbour.second].f > fNew) {
+						openList.emplace(fNew, neighbour.first, neighbour.second);
 
-							// Update the details of this
-							// cell
-							cellDetails[neighbour.first]
-									[neighbour.second]
-										.g
-								= gNew;
-							cellDetails[neighbour.first]
-									[neighbour.second]
-										.h
-								= hNew;
-							cellDetails[neighbour.first]
-									[neighbour.second]
-										.f
-								= fNew;
-							cellDetails[neighbour.first]
-									[neighbour.second]
-										.parent
-								= { i, j };
-						}
+						// Update the details of this
+						// cell
+						cellDetails[neighbour.first]
+								[neighbour.second]
+									.g
+							= gNew;
+						cellDetails[neighbour.first]
+								[neighbour.second]
+									.h
+							= hNew;
+						cellDetails[neighbour.first]
+								[neighbour.second]
+									.f
+							= fNew;
+						cellDetails[neighbour.first]
+								[neighbour.second]
+									.parent
+							= { i, j };
 					}
 				}
 			}
