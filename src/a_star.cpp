@@ -449,6 +449,5 @@ PYBIND11_MODULE(a_star, module_handle) {
     module_handle.def("a_star", &aStarSearch<200, 200>); // 10 cm resolution
     module_handle.def("a_star", &aStarSearch<100, 100>); // 20 cm resolution
     module_handle.def("a_star", &aStarSearch<150, 150>); // 4 cm resolution on 6m map
-	
 }
 

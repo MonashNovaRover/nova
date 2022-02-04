@@ -32,7 +32,7 @@ class PathPlanner(Node):
         
         self.pose_subscriber = self.create_subscription(RoverPose, "autonomous/pose", self.update_pose, 10)
 
-        self.res = resolution_m
+        self.resolution = resolution_m
 
         # in case we want to test path planning without a controller
         self.state = State()
@@ -43,12 +43,13 @@ class PathPlanner(Node):
         self.route = []
 
     def get_grid_coord(self, position):
-        return int((position[0] + self.map2d.length / 2) / self.map2d.resolution), \
-               int((position[1] + self.map2d.width / 2) / self.map2d.resolution)
+        return int((position[0] + self.length_meters / 2) / self.resolution), \
+               int((position[1] + self.width_meters / 2) / self.resolution)
+               
 
     def get_float_position(self, coord):
-        return coord[0] * self.map2d.resolution - self.map2d.length / 2, \
-               coord[1] * self.map2d.resolution - self.map2d.width / 2,
+        return coord[0] * self.resolution - self.length_meters / 2, \
+               coord[1] * self.resolution - self.width_meters / 2,
 
     def update_pose(self, msg): 
         """ 
@@ -81,19 +82,31 @@ class PathPlanner(Node):
         """
         return [self.get_float_position((x, y)) for (x, y) in route]
 
-    def get_path(self, map):
+    def get_path(self, _map):
         """
         Repeatedly run A* on the updated rover pose and map to continually redetermine the optimal path.
         Called on a clock initialised in the add_destination method
         """
 
         self.start = (self.state.x, self.state.y)
+        
+        self.length = _map.shape[0]
+        self.widt = _map.shape[1]
 
+        self.length_meters = int(_map.shape[0] * self.resolution)
+        self.width_meters = int(_map.shape[1] * self.resolution)
+        
         print("Running A*")
+        
         print("start: " + str(self.start))
         print("goal: " + str(self.goal))
+        
+        print(self.get_grid_coord(self.start))
+        print(self.get_grid_coord(self.goal))
+        
+        print(_map.shape)
 
-        self.route = a_star(map, self.get_grid_coord(self.start), self.get_grid_coord(self.goal), self.res)
+        self.route = a_star(_map, self.get_grid_coord(self.start), self.get_grid_coord(self.goal), self.resolution)
 
         route_coordinates = self.get_local_coords_route(self.route)
 

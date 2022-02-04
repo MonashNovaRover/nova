@@ -30,11 +30,11 @@ EDITED:         07/12/2021
 import rclpy
 from time import sleep
 from rclpy.node import Node
-from autonomous.controller_math import *
-from autonomous.controller_params import *
+from controller_math import *
+from controller_params import *
 from core.msg import DriveInput, RoverPose, Waypoints
 import sys
-from autonomous import path_vis
+import path_vis
 
 from config.ros_config import rover_pose_topic
 from config.ros_config import auto_drive_command_topic
