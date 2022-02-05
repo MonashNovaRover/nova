@@ -101,7 +101,7 @@ class Mapper(Node):
         return np.array([x, y, z])
 
     def extract_layer(self, height_m):
-        return self.map3d.extract_z_layer(height_m)
+        return self.map3d.extract_z(height_m)
 
     def get_points_and_colors(self, msg):
         """

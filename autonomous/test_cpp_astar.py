@@ -18,8 +18,8 @@ import matplotlib.pyplot as plt
 
     return array
 """
-arr = np.zeros((150, 150))
-p1, p2 = (0, 0), (149, 149)
+arr = np.zeros((200, 200))
+p1, p2 = (0, 0), (49, 49)
 
 #arr = add_obs(arr)
 
@@ -29,7 +29,7 @@ print(time.perf_counter() - t)
 
 plt.imshow(arr)
 plt.plot(0, 0, 'ro')
-plt.plot(149, 149, 'bo')
+plt.plot(49, 49, 'bo')
 plt.plot(path[:,1], path[:,0])
 plt.savefig("path.png")
 

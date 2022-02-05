@@ -12,15 +12,11 @@
 #include <tuple>
 #include <chrono>
 #include <iterator>
-#include<list>
+#include <list>
 #include <fstream>
 #include <string>
-#include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
-#include <pybind11/numpy.h>
 using namespace std;
 
-namespace py = pybind11;
 
 /* These two parameters affect how much we value safety over distance.
    Increasing rover width will padd more widely around obstacles, and 
@@ -41,10 +37,6 @@ typedef tuple<double, int, int> Tuple;
 // All possible neighbour points on an octile map
 const array<Pair, 8> NEIGHBOURS = {{{0, 1}, {0, -1}, {1, 0}, {-1, 0},
 									{1, 1}, {1, -1}, {-1, 1}, {-1, -1}}};
-
-void hello_world(){
-    std::cout << "hello world" << std::endl;
-}
 
 // A structure to hold the necessary parameters
 struct cell {
@@ -441,12 +433,6 @@ int main()
 	// Destination is the left-most top-most corner
 	Pair dest(199, 199);
 	vector<Pair> path = aStarSearch(grid, src, dest, 2.5);
+
 	return 0;
 }
-
-PYBIND11_MODULE(a_star, module_handle) {
-    module_handle.doc() = "Nova Rover A* C++ search algorithm binded to Python3";
-    module_handle.def("a_star", &aStarSearch<200, 200>); // 10 cm resolution
-    module_handle.def("hello_world", &hello_world); // 2.5 cm resolution
-}
-
