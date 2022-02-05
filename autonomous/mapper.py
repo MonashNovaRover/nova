@@ -46,7 +46,7 @@ depth_topic = '/D400/depth/color/points'
 
 
 class Mapper(Node):
-    def __init__(self, length=20, width=20, height=5, resolution=0.1, planner = None, _vis=True):
+    def __init__(self, length=20, width=20, height=5, resolution=0.1, planner=None, _vis=True):
 
         # init node with node name points
         super().__init__('points_grid')
@@ -183,8 +183,11 @@ class Mapper(Node):
         pts = self.map3d.get_as_pc()
         
         if time.perf_counter() - self.previous_plan > 2:
-            self.previous_plan = time.perf_counter()
-            self.planner.get_path(self.extract_layer(2.8))
+            if self.planner:
+                self.previous_plan = time.perf_counter()
+                layer = self.extract_layer(2.8)
+                print(sum(layer))
+                self.planner.get_path(layer.squeeze())
 
         # setting colors proportional to the height of points - hopefully looks cool!
         if self.vis:
@@ -252,8 +255,9 @@ class Mapper(Node):
         self.update_map(pts)
         # every 2 seconds we run planning
         if time.perf_counter() - self.previous_plan > 2:
-            self.previous_plan = time.perf_counter()
-            self.planner.get_path(self.extract_layer(2.8))
+            if self.planner:
+                self.previous_plan = time.perf_counter()
+                self.planner.get_path(self.extract_layer(2.8))
 
     def publish_vis_dense(self, extra_pts=1):
         """

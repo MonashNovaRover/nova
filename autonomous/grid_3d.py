@@ -99,7 +99,7 @@ class Grid3D:
         # t = time.time()
 
         # fill the all the new points with the new timestamp and colors
-        to_add = np.concatenate((np.full((colors.shape[0], 1), t), colors), axis=1)
+        to_add = np.concatenate((np.full((colors.shape[0], 1), 1), colors), axis=1)
         self.map[indexes.transpose()[0], indexes.transpose()[1], indexes.transpose()[2]] = to_add
 
         # print("adding " + str(colors.shape[0]) + " points took: " + str(time.time() - t) + "   (" + str(10000 * (time.time() - t) / colors.shape[0]) + " s per 10k indexes)")
@@ -131,7 +131,7 @@ class Grid3D:
         # fill the all the new points with the new timestamp and colors
 
         # todo: this could be wrong
-        to_add = np.full((indexes.shape[0], 1), t)
+        to_add = np.full((indexes.shape[0], 1), 1)
         self.map[indexes.transpose()[0], indexes.transpose()[1], indexes.transpose()[2]] = to_add
 
         # print("adding " + str(indexes.shape[0]) + " points took: " + str(time.time() - t) + "   (" + str(
