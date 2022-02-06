@@ -107,10 +107,10 @@ class PathPlanner(Node):
         
         print(_map.shape)
 
-        self.route = a_star(_map, self.get_grid_coord(self.start), self.get_grid_coord(self.goal), self.resolution)
+        self.route = np.array(a_star(_map, self.get_grid_coord(self.start), self.get_grid_coord(self.goal), self.resolution))
 
         route_coordinates = self.get_local_coords_route(self.route)
-        show_path(_map, self.route, src, dest)
+        show_path(_map, self.route, self.start, self.goal)
         waypoints = Waypoints()
 
         for wpt in route_coordinates:
