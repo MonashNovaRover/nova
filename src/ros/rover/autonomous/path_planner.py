@@ -31,7 +31,7 @@ class PathPlanner(Node):
         # way-point publisher publishes a bunch of waypoints at once (hence using the 2D map dataype
         self.waypt_publisher = self.create_publisher(Waypoints, "autonomous/goals", 10)
         
-        self.pose_subscriber = self.create_subscription(RoverPose, "autonomous/pose", self.update_pose, 10)
+        self.pose_subscriber = self.create_subscription(RoverPose, "rover/pose", self.update_pose, 10)
 
         self.resolution = resolution_m
 
