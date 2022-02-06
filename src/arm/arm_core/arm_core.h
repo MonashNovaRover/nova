@@ -44,15 +44,7 @@ TODO:
 class ArmCore
 {  
     //------------------------------------------------------------//
-    protected:
-    
-    // List names of all joints and all control points (cameras and tips of end effectors)
-    // Initialised by arm_kinematics when the arm is built
-    // Separate real joints (used for resolver / motor driving things) and modelled joints (used for FK / IK)
-    // Real and modelled joints would usually be the same, but the SPM wirst has an extra roll DOF which is not used.
-    std::vector<std::string> joint_names;
-    std::vector<std::string> model_joint_names;
-    std::vector<std::string> control_point_names;
+    public:
 
     /// @brief  Helper function to construct empty JointState message
     ///         Uses given names of joints, sizes all other parameter lists to match
@@ -62,6 +54,9 @@ class ArmCore
     ///         Uses given names of joints, sizes all other parameter lists to match
     static sensor_msgs::msg::MultiDOFJointState get_empty_multi_dof_joint_state(const std::vector<std::string>& names);
 
+    //------------------------------------------------------------//
+    protected:
+    
     /// @brief  Protected constructor so the class cannot be instantiated
     ArmCore(){}
 
