@@ -51,6 +51,9 @@ def desired_heading(start, end):
     """
     assert len(start) == 2
     assert len(end) == 2
+    
+    start = start[1], start[0]
+    end = end[1], end[0]
 
     # the signed bearing is within [-pi, pi]
     signed_bearing = math.atan2(end[0] - start[0], end[1] - start[1])

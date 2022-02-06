@@ -29,4 +29,4 @@ main_frame = "map"
 This refers to the position of the camera with respect of the Rover's position (the Rover's position being the centre of 
 the middle wheels on the ground.
 """
-tracking_camera_extrinsics = [.5, 0., 0.]
+tracking_camera_extrinsics = [-.5, 0., 0.]

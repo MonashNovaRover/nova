@@ -97,9 +97,9 @@ class TrackingCamera(Node):
             rover_msg.y = rover_position[1]
             rover_msg.z = rover_position[2]
 
-            qx = data.rotation.x
-            qy = data.rotation.y
-            qz = data.rotation.z
+            qx = -data.rotation.z
+            qy = -data.rotation.x
+            qz = data.rotation.y
             qw = data.rotation.w
 
             # msg.yaw = euler_from_quaternion([q_x, q_y, q_z, q_w])[1]
@@ -118,7 +118,7 @@ class TrackingCamera(Node):
             # the callback.
 
             sys.stdout.write("\r" + "x: " + str(round(rover_msg.x, 4)).ljust(7)
-                             + " | y: " + str(round(rover_msg.x, 4)).ljust(7)
+                             + " | y: " + str(round(rover_msg.y, 4)).ljust(7)
                              + " | yaw: " + str(round(rover_msg.yaw, 4)).ljust(7))
             sys.stdout.flush()
 
