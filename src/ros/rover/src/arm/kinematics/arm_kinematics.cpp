@@ -12,6 +12,7 @@ AUTHOR(S):	Jory Braun
 #include <Eigen/Core>
 
 #include "arm_core.h"
+#include "print/print.h"
 
 #include "../hacky_defines.h"
 
@@ -60,6 +61,13 @@ ArmKinematics::ArmKinematics() :
     joint_velocities_pub = this->create_publisher<sensor_msgs::msg::JointState>(
         "/control/joint_velocities", 10
     );
+
+    // Output set-up messages
+    Print::title("ARM KINEMATICS");
+    Print::print("Published Topics:");
+    Print::print("/control/arm_coord_frames   [sensor_msgs/MultiDOFJointState]", 1);
+    Print::print("/control/joint_velocities   [sensor_msgs/JointState]", 1);
+    Print::print("", true);
 }
 
 
