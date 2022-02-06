@@ -9,8 +9,12 @@ AUTHOR(S):	Jory Braun
 
 #include "arm_simulator.h"
 
+#include "arm_core.h"
+
 #define _USE_MATH_DEFINES
 #include <cmath>
+
+#include "../hacky_defines.h"
 
 // Constructor
 ArmSimulator::ArmSimulator() : Node("arm_simulator")
@@ -19,7 +23,7 @@ ArmSimulator::ArmSimulator() : Node("arm_simulator")
     timer_period = 200ms;
     
     // Set up the joints structure
-    joints = ArmCore::get_empty_joint_state();
+    joints = ArmCore::get_empty_joint_state(hack::JOINT_NAMES);
     
     // Initial integration time
     last_integration_time = this->now();
