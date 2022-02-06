@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import time
 from a_star import a_star
+from path_2d_show import show_path 
 
 # NOTE should probably call these something else since they are not only used by controller
 from controller_params import *
@@ -109,7 +110,7 @@ class PathPlanner(Node):
         self.route = a_star(_map, self.get_grid_coord(self.start), self.get_grid_coord(self.goal), self.resolution)
 
         route_coordinates = self.get_local_coords_route(self.route)
-
+        show_path(_map, self.route, src, dest)
         waypoints = Waypoints()
 
         for wpt in route_coordinates:
