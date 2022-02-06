@@ -50,7 +50,7 @@ class TrackingCamera(Node):
 
         self.initial_x = 0.0
         self.initial_y = 0.0
-        self.initial_yaw = 5.0 / 4.0 * math.pi
+        self.initial_yaw = 0.0
 
         # Start streaming
         pipe_profile = self.pipe.start(self.cfg) 
