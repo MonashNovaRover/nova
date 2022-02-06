@@ -231,21 +231,19 @@ void precompute_padding_values(array<array<float, COL>, ROW>& grid,
 // destination
 template <size_t ROW, size_t COL>
 vector<Pair> tracePath(array<array<cell, COL>, ROW>& cellDetails, const Pair& dest){
-	printf("\nThe Path is ");
-
 	stack<Pair> backwards_path;
 
 	int row = dest.second;
-	int col = dest.second;
+	int col = dest.first;
 	Pair next_node = dest;
 	do {
 		backwards_path.push(next_node);
-		next_node = cellDetails[row][col].parent;
-		row = next_node.first;
-		col = next_node.second;
-	} while (cellDetails[row][col].parent != next_node);
+		next_node = cellDetails[col][row].parent;
+		row = next_node.second;
+		col = next_node.first;
+	} while (cellDetails[col][row].parent != next_node);
 
-	backwards_path.emplace(row, col);
+	backwards_path.emplace(col, row);
 	vector<Pair> path;
 	while (!backwards_path.empty()){
 		Pair p = backwards_path.top();
@@ -264,7 +262,6 @@ template <size_t ROW, size_t COL>
 vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 				const Pair& src, const Pair& dest, const float grid_resolution_m)
 {
-    std::cout << "hi" << std::endl;
 	// timer to check performance
 	auto start = chrono::high_resolution_clock::now();
 	const float grid_resolution_cm = grid_resolution_m * 100;
@@ -292,7 +289,7 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 	// Create a closed list and initialise it to false which
 	// means that no cell has been included yet This closed
 	// list is implemented as a boolean 2D array
-	bool closedList[ROW][COL];
+	bool closedList[COL][ROW];
 	memset(closedList, false, sizeof(closedList));
 
 	// Declare a 2D array of structure to hold the details
@@ -362,14 +359,14 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 					// as the current successor
 					if (isDestination(neighbour, dest)) { // Set the Parent of the destination cell
 						cellDetails[neighbour.first][neighbour.second].parent = { i, j };
-						printf("The destination cell is found\n");
+						std::cout << "The destination cell is found" << std::endl;
 
 						auto stop = chrono::high_resolution_clock::now();
 						auto duration = chrono::duration_cast<std::chrono::microseconds>(stop - start);
 					
 						// To get the value of duration use the count()
 						// member function on the duration object
-						cout << "\ntook " << duration.count() << " microseconds" << endl;
+						std::cout << "\ntook " << duration.count() << " microseconds" << std::endl;
 						
 						return tracePath(cellDetails, dest);
 					}
