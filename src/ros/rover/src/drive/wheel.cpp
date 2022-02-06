@@ -9,6 +9,7 @@ AUTHOR(S):	Harrison Verrios, Josh Cherubino
 
 // General includes
 #include <iostream>
+#include <math>
 
 // Include the header file
 #include "wheel.h"
@@ -33,7 +34,7 @@ Wheel::~Wheel () {
 void Wheel::spin (float speed) {
 
     // Adjust for directional spinning
-    if (this->clockwise) speed *= -1.0;
+    if (!this->clockwise) speed *= -1.0;
 
     // Make sure the limits on speed
     if (speed > 1.0) speed = 1.0;
@@ -45,6 +46,21 @@ void Wheel::spin (float speed) {
 
 
 void Wheel::spin (float speed, const float steer) {
+
+	// when we are turning completetely on the spot, adjust the steer speed 
+	// for inner vs outer wheels
+    if (steer == 0.0){
+    	
+	// inner wheels	
+	if (this->id == 1 || this.id == 3){	
+		speed *= 1.0;
+	}
+	// outer wheels
+	else{
+		speed *= 2.17;
+	}
+
+    }
 
     // Calculate the new speed based on the steer
     if (clockwise)
@@ -58,7 +74,6 @@ void Wheel::spin (float speed, const float steer) {
 
 
 void Wheel::stop () {
-    
     // Call base class stop
     CMD::stop();
 }
