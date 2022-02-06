@@ -30,7 +30,7 @@ class EeExtremeRetrievalModel : public ArmSubModule
     //------------------------------------------------------------//
     public:
 
-    /// Constructor. Build the SPM wrist
-    EeExtremeRetrievalModel();
+    /// Constructor. Build the extreme retrieval end effector
+    EeExtremeRetrievalModel(){}
 
 };

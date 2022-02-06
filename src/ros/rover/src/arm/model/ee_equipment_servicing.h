@@ -34,7 +34,7 @@ class EeEquipmentServicingModel : public ArmSubModule
     // All distances in mm, all angles in rad
     constexpr static double GRIPPER_OFFSET_Z = 311;  // Distance from p56 to tip of gripper end effector
 
-    /// Constructor. Build the SPM wrist
+    /// Constructor. Build the equipment servicing end effector
     EeEquipmentServicingModel()
     {
         // Initialise public members

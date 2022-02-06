@@ -31,6 +31,6 @@ class WristSpmModel : public ArmSubModule
     public:
 
     /// Constructor. Build the SPM wrist
-    WristSpmModel();
+    WristSpmModel(){}
 
 };
