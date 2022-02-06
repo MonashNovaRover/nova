@@ -185,7 +185,7 @@ class Mapper(Node):
         if time.perf_counter() - self.previous_plan > 2:
             if self.planner:
                 self.previous_plan = time.perf_counter()
-                layer = self.extract_layer(2.8)
+                layer = self.extract_layer(2.5)
                 print(sum(layer))
                 self.planner.get_path(layer.squeeze())
 

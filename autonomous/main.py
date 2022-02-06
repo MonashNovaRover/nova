@@ -8,20 +8,7 @@ from mapper import Mapper
 def main(args):
     rclpy.init(args=args)
 
-    """print("Welcome to fun car drive!")
-    print("Setting up objects...")
-
-    print("Input waypoints manually?")
-    print("[0]: No - use autonomous path planning")
-    print("[1]: Yes")
-
-    manual_input = int(input("Input your decision: "))
-
-    if manual_input:
-        # TODO: Setup to allow manual inputs as well as path planning
-        pass
-
-    else:"""
+    print("Welcome to fun car drive!")
     dest = [0.0, 0.0]
     dest[0] = float(input("Enter destination x coordinate: "))
     dest[1] = float(input("Enter destination y coordinate: "))
