@@ -30,7 +30,7 @@ class EeLunarConstructionModel : public ArmSubModule
     //------------------------------------------------------------//
     public:
 
-    /// Constructor. Build the SPM wrist
-    EeLunarConstructionModel();
+    /// Constructor. Build the lunar construction end effector
+    EeLunarConstructionModel(){}
 
 };

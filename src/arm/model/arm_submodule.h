@@ -59,7 +59,7 @@ class ArmSubModule : public KDL::Tree
         //        Can be defined using DH / modified-DH parameters, or through general coordinate transformations
         //   3. A segment. Constructed from the joint and frame, and then added to the arm at the tip of an existing
         //        segment, or "root" if there is no segment or is attached to the base of the first segment.
-    };
+    }
 
     // List names of all joints use for constructing JointState and MultiDOFJointState messages
     std::vector<std::string> joint_names;
