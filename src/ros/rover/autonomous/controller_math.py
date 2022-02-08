@@ -38,7 +38,7 @@ def tank_turn_target_yaw_rate(current_yaw, target_yaw):
     if d == 0.0:
         return 0
     sign = 1 if d > 0.0 else -1
-    return sign * controller_params.max_yaw_rate
+    return sign * .07
 
 
 def desired_heading(start, end):
@@ -137,7 +137,7 @@ def crow_fly_target_velocity(current, target):
     speed = ((controller_params.slowdown_distance - dist) / controller_params.slowdown_distance) \
             * (controller_params.max_speed - controller_params.min_speed) + controller_params.min_speed
     assert speed <= controller_params.max_speed
-    return controller_params.max_speed
+    return .1 
 
 def radial_vec_to_tangent(r, d, angle_in, angle_change):
     """
