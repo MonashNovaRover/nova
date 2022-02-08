@@ -26,24 +26,23 @@ class MathTest(unittest.TestCase):
                 desired_heading(start, end)
 
     def test_yaw_difference(self):
-        firsts = np.linspace(0, 2*np.pi, 11)
-        seconds = np.linspace(0 ,2*np.pi, 11)
+        firsts = np.linspace(0, 2*np.pi, 13)
+        seconds = np.linspace(0 ,2*np.pi, 13)
 
         for i, a in enumerate(firsts):
             for b in seconds:
-                print("%.2f, %.2f\n" % (a, b))
                 difference_magnitude = np.abs(a - b)
                 if a == b:
                     self.assertAlmostEqual(yaw_difference(a, b), 0)
-                elif a > b and difference_magnitude < PI:
+                elif a > b and np.round(difference_magnitude, 10) < np.round(PI, 10):
                     self.assertAlmostEqual(yaw_difference(a, b), -difference_magnitude)
                     self.assertAlmostEqual(yaw_difference(b, a), difference_magnitude)
-                elif a > b and difference_magnitude > PI:
+                elif a > b and np.round(difference_magnitude, 10) > np.round(PI, 10):
                     self.assertAlmostEqual(yaw_difference(a, b), 2 * PI - difference_magnitude)
                     self.assertAlmostEqual(yaw_difference(b, a),-2 * PI + difference_magnitude)
-                elif difference_magnitude == PI:
-                    print("dif_mag == pi")
-                    self.assertAlmostEqual(np.abs(yaw_difference(a, b)), PI)
+                elif np.round(difference_magnitude, 10) == np.round(PI, 10):
+                    self.assertAlmostEqual(yaw_difference(a, b), PI)
+                    self.assertAlmostEqual(yaw_difference(b, a), PI)
 
 if __name__ == "__main__":
     # running all unit tests

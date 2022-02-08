@@ -85,12 +85,16 @@ def yaw_difference(a, b):
     diff = a - b
     yaw_magnitude = min(diff % (2 * np.pi), -diff % (2 * np.pi))
     # working out whether diff has the same sign as the angle change
-    vec_a = np.array((a[0], a[1], 0))
-    vec_b = np.array((b[0], b[1], 0))
+    vec_a = np.round(np.array((np.cos(a), np.sin(a), 0)), 10)
+    vec_b = np.round(np.array((np.cos(b), np.sin(b), 0)), 10)
     
-    yaw_sign = np.sign(np.cross(vec_a, vec_b)[2])
+    cross = np.cross(vec_a, vec_b)
 
-    return yaw_sign * yaw_magnitude
+    yaw_sign = np.sign(cross[2]) if cross[2] != 0 else 1
+
+    diff = yaw_sign * yaw_magnitude
+    assert -np.pi < diff <= np.pi
+    return diff
 
 
 def yaw_delta_size(a, b):
