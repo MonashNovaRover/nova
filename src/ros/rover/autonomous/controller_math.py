@@ -43,14 +43,17 @@ def tank_turn_target_yaw_rate(current_yaw, target_yaw):
 
 def desired_heading(start, end):
     """
-    Function returns the total positive angle (between 0 and 2pi radians) between the positive y axis and the
-    vector formed by the two start and end coordinates, heading counter clockwise. In other words, what COMPASS
-    angle would we be heading from north if we needed to reach end from start.
+    Function returns the total positive angle (between 0 and 2pi radians) between the positive x axis (in autonomous'
+    left-handed coordinate system) and the vector formed by the two start and end coordinates, heading clockwise.
+    In other words, what COMPASS angle would we be heading from north if we needed to reach end from start.
     Domain: two 2-tuples (float, float), representing coordinates
     Range: 0 to 2pi radians
     """
     assert len(start) == 2
     assert len(end) == 2
+
+    if (start == end):
+        raise(ValueError("provided the same point twice"))
     
     start = start[1], start[0]
     end = end[1], end[0]
