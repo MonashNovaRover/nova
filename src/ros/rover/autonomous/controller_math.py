@@ -76,29 +76,21 @@ def yaw_difference(a, b):
     Range: between -pi and pi
     """
 
-    a += math.pi * 2.0 if a < 0 else 0
-    b += math.pi * 2.0 if b < 0 else 0
+    a += np.pi * 2.0 if a < 0 else 0
+    b += np.pi * 2.0 if b < 0 else 0
 
-    assert 0.0 <= a <= math.pi * 2.0
-    assert 0.0 <= b <= math.pi * 2.0
+    assert 0.0 <= a <= np.pi * 2.0
+    assert 0.0 <= b <= np.pi * 2.0
 
-    # if desired way point has greater bearing
-    if b > a:
-        # go clockwise if that's shorter
-        if b - a <= math.pi:
-            d = b - a
-        # else go anti clockwise
-        else:
-            d = -(2.0 * math.pi - b + a)
-    else:
-        # go anti clockwise if shorter
-        if a - b <= math.pi:
-            d = b - a
-        # else go clockwise
-        else:
-            d = 2 * math.pi - a + b
-    assert -math.pi <= d <= math.pi
-    return d
+    diff = a - b
+    yaw_magnitude = min(diff % (2 * np.pi), -diff % (2 * np.pi))
+    # working out whether diff has the same sign as the angle change
+    vec_a = np.array((a[0], a[1], 0))
+    vec_b = np.array((b[0], b[1], 0))
+    
+    yaw_sign = np.sign(np.cross(vec_a, vec_b)[2])
+
+    return yaw_sign * yaw_magnitude
 
 
 def yaw_delta_size(a, b):
