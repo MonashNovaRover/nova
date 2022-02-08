@@ -104,7 +104,7 @@ def yaw_delta_size(a, b):
     """
     assert 0.0 <= a <= math.pi * 2.0
     assert 0.0 <= b <= math.pi * 2.0
-    d = yaw_difference(a, b)
+    d = abs(yaw_difference(a, b))
     return d
 
 

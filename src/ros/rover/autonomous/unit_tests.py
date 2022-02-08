@@ -44,6 +44,26 @@ class MathTest(unittest.TestCase):
                     self.assertAlmostEqual(yaw_difference(a, b), PI)
                     self.assertAlmostEqual(yaw_difference(b, a), PI)
 
+    def test_yaw_delta_size(self):
+        firsts = np.linspace(0, 2*np.pi, 13)
+        seconds = np.linspace(0 ,2*np.pi, 13)
+
+        for i, a in enumerate(firsts):
+            for b in seconds:
+                difference_magnitude = np.abs(a - b)
+                if a == b:
+                    self.assertAlmostEqual(yaw_delta_size(a, b), 0)
+                elif a > b and np.round(difference_magnitude, 10) < np.round(PI, 10):
+                    self.assertAlmostEqual(yaw_delta_size(a, b), difference_magnitude)
+                    self.assertAlmostEqual(yaw_delta_size(b, a), difference_magnitude)
+                elif a > b and np.round(difference_magnitude, 10) > np.round(PI, 10):
+                    self.assertAlmostEqual(yaw_delta_size(a, b), 2 * PI - difference_magnitude)
+                    self.assertAlmostEqual(yaw_delta_size(b, a), 2 * PI + difference_magnitude)
+                elif np.round(difference_magnitude, 10) == np.round(PI, 10):
+                    self.assertAlmostEqual(yaw_delta_size(a, b), PI)
+                    self.assertAlmostEqual(yaw_delta_size(b, a), PI)
+
+
 if __name__ == "__main__":
     # running all unit tests
     unittest.main()
