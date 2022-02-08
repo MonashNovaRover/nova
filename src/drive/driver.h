@@ -23,7 +23,7 @@ ACTIONS:  None
 PACKAGE: 	control
 AUTHOR(S):  Harrison Verrios, Josh Cherubino
 CREATION:	21/11/2021
-EDITED:		08/12/2021
+EDITED:		09/02/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
@@ -34,6 +34,12 @@ EDITED:		08/12/2021
 
 // Include wheel class
 #include "wheel.h"
+
+// The distance between the two wheel sets [m]
+#define CHASSIS_SEPARATION 0.78058
+
+// The distance between each wheel on each side [m]
+#define WHEEL_SEPARATION 0.42426
 
 // Use the standard namespaces
 using namespace std;
@@ -94,6 +100,20 @@ class Driver : public rclcpp::Node {
     /// @brief      Callback function when input messages are received.
     /// @param      msg - A pointer to the input message
     void input_callback (const core::msg::InputGamepad::SharedPtr msg);
+
+    /// @brief      Calculates the center turning circle distance based
+    ///             on the steering factor. This is from the center of mass.
+    /// @param      steer - The steer value between -1 and 1
+    /// @returns    The distance between center of mass and circle [m]
+    float get_locas_distance (float steer);
+
+    /// @brief      Calculates the distance from the wheel to the locas
+    /// @param      id - The id of the wheel
+    /// @param      locas - The distance from CoM to locas [m]
+    /// @returns    The distance between wheel and the locas [m]
+    float get_wheel_distance (int id, float locas);
+
+    float get_tangent_scale (int id, float locas);
 
 
     //------------------------------------------------------------//

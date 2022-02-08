@@ -9,16 +9,15 @@ AUTHOR(S):	Harrison Verrios, Josh Cherubino
 
 // General includes
 #include <iostream>
-#include <math>
 
 // Include the header file
 #include "wheel.h"
 
-Wheel::Wheel (const int id, const bool clockwise) :
+Wheel::Wheel (const int id, const bool left) :
     CMD (0, id) {
 
     // Update the variables
-    this->clockwise = clockwise;
+    this->left = left;
     
     //TODO: Send PID gains on startup...
 }
@@ -30,11 +29,11 @@ Wheel::~Wheel () {
 }
 
 
-//TODO: Add mode as parameter to function (i.e. PID etc.)
+// TODO: Add mode as parameter to function (i.e. PID etc.)
 void Wheel::spin (float speed) {
 
     // Adjust for directional spinning
-    if (!this->clockwise) speed *= -1.0;
+    if (!this->left) speed *= -1.0;
 
     // Make sure the limits on speed
     if (speed > 1.0) speed = 1.0;
@@ -47,26 +46,13 @@ void Wheel::spin (float speed) {
 
 void Wheel::spin (float speed, const float steer) {
 
-	// when we are turning completetely on the spot, adjust the steer speed 
-	// for inner vs outer wheels
-    if (steer == 0.0){
-    	
-	// inner wheels	
-	if (this->id == 1 || this.id == 3){	
-		speed *= 1.0;
-	}
-	// outer wheels
-	else{
-		speed *= 2.17;
-	}
-
+    // If not turning
+    if (steer == 0) {
+        spin(speed);
+        return;
     }
 
-    // Calculate the new speed based on the steer
-    if (clockwise)
-        speed = speed + steer;
-    else
-        speed = speed - steer;
+    // TODO with speed
 
     // Call the base spin function
     spin (speed);
@@ -77,3 +63,9 @@ void Wheel::stop () {
     // Call base class stop
     CMD::stop();
 }
+
+
+int Wheel::get_id () {
+    return this->id;
+}
+
