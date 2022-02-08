@@ -1,5 +1,5 @@
 HOW TO DO REFACTOR TO THIS SCHEMA:
-autonomous/autonomous needs a __init__.py
+all directories inside autonomous/autonomous (including the directory itself) need an __init__.py
 
 in each file, write 
 __package__="autonomous"
