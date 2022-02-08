@@ -43,14 +43,17 @@ def tank_turn_target_yaw_rate(current_yaw, target_yaw):
 
 def desired_heading(start, end):
     """
-    Function returns the total positive angle (between 0 and 2pi radians) between the positive y axis and the
-    vector formed by the two start and end coordinates, heading counter clockwise. In other words, what COMPASS
-    angle would we be heading from north if we needed to reach end from start.
+    Function returns the total positive angle (between 0 and 2pi radians) between the positive x axis (in autonomous'
+    left-handed coordinate system) and the vector formed by the two start and end coordinates, heading clockwise.
+    In other words, what COMPASS angle would we be heading from north if we needed to reach end from start.
     Domain: two 2-tuples (float, float), representing coordinates
     Range: 0 to 2pi radians
     """
     assert len(start) == 2
     assert len(end) == 2
+
+    if (start == end):
+        raise(ValueError("provided the same point twice"))
     
     start = start[1], start[0]
     end = end[1], end[0]
@@ -73,29 +76,25 @@ def yaw_difference(a, b):
     Range: between -pi and pi
     """
 
-    a += math.pi * 2.0 if a < 0 else 0
-    b += math.pi * 2.0 if b < 0 else 0
+    a += np.pi * 2.0 if a < 0 else 0
+    b += np.pi * 2.0 if b < 0 else 0
 
-    assert 0.0 <= a <= math.pi * 2.0
-    assert 0.0 <= b <= math.pi * 2.0
+    assert 0.0 <= a <= np.pi * 2.0
+    assert 0.0 <= b <= np.pi * 2.0
 
-    # if desired way point has greater bearing
-    if b > a:
-        # go clockwise if that's shorter
-        if b - a <= math.pi:
-            d = b - a
-        # else go anti clockwise
-        else:
-            d = -(2.0 * math.pi - b + a)
-    else:
-        # go anti clockwise if shorter
-        if a - b <= math.pi:
-            d = b - a
-        # else go clockwise
-        else:
-            d = 2 * math.pi - a + b
-    assert -math.pi <= d <= math.pi
-    return d
+    diff = a - b
+    yaw_magnitude = min(diff % (2 * np.pi), -diff % (2 * np.pi))
+    # working out whether diff has the same sign as the angle change
+    vec_a = np.round(np.array((np.cos(a), np.sin(a), 0)), 10)
+    vec_b = np.round(np.array((np.cos(b), np.sin(b), 0)), 10)
+    
+    cross = np.cross(vec_a, vec_b)
+
+    yaw_sign = np.sign(cross[2]) if cross[2] != 0 else 1
+
+    diff = yaw_sign * yaw_magnitude
+    assert -np.pi < diff <= np.pi
+    return diff
 
 
 def yaw_delta_size(a, b):
@@ -105,7 +104,7 @@ def yaw_delta_size(a, b):
     """
     assert 0.0 <= a <= math.pi * 2.0
     assert 0.0 <= b <= math.pi * 2.0
-    d = yaw_difference(a, b)
+    d = abs(yaw_difference(a, b))
     return d
 
 
