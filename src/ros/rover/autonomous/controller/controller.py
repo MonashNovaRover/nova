@@ -1,3 +1,4 @@
+__package__ = "autonomous"
 #!/usr/bin/env python3
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -30,11 +31,11 @@ EDITED:         07/12/2021
 import rclpy
 from time import sleep
 from rclpy.node import Node
-from controller_math import *
-from controller_params import *
+from math_utils.controller_math import *
+from config.runtime_params import *
 from core.msg import DriveInput, RoverPose, Waypoints
 import sys
-import path_vis
+import vis.path_vis
 
 from config.ros_config import rover_pose_topic
 from config.ros_config import auto_drive_command_topic

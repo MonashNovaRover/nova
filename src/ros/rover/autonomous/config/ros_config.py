@@ -1,3 +1,4 @@
+__package__ = "autonomous"
 """
 This file provides ROS topic names which we will use throughout the autonomous package
 """

@@ -1,11 +1,12 @@
+__package__ = "autonomous"
 #!/usr/bin/env python3
 import time
 from a_star import a_star
-from path_2d_show import show_path 
+from planning.path_2d_show import show_path 
 
 # NOTE should probably call these something else since they are not only used by controller
-from controller_params import *
-from controller_math import *
+from config.runtime_params import *
+from math_utils.controller_math import *
 
 from rclpy.node import Node
 from core.msg import Waypoints, Waypoint, RoverPose

@@ -1,8 +1,9 @@
+__package__ = "autonomous"
 #!/usr/bin/env python3
-from path_planner import PathPlanner
-from controller import Controller
+from planning.path_planner import PathPlanner
+from controller.controller import Controller
 import rclpy
-from mapper import Mapper
+from mapping.mapper import Mapper
 
 
 def main(args):

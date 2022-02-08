@@ -1,3 +1,4 @@
+__package__ = "autonomous"
 #!/usr/bin/python3
   
 
@@ -27,17 +28,17 @@ TODO:
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import PointCloud2
-import pc_converter as pc2
-import transform
+import vis.pc_converter as pc2
+import math_utils.transform
 from sensor_msgs.msg import PointField
 from nav_msgs.msg import Odometry
-from grid_3d import Grid3D
-from path_planner import PathPlanner
+from mapping.grid_3d import Grid3D
+from planning.path_planner import PathPlanner
 import matplotlib.pyplot as plt
 import numpy as np
-import pc_pub
+import vis.pc_pub as pc_pub
 import time
-from depth_camera import DepthCamera
+from cameras.depth_camera import DepthCamera
 from config.ros_config import tracking_pose_topic
 
 # python | ros

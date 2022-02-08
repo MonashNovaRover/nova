@@ -1,3 +1,4 @@
+__package__ = "autonomous"
 import numpy as np
 import rclpy
 from rclpy.node import Node
