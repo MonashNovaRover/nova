@@ -25,6 +25,25 @@ class MathTest(unittest.TestCase):
             with self.assertRaises(ValueError):
                 desired_heading(start, end)
 
+    def test_yaw_difference(self):
+        firsts = np.linspace(0, 2*np.pi, 11)
+        seconds = np.linspace(0 ,2*np.pi, 11)
+
+        for i, a in enumerate(firsts):
+            for b in seconds:
+                print("%.2f, %.2f\n" % (a, b))
+                difference_magnitude = np.abs(a - b)
+                if a == b:
+                    self.assertAlmostEqual(yaw_difference(a, b), 0)
+                elif a > b and difference_magnitude < PI:
+                    self.assertAlmostEqual(yaw_difference(a, b), -difference_magnitude)
+                    self.assertAlmostEqual(yaw_difference(b, a), difference_magnitude)
+                elif a > b and difference_magnitude > PI:
+                    self.assertAlmostEqual(yaw_difference(a, b), 2 * PI - difference_magnitude)
+                    self.assertAlmostEqual(yaw_difference(b, a),-2 * PI + difference_magnitude)
+                elif difference_magnitude == PI:
+                    print("dif_mag == pi")
+                    self.assertAlmostEqual(np.abs(yaw_difference(a, b)), PI)
 
 if __name__ == "__main__":
     # running all unit tests
