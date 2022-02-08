@@ -47,8 +47,8 @@ TODO:
 #include "sensor_msgs/msg/multi_dof_joint_state.hpp"
 
 // Include libraries
-#include <kdl/tree.hpp>
-#include <kdl/treefksolverpos_recursive.hpp>
+#include "arm_model.h"
+#include "kdl_extended/treefksolverpos_recursive_ext.hpp"
 #include <kdl/treeiksolvervel_wdls.hpp>
 
 // Use the standard namespaces
@@ -81,11 +81,11 @@ class ArmKinematics : public rclcpp::Node
     sensor_msgs::msg::MultiDOFJointState coord_frames;
     sensor_msgs::msg::JointState joint_velocities;
 
-    // Arm model using KDL
-    KDL::Tree arm;
-    // FK solver
-    KDL::TreeFkSolverPos_recursive arm_fk_solver;
-    // IK solver
+    // Arm model and solvers
+    ArmModel arm_model;
+    // FK solver using KDL
+    KDL::TreeFkSolverPos_recursive_ext arm_fk_solver;
+    // IK solver usign KDL
     //KDL::TreeIkSolverVel_wdls arm_ik_solver;
 
     // Subscription to resolvers
@@ -118,7 +118,7 @@ class ArmKinematics : public rclcpp::Node
     //------------------------------------------------------------//
     public:
 
-    /// Constructor. Initialisers the solvers for the given tree and starts the node
-    ArmKinematics(const KDL::Tree& arm);
+    /// Constructor. Initialisers the solvers and starts the node
+    ArmKinematics();
     
 };

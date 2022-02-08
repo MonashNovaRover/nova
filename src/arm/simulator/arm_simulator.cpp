@@ -8,7 +8,13 @@ AUTHOR(S):	Jory Braun
 */
 
 #include "arm_simulator.h"
+
 #include "arm_core.h"
+
+#define _USE_MATH_DEFINES
+#include <cmath>
+
+#include "../hacky_defines.h"
 
 // Constructor
 ArmSimulator::ArmSimulator() : Node("arm_simulator")
@@ -17,7 +23,7 @@ ArmSimulator::ArmSimulator() : Node("arm_simulator")
     timer_period = 200ms;
     
     // Set up the joints structure
-    joints = ArmCore::get_empty_joint_state();
+    joints = ArmCore::get_empty_joint_state(hack::JOINT_NAMES);
     
     // Initial integration time
     last_integration_time = this->now();
@@ -55,7 +61,7 @@ void ArmSimulator::update_joint_positions()
     // Update positions using duration from last recorded time to current time, and last velocity
     // Assumes joints have been moving at the last velocity they were told to
     rclcpp::Duration duration = current_time - last_integration_time;
-    for(int i = 0; i < NUM_JOINTS; i++){
+    for(unsigned int i = 0; i < joints.name.size(); i++){
         if (joints.velocity[i] != 0){
             joints.position[i] = wrap_to_2pi(joints.position[i] + joints.velocity[i] * duration.seconds());
         }   
