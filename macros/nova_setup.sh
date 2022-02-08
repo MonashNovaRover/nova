@@ -164,9 +164,6 @@ cd ~/nova_ws/src/gui/wombatx
 npm install
 npm update
 
-# appedning to pythonpath for autonomous folders
-export PYTHONPATH=$PYTHONPATH:~/nova_ws/src/autonomous/autonomous
-
 # Completed
 title "Installation Complete!"
 echo "All Nova files are now located in ~/nova_ws in your home directory."
