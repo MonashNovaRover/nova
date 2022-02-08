@@ -23,8 +23,7 @@ class State:
         self.velocity = velocity
         self.angular_velocity = angular_velocity
 
-
-def tank_turn_target_yaw_rate(current_yaw, target_yaw):
+def tank_turn_target_yaw_rate(facing, target):
     """
     Calculates target yaw rate. Uses sin function so that we smoothly speed up and slow down in order to change yaw
     Domain: This function should have inputs such that:
@@ -33,80 +32,34 @@ def tank_turn_target_yaw_rate(current_yaw, target_yaw):
         [-max_yaw_rate, -min_yaw_rate], [min_yaw_rate, max_yaw_rate], [0, 0]
     """
     # print("target yaw: " + str(target_yaw) + " | current_yaw: " + str(current_yaw))
-    d = yaw_difference(a=current_yaw, b=target_yaw)
-    assert -math.pi <= d <= math.pi
+    d = yaw_difference(facing, target)
     if d == 0.0:
         return 0
     sign = 1 if d > 0.0 else -1
     return sign * .07
 
-
-def desired_heading(start, end):
+def yaw_difference(facing, target):
     """
-    Function returns the total positive angle (between 0 and 2pi radians) between the positive x axis (in autonomous'
-    left-handed coordinate system) and the vector formed by the two start and end coordinates, heading clockwise.
-    In other words, what COMPASS angle would we be heading from north if we needed to reach end from start.
-    Domain: two 2-tuples (float, float), representing coordinates
-    Range: 0 to 2pi radians
-    """
-    assert len(start) == 2
-    assert len(end) == 2
-
-    if (start == end):
-        raise(ValueError("provided the same point twice"))
-    
-    start = start[1], start[0]
-    end = end[1], end[0]
-
-    # the signed bearing is within [-pi, pi]
-    signed_bearing = math.atan2(end[0] - start[0], end[1] - start[1])
-
-    return signed_bearing if signed_bearing >= 0 else signed_bearing + 2 * math.pi
-
-
-def yaw_difference(a, b):
-    """
-    Returns the signed minimum yaw required to travel to get to b from a, where a positive angle refers to traveling
-    clockwise. Use cases: this function is used to determine the absolute value of the yaw difference, to determine
+    Returns the signed minimum yaw required to rotate from one orientation vector to another. A positive angle refers to traveling
+    clockwise (in a left-handed coordinate system). Use cases: this function is used to determine the absolute value of the yaw difference, to determine
     if we should travel there. It is also used to determine how far we have to turn, so we can calculate an appropriate
     speed.
-    :param: a: 2-tuple referring to the starting angle
-    :param: b: 2-tuple referring to the desired angle
-    Domain: a and be are within 0 and 2pi
+    :param: facing - orientation vector of the rover currently
+    :param: target - target orientation of the rover
     Range: between -pi and pi
     """
 
-    a += np.pi * 2.0 if a < 0 else 0
-    b += np.pi * 2.0 if b < 0 else 0
+    cross = np.cross(facing, target)
+    dot = np.dot(facing, target)
+    norms = np.sqrt(np.dot(facing, facing)) * np.sqrt(np.dot(target, target))
+    # using dot product to find minimum angle
+    theta = np.arccos(np.round(dot/norms, 8))
 
-    assert 0.0 <= a <= np.pi * 2.0
-    assert 0.0 <= b <= np.pi * 2.0
+    yaw_sign = np.sign(cross[2]) if np.round(dot, 5) != -1. else 1
 
-    diff = a - b
-    yaw_magnitude = min(diff % (2 * np.pi), -diff % (2 * np.pi))
-    # working out whether diff has the same sign as the angle change
-    vec_a = np.round(np.array((np.cos(a), np.sin(a), 0)), 10)
-    vec_b = np.round(np.array((np.cos(b), np.sin(b), 0)), 10)
-    
-    cross = np.cross(vec_a, vec_b)
-
-    yaw_sign = np.sign(cross[2]) if cross[2] != 0 else 1
-
-    diff = yaw_sign * yaw_magnitude
+    diff = yaw_sign * theta
     assert -np.pi < diff <= np.pi
     return diff
-
-
-def yaw_delta_size(a, b):
-    """
-    Returns the absolute value of the minimum yaw distance between two yaws
-    In other words, what is the least yaw change the rover needs to take in order to reach it's heading yaw
-    """
-    assert 0.0 <= a <= math.pi * 2.0
-    assert 0.0 <= b <= math.pi * 2.0
-    d = abs(yaw_difference(a, b))
-    return d
-
 
 def vector_argument(vector):
     """
