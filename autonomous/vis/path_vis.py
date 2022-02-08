@@ -1,3 +1,4 @@
+__package__ = "autonomous"
 #!/usr/bin/python3
 
 """
@@ -6,7 +7,7 @@ Methods
 
 import rclpy
 from rclpy.node import Node
-import pc_pub
+import vis.pc_pub
 
 from core.msg import Waypoints
 

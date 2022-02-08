@@ -1,3 +1,4 @@
+__package__ = "autonomous"
 """
 Controller math is a set of pure functions (meaning they only take immutable inputs and return immutable outputs,
 with no side effects (such as changing any external mutable variables, global variables etc.)
@@ -6,7 +7,7 @@ The benefit of using as many functions like this as possible is that we can bett
 assert the behaviour of functions, compositions of functions, and as a result, entire systems.
 """
 
-import controller_params
+import config.runtime_params
 import math
 import numpy as np
 

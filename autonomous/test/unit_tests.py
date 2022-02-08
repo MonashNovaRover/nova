@@ -1,7 +1,8 @@
+__package__ = "autonomous"
 #!/usr/bin/env python3
 import unittest
-from controller_math import *
-from controller import Controller
+from math_utils.controller_math import *
+from controller.controller import Controller
 import numpy as np
 
 PI = np.pi

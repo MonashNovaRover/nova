@@ -1,8 +1,7 @@
-from ..path_planner import PathPlanner
+__package__ = "autonomous"
+from planning.path_planner import PathPlanner
 
-from ..map2d_container import Map2DContainer as Map2D
-
-from autonomous.controller_params import *
+from config.runtime_params import *
 import matplotlib.pyplot as plt
 import rclpy
 

@@ -1,3 +1,4 @@
+__package__ = "autonomous"
 #!/usr/bin/python3
 
 """
@@ -41,7 +42,7 @@ TODO: work on header data:
 import numpy as np
 from config.ros_config import main_frame
 
-import pc_converter
+import vis.pc_converter
 from builtin_interfaces.msg import Time
 from rclpy.node import Node
 from std_msgs.msg import Header

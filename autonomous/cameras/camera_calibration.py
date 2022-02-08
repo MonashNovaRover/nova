@@ -1,3 +1,4 @@
+__package__ = "autonomous"
 #!/usr/bin/env python
 
 '''
