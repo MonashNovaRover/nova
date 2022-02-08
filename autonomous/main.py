@@ -1,5 +1,5 @@
-__package__ = "autonomous"
 #!/usr/bin/env python3
+__package__ = "autonomous"
 from planning.path_planner import PathPlanner
 from controller.controller import Controller
 import rclpy
