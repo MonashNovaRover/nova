@@ -73,6 +73,10 @@ class ArmInputs : public rclcpp::Node {
     rclcpp::Subscription<core::msg::InputJoystick>::SharedPtr joystick_l_subscription;
     rclcpp::Subscription<core::msg::InputJoystick>::SharedPtr joystick_r_subscription;
 
+    // Stores messages to be published
+    sensor_msgs::msg::JointState joint_velocities;
+    geometry_msgs::msg::TwistStamped task_velocities;
+
     // Stores task space inputs
     float task_velocity[NUM_JOINTS];
 
