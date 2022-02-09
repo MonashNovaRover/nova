@@ -3,7 +3,8 @@
 Monash Nova Rover Team
 
 PACKAGE: 	control
-AUTHOR(S):	Harrison Verrios, Josh Cherubino
+AUTHOR(S):	Harrison Verrios, Josh Cherubino, 
+            Will de la Rue
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
@@ -13,7 +14,6 @@ AUTHOR(S):	Harrison Verrios, Josh Cherubino
 // Include the header file
 #include "driver.h"
 #include "print/print.h"
-#include <iostream>
 
 // Sends commands to the wheels
 void Driver::send_commands (const core::msg::DriveInput::SharedPtr msg) {
@@ -24,7 +24,7 @@ void Driver::send_commands (const core::msg::DriveInput::SharedPtr msg) {
         // Reset the zero flag
         stopped_sent = false;
 
-        // If no streer, just spin with speed
+        // If no steer, just spin with speed
         if (msg->steer == 0) {
             for (Wheel* wheel : wheels)
                 wheel->spin(msg->speed);
@@ -45,13 +45,16 @@ void Driver::send_commands (const core::msg::DriveInput::SharedPtr msg) {
 
         // Determine the distance and tangent ratios
         for (int i = 0; i < NUM_WHEELS; i++) {
+
+            Vector2 position = get_wheel_position(wheels[i]->get_id());
+
             // Calculate the max distance to the wheels and store them
-            float dist = get_wheel_distance(wheels[i]->get_id(), locas);
+            float dist = get_wheel_distance(position, locas);
             distances[i] = dist;
             if (dist > max_distance) max_distance = dist;          
 
             // Calculate the tangent ratios and store them
-            float tangent = get_tangent_scale(wheels[i]->get_id(), locas);
+            float tangent = get_tangent_scale(position, locas);
             tangents[i] = tangent;
             if (tangent > max_tangent) max_tangent = tangent;
         }
@@ -61,8 +64,8 @@ void Driver::send_commands (const core::msg::DriveInput::SharedPtr msg) {
             // Calculate the velocity of wheel
             float vel = msg->speed * distances[i] / max_distance;
             
-            // Uncomment for tangent calculations
-            //vel *= tangents[i] / max_tangent;
+            // If using tangent scaling, adjust for wheel speeds
+            if (USE_TANGENT_SCALING) vel *= tangents[i] / max_tangent;
             
             // Checks if the turning circle is within the chassis area
             if (abs(locas) < CHASSIS_SEPARATION / 2.0) {
@@ -155,6 +158,53 @@ void Driver::input_callback (const core::msg::InputGamepad::SharedPtr msg) {
 }
 
 
+// Gets the distance to the locas of the turning circle
+float Driver::get_locas_distance (float steer) {
+    if (steer == 0) return 0;
+
+    // Return the calculation
+    return (1.0 / steer) - ((steer < 0.0) ? -1.0 : 1.0);
+}
+
+
+// Gets the position of the wheel relative to the CoM
+Vector2 Driver::get_wheel_position (int id) {
+
+    // Determine the y position
+    float y = 0;
+    if (id == 1 || id == 4) y = WHEEL_SEPARATION;
+    else if (id == 3 || id == 6) y = -WHEEL_SEPARATION;
+
+    // Determine the x position
+    float wheel_x = (CHASSIS_SEPARATION / 2.0) * ((id <= 3) ? -1.0 : 1.0);
+
+    // Return the vector struct
+    return Vector2(wheel_x, y);
+}
+
+
+// Determines the distance between the wheel and the focus
+float Driver::get_wheel_distance (Vector2 pos, float locas) {
+
+    // Calculate the x component
+    float x = locas - pos.x;
+
+    // Find pythagorus distance
+    return sqrt(pow(x, 2) + pow(pos.y, 2));
+}
+
+
+// Determines the tangent scale of the wheel
+float Driver::get_tangent_scale (Vector2 pos, float locas) {
+
+    // Calculate the x component
+    float x = locas - pos.x;
+
+    // Find pythagorus distance
+    return sqrt(1.0 + pow(pos.y / x, 2));
+}
+
+
 // Main constructor that sets up the node
 Driver::Driver() 
   : Node("drive_sub"), count(0) {
@@ -182,47 +232,6 @@ Driver::Driver()
     // Creates the input subscription
     subscription_inputs = this->create_subscription<core::msg::InputGamepad>(
         "/control/input_gamepad", 10, std::bind(&Driver::input_callback, this, _1));
-}
-
-
-
-float Driver::get_locas_distance (float steer) {
-    if (steer == 0) return 0; // Maximum and will be ignored
-
-    // Return the calculation
-    return (1.0 / steer) - ((steer < 0.0) ? -1.0 : 1.0);
-}
-
-
-float Driver::get_wheel_distance (int id, float locas) {
-    // Calculate the y component
-    float y = 0;
-    if (id == 1 || id == 4) y = WHEEL_SEPARATION;
-    if (id == 3 || id == 6) y = -WHEEL_SEPARATION;
-
-    float wheel_x = (CHASSIS_SEPARATION / 2.0) * ((id <= 3) ? -1.0 : 1.0);
-
-    // Calculate the x component
-    float x = locas - wheel_x;
-
-    // Find pythagorus distance
-    return sqrt(pow(x, 2) + pow(y, 2));
-}
-
-
-float Driver::get_tangent_scale (int id, float locas) {
-    // Calculate the y component
-    float y = 0;
-    if (id == 1 || id == 4) y = WHEEL_SEPARATION;
-    if (id == 3 || id == 6) y = -WHEEL_SEPARATION;
-
-    float wheel_x = (CHASSIS_SEPARATION / 2.0) * ((id <= 3) ? -1.0 : 1.0);
-
-    // Calculate the x component
-    float x = locas - wheel_x;
-
-    // Find pythagorus distance
-    return sqrt(1.0 + pow(y / x, 2));
 }
 
 
