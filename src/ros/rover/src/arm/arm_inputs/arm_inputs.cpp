@@ -11,6 +11,8 @@ AUTHOR(S):	Jess Hepworth
 #include "arm_inputs.h"
 #include "print/print.h"
 
+#include "../hacky_defines.h"
+
 // Receives input from left joystick
 void ArmInputs::joystick_l_callback (const core::msg::InputJoystick::SharedPtr msg) {
     
@@ -106,15 +108,18 @@ void ArmInputs::publish_arm_inputs () {
 void ArmInputs::publish_joint_vel () {
 
     // create a new message
-    auto message = sensor_msgs::msg::JointState();
+    // auto message = sensor_msgs::msg::JointState();
+
+    // Set the header
+    joint_velocities.header.stamp = this->now();
 
     // Set the values for first 6 joints from the array of joint space data
     for (auto i = 0; i < NUM_JOINTS; i++) {
-        message.velocity[i]   = speed_multiplier * joint_velocity[i];
+        joint_velocities.velocity[i]   = speed_multiplier * joint_velocity[i];
     }
 
     // Publish the joint space velocities
-    joint_vel_publisher->publish(message);
+    joint_vel_publisher->publish(joint_velocities);
 
     // Reset the raw input data back to 0 to avoid issues
     for (auto i = 0; i < NUM_JOINTS; i++) {
@@ -126,19 +131,21 @@ void ArmInputs::publish_joint_vel () {
 void ArmInputs::publish_task_vel () {
 
     // create a new message
-    auto message = geometry_msgs::msg::TwistStamped();
+    // auto message = geometry_msgs::msg::TwistStamped();
+
+    // Set the header
+    task_velocities.header.stamp = this->now();
 
     // Set the values for linear velocity
-    message.twist.linear.x = speed_multiplier * task_velocity[0];
-    message.twist.linear.y = speed_multiplier * task_velocity[1];
-    message.twist.linear.z = speed_multiplier * task_velocity[2];
-    message.twist.angular.x = speed_multiplier * task_velocity[3];
-    message.twist.angular.y = speed_multiplier * task_velocity[4];
-    message.twist.angular.z = speed_multiplier * task_velocity[5];
-
+    task_velocities.twist.linear.x = speed_multiplier * task_velocity[0];
+    task_velocities.twist.linear.y = speed_multiplier * task_velocity[1];
+    task_velocities.twist.linear.z = speed_multiplier * task_velocity[2];
+    task_velocities.twist.angular.x = speed_multiplier * task_velocity[3];
+    task_velocities.twist.angular.y = speed_multiplier * task_velocity[4];
+    task_velocities.twist.angular.z = speed_multiplier * task_velocity[5];
 
     // Publish the joint space velocities
-    task_vel_publisher->publish(message);
+    task_vel_publisher->publish(task_velocities);
 
     // Reset the raw input data back to 0 to avoid issues
     for (auto i = 0; i < NUM_JOINTS; i++) {
@@ -169,6 +176,9 @@ float ArmInputs::scale_speed (float value){
 // Main constructor that sets up the node
 ArmInputs::ArmInputs() 
   : Node("arm_pub"), count(0) {
+
+    // Initialise arrays in internal data structures
+    joint_velocities = ArmCore::get_empty_joint_state(hack::JOINT_NAMES);
 
     // Creates the arm inputs publisher
     arm_publisher = this->create_publisher<core::msg::ArmInput>("/control/arm_input", 10);
