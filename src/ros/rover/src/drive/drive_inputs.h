@@ -45,7 +45,6 @@ const float DELTA_MULTIPLIER    = 0.1;  // The change in multiplier
 
 // The initial multipliers
 const float INITIAL_MULT_SPEED = 0.5;
-const float INITIAL_MULT_STEER = 1.0;
 
 // The minimum trigger speed multiplier to apply when the right trigger is held
 const float MIN_TRIGGER_MULTIPLIER = 0.4;
@@ -96,7 +95,6 @@ class DriveInputs : public rclcpp::Node {
 
     // The current speed and steer multipliers
     float multiplier_speed = INITIAL_MULT_SPEED;
-    float multiplier_steer = INITIAL_MULT_STEER;
 
     
     //------------------------------------------------------------//
