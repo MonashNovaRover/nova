@@ -7,7 +7,7 @@ Methods
 
 import rclpy
 from rclpy.node import Node
-import vis.pc_pub
+import vis.pc_pub as pc_pub
 
 from core.msg import Waypoints
 

@@ -42,7 +42,7 @@ TODO: work on header data:
 import numpy as np
 from config.ros_config import main_frame
 
-import vis.pc_converter
+import vis.pc_converter as pc_converter
 from builtin_interfaces.msg import Time
 from rclpy.node import Node
 from std_msgs.msg import Header

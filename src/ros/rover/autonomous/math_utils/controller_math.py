@@ -7,7 +7,7 @@ The benefit of using as many functions like this as possible is that we can bett
 assert the behaviour of functions, compositions of functions, and as a result, entire systems.
 """
 
-import config.runtime_params
+import config.runtime_params as runtime_params
 import math
 import numpy as np
 
@@ -24,7 +24,7 @@ class State:
         self.velocity = velocity
         self.angular_velocity = angular_velocity
 
-def tank_turn_target_yaw_rate(facing, target):
+def tank_turn_target_yaw_rate(yaw_diff):
     """
     Calculates target yaw rate. Uses sin function so that we smoothly speed up and slow down in order to change yaw
     Domain: This function should have inputs such that:
@@ -33,11 +33,7 @@ def tank_turn_target_yaw_rate(facing, target):
         [-max_yaw_rate, -min_yaw_rate], [min_yaw_rate, max_yaw_rate], [0, 0]
     """
     # print("target yaw: " + str(target_yaw) + " | current_yaw: " + str(current_yaw))
-    d = yaw_difference(facing, target)
-    if d == 0.0:
-        return 0
-    sign = 1 if d > 0.0 else -1
-    return sign * .07
+    return -np.sign(yaw_diff)
 
 def yaw_difference(facing, target):
     """
@@ -82,14 +78,6 @@ def crow_fly_target_velocity(current, target):
     returns: range: 0, or within [min_speed, max_speed]
     """
 
-    dist = distance(current, target)
-    assert dist >= 0.0
-    if dist > controller_params.slowdown_distance:
-        return controller_params.max_speed
-    # in the case that we have less than 2 meters left, we should drive at speed proportional to distance left 
-    speed = ((controller_params.slowdown_distance - dist) / controller_params.slowdown_distance) \
-            * (controller_params.max_speed - controller_params.min_speed) + controller_params.min_speed
-    assert speed <= controller_params.max_speed
     return .1 
 
 def radial_vec_to_tangent(r, d, angle_in, angle_change):

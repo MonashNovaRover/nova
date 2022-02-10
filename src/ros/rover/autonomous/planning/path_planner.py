@@ -114,7 +114,7 @@ class PathPlanner(Node):
         show_path(_map, self.route, self.start, self.goal)
         waypoints = Waypoints()
 
-        for wpt in route_coordinates[1::5]:
+        for wpt in (route_coordinates[3::5] if len(route_coordinates) > 5 else [route_coordinates[-1]]):
             # publishing waypoints in order 
             waypoint = Waypoint()
             waypoint.x = wpt[0]
