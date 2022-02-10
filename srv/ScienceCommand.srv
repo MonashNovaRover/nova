@@ -3,7 +3,7 @@
 
 # This is a JSON'ified string that is converted as the command. It has:
 #	target: str
-#	command: str
+#	action: str
 #	args: dict [optional - can be left empty]
 string command
 
