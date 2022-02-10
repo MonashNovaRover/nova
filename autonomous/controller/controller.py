@@ -35,7 +35,7 @@ from math_utils.controller_math import *
 from config.runtime_params import *
 from core.msg import DriveInput, RoverPose, Waypoints
 import sys
-import vis.path_vis
+import vis.path_vis as path_vis
 
 from config.ros_config import rover_pose_topic
 from config.ros_config import auto_drive_command_topic
@@ -127,15 +127,15 @@ class Controller(Node):
         position_vector = np.array([self.state.x, self.state.y, 0])
         target_vector = np.array([self.target_waypoint[0], self.target_waypoint[1], 0])
         
-        desired_yaw = target_vector - position_vector
-        current_yaw = np.array([np.cos(self.state.yaw), np.sin(self.state.yaw), 0])
+        desired_orientation = target_vector - position_vector
+        current_orientation = np.array([np.cos(self.state.yaw), np.sin(self.state.yaw), 0])
         
-        yaw_diff = yaw_difference(current_yaw, desired_yaw)
+        yaw_diff = yaw_difference(current_orientation, desired_orientation)
 
         if abs(yaw_diff) >= (min_yaw_difference):
             # turn at a rate determined by the tank_turn_target_yaw_rate function
-            steer_fraction = tank_turn_target_yaw_rate(self.state.yaw, target_yaw)
-            self.__publish(0.0, steer_fraction)
+            steer_fraction = tank_turn_target_yaw_rate(yaw_diff)
+            self.__publish(0.05, steer_fraction)
 
             Controller.print_update("yawing", self.target_waypoint, yaw_diff,
                                     distance((self.state.x, self.state.y), self.target_waypoint))

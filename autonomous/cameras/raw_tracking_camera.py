@@ -25,6 +25,23 @@ Connects to the tracking camera and publishes various transformed pose topics. R
 """
 
 
+def get_yaw_tracking(data):
+    """
+    Converts a quaternion in raw T265 tracking coordinates, to a yaw angle defined counter clockwise
+    right handed coordinate system where positive X is forward, positive Y is leftm positive Z is up.
+    """
+    qx = -data.rotation.z
+    qy = -data.rotation.x
+    qz = data.rotation.y
+    qw = data.rotation.w
+
+    # msg.yaw = euler_from_quaternion([q_x, q_y, q_z, q_w])[1]
+    yaw = math.atan2(2.0*(qx*qy + qw*qz), qw*qw + qx*qx - qy*qy - qz*qz)
+    yaw = (yaw if yaw > 0 else 2.0 * math.pi + yaw) + 0
+    yaw = yaw if yaw <= math.pi * 2 else yaw - math.pi * 2
+    return yaw
+
+
 class TrackingCamera(Node):
     """
     This object runs in a separate thread and either accepts input directly from the tracking camera, from a ROS node,
@@ -39,11 +56,14 @@ class TrackingCamera(Node):
         self.pipe = rs.pipeline()
 
         self.camera_pub = self.create_publisher(Odometry, tracking_pose_topic, 10)
+        
+        
+        
         self.rover_pose_pub = self.create_publisher(RoverPose, rover_pose_topic, 10)
 
         # Subscriber for wheel odom data
-        self.wheel_velocity = rs.vector() # holds wheel velocity input
-        self.wheel_subscriber = self.create_subscription(DriveVel, "/autonomous/drive_vel", self.update_wheel_vel, 10)
+        # self.wheel_velocity = rs.vector() # holds wheel velocity input
+        # self.wheel_subscriber = self.create_subscription(DriveVel, "/autonomous/drive_vel", self.update_wheel_vel, 10)
 
         # Build config object and request pose data
         self.cfg = rs.config()
@@ -52,7 +72,6 @@ class TrackingCamera(Node):
 
         self.initial_x = 0.0
         self.initial_y = 0.0
-        self.initial_yaw = 0.0
 
         # Start streaming
         pipe_profile = self.pipe.start(self.cfg) 
@@ -61,12 +80,37 @@ class TrackingCamera(Node):
         dev = pipe_profile.get_device()
         # dev.hardware_reset() - could do a hardware reset here?
         # later as mentioned should have a system for detecting if disconnected
-        tm2 = dev.as_tm2()
-        self.wheel_odometer = None
+        # tm2 = dev.as_tm2()
+        # self.wheel_odometer = None
+        tm2 = False
         if tm2:
             pose_sensor = tm2.first_pose_sensor()
             self.wheel_odometer = pose_sensor.as_wheel_odometer()
             self.wheel_odometer.load_wheel_odometery_config(self.toUint8()) # load/configure wheel odometer
+
+    def transform_t265_to_nova(self, data):
+        """
+        Transform the raw T265 data into a ROS Odom message, with the right handed coorddinate system 
+        where 
+        up = +z
+        left = +y
+        forward = +x
+        """
+        t265_msg = Odometry()
+
+        t265_msg.header.stamp = self.get_clock().now().to_msg()
+        t265_msg.header.frame_id = main_frame
+
+        t265_msg.pose.pose.position.x = -data.translation.z
+        t265_msg.pose.pose.position.y = -data.translation.x
+        t265_msg.pose.pose.position.z = data.translation.y
+
+        t265_msg.pose.pose.orientation.x = -data.rotation.z
+        t265_msg.pose.pose.orientation.y = -data.rotation.x
+        t265_msg.pose.pose.orientation.z = data.rotation.y
+        t265_msg.pose.pose.orientation.w = data.rotation.w
+        return t265_msg
+
 
     def get_next_pose(self):
         frames = self.pipe.wait_for_frames()
@@ -74,54 +118,32 @@ class TrackingCamera(Node):
         if pose:
             data = pose.get_pose_data()
             # calculate position - flip convert to correct x and y conventions
-
-            t265_msg = Odometry()
-            rover_msg = RoverPose()
-
-            t265_msg.header.stamp = self.get_clock().now().to_msg()
-            t265_msg.header.frame_id = main_frame
-
-            t265_msg.pose.pose.position.x = -data.translation.z
-            t265_msg.pose.pose.position.y = -data.translation.x
-            t265_msg.pose.pose.position.z = data.translation.y
-
-            t265_msg.pose.pose.orientation.x = -data.rotation.z
-            t265_msg.pose.pose.orientation.y = -data.rotation.x
-            t265_msg.pose.pose.orientation.z = data.rotation.y
-            t265_msg.pose.pose.orientation.w = data.rotation.w
-
+            
+            t265_msg = self.transform_t265_to_nova(data)
             self.camera_pub.publish(t265_msg)
-
+            rover_msg = RoverPose()
+            
             # get rover position as centre of wheel-base
             rover_position = transform.transform_points(t265_msg, np.array([tracking_camera_extrinsics]))[0]
 
             rover_msg.x = rover_position[0]
             rover_msg.y = rover_position[1]
             rover_msg.z = rover_position[2]
-
-            qx = -data.rotation.z
-            qy = -data.rotation.x
-            qz = data.rotation.y
-            qw = data.rotation.w
-
-            # msg.yaw = euler_from_quaternion([q_x, q_y, q_z, q_w])[1]
-            yaw = -math.atan2(2.0*(qx*qy + qw*qz), qw*qw + qx*qx - qy*qy - qz*qz)
-            yaw = (yaw if yaw > 0 else 2.0 * math.pi + yaw) + 0
-            yaw += self.initial_yaw
-            yaw = yaw if yaw <= math.pi * 2 else yaw - math.pi * 2
-
+            
+            # gets yaw from raw tracking coordinates
+            yaw = get_yaw_tracking(data)
             rover_msg.yaw = yaw
-
             self.rover_pose_pub.publish(rover_msg)
 
-            self.send_wheel_odom() # This should be tested if it should go here
+            # self.send_wheel_odom() # This should be tested if it should go here
             # which is essentially sending the last wheel data recieved OR
             # whether it should fire after the wheel data is recieved under
             # the callback.
 
-            sys.stdout.write("\r" + "x: " + str(round(rover_msg.x, 4)).ljust(7)
-                             + " | y: " + str(round(rover_msg.y, 4)).ljust(7)
-                             + " | yaw: " + str(round(rover_msg.yaw, 4)).ljust(7))
+            sys.stdout.write("\r" + "x: " + str(round(data.translation.x, 4)).ljust(7)
+                             + " | y: " + str(round(data.translation.y, 4)).ljust(7)
+                             + " | z: " + str(round(data.translation.z, 4)).ljust(7)
+                             + " | yaw: " + str(round(yaw, 4)).ljust(7))
             sys.stdout.flush()
 
     def toUint8(self, filename ='calibration_odometry.json'):
