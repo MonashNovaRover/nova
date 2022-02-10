@@ -46,6 +46,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   # Service definitions
   "srv/CameraCommand.srv"
   "srv/PIDTune.srv"
+  "srv/ScienceCommand.srv"
 
   # Action definitions
   
