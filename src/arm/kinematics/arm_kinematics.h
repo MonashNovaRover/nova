@@ -72,14 +72,13 @@ class ArmKinematics : public rclcpp::Node
     std::chrono::milliseconds joint_velocities_timer_period;
 
     // Track internal state
-    // Resolvers
+    // Resolvers and joint velocities
     sensor_msgs::msg::JointState joints;
     // Task velocity
     geometry_msgs::msg::TwistStamped task_velocity;
     
-    // Store output messages so only need to initialise constant info once
+    // Store other output messages so only need to initialise constant info once
     sensor_msgs::msg::MultiDOFJointState coord_frames;
-    sensor_msgs::msg::JointState joint_velocities;
 
     // Arm model and solvers
     ArmModel arm_model;
