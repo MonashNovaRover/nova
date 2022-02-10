@@ -26,7 +26,7 @@ ArmKinematics::ArmKinematics() :
     joint_velocities_timer_period = 200ms;
 
     // Initialise arrays in internal data structures
-    joint_velocities = ArmCore::get_empty_joint_state(hack::JOINT_NAMES);
+    joints = ArmCore::get_empty_joint_state(hack::JOINT_NAMES);
     // TwistStamped does not need to be initialised
     // Just include joints in arm_coord_frames for now
     // Later add control points in a different topic
@@ -132,13 +132,12 @@ void ArmKinematics::publish_coord_frames()
 void ArmKinematics::publish_joint_velocities()
 {
     // Calculate the inverse kinematics
-    //joint_velocities.velocity = MODEL.GET_THIS_BREAD(task_velocity);
-    // Update the position too, since we have that info available
-    joint_velocities.position = joints.position;
+    //joints.velocity = MODEL.GET_THIS_BREAD(task_velocity);
+
     // Update the header
-    joint_velocities.header.stamp = this->now();
+    joints.header.stamp = this->now();
     // Publish the message
-    //joint_velocities_pub->publish(joint_velocities);
+    //joint_velocities_pub->publish(joints);
 }
 
 
