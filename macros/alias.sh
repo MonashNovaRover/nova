@@ -44,6 +44,6 @@ alias jetson='ssh -Y nvidia@192.168.1.204'
 alias wombat='cd ~/nova_ws/src/gui/wombatx; npm run start'
 
 # Launching ALaiases
-alias base='ros2 launch control base.launch.py'
-alias rover='ros2 launch control rover.launch.py'
-alias arm='ros2 launch control arm.launch.py'
+alias base='ros2 launch core base.launch.py'
+alias rover='ros2 launch core rover.launch.py'
+alias arm='ros2 launch core arm.launch.py'
