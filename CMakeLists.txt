@@ -46,9 +46,16 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   # Service definitions
   "srv/CameraCommand.srv"
   "srv/PIDTune.srv"
+  "srv/ScienceCommand.srv"
 
   # Action definitions
   
+)
+
+# Add all the installation directories
+install(DIRECTORY
+  launch
+  DESTINATION share/${PROJECT_NAME}
 )
 
 # Run build testing package nodes

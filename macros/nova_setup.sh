@@ -168,3 +168,4 @@ npm update
 title "Installation Complete!"
 echo "All Nova files are now located in ~/nova_ws in your home directory."
 cd ~/nova_ws
+
