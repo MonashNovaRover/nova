@@ -72,11 +72,13 @@ void ArmInputs::publish_arm_inputs () {
     // Create a new message
     auto message = core::msg::ArmInput();
 
+    /*
     // Set the values for first 6 joints from the array of data
     for (auto i = 0; i < NUM_JOINTS; i++) {
         message.task_velocity[i]    = speed_multiplier * task_velocity[i];
         message.joint_velocity[i]   = speed_multiplier * joint_velocity[i];
     }
+    */
 
     // Set the values for linear actuator and end effector actuation
     message.linear_actuation = linear_actuation;
@@ -98,10 +100,12 @@ void ArmInputs::publish_arm_inputs () {
     arm_publisher->publish(message);
 
     // Reset the raw input data back to 0 to avoid issues
+    /*
     for (auto i = 0; i < NUM_JOINTS; i++) {
         task_velocity[i]    = 0;
         joint_velocity[i]   = 0;
     }
+    */
 }
 
 // Publishes joint velocity data
@@ -116,6 +120,9 @@ void ArmInputs::publish_joint_vel () {
     // Set the values for first 6 joints from the array of joint space data
     for (auto i = 0; i < NUM_JOINTS; i++) {
         joint_velocities.velocity[i]   = speed_multiplier * joint_velocity[i];
+        
+        // std::cout << "raw" << joint_velocity[1] << std::endl;
+        // std::cout << "not raw" <<joint_velocities.velocity[1] << std::endl;
     }
 
     // Publish the joint space velocities

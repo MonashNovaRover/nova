@@ -64,6 +64,9 @@ class ArmControl : public rclcpp::Node {
     //Store the subscribers to the resolvers
     rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr resolvers_subscription;
 
+    // Stores messages to be published
+    sensor_msgs::msg::JointState cmd_outputs;
+
     // Stores task space inputs
     float joint_velocity_ik[NUM_JOINTS];
 
