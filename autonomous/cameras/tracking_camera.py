@@ -1,16 +1,18 @@
+__package__ = "autonomous"
+
 import numpy as np
 import rclpy
 from rclpy.node import Node
 from nav_msgs.msg import Odometry
 from core.msg import RoverPose, DriveVel
-
 import math
-
-import transform
+import math_utils.transform as transform
 from config.ros_config import tracking_camera_extrinsics
 from config.ros_config import main_frame
 from config.ros_config import tracking_pose_topic
+from config.ros_config import rover_pose_topic
 
+# different systems seem to install the pyrealsense wrapper differently
 try:
     import pyrealsense2.pyrealsense2 as rs
 except:
@@ -18,7 +20,7 @@ except:
 import sys
 
 """
-Connects to the tracking camera and publishes various transformed pose topics. Runs in a seperate thread.
+Connects to the tracking camera and publishes various transformed pose topics. Runs in a separate thread.
 """
 
 
@@ -36,7 +38,7 @@ class TrackingCamera(Node):
         self.pipe = rs.pipeline()
 
         self.camera_pub = self.create_publisher(Odometry, tracking_pose_topic, 10)
-        self.rover_pose_pub = self.create_publisher(RoverPose, "/rover/pose", 10)
+        self.rover_pose_pub = self.create_publisher(RoverPose, rover_pose_topic, 10)
 
         # Subscriber for wheel odom data
         self.wheel_velocity = rs.vector() # holds wheel velocity input
@@ -49,7 +51,7 @@ class TrackingCamera(Node):
 
         self.initial_x = 0.0
         self.initial_y = 0.0
-        self.initial_yaw = 5.0 / 4.0 * math.pi
+        self.initial_yaw = 0.0
 
         # Start streaming
         pipe_profile = self.pipe.start(self.cfg) 
@@ -96,9 +98,9 @@ class TrackingCamera(Node):
             rover_msg.y = rover_position[1]
             rover_msg.z = rover_position[2]
 
-            qx = data.rotation.x
-            qy = data.rotation.y
-            qz = data.rotation.z
+            qx = -data.rotation.z
+            qy = -data.rotation.x
+            qz = data.rotation.y
             qw = data.rotation.w
 
             # msg.yaw = euler_from_quaternion([q_x, q_y, q_z, q_w])[1]
@@ -117,7 +119,7 @@ class TrackingCamera(Node):
             # the callback.
 
             sys.stdout.write("\r" + "x: " + str(round(rover_msg.x, 4)).ljust(7)
-                             + " | y: " + str(round(rover_msg.x, 4)).ljust(7)
+                             + " | y: " + str(round(rover_msg.y, 4)).ljust(7)
                              + " | yaw: " + str(round(rover_msg.yaw, 4)).ljust(7))
             sys.stdout.flush()
 

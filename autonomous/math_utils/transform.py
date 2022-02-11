@@ -1,3 +1,4 @@
+__package__ = "autonomous"
 """
 The 2022 Autonomous package performs many geometric transformations on point-clouds, and converts to 
 and from point-clouds frequently. This file contains pure functions to do just that!

@@ -1,3 +1,4 @@
+__package__ = "autonomous"
 #!/usr/bin/python3
 
 """
@@ -6,7 +7,7 @@ Methods
 
 import rclpy
 from rclpy.node import Node
-import pc_pub
+import vis.pc_pub as pc_pub
 
 from core.msg import Waypoints
 
@@ -45,7 +46,7 @@ class PathCloud(Node):
 
         self.pc_pub.pub(pc)
         
-        print("visualizing path: " + str(path))
+        print("visualizing path: ")
 
 if __name__ == "__main__":
     rclpy.init(args=None)

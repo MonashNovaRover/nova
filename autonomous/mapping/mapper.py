@@ -1,4 +1,6 @@
+__package__ = "autonomous"
 #!/usr/bin/python3
+  
 
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -26,15 +28,17 @@ TODO:
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import PointCloud2
-import pc_converter as pc2
-import transform
+import vis.pc_converter as pc2
+import math_utils.transform as transform
 from sensor_msgs.msg import PointField
 from nav_msgs.msg import Odometry
-from grid_3d import Grid3D
+from mapping.grid_3d import Grid3D
+from planning.path_planner import PathPlanner
 import matplotlib.pyplot as plt
 import numpy as np
-import pc_pub
-from depth_camera import DepthCamera
+import vis.pc_pub as pc_pub
+import time
+from cameras.depth_camera import DepthCamera
 from config.ros_config import tracking_pose_topic
 
 # python | ros
@@ -43,12 +47,12 @@ depth_topic = '/D400/depth/color/points'
 
 
 class Mapper(Node):
-    def __init__(self, length=6, width=6, height=5, resolution=0.04, _vis=True):
+    def __init__(self, length=20, width=20, height=5, resolution=0.1, planner=None, _vis=True):
 
         # init node with node name points
         super().__init__('points_grid')
         self.subscriber_tracking = self.create_subscription(Odometry, tracking_pose_topic, self.tracking_callback, 100)
-
+        self.planner = planner
         self.vis = _vis
 
         # constants for pruning the point-clouds
@@ -64,6 +68,8 @@ class Mapper(Node):
         self.width = width
         self.height = height
         self.resolution = resolution
+
+        self.previous_plan = time.perf_counter()
 
         self.msg = None
         
@@ -94,6 +100,9 @@ class Mapper(Node):
         y = self.msg.pose.pose.position.y
         z = self.msg.pose.pose.position.z
         return np.array([x, y, z])
+
+    def extract_layer(self, height_m):
+        return self.map3d.extract_z(height_m)
 
     def get_points_and_colors(self, msg):
         """
@@ -165,7 +174,7 @@ class Mapper(Node):
 
         # transform the points
         if self.msg:
-            print("transforming pc")
+            # print("transforming pc")
             mat = self.get_transform()
             pts = np.matmul(mat, pts.transpose()).transpose()
             pts = pts + self.get_translation()
@@ -173,6 +182,13 @@ class Mapper(Node):
         # edit both of these to handle non coloured point-clouds
         self.map3d.add_pc_points_only(pts)
         pts = self.map3d.get_as_pc()
+        
+        if time.perf_counter() - self.previous_plan > 2:
+            if self.planner:
+                self.previous_plan = time.perf_counter()
+                layer = self.extract_layer(2.5)
+                print(sum(layer))
+                self.planner.get_path(layer.squeeze())
 
         # setting colors proportional to the height of points - hopefully looks cool!
         if self.vis:
@@ -229,12 +245,20 @@ class Mapper(Node):
         when using the python API, it should be a points only map.
         """
         self.msg = self.last_msg
+        
+        # t = time.time()
         self.update_map_pts_only(self.get_pts(msg))
+
 
     def ros_points_callback(self, msg):
         self.msg = self.last_msg
         pts, colors = self.get_points_and_colors(msg)
         self.update_map(pts)
+        # every 2 seconds we run planning
+        if time.perf_counter() - self.previous_plan > 2:
+            if self.planner:
+                self.previous_plan = time.perf_counter()
+                self.planner.get_path(self.extract_layer(2.8))
 
     def publish_vis_dense(self, extra_pts=1):
         """
@@ -270,8 +294,8 @@ def position_callback(msg):
     Parses positional data, calculates the average value and publishes
     it to the topic /obstacle_proximity.
     """
-    print(msg.pose.pose.position.x)
-
+    # print(msg.pose.pose.position.x)
+    pass
 
 def main(args=None):
     rclpy.init(args=args)
