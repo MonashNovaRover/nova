@@ -1,4 +1,5 @@
 __package__ = "autonomous"
+from config.runtime_params import min_point_density 
 import numpy as np
 import time
 
@@ -120,21 +121,21 @@ class Grid3D:
         # parse only the indexes which are within the map bounds
         indexes = self.get_indexes(points)
 
-        indexes_indexes = np.all(np.array([indexes[:, 0] < self.map.shape[0], indexes[:, 1] < self.map.shape[1],
+        valid_indexes = np.all(np.array([indexes[:, 0] < self.map.shape[0], indexes[:, 1] < self.map.shape[1],
                                            indexes[:, 2] < self.map.shape[2]]).transpose(), axis=1)
 
-        indexes = indexes[indexes_indexes]
+        indexes = indexes[valid_indexes]
 
         # print("getting " + str(indexes.shape[0]) + " indexes took: " + str(time.time() - t) + "   (" + str(
         # 10000 * (time.time() - t) / indexes.shape[0]) + " s per 10k indexes)")
 
         t = time.time()
 
-        # fill the all the new points with the new timestamp and colors
-
-        # todo: this could be wrong
-        to_add = np.full((indexes.shape[0], 1), 1)
-        self.map[indexes.transpose()[0], indexes.transpose()[1], indexes.transpose()[2]] = to_add
+        # numpy god method - gives us back all the unique indices and the number of times
+        # they repeated. For removing dodgy noise points
+        indexes, counts = np.unique(indexes, return_counts=True, axis=0)
+        counts //= min_point_density # anything below min_point_density -> 0
+        self.map[indexes[:,0], indexes[:,1], indexes[:,2]] = counts
 
         # print("adding " + str(indexes.shape[0]) + " points took: " + str(time.time() - t) + "   (" + str(
         # 10000 * (time.time() - t) / indexes.shape[0]) + " s per 10k indexes)")
