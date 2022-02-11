@@ -1,0 +1,56 @@
+HOW TO DO REFACTOR TO THIS SCHEMA:
+all directories inside autonomous/autonomous (including the directory itself) need an __init__.py
+
+in each file, write 
+__package__="autonomous"
+
+When you import, you don't need to write:
+"from autonomous.package import thinkgo"
+instead: 
+from package import thingo
+
+# directories
+
+-- autonomous
+main.py
+WHAT_TO_RUN.txt
+
+	-- config
+	ros_config.py
+	runtime_params.py
+
+	--  planning
+	path_2d_show.py
+	path_planner.py
+	
+	-- cameras
+	tracking_camera.py
+	depth_camera.py
+	artag_pose_detection.py
+	calibration_chessboard.yaml
+	calibration_odometry.json
+	camera_calibration.py
+	reset_cameras.py
+	
+	-- math_utils (pure functions)
+	controller_math.py
+	transform.py
+	
+	-- mapping
+	mapper.py
+	grid_3d.py	
+
+	-- controller
+	controller.py
+
+	-- vis
+	pc_pub.py
+	pc_converter.py
+	rover_vis.py
+	path_vis.py
+	
+	-- test
+	test_cpp_astar.py
+
+-- resources
+

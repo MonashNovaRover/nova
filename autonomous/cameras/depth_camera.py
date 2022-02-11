@@ -1,3 +1,4 @@
+__package__ = "autonomous"
 import math
 import time
 import numpy as np
@@ -6,9 +7,9 @@ try:
     import pyrealsense2.pyrealsense2 as rs
 except:
     import pyrealsense2 as rs
-from pc_pub import PCPub
+from vis.pc_pub import PCPub
 import rclpy
-import artag_pose_detection as ar
+import cameras.artag_pose_detection as ar
 import sys
 
 

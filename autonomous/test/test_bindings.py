@@ -1,6 +1,7 @@
+__package__ = "autonomous"
 #!/usr/bin/python3
 
-from build.path_planner import *
+from planning.path_planner import *
 
 print(test())
 

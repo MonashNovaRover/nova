@@ -40,6 +40,8 @@ qtcreator-*
 tests*
 *.png
 *.tar
+*.swp
+/pybind11
 
 /planning/cfg
 /planning/docs
