@@ -1,3 +1,4 @@
+__package__ = "autonomous"
 #!/usr/bin/python3
 """
 Convert rover as .ply file to pointcloud
@@ -8,8 +9,8 @@ import numpy as np
 import rclpy
 from rclpy.node import Node
 from nav_msgs.msg import Odometry
-import pc_pub
-import transform
+import vis.pc_pub as pc_pub
+import math_utils.transform as transform
 from config.ros_config import tracking_pose_topic
 
 

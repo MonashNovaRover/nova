@@ -1,3 +1,4 @@
+__package__ = "autonomous"
 import math
 
 # tank turning constants (test and define on a terrain basis)

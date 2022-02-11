@@ -1,3 +1,4 @@
+__package__ = "autonomous"
 import cv2
 import cv2.aruco as ar
 import sys
