@@ -47,7 +47,7 @@ class Grid3D:
 
     def extract_z(self, height_m):
         height_index = int(height_m / self.resolution)
-        return self.map[:, :, 26:].sum(axis=2).astype(bool).astype(float)
+        return self.map[:, :, height_index:].sum(axis=2).astype(bool).astype(float)
         #return self.map[:, :, height_index]
 
     def get_indexes(self, points):
