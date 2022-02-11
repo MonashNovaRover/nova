@@ -1,3 +1,4 @@
+__package__ = "autonomous"
 #!/usr/bin/env python3
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -13,7 +14,9 @@ Liam Whittle
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: Controller
 TOPICS:
-  - /D435/depth/color/points [sensor_msgs.msg.PointCloud2]
+        self.drive_cmd_publisher = self.create_publisher(DriveInput, auto_drive_command_topic, 10)
+        self.pose_subscriber = self.create_subscription(RoverPose, rover_pose_topic, self.update_pose, 10)
+        self.waypt_subscriber = self.create_subscription(Waypoints, auto_goals_topic, self.add_waypoints, 10)
 SERVICES:
   - None
 ACTIONS: None
@@ -28,11 +31,11 @@ EDITED:         07/12/2021
 import rclpy
 from time import sleep
 from rclpy.node import Node
-from autonomous.controller_math import *
-from autonomous.controller_params import *
+from math_utils.controller_math import *
+from config.runtime_params import *
 from core.msg import DriveInput, RoverPose, Waypoints
 import sys
-from autonomous import path_vis
+import vis.path_vis as path_vis
 
 from config.ros_config import rover_pose_topic
 from config.ros_config import auto_drive_command_topic
@@ -41,7 +44,6 @@ from config.ros_config import auto_goals_topic
 
 """
 TODO: update led according to distance?
-TODO: test rate object
 TODO: test all publishers and subscribers
 TODO: investigate more efficient/accurate drive control methods than repeated tank turning and forward driving
 """
@@ -122,13 +124,18 @@ class Controller(Node):
         single zero drive command is sent before driving begins.
         """
         # calculate target yaw and signed yaw difference using the controller_math module
-        target_yaw = desired_heading((self.state.x, self.state.y), self.target_waypoint)
-        yaw_diff = yaw_difference(self.state.yaw, target_yaw)
+        position_vector = np.array([self.state.x, self.state.y, 0])
+        target_vector = np.array([self.target_waypoint[0], self.target_waypoint[1], 0])
+        
+        desired_orientation = target_vector - position_vector
+        current_orientation = np.array([np.cos(self.state.yaw), np.sin(self.state.yaw), 0])
+        
+        yaw_diff = yaw_difference(current_orientation, desired_orientation)
 
-        if abs(yaw_diff) >= (min_yaw_difference / 2.0):
+        if abs(yaw_diff) >= (min_yaw_difference):
             # turn at a rate determined by the tank_turn_target_yaw_rate function
-            steer_fraction = tank_turn_target_yaw_rate(self.state.yaw, target_yaw)
-            self.__publish(0.0, steer_fraction)
+            steer_fraction = tank_turn_target_yaw_rate(yaw_diff)
+            self.__publish(0.05, steer_fraction)
 
             Controller.print_update("yawing", self.target_waypoint, yaw_diff,
                                     distance((self.state.x, self.state.y), self.target_waypoint))
@@ -174,11 +181,6 @@ class Controller(Node):
             # If distance to the waypoint is lower than the threshold distance, we have arrived
             print("Reached way-point: " + str(self.target_waypoint))
             self.target_waypoint = None
-
-            for _ in range(5):
-                # stop for 5 seconds at waypoint
-                self.__publish(0.0, 0.0)
-                sleep(1)
 
 
 def main(args=None):

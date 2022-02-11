@@ -1,3 +1,4 @@
+__package__ = "autonomous"
 import math
 import time
 import numpy as np
@@ -6,9 +7,10 @@ try:
     import pyrealsense2.pyrealsense2 as rs
 except:
     import pyrealsense2 as rs
-from rclpy.node import Node
-from pc_pub import PCPub
+from vis.pc_pub import PCPub
 import rclpy
+import cameras.artag_pose_detection as ar
+import sys
 
 
 class DepthCamera(Thread):
@@ -26,8 +28,9 @@ class DepthCamera(Thread):
         # Configure depth and color streams
         self.pipeline = rs.pipeline()
         self.config = rs.config()
-        
-        self.config.enable_device('932122060332')
+
+        self.serial_number = serial_number
+        self.config.enable_device(self.serial_number)
 
         self.pipeline_wrapper = rs.pipeline_wrapper(self.pipeline)
         self.pipeline_profile = self.config.resolve(self.pipeline_wrapper)
@@ -54,7 +57,10 @@ class DepthCamera(Thread):
 
     def run(self):
         while self.running:
+            t = time.time()
             self.callback(self.get_points())
+            sys.stdout.write("\r" + "Map update completed in: " + str(round(time.time() - t, 5)) + " seconds")
+            sys.stdout.flush()
 
     def get_points(self):
         """
@@ -66,9 +72,8 @@ class DepthCamera(Thread):
 
         # Grab camera data
         # Wait for a coherent pair of frames: depth and color
-        t0 = time.time()
+        # t0 = time.time()
         frames = self.pipeline.wait_for_frames()
-        print("Waiting for frames: " + str(time.time() - t0))
 
 
         t1 = time.time()
@@ -83,8 +88,11 @@ class DepthCamera(Thread):
 
         color_image = np.asanyarray(color_frame.get_data())
 
-        depth_colormap = np.asanyarray(
-            self.colorizer.colorize(depth_frame).get_data())
+        # note: find better way of doing asynchronously
+
+        # ar.findArTag(color_image)
+
+        # depth_colormap = np.asanyarray(self.colorizer.colorize(depth_frame).get_data())
 
         mapped_frame, color_source = color_frame, color_image
 
@@ -99,13 +107,13 @@ class DepthCamera(Thread):
         
         verts = verts[~(verts[:, 2] > 4.5)]
         
-        print("point processing: " + str(time.time() - t1))
+        # print("point processing: " + str(time.time() - t1))
         
         t2 = time.time()
         if self.publisher:
             pass
             # self.publisher.pub_pts_colors(verts, 255 * np.ones((verts.shape[0], 4)))
-        print("publishing: " + str(time.time() - t2))
+        # print("publishing: " + str(time.time() - t2))
 
         return verts
 
@@ -115,12 +123,12 @@ class DepthCamera(Thread):
 
 
 def print_points_len(points):
-    print(points.shape)
-
+    # print(points.shape)
+    pass
 
 def main():
     rclpy.init(args=None)
-    camera = DepthCamera(print_points_len, publish_topic="/depth_camera/points")
+    camera = DepthCamera(print_points_len)
     camera.start()
     time.sleep(20)
 

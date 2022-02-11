@@ -1,3 +1,4 @@
+__package__ = "autonomous"
 import pyrealsense2 as rs
 
 

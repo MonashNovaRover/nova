@@ -1,3 +1,4 @@
+__package__ = "autonomous"
 """
 Controller math is a set of pure functions (meaning they only take immutable inputs and return immutable outputs,
 with no side effects (such as changing any external mutable variables, global variables etc.)
@@ -6,7 +7,7 @@ The benefit of using as many functions like this as possible is that we can bett
 assert the behaviour of functions, compositions of functions, and as a result, entire systems.
 """
 
-import controller_params
+import config.runtime_params as runtime_params
 import math
 import numpy as np
 
@@ -23,8 +24,7 @@ class State:
         self.velocity = velocity
         self.angular_velocity = angular_velocity
 
-
-def tank_turn_target_yaw_rate(current_yaw, target_yaw):
+def tank_turn_target_yaw_rate(yaw_diff):
     """
     Calculates target yaw rate. Uses sin function so that we smoothly speed up and slow down in order to change yaw
     Domain: This function should have inputs such that:
@@ -33,78 +33,30 @@ def tank_turn_target_yaw_rate(current_yaw, target_yaw):
         [-max_yaw_rate, -min_yaw_rate], [min_yaw_rate, max_yaw_rate], [0, 0]
     """
     # print("target yaw: " + str(target_yaw) + " | current_yaw: " + str(current_yaw))
-    d = yaw_difference(a=current_yaw, b=target_yaw)
-    assert -math.pi <= d <= math.pi
-    if d == 0.0:
-        return 0
-    sign = 1 if d > 0.0 else -1
-    return sign * controller_params.max_yaw_rate
+    return -np.sign(yaw_diff)
 
-
-def desired_heading(start, end):
+def yaw_difference(facing, target):
     """
-    Function returns the total positive angle (between 0 and 2pi radians) between the positive y axis and the
-    vector formed by the two start and end coordinates, heading counter clockwise. In other words, what COMPASS
-    angle would we be heading from north if we needed to reach end from start.
-    Domain: two 2-tuples (float, float), representing coordinates
-    Range: 0 to 2pi radians
-    """
-    assert len(start) == 2
-    assert len(end) == 2
-
-    # the signed bearing is within [-pi, pi]
-    signed_bearing = math.atan2(end[0] - start[0], end[1] - start[1])
-
-    return signed_bearing if signed_bearing >= 0 else signed_bearing + 2 * math.pi
-
-
-def yaw_difference(a, b):
-    """
-    Returns the signed minimum yaw required to travel to get to b from a, where a positive angle refers to traveling
-    clockwise. Use cases: this function is used to determine the absolute value of the yaw difference, to determine
+    Returns the signed minimum yaw required to rotate from one orientation vector to another. A positive angle refers to traveling
+    clockwise (in a left-handed coordinate system). Use cases: this function is used to determine the absolute value of the yaw difference, to determine
     if we should travel there. It is also used to determine how far we have to turn, so we can calculate an appropriate
     speed.
-    :param: a: 2-tuple referring to the starting angle
-    :param: b: 2-tuple referring to the desired angle
-    Domain: a and be are within 0 and 2pi
+    :param: facing - orientation vector of the rover currently
+    :param: target - target orientation of the rover
     Range: between -pi and pi
     """
 
-    a += math.pi * 2.0 if a < 0 else 0
-    b += math.pi * 2.0 if b < 0 else 0
+    cross = np.cross(facing, target)
+    dot = np.dot(facing, target)
+    norms = np.sqrt(np.dot(facing, facing)) * np.sqrt(np.dot(target, target))
+    # using dot product to find minimum angle
+    theta = np.arccos(np.round(dot/norms, 8))
 
-    assert 0.0 <= a <= math.pi * 2.0
-    assert 0.0 <= b <= math.pi * 2.0
+    yaw_sign = np.sign(cross[2]) if np.round(dot, 5) != -1. else 1
 
-    # if desired way point has greater bearing
-    if b > a:
-        # go clockwise if that's shorter
-        if b - a <= math.pi:
-            d = b - a
-        # else go anti clockwise
-        else:
-            d = -(2.0 * math.pi - b + a)
-    else:
-        # go anti clockwise if shorter
-        if a - b <= math.pi:
-            d = b - a
-        # else go clockwise
-        else:
-            d = 2 * math.pi - a + b
-    assert -math.pi <= d <= math.pi
-    return d
-
-
-def yaw_delta_size(a, b):
-    """
-    Returns the absolute value of the minimum yaw distance between two yaws
-    In other words, what is the least yaw change the rover needs to take in order to reach it's heading yaw
-    """
-    assert 0.0 <= a <= math.pi * 2.0
-    assert 0.0 <= b <= math.pi * 2.0
-    d = yaw_difference(a, b)
-    return d
-
+    diff = yaw_sign * theta
+    assert -np.pi < diff <= np.pi
+    return diff
 
 def vector_argument(vector):
     """
@@ -126,15 +78,7 @@ def crow_fly_target_velocity(current, target):
     returns: range: 0, or within [min_speed, max_speed]
     """
 
-    dist = distance(current, target)
-    assert dist >= 0.0
-    if dist > controller_params.slowdown_distance:
-        return controller_params.max_speed
-    # in the case that we have less than 2 meters left, we should drive at speed proportional to distance left 
-    speed = ((controller_params.slowdown_distance - dist) / controller_params.slowdown_distance) \
-            * (controller_params.max_speed - controller_params.min_speed) + controller_params.min_speed
-    assert speed <= controller_params.max_speed
-    return controller_params.max_speed
+    return .1 
 
 def radial_vec_to_tangent(r, d, angle_in, angle_change):
     """
