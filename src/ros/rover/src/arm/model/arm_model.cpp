@@ -65,5 +65,9 @@ ArmModel::ArmModel(WristType wrist_type, EndEffectorType end_effector_type)
         // Save the segment name where the next module attaches
         attachment_name = module.output_name;
     }
-    
+
+    // Construct list of segment names for the entire arm
+    for (auto const& segment_pair : this->getSegments()){
+        segment_names.push_back(segment_pair.first);
+    }
 }

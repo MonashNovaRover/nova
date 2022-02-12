@@ -23,16 +23,15 @@ ArmKinematics::ArmKinematics() : Node("arm_kinematics")
     coord_frames_timer_period = 200ms;
     joint_velocities_timer_period = 200ms;
 
-    // Initialise arrays in internal data structures
-    joints = ArmCore::get_empty_joint_state(hack::JOINT_NAMES);
-    // TwistStamped does not need to be initialised
-    // Just include joints in arm_coord_frames for now
-    // Later add control points in a different topic
-    coord_frames = ArmCore::get_empty_multi_dof_joint_state(hack::JOINT_NAMES);
-
     // Initialise arm model and solvers
     arm_model = ArmModel();
     arm_fk_solver = new KDL::TreeFkSolverPos_recursive(arm_model);
+
+    // Initialise arrays in internal data structures
+    // Use data from the arm model
+    joints = ArmCore::get_empty_joint_state(arm_model.joint_names);
+    // TwistStamped does not need to be initialised
+    coord_frames = ArmCore::get_empty_multi_dof_joint_state(arm_model.segment_names);
 
     // Create subscription to resolvers
     resolver_sub = this->create_subscription<sensor_msgs::msg::JointState>(
