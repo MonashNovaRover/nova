@@ -14,8 +14,6 @@ AUTHOR(S):	Jory Braun
 #include "arm_core.h"
 #include "print/print.h"
 
-#include "../hacky_defines.h"
-
 
 ArmKinematics::ArmKinematics() : Node("arm_kinematics")
 {
