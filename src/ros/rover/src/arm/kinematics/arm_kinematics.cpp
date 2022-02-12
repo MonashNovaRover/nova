@@ -17,9 +17,7 @@ AUTHOR(S):	Jory Braun
 #include "../hacky_defines.h"
 
 
-ArmKinematics::ArmKinematics() : 
-    // Initialise parent class and member objects with no default constructor
-    Node("arm_kinematics"), arm_fk_solver(KDL::Tree())
+ArmKinematics::ArmKinematics() : Node("arm_kinematics")
 {
     // Initialise constants
     coord_frames_timer_period = 200ms;
@@ -34,7 +32,7 @@ ArmKinematics::ArmKinematics() :
 
     // Initialise arm model and solvers
     arm_model = ArmModel();
-    arm_fk_solver = KDL::TreeFkSolverPos_recursive_ext(arm_model);
+    arm_fk_solver = new KDL::TreeFkSolverPos_recursive(arm_model);
 
     // Create subscription to resolvers
     resolver_sub = this->create_subscription<sensor_msgs::msg::JointState>(
@@ -97,7 +95,7 @@ void ArmKinematics::publish_coord_frames()
     // This is inefficient in KDL. For n joints takes O(n^2) time but could be O(n)
     for (unsigned int i = 0; i < coord_frames.transforms.size(); i++){
         // Calculate the FK for joint i. Store the result in kdl_coord_frame
-        int exit_value = arm_fk_solver.JntToCart(
+        int exit_value = arm_fk_solver->JntToCart(
             kdl_joints, kdl_coord_frame, coord_frames.joint_names[i]
         );
         if (exit_value == -1){
