@@ -9,6 +9,7 @@ if(Eigen3_FOUND AND Orocos_kdl_FOUND)
   # Additional message type dependencies
   find_package(sensor_msgs REQUIRED)
   find_package(geometry_msgs REQUIRED)
+  find_package(nav_msgs REQUIRED)
 
   # Additional includes for Eigen adn KDL
   include_directories(
@@ -57,11 +58,11 @@ if(Eigen3_FOUND AND Orocos_kdl_FOUND)
   target_include_directories(arm_kinematics INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/kinematics)
   ament_target_dependencies(arm_kinematics rclcpp sensor_msgs)
 
-  # PoseArray Publisher script
+  # Rviz Arm Visualisation script
   add_executable(rviz_visualisation visualisation/rviz_visualisation.cpp)
   target_link_libraries(rviz_visualisation print)
   target_include_directories(rviz_visualisation INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/visualisation)
-  ament_target_dependencies(rviz_visualisation rclcpp sensor_msgs)
+  ament_target_dependencies(rviz_visualisation rclcpp sensor_msgs nav_msgs)
 
   # Arm Simulator script
   add_executable(arm_simulator simulator/arm_simulator.cpp)
