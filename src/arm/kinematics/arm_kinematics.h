@@ -48,7 +48,7 @@ TODO:
 
 // Include libraries
 #include "arm_model.h"
-#include "kdl_extended/treefksolverpos_recursive_ext.hpp"
+#include <kdl/treefksolverpos_recursive.hpp>
 #include <kdl/treeiksolvervel_wdls.hpp>
 
 // Use the standard namespaces
@@ -83,9 +83,9 @@ class ArmKinematics : public rclcpp::Node
     // Arm model and solvers
     ArmModel arm_model;
     // FK solver using KDL
-    KDL::TreeFkSolverPos_recursive_ext arm_fk_solver;
+    KDL::TreeFkSolverPos_recursive* arm_fk_solver;
     // IK solver usign KDL
-    //KDL::TreeIkSolverVel_wdls arm_ik_solver;
+    //KDL::TreeIkSolverVel_wdls* arm_ik_solver;
 
     // Subscription to resolvers
     rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr resolver_sub;
