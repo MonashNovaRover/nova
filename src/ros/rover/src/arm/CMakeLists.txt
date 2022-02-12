@@ -16,6 +16,7 @@ if(Eigen3_FOUND AND Orocos_kdl_FOUND)
     include
   )
 
+
   ################################################
   # Add non-executable targets:
   ################################################
@@ -27,10 +28,8 @@ if(Eigen3_FOUND AND Orocos_kdl_FOUND)
 
   # Arm Model
   add_library(arm_model model/arm_model.cpp)
-  target_link_libraries(arm_model orocos-kdl arm_core)
+  target_link_libraries(arm_model orocos-kdl)
   target_include_directories(arm_model INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/model)
-  ament_target_dependencies(arm_model sensor_msgs)
-
 
 
   ################################################
@@ -58,6 +57,12 @@ if(Eigen3_FOUND AND Orocos_kdl_FOUND)
   target_include_directories(arm_kinematics INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/kinematics)
   ament_target_dependencies(arm_kinematics rclcpp sensor_msgs)
 
+  # PoseArray Publisher script
+  add_executable(rviz_visualisation visualisation/rviz_visualisation.cpp)
+  target_link_libraries(rviz_visualisation print)
+  target_include_directories(rviz_visualisation INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/visualisation)
+  ament_target_dependencies(rviz_visualisation rclcpp sensor_msgs)
+
   # Arm Simulator script
   add_executable(arm_simulator simulator/arm_simulator.cpp)
   target_link_libraries(arm_simulator arm_core)
@@ -75,6 +80,7 @@ if(Eigen3_FOUND AND Orocos_kdl_FOUND)
     arm_inputs
     arm_driver
     arm_kinematics
+    rviz_visualisation
     arm_simulator
     DESTINATION lib/${PROJECT_NAME}
   )
