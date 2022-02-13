@@ -15,6 +15,7 @@
 # The options are:
 #   can0 -  CAN 1 Line
 #   can1 -  CAN 2 Line
+#   all -   CAN 1 and CAN 2 Line
 #   vcan0 - Virtual CAN 1 Line
 #   vcan1 - Virtual CAN 2 Line
 #
@@ -28,6 +29,9 @@ END='\033[0m'
 information () {
     printf "${ERROR}${1}${END}\n"
 }
+
+# Reset the failed flag
+failed="0"
 
 
 # Check if the first keyword command
@@ -56,8 +60,17 @@ then
 elif [[ $2 = "vcan1" ]]
 then
     can="vcan1"
+
+# In the case of starting all CAN lines
+elif [[ $2 = "all" ]]
+then
+    can start can0
+    can start can1
+    failed="1"
+
+# If invalid argument
 else
-    information "Incorrect CAN line. Please enter one of:\n\t['can0', 'can1', 'vcan0', 'vcan1']"
+    information "Incorrect CAN line. Please enter one of:\n\t['can0', 'can1', 'all', 'vcan0', 'vcan1']"
     failed="1"
 fi
 
