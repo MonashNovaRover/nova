@@ -9,6 +9,7 @@ AUTHOR(S):	Jory Braun
 
 #include "rviz_visualisation.h"
 
+#include <string>
 #include "print/print.h"
 
 
@@ -48,7 +49,6 @@ void RvizVisualisation::coord_frames_callback(const sensor_msgs::msg::MultiDOFJo
 
     // Construct the Path message
     nav_msgs::msg::Path path_msg;
-    path_msg.poses = std::vector<geometry_msgs::msg::PoseStamped> (frames_msg->transforms.size());
 
     // Construct a standard header for all message types
     rclcpp::Time current_time = this->now();
@@ -68,17 +68,24 @@ void RvizVisualisation::coord_frames_callback(const sensor_msgs::msg::MultiDOFJo
         // Copy Quaternion
         poses_msg.poses[i].orientation = frames_msg->transforms[i].rotation;
         
-        // Fill the Path message
-        // Copy Pose
-        path_msg.poses[i].pose = poses_msg.poses[i];
-        // Add header
-        path_msg.poses[i].header = header;
+        // Fill the Path message with the joints
+        // Assumes the joints will all be in order and all start with "sj"
+        if (frames_msg->joint_names[i].substr(0, 2) == "sj"){
+            // Construct new PoseStamped entry
+            geometry_msgs::msg::PoseStamped new_joint_pose;
+            // Copy Pose
+            new_joint_pose.pose = poses_msg.poses[i];
+            // Add header
+            new_joint_pose.header = header;
+            // Add to message
+            path_msg.poses.push_back(new_joint_pose);
+        }
 
     }
 
     // Update the top-level headers
     poses_msg.header = header;
-    path_msg.header = header;  
+    path_msg.header = header;
     
     // Publish the messages
     arm_poses_pub->publish(poses_msg);
