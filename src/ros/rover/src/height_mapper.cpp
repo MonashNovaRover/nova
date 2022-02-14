@@ -30,13 +30,27 @@ static const unsigned char c_neg_inf = 0;
 static const unsigned char c_inf = 255;
 const unsigned char MAP_BOTTOM = 1;
 
-cv::Mat shift(cv::Mat& original, float x, float y){
+cv::Mat shift(cv::Mat& original, float x, float y, unsigned char fill_val){
     // shift a cv::Mat in the direction given by x and y.
     float shifter[6] = {1, 0, x, 0, 1, y};
     cv::Mat shift_mat(cv::Size(3, 2), CV_32FC1, shifter);
 
     cv::Mat shifted;
     cv::warpAffine(original, shifted, shift_mat, original.size());
+    
+    int start_x = (x >= 0) ? 0 : original.rows - 1;
+    int start_y = (y >= 0) ? 0 : original.cols - 1;
+
+    if (x == 0) {
+        for (int i = 0; i < original.cols; i++) {
+            shifted.at<unsigned char>(start_y, i) = fill_val;
+        }
+    }
+    else if (y == 0) {
+        for (int i = 0; i < original.rows; i++) {
+            shifted.at<unsigned char>(i, start_x) = fill_val;
+        }
+    }
 
     return shifted;
 }
@@ -72,10 +86,14 @@ py::array_t<unsigned char> getObstacles(PointCloud& points){
     }
                 
     //blurring the top height map so we can compare the heights of adjacent points
-    topHeightMap = cv::max(topHeightMap, shift(topHeightMap, -1, 0));
-    topHeightMap = cv::max(topHeightMap, shift(topHeightMap, 1, 0));
-    topHeightMap = cv::max(topHeightMap, shift(topHeightMap, 0, -1));
-    topHeightMap = cv::max(topHeightMap, shift(topHeightMap, 0, 1));
+    topHeightMap = cv::max(topHeightMap, shift(topHeightMap, -1, 0, c_neg_inf));
+    topHeightMap = cv::max(topHeightMap, shift(topHeightMap, 1, 0, c_neg_inf));
+    topHeightMap = cv::max(topHeightMap, shift(topHeightMap, 0, -1, c_neg_inf));
+    topHeightMap = cv::max(topHeightMap, shift(topHeightMap, 0, 1, c_neg_inf));
+    bottomHeightMap = cv::min(bottomHeightMap, shift(bottomHeightMap, -1, 0, c_inf));
+    bottomHeightMap = cv::min(bottomHeightMap, shift(bottomHeightMap, 1, 0, c_inf));
+    bottomHeightMap = cv::min(bottomHeightMap, shift(bottomHeightMap, 0, -1, c_inf));
+    bottomHeightMap = cv::min(bottomHeightMap, shift(bottomHeightMap, 0, 1, c_inf));
     
     cv::Mat diff;
     cv::subtract(topHeightMap, bottomHeightMap, diff);
