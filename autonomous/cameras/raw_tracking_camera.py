@@ -55,10 +55,7 @@ class TrackingCamera(Node):
         # Declare RealSense pipeline, encapsulating the actual device and sensors
         self.pipe = rs.pipeline()
 
-        self.camera_pub = self.create_publisher(Odometry, tracking_pose_topic, 10)
-        
-        
-        
+        self.camera_pub = self.create_publisher(Odometry, tracking_pose_topic, 10)        
         self.rover_pose_pub = self.create_publisher(RoverPose, rover_pose_topic, 10)
 
         # Subscriber for wheel odom data
