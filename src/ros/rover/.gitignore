@@ -29,6 +29,9 @@ devel_isolated/
 .project
 .cproject
 
+# opencv stuff
+opencv-4.5.5
+
 # qcreator stuff
 CMakeLists.txt.user
 
