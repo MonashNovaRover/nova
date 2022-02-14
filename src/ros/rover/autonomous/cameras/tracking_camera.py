@@ -84,11 +84,17 @@ class TrackingCamera(Node):
             t265_msg.pose.pose.position.x = -data.translation.z
             t265_msg.pose.pose.position.y = -data.translation.x
             t265_msg.pose.pose.position.z = data.translation.y
+            
+            # changing tracking camera's quaternion coordinates into our frame
+            qx = -data.rotation.z
+            qy = -data.rotation.x
+            qz = data.rotation.y
+            qw = data.rotation.w
 
-            t265_msg.pose.pose.orientation.x = -data.rotation.z
-            t265_msg.pose.pose.orientation.y = -data.rotation.x
-            t265_msg.pose.pose.orientation.z = data.rotation.y
-            t265_msg.pose.pose.orientation.w = data.rotation.w
+            t265_msg.pose.pose.orientation.x = qx
+            t265_msg.pose.pose.orientation.y = qy
+            t265_msg.pose.pose.orientation.z = qz
+            t265_msg.pose.pose.orientation.w = qw
 
             self.camera_pub.publish(t265_msg)
 
@@ -98,11 +104,6 @@ class TrackingCamera(Node):
             rover_msg.x = rover_position[0]
             rover_msg.y = rover_position[1]
             rover_msg.z = rover_position[2]
-
-            qx = -data.rotation.z
-            qy = -data.rotation.x
-            qz = data.rotation.y
-            qw = data.rotation.w
 
             # msg.yaw = euler_from_quaternion([q_x, q_y, q_z, q_w])[1]
             yaw = -math.atan2(2.0*(qx*qy + qw*qz), qw*qw + qx*qx - qy*qy - qz*qz)
