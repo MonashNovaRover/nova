@@ -25,4 +25,4 @@ a_star_rate = 1 # 1Hz
 min_point_density = 10
 max_point_depth = 3.5 # distance beyond which we don't consider points
 max_point_angle = math.pi/9  # 20 degrees
-max_safe_obstacle = 10
+max_safe_obstacle = 10 # obstacle threshold for 2d map
