@@ -33,7 +33,7 @@ ArmKinematics::ArmKinematics() : Node("arm_kinematics")
 
     // Create subscription to resolvers
     resolver_sub = this->create_subscription<sensor_msgs::msg::JointState>(
-        "/control/resolvers", 10, std::bind(&ArmKinematics::resolver_callback, this, _1)
+        "/electronics/resolvers", 10, std::bind(&ArmKinematics::resolver_callback, this, _1)
     );
 
     // Create subscription to task_velocity
