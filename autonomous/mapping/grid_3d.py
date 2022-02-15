@@ -67,7 +67,7 @@ class Grid3D:
         pos = points + np.array([self.length / 2, self.width / 2, self.height / 2])
 
         # getting indexes simply by dividing by resolution and taking as integer
-        ind = (pos / self.resolution).astype(int)
+        ind = (pos / self.resolution).round().astype(int)
 
         return ind
 
