@@ -43,9 +43,6 @@ class Grid2D:
         indexes = (points/self.detection_resolution).round().astype(int)
         return indexes
 
-    def scale_to_plan(self, indexes):
-        indexes = (indexes * self.detection_resolution/self.planning_resolution).round().astype(int)
-
     def filter_points(self, points):
         """
         Discretises point cloud into indices, then filters out indices without
@@ -71,7 +68,7 @@ class Grid2D:
         and stores the resulting 2d map of obstacles
         :param points: (n, 3) numpy array
         """
-        indexes = self.filter_points(points)
+       indexes = self.filter_points(points)
 
         # cpp function finds steep areas in the high resolution map
         obstacles = get_obstacles(indexes)
@@ -80,5 +77,9 @@ class Grid2D:
         return downscale_obs(obstacles) 
 
     def add_obstacles(self, obstacles):
+        """
+        Function to add a list of coordinates and their values to the 2d map. 
+        """
+
         self.map[obstacles[:, 0], obstacles[:, 1]] = obstacles[:, 2] 
 
