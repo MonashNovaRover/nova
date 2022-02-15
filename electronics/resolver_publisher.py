@@ -14,13 +14,15 @@ TODO:
     - Add subscription to topic to see what joints are connected
     - Setup appropriate QoS profile
     - Set appropriate transmit and receive timeouts
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    - Check structure of unpacked_data - should it be a tuple? Only the 0th element has stuff in it.
+    - Add ROS service for zeroing resolvers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """  
 
 from math import pi
 import rclpy
 from rclpy.node import Node
-from rclpy.sensor_msgs import JointState
+from sensor_msgs.msg import JointState
 
 from coms_utils.uart_interface import UARTTransceiver
 
@@ -29,7 +31,7 @@ class ResolverTransceiver(UARTTransceiver):
     Transceiver class to handle reading values from encoders
     '''
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+        super().__init__(receive_timeout=.05, **kwargs)
         # create mapping of joint names to resolver ids for sending commands
         # FIXME: Based off the old script, the base IDs were 0x4, 0x8, 0xC, 0x10, 0x14
         # but unsure what the additional joints IDs are. Relatively easy to add them later though
@@ -84,7 +86,7 @@ class ResolverTransceiver(UARTTransceiver):
         ret = self.receive()
         if ret is None:
             return -1
-        unpacked_data = self.unpack(ret)
+        unpacked_data = self.unpack(ret)[0]
 
         # TODO: Handle checksum 
         # for now just mask it out by removing 2 high order bits
@@ -106,7 +108,7 @@ class ResolverPublisher(Node):
 
         self.resolver_transceiver = ResolverTransceiver(
                 receive_fmt = '<H', # TODO: check this data format
-                transmit_fmt = '@B' # TODO: check this data format
+                transmit_fmt = '@B', # TODO: check this data format
                 logger = self.get_logger(),
                 baudrate = 115200, # probably right?
                 port = '/dev/ttyUSB0', # TODO: check this
@@ -119,7 +121,7 @@ class ResolverPublisher(Node):
         msg = JointState()
         for joint in self.resolver_transceiver.joint_id_map.keys():
             msg.name.append(joint)
-            msg.position.append(self.resolver_transceiver.position(joint)
+            msg.position.append(self.resolver_transceiver.position(joint))
         
         self._publisher.publish(msg)
 
