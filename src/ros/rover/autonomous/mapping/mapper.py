@@ -41,8 +41,8 @@ import vis.pc_pub as pc_pub
 import time
 from cameras.depth_camera import DepthCamera
 from config.ros_config import tracking_pose_topic
-from config.ros_config import max_point_depth
-from config.ros_config import max_point_angle
+from config.runtime_params import max_point_depth
+from config.runtime_params import max_point_angle
 
 # python | ros
 depth_mode = "python"
