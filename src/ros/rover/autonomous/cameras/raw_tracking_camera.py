@@ -127,9 +127,8 @@ class TrackingCamera(Node):
             rover_msg.y = rover_position[1]
             rover_msg.z = rover_position[2]
             
-            # gets yaw from raw tracking coordinates
-            yaw = get_yaw_tracking(data)
-            rover_msg.yaw = yaw
+            # gets euler angles from tracking camera quaternion
+            rover_msg.pitch, rover_msg.roll, rover_msg.yaw = transform.quat_to_euler(t265_msg)
             self.rover_pose_pub.publish(rover_msg)
 
             # self.send_wheel_odom() # This should be tested if it should go here
