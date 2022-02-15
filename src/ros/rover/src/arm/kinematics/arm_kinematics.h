@@ -14,7 +14,7 @@ It reads the current task velocity and IK parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: arm_kinematics
 TOPICS:
-  - /control/resolvers         [sensor_msgs/JointState]          [Subscribed]
+  - /electronics/resolvers     [sensor_msgs/JointState]          [Subscribed]
   - /control/task_velocity     [geometry_msgs/TwistStamped]      [Subscribed]
   - /control/arm_coord_frames  [sensor_msgs/MultiDOFJointState]  [Published]
   - /control/joint_velocities  [sensor_msgs/JointState]          [Published]
