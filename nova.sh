@@ -16,6 +16,7 @@ source ~/nova_ws/src/core/macros/ros.sh
 
 # appending to pythonpath for autonomous folders
 export PYTHONPATH=$PYTHONPATH:~/nova_ws/src/autonomous/autonomous
+export PYTHONPATH=$PYTHONPATH:~/nova_ws/src/gui/gui/
 
 # Source the aliases (if ROS 2)
 if [[ $ROS_VERSION -eq 2 ]]; then
