@@ -27,6 +27,26 @@ from core.srv import ScienceCommand
 # Include utilities for publishing CAN data
 from coms_utils.can_interface import CANTransceiver
 
+# Standard CAN ID
+CAN_ID = 0
+
+
+# New looking for CMD
+# WILL NEED TO UPDATE THIS
+TARGET_USE_CMD = {
+    "payload": True,
+    "hydraprobe": False,
+    "kiln": False
+}
+
+ACTION_CMD_ID = {
+    "scoop": "8",
+    "linear_actuator": "9",
+}
+
+
+# Old Target Dictionary
+
 TARGET_DICT =  {
     "payload": "0",
     "hydraprobe": "1",
@@ -118,15 +138,36 @@ class ServiceNode(Node):
         self.service = self.create_service(ScienceCommand, '/science/transmitter', self.callback_func)
 
         # Sets up the CAN transceiver interface with the correct ID and channels
-        self.can = CANTransceiver(arbitration_id=1, channel="can1")
+        self.can = CANTransceiver(arbitration_id=CAN_ID, channel="can1")
+
 
     '''
     Description of callback function
+    TODO:
+    Fix the CMD stuff - we will need to design a better solution to this
     '''
     def callback_func(self, request, response):
-        # Parses the command
-        command = parse_command(json.loads(request.command))
-        print("Executing Command: %s" % command)
+
+        json_data = json.loads(request.command)
+
+        # Check if command is CMD or PICS
+        # If CMD
+        if TARGET_USE_CMD[json_data["target"]]:
+            command = "00"
+
+            # Update the CAN ID
+            new_id = ACTION_CMD_ID[json_data["action"]] + ARGUMENT_DICT[json_data["args"]["direction"]]
+            self.can.arbitration_id = int(new_id, 16)
+
+
+        # If PICS
+        else:
+            # Parses the command
+            command = parse_command()
+            print("Executing Command: %s" % command)
+
+            # Update the CAN ID
+            self.can.arbitration_id = CAN_ID
 
         # Execute the CAN command
         response.success = self.can.transmit(bytearray.fromhex(command))
