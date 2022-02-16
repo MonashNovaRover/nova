@@ -44,7 +44,7 @@ install(DIRECTORY
 
 # Add all Python executables to this list
 install(PROGRAMS
-  # science/todo.py
+  science/transmitter.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
