@@ -78,6 +78,7 @@ sudo apt install python3-colcon-common-extensions -y
 information "Installing Editors..."
 sudo apt-get -y install nano
 sudo apt install vim -y
+sudo apt install screen
 
 # Install C++
 information "Installing C++..."
