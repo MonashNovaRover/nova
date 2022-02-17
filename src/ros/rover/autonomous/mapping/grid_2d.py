@@ -68,7 +68,7 @@ class Grid2D:
         and stores the resulting 2d map of obstacles
         :param points: (n, 3) numpy array
         """
-       indexes = self.filter_points(points)
+        indexes = self.filter_points(points)
 
         # cpp function finds steep areas in the high resolution map
         obstacles = get_obstacles(indexes)
