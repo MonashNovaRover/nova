@@ -17,7 +17,7 @@ def main(args):
     
     length = 20
     width = 20
-    resolution = 0.1
+    resolution = 0.05
 
     # in this janky night-before-mvp we will be creating a map2d object which is shared by planner and mapper.
     # Mapper updates it, planner just reads from it.

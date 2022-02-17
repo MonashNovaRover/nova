@@ -152,7 +152,6 @@ class Mapper(Node):
         if self.msg:
             # transforming to the global frame
             full_transform_pts = transform.transform_points(self.msg, pts)
-
             self.map3d.add_pc_points_only(full_transform_pts)
             pts = self.map3d.get_as_pc()
             
@@ -171,6 +170,7 @@ class Mapper(Node):
             # white mode
             # colors = np.array(np.full((len(pts), 3), 255))
             self.pc_pub.pub_pts_colors(pts, colors.astype(int))
+            #self.publish_vis_dense()
 
     def get_pts(self, pts):
         # 1. Transform to tracking camera coordinates
