@@ -82,9 +82,8 @@ void ArmKinematics::task_velocity_callback(const geometry_msgs::msg::TwistStampe
 void ArmKinematics::publish_coord_frames()
 {
     // Get the input positions in the form KDL likes
-    Eigen::Matrix<double, 6, 1> eigen_joints(joints.position.data());
     KDL::JntArray kdl_joints;
-    kdl_joints.data = eigen_joints;
+    kdl_joints.data = Eigen::Matrix<double, 6, 1> (joints.position.data());
     // Prepare the output data structure
     KDL::Frame kdl_coord_frame;
     

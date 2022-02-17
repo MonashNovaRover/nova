@@ -11,5 +11,5 @@
 namespace hack
 {
     std::vector<std::string> JOINT_NAMES {"base-rotation", "shoulder", "elbow", "j4", "j5", "j6"};
-    std::vector<std::string> CONTROL_POINT_NAMES {"j4-hook", "squooshy", "gripper", "cam-front", "cam-depth", "cam-screw"};
+    std::vector<std::string> ENDPOINT_NAMES {"j4-hook", "squooshy", "gripper", "cam-front", "cam-depth", "cam-screw"};
 }

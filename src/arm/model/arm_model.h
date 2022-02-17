@@ -56,12 +56,14 @@ class ArmModel : public KDL::Tree
 
     // List names of all joints use for constructing JointState and MultiDOFJointState messages
     std::vector<std::string> joint_names;
-    // List names of all control points (cameras and tips of end effectors) for constructing messages
+    // List names of all endpoints (cameras and tips of end effectors) for constructing messages
     // Also used for IK and camera-frame-control
-    std::vector<std::string> control_point_names;
+    std::vector<std::string> endpoint_names;
+    // Add variable for the default end effcetor (set by the end effector module)
+    std::string default_endpoint_name;
     // List names of all segments. Used for calculating FK at all coordinate systems on the arm
     std::vector<std::string> segment_names;
-
+    
     /// Constructor. Builds the arm with the given wrist and end effector
     ArmModel(WristType wrist_type = WRIST_CYCLOIDAL, EndEffectorType end_effector_type = EE_EQUIPMENT_SERVICING);
 };

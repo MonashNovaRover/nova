@@ -16,7 +16,7 @@ AUTHOR(S):	Jory Braun
 #include "ee_extreme_retrieval.h"
 #include "ee_lunar_construction.h"
 
-// Helper function for defining joint_names and control_point_names
+// Helper function for defining joint_names and endpoint_names
 // Is static to this file, is not part of ArmModel
 static void append_to_vector(std::vector<std::string>& vec1, std::vector<std::string>& vec2)
 {
@@ -55,16 +55,20 @@ ArmModel::ArmModel(WristType wrist_type, EndEffectorType end_effector_type)
     }
 
     // Add all the modules to the tree
-    std::string attachment_name = "root";
+    // Track where the next module should attach
+    std::string output_name = "root";
     for (auto& module : std::vector<ArmSubModule> {lower_joints, wrist, end_effector} ) {
         // Add the Tree
-        this->addTree(module, attachment_name);
+        this->addTree(module, output_name);
         // Add the joint and control point names
         append_to_vector(joint_names, module.joint_names);
-        append_to_vector(control_point_names, module.control_point_names);
+        append_to_vector(endpoint_names, module.endpoint_names);
         // Save the segment name where the next module attaches
-        attachment_name = module.output_name;
+        output_name = module.output_name;
     }
+
+    // Set the default endpoint
+    default_endpoint_name = output_name;
 
     // Construct list of segment names for the entire arm
     for (auto const& segment_pair : this->getSegments()){
