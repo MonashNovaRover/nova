@@ -134,5 +134,4 @@ def transform_only_yaw(pose_msg, pts):
     Finishes the above transform by rotating according to the yaw.
     """
     pitch, roll, yaw = quat_to_euler(pose_msg)
-    return transform_euler((0, 0, yaw), pts) + [pose_msg.pose.pose.position.x, \
-            pose_msg.pose.pose.position.y, pose_msg.pose.pose.position.z]
+    return transform_euler((0, 0, yaw), pts)

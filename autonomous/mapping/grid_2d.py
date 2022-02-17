@@ -30,9 +30,10 @@ class Grid2D:
         
         self.map = np.zeros((int(length / planning_resolution), int(width / planning_resolution)))
 
-    def get_indexes(self, points):
+    def get_minimap_indexes(self, points):
         """
-        Scales points in meters to array indices in the grid with the planning resolution.
+        Scales points in meters to array indices in the sub-section of the grid that contains
+        the new set of points. indices are scaled by the detection resolution.
         Z coordinates are centred on z = 128 as the cpp obstacle detection algorithm works
         with unsigned chars, so this will put it in the middle.
         :param points: array of points (x, y, z) in meters. Points have been translated
@@ -43,12 +44,22 @@ class Grid2D:
         indexes = (points/self.detection_resolution).round().astype(int)
         return indexes
 
+    def get_full_indexes(self, points):
+        """
+        Scales points in meters to array indices in the full 2d map with the planning
+        resolution, to store for planning.
+        :param points: (n, 3) ndarray of coordinates in meters
+        """
+        indexes = (points / self.planning_resolution).round().astype(int)
+        indexes -= np.array([self.length / 2, self.width / 2])
+        return indexes
+
     def filter_points(self, points):
         """
         Discretises point cloud into indices, then filters out indices without
         enough points in them to avoid phantom "floating" points
         """
-        indexes = self.get_indexes(points)
+        indexes = self.get_minimap_indexes(points)
         indexes, counts = np.unique(indexes, return_counts=True, axis=0)
         counts = (counts // min_point_density).astype(bool) # filtering out voxels without many points in them
         return indexes[counts]
@@ -74,12 +85,14 @@ class Grid2D:
         obstacles = get_obstacles(indexes)
 
         # Using scipy convolution to get a down-sampled array of obstacles
-        return downscale_obs(obstacles) 
+        return self.downscale_obs(obstacles) 
 
-    def add_obstacles(self, obstacles):
+    def add_obstacles(self, msg, obstacles):
         """
         Function to add a list of coordinates and their values to the 2d map. 
         """
-
+        diff = self.get_full_indexes(np.array([msg.pose.pose.position.x,
+            msg.pose.pose.position.y]))
+        obstacles += diff
         self.map[obstacles[:, 0], obstacles[:, 1]] = obstacles[:, 2] 
 

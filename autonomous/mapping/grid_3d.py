@@ -135,7 +135,7 @@ class Grid3D:
         # they repeated. For removing dodgy noise points
         indexes, counts = np.unique(indexes, return_counts=True, axis=0)
         counts //= min_point_density # anything below min_point_density -> 0
-        self.map[indexes[:,0], indexes[:,1], indexes[:,2]] = counts
+        self.map[indexes[:,0], indexes[:,1], indexes[:,2]] = counts.reshape(len(counts), 1)
 
         # print("adding " + str(indexes.shape[0]) + " points took: " + str(time.time() - t) + "   (" + str(
         # 10000 * (time.time() - t) / indexes.shape[0]) + " s per 10k indexes)")
