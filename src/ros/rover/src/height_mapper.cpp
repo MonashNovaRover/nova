@@ -22,13 +22,12 @@
 using namespace std::chrono_literals;
 namespace py = pybind11;
 
-const int XS = 400, YS = 400, ZS = 50;
-typedef py::array_t<uint16_t> PointCloud;
+typedef py::array_t<int16_t> PointCloud;
 
 // pybind thinks every cv::Mat is of unsigned chars, plus they will save us space
 static const unsigned char c_neg_inf = 0;
 static const unsigned char c_inf = 255;
-const unsigned char MAP_BOTTOM = 1;
+const unsigned char MAP_BOTTOM = 128;
 
 cv::Mat shift(cv::Mat& original, float x, float y, unsigned char fill_val){
     // shift a cv::Mat in the direction given by x and y.
@@ -60,7 +59,7 @@ void save(cv::Mat& img) {
     cv::imwrite("../debug/cpp_map.png", img);
 }
 
-py::array_t<unsigned char> getObstacles(PointCloud& points){
+py::array_t<unsigned char> getObstacles(PointCloud& points, const int XS, const int YS){
     py::buffer_info pc_info = points.request();
     uint16_t* pc = static_cast<uint16_t *> (pc_info.ptr);
     int num_pts = pc_info.size / 3;
@@ -78,11 +77,16 @@ py::array_t<unsigned char> getObstacles(PointCloud& points){
     cv::Mat bottomHeightMap(cv::Size(XS, YS), CV_8UC1, cv::Scalar(c_inf));
     // Finding max and min z for each x-y coordinate
     for (int i = 0; i < pc_info.shape[0] * 3; i+=3) {
-        uint16_t x = pc[i];
-        uint16_t y = pc[i + 1];
-        uint16_t z = pc[i + 2] + MAP_BOTTOM; 
-        if (z > topHeightMap.at<unsigned char> (x, y)) topHeightMap.at<unsigned char> (x, y) = (unsigned char) z;
-        if (z < bottomHeightMap.at<unsigned char> (x, y)) bottomHeightMap.at<unsigned char> (x, y) = (unsigned char) z;
+        int16_t x = pc[i];
+        int16_t y = pc[i + 1];
+	if (x >= 0 && y >= 0 && x < XS && y < YS) {
+	    int16_t z = pc[i + 2] + MAP_BOTTOM; 
+	    if (z > topHeightMap.at<unsigned char> (x, y)) topHeightMap.at<unsigned char> (x, y) = (unsigned char) z;
+	    if (z < bottomHeightMap.at<unsigned char> (x, y)) bottomHeightMap.at<unsigned char> (x, y) = (unsigned char) z;
+	} else {
+	    std::cout << "passed invalid index! Fix your shit Max!" << std::endl;
+	    std::cout << "x = " << x << ", y = " << y << std::endl;
+	}
     }
                 
     //blurring the top height map so we can compare the heights of adjacent points
@@ -90,6 +94,8 @@ py::array_t<unsigned char> getObstacles(PointCloud& points){
     topHeightMap = cv::max(topHeightMap, shift(topHeightMap, 1, 0, c_neg_inf));
     topHeightMap = cv::max(topHeightMap, shift(topHeightMap, 0, -1, c_neg_inf));
     topHeightMap = cv::max(topHeightMap, shift(topHeightMap, 0, 1, c_neg_inf));
+    // blurring the bottom height map so all obstacles are at least 2 pixels wide. Might modify
+    // this according to testing
     bottomHeightMap = cv::min(bottomHeightMap, shift(bottomHeightMap, -1, 0, c_inf));
     bottomHeightMap = cv::min(bottomHeightMap, shift(bottomHeightMap, 1, 0, c_inf));
     bottomHeightMap = cv::min(bottomHeightMap, shift(bottomHeightMap, 0, -1, c_inf));

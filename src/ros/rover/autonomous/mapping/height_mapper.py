@@ -33,6 +33,8 @@ TODO:
 import mapping.mapper as mapper
 import time
 import numpy as np
+import math_utils.transform as transform
+from config.runtime_params import max_fov_angle
 
 class HeightMapper(mapper.Mapper):
     def __init__(self, length=20, width=20, height=5, resolution=0.1, planner=None, _vis=True):
@@ -62,6 +64,7 @@ class HeightMapper(mapper.Mapper):
             obs = self.map2d.pc_to_obstacles(no_yaw_pts)
             rotated_obs = self.arrange_obstacles(self.msg, obs)
             self.map2d.add_obstacles(self.msg, rotated_obs)
+            print(r"%d points in map" % (len(pts))) 
 
         if time.perf_counter() - self.previous_plan > 1:
             if self.planner:
@@ -88,5 +91,5 @@ class HeightMapper(mapper.Mapper):
         obs_as_points = np.array([[x, y, val] for (x, y), val in np.ndenumerate(obstacles) \
                 if np.abs(np.arctan2(y - len(obstacles[0])/2, x)) < max_fov_angle - 0.02])
         obstacles = transform.transform_only_yaw(pose_msg, obs_as_points)
-        return obstacles[:, :2] # don't care about z coord in flattened map
+        return obstacles.round().astype(int)
 

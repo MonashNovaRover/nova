@@ -9,6 +9,7 @@ from height_mapper import get_obstacles
 import numpy as np
 from scipy.signal import convolve2d
 import math_utils.transform as transform
+from config.runtime_params import max_fov_angle, max_point_depth
 
 class Grid2D:
     def __init__(self, length, width, planning_resolution=0.1, detection_resolution=0.025):
@@ -27,10 +28,13 @@ class Grid2D:
         self.width = width
         self.planning_resolution = planning_resolution
         self.detection_resolution = detection_resolution
+        # defining L and W of the small map we use to detect obstacles in c++
+        self.detection_map_length = int(np.ceil(max_point_depth / self.detection_resolution))
+        self.detection_map_width = int(np.ceil(2 * max_point_depth * np.tan(max_fov_angle)))
         
         self.map = np.zeros((int(length / planning_resolution), int(width / planning_resolution)))
 
-    def get_minimap_indexes(self, points):
+    def get_detection_map_indexes(self, points):
         """
         Scales points in meters to array indices in the sub-section of the grid that contains
         the new set of points. indices are scaled by the detection resolution.
@@ -41,7 +45,9 @@ class Grid2D:
         above one another), but yaw and position transformations are done after obstacle
         detection, so the obstacle detection map can stay a consistent size and shape
         """
+        print(points)
         indexes = (points/self.detection_resolution).round().astype(int)
+        indexes[:, 1] += (np.ceil(self.detection_map_width/2)).astype(int)
         return indexes
 
     def get_full_indexes(self, points):
@@ -51,7 +57,8 @@ class Grid2D:
         :param points: (n, 3) ndarray of coordinates in meters
         """
         indexes = (points / self.planning_resolution).round().astype(int)
-        indexes -= np.array([self.length / 2, self.width / 2])
+        indexes[:, 2] = points[:, 2]
+        indexes -= np.array([self.length / 2, self.width / 2, 0]).round().astype(int)
         return indexes
 
     def filter_points(self, points):
@@ -59,7 +66,7 @@ class Grid2D:
         Discretises point cloud into indices, then filters out indices without
         enough points in them to avoid phantom "floating" points
         """
-        indexes = self.get_minimap_indexes(points)
+        indexes = self.get_detection_map_indexes(points)
         indexes, counts = np.unique(indexes, return_counts=True, axis=0)
         counts = (counts // min_point_density).astype(bool) # filtering out voxels without many points in them
         return indexes[counts]
@@ -91,8 +98,9 @@ class Grid2D:
         """
         Function to add a list of coordinates and their values to the 2d map. 
         """
-        diff = self.get_full_indexes(np.array([msg.pose.pose.position.x,
-            msg.pose.pose.position.y]))
+        diff = self.get_full_indexes(np.array([[msg.pose.pose.position.x,
+            msg.pose.pose.position.y, 0]]))
         obstacles += diff
+        print(obstacles)
         self.map[obstacles[:, 0], obstacles[:, 1]] = obstacles[:, 2] 
 

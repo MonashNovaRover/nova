@@ -119,10 +119,10 @@ class TrackingCamera(Node):
             # whether it should fire after the wheel data is recieved under
             # the callback.
 
-            sys.stdout.write("\r" + "x: " + str(round(data.translation.x, 4)).ljust(7)
-                             + " | y: " + str(round(data.translation.y, 4)).ljust(7)
-                             + " | z: " + str(round(data.translation.z, 4)).ljust(7)
-                             + " | yaw: " + str(round(yaw, 4)).ljust(7))
+            sys.stdout.write("\r" + "x: " + str(round(rover_msg.x, 4)).ljust(7)
+                             + " | y: " + str(round(rover_msg.y, 4)).ljust(7)
+                             + " | z: " + str(round(rover_msg.z, 4)).ljust(7)
+                             + " | yaw: " + str(round(rover_msg.yaw, 4)).ljust(7))
             sys.stdout.flush()
 
     def toUint8(self, filename ='calibration_odometry.json'):

@@ -116,7 +116,7 @@ def transform_points(pose_msg, pts):
     pose_msg: nav_msgs.msg.Odometry message
     pts: numpy array with shape (n, 3)
     """
-    q_mat = quat_to_mat(pose_msg_to_quat(pose_msg))
+    q_mat = quat2mat(pose_msg_to_quat(pose_msg))
     mat = get_extrinsics(q_mat)
     pts = np.matmul(mat, pts.transpose()).transpose()
     pts = pts + [pose_msg.pose.pose.position.x, pose_msg.pose.pose.position.y, pose_msg.pose.pose.position.z]
