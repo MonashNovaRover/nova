@@ -4,7 +4,10 @@ __package__ = "autonomous"
 
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Monash Nova Rover Team
+Monash Nova Rover Team. Base Mapper class that
+maps the 2d surroundings by simply extracting
+layers from the 3d map. Extended by other Mappers
+with more evolved obstacle detection algorithms
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: points_grid
 TOPICS:
@@ -17,9 +20,10 @@ SERVICES:
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	autonomous
-AUTHOR(S):	Lucas, Kelly, Kelvin, Amesh, Liam
+AUTHOR(S):	Lucas, Kelly, Kelvin, Amesh, Liam,
+                Max
 CREATION:	27/09/2021
-EDITED:		8/12/2021
+EDITED:		17/02/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
  - a lot 
@@ -156,21 +160,23 @@ class Mapper(Node):
 
         # transform the points
         if self.msg:
-            pts = transform.transform_points(self.msg, pts)
+            # transforming to the global frame
+            full_transform_pts = transform.transform_points(self.msg, pts)
+            # transforming pitch and roll to flatten the map, but no yaw or translation
             no_yaw_pts = transform.transform_points_no_yaw(self.msg, pts)
 
-        # edit both of these to handle non coloured point-clouds
-        self.map3d.add_pc_points_only(pts)
-        pts = self.map3d.get_as_pc()
-        
-        obs = self.map2d.pc_to_obstacles(pts)
-        important_obs = self.cut_wide_angles(obs)
+            self.map3d.add_pc_points_only(full_transform_pts)
+            pts = self.map3d.get_as_pc()
+            
+            obs = self.map2d.pc_to_obstacles(no_yaw_pts)
+            rotated_obs = self.arrange_obstacles(self.msg, obs)
+            self.map2d.add_obstacles(self.msg, rotated_obs)
 
         if time.perf_counter() - self.previous_plan > 2:
             if self.planner:
                 self.previous_plan = time.perf_counter()
+                # OLD WAY - MAP LAYERS
                 layer = self.extract_layer(2.3)
-                print(sum(layer))
                 self.planner.get_path(layer.squeeze())
 
         # setting colors proportional to the height of points - hopefully looks cool!
@@ -181,24 +187,6 @@ class Mapper(Node):
             # white mode
             # colors = np.array(np.full((len(pts), 3), 255))
             self.pc_pub.pub_pts_colors(pts, colors.astype(int))
-        """
-        :param pts: np.array(n, 6) - refers to x,y,z,r,g,b
-        """
-
-        if pts.shape[0] < 10:
-            return
-
-        colors = pts[:, 3:]
-
-        if self.msg:
-            mat = self.get_transform()
-            pts = np.matmul(mat, pts.transpose()).transpose()
-            pts = pts + self.get_translation()
-
-        colors = colors * 255
-        self.map3d.add_pc(pts, colors)
-        pts, colors = self.map3d.get_as_pc()
-        self.pc_pub.pub_pts_colors(pts, colors)
 
     def get_pts(self, pts):
         # 1. Transform to tracking camera coordinates
@@ -218,7 +206,7 @@ class Mapper(Node):
         pts = pts[indexes]
         return pts
 
-    def arrange_obstacles(self, obstacles):
+    def arrange_obstacles(self, pose_msg, obstacles):
         """
         Turns a 2d numpy array of obstacle values into a list of coordinates and their
         values. We then cut all points which aren't in the segment within the fov of
@@ -227,8 +215,8 @@ class Mapper(Node):
         """
         obs_as_points = np.array([[x, y, val] for (x, y), val in np.ndenumerate(obstacles) \
                 if np.abs(np.arctan2(y - len(obstacles[0])/2, x)) < max_point_angle - 0.02])
-        obstacles = transform.transform_only_yaw(self.msg, obs_as_points)
-        self.map2d.add_obstacles(obstacles)
+        obstacles = transform.transform_only_yaw(pose_msg, obs_as_points)
+        return obstacles[:, :2] # don't care about z coord in flattened map
 
     def python_callback(self, msg):
         """
