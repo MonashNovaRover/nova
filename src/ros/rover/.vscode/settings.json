@@ -7,5 +7,14 @@
         "/home/nova/nova_ws/install/core/lib/python3.6/site-packages",
         "/home/nova/nova_ws/install/coms_utils/lib/python3.6/site-packages",
         "/opt/ros/eloquent/lib/python3.6/site-packages"
+    ],
+    "python.analysis.extraPaths": [
+        "/home/nova/nova_ws/install/tutorials/lib/python3.6/site-packages",
+        "/home/nova/nova_ws/install/gui/lib/python3.6/site-packages",
+        "/home/nova/nova_ws/install/cameras/lib/python3.6/site-packages",
+        "/home/nova/nova_ws/install/autonomous/lib/python3.6/site-packages",
+        "/home/nova/nova_ws/install/core/lib/python3.6/site-packages",
+        "/home/nova/nova_ws/install/coms_utils/lib/python3.6/site-packages",
+        "/opt/ros/eloquent/lib/python3.6/site-packages"
     ]
 }
