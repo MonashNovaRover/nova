@@ -46,7 +46,7 @@ class WristCycloidalModel : public ArmSubModule
     {
         // Initialise public members
         joint_names = std::vector<std::string> {"j4", "j5", "j6"};
-        control_point_names = std::vector<std::string> {"j4-hook", "squooshy"};
+        endpoint_names = std::vector<std::string> {"j4-hook", "squooshy"};
         output_name = "sj6";
         zero_angles = std::vector<double> {0, -M_PI / 2, 0};
 
@@ -67,7 +67,7 @@ class WristCycloidalModel : public ArmSubModule
         this->addSegment(KDL::Segment("sj6", j6, fj6), "sj5");
         
         // j4-hook
-        KDL::Joint hook = KDL::Joint(control_point_names[0], KDL::Joint::None);
+        KDL::Joint hook = KDL::Joint(endpoint_names[0], KDL::Joint::None);
         // Construct the frame. Make this more efficient.
         KDL::Frame hook_to_j4 = KDL::Frame(KDL::Vector(HOOK_OFFSET_X, HOOK_OFFSET_Y, HOOK_OFFSET_Z));
         KDL::Rotation j4_to_elbow_rot = KDL::Rotation::Identity();
@@ -82,7 +82,7 @@ class WristCycloidalModel : public ArmSubModule
         this->addSegment(KDL::Segment("shook", hook, fhook), "root");
 
         // Squooshy
-        KDL::Joint squooshy = KDL::Joint(control_point_names[1], KDL::Joint::None);
+        KDL::Joint squooshy = KDL::Joint(endpoint_names[1], KDL::Joint::None);
         // Put at the root for now, can move it to the correct spot later
         KDL::Frame fsquooshy = KDL::Frame::Identity();
         this->addSegment(KDL::Segment("ssquooshy", squooshy, fsquooshy), "root");

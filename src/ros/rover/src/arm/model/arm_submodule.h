@@ -46,7 +46,7 @@ class ArmSubModule : public KDL::Tree
 
         // Initialise public members:
         //   1. joint_names
-        //   2. control_point_names
+        //   2. endpoint_names
         //   3. output_name
         //   4. zero_angles
         
@@ -65,7 +65,7 @@ class ArmSubModule : public KDL::Tree
     std::vector<std::string> joint_names;
     // List names of all control points (cameras and tips of end effectors) for constructing messages
     // Also used for IK and camera-frame-control
-    std::vector<std::string> control_point_names;
+    std::vector<std::string> endpoint_names;
     // Name of the segment where any subsequent modules can attach
     std::string output_name;
 
