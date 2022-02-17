@@ -1,7 +1,5 @@
 __package__ = "autonomous"
 #!/usr/bin/python3
-  
-
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team. Base Mapper class that
@@ -44,14 +42,8 @@ import numpy as np
 import vis.pc_pub as pc_pub
 import time
 from cameras.depth_camera import DepthCamera
-from config.ros_config import tracking_pose_topic
-from config.runtime_params import max_point_depth
-from config.runtime_params import max_point_angle
-
-# python | ros
-depth_mode = "python"
-depth_topic = '/D400/depth/color/points'
-
+from config.ros_config import tracking_pose_topic, depth_topic
+from config.runtime_params import max_point_depth, max_fov_angle, depth_mode
 
 class Mapper(Node):
     def __init__(self, length=20, width=20, height=5, resolution=0.1, planner=None, _vis=True):
@@ -85,8 +77,6 @@ class Mapper(Node):
             # starts a separate thread which will get depth frames and update mapper
             self.camera.start()
             self.map3d = Grid3D(self.length, self.width, self.height, self.resolution, has_color=False)
-        self.map2d = Grid2D(self.length, self.width) 
-
     def extract_layer(self, height_m):
         return self.map3d.extract_z(height_m)
 
@@ -162,16 +152,10 @@ class Mapper(Node):
         if self.msg:
             # transforming to the global frame
             full_transform_pts = transform.transform_points(self.msg, pts)
-            # transforming pitch and roll to flatten the map, but no yaw or translation
-            no_yaw_pts = transform.transform_points_no_yaw(self.msg, pts)
 
             self.map3d.add_pc_points_only(full_transform_pts)
             pts = self.map3d.get_as_pc()
             
-            obs = self.map2d.pc_to_obstacles(no_yaw_pts)
-            rotated_obs = self.arrange_obstacles(self.msg, obs)
-            self.map2d.add_obstacles(self.msg, rotated_obs)
-
         if time.perf_counter() - self.previous_plan > 2:
             if self.planner:
                 self.previous_plan = time.perf_counter()
@@ -200,23 +184,11 @@ class Mapper(Node):
         pts = pts[list(range(0, len(pts), 10))]
 
         # 7. further pruning out points which are either beyond the max dist, or are outside the max angle
-        indexes = (self.row_norm(pts) < max_point_depth) & (abs(np.arctan(pts[:, 1] / pts[:, 0])) < max_point_angle) \
-                  & (abs(np.arctan(pts[:, 2] / pts[:, 0])) < max_point_angle)
+        indexes = (self.row_norm(pts) < max_point_depth) & (abs(np.arctan(pts[:, 1] / pts[:, 0])) < max_fov_angle) \
+                  & (abs(np.arctan(pts[:, 2] / pts[:, 0])) < max_fov_angle)
 
         pts = pts[indexes]
         return pts
-
-    def arrange_obstacles(self, pose_msg, obstacles):
-        """
-        Turns a 2d numpy array of obstacle values into a list of coordinates and their
-        values. We then cut all points which aren't in the segment within the fov of
-        the rover. Finally, transforms the coordinates to fit with the global map.
-        :param: obstacles - 2-dimensional array of obstacles in the map
-        """
-        obs_as_points = np.array([[x, y, val] for (x, y), val in np.ndenumerate(obstacles) \
-                if np.abs(np.arctan2(y - len(obstacles[0])/2, x)) < max_point_angle - 0.02])
-        obstacles = transform.transform_only_yaw(pose_msg, obs_as_points)
-        return obstacles[:, :2] # don't care about z coord in flattened map
 
     def python_callback(self, msg):
         """
@@ -229,7 +201,6 @@ class Mapper(Node):
         
         # t = time.time()
         self.update_map_pts_only(self.get_pts(msg))
-
 
     def ros_points_callback(self, msg):
         self.msg = self.last_msg

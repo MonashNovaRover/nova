@@ -59,7 +59,7 @@ class DepthCamera(Thread):
         while self.running:
             t = time.time()
             self.callback(self.get_points())
-            sys.stdout.write("\r" + "Map update completed in: " + str(round(time.time() - t, 5)) + " seconds")
+            sys.stdout.write("\r" + "Map update completed in: " + str(round(time.time() - t, 5)) + " seconds\n")
             sys.stdout.flush()
 
     def get_points(self):
