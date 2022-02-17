@@ -24,6 +24,7 @@ ArmKinematics::ArmKinematics() : Node("arm_kinematics")
     // Initialise arm model and solvers
     arm_model = ArmModel();
     arm_fk_solver = new KDL::TreeFkSolverPos_recursive(arm_model);
+    arm_ik_solver = new KDL::TreeIkSolverVel_wdls(arm_model, std::vector<std::string> {arm_model.default_endpoint_name});
 
     // Initialise arrays in internal data structures
     // Use data from the arm model
@@ -125,13 +126,47 @@ void ArmKinematics::publish_coord_frames()
 // Calculate the inverse kinematics using the latest arm model, publish to joint_velocities
 void ArmKinematics::publish_joint_velocities()
 {
+    // Clear the velocity data. Ensures if IK fails no velocity is sent to motors
+    std::fill(joints.velocity.begin(), joints.velocity.end(), 0);
+    
+    // Get the input in the form KDL likes
+
+    // Joint positions
+    KDL::JntArray kdl_joint_positionss;
+    kdl_joint_positionss.data = Eigen::Matrix<double, 6, 1> (joints.position.data());
+    
+    // Twist
+    const geometry_msgs::msg::Vector3& vec3_linear = task_velocity.twist.linear;
+    const geometry_msgs::msg::Vector3& vec3_angular = task_velocity.twist.angular;
+    KDL::Vector twist_linear (vec3_linear.x, vec3_linear.y, vec3_linear.z);
+    KDL::Vector twist_angular (vec3_angular.x, vec3_angular.y, vec3_angular.z);
+    KDL::Twists kdl_twists { {arm_model.default_endpoint_name, KDL::Twist (twist_linear, twist_angular)} };
+    
+    // Prepare the output data structure
+    KDL::JntArray kdl_joint_velocities;
+    
     // Calculate the inverse kinematics
-    //joints.velocity = MODEL.GET_THIS_BREAD(task_velocity);
+    double exit_value = arm_ik_solver->CartToJnt(kdl_joint_positionss, kdl_twists, kdl_joint_velocities);
+    if (exit_value == -1){
+        RCLCPP_WARN(this->get_logger(), "Must provide 6 positions and have 6 joints in tree");
+    }
+    else if (exit_value == -2){
+        RCLCPP_WARN(this->get_logger(), "Twists provided must have a corresponding endpoint which is a segment in the tree");
+    }
+    else if (exit_value == KDL::TreeIkSolverVel_wdls::E_SVD_FAILED) {
+        RCLCPP_WARN(this->get_logger(), "Singular value decomposition failed");
+    }
+    else{
+        // Success
+        // Get the output in the form ROS2 likes
+        Eigen::Matrix<double, 6, 1> vec6 = kdl_joint_velocities.data;
+        joints.velocity = std::vector<double> ( vec6.data(), vec6.data() + vec6.size() );
+    }
 
     // Update the header
     joints.header.stamp = this->now();
     // Publish the message
-    //joint_velocities_pub->publish(joints);
+    joint_velocities_pub->publish(joints);
 }
 
 
