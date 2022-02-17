@@ -160,7 +160,6 @@ class Controller(Node):
         Called once every tick by the node's timer. Identifies the next target waypoint
         and calls navigate_to_waypoint, and determines when the rover has arrived
         """
-        print("controlling")
         if not self.target_waypoint:
             # There is currently no target - take the first waypoint on the list
             if self.waypoints:
@@ -169,8 +168,6 @@ class Controller(Node):
                 return
 
         if distance((self.state.x, self.state.y), self.target_waypoint) >= min_waypoint_distance:
-            print("going to target")
-
             # we have not yet arrived at the waypoint
             self.go_to_target()
 

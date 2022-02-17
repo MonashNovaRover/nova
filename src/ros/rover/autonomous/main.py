@@ -4,6 +4,7 @@ from planning.path_planner import PathPlanner
 from controller.controller import Controller
 import rclpy
 from mapping.mapper import Mapper
+from mapping.height_mapper import HeightMapper
 
 
 def main(args):
@@ -21,7 +22,7 @@ def main(args):
     # in this janky night-before-mvp we will be creating a map2d object which is shared by planner and mapper.
     # Mapper updates it, planner just reads from it.
     planner = PathPlanner(dest, resolution)
-    mapper = Mapper(length=length, width=width, resolution=resolution, planner=planner)
+    mapper = HeightMapper(length=length, width=width, resolution=resolution, planner=planner)
     controller = Controller()
 
     # This allows us to spin both nodes from main.py - we are kind of misusing ros nodes here but oh well it works
