@@ -84,8 +84,8 @@ class ArmKinematics : public rclcpp::Node
     ArmModel arm_model;
     // FK solver using KDL
     KDL::TreeFkSolverPos_recursive* arm_fk_solver;
-    // IK solver usign KDL
-    //KDL::TreeIkSolverVel_wdls* arm_ik_solver;
+    // IK solver using KDL
+    KDL::TreeIkSolverVel_wdls* arm_ik_solver;
 
     // Subscription to resolvers
     rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr resolver_sub;
