@@ -24,7 +24,7 @@ import rclpy, time, datetime
 from rclpy.node import Node
 
 # Import the wheel message type
-from core.msg import WheelData
+from core.msg import WheelData, DriveInput
 
 # Import the CAN libary
 from coms_utils.can_interface import CANReceiver
@@ -62,7 +62,10 @@ class WheelPublisher (Node):
         print("Initialising the Wheel Publisher class.")
 
         # Store the starting time
-        self.time = datetime.datetime.now()
+        self.time = datetime.datetime(0, 1, 1)
+
+        # Store the last drive command
+        self.command_time = datetime.datetime(0, 1, 1)
 
         # Set up the CAN interface for each wheel id
         self.cans = []
@@ -75,6 +78,10 @@ class WheelPublisher (Node):
         # Create the publisher
         super().__init__("wheel_publisher")
         self.publisher = self.create_publisher(WheelData, "/electronics/wheel_data", 10)
+
+        # Create a subscriber to drive commands
+        self.subscription_m = self.create_subscription(DriveInput, "/control/drive_inputs", 10, self.drive_callback)
+        self.subscription_a = self.create_subscription(DriveInput, "/autonomous/drive_inputs", 10, self.drive_callback)
 
         # Create a time to constantly loop and check for data
         self.read_timer = self.create_timer(0.01, self.read_callback)
@@ -113,6 +120,11 @@ class WheelPublisher (Node):
                 self.time = datetime.datetime.now()
 
 
+    # Callback that reads an input message from the drive commands
+    def drive_callback (self, msg):
+        self.command_time = datetime.datetime.now()
+
+
     # Publishes the current message data that exists
     def publish_msg (self):
     
@@ -131,8 +143,12 @@ class WheelPublisher (Node):
     # Clears the current message if nothing has happened in a while
     def clear_msg (self):
     
+        # Calculate the times since the last message and command
+        prev_msg = (datetime.datetime.now() - self.time).total_seconds()
+        prev_cmd = (datetime.datetime.now() - self.command_time).total_seconds()
+        
         # Check if the last message was a while ago
-        if (datetime.datetime.now() - self.time).total_seconds() > 0.5:
+        if prev_msg > 0.5 or prev_cmd > 0.1:
             # Clear the message
             self.message = WheelData()
             
