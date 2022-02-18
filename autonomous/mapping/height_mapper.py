@@ -15,7 +15,6 @@ TOPICS:
   
   - /camera/depth/color/points [sensor_msgs.msg.PointCloud2]
   - /t265/odom/sample
-
 SERVICES:
   - 
 ACTIONS: None
@@ -62,7 +61,7 @@ class HeightMapper(mapper.Mapper):
             pts = self.map3d.get_as_pc()
             
             obs = self.map2d.pc_to_obstacles(no_yaw_pts)
-            rotated_obs = self.arrange_obstacles(self.msg, obs)
+            rotated_obs = self.map2d.arrange_obstacles(self.msg, obs)
             self.map2d.add_obstacles(self.msg, rotated_obs)
             print(r"%d points in map" % (len(pts))) 
 
@@ -80,16 +79,4 @@ class HeightMapper(mapper.Mapper):
             # white mode
             # colors = np.array(np.full((len(pts), 3), 255))
             self.pc_pub.pub_pts_colors(pts, colors.astype(int))
-
-    def arrange_obstacles(self, pose_msg, obstacles):
-        """
-        Turns a 2d numpy array of obstacle values into a list of coordinates and their
-        values. We then cut all points which aren't in the segment within the fov of
-        the rover. Finally, transforms the coordinates to fit with the global map.
-        :param: obstacles - 2-dimensional array of obstacles in the map
-        """
-        obs_as_points = np.array([[x, y, val] for (x, y), val in np.ndenumerate(obstacles) \
-                if np.abs(np.arctan2(y - len(obstacles[0])/2, x)) < max_fov_angle - 0.02])
-        obstacles = transform.transform_only_yaw(pose_msg, obs_as_points)
-        return obstacles.round().astype(int)
 
