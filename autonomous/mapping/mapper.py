@@ -1,10 +1,11 @@
 __package__ = "autonomous"
 #!/usr/bin/python3
-  
-
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Monash Nova Rover Team
+Monash Nova Rover Team. Base Mapper class that
+maps the 2d surroundings by simply extracting
+layers from the 3d map. Extended by other Mappers
+with more evolved obstacle detection algorithms
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: points_grid
 TOPICS:
@@ -17,9 +18,10 @@ SERVICES:
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	autonomous
-AUTHOR(S):	Lucas, Kelly, Kelvin, Amesh, Liam
+AUTHOR(S):	Lucas, Kelly, Kelvin, Amesh, Liam,
+                Max
 CREATION:	27/09/2021
-EDITED:		8/12/2021
+EDITED:		17/02/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
  - a lot 
@@ -33,18 +35,15 @@ import math_utils.transform as transform
 from sensor_msgs.msg import PointField
 from nav_msgs.msg import Odometry
 from mapping.grid_3d import Grid3D
+from mapping.grid_2d import Grid2D
 from planning.path_planner import PathPlanner
 import matplotlib.pyplot as plt
 import numpy as np
 import vis.pc_pub as pc_pub
 import time
 from cameras.depth_camera import DepthCamera
-from config.ros_config import tracking_pose_topic
-
-# python | ros
-depth_mode = "python"
-depth_topic = '/D400/depth/color/points'
-
+from config.ros_config import tracking_pose_topic, depth_topic
+from config.runtime_params import max_point_depth, max_fov_angle, depth_mode
 
 class Mapper(Node):
     def __init__(self, length=20, width=20, height=5, resolution=0.1, planner=None, _vis=True):
@@ -55,14 +54,7 @@ class Mapper(Node):
         self.planner = planner
         self.vis = _vis
 
-        # constants for pruning the point-clouds
-        self.max_dist = 3.5
-
         self.last_msg = None
-
-        # limiting the the field of view to 4 degrees up and down to reduce noisy data points
-        # 0.349066 radians == 20 degrees
-        self.max_angle = 0.349066
 
         self.length = length
         self.width = width
@@ -85,22 +77,6 @@ class Mapper(Node):
             # starts a separate thread which will get depth frames and update mapper
             self.camera.start()
             self.map3d = Grid3D(self.length, self.width, self.height, self.resolution, has_color=False)
-
-    def get_transform(self):
-        """
-        Indirection (like sleight of hand, but less interesting)
-        """
-        return transform.get_pc_rotation_matrix(self.msg)
-    
-    def get_translation(self):
-        """
-        :return: (3) ndarray for positional translation
-        """
-        x = self.msg.pose.pose.position.x
-        y = self.msg.pose.pose.position.y
-        z = self.msg.pose.pose.position.z
-        return np.array([x, y, z])
-
     def extract_layer(self, height_m):
         return self.map3d.extract_z(height_m)
 
@@ -174,20 +150,16 @@ class Mapper(Node):
 
         # transform the points
         if self.msg:
-            # print("transforming pc")
-            mat = self.get_transform()
-            pts = np.matmul(mat, pts.transpose()).transpose()
-            pts = pts + self.get_translation()
-
-        # edit both of these to handle non coloured point-clouds
-        self.map3d.add_pc_points_only(pts)
-        pts = self.map3d.get_as_pc()
-        
+            # transforming to the global frame
+            full_transform_pts = transform.transform_points(self.msg, pts)
+            self.map3d.add_pc_points_only(full_transform_pts)
+            pts = self.map3d.get_as_pc()
+            
         if time.perf_counter() - self.previous_plan > 2:
             if self.planner:
                 self.previous_plan = time.perf_counter()
+                # OLD WAY - MAP LAYERS
                 layer = self.extract_layer(2.3)
-                print(sum(layer))
                 self.planner.get_path(layer.squeeze())
 
         # setting colors proportional to the height of points - hopefully looks cool!
@@ -198,31 +170,12 @@ class Mapper(Node):
             # white mode
             # colors = np.array(np.full((len(pts), 3), 255))
             self.pc_pub.pub_pts_colors(pts, colors.astype(int))
-
-    def update_map(self, pts):
-        """
-        :param pts: np.array(n, 6) - refers to x,y,z,r,g,b
-        """
-
-        if pts.shape[0] < 10:
-            return
-
-        colors = pts[:, 3:]
-
-        if self.msg:
-            mat = self.get_transform()
-            pts = np.matmul(mat, pts.transpose()).transpose()
-            pts = pts + self.get_translation()
-
-        colors = colors * 255
-        self.map3d.add_pc(pts, colors)
-        pts, colors = self.map3d.get_as_pc()
-        self.pc_pub.pub_pts_colors(pts, colors)
+            #self.publish_vis_dense()
 
     def get_pts(self, pts):
         # 1. Transform to tracking camera coordinates
 
-        # converting from (x=right, y=down, z=forward) -> (x=forward, y=right, z=up)
+        # converting from (x=right, y=down, z=forward) -> (x=forward, y=left, z=up)
         pts = pts[:, [2, 0, 1]]
         pts[:, 2] = -pts[:, 2]
         pts[:, 1] = -pts[:, 1]
@@ -231,8 +184,8 @@ class Mapper(Node):
         pts = pts[list(range(0, len(pts), 10))]
 
         # 7. further pruning out points which are either beyond the max dist, or are outside the max angle
-        indexes = (self.row_norm(pts) < self.max_dist) & (abs(np.arctan(pts[:, 1] / pts[:, 0])) < self.max_angle) \
-                  & (abs(np.arctan(pts[:, 2] / pts[:, 0])) < self.max_angle)
+        indexes = (self.row_norm(pts) < max_point_depth) & (abs(np.arctan(pts[:, 1] / pts[:, 0])) < max_fov_angle) \
+                  & (abs(np.arctan(pts[:, 2] / pts[:, 0])) < max_fov_angle)
 
         pts = pts[indexes]
         return pts
@@ -248,7 +201,6 @@ class Mapper(Node):
         
         # t = time.time()
         self.update_map_pts_only(self.get_pts(msg))
-
 
     def ros_points_callback(self, msg):
         self.msg = self.last_msg
