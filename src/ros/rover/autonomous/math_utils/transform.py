@@ -75,7 +75,8 @@ def get_extrinsics(q_mat):
 
 def transform_euler(euler_angles, pts):
     """
-    transforms euler angles into quaternions, then 
+    transforms euler angles into quaternions, then uses our quaternion rotation matrix to
+    rotate the points
     :param: euler angles: [pitch, roll, yaw]
     :returns: transformed points by the given rotations
     """
@@ -86,7 +87,8 @@ def transform_euler(euler_angles, pts):
     qw = np.cos(roll/2) * np.cos(pitch/2) * np.cos(yaw/2) + np.sin(roll/2) * np.sin(pitch/2) * np.sin(yaw/2)
     
     mat = quat2mat(Q(qx, qy, qz, qw))
-    return np.matmul(mat, pts.transpose()).transpose()
+    pts = np.matmul(mat, pts.transpose()).transpose()
+    return pts
 
 def quat_to_euler(pose_msg):
     """
@@ -129,9 +131,10 @@ def transform_points_no_yaw(pose_msg, pts):
     pitch, roll, yaw = quat_to_euler(pose_msg)
     return transform_euler((pitch, roll, 0), pts)
 
-def transform_only_yaw(pose_msg, pts):
+def transform_yaw(pose_msg, pts):
     """
     Finishes the above transform by rotating according to the yaw.
     """
     pitch, roll, yaw = quat_to_euler(pose_msg)
-    return transform_euler((0, 0, yaw), pts)
+    pts = transform_euler((0, 0, yaw), pts)
+    return pts
