@@ -57,28 +57,81 @@ def quat2mat(q):
      [2 * q.x * q.z - 2 * q.y * q.w, 2 * q.y * q.z + 2 * q.x * q.w, 1 - 2 * q.x * q.x - 2 * q.y * q.y]]
     return np.array(m)
 
-
-def get_pc_rotation_matrix(pose_msg):
-    """
-    Given a raw pose message, we want to create one matrix which can transform all the points
-    """
-
+def pose_msg_to_quat(pose_msg):
+    
     qx = pose_msg.pose.pose.orientation.x
     qy = pose_msg.pose.pose.orientation.y
     qz = pose_msg.pose.pose.orientation.z
     qw = pose_msg.pose.pose.orientation.w
 
-    q = Q(qx, qy, qz, qw)
+    return Q(qx, qy, qz, qw)
     
-    return np.matmul(camera_extrinsics(), quat2mat(q))
 
+def get_extrinsics(q_mat):
+    """
+    Given a raw pose message, we want to create one matrix which can transform all the points
+    """
+    return np.matmul(camera_extrinsics(), q_mat)
+
+def transform_euler(euler_angles, pts):
+    """
+    transforms euler angles into quaternions, then 
+    :param: euler angles: [pitch, roll, yaw]
+    :returns: transformed points by the given rotations
+    """
+    pitch, roll, yaw = euler_angles[0], euler_angles[1], euler_angles[2]
+    qx = np.sin(roll/2) * np.cos(pitch/2) * np.cos(yaw/2) - np.cos(roll/2) * np.sin(pitch/2) * np.sin(yaw/2)
+    qy = np.cos(roll/2) * np.sin(pitch/2) * np.cos(yaw/2) + np.sin(roll/2) * np.cos(pitch/2) * np.sin(yaw/2)
+    qz = np.cos(roll/2) * np.cos(pitch/2) * np.sin(yaw/2) - np.sin(roll/2) * np.sin(pitch/2) * np.cos(yaw/2)
+    qw = np.cos(roll/2) * np.cos(pitch/2) * np.cos(yaw/2) + np.sin(roll/2) * np.sin(pitch/2) * np.sin(yaw/2)
+    
+    mat = quat2mat(Q(qx, qy, qz, qw))
+    return np.matmul(mat, pts.transpose()).transpose()
+
+def quat_to_euler(pose_msg):
+    """
+    take a pose message, get the quaternion and convert it to Euler angles. Maths shamelessly
+    stolen from: 
+    https://math.stackexchange.com/questions/2975109/how-to-convert-euler-angles-to-quaternions-and-get-the-same-euler-angles-back-fr
+    """
+
+    q = pose_msg_to_quat(pose_msg)
+    # getting pitch
+    t2 = 2 * (q.w*q.y - q.z*q.x)
+    t2 = 1 if t2 > 1 else t2
+    t2 = -1 if t2 < -1 else t2
+    pitch = np.arcsin(t2)
+    # getting roll
+    t0 = 2 * (q.w*q.x + q.y*q.z)
+    t1 = 1 - 2 * (q.x*q.x + q.y*q.y)
+    roll = np.arctan2(t0, t1)
+    # getting yaw
+    t3 = 2 * (q.w*q.z + q.x*q.y)
+    t4 = 1 - 2 * (q.y*q.y + q.z*q.z)
+    yaw = np.arctan2(t3, t4)
+    return pitch, roll, yaw
 
 def transform_points(pose_msg, pts):
     """
     pose_msg: nav_msgs.msg.Odometry message
     pts: numpy array with shape (n, 3)
     """
-    mat = get_pc_rotation_matrix(pose_msg)
+    q_mat = quat2mat(pose_msg_to_quat(pose_msg))
+    mat = get_extrinsics(q_mat)
     pts = np.matmul(mat, pts.transpose()).transpose()
     pts = pts + [pose_msg.pose.pose.position.x, pose_msg.pose.pose.position.y, pose_msg.pose.pose.position.z]
-    return pts
+    return pts 
+
+def transform_points_no_yaw(pose_msg, pts):
+    """
+    Translates points to their x, y and z coordinates assuming that there is no yaw
+    """
+    pitch, roll, yaw = quat_to_euler(pose_msg)
+    return transform_euler((pitch, roll, 0), pts)
+
+def transform_only_yaw(pose_msg, pts):
+    """
+    Finishes the above transform by rotating according to the yaw.
+    """
+    pitch, roll, yaw = quat_to_euler(pose_msg)
+    return transform_euler((0, 0, yaw), pts)
