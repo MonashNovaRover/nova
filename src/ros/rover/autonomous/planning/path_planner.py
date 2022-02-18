@@ -1,4 +1,4 @@
-__package__ = "autonomous"
+_package__ = "autonomous"
 #!/usr/bin/env python3
 import time
 from a_star import a_star
@@ -99,14 +99,6 @@ class PathPlanner(Node):
         self.width_meters = int(_map.shape[1] * self.resolution)
         
         print("Running A*")
-        
-        print("start: " + str(self.start))
-        print("goal: " + str(self.goal))
-        
-        print(self.get_grid_coord(self.start))
-        print(self.get_grid_coord(self.goal))
-        
-        print(_map.shape)
 
         self.route = np.array(a_star(_map, self.get_grid_coord(self.start), self.get_grid_coord(self.goal), self.resolution))
 

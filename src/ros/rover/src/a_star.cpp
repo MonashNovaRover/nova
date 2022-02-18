@@ -42,10 +42,6 @@ typedef tuple<double, int, int> Tuple;
 const array<Pair, 8> NEIGHBOURS = {{{0, 1}, {0, -1}, {1, 0}, {-1, 0},
 									{1, 1}, {1, -1}, {-1, 1}, {-1, -1}}};
 
-void hello_world(){
-    std::cout << "hello world" << std::endl;
-}
-
 // A structure to hold the necessary parameters
 struct cell {
 	// Row and Column index of its parent
@@ -224,7 +220,7 @@ void precompute_padding_values(array<array<float, COL>, ROW>& grid,
 	auto end = chrono::high_resolution_clock::now();
 	auto duration = chrono::duration_cast<std::chrono::microseconds>(end - start);
 	
-	cout << "padding took " << duration.count() << " microseconds" << endl;
+	cout << "\npadding took " << duration.count() << " microseconds" << endl;
 }
 
 // A Utility Function to trace the path from the source to
@@ -366,7 +362,7 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 					
 						// To get the value of duration use the count()
 						// member function on the duration object
-						std::cout << "\ntook " << duration.count() << " microseconds" << std::endl;
+						std::cout << "took " << duration.count() << " microseconds" << std::endl << std::endl;
 						
 						return tracePath(cellDetails, dest);
 					}
@@ -444,6 +440,5 @@ int main()
 PYBIND11_MODULE(a_star, module_handle) {
     module_handle.doc() = "Nova Rover A* C++ search algorithm binded to Python3";
     module_handle.def("a_star", &aStarSearch<200, 200>); // 10 cm resolution
-    module_handle.def("hello_world", &hello_world); // 2.5 cm resolution
 }
 
