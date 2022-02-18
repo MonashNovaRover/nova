@@ -102,8 +102,7 @@ class RoverCloud(Node):
         # apply translation to make cameras at [0,0,0]
         pts = pts + [-0.4, 0.0, -0.4]        
 
-        mat = transform.get_pc_rotation_matrix(msg)
-        pts = np.matmul(mat, pts.transpose()).transpose()
+        pts = transform.transform_points(msg, pts)
         pts = pts + [x, y, z]
 
         # the rover signature orange^tm
@@ -118,10 +117,11 @@ class RoverCloud(Node):
         pts = [pt.tolist() + [0, 77, 255, 0] for pt in pts]
         self.pc_pub.pub(pts)
 
-
-if __name__ == "__main__":
+def main():
     rclpy.init(args=None)
     cloud = RoverCloud()
     rclpy.spin(cloud)
     rclpy.shutdown()
 
+if __name__ == "__main__":
+    main()

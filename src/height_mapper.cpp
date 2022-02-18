@@ -41,13 +41,13 @@ cv::Mat shift(cv::Mat& original, float x, float y, unsigned char fill_val){
     int start_y = (y >= 0) ? 0 : original.cols - 1;
 
     if (x == 0) {
-        for (int i = 0; i < original.cols; i++) {
-            shifted.at<unsigned char>(start_y, i) = fill_val;
+        for (int i = 0; i < original.rows; i++) {
+            shifted.at<unsigned char>(i, start_y) = fill_val;
         }
     }
     else if (y == 0) {
-        for (int i = 0; i < original.rows; i++) {
-            shifted.at<unsigned char>(i, start_x) = fill_val;
+        for (int i = 0; i < original.cols; i++) {
+            shifted.at<unsigned char>(start_x, i) = fill_val;
         }
     }
 
@@ -72,9 +72,9 @@ py::array_t<unsigned char> getObstacles(PointCloud& points, const int XS, const 
     std::cout << "format = " << pc_info.format << std::endl;
 
     auto start = std::chrono::high_resolution_clock::now();
-    // These two height-maps should sandwhich every point in the point cloud
-    cv::Mat topHeightMap(cv::Size(XS, YS), CV_8UC1, cv::Scalar(c_neg_inf));
-    cv::Mat bottomHeightMap(cv::Size(XS, YS), CV_8UC1, cv::Scalar(c_inf));
+    // These two height-maps should sandwich every point in the point cloud
+    cv::Mat topHeightMap(cv::Size(YS, XS), CV_8UC1, cv::Scalar(c_neg_inf));
+    cv::Mat bottomHeightMap(cv::Size(YS, XS), CV_8UC1, cv::Scalar(c_inf));
     // Finding max and min z for each x-y coordinate
     for (int i = 0; i < pc_info.shape[0] * 3; i+=3) {
         int16_t x = pc[i];
@@ -90,10 +90,10 @@ py::array_t<unsigned char> getObstacles(PointCloud& points, const int XS, const 
     }
                 
     //blurring the top height map so we can compare the heights of adjacent points
-    topHeightMap = cv::max(topHeightMap, shift(topHeightMap, -1, 0, c_neg_inf));
-    topHeightMap = cv::max(topHeightMap, shift(topHeightMap, 1, 0, c_neg_inf));
-    topHeightMap = cv::max(topHeightMap, shift(topHeightMap, 0, -1, c_neg_inf));
-    topHeightMap = cv::max(topHeightMap, shift(topHeightMap, 0, 1, c_neg_inf));
+    topHeightMap = cv::min(topHeightMap, shift(topHeightMap, -1, 0, c_neg_inf));
+    topHeightMap = cv::min(topHeightMap, shift(topHeightMap, 1, 0, c_neg_inf));
+    topHeightMap = cv::min(topHeightMap, shift(topHeightMap, 0, -1, c_neg_inf));
+    topHeightMap = cv::min(topHeightMap, shift(topHeightMap, 0, 1, c_neg_inf));
     // blurring the bottom height map so all obstacles are at least 2 pixels wide. Might modify
     // this according to testing
     bottomHeightMap = cv::min(bottomHeightMap, shift(bottomHeightMap, -1, 0, c_inf));
@@ -107,7 +107,6 @@ py::array_t<unsigned char> getObstacles(PointCloud& points, const int XS, const 
 
     auto end = std::chrono::high_resolution_clock::now();
     auto time = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-    save(diff);
     std::cout << "obstacle detection took " << time.count() << " microseconds" << std::endl;
     // converting to numpy array to return
     py::array_t<unsigned char> numpy_diff = py::array_t<unsigned char>({ diff.rows, diff.cols }, diff.data);
