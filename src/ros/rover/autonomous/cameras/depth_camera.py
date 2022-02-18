@@ -1,5 +1,4 @@
 __package__ = "autonomous"
-import math
 import time
 import numpy as np
 from threading import Thread
@@ -9,17 +8,23 @@ except:
     import pyrealsense2 as rs
 from vis.pc_pub import PCPub
 import rclpy
-import cameras.artag_pose_detection as ar
 import sys
+from cameras.ar_tracker import ArTracker
+
+
+D435 = "829212072166"
+D415 = "932122060332"
 
 
 class DepthCamera(Thread):
-    def __init__(self, callback, publish_topic=None, serial_number='932122060332'):
+    def __init__(self, callback, publish_topic=None, serial_number=D435):
         super().__init__()
         if publish_topic:
             self.publisher = PCPub("depth_camera_pc_pub", scale=1)
         else:
             self.publisher = None
+
+        self.ar_tracker = ArTracker()
 
         self.running = True
 
@@ -75,7 +80,6 @@ class DepthCamera(Thread):
         # t0 = time.time()
         frames = self.pipeline.wait_for_frames()
 
-
         t1 = time.time()
         depth_frame = frames.get_depth_frame()
         color_frame = frames.get_color_frame()
@@ -87,6 +91,9 @@ class DepthCamera(Thread):
         # depth_image = np.asanyarray(depth_frame.get_data())
 
         color_image = np.asanyarray(color_frame.get_data())
+
+        # todo (low priority) put in thread
+        self.ar_tracker(color_image)
 
         # note: find better way of doing asynchronously
 
@@ -125,6 +132,7 @@ class DepthCamera(Thread):
 def print_points_len(points):
     # print(points.shape)
     pass
+
 
 def main():
     rclpy.init(args=None)

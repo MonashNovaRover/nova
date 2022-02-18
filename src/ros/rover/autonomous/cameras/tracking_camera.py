@@ -60,9 +60,8 @@ class TrackingCamera(Node):
         dev = pipe_profile.get_device()
         # dev.hardware_reset() - could do a hardware reset here?
         # later as mentioned should have a system for detecting if disconnected
-        # tm2 = dev.as_tm2()
-        # self.wheel_odometer = None
-        tm2 = False
+        tm2 = dev.as_tm2()
+        self.wheel_odometer = None
         if tm2:
             pose_sensor = tm2.first_pose_sensor()
             self.wheel_odometer = pose_sensor.as_wheel_odometer()
@@ -114,7 +113,7 @@ class TrackingCamera(Node):
             rover_msg.pitch, rover_msg.roll, rover_msg.yaw = transform.quat_to_euler(t265_msg)
             self.rover_pose_pub.publish(rover_msg)
 
-            # self.send_wheel_odom() # This should be tested if it should go here
+            self.send_wheel_odom() # This should be tested if it should go here
             # which is essentially sending the last wheel data recieved OR
             # whether it should fire after the wheel data is recieved under
             # the callback.
@@ -142,6 +141,7 @@ class TrackingCamera(Node):
     def send_wheel_odom(self):
         wo_sensor_id = 0  # indexed from 0, match to order in calibration file
         frame_num = 0  # not used
+
         self.wheel_odometer.send_wheel_odometry(wo_sensor_id, frame_num, self.wheel_velocity)
 
 def main():
