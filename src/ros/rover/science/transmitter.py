@@ -78,22 +78,6 @@ ARGUMENT_DICT = {
     "down": "1",
     "true": "1",
     "false": "0",
-    0: "0",
-    1: "1",
-    2: "2",
-    3: "3",
-    4: "4",
-    5: "5",
-    6: "6",
-    7: "7",
-    8: "8",
-    9: "9",
-    10: "A",
-    11: "B",
-    12: "C",
-    13: "D",
-    14: "E",
-    15: "F"
 }
 
 '''
@@ -110,15 +94,19 @@ def parse_command(command_dict):
     action = command_dict["action"]
     args = command_dict["args"]
 
+    print(target, action, args)
     target_code = TARGET_DICT[target]
     action_code = ACTION_DICT[action]
     argument_codes = []
     for argument in args: 
-        try:
-            argument_codes.append(ARGUMENT_DICT[args[argument]])
-        except KeyError:
-            hex = format(args[argument], 'x')
-            argument_codes.append(hex.zfill(2))
+        if argument == "number":
+            argument_codes.append(args[argument])
+        else:
+            try:
+                argument_codes.append(ARGUMENT_DICT[args[argument]])
+            except KeyError:  # if not in dict, assume value is just a number of two hex digits
+                hex = format(int(args[argument]), 'x')
+                argument_codes.append(hex.zfill(2))
 
     code = target_code + action_code + "".join(argument_codes)
     code = code.ljust(6, "0")
@@ -174,7 +162,6 @@ class ServiceNode(Node):
 
         # Return the response
         return response
-
 
 
 # When the script starts, it runs the science class and waits until completion
