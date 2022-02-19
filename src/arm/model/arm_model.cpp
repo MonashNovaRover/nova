@@ -24,7 +24,7 @@ static void append_to_vector(std::vector<std::string>& vec1, std::vector<std::st
 }
 
 
-ArmModel::ArmModel(WristType wrist_type, EndEffectorType end_effector_type)
+ArmModel::ArmModel(WristType wrist_type, EndEffectorType end_effector_type) : Tree("sj0")
 {
     // Build the arm.
 
@@ -55,8 +55,8 @@ ArmModel::ArmModel(WristType wrist_type, EndEffectorType end_effector_type)
     }
 
     // Add all the modules to the tree
-    // Track where the next module should attach
-    std::string output_name = "root";
+    // Track where the next module should attach, starting at the current root
+    std::string output_name = this->getRootSegment()->first;
     for (auto& module : std::vector<ArmSubModule> {lower_joints, wrist, end_effector} ) {
         // Add the Tree
         this->addTree(module, output_name);

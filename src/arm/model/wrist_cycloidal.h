@@ -32,15 +32,11 @@ class WristCycloidalModel : public ArmSubModule
 
     // Parameters for arm model geometry. Based on model in Arm/DH parameters on GrabCAD
     // All distances in mm, all angles in rad
-    constexpr static double J4_LINK_LENGTH = 499;  // Distance from z3 to z4 (not parallel to actual link)
-    constexpr static double J5_OFFSET = 104;  // Distance from p4 to p56 along z5
+    constexpr static double ROOT_J4_LINK_LENGTH = 499;
+    constexpr static double J4_OFFSET = 99.52;
+    constexpr static double J5_OFFSET = 104.1;
+    constexpr static double J6_OFFSET = 107.9;
     
-    constexpr static double HOOK_OFFSET_X = -99;  // Distances from p4 to pE2 along axes xyzE2
-    constexpr static double HOOK_OFFSET_Y = -24;
-    constexpr static double HOOK_OFFSET_Z = 75;
-    constexpr static double HOOK_ANGLE_X = -5.87 * M_PI/180;  // Angle from x3 to the axis of the cylindrical link
-
-
     /// Constructor. Build the cycloidal wrist
     WristCycloidalModel()
     {
@@ -51,34 +47,30 @@ class WristCycloidalModel : public ArmSubModule
         zero_angles = std::vector<double> {0, -M_PI / 2, 0};
 
         // Build the cycloidal wrist
+        // Rigid link from root to j4
+        KDL::Joint j3r2 = KDL::Joint("rigid-root-to-j4", KDL::Joint::None);
+        KDL::Frame fj3r2 = KDL::Frame::DH(ROOT_J4_LINK_LENGTH, M_PI / 2, 0, 0);
+        this->addSegment(KDL::Segment("sj3r2", j3r2, fj3r2), "root");
+        
         // J4
         KDL::Joint j4 = KDL::Joint(joint_names[0], KDL::Joint::RotZ);
-        KDL::Frame fj4 = KDL::Frame::DH_Craig1989(J4_LINK_LENGTH, 0, 0, zero_angles[0]);
-        this->addSegment(KDL::Segment("sj4", j4, fj4), "root");
+        KDL::Frame fj4 = KDL::Frame::DH(0, -M_PI / 2, J4_OFFSET, zero_angles[0]);
+        this->addSegment(KDL::Segment("sj4", j4, fj4), "sj3r2");
 
         // J5
         KDL::Joint j5 = KDL::Joint(joint_names[1], KDL::Joint::RotZ);
-        KDL::Frame fj5 = KDL::Frame::DH_Craig1989(0, M_PI / -2, J5_OFFSET, zero_angles[1]);
+        KDL::Frame fj5 = KDL::Frame::DH(0, -M_PI / 2, J5_OFFSET, zero_angles[1]);
         this->addSegment(KDL::Segment("sj5", j5, fj5), "sj4");
 
         // J6
         KDL::Joint j6 = KDL::Joint(joint_names[2], KDL::Joint::RotZ);
-        KDL::Frame fj6 = KDL::Frame::DH_Craig1989(0, M_PI / -2, 0, zero_angles[2]);
+        KDL::Frame fj6 = KDL::Frame::DH(0, 0, J6_OFFSET, zero_angles[2]);
         this->addSegment(KDL::Segment("sj6", j6, fj6), "sj5");
         
         // j4-hook
         KDL::Joint hook = KDL::Joint(endpoint_names[0], KDL::Joint::None);
-        // Construct the frame. Make this more efficient.
-        KDL::Frame hook_to_j4 = KDL::Frame(KDL::Vector(HOOK_OFFSET_X, HOOK_OFFSET_Y, HOOK_OFFSET_Z));
-        KDL::Rotation j4_to_elbow_rot = KDL::Rotation::Identity();
-        j4_to_elbow_rot.DoRotZ(M_PI);
-        j4_to_elbow_rot.DoRotY(-M_PI / 2);
-        j4_to_elbow_rot.DoRotX(HOOK_ANGLE_X);
-        // Check this rotation matrix.
-        // Check j4_to_elbow_rot, make sure rotation part matches with transformation_j4_to_elbow in old model.py 
-        KDL::Frame j4_to_elbow = KDL::Frame(j4_to_elbow_rot, KDL::Vector(J4_LINK_LENGTH, 0, 0));
-        KDL::Frame fhook = j4_to_elbow * hook_to_j4;
-        // Create segment, add to the tree
+        // Put at the root for now, can move it to the correct spot later
+        KDL::Frame fhook = KDL::Frame::Identity();
         this->addSegment(KDL::Segment("shook", hook, fhook), "root");
 
         // Squooshy
