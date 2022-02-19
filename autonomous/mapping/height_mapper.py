@@ -76,7 +76,7 @@ class HeightMapper(mapper.Mapper):
         if self.vis:
             max_z = 10
             colors = np.array([(abs(pts[:, 2]) + 1 / max_z) * 250.0 % 250, np.full(len(pts), 0), abs(max_z - abs(pts[:,2]) - 1) * 250 % 250]).transpose()
-            
+            np.save('basicPCL.npy', colors) 
             # white mode
             # colors = np.array(np.full((len(pts), 3), 255))
             self.pc_pub.pub_pts_colors(pts, colors.astype(int))
