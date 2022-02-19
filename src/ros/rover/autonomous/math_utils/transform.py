@@ -129,12 +129,12 @@ def transform_points_no_yaw(pose_msg, pts):
     Translates points to their x, y and z coordinates assuming that there is no yaw
     """
     pitch, roll, yaw = quat_to_euler(pose_msg)
-    return transform_euler((-pitch, -roll, 0), pts)
+    return transform_euler((pitch, roll, 0), pts)
 
 def transform_yaw(pose_msg, pts):
     """
     Finishes the above transform by rotating according to the yaw.
     """
     pitch, roll, yaw = quat_to_euler(pose_msg)
-    pts = transform_euler((0, 0, -yaw), pts)
+    pts = transform_euler((0, 0, yaw), pts)
     return pts
