@@ -4,12 +4,13 @@ __package__ = "autonomous"
 obstacle detector, which we can navigate easily 
 using A*. 
 """
-from config.runtime_params import min_point_density
+from config.runtime_params import min_point_density, max_safe_obstacle
 from height_mapper import get_obstacles
 import numpy as np
 from scipy.signal import convolve2d
 import math_utils.transform as transform
 from config.runtime_params import max_fov_angle, max_point_depth
+import matplotlib.pyplot as plt
 
 class Grid2D:
     def __init__(self, length, width, planning_resolution=0.1, detection_resolution=0.025):
@@ -59,8 +60,7 @@ class Grid2D:
         """
         print("position = " + str(points))
         indexes = (points / self.planning_resolution)
-        indexes[:, 2] = points[:, 2]
-        indexes += np.array([self.length / 2, self.width / 2, 0])
+        indexes += np.array([self.length / (2 * self.planning_resolution), self.width / (2 * self.planning_resolution), 0])
         return indexes.round().astype(int)
 
     def filter_points(self, points):
@@ -78,9 +78,11 @@ class Grid2D:
         Uses convolution with a kernel of ones to add up the values in sections
         of the grid so that we can down-size the resolution.
         """
-        scale_factor = int(self.planning_resolution/self.detection_resolution)
-        kernel = np.ones((scale_factor, scale_factor))
-        return convolve2d(obstacles, kernel, mode='valid')[::scale_factor, ::scale_factor]
+        kernel = np.ones((self.resolution_ratio, self.resolution_ratio))
+        downscaled = convolve2d(obstacles, kernel, mode='valid')[::self.resolution_ratio, ::self.resolution_ratio]
+        downscaled /= max_safe_obstacle # ignoring minor hills
+        downscaled[downscaled > 1.0] = 1.0
+        return downscaled
 
     def pc_to_obstacles(self, points):
         """
@@ -92,7 +94,7 @@ class Grid2D:
 
         # cpp function finds steep areas in the high resolution map
         obstacles = get_obstacles(indexes, self.detection_map_length, self.detection_map_width)
-
+        print(obstacles[138, 157])
         # Using scipy convolution to get a down-sampled array of obstacles
         return self.downscale_obs(obstacles) 
 
@@ -102,9 +104,11 @@ class Grid2D:
         """
         diff = self.get_full_indexes(np.array([[msg.pose.pose.position.x,
             msg.pose.pose.position.y, 0]]))
+        print("diff = " + str(diff))
         obstacles = np.round((obstacles + diff)).astype(int)
-        print(obstacles)
         self.map[obstacles[:, 0], obstacles[:, 1]] = obstacles[:, 2] 
+        plt.imshow(self.map)
+        plt.savefig("map.png")
 
     def arrange_obstacles(self, pose_msg, obstacles):
         """
@@ -115,7 +119,7 @@ class Grid2D:
         """
         obs_as_points = np.array([[x, y, val] for (x, y), val in np.ndenumerate(obstacles) \
                 if np.abs(np.arctan2(y - len(obstacles[0])/2, x)) < max_fov_angle])
-        obs_as_points[:, 1] -= int(np.ceil(self.detection_map_width/2))
+        obs_as_points[:, 1] -= int(np.ceil(self.detection_map_width/(2 * self.resolution_ratio)))
         obstacles = transform.transform_yaw(pose_msg, obs_as_points)
         return obstacles.round().astype(int)
 
