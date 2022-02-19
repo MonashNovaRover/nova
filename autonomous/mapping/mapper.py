@@ -197,13 +197,7 @@ class Mapper(Node):
         It calls a function to extract and filter the points (colors are ignored) and updates the map with points only -
         when using the python API, it should be a points only map.
         """
-        pose = Odometry()
-        msg_arr = np.loadtxt('odom.txt')
-        pose.pose.pose.orientation.x = msg_arr[0]
-        pose.pose.pose.orientation.y = msg_arr[1]
-        pose.pose.pose.orientation.z = msg_arr[2]
-        pose.pose.pose.orientation.w = msg_arr[3]
-        self.msg = pose
+        self.msg = self.last_msg
         
         # t = time.time()
         self.update_map_pts_only(msg)

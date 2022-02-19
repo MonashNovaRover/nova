@@ -81,7 +81,7 @@ class Grid2D:
         kernel = np.ones((self.resolution_ratio, self.resolution_ratio))
         downscaled = convolve2d(obstacles, kernel, mode='valid')[::self.resolution_ratio, ::self.resolution_ratio]
         downscaled /= max_safe_obstacle # ignoring minor hills
-        downscaled[downscaled > 1.0] = 1.0
+        downscaled[downscaled > 1.0] = 1.0 # all points greater than one are just set to 1
         return downscaled
 
     def pc_to_obstacles(self, points):
