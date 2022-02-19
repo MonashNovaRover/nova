@@ -21,7 +21,11 @@ EDITED:		 29/01/2022
 TODO:
  - Compare to KDL examples, see how they structure things.
      Have the tree as a member, or inherit from tree directly?
- - Item Two
+ - Clean up variable names in all arm submodules.
+     Make segment names more descriptive, see if can remove joint names
+ - Update comments linking to Arm/DH parameters on Grabcad. Link to Nuclino instead?
+ - Make frame transformations for J4 hook and for cameras
+ - Check exit_values from addTree and addSegment - add to ArmSubModule for addSegment?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 

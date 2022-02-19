@@ -32,7 +32,7 @@ class EeEquipmentServicingModel : public ArmSubModule
 
     // Parameters for arm model geometry. Based on model in Arm/DH parameters on GrabCAD
     // All distances in mm, all angles in rad
-    constexpr static double GRIPPER_OFFSET_Z = 311;  // Distance from p56 to tip of gripper end effector
+    constexpr static double GRIPPER_OFFSET = 210;
 
     /// Constructor. Build the equipment servicing end effector
     EeEquipmentServicingModel()
@@ -47,10 +47,10 @@ class EeEquipmentServicingModel : public ArmSubModule
 
         // Gripper
         KDL::Joint gripper = KDL::Joint(endpoint_names[0], KDL::Joint::None);
-        KDL::Frame fgripper = KDL::Frame(KDL::Vector(0, 0, GRIPPER_OFFSET_Z));
+        KDL::Frame fgripper = KDL::Frame::DH(0, 0, GRIPPER_OFFSET, 0);
         this->addSegment(KDL::Segment("sgripper", gripper, fgripper), "root");
 
-        // Put all the cameras at the root for now, can move it to the correct spot later
+        // Put all the cameras at the root for now, can move them to the correct spot later
 
         // Cam-front
         KDL::Joint cam_front = KDL::Joint(endpoint_names[1], KDL::Joint::None);
