@@ -22,8 +22,9 @@ controller_ros_rate = 10  # 10hz
 a_star_rate = 1 # 1Hz
 
 # ~~~~~~~~~~ MAPPING CONSTANTS ~~~~~~~~~~~~~~~~
-min_point_density = 1
+min_point_density = 5
 max_point_depth = 3.5 # distance beyond which we don't consider points
 max_fov_angle = np.pi/6 #40 degrees
-max_safe_obstacle = 260 # obstacle threshold for 2d map
+max_safe_obstacle = 16 # obstacle threshold for 2d map
 depth_mode = "python" # whether we publish points over ros or use a python callback
+skip_pts = 2 # Step we use when selecting points because we can't handle the full cloud
