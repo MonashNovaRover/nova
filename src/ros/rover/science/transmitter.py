@@ -99,7 +99,7 @@ def parse_command(command_dict):
     action_code = ACTION_DICT[action]
     argument_codes = []
     for argument in args: 
-        if argument == "number":
+        if argument == "scoop_id":
             argument_codes.append(args[argument])
         else:
             try:
