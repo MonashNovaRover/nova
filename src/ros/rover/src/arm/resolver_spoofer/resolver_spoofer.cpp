@@ -10,6 +10,7 @@ AUTHOR(S):	Jory Braun
 #include "resolver_spoofer.h"
 
 #include "arm_core.h"
+#include "print/print.h"
 
 #define _USE_MATH_DEFINES
 #include <cmath>
