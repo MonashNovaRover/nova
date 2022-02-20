@@ -60,6 +60,9 @@ ArmKinematics::ArmKinematics() : Node("arm_kinematics")
 
     // Output set-up messages
     Print::title("ARM KINEMATICS");
+    Print::print("Subscribed Topics:");
+    Print::print("/electronics/resolvers      [sensor_msgs/JointState]", 1);
+    Print::print("/control/task_velocity      [geometry_msgs/TwistStamped]", 1);
     Print::print("Published Topics:");
     Print::print("/control/arm_coord_frames   [sensor_msgs/MultiDOFJointState]", 1);
     Print::print("/control/joint_velocities   [sensor_msgs/JointState]", 1);
