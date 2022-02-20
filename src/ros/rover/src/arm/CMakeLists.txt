@@ -64,11 +64,11 @@ if(Eigen3_FOUND AND Orocos_kdl_FOUND)
   target_include_directories(rviz_visualisation INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/visualisation)
   ament_target_dependencies(rviz_visualisation rclcpp sensor_msgs nav_msgs)
 
-  # Arm Simulator script
-  add_executable(arm_simulator simulator/arm_simulator.cpp)
-  target_link_libraries(arm_simulator arm_core)
-  target_include_directories(arm_simulator INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/simulator)
-  ament_target_dependencies(arm_simulator rclcpp sensor_msgs)
+  # Resolver Spoofer script
+  add_executable(resolver_spoofer resolver_spoofer/resolver_spoofer.cpp)
+  target_link_libraries(resolver_spoofer arm_core)
+  target_include_directories(resolver_spoofer INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/resolver_spoofer)
+  ament_target_dependencies(resolver_spoofer rclcpp sensor_msgs)
 
 
 
@@ -82,7 +82,7 @@ if(Eigen3_FOUND AND Orocos_kdl_FOUND)
     arm_driver
     arm_kinematics
     rviz_visualisation
-    arm_simulator
+    resolver_spoofer
     DESTINATION lib/${PROJECT_NAME}
   )
 

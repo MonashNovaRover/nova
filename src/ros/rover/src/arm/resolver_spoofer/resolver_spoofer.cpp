@@ -7,7 +7,7 @@ AUTHOR(S):	Jory Braun
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-#include "arm_simulator.h"
+#include "resolver_spoofer.h"
 
 #include "arm_core.h"
 
@@ -17,7 +17,7 @@ AUTHOR(S):	Jory Braun
 #include "../hacky_defines.h"
 
 // Constructor
-ArmSimulator::ArmSimulator() : Node("arm_simulator")
+ResolverSpoofer::ResolverSpoofer() : Node("resolver_spoofer")
 {
     // Initialise constants
     timer_period = 200ms;
@@ -30,22 +30,22 @@ ArmSimulator::ArmSimulator() : Node("arm_simulator")
     
     // Create the subscription
     outputs_subscription = this->create_subscription<sensor_msgs::msg::JointState>(
-        "/control/cmd_outputs", 10, std::bind(&ArmSimulator::subscriber_callback, this, _1)
+        "/control/cmd_outputs", 10, std::bind(&ResolverSpoofer::subscriber_callback, this, _1)
     );
 
     // Create the publisher timer. Controls rate of publihsing to /resolvers topic
     publisher_timer = this->create_wall_timer(
-        timer_period, std::bind(&ArmSimulator::publisher_callback, this)
+        timer_period, std::bind(&ResolverSpoofer::publisher_callback, this)
     );
 
     // Create the publisher
     resolver_publisher = this->create_publisher<sensor_msgs::msg::JointState>(
-        "/control/resolvers", 10
+        "/electronics/resolvers", 10
     );
 }
 
 // Convert a Real angle into the equivalent angle in [0, 2pi)
-double ArmSimulator::wrap_to_2pi(double angle){
+double ResolverSpoofer::wrap_to_2pi(double angle){
     angle = fmod(angle, 2*M_PI);
     if (angle < 0)
         angle += 2*M_PI;
@@ -53,7 +53,7 @@ double ArmSimulator::wrap_to_2pi(double angle){
 }
 
 // Use the current joint velocities to integrate the joint positions up to the current time
-void ArmSimulator::update_joint_positions()
+void ResolverSpoofer::update_joint_positions()
 {
     // Get the current time
     rclcpp::Time current_time = this->now();
@@ -71,7 +71,7 @@ void ArmSimulator::update_joint_positions()
 }
 
 // Receive joint velocity command, update internal joint velocities
-void ArmSimulator::subscriber_callback(const sensor_msgs::msg::JointState::SharedPtr msg)
+void ResolverSpoofer::subscriber_callback(const sensor_msgs::msg::JointState::SharedPtr msg)
 {    
     // Integrate the joint velocities up to the current time using the previous velocity
     update_joint_positions();
@@ -80,7 +80,7 @@ void ArmSimulator::subscriber_callback(const sensor_msgs::msg::JointState::Share
 }
 
 // Create fake resolver output by integrating the joint positions up to the current time
-void ArmSimulator::publisher_callback()
+void ResolverSpoofer::publisher_callback()
 {
     // Integrate the joint positions up to the current time
     update_joint_positions();
@@ -98,7 +98,7 @@ int main(int argc, char **argv)
     rclcpp::init(argc, argv);
 
     // Initialise and run the node
-    rclcpp::spin(std::make_shared<ArmSimulator>());
+    rclcpp::spin(std::make_shared<ResolverSpoofer>());
 
     // Shutsdown ROS once complete
     rclcpp::shutdown();

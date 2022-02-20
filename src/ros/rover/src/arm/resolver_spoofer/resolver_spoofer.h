@@ -11,7 +11,7 @@ It can be used in place of the arm_driver for when no physical
 NODE: arm_model
 TOPICS:
   - /control/cmd_outputs       [sensor_msgs/JointState]    [Subscribed]
-  - /control/resolvers         [sensor_msgs/JointState]    [Published]
+  - /electronics/resolvers     [sensor_msgs/JointState]    [Published]
 SERVICES: None
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -37,7 +37,7 @@ using namespace std::chrono_literals;
 using std::placeholders::_1;
 
 
-class ArmSimulator : public rclcpp::Node
+class ResolverSpoofer : public rclcpp::Node
 {
     //------------------------------------------------------------//
     private:
@@ -55,7 +55,7 @@ class ArmSimulator : public rclcpp::Node
 
     // Subscriber to listen for output joint velocity commands
     rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr outputs_subscription;
-    // Timer for publishing to /control/resolvers
+    // Timer for publishing to /electronics/resolvers
     rclcpp::TimerBase::SharedPtr publisher_timer;
     // Publisher to resolvers
     rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr resolver_publisher;
@@ -78,6 +78,6 @@ class ArmSimulator : public rclcpp::Node
     public:
 
     /// Default constructor
-    ArmSimulator();
+    ResolverSpoofer();
 
 };
