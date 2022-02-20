@@ -25,4 +25,6 @@ def generate_launch_description():
             package='control', node_executable='arm_driver', output='screen'),
         launch_ros.actions.Node(
             package='control', node_executable='arm_inputs', output='screen'),
+        launch_ros.actions.Node(
+            package='control', node_executable='arm_control', output='screen'),
     ])

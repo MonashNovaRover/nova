@@ -41,7 +41,13 @@ if(Eigen3_FOUND AND Orocos_kdl_FOUND)
   add_executable(arm_inputs arm_inputs/arm_inputs.cpp)
   target_link_libraries(arm_inputs arm_core print)
   target_include_directories(arm_inputs INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/arm_inputs)
-  ament_target_dependencies(arm_inputs rclcpp core)
+  ament_target_dependencies(arm_inputs rclcpp core sensor_msgs geometry_msgs)
+
+  # Arm Control script
+  add_executable(arm_control arm_control/arm_control.cpp)
+  target_link_libraries(arm_control arm_core print)
+  target_include_directories(arm_control INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/arm_control)
+  ament_target_dependencies(arm_control rclcpp core sensor_msgs)
 
   # Arm Driver script
   add_executable(arm_driver
@@ -50,7 +56,7 @@ if(Eigen3_FOUND AND Orocos_kdl_FOUND)
   )
   target_link_libraries(arm_driver arm_core cmd print)
   target_include_directories(arm_inputs INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/arm_driver)
-  ament_target_dependencies(arm_driver rclcpp core)
+  ament_target_dependencies(arm_driver rclcpp core sensor_msgs)
 
   # Arm Kinematics script
   add_executable(arm_kinematics kinematics/arm_kinematics.cpp)
@@ -71,7 +77,6 @@ if(Eigen3_FOUND AND Orocos_kdl_FOUND)
   ament_target_dependencies(resolver_spoofer rclcpp sensor_msgs)
 
 
-
   ################################################
   # Add installations:
   ################################################
@@ -79,6 +84,7 @@ if(Eigen3_FOUND AND Orocos_kdl_FOUND)
   # Add installation for executable targets
   install(TARGETS
     arm_inputs
+    arm_control
     arm_driver
     arm_kinematics
     rviz_visualisation
