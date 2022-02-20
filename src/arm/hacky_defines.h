@@ -2,7 +2,7 @@
 // Delete these after FK / IK is working on cycloidal wrist with ES end effector
 
 // Files where this is included:
-// arm_simulator.cpp
+// resolver_spoofer.cpp
 // arm_kinematics.cpp
 
 #include <string>
