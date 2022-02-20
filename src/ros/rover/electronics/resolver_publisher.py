@@ -33,16 +33,25 @@ class ResolverTransceiver(UARTTransceiver):
     def __init__(self, **kwargs):
         super().__init__(receive_timeout=.05, **kwargs)
         # create mapping of joint names to resolver ids for sending commands
-        # FIXME: Based off the old script, the base IDs were 0x4, 0x8, 0xC, 0x10, 0x14
-        # but unsure what the additional joints IDs are. Relatively easy to add them later though
         self.joint_id_map =  {
-                "base-rotation":    0x04,
-                "shoulder":         0x08,
-                "elbow":            0x0C,
-                "j4":               0x10, 
-                "j5":               0x14, 
-                "j6":               0x18
-                }
+            "base-rotation":    0x04,
+            "shoulder":         0x08,
+            "elbow":            0x0C,
+            "j4":               0x10,
+            "j5":               0x14,
+            "j6":               0x18
+        }
+
+        # Create mapping of joint names where the resolver angle increases in the wrong direction
+        # For a given joint, a value of 1 means the direction needs to be flipped.
+        self.joint_direction_map = {
+            "base-rotation":    1,
+            "shoulder":         1,
+            "elbow":            0,
+            "j4":               0,
+            "j5":               0,
+            "j6":               0
+        }
 
     def zero(self, joint: str) -> bool:
         '''
@@ -65,11 +74,22 @@ class ResolverTransceiver(UARTTransceiver):
         data = self.pack([0x56, 0x5E], fmt=fmt)
         return self.transmit(data)
 
+    @staticmethod
+    def reverse_direction(angle: float) -> float:
+        '''
+        Method to reverse the increasing direction of a resolver
+
+        Maps [0, 2pi) to (2pi, 0]
+        '''
+        if angle != 0:
+            angle = 2*pi - angle
+        return angle
+    
     def position(self, joint: str) -> float:
         '''
         Method to read a given encoder
         
-        Returns float value in [0, 2 pi] or -1 on failure
+        Returns float value in [0, 2 pi) or -1 on failure
         '''
         try:
             resolver_id = self.joint_id_map[joint]
@@ -83,14 +103,18 @@ class ResolverTransceiver(UARTTransceiver):
             return -1
 
         # read response and decode into radians
-        ret = self.receive()
+        ret = self.receive(error_string=f"Device ID {hex(resolver_id)}")
         if ret is None:
             return -1
         unpacked_data = self.unpack(ret)[0]
-
         # TODO: Handle checksum 
         # for now just mask it out by removing 2 high order bits
-        return self._convert_to_rad(unpacked_data & 0x3FFF)
+        angle_data = self._convert_to_rad(unpacked_data & 0x3FFF)
+
+        # Reverse the increasing direction if necessary
+        if self.joint_direction_map[joint]:
+            angle_data = self.reverse_direction(angle_data)
+        return angle_data
 
     def _convert_to_rad(self, raw_value: int) -> float:
         '''
