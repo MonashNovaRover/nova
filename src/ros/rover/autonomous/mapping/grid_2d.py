@@ -1,4 +1,7 @@
 __package__ = "autonomous"
+
+from config.ros_config import main_frame
+
 """
 2d map class for storing obstacles detected by our
 obstacle detector, which we can navigate easily 
@@ -10,8 +13,13 @@ import numpy as np
 from scipy.signal import convolve2d
 import math_utils.transform as transform
 from config.runtime_params import max_fov_angle, max_point_depth
+from rclpy.node import Node
+from nav_msgs.msg import OccupancyGrid, MapMetaData
+from geometry_msgs.msg import Pose
+from std_msgs.msg import Header
+from builtin_interfaces.msg import Time
 
-class Grid2D:
+class Grid2D(Node):
     def __init__(self, length, width, planning_resolution=0.1, detection_resolution=0.025):
         """
         2D flattening of the 3D occupancy grid we use to visualise the map
@@ -22,6 +30,10 @@ class Grid2D:
         :param detection_resolution: finer resolution we use to detect obstacles more
         accurately before downscaling to a map we can plan on.
         """
+
+        super().__init__("occupancy_grid_publisher")
+        self.publisher = self.create_publisher(OccupancyGrid, "autonomous/occupancy_grid", 10)
+
         assert(planning_resolution >= detection_resolution)
 
         self.length = length
@@ -33,6 +45,49 @@ class Grid2D:
         self.detection_map_width = int(np.ceil(2 * max_point_depth * np.tan(max_fov_angle)))
         
         self.map = np.zeros((int(length / planning_resolution), int(width / planning_resolution)))
+
+    def publish_grid(self):
+        # This hold basic information about the characteristics of the OccupancyGrid
+        """
+        # The time at which the map was loaded
+        time map_load_time
+        # The map resolution [m/cell]
+        float32 resolution
+        # Map width [cells]
+        uint32 width
+        # Map height [cells]
+        uint32 height
+        # The origin of the map [m, m, rad].  This is the real-world pose of the
+        # cell (0,0) in the map.
+        geometry_msgs / Pose origin pass
+        """
+
+        meta_data = MapMetaData()
+
+        header = Header()
+        header.frame_id = main_frame
+        header.stamp = self.get_clock().now().to_msg()
+
+        # hmm.. surprised it says time is read only
+        # t = Time()
+        # meta_data.time = t
+
+        meta_data.resolution = self.planning_resolution * .4
+        meta_data.width = self.width
+        meta_data.height = self.length
+
+        pose_origin = Pose()
+        pose_origin.position.x = -1 * self.width / 2 / self.planning_resolution
+        pose_origin.position.y = -1 * self.length / 2 / self.planning_resolution
+        pose_origin.orientation.w = 1
+        meta_data.origin = pose_origin
+
+        grid = OccupancyGrid()
+        grid.header = header
+        grid.info = meta_data
+        grid.data = self.map.flatten()
+
+        self.publisher.publish(grid)
 
     def get_detection_map_indexes(self, points):
         """
