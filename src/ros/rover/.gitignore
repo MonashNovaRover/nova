@@ -38,13 +38,14 @@ CMakeLists.txt.user
 srv/_*.py
 *.pcd
 *.pyc
+odom.txt
+raw_points.npy
 qtcreator-*
 *.user
 tests*
 *.png
 *.tar
 *.swp
-/pybind11
 
 /planning/cfg
 /planning/docs

@@ -190,7 +190,7 @@ class Mapper(Node):
         pts = pts[indexes]
         return pts
 
-    def python_callback(self, msg):
+    def python_callback(self, pts):
         """
         This is called when the depth camera receives a new set of points via the python api. It is implemented
         as a callback so it can happen in a separate thread.
@@ -200,7 +200,7 @@ class Mapper(Node):
         self.msg = self.last_msg
         
         # t = time.time()
-        self.update_map_pts_only(self.get_pts(msg))
+        self.update_map_pts_only(self.get_pts(pts))
 
     def ros_points_callback(self, msg):
         self.msg = self.last_msg
