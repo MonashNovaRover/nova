@@ -24,6 +24,6 @@ a_star_rate = 1 # 1Hz
 # ~~~~~~~~~~ MAPPING CONSTANTS ~~~~~~~~~~~~~~~~
 min_point_density = 1
 max_point_depth = 3.5 # distance beyond which we don't consider points
-max_fov_angle = np.pi/4 #40 degrees
-max_safe_obstacle = 1 # obstacle threshold for 2d map
+max_fov_angle = np.pi/6 #40 degrees
+max_safe_obstacle = 260 # obstacle threshold for 2d map
 depth_mode = "python" # whether we publish points over ros or use a python callback
