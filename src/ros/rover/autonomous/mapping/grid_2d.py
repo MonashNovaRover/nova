@@ -161,10 +161,11 @@ class Grid2D(Node):
         Function to add a list of coordinates and their values to the 2d map. 
         """
         diff = self.get_full_indexes(np.array([[msg.pose.pose.position.x,
-            msg.pose.pose.position.y, 0]]))
+            msg.pose.pose.position.y, 0]])).astype(int)
         print("diff = " + str(diff))
-        obstacles = np.round((obstacles + diff)).astype(int)
-        self.map[obstacles[:, 0], obstacles[:, 1]] = obstacles[:, 2] 
+        obstacles = obstacles + diff
+        self.map[obstacles[:, 0], obstacles[:, 1]] = obstacles[:, 2]
+        plt.figure()
         plt.imshow(self.map)
         plt.plot(diff[0, 0], diff[0, 1], 'ro')
         plt.savefig('map.png')
@@ -180,5 +181,8 @@ class Grid2D(Node):
                 if np.abs(np.arctan2(y - len(obstacles[0])/2, x)) < max_fov_angle])
         obs_as_points[:, 1] -= int(np.ceil(self.detection_map_width/(2 * self.resolution_ratio)))
         obstacles = transform.transform_yaw(pose_msg, obs_as_points)
-        return obstacles.round().astype(int)
+        obstacles[:, 2] *= 100
+        print("max value in downscaled array is: " + str(np.max(obstacles[:,2])))
+        print("max value in downscaled array is: " + str(np.max(obstacles[:,2])))
+        return np.round(obstacles).astype(int)
 

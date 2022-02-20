@@ -64,7 +64,7 @@ class HeightMapper(mapper.Mapper):
             obs = self.map2d.pc_to_obstacles(no_yaw_pts)
             rotated_obs = self.map2d.arrange_obstacles(self.msg, obs)
             self.map2d.add_obstacles(self.msg, rotated_obs)
-            self.map2d.publish_grid()
+            #self.map2d.publish_grid()
 
             # setting colors proportional to the height of points - hopefully looks cool!
             if self.vis:
@@ -79,6 +79,6 @@ class HeightMapper(mapper.Mapper):
             if self.planner:
                 self.previous_plan = time.perf_counter()
                 # OLD WAY - MAP LAYERS
-                self.planner.get_path(self.map2d.map)
+                self.planner.get_path(self.map2d.map.astype(float) / 100)
 
 
