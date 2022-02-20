@@ -11,7 +11,7 @@ NODE: arm_control
 TOPICS:
   - /control/joint_velocities_ik    [sensor_msgs/JointState]     [Subscribed]
   - /control/joint_velocities       [sensor_msgs/JointState]     [Subscribed]
-  - /control/resolvers              [sensor_msgs/JointState]     [Subscribed]
+  - /electronics/resolvers          [sensor_msgs/JointState]     [Subscribed]
   - /control/cmd_outputs            [sensor_msgs/JointState]     [Published]
 SERVICES: None
 ACTIONS:  None
