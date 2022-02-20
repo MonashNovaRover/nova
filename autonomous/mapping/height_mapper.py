@@ -15,7 +15,6 @@ TOPICS:
   
   - /camera/depth/color/points [sensor_msgs.msg.PointCloud2]
   - /t265/odom/sample
-
 SERVICES:
   - 
 ACTIONS: None
@@ -58,13 +57,23 @@ class HeightMapper(mapper.Mapper):
             # transforming pitch and roll to flatten the map, but no yaw or translation
             no_yaw_pts = transform.transform_points_no_yaw(self.msg, pts)
 
+            print(full_transform_pts)
             self.map3d.add_pc_points_only(full_transform_pts)
-            pts = self.map3d.get_as_pc()
+            map_pts = self.map3d.get_as_pc()
             
             obs = self.map2d.pc_to_obstacles(no_yaw_pts)
-            rotated_obs = self.arrange_obstacles(self.msg, obs)
+            rotated_obs = self.map2d.arrange_obstacles(self.msg, obs)
             self.map2d.add_obstacles(self.msg, rotated_obs)
-            print(r"%d points in map" % (len(pts))) 
+            self.map2d.publish_grid()
+
+            # setting colors proportional to the height of points - hopefully looks cool!
+            if self.vis:
+                max_z = 10
+                colors = np.array([(abs(map_pts[:, 2]) + 1 / max_z) * 250.0 % 250, np.full(len(map_pts), 0), abs(max_z - abs(map_pts[:,2]) - 1) * 250 % 250]).transpose()
+                np.save('basicPCL.npy', colors) 
+                # white mode
+                # colors = np.array(np.full((len(pts), 3), 255))
+                self.pc_pub.pub_pts_colors(map_pts, colors.astype(int))
 
         if time.perf_counter() - self.previous_plan > 1:
             if self.planner:
@@ -72,24 +81,4 @@ class HeightMapper(mapper.Mapper):
                 # OLD WAY - MAP LAYERS
                 self.planner.get_path(self.map2d.map)
 
-        # setting colors proportional to the height of points - hopefully looks cool!
-        if self.vis:
-            max_z = 10
-            colors = np.array([(abs(pts[:, 2]) + 1 / max_z) * 250.0 % 250, np.full(len(pts), 0), abs(max_z - abs(pts[:,2]) - 1) * 250 % 250]).transpose()
-            
-            # white mode
-            # colors = np.array(np.full((len(pts), 3), 255))
-            self.pc_pub.pub_pts_colors(pts, colors.astype(int))
-
-    def arrange_obstacles(self, pose_msg, obstacles):
-        """
-        Turns a 2d numpy array of obstacle values into a list of coordinates and their
-        values. We then cut all points which aren't in the segment within the fov of
-        the rover. Finally, transforms the coordinates to fit with the global map.
-        :param: obstacles - 2-dimensional array of obstacles in the map
-        """
-        obs_as_points = np.array([[x, y, val] for (x, y), val in np.ndenumerate(obstacles) \
-                if np.abs(np.arctan2(y - len(obstacles[0])/2, x)) < max_fov_angle - 0.02])
-        obstacles = transform.transform_only_yaw(pose_msg, obs_as_points)
-        return obstacles.round().astype(int)
 

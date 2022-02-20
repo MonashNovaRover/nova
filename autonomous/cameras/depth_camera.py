@@ -14,7 +14,7 @@ import sys
 
 
 class DepthCamera(Thread):
-    def __init__(self, callback, publish_topic=None, serial_number='932122060332'):
+    def __init__(self, callback, publish_topic=None, serial_number='829212072166'):
         super().__init__()
         if publish_topic:
             self.publisher = PCPub("depth_camera_pc_pub", scale=1)

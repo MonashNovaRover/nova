@@ -4,7 +4,7 @@ import numpy as np
 import rclpy
 from rclpy.node import Node
 from nav_msgs.msg import Odometry
-from core.msg import RoverPose
+from core.msg import WheelData
 from core.msg import RoverPose, DriveVel
 import math
 import math_utils.transform as transform
@@ -42,8 +42,8 @@ class TrackingCamera(Node):
         self.rover_pose_pub = self.create_publisher(RoverPose, rover_pose_topic, 10)
 
         # Subscriber for wheel odom data
-        # self.wheel_velocity = rs.vector() # holds wheel velocity input
-        # self.wheel_subscriber = self.create_subscription(DriveVel, "/autonomous/drive_vel", self.update_wheel_vel, 10)
+        self.wheel_velocity = rs.vector() # holds wheel velocity input
+        self.wheel_subscriber = self.create_subscription(WheelData, "/electronics/wheel_data", self.update_wheel_vel, 10)
 
         # Build config object and request pose data
         self.cfg = rs.config()
@@ -60,9 +60,9 @@ class TrackingCamera(Node):
         dev = pipe_profile.get_device()
         # dev.hardware_reset() - could do a hardware reset here?
         # later as mentioned should have a system for detecting if disconnected
-        # tm2 = dev.as_tm2()
-        # self.wheel_odometer = None
-        tm2 = False
+        tm2 = dev.as_tm2()
+        self.wheel_odometer = None
+        # tm2 = False
         if tm2:
             pose_sensor = tm2.first_pose_sensor()
             self.wheel_odometer = pose_sensor.as_wheel_odometer()
@@ -114,16 +114,9 @@ class TrackingCamera(Node):
             rover_msg.pitch, rover_msg.roll, rover_msg.yaw = transform.quat_to_euler(t265_msg)
             self.rover_pose_pub.publish(rover_msg)
 
-            # self.send_wheel_odom() # This should be tested if it should go here
-            # which is essentially sending the last wheel data recieved OR
-            # whether it should fire after the wheel data is recieved under
-            # the callback.
-
             sys.stdout.write("\r" + "x: " + str(round(rover_msg.x, 4)).ljust(7)
                              + " | y: " + str(round(rover_msg.y, 4)).ljust(7)
                              + " | z: " + str(round(rover_msg.z, 4)).ljust(7)
-                             + " | pitch: " + str(round(rover_msg.pitch, 4)).ljust(7)
-                             + " | roll: " + str(round(rover_msg.roll, 4)).ljust(7)
                              + " | yaw: " + str(round(rover_msg.yaw, 4)).ljust(7))
             sys.stdout.flush()
 
@@ -138,8 +131,9 @@ class TrackingCamera(Node):
 
     def update_wheel_vel(self, msg):
         # Update (currently from drive commands) the wheel velocity
-        self.wheel_velocity.x = msg.linear_vel # m/s, must be float
+        self.wheel_velocity.x = sum(msg.velocities)/6 # m/s, must be float
         self.wheel_velocity.y, self.wheel_velocity.z = 0, 0
+        self.send_wheel_odom() 
 
     def send_wheel_odom(self):
         wo_sensor_id = 0  # indexed from 0, match to order in calibration file

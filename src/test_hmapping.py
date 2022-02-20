@@ -7,12 +7,12 @@ from time import perf_counter as t
 
 if __name__=="__main__":
 
-    map3d = np.array([[[i, j, i // 40] for i in range(400)] for j in range(400)]).reshape(160000, 3)
+    map3d = np.array([[100, 100,  11], [100, 101, -10]])
 
     begin = t()
-    map2d = get_obstacles(map3d, 400, 400)
+    map2d = get_obstacles(map3d, 140, 159)
     end = t()
-
     plt.imshow(map2d)
+    print(map2d)
     print("python: took " + str(end - begin) + " s")
     plt.savefig("../debug/python_map.png")

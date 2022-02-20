@@ -30,8 +30,9 @@ namespace py = pybind11;
    weigh distance to the destination. Higher values run quicker but find
    a less optimal path. */
 const float ROVER_WIDTH_CM = 50.0;
-const float SAFETY_PARAMETER = 300.0;
-const float WEIGHT = 1.0;
+const float TERRAIN_IMPORTANCE = 300; // How much we value smooth terrain over distance
+const float SAFETY_FACTOR = 1.6; // Factor by which we multiply rover radius to pad.
+const float WEIGHT = 1.0; // weight of heuristic for A*
 
 // Creating a shortcut for int, int pair type
 typedef pair<int, int> Pair;
@@ -115,16 +116,15 @@ float heuristic(const Pair& p1, const Pair& p2) {
 	return abs(p1.first - p2.first) + abs(p1.second - p2.second);
 }
 
-float inverse_square_decay(float dist_sqrd, float scale_length_sqrd) 
+float padding_value(float dist_sqrd, float padding_width_sqrd) 
 {
 	/* 
 	Points too close are automatically impassable (values of 1.0 indicate obstacles,
 	values of 1.1 are points too close to an obstacle to be safe. This allows us to
 	distinguish between the two kinds of impassable points when padding)
 	*/
-	if (dist_sqrd < scale_length_sqrd) return 1.1;
-	if (dist_sqrd > 9 * scale_length_sqrd) return 0.0; // outside a certain distance we don't care
-	return (0.99 * scale_length_sqrd/ (dist_sqrd)); // inverse square decay scaled by scale length
+	if (dist_sqrd < padding_width_sqrd) return 1.1;
+	return 0;
 }
 
 template <size_t ROW, size_t COL>
@@ -171,11 +171,11 @@ void optimise_padding_area(const array<array<float, COL>, ROW>& grid,
 }
 
 template <size_t ROW, size_t COL> 
-void pad_point(array<array<float, COL>, ROW>& grid, const Pair& start_pt, float scale_length_pixels)
+void pad_point(array<array<float, COL>, ROW>& grid, const Pair& start_pt, float padding_width_pixels)
 {
 	int y = start_pt.first, x = start_pt.second;
-	int min_x = x - 3 * scale_length_pixels, min_y = y - 3 * scale_length_pixels;
-	int max_x = x + 3 * scale_length_pixels, max_y = y + 3 * scale_length_pixels;
+	int min_x = x - 1.5 * padding_width_pixels, min_y = y - 1.5 * padding_width_pixels;
+	int max_x = x + 1.5 * padding_width_pixels, max_y = y + 1.5 * padding_width_pixels;
 
 	optimise_padding_area(grid, min_x, max_x, min_y, max_y);
 
@@ -184,8 +184,8 @@ void pad_point(array<array<float, COL>, ROW>& grid, const Pair& start_pt, float 
 			Pair there(k, l);
 			if (isValid(COL, ROW, there)) {
 				float grid_val = grid[k][l];
-				float new_val = inverse_square_decay(dist_squared(there, start_pt),
-									pow(scale_length_pixels, 2.0));
+				float new_val = padding_value(dist_squared(there, start_pt),
+									pow(padding_width_pixels, 2.0));
 
 				if (new_val > grid_val && !isObstacle(grid_val)) {
 					grid[k][l] = new_val;
@@ -204,7 +204,7 @@ void precompute_padding_values(array<array<float, COL>, ROW>& grid,
 	 rover cannot travel. Weights tiles with an inverse-square decay
 	 by there distsance to the obstacle to discourage the rover from
 	 coming too close */
-	double scale_length_pixels = ROVER_WIDTH_CM / grid_resolution_cm;
+	double padding_width_pixels = SAFETY_FACTOR * ROVER_WIDTH_CM / grid_resolution_cm;
 
 	auto start = chrono::high_resolution_clock::now();
 	for (uint i = 0; i < ROW; i++) {
@@ -212,7 +212,7 @@ void precompute_padding_values(array<array<float, COL>, ROW>& grid,
 			if (isObstacle(grid[i][j])) {
 				// we have encountered an obstacle! Pad around it.
 				Pair here(i, j);
-				pad_point(grid, here, scale_length_pixels);
+				pad_point(grid, here, padding_width_pixels);
 			}
 		}
 	}
@@ -371,7 +371,7 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 					// additional distance to next point
 					float g_diff = (add_y == 0 || add_x == 0) ? 1.0 : sqrt(2.0);
 					gNew = cellDetails[i][j].g + g_diff;
-					hNew = grid[neighbour.first][neighbour.second] * SAFETY_PARAMETER + heuristic(neighbour, dest) * WEIGHT;
+					hNew = grid[neighbour.first][neighbour.second] * TERRAIN_IMPORTANCE + heuristic(neighbour, dest) * WEIGHT;
 					fNew = gNew + hNew;
 
 					// If it isn’t on the open list, add

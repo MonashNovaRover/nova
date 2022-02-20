@@ -7,7 +7,7 @@ from config.ros_config import main_frame
 obstacle detector, which we can navigate easily 
 using A*. 
 """
-from config.runtime_params import min_point_density
+from config.runtime_params import min_point_density, max_safe_obstacle
 from height_mapper import get_obstacles
 import numpy as np
 from scipy.signal import convolve2d
@@ -18,6 +18,7 @@ from nav_msgs.msg import OccupancyGrid, MapMetaData
 from geometry_msgs.msg import Pose
 from std_msgs.msg import Header
 from builtin_interfaces.msg import Time
+import matplotlib.pyplot as plt
 
 class Grid2D(Node):
     def __init__(self, length, width, planning_resolution=0.1, detection_resolution=0.025):
@@ -41,8 +42,10 @@ class Grid2D(Node):
         self.planning_resolution = planning_resolution
         self.detection_resolution = detection_resolution
         # defining L and W of the small map we use to detect obstacles in c++
-        self.detection_map_length = int(np.ceil(max_point_depth / self.detection_resolution))
-        self.detection_map_width = int(np.ceil(2 * max_point_depth * np.tan(max_fov_angle)))
+        self.resolution_ratio = int(self.planning_resolution / self.detection_resolution)
+        # ensuring the detection map dimensions are whole number multiples of 
+        self.detection_map_length = int(np.ceil((max_point_depth / self.detection_resolution) / self.resolution_ratio) * self.resolution_ratio)
+        self.detection_map_width = int(np.ceil(2 * self.detection_map_length * np.tan(max_fov_angle)))
         
         self.map = np.zeros((int(length / planning_resolution), int(width / planning_resolution)))
 
@@ -68,24 +71,28 @@ class Grid2D(Node):
         header.frame_id = main_frame
         header.stamp = self.get_clock().now().to_msg()
 
-        # hmm.. surprised it says time is read only
-        # t = Time()
         # meta_data.time = t
 
         meta_data.resolution = self.planning_resolution * .4
-        meta_data.width = self.width
-        meta_data.height = self.length
+        meta_data.width = int(self.width * .4)
+        meta_data.height = int(self.length * .4)
 
+        meta_data.map_load_time = self.get_clock().now().to_msg()
         pose_origin = Pose()
-        pose_origin.position.x = -1 * self.width / 2 / self.planning_resolution
-        pose_origin.position.y = -1 * self.length / 2 / self.planning_resolution
-        pose_origin.orientation.w = 1
+        # pose_origin.position.x = 1 * self.width * 0.4/ 2 
+        # pose_origin.position.x = 1 * self.width * 0.4/ 2 
+        pose_origin.position.y = 0.
+        pose_origin.position.y = 0. 
+        pose_origin.orientation.w = 1.0
         meta_data.origin = pose_origin
 
         grid = OccupancyGrid()
         grid.header = header
         grid.info = meta_data
-        grid.data = self.map.flatten()
+        print("max value of map is " + str(np.max(self.map)))
+        print(self.map.shape)
+        print(grid)
+        grid.data = (self.map * 100).astype(int).flatten().tolist()
 
         self.publisher.publish(grid)
 
@@ -100,7 +107,6 @@ class Grid2D(Node):
         above one another), but yaw and position transformations are done after obstacle
         detection, so the obstacle detection map can stay a consistent size and shape
         """
-        print(points)
         indexes = (points/self.detection_resolution).round().astype(int)
         indexes[:, 1] += (np.ceil(self.detection_map_width/2)).astype(int)
         return indexes
@@ -111,10 +117,10 @@ class Grid2D(Node):
         resolution, to store for planning.
         :param points: (n, 3) ndarray of coordinates in meters
         """
-        indexes = (points / self.planning_resolution).round().astype(int)
-        indexes[:, 2] = points[:, 2]
-        indexes -= np.array([self.length / 2, self.width / 2, 0]).round().astype(int)
-        return indexes
+        print("position = " + str(points))
+        indexes = (points / self.planning_resolution)
+        indexes += np.array([self.length / (2 * self.planning_resolution), self.width / (2 * self.planning_resolution), 0])
+        return indexes.round().astype(int)
 
     def filter_points(self, points):
         """
@@ -131,9 +137,11 @@ class Grid2D(Node):
         Uses convolution with a kernel of ones to add up the values in sections
         of the grid so that we can down-size the resolution.
         """
-        scale_factor = int(self.planning_resolution/self.detection_resolution)
-        kernel = np.ones((scale_factor, scale_factor))
-        return convolve2d(obstacles, kernel, mode='valid')[::scale_factor, ::scale_factor]
+        kernel = np.ones((self.resolution_ratio, self.resolution_ratio))
+        downscaled = convolve2d(obstacles, kernel, mode='valid')[::self.resolution_ratio, ::self.resolution_ratio].astype(float)
+        downscaled /= max_safe_obstacle # ignoring minor hills
+        downscaled[downscaled > 1.0] = 1.0 # all points greater than one are just set to 1
+        return downscaled
 
     def pc_to_obstacles(self, points):
         """
@@ -144,8 +152,7 @@ class Grid2D(Node):
         indexes = self.filter_points(points)
 
         # cpp function finds steep areas in the high resolution map
-        obstacles = get_obstacles(indexes)
-
+        obstacles = get_obstacles(indexes, self.detection_map_length, self.detection_map_width)
         # Using scipy convolution to get a down-sampled array of obstacles
         return self.downscale_obs(obstacles) 
 
@@ -155,7 +162,23 @@ class Grid2D(Node):
         """
         diff = self.get_full_indexes(np.array([[msg.pose.pose.position.x,
             msg.pose.pose.position.y, 0]]))
-        obstacles += diff
-        print(obstacles)
+        print("diff = " + str(diff))
+        obstacles = np.round((obstacles + diff)).astype(int)
         self.map[obstacles[:, 0], obstacles[:, 1]] = obstacles[:, 2] 
+        plt.imshow(self.map)
+        plt.plot(diff[0, 0], diff[0, 1], 'ro')
+        plt.savefig('map.png')
+
+    def arrange_obstacles(self, pose_msg, obstacles):
+        """
+        Turns a 1d numpy array of obstacle values into a list of coordinates and their
+        values. We then cut all points which aren't in the segment within the fov of
+        the rover. Finally, transforms the coordinates to fit with the global map.
+        :param: obstacles - 1-dimensional array of obstacles in the map
+        """
+        obs_as_points = np.array([[x, y, val] for (x, y), val in np.ndenumerate(obstacles) \
+                if np.abs(np.arctan2(y - len(obstacles[0])/2, x)) < max_fov_angle])
+        obs_as_points[:, 1] -= int(np.ceil(self.detection_map_width/(2 * self.resolution_ratio)))
+        obstacles = transform.transform_yaw(pose_msg, obs_as_points)
+        return obstacles.round().astype(int)
 
