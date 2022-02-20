@@ -72,7 +72,7 @@ if(Eigen3_FOUND AND Orocos_kdl_FOUND)
 
   # Resolver Spoofer script
   add_executable(resolver_spoofer resolver_spoofer/resolver_spoofer.cpp)
-  target_link_libraries(resolver_spoofer arm_core)
+  target_link_libraries(resolver_spoofer arm_core print)
   target_include_directories(resolver_spoofer INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/resolver_spoofer)
   ament_target_dependencies(resolver_spoofer rclcpp sensor_msgs)
 
