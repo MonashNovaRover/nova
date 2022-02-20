@@ -34,7 +34,7 @@ import time
 import numpy as np
 import math_utils.transform as transform
 from config.runtime_params import max_fov_angle
-import matplotlib.pyplot as plt
+
 class HeightMapper(mapper.Mapper):
     def __init__(self, length=20, width=20, height=5, resolution=0.1, planner=None, _vis=True):
 
@@ -57,8 +57,9 @@ class HeightMapper(mapper.Mapper):
             # transforming pitch and roll to flatten the map, but no yaw or translation
             no_yaw_pts = transform.transform_points_no_yaw(self.msg, pts)
 
+            print(full_transform_pts)
             self.map3d.add_pc_points_only(full_transform_pts)
-            pts = self.map3d.get_as_pc()
+            map_pts = self.map3d.get_as_pc()
             
             obs = self.map2d.pc_to_obstacles(no_yaw_pts)
             rotated_obs = self.map2d.arrange_obstacles(self.msg, obs)
@@ -73,9 +74,9 @@ class HeightMapper(mapper.Mapper):
         # setting colors proportional to the height of points - hopefully looks cool!
         if self.vis:
             max_z = 10
-            colors = np.array([(abs(pts[:, 2]) + 1 / max_z) * 250.0 % 250, np.full(len(pts), 0), abs(max_z - abs(pts[:,2]) - 1) * 250 % 250]).transpose()
+            colors = np.array([(abs(map_pts[:, 2]) + 1 / max_z) * 250.0 % 250, np.full(len(map_pts), 0), abs(max_z - abs(map_pts[:,2]) - 1) * 250 % 250]).transpose()
             np.save('basicPCL.npy', colors) 
             # white mode
             # colors = np.array(np.full((len(pts), 3), 255))
-            self.pc_pub.pub_pts_colors(pts, colors.astype(int))
+            self.pc_pub.pub_pts_colors(map_pts, colors.astype(int))
 
