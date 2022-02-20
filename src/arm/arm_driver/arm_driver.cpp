@@ -17,7 +17,7 @@ void ArmDriver::cmd_outputs_callback (const sensor_msgs::msg::JointState::Shared
 
     for (auto i = 0; i < NUM_JOINTS; i++) {
         joints[i]->drive(msg->velocity[i]); 
-        std::cout << msg->name[i] << ": " << msg->velocity[i] << std::endl;
+        //std::cout << msg->name[i] << ": " << msg->velocity[i] << std::endl;
     }
 }
 
