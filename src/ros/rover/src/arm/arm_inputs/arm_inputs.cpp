@@ -31,9 +31,11 @@ void ArmInputs::joystick_l_callback (const core::msg::InputJoystick::SharedPtr m
 
     // If using standard velocity
     else {
-        joint_velocity[0] = msg->ax_stick_twist;
-        joint_velocity[1] = msg->ax_stick_x;
-        joint_velocity[2] = msg->ax_stick_y;
+        // Corrected input directions to get correct joint space control scheme
+        // May need to revisit once CMD directions determined during IK setup
+        joint_velocity[0] = -msg->ax_stick_twist;
+        joint_velocity[1] = msg->ax_stick_y;
+        joint_velocity[2] = -msg->ax_stick_x;
     }
 }
 
@@ -50,16 +52,18 @@ void ArmInputs::joystick_r_callback (const core::msg::InputJoystick::SharedPtr m
     // Wrist joints
     // If using the wrist IK
     if (IK_wrist) {
-        task_velocity[3] = msg->ax_stick_twist;
+        task_velocity[3] = -msg->ax_stick_twist;
         task_velocity[4] = msg->ax_stick_x;
         task_velocity[5] = msg->ax_stick_y;
     }
 
     // If using standard velocity
     else {
-        joint_velocity[3] = msg->ax_stick_y;
-        joint_velocity[4] = msg->ax_stick_x;
-        joint_velocity[5] = msg->ax_stick_twist;
+        // Corrected input directions to get correct joint space control scheme
+        // May need to revisit once CMD directions determined during IK setup
+        joint_velocity[3] = -msg->ax_stick_x;
+        joint_velocity[4] = msg->ax_stick_y;
+        joint_velocity[5] = -msg->ax_stick_twist;
     }
 
     //Get the speed multiplier from slider
