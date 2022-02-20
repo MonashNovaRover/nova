@@ -43,7 +43,7 @@ import vis.pc_pub as pc_pub
 import time
 from cameras.depth_camera import DepthCamera
 from config.ros_config import tracking_pose_topic, depth_topic
-from config.runtime_params import max_point_depth, max_fov_angle, depth_mode
+from config.runtime_params import max_point_depth, max_fov_angle, depth_mode, skip_pts
 
 class Mapper(Node):
     def __init__(self, length=20, width=20, height=5, resolution=0.1, planner=None, _vis=True):
@@ -181,7 +181,7 @@ class Mapper(Node):
         pts[:, 1] = -pts[:, 1]
 
         # 6. only taking every 10th value (cos 2 much data)
-        pts = pts[list(range(0, len(pts), 10))]
+        pts = pts[::skip_pts]
 
         # 7. further pruning out points which are either beyond the max dist, or are outside the max angle
         indexes = (self.row_norm(pts) < max_point_depth) & (abs(np.arctan(pts[:, 1] / pts[:, 0])) < max_fov_angle) \

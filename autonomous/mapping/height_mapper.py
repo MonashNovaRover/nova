@@ -58,27 +58,27 @@ class HeightMapper(mapper.Mapper):
             no_yaw_pts = transform.transform_points_no_yaw(self.msg, pts)
 
             print(full_transform_pts)
-            self.map3d.add_pc_points_only(full_transform_pts)
-            map_pts = self.map3d.get_as_pc()
+            #self.map3d.add_pc_points_only(full_transform_pts)
+            #map_pts = self.map3d.get_as_pc()
             
             obs = self.map2d.pc_to_obstacles(no_yaw_pts)
             rotated_obs = self.map2d.arrange_obstacles(self.msg, obs)
             self.map2d.add_obstacles(self.msg, rotated_obs)
-            #self.map2d.publish_grid()
+            self.map2d.publish_grid()
 
             # setting colors proportional to the height of points - hopefully looks cool!
-            if self.vis:
+            """if self.vis:
                 max_z = 10
                 colors = np.array([(abs(map_pts[:, 2]) + 1 / max_z) * 250.0 % 250, np.full(len(map_pts), 0), abs(max_z - abs(map_pts[:,2]) - 1) * 250 % 250]).transpose()
                 np.save('basicPCL.npy', colors) 
                 # white mode
                 # colors = np.array(np.full((len(pts), 3), 255))
                 self.pc_pub.pub_pts_colors(map_pts, colors.astype(int))
-
+"""
         if time.perf_counter() - self.previous_plan > 1:
             if self.planner:
                 self.previous_plan = time.perf_counter()
-                # OLD WAY - MAP LAYERS
+                # NEW WAY - HEIGHT MAPPING
                 self.planner.get_path(self.map2d.map.astype(float) / 100)
 
 

@@ -19,6 +19,7 @@ from geometry_msgs.msg import Pose
 from std_msgs.msg import Header
 from builtin_interfaces.msg import Time
 import matplotlib.pyplot as plt
+from vis.grid_pub import GridPub
 
 class Grid2D(Node):
     def __init__(self, length, width, planning_resolution=0.1, detection_resolution=0.025):
@@ -49,52 +50,15 @@ class Grid2D(Node):
         
         self.map = np.zeros((int(length / planning_resolution), int(width / planning_resolution)))
 
+        self.grid_pub = GridPub()
+
+
     def publish_grid(self):
-        # This hold basic information about the characteristics of the OccupancyGrid
-        """
-        # The time at which the map was loaded
-        time map_load_time
-        # The map resolution [m/cell]
-        float32 resolution
-        # Map width [cells]
-        uint32 width
-        # Map height [cells]
-        uint32 height
-        # The origin of the map [m, m, rad].  This is the real-world pose of the
-        # cell (0,0) in the map.
-        geometry_msgs / Pose origin pass
-        """
-
-        meta_data = MapMetaData()
-
-        header = Header()
-        header.frame_id = main_frame
-        header.stamp = self.get_clock().now().to_msg()
-
-        # meta_data.time = t
-
-        meta_data.resolution = self.planning_resolution * .4
-        meta_data.width = int(self.width * .4)
-        meta_data.height = int(self.length * .4)
-
-        meta_data.map_load_time = self.get_clock().now().to_msg()
-        pose_origin = Pose()
-        # pose_origin.position.x = 1 * self.width * 0.4/ 2 
-        # pose_origin.position.x = 1 * self.width * 0.4/ 2 
-        pose_origin.position.y = 0.
-        pose_origin.position.y = 0. 
-        pose_origin.orientation.w = 1.0
-        meta_data.origin = pose_origin
-
-        grid = OccupancyGrid()
-        grid.header = header
-        grid.info = meta_data
-        print("max value of map is " + str(np.max(self.map)))
-        print(self.map.shape)
-        print(grid)
-        grid.data = (self.map * 100).astype(int).flatten().tolist()
-
-        self.publisher.publish(grid)
+        length = int(self.length / self.planning_resolution)
+        width = int(self.width / self.planning_resolution)
+        x = (-self.length / 2)
+        y = (-self.width / 2)
+        self.grid_pub.publish_grid(0.4 * self.planning_resolution, length, width, 0.4 * x, 0.4 * y, self.map.transpose().flatten().astype(int).tolist())
 
     def get_detection_map_indexes(self, points):
         """
