@@ -75,7 +75,7 @@ ArmControl::ArmControl()
 
      // Creates the subscription for resolvers
     resolvers_subscription = this->create_subscription<sensor_msgs::msg::JointState>(
-        "/control/resolvers", 10, std::bind(&ArmControl::resolver_callback, this, _1));
+        "/electronics/resolvers", 10, std::bind(&ArmControl::resolver_callback, this, _1));
 
     // Creates a timer function that runs a function on loop every 0.05 seconds
     timer = this->create_wall_timer(50ms, std::bind(&ArmControl::publish_CMD_outputs, this));
@@ -91,7 +91,7 @@ ArmControl::ArmControl()
     Print::print("/control/cmd_ouputs            [JointState]", 1);
     Print::print("/control/joint_velocities      [JointState]", 1);
     Print::print("/control/joint_velocities_ik   [JointState]", 1);
-    Print::print("/control/resolvers             [JointState]", 1);
+    Print::print("/electronics/resolvers         [JointState]", 1);
     Print::print("", true);
 
 }
