@@ -42,6 +42,14 @@ ResolverSpoofer::ResolverSpoofer() : Node("resolver_spoofer")
     resolver_publisher = this->create_publisher<sensor_msgs::msg::JointState>(
         "/electronics/resolvers", 10
     );
+
+    // Output set-up messages
+    Print::title("RESOLVER SPOOFER");
+    Print::print("Subscribed Topics:");
+    Print::print("/control/cmd_outputs        [sensor_msgs/JointState]", 1);
+    Print::print("Published Topics:");
+    Print::print("/electronics/resolvers      [sensor_msgs/JointState]", 1);
+    Print::print("", true);
 }
 
 // Convert a Real angle into the equivalent angle in [0, 2pi)
