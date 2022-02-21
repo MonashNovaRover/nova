@@ -76,31 +76,31 @@ const unsigned char MAP_BOTTOM = 128;
 const Vec3 UP(0, 0, 1);
 
 template <std::size_t XS, std::size_t YS>
-std::array<std::array<float, YS>, XS> fit_planes(std::array<std::array<uint8_t, 4*YS>, 4*XS> heightMap,
-                                                std::array<std::array<float, YS>, XS>& incs) {
+std::array<std::array<float, (std::size_t)std::floor(YS/4)>, (std::size_t)std::floor(XS/4)>
+fit_planes(std::array<std::array<uint8_t, YS>, XS>& heightMap) {
+    const std::size_t plane_xs = std::floor(XS/4);
+    const std::size_t plane_ys = std::floor(YS/4);
 
-    double start = std::clock();
-    std::size_t plane_xs = (std::size_t) std::floor(XS/4);
-    std::size_t plane_ys = (std::size_t) std::floor(YS/4);
+    std::array<std::array<float, plane_ys>, plane_xs> incs = {};
     
     int plane_x_pixels = 8, plane_y_pixels = 8;
     int pixels_per_plane = plane_x_pixels * plane_y_pixels;
 
-    for (int plane_i = 0; plane_i < plane_xs - 1; plane_i++) {
-        for (int plane_j = 0; plane_j < plane_ys - 1; plane_j++) {
+    for (int plane_i = 0; plane_i < XS - 1; plane_i++) {
+        for (int plane_j = 0; plane_j < YS - 1; plane_j++) {
             Vec3 point_sum;
             //std::vector<Vec3> these_pts;
 
-            std::array<std::array<Vec3, 8>, 8> these_pts;
+            std::vector<Vec3> these_pts;
             for (int i = 0; i < plane_x_pixels; i++) {
                 for (int j = 0; j < plane_y_pixels; j++) {
                     int x_index = plane_i * plane_x_pixels + i;
                     int y_index = plane_j * plane_y_pixels + j;
 
                     float z = heightMap[x_index][y_index];
-
+                    if (z == 0) continue;
                     Vec3 p(x_index, y_index, z);
-                    these_pts[j][i] = p;
+                    these_pts.push_back(p);
                     point_sum = point_sum + p;
                 }
             }
@@ -109,17 +109,14 @@ std::array<std::array<float, YS>, XS> fit_planes(std::array<std::array<uint8_t, 
 
             double xx=0.0, yy=0.0, zz=0.0, xy=0.0, xz=0.0, yz=0.0;
 
-            for (int i = 0; i < plane_x_pixels; i++) {
-                for (int j = 0; j < plane_y_pixels; j++) {
-                    Vec3 p = these_pts[j][i];
-                    Vec3 r = p - centroid;
-                    xx += r.x*r.x;
-                    xy += r.x*r.y;
-                    xz += r.x*r.z;
-                    yy += r.y*r.y;
-                    yz += r.y*r.z;
-                    zz += r.z*r.z; 
-                }
+            for (Vec3 p : these_pts) {
+                Vec3 r = p - centroid;
+                xx += r.x*r.x;
+                xy += r.x*r.y;
+                xz += r.x*r.z;
+                yy += r.y*r.y;
+                yz += r.y*r.z;
+                zz += r.z*r.z; 
             }
 
             xx /= pixels_per_plane;
@@ -167,20 +164,15 @@ std::array<std::array<float, YS>, XS> fit_planes(std::array<std::array<uint8_t, 
             }
         }
     }
-    double end = std::clock();
-    double time = (end - start)  / double(CLOCKS_PER_SEC);
-    std::cout << "Plane fitting took " << time << "s" << std::endl;
 
     return incs;
 }
 
 template <std::size_t XS, std::size_t YS>
 std::array<std::array<float, (std::size_t)std::floor(YS/4)>, (std::size_t)std::floor(XS/4)> 
-getObstacles(PointCloud& points, std::array<std::array<float, YS>, XS>& incs){
+getObstacles(PointCloud& points, std::array<std::array<uint8_t, YS>, XS>& incs){
     py::buffer_info pc_info = points.request();
     uint16_t* pc = static_cast<uint16_t *> (pc_info.ptr);
-
-    auto start = std::chrono::high_resolution_clock::now();
     // These two height-maps should sandwich every point in the point cloud
     std::array<std::array<uint8_t, YS>, XS> heightMap = {};
     // Finding max and min z for each x-y coordinate
@@ -196,10 +188,10 @@ getObstacles(PointCloud& points, std::array<std::array<float, YS>, XS>& incs){
         }
     }
 
-    return fit_planes(heightMap, incs);
+    return fit_planes(heightMap);
 }
 
 PYBIND11_MODULE(plane_fitter, module_handle) {
     module_handle.doc() = "Nova Rover plane-fitting obstacle detection algorithm binded to Python3";
-    module_handle.def<200, 200>("get_obstacles", &getObstacles); 
+    module_handle.def("get_obstacles", &getObstacles<200, 200>); 
 }
