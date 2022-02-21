@@ -3,7 +3,7 @@
 Monash Nova Rover Team
 
 PACKAGE: 	control
-AUTHOR(S):	Harrison Verrios
+AUTHOR(S):	Harrison Verrios, Liam Whittle
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
@@ -34,6 +34,8 @@ void DriveInputs::publish_cmds () {
 
     // Create the message
     auto message = core::msg::DriveInput();
+    
+    if (!prev_msg_received) return;
 
     // Set up the values if the controller is not locked
     if (!locked && connected) {
@@ -52,6 +54,7 @@ void DriveInputs::publish_cmds () {
     // Clear the old inputs
     input_axis_y = 0.0;
     input_axis_x = 0.0;
+    prev_msg_received = false;
 }
 
 
@@ -71,6 +74,8 @@ void DriveInputs::input_callback (const core::msg::InputGamepad::SharedPtr msg) 
 
     // If the controller is connected
     else {
+
+        prev_msg_received = true;
 
         // Publish connection message
         if (!connected)
@@ -123,7 +128,7 @@ DriveInputs::DriveInputs()
         "/control/input_gamepad", 10, std::bind(&DriveInputs::input_callback, this, _1));
 
     // Creates a timer function that runs a function on loop every 0.05 seconds
-    timer = this->create_wall_timer(50ms, std::bind(&DriveInputs::publish_cmds, this));
+    timer = this->create_wall_timer(10ms, std::bind(&DriveInputs::publish_cmds, this));
 
     // Output set-up messages
     Print::title("DRIVE INPUTS");
