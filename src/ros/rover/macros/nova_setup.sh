@@ -137,7 +137,22 @@ colcon build
 
 # Clone the ROS GitHub files
 information "Cloning Repositories..."
-cd ~/nova_ws/src
+cd ~/nova_ws/
+
+# Check if the SSH key exists
+if [ ! -f "~/.ssh/id_ed25519.pub" ]; then
+    # Create the keygen
+    sudo ssh-keygen -t ed25519 -C "$username"
+
+    echo ""
+
+    # Display the SSH key
+    cat ~/.ssh/id_ed25519
+
+    printf "Please copy your SSH key above to your GitHub account..."
+fi
+
+# Clones all folders
 git clone git@github.com:MonashNovaRover/autonomous.git
 git clone git@github.com:MonashNovaRover/cameras.git
 git clone git@github.com:MonashNovaRover/control.git
