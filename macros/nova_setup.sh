@@ -142,7 +142,7 @@ cd ~/nova_ws/
 # Check if the SSH key exists
 if [ ! -f "/root/.ssh/id_ed25519.pub" ]; then
     # Create the keygen
-    sudo ssh-keygen -t ed25519 -C "$username"
+    sudo ssh-keygen -t ed25519 -C "$email"
 
     echo ""
 
