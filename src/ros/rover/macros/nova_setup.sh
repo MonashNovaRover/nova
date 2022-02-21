@@ -140,14 +140,14 @@ information "Cloning Repositories..."
 cd ~/nova_ws/
 
 # Check if the SSH key exists
-if [ ! -f "/.ssh/id_ed25519.pub" ]; then
+if [ ! -f "/root/.ssh/id_ed25519.pub" ]; then
     # Create the keygen
     sudo ssh-keygen -t ed25519 -C "$username"
 
     echo ""
 
     # Display the SSH key
-    cat /.ssh/id_ed25519.pub
+    sudo cat /root/.ssh/id_ed25519.pub
 
     printf "Please copy your SSH key above to your GitHub account..."
 
