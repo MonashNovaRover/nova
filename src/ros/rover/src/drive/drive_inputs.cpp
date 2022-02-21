@@ -38,7 +38,7 @@ void DriveInputs::publish_cmds () {
     // Set up the values if the controller is not locked
     if (!locked && connected) {
         message.speed = input_axis_y * multiplier_speed * trigger_speed;
-        message.steer = input_axis_x * multiplier_steer;
+        message.steer = input_axis_x;
     
     // Otherwise print lock message
     } else if (locked) {
@@ -103,12 +103,6 @@ void DriveInputs::input_callback (const core::msg::InputGamepad::SharedPtr msg) 
                 adjust_multiplier(multiplier_speed, true);
             else if (msg->btn_dpad_d_state == 1)
                 adjust_multiplier(multiplier_speed, false);
-            
-            // Change the steer multipliers
-            if (msg->btn_dpad_r_state == 1)
-                adjust_multiplier(multiplier_steer, true);
-            else if (msg->btn_dpad_l_state == 1)
-                adjust_multiplier(multiplier_steer, false);
         }
     }  
 
@@ -144,7 +138,6 @@ DriveInputs::DriveInputs()
     Print::print("", true);
     Print::print("    Right Trigger  |  Speed Multiplier", C_INPUT);
     Print::print("           DPAD Y  |  Speed Incr/Decr", C_INPUT);
-    Print::print("           DPAD X  |  Steer Incr/Decr", C_INPUT);
     Print::print("  Left Joy Button  |  Handbrake Enabled", C_INPUT);
     Print::print(" Right Joy Button  |  Handbrake Disabled", C_INPUT);
     Print::print("", true);
