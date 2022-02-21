@@ -59,6 +59,9 @@ if [[ "$dependencies" != "y" && "$dependencies" != "Y" ]]; then
 title "Installing Dependencies"
 sudo apt update -y
 
+# Install Git
+sudo apt install git -y
+
 # Installing ROS 2
 information "Installing ROS 2..."
 sudo apt update && sudo apt install curl gnupg2 lsb-release -y
