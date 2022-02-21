@@ -33,6 +33,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/CMDFeedback.msg"
   "msg/DriveInput.msg"
   "msg/DriveVel.msg"
+  "msg/HydraprobeData.msg"
   "msg/InputGamepad.msg"
   "msg/InputJoystick.msg"
   "msg/Map2D.msg"
@@ -43,7 +44,6 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/Waypoint.msg"
   "msg/Waypoints.msg"
   "msg/WheelData.msg"
-  "msg/Hydraprobe.msg"
 
   # Service definitions
   "srv/CameraCommand.srv"
