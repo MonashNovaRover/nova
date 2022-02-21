@@ -20,9 +20,9 @@ SERVICES: None
 ACTIONS:  None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	control
-AUTHOR(S):  Harrison Verrios
+AUTHOR(S):  Harrison Verrios, Liam Whittle
 CREATION:	14/11/2021
-EDITED:		16/12/2021
+EDITED:		21/02/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
@@ -82,6 +82,10 @@ class DriveInputs : public rclcpp::Node {
 
     // A flag for whether the controller is connected
     bool connected = false;
+
+    // A flag which indicates if a zero message has been received in the previous frame
+    bool prev_msg_received = false;
+
 
     // A lock on the controls - can be unlocked
     bool locked = true;
