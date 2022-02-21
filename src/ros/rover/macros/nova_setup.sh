@@ -78,7 +78,7 @@ sudo apt install python3-colcon-common-extensions -y
 information "Installing Editors..."
 sudo apt-get -y install nano
 sudo apt install vim -y
-sudo apt install screen
+sudo apt install screen -y
 
 # Install C++
 information "Installing C++..."
@@ -89,7 +89,7 @@ sudo apt install libudev-dev -y
 # Installing Cameras and GStreamer
 information "Installing Cameras..."
 sudo apt-get -y install gstreamer-1.0 python-gi gstreamer1.0-tools gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-dev python-gst-1.0 -y
-sudo apt-get install gstreamer1.0-plugins-ugly
+sudo apt-get install gstreamer1.0-plugins-ugly -y
 pip3 install requests -y
 
 # Installing GUI tools
@@ -99,9 +99,9 @@ sudo apt-get -y install npm
 curl -fsSL https://deb.nodesource.com/setup_current.x | sudo -E bash -
 sudo apt-get install -y nodejs
 sudo npm install -g npm@7.11.2
-pip3 install flask_cors
-pip3 install flask_socketio
-pip3 install flask_cors
+sudo pip3 install flask_cors
+sudo pip3 install flask_socketio
+sudo pip3 install flask_cors
 
 # Installing Net Tools
 information "Installing Networking..."
@@ -143,6 +143,10 @@ git clone git@github.com:MonashNovaRover/electronics.git
 git clone git@github.com:MonashNovaRover/gui.git
 git clone git@github.com:MonashNovaRover/science.git
 
+# Fix autonomous installs
+cd ~/nova_ws/src/autonomous
+git submodule update --init --recursive
+
 # Clone the other GitHub files
 mkdir -p ~/nova_ws/other
 cd ~/nova_ws/other
@@ -158,9 +162,11 @@ source ~/nova_ws/src/core/nova.sh
 
 # Build the workspace
 cd ~/nova_ws
+export CMAKE_PREFIX_PATH=""
+export AMENT_PREFIX_PATH=""
 colcon build
 
-# Installing GUI packages
+# Building the GUI
 cd ~/nova_ws/src/gui/wombatx
 npm install
 npm update
@@ -169,4 +175,3 @@ npm update
 title "Installation Complete!"
 echo "All Nova files are now located in ~/nova_ws in your home directory."
 cd ~/nova_ws
-
