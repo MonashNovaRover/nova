@@ -147,9 +147,11 @@ if [ ! -f "~/.ssh/id_ed25519.pub" ]; then
     echo ""
 
     # Display the SSH key
-    cat ~/.ssh/id_ed25519
+    cat ~/.ssh/id_ed25519.pub
 
     printf "Please copy your SSH key above to your GitHub account..."
+
+    read empty
 fi
 
 # Clones all folders
