@@ -43,6 +43,7 @@ include_directories(
 )
 
 target_link_libraries( height_mapper PRIVATE ${OpenCV_LIBS} )
+target_link_libraries( plane_fitter PRIVATE ${OpenCV_LIBS} )
 
 #ament_target_dependencies(#name rclcpp core)
 
