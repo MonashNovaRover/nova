@@ -35,7 +35,7 @@ void ArmInputs::joystick_l_callback (const core::msg::InputJoystick::SharedPtr m
         // May need to revisit once CMD directions determined during IK setup
         joint_velocity[0] = -msg->ax_stick_twist;
         joint_velocity[1] = msg->ax_stick_y;
-        joint_velocity[2] = -msg->ax_stick_x;
+        joint_velocity[2] = msg->ax_stick_x;
     }
 }
 
@@ -63,7 +63,7 @@ void ArmInputs::joystick_r_callback (const core::msg::InputJoystick::SharedPtr m
         // May need to revisit once CMD directions determined during IK setup
         joint_velocity[3] = -msg->ax_stick_x;
         joint_velocity[4] = msg->ax_stick_y;
-        joint_velocity[5] = msg->ax_stick_twist;
+        joint_velocity[5] = -msg->ax_stick_twist;
     }
 
     //Get the speed multiplier from slider
