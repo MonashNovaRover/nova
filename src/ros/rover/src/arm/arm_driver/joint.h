@@ -38,6 +38,9 @@ class Joint : public CMD {
     // Stores the drive mode for the joint's CMD
     // 0 for PWM, 1 for PID
     CMDCommand CMD_drive_mode;
+    // Store whether we need to flip the output direction
+    // 0 for regular, 1 for flipped
+    bool CMD_direction;
 
 
     //------------------------------------------------------------//
@@ -51,8 +54,9 @@ class Joint : public CMD {
 
     /// @brief      Default constructor for setting up a joint
     /// @param      id - The new ID for the joint for CAN commands
-    /// @param      CMD_drive_mode - Default drive mode of the joint CMD 
-    Joint (const int id, CMDCommand CMD_drive_mode);
+    /// @param      CMD_drive_mode - Default drive mode of the joint CMD
+    /// @param      CMD_direction - Direction for the CMD. Determined by hardware.  
+    Joint (const int id, CMDCommand CMD_drive_mode, const bool CMD_direction);
 
     /// @brief      Drives the joint based on a speed
     /// @param      velocity - The speed to move, between -1 and 1
@@ -62,6 +66,6 @@ class Joint : public CMD {
     void stop () override;
 
     /// @brief      sets the CMD drive mode
-    /// @param      CMD_drive_mode - Drive mode to set for the joint CMD 
+    /// @param      CMD_drive_mode - Drive mode to set for the joint CMD
     void set_CMD_drive_mode (CMDCommand CMD_drive_mode);
 };

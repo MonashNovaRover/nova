@@ -33,8 +33,8 @@ void ArmInputs::joystick_l_callback (const core::msg::InputJoystick::SharedPtr m
     else {
         // Corrected input directions to get correct joint space control scheme
         // May need to revisit once CMD directions determined during IK setup
-        joint_velocity[0] = msg->ax_stick_twist;
-        joint_velocity[1] = msg->ax_stick_y;
+        joint_velocity[0] = -msg->ax_stick_twist;
+        joint_velocity[1] = -msg->ax_stick_y;
         joint_velocity[2] = -msg->ax_stick_x;
     }
 }
