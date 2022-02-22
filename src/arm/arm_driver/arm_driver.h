@@ -71,7 +71,10 @@ class ArmDriver : public rclcpp::Node {
 
     // An array of cmd drive modes (mode for each joint, PWM=0, PID=1)
     // Seventh 'joint' is end effector actuation
-    CMDCommand CMD_drive_mode[NUM_JOINTS + 2] = {PID, PID, PID, PWM, PWM, PWM, PWM, PWM};
+    CMDCommand CMD_drive_mode[NUM_JOINTS + 2] = {PID, PID, PID, PID, PID, PID, PWM, PWM};
+
+    // An array of CMD directions
+    const bool CMD_direction[NUM_JOINTS + 2] = {1, 1, 0, 0, 0, 0, 0, 0};
 
     //------------------------------------------------------------//
     private:
