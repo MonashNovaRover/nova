@@ -62,9 +62,9 @@ void RvizVisualisation::coord_frames_callback(const sensor_msgs::msg::MultiDOFJo
         
         // Fill the PoseArray message
         // Unpack Transform into Pose
-        poses_msg.poses[i].position.x = frames_msg->transforms[i].translation.x / 1000;
-        poses_msg.poses[i].position.y = frames_msg->transforms[i].translation.y / 1000;
-        poses_msg.poses[i].position.z = frames_msg->transforms[i].translation.z / 1000;
+        poses_msg.poses[i].position.x = frames_msg->transforms[i].translation.x;
+        poses_msg.poses[i].position.y = frames_msg->transforms[i].translation.y;
+        poses_msg.poses[i].position.z = frames_msg->transforms[i].translation.z;
         // Copy Quaternion
         poses_msg.poses[i].orientation = frames_msg->transforms[i].rotation;
         

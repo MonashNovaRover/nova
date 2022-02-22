@@ -32,10 +32,10 @@ class WristCycloidalModel : public ArmSubModule
 
     // Parameters for arm model geometry. Based on model in Arm/DH parameters on GrabCAD
     // All distances in mm, all angles in rad
-    constexpr static double ROOT_J4_LINK_LENGTH = 499;
-    constexpr static double J4_OFFSET = 99.52;
-    constexpr static double J5_OFFSET = 104.1;
-    constexpr static double J6_OFFSET = 107.9;
+    constexpr static double ROOT_J4_LINK_LENGTH = 0.499;
+    constexpr static double J4_OFFSET = 0.09952;
+    constexpr static double J5_OFFSET = 0.1041;
+    constexpr static double J6_OFFSET = 0.1079;
     
     /// Constructor. Build the cycloidal wrist
     WristCycloidalModel()
