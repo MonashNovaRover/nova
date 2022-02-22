@@ -14,12 +14,3 @@ public:
     float magnitude();
     Vec3 normalise();
 };
-
-class Plane{
-public:
-    int num_points;
-    Vec3 centroid, normal;
-
-    Plane(int num_points, Vec3 centroid, Vec3 normal);
-    Plane();
-};
