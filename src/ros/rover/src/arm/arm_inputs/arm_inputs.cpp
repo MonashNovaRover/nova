@@ -52,9 +52,9 @@ void ArmInputs::joystick_r_callback (const core::msg::InputJoystick::SharedPtr m
     // Wrist joints
     // If using the wrist IK
     if (IK_wrist) {
-        task_velocity[3] = -msg->ax_stick_twist;
+        task_velocity[3] = -msg->ax_stick_y;
         task_velocity[4] = msg->ax_stick_x;
-        task_velocity[5] = msg->ax_stick_y;
+        task_velocity[5] = msg->ax_stick_twist;
     }
 
     // If using standard velocity
