@@ -84,10 +84,10 @@ class ArmInputs : public rclcpp::Node {
     float joint_velocity[NUM_JOINTS];
 
     // flag for IK on wrist 
-    bool IK_wrist = false;
+    bool IK_wrist = true;
 
     // flag for IK on lower joints
-    bool IK_lower_joints = false;
+    bool IK_lower_joints = true;
 
     // Stores end effector actuation data
     float end_effector_actuation;
