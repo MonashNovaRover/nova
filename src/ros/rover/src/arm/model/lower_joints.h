@@ -32,11 +32,11 @@ class LowerJointsModel : public ArmSubModule
 
     // Parameters for arm model geometry. Based on model in Arm/DH parameters on GrabCAD
     // All distances in mm, all angles in rad    
-    constexpr static double BASE_ROTATION_OFFSET = 128;
-    constexpr static double SHOULDER_OFFSET = 126;
-    constexpr static double SHOULDER_ELBOW_LINK_LENGTH = 485;
-    constexpr static double ELBOW_OFFSET = -100.6;
-    constexpr static double ELBOW_OUTPUT_OFFSET = 51.03;
+    constexpr static double BASE_ROTATION_OFFSET = 0.128;
+    constexpr static double SHOULDER_OFFSET = 0.126;
+    constexpr static double SHOULDER_ELBOW_LINK_LENGTH = 0.485;
+    constexpr static double ELBOW_OFFSET = -0.1006;
+    constexpr static double ELBOW_OUTPUT_OFFSET = 0.05103;
 
     /// Constructor. Build the lower joints
     LowerJointsModel()

@@ -32,7 +32,7 @@ class EeEquipmentServicingModel : public ArmSubModule
 
     // Parameters for arm model geometry. Based on model in Arm/DH parameters on GrabCAD
     // All distances in mm, all angles in rad
-    constexpr static double GRIPPER_OFFSET = 210;
+    constexpr static double GRIPPER_OFFSET = 0.210;
 
     /// Constructor. Build the equipment servicing end effector
     EeEquipmentServicingModel()
