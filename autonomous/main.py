@@ -5,7 +5,7 @@ from controller.controller import Controller
 import rclpy
 from mapping.mapper import Mapper
 from mapping.height_mapper import HeightMapper
-
+from mapping.plane_mapper import PlaneMapper
 
 def main(args):
     rclpy.init(args=args)

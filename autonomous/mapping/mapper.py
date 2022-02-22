@@ -70,13 +70,19 @@ class Mapper(Node):
 
         if depth_mode == "ros":
             self.subscriber_points = self.create_subscription(PointCloud2, depth_topic, self.ros_points_callback, 10)
-            self.map3d = Grid3D(self.length, self.width, self.height, self.resolution, has_color=True)
+            self.has_color = True
+            self.initialise_map()
 
         elif depth_mode == "python":
             self.camera = DepthCamera(self.python_callback)
             # starts a separate thread which will get depth frames and update mapper
             self.camera.start()
-            self.map3d = Grid3D(self.length, self.width, self.height, self.resolution, has_color=False)
+            self.has_color = False
+            self.initialise_map()
+
+    def initialise_map(self):
+        self._map = Grid3D(self.length, self.width, self.height, self.resolution, has_color=self.has_color)
+        
     def extract_layer(self, height_m):
         return self.map3d.extract_z(height_m)
 
@@ -140,37 +146,51 @@ class Mapper(Node):
         """
         return np.sum(np.abs(pts) ** 2, axis=-1) ** (1.0 / 2)
 
-    def update_map_pts_only(self, pts):
+    def handle_pc(self, pts):
         """
-        :param pts: np.array(n, 6) - refers to x,y,z,r,g,b
+        Dictates what the mapper class does to map a new point cloud. Overridden by child classes
+        with different mapping impmlementations
+        :param pts: list of points in meters coordinates relative to the tracking camera (not
+        transformed).
         """
-
-        if pts.shape[0] < 10:
-            return
-
-        # transform the points
-        if self.msg:
-            # transforming to the global frame
-            full_transform_pts = transform.transform_points(self.msg, pts)
-            self.map3d.add_pc_points_only(full_transform_pts)
-            pts = self.map3d.get_as_pc()
-            
-        if time.perf_counter() - self.previous_plan > 2:
-            if self.planner:
-                self.previous_plan = time.perf_counter()
-                # OLD WAY - MAP LAYERS
-                layer = self.extract_layer(2.3)
-                self.planner.get_path(layer.squeeze())
+        # transforming to the global frame
+        full_transform_pts = transform.transform_points(self.msg, pts)
+        self.map3d.add_pc_points_only(full_transform_pts)
+        pts = self.map3d.get_as_pc()
 
         # setting colors proportional to the height of points - hopefully looks cool!
         if self.vis:
             max_z = 10
             colors = np.array([(abs(pts[:, 2]) + 1 / max_z) * 250.0 % 250, np.full(len(pts), 0), abs(max_z - abs(pts[:,2]) - 1) * 250 % 250]).transpose()
             
-            # white mode
-            # colors = np.array(np.full((len(pts), 3), 255))
             self.pc_pub.pub_pts_colors(pts, colors.astype(int))
-            #self.publish_vis_dense()
+
+    def get_2d_map(self):
+        """
+        Returns the 2d version of the map according to this Mapper's mapping policy.
+        Default Mapper class simply adds slices above a pre-defined z coordinate.
+        """
+        layer = self.extract_layer(2.3)
+        return layer.squeeze()
+
+    def update_map_pts_only(self, pts):
+        """
+        :param pts: np.array(n, 6) - refers to x,y,z,r,g,b
+        """
+
+        if pts.shape[0] < 10:
+            # Not enough points in the point cloud
+            return
+
+        # transform the points
+        if self.msg:
+            self.handle_pc(pts)
+            
+        if time.perf_counter() - self.previous_plan > 2:
+            if self.planner:
+                # OLD WAY - MAP LAYERS
+                self.planner.get_path(self.get_2d_map())
+
 
     def get_pts(self, pts):
         # 1. Transform to tracking camera coordinates
