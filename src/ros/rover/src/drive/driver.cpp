@@ -3,13 +3,12 @@
 Monash Nova Rover Team
 
 PACKAGE: 	control
-AUTHOR(S):	Harrison Verrios, Josh Cherubino, 
-            Will de la Rue
+AUTHOR(S):	Harrison Verrios, Josh Cherubino, Will de la Rue
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
 // Include math library
-#include <math.h>
+#include <cmath>
 
 // Include the header file
 #include "driver.h"
