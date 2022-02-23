@@ -11,7 +11,7 @@ from vis.pc_pub import PCPub
 import rclpy
 import cameras.artag_pose_detection as ar
 import sys
-from config.runtime_params import d415_serial
+from config.runtime_params import d415_serial, d435_serial
 
 
 class DepthCamera(Thread):
