@@ -71,20 +71,20 @@ class Mapper(Node):
         if depth_mode == "ros":
             self.subscriber_points = self.create_subscription(PointCloud2, depth_topic, self.ros_points_callback, 10)
             self.has_color = True
-            self.initialise_map()
+            self.initialise_map3d()
 
         elif depth_mode == "python":
             self.camera = DepthCamera(self.python_callback)
             # starts a separate thread which will get depth frames and update mapper
             self.camera.start()
             self.has_color = False
-            self.initialise_map()
+            self.initialise_map3d()
 
-    def initialise_map(self):
-        self._map = Grid3D(self.length, self.width, self.height, self.resolution, has_color=self.has_color)
+    def initialise_map3d(self):
+        self._map3d = Grid3D(self.length, self.width, self.height, self.resolution, has_color=self.has_color)
         
     def extract_layer(self, height_m):
-        return self.map3d.extract_z(height_m)
+        return self._map3d.extract_z(height_m)
 
     def get_points_and_colors(self, msg):
         """
@@ -155,17 +155,17 @@ class Mapper(Node):
         """
         # transforming to the global frame
         full_transform_pts = transform.transform_points(self.msg, pts)
-        self.map3d.add_pc_points_only(full_transform_pts)
-        pts = self.map3d.get_as_pc()
+        self._map3d.add_pc_points_only(full_transform_pts)
+        pts = self._map3d.get_as_pc()
 
         # setting colors proportional to the height of points - hopefully looks cool!
         if self.vis:
             max_z = 10
-            colors = np.array([(abs(pts[:, 2]) + 1 / max_z) * 250.0 % 250, np.full(len(pts), 0), abs(max_z - abs(pts[:,2]) - 1) * 250 % 250]).transpose()
+            colors = np.array([(abs(full_transform_pts[:, 2]) + 1 / max_z) * 250.0 % 250, np.full(len(full_transform_pts), 0), abs(max_z - abs(full_transform_pts[:,2]) - 1) * 250 % 250]).transpose()
             
-            self.pc_pub.pub_pts_colors(pts, colors.astype(int))
+            self.pc_pub.pub_pts_colors(full_transform_pts, colors.astype(int))
 
-    def get_2d_map(self):
+    def get_2d_map3d(self):
         """
         Returns the 2d version of the map according to this Mapper's mapping policy.
         Default Mapper class simply adds slices above a pre-defined z coordinate.
@@ -173,7 +173,7 @@ class Mapper(Node):
         layer = self.extract_layer(2.3)
         return layer.squeeze()
 
-    def update_map_pts_only(self, pts):
+    def update_map3d_pts_only(self, pts):
         """
         :param pts: np.array(n, 6) - refers to x,y,z,r,g,b
         """
@@ -186,10 +186,11 @@ class Mapper(Node):
         if self.msg:
             self.handle_pc(pts)
             
-        if time.perf_counter() - self.previous_plan > 2:
+        if time.perf_counter() - self.previous_plan > 1:
             if self.planner:
                 # OLD WAY - MAP LAYERS
-                self.planner.get_path(self.get_2d_map())
+                self.planner.get_path(self.get_2d_map3d())
+                self.previous_plan = time.perf_counter()
 
 
     def get_pts(self, pts):
@@ -220,12 +221,12 @@ class Mapper(Node):
         self.msg = self.last_msg
         
         # t = time.time()
-        self.update_map_pts_only(self.get_pts(pts))
+        self.update_map3d_pts_only(self.get_pts(pts))
 
     def ros_points_callback(self, msg):
         self.msg = self.last_msg
         pts, colors = self.get_points_and_colors(msg)
-        self.update_map(pts)
+        self.update_map3d(pts)
         # every 2 seconds we run planning
         if time.perf_counter() - self.previous_plan > 2:
             if self.planner:
@@ -236,7 +237,7 @@ class Mapper(Node):
         """
         This was more of an experiment, but it's probably completely pointless (hehe)
         """
-        pts, colors = self.map3d.get_as_pc()
+        pts, colors = self._map3d.get_as_pc()
         colors = colors + [254,254,254]
         print(pts)
         pts_dense = pts[:]

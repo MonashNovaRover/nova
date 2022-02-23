@@ -27,7 +27,7 @@ class Grid2D(Node):
         2D flattening of the 3D occupancy grid we use to visualise the map
         :param length: length in m in the x direction
         :param width: width in m in the y direction
-        :param planning_resolution: side length of one grid square in the final grid
+        :param resolution: side length of one grid square in the final grid
         that we use to plan paths (meters)
         :param detection_resolution: finer resolution we use to detect obstacles more
         accurately before downscaling to a map we can plan on.
@@ -39,7 +39,7 @@ class Grid2D(Node):
         self.length = length
         self.width = width
         self.resolution = resolution
-        self.map = np.zeros((int(length / planning_resolution), int(width / planning_resolution)))
+        self.map = np.zeros((int(length / resolution), int(width / resolution)))
 
         self.grid_pub = GridPub()
 
@@ -53,21 +53,6 @@ class Grid2D(Node):
         y = (-self.width / 2)
         self.grid_pub.publish_grid(0.4 * self.resolution, length, width, 0.4 * x, 0.4 * y, self.map_as_sequence())
 
-    def get_detection_map_indexes(self, points):
-        """
-        Scales points in meters to array indices in the sub-section of the grid that contains
-        the new set of points. indices are scaled by the detection resolution.
-        Z coordinates are centred on z = 128 as the cpp obstacle detection algorithm works
-        with unsigned chars, so this will put it in the middle.
-        :param points: array of points (x, y, z) in meters. Points have been translated
-        to account for the rover's pitch and roll (so the same z coordinates are actually
-        above one another), but yaw and position transformations are done after obstacle
-        detection, so the obstacle detection map can stay a consistent size and shape
-        """
-        indexes = (points/self.detection_resolution).round().astype(int)
-        indexes[:, 1] += (np.ceil(self.detection_map_width/2)).astype(int)
-        return indexes
-
     def get_full_indexes(self, points):
         """
         Scales points in meters to array indices in the full 2d map with the planning
@@ -75,8 +60,9 @@ class Grid2D(Node):
         :param points: (n, 3) ndarray of coordinates in meters
         """
         print("position = " + str(points))
-        indexes = (points / self.planning_resolution)
-        indexes += np.array([self.length / (2 * self.planning_resolution), self.width / (2 * self.planning_resolution), 0])
+        indexes = (points / self.resolution)
+        indexes += np.array([self.length / (2 * self.resolution), self.width / (2 * self.resolution), 0])
+        print("resolution = " + str(self.resolution))
         return indexes.round().astype(int)
 
     def add_obstacles(self, msg, obstacles):
