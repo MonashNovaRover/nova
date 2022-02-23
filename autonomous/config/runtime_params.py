@@ -22,8 +22,17 @@ controller_ros_rate = 10  # 10hz
 a_star_rate = 1 # 1Hz
 
 # ~~~~~~~~~~ MAPPING CONSTANTS ~~~~~~~~~~~~~~~~
-min_point_density = 1
+min_point_density = 2 # number of points in voxel before we accept it
 max_point_depth = 3.5 # distance beyond which we don't consider points
-max_fov_angle = np.pi/4 #40 degrees
-max_safe_obstacle = 1 # obstacle threshold for 2d map
+max_fov_angle = np.pi/8 #40 degrees
+max_safe_obstacle = 36 # obstacle threshold for 2d map
+max_safe_inc = 60 # gradient cutoff for obstacles
 depth_mode = "python" # whether we publish points over ros or use a python callback
+skip_pts = 1 # Step we use when selecting points because we can't handle the full cloud
+
+# ~~~~~~~~~~~~~~~~~ CAMERA INFO ~~~~~~~~~~~~~~~~~~~~~
+d415_serial = "932122060332"
+d435_serial = "829212072166"
+t265_serial = "952322110473"
+# position of centre of wheel base relative to tracking cam
+tracking_camera_extrinsics = [-.48, 0., -0.48]
