@@ -8,10 +8,8 @@ from core.msg import RoverPose
 from core.msg import RoverPose, DriveVel
 import math
 import math_utils.transform as transform
-from config.ros_config import tracking_camera_extrinsics
-from config.ros_config import main_frame
-from config.ros_config import tracking_pose_topic
-from config.ros_config import rover_pose_topic
+from config.runtime_params import tracking_camera_extrinsics, t265_serial
+from config.ros_config import main_frame, tracking_pose_topic, rover_pose_topic
 
 # different systems seem to install the pyrealsense wrapper differently
 try:
@@ -31,7 +29,7 @@ class TrackingCamera(Node):
     or acts as a ROS-publisher. It maintains an internal state of the most recent tracking camera pose, can be
     configured to use wheel odometry, and
     """
-    def __init__(self, serial_number='952322110473'):
+    def __init__(self, serial_number=t265_serial):
 
         super().__init__("T265Node")
 

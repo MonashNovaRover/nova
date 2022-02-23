@@ -69,7 +69,7 @@ Vec3 Vec3::normalise(){
 static const unsigned char c_neg_inf = 0;
 static const unsigned char c_inf = 255;
 static const unsigned char MAP_ZERO = 128;
-static const float FRACTION_OF_PLANE = 0.6; // number of points / total points in a plane that we require before we accept it. (you know what I mean).
+static const float FRACTION_OF_PLANE = 0.2; // number of points / total points in a plane that we require before we accept it. (you know what I mean).
 
 void save(cv::Mat& img, cv::Mat& img2) {
     // use this function to easily display what c++ sees for debugging
@@ -107,12 +107,13 @@ void fit_planes(cv::Mat& heightMap, cv::Mat& incs, int& min_x) {
                     point_sum = point_sum + p;
                 }
             }
+            
+            int pixels_in_plane = these_pts.size();
 
-            if (these_pts.size() <= FRACTION_OF_PLANE * pixels_per_plane) continue;
-
+            if (pixels_in_plane <= FRACTION_OF_PLANE * pixels_per_plane) continue;
             min_x = (plane_i < min_x) ? plane_i : min_x;
 
-            Vec3 centroid = point_sum / pixels_per_plane;
+            Vec3 centroid = point_sum / pixels_in_plane;
 
             double xx=0.0, yy=0.0, zz=0.0, xy=0.0, xz=0.0, yz=0.0;
 
@@ -126,12 +127,12 @@ void fit_planes(cv::Mat& heightMap, cv::Mat& incs, int& min_x) {
                 zz += r.z*r.z; 
             }
 
-            xx /= pixels_per_plane;
-            xy /= pixels_per_plane;
-            xz /= pixels_per_plane;
-            yy /= pixels_per_plane;
-            yz /= pixels_per_plane;
-            zz /= pixels_per_plane;
+            xx /= pixels_in_plane;
+            xy /= pixels_in_plane;
+            xz /= pixels_in_plane;
+            yy /= pixels_in_plane;
+            yz /= pixels_in_plane;
+            zz /= pixels_in_plane;
 
             Vec3 weighted_dir, axis_dir;
             double weight;
@@ -167,6 +168,14 @@ void fit_planes(cv::Mat& heightMap, cv::Mat& incs, int& min_x) {
 
             // scaling to size of char so we can send back as much info as possible
             uint8_t scaled_inc = inc * 255 * 2/M_PI;
+
+            /*
+            if (scaled_inc > 150) {
+                for (Vec3 p : these_pts) {
+                    std::cout << "x = " << p.x << ", y = " << p.y << ", z = " << p.z << std::endl;
+                }
+                return;
+            }*/
 
             for (std::size_t x = plane_i; x < plane_i + 2; x++) {
                 for (std::size_t y = plane_j; y < plane_j + 2; y++) {

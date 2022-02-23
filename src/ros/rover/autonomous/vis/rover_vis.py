@@ -12,6 +12,7 @@ from nav_msgs.msg import Odometry
 import vis.pc_pub as pc_pub
 import math_utils.transform as transform
 from config.ros_config import tracking_pose_topic
+from config.runtime_params import tracking_camera_extrinsics
 
 
 class RoverCloud(Node):
@@ -100,7 +101,7 @@ class RoverCloud(Node):
         pts = self.origin_rover_pts
 
         # apply translation to make cameras at [0,0,0]
-        pts = pts + [-0.4, 0.0, -0.4]        
+        pts = pts + tracking_camera_extrinsics
 
         pts = transform.transform_points(msg, pts)
         pts = pts + [x, y, z]
