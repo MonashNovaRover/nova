@@ -8,7 +8,7 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include <vector>
+#include <tuple>
 #include <cmath>
 #include <opencv2/opencv.hpp>
 #include <pybind11/pybind11.h>
@@ -61,18 +61,12 @@ void save(cv::Mat& img, cv::Mat& img2, cv::Mat& img3) {
     cv::imwrite("../debug/cpp_map3.png", img3);
 }
 
-py::array_t<unsigned char> getObstacles(PointCloud& points, const int XS, const int YS){
+std::tuple<py::array_t<unsigned char>, int> getObstacles(PointCloud& points, const int XS, const int YS){
     py::buffer_info pc_info = points.request();
     uint16_t* pc = static_cast<uint16_t *> (pc_info.ptr);
     int num_pts = pc_info.size / 3;
     
-    std::cout << "Received " << num_pts << " points." << std::endl;
-    std::cout << "Shape = (" << pc_info.shape[0] << ", " << pc_info.shape[1] << ")" << std::endl;
-    std::cout << "ndim = " << pc_info.ndim << std::endl;
-    std::cout << "strides = (" << pc_info.strides[0] << ", " << pc_info.strides[1] << ")" << std::endl;
-    std::cout << "itemsize = " << pc_info.itemsize << std::endl;
-    std::cout << "format = " << pc_info.format << std::endl;
-
+    int min_x = num_pts;
     auto start = std::chrono::high_resolution_clock::now();
     // These two height-maps should sandwich every point in the point cloud
     cv::Mat topHeightMap(cv::Size(YS, XS), CV_8UC1, cv::Scalar(c_neg_inf));
@@ -85,6 +79,7 @@ py::array_t<unsigned char> getObstacles(PointCloud& points, const int XS, const 
             int16_t z = pc[i + 2] + MAP_BOTTOM; 
             if (z > topHeightMap.at<unsigned char> (x, y)) topHeightMap.at<unsigned char> (x, y) = (unsigned char) z;
             if (z < bottomHeightMap.at<unsigned char> (x, y)) bottomHeightMap.at<unsigned char> (x, y) = (unsigned char) z;
+	    min_x = (x < min_x) ? x : min_x;
         } else {
             std::cout << "passed invalid index! Fix your shit Max!" << std::endl;
             std::cout << "x = " << x << ", y = " << y << std::endl;
@@ -115,7 +110,7 @@ py::array_t<unsigned char> getObstacles(PointCloud& points, const int XS, const 
     auto converted = std::chrono::high_resolution_clock::now();
     time = std::chrono::duration_cast<std::chrono::microseconds>(converted - end);
     std::cout << "converting to numpy array took " << time.count() << " microseconds" << std::endl;
-    return numpy_diff;
+    return std::tuple<py::array_t<unsigned char>, int> (numpy_diff, min_x);
 }
 
 PYBIND11_MODULE(height_mapper, module_handle) {
