@@ -34,8 +34,8 @@ from mapping.grid_2d import Grid2D
 import time
 import numpy as np
 import math_utils.transform as transform
-from config.runtime_params import max_fov_angle, max_point_depth, max_safe_obstacle
-from height_mapper import get_obstacles
+from config.runtime_params import max_fov_angle, max_point_depth, max_safe_obstacle, min_point_density
+from height_mapper import get_obstacles as get_height_obstacles
 from scipy.signal import convolve2d
 
 class HeightMapper(Mapper):
@@ -47,10 +47,11 @@ class HeightMapper(Mapper):
         self.detection_resolution = detection_resolution
         self.resolution_ratio = int(self.planning_resolution / self.detection_resolution)
         self.detection_length = int(np.ceil((max_point_depth / self.detection_resolution) / self.resolution_ratio) * self.resolution_ratio) 
-        self.detection_width = int(np.ceil(2 * self.detection_map_length * np.tan(max_fov_angle)))
+        self.detection_width = int(np.ceil(2 * self.detection_length * np.tan(max_fov_angle)))
+        self.initialise_map()
 
     def initialise_map(self):
-        self._map = Grid2D(self.length, self.width, self.resolution) 
+        self._map = Grid2D(self.length, self.width, self.planning_resolution) 
 
     def get_detection_map_indexes(self, points):
         """
@@ -72,12 +73,13 @@ class HeightMapper(Mapper):
         Discretises point cloud into indices, then filters out indices without
         enough points in them to avoid phantom "floating" points
         """
+        points = points[abs(points[:,2]) < 1.5]
         indexes = self.get_detection_map_indexes(points)
         indexes, counts = np.unique(indexes, return_counts=True, axis=0)
         counts = (counts // min_point_density).astype(bool) # filtering out voxels without many points in them
         return indexes[counts]
 
-    def downscale_obs(self, obstacles):
+    def downscale_obs(self, obstacles, min_x):
         """
         Uses convolution with a kernel of ones to add up the values in sections
         of the grid so that we can down-size the resolution.
@@ -86,9 +88,10 @@ class HeightMapper(Mapper):
         downscaled = convolve2d(obstacles, kernel, mode='valid')[::self.resolution_ratio, ::self.resolution_ratio].astype(float)
         downscaled /= max_safe_obstacle # ignoring minor hills
         downscaled[downscaled > 1.0] = 1.0 # all points greater than one are just set to 1
-        return downscaled
+        min_x /= self.resolution_ratio
+        return downscaled, int(min_x)
 
-    def arrange_obstacles(self, obstacles):
+    def arrange_obstacles(self, obstacles, min_x):
         """
         Turns a 1d numpy array of obstacle values into a list of coordinates and their
         values. We then cut all points which aren't in the segment within the fov of
@@ -96,8 +99,10 @@ class HeightMapper(Mapper):
         :param: obstacles - 1-dimensional array of obstacles in the map
         """
         obs_as_points = np.array([[x, y, val] for (x, y), val in np.ndenumerate(obstacles) \
-                if np.abs(np.arctan2(y - len(obstacles[0])/2, x)) < max_fov_angle])
+                if np.abs(np.arctan2(y - len(obstacles[0])/2, x)) < max_fov_angle and x > min_x])
+        print(obs_as_points.shape)
         obs_as_points[:, 1] -= int(np.ceil(self.detection_width/(2 * self.resolution_ratio)))
+        print(obs_as_points)
         obstacles = transform.transform_yaw(self.msg, obs_as_points)
         obstacles[:, 2] *= 100
         return np.round(obstacles).astype(int)
@@ -109,6 +114,9 @@ class HeightMapper(Mapper):
         """
         return self._map.map.astype(float) / 100
 
+    def get_obstacles(self, filtered_indices):
+        return get_height_obstacles(filtered_indices, self.detection_length, self.detection_width)
+        
     def handle_pc(self, pts):
         """
         Uses height mapping to identify obstacles in 3d point cloud and generate a 2d
@@ -116,17 +124,20 @@ class HeightMapper(Mapper):
         :param pts: list of points in meters coordinates relative to the tracking camera
         (not transformed).
         """
+        # If we want the 3d map as well
+        super().handle_pc(pts)
         # transforming pitch and roll to flatten the map, but no yaw or translation
         no_yaw_pts = transform.transform_points_no_yaw(self.msg, pts)
 
         filtered_indices = self.filter_points(no_yaw_pts)
+        np.save("filtered_indices.npy", filtered_indices)
         # cpp function finds steep areas in the high resolution map
-        obstacles = get_obstacles(filtered_indices, self.detection_length, self.detection_width)
+        obstacles, min_x = self.get_obstacles(filtered_indices)
 
         # downscaling from high_resolution planning map to low_resolution map
-        obs = self.downscale_obs(obstacles)
+        obs, min_x = self.downscale_obs(obstacles, min_x)
 
-        rotated_obs = self.arrange_obstacles(self.msg, obs)
+        rotated_obs = self.arrange_obstacles(obs, min_x)
         self._map.add_obstacles(self.msg, rotated_obs)
         self._map.publish_grid()
 

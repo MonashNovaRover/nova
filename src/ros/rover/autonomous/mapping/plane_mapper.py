@@ -35,7 +35,7 @@ import time
 import numpy as np
 import math_utils.transform as transform
 from config.runtime_params import max_fov_angle, max_point_depth, max_safe_inc
-from plane_fitter import get_obstacles
+from plane_fitter import get_obstacles as get_plane_obstacles
 
 class PlaneMapper(HeightMapper):
     def __init__(self, length=20, width=20, height=5, resolution=0.1, detection_resolution=0.025, planner=None, _vis=True):
@@ -43,13 +43,16 @@ class PlaneMapper(HeightMapper):
         # init node with node name points
         super().__init__(length, width, height, resolution, detection_resolution, planner, _vis)
 
-    def downscale_obs(self, obstacles):
+    def get_obstacles(self, filtered_indices):
+        return get_plane_obstacles(filtered_indices, self.detection_length, self.detection_width, self.resolution_ratio)
+
+    def downscale_obs(self, obstacles, min_x):
         """
         plane_fitter obstacles are already scaled to the planninng resolution,
         so we simply interpret the incs (scaled to 255 by the plane fitter) as
         obstacles or safe
         """
-        scaled_safe_inc = max_safe_inc * 255/90
+        scaled_safe_inc = max_safe_inc * 255 / 90
         downscaled = obstacles.astype(float) / scaled_safe_inc
         downscaled[downscaled > 1.0] = 1.0
-        return downscaled
+        return downscaled, min_x

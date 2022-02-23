@@ -11,10 +11,11 @@ from vis.pc_pub import PCPub
 import rclpy
 import cameras.artag_pose_detection as ar
 import sys
+from config.runtime_params import d415_serial
 
 
 class DepthCamera(Thread):
-    def __init__(self, callback, publish_topic=None, serial_number='829212072166'):
+    def __init__(self, callback, publish_topic=None, serial_number=d415_serial):
         super().__init__()
         if publish_topic:
             self.publisher = PCPub("depth_camera_pc_pub", scale=1)
