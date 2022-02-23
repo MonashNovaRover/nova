@@ -13,9 +13,9 @@ AUTHOR(S):	Harrison Verrios
 
 // Constructor for the thrustmaster joysticks
 JoystickThrustmaster::JoystickThrustmaster(const bool left, const float offset)
-    : Joystick((left) ? INPUT_THRUST_LEFT : INPUT_THRUST_RIGHT, offset, can_publish(false)) {
-	
+    : Joystick((left) ? INPUT_THRUST_LEFT : INPUT_THRUST_RIGHT, offset) {
     first_message = construct_message_data();
+    can_publish = false;
 }
 
 
@@ -46,7 +46,7 @@ void JoystickThrustmaster::set_message_values() {
 
 core::msg::InputJoystick JoystickThrustmaster::construct_message_data()
 {
-	core::msg::InputJoystick new_msg;
+    core::msg::InputJoystick new_msg;
 
     // Checks if the gamepad is currently connected
     new_msg.connected = GamepadIsConnected(controller);
@@ -85,51 +85,49 @@ core::msg::InputJoystick JoystickThrustmaster::construct_message_data()
     new_msg.btn_bottom_r5_state = get_button_state(BUTTON_EXTRA_4);
     new_msg.btn_bottom_r6_state = get_button_state(BUTTON_EXTRA_5);
 
-	return new_msg;
+    return new_msg;
 }
 
-bool JoystickThrustmaster::compare_message_data(core::msg::InputJoystick other_msg) 
-{
-	// Checking that every parameter is the same
-	bool equals = true;
+bool JoystickThrustmaster::compare_message_data(core::msg::InputJoystick other_msg){
+    // Checking that every parameter is the same
+    bool equals = true;
     // Set the values in the ROS msg to the main stick
-    equals &&= (msg.ax_stick_x == other_msg.ax_stick_x)
-    equals &&= (msg.ax_stick_y == other_msg.ax_stick_y)
-    equals &&= (msg.ax_stick_twist == other_msg.ax_stick_twist)
-    equals &&= (msg.ax_thumb_x == other_msg.ax_thumb_x)
-    equals &&= (msg.ax_thumb_y == other_msg.ax_thumb_y)
-    equals &&= (msg.ax_slider == other_msg.ax_slider)
-    equals &&= (msg.btn_thumb_l_state == other_msg.btn_thumb_l_state)
-    equals &&= (msg.btn_thumb_r_state == other_msg.btn_thumb_r_state)
-    equals &&= (msg.btn_thumb_u_state == other_msg.btn_thumb_u_state)
-	equals &&= (msg.btn_thumb_d_state == other_msg.btn_thumb_d_state)
-	equals &&= (msg.btn_bottom_l1_state == other_msg.btn_bottom_l1_state)
-	equals &&= (msg.btn_bottom_l2_state == other_msg.btn_bottom_l2_state)
-	equals &&= (msg.btn_bottom_l3_state == other_msg.btn_bottom_l3_state)
-	equals &&= (msg.btn_bottom_l4_state == other_msg.btn_bottom_l4_state)
-	equals &&= (msg.btn_bottom_l5_state == other_msg.btn_bottom_l5_state)
-	equals &&= (msg.btn_bottom_l6_state == other_msg.btn_bottom_l6_state)
-	equals &&= (msg.btn_bottom_r1_state == other_msg.btn_bottom_r1_state)
-	equals &&= (msg.btn_bottom_r2_state == other_msg.btn_bottom_r2_state)
-	equals &&= (msg.btn_bottom_r3_state == other_msg.btn_bottom_r3_state)
-	equals &&= (msg.btn_bottom_r4_state == other_msg.btn_bottom_r4_state)
-	equals &&= (msg.btn_bottom_r5_state == other_msg.btn_bottom_r5_state)
-	equals &&= (msg.btn_bottom_r6_state == other_msg.btn_bottom_r6_state)
-
-	return equals;
+    equals = (msg.ax_stick_x == other_msg.ax_stick_x);
+    equals &= (msg.ax_stick_y == other_msg.ax_stick_y);
+    equals &= (msg.ax_stick_twist == other_msg.ax_stick_twist);
+    equals &= (msg.ax_thumb_x == other_msg.ax_thumb_x);
+    equals &= (msg.ax_thumb_y == other_msg.ax_thumb_y);
+    equals &= (msg.ax_slider == other_msg.ax_slider);
+    equals &= (msg.btn_thumb_l_state == other_msg.btn_thumb_l_state);
+    equals &= (msg.btn_thumb_r_state == other_msg.btn_thumb_r_state);
+    equals &= (msg.btn_thumb_u_state == other_msg.btn_thumb_u_state);
+    equals &= (msg.btn_thumb_d_state == other_msg.btn_thumb_d_state);
+    equals &= (msg.btn_bottom_l1_state == other_msg.btn_bottom_l1_state);
+    equals &= (msg.btn_bottom_l2_state == other_msg.btn_bottom_l2_state);
+    equals &= (msg.btn_bottom_l3_state == other_msg.btn_bottom_l3_state);
+    equals &= (msg.btn_bottom_l4_state == other_msg.btn_bottom_l4_state);
+    equals &= (msg.btn_bottom_l5_state == other_msg.btn_bottom_l5_state);
+    equals &= (msg.btn_bottom_l6_state == other_msg.btn_bottom_l6_state);
+    equals &= (msg.btn_bottom_r1_state == other_msg.btn_bottom_r1_state);
+    equals &= (msg.btn_bottom_r2_state == other_msg.btn_bottom_r2_state);
+    equals &= (msg.btn_bottom_r3_state == other_msg.btn_bottom_r3_state);
+    equals &= (msg.btn_bottom_r4_state == other_msg.btn_bottom_r4_state);
+    equals &= (msg.btn_bottom_r5_state == other_msg.btn_bottom_r5_state);
+    equals &= (msg.btn_bottom_r6_state == other_msg.btn_bottom_r6_state);
+    return equals;
 }
 
 
 // Returns the input joystick message object
 core::msg::InputJoystick JoystickThrustmaster::get_message() {
-	if (can_publish)
-	{
-    	return msg;
-	}
-	else 
-	{
-		return core::msg::InputJoystick;
-	}
+    if (can_publish)
+    {
+        return msg;
+    }
+    else 
+    {
+        return core::msg::InputJoystick();
+    }
 }
 
 
