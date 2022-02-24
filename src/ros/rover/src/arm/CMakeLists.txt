@@ -62,7 +62,7 @@ if(Eigen3_FOUND AND Orocos_kdl_FOUND)
   add_executable(arm_kinematics kinematics/arm_kinematics.cpp)
   target_link_libraries(arm_kinematics orocos-kdl arm_core arm_model print)
   target_include_directories(arm_kinematics INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/kinematics)
-  ament_target_dependencies(arm_kinematics rclcpp sensor_msgs)
+  ament_target_dependencies(arm_kinematics rclcpp core sensor_msgs)
 
   # Rviz Arm Visualisation script
   add_executable(rviz_visualisation visualisation/rviz_visualisation.cpp)
