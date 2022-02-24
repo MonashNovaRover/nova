@@ -29,7 +29,7 @@ class ArTracker(Node):
         bboxs, ids, rejected = ar.detectMarkers(imgGray, arDict, parameters=arParam)
         # print("AR TAG DETECTED WITH ID")
         print("ids: " + str(ids))
-        camera_calibration_parameters_filename = "calibration_odometry.json"
+        camera_calibration_parameters_filename = "calibration_chessboard.yaml"
         aruco_marker_side_length = 0.1
         cv_file = cv2.FileStorage(camera_calibration_parameters_filename, cv2.FILE_STORAGE_READ)
         mtx = cv_file.getNode('K').mat()
@@ -67,10 +67,10 @@ class ArTracker(Node):
                 msg.pose.pose.position.y = y
                 msg.pose.pose.position.z = z
 
-                print("found tag: " + str(_id))
+                print("found tag: " + str(_id[i]))
 
-                msg.id = _id
-                msg.confidence = 1.0
+                msg.id = int(_id[i])
+                msg.confidence = 1
                 return msg
 
         else:
