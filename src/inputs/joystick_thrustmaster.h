@@ -29,7 +29,7 @@ class JoystickThrustmaster : public Joystick {
 
     /// @brief      Stores the message data from the joystick
     core::msg::InputJoystick msg;
-    
+    core::msg::InputJoystick first_message;    
 
     //------------------------------------------------------------//
     protected:
@@ -37,9 +37,26 @@ class JoystickThrustmaster : public Joystick {
     /// @brief      Sets the message values stored in the message object
     void set_message_values() override;
 
+    //------------------------------------------------------------//
+    protected:
+
+    // prevents us from publishing phantom commands when joystick inits
+    bool can_publish;
 
     //------------------------------------------------------------//
-	public:
+    protected:
+
+    // allows us to compare msgs for equality
+    bool compare_message_data(core::msg::InputJoystick other_msg);
+
+    //------------------------------------------------------------//
+    protected:
+
+    // allows us to compare msgs for equality
+    core::msg::InputJoystick construct_message_data();
+
+    //------------------------------------------------------------//
+    public:
 
     /// @brief      Constructor called when the object is created
     /// @param      left - Is this the left or the right joystick

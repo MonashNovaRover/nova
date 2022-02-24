@@ -17,6 +17,9 @@ void ArmInputs::joystick_l_callback (const core::msg::InputJoystick::SharedPtr m
     // linear actuator
     linear_actuation = msg->ax_thumb_y;
 
+    // lunar construction
+    lunar_construction_left = msg->btn_thumb_u_state;
+
     // If using the lower joints IK
     if (IK_lower_joints) {
         task_velocity[0] = msg->ax_stick_x;
@@ -30,6 +33,16 @@ void ArmInputs::joystick_l_callback (const core::msg::InputJoystick::SharedPtr m
         joint_velocity[1] = msg->ax_stick_x;
         joint_velocity[2] = msg->ax_stick_y;
     }
+    
+    if (msg->btn_thumb_l_state == 1) {
+        if (!locked)
+            Print::print("Joysticks Locked");
+        locked = true;
+    } if msg->btn_thumb_r_state == 1){
+        if (locked)
+            Print::print("Joysticks Unlocked");
+        locked = false;    
+    }
 }
 
 
@@ -38,6 +51,9 @@ void ArmInputs::joystick_r_callback (const core::msg::InputJoystick::SharedPtr m
     
     // end effector actuation
     end_effector_actuation = calculate_direction(msg->ax_thumb_y) * 0.95;
+
+    // lunar construction
+    lunar_construction_right = msg->btn_thumb_u_state;
 
     // Wrist joints
     // If using the wrist IK
@@ -56,6 +72,8 @@ void ArmInputs::joystick_r_callback (const core::msg::InputJoystick::SharedPtr m
 
     //Get the speed multiplier from slider
     speed_multiplier = scale_speed(msg->ax_slider); 
+    
+    
 }
 
 // Publishes data on the arm input
@@ -65,14 +83,27 @@ void ArmInputs::publish_arm_inputs () {
     auto message = core::msg::ArmInput();
 
     // Set the values for first 6 joints from the array of data
-    for (auto i = 0; i < NUM_JOINTS; i++) {
-        message.task_velocity[i]    = speed_multiplier * task_velocity[i];
-        message.joint_velocity[i]   = speed_multiplier * joint_velocity[i];
+    if (!locked){
+        for (auto i = 0; i < NUM_JOINTS; i++) {
+            message.task_velocity[i]    = speed_multiplier * task_velocity[i];
+            message.joint_velocity[i]   = speed_multiplier * joint_velocity[i];
+        }
+
+        // Set the values for linear actuator and end effector actuation
+        message.linear_actuation = linear_actuation;
+        message.end_effector_actuation = end_effector_actuation;
     }
 
-    // Set the values for linear actuator and end effector actuation
-    message.linear_actuation = linear_actuation;
-    message.end_effector_actuation = end_effector_actuation;
+     // Set the values for lunar construction
+    if (lunar_construction_left == 2) {
+        message.lunar_construction = 0.95;
+    }
+    else if (lunar_construction_right == 2) {
+        message.lunar_construction = -0.95;
+    }
+    else {
+        message.lunar_construction = 0;
+    }
 
     // Publish the arm inputs
     arm_publisher->publish(message);

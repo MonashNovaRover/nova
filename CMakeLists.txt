@@ -112,12 +112,6 @@ install(TARGETS
   DESTINATION lib/${PROJECT_NAME}
 )
 
-# Add all the installation directories
-install(DIRECTORY
-  launch
-  DESTINATION share/${PROJECT_NAME}
-)
-
 # Add all Python executables to this list
 install(PROGRAMS
   control/cmd_plotter.py

@@ -13,11 +13,12 @@ AUTHOR(S):	Jess Hepworth
 // Include the header file
 #include "joint.h"
 
-Joint::Joint (const int id, CMDCommand CMD_drive_mode) :
+Joint::Joint (const int id, CMDCommand CMD_drive_mode, float reverse) :
     CMD (1, id) { 
 
     // Update the variables
     this->CMD_drive_mode = CMD_drive_mode;
+    this->reverse = reverse;
     
 }
 
@@ -29,6 +30,7 @@ Joint::~Joint () {
 
 
 void Joint::drive (float velocity) {
+    velocity = reverse * velocity;
 
     // Check if velocity is zero
     if (velocity == 0) {
