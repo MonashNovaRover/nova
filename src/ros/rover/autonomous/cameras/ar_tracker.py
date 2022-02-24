@@ -1,7 +1,6 @@
 __package__ = "autonomous"
 import cv2
 import cv2.aruco as ar
-
 from config.ros_config import main_frame
 from rclpy.node import Node
 import rclpy
