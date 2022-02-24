@@ -38,7 +38,7 @@ void ArmInputs::joystick_l_callback (const core::msg::InputJoystick::SharedPtr m
         if (!locked)
             Print::print("Joysticks Locked");
         locked = true;
-    } if msg->btn_thumb_r_state == 1){
+    } if (msg->btn_thumb_r_state == 1){
         if (locked)
             Print::print("Joysticks Unlocked");
         locked = false;    
