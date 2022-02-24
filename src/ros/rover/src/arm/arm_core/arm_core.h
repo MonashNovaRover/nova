@@ -22,9 +22,7 @@ CREATION:	 17/01/2022
 EDITED:		 01/02/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
- - Create ArmParams message type. Store a copy of it in ArmCore
- - Implement ArmCoreSubscriber
- - Implement ArmCorePublisher
+ - 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
@@ -36,13 +34,9 @@ TODO:
 #include <vector>
 #include <string>
 
-// Arm configuration related defines
-// Eventually remove and use dynamic joint_names, model_joint_names, etc
-#define NUM_JOINTS 6
-
 
 class ArmCore
-{  
+{
     //------------------------------------------------------------//
     public:
 

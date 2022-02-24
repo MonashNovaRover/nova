@@ -9,57 +9,50 @@ AUTHOR(S):	Jess Hepworth
 
 // Include the header file
 #include "arm_control.h"
+
+#include "arm_core.h"
 #include "print/print.h"
 
 #include "../hacky_defines.h"
 
 // Receives input from resolvers
-void ArmControl::resolver_callback (const sensor_msgs::msg::JointState::SharedPtr msg) {
-    
+void ArmControl::resolver_callback (const sensor_msgs::msg::JointState::SharedPtr msg)
+{
 }
 
 
 // Receives joint velocities from arm_inputs node
-void ArmControl::joint_vel_callback (const sensor_msgs::msg::JointState::SharedPtr msg) {
-    
-    for (auto i = 0; i < NUM_JOINTS; i++) {
-        joint_velocity[i] = msg->velocity[i];
-    }
-
+void ArmControl::joint_vel_callback (const sensor_msgs::msg::JointState::SharedPtr msg)
+{
+    joint_velocity = *msg;
 }
 
 // Receives joint velocities from arm_kinematics node
-void ArmControl::joint_vel_ik_callback (const sensor_msgs::msg::JointState::SharedPtr msg) {
-    
-    for (auto i = 0; i < NUM_JOINTS; i++) {
-        joint_velocity_ik[i] = msg->velocity[i];
-    }
-
+void ArmControl::joint_vel_ik_callback (const sensor_msgs::msg::JointState::SharedPtr msg)
+{
+    joint_velocity_ik = *msg;
 }
 
 // Publishes data on the desired CMD outputs
-void ArmControl::publish_CMD_outputs () {
-    
-    // Create a new message
-    // auto message = sensor_msgs::msg::JointState();
+void ArmControl::publish_CMD_outputs ()
+{    
+    // Set the desired cmd velocities by combining joint-space and task-space control info
+    for (auto i = 0; i < cmd_outputs.name.size(); i++) {
+        cmd_outputs.velocity[i] = joint_velocity.velocity[i] + joint_velocity_ik.velocity[i];
+    }
 
     // Set the header
     cmd_outputs.header.stamp = this->now();
-
-    for (auto i = 0; i < NUM_JOINTS; i++) {
-        cmd_outputs.velocity[i]   = joint_velocity[i] + joint_velocity_ik[i];
-    }
-
     // Publish the arm inputs
     CMD_outputs_publisher->publish(cmd_outputs);
-
 }
 
 // Main constructor that sets up the node
-ArmControl::ArmControl() 
-  : Node("arm_control"), count(0) {
-
+ArmControl::ArmControl() : Node("arm_control")
+{
     // Initialise arrays in internal data structures
+    joint_velocity = ArmCore::get_empty_joint_state(hack::JOINT_NAMES);
+    joint_velocity_ik = ArmCore::get_empty_joint_state(hack::JOINT_NAMES);
     cmd_outputs = ArmCore::get_empty_joint_state(hack::JOINT_NAMES);
 
     // Creates the CMD outputs publisher
@@ -80,11 +73,6 @@ ArmControl::ArmControl()
     // Creates a timer function that runs a function on loop every 0.05 seconds
     timer = this->create_wall_timer(50ms, std::bind(&ArmControl::publish_CMD_outputs, this));
 
-    for (auto i = 0; i < NUM_JOINTS; i++) {
-        joint_velocity[i] = 0; 
-        joint_velocity_ik[i] = 0; 
-    }
-
     // Output set-up messages
     Print::title("ARM CONTROL");
     Print::print("Valid Topics:");
@@ -93,7 +81,6 @@ ArmControl::ArmControl()
     Print::print("/control/joint_velocities_ik   [JointState]", 1);
     Print::print("/electronics/resolvers         [JointState]", 1);
     Print::print("", true);
-
 }
 
 

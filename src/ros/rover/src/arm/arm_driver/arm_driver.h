@@ -18,9 +18,9 @@ SERVICES: None
 ACTIONS:  None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	control
-AUTHOR(S):  Jess Hepworth
+AUTHOR(S):  Jess Hepworth, Jory Braun
 CREATION:	03/12/2021
-EDITED:		26/01/2022
+EDITED:		24/02/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
  - create cmd_outputs message
@@ -30,14 +30,11 @@ TODO:
 
 // Include ROS packages
 #include "rclcpp/rclcpp.hpp"
-// #include "core/msg/cmd_outputs.hpp"
+
 #include "core/msg/arm_input.hpp"
 #include "sensor_msgs/msg/joint_state.hpp"
 
 #include "joint.h"
-
-// Get shared arm info
-#include "arm_core.h"
 
 // Use the standard namespaces
 using namespace std::chrono_literals;
@@ -56,9 +53,6 @@ class ArmDriver : public rclcpp::Node {
 
     // Stores the loop timer for the update function
     rclcpp::TimerBase::SharedPtr timer;
-
-    // Stores a counter for each step
-    size_t count;
 
     // Stores the subscriber to the desired joint commands
     rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr cmd_outputs_subscription;
