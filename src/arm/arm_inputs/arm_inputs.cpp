@@ -18,13 +18,41 @@ AUTHOR(S):	Jess Hepworth
 // Receives input from left joystick
 void ArmInputs::joystick_l_callback (const core::msg::InputJoystick::SharedPtr msg)
 {
+    // Save data for later, only deal with it when we publish
+    // More efficient, works if we only care about the most up-to-date message
     joystick_l = *msg;
+
+    // Set button-based data here so we don't miss any button-press events
+    bool control_scheme_update = false;
+    if (joystick_l.btn_bottom_r1_state == 1) {
+        control_scheme.ik_lower_joints = !control_scheme.ik_lower_joints;
+        control_scheme_update = true;
+    }
+    if (joystick_l.btn_bottom_r4_state == 1) {
+        control_scheme.ik_wrist = !control_scheme.ik_wrist;
+        control_scheme_update = true;
+    }
+    if (joystick_l.btn_bottom_r2_state == 1) {
+        control_scheme.camera_frame_linear = !control_scheme.camera_frame_linear;
+        control_scheme_update = true;
+    }
+    if (joystick_l.btn_bottom_r5_state == 1) {
+        control_scheme.camera_frame_angular = !control_scheme.camera_frame_angular;
+        control_scheme_update = true;
+    }
+    // Immediately publish any new control scheme data
+    // Also will continue to publish when the timer expires
+    if (control_scheme_update){
+        publish_control_scheme();
+    }
 }
 
 
 // Receives input from right joystick
 void ArmInputs::joystick_r_callback (const core::msg::InputJoystick::SharedPtr msg)
 {
+    // Save data for later, only deal with it when we publish
+    // More efficient, works if we only care about the most up-to-date message    
     joystick_r = *msg;
 }
 
@@ -62,7 +90,7 @@ void ArmInputs::publish_joint_vel ()
     float speed_multiplier = scale_speed(joystick_r.ax_slider);
     
     // If using lower joints joint-space control
-    if (!IK_lower_joints) {
+    if (!control_scheme.ik_lower_joints) {
         joint_velocities.velocity[0] = speed_multiplier * -joystick_l.ax_stick_twist;
         joint_velocities.velocity[1] = speed_multiplier * -joystick_l.ax_stick_y;
         joint_velocities.velocity[2] = speed_multiplier * -joystick_l.ax_stick_x;
@@ -74,7 +102,7 @@ void ArmInputs::publish_joint_vel ()
     }
 
     // If using wrist joint-space control
-    if (!IK_wrist) {
+    if (!control_scheme.ik_wrist) {
         joint_velocities.velocity[3] = speed_multiplier * -joystick_r.ax_stick_x;
         joint_velocities.velocity[4] = speed_multiplier * joystick_r.ax_stick_y;
         joint_velocities.velocity[5] = speed_multiplier * -joystick_r.ax_stick_twist;
@@ -98,7 +126,7 @@ void ArmInputs::publish_task_vel ()
     float speed_multiplier = scale_speed(joystick_r.ax_slider);
     
     // If using lower joints IK, set the values for linear velocity
-    if (IK_lower_joints) {
+    if (control_scheme.ik_lower_joints) {
         task_velocities.twist.linear.x = speed_multiplier * joystick_l.ax_stick_x;
         task_velocities.twist.linear.y = speed_multiplier * joystick_l.ax_stick_y;
         task_velocities.twist.linear.z = speed_multiplier * joystick_l.ax_stick_twist;
@@ -109,7 +137,7 @@ void ArmInputs::publish_task_vel ()
         task_velocities.twist.linear.z = 0;
     }
     // If using wrist IK, set the values for angular velocity
-    if (IK_wrist) {
+    if (control_scheme.ik_wrist) {
         task_velocities.twist.angular.x = speed_multiplier * -joystick_r.ax_stick_y;
         task_velocities.twist.angular.y = speed_multiplier * joystick_r.ax_stick_x;
         task_velocities.twist.angular.z = speed_multiplier * joystick_r.ax_stick_twist;
@@ -145,13 +173,30 @@ float ArmInputs::scale_speed (float value){
     return (value * 0.9) + 0.05;
 }
 
+// Publishes control scheme data
+void ArmInputs::publish_control_scheme()
+{   
+    // Buttons are handled separately
+    
+    // Set base reference frame offset
+    int8_t base_frame_offset = 0;
+    if (joystick_l.ax_slider < 0.3) {
+        base_frame_offset = -1;
+    }
+    else if (joystick_l.ax_slider > 0.8) {
+        base_frame_offset = 1;
+    }
+    control_scheme.base_frame_offset = base_frame_offset;
+    
+    // Set the header and publish
+    control_scheme.header.stamp = this->now();
+    control_scheme_publisher->publish(control_scheme);
+}
+
 
 // Main constructor that sets up the node
-ArmInputs::ArmInputs() : Node("arm_pub")
+ArmInputs::ArmInputs() : Node("arm_input")
 {
-    // Initialise arrays in internal data structures
-    joint_velocities = ArmCore::get_empty_joint_state(hack::JOINT_NAMES);
-
     // Creates the arm inputs publisher
     arm_publisher = this->create_publisher<core::msg::ArmInput>("/control/arm_input", 10);
 
@@ -178,15 +223,31 @@ ArmInputs::ArmInputs() : Node("arm_pub")
     // Creates a timer function that runs a function on loop every 0.05 seconds
     timer_task = this->create_wall_timer(50ms, std::bind(&ArmInputs::publish_task_vel, this));
 
+    // Create timer and publisher for control_scheme
+    control_scheme_timer = this->create_wall_timer(
+        50ms, std::bind(&ArmInputs::publish_control_scheme, this)
+    );
+    control_scheme_publisher = this->create_publisher<core::msg::ArmControlScheme>(
+        "/control/arm_control_scheme", 10
+    );
+
+     // Initialise arrays in internal data structures
+    joint_velocities = ArmCore::get_empty_joint_state(hack::JOINT_NAMES);
+    
+    // Publish the control scheme to initialise other nodes
+    // Uses the default field values
+    publish_control_scheme();
+
     // Output set-up messages
     Print::title("ARM INPUTS");
     Print::print("Subscribed Topics:");
-    Print::print("/control/input_joystick_l     [core/InputJoystick]");
-    Print::print("/control/input_joystick_r     [core/InputJoystick]");
+    Print::print("/control/input_joystick_l     [core/InputJoystick]", 1);
+    Print::print("/control/input_joystick_r     [core/InputJoystick]", 1);
     Print::print("Published Topics:");
     Print::print("/control/arm_input            [core/ArmInput]", 1);
     Print::print("/control/joint_velocities     [sensor_msgs/JointState]", 1);
     Print::print("/control/task_velocity        [sensor_msgs/TwistStamped]", 1);
+    Print::print("/control/arm_control_scheme   [core/ArmControlScheme]", 1);
     Print::print("", true);
 }
 

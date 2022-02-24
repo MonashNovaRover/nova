@@ -14,6 +14,8 @@ AUTHOR(S):	Jory Braun
 #include "arm_core.h"
 #include "print/print.h"
 
+#define _USE_MATH_DEFINES
+#include <cmath>
 
 ArmKinematics::ArmKinematics() : Node("arm_kinematics")
 {
@@ -35,6 +37,11 @@ ArmKinematics::ArmKinematics() : Node("arm_kinematics")
     // TwistStamped does not need to be initialised
     coord_frames = ArmCore::get_empty_multi_dof_joint_state(arm_model.segment_names);
 
+    // Create subscription to arm control scheme
+    control_scheme_sub = this->create_subscription<core::msg::ArmControlScheme>(
+        "/control/arm_control_scheme", 10, std::bind(&ArmKinematics::control_scheme_callback, this, _1)
+    );
+    
     // Create subscription to resolvers
     resolver_sub = this->create_subscription<sensor_msgs::msg::JointState>(
         "/electronics/resolvers", 10, std::bind(&ArmKinematics::resolver_callback, this, _1)
@@ -73,6 +80,12 @@ ArmKinematics::ArmKinematics() : Node("arm_kinematics")
 }
 
 
+// Update the internal control scheme
+void ArmKinematics::control_scheme_callback(const core::msg::ArmControlScheme::SharedPtr msg)
+{
+    control_scheme = *msg;
+}
+
 // Update the internal joint state
 void ArmKinematics::resolver_callback(const sensor_msgs::msg::JointState::SharedPtr msg)
 {
@@ -85,44 +98,65 @@ void ArmKinematics::task_velocity_callback(const geometry_msgs::msg::TwistStampe
     task_velocity = *msg;
 }
 
+// Calculate the FK for a given segment
+KDL::Frame ArmKinematics::calculate_fk(KDL::JntArray kdl_joints, std::string segment_name)
+{
+    // Prepare the output data structure
+    KDL::Frame kdl_coord_frame;
+    
+    // Calculate the FK for the given segment. Store the result in kdl_coord_frame
+    int exit_value = arm_fk_solver->JntToCart(kdl_joints, kdl_coord_frame, segment_name);
+    if (exit_value == -1){
+        RCLCPP_WARN(this->get_logger(), "Number of positions provided does not match number of joints in tree");
+        return KDL::Frame::Identity();
+    }
+    else if (exit_value == -2){
+        RCLCPP_WARN(this->get_logger(), "Could not find segment %s in the tree", segment_name.c_str());
+        return KDL::Frame::Identity();
+    }
+    else{
+        // Success
+        return kdl_coord_frame;
+    }
+}
+
+// Calculate the FK for a given segment
+KDL::Frame ArmKinematics::calculate_fk(std::string segment_name)
+{
+    // Get the input positions in the form KDL likes
+    KDL::JntArray kdl_joints;
+    kdl_joints.data = Eigen::Matrix<double, 6, 1> (joints.position.data());
+
+    return calculate_fk(kdl_joints, segment_name);
+}
+
 // Update the arm model using the latest resolver info, publish to arm_cord_frames
 void ArmKinematics::publish_coord_frames()
 {
     // Get the input positions in the form KDL likes
     KDL::JntArray kdl_joints;
     kdl_joints.data = Eigen::Matrix<double, 6, 1> (joints.position.data());
-    // Prepare the output data structure
-    KDL::Frame kdl_coord_frame;
     
     // Calculate FK for all joints
     // This is inefficient in KDL. For n joints takes O(n^2) time but could be O(n)
     for (unsigned int i = 0; i < coord_frames.transforms.size(); i++){
         // Calculate the FK for joint i. Store the result in kdl_coord_frame
-        int exit_value = arm_fk_solver->JntToCart(
-            kdl_joints, kdl_coord_frame, coord_frames.joint_names[i]
-        );
-        if (exit_value == -1){
-            RCLCPP_WARN(this->get_logger(), "Number of positions provided does not match number of joints in tree");
-        }
-        else if (exit_value == -2){
-            RCLCPP_WARN(this->get_logger(), "Could not find segment %s in the tree", coord_frames.joint_names[i].c_str());
-        }
-        else{
-            // Success
-            // Save the output transform in the form ROS2 likes
-            geometry_msgs::msg::Vector3 translation;
-            translation.x = kdl_coord_frame.p.x();
-            translation.y = kdl_coord_frame.p.y();
-            translation.z = kdl_coord_frame.p.z();
-            geometry_msgs::msg::Quaternion rotation;
-            kdl_coord_frame.M.GetQuaternion(rotation.x, rotation.y, rotation.z, rotation.w);
-            geometry_msgs::msg::Transform transform;
-            transform.translation = translation;
-            transform.rotation = rotation;
-            // Store the transform for this joint
-            coord_frames.transforms[i] = transform;
-        }
+        KDL::Frame kdl_coord_frame = calculate_fk(kdl_joints, coord_frames.joint_names[i]);
+        
+        // Save the output transform in the form ROS2 likes
+        geometry_msgs::msg::Vector3 translation;
+        translation.x = kdl_coord_frame.p.x();
+        translation.y = kdl_coord_frame.p.y();
+        translation.z = kdl_coord_frame.p.z();
+        geometry_msgs::msg::Quaternion rotation;
+        kdl_coord_frame.M.GetQuaternion(rotation.x, rotation.y, rotation.z, rotation.w);
+        geometry_msgs::msg::Transform transform;
+        transform.translation = translation;
+        transform.rotation = rotation;
+        // Store the transform for this joint
+        coord_frames.transforms[i] = transform;
     }
+
     // Update the header
     coord_frames.header.stamp = this->now();
     // Publish the message
@@ -146,6 +180,34 @@ void ArmKinematics::publish_joint_velocities()
     const geometry_msgs::msg::Vector3& vec3_angular = task_velocity.twist.angular;
     KDL::Vector twist_linear (vec3_linear.x, vec3_linear.y, vec3_linear.z);
     KDL::Vector twist_angular (vec3_angular.x, vec3_angular.y, vec3_angular.z);
+    
+    // Implement transformations on input linear and angular velocities
+    // Camera frame control
+    if (control_scheme.camera_frame_linear || control_scheme.camera_frame_angular){
+        // Transform joystick input directions to end-effector coordinates
+        // eg: forward on the left joystick is +ve x, but should be +ve z in end effector coordinates
+        KDL::Rotation joystick_input_transform = KDL::Rotation::EulerZYX(M_PI / 2, -M_PI / 2, 0);
+        // Transform from end effector coordinates to base frame coordinates
+        KDL::Rotation camera_frame_transform = calculate_fk(arm_model.default_endpoint_name).M * joystick_input_transform;
+        if (control_scheme.camera_frame_linear) {
+            twist_linear = camera_frame_transform * twist_linear;
+        }
+        if (control_scheme.camera_frame_angular) {
+            twist_angular = camera_frame_transform * twist_angular;
+        }
+    }
+    // Reference frame offset (if camera-frame control not applied)
+    if (control_scheme.base_frame_offset != 0){
+        KDL::Rotation base_offset_transform = KDL::Rotation::RotZ(M_PI / 2 * control_scheme.base_frame_offset);
+        if (!control_scheme.camera_frame_linear){
+            twist_linear = base_offset_transform * twist_linear;
+        }
+        if (!control_scheme.camera_frame_angular) {
+            twist_angular = base_offset_transform * twist_angular;
+        }
+    }
+
+    // Compose into final twist
     KDL::Twists kdl_twists { {arm_model.default_endpoint_name, KDL::Twist (twist_linear, twist_angular)} };
     
     // Prepare the output data structure

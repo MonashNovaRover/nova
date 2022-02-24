@@ -13,9 +13,12 @@ This does not interface with the CMD library, but
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: arm_inputs
 TOPICS:
-  - /control/input_joystick_l   [InputJoystick]     [Subscribed]
-  - /control/input_joystick_r   [InputJoystick]     [Subscribed]
-  - /control/arm_input          [ArmInput]          [Published]
+  - /control/input_joystick_l     [core/InputJoystick]         [Subscribed]
+  - /control/input_joystick_r     [core/InputJoystick]         [Subscribed]
+  - /control/arm_input            [core/ArmInput]              [Published]
+  - /control/task_velocity        [sensor_msgs/TwistStamped]   [Published]
+  - /control/joint_velocities     [sensor_msgs/JointState]     [Published]
+  - /control/arm_control_scheme   [core/ArmControlScheme]      [Published]
 SERVICES: None
 ACTIONS:  None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -33,9 +36,11 @@ TODO:
 
 // Include ROS packages
 #include "rclcpp/rclcpp.hpp"
+
 // Include messages types
 #include "core/msg/input_joystick.hpp"
 #include "core/msg/arm_input.hpp"
+#include "core/msg/arm_control_scheme.hpp"
 #include "sensor_msgs/msg/joint_state.hpp"
 #include "geometry_msgs/msg/twist_stamped.hpp"
 
@@ -43,8 +48,6 @@ TODO:
 using namespace std::chrono_literals;
 using std::placeholders::_1;
 
-// Get shared arm info
-#include "arm_core.h"
 
 /* 
 Arm input class that handles input data from joysticks and publishes 
@@ -59,11 +62,13 @@ class ArmInputs : public rclcpp::Node {
     rclcpp::TimerBase::SharedPtr timer;
     rclcpp::TimerBase::SharedPtr timer_joint;
     rclcpp::TimerBase::SharedPtr timer_task;
+    rclcpp::TimerBase::SharedPtr control_scheme_timer;
 
     // Stores the publishers for arm inputs
     rclcpp::Publisher<core::msg::ArmInput>::SharedPtr arm_publisher;
     rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr joint_vel_publisher;
     rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr task_vel_publisher;
+    rclcpp::Publisher<core::msg::ArmControlScheme>::SharedPtr control_scheme_publisher;
 
 
     // Stores the subscribers to the joystick inputs
@@ -73,16 +78,11 @@ class ArmInputs : public rclcpp::Node {
     // Stores messages to be published
     sensor_msgs::msg::JointState joint_velocities;
     geometry_msgs::msg::TwistStamped task_velocities;
+    core::msg::ArmControlScheme control_scheme;
 
     // Store state of last-received messages
     core::msg::InputJoystick joystick_l;
     core::msg::InputJoystick joystick_r;
-
-    // flag for IK on wrist 
-    bool IK_wrist = true;
-
-    // flag for IK on lower joints
-    bool IK_lower_joints = true;
 
     //------------------------------------------------------------//
     private:
@@ -103,6 +103,9 @@ class ArmInputs : public rclcpp::Node {
 
     /// @brief      Function for publishing task velocity
     void publish_task_vel ();
+
+    /// @brief      Function for publishing control scheme data
+    void publish_control_scheme ();
 
     /// @brief      Function for calculating a direction from a fraction
     /// @param      value - A fraction to be converted to a direction
