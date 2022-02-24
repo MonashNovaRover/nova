@@ -112,6 +112,10 @@ class ArmInputs : public rclcpp::Node {
     /// @param      value - number in range [-1, 1] to map to [0, 1]
     /// @returns    The new scale factor in range [0, 1]
     float scale_speed (float value);
+    
+    // A lock on the controls - can be unlocked
+    bool locked = true;
+
 
     
     //------------------------------------------------------------//
