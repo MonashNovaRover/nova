@@ -23,6 +23,9 @@ find_package(ament_cmake REQUIRED)
 
 # Find default generators
 find_package(rosidl_default_generators REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
+
 
 # Include all interfaces
 rosidl_generate_interfaces(${PROJECT_NAME}
@@ -43,6 +46,8 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/Waypoint.msg"
   "msg/Waypoints.msg"
   "msg/WheelData.msg"
+  "msg/AlvarMarker.msg"
+  "msg/AlvarMarkers.msg"
 
   # Service definitions
   "srv/CameraCommand.srv"
@@ -50,7 +55,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/ScienceCommand.srv"
 
   # Action definitions
-  
+  DEPENDENCIES std_msgs geometry_msgs
 )
 
 # Add all the installation directories
