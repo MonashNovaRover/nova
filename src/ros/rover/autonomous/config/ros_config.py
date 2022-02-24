@@ -24,6 +24,7 @@ tracking_camera_extrinsics = [-.48, 0., -0.48]
 auto_drive_command_topic = "/autonomous/drive_inputs"
 auto_goals_topic = "/autonomous/goals"
 rover_pose_topic = "/rover/pose"
+ar_track_topic = "/autonomous/ar_tag"
 
 # ~~~~~~~~~~~~~~~~~~~~~ ROS ~~~~~~~~~~~~~~~~~~~~~~~~~~
 # this is the ROS "Frame" which we publish everything to. We don't use ROS transforms
