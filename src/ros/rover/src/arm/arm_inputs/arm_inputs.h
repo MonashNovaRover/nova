@@ -85,6 +85,10 @@ class ArmInputs : public rclcpp::Node {
     // Stores variable for inputs (i.e. speeds)
     float speed_multiplier;
 
+    // Lunar construction
+    int lunar_construction_left;
+    int lunar_construction_right;
+
     //------------------------------------------------------------//
     private:
 
@@ -108,6 +112,10 @@ class ArmInputs : public rclcpp::Node {
     /// @param      value - number in range [-1, 1] to map to [0, 1]
     /// @returns    The new scale factor in range [0, 1]
     float scale_speed (float value);
+    
+    // A lock on the controls - can be unlocked
+    bool locked = true;
+
 
     
     //------------------------------------------------------------//

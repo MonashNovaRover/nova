@@ -68,11 +68,13 @@ class ArmDriver : public rclcpp::Node {
     rclcpp::Subscription<core::msg::ArmInput>::SharedPtr arm_input_subscription;
 
     // An array of joint instances
-    Joint* joints[NUM_JOINTS + 1];
+    Joint* joints[NUM_JOINTS + 2];
 
     // An array of cmd drive modes (mode for each joint, PWM=0, PID=1)
     // Seventh 'joint' is end effector actuation
-    CMDCommand CMD_drive_mode[NUM_JOINTS + 1] = {PID, PID, PID, PWM, PWM, PWM, PWM};
+    CMDCommand CMD_drive_mode[NUM_JOINTS + 2] = {PID, PID, PID, PWM, PWM, PWM, PWM, PWM};
+
+    float reverse[NUM_JOINTS + 2] = {-1, 1, -1, -1, -1, -1, 1, 1};
 
     //------------------------------------------------------------//
     private:

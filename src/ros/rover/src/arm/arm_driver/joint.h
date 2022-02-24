@@ -39,6 +39,8 @@ class Joint : public CMD {
     // 0 for PWM, 1 for PID
     CMDCommand CMD_drive_mode;
 
+    float reverse;
+
 
     //------------------------------------------------------------//
     protected:
@@ -52,7 +54,8 @@ class Joint : public CMD {
     /// @brief      Default constructor for setting up a joint
     /// @param      id - The new ID for the joint for CAN commands
     /// @param      CMD_drive_mode - Default drive mode of the joint CMD 
-    Joint (const int id, CMDCommand CMD_drive_mode);
+    /// @param      reverse - whether the joint direction is reversed or not
+    Joint (const int id, CMDCommand CMD_drive_mode, float reverse);
 
     /// @brief      Drives the joint based on a speed
     /// @param      velocity - The speed to move, between -1 and 1
