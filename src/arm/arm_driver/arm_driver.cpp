@@ -17,7 +17,7 @@ AUTHOR(S):	Jess Hepworth
 // Receives the desired commands for the CMDs and sends to CMDs
 void ArmDriver::cmd_outputs_callback (const sensor_msgs::msg::JointState::SharedPtr msg)
 {
-    for (auto i = 0; i < msg->name.size(); i++) {
+    for (unsigned int i = 0; i < msg->name.size(); i++) {
         joints[i]->drive(msg->velocity[i]); 
         //std::cout << msg->name[i] << ": " << msg->velocity[i] << std::endl;
     }
@@ -50,12 +50,12 @@ ArmDriver::ArmDriver() : Node("arm_driver")
     // Create joint instances based on the arm's structure
     // For now just hardcode for the cycloidal wrist and ES end effector
     // Eventually make this into a std::map and idenitfy particular joints based on their name instead of their position
-    joints = std::vector<Joint> (8);
+    joints = std::vector<Joint*> (8);
     // Seventh CMD is end effector actuation, eighth is lunar construction
     CMD_drive_mode = std::vector<CMDCommand> {PID, PID, PID, PID, PID, PID, PWM, PWM};
     CMD_direction = std::vector<bool> {1, 1, 0, 0, 0, 0, 0, 0};
 
-    for (auto i = 0; i < joints.size(); i++) {
+    for (unsigned int i = 0; i < joints.size(); i++) {
         joints[i] = new Joint (i + 1, CMD_drive_mode[i], CMD_direction[i]);
     }
 

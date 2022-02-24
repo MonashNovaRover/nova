@@ -60,15 +60,14 @@ class ArmDriver : public rclcpp::Node {
     // Stores the subscriber to the desired joint commands (bypassing control script for now)
     rclcpp::Subscription<core::msg::ArmInput>::SharedPtr arm_input_subscription;
 
-    // An array of joint instances
-    Joint* joints[NUM_JOINTS + 2];
+    // A vector of pointers to joint instances
+    std::vector<Joint*> joints;
 
-    // An array of cmd drive modes (mode for each joint, PWM=0, PID=1)
-    // Seventh 'joint' is end effector actuation
-    CMDCommand CMD_drive_mode[NUM_JOINTS + 2] = {PID, PID, PID, PID, PID, PID, PWM, PWM};
+    // A vector of cmd drive modes (mode for each joint, PWM=0, PID=1)
+    std::vector<CMDCommand> CMD_drive_mode;
 
-    // An array of CMD directions
-    const bool CMD_direction[NUM_JOINTS + 2] = {1, 1, 0, 0, 0, 0, 0, 0};
+    // A vector of CMD directions
+    std::vector<bool> CMD_direction;
 
     //------------------------------------------------------------//
     private:

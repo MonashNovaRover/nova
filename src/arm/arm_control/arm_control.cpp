@@ -37,7 +37,7 @@ void ArmControl::joint_vel_ik_callback (const sensor_msgs::msg::JointState::Shar
 void ArmControl::publish_CMD_outputs ()
 {    
     // Set the desired cmd velocities by combining joint-space and task-space control info
-    for (auto i = 0; i < cmd_outputs.name.size(); i++) {
+    for (unsigned int i = 0; i < cmd_outputs.name.size(); i++) {
         cmd_outputs.velocity[i] = joint_velocity.velocity[i] + joint_velocity_ik.velocity[i];
     }
 

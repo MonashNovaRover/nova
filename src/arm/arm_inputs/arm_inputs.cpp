@@ -37,7 +37,7 @@ void ArmInputs::publish_arm_inputs ()
     // First 6 joints are handled separately
 
     // Set the values for linear actuator and end effector actuation
-    message.linear_actuation = joystcik_l.ax_thumb_y;
+    message.linear_actuation = joystick_l.ax_thumb_y;
     message.end_effector_actuation = calculate_direction(joystick_r.ax_thumb_y) * 0.95;
 
     // Set the values for lunar construction
@@ -63,9 +63,9 @@ void ArmInputs::publish_joint_vel ()
     
     // If using lower joints joint-space control
     if (!IK_lower_joints) {
-        joint_velocities.velocity[0] = speed_multiplier * -joystick_l.ax_stick_twist
-        joint_velocities.velocity[1] = speed_multiplier * -joystick_l.ax_stick_y
-        joint_velocities.velocity[2] = speed_multiplier * -joystick_l.ax_stick_x
+        joint_velocities.velocity[0] = speed_multiplier * -joystick_l.ax_stick_twist;
+        joint_velocities.velocity[1] = speed_multiplier * -joystick_l.ax_stick_y;
+        joint_velocities.velocity[2] = speed_multiplier * -joystick_l.ax_stick_x;
     }
     else{
         joint_velocities.velocity[0] = 0;
@@ -75,9 +75,9 @@ void ArmInputs::publish_joint_vel ()
 
     // If using wrist joint-space control
     if (!IK_wrist) {
-        joint_velocities.velocity[3] = speed_multiplier * -joystick_r.ax_stick_x
-        joint_velocities.velocity[4] = speed_multiplier * joystick_r.ax_stick_y
-        joint_velocities.velocity[5] = speed_multiplier * -joystick_r.ax_stick_twist
+        joint_velocities.velocity[3] = speed_multiplier * -joystick_r.ax_stick_x;
+        joint_velocities.velocity[4] = speed_multiplier * joystick_r.ax_stick_y;
+        joint_velocities.velocity[5] = speed_multiplier * -joystick_r.ax_stick_twist;
     }
     else{
         joint_velocities.velocity[3] = 0;
@@ -110,9 +110,9 @@ void ArmInputs::publish_task_vel ()
     }
     // If using wrist IK, set the values for angular velocity
     if (IK_wrist) {
-        task_velocities.twist.angular.x = speed_multiplier * -msg->ax_stick_y;
-        task_velocities.twist.angular.y = speed_multiplier * msg->ax_stick_x;
-        task_velocities.twist.angular.z = speed_multiplier * msg->ax_stick_twist;
+        task_velocities.twist.angular.x = speed_multiplier * -joystick_r.ax_stick_y;
+        task_velocities.twist.angular.y = speed_multiplier * joystick_r.ax_stick_x;
+        task_velocities.twist.angular.z = speed_multiplier * joystick_r.ax_stick_twist;
     }
     else{
         task_velocities.twist.angular.x = 0;
