@@ -17,9 +17,9 @@ SERVICES: None
 ACTIONS:  None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	control
-AUTHOR(S):  Jess Hepworth
+AUTHOR(S):  Jess Hepworth, Jory Braun
 CREATION:	26/01/2022
-EDITED:		26/01/2022
+EDITED:		24/02/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
  - 
@@ -52,9 +52,6 @@ class ArmControl : public rclcpp::Node {
     rclcpp::TimerBase::SharedPtr timer_joint;
     rclcpp::TimerBase::SharedPtr timer_task;
 
-    // Stores a counter for each step
-    size_t count;
-
     // Stores the publisher for desired CMD outputs
     rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr CMD_outputs_publisher;
 
@@ -67,11 +64,11 @@ class ArmControl : public rclcpp::Node {
     // Stores messages to be published
     sensor_msgs::msg::JointState cmd_outputs;
 
-    // Stores task space inputs
-    float joint_velocity_ik[NUM_JOINTS];
+    // Stores task space input message
+    sensor_msgs::msg::JointState joint_velocity_ik;
 
-    // Stores joint space inputs
-    float joint_velocity[NUM_JOINTS];
+    // Stores joint space input message
+    sensor_msgs::msg::JointState joint_velocity;
 
     //------------------------------------------------------------//
     private:
