@@ -20,6 +20,7 @@ find_package(ament_cmake REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
+find_package(std_msgs REQUIRED)
 
 # Find default generators
 find_package(rosidl_default_generators REQUIRED)
@@ -28,6 +29,7 @@ find_package(rosidl_default_generators REQUIRED)
 rosidl_generate_interfaces(${PROJECT_NAME}
 
   # Message definitions
+  "msg/ArmControlScheme.msg"
   "msg/ArmInput.msg"
   "msg/CamsConnected.msg"
   "msg/CMDFeedback.msg"
@@ -52,6 +54,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
 
   # Action definitions
   
+  DEPENDENCIES std_msgs
 )
 
 # Add all the installation directories
