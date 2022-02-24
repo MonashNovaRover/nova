@@ -1,9 +1,6 @@
 // Hacky defines to bypass arm modularity
 // Delete these after FK / IK is working on cycloidal wrist with ES end effector
-
-// Files where this is included:
-// resolver_spoofer.cpp
-// arm_kinematics.cpp
+// Information will be set either by kinematics or input nodes
 
 #include <string>
 #include <vector>

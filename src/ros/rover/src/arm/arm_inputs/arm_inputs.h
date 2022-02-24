@@ -20,9 +20,9 @@ SERVICES: None
 ACTIONS:  None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	control
-AUTHOR(S):  Jess Hepworth
+AUTHOR(S):  Jess Hepworth, Jory Braun
 CREATION:	02/12/2021
-EDITED:		18/01/2022
+EDITED:		24/02/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
  - Add in additional inputs for linear actuate
@@ -60,9 +60,6 @@ class ArmInputs : public rclcpp::Node {
     rclcpp::TimerBase::SharedPtr timer_joint;
     rclcpp::TimerBase::SharedPtr timer_task;
 
-    // Stores a counter for each step
-    size_t count;
-
     // Stores the publishers for arm inputs
     rclcpp::Publisher<core::msg::ArmInput>::SharedPtr arm_publisher;
     rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr joint_vel_publisher;
@@ -77,30 +74,15 @@ class ArmInputs : public rclcpp::Node {
     sensor_msgs::msg::JointState joint_velocities;
     geometry_msgs::msg::TwistStamped task_velocities;
 
-    // Stores task space inputs
-    float task_velocity[NUM_JOINTS];
-
-    // Stores joint space inputs
-    float joint_velocity[NUM_JOINTS];
+    // Store state of last-received messages
+    core::msg::InputJoystick joystick_l;
+    core::msg::InputJoystick joystick_r;
 
     // flag for IK on wrist 
     bool IK_wrist = true;
 
     // flag for IK on lower joints
     bool IK_lower_joints = true;
-
-    // Stores end effector actuation data
-    float end_effector_actuation;
-
-    // Stores linear actuator data
-    float linear_actuation;
-
-    // Stores lunar construction data
-    int lunar_construction_left;
-    int lunar_construction_right;
- 
-    // Stores variable for inputs (i.e. speeds)
-    float speed_multiplier;
 
     //------------------------------------------------------------//
     private:
