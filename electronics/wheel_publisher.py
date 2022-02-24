@@ -7,6 +7,11 @@ This node receives data from the wheels, such as
 velocity, current and power, and is able to publish
 over ROS. It uses the CAN receiver class to read the
 data published over the network.
+
+This program operates by polling the can buss for encoder values and adding them to a queue with max len 10,
+then publishing the average value of the data in the queue to ROS. It only publishes non zero values if inputs
+are being sent to the wheels - otherwise it resets the queue to empty.
+
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: wheel_publisher
 TOPICS:
@@ -15,20 +20,20 @@ TOPICS:
   - /autonomous/drive_inputs [DriveInput]  [Subscribed]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	electronics
-AUTHOR(S):	Harrison Verrios
+AUTHOR(S):	Harrison Verrios, Liam Whittle
 CREATION:	18/02/2022
-EDITED:		18/02/2022
+EDITED:		24/02/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
 # Include ROS packages
-import rclpy, time, datetime
+import rclpy
 from rclpy.node import Node
 
 # Import the wheel message type
 from core.msg import WheelData, DriveInput
 
-# Import the CAN libary
+# Import the CAN library
 from coms_utils.can_interface import CANReceiver
 
 # The Wheel CAN arbitration IDs
@@ -36,7 +41,6 @@ WHEEL_IDS = [0x410, 0x420, 0x430, 0x440, 0x450, 0x460]
 
 # Mathematical PI
 PI = 3.141593
-
 
 '''
 The following are the adjustable parameters that can
@@ -54,6 +58,7 @@ ENCODER_TO_RPM = 92.9
 # Store the wheel radius [m]
 WHEEL_RADIUS = 0.122
 
+NUM_WHEELS = 6
 
 
 # Main Wheel Publisher class
@@ -61,10 +66,6 @@ class WheelPublisher (Node):
 
     # Stores the current message values
     message: WheelData = WheelData()
-    
-    # Stores the properties as an array of arrays
-    rpms = []
-    powers = []
     
     # Whether to ignore data
     valid: bool = False
@@ -78,20 +79,13 @@ class WheelPublisher (Node):
         # Print initialisation information
         print("Initialising the Wheel Publisher class.")
 
-        # Store the starting time
-        self.time = datetime.datetime(2000, 1, 1)
-
         # Set up the CAN interface for each wheel id
-        self.cans = []
-        for i in range(6):
-        
-            # Create the CAN network
-            self.cans.append(CANReceiver(channel="can0", filter_ids=[WHEEL_IDS[i]], receive_timeout=0.1, receive_fmt="<hh", display=False))
-            
-            # Set up the average arrays
-            self.rpms.append([0 for i in range(STORED_DATA_LEN)])
-            self.powers.append([0 for i in range(STORED_DATA_LEN)])
-        
+        self.cans = [CANReceiver(channel="can0", filter_ids=[WHEEL_IDS[i]], receive_timeout=0.1, receive_fmt="<hh",
+                                 display=False) for i in range(NUM_WHEELS)]
+
+        # Set up the average arrays
+        self.rpms = [[] for _ in range(NUM_WHEELS)]
+        self.powers = [[] for _ in range(NUM_WHEELS)]
 
         # Create the publisher
         self.publisher = self.create_publisher(WheelData, "/electronics/wheel_data", 10)
@@ -106,15 +100,11 @@ class WheelPublisher (Node):
         # Create a timer to publish the current data
         self.pub_timer = self.create_timer(0.1, self.publish_msg)
 
-        # Create a timer to clear the current message data if nothing has happened
-        self.clear_timer = self.create_timer(0.1, self.clear_msg)
-
-    
     # Method that looks for any changes in the data from the CAN lines
     def read_callback (self):
     
         # Loop through each CAN line and receive data
-        for i in range(6):
+        for i in range(NUM_WHEELS):
             can_msg = self.cans[i].receive()
 
             # If a message exists
@@ -125,36 +115,39 @@ class WheelPublisher (Node):
                 rpm = int.from_bytes(rpm, "little", signed=True)
                 # Get a negative for some wheels
                 if i <= 2: rpm *= -1
+
+                # operating as a FIFO Queue with max len STORED_DATA_LEN
                 self.rpms[i].append(self.convert_rpm(rpm))
-                del self.rpms[i][0]
+                if len(self.rpms[i]) >= STORED_DATA_LEN:
+                    del self.rpms[i][0]
                 
                 # Read the power data
                 power = can_msg.data[2:]
                 power = int.from_bytes(power, "little", signed=True)               
+
+                # operating as a FIFO Queue with max len STORED_DATA_LEN
                 self.powers[i].append(self.convert_power(power))
-                del self.powers[i][0]
+                if len(self.powers[i]) >= STORED_DATA_LEN:
+                    del self.powers[i][0]
                 
-                # Update the timestamp
-                self.time = datetime.datetime.now()
-
-
     # Callback that reads an input message from the drive commands
     # Outputs are only valid when a drive message comes through
-    def drive_callback (self, msg):
-        if abs(msg.speed) > 0.0 or abs(msg.steer) > 0.0:
-            self.valid = True
-        else:
-            self.valid = False  
+    def drive_callback(self, msg):
+        self.valid = abs(msg.speed) > 0.0
 
+        # if we aren't driving, we shouldn't accept any previous values in our average
+        if not self.valid:
+            # Set up the average arrays
+            self.rpms = [[] for _ in range(NUM_WHEELS)]
+            self.powers = [[] for _ in range(NUM_WHEELS)]
 
     # Publishes the current message data that exists
     def publish_msg (self):
-    
         # Get the average data in the message
-        for i in range(6):
-            self.message.rpms[i]  = sum(self.rpms[i]) / float(STORED_DATA_LEN)
-            self.message.powers[i]      = sum(self.powers[i]) / float(STORED_DATA_LEN)
-            self.message.velocities[i]  = self.convert_rpm_to_vel (self.message.rpms[i])
+        for i in range(NUM_WHEELS):
+            self.message.rpms[i] = sum(self.rpms[i]) / float(len(self.rpms[i]))
+            self.message.powers[i] = sum(self.powers[i]) / float(len(self.powers[i]))
+            self.message.velocities[i] = self.convert_rpm_to_vel(self.message.rpms[i])
 
         # Check for invalid data, reset the message
         if not self.valid:
@@ -163,41 +156,19 @@ class WheelPublisher (Node):
         # Publish the data
         self.publisher.publish(self.message)
 
-    
-    # Clears the current message if nothing has happened in a while
-    def clear_msg (self):
-    
-        # Calculate the times since the last message
-        prev_msg = (datetime.datetime.now() - self.time).total_seconds()
-        
-        # Check if the last message was a while ago
-        if prev_msg > 0.5:
-            # Clear the message
-            self.message = WheelData()
-            
-            # Reset the averages
-            for i in range(6):
-                for j in range(STORED_DATA_LEN):
-                    self.velocities[i][j] = 0
-                    self.powers[i][j] = 0
-            
-     
     # Converts a raw velocity to an RPM
     def convert_rpm (self, value: int) -> float:
         return value / 32768.0 * ENCODER_TO_RPM
-        
         
     # Converts the value of the power to something sensible
     # Converts a signed integer into a float
     def convert_power (self, value: int) -> float:
         return abs(value) / 32768.0
 
-
     # Converts the RPM value to a speed in m/s
     def convert_rpm_to_vel (self, rpm: float) -> float:
         return rpm / 60.0 * 2 * PI * WHEEL_RADIUS
     
-
 
 # Main function sets up the ROS class
 def main(args=None):
