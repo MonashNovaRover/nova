@@ -50,6 +50,10 @@ class InputsPublisher : public rclcpp::Node {
     rclcpp::Publisher<core::msg::InputJoystick>::SharedPtr joystick_l_publisher;
     rclcpp::Publisher<core::msg::InputJoystick>::SharedPtr joystick_r_publisher;
 
+    //Stores options for QoS related things
+    rclcpp::QoS qos = rclcpp::QoS(1).reliability(RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT).durability(RMW_QOS_POLICY_DURABILITY_VOLATILE).deadline(200ms);
+    rclcpp::PublisherOptions publisher_options;
+    
     // Stores a counter
     size_t count;
 
