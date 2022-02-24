@@ -21,8 +21,11 @@ ArmKinematics::ArmKinematics() : Node("arm_kinematics")
     coord_frames_timer_period = 200ms;
     joint_velocities_timer_period = 200ms;
 
-    // Initialise arm model and solvers
-    arm_model = ArmModel();
+    // Initialise arm model
+    wrist_type = ArmModel::WRIST_CYCLOIDAL;
+    end_effector_type = ArmModel::EE_EQUIPMENT_SERVICING;
+    arm_model = ArmModel(wrist_type, end_effector_type);
+    // Initialise arm kinematics solvers
     arm_fk_solver = new KDL::TreeFkSolverPos_recursive(arm_model);
     arm_ik_solver = new KDL::TreeIkSolverVel_wdls(arm_model, std::vector<std::string> {arm_model.default_endpoint_name});
 
@@ -106,7 +109,7 @@ void ArmKinematics::publish_coord_frames()
         }
         else{
             // Success
-            // Get the output transform in the form ROS2 likes
+            // Save the output transform in the form ROS2 likes
             geometry_msgs::msg::Vector3 translation;
             translation.x = kdl_coord_frame.p.x();
             translation.y = kdl_coord_frame.p.y();
@@ -161,7 +164,7 @@ void ArmKinematics::publish_joint_velocities()
     }
     else{
         // Success
-        // Get the output in the form ROS2 likes
+        // Save the output in the form ROS2 likes
         Eigen::Matrix<double, 6, 1> vec6 = kdl_joint_velocities.data;
         joints.velocity = std::vector<double> ( vec6.data(), vec6.data() + vec6.size() );
     }
@@ -171,7 +174,6 @@ void ArmKinematics::publish_joint_velocities()
     // Publish the message
     joint_velocities_pub->publish(joints);
 }
-
 
 //  Main function called when the script execution begins
 int main(int argc, char **argv)
