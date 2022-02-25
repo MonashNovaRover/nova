@@ -182,29 +182,29 @@ void ArmKinematics::publish_joint_velocities()
     KDL::Vector twist_angular (vec3_angular.x, vec3_angular.y, vec3_angular.z);
     
     // Implement transformations on input linear and angular velocities
-    // Camera frame control
-    if (control_scheme.camera_frame_linear || control_scheme.camera_frame_angular){
+    // Endpoint frame control
+    if (control_scheme.endpoint_frame_linear || control_scheme.endpoint_frame_angular){
         // Transform joystick input directions to end-effector coordinates
         // eg: forward on the left joystick is +ve x, but should be +ve z in end effector coordinates
         KDL::Rotation joystick_input_transform = KDL::Rotation::EulerZYX(M_PI / 2, -M_PI / 2, 0);
         // Transform from end effector coordinates to base frame coordinates
-        KDL::Rotation camera_frame_transform = calculate_fk(arm_model.default_endpoint_name).M;
-        if (control_scheme.camera_frame_linear) {
-            twist_linear = camera_frame_transform * joystick_input_transform * twist_linear;
+        KDL::Rotation endpoint_frame_transform = calculate_fk(arm_model.default_endpoint_name).M;
+        if (control_scheme.endpoint_frame_linear) {
+            twist_linear = endpoint_frame_transform * joystick_input_transform * twist_linear;
         }
-        if (control_scheme.camera_frame_angular) {
+        if (control_scheme.endpoint_frame_angular) {
             // Add additional transform to switch yaw and roll directions for more intuitive control
             joystick_input_transform = KDL::Rotation::EulerZYX(0, 0, M_PI / 2) * joystick_input_transform;
-            twist_angular = camera_frame_transform * joystick_input_transform * twist_angular;
+            twist_angular = endpoint_frame_transform * joystick_input_transform * twist_angular;
         }
     }
-    // Reference frame offset (if camera-frame control not applied)
+    // Reference frame offset (if endpoint-frame control not applied)
     if (control_scheme.base_frame_offset != 0){
         KDL::Rotation base_offset_transform = KDL::Rotation::RotZ(M_PI / 2 * control_scheme.base_frame_offset);
-        if (!control_scheme.camera_frame_linear){
+        if (!control_scheme.endpoint_frame_linear){
             twist_linear = base_offset_transform * twist_linear;
         }
-        if (!control_scheme.camera_frame_angular) {
+        if (!control_scheme.endpoint_frame_angular) {
             twist_angular = base_offset_transform * twist_angular;
         }
     }

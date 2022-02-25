@@ -33,11 +33,11 @@ void ArmInputs::joystick_l_callback (const core::msg::InputJoystick::SharedPtr m
         control_scheme_update = true;
     }
     if (joystick_l.btn_bottom_r2_state == 1) {
-        control_scheme.camera_frame_linear = !control_scheme.camera_frame_linear;
+        control_scheme.endpoint_frame_linear = !control_scheme.endpoint_frame_linear;
         control_scheme_update = true;
     }
     if (joystick_l.btn_bottom_r5_state == 1) {
-        control_scheme.camera_frame_angular = !control_scheme.camera_frame_angular;
+        control_scheme.endpoint_frame_angular = !control_scheme.endpoint_frame_angular;
         control_scheme_update = true;
     }
     // Immediately publish any new control scheme data
