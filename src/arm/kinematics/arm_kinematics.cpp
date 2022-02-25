@@ -237,7 +237,7 @@ void ArmKinematics::publish_joint_velocities()
         // If running angular IK without endpoint-frame control, drive only the wrist
         // Should apply correct angular velocity in the endpoint frame without moving lower joints
         if (control_scheme.ik_angular && !control_scheme.endpoint_frame_angular){
-            std::fill(joints.velocity.begin() + 3, joints.velocity.end(), 0);
+            std::fill(joints.velocity.begin(), joints.velocity.begin() + 3, 0);
         }
     }
 
