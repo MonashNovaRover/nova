@@ -7,9 +7,9 @@ std_msgs/Header header
 bool ik_linear 0
 bool ik_angular 0
 
-# Camera-frame control
-bool camera_frame_linear 0
-bool camera_frame_angular 0
+# Endpoint-frame control
+bool endpoint_frame_linear 0
+bool endpoint_frame_angular 0
 
 # Base reference frame offset
 # Value of 1, 0 or -1 for left, center or right
