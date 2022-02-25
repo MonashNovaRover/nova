@@ -131,23 +131,33 @@ class ResolverPublisher(Node):
         self.timer = self.create_timer(timer_period, self.publish)
 
         self.resolver_transceiver = ResolverTransceiver(
-                receive_fmt = '<H', # TODO: check this data format
-                transmit_fmt = '@B', # TODO: check this data format
+                receive_fmt = '<H',
+                transmit_fmt = '@B',
                 logger = self.get_logger(),
-                baudrate = 115200, # probably right?
-                port = '/dev/ttyUSB0', # TODO: check this
+                baudrate = 115200,
+                port = '/dev/ttyUSB0',
                 )
+
+        # Create the output message type to track the resolver state
+        self.resolver_state = JointState()
+        joint_names = self.resolver_transceiver.joint_id_map.keys()
+        self.resolver_state.name = joint_names
+        self.resolver_state.position = [0.0] * len(joint_names)
+        # Initialise unused fields to have correct lengths for consistency
+        self.resolver_state.velocity = [0.0] * len(joint_names)
+        self.resolver_state.effort = [0.0] * len(joint_names)
 
     def publish(self):
         '''
         callback to publish position of all joints
         '''
-        msg = JointState()
-        for joint in self.resolver_transceiver.joint_id_map.keys():
-            msg.name.append(joint)
-            msg.position.append(self.resolver_transceiver.position(joint))
+        for i, joint_name in enumerate(self.resolver_state.name):
+            joint_position = self.resolver_transceiver.position(joint_name)
+            if joint_position != -1:
+                # Successful transmit and receive, publish new value
+                self.resolver_state.position[i] = joint_position
         
-        self._publisher.publish(msg)
+        self._publisher.publish(self.resolver_state)
 
     def destroy_node(self):
         '''
