@@ -24,6 +24,7 @@ EDITED:		18/02/2022
 # Include ROS packages
 import rclpy, time, datetime
 from rclpy.node import Node
+import time
 
 # Import the wheel message type
 from core.msg import WheelData, DriveInput
@@ -46,6 +47,8 @@ be configured for the wheels.
 # The number of recent points to take the average from
 # Use '1' for no average system
 STORED_DATA_LEN = 10
+
+NUM_WHEELS = 6
 
 # The value that 1.0 velocity maps to in RPM
 # Calculated using a Tacometer
@@ -79,18 +82,17 @@ class WheelPublisher (Node):
         print("Initialising the Wheel Publisher class.")
 
         # Store the starting time
-        self.time = datetime.datetime(2000, 1, 1)
+        self.t = time.time()
 
         # Set up the CAN interface for each wheel id
         self.cans = []
-        for i in range(6):
+    
+        # Create the CAN network
+        self.cans = [CANReceiver(channel="can0", filter_ids=[WHEEL_IDS[i]], receive_timeout=0.1, receive_fmt="<hh", display=False) for i in range(NUM_WHEELS)]
         
-            # Create the CAN network
-            self.cans.append(CANReceiver(channel="can0", filter_ids=[WHEEL_IDS[i]], receive_timeout=0.1, receive_fmt="<hh", display=False))
-            
-            # Set up the average arrays
-            self.rpms.append([0 for i in range(STORED_DATA_LEN)])
-            self.powers.append([0 for i in range(STORED_DATA_LEN)])
+        # Set up the average arrays
+        self.rpms.append([0 for i in range(STORED_DATA_LEN)])
+        self.powers.append([0 for i in range(STORED_DATA_LEN)])
         
 
         # Create the publisher
@@ -112,14 +114,12 @@ class WheelPublisher (Node):
     
     # Method that looks for any changes in the data from the CAN lines
     def read_callback (self):
-    
         # Loop through each CAN line and receive data
         for i in range(6):
             can_msg = self.cans[i].receive()
-
+            print("got can msg")
             # If a message exists
             if can_msg:
-            
                 # Read the velocity data
                 rpm = can_msg.data[:2]
                 rpm = int.from_bytes(rpm, "little", signed=True)
@@ -135,8 +135,7 @@ class WheelPublisher (Node):
                 del self.powers[i][0]
                 
                 # Update the timestamp
-                self.time = datetime.datetime.now()
-
+                self.time = time.time() 
 
     # Callback that reads an input message from the drive commands
     # Outputs are only valid when a drive message comes through
@@ -166,20 +165,11 @@ class WheelPublisher (Node):
     
     # Clears the current message if nothing has happened in a while
     def clear_msg (self):
-    
-        # Calculate the times since the last message
-        prev_msg = (datetime.datetime.now() - self.time).total_seconds()
         
         # Check if the last message was a while ago
-        if prev_msg > 0.5:
+        if time.time() - self.t > 0.5:
             # Clear the message
             self.message = WheelData()
-            
-            # Reset the averages
-            for i in range(6):
-                for j in range(STORED_DATA_LEN):
-                    self.velocities[i][j] = 0
-                    self.powers[i][j] = 0
             
      
     # Converts a raw velocity to an RPM
