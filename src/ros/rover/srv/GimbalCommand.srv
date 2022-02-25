@@ -4,7 +4,7 @@
 int8 id
 
 # The angle to rotate the gimbal to
-float32 position
+int32 position
 
 ---
 
