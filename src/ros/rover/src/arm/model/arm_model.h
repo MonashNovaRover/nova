@@ -61,7 +61,7 @@ class ArmModel : public KDL::Tree
     // List names of all joints use for constructing JointState and MultiDOFJointState messages
     std::vector<std::string> joint_names;
     // List names of all endpoints (cameras and tips of end effectors) for constructing messages
-    // Also used for IK and camera-frame-control
+    // Also used for IK and endpoint-frame-control
     std::vector<std::string> endpoint_names;
     // Add variable for the default end effcetor (set by the end effector module)
     std::string default_endpoint_name;
