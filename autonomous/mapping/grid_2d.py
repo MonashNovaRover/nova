@@ -7,7 +7,7 @@ from config.ros_config import main_frame
 obstacle detector, which we can navigate easily 
 using A*. 
 """
-from config.runtime_params import min_point_density, max_safe_obstacle
+from config.runtime_params import min_point_density, max_safe_obstacle, unseen_map_val
 from height_mapper import get_obstacles
 import numpy as np
 from scipy.signal import convolve2d
@@ -39,7 +39,8 @@ class Grid2D(Node):
         self.length = length
         self.width = width
         self.resolution = resolution
-        self.map = np.zeros((int(length / resolution), int(width / resolution)))
+        # unseen areas of the map all have a slight cost 
+        self.map = np.full((int(length / resolution), int(width / resolution)), unseen_map_val)
 
         self.grid_pub = GridPub()
 
