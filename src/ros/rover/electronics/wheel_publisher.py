@@ -22,7 +22,7 @@ TOPICS:
 PACKAGE: 	electronics
 AUTHOR(S):	Harrison Verrios, Liam Whittle
 CREATION:	18/02/2022
-EDITED:		24/02/2022
+EDITED:		26/02/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
@@ -89,8 +89,13 @@ class WheelPublisher (Node):
         self.cans = []
     
         # Create the CAN network
-        self.cans = [CANReceiver(channel="can0", filter_ids=[WHEEL_IDS[i]], receive_timeout=0.1, receive_fmt="<hh", display=False) for i in range(NUM_WHEELS)]
-        
+        try:
+            self.cans = [CANReceiver(channel="can0", filter_ids=[WHEEL_IDS[i]], receive_timeout=0.1, receive_fmt="<hh", display=False) for i in range(NUM_WHEELS)]
+        except:
+            print("No CAN 0 line found!")
+            exit()
+
+
         # Set up the average arrays
         self.rpms.append([0 for i in range(STORED_DATA_LEN)])
         self.powers.append([0 for i in range(STORED_DATA_LEN)])
@@ -107,6 +112,7 @@ class WheelPublisher (Node):
 
         # Create a timer to publish the current data
         self.pub_timer = self.create_timer(0.1, self.publish_msg)
+
 
     # Method that looks for any changes in the data from the CAN lines
     def read_callback (self):
