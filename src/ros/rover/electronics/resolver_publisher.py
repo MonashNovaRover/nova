@@ -152,6 +152,11 @@ class ResolverPublisher(Node):
         callback to publish position of all joints
         '''
         for i, joint_name in enumerate(self.resolver_state.name):
+
+            # Do not check J6, just pretend it is always level
+            if joint_name == "j6":
+                continue
+
             joint_position = self.resolver_transceiver.position(joint_name)
             if joint_position != -1:
                 # Successful transmit and receive, publish new value
