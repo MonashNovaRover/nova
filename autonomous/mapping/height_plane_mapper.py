@@ -29,7 +29,9 @@ TODO:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
-from mapping.mapper import Mapper, HeightMapper, PlaneMapper
+from mapping.mapper import Mapper
+from mapping.height_mapper import HeightMapper
+from mapping.plane_mapper import PlaneMapper
 from mapping.grid_2d import Grid2D
 import time
 import numpy as np
@@ -39,7 +41,7 @@ from height_mapper import get_obstacles as get_height_obstacles
 from plane_fitter import get_obstacles as get_plane_obstacles
 from scipy.signal import convolve2d
 
-class HeightMapper(Mapper):
+class HeightPlaneMapper(Mapper):
     def __init__(self, length=20, width=20, height=5, resolution=0.1, detection_resolution=0.025, planner=None):
 
         # init node with node name points

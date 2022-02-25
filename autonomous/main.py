@@ -6,6 +6,7 @@ import rclpy
 from mapping.mapper import Mapper
 from mapping.height_mapper import HeightMapper
 from mapping.plane_mapper import PlaneMapper
+from mapping.height_plane_mapper import HeightPlaneMapper
 
 def main(args):
     rclpy.init(args=args)
