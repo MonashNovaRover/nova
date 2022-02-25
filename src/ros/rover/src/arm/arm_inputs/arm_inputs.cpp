@@ -91,8 +91,8 @@ void ArmInputs::publish_joint_vel ()
     
     // If using lower joints joint-space control
     if (!control_scheme.ik_lower_joints) {
-        joint_velocities.velocity[0] = speed_multiplier * -joystick_l.ax_stick_twist;
-        joint_velocities.velocity[1] = speed_multiplier * -joystick_l.ax_stick_y;
+        joint_velocities.velocity[0] = speed_multiplier * joystick_l.ax_stick_twist;
+        joint_velocities.velocity[1] = speed_multiplier * joystick_l.ax_stick_y;
         joint_velocities.velocity[2] = speed_multiplier * -joystick_l.ax_stick_x;
     }
     else{
