@@ -188,12 +188,14 @@ void ArmKinematics::publish_joint_velocities()
         // eg: forward on the left joystick is +ve x, but should be +ve z in end effector coordinates
         KDL::Rotation joystick_input_transform = KDL::Rotation::EulerZYX(M_PI / 2, -M_PI / 2, 0);
         // Transform from end effector coordinates to base frame coordinates
-        KDL::Rotation camera_frame_transform = calculate_fk(arm_model.default_endpoint_name).M * joystick_input_transform;
+        KDL::Rotation camera_frame_transform = calculate_fk(arm_model.default_endpoint_name).M;
         if (control_scheme.camera_frame_linear) {
-            twist_linear = camera_frame_transform * twist_linear;
+            twist_linear = camera_frame_transform * joystick_input_transform * twist_linear;
         }
         if (control_scheme.camera_frame_angular) {
-            twist_angular = camera_frame_transform * twist_angular;
+            // Add additional transform to switch yaw and roll directions for more intuitive control
+            joystick_input_transform = KDL::Rotation::EulerZYX(0, 0, M_PI / 2) * joystick_input_transform;
+            twist_angular = camera_frame_transform * joystick_input_transform * twist_angular;
         }
     }
     // Reference frame offset (if camera-frame control not applied)
