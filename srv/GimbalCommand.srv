@@ -1,0 +1,12 @@
+# This messages moves a gimbal camera
+
+# The Gimbal camera ID
+int8 id
+
+# The angle to rotate the gimbal to
+float32 position
+
+---
+
+# The result of the movement
+bool success

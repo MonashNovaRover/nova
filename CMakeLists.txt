@@ -32,6 +32,8 @@ find_package(geometry_msgs REQUIRED)
 rosidl_generate_interfaces(${PROJECT_NAME}
 
   # Message definitions
+  "msg/AlvarMarker.msg"
+  "msg/AlvarMarkers.msg"
   "msg/ArmControlScheme.msg"
   "msg/ArmInput.msg"
   "msg/CamsConnected.msg"
@@ -49,11 +51,10 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/Waypoint.msg"
   "msg/Waypoints.msg"
   "msg/WheelData.msg"
-  "msg/AlvarMarker.msg"
-  "msg/AlvarMarkers.msg"
 
   # Service definitions
   "srv/CameraCommand.srv"
+  "srv/GimbalCommand.srv"
   "srv/PIDTune.srv"
   "srv/ScienceCommand.srv"
 
