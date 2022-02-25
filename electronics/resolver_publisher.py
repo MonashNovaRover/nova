@@ -23,6 +23,7 @@ from math import pi
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import JointState
+import time
 
 from coms_utils.uart_interface import UARTTransceiver
 
@@ -155,6 +156,7 @@ class ResolverPublisher(Node):
 
             # Do not check J6, just pretend it is always level
             if joint_name == "j6":
+                time.sleep(0.05)
                 continue
 
             joint_position = self.resolver_transceiver.position(joint_name)
