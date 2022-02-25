@@ -35,7 +35,10 @@ void DriveInputs::publish_cmds () {
     // Create the message
     auto message = core::msg::DriveInput();
     
-    if (!prev_msg_received) return;
+    if (!prev_msg_received){
+        return;
+        RCLCPP_WARN(this->get_logger(), "Drive input not received");
+    }
 
     // Set up the values if the controller is not locked
     if (!locked && connected) {
