@@ -48,6 +48,8 @@ install(PROGRAMS
   electronics/radio_monitor.py
   electronics/wheel_publisher.py
   electronics/rfid_scanner.py
+  electronics/gimbal_service.py
+  electronics/resolver_publisher.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
