@@ -4,8 +4,8 @@
 std_msgs/Header header
 
 # Joint-space vs task-space control
-bool ik_lower_joints 0
-bool ik_wrist 0
+bool ik_linear 0
+bool ik_angular 0
 
 # Camera-frame control
 bool camera_frame_linear 0
