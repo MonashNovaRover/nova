@@ -47,6 +47,7 @@ install(PROGRAMS
   electronics/GPS_test.py
   electronics/radio_monitor.py
   electronics/wheel_publisher.py
+  electronics/gimbal_service.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
