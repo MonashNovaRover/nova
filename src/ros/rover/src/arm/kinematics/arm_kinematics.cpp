@@ -183,9 +183,7 @@ void ArmKinematics::publish_joint_velocities()
     
     // Implement transformations on input linear and angular velocities
     // Endpoint frame control
-    // For angular IK, always use endpoint-frame input: If using endpoint-frame control, will orbit
-    // around the endpoint; if not, do not drive lower joints so just rotates the wrist (handled later)
-    if (control_scheme.endpoint_frame_linear || control_scheme.ik_angular){
+    if (control_scheme.endpoint_frame_linear || control_scheme.endpoint_frame_angular){
         // Transform joystick input directions to end-effector coordinates
         // eg: forward on the left joystick is +ve x, but should be +ve z in end effector coordinates
         KDL::Rotation joystick_input_transform = KDL::Rotation::EulerZYX(M_PI / 2, -M_PI / 2, 0);
@@ -194,7 +192,7 @@ void ArmKinematics::publish_joint_velocities()
         if (control_scheme.endpoint_frame_linear) {
             twist_linear = endpoint_frame_transform * joystick_input_transform * twist_linear;
         }
-        if (control_scheme.ik_angular) {
+        if (control_scheme.endpoint_frame_angular) {
             // Add additional transform to switch yaw and roll directions for more intuitive control
             joystick_input_transform = KDL::Rotation::EulerZYX(0, 0, M_PI / 2) * joystick_input_transform;
             twist_angular = endpoint_frame_transform * joystick_input_transform * twist_angular;
@@ -233,12 +231,6 @@ void ArmKinematics::publish_joint_velocities()
         // Save the output in the form ROS2 likes
         Eigen::Matrix<double, 6, 1> vec6 = kdl_joint_velocities.data;
         joints.velocity = std::vector<double> ( vec6.data(), vec6.data() + vec6.size() );
-
-        // If running angular IK without endpoint-frame control, drive only the wrist
-        // Should apply correct angular velocity in the endpoint frame without moving lower joints
-        if (control_scheme.ik_angular && !control_scheme.endpoint_frame_angular){
-            std::fill(joints.velocity.begin(), joints.velocity.begin() + 3, 0);
-        }
     }
 
     // Update the header
