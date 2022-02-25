@@ -25,11 +25,11 @@ void ArmInputs::joystick_l_callback (const core::msg::InputJoystick::SharedPtr m
     // Set button-based data here so we don't miss any button-press events
     bool control_scheme_update = false;
     if (joystick_l.btn_bottom_r1_state == 1) {
-        control_scheme.ik_lower_joints = !control_scheme.ik_lower_joints;
+        control_scheme.ik_linear = !control_scheme.ik_linear;
         control_scheme_update = true;
     }
     if (joystick_l.btn_bottom_r4_state == 1) {
-        control_scheme.ik_wrist = !control_scheme.ik_wrist;
+        control_scheme.ik_angular = !control_scheme.ik_angular;
         control_scheme_update = true;
     }
     if (joystick_l.btn_bottom_r2_state == 1) {
@@ -90,7 +90,7 @@ void ArmInputs::publish_joint_vel ()
     float speed_multiplier = scale_speed(joystick_r.ax_slider);
     
     // If using lower joints joint-space control
-    if (!control_scheme.ik_lower_joints) {
+    if (!control_scheme.ik_linear) {
         joint_velocities.velocity[0] = speed_multiplier * joystick_l.ax_stick_twist;
         joint_velocities.velocity[1] = speed_multiplier * joystick_l.ax_stick_y;
         joint_velocities.velocity[2] = speed_multiplier * -joystick_l.ax_stick_x;
@@ -102,7 +102,7 @@ void ArmInputs::publish_joint_vel ()
     }
 
     // If using wrist joint-space control
-    if (!control_scheme.ik_wrist) {
+    if (!control_scheme.ik_angular) {
         joint_velocities.velocity[3] = speed_multiplier * -joystick_r.ax_stick_x;
         joint_velocities.velocity[4] = speed_multiplier * joystick_r.ax_stick_y;
         joint_velocities.velocity[5] = speed_multiplier * -joystick_r.ax_stick_twist;
@@ -126,7 +126,7 @@ void ArmInputs::publish_task_vel ()
     float speed_multiplier = scale_speed(joystick_r.ax_slider);
     
     // If using lower joints IK, set the values for linear velocity
-    if (control_scheme.ik_lower_joints) {
+    if (control_scheme.ik_linear) {
         task_velocities.twist.linear.x = speed_multiplier * joystick_l.ax_stick_x;
         task_velocities.twist.linear.y = speed_multiplier * joystick_l.ax_stick_y;
         task_velocities.twist.linear.z = speed_multiplier * joystick_l.ax_stick_twist;
@@ -137,7 +137,7 @@ void ArmInputs::publish_task_vel ()
         task_velocities.twist.linear.z = 0;
     }
     // If using wrist IK, set the values for angular velocity
-    if (control_scheme.ik_wrist) {
+    if (control_scheme.ik_angular) {
         task_velocities.twist.angular.x = speed_multiplier * -joystick_r.ax_stick_y;
         task_velocities.twist.angular.y = speed_multiplier * joystick_r.ax_stick_x;
         task_velocities.twist.angular.z = speed_multiplier * joystick_r.ax_stick_twist;
