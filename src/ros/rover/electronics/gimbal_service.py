@@ -33,6 +33,15 @@ from coms_utils.can_interface import CANTransmitter
 # Main Gimbal Service class
 class GimbalService (Node):
 
+    # Store previous state for using the same gimbal for multiple data
+    state = {
+        "arm_x": 0,
+        "arm_y": 0,
+        "mast_x": 0,
+        "mast_y": 0,
+        "beacon": 0
+    }
+
 
     # Constructor sets up the service
     def __init__ (self):
@@ -45,15 +54,14 @@ class GimbalService (Node):
 
         # Set up the CAN interface for the CAN 1 lines
         try:
-            self.arm_gimbal = CANTransmitter(channel="can1", arbitration_id=0x080)
-            self.beacon_gimbal = self.arm_gimbal
+            self.can1_gimbal = CANTransmitter(channel="can1", arbitration_id=0x080)
         except:
             print("CAN 1 Network not found!")
             exit()
         
-        # Set up the CAN interface for the CAN 2 lines
+        # Set up the CAN interface for the CAN 0 lines
         try:
-            self.mast_gimbal = CANTransmitter(channel="can0", arbitration_id=0x080)            
+            self.can0_gimbal = CANTransmitter(channel="can0", arbitration_id=0x080)            
         except:
             print("CAN 0 Network not found!")
             exit()
@@ -65,17 +73,28 @@ class GimbalService (Node):
     # Method that sends data over the CAN lines to the gimbal cameras
     def gimbal_callback (self, request: GimbalCommand.Request, response: GimbalCommand.Response):
 
-        # Get the gimbal based on the id
-        gimbal = self.beacon_gimbal                         # 3
-        if request.id == 1: gimbal = self.arm_gimbal        # 2
-        elif request.id == 2: gimbal = self.mast_gimbal     # 1
+        # Update the state data
+        if request.id == 1:     # Arm Gimbal
+            self.state["arm_x"] = request.angle_x
+            self.state["arm_y"] = request.angle_y
+        elif request.id == 2:   # Mast Gimbal
+            self.state["mast_x"] = request.angle_x
+            self.state["mast_y"] = request.angle_y
+        else:                   # Beacon Gimbal
+            self.state["beacon"] = request.angle_y
 
-        # Convert the angles to bytes
-        byte_x = int.to_bytes(request.angle_x, 1, "big")
-        byte_y = int.to_bytes(request.angle_y, 1, "big")
+        # Transmit the data for CAN 0
+        if request.id == 1 or request.id == 3:
+            byte_x = int.to_bytes(self.state["arm_x"], 1, "big")
+            byte_y = int.to_bytes(self.state["arm_y"], 1, "big")
+            byte_z = int.to_bytes(self.state["beacon"], 1, "big")
+            self.can1_gimbal.transmit(byte_x + byte_y + byte_z)
 
-        # Transmit the bytes
-        gimbal.transmit(byte_x + byte_y)
+        # Transmit the data for CAN 1
+        else:
+            byte_x = int.to_bytes(self.state["mast_x"], 1, "big")
+            byte_y = int.to_bytes(self.state["mast_y"], 1, "big")
+            self.can0_gimbal.transmit(byte_x + byte_y)
 
         # Return a success
         response.success = True
