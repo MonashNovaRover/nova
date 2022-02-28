@@ -179,9 +179,7 @@ void fit_planes(cv::Mat& heightMap, cv::Mat& incs, int& min_x) {
 
             for (std::size_t x = plane_i; x < plane_i + 2; x++) {
                 for (std::size_t y = plane_j; y < plane_j + 2; y++) {
-                    if (incs.at<uint8_t>(x, y) == 0) incs.at<uint8_t>(x, y) = scaled_inc;
-                    else if (scaled_inc == 0) continue;
-                    else incs.at<uint8_t>(x, y) = std::min(incs.at<uint8_t>(x, y), scaled_inc);
+                    incs.at<uint8_t>(x, y) = std::max(incs.at<uint8_t>(x, y), scaled_inc);
                 }
             }
         }

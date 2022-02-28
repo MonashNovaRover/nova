@@ -18,7 +18,6 @@ from nav_msgs.msg import OccupancyGrid, MapMetaData
 from geometry_msgs.msg import Pose
 from std_msgs.msg import Header
 from builtin_interfaces.msg import Time
-import matplotlib.pyplot as plt
 from vis.grid_pub import GridPub
 
 class Grid2D(Node):
