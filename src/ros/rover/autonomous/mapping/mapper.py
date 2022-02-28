@@ -46,7 +46,7 @@ from config.ros_config import tracking_pose_topic, depth_topic
 from config.runtime_params import max_point_depth, max_fov_angle, depth_mode, skip_pts
 
 class Mapper(Node):
-    def __init__(self, length=20, width=20, height=5, resolution=0.1, planner=None, _vis=True):
+    def __init__(self, length=20, width=20, height=5, resolution=0.1, planner=None, camera=False, _vis=True):
 
         # init node with node name points
         super().__init__('points_grid')
@@ -74,9 +74,10 @@ class Mapper(Node):
             self.initialise_map3d()
 
         elif depth_mode == "python":
-            self.camera = DepthCamera(self.python_callback)
-            # starts a separate thread which will get depth frames and update mapper
-            self.camera.start()
+            if camera:
+                self.camera = DepthCamera(self.python_callback)
+                # starts a separate thread which will get depth frames and update mapper
+                self.camera.start()
             self.has_color = False
             self.initialise_map3d()
 
@@ -156,8 +157,13 @@ class Mapper(Node):
         # transforming to the global frame
         full_transform_pts = transform.transform_points(self.msg, pts)
         self._map3d.add_pc_points_only(full_transform_pts)
-        pts = self._map3d.get_as_pc()
 
+    def publish(self):
+        """
+        Publishes the map to ros for RVIZ to visualise
+        """
+        pts = self._map3d.get_as_pc()
+        
         # setting colors proportional to the height of points - hopefully looks cool!
         if self.vis:
             max_z = 10
@@ -165,7 +171,7 @@ class Mapper(Node):
             
             self.pc_pub.pub_pts_colors(full_transform_pts, colors.astype(int))
 
-    def get_2d_map3d(self):
+    def get_2d_map(self):
         """
         Returns the 2d version of the map according to this Mapper's mapping policy.
         Default Mapper class simply adds slices above a pre-defined z coordinate.
@@ -186,10 +192,12 @@ class Mapper(Node):
         if self.msg:
             self.handle_pc(pts)
             
+        self.publish()
+
         if time.perf_counter() - self.previous_plan > 1:
             if self.planner:
                 # OLD WAY - MAP LAYERS
-                self.planner.get_path(self.get_2d_map3d())
+                self.planner.get_path(self.get_2d_map())
                 self.previous_plan = time.perf_counter()
 
 
