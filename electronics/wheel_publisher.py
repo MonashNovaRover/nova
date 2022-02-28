@@ -61,9 +61,6 @@ ENCODER_TO_RPM = 92.9
 # Store the wheel radius [m]
 WHEEL_RADIUS = 0.122
 
-NUM_WHEELS = 6
-
-
 # Main Wheel Publisher class
 class WheelPublisher (Node):
 
@@ -89,11 +86,9 @@ class WheelPublisher (Node):
         self.cans = []
     
         # Create the CAN network
-        self.cans = [CANReceiver(channel="can0", filter_ids=[WHEEL_IDS[i]], receive_timeout=0.1, receive_fmt="<hh", display=False) for i in range(NUM_WHEELS)]
-        
-        # Set up the average arrays
-        self.rpms.append([0 for i in range(STORED_DATA_LEN)])
-        self.powers.append([0 for i in range(STORED_DATA_LEN)])
+        self.cans = [CANReceiver(channel="can0", filter_ids=[WHEEL_IDS[i]], receive_timeout=0, receive_fmt="<hh", display=False) for i in range(NUM_WHEELS)]
+        self.rpms = [[] for _ in range(NUM_WHEELS)] # build up each inner list to always have 10 elements, [[*10]*6]
+        self.powers = [[] for _ in range(NUM_WHEELS)]
 
         # Create the publisher
         self.publisher = self.create_publisher(WheelData, "/electronics/wheel_data", 10)
@@ -111,6 +106,8 @@ class WheelPublisher (Node):
     # Method that looks for any changes in the data from the CAN lines
     def read_callback (self):
         # Loop through each CAN line and receive data
+
+        t = time.time()
         for i in range(NUM_WHEELS):
             can_msg = self.cans[i].receive()
             print("got can msg")
@@ -125,7 +122,8 @@ class WheelPublisher (Node):
                 # operating as a FIFO Queue with max len STORED_DATA_LEN
                 self.rpms[i].append(self.convert_rpm(rpm))
                 if len(self.rpms[i]) >= STORED_DATA_LEN:
-                    del self.rpms[i][0]
+                    self.rpms[i].pop(0) # remove the oldest value
+                    #del self.rpms[i][]
                 
                 # Read the power data
                 power = can_msg.data[2:]
@@ -134,11 +132,12 @@ class WheelPublisher (Node):
                 # operating as a FIFO Queue with max len STORED_DATA_LEN
                 self.powers[i].append(self.convert_power(power))
                 if len(self.powers[i]) >= STORED_DATA_LEN:
-                    del self.powers[i][0]
+                    self.powers[i].pop(0)
+                    #del self.powers[i]
                 
                 # Update the timestamp
                 self.t = time.time() 
-
+        print(time.time() - t)
 
     # Callback that reads an input message from the drive commands
     # Outputs are only valid when a drive message comes through
@@ -155,8 +154,16 @@ class WheelPublisher (Node):
     def publish_msg (self):
         # Get the average data in the message
         for i in range(NUM_WHEELS):
-            self.message.rpms[i] = sum(self.rpms[i]) / float(len(self.rpms[i]))
-            self.message.powers[i] = sum(self.powers[i]) / float(len(self.powers[i]))
+            if len(self.rpms[i]) > 0:
+                #self.message.rpms[i] = self.rpms[i][len(self.rpms[i])-1]
+                self.message.rpms[i] = sum(self.rpms[i]) / float(len(self.rpms[i]))
+            else:
+                self.message.rpms[i] = 0
+            if len(self.powers[i]) > 0:
+                #self.message.powers[i] = self.powers[i][len(self.powers[i]) - 1]
+                self.message.powers[i] = sum(self.powers[i]) / float(len(self.powers[i]))
+            else:
+                self.message.powers[i] = 0
             self.message.velocities[i] = self.convert_rpm_to_vel(self.message.rpms[i])
 
         # Check for invalid data, reset the message
