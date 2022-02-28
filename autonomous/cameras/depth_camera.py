@@ -10,14 +10,10 @@ from vis.pc_pub import PCPub
 import rclpy
 import sys
 from cameras.ar_tracker import ArTracker
-
-
-D435 = "829212072166"
-D415 = "932122060332"
-
+from config.runtime_params import d435_serial
 
 class DepthCamera(Thread):
-    def __init__(self, callback, publish_topic=None, serial_number=D435):
+    def __init__(self, callback, publish_topic=None, serial_number=d435_serial):
         super().__init__()
         if publish_topic:
             self.publisher = PCPub("depth_camera_pc_pub", scale=1)
