@@ -84,6 +84,9 @@ class ArmInputs : public rclcpp::Node {
     core::msg::InputJoystick joystick_l;
     core::msg::InputJoystick joystick_r;
 
+    // A lock on the controls - can be unlocked
+    bool locked = true;
+
     //------------------------------------------------------------//
     private:
 
@@ -116,8 +119,7 @@ class ArmInputs : public rclcpp::Node {
     /// @param      value - number in range [-1, 1] to map to [0, 1]
     /// @returns    The new scale factor in range [0, 1]
     float scale_speed (float value);
-
-    
+       
     //------------------------------------------------------------//
     public:
 

@@ -30,6 +30,7 @@ Joint::~Joint () {
 
 
 void Joint::drive (float velocity) {
+    velocity = reverse * velocity;
 
     // Check if velocity is zero
     if (velocity == 0) {

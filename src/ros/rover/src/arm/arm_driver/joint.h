@@ -42,7 +42,6 @@ class Joint : public CMD {
     // 0 for regular, 1 for flipped
     bool CMD_direction;
 
-
     //------------------------------------------------------------//
     protected:
 
