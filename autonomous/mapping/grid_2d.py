@@ -7,13 +7,13 @@ from config.ros_config import main_frame
 obstacle detector, which we can navigate easily 
 using A*. 
 """
-from config.runtime_params import min_point_density, max_safe_obstacle, unseen_map_val
+from config.runtime_params import min_point_density, max_safe_obstacle, unseen_map_val, max_fov_angle, max_point_depth
+import rclpy
+from rclpy.node import Node
 from height_mapper import get_obstacles
 import numpy as np
 from scipy.signal import convolve2d
 import math_utils.transform as transform
-from config.runtime_params import max_fov_angle, max_point_depth
-from rclpy.node import Node
 from nav_msgs.msg import OccupancyGrid, MapMetaData
 from geometry_msgs.msg import Pose
 from std_msgs.msg import Header
@@ -39,7 +39,7 @@ class Grid2D(Node):
         self.width = width
         self.resolution = resolution
         # unseen areas of the map all have a slight cost 
-        self.map = np.full((int(length / resolution), int(width / resolution)), unseen_map_val)
+        self.map = np.full((int(length / resolution), int(width / resolution)), 100 * unseen_map_val)
 
         self.grid_pub = GridPub()
 
@@ -77,8 +77,4 @@ class Grid2D(Node):
         print("diff = " + str(diff))
         obstacles = obstacles + diff
         self.map[obstacles[:, 0], obstacles[:, 1]] = obstacles[:, 2]
-        plt.figure()
-        plt.imshow(self.map)
-        plt.plot(diff[0, 0], diff[0, 1], 'ro')
-        plt.savefig('map.png')
 

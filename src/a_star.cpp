@@ -30,7 +30,7 @@ namespace py = pybind11;
    weigh distance to the destination. Higher values run quicker but find
    a less optimal path. */
 const float ROVER_WIDTH_CM = 50.0;
-const float TERRAIN_IMPORTANCE = 300; // How much we value smooth terrain over distance
+const float TERRAIN_IMPORTANCE = 100; // How much we value smooth terrain over distance
 const float SAFETY_FACTOR = 1.6; // Factor by which we multiply rover radius to pad.
 const float WEIGHT = 1.0; // weight of heuristic for A*
 
@@ -83,7 +83,7 @@ bool isSafe(const array<array<float, COL>, ROW>& grid,
     /*is this square blocked by an obstacle or too close to one
 	to be safe?*/
 	return (isValid(COL, ROW, point)
-		&& grid[point.first][point.second] < 1.0);
+		&& grid[point.first][point.second] < 2.0);
 }
 
 // A Utility Function to check whether destination cell has
@@ -124,6 +124,7 @@ float padding_value(float dist_sqrd, float padding_width_sqrd)
 	distinguish between the two kinds of impassable points when padding)
 	*/
 	if (dist_sqrd < padding_width_sqrd) return 1.1;
+    if (dist_sqrd < 2 * padding_width_sqrd) return 0.5;
 	return 0;
 }
 
@@ -174,8 +175,8 @@ template <size_t ROW, size_t COL>
 void pad_point(array<array<float, COL>, ROW>& grid, const Pair& start_pt, float padding_width_pixels)
 {
 	int y = start_pt.first, x = start_pt.second;
-	int min_x = x - 1.5 * padding_width_pixels, min_y = y - 1.5 * padding_width_pixels;
-	int max_x = x + 1.5 * padding_width_pixels, max_y = y + 1.5 * padding_width_pixels;
+	int min_x = x - 1.3 * padding_width_pixels, min_y = y - 1.3 * padding_width_pixels;
+	int max_x = x + 1.3 * padding_width_pixels, max_y = y + 1.3 * padding_width_pixels;
 
 	optimise_padding_area(grid, min_x, max_x, min_y, max_y);
 

@@ -92,11 +92,11 @@ class PathPlanner(Node):
         self.start = (self.state.x, self.state.y)
         
         self.length = _map.shape[0]
-        self.widt = _map.shape[1]
+        self.width = _map.shape[1]
 
         self.length_meters = int(_map.shape[0] * self.resolution)
         self.width_meters = int(_map.shape[1] * self.resolution)
-        
+        print(self.length_meters) 
         print("Running A*")
 
         self.route = np.array(a_star(_map, self.get_grid_coord(self.start), self.get_grid_coord(self.goal), self.resolution))
