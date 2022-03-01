@@ -103,7 +103,7 @@ class FlatMapper(Mapper):
         obs_as_points[:, 1] -= int(np.ceil(self.detection_width/(2 * self.resolution_ratio)))
         obstacles = transform.transform_yaw(self.msg, obs_as_points)
         obstacles[:, 2] *= 100
-        obstacles[obstacles[:, 2] < 100, 2] = 5
+        obstacles[obstacles[:, 2] < 30, 2] = 5
         return np.round(obstacles).astype(int)
 
     def get_2d_map(self):

@@ -212,7 +212,7 @@ std::tuple<py::array_t<uint8_t>, int> getObstacles(PointCloud& points, std::size
     std::size_t xs = XS/resolution_ratio, ys = YS/resolution_ratio;
     cv::Mat obstacleMap(cv::Size(ys, xs), CV_8UC1, cv::Scalar(c_neg_inf));
 
-    int min_x = 0;
+    int min_x = xs;
     fit_planes(heightMap, obstacleMap, min_x);
     
     // converting to numpy array

@@ -4,14 +4,10 @@ import numpy as np
 import rclpy
 from rclpy.node import Node
 from nav_msgs.msg import Odometry
-from core.msg import WheelData
-from core.msg import RoverPose, DriveVel
+from core.msg import RoverPose, DriveVel, WheelData 
 import math
 import math_utils.transform as transform
-from config.ros_config import tracking_camera_extrinsics
-from config.ros_config import main_frame
-from config.ros_config import tracking_pose_topic
-from config.ros_config import rover_pose_topic
+from config.ros_config import tracking_camera_extrinsics, main_frame, tracking_pose_topic, rover_pose_topic
 
 # different systems seem to install the pyrealsense wrapper differently
 try:
