@@ -32,15 +32,12 @@ void ArmDriver::arm_input_callback (const core::msg::ArmInput::SharedPtr msg)
 
     // Receiving data for end effector
     joints[6]->drive(msg->end_effector_actuation); //need to create message
-    //std::cout << "EE" << ": " << msg->end_effector_actuation << std::endl;
 
     // Linear actuator
     joints[6]->set_linear_actuator(msg->linear_actuation);
-    //std::cout << "LA" << ": " << msg->linear_actuation << std::endl;
 
     // Lunar construction
     joints[7]->drive(msg->lunar_construction);
-    //std::cout << "LC" << ": " << msg->lunar_construction << std::endl;
 }
 
 

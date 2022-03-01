@@ -23,6 +23,20 @@ void ArmInputs::joystick_l_callback (const core::msg::InputJoystick::SharedPtr m
     joystick_l = *msg;
 
     // Set button-based data here so we don't miss any button-press events
+    
+    // Arm lock
+    if (joystick_l.btn_thumb_l_state == 1) {
+        if (!locked)
+            Print::print("Joysticks Locked");
+        locked = true;
+    }
+    if (joystick_l.btn_thumb_r_state == 1){
+        if (locked)
+            Print::print("Joysticks Unlocked");
+        locked = false;
+    }
+    
+    // Control schemes
     bool control_scheme_update = false;
     if (joystick_l.btn_bottom_r1_state == 1) {
         control_scheme.ik_linear = !control_scheme.ik_linear;
@@ -45,6 +59,7 @@ void ArmInputs::joystick_l_callback (const core::msg::InputJoystick::SharedPtr m
     if (control_scheme_update){
         publish_control_scheme();
     }
+
 }
 
 
@@ -62,18 +77,20 @@ void ArmInputs::publish_arm_inputs ()
     // Create a new message
     auto message = core::msg::ArmInput();
 
-    // First 6 joints are handled separately
-
-    // Set the values for linear actuator and end effector actuation
-    message.linear_actuation = joystick_l.ax_thumb_y;
-    message.end_effector_actuation = calculate_direction(joystick_r.ax_thumb_y) * 0.95;
-
+    if (!locked){
+        // First 6 joints are handled separately
+        
+        // Set the values for linear actuator and end effector actuation
+        message.linear_actuation = joystick_l.ax_thumb_x;
+        message.end_effector_actuation = calculate_direction(joystick_r.ax_thumb_x) * 0.95;
+    }
+    
     // Set the values for lunar construction
     if (joystick_l.btn_thumb_u_state == 2) {
-        message.lunar_construction = 1;
+        message.lunar_construction = 0.95;
     }
     else if (joystick_r.btn_thumb_u_state == 2) {
-        message.lunar_construction = -1;
+        message.lunar_construction = -0.95;
     }
     else {
         message.lunar_construction = 0;
@@ -90,7 +107,7 @@ void ArmInputs::publish_joint_vel ()
     float speed_multiplier = scale_speed(joystick_r.ax_slider);
     
     // If using lower joints joint-space control
-    if (!control_scheme.ik_linear) {
+    if (!locked && !control_scheme.ik_linear) {
         joint_velocities.velocity[0] = speed_multiplier * joystick_l.ax_stick_twist;
         joint_velocities.velocity[1] = speed_multiplier * joystick_l.ax_stick_y;
         joint_velocities.velocity[2] = speed_multiplier * -joystick_l.ax_stick_x;
@@ -102,7 +119,7 @@ void ArmInputs::publish_joint_vel ()
     }
 
     // If using wrist joint-space control
-    if (!control_scheme.ik_angular) {
+    if (!locked && !control_scheme.ik_angular) {
         joint_velocities.velocity[3] = speed_multiplier * -joystick_r.ax_stick_x;
         joint_velocities.velocity[4] = speed_multiplier * joystick_r.ax_stick_y;
         joint_velocities.velocity[5] = speed_multiplier * -joystick_r.ax_stick_twist;
@@ -126,7 +143,7 @@ void ArmInputs::publish_task_vel ()
     float speed_multiplier = scale_speed(joystick_r.ax_slider);
     
     // If using lower joints IK, set the values for linear velocity
-    if (control_scheme.ik_linear) {
+    if (!locked && control_scheme.ik_linear) {
         task_velocities.twist.linear.x = speed_multiplier * joystick_l.ax_stick_x;
         task_velocities.twist.linear.y = speed_multiplier * joystick_l.ax_stick_y;
         task_velocities.twist.linear.z = speed_multiplier * joystick_l.ax_stick_twist;
@@ -137,7 +154,7 @@ void ArmInputs::publish_task_vel ()
         task_velocities.twist.linear.z = 0;
     }
     // If using wrist IK, set the values for angular velocity
-    if (control_scheme.ik_angular) {
+    if (!locked && control_scheme.ik_angular) {
         task_velocities.twist.angular.x = speed_multiplier * -joystick_r.ax_stick_y;
         task_velocities.twist.angular.y = speed_multiplier * joystick_r.ax_stick_x;
         task_velocities.twist.angular.z = speed_multiplier * joystick_r.ax_stick_twist;

@@ -3,7 +3,7 @@
 Monash Nova Rover Team
 
 PACKAGE: 	control
-AUTHOR(S):	Harrison Verrios
+AUTHOR(S):	Harrison Verrios, Liam Whittle
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
@@ -34,11 +34,13 @@ void DriveInputs::publish_cmds () {
 
     // Create the message
     auto message = core::msg::DriveInput();
+    
+    if (!prev_msg_received) return;
 
     // Set up the values if the controller is not locked
     if (!locked && connected) {
         message.speed = input_axis_y * multiplier_speed * trigger_speed;
-        message.steer = input_axis_x * multiplier_steer;
+        message.steer = input_axis_x;
     
     // Otherwise print lock message
     } else if (locked) {
@@ -49,9 +51,17 @@ void DriveInputs::publish_cmds () {
     // Publish the drive commands
     publisher->publish(message);
 
+}
+
+// Stops driving when no input received from radios for a period of time
+void DriveInputs::deadline_exceeded (){
+
     // Clear the old inputs
     input_axis_y = 0.0;
     input_axis_x = 0.0;
+    
+    Print::print("No gamepad input received");
+    prev_msg_received = false;
 }
 
 
@@ -71,6 +81,8 @@ void DriveInputs::input_callback (const core::msg::InputGamepad::SharedPtr msg) 
 
     // If the controller is connected
     else {
+
+        prev_msg_received = true;
 
         // Publish connection message
         if (!connected)
@@ -103,12 +115,6 @@ void DriveInputs::input_callback (const core::msg::InputGamepad::SharedPtr msg) 
                 adjust_multiplier(multiplier_speed, true);
             else if (msg->btn_dpad_d_state == 1)
                 adjust_multiplier(multiplier_speed, false);
-            
-            // Change the steer multipliers
-            if (msg->btn_dpad_r_state == 1)
-                adjust_multiplier(multiplier_steer, true);
-            else if (msg->btn_dpad_l_state == 1)
-                adjust_multiplier(multiplier_steer, false);
         }
     }  
 
@@ -124,12 +130,17 @@ DriveInputs::DriveInputs()
     // Creates the publisher
     publisher = this->create_publisher<core::msg::DriveInput>("/control/drive_inputs", 10);
     
+    //Sets subscriber options before subscription is made
+    subscriber_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void {
+    deadline_exceeded();
+    };
+
     // Creates the input subscription
     subscription = this->create_subscription<core::msg::InputGamepad>(
-        "/control/input_gamepad", 10, std::bind(&DriveInputs::input_callback, this, _1));
+        "/control/input_gamepad", qos, std::bind(&DriveInputs::input_callback, this, _1), subscriber_options);
 
     // Creates a timer function that runs a function on loop every 0.05 seconds
-    timer = this->create_wall_timer(50ms, std::bind(&DriveInputs::publish_cmds, this));
+    timer = this->create_wall_timer(10ms, std::bind(&DriveInputs::publish_cmds, this));
 
     // Output set-up messages
     Print::title("DRIVE INPUTS");
@@ -144,7 +155,6 @@ DriveInputs::DriveInputs()
     Print::print("", true);
     Print::print("    Right Trigger  |  Speed Multiplier", C_INPUT);
     Print::print("           DPAD Y  |  Speed Incr/Decr", C_INPUT);
-    Print::print("           DPAD X  |  Steer Incr/Decr", C_INPUT);
     Print::print("  Left Joy Button  |  Handbrake Enabled", C_INPUT);
     Print::print(" Right Joy Button  |  Handbrake Disabled", C_INPUT);
     Print::print("", true);

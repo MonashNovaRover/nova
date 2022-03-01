@@ -20,9 +20,9 @@ SERVICES: None
 ACTIONS:  None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	control
-AUTHOR(S):  Harrison Verrios
+AUTHOR(S):  Harrison Verrios, Liam Whittle
 CREATION:	14/11/2021
-EDITED:		16/12/2021
+EDITED:		21/02/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
@@ -45,7 +45,6 @@ const float DELTA_MULTIPLIER    = 0.1;  // The change in multiplier
 
 // The initial multipliers
 const float INITIAL_MULT_SPEED = 0.5;
-const float INITIAL_MULT_STEER = 0.5;
 
 // The minimum trigger speed multiplier to apply when the right trigger is held
 const float MIN_TRIGGER_MULTIPLIER = 0.4;
@@ -72,6 +71,10 @@ class DriveInputs : public rclcpp::Node {
     // Stores the loop timer for the update function
     rclcpp::TimerBase::SharedPtr timer;
 
+    //Stores QoS options
+    rclcpp::QoS qos = rclcpp::QoS(1).reliability(RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT).durability(RMW_QOS_POLICY_DURABILITY_VOLATILE).deadline(200ms);
+    rclcpp::SubscriptionOptions subscriber_options;
+
     // Stores the publisher for the drive commands
     rclcpp::Publisher<core::msg::DriveInput>::SharedPtr publisher;
 
@@ -83,6 +86,10 @@ class DriveInputs : public rclcpp::Node {
 
     // A flag for whether the controller is connected
     bool connected = false;
+
+    // A flag which indicates if a zero message has been received in the previous frame
+    bool prev_msg_received = false;
+
 
     // A lock on the controls - can be unlocked
     bool locked = true;
@@ -96,7 +103,6 @@ class DriveInputs : public rclcpp::Node {
 
     // The current speed and steer multipliers
     float multiplier_speed = INITIAL_MULT_SPEED;
-    float multiplier_steer = INITIAL_MULT_STEER;
 
     
     //------------------------------------------------------------//
@@ -118,6 +124,8 @@ class DriveInputs : public rclcpp::Node {
     /// @param      msg - A pointer to the input message
     void input_callback (const core::msg::InputGamepad::SharedPtr msg);
 
+    /// @brief      Callback function when deadline for subscriptions are exceeded
+    void deadline_exceeded();
 
     //------------------------------------------------------------//
     public:
