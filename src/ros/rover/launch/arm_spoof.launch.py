@@ -3,17 +3,16 @@
 Monash Nova Rover Team
 
 Execute this code on the rover to start all
-   arm control scripts.
+   control scripts for simulated operation of the arm.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODES:
   - control/arm/arm_inputs              [arm_inputs]
   - control/arm/arm_control             [arm_control]
   - control/arm/arm_kinematics          [arm_kinematics]
-  - control/arm/arm_driver              [arm_driver]
-  - electronics/electronics             [resolver_publisher.py]
+  - control/arm/resolver_spoofer        [resolver_spoofer]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	core
-CREATION:	17/12/2021
+CREATION:	1/03/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
@@ -29,9 +28,7 @@ def generate_launch_description():
         launch_ros.actions.Node(
             package='control', node_executable='arm_control', output='screen'),
         launch_ros.actions.Node(
-            package='control', node_executable='arm_driver', output='screen'),
-        launch_ros.actions.Node(
             package='control', node_executable='arm_kinematics', output='screen'),
         launch_ros.actions.Node(
-            package='electronics', node_executable='resolver_publisher.py', output='screen'),
+            package='control', node_executable='resolver_spoofer', output='screen'),
     ])
