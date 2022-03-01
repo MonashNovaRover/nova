@@ -137,7 +137,7 @@ colcon build
 
 # Clone the ROS GitHub files
 information "Cloning Repositories..."
-cd ~/nova_ws/
+cd ~/nova_ws/src
 
 # Check if the SSH key exists
 if [ ! -f ~/.ssh/id_ed25519.pub ]; then
