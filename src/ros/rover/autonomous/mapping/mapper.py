@@ -167,9 +167,9 @@ class Mapper(Node):
         # setting colors proportional to the height of points - hopefully looks cool!
         if self.vis:
             max_z = 10
-            colors = np.array([(abs(full_transform_pts[:, 2]) + 1 / max_z) * 250.0 % 250, np.full(len(full_transform_pts), 0), abs(max_z - abs(full_transform_pts[:,2]) - 1) * 250 % 250]).transpose()
+            colors = np.array([(abs(pts[:, 2]) + 1 / max_z) * 250.0 % 250, np.full(len(pts), 0), abs(max_z - abs(pts[:,2]) - 1) * 250 % 250]).transpose()
             
-            self.pc_pub.pub_pts_colors(full_transform_pts, colors.astype(int))
+            self.pc_pub.pub_pts_colors(pts, colors.astype(int))
 
     def get_2d_map(self):
         """
