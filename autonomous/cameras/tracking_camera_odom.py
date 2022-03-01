@@ -120,7 +120,7 @@ class TrackingCamera(Node):
                              + " | yaw: " + str(round(rover_msg.yaw, 4)).ljust(7))
             sys.stdout.flush()
 
-    def toUint8(self, filename ='calibration_odometry.json'):
+    def toUint8(self, filename ='cameras/calibration_odometry.json'):
         # calibration to list of uint8
         f = open(filename)
         chars = []
