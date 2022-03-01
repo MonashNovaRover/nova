@@ -47,16 +47,16 @@ class JoystickThrustmaster : public Joystick {
     protected:
 
     // allows us to compare msgs for equality
-    bool compare_message_data(core::msg::InputJoystick other_msg);
+    bool JoystickThrustmaster::compare_message_data(core::msg::InputJoystick other_msg);
 
     //------------------------------------------------------------//
     protected:
 
     // allows us to compare msgs for equality
-    core::msg::InputJoystick construct_message_data();
+    core::msg::InputJoystick JoystickThrustmaster::construct_message_data(core::msg::InputJoystick other_msg);
 
     //------------------------------------------------------------//
-    public:
+	public:
 
     /// @brief      Constructor called when the object is created
     /// @param      left - Is this the left or the right joystick
