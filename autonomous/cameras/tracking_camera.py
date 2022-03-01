@@ -62,8 +62,8 @@ class TrackingCamera(Node):
         self.wheel_odometer = None
         if tm2:
             pose_sensor = tm2.first_pose_sensor()
-            self.wheel_odometer = pose_sensor.as_wheel_odometer()
-            self.wheel_odometer.load_wheel_odometery_config(self.toUint8()) # load/configure wheel odometer
+            #self.wheel_odometer = pose_sensor.as_wheel_odometer()
+            #self.wheel_odometer.load_wheel_odometery_config(self.toUint8()) # load/configure wheel odometer
 
     def transform_t265_to_nova(self, data):
         """
@@ -124,7 +124,7 @@ class TrackingCamera(Node):
                              + " | yaw: " + str(round(rover_msg.yaw, 4)).ljust(7))
             sys.stdout.flush()
 
-    def toUint8(self, filename ='calibration_odometry.json'):
+    def toUint8(self, filename ='cameras/calibration_odometry.json'):
         # calibration to list of uint8
         f = open(filename)
         chars = []
@@ -142,14 +142,13 @@ class TrackingCamera(Node):
         wo_sensor_id = 0  # indexed from 0, match to order in calibration file
         frame_num = 0  # not used
 
-        self.wheel_odometer.send_wheel_odometry(wo_sensor_id, frame_num, self.wheel_velocity)
+        #self.wheel_odometer.send_wheel_odometry(wo_sensor_id, frame_num, self.wheel_velocity)
 
 def main():
     rclpy.init()
     camera = TrackingCamera()
     for i in range(1000000):
         camera.get_next_pose()
-
 
 if __name__ == "__main__":
     main()

@@ -9,7 +9,7 @@ except:
 from vis.pc_pub import PCPub
 import rclpy
 import sys
-from cameras.ar_tracker import ArTracker
+#from cameras.ar_tracker import ArTracker
 from config.runtime_params import active_depth_camera
 
 class DepthCamera(Thread):
@@ -20,7 +20,7 @@ class DepthCamera(Thread):
         else:
             self.publisher = None
 
-        self.ar_tracker = ArTracker()
+        #self.ar_tracker = ArTracker()
 
         self.running = True
 
@@ -89,7 +89,7 @@ class DepthCamera(Thread):
         color_image = np.asanyarray(color_frame.get_data())
 
         # todo (low priority) put in thread
-        self.ar_tracker(color_image)
+        # TODO MAKE WORK self.ar_tracker(color_image)
 
         # note: find better way of doing asynchronously
 
