@@ -30,11 +30,12 @@ namespace py = pybind11;
    weigh distance to the destination. Higher values run quicker but find
    a less optimal path. */
 const float ROVER_WIDTH_CM = 50.0;
-const float TERRAIN_IMPORTANCE = 100; // How much we value smooth terrain over distance
+const float TERRAIN_IMPORTANCE = 300; // How much we value smooth terrain over distance
 const float SAFETY_FACTOR = 1.6; // Factor by which we multiply rover radius to pad.
 const float WEIGHT = 1.0; // weight of heuristic for A*
 const float OBSTACLE_CUTTING_RANGE_M = 0.2; // distance to which we remove obstacles at src or dest
 const int CRITICAL_PATH_LEN = 7;
+float OBSTACLE_VALUE = 1.0;
 
 // implementation of type-safe enum with bitwise operators taken from:
 // https://wiggling-bits.net/using-enum-classes-as-type-safe-bitmasks/
@@ -65,11 +66,9 @@ Status& operator |=(Status &lhs, Status rhs)
 typedef pair<int, int> Pair;
 // Creating a shortcut for tuple<t> type
 typedef tuple<double, int, int> Tuple;
-// vector of points + Status that we return
-typedef tuple<vector<Pair>, Status> ReturnVal;
 
 // All possible neighbour points on an octile map
-const array<Pair, 8> NEIGHBOURS = {{{0, 1}, {0, -1}, {1, 0}, {-1, 0},
+const array<Pair, 8> BRANCHING = {{{0, 1}, {0, -1}, {1, 0}, {-1, 0},
 									{1, 1}, {1, -1}, {-1, 1}, {-1, -1}}};
 
 // A structure to hold the necessary parameters
@@ -102,7 +101,7 @@ bool isValid(const int cols, const int rows,
 bool isObstacle(const float grid_value)
 {
     // Is this square specifically blocked by a physical obstacle?
-	return grid_value == 1.0;
+	return grid_value == OBSTACLE_VALUE;
 }
 
 template <size_t ROW, size_t COL>
@@ -112,7 +111,7 @@ bool isSafe(const array<array<float, COL>, ROW>& grid,
     /*is this square blocked by an obstacle or too close to one
 	to be safe?*/
 	return (isValid(COL, ROW, point)
-		&& grid[point.first][point.second] < 2.0);
+		&& grid[point.first][point.second] < OBSTACLE_VALUE);
 }
 
 // A Utility Function to check whether destination cell has
@@ -283,7 +282,7 @@ void prune_path(array<array<float, COL>, ROW>& grid, vector<Pair>& path){
 	int x, y;
 	for (size_t i = 0; i < path.size(); i++) {
 		x = path[i].first, y = path[i].second;
-		if (grid[x][y] == 0.99) {
+		if (grid[x][y] >= OBSTACLE_VALUE) {
 			path.resize(i);
 			return;
 		}
@@ -300,9 +299,11 @@ void make_obstacles_passable(array<array<float, COL>, ROW>& grid) {
 	*/
 	for (size_t i = 0; i < COL; i++) {
 		for (size_t j = 0; j < ROW; j++) {
-			grid[i][j] *= 0.9;
+			if (grid[i][j] >= OBSTACLE_VALUE) grid[i][j] *= 90;
 		}
 	}
+
+	OBSTACLE_VALUE *= 100;
 }
 
 template <size_t ROW, size_t COL>
@@ -323,36 +324,45 @@ void clear_obstacles_from_location(array<array<float, COL>, ROW>& grid, const Pa
 	}
 }
 
+vector<Pair> construct_return_val(vector<Pair> path, Status status) {
+	// I hate this but python doesn't know how to interpret it another way.
+	path.push_back(Pair((int) status, -1));
+	return path;
+}
+
 // A Function to find the intest path between a given
 // source cell to a destination cell according to A* Search
 // Algorithm
 
 template <size_t ROW, size_t COL>
-ReturnVal aStarSearch(array<array<float, COL>, ROW>& grid,
+vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 				const Pair& src, const Pair& dest, const float grid_resolution_m)
 {
 	// timer to check performance
 	const float grid_resolution_cm = grid_resolution_m * 100;
 	// assign heuristic values according to distance to nearest obstacle
 	precompute_padding_values(grid, grid_resolution_cm);
+
 	Status status = Status::A_STAR_SUCCESS;
 	int clearance = OBSTACLE_CUTTING_RANGE_M / grid_resolution_m;
 
 	// If the source is out of range
 	if (!isSafe(grid, src)) {
 		status |= Status::A_STAR_START_OBSTACLE;
+		std::cout << "obs at start" << std::endl;
 		clear_obstacles_from_location(grid, src, clearance);
 	}
 
 	// If the destination is out of range
 	if (!isSafe(grid, dest)) {
 		status |= Status::A_STAR_DEST_OBSTACLE;
+		std::cout << "obs at dest" << std::endl;
 		clear_obstacles_from_location(grid, dest, clearance);
 	}
 
 	// If the destination cell is the same as source cell, we have already found it
 	if (isDestination(src, dest)) {
-		return ReturnVal(vector<Pair> {{src}}, status);
+		return construct_return_val(vector<Pair> {{src}}, status);
 	}
 
 	// Create a closed list and initialise it to false which
@@ -390,8 +400,8 @@ ReturnVal aStarSearch(array<array<float, COL>, ROW>& grid,
 	while (!openList.empty()) {
 		const Tuple& p = openList.top();
 		// Add this vertex to the closed list
-		i = get<1>(p); // second element of tupla
-		j = get<2>(p); // third element of tupla
+		i = get<1>(p); // second element of tuple
+		j = get<2>(p); // third element of tuple
 
 		// Remove this vertex from the open list
 		openList.pop();
@@ -416,54 +426,54 @@ ReturnVal aStarSearch(array<array<float, COL>, ROW>& grid,
 				S.E--> South-East (i+1, j+1)
 				S.W--> South-West (i+1, j-1)
 		*/
-		for (int add_x = -1; add_x <= 1; add_x++) {
-			for (int add_y = -1; add_y <= 1; add_y++) {
-				if(add_x == 0 && add_y == 0) continue;
+	    for (Pair branch : BRANCHING) {
+			int diff_x = branch.first, diff_y = branch.second;
 
-				Pair neighbour(i + add_x, j + add_y);
-				// Only process this cell if this is a valid
-				// one
-				if (isSafe(grid, neighbour) && !closedList[neighbour.first][neighbour.second]) {
-					// If the destination cell is the same
-					// as the current successor
-					if (isDestination(neighbour, dest)) { // Set the Parent of the destination cell
-						cellDetails[neighbour.first][neighbour.second].parent = { i, j };
-						vector<Pair> path = tracePath(cellDetails, dest);
-					}
+			Pair neighbour(i + diff_x, j + diff_y);
+			// Only process this cell if this is a valid
+			// one
+			if (isSafe(grid, neighbour) && !closedList[neighbour.first][neighbour.second]) {
+				// If the destination cell is the same
+				// as the current successor
+				if (isDestination(neighbour, dest)) { // Set the Parent of the destination cell
+					cellDetails[neighbour.first][neighbour.second].parent = { i, j };
+					vector<Pair> path = tracePath(cellDetails, dest);
+
+					return construct_return_val(path, status);
+				}
+				
+				float gNew, hNew, fNew;
+				// additional distance to next point
+				float g_diff = (diff_y == 0 || diff_x == 0) ? 1.0 : sqrt(2.0);
+				gNew = cellDetails[i][j].g + g_diff;
+				hNew = grid[neighbour.first][neighbour.second] * TERRAIN_IMPORTANCE + heuristic(neighbour, dest) * WEIGHT;
+				fNew = gNew + hNew;
+
+				// If it isn’t on the open list, add
+				// it to the open list. Make the
+				// current square the parent of this
+				// square. Record the f, g, and h
+				// costs of the square cell
+				//			 OR
+				// If it is on the open list
+				// already, check to see if this
+				// path to that square is better,
+				// using 'f' cost as the measure.
+				if (cellDetails[neighbour.first][neighbour.second].g == -1
+					|| cellDetails[neighbour.first][neighbour.second].g > gNew) {
+					openList.emplace(fNew, neighbour.first, neighbour.second);
+
+					// Update the details of this
+					// cell
+					cellDetails[neighbour.first]
+							[neighbour.second]
+								.g
+						= gNew;
 					
-					float gNew, hNew, fNew;
-					// additional distance to next point
-					float g_diff = (add_y == 0 || add_x == 0) ? 1.0 : sqrt(2.0);
-					gNew = cellDetails[i][j].g + g_diff;
-					hNew = grid[neighbour.first][neighbour.second] * TERRAIN_IMPORTANCE + heuristic(neighbour, dest) * WEIGHT;
-					fNew = gNew + hNew;
-
-					// If it isn’t on the open list, add
-					// it to the open list. Make the
-					// current square the parent of this
-					// square. Record the f, g, and h
-					// costs of the square cell
-					//			 OR
-					// If it is on the open list
-					// already, check to see if this
-					// path to that square is better,
-					// using 'f' cost as the measure.
-					if (cellDetails[neighbour.first][neighbour.second].g == -1
-						|| cellDetails[neighbour.first][neighbour.second].g > gNew) {
-						openList.emplace(fNew, neighbour.first, neighbour.second);
-
-						// Update the details of this
-						// cell
-						cellDetails[neighbour.first]
-								[neighbour.second]
-									.g
-							= gNew;
-						
-						cellDetails[neighbour.first]
-								[neighbour.second]
-									.parent
-							= { i, j };
-					}
+					cellDetails[neighbour.first]
+							[neighbour.second]
+								.parent
+						= { i, j };
 				}
 			}
 		}
@@ -475,15 +485,16 @@ ReturnVal aStarSearch(array<array<float, COL>, ROW>& grid,
 	// there is no way to destination cell (due to
 	// blockages)
 	status |= Status::A_STAR_NO_PATH;
+	std::cout << "couldn't get to dest" << std::endl;
 	make_obstacles_passable(grid);
+	
+	std::cout << "made obstacles passable" << std::endl;
+	vector<Pair> emergency_replan = aStarSearch(grid, src, dest, grid_resolution_m);
+	std::cout << "replanned" << std::endl;
+	emergency_replan.resize(emergency_replan.size() - 1);
+	prune_path(grid, emergency_replan);
 
-	ReturnVal emergency_replan = aStarSearch(grid, src, dest, grid_resolution_m);
-	vector<Pair> path = get<0>(emergency_replan);
-	prune_path(grid, path);
-
-	// we are very close to the obstacle we're planning into - consider re-mapping or some hard reset!
-	if (path.size() <= CRITICAL_PATH_LEN) status |= Status::A_STAR_CRITICAL_NO_PATH;
-	return ReturnVal(path, status);
+	return construct_return_val(emergency_replan, status);
 }
 
 // Driver program to test above function
@@ -503,7 +514,7 @@ int main()
 
 	// Destination is the left-most top-most corner
 	Pair dest(199, 199);
-	ReturnVal emergency_path = aStarSearch(grid, src, dest, 2.5);
+	vector<Pair> emergency_path = aStarSearch(grid, src, dest, 2.5);
 	return 0;
 }
 

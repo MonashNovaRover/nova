@@ -87,8 +87,6 @@ void fit_planes(cv::Mat& heightMap, cv::Mat& incs, int& min_x) {
     const std::size_t plane_x_pixels = 2 * XS/plane_xs;
     const std::size_t plane_y_pixels = 2 * YS/plane_ys;
 
-    std::cout << "XS = " << XS << ", YS = " << YS << std::endl;
-
     int pixels_per_plane = plane_x_pixels * plane_y_pixels;
 
     for (std::size_t plane_i = 0; plane_i < plane_xs - 1; plane_i++) {
@@ -111,7 +109,7 @@ void fit_planes(cv::Mat& heightMap, cv::Mat& incs, int& min_x) {
             int pixels_in_plane = these_pts.size();
 
             if (pixels_in_plane <= FRACTION_OF_PLANE * pixels_per_plane) continue;
-            min_x = (plane_i < min_x) ? plane_i : min_x;
+            min_x = ((int) plane_i < min_x) ? plane_i : min_x;
 
             Vec3 centroid = point_sum / pixels_in_plane;
 
@@ -169,14 +167,6 @@ void fit_planes(cv::Mat& heightMap, cv::Mat& incs, int& min_x) {
             // scaling to size of char so we can send back as much info as possible
             uint8_t scaled_inc = inc * 255 * 2/M_PI;
 
-            /*
-            if (scaled_inc > 150) {
-                for (Vec3 p : these_pts) {
-                    std::cout << "x = " << p.x << ", y = " << p.y << ", z = " << p.z << std::endl;
-                }
-                return;
-            }*/
-
             for (std::size_t x = plane_i; x < plane_i + 2; x++) {
                 for (std::size_t y = plane_j; y < plane_j + 2; y++) {
                     if (incs.at<uint8_t>(x, y) == 0) incs.at<uint8_t>(x, y) = scaled_inc;
@@ -223,7 +213,6 @@ std::tuple<py::array_t<uint8_t>, int> getObstacles(PointCloud& points, std::size
 
     save(heightMap, obstacleMap);
 
-    std::cout << "Plane fitting took " << diff.count() << " microseconds." << std::endl;
 
     return std::tuple<py::array_t<unsigned char>, int> (numpy_obs, min_x);
 }

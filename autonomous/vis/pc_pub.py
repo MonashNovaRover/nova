@@ -54,7 +54,7 @@ def point_field(name, offset, datatype, count):
 
 
 class PCPub(Node):
-    def __init__(self, node_name, scale=1):
+    def __init__(self, node_name, scale=0.4):
         super().__init__(node_name)
         self.publisher = self.create_publisher(PointCloud2, node_name + "/cloud", 10)
         self.scale = scale
