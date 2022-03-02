@@ -68,7 +68,7 @@ typedef pair<int, int> Pair;
 typedef tuple<double, int, int> Tuple;
 
 // All possible neighbour points on an octile map
-const array<Pair, 8> BRANCHING = {{{0, 1}, {0, -1}, {1, 0}, {-1, 0},
+const array<Pair, 8> BRANCHES = {{{0, 1}, {0, -1}, {1, 0}, {-1, 0},
 									{1, 1}, {1, -1}, {-1, 1}, {-1, -1}}};
 
 // A structure to hold the necessary parameters
@@ -151,7 +151,7 @@ float padding_value(float dist_sqrd, float padding_width_sqrd)
 	values of 1.1 are points too close to an obstacle to be safe. This allows us to
 	distinguish between the two kinds of impassable points when padding)
 	*/
-	if (dist_sqrd < padding_width_sqrd) return 1.1;
+	if (dist_sqrd < padding_width_sqrd) return 1.1 * OBSTACLE_VALUE;
     if (dist_sqrd < 2 * padding_width_sqrd) return 0.5;
 	return 0;
 }
@@ -319,7 +319,7 @@ void clear_obstacles_from_location(array<array<float, COL>, ROW>& grid, const Pa
 	int x = point.first, y = point.second;
 	for (int i = max(0, x - cutting_distance); i <= min((int) COL, x + cutting_distance); i++) {
 		for (int j = max(0, y - cutting_distance); j <= min((int) ROW, y + cutting_distance); j++){
-			if (grid[i][j] >= 1) grid[i][j] = 0.99;
+			if (grid[i][j] >= OBSTACLE_VALUE) grid[i][j] = 0.99 * OBSTACLE_VALUE;
 		}
 	}
 }
@@ -426,7 +426,7 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 				S.E--> South-East (i+1, j+1)
 				S.W--> South-West (i+1, j-1)
 		*/
-	    for (Pair branch : BRANCHING) {
+	    for (Pair branch : BRANCHES) {
 			int diff_x = branch.first, diff_y = branch.second;
 
 			Pair neighbour(i + diff_x, j + diff_y);
