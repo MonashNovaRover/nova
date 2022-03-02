@@ -99,7 +99,7 @@ void ArmKinematics::task_velocity_callback(const geometry_msgs::msg::TwistStampe
 }
 
 // Calculate the FK for a given segment
-KDL::Frame ArmKinematics::calculate_fk(KDL::JntArray kdl_joints, std::string segment_name)
+inline KDL::Frame ArmKinematics::calculate_fk(KDL::JntArray kdl_joints, std::string segment_name)
 {
     // Prepare the output data structure
     KDL::Frame kdl_coord_frame;
@@ -121,7 +121,7 @@ KDL::Frame ArmKinematics::calculate_fk(KDL::JntArray kdl_joints, std::string seg
 }
 
 // Calculate the FK for a given segment
-KDL::Frame ArmKinematics::calculate_fk(std::string segment_name)
+inline KDL::Frame ArmKinematics::calculate_fk(std::string segment_name)
 {
     // Get the input positions in the form KDL likes
     KDL::JntArray kdl_joints;
@@ -130,8 +130,8 @@ KDL::Frame ArmKinematics::calculate_fk(std::string segment_name)
     return calculate_fk(kdl_joints, segment_name);
 }
 
-// Update the arm model using the latest resolver info, publish to arm_cord_frames
-void ArmKinematics::publish_coord_frames()
+// Get the task-space positions of all coordinate frames on the arm using forward kinematics
+inline void ArmKinematics::update_coord_frames()
 {
     // Get the input positions in the form KDL likes
     KDL::JntArray kdl_joints;
@@ -156,6 +156,13 @@ void ArmKinematics::publish_coord_frames()
         // Store the transform for this joint
         coord_frames.transforms[i] = transform;
     }
+}
+
+// Update the arm model using the latest resolver info, publish to arm_cord_frames
+void ArmKinematics::publish_coord_frames()
+{
+    // Calculate the forward kineamtics
+    update_coord_frames();
 
     // Update the header
     coord_frames.header.stamp = this->now();
@@ -163,19 +170,10 @@ void ArmKinematics::publish_coord_frames()
     coord_frames_pub->publish(coord_frames);
 }
 
-// Calculate the inverse kinematics using the latest arm model, publish to joint_velocities
-void ArmKinematics::publish_joint_velocities()
+// Get the twist from the joysticks
+inline KDL::Twists ArmKinematics::get_control_twist()
 {
-    // Clear the velocity data. Ensures if IK fails no velocity is sent to motors
-    std::fill(joints.velocity.begin(), joints.velocity.end(), 0);
-    
-    // Get the input in the form KDL likes
-
-    // Joint positions
-    KDL::JntArray kdl_joint_positionss;
-    kdl_joint_positionss.data = Eigen::Matrix<double, 6, 1> (joints.position.data());
-    
-    // Twist
+    // Unpack the ROS2 task velocity into KDL::Vectors
     const geometry_msgs::msg::Vector3& vec3_linear = task_velocity.twist.linear;
     const geometry_msgs::msg::Vector3& vec3_angular = task_velocity.twist.angular;
     KDL::Vector twist_linear (vec3_linear.x, vec3_linear.y, vec3_linear.z);
@@ -209,8 +207,22 @@ void ArmKinematics::publish_joint_velocities()
         }
     }
 
-    // Compose into final twist
-    KDL::Twists kdl_twists { {arm_model.default_endpoint_name, KDL::Twist (twist_linear, twist_angular)} };
+    // Compose into final twists
+    return KDL::Twists { {arm_model.default_endpoint_name, KDL::Twist (twist_linear, twist_angular)} };
+}
+
+// Get the joint-space velocities of all joints on the arm for the given task velocity using inverse kinematics
+inline void ArmKinematics::update_joint_velocities()
+{
+    // Clear the velocity data. Ensures if IK fails no velocity is sent to motors
+    std::fill(joints.velocity.begin(), joints.velocity.end(), 0);
+    
+    // Get the input in the form KDL likes
+    // Joint positions
+    KDL::JntArray kdl_joint_positionss;
+    kdl_joint_positionss.data = Eigen::Matrix<double, 6, 1> (joints.position.data());
+    // Twist
+    KDL::Twists kdl_twists = get_control_twist();
     
     // Prepare the output data structure
     KDL::JntArray kdl_joint_velocities;
@@ -232,6 +244,13 @@ void ArmKinematics::publish_joint_velocities()
         Eigen::Matrix<double, 6, 1> vec6 = kdl_joint_velocities.data;
         joints.velocity = std::vector<double> ( vec6.data(), vec6.data() + vec6.size() );
     }
+}
+
+// Calculate the inverse kinematics using the latest arm model, publish to joint_velocities
+void ArmKinematics::publish_joint_velocities()
+{
+    // Calculate the inverse kinematics from the current joint positions and task velocity
+    update_joint_velocities();
 
     // Update the header
     joints.header.stamp = this->now();
