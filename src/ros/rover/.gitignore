@@ -50,6 +50,7 @@ tests*
 /planning/cfg
 /planning/docs
 /planning/src
+/pybind11/
 
 *~
 
