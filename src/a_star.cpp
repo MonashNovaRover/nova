@@ -33,6 +33,8 @@ const float ROVER_WIDTH_CM = 50.0;
 const float TERRAIN_IMPORTANCE = 100; // How much we value smooth terrain over distance
 const float SAFETY_FACTOR = 1.6; // Factor by which we multiply rover radius to pad.
 const float WEIGHT = 1.0; // weight of heuristic for A*
+const float OBSTACLE_CUTTING_RANGE_M = 0.2; // distance to which we remove obstacles at src or dest
+const int CRITICAL_PATH_LEN = 7;
 
 // Creating a shortcut for int, int pair type
 typedef pair<int, int> Pair;
@@ -42,6 +44,22 @@ typedef tuple<double, int, int> Tuple;
 // All possible neighbour points on an octile map
 const array<Pair, 8> NEIGHBOURS = {{{0, 1}, {0, -1}, {1, 0}, {-1, 0},
 									{1, 1}, {1, -1}, {-1, 1}, {-1, -1}}};
+
+enum status {
+	/*
+	Enum returned to python detailing the outcome of A* in finding a path.
+	All values are powers of 2 so that each outcome is represented by the state
+	of a single bit in the returned value.
+	*/
+	A_STAR_SUCCESS = 0,
+	A_STAR_START_OBSTACLE = 1,
+	A_STAR_DEST_OBSTACLE = 2,
+	A_STAR_NO_PATH = 4,
+	A_STAR_CRITICAL_NO_PATH = 8
+};
+
+// vector of points + status that we return
+typedef tuple<vector<Pair>, status> ReturnVal;
 
 // A structure to hold the necessary parameters
 struct cell {
@@ -251,12 +269,61 @@ vector<Pair> tracePath(array<array<cell, COL>, ROW>& cellDetails, const Pair& de
 	return path;
 }
 
+template <size_t ROW, size_t COL>
+void prune_path(array<array<float, COL>, ROW>& grid, vector<Pair>& path){
+	/*
+	Goes through a path in order, checking the values of the waypoints on the grid.
+	Returns the list of all values before the first point with a value of 0.99;
+	*/
+	int x, y;
+	for (int i = 0; i < path.size(); i++) {
+		x = path[i].first, y = path[i].second;
+		if (grid[x][y] == 0.99) {
+			path.resize(i);
+			return;
+		}
+	}
+}
+
+template <size_t ROW, size_t COL>
+void make_obstacles_passable(array<array<float, COL>, ROW>& grid) {
+	/* 
+	Multiplies the whole map by 0.9. This means obstacles that previously had values of 1.1
+	now have values of 0.99, so they are passable but very expensive. The path planner will
+	hopefully find whichever path takes the fewest of these high-cost points possible.
+	:param grid: reference to the grid which we want to scale down
+	*/
+	for (size_t i = 0; i < COL; i++) {
+		for (size_t j = 0; j < ROW; j++) {
+			grid[i][j] *= 0.9;
+		}
+	}
+}
+
+template <size_t ROW, size_t COL>
+void clear_obstacles_from_location(array<array<float, COL>, ROW>& grid, const Pair& point, const int cutting_distance) {
+	/*
+	Checks area around a point, and sets any obstacle values in that area to 0.99 rather than 1.
+	Prevents hard failure if the rover thinks its current pose or its destination is inside an obstacle.
+	:param grid: reference to the grid being used for A*, to remove obstacles from
+	:param point: point around which to remove obstacles
+	:param cutting_distance: (octile) pixel distance around which to clear obstacles
+	*/
+
+	int x = point.first, y = point.second;
+	for (int i = max(0, x - cutting_distance); i <= min((int) COL, x + cutting_distance); i++) {
+		for (int j = max(0, y - cutting_distance); j <= min((int) ROW, y + cutting_distance); j++){
+			if (grid[i][j] >= 1) grid[i][j] = 0.99;
+		}
+	}
+}
+
 // A Function to find the intest path between a given
 // source cell to a destination cell according to A* Search
 // Algorithm
 
 template <size_t ROW, size_t COL>
-vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
+ReturnVal aStarSearch(array<array<float, COL>, ROW>& grid,
 				const Pair& src, const Pair& dest, const float grid_resolution_m)
 {
 	// timer to check performance
@@ -264,23 +331,24 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 	const float grid_resolution_cm = grid_resolution_m * 100;
 	// assign heuristic values according to distance to nearest obstacle
 	precompute_padding_values(grid, grid_resolution_cm);
+	status status = A_STAR_SUCCESS;
+	int clearance = OBSTACLE_CUTTING_RANGE_M / grid_resolution_m;
 
 	// If the source is out of range
 	if (!isSafe(grid, src)) {
-		printf("Invalid or unsafe starting point\n");
-		return vector<Pair> {{src}};
+		status |= A_STAR_START_OBSTACLE;
+		clear_obstacles_from_location(grid, src, clearance);
 	}
 
 	// If the destination is out of range
 	if (!isSafe(grid, dest)) {
-		printf("Invalid or unsafe destination point\n");
-		return vector<Pair> {{src}};
+		status |= A_STAR_DEST_OBSTACLE;
+		clear_obstacles_from_location(grid, dest, clearance);
 	}
 
-	// If the destination cell is the same as source cell
+	// If the destination cell is the same as source cell, we have already found it
 	if (isDestination(src, dest)) {
-		printf("We are already at the destination\n");
-		return vector<Pair> {{src}};
+		return ReturnVal(vector<Pair> {{src}}, status);
 	}
 
 	// Create a closed list and initialise it to false which
@@ -356,16 +424,7 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 					// as the current successor
 					if (isDestination(neighbour, dest)) { // Set the Parent of the destination cell
 						cellDetails[neighbour.first][neighbour.second].parent = { i, j };
-						std::cout << "The destination cell is found" << std::endl;
-
-						auto stop = chrono::high_resolution_clock::now();
-						auto duration = chrono::duration_cast<std::chrono::microseconds>(stop - start);
-					
-						// To get the value of duration use the count()
-						// member function on the duration object
-						std::cout << "took " << duration.count() << " microseconds" << std::endl << std::endl;
-						
-						return tracePath(cellDetails, dest);
+						vector<Pair> path = tracePath(cellDetails, dest);
 					}
 					
 					float gNew, hNew, fNew;
@@ -411,10 +470,16 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 	// reach the destiantion cell. This may happen when the
 	// there is no way to destination cell (due to
 	// blockages)
+	status |= A_STAR_NO_PATH;
+	make_obstacles_passable(grid);
 
-	printf("Failed to find the Destination Cell\n");
+	ReturnVal emergency_replan = aStarSearch(grid, src, dest, grid_resolution_m);
+	vector<Pair> path = emergency_replan.first;
+	prune_path(grid, path);
 
-	return vector<Pair> {{src}};
+	// we are very close to the obstacle we're planning into - consider re-mapping or some hard reset!
+	if (path.size() <= CRITICAL_PATH_LEN) status |= A_STAR_CRITICAL_NO_PATH;
+	return ReturnVal(path, status);
 }
 
 // Driver program to test above function
@@ -434,7 +499,7 @@ int main()
 
 	// Destination is the left-most top-most corner
 	Pair dest(199, 199);
-	vector<Pair> path = aStarSearch(grid, src, dest, 2.5);
+	ReturnVal emergency_path = aStarSearch(grid, src, dest, 2.5);
 	return 0;
 }
 
