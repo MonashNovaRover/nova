@@ -36,16 +36,9 @@ const float WEIGHT = 1.0; // weight of heuristic for A*
 const float OBSTACLE_CUTTING_RANGE_M = 0.2; // distance to which we remove obstacles at src or dest
 const int CRITICAL_PATH_LEN = 7;
 
-// Creating a shortcut for int, int pair type
-typedef pair<int, int> Pair;
-// Creating a shortcut for tuple<t> type
-typedef tuple<double, int, int> Tuple;
-
-// All possible neighbour points on an octile map
-const array<Pair, 8> NEIGHBOURS = {{{0, 1}, {0, -1}, {1, 0}, {-1, 0},
-									{1, 1}, {1, -1}, {-1, 1}, {-1, -1}}};
-
-enum status {
+// implementation of type-safe enum with bitwise operators taken from:
+// https://wiggling-bits.net/using-enum-classes-as-type-safe-bitmasks/
+enum class Status : unsigned {
 	/*
 	Enum returned to python detailing the outcome of A* in finding a path.
 	All values are powers of 2 so that each outcome is represented by the state
@@ -58,8 +51,26 @@ enum status {
 	A_STAR_CRITICAL_NO_PATH = 8
 };
 
-// vector of points + status that we return
-typedef tuple<vector<Pair>, status> ReturnVal;
+Status& operator |=(Status &lhs, Status rhs)
+{
+    lhs = static_cast<Status> (
+        static_cast<std::underlying_type<Status>::type>(lhs) |
+        static_cast<std::underlying_type<Status>::type>(rhs)           
+    );
+
+    return lhs;
+}
+
+// Creating a shortcut for int, int pair type
+typedef pair<int, int> Pair;
+// Creating a shortcut for tuple<t> type
+typedef tuple<double, int, int> Tuple;
+// vector of points + Status that we return
+typedef tuple<vector<Pair>, Status> ReturnVal;
+
+// All possible neighbour points on an octile map
+const array<Pair, 8> NEIGHBOURS = {{{0, 1}, {0, -1}, {1, 0}, {-1, 0},
+									{1, 1}, {1, -1}, {-1, 1}, {-1, -1}}};
 
 // A structure to hold the necessary parameters
 struct cell {
@@ -225,7 +236,6 @@ void precompute_padding_values(array<array<float, COL>, ROW>& grid,
 	 coming too close */
 	double padding_width_pixels = SAFETY_FACTOR * ROVER_WIDTH_CM / grid_resolution_cm;
 
-	auto start = chrono::high_resolution_clock::now();
 	for (uint i = 0; i < ROW; i++) {
 		for (uint j = 0; j < COL; j++) {
 			if (isObstacle(grid[i][j])) {
@@ -235,11 +245,6 @@ void precompute_padding_values(array<array<float, COL>, ROW>& grid,
 			}
 		}
 	}
-
-	auto end = chrono::high_resolution_clock::now();
-	auto duration = chrono::duration_cast<std::chrono::microseconds>(end - start);
-	
-	cout << "\npadding took " << duration.count() << " microseconds" << endl;
 }
 
 // A Utility Function to trace the path from the source to
@@ -276,7 +281,7 @@ void prune_path(array<array<float, COL>, ROW>& grid, vector<Pair>& path){
 	Returns the list of all values before the first point with a value of 0.99;
 	*/
 	int x, y;
-	for (int i = 0; i < path.size(); i++) {
+	for (size_t i = 0; i < path.size(); i++) {
 		x = path[i].first, y = path[i].second;
 		if (grid[x][y] == 0.99) {
 			path.resize(i);
@@ -327,22 +332,21 @@ ReturnVal aStarSearch(array<array<float, COL>, ROW>& grid,
 				const Pair& src, const Pair& dest, const float grid_resolution_m)
 {
 	// timer to check performance
-	auto start = chrono::high_resolution_clock::now();
 	const float grid_resolution_cm = grid_resolution_m * 100;
 	// assign heuristic values according to distance to nearest obstacle
 	precompute_padding_values(grid, grid_resolution_cm);
-	status status = A_STAR_SUCCESS;
+	Status status = Status::A_STAR_SUCCESS;
 	int clearance = OBSTACLE_CUTTING_RANGE_M / grid_resolution_m;
 
 	// If the source is out of range
 	if (!isSafe(grid, src)) {
-		status |= A_STAR_START_OBSTACLE;
+		status |= Status::A_STAR_START_OBSTACLE;
 		clear_obstacles_from_location(grid, src, clearance);
 	}
 
 	// If the destination is out of range
 	if (!isSafe(grid, dest)) {
-		status |= A_STAR_DEST_OBSTACLE;
+		status |= Status::A_STAR_DEST_OBSTACLE;
 		clear_obstacles_from_location(grid, dest, clearance);
 	}
 
@@ -470,15 +474,15 @@ ReturnVal aStarSearch(array<array<float, COL>, ROW>& grid,
 	// reach the destiantion cell. This may happen when the
 	// there is no way to destination cell (due to
 	// blockages)
-	status |= A_STAR_NO_PATH;
+	status |= Status::A_STAR_NO_PATH;
 	make_obstacles_passable(grid);
 
 	ReturnVal emergency_replan = aStarSearch(grid, src, dest, grid_resolution_m);
-	vector<Pair> path = emergency_replan.first;
+	vector<Pair> path = get<0>(emergency_replan);
 	prune_path(grid, path);
 
 	// we are very close to the obstacle we're planning into - consider re-mapping or some hard reset!
-	if (path.size() <= CRITICAL_PATH_LEN) status |= A_STAR_CRITICAL_NO_PATH;
+	if (path.size() <= CRITICAL_PATH_LEN) status |= Status::A_STAR_CRITICAL_NO_PATH;
 	return ReturnVal(path, status);
 }
 
