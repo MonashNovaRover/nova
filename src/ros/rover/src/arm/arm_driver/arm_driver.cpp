@@ -10,16 +10,14 @@ AUTHOR(S):	Jess Hepworth
 // Include the header file
 #include "arm_driver.h"
 
-#include "arm_core.h"
 #include "print/print.h"
 
 
 // Receives the desired commands for the CMDs and sends to CMDs
-void ArmDriver::cmd_outputs_callback (const sensor_msgs::msg::JointState::SharedPtr msg)
+void ArmDriver::joint_velocities_callback (const sensor_msgs::msg::JointState::SharedPtr msg)
 {
     for (unsigned int i = 0; i < msg->name.size(); i++) {
         joints[i]->drive(msg->velocity[i]); 
-        //std::cout << msg->name[i] << ": " << msg->velocity[i] << std::endl;
     }
 }
 
@@ -28,7 +26,7 @@ void ArmDriver::cmd_outputs_callback (const sensor_msgs::msg::JointState::Shared
 // Receives the desired commands for the CMDs and sends to CMDs
 void ArmDriver::arm_input_callback (const core::msg::ArmInput::SharedPtr msg)
 {
-    // First 6 joints are handled by cmd_outputs_callback
+    // First 6 joints are handled by joint_velocities_callback
 
     // Receiving data for end effector
     joints[6]->drive(msg->end_effector_actuation); //need to create message
@@ -57,8 +55,8 @@ ArmDriver::ArmDriver() : Node("arm_driver")
     }
 
     // Creates the input subscription for the desired CMD commands (first 6 joints)
-    cmd_outputs_subscription = this->create_subscription<sensor_msgs::msg::JointState>(
-        "/control/cmd_outputs", 10, std::bind(&ArmDriver::cmd_outputs_callback, this, _1));    
+    joint_velocities_subscription = this->create_subscription<sensor_msgs::msg::JointState>(
+        "/control/joint_velocities", 10, std::bind(&ArmDriver::joint_velocities_callback, this, _1));
     
     // Creates the input subscription for the desired CMD commands (LC, EE, LA)
     arm_input_subscription = this->create_subscription<core::msg::ArmInput>(
@@ -69,7 +67,7 @@ ArmDriver::ArmDriver() : Node("arm_driver")
     Print::title("ARM DRIVER");
     Print::print("Subscribed Topics:");
     Print::print("/control/arm_input          [core/ArmInput]", 1);
-    Print::print("/control/cmd_outputs        [sensor_msgs/JointState]", 1);
+    Print::print("/control/joint_velocities   [sensor_msgs/JointState]", 1);
     Print::print("Published Topics:");
     Print::print("", true);
 }

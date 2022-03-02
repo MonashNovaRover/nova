@@ -14,18 +14,19 @@ It reads the current task velocity and IK parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: arm_kinematics
 TOPICS:
-  - /control/arm_control_scheme   [core/ArmControlScheme]           [Subscribed]
-  - /electronics/resolvers        [sensor_msgs/JointState]          [Subscribed]
-  - /control/task_velocity        [geometry_msgs/TwistStamped]      [Subscribed]
-  - /control/arm_coord_frames     [sensor_msgs/MultiDOFJointState]  [Published]
-  - /control/joint_velocities     [sensor_msgs/JointState]          [Published]
+  - /control/arm_control_scheme        [core/ArmControlScheme]           [Subscribed]
+  - /electronics/resolvers             [sensor_msgs/JointState]          [Subscribed]
+  - /control/task_velocity             [geometry_msgs/TwistStamped]      [Subscribed]
+  - /control/input_joint_velocities    [sensor_msgs/JointState]          [Subscribed]
+  - /control/arm_coord_frames          [sensor_msgs/MultiDOFJointState]  [Published]
+  - /control/joint_velocities          [sensor_msgs/JointState]          [Published]
 SERVICES: None
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	 control
 AUTHOR(S): Jory Braun
 CREATION:	 11/12/2021
-EDITED:		 24/02/2022
+EDITED:		 03/03/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
  - 
@@ -68,8 +69,10 @@ class ArmKinematics : public rclcpp::Node
     // Track internal state
     // Arm control scheme
     core::msg::ArmControlScheme control_scheme;
-    // Resolvers and joint velocities
+    // Resolvers and output joint velocities
     sensor_msgs::msg::JointState joints;
+    // Joint velocities from joints-space input
+    sensor_msgs::msg::JointState joint_space_joints;
     // Task velocity
     geometry_msgs::msg::TwistStamped task_velocity;
     
@@ -89,6 +92,8 @@ class ArmKinematics : public rclcpp::Node
     rclcpp::Subscription<core::msg::ArmControlScheme>::SharedPtr control_scheme_sub;
     // Subscription to resolvers
     rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr resolver_sub;
+    // Subscription to input joint velocities
+    rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr input_joint_velocities_sub;
     // Subscription to task velocity
     rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr task_velocity_sub;
     // Publisher to /control/arm_coord_frames
@@ -106,10 +111,14 @@ class ArmKinematics : public rclcpp::Node
     ///         Updates the internal joint state, which is later used to update the model
     void resolver_callback(const sensor_msgs::msg::JointState::SharedPtr msg);
 
+    /// @brief  Callback for input joint velocities subscription
+    ///         Updates the internal joint-space joint velocities
+    void input_joint_velocities_callback(const sensor_msgs::msg::JointState::SharedPtr msg);
+    
     /// @brief  Callback for task velocity subscription
-    ///         Updates the internal velocity, which is later used to calculate the inverse kinematics
+    ///         Updates the internal task velocity, which is later used to calculate the inverse kinematics
     void task_velocity_callback(const geometry_msgs::msg::TwistStamped::SharedPtr msg);
-
+    
     /// @brief  Calculate FK for a single segment
     ///         Overloaded to allow a calling function to precompute the KDL::JntArray
     KDL::Frame calculate_fk(KDL::JntArray kdl_joints, std::string segment_name);
@@ -126,13 +135,14 @@ class ArmKinematics : public rclcpp::Node
 
     /// @brief  Get the base-frame twist given the current input twist and the selected control scheme
     KDL::Twists get_control_twist();
-    
+
     /// @brief  Get the joint-space velocities of all joints on the arm using inverse kinematics
     ///         Uses the current joint positions and desired task velocity
     void update_joint_velocities();
-    
+
     /// @brief  Callback for joint_velocities publihser timer
     ///         Calculates the inverse kinematics using the latest arm model, publishes to joint_velocities
+    ///         Adds joint velocities from IK and from joint-space inputs
     void publish_joint_velocities();
     
     //------------------------------------------------------------//

@@ -20,7 +20,7 @@ ACTIONS:  None
 PACKAGE: 	control
 AUTHOR(S):  Jess Hepworth, Jory Braun
 CREATION:	03/12/2021
-EDITED:		24/02/2022
+EDITED:		03/03/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
  - create cmd_outputs message
@@ -54,10 +54,10 @@ class ArmDriver : public rclcpp::Node {
     // Stores the loop timer for the update function
     rclcpp::TimerBase::SharedPtr timer;
 
-    // Stores the subscriber to the desired joint commands
-    rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr cmd_outputs_subscription;
+    // Stores the subscriber to the desired joint velocities
+    rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr joint_velocities_subscription;
 
-    // Stores the subscriber to the desired joint commands (bypassing control script for now)
+    // Stores the subscriber to the desired actuator commands (bypassing control script for now)
     rclcpp::Subscription<core::msg::ArmInput>::SharedPtr arm_input_subscription;
 
     // A vector of pointers to joint instances
@@ -74,10 +74,10 @@ class ArmDriver : public rclcpp::Node {
 
     /// @brief      Callback function when input messages are received.
     /// @param      msg - A pointer to the input message
-    void cmd_outputs_callback (const sensor_msgs::msg::JointState::SharedPtr msg);
+    void joint_velocities_callback (const sensor_msgs::msg::JointState::SharedPtr msg);
 
-    // /// @brief      Callback function when input messages are received.
-    // /// @param      msg - A pointer to the input message
+    /// @brief      Callback function when input messages are received.
+    /// @param      msg - A pointer to the input message
     void arm_input_callback (const core::msg::ArmInput::SharedPtr msg);
 
     //------------------------------------------------------------//
