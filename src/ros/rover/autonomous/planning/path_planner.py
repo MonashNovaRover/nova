@@ -25,6 +25,14 @@ Services:
 
 
 class PathPlanner(Node):
+
+    # Status enum for A* return values
+    A_STAR_SUCCESS = 0
+    A_STAR_START_OBSTACLE = 1
+    A_STAR_DEST_OBSTACLE = 2
+    A_STAR_NO_PATH = 4
+    A_STAR_CRITICAL_NO_PATH = 8
+        
     def __init__(self, dest, resolution_m):
         super().__init__("path_planner_node")
         
@@ -96,15 +104,21 @@ class PathPlanner(Node):
 
         self.length_meters = int(_map.shape[0] * self.resolution)
         self.width_meters = int(_map.shape[1] * self.resolution)
-        print(self.length_meters) 
-        print("Running A*")
 
+        print("\n\n\n\n\n")
+        
         self.route = np.array(a_star(_map, self.get_grid_coord(self.start), self.get_grid_coord(self.goal), self.resolution))
-        print("A* returned")
+        status = self.route[-1, 0]
+        self.route = self.route[:-1]
+        if status & PathPlanner.A_STAR_START_OBSTACLE: print("started in obstacle")
+        if status & PathPlanner.A_STAR_DEST_OBSTACLE: print("dest in obstacle")
+        if status & PathPlanner.A_STAR_NO_PATH: print("couldn't find a path initially")
+        if status & PathPlanner.A_STAR_CRITICAL_NO_PATH: print("critical path prob")
+        if status == PathPlanner.A_STAR_SUCCESS: print("found safe path")
         route_coordinates = self.get_local_coords_route(self.route)
         waypoints = Waypoints()
 
-        for wpt in (route_coordinates[3::5] if len(route_coordinates) > 5 else [route_coordinates[-1]]):
+        for wpt in route_coordinates:
             # publishing waypoints in order 
             waypoint = Waypoint()
             waypoint.x = wpt[0]
@@ -113,6 +127,5 @@ class PathPlanner(Node):
             if (not math.isnan(waypoint.x)) and (not math.isnan(waypoint.y)):
                 waypoints.waypoints.append(waypoint)
 
-        print("publishing waypoints: " + str(waypoints))
         self.waypt_publisher.publish(waypoints)
 
