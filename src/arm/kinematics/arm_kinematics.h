@@ -117,10 +117,20 @@ class ArmKinematics : public rclcpp::Node
     /// @brief  Calculate FK for a single segment
     KDL::Frame calculate_fk(std::string segment_name);
     
+    /// @brief  Get the task-space positions of all coordinate frames on the arm using forward kinematics
+    void update_coord_frames();
+    
     /// @brief  Callback for arm_coord_frames publisher timer
     ///         Updates the arm model using the latest resolver info, publishes to arm_cord_frames
     void publish_coord_frames();
 
+    /// @brief  Get the base-frame twist given the current input twist and the selected control scheme
+    KDL::Twists get_control_twist();
+    
+    /// @brief  Get the joint-space velocities of all joints on the arm using inverse kinematics
+    ///         Uses the current joint positions and desired task velocity
+    void update_joint_velocities();
+    
     /// @brief  Callback for joint_velocities publihser timer
     ///         Calculates the inverse kinematics using the latest arm model, publishes to joint_velocities
     void publish_joint_velocities();
