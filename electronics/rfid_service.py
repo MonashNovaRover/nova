@@ -19,9 +19,11 @@ class RFIDService(Node):
         cmd = request.command.lower()
 
         if cmd == 'read':
+            write_msg(cmd)
             response.response = self.read_data()
         elif cmd == 'write':
-            write_data(bytearray(request.data, encoding='ascii'))
+            write_msg(cmd)
+            write_msg(request.data)
             response.response = self.read_data()
         else:
             # catch invalid commands
@@ -32,7 +34,7 @@ class RFIDService(Node):
         
         self.get_logger().debug('Response received from arduino: {response.response}')
         return response
-
+    
     def read_data(self) -> str:
         '''
         Data is null terminated so simply read until null string sent
@@ -45,10 +47,11 @@ class RFIDService(Node):
         # return as string
         return data.decode('ascii')
 
-    def write_data(self, data: bytearray):
+    def write_msg(self, msg: str):
         '''
         Write ascii encoded bytearray data to controlling arduino.
         '''
+        data = bytearray(msg, encoding='ascii')
         data.append(self.EOM_byte) # indicate end of message
         if (n := self.ser.write(data)) != len(data):
             self.get_logger().error(f'Only wrote {n} of {len(data)} bytes expected')
