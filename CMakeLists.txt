@@ -57,6 +57,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/GimbalCommand.srv"
   "srv/PIDTune.srv"
   "srv/ScienceCommand.srv"
+  "srv/RFIDCommand.srv"
 
   # Action definitions
   DEPENDENCIES std_msgs geometry_msgs
