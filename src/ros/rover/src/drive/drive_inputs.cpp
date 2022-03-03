@@ -136,8 +136,10 @@ DriveInputs::DriveInputs()
     };
 
     // Creates the input subscription
+    /*subscription = this->create_subscription<core::msg::InputGamepad>(
+        "/control/input_gamepad", qos, std::bind(&DriveInputs::input_callback, this, _1), subscriber_options);*/
     subscription = this->create_subscription<core::msg::InputGamepad>(
-        "/control/input_gamepad", qos, std::bind(&DriveInputs::input_callback, this, _1), subscriber_options);
+        "/control/input_gamepad", 1, std::bind(&DriveInputs::input_callback, this, _1));
 
     // Creates a timer function that runs a function on loop every 0.05 seconds
     timer = this->create_wall_timer(10ms, std::bind(&DriveInputs::publish_cmds, this));
