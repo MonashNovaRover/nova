@@ -12,14 +12,15 @@ Whether to use PID or PWM is decided based on presence
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: arm_driver
 TOPICS:
-  - /control/arm_input      [ArmInput]  [Subscribed]
+  - /control/arm_input      [ArmInput]                  [Subscribed]
+  - /control/cmd_ouputs     [sensor_msgs/JointState]    [Subscribed]
 SERVICES: None
 ACTIONS:  None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	control
-AUTHOR(S):  Jess Hepworth
+AUTHOR(S):  Jess Hepworth, Jory Braun
 CREATION:	03/12/2021
-EDITED:		18/01/2022
+EDITED:		24/02/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
  - create cmd_outputs message
@@ -29,13 +30,11 @@ TODO:
 
 // Include ROS packages
 #include "rclcpp/rclcpp.hpp"
-// #include "core/msg/cmd_outputs.hpp"
+
 #include "core/msg/arm_input.hpp"
+#include "sensor_msgs/msg/joint_state.hpp"
 
 #include "joint.h"
-
-// Get shared arm info
-#include "arm_core.h"
 
 // Use the standard namespaces
 using namespace std::chrono_literals;
@@ -55,36 +54,30 @@ class ArmDriver : public rclcpp::Node {
     // Stores the loop timer for the update function
     rclcpp::TimerBase::SharedPtr timer;
 
-    // Stores a counter for each step
-    size_t count;
-
     // Stores the subscriber to the desired joint commands
-    // rclcpp::Subscription<core::msg::cmd_outputs>::SharedPtr cmd_outputs_subscription;
-
-    // Stores the subscriber to the arm parameters
-    // rclcpp::Subscription<core::msg::arm_params>::SharedPtr arm_params_subscription;
+    rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr cmd_outputs_subscription;
 
     // Stores the subscriber to the desired joint commands (bypassing control script for now)
     rclcpp::Subscription<core::msg::ArmInput>::SharedPtr arm_input_subscription;
 
-    // An array of joint instances
-    Joint* joints[NUM_JOINTS + 2];
+    // A vector of pointers to joint instances
+    std::vector<Joint*> joints;
 
-    // An array of cmd drive modes (mode for each joint, PWM=0, PID=1)
-    // Seventh 'joint' is end effector actuation
-    CMDCommand CMD_drive_mode[NUM_JOINTS + 2] = {PID, PID, PID, PWM, PWM, PWM, PWM, PWM};
+    // A vector of cmd drive modes (mode for each joint, PWM=0, PID=1)
+    std::vector<CMDCommand> CMD_drive_mode;
 
-    float reverse[NUM_JOINTS + 2] = {-1, 1, -1, -1, -1, -1, 1, 1};
+    // A vector of CMD directions
+    std::vector<bool> CMD_direction;
 
     //------------------------------------------------------------//
     private:
 
-    // /// @brief      Callback function when input messages are received.
-    // /// @param      msg - A pointer to the input message
-    // void cmd_outputs_callback (const core::msg::CMDOutput::SharedPtr msg);
-
     /// @brief      Callback function when input messages are received.
     /// @param      msg - A pointer to the input message
+    void cmd_outputs_callback (const sensor_msgs::msg::JointState::SharedPtr msg);
+
+    // /// @brief      Callback function when input messages are received.
+    // /// @param      msg - A pointer to the input message
     void arm_input_callback (const core::msg::ArmInput::SharedPtr msg);
 
     //------------------------------------------------------------//
