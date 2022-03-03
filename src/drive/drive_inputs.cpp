@@ -54,6 +54,9 @@ void DriveInputs::publish_cmds () {
     // Publish the drive commands
     publisher->publish(message);
 
+    // Clear the msg_received flag
+    prev_msg_received = false;
+
 }
 
 // Stops driving when no input received from radios for a period of time
