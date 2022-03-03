@@ -14,40 +14,34 @@ It reads the current task velocity and IK parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: arm_kinematics
 TOPICS:
-  - /control/resolvers         [sensor_msgs/JointState]          [Subscribed]
-  - /control/task_velocity     [geometry_msgs/TwistStamped]      [Subscribed]
-  - /control/arm_coord_frames  [sensor_msgs/MultiDOFJointState]  [Published]
-  - /control/joint_velocities  [sensor_msgs/JointState]          [Published]
+  - /control/arm_control_scheme   [core/ArmControlScheme]           [Subscribed]
+  - /electronics/resolvers        [sensor_msgs/JointState]          [Subscribed]
+  - /control/task_velocity        [geometry_msgs/TwistStamped]      [Subscribed]
+  - /control/arm_coord_frames     [sensor_msgs/MultiDOFJointState]  [Published]
+  - /control/joint_velocities     [sensor_msgs/JointState]          [Published]
 SERVICES: None
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	 control
 AUTHOR(S): Jory Braun
 CREATION:	 11/12/2021
-EDITED:		 22/01/2022
+EDITED:		 24/02/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
- - Get rid of hard-coding of arm structure
- - Change how end effector angles are specified. Use Euler ZYX instead of XYZ.
- - Try initialising message types using a different constructor.
- - Revisit FK data types wrangling
- - Implement IK
- - Publish on timer or publish on change in state? Make consistent.
-   On timer prevents slow computations from holding up new messages being received.
-   Keeps tasks independent.
- - Item Two
+ - 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
 // Include ROS client library
 #include "rclcpp/rclcpp.hpp"
 // Include message types
+#include "core/msg/arm_control_scheme.hpp"
 #include "sensor_msgs/msg/joint_state.hpp"
 #include "geometry_msgs/msg/twist_stamped.hpp"
 #include "sensor_msgs/msg/multi_dof_joint_state.hpp"
 
 // Include libraries
-#include <kdl/tree.hpp>
+#include "arm_model.h"
 #include <kdl/treefksolverpos_recursive.hpp>
 #include <kdl/treeiksolvervel_wdls.hpp>
 
@@ -72,22 +66,27 @@ class ArmKinematics : public rclcpp::Node
     std::chrono::milliseconds joint_velocities_timer_period;
 
     // Track internal state
-    // Resolvers
+    // Arm control scheme
+    core::msg::ArmControlScheme control_scheme;
+    // Resolvers and joint velocities
     sensor_msgs::msg::JointState joints;
     // Task velocity
     geometry_msgs::msg::TwistStamped task_velocity;
     
-    // Store output messages so only need to initialise constant info once
+    // Store other output messages so only need to initialise constant info once
     sensor_msgs::msg::MultiDOFJointState coord_frames;
-    sensor_msgs::msg::JointState joint_velocities;
 
-    // Arm model using KDL
-    KDL::Tree arm;
-    // FK solver
-    KDL::TreeFkSolverPos_recursive arm_fk_solver;
-    // IK solver
-    //KDL::TreeIkSolverVel_wdls arm_ik_solver;
+    // Arm model and solvers
+    ArmModel::WristType wrist_type;
+    ArmModel::EndEffectorType end_effector_type;
+    ArmModel arm_model;
+    // FK solver using KDL
+    KDL::TreeFkSolverPos_recursive* arm_fk_solver;
+    // IK solver using KDL
+    KDL::TreeIkSolverVel_wdls* arm_ik_solver;
 
+    // Subscription to arm control scheme
+    rclcpp::Subscription<core::msg::ArmControlScheme>::SharedPtr control_scheme_sub;
     // Subscription to resolvers
     rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr resolver_sub;
     // Subscription to task velocity
@@ -99,6 +98,10 @@ class ArmKinematics : public rclcpp::Node
     rclcpp::TimerBase::SharedPtr joint_velocities_timer;
     rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr joint_velocities_pub;
 
+    /// @brief  Callback for control scheme subscription
+    ///         Updates the internal control scheme, which is used to determine how to solve IK
+    void control_scheme_callback(const core::msg::ArmControlScheme::SharedPtr msg);
+    
     /// @brief  Callback for resolver subscription
     ///         Updates the internal joint state, which is later used to update the model
     void resolver_callback(const sensor_msgs::msg::JointState::SharedPtr msg);
@@ -107,6 +110,13 @@ class ArmKinematics : public rclcpp::Node
     ///         Updates the internal velocity, which is later used to calculate the inverse kinematics
     void task_velocity_callback(const geometry_msgs::msg::TwistStamped::SharedPtr msg);
 
+    /// @brief  Calculate FK for a single segment
+    ///         Overloaded to allow a calling function to precompute the KDL::JntArray
+    KDL::Frame calculate_fk(KDL::JntArray kdl_joints, std::string segment_name);
+
+    /// @brief  Calculate FK for a single segment
+    KDL::Frame calculate_fk(std::string segment_name);
+    
     /// @brief  Callback for arm_coord_frames publisher timer
     ///         Updates the arm model using the latest resolver info, publishes to arm_cord_frames
     void publish_coord_frames();
@@ -118,7 +128,7 @@ class ArmKinematics : public rclcpp::Node
     //------------------------------------------------------------//
     public:
 
-    /// Constructor. Initialisers the solvers for the given tree and starts the node
-    ArmKinematics(const KDL::Tree& arm);
+    /// Constructor. Initialisers the solvers and starts the node
+    ArmKinematics();
     
 };

@@ -13,12 +13,12 @@ AUTHOR(S):	Jess Hepworth
 // Include the header file
 #include "joint.h"
 
-Joint::Joint (const int id, CMDCommand CMD_drive_mode, float reverse) :
+Joint::Joint (const int id, CMDCommand CMD_drive_mode, const bool CMD_direction) :
     CMD (1, id) { 
 
     // Update the variables
     this->CMD_drive_mode = CMD_drive_mode;
-    this->reverse = reverse;
+    this->CMD_direction = CMD_direction;
     
 }
 
@@ -30,7 +30,6 @@ Joint::~Joint () {
 
 
 void Joint::drive (float velocity) {
-    velocity = reverse * velocity;
 
     // Check if velocity is zero
     if (velocity == 0) {
@@ -45,6 +44,11 @@ void Joint::drive (float velocity) {
 
     // Otherwise turn off all stops
     else all_stopped = false;
+    
+    // Flip output direction if needed
+    if (CMD_direction){
+        velocity *= -1;
+    }
 
     if(CMD_drive_mode == PID){
         // Call the PID function
