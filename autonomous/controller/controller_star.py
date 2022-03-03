@@ -65,7 +65,16 @@ class Controller(Node):
         self.target_waypoint = None
         self.previously_turned = False
         self.max_distance = 0.0001  # furthest distance to an object? not sure
-
+        
+        #Star parameters
+        #Statics
+        self.MAX_YAW = np.pi / 7.5
+        self.MAX_TRAVERSAL_DISTANCE = 1
+        #Variables
+        self.star_state = 0 
+        self.first_drive = True
+        self.direction = -1
+        
         self.path_cloud = path_vis.PathCloud()
 
         self.drive_cmd_publisher = self.create_publisher(DriveInput, auto_drive_command_topic, 10)
@@ -115,7 +124,9 @@ class Controller(Node):
                          + " | yaw diff: " + str(round(yaw_diff, 4)).ljust(pad) + " | distance: " + str(
             round(dist, 4)).ljust(pad))
         sys.stdout.flush()
-
+    
+    
+    
     def go_to_target(self):
         """
         Publishes a single drive command to navigate to the current target waypoint.
@@ -131,23 +142,70 @@ class Controller(Node):
         current_orientation = np.array([np.cos(self.state.yaw), np.sin(self.state.yaw), 0])
         
         yaw_diff = yaw_difference(current_orientation, desired_orientation)
+            
+        #implement yaw_star
+        if abs(yaw_diff) > MAX_YAW:
+            #Big turn, either drive straight or turn
+            if self.star_state == 0:
+                #From straight line to first yaw
+                self.target_yaw = np.sign(yaw_diff) * (abs(yaw_diff) - self.MAX_YAW)
+                steer_fraction = tank_turn_target_yaw_rate(yaw_diff)
+                self.__publish(0.05, steer_fraction)
+                Controller.print_update("Start star yawing", self.target_waypoint, yaw_diff,
+                                distance((self.state.x, self.state.y), self.target_waypoint))
+                #Update state
+                self.star_state = 1
+            elif self.star_state == 1:
+                #Check if keep yawing
+                if yaw_diff > self.target_yaw:
+                    #Keep turning
+                    steer_fraction = tank_turn_target_yaw_rate(yaw_diff)
+                    self.__publish(0.05, steer_fraction)
+                    Controller.print_update("Keep star yawing", self.target_waypoint, yaw_diff,
+                                distance((self.state.x, self.state.y), self.target_waypoint))
+                else:
+                    #Swap to drive mode
+                    dist = 0.5 * self.MAX_TRAVERSAL_DISTANCE if self.first_drive else self.MAX_TRAVERSAL_DISTANCE
+                    self.star_state = 2
+                    self.target_yaw = 0
+                    self.target_pose = [position_vector[0] + dist * self.direction * np.cos(current_orientation), 
+                                       position_vector[1] + dist * self.direction * np.sin(current_orientation), 0]
+                    self.__publish(0.0, 0.0)
+                    Controller.print_update("Start star heading", self.target_waypoint, yaw_diff,
+                                distance((self.state.x, self.state.y), self.target_waypoint))
+            elif self.star_state == 2:
+                #Check if keep driving
+                dist = distance(position_vector, self.target_pose)
+                if abs(dist) > 0.01:
+                    #Keep driving
+                    drive_fraction = 0.1 * direction
+                    self.__publish(drive_fraction, 0.0)
+                    Controller.print_update("star heading", self.target_waypoint, yaw_diff,
+                                distance((self.state.x, self.state.y), self.target_waypoint))
 
-        if abs(yaw_diff) >= (min_yaw_difference):
-            # turn at a rate determined by the tank_turn_target_yaw_rate function
+                else:
+                    #Return to turning
+                    self.__publish(0.0, 0.0)
+                    Controller.print_update("Finish star heading", self.target_waypoint, yaw_diff,
+                                distance((self.state.x, self.state.y), self.target_waypoint))
+                    
+                    #Update variables
+                    self.direction = direction * -1
+                    self.star_state = 0
+                    self.first_drive = False
+        elif abs(yaw_diff) < self.MAX_YAW and abs(yaw_diff) > min_yaw_difference:  
+            #Turn on the spot
             steer_fraction = tank_turn_target_yaw_rate(yaw_diff)
             self.__publish(0.05, steer_fraction)
-
             Controller.print_update("yawing", self.target_waypoint, yaw_diff,
-                                    distance((self.state.x, self.state.y), self.target_waypoint))
-
-            self.previously_turned = True
-
-        elif self.previously_turned:
-            # need to send a zero wheel command after turning before we drive
-            self.__publish(0.0, 0.0)
-            self.previously_turned = False
-
+                        distance((self.state.x, self.state.y), self.target_waypoint))
         else:
+            print('DONE')
+            #Reset constants
+            self.star_state = 0 
+            self.first_drive = True
+            direction = -1
+ 
             # drive in straight line toward waypoint at determined velocity
             drive_fraction = crow_fly_target_velocity((self.state.x, self.state.y), self.target_waypoint)
             self.__publish(drive_fraction, 0.0)

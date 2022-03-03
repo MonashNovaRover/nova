@@ -1,8 +1,7 @@
-__package__ = "autonomous"
+_package__ = "autonomous"
 #!/usr/bin/env python3
 import time
 from a_star import a_star
-from planning.path_2d_show import show_path 
 
 # NOTE should probably call these something else since they are not only used by controller
 from config.runtime_params import *
@@ -93,25 +92,16 @@ class PathPlanner(Node):
         self.start = (self.state.x, self.state.y)
         
         self.length = _map.shape[0]
-        self.widt = _map.shape[1]
+        self.width = _map.shape[1]
 
         self.length_meters = int(_map.shape[0] * self.resolution)
         self.width_meters = int(_map.shape[1] * self.resolution)
-        
+        print(self.length_meters) 
         print("Running A*")
-        
-        print("start: " + str(self.start))
-        print("goal: " + str(self.goal))
-        
-        print(self.get_grid_coord(self.start))
-        print(self.get_grid_coord(self.goal))
-        
-        print(_map.shape)
 
         self.route = np.array(a_star(_map, self.get_grid_coord(self.start), self.get_grid_coord(self.goal), self.resolution))
-
+        print("A* returned")
         route_coordinates = self.get_local_coords_route(self.route)
-        show_path(_map, self.route, self.start, self.goal)
         waypoints = Waypoints()
 
         for wpt in (route_coordinates[3::5] if len(route_coordinates) > 5 else [route_coordinates[-1]]):

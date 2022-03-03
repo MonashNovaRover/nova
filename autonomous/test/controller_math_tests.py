@@ -7,7 +7,7 @@ import numpy as np
 
 PI = np.pi
 
-class MathTest(unittest.TestCase):
+class ControllerMathTest(unittest.TestCase):
     def test_yaw_difference(self):
         firsts = np.linspace(0, 2*np.pi, 13)
         seconds = np.linspace(0 ,2*np.pi, 13)
@@ -28,6 +28,7 @@ class MathTest(unittest.TestCase):
                 elif np.round(difference_magnitude, 10) == np.round(PI, 10):
                     self.assertAlmostEqual(yaw_difference(vec_a, vec_b), PI)
                     self.assertAlmostEqual(yaw_difference(vec_b, vec_a), PI)
+
 
 if __name__ == "__main__":
     # running all unit tests

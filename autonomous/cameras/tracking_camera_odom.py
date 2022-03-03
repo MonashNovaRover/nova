@@ -4,14 +4,10 @@ import numpy as np
 import rclpy
 from rclpy.node import Node
 from nav_msgs.msg import Odometry
-from core.msg import RoverPose
-from core.msg import RoverPose, DriveVel
+from core.msg import RoverPose, DriveVel, WheelData 
 import math
 import math_utils.transform as transform
-from config.ros_config import tracking_camera_extrinsics
-from config.ros_config import main_frame
-from config.ros_config import tracking_pose_topic
-from config.ros_config import rover_pose_topic
+from config.ros_config import tracking_camera_extrinsics, main_frame, tracking_pose_topic, rover_pose_topic
 
 # different systems seem to install the pyrealsense wrapper differently
 try:
@@ -23,23 +19,6 @@ import sys
 """
 Connects to the tracking camera and publishes various transformed pose topics. Runs in a separate thread.
 """
-
-
-def get_yaw_tracking(data):
-    """
-    Converts a quaternion in raw T265 tracking coordinates, to a yaw angle defined counter clockwise
-    right handed coordinate system where positive X is forward, positive Y is leftm positive Z is up.
-    """
-    qx = -data.rotation.z
-    qy = -data.rotation.x
-    qz = data.rotation.y
-    qw = data.rotation.w
-
-    # msg.yaw = euler_from_quaternion([q_x, q_y, q_z, q_w])[1]
-    yaw = math.atan2(2.0*(qx*qy + qw*qz), qw*qw + qx*qx - qy*qy - qz*qz)
-    yaw = (yaw if yaw > 0 else 2.0 * math.pi + yaw) + 0
-    yaw = yaw if yaw <= math.pi * 2 else yaw - math.pi * 2
-    return yaw
 
 
 class TrackingCamera(Node):
@@ -55,15 +34,12 @@ class TrackingCamera(Node):
         # Declare RealSense pipeline, encapsulating the actual device and sensors
         self.pipe = rs.pipeline()
 
-        self.camera_pub = self.create_publisher(Odometry, tracking_pose_topic, 10)
-        
-        
-        
+        self.camera_pub = self.create_publisher(Odometry, tracking_pose_topic, 10)        
         self.rover_pose_pub = self.create_publisher(RoverPose, rover_pose_topic, 10)
 
         # Subscriber for wheel odom data
-        # self.wheel_velocity = rs.vector() # holds wheel velocity input
-        # self.wheel_subscriber = self.create_subscription(DriveVel, "/autonomous/drive_vel", self.update_wheel_vel, 10)
+        self.wheel_velocity = rs.vector() # holds wheel velocity input
+        self.wheel_subscriber = self.create_subscription(WheelData, "/electronics/wheel_data", self.update_wheel_vel, 10)
 
         # Build config object and request pose data
         self.cfg = rs.config()
@@ -80,9 +56,9 @@ class TrackingCamera(Node):
         dev = pipe_profile.get_device()
         # dev.hardware_reset() - could do a hardware reset here?
         # later as mentioned should have a system for detecting if disconnected
-        # tm2 = dev.as_tm2()
-        # self.wheel_odometer = None
-        tm2 = False
+        tm2 = dev.as_tm2()
+        self.wheel_odometer = None
+        # tm2 = False
         if tm2:
             pose_sensor = tm2.first_pose_sensor()
             self.wheel_odometer = pose_sensor.as_wheel_odometer()
@@ -130,23 +106,17 @@ class TrackingCamera(Node):
             rover_msg.y = rover_position[1]
             rover_msg.z = rover_position[2]
             
-            # gets yaw from raw tracking coordinates
-            yaw = get_yaw_tracking(data)
-            rover_msg.yaw = yaw
+            # gets euler angles from tracking camera quaternion
+            rover_msg.pitch, rover_msg.roll, rover_msg.yaw = transform.quat_to_euler(t265_msg)
             self.rover_pose_pub.publish(rover_msg)
 
-            # self.send_wheel_odom() # This should be tested if it should go here
-            # which is essentially sending the last wheel data recieved OR
-            # whether it should fire after the wheel data is recieved under
-            # the callback.
-
-            sys.stdout.write("\r" + "x: " + str(round(data.translation.x, 4)).ljust(7)
-                             + " | y: " + str(round(data.translation.y, 4)).ljust(7)
-                             + " | z: " + str(round(data.translation.z, 4)).ljust(7)
-                             + " | yaw: " + str(round(yaw, 4)).ljust(7))
+            sys.stdout.write("\r" + "x: " + str(round(rover_msg.x, 4)).ljust(7)
+                             + " | y: " + str(round(rover_msg.y, 4)).ljust(7)
+                             + " | z: " + str(round(rover_msg.z, 4)).ljust(7)
+                             + " | yaw: " + str(round(rover_msg.yaw, 4)).ljust(7))
             sys.stdout.flush()
 
-    def toUint8(self, filename ='calibration_odometry.json'):
+    def toUint8(self, filename ='cameras/calibration_odometry.json'):
         # calibration to list of uint8
         f = open(filename)
         chars = []
@@ -157,8 +127,9 @@ class TrackingCamera(Node):
 
     def update_wheel_vel(self, msg):
         # Update (currently from drive commands) the wheel velocity
-        self.wheel_velocity.x = msg.linear_vel # m/s, must be float
+        self.wheel_velocity.x = sum(msg.velocities)/6 # m/s, must be float
         self.wheel_velocity.y, self.wheel_velocity.z = 0, 0
+        self.send_wheel_odom() 
 
     def send_wheel_odom(self):
         wo_sensor_id = 0  # indexed from 0, match to order in calibration file
