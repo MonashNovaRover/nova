@@ -1,6 +1,6 @@
 # TODO: Add timeouts to reading
 # TODO: more sophisticated write error handling
-from core.srv import RFIDCommand, RFIDCommandResponse
+from core.srv import RFIDCommand
 
 import rclpy
 from rclpy.node import Node
@@ -13,17 +13,21 @@ class RFIDService(Node):
         super().__init__('rfid_service')
         self.srv = self.create_service(RFIDCommand, '/electronics/rfid_service', self.handle_rfid_request)
         self.ser = Serial(baudrate = 115200, port = '/dev/ttyUSB0') # TODO: Check port
-        self.EOM_byte = b'\x00' # null char for End Of Message
+        self.EOM = b'\r' # carriage ret for EOM
+        #self.get_logger().set_level(10) # FOR DEBUGGING
+        self.get_logger().info('Started RFID service')
 
-    def handle_rfid_request(self, request: RFIDCommand, response: RFIDCommandResponse):
+    def handle_rfid_request(self, request: RFIDCommand, response):
+        self.get_logger().info(f'Processing {request.command} RFID request')
+        self.get_logger().debug(f'Received request: {request.command}\n{request.data}')
         cmd = request.command.lower()
 
-        if cmd == 'read':
-            write_msg(cmd)
+        if cmd in ['read', 'clear', 'restart']:
+            self.write_msg(cmd)
             response.response = self.read_data()
         elif cmd == 'write':
-            write_msg(cmd)
-            write_msg(request.data)
+            self.write_msg(cmd)
+            self.write_msg(request.data)
             response.response = self.read_data()
         else:
             # catch invalid commands
@@ -32,31 +36,33 @@ class RFIDService(Node):
             response.response = msg
             return response
         
-        self.get_logger().debug('Response received from arduino: {response.response}')
+        self.get_logger().debug(f'Response received from arduino: {response.response}')
         return response
     
     def read_data(self) -> str:
         '''
-        Data is null terminated so simply read until null string sent
+        Read transmitted data terminated with EOM
         '''
-        data = bytearray()
-        # read until null char
-        while (val := self.ser.read(1)) != self.EOM_byte:
-            data.append(val)
-
+        # read until EOM
+        self.get_logger().debug('Reading data')
+        data = self.ser.read_until(expected=self.EOM)
+        data = data.rstrip(self.EOM) # remove EOM from response
+        data = data.rstrip(b'\0') # strip any null chars from data
         # return as string
         return data.decode('ascii')
 
     def write_msg(self, msg: str):
         '''
-        Write ascii encoded bytearray data to controlling arduino.
+        Write ascii encoded bytearray data to arduino.
         '''
+        self.get_logger().debug(f'Message to write: {msg}')
+        # N.B. Somehow ROS was causing null char issues when trying to read
+        # what had just been written to card. Removing with rstrip seemed to 
+        # solve although this doesn't make much sense
+        msg.rstrip('\0') 
         data = bytearray(msg, encoding='ascii')
-        data.append(self.EOM_byte) # indicate end of message
-        if (n := self.ser.write(data)) != len(data):
-            self.get_logger().error(f'Only wrote {n} of {len(data)} bytes expected')
-            # resend null termination to ensure micro doesn't continue waiting
-            self.ser.write(self.EOM_byte)
+        data.append(ord(self.EOM)) # indicate end of message
+        self.ser.write(data)
 
     def destroy_node(self):
         self.get_logger().info('Closing serial connection')
