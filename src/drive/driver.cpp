@@ -62,8 +62,7 @@ void Driver::send_commands (const core::msg::DriveInput::SharedPtr msg) {
         for (int i = 0; i < NUM_WHEELS; i++) {
             // Calculate the velocity of wheel
             float vel = msg->speed * distances[i] / max_distance;
-            
-            // If using tangent scaling, adjust for wheel speeds
+            std::cout << vel << std::endl;                        // If using tangent scaling, adjust for wheel speeds
             if (USE_TANGENT_SCALING) vel *= tangents[i] / max_tangent;
             
             // Checks if the turning circle is within the chassis area
