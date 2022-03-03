@@ -1,0 +1,902 @@
+commit 1510d2567b767befa47f083a8c6df1e2f54afa70
+Author: novarover <novaroverteam@monash.edu>
+Date:   Tue Mar 1 13:39:11 2022 +1100
+
+    Revert "nearly working control fix"
+    
+    This reverts commit 415766067332f541513d323f21609e9da2634b90.
+
+commit 5622da8d47c86556c5627ba80de018d8980ffc72
+Author: novarover <novaroverteam@monash.edu>
+Date:   Tue Mar 1 13:38:41 2022 +1100
+
+    Revert "fixed compile issues for joystick zeroing fix"
+    
+    This reverts commit 0dfbf53640048474f0f9a3aa520ecbff306e6c86.
+
+commit 21db274c9d1eb593856820beb3d488b3427aa64a
+Author: liamwhittle <lwhi0020@student.monash.edu>
+Date:   Thu Feb 24 22:58:13 2022 +1100
+
+    fixed post merge build error
+
+commit c3cc84a034a6c2a8a096e3a43f57cbe48901bf70
+Merge: 1bd8f07 edb78d4
+Author: novarover <53011489+novarover@users.noreply.github.com>
+Date:   Thu Feb 24 22:48:14 2022 +1100
+
+    Merge pull request #8 from MonashNovaRover/feature/qos_testing
+    
+    qos, not tested
+
+commit edb78d4ce57b325a039ef86e60710dd789763e15
+Merge: 0e7f4d8 1bd8f07
+Author: novarover <53011489+novarover@users.noreply.github.com>
+Date:   Thu Feb 24 22:47:47 2022 +1100
+
+    Merge branch 'testing' into feature/qos_testing
+
+commit 1bd8f072e37685b5d00f35ee02796927fdaee635
+Merge: 0dfbf53 6129db2
+Author: novarover <53011489+novarover@users.noreply.github.com>
+Date:   Thu Feb 24 22:45:50 2022 +1100
+
+    Merge pull request #13 from MonashNovaRover/feature/arm-lock
+    
+    Update arm_inputs.h
+
+commit 0dfbf53640048474f0f9a3aa520ecbff306e6c86
+Author: liamwhittle <lwhi0020@student.monash.edu>
+Date:   Wed Feb 23 22:39:44 2022 +1100
+
+    fixed compile issues for joystick zeroing fix
+
+commit 43619f5a4dcfd43fe12fd6450ae5ff264e698942
+Author: liamwhittle <lwhi0020@student.monash.edu>
+Date:   Wed Feb 23 22:38:32 2022 +1100
+
+    fixed compile issues and math.h changed to cmath so driver compiles
+
+commit 415766067332f541513d323f21609e9da2634b90
+Author: MaxTory2001 <torymax01@gmail.com>
+Date:   Wed Feb 23 21:14:40 2022 +1100
+
+    nearly working control fix
+
+commit 6129db20a5e9115ce147223cb6c19f8feb3e9388
+Author: Turtle <Emilykuo5@hotmail.com>
+Date:   Wed Feb 23 20:55:16 2022 +1100
+
+    Update arm_inputs.cpp
+    
+    btn_thumb_l_state -- for locking
+    btn_thumb_r_state -- for unlocking
+
+commit af5293babe55baa5c9c9db8ffcc039cc3b76bcf7
+Author: Turtle <Emilykuo5@hotmail.com>
+Date:   Wed Feb 23 20:45:43 2022 +1100
+
+    Update arm_inputs.h
+
+commit 3a9f2238345e585c95e9fd4e66c9858833bb3edb
+Merge: a27378c 3f01951
+Author: novarover <53011489+novarover@users.noreply.github.com>
+Date:   Mon Feb 21 14:11:22 2022 +1100
+
+    Merge pull request #12 from MonashNovaRover/feature/turning
+    
+    command no longer sent if lack of drive input
+
+commit a27378c44bf8daeff312bf465424566d50d4ccce
+Merge: 58ac99f 1c4978b
+Author: novarover <53011489+novarover@users.noreply.github.com>
+Date:   Mon Feb 21 13:45:50 2022 +1100
+
+    Merge pull request #11 from MonashNovaRover/feature/turning
+    
+    Feature/turning
+
+commit 3f0195140da2f62b5cb6ada302356c8afd42e741
+Author: liamwhittle <lwhi0020@student.monash.edu>
+Date:   Mon Feb 21 13:40:38 2022 +1100
+
+    command no longer sent if lack of drive input
+
+commit 1c4978bfb48b2d9c400b99f45f5ce3790b16d5b8
+Author: novarover <novaroverteam@monash.edu>
+Date:   Fri Feb 18 01:17:56 2022 +0000
+
+    Pushed changes to vel convert
+
+commit 1ee68ac6b2604662405968eaaf41bbab24815214
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Sat Feb 12 10:08:19 2022 +1100
+
+    Moved launch files from control
+
+commit 27874791b526e8708468365a9be9640c99422e1c
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Wed Feb 9 12:25:25 2022 +1100
+
+    Removed steer multipliers from the code
+
+commit b0a7d14d03cfe675ff6e9dd0c01cf5879fa964ae
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Wed Feb 9 12:23:41 2022 +1100
+
+    Adjusted some of the code to make it neater and cleaner with the same tangent scaling still working
+
+commit 7438e58f4c7e934fc97d6798c49678479546328f
+Author: novarover <novaroverteam@monash.edu>
+Date:   Wed Feb 9 00:52:46 2022 +0000
+
+    Adjusted the driver and wheels - turning circles are much better now!
+
+commit ebb715e561fdd836390b0bddc558ff9075802a6e
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Wed Feb 9 10:58:16 2022 +1100
+
+    Ignored the steer factor for now?
+
+commit a320218a5a3a3ceee9c4d11f3cb7a504031b8d2a
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Wed Feb 9 10:49:12 2022 +1100
+
+    Ready to test the new turning speed on the rover
+
+commit 58ac99f81a2b5c2de43f6c87b1a132718a42a1ac
+Author: liamwhittle <lwhi0020@student.monash.edu>
+Date:   Sun Feb 6 11:46:19 2022 +1100
+
+    wheel speed ratio
+
+commit c2eb132ad6a3a1ea1e8647118870047e88604dce
+Author: novarover <novaroverteam@monash.edu>
+Date:   Wed Feb 2 09:57:53 2022 +0000
+
+    fixed wheel directions for real this time
+
+commit 857dadaac82bba9008c1f42a1539371e3e94f62a
+Author: novarover <novaroverteam@monash.edu>
+Date:   Wed Feb 2 20:32:45 2022 +1100
+
+    reversed wheel drive directions
+
+commit 0e7f4d888ee6f30e9c02531ce6a2a3157126642f
+Author: Turtle <Emilykuo5@hotmail.com>
+Date:   Wed Feb 2 20:31:24 2022 +1100
+
+    Update inputs_publisher.cpp
+
+commit fcdce67cd62300df1ce1356e7318f5b3442ff066
+Author: novarover <novaroverteam@monash.edu>
+Date:   Tue Feb 1 03:02:46 2022 +0000
+
+    fixed full power issue with lunar construction inputs
+
+commit 6a5af6b3f8cdc449252634a65a114bf9953cbfec
+Author: Turtle <Emilykuo5@hotmail.com>
+Date:   Mon Jan 31 22:38:06 2022 +1100
+
+    Update drive_inputs.h
+
+commit 3726f7741f39c80617126fd57f196554020de863
+Author: ekuo1 <emilykuo5@hotmail.com>
+Date:   Mon Jan 31 03:29:26 2022 -0800
+
+    changed to modifying axis_x and axis_y
+
+commit 9a2a581c07b58a39aaeb5b789afad35b17264112
+Author: ekuo1 <emilykuo5@hotmail.com>
+Date:   Mon Jan 31 03:05:09 2022 -0800
+
+    qos, not tested
+
+commit cc061a4826a9aced3e2b3cfec5bed9c84a99f868
+Author: novarover <novaroverteam@monash.edu>
+Date:   Sat Jan 29 12:16:55 2022 +1100
+
+    added reverse joint directions
+
+commit f2a60fde54e03b97ff89a0875c9b6ba95c1e8269
+Author: jesshep <jhep0001@student.monash.edu>
+Date:   Fri Jan 28 10:40:11 2022 +1100
+
+    added lunar construction to arm inputs using joystick back trigger and added extra cmd to arm driver
+
+commit 8dfce028143e3c14af7a1db99596e5d4c01e44ff
+Author: tmtcam-042 <90966515+tmtcam-042@users.noreply.github.com>
+Date:   Thu Jan 27 14:35:22 2022 +1100
+
+    Update joystick_plotter with range limiting
+    
+    added self.limit(value), which limits the range of values that can be passed through the joystick publisher to (-1, 1)
+
+commit 2c573bc418eb0df292ddfdd0d970e07b271ffdc4
+Author: tmtcam-042 <90966515+tmtcam-042@users.noreply.github.com>
+Date:   Thu Jan 27 14:03:52 2022 +1100
+
+    Fix msgs import
+
+commit cd9956f5ebfb1a3f7a7a2386862ec09ca63231fa
+Author: tmtcam-042 <90966515+tmtcam-042@users.noreply.github.com>
+Date:   Wed Jan 26 02:13:42 2022 +1100
+
+    Create joystick_plotter.py
+    
+    Joystick plotter wip.
+    TODO:
+    Limit range of values to (-1, 1)
+    Determine axis range
+    Plot end effector separately
+    Test with full stack
+
+commit 90487cd58bb6250dc41251e4cb7798f0f414772c
+Author: Jory Braun <joryb98@gmail.com>
+Date:   Sun Jan 23 23:22:45 2022 +1100
+
+    Added option for building without KDL
+
+commit 74a5990dcd38095e5ef8ec5f7010a1cd417b1252
+Author: Jory Braun <joryb98@gmail.com>
+Date:   Sun Jan 23 14:14:46 2022 +1100
+
+    Moved arm files into folders, updated CMake
+
+commit bd993ea2242f7cde966b50e55f6d4c5e066a213d
+Author: Jory Braun <joryb98@gmail.com>
+Date:   Sun Jan 23 02:26:45 2022 +1100
+
+    Neatened CMake using targets. Changed debug ilbrary to print to avoid CMake naming conflict
+
+commit 9e4620d01ef36a41c24cb1383e916fcdbfb8add6
+Merge: 6bef61c 7b3724d
+Author: Jory Braun <joryb98@gmail.com>
+Date:   Sun Jan 23 01:26:06 2022 +1100
+
+    Merge branch 'testing' into feature/arm-ik
+
+commit 6bef61cce63601e04670db7da21a1b936d78c885
+Author: Jory Braun <joryb98@gmail.com>
+Date:   Sun Jan 23 00:49:31 2022 +1100
+
+    Cleaned up arm folder CMake a bit
+
+commit b4231b43ad6f35a37abbe002b7f94aeb3c3d8d8e
+Author: Jory Braun <joryb98@gmail.com>
+Date:   Sun Jan 23 00:30:48 2022 +1100
+
+    Now builds and runs
+
+commit 1ede8a7246dee6d85f98ecb4992d99e750db9137
+Author: Jory Braun <joryb98@gmail.com>
+Date:   Sat Jan 22 15:02:17 2022 +1100
+
+    Refactored arm model and arm_core. Builds, haven't tried running
+
+commit 270652d7528283fdeab9e21fa40b9c1fd48f32ca
+Author: Jory Braun <joryb98@gmail.com>
+Date:   Tue Jan 18 00:40:49 2022 +1100
+
+    Updated file header comments
+
+commit 6d2c191d3cc557d6ab390c6ed8a34ee43fd19786
+Author: Jory Braun <joryb98@gmail.com>
+Date:   Tue Jan 18 00:36:13 2022 +1100
+
+    Added preliminary ArmCore implementation
+
+commit 5368ce792dcdf047fc01fdaec80f7a7cb42545b3
+Author: Jory Braun <joryb98@gmail.com>
+Date:   Sun Jan 16 00:04:29 2022 +1100
+
+    Added FK using KDL
+
+commit dfafc75f1613d775cbb38a24f1dad3e1f32aa8a7
+Author: Jory Braun <joryb98@gmail.com>
+Date:   Sat Jan 15 03:01:23 2022 +1100
+
+    Added message type dependency to CMakeLists
+
+commit ece6585129aaa73b87fce76dfb196632b30c6c7a
+Author: Jory Braun <joryb98@gmail.com>
+Date:   Sat Jan 15 03:00:56 2022 +1100
+
+    Lots and lots of untested IK and FK stuff. Chances it works?
+
+commit a0c09e34fc078a8c93cef722bd4e69472151d947
+Author: Jory Braun <joryb98@gmail.com>
+Date:   Sat Jan 15 02:59:53 2022 +1100
+
+    Simplified timestamps so it logs when the message was sent
+
+commit 84c3a43fd159fb10dc5377c053fcb929187608cb
+Author: Jory Braun <joryb98@gmail.com>
+Date:   Fri Jan 14 22:50:18 2022 +1100
+
+    Filled out arm model header
+
+commit 70415617f0c6cf2f399736fe46259258e1ee8e3f
+Author: Jory Braun <joryb98@gmail.com>
+Date:   Fri Jan 14 22:49:40 2022 +1100
+
+    Updated header comments
+
+commit 89abb088131973edbcb8f9323d26eeb0bcee8811
+Author: Jory Braun <joryb98@gmail.com>
+Date:   Fri Jan 14 21:50:31 2022 +1100
+
+    Added angle wrapping to [0, 2pi)
+
+commit f3b8e47bc736c8ac87cfbab7148cc7c6e57a9144
+Author: Jory Braun <joryb98@gmail.com>
+Date:   Thu Jan 13 19:26:09 2022 +1100
+
+    Fixed bug with changing simulator folder
+
+commit 171c57658a0fa393059b9dce95da10daeb2dfc37
+Author: Jory Braun <joryb98@gmail.com>
+Date:   Wed Jan 12 00:34:31 2022 +1100
+
+    Added arm simulator
+
+commit 7b3724de453ad0138aea299de58e4f0db3992e4c
+Merge: bbeff57 c111ad9
+Author: novarover <novaroverteam@monash.edu>
+Date:   Sun Jan 9 16:40:00 2022 +1100
+
+    Merge branch 'testing' into feature/arm
+
+commit c111ad9677961a50d1eb7c44ac76cc41ed9a27ca
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Sun Jan 9 14:17:42 2022 +1100
+
+    Added all stop checking on arm
+
+commit bbeff57c31cb768fe912c79c561b2a85e8c3d434
+Author: jesshep <jhep0001@student.monash.edu>
+Date:   Sat Jan 8 19:05:54 2022 +1100
+
+    updated end effector and linear actuator code
+
+commit fa9d34e377962383cc2cae2b02bd55b4722f48f1
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Thu Jan 6 13:29:06 2022 +1100
+
+    Made helper functions in the CMD class
+
+commit f433ffe738b9a84f0b1d8d966fd5e258434acaf8
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Thu Jan 6 11:08:45 2022 +1100
+
+    Receiveing still not working
+
+commit bc8b1dd74a4bbba06259ac9437c4309d4bca82e0
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Thu Jan 6 10:38:18 2022 +1100
+
+    Finished feedback plotter
+
+commit 3bfd7fb750108d9e8ef347ce0cd024bf82b0f53d
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Thu Jan 6 10:21:37 2022 +1100
+
+    Started working on the plotter
+
+commit 1f81cbccbf70f443a013b079008139d1ab8185cf
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Thu Jan 6 09:49:26 2022 +1100
+
+    Built the shell of the feedback publisher
+
+commit 344295ff5c0805cd3e6cb1f29cb32f599f290af3
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Thu Jan 6 09:38:15 2022 +1100
+
+    Added velocities sending
+
+commit a478e8e0b9ba05c69d15a3adaa0a910df9534aeb
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Thu Jan 6 09:28:20 2022 +1100
+
+    Made function to send constants
+
+commit c7689cc6ecfc2d930165836e5a2030940877c138
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Thu Jan 6 09:06:39 2022 +1100
+
+    Shell of PID tuner done
+
+commit 7940074a279a0995a4dad6a7fd9c4266de72be2c
+Merge: ec9c1c2 6fa1761
+Author: Harrison Verrios <harrison.v1@live.com>
+Date:   Wed Jan 5 23:03:37 2022 +1100
+
+    Merge pull request #7 from MonashNovaRover/velConvert
+    
+    Vel convert
+
+commit 6fa1761a1a6f6a0c99ebd84187f7f3cb9b3f98a3
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Wed Jan 5 23:02:10 2022 +1100
+
+    Fixed up the velocity convert script
+
+commit 3397fc54b1ce86dfdf9b0af42ac58f78a94a3b86
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Sat Dec 18 15:46:16 2021 +1100
+
+    Done drive convert!
+
+commit d9d0c855c1b954719a98248cb6d5f80e72dc531b
+Author: Himsara <manurahimsara@gmail.com>
+Date:   Sat Dec 18 15:26:00 2021 +1100
+
+    Completed Vel convert
+
+commit ec9c1c23902017f02aaf90d5d0a2672eac581f1f
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Sat Dec 18 15:02:22 2021 +1100
+
+    Added messages for autonomous/manual and handbrakes
+
+commit 7cb9b8b9b46bb5ac261f94f1cf9f53e8b35e29bc
+Merge: 374121a 76f1b0a
+Author: Harrison Verrios <harrison.v1@live.com>
+Date:   Sat Dec 18 02:40:50 2021 +0000
+
+    Merge pull request #6 from MonashNovaRover/testing
+    
+    Testing
+
+commit 374121ac5ee3a912df02f5826305fc20c86a12a3
+Author: Himsara <manurahimsara@gmail.com>
+Date:   Sat Dec 18 13:40:07 2021 +1100
+
+    Skeleton Code for Vel converter
+
+commit 76f1b0aa5fd60006b26a8bc0f3324895b3b4d232
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Fri Dec 17 13:14:07 2021 +1100
+
+    Updated the printing lines
+
+commit cf2ecbbe4ace0b571911f5c280447648a74cede4
+Merge: 6724e13 be7961f
+Author: Harrison Verrios <harrison.v1@live.com>
+Date:   Fri Dec 17 10:06:45 2021 +1100
+
+    Merge pull request #5 from MonashNovaRover/feature/arm
+    
+    Feature/arm
+
+commit be7961faa5f34cc5c47f1bfeb363807c76fd560b
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Fri Dec 17 10:05:53 2021 +1100
+
+    Updated arm code for PID
+
+commit cd39647306d4b427597408a76711cc28ffa70c78
+Merge: dc8233e 6724e13
+Author: Harrison Verrios <harrison.v1@live.com>
+Date:   Fri Dec 17 09:25:44 2021 +1100
+
+    Merge pull request #4 from MonashNovaRover/testing
+    
+    Testing
+
+commit dc8233e621ab2dec5d7b6f26b512dc1e652f2464
+Merge: 36459e0 6ea32cb
+Author: jesshep <jhep0001@student.monash.edu>
+Date:   Fri Dec 17 09:23:38 2021 +1100
+
+    Merge branch 'feature/arm' of github.com:MonashNovaRover/control into feature/arm
+
+commit 36459e06e26933ce31183c9f6768a6be675c8250
+Author: jesshep <jhep0001@student.monash.edu>
+Date:   Fri Dec 17 09:22:41 2021 +1100
+
+    change can bus for arm
+
+commit 6724e13f5b23e426acbce05ca3bb3d08e7e107a3
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Thu Dec 16 11:11:37 2021 +1100
+
+    Added drive commands printing
+
+commit 3f2613f0b1940b11efc403bc8c3b00e48cf7daed
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Thu Dec 16 08:29:04 2021 +1100
+
+    Show gamepad connected / disconnected messages in the drive inputs node
+
+commit 44f62f796c6916d03ade7b5fc09d5c013d2cf6b3
+Author: Jory Braun <joryb98@gmail.com>
+Date:   Thu Dec 16 00:26:38 2021 +1100
+
+    Added some kinematics-related files
+
+commit a925d1c6a61f94f9821c43e3b0e6089e70c4cabe
+Author: Jory Braun <joryb98@gmail.com>
+Date:   Thu Dec 16 00:24:25 2021 +1100
+
+    Added library support for KDL for FK and
+
+commit f82d6f84a02ba6c1cd9b11b010e1f16f670b1936
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Wed Dec 15 16:09:11 2021 +1100
+
+    Add a title print function
+
+commit ac5d47e76c25e8bb45181eb039efd54f136c3464
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Wed Dec 15 16:04:51 2021 +1100
+
+    Added in printing to the screen in inputs_publisher
+
+commit 2754e1420953ef0824350c414dbd1e371705c996
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Wed Dec 15 14:13:03 2021 +1100
+
+    added reconnected / disconnected flags
+
+commit abf46368f1151ac4dc3657df62cbb6e72e3f6e7a
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Wed Dec 15 13:54:34 2021 +1100
+
+    Adjusted the names of the drive message types
+
+commit 270dc9adb3832de68b77f3dec0f92f816b316066
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Wed Dec 15 11:10:33 2021 +1100
+
+    Added python options to the control repo
+
+commit b540dedf2843db3f91916ae3097386b3c5f01132
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Wed Dec 15 10:46:43 2021 +1100
+
+    Adjusted the buttons to lock/unlock controller
+
+commit 6504c5416628f0866cdaea46d6b64526760a40b8
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Wed Dec 15 10:40:10 2021 +1100
+
+    Added in launch files to the code
+
+commit 6ea32cb9621733b3206312f21933dc68d6415e00
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Fri Dec 10 10:12:30 2021 +1100
+
+    Fixed issues with arm driver
+
+commit e0ea1f6d55c00d1cf91cf88234f83da4c417304d
+Author: jesshep <jhep0001@student.monash.edu>
+Date:   Fri Dec 10 09:45:28 2021 +1100
+
+    New arm driver scripts
+
+commit 3bacf39fe3d23451ddd8cef3632e6e63620e3b3d
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Wed Dec 8 16:18:19 2021 +1100
+
+    Added in autonomoussubscriber
+
+commit 3d89aefe2aa3acad672c15c97aecf0ceb2dfcb66
+Author: Himsara <manurahimsara@gmail.com>
+Date:   Wed Dec 8 15:27:23 2021 +1100
+
+    Create velocity converter files
+
+commit ba34396ea78efad2bf842230c6d26debf330cb29
+Author: novarover <novaroverteam@monash.edu>
+Date:   Fri Dec 3 10:38:16 2021 +1100
+
+    updated readme
+
+commit 6612bc1ff9c5a3d8ca605085e931e44168bcca4e
+Author: novarover <novaroverteam@monash.edu>
+Date:   Fri Dec 3 10:36:22 2021 +1100
+
+    Merged testing into this branch
+
+commit 6641e89e9ce07c528ed20521ebb00e584be13e37
+Merge: 4a09adc 26af0db
+Author: novarover <novaroverteam@monash.edu>
+Date:   Fri Dec 3 10:35:16 2021 +1100
+
+    Merge branch 'testing' into feature/arm
+
+commit 4a09adcc4406bf78b210dc4c26532b44f60a3441
+Author: novarover <novaroverteam@monash.edu>
+Date:   Fri Dec 3 10:34:27 2021 +1100
+
+    Fixed publisher for arm to work with arrays
+
+commit bb2ad698084e8810c018dab0d08c309614cf1388
+Author: jesshep <jhep0001@student.monash.edu>
+Date:   Fri Dec 3 09:57:26 2021 +1100
+
+    added arm publisher scripts
+
+commit 26af0dbee0f5231401daf541eeb367fca3f8ee94
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Wed Dec 1 12:20:44 2021 +1100
+
+    Added other functions to the CMD to get forward and reverse to work
+
+commit 59722369243fb5ef60153640e2f9eccdb34805bd
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Wed Dec 1 11:53:37 2021 +1100
+
+    Fixed permissions
+
+commit e61ea5773653126870e5b2041b58ce5ed72403ec
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Wed Dec 1 11:52:16 2021 +1100
+
+    Added in CMD classes to handle the CAN interface
+
+commit 410238d7c19d6398f6a44340cedcf81c70bb7e66
+Author: jcherubino <josh.cherubino@gmail.com>
+Date:   Thu Nov 25 11:20:41 2021 +1100
+
+    Drive code works on rover!
+
+commit cb6d6d5aab7a40831b6713d3175d1e9f496b9065
+Author: jcherubino <josh.cherubino@gmail.com>
+Date:   Thu Nov 25 10:51:46 2021 +1100
+
+    Added transmitting via CAN
+
+commit 25673916d40872d4b88a21dbfa99ef86a3a8cc70
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Thu Nov 25 09:54:59 2021 +1100
+
+    Added socketcan
+
+commit 44e74bf625d64b922d33373aa7e8872732ecff24
+Merge: 9bd6edc 664796a
+Author: Harrison Verrios <harrison.v1@live.com>
+Date:   Wed Nov 24 14:09:10 2021 +1100
+
+    Merge pull request #2 from MonashNovaRover/testing
+    
+    Merge with testing branch. Drive code, (without CAN), joysticks and input publishers done.
+
+commit 664796a2d206fc083107ab6dfcd2c15523bd1718
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Wed Nov 24 14:06:43 2021 +1100
+
+    Reversed direction of twist in joystick
+
+commit 0ed26e43101ea2dedce8a3af2fe7f7df21034d92
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Wed Nov 24 11:26:30 2021 +1100
+
+    Removed apple keyboard from devices
+
+commit 2904115e38bb000897aecd71adf8d454b318da8e
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Wed Nov 24 11:24:09 2021 +1100
+
+    Fixed bad change
+
+commit 6870f05b9ca3fc12f9811b643912fd8cb5cd9f12
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Wed Nov 24 10:05:51 2021 +1100
+
+    Updated joystick code from pull request
+
+commit 173563bf30e7310c518b4b0ad5a7671514bd0ed0
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Wed Nov 24 09:14:55 2021 +1100
+
+    Joysticks now work independently with gamepad
+
+commit a849f4c987591a5a2b8a1957656847aecff707ad
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Sun Nov 21 17:08:49 2021 +1100
+
+    Moved all the drive script to a new folder and fixed the README
+
+commit a0a81bbc60faa825ef7978bc5d453a492e536310
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Sun Nov 21 16:44:34 2021 +1100
+
+    Added in wheel classes to interface with CAN
+
+commit c582f4a913451b1df68abfe99b493c4a5c7664f0
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Sun Nov 21 16:02:58 2021 +1100
+
+    Basic drive subscriber added
+
+commit dd22f4891cc6b7a4e61a61443aabc99da8a52ae5
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Fri Nov 19 16:36:33 2021 +1100
+
+    Updated joystick
+
+commit bfa34b423e5325298a3b6c49265baced2617d47d
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Fri Nov 19 16:34:08 2021 +1100
+
+    Fixed thrustmmaster
+
+commit abdb9a9f971d02ed796cd7547504861569071ecb
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Fri Nov 19 16:18:57 2021 +1100
+
+    Gamepad now goes before joysticks
+
+commit 6fe3366f01ff559f69302c863b24a34f6c3dec49
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Fri Nov 19 15:54:20 2021 +1100
+
+    Gamepad will always be correct regardless of joysticks
+
+commit 92218052b97f658ff4833d4fadd6ad5d5bcfeb71
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Fri Nov 19 14:37:01 2021 +1100
+
+    Thrustmasters now have access to every single button on the controller
+
+commit 7bbb7afa1430d97ddaf0d79f0dd9cc3b81a4d48e
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Fri Nov 19 14:31:18 2021 +1100
+
+    Thrustmaster now works correctly
+
+commit 99139ec9c58fd33de8d84f85ccbae03a242124f4
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Fri Nov 19 13:37:01 2021 +1100
+
+    Moved the input classes into their own directory
+
+commit bd71e5efd9c06ea84d6314d3056e3f4645b84ae1
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Fri Nov 19 13:24:22 2021 +1100
+
+    Moved all joysticks to individual classes
+
+commit e692bc6b60db09ac6f0c0028977b5a4f97c846fb
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Fri Nov 19 13:05:35 2021 +1100
+
+    Inputs now can publish joystick code. Unoptimised.
+
+commit f16a578efc6f39559280fd3d47680626f7061bde
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Tue Nov 16 15:06:43 2021 +1100
+
+    Adjusted the permissions
+
+commit 0cf746da762d100deb7ceaf02dd60ed15e0882d4
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Tue Nov 16 14:58:46 2021 +1100
+
+    Updated drive to include printing errors
+
+commit 15650f189b2c35e534bc5ba9f1fd90486f075cc0
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Mon Nov 15 20:58:26 2021 +1100
+
+    Added in locked option for controller drive
+
+commit 11157240a51fa587e64424370e9a49a2c69f7f55
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Sun Nov 14 22:11:04 2021 +1100
+
+    Updated README
+
+commit 95cbe3b5a253dd1c1bd2f6b8536d522b66c7e0c8
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Sun Nov 14 22:02:24 2021 +1100
+
+    Added in a .h file to each of the publishers
+
+commit 398e3e10eba1232af1d121292d68b80a30711422
+Merge: eb033be a04392b
+Author: Harrison Verrios <harrison.v1@live.com>
+Date:   Sun Nov 14 18:00:30 2021 +1100
+
+    Merge pull request #1 from MonashNovaRover/conversion-drive
+    
+    Conversion drive
+
+commit a04392b419739dfab5f93a6562ec000cfb65fd0f
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Sun Nov 14 17:59:10 2021 +1100
+
+    Added in trigger multipliers for additional speed multipliers
+
+commit c16830733ba7a7c7cdfe22b4b659e785a130762d
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Sun Nov 14 17:51:05 2021 +1100
+
+    Added in speed and steer multipliers and connected to buttons
+
+commit 6c134db928e150a7624093a815ca7ca9fd89f35a
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Sun Nov 14 17:32:54 2021 +1100
+
+    Very basic drive node has been created and works with forwards and back inputs
+
+commit 8c7c487231f78f55637eaffaa985c9a9a04c3599
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Sun Nov 14 17:14:29 2021 +1100
+
+    Removed more vscode files
+
+commit 135f4281c19a44b4afe99c40b3374c8cc37cf575
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Sun Nov 14 17:14:00 2021 +1100
+
+    Removed VSCODe files
+
+commit e82304e629e7aebf9147740233762d216625d3d4
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Sun Nov 14 17:11:49 2021 +1100
+
+    Made a publisher that does nothing but is an executable
+
+commit c097e73307cee9f3881a663faed39160fc24dfdd
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Sun Nov 14 16:56:54 2021 +1100
+
+    Updated inputs CMake and started creating drive publisher
+
+commit eb033be4717bd1c0afc7cfc3e33183d67a8748ed
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Sun Nov 14 15:34:07 2021 +1100
+
+    Updated the README
+
+commit df79a06ee3980a857d101c30bd8fd7fdee062603
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Sun Nov 14 15:12:47 2021 +1100
+
+    Formatted the publisher class and works for gamepads
+
+commit b04a00b9be637cc3d42626f4c8c903c9b9ff35a0
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Sun Nov 14 14:42:10 2021 +1100
+
+    Finished formatting the joystick class
+
+commit e6bc214ab1380ed300481c5a538947c8635cd201
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Sun Nov 14 14:27:55 2021 +1100
+
+    Updated the joystick.h file
+
+commit 04d006723a624a60e9cc393a2d5a497ff1b02549
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Sun Nov 14 13:41:46 2021 +1100
+
+    Working joystick - lots of changes still to make
+
+commit fca54eca6f542fce969a1c340eca8c70dde82e78
+Author: harrisonv789 <harrison.v1@live.com>
+Date:   Sat Nov 13 16:46:59 2021 +1100
+
+    State of the Joystick is recorded as floats for each key in controller
+
+commit 9bd6edc5c798ea9b8b476ada69a80f1bb37539b9
+Author: Harrison Verrios <harrison.v1@live.com>
+Date:   Sun Aug 29 15:16:13 2021 +1000
+
+    Fixed up README
+
+commit 2966d6fd31c30a99f244847214127f439eb2b1cf
+Author: Harrison Verrios <harrison.v1@live.com>
+Date:   Thu Aug 12 22:14:05 2021 +1000
+
+    Turned Control into a ROS package
+
+commit 7079e7b50d413a3e557fb6e29fbc049d16d73243
+Author: novarover <53011489+novarover@users.noreply.github.com>
+Date:   Thu Aug 5 13:53:55 2021 +1000
+
+    Initial commit
