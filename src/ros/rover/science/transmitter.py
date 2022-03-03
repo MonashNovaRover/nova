@@ -44,23 +44,13 @@ ACTION_CMD_ID = {
     "linear_actuator": "9",
 }
 
-
-# Old Target Dictionary
-
-TARGET_DICT =  {
-    "payload": "0",
-    "hydraprobe": "1",
-    "kiln": "2"
-}
-
 ACTION_DICT = {
-    "start": "0",
-    "scoop": "1",
-    "linear_actuator": "5",
-    "actuation_top": "6",
-    "actuation_bottom": "7",
-    "distance_sensor": "A",
-    "distance_limit": "B",
+    "start": "00",
+    "scoop": "01",
+    "linear_actuator": "05",
+    "actuation_top": "06",
+    "actuation_bottom": "07",
+    "distance_limit": "0B",
     "distance_sensor_reading": "C",
     "hydraprobe_limits": "1",
     "hydraprobe": "2",
