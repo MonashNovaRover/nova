@@ -3,8 +3,7 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team
 This file contains the ROS2 receiver code for the hydraprobe publisher
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-PACKAGE:     electronics 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ PACKAGE:     electronics 
 AUTHOR(S):    Josh Cherubino
 CREATION:    12/02/2022
 EDITED:      12/02/2022
@@ -19,11 +18,12 @@ from typing import Union, List
 from coms_utils.uart_interface import UARTTransceiver
 
 import rclpy
+import time
 from rclpy.node import Node
 
-from core.msg import HydraprobeData
+from core.msg import HydraprobeData 
 
-class HydraprobeTransceiver(UARTTransceiver):
+class HydraprobeTransceiver(UARTTransceiver): 
     '''
     Class to handle configuring and communicating with moisture probe via USB to RS485 interface
     See datasheet for communication specification:
@@ -31,7 +31,7 @@ class HydraprobeTransceiver(UARTTransceiver):
     '''
 
     def __init__(self, probe_address: str = "000", **kwargs):
-        super().__init(**kwargs)
+        super().__init__(**kwargs)
 
         if len(probe_address) != 3:
             raise ValueError('Probe address must be 3 bytes long')
@@ -78,16 +78,17 @@ class HydraprobeTransceiver(UARTTransceiver):
             if line[-leneol:] == eol:
                 break
 
-        return line
+        # strip address
+        return line[len(self._probe_address):]
     
     def handle(self, data: bytes) -> List[float]:
         '''
         Custom handle function to decode data into string.
         Reading set values are divided by comma so we can split data accordingly
-        '''
-        decoded = data.decode('ascii')
-        return [float(val) for val in decoded.split(',')]
-
+        ''' 
+        decoded = data.decode('ascii') 
+        return [float(val) for val in decoded.split(',')] 
+        
     def update_readings(self) -> bool:
         '''
         Function to update internal readings in sensor
@@ -125,14 +126,22 @@ class HydraprobePublisher(Node):
                 logger = self.get_logger(),
                 baudrate = 9600, # confirm this
                 port = '/dev/ttyUSB0', # TODO: check this
-                probe_address = '///' # TODO: check this. /// is broadcast address for the probes so should be fine to use as long as we only have 1 connected.
+                probe_address = '000', # TODO: check this. /// is broadcast address for the probes so should be fine to use as long as we only have 1 connected.
                 )
-        # timer to periodically update timer readings
-        self.update_readings_timer = self.create_timer(2, self.hydraprobe_transceiver.update_readings)
-        # timer to actually read values and publish data
-        self.publisher_timer = self.create_timer(5, self.publish_values)
+        self.publisher_timer = self.create_timer(3, self.publish_values)
+
+        #self.get_logger().set_level(10) # FOR DEBUGGING
+
+        # get firmware version
+        self.hydraprobe_transceiver.transmit("FV=?")
+        self.get_logger().debug(self.hydraprobe_transceiver.receive().decode('ascii'))
 
     def publish_values(self):
+        # request reading set and wait till its ready
+        self.hydraprobe_transceiver.update_readings()
+        # pretty jank but we will roll with it
+        time.sleep(2)
+        #then read values
         msg = HydraprobeData()
         values = self.hydraprobe_transceiver.get_reading_set(set_number=2)
         if values is not None:
