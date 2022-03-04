@@ -54,6 +54,17 @@ class ResolverTransceiver(UARTTransceiver):
             "j6":               0
         }
 
+        # Create mapping of joint names to desired angular discontinuity angle
+        # Set the discontinuity outside the range of motion of each joint
+        self.discontinuity_angle_map = {
+            "base-rotation":    pi,
+            "shoulder":         pi,
+            "elbow":            pi,
+            "j4":               pi,
+            "j5":               pi,
+            "j6":               0
+        }
+
     def zero(self, joint: str) -> bool:
         '''
         Method to zero a given encoder
@@ -112,6 +123,9 @@ class ResolverTransceiver(UARTTransceiver):
         # for now just mask it out by removing 2 high order bits
         angle_data = self._convert_to_rad(unpacked_data & 0x3FFF)
 
+        # Shift the angle discontinuity out of each joint's range of motion
+        angle_data = self._move_discontinuity(angle_data, self.discontinuity_angle_map[joint])
+
         # Reverse the increasing direction if necessary
         if self.joint_direction_map[joint]:
             angle_data = self.reverse_direction(angle_data)
@@ -123,6 +137,13 @@ class ResolverTransceiver(UARTTransceiver):
         '''
         # value will be between 0 and max 14-bit value 0x3FFF
         return raw_value/0x3FFF * 2*pi
+
+    @staticmethod
+    def _move_discontinuity(angle: float, discontinuity_angle: float) -> float:
+        '''
+        Move the periodic angle discontinuity from 2pi to some specifcied angle
+        '''
+        return angle - 2*pi * (angle >= discontinuity_angle)
 
 class ResolverPublisher(Node):
     def __init__(self):
