@@ -45,6 +45,11 @@ class WristCycloidalModel : public ArmSubModule
         endpoint_names = std::vector<std::string> {"j4-hook", "squooshy"};
         output_name = "sj6";
         zero_angles = std::vector<double> {0, -M_PI / 2, 0};
+        joint_limits = std::vector<JointLimit> {
+            {-2 * M_PI, 2 * M_PI},
+            {-2 * M_PI, 2 * M_PI},
+            {-2 * M_PI, 2 * M_PI}
+        };
 
         // Build the cycloidal wrist
         // Rigid link from root to j4

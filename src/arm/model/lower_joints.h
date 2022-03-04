@@ -46,6 +46,11 @@ class LowerJointsModel : public ArmSubModule
         // No control points
         output_name = "sj3r";
         zero_angles = std::vector<double> {0, M_PI / 2, 0};
+        joint_limits = std::vector<JointLimit> {
+            {-2 * M_PI, 2 * M_PI},
+            {-2 * M_PI, 2 * M_PI},
+            {-2 * M_PI, 2 * M_PI}
+        };
         
         // Build the lower joints
         // Base rotation

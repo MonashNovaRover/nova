@@ -18,7 +18,8 @@ AUTHOR(S):	Jory Braun
 
 // Helper function for defining joint_names and endpoint_names
 // Is static to this file, is not part of ArmModel
-static void append_to_vector(std::vector<std::string>& vec1, std::vector<std::string>& vec2)
+template<typename T>
+static void append_to_vector(std::vector<T>& vec1, std::vector<T>& vec2)
 {
    vec1.insert(vec1.end(), vec2.begin(), vec2.end());
 }
@@ -61,8 +62,10 @@ ArmModel::ArmModel(WristType wrist_type, EndEffectorType end_effector_type) : Tr
         // Add the Tree
         this->addTree(module, output_name);
         // Add the joint and control point names
-        append_to_vector(joint_names, module.joint_names);
-        append_to_vector(endpoint_names, module.endpoint_names);
+        append_to_vector<std::string>(joint_names, module.joint_names);
+        append_to_vector<std::string>(endpoint_names, module.endpoint_names);
+        // Add the joint limits
+        append_to_vector<ArmSubModule::JointLimit>(joint_limits, module.joint_limits);
         // Save the segment name where the next module attaches
         output_name = module.output_name;
     }
