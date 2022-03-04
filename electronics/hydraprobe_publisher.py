@@ -120,7 +120,7 @@ class HydraprobePublisher(Node):
     def __init__(self):
         super().__init__('hydraprobe_publisher')
         # TODO: Update to use actual QoS profile
-        self.publisher_ = self.create_publisher(HydraprobeData, '/electronics/hydraprobe', 10)
+        self.publisher_ = self.create_publisher(HydraprobeData, '/science/hydraprobe_data', 10)
         
         self.hydraprobe_transceiver = HydraprobeTransceiver(
                 logger = self.get_logger(),
