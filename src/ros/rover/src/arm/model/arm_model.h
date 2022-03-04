@@ -32,6 +32,8 @@ TODO:
 #include <vector>
 #include <string>
 
+#include "arm_submodule.h"
+
 #include <kdl/tree.hpp>
 
 
@@ -67,6 +69,9 @@ class ArmModel : public KDL::Tree
     std::string default_endpoint_name;
     // List names of all segments. Used for calculating FK at all coordinate systems on the arm
     std::vector<std::string> segment_names;
+
+    // List joint limits. Indexed to match joint_names
+    std::vector<ArmSubModule::JointLimit> joint_limits;
     
     /// Constructor. Builds the arm with the given wrist and end effector
     ArmModel(WristType wrist_type = WRIST_CYCLOIDAL, EndEffectorType end_effector_type = EE_EQUIPMENT_SERVICING);

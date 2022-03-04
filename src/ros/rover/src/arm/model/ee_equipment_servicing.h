@@ -42,6 +42,7 @@ class EeEquipmentServicingModel : public ArmSubModule
         endpoint_names = std::vector<std::string> {"gripper", "cam-front", "cam-depth", "cam-screw"};
         output_name = "sgripper";
         // No zero angles
+        // No joint limits
 
         // Build the ES end effector
 
