@@ -22,7 +22,7 @@ TOPICS:
 PACKAGE: 	electronics
 AUTHOR(S):	Harrison Verrios, Liam Whittle
 CREATION:	18/02/2022
-EDITED:		24/02/2022
+EDITED:		26/02/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
@@ -87,8 +87,14 @@ class WheelPublisher (Node):
     
         # Create the CAN network
         self.cans = [CANReceiver(channel="can0", filter_ids=[WHEEL_IDS[i]], receive_timeout=0, receive_fmt="<hh", display=False) for i in range(NUM_WHEELS)]
-        self.rpms = [[] for _ in range(NUM_WHEELS)] # build up each inner list to always have 10 elements, [[*10]*6]
+        self.rpms = [[] for _ in range(NUM_WHEELS)]
         self.powers = [[] for _ in range(NUM_WHEELS)]
+=======
+        try:
+            self.cans = [CANReceiver(channel="can0", filter_ids=[WHEEL_IDS[i]], receive_timeout=0.1, receive_fmt="<hh", display=False) for i in range(NUM_WHEELS)]
+        except:
+            print("No CAN 0 line found!")
+            exit()
 
         # Create the publisher
         self.publisher = self.create_publisher(WheelData, "/electronics/wheel_data", 10)
@@ -102,6 +108,7 @@ class WheelPublisher (Node):
 
         # Create a timer to publish the current data
         self.pub_timer = self.create_timer(0.1, self.publish_msg)
+
 
     # Method that looks for any changes in the data from the CAN lines
     def read_callback (self):
@@ -123,7 +130,6 @@ class WheelPublisher (Node):
                 self.rpms[i].append(self.convert_rpm(rpm))
                 if len(self.rpms[i]) >= STORED_DATA_LEN:
                     self.rpms[i].pop(0) # remove the oldest value
-                    #del self.rpms[i][]
                 
                 # Read the power data
                 power = can_msg.data[2:]
@@ -133,7 +139,6 @@ class WheelPublisher (Node):
                 self.powers[i].append(self.convert_power(power))
                 if len(self.powers[i]) >= STORED_DATA_LEN:
                     self.powers[i].pop(0)
-                    #del self.powers[i]
                 
                 # Update the timestamp
                 self.t = time.time() 

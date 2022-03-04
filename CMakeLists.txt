@@ -44,7 +44,7 @@ install(DIRECTORY
 
 # Add all Python executables to this list
 install(PROGRAMS
-  electronics/GPS_test.py
+  electronics/test_GPS.py
   electronics/radio_monitor.py
   electronics/wheel_publisher.py
   electronics/rfid_scanner.py
