@@ -3,6 +3,9 @@
 
 std_msgs/Header header
 
+# Joint limits toggle
+bool joint_limits 0
+
 # Joint-space vs task-space control
 bool ik_linear 0
 bool ik_angular 0
