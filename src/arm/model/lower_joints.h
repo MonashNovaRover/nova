@@ -47,9 +47,9 @@ class LowerJointsModel : public ArmSubModule
         output_name = "sj3r";
         zero_angles = std::vector<double> {0, M_PI / 2, 0};
         joint_limits = std::vector<JointLimit> {
-            {-2 * M_PI, 2 * M_PI},
-            {-2 * M_PI, 2 * M_PI},
-            {-2 * M_PI, 2 * M_PI}
+            {-2 * M_PI, 2 * M_PI},  // No joint limiting
+            {-1.90, 1.50},
+            {-2.10, 1.20}  // Fix the upper limit. Doesn't seem corect
         };
         
         // Build the lower joints
