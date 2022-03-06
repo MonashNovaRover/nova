@@ -130,7 +130,7 @@ class HydraprobePublisher(Node):
                 )
         self.publisher_timer = self.create_timer(3, self.publish_values)
 
-        #self.get_logger().set_level(10) # FOR DEBUGGING
+        self.get_logger().set_level(10) # FOR DEBUGGING
 
         # get firmware version
         self.hydraprobe_transceiver.transmit("FV=?")
