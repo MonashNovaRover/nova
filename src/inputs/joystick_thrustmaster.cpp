@@ -28,6 +28,10 @@ void JoystickThrustmaster::set_message_values() {
     if (msg.connected)
     {          
         // Set the values in the ROS msg to the main stick
+        // Use the same coordinate system as the arm base coordinates
+        // Forward on joystick -> +ve x
+        // Left on joystick -> +ve y
+        // Anticlockwise twist -> +ve z
         msg.ax_stick_x = stick_ly_f;
         msg.ax_stick_y = -stick_lx_f;
         msg.ax_stick_twist = -convert_trg2ax(GamepadTriggerLength(controller, TRIGGER_LEFT) + offset);
@@ -35,6 +39,7 @@ void JoystickThrustmaster::set_message_values() {
         if (msg.ax_stick_twist >= 0.99 - 2 * offset || msg.ax_stick_twist <= -0.99 - 2 * offset) msg.ax_stick_twist = sign(msg.ax_stick_twist);
 
         // Set the values in the ROS msg to thumb stick
+        // Use the same coordinate system as the arm base coordinates
         msg.ax_thumb_x = to_int(-convert_trg2ax(GamepadTriggerLength(controller, TRIGGER_RIGHT)));
         msg.ax_thumb_y = stick_ry_f;
 
