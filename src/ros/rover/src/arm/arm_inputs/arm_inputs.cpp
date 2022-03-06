@@ -38,6 +38,7 @@ void ArmInputs::joystick_l_callback (const core::msg::InputJoystick::SharedPtr m
     
     // Control schemes
     bool control_scheme_update = false;
+    // IK
     if (joystick_l.btn_bottom_r1_state == 1) {
         control_scheme.ik_linear = !control_scheme.ik_linear;
         control_scheme_update = true;
@@ -46,6 +47,7 @@ void ArmInputs::joystick_l_callback (const core::msg::InputJoystick::SharedPtr m
         control_scheme.ik_angular = !control_scheme.ik_angular;
         control_scheme_update = true;
     }
+    // Endpoint frame control
     if (joystick_l.btn_bottom_r2_state == 1) {
         control_scheme.endpoint_frame_linear = !control_scheme.endpoint_frame_linear;
         control_scheme_update = true;
@@ -116,8 +118,11 @@ void ArmInputs::publish_joint_vel ()
     
     // If using lower joints joint-space control
     if (!locked && !control_scheme.ik_linear) {
+        // Base rotation is stick twist. CCW rotates arm CCW (from above)
         joint_velocities.velocity[0] = speed_multiplier * joystick_l.ax_stick_twist;
+        // Shoulder is stick y (left-right). Left moves the arm towards the back of the rover
         joint_velocities.velocity[1] = speed_multiplier * joystick_l.ax_stick_y;
+        // Elbow is stick x (forward-backward). Forward pitches arm down
         joint_velocities.velocity[2] = speed_multiplier * -joystick_l.ax_stick_x;
     }
     else{
@@ -128,8 +133,11 @@ void ArmInputs::publish_joint_vel ()
 
     // If using wrist joint-space control
     if (!locked && !control_scheme.ik_angular) {
+        // J4 is stick x. Forward pitches arm down
         joint_velocities.velocity[3] = speed_multiplier * -joystick_r.ax_stick_x;
+        // J5 is stick y. Left yaws arm left
         joint_velocities.velocity[4] = speed_multiplier * joystick_r.ax_stick_y;
+        // J6 is stick twist. CCW tilts end effector CCW (looking out from end effector)
         joint_velocities.velocity[5] = speed_multiplier * -joystick_r.ax_stick_twist;
     }
     else{
@@ -152,6 +160,7 @@ void ArmInputs::publish_task_vel ()
     
     // If using lower joints IK, set the values for linear velocity
     if (!locked && control_scheme.ik_linear) {
+        // Linear velocities map directly from joystick. Directions are already in arm base coords
         task_velocities.twist.linear.x = speed_multiplier * joystick_l.ax_stick_x;
         task_velocities.twist.linear.y = speed_multiplier * joystick_l.ax_stick_y;
         task_velocities.twist.linear.z = speed_multiplier * joystick_l.ax_stick_twist;
@@ -163,8 +172,13 @@ void ArmInputs::publish_task_vel ()
     }
     // If using wrist IK, set the values for angular velocity
     if (!locked && control_scheme.ik_angular) {
+        // Adjust roll and pitch directions so control is more intuitive
+        // Equivalent to a rotation of the input angular velocity vector by +pi/2 about z axis
+        // Roll is stick y (left-right)
         task_velocities.twist.angular.x = speed_multiplier * -joystick_r.ax_stick_y;
+        // Pitch is stick x (forward-backward)
         task_velocities.twist.angular.y = speed_multiplier * joystick_r.ax_stick_x;
+        // Yaw is stick twist
         task_velocities.twist.angular.z = speed_multiplier * joystick_r.ax_stick_twist;
     }
     else{
