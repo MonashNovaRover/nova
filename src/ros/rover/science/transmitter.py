@@ -15,7 +15,7 @@ SERVICES:
 PACKAGE: 	science
 AUTHOR(S):	Miles Higgins, Harrison Verrios
 CREATION:	15/02/2021
-EDITED:		16/02/2021
+EDITED:		06/03/2021
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
@@ -49,8 +49,8 @@ ACTION_CMD_ID = {
 
 TARGET_DICT =  {
     "payload": "0",
-    "hydraprobe": "1",
-    "kiln": "2"
+    "hydraprobe": "0",
+    "kiln": "1"
 }
 
 ACTION_DICT = {
@@ -63,21 +63,21 @@ ACTION_DICT = {
     "distance_limit": "B",
     "distance_sensor_reading": "C",
     "hydraprobe_limits": "1",
-    "hydraprobe": "2",
-    "hydraprobe_top": "3",
-    "hydraprobe_bottom": "4",
+    "hydraprobe": "02",
+    "hydraprobe_top": "03",
+    "hydraprobe_bottom": "04",
     "kiln_lid": "1",
     "kiln_mixer": "2",
     "kiln_heater": "3",
 }
 
 ARGUMENT_DICT = {
-    "forward": "0",
-    "reverse": "1",
-    "up": "0",
-    "down": "1",
-    "true": "1",
-    "false": "0",
+    "forward": "00",
+    "reverse": "01",
+    "up": "00",
+    "down": "01",
+    "true": "01",
+    "false": "00",
 }
 
 '''
@@ -103,14 +103,15 @@ def parse_command(command_dict):
             argument_codes.append(args[argument])
         else:
             try:
-                argument_codes.append(ARGUMENT_DICT[args[argument]])
+                arg = ARGUMENT_DICT[args[argument]]
             except KeyError:  # if not in dict, assume value is just a number of two hex digits
                 hex = format(int(args[argument]), 'x')
-                argument_codes.append(hex.zfill(2))
+                arg = hex.zfill(2)
+            argument_codes.append(arg)
 
-    code = target_code + action_code + "".join(argument_codes)
+    code = action_code + "".join(argument_codes)
     code = code.ljust(6, "0")
-    return code
+    return (target_code, code)
 
 
 '''
@@ -151,11 +152,13 @@ class ServiceNode(Node):
         # If PICS
         else:
             # Parses the command
-            command = parse_command()
+            id, command = parse_command(json_data)
             print("Executing Command: %s" % command)
 
             # Update the CAN ID
-            self.can.arbitration_id = CAN_ID
+            self.can.arbitration_id = int(id, 16)
+
+        print(command)
 
         # Execute the CAN command
         response.success = self.can.transmit(bytearray.fromhex(command))
