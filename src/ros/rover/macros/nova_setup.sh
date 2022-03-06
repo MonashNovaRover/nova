@@ -112,6 +112,7 @@ sudo apt -y install net-tools
 sudo apt -y install can-utils
 sudo apt -y install exfat-fuse exfat-utils
 sudo gpasswd --add ${USER} dialout
+pip3 install python-can==3.3.4
 
 # ---------------------------------------- #
 
