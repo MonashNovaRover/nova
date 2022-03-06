@@ -198,9 +198,10 @@ void ArmKinematics::publish_joint_velocities()
             twist_angular = endpoint_frame_transform * joystick_input_transform * twist_angular;
         }
     }
-    // Reference frame offset (if endpoint-frame control not applied)
+    // Reference frame offset
     if (control_scheme.base_frame_offset != 0){
         KDL::Rotation base_offset_transform = KDL::Rotation::RotZ(M_PI / 2 * control_scheme.base_frame_offset);
+        // Apply offset only if endpoint-frame control not applied
         if (!control_scheme.endpoint_frame_linear){
             twist_linear = base_offset_transform * twist_linear;
         }
