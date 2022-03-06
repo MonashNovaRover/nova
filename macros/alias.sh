@@ -39,6 +39,8 @@ alias arduino='cd ~/nova_ws/other/arduinos'
 alias arduinos=arduino
 alias ik='cd ~/nova_ws/other/ik_machine'
 alias coms='cd ~/nova_ws/other/coms_utils'
+
+# Camera Aliases
 alias auto_cameras='ros2 launch realsense2-camera rs_d400_and_t265_launch.py'
 alias auto_view='rviz2 -d ~/nova_ws/src/autonomous/settings/auto_vis.rviz'
 
@@ -48,8 +50,9 @@ alias jetson='ssh -Y nvidia@192.168.1.204'
 # GUI Aliases
 alias wombat='cd ~/nova_ws/src/gui/wombatx; npm run start'
 
-# Launching ALaiases
+# Launching Aliases
 alias base='ros2 launch core base.launch.py'
 alias rover='ros2 launch core rover.launch.py'
 alias arm='ros2 launch core arm.launch.py'
 alias arm_spoof='ros2 launch core arm_spoof.launch.py'
+alias sci='ros2 launch core science.launch.py'
