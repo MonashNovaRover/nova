@@ -58,12 +58,6 @@ if(Eigen3_FOUND AND Orocos_kdl_FOUND)
   target_include_directories(arm_kinematics INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/kinematics)
   ament_target_dependencies(arm_kinematics rclcpp core sensor_msgs)
 
-  # Rviz Arm Visualisation script
-  add_executable(rviz_visualisation visualisation/rviz_visualisation.cpp)
-  target_link_libraries(rviz_visualisation print)
-  target_include_directories(rviz_visualisation INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/visualisation)
-  ament_target_dependencies(rviz_visualisation rclcpp sensor_msgs nav_msgs)
-
   # Resolver Spoofer script
   add_executable(resolver_spoofer resolver_spoofer/resolver_spoofer.cpp)
   target_link_libraries(resolver_spoofer arm_core print)
@@ -80,7 +74,6 @@ if(Eigen3_FOUND AND Orocos_kdl_FOUND)
     arm_inputs
     arm_driver
     arm_kinematics
-    rviz_visualisation
     resolver_spoofer
     DESTINATION lib/${PROJECT_NAME}
   )
