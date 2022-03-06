@@ -10,6 +10,7 @@ NODES:
   - control/arm/arm_control             [arm_control]
   - control/arm/arm_kinematics          [arm_kinematics]
   - control/arm/resolver_spoofer        [resolver_spoofer]
+  - visualisation/arm_viz_publisher     [arm_viz_publisher]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	core
 CREATION:	1/03/2022
@@ -31,4 +32,6 @@ def generate_launch_description():
             package='control', node_executable='arm_kinematics', output='screen'),
         launch_ros.actions.Node(
             package='control', node_executable='resolver_spoofer', output='screen'),
+        launch_ros.actions.Node(
+            package='visualisation', node_executable='arm_viz_publisher', output='screen'),
     ])

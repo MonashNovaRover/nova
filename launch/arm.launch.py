@@ -11,6 +11,7 @@ NODES:
   - control/arm/arm_kinematics          [arm_kinematics]
   - control/arm/arm_driver              [arm_driver]
   - electronics/electronics             [resolver_publisher.py]
+  - visualisation/arm_viz_publisher     [arm_viz_publisher]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	core
 CREATION:	17/12/2021
@@ -34,4 +35,6 @@ def generate_launch_description():
             package='control', node_executable='arm_kinematics', output='screen'),
         launch_ros.actions.Node(
             package='electronics', node_executable='resolver_publisher.py', output='screen'),
+        launch_ros.actions.Node(
+            package='visualisation', node_executable='arm_viz_publisher', output='screen'),
     ])
