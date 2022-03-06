@@ -38,6 +38,7 @@ void ArmInputs::joystick_l_callback (const core::msg::InputJoystick::SharedPtr m
     
     // Control schemes
     bool control_scheme_update = false;
+    // IK
     if (joystick_l.btn_bottom_r1_state == 1) {
         control_scheme.ik_linear = !control_scheme.ik_linear;
         control_scheme_update = true;
@@ -46,6 +47,7 @@ void ArmInputs::joystick_l_callback (const core::msg::InputJoystick::SharedPtr m
         control_scheme.ik_angular = !control_scheme.ik_angular;
         control_scheme_update = true;
     }
+    // Endpoint frame control
     if (joystick_l.btn_bottom_r2_state == 1) {
         control_scheme.endpoint_frame_linear = !control_scheme.endpoint_frame_linear;
         control_scheme_update = true;
