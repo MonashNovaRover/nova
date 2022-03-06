@@ -40,8 +40,8 @@ TARGET_USE_CMD = {
 }
 
 ACTION_CMD_ID = {
-    "scoop": "8",
-    "linear_actuator": "9",
+    "scoop": "09",
+    "linear_actuator": "08",
 }
 
 
@@ -74,8 +74,8 @@ ACTION_DICT = {
 ARGUMENT_DICT = {
     "forward": "00",
     "reverse": "01",
-    "up": "00",
-    "down": "01",
+    "up": "01",
+    "down": "00",
     "true": "01",
     "false": "00",
 }
@@ -143,9 +143,14 @@ class ServiceNode(Node):
         # If CMD
         if TARGET_USE_CMD[json_data["target"]]:
             command = "00"
+            
+            if json_data["args"]["direction"] in ("forward", "down"):
+                arg = "1"
+            else:
+                arg = "2"
 
             # Update the CAN ID
-            new_id = ACTION_CMD_ID[json_data["action"]] + ARGUMENT_DICT[json_data["args"]["direction"]]
+            new_id = ACTION_CMD_ID[json_data["action"]] + arg
             self.can.arbitration_id = int(new_id, 16)
 
 
