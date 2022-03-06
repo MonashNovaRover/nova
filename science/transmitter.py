@@ -144,10 +144,18 @@ class ServiceNode(Node):
         if TARGET_USE_CMD[json_data["target"]]:
             command = "00"
             
-            if json_data["args"]["direction"] in ("forward", "down"):
-                arg = "1"
+            if json_data["action"] == "scoop":
+                arg = "3"
+                if json_data["args"]["direction"] in ("forward", "down"):
+                    command = "FFFF"
+                else:
+                    command = "00"
+                    arg = "2"
             else:
-                arg = "2"
+                if json_data["args"]["direction"] in ("forward", "down"):
+                    arg = "1"
+                else:
+                    arg = "2"
 
             # Update the CAN ID
             new_id = ACTION_CMD_ID[json_data["action"]] + arg
