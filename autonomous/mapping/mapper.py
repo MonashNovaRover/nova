@@ -1,5 +1,7 @@
-__package__ = "autonomous"
 #!/usr/bin/python3
+
+__package__ = "autonomous"
+
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team. Base Mapper class that
@@ -9,17 +11,14 @@ with more evolved obstacle detection algorithms
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: points_grid
 TOPICS:
-  
-  - /camera/depth/color/points [sensor_msgs.msg.PointCloud2]
-  - /t265/odom/sample
+  - Subscriber: /camera/depth/color/points [sensor_msgs.msg.PointCloud2]
+  - Subscriber: /t265/odom/sample [nav_msgs.msg.Odometry]
 
-SERVICES:
-  - 
+SERVICES: None
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	autonomous
-AUTHOR(S):	Lucas, Kelly, Kelvin, Amesh, Liam,
-                Max
+AUTHOR(S):	Lucas, Kelly, Kelvin, Amesh, Liam, Max
 CREATION:	27/09/2021
 EDITED:		17/02/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -35,9 +34,6 @@ import math_utils.transform as transform
 from sensor_msgs.msg import PointField
 from nav_msgs.msg import Odometry
 from mapping.grid_3d import Grid3D
-from mapping.grid_2d import Grid2D
-from planning.path_planner import PathPlanner
-import matplotlib.pyplot as plt
 import numpy as np
 import vis.pc_pub as pc_pub
 import time
@@ -45,10 +41,10 @@ from cameras.depth_camera import DepthCamera
 from config.ros_config import tracking_pose_topic, depth_topic
 from config.runtime_params import max_point_depth, max_fov_angle, depth_mode, skip_pts
 
+
 class Mapper(Node):
     def __init__(self, length=20, width=20, height=5, resolution=0.1, planner=None, camera=False, _vis=True):
 
-        # init node with node name points
         super().__init__('points_grid')
         self.subscriber_tracking = self.create_subscription(Odometry, tracking_pose_topic, self.tracking_callback, 100)
         self.planner = planner
@@ -64,9 +60,11 @@ class Mapper(Node):
         self.previous_plan = time.perf_counter()
 
         self.msg = None
-        
-        # for visualising the map
-        self.pc_pub = pc_pub.PCPub("map_cloud")
+
+        if self.vis:
+            self.pc_pub = pc_pub.PCPub("map_cloud")
+        else:
+            self.pc_pub = None
 
         if depth_mode == "ros":
             self.subscriber_points = self.create_subscription(PointCloud2, depth_topic, self.ros_points_callback, 10)
@@ -126,8 +124,8 @@ class Mapper(Node):
         pts = pts[list(range(0, len(pts), 10))]
         
         # 7. further pruning out points which are either beyond the max dist, or are outside the max angle
-        indexes = (self.row_norm(pts) < self.max_dist) & (abs(np.arctan(pts[:, 1] / pts[:, 0])) < self.max_angle) \
-                  & (abs(np.arctan(pts[:, 2] / pts[:, 0])) < self.max_angle)
+        indexes = (self.row_norm(pts) < max_point_depth) & (abs(np.arctan(pts[:, 1] / pts[:, 0])) < max_fov_angle) \
+                  & (abs(np.arctan(pts[:, 2] / pts[:, 0])) < max_fov_angle)
         
         pts = pts[indexes]
         colors = colors[indexes]
@@ -162,13 +160,12 @@ class Mapper(Node):
         """
         Publishes the map to ros for RVIZ to visualise
         """
-        pts = self._map3d.get_as_pc()
-        
-        # setting colors proportional to the height of points - hopefully looks cool!
         if self.vis:
+            pts = self._map3d.get_as_pc()
             max_z = 10
-            colors = np.array([(abs(pts[:, 2]) + 1 / max_z) * 250.0 % 250, np.full(len(pts), 0), abs(max_z - abs(pts[:,2]) - 1) * 250 % 250]).transpose()
-            
+            # setting colors proportional to the height of points - hopefully looks cool!
+            colors = np.array([(abs(pts[:, 2]) + 1 / max_z) * 250.0 % 250, np.full(len(pts), 0),
+                               abs(max_z - abs(pts[:, 2]) - 1) * 250 % 250]).transpose()
             self.pc_pub.pub_pts_colors(pts, colors.astype(int))
 
     def get_2d_map(self):
@@ -191,7 +188,6 @@ class Mapper(Node):
         # transform the points
         if self.msg:
             self.handle_pc(pts)
-            
         self.publish()
 
         if time.perf_counter() - self.previous_plan > 1:
@@ -199,7 +195,6 @@ class Mapper(Node):
                 # OLD WAY - MAP LAYERS
                 self.planner.get_path(self.get_2d_map())
                 self.previous_plan = time.perf_counter()
-
 
     def get_pts(self, pts):
         # 1. Transform to tracking camera coordinates
@@ -234,7 +229,7 @@ class Mapper(Node):
     def ros_points_callback(self, msg):
         self.msg = self.last_msg
         pts, colors = self.get_points_and_colors(msg)
-        self.update_map3d(pts)
+        self._map3d.add_pc(pts, colors)
         # every 2 seconds we run planning
         if time.perf_counter() - self.previous_plan > 2:
             if self.planner:
@@ -246,16 +241,16 @@ class Mapper(Node):
         This was more of an experiment, but it's probably completely pointless (hehe)
         """
         pts, colors = self._map3d.get_as_pc()
-        colors = colors + [254,254,254]
+        colors = colors + [254, 254, 254]
         print(pts)
         pts_dense = pts[:]
         colors_dense = colors[:]
         self.pc_pub.pub_pts_colors(pts, colors)
-        min_z = np.min(pts[:,2])
-        max_z = np.max(pts[:,2])
-        colors[:,2] = 254 * abs(pts[:,2]) / max_z
-        colors[:,0] = 200 * (max_z - abs(pts[:,2])) / max_z
-        colors[:,1] = 100 * (max_z - abs(pts[:,2])) / max_z
+        min_z = np.min(pts[:, 2])
+        max_z = np.max(pts[:, 2])
+        colors[:, 2] = 254 * abs(pts[:, 2]) / max_z
+        colors[:, 0] = 200 * (max_z - abs(pts[:, 2])) / max_z
+        colors[:, 1] = 100 * (max_z - abs(pts[:, 2])) / max_z
         for x in range(extra_pts + 1):
             x_shift = [(self.resolution / (extra_pts + 1)) * x, 0, 0]
             for y in range(extra_pts + 1):
@@ -278,6 +273,7 @@ def position_callback(msg):
     # print(msg.pose.pose.position.x)
     pass
 
+
 def main(args=None):
     rclpy.init(args=args)
     # reset_cameras.reset_cameras()
@@ -288,9 +284,12 @@ def main(args=None):
 
 
 def vis():
+    """
+    Example function loads a pre existing map into voxel memory and visualises it as a point-cloud
+    """
     rclpy.init()
     m = Mapper(length=10, width=10, height=5, resolution=.2)
-    m.map3d.map = np.load("resources/environment.npy")
+    m._map3d.map = np.load("resources/environment.npy")
     m.publish_vis_dense(extra_pts=2)
 
 

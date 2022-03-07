@@ -36,6 +36,7 @@ import math_utils.transform as transform
 from config.runtime_params import max_fov_angle, max_point_depth, max_safe_inc
 from plane_fitter import get_obstacles as get_plane_obstacles
 
+
 class PlaneMapper(FlatMapper):
     def __init__(self, length=20, width=20, height=5, resolution=0.1, detection_resolution=0.025, planner=None, _vis=True, camera=False):
 

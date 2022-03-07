@@ -37,7 +37,6 @@ from rclpy.node import Node
 from math_utils.controller_math import *
 from config.runtime_params import *
 from core.msg import DriveInput, RoverPose, Waypoints
-import sys
 import vis.path_vis as path_vis
 
 from config.ros_config import rover_pose_topic
@@ -173,7 +172,7 @@ class Controller(Node):
 
         else:
             # If distance to the waypoint is lower than the threshold distance, we have arrived
-            print("Reached way-point: " + str(self.target_waypoint))
+            self.get_logger().info("Reached way-point: " + str(self.target_waypoint))
             self.target_waypoint = None
 
 

@@ -1,5 +1,7 @@
-__package__ = "autonomous"
 #!/usr/bin/env python3
+
+__package__ = "autonomous"
+
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team
@@ -26,10 +28,14 @@ AUTHOR(S):      Max Tory
 CREATION:       07/12/2021
 EDITED:         07/12/2021
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+TODO: 
+- update led according to distance?
+- test all publishers and subscribers
+- investigate more efficient/accurate drive control methods than repeated tank turning and forward driving
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
 import rclpy
-from time import sleep
 from rclpy.node import Node
 from math_utils.controller_math import *
 from config.runtime_params import *
@@ -40,13 +46,6 @@ import vis.path_vis as path_vis
 from config.ros_config import rover_pose_topic
 from config.ros_config import auto_drive_command_topic
 from config.ros_config import auto_goals_topic
-
-
-"""
-TODO: update led according to distance?
-TODO: test all publishers and subscribers
-TODO: investigate more efficient/accurate drive control methods than repeated tank turning and forward driving
-"""
 
 
 class Controller(Node):
@@ -66,11 +65,11 @@ class Controller(Node):
         self.previously_turned = False
         self.max_distance = 0.0001  # furthest distance to an object? not sure
         
-        #Star parameters
-        #Statics
+        # Star parameters
+        # Statics
         self.MAX_YAW = np.pi / 7.5
         self.MAX_TRAVERSAL_DISTANCE = 1
-        #Variables
+        # Variables
         self.star_state = 0 
         self.first_drive = True
         self.direction = -1
@@ -124,8 +123,6 @@ class Controller(Node):
                          + " | yaw diff: " + str(round(yaw_diff, 4)).ljust(pad) + " | distance: " + str(
             round(dist, 4)).ljust(pad))
         sys.stdout.flush()
-    
-    
     
     def go_to_target(self):
         """

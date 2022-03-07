@@ -1,14 +1,6 @@
-_package__ = "autonomous"
 #!/usr/bin/env python3
-import time
-from a_star import a_star
+_package__ = "autonomous"
 
-# NOTE should probably call these something else since they are not only used by controller
-from config.runtime_params import *
-from math_utils.controller_math import *
-
-from rclpy.node import Node
-from core.msg import Waypoints, Waypoint, RoverPose
 
 """
 Author: Aidan Pritchard, Max Tory and Liam Whittle
@@ -22,6 +14,12 @@ Published topic/s:
 Services:
 
 """
+
+
+from a_star import a_star
+from math_utils.controller_math import *
+from rclpy.node import Node
+from core.msg import Waypoints, Waypoint, RoverPose
 
 
 class PathPlanner(Node):
@@ -46,7 +44,6 @@ class PathPlanner(Node):
     def get_grid_coord(self, position):
         return int((position[0] + self.length_meters / 2) / self.resolution), \
                int((position[1] + self.width_meters / 2) / self.resolution)
-               
 
     def get_float_position(self, coord):
         return coord[0] * self.resolution - self.length_meters / 2, \

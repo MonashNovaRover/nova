@@ -18,12 +18,12 @@ from core.msg import Waypoints
 class PathCloud(Node):
     def __init__(self):
         
-        super().__init__("path_cloud")
+        super().__init__("path_cloud_spiral")
         
         # create the point-cloud publisher (this is how we will visualise the rover)
-        self.pc_pub = pc_pub.PCPub("path_cloud")
+        self.pc_pub = pc_pub.PCPub("path_cloud_sim")
          
-        self.subscriber_path = self.create_subscription(Waypoints, '/autonomous/goals', self.path_callback, 10)
+        self.subscriber_path = self.create_subscription(Waypoints, '/autonomous/goals_sim', self.path_callback, 10)
     
     def path_callback(self, msg):
         path = [(pt.x, pt.y) for pt in msg.waypoints]
