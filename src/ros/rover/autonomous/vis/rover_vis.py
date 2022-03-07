@@ -23,7 +23,7 @@ class RoverCloud(Node):
         if mode == "from_pc":
 
             # create the point-cloud publisher (this is how we will visualise the rover)
-            self.pc_pub = pc_pub.PCPub("rover_cloud")
+            self.pc_pub = pc_pub.PCPub("rover_cloud_2")
             
             # import the rover from mesh file
             mesh = o3d.io.read_triangle_mesh("resources/rover.ply")
@@ -48,65 +48,29 @@ class RoverCloud(Node):
 
             # this is the thing we publish. It should be a set of points where if there is a (0,0,0) translation,
             # the rover is  just sitting on the ground at the
-            self.origin_rover_pts = pts
+            self.origin_rover_pts = pts 
              
             # save to file
             np.save("rover", pts)
             
             self.subscriber_points = self.create_subscription(Odometry, tracking_pose_topic, self.callback, 10)
-       
+        
+        # this is what we usually run
         else:
-            # create the point-cloud publisher (this is how we will visualise the rover)
-            self.pc_pub = pc_pub.PCPub("rover_cloud")
-            
-            # this is the thing we publish. It should be a set of points where if there is a (0,0,0) translation,
-            # the rover is just sitting on the ground at the origin
+            self.pc_pub = pc_pub.PCPub("rover_cloud_2")
             self.origin_rover_pts = np.load("resources/rover.npy")
-            
             self.subscriber_points = self.create_subscription(Odometry, tracking_pose_topic, self.callback, 10)
 
     def callback(self, msg):
-        self.pub_rover_cameras_at(msg)
+        self.pub_rover_at(msg)
 
     def pub_rover_at(self, msg):
-        
-        """
-        For publishing the rover based on a center wheel bsed (0,0,0)
-        """
-
-        x = msg.pose.pose.position.x
-        y = msg.pose.pose.position.y
-        z = msg.pose.pose.position.z
-        
-        # applies transformation then translation
-        pts = self.origin_rover_pts
-        mat = transform.get_pc_rotation_matrix(msg)
-        pts = np.matmul(mat, pts.transpose()).transpose()
-        pts = pts + [x, y, z]
-
-        # the rover signature orange^tm
-        pts = [pt.tolist() + [0, 77, 255, 0] for pt in pts]
-        self.pc_pub.pub(pts)
-        
-    def pub_rover_cameras_at(self, msg):
         """
         For publishing the rover where the cameras represent (0,0,0)
         """
         
-        x = msg.pose.pose.position.x
-        y = msg.pose.pose.position.y
-        z = msg.pose.pose.position.z
-        
-        # applies transformation then translation
         pts = self.origin_rover_pts
-
-        # apply translation to make cameras at [0,0,0]
-        pts = pts + tracking_camera_extrinsics
-
         pts = transform.transform_points(msg, pts)
-        pts = pts + [x, y, z]
-
-        # the rover signature orange^tm
         pts = [pt.tolist() + [0, 77, 255, 0] for pt in pts]
         self.pc_pub.pub(pts)
 
