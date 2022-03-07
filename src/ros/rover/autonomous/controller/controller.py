@@ -1,5 +1,7 @@
-__package__ = "autonomous"
 #!/usr/bin/env python3
+
+__package__ = "autonomous"
+
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team
@@ -14,11 +16,10 @@ Liam Whittle
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: Controller
 TOPICS:
-        self.drive_cmd_publisher = self.create_publisher(DriveInput, auto_drive_command_topic, 10)
-        self.pose_subscriber = self.create_subscription(RoverPose, rover_pose_topic, self.update_pose, 10)
-        self.waypt_subscriber = self.create_subscription(Waypoints, auto_goals_topic, self.add_waypoints, 10)
-SERVICES:
-  - None
+        - Publishes: /autonomous/drive_inputs [DriveInput]
+        - Subscribes: /rover/pose [RoverPose]
+        - Subscribes: /autonomous/goals [Waypoints]
+SERVICES: None
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:        autonomous
@@ -26,10 +27,12 @@ AUTHOR(S):      Max Tory
 CREATION:       07/12/2021
 EDITED:         07/12/2021
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+TODO: update led according to distance?
+TODO: test all publishers and subscribers
+TODO: investigate more efficient/accurate drive control methods than repeated tank turning and forward driving
 """
 
 import rclpy
-from time import sleep
 from rclpy.node import Node
 from math_utils.controller_math import *
 from config.runtime_params import *
@@ -40,13 +43,6 @@ import vis.path_vis as path_vis
 from config.ros_config import rover_pose_topic
 from config.ros_config import auto_drive_command_topic
 from config.ros_config import auto_goals_topic
-
-
-"""
-TODO: update led according to distance?
-TODO: test all publishers and subscribers
-TODO: investigate more efficient/accurate drive control methods than repeated tank turning and forward driving
-"""
 
 
 class Controller(Node):
@@ -108,13 +104,14 @@ class Controller(Node):
         # publish to public topic
         self.drive_cmd_publisher.publish(drive_cmd_msg)
 
-    @staticmethod
-    def print_update(action_msg, heading_to, yaw_diff, dist):
+    def log_update(self, action_msg: str, heading_to: tuple, yaw_diff: float, dist: float) -> None:
+        """
+        Logs the current action to ros logging
+        """
         pad = 10
-        sys.stdout.write("\r" + "Action: " + action_msg.ljust(pad) + " | heading to: " + str(heading_to).ljust(pad)
-                         + " | yaw diff: " + str(round(yaw_diff, 4)).ljust(pad) + " | distance: " + str(
-            round(dist, 4)).ljust(pad))
-        sys.stdout.flush()
+        action = "Action: " + action_msg.ljust(pad) + " | heading to: " + str(heading_to).ljust(pad) + " | yaw diff: " \
+                 + str(round(yaw_diff, 4)).ljust(pad) + " | distance: " + str(round(dist, 4)).ljust(pad)
+        self.get_logger().info(action)
 
     def go_to_target(self):
         """
@@ -132,13 +129,13 @@ class Controller(Node):
         
         yaw_diff = yaw_difference(current_orientation, desired_orientation)
 
-        if abs(yaw_diff) >= (min_yaw_difference):
+        if abs(yaw_diff) >= min_yaw_difference:
             # turn at a rate determined by the tank_turn_target_yaw_rate function
             steer_fraction = tank_turn_target_yaw_rate(yaw_diff)
             self.__publish(0.05, steer_fraction)
 
-            Controller.print_update("yawing", self.target_waypoint, yaw_diff,
-                                    distance((self.state.x, self.state.y), self.target_waypoint))
+            self.log_update("yawing", self.target_waypoint, yaw_diff, distance((self.state.x, self.state.y),
+                                                                               self.target_waypoint))
 
             self.previously_turned = True
 
@@ -152,8 +149,8 @@ class Controller(Node):
             drive_fraction = crow_fly_target_velocity((self.state.x, self.state.y), self.target_waypoint)
             self.__publish(drive_fraction, 0.0)
 
-            Controller.print_update("heading", self.target_waypoint, yaw_diff,
-                                    distance((self.state.x, self.state.y), self.target_waypoint))
+            self.log_update("heading", self.target_waypoint, yaw_diff, distance((self.state.x, self.state.y),
+                                                                                self.target_waypoint))
 
     def control(self):
         """
