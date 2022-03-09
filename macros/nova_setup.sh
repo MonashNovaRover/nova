@@ -41,6 +41,8 @@ information () {
 
 # Prompt the user to run program
 title "NOVA ROVER INSTALLATION SCRIPT"
+echo "Make sure you have set up your Git account before starting this installation."
+echo "   This will include having a correct SSH key associated with your MNR account."
 echo "This script will delete the current nova_ws folder, if it exists."
 echo "Enter (Y)es to confirm or any key to cancel."
 read confirmation
@@ -113,6 +115,18 @@ sudo apt -y install can-utils
 sudo apt -y install exfat-fuse exfat-utils
 sudo gpasswd --add ${USER} dialout
 pip3 install python-can==3.3.4
+
+# Installing IK and the arm tools
+sudo apt install libeigen3-dev libcppunit-dev -y
+cd ~
+git clone git@github.com:orocos/orocos_kinematics_dynamics.git
+mkdir -p orocos_kdl_builds/build.1.5.1  # Modify version number as needed
+cd orocos_kdl_builds/build.1.5.1
+cmake ~/orocos_kinematics_dynamics/orocos_kdl
+make
+sudo make install
+cd ~
+rm -rf orocos_kinematics_dynamics
 
 # ---------------------------------------- #
 
