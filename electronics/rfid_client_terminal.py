@@ -44,11 +44,10 @@ class RFIDClient(Node):
         split_string = input('>>>').strip().split(' ', 1)
         # should always be at least 1 element
         req.command = split_string[0]
-        if len(split_string == 2):
+        if len(split_string) == 2:
             req.data = split_string[1]
 
         self.future = self.cli.call_async(req)
-
 
 def main(args=None):
     rclpy.init(args=args)
