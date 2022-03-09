@@ -1,5 +1,24 @@
-# TODO: Add timeouts to reading
-# TODO: more sophisticated write error handling
+#!/usr/bin/env python3
+"""
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Monash Nova Rover Team
+This file contains the RFID service to receive service requests, which are then 
+transmitted to the controlling arduino as appropriate, with the text response being
+returned to the calling client for use as required
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PACKAGE:     electronics
+AUTHOR(S):    Josh Cherubino
+CREATION:    not sure lol
+EDITED:      9/3/2022 by Josh Cherubino
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Available services:
+    - /electronics/rfid_service with core/srv/RFIDCommand type
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+TODO:
+    - Add timeouts to reading
+    - Add more sophisticated write error handling
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+"""
 from core.srv import RFIDCommand
 
 import rclpy
