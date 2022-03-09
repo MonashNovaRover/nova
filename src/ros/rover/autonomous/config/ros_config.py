@@ -19,10 +19,10 @@ depth_topic = "/D400/depth/color/points"
 depth_point_cloud_topic = "/camera/depth/color/points"
 # position of centre of wheel base relative to tracking cam
 tracking_camera_extrinsics = [-.48, 0., -0.48] 
+auto_waypoints_topic = "/autonomous/goals"
 
 # ~~~~~~~~~~~~~~~~~~ Autonomous ~~~~~~~~~~~~~~~~~~~~~~
 auto_drive_command_topic = "/autonomous/drive_inputs"
-auto_goals_topic = "/autonomous/goals"
 rover_pose_topic = "/rover/pose"
 ar_track_topic = "/autonomous/ar_tag"
 
