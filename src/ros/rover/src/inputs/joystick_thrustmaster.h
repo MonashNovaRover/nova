@@ -29,6 +29,10 @@ class JoystickThrustmaster : public Joystick {
 
     /// @brief      Stores the message data from the joystick
     core::msg::InputJoystick msg;
+
+    /// @brief      Flags for whether or not certain values have changed
+    bool valid_ax_stick_twist = false;
+    bool valid_ax_thumb_y = false;
     
 
     //------------------------------------------------------------//
@@ -36,6 +40,9 @@ class JoystickThrustmaster : public Joystick {
 
     /// @brief      Sets the message values stored in the message object
     void set_message_values() override;
+
+    /// @brief      Checks the current inputs to make sure they are valid
+    void check_valid_inputs();
 
 
     //------------------------------------------------------------//
@@ -49,4 +56,7 @@ class JoystickThrustmaster : public Joystick {
     /// @brief      Gets the message object from the instance
     /// @returns    The Input Joystick message object with data
     core::msg::InputJoystick get_message();
+
+    /// @brief       Resets the invalid inputs back to zero
+    void reset_inputs ();
 };
