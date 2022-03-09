@@ -85,7 +85,7 @@ class WheelPublisher (Node):
         self.t = time.time()
     
         # Create the CAN network
-        self.cans = [CANReceiver(channel="can0", filter_ids=[WHEEL_IDS[i]], receive_timeout=1, receive_fmt="<hh", display=False, bitrate=500000) for i in range(NUM_WHEELS)]
+        self.cans = [CANReceiver(channel="can0", filter_ids=[WHEEL_IDS[i]], receive_timeout=1, receive_fmt="<hh", bitrate=500000) for i in range(NUM_WHEELS)]
         self.rpms = [0 for _ in range(NUM_WHEELS)]
         self.powers = [0 for _ in range(NUM_WHEELS)]
 
@@ -114,19 +114,14 @@ class WheelPublisher (Node):
             # If a message exists
             if can_msg:
                 # Read the velocity data
-                rpm = can_msg.data[:2]
-                rpm = int.from_bytes(rpm, "little", signed=True)
+                (rpm, power) = self.cans[i].unpack(can_msg.data)
                 # Get a negative for some wheels
                 if i <= 2: rpm *= -1
 
-                # operating as a FIFO Queue with max len STORED_DATA_LEN
+                # RPM operating as a FIFO Queue with max len STORED_DATA_LEN self.rpms[i] = self.convert_rpm(rpm)
                 self.rpms[i] = self.convert_rpm(rpm)
                 
-                # Read the power data
-                power = can_msg.data[2:]
-                power = int.from_bytes(power, "little", signed=True)               
-
-                # operating as a FIFO Queue with max len STORED_DATA_LEN
+                # Power operating as a FIFO Queue with max len STORED_DATA_LEN
                 self.powers[i] = self.convert_power(power)
                 
                 # Update the timestamp
