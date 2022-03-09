@@ -69,7 +69,7 @@ class Mapper(Node):
             self.subscriber_points = self.create_subscription(PointCloud2, depth_topic, self.ros_points_callback, 10)
             self.has_color = True
 
-        elif depth_mode == "python":
+        else: 
             if not camera:
                 self.camera = DepthCamera(self.python_callback)
                 # starts a separate thread which will get depth frames and update mapper
