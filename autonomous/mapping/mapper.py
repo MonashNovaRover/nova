@@ -70,7 +70,7 @@ class Mapper(Node):
             self.has_color = True
 
         else: 
-            if not camera:
+            if camera:
                 self.camera = DepthCamera(self.python_callback)
                 # starts a separate thread which will get depth frames and update mapper
                 self.camera.start()

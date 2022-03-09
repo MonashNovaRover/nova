@@ -39,10 +39,7 @@ from config.runtime_params import *
 from core.msg import DriveInput, RoverPose, Waypoints
 import vis.path_vis as path_vis
 
-from config.ros_config import rover_pose_topic
-from config.ros_config import auto_drive_command_topic
-from config.ros_config import auto_goals_topic
-
+from config.ros_config import *
 
 class Controller(Node):
     """
@@ -65,7 +62,7 @@ class Controller(Node):
 
         self.drive_cmd_publisher = self.create_publisher(DriveInput, auto_drive_command_topic, 10)
         self.pose_subscriber = self.create_subscription(RoverPose, rover_pose_topic, self.update_pose, 10)
-        self.waypt_subscriber = self.create_subscription(Waypoints, auto_goals_topic, self.add_waypoints, 10)
+        self.waypt_subscriber = self.create_subscription(Waypoints, auto_waypoints_topic, self.add_waypoints, 10)
 
         # Controls the rate at which drive commands are sent - sleeps for the necessary time to maintain the rate given
         self.timer = self.create_timer(0.1, self.control)

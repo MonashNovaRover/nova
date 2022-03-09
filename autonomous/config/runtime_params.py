@@ -20,6 +20,8 @@ controller_ros_rate = 10  # 10hz
 
 # ~~~~~~~~~~ PLANNING CONSTANTS ~~~~~~~~~~~~~~~
 planning_rate = 2.0
+min_ar_distance = 0.2 
+max_ar_distance = 15.0
 
 # ~~~~~~~~~~ MAPPING CONSTANTS ~~~~~~~~~~~~~~~~
 min_point_density = 3  # number of points in voxel before we accept it
