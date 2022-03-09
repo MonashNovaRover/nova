@@ -57,6 +57,12 @@ ENCODER_TO_RPM = 92.9
 # Store the wheel radius [m]
 WHEEL_RADIUS = 0.122
 
+# The rate (times per second) to publish the wheels at
+PUBLISH_RATE = 20
+
+
+
+
 # Main Wheel Publisher class
 class WheelPublisher (Node):
 
@@ -79,7 +85,7 @@ class WheelPublisher (Node):
         self.t = time.time()
     
         # Create the CAN network
-        self.cans = [CANReceiver(channel="can0", filter_ids=[WHEEL_IDS[i]], receive_timeout=1, receive_fmt="<hh", display=False, bitrate=200000) for i in range(NUM_WHEELS)]
+        self.cans = [CANReceiver(channel="can0", filter_ids=[WHEEL_IDS[i]], receive_timeout=1, receive_fmt="<hh", display=False, bitrate=500000) for i in range(NUM_WHEELS)]
         self.rpms = [0 for _ in range(NUM_WHEELS)]
         self.powers = [0 for _ in range(NUM_WHEELS)]
 
@@ -91,10 +97,10 @@ class WheelPublisher (Node):
         self.subscription_a = self.create_subscription(DriveInput, "/autonomous/drive_inputs",  self.drive_callback, 10)
 
         # Create a time to constantly loop and check for data
-        self.read_timer = self.create_timer(0.2, self.read_callback)
+        self.read_timer = self.create_timer(0.01, self.read_callback)
 
         # Create a timer to publish the current data
-        #self.pub_timer = self.create_timer(0.2, self.publish_msg)
+        self.pub_timer = self.create_timer(1.0/float(PUBLISH_RATE), self.publish_msg)
 
 
     # Method that looks for any changes in the data from the CAN lines
@@ -125,8 +131,6 @@ class WheelPublisher (Node):
                 
                 # Update the timestamp
                 self.t = time.time()
-                
-        self.publish_msg()
 
 
     # Callback that reads an input message from the drive commands
