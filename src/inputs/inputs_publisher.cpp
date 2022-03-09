@@ -61,25 +61,31 @@ void InputsPublisher::publish_input () {
     gamepad->update();
     joystick_l->update();
     joystick_r->update();
-    
-    // Publish each of the data streams
-    gamepad_publisher->publish(gamepad->get_message());
-    joystick_l_publisher->publish(joystick_l->get_message());
-    joystick_r_publisher->publish(joystick_r->get_message());
 
     // Display information about connections (in case they change)
     if (gamepad->is_disconnected())
         Print::print("Device Disconnected: 'Gamepad'", C_FAIL);
     else if (gamepad->is_reconnected())
         Print::print("Device Connected:    'Gamepad'", C_SUCCESS);
-    if (joystick_l->is_disconnected())
+
+    if (joystick_l->is_disconnected()) {
         Print::print("Device Disconnected: 'Left Joystick'", C_FAIL);
+        joystick_l->reset_inputs();
+    }
     else if (joystick_l->is_reconnected())
         Print::print("Device Connected:    'Left Joystick'", C_SUCCESS);
-    if (joystick_r->is_disconnected())
+
+    if (joystick_r->is_disconnected()) {
         Print::print("Device Disconnected: 'Right Joystick'", C_FAIL);
+        joystick_r->reset_inputs();
+    }
     else if (joystick_r->is_reconnected())
         Print::print("Device Connected:    'Right Joystick'", C_SUCCESS);
+        
+    // Publish each of the data streams
+    gamepad_publisher->publish(gamepad->get_message());
+    joystick_l_publisher->publish(joystick_l->get_message());
+    joystick_r_publisher->publish(joystick_r->get_message());
 }
 
 

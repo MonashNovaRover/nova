@@ -9,12 +9,29 @@ AUTHOR(S):	Harrison Verrios
 
 // Include the header file
 #include "joystick_thrustmaster.h"
+#include <iostream>
 
 
 // Constructor for the thrustmaster joysticks
 JoystickThrustmaster::JoystickThrustmaster(const bool left, const float offset)
     : Joystick((left) ? INPUT_THRUST_LEFT : INPUT_THRUST_RIGHT, offset) {
 
+}
+
+// Checks for valid inputs
+void JoystickThrustmaster::check_valid_inputs() {
+    // Don't perform the checks if valid already
+    if (valid_ax_stick_twist && valid_ax_thumb_y) return;
+
+    // Check for stick twisting
+    if (!valid_ax_stick_twist) {
+        valid_ax_stick_twist = -convert_trg2ax(GamepadTriggerLength(controller, TRIGGER_LEFT) + offset) < 0.5;
+    }
+
+    // Check for thumb axis
+    if (!valid_ax_thumb_y) {
+        valid_ax_thumb_y = to_int(-convert_trg2ax(GamepadTriggerLength(controller, TRIGGER_RIGHT))) == 0.0;
+    }
 }
 
 
@@ -27,6 +44,9 @@ void JoystickThrustmaster::set_message_values() {
     // If the gamepad is connected
     if (msg.connected)
     {          
+        // Check for valid inputs
+        check_valid_inputs();
+
         // Set the values in the ROS msg to the main stick
         // Use the same coordinate system as the arm base coordinates
         // Forward on joystick -> +ve x
@@ -34,14 +54,22 @@ void JoystickThrustmaster::set_message_values() {
         // Anticlockwise twist -> +ve z
         msg.ax_stick_x = stick_ly_f;
         msg.ax_stick_y = -stick_lx_f;
-        msg.ax_stick_twist = -convert_trg2ax(GamepadTriggerLength(controller, TRIGGER_LEFT) + offset);
-        if (msg.ax_stick_twist > -0.05 && msg.ax_stick_twist < 0.05) msg.ax_stick_twist = 0.0;
-        if (msg.ax_stick_twist >= 0.99 - 2 * offset || msg.ax_stick_twist <= -0.99 - 2 * offset) msg.ax_stick_twist = sign(msg.ax_stick_twist);
+
+        // Make sure the ax twist is valid
+        if (valid_ax_stick_twist) {
+            msg.ax_stick_twist = -convert_trg2ax(GamepadTriggerLength(controller, TRIGGER_LEFT) + offset);
+            if (msg.ax_stick_twist > -0.05 && msg.ax_stick_twist < 0.05) msg.ax_stick_twist = 0.0;
+            if (msg.ax_stick_twist >= 0.99 - 2 * offset || msg.ax_stick_twist <= -0.99 - 2 * offset) msg.ax_stick_twist = sign(msg.ax_stick_twist);
+        } else
+            msg.ax_stick_twist = 0.0;
 
         // Set the values in the ROS msg to thumb stick
         // Use the same coordinate system as the arm base coordinates
-        msg.ax_thumb_x = to_int(-convert_trg2ax(GamepadTriggerLength(controller, TRIGGER_RIGHT)));
-        msg.ax_thumb_y = stick_ry_f;
+        msg.ax_thumb_x = -stick_ry_f;
+        if (valid_ax_thumb_y)
+            msg.ax_thumb_y = to_int(-convert_trg2ax(GamepadTriggerLength(controller, TRIGGER_RIGHT)));
+        else
+            msg.ax_thumb_y = 0.0;
 
         // Set the values of the slider
         msg.ax_slider = convert_ax2trg(-stick_rx_f);
@@ -82,4 +110,8 @@ core::msg::InputJoystick JoystickThrustmaster::get_message() {
     return msg;
 }
 
-
+// Resets the joystick inputs
+void JoystickThrustmaster::reset_inputs () {
+    valid_ax_stick_twist = false;
+    valid_ax_thumb_y = false;
+}
