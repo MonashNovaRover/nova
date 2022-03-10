@@ -37,6 +37,7 @@ const float OBSTACLE_CUTTING_RANGE_M = 0.2; // distance to which we remove obsta
 const int CRITICAL_PATH_LEN = 7;
 const float OBSTACLE_VALUE = 1.0;
 const float C_INF = 1e12;
+const float NEAREST_POINT_DIST_WEIGHT = 0.5;
 
 // implementation of type-safe enum with bitwise operators taken from:
 // https://wiggling-bits.net/using-enum-classes-as-type-safe-bitmasks/
@@ -420,16 +421,9 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 
 				// updating shortest distance we have found to dest
 				double dist_sqrd = dist_squared(neighbour, dest);
-				if (fabs(dist_sqrd - min_dist_to_dest_squared) < 5){
-					std::cout << "dist_sqrd = " << dist_sqrd << ", gNew = " << gNew << ", gOld = " << cellDetails[nearest_point.first][nearest_point.second].g << ", x = " << neighbour.first << ", y = " << neighbour.second << std::endl;
-					min_dist_to_dest_squared = gNew > cellDetails[nearest_point.first][nearest_point.second].g
-												? dist_sqrd : min_dist_to_dest_squared;
-					nearest_point = gNew > cellDetails[nearest_point.first][nearest_point.second].g
-												? neighbour : nearest_point;
-
-				} else if (dist_sqrd < min_dist_to_dest_squared) {
+				if (NEAREST_POINT_DIST_WEIGHT * dist_sqrd + gNew < min_dist_to_dest_squared) {
 					// if the distance is much better, 
-					min_dist_to_dest_squared = dist_sqrd;
+					min_dist_to_dest_squared = NEAREST_POINT_DIST_WEIGHT * dist_sqrd + gNew; 
 					nearest_point = neighbour;
 				}
 				
