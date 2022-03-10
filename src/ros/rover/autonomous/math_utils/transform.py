@@ -20,6 +20,7 @@ Raw data from the depth camera:
 
 
 import numpy as np
+from nav_msgs.msg import Odometry
 
 
 class Q:
@@ -113,7 +114,8 @@ def quat_to_euler(pose_msg):
     yaw = np.arctan2(t3, t4)
     return pitch, roll, yaw
 
-def transform_points(pose_msg, pts):
+
+def transform_points(pose_msg: Odometry, pts: np.array) -> np.array:
     """
     pose_msg: nav_msgs.msg.Odometry message
     pts: numpy array with shape (n, 3)
@@ -122,7 +124,8 @@ def transform_points(pose_msg, pts):
     mat = get_extrinsics(q_mat)
     pts = np.matmul(mat, pts.transpose()).transpose()
     pts = pts + [pose_msg.pose.pose.position.x, pose_msg.pose.pose.position.y, pose_msg.pose.pose.position.z]
-    return pts 
+    return pts
+
 
 def transform_points_no_yaw(pose_msg, pts):
     """
@@ -130,6 +133,7 @@ def transform_points_no_yaw(pose_msg, pts):
     """
     pitch, roll, yaw = quat_to_euler(pose_msg)
     return transform_euler((pitch, roll, 0), pts)
+
 
 def transform_yaw(pose_msg, pts):
     """
