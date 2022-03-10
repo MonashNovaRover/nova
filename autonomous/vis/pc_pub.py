@@ -41,6 +41,7 @@ TODO: work on header data:
 
 import numpy as np
 from config.ros_config import main_frame
+from config.runtime_params import pub_scale
 
 import vis.pc_converter as pc_converter
 from builtin_interfaces.msg import Time
@@ -54,7 +55,7 @@ def point_field(name, offset, datatype, count):
 
 
 class PCPub(Node):
-    def __init__(self, node_name, scale=1):
+    def __init__(self, node_name, scale=pub_scale):
         super().__init__(node_name)
         self.publisher = self.create_publisher(PointCloud2, node_name + "/cloud", 10)
         self.scale = scale

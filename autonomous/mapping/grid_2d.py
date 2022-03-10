@@ -59,10 +59,8 @@ class Grid2D(Node):
         resolution, to store for planning.
         :param points: (n, 3) ndarray of coordinates in meters
         """
-        print("position = " + str(points))
         indexes = (points / self.resolution)
         indexes += np.array([self.length / (2 * self.resolution), self.width / (2 * self.resolution), 0])
-        print("resolution = " + str(self.resolution))
         return indexes.round().astype(int)
 
     def add_obstacles(self, msg, obstacles):
@@ -74,7 +72,6 @@ class Grid2D(Node):
         """
         diff = self.get_full_indexes(np.array([[msg.pose.pose.position.x,
             msg.pose.pose.position.y, 0]])).astype(int)
-        print("diff = " + str(diff))
         obstacles = obstacles + diff
         self.map[obstacles[:, 0], obstacles[:, 1]] = obstacles[:, 2]
 

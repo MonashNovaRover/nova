@@ -18,6 +18,9 @@ min_waypoint_distance = 0.5  # todo: determine what is achievable
 
 controller_ros_rate = 10  # 10hz
 
+# ~~~~~~~~~~~~~~VIS CONSTANTS ~~~~~~~~~~~~~~~~
+pub_scale = 1.0
+
 # ~~~~~~~~~~ PLANNING CONSTANTS ~~~~~~~~~~~~~~~
 planning_rate = 2.0
 min_ar_distance = 0.2 
@@ -31,9 +34,8 @@ max_safe_obstacle = 86  # obstacle threshold for 2d map
 max_safe_inc = 50  # gradient cutoff for obstacles
 depth_mode = " python"  # whether we publish points over ros or use a python callback
 skip_pts = 1  # Step we use when selecting points if we can't handle the full cloud
-unseen_map_val = 0.6  # Fill all points we haven't seen with a set cost to preference known paths
+unseen_map_val = 0.3  # Fill all points we haven't seen with a set cost to preference known paths
 slice_height = 2.3  # the height we slice the map from when taking 2d slices
-
 
 # ~~~~~~~~~~~~~~~~~ CAMERA INFO ~~~~~~~~~~~~~~~~~~~~~
 d415_serial = "932122060332"

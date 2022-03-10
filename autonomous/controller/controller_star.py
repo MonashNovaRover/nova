@@ -233,6 +233,7 @@ class Controller(Node):
             # If distance to the waypoint is lower than the threshold distance, we have arrived
             print("Reached way-point: " + str(self.target_waypoint))
             self.target_waypoint = None
+            self.control()
 
 
 def main(args=None):
