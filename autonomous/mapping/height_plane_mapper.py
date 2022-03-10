@@ -41,6 +41,7 @@ from height_mapper import get_obstacles as get_height_obstacles
 from plane_fitter import get_obstacles as get_plane_obstacles
 from scipy.signal import convolve2d
 
+
 class HeightPlaneMapper(FlatMapper):
     def __init__(self, length=20, width=20, height=5, resolution=0.1, detection_resolution=0.025, planner=None, _vis=True, camera=False):
 
