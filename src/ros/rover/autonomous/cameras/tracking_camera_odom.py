@@ -113,6 +113,8 @@ class TrackingCamera(Node):
             sys.stdout.write("\r" + "x: " + str(round(rover_msg.x, 4)).ljust(7)
                              + " | y: " + str(round(rover_msg.y, 4)).ljust(7)
                              + " | z: " + str(round(rover_msg.z, 4)).ljust(7)
+                             + " | pitch: " + str(round(rover_msg.pitch, 4)).ljust(7)
+                             + " | roll: " + str(round(rover_msg.roll, 4)).ljust(7)
                              + " | yaw: " + str(round(rover_msg.yaw, 4)).ljust(7))
             sys.stdout.flush()
 

@@ -32,6 +32,13 @@ from config.ros_config import *
 from config.runtime_params import min_ar_distance, max_ar_distance
 
 class PathPlanner(Node):
+    # Status enum for A* return values
+    A_STAR_SUCCESS = 0
+    A_STAR_START_OBSTACLE = 1
+    A_STAR_DEST_OBSTACLE = 2
+    A_STAR_NO_PATH = 4
+    A_STAR_CRITICAL_NO_PATH = 8
+
     def __init__(self, dest: list, resolution_m):
         super().__init__("path_planner_node")
         
@@ -141,12 +148,18 @@ class PathPlanner(Node):
         print("Running A* for goal: " + str(self.goal))
         
         self.route = np.array(a_star(_map, self.get_grid_coord(self.start), self.get_grid_coord(self.goal), self.resolution))
-        print("A* returned")
+        status = self.route[-1, 0]
+        self.route = self.route[:-1]
+        if status & PathPlanner.A_STAR_START_OBSTACLE: self.get_logger().warn("started in obstacle")
+        if status & PathPlanner.A_STAR_DEST_OBSTACLE: self.get_logger().warn("dest in obstacle")
+        if status & PathPlanner.A_STAR_NO_PATH: self.get_logger().warn("couldn't find a path initially")
+        if status & PathPlanner.A_STAR_CRITICAL_NO_PATH: self.get_logger().error("COULDN'T FIND PATH - NEAR OBSTACLE")
+        if status == PathPlanner.A_STAR_SUCCESS: self.get_logger().info("A* found safe path")
         route_coordinates = self.get_local_coords_route(self.route)
         waypoints = Waypoints()
 
-        for wpt in (route_coordinates[3::5] if len(route_coordinates) > 5 else [route_coordinates[-1]]):
-            # publishing waypoints in order
+        for wpt in route_coordinates:
+            # publishing waypoints in order 
             waypoint = Waypoint()
             waypoint.x = wpt[0]
             waypoint.y = wpt[1]
@@ -154,6 +167,5 @@ class PathPlanner(Node):
             if (not math.isnan(waypoint.x)) and (not math.isnan(waypoint.y)):
                 waypoints.waypoints.append(waypoint)
 
-        print("publishing waypoints: " + str(waypoints))
         self.waypt_publisher.publish(waypoints)
 

@@ -11,6 +11,7 @@ import rclpy
 import sys
 from cameras.ar_tracker import ArTracker
 from config.runtime_params import active_depth_camera
+from rclpy.logging import LoggingSeverity
 
 class DepthCamera(Thread):
     def __init__(self, callback, publish_topic=None, serial_number=active_depth_camera):
@@ -99,6 +100,24 @@ class DepthCamera(Thread):
         verts = verts[~((verts[:, 0] == 0) & (verts[:, 1] == 0) & (verts[:, 2] == 0))]
         
         verts = verts[~(verts[:, 2] > 4.5)]
+        
+        rclpy.logging._root_logger.log(
+                f"Depth camera point cloud contained {len(verts)} points",
+                LoggingSeverity.INFO,
+                once=True,
+                skip_first=True)
+        if len(verts) < 10:
+            rclpy.logging._root_logger.log(
+                    f"Depth camera point cloud contained very few points",
+                    LoggingSeverity.WARN,
+                    once=True,
+                    skip_first=True)
+            if len(verts) == 0:
+                rclpy.logging._root_logger.log(
+                        f"Depth camera point cloud contained no points",
+                        LoggingSeverity.ERROR,
+                        once=True,
+                        skip_first=True)
         
         # print("point processing: " + str(time.time() - t1))
         

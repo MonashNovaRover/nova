@@ -30,9 +30,39 @@ namespace py = pybind11;
    weigh distance to the destination. Higher values run quicker but find
    a less optimal path. */
 const float ROVER_WIDTH_CM = 50.0;
-const float TERRAIN_IMPORTANCE = 100; // How much we value smooth terrain over distance
+const float TERRAIN_IMPORTANCE = 300; // How much we value smooth terrain over distance
 const float SAFETY_FACTOR = 1.6; // Factor by which we multiply rover radius to pad.
 const float WEIGHT = 1.0; // weight of heuristic for A*
+const float OBSTACLE_CUTTING_RANGE_M = 0.2; // distance to which we remove obstacles at src or dest
+const int CRITICAL_PATH_LEN = 7;
+const float OBSTACLE_VALUE = 1.0;
+const float C_INF = 1e12;
+const float NEAREST_POINT_DIST_WEIGHT = 0.5;
+
+// implementation of type-safe enum with bitwise operators taken from:
+// https://wiggling-bits.net/using-enum-classes-as-type-safe-bitmasks/
+enum class Status : unsigned {
+	/*
+	Enum returned to python detailing the outcome of A* in finding a path.
+	All values are powers of 2 so that each outcome is represented by the state
+	of a single bit in the returned value.
+	*/
+	A_STAR_SUCCESS = 0,
+	A_STAR_START_OBSTACLE = 1,
+	A_STAR_DEST_OBSTACLE = 2,
+	A_STAR_NO_PATH = 4,
+	A_STAR_CRITICAL_NO_PATH = 8
+};
+
+Status& operator |=(Status &lhs, Status rhs)
+{
+    lhs = static_cast<Status> (
+        static_cast<std::underlying_type<Status>::type>(lhs) |
+        static_cast<std::underlying_type<Status>::type>(rhs)           
+    );
+
+    return lhs;
+}
 
 // Creating a shortcut for int, int pair type
 typedef pair<int, int> Pair;
@@ -40,7 +70,7 @@ typedef pair<int, int> Pair;
 typedef tuple<double, int, int> Tuple;
 
 // All possible neighbour points on an octile map
-const array<Pair, 8> NEIGHBOURS = {{{0, 1}, {0, -1}, {1, 0}, {-1, 0},
+const array<Pair, 8> BRANCHES = {{{0, 1}, {0, -1}, {1, 0}, {-1, 0},
 									{1, 1}, {1, -1}, {-1, 1}, {-1, -1}}};
 
 // A structure to hold the necessary parameters
@@ -73,7 +103,7 @@ bool isValid(const int cols, const int rows,
 bool isObstacle(const float grid_value)
 {
     // Is this square specifically blocked by a physical obstacle?
-	return grid_value == 1.0;
+	return grid_value == OBSTACLE_VALUE;
 }
 
 template <size_t ROW, size_t COL>
@@ -83,7 +113,7 @@ bool isSafe(const array<array<float, COL>, ROW>& grid,
     /*is this square blocked by an obstacle or too close to one
 	to be safe?*/
 	return (isValid(COL, ROW, point)
-		&& grid[point.first][point.second] < 2.0);
+		&& grid[point.first][point.second] < OBSTACLE_VALUE);
 }
 
 // A Utility Function to check whether destination cell has
@@ -123,22 +153,19 @@ float padding_value(float dist_sqrd, float padding_width_sqrd)
 	values of 1.1 are points too close to an obstacle to be safe. This allows us to
 	distinguish between the two kinds of impassable points when padding)
 	*/
-	if (dist_sqrd < padding_width_sqrd) return 1.1;
+	if (dist_sqrd < padding_width_sqrd) return 1.1 * OBSTACLE_VALUE;
     if (dist_sqrd < 2 * padding_width_sqrd) return 0.5;
 	return 0;
 }
 
 template <size_t ROW, size_t COL>
 void optimise_padding_area(const array<array<float, COL>, ROW>& grid, 
-							int& min_x, int& max_x, int& min_y, int& max_y)
+							int& x, int& y, int& min_x, int& max_x, int& min_y, int& max_y)
 {
 	/*
 	Looks for other obstacle points around the start point in all 4 directions. If there
 	is a point in one direction, we only need to pad as far as half-way to that point
 	*/
-
-	int x = (min_x + max_x) / 2;
-	int y = (min_y + max_y) / 2;
 
 	// bounding min and max values by dimensions of map
 	min_x = max(min_x, 0); 
@@ -148,25 +175,25 @@ void optimise_padding_area(const array<array<float, COL>, ROW>& grid,
 
 	for (int i = y - 1; i >= min_y; i--) {
 		if (isObstacle(grid[i][x])) {
-			min_y = ceil((i + y)/ 2);
+			min_y = floor((i + y)/ 2);
 		}
 	}
 
 	for (int i = y + 1; i <= max_y; i++) {
 		if (isObstacle(grid[i][x])) {
-			max_y = floor((i + y) / 2);
+			max_y = ceil((i + y) / 2);
 		}
 	}
 
 	for (int j = x - 1; j >= min_x; j--) {
 		if (isObstacle(grid[y][j])) {
-			min_x = ceil((j + x) / 2);
+			min_x = floor((j + x) / 2);
 		}
 	}
 
 	for (int j = x + 1; j <= max_x; j++) {
 		if (isObstacle(grid[y][j])) {
-			max_x = floor((j + x) / 2);
+			max_x = ceil((j + x) / 2);
 		}
 	}
 }
@@ -178,7 +205,7 @@ void pad_point(array<array<float, COL>, ROW>& grid, const Pair& start_pt, float 
 	int min_x = x - 1.3 * padding_width_pixels, min_y = y - 1.3 * padding_width_pixels;
 	int max_x = x + 1.3 * padding_width_pixels, max_y = y + 1.3 * padding_width_pixels;
 
-	optimise_padding_area(grid, min_x, max_x, min_y, max_y);
+	optimise_padding_area(grid, x, y, min_x, max_x, min_y, max_y);
 
 	for (int k = min_y; k <= max_y; k++) {
 		for (int l = min_x; l <= max_x; l++) {
@@ -207,7 +234,6 @@ void precompute_padding_values(array<array<float, COL>, ROW>& grid,
 	 coming too close */
 	double padding_width_pixels = SAFETY_FACTOR * ROVER_WIDTH_CM / grid_resolution_cm;
 
-	auto start = chrono::high_resolution_clock::now();
 	for (uint i = 0; i < ROW; i++) {
 		for (uint j = 0; j < COL; j++) {
 			if (isObstacle(grid[i][j])) {
@@ -217,11 +243,6 @@ void precompute_padding_values(array<array<float, COL>, ROW>& grid,
 			}
 		}
 	}
-
-	auto end = chrono::high_resolution_clock::now();
-	auto duration = chrono::duration_cast<std::chrono::microseconds>(end - start);
-	
-	cout << "\npadding took " << duration.count() << " microseconds" << endl;
 }
 
 // A Utility Function to trace the path from the source to
@@ -251,6 +272,31 @@ vector<Pair> tracePath(array<array<cell, COL>, ROW>& cellDetails, const Pair& de
 	return path;
 }
 
+template <size_t ROW, size_t COL>
+void clear_obstacles_from_location(array<array<float, COL>, ROW>& grid, const Pair& point, const int cutting_distance) {
+	/*
+	Checks area around a point, and sets any obstacle values in that area to 0.99 rather than 1.
+	Prevents hard failure if the rover thinks its current pose or its destination is inside an obstacle.
+	:param grid: reference to the grid being used for A*, to remove obstacles from
+	:param point: point around which to remove obstacles
+	:param cutting_distance: (octile) pixel distance around which to clear obstacles
+	*/
+
+	int x = point.first, y = point.second;
+	for (int i = max(0, x - cutting_distance); i <= min((int) COL, x + cutting_distance); i++) {
+		for (int j = max(0, y - cutting_distance); j <= min((int) ROW, y + cutting_distance); j++){
+			if (grid[i][j] >= OBSTACLE_VALUE) grid[i][j] = 0.99 * OBSTACLE_VALUE;
+		}
+	}
+}
+
+vector<Pair> construct_return_val(vector<Pair> path, Status status) {
+	// I hate this but python doesn't know how to interpret it another way.
+	path.push_back(Pair((int) status, -1));
+
+	return path;
+}
+
 // A Function to find the intest path between a given
 // source cell to a destination cell according to A* Search
 // Algorithm
@@ -259,29 +305,31 @@ template <size_t ROW, size_t COL>
 vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 				const Pair& src, const Pair& dest, const float grid_resolution_m)
 {
-	// timer to check performance
-	auto start = chrono::high_resolution_clock::now();
 	const float grid_resolution_cm = grid_resolution_m * 100;
+
+	Status status = Status::A_STAR_SUCCESS;
+	int clearance = OBSTACLE_CUTTING_RANGE_M / grid_resolution_m;
+
+	// If the destination is in an obstacle
+	if (!isSafe(grid, dest)) {
+		status |= Status::A_STAR_DEST_OBSTACLE;
+		clear_obstacles_from_location(grid, dest, clearance);
+	}
+
 	// assign heuristic values according to distance to nearest obstacle
 	precompute_padding_values(grid, grid_resolution_cm);
 
-	// If the source is out of range
-	if (!isSafe(grid, src)) {
-		printf("Invalid or unsafe starting point\n");
-		return vector<Pair> {{src}};
-	}
-
-	// If the destination is out of range
-	if (!isSafe(grid, dest)) {
-		printf("Invalid or unsafe destination point\n");
-		return vector<Pair> {{src}};
-	}
-
-	// If the destination cell is the same as source cell
+	// If the destination cell is the same as source cell, we have already found it
 	if (isDestination(src, dest)) {
-		printf("We are already at the destination\n");
-		return vector<Pair> {{src}};
+		return construct_return_val(vector<Pair> {{src}}, status);
 	}
+
+	// If the source is in an obstacle
+	if (!isSafe(grid, src)) {
+		status |= Status::A_STAR_START_OBSTACLE;
+		clear_obstacles_from_location(grid, src, clearance);
+	}
+
 
 	// Create a closed list and initialise it to false which
 	// means that no cell has been included yet This closed
@@ -313,13 +361,17 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 	// 'f' as 0
 	openList.emplace(0.0, i, j);
 
+	// for storing the nearest point to the destination we could find
+	double min_dist_to_dest_squared = C_INF;
+	Pair nearest_point = src;
+
 	// We set this boolean value as false as initially
 	// the destination is not reached.
 	while (!openList.empty()) {
 		const Tuple& p = openList.top();
 		// Add this vertex to the closed list
-		i = get<1>(p); // second element of tupla
-		j = get<2>(p); // third element of tupla
+		i = get<1>(p); // second element of tuple
+		j = get<2>(p); // third element of tuple
 
 		// Remove this vertex from the open list
 		openList.pop();
@@ -344,63 +396,62 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 				S.E--> South-East (i+1, j+1)
 				S.W--> South-West (i+1, j-1)
 		*/
-		for (int add_x = -1; add_x <= 1; add_x++) {
-			for (int add_y = -1; add_y <= 1; add_y++) {
-				if(add_x == 0 && add_y == 0) continue;
+	    for (Pair branch : BRANCHES) {
+			int diff_x = branch.first, diff_y = branch.second;
 
-				Pair neighbour(i + add_x, j + add_y);
-				// Only process this cell if this is a valid
-				// one
-				if (isSafe(grid, neighbour) && !closedList[neighbour.first][neighbour.second]) {
-					// If the destination cell is the same
-					// as the current successor
-					if (isDestination(neighbour, dest)) { // Set the Parent of the destination cell
-						cellDetails[neighbour.first][neighbour.second].parent = { i, j };
-						std::cout << "The destination cell is found" << std::endl;
+			Pair neighbour(i + diff_x, j + diff_y);
+			// Only process this cell if this is a valid
+			// one
+			if (isSafe(grid, neighbour) && !closedList[neighbour.first][neighbour.second]) {
+				// If the destination cell is the same
+				// as the current successor
+				if (isDestination(neighbour, dest)) { // Set the Parent of the destination cell
+					cellDetails[neighbour.first][neighbour.second].parent = { i, j };
+					vector<Pair> path = tracePath(cellDetails, dest);
 
-						auto stop = chrono::high_resolution_clock::now();
-						auto duration = chrono::duration_cast<std::chrono::microseconds>(stop - start);
+					return construct_return_val(path, status);
+				}
+				
+				float gNew, hNew, fNew;
+				// additional distance to next point
+				float g_diff = (diff_y == 0 || diff_x == 0) ? 1.0 : sqrt(2.0);
+				gNew = cellDetails[i][j].g + g_diff;
+				hNew = grid[neighbour.first][neighbour.second] * TERRAIN_IMPORTANCE + heuristic(neighbour, dest) * WEIGHT;
+				fNew = gNew + hNew;
+
+				// updating shortest distance we have found to dest
+				double dist_sqrd = dist_squared(neighbour, dest);
+				if (NEAREST_POINT_DIST_WEIGHT * dist_sqrd + gNew < min_dist_to_dest_squared) {
+					// if the distance is much better, 
+					min_dist_to_dest_squared = NEAREST_POINT_DIST_WEIGHT * dist_sqrd + gNew; 
+					nearest_point = neighbour;
+				}
+				
+				// If it isn’t on the open list, add
+				// it to the open list. Make the
+				// current square the parent of this
+				// square. Record the f, g, and h
+				// costs of the square cell
+				//			 OR
+				// If it is on the open list
+				// already, check to see if this
+				// path to that square is better,
+				// using 'f' cost as the measure.
+				if (cellDetails[neighbour.first][neighbour.second].g == -1
+					|| cellDetails[neighbour.first][neighbour.second].g > gNew) {
+					openList.emplace(fNew, neighbour.first, neighbour.second);
+
+					// Update the details of this
+					// cell
+					cellDetails[neighbour.first]
+							[neighbour.second]
+								.g
+						= gNew;
 					
-						// To get the value of duration use the count()
-						// member function on the duration object
-						std::cout << "took " << duration.count() << " microseconds" << std::endl << std::endl;
-						
-						return tracePath(cellDetails, dest);
-					}
-					
-					float gNew, hNew, fNew;
-					// additional distance to next point
-					float g_diff = (add_y == 0 || add_x == 0) ? 1.0 : sqrt(2.0);
-					gNew = cellDetails[i][j].g + g_diff;
-					hNew = grid[neighbour.first][neighbour.second] * TERRAIN_IMPORTANCE + heuristic(neighbour, dest) * WEIGHT;
-					fNew = gNew + hNew;
-
-					// If it isn’t on the open list, add
-					// it to the open list. Make the
-					// current square the parent of this
-					// square. Record the f, g, and h
-					// costs of the square cell
-					//			 OR
-					// If it is on the open list
-					// already, check to see if this
-					// path to that square is better,
-					// using 'f' cost as the measure.
-					if (cellDetails[neighbour.first][neighbour.second].g == -1
-						|| cellDetails[neighbour.first][neighbour.second].g > gNew) {
-						openList.emplace(fNew, neighbour.first, neighbour.second);
-
-						// Update the details of this
-						// cell
-						cellDetails[neighbour.first]
-								[neighbour.second]
-									.g
-							= gNew;
-						
-						cellDetails[neighbour.first]
-								[neighbour.second]
-									.parent
-							= { i, j };
-					}
+					cellDetails[neighbour.first]
+							[neighbour.second]
+								.parent
+						= { i, j };
 				}
 			}
 		}
@@ -411,10 +462,13 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 	// reach the destiantion cell. This may happen when the
 	// there is no way to destination cell (due to
 	// blockages)
+	status |= Status::A_STAR_NO_PATH;
+	
+	// instead return path to the nearest point we could find
+	vector<Pair> path = tracePath(cellDetails, nearest_point);
 
-	printf("Failed to find the Destination Cell\n");
-
-	return vector<Pair> {{src}};
+	if (path.size() < CRITICAL_PATH_LEN) status |= Status::A_STAR_CRITICAL_NO_PATH;
+	return construct_return_val(path, status);
 }
 
 // Driver program to test above function
@@ -434,7 +488,7 @@ int main()
 
 	// Destination is the left-most top-most corner
 	Pair dest(199, 199);
-	vector<Pair> path = aStarSearch(grid, src, dest, 2.5);
+	vector<Pair> emergency_path = aStarSearch(grid, src, dest, 2.5);
 	return 0;
 }
 
