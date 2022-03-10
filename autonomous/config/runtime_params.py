@@ -19,17 +19,20 @@ min_waypoint_distance = 0.5  # todo: determine what is achievable
 controller_ros_rate = 10  # 10hz
 
 # ~~~~~~~~~~ PLANNING CONSTANTS ~~~~~~~~~~~~~~~
-a_star_rate = 1 # 1Hz
+planning_rate = 2.0
+min_ar_distance = 0.2 
+max_ar_distance = 15.0
 
 # ~~~~~~~~~~ MAPPING CONSTANTS ~~~~~~~~~~~~~~~~
-min_point_density = 3 # number of points in voxel before we accept it
-max_point_depth = 3.5 # distance beyond which we don't consider points
-max_fov_angle = np.pi/8 #40 degrees
-max_safe_obstacle = 86 # obstacle threshold for 2d map
-max_safe_inc = 50 # gradient cutoff for obstacles
-depth_mode = "python" # whether we publish points over ros or use a python callback
-skip_pts = 1 # Step we use when selecting points if we can't handle the full cloud
-unseen_map_val = 0.3 # Fill all points we haven't seen with a set cost to preference known paths
+min_point_density = 3  # number of points in voxel before we accept it
+max_point_depth = 3.5  # distance beyond which we don't consider points
+max_fov_angle = np.pi/8  # 40 degrees
+max_safe_obstacle = 86  # obstacle threshold for 2d map
+max_safe_inc = 50  # gradient cutoff for obstacles
+depth_mode = " python"  # whether we publish points over ros or use a python callback
+skip_pts = 1  # Step we use when selecting points if we can't handle the full cloud
+unseen_map_val = 0.3  # Fill all points we haven't seen with a set cost to preference known paths
+slice_height = 2.3  # the height we slice the map from when taking 2d slices
 
 # ~~~~~~~~~~~~~~~~~ CAMERA INFO ~~~~~~~~~~~~~~~~~~~~~
 d415_serial = "932122060332"
