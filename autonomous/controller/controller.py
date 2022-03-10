@@ -41,6 +41,7 @@ import vis.path_vis as path_vis
 
 from config.ros_config import *
 
+
 class Controller(Node):
     """
     Controls the movement of the rover between waypoints determined by the path planner.

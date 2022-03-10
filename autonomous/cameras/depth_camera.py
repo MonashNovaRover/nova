@@ -13,6 +13,7 @@ from cameras.ar_tracker import ArTracker
 from config.runtime_params import active_depth_camera
 from rclpy.logging import LoggingSeverity
 
+
 class DepthCamera(Thread):
     def __init__(self, callback, publish_topic=None, serial_number=active_depth_camera):
         super().__init__()
@@ -49,7 +50,7 @@ class DepthCamera(Thread):
         self.profile = self.pipeline.get_active_profile()
         self.depth_profile = rs.video_stream_profile(self.profile.get_stream(rs.stream.depth))
         self.depth_intrinsics = self.depth_profile.get_intrinsics()
-        w, h = self.depth_intrinsics.width, self.depth_intrinsics.height
+        # w, h = self.depth_intrinsics.width, self.depth_intrinsics.height
 
         # Processing blocks
         self.pc = rs.pointcloud()
@@ -78,13 +79,12 @@ class DepthCamera(Thread):
         # t0 = time.time()
         frames = self.pipeline.wait_for_frames()
 
-        t1 = time.time()
         depth_frame = frames.get_depth_frame()
         color_frame = frames.get_color_frame()
         depth_frame = self.decimate.process(depth_frame)
 
         # Grab new intrinsics (may be changed by decimation)
-        depth_intrinsics = rs.video_stream_profile(depth_frame.profile).get_intrinsics()
+        # depth_intrinsics = rs.video_stream_profile(depth_frame.profile).get_intrinsics()
 
         color_image = np.asanyarray(color_frame.get_data())
         self.ar_tracker(color_image)
@@ -118,24 +118,17 @@ class DepthCamera(Thread):
                         LoggingSeverity.ERROR,
                         once=True,
                         skip_first=True)
-        
-        # print("point processing: " + str(time.time() - t1))
-        
-        t2 = time.time()
+
         if self.publisher:
             pass
-            # self.publisher.pub_pts_colors(verts, 255 * np.ones((verts.shape[0], 4)))
-        # print("publishing: " + str(time.time() - t2))
 
         return verts
 
     def stop(self):
-        # Stop streaming
         self.pipeline.stop()
 
 
 def print_points_len(points):
-    # print(points.shape)
     pass
 
 

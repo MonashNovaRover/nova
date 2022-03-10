@@ -77,8 +77,8 @@ class HeightPlaneMapper(FlatMapper):
         # downscaling from high_resolution planning map to low_resolution map
         plane_obs, min_p_x = self.plane_mapper.downscale_obs(plane_obstacles, min_p_x)
         height_obs, min_h_x = self.height_mapper.downscale_obs(height_obstacles, min_h_x)
-        print("p = " + str(min_p_x))
-        print("h = " + str(min_h_x))
+        # print("p = " + str(min_p_x))
+        # print("h = " + str(min_h_x))
         # min_h_x and min_p_x should now be the same or very similar. Average them
         min_x = 0.5 * (min_p_x + min_h_x)
         
