@@ -9,7 +9,7 @@ except:
 from vis.pc_pub import PCPub
 import rclpy
 import sys
-#from cameras.ar_tracker import ArTracker
+from cameras.ar_tracker import ArTracker
 from config.runtime_params import active_depth_camera
 
 class DepthCamera(Thread):
@@ -20,7 +20,7 @@ class DepthCamera(Thread):
         else:
             self.publisher = None
 
-        #self.ar_tracker = ArTracker()
+        self.ar_tracker = ArTracker()
 
         self.running = True
 
@@ -59,6 +59,7 @@ class DepthCamera(Thread):
     def run(self):
         while self.running:
             t = time.time()
+            # call the callback (probably 
             self.callback(self.get_points())
             sys.stdout.write("\r" + "Map update completed in: " + str(round(time.time() - t, 5)) + " seconds\n")
             sys.stdout.flush()
@@ -79,24 +80,13 @@ class DepthCamera(Thread):
         t1 = time.time()
         depth_frame = frames.get_depth_frame()
         color_frame = frames.get_color_frame()
-
         depth_frame = self.decimate.process(depth_frame)
 
         # Grab new intrinsics (may be changed by decimation)
         depth_intrinsics = rs.video_stream_profile(depth_frame.profile).get_intrinsics()
-        # depth_image = np.asanyarray(depth_frame.get_data())
 
         color_image = np.asanyarray(color_frame.get_data())
-
-        # todo (low priority) put in thread
-        # TODO MAKE WORK self.ar_tracker(color_image)
-
-        # note: find better way of doing asynchronously
-
-        # ar.findArTag(color_image)
-
-        # depth_colormap = np.asanyarray(self.colorizer.colorize(depth_frame).get_data())
-
+        self.ar_tracker(color_image)
         mapped_frame, color_source = color_frame, color_image
 
         points = self.pc.calculate(depth_frame)

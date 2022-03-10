@@ -1,39 +1,52 @@
-_package__ = "autonomous"
 #!/usr/bin/env python3
-import time
-from a_star import a_star
-
-# NOTE should probably call these something else since they are not only used by controller
-from config.runtime_params import *
-from math_utils.controller_math import *
-
-from rclpy.node import Node
-from core.msg import Waypoints, Waypoint, RoverPose
+_package__ = "autonomous"
 
 """
-Author: Aidan Pritchard, Max Tory and Liam Whittle
-
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Purpose: To perform A* path planning and string pulling on 2-d grid maps. 
-
-Subscribed topic/s: 
-
-Published topic/s:
-
-Services:
-
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+NODE: path_planner_node 
+TOPICS:
+  - subscriber: /rover/pose [RoverPose]
+  - subscriber: /autonomous/ar_tag [AlvarMarkers]
+  - publisher: /autonomous/waypoints [Waypoints]
+SERVICES:
+ACTIONS: None
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PACKAGE: 	autonomous
+AUTHOR(S):	Pritchard, Max Tory and Liam Whittle
+CREATION:	08/03/2022
+EDITED:		08/03/2022
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+TODO:
+ - a lot 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
+
+from a_star import a_star
+from math_utils.controller_math import *
+from rclpy.node import Node
+from core.msg import Waypoints, Waypoint, RoverPose, AlvarMarker
+from config.ros_config import *
+from config.runtime_params import min_ar_distance, max_ar_distance
 
 class PathPlanner(Node):
-    def __init__(self, dest, resolution_m):
+    def __init__(self, dest: list, resolution_m):
         super().__init__("path_planner_node")
         
-        # way-point publisher publishes a bunch of waypoints at once (hence using the 2D map dataype
-        self.waypt_publisher = self.create_publisher(Waypoints, "autonomous/goals", 10)
+        # way-point publisher publishes a bunch of waypoints at once (hence using the 2D map datatype
+        self.waypt_publisher = self.create_publisher(Waypoints, auto_waypoints_topic, 10)
         
-        self.pose_subscriber = self.create_subscription(RoverPose, "rover/pose", self.update_pose, 10)
+        self.pose_subscriber = self.create_subscription(RoverPose, rover_pose_topic, self.update_pose, 10)
+
+        self.ar_tag_subscriber = self.create_subscription(AlvarMarker, "autonomous/ar_tag", self.update_goal_callback, 10)
+
+        self.expected_goal_id = 0
 
         self.resolution = resolution_m
+
+        self.recorded_tags = []
 
         # in case we want to test path planning without a controller
         self.state = State()
@@ -43,10 +56,41 @@ class PathPlanner(Node):
 
         self.route = []
 
+    def update_goal_callback(self, msg):
+        """
+        1. Check that it's the AR tag we are looking
+        2. Filter out dodgy values
+            - are values within an absolute range?
+            - standard deviation? idk
+        3. Transform pose of tag relative to rover into global pose of tag
+        
+        
+        """
+        print("~~~~~~~~~~~~~~~~~~~~~~~~~~")
+        print(msg.pose)
+        pose = msg.pose.pose.position
+
+        # filter step
+        distance = (pose.z ** 2 + pose.y ** 2) ** 0.5
+        # if not (min_ar_distance <= distance <= max_ar_distance):
+        #    return
+
+        # translate step
+        global_pose_x = pose.x * np.cos(self.state.yaw) - pose.y * np.sin(self.state.yaw) + self.state.x
+        global_pose_y = pose.x * np.sin(self.state.yaw) + pose.y * np.cos(self.state.yaw) + self.state.y
+
+        # goal diff for logging
+        print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        print(str(self.goal))
+        goal_diff = ((self.goal[0] - global_pose_x) ** 2 + (self.goal[1] - global_pose_y) ** 2) ** 0.5
+
+        # self.get_logger().info("Updated planning goal: ")
+
+        self.goal = global_pose_x, global_pose_y
+
     def get_grid_coord(self, position):
         return int((position[0] + self.length_meters / 2) / self.resolution), \
                int((position[1] + self.width_meters / 2) / self.resolution)
-               
 
     def get_float_position(self, coord):
         return coord[0] * self.resolution - self.length_meters / 2, \
@@ -57,14 +101,11 @@ class PathPlanner(Node):
         Callback function that updates the current pose of the rover from data in the auto_command_pose_updates topic
         """
         self.state.x = msg.x
-        self.state.y = msg.y
-        self.state.yaw = msg.yaw
-        self.state.velocity = msg.velocity
-        self.state.angular_velocity = msg.angular_velocity
+
 
     @staticmethod
     def heuristic(a, b, heuristic_type="euclidean"):
-        
+       
         """
         The manhattan heuristic works for movements up, down, left, right, and is an admissible and consistent heuristic
         The straight line heuristic works for any problem domain in 2-d euclidean space and is admissible and consistent
@@ -90,26 +131,26 @@ class PathPlanner(Node):
         """
 
         self.start = (self.state.x, self.state.y)
-        
+       
         self.length = _map.shape[0]
         self.width = _map.shape[1]
 
         self.length_meters = int(_map.shape[0] * self.resolution)
         self.width_meters = int(_map.shape[1] * self.resolution)
-        print(self.length_meters) 
-        print("Running A*")
-
+        print(self.length_meters)
+        print("Running A* for goal: " + str(self.goal))
+        
         self.route = np.array(a_star(_map, self.get_grid_coord(self.start), self.get_grid_coord(self.goal), self.resolution))
         print("A* returned")
         route_coordinates = self.get_local_coords_route(self.route)
         waypoints = Waypoints()
 
         for wpt in (route_coordinates[3::5] if len(route_coordinates) > 5 else [route_coordinates[-1]]):
-            # publishing waypoints in order 
+            # publishing waypoints in order
             waypoint = Waypoint()
             waypoint.x = wpt[0]
             waypoint.y = wpt[1]
-            
+           
             if (not math.isnan(waypoint.x)) and (not math.isnan(waypoint.y)):
                 waypoints.waypoints.append(waypoint)
 

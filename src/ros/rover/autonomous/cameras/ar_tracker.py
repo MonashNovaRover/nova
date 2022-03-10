@@ -6,7 +6,7 @@ from rclpy.node import Node
 import rclpy
 from core.msg import AlvarMarker
 from config.ros_config import ar_track_topic
-
+import os
 
 class ArTracker(Node):
     def __init__(self):
@@ -28,7 +28,8 @@ class ArTracker(Node):
         bboxs, ids, rejected = ar.detectMarkers(imgGray, arDict, parameters=arParam)
         # print("AR TAG DETECTED WITH ID")
         print("ids: " + str(ids))
-        camera_calibration_parameters_filename = "calibration_chessboard.yaml"
+        print(os.getcwd())
+        camera_calibration_parameters_filename = "cameras/calibration_chessboard.yaml"
         aruco_marker_side_length = 0.1
         cv_file = cv2.FileStorage(camera_calibration_parameters_filename, cv2.FILE_STORAGE_READ)
         mtx = cv_file.getNode('K').mat()
@@ -42,22 +43,14 @@ class ArTracker(Node):
             rot_mat, trans_mat = ar.estimatePoseSingleMarkers(bboxs, aruco_marker_side_length, mtx, dst)
             print("found tag")
             for i, _id in enumerate(ids):
+                
+                print("___________________ AR TAGS ________________ " )
+                print(i)
+                print(_id)
+
                 x = trans_mat[i][0][0]
                 y = trans_mat[i][0][1]
                 z = trans_mat[i][0][2]
-
-                # print("translation in x : " + str(trans_x))
-                # print("translation in y : " + str(trans_y))
-                # print("translation in z : " + str(trans_z))
-
-                # sys.stdout.write(
-                #    "\rx: {0} | y: {1} | z: {2}".format(str(round(trans_x, 4)).ljust(7), str(round(trans_y, 4)).ljust(7),
-                #                                       str(round(trans_z, 4)).ljust(7)))
-                # sys.stdout.flush()
-
-                # ar.drawAxis(img, mtx, dst, rot_mat[i], trans_mat[i], 0.05)
-
-                # currently just getting the first AR tag it sees :(
                 msg = AlvarMarker()
                 msg.header.stamp = self.get_clock().now().to_msg()
                 msg.header.frame_id = main_frame
@@ -65,17 +58,17 @@ class ArTracker(Node):
                 msg.pose.pose.position.x = x
                 msg.pose.pose.position.y = y
                 msg.pose.pose.position.z = z
-
-                print("found tag: " + str(_id[i]))
-
-                msg.id = int(_id[i])
-                msg.confidence = 1
-                return msg
+                msg.id = int(_id[0])
+                
+                print("found tag: " + str(_id[0]))
+                
+                if msg.id == 15:
+                    return msg
 
         else:
             print("no tag recognized")
             return None
-
+        return None
 
 def main():
     rclpy.init()
