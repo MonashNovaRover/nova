@@ -35,7 +35,8 @@ const float SAFETY_FACTOR = 1.6; // Factor by which we multiply rover radius to 
 const float WEIGHT = 1.0; // weight of heuristic for A*
 const float OBSTACLE_CUTTING_RANGE_M = 0.2; // distance to which we remove obstacles at src or dest
 const int CRITICAL_PATH_LEN = 7;
-float OBSTACLE_VALUE = 1.0;
+const float OBSTACLE_VALUE = 1.0;
+const float C_INF = 1e12;
 
 // implementation of type-safe enum with bitwise operators taken from:
 // https://wiggling-bits.net/using-enum-classes-as-type-safe-bitmasks/
@@ -158,15 +159,12 @@ float padding_value(float dist_sqrd, float padding_width_sqrd)
 
 template <size_t ROW, size_t COL>
 void optimise_padding_area(const array<array<float, COL>, ROW>& grid, 
-							int& min_x, int& max_x, int& min_y, int& max_y)
+							int& x, int& y, int& min_x, int& max_x, int& min_y, int& max_y)
 {
 	/*
 	Looks for other obstacle points around the start point in all 4 directions. If there
 	is a point in one direction, we only need to pad as far as half-way to that point
 	*/
-
-	int x = (min_x + max_x) / 2;
-	int y = (min_y + max_y) / 2;
 
 	// bounding min and max values by dimensions of map
 	min_x = max(min_x, 0); 
@@ -176,25 +174,25 @@ void optimise_padding_area(const array<array<float, COL>, ROW>& grid,
 
 	for (int i = y - 1; i >= min_y; i--) {
 		if (isObstacle(grid[i][x])) {
-			min_y = ceil((i + y)/ 2);
+			min_y = floor((i + y)/ 2);
 		}
 	}
 
 	for (int i = y + 1; i <= max_y; i++) {
 		if (isObstacle(grid[i][x])) {
-			max_y = floor((i + y) / 2);
+			max_y = ceil((i + y) / 2);
 		}
 	}
 
 	for (int j = x - 1; j >= min_x; j--) {
 		if (isObstacle(grid[y][j])) {
-			min_x = ceil((j + x) / 2);
+			min_x = floor((j + x) / 2);
 		}
 	}
 
 	for (int j = x + 1; j <= max_x; j++) {
 		if (isObstacle(grid[y][j])) {
-			max_x = floor((j + x) / 2);
+			max_x = ceil((j + x) / 2);
 		}
 	}
 }
@@ -206,7 +204,7 @@ void pad_point(array<array<float, COL>, ROW>& grid, const Pair& start_pt, float 
 	int min_x = x - 1.3 * padding_width_pixels, min_y = y - 1.3 * padding_width_pixels;
 	int max_x = x + 1.3 * padding_width_pixels, max_y = y + 1.3 * padding_width_pixels;
 
-	optimise_padding_area(grid, min_x, max_x, min_y, max_y);
+	optimise_padding_area(grid, x, y, min_x, max_x, min_y, max_y);
 
 	for (int k = min_y; k <= max_y; k++) {
 		for (int l = min_x; l <= max_x; l++) {
@@ -295,9 +293,6 @@ vector<Pair> construct_return_val(vector<Pair> path, Status status) {
 	// I hate this but python doesn't know how to interpret it another way.
 	path.push_back(Pair((int) status, -1));
 
-    // resetting the value of obstacles before we return (somehow c++ remembers this
-    // between pybind calls???
-    OBSTACLE_VALUE = 1;
 	return path;
 }
 
@@ -366,7 +361,7 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 	openList.emplace(0.0, i, j);
 
 	// for storing the nearest point to the destination we could find
-	double min_dist_to_dest_squared = dist_squared(src, dest);
+	double min_dist_to_dest_squared = C_INF;
 	Pair nearest_point = src;
 
 	// We set this boolean value as false as initially
@@ -416,12 +411,6 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 					return construct_return_val(path, status);
 				}
 				
-				double dist_sqrd = dist_squared(neighbour, dest);
-				if (dist_sqrd < min_dist_to_dest_squared){
-					min_dist_to_dest_squared = dist_sqrd;
-					nearest_point = neighbour;
-				}
-				
 				float gNew, hNew, fNew;
 				// additional distance to next point
 				float g_diff = (diff_y == 0 || diff_x == 0) ? 1.0 : sqrt(2.0);
@@ -429,6 +418,21 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 				hNew = grid[neighbour.first][neighbour.second] * TERRAIN_IMPORTANCE + heuristic(neighbour, dest) * WEIGHT;
 				fNew = gNew + hNew;
 
+				// updating shortest distance we have found to dest
+				double dist_sqrd = dist_squared(neighbour, dest);
+				if (fabs(dist_sqrd - min_dist_to_dest_squared) < 5){
+					std::cout << "dist_sqrd = " << dist_sqrd << ", gNew = " << gNew << ", gOld = " << cellDetails[nearest_point.first][nearest_point.second].g << ", x = " << neighbour.first << ", y = " << neighbour.second << std::endl;
+					min_dist_to_dest_squared = gNew > cellDetails[nearest_point.first][nearest_point.second].g
+												? dist_sqrd : min_dist_to_dest_squared;
+					nearest_point = gNew > cellDetails[nearest_point.first][nearest_point.second].g
+												? neighbour : nearest_point;
+
+				} else if (dist_sqrd < min_dist_to_dest_squared) {
+					// if the distance is much better, 
+					min_dist_to_dest_squared = dist_sqrd;
+					nearest_point = neighbour;
+				}
+				
 				// If it isn’t on the open list, add
 				// it to the open list. Make the
 				// current square the parent of this

@@ -41,7 +41,7 @@ class GridPub(Node):
         # pose_origin.position.x = 1 * self.width * 0.4/ 2
         pose_origin.position.x = x
         pose_origin.position.y = y
-        pose_origin.position.z = -.5 * .4
+        pose_origin.position.z = 0.0
         pose_origin.orientation.w = 1.0
         meta_data.origin = pose_origin
 
