@@ -279,6 +279,8 @@ void prune_path(array<array<float, COL>, ROW>& grid, vector<Pair>& path){
 	Goes through a path in order, checking the values of the waypoints on the grid.
 	Returns the list of all values before the first point with a value of 0.99;
 	*/
+    return;
+/*
 	int x, y;
 	for (size_t i = 0; i < path.size(); i++) {
 		x = path[i].first, y = path[i].second;
@@ -287,6 +289,7 @@ void prune_path(array<array<float, COL>, ROW>& grid, vector<Pair>& path){
 			return;
 		}
 	}
+*/
 }
 
 template <size_t ROW, size_t COL>
@@ -299,11 +302,11 @@ void make_obstacles_passable(array<array<float, COL>, ROW>& grid) {
 	*/
 	for (size_t i = 0; i < COL; i++) {
 		for (size_t j = 0; j < ROW; j++) {
-			if (grid[i][j] >= OBSTACLE_VALUE) grid[i][j] *= 90;
+			if (grid[i][j] >= OBSTACLE_VALUE) grid[i][j] *= 9000;
 		}
 	}
 
-	OBSTACLE_VALUE *= 100;
+	OBSTACLE_VALUE *= 10000;
 }
 
 template <size_t ROW, size_t COL>
@@ -327,6 +330,10 @@ void clear_obstacles_from_location(array<array<float, COL>, ROW>& grid, const Pa
 vector<Pair> construct_return_val(vector<Pair> path, Status status) {
 	// I hate this but python doesn't know how to interpret it another way.
 	path.push_back(Pair((int) status, -1));
+
+    // resetting the value of obstacles before we return (somehow c++ remembers this
+    // between pybind calls???
+    OBSTACLE_VALUE = 1;
 	return path;
 }
 
@@ -338,7 +345,7 @@ template <size_t ROW, size_t COL>
 vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 				const Pair& src, const Pair& dest, const float grid_resolution_m)
 {
-	// timer to check performance
+    std::cout << " OBSTACLE_VALUE = " << OBSTACLE_VALUE << std::endl;
 	const float grid_resolution_cm = grid_resolution_m * 100;
 	// assign heuristic values according to distance to nearest obstacle
 	precompute_padding_values(grid, grid_resolution_cm);
@@ -485,12 +492,9 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 	// there is no way to destination cell (due to
 	// blockages)
 	status |= Status::A_STAR_NO_PATH;
-	std::cout << "couldn't get to dest" << std::endl;
 	make_obstacles_passable(grid);
 	
-	std::cout << "made obstacles passable" << std::endl;
 	vector<Pair> emergency_replan = aStarSearch(grid, src, dest, grid_resolution_m);
-	std::cout << "replanned" << std::endl;
 	emergency_replan.resize(emergency_replan.size() - 1);
 	prune_path(grid, emergency_replan);
 
