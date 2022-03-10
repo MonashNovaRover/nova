@@ -76,6 +76,18 @@ class PathPlanner(Node):
         print("~~~~~~~~~~~~~~~~~~~~~~~~~~")
         print(msg.pose)
         pose = msg.pose.pose.position
+        
+        self.get_logger().info("found tag: x=" + str(pose.x) + " | y=" + str(pose.y) + " | z=" + str(pose.z))
+        
+        # convert coordinate system from 
+        # pos z --> forward
+        # pos x --> right
+        # pos y --> down
+        # to
+        # nova system
+        x = pose.z
+        y = pose.x
+        
 
         # filter step
         distance = (pose.z ** 2 + pose.y ** 2) ** 0.5
@@ -83,15 +95,15 @@ class PathPlanner(Node):
         #    return
 
         # translate step
-        global_pose_x = pose.x * np.cos(self.state.yaw) - pose.y * np.sin(self.state.yaw) + self.state.x
-        global_pose_y = pose.x * np.sin(self.state.yaw) + pose.y * np.cos(self.state.yaw) + self.state.y
+        global_pose_x = x * np.cos(self.state.yaw) - y * np.sin(self.state.yaw) + self.state.x
+        global_pose_y = x * np.sin(self.state.yaw) + y * np.cos(self.state.yaw) + self.state.y
 
         # goal diff for logging
         print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         print(str(self.goal))
         goal_diff = ((self.goal[0] - global_pose_x) ** 2 + (self.goal[1] - global_pose_y) ** 2) ** 0.5
 
-        # self.get_logger().info("Updated planning goal: ")
+        self.get_logger().info("Updated planning goal: x=" + str(global_pose_x) + "| y=" + str(global_pose_y))
 
         self.goal = global_pose_x, global_pose_y
 

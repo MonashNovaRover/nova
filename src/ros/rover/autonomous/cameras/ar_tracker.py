@@ -62,8 +62,8 @@ class ArTracker(Node):
                 
                 print("found tag: " + str(_id[0]))
                 
-                if msg.id == 15:
-                    return msg
+                # if msg.id == 15:
+                return msg
 
         else:
             print("no tag recognized")
