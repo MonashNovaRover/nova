@@ -51,7 +51,7 @@ class Grid2D(Node):
         width = int(self.width / self.resolution)
         x = (-self.length / 2)
         y = (-self.width / 2)
-        self.grid_pub.publish_grid(0.4 * self.resolution, length, width, 0.4 * x, 0.4 * y, self.map_as_sequence())
+        self.grid_pub.publish_grid(self.resolution, length, width, x, y, self.map_as_sequence())
 
     def get_full_indexes(self, points):
         """
