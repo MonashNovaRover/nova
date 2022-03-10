@@ -18,6 +18,9 @@ min_waypoint_distance = 0.5  # todo: determine what is achievable
 
 controller_ros_rate = 10  # 10hz
 
+# ~~~~~~~~~~~~~~VIS CONSTANTS ~~~~~~~~~~~~~~~~
+pub_scale = 1.0
+
 # ~~~~~~~~~~ PLANNING CONSTANTS ~~~~~~~~~~~~~~~
 planning_rate = 2.0
 min_ar_distance = 0.2 
