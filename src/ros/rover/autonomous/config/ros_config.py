@@ -15,6 +15,7 @@ Nova standard coordinate system (left handed coordinates) AND raw data from the 
 """
 # ~~~~~~~~~~~~~ Tracking & Depth cams ~~~~~~~~~~~~~~~~ 
 tracking_pose_topic = "/t265/odom/sample"
+rover_odom_topic = "/rover/odom"
 depth_topic = "/D400/depth/color/points"
 depth_point_cloud_topic = "/camera/depth/color/points"
 # position of centre of wheel base relative to tracking cam
