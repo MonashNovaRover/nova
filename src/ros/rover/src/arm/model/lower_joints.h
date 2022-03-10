@@ -48,8 +48,8 @@ class LowerJointsModel : public ArmSubModule
         zero_angles = std::vector<double> {0, M_PI / 2, 0};
         joint_limits = std::vector<JointLimit> {
             {-2 * M_PI, 2 * M_PI},  // No joint limiting
-            {-1.90, 1.50},
-            {-2.10, 1.20}  // Fix the upper limit. Doesn't seem corect
+            {-1.65, 1.65},
+            {-2.70, 0.50}  // Fix the upper limit. Not correct
         };
         
         // Build the lower joints
