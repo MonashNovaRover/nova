@@ -29,7 +29,7 @@ max_safe_obstacle = 86 # obstacle threshold for 2d map
 max_safe_inc = 50 # gradient cutoff for obstacles
 depth_mode = "python" # whether we publish points over ros or use a python callback
 skip_pts = 1 # Step we use when selecting points if we can't handle the full cloud
-unseen_map_val = 0.6 # Fill all points we haven't seen with a set cost to preference known paths
+unseen_map_val = 0.3 # Fill all points we haven't seen with a set cost to preference known paths
 
 # ~~~~~~~~~~~~~~~~~ CAMERA INFO ~~~~~~~~~~~~~~~~~~~~~
 d415_serial = "932122060332"
