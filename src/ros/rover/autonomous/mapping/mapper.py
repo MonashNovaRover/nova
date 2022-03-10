@@ -248,7 +248,7 @@ class Mapper(Node):
         """
         pts, colors = self._map3d.get_as_pc()
         colors = colors + [254, 254, 254]
-        print(pts)
+        # print(pts)
         pts_dense = pts[:]
         colors_dense = colors[:]
         self.pc_pub.pub_pts_colors(pts, colors)
