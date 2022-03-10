@@ -108,11 +108,11 @@ class PathPlanner(Node):
         self.route = np.array(a_star(_map, self.get_grid_coord(self.start), self.get_grid_coord(self.goal), self.resolution))
         status = self.route[-1, 0]
         self.route = self.route[:-1]
-        if status & PathPlanner.A_STAR_START_OBSTACLE: print("started in obstacle")
-        if status & PathPlanner.A_STAR_DEST_OBSTACLE: print("dest in obstacle")
-        if status & PathPlanner.A_STAR_NO_PATH: print("couldn't find a path initially")
-        if status & PathPlanner.A_STAR_CRITICAL_NO_PATH: print("critical path prob")
-        if status == PathPlanner.A_STAR_SUCCESS: print("found safe path")
+        if status & PathPlanner.A_STAR_START_OBSTACLE: self.get_logger().warn("started in obstacle")
+        if status & PathPlanner.A_STAR_DEST_OBSTACLE: self.get_logger().warn("dest in obstacle")
+        if status & PathPlanner.A_STAR_NO_PATH: self.get_logger().warn("couldn't find a path initially")
+        if status & PathPlanner.A_STAR_CRITICAL_NO_PATH: self.get_logger().error("COULDN'T FIND PATH - NEAR OBSTACLE")
+        if status == PathPlanner.A_STAR_SUCCESS: self.get_logger().info("A* found safe path")
         route_coordinates = self.get_local_coords_route(self.route)
         waypoints = Waypoints()
 

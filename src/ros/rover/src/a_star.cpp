@@ -274,42 +274,6 @@ vector<Pair> tracePath(array<array<cell, COL>, ROW>& cellDetails, const Pair& de
 }
 
 template <size_t ROW, size_t COL>
-void prune_path(array<array<float, COL>, ROW>& grid, vector<Pair>& path){
-	/*
-	Goes through a path in order, checking the values of the waypoints on the grid.
-	Returns the list of all values before the first point with a value of 0.99;
-	*/
-    return;
-/*
-	int x, y;
-	for (size_t i = 0; i < path.size(); i++) {
-		x = path[i].first, y = path[i].second;
-		if (grid[x][y] >= OBSTACLE_VALUE) {
-			path.resize(i);
-			return;
-		}
-	}
-*/
-}
-
-template <size_t ROW, size_t COL>
-void make_obstacles_passable(array<array<float, COL>, ROW>& grid) {
-	/* 
-	Multiplies the whole map by 0.9. This means obstacles that previously had values of 1.1
-	now have values of 0.99, so they are passable but very expensive. The path planner will
-	hopefully find whichever path takes the fewest of these high-cost points possible.
-	:param grid: reference to the grid which we want to scale down
-	*/
-	for (size_t i = 0; i < COL; i++) {
-		for (size_t j = 0; j < ROW; j++) {
-			if (grid[i][j] >= OBSTACLE_VALUE) grid[i][j] *= 9000;
-		}
-	}
-
-	OBSTACLE_VALUE *= 10000;
-}
-
-template <size_t ROW, size_t COL>
 void clear_obstacles_from_location(array<array<float, COL>, ROW>& grid, const Pair& point, const int cutting_distance) {
 	/*
 	Checks area around a point, and sets any obstacle values in that area to 0.99 rather than 1.
@@ -345,32 +309,31 @@ template <size_t ROW, size_t COL>
 vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 				const Pair& src, const Pair& dest, const float grid_resolution_m)
 {
-    std::cout << " OBSTACLE_VALUE = " << OBSTACLE_VALUE << std::endl;
 	const float grid_resolution_cm = grid_resolution_m * 100;
-	// assign heuristic values according to distance to nearest obstacle
-	precompute_padding_values(grid, grid_resolution_cm);
 
 	Status status = Status::A_STAR_SUCCESS;
 	int clearance = OBSTACLE_CUTTING_RANGE_M / grid_resolution_m;
 
-	// If the source is out of range
-	if (!isSafe(grid, src)) {
-		status |= Status::A_STAR_START_OBSTACLE;
-		std::cout << "obs at start" << std::endl;
-		clear_obstacles_from_location(grid, src, clearance);
-	}
-
-	// If the destination is out of range
+	// If the destination is in an obstacle
 	if (!isSafe(grid, dest)) {
 		status |= Status::A_STAR_DEST_OBSTACLE;
-		std::cout << "obs at dest" << std::endl;
 		clear_obstacles_from_location(grid, dest, clearance);
 	}
+
+	// assign heuristic values according to distance to nearest obstacle
+	precompute_padding_values(grid, grid_resolution_cm);
 
 	// If the destination cell is the same as source cell, we have already found it
 	if (isDestination(src, dest)) {
 		return construct_return_val(vector<Pair> {{src}}, status);
 	}
+
+	// If the source is in an obstacle
+	if (!isSafe(grid, src)) {
+		status |= Status::A_STAR_START_OBSTACLE;
+		clear_obstacles_from_location(grid, src, clearance);
+	}
+
 
 	// Create a closed list and initialise it to false which
 	// means that no cell has been included yet This closed
@@ -401,6 +364,10 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 	// Put the starting cell on the open list and set its
 	// 'f' as 0
 	openList.emplace(0.0, i, j);
+
+	// for storing the nearest point to the destination we could find
+	double min_dist_to_dest_squared = dist_squared(src, dest);
+	Pair nearest_point = src;
 
 	// We set this boolean value as false as initially
 	// the destination is not reached.
@@ -449,6 +416,12 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 					return construct_return_val(path, status);
 				}
 				
+				double dist_sqrd = dist_squared(neighbour, dest);
+				if (dist_sqrd < min_dist_to_dest_squared){
+					min_dist_to_dest_squared = dist_sqrd;
+					nearest_point = neighbour;
+				}
+				
 				float gNew, hNew, fNew;
 				// additional distance to next point
 				float g_diff = (diff_y == 0 || diff_x == 0) ? 1.0 : sqrt(2.0);
@@ -492,13 +465,12 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 	// there is no way to destination cell (due to
 	// blockages)
 	status |= Status::A_STAR_NO_PATH;
-	make_obstacles_passable(grid);
 	
-	vector<Pair> emergency_replan = aStarSearch(grid, src, dest, grid_resolution_m);
-	emergency_replan.resize(emergency_replan.size() - 1);
-	prune_path(grid, emergency_replan);
+	// instead return path to the nearest point we could find
+	vector<Pair> path = tracePath(cellDetails, nearest_point);
 
-	return construct_return_val(emergency_replan, status);
+	if (path.size() < CRITICAL_PATH_LEN) status |= Status::A_STAR_CRITICAL_NO_PATH;
+	return construct_return_val(path, status);
 }
 
 // Driver program to test above function
