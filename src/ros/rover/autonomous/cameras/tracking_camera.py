@@ -4,7 +4,6 @@ import numpy as np
 import rclpy
 from rclpy.node import Node
 from nav_msgs.msg import Odometry
-from core.msg import RoverPose
 from core.msg import RoverPose, DriveVel
 import math
 import math_utils.transform as transform
