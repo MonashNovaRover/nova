@@ -140,6 +140,5 @@ def transform_yaw(pose_msg, pts):
     Finishes the above transform by rotating according to the yaw.
     """
     pitch, roll, yaw = quat_to_euler(pose_msg)
-    print("yaw = " + str(yaw))
     pts = transform_euler((0, 0, yaw), pts)
     return pts

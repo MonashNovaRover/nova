@@ -46,7 +46,7 @@ class PathCloud(Node):
 
         self.pc_pub.pub(pc)
         
-        print("visualizing path: ")
+        self.get_logger().info("visualizing a* path. ")
 
 if __name__ == "__main__":
     rclpy.init(args=None)

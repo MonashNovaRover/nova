@@ -117,12 +117,14 @@ class Controller(Node):
         self.drive_cmd_publisher.publish(drive_cmd_msg)
 
     @staticmethod
-    def print_update(action_msg, heading_to, yaw_diff, dist):
+    def log_update(action_msg, heading_to, yaw_diff, dist):
+        """
+        Logs the current action to ROS logging
+        """
         pad = 10
-        sys.stdout.write("\r" + "Action: " + action_msg.ljust(pad) + " | heading to: " + str(heading_to).ljust(pad)
-                         + " | yaw diff: " + str(round(yaw_diff, 4)).ljust(pad) + " | distance: " + str(
-            round(dist, 4)).ljust(pad))
-        sys.stdout.flush()
+        action = "Action: " + action_msg.ljust(pad) + " | heading to: " + str(heading_to).ljust(pad)
+                + " | yaw diff: " + str(round(yaw_diff, 4)).ljust(pad) + " | distance: " + str(round(dist, 4)).ljust(pad)
+        self.get_logger().info(action)
     
     def go_to_target(self):
         """
@@ -142,13 +144,14 @@ class Controller(Node):
             
         #implement yaw_star
         if abs(yaw_diff) > MAX_YAW:
+            self.get_logger().info("Beginning Turning Pattern")
             #Big turn, either drive straight or turn
             if self.star_state == 0:
                 #From straight line to first yaw
                 self.target_yaw = np.sign(yaw_diff) * (abs(yaw_diff) - self.MAX_YAW)
                 steer_fraction = tank_turn_target_yaw_rate(yaw_diff)
                 self.__publish(0.05, steer_fraction)
-                Controller.print_update("Start star yawing", self.target_waypoint, yaw_diff,
+                Controller.log_update("Start star yawing", self.target_waypoint, yaw_diff,
                                 distance((self.state.x, self.state.y), self.target_waypoint))
                 #Update state
                 self.star_state = 1
@@ -158,7 +161,7 @@ class Controller(Node):
                     #Keep turning
                     steer_fraction = tank_turn_target_yaw_rate(yaw_diff)
                     self.__publish(0.05, steer_fraction)
-                    Controller.print_update("Keep star yawing", self.target_waypoint, yaw_diff,
+                    Controller.log_update("Keep star yawing", self.target_waypoint, yaw_diff,
                                 distance((self.state.x, self.state.y), self.target_waypoint))
                 else:
                     #Swap to drive mode
@@ -168,7 +171,7 @@ class Controller(Node):
                     self.target_pose = [position_vector[0] + dist * self.direction * np.cos(current_orientation), 
                                        position_vector[1] + dist * self.direction * np.sin(current_orientation), 0]
                     self.__publish(0.0, 0.0)
-                    Controller.print_update("Start star heading", self.target_waypoint, yaw_diff,
+                    Controller.log_update("Start star heading", self.target_waypoint, yaw_diff,
                                 distance((self.state.x, self.state.y), self.target_waypoint))
             elif self.star_state == 2:
                 #Check if keep driving
@@ -177,13 +180,13 @@ class Controller(Node):
                     #Keep driving
                     drive_fraction = 0.1 * direction
                     self.__publish(drive_fraction, 0.0)
-                    Controller.print_update("star heading", self.target_waypoint, yaw_diff,
+                    Controller.log_update("star heading", self.target_waypoint, yaw_diff,
                                 distance((self.state.x, self.state.y), self.target_waypoint))
 
                 else:
                     #Return to turning
                     self.__publish(0.0, 0.0)
-                    Controller.print_update("Finish star heading", self.target_waypoint, yaw_diff,
+                    Controller.log_update("Finish star heading", self.target_waypoint, yaw_diff,
                                 distance((self.state.x, self.state.y), self.target_waypoint))
                     
                     #Update variables
@@ -194,10 +197,10 @@ class Controller(Node):
             #Turn on the spot
             steer_fraction = tank_turn_target_yaw_rate(yaw_diff)
             self.__publish(0.05, steer_fraction)
-            Controller.print_update("yawing", self.target_waypoint, yaw_diff,
+            Controller.log_update("yawing", self.target_waypoint, yaw_diff,
                         distance((self.state.x, self.state.y), self.target_waypoint))
         else:
-            print('DONE')
+            self.get_logger().info('Finished Turning Pattern')
             #Reset constants
             self.star_state = 0 
             self.first_drive = True
@@ -207,7 +210,7 @@ class Controller(Node):
             drive_fraction = crow_fly_target_velocity((self.state.x, self.state.y), self.target_waypoint)
             self.__publish(drive_fraction, 0.0)
 
-            Controller.print_update("heading", self.target_waypoint, yaw_diff,
+            Controller.log_update("heading", self.target_waypoint, yaw_diff,
                                     distance((self.state.x, self.state.y), self.target_waypoint))
 
     def control(self):
@@ -231,7 +234,7 @@ class Controller(Node):
 
         else:
             # If distance to the waypoint is lower than the threshold distance, we have arrived
-            print("Reached way-point: " + str(self.target_waypoint))
+            self.get_logger().info("Reached way-point: " + str(self.target_waypoint))
             self.target_waypoint = None
             self.control()
 

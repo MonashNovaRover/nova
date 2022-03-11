@@ -248,7 +248,7 @@ class Mapper(Node):
         """
         pts, colors = self._map3d.get_as_pc()
         colors = colors + [254, 254, 254]
-        print(pts)
+        self.get_logger().info("publishing dense point cloud")
         pts_dense = pts[:]
         colors_dense = colors[:]
         self.pc_pub.pub_pts_colors(pts, colors)
@@ -276,7 +276,6 @@ def position_callback(msg):
     Parses positional data, calculates the average value and publishes
     it to the topic /obstacle_proximity.
     """
-    # print(msg.pose.pose.position.x)
     pass
 
 
