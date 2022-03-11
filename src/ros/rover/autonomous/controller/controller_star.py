@@ -42,10 +42,9 @@ from config.runtime_params import *
 from core.msg import DriveInput, RoverPose, Waypoints
 import sys
 import vis.path_vis as path_vis
+import time
 
-from config.ros_config import rover_pose_topic
-from config.ros_config import auto_drive_command_topic
-from config.ros_config import auto_goals_topic
+from config.ros_config import rover_pose_topic, auto_drive_command_topic, auto_goals_topic
 
 
 class Controller(Node):
@@ -73,6 +72,8 @@ class Controller(Node):
         self.star_state = 0 
         self.first_drive = True
         self.direction = -1
+
+        self.previous_update = 0
         
         self.path_cloud = path_vis.PathCloud()
 
@@ -121,10 +122,12 @@ class Controller(Node):
         """
         Logs the current action to ROS logging
         """
-        pad = 10
-        action = "Action: " + action_msg.ljust(pad) + " | heading to: " + str(heading_to).ljust(pad)
-                + " | yaw diff: " + str(round(yaw_diff, 4)).ljust(pad) + " | distance: " + str(round(dist, 4)).ljust(pad)
-        self.get_logger().info(action)
+        if time.perf_counter() - self.previous_update > 1:
+            pad = 10
+            action = "Action: " + action_msg.ljust(pad) + " | heading to: " + str(heading_to).ljust(pad)
+                    + " | yaw diff: " + str(round(yaw_diff, 4)).ljust(pad) + " | distance: " + str(round(dist, 4)).ljust(pad)
+            self.get_logger().info(action)
+            self.previous_update = time.perf_counter()
     
     def go_to_target(self):
         """
@@ -144,10 +147,10 @@ class Controller(Node):
             
         #implement yaw_star
         if abs(yaw_diff) > MAX_YAW:
-            self.get_logger().info("Beginning Turning Pattern")
             #Big turn, either drive straight or turn
             if self.star_state == 0:
                 #From straight line to first yaw
+                self.get_logger().info("Beginning Turning Pattern")
                 self.target_yaw = np.sign(yaw_diff) * (abs(yaw_diff) - self.MAX_YAW)
                 steer_fraction = tank_turn_target_yaw_rate(yaw_diff)
                 self.__publish(0.05, steer_fraction)
@@ -200,7 +203,7 @@ class Controller(Node):
             Controller.log_update("yawing", self.target_waypoint, yaw_diff,
                         distance((self.state.x, self.state.y), self.target_waypoint))
         else:
-            self.get_logger().info('Finished Turning Pattern')
+            if self.star_state > 0: self.get_logger().info('Finished Turning Pattern')
             #Reset constants
             self.star_state = 0 
             self.first_drive = True
