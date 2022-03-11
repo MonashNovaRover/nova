@@ -63,8 +63,11 @@ class DepthCamera(Thread):
             t = time.time()
             # call the callback (probably 
             self.callback(self.get_points())
-            sys.stdout.write("\r" + "Map update completed in: " + str(round(time.time() - t, 5)) + " seconds\n")
-            sys.stdout.flush()
+            rclpy.logging._root_logger.log(
+                f"Map update completed in: {str(round(time.time() - t, 5))} seconds",
+                LoggingSeverity.INFO,
+                once=True,
+                skip_first=True)
 
     def get_points(self):
         """
