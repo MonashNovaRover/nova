@@ -103,13 +103,11 @@ std::tuple<py::array_t<unsigned char>, int> getObstacles(PointCloud& points, con
 
     auto end = std::chrono::high_resolution_clock::now();
     auto time = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-    std::cout << "obstacle detection took " << time.count() << " microseconds" << std::endl;
     // converting to numpy array to return
     py::array_t<unsigned char> numpy_diff = py::array_t<unsigned char>({ diff.rows, diff.cols }, diff.data);
     save(topHeightMap, bottomHeightMap, diff);
     auto converted = std::chrono::high_resolution_clock::now();
     time = std::chrono::duration_cast<std::chrono::microseconds>(converted - end);
-    std::cout << "converting to numpy array took " << time.count() << " microseconds" << std::endl;
     return std::tuple<py::array_t<unsigned char>, int> (numpy_diff, min_x);
 }
 
