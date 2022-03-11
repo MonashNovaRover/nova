@@ -64,7 +64,7 @@ class HeightPlaneMapper(FlatMapper):
         (not transformed).
         """
         # If we want the 3d map as well
-        super().handle_pc(pts)
+        #super().handle_pc(pts)
         # transforming pitch and roll to flatten the map, but no yaw or translation
         no_yaw_pts = transform.transform_points_no_yaw(self.msg, pts)
 

@@ -27,14 +27,18 @@ def main(args):
     controller = Controller()
 
     # This allows us to spin both nodes from main.py - we are kind of misusing ros nodes here but oh well it works
-    executor = rclpy.executors.MultiThreadedExecutor()
+    #executor = rclpy.executors.MultiThreadedExecutor()
     
-    executor.add_node(planner)
-    executor.add_node(mapper)
-    executor.add_node(controller)
+    #executor.add_node(planner)
+    #executor.add_node(mapper)
+    #executor.add_node(controller)
 
+        #executor.spin() 
     # Spin in a separate thread
-    executor.spin() 
+    while(True):
+        rclpy.spin_once(planner)
+        rclpy.spin_once(mapper)
+        rclpy.spin_once(controller)
 
     # rejoining threads before we shutdown
     rclpy.shutdown()
