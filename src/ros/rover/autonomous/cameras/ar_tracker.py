@@ -7,17 +7,24 @@ import rclpy
 from core.msg import AlvarMarker
 from config.ros_config import ar_track_topic
 import os
-
+from nav_msgs.msg import Odometry
 
 class ArTracker(Node):
     def __init__(self):
         super().__init__("ar_tracker")
         self.publisher = self.create_publisher(AlvarMarker, ar_track_topic, 10)
+        self.odom_publisher(Odometry, "autonomous/ar_tag/odometry", 10)
 
     def __call__(self, img):
         msg = self.find_ar_tag(img)
         if msg:
             self.publisher.publish(msg)
+            odom = Odometry()
+            odom.pose.pose.position.x = msg.pose.position.x
+            odom.pose.pose.position.y = msg.pose.position.y
+            odom.pose.pose.position.z = msg.pose.position.z
+            self.publisher.publish(msg)
+            self.odom_publisher.publish(odom)
 
     def find_ar_tag(self, img, markerSize=6, totalMarkers=250, draw=False):
         """
