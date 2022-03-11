@@ -21,7 +21,7 @@ TODO:
 """
 from core.srv import RFIDCommand
 
-import rclpy
+import rclpy, time
 from rclpy.node import Node
 
 from serial import Serial
@@ -30,11 +30,21 @@ class RFIDService(Node):
 
     def __init__(self):
         super().__init__('rfid_service')
-        self.srv = self.create_service(RFIDCommand, '/electronics/rfid_service', self.handle_rfid_request)
-        self.ser = Serial(baudrate = 115200, port = '/dev/ttyUSB0') # TODO: Check port
+
+        self.get_logger().info("Waiting for RFID scanner to be plugged in.")
+
+        # Loop until the RFID is plugged in
+        while True:
+            try:
+                self.ser = Serial(baudrate = 115200, port = '/dev/ttyUSB0') # TODO: Check port
+                break
+            except:
+                time.sleep(1.0)
+            
+        self.srv = self.create_service(RFIDCommand, '/electronics/rfid_service', self.handle_rfid_request)   
         self.EOM = b'\r' # carriage ret for EOM
         #self.get_logger().set_level(10) # FOR DEBUGGING
-        self.get_logger().info('Started RFID service')
+        self.get_logger().info('Started RFID service successfully!')
 
     def handle_rfid_request(self, request: RFIDCommand, response):
         self.get_logger().info(f'Processing {request.command} RFID request')
