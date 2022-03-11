@@ -6,7 +6,6 @@ __package__ = "autonomous"
 Convert rover as .ply file to pointcloud
 """
 
-import open3d as o3d
 import numpy as np
 import rclpy
 from rclpy.node import Node
