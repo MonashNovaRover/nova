@@ -8,6 +8,7 @@ from core.msg import RoverPose
 import math_utils.transform as transform
 from config.runtime_params import tracking_camera_extrinsics, t265_serial
 from config.ros_config import main_frame, tracking_pose_topic, rover_pose_topic
+import time
 
 # different systems seem to install the pyrealsense wrapper differently
 try:
@@ -117,6 +118,7 @@ def main():
     camera = TrackingCamera()
     for i in range(1000000):
         camera.get_next_pose()
+        time.sleep(0.1)
 
 
 if __name__ == "__main__":

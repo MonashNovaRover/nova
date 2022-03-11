@@ -154,19 +154,21 @@ class Controller(Node):
         Called once every tick by the node's timer. Identifies the next target waypoint
         and calls navigate_to_waypoint, and determines when the rover has arrived
         """
+
         if not self.target_waypoint:
             # There is currently no target - take the first waypoint on the list
             if self.waypoints:
+                if distance((self.state.x, self.state.y), self.waypoints[-1]) < min_waypoint_distance: rclpy.shutdown()
                 self.target_waypoint = self.waypoints.pop(0)
             else:
                 return
 
-        if distance((self.state.x, self.state.y), self.target_waypoint) >= min_waypoint_distance:
+        if distance((self.state.x, self.state.y), self.target_waypoint) > min_waypoint_distance:
             # we have not yet arrived at the waypoint
             self.go_to_target()
 
             # showing where we are aiming to drive to
-            self.path_cloud.publish_path(self.waypoints)
+            if len(self.waypoints) > 1: self.path_cloud.publish_path(self.waypoints)
 
         else:
             # If distance to the waypoint is lower than the threshold distance, we have arrived

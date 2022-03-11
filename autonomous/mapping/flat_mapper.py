@@ -118,4 +118,4 @@ class FlatMapper(Mapper):
         Publish the 2d map over ros to be viewed in RVIZ
         """
         self._map.publish_grid()
-        super().publish()
+        #super().publish()
