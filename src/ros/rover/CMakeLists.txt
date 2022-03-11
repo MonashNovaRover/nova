@@ -49,6 +49,8 @@ install(PROGRAMS
   electronics/wheel_publisher.py
   electronics/gimbal_service.py
   electronics/resolver_publisher.py
+  electronics/rfid_service.py
+  electronics/rfid_client_terminal.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
