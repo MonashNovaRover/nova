@@ -100,11 +100,11 @@ def main():
     cv_file.release()
 
     # Display key parameter outputs of the camera calibration process
-    print("Camera matrix:")
-    print(mtx)
+    #print("Camera matrix:")
+    #print(mtx)
 
-    print("\n Distortion coefficient:")
-    print(dist)
+    #print("\n Distortion coefficient:")
+    #print(dist)
 
     # Close all windows
     cv2.destroyAllWindows()
