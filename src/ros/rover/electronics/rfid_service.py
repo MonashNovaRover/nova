@@ -44,7 +44,7 @@ class RFIDService(Node):
         if cmd in ['read', 'clear', 'restart']:
             self.write_msg(cmd)
             response.response = self.read_data()
-        elif cmd == 'write':
+        elif cmd in ['write', 'poll']:
             self.write_msg(cmd)
             self.write_msg(request.data)
             response.response = self.read_data()
