@@ -74,8 +74,6 @@ class PathPlanner(Node):
         
         
         """
-        # print("~~~~~~~~~~~~~~~~~~~~~~~~~~")
-        # print(msg.pose)
         pose = msg.pose.pose.position
         
         self.get_logger().info("found tag: x=" + str(pose.x) + " | y=" + str(pose.y) + " | z=" + str(pose.z))
@@ -100,8 +98,6 @@ class PathPlanner(Node):
         global_pose_y = x * np.sin(self.state.yaw) + y * np.cos(self.state.yaw) + self.state.y
 
         # goal diff for logging
-        # print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-        # print(str(self.goal))
         goal_diff = ((self.goal[0] - global_pose_x) ** 2 + (self.goal[1] - global_pose_y) ** 2) ** 0.5
 
         self.get_logger().info("Updated planning goal: x=" + str(global_pose_x) + "| y=" + str(global_pose_y))
@@ -157,8 +153,6 @@ class PathPlanner(Node):
 
         self.length_meters = int(_map.shape[0] * self.resolution)
         self.width_meters = int(_map.shape[1] * self.resolution)
-        # print(self.length_meters)
-        # print("Running A* for goal: " + str(self.goal))
         
         self.route = np.array(a_star(_map, self.get_grid_coord(self.start), self.get_grid_coord(self.goal), self.resolution))
         status = self.route[-1, 0]
