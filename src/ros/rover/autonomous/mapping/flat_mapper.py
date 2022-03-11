@@ -32,7 +32,6 @@ TODO:
 
 from mapping.mapper import Mapper
 from mapping.grid_2d import Grid2D
-import time
 import numpy as np
 import math_utils.transform as transform
 from config.runtime_params import max_fov_angle, max_point_depth, max_safe_obstacle, min_point_density
