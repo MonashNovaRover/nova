@@ -164,7 +164,9 @@ class PathPlanner(Node):
         if status == PathPlanner.A_STAR_SUCCESS: self.get_logger().info("A* found safe path")
         route_coordinates = self.get_local_coords_route(self.route)
         waypoints = Waypoints()
+        #route_coordinates = [route_coordinates[-1] if len(route_coordinates) <= 4 else route_coordinates[4::5]]
 
+        #self.get_logger().warn(str(route_coordinates[0]))
         for wpt in route_coordinates:
             # publishing waypoints in order 
             waypoint = Waypoint()
