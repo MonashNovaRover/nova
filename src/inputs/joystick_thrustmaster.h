@@ -32,7 +32,7 @@ class JoystickThrustmaster : public Joystick {
 
     /// @brief      Flags for whether or not certain values have changed
     bool valid_ax_stick_twist = false;
-    bool valid_ax_thumb_y = false;
+    bool valid_ax_thumb_x = false;
     bool valid_ax_slider = false;
 
     /// @brief      The default slider value to use when invalid
