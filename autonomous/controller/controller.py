@@ -37,7 +37,6 @@ from rclpy.node import Node
 from math_utils.controller_math import *
 from config.runtime_params import *
 from core.msg import DriveInput, RoverPose, Waypoints
-import vis.path_vis as path_vis
 
 from config.ros_config import *
 
@@ -58,8 +57,6 @@ class Controller(Node):
         self.target_waypoint = None
         self.previously_turned = False
         self.max_distance = 0.0001  # furthest distance to an object? not sure
-
-        self.path_cloud = path_vis.PathCloud()
 
         self.drive_cmd_publisher = self.create_publisher(DriveInput, auto_drive_command_topic, 10)
         self.pose_subscriber = self.create_subscription(RoverPose, rover_pose_topic, self.update_pose, 10)
@@ -166,9 +163,6 @@ class Controller(Node):
         if distance((self.state.x, self.state.y), self.target_waypoint) > min_waypoint_distance:
             # we have not yet arrived at the waypoint
             self.go_to_target()
-
-            # showing where we are aiming to drive to
-            if len(self.waypoints) > 1: self.path_cloud.publish_path(self.waypoints)
 
         else:
             # If distance to the waypoint is lower than the threshold distance, we have arrived

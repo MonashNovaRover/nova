@@ -27,7 +27,7 @@ TODO:
 from a_star import a_star
 from math_utils.controller_math import *
 from rclpy.node import Node
-from core.msg import Waypoints, Waypoint, RoverPose, AlvarMarker
+from core.msg import Waypoints, Waypoint, RoverPose, AlvarMarker, AutonomousGoal
 from config.ros_config import *
 from config.runtime_params import min_ar_distance, max_ar_distance
 
@@ -40,7 +40,7 @@ class PathPlanner(Node):
     A_STAR_NO_PATH = 4
     A_STAR_CRITICAL_NO_PATH = 8
 
-    def __init__(self, dest: list, resolution_m):
+    def __init__(self, resolution_m):
         super().__init__("path_planner_node")
         
         # way-point publisher publishes a bunch of waypoints at once (hence using the 2D map datatype
@@ -48,7 +48,8 @@ class PathPlanner(Node):
         
         self.pose_subscriber = self.create_subscription(RoverPose, rover_pose_topic, self.update_pose, 10)
 
-        self.ar_tag_subscriber = self.create_subscription(AlvarMarker, "autonomous/ar_tag", self.update_goal_callback, 10)
+        self.ar_tag_subscriber = self.create_subscription(AlvarMarker, ar_track_topic, self.ar_goal_callback, 10)
+        self.goal_subscriber = self.create_subscription(AutonomousGoal, auto_goals_topic, self.manual_goal_callback, 10)
 
         self.expected_goal_id = 0
 
@@ -60,11 +61,12 @@ class PathPlanner(Node):
         self.state = State()
 
         self.start = (0, 0)
-        self.goal = dest
+        self.goal = (0, 0)
+        self.goal_id = 0
 
         self.route = []
 
-    def update_goal_callback(self, msg):
+    def ar_goal_callback(self, msg):
         """
         1. Check that it's the AR tag we are looking
         2. Filter out dodgy values
@@ -100,9 +102,29 @@ class PathPlanner(Node):
         # goal diff for logging
         goal_diff = ((self.goal[0] - global_pose_x) ** 2 + (self.goal[1] - global_pose_y) ** 2) ** 0.5
 
-        self.get_logger().info("Updated planning goal: x=" + str(global_pose_x) + "| y=" + str(global_pose_y))
+        iD = msg.id
 
-        self.goal = global_pose_x, global_pose_y
+        if iD // 4 == self.goal_id:
+            self.goal = global_pose_x, global_pose_y
+            self.get_logger().info("Updated planning goal (AR tag): x=" + str(global_pose_x) + "| y=" + str(global_pose_y))
+
+
+    def manual_goal_callback(self, msg):
+        """
+        1. Check that it's the AR tag we are looking
+        2. Filter out dodgy values
+            - are values within an absolute range?
+            - standard deviation? idk
+        3. Transform pose of tag relative to rover into global pose of tag
+        
+        
+        """
+        position = msg.position
+        iD = msg.id
+
+        self.get_logger().info("Next goal x=" + str(position.x) + " | y=" + str(position.y))
+        self.goal = (position.x, position.y)
+        self.goal_id = iD
 
     def get_grid_coord(self, position):
         return int((position[0] + self.length_meters / 2) / self.resolution), \

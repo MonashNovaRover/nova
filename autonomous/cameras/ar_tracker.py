@@ -13,7 +13,7 @@ class ArTracker(Node):
     def __init__(self):
         super().__init__("ar_tracker")
         self.publisher = self.create_publisher(AlvarMarker, ar_track_topic, 10)
-        self.odom_publisher(Odometry, "autonomous/ar_tag/odometry", 10)
+        self.odom_publisher = self.create_publisher(Odometry, "autonomous/ar_tag/odometry", 10)
 
     def __call__(self, img):
         msg = self.find_ar_tag(img)
