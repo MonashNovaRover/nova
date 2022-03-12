@@ -84,9 +84,6 @@ class ArmInputs : public rclcpp::Node {
     core::msg::InputJoystick joystick_l;
     core::msg::InputJoystick joystick_r;
 
-    // A lock on the controls - can be unlocked
-    bool locked = true;
-
     //------------------------------------------------------------//
     private:
 
