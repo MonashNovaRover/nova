@@ -119,6 +119,7 @@ class PathPlanner(Node):
         
         
         """
+        print("\n\n\n\n")
         position = msg.position
         iD = msg.id
 
@@ -199,4 +200,4 @@ class PathPlanner(Node):
                 waypoints.waypoints.append(waypoint)
 
         self.waypt_publisher.publish(waypoints)
-
+        self.get_logger().info(f"Published {len(route_coordinates)} waypoints")
