@@ -1,0 +1,27 @@
+[0.014s] Invoking command in '/home/asus-ap/nova_ws/src/autonomous/build/autonomous': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/eloquent /usr/bin/cmake /home/asus-ap/nova_ws/src/autonomous -DCMAKE_INSTALL_PREFIX=/home/asus-ap/nova_ws/src/autonomous/install/autonomous
+[0.075s] -- The C compiler identification is GNU 7.5.0
+[0.133s] -- The CXX compiler identification is GNU 7.5.0
+[0.137s] -- Check for working C compiler: /usr/bin/cc
+[0.214s] -- Check for working C compiler: /usr/bin/cc -- works
+[0.214s] -- Detecting C compiler ABI info
+[0.299s] -- Detecting C compiler ABI info - done
+[0.304s] -- Detecting C compile features
+[0.553s] -- Detecting C compile features - done
+[0.555s] -- Check for working CXX compiler: /usr/bin/c++
+[0.649s] -- Check for working CXX compiler: /usr/bin/c++ -- works
+[0.650s] -- Detecting CXX compiler ABI info
+[0.739s] -- Detecting CXX compiler ABI info - done
+[0.744s] -- Detecting CXX compile features
+[1.118s] -- Detecting CXX compile features - done
+[1.119s] CMake Error at CMakeLists.txt:19 (add_subdirectory):
+[1.119s]   add_subdirectory given source "pybind11" which is not an existing
+[1.119s]   directory.
+[1.119s] 
+[1.119s] 
+[1.119s] CMake Error at CMakeLists.txt:20 (pybind11_add_module):
+[1.119s]   Unknown CMake command "pybind11_add_module".
+[1.119s] 
+[1.120s] 
+[1.120s] -- Configuring incomplete, errors occurred!
+[1.120s] See also "/home/asus-ap/nova_ws/src/autonomous/build/autonomous/CMakeFiles/CMakeOutput.log".
+[1.122s] Invoked command in '/home/asus-ap/nova_ws/src/autonomous/build/autonomous' returned '1': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/eloquent /usr/bin/cmake /home/asus-ap/nova_ws/src/autonomous -DCMAKE_INSTALL_PREFIX=/home/asus-ap/nova_ws/src/autonomous/install/autonomous

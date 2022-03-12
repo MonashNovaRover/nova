@@ -1,0 +1,11 @@
+CMake Error at CMakeLists.txt:19 (add_subdirectory):
+  add_subdirectory given source "pybind11" which is not an existing
+  directory.
+
+
+CMake Error at CMakeLists.txt:20 (pybind11_add_module):
+  Unknown CMake command "pybind11_add_module".
+
+
+-- Configuring incomplete, errors occurred!
+See also "/home/asus-ap/nova_ws/src/autonomous/build/autonomous/CMakeFiles/CMakeOutput.log".

@@ -1,0 +1,17 @@
+README.md
+package.xml
+setup.py
+autonomous/__init__.py
+autonomous/main.py
+autonomous/pcl_viewer.py
+autonomous.egg-info/PKG-INFO
+autonomous.egg-info/SOURCES.txt
+autonomous.egg-info/dependency_links.txt
+autonomous.egg-info/entry_points.txt
+autonomous.egg-info/requires.txt
+autonomous.egg-info/top_level.txt
+autonomous.egg-info/zip-safe
+resource/autonomous
+test/test_copyright.py
+test/test_flake8.py
+test/test_pep257.py

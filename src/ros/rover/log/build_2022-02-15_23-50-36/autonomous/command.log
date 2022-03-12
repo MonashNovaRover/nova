@@ -1,0 +1,2 @@
+Invoking command in '/home/asus-ap/nova_ws/src/autonomous/build/autonomous': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/eloquent /usr/bin/cmake /home/asus-ap/nova_ws/src/autonomous -DCMAKE_INSTALL_PREFIX=/home/asus-ap/nova_ws/src/autonomous/install/autonomous
+Invoked command in '/home/asus-ap/nova_ws/src/autonomous/build/autonomous' returned '1': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/eloquent /usr/bin/cmake /home/asus-ap/nova_ws/src/autonomous -DCMAKE_INSTALL_PREFIX=/home/asus-ap/nova_ws/src/autonomous/install/autonomous
