@@ -42,7 +42,7 @@ alias coms='cd ~/nova_ws/other/coms_utils'
 
 # Camera Aliases
 alias auto_cameras='ros2 launch realsense2-camera rs_d400_and_t265_launch.py'
-alias auto_view='rviz2 -d ~/nova_ws/src/autonomous/settings/auto_vis.rviz'
+alias auto_view='rviz2 -d ~/nova_ws/src/autonomous/config/auto.rviz'
 
 # Networking Aliases
 alias jetson='ssh -Y nvidia@192.168.1.204'
