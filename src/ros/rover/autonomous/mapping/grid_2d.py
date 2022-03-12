@@ -63,6 +63,9 @@ class Grid2D(Node):
         indexes += np.array([self.length / (2 * self.resolution), self.width / (2 * self.resolution), 0])
         return indexes.round().astype(int)
 
+    def valid_index(self, index):
+        return index > 0 and index < (self.length / self.resolution)
+
     def add_obstacles(self, msg, obstacles):
         """
         Function to add a list of coordinates and their values to the 2d map. 
@@ -73,5 +76,7 @@ class Grid2D(Node):
         diff = self.get_full_indexes(np.array([[msg.pose.pose.position.x,
             msg.pose.pose.position.y, 0]])).astype(int)
         obstacles = obstacles + diff
+        obstacles = obstacles[self.valid_index(obstacles[:, 0])]
+        obstacles = obstacles[self.valid_index(obstacles[:, 1])]
         self.map[obstacles[:, 0], obstacles[:, 1]] = obstacles[:, 2]
 
