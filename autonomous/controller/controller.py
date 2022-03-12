@@ -37,6 +37,7 @@ from rclpy.node import Node
 from math_utils.controller_math import *
 from config.runtime_params import *
 from core.msg import DriveInput, RoverPose, Waypoints
+from yaw_star import Turning
 
 from config.ros_config import *
 
@@ -52,6 +53,7 @@ class Controller(Node):
     def __init__(self):
         super().__init__('autonomous_controller_node')
 
+        self.turning = Turning(self.get_logger())
         self.state = State()  # from controller_math
         self.waypoints = []
         self.target_waypoint = None
@@ -127,10 +129,10 @@ class Controller(Node):
         self.__publish(drive['drive'], drive['steer'])
 
         if drive['steer']:
-            Controller.log_update("Steering", self.target_waypoint, yaw_diff,
+            Controller.log_update("Controller Steering", self.target_waypoint, yaw_diff,
                                   distance((self.state.x, self.state.y), self.target_waypoint))
         else:
-            Controller.log_update("Driving", self.target_waypoint, yaw_diff,
+            Controller.log_update("Controller Driving", self.target_waypoint, yaw_diff,
                                   distance((self.state.x, self.state.y), self.target_waypoint))
 
     def control(self):
