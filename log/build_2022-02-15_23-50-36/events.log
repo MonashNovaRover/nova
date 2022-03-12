@@ -1,0 +1,44 @@
+[0.000000] (-) TimerEvent: {}
+[0.000494] (autonomous) JobQueued: {'identifier': 'autonomous', 'dependencies': OrderedDict()}
+[0.000588] (autonomous) JobStarted: {'identifier': 'autonomous'}
+[0.012611] (autonomous) JobProgress: {'identifier': 'autonomous', 'progress': 'cmake'}
+[0.013017] (autonomous) Command: {'cmd': ['/usr/bin/cmake', '/home/asus-ap/nova_ws/src/autonomous', '-DCMAKE_INSTALL_PREFIX=/home/asus-ap/nova_ws/src/autonomous/install/autonomous'], 'cwd': '/home/asus-ap/nova_ws/src/autonomous/build/autonomous', 'env': OrderedDict([('LESSOPEN', '| /usr/bin/lesspipe %s'), ('USER', 'asus-ap'), ('LANGUAGE', 'en_AU:en'), ('TEXTDOMAIN', 'im-config'), ('XDG_SEAT', 'seat0'), ('SSH_AGENT_PID', '1198'), ('XDG_SESSION_TYPE', 'x11'), ('LD_LIBRARY_PATH', '/home/asus-ap/nova_ws/install/core/lib:/opt/ros/eloquent/opt/yaml_cpp_vendor/lib:/opt/ros/eloquent/opt/rviz_ogre_vendor/lib:/opt/ros/eloquent/lib/x86_64-linux-gnu:/opt/ros/eloquent/lib'), ('SHLVL', '1'), ('OLDPWD', '/home/asus-ap/nova_ws/src'), ('QT4_IM_MODULE', 'xim'), ('HOME', '/home/asus-ap'), ('DESKTOP_SESSION', 'ubuntu'), ('GNOME_SHELL_SESSION_MODE', 'ubuntu'), ('GTK_MODULES', 'gail:atk-bridge'), ('ROS_PYTHON_VERSION', '3'), ('DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/1000/bus'), ('COLORTERM', 'truecolor'), ('COLCON_PREFIX_PATH', '/home/asus-ap/nova_ws/install'), ('IM_CONFIG_PHASE', '2'), ('ROS_DISTRO', 'eloquent'), ('LOGNAME', 'asus-ap'), ('GTK_IM_MODULE', 'ibus'), ('DESKTOP_AUTOSTART_ID', '1062891e41e330835a164492780110773700000011030007'), ('_', '/usr/bin/colcon'), ('ROS_VERSION', '2'), ('USERNAME', 'asus-ap'), ('XDG_SESSION_ID', '1'), ('TERM', 'xterm-256color'), ('ROS_LOCALHOST_ONLY', '0'), ('GNOME_DESKTOP_SESSION_ID', 'this-is-deprecated'), ('WINDOWPATH', '1'), ('PATH', '/opt/ros/eloquent/bin:/home/asus-ap/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin'), ('SESSION_MANAGER', 'local/asus-apLNX:@/tmp/.ICE-unix/1103,unix/asus-apLNX:/tmp/.ICE-unix/1103'), ('XDG_MENU_PREFIX', 'gnome-'), ('GNOME_TERMINAL_SCREEN', '/org/gnome/Terminal/screen/5db17dcb_d571_493c_a682_a9a3e7c024ac'), ('XDG_RUNTIME_DIR', '/run/user/1000'), ('DISPLAY', ':0'), ('LANG', 'en_AU.UTF-8'), ('XDG_CURRENT_DESKTOP', 'ubuntu:GNOME'), ('LS_COLORS', 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.Z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:'), ('XDG_SESSION_DESKTOP', 'ubuntu'), ('XMODIFIERS', '@im=ibus'), ('GNOME_TERMINAL_SERVICE', ':1.71'), ('XAUTHORITY', '/run/user/1000/gdm/Xauthority'), ('AMENT_PREFIX_PATH', '/home/asus-ap/nova_ws/install/core:/opt/ros/eloquent'), ('SSH_AUTH_SOCK', '/run/user/1000/keyring/ssh'), ('SHELL', '/bin/bash'), ('QT_ACCESSIBILITY', '1'), ('GDMSESSION', 'ubuntu'), ('LESSCLOSE', '/usr/bin/lesspipe %s %s'), ('TEXTDOMAINDIR', '/usr/share/locale/'), ('GPG_AGENT_INFO', '/run/user/1000/gnupg/S.gpg-agent:0:1'), ('XDG_VTNR', '1'), ('QT_IM_MODULE', 'ibus'), ('PWD', '/home/asus-ap/nova_ws/src/autonomous/build/autonomous'), ('CLUTTER_IM_MODULE', 'xim'), ('XDG_DATA_DIRS', '/usr/share/ubuntu:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop'), ('XDG_CONFIG_DIRS', '/etc/xdg/xdg-ubuntu:/etc/xdg'), ('PYTHONPATH', '/home/asus-ap/nova_ws/install/core/lib/python3.6/site-packages:/home/asus-ap/nova_ws/install/coms_utils/lib/python3.6/site-packages:/opt/ros/eloquent/lib/python3.6/site-packages:/home/asus-ap/nova_ws/src/autonomous/autonomous'), ('COLCON', '1'), ('VTE_VERSION', '5202'), ('CMAKE_PREFIX_PATH', '/home/asus-ap/nova_ws/install/core:/opt/ros/eloquent')]), 'shell': False}
+[0.075514] (autonomous) StdoutLine: {'line': b'-- The C compiler identification is GNU 7.5.0\n'}
+[0.098386] (-) TimerEvent: {}
+[0.133537] (autonomous) StdoutLine: {'line': b'-- The CXX compiler identification is GNU 7.5.0\n'}
+[0.137352] (autonomous) StdoutLine: {'line': b'-- Check for working C compiler: /usr/bin/cc\n'}
+[0.198504] (-) TimerEvent: {}
+[0.214008] (autonomous) StdoutLine: {'line': b'-- Check for working C compiler: /usr/bin/cc -- works\n'}
+[0.214631] (autonomous) StdoutLine: {'line': b'-- Detecting C compiler ABI info\n'}
+[0.298646] (-) TimerEvent: {}
+[0.299253] (autonomous) StdoutLine: {'line': b'-- Detecting C compiler ABI info - done\n'}
+[0.304958] (autonomous) StdoutLine: {'line': b'-- Detecting C compile features\n'}
+[0.398795] (-) TimerEvent: {}
+[0.499147] (-) TimerEvent: {}
+[0.553016] (autonomous) StdoutLine: {'line': b'-- Detecting C compile features - done\n'}
+[0.555574] (autonomous) StdoutLine: {'line': b'-- Check for working CXX compiler: /usr/bin/c++\n'}
+[0.599309] (-) TimerEvent: {}
+[0.649629] (autonomous) StdoutLine: {'line': b'-- Check for working CXX compiler: /usr/bin/c++ -- works\n'}
+[0.650264] (autonomous) StdoutLine: {'line': b'-- Detecting CXX compiler ABI info\n'}
+[0.699416] (-) TimerEvent: {}
+[0.739238] (autonomous) StdoutLine: {'line': b'-- Detecting CXX compiler ABI info - done\n'}
+[0.744167] (autonomous) StdoutLine: {'line': b'-- Detecting CXX compile features\n'}
+[0.799558] (-) TimerEvent: {}
+[0.899911] (-) TimerEvent: {}
+[1.000271] (-) TimerEvent: {}
+[1.100628] (-) TimerEvent: {}
+[1.118721] (autonomous) StdoutLine: {'line': b'-- Detecting CXX compile features - done\n'}
+[1.119293] (autonomous) StderrLine: {'line': b'CMake Error at CMakeLists.txt:19 (add_subdirectory):\n'}
+[1.119452] (autonomous) StderrLine: {'line': b'  add_subdirectory given source "pybind11" which is not an existing\n'}
+[1.119546] (autonomous) StderrLine: {'line': b'  directory.\n'}
+[1.119635] (autonomous) StderrLine: {'line': b'\n'}
+[1.119774] (autonomous) StderrLine: {'line': b'\n'}
+[1.119855] (autonomous) StderrLine: {'line': b'CMake Error at CMakeLists.txt:20 (pybind11_add_module):\n'}
+[1.119934] (autonomous) StderrLine: {'line': b'  Unknown CMake command "pybind11_add_module".\n'}
+[1.120014] (autonomous) StderrLine: {'line': b'\n'}
+[1.120091] (autonomous) StderrLine: {'line': b'\n'}
+[1.120168] (autonomous) StdoutLine: {'line': b'-- Configuring incomplete, errors occurred!\n'}
+[1.120254] (autonomous) StdoutLine: {'line': b'See also "/home/asus-ap/nova_ws/src/autonomous/build/autonomous/CMakeFiles/CMakeOutput.log".\n'}
+[1.122391] (autonomous) CommandEnded: {'returncode': 1}
+[1.151911] (autonomous) JobEnded: {'identifier': 'autonomous', 'rc': 1}
+[1.163031] (-) EventReactorShutdown: {}

@@ -123,28 +123,15 @@ class Controller(Node):
         
         yaw_diff = yaw_difference(current_orientation, desired_orientation)
 
-        if abs(yaw_diff) >= min_yaw_difference:
-            # turn at a rate determined by the tank_turn_target_yaw_rate function
-            steer_fraction = tank_turn_target_yaw_rate(yaw_diff)
-            self.__publish(0.05, steer_fraction)
+        drive = self.turning.run(yaw_diff, position_vector)
+        self.__publish(drive['drive'], drive['steer'])
 
-            self.log_update("yawing", self.target_waypoint, yaw_diff, distance((self.state.x, self.state.y),
-                                                                               self.target_waypoint))
-
-            self.previously_turned = True
-
-        elif self.previously_turned:
-            # need to send a zero wheel command after turning before we drive
-            self.__publish(0.0, 0.0)
-            self.previously_turned = False
-
+        if drive['steer']:
+            Controller.log_update("Steering", self.target_waypoint, yaw_diff,
+                                  distance((self.state.x, self.state.y), self.target_waypoint))
         else:
-            # drive in straight line toward waypoint at determined velocity
-            drive_fraction = crow_fly_target_velocity((self.state.x, self.state.y), self.target_waypoint)
-            self.__publish(drive_fraction, 0.0)
-
-            self.log_update("heading", self.target_waypoint, yaw_diff, distance((self.state.x, self.state.y),
-                                                                                self.target_waypoint))
+            Controller.log_update("Driving", self.target_waypoint, yaw_diff,
+                                  distance((self.state.x, self.state.y), self.target_waypoint))
 
     def control(self):
         """
