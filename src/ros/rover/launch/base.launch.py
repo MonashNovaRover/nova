@@ -23,4 +23,6 @@ def generate_launch_description():
     return LaunchDescription([
         launch_ros.actions.Node(
             package='control', node_executable='inputs', output='screen'),
+	launch_ros.actions.Node(
+            package='electronics', node_executable='radio_monitor.py', output='screen'),
     ])
