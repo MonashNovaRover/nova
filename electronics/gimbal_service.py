@@ -84,7 +84,7 @@ class GimbalService (Node):
             self.state["mast_x"] = self.get_continuous_angle(request.angle_x)
             self.state["mast_y"] = request.angle_y
         else:                   # Beacon Gimbal
-            self.state["beacon"] = request.angle_y + 45
+            self.state["beacon"] = request.angle_y + 0
 
         # Transmit the data for CAN 0
         if request.id == 1 or request.id == 3:
