@@ -74,7 +74,7 @@ void JoystickThrustmaster::set_message_values() {
             msg.ax_thumb_x = to_int(-convert_trg2ax(GamepadTriggerLength(controller, TRIGGER_RIGHT)));
         else
             msg.ax_thumb_x = 0.0;
-        msg.ax_thumb_y = -stick_ry_f;
+        msg.ax_thumb_y = stick_ry_f;
 
         // Set the values of the slider
         if (valid_ax_slider)
