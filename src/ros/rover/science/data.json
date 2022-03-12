@@ -1,9 +1,0 @@
-{
-	"target": "payload",
-  	"action": "linear_actuator",
-  	"args": {
-     	"number": 0,
-      	"direction": "down",
-    	"speed": 2
-    }
-}

@@ -122,12 +122,20 @@ class HydraprobePublisher(Node):
         # TODO: Update to use actual QoS profile
         self.publisher_ = self.create_publisher(HydraprobeData, '/science/hydraprobe_data', 10)
         
-        self.hydraprobe_transceiver = HydraprobeTransceiver(
+        # Attempt to create the transceiver
+        try:
+            self.hydraprobe_transceiver = HydraprobeTransceiver(
                 logger = self.get_logger(),
                 baudrate = 9600, # confirm this
                 port = '/dev/ttyUSB0', # TODO: check this
                 probe_address = '000', # TODO: check this. /// is broadcast address for the probes so should be fine to use as long as we only have 1 connected.
                 )
+        
+        # Print error if missing device
+        except:
+            print("Unable to find device on '/dev/ttyUSB0'.")
+            exit()
+        
         self.publisher_timer = self.create_timer(3, self.publish_values)
 
         #self.get_logger().set_level(10) # FOR DEBUGGING
