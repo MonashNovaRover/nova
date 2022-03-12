@@ -177,6 +177,7 @@ def main(args=None):
     rclpy.init(args=args)
 
     resolver_pub = ResolverPublisher()
+    #resolver_pub.resolver_transceiver.zero("elbow")
 
     rclpy.spin(resolver_pub)
 
