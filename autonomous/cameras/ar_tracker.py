@@ -20,9 +20,9 @@ class ArTracker(Node):
         if msg:
             self.publisher.publish(msg)
             odom = Odometry()
-            odom.pose.pose.position.x = msg.pose.position.x
-            odom.pose.pose.position.y = msg.pose.position.y
-            odom.pose.pose.position.z = msg.pose.position.z
+            odom.pose.pose.position.x = msg.pose.pose.position.x
+            odom.pose.pose.position.y = msg.pose.pose.position.y
+            odom.pose.pose.position.z = msg.pose.pose.position.z
             self.publisher.publish(msg)
             self.odom_publisher.publish(odom)
 

@@ -155,7 +155,6 @@ class Controller(Node):
         if not self.target_waypoint:
             # There is currently no target - take the first waypoint on the list
             if self.waypoints:
-                if distance((self.state.x, self.state.y), self.waypoints[-1]) < min_waypoint_distance: rclpy.shutdown()
                 self.target_waypoint = self.waypoints.pop(0)
             else:
                 return
@@ -182,7 +181,6 @@ def main(args=None):
 def controller_test():
     rclpy.init(args=None)
     controller = Controller()
-    controller.waypoints = [[0, 0], [.7, .0], [.7, .7]]
     rclpy.spin(controller)
     controller.destroy_node()
     rclpy.shutdown()

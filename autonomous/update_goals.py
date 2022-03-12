@@ -25,7 +25,6 @@ class GoalPublisher(Node):
         goal.position = position
 
         self.publisher.publish(goal)
-
         self.get_logger().info(f"Publishing new goal: x = {x}, y = {y}, id = {iD}")
 
 def main(args = None):
