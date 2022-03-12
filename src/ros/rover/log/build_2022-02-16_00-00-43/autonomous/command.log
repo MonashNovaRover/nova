@@ -1,4 +1,0 @@
-Invoking command in '/home/asus-ap/nova_ws/src/autonomous/build/autonomous': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/eloquent /usr/bin/cmake --build /home/asus-ap/nova_ws/src/autonomous/build/autonomous -- -j8 -l8
-Invoked command in '/home/asus-ap/nova_ws/src/autonomous/build/autonomous' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/eloquent /usr/bin/cmake --build /home/asus-ap/nova_ws/src/autonomous/build/autonomous -- -j8 -l8
-Invoking command in '/home/asus-ap/nova_ws/src/autonomous/build/autonomous': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/eloquent /usr/bin/cmake --build /home/asus-ap/nova_ws/src/autonomous/build/autonomous --target install -- -j8 -l8
-Invoked command in '/home/asus-ap/nova_ws/src/autonomous/build/autonomous' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/eloquent /usr/bin/cmake --build /home/asus-ap/nova_ws/src/autonomous/build/autonomous --target install -- -j8 -l8
