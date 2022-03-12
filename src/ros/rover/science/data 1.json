@@ -1,0 +1,8 @@
+{
+	"target": "hydraprobe",
+  	"action": "hydraprobe",
+  	"args": {
+     	"direction": "up",
+		"speed": "248"
+    }
+}

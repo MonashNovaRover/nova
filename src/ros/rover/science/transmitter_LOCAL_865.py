@@ -15,7 +15,7 @@ SERVICES:
 PACKAGE: 	science
 AUTHOR(S):	Miles Higgins, Harrison Verrios
 CREATION:	15/02/2021
-EDITED:		06/03/2021
+EDITED:		16/02/2021
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
@@ -26,7 +26,6 @@ from core.srv import ScienceCommand
 
 # Include utilities for publishing CAN data
 from coms_utils.can_interface import CANTransceiver
-import json
 
 # Standard CAN ID
 CAN_ID = 0
@@ -41,37 +40,36 @@ TARGET_USE_CMD = {
 }
 
 ACTION_CMD_ID = {
-    "scoop": "09",
-    "linear_actuator": "08",
-}
-
-
-# Old Target Dictionary
-
-TARGET_DICT =  {
-    "payload": "0",
-    "hydraprobe": "000",
-    "kiln": "001"
+    "scoop": "8",
+    "linear_actuator": "9",
 }
 
 ACTION_DICT = {
-    "hydraprobe_limits": "01",
-    "hydraprobe": "02",
-    "hydraprobe_top": "03",
-    "hydraprobe_bottom": "04",
-    "kiln_lid": "01",
-    "kiln_mixer": "02",
-    "kiln_heater": "03",
+    "start": "00",
+    "scoop": "01",
+    "linear_actuator": "05",
+    "actuation_top": "06",
+    "actuation_bottom": "07",
+    "distance_limit": "0B",
+    "distance_sensor_reading": "C",
+    "hydraprobe_limits": "1",
+    "hydraprobe": "2",
+    "hydraprobe_top": "3",
+    "hydraprobe_bottom": "4",
+    "kiln_lid": "1",
+    "kiln_mixer": "2",
+    "kiln_heater": "3",
 }
 
 ARGUMENT_DICT = {
-    "forward": "00",
-    "reverse": "01",
-    "up": "00",
-    "down": "01",
-    "true": "01",
-    "false": "00",
+    "forward": "0",
+    "reverse": "1",
+    "up": "0",
+    "down": "1",
+    "true": "1",
+    "false": "0",
 }
+
 '''
 Function description
 '''
@@ -95,15 +93,14 @@ def parse_command(command_dict):
             argument_codes.append(args[argument])
         else:
             try:
-                arg = ARGUMENT_DICT[args[argument]]
+                argument_codes.append(ARGUMENT_DICT[args[argument]])
             except KeyError:  # if not in dict, assume value is just a number of two hex digits
                 hex = format(int(args[argument]), 'x')
-                arg = hex.zfill(2)
-            argument_codes.append(arg)
+                argument_codes.append(hex.zfill(2))
 
-    code = action_code + "".join(argument_codes)
-    code = code.ljust(8, "0")
-    return (target_code, code)
+    code = target_code + action_code + "".join(argument_codes)
+    code = code.ljust(6, "0")
+    return code
 
 
 '''
@@ -135,47 +132,26 @@ class ServiceNode(Node):
         # If CMD
         if TARGET_USE_CMD[json_data["target"]]:
             command = "00"
-            
-            if json_data["action"] == "scoop":
-                arg = "3"
-                if json_data["args"]["direction"] in ("forward", "down"):
-                    command = "FFFF"
-                else:
-                    command = "00"
-                    arg = "2"
-            else:  # if linear actuator
-                if json_data["args"]["direction"] in ("forward", "down"):
-                    arg = "1"
-                else:
-                    arg = "2"
 
             # Update the CAN ID
-            new_id = ACTION_CMD_ID[json_data["action"]] + arg
-            print(new_id)
-            arbitration_id = int(new_id)
-            print(arbitration_id)
+            new_id = ACTION_CMD_ID[json_data["action"]] + ARGUMENT_DICT[json_data["args"]["direction"]]
+            self.can.arbitration_id = int(new_id, 16)
 
 
         # If PICS
         else:
             # Parses the command
-            id, command = parse_command(json_data)
+            command = parse_command()
             print("Executing Command: %s" % command)
 
             # Update the CAN ID
-            arbitration_id = int(id, 16)
-
-        print(command)
+            self.can.arbitration_id = CAN_ID
 
         # Execute the CAN command
         response.success = self.can.transmit(bytearray.fromhex(command))
 
         # Return the response
         return response
-
-
-
-
 
 
 # When the script starts, it runs the science class and waits until completion
