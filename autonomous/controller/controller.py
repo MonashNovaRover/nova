@@ -37,7 +37,7 @@ from rclpy.node import Node
 from math_utils.controller_math import *
 from config.runtime_params import *
 from core.msg import DriveInput, RoverPose, Waypoints
-from yaw_star import Turning
+from controller.yaw_star import Turning
 
 from config.ros_config import *
 
@@ -100,10 +100,11 @@ class Controller(Node):
         # publish to public topic
         self.drive_cmd_publisher.publish(drive_cmd_msg)
 
-    def log_update(self, action_msg: str, heading_to: tuple, yaw_diff: float, dist: float) -> None:
+    def log_update(self, action_msg = '', heading_to = (0,0), yaw_diff = 0.0, dist = 0.0) -> None:
         """
         Logs the current action to ros logging
         """
+        return
         pad = 10
         action = "Action: " + action_msg.ljust(pad) + " | heading to: " + str(heading_to).ljust(pad) + " | yaw diff: " \
                  + str(round(yaw_diff, 4)).ljust(pad) + " | distance: " + str(round(dist, 4)).ljust(pad)
@@ -125,12 +126,13 @@ class Controller(Node):
         
         yaw_diff = yaw_difference(current_orientation, desired_orientation)
 
-        drive = self.turning.run(yaw_diff, position_vector)
+        drive = self.turning.run(yaw_diff, self.state, position_vector, self.target_waypoint)
         self.__publish(drive['drive'], drive['steer'])
 
         if drive['steer']:
             Controller.log_update("Controller Steering", self.target_waypoint, yaw_diff,
                                   distance((self.state.x, self.state.y), self.target_waypoint))
+
         else:
             Controller.log_update("Controller Driving", self.target_waypoint, yaw_diff,
                                   distance((self.state.x, self.state.y), self.target_waypoint))

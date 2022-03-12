@@ -31,9 +31,9 @@ namespace py = pybind11;
    a less optimal path. */
 const float ROVER_WIDTH_CM = 50.0;
 const float TERRAIN_IMPORTANCE = 300; // How much we value smooth terrain over distance
-const float SAFETY_FACTOR = 1.2; // Factor by which we multiply rover radius to pad.
+const float SAFETY_FACTOR = 1.6; // Factor by which we multiply rover radius to pad.
 const float WEIGHT = 1.0; // weight of heuristic for A*
-const float OBSTACLE_CUTTING_RANGE_M = 0.2; // distance to which we remove obstacles at src or dest
+const float OBSTACLE_CUTTING_RANGE_M = 0.4; // distance to which we remove obstacles at src or dest
 const int CRITICAL_PATH_LEN = 7;
 const float OBSTACLE_VALUE = 1.0;
 const float C_INF = 1e12;

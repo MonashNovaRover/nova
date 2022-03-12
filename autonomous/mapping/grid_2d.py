@@ -76,7 +76,8 @@ class Grid2D(Node):
         diff = self.get_full_indexes(np.array([[msg.pose.pose.position.x,
             msg.pose.pose.position.y, 0]])).astype(int)
         obstacles = obstacles + diff
-        obstacles = obstacles[self.valid_index(obstacles[:, 0])]
-        obstacles = obstacles[self.valid_index(obstacles[:, 1])]
+        obstacles = np.array([obstacles[i] for i, obs in enumerate(obstacles) if obs[0] > 0
+                and obs[1] > 0 and obs[0] < self.length/self.resolution and 
+                obs[1] < self.length/self.resolution])
         self.map[obstacles[:, 0], obstacles[:, 1]] = obstacles[:, 2]
 
