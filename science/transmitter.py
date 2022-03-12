@@ -15,7 +15,7 @@ SERVICES:
 PACKAGE: 	science
 AUTHOR(S):	Miles Higgins, Harrison Verrios
 CREATION:	15/02/2021
-EDITED:		06/03/2021
+EDITED:		12/03/2021
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
@@ -119,7 +119,13 @@ class ServiceNode(Node):
         self.service = self.create_service(ScienceCommand, '/science/transmitter', self.callback_func)
 
         # Sets up the CAN transceiver interface with the correct ID and channels
-        self.can = CANTransceiver(arbitration_id=CAN_ID, channel="can1")
+        try:
+            self.can = CANTransceiver(arbitration_id=CAN_ID, channel="can1")
+        
+        # CAN does not exist - show error
+        except:
+            print("Unable to find CAN1 network.")
+            exit()
 
 
     '''
@@ -131,24 +137,30 @@ class ServiceNode(Node):
 
         json_data = json.loads(request.command)
 
+        command = "00"
+
         # Check if command is CMD or PICS
         # If CMD
         if TARGET_USE_CMD[json_data["target"]]:
             speed = json_data["args"].get("speed", False)
+
             # if given a speed
-            if json_data["args"]["speed"]:
+            if json_data["action"] == "scoop":
                 arg = "3"
-                command = int(speed, 16)
-            elif json_data["args"]["direction"] in ("forward", "down"):
-                arg = "1"
-                command = "00"
+                if json_data["args"]["direction"] in ("forward", "down"):
+                    command = str(hex(speed * 256 - 1))[2:]
+                else:
+                    command = "00"
+                    arg = "2"
             else:
-                command = "00"
-                arg = "2"
+                if json_data["args"]["direction"] in ("forward", "down"):
+                    arg = "1"
+                else:
+                    arg = "2"
 
             # Update the CAN ID
             new_id = ACTION_CMD_ID[json_data["action"]] + arg
-            self.can.arbitration_id = int(new_id)
+            self.can.arbitration_id = int(new_id, 16)
 
         # If PICS
         else:
@@ -157,9 +169,7 @@ class ServiceNode(Node):
             print("Executing Command: %s" % command)
 
             # Update the CAN ID
-            self.can.arbitration_id = int(id)
-
-        print(command)
+            self.can.arbitration_id = int(id, 16)
 
         # Execute the CAN command
         response.success = self.can.transmit(bytearray.fromhex(command))
