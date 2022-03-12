@@ -26,7 +26,6 @@ from core.srv import ScienceCommand
 
 # Include utilities for publishing CAN data
 from coms_utils.can_interface import CANTransceiver
-import json
 
 # Standard CAN ID
 CAN_ID = 0
@@ -50,28 +49,37 @@ ACTION_CMD_ID = {
 
 TARGET_DICT =  {
     "payload": "0",
-    "hydraprobe": "000",
-    "kiln": "001"
+    "hydraprobe": "0",
+    "kiln": "1"
 }
 
 ACTION_DICT = {
-    "hydraprobe_limits": "01",
+    "start": "0",
+    "scoop": "1",
+    "linear_actuator": "5",
+    "actuation_top": "6",
+    "actuation_bottom": "7",
+    "distance_sensor": "A",
+    "distance_limit": "B",
+    "distance_sensor_reading": "C",
+    "hydraprobe_limits": "1",
     "hydraprobe": "02",
     "hydraprobe_top": "03",
     "hydraprobe_bottom": "04",
-    "kiln_lid": "01",
-    "kiln_mixer": "02",
-    "kiln_heater": "03",
+    "kiln_lid": "1",
+    "kiln_mixer": "2",
+    "kiln_heater": "3",
 }
 
 ARGUMENT_DICT = {
     "forward": "00",
     "reverse": "01",
-    "up": "00",
-    "down": "01",
+    "up": "01",
+    "down": "00",
     "true": "01",
     "false": "00",
 }
+
 '''
 Function description
 '''
@@ -102,7 +110,7 @@ def parse_command(command_dict):
             argument_codes.append(arg)
 
     code = action_code + "".join(argument_codes)
-    code = code.ljust(8, "0")
+    code = code.ljust(6, "0")
     return (target_code, code)
 
 
@@ -134,21 +142,25 @@ class ServiceNode(Node):
         # Check if command is CMD or PICS
         # If CMD
         if TARGET_USE_CMD[json_data["target"]]:
-            speed = json_data["args"].get("speed", False)
-            # if given a speed
-            if json_data["args"]["speed"]:
+            command = "00"
+            
+            if json_data["action"] == "scoop":
                 arg = "3"
-                command = int(speed, 16)
-            elif json_data["args"]["direction"] in ("forward", "down"):
-                arg = "1"
-                command = "00"
+                if json_data["args"]["direction"] in ("forward", "down"):
+                    command = "FFFF"
+                else:
+                    command = "00"
+                    arg = "2"
             else:
-                command = "00"
-                arg = "2"
+                if json_data["args"]["direction"] in ("forward", "down"):
+                    arg = "1"
+                else:
+                    arg = "2"
 
             # Update the CAN ID
             new_id = ACTION_CMD_ID[json_data["action"]] + arg
-            self.can.arbitration_id = int(new_id)
+            self.can.arbitration_id = int(new_id, 16)
+
 
         # If PICS
         else:
@@ -157,7 +169,7 @@ class ServiceNode(Node):
             print("Executing Command: %s" % command)
 
             # Update the CAN ID
-            self.can.arbitration_id = int(id)
+            self.can.arbitration_id = int(id, 16)
 
         print(command)
 
@@ -166,10 +178,6 @@ class ServiceNode(Node):
 
         # Return the response
         return response
-
-
-
-
 
 
 # When the script starts, it runs the science class and waits until completion
