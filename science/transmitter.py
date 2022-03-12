@@ -134,27 +134,21 @@ class ServiceNode(Node):
         # Check if command is CMD or PICS
         # If CMD
         if TARGET_USE_CMD[json_data["target"]]:
-            command = "00"
-            
-            if json_data["action"] == "scoop":
+            speed = json_data["args"].get("speed", False)
+            # if given a speed
+            if json_data["args"]["speed"]:
                 arg = "3"
-                if json_data["args"]["direction"] in ("forward", "down"):
-                    command = "FFFF"
-                else:
-                    command = "00"
-                    arg = "2"
-            else:  # if linear actuator
-                if json_data["args"]["direction"] in ("forward", "down"):
-                    arg = "1"
-                else:
-                    arg = "2"
+                command = int(speed, 16)
+            elif json_data["args"]["direction"] in ("forward", "down"):
+                arg = "1"
+                command = "00"
+            else:
+                command = "00"
+                arg = "2"
 
             # Update the CAN ID
             new_id = ACTION_CMD_ID[json_data["action"]] + arg
-            print(new_id)
-            arbitration_id = int(new_id)
-            print(arbitration_id)
-
+            self.can.arbitration_id = int(new_id)
 
         # If PICS
         else:
@@ -163,7 +157,7 @@ class ServiceNode(Node):
             print("Executing Command: %s" % command)
 
             # Update the CAN ID
-            arbitration_id = int(id, 16)
+            self.can.arbitration_id = int(id)
 
         print(command)
 

@@ -85,27 +85,21 @@ def parse(data):
     # Check if command is CMD or PICS
     # If CMD
     if TARGET_USE_CMD[json_data["target"]]:
-        command = "00"
-        
-        if json_data["action"] == "scoop":
+        speed = json_data["args"].get("speed", False)
+        # if given a speed
+        if json_data["args"]["speed"]:
             arg = "3"
-            if json_data["args"]["direction"] in ("forward", "down"):
-                command = "FFFF"
-            else:  # if back / up
-                command = "00"
-                arg = "2"
-        else:  # if linear actuator
-            if json_data["args"]["direction"] in ("forward", "down"):
-                arg = "1"
-            else:  # if back / up
-                arg = "2"
+            command = speed
+        elif json_data["args"]["direction"] in ("forward", "down"):
+            arg = "1"
+            command = "00"
+        else:
+            command = "00"
+            arg = "2"
 
         # Update the CAN ID
         new_id = ACTION_CMD_ID[json_data["action"]] + arg
-        print(new_id)
         arbitration_id = int(new_id)
-        print(arbitration_id)
-
 
     # If PICS
     else:
@@ -116,9 +110,9 @@ def parse(data):
         # Update the CAN ID
         arbitration_id = int(id, 16)
 
-    print('arb id ' + str(arbitration_id))
+    print('arb id: ' + str(arbitration_id))
 
-    print(command)
+    print("command: " + str(command))
 
     # Execute the CAN command
     # response.success = self.can.transmit(bytearray.fromhex(command))
