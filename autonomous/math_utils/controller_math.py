@@ -96,6 +96,7 @@ def distance(current, target):
     :param target: array like with one element and two dimensions
     :return: positive float value of the euclidean distance between the two points
     """
+    if not target: return 0
     return math.sqrt(((current[0] - target[0]) ** 2.0) + ((current[1] - target[1]) ** 2.0))
 
 
