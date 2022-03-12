@@ -88,12 +88,12 @@ class ArmInputs : public rclcpp::Node {
     typedef struct {
         // Multiplier for all inputs
         // Tune this to adjust the max velocity of all joints
-        float all_inputs = 1;
+        float all_inputs = 0.70;
         // Separate multipliers for each set of inputs
         // Tune these so joints move at reasonable speeds relative to each other
-        float wrist_joints = 1;
-        float ik_linear = 1;
-        float ik_angular = 1;
+        float wrist_joints = 1.20;
+        float ik_linear = 0.50;
+        float ik_angular = 0.85;
     } SpeedMultipliers;
     SpeedMultipliers speed_multipliers;
 
