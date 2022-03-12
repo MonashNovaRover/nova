@@ -12,17 +12,13 @@ def main(args):
     rclpy.init(args=args)
 
     print("Welcome to fun car drive!")
-    dest = [0.0, 0.0]
-    dest[0] = float(input("Enter destination x coordinate: "))
-    dest[1] = float(input("Enter destination y coordinate: "))
-    
     length = 20
     width = 20
     resolution = 0.1
 
     # in this janky night-before-mvp we will be creating a map2d object which is shared by planner and mapper.
     # Mapper updates it, planner just reads from it.
-    planner = PathPlanner(dest, resolution)
+    planner = PathPlanner(resolution)
     mapper = HeightPlaneMapper(length=length, width=width, resolution=resolution, planner=planner, camera=True)
     controller = Controller()
 

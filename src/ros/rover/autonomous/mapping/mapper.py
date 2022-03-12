@@ -57,6 +57,7 @@ class Mapper(Node):
         self.resolution = resolution
 
         self.previous_plan = time.perf_counter()
+        self.previous_map_update = time.perf_counter()
 
         self.msg = None
 
@@ -207,8 +208,10 @@ class Mapper(Node):
             return
 
         # transform the points
-        if self.msg:
+        if self.msg and time.perf_counter() - self.previous_map_update > 0.5:
             self.handle_pc(pts)
+            self.previous_map_update = time.perf_counter()
+
         self.publish()
 
         if time.perf_counter() - self.previous_plan > 1:

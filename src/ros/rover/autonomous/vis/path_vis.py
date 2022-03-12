@@ -1,5 +1,5 @@
-__package__ = "autonomous"
 #!/usr/bin/python3
+__package__ = "autonomous"
 
 """
 Methods 
@@ -15,12 +15,13 @@ from core.msg import Waypoints
 
 # create custom msg type
 from nav_msgs.msg import Path
+from std_msgs.msg import Header
 from geometry_msgs.msg import Point, Quaternion, Pose, PoseStamped
 
 class PathCloud(Node):
     def __init__(self):
         
-        super().__init__("path_cloud_node")
+        super().__init__("path_vis_node")
         
         # create the path publisher
         self.path_publisher = self.create_publisher(Path, '/autonomous/path', 10) 
@@ -33,12 +34,15 @@ class PathCloud(Node):
         self.publish_path()
 
     def construct_path(self, msg):
+        """
+        Contstructs a ros2 path message from a list of waypoints
+        """
         header = Header()
         header.frame_id = main_frame
         path = Path()
         path.header = header
 
-        for waypoint in msg:
+        for waypoint in msg.waypoints:
             pose_stamped = PoseStamped()
             pose_stamped.header = header
 
@@ -56,7 +60,7 @@ class PathCloud(Node):
         
         self.path = path
 
-    def publish_path(self, path):
+    def publish_path(self):
         """
         Given a path (which is an array of [x, y] coordinates), we want to publish a PointCloud2 object which shows straight lines for those paths
         """
