@@ -102,7 +102,7 @@ class RadioMonitor(Node):
         signal = self.get_signal()
 
         # Print the data
-        print("Signal: %ddb, \tSent: %dkb, \tRecv: %dkb, \tPing: %dms" % (signal, sent, recv, ping))
+	#        print("Signal: %ddb, \tSent: %dkb, \tRecv: %dkb, \tPing: %dms" % (signal, sent, recv, ping))
 
         # Publish data over ROS
         if self.is_ros:
