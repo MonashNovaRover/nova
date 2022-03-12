@@ -45,6 +45,7 @@ install(DIRECTORY
 # Add all Python executables to this list
 install(PROGRAMS
   science/transmitter.py
+  science/hydraprobe_publisher.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
