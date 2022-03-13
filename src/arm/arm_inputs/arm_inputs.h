@@ -13,12 +13,12 @@ This does not interface with the CMD library, but
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: arm_inputs
 TOPICS:
-  - /control/input_joystick_l     [core/InputJoystick]         [Subscribed]
-  - /control/input_joystick_r     [core/InputJoystick]         [Subscribed]
-  - /control/arm_input            [core/ArmInput]              [Published]
-  - /control/task_velocity        [sensor_msgs/TwistStamped]   [Published]
-  - /control/joint_velocities     [sensor_msgs/JointState]     [Published]
-  - /control/arm_control_scheme   [core/ArmControlScheme]      [Published]
+  - /control/input_joystick_l         [core/InputJoystick]         [Subscribed]
+  - /control/input_joystick_r         [core/InputJoystick]         [Subscribed]
+  - /control/arm_input                [core/ArmInput]              [Published]
+  - /control/task_velocity            [sensor_msgs/TwistStamped]   [Published]
+  - /control/input_joint_velocities   [sensor_msgs/JointState]     [Published]
+  - /control/arm_control_scheme       [core/ArmControlScheme]      [Published]
 SERVICES: None
 ACTIONS:  None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
