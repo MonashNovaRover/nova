@@ -111,10 +111,12 @@ class ArmInputs : public rclcpp::Node {
     /// @brief      Function for publishing arm input message
     void publish_arm_inputs ();
 
-    /// @brief      Function for publishing joint velocity
+    /// @brief      Function for publishing desired joint velocities
+    ///             Published as a joint-space vector in rad/s
     void publish_joint_vel ();
 
-    /// @brief      Function for publishing task velocity
+    /// @brief      Function for publishing desired task velocity
+    ///             Published as a twist vector in m/s and rad/s
     void publish_task_vel ();
 
     /// @brief      Function for publishing control scheme data
