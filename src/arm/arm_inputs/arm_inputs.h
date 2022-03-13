@@ -13,19 +13,19 @@ This does not interface with the CMD library, but
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: arm_inputs
 TOPICS:
-  - /control/input_joystick_l     [core/InputJoystick]         [Subscribed]
-  - /control/input_joystick_r     [core/InputJoystick]         [Subscribed]
-  - /control/arm_input            [core/ArmInput]              [Published]
-  - /control/task_velocity        [sensor_msgs/TwistStamped]   [Published]
-  - /control/joint_velocities     [sensor_msgs/JointState]     [Published]
-  - /control/arm_control_scheme   [core/ArmControlScheme]      [Published]
+  - /control/input_joystick_l         [core/InputJoystick]         [Subscribed]
+  - /control/input_joystick_r         [core/InputJoystick]         [Subscribed]
+  - /control/arm_input                [core/ArmInput]              [Published]
+  - /control/task_velocity            [sensor_msgs/TwistStamped]   [Published]
+  - /control/input_joint_velocities   [sensor_msgs/JointState]     [Published]
+  - /control/arm_control_scheme       [core/ArmControlScheme]      [Published]
 SERVICES: None
 ACTIONS:  None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	control
 AUTHOR(S):  Jess Hepworth, Jory Braun
 CREATION:	02/12/2021
-EDITED:		24/02/2022
+EDITED:		03/03/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
  - Add in additional inputs for linear actuate
