@@ -84,6 +84,19 @@ class ArmInputs : public rclcpp::Node {
     core::msg::InputJoystick joystick_l;
     core::msg::InputJoystick joystick_r;
 
+    // Store speed multipliers for different joystick inputs
+    typedef struct {
+        // Multiplier for all inputs
+        // Tune this to adjust the max velocity of all joints
+        float all_inputs = 0.70;
+        // Separate multipliers for each set of inputs
+        // Tune these so joints move at reasonable speeds relative to each other
+        float wrist_joints = 1.20;
+        float ik_linear = 0.50;
+        float ik_angular = 0.85;
+    } SpeedMultipliers;
+    SpeedMultipliers speed_multipliers;
+
     //------------------------------------------------------------//
     private:
 
@@ -98,10 +111,12 @@ class ArmInputs : public rclcpp::Node {
     /// @brief      Function for publishing arm input message
     void publish_arm_inputs ();
 
-    /// @brief      Function for publishing joint velocity
+    /// @brief      Function for publishing desired joint velocities
+    ///             Published as a joint-space vector in rad/s
     void publish_joint_vel ();
 
-    /// @brief      Function for publishing task velocity
+    /// @brief      Function for publishing desired task velocity
+    ///             Published as a twist vector in m/s and rad/s
     void publish_task_vel ();
 
     /// @brief      Function for publishing control scheme data
