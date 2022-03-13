@@ -242,7 +242,7 @@ ArmInputs::ArmInputs() : Node("arm_input")
     arm_publisher = this->create_publisher<core::msg::ArmInput>("/control/arm_input", 10);
 
     // Creates the joint velocity publisher
-    joint_vel_publisher = this->create_publisher<sensor_msgs::msg::JointState>("/control/joint_velocities", 10);
+    joint_vel_publisher = this->create_publisher<sensor_msgs::msg::JointState>("/control/input_joint_velocities", 10);
 
     // Creates the task velocity publisher
     task_vel_publisher = this->create_publisher<geometry_msgs::msg::TwistStamped>("/control/task_velocity", 10);
@@ -282,13 +282,13 @@ ArmInputs::ArmInputs() : Node("arm_input")
     // Output set-up messages
     Print::title("ARM INPUTS");
     Print::print("Subscribed Topics:");
-    Print::print("/control/input_joystick_l     [core/InputJoystick]", 1);
-    Print::print("/control/input_joystick_r     [core/InputJoystick]", 1);
+    Print::print("/control/input_joystick_l         [core/InputJoystick]", 1);
+    Print::print("/control/input_joystick_r         [core/InputJoystick]", 1);
     Print::print("Published Topics:");
-    Print::print("/control/arm_input            [core/ArmInput]", 1);
-    Print::print("/control/joint_velocities     [sensor_msgs/JointState]", 1);
-    Print::print("/control/task_velocity        [sensor_msgs/TwistStamped]", 1);
-    Print::print("/control/arm_control_scheme   [core/ArmControlScheme]", 1);
+    Print::print("/control/arm_input                [core/ArmInput]", 1);
+    Print::print("/control/input_joint_velocities   [sensor_msgs/JointState]", 1);
+    Print::print("/control/task_velocity            [sensor_msgs/TwistStamped]", 1);
+    Print::print("/control/arm_control_scheme       [core/ArmControlScheme]", 1);
     Print::print("", true);
 }
 

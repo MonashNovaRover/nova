@@ -47,6 +47,11 @@ ArmKinematics::ArmKinematics() : Node("arm_kinematics")
         "/electronics/resolvers", 10, std::bind(&ArmKinematics::resolver_callback, this, _1)
     );
 
+    // Create subscription to input joint velocities
+    input_joint_velocities_sub = this->create_subscription<sensor_msgs::msg::JointState>(
+        "/control/input_joint_velocities", 10, std::bind(&ArmKinematics::input_joint_velocities_callback, this, _1)
+    );
+    
     // Create subscription to task_velocity
     task_velocity_sub = this->create_subscription<geometry_msgs::msg::TwistStamped>(
         "/control/task_velocity", 10, std::bind(&ArmKinematics::task_velocity_callback, this, _1)
@@ -65,17 +70,18 @@ ArmKinematics::ArmKinematics() : Node("arm_kinematics")
         joint_velocities_timer_period, std::bind(&ArmKinematics::publish_joint_velocities, this)
     );
     joint_velocities_pub = this->create_publisher<sensor_msgs::msg::JointState>(
-        "/control/joint_velocities_ik", 10
+        "/control/joint_velocities", 10
     );
 
     // Output set-up messages
     Print::title("ARM KINEMATICS");
     Print::print("Subscribed Topics:");
-    Print::print("/electronics/resolvers      [sensor_msgs/JointState]", 1);
-    Print::print("/control/task_velocity      [geometry_msgs/TwistStamped]", 1);
+    Print::print("/electronics/resolvers            [sensor_msgs/JointState]", 1);
+    Print::print("/control/input_joint_velocities   [sensor_msgs/JointState]", 1);
+    Print::print("/control/task_velocity            [geometry_msgs/TwistStamped]", 1);
     Print::print("Published Topics:");
-    Print::print("/control/arm_coord_frames   [sensor_msgs/MultiDOFJointState]", 1);
-    Print::print("/control/joint_velocities   [sensor_msgs/JointState]", 1);
+    Print::print("/control/arm_coord_frames         [sensor_msgs/MultiDOFJointState]", 1);
+    Print::print("/control/joint_velocities         [sensor_msgs/JointState]", 1);
     Print::print("", true);
 }
 
@@ -86,13 +92,19 @@ void ArmKinematics::control_scheme_callback(const core::msg::ArmControlScheme::S
     control_scheme = *msg;
 }
 
-// Update the internal joint state
+// Update the internal joint positions
 void ArmKinematics::resolver_callback(const sensor_msgs::msg::JointState::SharedPtr msg)
 {
     joints = *msg;
 }
 
-// Update the internal velocity
+// Update the internal joint-space joint velocities
+void ArmKinematics::input_joint_velocities_callback(const sensor_msgs::msg::JointState::SharedPtr msg)
+{
+    joint_space_joints = *msg;
+}
+
+// Update the internal task velocity
 void ArmKinematics::task_velocity_callback(const geometry_msgs::msg::TwistStamped::SharedPtr msg)
 {
     task_velocity = *msg;
@@ -242,8 +254,9 @@ inline void ArmKinematics::update_joint_velocities()
     else{
         // Success
         // Save the output in the form ROS2 likes
-        Eigen::Matrix<double, 6, 1> vec6 = kdl_joint_velocities.data;
-        joints.velocity = std::vector<double> ( vec6.data(), vec6.data() + vec6.size() );
+        for (unsigned int i = 0; i < 6; i++) {
+            joints.velocity[i] = kdl_joint_velocities.data[i];
+        }
     }
 }
 
@@ -252,6 +265,11 @@ void ArmKinematics::publish_joint_velocities()
 {
     // Calculate the inverse kinematics from the current joint positions and task velocity
     update_joint_velocities();
+
+    // Combine the IK and joint-space joint velocities
+    for (unsigned int i = 0; i < joints.name.size(); i++) {
+        joints.velocity[i] += joint_space_joints.velocity[i];
+    }
 
     // Update the header
     joints.header.stamp = this->now();
