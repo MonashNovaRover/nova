@@ -37,6 +37,9 @@ class TrackingCamera(Node):
         self.camera_pub = self.create_publisher(Odometry, tracking_pose_topic, 10)        
         self.rover_pose_pub = self.create_publisher(RoverPose, rover_pose_topic, 10)
 
+        self.timer_period = 0.05
+        self.timer = self.create_timer(self.timer_period, self.timer_callback)
+
         # Subscriber for wheel odom data
         self.wheel_velocity = rs.vector() # holds wheel velocity input
         self.wheel_subscriber = self.create_subscription(WheelData, "/electronics/wheel_data", self.update_wheel_vel, 10)
@@ -63,6 +66,9 @@ class TrackingCamera(Node):
             pose_sensor = tm2.first_pose_sensor()
             self.wheel_odometer = pose_sensor.as_wheel_odometer()
             self.wheel_odometer.load_wheel_odometery_config(self.toUint8()) # load/configure wheel odometer
+
+    def timer_callback(self):
+        self.get_next_pose()
 
     def transform_t265_to_nova(self, data):
         """
@@ -129,20 +135,21 @@ class TrackingCamera(Node):
 
     def update_wheel_vel(self, msg):
         # Update (currently from drive commands) the wheel velocity
-        self.wheel_velocity.x = sum(msg.velocities)/6 # m/s, must be float
-        self.wheel_velocity.y, self.wheel_velocity.z = 0, 0
-        self.send_wheel_odom() 
+        self.wheel_velocity.z = -sum(msg.velocities)/6 # m/s, must be float
+        self.wheel_velocity.x, self.wheel_velocity.y = 0, 0
+        self.send_wheel_odom()
 
     def send_wheel_odom(self):
         wo_sensor_id = 0  # indexed from 0, match to order in calibration file
         frame_num = 0  # not used
         self.wheel_odometer.send_wheel_odometry(wo_sensor_id, frame_num, self.wheel_velocity)
 
+
 def main():
     rclpy.init()
     camera = TrackingCamera()
-    for i in range(1000000):
-        camera.get_next_pose()
+    rclpy.spin(camera)
+    rclpy.shutdown()
 
 
 if __name__ == "__main__":
