@@ -126,9 +126,11 @@ class Controller(Node):
         
         yaw_diff = yaw_difference(current_orientation, desired_orientation)
 
-        drive = self.turning.run(yaw_diff, self.state, position_vector, self.target_waypoint)
-        self.__publish(drive['drive'], drive['steer'])
-
+        try:
+            drive = self.turning.run(yaw_diff, self.state, position_vector, self.target_waypoint, current_orientation)
+            self.__publish(drive['drive'], drive['steer'])
+        except Exception as e:
+            self.get_logger().warn(str(e))
         if drive['steer']:
             Controller.log_update("Controller Steering", self.target_waypoint, yaw_diff,
                                   distance((self.state.x, self.state.y), self.target_waypoint))
