@@ -36,6 +36,7 @@ class TrackingCamera(Node):
 
         self.camera_pub = self.create_publisher(Odometry, tracking_pose_topic, 10)        
         self.rover_pose_pub = self.create_publisher(RoverPose, rover_pose_topic, 10)
+        self.rover_pose_odom_pub = self.create_publisher(Odometry, "rover/odom", 10)
 
         self.timer_period = 0.05
         self.timer = self.create_timer(self.timer_period, self.timer_callback)
@@ -93,28 +94,41 @@ class TrackingCamera(Node):
         t265_msg.pose.pose.orientation.w = data.rotation.w
         return t265_msg
 
-
     def get_next_pose(self):
         frames = self.pipe.wait_for_frames()
         pose = frames.get_pose_frame()
         if pose:
             data = pose.get_pose_data()
             # calculate position - flip convert to correct x and y conventions
-            
+
+            data.translation.z -= tracking_camera_extrinsics[0]
+            data.translation.y += tracking_camera_extrinsics[2]
+
             t265_msg = self.transform_t265_to_nova(data)
+
+            # publish the rover camera odom topic
             self.camera_pub.publish(t265_msg)
             rover_msg = RoverPose()
             
             # get rover position as centre of wheel-base
             rover_position = transform.transform_points(t265_msg, np.array([tracking_camera_extrinsics]))[0]
 
-            rover_msg.x = rover_position[0]
-            rover_msg.y = rover_position[1]
+            rover_odom_msg = self.transform_t265_to_nova(data)
+            rover_odom_msg.pose.pose.position.x = rover_position[0]
+            rover_odom_msg.pose.pose.position.y = rover_position[1]
+            rover_odom_msg.pose.pose.position.z = rover_position[2]
+
+            # get rover position
+            rover_msg.x = rover_position[0] + tracking_camera_extrinsics[0]
+            rover_msg.y = rover_position[1] + tracking_camera_extrinsics[1]
             rover_msg.z = rover_position[2]
-            
+
             # gets euler angles from tracking camera quaternion
             rover_msg.pitch, rover_msg.roll, rover_msg.yaw = transform.quat_to_euler(t265_msg)
+
+            # publish the rover odom message (centre of wheel base)
             self.rover_pose_pub.publish(rover_msg)
+            self.rover_pose_odom_pub.publish(rover_odom_msg)
 
             sys.stdout.write("\r" + "x: " + str(round(rover_msg.x, 4)).ljust(7)
                              + " | y: " + str(round(rover_msg.y, 4)).ljust(7)
@@ -122,6 +136,9 @@ class TrackingCamera(Node):
                              + " | pitch: " + str(round(rover_msg.pitch, 4)).ljust(7)
                              + " | roll: " + str(round(rover_msg.roll, 4)).ljust(7)
                              + " | yaw: " + str(round(rover_msg.yaw, 4)).ljust(7))
+
+            self.rover
+
             sys.stdout.flush()
 
     def toUint8(self, filename ='cameras/calibration_odometry.json'):
