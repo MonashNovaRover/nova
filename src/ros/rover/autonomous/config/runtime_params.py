@@ -3,7 +3,7 @@ import numpy as np
 
 # ~~~~~~~~~~ CONTROLLER CONSTANTS ~~~~~~~~~~~~~
 # tank turning constants (test and define on a terrain basis)
-yaw_star = False
+yaw_star_conf = True
 min_yaw_rate = 4.0  # what is a minimum fair speed to turn slowly
 max_yaw_rate = 5.0  # # what is a fair maximum yaw percent speed to turn
 

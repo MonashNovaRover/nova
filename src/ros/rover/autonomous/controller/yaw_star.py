@@ -5,7 +5,7 @@ from config.runtime_params import *
 
 class Turning:
     def __init__(self, logger):
-        self.yaw_star = True
+        self.yaw_star = yaw_star_conf
         self.logger = logger
         # Normal turning params
         self.previously_turned = False
@@ -54,7 +54,7 @@ class Turning:
     def run_star(self, yaw_diff, position_vector, current_orientation):
         steer_fraction = 0.0
         drive_fraction = 0.0
-        self.logger.warn('Params ' + str(self.star_state) + ' ' + str(self.first_drive)) 
+        self.logger.warn('Params ' + str(self.star_state) + ' ' + str(self.first_drive)+ ' '+ str(yaw_diff)) 
         if abs(yaw_diff) > self.MAX_YAW:
             # Big turn, either drive straight or turn
             if self.star_state == 0:
@@ -68,7 +68,8 @@ class Turning:
 
             elif self.star_state == 1:
                 # Check if keep yawing
-                if yaw_diff > self.target_yaw:
+                self.logger.info('Star: 1: ' + str(yaw_diff) + ' ' + str(self.target_yaw))
+                if abs(yaw_diff) > abs(self.target_yaw):
                     # Keep turning
                     self.logger.info('Star: keep_yaw')
                     steer_fraction = tank_turn_target_yaw_rate(yaw_diff)
@@ -86,7 +87,7 @@ class Turning:
                 # Check if keep driving
                 self.logger.info('Star: Cheque keep driving')
                 dist = distance(position_vector, self.target_pose)
-
+                self.logger.info('dist: ' + str(dist) + ' ' + str(self.direction))
                 self.logger.info('remaining: ' + str(dist))
                 if abs(dist) > 0.1:
                     self.logger.info('Star: keep_driving')
