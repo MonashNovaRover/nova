@@ -5,25 +5,25 @@ from config.runtime_params import *
 
 class Turning:
     def __init__(self, logger):
-        self.yaw_star = False
+        self.yaw_star = True
         self.logger = logger
         # Normal turning params
         self.previously_turned = False
 
         # yaw_star params
         self.MAX_YAW = np.pi / 7.5
-        self.MAX_TRAVERSAL_DISTANCE = 1
+        self.MAX_TRAVERSAL_DISTANCE = 0.3
         self.target_yaw = 0
         # Variables
         self.star_state = 0
         self.first_drive = True
         self.direction = -1
 
-    def run(self, yaw_diff, state, position_vector, target_waypoint):
+    def run(self, yaw_diff, state, position_vector, target_waypoint, current_orientation):
         self.state = state
         self.target_waypoint = target_waypoint
         if self.yaw_star:
-            drive = self.run_star(yaw_diff, position_vector)
+            drive = self.run_star(yaw_diff, position_vector, current_orientation)
         else:
             drive = self.run_normal(yaw_diff, position_vector)
         return drive
@@ -51,9 +51,10 @@ class Turning:
 
         return {'steer': steer_fraction, 'drive': drive_fraction}
 
-    def run_star(self, yaw_diff, position_vector):
+    def run_star(self, yaw_diff, position_vector, current_orientation):
         steer_fraction = 0.0
         drive_fraction = 0.0
+        self.logger.warn('Params ' + str(self.star_state) + ' ' + str(self.first_drive)) 
         if abs(yaw_diff) > self.MAX_YAW:
             # Big turn, either drive straight or turn
             if self.star_state == 0:
@@ -78,14 +79,16 @@ class Turning:
                     dist = 0.5 * self.MAX_TRAVERSAL_DISTANCE if self.first_drive else self.MAX_TRAVERSAL_DISTANCE
                     self.star_state = 2
                     self.target_yaw = 0
-                    self.target_pose = [position_vector[0] + dist * self.direction * np.cos(current_orientation),
-                                        position_vector[1] + dist * self.direction * np.sin(current_orientation), 0]
-                    steer_fraction = 0.0
-                    drive_fraction = 0.0
+                    self.target_pose = [position_vector[0] + dist * self.direction * current_orientation[0],
+                                        position_vector[1] + dist * self.direction * current_orientation[1], 0]
+
             elif self.star_state == 2:
                 # Check if keep driving
+                self.logger.info('Star: Cheque keep driving')
                 dist = distance(position_vector, self.target_pose)
-                if abs(dist) > 0.01:
+
+                self.logger.info('remaining: ' + str(dist))
+                if abs(dist) > 0.1:
                     self.logger.info('Star: keep_driving')
                     # Keep driving
                     drive_fraction = 0.1 * self.direction
