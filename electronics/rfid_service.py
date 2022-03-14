@@ -36,7 +36,7 @@ class RFIDService(Node):
         # Loop until the RFID is plugged in
         while True:
             try:
-                self.ser = Serial(baudrate = 115200, port = '/dev/ttyUSB0') # TODO: Check port
+                self.ser = Serial(baudrate = 115200, port = '/dev/ttyUSB1') # TODO: Check port
                 break
             except:
                 time.sleep(1.0)
