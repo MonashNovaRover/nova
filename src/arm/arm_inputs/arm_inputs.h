@@ -79,9 +79,14 @@ class ArmInputs : public rclcpp::Node {
     rclcpp::QoS subscriber_qos = rclcpp::QoS(1).reliability(RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT).durability(RMW_QOS_POLICY_DURABILITY_VOLATILE).deadline(200ms);
     rclcpp::PublisherOptions subscriber_options;
 
-    // Callback for when the QoS offered deadline is missed on either publisher 
-    void deadline_missed_callback(){
-
+    /*
+    * QoS options for arm inputs, joint velocities and task velocities.
+    *     Reliability = best effort: nodes will attempt to publish, but will not garuntee any one message is received
+    *     Durability = volatile: "no attempt is made to persist samples for late joining subscribers". This is the default for the sensors QoS profile 
+    *     Deadline = 200ms. If a message is not published within this time, the offered deadline callback will be called.
+    */
+    rclcpp::QoS publisher_qos = rclcpp::QoS(1).reliability(RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT).durability(RMW_QOS_POLICY_DURABILITY_VOLATILE).deadline(200ms);
+    
     // Stores the subscribers to the joystick inputs
     rclcpp::Subscription<core::msg::InputJoystick>::SharedPtr joystick_l_subscription;
     rclcpp::Subscription<core::msg::InputJoystick>::SharedPtr joystick_r_subscription;
