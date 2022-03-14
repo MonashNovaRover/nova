@@ -101,8 +101,8 @@ class TrackingCamera(Node):
             data = pose.get_pose_data()
             # calculate position - flip convert to correct x and y conventions
 
-            data.translation.z -= tracking_camera_extrinsics[0]
-            data.translation.y += tracking_camera_extrinsics[2]
+            data.translation.z += tracking_camera_extrinsics[0]
+            data.translation.y -= tracking_camera_extrinsics[2]
 
             t265_msg = self.transform_t265_to_nova(data)
 
@@ -119,8 +119,8 @@ class TrackingCamera(Node):
             rover_odom_msg.pose.pose.position.z = rover_position[2]
 
             # get rover position
-            rover_msg.x = rover_position[0] + tracking_camera_extrinsics[0]
-            rover_msg.y = rover_position[1] + tracking_camera_extrinsics[1]
+            rover_msg.x = rover_position[0]
+            rover_msg.y = rover_position[1]
             rover_msg.z = rover_position[2]
 
             # gets euler angles from tracking camera quaternion
@@ -137,8 +137,6 @@ class TrackingCamera(Node):
                              + " | roll: " + str(round(rover_msg.roll, 4)).ljust(7)
                              + " | yaw: " + str(round(rover_msg.yaw, 4)).ljust(7))
 
-            self.rover
-
             sys.stdout.flush()
 
     def toUint8(self, filename ='cameras/calibration_odometry.json'):
@@ -152,7 +150,7 @@ class TrackingCamera(Node):
 
     def update_wheel_vel(self, msg):
         # Update (currently from drive commands) the wheel velocity
-        self.wheel_velocity.z = -sum(msg.velocities)/6 # m/s, must be float
+        self.wheel_velocity.z = sum(msg.velocities)/6 # m/s, must be float
         self.wheel_velocity.x, self.wheel_velocity.y = 0, 0
         self.send_wheel_odom()
 
