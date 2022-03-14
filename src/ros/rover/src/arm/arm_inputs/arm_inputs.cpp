@@ -245,13 +245,13 @@ void ArmInputs::reset_msg_state(){
 ArmInputs::ArmInputs() : Node("arm_input")
 {
     // Creates the arm inputs publisher
-    arm_publisher = this->create_publisher<core::msg::ArmInput>("/control/arm_input", 10);
+    arm_publisher = this->create_publisher<core::msg::ArmInput>("/control/arm_input", publisher_qos);
 
     // Creates the joint velocity publisher
-    joint_vel_publisher = this->create_publisher<sensor_msgs::msg::JointState>("/control/input_joint_velocities", 10);
+    joint_vel_publisher = this->create_publisher<sensor_msgs::msg::JointState>("/control/input_joint_velocities", publisher_qos);
 
     // Creates the task velocity publisher
-    task_vel_publisher = this->create_publisher<geometry_msgs::msg::TwistStamped>("/control/task_velocity", 10);
+    task_vel_publisher = this->create_publisher<geometry_msgs::msg::TwistStamped>("/control/task_velocity", publisher_qos);
 
     // Publisher options for QoS settings
     subscriber_options.event_callbacks.deadline_callback = [](rclcpp::QOSDeadlineOfferedInfo) -> void{
