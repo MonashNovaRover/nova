@@ -70,6 +70,17 @@ class ArmInputs : public rclcpp::Node {
     rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr task_vel_publisher;
     rclcpp::Publisher<core::msg::ArmControlScheme>::SharedPtr control_scheme_publisher;
 
+    /*
+    * QoS options for joystick subscribers. These are the same as the options for the publisher, to ensure compatibility.
+    *     Reliability = best effort: nodes will attempt to publish, but will not garuntee any one message is received
+    *     Durability = volatile: "no attempt is made to persist samples for late joining subscribers". This is the default for the sensors QoS profile 
+    *     Deadline = 200ms. If a message is not published within this time, the offered deadline callback will be called.
+    */
+    rclcpp::QoS subscriber_qos = rclcpp::QoS(1).reliability(RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT).durability(RMW_QOS_POLICY_DURABILITY_VOLATILE).deadline(200ms);
+    rclcpp::PublisherOptions subscriber_options;
+
+    // Callback for when the QoS offered deadline is missed on either publisher 
+    void deadline_missed_callback(){
 
     // Stores the subscribers to the joystick inputs
     rclcpp::Subscription<core::msg::InputJoystick>::SharedPtr joystick_l_subscription;
@@ -107,6 +118,9 @@ class ArmInputs : public rclcpp::Node {
     /// @brief      Callback function when input messages are received.
     /// @param      msg - A pointer to the input message
     void joystick_r_callback (const core::msg::InputJoystick::SharedPtr msg);
+
+    /// @brief      Called in the joystick subscriber deadline missed callback to reset internal message state
+    void reset_msg_state ();
 
     /// @brief      Function for publishing arm input message
     void publish_arm_inputs ();

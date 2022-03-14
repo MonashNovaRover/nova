@@ -234,6 +234,12 @@ void ArmInputs::publish_control_scheme()
     control_scheme_publisher->publish(control_scheme);
 }
 
+// Resets all internal state related to arm movement, in the case of a QoS deadline missed
+void ArmInputs::reset_msg_state(){
+    RCLCPP_WARN(this->get_logger(), "Joystick subscriber deadline missed");
+    joystick_l = core::msg::InputJoystick();
+    joystick_r = core::msg::InputJoystick();
+}
 
 // Main constructor that sets up the node
 ArmInputs::ArmInputs() : Node("arm_input")
@@ -246,7 +252,12 @@ ArmInputs::ArmInputs() : Node("arm_input")
 
     // Creates the task velocity publisher
     task_vel_publisher = this->create_publisher<geometry_msgs::msg::TwistStamped>("/control/task_velocity", 10);
-    
+
+    // Publisher options for QoS settings
+    subscriber_options.event_callbacks.deadline_callback = [](rclcpp::QOSDeadlineOfferedInfo) -> void{
+        reset_msg_state();
+    };
+
     // Creates the input subscription for the left joystick
     joystick_l_subscription = this->create_subscription<core::msg::InputJoystick>(
         "/control/input_joystick_l", 10, std::bind(&ArmInputs::joystick_l_callback, this, _1));
