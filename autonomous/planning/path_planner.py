@@ -29,7 +29,7 @@ from math_utils.controller_math import *
 from rclpy.node import Node
 from core.msg import Waypoints, Waypoint, RoverPose, AlvarMarker, AutonomousGoal
 from config.ros_config import *
-from config.runtime_params import min_ar_distance, max_ar_distance
+from config.runtime_params import min_ar_distance, max_ar_distance, ignore_waypoints
 
 
 class PathPlanner(Node):
@@ -190,7 +190,7 @@ class PathPlanner(Node):
         #route_coordinates = [route_coordinates[-1] if len(route_coordinates) <= 4 else route_coordinates[4::5]]
 
         #self.get_logger().warn(str(route_coordinates[0]))
-        for wpt in route_coordinates:
+        for wpt in route_coordinates[min(len(route_coordinates) -1, ignore_waypoints):]:
             # publishing waypoints in order 
             waypoint = Waypoint()
             waypoint.x = wpt[0]

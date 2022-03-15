@@ -83,13 +83,18 @@ class Turning:
                     self.target_pose = [position_vector[0] + dist * self.direction * current_orientation[0],
                                         position_vector[1] + dist * self.direction * current_orientation[1], 0]
 
+                    self.sign = np.sign(np.dot((self.target_pose - position_vector), current_orientation))
+  
             elif self.star_state == 2:
                 # Check if keep driving
                 self.logger.info('Star: Cheque keep driving')
                 dist = distance(position_vector, self.target_pose)
-                self.logger.info('dist: ' + str(dist) + ' ' + str(self.direction))
+                self.logger.info('dist: ' + str(dist) + ' ' + str(self.direction) +' '+str(np.arctan2(position_vector, self.target_pose)))
+                self.logger.warn(str(np.dot((self.target_pose - position_vector), current_orientation)))
+
+                sign_new = np.sign(np.dot((self.target_pose - position_vector), current_orientation))
                 self.logger.info('remaining: ' + str(dist))
-                if abs(dist) > 0.1:
+                if abs(dist) > 0.1 and self.sign == sign_new:
                     self.logger.info('Star: keep_driving')
                     # Keep driving
                     drive_fraction = 0.1 * self.direction
