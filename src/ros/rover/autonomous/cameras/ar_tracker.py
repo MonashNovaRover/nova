@@ -15,10 +15,21 @@ class ArTracker(Node):
         super().__init__("ar_tracker")
         self.publisher = self.create_publisher(AlvarMarker, ar_track_topic, 10)
         self.odom_publisher = self.create_publisher(Odometry, "autonomous/ar_tag/odometry", 10)
+        self.previous_10_tags = []
+
+    def store_ar_coords(self, msg):
+        if len(self.previous_10_tags) < 10:
+            tag = np.array([msg.pose.pose.position.x, msg.pose.pose.position.y])
+            self.previous_10_tags.append(tag)
+        else: 
+            coord = input("enter real artag pose as tuple: ")
+            true_x, true_y = float(coord.split()[0]), float(coord.split()[1])
+            rclpy.shutdown()
 
     def __call__(self, img):
         msg = self.find_ar_tag(img)
         if msg:
+            
             self.publisher.publish(msg)
             if msg.pose.pose.position.x == 0: return
             odom = Odometry()
@@ -62,9 +73,8 @@ class ArTracker(Node):
                 msg = AlvarMarker()
                 msg.header.stamp = self.get_clock().now().to_msg()
                 msg.header.frame_id = main_frame
-                arg = np.pi/6
-                msg.pose.pose.position.x = x*np.cos(arg) - y*np.sin(arg) 
-                msg.pose.pose.position.y = x*np.sin(arg) + y*np.cos(arg)
+                msg.pose.pose.position.x = x
+                msg.pose.pose.position.y = y
                 msg.pose.pose.position.z = z
                 msg.id = int(_id[0])
                 return msg
