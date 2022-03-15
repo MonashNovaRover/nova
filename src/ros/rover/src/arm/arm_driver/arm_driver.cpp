@@ -21,8 +21,6 @@ void ArmDriver::joint_velocities_callback (const sensor_msgs::msg::JointState::S
     }
 }
 
-
-
 // Receives the desired commands for the CMDs and sends to CMDs
 void ArmDriver::arm_input_callback (const core::msg::ArmInput::SharedPtr msg)
 {
@@ -36,6 +34,20 @@ void ArmDriver::arm_input_callback (const core::msg::ArmInput::SharedPtr msg)
 
     // Lunar construction
     joints[7]->drive(msg->lunar_construction);
+}
+
+// Resets all internal state related to joint and task velocities, in the case of a QoS deadline missed
+void ArmDriver::zero_joints()
+{
+    for (unsigned int i = 0; i < 6; i++) {
+        joints[i]->drive(0.0); 
+    }
+}
+
+void ArmDriver::deadline_callback()
+{
+    RCLCPP_WARN(this->get_logger(), "control/joint_velocities subscription callback deadline missed");
+    zero_joints();
 }
 
 
@@ -56,7 +68,7 @@ ArmDriver::ArmDriver() : Node("arm_driver")
 
     // Creates the input subscription for the desired CMD commands (first 6 joints)
     joint_velocities_subscription = this->create_subscription<sensor_msgs::msg::JointState>(
-        "/control/joint_velocities", 10, std::bind(&ArmDriver::joint_velocities_callback, this, _1));
+        "/control/joint_velocities", subscriber_qos, std::bind(&ArmDriver::joint_velocities_callback, this, _1), subscriber_options);
     
     // Creates the input subscription for the desired CMD commands (LC, EE, LA)
     arm_input_subscription = this->create_subscription<core::msg::ArmInput>(

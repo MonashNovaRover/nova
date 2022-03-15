@@ -251,7 +251,7 @@ void ArmInputs::deadline_callback()
 ArmInputs::ArmInputs() : Node("arm_input")
 {
     // Creates the arm inputs publisher
-    arm_publisher = this->create_publisher<core::msg::ArmInput>("/control/arm_input", publisher_qos);
+    arm_publisher = this->create_publisher<core::msg::ArmInput>("/control/arm_input", 10);
 
     // Creates the joint velocity publisher
     joint_vel_publisher = this->create_publisher<sensor_msgs::msg::JointState>("/control/input_joint_velocities", publisher_qos);
@@ -260,7 +260,7 @@ ArmInputs::ArmInputs() : Node("arm_input")
     task_vel_publisher = this->create_publisher<geometry_msgs::msg::TwistStamped>("/control/task_velocity", publisher_qos);
 
     // Subscriber options for QoS settings
-    subscriber_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineOfferedInfo) -> void{
+    subscriber_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void{
         this->deadline_callback();
     };
 
@@ -270,7 +270,7 @@ ArmInputs::ArmInputs() : Node("arm_input")
 
     // Creates the input subscription for the right joystick (with QoS options)
     joystick_r_subscription = this->create_subscription<core::msg::InputJoystick>(
-        "/control/input_joystick_r", 10, std::bind(&ArmInputs::joystick_r_callback, this, _1), subscriber_options);    
+        "/control/input_joystick_r", subscriber_qos, std::bind(&ArmInputs::joystick_r_callback, this, _1), subscriber_options);    
 
     // Creates a timer function that runs a function on loop every 0.05 seconds
     timer = this->create_wall_timer(50ms, std::bind(&ArmInputs::publish_arm_inputs, this));
