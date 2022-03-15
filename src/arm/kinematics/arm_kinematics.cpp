@@ -36,7 +36,12 @@ ArmKinematics::ArmKinematics() : Node("arm_kinematics")
     joints = ArmCore::get_empty_joint_state(arm_model.joint_names);
     // TwistStamped does not need to be initialised
     coord_frames = ArmCore::get_empty_multi_dof_joint_state(arm_model.segment_names);
-
+    
+    // Subscriber options for QoS settings
+    subscriber_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void{
+        this->deadline_callback();
+    };
+    
     // Create subscription to arm control scheme
     control_scheme_sub = this->create_subscription<core::msg::ArmControlScheme>(
         "/control/arm_control_scheme", 10, std::bind(&ArmKinematics::control_scheme_callback, this, _1)
@@ -49,12 +54,12 @@ ArmKinematics::ArmKinematics() : Node("arm_kinematics")
 
     // Create subscription to input joint velocities
     input_joint_velocities_sub = this->create_subscription<sensor_msgs::msg::JointState>(
-        "/control/input_joint_velocities", 10, std::bind(&ArmKinematics::input_joint_velocities_callback, this, _1)
+        "/control/input_joint_velocities", subscriber_qos, std::bind(&ArmKinematics::input_joint_velocities_callback, this, _1), subscriber_options
     );
     
     // Create subscription to task_velocity
     task_velocity_sub = this->create_subscription<geometry_msgs::msg::TwistStamped>(
-        "/control/task_velocity", 10, std::bind(&ArmKinematics::task_velocity_callback, this, _1)
+        "/control/task_velocity", subscriber_qos, std::bind(&ArmKinematics::task_velocity_callback, this, _1), subscriber_options
     );
 
     // Create timer and publisher for arm_coord_frames
@@ -70,7 +75,7 @@ ArmKinematics::ArmKinematics() : Node("arm_kinematics")
         joint_velocities_timer_period, std::bind(&ArmKinematics::publish_joint_velocities, this)
     );
     joint_velocities_pub = this->create_publisher<sensor_msgs::msg::JointState>(
-        "/control/joint_velocities", 10
+        "/control/joint_velocities", publisher_qos
     );
 
     // Output set-up messages
@@ -85,6 +90,17 @@ ArmKinematics::ArmKinematics() : Node("arm_kinematics")
     Print::print("", true);
 }
 
+// Resets all internal state related to joint and task velocities, in the case of a QoS deadline missed
+void ArmKinematics::reset_msg_state(){
+    joint_space_joints = sensor_msgs::msg::JointState();
+    task_velocity = geometry_msgs::msg::TwistStamped(); 
+}
+
+void ArmKinematics::deadline_callback()
+{
+    RCLCPP_WARN(this->get_logger(), "control/input_joint_velocity or control/task_velocity subscription callback deadline missed");
+    reset_msg_state();
+}
 
 // Update the internal control scheme
 void ArmKinematics::control_scheme_callback(const core::msg::ArmControlScheme::SharedPtr msg)
