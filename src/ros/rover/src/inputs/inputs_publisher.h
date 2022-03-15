@@ -76,16 +76,18 @@ class InputsPublisher : public rclcpp::Node {
     private:
 
     /// @brief      Publishes the input data from the gamepad and
-    ///                 joystick classes by reading the input.
+    ///             joystick classes by reading the input.
     void publish_input ();
 
-    // Callback for when the QoS offered deadline is missed on either publisher 
-    void deadline_missed_callback(){
+    
 
     //------------------------------------------------------------//
     public:
-
+    
+    // 
+    /// @brief      Callback for when the QoS offered deadline is missed on either publisher
+    
+    void deadline_callback();
     /// @brief      Default constructor function that starts up the node
     InputsPublisher();
-
 };

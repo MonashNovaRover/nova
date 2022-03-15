@@ -77,7 +77,7 @@ class ArmInputs : public rclcpp::Node {
     *     Deadline = 200ms. If a message is not published within this time, the offered deadline callback will be called.
     */
     rclcpp::QoS subscriber_qos = rclcpp::QoS(1).reliability(RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT).durability(RMW_QOS_POLICY_DURABILITY_VOLATILE).deadline(200ms);
-    rclcpp::PublisherOptions subscriber_options;
+    rclcpp::SubscriptionOptionsWithAllocator<> subscriber_options;
 
     /*
     * QoS options for arm inputs, joint velocities and task velocities.
@@ -124,9 +124,12 @@ class ArmInputs : public rclcpp::Node {
     /// @param      msg - A pointer to the input message
     void joystick_r_callback (const core::msg::InputJoystick::SharedPtr msg);
 
-    /// @brief      Called in the joystick subscriber deadline missed callback to reset internal message state
     void reset_msg_state ();
-
+    
+    /// @brief      Function provided to Quality of Service options 
+    /// @param      info - Not currently used 
+    void deadline_callback();
+    
     /// @brief      Function for publishing arm input message
     void publish_arm_inputs ();
 

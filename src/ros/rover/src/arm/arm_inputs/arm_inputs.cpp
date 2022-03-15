@@ -236,10 +236,16 @@ void ArmInputs::publish_control_scheme()
 
 // Resets all internal state related to arm movement, in the case of a QoS deadline missed
 void ArmInputs::reset_msg_state(){
-    RCLCPP_WARN(this->get_logger(), "Joystick subscriber deadline missed");
     joystick_l = core::msg::InputJoystick();
     joystick_r = core::msg::InputJoystick();
 }
+
+void ArmInputs::deadline_callback()
+{
+    RCLCPP_WARN(this->get_logger(), "Joystick subscriber deadline missed");
+    reset_msg_state();
+}
+
 
 // Main constructor that sets up the node
 ArmInputs::ArmInputs() : Node("arm_input")
@@ -253,18 +259,18 @@ ArmInputs::ArmInputs() : Node("arm_input")
     // Creates the task velocity publisher
     task_vel_publisher = this->create_publisher<geometry_msgs::msg::TwistStamped>("/control/task_velocity", publisher_qos);
 
-    // Publisher options for QoS settings
-    subscriber_options.event_callbacks.deadline_callback = [](rclcpp::QOSDeadlineOfferedInfo) -> void{
-        reset_msg_state();
+    // Subscriber options for QoS settings
+    subscriber_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineOfferedInfo) -> void{
+        this->deadline_callback();
     };
 
-    // Creates the input subscription for the left joystick
+    // Creates the input subscription for the left joystick (with QoS options)
     joystick_l_subscription = this->create_subscription<core::msg::InputJoystick>(
-        "/control/input_joystick_l", 10, std::bind(&ArmInputs::joystick_l_callback, this, _1));
+        "/control/input_joystick_l", subscriber_qos, std::bind(&ArmInputs::joystick_l_callback, this, _1), subscriber_options);
 
-    // Creates the input subscription for the right joystick
+    // Creates the input subscription for the right joystick (with QoS options)
     joystick_r_subscription = this->create_subscription<core::msg::InputJoystick>(
-        "/control/input_joystick_r", 10, std::bind(&ArmInputs::joystick_r_callback, this, _1));    
+        "/control/input_joystick_r", 10, std::bind(&ArmInputs::joystick_r_callback, this, _1), subscriber_options);    
 
     // Creates a timer function that runs a function on loop every 0.05 seconds
     timer = this->create_wall_timer(50ms, std::bind(&ArmInputs::publish_arm_inputs, this));
