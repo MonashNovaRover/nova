@@ -35,8 +35,8 @@ class TrackingCamera(Node):
         self.pipe = rs.pipeline()
 
         self.camera_pub = self.create_publisher(Odometry, tracking_pose_topic, 10)        
-        self.rover_pose_odom_pub = self.create_publisher(Odometry, "rover/odom", 10)
         self.rover_pose_pub = self.create_publisher(RoverPose, rover_pose_topic, 10)
+        self.rover_pose_odom_pub = self.create_publisher(Odometry, "rover/odom", 10)
 
         # Build config object and request pose data
         self.cfg = rs.config()
