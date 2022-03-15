@@ -66,6 +66,11 @@ ArmDriver::ArmDriver() : Node("arm_driver")
         joints[i] = new Joint (i + 1, CMD_drive_mode[i], CMD_direction[i]);
     }
 
+    // Subscriber options for QoS settings
+    subscriber_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void{
+        this->deadline_callback();
+    };
+
     // Creates the input subscription for the desired CMD commands (first 6 joints)
     joint_velocities_subscription = this->create_subscription<sensor_msgs::msg::JointState>(
         "/control/joint_velocities", subscriber_qos, std::bind(&ArmDriver::joint_velocities_callback, this, _1), subscriber_options);
