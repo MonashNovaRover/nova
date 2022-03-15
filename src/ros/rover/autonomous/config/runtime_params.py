@@ -15,7 +15,8 @@ min_speed = 2.0   # todo: determiner
 
 max_speed = 7.0  # todo: determine
 
-min_waypoint_distance = 1.0  # todo: determine what is achievable
+min_waypoint_distance = 0.7  # todo: determine what is achievable
+ignore_waypoints = 4 #  number of waypoints to cut off start of list
 
 controller_ros_rate = 10  # 10hz
 
