@@ -5,7 +5,7 @@ from config.runtime_params import *
 
 class Turning:
     def __init__(self, logger):
-        self.yaw_star = True
+        self.yaw_star = False
         self.logger = logger
         # Normal turning params
         self.previously_turned = False
@@ -30,7 +30,7 @@ class Turning:
 
     def run_normal(self, yaw_diff, position_vector):
         if abs(yaw_diff) >= min_yaw_difference:
-            self.logger.info('Normal: turning')
+            self.logger.info('Normal: turning, yaw_diff = ' + str(yaw_diff))
             # turn at a rate determined by the tank_turn_target_yaw_rate function
             steer_fraction = tank_turn_target_yaw_rate(yaw_diff)
             drive_fraction = 0.05
