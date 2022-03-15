@@ -28,8 +28,8 @@ InputsPublisher::InputsPublisher()
     joystick_r  = new JoystickThrustmaster(false, 0.06445, 0.0);
     
     // Publisher options for QoS settings
-    publisher_options.event_callbacks.deadline_callback = [](rclcpp::QOSDeadlineOfferedInfo) -> void{
-        deadline_missed_callback();
+    publisher_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineOfferedInfo) -> void{
+        this->deadline_callback();
     };
 
     // Creates the publishers
@@ -51,7 +51,7 @@ InputsPublisher::InputsPublisher()
 }
 
 // Callback for when the QoS offered deadline is missed on either publisher 
-void deadline_missed_callback(){
+void InputsPublisher::deadline_callback(){
     RCLCPP_WARN(this->get_logger(), "Joystick publisher callback deadline missed");
 }
 
