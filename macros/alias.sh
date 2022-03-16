@@ -59,6 +59,8 @@ alias arm_spoof='ros2 launch core arm_spoof.launch.py'
 alias sci='ros2 launch core science.launch.py'
 
 
-# Liam's hotspot
+# Hotspots
 alias rescan="sudo nmcli device wifi rescan"
 alias liam="sudo nmcli device wifi connect Iphone11 password sjfwf355"
+alias harrison="sudo nmcli device wifi connect Harrison\ Verrios’s\ iPhone password 12345678"
+
