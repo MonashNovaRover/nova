@@ -13,15 +13,15 @@ AUTHOR(S):	Harrison Verrios
 
 
 // Constructor for the thrustmaster joysticks
-JoystickThrustmaster::JoystickThrustmaster(const bool left, const float offset)
+JoystickThrustmaster::JoystickThrustmaster(const bool left, const float offset, const float default_slider)
     : Joystick((left) ? INPUT_THRUST_LEFT : INPUT_THRUST_RIGHT, offset) {
-
+    default_ax_slider = default_slider;
 }
 
 // Checks for valid inputs
 void JoystickThrustmaster::check_valid_inputs() {
     // Don't perform the checks if valid already
-    if (valid_ax_stick_twist && valid_ax_thumb_y) return;
+    if (valid_ax_stick_twist && valid_ax_thumb_x && valid_ax_slider) return;
 
     // Check for stick twisting
     if (!valid_ax_stick_twist) {
@@ -29,8 +29,13 @@ void JoystickThrustmaster::check_valid_inputs() {
     }
 
     // Check for thumb axis
-    if (!valid_ax_thumb_y) {
-        valid_ax_thumb_y = to_int(-convert_trg2ax(GamepadTriggerLength(controller, TRIGGER_RIGHT))) == 0.0;
+    if (!valid_ax_thumb_x) {
+        valid_ax_thumb_x = to_int(-convert_trg2ax(GamepadTriggerLength(controller, TRIGGER_RIGHT))) == 0.0;
+    }
+
+    // Check for slider axis
+    if (!valid_ax_slider) {
+        valid_ax_slider = convert_ax2trg(-stick_rx_f) != 0.5;
     }
 }
 
@@ -65,14 +70,17 @@ void JoystickThrustmaster::set_message_values() {
 
         // Set the values in the ROS msg to thumb stick
         // Use the same coordinate system as the arm base coordinates
-        msg.ax_thumb_x = -stick_ry_f;
-        if (valid_ax_thumb_y)
-            msg.ax_thumb_y = to_int(-convert_trg2ax(GamepadTriggerLength(controller, TRIGGER_RIGHT)));
+        if (valid_ax_thumb_x)
+            msg.ax_thumb_x = to_int(-convert_trg2ax(GamepadTriggerLength(controller, TRIGGER_RIGHT)));
         else
-            msg.ax_thumb_y = 0.0;
+            msg.ax_thumb_x = 0.0;
+        msg.ax_thumb_y = stick_ry_f;
 
         // Set the values of the slider
-        msg.ax_slider = convert_ax2trg(-stick_rx_f);
+        if (valid_ax_slider)
+            msg.ax_slider = convert_ax2trg(-stick_rx_f);
+        else
+            msg.ax_slider = default_ax_slider;
 
         // Set the state messages of each of the buttons
         msg.btn_thumb_l_state = get_button_state(BUTTON_X);
@@ -113,5 +121,6 @@ core::msg::InputJoystick JoystickThrustmaster::get_message() {
 // Resets the joystick inputs
 void JoystickThrustmaster::reset_inputs () {
     valid_ax_stick_twist = false;
-    valid_ax_thumb_y = false;
+    valid_ax_thumb_x = false;
+    valid_ax_slider = false;
 }

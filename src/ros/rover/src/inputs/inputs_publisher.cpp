@@ -24,8 +24,8 @@ InputsPublisher::InputsPublisher()
 
     // Creates all the joysticks (gamepads and thrustmasters)
     gamepad     = new JoystickGamepad(0.0);
-    joystick_l  = new JoystickThrustmaster(true, 0.06445);
-    joystick_r  = new JoystickThrustmaster(false, 0.06445);
+    joystick_l  = new JoystickThrustmaster(true, 0.06445, 0.5);
+    joystick_r  = new JoystickThrustmaster(false, 0.06445, 0.0);
     
     //Publisher options for QoS settings
     publisher_options.event_callbacks.deadline_callback = [](rclcpp::QOSDeadlineOfferedInfo) -> void{

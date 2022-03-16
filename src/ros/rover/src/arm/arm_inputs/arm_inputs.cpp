@@ -26,14 +26,14 @@ void ArmInputs::joystick_l_callback (const core::msg::InputJoystick::SharedPtr m
     
     // Arm lock
     if (joystick_l.btn_thumb_l_state == 1) {
-        if (!locked)
-            Print::print("Joysticks Locked");
-        locked = true;
+        if (!control_scheme.joystick_lock)
+            Print::print("Joysticks locked");
+        control_scheme.joystick_lock = true;
     }
     if (joystick_l.btn_thumb_r_state == 1){
-        if (locked)
+        if (control_scheme.joystick_lock)
             Print::print("Joysticks Unlocked");
-        locked = false;
+        control_scheme.joystick_lock = false;
     }
     
     // Control schemes
@@ -88,7 +88,7 @@ void ArmInputs::publish_arm_inputs ()
     // Create a new message
     auto message = core::msg::ArmInput();
 
-    if (!locked){
+    if (!control_scheme.joystick_lock){
         // First 6 joints are handled separately
         
         // Set the values for linear actuator and end effector actuation
@@ -114,17 +114,19 @@ void ArmInputs::publish_arm_inputs ()
 // Publishes joint velocity data
 void ArmInputs::publish_joint_vel ()
 {
-    // Get the speed multiplier from slider
-    float speed_multiplier = scale_speed(joystick_r.ax_slider);
+    // Get the speed from slider, apply scaling
+    float speed = scale_speed(joystick_r.ax_slider) * speed_multipliers.all_inputs;
     
     // If using lower joints joint-space control
-    if (!locked && !control_scheme.ik_linear) {
+    if (!control_scheme.joystick_lock && !control_scheme.ik_linear) {
+        // No speed scaling for lower joints;
+        
         // Base rotation is stick twist. CCW rotates arm CCW (from above)
-        joint_velocities.velocity[0] = speed_multiplier * joystick_l.ax_stick_twist;
+        joint_velocities.velocity[0] = speed * joystick_l.ax_stick_twist;
         // Shoulder is stick y (left-right). Left moves the arm towards the back of the rover
-        joint_velocities.velocity[1] = speed_multiplier * joystick_l.ax_stick_y;
+        joint_velocities.velocity[1] = speed * joystick_l.ax_stick_y;
         // Elbow is stick x (forward-backward). Forward pitches arm down
-        joint_velocities.velocity[2] = speed_multiplier * -joystick_l.ax_stick_x;
+        joint_velocities.velocity[2] = speed * -joystick_l.ax_stick_x;
     }
     else{
         joint_velocities.velocity[0] = 0;
@@ -133,13 +135,16 @@ void ArmInputs::publish_joint_vel ()
     }
 
     // If using wrist joint-space control
-    if (!locked && !control_scheme.ik_angular) {
+    if (!control_scheme.joystick_lock && !control_scheme.ik_angular) {
+        // Scale speed for wrist joints
+        float speed_wrist_joints = speed * speed_multipliers.wrist_joints;
+        
         // J4 is stick x. Forward pitches arm down
-        joint_velocities.velocity[3] = speed_multiplier * -joystick_r.ax_stick_x;
+        joint_velocities.velocity[3] = speed_wrist_joints * -joystick_r.ax_stick_x;
         // J5 is stick y. Left yaws arm left
-        joint_velocities.velocity[4] = speed_multiplier * joystick_r.ax_stick_y;
+        joint_velocities.velocity[4] = speed_wrist_joints * joystick_r.ax_stick_y;
         // J6 is stick twist. CCW tilts end effector CCW (looking out from end effector)
-        joint_velocities.velocity[5] = speed_multiplier * -joystick_r.ax_stick_twist;
+        joint_velocities.velocity[5] = speed_wrist_joints * -joystick_r.ax_stick_twist;
     }
     else{
         joint_velocities.velocity[3] = 0;
@@ -156,15 +161,18 @@ void ArmInputs::publish_joint_vel ()
 // Publishes task velocity data
 void ArmInputs::publish_task_vel ()
 {
-    // Get the speed multiplier from slider
-    float speed_multiplier = scale_speed(joystick_r.ax_slider);
+    // Get the speed from slider, apply scaling
+    float speed = scale_speed(joystick_r.ax_slider) * speed_multipliers.all_inputs;
     
     // If using lower joints IK, set the values for linear velocity
-    if (!locked && control_scheme.ik_linear) {
+    if (!control_scheme.joystick_lock && control_scheme.ik_linear) {
+        // Scale speed for linear IK
+        float speed_ik_linear = speed * speed_multipliers.ik_linear;
+
         // Linear velocities map directly from joystick. Directions are already in arm base coords
-        task_velocities.twist.linear.x = speed_multiplier * joystick_l.ax_stick_x;
-        task_velocities.twist.linear.y = speed_multiplier * joystick_l.ax_stick_y;
-        task_velocities.twist.linear.z = speed_multiplier * joystick_l.ax_stick_twist;
+        task_velocities.twist.linear.x = speed_ik_linear * joystick_l.ax_stick_x;
+        task_velocities.twist.linear.y = speed_ik_linear * joystick_l.ax_stick_y;
+        task_velocities.twist.linear.z = speed_ik_linear * joystick_l.ax_stick_twist;
     }
     else {
         task_velocities.twist.linear.x = 0;
@@ -172,15 +180,18 @@ void ArmInputs::publish_task_vel ()
         task_velocities.twist.linear.z = 0;
     }
     // If using wrist IK, set the values for angular velocity
-    if (!locked && control_scheme.ik_angular) {
+    if (!control_scheme.joystick_lock && control_scheme.ik_angular) {
+        // Scale speed for angular IK
+        float speed_ik_angular = speed * speed_multipliers.ik_angular;
+        
         // Adjust roll and pitch directions so control is more intuitive
         // Equivalent to a rotation of the input angular velocity vector by +pi/2 about z axis
         // Roll is stick y (left-right)
-        task_velocities.twist.angular.x = speed_multiplier * -joystick_r.ax_stick_y;
+        task_velocities.twist.angular.x = speed_ik_angular * -joystick_r.ax_stick_y;
         // Pitch is stick x (forward-backward)
-        task_velocities.twist.angular.y = speed_multiplier * joystick_r.ax_stick_x;
+        task_velocities.twist.angular.y = speed_ik_angular * joystick_r.ax_stick_x;
         // Yaw is stick twist
-        task_velocities.twist.angular.z = speed_multiplier * joystick_r.ax_stick_twist;
+        task_velocities.twist.angular.z = speed_ik_angular * joystick_r.ax_stick_twist;
     }
     else{
         task_velocities.twist.angular.x = 0;
@@ -208,9 +219,8 @@ float ArmInputs::calculate_direction (float value){
 
 
 float ArmInputs::scale_speed (float value){
-    //max scale factor 0.95, min scale factor 0.05
-    // return (((value - 1) / -2.0) * 0.9) + 0.05;
-    return (value * 0.9) + 0.05;
+    // Max scale factor 1.00, min scale factor 0.05
+    return (value * 0.95) + 0.05;
 }
 
 // Publishes control scheme data
