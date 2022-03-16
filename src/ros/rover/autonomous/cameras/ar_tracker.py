@@ -23,7 +23,23 @@ class ArTracker(Node):
             self.previous_10_tags.append(tag)
         else: 
             coord = input("enter real artag pose as tuple: ")
-            true_x, true_y = float(coord.split()[0]), float(coord.split()[1])
+            true_coord = np.array([float(coord.split()[0]), float(coord.split()[1])])
+            
+            approx_coords = np.array(self.previous_10_tags)
+            approx_coord = np.sum(approx_coords, axis=0) / (len(approx_coords))
+            print(f"true coordinate x = {true_coord[0]}, y = {true_coord[1]}")
+            print(f"approx coordinate x = {approx_coord[0]}, y = {approx_coord[1]}")
+
+            try:
+                approx, true = np.load("approx.npy").tolist(), np.load("true.npy").tolist()
+                approx.append(approx_coord)
+                true.append(approx_coord)
+                np.save("approx.npy", np.array(approx))
+                np.save("true.npy", np.array(true))
+            except:
+                np.save("approx.npy", np.array(approx))
+                np.save("true.npy", np.array(true))
+
             rclpy.shutdown()
 
     def __call__(self, img):
