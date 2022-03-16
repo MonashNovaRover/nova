@@ -49,14 +49,16 @@ class HydraprobeTransceiver(UARTTransceiver):
         message += '\r\n' # add terminating CLRF
         packet = message.encode('ascii') # ascii encode data for transmission
 
+        # Attempt to show information
         try:
             with self._lock:
                 self.ser.write(packet)
             self.debug(f"Successfully transmitted data\n{data}")
             return True
+        
         #if any errors occur then return failed status
-        except serial.SerialTimeoutException:
-                self.error(f"Transmit timeout occurred on {self.ser.name}")
+        except self.serial.SerialTimeoutException:
+            self.error(f"Transmit timeout occurred on {self.ser.name}")
 
         return False
 
@@ -117,8 +119,15 @@ class HydraprobeTransceiver(UARTTransceiver):
 
 
 class HydraprobePublisher(Node):
+
+    # Stores the port of the hydraprobe
+    port: str = '/dev/ttyUSB0'
+
+    # Main constructor
     def __init__(self):
+
         super().__init__('hydraprobe_publisher')
+
         # TODO: Update to use actual QoS profile
         self.publisher_ = self.create_publisher(HydraprobeData, '/science/hydraprobe_data', 10)
         
@@ -127,22 +136,22 @@ class HydraprobePublisher(Node):
             self.hydraprobe_transceiver = HydraprobeTransceiver(
                 logger = self.get_logger(),
                 baudrate = 9600, # confirm this
-                port = '/dev/ttyUSB0', # TODO: check this
+                port = self.port, # TODO: check this
                 probe_address = '000', # TODO: check this. /// is broadcast address for the probes so should be fine to use as long as we only have 1 connected.
                 )
         
         # Print error if missing device
         except:
-            print("Unable to find device on '/dev/ttyUSB0'.")
+            print("\033[1;91m\nERROR: Unable to find device on '%s'.\033[0m" % self.port)
             exit()
         
+        # Create the timer
         self.publisher_timer = self.create_timer(3, self.publish_values)
-
-        #self.get_logger().set_level(10) # FOR DEBUGGING
 
         # get firmware version
         self.hydraprobe_transceiver.transmit("FV=?")
         self.get_logger().debug(self.hydraprobe_transceiver.receive().decode('ascii'))
+
 
     def publish_values(self):
         # request reading set and wait till its ready

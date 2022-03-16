@@ -124,7 +124,7 @@ class ServiceNode(Node):
         
         # CAN does not exist - show error
         except:
-            print("Unable to find CAN1 network.")
+            print("\033[1;91m\nERROR: Unable to find can1 network.\033[0m")
             exit()
 
 
