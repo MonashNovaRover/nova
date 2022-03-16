@@ -3,7 +3,7 @@ import numpy as np
 
 # ~~~~~~~~~~ CONTROLLER CONSTANTS ~~~~~~~~~~~~~
 # tank turning constants (test and define on a terrain basis)
-yaw_star = False
+yaw_star_conf = True
 min_yaw_rate = 4.0  # what is a minimum fair speed to turn slowly
 max_yaw_rate = 5.0  # # what is a fair maximum yaw percent speed to turn
 
@@ -15,7 +15,8 @@ min_speed = 2.0   # todo: determiner
 
 max_speed = 7.0  # todo: determine
 
-min_waypoint_distance = 1.0  # todo: determine what is achievable
+min_waypoint_distance = 0.7  # todo: determine what is achievable
+ignore_waypoints = 4 #  number of waypoints to cut off start of list
 
 controller_ros_rate = 10  # 10hz
 
