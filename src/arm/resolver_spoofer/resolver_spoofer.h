@@ -53,6 +53,9 @@ class ResolverSpoofer : public rclcpp::Node
     // This is distinct from the timestamp in joints, which represents the time each message was sent
     rclcpp::Time last_integration_time;
 
+    // Store the angles for each joint at which to set the periodic angle discontinuity
+    std::vector<float> joint_discontinuity_angles;
+
     // Subscriber to listen for output joint velocity commands
     rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr outputs_subscription;
     // Timer for publishing to /electronics/resolvers
@@ -62,6 +65,9 @@ class ResolverSpoofer : public rclcpp::Node
 
     /// Converts a Real angle into the equivalent angle in [0, 2pi)
     double wrap_to_2pi(double angle);
+
+    /// Move the perioidic angular discontinuity from 2pi to some specified angle
+    double move_discontinuity(double angle, double discontinuity_angle);
     
     /// Integrates the joint velocities up to the current time
     void update_joint_positions();

@@ -28,6 +28,17 @@ ResolverSpoofer::ResolverSpoofer() : Node("resolver_spoofer")
     
     // Initial integration time
     last_integration_time = this->now();
+
+    // Set the discontinuity angles for each joint to be outside the typical range of motion
+    // For now just hardcode for the cycloidal wrist
+    joint_discontinuity_angles = std::vector<float> {
+        M_PI,
+        M_PI,
+        M_PI,
+        M_PI,
+        M_PI,
+        0
+    };
     
     // Create the subscription
     outputs_subscription = this->create_subscription<sensor_msgs::msg::JointState>(
@@ -61,6 +72,11 @@ double ResolverSpoofer::wrap_to_2pi(double angle){
     return angle;
 }
 
+// Move the discontinuity angle from 2pi to some specified angle
+double ResolverSpoofer::move_discontinuity(double angle, double discontinuity_angle){
+    return angle - 2*M_PI * (angle >= discontinuity_angle);
+}
+
 // Use the current joint velocities to integrate the joint positions up to the current time
 void ResolverSpoofer::update_joint_positions()
 {
@@ -72,8 +88,9 @@ void ResolverSpoofer::update_joint_positions()
     rclcpp::Duration duration = current_time - last_integration_time;
     for(unsigned int i = 0; i < joints.name.size(); i++){
         if (joints.velocity[i] != 0){
-            joints.position[i] = wrap_to_2pi(joints.position[i] + joints.velocity[i] * duration.seconds());
-        }   
+            double angle = wrap_to_2pi(joints.position[i] + joints.velocity[i] * duration.seconds());
+            joints.position[i] = move_discontinuity(angle, joint_discontinuity_angles[i]);
+        }
     }
     // Record the time that was integrated to
     last_integration_time = current_time;

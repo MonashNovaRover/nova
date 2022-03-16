@@ -56,6 +56,15 @@ void ArmInputs::joystick_l_callback (const core::msg::InputJoystick::SharedPtr m
         control_scheme.endpoint_frame_angular = !control_scheme.endpoint_frame_angular;
         control_scheme_update = true;
     }
+    // Joint limits
+    if (joystick_l.btn_bottom_l1_state == 1) {
+        control_scheme.joint_limits = true;
+        control_scheme_update = true;
+    }
+    if (joystick_l.btn_bottom_l4_state == 1) {
+        control_scheme.joint_limits = false;
+        control_scheme_update = true;
+    }
     // Immediately publish any new control scheme data
     // Also will continue to publish when the timer expires
     if (control_scheme_update){
