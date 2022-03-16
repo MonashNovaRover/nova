@@ -49,6 +49,7 @@ class ArmSubModule : public KDL::Tree
         //   2. endpoint_names
         //   3. output_name
         //   4. zero_angles
+        //   5. joint_limits
         
         // Build the module segment by segment
         // For each segment, will consist of:
@@ -72,5 +73,15 @@ class ArmSubModule : public KDL::Tree
     // List model angles of each joint when the arm is in the resolver zeroing position.
     // The model will be initialised in this position, and all angles measured relative to it.
     std::vector<double> zero_angles;
+
+    // Define a joint limits structure for storing the maximum and minimum limits
+    // These define a continuous interval of allowed joint angles
+    // Angles are given in radians and can take any Real value
+    typedef struct {
+        float lower;
+        float upper;
+    } JointLimit;
+    // List joint limits. Indexed to match joint_names
+    std::vector<JointLimit> joint_limits;
 
 };

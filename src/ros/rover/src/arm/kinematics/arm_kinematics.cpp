@@ -271,6 +271,23 @@ void ArmKinematics::publish_joint_velocities()
         joints.velocity[i] += joint_space_joints.velocity[i];
     }
 
+    // If activated, apply joint limits to the current joint velocity
+    if (control_scheme.joint_limits){
+        // If any joint hits a limit, stop all joints
+        bool limit = false;
+        for (unsigned int i = 0; i < joints.name.size(); i++) {
+            if ((joints.position[i] >= arm_model.joint_limits[i].upper && joints.velocity[i] > 0)
+                || (joints.position[i] <= arm_model.joint_limits[i].lower && joints.velocity[i] < 0)){
+                RCLCPP_WARN(this->get_logger(), "Joint %s has reached a limit", joints.name[i].c_str());
+                limit = true;
+            }
+        }
+        if (limit) {
+            // Clear the velocity data
+            std::fill(joints.velocity.begin(), joints.velocity.end(), 0);
+        }
+    }
+
     // Update the header
     joints.header.stamp = this->now();
     // Publish the message
