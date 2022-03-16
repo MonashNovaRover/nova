@@ -29,4 +29,6 @@ def generate_launch_description():
             package='electronics', node_executable='wheel_publisher.py', output='screen'),
         launch_ros.actions.Node(
 	    package='electronics', node_executable='gimbal_service.py', output='screen'),
+        launch_ros.actions.Node(
+            package='electronics', node_executable='rfid_service.py', output='screen'),
     ])
