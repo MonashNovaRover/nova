@@ -101,30 +101,6 @@ class ArmKinematics : public rclcpp::Node
     // Publisher to /control/joint_velocities
     rclcpp::TimerBase::SharedPtr joint_velocities_timer;
     rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr joint_velocities_pub;
-    
-    /*
-    * QoS options for task and input joint velocities. These are the same as the options for the publisher, to ensure compatibility.
-    *     Reliability = best effort: nodes will attempt to publish, but will not garuntee any one message is received
-    *     Durability = volatile: "no attempt is made to persist samples for late joining subscribers". This is the default for the sensors QoS profile 
-    *     Deadline = 200ms. If a message is not published within this time, the offered deadline callback will be called.
-    */
-    rclcpp::QoS subscriber_qos = rclcpp::QoS(1).reliability(RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT).durability(RMW_QOS_POLICY_DURABILITY_VOLATILE).deadline(200ms);
-    // Subscription options with allocator - note, as we do not use the AllocatorT typed variables, we put void here
-    rclcpp::SubscriptionOptionsWithAllocator<std::allocator<void>> subscriber_options;
-
-    /*
-    * QoS options for joint velocities.
-    *     Reliability = best effort: nodes will attempt to publish, but will not garuntee any one message is received
-    *     Durability = volatile: "no attempt is made to persist samples for late joining subscribers". This is the default for the sensors QoS profile 
-    *     Deadline = 500ms. If a message is not published within this time, the offered deadline callback will be called.
-    */
-    rclcpp::QoS publisher_qos = rclcpp::QoS(1).reliability(RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT).durability(RMW_QOS_POLICY_DURABILITY_VOLATILE).deadline(500ms);
-    
-    /// @brief      Resets internal message state for joint_space_joints and task_velocity
-    void reset_msg_state ();
-    
-    /// @brief      Function provided to Quality of Service options 
-    void deadline_callback();
 
     /// @brief  Callback for control scheme subscription
     ///         Updates the internal control scheme, which is used to determine how to solve IK
@@ -137,11 +113,17 @@ class ArmKinematics : public rclcpp::Node
     /// @brief  Callback for input joint velocities subscription
     ///         Updates the internal joint-space joint velocities
     void input_joint_velocities_callback(const sensor_msgs::msg::JointState::SharedPtr msg);
-    
+    /// @brief  Deadline callback for input joint velocities subscription
+    ///         Resets the internal joint-space joint velocities
+    void input_joint_velocities_deadline_callback();
+
     /// @brief  Callback for task velocity subscription
     ///         Updates the internal task velocity, which is later used to calculate the inverse kinematics
     void task_velocity_callback(const geometry_msgs::msg::TwistStamped::SharedPtr msg);
-    
+    /// @brief  Deadline callback for input task velocity subscription
+    ///         Resets the internal task velocity
+    void task_velocity_deadline_callback();
+
     /// @brief  Calculate FK for a single segment
     ///         Overloaded to allow a calling function to precompute the KDL::JntArray
     KDL::Frame calculate_fk(KDL::JntArray kdl_joints, std::string segment_name);

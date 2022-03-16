@@ -64,13 +64,20 @@ void ArmInputs::joystick_l_callback (const core::msg::InputJoystick::SharedPtr m
 
 }
 
-
 // Receives input from right joystick
 void ArmInputs::joystick_r_callback (const core::msg::InputJoystick::SharedPtr msg)
 {
     // Save data for later, only deal with it when we publish
     // More efficient, works if we only care about the most up-to-date message    
     joystick_r = *msg;
+}
+
+// Resets joystick internal state
+void ArmInputs::joystick_deadline_callback()
+{
+    RCLCPP_WARN(this->get_logger(), "Joystick subscriber deadline missed");
+    joystick_l = core::msg::InputJoystick();
+    joystick_r = core::msg::InputJoystick();
 }
 
 // Publishes data on the arm input
@@ -234,43 +241,47 @@ void ArmInputs::publish_control_scheme()
     control_scheme_publisher->publish(control_scheme);
 }
 
-// Resets all internal state related to arm movement, in the case of a QoS deadline missed
-void ArmInputs::reset_msg_state(){
-    joystick_l = core::msg::InputJoystick();
-    joystick_r = core::msg::InputJoystick();
-}
-
-void ArmInputs::deadline_callback()
-{
-    RCLCPP_WARN(this->get_logger(), "Joystick subscriber deadline missed");
-    reset_msg_state();
-}
-
 
 // Main constructor that sets up the node
 ArmInputs::ArmInputs() : Node("arm_input")
 {
     // Creates the arm inputs publisher
-    arm_publisher = this->create_publisher<core::msg::ArmInput>("/control/arm_input", 10);
+    arm_publisher = this->create_publisher<core::msg::ArmInput>(
+        "/control/arm_input", rclcpp::QoS(1).best_effort().deadline(200ms)
+    );
 
     // Creates the joint velocity publisher
-    joint_vel_publisher = this->create_publisher<sensor_msgs::msg::JointState>("/control/input_joint_velocities", publisher_qos);
+    joint_vel_publisher = this->create_publisher<sensor_msgs::msg::JointState>(
+        "/control/input_joint_velocities", rclcpp::QoS(1).best_effort().deadline(200ms)
+    );
 
     // Creates the task velocity publisher
-    task_vel_publisher = this->create_publisher<geometry_msgs::msg::TwistStamped>("/control/task_velocity", publisher_qos);
+    task_vel_publisher = this->create_publisher<geometry_msgs::msg::TwistStamped>(
+        "/control/task_velocity", rclcpp::QoS(1).best_effort().deadline(200ms)
+    );
 
-    // Subscriber options for QoS settings
-    subscriber_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void{
-        this->deadline_callback();
+    // Create common options for joystick subscriptions
+    rclcpp::SubscriptionOptionsWithAllocator<std::allocator<void>> joystick_options;
+    joystick_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void{
+        this->joystick_deadline_callback();
     };
+    rclcpp::QoS joystick_qos = rclcpp::QoS(1).best_effort().deadline(200ms);
 
     // Creates the input subscription for the left joystick (with QoS options)
     joystick_l_subscription = this->create_subscription<core::msg::InputJoystick>(
-        "/control/input_joystick_l", subscriber_qos, std::bind(&ArmInputs::joystick_l_callback, this, _1), subscriber_options);
+        "/control/input_joystick_l",
+        joystick_qos,
+        std::bind(&ArmInputs::joystick_l_callback, this, _1),
+        joystick_options
+    );
 
     // Creates the input subscription for the right joystick (with QoS options)
     joystick_r_subscription = this->create_subscription<core::msg::InputJoystick>(
-        "/control/input_joystick_r", subscriber_qos, std::bind(&ArmInputs::joystick_r_callback, this, _1), subscriber_options);    
+        "/control/input_joystick_r",
+        joystick_qos,
+        std::bind(&ArmInputs::joystick_r_callback, this, _1),
+        joystick_options
+    );
 
     // Creates a timer function that runs a function on loop every 0.05 seconds
     timer = this->create_wall_timer(50ms, std::bind(&ArmInputs::publish_arm_inputs, this));
