@@ -75,10 +75,16 @@ class ArmDriver : public rclcpp::Node {
     /// @brief      Callback function when input messages are received.
     /// @param      msg - A pointer to the input message
     void joint_velocities_callback (const sensor_msgs::msg::JointState::SharedPtr msg);
-
+    /// @brief      Deadline callback for joint velocities subscription
+    ///             Resets the internal joint velocities
+    void joint_velocities_deadline_callback();
+    
     /// @brief      Callback function when input messages are received.
     /// @param      msg - A pointer to the input message
     void arm_input_callback (const core::msg::ArmInput::SharedPtr msg);
+    /// @brief      Deadline callback for arm_inputs subscription
+    ///             Resets the internal state
+    void arm_input_deadline_callback();
 
     //------------------------------------------------------------//
     public:

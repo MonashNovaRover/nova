@@ -58,7 +58,6 @@ Use real positions of joints and end effectors, but idealised links
 */
 class ArmKinematics : public rclcpp::Node
 {
-
     //------------------------------------------------------------//
     private:
 
@@ -114,11 +113,17 @@ class ArmKinematics : public rclcpp::Node
     /// @brief  Callback for input joint velocities subscription
     ///         Updates the internal joint-space joint velocities
     void input_joint_velocities_callback(const sensor_msgs::msg::JointState::SharedPtr msg);
-    
+    /// @brief  Deadline callback for input joint velocities subscription
+    ///         Resets the internal joint-space joint velocities
+    void input_joint_velocities_deadline_callback();
+
     /// @brief  Callback for task velocity subscription
     ///         Updates the internal task velocity, which is later used to calculate the inverse kinematics
     void task_velocity_callback(const geometry_msgs::msg::TwistStamped::SharedPtr msg);
-    
+    /// @brief  Deadline callback for input task velocity subscription
+    ///         Resets the internal task velocity
+    void task_velocity_deadline_callback();
+
     /// @brief  Calculate FK for a single segment
     ///         Overloaded to allow a calling function to precompute the KDL::JntArray
     KDL::Frame calculate_fk(KDL::JntArray kdl_joints, std::string segment_name);

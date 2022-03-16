@@ -70,7 +70,6 @@ class ArmInputs : public rclcpp::Node {
     rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr task_vel_publisher;
     rclcpp::Publisher<core::msg::ArmControlScheme>::SharedPtr control_scheme_publisher;
 
-
     // Stores the subscribers to the joystick inputs
     rclcpp::Subscription<core::msg::InputJoystick>::SharedPtr joystick_l_subscription;
     rclcpp::Subscription<core::msg::InputJoystick>::SharedPtr joystick_r_subscription;
@@ -107,27 +106,31 @@ class ArmInputs : public rclcpp::Node {
     /// @brief      Callback function when input messages are received.
     /// @param      msg - A pointer to the input message
     void joystick_r_callback (const core::msg::InputJoystick::SharedPtr msg);
-
-    /// @brief      Function for publishing arm input message
+    
+    /// @brief      Deadline callback for joystick subscriptions
+    ///             Resets internal joystick state
+    void joystick_deadline_callback();
+    
+    /// @brief      Publishes arm input message
     void publish_arm_inputs ();
 
-    /// @brief      Function for publishing desired joint velocities
+    /// @brief      Publishes desired joint velocities
     ///             Published as a joint-space vector in rad/s
     void publish_joint_vel ();
 
-    /// @brief      Function for publishing desired task velocity
+    /// @brief      Publishes desired task velocity
     ///             Published as a twist vector in m/s and rad/s
     void publish_task_vel ();
 
-    /// @brief      Function for publishing control scheme data
+    /// @brief      Publishes control scheme data
     void publish_control_scheme ();
 
-    /// @brief      Function for calculating a direction from a fraction
+    /// @brief      Calculates a direction from a fraction
     /// @param      value - A fraction to be converted to a direction
     /// @returns    The calculated direction (-1, 0 or 1) 
     float calculate_direction (float value);
 
-    /// @brief      Function for obtaining postive scaling factor from slider input
+    /// @brief      Obtains postive scaling factor from slider input
     /// @param      value - number in range [-1, 1] to map to [0, 1]
     /// @returns    The new scale factor in range [0, 1]
     float scale_speed (float value);

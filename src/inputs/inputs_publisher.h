@@ -49,10 +49,6 @@ class InputsPublisher : public rclcpp::Node {
     rclcpp::Publisher<core::msg::InputGamepad>::SharedPtr gamepad_publisher;
     rclcpp::Publisher<core::msg::InputJoystick>::SharedPtr joystick_l_publisher;
     rclcpp::Publisher<core::msg::InputJoystick>::SharedPtr joystick_r_publisher;
-
-    //Stores options for QoS related things
-    rclcpp::QoS qos = rclcpp::QoS(1).reliability(RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT).durability(RMW_QOS_POLICY_DURABILITY_VOLATILE).deadline(200ms);
-    rclcpp::PublisherOptions publisher_options;
     
     // Stores a counter
     size_t count;
@@ -71,14 +67,13 @@ class InputsPublisher : public rclcpp::Node {
     private:
 
     /// @brief      Publishes the input data from the gamepad and
-    ///                 joystick classes by reading the input.
+    ///             joystick classes by reading the input.
     void publish_input ();
 
 
     //------------------------------------------------------------//
     public:
-
+    
     /// @brief      Default constructor function that starts up the node
     InputsPublisher();
-
 };

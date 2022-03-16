@@ -12,6 +12,7 @@ AUTHOR(S):	Jess Hepworth
 
 #include "print/print.h"
 
+#include "../hacky_defines.h"
 
 // Receives the desired commands for the CMDs and sends to CMDs
 void ArmDriver::joint_velocities_callback (const sensor_msgs::msg::JointState::SharedPtr msg)
@@ -20,8 +21,14 @@ void ArmDriver::joint_velocities_callback (const sensor_msgs::msg::JointState::S
         joints[i]->drive(msg->velocity[i]); 
     }
 }
-
-
+// Reset the internal velocities
+void ArmDriver::joint_velocities_deadline_callback()
+{
+    RCLCPP_WARN(this->get_logger(), "control/joint_velocities subscription deadline missed");
+    for (unsigned int i = 0; i < hack::JOINT_NAMES.size(); i++) {
+        joints[i]->drive(0);
+    }
+}
 
 // Receives the desired commands for the CMDs and sends to CMDs
 void ArmDriver::arm_input_callback (const core::msg::ArmInput::SharedPtr msg)
@@ -37,7 +44,17 @@ void ArmDriver::arm_input_callback (const core::msg::ArmInput::SharedPtr msg)
     // Lunar construction
     joints[7]->drive(msg->lunar_construction);
 }
-
+// Reset the internal state
+void ArmDriver::arm_input_deadline_callback()
+{
+    RCLCPP_WARN(this->get_logger(), "control/arm_input subscription deadline missed");
+    // End effector
+    joints[6]->drive(0);
+    // Linear actuator
+    joints[6]->set_linear_actuator(0);
+    // Lunar construction
+    joints[7]->drive(0);
+}
 
 // Main constructor that sets up the node
 ArmDriver::ArmDriver() : Node("arm_driver")
@@ -55,12 +72,28 @@ ArmDriver::ArmDriver() : Node("arm_driver")
     }
 
     // Creates the input subscription for the desired CMD commands (first 6 joints)
+    rclcpp::SubscriptionOptionsWithAllocator<std::allocator<void>> joint_velocities_options;
+    joint_velocities_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void{
+        this->joint_velocities_deadline_callback();
+    };
     joint_velocities_subscription = this->create_subscription<sensor_msgs::msg::JointState>(
-        "/control/joint_velocities", 10, std::bind(&ArmDriver::joint_velocities_callback, this, _1));
+        "/control/joint_velocities",
+        rclcpp::QoS(1).best_effort().deadline(200ms),
+        std::bind(&ArmDriver::joint_velocities_callback, this, _1),
+        joint_velocities_options
+    );
     
     // Creates the input subscription for the desired CMD commands (LC, EE, LA)
+    rclcpp::SubscriptionOptionsWithAllocator<std::allocator<void>> arm_input_options;
+    arm_input_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void{
+        this->arm_input_deadline_callback();
+    };
     arm_input_subscription = this->create_subscription<core::msg::ArmInput>(
-        "/control/arm_input", 10, std::bind(&ArmDriver::arm_input_callback, this, _1));
+        "/control/arm_input",
+        rclcpp::QoS(1).best_effort().deadline(200ms),
+        std::bind(&ArmDriver::arm_input_callback, this, _1),
+        arm_input_options
+    );
     
 
     // Output set-up messages
