@@ -57,6 +57,12 @@ ENCODER_TO_RPM = 92.9
 # Store the wheel radius [m]
 WHEEL_RADIUS = 0.122
 
+# The rate (times per second) to publish the wheels at
+PUBLISH_RATE = 20
+
+
+
+
 # Main Wheel Publisher class
 class WheelPublisher (Node):
 
@@ -79,7 +85,7 @@ class WheelPublisher (Node):
         self.t = time.time()
     
         # Create the CAN network
-        self.cans = [CANReceiver(channel="can0", filter_ids=[WHEEL_IDS[i]], receive_timeout=0.1, receive_fmt="<hh", display=False) for i in range(NUM_WHEELS)]
+        self.cans = [CANReceiver(channel="can0", filter_ids=[WHEEL_IDS[i]], receive_timeout=1, receive_fmt="<hh", bitrate=500000) for i in range(NUM_WHEELS)]
         self.rpms = [0 for _ in range(NUM_WHEELS)]
         self.powers = [0 for _ in range(NUM_WHEELS)]
 
@@ -91,10 +97,10 @@ class WheelPublisher (Node):
         self.subscription_a = self.create_subscription(DriveInput, "/autonomous/drive_inputs",  self.drive_callback, 10)
 
         # Create a time to constantly loop and check for data
-        self.read_timer = self.create_timer(0.2, self.read_callback)
+        self.read_timer = self.create_timer(0.01, self.read_callback)
 
         # Create a timer to publish the current data
-        #self.pub_timer = self.create_timer(0.2, self.publish_msg)
+        self.pub_timer = self.create_timer(1.0/float(PUBLISH_RATE), self.publish_msg)
 
 
     # Method that looks for any changes in the data from the CAN lines
@@ -103,30 +109,30 @@ class WheelPublisher (Node):
 
         t = time.time()
         for i in range(NUM_WHEELS):
-            can_msg = self.cans[i].receive()
+
+            # Cache for an errors that come about with the wheels
+            try:
+                can_msg = self.cans[i].receive()
+                
+                # If a message exists
+                if can_msg:
+                    # Read the velocity data
+                    (rpm, power) = self.cans[i].unpack(can_msg.data)
+                    # Get a negative for some wheels
+                    if i <= 2: rpm *= -1
+
+                    # RPM operating as a FIFO Queue with max len STORED_DATA_LEN self.rpms[i] = self.convert_rpm(rpm)
+                    self.rpms[i] = self.convert_rpm(rpm)
+                    
+                    # Power operating as a FIFO Queue with max len STORED_DATA_LEN
+                    self.powers[i] = self.convert_power(power)
+                    
+                    # Update the timestamp
+                    self.t = time.time()
             
-            # If a message exists
-            if can_msg:
-                # Read the velocity data
-                rpm = can_msg.data[:2]
-                rpm = int.from_bytes(rpm, "little", signed=True)
-                # Get a negative for some wheels
-                if i <= 2: rpm *= -1
-
-                # operating as a FIFO Queue with max len STORED_DATA_LEN
-                self.rpms[i] = self.convert_rpm(rpm)
-                
-                # Read the power data
-                power = can_msg.data[2:]
-                power = int.from_bytes(power, "little", signed=True)               
-
-                # operating as a FIFO Queue with max len STORED_DATA_LEN
-                self.powers[i] = self.convert_power(power)
-                
-                # Update the timestamp
-                self.t = time.time()
-                
-        self.publish_msg()
+            # In case of an eror, just skip and continue
+            except:
+                continue
 
 
     # Callback that reads an input message from the drive commands

@@ -52,7 +52,7 @@ DEVICE_INFO = {
         "radio_IP":     "192.168.1.201",    # Base Station Radio IP
         "host":         "novarovabullet",   # Host Name of the Radio
         "password":     "novarovabullet",   # Password of Radio device
-        "interface":    "enp1s0f0",         # Ethernet Interface 
+        "interface":    "enp3s0f1",         # Ethernet Interface 
     },
 }
 
@@ -102,7 +102,7 @@ class RadioMonitor(Node):
         signal = self.get_signal()
 
         # Print the data
-        print("Signal: %ddb, \tSent: %dkb, \tRecv: %dkb, \tPing: %dms" % (signal, sent, recv, ping))
+	#        print("Signal: %ddb, \tSent: %dkb, \tRecv: %dkb, \tPing: %dms" % (signal, sent, recv, ping))
 
         # Publish data over ROS
         if self.is_ros:
@@ -199,6 +199,7 @@ def main():
     
     # If issues found, raise exception
     except Exception as e:
+        print("An error occurred with the radio monitor.")
         print(e)
 
 
