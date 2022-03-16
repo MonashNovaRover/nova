@@ -12,7 +12,7 @@ This class inherits from the base Joystick code and
 PACKAGE: 	control
 AUTHOR(S):	Harrison Verrios
 CREATION:	19/11/2021
-EDITED:		24/11/2021
+EDITED:		11/03/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
@@ -32,7 +32,11 @@ class JoystickThrustmaster : public Joystick {
 
     /// @brief      Flags for whether or not certain values have changed
     bool valid_ax_stick_twist = false;
-    bool valid_ax_thumb_y = false;
+    bool valid_ax_thumb_x = false;
+    bool valid_ax_slider = false;
+
+    /// @brief      The default slider value to use when invalid
+    float default_ax_slider = 0.0;
     
 
     //------------------------------------------------------------//
@@ -51,7 +55,8 @@ class JoystickThrustmaster : public Joystick {
     /// @brief      Constructor called when the object is created
     /// @param      left - Is this the left or the right joystick
     /// @param      offset - The offset of the input axis to use
-    JoystickThrustmaster(const bool left, const float offset);
+    /// @param      default_slider - The default slider value to use
+    JoystickThrustmaster(const bool left, const float offset, const float default_slider = 0.0);
 
     /// @brief      Gets the message object from the instance
     /// @returns    The Input Joystick message object with data
