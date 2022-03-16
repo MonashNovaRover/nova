@@ -49,15 +49,11 @@ def plot_fit(Q, P, nearly_P):
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    vals = [-2, -1.5, -1, -0.5, 0, 0.5, 1, 1.5, 2]
-    Q = np.array([[[x, y] for x in vals] for y in vals]).T.reshape(2, len(vals)**2)
-    A = np.array([[1, 0.2], [-0.1, 3]])
-    t = np.array([[1, 1]]).T
-    P = np.matmul(A, Q)
-    P = P + np.random.rand(Q.shape[0], Q.shape[1])/10
-    P += t + np.random.rand(t.shape[0], t.shape[1])/10
+    Q = np.load("approx.npy").T
+    print(Q.shape)
+    P = np.load("true.npy").T
+    print(P.shape)
     B, s = main(P, Q)
     nearly_P = np.matmul(B, Q) + s.reshape(2, 1)
     plot_fit(Q, P, nearly_P)
-
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/

@@ -15,7 +15,7 @@ min_speed = 2.0   # todo: determiner
 
 max_speed = 7.0  # todo: determine
 
-min_waypoint_distance = 0.7  # todo: determine what is achievable
+min_waypoint_distance = 1.2  # todo: determine what is achievable
 ignore_waypoints = 4 #  number of waypoints to cut off start of list
 
 controller_ros_rate = 10  # 10hz
@@ -26,6 +26,7 @@ pub_scale = 1.0
 # ~~~~~~~~~~ PLANNING CONSTANTS ~~~~~~~~~~~~~~~
 
 planning_rate = 2.0
+INITIAL_PADDING_DIST_M = 0.8
 min_ar_distance = 0.2 
 max_ar_distance = 15.0
 

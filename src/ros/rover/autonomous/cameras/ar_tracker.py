@@ -94,11 +94,19 @@ class ArTracker(Node):
                 x = trans_mat[i][0][2]
                 y = -trans_mat[i][0][0]
                 z = -trans_mat[i][0][1]
+
+                transform = np.load("cameras/ar_2d_calibration.npy")
+                A = transform[:2, :].T
+                t = transform[-1, :].T
+
+                pose = np.matmul(A, np.array([x, y]).T) + t
+                pose.reshape(2)
+
                 msg = AlvarMarker()
                 msg.header.stamp = self.get_clock().now().to_msg()
                 msg.header.frame_id = main_frame
-                msg.pose.pose.position.x = x
-                msg.pose.pose.position.y = y
+                msg.pose.pose.position.x = pose[0]
+                msg.pose.pose.position.y = pose[1]
                 msg.pose.pose.position.z = z
                 msg.id = int(_id[0])
                 return msg

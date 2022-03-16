@@ -29,7 +29,8 @@ from math_utils.controller_math import *
 from rclpy.node import Node
 from core.msg import Waypoints, Waypoint, RoverPose, AlvarMarker, AutonomousGoal
 from config.ros_config import *
-from config.runtime_params import min_ar_distance, max_ar_distance, ignore_waypoints, tracking_camera_extrinsics
+from config.runtime_params import min_ar_distance, max_ar_distance, ignore_waypoints, tracking_camera_extrinsics, INITIAL_PADDING_DIST_M
+from nav_msgs.msg import Odometry    
 
 
 class PathPlanner(Node):
@@ -45,6 +46,8 @@ class PathPlanner(Node):
         
         # way-point publisher publishes a bunch of waypoints at once (hence using the 2D map datatype
         self.waypt_publisher = self.create_publisher(Waypoints, auto_waypoints_topic, 10)
+        self.padding_dist_m = INITIAL_PADDING_DIST_M
+        self.alvar_publisher = self.create_publisher(Odometry, "autonomous/ar_tag/global_odom", 10)
         
         self.pose_subscriber = self.create_subscription(RoverPose, rover_pose_topic, self.update_pose, 10)
 
@@ -77,8 +80,6 @@ class PathPlanner(Node):
         """
         pose = msg.pose.pose.position
         
-        self.get_logger().info("found tag: x=" + str(pose.x) + " | y=" + str(pose.y) + " | z=" + str(pose.z))
-        
         local_pose = np.array([pose.x, pose.y]).reshape(2, 1)
 
         # tracking cam extrinsics are included in global pose as 0, 0 is the centre of the rover
@@ -100,7 +101,14 @@ class PathPlanner(Node):
 
         iD = msg.id
 
-        if iD // 4 == self.goal_id:# and goal_diff > 0.2:
+        if iD == self.goal_id:# and goal_diff > 0.2:
+            self.get_logger().info("found tag: x=" + str(global_pose[0]) + " | y=" + str(global_pose[1]))
+            odom = Odometry()
+            odom.pose.pose.position.x = global_pose[0]
+            odom.pose.pose.position.y = global_pose[1]
+            odom.header.frame_id = main_frame
+            odom.header.stamp = self.get_clock().now().to_msg()
+            self.alvar_publisher.publish(odom)
             self.goal = global_pose[0], global_pose[1]
             self.get_logger().info("Updated planning goal (AR tag): x=" + str(global_pose[0]) + "| y=" + str(global_pose[1]))
 
@@ -173,13 +181,18 @@ class PathPlanner(Node):
         self.length_meters = int(_map.shape[0] * self.resolution)
         self.width_meters = int(_map.shape[1] * self.resolution)
         
-        self.route = np.array(a_star(_map, self.get_grid_coord(self.start), self.get_grid_coord(self.goal), self.resolution))
+        self.route = np.array(a_star(_map, self.get_grid_coord(self.start), self.get_grid_coord(self.goal), self.resolution, self.padding_dist_m))
         status = self.route[-1, 0]
         self.route = self.route[:-1]
         if status & PathPlanner.A_STAR_START_OBSTACLE: self.get_logger().warn("started in obstacle")
         if status & PathPlanner.A_STAR_DEST_OBSTACLE: self.get_logger().warn("dest in obstacle")
         if status & PathPlanner.A_STAR_NO_PATH: self.get_logger().warn("couldn't find a path initially")
-        if status & PathPlanner.A_STAR_CRITICAL_NO_PATH: self.get_logger().error("COULDN'T FIND PATH - NEAR OBSTACLE")
+        if status & PathPlanner.A_STAR_CRITICAL_NO_PATH:
+            self.get_logger().error("COULDN'T FIND PATH - NEAR OBSTACLE")
+            self.padding_dist_m -= 0.1
+            if self.padding_dist_m < 0.4:
+                self.get_logger().error("FUCK")
+                return
         if status == PathPlanner.A_STAR_SUCCESS: self.get_logger().info("A* found safe path")
         route_coordinates = self.get_local_coords_route(self.route)
         waypoints = Waypoints()
