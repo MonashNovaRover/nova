@@ -29,7 +29,7 @@ from math_utils.controller_math import *
 from rclpy.node import Node
 from core.msg import Waypoints, Waypoint, RoverPose, AlvarMarker, AutonomousGoal
 from config.ros_config import *
-from config.runtime_params import min_ar_distance, max_ar_distance
+from config.runtime_params import min_ar_distance, max_ar_distance, tracking_camera_extrinsics
 
 
 class PathPlanner(Node):
@@ -74,39 +74,35 @@ class PathPlanner(Node):
             - standard deviation? idk
         3. Transform pose of tag relative to rover into global pose of tag
         
-        
         """
         pose = msg.pose.pose.position
         
         self.get_logger().info("found tag: x=" + str(pose.x) + " | y=" + str(pose.y) + " | z=" + str(pose.z))
         
-        # convert coordinate system from 
-        # pos z --> forward
-        # pos x --> right
-        # pos y --> down
-        # to
-        # nova system
-        x = pose.z
-        y = pose.x
-        
+        local_pose = np.array([pose.x, pose.y]).reshape(2, 1)
 
-        # filter step
-        distance = (pose.z ** 2 + pose.y ** 2) ** 0.5
+        # tracking cam extrinsics are included in global pose as 0, 0 is the centre of the rover
+        extrinsics = np.array(tracking_camera_extrinsics)[:2].reshape(2, 1)
+        local_pose -= extrinsics
+
+        # distance from centre of rover to AR tag
+        distance = (np.dot(local_pose.reshape(2), local_pose.reshape(2))) ** 0.5
         # if not (min_ar_distance <= distance <= max_ar_distance):
         #    return
 
         # translate step
-        global_pose_x = x * np.cos(self.state.yaw) - y * np.sin(self.state.yaw) + self.state.x
-        global_pose_y = x * np.sin(self.state.yaw) + y * np.cos(self.state.yaw) + self.state.y
+        rot_mat = np.array([[np.cos(self.state.yaw), -np.sin(self.state.yaw)], [np.sin(self.state.yaw), np.cos(self.state.yaw)]])
+        
+        global_pose = np.matmul(rot_mat, local_pose).reshape(2) + np.array([self.state.x, self.state.y])
 
         # goal diff for logging
-        goal_diff = ((self.goal[0] - global_pose_x) ** 2 + (self.goal[1] - global_pose_y) ** 2) ** 0.5
+        goal_diff = ((self.goal[0] - global_pose[0]) ** 2 + (self.goal[1] - global_pose[1]) ** 2) ** 0.5
 
         iD = msg.id
 
-        if iD // 4 == self.goal_id:
-            self.goal = global_pose_x, global_pose_y
-            self.get_logger().info("Updated planning goal (AR tag): x=" + str(global_pose_x) + "| y=" + str(global_pose_y))
+        if iD // 4 == self.goal_id:# and goal_diff > 0.2:
+            self.goal = global_pose[0], global_pose[1]
+            self.get_logger().info("Updated planning goal (AR tag): x=" + str(global_pose[0]) + "| y=" + str(global_pose[1]))
 
 
     def manual_goal_callback(self, msg):

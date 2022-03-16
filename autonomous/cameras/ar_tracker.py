@@ -10,6 +10,8 @@ import os
 from nav_msgs.msg import Odometry
 import numpy as np
 
+save_pt: bool = False
+
 class ArTracker(Node):
     def __init__(self):
         super().__init__("ar_tracker")
@@ -33,19 +35,25 @@ class ArTracker(Node):
             try:
                 approx, true = np.load("approx.npy").tolist(), np.load("true.npy").tolist()
                 approx.append(approx_coord)
-                true.append(approx_coord)
-                np.save("approx.npy", np.array(approx))
-                np.save("true.npy", np.array(true))
-            except:
-                np.save("approx.npy", np.array(approx))
-                np.save("true.npy", np.array(true))
+                true.append(true_coord)
+                approx = np.array(approx)
+                true = np.array(true)
+                print(approx)
+                print(true)
+                np.save("approx.npy", approx)
+                np.save("true.npy", true)
+            except Exception as e:
+                print(approx_coord)
+                print(true_coord)
+                np.save("approx.npy", np.array(approx_coord).reshape(1, 2))
+                np.save("true.npy", np.array(true_coord).reshape(1, 2))
 
             rclpy.shutdown()
 
     def __call__(self, img):
         msg = self.find_ar_tag(img)
         if msg:
-            
+            if save_pt: self.store_ar_coords(msg)            
             self.publisher.publish(msg)
             if msg.pose.pose.position.x == 0: return
             odom = Odometry()
