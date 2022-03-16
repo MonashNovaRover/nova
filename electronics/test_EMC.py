@@ -30,39 +30,31 @@ from core.msg import HydraprobeData
 class RadioTest (Node):
 
     # Constants
-    FREQUENCY = 10.0 # Rate of change per second
+    FREQUENCY = 1.0 # Rate of change per second
 
-    # Data receiving rates
-    UV_SPEED = 0.1
-    UV_MIN = 5
-    UV_MAX = 6
+    # Hydraprobe Temperature
+    HYDRA_TEMP_SPEED = 0.12
+    HYDRA_TEMP_MIN = 20
+    HYDRA_TEMP_MAX = 24
 
-    # Data transmission rates
-    LUX_SPEED = 124
-    LUX_MIN = 15000
-    LUX_MAX = 20000
+    # Kiln Temperature
+    KILN_TEMP_SPEED = 1.0
+    KILN_TEMP_MIN = 20
+    KILN_TEMP_MAX = 110
 
-    # Ping
-    TEMP_SPEED = 0.245
-    TEMP_MIN = 24.5
-    TEMP_MAX = 26.7
+    # Moisture
+    MOISTURE_SPEED = 0.00137
+    MOISTURE_MIN = 0.0
+    MOISTURE_MAX = 0.2
     
-    # Signal strengths
-    PRESSURE_SPEED = 13.5
-    PRESSURE_MIN = 101000
-    PRESSURE_MAX = 102000
-
-    METHANE_SPEED = 0.012
-    METHANE_MIN = 0.0
-    METHANE_MAX = 0.1
-
-    WIND_SPEED = 4.23
-    WIND_MIN = 1
-    WIND_MAX = 20
+    # Conductivity
+    CONDUCTIVITY_SPEED = 0.00056
+    CONDUCTIVITY_MIN = 0.0
+    CONDUCTIVITY_MAX = 0.01
 
     # Initialises the ROS messages and nodes
     def __init__(self):
-        super().__init__('emc_pub')
+        super().__init__('test_emc_pub')
         print("Initialising ROS Radio Tester")
 
         # Message Type, Topic Name, Quality of Service 
@@ -71,40 +63,27 @@ class RadioTest (Node):
         # Set the starting variables
         self.run = True
 
-        self.uv = 0
-        self.uv_target = 0
-        self.uv_flag = True
+        self.hydra_temp = 0
+        self.hydra_temp_target = 0
+        self.hydra_temp_flag = True
 
-        self.lux = 0
-        self.lux_target = 0
-        self.lux_flag = True
+        self.kiln_temp = self.KILN_TEMP_MIN
+        self.kiln_temp_target = 0
+        self.kiln_temp_flag = True
 
-        self.temp = 0
-        self.temp_target = 0
-        self.temp_flag = True
+        self.moisture = 0
+        self.moisture_target = 0
+        self.moisture_flag = True
 
-        self.pressure = 0
-        self.pressure_target = 0
-        self.pressure_flag = True
-
-        self.methane = 0
-        self.methane_target = 0
-        self.methane_flag = True
-
-        self.wind = 0
-        self.wind_target = 0
-        self.wind_flag = True
+        self.conductivity = 0
+        self.conductivity_target = 0
+        self.conductivity_flag = True
 
         # Stores the previous data
         self.prevData = HydraprobeData()
 
         # Start the randomisers
-        self.Randomise("uv")
-        self.Randomise("lux")
-        self.Randomise("temp")
-        self.Randomise("wind")
-        self.Randomise("methane")
-        self.Randomise("pressure")
+        self.Randomise("hydra_temp")
 
         # Run the program
         self.Run()
@@ -114,21 +93,17 @@ class RadioTest (Node):
         # Repeat while running
         while self.run:
             # Adjust the values
-            self.ChangeValue("lux")
-            self.ChangeValue("uv")
-            self.ChangeValue("temp")
-            self.ChangeValue("methane")
-            self.ChangeValue("pressure")
-            self.ChangeValue("wind")
+            self.ChangeValue("hydra_temp")
+            self.ChangeValue("kiln_temp")
+            self.ChangeValue("moisture")
+            self.ChangeValue("conductivity")
 
             # Create the ROS message
             msg = HydraprobeData()
-            msg.temperature = float(self.temp)
-            msg.lux = float(self.lux)
-            msg.wind = float(self.wind)
-            msg.methane = float(self.methane)
-            msg.pressure = float(self.pressure)
-            msg.uv = float(self.uv)
+            msg.temperature = float(self.hydra_temp)
+            msg.moisture = float(self.moisture)
+            msg.conductivity = float(self.conductivity)
+            #msg.kiln = float(self.kiln_temp)
 
             # Output the ROS message
             self.get_logger().info("Publishing data...")
