@@ -87,7 +87,7 @@ class ResolverTransceiver(UARTTransceiver):
         return self.transmit(data)
 
     @staticmethod
-    def reverse_direction(angle: float) -> float:
+    def _reverse_direction(angle: float) -> float:
         '''
         Method to reverse the increasing direction of a resolver
 
@@ -122,13 +122,14 @@ class ResolverTransceiver(UARTTransceiver):
         # TODO: Handle checksum 
         # for now just mask it out by removing 2 high order bits
         angle_data = self._convert_to_rad(unpacked_data & 0x3FFF)
-
+        
+        # Reverse the increasing direction if necessary
+        if self.joint_direction_map[joint]:
+            angle_data = self._reverse_direction(angle_data)
+    
         # Shift the angle discontinuity out of each joint's range of motion
         angle_data = self._move_discontinuity(angle_data, self.discontinuity_angle_map[joint])
 
-        # Reverse the increasing direction if necessary
-        if self.joint_direction_map[joint]:
-            angle_data = self.reverse_direction(angle_data)
         return angle_data
 
     def _convert_to_rad(self, raw_value: int) -> float:
