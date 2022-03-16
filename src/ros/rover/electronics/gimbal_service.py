@@ -28,7 +28,10 @@ from core.srv import GimbalCommand
 # Import the CAN library
 from coms_utils.can_interface import CANTransmitter
 
-
+# Constants numbers for the continuous rotation
+CONTINUOUS_STATIONARY = 90
+CONTINUOUS_LEFT = 0
+CONTINIOUS_RIGHT = 180
 
 # Main Gimbal Service class
 class GimbalService (Node):
@@ -78,10 +81,10 @@ class GimbalService (Node):
             self.state["arm_x"] = request.angle_x
             self.state["arm_y"] = request.angle_y
         elif request.id == 2:   # Mast Gimbal
-            self.state["mast_x"] = request.angle_x
+            self.state["mast_x"] = self.get_continuous_angle(request.angle_x)
             self.state["mast_y"] = request.angle_y
         else:                   # Beacon Gimbal
-            self.state["beacon"] = request.angle_y
+            self.state["beacon"] = request.angle_y + 0
 
         # Transmit the data for CAN 0
         if request.id == 1 or request.id == 3:
@@ -96,9 +99,22 @@ class GimbalService (Node):
             byte_y = int.to_bytes(self.state["mast_y"], 1, "big")
             self.can0_gimbal.transmit(byte_x + byte_y)
 
+            # Reset the mast horizontal
+            self.state["mast_x"] = self.get_continuous_angle(0)
+
         # Return a success
         response.success = True
         return response
+
+
+    # Calculates the continuous angle to move to for velocity control    
+    def get_continuous_angle (self, value):
+        if value == 0:
+            return CONTINUOUS_STATIONARY
+        if value > 0:
+            return CONTINIOUS_RIGHT
+        if value < 0:
+            return CONTINUOUS_LEFT
     
 
 # Main function sets up the ROS class
