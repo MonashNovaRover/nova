@@ -38,6 +38,7 @@ const int CRITICAL_PATH_LEN = 7;
 const float OBSTACLE_VALUE = 1.0;
 const float C_INF = 1e12;
 const float NEAREST_POINT_DIST_WEIGHT = 0.5;
+float PADDING_DIST_M = 0; 
 
 // implementation of type-safe enum with bitwise operators taken from:
 // https://wiggling-bits.net/using-enum-classes-as-type-safe-bitmasks/
@@ -232,7 +233,7 @@ void precompute_padding_values(array<array<float, COL>, ROW>& grid,
 	 rover cannot travel. Weights tiles with an inverse-square decay
 	 by there distsance to the obstacle to discourage the rover from
 	 coming too close */
-	double padding_width_pixels = SAFETY_FACTOR * ROVER_WIDTH_CM / grid_resolution_cm;
+	double padding_width_pixels = PADDING_DIST_M * 100 / grid_resolution_cm;
 
 	for (uint i = 0; i < ROW; i++) {
 		for (uint j = 0; j < COL; j++) {
@@ -303,8 +304,9 @@ vector<Pair> construct_return_val(vector<Pair> path, Status status) {
 
 template <size_t ROW, size_t COL>
 vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
-				const Pair& src, const Pair& dest, const float grid_resolution_m)
+				const Pair& src, const Pair& dest, const float grid_resolution_m, const float padding_dist_m)
 {
+    PADDING_DIST_M = padding_dist_m;
 	const float grid_resolution_cm = grid_resolution_m * 100;
 
 	Status status = Status::A_STAR_SUCCESS;
@@ -488,7 +490,7 @@ int main()
 
 	// Destination is the left-most top-most corner
 	Pair dest(199, 199);
-	vector<Pair> emergency_path = aStarSearch(grid, src, dest, 2.5);
+    vector<Pair> emergency_path = aStarSearch(grid, src, dest, 2.5, 1);
 	return 0;
 }
 
