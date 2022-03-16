@@ -7,7 +7,7 @@ std_msgs/Header header
 bool joystick_lock 1
 
 # Joint limits toggle
-bool joint_limits 0
+bool joint_limits 1
 
 # Joint-space vs task-space control
 bool ik_linear 0
