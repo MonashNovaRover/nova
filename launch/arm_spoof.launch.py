@@ -7,7 +7,6 @@ Execute this code on the rover to start all
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODES:
   - control/arm/arm_inputs              [arm_inputs]
-  - control/arm/arm_control             [arm_control]
   - control/arm/arm_kinematics          [arm_kinematics]
   - control/arm/resolver_spoofer        [resolver_spoofer]
   - visualisation/arm_viz_publisher     [arm_viz_publisher]
@@ -26,8 +25,6 @@ def generate_launch_description():
     return LaunchDescription([      
         launch_ros.actions.Node(
             package='control', node_executable='arm_inputs', output='screen'),
-        launch_ros.actions.Node(
-            package='control', node_executable='arm_control', output='screen'),
         launch_ros.actions.Node(
             package='control', node_executable='arm_kinematics', output='screen'),
         launch_ros.actions.Node(
