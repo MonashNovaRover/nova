@@ -68,22 +68,6 @@ class ArmDriver : public rclcpp::Node {
 
     // A vector of CMD directions
     std::vector<bool> CMD_direction;
-    
-    /*
-    * QoS options for joint velocities. These are the same as the options for the publisher, to ensure compatibility.
-    *     Reliability = best effort: nodes will attempt to publish, but will not garuntee any one message is received
-    *     Durability = volatile: "no attempt is made to persist samples for late joining subscribers". This is the default for the sensors QoS profile 
-    *     Deadline = 500ms. If a message is not published within this time, the offered deadline callback will be called.
-    */
-    rclcpp::QoS subscriber_qos = rclcpp::QoS(1).reliability(RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT).durability(RMW_QOS_POLICY_DURABILITY_VOLATILE).deadline(200ms);
-    // Subscription options with allocator - note, as we do not use the AllocatorT typed variables, we put void here
-    rclcpp::SubscriptionOptionsWithAllocator<std::allocator<void>> subscriber_options;
-
-     /// @brief      Resets internal message state for joint velocities
-    void zero_joints();
-    
-    /// @brief      Function provided to Quality of Service options 
-    void deadline_callback();
 
     //------------------------------------------------------------//
     private:
@@ -91,10 +75,16 @@ class ArmDriver : public rclcpp::Node {
     /// @brief      Callback function when input messages are received.
     /// @param      msg - A pointer to the input message
     void joint_velocities_callback (const sensor_msgs::msg::JointState::SharedPtr msg);
-
+    /// @brief      Deadline callback for joint velocities subscription
+    ///             Resets the internal joint velocities
+    void joint_velocities_deadline_callback();
+    
     /// @brief      Callback function when input messages are received.
     /// @param      msg - A pointer to the input message
     void arm_input_callback (const core::msg::ArmInput::SharedPtr msg);
+    /// @brief      Deadline callback for arm_inputs subscription
+    ///             Resets the internal state
+    void arm_input_deadline_callback();
 
     //------------------------------------------------------------//
     public:

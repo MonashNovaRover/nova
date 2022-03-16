@@ -49,15 +49,6 @@ class InputsPublisher : public rclcpp::Node {
     rclcpp::Publisher<core::msg::InputGamepad>::SharedPtr gamepad_publisher;
     rclcpp::Publisher<core::msg::InputJoystick>::SharedPtr joystick_l_publisher;
     rclcpp::Publisher<core::msg::InputJoystick>::SharedPtr joystick_r_publisher;
-
-    /*
-    * QoS options for joystick publishers:
-    *     Reliability = best effort: nodes will attempt to publish, but will not garuntee any one message is received
-    *     Durability = volatile: "no attempt is made to persist samples for late joining subscribers". This is the default for the sensors QoS profile 
-    *     Deadline = 200ms. If a message is not published within this time, the offered deadline callback will be called.
-    */
-    rclcpp::QoS publisher_qos = rclcpp::QoS(1).reliability(RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT).durability(RMW_QOS_POLICY_DURABILITY_VOLATILE).deadline(200ms);
-    rclcpp::PublisherOptions publisher_options;
     
     // Stores a counter
     size_t count;
@@ -79,15 +70,10 @@ class InputsPublisher : public rclcpp::Node {
     ///             joystick classes by reading the input.
     void publish_input ();
 
-    
 
     //------------------------------------------------------------//
     public:
     
-    // 
-    /// @brief      Callback for when the QoS offered deadline is missed on either publisher
-    
-    void deadline_callback();
     /// @brief      Default constructor function that starts up the node
     InputsPublisher();
 };
