@@ -21,7 +21,7 @@ ArmKinematics::ArmKinematics() : Node("arm_kinematics")
 {
     // Initialise constants
     coord_frames_timer_period = 200ms;
-    joint_velocities_timer_period = 200ms;
+    joint_velocities_timer_period = 50ms;
 
     // Initialise arm model
     wrist_type = ArmModel::WRIST_CYCLOIDAL;
@@ -34,9 +34,10 @@ ArmKinematics::ArmKinematics() : Node("arm_kinematics")
     // Initialise arrays in internal data structures
     // Use data from the arm model
     joints = ArmCore::get_empty_joint_state(arm_model.joint_names);
+    joint_space_joints = ArmCore::get_empty_joint_state(arm_model.joint_names);
     // TwistStamped does not need to be initialised
     coord_frames = ArmCore::get_empty_multi_dof_joint_state(arm_model.segment_names);
-
+    
     // Create subscription to arm control scheme
     control_scheme_sub = this->create_subscription<core::msg::ArmControlScheme>(
         "/control/arm_control_scheme", 10, std::bind(&ArmKinematics::control_scheme_callback, this, _1)
@@ -48,13 +49,27 @@ ArmKinematics::ArmKinematics() : Node("arm_kinematics")
     );
 
     // Create subscription to input joint velocities
+    rclcpp::SubscriptionOptionsWithAllocator<std::allocator<void>> input_joint_velocities_options;
+    input_joint_velocities_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void{
+        this->input_joint_velocities_deadline_callback();
+    };
     input_joint_velocities_sub = this->create_subscription<sensor_msgs::msg::JointState>(
-        "/control/input_joint_velocities", 10, std::bind(&ArmKinematics::input_joint_velocities_callback, this, _1)
+        "/control/input_joint_velocities",
+        rclcpp::QoS(1).best_effort().deadline(200ms),
+        std::bind(&ArmKinematics::input_joint_velocities_callback, this, _1),
+        input_joint_velocities_options
     );
     
     // Create subscription to task_velocity
+    rclcpp::SubscriptionOptionsWithAllocator<std::allocator<void>> task_velocity_options;
+    task_velocity_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void{
+        this->task_velocity_deadline_callback();
+    };
     task_velocity_sub = this->create_subscription<geometry_msgs::msg::TwistStamped>(
-        "/control/task_velocity", 10, std::bind(&ArmKinematics::task_velocity_callback, this, _1)
+        "/control/task_velocity",
+        rclcpp::QoS(1).best_effort().deadline(200ms),
+        std::bind(&ArmKinematics::task_velocity_callback, this, _1),
+        task_velocity_options
     );
 
     // Create timer and publisher for arm_coord_frames
@@ -70,7 +85,7 @@ ArmKinematics::ArmKinematics() : Node("arm_kinematics")
         joint_velocities_timer_period, std::bind(&ArmKinematics::publish_joint_velocities, this)
     );
     joint_velocities_pub = this->create_publisher<sensor_msgs::msg::JointState>(
-        "/control/joint_velocities", 10
+        "/control/joint_velocities", rclcpp::QoS(1).best_effort().deadline(200ms)
     );
 
     // Output set-up messages
@@ -84,7 +99,6 @@ ArmKinematics::ArmKinematics() : Node("arm_kinematics")
     Print::print("/control/joint_velocities         [sensor_msgs/JointState]", 1);
     Print::print("", true);
 }
-
 
 // Update the internal control scheme
 void ArmKinematics::control_scheme_callback(const core::msg::ArmControlScheme::SharedPtr msg)
@@ -103,11 +117,23 @@ void ArmKinematics::input_joint_velocities_callback(const sensor_msgs::msg::Join
 {
     joint_space_joints = *msg;
 }
+// Reset the internal velocities
+void ArmKinematics::input_joint_velocities_deadline_callback()
+{
+    RCLCPP_WARN(this->get_logger(), "control/input_joint_velocities subscription deadline missed");
+    joint_space_joints = ArmCore::get_empty_joint_state(arm_model.joint_names);
+}
 
 // Update the internal task velocity
 void ArmKinematics::task_velocity_callback(const geometry_msgs::msg::TwistStamped::SharedPtr msg)
 {
     task_velocity = *msg;
+}
+// Reset the internal velocity
+void ArmKinematics::task_velocity_deadline_callback()
+{
+    RCLCPP_WARN(this->get_logger(), "control/task_velocity subscription deadline missed");
+    task_velocity = geometry_msgs::msg::TwistStamped();
 }
 
 // Calculate the FK for a given segment
