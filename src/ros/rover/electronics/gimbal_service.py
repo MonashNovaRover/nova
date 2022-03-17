@@ -30,8 +30,8 @@ from coms_utils.can_interface import CANTransmitter
 
 # Constants numbers for the continuous rotation
 CONTINUOUS_STATIONARY = 90
-CONTINUOUS_LEFT = 0
-CONTINIOUS_RIGHT = 180
+CONTINUOUS_LEFT = 45
+CONTINIOUS_RIGHT = 135
 
 # Main Gimbal Service class
 class GimbalService (Node):
