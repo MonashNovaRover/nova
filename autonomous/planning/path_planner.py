@@ -29,7 +29,7 @@ from math_utils.controller_math import *
 from rclpy.node import Node
 from core.msg import Waypoints, Waypoint, RoverPose, AlvarMarker, AutonomousGoal
 from config.ros_config import *
-from config.runtime_params import min_ar_distance, max_ar_distance, ignore_waypoints, tracking_camera_extrinsics, INITIAL_PADDING_DIST_M
+from config.runtime_params import min_ar_distance, max_ar_distance, ignore_waypoints, tracking_camera_extrinsics, INITIAL_PADDING_DIST_M, goal_achieved_distance
 from nav_msgs.msg import Odometry    
 
 
@@ -63,6 +63,9 @@ class PathPlanner(Node):
         # in case we want to test path planning without a controller
         self.state = State()
 
+        # need to provide a goal before we start planning
+        self.at_goal = True
+
         self.start = (0, 0)
         self.goal = (0, 0)
         self.goal_id = 0
@@ -71,28 +74,32 @@ class PathPlanner(Node):
 
     def ar_goal_callback(self, msg):
         """
-        1. Check that it's the AR tag we are looking
+        1. Check that it's the AR tag we are looking for
         2. Filter out dodgy values
             - are values within an absolute range?
             - standard deviation? idk
         3. Transform pose of tag relative to rover into global pose of tag
         
         """
+        if msg.id != self.goal_id: return
+
         pose = msg.pose.pose.position
         
-        local_pose = np.array([pose.x, pose.y]).reshape(2, 1)
+        local_pose = np.array([pose.x, pose.y])
 
         # tracking cam extrinsics are included in global pose as 0, 0 is the centre of the rover
-        extrinsics = np.array(tracking_camera_extrinsics)[:2].reshape(2, 1)
+        extrinsics = np.array(tracking_camera_extrinsics)[:2]
         local_pose -= extrinsics
 
         # distance from centre of rover to AR tag
-        distance = (np.dot(local_pose.reshape(2), local_pose.reshape(2))) ** 0.5
-        # if not (min_ar_distance <= distance <= max_ar_distance):
-        #    return
+        distance = (np.dot(local_pose, local_pose)) ** 0.5
+
+        if not (min_ar_distance <= distance <= max_ar_distance):
+            return
 
         # translate step
         rot_mat = np.array([[np.cos(self.state.yaw), -np.sin(self.state.yaw)], [np.sin(self.state.yaw), np.cos(self.state.yaw)]])
+        local_pose.reshape(2, 1)
         
         global_pose = np.matmul(rot_mat, local_pose).reshape(2) + np.array([self.state.x, self.state.y])
 
@@ -101,7 +108,7 @@ class PathPlanner(Node):
 
         iD = msg.id
 
-        if iD == self.goal_id:# and goal_diff > 0.2:
+        if goal_diff > 0.05:
             self.get_logger().info("found tag: x=" + str(global_pose[0]) + " | y=" + str(global_pose[1]))
             odom = Odometry()
             odom.pose.pose.position.x = global_pose[0]
@@ -129,6 +136,7 @@ class PathPlanner(Node):
 
         self.get_logger().info("Next goal x=" + str(position.x) + " | y=" + str(position.y))
         self.goal = (position.x, position.y)
+        self.at_goal = False
         self.goal_id = iD
 
     def get_grid_coord(self, position):
@@ -144,7 +152,8 @@ class PathPlanner(Node):
         Callback function that updates the current pose of the rover from data in the auto_command_pose_updates topic
         """
         self.state.x = msg.x
-
+        self.state.y = msg.y
+        self.state.yaw = msg.yaw
 
     @staticmethod
     def heuristic(a, b, heuristic_type="euclidean"):
@@ -167,23 +176,11 @@ class PathPlanner(Node):
         """
         return [self.get_float_position((x, y)) for (x, y) in route]
 
-    def get_path(self, _map):
+    def handle_path_status(self, status):
         """
-        Repeatedly run A* on the updated rover pose and map to continually redetermine the optimal path.
-        Called on a clock initialised in the add_destination method
-        """
-
-        self.start = (self.state.x, self.state.y)
-       
-        self.length = _map.shape[0]
-        self.width = _map.shape[1]
-
-        self.length_meters = int(_map.shape[0] * self.resolution)
-        self.width_meters = int(_map.shape[1] * self.resolution)
-        
-        self.route = np.array(a_star(_map, self.get_grid_coord(self.start), self.get_grid_coord(self.goal), self.resolution, self.padding_dist_m))
-        status = self.route[-1, 0]
-        self.route = self.route[:-1]
+        Handles logging and adjusting of parameters according to the
+        status returned by our c++ A* method.
+        """    
         if status & PathPlanner.A_STAR_START_OBSTACLE: self.get_logger().warn("started in obstacle")
         if status & PathPlanner.A_STAR_DEST_OBSTACLE: self.get_logger().warn("dest in obstacle")
         if status & PathPlanner.A_STAR_NO_PATH: self.get_logger().warn("couldn't find a path initially")
@@ -194,6 +191,39 @@ class PathPlanner(Node):
                 self.get_logger().error("FUCK")
                 return
         if status == PathPlanner.A_STAR_SUCCESS: self.get_logger().info("A* found safe path")
+
+    def achieved_goal(self):
+        """
+        Inform the operators that we think we have achieved a goal,
+        and update the state of the planner accordingly.
+        """
+        self.at_goal = True
+        self.get_logger().info(f"GOAL ACHIEVED: ({self.goal[0]}, {self.goal[1]}) [id = {self.goal_id}]")
+
+    def get_path(self, _map):
+        """
+        Repeatedly run A* on the updated rover pose and map to continually redetermine the optimal path.
+        Called on a clock initialised in the add_destination method
+        """
+        if self.at_goal: 
+            self.get_logger().info("No goal to navigate to")
+            return
+
+        self.start = (self.state.x, self.state.y)
+       
+        if distance(self.start, self.goal) < goal_achieved_distance:
+            # WOooo!
+            self.achieved_goal()
+        
+        self.length = _map.shape[0]
+        self.width = _map.shape[1]
+
+        self.length_meters = int(_map.shape[0] * self.resolution)
+        self.width_meters = int(_map.shape[1] * self.resolution)
+        
+        self.route = np.array(a_star(_map, self.get_grid_coord(self.start), self.get_grid_coord(self.goal), self.resolution, self.padding_dist_m))
+        status = self.route[-1, 0]
+        self.route = self.route[:-1]
         route_coordinates = self.get_local_coords_route(self.route)
         waypoints = Waypoints()
         #route_coordinates = [route_coordinates[-1] if len(route_coordinates) <= 4 else route_coordinates[4::5]]
