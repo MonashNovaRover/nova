@@ -35,8 +35,8 @@ def plot_fit(Q, P, nearly_P):
     plt.xlim([-2.5, 6])
     plt.ylim([-2.5, 5])
 
-    plt.plot(Q[0, :], Q[1, :], 'ro', label="True points")
-    plt.plot(P[0, :], P[1, :], 'bo', label="Dodgy points")
+    plt.plot(Q[0, :], Q[1, :], 'ro', label="Observed points")
+    plt.plot(P[0, :], P[1, :], 'bo', label="True points")
     plt.plot(nearly_P[0, :], nearly_P[1, :], 'go', label="Approximate points")
 
     ax.set_aspect("equal", adjustable='box')
