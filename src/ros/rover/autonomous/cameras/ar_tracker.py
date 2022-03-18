@@ -6,6 +6,7 @@ from rclpy.node import Node
 import rclpy
 from core.msg import AlvarMarker
 from config.ros_config import ar_track_topic
+from config.runtime_params import max_fov_angle
 import os
 from nav_msgs.msg import Odometry
 import numpy as np
@@ -48,8 +49,6 @@ class ArTracker(Node):
                 np.save("approx.npy", np.array(approx_coord).reshape(1, 2))
                 np.save("true.npy", np.array(true_coord).reshape(1, 2))
 
-            rclpy.shutdown()
-
     def __call__(self, img):
         msg = self.find_ar_tag(img)
         if msg:
@@ -62,8 +61,10 @@ class ArTracker(Node):
             odom.pose.pose.position.x = msg.pose.pose.position.x
             odom.pose.pose.position.y = msg.pose.pose.position.y
             odom.pose.pose.position.z = msg.pose.pose.position.z
-            self.publisher.publish(msg)
-            self.odom_publisher.publish(odom)
+            if abs(np.arctan2(odom.pose.pose.position.y, odom.pose.pose.position.x)) < max_fov_angle:
+                #print(f"x = {odom.pose.pose.position.x}, y = {odom.pose.pose.position.y}")
+                self.publisher.publish(msg)
+                self.odom_publisher.publish(odom)
 
     def find_ar_tag(self, img, markerSize=6, totalMarkers=250, draw=False):
         """
@@ -85,7 +86,7 @@ class ArTracker(Node):
         if ids is not None:
             ar.drawDetectedMarkers(img, bboxs)
             
-            rot_mat, trans_mat = ar.estimatePoseSingleMarkers(bboxs, aruco_marker_side_length, mtx, dst)
+            rot_mat, trans_mat, _ = ar.estimatePoseSingleMarkers(bboxs, aruco_marker_side_length, mtx, dst)
             #if rot_mat is not None:
             #    ar.drawAxis(img, mtx, dst, rot_mat, trans_mat, 0.05)
             #    cv2.imshow("pic", img)
