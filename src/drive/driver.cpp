@@ -20,7 +20,7 @@ void Driver::send_commands (const core::msg::DriveInput::SharedPtr msg) {
     // Check if wheels should spin
     if (msg->speed != 0.0) {
 
-        // Reset the zero flag
+        // Reset the stops flag
         stopped_sent = false;
 
         // If no steer, just spin with speed
@@ -91,15 +91,18 @@ void Driver::send_commands (const core::msg::DriveInput::SharedPtr msg) {
 
     // Otherwise, if handbrake is on, send zeros
     else if (handbrake) {
-        // Spin the wheels for 0 speed
+        // Reset the stops flag
+        stopped_sent = false;
+        
+        // Spin the wheels at 0 speed
         for (Wheel* wheel : wheels) {
             wheel->spin(0.0);
         }
     }
 
-    // Otherwise, if handbrake is not on, only send on lot of zero speeds
+    // Otherwise, if handbrake is not on, only send stops
     else if (!stopped_sent) {
-        // Spin the wheels for 0 speed
+        // Stop the wheels
         for (Wheel* wheel : wheels) {
             wheel->stop();
         }
