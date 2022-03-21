@@ -70,7 +70,13 @@ class PathPlanner(Node):
         self.goal = (0, 0)
         self.goal_id = 0
 
+        self.offset = [0, 0]
+
         self.route = []
+
+    def set_offset(self, offset):
+        self.offset[0] = offset[0]
+        self.offset[1] = offset[1]
 
     def ar_goal_callback(self, msg):
         """
@@ -108,7 +114,7 @@ class PathPlanner(Node):
 
         iD = msg.id
 
-        if goal_diff > 0.05:
+        if goal_diff > 0.02:
             self.get_logger().info("found tag: x=" + str(global_pose[0]) + " | y=" + str(global_pose[1]))
             odom = Odometry()
             odom.pose.pose.position.x = global_pose[0]
@@ -155,6 +161,11 @@ class PathPlanner(Node):
         self.state.y = msg.y
         self.state.yaw = msg.yaw
 
+        if not self.at_goal and distance((self.state.x, self.state.y), self.goal) < goal_achieved_distance:
+            # WOooo!
+            self.achieved_goal()
+        
+
     @staticmethod
     def heuristic(a, b, heuristic_type="euclidean"):
        
@@ -198,6 +209,7 @@ class PathPlanner(Node):
         and update the state of the planner accordingly.
         """
         self.at_goal = True
+        self.waypt_publisher.publish(Waypoints())
         self.get_logger().info(f"GOAL ACHIEVED: ({self.goal[0]}, {self.goal[1]}) [id = {self.goal_id}]")
 
     def get_path(self, _map):
@@ -209,22 +221,21 @@ class PathPlanner(Node):
             self.get_logger().info("No goal to navigate to")
             return
 
-        self.start = (self.state.x, self.state.y)
-       
-        if distance(self.start, self.goal) < goal_achieved_distance:
-            # WOooo!
-            self.achieved_goal()
-        
+        self.start = (self.state.x - self.offset[0], self.state.y - self.offset[1])
+        local_goal = (self.goal[0] - self.offset[0], self.goal[1] - self.offset[1]) 
+
         self.length = _map.shape[0]
         self.width = _map.shape[1]
 
         self.length_meters = int(_map.shape[0] * self.resolution)
         self.width_meters = int(_map.shape[1] * self.resolution)
         
-        self.route = np.array(a_star(_map, self.get_grid_coord(self.start), self.get_grid_coord(self.goal), self.resolution, self.padding_dist_m))
+        self.route = np.array(a_star(_map, self.get_grid_coord(self.start), self.get_grid_coord(local_goal), self.resolution, self.padding_dist_m))
         status = self.route[-1, 0]
         self.route = self.route[:-1]
-        route_coordinates = self.get_local_coords_route(self.route)
+
+        route_coordinates = np.array(self.get_local_coords_route(self.route))
+        route_coordinates[:] += np.array(self.offset)
         waypoints = Waypoints()
         #route_coordinates = [route_coordinates[-1] if len(route_coordinates) <= 4 else route_coordinates[4::5]]
 

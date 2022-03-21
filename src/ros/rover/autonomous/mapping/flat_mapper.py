@@ -49,6 +49,7 @@ class FlatMapper(Mapper):
         self.detection_length = int(np.ceil((max_point_depth / self.detection_resolution) / self.resolution_ratio) * self.resolution_ratio) 
         self.detection_width = int(np.ceil(2 * self.detection_length * np.tan(max_fov_angle)))
         self.initialise_map()
+        self.offset = [0, 0] # Sets the position offset of the map in the global frame
 
     def initialise_map(self):
         self._map = Grid2D(self.length, self.width, self.planning_resolution) 
@@ -91,6 +92,25 @@ class FlatMapper(Mapper):
         min_x /= self.resolution_ratio
         return downscaled, int(min_x)
 
+    def check_position_in_map(self):
+        """
+        If we're near the edge of the map, roll the map in a given direction
+        """
+        x_change, y_change = 0, 0
+        if self.msg.pose.pose.position.x - self.offset[0] + self._map.length/2 < 5:
+            x_change = -1
+        elif self._map.length/2 + self.offset[0] - self.msg.pose.pose.position.x < 5:
+            x_change = 1
+        if self.msg.pose.pose.position.y - self.offset[1]+ self._map.width/2 < 5:
+            y_change = -1
+        elif self._map.width/2 + self.offset[1] - self.msg.pose.pose.position.y < 5:
+            y_change = 1
+        if x_change != 0 or y_change != 0:
+            self._map.roll_map(x_change, y_change)
+            self.offset[0] += x_change * 5
+            self.offset[1] += y_change * 5
+            self.planner.set_offset(self.offset)
+
     def arrange_obstacles(self, obstacles, min_x):
         """
         Turns a 1d numpy array of obstacle values into a list of coordinates and their
@@ -99,9 +119,10 @@ class FlatMapper(Mapper):
         :param: obstacles - 1-dimensional array of obstacles in the map
         """
         obs_as_points = np.array([[x, y, val] for (x, y), val in np.ndenumerate(obstacles) \
-                if np.abs(np.arctan2(y - len(obstacles[0])/2, x)) < max_fov_angle])
+                if np.abs(np.arctan2(y - len(obstacles[0])/2, x)) < max_fov_angle and x > min_x])
         obs_as_points[:, 1] -= int(np.ceil(self.detection_width/(2 * self.resolution_ratio)))
         obstacles = transform.transform_yaw(self.msg, obs_as_points)
+        print(self.offset)
         obstacles[:, 2] *= 100
         obstacles[obstacles[:, 2] < 30, 2] = 5
         return np.round(obstacles).astype(int)
@@ -117,5 +138,5 @@ class FlatMapper(Mapper):
         """
         Publish the 2d map over ros to be viewed in RVIZ
         """
-        self._map.publish_grid()
+        self._map.publish_grid(self.offset)
         #super().publish()

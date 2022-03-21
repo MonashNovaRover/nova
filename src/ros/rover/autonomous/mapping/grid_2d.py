@@ -43,14 +43,30 @@ class Grid2D(Node):
 
         self.grid_pub = GridPub()
 
+    def roll_map(self, x_change, y_change):
+        """
+        Cut off the 5 meters of the map behind us and add a new 5 meters on the end
+        """
+        five_m_in_px = int(5/self.resolution)
+        new_map = np.full((int(self.length / self.resolution), int(self.width / self.resolution)), 100 * unseen_map_val)
+        if x_change == -1:
+            new_map[five_m_in_px:, :] = self.map[:-five_m_in_px, :]
+        elif x_change == 1:
+            new_map[:-five_m_in_px, :] = self.map[five_m_in_px:, :]
+        if y_change == -1:
+            new_map[:, five_m_in_px:] = self.map[:, :-five_m_in_px]
+        elif y_change == 1:
+            new_map[:, :-five_m_in_px] = self.map[:, five_m_in_px:]
+        self.map = new_map
+                    
     def map_as_sequence(self):
         return self.map.transpose().flatten().astype(int).tolist()
 
-    def publish_grid(self):
+    def publish_grid(self, offset):
         length = int(self.length / self.resolution)
         width = int(self.width / self.resolution)
-        x = (-self.length / 2)
-        y = (-self.width / 2)
+        x = (-self.length / 2) + offset[0]
+        y = (-self.width / 2) + offset[1]
         self.grid_pub.publish_grid(self.resolution, length, width, x, y, self.map_as_sequence())
 
     def get_full_indexes(self, points):
@@ -66,18 +82,19 @@ class Grid2D(Node):
     def valid_index(self, index):
         return index > 0 and index < (self.length / self.resolution)
 
-    def add_obstacles(self, msg, obstacles):
+    def add_obstacles(self, msg, offset, obstacles):
         """
         Function to add a list of coordinates and their values to the 2d map. 
         :param msg: pose message giving the coordinates of the camera so we can translate the points
         :param obstacles: list of coordinates and values of associated obstacles. Coordinates have
                           have been rotated according to the pose of the rover but not translated.
         """
-        diff = self.get_full_indexes(np.array([[msg.pose.pose.position.x,
-            msg.pose.pose.position.y, 0]])).astype(int)
+        diff = self.get_full_indexes(np.array([[msg.pose.pose.position.x - offset[0],
+            msg.pose.pose.position.y - offset[1], 0]])).astype(int)
         obstacles = obstacles + diff
-        obstacles = np.array([obstacles[i] for i, obs in enumerate(obstacles) if obs[0] > 0
+        obstacles = np.array([obs for i, obs in enumerate(obstacles) if obs[0] > 0
                 and obs[1] > 0 and obs[0] < self.length/self.resolution and 
                 obs[1] < self.length/self.resolution])
-        self.map[obstacles[:, 0], obstacles[:, 1]] = obstacles[:, 2]
+        if len(obstacles):
+            self.map[obstacles[:, 0], obstacles[:, 1]] = obstacles[:, 2]
 
