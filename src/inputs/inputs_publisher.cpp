@@ -13,9 +13,8 @@ AUTHOR(S):	Harrison Verrios
 
 
 // Main consrtuctor sets up the node and the publishers
-InputsPublisher::InputsPublisher() 
-    : Node("input_pub"), count(0) {
-
+InputsPublisher::InputsPublisher() : Node("input_pub")
+{
     // Initialises the Gamepad inputs
     // Pass in the Joystick Identifier. You can find this by:
     //  cat /sys/class/input/js2/device/id/version on the correct js2 (input device)

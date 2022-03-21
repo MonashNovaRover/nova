@@ -81,9 +81,6 @@ class DriveInputs : public rclcpp::Node {
     // Stores the subscriber to the gamepad inputs
     rclcpp::Subscription<core::msg::InputGamepad>::SharedPtr subscription;
 
-    // Stores a counter for each step
-    size_t count;
-
     // A flag for whether the controller is connected
     bool connected = false;
 
