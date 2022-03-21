@@ -42,9 +42,8 @@ void VelocityConvert::velocity_callback (const core::msg::DriveVel::SharedPtr ms
 
 
 // Main constructor that sets up the node
-VelocityConvert::VelocityConvert() 
-  : Node("velocity_convert"), count(0) {
-
+VelocityConvert::VelocityConvert() : Node("velocity_convert")
+{
     // Creates the publisher
     publisher = this->create_publisher<core::msg::DriveInput>("/autonomous/drive_inputs", 10);
     

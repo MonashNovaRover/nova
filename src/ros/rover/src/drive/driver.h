@@ -87,9 +87,6 @@ class Driver : public rclcpp::Node {
     // Stores the subscriber to the gamepad inputs
     rclcpp::Subscription<core::msg::InputGamepad>::SharedPtr subscription_inputs;
 
-    // Stores a counter for each step
-    size_t count;
-
     // A flag for whether to apply the handbrake or not
     bool handbrake;
 
