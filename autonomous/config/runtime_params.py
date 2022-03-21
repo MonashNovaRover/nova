@@ -30,7 +30,7 @@ planning_rate = 2.0
 INITIAL_PADDING_DIST_M = 0.8
 min_ar_distance = 0.7 
 max_ar_distance = 8.0
-goal_achieved_distance = 1.3
+goal_achieved_distance = 1.6
 
 # ~~~~~~~~~~ MAPPING CONSTANTS ~~~~~~~~~~~~~~~~
 min_point_density = 3  # number of points in voxel before we accept it

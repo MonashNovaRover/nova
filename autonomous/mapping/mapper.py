@@ -83,6 +83,9 @@ class Mapper(Node):
 
     def initialise_map3d(self):
         self._map3d = Grid3D(self.length, self.width, self.height, self.resolution, has_color=self.has_color)
+
+    def check_position_in_map(self):
+        pass
         
     def extract_layer(self, height_m):
         return self._map3d.extract_z(height_m)
