@@ -9,7 +9,8 @@ AUTHOR(S):  Himsara Gallege, Harrison Verrios
 
 // Include the header file
 #include "velocity_convert.h"
-#include "debug/print.h"
+#include "print/print.h"
+#include <stdio.h>
 
 // Create any definitions
 #define PI      3.141593    // Mathematical constant PI
@@ -29,6 +30,10 @@ void VelocityConvert::velocity_callback (const core::msg::DriveVel::SharedPtr ms
     // Calculate the new message values
     message.speed = msg->linear_vel / MAX_SPEED;
     message.steer = msg->angular_vel * STEER_FACTOR;
+
+    std::cout << message.speed << "speed" << message.steer;
+    std::fflush(stdout);
+    //Print::print(message, C_MODE);
 
     // Publish the drive commands
     publisher->publish(message);
@@ -53,6 +58,8 @@ VelocityConvert::VelocityConvert()
 //  Main function called when the script execution begins
 int main(int argc, char **argv)
 {
+    Print::print("tester", C_MODE);
+    //ROS_DEBUG("test2");
     // Initialises the ROS C++ class
     rclcpp::init(argc, argv);
 

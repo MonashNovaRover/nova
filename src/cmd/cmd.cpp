@@ -9,7 +9,7 @@ AUTHOR(S):	Harrison Verrios, Josh Cherubino
 
 // Include the header file
 #include "cmd.h"
-#include "debug/print.h"
+#include "print/print.h"
 
 
 CMD::CMD (const int bus, const int id) {
