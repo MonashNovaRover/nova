@@ -14,7 +14,7 @@ def main(args):
     rclpy.init(args=args)
 
     print("Welcome to fun car drive!")
-    length = 20
+    length = 20 
     width = 20
     resolution = 0.1
 

@@ -34,20 +34,20 @@ class ArTracker(Node):
             print(f"approx coordinate x = {approx_coord[0]}, y = {approx_coord[1]}")
 
             try:
-                approx, true = np.load("approx2.npy").tolist(), np.load("true2.npy").tolist()
+                approx, true = np.load("approx.npy").tolist(), np.load("true.npy").tolist()
                 approx.append(approx_coord)
                 true.append(true_coord)
                 approx = np.array(approx)
                 true = np.array(true)
                 print(approx)
                 print(true)
-                np.save("approx2.npy", approx)
-                np.save("true2.npy", true)
+                np.save("approx.npy", approx)
+                np.save("true.npy", true)
             except Exception as e:
                 print(approx_coord)
                 print(true_coord)
-                np.save("approx2.npy", np.array(approx_coord).reshape(1, 2))
-                np.save("true2.npy", np.array(true_coord).reshape(1, 2))
+                np.save("approx.npy", np.array(approx_coord).reshape(1, 2))
+                np.save("true.npy", np.array(true_coord).reshape(1, 2))
             rclpy.shutdown()
 
     def __call__(self, img):

@@ -47,16 +47,16 @@ class Grid2D(Node):
         """
         Cut off the 5 meters of the map behind us and add a new 5 meters on the end
         """
-        five_m_in_px = int(5/self.resolution)
+        edge_dist_in_px = int(self.length/(4 * self.resolution))
         new_map = np.full((int(self.length / self.resolution), int(self.width / self.resolution)), 100 * unseen_map_val)
         if x_change == -1:
-            new_map[five_m_in_px:, :] = self.map[:-five_m_in_px, :]
+            new_map[edge_dist_in_px:, :] = self.map[:-edge_dist_in_px, :]
         elif x_change == 1:
-            new_map[:-five_m_in_px, :] = self.map[five_m_in_px:, :]
+            new_map[:-edge_dist_in_px, :] = self.map[edge_dist_in_px:, :]
         if y_change == -1:
-            new_map[:, five_m_in_px:] = self.map[:, :-five_m_in_px]
+            new_map[:, edge_dist_in_px:] = self.map[:, :-edge_dist_in_px]
         elif y_change == 1:
-            new_map[:, :-five_m_in_px] = self.map[:, five_m_in_px:]
+            new_map[:, :-edge_dist_in_px] = self.map[:, edge_dist_in_px:]
         self.map = new_map
                     
     def map_as_sequence(self):
@@ -92,9 +92,9 @@ class Grid2D(Node):
         diff = self.get_full_indexes(np.array([[msg.pose.pose.position.x - offset[0],
             msg.pose.pose.position.y - offset[1], 0]])).astype(int)
         obstacles = obstacles + diff
-        obstacles = np.array([obs for i, obs in enumerate(obstacles) if obs[0] > 0
+        obstacles = np.array([obs for obs in obstacles if obs[0] > 0
                 and obs[1] > 0 and obs[0] < self.length/self.resolution and 
-                obs[1] < self.length/self.resolution])
+                obs[1] < self.width/self.resolution])
         if len(obstacles):
             self.map[obstacles[:, 0], obstacles[:, 1]] = obstacles[:, 2]
 
