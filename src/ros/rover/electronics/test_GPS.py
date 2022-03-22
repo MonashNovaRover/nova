@@ -1,16 +1,25 @@
 #!/usr/bin/env python3
 
-'''
+"""
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Monash Nova Rover Team
 This scripts emulates the GPS and IMU and attempts to send ROS messages
     across to the base station GUI for testing in MapBox.
 This does not connect with the actual devices, nor does it actually change
     any of the data stored.
 
-Team:           MONASH NOVA ROVER
-Author:         Harrison Verrios
-Created:        21 Feb 2021
-Last Modified:  17 Dec 2021
-'''
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+NODE: gps_tester_pub
+TOPICS:
+  - /electronics/rover_pose_gps  [RoverPoseGPS]   [Published]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PACKAGE: 	electronics
+AUTHOR(S):	Harrison Verrios
+CREATION:	21/02/2021
+EDITED:		26/02/2022
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+"""
+
 
 import rclpy
 from rclpy.node import Node
@@ -23,10 +32,10 @@ from core.msg import RoverPoseGPS
 class GPS_Test (Node):
 
     # Constants
-    FREQUENCY = 10.0 # Rate of change per second
+    FREQUENCY = 5 # Rate of change per second
 
     # Drive constants
-    MOVE_SPEED = 0.5
+    MOVE_SPEED = 0.00001
 
     # Pitch constants
     PITCH_SPEED = 5.0
@@ -39,12 +48,12 @@ class GPS_Test (Node):
     ROLL_MAX = 20
 
     # Yaw constants
-    YAW_SPEED = 20.0
+    YAW_SPEED = 5.0
     YAW_MIN = -180
     YAW_MAX = 180
 
     # Initialises the ROS messages and nodes
-    def __init__(self, lat=38.406212, long=-110.791835):
+    def __init__(self, lat=-37.968566, long=145.301393):
         super().__init__('gps_tester_pub')
         print("Initialising ROS GPS/IMU Tester")
 
@@ -109,8 +118,8 @@ class GPS_Test (Node):
     # Increases the GPS
     # Use the yaw value as a direction and then increase based on this
     def ChangeGPS(self):
-        self.latitude += math.sin(math.radians(self.yaw)) * (self.MOVE_SPEED / self.FREQUENCY)
-        self.longitude += math.cos(math.radians(self.yaw)) * (self.MOVE_SPEED / self.FREQUENCY)
+        self.latitude += math.cos(math.radians(self.yaw)) * (self.MOVE_SPEED / self.FREQUENCY)
+        self.longitude += math.sin(math.radians(self.yaw)) * (self.MOVE_SPEED / self.FREQUENCY)
 
     # Changes a value depending on where it is towards target value
     # Takes in a target, flag and speed and then is able to adjust the value

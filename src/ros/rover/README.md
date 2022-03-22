@@ -1,6 +1,6 @@
-# electronics :zap:
+# ELECTRONICS :zap:
 
-This repository is to be used by the **Monash Nova Rover** team for all ROS electronics code. This includes the likes of batteries, sensors, radios and data scripts. This is a ROS 2 python repository and should be found inside of the suitable workspace.
+This repository is to be used by the **Monash Nova Rover** team for all ROS electronics code. This includes the likes of batteries, sensors, radios and data scripts. This is a ROS 2 python repository and should be found inside of the suitable Nova workspace.
 
 ---
 
@@ -8,10 +8,16 @@ This repository is to be used by the **Monash Nova Rover** team for all ROS elec
 
 All scripts found in this repository are shown in the list below:
 
-- **Template**: This is a sample script. More will be added once scripts are designed and pushed to the master branch.
+- **radio_monitor**: This script monitors the radio and networking data for a device speicified and is able to publish the data over the network.
+
 
 ---
 
 ### Setup
 
-This section is incomplete. Please add necessary installation steps to get all scripts working and set up for this repository.
+Make sure all of the following dependencies are complete prior to running code in this repository. Copy the following lines of code and run them in a Terminal console.
+
+```
+python3 -m pip install --upgrade pip
+pip3 install fabric psutil
+```
