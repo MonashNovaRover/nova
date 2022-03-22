@@ -9,7 +9,7 @@ AUTHOR(S):	Harrison Verrios
 
 // Include the header file
 #include "inputs_publisher.h"
-#include <debug/print.h>
+#include <print/print.h>
 
 
 // Main consrtuctor sets up the node and the publishers
@@ -24,13 +24,14 @@ InputsPublisher::InputsPublisher()
 
     // Creates all the joysticks (gamepads and thrustmasters)
     gamepad     = new JoystickGamepad(0.0);
-    joystick_l  = new JoystickThrustmaster(true, 0.06445);
-    joystick_r  = new JoystickThrustmaster(false, 0.06445);
+    joystick_l  = new JoystickThrustmaster(true, 0.06445, 0.5);
+    joystick_r  = new JoystickThrustmaster(false, 0.06445, 0.0);
 
-    // Creates the publishers   
+    // Creates the publishers
+    // gamepad_publisher       = this->create_publisher<core::msg::InputGamepad>("/control/input_gamepad", qos, publisher_options);
     gamepad_publisher       = this->create_publisher<core::msg::InputGamepad>("/control/input_gamepad", 1);
-    joystick_l_publisher    = this->create_publisher<core::msg::InputJoystick>("/control/input_joystick_l", 1);
-    joystick_r_publisher    = this->create_publisher<core::msg::InputJoystick>("/control/input_joystick_r", 1);
+    joystick_l_publisher    = this->create_publisher<core::msg::InputJoystick>("/control/input_joystick_l", rclcpp::QoS(1).best_effort().deadline(200ms));
+    joystick_r_publisher    = this->create_publisher<core::msg::InputJoystick>("/control/input_joystick_r", rclcpp::QoS(1).best_effort().deadline(200ms));
 
     // Creates a timer function that runs a function on loop every 0.02 seconds
     timer = this->create_wall_timer(20ms, std::bind(&InputsPublisher::publish_input, this));
@@ -44,7 +45,6 @@ InputsPublisher::InputsPublisher()
     Print::print("", true);
 }
 
-
 // Input function that publishes al of the inputs from the controllers
 void InputsPublisher::publish_input () {
 
@@ -55,25 +55,31 @@ void InputsPublisher::publish_input () {
     gamepad->update();
     joystick_l->update();
     joystick_r->update();
-    
-    // Publish each of the data streams
-    gamepad_publisher->publish(gamepad->get_message());
-    joystick_l_publisher->publish(joystick_l->get_message());
-    joystick_r_publisher->publish(joystick_r->get_message());
 
     // Display information about connections (in case they change)
     if (gamepad->is_disconnected())
         Print::print("Device Disconnected: 'Gamepad'", C_FAIL);
     else if (gamepad->is_reconnected())
         Print::print("Device Connected:    'Gamepad'", C_SUCCESS);
-    if (joystick_l->is_disconnected())
+
+    if (joystick_l->is_disconnected()) {
         Print::print("Device Disconnected: 'Left Joystick'", C_FAIL);
+        joystick_l->reset_inputs();
+    }
     else if (joystick_l->is_reconnected())
         Print::print("Device Connected:    'Left Joystick'", C_SUCCESS);
-    if (joystick_r->is_disconnected())
+
+    if (joystick_r->is_disconnected()) {
         Print::print("Device Disconnected: 'Right Joystick'", C_FAIL);
+        joystick_r->reset_inputs();
+    }
     else if (joystick_r->is_reconnected())
         Print::print("Device Connected:    'Right Joystick'", C_SUCCESS);
+        
+    // Publish each of the data streams
+    gamepad_publisher->publish(gamepad->get_message());
+    joystick_l_publisher->publish(joystick_l->get_message());
+    joystick_r_publisher->publish(joystick_r->get_message());
 }
 
 
