@@ -113,8 +113,8 @@ bool isSafe(const array<array<float, COL>, ROW>& grid,
 {
     /*is this square blocked by an obstacle or too close to one
 	to be safe?*/
-	return (isValid(COL, ROW, point)
-		&& grid[point.first][point.second] < OBSTACLE_VALUE);
+	if (isValid(COL, ROW, point)) return grid[point.first][point.second] < OBSTACLE_VALUE;
+    return true;
 }
 
 // A Utility Function to check whether destination cell has
@@ -306,6 +306,7 @@ template <size_t ROW, size_t COL>
 vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 				const Pair& src, const Pair& dest, const float grid_resolution_m, const float padding_dist_m)
 {
+    std::cout << "We made it into the function" << std::endl;
     PADDING_DIST_M = padding_dist_m;
 	const float grid_resolution_cm = grid_resolution_m * 100;
 
@@ -404,7 +405,7 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 			Pair neighbour(i + diff_x, j + diff_y);
 			// Only process this cell if this is a valid
 			// one
-			if (isSafe(grid, neighbour) && !closedList[neighbour.first][neighbour.second]) {
+			if (isSafe(grid, neighbour) && isValid(COL, ROW, neighbour) && !closedList[neighbour.first][neighbour.second]) {
 				// If the destination cell is the same
 				// as the current successor
 				if (isDestination(neighbour, dest)) { // Set the Parent of the destination cell

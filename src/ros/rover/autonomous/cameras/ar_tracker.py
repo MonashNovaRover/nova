@@ -87,7 +87,7 @@ class ArTracker(Node):
         if ids is not None:
             ar.drawDetectedMarkers(img, bboxs)
             
-            rot_mat, trans_mat, _ = ar.estimatePoseSingleMarkers(bboxs, aruco_marker_side_length, mtx, dst)
+            rot_mat, trans_mat, = ar.estimatePoseSingleMarkers(bboxs, aruco_marker_side_length, mtx, dst)
             #if rot_mat is not None:
             #    ar.drawAxis(img, mtx, dst, rot_mat, trans_mat, 0.05)
             #    cv2.imshow("pic", img)
@@ -97,7 +97,7 @@ class ArTracker(Node):
                 y = -trans_mat[i][0][0]
                 z = -trans_mat[i][0][1]
 
-                transform = np.load("cameras/ar_2d_calibration2.npy")
+                transform = np.load("cameras/ar_2d_calibration.npy")
                 A = transform[:2, :].T
                 t = transform[-1, :].T
 
