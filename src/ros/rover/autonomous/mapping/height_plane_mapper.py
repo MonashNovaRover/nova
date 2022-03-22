@@ -85,6 +85,7 @@ class HeightPlaneMapper(FlatMapper):
         assert(plane_obs.shape == height_obs.shape)
         plane_obs[height_obs >= 1.0] = 1.0;
 
+        print(self.offset)
         rotated_obs = self.arrange_obstacles(plane_obs, min_x)
         self._map.add_obstacles(self.msg, self.offset, rotated_obs)
 
