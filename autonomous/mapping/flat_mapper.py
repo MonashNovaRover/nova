@@ -122,7 +122,6 @@ class FlatMapper(Mapper):
                 if np.abs(np.arctan2(y - len(obstacles[0])/2, x)) < max_fov_angle and x > min_x])
         obs_as_points[:, 1] -= int(np.ceil(self.detection_width/(2 * self.resolution_ratio)))
         obstacles = transform.transform_yaw(self.msg, obs_as_points)
-        print(self.offset)
         obstacles[:, 2] *= 100
         obstacles[obstacles[:, 2] < 30, 2] = 5
         return np.round(obstacles).astype(int)

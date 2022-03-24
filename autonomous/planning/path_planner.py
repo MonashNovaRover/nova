@@ -249,5 +249,6 @@ class PathPlanner(Node):
             if (not math.isnan(waypoint.x)) and (not math.isnan(waypoint.y)):
                 waypoints.waypoints.append(waypoint)
 
+        print(f"publishing list with {len(route_coordinates)} waypoints")
         self.waypt_publisher.publish(waypoints)
-        self.get_logger().info(f"Published {len(route_coordinates)} waypoints")
+        
