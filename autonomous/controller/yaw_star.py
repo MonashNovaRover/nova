@@ -35,7 +35,7 @@ class Turning:
             self.logger.info('Normal: turning, yaw_diff = ' + str(yaw_diff))
             # turn at a rate determined by the tank_turn_target_yaw_rate function
             steer_fraction = tank_turn_target_yaw_rate(yaw_diff)
-            drive_fraction = 0.05
+            drive_fraction = turn_drive_fraction
             self.previously_turned = True
 
         elif self.previously_turned:
@@ -64,7 +64,7 @@ class Turning:
                 # From straight line to first yaw
                 self.target_yaw = np.sign(yaw_diff) * (abs(yaw_diff) - self.MAX_YAW)
                 steer_fraction = tank_turn_target_yaw_rate(yaw_diff)
-                drive_fraction = 0.05
+                drive_fraction = turn_drive_fraction
                 # Update state
                 self.star_state = 1
 
@@ -75,7 +75,7 @@ class Turning:
                     # Keep turning
                     self.logger.info('Star: keep_yaw')
                     steer_fraction = tank_turn_target_yaw_rate(yaw_diff)
-                    drive_fraction = 0.05
+                    drive_fraction = turn_drive_fraction 
                 else:
                     # Swap to drive mode
                     self.logger.info('Star: swap_2_drive')
@@ -99,7 +99,7 @@ class Turning:
                 if abs(dist) > 0.1 and self.sign == sign_new:
                     self.logger.info('Star: keep_driving')
                     # Keep driving
-                    drive_fraction = 0.1 * self.direction
+                    drive_fraction = straight_drive_fraction * self.direction
                     steer_fraction = 0.0
                 else:
                     self.logger.info('Star: swap_2_turning')
@@ -116,7 +116,7 @@ class Turning:
             self.logger.info('Star: turning')
             # Turn on the spot
             steer_fraction = tank_turn_target_yaw_rate(yaw_diff)
-            drive_fraction = 0.05
+            drive_fraction = turn_drive_fraction
         else:
             self.logger.info('Star: driving')
             # Reset constants
