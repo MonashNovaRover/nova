@@ -39,6 +39,7 @@ alias arduino='cd ~/nova_ws/other/arduinos'
 alias arduinos=arduino
 alias ik='cd ~/nova_ws/other/ik_machine'
 alias coms='cd ~/nova_ws/other/coms_utils'
+alias fleet='cd ~/nova_ws/src/fleet'
 
 # Camera Aliases
 alias auto_cameras='ros2 launch realsense2-camera rs_d400_and_t265_launch.py'
