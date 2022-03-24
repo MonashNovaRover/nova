@@ -89,6 +89,7 @@ class Grid2D(Node):
         :param obstacles: list of coordinates and values of associated obstacles. Coordinates have
                           have been rotated according to the pose of the rover but not translated.
         """
+        if obstacles is None: return
         diff = self.get_full_indexes(np.array([[msg.pose.pose.position.x - offset[0],
             msg.pose.pose.position.y - offset[1], 0]])).astype(int)
         obstacles = obstacles + diff
