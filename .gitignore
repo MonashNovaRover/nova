@@ -29,12 +29,17 @@ devel_isolated/
 .project
 .cproject
 
+# opencv stuff
+opencv-4.5.5
+
 # qcreator stuff
 CMakeLists.txt.user
 
 srv/_*.py
 *.pcd
 *.pyc
+odom.txt
+raw_points.npy
 qtcreator-*
 *.user
 tests*
@@ -45,6 +50,7 @@ tests*
 /planning/cfg
 /planning/docs
 /planning/src
+/pybind11/
 
 *~
 
