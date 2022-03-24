@@ -17,16 +17,19 @@ endif()
 
 # add pybind stuff so we can build pybind wrappers
 add_subdirectory(pybind11)
-pybind11_add_module(path_planner src/path_planner.cpp)
 pybind11_add_module(a_star src/a_star.cpp)
-install(TARGETS path_planner DESTINATION ~/nova_ws/install/autonomous/lib/python3.6/site-packages)
+pybind11_add_module(height_mapper src/height_mapper.cpp)
+pybind11_add_module(plane_fitter src/plane_generator.cpp)
 install(TARGETS a_star DESTINATION ~/nova_ws/install/autonomous/lib/python3.6/site-packages)
+install(TARGETS height_mapper DESTINATION ~/nova_ws/install/autonomous/lib/python3.6/site-packages)
+install(TARGETS plane_fitter DESTINATION ~/nova_ws/install/autonomous/lib/python3.6/site-packages)
 
 # Find and include all dependencies
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_python REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclpy REQUIRED)
+find_package(OpenCV REQUIRED)
 
 # Include the core package
 find_package(core REQUIRED)
@@ -36,8 +39,11 @@ include_directories(
   include
     ${catkin_INCLUDE_DIRS}
     "${PROJECT_SOURCE_DIR}/include"
+    "${OpenCV_INCLUDE_DIRS}"
 )
 
+target_link_libraries( height_mapper PRIVATE ${OpenCV_LIBS} )
+target_link_libraries( plane_fitter PRIVATE ${OpenCV_LIBS} )
 
 #ament_target_dependencies(#name rclcpp core)
 
