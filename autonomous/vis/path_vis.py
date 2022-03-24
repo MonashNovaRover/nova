@@ -1,5 +1,5 @@
-__package__ = "autonomous"
 #!/usr/bin/python3
+__package__ = "autonomous"
 
 """
 Methods 
@@ -9,44 +9,63 @@ import rclpy
 from rclpy.node import Node
 import vis.pc_pub as pc_pub
 
+from config.ros_config import main_frame, auto_waypoints_topic
+
 from core.msg import Waypoints
 
 # create custom msg type
-# from core.msg import Path
-
+from nav_msgs.msg import Path
+from std_msgs.msg import Header
+from geometry_msgs.msg import Point, Quaternion, Pose, PoseStamped
 
 class PathCloud(Node):
     def __init__(self):
         
-        super().__init__("path_cloud")
+        super().__init__("path_vis_node")
         
-        # create the point-cloud publisher (this is how we will visualise the rover)
-        self.pc_pub = pc_pub.PCPub("path_cloud")
+        # create the path publisher
+        self.path_publisher = self.create_publisher(Path, '/autonomous/path', 10) 
          
-        self.subscriber_path = self.create_subscription(Waypoints, '/autonomous/goals', self.path_callback, 10)
+        self.subscriber_path = self.create_subscription(Waypoints, auto_waypoints_topic, self.path_callback, 10)
+        self.path = Path()
     
     def path_callback(self, msg):
-        path = [(pt.x, pt.y) for pt in msg.waypoints]
-        self.publish_path(path)
+        self.construct_path(msg)
+        self.publish_path()
 
-    def publish_path(self, path):
+    def construct_path(self, msg):
+        """
+        Contstructs a ros2 path message from a list of waypoints
+        """
+        header = Header()
+        header.frame_id = main_frame
+        path = Path()
+        path.header = header
+
+        for waypoint in msg.waypoints:
+            pose_stamped = PoseStamped()
+            pose_stamped.header = header
+
+            point = Point()
+            point.x, point.y, point.z = waypoint.x, waypoint.y, 0.0
+            quat = Quaternion()
+            
+            pose = Pose()
+            pose.position = point
+            pose.orientation = quat
+
+            pose_stamped.pose = pose            
+
+            path.poses.append(pose_stamped)
+        
+        self.path = path
+
+    def publish_path(self):
         """
         Given a path (which is an array of [x, y] coordinates), we want to publish a PointCloud2 object which shows straight lines for those paths
         """
-        pc = []
-        for i in range(0, len(path) - 1):
-            line = []
-
-            n = int(100 * ((path[i][0] - path[i+1][0]) ** 2 + (path[i][1] - path[i+1][1]) ** 2) ** (1./2))
-            for p in range(n):
-                line.append((path[i][0] + (path[i+1][0]-path[i][0]) * (1/n) * p, (path[i][1] + (path[i+1][1] - path[i][1]) * (1/n) * p)))
-            pc = pc + line
-        
-        pc = [[point[0], point[1], 0.0, 0, 0, 255, 0] for point in pc]
-
-        self.pc_pub.pub(pc)
-        
-        print("visualizing path: ")
+        self.path_publisher.publish(self.path)
+        self.get_logger().info("visualising_path")
 
 if __name__ == "__main__":
     rclpy.init(args=None)

@@ -1,5 +1,3 @@
-#include "height_map.cpp"
-
 class Vec3{
 public:
     float x, y, z;
@@ -15,29 +13,4 @@ public:
     Vec3 operator/(float other);
     float magnitude();
     Vec3 normalise();
-};
-
-class Plane{
-public:
-    int num_points;
-    Vec3 centroid, normal;
-
-    Plane(int num_points, Vec3 centroid, Vec3 normal);
-    Plane();
-};
-
-class PlaneGenerator {
-public:
-    int num_planes_x, num_planes_y, plane_x_pixels, plane_y_pixels, pixels_per_plane;
-    float pixel_size_cm;
-    std::vector<std::vector<Plane>> planes;
-    HeightMap height_map;
-
-    PlaneGenerator(int num_planes_x, int num_planes_y);
-    void add_height_map(HeightMap& height_map);
-    void fit_planes(HeightMap& h);
-    void fit_planes();
-
-private:
-    float get(int x, int y);
 };
