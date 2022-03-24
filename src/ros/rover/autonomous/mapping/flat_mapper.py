@@ -126,8 +126,8 @@ class FlatMapper(Mapper):
         obstacles = transform.transform_yaw(self.msg, obs_as_points)
         obstacles[:, 2] *= 100
 
-        # halving values less than 1 to make us not care so much
-        plane_obs[plane_obs < 1.0] = plane_obs[plane_obs < 1.0] / 2
+        # halving non-obstacle values to make us not care so much
+        plane_obs[plane_obs < 100] = plane_obs[plane_obs < 100] / 2
 
         # all points below a certain value get set to the minimum value
         obstacles[obstacles[:, 2] < 30, 2] = 0
