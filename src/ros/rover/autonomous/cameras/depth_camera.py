@@ -1,5 +1,4 @@
 __package__ = "autonomous"
-import math
 import time
 import numpy as np
 from threading import Thread
@@ -9,17 +8,21 @@ except:
     import pyrealsense2 as rs
 from vis.pc_pub import PCPub
 import rclpy
-import cameras.artag_pose_detection as ar
 import sys
+from cameras.ar_tracker import ArTracker
+from config.runtime_params import active_depth_camera
+from rclpy.logging import LoggingSeverity
 
 
 class DepthCamera(Thread):
-    def __init__(self, callback, publish_topic=None, serial_number='932122060332'):
+    def __init__(self, callback, publish_topic=None, serial_number=active_depth_camera):
         super().__init__()
         if publish_topic:
             self.publisher = PCPub("depth_camera_pc_pub", scale=1)
         else:
             self.publisher = None
+
+        self.ar_tracker = ArTracker()
 
         self.running = True
 
@@ -47,7 +50,7 @@ class DepthCamera(Thread):
         self.profile = self.pipeline.get_active_profile()
         self.depth_profile = rs.video_stream_profile(self.profile.get_stream(rs.stream.depth))
         self.depth_intrinsics = self.depth_profile.get_intrinsics()
-        w, h = self.depth_intrinsics.width, self.depth_intrinsics.height
+        # w, h = self.depth_intrinsics.width, self.depth_intrinsics.height
 
         # Processing blocks
         self.pc = rs.pointcloud()
@@ -58,9 +61,13 @@ class DepthCamera(Thread):
     def run(self):
         while self.running:
             t = time.time()
+            # call the callback (probably 
             self.callback(self.get_points())
-            sys.stdout.write("\r" + "Map update completed in: " + str(round(time.time() - t, 5)) + " seconds")
-            sys.stdout.flush()
+            rclpy.logging._root_logger.log(
+                f"Map update completed in: {str(round(time.time() - t, 5))} seconds",
+                LoggingSeverity.INFO,
+                once=True,
+                skip_first=True)
 
     def get_points(self):
         """
@@ -75,25 +82,15 @@ class DepthCamera(Thread):
         # t0 = time.time()
         frames = self.pipeline.wait_for_frames()
 
-
-        t1 = time.time()
         depth_frame = frames.get_depth_frame()
         color_frame = frames.get_color_frame()
-
         depth_frame = self.decimate.process(depth_frame)
 
         # Grab new intrinsics (may be changed by decimation)
-        depth_intrinsics = rs.video_stream_profile(depth_frame.profile).get_intrinsics()
-        # depth_image = np.asanyarray(depth_frame.get_data())
+        # depth_intrinsics = rs.video_stream_profile(depth_frame.profile).get_intrinsics()
 
         color_image = np.asanyarray(color_frame.get_data())
-
-        # note: find better way of doing asynchronously
-
-        # ar.findArTag(color_image)
-
-        # depth_colormap = np.asanyarray(self.colorizer.colorize(depth_frame).get_data())
-
+        self.ar_tracker(color_image)
         mapped_frame, color_source = color_frame, color_image
 
         points = self.pc.calculate(depth_frame)
@@ -107,24 +104,36 @@ class DepthCamera(Thread):
         
         verts = verts[~(verts[:, 2] > 4.5)]
         
-        # print("point processing: " + str(time.time() - t1))
-        
-        t2 = time.time()
+        rclpy.logging._root_logger.log(
+                f"Depth camera point cloud contained {len(verts)} points",
+                LoggingSeverity.INFO,
+                once=True,
+                skip_first=True)
+        if len(verts) < 10:
+            rclpy.logging._root_logger.log(
+                    f"Depth camera point cloud contained very few points",
+                    LoggingSeverity.WARN,
+                    once=False,
+                    skip_first=True)
+            if len(verts) == 0:
+                rclpy.logging._root_logger.log(
+                        f"Depth camera point cloud contained no points",
+                        LoggingSeverity.ERROR,
+                        once=False,
+                        skip_first=True)
+
         if self.publisher:
             pass
-            # self.publisher.pub_pts_colors(verts, 255 * np.ones((verts.shape[0], 4)))
-        # print("publishing: " + str(time.time() - t2))
 
         return verts
 
     def stop(self):
-        # Stop streaming
         self.pipeline.stop()
 
 
 def print_points_len(points):
-    # print(points.shape)
     pass
+
 
 def main():
     rclpy.init(args=None)

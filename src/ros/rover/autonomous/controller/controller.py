@@ -1,5 +1,7 @@
-__package__ = "autonomous"
 #!/usr/bin/env python3
+
+__package__ = "autonomous"
+
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team
@@ -14,11 +16,10 @@ Liam Whittle
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: Controller
 TOPICS:
-        self.drive_cmd_publisher = self.create_publisher(DriveInput, auto_drive_command_topic, 10)
-        self.pose_subscriber = self.create_subscription(RoverPose, rover_pose_topic, self.update_pose, 10)
-        self.waypt_subscriber = self.create_subscription(Waypoints, auto_goals_topic, self.add_waypoints, 10)
-SERVICES:
-  - None
+        - Publishes: /autonomous/drive_inputs [DriveInput]
+        - Subscribes: /rover/pose [RoverPose]
+        - Subscribes: /autonomous/goals [Waypoints]
+SERVICES: None
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:        autonomous
@@ -26,27 +27,19 @@ AUTHOR(S):      Max Tory
 CREATION:       07/12/2021
 EDITED:         07/12/2021
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-"""
-
-import rclpy
-from time import sleep
-from rclpy.node import Node
-from math_utils.controller_math import *
-from config.runtime_params import *
-from core.msg import DriveInput, RoverPose, Waypoints
-import sys
-import vis.path_vis as path_vis
-
-from config.ros_config import rover_pose_topic
-from config.ros_config import auto_drive_command_topic
-from config.ros_config import auto_goals_topic
-
-
-"""
 TODO: update led according to distance?
 TODO: test all publishers and subscribers
 TODO: investigate more efficient/accurate drive control methods than repeated tank turning and forward driving
 """
+
+import rclpy
+from rclpy.node import Node
+from math_utils.controller_math import *
+from config.runtime_params import *
+from core.msg import DriveInput, RoverPose, Waypoints
+from controller.yaw_star import Turning
+
+from config.ros_config import *
 
 
 class Controller(Node):
@@ -60,17 +53,16 @@ class Controller(Node):
     def __init__(self):
         super().__init__('autonomous_controller_node')
 
+        self.turning = Turning(self.get_logger())
         self.state = State()  # from controller_math
         self.waypoints = []
         self.target_waypoint = None
         self.previously_turned = False
         self.max_distance = 0.0001  # furthest distance to an object? not sure
 
-        self.path_cloud = path_vis.PathCloud()
-
         self.drive_cmd_publisher = self.create_publisher(DriveInput, auto_drive_command_topic, 10)
         self.pose_subscriber = self.create_subscription(RoverPose, rover_pose_topic, self.update_pose, 10)
-        self.waypt_subscriber = self.create_subscription(Waypoints, auto_goals_topic, self.add_waypoints, 10)
+        self.waypt_subscriber = self.create_subscription(Waypoints, auto_waypoints_topic, self.add_waypoints, 10)
 
         # Controls the rate at which drive commands are sent - sleeps for the necessary time to maintain the rate given
         self.timer = self.create_timer(0.1, self.control)
@@ -108,13 +100,15 @@ class Controller(Node):
         # publish to public topic
         self.drive_cmd_publisher.publish(drive_cmd_msg)
 
-    @staticmethod
-    def print_update(action_msg, heading_to, yaw_diff, dist):
+    def log_update(self, action_msg = '', heading_to = (0,0), yaw_diff = 0.0, dist = 0.0) -> None:
+        """
+        Logs the current action to ros logging
+        """
+        return
         pad = 10
-        sys.stdout.write("\r" + "Action: " + action_msg.ljust(pad) + " | heading to: " + str(heading_to).ljust(pad)
-                         + " | yaw diff: " + str(round(yaw_diff, 4)).ljust(pad) + " | distance: " + str(
-            round(dist, 4)).ljust(pad))
-        sys.stdout.flush()
+        action = "Action: " + action_msg.ljust(pad) + " | heading to: " + str(heading_to).ljust(pad) + " | yaw diff: " \
+                 + str(round(yaw_diff, 4)).ljust(pad) + " | distance: " + str(round(dist, 4)).ljust(pad)
+        self.get_logger().info(action)
 
     def go_to_target(self):
         """
@@ -132,35 +126,25 @@ class Controller(Node):
         
         yaw_diff = yaw_difference(current_orientation, desired_orientation)
 
-        if abs(yaw_diff) >= (min_yaw_difference):
-            # turn at a rate determined by the tank_turn_target_yaw_rate function
-            steer_fraction = tank_turn_target_yaw_rate(yaw_diff)
-            self.__publish(0.05, steer_fraction)
-
-            Controller.print_update("yawing", self.target_waypoint, yaw_diff,
-                                    distance((self.state.x, self.state.y), self.target_waypoint))
-
-            self.previously_turned = True
-
-        elif self.previously_turned:
-            # need to send a zero wheel command after turning before we drive
-            self.__publish(0.0, 0.0)
-            self.previously_turned = False
+        try:
+            drive = self.turning.run(yaw_diff, self.state, position_vector, self.target_waypoint, current_orientation)
+            self.__publish(drive['drive'], drive['steer'])
+        except Exception as e:
+            self.get_logger().warn(str(e))
+        if drive['steer']:
+            Controller.log_update("Controller Steering", self.target_waypoint, yaw_diff,
+                                  distance((self.state.x, self.state.y), self.target_waypoint))
 
         else:
-            # drive in straight line toward waypoint at determined velocity
-            drive_fraction = crow_fly_target_velocity((self.state.x, self.state.y), self.target_waypoint)
-            self.__publish(drive_fraction, 0.0)
-
-            Controller.print_update("heading", self.target_waypoint, yaw_diff,
-                                    distance((self.state.x, self.state.y), self.target_waypoint))
+            Controller.log_update("Controller Driving", self.target_waypoint, yaw_diff,
+                                  distance((self.state.x, self.state.y), self.target_waypoint))
 
     def control(self):
         """
         Called once every tick by the node's timer. Identifies the next target waypoint
         and calls navigate_to_waypoint, and determines when the rover has arrived
         """
-        print("controlling")
+
         if not self.target_waypoint:
             # There is currently no target - take the first waypoint on the list
             if self.waypoints:
@@ -168,19 +152,15 @@ class Controller(Node):
             else:
                 return
 
-        if distance((self.state.x, self.state.y), self.target_waypoint) >= min_waypoint_distance:
-            print("going to target")
-
+        if distance((self.state.x, self.state.y), self.target_waypoint) > min_waypoint_distance:
             # we have not yet arrived at the waypoint
             self.go_to_target()
 
-            # showing where we are aiming to drive to
-            self.path_cloud.publish_path(self.waypoints)
-
         else:
             # If distance to the waypoint is lower than the threshold distance, we have arrived
-            print("Reached way-point: " + str(self.target_waypoint))
+            self.get_logger().info("Reached way-point: " + str(self.target_waypoint))
             self.target_waypoint = None
+            self.control()
 
 
 def main(args=None):
@@ -194,7 +174,6 @@ def main(args=None):
 def controller_test():
     rclpy.init(args=None)
     controller = Controller()
-    controller.waypoints = [[0, 0], [.7, .0], [.7, .7]]
     rclpy.spin(controller)
     controller.destroy_node()
     rclpy.shutdown()

@@ -4,24 +4,24 @@ from planning.path_planner import PathPlanner
 from controller.controller import Controller
 import rclpy
 from mapping.mapper import Mapper
-
+from mapping.height_mapper import HeightMapper
+from mapping.plane_mapper import PlaneMapper
+from mapping.height_plane_mapper import HeightPlaneMapper
+import time
+import threading
 
 def main(args):
     rclpy.init(args=args)
 
     print("Welcome to fun car drive!")
-    dest = [0.0, 0.0]
-    dest[0] = float(input("Enter destination x coordinate: "))
-    dest[1] = float(input("Enter destination y coordinate: "))
-    
     length = 20
     width = 20
     resolution = 0.1
 
     # in this janky night-before-mvp we will be creating a map2d object which is shared by planner and mapper.
     # Mapper updates it, planner just reads from it.
-    planner = PathPlanner(dest, resolution)
-    mapper = Mapper(length=length, width=width, resolution=resolution, planner=planner)
+    planner = PathPlanner(resolution)
+    mapper = HeightPlaneMapper(length=length, width=width, resolution=resolution, planner=planner, camera=True)
     controller = Controller()
 
     # This allows us to spin both nodes from main.py - we are kind of misusing ros nodes here but oh well it works
@@ -31,11 +31,22 @@ def main(args):
     executor.add_node(mapper)
     executor.add_node(controller)
 
-    # Spin in a separate thread
+    #executor_thread = threading.Thread(target=executor.spin, daemon=True)
+    #executor_thread.start()
     executor.spin() 
+    #try:
+    #    time.sleep(1000000)
+    #except KeyboardInterrupt:
+    #    pass
+    # Spin in a separate thread
+    #while(True):
+        #rclpy.spin_once(planner)
+        #rclpy.spin_once(mapper)
+        #rclpy.spin_once(controller)
 
     # rejoining threads before we shutdown
     rclpy.shutdown()
+    #executor_thread.join()
 
 
 if __name__ == "__main__":

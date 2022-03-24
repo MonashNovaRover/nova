@@ -1,4 +1,5 @@
 __package__ = "autonomous"
+from config.runtime_params import min_point_density 
 import numpy as np
 import time
 
@@ -47,7 +48,7 @@ class Grid3D:
 
     def extract_z(self, height_m):
         height_index = int(height_m / self.resolution)
-        return self.map[:, :, 26:].sum(axis=2).astype(bool).astype(float)
+        return self.map[:, :, height_index:].sum(axis=2).astype(bool).astype(float)
         #return self.map[:, :, height_index]
 
     def get_indexes(self, points):
@@ -66,7 +67,7 @@ class Grid3D:
         pos = points + np.array([self.length / 2, self.width / 2, self.height / 2])
 
         # getting indexes simply by dividing by resolution and taking as integer
-        ind = (pos / self.resolution).astype(int)
+        ind = (pos / self.resolution).round().astype(int)
 
         return ind
 
@@ -86,8 +87,6 @@ class Grid3D:
         :param colors: (n, 3) numpy array
         :return: None
         """
-        t = time.time()
-
         # parse only the indexes which are within the map bounds
         indexes = self.get_indexes(points) 
         
@@ -96,17 +95,13 @@ class Grid3D:
         indexes = indexes[indexes_indexes]
         colors = colors[indexes_indexes]
 
-        # print("getting " + str(indexes.shape[0]) + " indexes took: " + str(time.time() - t) + "   (" + str(10000 * (time.time() - t) / indexes.shape[0]) + " s per 10k indexes)")
-
-        # t = time.time()
+        #  (" + str(10000 * (time.time() - t) / indexes.shape[0]) + " s per 10k indexes)")
 
         # fill the all the new points with the new timestamp and colors
         to_add = np.concatenate((np.full((colors.shape[0], 1), 1), colors), axis=1)
         self.map[indexes.transpose()[0], indexes.transpose()[1], indexes.transpose()[2]] = to_add
 
-        # print("adding " + str(colors.shape[0]) + " points took: " + str(time.time() - t) + "   (" + str(10000 * (time.time() - t) / colors.shape[0]) + " s per 10k indexes)")
-        # print("Map size: " + str(self.map.shape[0] * self.map.shape[1] * self.map.shape[2]))
-
+        # (" + str(10000 * (time.time() - t) / colors.shape[0]) + " s per 10k indexes)")
 
     def add_pc_points_only(self, points):
         """
@@ -115,30 +110,19 @@ class Grid3D:
         :param points: (n, 3) numpy array
         :return: None
         """
-        t = time.time()
-
         # parse only the indexes which are within the map bounds
         indexes = self.get_indexes(points)
 
-        indexes_indexes = np.all(np.array([indexes[:, 0] < self.map.shape[0], indexes[:, 1] < self.map.shape[1],
+        valid_indexes = np.all(np.array([indexes[:, 0] < self.map.shape[0], indexes[:, 1] < self.map.shape[1],
                                            indexes[:, 2] < self.map.shape[2]]).transpose(), axis=1)
 
-        indexes = indexes[indexes_indexes]
+        indexes = indexes[valid_indexes]
 
-        # print("getting " + str(indexes.shape[0]) + " indexes took: " + str(time.time() - t) + "   (" + str(
-        # 10000 * (time.time() - t) / indexes.shape[0]) + " s per 10k indexes)")
-
-        t = time.time()
-
-        # fill the all the new points with the new timestamp and colors
-
-        # todo: this could be wrong
-        to_add = np.full((indexes.shape[0], 1), 1)
-        self.map[indexes.transpose()[0], indexes.transpose()[1], indexes.transpose()[2]] = to_add
-
-        # print("adding " + str(indexes.shape[0]) + " points took: " + str(time.time() - t) + "   (" + str(
-        # 10000 * (time.time() - t) / indexes.shape[0]) + " s per 10k indexes)")
-        # print("Map size: " + str(self.map.shape[0] * self.map.shape[1] * self.map.shape[2]))
+        # numpy god method - gives us back all the unique indices and the number of times
+        # they repeated. For removing dodgy noise points
+        indexes, counts = np.unique(indexes, return_counts=True, axis=0)
+        counts //= min_point_density # anything below min_point_density -> 0
+        self.map[indexes[:, 0], indexes[:, 1], indexes[:, 2]] = counts.reshape(len(counts), 1)
 
     def get_as_pc(self):
         """
@@ -147,16 +131,12 @@ class Grid3D:
         :return: ((n, 3) numpy array of points, (n, 3) numpy array of colors)
         """
 
-        t = time.time()
-
         if self.has_color:
             # the indexes (should be an nx3 array)
             raw_indexes = self.map[:, :, :, 0] > 0
 
             points = np.array(np.where(raw_indexes)).transpose()
             colors = np.array(self.map[raw_indexes][:, 1:])
-
-            # print("Extracting points from map took: " + str(time.time() - t))
 
             return self.get_points(np.array(points)), colors
 
@@ -165,7 +145,5 @@ class Grid3D:
             raw_indexes = self.map[:, :, :, 0] > 0
 
             points = np.array(np.where(raw_indexes)).transpose()
-
-            #print("Extracting points from map took: " + str(time.time() - t))
 
             return self.get_points(np.array(points))
