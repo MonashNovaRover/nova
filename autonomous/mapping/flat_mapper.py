@@ -65,7 +65,7 @@ class FlatMapper(Mapper):
         above one another), but yaw and position transformations are done after obstacle
         detection, so the obstacle detection map can stay a consistent size and shape
         """
-        indexes = (points/self.detection_resolution).round().astype(int)
+        indexes = np.floor((points/self.detection_resolution)).astype(int)
         indexes[:, 1] += (np.ceil(self.detection_width/2)).astype(int)
         return indexes
     
@@ -97,18 +97,19 @@ class FlatMapper(Mapper):
         If we're near the edge of the map, roll the map in a given direction
         """
         x_change, y_change = 0, 0
-        if self.msg.pose.pose.position.x - self.offset[0] + self._map.length/2 < 5:
+        distance_to_edge = (self._map.length / 4)
+        if self.msg.pose.pose.position.x - self.offset[0] + self._map.length/2 < distance_to_edge:
             x_change = -1
-        elif self._map.length/2 + self.offset[0] - self.msg.pose.pose.position.x < 5:
+        elif self._map.length/2 + self.offset[0] - self.msg.pose.pose.position.x < distance_to_edge:
             x_change = 1
-        if self.msg.pose.pose.position.y - self.offset[1]+ self._map.width/2 < 5:
+        if self.msg.pose.pose.position.y - self.offset[1]+ self._map.width/2 < distance_to_edge:
             y_change = -1
-        elif self._map.width/2 + self.offset[1] - self.msg.pose.pose.position.y < 5:
+        elif self._map.width/2 + self.offset[1] - self.msg.pose.pose.position.y < distance_to_edge:
             y_change = 1
         if x_change != 0 or y_change != 0:
             self._map.roll_map(x_change, y_change)
-            self.offset[0] += x_change * 5
-            self.offset[1] += y_change * 5
+            self.offset[0] += x_change * distance_to_edge
+            self.offset[1] += y_change * distance_to_edge
             self.planner.set_offset(self.offset)
 
     def arrange_obstacles(self, obstacles, min_x):
@@ -120,10 +121,11 @@ class FlatMapper(Mapper):
         """
         obs_as_points = np.array([[x, y, val] for (x, y), val in np.ndenumerate(obstacles) \
                 if np.abs(np.arctan2(y - len(obstacles[0])/2, x)) < max_fov_angle and x > min_x])
+        if len(obs_as_points) <= 10: return
         obs_as_points[:, 1] -= int(np.ceil(self.detection_width/(2 * self.resolution_ratio)))
         obstacles = transform.transform_yaw(self.msg, obs_as_points)
-        print(self.offset)
         obstacles[:, 2] *= 100
+        # all points below a certain value get set to the minimum value
         obstacles[obstacles[:, 2] < 30, 2] = 5
         return np.round(obstacles).astype(int)
 
