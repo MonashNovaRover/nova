@@ -27,6 +27,7 @@ TODO:
 
 import math
 import numpy as np
+from config.runtime_params import straight_drive_fraction
 
 
 class State:
@@ -108,4 +109,4 @@ def crow_fly_target_velocity(current, target):
     :param target: 2tuple
     returns: 0, or within range [min_speed, max_speed]
     """
-    return .1
+    return straight_drive_fraction 

@@ -19,6 +19,10 @@ max_speed = 7.0  # todo: determine
 min_waypoint_distance = 0.6  # todo: determine what is achievable
 ignore_waypoints = 4 #  number of waypoints to cut off start of list
 
+# speed of autonomous driving and turning
+turn_drive_fraction = 0.1
+straight_drive_fraction = 0.2
+
 controller_ros_rate = 10  # 10hz
 
 # ~~~~~~~~~~~~~~VIS CONSTANTS ~~~~~~~~~~~~~~~~
