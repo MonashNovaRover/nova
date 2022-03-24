@@ -44,7 +44,7 @@ max_safe_obstacle = 60  # obstacle threshold for 2d map
 max_safe_inc = 25  # gradient cutoff for obstacles
 depth_mode = " python"  # whether we publish points over ros or use a python callback
 skip_pts = 1  # Step we use when selecting points if we can't handle the full cloud
-unseen_map_val = 0.3  # Fill all points we haven't seen with a set cost to preference known paths
+unseen_map_val = 0.5  # Fill all points we haven't seen with a set cost to preference known paths
 slice_height = 2.3  # the height we slice the map from when taking 2d slices
 
 # ~~~~~~~~~~~~~~~~~ CAMERA INFO ~~~~~~~~~~~~~~~~~~~~~
