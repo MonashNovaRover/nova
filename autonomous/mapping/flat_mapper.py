@@ -130,7 +130,7 @@ class FlatMapper(Mapper):
         plane_obs[plane_obs < 100] = plane_obs[plane_obs < 100] / 2
 
         # all points below a certain value get set to the minimum value
-        obstacles[obstacles[:, 2] < 30, 2] = 0
+        obstacles[obstacles[:, 2] < 30, 2] = 5
         return np.round(obstacles).astype(int)
 
     def get_2d_map(self):
