@@ -65,7 +65,11 @@ class RFIDService(Node):
             response.response = msg
             return response
         
-        self.get_logger().debug(f'Response received from arduino: {response.response}')
+        try:
+            self.get_logger().debug(f'Response received from arduino: {response.response}')
+        except Exception:
+            # sometimes crashes here which we don't want to do. If we can't log its not a massive issue
+            pass
         return response
     
     def read_data(self) -> str:
@@ -78,7 +82,14 @@ class RFIDService(Node):
         data = data.rstrip(self.EOM) # remove EOM from response
         data = data.rstrip(b'\0') # strip any null chars from data
         # return as string
-        return data.decode('ascii')
+        try:
+            decoded = data.decode('ascii')
+            return decoded
+        except Exception:
+            self.get_logger().error('Failed to decode RFID arduino response')
+            # dump raw hex to logger
+            self.get_logger().error(f'Raw data: {data}')
+            return 'Service error: Failed to decode message'
 
     def write_msg(self, msg: str):
         '''
@@ -90,8 +101,14 @@ class RFIDService(Node):
         # solve although this doesn't make much sense
         msg.rstrip('\0') 
         data = bytearray(msg, encoding='ascii')
-        data.append(ord(self.EOM)) # indicate end of message
-        self.ser.write(data)
+        data.append(ord(self.EOM)) #add EOM
+
+        CHUNK_SIZE = 60
+
+        for i in range(0, len(data), CHUNK_SIZE):
+            self.ser.write(data[i:i+CHUNK_SIZE])
+            self.get_logger().debug(f'Chunk sent')
+            time.sleep(0.1)
 
     def destroy_node(self):
         self.get_logger().info('Closing serial connection')
