@@ -311,7 +311,6 @@ template <size_t ROW, size_t COL>
 vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 				const Pair& src, const Pair& dest, const float grid_resolution_m, const float padding_dist_m)
 {
-    std::cout << "We made it into the function" << std::endl;
     PADDING_DIST_M = padding_dist_m;
 	const float grid_resolution_cm = grid_resolution_m * 100;
 

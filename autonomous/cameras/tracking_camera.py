@@ -76,14 +76,13 @@ class TrackingCamera(Node):
         t265_msg.header.stamp = self.get_clock().now().to_msg()
         t265_msg.header.frame_id = main_frame
 
-        t265_msg.pose.pose.position.x = -data.translation.z
-        t265_msg.pose.pose.position.y = -data.translation.x
-        t265_msg.pose.pose.position.z = data.translation.y
-
-        # add offset from extrinsics and our initial pose
-        t265_msg.pose.pose.position.x -= tracking_camera_extrinsics[0] + self.initial_position[0]
-        t265_msg.pose.pose.position.y -= tracking_camera_extrinsics[1] + self.initial_position[1]
-        t265_msg.pose.pose.position.z -= tracking_camera_extrinsics[2] + self.initial_position[2]
+        x = -data.translation.z
+        y = -data.translation.x
+        z = data.translation.y
+        
+        x -= tracking_camera_extrinsics[0]
+        y -= tracking_camera_extrinsics[1]
+        z -= tracking_camera_extrinsics[2]
 
         t265_msg.pose.pose.orientation.x = -data.rotation.z
         t265_msg.pose.pose.orientation.y = -data.rotation.x
@@ -98,7 +97,22 @@ class TrackingCamera(Node):
             t265_msg.pose.pose.orientation.y = qy
             t265_msg.pose.pose.orientation.z = qz
             t265_msg.pose.pose.orientation.w = qw
-        
+
+            # translating local x and y into our frame
+            rotation = np.array([[np.cos(self.initial_yaw), -np.sin(self.initial_yaw)], [np.sin(self.initial_yaw), np.cos(self.initial_yaw)]])
+            
+            pose = np.matmul(rotation, np.array([x, y]).T).T
+            x, y = pose[0], pose[1]
+ 
+        t265_msg.pose.pose.position.x = x
+        t265_msg.pose.pose.position.y = y
+        t265_msg.pose.pose.position.z = z
+
+        # add offset from extrinsics and our initial pose
+        t265_msg.pose.pose.position.x += self.initial_position[0]
+        t265_msg.pose.pose.position.y += self.initial_position[1]
+        t265_msg.pose.pose.position.z += self.initial_position[2]
+
         return t265_msg
 
     def get_next_pose(self):
