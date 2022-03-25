@@ -127,7 +127,7 @@ class FlatMapper(Mapper):
         obstacles[:, 2] *= 100
 
         # halving non-obstacle values to make us not care so much
-        plane_obs[plane_obs < 100] = plane_obs[plane_obs < 100] / 2
+        obstacles[obstacles[:, 2] < 80] /= np.array([1, 1, 2])
 
         # all points below a certain value get set to the minimum value
         obstacles[obstacles[:, 2] < 30, 2] = 5

@@ -6,7 +6,7 @@ from rclpy.node import Node
 from nav_msgs.msg import Odometry
 from core.msg import RoverPose
 import math_utils.transform as transform
-from config.runtime_params import tracking_camera_extrinsics, t265_serial
+from config.runtime_params import tracking_camera_extrinsics, t265_serial, pose_file
 from config.ros_config import main_frame, tracking_pose_topic, rover_pose_topic
 import time
 
@@ -43,11 +43,25 @@ class TrackingCamera(Node):
         self.cfg.enable_device(serial_number)
         self.cfg.enable_stream(rs.stream.pose)
 
-        self.initial_x = 0.0
-        self.initial_y = 0.0
+        answer = input("Load pose from file? (y/n): ")
+
+        self.initial_position = np.array([0.0, 0.0, 0.0])
+        self.initial_yaw = 0.0
+
+        if answer and (answer[0] == "y" or answer[0] == "Y"):
+            self.load_pose()
 
         # Start streaming
         self.pipe_profile = self.pipe.start(self.cfg)
+
+    def load_pose(self):
+        try:
+            pose = np.loadtxt(pose_file).reshape(4)
+        except FileNotFoundError as e:
+            self.get_logger().warn("Couldn't find file!")
+       
+        self.initial_position = pose[:3]
+        self.initial_yaw = pose[3]
 
     def transform_t265_to_nova(self, data):
         """
@@ -66,15 +80,25 @@ class TrackingCamera(Node):
         t265_msg.pose.pose.position.y = -data.translation.x
         t265_msg.pose.pose.position.z = data.translation.y
 
-        # add offset from extrinsics
-        t265_msg.pose.pose.position.x -= tracking_camera_extrinsics[0]
-        t265_msg.pose.pose.position.y -= tracking_camera_extrinsics[1]
-        t265_msg.pose.pose.position.z -= tracking_camera_extrinsics[2]
+        # add offset from extrinsics and our initial pose
+        t265_msg.pose.pose.position.x -= tracking_camera_extrinsics[0] + self.initial_position[0]
+        t265_msg.pose.pose.position.y -= tracking_camera_extrinsics[1] + self.initial_position[1]
+        t265_msg.pose.pose.position.z -= tracking_camera_extrinsics[2] + self.initial_position[2]
 
         t265_msg.pose.pose.orientation.x = -data.rotation.z
         t265_msg.pose.pose.orientation.y = -data.rotation.x
         t265_msg.pose.pose.orientation.z = data.rotation.y
         t265_msg.pose.pose.orientation.w = data.rotation.w
+        
+        if self.initial_yaw != 0:
+            pitch, roll, yaw = transform.quat_to_euler(t265_msg)
+            qx, qy, qz, qw = transform.euler_to_quat([pitch, roll, yaw + self.initial_yaw])
+            
+            t265_msg.pose.pose.orientation.x = qx
+            t265_msg.pose.pose.orientation.y = qy
+            t265_msg.pose.pose.orientation.z = qz
+            t265_msg.pose.pose.orientation.w = qw
+        
         return t265_msg
 
     def get_next_pose(self):
@@ -103,6 +127,9 @@ class TrackingCamera(Node):
             rover_msg.pitch, rover_msg.roll, rover_msg.yaw = transform.quat_to_euler(t265_msg)
             self.rover_pose_pub.publish(rover_msg)
             self.rover_pose_odom_pub.publish(rover_odom_msg)
+
+            with open(pose_file, "w") as f:
+                f.write(f"{rover_msg.x}\t{rover_msg.y}\t{rover_msg.z}\t{rover_msg.yaw}")
 
             sys.stdout.write("\r" + "x: " + str(round(rover_msg.x, 4)).ljust(7)
                              + " | y: " + str(round(rover_msg.y, 4)).ljust(7)
