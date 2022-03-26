@@ -42,7 +42,9 @@ ResolverSpoofer::ResolverSpoofer() : Node("resolver_spoofer")
     
     // Create the subscription
     outputs_subscription = this->create_subscription<sensor_msgs::msg::JointState>(
-        "/control/cmd_outputs", 10, std::bind(&ResolverSpoofer::subscriber_callback, this, _1)
+        "/control/joint_velocities",
+        rclcpp::QoS(1).best_effort().deadline(200ms),
+        std::bind(&ResolverSpoofer::subscriber_callback, this, _1)
     );
 
     // Create the publisher timer. Controls rate of publihsing to /resolvers topic
@@ -58,7 +60,7 @@ ResolverSpoofer::ResolverSpoofer() : Node("resolver_spoofer")
     // Output set-up messages
     Print::title("RESOLVER SPOOFER");
     Print::print("Subscribed Topics:");
-    Print::print("/control/cmd_outputs        [sensor_msgs/JointState]", 1);
+    Print::print("/control/joint_velocities   [sensor_msgs/JointState]", 1);
     Print::print("Published Topics:");
     Print::print("/electronics/resolvers      [sensor_msgs/JointState]", 1);
     Print::print("", true);

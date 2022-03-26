@@ -10,7 +10,7 @@ It can be used in place of the arm_driver for when no physical
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: arm_model
 TOPICS:
-  - /control/cmd_outputs       [sensor_msgs/JointState]    [Subscribed]
+  - /control/joint_velocities  [sensor_msgs/JointState]    [Subscribed]
   - /electronics/resolvers     [sensor_msgs/JointState]    [Published]
 SERVICES: None
 ACTIONS: None
