@@ -37,7 +37,7 @@ const float OBSTACLE_CUTTING_RANGE_M = 0.4; // distance to which we remove obsta
 const int CRITICAL_PATH_LEN = 7;
 const float OBSTACLE_VALUE = 1.0;
 const float HEIGHT_OBSTACLE_VALUE = 1.1;
-const float PLANE_PADDING_DISTANCE_FRACTION = 0.4;
+const float PLANE_PADDING_DISTANCE_FRACTION = 0.3;
 const float C_INF = 1e12;
 const float NEAREST_POINT_DIST_WEIGHT = 0.5;
 float PADDING_DIST_M = 0; 
@@ -503,4 +503,3 @@ PYBIND11_MODULE(a_star, module_handle) {
     module_handle.doc() = "Nova Rover A* C++ search algorithm binded to Python3";
     module_handle.def("a_star", &aStarSearch<200, 200>); // 10 cm resolution
 }
-
