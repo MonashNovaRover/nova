@@ -38,6 +38,7 @@ from math_utils.controller_math import *
 from config.runtime_params import *
 from core.msg import DriveInput, RoverPose, Waypoints
 from controller.YawStarController import YawStarController
+from controller.GateController import GateController
 
 from config.ros_config import *
 
@@ -49,11 +50,6 @@ class Controller(Node):
     navigate between via ros topics autonomous/pose and autonomous/goals. Publishes drive 
     commands to auto_drive_commands
     """
-    CONTROLLER_MODE_DRIVE = YawStarController()
-    CONTROLLER_MODE_SEARCH = 2  # at approximate position and searching for gate
-    CONTROLLER_MODE_GATE = 3
-    CONTROLLER_MODE_ACHIEVED = 4 # at waypoint and passed through gate
-
     def __init__(self):
         super().__init__('autonomous_controller_node')
 
@@ -69,7 +65,7 @@ class Controller(Node):
         self.controllers = {
             "drive" : YawStarController(),
             #"search" : SearchController(),
-            #"gate" : GateController(),
+            "gate" : GateController(),
         }
 
         self.active_controller = self.controllers["drive"]

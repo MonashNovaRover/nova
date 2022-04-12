@@ -109,4 +109,11 @@ def crow_fly_target_velocity(current, target):
     :param target: 2tuple
     returns: 0, or within range [min_speed, max_speed]
     """
-    return straight_drive_fraction 
+    return straight_drive_fraction
+
+
+def magnitude(vector):
+    """
+    Magnitude of a vector from 2-norm
+    """
+    return np.dot(vector, vector)**0.5
