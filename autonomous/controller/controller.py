@@ -37,7 +37,7 @@ from rclpy.node import Node
 from math_utils.controller_math import *
 from config.runtime_params import *
 from core.msg import DriveInput, RoverPose, Waypoints
-from controller.yaw_star import Turning
+from controller.YawStarController import YawStarController
 
 from config.ros_config import *
 
@@ -49,16 +49,30 @@ class Controller(Node):
     navigate between via ros topics autonomous/pose and autonomous/goals. Publishes drive 
     commands to auto_drive_commands
     """
+    CONTROLLER_MODE_DRIVE = YawStarController()
+    CONTROLLER_MODE_SEARCH = 2  # at approximate position and searching for gate
+    CONTROLLER_MODE_GATE = 3
+    CONTROLLER_MODE_ACHIEVED = 4 # at waypoint and passed through gate
 
     def __init__(self):
         super().__init__('autonomous_controller_node')
 
-        self.turning = Turning(self.get_logger())
+        self.turning = YawStarController(self.get_logger())
         self.state = State()  # from controller_math
         self.waypoints = []
         self.target_waypoint = None
         self.previously_turned = False
         self.max_distance = 0.0001  # furthest distance to an object? not sure
+
+        self.gate = None # URC gate to drive through
+
+        self.controllers = {
+            "drive" : YawStarController(),
+            #"search" : SearchController(),
+            #"gate" : GateController(),
+        }
+
+        self.active_controller = self.controllers["drive"]
 
         self.drive_cmd_publisher = self.create_publisher(DriveInput, auto_drive_command_topic, 10)
         self.pose_subscriber = self.create_subscription(RoverPose, rover_pose_topic, self.update_pose, 10)
@@ -117,27 +131,11 @@ class Controller(Node):
         or drives towards it in a straight line. If the rover has just finished turning, a
         single zero drive command is sent before driving begins.
         """
-        # calculate target yaw and signed yaw difference using the controller_math module
-        position_vector = np.array([self.state.x, self.state.y, 0])
-        target_vector = np.array([self.target_waypoint[0], self.target_waypoint[1], 0])
-        
-        desired_orientation = target_vector - position_vector
-        current_orientation = np.array([np.cos(self.state.yaw), np.sin(self.state.yaw), 0])
-        
-        yaw_diff = yaw_difference(current_orientation, desired_orientation)
-
         try:
-            drive = self.turning.run(yaw_diff, self.state, position_vector, self.target_waypoint, current_orientation)
+            drive = self.active_controller.get_drive_command(self.target_waypoint, self.state, self.gate)
             self.__publish(drive['drive'], drive['steer'])
         except Exception as e:
             self.get_logger().warn(str(e))
-        if drive['steer']:
-            Controller.log_update("Controller Steering", self.target_waypoint, yaw_diff,
-                                  distance((self.state.x, self.state.y), self.target_waypoint))
-
-        else:
-            Controller.log_update("Controller Driving", self.target_waypoint, yaw_diff,
-                                  distance((self.state.x, self.state.y), self.target_waypoint))
 
     def control(self):
         """

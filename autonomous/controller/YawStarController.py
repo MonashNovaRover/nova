@@ -1,16 +1,15 @@
+__package__ = "autonomous"
 
 from math_utils.controller_math import *
 from config.runtime_params import *
+from controller.ControllerInterface import ControllerInterface
+import numpy as np
 
-
-class Turning:
+class YawStarController(ControllerInterface):
     def __init__(self, logger):
-
-        self.yaw_star = yaw_star_conf
-
+        self.target_waypoint = None
+        self.state = None
         self.logger = logger
-        # Normal turning params
-        self.previously_turned = False
 
         # yaw_star params
         self.MAX_YAW = np.pi / 7.5
@@ -21,39 +20,22 @@ class Turning:
         self.first_drive = True
         self.direction = -1
 
-    def run(self, yaw_diff, state, position_vector, target_waypoint, current_orientation):
+    def get_drive_command(self, target_waypoint, state, goal = None, gate = None):
         self.state = state
         self.target_waypoint = target_waypoint
-        if self.yaw_star:
-            drive = self.run_star(yaw_diff, position_vector, current_orientation)
-        else:
-            drive = self.run_normal(yaw_diff, position_vector)
+        position_vector = np.array([self.state.x, self.state.y, 0])
+        target_vector = np.array([self.target_waypoint[0], self.target_waypoint[1], 0])
+
+        desired_orientation = target_vector - position_vector
+        current_orientation = np.array([np.cos(self.state.yaw), np.sin(self.state.yaw), 0])
+
+        yaw_diff = yaw_difference(current_orientation, desired_orientation)
+        
+        drive = self.yaw_star(yaw_diff, position_vector, current_orientation)
+        self.log(drive)
         return drive
 
-    def run_normal(self, yaw_diff, position_vector):
-        if abs(yaw_diff) >= min_yaw_difference:
-            self.logger.info('Normal: turning, yaw_diff = ' + str(yaw_diff))
-            # turn at a rate determined by the tank_turn_target_yaw_rate function
-            steer_fraction = tank_turn_target_yaw_rate(yaw_diff)
-            drive_fraction = turn_drive_fraction
-            self.previously_turned = True
-
-        elif self.previously_turned:
-            self.logger.info('Normal: swap')
-            # need to send a zero wheel command after turning before we drive
-            steer_fraction = 0.0
-            drive_fraction = 0.0
-            self.previously_turned = False
-
-        else:
-            self.logger.info('Normal: driving')
-            # drive in straight line toward waypoint at determined velocity
-            drive_fraction = crow_fly_target_velocity((self.state.x, self.state.y), self.target_waypoint)
-            steer_fraction = 0.0
-
-        return {'steer': steer_fraction, 'drive': drive_fraction}
-
-    def run_star(self, yaw_diff, position_vector, current_orientation):
+    def yaw_star(self, yaw_diff, position_vector, current_orientation):
         steer_fraction = 0.0
         drive_fraction = 0.0
         self.logger.warn('Params ' + str(self.star_state) + ' ' + str(self.first_drive)+ ' '+ str(yaw_diff)) 
