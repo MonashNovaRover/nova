@@ -65,11 +65,7 @@ class FlatMapper(Mapper):
         above one another), but yaw and position transformations are done after obstacle
         detection, so the obstacle detection map can stay a consistent size and shape
         """
-<<<<<<< HEAD
         indexes = np.floor((points/self.detection_resolution)).astype(int)
-=======
-        indexes = (points/self.detection_resolution).round().astype(int)
->>>>>>> master
         indexes[:, 1] += (np.ceil(self.detection_width/2)).astype(int)
         return indexes
     
