@@ -10,6 +10,8 @@ max_yaw_rate = 5.0  # # what is a fair maximum yaw percent speed to turn
 
 min_yaw_difference = np.pi / 25.0  # this number has worked well for us so far
 
+dist_through_gate_m = 2 # the distance we drive through the gate before stopping
+
 slowdown_distance = 2.0 # don't use these ones either lol
 
 min_speed = 2.0   # todo: determine
