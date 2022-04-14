@@ -20,14 +20,55 @@ find_package(ament_cmake REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
+find_package(std_msgs REQUIRED)
 
 # Find default generators
 find_package(rosidl_default_generators REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
 
-# Include all messages, services and actions
+
+# Include all interfaces
 rosidl_generate_interfaces(${PROJECT_NAME}
-  "msg/TurtleInfo.msg"
+
+  # Message definitions
+  "msg/AlvarMarker.msg"
+  "msg/AlvarMarkers.msg"
+  "msg/ArmControlScheme.msg"
+  "msg/ArmInput.msg"
+  "msg/CamsConnected.msg"
+  "msg/CMDFeedback.msg"
+  "msg/DriveInput.msg"
+  "msg/DriveVel.msg"
+  "msg/HydraprobeData.msg"
+  "msg/InputGamepad.msg"
+  "msg/InputJoystick.msg"
+  "msg/Map2D.msg"
+  "msg/Point2D.msg"
+  "msg/RadioStatus.msg"
+  "msg/RoverPoseGPS.msg"
+  "msg/RoverPose.msg"
+  "msg/Waypoint.msg"
+  "msg/Waypoints.msg"
+  "msg/WheelData.msg"
+  "msg/AutonomousGoal.msg"
+
+  # Service definitions
+  "srv/CameraCommand.srv"
+  "srv/GimbalCommand.srv"
+  "srv/PIDTune.srv"
+  "srv/ScienceCommand.srv"
+  "srv/RFIDCommand.srv"
   "srv/LED.srv"
+
+  # Action definitions
+  DEPENDENCIES std_msgs geometry_msgs
+)
+
+# Add all the installation directories
+install(DIRECTORY
+  launch
+  DESTINATION share/${PROJECT_NAME}
 )
 
 # Run build testing package nodes

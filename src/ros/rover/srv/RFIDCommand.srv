@@ -1,0 +1,14 @@
+# RFID command service for specific commands
+# This service requires a response before it can perform another action
+
+# This is a string command of either
+# "read", "write", "clear"
+string command
+# this is a string containing data to write to the RFID tag when 
+# write command is used
+string data
+---
+
+# This is a string response either containing some error message, a success explanation
+# or the data read from the RFID tag (in the case of read commands)
+string response

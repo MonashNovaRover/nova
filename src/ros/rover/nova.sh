@@ -7,14 +7,18 @@
 # Core Repository Bash Script
 # This should be added to everyone's .bashrc file
 #       sudo echo "source ~/nova_ws/src/core" < ~/.bashrc
-# This will initialise all macros and set up ROS correctly
+# This will initialise all macros and set up ROS correctly.
 #
 # +--------------------------------------------+
 
-# Source the aliases
-source ~/nova_ws/src/core/macros/alias.sh
+# Sources the correct ROS bash file
+source ~/nova_ws/src/core/macros/ros.sh
 
-# Calls bash executions
-setup                                              # Sets up the bash file
-source /opt/ros/eloquent/setup.bash                # Sources ROS 2 Eloquent
-. ~/nova_ws/install/setup.bash                     # Runs the workspace setup file
+# appending to pythonpath for autonomous folders
+export PYTHONPATH=$PYTHONPATH:~/nova_ws/src/autonomous/autonomous
+export PYTHONPATH=$PYTHONPATH:~/nova_ws/src/gui/gui/
+
+# Source the aliases (if ROS 2)
+if [[ $ROS_VERSION -eq 2 ]]; then
+    source ~/nova_ws/src/core/macros/alias.sh
+fi
