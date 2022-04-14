@@ -1,3 +1,5 @@
+# Ros2 service message type for setting the LED colour
+# on the back of the rover for URC.
 uint8 r
 uint8 g
 uint8 b
