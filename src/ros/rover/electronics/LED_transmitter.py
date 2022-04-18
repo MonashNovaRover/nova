@@ -5,6 +5,10 @@ NOVA ROVER TEAM
 This script is a ros service that handles communicating commands to the LED Lights.
 Authors: Max Tory and Marcel Masque
 Last Modified: 14/04/2022 By Max Tory
+
+TODO: Add custom routines that do different light patterns and sequences - maybe we
+want to flash if disconnected etc. Gives us more options since we can't combine
+colours
 '''
 import rclpy
 from rclpy.node import Node
@@ -19,9 +23,6 @@ a callback function setting the colours.
      - for now is printed out to screen 
      - can bus not implemented
 
-Goal 2: whenever the rover is running, check the mode and update
-color on changes 
-     - check_update + callback?
 """
 class CanLEDCommunicator():
     """Handles communication with LED
@@ -36,10 +37,11 @@ class CanLEDCommunicator():
                 )
 
     def set_LED(self, r, g, b):
-        print(f"Setting LED to [R: {r}, G: {g}, B: {b}]")
-        """TODO: actually interface with CAN
         """
-        
+        Sends data to CAN bus to actually activate the LED array
+        """
+        print(f"Setting LED to [R: {r}, G: {g}, B: {b}]")
+
         packed_data = self.transmitter.pack([r, g, b])
         ret = self.transmitter.transmit(packed_data)
 
@@ -48,6 +50,7 @@ class CanLEDCommunicator():
 class LEDTransmitterServiceNode(Node, CanLEDCommunicator):
     """This class' job is to receive requests for setting the LED colour, and 
     passing the request on via CAN. 
+    Not currently used but may be useful
     """
     def __init__(self):
         super().__init__('LED_transceiver_node')
@@ -83,10 +86,19 @@ class LEDStatusUpdateNode(Node,CanLEDCommunicator):
         self.mode_colours = {
             LEDStatusUpdateNode.OFF: [0, 0, 0],
             LEDStatusUpdateNode.MANUAL: [0, 0, 255],
-            LEDStatusUpdateNode.AUTONOMOUS: [255, 127, 0],
+            LEDStatusUpdateNode.AUTONOMOUS: [255, 0, 0],
             LEDStatusUpdateNode.AUTO_GOAL_ACHIEVED: [0, 255, 0]
             LEDStatusUpdateNode.DISCONNECTED: [255, 0, 0]
         }
+
+        self.mode_functions = {
+            LEDStatusUpdateNode.OFF: self.show_mode_colour,
+            LEDStatusUpdateNode.MANUAL: self.show_mode_colour,
+            LEDStatusUpdateNode.AUTONOMOUS: self.show_mode_colour,
+            LEDStatusUpdateNode.AUTO_GOAL_ACHIEVED: self.show_mode_colour,
+            LEDStatusUpdateNode.DISCONNECTED: self.flash,
+    
+        self.flash_duration = 1.0   # 1 second per flash
 
         self.most_recent_update = time.perf_counter()
 
@@ -115,7 +127,7 @@ class LEDStatusUpdateNode(Node,CanLEDCommunicator):
             new_mode = LEDStatusUpdateNode.AUTONOMOUS
         if (new_mode != self.mode):
             self.mode = new_mode
-            self.update_LED_status()
+            self.show_mode_colour()
         self.most_recent_update = time.perf_counter()
 
     def get_mode_RGB(self):
@@ -123,21 +135,36 @@ class LEDStatusUpdateNode(Node,CanLEDCommunicator):
         """
         return self.mode_colours[self.mode]
 
-    def update_LED_status(self):
+    def show_mode_colour(self):
         """
         Asks the LED to update its colours when status changes occur
         """
         colours = self.get_mode_RGB()
         self.set_LED(*colours)
+
+    def display(self):
+        self.mode_functions[self.mode]()
           
+    def flash(self):
+        """
+        sets light to off for half the duration, and on for the second half
+        :param duration: time in seconds to cycle through a flash
+        """
+        off = [0, 0, 0]
+        self.set_LED(*off)              # Turn off
+        
+        time.sleep(self.flash_duration/2)
+        self.show_mode_colour()        # Turn back on
+        time.sleep(duration/2)
 
 def main (args = None):
     rclpy.init(args=args)
     service = LEDTransceiverServiceNode()
     LEDupdater = LEDStatusUpdateNode()
     while rclpy.ok():
-        LEDupdater.update_LED_status()
+        LEDupdater.display()
         rclpy.spin_once(service)
+        rclpy.spin_once(LEDupdater)
     service.destroy_node()
     rclpy.shutdown()
 
