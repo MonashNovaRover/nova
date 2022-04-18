@@ -11,6 +11,7 @@ from rclpy.node import Node
 from core.srv import LED
 from core.msg import InputGamepad
 from coms_utils.can_interface import CANTransmitter
+import time
 
 """
 Goal 1: get a request in the service, and execute
@@ -44,7 +45,7 @@ class CanLEDCommunicator():
 
         return ret  # for informing of errors
      
-class LEDTransceiverServiceNode(Node, CanLEDCommunicator):
+class LEDTransmitterServiceNode(Node, CanLEDCommunicator):
     """This class' job is to receive requests for setting the LED colour, and 
     passing the request on via CAN. 
     """
@@ -71,24 +72,34 @@ class LEDStatusUpdateNode(Node,CanLEDCommunicator):
     MANUAL = 1
     AUTONOMOUS = 2
     AUTO_GOAL_ACHIEVED = 3
+    DISCONNECTED = 4
     def __init__(self):
         super().__init__('LED_status_update_node')
         # these should not be here! they should be in a file/params? and then 
         # can be pulled here
         self.gamepad_input_subscriber = self.create_subscription("/control/input_gamepad", InputGamepad, self.gamepad_callback, 1)
+        self.qos_timer = self.create_timer(1.0, self.check_connection)
 
         self.mode_colours = {
             LEDStatusUpdateNode.OFF: [0, 0, 0],
-            LEDStatusUpdateNode.MANUL: [0, 0, 255],
-            LEDStatusUpdateNode.AUTONOMOUS: [255, 0, 0],
+            LEDStatusUpdateNode.MANUAL: [0, 0, 255],
+            LEDStatusUpdateNode.AUTONOMOUS: [255, 127, 0],
             LEDStatusUpdateNode.AUTO_GOAL_ACHIEVED: [0, 255, 0]
+            LEDStatusUpdateNode.DISCONNECTED: [255, 0, 0]
         }
+
+        self.most_recent_update = time.perf_counter()
 
         self.mode = LEDStatusUpdateNode.MANUAL
      
-    def get_rover_heartbeat(self):
-        heartbeat = True    # TODO actually get heartbeat
-        return heartbeat
+    def check_connection():
+        """
+        simple method called every second to check that the node has still
+        been receiving Gamepad messages
+        """
+        dt = time.perf_counter() - self.most_recent_update
+        if dt > 1:
+            self.mode = LEDStatusUpdateNode.DISCONNECTED
 
     def gamepad_callback(self, message):
         """
@@ -98,13 +109,14 @@ class LEDStatusUpdateNode(Node,CanLEDCommunicator):
         B = message.btn_b_state
         A = message.btn_a_state
 
-        if (B and B != 3):
+        if (B == 1 or B == 2):
             new_mode = LEDStatusUpdateNode.MANUAL
-        elif (A and A != 3):
+        elif (A == 1 or A == 2):
             new_mode = LEDStatusUpdateNode.AUTONOMOUS
         if (new_mode != self.mode):
             self.mode = new_mode
             self.update_LED_status()
+        self.most_recent_update = time.perf_counter()
 
     def get_mode_RGB(self):
         """Gets RGB for the mode
