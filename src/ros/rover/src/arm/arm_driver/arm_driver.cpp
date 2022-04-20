@@ -31,7 +31,7 @@ void ArmDriver::joint_velocities_deadline_callback()
 }
 
 // Receives the desired commands for the CMDs and sends to CMDs
-void ArmDriver::arm_input_callback (const core::msg::ArmInput::SharedPtr msg)
+void ArmDriver::endeffector_input_callback (const core::msg::EndEffectorInput::SharedPtr msg)
 {
     // First 6 joints are handled by joint_velocities_callback
 
@@ -45,9 +45,9 @@ void ArmDriver::arm_input_callback (const core::msg::ArmInput::SharedPtr msg)
     joints[7]->drive(msg->lunar_construction);
 }
 // Reset the internal state
-void ArmDriver::arm_input_deadline_callback()
+void ArmDriver::endeffector_input_deadline_callback()
 {
-    RCLCPP_WARN(this->get_logger(), "control/arm_input subscription deadline missed");
+    RCLCPP_WARN(this->get_logger(), "control/endeffector_input subscription deadline missed");
     // End effector
     joints[6]->drive(0);
     // Linear actuator
@@ -84,22 +84,22 @@ ArmDriver::ArmDriver() : Node("arm_driver")
     );
     
     // Creates the input subscription for the desired CMD commands (LC, EE, LA)
-    rclcpp::SubscriptionOptionsWithAllocator<std::allocator<void>> arm_input_options;
-    arm_input_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void{
-        this->arm_input_deadline_callback();
+    rclcpp::SubscriptionOptionsWithAllocator<std::allocator<void>> endeffector_input_options;
+    endeffector_input_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void{
+        thisendeffector();
     };
-    arm_input_subscription = this->create_subscription<core::msg::ArmInput>(
-        "/control/arm_input",
+    endeffector_input_subscription = this->create_subscription<core::msg::EndEffectorInput>(
+        "/control/endeffector_input",
         rclcpp::QoS(1).best_effort().deadline(200ms),
-        std::bind(&ArmDriver::arm_input_callback, this, _1),
-        arm_input_options
+        std::bind(&ArmDriver::endeffector_input_callback, this, _1),
+        endeffector_input_options
     );
     
 
     // Output set-up messages
     Print::title("ARM DRIVER");
     Print::print("Subscribed Topics:");
-    Print::print("/control/arm_input          [core/ArmInput]", 1);
+    Print::print("/control/endeffector_input  [core/EndeffectorInput]", 1);
     Print::print("/control/joint_velocities   [sensor_msgs/JointState]", 1);
     Print::print("Published Topics:");
     Print::print("", true);
