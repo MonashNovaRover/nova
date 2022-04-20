@@ -12,7 +12,7 @@ Whether to use PID or PWM is decided based on presence
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: arm_driver
 TOPICS:
-  - /control/arm_input      [ArmInput]                  [Subscribed]
+  - /control/endeffector_input   [EndEffectorInput]     [Subscribed]
   - /control/cmd_ouputs     [sensor_msgs/JointState]    [Subscribed]
 SERVICES: None
 ACTIONS:  None
@@ -20,7 +20,7 @@ ACTIONS:  None
 PACKAGE: 	control
 AUTHOR(S):  Jess Hepworth, Jory Braun
 CREATION:	03/12/2021
-EDITED:		03/03/2022
+EDITED:		20/04/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
  - create cmd_outputs message
@@ -31,7 +31,7 @@ TODO:
 // Include ROS packages
 #include "rclcpp/rclcpp.hpp"
 
-#include "core/msg/arm_input.hpp"
+#include "core/msg/endeffector_input.hpp"
 #include "sensor_msgs/msg/joint_state.hpp"
 
 #include "joint.h"
@@ -58,7 +58,7 @@ class ArmDriver : public rclcpp::Node {
     rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr joint_velocities_subscription;
 
     // Stores the subscriber to the desired actuator commands (bypassing control script for now)
-    rclcpp::Subscription<core::msg::ArmInput>::SharedPtr arm_input_subscription;
+    rclcpp::Subscription<core::msg::EndEffectorInput>::SharedPtr endeffector_input_subscription;
 
     // A vector of pointers to joint instances
     std::vector<Joint*> joints;
@@ -81,10 +81,10 @@ class ArmDriver : public rclcpp::Node {
     
     /// @brief      Callback function when input messages are received.
     /// @param      msg - A pointer to the input message
-    void arm_input_callback (const core::msg::ArmInput::SharedPtr msg);
-    /// @brief      Deadline callback for arm_inputs subscription
+    void endeffector_input_callback (const core::msg::EndEffectorInput::SharedPtr msg);
+    /// @brief      Deadline callback for endeffector_inputs subscription
     ///             Resets the internal state
-    void arm_input_deadline_callback();
+    void endeffector_input_deadline_callback();
 
     //------------------------------------------------------------//
     public:

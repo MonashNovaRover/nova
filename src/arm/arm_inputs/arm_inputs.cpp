@@ -90,10 +90,10 @@ void ArmInputs::joystick_deadline_callback()
 }
 
 // Publishes data on the arm input
-void ArmInputs::publish_arm_inputs ()
+void ArmInputs::publish_endeffector_inputs ()
 {
     // Create a new message
-    auto message = core::msg::ArmInput();
+    auto message = core::msg::EndEffectorInput();
 
     if (!control_scheme.joystick_lock){
         // First 6 joints are handled separately
@@ -115,7 +115,7 @@ void ArmInputs::publish_arm_inputs ()
     }
     
     // Publish the arm inputs
-    arm_publisher->publish(message);
+    endeffector_publisher->publish(message);
 }
 
 // Publishes joint velocity data
@@ -254,9 +254,9 @@ void ArmInputs::publish_control_scheme()
 // Main constructor that sets up the node
 ArmInputs::ArmInputs() : Node("arm_input")
 {
-    // Creates the arm inputs publisher
-    arm_publisher = this->create_publisher<core::msg::ArmInput>(
-        "/control/arm_input", rclcpp::QoS(1).best_effort().deadline(200ms)
+    // Creates the end effector inputs publisher
+    endeffector_publisher = this->create_publisher<core::msg::EndEffectorInput>(
+        "/control/endeffector_input", rclcpp::QoS(1).best_effort().deadline(200ms)
     );
 
     // Creates the joint velocity publisher
@@ -322,7 +322,7 @@ ArmInputs::ArmInputs() : Node("arm_input")
     Print::print("/control/input_joystick_l         [core/InputJoystick]", 1);
     Print::print("/control/input_joystick_r         [core/InputJoystick]", 1);
     Print::print("Published Topics:");
-    Print::print("/control/arm_input                [core/ArmInput]", 1);
+    Print::print("/control/endeffector_input        [core/EndEffectorInput]", 1);
     Print::print("/control/input_joint_velocities   [sensor_msgs/JointState]", 1);
     Print::print("/control/task_velocity            [sensor_msgs/TwistStamped]", 1);
     Print::print("/control/arm_control_scheme       [core/ArmControlScheme]", 1);
