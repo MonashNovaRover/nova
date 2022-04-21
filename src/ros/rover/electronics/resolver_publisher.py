@@ -152,7 +152,9 @@ class ResolverPublisher(Node):
         self._publisher = self.create_publisher(JointState, '/electronics/resolvers', 10)
         timer_period = 0.5  # TODO: Adjust as needed
         self.timer = self.create_timer(timer_period, self.publish)
-
+    
+        self.zero_service = self.service = self.create_service(ZeroCommand, "/electronics/resolver_zero_service", self.zero_callback)
+        
         self.resolver_transceiver = ResolverTransceiver(
                 receive_fmt = '<H',
                 transmit_fmt = '@B',
@@ -169,7 +171,20 @@ class ResolverPublisher(Node):
         # Initialise unused fields to have correct lengths for consistency
         self.resolver_state.velocity = [0.0] * len(joint_names)
         self.resolver_state.effort = [0.0] * len(joint_names)
+    
+    def zero_callback(self, request: ResolverZeroCommand.Request, response: ResolverZeroCommand.Response):
+        """
+        Callback for the resolver zero service
+        """
+        success = True
+        for name in request.joint_names:
+            result = self.zero(name)
+            if not result:
+                success = False
+        response.success = success
+        return response
 
+    
     def publish(self):
         '''
         callback to publish position of all joints
