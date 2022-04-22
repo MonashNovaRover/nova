@@ -14,7 +14,6 @@ AUTHOR(S):	Jory Braun
 #include "wrist_spm.h"
 #include "ee_equipment_servicing.h"
 #include "ee_extreme_retrieval.h"
-#include "ee_lunar_construction.h"
 
 // Helper function for defining joint_names and endpoint_names
 // Is static to this file, is not part of ArmModel
@@ -46,13 +45,10 @@ ArmModel::ArmModel(WristType wrist_type, EndEffectorType end_effector_type) : Tr
     ArmSubModule end_effector;
     switch (end_effector_type){
         case EE_EQUIPMENT_SERVICING:
-            end_effector = EeEquipmentServicingModel();
+            end_effector = EeEquipmentServicingModel(wrist_type);
         break;
         case EE_EXTREME_RETRIEVAL:
-            end_effector = EeExtremeRetrievalModel();
-        break;
-        case EE_LUNAR_CONSTRUCTION:
-            end_effector = EeLunarConstructionModel();
+            end_effector = EeExtremeRetrievalModel(wrist_type);
     }
 
     // Add all the modules to the tree
