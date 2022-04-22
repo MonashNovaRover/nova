@@ -56,11 +56,10 @@ class ArmModel : public KDL::Tree
     // Each end effector defines its own control points and any additional degrees of freedom
     typedef enum {
         EE_EQUIPMENT_SERVICING,
-        EE_EXTREME_RETRIEVAL,
-        EE_LUNAR_CONSTRUCTION
+        EE_EXTREME_RETRIEVAL
     } EndEffectorType;
 
-    // List names of all joints use for constructing JointState and MultiDOFJointState messages
+    // List names of all joints. Use for constructing JointState and MultiDOFJointState messages
     std::vector<std::string> joint_names;
     // List names of all endpoints (cameras and tips of end effectors) for constructing messages
     // Also used for IK and endpoint-frame-control
