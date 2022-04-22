@@ -8,7 +8,7 @@ This class simulates resolver feedback from operating the CMDs.
 It can be used in place of the arm_driver for when no physical
   arm is connected.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-NODE: arm_model
+NODE: resolver_spoofer
 TOPICS:
   - /control/joint_velocities  [sensor_msgs/JointState]    [Subscribed]
   - /electronics/resolvers     [sensor_msgs/JointState]    [Published]
