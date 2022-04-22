@@ -43,7 +43,7 @@ class LowerJointsModel : public ArmSubModule
     {
         // Initialise public members
         joint_names = std::vector<std::string> {"base-rotation", "shoulder", "elbow"};
-        // No control points
+        // No endpoints
         output_name = "sj3r";
         zero_angles = std::vector<double> {0, M_PI / 2, 0};
         joint_limits = std::vector<JointLimit> {
