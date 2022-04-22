@@ -23,7 +23,7 @@ TODO:
 */
 
 #include "arm_submodule.h"
-#include "arm_model.h"
+#include "../arm_configuration.h"
 
 
 class EeEquipmentServicingModel : public ArmSubModule
@@ -40,7 +40,7 @@ class EeEquipmentServicingModel : public ArmSubModule
     constexpr static double SPM_INTERFACE_OFFSET = 0;  // Update this value
 
     /// Constructor. Build the equipment servicing end effector
-    EeEquipmentServicingModel(ArmModel::WristType wrist_type = ArmModel::WRIST_CYCLOIDAL)
+    EeEquipmentServicingModel(ArmConfig::WristType wrist_type)
     {
         // Initialise public members
         // No joints
@@ -54,10 +54,10 @@ class EeEquipmentServicingModel : public ArmSubModule
         // Wrist interface
         double interface_offset;
         switch (wrist_type){
-            case ArmModel::WRIST_CYCLOIDAL:
+            case ArmConfig::WRIST_CYCLOIDAL:
                 interface_offset = CYCLOIDAL_INTERFACE_OFFSET;
             break;
-            case ArmModel::WRIST_SPM:
+            case ArmConfig::WRIST_SPM:
                 interface_offset = SPM_INTERFACE_OFFSET;
         }
         KDL::Joint interface = KDL::Joint("rigid-wirst-interface", KDL::Joint::None);

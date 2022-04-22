@@ -79,9 +79,7 @@ class ArmKinematics : public rclcpp::Node
     sensor_msgs::msg::MultiDOFJointState coord_frames;
 
     // Arm model and solvers
-    ArmModel::WristType wrist_type;
-    ArmModel::EndEffectorType end_effector_type;
-    ArmModel arm_model;
+    ArmModel* arm_model;
     // FK solver using KDL
     KDL::TreeFkSolverPos_recursive* arm_fk_solver;
     // IK solver using KDL

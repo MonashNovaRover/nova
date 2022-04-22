@@ -23,6 +23,7 @@ TODO:
 */
 
 #include "arm_submodule.h"
+#include "../arm_configuration.h"
 
 
 class EeExtremeRetrievalModel : public ArmSubModule
@@ -39,7 +40,7 @@ class EeExtremeRetrievalModel : public ArmSubModule
     constexpr static double SPM_INTERFACE_OFFSET = 0;  // Update this value
 
     /// Constructor. Build the extreme retrieval end effector
-    EeExtremeRetrievalModel(ArmModel::WristType wrist_type = ArmModel::WRIST_CYCLOIDAL)
+    EeExtremeRetrievalModel(ArmConfig::WristType wrist_type)
     {
         // Initialise public members
         // No joints
@@ -53,10 +54,10 @@ class EeExtremeRetrievalModel : public ArmSubModule
         // Wrist interface
         double interface_offset;
         switch (wrist_type){
-            case ArmModel::WRIST_CYCLOIDAL:
+            case ArmConfig::WRIST_CYCLOIDAL:
                 interface_offset = CYCLOIDAL_INTERFACE_OFFSET;
             break;
-            case ArmModel::WRIST_SPM:
+            case ArmConfig::WRIST_SPM:
                 interface_offset = SPM_INTERFACE_OFFSET;
         }
         KDL::Joint interface = KDL::Joint("rigid-wirst-interface", KDL::Joint::None);

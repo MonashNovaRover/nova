@@ -33,6 +33,7 @@ TODO:
 #include <string>
 
 #include "arm_submodule.h"
+#include "../arm_configuration.h"
 
 #include <kdl/tree.hpp>
 
@@ -41,23 +42,6 @@ class ArmModel : public KDL::Tree
 {
     //------------------------------------------------------------//
     public:
-
-    // Define all wrist types
-    // These represent KDL::Tree objects that attach at the output of the elbow joint
-    // The SPM wrist is replaced by an equivalent spherical serial manipulator (SSM) which includes End Rotation
-    // Each wrist defines its own control points representing end effector or camera poses and a hook location for an end effcetor
-    typedef enum {
-        WRIST_CYCLOIDAL,
-        WRIST_SPM
-    } WristType;
-
-    // Define all end effector types
-    // These represent KDL::Tree objects that attach at the hook location provided by the wrist
-    // Each end effector defines its own control points and any additional degrees of freedom
-    typedef enum {
-        EE_EQUIPMENT_SERVICING,
-        EE_EXTREME_RETRIEVAL
-    } EndEffectorType;
 
     // List names of all joints. Use for constructing JointState and MultiDOFJointState messages
     std::vector<std::string> joint_names;
@@ -72,6 +56,11 @@ class ArmModel : public KDL::Tree
     // List joint limits. Indexed to match joint_names
     std::vector<ArmSubModule::JointLimit> joint_limits;
     
-    /// Constructor. Builds the arm with the given wrist and end effector
-    ArmModel(WristType wrist_type = WRIST_CYCLOIDAL, EndEffectorType end_effector_type = EE_EQUIPMENT_SERVICING);
+    /// @brief  Constructor. Builds the arm with the given wrist and end effector.
+    ///         Builds the arm out of submodules, with separate modules for the lower joints, wrist and end effector.
+    ///         Different modules can be swapped out for another of the same type (eg: swap wrists)
+    ///         Each module represents a physical assembly that can be attached or detached to/from the arm.
+    ///         Each module is based on a KDL::Tree, and defines its own joints, segments, endpoints (cameras and end effectors) and joint limits.
+    ///         Each also includes a output 'hook' for attaching the next module to or for defining the arm default endpoint (end effector)
+    ArmModel(ArmConfig::WristType wrist_type, ArmConfig::EndEffectorType end_effector_type);
 };

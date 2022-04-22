@@ -1,6 +1,6 @@
 // Hacky defines to bypass arm modularity
-// Delete these after FK / IK is working on cycloidal wrist with ES end effector
-// Information will be set either by kinematics or input nodes
+// Information will be set either by kinematics or input nodes. Possibly using a service so other nodes can query for the info
+// Currently assumes the ES end effector
 
 #include <string>
 #include <vector>
