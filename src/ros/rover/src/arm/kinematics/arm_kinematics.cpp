@@ -12,6 +12,7 @@ AUTHOR(S):	Jory Braun
 #include <Eigen/Core>
 
 #include "arm_core.h"
+#include "../arm_configuration.h"
 #include "print/print.h"
 
 #define _USE_MATH_DEFINES
@@ -24,19 +25,17 @@ ArmKinematics::ArmKinematics() : Node("arm_kinematics")
     joint_velocities_timer_period = 50ms;
 
     // Initialise arm model
-    wrist_type = ArmModel::WRIST_CYCLOIDAL;
-    end_effector_type = ArmModel::EE_EQUIPMENT_SERVICING;
-    arm_model = ArmModel(wrist_type, end_effector_type);
+    arm_model = new ArmModel(ArmConfig::wrist_type, ArmConfig::end_effector_type);
     // Initialise arm kinematics solvers
-    arm_fk_solver = new KDL::TreeFkSolverPos_recursive(arm_model);
-    arm_ik_solver = new KDL::TreeIkSolverVel_wdls(arm_model, std::vector<std::string> {arm_model.default_endpoint_name});
+    arm_fk_solver = new KDL::TreeFkSolverPos_recursive(*arm_model);
+    arm_ik_solver = new KDL::TreeIkSolverVel_wdls(*arm_model, std::vector<std::string> {arm_model->default_endpoint_name});
 
     // Initialise arrays in internal data structures
     // Use data from the arm model
-    joints = ArmCore::get_empty_joint_state(arm_model.joint_names);
-    joint_space_joints = ArmCore::get_empty_joint_state(arm_model.joint_names);
+    joints = ArmCore::get_empty_joint_state(arm_model->joint_names);
+    joint_space_joints = ArmCore::get_empty_joint_state(arm_model->joint_names);
     // TwistStamped does not need to be initialised
-    coord_frames = ArmCore::get_empty_multi_dof_joint_state(arm_model.segment_names);
+    coord_frames = ArmCore::get_empty_multi_dof_joint_state(arm_model->segment_names);
     
     // Create subscription to arm control scheme
     control_scheme_sub = this->create_subscription<core::msg::ArmControlScheme>(
@@ -121,7 +120,7 @@ void ArmKinematics::input_joint_velocities_callback(const sensor_msgs::msg::Join
 void ArmKinematics::input_joint_velocities_deadline_callback()
 {
     RCLCPP_WARN(this->get_logger(), "control/input_joint_velocities subscription deadline missed");
-    joint_space_joints = ArmCore::get_empty_joint_state(arm_model.joint_names);
+    joint_space_joints = ArmCore::get_empty_joint_state(arm_model->joint_names);
 }
 
 // Update the internal task velocity
@@ -224,7 +223,7 @@ inline KDL::Twists ArmKinematics::get_control_twist()
         // eg: forward on the left joystick is +ve x, but should be +ve z in end effector coordinates
         KDL::Rotation joystick_input_transform = KDL::Rotation::EulerZYX(M_PI / 2, -M_PI / 2, 0);
         // Transform from end effector coordinates to base frame coordinates
-        KDL::Rotation endpoint_frame_transform = calculate_fk(arm_model.default_endpoint_name).M;
+        KDL::Rotation endpoint_frame_transform = calculate_fk(arm_model->default_endpoint_name).M;
         if (control_scheme.endpoint_frame_linear) {
             twist_linear = endpoint_frame_transform * joystick_input_transform * twist_linear;
         }
@@ -247,7 +246,7 @@ inline KDL::Twists ArmKinematics::get_control_twist()
     }
 
     // Compose into final twists
-    return KDL::Twists { {arm_model.default_endpoint_name, KDL::Twist (twist_linear, twist_angular)} };
+    return KDL::Twists { {arm_model->default_endpoint_name, KDL::Twist (twist_linear, twist_angular)} };
 }
 
 // Get the joint-space velocities of all joints on the arm for the given task velocity using inverse kinematics
@@ -302,8 +301,8 @@ void ArmKinematics::publish_joint_velocities()
         // If any joint hits a limit, stop all joints
         bool limit = false;
         for (unsigned int i = 0; i < joints.name.size(); i++) {
-            if ((joints.position[i] >= arm_model.joint_limits[i].upper && joints.velocity[i] > 0)
-                || (joints.position[i] <= arm_model.joint_limits[i].lower && joints.velocity[i] < 0)){
+            if ((joints.position[i] >= arm_model->joint_limits[i].upper && joints.velocity[i] > 0)
+                || (joints.position[i] <= arm_model->joint_limits[i].lower && joints.velocity[i] < 0)){
                 RCLCPP_WARN(this->get_logger(), "Joint %s has reached a limit", joints.name[i].c_str());
                 limit = true;
             }

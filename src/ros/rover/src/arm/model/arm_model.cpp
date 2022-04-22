@@ -24,7 +24,7 @@ static void append_to_vector(std::vector<T>& vec1, std::vector<T>& vec2)
 }
 
 
-ArmModel::ArmModel(WristType wrist_type, EndEffectorType end_effector_type) : Tree("sj0")
+ArmModel::ArmModel(ArmConfig::WristType wrist_type, ArmConfig::EndEffectorType end_effector_type) : Tree("sj0")
 {
     // Build the arm.
 
@@ -34,20 +34,20 @@ ArmModel::ArmModel(WristType wrist_type, EndEffectorType end_effector_type) : Tr
     // Create the wrist module
     ArmSubModule wrist;
     switch (wrist_type){
-        case WRIST_CYCLOIDAL:
+        case ArmConfig::WRIST_CYCLOIDAL:
             wrist = WristCycloidalModel();
         break;
-        case WRIST_SPM:
+        case ArmConfig::WRIST_SPM:
             wrist = WristSpmModel();
     }
     
     // Crete the end effector module
     ArmSubModule end_effector;
     switch (end_effector_type){
-        case EE_EQUIPMENT_SERVICING:
+        case ArmConfig::EE_EQUIPMENT_SERVICING:
             end_effector = EeEquipmentServicingModel(wrist_type);
         break;
-        case EE_EXTREME_RETRIEVAL:
+        case ArmConfig::EE_EXTREME_RETRIEVAL:
             end_effector = EeExtremeRetrievalModel(wrist_type);
     }
 
