@@ -45,7 +45,7 @@ class WristSpmModel : public ArmSubModule
     WristSpmModel()
     {
         // Initialise public members
-        joint_names = std::vector<std::string> {"jspmz", "jspmy", "jspmx", "jend"};
+        joint_names = std::vector<std::string> {"spmz", "spmy", "spmx", "end-rotation"};
         // No endpoints
         output_name = "sjend";
         zero_angles = std::vector<double> {0, -M_PI / 2, -M_PI / 2, -M_PI / 2};
