@@ -5,8 +5,12 @@
 Monash Nova Rover Team
 
 This class manages the KDL model of the arm.
-It handles integration of different arm and camera configurations.
-It does not compute any forward or inverse kinematics.
+The model encodes the structure of the arm including joints, frame transforms and endpoints (cameras and effectors)
+It handles integration of different arm configurations, including different wrists and end effectors.
+It does not compute any forward or inverse kinematics directly, though is used by KDL kineamtics solvers.
+
+The model is also used to inform the rest of the stack about what joints and frames are on the arm given the wrist
+and end effector used. This is used to construct appropriate message types for sharing arm info.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: None
 TOPICS: None
