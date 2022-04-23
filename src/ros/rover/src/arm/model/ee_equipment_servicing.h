@@ -37,7 +37,7 @@ class EeEquipmentServicingModel : public ArmSubModule
     // Parameters for wrist interfaces
     // Different values are used depending on what wrist is connected
     constexpr static double CYCLOIDAL_INTERFACE_OFFSET = 0;
-    constexpr static double SPM_INTERFACE_OFFSET = 0;  // Update this value
+    constexpr static double SPM_INTERFACE_OFFSET = 0.020;  // Update this value
 
     /// Constructor. Build the equipment servicing end effector
     EeEquipmentServicingModel(ArmConfig::WristType wrist_type)

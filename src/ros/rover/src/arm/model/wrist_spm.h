@@ -33,8 +33,8 @@ class WristSpmModel : public ArmSubModule
     // Parameters for arm model geometry
     // All distances in mm, all angles in rad
     constexpr static double ROOT_BASE_LINK_LENGTH = 0.500;  // Update this value once SPM is attached to the arm
-    constexpr static double CENTER_OFFSET = 0.04082;
-    constexpr static double OUTPUT_OFFSET = 0.04082;  // Check this value. Should account for end rotation
+    constexpr static double CENTER_OFFSET = 0.09176;
+    constexpr static double OUTPUT_OFFSET = 0.06373;
     
     /// Constructor. Build the SPM wrist
     WristSpmModel()
