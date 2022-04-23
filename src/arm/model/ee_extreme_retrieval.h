@@ -33,11 +33,11 @@ class EeExtremeRetrievalModel : public ArmSubModule
    
     // Parameters for arm model geometry
     // All distances in mm, all angles in rad
-    constexpr static double GRIPPER_OFFSET = 0.210;  // Update this value
+    constexpr static double GRIPPER_OFFSET = 0.16945;
     // Parameters for wrist interfaces
     // Different values are used depending on what wrist is connected
     constexpr static double CYCLOIDAL_INTERFACE_OFFSET = 0;
-    constexpr static double SPM_INTERFACE_OFFSET = 0;  // Update this value
+    constexpr static double SPM_INTERFACE_OFFSET = 0;
 
     /// Constructor. Build the extreme retrieval end effector
     EeExtremeRetrievalModel(ArmConfig::WristType wrist_type)
