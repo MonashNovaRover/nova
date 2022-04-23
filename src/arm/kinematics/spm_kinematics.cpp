@@ -166,14 +166,14 @@ float *SpmKinematics::v_to_rpy(float v[9], float prev_rpy[3])
     float theta_a[3];
     float theta_b[3];
     // finding 2 possible theta_y
-    float theta_a[1] = - asin(x[2]);
+    float theta_a[1] = asin(z[0]);
     float theta_b[1] = M_PI - theta_y_a;
     // finding corresponding angles of theta_x
-    float theta_a[0] = atan2(y[2]/cos(theta_y_a), z[2]/cos(theta_y_a));
-    float theta_b[0] = atan2(y[2]/cos(theta_y_b), z[2]/cos(theta_y_b));
+    float theta_a[0] = atan2(-z[1]/cos(theta_y_a), z[2]/cos(theta_y_a));
+    float theta_b[0] = atan2(-z[1]/cos(theta_y_b), z[2]/cos(theta_y_b));
     // finding corresponding angles of theta_z
-    float theta_a[2] = atan2(x[1]/cos(theta_y_a), x[0]/cos(theta_y_a));
-    float theta_b[2] = atan2(x[1]/cos(theta_y_b), x[0]/cos(theta_y_b));
+    float theta_a[2] = atan2(-y[0]/cos(theta_y_a), x[0]/cos(theta_y_a));
+    float theta_b[2] = atan2(-y[0]/cos(theta_y_b), x[0]/cos(theta_y_b));
     // choose between the solutions; select the one with smaller metric to previous Euler configuration
     static float rpy[3] = {0, 0, 0};
     if (euler_metric(theta_a, prev_rpy) < euler_metric(theta_b, prev_rpy)) {
@@ -198,17 +198,17 @@ float *SpmKinematics::rpy_to_v(float rpy[3])
     // convert into the axes of output frame
     float x[3] = {
         cos(theta_z) * cos(theta_y),
-        sin(theta_z) * cos(theta_y),
-        -sin(theta_y)
+        cos(theta_z) * sin(theta_y) * sin(theta_x) + sin(theta_z) * cos(theta_x),
+        -cos(theta_z) * sin(theta_y) * cos(theta_x) + sin(theta_z) * sin(theta_x)
     };
     float y[3] = {
-        cos(theta_z) * sin(theta_y) * sin(theta_x) - sin(theta_z) * cos(theta_x),
-        sin(theta_z) * sin(theta_y) * sin(theta_x) + cos(theta_z) * cos(theta_x),
-        cos(theta_y) * sin(theta_x)
+        -sin(theta_z) * cos(theta_y),
+        -sin(theta_z) * sin(theta_y) * sin(theta_x) + cos(theta_z) * cos(theta_x), 
+        sin(theta_z) * sin(theta_y) * cos(theta_x) + cos(theta_z) * sin(theta_x)
     };
     float z[3] = {
-        cos(theta_z) * sin(theta_y) * cos(theta_x) + sin(theta_z) * sin(theta_x),
-        sin(theta_z) * sin(theta_y) * cos(theta_x) - cos(theta_z) * sin(theta_x),
+        sin(theta_y),
+        -cos(theta_y) * sin(theta_x),
         cos(theta_y) * cos(theta_x)
     };
 
