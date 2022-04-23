@@ -35,25 +35,19 @@ class WristSpmModel : public ArmSubModule
     constexpr static double ROOT_BASE_LINK_LENGTH = 0.500;  // Update this value once SPM is attached to the arm
     constexpr static double CENTER_OFFSET = 0.04082;
     constexpr static double OUTPUT_OFFSET = 0.04082;  // Check this value. Should account for end rotation
-
-    constexpr static double ROOT_J4_LINK_LENGTH = 0.499;
-    constexpr static double J4_OFFSET = 0.09952;
-    constexpr static double J5_OFFSET = 0.1041;
-    constexpr static double J6_OFFSET = 0.1079;
     
     /// Constructor. Build the SPM wrist
     WristSpmModel()
     {
         // Initialise public members
-        joint_names = std::vector<std::string> {"spmz", "spmy", "spmx", "end-rotation"};
+        joint_names = std::vector<std::string> {"spmx", "spmy", "spmz-end-rotation"};
         // No endpoints
         output_name = "sjend";
-        zero_angles = std::vector<double> {0, -M_PI / 2, -M_PI / 2, -M_PI / 2};
+        zero_angles = std::vector<double> {M_PI / 2, M_PI / 2, 0};
         joint_limits = std::vector<JointLimit> {
             {-2 * M_PI, 2 * M_PI},  // No joint limiting
             {-2 * M_PI, 2 * M_PI},  // No joint limiting
             {-2 * M_PI, 2 * M_PI},  // No joint limiting
-            {-2 * M_PI, 2 * M_PI}  // No joint limiting
         };
 
         // Build the SPM wrist
@@ -63,26 +57,25 @@ class WristSpmModel : public ArmSubModule
         KDL::Frame fj3r2 = KDL::Frame::DH(ROOT_BASE_LINK_LENGTH, 0, 0, 0) * KDL::Frame::DH(0, -M_PI / 2, 0, -M_PI / 2);
         this->addSegment(KDL::Segment("sj3r2", j3r2, fj3r2), "root");
         
-        // SPM roll
-        // Also includes the translation from the base plate to the center of rotation
-        KDL::Joint jspmz = KDL::Joint(joint_names[0], KDL::Joint::RotZ);
-        KDL::Frame fjspmz = KDL::Frame::DH(0, -M_PI / 2, CENTER_OFFSET, zero_angles[0]);
-        this->addSegment(KDL::Segment("sjspmz", jspmz, fjspmz), "sj3r2");
-
-        // SPM yaw
-        KDL::Joint jspmy = KDL::Joint(joint_names[1], KDL::Joint::RotZ);
-        KDL::Frame fjspmy = KDL::Frame::DH(0, -M_PI / 2, 0, zero_angles[1]);
-        this->addSegment(KDL::Segment("sjspmy", jspmy, fjspmy), "sjspmz");
+        // Rigid link from SPM base plate to SPM spherical centre
+        KDL::Joint jspmr = KDL::Joint("rigid-base-to-center", KDL::Joint::None);
+        KDL::Frame fjspmr = KDL::Frame::DH(0, M_PI / 2, CENTER_OFFSET, M_PI / 2);
+        this->addSegment(KDL::Segment("sjspmr", jspmr, fjspmr), "sj3r2");
 
         // SPM pitch
-        KDL::Joint jspmx = KDL::Joint(joint_names[2], KDL::Joint::RotZ);
-        KDL::Frame fjspmx = KDL::Frame::DH(0, -M_PI / 2, 0, zero_angles[2]);
-        this->addSegment(KDL::Segment("sjspmx", jspmx, fjspmx), "sjspmy");
+        KDL::Joint jspmx = KDL::Joint(joint_names[0], KDL::Joint::RotZ);
+        KDL::Frame fjspmx = KDL::Frame::DH(0, M_PI / 2, 0, zero_angles[0]);
+        this->addSegment(KDL::Segment("sjspmx", jspmx, fjspmx), "sjspmr");
+        
+        // SPM yaw
+        KDL::Joint jspmy = KDL::Joint(joint_names[1], KDL::Joint::RotZ);
+        KDL::Frame fjspmy = KDL::Frame::DH(0, M_PI / 2, 0, zero_angles[1]);
+        this->addSegment(KDL::Segment("sjspmy", jspmy, fjspmy), "sjspmx");
 
-        // End rotation
-        KDL::Joint jend = KDL::Joint(joint_names[3], KDL::Joint::RotZ);
-        KDL::Frame fjend = KDL::Frame::DH(0, 0, OUTPUT_OFFSET, zero_angles[3]);
-        this->addSegment(KDL::Segment("sjend", jend, fjend), "sjspmx");
+        // SPM roll and end rotation
+        KDL::Joint jend = KDL::Joint(joint_names[2], KDL::Joint::RotZ);
+        KDL::Frame fjend = KDL::Frame::DH(0, 0, OUTPUT_OFFSET, zero_angles[2]);
+        this->addSegment(KDL::Segment("sjend", jend, fjend), "sjspmy");
     }
 
 };
