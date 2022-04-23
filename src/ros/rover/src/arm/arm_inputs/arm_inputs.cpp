@@ -103,17 +103,6 @@ void ArmInputs::publish_endeffector_inputs ()
         message.end_effector_actuation = calculate_direction(joystick_r.ax_thumb_x) * 0.95;
     }
     
-    // Set the values for lunar construction
-    if (joystick_l.btn_thumb_u_state == 2) {
-        message.lunar_construction = 0.95;
-    }
-    else if (joystick_r.btn_thumb_u_state == 2) {
-        message.lunar_construction = -0.95;
-    }
-    else {
-        message.lunar_construction = 0;
-    }
-    
     // Publish the arm inputs
     endeffector_publisher->publish(message);
 }
@@ -252,7 +241,7 @@ void ArmInputs::publish_control_scheme()
 
 
 // Main constructor that sets up the node
-ArmInputs::ArmInputs() : Node("arm_input")
+ArmInputs::ArmInputs() : Node("arm_inputs")
 {
     // Creates the end effector inputs publisher
     endeffector_publisher = this->create_publisher<core::msg::EndEffectorInput>(

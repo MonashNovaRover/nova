@@ -12,8 +12,8 @@ Whether to use PID or PWM is decided based on presence
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: arm_driver
 TOPICS:
-  - /control/endeffector_input   [EndEffectorInput]     [Subscribed]
-  - /control/cmd_ouputs     [sensor_msgs/JointState]    [Subscribed]
+  - /control/endeffector_input   [EndEffectorInput]          [Subscribed]
+  - /control/cmd_ouputs          [sensor_msgs/JointState]    [Subscribed]
 SERVICES: None
 ACTIONS:  None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
