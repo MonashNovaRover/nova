@@ -41,8 +41,6 @@ void ArmDriver::endeffector_input_callback (const core::msg::EndEffectorInput::S
     // Linear actuator
     joints[6]->set_linear_actuator(msg->linear_actuation);
 
-    // Lunar construction
-    joints[7]->drive(msg->lunar_construction);
 }
 // Reset the internal state
 void ArmDriver::endeffector_input_deadline_callback()
@@ -52,8 +50,6 @@ void ArmDriver::endeffector_input_deadline_callback()
     joints[6]->drive(0);
     // Linear actuator
     joints[6]->set_linear_actuator(0);
-    // Lunar construction
-    joints[7]->drive(0);
 }
 
 // Main constructor that sets up the node
@@ -63,7 +59,7 @@ ArmDriver::ArmDriver() : Node("arm_driver")
     // For now just hardcode for the cycloidal wrist and ES end effector
     // Eventually make this into a std::map and idenitfy particular joints based on their name instead of their position
     joints = std::vector<Joint*> (8);
-    // Seventh CMD is end effector actuation, eighth is lunar construction
+    // Seventh CMD is end effector actuation
     CMD_drive_mode = std::vector<CMDCommand> {PID, PID, PID, PID, PID, PID, PWM, PWM};
     CMD_direction = std::vector<bool> {1, 1, 0, 0, 0, 0, 0, 0};
 
@@ -86,7 +82,7 @@ ArmDriver::ArmDriver() : Node("arm_driver")
     // Creates the input subscription for the desired CMD commands (LC, EE, LA)
     rclcpp::SubscriptionOptionsWithAllocator<std::allocator<void>> endeffector_input_options;
     endeffector_input_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void{
-        thisendeffector();
+        this->endeffector_input_deadline_callback();
     };
     endeffector_input_subscription = this->create_subscription<core::msg::EndEffectorInput>(
         "/control/endeffector_input",
