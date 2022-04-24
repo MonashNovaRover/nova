@@ -244,6 +244,14 @@ void ArmInputs::publish_control_scheme()
         base_frame_offset = 1;
     }
     control_scheme.base_frame_offset = base_frame_offset;
+
+    // Set SPM roll handling
+    if (joystick_r.btn_thumb_u_state == 2){
+        control_scheme.use_spm_roll = true;
+    }
+    else {
+        control_scheme.use_spm_roll = false;
+    }
     
     // Set the header and publish
     control_scheme.header.stamp = this->now();
