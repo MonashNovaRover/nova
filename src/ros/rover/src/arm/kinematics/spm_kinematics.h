@@ -82,9 +82,9 @@ class SpmKinematics
 
     // Spm specific functions
     /// @brief  Function for spm fk, to solve the nonlinear system of 9 equations
-    ///         Takes in vector of w = {w1x w1y w1z w2x w2y w2z w3x w3y w3z}, and a guess vector for v
+    ///         Takes in vector of w = {w1x w1y w1z w2x w2y w2z w3x w3y w3z}, cos of alpha2, cos of alpha3, and a guess vector for v, and error margin
     ///         Outputs vector of v = {v1x v1y v1z v2x v2y v2z v3x v3y v3z}
-    std::vector<double> fk_system_solve(std::vector<double> w, std::vector<double> v_guess);
+    std::vector<double> nonlinear_solve(std::vector<double> w, double cos_a2, double cos_a3, std::vector<double> v_guess, double error_margin);
 
     /// @brief  Function to integrate RPY
     ///         Takes in vector of current RPY, vector of desired RPY_VELOCITIES, and timestep
@@ -115,7 +115,7 @@ class SpmKinematics
     /// @brief  Function for spm fk
     ///         Takes in vector of wrist joint positions
     ///         Outputs vector of RPY
-    ///         Calls v_to_rpy(), and fk_system_solve() functions in the process
+    ///         Calls v_to_rpy(), and nonlinear_solve() functions in the process
     std::vector<double> spm_fk(std::vector<double> current_wrist_joint_pos);
 
     /// @brief  Function for spm ik
