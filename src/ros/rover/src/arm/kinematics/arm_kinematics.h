@@ -20,13 +20,14 @@ TOPICS:
   - /control/input_joint_velocities    [sensor_msgs/JointState]          [Subscribed]
   - /control/arm_coord_frames          [sensor_msgs/MultiDOFJointState]  [Published]
   - /control/joint_velocities          [sensor_msgs/JointState]          [Published]
-SERVICES: None
+SERVICES:
+  - /control/arm_model_config          [core/ArmModelConfig]             [Server]
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	 control
 AUTHOR(S): Jory Braun
 CREATION:	 11/12/2021
-EDITED:		 23/04/2022
+EDITED:		 25/04/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
  - 
@@ -40,6 +41,8 @@ TODO:
 #include "sensor_msgs/msg/joint_state.hpp"
 #include "geometry_msgs/msg/twist_stamped.hpp"
 #include "sensor_msgs/msg/multi_dof_joint_state.hpp"
+// Include service types
+#include "core/srv/arm_model_config.hpp"
 
 // Include libraries
 #include "arm_model.h"
@@ -52,6 +55,7 @@ TODO:
 using namespace std::chrono_literals;
 // For subscribers
 using std::placeholders::_1;
+using std::placeholders::_2;
 
 /* 
 Class which models the arm.
@@ -103,6 +107,9 @@ class ArmKinematics : public rclcpp::Node
     rclcpp::TimerBase::SharedPtr joint_velocities_timer;
     rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr joint_velocities_pub;
 
+    // Service for /control/arm_model_config
+    rclcpp::Service<core::srv::ArmModelConfig>::SharedPtr arm_model_config_service;
+
     /// @brief  Callback for control scheme subscription
     ///         Updates the internal control scheme, which is used to determine how to solve IK
     void control_scheme_callback(const core::msg::ArmControlScheme::SharedPtr msg);
@@ -153,6 +160,13 @@ class ArmKinematics : public rclcpp::Node
     /// @brief  Callback for joint_velocities publihser timer
     ///         Calculates the joint velocities from joint-space and task-space input, publishes to joint_velocities
     void publish_joint_velocities();
+
+    /// @brief  Callback for arm model config service
+    ///         Returns details of the arm model
+    void arm_model_config_callback(
+        const std::shared_ptr<core::srv::ArmModelConfig::Request> request,
+        std::shared_ptr<core::srv::ArmModelConfig::Response> response
+    );
     
     //------------------------------------------------------------//
     public:

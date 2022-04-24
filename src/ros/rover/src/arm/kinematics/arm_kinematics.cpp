@@ -88,6 +88,11 @@ ArmKinematics::ArmKinematics() : Node("arm_kinematics")
         "/control/joint_velocities", rclcpp::QoS(1).best_effort().deadline(200ms)
     );
 
+    // Create service for arm_model_config
+    arm_model_config_service = this->create_service<core::srv::ArmModelConfig>(
+        "/control/arm_model_config", std::bind(&ArmKinematics::arm_model_config_callback, this, _1, _2)
+    );
+
     // Output set-up messages
     Print::title("ARM KINEMATICS");
     Print::print("Subscribed Topics:");
@@ -344,6 +349,29 @@ void ArmKinematics::publish_joint_velocities()
     joints.header.stamp = this->now();
     // Publish the message
     joint_velocities_pub->publish(joints);
+}
+
+// Return details of the arm model
+void ArmKinematics::arm_model_config_callback(
+    __attribute__((unused)) const std::shared_ptr<core::srv::ArmModelConfig::Request> request,
+    std::shared_ptr<core::srv::ArmModelConfig::Response> response
+)
+{
+    // Store names of relevant model features
+    response->joint_names = arm_model->joint_names;
+    response->endpoint_names = arm_model->endpoint_names;
+    response->default_endpoint_name = arm_model->default_endpoint_name;
+    response->segment_names = arm_model->segment_names;
+
+    // Store joint limits
+    std::vector<float> joint_limits_lower (arm_model->joint_limits.size());
+    std::vector<float> joint_limits_upper (arm_model->joint_limits.size());
+    for (unsigned int i = 0; i < arm_model->joint_limits.size(); i++) {
+        joint_limits_lower[i] = arm_model->joint_limits[i].lower;
+        joint_limits_upper[i] = arm_model->joint_limits[i].upper;
+    }
+    response->joint_limits_lower = joint_limits_lower;
+    response->joint_limits_upper = joint_limits_upper;
 }
 
 //  Main function called when the script execution begins
