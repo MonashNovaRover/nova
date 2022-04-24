@@ -41,61 +41,14 @@ class SpmKinematics
     // Track internal state
     const int num_base_joints = 3;
     std::vector<double> current_rpy_pos = {0, 0, 0};
-    std::vector<double> previous_rpy_pos;
+    std::vector<double> previous_rpy_pos = {0, 0, 0};
     // Resolvers; current wrist joint positions
     double current_wrist_joint_pos[3];
     // desired RPY velocities from control/joint_velocities
     double desired_rpy_vel[3];
-    
-    //------------------------------------------------------------//
-    public:
 
-    /// Constructor. Initialisers the solvers and starts the node
-    SpmKinematics();
 
-    /// @brief  Ultimate solver function for spm kinematics
-    ///         Takes in current wrist joint positions (resolvers), and desired rpy velocities, and timestep
-    ///         Outputs desired wrist joint velocities
-    ///         Or can be accessed in arm_kinematics.cpp
-    ///         Calls numerous functions below in the process
-    std::vector<double> solve(std::vector<double> current_wrist_joint_pos, std::vector<double> desired_rpy_vel, int time_step);
-
-    /// @brief  Function for spm fk
-    ///         Takes in vector of wrist joint positions
-    ///         Outputs vector of RPY
-    ///         Calls v_to_rpy() function in the process
-    std::vector<double> spm_fk(std::vector<double> current_wrist_joint_pos);
-
-    /// @brief  Function for spm ik
-    ///         Takes in vector of desired RPY
-    ///         Outputs vector of desired wrist joint positions
-    ///         Calls rpy_to_v() function in the process
-    std::vector<double> spm_ik(std::vector<double> desired_rpy_pos);
-
-    /// @brief  Function to integrate RPY
-    ///         Takes in vector of current RPY, vector of desired RPY_VELOCITIES, and timestep
-    ///         Outputs vector of desired RPY
-    std::vector<double> rpy_integrator(std::vector<double> current_rpy, std::vector<double> desired_rpy_vel, int time_step);
-
-    /// @brief  Function to differentiate wrist joint position
-    ///         Takes in vector of desired wrist joint positions, current wrist joint positions, and timestep
-    ///         Outputs vector of desired wrist joint velocities
-    std::vector<double> joint_differentiator(
-        std::vector<double> desired_wrist_joint_pos, std::vector<double> current_wrist_joint_pos, int time_step
-    );
-    
-    /// @brief  Function for spm fk
-    ///         Takes in a vector representing v1x, v1y, v1z, v2x, v2y, v2z, v3x, v3y, v3z, also takes in previous rpy
-    ///         Outputs vector of RPY
-    ///         Called by spm_fk()
-    std::vector<double> v_to_rpy(std::vector<double> v, std::vector<double> prev_rpy);
-
-    /// @brief  Function for spm ik
-    ///         Takes in a vector of RPY
-    ///         Outputs vector representing v1x, v1y, v1z, v2x, v2y, v2z, v3x, v3y, v3z
-    ///         Called by spm_ik()
-    std::vector<double> rpy_to_v(std::vector<double> rpy);
-
+    // Convenience maths functions
     /// @brief  Mathematics function for vector addition
     std::vector<double> vector_addition(std::vector<double> x, std::vector<double> y);
 
@@ -113,4 +66,61 @@ class SpmKinematics
 
     /// @brief  Mathematics function for finding a custom metric between euler configurations
     double euler_metric(std::vector<double> theta_a, std::vector<double> theta_b);
+
+    
+    /// @brief  Function for spm fk
+    ///         Takes in a vector representing v1x, v1y, v1z, v2x, v2y, v2z, v3x, v3y, v3z, also takes in previous rpy
+    ///         Outputs vector of RPY
+    ///         Called by spm_fk()
+    std::vector<double> v_to_rpy(std::vector<double> v, std::vector<double> prev_rpy);
+
+    /// @brief  Function for spm ik
+    ///         Takes in a vector of RPY
+    ///         Outputs vector representing v1x, v1y, v1z, v2x, v2y, v2z, v3x, v3y, v3z
+    ///         Called by spm_ik()
+    std::vector<double> rpy_to_v(std::vector<double> rpy);
+
+    // Spm specific functions
+    /// @brief  Function for spm fk, to solve the nonlinear system of 9 equations
+    ///         Takes in vector of w = {w1x w1y w1z w2x w2y w2z w3x w3y w3z}, and a guess vector for v
+    ///         Outputs vector of v = {v1x v1y v1z v2x v2y v2z v3x v3y v3z}
+    std::vector<double> fk_system_solve(std::vector<double> w, std::vector<double> v_guess);
+
+    /// @brief  Function to integrate RPY
+    ///         Takes in vector of current RPY, vector of desired RPY_VELOCITIES, and timestep
+    ///         Outputs vector of desired RPY
+    std::vector<double> rpy_integrator(std::vector<double> current_rpy, std::vector<double> desired_rpy_vel, int time_step);
+
+    /// @brief  Function to differentiate wrist joint position
+    ///         Takes in vector of desired wrist joint positions, current wrist joint positions, and timestep
+    ///         Outputs vector of desired wrist joint velocities
+    std::vector<double> joint_differentiator(
+        std::vector<double> desired_wrist_joint_pos, std::vector<double> current_wrist_joint_pos, int time_step
+    );
+    
+
+    //------------------------------------------------------------//
+    public:
+
+    /// Constructor. Initialisers the solvers and starts the node
+    SpmKinematics();
+
+    /// @brief  Ultimate solver function for spm kinematics
+    ///         Takes in current wrist joint positions (resolvers), and desired rpy velocities, and timestep
+    ///         Outputs desired wrist joint velocities
+    ///         Or can be accessed in arm_kinematics.cpp
+    ///         Calls numerous functions below in the process
+    std::vector<double> solve(std::vector<double> current_wrist_joint_pos, std::vector<double> desired_rpy_vel, int time_step);
+
+    /// @brief  Function for spm fk
+    ///         Takes in vector of wrist joint positions
+    ///         Outputs vector of RPY
+    ///         Calls v_to_rpy(), and fk_system_solve() functions in the process
+    std::vector<double> spm_fk(std::vector<double> current_wrist_joint_pos);
+
+    /// @brief  Function for spm ik
+    ///         Takes in vector of desired RPY
+    ///         Outputs vector of desired wrist joint positions
+    ///         Calls rpy_to_v() function in the process
+    std::vector<double> spm_ik(std::vector<double> desired_rpy_pos);
 };
