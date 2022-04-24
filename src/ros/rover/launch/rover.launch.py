@@ -32,5 +32,5 @@ def generate_launch_description():
         launch_ros.actions.Node(
             package='electronics', node_executable='rfid_service.py', output='screen'),
 	launch_ros.actions.Node(
-	    package='ros2-imu-bno055',  node_executable='ros2-imu-bno055', output='screen'),
+	    package='imu',  node_executable='imu_node', output='screen'),
     ])
