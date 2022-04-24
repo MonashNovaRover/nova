@@ -54,6 +54,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/AutonomousGoal.msg"
 
   # Service definitions
+  "srv/ArmModelConfig.srv"
   "srv/CameraCommand.srv"
   "srv/GimbalCommand.srv"
   "srv/PIDTune.srv"
