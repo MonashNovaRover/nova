@@ -162,9 +162,56 @@ std::vector<double> SpmKinematics::rpy_to_v(std::vector<double> rpy)
 }
 
 // solve nonlinear system of equations from fk
-std::vector<double> SpmKinematics::fk_system_solve(std::vector<double> w, std::vector<double> v_guess)
+std::vector<double> SpmKinematics::nonlinear_solve(std::vector<double> w, double cos_a2, double cos_a3, std::vector<double> v_guess, double error_margin)
 {
+    //Create vector for initial guess
+    Eigen::VectorXd v {{v_guess[0], v_guess[1], v_guess[2], v_guess[3], v_guess[4], v_guess[5], v_guess[6], v_guess[7], v_guess[8]}};
+    //Create first Function output
+    Eigen::VectorXd F {{
+        w[0]*v[0] + w[1]*v[1] + w[2]*v[2] - cos_a2,
+        w[3]*v[3] + w[4]*v[4] + w[5]*v[5] - cos_a2,
+        w[6]*v[6] + w[7]*v[7] + w[8]*v[8] - cos_a2,
+        v[0]*v[3] + v[1]*v[4] + v[2]*v[5] - cos_a3,
+        v[0]*v[6] + v[1]*v[7] + v[2]*v[8] - cos_a3,
+        v[3]*v[3] + v[4]*v[4] + v[5]*v[5] - cos_a3,
+        v[0]*v[0] + v[1]*v[1] + v[2]*v[2] - 1,
+        v[3]*v[3] + v[4]*v[4] + v[5]*v[5] - 1,
+        v[6]*v[6] + v[7]*v[7] + v[8]*v[8] - 1
+    }};
 
+    //Main loop of solver
+    while (F.norm() > error_margin) {
+        //Find Jacobian for previous v
+        Eigen::Matrix<double, 9, 9> J {
+            {w[0], w[1], w[2], 0, 0, 0, 0, 0, 0},
+            {0, 0, 0, w[3], w[4], w[5], 0, 0, 0},
+            {0, 0, 0, 0, 0, 0, w[6], w[7], w[8]},
+            {v[3], v[4], v[5], v[0], v[1], v[2], 0, 0, 0},
+            {v[6], v[7], v[8], 0, 0, 0, v[0], v[1], v[2]},
+            {0, 0, 0, v[6], v[7], v[8], v[3], v[4], v[5]},
+            {2*v[0], 2*v[1], 2*v[2], 0, 0, 0, 0, 0, 0},
+            {0, 0, 0, 2*v[3], 2*v[4], 2*v[5], 0, 0, 0},
+            {0, 0, 0, 0, 0, 0, 2*v[6], 2*v[7], 2*v[8]}
+        };
+        //Find y for previous v
+        Eigen::VectorXd y(9);
+        y = J.colPivHouseholderQr().solve(F);
+        //Find new v
+        v += y;
+        //Find new function output
+        F[0] = w[0]*v[0] + w[1]*v[1] + w[2]*v[2] - cos_a2;
+        F[1] = w[3]*v[3] + w[4]*v[4] + w[5]*v[5] - cos_a2;
+        F[2] = w[6]*v[6] + w[7]*v[7] + w[8]*v[8] - cos_a2;
+        F[3] = v[0]*v[3] + v[1]*v[4] + v[2]*v[5] - cos_a3;
+        F[4] = v[0]*v[6] + v[1]*v[7] + v[2]*v[8] - cos_a3;
+        F[5] = v[3]*v[3] + v[4]*v[4] + v[5]*v[5] - cos_a3;
+        F[6] = v[0]*v[0] + v[1]*v[1] + v[2]*v[2] - 1;
+        F[7] = v[3]*v[3] + v[4]*v[4] + v[5]*v[5] - 1;
+        F[8] = v[6]*v[6] + v[7]*v[7] + v[8]*v[8] - 1;
+    }
+
+    //Create output vector
+    std::vector<double> v_output = {v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7], v[8]};
 }
 
 
@@ -232,7 +279,7 @@ std::vector<double> SpmKinematics::spm_fk(std::vector<double> current_wrist_join
     }
 
     // solve system of nonlinear equations
-    std::vector<double> v = fk_system_solve(w, v_guess);
+    std::vector<double> v = nonlinear_solve(w, cos(alpha[1]), cos(alpha[2]), v_guess, 0.0001);
 
     //convert v vectors to rpy
     return v_to_rpy(v, previous_rpy_pos);
@@ -241,6 +288,7 @@ std::vector<double> SpmKinematics::spm_fk(std::vector<double> current_wrist_join
 // perform spm position ik
 std::vector<double> SpmKinematics::spm_ik(std::vector<double> desired_rpy_pos)
 {
+    // initialise output
     std::vector<double> theta = {0, 0, 0};
     // convert rpy to v
     std::vector<double> v = rpy_to_v(desired_rpy_pos);
