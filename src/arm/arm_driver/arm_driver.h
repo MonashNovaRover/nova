@@ -12,10 +12,10 @@ Whether to use PID or PWM is decided based on presence
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: arm_driver
 TOPICS:
-  - /control/arm_input          [ArmInput]                  [Subscribed]
-  - /control/cmd_ouputs         [sensor_msgs/JointState]    [Subscribed]
+  - /control/endeffector_input   [EndEffectorInput]          [Subscribed]
+  - /control/cmd_ouputs          [sensor_msgs/JointState]    [Subscribed]
 SERVICES:
-  - /control/arm_config_info    [core/ArmConfigInfo]        [Client]
+  - /control/arm_config_info     [core/ArmConfigInfo]        [Client]
 ACTIONS:  None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	control
@@ -31,7 +31,7 @@ TODO:
 // Include ROS client library
 #include "rclcpp/rclcpp.hpp"
 // Include message types
-#include "core/msg/arm_input.hpp"
+#include "core/msg/end_effector_input.hpp"
 #include "sensor_msgs/msg/joint_state.hpp"
 // Include service types
 #include "core/srv/arm_config_info.hpp"
@@ -60,8 +60,8 @@ class ArmDriver : public rclcpp::Node {
     // Stores the subscriber to the desired joint velocities
     rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr joint_velocities_subscription;
 
-    // Stores the subscriber to the desired actuator commands (bypassing control script for now)
-    rclcpp::Subscription<core::msg::ArmInput>::SharedPtr arm_input_subscription;
+    // Stores the subscriber to the desired actuator commands
+    rclcpp::Subscription<core::msg::EndEffectorInput>::SharedPtr endeffector_input_subscription;
 
     // Service client for /control/arm_config_info
     core::srv::ArmConfigInfo::Response::SharedPtr arm_config_info;
@@ -85,10 +85,10 @@ class ArmDriver : public rclcpp::Node {
     
     /// @brief      Callback function when input messages are received.
     /// @param      msg - A pointer to the input message
-    void arm_input_callback (const core::msg::ArmInput::SharedPtr msg);
-    /// @brief      Deadline callback for arm_inputs subscription
+    void endeffector_input_callback (const core::msg::EndEffectorInput::SharedPtr msg);
+    /// @brief      Deadline callback for endeffector_inputs subscription
     ///             Resets the internal state
-    void arm_input_deadline_callback();
+    void endeffector_input_deadline_callback();
 
     //------------------------------------------------------------//
     public:
