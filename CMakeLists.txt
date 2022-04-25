@@ -35,7 +35,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/AlvarMarker.msg"
   "msg/AlvarMarkers.msg"
   "msg/ArmControlScheme.msg"
-  "msg/ArmInput.msg"
+  "msg/EndEffectorInput.msg"
   "msg/CamsConnected.msg"
   "msg/CMDFeedback.msg"
   "msg/DriveInput.msg"
