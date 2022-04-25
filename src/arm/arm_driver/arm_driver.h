@@ -31,7 +31,7 @@ TODO:
 // Include ROS packages
 #include "rclcpp/rclcpp.hpp"
 
-#include "core/msg/endeffector_input.hpp"
+#include "core/msg/end_effector_input.hpp"
 #include "sensor_msgs/msg/joint_state.hpp"
 
 #include "joint.h"
@@ -57,7 +57,7 @@ class ArmDriver : public rclcpp::Node {
     // Stores the subscriber to the desired joint velocities
     rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr joint_velocities_subscription;
 
-    // Stores the subscriber to the desired actuator commands (bypassing control script for now)
+    // Stores the subscriber to the desired actuator commands
     rclcpp::Subscription<core::msg::EndEffectorInput>::SharedPtr endeffector_input_subscription;
 
     // A vector of pointers to joint instances

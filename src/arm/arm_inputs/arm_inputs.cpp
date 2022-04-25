@@ -282,7 +282,7 @@ ArmInputs::ArmInputs() : Node("arm_inputs")
     );
 
     // Creates a timer function that runs a function on loop every 0.05 seconds
-    timer = this->create_wall_timer(50ms, std::bind(&ArmInputs::publish_arm_inputs, this));
+    timer = this->create_wall_timer(50ms, std::bind(&ArmInputs::publish_endeffector_inputs, this));
 
     // Creates a timer function that runs a function on loop every 0.05 seconds
     timer_joint = this->create_wall_timer(50ms, std::bind(&ArmInputs::publish_joint_vel, this));
