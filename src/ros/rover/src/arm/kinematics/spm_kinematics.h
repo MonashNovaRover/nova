@@ -67,7 +67,8 @@ class SpmKinematics
     /// @brief  Mathematics function for finding a custom metric between euler configurations
     double euler_metric(std::vector<double> theta_a, std::vector<double> theta_b);
 
-    
+
+    // Spm specific functions
     /// @brief  Function for spm fk
     ///         Takes in a vector representing v1x, v1y, v1z, v2x, v2y, v2z, v3x, v3y, v3z, also takes in previous rpy
     ///         Outputs vector of RPY
@@ -79,8 +80,7 @@ class SpmKinematics
     ///         Outputs vector representing v1x, v1y, v1z, v2x, v2y, v2z, v3x, v3y, v3z
     ///         Called by spm_ik()
     std::vector<double> rpy_to_v(std::vector<double> rpy);
-
-    // Spm specific functions
+    
     /// @brief  Function for spm fk, to solve the nonlinear system of 9 equations
     ///         Takes in vector of w = {w1x w1y w1z w2x w2y w2z w3x w3y w3z}, cos of alpha2, cos of alpha3, and a guess vector for v, and error margin
     ///         Outputs vector of v = {v1x v1y v1z v2x v2y v2z v3x v3y v3z}
