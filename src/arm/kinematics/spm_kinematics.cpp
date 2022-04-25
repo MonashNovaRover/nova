@@ -8,9 +8,8 @@ AUTHOR(S):	Alexander Li
 */
 
 #include "spm_kinematics.h"
-#include <cmath>
+
 #include <Eigen/Core>
-#define _USE_MATH_DEFINES
 
 //------------------------------------------------------------------------
 // Private functions
@@ -19,7 +18,7 @@ AUTHOR(S):	Alexander Li
 // vector addition for 2 vectors
 std::vector<double> SpmKinematics::vector_addition(std::vector<double> x, std::vector<double> y)
 {
-    std::vector<double> output = {0, 0, 0};
+    std::vector<double> output (x.size());
     for (unsigned int i = 0; i < x.size(); i++) {
         output[i] = x[i] + y[i];
     }
@@ -29,7 +28,7 @@ std::vector<double> SpmKinematics::vector_addition(std::vector<double> x, std::v
 // vector addition for 3 vectors
 std::vector<double> SpmKinematics::vector_addition(std::vector<double> x, std::vector<double> y, std::vector<double> z)
 {
-    std::vector<double> output = {0, 0, 0};
+    std::vector<double> output (x.size());
     for (unsigned int i = 0; i < x.size(); i++) {
         output[i] = x[i] + y[i] + z[i];
     }
@@ -39,7 +38,7 @@ std::vector<double> SpmKinematics::vector_addition(std::vector<double> x, std::v
 // vector scalar product
 std::vector<double> SpmKinematics::vector_scalar_product(std::vector<double> v, double s)
 {
-    std::vector<double> output = {0, 0, 0};
+    std::vector<double> output (x.size());
     for (unsigned int i = 0; i < v.size(); i++) {
         output[i] = v[i] * s;
     }
@@ -59,7 +58,7 @@ double SpmKinematics::vector_dot_product(std::vector<double> x, std::vector<doub
 // cross product of vectors of length 3
 std::vector<double> SpmKinematics::vector_cross_product(std::vector<double> x, std::vector<double> y)
 {
-    std::vector<double> z = {0, 0, 0};
+    std::vector<double> z (3);
     z[0] = x[1] * y[2] - x[2] * y[1];
     z[1] = x[2] * y[0] - x[0] * y[2];
     z[2] = x[0] * y[1] - x[1] * y[0];
@@ -69,8 +68,9 @@ std::vector<double> SpmKinematics::vector_cross_product(std::vector<double> x, s
 // custom metric for euler angles
 double euler_metric(std::vector<double> theta_a, std::vector<double> theta_b)
 {
+    // JB: Make angles radians and fix overflow logic 
     double dist_x = abs(theta_a[0] - theta_b[0]);
-    if (dist_x > 180.0) {dist_x -= 180;}
+    if (dist_x > M_PI) {dist_x = 2*M_PI - dist_x;}
     double dist_y = abs(theta_a[1] - theta_b[1]);
     if (dist_y > 180.0) {dist_y -= 180;}
     double dist_z = abs(theta_a[2] - theta_b[2]);
@@ -80,15 +80,18 @@ double euler_metric(std::vector<double> theta_a, std::vector<double> theta_b)
 }
 
 // Spm specific functions
-// convert v vectors to rpy
-std::vector<double> SpmKinematics::v_to_rpy(std::vector<double> v, std::vector<double> prev_rpy)
+// convert v vectors to pyr
+std::vector<double> SpmKinematics::v_to_pyr(std::vector<double> v, std::vector<double> prev_pyr)
 {
     // extract v vectors
+    // JB: Seems like a waste of time. Implement a different input parameter?
+    // JB: std::vector of v vectors, or std::vector of Eigen vectors, or Eigen matrix?
     std::vector<double> v1 = {v[0], v[1], v[2]};
     std::vector<double> v2 = {v[3], v[4], v[5]};
     std::vector<double> v3 = {v[6], v[7], v[8]};
 
     // convert to axes of output frame
+    // JB: + and * pleeeease
     std::vector<double> z = vector_scalar_product(
         vector_addition(v1, v2, v3), sqrt(vector_dot_product(vector_addition(v1, v2, v3), vector_addition(v1, v2, v3)))
         );
@@ -96,39 +99,35 @@ std::vector<double> SpmKinematics::v_to_rpy(std::vector<double> v, std::vector<d
     std::vector<double> y = vector_cross_product(z, x);
 
     // set up solutions
-    std::vector<double> theta_a = {0, 0, 0};
-    std::vector<double> theta_b = {0, 0, 0};
-    // finding 2 possible theta_y
-    theta_a[1] = asin(z[0]);
-    theta_b[1] = M_PI - theta_a[1];
-    // finding corresponding angles of theta_x
-    theta_a[0] = atan2(-z[1]/cos(theta_a[1]), z[2]/cos(theta_a[1]));
-    theta_b[0] = atan2(-z[1]/cos(theta_b[1]), z[2]/cos(theta_b[1]));
-    // finding corresponding angles of theta_z
-    theta_a[2] = atan2(-y[0]/cos(theta_a[1]), x[0]/cos(theta_a[1]));
-    theta_b[2] = atan2(-y[0]/cos(theta_b[1]), x[0]/cos(theta_b[1]));
-    // choose between the solutions; select the one with smaller metric to previous Euler configuration
-    std::vector<double> rpy = {0, 0, 0};
-    if (euler_metric(theta_a, prev_rpy) < euler_metric(theta_b, prev_rpy)) {
-        rpy[0] = theta_a[0];
-        rpy[1] = theta_a[1];
-        rpy[2] = theta_a[2];
-    } else {
-        rpy[0] = theta_b[0];
-        rpy[1] = theta_b[1];
-        rpy[2] = theta_b[2];
+    std::vector<std::vector<double>> pyr_solutions ();
+    pyr_solutions.push_back(std::vector<double> (3));
+    pyr_solutions.push_back(std::vector<double> (3));
+
+    // Find 2 possible theta_y
+    pyr_solutions[0][1] = asin(z[0]);
+    pyr_solutions[1][1] = M_PI - pyr_solutions[0][1];
+    for (unsigned int i = 0; i < pyr_solutions.size(); i++){
+        // Find corresponding angles of theta_x
+        pyr_solutions[i][0] = atan2(-z[1]/cos(pyr_solutions[i][1]), z[2]/cos(pyr_solutions[i][1]));
+        // Find corresponding angles of theta_z
+        pyr_solutions[i][2] = atan2(-y[0]/cos(pyr_solutions[i][1]), x[0]/cos(pyr_solutions[i][1]));
     }
-    return rpy;
+    // Choose between the solutions; select the one with smaller metric to previous Euler configuration
+    if (euler_metric(pyr_solutions[0], prev_pyr) < euler_metric(pyr_solutions[1], prev_pyr)) {
+        return pyr_solutions[0];
+    }
+    return pyr_solutions[1];
 }
 
-// convert rpy to v vectors
-std::vector<double> SpmKinematics::rpy_to_v(std::vector<double> rpy)
+// convert pyr to v vectors
+std::vector<double> SpmKinematics::pyr_to_v(std::vector<double> pyr)
 {
-    double theta_x = rpy[0];
-    double theta_y = rpy[1];
-    double theta_z = rpy[2];
+    double theta_x = pyr[0];
+    double theta_y = pyr[1];
+    double theta_z = pyr[2];
     
     // convert into the axes of output frame
+    // JB: Good place for an Eigen Matrix?
     std::vector<double> x = {
         cos(theta_z) * cos(theta_y),
         cos(theta_z) * sin(theta_y) * sin(theta_x) + sin(theta_z) * cos(theta_x),
@@ -157,73 +156,78 @@ std::vector<double> SpmKinematics::rpy_to_v(std::vector<double> rpy)
     std::vector<double> v3 = vector_addition(vector_scalar_product(p3, sin(beta)), vector_scalar_product(z, cos(beta)));
 
     //return v vectors as a single array
+    // JB: Can we not
     std::vector<double> v = {v1[0], v1[1], v1[2], v2[0], v2[1], v2[2], v3[0], v3[1], v3[2]};
     return v;
 }
 
-// solve nonlinear system of equations from fk
-std::vector<double> SpmKinematics::nonlinear_solve(std::vector<double> w, double cos_a2, double cos_a3, std::vector<double> v_guess, double error_margin)
+// solve nonlinear system of equations F(v) = 0 from fk
+std::vector<double> SpmKinematics::spm_fk_system_solve(std::vector<double> w, double cos_a2, double cos_a3, std::vector<double> v_guess, double error_margin)
 {
-    //Create vector for initial guess
-    Eigen::VectorXd v {{v_guess[0], v_guess[1], v_guess[2], v_guess[3], v_guess[4], v_guess[5], v_guess[6], v_guess[7], v_guess[8]}};
-    //Create first Function output
-    Eigen::VectorXd F {{
-        w[0]*v[0] + w[1]*v[1] + w[2]*v[2] - cos_a2,
-        w[3]*v[3] + w[4]*v[4] + w[5]*v[5] - cos_a2,
-        w[6]*v[6] + w[7]*v[7] + w[8]*v[8] - cos_a2,
-        v[0]*v[3] + v[1]*v[4] + v[2]*v[5] - cos_a3,
-        v[0]*v[6] + v[1]*v[7] + v[2]*v[8] - cos_a3,
-        v[3]*v[6] + v[4]*v[7] + v[5]*v[8] - cos_a3,
-        v[0]*v[0] + v[1]*v[1] + v[2]*v[2] - 1,
-        v[3]*v[3] + v[4]*v[4] + v[5]*v[5] - 1,
-        v[6]*v[6] + v[7]*v[7] + v[8]*v[8] - 1
-    }};
+    // Create vector for initial guess
+    Eigen::Matrix<double, 9, 1> v (v_guess.data());
+    // Create first Function output
+    Eigen::Matrix<double, 9, 1> F;
+    F << w[0]*v[0] + w[1]*v[1] + w[2]*v[2] - cos_a2,
+         w[3]*v[3] + w[4]*v[4] + w[5]*v[5] - cos_a2,
+         w[6]*v[6] + w[7]*v[7] + w[8]*v[8] - cos_a2,
+         v[0]*v[3] + v[1]*v[4] + v[2]*v[5] - cos_a3,
+         v[0]*v[6] + v[1]*v[7] + v[2]*v[8] - cos_a3,
+         v[3]*v[6] + v[4]*v[7] + v[5]*v[8] - cos_a3,
+         v[0]*v[0] + v[1]*v[1] + v[2]*v[2] - 1,
+         v[3]*v[3] + v[4]*v[4] + v[5]*v[5] - 1,
+         v[6]*v[6] + v[7]*v[7] + v[8]*v[8] - 1;
 
-    //Main loop of solver
+    // Main loop of solver
     while (F.norm() > error_margin) {
-        //Find Jacobian for previous v
-        Eigen::Matrix<double, 9, 9> J {
-            {w[0], w[1], w[2], 0, 0, 0, 0, 0, 0},
-            {0, 0, 0, w[3], w[4], w[5], 0, 0, 0},
-            {0, 0, 0, 0, 0, 0, w[6], w[7], w[8]},
-            {v[3], v[4], v[5], v[0], v[1], v[2], 0, 0, 0},
-            {v[6], v[7], v[8], 0, 0, 0, v[0], v[1], v[2]},
-            {0, 0, 0, v[6], v[7], v[8], v[3], v[4], v[5]},
-            {2*v[0], 2*v[1], 2*v[2], 0, 0, 0, 0, 0, 0},
-            {0, 0, 0, 2*v[3], 2*v[4], 2*v[5], 0, 0, 0},
-            {0, 0, 0, 0, 0, 0, 2*v[6], 2*v[7], 2*v[8]}
-        };
-        //Find y for previous v
-        Eigen::VectorXd y(9);
-        y = J.colPivHouseholderQr().solve(-F);
-        //Find new v
-        v += y;
-        //Find new function output
-        F[0] = w[0]*v[0] + w[1]*v[1] + w[2]*v[2] - cos_a2;
-        F[1] = w[3]*v[3] + w[4]*v[4] + w[5]*v[5] - cos_a2;
-        F[2] = w[6]*v[6] + w[7]*v[7] + w[8]*v[8] - cos_a2;
-        F[3] = v[0]*v[3] + v[1]*v[4] + v[2]*v[5] - cos_a3;
-        F[4] = v[0]*v[6] + v[1]*v[7] + v[2]*v[8] - cos_a3;
-        F[5] = v[3]*v[3] + v[4]*v[4] + v[5]*v[5] - cos_a3;
-        F[6] = v[0]*v[0] + v[1]*v[1] + v[2]*v[2] - 1;
-        F[7] = v[3]*v[3] + v[4]*v[4] + v[5]*v[5] - 1;
-        F[8] = v[6]*v[6] + v[7]*v[7] + v[8]*v[8] - 1;
+        // Find Jacobian for previous v
+        
+        Eigen::Matrix<double, 9, 9> J;
+        J << w[0], w[1], w[2], 0, 0, 0, 0, 0, 0,
+             0, 0, 0, w[3], w[4], w[5], 0, 0, 0,
+             0, 0, 0, 0, 0, 0, w[6], w[7], w[8],
+             v[3], v[4], v[5], v[0], v[1], v[2], 0, 0, 0,
+             v[6], v[7], v[8], 0, 0, 0, v[0], v[1], v[2],
+             0, 0, 0, v[6], v[7], v[8], v[3], v[4], v[5],
+             2*v[0], 2*v[1], 2*v[2], 0, 0, 0, 0, 0, 0,
+             0, 0, 0, 2*v[3], 2*v[4], 2*v[5], 0, 0, 0,
+             0, 0, 0, 0, 0, 0, 2*v[6], 2*v[7], 2*v[8];
+
+        // Find step to get next v
+        Eigen::Matrix<double, 9, 1> v_step;
+        v_step = J.colPivHouseholderQr().solve(-F);
+        // Find new v
+        v += v_step;
+        // Find new function output
+        F << w[0]*v[0] + w[1]*v[1] + w[2]*v[2] - cos_a2,
+             w[3]*v[3] + w[4]*v[4] + w[5]*v[5] - cos_a2,
+             w[6]*v[6] + w[7]*v[7] + w[8]*v[8] - cos_a2,
+             v[0]*v[3] + v[1]*v[4] + v[2]*v[5] - cos_a3,
+             v[0]*v[6] + v[1]*v[7] + v[2]*v[8] - cos_a3,
+             v[3]*v[6] + v[4]*v[7] + v[5]*v[8] - cos_a3,
+             v[0]*v[0] + v[1]*v[1] + v[2]*v[2] - 1,
+             v[3]*v[3] + v[4]*v[4] + v[5]*v[5] - 1,
+             v[6]*v[6] + v[7]*v[7] + v[8]*v[8] - 1;
     }
 
     //Create output vector
-    std::vector<double> v_output = {v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7], v[8]};
+    std::vector<double> v_output {v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7], v[8]};
 }
 
 
-// integrate rpy vel into rpy pos
-std::vector<double> SpmKinematics::rpy_integrator(std::vector<double> current_rpy, std::vector<double> desired_rpy_vel, int time_step)
+// integrate pyr vel into pyr pos
+std::vector<double> SpmKinematics::pyr_integrator(std::vector<double> current_pyr, std::vector<double> desired_pyr_vel, int time_step)
 {
-    std::vector<double> rpy_pos = {0, 0, 0};
+    // JB: See if can track the timestep internally (but not in this function, since is used)
+    // JB: Requires the calling function calls this at a consistent rate
+    std::vector<double> pyr_pos (3);
     for (unsigned int i = 0; i < 3; i++) {
-        rpy_pos[i] = current_rpy[i] + desired_rpy_vel[i] * time_step;
+        if (desired_pyr_vel[i] != 0){
+            pyr_pos[i] = current_pyr[i] + desired_pyr_vel[i] * time_step;
+        }
     }
 
-    return rpy_pos;
+    return pyr_pos;
 }
 
 // differentiate desired joint angles into desired joint velocities
@@ -231,7 +235,7 @@ std::vector<double> SpmKinematics::joint_differentiator(
         std::vector<double> desired_wrist_joint_pos, std::vector<double> current_wrist_joint_pos, int time_step
     )
 {
-    std::vector<double> joint_vel = {0, 0, 0};
+    std::vector<double> joint_vel (3);
     for (unsigned int i = 0; i < 3; i++) {
         joint_vel[i] = (desired_wrist_joint_pos[i] - current_wrist_joint_pos[i]) / time_step;
     }
@@ -244,15 +248,15 @@ std::vector<double> SpmKinematics::joint_differentiator(
 SpmKinematics::SpmKinematics() {}
 
 // Main solver
-std::vector<double> SpmKinematics::solve(std::vector<double> current_wrist_joint_pos, std::vector<double> desired_rpy_vel, int time_step)
+// JB: Match name in header
+std::vector<double> SpmKinematics::solve(std::vector<double> current_wrist_joint_pos, std::vector<double> desired_pyr_vel, int time_step)
 {
-    // obtain current rpy
-    previous_rpy_pos = current_rpy_pos;
-    current_rpy_pos = spm_fk(current_wrist_joint_pos);
+    // Update the current pyr position
+    current_pyr_pos = spm_fk(current_wrist_joint_pos);
     // integrate
-    std::vector<double> desired_rpy_pos = rpy_integrator(current_rpy_pos, desired_rpy_vel, time_step);
+    std::vector<double> desired_pyr_pos = pyr_integrator(current_pyr_pos, desired_pyr_vel, time_step);
     // ik
-    std::vector<double> desired_wrist_joint_pos = spm_ik(desired_rpy_pos);
+    std::vector<double> desired_wrist_joint_pos = spm_ik(desired_pyr_pos);
     // differentiate
     std::vector<double> desired_wrist_joint_vel = joint_differentiator(current_wrist_joint_pos, desired_wrist_joint_pos, time_step);
 
@@ -260,15 +264,18 @@ std::vector<double> SpmKinematics::solve(std::vector<double> current_wrist_joint
 }
 
 //perform spm position fk
-std::vector<double> SpmKinematics::spm_fk(std::vector<double> current_wrist_joint_pos)
+std::vector<double> SpmKinematics::spm_fk(std::vector<double> wrist_joint_pos)
 {
     //TODO: implement simultaneous equation solver
-    std::vector<double> v_guess = {-1, 1, 1, 1, 1, 1, -1, -1, 1};
-    std::vector<double> theta = {current_wrist_joint_pos[0], current_wrist_joint_pos[1], current_wrist_joint_pos[2]};
+    // JB: Check the output of pyr_to_v(std::vector<double> (3)) matches signs of v_guess below
+    // std::vector<double> v_guess = {-1, 1, 1, 1, 1, 1, -1, -1, 1};
+    // Use the last pyr position to get a guess for the FK solver
+    std::vector<double> v_guess = pyr_to_v(current_pyr_pos);
+    std::vector<double> theta = wrist_joint_pos;
 
-    //solve fk, obtain v1, v2, v3, store into an array of v[9] = {v1x v1y v1z v2x v2y v2z v3x v3y v3z}
+    // solve fk, obtain v1, v2, v3, store into an array of v[9] = {v1x v1y v1z v2x v2y v2z v3x v3y v3z}
     // find w1 w2 w3 as w[9] = {w1x w1y w1z w2x w2y w2z w3x w3y w3z}
-    std::vector<double> w = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+    std::vector<double> w (9);
     for (unsigned int i = 0; i < 3; i++) {
         //w_ix
         w[3*i+0] = sin(eta[i])*sin(gamma)*cos(alpha[0]) - (cos(eta[i])*sin(theta[i])-sin(eta[i])*cos(gamma)*cos(theta[i]))*sin(alpha[i]);
@@ -279,21 +286,23 @@ std::vector<double> SpmKinematics::spm_fk(std::vector<double> current_wrist_join
     }
 
     // solve system of nonlinear equations
-    std::vector<double> v = nonlinear_solve(w, cos(alpha[1]), cos(alpha[2]), v_guess, 0.0001);
+    std::vector<double> v = spm_fk_system_solve(w, cos(alpha[1]), cos(alpha[2]), v_guess, 0.0001);
 
-    //convert v vectors to rpy
-    return v_to_rpy(v, previous_rpy_pos);
+    // JB: Use IK to verify the FK solution? Might not be needed
+
+    //convert v vectors to pyr
+    return v_to_pyr(v, pyr_pos_guess);
 }
 
 // perform spm position ik
-std::vector<double> SpmKinematics::spm_ik(std::vector<double> desired_rpy_pos)
+std::vector<double> SpmKinematics::spm_ik(std::vector<double> desired_pyr_pos)
 {
     // initialise output
-    std::vector<double> theta = {0, 0, 0};
-    // convert rpy to v
-    std::vector<double> v = rpy_to_v(desired_rpy_pos);
+    std::vector<double> joint_angles (3);
+    // convert pyr to v
+    std::vector<double> v = pyr_to_v(desired_pyr_pos);
 
-    // solve for theta
+    // solve for joint angles
     for (unsigned int i = 0; i < 3; i++) {
         double A = (-sin(eta[i])*sin(gamma)*cos(alpha[i])+sin(eta[i])*cos(gamma)*sin(alpha[i])) * (-v[3*i+0])
             + (cos(eta[i])*sin(gamma)*cos(alpha[i])-cos(eta[i])*cos(gamma)*sin(alpha[i])) * v[3*i+1]
@@ -304,9 +313,8 @@ std::vector<double> SpmKinematics::spm_ik(std::vector<double> desired_rpy_pos)
             + (-cos(gamma)*cos(alpha[i])+sin(gamma)*sin(alpha[i])) * v[3*i+2] - cos(alpha[1]);
         // take positive root
         double T = (-B + sqrt(B*B - 4*A*C)) / (2*A);
-        theta[i] = 2 * atan(T);
+        joint_angles[i] = 2 * atan(T);
     }
 
-    return theta;
+    return joint_angles;
 }
-
