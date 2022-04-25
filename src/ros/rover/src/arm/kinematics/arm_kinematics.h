@@ -21,7 +21,7 @@ TOPICS:
   - /control/arm_coord_frames          [sensor_msgs/MultiDOFJointState]  [Published]
   - /control/joint_velocities          [sensor_msgs/JointState]          [Published]
 SERVICES:
-  - /control/arm_model_config          [core/ArmModelConfig]             [Server]
+  - /control/arm_config_info           [core/ArmConfigInfo]             [Server]
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	 control
@@ -42,7 +42,7 @@ TODO:
 #include "geometry_msgs/msg/twist_stamped.hpp"
 #include "sensor_msgs/msg/multi_dof_joint_state.hpp"
 // Include service types
-#include "core/srv/arm_model_config.hpp"
+#include "core/srv/arm_config_info.hpp"
 
 // Include libraries
 #include "arm_model.h"
@@ -107,8 +107,8 @@ class ArmKinematics : public rclcpp::Node
     rclcpp::TimerBase::SharedPtr joint_velocities_timer;
     rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr joint_velocities_pub;
 
-    // Service for /control/arm_model_config
-    rclcpp::Service<core::srv::ArmModelConfig>::SharedPtr arm_model_config_service;
+    // Service for /control/arm_config_info
+    rclcpp::Service<core::srv::ArmConfigInfo>::SharedPtr arm_config_info_service;
 
     /// @brief  Callback for control scheme subscription
     ///         Updates the internal control scheme, which is used to determine how to solve IK
@@ -163,9 +163,9 @@ class ArmKinematics : public rclcpp::Node
 
     /// @brief  Callback for arm model config service
     ///         Returns details of the arm model
-    void arm_model_config_callback(
-        const std::shared_ptr<core::srv::ArmModelConfig::Request> request,
-        std::shared_ptr<core::srv::ArmModelConfig::Response> response
+    void arm_config_info_callback(
+        const std::shared_ptr<core::srv::ArmConfigInfo::Request> request,
+        std::shared_ptr<core::srv::ArmConfigInfo::Response> response
     );
     
     //------------------------------------------------------------//

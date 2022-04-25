@@ -88,9 +88,9 @@ ArmKinematics::ArmKinematics() : Node("arm_kinematics")
         "/control/joint_velocities", rclcpp::QoS(1).best_effort().deadline(200ms)
     );
 
-    // Create service for arm_model_config
-    arm_model_config_service = this->create_service<core::srv::ArmModelConfig>(
-        "/control/arm_model_config", std::bind(&ArmKinematics::arm_model_config_callback, this, _1, _2)
+    // Create service for arm_config_info
+    arm_config_info_service = this->create_service<core::srv::ArmConfigInfo>(
+        "/control/arm_config_info", std::bind(&ArmKinematics::arm_config_info_callback, this, _1, _2)
     );
 
     // Output set-up messages
@@ -102,6 +102,8 @@ ArmKinematics::ArmKinematics() : Node("arm_kinematics")
     Print::print("Published Topics:");
     Print::print("/control/arm_coord_frames         [sensor_msgs/MultiDOFJointState]", 1);
     Print::print("/control/joint_velocities         [sensor_msgs/JointState]", 1);
+    Print::print("Services:");
+    Print::print("/control/arm_config_info          [core/ArmConfigInfo]", 1);
     Print::print("", true);
 }
 
@@ -352,9 +354,9 @@ void ArmKinematics::publish_joint_velocities()
 }
 
 // Return details of the arm model
-void ArmKinematics::arm_model_config_callback(
-    __attribute__((unused)) const std::shared_ptr<core::srv::ArmModelConfig::Request> request,
-    std::shared_ptr<core::srv::ArmModelConfig::Response> response
+void ArmKinematics::arm_config_info_callback(
+    __attribute__((unused)) const std::shared_ptr<core::srv::ArmConfigInfo::Request> request,
+    std::shared_ptr<core::srv::ArmConfigInfo::Response> response
 )
 {
     // Store names of relevant model features
