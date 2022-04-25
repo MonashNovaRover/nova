@@ -39,7 +39,7 @@ TODO:
 
 // Include messages types
 #include "core/msg/input_joystick.hpp"
-#include "core/msg/endeffector_input.hpp"
+#include "core/msg/end_effector_input.hpp"
 #include "core/msg/arm_control_scheme.hpp"
 #include "sensor_msgs/msg/joint_state.hpp"
 #include "geometry_msgs/msg/twist_stamped.hpp"
