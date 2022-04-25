@@ -173,7 +173,7 @@ std::vector<double> SpmKinematics::nonlinear_solve(std::vector<double> w, double
         w[6]*v[6] + w[7]*v[7] + w[8]*v[8] - cos_a2,
         v[0]*v[3] + v[1]*v[4] + v[2]*v[5] - cos_a3,
         v[0]*v[6] + v[1]*v[7] + v[2]*v[8] - cos_a3,
-        v[3]*v[3] + v[4]*v[4] + v[5]*v[5] - cos_a3,
+        v[3]*v[6] + v[4]*v[7] + v[5]*v[8] - cos_a3,
         v[0]*v[0] + v[1]*v[1] + v[2]*v[2] - 1,
         v[3]*v[3] + v[4]*v[4] + v[5]*v[5] - 1,
         v[6]*v[6] + v[7]*v[7] + v[8]*v[8] - 1
@@ -195,7 +195,7 @@ std::vector<double> SpmKinematics::nonlinear_solve(std::vector<double> w, double
         };
         //Find y for previous v
         Eigen::VectorXd y(9);
-        y = J.colPivHouseholderQr().solve(F);
+        y = J.colPivHouseholderQr().solve(-F);
         //Find new v
         v += y;
         //Find new function output
