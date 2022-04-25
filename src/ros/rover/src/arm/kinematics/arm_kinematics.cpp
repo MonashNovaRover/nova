@@ -355,8 +355,8 @@ void ArmKinematics::publish_joint_velocities()
 
 // Return details of the arm model
 void ArmKinematics::arm_config_info_callback(
-    __attribute__((unused)) const std::shared_ptr<core::srv::ArmConfigInfo::Request> request,
-    std::shared_ptr<core::srv::ArmConfigInfo::Response> response
+    __attribute__((unused)) const core::srv::ArmConfigInfo::Request::SharedPtr request,
+    core::srv::ArmConfigInfo::Response::SharedPtr response
 )
 {
     // Store names of relevant model features

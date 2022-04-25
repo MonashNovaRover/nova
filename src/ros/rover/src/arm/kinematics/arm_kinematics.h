@@ -164,8 +164,8 @@ class ArmKinematics : public rclcpp::Node
     /// @brief  Callback for arm model config service
     ///         Returns details of the arm model
     void arm_config_info_callback(
-        const std::shared_ptr<core::srv::ArmConfigInfo::Request> request,
-        std::shared_ptr<core::srv::ArmConfigInfo::Response> response
+        const core::srv::ArmConfigInfo::Request::SharedPtr request,
+        core::srv::ArmConfigInfo::Response::SharedPtr response
     );
     
     //------------------------------------------------------------//
