@@ -12,28 +12,31 @@ Whether to use PID or PWM is decided based on presence
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: arm_driver
 TOPICS:
-  - /control/arm_input      [ArmInput]                  [Subscribed]
-  - /control/cmd_ouputs     [sensor_msgs/JointState]    [Subscribed]
-SERVICES: None
+  - /control/arm_input          [ArmInput]                  [Subscribed]
+  - /control/cmd_ouputs         [sensor_msgs/JointState]    [Subscribed]
+SERVICES:
+  - /control/arm_config_info    [core/ArmConfigInfo]        [Client]
 ACTIONS:  None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	control
 AUTHOR(S):  Jess Hepworth, Jory Braun
 CREATION:	03/12/2021
-EDITED:		03/03/2022
+EDITED:		25/04/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
- - create cmd_outputs message
- - work out subsriber to arm parameters
+ - 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-// Include ROS packages
+// Include ROS client library
 #include "rclcpp/rclcpp.hpp"
-
+// Include message types
 #include "core/msg/arm_input.hpp"
 #include "sensor_msgs/msg/joint_state.hpp"
+// Include service types
+#include "core/srv/arm_config_info.hpp"
 
+// Include libraries
 #include "joint.h"
 
 // Use the standard namespaces
@@ -60,6 +63,10 @@ class ArmDriver : public rclcpp::Node {
     // Stores the subscriber to the desired actuator commands (bypassing control script for now)
     rclcpp::Subscription<core::msg::ArmInput>::SharedPtr arm_input_subscription;
 
+    // Service client for /control/arm_config_info
+    core::srv::ArmConfigInfo::Response::SharedPtr arm_config_info;
+    rclcpp::Client<core::srv::ArmConfigInfo>::SharedPtr arm_config_info_client;
+
     // A vector of pointers to joint instances
     std::vector<Joint*> joints;
 
@@ -68,9 +75,6 @@ class ArmDriver : public rclcpp::Node {
 
     // A vector of CMD directions
     std::vector<bool> CMD_direction;
-
-    //------------------------------------------------------------//
-    private:
 
     /// @brief      Callback function when input messages are received.
     /// @param      msg - A pointer to the input message
