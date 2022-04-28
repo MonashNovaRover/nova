@@ -29,6 +29,7 @@ if(Eigen3_FOUND AND Orocos_kdl_FOUND)
 
   # Arm Config Info Client
   add_library(arm_config_info_client arm_core/arm_config_info_client.cpp)
+  target_link_libraries(arm_config_info_client print)
   target_include_directories(arm_config_info_client INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/arm_core)
   ament_target_dependencies(arm_config_info_client rclcpp core)
 
