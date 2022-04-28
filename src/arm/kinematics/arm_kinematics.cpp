@@ -153,8 +153,8 @@ inline KDL::JntArray ArmKinematics::get_serial_joint_positions()
     // If using the SPM wrist, replace SPM input joint positions with equivalent serial pitch, yaw and roll
     if (ArmConfig::wrist_type == ArmConfig::WRIST_SPM){
         // Calculate SPM FK
-        //std::vector<double> serial_wrist_joints = spm_solver->spm_fk(std::vector<double> (joints.position.begin() + 3, joints.position.begin() + 6));
-        std::vector<double> serial_wrist_joints = spm_solver->spm_fk(std::vector<double> (3));
+        std::vector<double> spm_joints (joints.position.begin() + 3, joints.position.begin() + 6); 
+        std::vector<double> serial_wrist_joints = spm_solver->spm_fk(spm_joints);
         // Pitch
         kdl_joints.data[3] = serial_wrist_joints[0];
         // Yaw
@@ -314,8 +314,8 @@ inline void ArmKinematics::update_joint_velocities()
         }
 
         // Calculate SPM IK
-        //std::vector<double> spm_joints = spm_solver->spm_ik(std::vector<double> (joints.velocity.begin() + 3, joints.position.end()));
-        std::vector<double> spm_joints = spm_solver->spm_ik(std::vector<double> (3));
+        std::vector<double> serial_wrist_joints (joints.velocity.begin() + 3, joints.velocity.end());
+        std::vector<double> spm_joints = spm_solver->spm_ik(serial_wrist_joints);
         // Replace serial pitch, yaw and roll with SPM input joint velocities
         // Pitch
         joints.velocity[3] = spm_joints[0];
