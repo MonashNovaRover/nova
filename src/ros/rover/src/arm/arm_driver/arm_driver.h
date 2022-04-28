@@ -51,9 +51,6 @@ class ArmDriver : public rclcpp::Node {
     //------------------------------------------------------------//
     private:
 
-    // Stores the loop timer for the update function
-    rclcpp::TimerBase::SharedPtr timer;
-
     // Stores the subscriber to the desired joint velocities
     rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr joint_velocities_subscription;
 

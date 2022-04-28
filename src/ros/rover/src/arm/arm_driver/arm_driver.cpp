@@ -99,7 +99,6 @@ ArmDriver::ArmDriver() : Node("arm_driver")
         endeffector_input_options
     );
     
-
     // Output set-up messages
     Print::title("ARM DRIVER");
     Print::print("Subscribed Topics:");
@@ -108,7 +107,6 @@ ArmDriver::ArmDriver() : Node("arm_driver")
     Print::print("Published Topics:");
     Print::print("", true);
 }
-
 
 //  Main function called when the script execution begins
 int main(int argc, char **argv)

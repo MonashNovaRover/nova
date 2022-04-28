@@ -50,7 +50,7 @@ void ArmConfigInfoClient::check_receive_callback()
         start_node();
     }
     else{
-        RCLCPP_ERROR(this->get_logger(), "Failed to get response from /control/arm_config_info, waiting again...");
+        RCLCPP_INFO(this->get_logger(), "Failed to get response from /control/arm_config_info, waiting again...");
     }
 }
 
