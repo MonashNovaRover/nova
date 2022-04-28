@@ -11,7 +11,7 @@ AUTHOR(S):	Jory Braun
 
 #include <Eigen/Core>
 
-#include "arm_core.h"
+#include "arm_messages.h"
 #include "../arm_configuration.h"
 #include "print/print.h"
 
@@ -33,10 +33,10 @@ ArmKinematics::ArmKinematics() : Node("arm_kinematics")
 
     // Initialise arrays in internal data structures
     // Use data from the arm model
-    joints = ArmCore::get_empty_joint_state(arm_model->joint_names);
-    joint_space_input = ArmCore::get_empty_joint_state(arm_model->joint_names);
+    joints = ArmMessages::get_empty_joint_state(arm_model->joint_names);
+    joint_space_input = ArmMessages::get_empty_joint_state(arm_model->joint_names);
     // TwistStamped does not need to be initialised
-    coord_frames = ArmCore::get_empty_multi_dof_joint_state(arm_model->segment_names);
+    coord_frames = ArmMessages::get_empty_multi_dof_joint_state(arm_model->segment_names);
     
     // Create subscription to arm control scheme
     control_scheme_sub = this->create_subscription<core::msg::ArmControlScheme>(
@@ -128,7 +128,7 @@ void ArmKinematics::input_joint_velocities_callback(const sensor_msgs::msg::Join
 void ArmKinematics::input_joint_velocities_deadline_callback()
 {
     RCLCPP_WARN(this->get_logger(), "control/input_joint_velocities subscription deadline missed");
-    joint_space_input = ArmCore::get_empty_joint_state(arm_model->joint_names);
+    joint_space_input = ArmMessages::get_empty_joint_state(arm_model->joint_names);
 }
 
 // Update the internal task velocity
