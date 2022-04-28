@@ -12,10 +12,9 @@ Whether to use PID or PWM is decided based on presence
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: arm_driver
 TOPICS:
-  - /control/endeffector_input   [EndEffectorInput]          [Subscribed]
+  - /control/endeffector_input   [core/EndEffectorInput]     [Subscribed]
   - /control/cmd_ouputs          [sensor_msgs/JointState]    [Subscribed]
-SERVICES:
-  - /control/arm_config_info     [core/ArmConfigInfo]        [Client]
+SERVICES: None
 ACTIONS:  None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	control
@@ -33,8 +32,6 @@ TODO:
 // Include message types
 #include "core/msg/end_effector_input.hpp"
 #include "sensor_msgs/msg/joint_state.hpp"
-// Include service types
-#include "core/srv/arm_config_info.hpp"
 
 // Include libraries
 #include "joint.h"
@@ -62,10 +59,6 @@ class ArmDriver : public rclcpp::Node {
 
     // Stores the subscriber to the desired actuator commands
     rclcpp::Subscription<core::msg::EndEffectorInput>::SharedPtr endeffector_input_subscription;
-
-    // Service client for /control/arm_config_info
-    core::srv::ArmConfigInfo::Response::SharedPtr arm_config_info;
-    rclcpp::Client<core::srv::ArmConfigInfo>::SharedPtr arm_config_info_client;
 
     // A vector of pointers to joint instances
     std::vector<Joint*> joints;

@@ -359,8 +359,6 @@ void ArmKinematics::arm_config_info_callback(
     core::srv::ArmConfigInfo::Response::SharedPtr response
 )
 {
-    RCLCPP_WARN(this->get_logger(), "OOh a new request to service");
-    
     // Store names of relevant model features
     response->joint_names = arm_model->joint_names;
     response->endpoint_names = arm_model->endpoint_names;

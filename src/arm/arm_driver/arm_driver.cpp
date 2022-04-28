@@ -89,26 +89,7 @@ ArmDriver::ArmDriver() : Node("arm_driver")
         std::bind(&ArmDriver::endeffector_input_callback, this, _1),
         endeffector_input_options
     );
-
-    // Create the service client for arm_config_info
-    arm_config_info_client = this->create_client<core::srv::ArmConfigInfo>("/control/arm_config_info");
     
-    // Get the arm configuration info
-    // Wait for the service to become available
-    while (!arm_config_info_client->wait_for_service(1s)){
-        RCLCPP_INFO(this->get_logger(), "Service /control/arm_config_info not available, waiting again...");
-    }
-    // Make the request
-    auto arm_config_info_request = std::make_shared<core::srv::ArmConfigInfo::Request>();
-    auto arm_config_info_response = arm_config_info_client->async_send_request(arm_config_info_request);
-    // Wait for the result
-    RCLCPP_WARN(this->get_logger(), "Started waiting for result");
-    while (arm_config_info_response.wait_for(1s) != std::future_status::ready){
-        RCLCPP_ERROR(this->get_logger(), "Failed to get response from /control/arm_config_info, waiting again...");
-    }
-    // Store the result
-    arm_config_info = arm_config_info_response.get();
-    RCLCPP_WARN(this->get_logger(), "Got result");
 
     // Output set-up messages
     Print::title("ARM DRIVER");
@@ -116,8 +97,6 @@ ArmDriver::ArmDriver() : Node("arm_driver")
     Print::print("/control/endeffector_input  [core/EndeffectorInput]", 1);
     Print::print("/control/joint_velocities   [sensor_msgs/JointState]", 1);
     Print::print("Published Topics:");
-    Print::print("Service Clients:");
-    Print::print("/control/arm_config_info    [core/ArmConfigInfo]", 1);
     Print::print("", true);
 }
 
