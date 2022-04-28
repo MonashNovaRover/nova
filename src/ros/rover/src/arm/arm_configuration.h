@@ -39,6 +39,6 @@ namespace ArmConfig
     } EndEffectorType;
     
     // Set the variables here to one of the options above to build the arm for whatever hardware is attached
-    const WristType wrist_type = WRIST_CYCLOIDAL;
+    const WristType wrist_type = WRIST_SPM;
     const EndEffectorType end_effector_type = EE_EQUIPMENT_SERVICING;
 }
