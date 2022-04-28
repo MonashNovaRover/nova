@@ -27,45 +27,50 @@ import time
 
 from coms_utils.uart_interface import UARTTransceiver
 
+
+class Joint:
+    '''
+    Class to store joint-specific hardware information
+    '''
+    def __init__(self, joint_name: str, id: int, reverse: bool=False, discontinuity_angle: float=2*pi):
+        # Joint names as in the arm model
+        self.joint_name = joint_name
+        # Resolver ID for sending commands
+        self.id = id
+        
+        # Bool for whether the resolver angle increases in the wrong direction
+        # The joint-angle positive direction is defined by the DH convention
+        # If the direction needs to be flipped, store True, otherwise False.
+        self.reverse = reverse
+        
+        # Resolver readings are in the range [0, 2pi), and there is a discontinuity once the angle grows to 2pi
+        # Move the discontinuity to some angle outside the normal range of joint motion
+        # Makes the joint limits calculation much simpler
+        self.discontinuity_angle = discontinuity_angle
+
+
 class ResolverTransceiver(UARTTransceiver):
     '''
     Transceiver class to handle reading values from encoders
     '''
     def __init__(self, **kwargs):
-        super().__init__(receive_timeout=.05, **kwargs)
-        # create mapping of joint names to resolver ids for sending commands
-        self.joint_id_map =  {
-            "base-rotation":    0x04,
-            "shoulder":         0x08,
-            "elbow":            0x0C,
-            "j4":               0x10,
-            "j5":               0x14,
-            "j6":               0x18
+        super().__init__(**kwargs)
+        
+        # Create mapping of joint names to their respective Joint objects
+        self.joint_map =  {
+            "base-rotation":    Joint("base-rotation", 0x04, True,  pi),
+            "shoulder":         Joint("shoulder",      0x08, True,  pi),
+            "elbow":            Joint("elbow",         0x0C, False, pi),
+            "j4":               Joint("j4",            0x10, False, pi),
+            "j5":               Joint("j5",            0x14, False, pi),
+            "j6":               Joint("j6",            0x18, False, pi),
+            "spmx":             Joint("spmx",          0x10, False, pi),
+            "spmy":             Joint("spmy",          0x14, False, pi),
+            "spmz":             Joint("spmz",          0x18, False, pi),
+            "end-rotation":     Joint("end-rotation",  0x1C, False, pi)
         }
 
-        # Create mapping of joint names where the resolver angle increases in the wrong direction
-        # For a given joint, a value of 1 means the direction needs to be flipped.
-        self.joint_direction_map = {
-            "base-rotation":    1,
-            "shoulder":         1,
-            "elbow":            0,
-            "j4":               0,
-            "j5":               0,
-            "j6":               0
-        }
-
-        # Create mapping of joint names to desired angular discontinuity angle
-        # Set the discontinuity outside the range of motion of each joint
-        self.discontinuity_angle_map = {
-            "base-rotation":    pi,
-            "shoulder":         pi,
-            "elbow":            pi,
-            "j4":               pi,
-            "j5":               pi,
-            "j6":               0
-        }
-
-    def zero(self, joint: str) -> bool:
+    def zero(self, joint_name: str) -> bool:
         '''
         Method to zero a given encoder
 
@@ -74,41 +79,32 @@ class ResolverTransceiver(UARTTransceiver):
         Raises KeyError if invalid joint given
         '''
         try:
-            resolver_id = self.joint_id_map[joint]
+            resolver_id = self.joint_map[joint_name].id
         except KeyError as e:
             # re raise with more useful message
-            raise KeyError(f"Invalid joint name: {joint}")
+            raise KeyError(f"Invalid joint name: {joint_name}")
         
-        self.info(f'Zeroing joint {joint}')
+        self.info(f'Zeroing joint {joint_name}')
         # format (first byte is begin extended command: 0x56)
         # second is zero command: 0x5E
         fmt = '@BB'
         data = self.pack([0x56, 0x5E], fmt=fmt)
         return self.transmit(data)
-
-    @staticmethod
-    def _reverse_direction(angle: float) -> float:
-        '''
-        Method to reverse the increasing direction of a resolver
-
-        Maps [0, 2pi) to (2pi, 0]
-        '''
-        if angle != 0:
-            angle = 2*pi - angle
-        return angle
     
-    def position(self, joint: str) -> float:
+    def position(self, joint_name: str) -> float:
         '''
         Method to read a given encoder
         
         Returns float value in [0, 2 pi) or -1 on failure
         '''
         try:
-            resolver_id = self.joint_id_map[joint]
+            joint = self.joint_map[joint_name]
         except KeyError as e:
             # re raise with more useful message
-            raise KeyError(f"Invalid joint name: {joint}")
+            raise KeyError(f"Invalid joint name: {joint_name}")
         
+        resolver_id = joint.id
+
         # pack and transmit binary data
         data = self.pack([resolver_id])
         if not self.transmit(data):
@@ -124,15 +120,16 @@ class ResolverTransceiver(UARTTransceiver):
         angle_data = self._convert_to_rad(unpacked_data & 0x3FFF)
         
         # Reverse the increasing direction if necessary
-        if self.joint_direction_map[joint]:
+        if joint.reverse:
             angle_data = self._reverse_direction(angle_data)
     
         # Shift the angle discontinuity out of each joint's range of motion
-        angle_data = self._move_discontinuity(angle_data, self.discontinuity_angle_map[joint])
+        angle_data = self._move_discontinuity(angle_data, joint.discontinuity_angle)
 
         return angle_data
 
-    def _convert_to_rad(self, raw_value: int) -> float:
+    @staticmethod
+    def _convert_to_rad(raw_value: int) -> float:
         '''
         Internal helper method to convert to radians
         '''
@@ -140,20 +137,38 @@ class ResolverTransceiver(UARTTransceiver):
         return raw_value/0x3FFF * 2*pi
 
     @staticmethod
+    def _reverse_direction(angle: float) -> float:
+        '''
+        Method to reverse the increasing direction of a resolver
+
+        Maps [0, 2pi) to (2pi, 0]
+        '''
+        if angle != 0:
+            angle = 2*pi - angle
+        return angle
+    
+    @staticmethod
     def _move_discontinuity(angle: float, discontinuity_angle: float) -> float:
         '''
         Move the periodic angle discontinuity from 2pi to some specifcied angle
         '''
         return angle - 2*pi * (angle >= discontinuity_angle)
 
+
 class ResolverPublisher(Node):
     def __init__(self):
         super().__init__('resolver_publisher', start_parameter_services=False)
+        
+        self.receive_timeout = 0.05
+        self.resolver_pub_timer = 0.5
+        self.client_check_timer = 0.1
+        
         self._publisher = self.create_publisher(JointState, '/electronics/resolvers', 10)
         timer_period = 0.5  # TODO: Adjust as needed
         self.timer = self.create_timer(timer_period, self.publish)
-
+        
         self.resolver_transceiver = ResolverTransceiver(
+                receive_timeout = self.receive_timeout,
                 receive_fmt = '<H',
                 transmit_fmt = '@B',
                 logger = self.get_logger(),
@@ -178,13 +193,14 @@ class ResolverPublisher(Node):
 
             # Do not check J6, just pretend it is always level
             if joint_name == "j6":
-                time.sleep(0.05)
+                # Delay a little to not overwhelm the RS485 bus
+                time.sleep(self.receive_timeout)
                 continue
 
             joint_position = self.resolver_transceiver.position(joint_name)
             if joint_position != -1:
-                # Successful transmit and receive, publish new value
-                self.resolver_state.position[i] = joint_position
+                # Successful transmit and receive, update value to be published
+                self.resolver_state.position[i] = joint_position                
         
         self._publisher.publish(self.resolver_state)
 
@@ -209,4 +225,3 @@ def main(args=None):
 
 if __name__ == '__main__':
     main()
-
