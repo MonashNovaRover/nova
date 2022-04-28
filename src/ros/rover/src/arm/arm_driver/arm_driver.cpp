@@ -7,11 +7,15 @@ AUTHOR(S):	Jess Hepworth, Jory Braun
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
+// Include class header
 #include "arm_driver.h"
 
+// Include other headers
 #include "print/print.h"
+#include "../arm_configuration.h"
 
 #include "../hacky_defines.h"
+
 
 // Receives the desired commands for the CMDs and sends to CMDs
 void ArmDriver::joint_velocities_callback (const sensor_msgs::msg::JointState::SharedPtr msg)
@@ -35,7 +39,12 @@ void ArmDriver::endeffector_input_callback (const core::msg::EndEffectorInput::S
     // First 6 joints are handled by joint_velocities_callback
 
     // Receiving data for end effector
-    joints[6]->drive(msg->end_effector_actuation); //need to create message
+    // If the current arm configuration is cycloidal wrist + ER end effector, reduce the PWM by 50%
+    // This accounts for the fact that the ER end effector is running off a 24V rail instead of 12V.
+    if (ArmConfig::end_effector_type == ArmConfig::EE_EXTREME_RETRIEVAL && ArmConfig::wrist_type == ArmConfig::WRIST_CYCLOIDAL) {
+        msg->end_effector_actuation *= 0.5;
+    }
+    joints[6]->drive(msg->end_effector_actuation);
 
     // Linear actuator
     joints[6]->set_linear_actuator(msg->linear_actuation);
