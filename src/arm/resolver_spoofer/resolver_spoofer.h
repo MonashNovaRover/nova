@@ -50,7 +50,7 @@ class ResolverSpoofer : public ArmConfigInfoClient
 
     // Track internal state of all joints
     // Includes joint names, position, velocity, effort and the corresponding timestamp
-    // Set initial value using arm_core
+    // Set initial value using arm_messages
     sensor_msgs::msg::JointState joints;
     // Track the time that the joint velocities were last integrated to.
     // This is distinct from the timestamp in joints, which represents the time each message was sent

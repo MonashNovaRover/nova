@@ -12,9 +12,9 @@ SERVICES: None
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	 control
-AUTHOR(S): Jory Braun
+AUTHOR(S):   Jory Braun
 CREATION:	 17/01/2022
-EDITED:		 01/02/2022
+EDITED:		 28/04/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
  - 
@@ -30,7 +30,7 @@ TODO:
 #include <string>
 
 
-class ArmCore
+class ArmMessages
 {
     //------------------------------------------------------------//
     public:
@@ -47,6 +47,6 @@ class ArmCore
     protected:
     
     /// @brief  Protected constructor so the class cannot be instantiated
-    ArmCore(){}
+    ArmMessages(){}
 
 };

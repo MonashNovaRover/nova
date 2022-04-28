@@ -10,7 +10,7 @@ AUTHOR(S):	Jess Hepworth, Jory Braun
 // Include the header file
 #include "arm_inputs.h"
 
-#include "arm_core.h"
+#include "arm_messages.h"
 #include "print/print.h"
 
 
@@ -305,7 +305,7 @@ void ArmInputs::start_node()
     );
 
      // Initialise arrays in internal data structures
-    joint_velocities = ArmCore::get_empty_joint_state(arm_config_info.joint_names);
+    joint_velocities = ArmMessages::get_empty_joint_state(arm_config_info.joint_names);
     
     // Publish the control scheme to initialise other nodes
     // Uses the default field values
