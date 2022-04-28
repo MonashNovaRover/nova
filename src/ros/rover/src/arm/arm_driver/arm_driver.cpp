@@ -99,7 +99,6 @@ ArmDriver::ArmDriver() : Node("arm_driver")
         RCLCPP_INFO(this->get_logger(), "Service /control/arm_config_info not available, waiting again...");
     }
     // Make the request
-    /*
     auto arm_config_info_request = std::make_shared<core::srv::ArmConfigInfo::Request>();
     auto arm_config_info_response = arm_config_info_client->async_send_request(arm_config_info_request);
     // Wait for the result
@@ -110,7 +109,6 @@ ArmDriver::ArmDriver() : Node("arm_driver")
     // Store the result
     arm_config_info = arm_config_info_response.get();
     RCLCPP_WARN(this->get_logger(), "Got result");
-    */
 
     // Output set-up messages
     Print::title("ARM DRIVER");
@@ -131,20 +129,7 @@ int main(int argc, char **argv)
     rclcpp::init(argc, argv);
 
     // Runs the Publisher class
-    //rclcpp::spin(std::make_shared<ArmDriver>());
-
-    std::shared_ptr<ArmDriver> node = std::make_shared<ArmDriver>();
-
-    auto request = std::make_shared<core::srv::ArmConfigInfo::Request>();
-    auto result = node->arm_config_info_client->async_send_request(request);
-    // Wait for the result.
-    if (rclcpp::spin_until_future_complete(node, result) ==
-        rclcpp::executor::FutureReturnCode::SUCCESS)
-    {
-        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Got response!");
-    } else {
-        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service");
-    }
+    rclcpp::spin(std::make_shared<ArmDriver>());
 
     // Shutsdown ROS once complete
     rclcpp::shutdown();

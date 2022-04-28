@@ -64,10 +64,8 @@ class ArmDriver : public rclcpp::Node {
     rclcpp::Subscription<core::msg::EndEffectorInput>::SharedPtr endeffector_input_subscription;
 
     // Service client for /control/arm_config_info
-    public:
     core::srv::ArmConfigInfo::Response::SharedPtr arm_config_info;
     rclcpp::Client<core::srv::ArmConfigInfo>::SharedPtr arm_config_info_client;
-    private:
 
     // A vector of pointers to joint instances
     std::vector<Joint*> joints;
