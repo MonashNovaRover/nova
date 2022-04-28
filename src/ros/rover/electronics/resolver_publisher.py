@@ -5,9 +5,9 @@ Monash Nova Rover Team
 This file contains the ROS2 publisher code for the motor resolvers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:     electronics 
-AUTHOR(S):    Josh Cherubino
+AUTHOR(S):   Josh Cherubino, Jory Braun
 CREATION:    14/02/2022
-EDITED:      14/02/2022
+EDITED:      28/04/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
     - Add checksum validation of data
@@ -19,13 +19,14 @@ TODO:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """  
 
-from math import pi
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import JointState
-import time
+from core.srv import ArmConfigInfo
 
 from coms_utils.uart_interface import UARTTransceiver
+from math import pi
+import time
 
 
 class Joint:
@@ -157,16 +158,44 @@ class ResolverTransceiver(UARTTransceiver):
 
 class ResolverPublisher(Node):
     def __init__(self):
+        '''
+        Start the node and make a service request to /control/arm_config_info
+        '''
         super().__init__('resolver_publisher', start_parameter_services=False)
-        
+                
+        # Create the client
+        self.client = self.create_client(ArmConfigInfo, "/control/arm_config_info")
+        # Wait for the service to become available
+        while not self.client.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info("Service /control/arm_config_info not available, waiting again...")
+        # Make the service request
+        request = ArmConfigInfo.Request()
+        self.future = self.client.call_async(request)
+
+        # Set up the callback timer
+        self.client_check_timer = self.create_timer(0.1, self.client_check_callback)
+
+    def client_check_callback(self):
+        '''
+        Check if /control/arm_config_info has responded. If so, save the data and set up the node
+        '''
+        if self.future.done():
+            # Got a response!
+            self.get_logger().info("Got a response from /control/arm_config_info. Starting the node.")
+            self.client_check_timer.cancel()
+            self.arm_config_info = self.future.result()
+            self.start_node()
+        else:
+            self.get_logger().info("Failed to get response from /control/arm_config_info, waiting again...")
+    
+    def start_node(self):
+        '''
+        Setup the node for the application. Create pubs and subs, initialise data members
+        '''
         self.receive_timeout = 0.05
-        self.resolver_pub_timer = 0.5
-        self.client_check_timer = 0.1
+        resolver_pub_timer_period = 0.5
         
-        self._publisher = self.create_publisher(JointState, '/electronics/resolvers', 10)
-        timer_period = 0.5  # TODO: Adjust as needed
-        self.timer = self.create_timer(timer_period, self.publish)
-        
+        # Initialise the transceiver
         self.resolver_transceiver = ResolverTransceiver(
                 receive_timeout = self.receive_timeout,
                 receive_fmt = '<H',
@@ -178,13 +207,38 @@ class ResolverPublisher(Node):
 
         # Create the output message type to track the resolver state
         self.resolver_state = JointState()
-        joint_names = self.resolver_transceiver.joint_id_map.keys()
+        joint_names = self.arm_config_info.joint_names
         self.resolver_state.name = joint_names
         self.resolver_state.position = [0.0] * len(joint_names)
         # Initialise unused fields to have correct lengths for consistency
         self.resolver_state.velocity = [0.0] * len(joint_names)
         self.resolver_state.effort = [0.0] * len(joint_names)
 
+        # Store the discontinuity angles for Joint objects in the ResolverTransceiver
+        for i, joint_name in enumerate(joint_names):
+            try:
+                joint = self.resolver_transceiver.joint_map[joint_name]
+            except KeyError as e:
+                # re raise with more useful message
+                raise KeyError(f"Invalid joint name: {joint_name}")
+            
+            joint_limit_lower = self.arm_config_info.joint_limits_lower[i]
+            joint_limit_upper = self.arm_config_info.joint_limits_upper[i]
+            assert joint_limit_upper - joint_limit_lower <= 2*pi
+            joint.discontinuity_angle = self.wrap_to_2pi((joint_limit_lower + joint_limit_upper) / 2 + pi)
+
+        # Construct and start the resolver publisher
+        self.publisher = self.create_publisher(JointState, '/electronics/resolvers', 10)
+        self.resolver_pub_timer = self.create_timer(resolver_pub_timer_period, self.publish)
+
+    # Convert a Real angle into the equivalent angle in [0, 2pi)
+    @staticmethod
+    def wrap_to_2pi(angle: float) -> float:
+        angle = angle % (2*pi)
+        if angle < 0:
+            angle += 2*pi
+        return angle
+    
     def publish(self):
         '''
         callback to publish position of all joints
@@ -202,7 +256,7 @@ class ResolverPublisher(Node):
                 # Successful transmit and receive, update value to be published
                 self.resolver_state.position[i] = joint_position                
         
-        self._publisher.publish(self.resolver_state)
+        self.publisher.publish(self.resolver_state)
 
     def destroy_node(self):
         '''
