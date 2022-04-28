@@ -45,7 +45,7 @@ if(Eigen3_FOUND AND Orocos_kdl_FOUND)
 
   # Arm Inputs script
   add_executable(arm_inputs arm_inputs/arm_inputs.cpp)
-  target_link_libraries(arm_inputs arm_core print)
+  target_link_libraries(arm_inputs arm_core arm_config_info_client print)
   target_include_directories(arm_inputs INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/arm_inputs)
   ament_target_dependencies(arm_inputs rclcpp core sensor_msgs geometry_msgs)
 
@@ -66,7 +66,7 @@ if(Eigen3_FOUND AND Orocos_kdl_FOUND)
 
   # Resolver Spoofer script
   add_executable(resolver_spoofer resolver_spoofer/resolver_spoofer.cpp)
-  target_link_libraries(resolver_spoofer arm_core print)
+  target_link_libraries(resolver_spoofer arm_core arm_config_info_client print)
   target_include_directories(resolver_spoofer INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/resolver_spoofer)
   ament_target_dependencies(resolver_spoofer rclcpp sensor_msgs)
 

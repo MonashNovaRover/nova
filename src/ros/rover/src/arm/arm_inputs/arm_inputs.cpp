@@ -13,7 +13,6 @@ AUTHOR(S):	Jess Hepworth, Jory Braun
 #include "arm_core.h"
 #include "print/print.h"
 
-#include "../hacky_defines.h"
 
 // Receives input from left joystick
 void ArmInputs::joystick_l_callback (const core::msg::InputJoystick::SharedPtr msg)
@@ -248,8 +247,7 @@ void ArmInputs::publish_control_scheme()
 }
 
 
-// Main constructor that sets up the node
-ArmInputs::ArmInputs() : Node("arm_inputs")
+void ArmInputs::start_node()
 {
     // Creates the end effector inputs publisher
     endeffector_publisher = this->create_publisher<core::msg::EndEffectorInput>(
@@ -307,7 +305,7 @@ ArmInputs::ArmInputs() : Node("arm_inputs")
     );
 
      // Initialise arrays in internal data structures
-    joint_velocities = ArmCore::get_empty_joint_state(hack::JOINT_NAMES);
+    joint_velocities = ArmCore::get_empty_joint_state(arm_config_info.joint_names);
     
     // Publish the control scheme to initialise other nodes
     // Uses the default field values

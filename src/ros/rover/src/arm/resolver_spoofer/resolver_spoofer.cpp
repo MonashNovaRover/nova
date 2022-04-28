@@ -15,16 +15,14 @@ AUTHOR(S):	Jory Braun
 #define _USE_MATH_DEFINES
 #include <cmath>
 
-#include "../hacky_defines.h"
 
-// Constructor
-ResolverSpoofer::ResolverSpoofer() : Node("resolver_spoofer")
+void ResolverSpoofer::start_node()
 {
     // Initialise constants
     timer_period = 200ms;
     
     // Set up the joints structure
-    joints = ArmCore::get_empty_joint_state(hack::JOINT_NAMES);
+    joints = ArmCore::get_empty_joint_state(arm_config_info.joint_names);
     
     // Initial integration time
     last_integration_time = this->now();
