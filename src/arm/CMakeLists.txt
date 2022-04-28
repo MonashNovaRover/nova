@@ -54,7 +54,7 @@ if(Eigen3_FOUND AND Orocos_kdl_FOUND)
     arm_driver/arm_driver.cpp
     arm_driver/joint.cpp
   )
-  target_link_libraries(arm_driver arm_core cmd print)
+  target_link_libraries(arm_driver arm_core arm_config_info_client cmd print)
   target_include_directories(arm_inputs INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/arm_driver)
   ament_target_dependencies(arm_driver rclcpp core sensor_msgs)
 

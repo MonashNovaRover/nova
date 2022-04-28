@@ -34,6 +34,7 @@ TODO:
 #include "sensor_msgs/msg/joint_state.hpp"
 
 // Include libraries
+#include "arm_config_info_client.h"
 #include "joint.h"
 
 // Use the standard namespaces
@@ -45,9 +46,8 @@ using std::placeholders::_1;
 Class which receives the commands for the CMDS and interfaces 
 with the joint class to control the CMDs  
 */
-class ArmDriver : public rclcpp::Node {
-
-
+class ArmDriver : public ArmConfigInfoClient
+{
     //------------------------------------------------------------//
     private:
 
@@ -80,10 +80,13 @@ class ArmDriver : public rclcpp::Node {
     ///             Resets the internal state
     void endeffector_input_deadline_callback();
 
+    /// @brief      Application setup function. Starts publishers, subscribers and initialises members
+    void start_node() override;
+
     //------------------------------------------------------------//
     public:
 
-    /// @brief      Default constructor function that starts up the node
-    ArmDriver();
+    /// @brief      Constructor. Starts the node
+    ArmDriver() : ArmConfigInfoClient("arm_driver"){}
     
 };

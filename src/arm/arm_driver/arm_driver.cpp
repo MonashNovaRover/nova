@@ -14,8 +14,6 @@ AUTHOR(S):	Jess Hepworth, Jory Braun
 #include "print/print.h"
 #include "../arm_configuration.h"
 
-#include "../hacky_defines.h"
-
 
 // Receives the desired commands for the CMDs and sends to CMDs
 void ArmDriver::joint_velocities_callback (const sensor_msgs::msg::JointState::SharedPtr msg)
@@ -28,7 +26,7 @@ void ArmDriver::joint_velocities_callback (const sensor_msgs::msg::JointState::S
 void ArmDriver::joint_velocities_deadline_callback()
 {
     RCLCPP_WARN(this->get_logger(), "control/joint_velocities subscription deadline missed");
-    for (unsigned int i = 0; i < hack::JOINT_NAMES.size(); i++) {
+    for (unsigned int i = 0; i < arm_config_info.joint_names.size(); i++) {
         joints[i]->drive(0);
     }
 }
@@ -60,8 +58,7 @@ void ArmDriver::endeffector_input_deadline_callback()
     joints[6]->set_linear_actuator(0);
 }
 
-// Main constructor that sets up the node
-ArmDriver::ArmDriver() : Node("arm_driver")
+void ArmDriver::start_node()
 {    
     // Create joint instances based on the arm's structure
     // For now just hardcode for the cycloidal wrist and ES end effector
