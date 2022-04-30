@@ -9,13 +9,12 @@ AUTHOR(S):	Alexander Li
 
 #include "spm_kinematics.h"
 
-#include <Eigen/Dense>
 
 //------------------------------------------------------------------------
 // Private functions
 
 // custom metric for euler angles
-double euler_metric(const std::vector<double> &theta_a, const std::vector<double> &theta_b)
+double SpmKinematics::euler_metric(const std::vector<double> &theta_a, const std::vector<double> &theta_b)
 { 
     double dist_x = abs(theta_a[0] - theta_b[0]);
     if (dist_x > M_PI) {dist_x = 2*M_PI - dist_x;}
@@ -163,7 +162,7 @@ std::vector<double> SpmKinematics::spm_fk_system_solve(
 
 
 // integrate pyr vel into pyr pos
-std::vector<double> SpmKinematics::pyr_integrator(const std::vector<double> &current_pyr, const std::vector<double> &desired_pyr_vel, int time_step)
+std::vector<double> SpmKinematics::pyr_integrator(const std::vector<double> &current_pyr, const std::vector<double> &desired_pyr_vel, double time_step)
 {
     // JB: See if can track the timestep internally (but not in this function, since is used)
     // JB: Requires the calling function calls this at a consistent rate
@@ -179,7 +178,7 @@ std::vector<double> SpmKinematics::pyr_integrator(const std::vector<double> &cur
 
 // differentiate desired joint angles into desired joint velocities
 std::vector<double> SpmKinematics::joint_differentiator(
-    const std::vector<double> &desired_wrist_joint_pos, const std::vector<double> &current_wrist_joint_pos, int time_step
+    const std::vector<double> &desired_wrist_joint_pos, const std::vector<double> &current_wrist_joint_pos, double time_step
 )
 {
     std::vector<double> joint_vel (3);
@@ -189,14 +188,27 @@ std::vector<double> SpmKinematics::joint_differentiator(
     return joint_vel;
 }
 
+
+
 //-------------------------------------------------------------------------------------
 // Public functions
-
-// Main solver
-std::vector<double> SpmKinematics::spm_ik_velocity(const std::vector<double> &current_wrist_joint_pos, const std::vector<double> &desired_pyr_vel, int time_step)
+SpmKinematics::SpmKinematics()
 {
-    // Update the current pyr position
+    // initialise time at last call
+    time_at_previous_call = std::chrono::steady_clock::now();
+}
+
+// Velocity IK solver
+std::vector<double> SpmKinematics::spm_ik_velocity(
+    const std::vector<double> &current_wrist_joint_pos, const std::vector<double> &desired_pyr_vel
+)
+{
+    // Update the current pyr position; fk
     current_pyr_pos = spm_fk(current_wrist_joint_pos);
+    // Find out time since last call
+    auto current_time = std::chrono::steady_clock::now();
+    double time_step = (std::chrono::duration<double> (current_time - time_at_previous_call)).count();
+
     // integrate
     std::vector<double> desired_pyr_pos = pyr_integrator(current_pyr_pos, desired_pyr_vel, time_step);
     // ik
@@ -204,6 +216,8 @@ std::vector<double> SpmKinematics::spm_ik_velocity(const std::vector<double> &cu
     // differentiate
     std::vector<double> desired_wrist_joint_vel = joint_differentiator(current_wrist_joint_pos, desired_wrist_joint_pos, time_step);
 
+    // update time AT last call
+    time_at_previous_call = current_time;
     return desired_wrist_joint_vel;
 }
 
