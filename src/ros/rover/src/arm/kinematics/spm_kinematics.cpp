@@ -33,13 +33,11 @@ std::vector<double> SpmKinematics::v_to_pyr(const std::vector<double> &v, const 
 {
     // extract v vectors
     // JB: Seems like a waste of time. Implement a different input parameter?
-    // JB: std::vector of v vectors, or std::vector of Eigen vectors, or Eigen matrix?
     Eigen::Vector3d v1(v[0], v[1], v[2]);
     Eigen::Vector3d v2(v[3], v[4], v[5]);
     Eigen::Vector3d v3(v[6], v[7], v[8]);
 
     // convert to axes of output frame
-    // JB: + and * pleeeease
     Eigen::Vector3d z = (v1 + v2 + v3) / (v1 + v2 + v3).norm();
     Eigen::Vector3d x = (v2 - cos(beta)*z) / sin(beta);
     Eigen::Vector3d y = z.cross(x);
@@ -103,6 +101,7 @@ std::vector<double> SpmKinematics::pyr_to_v(const std::vector<double> &pyr)
 
     //return v vectors as a single array
     // JB: Can we not
+    // AL: I'll have a think.
     std::vector<double> v = {v1[0], v1[1], v1[2], v2[0], v2[1], v2[2], v3[0], v3[1], v3[2]};
     return v;
 }
@@ -196,7 +195,6 @@ std::vector<double> SpmKinematics::joint_differentiator(
 SpmKinematics::SpmKinematics() {}
 
 // Main solver
-// JB: Match name in header
 std::vector<double> SpmKinematics::spm_ik_velocity(const std::vector<double> &current_wrist_joint_pos, const std::vector<double> &desired_pyr_vel, const int time_step)
 {
     // Update the current pyr position
