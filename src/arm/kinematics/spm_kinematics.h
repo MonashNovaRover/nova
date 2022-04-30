@@ -43,33 +43,9 @@ class SpmKinematics
     const int num_base_joints = 3;
     std::vector<double> current_pyr_pos = std::vector<double>(3);
 
-    // Convenience maths functions
-    // JB: Implemetn these as a library (like Print)
-
-    /// @brief  Mathematics function for vector addition
-    // JB: Overload + operator
-    std::vector<double> vector_addition(const std::vector<double> &x, const std::vector<double> &y);
-
-    /// @brief  Mathematics function for vector addition, for 3 vectors
-    // JB: Don't need this
-    std::vector<double> vector_addition(const std::vector<double> &x, const std::vector<double> &y, const std::vector<double> &z);
-
-    /// @brief  Mathematics function for vector scalar product 
-    // JB: Overload * operator
-    std::vector<double> vector_scalar_product(const std::vector<double> &v, const double s);
-
-
-    /// @brief  Mathematics function for dot product of vectors
-    // JB: Rename
-    double dot(const std::vector<double> &x, const std::vector<double> &y);
-
-    /// @brief  Mathematics function for cross product of vectors of length 3
-    // JB: Rename
-    std::vector<double> cross(const std::vector<double> &x, const std::vector<double> &y);
 
     /// @brief  Mathematics function for finding a custom metric between euler configurations
     double euler_metric(const std::vector<double> &theta_a, const std::vector<double> &theta_b);
-
 
     // Spm specific functions
     // JB: Doc styles - first line description
