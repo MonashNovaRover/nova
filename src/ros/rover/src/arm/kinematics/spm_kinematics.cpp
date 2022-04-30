@@ -14,67 +14,15 @@ AUTHOR(S):	Alexander Li
 //------------------------------------------------------------------------
 // Private functions
 
-// Convenience maths functions
-// vector addition for 2 vectors
-std::vector<double> SpmKinematics::vector_addition(const std::vector<double> &x, const std::vector<double> &y)
-{
-    std::vector<double> output (x.size());
-    for (unsigned int i = 0; i < x.size(); i++) {
-        output[i] = x[i] + y[i];
-    }
-    return output;
-}
-
-// vector addition for 3 vectors
-std::vector<double> SpmKinematics::vector_addition(const std::vector<double> &x, const std::vector<double> &y, const std::vector<double> &z)
-{
-    std::vector<double> output (x.size());
-    for (unsigned int i = 0; i < x.size(); i++) {
-        output[i] = x[i] + y[i] + z[i];
-    }
-    return output;
-}
-
-// vector scalar product
-std::vector<double> SpmKinematics::vector_scalar_product(const std::vector<double> &v, const double s)
-{
-    std::vector<double> output (v.size());
-    for (unsigned int i = 0; i < v.size(); i++) {
-        output[i] = v[i] * s;
-    }
-    return output;
-}
-
-//  dot product of vectors
-double SpmKinematics::dot(const std::vector<double> &x, const std::vector<double> &y)
-{
-    double output = 0;
-    for (unsigned int i = 0; i < x.size(); i++) {
-        output += x[i] * y[i];
-    }
-    return output;
-}
-
-// cross product of vectors of length 3
-std::vector<double> SpmKinematics::cross(const std::vector<double> &x, const std::vector<double> &y)
-{
-    std::vector<double> z (3);
-    z[0] = x[1] * y[2] - x[2] * y[1];
-    z[1] = x[2] * y[0] - x[0] * y[2];
-    z[2] = x[0] * y[1] - x[1] * y[0];
-    return z;
-}
-
 // custom metric for euler angles
 double euler_metric(const std::vector<double> &theta_a, const std::vector<double> &theta_b)
-{
-    // JB: Make angles radians and fix overflow logic 
+{ 
     double dist_x = abs(theta_a[0] - theta_b[0]);
     if (dist_x > M_PI) {dist_x = 2*M_PI - dist_x;}
     double dist_y = abs(theta_a[1] - theta_b[1]);
-    if (dist_y > 180.0) {dist_y -= 180;}
+    if (dist_y > M_PI) {dist_y = 2*M_PI - dist_y;}
     double dist_z = abs(theta_a[2] - theta_b[2]);
-    if (dist_z > 180.0) {dist_z -= 180;}
+    if (dist_z > M_PI) {dist_z = 2*M_PI - dist_z;}
     
     return sqrt(dist_x * dist_x + dist_y * dist_y + dist_z * dist_z);
 }
@@ -86,17 +34,15 @@ std::vector<double> SpmKinematics::v_to_pyr(const std::vector<double> &v, const 
     // extract v vectors
     // JB: Seems like a waste of time. Implement a different input parameter?
     // JB: std::vector of v vectors, or std::vector of Eigen vectors, or Eigen matrix?
-    std::vector<double> v1 = {v[0], v[1], v[2]};
-    std::vector<double> v2 = {v[3], v[4], v[5]};
-    std::vector<double> v3 = {v[6], v[7], v[8]};
+    Eigen::Vector3d v1(v[0], v[1], v[2]);
+    Eigen::Vector3d v2(v[3], v[4], v[5]);
+    Eigen::Vector3d v3(v[6], v[7], v[8]);
 
     // convert to axes of output frame
     // JB: + and * pleeeease
-    std::vector<double> z = vector_scalar_product(
-        vector_addition(v1, v2, v3), sqrt(dot(vector_addition(v1, v2, v3), vector_addition(v1, v2, v3)))
-        );
-    std::vector<double> x = vector_scalar_product(vector_addition(v2, vector_scalar_product(z, -cos(beta))), 1/sin(beta));
-    std::vector<double> y = cross(z, x);
+    Eigen::Vector3d z = (v1 + v2 + v3) / (v1 + v2 + v3).norm();
+    Eigen::Vector3d x = (v2 - cos(beta)*z) / sin(beta);
+    Eigen::Vector3d y = z.cross(x);
 
     // set up solutions
     std::vector<std::vector<double>> pyr_solutions (2);
@@ -128,32 +74,32 @@ std::vector<double> SpmKinematics::pyr_to_v(const std::vector<double> &pyr)
     
     // convert into the axes of output frame
     // JB: Good place for an Eigen Matrix?
-    std::vector<double> x = {
+    Eigen::Vector3d x (
         cos(theta_z) * cos(theta_y),
         cos(theta_z) * sin(theta_y) * sin(theta_x) + sin(theta_z) * cos(theta_x),
         -cos(theta_z) * sin(theta_y) * cos(theta_x) + sin(theta_z) * sin(theta_x)
-    };
-    std::vector<double> y = {
+    );
+    Eigen::Vector3d y (
         -sin(theta_z) * cos(theta_y),
         -sin(theta_z) * sin(theta_y) * sin(theta_x) + cos(theta_z) * cos(theta_x), 
         sin(theta_z) * sin(theta_y) * cos(theta_x) + cos(theta_z) * sin(theta_x)
-    };
-    std::vector<double> z = {
+    );
+    Eigen::Vector3d z (
         sin(theta_y),
         -cos(theta_y) * sin(theta_x),
         cos(theta_y) * cos(theta_x)
-    };
+    );
 
     // find v2
-    std::vector<double> v2 = vector_addition(vector_scalar_product(x, sin(beta)), vector_scalar_product(z, cos(beta)));
+    Eigen::Vector3d v2 = sin(beta) * x + cos(beta) * z;
 
     // find p1, p3
-    std::vector<double> p1 = vector_addition(vector_scalar_product(x, cos(2 *M_PI/3)), vector_scalar_product(y, sin(2 *M_PI/3)));
-    std::vector<double> p3 = vector_addition(vector_scalar_product(x, cos(-2 *M_PI/3)), vector_scalar_product(y, sin(-2 *M_PI/3)));
+    Eigen::Vector3d p1 = cos(2 *M_PI/3) * x + sin(2 *M_PI/3) * y;
+    Eigen::Vector3d p3 = cos(-2 *M_PI/3) * x + sin(-2 *M_PI/3) * y;
 
     //find v1, v3
-    std::vector<double> v1 = vector_addition(vector_scalar_product(p1, sin(beta)), vector_scalar_product(z, cos(beta)));
-    std::vector<double> v3 = vector_addition(vector_scalar_product(p3, sin(beta)), vector_scalar_product(z, cos(beta)));
+    Eigen::Vector3d v1 = sin(beta) * p1 + cos(beta) * z;
+    Eigen::Vector3d v3 = sin(beta) * p3 + cos(beta) * z;
 
     //return v vectors as a single array
     // JB: Can we not
