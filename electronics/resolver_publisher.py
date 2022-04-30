@@ -223,7 +223,6 @@ class ResolverPublisher(Node):
             
             joint_limit_lower = self.arm_config_info.joint_limits_lower[i]
             joint_limit_upper = self.arm_config_info.joint_limits_upper[i]
-            assert joint_limit_upper - joint_limit_lower <= 2*pi
             joint.discontinuity_angle = self.wrap_to_2pi((joint_limit_lower + joint_limit_upper) / 2 + pi)
 
         # Construct and start the resolver publisher
