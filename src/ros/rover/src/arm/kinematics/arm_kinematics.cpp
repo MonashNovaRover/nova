@@ -314,15 +314,16 @@ inline void ArmKinematics::update_joint_velocities()
         }
 
         // Calculate SPM IK
-        std::vector<double> serial_wrist_joints (joints.velocity.begin() + 3, joints.velocity.end());
-        std::vector<double> spm_joints = spm_solver->spm_ik(serial_wrist_joints);
-        // Replace serial pitch, yaw and roll with SPM input joint velocities
+        std::vector<double> spm_joints (joints.position.begin() + 3, joints.position.begin() + 6);
+        std::vector<double> serial_wrist_velocity (joints.velocity.begin() + 3, joints.velocity.end());
+        std::vector<double> spm_velocity = spm_solver->spm_ik_velocity(spm_joints, serial_wrist_velocity);
+        // Replace serial pitch, yaw and roll with SPM input joint velospm_jointscities
         // Pitch
-        joints.velocity[3] = spm_joints[0];
+        joints.velocity[3] = spm_velocity[0];
         // Yaw
-        joints.velocity[4] = spm_joints[1];
+        joints.velocity[4] = spm_velocity[1];
         // Roll
-        joints.velocity[5] = spm_joints[2];
+        joints.velocity[5] = spm_velocity[2];
     }
 
     // If activated, apply joint limits to the current joint velocity
