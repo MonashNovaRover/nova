@@ -40,7 +40,7 @@ class EeEquipmentServicingModel : public ArmSubModule
     constexpr static double SPM_INTERFACE_OFFSET = 0.020;  // Update this value
 
     /// Constructor. Build the equipment servicing end effector
-    EeEquipmentServicingModel(ArmConfig::WristType wrist_type)
+    EeEquipmentServicingModel(const ArmConfig::WristType wrist_type)
     {
         // Initialise public members
         // No joints
