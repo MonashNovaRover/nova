@@ -20,13 +20,14 @@ TOPICS:
   - /control/input_joint_velocities    [sensor_msgs/JointState]          [Subscribed]
   - /control/arm_coord_frames          [sensor_msgs/MultiDOFJointState]  [Published]
   - /control/joint_velocities          [sensor_msgs/JointState]          [Published]
-SERVICES: None
+SERVICES:
+  - /control/arm_config_info           [core/ArmConfigInfo]             [Server]
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	 control
 AUTHOR(S): Jory Braun
 CREATION:	 11/12/2021
-EDITED:		 03/03/2022
+EDITED:		 25/04/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
  - 
@@ -40,9 +41,12 @@ TODO:
 #include "sensor_msgs/msg/joint_state.hpp"
 #include "geometry_msgs/msg/twist_stamped.hpp"
 #include "sensor_msgs/msg/multi_dof_joint_state.hpp"
+// Include service types
+#include "core/srv/arm_config_info.hpp"
 
 // Include libraries
 #include "arm_model.h"
+#include "spm_kinematics.h"
 #include <kdl/treefksolverpos_recursive.hpp>
 #include <kdl/treeiksolvervel_wdls.hpp>
 
@@ -51,6 +55,7 @@ TODO:
 using namespace std::chrono_literals;
 // For subscribers
 using std::placeholders::_1;
+using std::placeholders::_2;
 
 /* 
 Class which models the arm.
@@ -71,7 +76,7 @@ class ArmKinematics : public rclcpp::Node
     // Resolvers and output joint velocities
     sensor_msgs::msg::JointState joints;
     // Joint velocities from joints-space input
-    sensor_msgs::msg::JointState joint_space_joints;
+    sensor_msgs::msg::JointState joint_space_input;
     // Task velocity
     geometry_msgs::msg::TwistStamped task_velocity;
     
@@ -79,13 +84,13 @@ class ArmKinematics : public rclcpp::Node
     sensor_msgs::msg::MultiDOFJointState coord_frames;
 
     // Arm model and solvers
-    ArmModel::WristType wrist_type;
-    ArmModel::EndEffectorType end_effector_type;
-    ArmModel arm_model;
-    // FK solver using KDL
-    KDL::TreeFkSolverPos_recursive* arm_fk_solver;
-    // IK solver using KDL
-    KDL::TreeIkSolverVel_wdls* arm_ik_solver;
+    ArmModel* arm_model;
+    // Serial FK solver using KDL
+    KDL::TreeFkSolverPos_recursive* serial_fk_solver;
+    // Serial IK solver using KDL
+    KDL::TreeIkSolverVel_wdls* serial_ik_solver;
+    // SPM kinematics solver
+    SpmKinematics* spm_solver;
 
     // Subscription to arm control scheme
     rclcpp::Subscription<core::msg::ArmControlScheme>::SharedPtr control_scheme_sub;
@@ -101,6 +106,9 @@ class ArmKinematics : public rclcpp::Node
     // Publisher to /control/joint_velocities
     rclcpp::TimerBase::SharedPtr joint_velocities_timer;
     rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr joint_velocities_pub;
+
+    // Service for /control/arm_config_info
+    rclcpp::Service<core::srv::ArmConfigInfo>::SharedPtr arm_config_info_service;
 
     /// @brief  Callback for control scheme subscription
     ///         Updates the internal control scheme, which is used to determine how to solve IK
@@ -124,12 +132,12 @@ class ArmKinematics : public rclcpp::Node
     ///         Resets the internal task velocity
     void task_velocity_deadline_callback();
 
-    /// @brief  Calculate FK for a single segment
-    ///         Overloaded to allow a calling function to precompute the KDL::JntArray
-    KDL::Frame calculate_fk(KDL::JntArray kdl_joints, std::string segment_name);
+    /// @brief  Get the joint-space positions of the serial model of the arm
+    ///         Return as a JntArray for use with KDL kinematics solvers
+    KDL::JntArray get_serial_joint_positions();
 
-    /// @brief  Calculate FK for a single segment
-    KDL::Frame calculate_fk(std::string segment_name);
+    /// @brief  Calculate the FK for a single segment using the serial model of the arm
+    KDL::Frame calculate_serial_fk(KDL::JntArray kdl_joints, std::string segment_name);
     
     /// @brief  Get the task-space positions of all coordinate frames on the arm using forward kinematics
     void update_coord_frames();
@@ -139,16 +147,26 @@ class ArmKinematics : public rclcpp::Node
     void publish_coord_frames();
 
     /// @brief  Get the base-frame twist given the current input twist and the selected control scheme
-    KDL::Twists get_control_twist();
+    KDL::Twist get_control_twist();
 
+    /// @brief  Calculate the IK for the end effector using the serial model of the arm
+    KDL::JntArray calculate_serial_ik(KDL::JntArray kdl_joint_positions, KDL::Twist kdl_twist);
+    
     /// @brief  Get the joint-space velocities of all joints on the arm using inverse kinematics
     ///         Uses the current joint positions and desired task velocity
+    ///         Adds joint velocities from IK and from joint-space inputs, and implements joint limits
     void update_joint_velocities();
 
     /// @brief  Callback for joint_velocities publihser timer
-    ///         Calculates the inverse kinematics using the latest arm model, publishes to joint_velocities
-    ///         Adds joint velocities from IK and from joint-space inputs
+    ///         Calculates the joint velocities from joint-space and task-space input, publishes to joint_velocities
     void publish_joint_velocities();
+
+    /// @brief  Callback for arm model config service
+    ///         Returns details of the arm model
+    void arm_config_info_callback(
+        const core::srv::ArmConfigInfo::Request::SharedPtr request,
+        core::srv::ArmConfigInfo::Response::SharedPtr response
+    );
     
     //------------------------------------------------------------//
     public:

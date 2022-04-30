@@ -14,7 +14,7 @@ ACTIONS: None
 PACKAGE: 	 control
 AUTHOR(S):   Jory Braun
 CREATION:	 30/01/2022
-EDITED:		 30/01/2022
+EDITED:		 23/04/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
  - Item One
@@ -23,19 +23,24 @@ TODO:
 */
 
 #include "arm_submodule.h"
+#include "../arm_configuration.h"
 
 
 class EeEquipmentServicingModel : public ArmSubModule
 {
     //------------------------------------------------------------//
     public:
-
-    // Parameters for arm model geometry. Based on model in Arm/DH parameters on GrabCAD
+    
+    // Parameters for arm model geometry
     // All distances in mm, all angles in rad
     constexpr static double GRIPPER_OFFSET = 0.210;
+    // Parameters for wrist interfaces
+    // Different values are used depending on what wrist is connected
+    constexpr static double CYCLOIDAL_INTERFACE_OFFSET = 0;
+    constexpr static double SPM_INTERFACE_OFFSET = 0.020;  // Update this value
 
     /// Constructor. Build the equipment servicing end effector
-    EeEquipmentServicingModel()
+    EeEquipmentServicingModel(const ArmConfig::WristType wrist_type)
     {
         // Initialise public members
         // No joints
@@ -46,10 +51,23 @@ class EeEquipmentServicingModel : public ArmSubModule
 
         // Build the ES end effector
 
+        // Wrist interface
+        double interface_offset;
+        switch (wrist_type){
+            case ArmConfig::WRIST_CYCLOIDAL:
+                interface_offset = CYCLOIDAL_INTERFACE_OFFSET;
+            break;
+            case ArmConfig::WRIST_SPM:
+                interface_offset = SPM_INTERFACE_OFFSET;
+        }
+        KDL::Joint interface = KDL::Joint("rigid-wirst-interface", KDL::Joint::None);
+        KDL::Frame finterface = KDL::Frame::DH(0, 0, interface_offset, 0);
+        this->addSegment(KDL::Segment("sinterface", interface, finterface), "root");
+
         // Gripper
         KDL::Joint gripper = KDL::Joint(endpoint_names[0], KDL::Joint::None);
         KDL::Frame fgripper = KDL::Frame::DH(0, 0, GRIPPER_OFFSET, 0);
-        this->addSegment(KDL::Segment("sgripper", gripper, fgripper), "root");
+        this->addSegment(KDL::Segment("sgripper", gripper, fgripper), "sinterface");
 
         // Put all the cameras at the root for now, can move them to the correct spot later
 

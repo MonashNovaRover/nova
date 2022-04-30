@@ -4,22 +4,17 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team
 
-These classes manage all shared information associated
-  with the configuration of the arm.
-Every arm node inherits one of these classes, and information is
-  shared through ROS to keep every node up-to-date.
+This class implements helper functions for other nodes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: None
-TOPICS:
-  - /control/arm_params       [core/ArmParams]        [Subscribed]
-  - /control/arm_params       [core/ArmParams]        [Published]
+TOPICS: None
 SERVICES: None
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	 control
 AUTHOR(S):   Jory Braun
 CREATION:	 17/01/2022
-EDITED:		 01/02/2022
+EDITED:		 28/04/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
  - 
@@ -35,7 +30,7 @@ TODO:
 #include <string>
 
 
-class ArmCore
+class ArmMessages
 {
     //------------------------------------------------------------//
     public:
@@ -52,6 +47,6 @@ class ArmCore
     protected:
     
     /// @brief  Protected constructor so the class cannot be instantiated
-    ArmCore(){}
+    ArmMessages(){}
 
 };
