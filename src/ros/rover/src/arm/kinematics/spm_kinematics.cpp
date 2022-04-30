@@ -16,7 +16,7 @@ AUTHOR(S):	Alexander Li
 
 // Convenience maths functions
 // vector addition for 2 vectors
-std::vector<double> SpmKinematics::vector_addition(std::vector<double> x, std::vector<double> y)
+std::vector<double> SpmKinematics::vector_addition(const std::vector<double> &x, const std::vector<double> &y)
 {
     std::vector<double> output (x.size());
     for (unsigned int i = 0; i < x.size(); i++) {
@@ -26,7 +26,7 @@ std::vector<double> SpmKinematics::vector_addition(std::vector<double> x, std::v
 }
 
 // vector addition for 3 vectors
-std::vector<double> SpmKinematics::vector_addition(std::vector<double> x, std::vector<double> y, std::vector<double> z)
+std::vector<double> SpmKinematics::vector_addition(const std::vector<double> &x, const std::vector<double> &y, const std::vector<double> &z)
 {
     std::vector<double> output (x.size());
     for (unsigned int i = 0; i < x.size(); i++) {
@@ -36,9 +36,9 @@ std::vector<double> SpmKinematics::vector_addition(std::vector<double> x, std::v
 }
 
 // vector scalar product
-std::vector<double> SpmKinematics::vector_scalar_product(std::vector<double> v, double s)
+std::vector<double> SpmKinematics::vector_scalar_product(const std::vector<double> &v, const double s)
 {
-    std::vector<double> output (x.size());
+    std::vector<double> output (v.size());
     for (unsigned int i = 0; i < v.size(); i++) {
         output[i] = v[i] * s;
     }
@@ -46,7 +46,7 @@ std::vector<double> SpmKinematics::vector_scalar_product(std::vector<double> v, 
 }
 
 //  dot product of vectors
-double SpmKinematics::vector_dot_product(std::vector<double> x, std::vector<double> y)
+double SpmKinematics::dot(const std::vector<double> &x, const std::vector<double> &y)
 {
     double output = 0;
     for (unsigned int i = 0; i < x.size(); i++) {
@@ -56,7 +56,7 @@ double SpmKinematics::vector_dot_product(std::vector<double> x, std::vector<doub
 }
 
 // cross product of vectors of length 3
-std::vector<double> SpmKinematics::vector_cross_product(std::vector<double> x, std::vector<double> y)
+std::vector<double> SpmKinematics::cross(const std::vector<double> &x, const std::vector<double> &y)
 {
     std::vector<double> z (3);
     z[0] = x[1] * y[2] - x[2] * y[1];
@@ -66,7 +66,7 @@ std::vector<double> SpmKinematics::vector_cross_product(std::vector<double> x, s
 }
 
 // custom metric for euler angles
-double euler_metric(std::vector<double> theta_a, std::vector<double> theta_b)
+double euler_metric(const std::vector<double> &theta_a, const std::vector<double> &theta_b)
 {
     // JB: Make angles radians and fix overflow logic 
     double dist_x = abs(theta_a[0] - theta_b[0]);
@@ -81,7 +81,7 @@ double euler_metric(std::vector<double> theta_a, std::vector<double> theta_b)
 
 // Spm specific functions
 // convert v vectors to pyr
-std::vector<double> SpmKinematics::v_to_pyr(std::vector<double> v, std::vector<double> prev_pyr)
+std::vector<double> SpmKinematics::v_to_pyr(const std::vector<double> &v, const std::vector<double> &prev_pyr)
 {
     // extract v vectors
     // JB: Seems like a waste of time. Implement a different input parameter?
@@ -93,13 +93,13 @@ std::vector<double> SpmKinematics::v_to_pyr(std::vector<double> v, std::vector<d
     // convert to axes of output frame
     // JB: + and * pleeeease
     std::vector<double> z = vector_scalar_product(
-        vector_addition(v1, v2, v3), sqrt(vector_dot_product(vector_addition(v1, v2, v3), vector_addition(v1, v2, v3)))
+        vector_addition(v1, v2, v3), sqrt(dot(vector_addition(v1, v2, v3), vector_addition(v1, v2, v3)))
         );
     std::vector<double> x = vector_scalar_product(vector_addition(v2, vector_scalar_product(z, -cos(beta))), 1/sin(beta));
-    std::vector<double> y = vector_cross_product(z, x);
+    std::vector<double> y = cross(z, x);
 
     // set up solutions
-    std::vector<std::vector<double>> pyr_solutions ();
+    std::vector<std::vector<double>> pyr_solutions (2);
     pyr_solutions.push_back(std::vector<double> (3));
     pyr_solutions.push_back(std::vector<double> (3));
 
@@ -120,7 +120,7 @@ std::vector<double> SpmKinematics::v_to_pyr(std::vector<double> v, std::vector<d
 }
 
 // convert pyr to v vectors
-std::vector<double> SpmKinematics::pyr_to_v(std::vector<double> pyr)
+std::vector<double> SpmKinematics::pyr_to_v(const std::vector<double> &pyr)
 {
     double theta_x = pyr[0];
     double theta_y = pyr[1];
@@ -162,7 +162,9 @@ std::vector<double> SpmKinematics::pyr_to_v(std::vector<double> pyr)
 }
 
 // solve nonlinear system of equations F(v) = 0 from fk
-std::vector<double> SpmKinematics::spm_fk_system_solve(std::vector<double> w, double cos_a2, double cos_a3, std::vector<double> v_guess, double error_margin)
+std::vector<double> SpmKinematics::spm_fk_system_solve(
+    const std::vector<double> &w, const double cos_a2, const double cos_a3, const std::vector<double> &v_guess, const double error_margin
+)
 {
     // Create vector for initial guess
     Eigen::Matrix<double, 9, 1> v (v_guess.data());
@@ -216,7 +218,7 @@ std::vector<double> SpmKinematics::spm_fk_system_solve(std::vector<double> w, do
 
 
 // integrate pyr vel into pyr pos
-std::vector<double> SpmKinematics::pyr_integrator(std::vector<double> current_pyr, std::vector<double> desired_pyr_vel, int time_step)
+std::vector<double> SpmKinematics::pyr_integrator(const std::vector<double> &current_pyr, const std::vector<double> &desired_pyr_vel, const int time_step)
 {
     // JB: See if can track the timestep internally (but not in this function, since is used)
     // JB: Requires the calling function calls this at a consistent rate
@@ -232,8 +234,8 @@ std::vector<double> SpmKinematics::pyr_integrator(std::vector<double> current_py
 
 // differentiate desired joint angles into desired joint velocities
 std::vector<double> SpmKinematics::joint_differentiator(
-        std::vector<double> desired_wrist_joint_pos, std::vector<double> current_wrist_joint_pos, int time_step
-    )
+    const std::vector<double> &desired_wrist_joint_pos, const std::vector<double> &current_wrist_joint_pos, const int time_step
+)
 {
     std::vector<double> joint_vel (3);
     for (unsigned int i = 0; i < 3; i++) {
@@ -249,7 +251,7 @@ SpmKinematics::SpmKinematics() {}
 
 // Main solver
 // JB: Match name in header
-std::vector<double> SpmKinematics::solve(std::vector<double> current_wrist_joint_pos, std::vector<double> desired_pyr_vel, int time_step)
+std::vector<double> SpmKinematics::spm_ik_velocity(const std::vector<double> &current_wrist_joint_pos, const std::vector<double> &desired_pyr_vel, const int time_step)
 {
     // Update the current pyr position
     current_pyr_pos = spm_fk(current_wrist_joint_pos);
@@ -264,7 +266,7 @@ std::vector<double> SpmKinematics::solve(std::vector<double> current_wrist_joint
 }
 
 //perform spm position fk
-std::vector<double> SpmKinematics::spm_fk(std::vector<double> wrist_joint_pos)
+std::vector<double> SpmKinematics::spm_fk(const std::vector<double> &wrist_joint_pos)
 {
     //TODO: implement simultaneous equation solver
     // JB: Check the output of pyr_to_v(std::vector<double> (3)) matches signs of v_guess below
@@ -291,11 +293,11 @@ std::vector<double> SpmKinematics::spm_fk(std::vector<double> wrist_joint_pos)
     // JB: Use IK to verify the FK solution? Might not be needed
 
     //convert v vectors to pyr
-    return v_to_pyr(v, pyr_pos_guess);
+    return v_to_pyr(v, current_pyr_pos);
 }
 
 // perform spm position ik
-std::vector<double> SpmKinematics::spm_ik(std::vector<double> desired_pyr_pos)
+std::vector<double> SpmKinematics::spm_ik(const std::vector<double> &desired_pyr_pos)
 {
     // initialise output
     std::vector<double> joint_angles (3);
