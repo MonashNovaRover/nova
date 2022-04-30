@@ -214,7 +214,7 @@ std::vector<double> SpmKinematics::spm_ik_velocity(
     // if input pyr velocities are zero, skip integration, ik, differentiation, and output {0, 0, 0}
     if (desired_pyr_vel[0] == 0 && desired_pyr_vel[1] == 0 && desired_pyr_vel[2] == 0)
     {
-        return std::vector<double> {0, 0, 0};
+        return std::vector<double> (3);
     }
     
     // integrate
