@@ -272,8 +272,7 @@ inline KDL::JntArray ArmKinematics::calculate_serial_ik(KDL::JntArray kdl_joint_
     KDL::Twists kdl_twists = { {arm_model->default_endpoint_name, kdl_twist} };
     
     // Prepare the output data structure
-    KDL::JntArray kdl_joint_velocities;
-    kdl_joint_velocities.data = Eigen::Matrix<double, 6, 1>::Zero();
+    KDL::JntArray kdl_joint_velocities (6);
     
     // Calculate the inverse kinematics. Store the result in kdl_joint_velocities
     double exit_value = serial_ik_solver->CartToJnt(kdl_joint_positions, kdl_twists, kdl_joint_velocities);
@@ -295,7 +294,11 @@ inline void ArmKinematics::update_joint_velocities()
 {
     // Calculate IK for the end effector
     // Gets the joint velocities for the serial model of the arm
-    KDL::JntArray kdl_joint_velocities = calculate_serial_ik(get_serial_joint_positions(), get_control_twist());
+    KDL::Twist kdl_twist = get_control_twist();
+    KDL::JntArray kdl_joint_velocities (6);
+    if (kdl_twist != KDL::Twist::Zero()){
+        kdl_joint_velocities = calculate_serial_ik(get_serial_joint_positions(), kdl_twist);
+    }
 
     // Combine the IK and joint-space joint velocities for the serial model of the arm
     // Save the output in the form ROS2 likes
