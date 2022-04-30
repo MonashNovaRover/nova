@@ -101,8 +101,7 @@ std::vector<double> SpmKinematics::pyr_to_v(const std::vector<double> &pyr)
     //return v vectors as a single array
     // JB: Can we not
     // AL: I'll have a think.
-    std::vector<double> v = {v1[0], v1[1], v1[2], v2[0], v2[1], v2[2], v3[0], v3[1], v3[2]};
-    return v;
+    return std::vector<double> {v1[0], v1[1], v1[2], v2[0], v2[1], v2[2], v3[0], v3[1], v3[2]};
 }
 
 // solve nonlinear system of equations F(v) = 0 from fk
@@ -228,7 +227,6 @@ std::vector<double> SpmKinematics::spm_ik_velocity(
 //perform spm position fk
 std::vector<double> SpmKinematics::spm_fk(const std::vector<double> &wrist_joint_pos)
 {
-    //TODO: implement simultaneous equation solver
     // JB: Check the output of pyr_to_v(std::vector<double> (3)) matches signs of v_guess below
     // std::vector<double> v_guess = {-1, 1, 1, 1, 1, 1, -1, -1, 1};
     // Use the last pyr position to get a guess for the FK solver
