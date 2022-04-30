@@ -41,33 +41,34 @@ class SpmKinematics
 
     // Track internal state
     const int num_base_joints = 3;
-    std::vector<double> current_pyr_pos (3);
+    std::vector<double> current_pyr_pos = std::vector<double>(3);
 
     // Convenience maths functions
     // JB: Implemetn these as a library (like Print)
 
     /// @brief  Mathematics function for vector addition
     // JB: Overload + operator
-    std::vector<double> vector_addition(std::vector<double> x, std::vector<double> y);
+    std::vector<double> vector_addition(const std::vector<double> &x, const std::vector<double> &y);
 
     /// @brief  Mathematics function for vector addition, for 3 vectors
     // JB: Don't need this
-    std::vector<double> vector_addition(std::vector<double> x, std::vector<double> y, std::vector<double> z);
+    std::vector<double> vector_addition(const std::vector<double> &x, const std::vector<double> &y, const std::vector<double> &z);
 
     /// @brief  Mathematics function for vector scalar product 
     // JB: Overload * operator
-    std::vector<double> vector_scalar_product(std::vector<double> v, double s);
+    std::vector<double> vector_scalar_product(const std::vector<double> &v, const double s);
+
 
     /// @brief  Mathematics function for dot product of vectors
     // JB: Rename
-    double vector_dot_product(std::vector<double> x, std::vector<double> y);
+    double dot(const std::vector<double> &x, const std::vector<double> &y);
 
     /// @brief  Mathematics function for cross product of vectors of length 3
     // JB: Rename
-    std::vector<double> vector_cross_product(std::vector<double> x, std::vector<double> y);
+    std::vector<double> cross(const std::vector<double> &x, const std::vector<double> &y);
 
     /// @brief  Mathematics function for finding a custom metric between euler configurations
-    double euler_metric(std::vector<double> theta_a, std::vector<double> theta_b);
+    double euler_metric(const std::vector<double> &theta_a, const std::vector<double> &theta_b);
 
 
     // Spm specific functions
@@ -77,29 +78,31 @@ class SpmKinematics
     ///         Outputs vector of pyr
     ///         Called by spm_fk()
     // JB: Why prev_pyr?
-    std::vector<double> v_to_pyr(std::vector<double> v, std::vector<double> prev_pyr);
+    std::vector<double> v_to_pyr(const std::vector<double> &v, const std::vector<double> &prev_pyr);
 
     /// @brief  Function for spm ik
     ///         Takes in a vector of pyr
     ///         Outputs vector representing v1x, v1y, v1z, v2x, v2y, v2z, v3x, v3y, v3z
     ///         Called by spm_ik()
-    std::vector<double> pyr_to_v(std::vector<double> pyr);
+    std::vector<double> pyr_to_v(const std::vector<double> &pyr);
     
     /// @brief  Function for spm fk, to solve the nonlinear system of 9 equations
     ///         Takes in vector of w = {w1x w1y w1z w2x w2y w2z w3x w3y w3z}, cos of alpha2, cos of alpha3, and a guess vector for v, and error margin
     ///         Outputs vector of v = {v1x v1y v1z v2x v2y v2z v3x v3y v3z}
-    std::vector<double> spm_fk_system_solve(std::vector<double> w, double cos_a2, double cos_a3, std::vector<double> v_guess, double error_margin);
+    std::vector<double> spm_fk_system_solve(
+        const std::vector<double> &w, const double cos_a2, const double cos_a3, const std::vector<double> &v_guess, const double error_margin
+    );
 
     /// @brief  Function to integrate pyr
     ///         Takes in vector of current pyr, vector of desired pyr_VELOCITIES, and timestep
     ///         Outputs vector of desired pyr
-    std::vector<double> pyr_integrator(std::vector<double> current_pyr, std::vector<double> desired_pyr_vel, int time_step);
+    std::vector<double> pyr_integrator(const std::vector<double> &current_pyr, const std::vector<double> &desired_pyr_vel, const int time_step);
 
     /// @brief  Function to differentiate wrist joint position
     ///         Takes in vector of desired wrist joint positions, current wrist joint positions, and timestep
     ///         Outputs vector of desired wrist joint velocities
     std::vector<double> joint_differentiator(
-        std::vector<double> desired_wrist_joint_pos, std::vector<double> current_wrist_joint_pos, int time_step
+        const std::vector<double> &desired_wrist_joint_pos, const std::vector<double> &current_wrist_joint_pos, const int time_step
     );
     
 
@@ -115,17 +118,19 @@ class SpmKinematics
     ///         Outputs required wrist joint velocities
     ///         Or can be accessed in arm_kinematics.cpp
     ///         Calls numerous functions below in the process
-    std::vector<double> spm_ik_velocity(std::vector<double> current_wrist_joint_pos, std::vector<double> desired_pyr_vel, int time_step);
+    std::vector<double> spm_ik_velocity(
+        const std::vector<double> &current_wrist_joint_pos, const std::vector<double> &desired_pyr_vel, const int time_step
+    );
 
     /// @brief  Function for spm fk
     ///         Takes in vector of wrist joint positions
     ///         Outputs vector of pyr
     ///         Calls v_to_pyr(), and spm_fk_system_solve() functions in the process
-    std::vector<double> spm_fk(std::vector<double> wrist_joint_pos);
+    std::vector<double> spm_fk(const std::vector<double> &wrist_joint_pos);
 
     /// @brief  Function for spm ik
     ///         Takes in vector of desired pyr
     ///         Outputs vector of required wrist joint positions
     ///         Calls pyr_to_v() function in the process
-    std::vector<double> spm_ik(std::vector<double> desired_pyr_pos);
+    std::vector<double> spm_ik(const std::vector<double> &desired_pyr_pos);
 };
