@@ -45,7 +45,7 @@ class SpmKinematics
     std::chrono::time_point<std::chrono::steady_clock> time_at_previous_call; 
 
 
-    /// @brief  Mathematics function for finding a custom metric between euler configurations
+    /// @brief  Custom metric between euler configurations
     double euler_metric(const std::vector<double> &theta_a, const std::vector<double> &theta_b);
 
     // Spm specific functions
