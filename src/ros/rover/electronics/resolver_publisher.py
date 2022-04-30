@@ -11,8 +11,7 @@ EDITED:      28/04/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
     - Add checksum validation of data
-    - Add subscription to topic to see what joints are connected
-    - Setup appropriate QoS profile
+    - Setup appropriate QoS profile for publisher
     - Set appropriate transmit and receive timeouts
     - Check structure of unpacked_data - should it be a tuple? Only the 0th element has stuff in it.
     - Add ROS service for zeroing resolvers
@@ -59,16 +58,16 @@ class ResolverTransceiver(UARTTransceiver):
         
         # Create mapping of joint names to their respective Joint objects
         self.joint_map =  {
-            "base-rotation":    Joint("base-rotation", 0x04, True,  pi),
-            "shoulder":         Joint("shoulder",      0x08, True,  pi),
-            "elbow":            Joint("elbow",         0x0C, False, pi),
-            "j4":               Joint("j4",            0x10, False, pi),
-            "j5":               Joint("j5",            0x14, False, pi),
-            "j6":               Joint("j6",            0x18, False, pi),
-            "spmx":             Joint("spmx",          0x10, False, pi),
-            "spmy":             Joint("spmy",          0x14, False, pi),
-            "spmz":             Joint("spmz",          0x18, False, pi),
-            "end-rotation":     Joint("end-rotation",  0x1C, False, pi)
+            "base-rotation":    Joint("base-rotation", 0x04, True),
+            "shoulder":         Joint("shoulder",      0x08, True),
+            "elbow":            Joint("elbow",         0x0C, False),
+            "j4":               Joint("j4",            0x10, False),
+            "j5":               Joint("j5",            0x14, False),
+            "j6":               Joint("j6",            0x18, False),
+            "spmx":             Joint("spmx",          0x10, False),
+            "spmy":             Joint("spmy",          0x14, False),
+            "spmz":             Joint("spmz",          0x18, False),
+            "end-rotation":     Joint("end-rotation",  0x1C, False)
         }
 
     def zero(self, joint_name: str) -> bool:
@@ -140,7 +139,7 @@ class ResolverTransceiver(UARTTransceiver):
     @staticmethod
     def _reverse_direction(angle: float) -> float:
         '''
-        Method to reverse the increasing direction of a resolver
+        Reverse the increasing direction of a resolver
 
         Maps [0, 2pi) to (2pi, 0]
         '''
@@ -163,7 +162,7 @@ class ResolverPublisher(Node):
         '''
         super().__init__('resolver_publisher', start_parameter_services=False)
                 
-        # Create the client
+        # Create the client for /control/arm_config_info
         self.client = self.create_client(ArmConfigInfo, "/control/arm_config_info")
         # Wait for the service to become available
         while not self.client.wait_for_service(timeout_sec=1.0):
@@ -245,7 +244,7 @@ class ResolverPublisher(Node):
         '''
         for i, joint_name in enumerate(self.resolver_state.name):
 
-            # Do not check J6, just pretend it is always level
+            # No resolver on J6, so just pretend it is always level
             if joint_name == "j6":
                 # Delay a little to not overwhelm the RS485 bus
                 time.sleep(self.receive_timeout)
