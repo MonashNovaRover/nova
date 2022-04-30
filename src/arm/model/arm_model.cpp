@@ -24,7 +24,7 @@ static void append_to_vector(std::vector<T>& vec1, std::vector<T>& vec2)
 }
 
 
-ArmModel::ArmModel(ArmConfig::WristType wrist_type, ArmConfig::EndEffectorType end_effector_type) : Tree("sj0")
+ArmModel::ArmModel(const ArmConfig::WristType wrist_type, const ArmConfig::EndEffectorType end_effector_type) : Tree("sj0")
 {
     // Build the arm.
 

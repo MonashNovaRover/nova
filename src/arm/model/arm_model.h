@@ -66,5 +66,5 @@ class ArmModel : public KDL::Tree
     ///         Each module represents a physical assembly that can be attached or detached to/from the arm.
     ///         Each module is based on a KDL::Tree, and defines its own joints, segments, endpoints (cameras and end effectors) and joint limits.
     ///         Each also includes a output 'hook' for attaching the next module to or for defining the arm default endpoint (end effector)
-    ArmModel(ArmConfig::WristType wrist_type, ArmConfig::EndEffectorType end_effector_type);
+    ArmModel(const ArmConfig::WristType wrist_type, const ArmConfig::EndEffectorType end_effector_type);
 };

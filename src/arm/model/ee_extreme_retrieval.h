@@ -40,7 +40,7 @@ class EeExtremeRetrievalModel : public ArmSubModule
     constexpr static double SPM_INTERFACE_OFFSET = 0;
 
     /// Constructor. Build the extreme retrieval end effector
-    EeExtremeRetrievalModel(ArmConfig::WristType wrist_type)
+    EeExtremeRetrievalModel(const ArmConfig::WristType wrist_type)
     {
         // Initialise public members
         // No joints
