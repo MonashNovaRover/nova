@@ -64,7 +64,7 @@ if(Eigen3_FOUND AND Orocos_kdl_FOUND)
 
   # Arm Kinematics script
   add_executable(arm_kinematics kinematics/arm_kinematics.cpp)
-  target_link_libraries(arm_kinematics orocos-kdl arm_messages arm_model print)
+  target_link_libraries(arm_kinematics orocos-kdl arm_messages arm_model spm_kinematics print)
   target_include_directories(arm_kinematics INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/kinematics)
   ament_target_dependencies(arm_kinematics rclcpp core sensor_msgs)
 
