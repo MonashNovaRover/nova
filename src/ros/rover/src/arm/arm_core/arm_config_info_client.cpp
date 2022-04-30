@@ -29,7 +29,12 @@ ArmConfigInfoClient::ArmConfigInfoClient(const std::string& node_name) : Node(no
     );
 
     // Output set-up messages
-    Print::title("ARM CONFIG INFO CLIENT");
+    // Format node title
+    std::string node_name_upper = node_name;
+    for (auto& c : node_name_upper){
+        c = (c == '_') ? ' ' : toupper(c);
+    }
+    Print::title(("ARM CONFIG INFO CLIENT: " + node_name_upper).c_str());
     Print::print("Service Clients:");
     Print::print("/control/arm_config_info    [core/ArmConfigInfo]", 1);
     Print::print("", true);
