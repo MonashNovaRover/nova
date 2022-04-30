@@ -42,7 +42,7 @@ std::vector<double> SpmKinematics::v_to_pyr(const std::vector<double> &v, const 
     Eigen::Vector3d y = z.cross(x);
 
     // set up solutions
-    std::vector<std::vector<double>> pyr_solutions (2);
+    std::vector<std::vector<double>> pyr_solutions;
     pyr_solutions.push_back(std::vector<double> (3));
     pyr_solutions.push_back(std::vector<double> (3));
 
