@@ -208,17 +208,21 @@ std::vector<double> SpmKinematics::spm_ik_velocity(
     // Find out time since last call
     auto current_time = std::chrono::steady_clock::now();
     double time_step = (std::chrono::duration<double> (current_time - time_at_previous_call)).count();
+    // update time at last call
+    time_at_previous_call = current_time;
 
+    // if input pyr velocities are zero, skip integration, ik, differentiation, and output {0, 0, 0}
+    if (desired_pyr_vel[0] == 0 && desired_pyr_vel[1] == 0 && desired_pyr_vel[2] == 0)
+    {
+        return std::vector<double> {0, 0, 0};
+    }
+    
     // integrate
     std::vector<double> desired_pyr_pos = pyr_integrator(current_pyr_pos, desired_pyr_vel, time_step);
     // ik
     std::vector<double> desired_wrist_joint_pos = spm_ik(desired_pyr_pos);
-    // differentiate
-    std::vector<double> desired_wrist_joint_vel = joint_differentiator(current_wrist_joint_pos, desired_wrist_joint_pos, time_step);
-
-    // update time AT last call
-    time_at_previous_call = current_time;
-    return desired_wrist_joint_vel;
+    // differentiate and return
+    return joint_differentiator(current_wrist_joint_pos, desired_wrist_joint_pos, time_step);
 }
 
 //perform spm position fk
