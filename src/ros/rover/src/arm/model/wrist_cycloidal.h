@@ -14,7 +14,7 @@ ACTIONS: None
 PACKAGE: 	 control
 AUTHOR(S):   Jory Braun
 CREATION:	 30/01/2022
-EDITED:		 30/01/2022
+EDITED:		 23/04/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
  - Item One
@@ -30,7 +30,7 @@ class WristCycloidalModel : public ArmSubModule
     //------------------------------------------------------------//
     public:
 
-    // Parameters for arm model geometry. Based on model in Arm/DH parameters on GrabCAD
+    // Parameters for arm model geometry
     // All distances in mm, all angles in rad
     constexpr static double ROOT_J4_LINK_LENGTH = 0.499;
     constexpr static double J4_OFFSET = 0.09952;

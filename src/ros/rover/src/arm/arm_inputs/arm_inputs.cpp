@@ -3,17 +3,16 @@
 Monash Nova Rover Team
 
 PACKAGE: 	control
-AUTHOR(S):	Jess Hepworth
+AUTHOR(S):	Jess Hepworth, Jory Braun
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
 // Include the header file
 #include "arm_inputs.h"
 
-#include "arm_core.h"
+#include "arm_messages.h"
 #include "print/print.h"
 
-#include "../hacky_defines.h"
 
 // Receives input from left joystick
 void ArmInputs::joystick_l_callback (const core::msg::InputJoystick::SharedPtr msg)
@@ -90,10 +89,10 @@ void ArmInputs::joystick_deadline_callback()
 }
 
 // Publishes data on the arm input
-void ArmInputs::publish_arm_inputs ()
+void ArmInputs::publish_endeffector_inputs ()
 {
     // Create a new message
-    auto message = core::msg::ArmInput();
+    auto message = core::msg::EndEffectorInput();
 
     if (!control_scheme.joystick_lock){
         // First 6 joints are handled separately
@@ -103,19 +102,8 @@ void ArmInputs::publish_arm_inputs ()
         message.end_effector_actuation = calculate_direction(joystick_r.ax_thumb_x) * 0.95;
     }
     
-    // Set the values for lunar construction
-    if (joystick_l.btn_thumb_u_state == 2) {
-        message.lunar_construction = 0.95;
-    }
-    else if (joystick_r.btn_thumb_u_state == 2) {
-        message.lunar_construction = -0.95;
-    }
-    else {
-        message.lunar_construction = 0;
-    }
-    
     // Publish the arm inputs
-    arm_publisher->publish(message);
+    endeffector_publisher->publish(message);
 }
 
 // Publishes joint velocity data
@@ -244,6 +232,14 @@ void ArmInputs::publish_control_scheme()
         base_frame_offset = 1;
     }
     control_scheme.base_frame_offset = base_frame_offset;
+
+    // Set SPM roll handling
+    if (joystick_r.btn_thumb_u_state == 2){
+        control_scheme.use_spm_roll = true;
+    }
+    else {
+        control_scheme.use_spm_roll = false;
+    }
     
     // Set the header and publish
     control_scheme.header.stamp = this->now();
@@ -251,12 +247,11 @@ void ArmInputs::publish_control_scheme()
 }
 
 
-// Main constructor that sets up the node
-ArmInputs::ArmInputs() : Node("arm_input")
+void ArmInputs::start_node()
 {
-    // Creates the arm inputs publisher
-    arm_publisher = this->create_publisher<core::msg::ArmInput>(
-        "/control/arm_input", rclcpp::QoS(1).best_effort().deadline(200ms)
+    // Creates the end effector inputs publisher
+    endeffector_publisher = this->create_publisher<core::msg::EndEffectorInput>(
+        "/control/endeffector_input", rclcpp::QoS(1).best_effort().deadline(200ms)
     );
 
     // Creates the joint velocity publisher
@@ -293,7 +288,7 @@ ArmInputs::ArmInputs() : Node("arm_input")
     );
 
     // Creates a timer function that runs a function on loop every 0.05 seconds
-    timer = this->create_wall_timer(50ms, std::bind(&ArmInputs::publish_arm_inputs, this));
+    timer = this->create_wall_timer(50ms, std::bind(&ArmInputs::publish_endeffector_inputs, this));
 
     // Creates a timer function that runs a function on loop every 0.05 seconds
     timer_joint = this->create_wall_timer(50ms, std::bind(&ArmInputs::publish_joint_vel, this));
@@ -310,7 +305,7 @@ ArmInputs::ArmInputs() : Node("arm_input")
     );
 
      // Initialise arrays in internal data structures
-    joint_velocities = ArmCore::get_empty_joint_state(hack::JOINT_NAMES);
+    joint_velocities = ArmMessages::get_empty_joint_state(arm_config_info.joint_names);
     
     // Publish the control scheme to initialise other nodes
     // Uses the default field values
@@ -322,7 +317,7 @@ ArmInputs::ArmInputs() : Node("arm_input")
     Print::print("/control/input_joystick_l         [core/InputJoystick]", 1);
     Print::print("/control/input_joystick_r         [core/InputJoystick]", 1);
     Print::print("Published Topics:");
-    Print::print("/control/arm_input                [core/ArmInput]", 1);
+    Print::print("/control/endeffector_input        [core/EndEffectorInput]", 1);
     Print::print("/control/input_joint_velocities   [sensor_msgs/JointState]", 1);
     Print::print("/control/task_velocity            [sensor_msgs/TwistStamped]", 1);
     Print::print("/control/arm_control_scheme       [core/ArmControlScheme]", 1);

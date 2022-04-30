@@ -9,22 +9,20 @@ AUTHOR(S):	Jory Braun
 
 #include "resolver_spoofer.h"
 
-#include "arm_core.h"
+#include "arm_messages.h"
 #include "print/print.h"
 
 #define _USE_MATH_DEFINES
 #include <cmath>
 
-#include "../hacky_defines.h"
 
-// Constructor
-ResolverSpoofer::ResolverSpoofer() : Node("resolver_spoofer")
+void ResolverSpoofer::start_node()
 {
     // Initialise constants
     timer_period = 200ms;
     
     // Set up the joints structure
-    joints = ArmCore::get_empty_joint_state(hack::JOINT_NAMES);
+    joints = ArmMessages::get_empty_joint_state(arm_config_info.joint_names);
     
     // Initial integration time
     last_integration_time = this->now();

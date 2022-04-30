@@ -9,7 +9,7 @@ AUTHOR(S):	Alexander Li
 
 #include "spm_kinematics.h"
 
-#include <Eigen/Core>
+#include <Eigen/Dense>
 
 //------------------------------------------------------------------------
 // Private functions
@@ -158,12 +158,12 @@ std::vector<double> SpmKinematics::spm_fk_system_solve(
     }
 
     //Create output vector
-    std::vector<double> v_output {v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7], v[8]};
+    return std::vector<double> {v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7], v[8]};
 }
 
 
 // integrate pyr vel into pyr pos
-std::vector<double> SpmKinematics::pyr_integrator(const std::vector<double> &current_pyr, const std::vector<double> &desired_pyr_vel, const int time_step)
+std::vector<double> SpmKinematics::pyr_integrator(const std::vector<double> &current_pyr, const std::vector<double> &desired_pyr_vel, int time_step)
 {
     // JB: See if can track the timestep internally (but not in this function, since is used)
     // JB: Requires the calling function calls this at a consistent rate
@@ -179,7 +179,7 @@ std::vector<double> SpmKinematics::pyr_integrator(const std::vector<double> &cur
 
 // differentiate desired joint angles into desired joint velocities
 std::vector<double> SpmKinematics::joint_differentiator(
-    const std::vector<double> &desired_wrist_joint_pos, const std::vector<double> &current_wrist_joint_pos, const int time_step
+    const std::vector<double> &desired_wrist_joint_pos, const std::vector<double> &current_wrist_joint_pos, int time_step
 )
 {
     std::vector<double> joint_vel (3);
@@ -191,11 +191,9 @@ std::vector<double> SpmKinematics::joint_differentiator(
 
 //-------------------------------------------------------------------------------------
 // Public functions
-// Constructor
-SpmKinematics::SpmKinematics() {}
 
 // Main solver
-std::vector<double> SpmKinematics::spm_ik_velocity(const std::vector<double> &current_wrist_joint_pos, const std::vector<double> &desired_pyr_vel, const int time_step)
+std::vector<double> SpmKinematics::spm_ik_velocity(const std::vector<double> &current_wrist_joint_pos, const std::vector<double> &desired_pyr_vel, int time_step)
 {
     // Update the current pyr position
     current_pyr_pos = spm_fk(current_wrist_joint_pos);

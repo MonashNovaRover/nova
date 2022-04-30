@@ -72,21 +72,21 @@ class SpmKinematics
     /// @brief  Function to integrate pyr
     ///         Takes in vector of current pyr, vector of desired pyr_VELOCITIES, and timestep
     ///         Outputs vector of desired pyr
-    std::vector<double> pyr_integrator(const std::vector<double> &current_pyr, const std::vector<double> &desired_pyr_vel, const int time_step);
+    std::vector<double> pyr_integrator(const std::vector<double> &current_pyr, const std::vector<double> &desired_pyr_vel, int time_step);
 
     /// @brief  Function to differentiate wrist joint position
     ///         Takes in vector of desired wrist joint positions, current wrist joint positions, and timestep
     ///         Outputs vector of desired wrist joint velocities
     std::vector<double> joint_differentiator(
-        const std::vector<double> &desired_wrist_joint_pos, const std::vector<double> &current_wrist_joint_pos, const int time_step
+        const std::vector<double> &desired_wrist_joint_pos, const std::vector<double> &current_wrist_joint_pos, int time_step
     );
     
 
     //------------------------------------------------------------//
     public:
 
-    /// Constructor. Initialisers the solvers and starts the node
-    SpmKinematics();
+    /// Constructor
+    SpmKinematics() {};
 
     // JB: Revisit comments
     /// @brief  Ultimate solver function for spm kinematics
@@ -95,7 +95,7 @@ class SpmKinematics
     ///         Or can be accessed in arm_kinematics.cpp
     ///         Calls numerous functions below in the process
     std::vector<double> spm_ik_velocity(
-        const std::vector<double> &current_wrist_joint_pos, const std::vector<double> &desired_pyr_vel, const int time_step
+        const std::vector<double> &current_wrist_joint_pos, const std::vector<double> &desired_pyr_vel, int time_step
     );
 
     /// @brief  Function for spm fk

@@ -74,7 +74,7 @@ class ArmSubModule : public KDL::Tree
     // The model will be initialised in this position, and all angles measured relative to it.
     std::vector<double> zero_angles;
 
-    // Define a joint limits structure for storing the maximum and minimum limits
+    // Define a joint limits structure for storing the minimum and maximum limits
     // These define a continuous interval of allowed joint angles
     // Angles are given in radians and can take any Real value
     typedef struct {
