@@ -320,7 +320,7 @@ inline void ArmKinematics::update_joint_velocities()
         std::vector<double> spm_joints (joints.position.begin() + 3, joints.position.begin() + 6);
         std::vector<double> serial_wrist_velocity (joints.velocity.begin() + 3, joints.velocity.end());
         std::vector<double> spm_velocity = spm_solver->spm_ik_velocity(spm_joints, serial_wrist_velocity);
-        // Replace serial pitch, yaw and roll with SPM input joint velospm_jointscities
+        // Replace serial pitch, yaw and roll with SPM input joint velocities
         // Pitch
         joints.velocity[3] = spm_velocity[0];
         // Yaw
