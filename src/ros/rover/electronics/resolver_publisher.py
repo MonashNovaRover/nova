@@ -64,9 +64,9 @@ class ResolverTransceiver(UARTTransceiver):
             "j4":               Joint("j4",            0x10, False),
             "j5":               Joint("j5",            0x14, False),
             "j6":               Joint("j6",            0x18, False),
-            "spmx":             Joint("spmx",          0x10, False),
-            "spmy":             Joint("spmy",          0x14, False),
-            "spmz":             Joint("spmz",          0x18, False),
+            "spmx":             Joint("spmx",          0x20, True),
+            "spmy":             Joint("spmy",          0x24, True),
+            "spmz":             Joint("spmz",          0x28, True),
             "end-rotation":     Joint("end-rotation",  0x1C, False)
         }
 
