@@ -208,9 +208,8 @@ float Driver::get_tangent_scale (Vector2 pos, float locas) {
 
 
 // Main constructor that sets up the node
-Driver::Driver() 
-  : Node("drive_sub"), count(0) {
-
+Driver::Driver() : Node("driver")
+{
     // Output set-up messages
     Print::title("DRIVER");
     Print::print("", true);

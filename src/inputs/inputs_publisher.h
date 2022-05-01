@@ -49,9 +49,6 @@ class InputsPublisher : public rclcpp::Node {
     rclcpp::Publisher<core::msg::InputGamepad>::SharedPtr gamepad_publisher;
     rclcpp::Publisher<core::msg::InputJoystick>::SharedPtr joystick_l_publisher;
     rclcpp::Publisher<core::msg::InputJoystick>::SharedPtr joystick_r_publisher;
-    
-    // Stores a counter
-    size_t count;
 
     // A pointer to the joystick object stored (for the gamepad)
     JoystickGamepad* gamepad;
