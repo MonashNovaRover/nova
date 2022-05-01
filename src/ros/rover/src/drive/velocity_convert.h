@@ -58,9 +58,6 @@ class VelocityConvert : public rclcpp::Node {
     // Stores the publisher for the drive commands
     rclcpp::Publisher<core::msg::DriveInput>::SharedPtr publisher;
 
-    // Stores a counter for each step
-    size_t count;
-
 
     //------------------------------------------------------------//
     public:

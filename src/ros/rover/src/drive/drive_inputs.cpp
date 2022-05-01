@@ -127,10 +127,9 @@ void DriveInputs::input_callback (const core::msg::InputGamepad::SharedPtr msg) 
 
 
 // Main constructor that sets up the node
-DriveInputs::DriveInputs() 
-  : Node("drive_inputs"), count(0) {
-
-    // Creates the publisher
+DriveInputs::DriveInputs() : Node("drive_inputs")
+{
+    // Create the publisher
     publisher = this->create_publisher<core::msg::DriveInput>("/control/drive_inputs", 10);
     
     //Sets subscriber options before subscription is made
