@@ -29,9 +29,9 @@ import time
 
 
 class Joint:
-    '''
+    """
     Class to store joint-specific hardware information
-    '''
+    """
     def __init__(self, joint_name: str, id: int, reverse: bool=False, discontinuity_angle: float=2*pi):
         # Joint names as in the arm model
         self.joint_name = joint_name
@@ -50,9 +50,9 @@ class Joint:
 
 
 class ResolverTransceiver(UARTTransceiver):
-    '''
+    """
     Transceiver class to handle reading values from encoders
-    '''
+    """
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         
@@ -71,13 +71,13 @@ class ResolverTransceiver(UARTTransceiver):
         }
 
     def zero(self, joint_name: str) -> bool:
-        '''
+        """
         Method to zero a given encoder
 
         Returns True on success, false otherwise
 
         Raises KeyError if invalid joint given
-        '''
+        """
         try:
             resolver_id = self.joint_map[joint_name].id
         except KeyError as e:
@@ -92,11 +92,11 @@ class ResolverTransceiver(UARTTransceiver):
         return self.transmit(data)
     
     def position(self, joint_name: str) -> float:
-        '''
+        """
         Method to read a given encoder
         
         Returns float value in [0, 2 pi) or -1 on failure
-        '''
+        """
         try:
             joint = self.joint_map[joint_name]
         except KeyError as e:
@@ -130,36 +130,36 @@ class ResolverTransceiver(UARTTransceiver):
 
     @staticmethod
     def _convert_to_rad(raw_value: int) -> float:
-        '''
+        """
         Internal helper method to convert to radians
-        '''
+        """
         # value will be between 0 and max 14-bit value 0x3FFF
         return raw_value/0x3FFF * 2*pi
 
     @staticmethod
     def _reverse_direction(angle: float) -> float:
-        '''
+        """
         Reverse the increasing direction of a resolver
 
         Maps [0, 2pi) to (2pi, 0]
-        '''
+        """
         if angle != 0:
             angle = 2*pi - angle
         return angle
     
     @staticmethod
     def _move_discontinuity(angle: float, discontinuity_angle: float) -> float:
-        '''
+        """
         Move the periodic angle discontinuity from 2pi to some specifcied angle
-        '''
+        """
         return angle - 2*pi * (angle >= discontinuity_angle)
 
 
 class ResolverPublisher(Node):
     def __init__(self):
-        '''
+        """
         Start the node and make a service request to /control/arm_config_info
-        '''
+        """
         super().__init__('resolver_publisher', start_parameter_services=False)
                 
         # Create the client for /control/arm_config_info
@@ -175,9 +175,9 @@ class ResolverPublisher(Node):
         self.client_check_timer = self.create_timer(0.1, self.client_check_callback)
 
     def client_check_callback(self):
-        '''
+        """
         Check if /control/arm_config_info has responded. If so, save the data and set up the node
-        '''
+        """
         if self.future.done():
             # Got a response!
             self.get_logger().info("Got a response from /control/arm_config_info. Starting the node.")
@@ -188,9 +188,9 @@ class ResolverPublisher(Node):
             self.get_logger().info("Failed to get response from /control/arm_config_info, waiting again...")
     
     def start_node(self):
-        '''
+        """
         Setup the node for the application. Create pubs and subs, initialise data members
-        '''
+        """
         self.receive_timeout = 0.05
         resolver_pub_timer_period = 0.5
         
@@ -229,18 +229,20 @@ class ResolverPublisher(Node):
         self.publisher = self.create_publisher(JointState, '/electronics/resolvers', 10)
         self.resolver_pub_timer = self.create_timer(resolver_pub_timer_period, self.publish)
 
-    # Convert a Real angle into the equivalent angle in [0, 2pi)
     @staticmethod
     def wrap_to_2pi(angle: float) -> float:
+        """
+        Convert a Real angle into the equivalent angle in [0, 2pi)
+        """
         angle = angle % (2*pi)
         if angle < 0:
             angle += 2*pi
         return angle
     
     def publish(self):
-        '''
+        """
         callback to publish position of all joints
-        '''
+        """
         for i, joint_name in enumerate(self.resolver_state.name):
 
             # No resolver on J6, so just pretend it is always level
@@ -257,9 +259,9 @@ class ResolverPublisher(Node):
         self.publisher.publish(self.resolver_state)
 
     def destroy_node(self):
-        '''
+        """
         Simple override to close comms before continuing with node destruction
-        '''
+        """
         self.resolver_transceiver.close()
         return super().destroy_node()
 
