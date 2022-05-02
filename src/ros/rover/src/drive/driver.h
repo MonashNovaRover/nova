@@ -28,6 +28,9 @@ EDITED:		09/02/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
+// include standard libraries
+#include <array> 
+
 // Include ROS packages
 #include "rclcpp/rclcpp.hpp"
 #include "core/msg/input_gamepad.hpp"
@@ -41,6 +44,9 @@ EDITED:		09/02/2022
 
 // The distance between each wheel on each side [m]
 #define WHEEL_SEPARATION 0.42426
+
+#define NUM_WHEELS_DEF 6 
+
 
 // Use the standard namespaces
 using namespace std;
@@ -69,7 +75,7 @@ struct Vector2 {
 class Driver : public rclcpp::Node {
 
     // The number of wheels on the rover
-    static const int NUM_WHEELS = 6;
+    static const int NUM_WHEELS = NUM_WHEELS_DEF;
 
     // Whether to use the tangent scaling
     bool USE_TANGENT_SCALING = false;
@@ -110,6 +116,10 @@ class Driver : public rclcpp::Node {
     /// @brief      Callback function when drive messages are received
     /// @param      msg - A pointer to the drive message
     void drive_callback (const core::msg::DriveInput::SharedPtr msg);
+    
+    /// @brief      Pure function which calculates the total velocities the wheels should drive at
+    /// @param      msg - A pointer to the drive message
+    std::array<float, NUM_WHEELS> calculate_velocities(const core::msg::DriveInput::SharedPtr msg) const;
 
     /// @brief      Callback function when autonomous messages are received
     /// @param      msg - A pointer to the drive message
@@ -123,24 +133,24 @@ class Driver : public rclcpp::Node {
     ///             on the steering factor. This is from the center of mass.
     /// @param      steer - The steer value between -1 and 1
     /// @returns    The distance between center of mass and circle [m]
-    float get_locas_distance (float steer);
+    float get_focus_distance(float steer) const;
 
     /// @brief      Calculates the position of the wheel in relation to the CoM
     /// @param      id - The identification of the wheel
     /// @returns    The position vector (x, y)
-    Vector2 get_wheel_position (int id);
+    Vector2 get_wheel_position (int id) const;
 
-    /// @brief      Calculates the distance from the wheel to the locas
+    /// @brief      Calculates the distance from the wheel to the focus (center of the circle) 
     /// @param      pos - The position of the wheel
-    /// @param      locas - The distance from CoM to locas [m]
-    /// @returns    The distance between wheel and the locas [m]
-    float get_wheel_distance (Vector2 pos, float locas);
+    /// @param      focus - The distance from CoM to focus [m]
+    /// @returns    The distance between wheel and the focus [m]
+    float get_wheel_distance (Vector2 pos, float focus) const;
 
     /// @brief      Calculates the tangent scale of the wheel turning
     /// @param      pos - The position of the wheel
-    /// @param      locas - The distance from CoM to locas [m]
+    /// @param      focus - The distance from CoM to focus [m]
     /// @returns    The tangent scale
-    float get_tangent_scale (Vector2 pos, float locas);
+    float get_tangent_scale (Vector2 pos, float focus) const;
 
 
     //------------------------------------------------------------//
