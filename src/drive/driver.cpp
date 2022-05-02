@@ -103,7 +103,7 @@ std::array<float, NUM_WHEELS_DEF> Driver::calculate_velocities(const core::msg::
     float tangents[NUM_WHEELS];
 
     // Stores some of the maximum values
-    float focus = get_focus_distance(msg->steer);
+    float wheel_centre = get_wheel_centre_distance(msg->steer);
     float max_distance = 0;
     float max_tangent = 0;
 
@@ -113,12 +113,12 @@ std::array<float, NUM_WHEELS_DEF> Driver::calculate_velocities(const core::msg::
         Vector2 position = get_wheel_position(wheels[i]->get_id());
 
         // Calculate the max distance to the wheels and store them
-        float dist = get_wheel_distance(position, focus);
+        float dist = get_wheel_distance(position, wheel_centre);
         distances[i] = dist;
         if (dist > max_distance) max_distance = dist;          
 
         // Calculate the tangent ratios and store them
-        float tangent = get_tangent_scale(position, focus);
+        float tangent = get_tangent_scale(position, wheel_centre);
         tangents[i] = tangent;
         if (tangent > max_tangent) max_tangent = tangent;
     }
@@ -132,16 +132,16 @@ std::array<float, NUM_WHEELS_DEF> Driver::calculate_velocities(const core::msg::
         if (USE_TANGENT_SCALING) vel *= tangents[i] / max_tangent;
 		
         // Checks if the turning circle is within the chassis area
-        if (abs(focus) < CHASSIS_SEPARATION / 2.0) {
+        if (abs(wheel_centre) < CHASSIS_SEPARATION / 2.0) {
             // Check if going left and left wheels
-            if (focus < 0 && i <= 2) vel *= -1.0;
+            if (wheel_centre < 0 && i <= 2) vel *= -1.0;
 			
             // Check if going right and right wheels
-            else if (focus > 0 && i > 2) vel *= -1.0;
+            else if (wheel_centre > 0 && i > 2) vel *= -1.0;
 			
         
 		// Check if turning on spot
-        else if (focus == 0) {
+        else if (wheel_centre == 0) {
             // If wanting to turn left and left wheels
             if (msg->steer < 0 && i <= 2) vel *= -1.0;
 			
@@ -203,8 +203,8 @@ void Driver::input_callback (const core::msg::InputGamepad::SharedPtr msg)
 }
 
 
-// Gets the distance to the focus of the turning circle
-float Driver::get_focus_distance (float steer) const 
+// Gets the distance to the wheel_centre of the turning circle
+float Driver::get_wheel_centre_distance (float steer) const 
 {
     if (steer == 0) return 0;
 
@@ -230,12 +230,12 @@ Vector2 Driver::get_wheel_position (int id) const
 }
 
 
-// Determines the distance between the wheel and the focus
-float Driver::get_wheel_distance (Vector2 pos, float focus) const
+// Determines the distance between the wheel and the wheel_centre
+float Driver::get_wheel_distance (Vector2 pos, float wheel_centre) const
 {
 
     // Calculate the x component
-    float x = focus - pos.x;
+    float x = wheel_centre - pos.x;
 
     // Find pythagorus distance
     return sqrt(pow(x, 2) + pow(pos.y, 2));
@@ -243,11 +243,11 @@ float Driver::get_wheel_distance (Vector2 pos, float focus) const
 
 
 // Determines the tangent scale of the wheel
-float Driver::get_tangent_scale (Vector2 pos, float focus) const
+float Driver::get_tangent_scale (Vector2 pos, float wheel_centre) const
 {
 
     // Calculate the x component
-    float x = focus - pos.x;
+    float x = wheel_centre - pos.x;
 
     // Find pythagorus distance
     return sqrt(1.0 + pow(pos.y / x, 2));

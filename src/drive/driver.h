@@ -133,24 +133,24 @@ class Driver : public rclcpp::Node {
     ///             on the steering factor. This is from the center of mass.
     /// @param      steer - The steer value between -1 and 1
     /// @returns    The distance between center of mass and circle [m]
-    float get_focus_distance(float steer) const;
+    float get_wheel_centre_distance(float steer) const;
 
     /// @brief      Calculates the position of the wheel in relation to the CoM
     /// @param      id - The identification of the wheel
     /// @returns    The position vector (x, y)
     Vector2 get_wheel_position (int id) const;
 
-    /// @brief      Calculates the distance from the wheel to the focus (center of the circle) 
+    /// @brief      Calculates the distance from the wheel to the wheel_centre (center of the circle) 
     /// @param      pos - The position of the wheel
-    /// @param      focus - The distance from CoM to focus [m]
-    /// @returns    The distance between wheel and the focus [m]
-    float get_wheel_distance (Vector2 pos, float focus) const;
+    /// @param      wheel_centre - The distance from CoM to wheel_centre [m]
+    /// @returns    The distance between wheel and the wheel_centre [m]
+    float get_wheel_distance (Vector2 pos, float wheel_centre) const;
 
     /// @brief      Calculates the tangent scale of the wheel turning
     /// @param      pos - The position of the wheel
-    /// @param      focus - The distance from CoM to focus [m]
+    /// @param      wheel_centre - The distance from CoM to wheel_centre [m]
     /// @returns    The tangent scale
-    float get_tangent_scale (Vector2 pos, float focus) const;
+    float get_tangent_scale (Vector2 pos, float wheel_centre) const;
 
 
     //------------------------------------------------------------//
