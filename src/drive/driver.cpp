@@ -28,8 +28,6 @@ Driver::Driver() : Node("driver")
         wheels[i] = new Wheel (i + 1, left);
     }
 
-    // TODO QoS Profiles
-
     // Creates the commands subscription (manual)
     subscription_cmds_man = this->create_subscription<core::msg::DriveInput>(
         "/control/drive_inputs", 10, std::bind(&Driver::drive_callback, this, _1));
@@ -44,51 +42,31 @@ Driver::Driver() : Node("driver")
 }
 
 // Sends commands to the wheels
-void Driver::send_commands (const core::msg::DriveInput::SharedPtr msg)
+void Driver::send_commands(const core::msg::DriveInput::SharedPtr msg)
 {
-    // Check if wheels should spin
-    if (msg->speed != 0.0){
-
-        // Reset the stops flag
-        stopped_sent = false;
-
-        // If no steer, just spin with speed
-        if (msg->steer == 0){
-            for (Wheel* wheel : wheels)
-                wheel->spin(msg->speed);
-            return;
-        }
-		else{
-			std::array<float, NUM_WHEELS> velocities = calculate_velocities(msg);
-			for (int i=0; i < NUM_WHEELS; i++){
-				// Send the velocities to the wheels
-				wheels[i]->spin(velocities[i]);
-			}
-    	}
+	if ((msg->speed == 0.0) && (handbrake || !stop_sent)){
+        all_stop();
+		stop_sent = true;
 	}
-
-    // Otherwise, if handbrake is on, send zeros
-    else if (handbrake){
-        // Reset the stops flag
-        stopped_sent = false;
-        
-        // Spin the wheels at 0 speed
-        for (Wheel* wheel : wheels){
-            wheel->spin(0.0);
-        }
-    }
-
-    // Otherwise, if handbrake is not on, only send stops
-    else if (!stopped_sent){
-        // Stop the wheels
-        for (Wheel* wheel : wheels){
-            wheel->stop();
-        }
-        // Set the stopped flag so it doesn't run again
-        stopped_sent = true;
-    }
+	else{
+		drive_wheels(calculate_velocities(msg));
+		stop_sent = false;
+	}
 }
 
+// helper function to drive wheels, given a set of velocities
+void Driver::drive_wheels(std::array<float, NUM_WHEELS_DEF> velocities){
+	for (int i = 0; i < NUM_WHEELS; i++){
+		wheels[i]->spin(velocities[i]);
+	} 
+}
+
+// stops all the wheels
+void Driver::all_stop(){
+	for (Wheel* wheel : wheels){
+		wheel->stop();
+	}
+}
 
 std::array<float, NUM_WHEELS_DEF> Driver::calculate_velocities(const core::msg::DriveInput::SharedPtr msg) const
 {
@@ -96,9 +74,20 @@ std::array<float, NUM_WHEELS_DEF> Driver::calculate_velocities(const core::msg::
 	This function is a const function - i.e. it does not alter any internal state of the class 
 	msg has two variables: steer (float), and speed (float)
 	*/
-
+	
+	std::array<float, NUM_WHEELS> velocities;
+	
+	// base case - drive forward :D 
+	if (msg->speed == 0.0){
+		velocities = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0}; 
+		return velocities;
+	}
+	if (msg->steer == 0.0){
+		velocities = {msg->speed, msg->speed, msg->speed, msg->speed, msg->speed, msg->speed};
+		return velocities;		
+	}
+		
 	// we use a vector to make returning safer, and using fixed size arrays to make computation faster
-	std::array<float, NUM_WHEELS> velocities;	
     float distances[NUM_WHEELS];
     float tangents[NUM_WHEELS];
 
@@ -157,7 +146,6 @@ std::array<float, NUM_WHEELS_DEF> Driver::calculate_velocities(const core::msg::
 
 // Receives drive commands
 void Driver::drive_callback (const core::msg::DriveInput::SharedPtr msg) {
-
     // If manual driving state, call the commands
     if (!is_autonomous)
         send_commands(msg);    
@@ -233,7 +221,6 @@ Vector2 Driver::get_wheel_position (int id) const
 // Determines the distance between the wheel and the wheel_centre
 float Driver::get_wheel_distance (Vector2 pos, float wheel_centre) const
 {
-
     // Calculate the x component
     float x = wheel_centre - pos.x;
 
