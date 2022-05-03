@@ -84,7 +84,11 @@ class Driver : public rclcpp::Node {
     //------------------------------------------------------------//
     private:
 
-    // Stores the subscriber for the drive commands (manual)
+	// Stores QoS options
+    rclcpp::QoS qos = rclcpp::QoS(1).reliability(RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT).deadline(200ms);
+    rclcpp::SubscriptionOptions subscriber_options;
+    
+	// Stores the subscriber for the drive commands (manual)
     rclcpp::Subscription<core::msg::DriveInput>::SharedPtr subscription_cmds_man;
 
     // Stores the subscriber for the drive commands (auto)
@@ -92,6 +96,7 @@ class Driver : public rclcpp::Node {
 
     // Stores the subscriber to the gamepad inputs
     rclcpp::Subscription<core::msg::InputGamepad>::SharedPtr subscription_inputs;
+
 
     // A flag for whether to apply the handbrake or not
     bool handbrake;
@@ -109,8 +114,11 @@ class Driver : public rclcpp::Node {
     
     //------------------------------------------------------------//
     private:
-
-    /// @brief      Sends commands to the wheels using the wheel classes
+	
+	/// @brief callback for when drive inputs subscription is exceeded
+	void inputs_deadline_exceeded();
+    
+	/// @brief      Sends commands to the wheels using the wheel classes
     /// @param      msg - A pointer to the drive message
     void send_commands (const core::msg::DriveInput::SharedPtr msg);
 

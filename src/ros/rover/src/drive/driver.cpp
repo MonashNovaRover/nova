@@ -28,17 +28,29 @@ Driver::Driver() : Node("driver")
         wheels[i] = new Wheel (i + 1, left);
     }
 
+	//Sets subscriber options before subscription is made
+    subscriber_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void {
+        inputs_deadline_exceeded();
+    };
+
     // Creates the commands subscription (manual)
     subscription_cmds_man = this->create_subscription<core::msg::DriveInput>(
-        "/control/drive_inputs", 10, std::bind(&Driver::drive_callback, this, _1));
+        "/control/drive_inputs", qos, std::bind(&Driver::drive_callback, this, _1), subscriber_options);
+
     
     // Creates the commands subscription (autonomous)
+	// auto has no subscriber options (for now)
     subscription_cmds_auto = this->create_subscription<core::msg::DriveInput>(
         "/autonomous/drive_inputs", 10, std::bind(&Driver::auto_callback, this, _1));
     
     // Creates the input subscription
     subscription_inputs = this->create_subscription<core::msg::InputGamepad>(
-        "/control/input_gamepad", 10, std::bind(&Driver::input_callback, this, _1));
+        "/control/input_gamepad", qos, std::bind(&Driver::input_callback, this, _1));
+}
+
+void Driver::inputs_deadline_exceeded(){
+	RCLCPP_WARN(this->get_logger(), "Joystick subscriber deadline missed");
+	all_stop();
 }
 
 // Sends commands to the wheels

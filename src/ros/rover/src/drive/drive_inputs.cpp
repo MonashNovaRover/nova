@@ -129,8 +129,8 @@ void DriveInputs::input_callback (const core::msg::InputGamepad::SharedPtr msg) 
 // Main constructor that sets up the node
 DriveInputs::DriveInputs() : Node("drive_inputs")
 {
-    // Create the publisher
-    publisher = this->create_publisher<core::msg::DriveInput>("/control/drive_inputs", 10);
+    // Create the publisher with a best effort QoS policy
+    publisher = this->create_publisher<core::msg::DriveInput>("/control/drive_inputs", qos);
     
     //Sets subscriber options before subscription is made
     subscriber_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void {
@@ -138,10 +138,8 @@ DriveInputs::DriveInputs() : Node("drive_inputs")
     };
 
     // Creates the input subscription
-    /*subscription = this->create_subscription<core::msg::InputGamepad>(
-        "/control/input_gamepad", qos, std::bind(&DriveInputs::input_callback, this, _1), subscriber_options);*/
     subscription = this->create_subscription<core::msg::InputGamepad>(
-        "/control/input_gamepad", 1, std::bind(&DriveInputs::input_callback, this, _1));
+        "/control/input_gamepad", qos, std::bind(&DriveInputs::input_callback, this, _1), subscriber_options);
 
     // Creates a timer function that runs a function on loop every 0.05 seconds
     timer = this->create_wall_timer(10ms, std::bind(&DriveInputs::publish_cmds, this));
