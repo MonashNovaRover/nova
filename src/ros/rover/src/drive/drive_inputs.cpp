@@ -53,7 +53,6 @@ void DriveInputs::publish_cmds () {
 
     // Clear the msg_received flag
     prev_msg_received = false;
-
 }
 
 // Stops driving when no input received from radios for a period of time
@@ -142,7 +141,7 @@ DriveInputs::DriveInputs() : Node("drive_inputs")
         "/control/input_gamepad", qos, std::bind(&DriveInputs::input_callback, this, _1), subscriber_options);
 
     // Creates a timer function that runs a function on loop every 0.05 seconds
-    timer = this->create_wall_timer(10ms, std::bind(&DriveInputs::publish_cmds, this));
+    timer = this->create_wall_timer(20ms, std::bind(&DriveInputs::publish_cmds, this));
 
     // Output set-up messages
     Print::title("DRIVE INPUTS");
