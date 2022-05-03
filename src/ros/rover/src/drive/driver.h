@@ -22,7 +22,7 @@ ACTIONS:  None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	control
 AUTHOR(S):  Harrison Verrios, Josh Cherubino,
-            Will de la Rue
+            Will de la Rue, Liam Whittle
 CREATION:	21/11/2021
 EDITED:		09/02/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -97,14 +97,15 @@ class Driver : public rclcpp::Node {
     bool handbrake;
 
     // A flag for whether it has sent its first zero speed
-    bool stopped_sent;
+    bool stop_sent;
 
     // A flag for whether to use autonomous state or not
     bool is_autonomous = false;
 
     // An array of wheel instances
     Wheel* wheels[NUM_WHEELS];
-
+	
+	
     
     //------------------------------------------------------------//
     private:
@@ -119,7 +120,7 @@ class Driver : public rclcpp::Node {
     
     /// @brief      Pure function which calculates the total velocities the wheels should drive at
     /// @param      msg - A pointer to the drive message
-    std::array<float, NUM_WHEELS> calculate_velocities(const core::msg::DriveInput::SharedPtr msg) const;
+    std::array<float, NUM_WHEELS_DEF> calculate_velocities(const core::msg::DriveInput::SharedPtr msg) const;
 
     /// @brief      Callback function when autonomous messages are received
     /// @param      msg - A pointer to the drive message
@@ -152,6 +153,12 @@ class Driver : public rclcpp::Node {
     /// @returns    The tangent scale
     float get_tangent_scale (Vector2 pos, float wheel_centre) const;
 
+    /// @brief      drives each wheel at the provided velocity
+    /// @param      velocities - an array of length NUM_WHEELS containing a velocity to drive each wheel
+    void drive_wheels(std::array<float, NUM_WHEELS_DEF> velocities);
+    
+    /// @brief      sends an all stop command to each wheel
+    void all_stop();
 
     //------------------------------------------------------------//
     public:
