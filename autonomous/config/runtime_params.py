@@ -26,6 +26,9 @@ ignore_waypoints = 4  # number of waypoints to cut off start of list
 turn_drive_fraction = 0.15
 straight_drive_fraction = 0.2
 
+# Angle of lenience on completing a full turn on the spot
+spin_achieved_delta = np.pi/10
+
 controller_ros_rate = 10  # 10hz
 
 # ~~~~~~~~~~~~~~VIS CONSTANTS ~~~~~~~~~~~~~~~~

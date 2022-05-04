@@ -27,6 +27,8 @@ rover_pose_topic = "/rover/pose"
 ar_track_topic = "/autonomous/ar_tag"
 auto_waypoints_topic = "/autonomous/waypoints"
 auto_goals_topic = "/autonomous/goals"
+auto_goals_info = "/autonomous/goals/info"
+ar_goals_topic = "autonomous/ar_tag/global_odom"
 
 # ~~~~~~~~~~~~~~~~~~~~~ ROS ~~~~~~~~~~~~~~~~~~~~~~~~~~
 # this is the ROS "Frame" which we publish everything to. We don't use ROS transforms

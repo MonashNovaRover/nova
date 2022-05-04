@@ -47,7 +47,7 @@ class PathPlanner(Node):
         # way-point publisher publishes a bunch of waypoints at once (hence using the 2D map datatype
         self.waypt_publisher = self.create_publisher(Waypoints, auto_waypoints_topic, 10)
         self.padding_dist_m = INITIAL_PADDING_DIST_M
-        self.alvar_publisher = self.create_publisher(Odometry, "autonomous/ar_tag/global_odom", 10)
+        self.alvar_publisher = self.create_publisher(Odometry, ar_goals_topic, 10)
         
         self.pose_subscriber = self.create_subscription(RoverPose, rover_pose_topic, self.update_pose, 10)
 
@@ -125,7 +125,6 @@ class PathPlanner(Node):
             self.goal = global_pose[0], global_pose[1]
             self.get_logger().info("Updated planning goal (AR tag): x=" + str(global_pose[0]) + "| y=" + str(global_pose[1]))
 
-
     def manual_goal_callback(self, msg):
         """
         1. Check that it's the AR tag we are looking
@@ -164,7 +163,6 @@ class PathPlanner(Node):
         if not self.at_goal and distance((self.state.x, self.state.y), self.goal) < goal_achieved_distance:
             # WOooo!
             self.achieved_goal()
-        
 
     @staticmethod
     def heuristic(a, b, heuristic_type="euclidean"):

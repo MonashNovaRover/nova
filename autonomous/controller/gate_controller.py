@@ -1,11 +1,12 @@
 __package__ = "autonomous"
 
-from controller.ControllerInterface import ControllerInterface
-from controller.DriveController import DriveController
+from controller.controller_interface import ControllerInterface
+from controller.drive_controller import DriveController
 from math_utils.controller_math import *
 from config.runtime_params import dist_through_gate_m
 from typing import Tuple
 import numpy as np
+
 
 class GateController(ControllerInterface):
     def __init__(self, logger):
@@ -16,12 +17,16 @@ class GateController(ControllerInterface):
         self.gate = None
 
     def get_drive_command(self, target_waypoint, state: State, goal: Tuple[float], gate: Tuple[Tuple[float]]):
+        if gate is None:
+            return None
+
         self.state = state
         self.gate = gate
+
         if self.target_waypoint is None:
             self.calculate_target()
 
-        return self.controller.get_drive_command(self.target_waypoint, self.state)
+        return self.controller.get_drive_command(self.target_waypoint, self.state, self.target_waypoint)
 
     def calculate_target(self):
         gate_l, gate_r = np.array(self.gate[0]), np.array(self.gate[1])
