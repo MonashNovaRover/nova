@@ -112,6 +112,7 @@ class ArTracker(Node):
                 msg.pose.pose.position.y = pose[1]
                 msg.pose.pose.position.z = z
                 msg.id = int(_id[0])
+                self.get_logger().info(f"detected ar tag with id {msg.id}")
                 return msg
         else:
             return None
