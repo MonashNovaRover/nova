@@ -52,6 +52,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/Waypoints.msg"
   "msg/WheelData.msg"
   "msg/AutonomousGoal.msg"
+  "msg/AutonomousInfo.msg"
 
   # Service definitions
   "srv/ArmConfigInfo.srv"
