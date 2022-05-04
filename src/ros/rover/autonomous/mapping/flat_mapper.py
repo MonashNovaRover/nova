@@ -1,6 +1,6 @@
 __package__ = "autonomous"
-#!/usr/bin/python3
-  
+# !/usr/bin/python3
+
 
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -16,8 +16,7 @@ TOPICS:
   
   - /camera/depth/color/points [sensor_msgs.msg.PointCloud2]
   - /t265/odom/sample
-SERVICES:
-  - 
+SERVICES: None
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	autonomous
@@ -34,25 +33,45 @@ from mapping.mapper import Mapper
 from mapping.grid_2d import Grid2D
 import numpy as np
 import math_utils.transform as transform
-from config.runtime_params import max_fov_angle, max_point_depth, max_safe_obstacle, min_point_density
+from config.runtime_params import max_fov_angle, max_point_depth, max_safe_obstacle, min_point_density, \
+    obstacle_halve_value, obstacle_ignore_value
 from scipy.signal import convolve2d
 
 
 class FlatMapper(Mapper):
-    def __init__(self, length=20, width=20, height=5, resolution=0.1, detection_resolution=0.025, planner=None, _vis=True, camera=False):
+    def __init__(
+            self,
+            length=20,
+            width=20,
+            height=5,
+            resolution=0.1,
+            detection_resolution=0.025,
+            planner=None,
+            _vis=True,
+            camera=False
+    ):
 
         # init node with node name points
-        super().__init__(length=length, width=width, height=height, resolution=resolution, planner=planner, _vis=_vis, camera=camera)
+        super().__init__(
+            length=length,
+            width=width,
+            height=height,
+            resolution=resolution,
+            planner=planner,
+            _vis=_vis,
+            camera=camera
+        )
         self.planning_resolution = resolution
         self.detection_resolution = detection_resolution
         self.resolution_ratio = int(self.planning_resolution / self.detection_resolution)
-        self.detection_length = int(np.ceil((max_point_depth / self.detection_resolution) / self.resolution_ratio) * self.resolution_ratio) 
+        self.detection_length = int(
+            np.ceil((max_point_depth / self.detection_resolution) / self.resolution_ratio) * self.resolution_ratio)
         self.detection_width = int(np.ceil(2 * self.detection_length * np.tan(max_fov_angle)))
         self.initialise_map()
-        self.offset = [0, 0] # Sets the position offset of the map in the global frame
+        self.offset = [0, 0]  # Sets the position offset of the map in the global frame
 
     def initialise_map(self):
-        self._map = Grid2D(self.length, self.width, self.planning_resolution) 
+        self._map = Grid2D(self.length, self.width, self.planning_resolution)
 
     def get_detection_map_indexes(self, points):
         """
@@ -65,23 +84,19 @@ class FlatMapper(Mapper):
         above one another), but yaw and position transformations are done after obstacle
         detection, so the obstacle detection map can stay a consistent size and shape
         """
-<<<<<<< HEAD
-        indexes = np.floor((points/self.detection_resolution)).astype(int)
-=======
-        indexes = (points/self.detection_resolution).round().astype(int)
->>>>>>> master
-        indexes[:, 1] += (np.ceil(self.detection_width/2)).astype(int)
+        indexes = np.floor((points / self.detection_resolution)).astype(int)
+        indexes[:, 1] += (np.ceil(self.detection_width / 2)).astype(int)
         return indexes
-    
+
     def filter_points(self, points):
         """
         Discretises point cloud into indices, then filters out indices without
         enough points in them to avoid phantom "floating" points
         """
-        points = points[abs(points[:,2]) < 1.5]
+        points = points[abs(points[:, 2]) < 1.5]
         indexes = self.get_detection_map_indexes(points)
         indexes, counts = np.unique(indexes, return_counts=True, axis=0)
-        counts = (counts // min_point_density).astype(bool) # filtering out voxels without many points in them
+        counts = (counts // min_point_density).astype(bool)  # filtering out voxels without many points in them
         return indexes[counts]
 
     def downscale_obs(self, obstacles, min_x):
@@ -90,9 +105,10 @@ class FlatMapper(Mapper):
         of the grid so that we can down-size the resolution.
         """
         kernel = np.ones((self.resolution_ratio, self.resolution_ratio))
-        downscaled = convolve2d(obstacles, kernel, mode='valid')[::self.resolution_ratio, ::self.resolution_ratio].astype(float)
-        downscaled /= max_safe_obstacle # ignoring minor hills
-        downscaled[downscaled > 1.0] = 1.0 # all points greater than one are just set to 1
+        downscaled = convolve2d(obstacles, kernel, mode='valid')\
+            [::self.resolution_ratio, ::self.resolution_ratio].astype(float)
+        downscaled /= max_safe_obstacle  # ignoring minor hills
+        downscaled[downscaled > 1.0] = 1.0  # all points greater than one are just set to 1
         min_x /= self.resolution_ratio
         return downscaled, int(min_x)
 
@@ -102,13 +118,13 @@ class FlatMapper(Mapper):
         """
         x_change, y_change = 0, 0
         distance_to_edge = (self._map.length / 4)
-        if self.msg.pose.pose.position.x - self.offset[0] + self._map.length/2 < distance_to_edge:
+        if self.msg.pose.pose.position.x - self.offset[0] + self._map.length / 2 < distance_to_edge:
             x_change = -1
-        elif self._map.length/2 + self.offset[0] - self.msg.pose.pose.position.x < distance_to_edge:
+        elif self._map.length / 2 + self.offset[0] - self.msg.pose.pose.position.x < distance_to_edge:
             x_change = 1
-        if self.msg.pose.pose.position.y - self.offset[1]+ self._map.width/2 < distance_to_edge:
+        if self.msg.pose.pose.position.y - self.offset[1] + self._map.width / 2 < distance_to_edge:
             y_change = -1
-        elif self._map.width/2 + self.offset[1] - self.msg.pose.pose.position.y < distance_to_edge:
+        elif self._map.width / 2 + self.offset[1] - self.msg.pose.pose.position.y < distance_to_edge:
             y_change = 1
         if x_change != 0 or y_change != 0:
             self._map.roll_map(x_change, y_change)
@@ -124,17 +140,17 @@ class FlatMapper(Mapper):
         :param: obstacles - 1-dimensional array of obstacles in the map
         """
         obs_as_points = np.array([[x, y, val] for (x, y), val in np.ndenumerate(obstacles) \
-                if np.abs(np.arctan2(y - len(obstacles[0])/2, x)) < max_fov_angle and x > min_x])
+                                  if np.abs(np.arctan2(y - len(obstacles[0]) / 2, x)) < max_fov_angle and x > min_x])
         if len(obs_as_points) <= 10: return
-        obs_as_points[:, 1] -= int(np.ceil(self.detection_width/(2 * self.resolution_ratio)))
+        obs_as_points[:, 1] -= int(np.ceil(self.detection_width / (2 * self.resolution_ratio)))
         obstacles = transform.transform_yaw(self.msg, obs_as_points)
         obstacles[:, 2] *= 100
 
         # halving non-obstacle values to make us not care so much
-        obstacles[obstacles[:, 2] < 80] /= np.array([1, 1, 2])
+        obstacles[obstacles[:, 2] < obstacle_halve_value] /= np.array([1, 1, 2])
 
         # all points below a certain value get set to the minimum value
-        obstacles[obstacles[:, 2] < 30, 2] = 5
+        obstacles[obstacles[:, 2] < obstacle_ignore_value, 2] = 5
         return np.round(obstacles).astype(int)
 
     def get_2d_map(self):
@@ -149,4 +165,4 @@ class FlatMapper(Mapper):
         Publish the 2d map over ros to be viewed in RVIZ
         """
         self._map.publish_grid(self.offset)
-        #super().publish()
+        # super().publish()
