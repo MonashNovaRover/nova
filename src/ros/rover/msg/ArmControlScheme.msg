@@ -20,3 +20,6 @@ bool endpoint_frame_angular 0
 # Base reference frame offset
 # Value of 1, 0 or -1 for left, center or right
 int8 base_frame_offset 0
+
+# SPM roll vs end rotation
+bool use_spm_roll 0
