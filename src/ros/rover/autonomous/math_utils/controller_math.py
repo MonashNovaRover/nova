@@ -24,10 +24,9 @@ TODO:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
-
 import math
 import numpy as np
-from config.runtime_params import straight_drive_fraction
+from config.runtime_params import straight_drive_fraction, spin_achieved_delta
 
 
 class State:
@@ -35,6 +34,7 @@ class State:
     Represents a state of the rover in two dimension space - i.e. it only has an (x, y) position and a yaw.
     For use as a container in other classes.
     """
+
     def __init__(self, x=0.0, y=0.0, yaw=0.0, velocity=0.0, angular_velocity=0.0):
         self.x = x
         self.y = y
@@ -72,13 +72,42 @@ def yaw_difference(facing: np.array, target: np.array) -> float:
     dot = np.dot(facing, target)
     norms = np.sqrt(np.dot(facing, facing)) * np.sqrt(np.dot(target, target))
     # using dot product to find minimum angle
-    theta = np.arccos(np.round(dot/norms, 8))
+    theta = np.arccos(np.round(dot / norms, 8))
 
     yaw_sign = np.sign(cross[2]) if np.round(dot, 5) != -1. else 1
 
     diff = yaw_sign * theta
     assert -np.pi < diff <= np.pi
     return diff
+
+
+def spin_achieved(direction: int, facing: np.array, target: np.array):
+    assert abs(direction) == 1  # should be +- 1
+    delta = direction * yaw_difference(facing, target)
+
+    return 0 < delta < spin_achieved_delta
+
+
+def interpolate_circle_points(num_points: int, radius: int):
+    d_theta = np.pi / num_points
+    theta = 0
+    pts = []
+    for _ in range(num_points):
+        pts.append((radius * np.cos(theta), radius * np.sin(theta)))
+        theta += d_theta
+
+    return pts
+
+
+def average_tuple(tuples):
+    """
+    Takes a list of tuples and returns their average
+    """
+    tuple_sum = np.zeros(len(tuples[0]))
+    for _tuple in tuples:
+        tuple_sum += np.array(_tuple)
+
+    return tuple_sum / len(tuples)
 
 
 def vector_argument(vector):
@@ -116,4 +145,4 @@ def magnitude(vector):
     """
     Magnitude of a vector from 2-norm
     """
-    return np.dot(vector, vector)**0.5
+    return np.dot(vector, vector) ** 0.5
