@@ -21,11 +21,12 @@ EDITED:         12/04/2022
 """
 
 from abc import *
-from math_utils.controller_math import State
+from math_utils.controller_math import State, distance, yaw_difference
+from typing import Tuple, Dict
 
 class ControllerInterface(ABC):
-    @abstract_method
-    def get_drive_command(self, target_waypoint, state: State, goal: Tuple(float), gate: Tuple(Tuple(float))):
+    @abstractmethod
+    def get_drive_command(self, target_waypoint, state: State, goal: Tuple[float], gate: Tuple[Tuple[float]]) -> Dict:
         """
         Gets the drive command based on the type of controller we are using
         :param target_waypoint: the next waypoint in the list we are aiming for
@@ -35,11 +36,6 @@ class ControllerInterface(ABC):
         """
         pass
 
-    def log(self, drive):
-        if drive['steer']:
-            Controller.log_update("Controller Steering", self.target_waypoint, yaw_diff,
-                                  distance((self.state.x, self.state.y), self.target_waypoint))
-
-        else:
-            Controller.log_update("Controller Driving", self.target_waypoint, yaw_diff,
-                                  distance((self.state.x, self.state.y), self.target_waypoint))
+    @abstractmethod
+    def completed(self) -> bool:
+        pass
