@@ -36,6 +36,8 @@ const float WEIGHT = 1.0; // weight of heuristic for A*
 const float OBSTACLE_CUTTING_RANGE_M = 0.4; // distance to which we remove obstacles at src or dest
 const int CRITICAL_PATH_LEN = 7;
 const float OBSTACLE_VALUE = 1.0;
+const float HEIGHT_OBSTACLE_VALUE = 1.1;
+const float PLANE_PADDING_DISTANCE_FRACTION = 0.3;
 const float C_INF = 1e12;
 const float NEAREST_POINT_DIST_WEIGHT = 0.5;
 float PADDING_DIST_M = 0; 
@@ -104,7 +106,7 @@ bool isValid(const int cols, const int rows,
 bool isObstacle(const float grid_value)
 {
     // Is this square specifically blocked by a physical obstacle?
-	return grid_value == OBSTACLE_VALUE;
+	return grid_value == OBSTACLE_VALUE || grid_value == HEIGHT_OBSTACLE_VALUE;
 }
 
 template <size_t ROW, size_t COL>
@@ -151,10 +153,10 @@ float padding_value(float dist_sqrd, float padding_width_sqrd)
 {
 	/* 
 	Points too close are automatically impassable (values of 1.0 indicate obstacles,
-	values of 1.1 are points too close to an obstacle to be safe. This allows us to
+	values of 1.2 are points too close to an obstacle to be safe. This allows us to
 	distinguish between the two kinds of impassable points when padding)
 	*/
-	if (dist_sqrd < padding_width_sqrd) return 1.1 * OBSTACLE_VALUE;
+	if (dist_sqrd < padding_width_sqrd) return 1.2 * OBSTACLE_VALUE;
     if (dist_sqrd < 2 * padding_width_sqrd) return 0.0;
 	return 0;
 }
@@ -240,7 +242,10 @@ void precompute_padding_values(array<array<float, COL>, ROW>& grid,
 			if (isObstacle(grid[i][j])) {
 				// we have encountered an obstacle! Pad around it.
 				Pair here(i, j);
-				pad_point(grid, here, padding_width_pixels);
+                // padding plane obstacles half as far
+                if (grid[i][j] == OBSTACLE_VALUE) pad_point(grid, here, PLANE_PADDING_DISTANCE_FRACTION * padding_width_pixels);
+                // padding height obstacles normal distance 
+                else if (grid[i][j] == HEIGHT_OBSTACLE_VALUE) pad_point(grid, here, padding_width_pixels);
 			}
 		}
 	}
@@ -306,7 +311,6 @@ template <size_t ROW, size_t COL>
 vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 				const Pair& src, const Pair& dest, const float grid_resolution_m, const float padding_dist_m)
 {
-    std::cout << "We made it into the function" << std::endl;
     PADDING_DIST_M = padding_dist_m;
 	const float grid_resolution_cm = grid_resolution_m * 100;
 
@@ -499,4 +503,3 @@ PYBIND11_MODULE(a_star, module_handle) {
     module_handle.doc() = "Nova Rover A* C++ search algorithm binded to Python3";
     module_handle.def("a_star", &aStarSearch<200, 200>); // 10 cm resolution
 }
-

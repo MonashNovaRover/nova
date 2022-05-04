@@ -81,15 +81,23 @@ def transform_euler(euler_angles, pts):
     :param: euler angles: [pitch, roll, yaw]
     :returns: transformed points by the given rotations
     """
+    
+    qx, qy, qz, qw = euler_to_quat(euler_angles)    
+
+    mat = quat2mat(Q(qx, qy, qz, qw))
+    pts = np.matmul(mat, pts.transpose()).transpose()
+    return pts
+
+def euler_to_quat(euler_angles):
     pitch, roll, yaw = euler_angles[0], euler_angles[1], euler_angles[2]
+
     qx = np.sin(roll/2) * np.cos(pitch/2) * np.cos(yaw/2) - np.cos(roll/2) * np.sin(pitch/2) * np.sin(yaw/2)
     qy = np.cos(roll/2) * np.sin(pitch/2) * np.cos(yaw/2) + np.sin(roll/2) * np.cos(pitch/2) * np.sin(yaw/2)
     qz = np.cos(roll/2) * np.cos(pitch/2) * np.sin(yaw/2) - np.sin(roll/2) * np.sin(pitch/2) * np.cos(yaw/2)
     qw = np.cos(roll/2) * np.cos(pitch/2) * np.cos(yaw/2) + np.sin(roll/2) * np.sin(pitch/2) * np.sin(yaw/2)
+
+    return qx, qy, qz, qw
     
-    mat = quat2mat(Q(qx, qy, qz, qw))
-    pts = np.matmul(mat, pts.transpose()).transpose()
-    return pts
 
 def quat_to_euler(pose_msg):
     """
