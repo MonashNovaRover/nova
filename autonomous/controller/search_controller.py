@@ -15,10 +15,9 @@ import math
 class SearchController(ControllerInterface, Node):
     def __init__(self, is_gate: bool = False):
         super().__init__("Search Controller")
-        self.tags = []
-
         self.is_gate = False
         self.search = False
+        self.found_tags = False
 
         self.turn_on_spot = {
             "started": False,
@@ -39,7 +38,7 @@ class SearchController(ControllerInterface, Node):
             drive = self.turn(state)
         else:
             # Aim for next point in the search circle
-            if self.driver.completed():
+            if self.driver.completed() and not self.found_tags:
                 self.publish_next_waypoint(goal)
                 drive = {"drive": 0, "steer": 0}  # Do nothing for one cycle
 
@@ -53,34 +52,24 @@ class SearchController(ControllerInterface, Node):
 
         waypoint += np.array(goal)
         self.current_waypoint = waypoint
-
-        msg = AutonomousGoal()
-
-        position = Point2D
-        position.x, position.y = waypoint[0], waypoint[1]
-        id = -1  # no id for these interim points
-
-        msg.id = id
-        msg.position = position
-
-        self.publisher.publish(msg)
+        self.publish_waypoint(self.current_waypoint)
         self.waypoint_counter += 1
 
-    def new_goal(self, msg):
-        x = msg.pose.pose.position.x
-        y = msg.pose.pose.position.y
+    def publish_waypoint(self, waypoint):
+        msg = AutonomousGoal()
+        position = Point2D
+        position.x, position.y = waypoint[0], waypoint[1]
+        msg.position = position
+        self.publisher.publish(msg)
 
-        if len(self.tags) == 0:
-            self.tags.append((x, y))
-            self.current_waypoint = (x, y)
-
-        elif len(self.tags) == 1:
-            previous_tag = self.tags[0]
-            if distance(np.array(previous_tag), np.array(x, y)) > 1:
-                self.tags.append((x, y))
-                self.current_waypoint = average_tuple(self.tags)
-
-        self.driver.goal = self.current_waypoint
+    def new_goal(self, goal):
+        """
+        Updates the goal of the SearchController as the gate has been found
+        """
+        self.driver.goal = goal
+        self.current_waypoint = goal
+        self.publish_next_waypoint(self.current_waypoint)
+        self.found_tags = True
 
     def turn(self, state: State):
         """
@@ -99,19 +88,5 @@ class SearchController(ControllerInterface, Node):
         steer_fraction, drive_fraction = self.turner.turn(math.pi / 2, facing, target)
         return {"drive": drive_fraction, "steer": steer_fraction}
 
-    def found_tags(self):
-        if self.is_gate:
-            result = len(self.tags) == 2
-        else:
-            result = len(self.tags) == 1
-        return result
-
     def completed(self):
-        return not self.search or (self.found_tags() and self.driver.completed())
-
-    def get_gate(self):
-        if self.is_gate and len(self.tags == 2):
-            gate = (self.tags[0], self.tags[1])
-            return gate
-        else:
-            return None
+        return not self.search or (self.found_tags and self.driver.completed())

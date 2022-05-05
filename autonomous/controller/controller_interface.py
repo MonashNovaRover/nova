@@ -26,7 +26,7 @@ from typing import Tuple, Dict
 
 class ControllerInterface(ABC):
     @abstractmethod
-    def get_drive_command(self, target_waypoint, state: State, goal: Tuple[float], gate: Tuple[Tuple[float]]) -> Dict:
+    def get_drive_command(self, target_waypoint, state: State, goal: Tuple[float], gate) -> Dict:
         """
         Gets the drive command based on the type of controller we are using
         :param target_waypoint: the next waypoint in the list we are aiming for

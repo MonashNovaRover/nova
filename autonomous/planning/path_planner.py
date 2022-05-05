@@ -51,7 +51,6 @@ class PathPlanner(Node):
         
         self.pose_subscriber = self.create_subscription(RoverPose, rover_pose_topic, self.update_pose, 10)
 
-        self.ar_tag_subscriber = self.create_subscription(AlvarMarker, ar_track_topic, self.ar_goal_callback, 10)
         self.goal_subscriber = self.create_subscription(AutonomousGoal, auto_goals_topic, self.manual_goal_callback, 10)
 
         self.expected_goal_id = 0
@@ -77,53 +76,6 @@ class PathPlanner(Node):
     def set_offset(self, offset):
         self.offset[0] = offset[0]
         self.offset[1] = offset[1]
-
-    def ar_goal_callback(self, msg):
-        """
-        1. Check that it's the AR tag we are looking for
-        2. Filter out dodgy values
-            - are values within an absolute range?
-            - standard deviation? idk
-        3. Transform pose of tag relative to rover into global pose of tag
-        
-        """
-        if msg.id != self.goal_id: return
-
-        pose = msg.pose.pose.position
-        
-        local_pose = np.array([pose.x, pose.y])
-
-        # tracking cam extrinsics are included in global pose as 0, 0 is the centre of the rover
-        extrinsics = np.array(tracking_camera_extrinsics)[:2]
-        local_pose -= extrinsics
-
-        # distance from centre of rover to AR tag
-        distance = (np.dot(local_pose, local_pose)) ** 0.5
-
-        if not (min_ar_distance <= distance <= max_ar_distance):
-            return
-
-        # translate step
-        rot_mat = np.array([[np.cos(self.state.yaw), -np.sin(self.state.yaw)], [np.sin(self.state.yaw), np.cos(self.state.yaw)]])
-        local_pose.reshape(2, 1)
-        
-        global_pose = np.matmul(rot_mat, local_pose).reshape(2) + np.array([self.state.x, self.state.y])
-
-        # goal diff for logging
-        goal_diff = ((self.goal[0] - global_pose[0]) ** 2 + (self.goal[1] - global_pose[1]) ** 2) ** 0.5
-
-        iD = msg.id
-
-        if goal_diff > 0.02:
-            self.get_logger().info("found tag: x=" + str(global_pose[0]) + " | y=" + str(global_pose[1]))
-            odom = Odometry()
-            odom.pose.pose.position.x = global_pose[0]
-            odom.pose.pose.position.y = global_pose[1]
-            odom.header.frame_id = main_frame
-            odom.header.stamp = self.get_clock().now().to_msg()
-            self.alvar_publisher.publish(odom)
-            self.goal = global_pose[0], global_pose[1]
-            self.get_logger().info("Updated planning goal (AR tag): x=" + str(global_pose[0]) + "| y=" + str(global_pose[1]))
 
     def manual_goal_callback(self, msg):
         """

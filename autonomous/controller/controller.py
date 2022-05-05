@@ -40,7 +40,7 @@ from core.msg import DriveInput, RoverPose, Waypoints, AutonomousInfo, Autonomou
 from controller.drive_controller import DriveController
 from controller.gate_controller import GateController
 from controller.search_controller import SearchController
-from nav_msgs.msg import Odometry
+from core.msg import Point2D, AlvarMarker
 
 from config.ros_config import *
 
@@ -77,7 +77,9 @@ class Controller(Node):
 
         self.is_gate = False
         self.search = False
-        self.gate = None
+        self.tags = []
+        self.ids = None
+        self.found_ids = []
 
         self.goal = None
 
@@ -90,8 +92,8 @@ class Controller(Node):
         self.goal_publisher = self.create_publisher(AutonomousGoal, auto_goals_topic, 10)
         self.pose_subscriber = self.create_subscription(RoverPose, rover_pose_topic, self.update_pose, 10)
         self.waypt_subscriber = self.create_subscription(Waypoints, auto_waypoints_topic, self.add_waypoints, 10)
-        self.ar_goal_subscriber = self.create_subscription(Odometry, ar_goals_topic, self.ar_goal_callback, 10)
         self.long_term_goal_subscriber = self.create_subscription(AutonomousInfo, auto_goals_info, self.set_goal, 10)
+        self.ar_tag_subscriber = self.create_subscription(AlvarMarker, ar_track_topic, self.ar_goal_callback, 10)
 
         # Controls the rate at which drive commands are sent - sleeps for the necessary time to maintain the rate given
         self.timer = self.create_timer(0.1, self.control)
@@ -106,21 +108,6 @@ class Controller(Node):
         self.state.velocity = msg.velocity
         self.state.angular_velocity = msg.angular_velocity
 
-    def set_goal(self, msg):
-        """
-        Get the long-term goal for this autonomous cycle
-        """
-        goal = AutonomousGoal()
-        goal.id = msg.id
-        goal.position = msg.position
-        self.goal_publisher.publish(goal)
-
-        self.goal = (msg.position.x, msg.position.y)
-
-        # set parameters of Search Controller
-        self.controllers[Controller.SEARCH].is_gate = msg.is_gate
-        self.controllers[Controller.SEARCH].search = msg.is_ar_tag
-
     def ar_goal_callback(self, msg):
         """
         1. Check that it's the AR tag we are looking for
@@ -130,8 +117,69 @@ class Controller(Node):
         3. Transform pose of tag relative to rover into global pose of tag
 
         """
-        self.controllers[Controller.SEARCH].new_goal(msg)
-        self.goal = (msg.pose.pose.position.x, msg.pose.pose.position.y)
+        if not self.search: return    # We aren't going to an AR tag
+        if msg.id not in self.ids: return   # Not one of the ids we're looking for
+
+        pose = msg.pose.pose.position
+
+        local_pose = np.array([pose.x, pose.y])
+
+        # tracking cam extrinsics are included in global pose as 0, 0 is the centre of the rover
+        extrinsics = np.array(tracking_camera_extrinsics)[:2]
+        local_pose -= extrinsics
+
+        # distance from centre of rover to AR tag
+        dist = (np.dot(local_pose, local_pose)) ** 0.5
+
+        if not min_ar_distance <= dist <= max_ar_distance:
+            return
+
+        # translate step
+        rot_mat = np.array(
+            [[np.cos(self.state.yaw), -np.sin(self.state.yaw)], [np.sin(self.state.yaw), np.cos(self.state.yaw)]])
+        local_pose.reshape(2, 1)
+
+        global_pose = np.matmul(rot_mat, local_pose).reshape(2) + np.array([self.state.x, self.state.y])
+
+        # Check the id of the tag against what we've found and either add or update it
+        if msg.id in self.found_ids:
+            # we've already found it, but we can update it
+            self.tags[self.ids.index(msg.id)] = global_pose
+
+        elif len(self.tags) == 0:
+            self.found_ids.append(msg.id)
+            self.tags.append(global_pose)
+
+        elif len(self.tags) == 1 and self.is_gate:
+            previous_tag = self.tags[0]
+            if 3 > distance(np.array(previous_tag), np.array(global_pose)) > 1:
+                self.found_ids.append(msg.id)
+                self.tags.append(global_pose)
+
+        self.goal = average_vector(self.tags)
+        self.controllers[Controller.SEARCH].new_goal(self.goal)
+
+        self.get_logger().info("found tag: x=" + str(global_pose[0]) + " | y=" + str(global_pose[1]))
+        self.get_logger().info(
+            "Updated planning goal (AR tag): x=" + str(global_pose[0]) + "| y=" + str(global_pose[1])
+        )
+
+    def set_goal(self, msg):
+        """
+        Get the long-term goal for this autonomous cycle
+        """
+        self.send_autonomous_goal(msg.position)
+        self.goal = (msg.position.x, msg.position.y)
+        self.ids = [_id for _id in msg.ids]
+
+        # set parameters of Search Controller
+        self.controllers[Controller.SEARCH].is_gate = msg.is_gate
+        self.controllers[Controller.SEARCH].search = msg.is_ar_tag
+
+    def send_autonomous_goal(self, position):
+        goal = AutonomousGoal()
+        goal.position = position
+        self.goal_publisher.publish(goal)
 
     def add_waypoints(self, msg):
         """
@@ -160,11 +208,10 @@ class Controller(Node):
         """
         Logs the current action to ros logging
         """
-        return
         pad = 10
         action = "Action: " + action_msg.ljust(pad) + " | heading to: " + str(heading_to).ljust(pad) + " | yaw diff: " \
                  + str(round(yaw_diff, 4)).ljust(pad) + " | distance: " + str(round(dist, 4)).ljust(pad)
-        self.get_logger().info(action)
+        self.get_logger().debug(action)
 
     def achieved_goal(self):
         """
@@ -181,11 +228,10 @@ class Controller(Node):
         try:
             current_controller = Controller.controllers[self.mode]
 
-            drive = current_controller.get_drive_command(self.target_waypoint, self.state, self.goal, self.gate)
+            drive = current_controller.get_drive_command(self.target_waypoint, self.state, self.goal, self.tags)
             self.__publish(drive['drive'], drive['steer'])
 
             if current_controller.completed():
-                self.gate = Controller.controllers[Controller.SEARCH].get_gate()
                 self.mode = self.next_mode[self.mode]
 
             if self.mode == Controller.SUCCESS:

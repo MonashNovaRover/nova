@@ -16,7 +16,7 @@ class GateController(ControllerInterface):
         self.controller = DriveController()
         self.gate = None
 
-    def get_drive_command(self, target_waypoint, state: State, goal: Tuple[float], gate: Tuple[Tuple[float]]):
+    def get_drive_command(self, target_waypoint, state: State, goal: Tuple[float], gate):
         if gate is None:
             return None
 
