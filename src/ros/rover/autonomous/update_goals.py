@@ -15,25 +15,18 @@ class GoalPublisher(Node):
 
     def get_input(self):
         coord = input("Enter new goal as tuple: ")
-        id = int(input("Enter integer id of AR beacon: "))
+        ids_string = input("Enter integer ids of AR beacons if any: ")
         x, y = float(coord.split()[0]), float(coord.split()[1])
+        ids = [int(id_string) for id_string in ids_string.split()]
 
-        ar = input("Does the goal have an AR tag? (y/n)")[0].lower()
-        is_ar = ar == "y"
-        gate = input("Does the goal have a gate? (y/n)")[0].lower()
-        is_gate = gate == "y"
-
-        self.get_logger().info(f"Publishing new goal: x = {x}, y = {y}, id = {id}")
+        self.get_logger().info(f"Publishing new goal: x = {x}, y = {y}, ids = ({ids_string})")
 
         info = AutonomousInfo()
         position = Point2D()
 
         position.x, position.y = x, y
-        info.id = id
+        info.ids = ids
         info.position = position
-
-        info.is_ar_tag = is_ar
-        info.is_gate = is_gate
 
         self.publisher.publish(info)
 

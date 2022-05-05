@@ -99,15 +99,15 @@ def interpolate_circle_points(num_points: int, radius: int):
     return pts
 
 
-def average_tuple(tuples):
+def average_vector(vectors):
     """
-    Takes a list of tuples and returns their average
+    Takes a list of vectors and returns their average
     """
-    tuple_sum = np.zeros(len(tuples[0]))
-    for _tuple in tuples:
-        tuple_sum += np.array(_tuple)
+    vector_sum = np.zeros(len(vectors[0]))
+    for _vector in vectors:
+        vector_sum += np.array(_vector)
 
-    return tuple_sum / len(tuples)
+    return vector_sum / len(vectors)
 
 
 def vector_argument(vector):
