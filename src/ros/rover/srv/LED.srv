@@ -5,5 +5,6 @@ bool r
 bool g
 bool b
 uint8 intensity
+bool flashing
 ---
 bool sent_status
