@@ -14,7 +14,7 @@ ACTIONS: None
 PACKAGE: 	 control
 AUTHOR(S):   Jory Braun
 CREATION:	 30/01/2022
-EDITED:		 30/01/2022
+EDITED:		 23/04/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
  - Item One
@@ -42,8 +42,9 @@ class LowerJointsModel : public ArmSubModule
     LowerJointsModel()
     {
         // Initialise public members
+        module_name = "lower_joints";
         joint_names = std::vector<std::string> {"base-rotation", "shoulder", "elbow"};
-        // No control points
+        // No endpoints
         output_name = "sj3r";
         zero_angles = std::vector<double> {0, M_PI / 2, 0};
         joint_limits = std::vector<JointLimit> {

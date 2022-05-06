@@ -14,7 +14,7 @@ ACTIONS: None
 PACKAGE: 	 control
 AUTHOR(S):   Jory Braun
 CREATION:	 30/01/2022
-EDITED:		 30/01/2022
+EDITED:		 23/04/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
  - Item One
@@ -30,7 +30,7 @@ class WristCycloidalModel : public ArmSubModule
     //------------------------------------------------------------//
     public:
 
-    // Parameters for arm model geometry. Based on model in Arm/DH parameters on GrabCAD
+    // Parameters for arm model geometry
     // All distances in mm, all angles in rad
     constexpr static double ROOT_J4_LINK_LENGTH = 0.499;
     constexpr static double J4_OFFSET = 0.09952;
@@ -41,13 +41,14 @@ class WristCycloidalModel : public ArmSubModule
     WristCycloidalModel()
     {
         // Initialise public members
+        module_name = "wrist_cycloidal";
         joint_names = std::vector<std::string> {"j4", "j5", "j6"};
         endpoint_names = std::vector<std::string> {"j4-hook", "squooshy"};
         output_name = "sj6";
         zero_angles = std::vector<double> {0, -M_PI / 2, 0};
         joint_limits = std::vector<JointLimit> {
-            {-2.85, 0.75},
-            {-1.80, 2.45},
+            {-2.20, 1.35},
+            {-1.95, 2.15},
             {-2 * M_PI, 2 * M_PI}  // No joint limiting
         };
 

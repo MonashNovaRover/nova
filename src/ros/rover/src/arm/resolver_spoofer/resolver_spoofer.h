@@ -8,7 +8,7 @@ This class simulates resolver feedback from operating the CMDs.
 It can be used in place of the arm_driver for when no physical
   arm is connected.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-NODE: arm_model
+NODE: resolver_spoofer
 TOPICS:
   - /control/joint_velocities  [sensor_msgs/JointState]    [Subscribed]
   - /electronics/resolvers     [sensor_msgs/JointState]    [Published]
@@ -18,7 +18,7 @@ ACTIONS: None
 PACKAGE: 	 control
 AUTHOR(S): Jory Braun
 CREATION:	 18/12/2021
-EDITED:		 22/01/2022
+EDITED:		 28/04/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
  - Test with python plotter
@@ -30,6 +30,9 @@ TODO:
 // Include message types
 #include "sensor_msgs/msg/joint_state.hpp"
 
+// Include libraries
+#include "arm_config_info_client.h"
+
 // Use the standard namespaces
 // For publishers
 using namespace std::chrono_literals;
@@ -37,7 +40,7 @@ using namespace std::chrono_literals;
 using std::placeholders::_1;
 
 
-class ResolverSpoofer : public rclcpp::Node
+class ResolverSpoofer : public ArmConfigInfoClient
 {
     //------------------------------------------------------------//
     private:
@@ -47,7 +50,7 @@ class ResolverSpoofer : public rclcpp::Node
 
     // Track internal state of all joints
     // Includes joint names, position, velocity, effort and the corresponding timestamp
-    // Set initial value using arm_core
+    // Set initial value using arm_messages
     sensor_msgs::msg::JointState joints;
     // Track the time that the joint velocities were last integrated to.
     // This is distinct from the timestamp in joints, which represents the time each message was sent
@@ -79,11 +82,14 @@ class ResolverSpoofer : public rclcpp::Node
     /// @brief  Callback for publisher timer
     ///         Updates position base don current velocity, publishes to resolvers
     void publisher_callback();
-    
+
+    /// @brief      Application setup function. Starts publishers, subscribers and initialises members
+    void start_node() override;
+
     //------------------------------------------------------------//
     public:
 
-    /// Default constructor
-    ResolverSpoofer();
+    /// @brief      Constructor. Starts the node
+    ResolverSpoofer() : ArmConfigInfoClient("resolver_spoofer"){}
 
 };
