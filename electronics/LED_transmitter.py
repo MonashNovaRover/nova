@@ -26,7 +26,7 @@ a callback function setting the colours.
 """
 
 
-class CanLEDCommunicator():
+class CanLEDCommunicator:
     """Handles communication with LED
     """
     RED = 0x91
@@ -46,42 +46,17 @@ class CanLEDCommunicator():
         """
         Sends data to CAN bus to actually activate the LED array
         """
-        print(f"Setting LED to {colour} with intensity of {intensity}")
+        print(f"Setting LED to {hex(colour)} with intensity of {intensity}")
 
-        transmitter = self.transmitters[colour]
+        transmitter = self.transmitter
         transmitter.arbitration_id = colour  # send to the desired colour LED
-        packed_data = transmitter.pack()
+        packed_data = transmitter.pack([intensity])
         ret = transmitter.transmit(packed_data)
 
         return ret  # for informing of errors
 
 
-class LEDTransmitterServiceNode(Node, CanLEDCommunicator):
-    """This class' job is to receive requests for setting the LED colour, and 
-    passing the request on via CAN. 
-    Not currently used but may be useful
-    """
-
-    def __init__(self):
-        super().__init__('LED_transceiver_node')
-        # The service that listens for LED setting requests
-        self.service = self.create_service(LED, 'autonomous/LED', self.callback)
-
-    def callback(self, request, response):
-        self.get_logger().info(f"Service received request with data [R: {request.r}, G: {request.g}, B: {request.b}]")
-        colour = 0x91 if request.r \
-            else 0x92 if request.g \
-            else 0x93 if request.b \
-            else 0    # invalid request
-
-        intensity = request.intensity
-
-        response.sent_status = self.set_LED(colour, intensity)
-
-        return response
-
-
-class LEDStatusUpdateNode(Node, CanLEDCommunicator):
+class LEDUpdateNode(Node):
     """class: its job is to check the status of the rover and update the LED via can on changes
 
     Note: this is a temporary approach. Really, we should be putting heartbeat as a mode
@@ -96,33 +71,36 @@ class LEDStatusUpdateNode(Node, CanLEDCommunicator):
 
     def __init__(self):
         super().__init__('LED_status_update_node')
+        self.can_communicator = CanLEDCommunicator()
         # these should not be here! they should be in a file/params? and then 
         # can be pulled here
-        self.gamepad_input_subscriber = self.create_subscription("/control/input_gamepad", InputGamepad,
-                                                                 self.gamepad_callback, 1)
+        self.gamepad_input_subscriber = self.create_subscription(InputGamepad, "/control/input_gamepad", self.gamepad_callback, 10)
+        self.service = self.create_service(LED, 'autonomous/LED', self.service_callback)
+
         self.qos_timer = self.create_timer(1.0, self.check_connection)
+        self.display_timer = self.create_timer(1.0, self.display)
 
         # Colours and their brightness for each mode (mostly half brightness to save power)
         self.mode_colours = {
-            LEDStatusUpdateNode.MANUAL: (CanLEDCommunicator.BLUE, 128),
-            LEDStatusUpdateNode.AUTONOMOUS: (CanLEDCommunicator.RED, 128),
-            LEDStatusUpdateNode.AUTO_GOAL_ACHIEVED: (CanLEDCommunicator.GREEN, 128),
-            LEDStatusUpdateNode.DISCONNECTED: (CanLEDCommunicator.RED, 256)
+            LEDUpdateNode.MANUAL: (CanLEDCommunicator.BLUE, 128),
+            LEDUpdateNode.AUTONOMOUS: (CanLEDCommunicator.RED, 128),
+            LEDUpdateNode.AUTO_GOAL_ACHIEVED: (CanLEDCommunicator.GREEN, 128),
+            LEDUpdateNode.DISCONNECTED: (CanLEDCommunicator.RED, 255)
         }
 
         # Control how the above colour is displayed
         self.mode_functions = {
-            LEDStatusUpdateNode.MANUAL: self.display_continuous,
-            LEDStatusUpdateNode.AUTONOMOUS: self.display_continuous,
-            LEDStatusUpdateNode.AUTO_GOAL_ACHIEVED: self.display_continuous,
-            LEDStatusUpdateNode.DISCONNECTED: self.display_flash,
+            LEDUpdateNode.MANUAL: self.display_continuous,
+            LEDUpdateNode.AUTONOMOUS: self.display_continuous,
+            LEDUpdateNode.AUTO_GOAL_ACHIEVED: self.display_continuous,
+            LEDUpdateNode.DISCONNECTED: self.display_flash,
         }
 
         self.flash_duration = 1.0  # 1 second per flash
 
         self.most_recent_update = time.perf_counter()
 
-        self.mode = LEDStatusUpdateNode.MANUAL
+        self.mode = LEDUpdateNode.MANUAL
 
     def check_connection(self):
         """
@@ -131,7 +109,9 @@ class LEDStatusUpdateNode(Node, CanLEDCommunicator):
         """
         dt = time.perf_counter() - self.most_recent_update
         if dt > 1:
-            self.mode = LEDStatusUpdateNode.DISCONNECTED
+            self.mode = LEDUpdateNode.DISCONNECTED
+        elif self.mode == LEDUpdateNode.DISCONNECTED:
+            self.mode = LEDUpdateNode.MANUAL
 
     def gamepad_callback(self, message):
         """
@@ -142,14 +122,29 @@ class LEDStatusUpdateNode(Node, CanLEDCommunicator):
         A = message.btn_a_state
 
         if (B == 1 or B == 2):  # B is pressed or held
-            new_mode = LEDStatusUpdateNode.MANUAL
+            self.mode = LEDUpdateNode.MANUAL
         elif (A == 1 or A == 2):  # A is pressed or held
-            new_mode = LEDStatusUpdateNode.AUTONOMOUS
-        if (new_mode != self.mode):
-            self.mode = new_mode
-            self.display_continuous()
+            self.mode = LEDUpdateNode.AUTONOMOUS
 
-        self.most_recent_update = time.perf_counter()
+        if message.connected:
+            self.most_recent_update = time.perf_counter()
+
+    def service_callback(self, request, response):
+        self.get_logger().info(f"Service received request with data [R: {request.r}, G: {request.g}, B: {request.b}]")
+        colour = 0x91 if request.r \
+            else 0x92 if request.g \
+            else 0x93 if request.b \
+            else 0    # invalid request
+
+        if colour == 0:
+            response.sent_status = False
+        else:
+            intensity = request.intensity
+
+            response.sent_status = self.can_communicator.set_LED(colour, intensity)
+
+        return response
+
 
     def display(self):
         """
@@ -163,14 +158,14 @@ class LEDStatusUpdateNode(Node, CanLEDCommunicator):
         """
         # get colour ad brightness
         colour_info = self.mode_colours[self.mode]
-        self.set_LED(*colour_info)
+        self.can_communicator.set_LED(*colour_info)
 
     def display_flash(self):
         """
         sets light to off for half the duration, and on for the second half
         """
         off = (CanLEDCommunicator.RED, 0)  # 0 brightness message
-        self.set_LED(*off)  # Turn off
+        self.can_communicator.set_LED(*off)  # Turn off
 
         time.sleep(self.flash_duration / 2)
         self.display_continuous()  # Turn back on
@@ -179,13 +174,8 @@ class LEDStatusUpdateNode(Node, CanLEDCommunicator):
 
 def main(args=None):
     rclpy.init(args=args)
-    service = LEDTransmitterServiceNode()
-    LEDupdater = LEDStatusUpdateNode()
-    while rclpy.ok():
-        LEDupdater.display()
-        rclpy.spin_once(service)
-        rclpy.spin_once(LEDupdater)
-    service.destroy_node()
+    led_updater = LEDUpdateNode()
+    rclpy.spin(led_updater)
     rclpy.shutdown()
 
 
