@@ -92,7 +92,7 @@ class LEDUpdateNode(Node):
         self.mode_functions = {
             LEDUpdateNode.MANUAL: self.display_continuous,
             LEDUpdateNode.AUTONOMOUS: self.display_continuous,
-            LEDUpdateNode.AUTO_GOAL_ACHIEVED: self.display_continuous,
+            LEDUpdateNode.AUTO_GOAL_ACHIEVED: self.display_flash,
             LEDUpdateNode.DISCONNECTED: self.display_flash,
         }
 
@@ -130,23 +130,9 @@ class LEDUpdateNode(Node):
             self.most_recent_update = time.perf_counter()
 
     def service_callback(self, request, response):
-        """self.get_logger().info(f"Service received request with data [R: {request.r}, G: {request.g}, B: {request.b}]")
-        colour = 0x91 if request.r \
-            else 0x92 if request.g \
-            else 0x93 if request.b \
-            else 0    # invalid request
-
-        if colour == 0:
-            response.sent_status = False
-        else:
-            intensity = request.intensity
-
-            response.sent_status = self.can_communicator.set_LED(colour, intensity)
-        """
         self.mode = LEDUpdateNode.AUTO_GOAL_ACHIEVED
         response.sent_status = True
         return response
-
 
     def display(self):
         """
@@ -160,6 +146,7 @@ class LEDUpdateNode(Node):
         """
         # get colour ad brightness
         colour_info = self.mode_colours[self.mode]
+        print(self.mode)
         self.can_communicator.set_LED(*colour_info)
 
     def display_flash(self):
@@ -171,7 +158,6 @@ class LEDUpdateNode(Node):
 
         time.sleep(self.flash_duration / 2)
         self.display_continuous()  # Turn back on
-        time.sleep(self.flash_duration / 2)
 
 
 def main(args=None):
