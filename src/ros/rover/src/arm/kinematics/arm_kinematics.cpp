@@ -17,6 +17,7 @@ AUTHOR(S):	Jory Braun
 
 #define _USE_MATH_DEFINES
 #include <cmath>
+#include <string>
 
 ArmKinematics::ArmKinematics() : Node("arm_kinematics")
 {
@@ -92,6 +93,20 @@ ArmKinematics::ArmKinematics() : Node("arm_kinematics")
     arm_config_info_service = this->create_service<core::srv::ArmConfigInfo>(
         "/control/arm_config_info", std::bind(&ArmKinematics::arm_config_info_callback, this, _1, _2)
     );
+
+    // Output configuration messages
+    // Convet module names to uppercase
+    std::vector<std::string> module_names_upper = arm_model->module_names;
+    for (auto& name : module_names_upper){
+        for (auto& c : name){
+            c = toupper(c);
+        }
+    }
+    Print::title("ARM CONFIGURATION");
+    Print::print("Wrist:");
+    Print::print(module_names_upper[1].c_str(), 1);
+    Print::print("End effector:");
+    Print::print(module_names_upper[2].c_str(), 1);
 
     // Output set-up messages
     Print::title("ARM KINEMATICS");
