@@ -58,21 +58,3 @@ void ArmConfigInfoClient::check_receive_callback()
         RCLCPP_INFO(this->get_logger(), "Failed to get response from /control/arm_config_info, waiting again...");
     }
 }
-
-
-    // Problem 1: Receiving from client within a ndoe
-    // Problem 2: Making sure the node doesn't do anything until the client has gotten a response
-    
-    // Solution to problem 2:
-    // Constructor creates client, creates timer with client callback
-    // In callback, create publihsers, subscriptions, etc. Delete timer?
-
-    // Solutions to problem 1:
-    // Mustn't block for the response in the constructor. At this point nothing is spinning so client won't receive anything.
-    // A) Can block elsewhere (like in a timer callback), but will need a multithreaded executor
-    // B) Can make it completely non-blocking, then can use default (single-threaded) executor
-    
-    // For solution B, how to solve problem 2?
-    // Have a timer:
-    // If the client hasn't received a response, do nothing
-    // If the client has received a response, continue constructing node -> create pubs, subs, timers, etc. Delete timer (timer.cancel())
