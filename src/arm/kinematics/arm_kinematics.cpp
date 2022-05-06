@@ -366,6 +366,7 @@ void ArmKinematics::arm_config_info_callback(
 )
 {
     // Store names of relevant model features
+    response->module_names = arm_model->module_names;
     response->joint_names = arm_model->joint_names;
     response->endpoint_names = arm_model->endpoint_names;
     response->default_endpoint_name = arm_model->default_endpoint_name;

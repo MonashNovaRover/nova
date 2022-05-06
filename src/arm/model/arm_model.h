@@ -47,6 +47,9 @@ class ArmModel : public KDL::Tree
     //------------------------------------------------------------//
     public:
 
+    // List names of hardware modules connected
+    std::vector<std::string> module_names;
+
     // List names of all joints. Use for constructing JointState and MultiDOFJointState messages
     std::vector<std::string> joint_names;
     // List names of all endpoints (cameras and tips of end effectors) for constructing messages

@@ -43,6 +43,7 @@ class EeExtremeRetrievalModel : public ArmSubModule
     EeExtremeRetrievalModel(const ArmConfig::WristType wrist_type)
     {
         // Initialise public members
+        module_name = "ee_extreme_retrieval";
         // No joints
         endpoint_names = std::vector<std::string> {"gripper", "cam-hand", "cam-wave"};
         output_name = "sgripper";
