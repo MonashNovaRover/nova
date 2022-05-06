@@ -29,17 +29,14 @@ a callback function setting the colours.
 class CanLEDCommunicator:
     """Handles communication with LED
     """
-    RED = 0x91
-    GREEN = 0x92
-    BLUE = 0x93
+    RED = 0x091
+    GREEN = 0x092
+    BLUE = 0x093
 
     def __init__(self):
         self.transmitter = CANTransmitter(
             channel='can0',  # Can channel to transmit on
-            arbitration_id=0x91,  # ID for red can trasmitter
-            transmit_timeout=0.1,  # Timeout in seconds between messages
-            transmit_labels=['intensity'],
-            transmit_fmt='B'  # unsigned char for intensity
+            arbitration_id=0x091,  # ID for red can trasmitter
         )
 
     def set_LED(self, colour, intensity):
@@ -47,10 +44,9 @@ class CanLEDCommunicator:
         Sends data to CAN bus to actually activate the LED array
         """
         print(f"Setting LED to {hex(colour)} with intensity {intensity}")
-        transmitter = self.transmitter
-        transmitter.arbitration_id = colour  # send to the desired colour LED
-        packed_data = transmitter.pack([intensity])
-        ret = transmitter.transmit(packed_data)
+        self.transmitter.arbitration_id = colour  # send to the desired colour LED
+        packed_data = int.to_bytes(intensity, 1, "big")
+        ret = self.transmitter.transmit(packed_data)
 
         return ret  # for informing of errors
 
@@ -68,11 +64,10 @@ class LEDUpdateNode(Node):
     in a topic with the other mode types, and then this should be a subscriber to that topic.
     Then, a callback function will get executed periodically as the topic is published to. 
     """
-    OFF = 0
-    MANUAL = 1
-    AUTONOMOUS = 2
-    AUTO_GOAL_ACHIEVED = 3
-    DISCONNECTED = 4
+    MANUAL = 0
+    AUTONOMOUS = 1
+    AUTO_GOAL_ACHIEVED = 2
+    DISCONNECTED = 3
 
     def __init__(self):
         super().__init__('LED_status_update_node')
@@ -105,10 +100,9 @@ class LEDUpdateNode(Node):
 
         self.most_recent_update = time.perf_counter()
 
-        self.mode = LEDUpdateNode.OFF
+        self.mode = LEDUpdateNode.MANUAL
         self.previous_mode = self.mode
 
-        self.change_mode(LEDUpdateNode.MANUAL)
         self.display()
 
     def check_connection(self):
@@ -118,7 +112,7 @@ class LEDUpdateNode(Node):
         """
         dt = time.perf_counter() - self.most_recent_update
 
-        new_mode = self.MODE
+        new_mode = self.mode
 
         if dt > 1:
             new_mode = LEDUpdateNode.DISCONNECTED
