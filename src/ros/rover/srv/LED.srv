@@ -1,0 +1,9 @@
+# Ros2 service message type for setting the LED colour
+# on the back of the rover for URC.
+# Only one colour should be true. Intensity from 0-255
+bool r
+bool g
+bool b
+uint8 intensity
+---
+bool sent_status
