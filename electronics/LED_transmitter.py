@@ -12,7 +12,7 @@ colours
 '''
 import rclpy
 from rclpy.node import Node
-from std_srvs import Trigger
+from std_srvs.srv import Trigger
 from core.msg import InputGamepad
 from coms_utils.can_interface import CANTransmitter
 import time
@@ -46,8 +46,6 @@ class CanLEDCommunicator:
         """
         Sends data to CAN bus to actually activate the LED array
         """
-        print(f"Setting LED to {hex(colour)} with intensity of {intensity}")
-
         transmitter = self.transmitter
         transmitter.arbitration_id = colour  # send to the desired colour LED
         packed_data = transmitter.pack([intensity])
@@ -146,7 +144,6 @@ class LEDUpdateNode(Node):
         """
         # get colour ad brightness
         colour_info = self.mode_colours[self.mode]
-        print(self.mode)
         self.can_communicator.set_LED(*colour_info)
 
     def display_flash(self):
