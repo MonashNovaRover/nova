@@ -12,7 +12,7 @@ colours
 '''
 import rclpy
 from rclpy.node import Node
-from core.srv import LED
+from std_srvs.srv import Trigger
 from core.msg import InputGamepad
 from coms_utils.can_interface import CANTransmitter
 import time
@@ -46,8 +46,6 @@ class CanLEDCommunicator:
         """
         Sends data to CAN bus to actually activate the LED array
         """
-        print(f"Setting LED to {hex(colour)} with intensity of {intensity}")
-
         transmitter = self.transmitter
         transmitter.arbitration_id = colour  # send to the desired colour LED
         packed_data = transmitter.pack([intensity])
@@ -75,7 +73,7 @@ class LEDUpdateNode(Node):
         # these should not be here! they should be in a file/params? and then 
         # can be pulled here
         self.gamepad_input_subscriber = self.create_subscription(InputGamepad, "/control/input_gamepad", self.gamepad_callback, 10)
-        self.service = self.create_service(LED, 'autonomous/LED', self.service_callback)
+        self.service = self.create_service(Trigger, 'autonomous/LED', self.service_callback)
 
         self.qos_timer = self.create_timer(1.0, self.check_connection)
         self.display_timer = self.create_timer(1.0, self.display)
@@ -92,7 +90,7 @@ class LEDUpdateNode(Node):
         self.mode_functions = {
             LEDUpdateNode.MANUAL: self.display_continuous,
             LEDUpdateNode.AUTONOMOUS: self.display_continuous,
-            LEDUpdateNode.AUTO_GOAL_ACHIEVED: self.display_continuous,
+            LEDUpdateNode.AUTO_GOAL_ACHIEVED: self.display_flash,
             LEDUpdateNode.DISCONNECTED: self.display_flash,
         }
 
@@ -130,23 +128,9 @@ class LEDUpdateNode(Node):
             self.most_recent_update = time.perf_counter()
 
     def service_callback(self, request, response):
-        """self.get_logger().info(f"Service received request with data [R: {request.r}, G: {request.g}, B: {request.b}]")
-        colour = 0x91 if request.r \
-            else 0x92 if request.g \
-            else 0x93 if request.b \
-            else 0    # invalid request
-
-        if colour == 0:
-            response.sent_status = False
-        else:
-            intensity = request.intensity
-
-            response.sent_status = self.can_communicator.set_LED(colour, intensity)
-        """
         self.mode = LEDUpdateNode.AUTO_GOAL_ACHIEVED
-        response.sent_status = True
+        response.success = True
         return response
-
 
     def display(self):
         """
@@ -171,7 +155,6 @@ class LEDUpdateNode(Node):
 
         time.sleep(self.flash_duration / 2)
         self.display_continuous()  # Turn back on
-        time.sleep(self.flash_duration / 2)
 
 
 def main(args=None):
