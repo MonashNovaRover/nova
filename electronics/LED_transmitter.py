@@ -53,6 +53,12 @@ class CanLEDCommunicator:
 
         return ret  # for informing of errors
 
+    def turn_off(self, colour):
+        """
+        Tells a given colour line to display 0 intensity
+        """
+        self.set_LED(colour, 0)
+
 
 class LEDUpdateNode(Node):
     """class: its job is to check the status of the rover and update the LED via can on changes
@@ -98,7 +104,9 @@ class LEDUpdateNode(Node):
 
         self.most_recent_update = time.perf_counter()
 
-        self.mode = LEDUpdateNode.MANUAL
+        self.mode = LEDUpdateNode.OFF
+        self.previous_mode = self.mode
+        self.display()
 
     def check_connection(self):
         """
@@ -106,10 +114,16 @@ class LEDUpdateNode(Node):
         been receiving Gamepad messages
         """
         dt = time.perf_counter() - self.most_recent_update
+
+        new_mode = self.MODE
+
         if dt > 1:
-            self.mode = LEDUpdateNode.DISCONNECTED
+            new_mode = LEDUpdateNode.DISCONNECTED
         elif self.mode == LEDUpdateNode.DISCONNECTED:
-            self.mode = LEDUpdateNode.MANUAL
+            new_mode = LEDUpdateNode.MANUAL
+
+        if new_mode != self.mode:
+            self.change_mode(new_mode)
 
     def gamepad_callback(self, message):
         """
@@ -119,18 +133,26 @@ class LEDUpdateNode(Node):
         B = message.btn_b_state
         A = message.btn_a_state
 
+        new_mode = self.mode
         if (B == 1 or B == 2):  # B is pressed or held
-            self.mode = LEDUpdateNode.MANUAL
+            new_mode = LEDUpdateNode.MANUAL
         elif (A == 1 or A == 2):  # A is pressed or held
-            self.mode = LEDUpdateNode.AUTONOMOUS
+            new_mode = LEDUpdateNode.AUTONOMOUS
 
         if message.connected:
             self.most_recent_update = time.perf_counter()
+            if new_mode != self.mode:
+                self.change_mode(new_mode)
 
     def service_callback(self, request, response):
-        self.mode = LEDUpdateNode.AUTO_GOAL_ACHIEVED
         response.success = True
+        self.change_mode(LEDUpdateNode.AUTO_GOAL_ACHIEVED)
         return response
+
+    def change_mode(self, new_mode):
+        self.previous_mode = self.mode
+        self.mode = new_mode
+        self.display()
 
     def display(self):
         """
@@ -144,6 +166,8 @@ class LEDUpdateNode(Node):
         """
         # get colour ad brightness
         colour_info = self.mode_colours[self.mode]
+        previous_colour_info = self.mode_colours[self.previous_mode]
+        self.can_communicator.turn_off(previous_colour_info[0])
         self.can_communicator.set_LED(*colour_info)
 
     def display_flash(self):
