@@ -18,7 +18,7 @@ AUTHOR(S):	Jess Hepworth, Jory Braun
 // Receives the desired commands for the CMDs and sends to CMDs
 void ArmDriver::joint_velocities_callback (const sensor_msgs::msg::JointState::SharedPtr msg)
 {
-    for (unsigned int i = 0; i < msg->name.size(); i++) {
+    for (std::size_t i = 0; i < msg->name.size(); i++) {
         joints[i]->drive(msg->velocity[i]); 
     }
 }
@@ -26,7 +26,7 @@ void ArmDriver::joint_velocities_callback (const sensor_msgs::msg::JointState::S
 void ArmDriver::joint_velocities_deadline_callback()
 {
     RCLCPP_WARN(this->get_logger(), "control/joint_velocities subscription deadline missed");
-    for (unsigned int i = 0; i < arm_config_info.joint_names.size(); i++) {
+    for (std::size_t i = 0; i < arm_config_info.joint_names.size(); i++) {
         joints[i]->drive(0);
     }
 }
@@ -68,7 +68,7 @@ void ArmDriver::start_node()
     CMD_drive_mode = std::vector<CMDCommand> {PID, PID, PID, PID, PID, PID, PWM};
     CMD_direction = std::vector<bool> {1, 1, 0, 0, 0, 0, 0};
 
-    for (unsigned int i = 0; i < joints.size(); i++) {
+    for (std::size_t i = 0; i < joints.size(); i++) {
         joints[i] = new Joint (i + 1, CMD_drive_mode[i], CMD_direction[i]);
     }
 

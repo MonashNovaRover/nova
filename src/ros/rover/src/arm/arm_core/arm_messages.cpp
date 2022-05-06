@@ -13,7 +13,7 @@ AUTHOR(S):	Jory Braun
 // Get empty JointState for use in other nodes and topics
 sensor_msgs::msg::JointState ArmMessages::get_empty_joint_state(const std::vector<std::string>& names)
 {
-    std::vector<std::string>::size_type num_joints = names.size();
+    std::size_t num_joints = names.size();
     
     sensor_msgs::msg::JointState msg;
     msg.name = names;
@@ -26,7 +26,7 @@ sensor_msgs::msg::JointState ArmMessages::get_empty_joint_state(const std::vecto
 // Get empty MultiDOFJointState for use in other nodes and topics
 sensor_msgs::msg::MultiDOFJointState ArmMessages::get_empty_multi_dof_joint_state(const std::vector<std::string>& names)
 {
-    std::vector<std::string>::size_type num_joints = names.size();
+    std::size_t num_joints = names.size();
     
     sensor_msgs::msg::MultiDOFJointState msg;
     msg.joint_names = names;

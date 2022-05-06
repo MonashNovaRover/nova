@@ -207,7 +207,7 @@ inline void ArmKinematics::update_coord_frames()
 
     // Calculate FK for all joints
     // This is inefficient in KDL. For n joints takes O(n^2) time but could be O(n)
-    for (unsigned int i = 0; i < coord_frames.transforms.size(); i++){
+    for (std::size_t i = 0; i < coord_frames.transforms.size(); i++){
         // Calculate the FK for joint i. Store the result in kdl_coord_frame
         KDL::Frame kdl_coord_frame = calculate_serial_fk(kdl_joints, coord_frames.joint_names[i]);
         
@@ -348,7 +348,7 @@ inline void ArmKinematics::update_joint_velocities()
     if (control_scheme.joint_limits){
         // If any joint hits a limit, stop all joints
         bool limit = false;
-        for (unsigned int i = 0; i < joints.name.size(); i++) {
+        for (std::size_t i = 0; i < joints.name.size(); i++) {
             if ((joints.position[i] >= arm_model->joint_limits[i].upper && joints.velocity[i] > 0)
                 || (joints.position[i] <= arm_model->joint_limits[i].lower && joints.velocity[i] < 0)){
                 RCLCPP_WARN(this->get_logger(), "Joint %s has reached a limit", joints.name[i].c_str());
@@ -390,7 +390,7 @@ void ArmKinematics::arm_config_info_callback(
     // Store joint limits
     std::vector<float> joint_limits_lower (arm_model->joint_limits.size());
     std::vector<float> joint_limits_upper (arm_model->joint_limits.size());
-    for (unsigned int i = 0; i < arm_model->joint_limits.size(); i++) {
+    for (std::size_t i = 0; i < arm_model->joint_limits.size(); i++) {
         joint_limits_lower[i] = arm_model->joint_limits[i].lower;
         joint_limits_upper[i] = arm_model->joint_limits[i].upper;
     }

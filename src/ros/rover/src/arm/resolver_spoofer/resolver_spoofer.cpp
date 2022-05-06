@@ -29,7 +29,7 @@ void ResolverSpoofer::start_node()
 
     // Set the discontinuity angles for each joint
     joint_discontinuity_angles = std::vector<float> (arm_config_info.joint_names.size());
-    for (unsigned int i = 0; i < joint_discontinuity_angles.size(); i++){
+    for (std::size_t i = 0; i < joint_discontinuity_angles.size(); i++){
         float limit_lower = arm_config_info.joint_limits_lower[i];
         float limit_upper = arm_config_info.joint_limits_upper[i];
         joint_discontinuity_angles[i] = wrap_to_2pi((limit_lower + limit_upper) / 2 + M_PI);
@@ -83,7 +83,7 @@ void ResolverSpoofer::update_joint_positions()
     // Update positions using duration from last recorded time to current time, and last velocity
     // Assumes joints have been moving at the last velocity they were told to
     rclcpp::Duration duration = current_time - last_integration_time;
-    for(unsigned int i = 0; i < joints.name.size(); i++){
+    for (std::size_t i = 0; i < joints.name.size(); i++){
         if (joints.velocity[i] != 0){
             double angle = wrap_to_2pi(joints.position[i] + joints.velocity[i] * duration.seconds());
             joints.position[i] = move_discontinuity(angle, joint_discontinuity_angles[i]);
