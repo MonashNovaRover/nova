@@ -3,21 +3,22 @@
 Monash Nova Rover Team
 
 PACKAGE: 	control
-AUTHOR(S):	Jess Hepworth
+AUTHOR(S):	Jess Hepworth, Jory Braun
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-// Include the header file
+// Include class header
 #include "arm_driver.h"
 
+// Include other headers
 #include "print/print.h"
+#include "../arm_configuration.h"
 
-#include "../hacky_defines.h"
 
 // Receives the desired commands for the CMDs and sends to CMDs
 void ArmDriver::joint_velocities_callback (const sensor_msgs::msg::JointState::SharedPtr msg)
 {
-    for (unsigned int i = 0; i < msg->name.size(); i++) {
+    for (std::size_t i = 0; i < msg->name.size(); i++) {
         joints[i]->drive(msg->velocity[i]); 
     }
 }
@@ -25,7 +26,7 @@ void ArmDriver::joint_velocities_callback (const sensor_msgs::msg::JointState::S
 void ArmDriver::joint_velocities_deadline_callback()
 {
     RCLCPP_WARN(this->get_logger(), "control/joint_velocities subscription deadline missed");
-    for (unsigned int i = 0; i < hack::JOINT_NAMES.size(); i++) {
+    for (std::size_t i = 0; i < arm_config_info.joint_names.size(); i++) {
         joints[i]->drive(0);
     }
 }
@@ -36,7 +37,12 @@ void ArmDriver::endeffector_input_callback (const core::msg::EndEffectorInput::S
     // First 6 joints are handled by joint_velocities_callback
 
     // Receiving data for end effector
-    joints[6]->drive(msg->end_effector_actuation); //need to create message
+    // If the current arm configuration is cycloidal wrist + ER end effector, reduce the PWM by 50%
+    // This accounts for the fact that the ER end effector is running off a 24V rail instead of 12V.
+    if (ArmConfig::end_effector_type == ArmConfig::EE_EXTREME_RETRIEVAL && ArmConfig::wrist_type == ArmConfig::WRIST_CYCLOIDAL) {
+        msg->end_effector_actuation *= 0.5;
+    }
+    joints[6]->drive(msg->end_effector_actuation);
 
     // Linear actuator
     joints[6]->set_linear_actuator(msg->linear_actuation);
@@ -52,8 +58,7 @@ void ArmDriver::endeffector_input_deadline_callback()
     joints[6]->set_linear_actuator(0);
 }
 
-// Main constructor that sets up the node
-ArmDriver::ArmDriver() : Node("arm_driver")
+void ArmDriver::start_node()
 {    
     // Create joint instances based on the arm's structure
     // For now just hardcode for the cycloidal wrist and ES end effector
@@ -63,7 +68,7 @@ ArmDriver::ArmDriver() : Node("arm_driver")
     CMD_drive_mode = std::vector<CMDCommand> {PID, PID, PID, PID, PID, PID, PWM};
     CMD_direction = std::vector<bool> {1, 1, 0, 0, 0, 0, 0};
 
-    for (unsigned int i = 0; i < joints.size(); i++) {
+    for (std::size_t i = 0; i < joints.size(); i++) {
         joints[i] = new Joint (i + 1, CMD_drive_mode[i], CMD_direction[i]);
     }
 
@@ -91,7 +96,6 @@ ArmDriver::ArmDriver() : Node("arm_driver")
         endeffector_input_options
     );
     
-
     // Output set-up messages
     Print::title("ARM DRIVER");
     Print::print("Subscribed Topics:");
@@ -100,7 +104,6 @@ ArmDriver::ArmDriver() : Node("arm_driver")
     Print::print("Published Topics:");
     Print::print("", true);
 }
-
 
 //  Main function called when the script execution begins
 int main(int argc, char **argv)

@@ -9,36 +9,31 @@ AUTHOR(S):	Jory Braun
 
 #include "resolver_spoofer.h"
 
-#include "arm_core.h"
+#include "arm_messages.h"
 #include "print/print.h"
 
 #define _USE_MATH_DEFINES
 #include <cmath>
 
-#include "../hacky_defines.h"
 
-// Constructor
-ResolverSpoofer::ResolverSpoofer() : Node("resolver_spoofer")
+void ResolverSpoofer::start_node()
 {
     // Initialise constants
     timer_period = 200ms;
     
     // Set up the joints structure
-    joints = ArmCore::get_empty_joint_state(hack::JOINT_NAMES);
+    joints = ArmMessages::get_empty_joint_state(arm_config_info.joint_names);
     
     // Initial integration time
     last_integration_time = this->now();
 
-    // Set the discontinuity angles for each joint to be outside the typical range of motion
-    // For now just hardcode for the cycloidal wrist
-    joint_discontinuity_angles = std::vector<float> {
-        M_PI,
-        M_PI,
-        M_PI,
-        M_PI,
-        M_PI,
-        0
-    };
+    // Set the discontinuity angles for each joint
+    joint_discontinuity_angles = std::vector<float> (arm_config_info.joint_names.size());
+    for (std::size_t i = 0; i < joint_discontinuity_angles.size(); i++){
+        float limit_lower = arm_config_info.joint_limits_lower[i];
+        float limit_upper = arm_config_info.joint_limits_upper[i];
+        joint_discontinuity_angles[i] = wrap_to_2pi((limit_lower + limit_upper) / 2 + M_PI);
+    }
     
     // Create the subscription
     outputs_subscription = this->create_subscription<sensor_msgs::msg::JointState>(
@@ -67,7 +62,7 @@ ResolverSpoofer::ResolverSpoofer() : Node("resolver_spoofer")
 }
 
 // Convert a Real angle into the equivalent angle in [0, 2pi)
-double ResolverSpoofer::wrap_to_2pi(double angle){
+inline double ResolverSpoofer::wrap_to_2pi(double angle){
     angle = fmod(angle, 2*M_PI);
     if (angle < 0)
         angle += 2*M_PI;
@@ -75,7 +70,7 @@ double ResolverSpoofer::wrap_to_2pi(double angle){
 }
 
 // Move the discontinuity angle from 2pi to some specified angle
-double ResolverSpoofer::move_discontinuity(double angle, double discontinuity_angle){
+inline double ResolverSpoofer::move_discontinuity(double angle, double discontinuity_angle){
     return angle - 2*M_PI * (angle >= discontinuity_angle);
 }
 
@@ -88,7 +83,7 @@ void ResolverSpoofer::update_joint_positions()
     // Update positions using duration from last recorded time to current time, and last velocity
     // Assumes joints have been moving at the last velocity they were told to
     rclcpp::Duration duration = current_time - last_integration_time;
-    for(unsigned int i = 0; i < joints.name.size(); i++){
+    for (std::size_t i = 0; i < joints.name.size(); i++){
         if (joints.velocity[i] != 0){
             double angle = wrap_to_2pi(joints.position[i] + joints.velocity[i] * duration.seconds());
             joints.position[i] = move_discontinuity(angle, joint_discontinuity_angles[i]);

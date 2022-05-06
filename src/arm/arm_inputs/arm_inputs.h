@@ -25,7 +25,7 @@ ACTIONS:  None
 PACKAGE: 	control
 AUTHOR(S):  Jess Hepworth, Jory Braun
 CREATION:	02/12/2021
-EDITED:		20/04/2022
+EDITED:		28/04/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
  - Add in additional inputs for linear actuate
@@ -44,6 +44,9 @@ TODO:
 #include "sensor_msgs/msg/joint_state.hpp"
 #include "geometry_msgs/msg/twist_stamped.hpp"
 
+// Include libraries
+#include "arm_config_info_client.h"
+
 // Use the standard namespaces
 using namespace std::chrono_literals;
 using std::placeholders::_1;
@@ -53,8 +56,8 @@ using std::placeholders::_1;
 Arm input class that handles input data from joysticks and publishes 
 task and joint space velocities 
 */
-class ArmInputs : public rclcpp::Node {
-
+class ArmInputs : public ArmConfigInfoClient
+{
     //------------------------------------------------------------//
     private:
 
@@ -96,9 +99,6 @@ class ArmInputs : public rclcpp::Node {
     } SpeedMultipliers;
     SpeedMultipliers speed_multipliers;
 
-    //------------------------------------------------------------//
-    private:
-
     /// @brief      Callback function when input messages are received.
     /// @param      msg - A pointer to the input message
     void joystick_l_callback (const core::msg::InputJoystick::SharedPtr msg);
@@ -134,11 +134,14 @@ class ArmInputs : public rclcpp::Node {
     /// @param      value - number in range [-1, 1] to map to [0, 1]
     /// @returns    The new scale factor in range [0, 1]
     float scale_speed (float value);
-       
+
+    /// @brief      Application setup function. Starts publishers, subscribers and initialises members
+    void start_node() override;
+
     //------------------------------------------------------------//
     public:
 
-    /// @brief      Default constructor function that starts up the node
-    ArmInputs();
+    /// @brief      Constructor. Starts the node
+    ArmInputs() : ArmConfigInfoClient("arm_inputs"){}
     
 };

@@ -11,11 +11,13 @@ AUTHOR(S):	Jory Braun
 
 #include <Eigen/Core>
 
-#include "arm_core.h"
+#include "arm_messages.h"
+#include "../arm_configuration.h"
 #include "print/print.h"
 
 #define _USE_MATH_DEFINES
 #include <cmath>
+#include <string>
 
 ArmKinematics::ArmKinematics() : Node("arm_kinematics")
 {
@@ -24,19 +26,18 @@ ArmKinematics::ArmKinematics() : Node("arm_kinematics")
     joint_velocities_timer_period = 50ms;
 
     // Initialise arm model
-    wrist_type = ArmModel::WRIST_CYCLOIDAL;
-    end_effector_type = ArmModel::EE_EQUIPMENT_SERVICING;
-    arm_model = ArmModel(wrist_type, end_effector_type);
+    arm_model = new ArmModel(ArmConfig::wrist_type, ArmConfig::end_effector_type);
     // Initialise arm kinematics solvers
-    arm_fk_solver = new KDL::TreeFkSolverPos_recursive(arm_model);
-    arm_ik_solver = new KDL::TreeIkSolverVel_wdls(arm_model, std::vector<std::string> {arm_model.default_endpoint_name});
+    spm_solver = new SpmKinematics();
+    serial_fk_solver = new KDL::TreeFkSolverPos_recursive(*arm_model);
+    serial_ik_solver = new KDL::TreeIkSolverVel_wdls(*arm_model, std::vector<std::string> {arm_model->default_endpoint_name});
 
     // Initialise arrays in internal data structures
     // Use data from the arm model
-    joints = ArmCore::get_empty_joint_state(arm_model.joint_names);
-    joint_space_joints = ArmCore::get_empty_joint_state(arm_model.joint_names);
+    joints = ArmMessages::get_empty_joint_state(arm_model->joint_names);
+    joint_space_input = ArmMessages::get_empty_joint_state(arm_model->joint_names);
     // TwistStamped does not need to be initialised
-    coord_frames = ArmCore::get_empty_multi_dof_joint_state(arm_model.segment_names);
+    coord_frames = ArmMessages::get_empty_multi_dof_joint_state(arm_model->segment_names);
     
     // Create subscription to arm control scheme
     control_scheme_sub = this->create_subscription<core::msg::ArmControlScheme>(
@@ -88,6 +89,25 @@ ArmKinematics::ArmKinematics() : Node("arm_kinematics")
         "/control/joint_velocities", rclcpp::QoS(1).best_effort().deadline(200ms)
     );
 
+    // Create service for arm_config_info
+    arm_config_info_service = this->create_service<core::srv::ArmConfigInfo>(
+        "/control/arm_config_info", std::bind(&ArmKinematics::arm_config_info_callback, this, _1, _2)
+    );
+
+    // Output configuration messages
+    // Convet module names to uppercase
+    std::vector<std::string> module_names_upper = arm_model->module_names;
+    for (auto& name : module_names_upper){
+        for (auto& c : name){
+            c = toupper(c);
+        }
+    }
+    Print::title("ARM CONFIGURATION");
+    Print::print("Wrist:");
+    Print::print(module_names_upper[1].c_str(), 1);
+    Print::print("End effector:");
+    Print::print(module_names_upper[2].c_str(), 1);
+
     // Output set-up messages
     Print::title("ARM KINEMATICS");
     Print::print("Subscribed Topics:");
@@ -97,6 +117,8 @@ ArmKinematics::ArmKinematics() : Node("arm_kinematics")
     Print::print("Published Topics:");
     Print::print("/control/arm_coord_frames         [sensor_msgs/MultiDOFJointState]", 1);
     Print::print("/control/joint_velocities         [sensor_msgs/JointState]", 1);
+    Print::print("Services:");
+    Print::print("/control/arm_config_info          [core/ArmConfigInfo]", 1);
     Print::print("", true);
 }
 
@@ -115,13 +137,13 @@ void ArmKinematics::resolver_callback(const sensor_msgs::msg::JointState::Shared
 // Update the internal joint-space joint velocities
 void ArmKinematics::input_joint_velocities_callback(const sensor_msgs::msg::JointState::SharedPtr msg)
 {
-    joint_space_joints = *msg;
+    joint_space_input = *msg;
 }
 // Reset the internal velocities
 void ArmKinematics::input_joint_velocities_deadline_callback()
 {
     RCLCPP_WARN(this->get_logger(), "control/input_joint_velocities subscription deadline missed");
-    joint_space_joints = ArmCore::get_empty_joint_state(arm_model.joint_names);
+    joint_space_input = ArmMessages::get_empty_joint_state(arm_model->joint_names);
 }
 
 // Update the internal task velocity
@@ -136,50 +158,58 @@ void ArmKinematics::task_velocity_deadline_callback()
     task_velocity = geometry_msgs::msg::TwistStamped();
 }
 
-// Calculate the FK for a given segment
-inline KDL::Frame ArmKinematics::calculate_fk(KDL::JntArray kdl_joints, std::string segment_name)
+// Get the joint-space positions of the serial model of the arm
+inline KDL::JntArray ArmKinematics::get_serial_joint_positions()
 {
-    // Prepare the output data structure
-    KDL::Frame kdl_coord_frame;
+    KDL::JntArray kdl_joints;
+    // Get the data directly from the resolvers
+    kdl_joints.data = Eigen::Matrix<double, 6, 1> (joints.position.data());
     
-    // Calculate the FK for the given segment. Store the result in kdl_coord_frame
-    int exit_value = arm_fk_solver->JntToCart(kdl_joints, kdl_coord_frame, segment_name);
-    if (exit_value == -1){
-        RCLCPP_WARN(this->get_logger(), "Number of positions provided does not match number of joints in tree");
-        return KDL::Frame::Identity();
+    // If using the SPM wrist, replace SPM input joint positions with equivalent serial pitch, yaw and roll
+    if (ArmConfig::wrist_type == ArmConfig::WRIST_SPM){
+        // Calculate SPM FK
+        std::vector<double> spm_joints (joints.position.begin() + 3, joints.position.begin() + 6); 
+        std::vector<double> serial_wrist_joints = spm_solver->spm_fk(spm_joints);
+        // Pitch
+        kdl_joints.data[3] = serial_wrist_joints[0];
+        // Yaw
+        kdl_joints.data[4] = serial_wrist_joints[1];
+        // Roll. Combine SPM roll and end-rotation since the KDL model requires 6 joints
+        kdl_joints.data[5] = serial_wrist_joints[2] + joints.position[6];
     }
-    else if (exit_value == -2){
-        RCLCPP_WARN(this->get_logger(), "Could not find segment %s in the tree", segment_name.c_str());
-        return KDL::Frame::Identity();
-    }
-    else{
-        // Success
-        return kdl_coord_frame;
-    }
+
+    return kdl_joints;
 }
 
 // Calculate the FK for a given segment
-inline KDL::Frame ArmKinematics::calculate_fk(std::string segment_name)
+inline KDL::Frame ArmKinematics::calculate_serial_fk(KDL::JntArray kdl_joints, std::string segment_name)
 {
-    // Get the input positions in the form KDL likes
-    KDL::JntArray kdl_joints;
-    kdl_joints.data = Eigen::Matrix<double, 6, 1> (joints.position.data());
+    // Prepare the output data structure
+    KDL::Frame kdl_coord_frame = KDL::Frame::Identity();
+    
+    // Calculate the FK for the given segment. Store the result in kdl_coord_frame
+    int exit_value = serial_fk_solver->JntToCart(kdl_joints, kdl_coord_frame, segment_name);
+    if (exit_value == -1){
+        RCLCPP_WARN(this->get_logger(), "Number of positions provided does not match number of joints in tree");
+    }
+    else if (exit_value == -2){
+        RCLCPP_WARN(this->get_logger(), "Could not find segment %s in the tree", segment_name.c_str());
+    }
 
-    return calculate_fk(kdl_joints, segment_name);
+    return kdl_coord_frame;
 }
 
 // Get the task-space positions of all coordinate frames on the arm using forward kinematics
 inline void ArmKinematics::update_coord_frames()
 {
-    // Get the input positions in the form KDL likes
-    KDL::JntArray kdl_joints;
-    kdl_joints.data = Eigen::Matrix<double, 6, 1> (joints.position.data());
-    
+    // Get the input positions for the serial model of the arm, accounting for the SPM wrist
+    KDL::JntArray kdl_joints = get_serial_joint_positions();
+
     // Calculate FK for all joints
     // This is inefficient in KDL. For n joints takes O(n^2) time but could be O(n)
-    for (unsigned int i = 0; i < coord_frames.transforms.size(); i++){
+    for (std::size_t i = 0; i < coord_frames.transforms.size(); i++){
         // Calculate the FK for joint i. Store the result in kdl_coord_frame
-        KDL::Frame kdl_coord_frame = calculate_fk(kdl_joints, coord_frames.joint_names[i]);
+        KDL::Frame kdl_coord_frame = calculate_serial_fk(kdl_joints, coord_frames.joint_names[i]);
         
         // Save the output transform in the form ROS2 likes
         geometry_msgs::msg::Vector3 translation;
@@ -209,7 +239,7 @@ void ArmKinematics::publish_coord_frames()
 }
 
 // Get the twist from the joysticks
-inline KDL::Twists ArmKinematics::get_control_twist()
+inline KDL::Twist ArmKinematics::get_control_twist()
 {
     // Unpack the ROS2 task velocity into KDL::Vectors
     const geometry_msgs::msg::Vector3& vec3_linear = task_velocity.twist.linear;
@@ -224,7 +254,7 @@ inline KDL::Twists ArmKinematics::get_control_twist()
         // eg: forward on the left joystick is +ve x, but should be +ve z in end effector coordinates
         KDL::Rotation joystick_input_transform = KDL::Rotation::EulerZYX(M_PI / 2, -M_PI / 2, 0);
         // Transform from end effector coordinates to base frame coordinates
-        KDL::Rotation endpoint_frame_transform = calculate_fk(arm_model.default_endpoint_name).M;
+        KDL::Rotation endpoint_frame_transform = calculate_serial_fk(get_serial_joint_positions(), arm_model->default_endpoint_name).M;
         if (control_scheme.endpoint_frame_linear) {
             twist_linear = endpoint_frame_transform * joystick_input_transform * twist_linear;
         }
@@ -246,28 +276,21 @@ inline KDL::Twists ArmKinematics::get_control_twist()
         }
     }
 
-    // Compose into final twists
-    return KDL::Twists { {arm_model.default_endpoint_name, KDL::Twist (twist_linear, twist_angular)} };
+    // Compose into final twist
+    return KDL::Twist (twist_linear, twist_angular);
 }
 
-// Get the joint-space velocities of all joints on the arm for the given task velocity using inverse kinematics
-inline void ArmKinematics::update_joint_velocities()
+// Solve the velocity inverse kineamtics for the end effector
+inline KDL::JntArray ArmKinematics::calculate_serial_ik(KDL::JntArray kdl_joint_positions, KDL::Twist kdl_twist)
 {
-    // Clear the velocity data. Ensures if IK fails no velocity is sent to motors
-    std::fill(joints.velocity.begin(), joints.velocity.end(), 0);
-    
-    // Get the input in the form KDL likes
-    // Joint positions
-    KDL::JntArray kdl_joint_positionss;
-    kdl_joint_positionss.data = Eigen::Matrix<double, 6, 1> (joints.position.data());
-    // Twist
-    KDL::Twists kdl_twists = get_control_twist();
+    // Get the input twist in the form KDL likes
+    KDL::Twists kdl_twists = { {arm_model->default_endpoint_name, kdl_twist} };
     
     // Prepare the output data structure
-    KDL::JntArray kdl_joint_velocities;
+    KDL::JntArray kdl_joint_velocities (6);
     
-    // Calculate the inverse kinematics
-    double exit_value = arm_ik_solver->CartToJnt(kdl_joint_positionss, kdl_twists, kdl_joint_velocities);
+    // Calculate the inverse kinematics. Store the result in kdl_joint_velocities
+    double exit_value = serial_ik_solver->CartToJnt(kdl_joint_positions, kdl_twists, kdl_joint_velocities);
     if (exit_value == -1){
         RCLCPP_WARN(this->get_logger(), "Must provide 6 positions and have 6 joints in tree");
     }
@@ -277,33 +300,57 @@ inline void ArmKinematics::update_joint_velocities()
     else if (exit_value == KDL::TreeIkSolverVel_wdls::E_SVD_FAILED) {
         RCLCPP_WARN(this->get_logger(), "Singular value decomposition failed");
     }
-    else{
-        // Success
-        // Save the output in the form ROS2 likes
-        for (unsigned int i = 0; i < 6; i++) {
-            joints.velocity[i] = kdl_joint_velocities.data[i];
-        }
-    }
+
+    return kdl_joint_velocities;
 }
 
-// Calculate the inverse kinematics using the latest arm model, publish to joint_velocities
-void ArmKinematics::publish_joint_velocities()
+// Get the joint-space velocities of all joints on the arm for the given task velocity using inverse kinematics
+inline void ArmKinematics::update_joint_velocities()
 {
-    // Calculate the inverse kinematics from the current joint positions and task velocity
-    update_joint_velocities();
+    // Calculate IK for the end effector
+    // Gets the joint velocities for the serial model of the arm
+    KDL::Twist kdl_twist = get_control_twist();
+    KDL::JntArray kdl_joint_velocities (6);
+    if (kdl_twist != KDL::Twist::Zero()){
+        kdl_joint_velocities = calculate_serial_ik(get_serial_joint_positions(), kdl_twist);
+    }
 
-    // Combine the IK and joint-space joint velocities
-    for (unsigned int i = 0; i < joints.name.size(); i++) {
-        joints.velocity[i] += joint_space_joints.velocity[i];
+    // Combine the IK and joint-space joint velocities for the serial model of the arm
+    // Save the output in the form ROS2 likes
+    for (unsigned int i = 0; i < 6; i++) {
+        joints.velocity[i] = kdl_joint_velocities.data[i] + joint_space_input.velocity[i];
+    }
+
+    // If using the SPM wrist, replace serial pitch, yaw and roll with SPM input joint velocities
+    if (ArmConfig::wrist_type == ArmConfig::WRIST_SPM){
+        
+        // If using end rotation instead of SPM roll, move the serial roll to the index for end rotation
+        // Then no roll will be passed to the SPM IK
+        if (!control_scheme.use_spm_roll){
+            joints.velocity[6] = joints.velocity[5];
+            joints.velocity[5] = 0;
+        }
+
+        // Calculate SPM IK
+        std::vector<double> spm_joints (joints.position.begin() + 3, joints.position.begin() + 6);
+        std::vector<double> serial_wrist_velocity (joints.velocity.begin() + 3, joints.velocity.begin() + 6);
+        std::vector<double> spm_velocity = spm_solver->spm_ik_velocity(spm_joints, serial_wrist_velocity);
+        // Replace serial pitch, yaw and roll with SPM input joint velocities
+        // Pitch
+        joints.velocity[3] = spm_velocity[0];
+        // Yaw
+        joints.velocity[4] = spm_velocity[1];
+        // Roll
+        joints.velocity[5] = spm_velocity[2];
     }
 
     // If activated, apply joint limits to the current joint velocity
     if (control_scheme.joint_limits){
         // If any joint hits a limit, stop all joints
         bool limit = false;
-        for (unsigned int i = 0; i < joints.name.size(); i++) {
-            if ((joints.position[i] >= arm_model.joint_limits[i].upper && joints.velocity[i] > 0)
-                || (joints.position[i] <= arm_model.joint_limits[i].lower && joints.velocity[i] < 0)){
+        for (std::size_t i = 0; i < joints.name.size(); i++) {
+            if ((joints.position[i] >= arm_model->joint_limits[i].upper && joints.velocity[i] > 0)
+                || (joints.position[i] <= arm_model->joint_limits[i].lower && joints.velocity[i] < 0)){
                 RCLCPP_WARN(this->get_logger(), "Joint %s has reached a limit", joints.name[i].c_str());
                 limit = true;
             }
@@ -313,11 +360,42 @@ void ArmKinematics::publish_joint_velocities()
             std::fill(joints.velocity.begin(), joints.velocity.end(), 0);
         }
     }
+}
+
+// Calculate the inverse kinematics using the latest arm model, publish to joint_velocities
+void ArmKinematics::publish_joint_velocities()
+{
+    // Calculate the inverse kinematics and update the commanded joint velocities
+    update_joint_velocities();
 
     // Update the header
     joints.header.stamp = this->now();
     // Publish the message
     joint_velocities_pub->publish(joints);
+}
+
+// Return details of the arm model
+void ArmKinematics::arm_config_info_callback(
+    __attribute__((unused)) const core::srv::ArmConfigInfo::Request::SharedPtr request,
+    core::srv::ArmConfigInfo::Response::SharedPtr response
+)
+{
+    // Store names of relevant model features
+    response->module_names = arm_model->module_names;
+    response->joint_names = arm_model->joint_names;
+    response->endpoint_names = arm_model->endpoint_names;
+    response->default_endpoint_name = arm_model->default_endpoint_name;
+    response->segment_names = arm_model->segment_names;
+
+    // Store joint limits
+    std::vector<float> joint_limits_lower (arm_model->joint_limits.size());
+    std::vector<float> joint_limits_upper (arm_model->joint_limits.size());
+    for (std::size_t i = 0; i < arm_model->joint_limits.size(); i++) {
+        joint_limits_lower[i] = arm_model->joint_limits[i].lower;
+        joint_limits_upper[i] = arm_model->joint_limits[i].upper;
+    }
+    response->joint_limits_lower = joint_limits_lower;
+    response->joint_limits_upper = joint_limits_upper;
 }
 
 //  Main function called when the script execution begins

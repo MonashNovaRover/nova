@@ -3,17 +3,16 @@
 Monash Nova Rover Team
 
 PACKAGE: 	control
-AUTHOR(S):	Jess Hepworth
+AUTHOR(S):	Jess Hepworth, Jory Braun
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
 // Include the header file
 #include "arm_inputs.h"
 
-#include "arm_core.h"
+#include "arm_messages.h"
 #include "print/print.h"
 
-#include "../hacky_defines.h"
 
 // Receives input from left joystick
 void ArmInputs::joystick_l_callback (const core::msg::InputJoystick::SharedPtr msg)
@@ -233,6 +232,14 @@ void ArmInputs::publish_control_scheme()
         base_frame_offset = 1;
     }
     control_scheme.base_frame_offset = base_frame_offset;
+
+    // Set SPM roll handling
+    if (joystick_r.btn_thumb_u_state == 2){
+        control_scheme.use_spm_roll = true;
+    }
+    else {
+        control_scheme.use_spm_roll = false;
+    }
     
     // Set the header and publish
     control_scheme.header.stamp = this->now();
@@ -240,8 +247,7 @@ void ArmInputs::publish_control_scheme()
 }
 
 
-// Main constructor that sets up the node
-ArmInputs::ArmInputs() : Node("arm_inputs")
+void ArmInputs::start_node()
 {
     // Creates the end effector inputs publisher
     endeffector_publisher = this->create_publisher<core::msg::EndEffectorInput>(
@@ -299,7 +305,7 @@ ArmInputs::ArmInputs() : Node("arm_inputs")
     );
 
      // Initialise arrays in internal data structures
-    joint_velocities = ArmCore::get_empty_joint_state(hack::JOINT_NAMES);
+    joint_velocities = ArmMessages::get_empty_joint_state(arm_config_info.joint_names);
     
     // Publish the control scheme to initialise other nodes
     // Uses the default field values

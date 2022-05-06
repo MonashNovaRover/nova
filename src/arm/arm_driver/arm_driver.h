@@ -12,7 +12,7 @@ Whether to use PID or PWM is decided based on presence
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: arm_driver
 TOPICS:
-  - /control/endeffector_input   [EndEffectorInput]          [Subscribed]
+  - /control/endeffector_input   [core/EndEffectorInput]     [Subscribed]
   - /control/cmd_ouputs          [sensor_msgs/JointState]    [Subscribed]
 SERVICES: None
 ACTIONS:  None
@@ -20,20 +20,21 @@ ACTIONS:  None
 PACKAGE: 	control
 AUTHOR(S):  Jess Hepworth, Jory Braun
 CREATION:	03/12/2021
-EDITED:		20/04/2022
+EDITED:		25/04/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
- - create cmd_outputs message
- - work out subsriber to arm parameters
+ - 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-// Include ROS packages
+// Include ROS client library
 #include "rclcpp/rclcpp.hpp"
-
+// Include message types
 #include "core/msg/end_effector_input.hpp"
 #include "sensor_msgs/msg/joint_state.hpp"
 
+// Include libraries
+#include "arm_config_info_client.h"
 #include "joint.h"
 
 // Use the standard namespaces
@@ -45,14 +46,10 @@ using std::placeholders::_1;
 Class which receives the commands for the CMDS and interfaces 
 with the joint class to control the CMDs  
 */
-class ArmDriver : public rclcpp::Node {
-
-
+class ArmDriver : public ArmConfigInfoClient
+{
     //------------------------------------------------------------//
     private:
-
-    // Stores the loop timer for the update function
-    rclcpp::TimerBase::SharedPtr timer;
 
     // Stores the subscriber to the desired joint velocities
     rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr joint_velocities_subscription;
@@ -69,9 +66,6 @@ class ArmDriver : public rclcpp::Node {
     // A vector of CMD directions
     std::vector<bool> CMD_direction;
 
-    //------------------------------------------------------------//
-    private:
-
     /// @brief      Callback function when input messages are received.
     /// @param      msg - A pointer to the input message
     void joint_velocities_callback (const sensor_msgs::msg::JointState::SharedPtr msg);
@@ -86,10 +80,13 @@ class ArmDriver : public rclcpp::Node {
     ///             Resets the internal state
     void endeffector_input_deadline_callback();
 
+    /// @brief      Application setup function. Starts publishers, subscribers and initialises members
+    void start_node() override;
+
     //------------------------------------------------------------//
     public:
 
-    /// @brief      Default constructor function that starts up the node
-    ArmDriver();
+    /// @brief      Constructor. Starts the node
+    ArmDriver() : ArmConfigInfoClient("arm_driver"){}
     
 };
