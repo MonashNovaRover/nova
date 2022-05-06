@@ -49,7 +49,7 @@ std::vector<double> SpmKinematics::v_to_pyr(const std::vector<double> &v, const 
     // Find 2 possible theta_y
     pyr_solutions[0][1] = asin(z[0]);
     pyr_solutions[1][1] = M_PI - pyr_solutions[0][1];
-    for (unsigned int i = 0; i < pyr_solutions.size(); i++){
+    for (std::size_t i = 0; i < pyr_solutions.size(); i++){
         // Find corresponding angles of theta_x
         pyr_solutions[i][0] = atan2(-z[1]/cos(pyr_solutions[i][1]), z[2]/cos(pyr_solutions[i][1]));
         // Find corresponding angles of theta_z
