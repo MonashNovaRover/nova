@@ -5,6 +5,9 @@
 
 ---
 
+# Configuration Info
+string[] module_names
+
 # Joint Info
 string[] joint_names
 float32[] joint_limits_lower
