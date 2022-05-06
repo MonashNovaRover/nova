@@ -14,8 +14,8 @@ SERVICES:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	science
 AUTHOR(S):	Miles Higgins, Harrison Verrios
-CREATION:	15/02/2021
-EDITED:		12/03/2021
+CREATION:	15/02/2022
+EDITED:		06/05/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
@@ -31,42 +31,35 @@ import json
 # Standard CAN ID
 CAN_ID = 0
 
-
-# New looking for CMD
-# WILL NEED TO UPDATE THIS
-TARGET_USE_CMD = {
-    "payload": True,
-    "hydraprobe": False,
-    "kiln": False
-}
-
-ACTION_CMD_ID = {
-    "scoop": "09",
-    "linear_actuator": "08",
-}
-
-
-# Old Target Dictionary
-
 TARGET_DICT =  {
-    "payload": "0",
-    "hydraprobe": "000",
-    "kiln": "001"
+    "platform": "000",
+    "microscope": "000",
+    "internals": "001",
+    "spectrometer": "001"
 }
 
 ACTION_DICT = {
-    "hydraprobe_limits": "01",
-    "hydraprobe": "02",
-    "hydraprobe_top": "03",
-    "hydraprobe_bottom": "04",
-    "kiln_lid": "01",
-    "kiln_mixer": "02",
-    "kiln_heater": "03",
+    
+    "actuation_manual": "01",
+    "actuation_top": "02",
+    "actuation_bottom": "03",
+    "scoops": "04",
+    "lens": "05",
+    "led": "06",
+    "laser": "07",
+    "sequence": "01",
+    "controls": "02",
+    "pumps": "03",
+    "rotate": "11",
+    "read": "12",
+    "led": "13"
 }
 
 ARGUMENT_DICT = {
     "forward": "00",
     "reverse": "01",
+    "left": "00",
+    "right": "01",
     "up": "00",
     "down": "01",
     "true": "01",
@@ -127,60 +120,28 @@ class ServiceNode(Node):
             print("\033[1;91m\nERROR: Unable to find can1 network.\033[0m")
             exit()
 
-
     '''
     Description of callback function
-    TODO:
-    Fix the CMD stuff - we will need to design a better solution to this
+
     '''
     def callback_func(self, request, response):
 
         json_data = json.loads(request.command)
 
         command = "00"
+        
+        # Parses the command
+        id, command = parse_command(json_data)
+        print("Executing Command: %s" % command)
 
-        # Check if command is CMD or PICS
-        # If CMD
-        if TARGET_USE_CMD[json_data["target"]]:
-            speed = json_data["args"].get("speed", False)
-
-            # if given a speed
-            if json_data["action"] == "scoop":
-                arg = "3"
-                if json_data["args"]["direction"] in ("forward", "down"):
-                    command = str(hex(speed * 256 - 1))[2:]
-                else:
-                    command = "00"
-                    arg = "2"
-            else:
-                if json_data["args"]["direction"] in ("forward", "down"):
-                    arg = "1"
-                else:
-                    arg = "2"
-
-            # Update the CAN ID
-            new_id = ACTION_CMD_ID[json_data["action"]] + arg
-            self.can.arbitration_id = int(new_id, 16)
-
-        # If PICS
-        else:
-            # Parses the command
-            id, command = parse_command(json_data)
-            print("Executing Command: %s" % command)
-
-            # Update the CAN ID
-            self.can.arbitration_id = int(id, 16)
+        # Update the CAN ID
+        self.can.arbitration_id = int(id, 16)
 
         # Execute the CAN command
         response.success = self.can.transmit(bytearray.fromhex(command))
 
         # Return the response
         return response
-
-
-
-
-
 
 # When the script starts, it runs the science class and waits until completion
 def main (args = None):
