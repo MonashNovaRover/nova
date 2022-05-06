@@ -12,7 +12,7 @@ colours
 '''
 import rclpy
 from rclpy.node import Node
-from core.srv import LED
+from std_srvs import Trigger
 from core.msg import InputGamepad
 from coms_utils.can_interface import CANTransmitter
 import time
@@ -75,7 +75,7 @@ class LEDUpdateNode(Node):
         # these should not be here! they should be in a file/params? and then 
         # can be pulled here
         self.gamepad_input_subscriber = self.create_subscription(InputGamepad, "/control/input_gamepad", self.gamepad_callback, 10)
-        self.service = self.create_service(LED, 'autonomous/LED', self.service_callback)
+        self.service = self.create_service(Trigger, 'autonomous/LED', self.service_callback)
 
         self.qos_timer = self.create_timer(1.0, self.check_connection)
         self.display_timer = self.create_timer(1.0, self.display)
@@ -131,7 +131,7 @@ class LEDUpdateNode(Node):
 
     def service_callback(self, request, response):
         self.mode = LEDUpdateNode.AUTO_GOAL_ACHIEVED
-        response.sent_status = True
+        response.success = True
         return response
 
     def display(self):
