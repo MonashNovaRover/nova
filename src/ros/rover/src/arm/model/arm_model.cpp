@@ -57,6 +57,8 @@ ArmModel::ArmModel(const ArmConfig::WristType wrist_type, const ArmConfig::EndEf
     for (auto& module : std::vector<ArmSubModule> {lower_joints, wrist, end_effector} ) {
         // Add the Tree
         this->addTree(module, output_name);
+        // Add the module name
+        module_names.push_back(module.module_name);
         // Add the joint and control point names
         append_to_vector<std::string>(joint_names, module.joint_names);
         append_to_vector<std::string>(endpoint_names, module.endpoint_names);

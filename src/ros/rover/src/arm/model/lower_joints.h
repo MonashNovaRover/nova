@@ -42,6 +42,7 @@ class LowerJointsModel : public ArmSubModule
     LowerJointsModel()
     {
         // Initialise public members
+        module_name = "lower_joints";
         joint_names = std::vector<std::string> {"base-rotation", "shoulder", "elbow"};
         // No endpoints
         output_name = "sj3r";

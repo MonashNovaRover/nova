@@ -43,6 +43,7 @@ class EeEquipmentServicingModel : public ArmSubModule
     EeEquipmentServicingModel(const ArmConfig::WristType wrist_type)
     {
         // Initialise public members
+        module_name = "ee_equipment_servicing";
         // No joints
         endpoint_names = std::vector<std::string> {"gripper", "cam-front", "cam-depth", "cam-screw"};
         output_name = "sgripper";

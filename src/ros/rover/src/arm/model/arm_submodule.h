@@ -45,11 +45,12 @@ class ArmSubModule : public KDL::Tree
         // Typical structure of a module constructor:
 
         // Initialise public members:
-        //   1. joint_names
-        //   2. endpoint_names
-        //   3. output_name
-        //   4. zero_angles
-        //   5. joint_limits
+        //   1. module_name
+        //   2. joint_names
+        //   3. endpoint_names
+        //   4. output_name
+        //   5. zero_angles
+        //   6. joint_limits
         
         // Build the module segment by segment
         // For each segment, will consist of:
@@ -62,6 +63,8 @@ class ArmSubModule : public KDL::Tree
         //        segment, or "root" if there is no segment or is attached to the base of the first segment.
     }
 
+    // Name of the module
+    std::string module_name;
     // List names of all joints use for constructing JointState and MultiDOFJointState messages
     std::vector<std::string> joint_names;
     // List names of all control points (cameras and tips of end effectors) for constructing messages
