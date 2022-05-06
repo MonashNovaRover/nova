@@ -130,7 +130,7 @@ class LEDUpdateNode(Node):
             self.most_recent_update = time.perf_counter()
 
     def service_callback(self, request, response):
-        self.get_logger().info(f"Service received request with data [R: {request.r}, G: {request.g}, B: {request.b}]")
+        """self.get_logger().info(f"Service received request with data [R: {request.r}, G: {request.g}, B: {request.b}]")
         colour = 0x91 if request.r \
             else 0x92 if request.g \
             else 0x93 if request.b \
@@ -142,7 +142,9 @@ class LEDUpdateNode(Node):
             intensity = request.intensity
 
             response.sent_status = self.can_communicator.set_LED(colour, intensity)
-
+        """
+        self.mode = LEDUpdateNode.AUTO_GOAL_ACHIEVED
+        response.sent_status = True
         return response
 
 
