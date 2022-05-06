@@ -46,6 +46,7 @@ class CanLEDCommunicator:
         """
         Sends data to CAN bus to actually activate the LED array
         """
+        print(f"Setting LED to {hex(colour)} with intensity {intensity}")
         transmitter = self.transmitter
         transmitter.arbitration_id = colour  # send to the desired colour LED
         packed_data = transmitter.pack([intensity])
@@ -82,7 +83,7 @@ class LEDUpdateNode(Node):
         self.service = self.create_service(Trigger, 'autonomous/LED', self.service_callback)
 
         self.qos_timer = self.create_timer(1.0, self.check_connection)
-        self.display_timer = self.create_timer(1.0, self.display)
+        self.flash_timer = self.create_timer(0.5, self.flash_callback)
 
         # Colours and their brightness for each mode (mostly half brightness to save power)
         self.mode_colours = {
@@ -93,19 +94,21 @@ class LEDUpdateNode(Node):
         }
 
         # Control how the above colour is displayed
-        self.mode_functions = {
-            LEDUpdateNode.MANUAL: self.display_continuous,
-            LEDUpdateNode.AUTONOMOUS: self.display_continuous,
-            LEDUpdateNode.AUTO_GOAL_ACHIEVED: self.display_flash,
-            LEDUpdateNode.DISCONNECTED: self.display_flash,
+        self.mode_flash = {
+            LEDUpdateNode.MANUAL: False,
+            LEDUpdateNode.AUTONOMOUS: False,
+            LEDUpdateNode.AUTO_GOAL_ACHIEVED: True,
+            LEDUpdateNode.DISCONNECTED: True
         }
 
-        self.flash_duration = 1.0  # 1 second per flash
+        self.flash_counter = 1  # 1 == on, 0 == off
 
         self.most_recent_update = time.perf_counter()
 
         self.mode = LEDUpdateNode.OFF
         self.previous_mode = self.mode
+
+        self.change_mode(LEDUpdateNode.MANUAL)
         self.display()
 
     def check_connection(self):
@@ -122,8 +125,7 @@ class LEDUpdateNode(Node):
         elif self.mode == LEDUpdateNode.DISCONNECTED:
             new_mode = LEDUpdateNode.MANUAL
 
-        if new_mode != self.mode:
-            self.change_mode(new_mode)
+        self.change_mode(new_mode)
 
     def gamepad_callback(self, message):
         """
@@ -150,35 +152,34 @@ class LEDUpdateNode(Node):
         return response
 
     def change_mode(self, new_mode):
-        self.previous_mode = self.mode
-        self.mode = new_mode
-        self.display()
+        if new_mode != self.mode:
+            self.previous_mode = self.mode
+            self.mode = new_mode
+            self.display()
 
-    def display(self):
+    def flash_callback(self):
         """
         Display a colour based on the mode of the rover either continuous or flashing
         """
-        self.mode_functions[self.mode]()  # Controls how the colour is displayed
+        if not self.mode_flash[self.mode]: 
+            return   # don't care about non-flashing modes
 
-    def display_continuous(self):
+        if self.flash_counter == 0: 
+            self.can_communicator.turn_off(self.mode_colours[self.mode][0])
+        else:
+            self.display()
+        
+        self.flash_counter = (self.flash_counter + 1) % 2
+
+    def display(self):
         """
         Displays a colour based on the current mode of the Rover
         """
-        # get colour ad brightness
+        # get colour and brightness
         colour_info = self.mode_colours[self.mode]
         previous_colour_info = self.mode_colours[self.previous_mode]
         self.can_communicator.turn_off(previous_colour_info[0])
         self.can_communicator.set_LED(*colour_info)
-
-    def display_flash(self):
-        """
-        sets light to off for half the duration, and on for the second half
-        """
-        off = (CanLEDCommunicator.RED, 0)  # 0 brightness message
-        self.can_communicator.set_LED(*off)  # Turn off
-
-        time.sleep(self.flash_duration / 2)
-        self.display_continuous()  # Turn back on
 
 
 def main(args=None):
