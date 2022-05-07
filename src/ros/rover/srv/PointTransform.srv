@@ -1,4 +1,4 @@
 # Transform a point from one coordinate system into another
-point: Point2D
+Point2D point
 ---
-transformed: Point2D
+Point2D transformed
