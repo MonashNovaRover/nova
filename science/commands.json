@@ -1,0 +1,67 @@
+{
+    "targets": {
+
+
+        "platform": {
+            "hex": "000",
+            "actions": {
+
+                "enable": {
+                    "hex": "00",
+                    "args": [
+                        "enabled"
+                    ]
+                },
+
+                "actuation_manual": {
+                    "hex": "01",
+                    "args": [
+                        "direction",
+                        "type"
+                    ]
+                },
+
+                "actuation_top": {
+                    "hex": "02",
+                    "args": []
+                },
+
+                "actuation_bottom": {
+                    "hex": "03",
+                    "args": []
+                },
+
+                "scoops": {
+                    "hex": "04",
+                    "args": [
+                        "direction",
+                        "id"
+                    ],
+                    "integers": [
+                        "id"
+                    ]
+                }
+            }
+        },
+
+
+        "microscope": {
+            "hex": "000",
+            "actions": {
+
+            }
+        },
+        "internals": {
+            "hex": "001",
+            "actions": {
+
+            }
+        },
+        "spectrometer": {
+            "hex": "001",
+            "actions": {
+
+            }
+        }
+    }
+}
