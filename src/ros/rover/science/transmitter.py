@@ -20,7 +20,7 @@ EDITED:		06/05/2022
 """
 
 # Include all ROS dependencies
-import rclpy, json
+import rclpy, json, time
 from rclpy.node import Node
 from core.srv import ScienceCommand
 
@@ -31,15 +31,15 @@ import json
 # Standard CAN ID
 CAN_ID = 0
 
-TARGET_DICT =  {
+TARGET_HEX =  {
     "platform": "000",
     "microscope": "000",
     "internals": "001",
     "spectrometer": "001"
 }
 
-ACTION_DICT = {
-    
+ACTION_HEX = {
+    "enable": "00",
     "actuation_manual": "01",
     "actuation_top": "02",
     "actuation_bottom": "03",
@@ -60,13 +60,29 @@ ARGUMENT_DICT = {
     "reverse": "01",
     "left": "00",
     "right": "01",
-    "up": "00",
-    "down": "01",
-    "true": "01",
-    "false": "00",
+    "up": "01",
+    "down": "00",
+    "True": "01",
+    "False": "00",
+    "coarse": "00",
+    "fine": "01"
 }
+
 '''
-Function description
+A list of all arguments that use an integer
+between 0 and 255 as the converted data.
+'''
+INTEGER_ARGS = [
+    "id", 
+    "time", 
+    "speed", 
+    "steps"
+]
+
+
+'''
+Parses a command from a dictionary and sets up the data
+appropriate to the values
 '''
 def parse_command(command_dict):
     """
@@ -75,28 +91,40 @@ def parse_command(command_dict):
     * if not in args dict must be speed or value of range [0, 255] 
     """
 
+    # Get the three components of the command
     target = command_dict["target"]
     action = command_dict["action"]
     args = command_dict["args"]
 
-    print(target, action, args)
-    target_code = TARGET_DICT[target]
-    action_code = ACTION_DICT[action]
-    argument_codes = []
-    for argument in args: 
-        if argument == "scoop_id":
-            argument_codes.append(args[argument])
+    # Get the codes associated with the target and action
+    target_code = TARGET_HEX[target]
+    action_code = ACTION_HEX[action]
+
+    # Store the argument data
+    argument_data = []
+    for argument in args:
+        # If the argument is an integer value
+        if argument in INTEGER_ARGS:
+            hex = format(int(args[argument]), 'x')
+        
+        # Category argument
         else:
             try:
-                arg = ARGUMENT_DICT[args[argument]]
-            except KeyError:  # if not in dict, assume value is just a number of two hex digits
-                hex = format(int(args[argument]), 'x')
-                arg = hex.zfill(2)
-            argument_codes.append(arg)
+                # Convert the argument to a hard-coded value
+                arg = ARGUMENT_DICT[str(args[argument])]
+                argument_data.append(arg)
 
-    code = action_code + "".join(argument_codes)
-    code = code.ljust(8, "0")
-    return (target_code, code)
+            # Failed to convert correctly (invalid argument)
+            except KeyError:
+                print("Invalid argument %s pasrsed.", argument)
+                return
+
+    # Construct the code from the data
+    data = action_code + "".join(argument_data)
+    data = data.ljust(8, "0")
+
+    # Return the target code and data
+    return (target_code, data)
 
 
 '''
@@ -108,6 +136,13 @@ class ServiceNode(Node):
         # Initialise the node
         super().__init__('science_transmitter')
 
+        # Reads the command json data
+        with open ("commands.json", "r") as file:
+            self.archive = json.loads(file.read())
+        
+        # Store the list of targets
+        self.targets = list(self.archive["targets"].keys())
+
         # Start the service with the callback
         self.service = self.create_service(ScienceCommand, '/science/transmitter', self.callback_func)
 
@@ -117,8 +152,9 @@ class ServiceNode(Node):
         
         # CAN does not exist - show error
         except:
-            print("\033[1;91m\nERROR: Unable to find can1 network.\033[0m")
+            print("\033[1;91m\nTransmitter ERROR: Unable to find can1 network.\033[0m")
             exit()
+
 
     '''
     Description of callback function
@@ -126,22 +162,55 @@ class ServiceNode(Node):
     '''
     def callback_func(self, request, response):
 
-        json_data = json.loads(request.command)
+        # Load the data
+        try:
+            # Reads the command
+            command_data = json.loads(request.command)
+            target = command_data["target"]
+            action = command_data["action"]
+            args = command_data["args"]
+            
+            # Check for an invalid target entered in the command
+            if target not in self.targets:
+                raise Exception("Invalid target.")
 
-        command = "00"
+            # Grab the arbitration ID
+            arb_id = self.archive["targets"][target]["hex"]
+            self.can.arbitration_id = int(arb_id, 16)
+
+            # Get the target data
+            target = self.archive["targets"][target]
+
+            # Check if the action exists
+            if action not in target.keys():
+                raise Exception("Invalid action.")
+
+            # Grab the action ID
+            action_id = target["actions"][action]["hex"]
+
+            # Get the action target
+            action = target["actions"][action]
+
+            
+            # Parses the command
+            id, command = parse_command(json_data)
+            print("Executing Command: %s" % command)
+
+            # Update the CAN ID
+            self.can.arbitration_id = int(id, 16)
+
+            # Execute the CAN command
+            response.success = self.can.transmit(bytearray.fromhex(command))
+
+            # Return the response
+            return response
         
-        # Parses the command
-        id, command = parse_command(json_data)
-        print("Executing Command: %s" % command)
+        # If an error occurred
+        except:
+            print("\033[1;91m\nTransmitter ERROR: Failed to parse science command.\033[0m")
+            response.success = False
+            return response
 
-        # Update the CAN ID
-        self.can.arbitration_id = int(id, 16)
-
-        # Execute the CAN command
-        response.success = self.can.transmit(bytearray.fromhex(command))
-
-        # Return the response
-        return response
 
 # When the script starts, it runs the science class and waits until completion
 def main (args = None):
@@ -149,6 +218,7 @@ def main (args = None):
     service = ServiceNode()
     rclpy.spin(service)
     rclpy.shutdown()
+
 
 # Called when the script starts
 if __name__ == '__main__':
