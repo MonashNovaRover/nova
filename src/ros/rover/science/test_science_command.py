@@ -30,9 +30,10 @@ class ClientNode (Node):
         # The science command
         command = {
             "target": "platform",
-            "action": "enable",
+            "action": "scoops",
             "args": {
-                "enabled": True
+                "direction": "up",
+                "id": 155
             }
         }
         self.req.command = json.dumps(command)
