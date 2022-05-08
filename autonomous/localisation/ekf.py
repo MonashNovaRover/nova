@@ -16,7 +16,10 @@ NODE: None - utility class used by PoseConverter
 PACKAGE: 	Autonomous
 AUTHOR(S):	Marcel Masque, Max Tory
 CREATION:	07/05/2021
-EDITED:		07/05/2022
+EDITED:		08/05/2022
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+TODO:
+ - Find accurate motion model covariance
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 import math
@@ -79,13 +82,20 @@ class Ekf:
         ])
         return retval
     
-    def observation_model(self, x):
+    def observation_gps(self, x):
         """
-        Observations come in the form (x, y, pitch, yaw)
+        Observations come in the form of x, y coordinates in a 2 x 5 numpy array
         This converts our predicted state into a predicted observation, to compare against our true observation
         """
-        return x[:4]
-    
+        return x[:2]
+
+    def observation_imu(self, x):
+        """
+        Observations come in the form of pitch and roll in a 2 x 5 numpy array
+        This converts our predicted state into a predicted observation, to compare against our true observation
+        """
+        return x[2:4]
+
     def jacobF(self, x, u):
         """
         Jacobian of Motion Model
@@ -115,21 +125,30 @@ class Ekf:
 
         return jF
 
-    def jacobH(self):
+    def jacobH_gps(self):
         # Jacobian of Observation Model
         """
         x,y,pitch,yaw
         [1,0,0,0,0]
         [0,1,0,0,0]
-        [0,0,1,0,0]
-        [0,0,0,1,0]
         ])
         """
         return np.array([
             [1, 0, 0, 0, 0],
             [0, 1, 0, 0, 0],
+        ])
+
+    def jacobH_imu(self):
+        # Jacobian of Observation Model
+        """
+        x,y,pitch,yaw
+        [0,0,1,0,0]
+        [0,0,0,1,0]
+        ])
+        """
+        return np.array([
             [0, 0, 1, 0, 0],
-            [0, 0, 0, 1, 0]
+            [0, 0, 0, 1, 0],
         ])
 
     def predict(self, x_est, p_est, u, dt):
@@ -153,7 +172,7 @@ class Ekf:
 
         return x_pred, p_pred
 
-    def correct(self, x_pred, p_pred, z_obs, R):
+    def correct_gps(self, x_pred, p_pred, z_obs, R):
         """
         Correct current model based on observation and its covariance
         :param x_pred: predicted x
@@ -162,16 +181,45 @@ class Ekf:
         :param R: covariance of observation
         :return:
         """
-        z_pred = self.observation_model(x_pred)
+        z_pred = self.observation_gps(x_pred)
 
-        z_obs[0, 2:3] %= 2 * math.pi  # principle value of pitch and yaw
-
-        J_H = self.jacobH()
+        J_H = self.jacobH_gps()
         S = np.matmul(np.matmul(J_H, p_pred), J_H.T) + R # covariance of z_pred
 
         # Difference between expected observation and true observation
         y = z_obs - z_pred.T
-        y[0, 2:3] %= 2
+
+        # Kalman gain, scales by covariance of the observation measurement. High covariance -> K has a small determinant
+        K = np.matmul(np.matmul(p_pred, J_H.T), np.linalg.inv(S))
+
+        # scale the expected - predicted obs by the Kalman gain - small Kalman gain means we don't trust the obs
+        x_corrected = x_pred + np.matmul(K, y.T)
+        x_corrected[2:3, 0] %= 2 * math.pi
+
+        # formula for the covariance update, but factorised for simplicity.
+        p_corrected = np.matmul((np.eye(len(x_corrected)) - np.matmul(K, J_H)), p_pred)
+
+        return x_corrected, p_corrected
+
+    def correct_imu(self, x_pred, p_pred, z_obs, R):
+        """
+        Correct current model based on observation and its covariance
+        :param x_pred: predicted x
+        :param p_pred: prediction covariance
+        :param z_obs: observation
+        :param R: covariance of observation
+        :return:
+        """
+        z_pred = self.observation_imu(x_pred)
+
+        z_obs %= 2 * math.pi
+
+        J_H = self.jacobH_imu()
+        S = np.matmul(np.matmul(J_H, p_pred), J_H.T) + R # covariance of z_pred
+
+        # Difference between expected observation and true observation
+        y = z_obs - z_pred.T
+        y %= 2 * math.pi
 
         # Kalman gain, scales by covariance of the observation measurement. High covariance -> K has a small determinant
         K = np.matmul(np.matmul(p_pred, J_H.T), np.linalg.inv(S))

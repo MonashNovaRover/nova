@@ -19,7 +19,7 @@ class GoalPublisher(Node):
         lat, lon = float(coord.split()[0]), float(coord.split()[1])
         ids = [int(id_string) for id_string in ids_string.split()]
 
-        self.get_logger().info(f"Publishing new goal: x = {x}, y = {y}, ids = ({ids_string})")
+        self.get_logger().info(f"Publishing new goal: lat = {lat}, long = {lon}, ids = ({ids_string})")
 
         info = AutonomousInfo()
         position = Point2D()
