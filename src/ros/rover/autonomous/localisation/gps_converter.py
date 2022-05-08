@@ -31,7 +31,7 @@ import math
 from geographiclib.geodesic import Geodesic
 from core.msg import AutonomousInfo
 from core.srv import PointTransform
-from config.ros_config import auto_goals_info, auto_goals_gps
+from config.ros_config import auto_goals_info, auto_goals_gps, xyz_to_gps_topic, gps_to_xyz_topic
 
 
 class GpsConverter(Node):
@@ -46,8 +46,8 @@ class GpsConverter(Node):
         self.goal_subscriber = self.create_subscription(AutonomousInfo, auto_goals_gps, self.goal_callback, 10)
         self.goal_publisher = self.create_publisher(AutonomousInfo, auto_goals_info, 10)
 
-        self.gps_to_point_service = self.create_service(PointTransform, "/autonomous/dgps_to_xyz", self.g_to_d_service)
-        self.point_to_gps_service = self.create_service(PointTransform, "/autonomous/xyz_to_dgps", self.d_to_g_service)
+        self.gps_to_point_service = self.create_service(PointTransform, gps_to_xyz_topic, self.g_to_d_service)
+        self.point_to_gps_service = self.create_service(PointTransform, xyz_to_gps_topic, self.d_to_g_service)
 
     def get_local_coord(self, lat, lon):
         """
@@ -56,7 +56,7 @@ class GpsConverter(Node):
         y = West
         +yaw = counter-clockwise
         """
-        if len(self.gps_goals == 0):
+        if len(self.gps_goals) == 0:
             return 0., 0.   # No local frame to compare to
 
         geodesic_dist_info = self.g_to_d(*self.gps_goals[0], lat, lon)
@@ -92,9 +92,10 @@ class GpsConverter(Node):
         """
         local_goal_info = AutonomousInfo()
 
-        local_goal_info.ids = gps_goal_info.ids  # same ar tag ids
+        local_goal_info.ids = [iD for iD in gps_goal_info.ids]  # same ar tag ids
 
-        local_goal_info.x, local_goal_info.position.y = self.get_local_coord(gps_goal_info.position.x, gps_goal_info.position.y)
+        local_goal_info.position.x, local_goal_info.position.y = \
+            self.get_local_coord(gps_goal_info.position.x, gps_goal_info.position.y)
 
         self.gps_goals.append((gps_goal_info.position.x, gps_goal_info.position.y))
 

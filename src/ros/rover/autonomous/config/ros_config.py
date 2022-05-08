@@ -30,6 +30,8 @@ auto_goals_topic = "/autonomous/goals"
 auto_goals_gps = "/autonomous/goals/gps"
 auto_goals_info = "/autonomous/goals/info"
 ar_goals_topic = "autonomous/ar_tag/global_odom"
+gps_to_xyz_topic = "/autonomous/gps_to_xyz"
+xyz_to_gps_topic = "/autonomous/xyz_to_gps"
 
 # ~~~~~~~~~~~~~~~~~~~~~ ROS ~~~~~~~~~~~~~~~~~~~~~~~~~~
 # this is the ROS "Frame" which we publish everything to. We don't use ROS transforms
