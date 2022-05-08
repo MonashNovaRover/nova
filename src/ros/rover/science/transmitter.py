@@ -15,18 +15,20 @@ SERVICES:
 PACKAGE: 	science
 AUTHOR(S):	Miles Higgins, Harrison Verrios
 CREATION:	15/02/2022
-EDITED:		06/05/2022
+EDITED:		08/05/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
 # Include all ROS dependencies
-import rclpy, json, time
+import rclpy
 from rclpy.node import Node
 from core.srv import ScienceCommand
 
 # Include utilities for publishing CAN data
 from coms_utils.can_interface import CANTransceiver
-import json
+
+# Include other dependencies
+import json, time
 
 # Standard CAN ID
 CAN_ID = 0
@@ -143,6 +145,9 @@ class ServiceNode(Node):
         # Store the list of targets
         self.targets = list(self.archive["targets"].keys())
 
+        # Store the list of argument decoding
+        self.arg_encoding = self.archive["arg_encoding"]
+
         # Start the service with the callback
         self.service = self.create_service(ScienceCommand, '/science/transmitter', self.callback_func)
 
@@ -178,7 +183,7 @@ class ServiceNode(Node):
             arb_id = self.archive["targets"][target]["hex"]
             self.can.arbitration_id = int(arb_id, 16)
 
-            # Get the target data
+            # Set the target data
             target = self.archive["targets"][target]
 
             # Check if the action exists
@@ -188,28 +193,45 @@ class ServiceNode(Node):
             # Grab the action ID
             action_id = target["actions"][action]["hex"]
 
-            # Get the action target
+            # Set the action target
             action = target["actions"][action]
 
-            
-            # Parses the command
-            id, command = parse_command(json_data)
-            print("Executing Command: %s" % command)
+            # Store an argument id
+            arg_id = ""
 
-            # Update the CAN ID
-            self.can.arbitration_id = int(id, 16)
+            # Go through each of the actions and ensure they exist
+            for arg in action["args"]:
+                # Ensure it exists
+                if arg not in args.keys():
+                    raise Exception("Missing argument %s" % arg)
+
+                # If it does exist, check the decoder
+                value = args[arg]
+
+                # Check for invalid argument
+                if value not in self.arg_encoding.keys():
+                    raise Exception("Invalid argument value %s for %s" % (str(value), arg))
+
+                # Get the decoded value and add to the list
+                arg_id += self.arg_encoding[value]
+
+            # Create the command
+            command = action_id + arg_id
+            print(command)
 
             # Execute the CAN command
             response.success = self.can.transmit(bytearray.fromhex(command))
-
-            # Return the response
-            return response
+        
         
         # If an error occurred
-        except:
-            print("\033[1;91m\nTransmitter ERROR: Failed to parse science command.\033[0m")
+        except Exception as e:
+            print("\033[1;91m\nTransmitter ERROR: Failed to parse science command because:\n\t%s.\033[0m" % e)
+            
+            # Process failed
             response.success = False
-            return response
+
+        # Return the response data
+        return response
 
 
 # When the script starts, it runs the science class and waits until completion

@@ -63,5 +63,19 @@
 
             }
         }
+    },
+
+    "arg_encoding": {
+
+        "forward": "00",
+        "reverse": "01",
+        "left": "00",
+        "right": "01",
+        "down": "00",
+        "up": "01",
+        "false": "00",
+        "true": "01",
+        "coarse": "00",
+        "fine": "01"
     }
 }
