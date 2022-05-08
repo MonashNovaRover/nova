@@ -30,107 +30,14 @@ from coms_utils.can_interface import CANTransceiver
 # Include other dependencies
 import json, time
 
-# Standard CAN ID
-CAN_ID = 0
-
-TARGET_HEX =  {
-    "platform": "000",
-    "microscope": "000",
-    "internals": "001",
-    "spectrometer": "001"
-}
-
-ACTION_HEX = {
-    "enable": "00",
-    "actuation_manual": "01",
-    "actuation_top": "02",
-    "actuation_bottom": "03",
-    "scoops": "04",
-    "lens": "05",
-    "led": "06",
-    "laser": "07",
-    "sequence": "01",
-    "controls": "02",
-    "pumps": "03",
-    "rotate": "11",
-    "read": "12",
-    "led": "13"
-}
-
-ARGUMENT_DICT = {
-    "forward": "00",
-    "reverse": "01",
-    "left": "00",
-    "right": "01",
-    "up": "01",
-    "down": "00",
-    "True": "01",
-    "False": "00",
-    "coarse": "00",
-    "fine": "01"
-}
-
-'''
-A list of all arguments that use an integer
-between 0 and 255 as the converted data.
-'''
-INTEGER_ARGS = [
-    "id", 
-    "time", 
-    "speed", 
-    "steps"
-]
+# The can network
+CAN_NETWORK = 1
 
 
 '''
-Parses a command from a dictionary and sets up the data
-appropriate to the values
-'''
-def parse_command(command_dict):
-    """
-    Command dict requirements.
-    * must fill arguments from left to right
-    * if not in args dict must be speed or value of range [0, 255] 
-    """
-
-    # Get the three components of the command
-    target = command_dict["target"]
-    action = command_dict["action"]
-    args = command_dict["args"]
-
-    # Get the codes associated with the target and action
-    target_code = TARGET_HEX[target]
-    action_code = ACTION_HEX[action]
-
-    # Store the argument data
-    argument_data = []
-    for argument in args:
-        # If the argument is an integer value
-        if argument in INTEGER_ARGS:
-            hex = format(int(args[argument]), 'x')
-        
-        # Category argument
-        else:
-            try:
-                # Convert the argument to a hard-coded value
-                arg = ARGUMENT_DICT[str(args[argument])]
-                argument_data.append(arg)
-
-            # Failed to convert correctly (invalid argument)
-            except KeyError:
-                print("Invalid argument %s pasrsed.", argument)
-                return
-
-    # Construct the code from the data
-    data = action_code + "".join(argument_data)
-    data = data.ljust(8, "0")
-
-    # Return the target code and data
-    return (target_code, data)
-
-
-'''
-Description of science class
+Science node class that acts as a ttransmitter for the science data
+over the CAN lines. It interfaces with a ROS service that can communicate
+the commands.
 '''
 class ServiceNode(Node):
 
@@ -153,7 +60,7 @@ class ServiceNode(Node):
 
         # Sets up the CAN transceiver interface with the correct ID and channels
         try:
-            self.can = CANTransceiver(arbitration_id=CAN_ID, channel="can1")
+            self.can = CANTransceiver(arbitration_id=CAN_NETWORK, channel="can1")
         
         # CAN does not exist - show error
         except:
@@ -162,7 +69,9 @@ class ServiceNode(Node):
 
 
     '''
-    Description of callback function
+    The callback function is execited when a command is received by the transmitter.
+    It takes in a request and a response message and outputs the associated
+    response from the service.
 
     '''
     def callback_func(self, request, response):
@@ -171,13 +80,13 @@ class ServiceNode(Node):
         try:
             # Reads the command
             command_data = json.loads(request.command)
-            target = command_data["target"]
-            action = command_data["action"]
+            target = command_data["target"].lower()
+            action = command_data["action"].lower()
             args = command_data["args"]
             
             # Check for an invalid target entered in the command
             if target not in self.targets:
-                raise Exception("Invalid target.")
+                raise Exception("Invalid target '%s'." % target)
 
             # Grab the arbitration ID
             arb_id = self.archive["targets"][target]["hex"]
@@ -187,8 +96,8 @@ class ServiceNode(Node):
             target = self.archive["targets"][target]
 
             # Check if the action exists
-            if action not in target.keys():
-                raise Exception("Invalid action.")
+            if action not in target["actions"].keys():
+                raise Exception("Invalid action '%s'." % action)
 
             # Grab the action ID
             action_id = target["actions"][action]["hex"]
@@ -203,35 +112,42 @@ class ServiceNode(Node):
             for arg in action["args"]:
                 # Ensure it exists
                 if arg not in args.keys():
-                    raise Exception("Missing argument %s" % arg)
+                    raise Exception("Missing argument '%s'." % arg)
 
                 # If it does exist, check the decoder
                 value = args[arg]
 
-                # Check for invalid argument
-                if value not in self.arg_encoding.keys():
-                    raise Exception("Invalid argument value %s for %s" % (str(value), arg))
+                # Check for non-number argument
+                if str(value).lower() not in self.arg_encoding.keys():
+                    arg_id += format(int(value), "x").rjust(2, "0")
 
                 # Get the decoded value and add to the list
-                arg_id += self.arg_encoding[value]
+                else:
+                    arg_id += self.arg_encoding[value.lower()]
 
             # Create the command
             command = action_id + arg_id
-            print(command)
 
             # Execute the CAN command
             response.success = self.can.transmit(bytearray.fromhex(command))
+
+            # Print a success
+            print("\033[1;92m\nTransmitter SUCCESS! Command: %s#%s\033[0m" % (arb_id, command))
+
         
         
         # If an error occurred
         except Exception as e:
-            print("\033[1;91m\nTransmitter ERROR: Failed to parse science command because:\n\t%s.\033[0m" % e)
+            print("\033[1;91m\nTransmitter ERROR! Failed to parse science command because:\n\t%s\033[0m" % e)
             
             # Process failed
             response.success = False
 
+
         # Return the response data
         return response
+
+
 
 
 # When the script starts, it runs the science class and waits until completion

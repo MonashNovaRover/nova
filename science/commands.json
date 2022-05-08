@@ -36,9 +36,6 @@
                     "args": [
                         "direction",
                         "id"
-                    ],
-                    "integers": [
-                        "id"
                     ]
                 }
             }
