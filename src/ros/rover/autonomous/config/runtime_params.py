@@ -57,6 +57,7 @@ obstacle_ignore_value = 30  # All costs below a scaled value of 30 are ignored
 
 # ~~~~~~~~~~~~~~~LOCALISATION CONSTANTS ~~~~~~~~~~~~~~~~~
 minimum_gps_corrections = 50
+pose_pub_rate = 0.2
 
 # ~~~~~~~~~~~~~~~~~ CAMERA INFO ~~~~~~~~~~~~~~~~~~~~~
 d415_serial = "932122060332"
