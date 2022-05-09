@@ -30,9 +30,9 @@ from rclpy.node import Node
 import math
 from geographiclib.geodesic import Geodesic
 
-class GpsConverter(Node):
+
+class GpsConverter():
     def __init__(self):
-        super().__init__("gps_converter")
         # geodesic distance function
         self.g_to_d = Geodesic.WGS84.Inverse
         self.d_to_g = Geodesic.WGS84.Direct
@@ -60,12 +60,8 @@ class GpsConverter(Node):
         # this hopefully gives us a first order, rather than 0 order approximation of the coordinates
         avg_yaw_nova = - (az1 + az2) * 0.5
 
-        print(f"got distance of {dist}")
-        print(f"got azimuth of {az1}")
         x = dist * math.cos(math.radians(avg_yaw_nova))
         y = dist * math.sin(math.radians(avg_yaw_nova))
-        print(f"received global: {lat}, {lon}")
-        print(f"returned local: {x}, {y}")
 
         return x, y
 
@@ -82,35 +78,6 @@ class GpsConverter(Node):
         geodesic_global_info = self.d_to_g(*self.gps_0_coord, az1, dist)
 
         return geodesic_global_info['lat2'], geodesic_global_info['lon2']
-
-    def goal_callback(self, msg):
-        local_goal_info = AutonomousInfo()
-
-        local_goal_info.ids = [iD for iD in msg.ids]
-        local_goal_info.x, local_goal_info.y = self.get_local_coord(
-                msg.position.x, msg.position.y
-                )
-
-        self.goal_publisher.publish(local_goal_info)
-
-    def g_to_d_service(self, request, response):
-        response.valid = True
-        x, y = self.get_local_coord(request.point.x, request.point.y)
-        response.transformed.x = x
-        response.transformed.y = y
-        print("returning xyz")
-
-        return response
-
-    def d_to_g_service(self, request, response):
-        response.valid = True
-        res = self.get_global_coord(request.point.x, request.point.y)
-        if res is None:
-            response.valid = False
-
-        print("returning gps")
-            
-        return response
 
 
 def main(args=None):

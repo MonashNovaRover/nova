@@ -20,6 +20,7 @@ Raw data from the depth camera:
 
 
 import numpy as np
+from geometry_msgs.msg import Quaternion
 from nav_msgs.msg import Odometry
 
 
@@ -128,10 +129,16 @@ def transform_points(pose_msg: Odometry, pts: np.array) -> np.array:
     pose_msg: nav_msgs.msg.Odometry message
     pts: numpy array with shape (n, 3)
     """
-    q_mat = quat2mat(pose_msg_to_quat(pose_msg))
+    pts = transform_from_quat(pose_msg.pose.pose.orientation, pts)
+    return pts + [pose_msg.pose.pose.position.x, pose_msg.pose.pose.position.y, pose_msg.pose.pose.position.z]
+
+
+def transform_from_quat(quat: Quaternion, pts: np.array) -> np.array:
+    q = Q(quat.x, quat.y, quat.z, quat.w)
+    q_mat = quat2mat(q)
+
     mat = get_extrinsics(q_mat)
     pts = np.matmul(mat, pts.transpose()).transpose()
-    pts = pts + [pose_msg.pose.pose.position.x, pose_msg.pose.pose.position.y, pose_msg.pose.pose.position.z]
     return pts
 
 
