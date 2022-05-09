@@ -233,7 +233,7 @@ Driver::Driver() : Node("driver")
     
     // Creates the input subscription
     subscription_inputs = this->create_subscription<core::msg::InputGamepad>(
-        "/control/input_gamepad", 10, std::bind(&Driver::input_callback, this, _1));
+        "/control/input_gamepad", qos, std::bind(&Driver::input_callback, this, _1));
 }
 
 void Driver::inputs_deadline_exceeded(){
