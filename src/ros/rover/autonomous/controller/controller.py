@@ -83,7 +83,7 @@ class Controller(Node):
 
         self.goal = None
 
-        self.state = State()  # from controller_math
+        self.state = None
         self.waypoints = []
         self.target_waypoint = None
 
@@ -102,6 +102,8 @@ class Controller(Node):
         """
         Callback function that updates the current pose of the rover from data in the auto_command_pose_updates topic
         """
+        if self.state is None:
+            self.state = State()
         self.state.x = msg.x
         self.state.y = msg.y
         self.state.yaw = msg.yaw
@@ -245,7 +247,7 @@ class Controller(Node):
         Called once every tick by the node's timer. Identifies the next target waypoint
         and calls navigate_to_waypoint, and determines when the rover has arrived
         """
-        if self.mode == Controller.SUCCESS:
+        if self.mode == Controller.SUCCESS or self.state is None:
             return
 
         if not self.target_waypoint:
