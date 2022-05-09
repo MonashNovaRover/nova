@@ -22,14 +22,11 @@ ACTIONS:  None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	control
 AUTHOR(S):  Harrison Verrios, Josh Cherubino,
-            Will de la Rue, Liam Whittle
+            Will de la Rue
 CREATION:	21/11/2021
 EDITED:		09/02/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-
-// include standard libraries
-#include <array> 
 
 // Include ROS packages
 #include "rclcpp/rclcpp.hpp"
@@ -44,9 +41,6 @@ EDITED:		09/02/2022
 
 // The distance between each wheel on each side [m]
 #define WHEEL_SEPARATION 0.42426
-
-#define NUM_WHEELS_DEF 6 
-
 
 // Use the standard namespaces
 using namespace std;
@@ -75,7 +69,7 @@ struct Vector2 {
 class Driver : public rclcpp::Node {
 
     // The number of wheels on the rover
-    static const int NUM_WHEELS = NUM_WHEELS_DEF;
+    static const int NUM_WHEELS = 6;
 
     // Whether to use the tangent scaling
     bool USE_TANGENT_SCALING = false;
@@ -84,11 +78,7 @@ class Driver : public rclcpp::Node {
     //------------------------------------------------------------//
     private:
 
-	// Stores QoS options
-    rclcpp::QoS qos = rclcpp::QoS(1).reliability(RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT).deadline(200ms);
-    rclcpp::SubscriptionOptions subscriber_options;
-    
-	// Stores the subscriber for the drive commands (manual)
+    // Stores the subscriber for the drive commands (manual)
     rclcpp::Subscription<core::msg::DriveInput>::SharedPtr subscription_cmds_man;
 
     // Stores the subscriber for the drive commands (auto)
@@ -96,39 +86,33 @@ class Driver : public rclcpp::Node {
 
     // Stores the subscriber to the gamepad inputs
     rclcpp::Subscription<core::msg::InputGamepad>::SharedPtr subscription_inputs;
-
+	
+    rclcpp::QoS qos = rclcpp::QoS(1).reliability(RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT).deadline(200ms);
+    rclcpp::SubscriptionOptions subscriber_options;
 
     // A flag for whether to apply the handbrake or not
     bool handbrake;
 
     // A flag for whether it has sent its first zero speed
-    bool stop_sent;
+    bool stopped_sent;
 
     // A flag for whether to use autonomous state or not
     bool is_autonomous = false;
 
     // An array of wheel instances
     Wheel* wheels[NUM_WHEELS];
-	
-	
+
     
     //------------------------------------------------------------//
     private:
-	
-	/// @brief callback for when drive inputs subscription is exceeded
-	void inputs_deadline_exceeded();
-    
-	/// @brief      Sends commands to the wheels using the wheel classes
+
+    /// @brief      Sends commands to the wheels using the wheel classes
     /// @param      msg - A pointer to the drive message
     void send_commands (const core::msg::DriveInput::SharedPtr msg);
 
     /// @brief      Callback function when drive messages are received
     /// @param      msg - A pointer to the drive message
     void drive_callback (const core::msg::DriveInput::SharedPtr msg);
-    
-    /// @brief      Pure function which calculates the total velocities the wheels should drive at
-    /// @param      msg - A pointer to the drive message
-    std::array<float, NUM_WHEELS_DEF> calculate_velocities(const core::msg::DriveInput::SharedPtr msg) const;
 
     /// @brief      Callback function when autonomous messages are received
     /// @param      msg - A pointer to the drive message
@@ -142,31 +126,27 @@ class Driver : public rclcpp::Node {
     ///             on the steering factor. This is from the center of mass.
     /// @param      steer - The steer value between -1 and 1
     /// @returns    The distance between center of mass and circle [m]
-    float get_wheel_centre_distance(float steer) const;
+    float get_locas_distance (float steer);
 
     /// @brief      Calculates the position of the wheel in relation to the CoM
     /// @param      id - The identification of the wheel
     /// @returns    The position vector (x, y)
-    Vector2 get_wheel_position (int id) const;
+    Vector2 get_wheel_position (int id);
 
-    /// @brief      Calculates the distance from the wheel to the wheel_centre (center of the circle) 
+    /// @brief      Calculates the distance from the wheel to the locas
     /// @param      pos - The position of the wheel
-    /// @param      wheel_centre - The distance from CoM to wheel_centre [m]
-    /// @returns    The distance between wheel and the wheel_centre [m]
-    float get_wheel_distance (Vector2 pos, float wheel_centre) const;
+    /// @param      locas - The distance from CoM to locas [m]
+    /// @returns    The distance between wheel and the locas [m]
+    float get_wheel_distance (Vector2 pos, float locas);
 
     /// @brief      Calculates the tangent scale of the wheel turning
     /// @param      pos - The position of the wheel
-    /// @param      wheel_centre - The distance from CoM to wheel_centre [m]
+    /// @param      locas - The distance from CoM to locas [m]
     /// @returns    The tangent scale
-    float get_tangent_scale (Vector2 pos, float wheel_centre) const;
-
-    /// @brief      drives each wheel at the provided velocity
-    /// @param      velocities - an array of length NUM_WHEELS containing a velocity to drive each wheel
-    void drive_wheels(std::array<float, NUM_WHEELS_DEF> velocities);
-    
-    /// @brief      sends an all stop command to each wheel
-    void all_stop();
+    float get_tangent_scale (Vector2 pos, float locas);
+	
+    /// @brief callback for when drive inputs subscription is exceeded
+    void inputs_deadline_exceeded();
 
     //------------------------------------------------------------//
     public:
@@ -175,3 +155,4 @@ class Driver : public rclcpp::Node {
     Driver();
     
 };
+
