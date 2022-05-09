@@ -239,9 +239,9 @@ Driver::Driver() : Node("driver")
 void Driver::inputs_deadline_exceeded(){
 	RCLCPP_WARN(this->get_logger(), "Inputs subscriber deadline missed");
     // Spin the wheels at 0 speed
-    for (Wheel* wheel : wheels) {
-	    wheel->spin(0.0);
-    }
+//for (Wheel* wheel : wheels) {
+//	    wheel->spin(0.0);
+  //  }
 }
 
 //  Main function called when the script execution begins
