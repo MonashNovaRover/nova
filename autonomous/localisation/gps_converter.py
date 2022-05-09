@@ -29,10 +29,6 @@ import rclpy
 from rclpy.node import Node
 import math
 from geographiclib.geodesic import Geodesic
-from core.msg import AutonomousInfo
-from core.srv import PointTransform
-from config.ros_config import auto_goals_info, auto_goals_gps, xyz_to_gps_topic, gps_to_xyz_topic
-
 
 class GpsConverter(Node):
     def __init__(self):
@@ -43,12 +39,6 @@ class GpsConverter(Node):
 
         # The coordinate that we build our relative position around
         self.gps_0_coord = None
-
-        self.goal_subscriber = self.create_subscription(AutonomousInfo, auto_goals_gps, self.goal_callback, 10)
-        self.goal_publisher = self.create_publisher(AutonomousInfo, auto_goals_info, 10)
-
-        self.gps_to_point_service = self.create_service(PointTransform, gps_to_xyz_topic, self.g_to_d_service)
-        self.point_to_gps_service = self.create_service(PointTransform, xyz_to_gps_topic, self.d_to_g_service)
 
     def get_local_coord(self, lat, lon):
         """
@@ -70,8 +60,12 @@ class GpsConverter(Node):
         # this hopefully gives us a first order, rather than 0 order approximation of the coordinates
         avg_yaw_nova = - (az1 + az2) * 0.5
 
-        x = dist * math.cos(avg_yaw_nova)
-        y = dist * math.sin(avg_yaw_nova)
+        print(f"got distance of {dist}")
+        print(f"got azimuth of {az1}")
+        x = dist * math.cos(math.radians(avg_yaw_nova))
+        y = dist * math.sin(math.radians(avg_yaw_nova))
+        print(f"received global: {lat}, {lon}")
+        print(f"returned local: {x}, {y}")
 
         return x, y
 
@@ -89,24 +83,34 @@ class GpsConverter(Node):
 
         return geodesic_global_info['lat2'], geodesic_global_info['lon2']
 
-    def goal_callback(self, gps_goal_info):
-        """
-        Take a gps goal coordinate, convert it into the local frame, and publish as an x, y goal
-        """
+    def goal_callback(self, msg):
         local_goal_info = AutonomousInfo()
 
-        local_goal_info.ids = [iD for iD in gps_goal_info.ids]  # same ar tag ids
-
-        local_goal_info.position.x, local_goal_info.position.y = \
-            self.get_local_coord(gps_goal_info.position.x, gps_goal_info.position.y)
+        local_goal_info.ids = [iD for iD in msg.ids]
+        local_goal_info.x, local_goal_info.y = self.get_local_coord(
+                msg.position.x, msg.position.y
+                )
 
         self.goal_publisher.publish(local_goal_info)
 
     def g_to_d_service(self, request, response):
-        response.transform.x, response.transform.y = self.get_local_coord(request.point.x, request.point.y)
+        response.valid = True
+        x, y = self.get_local_coord(request.point.x, request.point.y)
+        response.transformed.x = x
+        response.transformed.y = y
+        print("returning xyz")
+
+        return response
 
     def d_to_g_service(self, request, response):
-        response.transform.x, response.transform.y = self.get_global_coord(request.point.x, request.point.y)
+        response.valid = True
+        res = self.get_global_coord(request.point.x, request.point.y)
+        if res is None:
+            response.valid = False
+
+        print("returning gps")
+            
+        return response
 
 
 def main(args=None):

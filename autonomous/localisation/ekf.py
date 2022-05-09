@@ -182,12 +182,15 @@ class Ekf:
         :return:
         """
         z_pred = self.observation_gps(x_pred)
+        print(z_pred)
+        print(z_obs)
+        print(x_pred)
 
         J_H = self.jacobH_gps()
         S = np.matmul(np.matmul(J_H, p_pred), J_H.T) + R # covariance of z_pred
 
         # Difference between expected observation and true observation
-        y = z_obs - z_pred.T
+        y = z_obs - z_pred
 
         # Kalman gain, scales by covariance of the observation measurement. High covariance -> K has a small determinant
         K = np.matmul(np.matmul(p_pred, J_H.T), np.linalg.inv(S))
