@@ -45,11 +45,9 @@ from config.runtime_params import max_point_depth, max_fov_angle, depth_mode, sk
 class Mapper(Node):
     def __init__(self, length=20, width=20, height=5, resolution=0.1, planner=None, camera=False, _vis=True):
         super().__init__('points_grid')
-        self.subscriber_tracking = self.create_subscription(Odometry, tracking_pose_topic, self.tracking_callback, 100)
+        self.subscriber_tracking = self.create_subscription(Odometry, tracking_pose_topic, self.pose_callback, 100)
         self.planner = planner
         self.vis = _vis
-
-        self.last_msg = None
 
         self.length = length
         self.width = width
@@ -59,7 +57,8 @@ class Mapper(Node):
         self.previous_plan = time.perf_counter()
         self.previous_map_update = time.perf_counter()
 
-        self.msg = None
+        self.last_cam_odom = None
+        self.cam_odom = None
 
         if self.vis:
             self.pc_pub = pc_pub.PCPub("map_cloud")
@@ -178,7 +177,7 @@ class Mapper(Node):
         transformed).
         """
         # transforming to the global frame
-        full_transform_pts = transform.transform_points(self.msg, pts)
+        full_transform_pts = transform.transform_points(self.cam_odom, pts)
         self._map3d.add_pc_points_only(full_transform_pts)
 
     def publish(self):
@@ -211,7 +210,7 @@ class Mapper(Node):
             return
 
         # transform the points
-        if self.msg and time.perf_counter() - self.previous_map_update > 0.5:
+        if self.cam_odom and time.perf_counter() - self.previous_map_update > 0.5:
             self.handle_pc(pts)
             self.previous_map_update = time.perf_counter()
 
@@ -219,7 +218,7 @@ class Mapper(Node):
 
         if time.perf_counter() - self.previous_plan > 1:
             if self.planner:
-                # OLD WAY - MAP LAYERS
+                # OLD WAY - MAP LAYES
                 self.planner.get_path(self.get_2d_map())
                 self.previous_plan = time.perf_counter()
 
@@ -233,11 +232,12 @@ class Mapper(Node):
         It calls a function to extract and filter the points (colors are ignored) and updates the map with points only -
         when using the python API, it should be a points only map.
         """
-        self.msg = self.last_msg
-        self.update_map3d_pts_only(self.get_pts(pts))
+        self.cam_odom = self.last_cam_odom
+        if self.cam_odom is not None:
+            self.update_map3d_pts_only(self.get_pts(pts))
 
     def ros_points_callback(self, msg):
-        self.msg = self.last_msg
+        self.cam_odom = self.last_cam_odom
         pts, colors = self.get_points_and_colors(msg)
         self._map3d.add_pc(pts, colors)
         # every 2 seconds we run planning
@@ -273,8 +273,8 @@ class Mapper(Node):
                     colors_dense = np.concatenate((colors_dense, colors))
         self.pc_pub.pub_pts_colors(pts_dense, colors_dense)
 
-    def tracking_callback(self, msg):
-        self.last_msg = msg
+    def pose_callback(self, msg):
+        self.last_cam_odom = msg
 
 
 def position_callback(msg):

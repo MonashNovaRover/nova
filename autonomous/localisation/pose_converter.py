@@ -29,7 +29,7 @@ import numpy as np
 
 # autonomous imports
 import math_utils.transform as transform
-from config.runtime_params import dgps_extrinsics, tracking_camera_extrinsics, pose_file
+from config.runtime_params import dgps_extrinsics, tracking_camera_extrinsics, pose_file, minimum_gps_corrections
 from config.ros_config import main_frame, tracking_pose_topic, rover_pose_topic, gps_to_xyz_topic, xyz_to_gps_topic
 from localisation.ekf import Ekf
 
@@ -84,6 +84,9 @@ class PoseConverter(Node):
         self.odom = None
 
         self.previous_prediction = time.perf_counter()
+
+        # we want to get a lot of gps data before we're confident enough to start publishing pose
+        self.num_gps_corrections = 0
 
     def transform_imu_to_nova(self, imu_msg):
         """
@@ -146,6 +149,8 @@ class PoseConverter(Node):
             # high covariance -> ignore
             return
 
+        self.num_gps_corrections += 1
+
         cov = np.array([[p_xx, p_xy], [p_yx, p_yy]])
 
         coord = Point2D()
@@ -178,14 +183,19 @@ class PoseConverter(Node):
         """
         vel = sum(msg.velocities) / 6.0
         self.u[0, :] = vel
+        t = time.perf_counter()
+        self.x, self.p = self.ekf.predict(self.x, self.p, self.u, t - self.previous_prediction)
+        self.previous_prediction = t
 
-        self.x, self.p = self.ekf.predict(self.x, self.p, self.u, time.perf_counter() - self.previous_prediction)
 
     def publisher_timer(self):
         """
         On a 5 hz timer, publish all necessary rover poses
         """
         # set z = 0 always
+        if self.num_gps_corrections < minimum_gps_corrections:
+            # don't publish until we've collated enough data
+            return
         self.publish_rover_pose()
         self.rover_pose_odom_pub.publish(self.odom)
         self.publish_cam_odom()

@@ -55,6 +55,9 @@ slice_height = 2.3  # the height we slice the map from when taking 2d slices
 obstacle_halve_value = 80  # All costs below a scaled value of 80 are halved to be more decisive
 obstacle_ignore_value = 30  # All costs below a scaled value of 30 are ignored
 
+# ~~~~~~~~~~~~~~~LOCALISATION CONSTANTS ~~~~~~~~~~~~~~~~~
+minimum_gps_corrections = 50
+
 # ~~~~~~~~~~~~~~~~~ CAMERA INFO ~~~~~~~~~~~~~~~~~~~~~
 d415_serial = "932122060332"
 d435_serial = "829212072166"

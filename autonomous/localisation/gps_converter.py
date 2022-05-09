@@ -41,7 +41,8 @@ class GpsConverter(Node):
         self.g_to_d = Geodesic.WGS84.Inverse
         self.d_to_g = Geodesic.WGS84.Direct
 
-        self.gps_goals = []
+        # The coordinate that we build our relative position around
+        self.gps_0_coord = None
 
         self.goal_subscriber = self.create_subscription(AutonomousInfo, auto_goals_gps, self.goal_callback, 10)
         self.goal_publisher = self.create_publisher(AutonomousInfo, auto_goals_info, 10)
@@ -56,10 +57,11 @@ class GpsConverter(Node):
         y = West
         +yaw = counter-clockwise
         """
-        if len(self.gps_goals) == 0:
+        if self.gps_0_coord is None:
+            self.gps_0_coord = (lat, lon)
             return 0., 0.   # No local frame to compare to
 
-        geodesic_dist_info = self.g_to_d(*self.gps_goals[0], lat, lon)
+        geodesic_dist_info = self.g_to_d(*self.gps_0_coord, lat, lon)
         dist = geodesic_dist_info['s12']   # geodesic distance
         # azimuth (compass heading) of the geodesic as seen from source and destination
         az1 = geodesic_dist_info['azi1']
@@ -77,12 +79,13 @@ class GpsConverter(Node):
         """
         Take coordinate in local frame and convert it into a global gps coordinate
         """
-        if len(self.gps_goals) == 0: return None  # there is no starting coordinate to transform into
+        if self.gps_0_coord is None:
+            return None  # there is no starting coordinate to transform into
         # azimuth (compass heading) of the geodesic as seen from current location
         az1 = math.degrees(-math.atan2(y, x))
         dist = math.sqrt(x ** 2 + y ** 2)  # dist from 0
 
-        geodesic_global_info = self.d_to_g(*self.gps_goals[0], az1, dist)
+        geodesic_global_info = self.d_to_g(*self.gps_0_coord, az1, dist)
 
         return geodesic_global_info['lat2'], geodesic_global_info['lon2']
 
@@ -97,8 +100,6 @@ class GpsConverter(Node):
         local_goal_info.position.x, local_goal_info.position.y = \
             self.get_local_coord(gps_goal_info.position.x, gps_goal_info.position.y)
 
-        self.gps_goals.append((gps_goal_info.position.x, gps_goal_info.position.y))
-
         self.goal_publisher.publish(local_goal_info)
 
     def g_to_d_service(self, request, response):
@@ -108,11 +109,12 @@ class GpsConverter(Node):
         response.transform.x, response.transform.y = self.get_global_coord(request.point.x, request.point.y)
 
 
-def main (args = None):
-    rclpy.init(args = args)
+def main(args=None):
+    rclpy.init(args=args)
     conversion_service = GpsConverter()
     rclpy.spin(conversion_service)
     rclpy.shutdown()
+
 
 if __name__ == '__main__':
     main()
