@@ -1,7 +1,6 @@
 {
     "targets": {
 
-
         "platform": {
             "hex": "000",
             "actions": {
@@ -34,29 +33,92 @@
                 "scoops": {
                     "hex": "04",
                     "args": [
-                        "direction",
-                        "id"
+                        "id",
+                        "direction"
                     ]
                 }
             }
         },
 
-
         "microscope": {
             "hex": "000",
             "actions": {
+                
+                "lens": {
+                    "hex": "05",
+                    "args": [
+                        "lens"
+                    ]
+                },
+
+                "led": {
+                    "hex": "06",
+                    "args": [
+                        "enabled"
+                    ]
+                },
+
+                "laser": {
+                    "hex": "07",
+                    "args": [
+                        "enabled"
+                    ]
+                }
 
             }
         },
+
         "internals": {
             "hex": "001",
             "actions": {
 
+                "sequence": {
+                    "hex": "01",
+                    "args": []
+                },
+
+                "controls": {
+                    "hex": "02",
+                    "args": [
+                        "id",
+                        "time"
+                    ]
+                },
+
+                "pumps": {
+                    "hex": "03",
+                    "args": [
+                        "id",
+                        "time"
+                    ]
+                }
+
             }
         },
+
         "spectrometer": {
             "hex": "001",
             "actions": {
+
+                "rotate": {
+                    "hex": "04",
+                    "args": [
+                        "direction",
+                        "steps"
+                    ]
+                },
+
+                "read": {
+                    "hex": "05",
+                    "args": []
+                },
+
+                "led": {
+                    "hex": "06",
+                    "args": [
+                        "enabled"
+                    ]
+                }
 
             }
         }
@@ -73,6 +135,10 @@
         "false": "00",
         "true": "01",
         "coarse": "00",
-        "fine": "01"
+        "fine": "01",
+        "deposit": "00",
+        "pickup": "01",
+        "off": "00",
+        "on": "01"
     }
 }
