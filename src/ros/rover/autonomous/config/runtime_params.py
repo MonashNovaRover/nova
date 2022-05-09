@@ -56,7 +56,7 @@ obstacle_halve_value = 80  # All costs below a scaled value of 80 are halved to 
 obstacle_ignore_value = 30  # All costs below a scaled value of 30 are ignored
 
 # ~~~~~~~~~~~~~~~LOCALISATION CONSTANTS ~~~~~~~~~~~~~~~~~
-minimum_gps_corrections = 50
+minimum_gps_corrections = 0
 pose_pub_rate = 0.2
 
 # ~~~~~~~~~~~~~~~~~ CAMERA INFO ~~~~~~~~~~~~~~~~~~~~~

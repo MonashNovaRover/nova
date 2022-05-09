@@ -30,12 +30,7 @@ import matplotlib.pyplot as plt
 class Ekf:
     def __init__(self):
 
-        self.Q = np.diag([
-            0.3,  # variance of location on x-axis | this is really the SD, and same for below, no?
-            0.3,  # variance of location on y-axis
-            0,#np.deg2rad(25.0),  # variance of yaw angle
-            0.5  # variance of velocity
-        ]) ** 2  # predict state covariance
+
 
         self.dt = 0.0    # window of time to which a set of measurements applies
 
@@ -43,61 +38,49 @@ class Ekf:
         """ Predict then next state of the system given the past state and a model
         This is identical to simple_motion_model, but expanded into its matrix components for clarity. Use
         simple_motion_model for real applications, as it is twice as fast
-        :param x: [[x], [y], [pitch], [yaw], [v]],  # roll is unnecessary as the rover's forward direction is defined by pitch
+        :param x: [[x], [y]] (2x1),  # roll is unnecessary as the rover's forward direction is defined by pitch
                     and roll alone
-        :param u: [[v, pitchrate, yawrate]]
+        :param u: [[v], [pitch], [yaw]] (1x1)
         :return:
         """
         # Multiplied by state vector to get linear contributions to predicted state from past state
-        F = np.array([[1.0, 0, 0, 0, 0],
-                      [0, 1.0, 0, 0, 0],
-                      [0, 0, 1.0, 0, 0],
-                      [0, 0, 0, 1.0, 0],
-                      [0, 0, 0, 0, 0]])
+        F = np.array([[1.0, 0],
+                      [0, 1.0]])
 
         # Multiplied by inputs vector to get nonlinear contributions of state and inputs to predicted state
-        B = np.array([[self.dt * math.cos(x[3, 0]) * math.cos(x[2, 0]), 0, 0], # dx/v
-                      [self.dt * math.sin(x[3, 0]) * math.cos(x[2, 0]), 0, 0], # dy/v
-                      [0.0, self.dt, 0],   # time interval
-                      [0.0, 0.0, self.dt],   # time interval
-                      [1.0, 0.0, 0.0]])  # to set state velocity to input velocity (can account for accel later)
-        x1 = np.matmul(F, x)    # keep position and yaw, but remove velocity. 
-        x2 = np.matmul(B, u.T)  # Get the change in x and y, and the change in yaw, as well as the new velocity.
+        B = np.array([[self.dt * math.cos(u[2, 0]) * math.cos(u[1, 0]), 0, 0], # dx/v
+                      [self.dt * math.sin(u[2, 0]) * math.cos(u[1, 0]), 0, 0]]) # dy/v
+        x1 = np.matmul(F, x)    # keep position and yaw, but remove velocity.
+        x2 = np.matmul(B, u)  # Get the change in x and y, and the change in yaw, as well as the new velocity.
         # updates the x, y and yaw according to the motion model
         return x1+x2
 
     def simple_motion_model(self, x, u):
         """ Predict then next state of the system given the past state and a model
-        :param x: [[x], [y], [pitch], [yaw], [v]],  # roll is unnecessary as the rover's forward direction is defined by pitch
+        :param x: [[x], [y], [pitch], [yaw], [v]] (2x1),  # roll is unnecessary as the rover's forward direction is defined by pitch
                     and roll alone
-        :param u: [[v, pitchrate, yawrate]]
+        :param u: [[v, pitchrate, yawrate]] (1x1)
         :return:
         """
         retval = np.array([
-            [x[0, 0] + math.cos(x[3, 0]) * u[0, 0] * math.cos(x[2, 0]) * self.dt],
-            [x[1, 0] + math.sin(x[3, 0]) * u[0, 0] * math.cos(x[2, 0]) * self.dt],
-            [x[2, 0] + u[0, 1] * self.dt],
-            [x[3, 0] + u[0, 2] * self.dt],
-            [u[0, 0]]
-        ])
+            [x[0, 0] + math.cos(u[2, 0]) * u[0, 0] * math.cos(u[1, 0]) * self.dt],
+            [x[1, 0] + math.sin(u[2, 0]) * u[0, 0] * math.cos(u[1, 0]) * self.dt]
+        ])  # 2x1
         return retval
     
     def observation_gps(self, x):
         """
         Observations come in the form of x, y coordinates in a 2 x 5 numpy array
         This converts our predicted state into a predicted observation, to compare against our true observation
+        x: 2x1 array [[x], [y], [pitch], [yaw], [v]]
+        return: 2x1 array [[x], [y]]
         """
-        return x[:2]
-
-    def observation_imu(self, x):
-        """
-        Observations come in the form of pitch and roll in a 2 x 5 numpy array
-        This converts our predicted state into a predicted observation, to compare against our true observation
-        """
-        return x[2:4]
+        return x
 
     def jacobF(self, x, u):
         """
+        :param x: 2x1 array [[x], [y], [pitch], [yaw], [v]]
+        :param u: 1x1 array [[v], [d_pitch/dt], [d_yaw/dt]]
         Jacobian of Motion Model
         motion model
         x_{t+1} = x_t+v*dt*cos(yaw)*cos(pitch)
@@ -113,15 +96,10 @@ class Ekf:
         dy/dyaw = v*dt*cos(yaw)*cos(pitch)
         dy/dv = dt*sin(yaw)*cos(pitch)
         """
-        pitch = x[2, 0]
-        yaw = x[3, 0]
-        v = u[0, 0]
         jF = np.array([
-            [1.0, 0.0, -self.dt * v * math.cos(yaw) * math.sin(pitch), -self.dt * v * math.sin(yaw) * math.cos(pitch), self.dt * math.cos(yaw) * math.cos(pitch)],
-            [0.0, 1.0, -self.dt * v * math.sin(yaw) * math.sin(pitch), self.dt * v * math.cos(yaw) * math.cos(pitch), self.dt * math.sin(yaw) * math.cos(pitch)],
-            [0.0, 0.0, 1.0, 0.0, 0.0],
-            [0.0, 0.0, 0.0, 1.0, 0.0],
-            [0.0, 0.0, 0.0, 0.0, 1.0]])
+            [1.0, 0.0],
+            [0.0, 1.0]
+            ])
 
         return jF
 
@@ -134,107 +112,99 @@ class Ekf:
         ])
         """
         return np.array([
-            [1, 0, 0, 0, 0],
-            [0, 1, 0, 0, 0],
-        ])
-
-    def jacobH_imu(self):
-        # Jacobian of Observation Model
-        """
-        x,y,pitch,yaw
-        [0,0,1,0,0]
-        [0,0,0,1,0]
-        ])
-        """
-        return np.array([
-            [0, 0, 1, 0, 0],
-            [0, 0, 0, 1, 0],
+            [1, 0],
+            [0, 1]
         ])
 
     def predict(self, x_est, p_est, u, dt):
         """
         Predict new state and covariance based on past state, covariance and control inputs
-        :param x_est: previous state estimate
-        :param p_est: previous state covariance estimate
-        :param u: control inputs (d_pitch/d_t, d_yaw/d_t, v)
+        :param x_est: previous state estimate - (2x1)
+        :param p_est: previous state covariance estimate - (5x5)
+        :param u: control inputs (d_pitch/d_t, d_yaw/d_t, v) - (1x1)
         :param dt: time diff since last input
-        :return: new predicted state and covariance
+        :return: new predicted state and covariance - (2x1), (5x5)
         """
         self.dt = dt
         # predicted state
-        x_pred = self.simple_motion_model(x_est, u)
+        x_pred = self.simple_motion_model(x_est, u)  # - 2x1
 
-        x_pred[2:3] %= (2 * math.pi)  # correct angles to principle values
+        J_F = self.jacobF(x_est, u)  # - 5x5
 
-        J_F = self.jacobF(x_est, u)
+        Q = np.diag([
+            0.3 * u[0] * dt,  # variance of location on x-axis | this is really the SD, and same for below, no?
+            0.3 * u[0] * dt,  # variance of location on y-axis
+        ]) ** 2  # predict state covariance
 
-        p_pred = np.matmul(np.matmul(J_F, p_est), J_F.T) + self.Q # Covariance of our prediction
+        p_pred = np.matmul(np.matmul(J_F, p_est), J_F.T) + Q  # J_F * p_est = 5x5 * J_F.T = 5x5
 
-        return x_pred, p_pred
+        return x_pred, p_pred  # 2x1, 5x5
 
     def correct_gps(self, x_pred, p_pred, z_obs, R):
         """
         Correct current model based on observation and its covariance
-        :param x_pred: predicted x
-        :param p_pred: prediction covariance
-        :param z_obs: observation
-        :param R: covariance of observation
+        :param x_pred: predicted x - (2x1)
+        :param p_pred: prediction covariance - (2x2)
+        :param z_obs: observation - (2x1)
+        :param R: covariance of observation - (2x2)
         :return:
         """
-        z_pred = self.observation_gps(x_pred)
-        print(z_pred)
-        print(z_obs)
-        print(x_pred)
+        z_pred = self.observation_gps(x_pred)  # 2x1
 
-        J_H = self.jacobH_gps()
+        J_H = self.jacobH_gps()  # 2x5
+        # J_H * p_pred = 2x5 * J_H.T = 2x2 + R = 2x2
         S = np.matmul(np.matmul(J_H, p_pred), J_H.T) + R # covariance of z_pred
 
+        det = 1 / (S[0, 0] * S[1, 1] - S[1, 0] * S[0, 1])
+        s_inv = det * np.array([[S[1, 1], -S[0, 1]], [-S[1, 0], S[0, 0]]])
+
         # Difference between expected observation and true observation
-        y = z_obs - z_pred
+        y = z_obs - z_pred  # 2x1 - 2x1 = 2x1
 
         # Kalman gain, scales by covariance of the observation measurement. High covariance -> K has a small determinant
-        K = np.matmul(np.matmul(p_pred, J_H.T), np.linalg.inv(S))
+        K = np.matmul(np.matmul(p_pred, J_H.T), s_inv)  # 5x5 * 2x5.T = 5x2 * 2x2 = 5x2
 
         # scale the expected - predicted obs by the Kalman gain - small Kalman gain means we don't trust the obs
-        x_corrected = x_pred + np.matmul(K, y.T)
+        x_corrected = x_pred + np.matmul(K, y)  # 5x2 * 2x1 = 2x1 + 2x1 = 2x1
         x_corrected[2:3, 0] %= 2 * math.pi
 
         # formula for the covariance update, but factorised for simplicity.
-        p_corrected = np.matmul((np.eye(len(x_corrected)) - np.matmul(K, J_H)), p_pred)
+        p_corrected = np.matmul((np.eye(len(x_corrected)) - np.matmul(K, J_H)), p_pred)  # (5x5 - (5x2 * 2x5)) * 5x5=5x5
 
-        return x_corrected, p_corrected
+        return x_corrected, p_corrected  # 2x1, 5x5
 
     def correct_imu(self, x_pred, p_pred, z_obs, R):
         """
         Correct current model based on observation and its covariance
-        :param x_pred: predicted x
-        :param p_pred: prediction covariance
-        :param z_obs: observation
-        :param R: covariance of observation
+        :param x_pred: predicted x - (2x1)
+        :param p_pred: prediction covariance - (5x5)
+        :param z_obs: observation - (2x1)
+        :param R: covariance of observation (2x2)
         :return:
         """
-        z_pred = self.observation_imu(x_pred)
+        z_pred = self.observation_imu(x_pred)  # 2x1
 
         z_obs %= 2 * math.pi
 
-        J_H = self.jacobH_imu()
+        J_H = self.jacobH_imu()  # 2x5
+        # 2x5 * 5x5 = 2x5 * 2x5.T = 2x2
         S = np.matmul(np.matmul(J_H, p_pred), J_H.T) + R # covariance of z_pred
 
         # Difference between expected observation and true observation
-        y = z_obs - z_pred.T
+        y = z_obs - z_pred  # 2x1 - 2x1
         y %= 2 * math.pi
 
         # Kalman gain, scales by covariance of the observation measurement. High covariance -> K has a small determinant
-        K = np.matmul(np.matmul(p_pred, J_H.T), np.linalg.inv(S))
+        K = np.matmul(np.matmul(p_pred, J_H.T), np.linalg.inv(S))  # 5x5 * 2x5.T = 5x2 * 2x2 = 5x2
 
         # scale the expected - predicted obs by the Kalman gain - small Kalman gain means we don't trust the obs
-        x_corrected = x_pred + np.matmul(K, y.T)
+        x_corrected = x_pred + np.matmul(K, y)  # 2x1 - (5x2 * 2x1) = 2x1
         x_corrected[2:3, 0] %= 2 * math.pi
 
         # formula for the covariance update, but factorised for simplicity.
-        p_corrected = np.matmul((np.eye(len(x_corrected)) - np.matmul(K, J_H)), p_pred)
+        p_corrected = np.matmul((np.eye(len(x_corrected)) - np.matmul(K, J_H)), p_pred)  # (5x5 - (5x2 * 2x5)) * 5x5=5x5
 
-        return x_corrected, p_corrected
+        return x_corrected, p_corrected  # 2x1, 5x5
 
 
 if __name__ == '__main__':
@@ -242,7 +212,7 @@ if __name__ == '__main__':
     #for i in range(0, 100, 5):
     i = 100
     P_AR_OBSERVED = i / 100
-    EKF = ekf(10)
+    EKF = Ekf()
     est_data, true_data, gps_data = EKF.runFilter()
     plt.figure()
     plt.plot(gps_data[0], gps_data[1],'b', lw=0.5)
