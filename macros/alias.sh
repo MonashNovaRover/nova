@@ -64,4 +64,9 @@ alias sci='ros2 launch core science.launch.py'
 alias rescan="sudo nmcli device wifi rescan"
 alias liam="sudo nmcli device wifi connect Iphone11 password sjfwf355"
 alias harrison="sudo nmcli device wifi connect Harrison\ Verrios’s\ iPhone password 12345678"
+alias max="sudo nmcli dev wifi connect 'Redmi Note 10 Pro' password Seagull04"
+
+# DGPS
+alias source_leigh="source  ~/leigh_ws/install/setup.bash"
+alias dgps="cd ~/leigh_ws/src/ublox_dgnss/ublox_dgnss/launch && ros2 launch ublox_dgnss ublox_dgnss rover.launch.py"
 
