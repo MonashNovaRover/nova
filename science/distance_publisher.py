@@ -21,7 +21,7 @@ from rclpy.node import Node
 from core.msg import DistanceData 
     
 # The ID for the CAN frame
-CAN_ID = 0x100
+CAN_ID = 0x004
 
 # The max time [s] if no message has been received
 MAX_TIMEOUT = 2.0
