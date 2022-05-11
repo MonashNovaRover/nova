@@ -54,6 +54,7 @@ install(PROGRAMS
   electronics/test_radio.py
   electronics/test_wheels.py
   electronics/wheel_publisher.py
+  electronics/LED_transmitter.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

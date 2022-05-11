@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 
 '''
 NOVA ROVER TEAM
@@ -15,6 +15,7 @@ from rclpy.node import Node
 from std_srvs.srv import Trigger
 from core.msg import InputGamepad
 from coms_utils.can_interface import CANTransmitter
+from rclpy.qos import QoSProfile, QoSReliabilityPolicy
 import time
 
 """
@@ -43,7 +44,6 @@ class CanLEDCommunicator:
         """
         Sends data to CAN bus to actually activate the LED array
         """
-        print(f"Setting LED to {hex(colour)} with intensity {intensity}")
         self.transmitter.arbitration_id = colour  # send to the desired colour LED
         packed_data = int.to_bytes(intensity, 1, "big")
         ret = self.transmitter.transmit(packed_data)
@@ -69,15 +69,20 @@ class LEDUpdateNode(Node):
     AUTO_GOAL_ACHIEVED = 2
     DISCONNECTED = 3
 
+
     def __init__(self):
         super().__init__('LED_status_update_node')
         self.can_communicator = CanLEDCommunicator()
-        # these should not be here! they should be in a file/params? and then 
-        # can be pulled here
-        self.gamepad_input_subscriber = self.create_subscription(InputGamepad, "/control/input_gamepad", self.gamepad_callback, 10)
-        self.service = self.create_service(Trigger, 'autonomous/LED', self.service_callback)
 
-        self.qos_timer = self.create_timer(1.0, self.check_connection)
+        best_effort = QoSReliabilityPolicy.RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT
+        qos = QoSProfile(reliability=best_effort, depth=10)
+
+        self.gamepad_input_subscriber = self.create_subscription(InputGamepad, "/control/input_gamepad", self.gamepad_callback, qos)
+
+        self.service = self.create_service(Trigger, 'autonomous/LED', self.service_callback)
+        self.qos_time = 0.1
+
+        self.qos_timer = self.create_timer(self.qos_time, self.check_connection)
         self.flash_timer = self.create_timer(0.5, self.flash_callback)
 
         # Colours and their brightness for each mode (mostly half brightness to save power)
@@ -114,7 +119,7 @@ class LEDUpdateNode(Node):
 
         new_mode = self.mode
 
-        if dt > 1:
+        if dt > self.qos_time:
             new_mode = LEDUpdateNode.DISCONNECTED
         elif self.mode == LEDUpdateNode.DISCONNECTED:
             new_mode = LEDUpdateNode.MANUAL
