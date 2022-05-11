@@ -15,7 +15,7 @@ SERVICES:
 PACKAGE: 	science
 AUTHOR(S):	Miles Higgins, Harrison Verrios
 CREATION:	15/02/2022
-EDITED:		08/05/2022
+EDITED:		11/05/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
@@ -28,7 +28,7 @@ from core.srv import ScienceCommand
 from coms_utils.can_interface import CANTransceiver
 
 # Include other dependencies
-import json, time
+import json, os
 
 # The can network
 CAN_NETWORK = 1
@@ -45,8 +45,11 @@ class ServiceNode(Node):
         # Initialise the node
         super().__init__('science_transmitter')
 
+        # Get the directory of the JSON file
+        directory = os.path.expanduser('~') + "/nova_ws/src/science/configs/commands.json"
+
         # Reads the command json data
-        with open ("commands.json", "r") as file:
+        with open (directory, "r") as file:
             self.archive = json.loads(file.read())
         
         # Store the list of targets

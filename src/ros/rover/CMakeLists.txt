@@ -46,6 +46,7 @@ install(DIRECTORY
 install(PROGRAMS
   science/transmitter.py
   science/hydraprobe_publisher.py
+  science/distance_publisher.py
   science/EMC_publisher.py
   DESTINATION lib/${PROJECT_NAME}
 )
