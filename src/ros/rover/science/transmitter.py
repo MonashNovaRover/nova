@@ -123,7 +123,7 @@ class ServiceNode(Node):
 
                 # Get the decoded value and add to the list
                 else:
-                    arg_id += self.arg_encoding[value.lower()]
+                    arg_id += self.arg_encoding[str(value).lower()]
 
             # Create the command
             command = action_id + arg_id
