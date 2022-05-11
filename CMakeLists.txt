@@ -62,7 +62,6 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/PIDTune.srv"
   "srv/ScienceCommand.srv"
   "srv/RFIDCommand.srv"
-  "srv/PointTransform.srv"
 
   # Action definitions
   DEPENDENCIES std_msgs geometry_msgs
