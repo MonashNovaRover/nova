@@ -7,7 +7,7 @@ from typing import Tuple
 from math_utils.controller_math import *
 from rclpy.node import Node
 from core.msg import AutonomousGoal, Point2D
-from config.ros_config import auto_goals_topic
+from config.ros_config import planning_destination_topic
 import numpy as np
 import math
 
@@ -25,7 +25,7 @@ class SearchController(ControllerInterface, Node):
             "start_yaw": 0
         }
 
-        self.publisher = self.create_publisher(AutonomousGoal, auto_goals_topic, 0)
+        self.publisher = self.create_publisher(AutonomousGoal, planning_destination_topic, 0)
         self.turner = TankTurner()
         self.driver = DriveController()
 

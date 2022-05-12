@@ -51,7 +51,7 @@ class PathPlanner(Node):
         
         self.pose_subscriber = self.create_subscription(RoverPose, rover_pose_topic, self.update_pose, 10)
 
-        self.goal_subscriber = self.create_subscription(AutonomousGoal, auto_goals_topic, self.manual_goal_callback, 10)
+        self.goal_subscriber = self.create_subscription(AutonomousGoal, planning_destination_topic, self.manual_goal_callback, 10)
 
         self.expected_goal_id = 0
 

@@ -30,14 +30,14 @@ import numpy as np
 # autonomous imports
 import math_utils.transform as transform
 from config.runtime_params import dgps_extrinsics, tracking_camera_extrinsics, pose_pub_rate, minimum_gps_corrections
-from config.ros_config import main_frame, tracking_pose_topic, rover_pose_topic, auto_goals_info, auto_goals_gps
+from config.ros_config import main_frame, tracking_pose_topic, rover_pose_topic, auto_goal_topic, auto_goal_gps
 from localisation.ekf import Ekf
 from localisation.gps_converter import GpsConverter
 
 # ROS imports
 from rclpy.node import Node
 from nav_msgs.msg import Odometry
-from core.msg import RoverPose, WheelData, RoverPoseGPS, AutonomousInfo
+from core.msg import RoverPose, WheelData, RoverPoseGPS, AutonomousGoal
 from geometry_msgs.msg import PoseWithCovariance, TransformStamped
 from sensor_msgs.msg import Imu
 from rclpy.qos import qos_profile_sensor_data as qos
@@ -59,14 +59,14 @@ class PoseConverter(Node):
         self.imu_sub = self.create_subscription(Imu, "/imu/data", self.imu_callback, 10)
         self.dgps_sub = self.create_subscription(PoseWithCovariance, "/gps_rover/pose_cov", self.dgps_callback, qos)
         self.drive_sub = self.create_subscription(WheelData, "/electronics/wheel_data", self.drive_callback, 10)
-        self.goals_sub = self.create_subscription(AutonomousInfo, auto_goals_gps, self.goal_callback, 10)
+        self.goals_sub = self.create_subscription(AutonomousGoal, auto_goal_gps, self.goal_callback, 10)
 
         # publishers
         self.camera_pub = self.create_publisher(Odometry, tracking_pose_topic, 10)
         self.rover_pose_pub = self.create_publisher(RoverPose, rover_pose_topic, 10)
         self.rover_pose_gps_pub = self.create_publisher(RoverPoseGPS, "/electronics/rover_pose_gps", 10)
         self.rover_pose_odom_pub = self.create_publisher(Odometry, "/rover/odom", 10)
-        self.goals_pub = self.create_publisher(AutonomousInfo, auto_goals_info, 10)
+        self.goals_pub = self.create_publisher(AutonomousGoal, auto_goal_topic, 10)
 
         # timer 
         self.pub_timer = self.create_timer(pose_pub_rate, self.publisher_callback)
@@ -194,14 +194,14 @@ class PoseConverter(Node):
         self.previous_prediction = t
 
     def goal_callback(self, msg):                                               
-        local_goal_info = AutonomousInfo()                                      
+        local_goal = AutonomousGoal()
                                                                                   
-        local_goal_info.ids = [iD for iD in msg.ids]                            
-        local_goal_info.position.x, local_goal_info.position.y = self.gps_converter.get_local_coord(
+        local_goal.ids = [iD for iD in msg.ids]
+        local_goal.position.x, local_goal.position.y = self.gps_converter.get_local_coord(
                   msg.position.x, msg.position.y                                  
                   )                                                               
 
-        self.goals_pub.publish(local_goal_info)
+        self.goals_pub.publish(local_goal)
 
     def publisher_callback(self):
         """
