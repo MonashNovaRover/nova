@@ -6,7 +6,7 @@ Execute this code on the rover to start all
    science scripts.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODES:
-  - science/hydraprobe_publisher.py     [hydraprobe_data]
+  - science/distance_publisher.py       [distance_data]
   - science/science_transmitter.py      [science_transmitter]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	core
@@ -22,7 +22,7 @@ import launch_ros.actions
 def generate_launch_description():
     return LaunchDescription([
         launch_ros.actions.Node(
-            package='science', node_executable='hydraprobe_publisher.py', output='screen'),
+            package='science', node_executable='distance_publisher.py', output='screen'),
         launch_ros.actions.Node(
             package='science', node_executable='transmitter.py', output='screen'),
     ])
