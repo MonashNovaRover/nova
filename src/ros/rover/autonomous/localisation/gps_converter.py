@@ -25,10 +25,9 @@ EDITED:		08/05/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
-import rclpy
-from rclpy.node import Node
 import math
 from geographiclib.geodesic import Geodesic
+from geomag import declination
 
 
 class GpsConverter():
@@ -39,6 +38,8 @@ class GpsConverter():
 
         # The coordinate that we build our relative position around
         self.gps_0_coord = None
+        # Offset of true north from magnetic north
+        self.magnetic_declination = 0.
 
     def get_local_coord(self, lat, lon):
         """
@@ -49,6 +50,7 @@ class GpsConverter():
         """
         if self.gps_0_coord is None:
             self.gps_0_coord = (lat, lon)
+            self.magnetic_declination = math.radians(declination(*self.gps_0_coord))
             return 0., 0.   # No local frame to compare to
 
         geodesic_dist_info = self.g_to_d(*self.gps_0_coord, lat, lon)

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 __package__ = "autonomous"
 from planning.path_planner import PathPlanner
-from controller.controller import Controller
+from controller.old_controller import Controller
 import rclpy
 from mapping.mapper import Mapper
 from mapping.height_mapper import HeightMapper
@@ -31,22 +31,9 @@ def main(args):
     executor.add_node(mapper)
     executor.add_node(controller)
 
-    #executor_thread = threading.Thread(target=executor.spin, daemon=True)
-    #executor_thread.start()
-    executor.spin() 
-    #try:
-    #    time.sleep(1000000)
-    #except KeyboardInterrupt:
-    #    pass
-    # Spin in a separate thread
-    #while(True):
-        #rclpy.spin_once(planner)
-        #rclpy.spin_once(mapper)
-        #rclpy.spin_once(controller)
+    executor.spin()
 
-    # rejoining threads before we shutdown
     rclpy.shutdown()
-    #executor_thread.join()
 
 
 if __name__ == "__main__":
