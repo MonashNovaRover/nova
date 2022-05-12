@@ -11,7 +11,7 @@ from rclpy.node import Node
 from nav_msgs.msg import Odometry
 import vis.pc_pub as pc_pub
 import math_utils.transform as transform
-from config.ros_config import tracking_pose_topic
+from config.ros_config import camera_pose_topic
 from core.msg import AlvarMarker
 
 

@@ -14,8 +14,8 @@ Nova standard coordinate system (left handed coordinates) AND raw data from the 
     +z : up
 """
 # ~~~~~~~~~~~~~ Tracking & Depth cams ~~~~~~~~~~~~~~~~ 
-tracking_pose_topic = "/t265/odom/sample"
-rover_odom_topic = "/rover/odom"
+camera_pose_topic = "/autonomous/camera/odom"
+rover_odom_topic = "autonomous/rover/odom"
 depth_topic = "/D400/depth/color/points"
 depth_point_cloud_topic = "/camera/depth/color/points"
 # position of centre of wheel base relative to tracking cam
@@ -36,4 +36,3 @@ xyz_to_gps_topic = "/autonomous/xyz_to_gps"
 # ~~~~~~~~~~~~~~~~~~~~~ ROS ~~~~~~~~~~~~~~~~~~~~~~~~~~
 # this is the ROS "Frame" which we publish everything to. We don't use ROS transforms
 main_frame = "map"
-

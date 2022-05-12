@@ -38,14 +38,14 @@ import numpy as np
 import vis.pc_pub as pc_pub
 import time
 from cameras.depth_camera import DepthCamera
-from config.ros_config import tracking_pose_topic, depth_topic
+from config.ros_config import camera_pose_topic, depth_topic
 from config.runtime_params import max_point_depth, max_fov_angle, depth_mode, skip_pts, slice_height, planning_rate
 
 
 class Mapper(Node):
     def __init__(self, length=20, width=20, height=5, resolution=0.1, planner=None, camera=False, _vis=True):
         super().__init__('points_grid')
-        self.subscriber_tracking = self.create_subscription(Odometry, tracking_pose_topic, self.pose_callback, 100)
+        self.subscriber_tracking = self.create_subscription(Odometry, camera_pose_topic, self.pose_callback, 100)
         self.planner = planner
         self.vis = _vis
 

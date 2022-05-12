@@ -7,7 +7,7 @@ from nav_msgs.msg import Odometry
 from core.msg import RoverPose
 import math_utils.transform as transform
 from config.runtime_params import tracking_camera_extrinsics, t265_serial, pose_file
-from config.ros_config import main_frame, tracking_pose_topic, rover_pose_topic
+from config.ros_config import main_frame, camera_pose_topic, rover_pose_topic
 import time
 
 # different systems seem to install the pyrealsense wrapper differently
@@ -34,7 +34,7 @@ class TrackingCamera(Node):
         # Declare RealSense pipeline, encapsulating the actual device and sensors
         self.pipe = rs.pipeline()
 
-        self.camera_pub = self.create_publisher(Odometry, tracking_pose_topic, 10)        
+        self.camera_pub = self.create_publisher(Odometry, camera_pose_topic, 10)
         self.rover_pose_pub = self.create_publisher(RoverPose, rover_pose_topic, 10)
         self.rover_pose_odom_pub = self.create_publisher(Odometry, "rover/odom", 10)
 

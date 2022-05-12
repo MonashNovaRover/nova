@@ -1,8 +1,3 @@
-/*
- 
-*/
-
-
 #include <chrono>
 #include <functional>
 #include <memory>
@@ -16,8 +11,6 @@
 #include <pybind11/numpy.h>
 
 #include <bits/stdc++.h>
-
-//#include "rclcpp/rclcpp.hpp"
 
 using namespace std::chrono_literals;
 namespace py = pybind11;
