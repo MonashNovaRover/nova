@@ -155,6 +155,7 @@ class Ekf:
         # J_H * p_pred = 2x5 * J_H.T = 2x2 + R = 2x2
         S = np.matmul(np.matmul(J_H, p_pred), J_H.T) + R # covariance of z_pred
 
+        # numpy.linalg.inv can't always find the inverse of this matrix....? so we will do it ourselves
         det = 1 / (S[0, 0] * S[1, 1] - S[1, 0] * S[0, 1])
         s_inv = det * np.array([[S[1, 1], -S[0, 1]], [-S[1, 0], S[0, 0]]])
 
@@ -176,6 +177,7 @@ class Ekf:
     def correct_imu(self, x_pred, p_pred, z_obs, R):
         """
         Correct current model based on observation and its covariance
+        Not relevant until we have covariance of imu observations
         :param x_pred: predicted x - (2x1)
         :param p_pred: prediction covariance - (5x5)
         :param z_obs: observation - (2x1)
@@ -205,34 +207,3 @@ class Ekf:
         p_corrected = np.matmul((np.eye(len(x_corrected)) - np.matmul(K, J_H)), p_pred)  # (5x5 - (5x2 * 2x5)) * 5x5=5x5
 
         return x_corrected, p_corrected  # 2x1, 5x5
-
-
-if __name__ == '__main__':
-    error = []
-    #for i in range(0, 100, 5):
-    i = 100
-    P_AR_OBSERVED = i / 100
-    EKF = Ekf()
-    est_data, true_data, gps_data = EKF.runFilter()
-    plt.figure()
-    plt.plot(gps_data[0], gps_data[1],'b', lw=0.5)
-    plt.plot(true_data[0], true_data[1],'r', lw=0.5)
-    plt.title("True position (orange) and GPS measurement (blue)")
-    plt.figure()
-    plt.plot(est_data[0], est_data[1],'b', lw=0.5)
-    plt.plot(true_data[0], true_data[1],'r', lw=0.5)
-    plt.title("True position (orange) and Kalman filter position estimate (blue)")
-    
-    plt.show()
-
-    print("Average error per time-step with position and AR tag distances: ")
-
-
-
-        # compute some form of the RMSE for the kalman estimate and for the GPS only estimate. 
-    avg_error_kalman = (np.average(((np.array(est_data[0]) - np.squeeze(np.array(true_data[0])).astype(np.float))**2)) + np.average(((np.array(est_data[1]) - np.squeeze(np.array(true_data[1])).astype(np.float))**2)))/2
-
-    avg_error_gps = (np.average(((np.array(gps_data[0]).astype(np.float) - np.array(true_data[0]).astype(np.float))**2)) + np.average(((np.array(gps_data[1]).astype(np.float) - np.array(true_data[1]).astype(np.float))**2)))/2
-    error.append(avg_error_kalman)
-    print("Kalman, + AR: ", avg_error_kalman)
-    print("Pose only: ", avg_error_gps)

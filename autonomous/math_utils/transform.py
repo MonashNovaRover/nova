@@ -79,7 +79,7 @@ def transform_euler(euler_angles, pts):
     """
     transforms euler angles into quaternions, then uses our quaternion rotation matrix to
     rotate the points
-    :param: euler angles: [pitch, roll, yaw]
+    :param: euler angles: [pitch, roll, yaw] - corresponding to 
     :returns: transformed points by the given rotations
     """
     
@@ -88,6 +88,7 @@ def transform_euler(euler_angles, pts):
     mat = quat2mat(Q(qx, qy, qz, qw))
     pts = np.matmul(mat, pts.transpose()).transpose()
     return pts
+
 
 def euler_to_quat(euler_angles):
     pitch, roll, yaw = euler_angles[0], euler_angles[1], euler_angles[2]
