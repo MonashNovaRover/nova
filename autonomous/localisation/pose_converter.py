@@ -30,7 +30,7 @@ import numpy as np
 # autonomous imports
 import math_utils.transform as transform
 from config.runtime_params import dgps_extrinsics, tracking_camera_extrinsics, pose_pub_rate, minimum_gps_corrections
-from config.ros_config import main_frame, tracking_pose_topic, rover_pose_topic, auto_goal_topic, auto_goal_gps
+from config.ros_config import main_frame, camera_pose_topic, rover_pose_topic, auto_goal_topic, auto_goal_gps
 from localisation.ekf import Ekf
 from localisation.gps_converter import GpsConverter
 
@@ -62,7 +62,7 @@ class PoseConverter(Node):
         self.goals_sub = self.create_subscription(AutonomousGoal, auto_goal_gps, self.goal_callback, 10)
 
         # publishers
-        self.camera_pub = self.create_publisher(Odometry, tracking_pose_topic, 10)
+        self.camera_pub = self.create_publisher(Odometry, camera_pose_topic, 10)
         self.rover_pose_pub = self.create_publisher(RoverPose, rover_pose_topic, 10)
         self.rover_pose_gps_pub = self.create_publisher(RoverPoseGPS, "/electronics/rover_pose_gps", 10)
         self.rover_pose_odom_pub = self.create_publisher(Odometry, "/rover/odom", 10)

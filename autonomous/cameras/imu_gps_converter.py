@@ -9,7 +9,7 @@ import numpy as np
 import math_utils.transform as transform
 import sys
 from config.runtime_params import pose_file, dgps_extrinsics
-from config.ros_config import main_frame, tracking_pose_topic, rover_pose_topic
+from config.ros_config import main_frame, camera_pose_topic, rover_pose_topic
 
 
 # ROS imports 
@@ -61,7 +61,7 @@ class PoseConverter(Node):
         self.dgps = self.create_subscription(UBXNavPVT, "/gps_rover/ubx_nav_pvt", self.dgps_callback, qos)
 
         # publishers
-        self.camera_pub = self.create_publisher(Odometry, tracking_pose_topic, 10)        
+        self.camera_pub = self.create_publisher(Odometry, camera_pose_topic, 10)
         self.rover_pose_pub = self.create_publisher(RoverPose, rover_pose_topic, 10)
         self.rover_pose_odom_pub = self.create_publisher(Odometry, "rover/odom", 10) 
         self.gui_pose_pub = self.create_publisher(RoverPoseGPS, "/electronics/rover_pose_gps", 10)

@@ -12,7 +12,7 @@ from rclpy.node import Node
 from nav_msgs.msg import Odometry
 import vis.pc_pub as pc_pub
 import math_utils.transform as transform
-from config.ros_config import tracking_pose_topic, rover_odom_topic
+from config.ros_config import camera_pose_topic, rover_odom_topic
 from config.runtime_params import tracking_camera_extrinsics
 
 
