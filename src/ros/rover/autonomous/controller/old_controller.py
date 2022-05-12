@@ -35,7 +35,7 @@ import rclpy
 from rclpy.node import Node
 from math_utils.controller_math import *
 from config.runtime_params import *
-from core.msg import DriveInput, RoverPose, Waypoints
+from core.msg import DriveInput, RoverPose, Waypoints, AlvarMarker, AutonomousGoal, Point2D
 from controller.yaw_star import Turning
 
 from config.ros_config import *
@@ -51,6 +51,7 @@ class Controller(Node):
 
     def __init__(self):
         super().__init__('autonomous_controller_node')
+        self.ids = []
 
         self.turning = Turning(self.get_logger())
         self.state = State()  # from controller_math
@@ -60,8 +61,11 @@ class Controller(Node):
         self.max_distance = 0.0001  # furthest distance to an object? not sure
 
         self.drive_cmd_publisher = self.create_publisher(DriveInput, auto_drive_command_topic, 10)
+        self.planning_destination_publisher = self.create_publisher(Point2D, planning_destination_topic, 10)
         self.pose_subscriber = self.create_subscription(RoverPose, rover_pose_topic, self.update_pose, 10)
+        self.ar_tag_subscriber = self.create_subscription(AlvarMarker, ar_track_topic, self.ar_goal_callback, 10)
         self.waypt_subscriber = self.create_subscription(Waypoints, auto_waypoints_topic, self.add_waypoints, 10)
+        self.goal_subscriber = self.create_subscription(AutonomousGoal, auto_goal_topic, self.set_goal, 10)
 
         # Controls the rate at which drive commands are sent - sleeps for the necessary time to maintain the rate given
         self.timer = self.create_timer(0.1, self.control)
@@ -75,6 +79,53 @@ class Controller(Node):
         self.state.yaw = msg.yaw
         self.state.velocity = msg.velocity
         self.state.angular_velocity = msg.angular_velocity
+
+    def set_goal(self, msg):
+        self.ids = [iD for iD in msg.ids]
+
+        self.planning_destination_publisher.publish(msg)
+
+    def ar_goal_callback(self, msg):
+        """
+        1. Check that it's the AR tag we are looking for
+        2. Filter out dodgy values
+            - are values within an absolute range?
+            - standard deviation? idk
+        3. Transform pose of tag relative to rover into global pose of tag
+
+        """
+        if msg.id not in self.ids:
+            return   # Not one of the ids we're looking for
+
+        pose = msg.pose.pose.position
+
+        local_pose = np.array([pose.x, pose.y])
+
+        # tracking cam extrinsics are included in global pose as 0, 0 is the centre of the rover
+        extrinsics = np.array(tracking_camera_extrinsics)[:2]
+        local_pose -= extrinsics
+
+        # distance from centre of rover to AR tag
+        dist = (np.dot(local_pose, local_pose)) ** 0.5
+
+        if not min_ar_distance <= dist <= max_ar_distance:
+            return
+
+        # translate step
+        rot_mat = np.array(
+            [[np.cos(self.state.yaw), -np.sin(self.state.yaw)], [np.sin(self.state.yaw), np.cos(self.state.yaw)]])
+        local_pose.reshape(2, 1)
+
+        global_pose = np.matmul(rot_mat, local_pose).reshape(2) + np.array([self.state.x, self.state.y])
+
+        goal = AutonomousGoal()
+        goal.position.x, goal.position.y = global_pose[0], global_pose[1]
+
+        self.planning_destination_publisher.publish(goal)
+        self.get_logger().info("found tag: x=" + str(global_pose[0]) + " | y=" + str(global_pose[1]))
+        self.get_logger().info(
+            "Updated planning goal (AR tag): x=" + str(global_pose[0]) + "| y=" + str(global_pose[1])
+        )
 
     def add_waypoints(self, msg):
         """

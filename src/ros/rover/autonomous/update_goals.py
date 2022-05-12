@@ -4,13 +4,13 @@ __package__ = "autonomous"
 import rclpy
 from rclpy.node import Node
 from core.msg import AutonomousInfo, Point2D
-from config.ros_config import auto_goals_gps
+from config.ros_config import auto_goal_gps
 
 
 class GoalPublisher(Node):
     def __init__(self):
         super().__init__("goal_publisher")
-        self.publisher = self.create_publisher(AutonomousInfo, auto_goals_gps, 10)
+        self.publisher = self.create_publisher(AutonomousInfo, auto_goal_gps, 10)
         self.timer = self.create_timer(0.1, self.get_input)
 
     def get_input(self):
