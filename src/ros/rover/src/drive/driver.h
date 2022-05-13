@@ -87,9 +87,6 @@ class Driver : public rclcpp::Node {
     // Stores the subscriber to the gamepad inputs
     rclcpp::Subscription<core::msg::InputGamepad>::SharedPtr subscription_inputs;
 	
-    rclcpp::QoS qos = rclcpp::QoS(1).reliability(RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT).deadline(200ms);
-    rclcpp::SubscriptionOptions subscriber_options;
-
     // A flag for whether to apply the handbrake or not
     bool handbrake;
 
