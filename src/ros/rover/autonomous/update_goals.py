@@ -3,14 +3,14 @@ __package__ = "autonomous"
 
 import rclpy
 from rclpy.node import Node
-from core.msg import AutonomousInfo, Point2D
+from core.msg import AutonomousGoal, Point2D
 from config.ros_config import auto_goal_gps
 
 
 class GoalPublisher(Node):
     def __init__(self):
         super().__init__("goal_publisher")
-        self.publisher = self.create_publisher(AutonomousInfo, auto_goal_gps, 10)
+        self.publisher = self.create_publisher(AutonomousGoal, auto_goal_gps, 10)
         self.timer = self.create_timer(0.1, self.get_input)
 
     def get_input(self):
@@ -21,7 +21,7 @@ class GoalPublisher(Node):
 
         self.get_logger().info(f"Publishing new goal: lat = {lat}, long = {lon}, ids = ({ids_string})")
 
-        info = AutonomousInfo()
+        info = AutonomousGoal()
         position = Point2D()
 
         position.x, position.y = lat, lon
@@ -30,7 +30,8 @@ class GoalPublisher(Node):
 
         self.publisher.publish(info)
 
-def main(args = None):
+
+def main(args=None):
     rclpy.init(args=args)
     pub = GoalPublisher()
     rclpy.spin(pub)

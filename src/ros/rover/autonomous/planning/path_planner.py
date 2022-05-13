@@ -27,7 +27,7 @@ TODO:
 from a_star import a_star
 from math_utils.controller_math import *
 from rclpy.node import Node
-from core.msg import Waypoints, Waypoint, RoverPose, AlvarMarker, AutonomousGoal
+from core.msg import Waypoints, Waypoint, RoverPose, AlvarMarker, Point2D
 from config.ros_config import *
 from config.runtime_params import min_ar_distance, max_ar_distance, ignore_waypoints, tracking_camera_extrinsics, INITIAL_PADDING_DIST_M, goal_achieved_distance
 from nav_msgs.msg import Odometry    
@@ -47,11 +47,10 @@ class PathPlanner(Node):
         # way-point publisher publishes a bunch of waypoints at once (hence using the 2D map datatype
         self.waypt_publisher = self.create_publisher(Waypoints, auto_waypoints_topic, 10)
         self.padding_dist_m = INITIAL_PADDING_DIST_M
-        self.alvar_publisher = self.create_publisher(Odometry, ar_goals_topic, 10)
         
         self.pose_subscriber = self.create_subscription(RoverPose, rover_pose_topic, self.update_pose, 10)
 
-        self.goal_subscriber = self.create_subscription(AutonomousGoal, planning_destination_topic, self.manual_goal_callback, 10)
+        self.goal_subscriber = self.create_subscription(Point2D, planning_destination_topic, self.manual_goal_callback, 10)
 
         self.expected_goal_id = 0
 
@@ -87,14 +86,9 @@ class PathPlanner(Node):
         
         
         """
-        print("\n\n\n\n")
-        position = msg.position
-        iD = msg.id
-
-        self.get_logger().info("Next goal x=" + str(position.x) + " | y=" + str(position.y))
-        self.goal = (position.x, position.y)
+        self.get_logger().info("Next goal x=" + str(msg.x) + " | y=" + str(msg.y))
+        self.goal = (msg.x, msg.y)
         self.at_goal = False
-        self.goal_id = iD
 
     def get_grid_coord(self, position):
         return int((position[0] + self.length_meters / 2) / self.resolution), \
