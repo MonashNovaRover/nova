@@ -48,6 +48,7 @@ install(PROGRAMS
   science/hydraprobe_publisher.py
   science/distance_publisher.py
   science/EMC_publisher.py
+  science/spectrometer_publisher.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

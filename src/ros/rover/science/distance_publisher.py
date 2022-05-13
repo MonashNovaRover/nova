@@ -46,7 +46,7 @@ class DistancePublisher(Node):
         self.t = time.time()
     
         # Create the CAN network
-        self.can = CANReceiver(channel="can1", filter_ids=[CAN_ID], receive_timeout=MAX_TIMEOUT, receive_fmt="<H", bitrate=500000)
+        self.can = CANReceiver(channel="can1", filter_ids=[CAN_ID], receive_timeout=MAX_TIMEOUT, receive_fmt=">H", bitrate=500000)
 
         # Create the publisher over the network
         self.publisher = self.create_publisher(DistanceData, '/science/distance_data', 10)
@@ -72,7 +72,7 @@ class DistancePublisher(Node):
 
                 # Store the distance data
                 # Convert from mm to cm
-                self.message.distance = float(distance) / 256.0 / 10.0
+                self.message.distance = float(distance) / 10.0
 
                 # Update the valid flag
                 self.message.valid = True
@@ -80,7 +80,7 @@ class DistancePublisher(Node):
                 # Update the timestamp
                 self.t = time.time()
         
-        # In case of an eror, just continue
+        # In case of an error, just continue
         except:
 
             # Clear the message
