@@ -86,7 +86,7 @@ class Driver : public rclcpp::Node {
 
     // Stores the subscriber to the gamepad inputs
     rclcpp::Subscription<core::msg::InputGamepad>::SharedPtr subscription_inputs;
-
+	
     // A flag for whether to apply the handbrake or not
     bool handbrake;
 
@@ -141,7 +141,9 @@ class Driver : public rclcpp::Node {
     /// @param      locas - The distance from CoM to locas [m]
     /// @returns    The tangent scale
     float get_tangent_scale (Vector2 pos, float locas);
-
+	
+    /// @brief callback for when drive inputs subscription is exceeded
+    void inputs_deadline_exceeded();
 
     //------------------------------------------------------------//
     public:
@@ -150,3 +152,4 @@ class Driver : public rclcpp::Node {
     Driver();
     
 };
+

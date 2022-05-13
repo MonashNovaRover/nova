@@ -28,7 +28,7 @@ InputsPublisher::InputsPublisher() : Node("input_pub")
 
     // Creates the publishers
     // gamepad_publisher       = this->create_publisher<core::msg::InputGamepad>("/control/input_gamepad", qos, publisher_options);
-    gamepad_publisher       = this->create_publisher<core::msg::InputGamepad>("/control/input_gamepad", 1);
+    gamepad_publisher       = this->create_publisher<core::msg::InputGamepad>("/control/input_gamepad", rclcpp::QoS(1).best_effort().deadline(200ms));
     joystick_l_publisher    = this->create_publisher<core::msg::InputJoystick>("/control/input_joystick_l", rclcpp::QoS(1).best_effort().deadline(200ms));
     joystick_r_publisher    = this->create_publisher<core::msg::InputJoystick>("/control/input_joystick_r", rclcpp::QoS(1).best_effort().deadline(200ms));
 

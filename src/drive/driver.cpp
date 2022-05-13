@@ -43,7 +43,7 @@ void Driver::send_commands (const core::msg::DriveInput::SharedPtr msg) {
         float max_tangent = 0;
 
         // Determine the distance and tangent ratios
-        for (int i = 0; i < NUM_WHEELS; i++) {
+        for (size_t i = 0; i < NUM_WHEELS; i++) {
 
             Vector2 position = get_wheel_position(wheels[i]->get_id());
 
@@ -59,7 +59,7 @@ void Driver::send_commands (const core::msg::DriveInput::SharedPtr msg) {
         }
     
         // Loop through each wheel to calculate speeds
-        for (int i = 0; i < NUM_WHEELS; i++) {
+        for (size_t i = 0; i < NUM_WHEELS; i++) {
             // Calculate the velocity of wheel
             float vel = msg->speed * distances[i] / max_distance;
             
@@ -215,16 +215,21 @@ Driver::Driver() : Node("driver")
     Print::print("", true);
 
     // Initialise the wheels in the correct direction
-    for (int i = 0; i < NUM_WHEELS; i++) {
+    for (size_t i = 0; i < NUM_WHEELS; i++) {
         bool left = i < NUM_WHEELS / 2;
         wheels[i] = new Wheel (i + 1, left);
     }
+    
+    rclcpp::QoS qos = rclcpp::QoS(1).best_effort().deadline(200ms);
 
-    // TODO QoS Profiles
+    rclcpp::SubscriptionOptions subscriber_options;
+	
+    //Sets subscriber options before subscription is made
+	subscriber_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void {inputs_deadline_exceeded();};
 
     // Creates the commands subscription (manual)
     subscription_cmds_man = this->create_subscription<core::msg::DriveInput>(
-        "/control/drive_inputs", 10, std::bind(&Driver::drive_callback, this, _1));
+        "/control/drive_inputs", qos, std::bind(&Driver::drive_callback, this, _1), subscriber_options);
     
     // Creates the commands subscription (autonomous)
     subscription_cmds_auto = this->create_subscription<core::msg::DriveInput>(
@@ -232,9 +237,14 @@ Driver::Driver() : Node("driver")
     
     // Creates the input subscription
     subscription_inputs = this->create_subscription<core::msg::InputGamepad>(
-        "/control/input_gamepad", 10, std::bind(&Driver::input_callback, this, _1));
+        "/control/input_gamepad", qos, std::bind(&Driver::input_callback, this, _1));
 }
 
+// deadline callback for when the drive inputs publisher misses its deadline
+void Driver::inputs_deadline_exceeded(){
+	RCLCPP_WARN(this->get_logger(), "Drive inputs subscriber deadline missed");
+    for (Wheel* wheel : wheels) wheel->stop();
+}
 
 //  Main function called when the script execution begins
 int main(int argc, char **argv)
@@ -251,3 +261,4 @@ int main(int argc, char **argv)
     // Returns an empty value
     return 0;
 }
+
