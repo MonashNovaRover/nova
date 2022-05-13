@@ -22,37 +22,18 @@ void ArmInputs::joystick_l_callback (const core::msg::InputJoystick::SharedPtr m
     joystick_l = *msg;
 
     // Set button-based data here so we don't miss any button-press events
-    
+    bool control_scheme_update = false;
     // Arm lock
-    if (joystick_l.btn_thumb_l_state == 1) {
+    if (joystick_l.btn_bottom_l2_state == 1) {
         if (!control_scheme.joystick_lock)
             Print::print("Joysticks locked");
         control_scheme.joystick_lock = true;
+        control_scheme_update = true;
     }
-    if (joystick_l.btn_thumb_r_state == 1){
+    if (joystick_l.btn_bottom_l5_state == 1){
         if (control_scheme.joystick_lock)
             Print::print("Joysticks Unlocked");
         control_scheme.joystick_lock = false;
-    }
-    
-    // Control schemes
-    bool control_scheme_update = false;
-    // IK
-    if (joystick_l.btn_bottom_r1_state == 1) {
-        control_scheme.ik_linear = !control_scheme.ik_linear;
-        control_scheme_update = true;
-    }
-    if (joystick_l.btn_bottom_r4_state == 1) {
-        control_scheme.ik_angular = !control_scheme.ik_angular;
-        control_scheme_update = true;
-    }
-    // Endpoint frame control
-    if (joystick_l.btn_bottom_r2_state == 1) {
-        control_scheme.endpoint_frame_linear = !control_scheme.endpoint_frame_linear;
-        control_scheme_update = true;
-    }
-    if (joystick_l.btn_bottom_r5_state == 1) {
-        control_scheme.endpoint_frame_angular = !control_scheme.endpoint_frame_angular;
         control_scheme_update = true;
     }
     // Joint limits
@@ -95,8 +76,6 @@ void ArmInputs::publish_endeffector_inputs ()
     auto message = core::msg::EndEffectorInput();
 
     if (!control_scheme.joystick_lock){
-        // First 6 joints are handled separately
-        
         // Set the values for linear actuator and end effector actuation
         message.linear_actuation = joystick_l.ax_thumb_x;
         message.end_effector_actuation = calculate_direction(joystick_r.ax_thumb_x) * 0.95;
@@ -233,13 +212,15 @@ void ArmInputs::publish_control_scheme()
     }
     control_scheme.base_frame_offset = base_frame_offset;
 
-    // Set SPM roll handling
-    if (joystick_r.btn_thumb_u_state == 2){
-        control_scheme.use_spm_roll = true;
-    }
-    else {
-        control_scheme.use_spm_roll = false;
-    }
+    // Control schemes
+    // IK. Hold inside thumb button
+    control_scheme.ik_linear = joystick_l.btn_thumb_r_state == 2;
+    control_scheme.ik_angular = joystick_r.btn_thumb_l_state == 2;
+    // Endpoint frame control. Hold trigger
+    control_scheme.endpoint_frame_linear = joystick_l.btn_thumb_u_state == 2;
+    control_scheme.endpoint_frame_angular = joystick_r.btn_thumb_u_state == 2;
+    // Set SPM roll handling. Hold back thumb button on right stick
+    control_scheme.use_spm_roll = joystick_r.btn_thumb_d_state == 2;
     
     // Set the header and publish
     control_scheme.header.stamp = this->now();
