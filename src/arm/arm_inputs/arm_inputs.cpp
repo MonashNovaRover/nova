@@ -213,12 +213,13 @@ void ArmInputs::publish_control_scheme()
     control_scheme.base_frame_offset = base_frame_offset;
 
     // Control schemes
-    // IK. Hold inside thumb button
-    control_scheme.ik_linear = joystick_l.btn_thumb_r_state == 2;
-    control_scheme.ik_angular = joystick_r.btn_thumb_l_state == 2;
     // Endpoint frame control. Hold trigger
     control_scheme.endpoint_frame_linear = joystick_l.btn_thumb_u_state == 2;
     control_scheme.endpoint_frame_angular = joystick_r.btn_thumb_u_state == 2;
+    // IK. Hold inside thumb button.
+    // Also set if endpoint frame control is used.
+    control_scheme.ik_linear = joystick_l.btn_thumb_r_state == 2 || control_scheme.endpoint_frame_linear;
+    control_scheme.ik_angular = joystick_r.btn_thumb_l_state == 2 || control_scheme.endpoint_frame_angular;
     // Set SPM roll handling. Hold back thumb button on right stick
     control_scheme.use_spm_roll = joystick_r.btn_thumb_d_state == 2;
     
