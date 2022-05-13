@@ -219,8 +219,12 @@ Driver::Driver() : Node("driver")
         bool left = i < NUM_WHEELS / 2;
         wheels[i] = new Wheel (i + 1, left);
     }
+    
+    rclcpp::QoS qos = rclcpp::QoS(1).best_effort().deadline(200ms);
 
-	//Sets subscriber options before subscription is made
+    rclcpp::SubscriptionOptions subscriber_options;
+	
+    //Sets subscriber options before subscription is made
 	subscriber_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void {inputs_deadline_exceeded();};
 
     // Creates the commands subscription (manual)
@@ -238,10 +242,6 @@ Driver::Driver() : Node("driver")
 
 void Driver::inputs_deadline_exceeded(){
 	RCLCPP_WARN(this->get_logger(), "Inputs subscriber deadline missed");
-    // Spin the wheels at 0 speed
-//for (Wheel* wheel : wheels) {
-//	    wheel->spin(0.0);
-  //  }
 }
 
 //  Main function called when the script execution begins

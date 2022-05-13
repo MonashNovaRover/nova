@@ -128,12 +128,18 @@ void DriveInputs::input_callback (const core::msg::InputGamepad::SharedPtr msg) 
 // Main constructor that sets up the node
 DriveInputs::DriveInputs() : Node("drive_inputs")
 {
+
+    // Stores QoS options
+    rclcpp::QoS qos = rclcpp::QoS(1).best_effort().deadline(200ms);
+    rclcpp::SubscriptionOptions subscriber_options;
+
+
     // Create the publisher with a best effort QoS policy
     publisher = this->create_publisher<core::msg::DriveInput>("/control/drive_inputs", qos);
     
     //Sets subscriber options before subscription is made
     subscriber_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void {
-    deadline_exceeded();
+        deadline_exceeded();
     };
 
     // Creates the input subscription
