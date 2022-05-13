@@ -50,6 +50,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/RadioStatus.msg"
   "msg/RoverPoseGPS.msg"
   "msg/RoverPose.msg"
+  "msg/SpectrometerData.msg"
   "msg/Waypoint.msg"
   "msg/Waypoints.msg"
   "msg/WheelData.msg"
