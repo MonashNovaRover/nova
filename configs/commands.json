@@ -73,23 +73,51 @@
             "actions": {
 
                 "sequence": {
-                    "hex": "01",
+                    "hex": "00",
                     "args": []
                 },
 
-                "controls": {
+                "fill": {
                     "hex": "02",
-                    "args": [
-                        "id",
-                        "time"
-                    ]
+                    "args": []
                 },
 
                 "pumps": {
                     "hex": "03",
                     "args": [
                         "id",
-                        "time"
+                        "state"
+                    ]
+                },
+
+                "enable": {
+                    "hex": "05",
+                    "args": []
+                },
+
+                "disable": {
+                    "hex": "06",
+                    "args": []
+                },
+
+                "direction": {
+                    "hex": "07",
+                    "args": [
+                        "direction"
+                    ]
+                },
+
+                "move": {
+                    "hex": "08",
+                    "args": [
+                        "cuvette"
+                    ]
+                },
+
+                "step": {
+                    "hex": "09",
+                    "args": [
+                        "steps"
                     ]
                 }
 
@@ -100,26 +128,17 @@
             "hex": "001",
             "actions": {
 
-                "rotate": {
+                "scan_single": {
+                    "hex": "01",
+                    "args": [
+                        "cuvette"
+                    ]
+                },
+
+                "scan_all": {
                     "hex": "04",
-                    "args": [
-                        "direction",
-                        "steps"
-                    ]
-                },
-
-                "read": {
-                    "hex": "05",
                     "args": []
-                },
-
-                "led": {
-                    "hex": "06",
-                    "args": [
-                        "enabled"
-                    ]
                 }
-
             }
         }
     },
@@ -139,6 +158,7 @@
         "deposit": "00",
         "pickup": "01",
         "off": "00",
-        "on": "01"
+        "on": "01",
+        "cycle": "02"
     }
 }
