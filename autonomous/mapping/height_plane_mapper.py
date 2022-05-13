@@ -67,7 +67,7 @@ class HeightPlaneMapper(FlatMapper):
         #super().handle_pc(pts)
         # transforming pitch and roll to flatten the map, but no yaw or translation
         self.check_position_in_map()
-        no_yaw_pts = transform.transform_points_no_yaw(self.msg, pts)
+        no_yaw_pts = transform.transform_points_no_yaw(self.cam_odom, pts)
 
         filtered_indices = self.filter_points(no_yaw_pts)
 
@@ -86,5 +86,5 @@ class HeightPlaneMapper(FlatMapper):
         plane_obs[height_obs >= 1.0] = 1.1
         
         rotated_obs = self.arrange_obstacles(plane_obs, min_x)
-        self._map.add_obstacles(self.msg, self.offset, rotated_obs)
+        self._map.add_obstacles(self.cam_odom, self.offset, rotated_obs)
 

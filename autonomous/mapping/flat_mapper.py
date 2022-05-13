@@ -118,13 +118,13 @@ class FlatMapper(Mapper):
         """
         x_change, y_change = 0, 0
         distance_to_edge = (self._map.length / 4)
-        if self.msg.pose.pose.position.x - self.offset[0] + self._map.length / 2 < distance_to_edge:
+        if self.cam_odom.pose.pose.position.x - self.offset[0] + self._map.length / 2 < distance_to_edge:
             x_change = -1
-        elif self._map.length / 2 + self.offset[0] - self.msg.pose.pose.position.x < distance_to_edge:
+        elif self._map.length / 2 + self.offset[0] - self.cam_odom.pose.pose.position.x < distance_to_edge:
             x_change = 1
-        if self.msg.pose.pose.position.y - self.offset[1] + self._map.width / 2 < distance_to_edge:
+        if self.cam_odom.pose.pose.position.y - self.offset[1] + self._map.width / 2 < distance_to_edge:
             y_change = -1
-        elif self._map.width / 2 + self.offset[1] - self.msg.pose.pose.position.y < distance_to_edge:
+        elif self._map.width / 2 + self.offset[1] - self.cam_odom.pose.pose.position.y < distance_to_edge:
             y_change = 1
         if x_change != 0 or y_change != 0:
             self._map.roll_map(x_change, y_change)
@@ -140,10 +140,11 @@ class FlatMapper(Mapper):
         :param: obstacles - 1-dimensional array of obstacles in the map
         """
         obs_as_points = np.array([[x, y, val] for (x, y), val in np.ndenumerate(obstacles) \
-                                  if np.abs(np.arctan2(y - len(obstacles[0]) / 2, x)) < max_fov_angle and x > min_x])
-        if len(obs_as_points) <= 10: return
+                                  if np.abs(np.arctan2(y - len(obstacles[0]) / 2, x)) < max_fov_angle])
+        if len(obs_as_points) <= 10:
+            return
         obs_as_points[:, 1] -= int(np.ceil(self.detection_width / (2 * self.resolution_ratio)))
-        obstacles = transform.transform_yaw(self.msg, obs_as_points)
+        obstacles = transform.transform_yaw(self.cam_odom, obs_as_points)
         obstacles[:, 2] *= 100
 
         # halving non-obstacle values to make us not care so much

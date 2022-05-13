@@ -83,7 +83,7 @@ class Controller(Node):
     def set_goal(self, msg):
         self.ids = [iD for iD in msg.ids]
 
-        self.planning_destination_publisher.publish(msg)
+        self.planning_destination_publisher.publish(msg.position)
 
     def ar_goal_callback(self, msg):
         """
