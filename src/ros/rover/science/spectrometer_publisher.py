@@ -15,8 +15,11 @@ EDITED:      13/05/2022
 
 from coms_utils.can_interface import CANReceiver
 
-import rclpy
+import rclpy, os, csv
 from rclpy.node import Node
+
+from pathlib import Path
+from datetime import datetime
 
 from core.msg import SpectrometerData 
     
@@ -84,11 +87,8 @@ class SpectrometerPublisher(Node):
 
 
         # Publish the message
-        self.publisher.publish(self.message)
+        self.publish_message()
 
-        # Print message
-        print("Publish Spectrometer for cuvette = %d, scan = %d" % (self.message.cuvette, self.message.scan))
-    
 
     # Process the data
     def process_data (self, can, is_bca: bool, frames: int):
@@ -155,7 +155,38 @@ class SpectrometerPublisher(Node):
 
         # Reset the valid to true
         self.message.valid = True
-        
+
+
+    # Handles publishing a message
+    def publish_message (self):
+
+        # Publish the message
+        self.publisher.publish(self.message)
+
+        # Print message
+        print("Publish Spectrometer for cuvette = %d, scan = %d" % (self.message.cuvette, self.message.scan))
+    
+        # Get the file of the csv
+        directory: str = os.path.expanduser("~") + "/nova_ws/src/science/data"
+        filepath: str = directory + "/spectrometer.csv"
+
+        # Make the path if it does not exist
+        Path(directory).mkdir(parents=True, exist_ok=True)
+
+        # Open up the file
+        with open(filepath, "a", newline='') as csvfile:
+            writer = csv.writer(csvfile, delimiter=',')
+
+            # Create the row
+            row = [datetime.now(), self.message.cuvette, self.message.scan]
+            row.extend(self.message.bca)
+            row.extend(self.message.fda)
+
+            # Write the row
+            writer.writerow(row)
+
+        # Clear the message
+        self.new_message()
 
 
 
