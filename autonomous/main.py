@@ -4,8 +4,8 @@ from planning.path_planner import PathPlanner
 from controller.old_controller import Controller
 import rclpy
 from mapping.mapper import Mapper
-from mapping.height_mapper import HeightMapper
-from mapping.plane_mapper import PlaneMapper
+from mapping.python_height_mapper import HeightMapper
+from mapping.python_plane_mapper import PlaneMapper
 from mapping.height_plane_mapper import HeightPlaneMapper
 import time
 import threading

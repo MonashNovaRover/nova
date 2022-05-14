@@ -28,26 +28,20 @@ TODO:
 """
 import rclpy
 from rclpy.node import Node
-from sensor_msgs.msg import PointCloud2
 import vis.pc_converter as pc2
-import math_utils.transform as transform
 from sensor_msgs.msg import PointField
 from nav_msgs.msg import Odometry
-from mapping.grid_3d import Grid3D
 import numpy as np
-import vis.pc_pub as pc_pub
 import time
 from cameras.depth_camera import DepthCamera
-from config.ros_config import camera_pose_topic, depth_topic
-from config.runtime_params import max_point_depth, max_fov_angle, depth_mode, skip_pts, slice_height, planning_rate
+from config.ros_config import camera_pose_topic
+from config.runtime_params import max_point_depth, max_fov_angle, skip_pts, min_map_update_time
 
 
 class Mapper(Node):
-    def __init__(self, length=20, width=20, height=5, resolution=0.1, planner=None, camera=False, _vis=True):
-        super().__init__('points_grid')
+    def __init__(self, length=20, width=20, height=5, resolution=0.1, camera=False):
+        super().__init__('mapper')
         self.subscriber_tracking = self.create_subscription(Odometry, camera_pose_topic, self.pose_callback, 100)
-        self.planner = planner
-        self.vis = _vis
 
         self.length = length
         self.width = width
@@ -60,34 +54,17 @@ class Mapper(Node):
         self.last_cam_odom = None
         self.cam_odom = None
 
-        if self.vis:
-            self.pc_pub = pc_pub.PCPub("map_cloud")
-        else:
-            self.pc_pub = None
-
-        if depth_mode == "ros":
-            self.subscriber_points = self.create_subscription(PointCloud2, depth_topic, self.ros_points_callback, 10)
-            self.has_color = True
-
-        else: 
-            if camera:
-                self.camera = DepthCamera(self.python_callback)
-                # starts a separate thread which will get depth frames and update mapper
-                self.camera.start()
-            self.has_color = False
-
-        # initialise map 3d
-        self._map3d = None
-        self.initialise_map3d()
-
-    def initialise_map3d(self):
-        self._map3d = Grid3D(self.length, self.width, self.height, self.resolution, has_color=self.has_color)
+        # if camera is true we create one, start it, and add a callback. Depth camera runs in a separate thread
+        if camera:
+            self.camera = DepthCamera(self.python_callback)
+            self.camera.start()
+        self.has_color = False
 
     def check_position_in_map(self):
+        """
+        Abstract method for use in inherited classes.
+        """
         pass
-        
-    def extract_layer(self, height_m):
-        return self._map3d.extract_z(height_m)
 
     def get_points_and_colors(self, msg):
         """
@@ -171,56 +148,26 @@ class Mapper(Node):
 
     def handle_pc(self, pts):
         """
-        Dictates what the mapper class does to map a new point cloud. Overridden by child classes
-        with different mapping implementations
-        :param pts: list of points in meters coordinates relative to the tracking camera (not
-        transformed).
+        Abstract method
         """
         # transforming to the global frame
-        full_transform_pts = transform.transform_points(self.cam_odom, pts)
-        self._map3d.add_pc_points_only(full_transform_pts)
-
-    def publish(self):
-        """
-        Publishes the map to ros for RVIZ to visualise
-        """
-        if self.vis:
-            pts = self._map3d.get_as_pc()
-            max_z = 10
-            # setting colors proportional to the height of points - hopefully looks cool!
-            colors = np.array([(abs(pts[:, 2]) + 1 / max_z) * 250.0 % 250, np.full(len(pts), 0),
-                               abs(max_z - abs(pts[:, 2]) - 1) * 250 % 250]).transpose()
-            self.pc_pub.pub_pts_colors(pts, colors.astype(int))
+        raise NotImplemented("handle_pc must be implemented in a sub class")
 
     def get_2d_map(self):
         """
-        Returns the 2d version of the map according to this Mapper's mapping policy.
-        Default Mapper class simply adds slices above a pre-defined z coordinate.
+        Abstract method
         """
-        layer = self.extract_layer(slice_height)
-        return layer.squeeze()
+        raise NotImplemented("get_2d_map must be implemented in a sub class")
 
-    def update_map3d_pts_only(self, pts):
+    def update_map(self, pts):
         """
+        We only update the map every .5 seconds at most - need to take out magic number
         :param pts: np.array(n, 6) - refers to x,y,z,r,g,b
         """
-
-        if pts.shape[0] < 10:
-            # Not enough points in the point cloud
-            return
-
         # transform the points
-        if self.cam_odom and time.perf_counter() - self.previous_map_update > 0.5:
+        if self.cam_odom and time.perf_counter() - self.previous_map_update > min_map_update_time:
             self.handle_pc(pts)
             self.previous_map_update = time.perf_counter()
-
-        self.publish()
-
-        if time.perf_counter() - self.previous_plan > 1:
-            if self.planner:
-                # OLD WAY - MAP LAYES
-                self.planner.get_path(self.get_2d_map())
-                self.previous_plan = time.perf_counter()
 
     def get_pts(self, pts):
         return self.prune_point_cloud(self.convert_pts_to_tracking(pts))
@@ -234,44 +181,7 @@ class Mapper(Node):
         """
         self.cam_odom = self.last_cam_odom
         if self.cam_odom is not None:
-            self.update_map3d_pts_only(self.get_pts(pts))
-
-    def ros_points_callback(self, msg):
-        self.cam_odom = self.last_cam_odom
-        pts, colors = self.get_points_and_colors(msg)
-        self._map3d.add_pc(pts, colors)
-        # every 2 seconds we run planning
-        if time.perf_counter() - self.previous_plan > planning_rate:
-            if self.planner:
-                self.previous_plan = time.perf_counter()
-                self.planner.get_path(self.extract_layer(2.8))
-
-    def publish_vis_dense(self, extra_pts=1):
-        """
-        This was an experimental way to increase the density (and thus the aesthetics)
-        of visualised point-clouds, but it's probably a bit pointless <hehe>
-        Do not use - very inefficient
-        """
-        pts, colors = self._map3d.get_as_pc()
-        colors = colors + [254, 254, 254]
-        self.get_logger().info("publishing dense point cloud")
-        pts_dense = pts[:]
-        colors_dense = colors[:]
-        self.pc_pub.pub_pts_colors(pts, colors)
-        min_z = np.min(pts[:, 2])
-        max_z = np.max(pts[:, 2])
-        colors[:, 2] = 254 * abs(pts[:, 2]) / max_z
-        colors[:, 0] = 200 * (max_z - abs(pts[:, 2])) / max_z
-        colors[:, 1] = 100 * (max_z - abs(pts[:, 2])) / max_z
-        for x in range(extra_pts + 1):
-            x_shift = [(self.resolution / (extra_pts + 1)) * x, 0, 0]
-            for y in range(extra_pts + 1):
-                y_shift = [0, (self.resolution / (extra_pts + 1)) * y, 0]
-                for z in range(extra_pts + 1):
-                    z_shift = [0, 0, (self.resolution / (extra_pts + 1)) * z]
-                    pts_dense = np.concatenate((pts_dense, pts + x_shift + y_shift + z_shift))
-                    colors_dense = np.concatenate((colors_dense, colors))
-        self.pc_pub.pub_pts_colors(pts_dense, colors_dense)
+            self.update_map(self.get_pts(pts))
 
     def pose_callback(self, msg):
         self.last_cam_odom = msg
@@ -300,7 +210,7 @@ def vis():
     """
     rclpy.init()
     m = Mapper(length=10, width=10, height=5, resolution=.2)
-    m._map3d.map = np.load("resources/environment.npy")
+    m._map3d.grid2d = np.load("resources/environment.npy")
     m.publish_vis_dense(extra_pts=2)
 
 
