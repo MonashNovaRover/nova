@@ -36,16 +36,15 @@ import rclpy
 from rclpy.node import Node
 from math_utils.controller_math import *
 from config.runtime_params import *
-from core.msg import DriveInput, RoverPose, Waypoints, AutonomousInfo, AutonomousGoal
+from core.msg import DriveInput, RoverPose, Waypoints, AutonomousGoal, AlvarMarker
 from controller.drive_controller import DriveController
 from controller.gate_controller import GateController
 from controller.search_controller import SearchController
-from core.msg import Point2D, AlvarMarker
 
 from config.ros_config import *
 
 
-class Controller(Node):
+class StrategyManager(Node):
     """
     Controls the movement of the rover between waypoints determined by the path planner.
     Receives updates about the current pose of the rover and the waypoints to 
@@ -73,7 +72,7 @@ class Controller(Node):
 
     def __init__(self):
         super().__init__('autonomous_controller_node')
-        self.mode = Controller.DRIVE
+        self.mode = StrategyManager.DRIVE
 
         self.is_gate = False
         self.search = False
@@ -92,7 +91,7 @@ class Controller(Node):
         self.goal_publisher = self.create_publisher(AutonomousGoal, planning_destination_topic, 10)
         self.pose_subscriber = self.create_subscription(RoverPose, rover_pose_topic, self.update_pose, 10)
         self.waypt_subscriber = self.create_subscription(Waypoints, auto_waypoints_topic, self.add_waypoints, 10)
-        self.long_term_goal_subscriber = self.create_subscription(AutonomousInfo, auto_goal_topic, self.set_goal, 10)
+        self.long_term_goal_subscriber = self.create_subscription(AutonomousGoal, auto_goal_topic, self.set_goal, 10)
         self.ar_tag_subscriber = self.create_subscription(AlvarMarker, ar_track_topic, self.ar_goal_callback, 10)
 
         # Controls the rate at which drive commands are sent - sleeps for the necessary time to maintain the rate given
@@ -159,7 +158,7 @@ class Controller(Node):
                 self.tags.append(global_pose)
 
         self.goal = average_vector(self.tags)
-        self.controllers[Controller.SEARCH].new_goal(self.goal)
+        self.controllers[StrategyManager.SEARCH].new_goal(self.goal)
 
         self.get_logger().info("found tag: x=" + str(global_pose[0]) + " | y=" + str(global_pose[1]))
         self.get_logger().info(
@@ -175,8 +174,8 @@ class Controller(Node):
         self.ids = [_id for _id in msg.ids]
 
         # set parameters of Search Controller
-        self.controllers[Controller.SEARCH].is_gate = msg.is_gate
-        self.controllers[Controller.SEARCH].search = msg.is_ar_tag
+        self.controllers[StrategyManager.SEARCH].is_gate = msg.is_gate
+        self.controllers[StrategyManager.SEARCH].search = msg.is_ar_tag
 
     def send_autonomous_goal(self, position):
         goal = AutonomousGoal()
@@ -228,7 +227,7 @@ class Controller(Node):
         single zero drive command is sent before driving begins.
         """
         try:
-            current_controller = Controller.controllers[self.mode]
+            current_controller = StrategyManager.controllers[self.mode]
 
             drive = current_controller.get_drive_command(self.target_waypoint, self.state, self.goal, self.tags)
             self.__publish(drive['drive'], drive['steer'])
@@ -236,7 +235,7 @@ class Controller(Node):
             if current_controller.completed():
                 self.mode = self.next_mode[self.mode]
 
-            if self.mode == Controller.SUCCESS:
+            if self.mode == StrategyManager.SUCCESS:
                 self.achieved_goal()
 
         except Exception as e:
@@ -247,7 +246,7 @@ class Controller(Node):
         Called once every tick by the node's timer. Identifies the next target waypoint
         and calls navigate_to_waypoint, and determines when the rover has arrived
         """
-        if self.mode == Controller.SUCCESS or self.state is None:
+        if self.mode == StrategyManager.SUCCESS or self.state is None:
             return
 
         if not self.target_waypoint:
@@ -270,7 +269,7 @@ class Controller(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    controller = Controller()
+    controller = StrategyManager()
     rclpy.spin(controller)
     controller.destroy_node()
     rclpy.shutdown()
@@ -278,7 +277,7 @@ def main(args=None):
 
 def controller_test():
     rclpy.init(args=None)
-    controller = Controller()
+    controller = StrategyManager()
     rclpy.spin(controller)
     controller.destroy_node()
     rclpy.shutdown()

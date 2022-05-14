@@ -23,14 +23,12 @@ TODO:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
-
 from a_star import a_star
 from math_utils.controller_math import *
 from rclpy.node import Node
-from core.msg import Waypoints, Waypoint, RoverPose, AlvarMarker, Point2D
+from core.msg import Waypoints, Waypoint, RoverPose, Point2D
 from config.ros_config import *
-from config.runtime_params import min_ar_distance, max_ar_distance, ignore_waypoints, tracking_camera_extrinsics, INITIAL_PADDING_DIST_M, goal_achieved_distance
-from nav_msgs.msg import Odometry    
+from config.runtime_params import ignore_waypoints, INITIAL_PADDING_DIST_M, goal_achieved_distance
 
 
 class PathPlanner(Node):

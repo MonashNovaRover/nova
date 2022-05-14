@@ -9,8 +9,7 @@ import numpy as np
 
 
 class GateController(ControllerInterface):
-    def __init__(self, logger):
-        self.logger = logger
+    def __init__(self):
         self.state = None
         self.target_waypoint = None
         self.controller = DriveController()
