@@ -67,7 +67,7 @@ class PathPlanner(Node):
 
         # subscribers and services
         # planning service listens to requests for paths to be planned
-        self.planning_service = self.create_service()
+        self.planning_service = self.create_service("autonomous/path_planning_service", PathPlanningRequest, self.path_planning_service_callback)
         self.pose_subscriber = self.create_subscription(RoverPose, rover_pose_topic, self.update_pose, 10)
 
         # it's too inefficient to re-construct maps from 2D grid, so passing pointers is the best option
