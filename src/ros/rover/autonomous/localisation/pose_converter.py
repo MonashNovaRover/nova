@@ -158,12 +158,13 @@ class PoseConverter(Node):
 
         obs = np.array([x, y]).reshape((2, 1))
 
-        if self.num_gps_corrections == 0:
+        if True: # self.num_gps_corrections == 0:
             self.x = obs
             self.p = cov
 
         else:
-            self.x, self.p = self.ekf.correct_gps(self.x, self.p, obs, cov)
+            # self.x, self.p = self.ekf.correct_gps(self.x, self.p, obs, cov)
+            pass
 
         self.num_gps_corrections += 1
 

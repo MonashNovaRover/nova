@@ -28,7 +28,7 @@ EDITED:		08/05/2022
 import math
 from geographiclib.geodesic import Geodesic
 from geomag import declination
-
+import rclpy
 
 class GpsConverter():
     def __init__(self):
