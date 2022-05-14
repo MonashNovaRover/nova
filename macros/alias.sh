@@ -58,7 +58,7 @@ alias rover='ros2 launch core rover.launch.py'
 alias arm='ros2 launch core arm.launch.py'
 alias arm_spoof='ros2 launch core arm_spoof.launch.py'
 alias sci='ros2 launch core science.launch.py'
-
+alias unity='ros2 launch core visualisation.launch.py'
 
 # Hotspots
 alias rescan="sudo nmcli device wifi rescan"
