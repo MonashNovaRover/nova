@@ -1,6 +1,6 @@
-__package__ = "autonomous"
 #!/usr/bin/python3
-  
+__package__ = "autonomous"
+
 
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -28,20 +28,19 @@ TODO:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
-from mapping.height_mapper import FlatMapper
-from mapping.grid_2d import Grid2D
-import time
-import numpy as np
+from mapping.python_height_mapper import FlatMapper
 import math_utils.transform as transform
-from config.runtime_params import max_fov_angle, max_point_depth, max_safe_inc
+from config.runtime_params import max_safe_inc
 from plane_fitter import get_obstacles as get_plane_obstacles
 
 
 class PlaneMapper(FlatMapper):
-    def __init__(self, length=20, width=20, height=5, resolution=0.1, detection_resolution=0.025, planner=None, _vis=True, camera=False):
+    def __init__(self, length=20, width=20, height=5, resolution=0.1, detection_resolution=0.025, planner=None,
+                 camera=False):
 
         # init node with node name points
-        super().__init__(length=length, width=width, height=height, resolution=resolution, detection_resolution=detection_resolution, planner=planner, _vis=_vis, camera=camera)
+        super().__init__(length=length, width=width, height=height, resolution=resolution,
+                         detection_resolution=detection_resolution, planner=planner, camera=camera)
 
     def get_obstacles(self, filtered_indices):
         return get_plane_obstacles(filtered_indices, self.detection_length, self.detection_width, self.resolution_ratio)
@@ -58,9 +57,7 @@ class PlaneMapper(FlatMapper):
         return downscaled, min_x
 
     def handle_pc(self, pts):
-        # If we want the 3d map as well
-        #super().handle_pc(pts)
-        #transforming pitch and roll to # transforming pitch and roll to flatten the map, but no yaw or translation
+        # transforming pitch and roll to # transforming pitch and roll to flatten the map, but no yaw or translation
         self.check_position_in_map()
         no_yaw_pts = transform.transform_points_no_yaw(self.cam_odom, pts)
 

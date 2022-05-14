@@ -38,10 +38,9 @@ from localisation.gps_converter import GpsConverter
 from rclpy.node import Node
 from nav_msgs.msg import Odometry
 from core.msg import RoverPose, WheelData, RoverPoseGPS, AutonomousGoal
-from geometry_msgs.msg import PoseWithCovariance, TransformStamped
+from geometry_msgs.msg import PoseWithCovariance
 from sensor_msgs.msg import Imu
 from rclpy.qos import qos_profile_sensor_data as qos
-# for easy transforms
 
 
 class PoseConverter(Node):
@@ -293,6 +292,7 @@ def main():
     converter = PoseConverter()
     rclpy.spin(converter)
     rclpy.shutdown()
+
 
 if __name__ == "__main__":
     main()

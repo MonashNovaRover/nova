@@ -54,6 +54,7 @@ unseen_map_val = 0.5  # Fill all points we haven't seen with a set cost to prefe
 slice_height = 2.3  # the height we slice the map from when taking 2d slices
 obstacle_halve_value = 80  # All costs below a scaled value of 80 are halved to be more decisive
 obstacle_ignore_value = 30  # All costs below a scaled value of 30 are ignored
+min_map_update_time = .5  # minimum time between updating the map from point-cloud
 
 # ~~~~~~~~~~~~~~~LOCALISATION CONSTANTS ~~~~~~~~~~~~~~~~~
 minimum_gps_corrections = 0

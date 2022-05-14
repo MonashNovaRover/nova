@@ -7,33 +7,28 @@ from config.ros_config import main_frame
 obstacle detector, which we can navigate easily 
 using A*. 
 """
-from config.runtime_params import min_point_density, max_safe_obstacle, unseen_map_val, max_fov_angle, max_point_depth
-import rclpy
+from config.runtime_params import unseen_map_val
 from rclpy.node import Node
-from height_mapper import get_obstacles
 import numpy as np
-from scipy.signal import convolve2d
-import math_utils.transform as transform
 from nav_msgs.msg import OccupancyGrid, MapMetaData
-from geometry_msgs.msg import Pose
-from std_msgs.msg import Header
-from builtin_interfaces.msg import Time
+from config.ros_config import occupancy_grid_topic
 from vis.grid_pub import GridPub
+from rclpy.qos import qos_profile_sensor_data as qos
+
 
 class Grid2D(Node):
-    def __init__(self, length, width, resolution=0.1):
+    def __init__(self, length: int, width: int, resolution=0.1):
         """
         2D flattening of the 3D occupancy grid we use to visualise the map
         :param length: length in m in the x direction
         :param width: width in m in the y direction
         :param resolution: side length of one grid square in the final grid
         that we use to plan paths (meters)
-        :param detection_resolution: finer resolution we use to detect obstacles more
         accurately before downscaling to a map we can plan on.
         """
 
         super().__init__("occupancy_grid_publisher")
-        self.publisher = self.create_publisher(OccupancyGrid, "autonomous/occupancy_grid", 10)
+        self.publisher = self.create_publisher(OccupancyGrid, occupancy_grid_topic, qos)
 
         self.length = length
         self.width = width
@@ -58,7 +53,16 @@ class Grid2D(Node):
         elif y_change == 1:
             new_map[:, :-edge_dist_in_px] = self.map[:, edge_dist_in_px:]
         self.map = new_map
-                    
+
+    @staticmethod
+    def map_from_occupancy(grid: OccupancyGrid, offset: tuple, resolution: float, width: int, length: int) -> np.array:
+        """
+        This method effectively aims to re-create a self.map using what this node would be publishing as OccupancyGrid,
+        so any subscribers to the occupancy_grid_topic can use this method to create an equivalent self.map
+        :param: OccupancyGrid which
+        """
+        pass
+
     def map_as_sequence(self):
         # have to get all values between 0 and 100 without changing the map we store
         temp_map = np.copy(self.map)
@@ -83,7 +87,7 @@ class Grid2D(Node):
         return indexes.round().astype(int)
 
     def valid_index(self, index):
-        return index > 0 and index < (self.length / self.resolution)
+        return 0 < index < (self.length / self.resolution)
 
     def add_obstacles(self, msg, offset, obstacles):
         """
@@ -96,9 +100,8 @@ class Grid2D(Node):
         diff = self.get_full_indexes(np.array([[msg.pose.pose.position.x - offset[0],
             msg.pose.pose.position.y - offset[1], 0]])).astype(int)
         obstacles = obstacles + diff
-        obstacles = np.array([obs for obs in obstacles if obs[0] > 0
-                and obs[1] > 0 and obs[0] < self.length/self.resolution and 
-                obs[1] < self.width/self.resolution])
+        obstacles = np.array([obs for obs in obstacles if 0 < obs[0] < self.length / self.resolution
+                              and 0 < obs[1] < self.width / self.resolution])
         if len(obstacles):
             self.map[obstacles[:, 0], obstacles[:, 1]] = obstacles[:, 2]
 
