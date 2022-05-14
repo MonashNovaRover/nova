@@ -47,6 +47,7 @@ alias auto_view='rviz2 -d ~/nova_ws/src/autonomous/config/auto.rviz'
 
 # Networking Aliases
 alias jetson='ssh -Y nvidia@192.168.1.204'
+alias j2='ssh -Y nova@192.168.1.204'
 
 # GUI Aliases
 alias wombat='cd ~/nova_ws/src/gui/wombatx; npm run start'
