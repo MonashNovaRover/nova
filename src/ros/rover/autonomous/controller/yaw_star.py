@@ -1,14 +1,16 @@
-
 from math_utils.controller_math import *
 from config.runtime_params import *
 
+"""
+This is the old yaw-star implementation - currently here while the new version (in turning.py) is integrated with drive.
+"""
+
 
 class Turning:
-    def __init__(self, logger):
+    def __init__(self):
 
         self.yaw_star = yaw_star_conf
 
-        self.logger = logger
         # Normal turning params
         self.previously_turned = False
 

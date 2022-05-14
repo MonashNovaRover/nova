@@ -13,6 +13,7 @@ import numpy as np
 
 save_pt: bool = False
 
+
 class ArTracker(Node):
     def __init__(self):
         super().__init__("ar_tracker")
@@ -63,7 +64,6 @@ class ArTracker(Node):
             odom.pose.pose.position.y = msg.pose.pose.position.y
             odom.pose.pose.position.z = msg.pose.pose.position.z
             if abs(np.arctan2(odom.pose.pose.position.y, odom.pose.pose.position.x)) < max_fov_angle:
-                #print(f"x = {odom.pose.pose.position.x}, y = {odom.pose.pose.position.y}")
                 self.publisher.publish(msg)
                 self.odom_publisher.publish(odom)
 
@@ -80,18 +80,15 @@ class ArTracker(Node):
         cv_file = cv2.FileStorage(camera_calibration_parameters_filename, cv2.FILE_STORAGE_READ)
         mtx = cv_file.getNode('K').mat()
         dst = cv_file.getNode('D').mat()
-        #undistorted = cv2.undistort(imgGray, mtx, dst)
-        #cv2.imshow("pic", undistorted)
-        #cv2.waitKey(0)
         cv_file.release()
         if ids is not None:
             ar.drawDetectedMarkers(img, bboxs)
-            
-            rot_mat, trans_mat, = ar.estimatePoseSingleMarkers(bboxs, aruco_marker_side_length, mtx, dst)
-            #if rot_mat is not None:
-            #    ar.drawAxis(img, mtx, dst, rot_mat, trans_mat, 0.05)
-            #    cv2.imshow("pic", img)
-            #    cv2.waitKey(0)
+
+            if cv2.__version__ == '3.2.0':
+                rot_mat, trans_mat, = ar.estimatePoseSingleMarkers(bboxs, aruco_marker_side_length, mtx, dst)
+            else:
+                rot_mat, trans_mat, _ = ar.estimatePoseSingleMarkers(bboxs, aruco_marker_side_length, mtx, dst)
+
             for i, _id in enumerate(ids):
                 x = trans_mat[i][0][2]
                 y = -trans_mat[i][0][0]

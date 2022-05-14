@@ -8,14 +8,14 @@ import numpy as np
 
 
 class DriveController(ControllerInterface):
-    def __init__(self, logger):
+    def __init__(self):
         self.target_waypoint = None
         self.state = None
-        self.logger = logger
         self.turner = TankTurner()
         self.goal = None
 
     def get_drive_command(self, target_waypoint, state, goal=None, gate=None):
+
         self.state = state
         self.target_waypoint = target_waypoint
         self.goal = goal

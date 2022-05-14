@@ -53,7 +53,7 @@ class Controller(Node):
         super().__init__('autonomous_controller_node')
         self.ids = []
 
-        self.turning = Turning(self.get_logger())
+        self.turning = Turning()
         self.state = State()  # from controller_math
         self.waypoints = []
         self.target_waypoint = None
