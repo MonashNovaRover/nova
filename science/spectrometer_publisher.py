@@ -1,15 +1,22 @@
 #!/usr/bin/env python3
+
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team
 This file contains the ROS2 publisher code for 
     reading the spectrometer data. This includes
     date for both the BCA and FDA data.
+This script also outputs the data to a CSV file
+    stored in the data folder of science.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+NODE: spectrometer_publisher
+TOPICS:
+  - /science/spectrometer_data  [SpectrometerData]   [Published]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
 PACKAGE:     science 
 AUTHOR(S):   Harrison Verrios
 CREATION:    13/05/2022
-EDITED:      13/05/2022
+EDITED:      15/05/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """  
 
@@ -35,12 +42,23 @@ FDA_CAN_ID = 0x007
 # The number of FDA frames to receive
 FDA_FRAMES = 5
 
+# Whether or not to store the data in a csv
+WRITE_TO_CSV = True
+
+# The header row of the data
+HEADER = ["cuvette", "scan", "valid", "bca(450nm)", "bca(500nm)", "bca(550nm)", "bca(570nm)", "bca(600nm)", "bca(650nm)",
+    "fda(415nm)", "fda(445nm)", "fda(480nm)", "fda(515nm)", "fda(clear)", "fda(NIR)", "fda(555nm)", "fda(590nm)", 
+    "fda(630nm)", "fda(680nm)", "fda(clear)", "fda(NIR)"]
+
 
 # The distance sensor publisher
 class SpectrometerPublisher(Node):
 
     # Stores the current message value
     message: SpectrometerData = SpectrometerData()
+
+    # Stores the current datetime for the file
+    file_date: str = ""
 
 
     # Main constructor
@@ -50,6 +68,9 @@ class SpectrometerPublisher(Node):
 
         # Print initialisation information
         print("Initialising the Spectrometer Publisher class.")
+
+        # Create the file name
+        self.file_date = datetime.strftime(datetime.now(), "%Y-%m-%d_%H-%M-%S")
 
         # Reset the messsage
         self.new_message()
@@ -139,8 +160,7 @@ class SpectrometerPublisher(Node):
                     if is_bca:
                         self.message.bca[index] = d
                     else:
-                        self.message.fda[index] = d
-                    
+                        self.message.fda[index] = d                 
 
 
     # Handles the end of message
@@ -164,26 +184,40 @@ class SpectrometerPublisher(Node):
         self.publisher.publish(self.message)
 
         # Print message
-        print("Publish Spectrometer for cuvette = %d, scan = %d" % (self.message.cuvette, self.message.scan))
-    
-        # Get the file of the csv
-        directory: str = os.path.expanduser("~") + "/nova_ws/src/science/data"
-        filepath: str = directory + "/spectrometer.csv"
+        print("Published Spectrometer Data for cuvette = %d, scan = %d" % (self.message.cuvette, self.message.scan))
 
-        # Make the path if it does not exist
-        Path(directory).mkdir(parents=True, exist_ok=True)
+        # If writing to a CSV:
+        if WRITE_TO_CSV:
+        
+            # Get the file of the csv
+            directory: str = os.path.expanduser("~") + "/nova_ws/src/science/data/spectrometer/"
+            filename: str = "%s_spectrometer.csv" % self.file_date
+            filepath: str = "%s/%s" % (directory, filename)
 
-        # Open up the file
-        with open(filepath, "a", newline='') as csvfile:
-            writer = csv.writer(csvfile, delimiter=',')
+            # Make sure the directory is valid
+            Path(directory).mkdir(parents=True, exist_ok=True)
 
-            # Create the row
-            row = [datetime.now(), self.message.cuvette, self.message.scan]
-            row.extend(self.message.bca)
-            row.extend(self.message.fda)
+            # If the path does not exist, create the header
+            make_header = not os.path.exists(filepath)
 
-            # Write the row
-            writer.writerow(row)
+            # Open up the file
+            with open(filepath, "a", newline='') as csvfile:
+                writer = csv.writer(csvfile, delimiter=',')
+
+                # If making the header
+                if make_header:
+                    writer.writerow(HEADER)
+
+                # Create the row
+                row = [self.message.cuvette, self.message.scan, "VALID" if self.message.valid else "INVALID"]
+                row.extend(self.message.bca)
+                row.extend(self.message.fda)
+
+                # Write the row
+                writer.writerow(row)
+
+            # Print the filename
+            print("Data successfully written to %s." % filepath)
 
         # Clear the message
         self.new_message()
@@ -206,4 +240,3 @@ def main(args=None):
 # Called when the script executes
 if __name__=="__main__":
     main()
-
