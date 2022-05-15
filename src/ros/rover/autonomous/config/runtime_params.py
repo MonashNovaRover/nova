@@ -24,7 +24,7 @@ ignore_waypoints = 4  # number of waypoints to cut off start of list
 
 # speed of autonomous driving and turning
 turn_drive_fraction = 0.15
-straight_drive_fraction = 0.2
+straight_drive_fraction = 0.3
 
 # Angle of lenience on completing a full turn on the spot
 spin_achieved_delta = np.pi/10
@@ -37,7 +37,7 @@ pub_scale = 1.0
 # ~~~~~~~~~~ PLANNING CONSTANTS ~~~~~~~~~~~~~~~
 
 planning_rate = 2.0
-INITIAL_PADDING_DIST_M = 0.8
+INITIAL_PADDING_DIST_M = 1.2
 min_ar_distance = 0.7
 max_ar_distance = 8.0
 goal_achieved_distance = 1.4

@@ -96,6 +96,7 @@ class Controller(Node):
         """
         if msg.id not in self.ids:
             return   # Not one of the ids we're looking for
+        print("got correct ar tag")
 
         pose = msg.pose.pose.position
 
