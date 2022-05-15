@@ -1,106 +1,201 @@
 #!/usr/bin/env python3
+
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team
-This file contains the ROS2 receiver code for the EMC publisher
+This file contains the ROS2 receiver code for the EMC
+    publisher, which reads data from CAN and pushes
+    the data over ROS.
+This includes data for the Temperature, Pressure,
+    Humidity and Wind Speed.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-NODE: EMC_publisher
+NODE: emc_publisher
 TOPICS:
-  - /science/EMC_data  [WheelData]   [Published]
+  - /science/emc_data  [EMCData]   [Published]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-PACKAGE: 	science
-AUTHOR(S):	Kelly Huang
-CREATION:	05/05/2022
-EDITED:		
+PACKAGE: 	 science
+AUTHOR(S):	 Kelly Huang, Harrison Verrios
+CREATION:	 05/05/2022
+EDITED:		 15/05/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
-from typing import Union, List
-from coms_utils.uart_interface import CANReciever
+from coms_utils.can_interface import CANReceiver
 
-import rclpy
-import time
+import rclpy, os, csv
 from rclpy.node import Node
+
+from pathlib import Path
+from datetime import datetime
 
 from core.msg import EMCData 
     
-# The EMC CAN arbitration IDs
-EMC_IDS = [0x410, 0x420, 0x430, 0x440] #one for each reading?
-NUM_READINGS = 4
+# The ID for the CAN frame for the EMC sensor module
+EMC_CAN_ID = 0x009
 
+# The number of EMC frames to receive
+EMC_FRAMES = 3
+
+# The ID for the Wind Sensor
+WIND_CAN_ID = 0x00A
+
+# Whether or not to store the data in a csv
+WRITE_TO_CSV = True
+
+# The header row of the data
+HEADER = ["timestamp", "temperature(C)", "pressure(Pa)", "humidity(%)", "wind speed(m/s)"]
+
+
+# The EMC sensor publisher
 class EMCPublisher(Node):
 
-    # Stores the current message values
+    # Stores the current message value
     message: EMCData = EMCData()
+
+    # Stores the current datetime for the file
+    file_date: str = ""
+
 
     # Main constructor
     def __init__(self):
 
-        super().__init__('EMC_publisher')
+        super().__init__('emc_publisher')
 
         # Print initialisation information
-        print("Initialising the EMC Publisher class.")
+        print("\033[92;1mInitialising the EMC Publisher class.\033[0m")
 
-        # Store the starting time
-        self.t = time.time()
+        # Create the file name
+        self.file_date = datetime.strftime(datetime.now(), "%Y-%m-%d_%H-%M-%S")
+
+        # Reset the messsage
+        self.new_message()
     
-        # Create the CAN network
-        self.cans = [CANReceiver(channel="can1", filter_ids=[EMC_IDS[i]], receive_timeout=1, receive_fmt="<h", bitrate=500000) for i in range(NUM_READINGS)]
+        # Create the CAN networks
+        self.can_emc =  CANReceiver(channel="can1", filter_ids=[EMC_CAN_ID], bitrate=500000)
+        self.can_wind = CANReceiver(channel="can1", filter_ids=[WIND_CAN_ID], bitrate=500000)
 
-        # Create the publisher
-        self.publisher_ = self.create_publisher(EMCData, '/science/EMC_data', 10)
+        # Create the publisher over the network
+        self.publisher = self.create_publisher(EMCData, '/science/emc_data', 10)
         
-        # Create the timer
-        self.publisher_timer = self.create_timer(3, self.publish_values)
+        # Create the timer to reads data from can
+        self.timer = self.create_timer (0.01, self.read_data)
+
 
     # Unpacks CAN data and publishes it
-    def publish_values(self):
+    def read_data(self):
 
-        # Loop through each CAN line and receive data
-        t = time.time()
-        for i in range(NUM_READINGS):
+        # Cache for an errors that are created
+        try:
 
-            # Cache for an errors that come about
-            try:
-                can_msg = self.cans[i].receive()
-                
-                # If a message exists
-                if can_msg:
-                    # Read the velocity data
-                    (temperature, pressure, humidity, wind) = self.cans[i].unpack(can_msg.data)
-                    # Update the timestamp
-                    self.t = time.time()
-            
-            # In case of an eror, just skip and continue
-            except:
-                continue
+            # Process the EMC data on the nework
+            self.process_emc()
 
-        # Publish message
-        # Get the average data in the message DO WE NEED THIS????
-        for i in range(NUM_READINGS):
-            self.message.temperature[i] = self.temperature[i]
-            self.message.pressure[i] = self.pressure[i]
-            self.message.humidity[i] = self.humidity[i]
-            self.message.wind[i] = self.wind[i]
+            # Process the Wind sensor data on the network
+            self.process_wind ()
 
-        # Check for invalid data, reset the message
-        if not self.valid:
-            self.message = EMCData()
+        
+        # In case of an eror, just continue
+        except Exception as e:
 
-        # Publish the data
-        self.publisher.publish(self.message)
+            # Print the message
+            print("\033[91;1mERROR: %s\033[0m" % str(e))
+
+
+        # Publish the message
+        self.publish_message()
+
+
+    # Process the EMC data for temperature, pressure and humidity
+    def process_emc (self):
+
+        # Attempt to receive data from the BCA
+        for frame in range(EMC_FRAMES):
+            can_msg = self.can_emc.receive()
+
+            # Get the current frame id and the data
+            frame_id, data = self.can_emc.unpack(can_msg.data, fmt=">bf")
+
+            # Ensure the frame matches
+            assert frame == frame_id
+
+            # Store the data
+            if frame == 0:
+                self.message.temperature = data
+            elif frame == 1:
+                self.message.pressure = data
+            elif frame == 2:
+                self.message.humidity = data
+            else:
+                raise Exception("Invalid frame: %d." % frame)
 
     
-    # Clears the current message if nothing has happened in a while
-    def clear_msg (self):
-        
-        # Check if the last message was a while ago
-        if time.time() - self.t > 0.5:
-            # Clear the message
-            self.message = EMCData()
+    # Process the wind sensor data
+    def process_wind (self):
 
+        # Get the data and unpack it to a float
+        can_msg = self.can_wind.receive()
+        data = self.can_wind.unpack(can_msg.data, fmt=">f")
+
+        # Store the data in the message
+        self.message.wind = data[0]
+
+
+    # Handles the end of message
+    def new_message (self):
+
+        # Reset it
+        self.message = EMCData()
+
+
+    # Handles publishing a message
+    def publish_message (self):
+
+        # Publish the message
+        self.publisher.publish(self.message)
+
+        # Print message
+        print("\033[94;1mPublished EMC Data.\033[0m")
+
+        # If writing to a CSV:
+        if WRITE_TO_CSV:
+        
+            # Get the file of the csv
+            directory: str = os.path.expanduser("~") + "/nova_ws/src/science/data/emc/"
+            filename: str = "%s_emc.csv" % self.file_date
+            filepath: str = "%s/%s" % (directory, filename)
+
+            # Make sure the directory is valid
+            Path(directory).mkdir(parents=True, exist_ok=True)
+
+            # If the path does not exist, create the header
+            make_header = not os.path.exists(filepath)
+
+            # Open up the file
+            with open(filepath, "a", newline='') as csvfile:
+                writer = csv.writer(csvfile, delimiter=',')
+
+                # If making the header
+                if make_header:
+                    writer.writerow(HEADER)
+
+                # Create the row
+                row = [datetime.now(), self.message.temperature, self.message.pressure, self.message.humidity, self.message.wind]
+
+                # Write the row
+                writer.writerow(row)
+
+            # Print the filename
+            print("EMC Data successfully written to %s." % filepath)
+
+        # Clear the message
+        self.new_message()
+
+
+
+# The main code that executes when starting
 def main(args=None):
-     # Create the publisher
+
+    # Create the publisher
     rclpy.init(args = args)
     publisher = EMCPublisher()
     rclpy.spin(publisher)
@@ -113,4 +208,3 @@ def main(args=None):
 # Called when the script executes
 if __name__=="__main__":
     main()
-
