@@ -24,7 +24,7 @@ from core.msg import DistanceData
 CAN_ID = 0x004
 
 # The max time [s] if no message has been received
-MAX_TIMEOUT = 2.0
+MAX_TIMEOUT = 5.0
 
 
 # The distance sensor publisher
