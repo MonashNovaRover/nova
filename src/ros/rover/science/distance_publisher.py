@@ -40,7 +40,7 @@ class DistancePublisher(Node):
         super().__init__('distance_publisher')
 
         # Print initialisation information
-        self.get_logger().info("\033[92;1mInitialising the Distance Sensor Publisher class.\033[0m")
+        self.get_logger().warning("\033[92;1mInitialising the Distance Sensor Publisher class.\033[0m")
 
         # Store the starting time
         self.t = time.time()

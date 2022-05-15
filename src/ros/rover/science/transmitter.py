@@ -44,7 +44,7 @@ class ServiceNode(Node):
         super().__init__('science_transmitter')
 
         # Print initialisation information
-        self.get_logger().info("\033[92;1mInitialising the Science Transmitter class.\033[0m")
+        self.get_logger().warning("\033[92;1mInitialising the Science Transmitter class.\033[0m")
 
         # Get the directory of the JSON file
         directory = os.path.expanduser('~') + "/nova_ws/src/science/configs/commands.json"
@@ -136,7 +136,7 @@ class ServiceNode(Node):
             response.success = self.can.transmit(bytearray.fromhex(command))
 
             # Print a success
-            self.get_logger().info("\033[1;92m\nTransmitter SUCCESS! Command: %s#%s\033[0m" % (arb_id, command))
+            self.get_logger().warning("\033[1;92m\nTransmitter SUCCESS! Command: %s#%s\033[0m" % (arb_id, command))
 
         
         
