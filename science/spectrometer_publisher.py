@@ -68,7 +68,7 @@ class SpectrometerPublisher(Node):
         super().__init__('spectrometer_publisher')
 
         # Print initialisation information
-        self.get_logger().info("\033[92;1mInitialising the Spectrometer Publisher class.\033[0m")
+        self.get_logger().warning("\033[92;1mInitialising the Spectrometer Publisher class.\033[0m")
 
         # Create the file name
         self.file_date = datetime.strftime(datetime.now(), "%Y-%m-%d_%H-%M-%S")
@@ -185,7 +185,7 @@ class SpectrometerPublisher(Node):
         self.publisher.publish(self.message)
 
         # Print message
-        self.get_logger().info("\033[94;1mPublished Spectrometer Data for cuvette = %d, scan = %d\033[0m" % (self.message.cuvette, self.message.scan))
+        self.get_logger().warning("\033[94;1mPublished Spectrometer Data for cuvette = %d, scan = %d\033[0m" % (self.message.cuvette, self.message.scan))
 
         # If writing to a CSV:
         if WRITE_TO_CSV:
@@ -218,7 +218,7 @@ class SpectrometerPublisher(Node):
                 writer.writerow(row)
 
             # Print the filename
-            self.get_logger().info("Spectrometer data successfully written to %s." % filepath)
+            self.get_logger().warning("Spectrometer data successfully written to %s." % filepath)
 
         # Clear the message
         self.new_message()
