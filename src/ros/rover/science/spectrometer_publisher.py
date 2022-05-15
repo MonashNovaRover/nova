@@ -51,7 +51,7 @@ HEADER = ["cuvette", "scan", "valid", "bca(450nm)", "bca(500nm)", "bca(550nm)", 
     "fda(630nm)", "fda(680nm)", "fda(clear)", "fda(NIR)"]
 
 
-# The distance sensor publisher
+# The spectrometer sensor publisher
 class SpectrometerPublisher(Node):
 
     # Stores the current message value
@@ -67,7 +67,7 @@ class SpectrometerPublisher(Node):
         super().__init__('spectrometer_publisher')
 
         # Print initialisation information
-        print("Initialising the Spectrometer Publisher class.")
+        print("\033[92;1mInitialising the Spectrometer Publisher class.\033[0m")
 
         # Create the file name
         self.file_date = datetime.strftime(datetime.now(), "%Y-%m-%d_%H-%M-%S")
@@ -104,7 +104,7 @@ class SpectrometerPublisher(Node):
         except Exception as e:
 
             # Print the message
-            print("ERROR: " + str(e))
+            print("\033[91;1mERROR: %s\033[0m" % str(e))
 
 
         # Publish the message
@@ -184,7 +184,7 @@ class SpectrometerPublisher(Node):
         self.publisher.publish(self.message)
 
         # Print message
-        print("Published Spectrometer Data for cuvette = %d, scan = %d" % (self.message.cuvette, self.message.scan))
+        print("\033[94;1mPublished Spectrometer Data for cuvette = %d, scan = %d\033[0m" % (self.message.cuvette, self.message.scan))
 
         # If writing to a CSV:
         if WRITE_TO_CSV:
@@ -217,7 +217,7 @@ class SpectrometerPublisher(Node):
                 writer.writerow(row)
 
             # Print the filename
-            print("Data successfully written to %s." % filepath)
+            print("Spectrometer data successfully written to %s." % filepath)
 
         # Clear the message
         self.new_message()
