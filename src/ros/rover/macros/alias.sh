@@ -47,6 +47,7 @@ alias auto_view='rviz2 -d ~/nova_ws/src/autonomous/config/auto.rviz'
 
 # Networking Aliases
 alias jetson='ssh -Y nvidia@192.168.1.204'
+alias j2='ssh -Y nova@192.168.1.204'
 
 # GUI Aliases
 alias wombat='cd ~/nova_ws/src/gui/wombatx; npm run start'
@@ -58,7 +59,7 @@ alias rover='ros2 launch core rover.launch.py'
 alias arm='ros2 launch core arm.launch.py'
 alias arm_spoof='ros2 launch core arm_spoof.launch.py'
 alias sci='ros2 launch core science.launch.py'
-
+alias unity='ros2 launch core visualisation.launch.py'
 
 # Hotspots
 alias rescan="sudo nmcli device wifi rescan"
@@ -68,4 +69,7 @@ alias max="sudo nmcli dev wifi connect 'Redmi Note 10 Pro' password Seagull04"
 
 # DGPS
 alias dgps="ros2 launch ublox_dgnss rover.launch.py"
+
+
+alias pi="ssh ubuntu@192.168.1.203"
 
