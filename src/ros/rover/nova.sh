@@ -22,3 +22,6 @@ export PYTHONPATH=$PYTHONPATH:~/nova_ws/src/gui/gui/
 if [[ $ROS_VERSION -eq 2 ]]; then
     source ~/nova_ws/src/core/macros/alias.sh
 fi
+
+# set the location of .vimrc
+export VIMINIT="source ~/nova_ws/src/core/settings/.vimrc"
