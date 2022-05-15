@@ -31,9 +31,7 @@ from core.msg import Waypoints, Waypoint, RoverPose
 from config.ros_config import *
 from config.runtime_params import ignore_waypoints, INITIAL_PADDING_DIST_M, goal_achieved_distance
 from core.srv import PathPlanningRequest
-from rclpy.qos import qos_profile_sensor_data as qos
 from mapping.grid_2d import Grid2D
-from nav_msgs.msg import OccupancyGrid
 
 
 class PathPlanner(Node):
@@ -67,11 +65,9 @@ class PathPlanner(Node):
 
         # subscribers and services
         # planning service listens to requests for paths to be planned
-        self.planning_service = self.create_service("autonomous/path_planning_service", PathPlanningRequest, self.path_planning_service_callback)
+        self.planning_service = self.create_service(PathPlanningRequest, "autonomous/path_planning_service",
+                                                    self.path_planning_service_callback)
         self.pose_subscriber = self.create_subscription(RoverPose, rover_pose_topic, self.update_pose, 10)
-
-        # it's too inefficient to re-construct maps from 2D grid, so passing pointers is the best option
-        # self.map_subscriber = self.create_subscription(OccupancyGrid, occupancy_grid_topic, self.update_map, qos_profile=qos)
 
     def update_map(self, msg):
         self.grid2d = msg
@@ -87,7 +83,8 @@ class PathPlanner(Node):
             response.waypoints = []
             self.get_logger().warn("PathPlanner: map has not been updated yet, plan could not be planned")
 
-        response.waypoints = self.get_path()
+        # fill the way-points
+        response.waypoints = self.get_path(request.target.x, request.target.y)
         response.success = True
         return response
 
@@ -119,11 +116,11 @@ class PathPlanner(Node):
         """ 
         Callback function that updates the current pose of the rover from data in the auto_command_pose_updates topic
         """
-        self.state.x = msg.x
+        self.x = msg.x
         self.state.y = msg.y
         self.state.yaw = msg.yaw
 
-        if not self.at_goal and distance((self.state.x, self.state.y), self.goal) < goal_achieved_distance:
+        if not self.at_goal and distance((self.x, self.state.y), self.goal) < goal_achieved_distance:
             self.achieved_goal()
 
     def get_local_coords_route(self, route):
@@ -158,7 +155,7 @@ class PathPlanner(Node):
         self.at_goal = True
         self.get_logger().info(f"GOAL ACHIEVED: ({self.goal[0]}, {self.goal[1]}) [id = {self.goal_id}]")
 
-    def get_path(self) -> Waypoints:
+    def get_path(self, goal_x, goal_y) -> Waypoints:
         """
         Repeatedly run A* on the updated rover pose and map to continually redetermine the optimal path.
         Called on a clock initialised in the add_destination method
@@ -171,8 +168,8 @@ class PathPlanner(Node):
             empty_waypoints.waypoints = []
             return empty_waypoints
 
-        self.start = (self.state.x - self.offset[0], self.state.y - self.offset[1])
-        local_goal = (self.goal[0] - self.offset[0], self.goal[1] - self.offset[1]) 
+        self.start = (self.x - self.offset[0], self.state.y - self.offset[1])
+        local_goal = (goal_x - self.offset[0], goal_y - self.offset[1])
 
         self.length = self.grid2d.shape[0]
         self.width = self.grid2d.shape[1]

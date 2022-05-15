@@ -1,3 +1,4 @@
+#!usr/bin/python3
 __package__ = "autonomous"
 
 from config.ros_config import main_frame
