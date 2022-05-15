@@ -8,7 +8,7 @@ This file contains the ROS2 publisher code for
 PACKAGE:     science 
 AUTHOR(S):   Harrison Verrios
 CREATION:    11/05/2022
-EDITED:      11/05/2022
+EDITED:      15/05/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """  
 
@@ -26,12 +26,12 @@ CAN_ID = 0x004
 # The max time [s] if no message has been received
 MAX_TIMEOUT = 2.0
 
+
 # The distance sensor publisher
 class DistancePublisher(Node):
 
     # Stores the current message value
     message: DistanceData = DistanceData()
-
 
 
     # Main constructor
@@ -40,7 +40,7 @@ class DistancePublisher(Node):
         super().__init__('distance_publisher')
 
         # Print initialisation information
-        print("Initialising the Distance Sensor Publisher class.")
+        self.get_logger().info("\033[92;1mInitialising the Distance Sensor Publisher class.\033[0m")
 
         # Store the starting time
         self.t = time.time()

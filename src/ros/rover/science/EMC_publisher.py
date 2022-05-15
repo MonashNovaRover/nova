@@ -62,7 +62,7 @@ class EMCPublisher(Node):
         super().__init__('emc_publisher')
 
         # Print initialisation information
-        print("\033[92;1mInitialising the EMC Publisher class.\033[0m")
+        self.get_logger().info("\033[92;1mInitialising the EMC Publisher class.\033[0m")
 
         # Create the file name
         self.file_date = datetime.strftime(datetime.now(), "%Y-%m-%d_%H-%M-%S")
@@ -98,7 +98,7 @@ class EMCPublisher(Node):
         except Exception as e:
 
             # Print the message
-            print("\033[91;1mERROR: %s\033[0m" % str(e))
+            self.get_logger().error("\033[91;1mERROR: %s\033[0m" % str(e))
 
 
         # Publish the message
@@ -154,7 +154,7 @@ class EMCPublisher(Node):
         self.publisher.publish(self.message)
 
         # Print message
-        print("\033[94;1mPublished EMC Data.\033[0m")
+        self.get_logger().info("\033[94;1mPublished EMC Data.\033[0m")
 
         # If writing to a CSV:
         if WRITE_TO_CSV:
@@ -185,7 +185,7 @@ class EMCPublisher(Node):
                 writer.writerow(row)
 
             # Print the filename
-            print("EMC Data successfully written to %s." % filepath)
+            self.get_logger().info("EMC Data successfully written to %s." % filepath)
 
         # Clear the message
         self.new_message()
