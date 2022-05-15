@@ -55,6 +55,7 @@ class PoseConverter(Node):
 
     def __init__(self):
         super().__init__("ConverterNode")
+
         # subscribers
         self.imu_sub = self.create_subscription(Imu, "/imu/data", self.imu_callback, 10)
         self.dgps_sub = self.create_subscription(PoseWithCovariance, "/gps_rover/pose_cov", self.dgps_callback, qos)
@@ -63,8 +64,14 @@ class PoseConverter(Node):
 
         # publishers
         self.camera_pub = self.create_publisher(Odometry, camera_pose_topic, 10)
+
+        # coordinate system: 
+        #     positive pitch        => up
+        #     positive roll         => right (clockwise)
+        #     positive yaw (0, 2pi) => counterlockwise
         self.rover_pose_pub = self.create_publisher(RoverPose, rover_pose_topic, 10)
         self.rover_pose_gps_pub = self.create_publisher(RoverPoseGPS, "/electronics/rover_pose_gps", 10)
+
         self.rover_pose_odom_pub = self.create_publisher(Odometry, rover_odom_topic, 10)
         self.goals_pub = self.create_publisher(AutonomousGoal, auto_goal_topic, 10)
 
