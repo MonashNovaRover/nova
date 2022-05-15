@@ -71,7 +71,7 @@ class StrategyManager(Node):
     }
 
     def __init__(self):
-        super().__init__('autonomous_controller_node')
+        super().__init__('autonomous_strategy_manager_node')
         self.mode = StrategyManager.DRIVE
 
         self.is_gate = False
@@ -86,13 +86,13 @@ class StrategyManager(Node):
         self.waypoints = []
         self.target_waypoint = None
 
-        # Ros subscribers and publishers
+        # Ros subscribers
+        self.pose_subscriber = self.create_subscription(RoverPose, rover_pose_topic, self.update_pose, 10)
+        self.ar_tag_subscriber = self.create_subscription(AlvarMarker, ar_track_topic, self.ar_goal_callback, 10)
+
+        # ros publishers
         self.drive_cmd_publisher = self.create_publisher(DriveInput, auto_drive_command_topic, 10)
         self.goal_publisher = self.create_publisher(AutonomousGoal, planning_destination_topic, 10)
-        self.pose_subscriber = self.create_subscription(RoverPose, rover_pose_topic, self.update_pose, 10)
-        self.waypt_subscriber = self.create_subscription(Waypoints, auto_waypoints_topic, self.add_waypoints, 10)
-        self.long_term_goal_subscriber = self.create_subscription(AutonomousGoal, auto_goal_topic, self.set_goal, 10)
-        self.ar_tag_subscriber = self.create_subscription(AlvarMarker, ar_track_topic, self.ar_goal_callback, 10)
 
         # Controls the rate at which drive commands are sent - sleeps for the necessary time to maintain the rate given
         self.timer = self.create_timer(0.1, self.control)
