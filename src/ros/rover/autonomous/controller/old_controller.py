@@ -36,6 +36,7 @@ from rclpy.node import Node
 from math_utils.controller_math import *
 from config.runtime_params import *
 from core.msg import DriveInput, RoverPose, Waypoints, AlvarMarker, AutonomousGoal, Point2D
+from nav_msgs.msg import Odometry
 from controller.yaw_star import Turning
 
 from config.ros_config import *
@@ -62,6 +63,7 @@ class Controller(Node):
 
         self.drive_cmd_publisher = self.create_publisher(DriveInput, auto_drive_command_topic, 10)
         self.planning_destination_publisher = self.create_publisher(Point2D, planning_destination_topic, 10)
+        self.ar_tag_global_publisher = self.create_publisher(Odometry, "/autonomous/ar_tag/global_odom", 10)
         self.pose_subscriber = self.create_subscription(RoverPose, rover_pose_topic, self.update_pose, 10)
         self.ar_tag_subscriber = self.create_subscription(AlvarMarker, ar_track_topic, self.ar_goal_callback, 10)
         self.waypt_subscriber = self.create_subscription(Waypoints, auto_waypoints_topic, self.add_waypoints, 10)
@@ -109,9 +111,6 @@ class Controller(Node):
         # distance from centre of rover to AR tag
         dist = (np.dot(local_pose, local_pose)) ** 0.5
 
-        if not min_ar_distance <= dist <= max_ar_distance:
-            return
-
         # translate step
         rot_mat = np.array(
             [[np.cos(self.state.yaw), -np.sin(self.state.yaw)], [np.sin(self.state.yaw), np.cos(self.state.yaw)]])
@@ -119,8 +118,13 @@ class Controller(Node):
 
         global_pose = np.matmul(rot_mat, local_pose).reshape(2) + np.array([self.state.x, self.state.y])
 
-        goal = AutonomousGoal()
-        goal.position.x, goal.position.y = global_pose[0], global_pose[1]
+        goal = Point2D()
+        goal.x, goal.y = global_pose[0], global_pose[1]
+
+        ar_odom = Odometry()
+        ar_odom.pose.pose.position.x, ar_odom.pose.pose.position.y = global_pose[0], global_pose[1]
+        ar_odom.header.frame_id = 'map'
+        self.ar_tag_global_publisher.publish(ar_odom)
 
         self.planning_destination_publisher.publish(goal)
         self.get_logger().info("found tag: x=" + str(global_pose[0]) + " | y=" + str(global_pose[1]))
