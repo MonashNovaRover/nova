@@ -67,6 +67,5 @@ alias harrison="sudo nmcli device wifi connect Harrison\ Verrios’s\ iPhone pas
 alias max="sudo nmcli dev wifi connect 'Redmi Note 10 Pro' password Seagull04"
 
 # DGPS
-alias source_leigh="source  ~/leigh_ws/install/setup.bash"
-alias dgps="cd ~/leigh_ws/src/ublox_dgnss/ublox_dgnss/launch && ros2 launch ublox_dgnss ublox_dgnss rover.launch.py"
+alias dgps="ros2 launch ublox_dgnss rover.launch.py"
 
