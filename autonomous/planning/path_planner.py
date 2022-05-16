@@ -27,7 +27,7 @@ TODO:
 from a_star import a_star
 from math_utils.controller_math import *
 from rclpy.node import Node
-from core.msg import Waypoints, Waypoint, RoverPose
+from core.msg import Waypoints, Waypoint, RoverPose, Point2D
 from config.ros_config import *
 from config.runtime_params import ignore_waypoints, INITIAL_PADDING_DIST_M, goal_achieved_distance
 from core.srv import PathPlanningRequest
@@ -65,9 +65,11 @@ class PathPlanner(Node):
 
         # subscribers and services
         # planning service listens to requests for paths to be planned
-        self.planning_service = self.create_service(PathPlanningRequest, "autonomous/path_planning_service",
+        self.planning_service = self.create_service(PathPlanningRequest, path_planning_service_name,
                                                     self.path_planning_service_callback)
         self.pose_subscriber = self.create_subscription(RoverPose, rover_pose_topic, self.update_pose, 10)
+        self.planning_subscriber = self.create_subscription(Point2D, planning_destination_topic, self.get10)
+        self.path_publisher = self.create_publisher(Waypoints, auto_waypoints_topic, 10)
 
     def update_map(self, msg):
         self.grid2d = msg
@@ -80,13 +82,25 @@ class PathPlanner(Node):
         """
         if not self.grid2d:
             response.success = False
-            response.waypoints = []
+            response.path = []
             self.get_logger().warn("PathPlanner: map has not been updated yet, plan could not be planned")
 
         # fill the way-points
-        response.waypoints = self.get_path(request.target.x, request.target.y)
+        response.path = self.get_path(request.target.x, request.target.y)
         response.success = True
         return response
+
+    def path_planning_sub_callback(self, msg):
+        """
+        For path planning asynchronously from control loop without services
+        """
+        if not self.grid2d:
+            response.success = False
+            response.path = []
+            self.get_logger().warn("PathPlanner: map has not been updated yet, plan could not be planned")
+
+        path = self.get_path(msg.x, msg.y)
+        self.path_publisher.publish(path)
 
     def set_offset(self, offset):
         self.offset[0] = offset[0]
@@ -195,3 +209,22 @@ class PathPlanner(Node):
 
         self.get_logger().info(f"Path Planner Calculated {len(route_coordinates)} waypoints")
         return waypoints
+
+
+def handle_path_status(status: int):
+        """
+        Handles logging and adjusting of parameters according to the
+        status returned by our c++ A* method.
+        """    
+        if status & PathPlanner.A_STAR_START_OBSTACLE: self.get_logger().warn("started in obstacle")
+        if status & PathPlanner.A_STAR_DEST_OBSTACLE: self.get_logger().warn("dest in obstacle")
+        if status & PathPlanner.A_STAR_NO_PATH: self.get_logger().warn("couldn't find a path initially")
+        if status & PathPlanner.A_STAR_CRITICAL_NO_PATH:
+            self.get_logger().error("COULDN'T FIND PATH - NEAR OBSTACLE")
+            self.padding_dist_m -= 0.1
+            if self.padding_dist_m < 0.4:
+                self.get_logger().error("Ah HECK")
+                return
+        if status == PathPlanner.A_STAR_SUCCESS: self.get_logger().info("A* found safe path")
+
+
