@@ -1,15 +1,14 @@
-# Displays hydraprobe data
-#
-# Humidity:
-float32 humidity
+# Stores the values of the on-board EMC sensor
+# for the URC payload.
 
-# Pressure:
-float32 pressure
-
-# Temperature:
-#   [C]
+# Temperature [C]:
 float32 temperature
 
-# Wind:
-#   [C]
+# Pressure [Pa]:
+float32 pressure
+
+# Humidity [%]:
+float32 humidity
+
+# Wind [m/s]:
 float32 wind
