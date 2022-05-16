@@ -73,4 +73,4 @@ alias dgps="cd ~/leigh_ws/src/ublox_dgnss/ublox_dgnss/launch && ros2 launch ublo
 
 
 alias pi="ssh ubuntu@192.168.1.203"
-
+alias foxglove_server="ros2-foxy-rosbag.ros2 launch rosbridge_server rosbridge_websocket_launch.xml"
