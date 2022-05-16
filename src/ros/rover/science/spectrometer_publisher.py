@@ -55,8 +55,9 @@ class SpectrometerPublisher(Node):
         self.new_message()
     
         # Create the CAN networks
-        self.can_bca = CANReceiver(channel="can1", filter_ids=[BCA_CAN_ID], bitrate=500000)
-        self.can_fda = CANReceiver(channel="can1", filter_ids=[FDA_CAN_ID], bitrate=500000)
+        print("WARNING: make sure can network is correct. Can network on J2 = can1 | can network on Rover = can0")
+        self.can_bca = CANReceiver(channel="can0", filter_ids=[BCA_CAN_ID], bitrate=500000)
+        self.can_fda = CANReceiver(channel="can0", filter_ids=[FDA_CAN_ID], bitrate=500000)
 
         # Create the publisher over the network
         self.publisher = self.create_publisher(SpectrometerData, '/science/spectrometer_data', 10)
@@ -129,7 +130,7 @@ class SpectrometerPublisher(Node):
 
             # Otherwise, it is data
             else:
-                _, _, d0, d1, d2 = can.unpack(can_msg.data, fmt=">bbHHH")
+                _, _, d0, d1, d2 = can.unpack(can_msg.data, fmt="<bbHHH")
 
                 # Go through each of the data
                 for idx, d in enumerate([d0, d1, d2]):
