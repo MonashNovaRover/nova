@@ -15,7 +15,7 @@ SERVICES:
 PACKAGE: 	science
 AUTHOR(S):	Miles Higgins, Harrison Verrios
 CREATION:	15/02/2022
-EDITED:		11/05/2022
+EDITED:		15/05/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
@@ -30,9 +30,6 @@ from coms_utils.can_interface import CANTransceiver
 # Include other dependencies
 import json, os
 
-# The can network
-CAN_NETWORK = 1
-
 
 '''
 Science node class that acts as a ttransmitter for the science data
@@ -42,8 +39,12 @@ the commands.
 class ServiceNode(Node):
 
     def __init__(self):
+
         # Initialise the node
         super().__init__('science_transmitter')
+
+        # Print initialisation information
+        self.get_logger().warning("\033[92;1mInitialising the Science Transmitter class.\033[0m")
 
         # Get the directory of the JSON file
         directory = os.path.expanduser('~') + "/nova_ws/src/science/configs/commands.json"
@@ -63,11 +64,11 @@ class ServiceNode(Node):
 
         # Sets up the CAN transceiver interface with the correct ID and channels
         try:
-            self.can = CANTransceiver(arbitration_id=CAN_NETWORK, channel="can1")
+            self.can = CANTransceiver(arbitration_id=0x0, channel="can1", bitrate=500000)
         
         # CAN does not exist - show error
         except:
-            print("\033[1;91m\nTransmitter ERROR: Unable to find can1 network.\033[0m")
+            self.get_logger().error("\033[91;1m\nTransmitter ERROR: Unable to find can1 network.\033[0m")
             exit()
 
 
@@ -135,13 +136,13 @@ class ServiceNode(Node):
             response.success = self.can.transmit(bytearray.fromhex(command))
 
             # Print a success
-            print("\033[1;92m\nTransmitter SUCCESS! Command: %s#%s\033[0m" % (arb_id, command))
+            self.get_logger().warning("\033[1;92m\nTransmitter SUCCESS! Command: %s#%s\033[0m" % (arb_id, command))
 
         
         
         # If an error occurred
         except Exception as e:
-            print("\033[1;91m\nTransmitter ERROR! Failed to parse science command because:\n\t%s\033[0m" % e)
+            self.get_logger().error("\033[1;91m\nTransmitter ERROR! Failed to parse science command because:\n\t%s\033[0m" % e)
             
             # Process failed
             response.success = False
@@ -149,7 +150,6 @@ class ServiceNode(Node):
 
         # Return the response data
         return response
-
 
 
 

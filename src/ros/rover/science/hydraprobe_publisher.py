@@ -142,7 +142,7 @@ class HydraprobePublisher(Node):
         
         # Print error if missing device
         except:
-            print("\033[1;91m\nERROR: Unable to find device on '%s'.\033[0m" % self.port)
+            self.get_logger().error("\033[1;91m\nERROR: Unable to find device on '%s'.\033[0m" % self.port)
             exit()
         
         # Create the timer
