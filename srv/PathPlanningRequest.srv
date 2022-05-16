@@ -1,0 +1,8 @@
+# Autonomous path planning service - takes as input a target coordinate, returns a list of waypoints
+
+Point2D target
+
+---
+
+bool success
+Waypoints waypoints
