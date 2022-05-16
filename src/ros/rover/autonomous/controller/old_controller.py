@@ -131,7 +131,7 @@ class Controller(Node):
         """
         Callback that appends the x-y position of a waypoint to the waypoints list
         """
-        self.waypoints = [[point.x, point.y] for point in msg.waypoints]
+        self.waypoints = [[point.x, point.y] for point in msg.path]
 
     def __publish(self, drive_fraction, angular_fraction):
         """

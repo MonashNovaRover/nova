@@ -39,7 +39,7 @@ pub_scale = 1.0
 planning_rate = 2.0
 INITIAL_PADDING_DIST_M = 0.8
 min_ar_distance = 0.7
-max_ar_distance = 8.0
+max_ar_distance = 20
 goal_achieved_distance = 1.4
 
 # ~~~~~~~~~~ MAPPING CONSTANTS ~~~~~~~~~~~~~~~~

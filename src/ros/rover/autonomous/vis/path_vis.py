@@ -42,7 +42,7 @@ class PathCloud(Node):
         path = Path()
         path.header = header
 
-        for waypoint in msg.waypoints:
+        for waypoint in msg.path:
             pose_stamped = PoseStamped()
             pose_stamped.header = header
 
