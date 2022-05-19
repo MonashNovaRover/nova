@@ -30,7 +30,7 @@ import numpy as np
 # autonomous imports
 import math_utils.transform as transform
 from config.runtime_params import dgps_extrinsics, tracking_camera_extrinsics, pose_pub_rate, minimum_gps_corrections
-from config.ros_config import main_frame, camera_pose_topic, rover_pose_topic, auto_goal_topic, auto_goal_gps
+from config.ros_config import main_frame, camera_pose_topic, rover_pose_topic, auto_goal_topic, auto_goal_gps, rover_odom_topic
 from localisation.ekf import Ekf
 from localisation.gps_converter import GpsConverter
 
@@ -54,6 +54,7 @@ class PoseConverter(Node):
 
     def __init__(self):
         super().__init__("ConverterNode")
+
         # subscribers
         self.imu_sub = self.create_subscription(Imu, "/imu/data", self.imu_callback, 10)
         self.dgps_sub = self.create_subscription(PoseWithCovariance, "/gps_rover/pose_cov", self.dgps_callback, qos)
@@ -62,9 +63,15 @@ class PoseConverter(Node):
 
         # publishers
         self.camera_pub = self.create_publisher(Odometry, camera_pose_topic, 10)
+
+        # coordinate system: 
+        #     positive pitch        => up
+        #     positive roll         => right (clockwise)
+        #     positive yaw (0, 2pi) => counterlockwise
         self.rover_pose_pub = self.create_publisher(RoverPose, rover_pose_topic, 10)
         self.rover_pose_gps_pub = self.create_publisher(RoverPoseGPS, "/electronics/rover_pose_gps", 10)
-        self.rover_pose_odom_pub = self.create_publisher(Odometry, "/rover/odom", 10)
+
+        self.rover_pose_odom_pub = self.create_publisher(Odometry, rover_odom_topic, 10)
         self.goals_pub = self.create_publisher(AutonomousGoal, auto_goal_topic, 10)
 
         # timer 
@@ -112,8 +119,16 @@ class PoseConverter(Node):
         imu_odom.pose.pose.orientation.w = imu_msg.orientation.w
 
         pitch, roll, yaw = transform.quat_to_euler(imu_odom)
+        yaw -= self.gps_converter.magnetic_declination 
+        yaw += 0 if yaw > -np.pi else 2 * np.pi
 
-        return pitch, roll, yaw, imu_odom
+        qx, qy, qz, qw = transform.euler_to_quat((pitch, roll, yaw))
+        imu_odom.pose.pose.orientation.x = qx
+        imu_odom.pose.pose.orientation.y = qy
+        imu_odom.pose.pose.orientation.z = qz
+        imu_odom.pose.pose.orientation.w = qw
+
+        return pitch, -roll, yaw, imu_odom
 
     def imu_callback(self, msg):
         """
@@ -140,13 +155,18 @@ class PoseConverter(Node):
         the ekf model with its covariance (if the variance of lat and long is not too high)
         """
         # getting covariance values
-        p_xx, p_xy, p_yx, p_yy = msg.covariance[0], msg.covariance[1], msg.covariance[1], msg.covariance[7]
+        p_xx, p_xy, p_yx, p_yy = msg.covariance[0], msg.covariance[1], msg.covariance[6], msg.covariance[7]
 
+        """
         if p_xx > 1 or p_yy > 1:
             # high variance -> ignore
             return
+        """
 
         cov = np.array([[p_xx, p_xy], [p_yx, p_yy]])
+
+        print(msg.pose.position.x)
+        print(msg.pose.position.y)
 
         # lat and lon
         coord = self.gps_converter.get_local_coord(
@@ -162,6 +182,8 @@ class PoseConverter(Node):
             self.p = cov
 
         else:
+            print(self.x)
+            print(self.p)
             self.x, self.p = self.ekf.correct_gps(self.x, self.p, obs, cov)
 
         self.num_gps_corrections += 1
@@ -230,7 +252,7 @@ class PoseConverter(Node):
 
         # gets euler angles from imu quaternion
         pitch, roll, yaw = transform.quat_to_euler(self.odom)
-        rover_msg.pitch, rover_msg.roll, rover_msg.yaw = pitch, roll, yaw
+        rover_msg.pitch, rover_msg.roll, rover_msg.yaw = pitch, -roll, yaw
 
         self.rover_pose_pub.publish(rover_msg)
         self.print_rover_msg(rover_msg)
