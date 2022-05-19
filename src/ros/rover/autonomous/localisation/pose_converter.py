@@ -165,9 +165,6 @@ class PoseConverter(Node):
 
         cov = np.array([[p_xx, p_xy], [p_yx, p_yy]])
 
-        print(msg.pose.position.x)
-        print(msg.pose.position.y)
-
         # lat and lon
         coord = self.gps_converter.get_local_coord(
                 msg.pose.position.x, msg.pose.position.y
@@ -182,8 +179,6 @@ class PoseConverter(Node):
             self.p = cov
 
         else:
-            print(self.x)
-            print(self.p)
             self.x, self.p = self.ekf.correct_gps(self.x, self.p, obs, cov)
 
         self.num_gps_corrections += 1
