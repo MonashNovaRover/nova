@@ -153,6 +153,8 @@ class Ekf:
         J_H = self.jacobH_gps().astype(float)  # 2x5
         # J_H * p_pred = 2x5 * J_H.T = 2x2 + R = 2x2
         S = np.matmul(np.matmul(J_H, p_pred.astype(float)), J_H.T) + R.astype(float) # covariance of z_pred
+        if np.linalg.det(S) == 0:
+            return z_obs, R
 
         # numpy.linalg.inv can't always find the inverse of this matrix....? so we will do it ourselves
         det = 1 / (S[0, 0] * S[1, 1] - S[1, 0] * S[0, 1])  # please don't be 0

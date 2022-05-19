@@ -158,11 +158,16 @@ class PoseConverter(Node):
         # getting covariance values
         p_xx, p_xy, p_yx, p_yy = msg.covariance[0], msg.covariance[1], msg.covariance[6], msg.covariance[7]
 
+        """
         if p_xx > 1 or p_yy > 1:
             # high variance -> ignore
             return
+        """
 
         cov = np.array([[p_xx, p_xy], [p_yx, p_yy]])
+
+        print(msg.pose.position.x)
+        print(msg.pose.position.y)
 
         # lat and lon
         coord = self.gps_converter.get_local_coord(
@@ -178,6 +183,8 @@ class PoseConverter(Node):
             self.p = cov
 
         else:
+            print(self.x)
+            print(self.p)
             self.x, self.p = self.ekf.correct_gps(self.x, self.p, obs, cov)
 
         self.num_gps_corrections += 1
