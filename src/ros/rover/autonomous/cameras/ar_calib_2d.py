@@ -20,7 +20,7 @@ def main(P: np.ndarray, Q: np.ndarray):
     C = np.matmul(P, new_Q.T).T
     output = np.linalg.solve(Q, C)
 
-    np.save("ar_2d_calibration2.npy", output)
+    np.save("ar_2d_calibration.npy", output)
 
     A = output[:n, :]
     t = output[-1, :]
@@ -49,9 +49,9 @@ def plot_fit(Q, P, nearly_P):
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    Q = np.load("approx2.npy").T
+    Q = np.load("approx.npy").T
     print(Q.shape)
-    P = np.load("true2.npy").T
+    P = np.load("true.npy").T
     print(P.shape)
     B, s = main(P, Q)
     nearly_P = np.matmul(B, Q) + s.reshape(2, 1)

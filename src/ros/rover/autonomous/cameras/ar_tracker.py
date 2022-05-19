@@ -13,7 +13,6 @@ import numpy as np
 
 save_pt: bool = False
 
-
 class ArTracker(Node):
     def __init__(self):
         super().__init__("ar_tracker")
@@ -55,7 +54,7 @@ class ArTracker(Node):
         msg = self.find_ar_tag(img)
         if msg:
             if save_pt: self.store_ar_coords(msg)            
-            self.publisher.publish(msg)
+            #self.publisher.publish(msg)
             if msg.pose.pose.position.x == 0: return
             odom = Odometry()
             odom.header.frame_id = main_frame
@@ -63,27 +62,31 @@ class ArTracker(Node):
             odom.pose.pose.position.x = msg.pose.pose.position.x
             odom.pose.pose.position.y = msg.pose.pose.position.y
             odom.pose.pose.position.z = msg.pose.pose.position.z
-            if abs(np.arctan2(odom.pose.pose.position.y, odom.pose.pose.position.x)) < max_fov_angle:
-                self.publisher.publish(msg)
-                self.odom_publisher.publish(odom)
+            #if True:#abs(np.arctan2(odom.pose.pose.position.y, odom.pose.pose.position.x)) < max_fov_angle:
+                #print(f"x = {odom.pose.pose.position.x}, y = {odom.pose.pose.position.y}")
+                #self.publisher.publish(msg)
+                #self.odom_publisher.publish(odom)
 
     def find_ar_tag(self, img, markerSize=6, totalMarkers=250, draw=False):
         """
         Returns an AlvarMarker message or None
         """
         imgGray = cv2.cvtColor(img[:, :, [2, 1, 0]], cv2.COLOR_BGR2GRAY)
-        arDict = ar.Dictionary_get(ar.DICT_5X5_250)
+        arDict = ar.Dictionary_get(ar.DICT_4X4_250)
         arParam = ar.DetectorParameters_create()
         bboxs, ids, rejected = ar.detectMarkers(imgGray, arDict, parameters=arParam)
         camera_calibration_parameters_filename = "cameras/calib_chessboard.yaml"
-        aruco_marker_side_length = 0.1
+        aruco_marker_side_length = 0.2
         cv_file = cv2.FileStorage(camera_calibration_parameters_filename, cv2.FILE_STORAGE_READ)
         mtx = cv_file.getNode('K').mat()
         dst = cv_file.getNode('D').mat()
+        #undistorted = cv2.undistort(imgGray, mtx, dst)
+        #cv2.imshow("pic", undistorted)
+        #cv2.waitKey(0)
         cv_file.release()
         if ids is not None:
             ar.drawDetectedMarkers(img, bboxs)
-
+            
             if cv2.__version__ == '3.2.0':
                 rot_mat, trans_mat, = ar.estimatePoseSingleMarkers(bboxs, aruco_marker_side_length, mtx, dst)
             else:
@@ -128,6 +131,3 @@ def main():
         cv2.imshow("Image", img)
         cv2.waitKey(1)
 
-
-if __name__ == "__main__":
-    main()
