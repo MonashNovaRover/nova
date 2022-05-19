@@ -11,7 +11,7 @@ import os
 from nav_msgs.msg import Odometry
 import numpy as np
 
-save_pt: bool = True
+save_pt: bool = False
 
 class ArTracker(Node):
     def __init__(self):
@@ -53,7 +53,7 @@ class ArTracker(Node):
     def __call__(self, img):
         msg = self.find_ar_tag(img)
         if msg:
-            # if save_pt: self.store_ar_coords(msg)            
+            if save_pt: self.store_ar_coords(msg)            
             #self.publisher.publish(msg)
             if msg.pose.pose.position.x == 0: return
             odom = Odometry()
