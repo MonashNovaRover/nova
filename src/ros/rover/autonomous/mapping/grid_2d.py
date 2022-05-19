@@ -17,7 +17,7 @@ from vis.grid_pub import GridPub
 from rclpy.qos import qos_profile_sensor_data as qos
 
 
-class Grid2D(Node):
+class Grid2D(Node): 
     def __init__(self, length: int, width: int, resolution=0.1):
         """
         2D flattening of the 3D occupancy grid we use to visualise the map

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 __package__ = "autonomous"
 from planning.path_planner import PathPlanner
-from controller.old_controller import Controller
+from controller.GRUC import Controller
 import rclpy
 from mapping.mapper import Mapper
 from mapping.python_height_mapper import HeightMapper

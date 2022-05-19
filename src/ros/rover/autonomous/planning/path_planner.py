@@ -42,7 +42,7 @@ class PathPlanner(Node):
     A_STAR_NO_PATH = 4
     A_STAR_CRITICAL_NO_PATH = 8
 
-    def __init__(self, resolution_m, grid2d: Grid2D):
+    def __init__(self, resolution_m):
         """
         :param resolution_m: planning resolution
         """
@@ -61,14 +61,14 @@ class PathPlanner(Node):
         self.offset = [0, 0]
         self.route = []
 
-        self.grid2d = grid2d
+        self.grid2d = None
 
         # subscribers and services
         # planning service listens to requests for paths to be planned
         self.planning_service = self.create_service(PathPlanningRequest, path_planning_service_name,
                                                     self.path_planning_service_callback)
         self.pose_subscriber = self.create_subscription(RoverPose, rover_pose_topic, self.update_pose, 10)
-        self.planning_subscriber = self.create_subscription(Point2D, planning_destination_topic, self.get10)
+        self.planning_subscriber = self.create_subscription(Point2D, planning_destination_topic, self.path_planning_sub_callback, 10)
         self.path_publisher = self.create_publisher(Waypoints, auto_waypoints_topic, 10)
 
     def update_map(self, msg):

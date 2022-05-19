@@ -41,7 +41,6 @@ from planning.path_planner import PathPlanner
 from core.srv import PathPlanningRequest
 from core.msg import DriveInput, RoverPose, Waypoints, AlvarMarker, AutonomousGoal, Point2D
 
-from controller.yaw_star import Turning
 from controller.turning import YawStarTurner
 from controller.drive_controller import DriveController
 from config.ros_config import *
@@ -103,11 +102,12 @@ class Controller(Node):
         self.pose_subscriber = self.create_subscription(RoverPose, rover_pose_topic, self.update_pose, 10)
         self.ar_tag_subscriber = self.create_subscription(AlvarMarker, ar_track_topic, self.update_ar_tag, 10)
         self.update_goal_subscriber = self.create_subscription(AutonomousGoal, auto_goal_topic, self.update_goal, 10)
+        self.path_subscriber = self.create_subscription(Waypoints, auto_waypoints_topic, self.update_path_sub, 10)
 
         # Services
-        self.path_planning_client = self.create_client(PathPlanningRequest, path_planning_service_name, )
-        while not self.path_planning_client.wait_for_service(timeout_sec=1.0):
-            print('Waiting for path planning service')
+        #self.path_planning_client = self.create_client(PathPlanningRequest, path_planning_service_name, )
+        #while not self.path_planning_client.wait_for_service(timeout_sec=1.0):
+        #    print('Waiting for path planning service')
         self.led_client = self.create_client(Trigger, "/autonomous/led")
 
         # Timers
@@ -129,6 +129,10 @@ class Controller(Node):
         if not(response_code & PathPlanner.A_STAR_CRITICAL_NO_PATH):
             self.path = [(point.x, point.y) for point in response.waypoints]
             self.current_best_goal = self.path[-1]
+        return self.path
+
+    def update_path_sub(self, msg):
+        self.path = [(p.x, p.y) for p in msg.waypoints]
         return self.path
 
     def update_pose(self, msg):
@@ -162,6 +166,8 @@ class Controller(Node):
         for _id in self.ar_tag_poses.keys():
             # if the tag is one of the ones we may or may not care about
             if int(msg.id) == int(_id):
+                print('hi')
+
                 pose = msg.pose.pose.position
                 local_pose = np.array([pose.x, pose.y])
 
@@ -307,6 +313,7 @@ class Controller(Node):
         Called once every tick by the node's timer. Identifies the next target waypoint
         and calls navigate_to_waypoint, and determines when the rover has arrived
         """
+        print("controlling")
         if self.planning_mode == Controller.SUCCESS:
             return
 
@@ -322,9 +329,13 @@ class Controller(Node):
                 self.driving_mode = Controller.TO_WAYPOINT
 
         if self.driving_mode == Controller.TO_WAYPOINT:
+            # can only go to waypoints
             # Drive to a waypoint
             while True:
-                target_waypoint = self.path.pop()
+                if len(self.path) == 0: 
+                    break
+
+                target_waypoint = self.path[0]
 
                 if distance((self.state.x, self.state.y), target_waypoint) > min_waypoint_distance:
                     # we have not yet arrived at the waypoint
@@ -334,6 +345,7 @@ class Controller(Node):
                 else:
                     # If distance to the waypoint is lower than the threshold distance, we have arrived
                     self.get_logger().info("Reached way-point: " + str(target_waypoint))
+                    self.path.pop()
 
         # update Mode
         if len(self.ar_tag_ids) != 0\

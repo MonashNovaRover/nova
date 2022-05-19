@@ -2,7 +2,6 @@ __package__ = "autonomous"
 
 from math_utils.controller_math import *
 from config.runtime_params import *
-from controller.controller_interface import ControllerInterface
 from controller.turning import *
 import numpy as np
 
