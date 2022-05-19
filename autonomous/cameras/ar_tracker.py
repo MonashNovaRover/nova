@@ -62,10 +62,10 @@ class ArTracker(Node):
             odom.pose.pose.position.x = msg.pose.pose.position.x
             odom.pose.pose.position.y = msg.pose.pose.position.y
             odom.pose.pose.position.z = msg.pose.pose.position.z
-            #if True:#abs(np.arctan2(odom.pose.pose.position.y, odom.pose.pose.position.x)) < max_fov_angle:
+            if True:#abs(np.arctan2(odom.pose.pose.position.y, odom.pose.pose.position.x)) < max_fov_angle:
                 #print(f"x = {odom.pose.pose.position.x}, y = {odom.pose.pose.position.y}")
-                #self.publisher.publish(msg)
-                #self.odom_publisher.publish(odom)
+                self.publisher.publish(msg)
+                self.odom_publisher.publish(odom)
 
     def find_ar_tag(self, img, markerSize=6, totalMarkers=250, draw=False):
         """
@@ -112,7 +112,7 @@ class ArTracker(Node):
                 msg.pose.pose.position.y = pose[1]
                 msg.pose.pose.position.z = z
                 msg.id = int(_id[0])
-                self.get_logger().info(f"detected ar tag with id {msg.id}")
+                #self.get_logger().info(f"detected ar tag with id {msg.id}")
                 return msg
         else:
             return None

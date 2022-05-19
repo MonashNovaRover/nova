@@ -58,7 +58,6 @@ class FlatMapper(Mapper):
             height=height,
             resolution=resolution,
             planner=planner,
-            _vis=_vis,
             camera=camera
         )
         self.planning_resolution = resolution
