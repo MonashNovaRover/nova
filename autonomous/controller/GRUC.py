@@ -61,7 +61,7 @@ class Controller(Node):
     TURNING = 11
 
     def __init__(self):
-        super().__init__('autonomous_controller_nodn')
+        super().__init__('autonomous_controller_node')
         self.planners = {
             Controller.SEARCH: self.plan_search,
             Controller.HONING: self.plan_to_goal,
@@ -140,6 +140,7 @@ class Controller(Node):
         Callback for pose topic
         Callback function that updates the current pose of the rover from data in the auto_command_pose_updates topic
         """
+        print("got new pose")
         self.state.x = msg.x
         self.state.y = msg.y
         self.state.yaw = msg.yaw
@@ -150,6 +151,7 @@ class Controller(Node):
         """
         Callback for goal topic
         """
+        print("got new goal")
         self.ar_tag_ids = [iD for iD in msg.ids]
         self.original_goal = msg.position.x, msg.position.y
         self.planning_mode = Controller.HONING
@@ -166,7 +168,6 @@ class Controller(Node):
         for _id in self.ar_tag_poses.keys():
             # if the tag is one of the ones we may or may not care about
             if int(msg.id) == int(_id):
-                print('hi')
 
                 pose = msg.pose.pose.position
                 local_pose = np.array([pose.x, pose.y])
@@ -294,6 +295,7 @@ class Controller(Node):
         single zero drive command is sent before driving begins.
         """
         # calculate target yaw and signed yaw difference using the controller_math module
+        print(f"driving to {target_waypoint}")
         position_vector = np.array([self.state.x, self.state.y, 0])
         target_vector = np.array([target_waypoint[0], target_waypoint[1], 0])
 
@@ -302,20 +304,20 @@ class Controller(Node):
 
         yaw_diff = yaw_difference(current_orientation, desired_orientation)
 
-        try:
-            drive = self.driver.get_drive_command(yaw_diff, position_vector, current_orientation)
-            self.__publish(drive['drive'], drive['steer'])
-        except Exception as e:
-            self.get_logger().warn(str(e))
+        drive = self.driver.get_drive_command(yaw_diff, position_vector, current_orientation)
+        self.__publish(drive['drive'], drive['steer'])
+        # except Exception as e:
+        #     self.get_logger().warn(str(e) + " | at line: 311 in go_to_target with args: " + str(target_waypoint))
 
     def control(self):
         """
         Called once every tick by the node's timer. Identifies the next target waypoint
         and calls navigate_to_waypoint, and determines when the rover has arrived
         """
-        print("controlling")
-        if self.planning_mode == Controller.SUCCESS:
+        if self.planning_mode == Controller.SUCCESS or self.path is None:
             return
+
+        print('controlling')
 
         found_ar_ids = [_id for _id in self.ar_tag_ids if self.ar_tag_poses[_id] is not None]
         current_orientation = np.array([np.cos(self.state.yaw), np.sin(self.state.yaw), 0])
@@ -384,7 +386,8 @@ class Controller(Node):
 
         # construct message to publish
         drive_cmd_msg = DriveInput()
-
+        
+        print("driving at: " + str(drive_fraction) + " | " + " with speed: " + str(angular_fraction))
         drive_cmd_msg.speed = drive_fraction
 
         drive_cmd_msg.steer = angular_fraction
