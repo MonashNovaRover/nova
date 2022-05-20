@@ -65,7 +65,7 @@ class Ekf:
         retval = np.array([
             [x[0, 0] + math.cos(u[2, 0]) * u[0, 0] * math.cos(u[1, 0]) * self.dt],
             [x[1, 0] + math.sin(u[2, 0]) * u[0, 0] * math.cos(u[1, 0]) * self.dt]
-        ])  # 2x1
+        ]).astype(float)  # 2x1
         return retval
     
     def observation_gps(self, x):
@@ -101,7 +101,7 @@ class Ekf:
             [0.0, 1.0]
             ])
 
-        return jF
+        return jF.astype('float')
 
     def jacobH_gps(self):
         # Jacobian of Observation Model
@@ -114,7 +114,7 @@ class Ekf:
         return np.array([
             [1, 0],
             [0, 1]
-        ])
+        ]).astype(float)
 
     def predict(self, x_est, p_est, u, dt):
         """
@@ -126,15 +126,14 @@ class Ekf:
         :return: new predicted state and covariance - (2x1), (5x5)
         """
         self.dt = dt
+        p_est = p_est.astype('float')
         # predicted state
         x_pred = self.simple_motion_model(x_est, u)  # - 2x1
 
-        J_F = self.jacobF(x_est, u)  # - 5x5
+        J_F = self.jacobF(x_est, u).astype('float')  # - 2x2
 
-        Q = np.diag([
-            0.3 * u[0] * dt,  # variance of location on x-axis | this is really the SD, and same for below, no?
-            0.3 * u[0] * dt,  # variance of location on y-axis
-        ]) ** 2  # predict state covariance
+        Q = 0.3 * u[0] * dt * np.diag([math.cos(u[2]), math.sin(u[2])])  # predict state covariance
+        Q = (Q ** 2).astype('float')
 
         p_pred = np.matmul(np.matmul(J_F, p_est), J_F.T) + Q  # J_F * p_est = 5x5 * J_F.T = 5x5
 
@@ -149,14 +148,16 @@ class Ekf:
         :param R: covariance of observation - (2x2)
         :return:
         """
-        z_pred = self.observation_gps(x_pred)  # 2x1
+        z_pred = self.observation_gps(x_pred).astype(float)  # 2x1
 
-        J_H = self.jacobH_gps()  # 2x5
+        J_H = self.jacobH_gps().astype(float)  # 2x5
         # J_H * p_pred = 2x5 * J_H.T = 2x2 + R = 2x2
-        S = np.matmul(np.matmul(J_H, p_pred), J_H.T) + R # covariance of z_pred
+        S = np.matmul(np.matmul(J_H, p_pred.astype(float)), J_H.T) + R.astype(float) # covariance of z_pred
+        if np.linalg.det(S) == 0:
+            return z_obs, R
 
         # numpy.linalg.inv can't always find the inverse of this matrix....? so we will do it ourselves
-        det = 1 / (S[0, 0] * S[1, 1] - S[1, 0] * S[0, 1])
+        det = 1 / (S[0, 0] * S[1, 1] - S[1, 0] * S[0, 1])  # please don't be 0
         s_inv = det * np.array([[S[1, 1], -S[0, 1]], [-S[1, 0], S[0, 0]]])
 
         # Difference between expected observation and true observation

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 __package__ = "autonomous"
 from planning.path_planner import PathPlanner
-from controller.old_controller import Controller
+from controller.GRUC import Controller
 import rclpy
 from mapping.mapper import Mapper
 from mapping.python_height_mapper import HeightMapper
@@ -22,14 +22,12 @@ def main(args):
     # Mapper updates it, planner just reads from it.
     planner = PathPlanner(resolution)
     mapper = HeightPlaneMapper(length=length, width=width, resolution=resolution, planner=planner, camera=True)
-    controller = Controller()
 
     # This allows us to spin both nodes from main.py - we are kind of misusing ros nodes here but oh well it works
     executor = rclpy.executors.MultiThreadedExecutor()
     
     executor.add_node(planner)
     executor.add_node(mapper)
-    executor.add_node(controller)
 
     executor.spin()
 

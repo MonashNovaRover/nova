@@ -1,6 +1,5 @@
 __package__ = "autonomous"
 
-from controller.controller_interface import ControllerInterface
 from controller.drive_controller import DriveController
 from controller.turning import Turner
 from typing import Tuple
