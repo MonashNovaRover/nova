@@ -113,7 +113,7 @@ class EMCPublisher(Node):
             can_msg = self.can_emc.receive()
 
             # Get the current frame id and the data
-            frame_id, data = self.can_emc.unpack(can_msg.data, fmt=">bf")
+            frame_id, data = self.can_emc.unpack(can_msg.data, fmt="<bf")
 
             # Ensure the frame matches
             assert frame == frame_id
@@ -134,7 +134,7 @@ class EMCPublisher(Node):
 
         # Get the data and unpack it to a float
         can_msg = self.can_wind.receive()
-        data = self.can_wind.unpack(can_msg.data, fmt=">f")
+        data = self.can_wind.unpack(can_msg.data, fmt="<f")
 
         # Store the data in the message
         self.message.wind = data[0]

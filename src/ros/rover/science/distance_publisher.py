@@ -52,7 +52,7 @@ class DistancePublisher(Node):
         self.publisher = self.create_publisher(DistanceData, '/science/distance_data', 10)
         
         # Create the timer to read data
-        self.timer = self.create_timer (0.1, self.publish_values)
+        self.timer = self.create_timer (0.01, self.publish_values)
 
 
 
