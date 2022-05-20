@@ -19,6 +19,6 @@ class DriveController:
         else:
             self.turner.reset()
             # drive in straight line toward waypoint at determined velocity
-            drive_fraction = crow_fly_target_velocity((self.state.x, self.state.y), self.target_waypoint)
+            drive_fraction = straight_drive_fraction
 
         return {'steer': steer_fraction, 'drive': drive_fraction}
