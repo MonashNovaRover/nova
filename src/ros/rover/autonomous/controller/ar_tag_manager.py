@@ -47,7 +47,7 @@ class ArTagManager(Node):
         """
         :return: the number of tags we have found out of the ones we are currently searching for
         """
-        return sum([1 for _id in self.ar_tag_goals if len(self.ar_tag_poses[_id]) > 0])
+        return len([1 for _id in self.ar_tag_goals if len(self.ar_tag_poses[_id]) > 0])
 
     def get_average_tag_pose(self, tag_id):
         """
@@ -57,7 +57,7 @@ class ArTagManager(Node):
 
     def get_average_goal_pose(self):
         """
-        Assuming we have one tag, what is the average vector of that tage?
+        Assuming we have one tag, what is the average vector of that tag?
         """
         assert len(self.ar_tag_goals) == 1
         return self.get_average_tag_pose(self.ar_tag_poses[0])
