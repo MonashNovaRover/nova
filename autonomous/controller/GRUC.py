@@ -161,8 +161,6 @@ class Controller(Node):
         Callback for AR tag topic
         1. Check that it's the AR tag we are looking for
         2. Filter out dodgy values
-            - are values within an absolute range?
-            - standard deviation? idk
         3. Transform pose of tag relative to rover into global pose of tag
         """
         for _id in self.ar_tag_poses.keys():
@@ -204,13 +202,16 @@ class Controller(Node):
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Planning Loop Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     def plan_to_goal(self):
+        """
+        :return: a tuple of floats for the global coordinate to drive to 
+        """
         found_ar_ids = [_id for _id in self.ar_tag_ids if self.ar_tag_poses[_id] is not None]
         if len(found_ar_ids) == 0:
             # If we weren't looking for or haven't found ar tags, go to the original goal
             return self.original_goal
         else:
             # If we have found ar tags, go to their average position
-            return average_vector(found_ar_ids)
+            return self.ar_tag_poses[0]
 
     def plan_search(self):
         if self.near_position() or self.search_array_index == -1:
@@ -347,7 +348,7 @@ class Controller(Node):
                 else:
                     # If distance to the waypoint is lower than the threshold distance, we have arrived
                     self.get_logger().info("Reached way-point: " + str(target_waypoint))
-                    self.path.pop()
+                    self.path = self.path[1:]
 
         # update Mode
         if len(self.ar_tag_ids) != 0\
@@ -388,9 +389,9 @@ class Controller(Node):
         drive_cmd_msg = DriveInput()
         
         print("driving at: " + str(drive_fraction) + " | " + " with speed: " + str(angular_fraction))
-        drive_cmd_msg.speed = drive_fraction
+        drive_cmd_msg.speed = float(drive_fraction)
 
-        drive_cmd_msg.steer = angular_fraction
+        drive_cmd_msg.steer = float(angular_fraction)
 
         # publish to public topic
         self.drive_input_publisher.publish(drive_cmd_msg)
