@@ -1,10 +1,6 @@
 #!/usr/bin/env python3
 __package__ = "autonomous"
 
-from std_srvs.srv import Trigger
-
-from controller.spin_controller import SpinController
-
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team
@@ -38,13 +34,15 @@ from math_utils.controller_math import *
 from config.runtime_params import *
 from planning.path_planner import PathPlanner
 # ros import
+from std_srvs.srv import Trigger
+from controller.ar_tag_manager import ArTagManager
+from controller.spin_controller import SpinController
 from core.srv import PathPlanningRequest
-from core.msg import DriveInput, RoverPose, Waypoints, AlvarMarker, AutonomousGoal, Point2D
-
-from controller.yaw_star import Turning
+from core.msg import DriveInput, RoverPose, AlvarMarker, AutonomousGoal, Point2D
 from controller.turning import YawStarTurner
 from controller.drive_controller import DriveController
 from config.ros_config import *
+
 
 class Controller(Node):
     """
@@ -65,7 +63,7 @@ class Controller(Node):
         super().__init__('autonomous_controller_nodn')
         self.planners = {
             Controller.SEARCH: self.plan_search,
-            Controller.HONING: self.plan_to_goal,
+            Controller.HONING: self.get_current_goal,
             Controller.GATE: self.plan_through_gate,
             Controller.SUCCESS: None
         }
@@ -81,18 +79,15 @@ class Controller(Node):
         self.previous_goals = []
         self.original_goal = None
         self.gate_goal_pose = None
-        self.ar_tag_ids = []  # if None, go to coord, if one, go to tag, if two, go through gate
         self.achieved_original_goal = False
         self.search_plan = []
         self.search_array_index = -1
         self.current_best_goal = None
+        self.ar_tag_manager = ArTagManager()
 
         # on init, it should not drive anywhere until update_goals is called
         self.planning_mode = Controller.SUCCESS
         self.driving_mode = Controller.TO_WAYPOINT
-
-        # mapping ids to poses # if None, go to coord, if one, go to tag, if two, go through gate
-        self.ar_tag_poses = {i: None for i in range(6)}
 
         # ------------- ROS Things ----------
         # Publishers
@@ -101,7 +96,7 @@ class Controller(Node):
 
         # Subscribers
         self.pose_subscriber = self.create_subscription(RoverPose, rover_pose_topic, self.update_pose, 10)
-        self.ar_tag_subscriber = self.create_subscription(AlvarMarker, ar_track_topic, self.update_ar_tag, 10)
+        self.ar_tag_subscriber = self.create_subscription(AlvarMarker, ar_track_topic, self.ar_tag_manager.update_ar_tag, 10)
         self.update_goal_subscriber = self.create_subscription(AutonomousGoal, auto_goal_topic, self.update_goal, 10)
 
         # Services
@@ -144,98 +139,85 @@ class Controller(Node):
 
     def update_goal(self, msg):
         """
-        Callback for goal topic
+        Callback for autonomous_goal topic
+        When this callback is called, it means we have received two different pieces of information:
+            - a new goal coordinate to drive to
+            - zero, one, or two AR tag ids to travel to:
+                - zero means we ignore AR tags (but store them for later), one means we search for the AR tag,
+                and two means we are looking for a gate
         """
-        self.ar_tag_ids = [iD for iD in msg.ids]
+        # we update the state of AR tag ids so that it can compare AR tags to the ones we care about
+        self.ar_tag_manager.ar_tag_goals = [iD for iD in msg.ids]
         self.original_goal = msg.position.x, msg.position.y
         self.planning_mode = Controller.HONING
 
     def update_ar_tag(self, msg):
         """
-        Callback for AR tag topic
-        1. Check that it's the AR tag we are looking for
-        2. Filter out dodgy values
-            - are values within an absolute range?
-            - standard deviation? idk
-        3. Transform pose of tag relative to rover into global pose of tag
+        :param msg: AlvarMarker msg type, received from the ar_tag_topic
         """
-        for _id in self.ar_tag_poses.keys():
-            # if the tag is one of the ones we may or may not care about
-            if int(msg.id) == int(_id):
-                pose = msg.pose.pose.position
-                local_pose = np.array([pose.x, pose.y])
-
-                # tracking cam extrinsics are included in global pose as 0, 0 is the centre of the rover
-                extrinsics = np.array(tracking_camera_extrinsics)[:2]
-                local_pose -= extrinsics
-
-                # distance from centre of rover to AR tag
-                dist = (np.dot(local_pose, local_pose)) ** 0.5
-
-                if not min_ar_distance <= dist <= max_ar_distance:
-                    return
-
-                # translate step
-                rot_mat = np.array(
-                    [[np.cos(self.state.yaw), -np.sin(self.state.yaw)], [np.sin(self.state.yaw), np.cos(self.state.yaw)]])
-                local_pose.reshape(2, 1)
-
-                global_pose = np.matmul(rot_mat, local_pose).reshape(2) + np.array([self.state.x, self.state.y])
-
-                self.get_logger().info("found tag: x=" + str(global_pose[0]) + " | y=" + str(global_pose[1]))
-                self.ar_tag_poses[msg.id] = (global_pose[0], global_pose[1])
+        # we pass in our current state so the tag manager knows how to transfer the AR tag pose to a global frame
+        self.ar_tag_manager.update_tags(msg, self.state)
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 'Util' Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     def setup_search(self):
+        """
+        Begins the search plan as an interpolation of points
+        """
         self.search_plan = interpolate_circle_points(self.original_goal)
         self.driving_mode = Controller.TURNING
 
     def near_position(self):
+        """
+        Function determines (if there is a goal) if we are near the goal.
+        :return: Boolean value of True if we are near goal (and goal exists), False otherwise
+        """
         if self.current_best_goal is None:
             return False
-        return distance(np.array((self.state.x, self.state.y), np.array(self.current_best_goal))) < min_waypoint_distance
+        return distance(np.array(self.state.x, self.state.y), np.array(self.current_best_goal)) < min_waypoint_distance
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Planning Loop Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    def plan_to_goal(self):
-        found_ar_ids = [_id for _id in self.ar_tag_ids if self.ar_tag_poses[_id] is not None]
-        if len(found_ar_ids) == 0:
-            # If we weren't looking for or haven't found ar tags, go to the original goal
-            return self.original_goal
+    def get_current_goal(self):
+        """
+        Calculates the current goal as either the "original" goal, or the average vector of a bunch of AR tags
+        """
+        # return
+        if self.ar_tag_manager.found_current_goal():
+            return self.ar_tag_manager.get_average_goal_pose()
+
+        # If we weren't looking for or haven't found ar tags, go to the original goal
         else:
             # If we have found ar tags, go to their average position
-            return average_vector(found_ar_ids)
+            return self.original_goal
 
     def plan_search(self):
+        """
+        :return:
+        """
         if self.near_position() or self.search_array_index == -1:
             self.search_array_index += 1
-        goal = self.search_plan[self.search_array_index]
-
-        return goal
+        return self.search_plan[self.search_array_index]
 
     def plan_through_gate(self):
         """
         Calculates a point some distance through the gate. Assumes we are already
         at the gate, and also that we are facing the direction
         """
-        found_ar_ids = [_id for _id in self.ar_tag_ids if self.ar_tag_poses[_id] is not None]
+        assert self.ar_tag_manager.num_tags_found() == 2 and "Tried to path through a gate without two points!"
 
-        if len(found_ar_ids) != 2:
-            # uh oh
-            self.get_logger().warn("Tried to path through a gate without two points!")
-            assert not "Tried to path through a gate without two points!"
-
-        gate_l, gate_r = np.array(found_ar_ids[0]), np.array(found_ar_ids[1])
+        gate_id_1, gate_id_2 = self.ar_tag_manager.ar_tag_goals[0], self.ar_tag_manager.ar_tag_goals[1]
+        gate_l, gate_r = np.array(self.ar_tag_manager.get_average_tag_pose(gate_id_1),
+                                  np.array(self.ar_tag_manager.get_average_tag_pose(gate_id_1)))
         gate_mid = 0.5 * (gate_l + gate_r)
 
         # negative reciprocal gives perpendicular vector to the vector between the gate
-        perp_to_gate = np.array([(gate_r - gate_l)[1], (gate_l - gate_r)[0]])
+        gate_perpendicular = np.array([(gate_r - gate_l)[1], (gate_l - gate_r)[0]])
         # Current yaw as vector
         orientation_vector = np.array([np.cos(self.state.yaw), np.sin(self.state.yaw)])
-        # -1 if we are facing away from perp vector, +1 if we are towards it
-        direction = np.sign(np.dot(orientation_vector, perp_to_gate))
+        # -1 if we are facing away from perpendicular vector, +1 if we are towards it
+        direction = np.sign(np.dot(orientation_vector, gate_perpendicular))
 
         # Vector from the middle of the two gate poles to our target
-        centre_of_gate_to_target = direction * dist_through_gate_m * perp_to_gate / magnitude(perp_to_gate)
+        centre_of_gate_to_target = direction * dist_through_gate_m * gate_perpendicular / magnitude(gate_perpendicular)
         goal = gate_mid + centre_of_gate_to_target
         self.gate_goal_pose = goal
 
@@ -380,16 +362,6 @@ class Controller(Node):
         # publish to public topic
         self.drive_input_publisher.publish(drive_cmd_msg)
 
-    def log_update(self, action_msg='', heading_to=(0, 0), yaw_diff=0.0, dist=0.0) -> None:
-        """
-        Logs the current action to ros logging
-        """
-        return
-        pad = 10
-        action = "Action: " + action_msg.ljust(pad) + " | heading to: " + str(heading_to).ljust(pad) + " | yaw diff: " \
-                 + str(round(yaw_diff, 4)).ljust(pad) + " | distance: " + str(round(dist, 4)).ljust(pad)
-        self.get_logger().info(action)
-
 
 def handle_path_status(self, status):
     """
@@ -406,6 +378,7 @@ def handle_path_status(self, status):
             self.get_logger().error("Ah HECK")
             return
     if status == PathPlanner.A_STAR_SUCCESS: self.get_logger().info("A* found safe path")
+
 
 def main(args=None):
     rclpy.init(args=args)
