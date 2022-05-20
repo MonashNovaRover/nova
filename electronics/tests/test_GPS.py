@@ -53,7 +53,7 @@ class GPS_Test (Node):
     YAW_MAX = 180
 
     # Initialises the ROS messages and nodes
-    def __init__(self, lat=-37.968566, long=145.301393):
+    def __init__(self, lat=38.4063, long=110.7918):
         super().__init__('gps_tester_pub')
         print("Initialising ROS GPS/IMU Tester")
 
