@@ -1,0 +1,20 @@
+# This message is used to send a command or some data to
+#   a particular CMD.
+
+# The CAN Bus number to send data (0 or 1)
+int8 can
+
+# The CAN 2-digit HEX id of the CMD to send data
+string id
+
+# The command that will be sent
+int8 command
+
+# The data being sent with the command
+string data
+
+---
+
+# The result of the command sending
+bool success
+
