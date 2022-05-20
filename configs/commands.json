@@ -85,8 +85,7 @@
                 "pumps": {
                     "hex": "03",
                     "args": [
-                        "id",
-                        "state"
+                        "id"
                     ]
                 },
 
@@ -140,8 +139,32 @@
                     "args": []
                 }
             }
+        },
+
+        "abort_platform": {
+            "hex": "005",
+            "actions": {
+
+                "abort": {
+                    "hex": "00",
+                    "args": []
+                }
+            }
+        },
+
+        "abort_distribution": {
+            "hex": "00B",
+            "actions": {
+
+                "abort": {
+                    "hex": "00",
+                    "args": []
+                }
+            }
         }
     },
+
+
 
     "arg_encoding": {
 
