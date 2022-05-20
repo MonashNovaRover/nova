@@ -4,5 +4,5 @@ Point2D target
 
 ---
 
-bool success
+int32 response_code
 Waypoints waypoints
