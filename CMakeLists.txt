@@ -59,6 +59,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   # Service definitions
   "srv/ArmConfigInfo.srv"
   "srv/CameraCommand.srv"
+  "srv/CMDCommand.srv"
   "srv/GimbalCommand.srv"
   "srv/PIDTune.srv"
   "srv/ScienceCommand.srv"
