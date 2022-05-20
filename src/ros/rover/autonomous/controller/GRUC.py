@@ -1,11 +1,6 @@
 #!/usr/bin/env python3
 __package__ = "autonomous"
 
-from std_srvs.srv import Trigger
-
-from controller.ar_tag_manager import ArTagManager
-from controller.spin_controller import SpinController
-
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team
@@ -33,18 +28,23 @@ EDITED:         15/05/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
+# ros import
 import rclpy
 from rclpy.node import Node
+from std_srvs.srv import Trigger
+
+# custom message imports
+from core.msg import DriveInput, RoverPose, Waypoints, AlvarMarker, AutonomousGoal, Point2D
+from controller.ar_tag_manager import ArTagManager
+from controller.spin_controller import SpinController
+
+# autonomous imports
 from math_utils.controller_math import *
 from config.runtime_params import *
+from config.ros_config import *
 from planning.path_planner import PathPlanner
-# ros import
-from core.srv import PathPlanningRequest
-from core.msg import DriveInput, RoverPose, Waypoints, AlvarMarker, AutonomousGoal, Point2D
-
 from controller.turning import YawStarTurner
 from controller.drive_controller import DriveController
-from config.ros_config import *
 
 
 class Controller(Node):
@@ -327,7 +327,6 @@ class Controller(Node):
             # We were in honing mode, we've found the gate, and we're at the gate
             self.current_best_goal = None
             self.planning_mode = Controller.GATE
-
         self.check_if_completed()
 
         # Updating state
@@ -351,6 +350,7 @@ class Controller(Node):
 
         # publish to public topic
         self.drive_input_publisher.publish(drive_cmd_msg)
+
 
 def handle_path_status(self, status):
     """

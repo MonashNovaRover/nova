@@ -100,21 +100,15 @@ def interpolate_circle_points(centre: Tuple, num_points: int = 8, radius: int = 
     return pts
 
 
-def average_vector(vectors):
+def average_vector(vectors: list) -> np.array:
     """
     Takes a list of vectors and returns their average
     :param vectors: numpy array
     """
-    print(vectors)
-    print("type of vectors: " + str(type(vectors[0])))
-    vector_sum = np.zeros(len(vectors[0]))
-    for _vector in vectors:
-        vector_sum += np.array(_vector)
-
-    return vector_sum / len(vectors)
+    return np.mean(np.array(vectors), axis=1)
 
 
-def vector_argument(vector):
+def vector_argument(vector: np.array) -> np.array:
     """
     Returns the argument of a vector as an angle from -pi to pi
     :param vector: array like with on dimension and two elements
