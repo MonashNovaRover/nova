@@ -12,9 +12,7 @@ import math
 
 
 class SpinController:
-
     def __init__(self, start_yaw, turner):
-
         self.start_yaw = start_yaw
         self.turner = turner
         self.completed = False

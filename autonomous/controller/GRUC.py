@@ -101,7 +101,7 @@ class Controller(Node):
         self.pose_subscriber = self.create_subscription(RoverPose, rover_pose_topic, self.update_pose, 10)
         self.ar_tag_subscriber = self.create_subscription(AlvarMarker, ar_track_topic, self.update_ar_tag, 10)
         self.update_goal_subscriber = self.create_subscription(AutonomousGoal, auto_goal_topic, self.update_goal, 10)
-        self.path_subscriber = self.create_subscription(Waypoints, auto_waypoints_topic, self.update_path_sub, 10)
+        self.path_subscriber = self.create_subscription(Waypoints, auto_waypoints_topic, self.update_path, 10)
 
         self.led_client = self.create_client(Trigger, "/autonomous/led")
 
@@ -112,13 +112,15 @@ class Controller(Node):
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Simple State Update Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    def update_path_sub(self, msg):
+    def update_path(self, msg):
+        """
+        :param msg: Waypoints message from the path planner
+        """
         self.path = [(p.x, p.y) for p in msg.waypoints]
-        return self.path
 
     def update_pose(self, msg):
         """
-        Callback for pose topic
+        Callback for pose subscriber
         Callback function that updates the current pose of the rover from data in the auto_command_pose_updates topic
         """
         print("got new pose")
@@ -220,16 +222,16 @@ class Controller(Node):
     def check_if_completed(self):
         # Check if we've achieved our goals :)
         completed = False
-        if len(self.ar_tag_ids) == 0:
+        if len(self.ar_tag_manager.ar_tag_goals) == 0:
             # Just check that we're near the original goal
             completed = self.achieved_original_goal
 
-        elif len(self.ar_tag_ids) == 1:
+        elif len(self.ar_tag_manager.ar_tag_goals) == 1:
             # Need to check that we've found the ar tag and we are near it
-            ar_tag_pose = self.ar_tag_poses[self.ar_tag_ids[0]]
+            ar_tag_pose = self.ar_tag_manager.get_average_goal_pose()
             completed = (ar_tag_pose is not None and self.near_position())
 
-        elif len(self.ar_tag_ids) == 2:
+        elif len(self.ar_tag_manager.ar_tag_goals) == 2:
             completed = self.planning_mode = Controller.GATE and \
                                              self.near_position()
 
@@ -237,15 +239,17 @@ class Controller(Node):
             self.completed_routine()
 
     def completed_routine(self):
+        """
+        Function to be called when we have reached the end of a stage
+        """
         self.planning_mode = Controller.SUCCESS
         trigger = Trigger.Request()
         self.led_client.call_async(trigger)
 
-        if len(self.ar_tag_ids) == 0:
+        if len(self.ar_tag_manager.ar_tag_goals) == 0:
             previous = self.original_goal
         else:
-            found_poses = [self.ar_tag_poses[_id] for _id in self.ar_tag_ids]
-            previous = average_vector(np.array(found_poses))
+            previous = self.ar_tag_manager.get_average_goal_pose()
         self.previous_goals.append(previous)
 
     def go_to_target(self, target_waypoint):
@@ -274,14 +278,15 @@ class Controller(Node):
         and calls navigate_to_waypoint, and determines when the rover has arrived
         """
         if self.planning_mode == Controller.SUCCESS or self.path is None:
+            self.spin_controller = None
             return
 
-        found_ar_ids = [_id for _id in self.ar_tag_ids if self.ar_tag_poses[_id] is not None]
+        found_ar_ids = self.ar_tag_manager.num_tags_found()
         current_orientation = np.array([np.cos(self.state.yaw), np.sin(self.state.yaw), 0])
         if self.driving_mode == Controller.TURNING:
             if self.spin_controller is None:
                 self.spin_controller = SpinController(self.state.yaw, self.turner)
-            if len(found_ar_ids) == 0 and not self.spin_controller.completed():
+            if (found_ar_ids == 0) and not self.spin_controller.completed():
                 drive = self.spin_controller.turn_in_place(current_orientation)
                 self.__publish(drive["drive"], drive["steer"])
             else:
@@ -300,20 +305,18 @@ class Controller(Node):
                     # we have not yet arrived at the waypoint
                     self.go_to_target(target_waypoint)
                     break
-
                 else:
                     # If distance to the waypoint is lower than the threshold distance, we have arrived
                     self.get_logger().info("Reached way-point: " + str(target_waypoint))
                     self.path = self.path[1:]
 
         # update Mode
-        if len(self.ar_tag_ids) != 0 \
-                and len(found_ar_ids) == 0 \
+        if len(self.ar_tag_manager.ar_tag_goals) != 0 \
+                and found_ar_ids == 0 \
                 and self.achieved_original_goal:
             if not self.planning_mode == Controller.SEARCH:
                 self.current_best_goal = None
                 self.setup_search()
-
             self.planning_mode = Controller.SEARCH
 
         else:
@@ -322,7 +325,7 @@ class Controller(Node):
                 self.planning_mode = Controller.HONING
 
         if self.planning_mode == Controller.HONING \
-                and len(found_ar_ids) == 2 \
+                and found_ar_ids == 2 \
                 and self.near_position():
             # We were in honing mode, we've found the gate, and we're at the gate
             self.current_best_goal = None
