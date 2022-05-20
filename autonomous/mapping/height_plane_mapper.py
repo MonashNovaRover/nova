@@ -39,7 +39,7 @@ class HeightPlaneMapper(FlatMapper):
     def __init__(self, length=20, width=20, height=5, resolution=0.1, detection_resolution=0.025, planner=None, camera=False):
 
         # init node with node name points
-        super().__init__(length=length, width=width, height=height, resolution=resolution, detection_resolution=detection_resolution, planner=planner, _vis=_vis, camera=camera)
+        super().__init__(length=length, width=width, height=height, resolution=resolution, detection_resolution=detection_resolution, planner=planner, camera=camera)
         self.height_mapper = HeightMapper(length=length, width=width, height=height, resolution=resolution, detection_resolution=detection_resolution)
         self.plane_mapper = PlaneMapper(length=length, width=width, height=height, resolution=resolution, detection_resolution=detection_resolution)
 
@@ -74,4 +74,6 @@ class HeightPlaneMapper(FlatMapper):
         
         rotated_obs = self.arrange_obstacles(plane_obs, min_x)
         self._map.add_obstacles(self.cam_odom, self.offset, rotated_obs)
+
+        self.publish()
 

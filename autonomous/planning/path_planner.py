@@ -42,7 +42,7 @@ class PathPlanner(Node):
     A_STAR_NO_PATH = 4
     A_STAR_CRITICAL_NO_PATH = 8
 
-    def __init__(self, resolution_m, grid2d: Grid2D):
+    def __init__(self, resolution_m):
         """
         :param resolution_m: planning resolution
         """
@@ -61,14 +61,14 @@ class PathPlanner(Node):
         self.offset = [0, 0]
         self.route = []
 
-        self.grid2d = grid2d
+        self.grid2d = None
 
         # subscribers and services
         # planning service listens to requests for paths to be planned
         self.planning_service = self.create_service(PathPlanningRequest, path_planning_service_name,
                                                     self.path_planning_service_callback)
         self.pose_subscriber = self.create_subscription(RoverPose, rover_pose_topic, self.update_pose, 10)
-        self.planning_subscriber = self.create_subscription(Point2D, planning_destination_topic, self.get10)
+        self.planning_subscriber = self.create_subscription(Point2D, planning_destination_topic, self.path_planning_sub_callback, 10)
         self.path_publisher = self.create_publisher(Waypoints, auto_waypoints_topic, 10)
 
     def update_map(self, msg):
@@ -80,7 +80,7 @@ class PathPlanner(Node):
         This callback is used in the path planning service. The service will receive a goal coordinate and return
         a set of destination coordinates, and a valid boolean response if a reasonable path could be found
         """
-        if not self.grid2d:
+        if self.grid2d is None:
             response.success = False
             response.path = []
             self.get_logger().warn("PathPlanner: map has not been updated yet, plan could not be planned")
@@ -94,11 +94,12 @@ class PathPlanner(Node):
         """
         For path planning asynchronously from control loop without services
         """
-        if not self.grid2d:
+        if self.grid2d is None:
             response.success = False
             response.path = []
             self.get_logger().warn("PathPlanner: map has not been updated yet, plan could not be planned")
 
+        self.at_goal = False
         path = self.get_path(msg.x, msg.y)
         self.path_publisher.publish(path)
 
@@ -184,6 +185,7 @@ class PathPlanner(Node):
 
         self.start = (self.x - self.offset[0], self.state.y - self.offset[1])
         local_goal = (goal_x - self.offset[0], goal_y - self.offset[1])
+        print(f"planning to {(local_goal[0], local_goal[1])}")
 
         self.length = self.grid2d.shape[0]
         self.width = self.grid2d.shape[1]

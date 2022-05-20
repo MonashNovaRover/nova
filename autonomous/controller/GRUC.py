@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 __package__ = "autonomous"
 
+from std_srvs.srv import Trigger
+
+from controller.ar_tag_manager import ArTagManager
+from controller.spin_controller import SpinController
+
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team
@@ -34,11 +39,9 @@ from math_utils.controller_math import *
 from config.runtime_params import *
 from planning.path_planner import PathPlanner
 # ros import
-from std_srvs.srv import Trigger
-from controller.ar_tag_manager import ArTagManager
-from controller.spin_controller import SpinController
 from core.srv import PathPlanningRequest
-from core.msg import DriveInput, RoverPose, AlvarMarker, AutonomousGoal, Point2D
+from core.msg import DriveInput, RoverPose, Waypoints, AlvarMarker, AutonomousGoal, Point2D
+
 from controller.turning import YawStarTurner
 from controller.drive_controller import DriveController
 from config.ros_config import *
@@ -60,7 +63,7 @@ class Controller(Node):
     TURNING = 11
 
     def __init__(self):
-        super().__init__('autonomous_controller_nodn')
+        super().__init__('autonomous_controller_node')
         self.planners = {
             Controller.SEARCH: self.plan_search,
             Controller.HONING: self.get_current_goal,
@@ -96,13 +99,10 @@ class Controller(Node):
 
         # Subscribers
         self.pose_subscriber = self.create_subscription(RoverPose, rover_pose_topic, self.update_pose, 10)
-        self.ar_tag_subscriber = self.create_subscription(AlvarMarker, ar_track_topic, self.ar_tag_manager.update_ar_tag, 10)
+        self.ar_tag_subscriber = self.create_subscription(AlvarMarker, ar_track_topic, self.update_ar_tag, 10)
         self.update_goal_subscriber = self.create_subscription(AutonomousGoal, auto_goal_topic, self.update_goal, 10)
+        self.path_subscriber = self.create_subscription(Waypoints, auto_waypoints_topic, self.update_path_sub, 10)
 
-        # Services
-        self.path_planning_client = self.create_client(PathPlanningRequest, path_planning_service_name, )
-        while not self.path_planning_client.wait_for_service(timeout_sec=1.0):
-            print('Waiting for path planning service')
         self.led_client = self.create_client(Trigger, "/autonomous/led")
 
         # Timers
@@ -111,19 +111,9 @@ class Controller(Node):
         self.planning_timer = self.create_timer(1.0, self.plan)
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Simple State Update Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    def get_path(self, goal):
-        """
-        Updates the path with a new goal
-        """
-        req = PathPlanningRequest.Request()
-        target = Point2D
-        target.x, target.y = goal[0], goal[1]
-        req.target = target
-        response = self.path_planning_client.call(req)
-        response_code = response.response_code
-        if not(response_code & PathPlanner.A_STAR_CRITICAL_NO_PATH):
-            self.path = [(point.x, point.y) for point in response.waypoints]
-            self.current_best_goal = self.path[-1]
+
+    def update_path_sub(self, msg):
+        self.path = [(p.x, p.y) for p in msg.waypoints]
         return self.path
 
     def update_pose(self, msg):
@@ -131,6 +121,7 @@ class Controller(Node):
         Callback for pose topic
         Callback function that updates the current pose of the rover from data in the auto_command_pose_updates topic
         """
+        print("got new pose")
         self.state.x = msg.x
         self.state.y = msg.y
         self.state.yaw = msg.yaw
@@ -160,9 +151,6 @@ class Controller(Node):
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 'Util' Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     def setup_search(self):
-        """
-        Begins the search plan as an interpolation of points
-        """
         self.search_plan = interpolate_circle_points(self.original_goal)
         self.driving_mode = Controller.TURNING
 
@@ -221,8 +209,6 @@ class Controller(Node):
         goal = gate_mid + centre_of_gate_to_target
         self.gate_goal_pose = goal
 
-        return self.gate_goal_pose
-
     def plan(self):
         if self.planning_mode == Controller.SUCCESS:
             return
@@ -244,8 +230,8 @@ class Controller(Node):
             completed = (ar_tag_pose is not None and self.near_position())
 
         elif len(self.ar_tag_ids) == 2:
-            completed = self.planning_mode = Controller.GATE and\
-                self.near_position()
+            completed = self.planning_mode = Controller.GATE and \
+                                             self.near_position()
 
         if completed:
             self.completed_routine()
@@ -270,6 +256,7 @@ class Controller(Node):
         single zero drive command is sent before driving begins.
         """
         # calculate target yaw and signed yaw difference using the controller_math module
+        print(f"driving to {target_waypoint}")
         position_vector = np.array([self.state.x, self.state.y, 0])
         target_vector = np.array([target_waypoint[0], target_waypoint[1], 0])
 
@@ -278,18 +265,15 @@ class Controller(Node):
 
         yaw_diff = yaw_difference(current_orientation, desired_orientation)
 
-        try:
-            drive = self.driver.get_drive_command(yaw_diff, position_vector, current_orientation)
-            self.__publish(drive['drive'], drive['steer'])
-        except Exception as e:
-            self.get_logger().warn(str(e))
+        drive = self.driver.get_drive_command(yaw_diff, position_vector, current_orientation)
+        self.__publish(drive['drive'], drive['steer'])
 
     def control(self):
         """
         Called once every tick by the node's timer. Identifies the next target waypoint
         and calls navigate_to_waypoint, and determines when the rover has arrived
         """
-        if self.planning_mode == Controller.SUCCESS:
+        if self.planning_mode == Controller.SUCCESS or self.path is None:
             return
 
         found_ar_ids = [_id for _id in self.ar_tag_ids if self.ar_tag_poses[_id] is not None]
@@ -304,9 +288,13 @@ class Controller(Node):
                 self.driving_mode = Controller.TO_WAYPOINT
 
         if self.driving_mode == Controller.TO_WAYPOINT:
+            # can only go to waypoints
             # Drive to a waypoint
             while True:
-                target_waypoint = self.path.pop()
+                if len(self.path) == 0:
+                    break
+
+                target_waypoint = self.path[0]
 
                 if distance((self.state.x, self.state.y), target_waypoint) > min_waypoint_distance:
                     # we have not yet arrived at the waypoint
@@ -316,10 +304,11 @@ class Controller(Node):
                 else:
                     # If distance to the waypoint is lower than the threshold distance, we have arrived
                     self.get_logger().info("Reached way-point: " + str(target_waypoint))
+                    self.path = self.path[1:]
 
         # update Mode
-        if len(self.ar_tag_ids) != 0\
-            and len(found_ar_ids) == 0\
+        if len(self.ar_tag_ids) != 0 \
+                and len(found_ar_ids) == 0 \
                 and self.achieved_original_goal:
             if not self.planning_mode == Controller.SEARCH:
                 self.current_best_goal = None
@@ -332,8 +321,8 @@ class Controller(Node):
                 self.current_best_goal = None
                 self.planning_mode = Controller.HONING
 
-        if self.planning_mode == Controller.HONING\
-            and len(found_ar_ids) == 2\
+        if self.planning_mode == Controller.HONING \
+                and len(found_ar_ids) == 2 \
                 and self.near_position():
             # We were in honing mode, we've found the gate, and we're at the gate
             self.current_best_goal = None
@@ -355,13 +344,13 @@ class Controller(Node):
         # construct message to publish
         drive_cmd_msg = DriveInput()
 
-        drive_cmd_msg.speed = drive_fraction
+        print("driving at: " + str(drive_fraction) + " | " + " with speed: " + str(angular_fraction))
+        drive_cmd_msg.speed = float(drive_fraction)
 
-        drive_cmd_msg.steer = angular_fraction
+        drive_cmd_msg.steer = float(angular_fraction)
 
         # publish to public topic
         self.drive_input_publisher.publish(drive_cmd_msg)
-
 
 def handle_path_status(self, status):
     """

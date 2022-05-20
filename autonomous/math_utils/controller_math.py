@@ -27,6 +27,7 @@ TODO:
 import math
 import numpy as np
 from config.runtime_params import straight_drive_fraction, spin_achieved_delta
+from typing import Tuple
 
 
 class State:
@@ -102,7 +103,10 @@ def interpolate_circle_points(centre: Tuple, num_points: int = 8, radius: int = 
 def average_vector(vectors):
     """
     Takes a list of vectors and returns their average
+    :param vectors: numpy array
     """
+    print(vectors)
+    print("type of vectors: " + str(type(vectors[0])))
     vector_sum = np.zeros(len(vectors[0]))
     for _vector in vectors:
         vector_sum += np.array(_vector)
@@ -126,7 +130,7 @@ def distance(current, target):
     :param target: array like with one element and two dimensions
     :return: positive float value of the euclidean distance between the two points
     """
-    if not target: return 0
+    if target is None: return 0.0
     return math.sqrt(((current[0] - target[0]) ** 2.0) + ((current[1] - target[1]) ** 2.0))
 
 

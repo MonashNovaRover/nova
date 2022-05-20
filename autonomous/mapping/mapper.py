@@ -39,7 +39,7 @@ from config.runtime_params import max_point_depth, max_fov_angle, skip_pts, min_
 
 
 class Mapper(Node):
-    def __init__(self, length=20, width=20, height=5, resolution=0.1, camera=False):
+    def __init__(self, length=20, width=20, height=5, planner=None, resolution=0.1, camera=False):
         super().__init__('mapper')
         self.subscriber_tracking = self.create_subscription(Odometry, camera_pose_topic, self.pose_callback, 100)
 
@@ -47,6 +47,8 @@ class Mapper(Node):
         self.width = width
         self.height = height
         self.resolution = resolution
+
+        self.planner = planner
 
         self.previous_plan = time.perf_counter()
         self.previous_map_update = time.perf_counter()
@@ -83,9 +85,7 @@ class Mapper(Node):
         # 1. Parse raw point-cloud data into array of (x, y, z) tuples
         arr = list(pc2.read_points(msg, field_names=("x", "y", "z", "r", "g", "b"), skip_nans=True))
 
-        # 2. Wrap the point-cloud array in a numpy array
-        np_arr = np.array(arr)
-        
+        # 2. Wrap the point-cloud array in a numpy array np_arr = np.array(arr) 
         # 3. Split into points (x, y, z) and colors (r, g, b) 
         pts = np_arr[:, 0:3]
         colors = np_arr[:, 3:6] / 255.0
@@ -167,7 +167,10 @@ class Mapper(Node):
         # transform the points
         if self.cam_odom and time.perf_counter() - self.previous_map_update > min_map_update_time:
             self.handle_pc(pts)
+
             self.previous_map_update = time.perf_counter()
+
+        self.planner.update_map(self.get_2d_map())
 
     def get_pts(self, pts):
         return self.prune_point_cloud(self.convert_pts_to_tracking(pts))
@@ -179,6 +182,8 @@ class Mapper(Node):
         It calls a function to extract and filter the points (colors are ignored) and updates the map with points only -
         when using the python API, it should be a points only map.
         """
+        if len(pts) < 10:
+            return
         self.cam_odom = self.last_cam_odom
         if self.cam_odom is not None:
             self.update_map(self.get_pts(pts))
