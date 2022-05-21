@@ -24,14 +24,10 @@ TODO:
 """
 import math
 import numpy as np
-import matplotlib.pyplot as plt
 
 
 class Ekf:
     def __init__(self):
-
-
-
         self.dt = 0.0    # window of time to which a set of measurements applies
 
     def motion_model(self, x, u):

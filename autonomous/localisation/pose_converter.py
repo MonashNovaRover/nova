@@ -300,7 +300,7 @@ class PoseConverter(Node):
         sys.stdout.flush()
 
         # I guess we still do this?
-        #with open(pose_file, "w") as f:
+        # with open(pose_file, "w") as f:
         #    f.write(f"{rover_msg.x}\t{rover_msg.y}\t{rover_msg.z}\t{rover_msg.yaw}")
 
 

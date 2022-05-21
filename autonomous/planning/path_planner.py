@@ -211,22 +211,3 @@ class PathPlanner(Node):
 
         self.get_logger().info(f"Path Planner Calculated {len(route_coordinates)} waypoints")
         return waypoints
-
-
-def handle_path_status(status: int):
-        """
-        Handles logging and adjusting of parameters according to the
-        status returned by our c++ A* method.
-        """    
-        if status & PathPlanner.A_STAR_START_OBSTACLE: self.get_logger().warn("started in obstacle")
-        if status & PathPlanner.A_STAR_DEST_OBSTACLE: self.get_logger().warn("dest in obstacle")
-        if status & PathPlanner.A_STAR_NO_PATH: self.get_logger().warn("couldn't find a path initially")
-        if status & PathPlanner.A_STAR_CRITICAL_NO_PATH:
-            self.get_logger().error("COULDN'T FIND PATH - NEAR OBSTACLE")
-            self.padding_dist_m -= 0.1
-            if self.padding_dist_m < 0.4:
-                self.get_logger().error("Ah HECK")
-                return
-        if status == PathPlanner.A_STAR_SUCCESS: self.get_logger().info("A* found safe path")
-
-
