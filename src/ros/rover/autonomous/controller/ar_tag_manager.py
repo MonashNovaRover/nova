@@ -81,10 +81,7 @@ class ArTagManager(Node):
         """
         Have we found all the goals we set out to?
         """
-        found = True
-        for goal in self.ar_tag_goals:
-            found &= self.found_tag(self.ar_tag_poses[goal])
-        return found
+        return np.all([self.found_tag(goal) for goal in self.ar_tag_goals])
 
     def found_tag(self, tag_id: int):
         """

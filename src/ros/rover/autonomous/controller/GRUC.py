@@ -343,6 +343,7 @@ class Controller(Node):
 
         current_orientation = np.array([np.cos(self.state.yaw), np.sin(self.state.yaw), 0])
         current_position = np.array([self.state.x, self.state.y])
+
         # -------------------------------------- 0. TURNING ------------------------------
         if self.driving_mode == Controller.TURNING:
             if self.spin_controller is None:
@@ -363,15 +364,17 @@ class Controller(Node):
                 self.get_logger().info("Reached way-point: " + str(self.path[0]))
             self.go_to_target(self.path[0])
 
-        # update Mode
+        # ------------------------------------ 2. MANAGE MODES ----------------------------
         if self.switch_to_search_mode():
             self.setup_search()
             self.planning_mode = Controller.SEARCH
+            self.get_logger().info("MODE: Switching to SEARCH Mode")
         elif self.switch_to_honing_mode():
             self.planning_mode = Controller.HONING
+            self.get_logger().info("MODE: Switching to HONING Mode")
         elif self.switch_to_gate_mode():
+            self.get_logger().info("MODE: Switching to GATE Mode")
             self.planning_mode = Controller.GATE
-
         self.check_if_completed()
 
     def __publish(self, drive_fraction, angular_fraction):
