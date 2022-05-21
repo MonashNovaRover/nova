@@ -16,6 +16,7 @@ CREATION:       07/12/2021
 EDITED:         15/05/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
+from typing import List
 
 from core.msg import AlvarMarker
 from rclpy.node import Node
@@ -57,18 +58,33 @@ class ArTagManager(Node):
 
     def get_average_goal_pose(self):
         """
-        Assuming we have one tag, what is the average vector of that tag?
+        If we have one tag, what is the average vector of that tag?
+        If we have two tags, what is their midpoint
         """
-        assert len(self.ar_tag_goals) == 1
-        return self.get_average_tag_pose(self.ar_tag_poses[0])
+        assert len(self.ar_tag_goals) == 1 or len(self.ar_tag_goals) == 2
+        average_tags = [self.get_average_tag_pose(self.ar_tag_poses[_id]) for _id in self.ar_tag_goals]
+        return np.mean(average_tags, axis=0)
 
-    def found_current_goal(self):
+    def get_gate_normal(self):
         """
-        Assuming we have one tag, have we found it?
+        Assuming we have 2 tags, what is the unit vector normal to the line between them
         """
-        if len(self.ar_tag_goals) != 1:
-            return False
-        return self.found_tag(self.ar_tag_poses[0])
+        assert len(self.ar_tag_goals) == 2
+        gate_l, gate_r = self.get_average_tag_pose(self.ar_tag_goals[0]),\
+                            self.get_average_tag_pose(self.ar_tag_goals[1])
+
+        normal = np.array((gate_l[1] - gate_r[1]), gate_r[0] - gate_l[1])
+        unit_normal = normal / np.linalg.norm(normal)
+        return unit_normal
+
+    def found_current_goals(self):
+        """
+        Have we found all the goals we set out to?
+        """
+        found = True
+        for goal in self.ar_tag_goals:
+            found &= self.found_tag(self.ar_tag_poses[goal])
+        return found
 
     def found_tag(self, tag_id: int):
         """

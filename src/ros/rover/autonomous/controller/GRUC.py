@@ -54,8 +54,8 @@ class Controller(Node):
     navigate between via ros topics autonomous/pose and autonomous/goals. Publishes drive
     commands to auto_drive_commands
     """
-    SEARCH = 0
-    HONING = 1
+    HONING = 0
+    SEARCH = 1
     GATE = 2
     SUCCESS = 3
 
@@ -65,9 +65,9 @@ class Controller(Node):
     def __init__(self):
         super().__init__('autonomous_controller_node')
         self.planners = {
-            Controller.SEARCH: self.plan_search,
-            Controller.HONING: self.get_current_goal,
-            Controller.GATE: self.plan_through_gate,
+            Controller.SEARCH: self.get_search_goal,
+            Controller.HONING: self.get_honing_goal,
+            Controller.GATE: self.get_gate_goal,
             Controller.SUCCESS: None
         }
 
@@ -81,12 +81,18 @@ class Controller(Node):
         self.path = []
         self.previous_goals = []
         self.original_goal = None
-        self.gate_goal_pose = None
         self.achieved_original_goal = False
         self.search_plan = []
         self.search_array_index = -1
+
+        # For keeping track of our best efforts
+        self.plan_publish_mode = Controller.SUCCESS  # the mode the controller was in when we published the plan request
+        self.original_goal_best_effort = None
+        self.search_goal_best_effort = None
+        self.honing_goal_best_effort = None
+        self.gate_goal_best_effort = None
+
         # the final way-point for path planning
-        self.stage_completed = False
         self.ar_tag_manager = ArTagManager()
 
         # on init, it should not drive anywhere until update_goals is called
@@ -122,8 +128,24 @@ class Controller(Node):
         self.update_goal_best_effort()
 
     def update_goal_best_effort(self):
-        if self.planning_mode == Controller.SEARCH:
-            self.search_plan[self.search_array_index] = self.path[-1]
+        """
+        Update our most recent best effort goal depending on our planning method. The best effort goal
+        is the closest the path planner could get to the true goal
+        """
+        mode = self.plan_publish_mode
+        if mode == Controller.SEARCH:
+            self.search_goal_best_effort = self.path[-1]
+        elif mode == Controller.HONING:
+            if self.ar_tag_manager.num_tags_found() == 0:
+                self.original_goal_best_effort = self.path[-1]
+            else:
+                # NOTE: Potential issue:
+                #  - plan goal without ar tag
+                #  - while planning, see ar tag
+                #  - set honing goal when we should be setting original goal
+                self.honing_goal_best_effort = self.path[-1]
+        elif mode == Controller.GATE:
+            self.gate_goal_best_effort = self.path[-1]
 
     def update_pose(self, msg):
         """
@@ -168,17 +190,28 @@ class Controller(Node):
         Function determines (if there is a goal) if we are near the goal.
         :return: Boolean value of True if we are near goal (and goal exists), False otherwise
         """
-        if len(self.path) == 0:
-            return True
-        return distance(np.array(self.state.x, self.state.y), np.array(self.path[-1])) < min_waypoint_distance
+        current_goal = None
+        if self.planning_mode == Controller.SEARCH:
+            current_goal = self.search_goal_best_effort
+        elif self.planning_mode == Controller.HONING:
+            if self.ar_tag_manager.num_tags_found() == 0:
+                current_goal = self.original_goal_best_effort
+            else:
+                current_goal = self.honing_goal_best_effort
+        elif self.planning_mode == Controller.GATE:
+            current_goal = self.gate_goal_best_effort
+
+        if current_goal is None:
+            return False
+        return distance(np.array(self.state.x, self.state.y), current_goal) < min_waypoint_distance
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Planning Loop Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    def get_current_goal(self):
+    def get_honing_goal(self):
         """
         Calculates the current goal as either the "original" goal, or the average vector of a bunch of AR tags
         """
         # return
-        if self.ar_tag_manager.found_current_goal():
+        if self.ar_tag_manager.found_current_goals():
             return self.ar_tag_manager.get_average_goal_pose()
 
         # If we weren't looking for or haven't found ar tags, go to the original goal
@@ -186,41 +219,40 @@ class Controller(Node):
             # If we have found ar tags, go to their average position
             return self.original_goal
 
-    def plan_search(self):
+    def get_search_goal(self):
         """
         :return:
         """
         if self.near_current_goal() or self.search_array_index == -1:
             self.search_array_index += 1
+            self.search_goal_best_effort = None  # we have to set it again before this will return true
         return self.search_plan[self.search_array_index]
 
-    def plan_through_gate(self):
+    def get_gate_goal(self):
         """
         Calculates a point some distance through the gate. Assumes we are already
         at the gate, and also that we are facing the direction
         """
         assert self.ar_tag_manager.num_tags_found() == 2 and "Tried to path through a gate without two points!"
 
-        gate_id_1, gate_id_2 = self.ar_tag_manager.ar_tag_goals[0], self.ar_tag_manager.ar_tag_goals[1]
-        gate_l, gate_r = np.array(self.ar_tag_manager.get_average_tag_pose(gate_id_1),
-                                  np.array(self.ar_tag_manager.get_average_tag_pose(gate_id_1)))
-        gate_mid = 0.5 * (gate_l + gate_r)
+        gate_mid = self.ar_tag_manager.get_average_goal_pose()
 
         # negative reciprocal gives perpendicular vector to the vector between the gate
-        gate_perpendicular = np.array([(gate_r - gate_l)[1], (gate_l - gate_r)[0]])
+        gate_perpendicular = self.ar_tag_manager.get_gate_normal()
         # Current yaw as vector
         orientation_vector = np.array([np.cos(self.state.yaw), np.sin(self.state.yaw)])
         # -1 if we are facing away from perpendicular vector, +1 if we are towards it
         direction = np.sign(np.dot(orientation_vector, gate_perpendicular))
 
         # Vector from the middle of the two gate poles to our target
-        centre_of_gate_to_target = direction * dist_through_gate_m * gate_perpendicular / magnitude(gate_perpendicular)
+        centre_of_gate_to_target = direction * dist_through_gate_m * gate_perpendicular
         goal = gate_mid + centre_of_gate_to_target
-        self.gate_goal_pose = goal
+        return goal[0], goal[1]
 
     def plan(self):
         if self.planning_mode == Controller.SUCCESS:
             return
+        self.plan_publish_mode = self.planning_mode
         planning_destination = Point2D()
         planning_destination.x, planning_destination.y = self.planners[self.planning_mode]()
         self.planning_destination_publisher.publish(planning_destination)
@@ -228,26 +260,40 @@ class Controller(Node):
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Control Loop Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     def check_if_completed(self):
         # Check if we've achieved our goals :)
-        completed = False
-        if len(self.ar_tag_manager.ar_tag_goals) == 0:
-            # Just check that we're near the original goal
-            completed = self.achieved_original_goal
+        completed = self.near_current_goal()
 
-        elif len(self.ar_tag_manager.ar_tag_goals) == 1:
+        if len(self.ar_tag_manager.ar_tag_goals) == 1:
             # Need to check that we've found the ar tag and we are near it
-            ar_tag_pose = self.ar_tag_manager.get_average_goal_pose()
-            completed = (ar_tag_pose is not None and self.near_current_goal())
+            completed &= self.ar_tag_manager.found_current_goals() and self.planning_mode == Controller.HONING
 
         elif len(self.ar_tag_manager.ar_tag_goals) == 2:
-            completed = self.planning_mode = Controller.GATE and \
-                                             self.near_current_goal()
+            completed &= self.ar_tag_manager.found_current_goals() and self.planning_mode == Controller.GATE
 
         if completed:
             self.completed_routine()
 
-    def check_if_gate_mode(self):
+    def switch_to_gate_mode(self):
+        """
+        Determines whether the planning mode should be switched to gate mode
+        """
         return self.planning_mode == Controller.HONING \
                and self.ar_tag_manager.num_tags_found() == 2 \
+               and self.near_current_goal()
+
+    def switch_to_honing_mode(self):
+        """
+        Determines whether the planning mode should be switched to honing mode
+        """
+        return self.planning_mode == Controller.SEARCH \
+               and self.ar_tag_manager.num_tags_found() > 0
+
+    def switch_to_search_mode(self):
+        """
+        Determines whether the planning mode should be switched to honing mode
+        """
+        return self.planning_mode == Controller.HONING \
+               and len(self.ar_tag_manager.ar_tag_goals) > 0 \
+               and self.ar_tag_manager.num_tags_found() == 0 \
                and self.near_current_goal()
 
     def completed_routine(self):
@@ -316,27 +362,15 @@ class Controller(Node):
             self.go_to_target(self.path[0])
 
         # update Mode
-        if len(self.ar_tag_manager.ar_tag_goals) != 0 \
-                and self.ar_tag_manager.num_tags_found() == 0 \
-                and self.achieved_original_goal:
-            if not self.planning_mode == Controller.SEARCH:
-                self.stage_completed = False
-                self.setup_search()
+        if self.switch_to_search_mode():
+            self.setup_search()
             self.planning_mode = Controller.SEARCH
-        elif self.planning_mode == Controller.SEARCH:
-            self.stage_completed = False
+        elif self.switch_to_honing_mode():
             self.planning_mode = Controller.HONING
-        if self.planning_mode == Controller.HONING \
-                and self.ar_tag_manager.num_tags_found() == 2 \
-                and self.near_current_goal():
-            # We were in honing mode, we've found the gate, and we're at the gate
-            self.stage_completed = False
+        elif self.switch_to_gate_mode():
             self.planning_mode = Controller.GATE
-        self.check_if_completed()
 
-        # Updating state - once we achieve original goal for a given stage, we don't exit it
-        self.achieved_original_goal |= self.near_current_goal()
-        self.stage_completed = self.near_current_goal()
+        self.check_if_completed()
 
     def __publish(self, drive_fraction, angular_fraction):
         """
