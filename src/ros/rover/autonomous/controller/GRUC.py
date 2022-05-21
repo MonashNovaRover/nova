@@ -85,7 +85,8 @@ class Controller(Node):
         self.achieved_original_goal = False
         self.search_plan = []
         self.search_array_index = -1
-        self.current_best_goal = None
+        # the final way-point for path planning
+        self.stage_completed = False
         self.ar_tag_manager = ArTagManager()
 
         # on init, it should not drive anywhere until update_goals is called
@@ -116,7 +117,13 @@ class Controller(Node):
         """
         :param msg: Waypoints message from the path planner
         """
-        self.path = [(p.x, p.y) for p in msg.waypoints]
+        self.path = [(p.x, p.y) for p in msg.waypoints
+                     if distance((self.state.x, self.state.y), (p.x, p.y)) > min_waypoint_distance]
+        self.update_goal_best_effort()
+
+    def update_goal_best_effort(self):
+        if self.planning_mode == Controller.SEARCH:
+            self.search_plan[self.search_array_index] = self.path[-1]
 
     def update_pose(self, msg):
         """
@@ -156,14 +163,14 @@ class Controller(Node):
         self.search_plan = interpolate_circle_points(self.original_goal)
         self.driving_mode = Controller.TURNING
 
-    def near_position(self):
+    def near_current_goal(self):
         """
         Function determines (if there is a goal) if we are near the goal.
         :return: Boolean value of True if we are near goal (and goal exists), False otherwise
         """
-        if self.current_best_goal is None:
-            return False
-        return distance(np.array(self.state.x, self.state.y), np.array(self.current_best_goal)) < min_waypoint_distance
+        if len(self.path) == 0:
+            return True
+        return distance(np.array(self.state.x, self.state.y), np.array(self.path[-1])) < min_waypoint_distance
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Planning Loop Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     def get_current_goal(self):
@@ -183,7 +190,7 @@ class Controller(Node):
         """
         :return:
         """
-        if self.near_position() or self.search_array_index == -1:
+        if self.near_current_goal() or self.search_array_index == -1:
             self.search_array_index += 1
         return self.search_plan[self.search_array_index]
 
@@ -229,20 +236,27 @@ class Controller(Node):
         elif len(self.ar_tag_manager.ar_tag_goals) == 1:
             # Need to check that we've found the ar tag and we are near it
             ar_tag_pose = self.ar_tag_manager.get_average_goal_pose()
-            completed = (ar_tag_pose is not None and self.near_position())
+            completed = (ar_tag_pose is not None and self.near_current_goal())
 
         elif len(self.ar_tag_manager.ar_tag_goals) == 2:
             completed = self.planning_mode = Controller.GATE and \
-                                             self.near_position()
+                                             self.near_current_goal()
 
         if completed:
             self.completed_routine()
+
+    def check_if_gate_mode(self):
+        return self.planning_mode == Controller.HONING \
+               and self.ar_tag_manager.num_tags_found() == 2 \
+               and self.near_current_goal()
 
     def completed_routine(self):
         """
         Function to be called when we have reached the end of a stage
         """
         self.planning_mode = Controller.SUCCESS
+
+        # call the LED strip to signal auto success
         trigger = Trigger.Request()
         self.led_client.call_async(trigger)
 
@@ -277,64 +291,52 @@ class Controller(Node):
         Called once every tick by the node's timer. Identifies the next target waypoint
         and calls navigate_to_waypoint, and determines when the rover has arrived
         """
-        if self.planning_mode == Controller.SUCCESS or self.path is None:
+        if self.planning_mode == Controller.SUCCESS:
             self.spin_controller = None
             return
 
-        found_ar_ids = self.ar_tag_manager.num_tags_found()
         current_orientation = np.array([np.cos(self.state.yaw), np.sin(self.state.yaw), 0])
+        # -------------------------------------- 0. TURNING ------------------------------
         if self.driving_mode == Controller.TURNING:
             if self.spin_controller is None:
                 self.spin_controller = SpinController(self.state.yaw, self.turner)
-            if (found_ar_ids == 0) and not self.spin_controller.completed():
+            if (self.ar_tag_manager.num_tags_found() == 0) and not self.spin_controller.completed():
                 drive = self.spin_controller.turn_in_place(current_orientation)
                 self.__publish(drive["drive"], drive["steer"])
             else:
                 self.driving_mode = Controller.TO_WAYPOINT
 
-        if self.driving_mode == Controller.TO_WAYPOINT:
+        # -------------------------------------- 1. DRIVING ------------------------------
+        if self.driving_mode == Controller.TO_WAYPOINT and len(self.path) > 0:
             # can only go to waypoints
             # Drive to a waypoint
-            while True:
-                if len(self.path) == 0:
-                    break
-
-                target_waypoint = self.path[0]
-
-                if distance((self.state.x, self.state.y), target_waypoint) > min_waypoint_distance:
-                    # we have not yet arrived at the waypoint
-                    self.go_to_target(target_waypoint)
-                    break
-                else:
-                    # If distance to the waypoint is lower than the threshold distance, we have arrived
-                    self.get_logger().info("Reached way-point: " + str(target_waypoint))
-                    self.path = self.path[1:]
+            if distance((self.state.x, self.state.y), self.path[0]) <= min_waypoint_distance:
+                self.path = self.path[1:]
+                self.get_logger().info("Reached way-point: " + str(self.path[0]))
+            self.go_to_target(self.path[0])
 
         # update Mode
         if len(self.ar_tag_manager.ar_tag_goals) != 0 \
-                and found_ar_ids == 0 \
+                and self.ar_tag_manager.num_tags_found() == 0 \
                 and self.achieved_original_goal:
             if not self.planning_mode == Controller.SEARCH:
-                self.current_best_goal = None
+                self.stage_completed = False
                 self.setup_search()
             self.planning_mode = Controller.SEARCH
-
-        else:
-            if self.planning_mode != Controller.HONING:
-                self.current_best_goal = None
-                self.planning_mode = Controller.HONING
-
+        elif self.planning_mode == Controller.SEARCH:
+            self.stage_completed = False
+            self.planning_mode = Controller.HONING
         if self.planning_mode == Controller.HONING \
-                and found_ar_ids == 2 \
-                and self.near_position():
+                and self.ar_tag_manager.num_tags_found() == 2 \
+                and self.near_current_goal():
             # We were in honing mode, we've found the gate, and we're at the gate
-            self.current_best_goal = None
+            self.stage_completed = False
             self.planning_mode = Controller.GATE
         self.check_if_completed()
 
-        # Updating state
-        if self.near_position():
-            self.achieved_original_goal = True
+        # Updating state - once we achieve original goal for a given stage, we don't exit it
+        self.achieved_original_goal |= self.near_current_goal()
+        self.stage_completed = self.near_current_goal()
 
     def __publish(self, drive_fraction, angular_fraction):
         """
