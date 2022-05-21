@@ -338,7 +338,6 @@ class Controller(Node):
         and calls navigate_to_waypoint, and determines when the rover has arrived
         """
         if self.planning_mode == Controller.SUCCESS:
-            self.spin_controller = None
             return
 
         current_orientation = np.array([np.cos(self.state.yaw), np.sin(self.state.yaw), 0])
@@ -351,6 +350,7 @@ class Controller(Node):
                 self.__publish(drive["drive"], drive["steer"])
             else:
                 self.driving_mode = Controller.TO_WAYPOINT
+                self.spin_controller = None
 
         # -------------------------------------- 1. DRIVING ------------------------------
         if self.driving_mode == Controller.TO_WAYPOINT and len(self.path) > 0:
