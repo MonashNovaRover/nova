@@ -277,24 +277,24 @@ class Controller(Node):
         Determines whether the planning mode should be switched to gate mode
         """
         return self.planning_mode == Controller.HONING \
-               and self.ar_tag_manager.num_tags_found() == 2 \
-               and self.near_current_goal()
+            and self.ar_tag_manager.num_tags_found() == 2 \
+            and self.near_current_goal()
 
     def switch_to_honing_mode(self):
         """
         Determines whether the planning mode should be switched to honing mode
         """
         return self.planning_mode == Controller.SEARCH \
-               and self.ar_tag_manager.num_tags_found() > 0
+            and self.ar_tag_manager.num_tags_found() > 0
 
     def switch_to_search_mode(self):
         """
         Determines whether the planning mode should be switched to honing mode
         """
         return self.planning_mode == Controller.HONING \
-               and len(self.ar_tag_manager.ar_tag_goals) > 0 \
-               and self.ar_tag_manager.num_tags_found() == 0 \
-               and self.near_current_goal()
+            and len(self.ar_tag_manager.ar_tag_goals) > 0 \
+            and self.ar_tag_manager.num_tags_found() == 0 \
+            and self.near_current_goal()
 
     def completed_routine(self):
         """
@@ -318,6 +318,7 @@ class Controller(Node):
         Called every tick by the control method. Turns in place to face towards the waypoint,
         or drives towards it in a straight line. If the rover has just finished turning, a
         single zero drive command is sent before driving begins.
+        :param:
         """
         # calculate target yaw and signed yaw difference using the controller_math module
         print(f"driving to {target_waypoint}")
