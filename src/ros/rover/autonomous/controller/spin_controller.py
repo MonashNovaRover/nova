@@ -17,16 +17,16 @@ class SpinController:
         self.turner = turner
         self.completed = False
 
-    def turn_in_place(self, current_orientation):
+    def turn_in_place(self, current_position, current_orientation):
         """
         Spins in place for a full circle to scan immediately around the rover
         """
-        target = np.array([np.cos(start_yaw), np.sin(start_yaw)])
+        target_orientation = np.array([np.cos(self.start_yaw), np.sin(self.start_yaw)])
 
-        if spin_achieved(1, current_orientation, target):
+        if spin_achieved(1, current_orientation, target_orientation):
             self.completed = True
 
-        steer_fraction, drive_fraction = self.turner.turn(math.pi / 2, current_orientation, target)
+        steer_fraction, drive_fraction = self.turner.turn(math.pi / 2, current_position, current_orientation)
         return {"drive": drive_fraction, "steer": steer_fraction}
 
     def completed(self):
