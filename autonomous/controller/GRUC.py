@@ -341,12 +341,13 @@ class Controller(Node):
             return
 
         current_orientation = np.array([np.cos(self.state.yaw), np.sin(self.state.yaw), 0])
+        current_position = np.array([self.state.x, self.state.y])
         # -------------------------------------- 0. TURNING ------------------------------
         if self.driving_mode == Controller.TURNING:
             if self.spin_controller is None:
                 self.spin_controller = SpinController(self.state.yaw, self.turner)
             if (self.ar_tag_manager.num_tags_found() == 0) and not self.spin_controller.completed():
-                drive = self.spin_controller.turn_in_place(current_orientation)
+                drive = self.spin_controller.turn_in_place(current_position, current_orientation)
                 self.__publish(drive["drive"], drive["steer"])
             else:
                 self.driving_mode = Controller.TO_WAYPOINT
