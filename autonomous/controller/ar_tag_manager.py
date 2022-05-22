@@ -62,7 +62,7 @@ class ArTagManager(Node):
         If we have two tags, what is their midpoint
         """
         assert len(self.ar_tag_goals) == 1 or len(self.ar_tag_goals) == 2
-        average_tags = [self.get_average_tag_pose(self.ar_tag_poses[_id]) for _id in self.ar_tag_goals]
+        average_tags = [self.get_average_tag_pose(_id) for _id in self.ar_tag_goals]
         return np.mean(average_tags, axis=0)
 
     def get_gate_normal(self):
@@ -81,7 +81,10 @@ class ArTagManager(Node):
         """
         Have we found all the goals we set out to?
         """
-        return np.all([self.found_tag(goal) for goal in self.ar_tag_goals])
+        # return np.all([self.found_tag(goal) for goal in self.ar_tag_goals])
+        found = len(self.ar_tag_goals) and np.all([self.found_tag(goal) for goal in self.ar_tag_goals])
+        print("found all current goals: " + "yes" if found else "no")
+        return found
 
     def found_tag(self, tag_id: int):
         """
@@ -112,7 +115,7 @@ class ArTagManager(Node):
 
         # check it is an AR tag we care about or could care about in the future, and that the
         # distance to the camera is within our defined bounds
-        if msg.id > ArTagManager.max_tag_id and not (min_ar_distance <= dist <= max_ar_distance):
+        if msg.id > ArTagManager.max_tag_id or (not (min_ar_distance <= dist <= max_ar_distance)):
             return
 
         # translate step
@@ -128,3 +131,4 @@ class ArTagManager(Node):
         if len(self.ar_tag_poses[msg.id]) < ArTagManager.queue_size:
             self.ar_tag_poses[msg.id] = self.ar_tag_poses[msg.id][1:]
         self.ar_tag_poses[msg.id].append((global_pose[0], global_pose[1]))
+

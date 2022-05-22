@@ -54,6 +54,7 @@ class ArTracker(Node):
 
     def __call__(self, img):
         if save_pt:
+            print("saving point")
             msg = self.find_ar_tag_no_transform(img)
         else:
             msg = self.find_ar_tag(img)

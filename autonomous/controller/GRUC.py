@@ -16,7 +16,7 @@ NODE: Controller
 TOPICS:
         - Publishes: /autonomous/drive_inputs [DriveInput]
         - Subscribes: /rover/pose [RoverPose]
-        - Subscribes: /autonomous/goals [Waypoints]
+        - Subscribes: /autoiomous/goals [Waypoints]
 SERVICES:
         - PathPlanningService 
 ACTIONS: None
@@ -32,6 +32,7 @@ EDITED:         15/05/2022
 import rclpy
 from rclpy.node import Node
 from std_srvs.srv import Trigger
+from nav_msgs.msg import Odometry
 
 # custom message imports
 from core.msg import DriveInput, RoverPose, Waypoints, AlvarMarker, AutonomousGoal, Point2D
@@ -102,6 +103,7 @@ class Controller(Node):
         # ------------- ROS Things ----------
         # Publishers
         self.drive_input_publisher = self.create_publisher(DriveInput, auto_drive_command_topic, 10)
+        self.target_publisher = self.create_publisher(Odometry, "/autonomous/target", 10)
         self.planning_destination_publisher = self.create_publisher(Point2D, planning_destination_topic, 10)
 
         # Subscribers
@@ -118,6 +120,26 @@ class Controller(Node):
         self.planning_timer = self.create_timer(1.0, self.plan)
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Simple State Update Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    
+    def get_end_of_path(self):
+        """
+        returns last element of path if it exists, else nothing
+        """
+        if len(self.path) > 0:
+            return self.path[-1]
+        else:
+            if self.planning_mode == Controller.SEARCH:
+                current_goal = self.search_goal_best_effort
+            elif self.planning_mode == Controller.HONING:
+                if self.ar_tag_manager.num_tags_found() == 0:
+                    current_goal = self.original_goal_best_effort
+                else:
+                    current_goal = self.honing_goal_best_effort
+            elif self.planning_mode == Controller.GATE:
+                current_goal = self.gate_goal_best_effort
+            return current_goal
+    
+    
 
     def update_path(self, msg):
         """
@@ -134,18 +156,18 @@ class Controller(Node):
         """
         mode = self.plan_publish_mode
         if mode == Controller.SEARCH:
-            self.search_goal_best_effort = self.path[-1]
+            self.search_goal_best_effort = self.get_end_of_path() 
         elif mode == Controller.HONING:
             if self.ar_tag_manager.num_tags_found() == 0:
-                self.original_goal_best_effort = self.path[-1]
+                self.original_goal_best_effort = self.get_end_of_path()
             else:
                 # NOTE: Potential issue:
                 #  - plan goal without ar tag
                 #  - while planning, see ar tag
                 #  - set honing goal when we should be setting original goal
-                self.honing_goal_best_effort = self.path[-1]
+                self.honing_goal_best_effort = self.get_end_of_path()
         elif mode == Controller.GATE:
-            self.gate_goal_best_effort = self.path[-1]
+            self.gate_goal_best_effort = self.get_end_of_path()
 
     def update_pose(self, msg):
         """
@@ -203,7 +225,8 @@ class Controller(Node):
 
         if current_goal is None:
             return False
-        return distance(np.array(self.state.x, self.state.y), current_goal) < min_waypoint_distance
+        print(self.original_goal_best_effort)
+        return distance(np.array([self.state.x, self.state.y]), current_goal) < min_waypoint_distance
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Planning Loop Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     def get_honing_goal(self):
@@ -311,6 +334,7 @@ class Controller(Node):
         else:
             previous = self.ar_tag_manager.get_average_goal_pose()
         self.previous_goals.append(previous)
+        self.get_logger().info("completed routine")
 
     def go_to_target(self, target_waypoint):
         """
@@ -322,6 +346,22 @@ class Controller(Node):
         """
         # calculate target yaw and signed yaw difference using the controller_math module
         print(f"driving to {target_waypoint}")
+
+        # publishing next target way-point for visualisation
+        odom = Odometry()
+        odom.header.stamp = self.get_clock().now().to_msg()
+        odom.header.frame_id = "map"
+
+        odom.pose.pose.orientation.x = 0.
+        odom.pose.pose.orientation.y = 0.
+        odom.pose.pose.orientation.z = 0.
+        odom.pose.pose.orientation.w = 1.
+
+        odom.pose.pose.position.x = target_waypoint[0]
+        odom.pose.pose.position.y = target_waypoint[1]
+        odom.pose.pose.position.z = 0.0
+        self.target_publisher.publish(odom)
+
         position_vector = np.array([self.state.x, self.state.y, 0])
         target_vector = np.array([target_waypoint[0], target_waypoint[1], 0])
 
@@ -339,16 +379,20 @@ class Controller(Node):
         and calls navigate_to_waypoint, and determines when the rover has arrived
         """
         if self.planning_mode == Controller.SUCCESS:
+            self.get_logger().info("Controller mode: success")
             return
 
-        current_orientation = np.array([np.cos(self.state.yaw), np.sin(self.state.yaw), 0])
+        current_orientation = np.array([np.cos(self.state.yaw), np.sin(self.state.yaw)])
         current_position = np.array([self.state.x, self.state.y])
+        
+        print(self.driving_mode)
 
         # -------------------------------------- 0. TURNING ------------------------------
         if self.driving_mode == Controller.TURNING:
+            print("In TURNING controller")
             if self.spin_controller is None:
                 self.spin_controller = SpinController(self.state.yaw, self.turner)
-            if (self.ar_tag_manager.num_tags_found() == 0) and not self.spin_controller.completed():
+            if (self.ar_tag_manager.num_tags_found() == 0) and not self.spin_controller.is_completed():
                 drive = self.spin_controller.turn_in_place(current_position, current_orientation)
                 self.__publish(drive["drive"], drive["steer"])
             else:
@@ -359,6 +403,7 @@ class Controller(Node):
         if self.driving_mode == Controller.TO_WAYPOINT and len(self.path) > 0:
             # can only go to waypoints
             # Drive to a waypoint
+            print("In TO_WAYPOINT controller")
             if distance((self.state.x, self.state.y), self.path[0]) <= min_waypoint_distance:
                 self.path = self.path[1:]
                 self.get_logger().info("Reached way-point: " + str(self.path[0]))
@@ -375,6 +420,7 @@ class Controller(Node):
         elif self.switch_to_gate_mode():
             self.get_logger().info("MODE: Switching to GATE Mode")
             self.planning_mode = Controller.GATE
+
         self.check_if_completed()
 
     def __publish(self, drive_fraction, angular_fraction):

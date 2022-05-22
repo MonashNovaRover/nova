@@ -29,5 +29,5 @@ class SpinController:
         steer_fraction, drive_fraction = self.turner.turn(math.pi / 2, current_position, current_orientation)
         return {"drive": drive_fraction, "steer": steer_fraction}
 
-    def completed(self):
+    def is_completed(self):
         return self.completed
