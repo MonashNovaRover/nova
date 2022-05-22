@@ -72,6 +72,7 @@ class PathPlanner(Node):
         self.path_publisher = self.create_publisher(Waypoints, auto_waypoints_topic, 10)
 
     def update_map(self, msg):
+        print("updating map")
         self.grid2d = msg
 
     def path_planning_service_callback(self, request: PathPlanningRequest.Request,
@@ -95,10 +96,8 @@ class PathPlanner(Node):
         For path planning asynchronously from control loop without services
         """
         if self.grid2d is None:
-            response.success = False
-            response.path = []
             self.get_logger().warn("PathPlanner: map has not been updated yet, plan could not be planned")
-
+            return 
         self.at_goal = False
         path = self.get_path(msg.x, msg.y)
         self.path_publisher.publish(path)
