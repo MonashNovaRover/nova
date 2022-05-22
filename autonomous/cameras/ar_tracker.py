@@ -11,7 +11,7 @@ import os
 from nav_msgs.msg import Odometry
 import numpy as np
 
-save_pt: bool = True
+save_pt: bool = False
 
 class ArTracker(Node):
     def __init__(self):
@@ -34,20 +34,22 @@ class ArTracker(Node):
             print(f"approx coordinate x = {approx_coord[0]}, y = {approx_coord[1]}")
 
             try:
-                approx, true = np.load("approx.npy").tolist(), np.load("true.npy").tolist()
+                approx, true = np.load("/home/nvidia/nova_ws/src/autonomous/autonomous/cameras/approx.npy").tolist(), np.load("/home/nvidia/nova_ws/src/autonomous/autonomous/cameras/true.npy").tolist()
                 approx.append(approx_coord)
                 true.append(true_coord)
                 approx = np.array(approx)
                 true = np.array(true)
                 print(approx)
                 print(true)
-                np.save("~/nova_ws/src/autonomous/autonomous/cameras/approx.npy", approx)
-                np.save("~/nova_ws/src/autonomous/autonomous/cameras/true.npy", true)
+                np.save("/home/nvidia/nova_ws/src/autonomous/autonomous/cameras/approx.npy", approx)
+                np.save("/home/nvidia/nova_ws/src/autonomous/autonomous/cameras/true.npy", true)
             except Exception as e:
                 print(approx_coord)
                 print(true_coord)
-                np.save("~/nova_ws/src/autonomous/autonomous/cameras/approx.npy", np.array(approx).reshape(1, 2))
-                np.save("~/nova_ws/src/autonomous/autonomous/cameras/true.npy", np.array(true).reshape(1, 2))
+                approx = np.array([approx_coord])
+                true = np.array([true_coord])
+                np.save("/home/nvidia/nova_ws/src/autonomous/autonomous/cameras/approx.npy", np.array(approx).reshape(1, 2))
+                np.save("/home/nvidia/nova_ws/src/autonomous/autonomous/cameras/true.npy", np.array(true).reshape(1, 2))
             rclpy.shutdown()
 
     def __call__(self, img):
