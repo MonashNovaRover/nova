@@ -32,7 +32,7 @@ class YawStarTurner(Turner):
         self.target_pose = None
 
     def turn(self, yaw_difference, position_vector, current_orientation):
-        steer_fraction, drive_fraction = 0, 0
+        steer_fraction, drive_fraction = 0.0, 0.0
 
         if abs(yaw_difference) > self.MAX_YAW:
             # Big turn, either drive straight or turn
