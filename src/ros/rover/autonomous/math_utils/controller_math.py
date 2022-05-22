@@ -71,8 +71,8 @@ def yaw_difference(facing: np.array, target: np.array) -> float:
 
     cross = np.cross(facing, target)
     dot = np.dot(facing, target)
-    norms = np.sqrt(np.dot(facing, facing)), np.sqrt(np.dot(target, target))
-    scaled_dot = dot / (norms[0] * norms[1])
+    norms = np.sqrt(np.dot(facing, facing)) * np.sqrt(np.dot(target, target))
+    scaled_dot = dot / norms
     # using dot product to find minimum angle
     theta = np.arccos(np.round(scaled_dot, 8))
 
