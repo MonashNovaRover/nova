@@ -24,9 +24,21 @@ terminals during competition. The rest of the code is in sub folders which are i
 - `resources`: misc files like saved numpy arrays for various things
 
 #### Optional pose sources
-The package aims to be flexible to allow for a the following sensors:
+The package aims to be flexible to allow for the following sensors:
 - Differential GPS (URC only)
 - Compass (URC only)
 - Intel Realsense T265 Tracking Camera
 - Intel Realsense D415 OR D435 Depth Camera
 - Wheel based velocity and wheel encoder feedback
+
+For URC, we do not use the T265 tracking camera - our 6 degrees of freedom pose is derived from:
+- Fifferential GPS (the ublox rtk ardusimple) 
+- a 6 axis IMU and magnetometer (the Bosh BNO-055)
+- wheel odometry (from the ros2 topic `/electronics/wheel_data`
+- an extended Kalman Filter (EKF) to fuse the above together
+
+#### High level diagram
+The key components are shown below, with some ros topics shown as directional arrows from publisher to subscriber. 
+Everything comes together in the file `controller/GRUC.py` - A.K.A. the GRand Unified Controller, which handles all URC competition
+logic and general management of paths, way-points and driving.
+![alt text](resource/high_level.png "High Level Diagram")
