@@ -475,8 +475,8 @@ class Controller(Node):
         # construct message to publish
         drive_cmd_msg = DriveInput()
         # Values are validated to stay within -1:1
-        drive_cmd_msg.speed = max(-1,min(1,float(drive_fraction)))
-        drive_cmd_msg.steer = max(-1,min(1,float(angular_fraction)))
+        drive_cmd_msg.speed = float(max(-1,min(1,float(drive_fraction))))
+        drive_cmd_msg.steer = float(max(-1,min(1,float(angular_fraction))))
 
         # Print!
         self.get_logger().log("Driving at speed {:.4f}, steer {:.4f}".format(drive_cmd_msg.speed,drive_cmd_msg.steer),LoggingSeverity.INFO,throttle_duration_sec=1)
