@@ -9,7 +9,7 @@ data that is sent.
 PACKAGE:     electronics
 AUTHOR(S):   Harrison Verrios
 CREATION:    21/05/2022
-EDITED:      21/05/2022
+EDITED:      24/05/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Available services:
     - /electronics/cmd_service 
@@ -40,7 +40,15 @@ class CMDService (Node):
 
     # The constructor sets up any variables required on start-up
     def __init__(self):
+
+        # Create the Node
         super().__init__('cmd_service')
+
+        # Print initialisation information
+        print("Initialising the CMD sender class.")
+
+        # Create the service
+        self.service = self.create_service(CMDCommand, "/electronics/cmd_service", self.service_callback)
 
     
     # Retrieves a CAN network based on an ID. If the network
@@ -77,8 +85,10 @@ class CMDService (Node):
             raise Exception("Invalid command enetered: %d" % command)
         
         # Ensure the device is two characters long
-        if len(device) < 2:
-            raise Exception("Device ID is too short: %s" % device)
+        if len(device) == 0:
+            device = "00"
+        elif len(device) == 1:
+            device = "0" + device
         device = device[0:2]  
 
         # Append the commands together to create the HEX ID
@@ -96,7 +106,7 @@ class CMDService (Node):
 
         # Ensures the data is of the right length
         if len(data) % 2 == 1:
-            raise Exception("Invalid length of HEX data: %s" % data)
+            data += "0"
 
         # If data is missing, use zeroes
         if data == "":
@@ -111,23 +121,40 @@ class CMDService (Node):
 
     
     # Executes a command from ROS
-    def execute (self) -> None:
+    def service_callback (self, request: CMDCommand.Request, response: CMDCommand.Response):
 
         # Attempts to catch any exceptions
         try:
 
             # Retrieves the CAN network
-            can = self.get_can(0)
+            can = self.get_can(request.can)
 
             # Gets the ID
-            id = self.get_id("01", 2)
+            id = self.get_id(request.id, request.command)
 
-            # Executes the command
-            self.send_data(can, id, "007C8C9A")
+            # Updates the endian
+            self.endian = "big" if request.big_endian else "little"
+
+            # Loops the following a number of times
+            for _ in range (0, request.executions):
+
+                # Executes the command
+                self.send_data(can, id, request.data)
+
+                # Sleep some time
+                if _ < request.executions - 1:
+                    time.sleep(request.delay / 1000.0)
+            
+            # Success
+            response.success = True
         
         # Catches the exception
         except Exception as e:
             print("ERROR: %s" % e)
+            response.success = False
+
+        # Returns a success
+        return response
 
 
 
@@ -137,9 +164,6 @@ def main (args=None):
     # Create the service
     rclpy.init(args = args)
     service = CMDService()
-
-    # TODO REMOVE THIS 
-    service.execute()
     rclpy.spin(service)
 
     # Clean up when complete
