@@ -14,7 +14,7 @@ class DriveController:
     def get_drive_command(self, yaw_diff, position_vector, current_orientation):
         steer_fraction = 0.0
         drive_fraction = 0.0
-        if yaw_diff > min_yaw_difference:
+        if abs(yaw_diff) > min_yaw_difference:
             steer_fraction, drive_fraction = self.turner.turn(yaw_diff, position_vector, current_orientation)
         else:
             self.turner.reset()
