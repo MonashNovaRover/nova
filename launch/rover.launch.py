@@ -33,4 +33,7 @@ def generate_launch_description():
 	        package='electronics', node_executable='LED_transmitter.py', output='screen'),
         launch_ros.actions.Node(
             package='imu',  node_executable='imu_node', output='screen'),
+        launch_ros.actions.Node(
+            package='electronics', node_executable='CMD_service.py', output='screen'),   
+        
     ])
