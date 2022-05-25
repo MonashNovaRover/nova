@@ -92,7 +92,6 @@ class FlatMapper(Mapper):
         Discretises point cloud into indices, then filters out indices without
         enough points in them to avoid phantom "floating" points
         """
-        points = points[abs(points[:, 2]) < 1.5]
         indexes = self.get_detection_map_indexes(points)
         indexes, counts = np.unique(indexes, return_counts=True, axis=0)
         counts = (counts // min_point_density).astype(bool)  # filtering out voxels without many points in them
