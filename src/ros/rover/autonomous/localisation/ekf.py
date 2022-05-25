@@ -153,8 +153,8 @@ class Ekf:
             return z_obs, R
 
         # numpy.linalg.inv can't always find the inverse of this matrix....? so we will do it ourselves
-        det = 1 / (S[0, 0] * S[1, 1] - S[1, 0] * S[0, 1])  # please don't be 0
-        s_inv = det * np.array([[S[1, 1], -S[0, 1]], [-S[1, 0], S[0, 0]]])
+        det = np.linalg.det(S)  # please don't be 0
+        s_inv = np.array([[S[1, 1], -S[0, 1]], [-S[1, 0], S[0, 0]]]) / det
 
         # Difference between expected observation and true observation
         y = z_obs - z_pred  # 2x1 - 2x1 = 2x1
