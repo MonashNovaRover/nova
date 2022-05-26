@@ -28,7 +28,7 @@ import numpy as np
 
 class Ekf:
     def __init__(self):
-        self.dt = 0.0    # window of time to which a set of measurements applies
+        self.dt = 1.0    # window of time to which a set of measurements applies
 
     def motion_model(self, x, u):
         """ Predict then next state of the system given the past state and a model
