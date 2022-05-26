@@ -85,9 +85,8 @@ class PlanningState(Enum):
     GPS_HONING = 0  # honing in on a GPS coordinate
     AR_HONING = 1  # honing in on an AR tag
     SEARCH = 2  # searching for an AR tag
-    TURNING = 3  # doing a 360 degree spin
-    GATE = 4  # passing through a gate
-    SUCCESS = 5  # waiting for instruction
+    GATE = 3  # passing through a gate
+    SUCCESS = 4  # waiting for instruction
 
 
 class SavedPlanningState:
@@ -133,7 +132,6 @@ class Controller(Node):
             PlanningState.GPS_HONING: self.get_honing_goal,
             PlanningState.AR_HONING: self.get_honing_goal,
             PlanningState.SEARCH: self.get_search_goal,
-            PlanningState.TURNING: None,
             PlanningState.GATE: self.get_gate_goal,
             PlanningState.SUCCESS: None
         }
@@ -220,15 +218,15 @@ class Controller(Node):
             self.get_logger().info("In success mode, waiting for edge triggered update to GPS honing")
 
         elif self.planning_state.state == PlanningState.GPS_HONING:
+            if self.near_current_goal() and len(self.ar_tag_manager.ar_tag_goals) == 0:
+                self.on_state_update(PlanningState.SUCCESS)
 
-            if self.near_current_goal() and not self.ar_tag_manager.found_current_goals():
+            elif self.near_current_goal() and not self.ar_tag_manager.found_current_goals() \
+                    and len(self.ar_tag_manager.ar_tag_goals) != 0:
                 self.on_state_update(PlanningState.SEARCH)
 
-            elif self.ar_tag_manager.found_current_goals():
+            elif self.ar_tag_manager.found_current_goals() and len(self.ar_tag_manager.ar_tag_goals) != 0:
                 self.on_state_update(PlanningState.AR_HONING)
-
-            elif self.near_current_goal() and len(self.ar_tag_manager.ar_tag_goals) == 0:
-                self.on_state_update(PlanningState.SUCCESS)
 
         elif self.planning_state.state == PlanningState.SEARCH:
 
@@ -261,7 +259,7 @@ class Controller(Node):
             self.trigger_led()
 
         self.ctl_spin = None
-        if new_state == PlanningState.SUCCESS:
+        if new_state == PlanningState.SEARCH:
             self.ctl_spin = SpinController(self.state_rover_pose.yaw, self.ctl_turner)
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Simple State Update Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -342,7 +340,7 @@ class Controller(Node):
         self.ar_tag_manager.ar_tag_goals = [iD for iD in msg.ids]
         self.original_goals[PlanningState.GPS_HONING] = msg.position.x, msg.position.y
         # WARNING: edge triggered state update outside
-        self.planning_state.update_state(PlanningState.SUCCESS)
+        self.planning_state.update_state(PlanningState.GPS_HONING)
 
     def callback_ar_tag(self, msg):
         """
