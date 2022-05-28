@@ -139,6 +139,10 @@ class Controller(Node):
         self.state_current_planning_destination = None
         self.driving_state = DrivingState.TO_WAYPOINT
 
+        # Global variables containing our search plan
+        self.search_plan = []
+        self.search_array_index = 0
+
         # these are the planners we use when in each particular state
         self.planners = {
             PlanningState.GPS_HONING: self.get_honing_goal,
@@ -147,18 +151,11 @@ class Controller(Node):
             PlanningState.GATE: self.get_gate_goal,
             PlanningState.SUCCESS: None
         }
-        # The mode we are currently in based on all the most up to date information - note this will load
-        # previous state from disk
-
 
         # Controller classes for turning, driving to waypoints, and spinning
         self.ctl_turner = YawStarTurner()
         self.ctl_driver = DriveController(self.ctl_turner)
         self.ctl_spin = None
-
-        # Global variables containing our search plan
-        self.search_plan = []
-        self.search_array_index = -1
 
         # ------------- ROS Things ----------
         # Publishers
@@ -190,11 +187,10 @@ class Controller(Node):
         """
         # original goal could be a GPS coordinates (in local frame),
         # AR tags, gate based goals, or search goals
+        self.waypoint_path = []
         self.state_current_planning_destination = None
-        # best effort goals are end of path planner paths
-        self.best_effort_goal = None
-        # these are the paths returned by path planner
-        self.waypoint_paths = {e: [] for e in PlanningState}
+        self.driving_state = DrivingState.TO_WAYPOINT
+        self.search_array_index = 0
 
     def planning_mode_state_transition(self):
         """
@@ -237,11 +233,11 @@ class Controller(Node):
 
     def on_state_update(self, new_state: PlanningState):
         """
-        :param
+        :param new_state: PlanningState
         Performs a number of internal downstream state updates in response to a planning update
         """
         old_state = self.planning_state.state
-        self.get_logger().info(" ------ State Transition: " + str(old_state) + " -> " + str(new_state))
+        self.get_logger().info("------ State Transition: " + str(old_state) + " -> " + str(new_state))
         self.planning_state.update_state(new_state)
         self.driving_state = DrivingState.TO_WAYPOINT
         if new_state == PlanningState.SUCCESS:
@@ -284,11 +280,11 @@ class Controller(Node):
 
     def get_end_of_path(self):
         """
-        returns last element of path if it exists, else nothing
+        returns last element of path if it exists, nothing
         """
         if len(self.waypoint_path) > 0:
             return self.waypoint_path[-1]
-        return self.original_goals[self.planning_state.state]
+        return self.state_current_planning_destination
 
     def callback_planner_path(self, msg):
         """
@@ -298,10 +294,11 @@ class Controller(Node):
         Note that when we are near our goal, best effort goal will be set, but way-point path won't be set.
         :param msg: Waypoints message from the path planner
         """
-        self.waypoint_path = [(p.x, p.y) for p in msg.waypoints
-                              if distance((self.state_rover_pose.x, self.state_rover_pose.y),
-                                          (p.x, p.y)) > min_waypoint_distance]
-        self.state_current_planning_destination = self.get_end_of_path()
+        self.waypoint_path = [(p.x, p.y) for p in msg.waypoints]
+                              # removed the below list comprehension filter as it is handled 
+                              # in control()
+                              # if distance((self.state_rover_pose.x, self.state_rover_pose.y),
+                                          # (p.x, p.y)) > min_waypoint_distance]
         self.planning_state.num_paths_planned += 1
 
     def callback_rover_pose(self, msg):
@@ -327,7 +324,7 @@ class Controller(Node):
         # we update the state of AR tag ids so that it can compare AR tags to the ones we care about
         self.reset_goals_and_waypoints()
         self.ar_tag_manager.ar_tag_goals = [iD for iD in msg.ids]
-        self.original_goals[PlanningState.GPS_HONING] = msg.position.x, msg.position.y
+        self.state_current_planning_destination = msg.position.x, msg.position.y
         # WARNING: edge triggered state update outside
         self.planning_state.update_state(PlanningState.GPS_HONING)
 
@@ -345,20 +342,22 @@ class Controller(Node):
 
     def near_current_goal(self) -> bool:
         """
-        Function determines (if there is a goal) if we are near the goal.
+        Function determines (if there is a goal) if we are near the goal. If there is no
+        planned goal or state_current_planning_destination, we return False, since we 
+        must have a goal to be near it. 
         :return: Boolean value of True if we are near goal (and goal exists), False otherwise
         """
 
         # look for a best effort goal, else compare to an original goal
-        best_effort_goal = self.best_effort_goals[self.planning_state.state]
-        goal = best_effort_goal if best_effort_goal else self.original_goals[self.planning_state.state]
+        end_of_path = self.get_end_of_path() 
+        goal = end_of_path if end_of_path else self.state_current_planning_destination
 
         if goal is None:
             return False
         return distance(np.array([self.state_rover_pose.x, self.state_rover_pose.y]), goal) < min_waypoint_distance
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Planning Loop Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    def get_honing_goal(self):
+    def get_honing_goal(self) -> tuple:
         """
         Calculates the current goal as either the "original" goal, or the average vector of a bunch of AR tags
         """
@@ -371,13 +370,13 @@ class Controller(Node):
             # If we have found ar tags, go to their average position
             return self.state_current_planning_destination
 
-    def get_search_goal(self):
-        if self.near_current_goal() or self.search_array_index == -1:
-            self.search_array_index += 1
-            self.best_effort_goals[PlanningState.SEARCH] = None  # we have to set it again before this will return true
+    def get_search_goal(self) -> tuple:
+        """
+        Returns the current search plan way-point and increments the counter
+        """
         return self.search_plan[self.search_array_index]
 
-    def get_gate_goal(self):
+    def get_gate_goal(self) -> tuple:
         """
         Calculates a point some distance through the gate. Assumes we are already
         at the gate, and also that we are facing the direction
@@ -413,7 +412,14 @@ class Controller(Node):
 
         planning_destination = Point2D()
         # polymorphism and ~functional~ programming to get the planner for the particular state
+
         planning_destination.x, planning_destination.y = self.planners[self.planning_state.state]()
+
+        # update search array index        
+        if self.planning_state.state == PlanningState.SEARCH:
+            if self.near_current_goal():
+                self.search_array_index += 1
+
         self.state_current_planning_destination = (planning_destination.x, planning_destination.y)
         self.pub_desired_destination.publish(planning_destination)
 
@@ -480,9 +486,13 @@ class Controller(Node):
             print("In TO_WAYPOINT controller")
             if distance((self.state_rover_pose.x, self.state_rover_pose.y),
                         self.waypoint_path[0]) <= min_waypoint_distance:
-                self.waypoint_path = self.waypoint_path[1:]
+                # todo: consider if this line should be moved to the planning state udate 
+                # loop to avoid edge cases
                 self.get_logger().info("Reached way-point: " + str(self.waypoint_path[0]))
+                self.waypoint_path = self.waypoint_path[1:]
             self.go_to_target(self.waypoint_path[0])
+        elif len(self.waypoint_path) == 0:
+            self.get_logger().debug("No more waypoints in path.")
 
     def send_drive_cmd(self, drive_fraction: float, angular_fraction: float):
         """
