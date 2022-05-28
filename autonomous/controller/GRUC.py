@@ -91,8 +91,12 @@ class PlanningState(Enum):
 
 class SavedPlanningState:
     def __init__(self):
-        super().__init__()
+
+        # warn user if state is being loaded from disk
         self.saved_state_fn = "saved_state.txt"
+        if self.saved_state_fn in listdir("."):
+            print("State will initialise from saved state as " + str(self.planning_state.state))
+
         self.num_paths_planned = 0
         self.state = PlanningState.SUCCESS
         if self.saved_state_fn in listdir("."):
@@ -127,6 +131,14 @@ class Controller(Node):
         # set debug to not get shown
         self.get_logger().set_level(LoggingSeverity.INFO)
 
+        # ~~~~~~~~~~ State ~~~~~~~~
+        self.state_rover_pose = State()
+        self.ar_tag_manager = ArTagManager()
+        self.planning_state = SavedPlanningState()
+        self.waypoint_path = []
+        self.state_current_planning_destination = None
+        self.driving_state = DrivingState.TO_WAYPOINT
+
         # these are the planners we use when in each particular state
         self.planners = {
             PlanningState.GPS_HONING: self.get_honing_goal,
@@ -135,38 +147,14 @@ class Controller(Node):
             PlanningState.GATE: self.get_gate_goal,
             PlanningState.SUCCESS: None
         }
-        # original goals are GPS coordinates, AR tags, gate based goals, or search goals
-        self.original_goals = {e: None for e in PlanningState}
-        # best effort goals are end of path planner paths
-        self.best_effort_goals = {e: None for e in PlanningState}
-        # these are the paths returned by path planner
-        self.waypoint_paths = {e: [] for e in PlanningState}
-
-        # edge case: store and old "original goal" -> success -> honing mode
-        # make sure to set all goals and way-points and stuff when we get a new goal
-
-        # number of paths planned in the current cycle
-        self.num_plans_for_current_state = 0
-
         # The mode we are currently in based on all the most up to date information - note this will load
         # previous state from disk
-        self.planning_state = SavedPlanningState()
-        if self.planning_state.saved_state_fn in listdir("."):
-            self.get_logger().WARN("State will initialise from saved state as " + str(self.planning_state.state))
 
-        # the driving state is either turning for when we start a search, or driving directly to way-points
-        self.driving_state = DrivingState.TO_WAYPOINT
 
         # Controller classes for turning, driving to waypoints, and spinning
         self.ctl_turner = YawStarTurner()
         self.ctl_driver = DriveController(self.ctl_turner)
         self.ctl_spin = None
-
-        # State
-        self.state_rover_pose = State()  # from controller_math
-        self.ar_tag_manager = ArTagManager()
-        self.waypoint_path = []
-        self.state_current_goal_position = None
 
         # Global variables containing our search plan
         self.search_plan = []
@@ -200,10 +188,11 @@ class Controller(Node):
         """
         sets all original goals, best effort goals and stored paths back to default state
         """
-        # original goals are GPS coordinates, AR tags, gate based goals, or search goals
-        self.original_goals = {e: None for e in PlanningState}
+        # original goal could be a GPS coordinates (in local frame),
+        # AR tags, gate based goals, or search goals
+        self.state_current_planning_destination = None
         # best effort goals are end of path planner paths
-        self.best_effort_goals = {e: None for e in PlanningState}
+        self.best_effort_goal = None
         # these are the paths returned by path planner
         self.waypoint_paths = {e: [] for e in PlanningState}
 
@@ -272,7 +261,7 @@ class Controller(Node):
         1 tag - rough location given, we must go there and then travel to the ARTAG when we find it.
         2 tags - rough location + two tags, we need to travel between the two tags as this is a GATE.
         """
-        if self.state_current_goal_position is None:
+        if self.state_current_planning_destination is None:
             return GoalType.NO_GOAL
         else:
             # using if/elif here for CLARITY
@@ -312,7 +301,7 @@ class Controller(Node):
         self.waypoint_path = [(p.x, p.y) for p in msg.waypoints
                               if distance((self.state_rover_pose.x, self.state_rover_pose.y),
                                           (p.x, p.y)) > min_waypoint_distance]
-        self.best_effort_goals[self.planning_state.state] = self.get_end_of_path()
+        self.state_current_planning_destination = self.get_end_of_path()
         self.planning_state.num_paths_planned += 1
 
     def callback_rover_pose(self, msg):
@@ -351,7 +340,7 @@ class Controller(Node):
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 'Util' Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     def setup_search(self):
-        self.search_plan = interpolate_circle_points(self.state_current_goal_position)
+        self.search_plan = interpolate_circle_points(self.state_current_planning_destination)
         self.driving_state = DrivingState.TURNING
 
     def near_current_goal(self) -> bool:
@@ -373,14 +362,14 @@ class Controller(Node):
         """
         Calculates the current goal as either the "original" goal, or the average vector of a bunch of AR tags
         """
-        # return
-        if self.ar_tag_manager.found_current_goals():
+        # if we have goals to find and we have found those goals, hone into the goal
+        if self.ar_tag_manager.found_current_goals() and len(self.ar_tag_manager) > 0:
             return self.ar_tag_manager.get_average_goal_pose()
 
         # If we weren't looking for or haven't found ar tags, go to the original goal
         else:
             # If we have found ar tags, go to their average position
-            return self.state_current_goal_position
+            return self.state_current_planning_destination
 
     def get_search_goal(self):
         if self.near_current_goal() or self.search_array_index == -1:
@@ -416,14 +405,16 @@ class Controller(Node):
         if self.planning_state.state == PlanningState.SUCCESS:
             # this will mean while in SUCCESS state we won't call the state transition function
             # - hence why we need and edge trigger in the autonomous goals callback
+            self.get_logger().DEBUG("In SUCCESS state, no planning required.")
             return
 
-        # update planning mode state
+        # update planning mode state - this is the only time in the codebase this function is called
         self.planning_mode_state_transition()
 
         planning_destination = Point2D()
-        # polymorphism ~~
+        # polymorphism and ~functional~ programming to get the planner for the particular state
         planning_destination.x, planning_destination.y = self.planners[self.planning_state.state]()
+        self.state_current_planning_destination = (planning_destination.x, planning_destination.y)
         self.pub_desired_destination.publish(planning_destination)
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Control Loop Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
