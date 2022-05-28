@@ -67,6 +67,7 @@ from controller.drive_controller import DriveController
 # misc
 from enum import Enum
 from os import listdir
+import sys
 
 
 class GoalType(Enum):
@@ -90,15 +91,17 @@ class PlanningState(Enum):
 
 
 class SavedPlanningState:
-    def __init__(self):
+    def __init__(self,logger):
+        # passed from parent
+        self._logger = logger
+        self.num_paths_planned = 0
+        self.state = PlanningState.SUCCESS
 
         # warn user if state is being loaded from disk
         self.saved_state_fn = "saved_state.txt"
         if self.saved_state_fn in listdir("."):
-            print("State will initialise from saved state as " + str(self.planning_state.state))
+            self.get_logger().warn("State will initialise from saved state as " + str(self.state))
 
-        self.num_paths_planned = 0
-        self.state = PlanningState.SUCCESS
         if self.saved_state_fn in listdir("."):
             with open(self.saved_state_fn, "r") as fp:
                 self.state = PlanningState(int(fp.read()))
@@ -115,6 +118,12 @@ class SavedPlanningState:
         with open(self.saved_state_fn, "w") as fp:
             fp.write(str(int(self.state.value)))
         self.num_paths_planned = 0
+
+    def get_logger(self):
+        """
+        Keeps code consistent ;)
+        """
+        return self._logger
 
 
 class Controller(Node):
@@ -134,7 +143,7 @@ class Controller(Node):
         # ~~~~~~~~~~ State ~~~~~~~~
         self.state_rover_pose = State()
         self.ar_tag_manager = ArTagManager()
-        self.planning_state = SavedPlanningState()
+        self.planning_state = SavedPlanningState(logger=self.get_logger())
         self.waypoint_path = []
         self.state_current_planning_destination = None
         self.driving_state = DrivingState.TO_WAYPOINT
@@ -149,7 +158,8 @@ class Controller(Node):
             PlanningState.AR_HONING: self.get_honing_goal,
             PlanningState.SEARCH: self.get_search_goal,
             PlanningState.GATE: self.get_gate_goal,
-            PlanningState.SUCCESS: None
+            # cheeky lambda 
+            PlanningState.SUCCESS: lambda: self.get_logger().fatal("Why is SUCCESS being called?") and sys.exit(1)
         }
 
         # Controller classes for turning, driving to waypoints, and spinning
@@ -404,8 +414,10 @@ class Controller(Node):
         if self.planning_state.state == PlanningState.SUCCESS:
             # this will mean while in SUCCESS state we won't call the state transition function
             # - hence why we need and edge trigger in the autonomous goals callback
-            self.get_logger().DEBUG("In SUCCESS state, no planning required.")
+            self.get_logger().info("In SUCCESS state, no planning required.")
             return
+        else:
+            self.get_logger().info("plan() state is {}".format(self.planning_state.state))
 
         # update planning mode state - this is the only time in the codebase this function is called
         self.planning_mode_state_transition()
@@ -413,6 +425,7 @@ class Controller(Node):
         planning_destination = Point2D()
         # polymorphism and ~functional~ programming to get the planner for the particular state
 
+        self.get_logger().info("Calling planner {} for state {}".format(self.planners[self.planning_state.state],self.planning_state.state))
         planning_destination.x, planning_destination.y = self.planners[self.planning_state.state]()
 
         # update search array index        
