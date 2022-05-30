@@ -22,7 +22,7 @@ ACTIONS:  None
 PACKAGE: 	control
 AUTHOR(S):  Harrison Verrios, Liam Whittle
 CREATION:	14/11/2021
-EDITED:		21/02/2022
+EDITED:		31/05/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
@@ -40,7 +40,7 @@ using std::placeholders::_1;
 
 // The minimum and maximum multipliers
 const float MIN_MULTIPLIER      = 0.1;  // The minimum multiplier value
-const float MAX_MULTIPLIER      = 1.0;  // The maximum multiplier value
+const float MAX_MULTIPLIER      = 0.7;  // The maximum multiplier value
 const float DELTA_MULTIPLIER    = 0.1;  // The change in multiplier
 
 // The initial multipliers
