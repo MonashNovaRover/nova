@@ -503,12 +503,7 @@ class Controller(Node):
         if self.driving_state == DrivingState.TO_WAYPOINT and len(path) > 0:
             # can only go to waypoints
             # Drive to a waypoint
-            print("In TO_WAYPOINT controller")
-            if distance((self.state_rover_pose.x, self.state_rover_pose.y),
-                        path[0]) <= min_waypoint_distance:
-                # loop to avoid edge cases
-                self.get_logger().debug("Reached way-point: " + str(path[0]))
-                path = path[1:]
+            self.get_logger().debug("In TO_WAYPOINT controller")
             self.go_to_target(path[0])
         elif len(path) == 0:
             self.get_logger().debug("No more waypoints in path.")
