@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 _package__ = "autonomous"
 
 """
@@ -23,13 +24,14 @@ TODO:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
-
 from a_star import a_star
 from math_utils.controller_math import *
 from rclpy.node import Node
-from core.msg import Waypoints, Waypoint, RoverPose, AlvarMarker, AutonomousGoal
+from core.msg import Waypoints, Waypoint, RoverPose, Point2D
 from config.ros_config import *
-from config.runtime_params import min_ar_distance, max_ar_distance, ignore_waypoints, tracking_camera_extrinsics
+from config.runtime_params import ignore_waypoints, INITIAL_PADDING_DIST_M, goal_achieved_distance
+from core.srv import PathPlanningRequest
+from mapping.grid_2d import Grid2D
 
 
 class PathPlanner(Node):
@@ -41,69 +43,68 @@ class PathPlanner(Node):
     A_STAR_CRITICAL_NO_PATH = 8
 
     def __init__(self, resolution_m):
+        """
+        :param resolution_m: planning resolution
+        """
         super().__init__("path_planner_node")
-        
-        # way-point publisher publishes a bunch of waypoints at once (hence using the 2D map datatype
-        self.waypt_publisher = self.create_publisher(Waypoints, auto_waypoints_topic, 10)
-        
-        self.pose_subscriber = self.create_subscription(RoverPose, rover_pose_topic, self.update_pose, 10)
 
-        self.ar_tag_subscriber = self.create_subscription(AlvarMarker, ar_track_topic, self.ar_goal_callback, 10)
-        self.goal_subscriber = self.create_subscription(AutonomousGoal, auto_goals_topic, self.manual_goal_callback, 10)
-
-        self.expected_goal_id = 0
-
+        # constants
+        self.padding_dist_m = INITIAL_PADDING_DIST_M
         self.resolution = resolution_m
 
-        self.recorded_tags = []
-
-        # in case we want to test path planning without a controller
-        self.state = State()
-
+        # state
+        self.state = Pose2D()
+        self.at_goal = True
         self.start = (0, 0)
         self.goal = (0, 0)
         self.goal_id = 0
-
+        self.offset = [0, 0]
         self.route = []
 
-    def ar_goal_callback(self, msg):
+        self.grid2d = None
+
+        # subscribers and services
+        # planning service listens to requests for paths to be planned
+        self.planning_service = self.create_service(PathPlanningRequest, path_planning_service_name,
+                                                    self.path_planning_service_callback)
+        self.pose_subscriber = self.create_subscription(RoverPose, rover_pose_topic, self.update_pose, 10)
+        self.planning_subscriber = self.create_subscription(Point2D, planning_destination_topic, self.path_planning_sub_callback, 10)
+        self.path_publisher = self.create_publisher(Waypoints, auto_waypoints_topic, 10)
+
+    def update_map(self, msg):
+        print("updating map")
+        self.grid2d = msg
+
+    def path_planning_service_callback(self, request: PathPlanningRequest.Request,
+                                       response: PathPlanningRequest.Response):
         """
-        1. Check that it's the AR tag we are looking
-        2. Filter out dodgy values
-            - are values within an absolute range?
-            - standard deviation? idk
-        3. Transform pose of tag relative to rover into global pose of tag
-        
+        This callback is used in the path planning service. The service will receive a goal coordinate and return
+        a set of destination coordinates, and a valid boolean response if a reasonable path could be found
         """
-        pose = msg.pose.pose.position
-        
-        self.get_logger().info("found tag: x=" + str(pose.x) + " | y=" + str(pose.y) + " | z=" + str(pose.z))
-        
-        local_pose = np.array([pose.x, pose.y]).reshape(2, 1)
+        if self.grid2d is None:
+            response.success = False
+            response.path = []
+            self.get_logger().warn("PathPlanner: map has not been updated yet, plan could not be planned")
 
-        # tracking cam extrinsics are included in global pose as 0, 0 is the centre of the rover
-        extrinsics = np.array(tracking_camera_extrinsics)[:2].reshape(2, 1)
-        local_pose -= extrinsics
+        # fill the way-points
+        response.path = self.get_path(request.target.x, request.target.y)
+        response.success = True
+        return response
 
-        # distance from centre of rover to AR tag
-        distance = (np.dot(local_pose.reshape(2), local_pose.reshape(2))) ** 0.5
-        # if not (min_ar_distance <= distance <= max_ar_distance):
-        #    return
+    def path_planning_sub_callback(self, msg):
+        """
+        For path planning asynchronously from control loop without services
+        """
+        if self.grid2d is None:
+            self.get_logger().warn("PathPlanner: map has not been updated yet, plan could not be planned")
+            return 
+        self.at_goal = False
+        path = self.get_path(msg.x, msg.y)
+        self.path_publisher.publish(path)
 
-        # translate step
-        rot_mat = np.array([[np.cos(self.state.yaw), -np.sin(self.state.yaw)], [np.sin(self.state.yaw), np.cos(self.state.yaw)]])
-        
-        global_pose = np.matmul(rot_mat, local_pose).reshape(2) + np.array([self.state.x, self.state.y])
-
-        # goal diff for logging
-        goal_diff = ((self.goal[0] - global_pose[0]) ** 2 + (self.goal[1] - global_pose[1]) ** 2) ** 0.5
-
-        iD = msg.id
-
-        if iD // 4 == self.goal_id:# and goal_diff > 0.2:
-            self.goal = global_pose[0], global_pose[1]
-            self.get_logger().info("Updated planning goal (AR tag): x=" + str(global_pose[0]) + "| y=" + str(global_pose[1]))
-
+    def set_offset(self, offset):
+        self.offset[0] = offset[0]
+        self.offset[1] = offset[1]
 
     def manual_goal_callback(self, msg):
         """
@@ -112,16 +113,10 @@ class PathPlanner(Node):
             - are values within an absolute range?
             - standard deviation? idk
         3. Transform pose of tag relative to rover into global pose of tag
-        
-        
         """
-        print("\n\n\n\n")
-        position = msg.position
-        iD = msg.id
-
-        self.get_logger().info("Next goal x=" + str(position.x) + " | y=" + str(position.y))
-        self.goal = (position.x, position.y)
-        self.goal_id = iD
+        self.get_logger().info("Next goal x=" + str(msg.x) + " | y=" + str(msg.y))
+        self.goal = (msg.x, msg.y)
+        self.at_goal = False
 
     def get_grid_coord(self, position):
         return int((position[0] + self.length_meters / 2) / self.resolution), \
@@ -135,22 +130,12 @@ class PathPlanner(Node):
         """ 
         Callback function that updates the current pose of the rover from data in the auto_command_pose_updates topic
         """
-        self.state.x = msg.x
+        self.x = msg.x
+        self.state.y = msg.y
+        self.state.yaw = msg.yaw
 
-
-    @staticmethod
-    def heuristic(a, b, heuristic_type="euclidean"):
-       
-        """
-        The manhattan heuristic works for movements up, down, left, right, and is an admissible and consistent heuristic
-        The straight line heuristic works for any problem domain in 2-d euclidean space and is admissible and consistent
-        The octile heuristic is admissible and consistent for octile movements where diagonal movements incur cost sqrt(2)
-        """
-        if heuristic_type == "manhattan":
-            return abs(a[0] - b[0]) + abs(a[1] - b[1])  # manhattan
-        elif heuristic_type == "octile":
-            return min(abs(a[0] - b[0]), abs(a[1] - b[1])) * (2 ** 0.5) + abs(abs(a[0] - b[0]) - abs(a[1] - b[1]))  # octile
-        return np.sqrt((b[0] - a[0]) ** 2 + (b[1] - a[1]) ** 2)  # euclidean distance norm
+        if not self.at_goal and distance((self.x, self.state.y), self.goal) < goal_achieved_distance:
+            self.achieved_goal()
 
     def get_local_coords_route(self, route):
         """
@@ -159,35 +144,63 @@ class PathPlanner(Node):
         """
         return [self.get_float_position((x, y)) for (x, y) in route]
 
-    def get_path(self, _map):
+    def handle_path_status(self, status):
+        """
+        Handles logging and adjusting of parameters according to the
+        status returned by our c++ A* method.
+        """    
+        if status & PathPlanner.A_STAR_START_OBSTACLE: self.get_logger().warn("started in obstacle")
+        if status & PathPlanner.A_STAR_DEST_OBSTACLE: self.get_logger().warn("dest in obstacle")
+        if status & PathPlanner.A_STAR_NO_PATH: self.get_logger().warn("couldn't find a path initially")
+        if status & PathPlanner.A_STAR_CRITICAL_NO_PATH:
+            self.get_logger().error("COULDN'T FIND PATH - NEAR OBSTACLE")
+            self.padding_dist_m -= 0.1
+            if self.padding_dist_m < 0.4:
+                self.get_logger().error("Ah HECK")
+                return
+        if status == PathPlanner.A_STAR_SUCCESS: self.get_logger().info("A* found safe path")
+
+    # todo: migrate this logic to strategy manager
+    def achieved_goal(self):
+        """
+        Inform the operators that we think we have achieved a goal,
+        and update the state of the planner accordingly.
+        """
+        self.at_goal = True
+        self.get_logger().info(f"GOAL ACHIEVED: ({self.goal[0]}, {self.goal[1]}) [id = {self.goal_id}]")
+
+    def get_path(self, goal_x, goal_y) -> Waypoints:
         """
         Repeatedly run A* on the updated rover pose and map to continually redetermine the optimal path.
         Called on a clock initialised in the add_destination method
         """
 
-        self.start = (self.state.x, self.state.y)
-       
-        self.length = _map.shape[0]
-        self.width = _map.shape[1]
+        # todo: this logic should also be outside the path planner - for now we can keep it here I guess
+        if self.at_goal: 
+            self.get_logger().info("No goal to navigate to")
+            empty_waypoints = Waypoints()
+            empty_waypoints.waypoints = []
+            return empty_waypoints
 
-        self.length_meters = int(_map.shape[0] * self.resolution)
-        self.width_meters = int(_map.shape[1] * self.resolution)
+        self.start = (self.x - self.offset[0], self.state.y - self.offset[1])
+        local_goal = (goal_x - self.offset[0], goal_y - self.offset[1])
+        print(f"planning to {(local_goal[0], local_goal[1])}")
+
+        self.length = self.grid2d.shape[0]
+        self.width = self.grid2d.shape[1]
+
+        self.length_meters = int(self.grid2d.shape[0] * self.resolution)
+        self.width_meters = int(self.grid2d.shape[1] * self.resolution)
         
-        self.route = np.array(a_star(_map, self.get_grid_coord(self.start), self.get_grid_coord(self.goal), self.resolution))
-        status = self.route[-1, 0]
+        self.route = np.array(a_star(self.grid2d, self.get_grid_coord(self.start), self.get_grid_coord(local_goal), self.resolution, self.padding_dist_m))
         self.route = self.route[:-1]
-        if status & PathPlanner.A_STAR_START_OBSTACLE: self.get_logger().warn("started in obstacle")
-        if status & PathPlanner.A_STAR_DEST_OBSTACLE: self.get_logger().warn("dest in obstacle")
-        if status & PathPlanner.A_STAR_NO_PATH: self.get_logger().warn("couldn't find a path initially")
-        if status & PathPlanner.A_STAR_CRITICAL_NO_PATH: self.get_logger().error("COULDN'T FIND PATH - NEAR OBSTACLE")
-        if status == PathPlanner.A_STAR_SUCCESS: self.get_logger().info("A* found safe path")
-        route_coordinates = self.get_local_coords_route(self.route)
-        waypoints = Waypoints()
-        #route_coordinates = [route_coordinates[-1] if len(route_coordinates) <= 4 else route_coordinates[4::5]]
 
-        #self.get_logger().warn(str(route_coordinates[0]))
-        for wpt in route_coordinates[min(len(route_coordinates) -1, ignore_waypoints):]:
-            # publishing waypoints in order 
+        route_coordinates = np.array(self.get_local_coords_route(self.route))
+        route_coordinates[:] += np.array(self.offset)
+        waypoints = Waypoints()
+
+        # todo: the logic of ignoring waypoints should be outside the path planner. It should plan a pure path
+        for wpt in route_coordinates[min(len(route_coordinates) - 1, ignore_waypoints):]:
             waypoint = Waypoint()
             waypoint.x = wpt[0]
             waypoint.y = wpt[1]
@@ -195,5 +208,5 @@ class PathPlanner(Node):
             if (not math.isnan(waypoint.x)) and (not math.isnan(waypoint.y)):
                 waypoints.waypoints.append(waypoint)
 
-        self.waypt_publisher.publish(waypoints)
-        self.get_logger().info(f"Published {len(route_coordinates)} waypoints")
+        self.get_logger().info(f"Path Planner Calculated {len(route_coordinates)} waypoints")
+        return waypoints

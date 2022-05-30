@@ -20,6 +20,7 @@ Raw data from the depth camera:
 
 
 import numpy as np
+from geometry_msgs.msg import Quaternion
 from nav_msgs.msg import Odometry
 
 
@@ -78,18 +79,27 @@ def transform_euler(euler_angles, pts):
     """
     transforms euler angles into quaternions, then uses our quaternion rotation matrix to
     rotate the points
-    :param: euler angles: [pitch, roll, yaw]
+    :param: euler angles: [pitch, roll, yaw] - corresponding to 
     :returns: transformed points by the given rotations
     """
+    
+    qx, qy, qz, qw = euler_to_quat(euler_angles)    
+
+    mat = quat2mat(Q(qx, qy, qz, qw))
+    pts = np.matmul(mat, pts.transpose()).transpose()
+    return pts
+
+
+def euler_to_quat(euler_angles):
     pitch, roll, yaw = euler_angles[0], euler_angles[1], euler_angles[2]
+
     qx = np.sin(roll/2) * np.cos(pitch/2) * np.cos(yaw/2) - np.cos(roll/2) * np.sin(pitch/2) * np.sin(yaw/2)
     qy = np.cos(roll/2) * np.sin(pitch/2) * np.cos(yaw/2) + np.sin(roll/2) * np.cos(pitch/2) * np.sin(yaw/2)
     qz = np.cos(roll/2) * np.cos(pitch/2) * np.sin(yaw/2) - np.sin(roll/2) * np.sin(pitch/2) * np.cos(yaw/2)
     qw = np.cos(roll/2) * np.cos(pitch/2) * np.cos(yaw/2) + np.sin(roll/2) * np.sin(pitch/2) * np.sin(yaw/2)
+
+    return qx, qy, qz, qw
     
-    mat = quat2mat(Q(qx, qy, qz, qw))
-    pts = np.matmul(mat, pts.transpose()).transpose()
-    return pts
 
 def quat_to_euler(pose_msg):
     """
@@ -120,10 +130,16 @@ def transform_points(pose_msg: Odometry, pts: np.array) -> np.array:
     pose_msg: nav_msgs.msg.Odometry message
     pts: numpy array with shape (n, 3)
     """
-    q_mat = quat2mat(pose_msg_to_quat(pose_msg))
+    pts = transform_from_quat(pose_msg.pose.pose.orientation, pts)
+    return pts + [pose_msg.pose.pose.position.x, pose_msg.pose.pose.position.y, pose_msg.pose.pose.position.z]
+
+
+def transform_from_quat(quat: Quaternion, pts: np.array) -> np.array:
+    q = Q(quat.x, quat.y, quat.z, quat.w)
+    q_mat = quat2mat(q)
+
     mat = get_extrinsics(q_mat)
     pts = np.matmul(mat, pts.transpose()).transpose()
-    pts = pts + [pose_msg.pose.pose.position.x, pose_msg.pose.pose.position.y, pose_msg.pose.pose.position.z]
     return pts
 
 

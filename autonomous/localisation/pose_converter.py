@@ -38,12 +38,12 @@ from localisation.gps_converter import GpsConverter
 from rclpy.node import Node
 from nav_msgs.msg import Odometry
 from core.msg import RoverPose, WheelData, RoverPoseGPS, AutonomousGoal
+
 from geometry_msgs.msg import PoseWithCovariance, TransformStamped
 from sensor_msgs.msg import Imu
 from rclpy.qos import qos_profile_sensor_data as qos
-# for easy transforms
-
-
+from rclpy.logging import LoggingSeverity
+  
 class PoseConverter(Node):
     """
     ROS2 Node to listen to:
@@ -158,9 +158,11 @@ class PoseConverter(Node):
         # getting covariance values
         p_xx, p_xy, p_yx, p_yy = msg.covariance[0], msg.covariance[1], msg.covariance[6], msg.covariance[7]
 
+        # Leigh Oliver 23/05/22
+        # Now prints warning messages abt high covariance, every 5 seconds
         if p_xx > 1 or p_yy > 1:
-            # high variance -> ignore
-            return
+            # high variance -> warn
+            self.get_logger().log("High dGPS Covariance (p_xx: {:.2f}, p_yy: {:.2f})".format(p_xx,p_yy),LoggingSeverity.WARN,throttle_duration_sec=5)
 
         cov = np.array([[p_xx, p_xy], [p_yx, p_yy]])
 
@@ -289,25 +291,38 @@ class PoseConverter(Node):
         self.camera_pub.publish(camera_msg)
 
     def print_rover_msg(self, rover_msg):
+        # Leigh: why are we writing to stdout directly, what is this, the 80s? 
         # write to system
-        sys.stdout.write("\r" + "x: " + str(round(rover_msg.x, 4)).ljust(7)
-                         + " | y: " + str(round(rover_msg.y, 4)).ljust(7)
-                         + " | z: " + str(round(rover_msg.z, 4)).ljust(7)
-                         + " | pitch: " + str(round(rover_msg.pitch, 4)).ljust(7)
-                         + " | roll: " + str(round(rover_msg.roll, 4)).ljust(7)
-                         + " | yaw: " + str(round(rover_msg.yaw, 4)).ljust(7))
-        sys.stdout.flush()
-
-        # I guess we still do this?
-        #with open(pose_file, "w") as f:
-        #    f.write(f"{rover_msg.x}\t{rover_msg.y}\t{rover_msg.z}\t{rover_msg.yaw}")
-
+        #sys.stdout.write("\r" + "x: " + str(round(rover_msg.x, 4)).ljust(7)
+        #                 + " | y: " + str(round(rover_msg.y, 4)).ljust(7)
+        #                 + " | z: " + str(round(rover_msg.z, 4)).ljust(7)
+        #                 + " | pitch: " + str(round(rover_msg.pitch, 4)).ljust(7)
+        #                 + " | roll: " + str(round(rover_msg.roll, 4)).ljust(7)
+        #                 + " | yaw: " + str(round(rover_msg.yaw, 4)).ljust(7))
+        #sys.stdout.flush()
+        
+        # LO
+        # Behold the power of fstrings!!!
+        # https://docs.python.org/3/reference/lexical_analysis.html#f-strings
+        roverMsgStr = f"""
+        x: {rover_msg.x:8.3f}
+        y: {rover_msg.y:8.3f}
+        z: {rover_msg.z:8.3f}
+        pitch: {rover_msg.pitch:8.2f}
+        roll: {rover_msg.roll:8.2f}
+        yaw: {rover_msg.yaw:8.2f}
+        """
+        
+        # Prints every 1 second to reduce spam
+        self.get_logger().log(roverMsgStr,LoggingSeverity.INFO,throttle_duration_sec=1)
+        
+        
 
 def main():
     rclpy.init()
     converter = PoseConverter()
     rclpy.spin(converter)
     rclpy.shutdown()
-
+    
 if __name__ == "__main__":
     main()

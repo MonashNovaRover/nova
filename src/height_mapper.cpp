@@ -1,8 +1,3 @@
-/*
- 
-*/
-
-
 #include <chrono>
 #include <functional>
 #include <memory>
@@ -16,8 +11,6 @@
 #include <pybind11/numpy.h>
 
 #include <bits/stdc++.h>
-
-//#include "rclcpp/rclcpp.hpp"
 
 using namespace std::chrono_literals;
 namespace py = pybind11;
@@ -81,7 +74,7 @@ std::tuple<py::array_t<unsigned char>, int> getObstacles(PointCloud& points, con
             if (z < bottomHeightMap.at<unsigned char> (x, y)) bottomHeightMap.at<unsigned char> (x, y) = (unsigned char) z;
 	    min_x = (x < min_x) ? x : min_x;
         } else {
-            std::cout << "passed invalid index! Fix your shit Max!" << std::endl;
+            std::cout << "Height Mapper received invalid index - Don't panic it's probably fine" << std::endl;
             std::cout << "x = " << x << ", y = " << y << std::endl;
         }
     }
