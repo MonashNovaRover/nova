@@ -21,7 +21,7 @@ EDITED:         12/04/2022
 """
 
 from abc import *
-from math_utils.controller_math import State, distance, yaw_difference
+from math_utils.controller_math import Pose2D, distance, yaw_difference
 from typing import Tuple, Dict
 
 class GoalSetter(ABC):
@@ -29,7 +29,7 @@ class GoalSetter(ABC):
 
 
     @abstractmethod
-    def get_next_goal(self, target_waypoint, state: State, goal: Tuple[float], gate) -> Dict:
+    def get_next_goal(self, target_waypoint, state: Pose2D, goal: Tuple[float], gate) -> Dict:
         """
         Gets the drive command based on the type of controller we are using
         :param target_waypoint: the next waypoint in the list we are aiming for

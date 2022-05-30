@@ -55,7 +55,7 @@ class Controller(Node):
         self.ids = []
 
         self.turning = Turning()
-        self.state = State()  # from controller_math
+        self.state = Pose2D()  # from controller_math
         self.waypoints = []
         self.target_waypoint = None
         self.previously_turned = False

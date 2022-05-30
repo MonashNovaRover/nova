@@ -91,7 +91,7 @@ class PlanningState(Enum):
 
 
 class SavedPlanningState:
-    def __init__(self,logger):
+    def __init__(self, logger):
         # passed from parent
         self._logger = logger
         self.num_paths_planned = 0
@@ -141,7 +141,7 @@ class Controller(Node):
         self.get_logger().set_level(LoggingSeverity.INFO)
 
         # ~~~~~~~~~~ State ~~~~~~~~
-        self.state_rover_pose = State()
+        self.state_rover_pose = Pose2D()
         self.ar_tag_manager = ArTagManager()
         self.planning_state = SavedPlanningState(logger=self.get_logger())
         self.waypoint_path = []
