@@ -255,7 +255,7 @@ class PoseConverter(Node):
 
         # filling out gps message
         gps_msg.valid = True
-        gps_msg.pitch, gps_msg.roll, gps_msg.yaw = pitch, roll, yaw
+        gps_msg.pitch, gps_msg.roll, gps_msg.yaw = -pitch, roll, -yaw
         # convert x, y to lat, lon
         
         coord = self.gps_converter.get_global_coord(
