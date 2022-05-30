@@ -499,17 +499,18 @@ class Controller(Node):
                 self.driving_state = DrivingState.TO_WAYPOINT
 
         # -------------------------------------- 1. DRIVING ------------------------------
-        if self.driving_state == DrivingState.TO_WAYPOINT and len(self.waypoint_path) > 0:
+        path = self.prune_waypoints()
+        if self.driving_state == DrivingState.TO_WAYPOINT and len(path) > 0:
             # can only go to waypoints
             # Drive to a waypoint
             print("In TO_WAYPOINT controller")
             if distance((self.state_rover_pose.x, self.state_rover_pose.y),
-                        self.waypoint_path[0]) <= min_waypoint_distance:
+                        path[0]) <= min_waypoint_distance:
                 # loop to avoid edge cases
-                self.get_logger().debug("Reached way-point: " + str(self.waypoint_path[0]))
-                self.waypoint_path = self.waypoint_path[1:]
-            self.go_to_target(self.waypoint_path[0])
-        elif len(self.waypoint_path) == 0:
+                self.get_logger().debug("Reached way-point: " + str(path[0]))
+                path = path[1:]
+            self.go_to_target(path[0])
+        elif len(path) == 0:
             self.get_logger().debug("No more waypoints in path.")
 
     def send_drive_cmd(self, drive_fraction: float, angular_fraction: float):
