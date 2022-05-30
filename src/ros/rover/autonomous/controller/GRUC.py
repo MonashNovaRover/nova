@@ -98,13 +98,13 @@ class SavedPlanningState:
         self.state = PlanningState.SUCCESS
 
         # warn user if state is being loaded from disk
-        self.saved_state_fn = "saved_state.txt"
-        if self.saved_state_fn in listdir("."):
-            self.get_logger().warn("State will initialise from saved state as " + str(self.state))
+        # self.saved_state_fn = "saved_state.txt"
+        # if self.saved_state_fn in listdir("."):
+        #    self.get_logger().warn("State will initialise from saved state as " + str(self.state))
 
-        if self.saved_state_fn in listdir("."):
-            with open(self.saved_state_fn, "r") as fp:
-                self.state = PlanningState(int(fp.read()))
+        # if self.saved_state_fn in listdir("."):
+        #    with open(self.saved_state_fn, "r") as fp:
+        #        self.state = PlanningState(int(fp.read()))
 
     def update_state(self, _state: PlanningState):
         """
@@ -115,8 +115,8 @@ class SavedPlanningState:
             self.state = PlanningState(_state)
         else:
             self.state = _state
-        with open(self.saved_state_fn, "w") as fp:
-            fp.write(str(int(self.state.value)))
+        #with open(self.saved_state_fn, "w") as fp:
+        #    fp.write(str(int(self.state.value)))
         self.num_paths_planned = 0
 
     def get_logger(self):
@@ -138,7 +138,7 @@ class Controller(Node):
         super().__init__('autonomous_controller_node')
 
         # set debug to not get shown
-        self.get_logger().set_level(LoggingSeverity.INFO)
+        self.get_logger().set_level(LoggingSeverity.DEBUG)
 
         # ~~~~~~~~~~ State ~~~~~~~~
         self.state_rover_pose = Pose2D()
@@ -159,7 +159,7 @@ class Controller(Node):
             PlanningState.SEARCH: self.get_search_goal,
             PlanningState.GATE: self.get_gate_goal,
             # cheeky lambda 
-            PlanningState.SUCCESS: lambda: self.get_logger().fatal("Why is SUCCESS being called?") and sys.exit(1)
+            PlanningState.SUCCESS: None # lambda: self.get_logger().fatal("Why is SUCCESS being called?")
         }
 
         # Controller classes for turning, driving to waypoints, and spinning
@@ -182,7 +182,7 @@ class Controller(Node):
         self.sub_planned_path_to_destination = self.create_subscription(Waypoints, auto_waypoints_topic,
                                                                         self.callback_planner_path, 10)
         # service for changing the LED
-        self.srv_led_color = self.create_client(Trigger, "/autonomous/led")
+        self.srv_led_color = self.create_client(Trigger, "/autonomous/LED")
 
         # Timers
         self.control_timer = self.create_timer(0.1, self.control)  # calculate and send drive commands
@@ -327,7 +327,7 @@ class Controller(Node):
         self.ar_tag_manager.ar_tag_goals = [iD for iD in msg.ids]
         self.state_current_planning_destination = msg.position.x, msg.position.y
         # WARNING: edge triggered state update outside
-        self.planning_state.update_state(PlanningState.GPS_HONING)
+        self.on_state_update(PlanningState.GPS_HONING)
 
     def callback_ar_tag(self, msg):
         """
@@ -350,6 +350,9 @@ class Controller(Node):
         """
 
         # look for a best effort goal, else compare to an original goal
+        if self.planning_state.num_paths_planned == 0:
+            return False
+
         end_of_path = self.waypoint_path[-1] if len(self.waypoint_path) > 0 else None
         if end_of_path is None:
             return True  # path is only empty if
@@ -432,6 +435,7 @@ class Controller(Node):
                 self.planning_state.state
             )
         )
+        # self.get_logger().info(str(self.planning_state.state) + " | " +  str(self.planners))
         planning_destination.x, planning_destination.y = self.planners[self.planning_state.state]()
 
         # update search array index        
@@ -466,9 +470,13 @@ class Controller(Node):
         target_vector = np.array([target_waypoint[0], target_waypoint[1], 0])
 
         desired_orientation = target_vector - position_vector
+        desired_orientation /= np.linalg.norm(desired_orientation)
+
         current_orientation = np.array([np.cos(self.state_rover_pose.yaw), np.sin(self.state_rover_pose.yaw), 0])
 
         yaw_diff = yaw_difference(current_orientation, desired_orientation)
+
+        self.get_logger().debug(f"desired: {desired_orientation}, current: {current_orientation}, yaw_diff: {yaw_diff}")
 
         drive = self.ctl_driver.get_drive_command(yaw_diff, position_vector, current_orientation)
         self.send_drive_cmd(drive['drive'], drive['steer'])
@@ -527,9 +535,9 @@ class Controller(Node):
         drive_cmd_msg.steer = max(-1.0, min(1.0, float(angular_fraction)))
 
         # Print!
-        self.get_logger().debug("Driving at speed {:.4f}, steer {:.4f}".format(
+        self.get_logger().info("Driving at speed {:.4f}, steer {:.4f}".format(
             drive_cmd_msg.speed, drive_cmd_msg.steer
-        ), LoggingSeverity.INFO, throttle_duration_sec=1)
+        ), throttle_duration_sec=1)
 
         # publish to public topic
         self.pub_drive_commands.publish(drive_cmd_msg)
