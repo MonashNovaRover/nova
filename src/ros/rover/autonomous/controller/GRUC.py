@@ -78,7 +78,7 @@ class GoalType(Enum):
 
 
 class DrivingState(Enum):
-    TURNING = 0  # doing a 360 degree turn on the spot
+    TURNING = 0  # doing a 360-degree turn on the spot
     TO_WAYPOINT = 1  # driving to the next waypoint in a path
 
 
@@ -185,9 +185,8 @@ class Controller(Node):
         self.srv_led_color = self.create_client(Trigger, "/autonomous/led")
 
         # Timers
-        # Controls the rate at which drive commands are sent - sleeps for the necessary time to maintain the rate give
-        self.timer = self.create_timer(0.1, self.control)
-        self.planning_timer = self.create_timer(1.0, self.plan)
+        self.control_timer = self.create_timer(0.1, self.control)  # calculate and send drive commands
+        self.planning_timer = self.create_timer(1.0, self.plan)  # update planning state and plan paths
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ State Transition Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -210,7 +209,7 @@ class Controller(Node):
         # note: SUCCESS mode is the only planning mode which required (or can be changed by)
         # an edge triggered change - the only place this happens is in self.callback_new_autonomous_goal()
         if self.planning_state.state == PlanningState.SUCCESS:
-            self.get_logger().info("In success mode, waiting for edge triggered update to GPS honing")
+            self.get_logger().debug("In success mode, waiting for edge triggered update to GPS honing")
 
         elif self.planning_state.state == PlanningState.GPS_HONING:
             if self.near_current_goal() and len(self.ar_tag_manager.ar_tag_goals) == 0:
@@ -261,10 +260,10 @@ class Controller(Node):
 
     def get_current_goal_type(self):
         """
-        The goal provided is in update_goal, contains a position and also a number of ARTAG ID's to search for.
-        Knowing this, we can determine the type of goal based on the number of ARTAG ID's given.
+        The goal provided is in update_goal, contains a position and also a number of AR tag ID's to search for.
+        Knowing this, we can determine the type of goal based on the number of AR tag ID's given.
         0 tags - precise position given, we must get there on dGPS alone
-        1 tag - rough location given, we must go there and then travel to the ARTAG when we find it.
+        1 tag - rough location given, we must go there and then travel to the AR tag when we find it.
         2 tags - rough location + two tags, we need to travel between the two tags as this is a GATE.
         """
         if self.state_current_planning_destination is None:
@@ -288,14 +287,6 @@ class Controller(Node):
         """
         return self.get_current_goal_type() == goal_type
 
-    def get_end_of_path(self):
-        """
-        returns last element of path if it exists, nothing
-        """
-        if len(self.waypoint_path) > 0:
-            return self.waypoint_path[-1]
-        return self.state_current_planning_destination
-
     def callback_planner_path(self, msg):
         """
         The callback which is called from the path planner subscriber. We need to:
@@ -305,10 +296,10 @@ class Controller(Node):
         :param msg: Waypoints message from the path planner
         """
         self.waypoint_path = [(p.x, p.y) for p in msg.waypoints]
-                              # removed the below list comprehension filter as it is handled 
-                              # in control()
-                              # if distance((self.state_rover_pose.x, self.state_rover_pose.y),
-                                          # (p.x, p.y)) > min_waypoint_distance]
+        # removed the below list comprehension filter as it is handled
+        # in control()
+        # if distance((self.state_rover_pose.x, self.state_rover_pose.y),
+        # (p.x, p.y)) > min_waypoint_distance]
         self.planning_state.num_paths_planned += 1
 
     def callback_rover_pose(self, msg):
@@ -359,20 +350,32 @@ class Controller(Node):
         """
 
         # look for a best effort goal, else compare to an original goal
-        end_of_path = self.get_end_of_path() 
-        goal = end_of_path if end_of_path else self.state_current_planning_destination
+        end_of_path = self.waypoint_path[-1] if len(self.waypoint_path) > 0 else None
+        if end_of_path is None:
+            return True  # path is only empty if
+        return distance(
+            np.array([self.state_rover_pose.x, self.state_rover_pose.y]),
+            end_of_path
+        ) < min_waypoint_distance
 
-        if goal is None:
-            return False
-        return distance(np.array([self.state_rover_pose.x, self.state_rover_pose.y]), goal) < min_waypoint_distance
+    def prune_waypoints(self):
+        """
+        Return a sub-list of the planning waypoints containing only those at least some minimum distance from
+        the rover
+        """
+        assert self.waypoint_path is not None
+        return [point for point in self.waypoint_path if distance(
+            (self.state_rover_pose.x, self.state_rover_pose.y),
+            point
+            ) > min_waypoint_distance]
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Planning Loop Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     def get_honing_goal(self) -> tuple:
         """
         Calculates the current goal as either the "original" goal, or the average vector of a bunch of AR tags
         """
-        # if we have goals to find and we have found those goals, hone into the goal
-        if self.ar_tag_manager.found_current_goals() and len(self.ar_tag_manager) > 0:
+        # if we have goals to find, and we have found those goals, hone into the goal
+        if self.ar_tag_manager.found_current_goals() and len(self.ar_tag_manager.ar_tag_goals) > 0:
             return self.ar_tag_manager.get_average_goal_pose()
 
         # If we weren't looking for or haven't found ar tags, go to the original goal
@@ -411,21 +414,24 @@ class Controller(Node):
         """
         Function to be called on the goal publisher timer
         """
-        if self.planning_state.state == PlanningState.SUCCESS:
-            # this will mean while in SUCCESS state we won't call the state transition function
-            # - hence why we need and edge trigger in the autonomous goals callback
-            self.get_logger().info("In SUCCESS state, no planning required.")
-            return
-        else:
-            self.get_logger().info("plan() state is {}".format(self.planning_state.state))
-
         # update planning mode state - this is the only time in the codebase this function is called
         self.planning_mode_state_transition()
+
+        if self.planning_state.state == PlanningState.SUCCESS:
+            self.get_logger().debug("In SUCCESS state, no planning required.")
+            return
+        else:
+            self.get_logger().debug("plan() state is {}".format(self.planning_state.state))
 
         planning_destination = Point2D()
         # polymorphism and ~functional~ programming to get the planner for the particular state
 
-        self.get_logger().info("Calling planner {} for state {}".format(self.planners[self.planning_state.state],self.planning_state.state))
+        self.get_logger().debug(
+            "Calling planner {} for state {}".format(
+                self.planners[self.planning_state.state],
+                self.planning_state.state
+            )
+        )
         planning_destination.x, planning_destination.y = self.planners[self.planning_state.state]()
 
         # update search array index        
@@ -454,7 +460,7 @@ class Controller(Node):
         :param:
         """
         # calculate target yaw and signed yaw difference using the controller_math module
-        self.get_logger().info(f"driving to {target_waypoint}")
+        self.get_logger().debug(f"driving to {target_waypoint}")
 
         position_vector = np.array([self.state_rover_pose.x, self.state_rover_pose.y, 0])
         target_vector = np.array([target_waypoint[0], target_waypoint[1], 0])
@@ -499,9 +505,8 @@ class Controller(Node):
             print("In TO_WAYPOINT controller")
             if distance((self.state_rover_pose.x, self.state_rover_pose.y),
                         self.waypoint_path[0]) <= min_waypoint_distance:
-                # todo: consider if this line should be moved to the planning state udate 
                 # loop to avoid edge cases
-                self.get_logger().info("Reached way-point: " + str(self.waypoint_path[0]))
+                self.get_logger().debug("Reached way-point: " + str(self.waypoint_path[0]))
                 self.waypoint_path = self.waypoint_path[1:]
             self.go_to_target(self.waypoint_path[0])
         elif len(self.waypoint_path) == 0:
@@ -521,8 +526,9 @@ class Controller(Node):
         drive_cmd_msg.steer = max(-1.0, min(1.0, float(angular_fraction)))
 
         # Print!
-        self.get_logger().debug("Driving at speed {:.4f}, steer {:.4f}".format(drive_cmd_msg.speed, drive_cmd_msg.steer),
-                              LoggingSeverity.INFO, throttle_duration_sec=1)
+        self.get_logger().debug("Driving at speed {:.4f}, steer {:.4f}".format(
+            drive_cmd_msg.speed, drive_cmd_msg.steer
+        ), LoggingSeverity.INFO, throttle_duration_sec=1)
 
         # publish to public topic
         self.pub_drive_commands.publish(drive_cmd_msg)
@@ -533,16 +539,20 @@ def handle_path_status(self, status):
     Handles logging and adjusting of parameters according to the
     status returned by our c++ A* method.
     """
-    if status & PathPlanner.A_STAR_START_OBSTACLE: self.get_logger().warn("started in obstacle")
-    if status & PathPlanner.A_STAR_DEST_OBSTACLE: self.get_logger().warn("dest in obstacle")
-    if status & PathPlanner.A_STAR_NO_PATH: self.get_logger().warn("couldn't find a path initially")
+    if status & PathPlanner.A_STAR_START_OBSTACLE:
+        self.get_logger().warn("started in obstacle")
+    if status & PathPlanner.A_STAR_DEST_OBSTACLE:
+        self.get_logger().warn("destination in obstacle")
+    if status & PathPlanner.A_STAR_NO_PATH:
+        self.get_logger().warn("couldn't find a path initially")
     if status & PathPlanner.A_STAR_CRITICAL_NO_PATH:
         self.get_logger().error("COULDN'T FIND PATH - NEAR OBSTACLE")
         self.padding_dist_m -= 0.1
         if self.padding_dist_m < 0.4:
             self.get_logger().error("Ah HECK")
             return
-    if status == PathPlanner.A_STAR_SUCCESS: self.get_logger().info("A* found safe path")
+    if status == PathPlanner.A_STAR_SUCCESS:
+        self.get_logger().info("A* found safe path")
 
 
 def main(args=None):
