@@ -56,6 +56,8 @@ class HeightPlaneMapper(FlatMapper):
         self.check_position_in_map()
         no_yaw_pts = transform.transform_points_no_yaw(self.cam_odom, pts)
 
+        if len(no_yaw_pts) < 10:
+            return
         filtered_indices = self.filter_points(no_yaw_pts)
 
         # cpp functions finds steep areas in the high resolution map
