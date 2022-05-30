@@ -30,7 +30,7 @@ from config.runtime_params import straight_drive_fraction, spin_achieved_delta
 from typing import Tuple
 
 
-class State:
+class Pose2D:
     """
     Represents a state of the rover in two dimension space - i.e. it only has an (x, y) position and a yaw.
     For use as a container in other classes.

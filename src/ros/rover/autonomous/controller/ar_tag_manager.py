@@ -22,7 +22,7 @@ from core.msg import AlvarMarker
 from rclpy.node import Node
 from config.runtime_params import *
 from config.ros_config import *
-from math_utils.controller_math import State
+from math_utils.controller_math import Pose2D
 
 
 class ArTagManager(Node):
@@ -94,7 +94,7 @@ class ArTagManager(Node):
         assert tag_id <= ArTagManager.max_tag_id
         return len(self.ar_tag_poses[tag_id]) > 0
 
-    def update_tags(self, msg: AlvarMarker, state: State):
+    def update_tags(self, msg: AlvarMarker, state: Pose2D):
         """
         Given a new AR tag and rover state, update internal AR tag lists
         :param msg: AlvarMarker message type

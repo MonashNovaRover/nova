@@ -102,7 +102,7 @@ class StrategyManager(Node):
         Callback function that updates the current pose of the rover from data in the auto_command_pose_updates topic
         """
         if self.state is None:
-            self.state = State()
+            self.state = Pose2D()
         self.state.x = msg.x
         self.state.y = msg.y
         self.state.yaw = msg.yaw

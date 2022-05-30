@@ -53,7 +53,7 @@ class PathPlanner(Node):
         self.resolution = resolution_m
 
         # state
-        self.state = State()
+        self.state = Pose2D()
         self.at_goal = True
         self.start = (0, 0)
         self.goal = (0, 0)
