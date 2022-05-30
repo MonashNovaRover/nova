@@ -113,13 +113,13 @@ class DepthCamera(Thread):
             rclpy.logging._root_logger.log(
                     f"Depth camera point cloud contained very few points",
                     LoggingSeverity.WARN,
-                    once=True,
+                    once=False,
                     skip_first=True)
             if len(verts) == 0:
                 rclpy.logging._root_logger.log(
                         f"Depth camera point cloud contained no points",
                         LoggingSeverity.ERROR,
-                        once=True,
+                        once=False,
                         skip_first=True)
 
         if self.publisher:

@@ -1,14 +1,16 @@
-
 from math_utils.controller_math import *
 from config.runtime_params import *
 
+"""
+This is the old yaw-star implementation - currently here while the new version (in turning.py) is integrated with drive.
+"""
+
 
 class Turning:
-    def __init__(self, logger):
+    def __init__(self):
 
         self.yaw_star = yaw_star_conf
 
-        self.logger = logger
         # Normal turning params
         self.previously_turned = False
 
@@ -32,21 +34,18 @@ class Turning:
 
     def run_normal(self, yaw_diff, position_vector):
         if abs(yaw_diff) >= min_yaw_difference:
-            self.logger.info('Normal: turning, yaw_diff = ' + str(yaw_diff))
             # turn at a rate determined by the tank_turn_target_yaw_rate function
             steer_fraction = tank_turn_target_yaw_rate(yaw_diff)
-            drive_fraction = 0.05
+            drive_fraction = turn_drive_fraction
             self.previously_turned = True
 
         elif self.previously_turned:
-            self.logger.info('Normal: swap')
             # need to send a zero wheel command after turning before we drive
             steer_fraction = 0.0
             drive_fraction = 0.0
             self.previously_turned = False
 
         else:
-            self.logger.info('Normal: driving')
             # drive in straight line toward waypoint at determined velocity
             drive_fraction = crow_fly_target_velocity((self.state.x, self.state.y), self.target_waypoint)
             steer_fraction = 0.0
@@ -56,29 +55,24 @@ class Turning:
     def run_star(self, yaw_diff, position_vector, current_orientation):
         steer_fraction = 0.0
         drive_fraction = 0.0
-        self.logger.warn('Params ' + str(self.star_state) + ' ' + str(self.first_drive)+ ' '+ str(yaw_diff)) 
         if abs(yaw_diff) > self.MAX_YAW:
             # Big turn, either drive straight or turn
             if self.star_state == 0:
-                self.logger.info('Star: first_yaw')
                 # From straight line to first yaw
                 self.target_yaw = np.sign(yaw_diff) * (abs(yaw_diff) - self.MAX_YAW)
                 steer_fraction = tank_turn_target_yaw_rate(yaw_diff)
-                drive_fraction = 0.05
+                drive_fraction = turn_drive_fraction
                 # Update state
                 self.star_state = 1
 
             elif self.star_state == 1:
                 # Check if keep yawing
-                self.logger.info('Star: 1: ' + str(yaw_diff) + ' ' + str(self.target_yaw))
                 if abs(yaw_diff) > abs(self.target_yaw):
                     # Keep turning
-                    self.logger.info('Star: keep_yaw')
                     steer_fraction = tank_turn_target_yaw_rate(yaw_diff)
-                    drive_fraction = 0.05
+                    drive_fraction = turn_drive_fraction 
                 else:
                     # Swap to drive mode
-                    self.logger.info('Star: swap_2_drive')
                     dist = 0.5 * self.MAX_TRAVERSAL_DISTANCE if self.first_drive else self.MAX_TRAVERSAL_DISTANCE
                     self.star_state = 2
                     self.target_yaw = 0
@@ -89,20 +83,14 @@ class Turning:
   
             elif self.star_state == 2:
                 # Check if keep driving
-                self.logger.info('Star: Cheque keep driving')
                 dist = distance(position_vector, self.target_pose)
-                self.logger.info('dist: ' + str(dist) + ' ' + str(self.direction) +' '+str(np.arctan2(position_vector, self.target_pose)))
-                self.logger.warn(str(np.dot((self.target_pose - position_vector), current_orientation)))
 
                 sign_new = np.sign(np.dot((self.target_pose - position_vector), current_orientation))
-                self.logger.info('remaining: ' + str(dist))
                 if abs(dist) > 0.1 and self.sign == sign_new:
-                    self.logger.info('Star: keep_driving')
                     # Keep driving
-                    drive_fraction = 0.1 * self.direction
+                    drive_fraction = straight_drive_fraction * self.direction
                     steer_fraction = 0.0
                 else:
-                    self.logger.info('Star: swap_2_turning')
                     # Return to turning
                     steer_fraction = 0.0
                     drive_fraction = 0.0
@@ -113,12 +101,10 @@ class Turning:
                     self.first_drive = False
 
         elif self.MAX_YAW > abs(yaw_diff) > min_yaw_difference:
-            self.logger.info('Star: turning')
             # Turn on the spot
             steer_fraction = tank_turn_target_yaw_rate(yaw_diff)
-            drive_fraction = 0.05
+            drive_fraction = turn_drive_fraction
         else:
-            self.logger.info('Star: driving')
             # Reset constants
             self.star_state = 0
             self.first_drive = True

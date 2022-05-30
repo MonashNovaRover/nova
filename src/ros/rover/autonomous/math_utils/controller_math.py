@@ -24,16 +24,18 @@ TODO:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
-
 import math
 import numpy as np
+from config.runtime_params import straight_drive_fraction, spin_achieved_delta
+from typing import Tuple
 
 
-class State:
+class Pose2D:
     """
     Represents a state of the rover in two dimension space - i.e. it only has an (x, y) position and a yaw.
     For use as a container in other classes.
     """
+
     def __init__(self, x=0.0, y=0.0, yaw=0.0, velocity=0.0, angular_velocity=0.0):
         self.x = x
         self.y = y
@@ -70,17 +72,44 @@ def yaw_difference(facing: np.array, target: np.array) -> float:
     cross = np.cross(facing, target)
     dot = np.dot(facing, target)
     norms = np.sqrt(np.dot(facing, facing)) * np.sqrt(np.dot(target, target))
+    scaled_dot = dot / norms
     # using dot product to find minimum angle
-    theta = np.arccos(np.round(dot/norms, 8))
+    theta = np.arccos(np.round(scaled_dot, 8))
 
-    yaw_sign = np.sign(cross[2]) if np.round(dot, 5) != -1. else 1
+    yaw_sign = np.sign(cross[2]) if np.round(scaled_dot, 5) != -1. else 1
 
     diff = yaw_sign * theta
     assert -np.pi < diff <= np.pi
     return diff
 
 
-def vector_argument(vector):
+def spin_achieved(direction: int, facing: np.array, target: np.array):
+    assert abs(direction) == 1  # should be +- 1
+    delta = direction * yaw_difference(facing, target)
+
+    return 0 < delta < spin_achieved_delta
+
+
+def interpolate_circle_points(centre: Tuple, num_points: int = 8, radius: int = 10):
+    d_theta = np.pi / num_points
+    theta = 0
+    pts = []
+    for _ in range(num_points):
+        pts.append((radius * np.cos(theta) + centre[0], radius * np.sin(theta) + centre[1]))
+        theta += d_theta
+
+    return pts
+
+
+def average_vector(vectors: list) -> np.array:
+    """
+    Takes a list of vectors and returns their average
+    :param vectors: numpy array
+    """
+    return np.mean(np.array(vectors), axis=1)
+
+
+def vector_argument(vector: np.array) -> np.array:
     """
     Returns the argument of a vector as an angle from -pi to pi
     :param vector: array like with on dimension and two elements
@@ -96,7 +125,7 @@ def distance(current, target):
     :param target: array like with one element and two dimensions
     :return: positive float value of the euclidean distance between the two points
     """
-    if not target: return 0
+    if target is None: return 0.0
     return math.sqrt(((current[0] - target[0]) ** 2.0) + ((current[1] - target[1]) ** 2.0))
 
 
@@ -108,4 +137,11 @@ def crow_fly_target_velocity(current, target):
     :param target: 2tuple
     returns: 0, or within range [min_speed, max_speed]
     """
-    return .1
+    return straight_drive_fraction
+
+
+def magnitude(vector):
+    """
+    Magnitude of a vector from 2-norm
+    """
+    return np.dot(vector, vector) ** 0.5
