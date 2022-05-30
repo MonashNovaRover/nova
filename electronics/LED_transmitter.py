@@ -79,7 +79,7 @@ class LEDUpdateNode(Node):
 
         self.gamepad_input_subscriber = self.create_subscription(InputGamepad, "/control/input_gamepad", self.gamepad_callback, qos)
 
-        self.service = self.create_service(Trigger, 'autonomous/LED', self.service_callback)
+        self.service = self.create_service(Trigger, '/autonomous/LED', self.service_callback)
         self.qos_time = 0.1
 
         self.qos_timer = self.create_timer(self.qos_time, self.check_connection)
@@ -176,8 +176,9 @@ class LEDUpdateNode(Node):
         """
         # get colour and brightness
         colour_info = self.mode_colours[self.mode]
-        previous_colour_info = self.mode_colours[self.previous_mode]
-        self.can_communicator.turn_off(previous_colour_info[0])
+        self.can_communicator.turn_off(CanLEDCommunicator.RED)
+        self.can_communicator.turn_off(CanLEDCommunicator.GREEN)
+        self.can_communicator.turn_off(CanLEDCommunicator.BLUE)
         self.can_communicator.set_LED(*colour_info)
 
 
