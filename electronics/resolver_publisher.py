@@ -111,15 +111,16 @@ class ResolverTransceiver(UARTTransceiver):
             return -1
 
         # read response and decode into radians
-        ret = self.receive(error_string=f"Device ID {hex(resolver_id)}")
-        if ret is None:
+        # Receives two bytes from the resolvers, representing a single 16-bit value
+        bytes_data = self.receive(error_string=f"Device ID {hex(resolver_id)}")
+        if bytes_data is None:
             return -1
-        unpacked_data = self.unpack(ret)[0]
+        integer_data = self.unpack(bytes_data)[0]
         # Handle checksum
-        if not self._verify_checksum(unpacked_data):
+        if not self._verify_checksum(integer_data):
             return -1
         # Get angle data by removing 2 high order bits
-        angle_data = self._convert_to_rad(unpacked_data & 0x3FFF)
+        angle_data = self._convert_to_rad(integer_data & 0x3FFF)
         
         # Reverse the increasing direction if necessary
         if joint.reverse:
@@ -215,7 +216,7 @@ class ResolverPublisher(Node):
         self.resolver_transceiver = ResolverTransceiver(
                 receive_timeout = self.receive_timeout,
                 receive_fmt = '<H',
-                transmit_fmt = '@B',
+                transmit_fmt = '<B',
                 logger = self.get_logger(),
                 baudrate = 115200,
                 port = '/dev/ttyUSB0',
