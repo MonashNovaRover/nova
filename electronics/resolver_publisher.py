@@ -85,10 +85,10 @@ class ResolverTransceiver(UARTTransceiver):
             raise KeyError(f"Invalid joint name: {joint_name}")
         
         self.info(f'Zeroing joint {joint_name}')
-        # format (first byte is begin extended command: 0x56)
-        # second is zero command: 0x5E
-        fmt = '@BB'
-        data = self.pack([0x56, 0x5E], fmt=fmt)
+        # Send two bytes, so use 2-byte format
+        # First byte is resolver_id + 0x02. Indicates an extended command
+        # Second byte is zero command: 0x5E
+        data = self.pack([resolver_id + 0x02, 0x5E], fmt='<BB')
         return self.transmit(data)
     
     def position(self, joint_name: str) -> float:
