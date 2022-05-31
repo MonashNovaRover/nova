@@ -115,8 +115,10 @@ class ResolverTransceiver(UARTTransceiver):
         if ret is None:
             return -1
         unpacked_data = self.unpack(ret)[0]
-        # TODO: Handle checksum 
-        # for now just mask it out by removing 2 high order bits
+        # Handle checksum
+        if not self.verify_checksum(unpacked_data):
+            return -1
+        # Get angle data by removing 2 high order bits
         angle_data = self._convert_to_rad(unpacked_data & 0x3FFF)
         
         # Reverse the increasing direction if necessary
@@ -127,6 +129,19 @@ class ResolverTransceiver(UARTTransceiver):
         angle_data = self._move_discontinuity(angle_data, joint.discontinuity_angle)
 
         return angle_data
+
+    @staticmethod
+    def verify_checksum(unpacked_data):
+        """
+        Verifies the checksum for 14-bit CUI Devices AMT21 absolute encodrs
+        """
+        binary_data = f"{unpacked_data:016b}"
+        angle_data = binary_data[2:]
+        paired_data = [(angle_data[i], angle_data[i+1]) for i in range(0, len(angle_data) - 1, 2)]
+        evens, odds = list(zip(*paired_data))
+        k0 = sum(int(i) for i in evens) % 2
+        k1 = sum(int(i) for i in odds) % 2
+        return k1 == int(binary_data[0]) and k0 == int(binary_data[1])
 
     @staticmethod
     def _convert_to_rad(raw_value: int) -> float:
