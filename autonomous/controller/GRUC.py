@@ -147,6 +147,7 @@ class Controller(Node):
         self.waypoint_path = []
         self.state_current_planning_destination = None
         self.driving_state = DrivingState.TO_WAYPOINT
+        self.spin_counter = 0
 
         # Global variables containing our search plan
         self.search_plan = []
@@ -226,6 +227,8 @@ class Controller(Node):
 
             if self.ar_tag_manager.found_current_goals():
                 self.on_state_update(PlanningState.AR_HONING)
+            elif self.search_array_index == len(self.search_plan):
+                self.on_state_update(PlanningState.SUCCESS)
 
         elif self.planning_state.state == PlanningState.AR_HONING:
 
@@ -333,13 +336,12 @@ class Controller(Node):
         :param msg: AlvarMarker msg type, received from the ar_tag_topic
         """
         # we pass in our current state so the tag manager knows how to transfer the AR tag pose to a global frame
-        self.ar_tag_manager.update_tags(msg, self.state_rover_pose)
+        self.ar_tag_manager.update_tags(msg, self.state_rover_pose, self.get_logger())
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 'Util' Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     def setup_search(self):
         self.search_plan = interpolate_circle_points(self.state_current_planning_destination)
         self.ctl_spin = SpinController(self.state_rover_pose.yaw, self.ctl_turner)
-        self.driving_state = DrivingState.TURNING
 
     def near_current_goal(self) -> bool:
         """
@@ -440,6 +442,10 @@ class Controller(Node):
 
         # update search array index        
         if self.planning_state.state == PlanningState.SEARCH:
+            #if self.search_array_index % 2 == 0 and self.search_array_index // 2 >= self.spin_counter and self.driving_state == DrivingState.TO_WAYPOINT:
+            #    self.driving_state = DrivingState.TURNING
+            #    self.spin_counter += 1
+            #    self.ctl_spin = SpinController(self.state_rover_pose.yaw, self.ctl_turner)
             if self.near_current_goal():
                 self.search_array_index += 1
 
@@ -493,8 +499,8 @@ class Controller(Node):
             self.get_logger().debug("Not enough paths planned")
             return
 
-        current_orientation = np.array([np.cos(self.state_rover_pose.yaw), np.sin(self.state_rover_pose.yaw)])
-        current_position = np.array([self.state_rover_pose.x, self.state_rover_pose.y])
+        current_orientation = np.array([np.cos(self.state_rover_pose.yaw), np.sin(self.state_rover_pose.yaw), 0.])
+        current_position = np.array([self.state_rover_pose.x, self.state_rover_pose.y, 0.])
 
         self.get_logger().debug("Controller in driving state: " + str(self.driving_state))
 

@@ -179,8 +179,9 @@ class PathPlanner(Node):
         self.width_meters = int(self.grid2d.shape[1] * self.resolution)
         
         self.route = np.array(a_star(self.grid2d, self.get_grid_coord(self.start), self.get_grid_coord(local_goal), self.resolution, self.padding_dist_m))
-        self.route = self.route[:-1]
         status = self.route[-1][0]
+        self.route = self.route[:-1]
+        self.get_logger().info(f"planned with status {status}")
         self.handle_path_status(status, padding)
 
         route_coordinates = np.array(self.get_local_coords_route(self.route))
