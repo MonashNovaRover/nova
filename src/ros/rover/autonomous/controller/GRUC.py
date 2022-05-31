@@ -138,7 +138,7 @@ class Controller(Node):
         super().__init__('autonomous_controller_node')
 
         # set debug to not get shown
-        self.get_logger().set_level(LoggingSeverity.DEBUG)
+        self.get_logger().set_level(LoggingSeverity.INFO)
 
         # ~~~~~~~~~~ State ~~~~~~~~
         self.state_rover_pose = Pose2D()
@@ -442,10 +442,10 @@ class Controller(Node):
 
         # update search array index        
         if self.planning_state.state == PlanningState.SEARCH:
-            #if self.search_array_index % 2 == 0 and self.search_array_index // 2 >= self.spin_counter and self.driving_state == DrivingState.TO_WAYPOINT:
-            #    self.driving_state = DrivingState.TURNING
-            #    self.spin_counter += 1
-            #    self.ctl_spin = SpinController(self.state_rover_pose.yaw, self.ctl_turner)
+            if self.search_array_index % 2 == 0 and self.search_array_index // 2 >= self.spin_counter and self.driving_state == DrivingState.TO_WAYPOINT:
+                self.driving_state = DrivingState.TURNING
+                self.spin_counter += 1
+                self.ctl_spin = SpinController(self.state_rover_pose.yaw, self.ctl_turner)
             if self.near_current_goal():
                 self.search_array_index += 1
 
