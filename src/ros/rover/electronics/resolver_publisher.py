@@ -100,17 +100,17 @@ class ResolverTransceiver(UARTTransceiver):
         try:
             joint = self.joint_map[joint_name]
         except KeyError as e:
-            # re raise with more useful message
+            # Re-raise with more useful message
             raise KeyError(f"Invalid joint name: {joint_name}")
         
         resolver_id = joint.id
 
-        # pack and transmit binary data
+        # Pack and transmit binary data
         data = self.pack([resolver_id])
         if not self.transmit(data):
             return -1
 
-        # read response and decode into radians
+        # Read response and decode into radians
         # Receives two bytes from the resolvers, representing a single 16-bit value
         bytes_data = self.receive(error_string=f"Device ID {hex(resolver_id)}")
         if bytes_data is None:
