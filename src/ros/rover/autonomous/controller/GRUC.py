@@ -252,9 +252,8 @@ class Controller(Node):
         if new_state == PlanningState.SUCCESS:
             self.trigger_led()
 
-        self.ctl_spin = None
         if new_state == PlanningState.SEARCH:
-            self.ctl_spin = SpinController(self.state_rover_pose.yaw, self.ctl_turner)
+            self.setup_search()
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Simple State Update Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -339,6 +338,7 @@ class Controller(Node):
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 'Util' Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     def setup_search(self):
         self.search_plan = interpolate_circle_points(self.state_current_planning_destination)
+        self.ctl_spin = SpinController(self.state_rover_pose.yaw, self.ctl_turner)
         self.driving_state = DrivingState.TURNING
 
     def near_current_goal(self) -> bool:
