@@ -83,6 +83,8 @@ class FlatMapper(Mapper):
         above one another), but yaw and position transformations are done after obstacle
         detection, so the obstacle detection map can stay a consistent size and shape
         """
+        if len(points) == 0:
+            return []
         indexes = np.floor((points/self.detection_resolution)).astype(int)
         indexes[:, 1] += (np.ceil(self.detection_width/2)).astype(int)
         return indexes
@@ -92,6 +94,8 @@ class FlatMapper(Mapper):
         Discretises point cloud into indices, then filters out indices without
         enough points in them to avoid phantom "floating" points
         """
+        if len(points) == 0:
+            return points
         indexes = self.get_detection_map_indexes(points)
         indexes, counts = np.unique(indexes, return_counts=True, axis=0)
         counts = (counts // min_point_density).astype(bool)  # filtering out voxels without many points in them
@@ -139,8 +143,6 @@ class FlatMapper(Mapper):
         """
         obs_as_points = np.array([[x, y, val] for (x, y), val in np.ndenumerate(obstacles) \
                                   if np.abs(np.arctan2(y - len(obstacles[0]) / 2, x)) < max_fov_angle])
-        if len(obs_as_points) <= 10:
-            return
         obs_as_points[:, 1] -= int(np.ceil(self.detection_width / (2 * self.resolution_ratio)))
         obstacles = transform.transform_yaw(self.cam_odom, obs_as_points)
         obstacles[:, 2] *= 100

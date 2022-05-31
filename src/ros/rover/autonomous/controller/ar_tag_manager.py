@@ -94,7 +94,7 @@ class ArTagManager(Node):
         assert tag_id <= ArTagManager.max_tag_id
         return len(self.ar_tag_poses[tag_id]) > 0
 
-    def update_tags(self, msg: AlvarMarker, state: Pose2D):
+    def update_tags(self, msg: AlvarMarker, state: Pose2D, logger):
         """
         Given a new AR tag and rover state, update internal AR tag lists
         :param msg: AlvarMarker message type
@@ -125,7 +125,7 @@ class ArTagManager(Node):
 
         global_pose = np.matmul(rot_mat, local_pose).reshape(2) + np.array([state.x, state.y])
 
-        self.get_logger().info("found tag: x=" + str(global_pose[0]) + " | y=" + str(global_pose[1]))
+        logger.info("found tag: x=" + str(global_pose[0]) + " | y=" + str(global_pose[1]))
 
         # maintain a fixed size queue of poses
         if len(self.ar_tag_poses[msg.id]) < ArTagManager.queue_size:
