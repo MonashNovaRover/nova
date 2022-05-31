@@ -116,7 +116,7 @@ class ResolverTransceiver(UARTTransceiver):
             return -1
         unpacked_data = self.unpack(ret)[0]
         # Handle checksum
-        if not self.verify_checksum(unpacked_data):
+        if not self._verify_checksum(unpacked_data):
             return -1
         # Get angle data by removing 2 high order bits
         angle_data = self._convert_to_rad(unpacked_data & 0x3FFF)
@@ -131,7 +131,7 @@ class ResolverTransceiver(UARTTransceiver):
         return angle_data
 
     @staticmethod
-    def verify_checksum(unpacked_data):
+    def _verify_checksum(unpacked_data):
         """
         Verifies the checksum for CUI Devices AMT21 absolute encodrs
 
