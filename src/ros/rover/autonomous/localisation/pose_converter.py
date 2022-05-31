@@ -129,7 +129,7 @@ class PoseConverter(Node):
         imu_odom.pose.pose.orientation.z = qz
         imu_odom.pose.pose.orientation.w = qw
 
-        return pitch, -roll, yaw, imu_odom
+        return pitch, roll, yaw, imu_odom
 
     def imu_callback(self, msg):
         """
@@ -138,7 +138,7 @@ class PoseConverter(Node):
         pitch, roll, yaw, imu_odom = self.transform_imu_to_nova(msg)
         self.odom.pose.pose.orientation = imu_odom.pose.pose.orientation
 
-        self.u[1:] = np.array([[pitch], [yaw]])
+        self.u[1:] = np.array([[-pitch], [yaw]])
         # uncomment if we work out how to do covariance of imu measurements
         """
         p_xx, p_xy, p_yx, p_yy = msg.orientation_covariance[0], msg.orientation_covariance[1],\
@@ -248,14 +248,14 @@ class PoseConverter(Node):
 
         # gets euler angles from imu quaternion
         pitch, roll, yaw = transform.quat_to_euler(self.odom)
-        rover_msg.pitch, rover_msg.roll, rover_msg.yaw = pitch, -roll, yaw
+        rover_msg.pitch, rover_msg.roll, rover_msg.yaw = -pitch, -roll, yaw
 
         self.rover_pose_pub.publish(rover_msg)
         self.print_rover_msg(rover_msg)
 
         # filling out gps message
         gps_msg.valid = True
-        gps_msg.pitch, gps_msg.roll, gps_msg.yaw = pitch, roll, yaw
+        gps_msg.pitch, gps_msg.roll, gps_msg.yaw = -pitch, -roll, -yaw
         # convert x, y to lat, lon
         
         coord = self.gps_converter.get_global_coord(
