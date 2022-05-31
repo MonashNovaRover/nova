@@ -131,7 +131,7 @@ class ResolverTransceiver(UARTTransceiver):
         return angle_data
 
     @staticmethod
-    def _verify_checksum(unpacked_data):
+    def _verify_checksum(raw_value: int) -> bool:
         """
         Verifies the checksum for CUI Devices AMT21 absolute encodrs
 
@@ -139,8 +139,8 @@ class ResolverTransceiver(UARTTransceiver):
         Valid data has odd parity for all the even bits, and for all the odd bits.
         Bits are numbered from 0 starting with the LSB.
         """ 
-        assert unpacked_data < 65536
-        binary_data = [int(bit) for bit in f"{unpacked_data:016b}"]
+        assert raw_value < 65536
+        binary_data = [int(bit) for bit in f"{raw_value:016b}"]
         even_bits = [binary_data[i] for i in range(len(binary_data)) if i % 2]
         odd_bits = [binary_data[i] for i in range(len(binary_data)) if not i % 2]
         return sum(even_bits) % 2 and sum(odd_bits) % 2
