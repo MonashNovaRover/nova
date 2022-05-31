@@ -133,15 +133,17 @@ class ResolverTransceiver(UARTTransceiver):
     @staticmethod
     def verify_checksum(unpacked_data):
         """
-        Verifies the checksum for 14-bit CUI Devices AMT21 absolute encodrs
-        """
-        binary_data = f"{unpacked_data:016b}"
-        angle_data = binary_data[2:]
-        paired_data = [(angle_data[i], angle_data[i+1]) for i in range(0, len(angle_data) - 1, 2)]
-        evens, odds = list(zip(*paired_data))
-        k0 = sum(int(i) for i in evens) % 2
-        k1 = sum(int(i) for i in odds) % 2
-        return k1 == int(binary_data[0]) and k0 == int(binary_data[1])
+        Verifies the checksum for CUI Devices AMT21 absolute encodrs
+
+        The data is 16-bits long
+        Valid data has odd parity for all the even bits, and for all the odd bits.
+        Bits are numbered from 0 starting with the LSB.
+        """ 
+        assert unpacked_data < 65536
+        binary_data = [int(bit) for bit in f"{unpacked_data:016b}"]
+        even_bits = [binary_data[i] for i in range(len(binary_data)) if i % 2]
+        odd_bits = [binary_data[i] for i in range(len(binary_data)) if not i % 2]
+        return sum(even_bits) % 2 and sum(odd_bits) % 2
 
     @staticmethod
     def _convert_to_rad(raw_value: int) -> float:
