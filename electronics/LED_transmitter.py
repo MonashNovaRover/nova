@@ -95,6 +95,7 @@ class LEDUpdateNode(Node):
 
         # Subscriber to handle control state
         self.mode_subscriber = self.create_subscription(Bool, "/autonomous/mode", self.mode_callback, 10)
+        
         # Subscriber to handle connection state
         self.radio_subscriber = self.create_subscription(RadioStatus, "/electronics/radio_status", self.connection_callback, 10)
 
@@ -106,43 +107,47 @@ class LEDUpdateNode(Node):
 
         self.flash_timer = self.create_timer(0.5, self.flash_callback)
 
-        # Colours and their brightness for each mode (mostly half brightness to save power)
-        self.control_state_colours = {
-            ControlState.MANUAL: (CanLEDCommunicator.BLUE, 255),
-            ControlState.AUTONOMOUS: (CanLEDCommunicator.RED, 255),
-        }
-
-        # Control how the above colour is displayed
-        self.control_state_flash = {
-            ControlState.MANUAL: False,
-            ControlState.AUTONOMOUS: False,
-        }
-
-        self.connection_state_colours = {
-            ConnectionState.CONNECTED: self.control_state_colours[self.control_state],
-            ConnectionState.DISCONNECTED: (CanLEDCommunicator.RED, 255)
-        }
-
-        self.connection_state_flash = {
-            ConnectionState.CONNECTED: self.control_state_flash[self.control_state],
-            ConnectionState.DISCONNECTED: True
-        }
-
-        self.state_colours = {
-            AutonomousState.ACTIVE: self.connection_state_colours[self.connection_state],
-            AutonomousState.SUCCESS: (CanLEDCommunicator.GREEN, 255)
-        }
-
-        self.state_flash = {
-            AutonomousState.ACTIVE: self.connection_state_flash[self.connection_state],
-            AutonomousState.SUCCESS: True
-        }
-
         self.flash_counter = 1  # 1 = on, 0 = off
 
         self.most_recent_update = time.perf_counter()
 
         self.display()
+        
+    def get_control_state_colours (self, state):
+        if state == ControlState.MANUAL:
+            return (CanLEDCommunicator.BLUE, 255)
+        elif state == ControlState.AUTONOMOUS:
+            return (CanLEDCommunicator.RED, 255)
+    
+    def get_control_state_flash (self, state):
+        if state == ControlState.MANUAL:
+            return False
+        elif state == ControlState.AUTONOMOUS:
+            return False
+    
+    def get_connection_state_colours (self, state):
+        if state == ConnectionState.CONNECTED:
+            return self.get_control_state_colours(self.control_state)
+        elif state == ConnectionState.DISCONNECTED:
+            return (CanLEDCommunicator.RED, 255)
+
+    def get_connection_state_flash (self, state):
+        if state == ConnectionState.CONNECTED:
+            return self.get_control_state_flash(self.control_state)
+        elif state == ConnectionState.DISCONNECTED:
+            return True
+            
+    def get_state_colours (self, state):
+        if state == AutonomousState.ACTIVE:
+            return self.get_connection_state_colours(self.connection_state)
+        elif state == AutonomousState.SUCCESS:
+            return (CanLEDCommunicator.GREEN, 255)
+    
+    def get_state_flash (self, state):
+        if state == AutonomousState.ACTIVE:
+            return self.get_connection_state_flash(self.connection_state)
+        elif state == AutonomousState.SUCCESS:
+            return True
 
     def connection_callback(self, msg):
         """
@@ -167,7 +172,7 @@ class LEDUpdateNode(Node):
         new_control_state = self.control_state
         if message.data:
             new_control_state = ControlState.AUTONOMOUS
-        else:  
+        else:
             new_control_state = ControlState.MANUAL
 
         self.change_control_state(new_control_state)
@@ -198,7 +203,7 @@ class LEDUpdateNode(Node):
         """
         Display a colour based on the mode of the rover either continuous or flashing
         """
-        if not self.state_flash[self.autonomous_state]:
+        if not self.get_state_flash(self.autonomous_state):
             return   # don't care about non-flashing modes
 
         if self.flash_counter == 0: 
@@ -213,7 +218,7 @@ class LEDUpdateNode(Node):
         Displays a colour based on the current mode of the Rover
         """
         # get colour and brightness
-        colour_info = self.state_colours[self.autonomous_state]
+        colour_info = self.get_state_colours(self.autonomous_state)
         self.can_communicator.turn_off()
         self.can_communicator.set_led(*colour_info)
 
