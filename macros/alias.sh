@@ -73,3 +73,6 @@ alias dgps="ros2 launch ublox_dgnss rover.launch.py"
 
 alias pi="ssh ubuntu@192.168.1.203"
 alias foxglove_server="ros2-foxy-rosbag.ros2 launch rosbridge_server rosbridge_websocket_launch.xml"
+
+# Science commands
+alias sci_copy="scp -r nvidia@192.168.1.204:nova_ws/src/science/data/spectrometer ~/nova_ws/src/science/data"
