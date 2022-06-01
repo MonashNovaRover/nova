@@ -16,6 +16,10 @@ class Turner(ABC):
     def reset(self):
         pass
 
+    def get_turn_speed(self, yaw_diff):
+        return big_turn_drive_fraction if abs(yaw_diff) > small_turn_angle else\
+                small_turn_drive_fraction
+
 
 class YawStarTurner(Turner):
     START_TURN = 0
@@ -48,7 +52,7 @@ class YawStarTurner(Turner):
                 self.target_yaw -= 2 * np.pi if self.target_yaw > np.pi else 0
                 print(f"switching to target yaw of {self.target_yaw}")
                 steer_fraction = tank_turn_target_yaw_rate(yaw_difference)
-                drive_fraction = turn_drive_fraction
+                drive_fraction = self.get_turn_speed(yaw_difference)
                 # Update state
                 self.star_state = YawStarTurner.TURNING
 
@@ -61,7 +65,7 @@ class YawStarTurner(Turner):
                 if abs_diff < 0:
                     # Keep turning
                     steer_fraction = tank_turn_target_yaw_rate(yaw_difference)
-                    drive_fraction = turn_drive_fraction
+                    drive_fraction = self.get_turn_speed(yaw_difference)
                 else:
                     # Swap to drive mode
                     dist = 0.5 * self.MAX_TRAVERSAL_DISTANCE if self.first_drive else self.MAX_TRAVERSAL_DISTANCE
@@ -96,7 +100,8 @@ class YawStarTurner(Turner):
         elif self.MAX_YAW > abs(yaw_difference) > min_yaw_difference:
             # Turn on the spot
             steer_fraction = tank_turn_target_yaw_rate(yaw_difference)
-            drive_fraction = turn_drive_fraction
+            drive_fraction = self.get_turn_speed(yaw_difference)
+         
 
         return steer_fraction, drive_fraction
 
