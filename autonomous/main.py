@@ -29,7 +29,10 @@ def main(args):
     executor.add_node(planner)
     executor.add_node(mapper)
 
-    executor.spin()
+    try:
+        executor.spin()
+    except e:
+        print(e)
 
     rclpy.shutdown()
 

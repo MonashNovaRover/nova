@@ -86,9 +86,14 @@ class PathPlanner(Node):
             self.get_logger().warn("PathPlanner: map has not been updated yet, plan could not be planned")
 
         # fill the way-points
-        response.path = self.get_path(request.target.x, request.target.y)
-        response.success = True
-        return response
+        try:
+            response.path = self.get_path(request.target.x, request.target.y)
+            response.success = True
+            return response
+        except e:
+            print(e)
+            response.success = False
+            return response
 
     def path_planning_sub_callback(self, msg):
         """
