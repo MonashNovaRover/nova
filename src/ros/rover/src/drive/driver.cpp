@@ -206,6 +206,16 @@ float Driver::get_tangent_scale (Vector2 pos, float locas) {
     return sqrt(1.0 + pow(pos.y / x, 2));
 }
 
+// Publishes whether or not we are in autonomous mode
+void Driver::pub_auto_mode (){
+    // Construct a message from our current is_autonomous boolean
+    std_msgs::msg::Bool msg;
+    msg.data = is_autonomous;
+
+    // publish the message
+    mode_pub->publish(msg);
+}
+
 
 // Main constructor that sets up the node
 Driver::Driver() : Node("driver")
@@ -233,6 +243,14 @@ Driver::Driver() : Node("driver")
     // Creates the input subscription
     subscription_inputs = this->create_subscription<core::msg::InputGamepad>(
         "/control/input_gamepad", 10, std::bind(&Driver::input_callback, this, _1));
+
+    // Creates auto mode timer and associated publisher
+    mode_timer = this->create_wall_timer(
+        mode_timer_period, std::bind(&Driver::pub_auto_mode, this)
+    );
+    mode_pub = this->create_publisher<std_msgs::msg::Bool>(
+        "/autonomous/mode", 10
+    );
 }
 
 

@@ -32,6 +32,7 @@ EDITED:		09/02/2022
 #include "rclcpp/rclcpp.hpp"
 #include "core/msg/input_gamepad.hpp"
 #include "core/msg/drive_input.hpp"
+#include "std_msgs/msg/bool.hpp"
 
 // Include wheel class
 #include "wheel.h"
@@ -87,6 +88,13 @@ class Driver : public rclcpp::Node {
     // Stores the subscriber to the gamepad inputs
     rclcpp::Subscription<core::msg::InputGamepad>::SharedPtr subscription_inputs;
 
+    // Publishes whether the rover is in autonomous mode for LEDs
+    rclcpp::TimerBase::SharedPtr mode_timer;
+    rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr mode_pub;
+
+    // The period at which we publish whether  we are in autonomous mode
+    std::chrono::milliseconds mode_timer_period = 200ms;
+
     // A flag for whether to apply the handbrake or not
     bool handbrake;
 
@@ -118,6 +126,9 @@ class Driver : public rclcpp::Node {
     /// @brief      Callback function when input messages are received.
     /// @param      msg - A pointer to the input message
     void input_callback (const core::msg::InputGamepad::SharedPtr msg);
+
+    /// @brief      Callback function to publish whether autonomous
+    void pub_auto_mode ();
 
     /// @brief      Calculates the center turning circle distance based
     ///             on the steering factor. This is from the center of mass.
