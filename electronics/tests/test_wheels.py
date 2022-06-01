@@ -44,7 +44,7 @@ class WheelTest (Node):
 
     # Initialises the ROS messages and nodes
     def __init__(self):
-        super().__init__('radio_tester_pub')
+        super().__init__('wheels_tester_pub')
         print("Initialising ROS Radio Tester")
 
         # Message Type, Topic Name, Quality of Service 

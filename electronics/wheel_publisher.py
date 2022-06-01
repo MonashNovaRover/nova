@@ -37,6 +37,9 @@ from core.msg import WheelData, DriveInput
 # Import the CAN library
 from coms_utils.can_interface import CANReceiver
 
+# Import QoS profile
+from rclpy.qos import qos_profile_sensor_data as qos
+
 # The Wheel CAN arbitration IDs
 WHEEL_IDS = [0x410, 0x420, 0x430, 0x440, 0x450, 0x460]
 
@@ -85,7 +88,7 @@ class WheelPublisher (Node):
         self.t = time.time()
     
         # Create the CAN network
-        self.cans = [CANReceiver(channel="can0", filter_ids=[WHEEL_IDS[i]], receive_timeout=1, receive_fmt="<hh", bitrate=500000) for i in range(NUM_WHEELS)]
+        self.cans = [CANReceiver(channel="can0", filter_ids=[WHEEL_IDS[i]], receive_timeout=1, receive_fmt="<hh", bitrate=200000) for i in range(NUM_WHEELS)]
         self.rpms = [0 for _ in range(NUM_WHEELS)]
         self.powers = [0 for _ in range(NUM_WHEELS)]
 
@@ -93,7 +96,7 @@ class WheelPublisher (Node):
         self.publisher = self.create_publisher(WheelData, "/electronics/wheel_data", 10)
 
         # Create a subscriber to drive commands
-        self.subscription_m = self.create_subscription(DriveInput, "/control/drive_inputs", self.drive_callback, 10)
+        self.subscription_m = self.create_subscription(DriveInput, "/control/drive_inputs", self.drive_callback, qos)
         self.subscription_a = self.create_subscription(DriveInput, "/autonomous/drive_inputs",  self.drive_callback, 10)
 
         # Create a time to constantly loop and check for data
