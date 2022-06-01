@@ -108,7 +108,7 @@ class ResolverTransceiver(UARTTransceiver):
         # Pack and transmit binary data
         data = self.pack([resolver_id])
         if not self.transmit(data):
-            self.warn(f'Could not request data from joint {joint_name}')
+            self.warning(f'Could not request data from joint {joint_name}')
             return -1
 
         # Read response and decode into radians
@@ -119,7 +119,7 @@ class ResolverTransceiver(UARTTransceiver):
         integer_data = self.unpack(bytes_data)[0]
         # Handle checksum
         if not self._verify_checksum(integer_data):
-            self.warn(f'Invalid checksum from joint {joint_name}')
+            self.warning(f'Invalid checksum from joint {joint_name}')
             return -1
         # Get angle data by removing 2 high order bits
         angle_data = self._convert_to_rad(integer_data & 0x3FFF)
