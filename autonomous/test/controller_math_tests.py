@@ -2,7 +2,7 @@ __package__ = "autonomous"
 #!/usr/bin/env python3
 import unittest
 from math_utils.controller_math import *
-from controller.strategy_manager import StrategyManager
+from controller.GRUC import Controller
 import numpy as np
 
 PI = np.pi
@@ -12,7 +12,7 @@ class ControllerMathTest(unittest.TestCase):
         firsts = np.linspace(0, 2*np.pi, 13)
         seconds = np.linspace(0 ,2*np.pi, 13)
 
-        for a in enumerate(firsts):
+        for a in firsts:
             for b in seconds:
                 vec_a = np.array((np.cos(a), np.sin(a), 0))
                 vec_b = np.array((np.cos(b), np.sin(b), 0))
