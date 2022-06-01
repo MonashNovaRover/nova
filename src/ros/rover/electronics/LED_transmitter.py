@@ -16,6 +16,7 @@ from std_srvs.srv import Trigger
 from core.msg import InputGamepad
 from coms_utils.can_interface import CANTransmitter
 import time
+from enum import Enum
 
 """
 Goal 1: get a request in the service, and execute
@@ -26,8 +27,21 @@ a callback function setting the colours.
 """
 
 
+class ControlState(Enum):
+    AUTONOMOUS = 0
+    MANUAL = 1
+    DISCONNECTED = 2
+    OFF = 4
+
+
+class AutonomousState(Enum):
+    ACTIVE = 0
+    SUCCESS = 1
+
+
 class CanLEDCommunicator:
-    """Handles communication with LED
+    """
+    Handles communication with LED
     """
     RED = 0x91
     GREEN = 0x92
@@ -68,40 +82,46 @@ class LEDUpdateNode(Node):
     in a topic with the other mode types, and then this should be a subscriber to that topic.
     Then, a callback function will get executed periodically as the topic is published to. 
     """
-    OFF = 0
-    MANUAL = 1
-    AUTONOMOUS = 2
-    AUTO_GOAL_ACHIEVED = 3
-    DISCONNECTED = 4
-
     def __init__(self):
         super().__init__('LED_status_update_node')
         self.can_communicator = CanLEDCommunicator()
-        # these should not be here! they should be in a file/params? and then 
-        # can be pulled here
+        
+        self.control_state = ControlState.OFF
+        self.autonomous_state = AutonomousState.ACTIVE
+
         self.gamepad_input_subscriber = self.create_subscription(InputGamepad, "/control/input_gamepad", self.gamepad_callback, 10)
-        self.service = self.create_service(Trigger, 'autonomous/LED', self.service_callback)
+        self.success_service = self.create_service(Trigger, 'autonomous/success', self.success_callback)
+        self.start_service = self.create_service(Trigger, 'autonomous/start', self.start_callback)
 
         self.qos_timer = self.create_timer(1.0, self.check_connection)
         self.flash_timer = self.create_timer(0.5, self.flash_callback)
 
         # Colours and their brightness for each mode (mostly half brightness to save power)
-        self.mode_colours = {
-            LEDUpdateNode.MANUAL: (CanLEDCommunicator.BLUE, 128),
-            LEDUpdateNode.AUTONOMOUS: (CanLEDCommunicator.RED, 128),
-            LEDUpdateNode.AUTO_GOAL_ACHIEVED: (CanLEDCommunicator.GREEN, 128),
-            LEDUpdateNode.DISCONNECTED: (CanLEDCommunicator.RED, 255)
+        self.control_mode_colours = {
+            ControlState.MANUAL: (CanLEDCommunicator.BLUE, 255),
+            ControlState.AUTONOMOUS: (CanLEDCommunicator.RED, 255),
+            ControlState.DISCONNECTED: (CanLEDCommunicator.RED, 255)
         }
 
         # Control how the above colour is displayed
-        self.mode_flash = {
-            LEDUpdateNode.MANUAL: False,
-            LEDUpdateNode.AUTONOMOUS: False,
-            LEDUpdateNode.AUTO_GOAL_ACHIEVED: True,
-            LEDUpdateNode.DISCONNECTED: True
+        self.control_mode_flash = {
+            ControlState.OFF: False,
+            ControlState.MANUAL: False,
+            ControlState.AUTONOMOUS: False,
+            ControlState.DISCONNECTED: True
         }
 
-        self.flash_counter = 1  # 1 == on, 0 == off
+        self.mode_colours = {
+            AutonomousState.ACTIVE: self.control_mode_colours[self.control_state],
+            AutonomousState.SUCCESS: (CanLEDCommunicator.GREEN, 255)
+        }
+
+        self.mode_flash = {
+            AutonomousState.ACTIVE: self.control_mode_flash[self.control_state],
+            AutonomousState.SUCCESS: True
+        }
+
+        self.flash_counter = 1  # 1 = on, 0 = off
 
         self.most_recent_update = time.perf_counter()
 
@@ -118,12 +138,12 @@ class LEDUpdateNode(Node):
         """
         dt = time.perf_counter() - self.most_recent_update
 
-        new_mode = self.MODE
+        new_mode = self.mode
 
         if dt > 1:
-            new_mode = LEDUpdateNode.DISCONNECTED
-        elif self.mode == LEDUpdateNode.DISCONNECTED:
-            new_mode = LEDUpdateNode.MANUAL
+            new_mode = ControlState.DISCONNECTED
+        elif self.mode == ControlState.DISCONNECTED:
+            new_mode = self.previous_mode
 
         self.change_mode(new_mode)
 
@@ -146,9 +166,14 @@ class LEDUpdateNode(Node):
             if new_mode != self.mode:
                 self.change_mode(new_mode)
 
-    def service_callback(self, request, response):
+    def success_callback(self, request, response):
         response.success = True
-        self.change_mode(LEDUpdateNode.AUTO_GOAL_ACHIEVED)
+        self.autonomous_state = AutonomousState.SUCCESS
+        return response
+
+    def start_callback(self, request, response):
+        response.success = True
+        self.autonomous_state = AutonomousState.ACTIVE
         return response
 
     def change_mode(self, new_mode):
