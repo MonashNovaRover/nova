@@ -95,16 +95,14 @@ class LEDUpdateNode(Node):
 
         # Subscriber to handle control state
         self.mode_subscriber = self.create_subscription(Bool, "/autonomous/mode", self.mode_callback, 10)
+        # Subscriber to handle connection state
         self.radio_subscriber = self.create_subscription(RadioStatus, "/electronics/radio_status", self.connection_callback, 10)
 
-        # Services to switch in and out of success mode
+        # Services to handle autonomous state
         self.success_service = self.create_service(Trigger, 'autonomous/success', self.success_callback)
         self.start_service = self.create_service(Trigger, 'autonomous/start', self.start_callback)
 
-        best_effort = QoSReliabilityPolicy.RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT
-        qos = QoSProfile(reliability=best_effort, depth=10)
-
-        self.qos_time = 0.3
+        self.qos_time = 200
 
         self.flash_timer = self.create_timer(0.5, self.flash_callback)
 
