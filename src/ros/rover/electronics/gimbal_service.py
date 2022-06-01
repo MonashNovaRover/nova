@@ -57,14 +57,14 @@ class GimbalService (Node):
 
         # Set up the CAN interface for the CAN 1 lines
         try:
-            self.can1_gimbal = CANTransmitter(channel="can1", arbitration_id=0x080)
+            self.can1_gimbal = CANTransmitter(channel="can1", arbitration_id=0x080, bitrate=200000)
         except:
             print("CAN 1 Network not found!")
             exit()
         
         # Set up the CAN interface for the CAN 0 lines
         try:
-            self.can0_gimbal = CANTransmitter(channel="can0", arbitration_id=0x080)            
+            self.can0_gimbal = CANTransmitter(channel="can0", arbitration_id=0x080, bitrate=200000)            
         except:
             print("CAN 0 Network not found!")
             exit()

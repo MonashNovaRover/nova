@@ -44,16 +44,18 @@ install(DIRECTORY
 
 # Add all Python executables to this list
 install(PROGRAMS
+  electronics/CMD_service.py 
   electronics/gimbal_service.py
   electronics/radio_monitor.py
   electronics/resolver_publisher.py
   electronics/rfid_client_terminal.py
   electronics/rfid_service.py
-  electronics/test_EMC.py
-  electronics/test_GPS.py
-  electronics/test_radio.py
-  electronics/test_wheels.py
+  electronics/tests/test_EMC.py
+  electronics/tests/test_GPS.py
+  electronics/tests/test_radio.py
+  electronics/tests/test_wheels.py
   electronics/wheel_publisher.py
+  electronics/LED_transmitter.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
