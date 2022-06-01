@@ -94,7 +94,6 @@ class Driver : public rclcpp::Node {
 
     // The period at which we publish whether  we are in autonomous mode
     std::chrono::milliseconds mode_timer_period = 200ms;
-
     // A flag for whether to apply the handbrake or not
     bool handbrake;
 
@@ -152,7 +151,9 @@ class Driver : public rclcpp::Node {
     /// @param      locas - The distance from CoM to locas [m]
     /// @returns    The tangent scale
     float get_tangent_scale (Vector2 pos, float locas);
-
+	
+    /// @brief callback for when drive inputs subscription is exceeded
+    void inputs_deadline_exceeded();
 
     //------------------------------------------------------------//
     public:
@@ -161,3 +162,4 @@ class Driver : public rclcpp::Node {
     Driver();
     
 };
+
