@@ -21,7 +21,7 @@ class SpinController:
         """
         Spins in place for a full circle to scan immediately around the rover
         """
-        target_orientation = np.array([np.cos(self.start_yaw), np.sin(self.start_yaw)])
+        target_orientation = np.array([np.cos(self.start_yaw), np.sin(self.start_yaw), 0])
 
         if spin_achieved(1, current_orientation, target_orientation):
             self.completed = True

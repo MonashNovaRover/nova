@@ -112,6 +112,8 @@ class Mapper(Node):
         :return: np.array with shape (n, 3) or two such arrays as a tuple
         """
         # 1. only taking every 10th value (cos 2 much data)
+        if len(pts) == 0:
+            return pts
         pts = pts[::skip_pts]
         if colors:
             colors = colors[::skip_pts]
@@ -182,8 +184,6 @@ class Mapper(Node):
         It calls a function to extract and filter the points (colors are ignored) and updates the map with points only -
         when using the python API, it should be a points only map.
         """
-        if len(pts) < 10:
-            return
         self.cam_odom = self.last_cam_odom
         if self.cam_odom is not None:
             self.update_map(self.get_pts(pts))

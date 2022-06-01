@@ -54,7 +54,6 @@ class PathPlanner(Node):
 
         # state
         self.state = Pose2D()
-        self.at_goal = True
         self.start = (0, 0)
         self.goal = (0, 0)
         self.goal_id = 0
@@ -98,7 +97,6 @@ class PathPlanner(Node):
         if self.grid2d is None:
             self.get_logger().warn("PathPlanner: map has not been updated yet, plan could not be planned")
             return 
-        self.at_goal = False
         path = self.get_path(msg.x, msg.y)
         self.path_publisher.publish(path)
 
@@ -116,7 +114,6 @@ class PathPlanner(Node):
         """
         self.get_logger().info("Next goal x=" + str(msg.x) + " | y=" + str(msg.y))
         self.goal = (msg.x, msg.y)
-        self.at_goal = False
 
     def get_grid_coord(self, position):
         return int((position[0] + self.length_meters / 2) / self.resolution), \
@@ -134,9 +131,6 @@ class PathPlanner(Node):
         self.state.y = msg.y
         self.state.yaw = msg.yaw
 
-        if not self.at_goal and distance((self.x, self.state.y), self.goal) < goal_achieved_distance:
-            self.achieved_goal()
-
     def get_local_coords_route(self, route):
         """
         Turning a route in pixel coordinates into one in metric coordinates
@@ -144,43 +138,35 @@ class PathPlanner(Node):
         """
         return [self.get_float_position((x, y)) for (x, y) in route]
 
-    def handle_path_status(self, status):
+    def handle_path_status(self, status, padding):
         """
         Handles logging and adjusting of parameters according to the
         status returned by our c++ A* method.
-        """    
-        if status & PathPlanner.A_STAR_START_OBSTACLE: self.get_logger().warn("started in obstacle")
-        if status & PathPlanner.A_STAR_DEST_OBSTACLE: self.get_logger().warn("dest in obstacle")
-        if status & PathPlanner.A_STAR_NO_PATH: self.get_logger().warn("couldn't find a path initially")
+        """
+        if status & PathPlanner.A_STAR_START_OBSTACLE:
+            self.get_logger().warn("started in obstacle")
+        if status & PathPlanner.A_STAR_DEST_OBSTACLE:
+            self.get_logger().warn("destination in obstacle")
+        if status & PathPlanner.A_STAR_NO_PATH:
+            self.get_logger().warn("couldn't find a path initially")
         if status & PathPlanner.A_STAR_CRITICAL_NO_PATH:
             self.get_logger().error("COULDN'T FIND PATH - NEAR OBSTACLE")
             self.padding_dist_m -= 0.1
             if self.padding_dist_m < 0.4:
                 self.get_logger().error("Ah HECK")
                 return
-        if status == PathPlanner.A_STAR_SUCCESS: self.get_logger().info("A* found safe path")
+        if status == PathPlanner.A_STAR_SUCCESS:
+            self.get_logger().info("A* found safe path")
 
-    # todo: migrate this logic to strategy manager
-    def achieved_goal(self):
-        """
-        Inform the operators that we think we have achieved a goal,
-        and update the state of the planner accordingly.
-        """
-        self.at_goal = True
-        self.get_logger().info(f"GOAL ACHIEVED: ({self.goal[0]}, {self.goal[1]}) [id = {self.goal_id}]")
-
-    def get_path(self, goal_x, goal_y) -> Waypoints:
+    def get_path(self, goal_x, goal_y, padding=None) -> Waypoints:
         """
         Repeatedly run A* on the updated rover pose and map to continually redetermine the optimal path.
         Called on a clock initialised in the add_destination method
         """
-
-        # todo: this logic should also be outside the path planner - for now we can keep it here I guess
-        if self.at_goal: 
-            self.get_logger().info("No goal to navigate to")
-            empty_waypoints = Waypoints()
-            empty_waypoints.waypoints = []
-            return empty_waypoints
+        if padding == None:
+            padding = self.padding_dist_m
+        if padding <= 0.4:
+            return []
 
         self.start = (self.x - self.offset[0], self.state.y - self.offset[1])
         local_goal = (goal_x - self.offset[0], goal_y - self.offset[1])
@@ -193,7 +179,10 @@ class PathPlanner(Node):
         self.width_meters = int(self.grid2d.shape[1] * self.resolution)
         
         self.route = np.array(a_star(self.grid2d, self.get_grid_coord(self.start), self.get_grid_coord(local_goal), self.resolution, self.padding_dist_m))
+        status = self.route[-1][0]
         self.route = self.route[:-1]
+        self.get_logger().info(f"planned with status {status}")
+        self.handle_path_status(status, padding)
 
         route_coordinates = np.array(self.get_local_coords_route(self.route))
         route_coordinates[:] += np.array(self.offset)
@@ -209,4 +198,6 @@ class PathPlanner(Node):
                 waypoints.waypoints.append(waypoint)
 
         self.get_logger().info(f"Path Planner Calculated {len(route_coordinates)} waypoints")
+        if status & PathPlanner.A_STAR_CRITICAL_NO_PATH:
+            return self.get_path(goal_x, goal_y, padding-0.1)
         return waypoints

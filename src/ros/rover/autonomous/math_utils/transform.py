@@ -86,7 +86,8 @@ def transform_euler(euler_angles, pts):
     qx, qy, qz, qw = euler_to_quat(euler_angles)    
 
     mat = quat2mat(Q(qx, qy, qz, qw))
-    pts = np.matmul(mat, pts.transpose()).transpose()
+    if len(pts) != 0:
+        pts = np.matmul(mat, pts.transpose()).transpose()
     return pts
 
 
@@ -130,7 +131,8 @@ def transform_points(pose_msg: Odometry, pts: np.array) -> np.array:
     pose_msg: nav_msgs.msg.Odometry message
     pts: numpy array with shape (n, 3)
     """
-    pts = transform_from_quat(pose_msg.pose.pose.orientation, pts)
+    if len(pts) != 0:
+        pts = transform_from_quat(pose_msg.pose.pose.orientation, pts)
     return pts + [pose_msg.pose.pose.position.x, pose_msg.pose.pose.position.y, pose_msg.pose.pose.position.z]
 
 
@@ -139,7 +141,8 @@ def transform_from_quat(quat: Quaternion, pts: np.array) -> np.array:
     q_mat = quat2mat(q)
 
     mat = get_extrinsics(q_mat)
-    pts = np.matmul(mat, pts.transpose()).transpose()
+    if len(pts) != 0:
+        pts = np.matmul(mat, pts.transpose()).transpose()
     return pts
 
 
@@ -148,6 +151,8 @@ def transform_points_no_yaw(pose_msg, pts):
     Translates points to their x, y and z coordinates assuming that there is no yaw
     """
     pitch, roll, yaw = quat_to_euler(pose_msg)
+    if len(pts) == 0:
+        return pts
     return transform_euler((pitch, roll, 0), pts)
 
 
@@ -156,5 +161,6 @@ def transform_yaw(pose_msg, pts):
     Finishes the above transform by rotating according to the yaw.
     """
     pitch, roll, yaw = quat_to_euler(pose_msg)
-    pts = transform_euler((0, 0, yaw), pts)
+    if len(pts) != 0:
+        pts = transform_euler((0, 0, yaw), pts)
     return pts
