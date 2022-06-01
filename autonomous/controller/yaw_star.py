@@ -1,5 +1,6 @@
 from math_utils.controller_math import *
 from config.runtime_params import *
+import math
 
 """
 This is the old yaw-star implementation - currently here while the new version (in turning.py) is integrated with drive.
@@ -55,11 +56,14 @@ class Turning:
     def run_star(self, yaw_diff, position_vector, current_orientation):
         steer_fraction = 0.0
         drive_fraction = 0.0
+        current_yaw = math.atan2(current_orientation[1], current_orientation[0])
         if abs(yaw_diff) > self.MAX_YAW:
             # Big turn, either drive straight or turn
             if self.star_state == 0:
                 # From straight line to first yaw
-                self.target_yaw = np.sign(yaw_diff) * (abs(yaw_diff) - self.MAX_YAW)
+                self.target_yaw = current_orientation + np.sign(yaw_diff) * self.MAX_YAW
+                self.target_yaw %= 2 * math.pi
+                self.target_yaw -= 2 * math.pi if self.target_yaw > math.pi else 0
                 steer_fraction = tank_turn_target_yaw_rate(yaw_diff)
                 drive_fraction = turn_drive_fraction
                 # Update state
@@ -67,7 +71,7 @@ class Turning:
 
             elif self.star_state == 1:
                 # Check if keep yawing
-                if abs(yaw_diff) > abs(self.target_yaw):
+                if np.sign(yaw_diff) * current_yaw < np.sign(yaw_diff) * (self.target_yaw):
                     # Keep turning
                     steer_fraction = tank_turn_target_yaw_rate(yaw_diff)
                     drive_fraction = turn_drive_fraction 
