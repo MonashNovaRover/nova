@@ -65,6 +65,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/ScienceCommand.srv"
   "srv/RFIDCommand.srv"
   "srv/PathPlanningRequest.srv"
+  "srv/StringTrigger.srv"
 
   # Action definitions
   DEPENDENCIES std_msgs geometry_msgs
