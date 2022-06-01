@@ -73,7 +73,9 @@ class ArTagManager(Node):
         gate_l, gate_r = self.get_average_tag_pose(self.ar_tag_goals[0]),\
                             self.get_average_tag_pose(self.ar_tag_goals[1])
 
-        normal = np.array((gate_l[1] - gate_r[1]), gate_r[0] - gate_l[1])
+        print(f"gate_l = {gate_l}, gate_r = {gate_r}")
+        normal = np.array((gate_l[1] - gate_r[1], gate_r[0] - gate_l[0]))
+        print(f"normal = {normal}")
         unit_normal = normal / np.linalg.norm(normal)
         return unit_normal
 

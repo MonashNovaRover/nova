@@ -23,7 +23,9 @@ min_waypoint_distance = 0.6  # todo: determine what is achievable
 ignore_waypoints = 4  # number of waypoints to cut off start of list
 
 # speed of autonomous driving and turning
-turn_drive_fraction = 0.20
+small_turn_angle = np.pi/16
+big_turn_drive_fraction = 0.20
+small_turn_drive_fraction = 0.10
 straight_drive_fraction = 0.4
 
 # Angle of lenience on completing a full turn on the spot
@@ -46,14 +48,14 @@ goal_achieved_distance = 1.4
 min_point_density = 3  # number of points in voxel before we accept it
 max_point_depth = 2.8  # distance beyond which we don't consider points
 max_fov_angle = np.pi / 8  # 40 degrees
-max_safe_obstacle = 80  # obstacle threshold for 2d map
-max_safe_inc = 60  # gradient cutoff for obstacles
+max_safe_obstacle = 55  # obstacle threshold for 2d map
+max_safe_inc = 35  # gradient cutoff for obstacles
 depth_mode = " python"  # whether we publish points over ros or use a python callback
 skip_pts = 1  # Step we use when selecting points if we can't handle the full cloud
 unseen_map_val = 0.25  # Fill all points we haven't seen with a set cost to preference known paths
 slice_height = 2.3  # the height we slice the map from when taking 2d slices
-obstacle_halve_value = 80  # All costs below a scaled value of 80 are halved to be more decisive
-obstacle_ignore_value = 30  # All costs below a scaled value of 30 are ignored
+obstacle_halve_value = 50  # All costs below a scaled value of 80 are halved to be more decisive
+obstacle_ignore_value = 20  # All costs below a scaled value of 30 are ignored
 min_map_update_time = .5  # minimum time between updating the map from point-cloud
 
 # ~~~~~~~~~~~~~~~LOCALISATION CONSTANTS ~~~~~~~~~~~~~~~~~

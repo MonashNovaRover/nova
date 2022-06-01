@@ -138,7 +138,7 @@ class Controller(Node):
         super().__init__('autonomous_controller_node')
 
         # set debug to not get shown
-        self.get_logger().set_level(LoggingSeverity.INFO)
+        self.get_logger().set_level(LoggingSeverity.DEBUG)
 
         # ~~~~~~~~~~ State ~~~~~~~~
         self.state_rover_pose = Pose2D()
@@ -183,7 +183,8 @@ class Controller(Node):
         self.sub_planned_path_to_destination = self.create_subscription(Waypoints, auto_waypoints_topic,
                                                                         self.callback_planner_path, 10)
         # service for changing the LED
-        self.srv_led_color = self.create_client(Trigger, "/autonomous/LED")
+        self.srv_led_success = self.create_client(Trigger, "/autonomous/success")
+        self.srv_led_start = self.create_client(Trigger, "/autonomous/start")
 
         # Timers
         self.control_timer = self.create_timer(0.1, self.control)  # calculate and send drive commands
@@ -253,8 +254,13 @@ class Controller(Node):
         self.planning_state.update_state(new_state)
         self.driving_state = DrivingState.TO_WAYPOINT
         if new_state == PlanningState.SUCCESS:
-            self.trigger_led()
+            trigger = Trigger.Request()
+            self.srv_led_success.call_async(trigger)
 
+        if old_state == PlanningState.SUCCESS:
+            trigger = Trigger.Request()
+            self.srv_led_start.call_async(trigger)
+            
         if new_state == PlanningState.SEARCH:
             self.setup_search()
 
@@ -453,13 +459,6 @@ class Controller(Node):
         self.pub_desired_destination.publish(planning_destination)
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Control Loop Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    def trigger_led(self):
-        """
-        call the LED strip to signal auto success
-        """
-        trigger = Trigger.Request()
-        self.srv_led_color.call_async(trigger)
 
     def go_to_target(self, target_waypoint: tuple):
         """
