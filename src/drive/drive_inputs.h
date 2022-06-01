@@ -22,7 +22,7 @@ ACTIONS:  None
 PACKAGE: 	control
 AUTHOR(S):  Harrison Verrios, Liam Whittle
 CREATION:	14/11/2021
-EDITED:		21/02/2022
+EDITED:		31/05/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
@@ -40,7 +40,7 @@ using std::placeholders::_1;
 
 // The minimum and maximum multipliers
 const float MIN_MULTIPLIER      = 0.1;  // The minimum multiplier value
-const float MAX_MULTIPLIER      = 1.0;  // The maximum multiplier value
+const float MAX_MULTIPLIER      = 0.7;  // The maximum multiplier value
 const float DELTA_MULTIPLIER    = 0.1;  // The change in multiplier
 
 // The initial multipliers
@@ -70,10 +70,6 @@ class DriveInputs : public rclcpp::Node {
 
     // Stores the loop timer for the update function
     rclcpp::TimerBase::SharedPtr timer;
-
-    //Stores QoS options
-    rclcpp::QoS qos = rclcpp::QoS(1).reliability(RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT).durability(RMW_QOS_POLICY_DURABILITY_VOLATILE).deadline(200ms);
-    rclcpp::SubscriptionOptions subscriber_options;
 
     // Stores the publisher for the drive commands
     rclcpp::Publisher<core::msg::DriveInput>::SharedPtr publisher;
