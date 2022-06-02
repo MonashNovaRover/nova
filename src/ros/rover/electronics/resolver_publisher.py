@@ -256,10 +256,10 @@ class ResolverPublisher(Node):
             if response.success:
                 response.message = f"Successfully transmitted data for joint {joint_name}"
             else:
-                response.message = f'Transmit timeout requesting data from joint {joint_name}'
+                response.message = f"Transmit timeout requesting data from joint {joint_name}"
         except KeyError as e:
             response.success = False
-            response.message = str(e)
+            response.message = str(e).replace("'", "")
         return response
 
     @staticmethod
