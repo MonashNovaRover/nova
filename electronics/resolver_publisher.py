@@ -6,10 +6,10 @@ This file contains the ROS2 publisher code for the motor resolvers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: resolver_publisher
 TOPICS:
-  - /electronics/resolvers              [sensor_msgs/JointState]   [Published]
+  - /electronics/resolvers                [sensor_msgs/JointState]    [Published]
 SERVICES:
-  - /control/arm_config_info            [core/ArmConfigInfo]       [Client]
-  - /electronics/resolver_zero_service  [core/StringTrigger]       [Server]
+  - /control/arm_config_info              [core/ArmConfigInfo]        [Client]
+  - /electronics/resolver_zero_service    [core/StringTrigger]        [Server]
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:     electronics 
