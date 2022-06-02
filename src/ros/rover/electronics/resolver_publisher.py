@@ -100,24 +100,29 @@ class ResolverTransceiver(UARTTransceiver):
         try:
             joint = self.joint_map[joint_name]
         except KeyError as e:
-            # re raise with more useful message
+            # Re-raise with more useful message
             raise KeyError(f"Invalid joint name: {joint_name}")
         
         resolver_id = joint.id
 
-        # pack and transmit binary data
+        # Pack and transmit binary data
         data = self.pack([resolver_id])
         if not self.transmit(data):
+            self.warning(f'Could not request data from joint {joint_name}')
             return -1
 
-        # read response and decode into radians
-        ret = self.receive(error_string=f"Device ID {hex(resolver_id)}")
-        if ret is None:
+        # Read response and decode into radians
+        # Receives two bytes from the resolvers, representing a single 16-bit value
+        bytes_data = self.receive(error_string=f"Device ID {hex(resolver_id)}")
+        if bytes_data is None:
             return -1
-        unpacked_data = self.unpack(ret)[0]
-        # TODO: Handle checksum 
-        # for now just mask it out by removing 2 high order bits
-        angle_data = self._convert_to_rad(unpacked_data & 0x3FFF)
+        integer_data = self.unpack(bytes_data)[0]
+        # Handle checksum
+        if not self._verify_checksum(integer_data):
+            self.warning(f'Invalid checksum from joint {joint_name}')
+            return -1
+        # Get angle data by removing 2 high order bits
+        angle_data = self._convert_to_rad(integer_data & 0x3FFF)
         
         # Reverse the increasing direction if necessary
         if joint.reverse:
@@ -127,6 +132,21 @@ class ResolverTransceiver(UARTTransceiver):
         angle_data = self._move_discontinuity(angle_data, joint.discontinuity_angle)
 
         return angle_data
+
+    @staticmethod
+    def _verify_checksum(raw_value: int) -> bool:
+        """
+        Verifies the checksum for CUI Devices AMT21 absolute encodrs
+
+        The data is 16-bits long
+        Valid data has odd parity for all the even bits, and for all the odd bits.
+        Bits are numbered from 0 starting with the LSB.
+        """ 
+        assert raw_value < 65536
+        binary_data = [int(bit) for bit in f"{raw_value:016b}"]
+        even_bits = [binary_data[i] for i in range(len(binary_data)) if i % 2]
+        odd_bits = [binary_data[i] for i in range(len(binary_data)) if not i % 2]
+        return sum(even_bits) % 2 and sum(odd_bits) % 2
 
     @staticmethod
     def _convert_to_rad(raw_value: int) -> float:
@@ -196,13 +216,13 @@ class ResolverPublisher(Node):
         
         # Initialise the transceiver
         self.resolver_transceiver = ResolverTransceiver(
-                receive_timeout = self.receive_timeout,
-                receive_fmt = '<H',
-                transmit_fmt = '@B',
-                logger = self.get_logger(),
-                baudrate = 115200,
-                port = '/dev/ttyUSB0',
-                )
+            receive_timeout = self.receive_timeout,
+            receive_fmt = '<H',
+            transmit_fmt = '<B',
+            logger = self.get_logger(),
+            baudrate = 115200,
+            port = '/dev/ttyUSB0',
+            )
 
         # Create the output message type to track the resolver state
         self.resolver_state = JointState()
