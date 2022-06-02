@@ -70,19 +70,27 @@ class ResolverTransceiver(UARTTransceiver):
             "end-rotation":     Joint("end-rotation",  0x1C, False)
         }
 
+    def get_joint(self, joint_name: str) -> Joint:
+        """
+        Return the Joint associated with the given joint name
+
+        Raises KeyError if invalid joint name given
+        """
+        try:
+            return self.joint_map[joint_name]
+        except KeyError:
+            # re raise with more useful message
+            raise KeyError(f"Invalid joint name: {joint_name}")
+
     def zero(self, joint_name: str) -> bool:
         """
         Method to zero a given encoder
 
         Returns True on success, false otherwise
 
-        Raises KeyError if invalid joint given
+        Raises KeyError if invalid joint name given
         """
-        try:
-            resolver_id = self.joint_map[joint_name].id
-        except KeyError as e:
-            # re raise with more useful message
-            raise KeyError(f"Invalid joint name: {joint_name}")
+        resolver_id = self.get_joint(joint_name).id
         
         self.info(f'Zeroing joint {joint_name}')
         # Send two bytes, so use 2-byte format
@@ -96,12 +104,10 @@ class ResolverTransceiver(UARTTransceiver):
         Method to read a given encoder
         
         Returns float value in [0, 2 pi) or -1 on failure
+
+        Raises KeyError if invalid joint name given
         """
-        try:
-            joint = self.joint_map[joint_name]
-        except KeyError as e:
-            # re raise with more useful message
-            raise KeyError(f"Invalid joint name: {joint_name}")
+        joint = self.get_joint(joint_name)
         
         resolver_id = joint.id
 
@@ -235,7 +241,16 @@ class ResolverPublisher(Node):
         """
         Callback for the resolver zero service
         """
-        response.success = self.resolver_transceiver.zero(request.value)
+        joint_name = request.value
+        try:
+            response.success = self.resolver_transceiver.zero(joint_name)
+            if response.success:
+                response.message = f"Successfully transmitted data for joint {joint_name}"
+            else:
+                response.message = f'Transmit timeout requesting data from joint {joint_name}'
+        except KeyError as e:
+            response.success = False
+            response.message = str(e)
         return response
 
     @staticmethod
