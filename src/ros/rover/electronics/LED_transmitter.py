@@ -113,37 +113,37 @@ class LEDUpdateNode(Node):
 
         self.display()
         
-    def get_control_state_colours (self, state):
+    def get_control_state_colours(self, state):
         if state == ControlState.MANUAL:
-            return (CanLEDCommunicator.BLUE, 255)
+            return CanLEDCommunicator.BLUE, 255
         elif state == ControlState.AUTONOMOUS:
-            return (CanLEDCommunicator.RED, 255)
+            return CanLEDCommunicator.RED, 255
     
-    def get_control_state_flash (self, state):
+    def get_control_state_flash(self, state):
         if state == ControlState.MANUAL:
             return False
         elif state == ControlState.AUTONOMOUS:
             return False
     
-    def get_connection_state_colours (self, state):
-        if state == ConnectionState.CONNECTED:
+    def get_connection_state_colours(self, state):
+        if state == ConnectionState.CONNECTED or self.control_state == ControlState.AUTONOMOUS:
             return self.get_control_state_colours(self.control_state)
         elif state == ConnectionState.DISCONNECTED:
-            return (CanLEDCommunicator.RED, 255)
+            return CanLEDCommunicator.RED, 255
 
-    def get_connection_state_flash (self, state):
-        if state == ConnectionState.CONNECTED:
+    def get_connection_state_flash(self, state):
+        if state == ConnectionState.CONNECTED or self.control_state == ControlState.AUTONOMOUS:
             return self.get_control_state_flash(self.control_state)
         elif state == ConnectionState.DISCONNECTED:
             return True
             
-    def get_state_colours (self, state):
+    def get_state_colours(self, state):
         if state == AutonomousState.ACTIVE:
             return self.get_connection_state_colours(self.connection_state)
         elif state == AutonomousState.SUCCESS:
-            return (CanLEDCommunicator.GREEN, 255)
+            return CanLEDCommunicator.GREEN, 255
     
-    def get_state_flash (self, state):
+    def get_state_flash(self, state):
         if state == AutonomousState.ACTIVE:
             return self.get_connection_state_flash(self.connection_state)
         elif state == AutonomousState.SUCCESS:
