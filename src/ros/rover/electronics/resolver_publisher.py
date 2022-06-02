@@ -32,7 +32,7 @@ class Joint:
     """
     Class to store joint-specific hardware information
     """
-    def __init__(self, joint_name: str, id: int, reverse: bool=False, discontinuity_angle: float=2*pi):
+    def __init__(self, joint_name: str, id: int, reverse: bool=False, discontinuity_angle: float=2*pi, active: bool=False):
         # Joint names as in the arm model
         self.joint_name = joint_name
         # Resolver ID for sending commands
@@ -48,6 +48,9 @@ class Joint:
         # Makes the joint limits calculation much simpler
         self.discontinuity_angle = discontinuity_angle
 
+        # Bool for whether the joint is currently attached to the arm
+        self.active = active
+
 
 class ResolverTransceiver(UARTTransceiver):
     """
@@ -57,6 +60,8 @@ class ResolverTransceiver(UARTTransceiver):
         super().__init__(**kwargs)
         
         # Create mapping of joint names to their respective Joint objects
+        # Initialise using default discontinuity angles and active status,
+        # update in the managing ROS node using info from the arm model
         self.joint_map =  {
             "base-rotation":    Joint("base-rotation", 0x04, True),
             "shoulder":         Joint("shoulder",      0x08, True),
@@ -70,17 +75,21 @@ class ResolverTransceiver(UARTTransceiver):
             "end-rotation":     Joint("end-rotation",  0x1C, False)
         }
 
-    def get_joint(self, joint_name: str) -> Joint:
+    def get_joint(self, joint_name: str, exclude_inactive: bool=True) -> Joint:
         """
         Return the Joint associated with the given joint name
 
         Raises KeyError if invalid joint name given
+        By default, also raises KeyError if joint is not active
         """
         try:
-            return self.joint_map[joint_name]
+            joint = self.joint_map[joint_name]
         except KeyError:
             # re raise with more useful message
             raise KeyError(f"Invalid joint name: {joint_name}")
+        if exclude_inactive and not joint.active:
+            raise KeyError(f"Inactive joint: {joint_name}")
+        return joint
 
     def zero(self, joint_name: str) -> bool:
         """
@@ -219,14 +228,14 @@ class ResolverPublisher(Node):
         self.resolver_state.velocity = [0.0] * len(joint_names)
         self.resolver_state.effort = [0.0] * len(joint_names)
 
-        # Store the discontinuity angles for Joint objects in the ResolverTransceiver
+        # Update info for Joint objects in the ResolverTransceiver
         for i, joint_name in enumerate(joint_names):
-            try:
-                joint = self.resolver_transceiver.joint_map[joint_name]
-            except KeyError as e:
-                # re raise with more useful message
-                raise KeyError(f"Invalid joint name: {joint_name}")
+            joint = self.resolver_transceiver.get_joint(joint_name, exclude_inactive=False)
             
+            # Set the used joints to active
+            joint.active = True
+
+            # Store the discontinuity angles
             joint_limit_lower = self.arm_config_info.joint_limits_lower[i]
             joint_limit_upper = self.arm_config_info.joint_limits_upper[i]
             joint.discontinuity_angle = self.wrap_to_2pi((joint_limit_lower + joint_limit_upper) / 2 + pi)
@@ -267,7 +276,7 @@ class ResolverPublisher(Node):
         """
         callback to publish position of all joints
         """
-        for i, joint_name in enumerate(self.resolver_state.name):
+        for i, joint_name in enumerate(self.arm_config_info.joint_names):
 
             # No resolver on J6, so just pretend it is always level
             if joint_name == "j6":
@@ -293,7 +302,6 @@ def main(args=None):
     rclpy.init(args=args)
 
     resolver_pub = ResolverPublisher()
-    #resolver_pub.resolver_transceiver.zero("elbow")
 
     rclpy.spin(resolver_pub)
 
