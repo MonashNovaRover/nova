@@ -3,18 +3,23 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team
 This file contains the ROS2 publisher code for the motor resolvers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+NODE: resolver_publisher
+TOPICS:
+  - /electronics/resolvers              [sensor_msgs/JointState]   [Published]
+SERVICES:
+  - /control/arm_config_info            [core/ArmConfigInfo]       [Client]
+  - /electronics/resolver_zero_service  [core/StringTrigger]       [Server]
+ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:     electronics 
 AUTHOR(S):   Josh Cherubino, Jory Braun
 CREATION:    14/02/2022
-EDITED:      28/04/2022
+EDITED:      01/06/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
-    - Add checksum validation of data
     - Setup appropriate QoS profile for publisher
     - Set appropriate transmit and receive timeouts
-    - Check structure of unpacked_data - should it be a tuple? Only the 0th element has stuff in it.
-    - Add ROS service for zeroing resolvers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """  
 
