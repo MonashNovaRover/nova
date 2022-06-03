@@ -3,25 +3,30 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team
 This file contains the ROS2 publisher code for the motor resolvers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+NODE: resolver_publisher
+TOPICS:
+  - /electronics/resolvers                [sensor_msgs/JointState]    [Published]
+SERVICES:
+  - /control/arm_config_info              [core/ArmConfigInfo]        [Client]
+  - /electronics/resolver_zero_service    [core/StringTrigger]        [Server]
+ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:     electronics 
 AUTHOR(S):   Josh Cherubino, Jory Braun
 CREATION:    14/02/2022
-EDITED:      28/04/2022
+EDITED:      01/06/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
-    - Add checksum validation of data
     - Setup appropriate QoS profile for publisher
     - Set appropriate transmit and receive timeouts
-    - Check structure of unpacked_data - should it be a tuple? Only the 0th element has stuff in it.
-    - Add ROS service for zeroing resolvers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """  
 
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import JointState
-from core.srv import ArmConfigInfo
+from core.srv import ArmConfigInfo, StringTrigger
 
 from coms_utils.uart_interface import UARTTransceiver
 from math import pi
@@ -32,7 +37,7 @@ class Joint:
     """
     Class to store joint-specific hardware information
     """
-    def __init__(self, joint_name: str, id: int, reverse: bool=False, discontinuity_angle: float=2*pi):
+    def __init__(self, joint_name: str, id: int, reverse: bool=False, discontinuity_angle: float=2*pi, active: bool=False):
         # Joint names as in the arm model
         self.joint_name = joint_name
         # Resolver ID for sending commands
@@ -48,6 +53,9 @@ class Joint:
         # Makes the joint limits calculation much simpler
         self.discontinuity_angle = discontinuity_angle
 
+        # Bool for whether the joint is currently attached to the arm
+        self.active = active
+
 
 class ResolverTransceiver(UARTTransceiver):
     """
@@ -57,6 +65,8 @@ class ResolverTransceiver(UARTTransceiver):
         super().__init__(**kwargs)
         
         # Create mapping of joint names to their respective Joint objects
+        # Initialise using default discontinuity angles and active status,
+        # update in the managing ROS node using info from the arm model
         self.joint_map =  {
             "base-rotation":    Joint("base-rotation", 0x04, True),
             "shoulder":         Joint("shoulder",      0x08, True),
@@ -70,25 +80,37 @@ class ResolverTransceiver(UARTTransceiver):
             "end-rotation":     Joint("end-rotation",  0x1C, False)
         }
 
+    def get_joint(self, joint_name: str, exclude_inactive: bool=True) -> Joint:
+        """
+        Return the Joint associated with the given joint name
+
+        Raises KeyError if invalid joint name given
+        By default, also raises KeyError if joint is not active
+        """
+        try:
+            joint = self.joint_map[joint_name]
+        except KeyError:
+            # re raise with more useful message
+            raise KeyError(f"Invalid joint name: {joint_name}")
+        if exclude_inactive and not joint.active:
+            raise KeyError(f"Inactive joint: {joint_name}")
+        return joint
+
     def zero(self, joint_name: str) -> bool:
         """
         Method to zero a given encoder
 
         Returns True on success, false otherwise
 
-        Raises KeyError if invalid joint given
+        Raises KeyError if invalid joint name given
         """
-        try:
-            resolver_id = self.joint_map[joint_name].id
-        except KeyError as e:
-            # re raise with more useful message
-            raise KeyError(f"Invalid joint name: {joint_name}")
+        resolver_id = self.get_joint(joint_name).id
         
         self.info(f'Zeroing joint {joint_name}')
-        # format (first byte is begin extended command: 0x56)
-        # second is zero command: 0x5E
-        fmt = '@BB'
-        data = self.pack([0x56, 0x5E], fmt=fmt)
+        # Send two bytes, so use 2-byte format
+        # First byte is resolver_id + 0x02. Indicates an extended command
+        # Second byte is zero command: 0x5E
+        data = self.pack([resolver_id + 0x02, 0x5E], fmt='<BB')
         return self.transmit(data)
     
     def position(self, joint_name: str) -> float:
@@ -96,28 +118,31 @@ class ResolverTransceiver(UARTTransceiver):
         Method to read a given encoder
         
         Returns float value in [0, 2 pi) or -1 on failure
+
+        Raises KeyError if invalid joint name given
         """
-        try:
-            joint = self.joint_map[joint_name]
-        except KeyError as e:
-            # re raise with more useful message
-            raise KeyError(f"Invalid joint name: {joint_name}")
-        
+        joint = self.get_joint(joint_name)
+
         resolver_id = joint.id
 
-        # pack and transmit binary data
+        # Pack and transmit binary data
         data = self.pack([resolver_id])
         if not self.transmit(data):
+            self.warning(f'Could not request data from joint {joint_name}')
             return -1
 
-        # read response and decode into radians
-        ret = self.receive(error_string=f"Device ID {hex(resolver_id)}")
-        if ret is None:
+        # Read response and decode into radians
+        # Receives two bytes from the resolvers, representing a single 16-bit value
+        bytes_data = self.receive(error_string=f"Device ID {hex(resolver_id)}")
+        if bytes_data is None:
             return -1
-        unpacked_data = self.unpack(ret)[0]
-        # TODO: Handle checksum 
-        # for now just mask it out by removing 2 high order bits
-        angle_data = self._convert_to_rad(unpacked_data & 0x3FFF)
+        integer_data = self.unpack(bytes_data)[0]
+        # Handle checksum
+        if not self._verify_checksum(integer_data):
+            self.warning(f'Invalid checksum from joint {joint_name}')
+            return -1
+        # Get angle data by removing 2 high order bits
+        angle_data = self._convert_to_rad(integer_data & 0x3FFF)
         
         # Reverse the increasing direction if necessary
         if joint.reverse:
@@ -127,6 +152,21 @@ class ResolverTransceiver(UARTTransceiver):
         angle_data = self._move_discontinuity(angle_data, joint.discontinuity_angle)
 
         return angle_data
+
+    @staticmethod
+    def _verify_checksum(raw_value: int) -> bool:
+        """
+        Verifies the checksum for CUI Devices AMT21 absolute encodrs
+
+        The data is 16-bits long
+        Valid data has odd parity for all the even bits, and for all the odd bits.
+        Bits are numbered from 0 starting with the LSB.
+        """ 
+        assert raw_value < 65536
+        binary_data = [int(bit) for bit in f"{raw_value:016b}"]
+        even_bits = [binary_data[i] for i in range(len(binary_data)) if i % 2]
+        odd_bits = [binary_data[i] for i in range(len(binary_data)) if not i % 2]
+        return sum(even_bits) % 2 and sum(odd_bits) % 2
 
     @staticmethod
     def _convert_to_rad(raw_value: int) -> float:
@@ -196,13 +236,13 @@ class ResolverPublisher(Node):
         
         # Initialise the transceiver
         self.resolver_transceiver = ResolverTransceiver(
-                receive_timeout = self.receive_timeout,
-                receive_fmt = '<H',
-                transmit_fmt = '@B',
-                logger = self.get_logger(),
-                baudrate = 115200,
-                port = '/dev/ttyUSB0',
-                )
+            receive_timeout = self.receive_timeout,
+            receive_fmt = '<H',
+            transmit_fmt = '<B',
+            logger = self.get_logger(),
+            baudrate = 115200,
+            port = '/dev/ttyUSB0',
+            )
 
         # Create the output message type to track the resolver state
         self.resolver_state = JointState()
@@ -213,14 +253,14 @@ class ResolverPublisher(Node):
         self.resolver_state.velocity = [0.0] * len(joint_names)
         self.resolver_state.effort = [0.0] * len(joint_names)
 
-        # Store the discontinuity angles for Joint objects in the ResolverTransceiver
+        # Update info for Joint objects in the ResolverTransceiver
         for i, joint_name in enumerate(joint_names):
-            try:
-                joint = self.resolver_transceiver.joint_map[joint_name]
-            except KeyError as e:
-                # re raise with more useful message
-                raise KeyError(f"Invalid joint name: {joint_name}")
+            joint = self.resolver_transceiver.get_joint(joint_name, exclude_inactive=False)
             
+            # Set the used joints to active
+            joint.active = True
+
+            # Store the discontinuity angles
             joint_limit_lower = self.arm_config_info.joint_limits_lower[i]
             joint_limit_upper = self.arm_config_info.joint_limits_upper[i]
             joint.discontinuity_angle = self.wrap_to_2pi((joint_limit_lower + joint_limit_upper) / 2 + pi)
@@ -228,6 +268,24 @@ class ResolverPublisher(Node):
         # Construct and start the resolver publisher
         self.publisher = self.create_publisher(JointState, '/electronics/resolvers', 10)
         self.resolver_pub_timer = self.create_timer(resolver_pub_timer_period, self.publish)
+        # Construct the service to zero resolvers
+        self.zero_service = self.create_service(StringTrigger, "/electronics/resolver_zero_service", self.zero_callback)
+
+    def zero_callback(self, request: StringTrigger.Request, response: StringTrigger.Response):
+        """
+        Callback for the resolver zero service
+        """
+        joint_name = request.value
+        try:
+            response.success = self.resolver_transceiver.zero(joint_name)
+            if response.success:
+                response.message = f"Successfully transmitted data for joint {joint_name}"
+            else:
+                response.message = f"Transmit timeout requesting data from joint {joint_name}"
+        except KeyError as e:
+            response.success = False
+            response.message = str(e).replace("'", "")
+        return response
 
     @staticmethod
     def wrap_to_2pi(angle: float) -> float:
@@ -243,7 +301,7 @@ class ResolverPublisher(Node):
         """
         callback to publish position of all joints
         """
-        for i, joint_name in enumerate(self.resolver_state.name):
+        for i, joint_name in enumerate(self.arm_config_info.joint_names):
 
             # No resolver on J6, so just pretend it is always level
             if joint_name == "j6":
@@ -269,7 +327,6 @@ def main(args=None):
     rclpy.init(args=args)
 
     resolver_pub = ResolverPublisher()
-    #resolver_pub.resolver_transceiver.zero("elbow")
 
     rclpy.spin(resolver_pub)
 
