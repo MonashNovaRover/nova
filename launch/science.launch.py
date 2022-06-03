@@ -24,11 +24,11 @@ import launch_ros.actions
 def generate_launch_description():
     return LaunchDescription([
         launch_ros.actions.Node(
-            package='science', node_executable='transmitter.py', output='screen'),
+            package='science', node_executable='transmitter.py', output='screen', emulate_tty=True),
         launch_ros.actions.Node(
-            package='science', node_executable='distance_publisher.py', output='screen'),
+            package='science', node_executable='distance_publisher.py', output='screen', emulate_tty=True),
         launch_ros.actions.Node(
-            package='science', node_executable='spectrometer_publisher.py', output='screen'),
+            package='science', node_executable='spectrometer_publisher.py', output='screen', emulate_tty=True),
         launch_ros.actions.Node(
-            package='science', node_executable='EMC_publisher.py', output='screen'),
+            package='science', node_executable='EMC_publisher.py', output='screen', emulate_tty=True),
     ])
