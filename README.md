@@ -2,6 +2,11 @@
 
 This is a ROS-2 (Eloquent) package for Nova Rover's autonomous capabilities
 
+### How to build autonomous
+Before running `build autonomous`, you must run the following command: \
+`git submodule update --init --recursive`
+
+
 #### About the languages we use
 This repository contains code written in python and c++, located in the `autonomous` and `src` folders respectively.
 The c++ code is for path planning and map building algorithms which we wanted to be as efficient as possible. None of the 

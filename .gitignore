@@ -51,6 +51,7 @@ tests*
 /planning/docs
 /planning/src
 /pybind11/
+pybind11/
 
 *~
 
