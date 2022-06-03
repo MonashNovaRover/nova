@@ -138,13 +138,13 @@ class LEDUpdateNode(Node):
             return True
             
     def get_state_colours(self, state):
-        if state == AutonomousState.ACTIVE:
+        if state == AutonomousState.ACTIVE or self.control_state == ControlState.MANUAL:
             return self.get_connection_state_colours(self.connection_state)
         elif state == AutonomousState.SUCCESS:
             return CanLEDCommunicator.GREEN, 255
     
     def get_state_flash(self, state):
-        if state == AutonomousState.ACTIVE:
+        if state == AutonomousState.ACTIVE or self.control_state == ControlState.MANUAL:
             return self.get_connection_state_flash(self.connection_state)
         elif state == AutonomousState.SUCCESS:
             return True
