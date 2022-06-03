@@ -21,5 +21,5 @@ import launch_ros.actions
 def generate_launch_description():
     return LaunchDescription([
         launch_ros.actions.Node(
-            package='visualisation', node_executable='arm_poses_sub.py', output='screen')
+            package='visualisation', node_executable='arm_poses_sub.py', output='screen', emulate_tty=True),
     ])
