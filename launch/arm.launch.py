@@ -25,13 +25,13 @@ import launch_ros.actions
 def generate_launch_description():
     return LaunchDescription([      
         launch_ros.actions.Node(
-            package='control', node_executable='arm_inputs', output='screen'),
+            package='control', node_executable='arm_inputs', output='screen', emulate_tty=True),
         launch_ros.actions.Node(
-            package='control', node_executable='arm_driver', output='screen'),
+            package='control', node_executable='arm_driver', output='screen', emulate_tty=True),
         launch_ros.actions.Node(
-            package='control', node_executable='arm_kinematics', output='screen'),
+            package='control', node_executable='arm_kinematics', output='screen', emulate_tty=True),
         launch_ros.actions.Node(
-            package='electronics', node_executable='resolver_publisher.py', output='screen'),
+            package='electronics', node_executable='resolver_publisher.py', output='screen', emulate_tty=True),
         launch_ros.actions.Node(
-            package='visualisation', node_executable='arm_viz_publisher', output='screen'),
+            package='visualisation', node_executable='arm_viz_publisher', output='screen', emulate_tty=True),
     ])
