@@ -25,6 +25,7 @@ TODO:
 
 import rclpy
 from rclpy.node import Node
+from rclpy.impl.rcutils_logger import RcutilsLogger
 from sensor_msgs.msg import JointState
 from core.srv import ArmConfigInfo, StringTrigger
 
@@ -61,8 +62,12 @@ class ResolverTransceiver(UARTTransceiver):
     """
     Transceiver class to handle reading values from encoders
     """
-    def __init__(self, **kwargs):
+    def __init__(self, logger: RcutilsLogger, **kwargs):
         super().__init__(**kwargs)
+
+        # Set python logger level so will not log anything, add ROS logger
+        self.set_log_level("critical")
+        self.logger = logger
         
         # Create mapping of joint names to their respective Joint objects
         # Initialise using default discontinuity angles and active status,
@@ -106,12 +111,15 @@ class ResolverTransceiver(UARTTransceiver):
         """
         resolver_id = self.get_joint(joint_name).id
         
-        self.info(f'Zeroing joint {joint_name}')
+        self.logger.info(f'Zeroing joint {joint_name}')
         # Send two bytes, so use 2-byte format
         # First byte is resolver_id + 0x02. Indicates an extended command
         # Second byte is zero command: 0x5E
         data = self.pack([resolver_id + 0x02, 0x5E], fmt='<BB')
-        return self.transmit(data)
+        transmitted = self.transmit(data)
+        if not transmitted:
+            self.logger.error(f'Transmit timeout for joint {joint_name}')
+        return transmitted
     
     def position(self, joint_name: str) -> float:
         """
@@ -128,18 +136,19 @@ class ResolverTransceiver(UARTTransceiver):
         # Pack and transmit binary data
         data = self.pack([resolver_id])
         if not self.transmit(data):
-            self.warning(f'Could not request data from joint {joint_name}')
+            self.logger.error(f'Transmit timeout for joint {joint_name}')
             return -1
 
         # Read response and decode into radians
         # Receives two bytes from the resolvers, representing a single 16-bit value
-        bytes_data = self.receive(error_string=f"Device ID {hex(resolver_id)}")
+        bytes_data = self.receive()
         if bytes_data is None:
+            self.logger.error(f'Read timeout for joint {joint_name}')
             return -1
         integer_data = self.unpack(bytes_data)[0]
         # Handle checksum
         if not self._verify_checksum(integer_data):
-            self.warning(f'Invalid checksum from joint {joint_name}')
+            self.logger.warn(f'Invalid checksum from joint {joint_name}')
             return -1
         # Get angle data by removing 2 high order bits
         angle_data = self._convert_to_rad(integer_data & 0x3FFF)
