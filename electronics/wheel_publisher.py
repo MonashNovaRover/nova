@@ -22,7 +22,7 @@ TOPICS:
 PACKAGE: 	electronics
 AUTHOR(S):	Harrison Verrios, Liam Whittle
 CREATION:	18/02/2022
-EDITED:		26/02/2022
+EDITED:		07/06/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
@@ -51,7 +51,7 @@ The following are the adjustable parameters that can
 be configured for the wheels.
 '''
 
-NUM_WHEELS = 6
+NUM_WHEELS = 1
 
 # The value that 1.0 velocity maps to in RPM
 # Calculated using a Tacometer
@@ -88,9 +88,10 @@ class WheelPublisher (Node):
         self.t = time.time()
     
         # Create the CAN network
-        self.cans = [CANReceiver(channel="can0", filter_ids=[WHEEL_IDS[i]], receive_timeout=1, receive_fmt="<hh", bitrate=200000) for i in range(NUM_WHEELS)]
+        self.cans = [CANReceiver(channel="can0", filter_ids=[WHEEL_IDS[i]], receive_timeout=1, receive_fmt="<hhh", bitrate=200000) for i in range(NUM_WHEELS)]
         self.rpms = [0 for _ in range(NUM_WHEELS)]
         self.powers = [0 for _ in range(NUM_WHEELS)]
+        self.currents = [0 for _ in range(NUM_WHEELS)]
 
         # Create the publisher
         self.publisher = self.create_publisher(WheelData, "/electronics/wheel_data", 10)
@@ -120,15 +121,18 @@ class WheelPublisher (Node):
                 # If a message exists
                 if can_msg:
                     # Read the velocity data
-                    (rpm, power) = self.cans[i].unpack(can_msg.data)
+                    (rpm, power, current) = self.cans[i].unpack(can_msg.data)
                     # Get a negative for some wheels
                     if i <= 2: rpm *= -1
 
-                    # RPM operating as a FIFO Queue with max len STORED_DATA_LEN self.rpms[i] = self.convert_rpm(rpm)
+                    # RPM operating as a FIFO Queue
                     self.rpms[i] = self.convert_rpm(rpm)
                     
-                    # Power operating as a FIFO Queue with max len STORED_DATA_LEN
+                    # Power operating as a FIFO Queue
                     self.powers[i] = self.convert_power(power)
+
+                    # Current operating as a FIFO Queue
+                    self.currents[i] = self.convert_current(current)
                     
                     # Update the timestamp
                     self.t = time.time()
@@ -148,6 +152,7 @@ class WheelPublisher (Node):
             # Set up the average arrays
             self.rpms = [0 for _ in range(NUM_WHEELS)]
             self.powers = [0 for _ in range(NUM_WHEELS)]
+            self.currents = [0 for _ in range(NUM_WHEELS)]
 
     # Publishes the current message data that exists
     def publish_msg (self):
@@ -181,7 +186,12 @@ class WheelPublisher (Node):
     # Converts the value of the power to something sensible
     # Converts a signed integer into a float
     def convert_power (self, value: int) -> float:
-        return abs(value) / 32768.0
+        return abs(value) / 32768.0 * 26.0
+
+    # Converts the value of the current to something sensible
+    # Converts a signed integer into a float
+    def convert_current (self, value: int) -> float:
+        return float(abs(value)) / 4096.0 * 2.5 * 10.0
 
     # Converts the RPM value to a speed in m/s
     def convert_rpm_to_vel (self, rpm: float) -> float:
