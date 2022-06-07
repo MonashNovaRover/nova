@@ -12,3 +12,6 @@ float32[6] currents
 
 # The power of the wheels [W]
 float32[6] powers
+
+# The temperature of the wheels [T]
+float32[6] temperatures
