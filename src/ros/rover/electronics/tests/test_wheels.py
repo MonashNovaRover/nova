@@ -14,10 +14,9 @@ TOPICS:
 PACKAGE: 	electronics
 AUTHOR(S):	Harrison Verrios
 CREATION:	26/02/2022
-EDITED:		26/02/2022
+EDITED:		07/06/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
-
 
 import rclpy
 from rclpy.node import Node
@@ -42,6 +41,11 @@ class WheelTest (Node):
     POWER_MIN = 0.35
     POWER_MAX = 0.95
 
+    # Current transmission rates
+    CURRENT_SPEED = 0.08
+    CURRENT_MIN = 0.1
+    CURRENT_MAX = 0.4
+
     # Initialises the ROS messages and nodes
     def __init__(self):
         super().__init__('wheels_tester_pub')
@@ -61,28 +65,36 @@ class WheelTest (Node):
         self.power_target = [0] * 6
         self.power_flag = [True] * 6
 
+        self.current = [0] * 6
+        self.current_target = [0] * 6
+        self.current_flag = [True] * 6
+
         # Stores the previous data
         self.prevData = WheelData()
         
-        # Randomise
-        for i in range(6): self.Randomise("vel", i)
-        for i in range(6): self.Randomise("power", i)
+        # randomise
+        for i in range(6): self.randomise("vel", i)
+        for i in range(6): self.randomise("power", i)
+        for i in range(6): self.randomise("current", i)
 
         # Run the program
-        self.Run()
+        self.run_test()
 
-    # Runs a program for the Radio
-    def Run(self):
+    # Runs a program for the wheels
+    def run_test (self):
+        
         # Repeat while running
         while self.run:
             # Adjust the values
-            self.ChangeValue("vel")
-            self.ChangeValue("power")
+            self.change_value("vel")
+            self.change_value("power")
+            self.change_value("current")
 
             # Create the ROS message
             msg = WheelData()
             for i in range(6): msg.powers[i] = self.power[i]
             for i in range(6): msg.velocities[i] = self.vel[i]
+            for i in range(6): msg.currents[i] = self.current[i]
             for i in range(6): msg.rpms[i] = self.vel[i] * 60.0 / (2.0 * 3.14159 * 0.122)
 
             # Output the ROS message
@@ -98,7 +110,7 @@ class WheelTest (Node):
    
     # Changes a value depending on where it is towards target value
     # Takes in a target, flag and speed and then is able to adjust the value
-    def ChangeValue(self, name):
+    def change_value(self, name):
         for i in range(6):
             value = getattr(self, name)[i]
             target = getattr(self, name + "_target")[i]
@@ -110,11 +122,11 @@ class WheelTest (Node):
             # Checks to see if it has not reached the target yet
             if (value < target and flag) or (value > target and not flag):
                 values = getattr(self, name)
-                values[i] = value + (speed / self.FREQUENCY * self.GetFlagMultiplier(flag))
+                values[i] = value + (speed / self.FREQUENCY * self.get_flag_multiplier(flag))
                 setattr(self, name, values)
             # If it has reached the target, re-randomise
             else:
-                self.Randomise(name, i)
+                self.randomise(name, i)
 
             # Check for min and max
             #if (value < min): setattr(self, name, min)
@@ -122,7 +134,7 @@ class WheelTest (Node):
         
 
     # Randomises a target value
-    def Randomise (self, name, i: int):
+    def randomise (self, name, i: int):
         targets = getattr(self, name.lower() + "_target")
         flags = getattr(self, name.lower() + "_flag")
         targets[i] = random.uniform(getattr(self, name.upper() + "_MIN"), getattr(self, name.upper() + "_MAX"))
@@ -131,7 +143,7 @@ class WheelTest (Node):
         setattr(self, name + "_flag", flags)
 
     # Returns a float -1 or 1 depending flag is True(1) or False(-1)
-    def GetFlagMultiplier (self, flag):
+    def get_flag_multiplier (self, flag):
         if flag:
             return 1.0
         else:
