@@ -240,8 +240,8 @@ class ResolverPublisher(Node):
         """
         Setup the node for the application. Create pubs and subs, initialise data members
         """
-        self.receive_timeout = 0.05
-        resolver_pub_timer_period = 0.5
+        self.receive_timeout = 0.01
+        resolver_pub_timer_period = 0.02
         
         # Initialise the transceiver
         self.resolver_transceiver = ResolverTransceiver(
