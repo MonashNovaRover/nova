@@ -14,6 +14,8 @@ alias build='. ~/nova_ws/src/core/macros/build.sh' # Runs colcon build
 alias setup='. ~/nova_ws/install/setup.bash'       # Sets up the ROS repository when scripts change
 alias pull='. ~/nova_ws/src/core/macros/pull.sh'   # Runs a GitHub pull on all repositories
 alias can='. ~/nova_ws/src/core/macros/can.sh'     # Sets up the CAN lines with a virtual or real CAN
+alias check='. ~/nova_ws/src/core/macros/check.sh'     # Sets up the CAN lines with a virtual or real CAN
+alias rerun='. ~/nova_ws/src/core/macros/rerun.sh'     # Sets up the CAN lines with a virtual or real CAN
 alias wifi='. ~/nova_ws/src/core/macros/wifi.sh'   # Allows easy connection to Wifi over command lines
 
 # Directory Aliases
@@ -55,6 +57,7 @@ alias platypus=wombat
 
 # Launching Aliases
 alias base='ros2 launch core base.launch.py'
+alias stop_base='sudo systemctl stop base.service'
 alias rover='ros2 launch core rover.launch.py'
 alias arm='ros2 launch core arm.launch.py'
 alias arm_spoof='ros2 launch core arm_spoof.launch.py'
@@ -80,3 +83,8 @@ alias foxglove_server="ros2-foxy-rosbag.ros2 launch rosbridge_server rosbridge_w
 
 # Science commands
 alias sci_copy="scp -r nvidia@192.168.1.204:nova_ws/src/science/data/spectrometer ~/nova_ws/src/science/data"
+
+
+# systemctl / screen aliases
+alias check='. ~/nova_ws/src/core/macros/check.sh'     # Sets up the CAN lines with a virtual or real CAN
+alias rerun='. ~/nova_ws/src/core/macros/rerun.sh'     # Sets up the CAN lines with a virtual or real CAN
