@@ -13,6 +13,9 @@
 
 # Sources the correct ROS bash file
 source ~/nova_ws/src/core/macros/ros.sh
+source ~/nova_ws/src/core/macros/prompt.sh
+
+
 
 # appending to pythonpath for autonomous folders
 export PYTHONPATH=$PYTHONPATH:~/nova_ws/src/autonomous/autonomous
