@@ -1,0 +1,15 @@
+[Unit]
+Description=Runs the arm launch file in a new screen
+Requires=network-online.target network.target local-fs.target
+After=network-online.target network.target local-fs.target
+
+[Service]
+User=nova
+Group=users
+Type=forking
+ExecStart=/home/nova/nova_ws/src/core/systemctl/arm.sh
+TimeoutStartSec=5
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
