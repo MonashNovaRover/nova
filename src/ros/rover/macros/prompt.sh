@@ -2,6 +2,9 @@
 
 # check if the can start service exists - this is a reasonable test for if we are on a Jetson 
 # or on a laptop.
+
+cat ~/nova_ws/src/core/macros/rover.txt
+
 if [ -f "/etc/systemd/system/can.service" ]
 then
 
