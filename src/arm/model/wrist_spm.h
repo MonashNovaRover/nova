@@ -72,6 +72,14 @@ class WristSpmModel : public ArmSubModule
             {-2 * M_PI, 2 * M_PI},  // No joint limiting
             {-2 * M_PI, 2 * M_PI}  // No joint limiting
         };
+        control_coeffs = std::vector<ControlCoeffs> {
+            // Control coefficients here apply to the SPM input angles, not the serial pitch, yaw and roll.
+            // P, I, D
+            {1, 1, 0},
+            {1, 1, 0},
+            {1, 1, 0},
+            {1, 1, 0}
+        };
 
         // Build the SPM wrist
         // Rigid link from root to the SPM base plate
