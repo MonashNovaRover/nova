@@ -64,6 +64,8 @@ ArmModel::ArmModel(const ArmConfig::WristType wrist_type, const ArmConfig::EndEf
         append_to_vector<std::string>(endpoint_names, module.endpoint_names);
         // Add the joint limits
         append_to_vector<ArmSubModule::JointLimit>(joint_limits, module.joint_limits);
+        // Add the control coefficients
+        append_to_vector<ArmSubModule::ControlCoeffs>(control_coeffs, module.control_coeffs);
         // Save the segment name where the next module attaches
         output_name = module.output_name;
     }
