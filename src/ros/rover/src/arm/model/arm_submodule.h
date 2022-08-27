@@ -51,6 +51,7 @@ class ArmSubModule : public KDL::Tree
         //   4. output_name
         //   5. zero_angles
         //   6. joint_limits
+        //   7. control_coeffs
         
         // Build the module segment by segment
         // For each segment, will consist of:
@@ -86,5 +87,15 @@ class ArmSubModule : public KDL::Tree
     } JointLimit;
     // List joint limits. Indexed to match joint_names
     std::vector<JointLimit> joint_limits;
+
+    // Define a structure for storing control coefficients
+    // Assume a PID controller
+    typedef struct {
+        float prop;
+        float integral;
+        float diff;
+    } ControlCoeffs;
+    // List control coefficients. Indexed to match joint_names
+    std::vector<ControlCoeffs> control_coeffs;
 
 };

@@ -49,6 +49,7 @@ class EeExtremeRetrievalModel : public ArmSubModule
         output_name = "sgripper";
         // No zero angles
         // No joint limits
+        // No control coefficients
 
         // Build the ER end effector
 

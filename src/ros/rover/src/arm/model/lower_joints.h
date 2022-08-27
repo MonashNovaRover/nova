@@ -52,6 +52,12 @@ class LowerJointsModel : public ArmSubModule
             {-1.75, 1.55},
             {-2.85, 2.50}
         };
+        control_coeffs = std::vector<ControlCoeffs> {
+            // P, I, D
+            {1, 1, 0},
+            {1, 1, 0},
+            {1, 1, 0}
+        };
         
         // Build the lower joints
         // Base rotation

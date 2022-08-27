@@ -62,12 +62,15 @@ class ArmModel : public KDL::Tree
 
     // List joint limits. Indexed to match joint_names
     std::vector<ArmSubModule::JointLimit> joint_limits;
+
+    // List controller coefficients. Indexed to match joint_names
+    std::vector<ArmSubModule::ControlCoeffs> control_coeffs;
     
     /// @brief  Constructor. Builds the arm with the given wrist and end effector.
     ///         Builds the arm out of submodules, with separate modules for the lower joints, wrist and end effector.
     ///         Different modules can be swapped out for another of the same type (eg: swap wrists)
     ///         Each module represents a physical assembly that can be attached or detached to/from the arm.
-    ///         Each module is based on a KDL::Tree, and defines its own joints, segments, endpoints (cameras and end effectors) and joint limits.
+    ///         Each module is based on a KDL::Tree, and defines its own joints, segments, endpoints (cameras and end effectors), joint limits, etc.
     ///         Each also includes a output 'hook' for attaching the next module to or for defining the arm default endpoint (end effector)
     ArmModel(const ArmConfig::WristType wrist_type, const ArmConfig::EndEffectorType end_effector_type);
 };
