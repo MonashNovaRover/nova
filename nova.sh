@@ -13,7 +13,7 @@
 
 # Sources the correct ROS bash file
 source ~/nova_ws/src/core/macros/ros.sh
-source ~/nova_ws/src/core/macros/prompt.sh
+python3 ~/nova_ws/src/core/macros/prompt.py
 
 
 
