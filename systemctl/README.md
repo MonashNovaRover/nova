@@ -1,6 +1,4 @@
-### Instructions for setting up
-- You must have screen installed
-    - `sudo apt install screen`
+## Instructions for setting up
 
 #### Run the following:
 `sudo bash setup_jetson_services.sh` 
