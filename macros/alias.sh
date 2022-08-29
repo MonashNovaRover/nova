@@ -15,6 +15,7 @@ alias setup='. ~/nova_ws/install/setup.bash'       # Sets up the ROS repository 
 alias pull='. ~/nova_ws/src/core/macros/pull.sh'   # Runs a GitHub pull on all repositories
 alias can='. ~/nova_ws/src/core/macros/can.sh'     # Sets up the CAN lines with a virtual or real CAN
 alias check='. ~/nova_ws/src/core/macros/check.sh'     # Sets up the CAN lines with a virtual or real CAN
+alias restart='. ~/nova_ws/src/core/macros/restart.sh'     # Sets up the CAN lines with a virtual or real CAN
 alias rerun='. ~/nova_ws/src/core/macros/rerun.sh'     # Sets up the CAN lines with a virtual or real CAN
 alias wifi='. ~/nova_ws/src/core/macros/wifi.sh'   # Allows easy connection to Wifi over command lines
 
