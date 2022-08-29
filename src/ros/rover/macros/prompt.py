@@ -27,7 +27,7 @@ def print_jetson():
     print("")
     print(f"{F.E}{F.B}{F.D}To check on a currently running launch file, type {F.C}check [rover | arm | base]")
     print("")
-    print(f"{F.E}{F.B}{F.D}The above commnds will take you to a screen session. {F.WARNING}To EXIT the screen session{F.E}{F.B}, type {F.C}CRTL+A, D{F.B}")
+    print(f"{F.E}{F.B}{F.D}The above commnds will take you to a screen session. {F.WARNING}To EXIT the screen session{F.E}{F.B}, {F.C}press CRTL+A, (release), then press D{F.B}")
     print("")
     print(f"{F.E}{F.B}{F.D}If a screen has crashed and you need to restart, type {F.C}restart [rover | arm | base]")
     print("")
