@@ -5,7 +5,7 @@ class F:
     """
     Set of colors for printing pretty terminal messages
     """
-    D = DELIMITER = "   > "
+    D = DELIMITER = "   - "
     T = DELIMITER = "     "
     H = HEADER = '\033[95m'
     B = OKBLUE = '\033[94m'
@@ -20,32 +20,28 @@ class F:
 
 
 def print_jetson():
-    print("")
-    print("")
     print(f"{F.G}{F.BOLD}Hello! It seems you are logged into a Jetson!")
+    print(f"{F.U}{F.WARNING}Please read ALL of the below before continuing:")
     print("")
-    print(f"{F.U}{F.WARNING}Please read ALL of the below before continuing...")
-    print(f"{F.E}{F.T}{F.B}To check the currently running rover launch file, type {F.C}check rover")
-    print(f"{F.T}{F.B}To check the currently running arm launch file, type {F.C}check arm")
-    print(f"{F.T}{F.B}To check the currently running base launch file, type {F.C}check base")
+    print(f"{F.E}{F.B}{F.D}To check which launch files are running, type {F.C}screen -ls")
     print("")
-    print(f"{F.B}The above commnds will take you to a screen session. To exit the screen session, use {F.C}CRTL+A, D{F.B}")
-    print(f"{F.B}If any of these don't take you to a new screen, they have probably crashed and will need to be run again!")
-    print(f"{F.B}Simply type {F.C}restart system{F.B} (where system is either {F.C}rover, arm or base{F.B})")
+    print(f"{F.E}{F.B}{F.D}To check on a currently running launch file, type {F.C}check [rover | arm | base]")
     print("")
+    print(f"{F.E}{F.B}{F.D}The above commnds will take you to a screen session. {F.WARNING}To EXIT the screen session{F.E}{F.B}, type {F.C}CRTL+A, D{F.B}")
+    print("")
+    print(f"{F.E}{F.B}{F.D}If a screen has crashed and you need to restart, type {F.C}restart [rover | arm | base]")
     print("")
 
 
 def print_laptop():
-    print("")
-    print("")
     print(f"{F.G}{F.BOLD}Hello! It seems you are logged into a laptop!")
     print("")
-    print(f"{F.U}{F.WARNING}If you are intending to use this as a base station, make sure to do the following: ")
-    print(f"{F.E}{F.T}{F.B}1. ssh into to the required jetson")
-    print(f"{F.T}{F.B}2. Follow provided instructions to check the status of running services")
-    print(f"{F.T}{F.B}3. run {F.C}stop_base{F.B} to stop base, and run it on your laptop")
+    print(f"{F.E}{F.U}{F.WARNING}If you are intending to use this as a base station, make sure to do the following: ")
+    print(f"{F.E}{F.E}{F.T}{F.B}1. ssh into to the required jetson")
     print("")
+    print(f"{F.E}{F.T}{F.B}2. Follow provided instructions to check the status of running services")
+    print("")
+    print(f"{F.E}{F.T}{F.B}3. run {F.C}stop_base{F.B} to stop base, and run it on your laptop")
     print("")
 
 if __name__ == "__main__":
