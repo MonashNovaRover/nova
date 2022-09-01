@@ -4,10 +4,10 @@ Requires=network-online.target network.target local-fs.target
 After=network-online.target network.target local-fs.target
 
 [Service]
-User=nova
+User=nvidia
 Group=users
 Type=forking
-ExecStart=/home/nova/nova_ws/src/core/systemctl/base.sh
+ExecStart=/home/nvidia/nova_ws/src/core/systemctl/base.sh
 TimeoutStartSec=5
 Restart=on-failure
 
