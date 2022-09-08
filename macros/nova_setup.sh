@@ -70,8 +70,8 @@ sudo apt update && sudo apt install curl gnupg2 lsb-release -y
 curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | sudo apt-key add -
 sudo sh -c 'echo "deb [arch=$(dpkg --print-architecture)] http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" > /etc/apt/sources.list.d/ros2-latest.list'
 sudo apt update -y
-sudo apt install ros-eloquent-desktop -y
-source /opt/ros/eloquent/setup.bash
+sudo apt install ros-foxy-desktop -y
+source /opt/ros/foxy/setup.bash
 sudo apt install -y python3-pip -y
 pip3 install -U argcomplete -y
 sudo apt install -y python-rosdep -y
@@ -156,7 +156,7 @@ information "Cloning Repositories..."
 cd ~/nova_ws/src
 
 # Check if the SSH key exists
-if [ ! -f ~/.ssh/id_ed25519.pub ]; then
+if [ ! -f ~/.ssh/id_rsa.pub ]; then
     # Create the keygen
     sudo ssh-keygen -t ed25519 -C "$email"
 
