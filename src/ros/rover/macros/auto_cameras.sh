@@ -20,7 +20,7 @@ then
 else
 
     # Run all the ROS 2 commands to load
-    source /opt/ros/eloquent/setup.bash
+    source /opt/ros/foxy/setup.bash
     source ~/nova_ws/install/setup.bash
     cd ~/nova_ws
     ros2 launch realsense2_camera rs_d400_t265_launch.py
