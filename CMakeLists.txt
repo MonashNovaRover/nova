@@ -20,9 +20,9 @@ add_subdirectory(pybind11)
 pybind11_add_module(a_star src/a_star.cpp)
 pybind11_add_module(height_mapper src/height_mapper.cpp)
 pybind11_add_module(plane_fitter src/plane_generator.cpp)
-install(TARGETS a_star DESTINATION ~/nova_ws/install/autonomous/lib/python3.6/site-packages)
-install(TARGETS height_mapper DESTINATION ~/nova_ws/install/autonomous/lib/python3.6/site-packages)
-install(TARGETS plane_fitter DESTINATION ~/nova_ws/install/autonomous/lib/python3.6/site-packages)
+install(TARGETS a_star DESTINATION ~/nova_ws/install/autonomous/lib/python3.8/site-packages)
+install(TARGETS height_mapper DESTINATION ~/nova_ws/install/autonomous/lib/python3.8/site-packages)
+install(TARGETS plane_fitter DESTINATION ~/nova_ws/install/autonomous/lib/python3.8/site-packages)
 
 # Find and include all dependencies
 find_package(ament_cmake REQUIRED)
