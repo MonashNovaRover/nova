@@ -137,23 +137,13 @@ class Driver : public rclcpp::Node {
     /// @returns    The turning radius [m]
     float get_turning_radius (float steer);
 
-    /// @brief      Fill array with velocities for each wheel, with directions depending on the radius
+    /// @brief      Get array with velocities for each wheel, with directions and magnitude depending on the radius
     ///             Account for cases where the turning radius is beneath the rover body, or when the radius is 0
-    /// @param      wheel_velocities - Array of wheel velocities, uninitialised. Modified in-place
+    /// @param      wheel_velocities - Array of wheel velocities, of size NUM_WHEELS. Uninitialised.
     /// @param      radius - The turning radius of the rover [m]
     /// @param      speed - Speed of each driven wheel
     /// @param      steer - Direction and amount of steering
     void fill_wheel_velocities(float wheel_velocities[NUM_WHEELS], float radius, float speed, float steer);
-
-    /// @brief      Scale wheel velocities by their distances to the turning centre
-    /// @param      wheel_velocities - Array of wheel velocities. Modified in-place
-    /// @param      radius - The turning radius of the rover [m]
-    void scale_wheel_distance(float wheel_velocities[NUM_WHEELS], float radius);
-
-    /// @brief      Scale wheel velocities according to their angles to the circular path
-    /// @param      wheel_velocities - Array of wheel velocities. Modified in-place
-    /// @param      radius - The turning radius of the rover [m]
-    void scale_wheel_tangent(float wheel_velocities[NUM_WHEELS], float radius);
     
     /// @brief      Calculates the position of the wheel in relation to the wheelbase centre
     /// @param      id - The identification of the wheel
@@ -165,12 +155,6 @@ class Driver : public rclcpp::Node {
     /// @param      radius - The turning radius of the rover [m]
     /// @returns    The distance between wheel and the turning centre [m]
     float get_wheel_distance (Vector2 pos, float radius);
-
-    /// @brief      Calculates the tangent scale of the wheel turning
-    /// @param      pos - The position of the wheel
-    /// @param      radius - The turning radius of the rover [m]
-    /// @returns    The tangent scale
-    float get_tangent_scale (Vector2 pos, float radius);
 	
     /// @brief callback for when drive inputs subscription is exceeded
     void inputs_deadline_exceeded();
