@@ -22,9 +22,9 @@ ACTIONS:  None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	control
 AUTHOR(S):  Harrison Verrios, Josh Cherubino,
-            Will de la Rue
+            Will de la Rue, Jory Braun
 CREATION:	21/11/2021
-EDITED:		09/02/2022
+EDITED:		13/09/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
@@ -34,8 +34,8 @@ EDITED:		09/02/2022
 #include "core/msg/drive_input.hpp"
 #include "std_msgs/msg/bool.hpp"
 
-// Include wheel class
-#include "wheel.h"
+// Include CMD class
+#include "cmd/cmd.h"
 
 // The distance between the two wheel sets [m]
 #define CHASSIS_SEPARATION 0.78058
@@ -97,14 +97,11 @@ class Driver : public rclcpp::Node {
     // A flag for whether to apply the handbrake or not
     bool handbrake;
 
-    // A flag for whether it has sent its first zero speed
-    bool stopped_sent;
-
     // A flag for whether to use autonomous state or not
     bool is_autonomous = false;
 
-    // An array of wheel instances
-    Wheel* wheels[NUM_WHEELS];
+    // An array of pointers to CMD instances
+    CMD* wheels[NUM_WHEELS];
 
     
     //------------------------------------------------------------//
