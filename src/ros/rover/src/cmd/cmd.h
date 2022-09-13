@@ -59,53 +59,78 @@ struct CMDData {
 class CMD {
 
     //------------------------------------------------------------//
-    protected:
+    private:
 
-    // The bus ID for the CMD (0 or 1)
+    // CAN bus ID (0 or 1)
     int bus;
 
-    // The identification ID for the CMD
+    // CMD ID. CMD responds to CAN IDs in the range ID << 4 to ID << 4 + F
     int id;
+
+    // Drive mode. Set to PWM or PID
+    CMDCommand CMD_drive_mode;
+    // Stop mode. Set to STOP or PID (handbrake)
+    CMDCommand CMD_stop_mode;
+
+    // Store whether we need to flip the output direction
+    // 0 for regular, 1 for flipped
+    bool CMD_direction;
+
+    // Was the last command a STOP? If so, do not bother repeating
+    bool already_stopped;
     
-    // The CAN socket that gets initialised for the CAN connection
+    // CAN socket for the CAN connection
     scpp::SocketCan can_socket;
 
 
-    //------------------------------------------------------------//
-    protected:
-
-    /// @brief      Calls an empty data frame packet for some command
+    /// @brief      Send a CAN frmae with some command in the ID but no data
     /// @param      command - The command to send
-    void call_empty (const CMDCommand command);
+    void write_frame_no_data (const CMDCommand command);
+    
+    //------------------------------------------------------------//
+    public:
+
+    /// @brief      Constructor for setting up a CMD interface
+    /// @param      bus - The bus ID of the CAN device
+    /// @param      id - The ID of the CAN device on the CAN line
+    /// @param      CMD_drive_mode - Default drive mode of the CMD. PWM or PID
+    /// @param      CMD_stop_mode - Default stop mode of the CMD. STOP or PID (handbrake)
+    /// @param      CMD_direction - Direction for the CMD. Determined by hardware
+    CMD (const int bus, const int id, CMDCommand CMD_drive_mode, CMDCommand CMD_stop_mode, const bool CMD_direction=0);
 
     /// @brief      Destructor is called when object is deleted
     ~CMD ();
 
+    /// @brief      Convert a double to an int16
+    /// @param      value - The raw value between -1.0 and 1.0
+    /// @returns    A Q15 fractional representing the same value
+    static int16_t convert_to_int16 (const double& value);
 
-    //------------------------------------------------------------//
-    public:
+    /// @brief      Convert a 2-byte array to a double
+    /// @param      bytes - The 2-byte array
+    /// @returns    A double scaled between -1 and 1
+    static double convert_from_bytes (uint8_t* bytes);
+    
+    /// @brief      Set the CMD drive mode
+    /// @param      CMD_drive_mode - Set to PWM or PID
+    void set_CMD_drive_mode (CMDCommand CMD_drive_mode);
 
-    /// @brief      Default constructor for setting up a CMD interface
-    /// @param      bus - The bus ID of the CAN device
-    /// @param      id - The ID of the CAN device on the CAN line
-    CMD (const int bus, const int id);
+    /// @brief      Set the CMD stop mode
+    /// @param      CMD_stop_mode - Set to STOP or PID
+    void set_CMD_stop_mode (CMDCommand CMD_stop_mode);
+    
+    /// @brief      Send a CAN message to stop driving the CMD
+    void stop ();
 
-    /// @brief      Stops all speeds on this particular CMD
-    virtual void stop ();
-
-    /// @brief      Drives forward at full speed to the CMD
+    /// @brief      Send a CAN message to drive forward at full speed
     void forward ();
 
-    /// @brief      Drives reverse at full speed to the CMD
+    /// @brief      Send a CAN message to drive reverse at full speed
     void reverse ();
 
-    /// @brief      Sends PWM commands to the CMD on the CAN line
-    /// @param      power - The fraction between -1.0 and 1.0 to send
-    void set_pwm (float power);
-
-    /// @brief      Sends PID commands to the CMD on the CAN line
-    /// @param      speed - The fraction between -1.0 and 1.0 to send
-    void set_pid (float speed);
+    /// @brief      Send a CAN message to drive the motor at the given velocity
+    /// @param      velocity - Motor velocity, between -1 and 1
+    void drive (float velocity);
 
     /// @brief      Function for sending linear actuator command to CMD
     /// @param      value - number from thumb stick (-1, 0, 1)
@@ -122,16 +147,4 @@ class CMD {
     /// @returns    A struct containing the data
     CMDData receive_feedback ();
 
-
-    //------------------------------------------------------------//
-
-    /// @brief      Converts a double to an int16
-    /// @param      value - The raw value between -1.0 and 1.0
-    /// @returns    A two byte array of integers
-    static int16_t convert_to_int16 (const double value);
-
-    /// @brief      Converts a 2 byte array to a double
-    /// @param      bytes - The two byte array
-    /// @returns    A double scaled between -1 and 1
-    static double convert_from_bytes (uint8_t* bytes);
 };
