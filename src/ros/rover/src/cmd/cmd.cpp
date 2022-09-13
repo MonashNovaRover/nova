@@ -3,7 +3,7 @@
 Monash Nova Rover Team
 
 PACKAGE: 	control
-AUTHOR(S):	Harrison Verrios, Josh Cherubino
+AUTHOR(S):	Harrison Verrios, Josh Cherubino, Jory Braun
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
@@ -45,6 +45,12 @@ CMD::~CMD ()
     // Stop the CMD, safely close the socket
     drive(0.0);
     this->can_socket.close();
+}
+
+
+int CMD::get_id()
+{
+    return this->id;
 }
 
 
@@ -107,6 +113,14 @@ void CMD::drive (float velocity)
     }
     else {
         already_stopped = false;
+    }
+
+    // Saturate the input velocity if it is out of range
+    if (velocity > 1.0) {
+        velocity = 1.0;
+    }
+    else if (velocity < -1.0){
+        velocity = -1.0;
     }
     
     // Flip output direction if needed

@@ -10,9 +10,9 @@ This code interfaces with the CAN classes and is
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	control
-AUTHOR(S):	Harrison Verrios, Josh Cherubino
+AUTHOR(S):	Harrison Verrios, Josh Cherubino, Jory Braun
 CREATION:	01/12/2021
-EDITED:		06/01/2022
+EDITED:		13/09/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
@@ -111,6 +111,11 @@ class CMD {
     /// @returns    A double scaled between -1 and 1
     static double convert_from_bytes (uint8_t* bytes);
     
+    /// @brief      Get the CMD ID
+    ///             Each CMD responds to CAN IDs in the range ID << 4 to ID << 4 + F
+    /// @returns    The CMD ID
+    int get_id();
+
     /// @brief      Set the CMD drive mode
     /// @param      CMD_drive_mode - Set to PWM or PID
     void set_CMD_drive_mode (CMDCommand CMD_drive_mode);
