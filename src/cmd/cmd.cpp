@@ -12,11 +12,15 @@ AUTHOR(S):	Harrison Verrios, Josh Cherubino
 #include "print/print.h"
 
 
-CMD::CMD (const int bus, const int id) {
-
-    // Update the parameters of the CMD
+CMD::CMD (const int bus, const int id, CMDCommand CMD_drive_mode, CMDCommand CMD_stop_mode, const bool CMD_direction)
+{
+    // Initialise the parameters of the CMD
     this->bus = bus;
     this->id = id;
+    this->CMD_drive_mode = CMD_drive_mode;
+    this->CMD_stop_mode = CMD_stop_mode;
+    this->CMD_direction = CMD_direction;
+    already_stopped = false;
 
     // Set up the CAN interface with the correct bus
     scpp::SocketCanStatus status = this->can_socket.open(
@@ -36,84 +40,99 @@ CMD::CMD (const int bus, const int id) {
 }
 
 
-CMD::~CMD () {
-    // Safely close the sockets
+CMD::~CMD ()
+{
+    // Stop the CMD, safely close the socket
+    drive(0.0);
     this->can_socket.close();
 }
 
 
-void CMD::call_empty (const CMDCommand command) {
-
-    // Creates a new CAN frame
+void CMD::write_frame_no_data (const CMDCommand command)
+{
+    // Create a new CAN frame
     scpp::CanFrame frame;
     frame.id = (this->id << 4) | command;
     frame.len = 0;
 
-    // Writes the frame
+    // Write the frame to the bus
     this->can_socket.write(frame);
 }
 
 
-void CMD::stop () {
-
-    // Calls the empty frame
-    call_empty(CMDCommand::STOP);
+void CMD::stop ()
+{
+    write_frame_no_data(CMDCommand::STOP);
 }
 
 
-void CMD::forward () {
-
-    // Calls the empty frame
-    call_empty(CMDCommand::FORWARD);
+void CMD::forward ()
+{
+    write_frame_no_data(CMDCommand::FORWARD);
 }
 
 
-void CMD::reverse () {
-
-    // Calls the empty frame
-    call_empty(CMDCommand::REVERSE);
+void CMD::reverse ()
+{
+    write_frame_no_data(CMDCommand::REVERSE);
 }
 
 
-void CMD::set_pwm (float power) {
+void CMD::set_CMD_drive_mode (CMDCommand CMD_drive_mode)
+{
+    if (CMD_drive_mode == PWM || CMD_drive_mode == PID) {
+        this->CMD_drive_mode = CMD_drive_mode;
+    }
+}
 
-    // Creates a new CAN frame
+
+void CMD::set_CMD_stop_mode (CMDCommand CMD_stop_mode)
+{
+    if (CMD_stop_mode == STOP || CMD_stop_mode == PID) {
+        this->CMD_stop_mode = CMD_stop_mode;
+    }
+}
+
+
+void CMD::drive (float velocity)
+{
+    // Handle STOPs if set
+    // Prevent needless repetition of STOPs (crowds the CAN bus, makes it hard to debug other things)
+    if (CMD_stop_mode == STOP && velocity == 0) {
+        if (!already_stopped) {
+            stop();
+            already_stopped = true;
+        }
+        return;
+    }
+    else {
+        already_stopped = false;
+    }
+    
+    // Flip output direction if needed
+    if (CMD_direction){
+        velocity *= -1;
+    }
+
+    // Create a new CAN frame
     scpp::CanFrame frame;
-    frame.id = (this->id << 4) | CMDCommand::PWM;
-    frame.len = 2;
-
-    // Scale the power to the range
-    int16_t scaled_power = convert_to_int16(power);
-
-    // Order data in big-endian order (MSB first)
-    frame.data[0] = scaled_power >> 8;
-    frame.data[1] = scaled_power & 0xFF;
-
-    // Write the frame
-    this->can_socket.write(frame);
-}
-
-
-void CMD::set_pid (float speed) {
-
-    // Creates a new CAN frame
-    scpp::CanFrame frame;
-    frame.id = (this->id << 4) | CMDCommand::PID;
+    frame.id = (this->id << 4) | CMD_drive_mode;
     frame.len = 2;
 
     // Scale the speed to the range
-    int16_t scaled_speed = convert_to_int16(speed);
+    int16_t scaled_velocity = convert_to_int16(velocity);
 
     // Order data in big-endian order (MSB first)
-    frame.data[0] = scaled_speed >> 8;
-    frame.data[1] = scaled_speed & 0xFF;
+    frame.data[0] = scaled_velocity >> 8;
+    frame.data[1] = scaled_velocity & 0xFF;
 
-    // Write the frame
-    this->can_socket.write(frame);
+    // Write the frame to the bus
+    this->can_socket.write(frame);    
 }
 
 
-void CMD::set_linear_actuator (float value){
+void CMD::set_linear_actuator (float value)
+{
     unsigned char actuation = 0;
     if (value < 0){
         actuation = 2;
@@ -122,7 +141,7 @@ void CMD::set_linear_actuator (float value){
         actuation = 1;
     }
 
-    // Creates a new CAN frame
+    // Create a new CAN frame
     scpp::CanFrame frame;
     frame.id = (this->id << 4) | CMDCommand::ACTUATOR;
     frame.len = 2;
@@ -130,14 +149,14 @@ void CMD::set_linear_actuator (float value){
     // Order data in big-endian order (MSB first)
     frame.data[0] = actuation;
 
-    // Write the frame
+    // Write the frame to the bus
     this->can_socket.write(frame);
 }
 
 
-void CMD::set_tuning_parameters (double kP, double kI, double kD, double kM) {
-
-    // Creates a new CAN frame
+void CMD::set_tuning_parameters (double kP, double kI, double kD, double kM)
+{
+    // Create a new CAN frame
     scpp::CanFrame frame;
     frame.id = (this->id << 4) | CMDCommand::TUNER;
     frame.len = 8;
@@ -158,13 +177,13 @@ void CMD::set_tuning_parameters (double kP, double kI, double kD, double kM) {
     frame.data[6] = scaled_kM >> 8;
     frame.data[7] = scaled_kM & 0xFF;
 
-    // Write the frame
+    // Write the frame to the bus
     this->can_socket.write(frame);
 }
 
 
-CMDData CMD::receive_feedback () {
-
+CMDData CMD::receive_feedback ()
+{
     // Creates a new CAN frame
     scpp::CanFrame frame;
     frame.id = (this->id << 4) | CMDCommand::TUNER;
@@ -174,8 +193,8 @@ CMDData CMD::receive_feedback () {
     this->can_socket.read(frame);
 
     // Convert scaled data to the double
-    double rpm = convert_from_bytes(&frame.data[0]);
-    double power = convert_from_bytes(&frame.data[2]);
+    double rpm = convert_from_bytes(frame.data);
+    double power = convert_from_bytes(frame.data + 2);
 
     // Create a new struct
     CMDData data = CMDData(rpm, power);
@@ -185,24 +204,18 @@ CMDData CMD::receive_feedback () {
 }
 
 
-int16_t CMD::convert_to_int16 (const double value) {
-
+int16_t CMD::convert_to_int16 (const double& value)
+{
     // Convert the value to an integer
-    int16_t output = (int16_t)(value * 32767.0f);
-
-    // Return the value
-    return output;
+    return (int16_t)(value * 32767.0f);
 }
 
 
-double CMD::convert_from_bytes (uint8_t* bytes) {
-
+double CMD::convert_from_bytes (uint8_t* bytes)
+{
     // Calculate the integer 16 value
-    int16_t input = (*bytes) * 256 + (*(bytes + 1));
+    int16_t input = (bytes[0] << 8) | bytes[1];
 
     // Scale the value to a double
-    double output = static_cast<double>(input);
-
-    // Return the value
-    return output;
+    return static_cast<double>(input);
 }
