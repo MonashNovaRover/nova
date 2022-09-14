@@ -38,20 +38,43 @@ enum CMDCommand {
 // Struct for CMD data
 struct CMDData {
 
-    //------------------------------------------------------------//
-    public:
-
-    // The RPM from the CMD
+    // The velocity from the CMD
     double rpm;
 
     // The power of the CMD
     double power;
 
     // Constructor for setting the data
-    CMDData (double rpm, double power) {
-        this->rpm = rpm;
-        this->power = power;
-    };
+    CMDData (double rpm, double power) : 
+        rpm(rpm), power(power) {}
+};
+
+
+struct CMDOutputParameters {
+    // Set to true if using output parameters
+    bool using_output_parameters;
+
+    // Gearbox reduction (input speed / output speed)
+    float reduction;
+    
+    // Encoder pulses per revolution (number of rising edges on one channel per revolution)
+    int ppr;
+    
+    // CMD velocity factor
+    // Used to scale the measureed velocity from the encoders on the CMD to fill the available int16 range
+    float velocity_factor;
+    
+    // CMD clock instruction frequency (FCY), measured in Hz
+    float clock_frequency;
+
+    // Scaling factor to get CMD command from angular velocity
+    float command_scale_factor;
+
+    // Constructor for setting the data
+    CMDOutputParameters (float reduction, int ppr, float velocity_factor, float clock_frequency);
+
+    // Alternate constructor for when not using output parameters
+    CMDOutputParameters() : using_output_parameters(false) {}
 };
 
 
@@ -68,13 +91,16 @@ class CMD {
     int id;
 
     // Drive mode. Set to PWM or PID
-    CMDCommand CMD_drive_mode;
+    CMDCommand drive_mode;
     // Stop mode. Set to STOP or PID (handbrake)
-    CMDCommand CMD_stop_mode;
+    CMDCommand stop_mode;
 
     // Store whether we need to flip the output direction
     // 0 for regular, 1 for flipped
-    bool CMD_direction;
+    bool direction;
+
+    // Output parameters
+    CMDOutputParameters output_parameters;
 
     // Was the last command a STOP? If so, do not bother repeating
     bool already_stopped;
@@ -93,10 +119,11 @@ class CMD {
     /// @brief      Constructor for setting up a CMD interface
     /// @param      bus - The bus ID of the CAN device
     /// @param      id - The ID of the CAN device on the CAN line
-    /// @param      CMD_drive_mode - Default drive mode of the CMD. PWM or PID
-    /// @param      CMD_stop_mode - Default stop mode of the CMD. STOP or PID (handbrake)
-    /// @param      CMD_direction - Direction for the CMD. Determined by hardware
-    CMD (const int bus, const int id, CMDCommand CMD_drive_mode, CMDCommand CMD_stop_mode, const bool CMD_direction=0);
+    /// @param      drive_mode - Default drive mode of the CMD. PWM or PID
+    /// @param      stop_mode - Default stop mode of the CMD. STOP or PID (handbrake)
+    /// @param      direction - Direction for the CMD. Determined by hardware
+    /// @param      output_parameters - Parameters to ensure correct angular velocity is achieved by the CMD
+    CMD (const int bus, const int id, CMDCommand drive_mode, CMDCommand stop_mode, const bool direction=0, CMDOutputParameters output_parameters=CMDOutputParameters());
 
     /// @brief      Destructor is called when object is deleted
     ~CMD ();
@@ -117,12 +144,12 @@ class CMD {
     int get_id();
 
     /// @brief      Set the CMD drive mode
-    /// @param      CMD_drive_mode - Set to PWM or PID
-    void set_CMD_drive_mode (CMDCommand CMD_drive_mode);
+    /// @param      drive_mode - Set to PWM or PID
+    void set_drive_mode (CMDCommand drive_mode);
 
     /// @brief      Set the CMD stop mode
-    /// @param      CMD_stop_mode - Set to STOP or PID
-    void set_CMD_stop_mode (CMDCommand CMD_stop_mode);
+    /// @param      stop_mode - Set to STOP or PID
+    void set_stop_mode (CMDCommand stop_mode);
     
     /// @brief      Send a CAN message to stop driving the CMD
     void stop ();
@@ -134,7 +161,8 @@ class CMD {
     void reverse ();
 
     /// @brief      Send a CAN message to drive the motor at the given velocity
-    /// @param      velocity - Motor velocity, between -1 and 1
+    /// @param      velocity - Motor velocity. If the output parameters are set, then is
+    ///             in rad/s. Otherwise is a fraction of the max CMD speed between -1 and 1
     void drive (float velocity);
 
     /// @brief      Function for sending linear actuator command to CMD
