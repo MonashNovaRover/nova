@@ -78,7 +78,7 @@ void Driver::input_callback (const core::msg::InputGamepad::SharedPtr msg) {
         if (!handbrake) Print::print("Handbrake Enabled", C_MODE);
         handbrake = true;
         for (CMD* wheel : wheels) {
-            wheel->set_CMD_stop_mode(PID);
+            wheel->set_stop_mode(PID);
         }
     }
     
@@ -87,7 +87,7 @@ void Driver::input_callback (const core::msg::InputGamepad::SharedPtr msg) {
         if (handbrake) Print::print("Handbrake Disabled", C_MODE);
         handbrake = false;
         for (CMD* wheel : wheels) {
-            wheel->set_CMD_stop_mode(STOP);
+            wheel->set_stop_mode(STOP);
         }
     }
 
