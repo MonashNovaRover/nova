@@ -207,10 +207,14 @@ Driver::Driver() : Node("driver")
     Print::title("DRIVER");
     Print::print("", true);
 
-    // Initialise the wheels in the correct direction
+    // Initialise the wheels
+    double reduction = 75;
+    int encoder_ppr = 512;
+    double velocity_factor = 150;
+    double clock_frequency = 30e6;
     for (size_t i = 0; i < NUM_WHEELS; i++) {
         bool left = i < NUM_WHEELS / 2;
-        wheels[i] = new CMD (0, i + 1, PID, STOP, left);
+        wheels[i] = new CMD (0, i + 1, PID, STOP, left, CMDOutputParameters(reduction, encoder_ppr, velocity_factor, clock_frequency));
     }
     
     rclcpp::QoS qos = rclcpp::QoS(1).best_effort().deadline(ROSTimers::drive_deadline);
