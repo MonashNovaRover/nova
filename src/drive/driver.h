@@ -72,9 +72,6 @@ class Driver : public rclcpp::Node {
     // The number of wheels on the rover
     static const int NUM_WHEELS = 6;
 
-    // Whether to use the tangent scaling
-    bool USE_TANGENT_SCALING = false;
-
 
     //------------------------------------------------------------//
     private:
