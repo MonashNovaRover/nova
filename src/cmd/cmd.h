@@ -123,7 +123,7 @@ class CMD {
     /// @param      stop_mode - Default stop mode of the CMD. STOP or PID (handbrake)
     /// @param      direction - Direction for the CMD. Determined by hardware
     /// @param      output_parameters - Parameters to ensure correct angular velocity is achieved by the CMD
-    CMD (const int bus, const int id, CMDCommand drive_mode, CMDCommand stop_mode, const bool direction=0, CMDOutputParameters output_parameters=CMDOutputParameters());
+    CMD (const int bus, const int id, CMDCommand drive_mode, CMDCommand stop_mode=STOP, const bool direction=0, CMDOutputParameters output_parameters=CMDOutputParameters());
 
     /// @brief      Destructor is called when object is deleted
     ~CMD ();
