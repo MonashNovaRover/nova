@@ -67,14 +67,22 @@ void ArmDriver::start_node()
     // Create joint instances based on the arm's structure
     // For now just hardcode for the cycloidal wrist and ES end effector
     // Eventually make this into a std::map and idenitfy particular joints based on their name instead of their position
-    joints = std::vector<CMD*> (7);
-    // Seventh CMD is end effector actuation
-    CMD_drive_mode = std::vector<CMDCommand> {PID, PID, PID, PID, PID, PID, PWM};
-    CMD_direction = std::vector<bool> {1, 1, 0, 0, 0, 0, 0};
+    double lower_joints_reduction = 2143.75;
+    double wrist_reduction = 3002.499;
+    int encoder_ppr = 512;
+    double lower_joints_velocity_factor = 75;
+    double wrist_velocity_factor = 50;
+    double clock_frequency = 30e6;
 
-    for (std::size_t i = 0; i < joints.size(); i++) {
-        joints[i] = new CMD (1, i + 1, CMD_drive_mode[i], STOP, CMD_direction[i]);
-    }
+    std::vector<CMD*> joints = {
+        new CMD (1, 2, PID, STOP, 1, CMDOutputParameters(lower_joints_reduction, encoder_ppr, lower_joints_velocity_factor, clock_frequency)),  // J2
+        new CMD (1, 1, PID, STOP, 1, CMDOutputParameters(lower_joints_reduction, encoder_ppr, lower_joints_velocity_factor, clock_frequency)),  // J1
+        new CMD (1, 3, PID, STOP, 0, CMDOutputParameters(lower_joints_reduction, encoder_ppr, lower_joints_velocity_factor, clock_frequency)),  // J3
+        new CMD (1, 4, PID, STOP, 0, CMDOutputParameters(wrist_reduction, encoder_ppr, wrist_velocity_factor, clock_frequency)),  // J4
+        new CMD (1, 5, PID, STOP, 0, CMDOutputParameters(wrist_reduction, encoder_ppr, wrist_velocity_factor, clock_frequency)),  // J5
+        new CMD (1, 6, PID, STOP, 0, CMDOutputParameters(wrist_reduction, encoder_ppr, wrist_velocity_factor, clock_frequency)),  // J6
+        new CMD (1, 7, PWM)  // End effector
+    };
 
     // Creates the input subscription for the desired CMD commands (first 6 joints)
     rclcpp::SubscriptionOptionsWithAllocator<std::allocator<void>> joint_velocities_options;
