@@ -106,7 +106,8 @@ void CMD::drive (float velocity)
 {
     // Handle STOPs if set
     // Prevent needless repetition of STOPs (crowds the CAN bus, makes it hard to debug other things)
-    if (stop_mode == STOP && velocity == 0) {
+    // If using PWM, always use STOP
+    if (velocity == 0 && (stop_mode == STOP || drive_mode == PWM)) {
         if (!already_stopped) {
             stop();
             already_stopped = true;
