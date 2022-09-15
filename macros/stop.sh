@@ -5,19 +5,19 @@ if [[ $1 = "base" ]]
 
 then
 
-    bash -c "screen -r base" 
+    bash -c "sudo systemctl stop base.service" 
 
 elif [[ $1 = "arm" ]] 
 
 then
 
-    bash -c "screen -r arm"
+    bash -c "sudo systemctl stop arm.service" 
 
 elif [[ $1 = "rover" ]] 
 
 then
 
-    bash -c "screen -r rover"
+    bash -c "sudo systemctl stop rover.service" 
 
 else
 
