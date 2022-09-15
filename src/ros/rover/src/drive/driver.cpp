@@ -154,16 +154,12 @@ void Driver::fill_wheel_velocities(float wheel_velocities[NUM_WHEELS], float rad
     }
     
     // Modify wheel directions if the turning centre is under the rover wheelbase
+    // Ignore the edge case where the turning centre is exactly below the centre of a wheel.
+    // Does not affect the behaviour in practice
     float wheel_x = CHASSIS_SEPARATION / 2.0;
-    if (abs(radius) <= wheel_x) {
+    if (abs(radius) < wheel_x) {
         // If the turning centre is...
-        if (radius == -wheel_x) {
-            // Under the left wheels, do not drive the left wheels (no velocity component in direction tangent to turning path)
-            wheel_velocities[0] = 0;
-            wheel_velocities[1] = 0;
-            wheel_velocities[2] = 0;
-        }
-        else if (radius > -wheel_x && radius <= 0 && steer < 0) {
+        if (radius > -wheel_x && radius <= 0 && steer < 0) {
             // Under the left half of the chassis, reverse the left wheels
             // Also include cases where we are pivoting left
             wheel_velocities[0] *= -1;
@@ -176,12 +172,6 @@ void Driver::fill_wheel_velocities(float wheel_velocities[NUM_WHEELS], float rad
             wheel_velocities[4] *= -1;
             wheel_velocities[5] *= -1;
             wheel_velocities[6] *= -1;
-        }
-        else if (radius == wheel_x) {
-            // Under the right wheels, do not drive the right wheels (no velocity component in direction tangent to turning path)
-            wheel_velocities[4] = 0;
-            wheel_velocities[5] = 0;
-            wheel_velocities[6] = 0;
         }
     }
 }
