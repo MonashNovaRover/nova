@@ -31,61 +31,23 @@ void Driver::send_commands (const core::msg::DriveInput::SharedPtr msg) {
             return;
         }
 
-        // Otherwise, calculate the speed
+        // Otherwise, calculate the speed for each wheel to follow a circular path 
+        
+        // Find the turning radius form the 'steer' command
+        // This defines a turning centre to the left or right of the rover wheelbase
+        float radius = get_turning_radius(msg->steer);
+        
+        // Get array of wheel velocities for each wheel
+        // Scale wheel velocities depending on their distance from the turning centre
+        // Wheels closer to the turning centre must spin slower to maintain the correct rover angular velocity
+        // The 'speed' command gives the maximum speed for any wheel
+        // Disregard any correction for the angle of the wheel relative to the desired circular path
+        float wheel_velocities[NUM_WHEELS];
+        fill_wheel_velocities(wheel_velocities, radius, msg->speed, msg->steer);
 
-        // Store a new array of contants
-        float distances[NUM_WHEELS];
-        float tangents[NUM_WHEELS];
-
-        // Stores some of the maximum values
-        float locas = get_locas_distance(msg->steer);
-        float max_distance = 0;
-        float max_tangent = 0;
-
-        // Determine the distance and tangent ratios
+        // Send velocities to the wheels
         for (size_t i = 0; i < NUM_WHEELS; i++) {
-
-            Vector2 position = get_wheel_position(wheels[i]->get_id());
-
-            // Calculate the max distance to the wheels and store them
-            float dist = get_wheel_distance(position, locas);
-            distances[i] = dist;
-            if (dist > max_distance) max_distance = dist;          
-
-            // Calculate the tangent ratios and store them
-            float tangent = get_tangent_scale(position, locas);
-            tangents[i] = tangent;
-            if (tangent > max_tangent) max_tangent = tangent;
-        }
-    
-        // Loop through each wheel to calculate speeds
-        for (size_t i = 0; i < NUM_WHEELS; i++) {
-            // Calculate the velocity of wheel
-            float vel = msg->speed * distances[i] / max_distance;
-            
-            // If using tangent scaling, adjust for wheel speeds
-            if (USE_TANGENT_SCALING) vel *= tangents[i] / max_tangent;
-            
-            // Checks if the turning circle is within the chassis area
-            if (abs(locas) < CHASSIS_SEPARATION / 2.0) {
-                // Check if going left and left wheels
-                if (locas < 0 && i <= 2) vel *= -1.0;
-                
-                // Check if going right and right wheels
-                else if (locas > 0 && i > 2) vel *= -1.0;
-                
-                // Check if turning on spot
-				else if (locas == 0) {
-				    // If wanting to turn left and left wheels
-					if (msg->steer < 0 && i <= 2) vel *= -1.0;
-					
-					// If wanting to turn right and right wheels
-					else if (msg->steer > 0 && i > 2) vel *= -1.0;
-				}
-            }
-
-            // Send the velocities to the wheels
-            wheels[i]->spin(vel);
+            wheels[i]->spin(wheel_velocities[i]);
         }
     }
 
@@ -160,16 +122,63 @@ void Driver::input_callback (const core::msg::InputGamepad::SharedPtr msg) {
 }
 
 
-// Gets the distance to the locas of the turning circle
-float Driver::get_locas_distance (float steer) {
-    if (steer == 0) return 0;
+// Gets the turning radius of the rover
+float Driver::get_turning_radius (float steer) {
+    // Exclude this case. If steer is 0, handle separately in calling code
+    if (steer == 0) return NAN;
 
-    // Return the calculation
+    // Map a steer mgnitude of 1 to a radius of 0 (turning on the spot)
+    // Map a steer magnitude near 0 to a radius near infinity
+    // Maintain the sign of steer in the sign of radius
     return (1.0 / steer) - ((steer < 0.0) ? -1.0 : 1.0);
 }
 
 
-// Gets the position of the wheel relative to the CoM
+// Fill array with velocities for each wheel, with directions and magnitude depending on the turning radius
+void Driver::fill_wheel_velocities(float wheel_velocities[NUM_WHEELS], float radius, float speed, float steer) {
+    
+    // Calculate distances from the wheelbase centre to each wheel, and the maximum distance
+    float distances[NUM_WHEELS];
+    float max_distance = 0;
+    for (size_t i = 0; i < NUM_WHEELS; i++){
+        Vector2 position = get_wheel_position(wheels[i]->get_id());
+        distances[i] = get_wheel_distance(position, radius);
+        if (distances[i] > max_distance) max_distance = distances[i];
+    }
+
+    // Fill wheel velocities, scaling each by its distance to the wheelbase centre
+    // Approximating that the wheels drive tangent to the turning circle, the scaling ensures
+    // each wheel achieves the same angular velocity about the turning center the rover
+    for (size_t i = 0; i < NUM_WHEELS; i++){
+        wheel_velocities[i] = speed * distances[i] / max_distance;
+    }
+    
+    // Modify wheel directions if the turning centre is under the rover wheelbase
+    // Ignore the edge case where the turning centre is exactly below the centre of a wheel.
+    // Does not affect the behaviour in practice
+    float wheel_x = CHASSIS_SEPARATION / 2.0;
+    if (abs(radius) < wheel_x) {
+        // If the turning centre is...
+        if (radius > -wheel_x && radius <= 0 && steer < 0) {
+            // Under the left half of the chassis, reverse the left wheels
+            // Also include cases where we are pivoting left
+            wheel_velocities[0] *= -1;
+            wheel_velocities[1] *= -1;
+            wheel_velocities[2] *= -1;
+        }
+        else if (radius >= 0 && radius < wheel_x && steer > 0) {
+            // Under the right half of the chassis, reverse the right wheels
+            // Also include cases where we are pivoting right
+            wheel_velocities[4] *= -1;
+            wheel_velocities[5] *= -1;
+            wheel_velocities[6] *= -1;
+        }
+    }
+}
+
+
+// Gets the position of the wheel relative to the wheelbase centre
+// Wheels are numbered 1 to 6 going from front to back on the left side, then front to back on the right side
 Vector2 Driver::get_wheel_position (int id) {
 
     // Determine the y position
@@ -185,26 +194,16 @@ Vector2 Driver::get_wheel_position (int id) {
 }
 
 
-// Determines the distance between the wheel and the focus
-float Driver::get_wheel_distance (Vector2 pos, float locas) {
+// Determine the distance between the wheel and the turning centre
+float Driver::get_wheel_distance (Vector2 pos, float radius) {
 
     // Calculate the x component
-    float x = locas - pos.x;
+    float x = radius - pos.x;
 
     // Find pythagorus distance
     return sqrt(pow(x, 2) + pow(pos.y, 2));
 }
 
-
-// Determines the tangent scale of the wheel
-float Driver::get_tangent_scale (Vector2 pos, float locas) {
-
-    // Calculate the x component
-    float x = locas - pos.x;
-
-    // Find pythagorus distance
-    return sqrt(1.0 + pow(pos.y / x, 2));
-}
 
 // Publishes whether or not we are in autonomous mode
 void Driver::pub_auto_mode (){
