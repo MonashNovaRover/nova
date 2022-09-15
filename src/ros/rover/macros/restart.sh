@@ -21,7 +21,7 @@ then
 
 else
 
-    information "Invalid Command! Please enter 'rover', 'arm' or 'base'."
+    echo "Invalid Command! Please enter 'rover', 'arm' or 'base'."
 
 fi
 
