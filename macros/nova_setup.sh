@@ -79,6 +79,9 @@ sudo rosdep init -y
 rosdep update -y
 sudo apt install python3-colcon-common-extensions -y
 
+#Installing Rosbag
+sudo apt install -y ros-foxy-ros2bag ros-foxy-rosbag2-converter-default-plugins ros-foxy-rosbag2-storage-default-plugins
+
 # Installing Text Editors
 information "Installing Editors..."
 sudo apt-get -y install nano
