@@ -4,7 +4,6 @@ geographiclib == 1.52
 geomag == 0.9.2015
 matplotlib == 2.1.1
 numpy == 1.13.3
-open3d == 0.14.1
 opencv_contrib_python == 4.5.5.62
 pyrealsense2 == 2.51.1.4348
 scipy == 1.5.4
