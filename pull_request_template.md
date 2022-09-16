@@ -1,11 +1,3 @@
-<!-- Notes!
-    PR Checklist
-        [ ] Assigned reviewer
-        [ ] Included unit tests (if necessary)
-        [ ] Merged/rebased testing into this branch
-        [ ] Moved task on trello to "code reveiw"
-    Remove an option if unrelevant to your changes
- -->
 ## PR Checklist
 
 PR Checklist
@@ -30,7 +22,7 @@ Remove an option if unrelevant to your changes
 
 <hr/>
 
-### Link any branch/PR dependencies
+### Link any branch/PR/issue this change depends on
 
 <hr/>
 
@@ -42,6 +34,6 @@ Remove an option if unrelevant to your changes
 
 <hr/>
 
-### Testing details if applicable
+### Testing details (if applicable)
 
 <hr/>
