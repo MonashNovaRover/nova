@@ -16,7 +16,8 @@ source ~/nova_ws/src/core/macros/ros.sh
 
 # appending to pythonpath for autonomous folders
 export PYTHONPATH=$PYTHONPATH:~/nova_ws/src/autonomous/autonomous
-export PYTHONPATH=$PYTHONPATH:~/nova_ws/install/autonomousrlib/python3.8/site-packages
+export PYTHONPATH=$PYTHONPATH:~/nova_ws/install/autonomous/lib/python3.8/site-packages
+export PYTHONPATH=$PYTHONPATH:~/nova_ws/install/autonomous/lib/python3.6/site-packages
 export PYTHONPATH=$PYTHONPATH:~/nova_ws/src/gui/gui/
 
 # Source the aliases (if ROS 2)
