@@ -10,15 +10,14 @@
 # +--------------------------------------------+
 
 # Macro Aliases
-alias build='. ~/nova_ws/src/core/macros/build.sh' # Runs colcon build
-alias setup='. ~/nova_ws/install/setup.bash'       # Sets up the ROS repository when scripts change
-alias pull='. ~/nova_ws/src/core/macros/pull.sh'   # Runs a GitHub pull on all repositories
-alias can='. ~/nova_ws/src/core/macros/can.sh'     # Sets up the CAN lines with a virtual or real CAN
-alias check='. ~/nova_ws/src/core/macros/check.sh'
-alias stop='. ~/nova_ws/src/core/macros/stop.sh'
-alias restart='. ~/nova_ws/src/core/macros/restart.sh'
-alias rerun='. ~/nova_ws/src/core/macros/rerun.sh'
-alias wifi='. ~/nova_ws/src/core/macros/wifi.sh'   # Allows easy connection to Wifi over command lines
+alias build='. ~/nova_ws/src/core/macros/build.sh'     # Runs colcon build
+alias setup='. ~/nova_ws/install/setup.bash'           # Sets up the ROS repository when scripts change
+alias pull='. ~/nova_ws/src/core/macros/pull.sh'       # Runs a GitHub pull on all repositories
+alias can='. ~/nova_ws/src/core/macros/can.sh'         # Sets up the CAN lines with a virtual or real CAN
+alias check='. ~/nova_ws/src/core/macros/check.sh'     # Adds an alias for the `check` command for `screen -ls`
+alias stop='. ~/nova_ws/src/core/macros/stop.sh'       # Adds an alias for the `stop` command for stopping systemctl services
+alias restart='. ~/nova_ws/src/core/macros/restart.sh' # Adds an alias for the `restart` command for restarting systemctl services
+alias wifi='. ~/nova_ws/src/core/macros/wifi.sh'       # Allows easy connection to Wifi over command lines
 
 # Directory Aliases
 alias nova='cd ~/nova_ws'
