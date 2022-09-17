@@ -3,7 +3,7 @@
 Monash Nova Rover Team
 
 PACKAGE: 	control
-AUTHOR(S):	Harrison Verrios, Josh Cherubino, Will de la Rue
+AUTHOR(S):	Harrison Verrios, Josh Cherubino, Will de la Rue, Jory Braun
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
@@ -20,14 +20,10 @@ void Driver::send_commands (const core::msg::DriveInput::SharedPtr msg) {
     // Check if wheels should spin
     if (msg->speed != 0.0) {
 
-        // Reset the stops flag
-        stopped_sent = false;
-
         // If no steer, just spin with speed
         if (msg->steer == 0) {
-            for (Wheel* wheel : wheels)
-                wheel->spin(msg->speed);
-
+            for (CMD* wheel : wheels)
+                wheel->drive(msg->speed);
             return;
         }
 
@@ -47,30 +43,13 @@ void Driver::send_commands (const core::msg::DriveInput::SharedPtr msg) {
 
         // Send velocities to the wheels
         for (size_t i = 0; i < NUM_WHEELS; i++) {
-            wheels[i]->spin(wheel_velocities[i]);
+            wheels[i]->drive(wheel_velocities[i]);
         }
     }
 
-    // Otherwise, if handbrake is on, send zeros
-    else if (handbrake) {
-        // Reset the stops flag
-        stopped_sent = false;
-        
-        // Spin the wheels at 0 speed
-        for (Wheel* wheel : wheels) {
-            wheel->spin(0.0);
-        }
-    }
-
-    // Otherwise, if handbrake is not on, only send stops
-    else if (!stopped_sent) {
-        // Stop the wheels
-        for (Wheel* wheel : wheels) {
-            wheel->stop();
-        }
-
-        // Set the stopped flag so it doesn't run again
-        stopped_sent = true;
+    // Otherwise, stop the wheels
+    for (CMD* wheel : wheels) {
+        wheel->drive(0.0);
     }
 }
 
@@ -100,12 +79,18 @@ void Driver::input_callback (const core::msg::InputGamepad::SharedPtr msg) {
     if (msg->connected && msg->btn_thumb_l_state == 1) {
         if (!handbrake) Print::print("Handbrake Enabled", C_MODE);
         handbrake = true;
+        for (CMD* wheel : wheels) {
+            wheel->set_CMD_stop_mode(PID);
+        }
     }
     
     // Disable Handbrake
     else if (msg->connected && msg->btn_thumb_r_state == 1) {
         if (handbrake) Print::print("Handbrake Disabled", C_MODE);
         handbrake = false;
+        for (CMD* wheel : wheels) {
+            wheel->set_CMD_stop_mode(STOP);
+        }
     }
 
     // Enable  autonomous
@@ -227,7 +212,7 @@ Driver::Driver() : Node("driver")
     // Initialise the wheels in the correct direction
     for (size_t i = 0; i < NUM_WHEELS; i++) {
         bool left = i < NUM_WHEELS / 2;
-        wheels[i] = new Wheel (i + 1, left);
+        wheels[i] = new CMD (0, i + 1, PID, STOP, left);
     }
     
     rclcpp::QoS qos = rclcpp::QoS(1).best_effort().deadline(200ms);
@@ -261,7 +246,7 @@ Driver::Driver() : Node("driver")
 // deadline callback for when the drive inputs publisher misses its deadline
 void Driver::inputs_deadline_exceeded(){
 	RCLCPP_WARN(this->get_logger(), "Drive inputs subscriber deadline missed");
-    for (Wheel* wheel : wheels) wheel->stop();
+    for (CMD* wheel : wheels) wheel->stop();
 }
 
 //  Main function called when the script execution begins
