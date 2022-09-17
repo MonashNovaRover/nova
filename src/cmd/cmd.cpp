@@ -218,7 +218,7 @@ CMDData CMD::receive_feedback ()
 }
 
 
-int16_t CMD::convert_to_int16 (const double& value)
+int16_t CMD::convert_to_int16 (const double value)
 {
     // Convert the value to an integer
     return (int16_t)(value * 32767.0f);

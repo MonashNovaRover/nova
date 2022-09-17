@@ -104,7 +104,7 @@ class CMD {
     /// @brief      Convert a double to an int16
     /// @param      value - The raw value between -1.0 and 1.0
     /// @returns    A Q15 fractional representing the same value
-    static int16_t convert_to_int16 (const double& value);
+    static int16_t convert_to_int16 (const double value);
 
     /// @brief      Convert a 2-byte array to a double
     /// @param      bytes - The 2-byte array
