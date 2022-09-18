@@ -1,9 +1,11 @@
 ## PR Rules
-1. Merge (or rebase) the 'testing' branch into this branch before PR merge
-2. Add [WIP] at the start of the PR title if you're still working on the change
+1. Test the changes on the rover (if applicable) 
+2. Merge (or rebase) the 'testing' branch into this branch before PR merge
+3. Add [WIP] at the start of the PR title if you're still working on the change
 4. Delete this branch after PR merge
 
 ## PR Checklist
+- [ ] Tested on the rover (if applicable)
 - [ ] Assigned reviewer
 - [ ] Included unit tests (if necessary)
 - [ ] Merged/rebased testing into this branch
