@@ -95,21 +95,11 @@ void PIDTuner::send_velocity () {
     // Make sure it is valid
     if (!this->valid) return;
 
-    // Make sure velocity is valid
-    if (velocity < -1.0 || velocity > 1.0) return;
-
-    // Check for all stops
-    if (velocity == 0) {
-        if (stopped) return;
-        else stopped = true;
-    } else
-        stopped = false;
-
     // Send PID velocity data to the CMD
     CMD* cmd = this->get_cmd();
 
     // Send the velocity to the CMD
-    cmd->set_pid(velocity);
+    cmd->drive(velocity);
 }
 
 
@@ -174,12 +164,12 @@ PIDTuner::PIDTuner ()
 
     // Construct the array of wheels
     for (int i = 0; i < NUM_WHEELS; i++) {
-        bus_0[i] = new CMD(0, i + 1);
+        bus_0[i] = new CMD(0, i + 1, PID, PID);
     }
 
     // Construct the array of arm devices
     for (int i = 0; i < NUM_ARM_DEVICES; i++) {
-        bus_1[i] = new CMD(1, i + 1);
+        bus_1[i] = new CMD(1, i + 1, PID, PID);
     }
 }
 
