@@ -205,7 +205,7 @@ Driver::Driver() : Node("driver")
 
     // Initialise the wheels
     double reduction = 63;
-    int encoder_ppr = 512;
+    int encoder_ppr = 256;
     double velocity_factor = 150;
     double clock_frequency = 30e6;
     CMDOutputParameters wheel_output_parameters = CMDOutputParameters(reduction, encoder_ppr, velocity_factor, clock_frequency);
