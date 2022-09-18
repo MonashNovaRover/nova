@@ -1,7 +1,6 @@
 ## PR Rules
 1. Merge (or rebase) the 'testing' branch into this branch before PR merge
 2. Add [WIP] at the start of the PR title if you're still working on the change
-3. Approve your own PR if it is ready to be reviewed i.e. branch has been tested and all required changes have been added
 4. Delete this branch after PR merge
 
 ## PR Checklist
@@ -9,7 +8,6 @@
 - [ ] Included unit tests (if necessary)
 - [ ] Merged/rebased testing into this branch
 - [ ] Moved task on trello to "code reveiw"
-- [ ] Approved this PR yourself (When completed with changes and testing)
 
 Remove an option if irrelevant to your changes
 
