@@ -170,15 +170,15 @@ void Driver::fill_wheel_velocities(float wheel_velocities[NUM_WHEELS], float rad
     else if (radius >= 0 && radius < wheel_x && steer > 0) {
         // Under the right half of the chassis, reverse the right wheels
         // Also include cases where we are pivoting right
+        wheel_velocities[3] *= -1;
         wheel_velocities[4] *= -1;
         wheel_velocities[5] *= -1;
-        wheel_velocities[6] *= -1;
     }
     else if (radius == wheel_x) {
         // Under the right wheels, do not drive the right wheels (no velocity component in direction tangent to turning path)
+        wheel_velocities[3] = 0;
         wheel_velocities[4] = 0;
         wheel_velocities[5] = 0;
-        wheel_velocities[6] = 0;
     }
 }
 
