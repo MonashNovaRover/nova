@@ -121,7 +121,7 @@ float Driver::get_turning_radius (float steer) {
 
 // Fill array with velocities for each wheel, with directions and magnitude depending on the turning radius
 void Driver::fill_wheel_velocities(float wheel_velocities[NUM_WHEELS], float radius, float speed, float steer) {
-    
+
     // Calculate distances from the wheelbase centre to each wheel, and the maximum distance
     float distances[NUM_WHEELS];
     float max_distance = 0;
@@ -154,9 +154,9 @@ void Driver::fill_wheel_velocities(float wheel_velocities[NUM_WHEELS], float rad
         else if (radius >= 0 && radius < wheel_x && steer > 0) {
             // Under the right half of the chassis, reverse the right wheels
             // Also include cases where we are pivoting right
+            wheel_velocities[3] *= -1;
             wheel_velocities[4] *= -1;
             wheel_velocities[5] *= -1;
-            wheel_velocities[6] *= -1;
         }
     }
 }
