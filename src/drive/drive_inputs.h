@@ -39,12 +39,12 @@ using namespace std::chrono_literals;
 using std::placeholders::_1;
 
 // The minimum and maximum multipliers
-const float MIN_MULTIPLIER      = 0.1;  // The minimum multiplier value
-const float MAX_MULTIPLIER      = 0.7;  // The maximum multiplier value
-const float DELTA_MULTIPLIER    = 0.1;  // The change in multiplier
+const float MIN_MULTIPLIER      = 1;  // The minimum multiplier value
+const float MAX_MULTIPLIER      = 7;  // The maximum multiplier value
+const float DELTA_MULTIPLIER    = 1;  // The change in multiplier
 
 // The initial multipliers
-const float INITIAL_MULT_SPEED = 0.5;
+const float INITIAL_MULT_SPEED = 5;
 
 // The minimum trigger speed multiplier to apply when the right trigger is held
 const float MIN_TRIGGER_MULTIPLIER = 0.4;
