@@ -17,39 +17,33 @@ AUTHOR(S):	Harrison Verrios, Josh Cherubino, Will de la Rue, Jory Braun
 // Sends commands to the wheels
 void Driver::send_commands (const core::msg::DriveInput::SharedPtr msg) {
     
+    // Create array of wheel velocities for each wheel, initialise to 0
+    float wheel_velocities[NUM_WHEELS] = {};
+    
     // Check if wheels should spin
-    if (msg->speed != 0.0) {
+    if (msg->speed != 0) {
 
-        // If no steer, just spin with speed
+        // If no steer, spin all wheels with the same speed
         if (msg->steer == 0) {
-            for (CMD* wheel : wheels)
-                wheel->drive(msg->speed);
-            return;
+            std::fill(wheel_velocities, wheel_velocities + NUM_WHEELS, msg->speed);
         }
-
         // Otherwise, calculate the speed for each wheel to follow a circular path 
-        
-        // Find the turning radius form the 'steer' command
-        // This defines a turning centre to the left or right of the rover wheelbase
-        float radius = get_turning_radius(msg->steer);
-        
-        // Get array of wheel velocities for each wheel
-        // Scale wheel velocities depending on their distance from the turning centre
-        // Wheels closer to the turning centre must spin slower to maintain the correct rover angular velocity
-        // The 'speed' command gives the maximum speed for any wheel
-        // Disregard any correction for the angle of the wheel relative to the desired circular path
-        float wheel_velocities[NUM_WHEELS];
-        fill_wheel_velocities(wheel_velocities, radius, msg->speed, msg->steer);
-
-        // Send velocities to the wheels
-        for (size_t i = 0; i < NUM_WHEELS; i++) {
-            wheels[i]->drive(wheel_velocities[i]);
+        else {       
+            // Find the turning radius form the 'steer' command
+            // This defines a turning centre to the left or right of the rover wheelbase
+            float radius = get_turning_radius(msg->steer);
+            
+            // Scale wheel velocities depending on their distance from the turning centre
+            // Wheels closer to the turning centre must spin slower to maintain the correct rover angular velocity
+            // The 'speed' command gives the maximum speed for any wheel
+            // Disregard any correction for the angle of the wheel relative to the desired circular path
+            fill_wheel_velocities(wheel_velocities, radius, msg->speed, msg->steer);
         }
     }
 
-    // Otherwise, stop the wheels
-    for (CMD* wheel : wheels) {
-        wheel->drive(0.0);
+    // Send velocities to the wheels
+    for (size_t i = 0; i < NUM_WHEELS; i++) {
+        wheels[i]->drive(wheel_velocities[i]);
     }
 }
 
