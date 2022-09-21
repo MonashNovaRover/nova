@@ -211,7 +211,7 @@ Driver::Driver() : Node("driver")
     CMDOutputParameters wheel_output_parameters = CMDOutputParameters(reduction, encoder_ppr, velocity_factor, clock_frequency);
     for (size_t i = 0; i < NUM_WHEELS; i++) {
         bool left = i < NUM_WHEELS / 2;
-        wheels[i] = new CMD (0, i + 1, PID, STOP, left, wheel_output_parameters);
+        wheels[i] = new CMD (0, i + 1, PID, left, STOP, wheel_output_parameters);
     }
     
     rclcpp::QoS qos = rclcpp::QoS(1).best_effort().deadline(200ms);

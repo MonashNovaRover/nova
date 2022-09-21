@@ -73,12 +73,12 @@ void ArmDriver::start_node()
     CMDOutputParameters wrist_output_parameters = CMDOutputParameters(wrist_reduction, encoder_ppr, wrist_velocity_factor, clock_frequency);
 
     std::vector<CMD*> joints = {
-        new CMD (1, 1, PID, STOP, 1, lower_joints_output_parameters),  // J1
-        new CMD (1, 2, PID, STOP, 1, lower_joints_output_parameters),  // J2
-        new CMD (1, 3, PID, STOP, 0, lower_joints_output_parameters),  // J3
-        new CMD (1, 4, PID, STOP, 0, wrist_output_parameters),  // J4
-        new CMD (1, 5, PID, STOP, 0, wrist_output_parameters),  // J5
-        new CMD (1, 6, PID, STOP, 0, wrist_output_parameters),  // J6
+        new CMD (1, 1, PID, 1, STOP, lower_joints_output_parameters),  // J1
+        new CMD (1, 2, PID, 1, STOP, lower_joints_output_parameters),  // J2
+        new CMD (1, 3, PID, 0, STOP, lower_joints_output_parameters),  // J3
+        new CMD (1, 4, PID, 0, STOP, wrist_output_parameters),  // J4
+        new CMD (1, 5, PID, 0, STOP, wrist_output_parameters),  // J5
+        new CMD (1, 6, PID, 0, STOP, wrist_output_parameters),  // J6
         new CMD (1, 7, PWM)  // End effector
     };
 
