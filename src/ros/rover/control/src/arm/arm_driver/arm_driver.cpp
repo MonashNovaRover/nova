@@ -73,14 +73,15 @@ void ArmDriver::start_node()
     double lower_joints_velocity_factor = 75;
     double wrist_velocity_factor = 50;
     double clock_frequency = 30e6;
-
+    CMDOutputParameters lower_joints_output_parameters(lower_joints_reduction, encoder_ppr, lower_joints_velocity_factor, clock_frequency);
+    CMDOutputParameters wrist_output_parameters(wrist_reduction, encoder_ppr, wrist_velocity_factor, clock_frequency);
     std::vector<CMD*> joints = {
-        new CMD (1, 1, PID, STOP, 1, CMDOutputParameters(lower_joints_reduction, encoder_ppr, lower_joints_velocity_factor, clock_frequency)),  // J1
-        new CMD (1, 2, PID, STOP, 1, CMDOutputParameters(lower_joints_reduction, encoder_ppr, lower_joints_velocity_factor, clock_frequency)),  // J2
-        new CMD (1, 3, PID, STOP, 0, CMDOutputParameters(lower_joints_reduction, encoder_ppr, lower_joints_velocity_factor, clock_frequency)),  // J3
-        new CMD (1, 4, PID, STOP, 0, CMDOutputParameters(wrist_reduction, encoder_ppr, wrist_velocity_factor, clock_frequency)),  // J4
-        new CMD (1, 5, PID, STOP, 0, CMDOutputParameters(wrist_reduction, encoder_ppr, wrist_velocity_factor, clock_frequency)),  // J5
-        new CMD (1, 6, PID, STOP, 0, CMDOutputParameters(wrist_reduction, encoder_ppr, wrist_velocity_factor, clock_frequency)),  // J6
+        new CMD (1, 1, PID, 1, STOP, lower_joints_output_parameters),  // J1
+        new CMD (1, 2, PID, 1, STOP, lower_joints_output_parameters),  // J2
+        new CMD (1, 3, PID, 0, STOP, lower_joints_output_parameters),  // J3
+        new CMD (1, 4, PID, 0, STOP, wrist_output_parameters),  // J4
+        new CMD (1, 5, PID, 0, STOP, wrist_output_parameters),  // J5
+        new CMD (1, 6, PID, 0, STOP, wrist_output_parameters),  // J6
         new CMD (1, 7, PWM)  // End effector
     };
 
