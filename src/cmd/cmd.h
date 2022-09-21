@@ -120,8 +120,8 @@ class CMD {
     /// @param      bus - The bus ID of the CAN device
     /// @param      id - The ID of the CAN device on the CAN line
     /// @param      drive_mode - Default drive mode of the CMD. PWM or PID
-    /// @param      stop_mode - Default stop mode of the CMD. STOP or PID (handbrake)
     /// @param      direction - Direction for the CMD. Determined by hardware
+    /// @param      stop_mode - Default stop mode of the CMD. STOP or PID (handbrake)
     /// @param      output_parameters - Parameters to ensure correct angular velocity is achieved by the CMD
     CMD (const int bus, const int id, CMDCommand drive_mode, CMDCommand stop_mode=STOP, const bool direction=0, CMDOutputParameters output_parameters=CMDOutputParameters());
 
@@ -163,6 +163,7 @@ class CMD {
     /// @brief      Send a CAN message to drive the motor at the given velocity
     /// @param      velocity - Motor velocity. If the output parameters are set, then is
     ///             in rad/s. Otherwise is a fraction of the max CMD speed between -1 and 1
+    ///             If in PWM mode, then ignores output parameters
     void drive (float velocity);
 
     /// @brief      Function for sending linear actuator command to CMD
