@@ -65,3 +65,4 @@ CATKIN_IGNORE
 *.idea/
 .idea/
 .idea
+**/.ropeproject
