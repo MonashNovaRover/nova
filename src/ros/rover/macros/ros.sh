@@ -40,7 +40,7 @@ then
 else
 
     # Run all the ROS 2 commands to load
-    source /opt/ros/foxy/setup.bash
+    source /opt/ros/eloquent/setup.bash
     source ~/nova_ws/install/setup.bash
 
 fi
