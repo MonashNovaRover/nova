@@ -119,8 +119,7 @@ void CMD::drive (float velocity)
     }
 
     // Scale physical velocity to an equivalent CMD command, which is the fraction of the CMDs max speed
-    // Only scale if using PID
-    if (drive_mode == PID && output_parameters.using_output_parameters) {
+    if (output_parameters.using_output_parameters) {
         velocity *= output_parameters.command_scale_factor;
     }
 

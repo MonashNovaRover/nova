@@ -163,7 +163,6 @@ class CMD {
     /// @brief      Send a CAN message to drive the motor at the given velocity
     /// @param      velocity - Motor velocity. If the output parameters are set, then is
     ///             in rad/s. Otherwise is a fraction of the max CMD speed between -1 and 1
-    ///             If in PWM mode, then ignores output parameters
     void drive (float velocity);
 
     /// @brief      Function for sending linear actuator command to CMD
