@@ -16,8 +16,6 @@ AUTHOR(S):	Jory Braun
 #include "print/print.h"
 #include "config/rosconfig.h"
 
-#define _USE_MATH_DEFINES
-#include <cmath>
 #include <string>
 
 // Namespaces for subscribers
@@ -112,6 +110,7 @@ ArmKinematics::ArmKinematics() : Node("arm_kinematics")
     // Output set-up messages
     Print::title("ARM KINEMATICS");
     Print::print("Subscribed Topics:");
+    Print::print("/control/arm_control_scheme       [core/ArmControlScheme]", 1);
     Print::print("/electronics/resolvers            [sensor_msgs/JointState]", 1);
     Print::print("/control/input_joint_velocities   [sensor_msgs/JointState]", 1);
     Print::print("/control/task_velocity            [geometry_msgs/TwistStamped]", 1);
@@ -239,48 +238,6 @@ void ArmKinematics::publish_coord_frames()
     coord_frames_pub->publish(coord_frames);
 }
 
-// Get the twist from the joysticks
-inline KDL::Twist ArmKinematics::get_control_twist()
-{
-    // Unpack the ROS2 task velocity into KDL::Vectors
-    const geometry_msgs::msg::Vector3& vec3_linear = task_velocity.twist.linear;
-    const geometry_msgs::msg::Vector3& vec3_angular = task_velocity.twist.angular;
-    KDL::Vector twist_linear (vec3_linear.x, vec3_linear.y, vec3_linear.z);
-    KDL::Vector twist_angular (vec3_angular.x, vec3_angular.y, vec3_angular.z);
-    
-    // Implement transformations on input linear and angular velocities
-    // Endpoint frame control
-    if (control_scheme.endpoint_frame_linear || control_scheme.endpoint_frame_angular){
-        // Transform joystick input directions to end-effector coordinates
-        // eg: forward on the left joystick is +ve x, but should be +ve z in end effector coordinates
-        KDL::Rotation joystick_input_transform = KDL::Rotation::EulerZYX(M_PI / 2, -M_PI / 2, 0);
-        // Transform from end effector coordinates to base frame coordinates
-        KDL::Rotation endpoint_frame_transform = calculate_serial_fk(get_serial_joint_positions(), arm_model->default_endpoint_name).M;
-        if (control_scheme.endpoint_frame_linear) {
-            twist_linear = endpoint_frame_transform * joystick_input_transform * twist_linear;
-        }
-        if (control_scheme.endpoint_frame_angular) {
-            // Add additional transform to switch yaw and roll directions for more intuitive control
-            joystick_input_transform = KDL::Rotation::EulerZYX(0, 0, M_PI / 2) * joystick_input_transform;
-            twist_angular = endpoint_frame_transform * joystick_input_transform * twist_angular;
-        }
-    }
-    // Reference frame offset
-    if (control_scheme.base_frame_offset != 0){
-        KDL::Rotation base_offset_transform = KDL::Rotation::RotZ(M_PI / 2 * control_scheme.base_frame_offset);
-        // Apply offset only if endpoint-frame control not applied
-        if (!control_scheme.endpoint_frame_linear){
-            twist_linear = base_offset_transform * twist_linear;
-        }
-        if (!control_scheme.endpoint_frame_angular) {
-            twist_angular = base_offset_transform * twist_angular;
-        }
-    }
-
-    // Compose into final twist
-    return KDL::Twist (twist_linear, twist_angular);
-}
-
 // Solve the velocity inverse kineamtics for the end effector
 inline KDL::JntArray ArmKinematics::calculate_serial_ik(KDL::JntArray kdl_joint_positions, KDL::Twist kdl_twist)
 {
@@ -307,10 +264,16 @@ inline KDL::JntArray ArmKinematics::calculate_serial_ik(KDL::JntArray kdl_joint_
 
 // Get the joint-space velocities of all joints on the arm for the given task velocity using inverse kinematics
 inline void ArmKinematics::update_joint_velocities()
-{
+{    
+    // Get the ROS2 task velocity into a KDL::Twist
+    const geometry_msgs::msg::Vector3& vec3_linear = task_velocity.twist.linear;
+    const geometry_msgs::msg::Vector3& vec3_angular = task_velocity.twist.angular;
+    KDL::Vector twist_linear (vec3_linear.x, vec3_linear.y, vec3_linear.z);
+    KDL::Vector twist_angular (vec3_angular.x, vec3_angular.y, vec3_angular.z);
+    KDL::Twist kdl_twist(twist_linear, twist_angular);
+    
     // Calculate IK for the end effector
     // Gets the joint velocities for the serial model of the arm
-    KDL::Twist kdl_twist = get_control_twist();
     KDL::JntArray kdl_joint_velocities (6);
     if (kdl_twist != KDL::Twist::Zero()){
         kdl_joint_velocities = calculate_serial_ik(get_serial_joint_positions(), kdl_twist);

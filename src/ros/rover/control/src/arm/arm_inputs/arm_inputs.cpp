@@ -86,11 +86,11 @@ void ArmInputs::publish_endeffector_inputs ()
     }
     
     // Publish the arm inputs
-    endeffector_publisher->publish(message);
+    endeffector_pub->publish(message);
 }
 
 // Publishes joint velocity data
-void ArmInputs::publish_joint_vel ()
+void ArmInputs::publish_joint_velocities ()
 {
     // Get the speed from slider, apply scaling
     float speed = scale_speed(joystick_r.ax_slider) * speed_multipliers.all_inputs;
@@ -133,11 +133,11 @@ void ArmInputs::publish_joint_vel ()
     // Set the header
     joint_velocities.header.stamp = this->now();
     // Publish the joint space velocities
-    joint_vel_publisher->publish(joint_velocities);
+    joint_velocities_pub->publish(joint_velocities);
 }
 
 // Publishes task velocity data
-void ArmInputs::publish_task_vel ()
+void ArmInputs::publish_task_velocity ()
 {
     // Get the speed from slider, apply scaling
     float speed = scale_speed(joystick_r.ax_slider) * speed_multipliers.all_inputs;
@@ -148,14 +148,14 @@ void ArmInputs::publish_task_vel ()
         float speed_ik_linear = speed * speed_multipliers.ik_linear;
 
         // Linear velocities map directly from joystick. Directions are already in arm base coords
-        task_velocities.twist.linear.x = speed_ik_linear * joystick_l.ax_stick_x;
-        task_velocities.twist.linear.y = speed_ik_linear * joystick_l.ax_stick_y;
-        task_velocities.twist.linear.z = speed_ik_linear * joystick_l.ax_stick_twist;
+        task_velocity.twist.linear.x = speed_ik_linear * joystick_l.ax_stick_x;
+        task_velocity.twist.linear.y = speed_ik_linear * joystick_l.ax_stick_y;
+        task_velocity.twist.linear.z = speed_ik_linear * joystick_l.ax_stick_twist;
     }
     else {
-        task_velocities.twist.linear.x = 0;
-        task_velocities.twist.linear.y = 0;
-        task_velocities.twist.linear.z = 0;
+        task_velocity.twist.linear.x = 0;
+        task_velocity.twist.linear.y = 0;
+        task_velocity.twist.linear.z = 0;
     }
     // If using wrist IK, set the values for angular velocity
     if (!control_scheme.joystick_lock && control_scheme.ik_angular) {
@@ -165,22 +165,22 @@ void ArmInputs::publish_task_vel ()
         // Adjust roll and pitch directions so control is more intuitive
         // Equivalent to a rotation of the input angular velocity vector by +pi/2 about z axis
         // Roll is stick y (left-right)
-        task_velocities.twist.angular.x = speed_ik_angular * -joystick_r.ax_stick_y;
+        task_velocity.twist.angular.x = speed_ik_angular * -joystick_r.ax_stick_y;
         // Pitch is stick x (forward-backward)
-        task_velocities.twist.angular.y = speed_ik_angular * joystick_r.ax_stick_x;
+        task_velocity.twist.angular.y = speed_ik_angular * joystick_r.ax_stick_x;
         // Yaw is stick twist
-        task_velocities.twist.angular.z = speed_ik_angular * joystick_r.ax_stick_twist;
+        task_velocity.twist.angular.z = speed_ik_angular * joystick_r.ax_stick_twist;
     }
     else{
-        task_velocities.twist.angular.x = 0;
-        task_velocities.twist.angular.y = 0;
-        task_velocities.twist.angular.z = 0;
+        task_velocity.twist.angular.x = 0;
+        task_velocity.twist.angular.y = 0;
+        task_velocity.twist.angular.z = 0;
     }
 
     // Set the header
-    task_velocities.header.stamp = this->now();
+    task_velocity.header.stamp = this->now();
     // Publish the joint space velocities
-    task_vel_publisher->publish(task_velocities);
+    task_velocity_pub->publish(task_velocity);
 }
 
 float ArmInputs::calculate_direction (float value){
@@ -229,27 +229,12 @@ void ArmInputs::publish_control_scheme()
     
     // Set the header and publish
     control_scheme.header.stamp = this->now();
-    control_scheme_publisher->publish(control_scheme);
+    control_scheme_pub->publish(control_scheme);
 }
 
 
 void ArmInputs::start_node()
 {
-    // Creates the end effector inputs publisher
-    endeffector_publisher = this->create_publisher<core::msg::EndEffectorInput>(
-        "/control/endeffector_input", rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline)
-    );
-
-    // Creates the joint velocity publisher
-    joint_vel_publisher = this->create_publisher<sensor_msgs::msg::JointState>(
-        "/control/input_joint_velocities", rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline)
-    );
-
-    // Creates the task velocity publisher
-    task_vel_publisher = this->create_publisher<geometry_msgs::msg::TwistStamped>(
-        "/control/task_velocity", rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline)
-    );
-
     // Create common options for joystick subscriptions
     rclcpp::SubscriptionOptionsWithAllocator<std::allocator<void>> joystick_options;
     joystick_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void{
@@ -258,7 +243,7 @@ void ArmInputs::start_node()
     rclcpp::QoS joystick_qos = rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline);
 
     // Creates the input subscription for the left joystick (with QoS options)
-    joystick_l_subscription = this->create_subscription<core::msg::InputJoystick>(
+    joystick_l_sub = this->create_subscription<core::msg::InputJoystick>(
         "/control/input_joystick_l",
         joystick_qos,
         std::bind(&ArmInputs::joystick_l_callback, this, _1),
@@ -266,27 +251,42 @@ void ArmInputs::start_node()
     );
 
     // Creates the input subscription for the right joystick (with QoS options)
-    joystick_r_subscription = this->create_subscription<core::msg::InputJoystick>(
+    joystick_r_sub = this->create_subscription<core::msg::InputJoystick>(
         "/control/input_joystick_r",
         joystick_qos,
         std::bind(&ArmInputs::joystick_r_callback, this, _1),
         joystick_options
     );
 
-    // Creates a timer function that runs a function on loop every 0.05 seconds
-    timer = this->create_wall_timer(ROSTimers::arm_control, std::bind(&ArmInputs::publish_endeffector_inputs, this));
+    // Create timer and publisher for endeffector_inputs
+    endeffector_timer = this->create_wall_timer(
+        50ms, std::bind(&ArmInputs::publish_endeffector_inputs, this)
+    );
+    endeffector_pub = this->create_publisher<core::msg::EndEffectorInput>(
+        "/control/endeffector_input", rclcpp::QoS(1).best_effort().deadline(200ms)
+    );
 
-    // Creates a timer function that runs a function on loop every 0.05 seconds
-    timer_joint = this->create_wall_timer(ROSTimers::arm_control, std::bind(&ArmInputs::publish_joint_vel, this));
+    // Create timer and publisher for input_joint_velocities
+    joint_velocities_timer = this->create_wall_timer(
+        50ms, std::bind(&ArmInputs::publish_joint_velocities, this)
+    );
+    joint_velocities_pub = this->create_publisher<sensor_msgs::msg::JointState>(
+        "/control/input_joint_velocities", rclcpp::QoS(1).best_effort().deadline(200ms)
+    );
 
-    // Creates a timer function that runs a function on loop every 0.05 seconds
-    timer_task = this->create_wall_timer(ROSTimers::arm_control, std::bind(&ArmInputs::publish_task_vel, this));
+    // Create timer and publisher for input_task_velocity
+    task_velocity_timer = this->create_wall_timer(
+        50ms, std::bind(&ArmInputs::publish_task_velocity, this)
+    );
+    task_velocity_pub = this->create_publisher<geometry_msgs::msg::TwistStamped>(
+        "/control/input_task_velocity", rclcpp::QoS(1).best_effort().deadline(200ms)
+    );
 
     // Create timer and publisher for control_scheme
     control_scheme_timer = this->create_wall_timer(
-        ROSTimers::arm_control, std::bind(&ArmInputs::publish_control_scheme, this)
-    );
-    control_scheme_publisher = this->create_publisher<core::msg::ArmControlScheme>(
+        50ms, std::bind(&ArmInputs::publish_control_scheme, this)
+    );    
+    control_scheme_pub = this->create_publisher<core::msg::ArmControlScheme>(
         "/control/arm_control_scheme", 10
     );
 
@@ -305,7 +305,7 @@ void ArmInputs::start_node()
     Print::print("Published Topics:");
     Print::print("/control/endeffector_input        [core/EndEffectorInput]", 1);
     Print::print("/control/input_joint_velocities   [sensor_msgs/JointState]", 1);
-    Print::print("/control/task_velocity            [sensor_msgs/TwistStamped]", 1);
+    Print::print("/control/input_task_velocity      [sensor_msgs/TwistStamped]", 1);
     Print::print("/control/arm_control_scheme       [core/ArmControlScheme]", 1);
     Print::print("", true);
 }
