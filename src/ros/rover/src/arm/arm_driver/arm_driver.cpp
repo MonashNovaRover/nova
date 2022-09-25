@@ -72,7 +72,7 @@ void ArmDriver::start_node()
     CMDOutputParameters lower_joints_output_parameters = CMDOutputParameters(lower_joints_reduction, encoder_ppr, lower_joints_velocity_factor, clock_frequency);
     CMDOutputParameters wrist_output_parameters = CMDOutputParameters(wrist_reduction, encoder_ppr, wrist_velocity_factor, clock_frequency);
 
-    std::vector<CMD*> joints = {
+    joints = std::vector<CMD*> {
         new CMD (1, 1, PID, 1, STOP, lower_joints_output_parameters),  // J1
         new CMD (1, 2, PID, 1, STOP, lower_joints_output_parameters),  // J2
         new CMD (1, 3, PID, 0, STOP, lower_joints_output_parameters),  // J3
