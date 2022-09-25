@@ -51,19 +51,25 @@ if(Eigen3_FOUND AND Orocos_kdl_FOUND)
   add_executable(arm_inputs arm_inputs/arm_inputs.cpp)
   target_link_libraries(arm_inputs arm_messages arm_config_info_client print)
   target_include_directories(arm_inputs INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/arm_inputs)
-  ament_target_dependencies(arm_inputs rclcpp core sensor_msgs geometry_msgs)
+  ament_target_dependencies(arm_inputs rclcpp core geometry_msgs sensor_msgs)
+
+  # Arm Twist Mapper script
+  add_executable(arm_twistmapper kinematics/arm_twistmapper.cpp)
+  target_link_libraries(arm_twistmapper orocos-kdl arm_messages arm_model spm_kinematics print)
+  target_include_directories(arm_twistmapper INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/kinematics)
+  ament_target_dependencies(arm_twistmapper rclcpp core geometry_msgs)
+
+  # Arm Kinematics script
+  add_executable(arm_kinematics kinematics/arm_kinematics.cpp)
+  target_link_libraries(arm_kinematics orocos-kdl arm_messages arm_model spm_kinematics print)
+  target_include_directories(arm_kinematics INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/kinematics)
+  ament_target_dependencies(arm_kinematics rclcpp core geometry_msgs sensor_msgs)
 
   # Arm Driver script
   add_executable(arm_driver arm_driver/arm_driver.cpp)
   target_link_libraries(arm_driver arm_messages arm_config_info_client cmd print)
   target_include_directories(arm_inputs INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/arm_driver)
   ament_target_dependencies(arm_driver rclcpp core sensor_msgs)
-
-  # Arm Kinematics script
-  add_executable(arm_kinematics kinematics/arm_kinematics.cpp)
-  target_link_libraries(arm_kinematics orocos-kdl arm_messages arm_model spm_kinematics print)
-  target_include_directories(arm_kinematics INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/kinematics)
-  ament_target_dependencies(arm_kinematics rclcpp core sensor_msgs)
 
   # Resolver Spoofer script
   add_executable(resolver_spoofer resolver_spoofer/resolver_spoofer.cpp)
@@ -79,8 +85,9 @@ if(Eigen3_FOUND AND Orocos_kdl_FOUND)
   # Add installation for executable targets
   install(TARGETS
     arm_inputs
-    arm_driver
+    arm_twistmapper
     arm_kinematics
+    arm_driver
     resolver_spoofer
     DESTINATION lib/${PROJECT_NAME}
   )
