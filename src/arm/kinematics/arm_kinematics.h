@@ -27,7 +27,7 @@ ACTIONS: None
 PACKAGE: 	 control
 AUTHOR(S): Jory Braun
 CREATION:	 11/12/2021
-EDITED:		 30/04/2022
+EDITED:		 25/09/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
  - 
@@ -51,9 +51,7 @@ TODO:
 #include <kdl/treeiksolvervel_wdls.hpp>
 
 // Use the standard namespaces
-// For publishers
 using namespace std::chrono_literals;
-// For subscribers
 using std::placeholders::_1;
 using std::placeholders::_2;
 
@@ -145,9 +143,6 @@ class ArmKinematics : public rclcpp::Node
     /// @brief  Callback for arm_coord_frames publisher timer
     ///         Updates the arm model using the latest resolver info, publishes to arm_cord_frames
     void publish_coord_frames();
-
-    /// @brief  Get the base-frame twist given the current input twist and the selected control scheme
-    KDL::Twist get_control_twist();
 
     /// @brief  Calculate the IK for the end effector using the serial model of the arm
     KDL::JntArray calculate_serial_ik(KDL::JntArray kdl_joint_positions, KDL::Twist kdl_twist);
