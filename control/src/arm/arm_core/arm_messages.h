@@ -30,23 +30,15 @@ TODO:
 #include <string>
 
 
-class ArmMessages
+namespace ArmMessages
 {
-    //------------------------------------------------------------//
-    public:
 
     /// @brief  Helper function to construct empty JointState message
     ///         Uses given names of joints, sizes all other parameter lists to match
-    static sensor_msgs::msg::JointState get_empty_joint_state(const std::vector<std::string>& names);
+    sensor_msgs::msg::JointState get_empty_joint_state(const std::vector<std::string>& names);
 
     /// @brief  Helper function to construct empty MultiDOFJointState message
     ///         Uses given names of joints, sizes all other parameter lists to match
-    static sensor_msgs::msg::MultiDOFJointState get_empty_multi_dof_joint_state(const std::vector<std::string>& names);
-
-    //------------------------------------------------------------//
-    protected:
-    
-    /// @brief  Protected constructor so the class cannot be instantiated
-    ArmMessages(){}
+    sensor_msgs::msg::MultiDOFJointState get_empty_multi_dof_joint_state(const std::vector<std::string>& names);
 
 };
