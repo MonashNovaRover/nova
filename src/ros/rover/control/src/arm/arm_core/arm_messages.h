@@ -41,4 +41,4 @@ namespace ArmMessages
     ///         Uses given names of joints, sizes all other parameter lists to match
     sensor_msgs::msg::MultiDOFJointState get_empty_multi_dof_joint_state(const std::vector<std::string>& names);
 
-};
+}
