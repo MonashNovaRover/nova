@@ -36,8 +36,7 @@ TODO:
 
 // Include libraries
 #include "arm_model.h"
-#include "spm_kinematics.h"
-#include <kdl/treefksolverpos_recursive.hpp>
+#include "arm_kinematics.h"
 
 // Use the standard namespaces
 using namespace std::chrono_literals;
@@ -68,13 +67,12 @@ class ArmTwistMapper : public rclcpp::Node
     sensor_msgs::msg::JointState joints;
     geometry_msgs::msg::TwistStamped input_task_velocity;
     
-    // Stores messages to be published
+    // Stores messages to be published (so only need to initialise once)
     geometry_msgs::msg::TwistStamped task_velocity;
 
     // Arm model and solvers
     ArmModel* arm_model;
-    KDL::TreeFkSolverPos_recursive* serial_fk_solver;
-    SpmKinematics* spm_solver;
+    ArmKinematics* arm_kinematics_solver;
 
     /// @brief  Callback for control scheme subscription
     ///         Updates the internal control scheme, which is used to determine how to solve IK
@@ -91,15 +89,8 @@ class ArmTwistMapper : public rclcpp::Node
     ///         Resets the internal task velocity
     void input_task_velocity_deadline_callback();
 
-    /// @brief  Get the joint-space positions of the serial model of the arm
-    ///         Return as a JntArray for use with KDL kinematics solvers
-    KDL::JntArray get_serial_joint_positions();
-
-    /// @brief  Calculate the FK for a single segment using the serial model of the arm
-    KDL::Frame calculate_serial_fk(KDL::JntArray kdl_joints, std::string segment_name);
-
     /// @brief  Get the base-frame twist given the current input twist and the selected control scheme
-    KDL::Twist get_control_twist();
+    geometry_msgs::msg::Twist get_control_twist();
 
     /// @brief  Callback for task_velocity publihser timer
     ///         Calculates the rover-frame control twist from the task-space input, publishes to task_velocity
