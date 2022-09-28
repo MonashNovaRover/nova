@@ -4,7 +4,8 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team
 
-This class implements helper functions for other nodes
+This class implements helper functions for creating
+  ROS2 messages
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: None
 TOPICS: None
@@ -14,7 +15,7 @@ ACTIONS: None
 PACKAGE: 	 control
 AUTHOR(S):   Jory Braun
 CREATION:	 17/01/2022
-EDITED:		 28/04/2022
+EDITED:		 27/09/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
  - 
