@@ -22,10 +22,16 @@ if(Eigen3_FOUND AND Orocos_kdl_FOUND)
   # Add non-executable targets:
   ################################################
 
-  # Arm Core
+  # Arm Messages
   add_library(arm_messages arm_core/arm_messages.cpp)
   target_include_directories(arm_messages INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/arm_core)
   ament_target_dependencies(arm_messages sensor_msgs)
+
+  # Arm Type Translation
+  add_library(arm_type_translation arm_core/arm_type_translation.cpp)
+  target_link_libraries(arm_type_translation orocos-kdl)
+  target_include_directories(arm_type_translation INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/arm_core)
+  ament_target_dependencies(arm_type_translation sensor_msgs geometry_msgs)
 
   # Arm Config Info Client
   add_library(arm_config_info_client arm_core/arm_config_info_client.cpp)
@@ -38,9 +44,14 @@ if(Eigen3_FOUND AND Orocos_kdl_FOUND)
   target_link_libraries(arm_model orocos-kdl)
   target_include_directories(arm_model INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/model)
 
-  # SPM Kinematics
-  add_library(spm_kinematics kinematics/spm_kinematics.cpp)
-  target_include_directories(spm_kinematics INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/kinematics)
+  # Arm Kinematics
+  add_library(arm_kinematics
+    kinematics/arm_kinematics.cpp
+    kinematics/spm_kinematics.cpp
+  )
+  target_link_libraries(arm_kinematics orocos-kdl arm_messages arm_model print)
+  target_include_directories(arm_kinematics INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/kinematics)
+  ament_target_dependencies(arm_kinematics rclcpp core geometry_msgs sensor_msgs)
 
 
   ################################################
@@ -54,16 +65,16 @@ if(Eigen3_FOUND AND Orocos_kdl_FOUND)
   ament_target_dependencies(arm_inputs rclcpp core geometry_msgs sensor_msgs)
 
   # Arm Twist Mapper script
-  add_executable(arm_twistmapper kinematics/arm_twistmapper.cpp)
-  target_link_libraries(arm_twistmapper orocos-kdl arm_messages arm_model spm_kinematics print)
-  target_include_directories(arm_twistmapper INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/kinematics)
+  add_executable(arm_twistmapper arm_control/arm_twistmapper.cpp)
+  target_link_libraries(arm_twistmapper orocos-kdl arm_messages arm_type_translation arm_model arm_kinematics print)
+  target_include_directories(arm_twistmapper INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/arm_control)
   ament_target_dependencies(arm_twistmapper rclcpp core geometry_msgs)
 
-  # Arm Kinematics script
-  add_executable(arm_kinematics kinematics/arm_kinematics.cpp)
-  target_link_libraries(arm_kinematics orocos-kdl arm_messages arm_model spm_kinematics print)
-  target_include_directories(arm_kinematics INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/kinematics)
-  ament_target_dependencies(arm_kinematics rclcpp core geometry_msgs sensor_msgs)
+  # Arm Control script
+  add_executable(arm_control arm_control/arm_control.cpp)
+  target_link_libraries(arm_control orocos-kdl arm_messages arm_type_translation arm_model arm_kinematics print)
+  target_include_directories(arm_control INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/arm_control)
+  ament_target_dependencies(arm_control rclcpp core geometry_msgs sensor_msgs)
 
   # Arm Driver script
   add_executable(arm_driver arm_driver/arm_driver.cpp)
@@ -86,7 +97,7 @@ if(Eigen3_FOUND AND Orocos_kdl_FOUND)
   install(TARGETS
     arm_inputs
     arm_twistmapper
-    arm_kinematics
+    arm_control
     arm_driver
     resolver_spoofer
     DESTINATION lib/${PROJECT_NAME}
