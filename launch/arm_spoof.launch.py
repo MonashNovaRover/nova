@@ -28,7 +28,7 @@ def generate_launch_description():
         launch_ros.actions.Node(
             package='control', node_executable='arm_twistmapper', output='screen', emulate_tty=True),
         launch_ros.actions.Node(
-            package='control', node_executable='arm_kinematics', output='screen', emulate_tty=True),
+            package='control', node_executable='arm_control', output='screen', emulate_tty=True),
         launch_ros.actions.Node(
             package='control', node_executable='resolver_spoofer', output='screen', emulate_tty=True),
         launch_ros.actions.Node(
