@@ -23,3 +23,7 @@ int8 base_frame_offset 0
 
 # SPM roll vs end rotation
 bool use_spm_roll 0
+
+# Position control
+bool position_control_linear 0
+bool position_control_angular 0
