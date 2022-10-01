@@ -16,6 +16,7 @@ TOPICS:
   - /control/arm_control_scheme        [core/ArmControlScheme]           [Subscribed]
   - /electronics/resolvers             [sensor_msgs/JointState]          [Subscribed]
   - /control/task_velocity             [geometry_msgs/TwistStamped]      [Subscribed]
+  - /control/task_position             [geometry_msgs/TransformStamped]  [Subscribed]
   - /control/input_joint_velocities    [sensor_msgs/JointState]          [Subscribed]
   - /control/arm_coord_frames          [sensor_msgs/MultiDOFJointState]  [Published]
   - /control/joint_velocities          [sensor_msgs/JointState]          [Published]
@@ -23,10 +24,10 @@ SERVICES:
   - /control/arm_config_info           [core/ArmConfigInfo]             [Server]
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-PACKAGE: 	 control
+PACKAGE: 	   control
 AUTHOR(S):   Jory Braun
-CREATION:	 27/09/2022
-EDITED:		 27/09/2022
+CREATION:	   27/09/2022
+EDITED:		   01/10/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
  - 
@@ -39,6 +40,7 @@ TODO:
 #include "core/msg/arm_control_scheme.hpp"
 #include "sensor_msgs/msg/joint_state.hpp"
 #include "geometry_msgs/msg/twist_stamped.hpp"
+#include "geometry_msgs/msg/transform_stamped.hpp"
 #include "sensor_msgs/msg/multi_dof_joint_state.hpp"
 // Include service types
 #include "core/srv/arm_config_info.hpp"
@@ -66,6 +68,7 @@ class ArmControl : public rclcpp::Node
     rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr resolver_sub;
     rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr input_joint_velocities_sub;
     rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr task_velocity_sub;
+    rclcpp::Subscription<geometry_msgs::msg::TransformStamped>::SharedPtr task_position_sub;
     
     // Periods at which to publish
     std::chrono::milliseconds coord_frames_timer_period;
@@ -87,6 +90,7 @@ class ArmControl : public rclcpp::Node
     sensor_msgs::msg::JointState joints;
     sensor_msgs::msg::JointState joint_space_input;
     geometry_msgs::msg::TwistStamped task_velocity;
+    geometry_msgs::msg::TransformStamped task_position;
 
     // Store messages to be published (so only need to initialise once)
     sensor_msgs::msg::MultiDOFJointState coord_frames;
@@ -114,11 +118,18 @@ class ArmControl : public rclcpp::Node
     void input_joint_velocities_deadline_callback();
 
     /// @brief  Callback for task velocity subscription
-    ///         Updates the internal task velocity, which is later used to calculate the inverse kinematics
+    ///         Updates the internal task velocity, which is later used in the IK control loop
     void task_velocity_callback(const geometry_msgs::msg::TwistStamped::SharedPtr msg);
     /// @brief  Deadline callback for input task velocity subscription
     ///         Resets the internal task velocity
     void task_velocity_deadline_callback();
+
+    /// @brief  Callback for task position subscription
+    ///         Updates the internal task position, which is later used in the IK control loop
+    void task_position_callback(const geometry_msgs::msg::TransformStamped::SharedPtr msg);
+    /// @brief  Deadline callback for input task position subscription
+    ///         Resets the internal task position
+    void task_position_deadline_callback();
     
     /// @brief  Callback for arm_coord_frames publisher timer
     ///         Updates the arm model using the latest resolver info, publishes to arm_cord_frames

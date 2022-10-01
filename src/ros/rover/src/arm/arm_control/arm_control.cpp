@@ -57,6 +57,17 @@ ArmControl::ArmControl() : Node("arm_control")
         task_velocity_options
     );
 
+    // Create subscription to task_position
+    rclcpp::SubscriptionOptionsWithAllocator<std::allocator<void>> task_position_options;
+    task_position_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void{
+        this->task_position_deadline_callback();
+    };
+    task_position_sub = this->create_subscription<geometry_msgs::msg::TransformStamped>(
+        "/control/task_position",
+        rclcpp::QoS(1).best_effort().deadline(200ms),
+        std::bind(&ArmControl::task_position_callback, this, _1),
+        task_position_options
+    );
 
     // Create timer and publisher for arm_coord_frames
     coord_frames_timer = this->create_wall_timer(
@@ -113,6 +124,7 @@ ArmControl::ArmControl() : Node("arm_control")
     Print::print("/electronics/resolvers            [sensor_msgs/JointState]", 1);
     Print::print("/control/input_joint_velocities   [sensor_msgs/JointState]", 1);
     Print::print("/control/task_velocity            [geometry_msgs/TwistStamped]", 1);
+    Print::print("/control/task_position            [geometry_msgs/TransformStamped]", 1);
     Print::print("Published Topics:");
     Print::print("/control/arm_coord_frames         [sensor_msgs/MultiDOFJointState]", 1);
     Print::print("/control/joint_velocities         [sensor_msgs/JointState]", 1);
@@ -155,6 +167,18 @@ void ArmControl::task_velocity_deadline_callback()
 {
     RCLCPP_WARN(this->get_logger(), "control/task_velocity subscription deadline missed");
     task_velocity = geometry_msgs::msg::TwistStamped();
+}
+
+// Update the internal task position
+void ArmControl::task_position_callback(const geometry_msgs::msg::TransformStamped::SharedPtr msg)
+{
+    task_position = *msg;
+}
+// Reset the internal position
+void ArmControl::task_position_deadline_callback()
+{
+    RCLCPP_WARN(this->get_logger(), "control/task_position subscription deadline missed");
+    task_position = geometry_msgs::msg::TransformStamped();
 }
 
 
