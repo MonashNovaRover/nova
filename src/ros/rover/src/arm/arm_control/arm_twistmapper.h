@@ -13,13 +13,14 @@ TOPICS:
   - /electronics/resolvers             [sensor_msgs/JointState]          [Subscribed]
   - /control/input_task_velocity       [geometry_msgs/TwistStamped]      [Subscribed]
   - /control/task_velocity             [geometry_msgs/TwistStamped]      [Published]
+  - /control/task_position             [geometry_msgs/TransformStamped]  [Published]
 SERVICES: None
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	 control
 AUTHOR(S):   Jory Braun
 CREATION:	 25/09/2022
-EDITED:		 25/09/2022
+EDITED:		 01/10/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
  - 
@@ -33,6 +34,7 @@ TODO:
 #include "core/msg/arm_control_scheme.hpp"
 #include "sensor_msgs/msg/joint_state.hpp"
 #include "geometry_msgs/msg/twist_stamped.hpp"
+#include "geometry_msgs/msg/transform_stamped.hpp"
 
 // Include libraries
 #include "arm_model.h"
@@ -50,29 +52,42 @@ class ArmTwistMapper : public rclcpp::Node
     //------------------------------------------------------------//
     private:
 
-    // Store the subscribers
+    // Subscribers
     rclcpp::Subscription<core::msg::ArmControlScheme>::SharedPtr control_scheme_sub;
     rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr resolver_sub;
     rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr input_task_velocity_sub;
     
-    // Store the loop timers for publishing
-    std::chrono::milliseconds task_velocity_timer_period;
-    rclcpp::TimerBase::SharedPtr task_velocity_timer;
+    // Loop timers for publishing
+    std::chrono::milliseconds task_inputs_timer_period;
+    rclcpp::TimerBase::SharedPtr task_inputs_timer;
 
-    // Store the publishers
+    // Publishers
     rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr task_velocity_pub;
+    rclcpp::Publisher<geometry_msgs::msg::TransformStamped>::SharedPtr task_position_pub;
 
-    // Store state of last-received messages
+    // State of last-received messages
     core::msg::ArmControlScheme control_scheme;
     sensor_msgs::msg::JointState joints;
     geometry_msgs::msg::TwistStamped input_task_velocity;
     
-    // Stores messages to be published (so only need to initialise once)
+    // Messages to be published (so only need to initialise once)
     geometry_msgs::msg::TwistStamped task_velocity;
+    geometry_msgs::msg::TransformStamped task_position;
 
     // Arm model and solvers
     ArmModel* arm_model;
     ArmKinematics* arm_kinematics_solver;
+
+    // Constant transforms
+    // Transform joystick input directions to intuitive end-effector coordinates
+    const KDL::Rotation endpoint_input_transform_linear;
+    const KDL::Rotation endpoint_input_transform_angular;
+
+    // Control variables
+    KDL::Frame end_effector_pose;
+    KDL::Frame control_pose;
+    KDL::Twist prev_control_twist;
+    rclcpp::Time prev_time;
 
     /// @brief  Callback for control scheme subscription
     ///         Updates the internal control scheme, which is used to determine how to solve IK
@@ -89,12 +104,16 @@ class ArmTwistMapper : public rclcpp::Node
     ///         Resets the internal task velocity
     void input_task_velocity_deadline_callback();
 
-    /// @brief  Get the base-frame twist given the current input twist and the selected control scheme
-    geometry_msgs::msg::Twist get_control_twist();
+    /// @brief  Get the rover-frame twist given the current input twist and the selected control scheme
+    KDL::Twist get_control_twist(const KDL::Rotation& endpoint_coord_transform);
 
-    /// @brief  Callback for task_velocity publihser timer
+    /// @brief  Integrate the control twist to get the control pose at the current time
+    void update_control_pose(const KDL::Twist& control_twist, const KDL::Frame& endpoint_frame, rclcpp::Time current_time);
+
+    /// @brief  Callback for task_velocity publisher timer
     ///         Calculates the rover-frame control twist from the task-space input, publishes to task_velocity
-    void publish_task_velocity();
+    ///         Calculates the rover-frame control pose, publishes to task_position
+    void publish_task_inputs();
     
     //------------------------------------------------------------//
     public:
