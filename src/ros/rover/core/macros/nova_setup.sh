@@ -186,6 +186,10 @@ git clone git@github.com:MonashNovaRover/science.git
 cd ~/nova_ws/src/rover/autonomous
 git submodule update --init --recursive
 
+# Checkout foxy branch of core
+cd ~/nova_ws/src/core
+git checkout --track remotes/origin/feature/ros2-foxy
+
 # Clone the other GitHub files
 mkdir -p ~/nova_ws/other
 cd ~/nova_ws/other
