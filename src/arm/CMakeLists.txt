@@ -9,7 +9,7 @@ if(Eigen3_FOUND AND Orocos_kdl_FOUND)
   # Additional message type dependencies
   find_package(sensor_msgs REQUIRED)
   find_package(geometry_msgs REQUIRED)
-  find_package(nav_msgs REQUIRED)
+  find_package(std_srvs REQUIRED)
 
   # Additional includes for Eigen adn KDL
   include_directories(
@@ -68,7 +68,7 @@ if(Eigen3_FOUND AND Orocos_kdl_FOUND)
   add_executable(arm_twistmapper arm_control/arm_twistmapper.cpp)
   target_link_libraries(arm_twistmapper orocos-kdl arm_messages arm_type_translation arm_model arm_kinematics print)
   target_include_directories(arm_twistmapper INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/arm_control)
-  ament_target_dependencies(arm_twistmapper rclcpp core geometry_msgs)
+  ament_target_dependencies(arm_twistmapper rclcpp core geometry_msgs std_srvs)
 
   # Arm Control script
   add_executable(arm_control arm_control/arm_control.cpp)
