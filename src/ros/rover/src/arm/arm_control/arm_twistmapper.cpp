@@ -65,15 +65,17 @@ ArmTwistMapper::ArmTwistMapper() :
     );
 
 
-    // Initialise arm model and required solvers
+    // Initialise internal variables
+
+    // Arm model and required solvers
     arm_model = new ArmModel(ArmConfig::wrist_type, ArmConfig::end_effector_type);
     arm_kinematics_solver = new ArmKinematics(*arm_model, this->get_logger());
 
-    // Initialise arrays in internal data structures
+    // Arrays in internal data structures
     // Use data from the arm model
     joints = ArmMessages::get_empty_joint_state(arm_model->joint_names);
 
-    // Initialise control variables
+    // Control variables
     control_pose = KDL::Frame::Identity();
     prev_control_twist = KDL::Twist::Zero();
     prev_time = this->now();
@@ -171,12 +173,10 @@ inline KDL::Twist ArmTwistMapper::get_control_twist(const KDL::Rotation& endpoin
 
 
 // Integrate the control position up to the current time
-inline void ArmTwistMapper::update_control_pose(const KDL::Twist& control_twist, const KDL::Frame& endpoint_frame, rclcpp::Time current_time)
+inline void ArmTwistMapper::update_control_pose(const KDL::Twist& control_twist, const KDL::Frame& endpoint_frame, double timestep)
 {
-    double timestep;
     KDL::Twist pose_change;
     if (control_scheme.position_control_linear || control_scheme.position_control_angular) {
-        timestep = (current_time - prev_time).seconds();
         pose_change = (prev_control_twist + control_twist) / 2 * timestep;
     }
 
@@ -199,7 +199,6 @@ inline void ArmTwistMapper::update_control_pose(const KDL::Twist& control_twist,
 
     // Update previous state
     prev_control_twist = control_twist;
-    prev_time = current_time;
 }
 
 
@@ -209,10 +208,13 @@ void ArmTwistMapper::publish_task_inputs()
     KDL::JntArray joint_positions = ArmTypeTranslation::to_KDL_jnt_array(joints.position);
     KDL::Frame endpoint_frame_transform = arm_kinematics_solver->fk_pos_end_effector(joint_positions);
 
-    // Get the control inputs in the rover frame, depending on the control scheme
+    // Get the control twist in the rover frame, depending on the control scheme
     KDL::Twist twist = get_control_twist(endpoint_frame_transform.M);
+    // Integrate to get the control pose
     rclcpp::Time current_time = this->now();
-    update_control_pose(twist, endpoint_frame_transform, current_time);
+    double timestep = (current_time - prev_time).seconds();
+    update_control_pose(twist, endpoint_frame_transform, timestep);
+    prev_time = current_time;
 
     // Fill the output messages
     task_velocity.twist = ArmTypeTranslation::to_ROS2_twist(twist);
