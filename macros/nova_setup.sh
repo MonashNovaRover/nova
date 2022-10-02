@@ -193,13 +193,13 @@ else
     echo "Create a Personal Access Token for your device on GitHub if you haven't already"
     read empty
 
-    git clone https://github.com:MonashNovaRover/autonomous.git
-    git clone https://github.com:MonashNovaRover/cameras.git
-    git clone https://github.com:MonashNovaRover/control.git
-    git clone https://github.com:MonashNovaRover/core.git
-    git clone https://github.com:MonashNovaRover/electronics.git
-    git clone https://github.com:MonashNovaRover/gui.git
-    git clone https://github.com:MonashNovaRover/science.git
+    git clone https://github.com/MonashNovaRover/autonomous.git
+    git clone https://github.com/MonashNovaRover/cameras.git
+    git clone https://github.com/MonashNovaRover/control.git
+    git clone https://github.com/MonashNovaRover/core.git
+    git clone https://github.com/MonashNovaRover/electronics.git
+    git clone https://github.com/MonashNovaRover/gui.git
+    git clone https://github.com/MonashNovaRover/science.git
 fi
 
 
@@ -223,22 +223,23 @@ if [[ "$PAT" != "y" && "$PAT" != "Y" ]]; then
     git clone git@github.com:MonashNovaRover/ik_machine.git
     git clone git@github.com:MonashNovaRover/coms_utils.git
 else
-    git clone https://github.com:MonashNovaRover/arduinos.git
-    git clone https://github.com:MonashNovaRover/tutorials.git
-    git clone https://github.com:MonashNovaRover/pics.git
-    git clone https://github.com:MonashNovaRover/ik_machine.git
-    git clone https://github.com:MonashNovaRover/coms_utils.git
+    git clone https://github.com/MonashNovaRover/arduinos.git
+    git clone https://github.com/MonashNovaRover/tutorials.git
+    git clone https://github.com/MonashNovaRover/pics.git
+    git clone https://github.com/MonashNovaRover/ik_machine.git
+    git clone https://github.com/MonashNovaRover/coms_utils.git
 fi
 
 # Add the nova.sh bash script to the bashrc
 information "Setting up Workspace..."
 sudo echo "source ~/nova_ws/src/core/nova.sh" >> ~/.bashrc
-source ~/nova_ws/src/core/nova.sh
+source ~/.bashrc
 
 # Build the workspace
 cd ~/nova_ws
 export CMAKE_PREFIX_PATH=""
 export AMENT_PREFIX_PATH=""
+. ~/nova_ws/install/setup.sh
 colcon build
 
 # Building the GUI
