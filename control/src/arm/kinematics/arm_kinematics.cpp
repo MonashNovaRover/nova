@@ -26,49 +26,32 @@ ArmKinematics::ArmKinematics(const ArmModel& arm_model, const rclcpp::Logger& lo
 }
 
 
-void ArmKinematics::validate_joint_size(KDL::JntArray joint_positions)
-{
-    bool correct_size = (joint_positions.data.size() == 6 && ArmConfig::wrist_type == ArmConfig::WRIST_CYCLOIDAL) || (joint_positions.data.size() && ArmConfig::wrist_type == ArmConfig::WRIST_SPM);
-    if (!correct_size) {
-        RCLCPP_FATAL(logger, "Must provide 6 joint positions, or 7 joint positions with SPM");
-        throw std::invalid_argument("Must provide 6 joint positions, or 7 joint positions with SPM");
-    }
-}
-
-
-void ArmKinematics::validate_serial_joint_size(KDL::JntArray joint_positions)
-{
-    if (joint_positions.data.size() != 6) {
-        RCLCPP_FATAL(logger, "Must provide 6 joint positions for serial arm model");
-        throw std::invalid_argument("Must provide 6 joint positions for serial arm model");
-    }
-}
-
-
 // Get the joint-space positions of the serial model of the arm
 inline KDL::JntArray ArmKinematics::serial_joint_positions(KDL::JntArray joint_positions)
 {
     // Ensure the input is of the correct size
-    validate_joint_size(joint_positions);
-    
-    // Construct the 6-DOF output
-    KDL::JntArray out_positions (6);
-    out_positions.data = joint_positions.data.head(6);
+    if (joint_positions.data.size() != arm_model.joint_names.size()) {
+        // Throw an error, since if this is used in FK there is no safe default output
+        RCLCPP_FATAL(logger, "Must provide 6 joint positions, or 7 joint positions with SPM");
+        throw std::invalid_argument("Must provide 6 joint positions, or 7 joint positions with SPM");
+    }
 
     // If using the SPM wrist, replace SPM input joint positions with equivalent serial pitch, yaw and roll
-    if (ArmConfig::wrist_type == ArmConfig::WRIST_SPM){
+    if (ArmConfig::wrist_type == ArmConfig::WRIST_SPM) {
         // Calculate SPM FK
         std::vector<double> spm_joints (joint_positions.data.data() + 3, joint_positions.data.data() + 6); 
         std::vector<double> serial_wrist_joints = spm_solver.spm_fk(spm_joints);
         // Pitch
-        out_positions.data[3] = serial_wrist_joints[0];
+        joint_positions.data[3] = serial_wrist_joints[0];
         // Yaw
-        out_positions.data[4] = serial_wrist_joints[1];
+        joint_positions.data[4] = serial_wrist_joints[1];
         // Roll. Combine SPM roll and end-rotation since the KDL model requires 6 joints
-        out_positions.data[5] = serial_wrist_joints[2] + joint_positions.data[6];
+        joint_positions.data[5] = serial_wrist_joints[2] + joint_positions.data[6];
+        // Make output is 6-DOF
+        joint_positions.data = joint_positions.data.head(6);
     }
 
-    return out_positions;
+    return joint_positions;
 }
 
 // Calculate the FK for a given segment
@@ -120,42 +103,33 @@ std::vector<KDL::Frame> ArmKinematics::fk_pos_all_segments(KDL::JntArray joint_p
 // Solve the velocity inverse kineamtics for the end effector
 inline KDL::JntArray ArmKinematics::serial_ik_vel_end_effector(KDL::JntArray serial_joint_positions, KDL::Twist twist)
 {
-    // Get the input twist in the form KDL likes
-    KDL::Twists twists = { {arm_model.default_endpoint_name, twist} };
-    
     // Prepare the output data structure
     KDL::JntArray joint_velocities (6);
     
-    // Calculate the inverse kinematics
-    double exit_value = serial_ik_solver.CartToJnt(serial_joint_positions, twists, joint_velocities);
-    if (exit_value == -1){
-        RCLCPP_WARN(logger, "Must provide 6 positions and have 6 joints in tree");
-    }
-    else if (exit_value == -2){
-        RCLCPP_WARN(logger, "Twists provided must have a corresponding endpoint which is a segment in the tree");
-    }
-    else if (exit_value == KDL::TreeIkSolverVel_wdls::E_SVD_FAILED) {
-        RCLCPP_WARN(logger, "Singular value decomposition failed");
+    if (twist != KDL::Twist::Zero()) {
+        // Get the input twist in the form KDL likes
+        KDL::Twists twists = { {arm_model.default_endpoint_name, twist} };
+
+        // Calculate the inverse kinematics
+        double exit_value = serial_ik_solver.CartToJnt(serial_joint_positions, twists, joint_velocities);
+        if (exit_value == -1){
+            RCLCPP_WARN(logger, "Must provide 6 positions and have 6 joints in tree");
+        }
+        else if (exit_value == -2){
+            RCLCPP_WARN(logger, "Twists provided must have a corresponding endpoint which is a segment in the tree");
+        }
+        else if (exit_value == KDL::TreeIkSolverVel_wdls::E_SVD_FAILED) {
+            RCLCPP_WARN(logger, "Singular value decomposition failed");
+        }
     }
 
     return joint_velocities;
 }
 
 
-// Get the joint-space velocities of all joints on the arm for the given task velocity using inverse kinematics
-KDL::JntArray ArmKinematics::ik_vel_end_effector(KDL::JntArray joint_positions, KDL::Twist twist, bool use_spm_roll)
+inline KDL::JntArray ArmKinematics::serial_to_actual_joint_vel_transform(KDL::JntArray joint_positions, KDL::JntArray joint_velocities, bool use_spm_roll)
 {
-
-    // Calculate IK for the end effector
-    // Gets the joint velocities for the serial model of the arm
-    KDL::JntArray joint_velocities (6);
-    if (twist != KDL::Twist::Zero()){
-        joint_velocities = serial_ik_vel_end_effector(serial_joint_positions(joint_positions), twist);
-    }
-
-    // If using the SPM wrist, replace serial pitch, yaw and roll with SPM input joint velocities
-    if (ArmConfig::wrist_type == ArmConfig::WRIST_SPM){
-        
+    if (ArmConfig::wrist_type == ArmConfig::WRIST_SPM) {
         // Add another joint to the array
         joint_velocities.data << 0;
 
@@ -178,6 +152,20 @@ KDL::JntArray ArmKinematics::ik_vel_end_effector(KDL::JntArray joint_positions, 
         // Roll
         joint_velocities.data[5] = spm_velocity[2];
     }
+
+    return joint_velocities;
+}
+
+
+// Solve the velocity inverse kinematics for the end effector, accounting for the SPM wrist
+KDL::JntArray ArmKinematics::ik_vel_end_effector(KDL::JntArray joint_positions, KDL::Twist twist, bool use_spm_roll)
+{
+    // Calculate IK for the end effector
+    // Gets the joint velocities for the serial model of the arm
+    KDL::JntArray joint_velocities = serial_ik_vel_end_effector(serial_joint_positions(joint_positions), twist);
+
+    // If using the SPM wrist, replace serial pitch, yaw and roll with SPM joint velocities
+    joint_velocities = serial_to_actual_joint_vel_transform(joint_positions, joint_velocities, use_spm_roll);
 
     return joint_velocities;
 }
