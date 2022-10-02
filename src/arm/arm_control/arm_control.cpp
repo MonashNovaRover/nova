@@ -92,11 +92,22 @@ ArmControl::ArmControl() : Node("arm_control")
     );
 
 
-    // Initialise arm model and solvers
+    // Initialise internal variables
+
+    // Arm model and solvers
     arm_model = new ArmModel(ArmConfig::wrist_type, ArmConfig::end_effector_type);
     arm_kinematics_solver = new ArmKinematics(*arm_model, this->get_logger());
-    
-    // Initialise arrays in internal data structures
+
+    // Controllers for each joint
+    for (std::size_t i = 0; i < arm_model->joint_names.size(); i++) {
+        ArmSubModule::ControlCoeffs coeffs = arm_model->control_coeffs[i];
+        controllers[i] = new PIController(coeffs.prop, coeffs.integral);
+    }
+
+    // Timestep calculation
+    prev_time = this->now();
+
+    // Arrays in internal data structures
     // Use data from the arm model
     joints = ArmMessages::get_empty_joint_state(arm_model->joint_names);
     joint_space_input = ArmMessages::get_empty_joint_state(arm_model->joint_names);
@@ -201,32 +212,121 @@ void ArmControl::publish_coord_frames()
 }
 
 
-// Get the joint-space velocities of all joints on the arm for the given task velocity using inverse kinematics
-inline void ArmControl::update_joint_velocities()
+// Calculate the control error
+inline KDL::Twist ArmControl::get_control_error(const KDL::Frame& control_pose, const KDL::Frame& end_effector_pose)
 {
+    KDL::Twist error;
 
-    // Calculate IK for the end effector
+    // Position error
+    if (control_scheme.position_control_linear) {
+        error.vel = control_pose.p - end_effector_pose.p;
+    }
+    else {
+        KDL::SetToZero(error.vel);
+    }
+
+    // Orientation error
+    if (control_scheme.position_control_angular) {
+        KDL::Rotation error_transform = control_pose.M * end_effector_pose.M.Inverse();
+        error.rot = error_transform.GetRot();
+    }
+    else {
+        KDL::SetToZero(error.rot);
+    }
+
+    // Prevent error discontinuities from causing the arm to make large movements
+    if (error.vel.Norm() > ERROR_LIMIT_LINEAR || error.rot.Norm() > ERROR_LIMIT_ANGULAR) {
+        KDL::SetToZero(error);
+        RCLCPP_WARN(this->get_logger(), "Large control error detected. Switch to velocity control or reset position control.");
+    }
+
+    return error;
+}
+
+
+// Get the joint-space velocities of all joints on the arm using inverse kinematics
+inline KDL::JntArray ArmControl::get_joint_velocities(double timestep)
+{
+    // Get the inputs to the control loop
     KDL::JntArray joint_positions = ArmTypeTranslation::to_KDL_jnt_array(joints.position);
-    KDL::Twist twist = ArmTypeTranslation::to_KDL_twist(task_velocity.twist);
-    KDL::JntArray joint_velocities = arm_kinematics_solver->ik_vel_end_effector(joint_positions, twist, control_scheme.use_spm_roll);
-    joints.velocity = std::vector<double> (joint_velocities.data.data(), joint_velocities.data.data() + joint_velocities.data.size());
+    KDL::JntArray control_joint_velocities = ArmTypeTranslation::to_KDL_jnt_array(joint_space_input.position);
+    KDL::Twist control_twist = ArmTypeTranslation::to_KDL_twist(task_velocity.twist);
+    KDL::Frame control_pose = ArmTypeTranslation::to_KDL_frame(task_position.transform);
 
-    // If activated, apply joint limits to the current joint velocity
-    if (control_scheme.joint_limits){
-        // If any joint hits a limit, stop all joints
-        bool limit = false;
-        for (std::size_t i = 0; i < joints.name.size(); i++) {
-            if ((joints.position[i] >= arm_model->joint_limits[i].upper && joints.velocity[i] > 0)
-                || (joints.position[i] <= arm_model->joint_limits[i].lower && joints.velocity[i] < 0)){
-                RCLCPP_WARN(this->get_logger(), "Joint %s has reached a limit", joints.name[i].c_str());
-                limit = true;
-            }
-        }
-        if (limit) {
-            // Clear the velocity data
-            std::fill(joints.velocity.begin(), joints.velocity.end(), 0);
+
+    // Calculate the feedforward velocity term
+
+    // Get the control twist into the joint space of the serial model
+    KDL::JntArray feedforward_joint_velocities = arm_kinematics_solver->serial_ik_vel_end_effector(joint_positions, control_twist);
+    // Add the serial joint velocities
+    feedforward_joint_velocities.data += control_joint_velocities.data;
+    // Convert to joint space
+    feedforward_joint_velocities = arm_kinematics_solver->serial_to_actual_joint_vel_transform(joint_positions, feedforward_joint_velocities, control_scheme.use_spm_roll);
+
+
+    // Calculate the position loop
+
+    // Get the control error, accoutning for the control scheme
+    KDL::Frame end_effector_pose = arm_kinematics_solver->fk_pos_end_effector(joint_positions);
+    KDL::Twist control_error = get_control_error(control_pose, end_effector_pose);
+    // Convert to joint space
+    KDL::JntArray feedback_joint_velocities = arm_kinematics_solver->ik_vel_end_effector(joint_positions, control_error, control_scheme.use_spm_roll);
+    // Apply controllers
+    if (control_error != KDL::Twist::Zero()) {
+        double* error;
+        for (std::size_t i = 0; i < controllers.size(); i++) {
+            error = &feedback_joint_velocities.data[i];
+            *error = controllers[i]->update(*error, timestep);
         }
     }
+
+
+    // Get the ideal output velocities
+    KDL::JntArray joint_velocities;
+    joint_velocities.data = feedforward_joint_velocities.data + feedback_joint_velocities.data;
+
+
+    // Apply saturation to each joint
+    bool joint_limited = false;
+    double velocity_multiplier = 1;
+    for (std::size_t i = 0; i < arm_model->joint_names.size(); i++) {
+
+        // Joint limits
+        if (control_scheme.joint_limits &&
+            ((joints.position[i] >= arm_model->joint_limits[i].upper && joint_velocities.data[i] > 0)
+            || (joints.position[i] <= arm_model->joint_limits[i].lower && joint_velocities.data[i] < 0))){
+
+            controllers[i]->saturated = true;
+            RCLCPP_WARN(this->get_logger(), "Joint %s has reached a limit", joints.name[i].c_str());
+            joint_limited = true;
+        }
+
+        else{
+            // Maximum speed
+            double speed = abs(joint_velocities.data[i]);
+            if (speed > max_joint_speeds[i]) {
+                controllers[i]->saturated = true;
+                RCLCPP_WARN(this->get_logger(), "Joint %s has reached maximum velocity", joints.name[i].c_str());
+                velocity_multiplier = max_joint_speeds[i] / speed;
+            }
+
+            // Not saturated
+            else {
+                controllers[i]->saturated = false;
+            }
+        }
+    }
+
+    // If saturated, modify joint velocities
+    if (joint_limited) {
+        KDL::SetToZero(joint_velocities);
+    }
+    else if (velocity_multiplier != 1) {
+        joint_velocities.data *= velocity_multiplier;
+    }
+
+    // Retuen the joint velocities
+    return joint_velocities;
 }
 
 
@@ -234,10 +334,16 @@ inline void ArmControl::update_joint_velocities()
 void ArmControl::publish_joint_velocities()
 {
     // Calculate the inverse kinematics and update the commanded joint velocities
-    update_joint_velocities();
+    rclcpp::Time current_time = this->now();
+    double timestep = (current_time - prev_time).seconds();
+    KDL::JntArray joint_velocities = get_joint_velocities(timestep);
+    prev_time = current_time;
+
+    // Fill the output message
+    joints.velocity = std::vector<double> (joint_velocities.data.data(), joint_velocities.data.data() + joint_velocities.data.size());
 
     // Update the header
-    joints.header.stamp = this->now();
+    joints.header.stamp = current_time;
     // Publish the message
     joint_velocities_pub->publish(joints);
 }
