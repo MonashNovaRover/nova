@@ -37,14 +37,20 @@ TODO:
 namespace ArmTypeTranslation
 {
 
+    /// Convert std::vector to KDL::JntArray
+    KDL::JntArray to_KDL_jnt_array(const std::vector<double>& joints);
+
     /// Convert ROS2 geometry_msgs::msg::Vector3 to KDL::Vector
     KDL::Vector to_KDL_vector(const geometry_msgs::msg::Vector3& vec3);
 
-    /// Convert std::vector to KDL::Vector
-    KDL::JntArray to_KDL_jnt_array(const std::vector<double>& joints);
-
     /// Convert ROS2 geometry_msgs::msg::Twist to KDL::Vector
     KDL::Twist to_KDL_twist(const geometry_msgs::msg::Twist& twist);
+
+    /// Convert ROS2 geometry_msgs::msg::Quaternion to KDL::Rotation
+    KDL::Rotation to_KDL_rotation(const geometry_msgs::msg::Quaternion& rot);
+
+    /// Convert ROS2 geometry_msgs::msg::Transform to KDL::Frame
+    KDL::Frame to_KDL_frame(const geometry_msgs::msg::Transform& transform);
 
     /// Convert KDL::Vector to ROS2 geometry_msgs::msg::Vector3
     geometry_msgs::msg::Vector3 to_ROS2_vector(const KDL::Vector& kvec);
