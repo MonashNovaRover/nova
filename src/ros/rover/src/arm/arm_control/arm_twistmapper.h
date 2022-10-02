@@ -14,7 +14,8 @@ TOPICS:
   - /control/input_task_velocity       [geometry_msgs/TwistStamped]      [Subscribed]
   - /control/task_velocity             [geometry_msgs/TwistStamped]      [Published]
   - /control/task_position             [geometry_msgs/TransformStamped]  [Published]
-SERVICES: None
+SERVICES:
+  - /control/arm_reset_control_pose    [std_srvs/Trigger]                [Server]
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	   control
@@ -35,6 +36,8 @@ TODO:
 #include "sensor_msgs/msg/joint_state.hpp"
 #include "geometry_msgs/msg/twist_stamped.hpp"
 #include "geometry_msgs/msg/transform_stamped.hpp"
+// Include service types
+#include "std_srvs/srv/trigger.hpp"
 
 // Include libraries
 #include "arm_model.h"
@@ -43,6 +46,7 @@ TODO:
 // Use the standard namespaces
 using namespace std::chrono_literals;
 using std::placeholders::_1;
+using std::placeholders::_2;
 
 /*
 Class which transforms the input twist to the rover coordinate frame
@@ -64,6 +68,9 @@ class ArmTwistMapper : public rclcpp::Node
     // Publishers
     rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr task_velocity_pub;
     rclcpp::Publisher<geometry_msgs::msg::TransformStamped>::SharedPtr task_position_pub;
+
+    // Services (servers)
+    rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr arm_reset_control_pose_service;
 
     // State of last-received messages
     core::msg::ArmControlScheme control_scheme;
@@ -113,6 +120,16 @@ class ArmTwistMapper : public rclcpp::Node
     ///         Calculates the rover-frame control twist from the task-space input, publishes to task_velocity
     ///         Calculates the rover-frame control pose, publishes to task_position
     void publish_task_inputs();
+
+    /// @brief  Set the control pose to the current position and reinitialise the position control
+    void reset_control_pose();
+
+    /// @brief  Callback for arm_reset_control_pose service
+    ///         Reinitialises the position control
+    void arm_reset_control_pose_callback(
+        const std_srvs::srv::Trigger::Request::SharedPtr request,
+        std_srvs::srv::Trigger::Response::SharedPtr response
+    );
     
     //------------------------------------------------------------//
     public:

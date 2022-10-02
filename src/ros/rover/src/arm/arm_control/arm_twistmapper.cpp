@@ -65,6 +65,12 @@ ArmTwistMapper::ArmTwistMapper() :
     );
 
 
+    // Create service for arm_reset_control_pose
+    arm_reset_control_pose_service = this->create_service<std_srvs::srv::Trigger>(
+        "/control/arm_reset_control_pose", std::bind(&ArmTwistMapper::arm_reset_control_pose_callback, this, _1, _2)
+    );
+
+
     // Initialise internal variables
 
     // Arm model and required solvers
@@ -76,6 +82,7 @@ ArmTwistMapper::ArmTwistMapper() :
     joints = ArmMessages::get_empty_joint_state(arm_model->joint_names);
 
     // Control variables
+    // The control pose will not be correctly initialised here. Must reset once resolver data comes in
     control_pose = KDL::Frame::Identity();
     prev_control_twist = KDL::Twist::Zero();
     prev_time = this->now();
@@ -104,6 +111,8 @@ ArmTwistMapper::ArmTwistMapper() :
     Print::print("Published Topics:");
     Print::print("/control/task_velocity            [geometry_msgs/TwistStamped]", 1);
     Print::print("/control/task_position            [geometry_msgs/TransformStamped]", 1);
+    Print::print("Services:");
+    Print::print("/control/arm_reset_control_pose   [std_srvs/Trigger]", 1);
     Print::print("", true);
 }
 
@@ -227,6 +236,28 @@ void ArmTwistMapper::publish_task_inputs()
     task_velocity_pub->publish(task_velocity);
     task_position_pub->publish(task_position);
 }
+
+
+// Set the control pose to the current position
+void ArmTwistMapper::reset_control_pose()
+{
+    KDL::JntArray joint_positions = ArmTypeTranslation::to_KDL_jnt_array(joints.position);
+    control_pose = arm_kinematics_solver->fk_pos_end_effector(joint_positions);
+    prev_control_twist = KDL::Twist::Zero();
+    prev_time = this->now();
+}
+
+
+// Service to set the control pose to the current position
+void ArmTwistMapper::arm_reset_control_pose_callback(
+    __attribute__((unused)) const std_srvs::srv::Trigger::Request::SharedPtr request,
+    std_srvs::srv::Trigger::Response::SharedPtr response
+)
+{
+    reset_control_pose();
+    response->success = true;
+}
+
 
 
 //  Main function called when the script execution begins
