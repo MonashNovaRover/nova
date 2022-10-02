@@ -30,7 +30,7 @@ ArmKinematics::ArmKinematics(const ArmModel& arm_model, const rclcpp::Logger& lo
 inline KDL::JntArray ArmKinematics::serial_joint_positions(KDL::JntArray joint_positions)
 {
     // Ensure the input is of the correct size
-    if (joint_positions.data.size() != arm_model.joint_names.size()) {
+    if (joint_positions.data.size() != (int)arm_model.joint_names.size()) {
         // Throw an error, since if this is used in FK there is no safe default output
         RCLCPP_FATAL(logger, "Must provide 6 joint positions, or 7 joint positions with SPM");
         throw std::invalid_argument("Must provide 6 joint positions, or 7 joint positions with SPM");
