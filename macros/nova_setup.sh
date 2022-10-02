@@ -239,8 +239,7 @@ source ~/.bashrc
 cd ~/nova_ws
 export CMAKE_PREFIX_PATH=""
 export AMENT_PREFIX_PATH=""
-. ~/nova_ws/install/setup.sh
-colcon build
+. ~/nova_ws/src/core/macros/build.sh
 
 # Building the GUI
 cd ~/nova_ws/src/gui/wombatx
