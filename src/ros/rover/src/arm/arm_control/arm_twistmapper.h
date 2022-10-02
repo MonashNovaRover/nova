@@ -17,10 +17,10 @@ TOPICS:
 SERVICES: None
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-PACKAGE: 	 control
+PACKAGE: 	   control
 AUTHOR(S):   Jory Braun
-CREATION:	 25/09/2022
-EDITED:		 01/10/2022
+CREATION:	   25/09/2022
+EDITED:		   02/10/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
  - 
@@ -84,7 +84,6 @@ class ArmTwistMapper : public rclcpp::Node
     const KDL::Rotation endpoint_input_transform_angular;
 
     // Control variables
-    KDL::Frame end_effector_pose;
     KDL::Frame control_pose;
     KDL::Twist prev_control_twist;
     rclcpp::Time prev_time;
@@ -107,8 +106,8 @@ class ArmTwistMapper : public rclcpp::Node
     /// @brief  Get the rover-frame twist given the current input twist and the selected control scheme
     KDL::Twist get_control_twist(const KDL::Rotation& endpoint_coord_transform);
 
-    /// @brief  Integrate the control twist to get the control pose at the current time
-    void update_control_pose(const KDL::Twist& control_twist, const KDL::Frame& endpoint_frame, rclcpp::Time current_time);
+    /// @brief  Integrate the control twist over the given timestep to get a new control pose
+    void update_control_pose(const KDL::Twist& control_twist, const KDL::Frame& endpoint_frame, double timestep);
 
     /// @brief  Callback for task_velocity publisher timer
     ///         Calculates the rover-frame control twist from the task-space input, publishes to task_velocity
