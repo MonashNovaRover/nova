@@ -6,9 +6,6 @@ Monash Nova Rover Team
 
 This class reads data from the raw joystick inputs
     and converts them to arm input messages.
-This does not interface with the CMD library, but
-    instead can be run on the base station to send
-    arm data across the network.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: arm_inputs

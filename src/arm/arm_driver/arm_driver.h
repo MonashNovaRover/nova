@@ -6,8 +6,6 @@ Monash Nova Rover Team
 
 This class reads data from the arm control script and 
     publishes data to the arm CMDs. 
-Whether to use PID or PWM is decided based on presence 
-    of encoders on joints.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: arm_driver
