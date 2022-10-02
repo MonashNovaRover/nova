@@ -48,6 +48,7 @@ TODO:
 // Include libraries
 #include "arm_model.h"
 #include "arm_kinematics.h"
+#include "pi_controller.h"
 
 // Use the standard namespaces
 using namespace std::chrono_literals;
@@ -101,6 +102,14 @@ class ArmControl : public rclcpp::Node
     ArmModel* arm_model;
     ArmKinematics* arm_kinematics_solver;
 
+    // Controllers for each joint
+    std::vector<PIController*> controllers;
+
+    // Control variables
+    const double ERROR_LIMIT_LINEAR = 0.2;  // m/s
+    const double ERROR_LIMIT_ANGULAR = 0.7;  // rad/s
+    rclcpp::Time prev_time;
+
 
     /// @brief  Callback for control scheme subscription
     ///         Updates the internal control scheme, which is used to determine how to solve IK
@@ -135,10 +144,14 @@ class ArmControl : public rclcpp::Node
     ///         Updates the arm model using the latest resolver info, publishes to arm_cord_frames
     void publish_coord_frames();
 
+    /// @brief  Get the control error, which is the twist that takes the end effector pose to the
+    ///         control pose in 1 second.
+    KDL::Twist get_control_error(const KDL::Frame& control_pose, const KDL::Frame& end_effector_pose);
+
     /// @brief  Get the joint-space velocities of all joints on the arm using inverse kinematics
-    ///         Uses the current joint positions and desired task velocity
+    ///         Uses the current joint positions and desired task velocity and position
     ///         Adds joint velocities from IK and from joint-space inputs, and implements joint limits
-    void update_joint_velocities();
+    KDL::JntArray get_joint_velocities(double timestep);
 
     /// @brief  Callback for joint_velocities publihser timer
     ///         Calculates the joint velocities from joint-space and task-space input, publishes to joint_velocities
