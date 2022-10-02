@@ -11,11 +11,6 @@ AUTHOR(S):	Jory Braun
 #include <Eigen/Core>
 
 
-KDL::Vector ArmTypeTranslation::to_KDL_vector(const geometry_msgs::msg::Vector3& vec3)
-{
-    return KDL::Vector (vec3.x, vec3.y, vec3.z); 
-}
-
 KDL::JntArray ArmTypeTranslation::to_KDL_jnt_array(const std::vector<double>& joints)
 {
     KDL::JntArray kdl_joints (joints.size());
@@ -25,9 +20,24 @@ KDL::JntArray ArmTypeTranslation::to_KDL_jnt_array(const std::vector<double>& jo
     return kdl_joints;
 }
 
+KDL::Vector ArmTypeTranslation::to_KDL_vector(const geometry_msgs::msg::Vector3& vec3)
+{
+    return KDL::Vector (vec3.x, vec3.y, vec3.z);
+}
+
 KDL::Twist ArmTypeTranslation::to_KDL_twist(const geometry_msgs::msg::Twist& twist)
 {
     return KDL::Twist(to_KDL_vector(twist.linear), to_KDL_vector(twist.angular));
+}
+
+KDL::Rotation ArmTypeTranslation::to_KDL_rotation(const geometry_msgs::msg::Quaternion& rot)
+{
+    return KDL::Rotation::Quaternion(rot.x, rot.y, rot.z, rot.w);
+}
+
+KDL::Frame ArmTypeTranslation::to_KDL_frame(const geometry_msgs::msg::Transform& transform)
+{
+    return KDL::Frame(to_KDL_rotation(transform.rotation), to_KDL_vector(transform.translation));
 }
 
 geometry_msgs::msg::Vector3 ArmTypeTranslation::to_ROS2_vector(const KDL::Vector& kvec)
