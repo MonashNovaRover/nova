@@ -20,7 +20,7 @@ ACTIONS:  None
 PACKAGE: 	control
 AUTHOR(S):  Jess Hepworth, Jory Braun
 CREATION:	03/12/2021
-EDITED:		13/09/2022
+EDITED:		02/10/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
  - 
@@ -60,11 +60,6 @@ class ArmDriver : public ArmConfigInfoClient
     // A vector of pointers to CMD instances
     std::vector<CMD*> joints;
 
-    // A vector of cmd drive modes (mode for each joint, PWM=0, PID=1)
-    std::vector<CMDCommand> CMD_drive_mode;
-
-    // A vector of CMD directions
-    std::vector<bool> CMD_direction;
 
     /// @brief      Callback function when input messages are received.
     /// @param      msg - A pointer to the input message
@@ -72,7 +67,7 @@ class ArmDriver : public ArmConfigInfoClient
     /// @brief      Deadline callback for joint velocities subscription
     ///             Resets the internal joint velocities
     void joint_velocities_deadline_callback();
-    
+
     /// @brief      Callback function when input messages are received.
     /// @param      msg - A pointer to the input message
     void endeffector_input_callback (const core::msg::EndEffectorInput::SharedPtr msg);
@@ -88,5 +83,5 @@ class ArmDriver : public ArmConfigInfoClient
 
     /// @brief      Constructor. Starts the node
     ArmDriver() : ArmConfigInfoClient("arm_driver"){}
-    
+
 };
