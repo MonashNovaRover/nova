@@ -290,7 +290,7 @@ void ArmInputs::start_node()
         "/control/arm_control_scheme", 10
     );
 
-     // Initialise arrays in internal data structures
+    // Initialise arrays in internal data structures
     joint_velocities = ArmMessages::get_empty_joint_state(arm_config_info.joint_names);
     
     // Publish the control scheme to initialise other nodes
