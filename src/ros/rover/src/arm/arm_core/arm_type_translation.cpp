@@ -14,7 +14,7 @@ AUTHOR(S):	Jory Braun
 KDL::JntArray ArmTypeTranslation::to_KDL_jnt_array(const std::vector<double>& joints)
 {
     KDL::JntArray kdl_joints (joints.size());
-    for (size_t i = 0; i < joints.size(); i++) {
+    for (std::size_t i = 0; i < joints.size(); i++) {
         kdl_joints.data[i] = joints[i];
     }
     return kdl_joints;

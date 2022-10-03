@@ -167,7 +167,7 @@ class ArmControl : public rclcpp::Node
     //------------------------------------------------------------//
     public:
 
-    /// Constructor. Initialisers the solvers and starts the node
+    /// Constructor. Starts publishers, subscribers and initialises members
     ArmControl();
     
 };

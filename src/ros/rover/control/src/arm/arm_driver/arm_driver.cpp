@@ -23,7 +23,7 @@ using std::placeholders::_1;
 void ArmDriver::joint_velocities_callback (const sensor_msgs::msg::JointState::SharedPtr msg)
 {
     for (uint16_t i = 0; i < arm_model->num_joints; i++) {
-        arm_model->drivers[i]->drive(msg->velocity[i]); 
+        arm_model->drivers[i]->drive(msg->velocity[i]);
     }
 }
 // Reset the internal velocities
