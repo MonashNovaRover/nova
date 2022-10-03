@@ -50,34 +50,6 @@ struct CMDData {
 };
 
 
-struct CMDOutputParameters {
-    // Set to true if using output parameters
-    bool using_output_parameters;
-
-    // Gearbox reduction (input speed / output speed)
-    float reduction;
-    
-    // Encoder pulses per revolution (number of rising edges on one channel per revolution)
-    int ppr;
-    
-    // CMD velocity factor
-    // Used to scale the measureed velocity from the encoders on the CMD to fill the available int16 range
-    float velocity_factor;
-    
-    // CMD clock instruction frequency (FCY), measured in Hz
-    float clock_frequency;
-
-    // Scaling factor to get CMD command from angular velocity
-    float command_scale_factor;
-
-    // Constructor for setting the data
-    CMDOutputParameters (float reduction, int ppr, float velocity_factor, float clock_frequency);
-
-    // Alternate constructor for when not using output parameters
-    CMDOutputParameters() : using_output_parameters(false) {}
-};
-
-
 // Class for storing information about the CMD
 class CMD {
 
@@ -100,8 +72,8 @@ class CMD {
     // Stop mode. Set to STOP or PID (handbrake)
     CMDCommand stop_mode;
 
-    // Output parameters
-    CMDOutputParameters output_parameters;
+    // Scaling factor to convert angular velocity (rad/s) to CMD command
+    double scaling_factor;
 
     // Was the last command a STOP? If so, do not bother repeating
     bool already_stopped;
@@ -113,6 +85,16 @@ class CMD {
     /// @brief      Send a CAN frmae with some command in the ID but no data
     /// @param      command - The command to send
     void write_frame_no_data (const CMDCommand command);
+
+    /// @brief      Convert a double to an int16
+    /// @param      value - The raw value between -1.0 and 1.0
+    /// @returns    A Q15 fractional representing the same value
+    static int16_t convert_to_int16 (const double value);
+
+    /// @brief      Convert a 2-byte array to a double
+    /// @param      bytes - The 2-byte array
+    /// @returns    A double scaled between -1 and 1
+    static double convert_from_bytes (uint8_t* bytes);
     
     //------------------------------------------------------------//
     public:
@@ -125,21 +107,19 @@ class CMD {
     /// @param      drive_mode - Default drive mode of the CMD. PWM or PID
     /// @param      direction - Direction for the CMD. Determined by hardware
     /// @param      stop_mode - Default stop mode of the CMD. STOP or PID (handbrake)
-    /// @param      output_parameters - Parameters to ensure correct angular velocity is achieved by the CMD
-    CMD (const int bus, const int id, CMDCommand drive_mode, const bool direction=0, CMDCommand stop_mode=STOP, CMDOutputParameters output_parameters=CMDOutputParameters());
+    /// @param      scaling_factor - Factor to multiply by input to convert from angular velocity (rad/s) to CMD command (unitless)
+    CMD (const int bus, const int id, CMDCommand drive_mode, const bool direction=0, CMDCommand stop_mode=STOP, double scaling_factor=1);
 
     /// @brief      Destructor is called when object is deleted
     ~CMD ();
 
-    /// @brief      Convert a double to an int16
-    /// @param      value - The raw value between -1.0 and 1.0
-    /// @returns    A Q15 fractional representing the same value
-    static int16_t convert_to_int16 (const double value);
-
-    /// @brief      Convert a 2-byte array to a double
-    /// @param      bytes - The 2-byte array
-    /// @returns    A double scaled between -1 and 1
-    static double convert_from_bytes (uint8_t* bytes);
+    /// @brief      Calculate scaling factor to get CMD command from angular velocity
+    /// @param      reduction - Gearbox reduction (input speed / output speed)
+    /// @param      ppr - Encoder pulses per revolution (number of rising edges on one channel per revolution)
+    /// @param      velocity_factor - CMD velocity factor. Used to scale the measureed velocity from the encoders on the CMD to fill the available int16 range
+    /// @param      clock_frequency - CMD clock instruction frequency (FCY), measured in Hz
+    /// @returns    The scaling factor in 1/(rad/s)
+    static double get_scaling_factor(double reduction, int ppr, double velocity_factor, double clock_frequency);
     
     /// @brief      Get the CMD ID
     ///             Each CMD responds to CAN IDs in the range ID << 4 to ID << 4 + F
@@ -164,7 +144,7 @@ class CMD {
     void reverse ();
 
     /// @brief      Send a CAN message to drive the motor at the given velocity
-    /// @param      velocity - Motor velocity. If the output parameters are set, then is
+    /// @param      velocity - Motor velocity. If the scaling factor set, then is
     ///             in rad/s. Otherwise is a fraction of the max CMD speed between -1 and 1
     void drive (float velocity);
 
