@@ -9,6 +9,7 @@
 string[] module_names
 
 # Joint Info
+uint16 num_joints
 string[] joint_names
 float32[] joint_limits_lower
 float32[] joint_limits_upper
@@ -18,4 +19,5 @@ string[] endpoint_names
 string default_endpoint_name
 
 # Segment info
+uint16 num_segments
 string[] segment_names
