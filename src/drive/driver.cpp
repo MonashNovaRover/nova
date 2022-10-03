@@ -208,10 +208,10 @@ Driver::Driver() : Node("driver")
     int encoder_ppr = 256;
     double velocity_factor = 150;
     double clock_frequency = 30e6;
-    CMDOutputParameters wheel_output_parameters = CMDOutputParameters(reduction, encoder_ppr, velocity_factor, clock_frequency);
+    double wheel_scaling_factor = CMD::get_scaling_factor(reduction, encoder_ppr, velocity_factor, clock_frequency);
     for (size_t i = 0; i < NUM_WHEELS; i++) {
         bool left = i < NUM_WHEELS / 2;
-        wheels[i] = new CMD (0, i + 1, PID, left, STOP, wheel_output_parameters);
+        wheels[i] = new CMD (0, i + 1, PID, left, STOP, wheel_scaling_factor);
     }
     
     rclcpp::QoS qos = rclcpp::QoS(1).best_effort().deadline(200ms);
