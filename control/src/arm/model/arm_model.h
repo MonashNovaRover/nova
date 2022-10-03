@@ -69,6 +69,9 @@ class ArmModel : public KDL::Tree
     // Controller coefficients. Indexed to match joint_names
     std::vector<ArmSubModule::ControlCoeffs> control_coeffs;
 
+    // Motor drivers. Indexed to match joint names
+    std::vector<CMD*> drivers;
+
     // Number of joints
     uint16_t num_joints;
 
