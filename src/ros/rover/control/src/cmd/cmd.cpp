@@ -24,6 +24,12 @@ CMDOutputParameters::CMDOutputParameters (float reduction, int ppr, float veloci
 CMD::CMD (const int bus, const int id, CMDCommand drive_mode, const bool direction, CMDCommand stop_mode, CMDOutputParameters output_parameters) :
     bus(bus), id(id), drive_mode(drive_mode), direction(direction), stop_mode(stop_mode), output_parameters(output_parameters), already_stopped(false)
 {    
+    // Set max speed
+    max_speed = 1;
+    if (output_parameters.using_output_parameters) {
+        max_speed /= output_parameters.command_scale_factor;
+    }
+
     // Set up the CAN interface with the correct bus
     scpp::SocketCanStatus status = can_socket.open(
         (bus == 0) ? "can0" : "can1"
