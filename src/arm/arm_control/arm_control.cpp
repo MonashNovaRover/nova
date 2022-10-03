@@ -101,7 +101,7 @@ ArmControl::ArmControl() : Node("arm_control")
     // Controllers for each joint
     for (uint16_t i = 0; i < arm_model->num_joints; i++) {
         ArmSubModule::ControlCoeffs coeffs = arm_model->control_coeffs[i];
-        controllers[i] = new PIController(coeffs.prop, coeffs.integral);
+        controllers.push_back(new PIController(coeffs.prop, coeffs.integral));
     }
 
     // Timestep calculation
@@ -304,10 +304,11 @@ inline KDL::JntArray ArmControl::get_joint_velocities(double timestep)
         else{
             // Maximum speed
             double speed = abs(joint_velocities.data[i]);
-            if (speed > max_joint_speeds[i]) {
+            double max_speed = arm_model->drivers[i]->max_speed;
+            if (speed > max_speed) {
                 controllers[i]->saturated = true;
                 RCLCPP_WARN(this->get_logger(), "Joint %s has reached maximum velocity", joints.name[i].c_str());
-                velocity_multiplier = max_joint_speeds[i] / speed;
+                velocity_multiplier = max_speed / speed;
             }
 
             // Not saturated
