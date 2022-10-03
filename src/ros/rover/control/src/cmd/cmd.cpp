@@ -14,21 +14,11 @@ AUTHOR(S):	Harrison Verrios, Josh Cherubino, Jory Braun
 #include <cmath>
 
 
-CMDOutputParameters::CMDOutputParameters (float reduction, int ppr, float velocity_factor, float clock_frequency) :
-    using_output_parameters(true), reduction(reduction), ppr(ppr), velocity_factor(velocity_factor), clock_frequency(clock_frequency)
-{
-    command_scale_factor = 4 * ppr * reduction * velocity_factor / (M_PI * clock_frequency);
-}
-
-
-CMD::CMD (const int bus, const int id, CMDCommand drive_mode, const bool direction, CMDCommand stop_mode, CMDOutputParameters output_parameters) :
-    bus(bus), id(id), drive_mode(drive_mode), direction(direction), stop_mode(stop_mode), output_parameters(output_parameters), already_stopped(false)
+CMD::CMD (const int bus, const int id, CMDCommand drive_mode, const bool direction, CMDCommand stop_mode, double scaling_factor) :
+    bus(bus), id(id), drive_mode(drive_mode), direction(direction), stop_mode(stop_mode), scaling_factor(scaling_factor), already_stopped(false)
 {    
     // Set max speed
-    max_speed = 1;
-    if (output_parameters.using_output_parameters) {
-        max_speed /= output_parameters.command_scale_factor;
-    }
+    max_speed = 1 / scaling_factor;
 
     // Set up the CAN interface with the correct bus
     scpp::SocketCanStatus status = can_socket.open(
@@ -53,6 +43,12 @@ CMD::~CMD ()
     // Stop the CMD, safely close the socket
     drive(0.0);
     can_socket.close();
+}
+
+
+double CMD::get_scaling_factor(double reduction, int ppr, double velocity_factor, double clock_frequency)
+{
+    return 4 * ppr * reduction * velocity_factor / (M_PI * clock_frequency);
 }
 
 
@@ -125,8 +121,8 @@ void CMD::drive (float velocity)
     }
 
     // Scale physical velocity to an equivalent CMD command, which is the fraction of the CMDs max speed
-    if (output_parameters.using_output_parameters) {
-        velocity *= output_parameters.command_scale_factor;
+    if (scaling_factor != 1) {
+        velocity *= scaling_factor;
     }
 
     // Saturate the input velocity if it is out of range
