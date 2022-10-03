@@ -99,7 +99,7 @@ ArmControl::ArmControl() : Node("arm_control")
     arm_kinematics_solver = new ArmKinematics(*arm_model, this->get_logger());
 
     // Controllers for each joint
-    for (std::size_t i = 0; i < arm_model->joint_names.size(); i++) {
+    for (uint16_t i = 0; i < arm_model->num_joints; i++) {
         ArmSubModule::ControlCoeffs coeffs = arm_model->control_coeffs[i];
         controllers[i] = new PIController(coeffs.prop, coeffs.integral);
     }
@@ -201,7 +201,7 @@ void ArmControl::publish_coord_frames()
     std::vector<KDL::Frame> kdl_frames = arm_kinematics_solver->fk_pos_all_segments(joint_positions);
 
     // Get the coord frames in the form ROS2 likes
-    for (size_t i = 0; i < coord_frames.transforms.size(); i++) {
+    for (uint16_t i = 0; i < arm_model->num_segments; i++) {
         coord_frames.transforms[i] = ArmTypeTranslation::to_ROS2_transform(kdl_frames[i]);
     }
 
@@ -274,7 +274,7 @@ inline KDL::JntArray ArmControl::get_joint_velocities(double timestep)
     // Apply controllers
     if (control_error != KDL::Twist::Zero()) {
         double* error;
-        for (std::size_t i = 0; i < controllers.size(); i++) {
+        for (uint16_t i = 0; i < arm_model->num_joints; i++) {
             error = &feedback_joint_velocities.data[i];
             *error = controllers[i]->update(*error, timestep);
         }
@@ -289,7 +289,7 @@ inline KDL::JntArray ArmControl::get_joint_velocities(double timestep)
     // Apply saturation to each joint
     bool joint_limited = false;
     double velocity_multiplier = 1;
-    for (std::size_t i = 0; i < arm_model->joint_names.size(); i++) {
+    for (uint16_t i = 0; i < arm_model->num_joints; i++) {
 
         // Joint limits
         if (control_scheme.joint_limits &&
@@ -363,14 +363,18 @@ void ArmControl::arm_config_info_callback(
     response->segment_names = arm_model->segment_names;
 
     // Store joint limits
-    std::vector<float> joint_limits_lower (arm_model->joint_limits.size());
-    std::vector<float> joint_limits_upper (arm_model->joint_limits.size());
-    for (std::size_t i = 0; i < arm_model->joint_limits.size(); i++) {
+    std::vector<float> joint_limits_lower (arm_model->num_joints);
+    std::vector<float> joint_limits_upper (arm_model->num_joints);
+    for (uint16_t i = 0; i < arm_model->num_joints; i++) {
         joint_limits_lower[i] = arm_model->joint_limits[i].lower;
         joint_limits_upper[i] = arm_model->joint_limits[i].upper;
     }
     response->joint_limits_lower = joint_limits_lower;
     response->joint_limits_upper = joint_limits_upper;
+
+    // Store number of joints and segments
+    response->num_joints = arm_model->num_joints;
+    response->num_segments = arm_model->num_segments;
 }
 
 

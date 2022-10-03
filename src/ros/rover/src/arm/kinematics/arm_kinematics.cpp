@@ -29,7 +29,7 @@ ArmKinematics::ArmKinematics(const ArmModel& arm_model, const rclcpp::Logger& lo
 inline KDL::JntArray ArmKinematics::serial_joint_positions(KDL::JntArray joint_positions)
 {
     // Ensure the input is of the correct size
-    if (joint_positions.data.size() != (int)arm_model.joint_names.size()) {
+    if (joint_positions.data.size() != (int)arm_model.num_joints) {
         // Throw an error, since if this is used in FK there is no safe default output
         RCLCPP_FATAL(logger, "Must provide 6 joint positions, or 7 joint positions with SPM");
         throw std::invalid_argument("Must provide 6 joint positions, or 7 joint positions with SPM");
@@ -90,7 +90,7 @@ std::vector<KDL::Frame> ArmKinematics::fk_pos_all_segments(KDL::JntArray joint_p
 
     // Calculate FK for all joints
     // This is inefficient in KDL. For n joints takes O(n^2) time but could be O(n)
-    for (std::size_t i = 0; i < arm_model.segment_names.size(); i++){
+    for (uint16_t i = 0; i < arm_model.num_segments; i++){
         // Calculate the FK for joint i
         frames.push_back(serial_fk_pos_single_segment(joint_positions, arm_model.segment_names[i]));
     }
