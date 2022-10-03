@@ -92,12 +92,13 @@ class CMD {
 
     // Drive mode. Set to PWM or PID
     CMDCommand drive_mode;
-    // Stop mode. Set to STOP or PID (handbrake)
-    CMDCommand stop_mode;
 
     // Store whether we need to flip the output direction
     // 0 for regular, 1 for flipped
     bool direction;
+
+    // Stop mode. Set to STOP or PID (handbrake)
+    CMDCommand stop_mode;
 
     // Output parameters
     CMDOutputParameters output_parameters;
@@ -115,6 +116,8 @@ class CMD {
     
     //------------------------------------------------------------//
     public:
+
+    double max_speed;
 
     /// @brief      Constructor for setting up a CMD interface
     /// @param      bus - The bus ID of the CAN device
