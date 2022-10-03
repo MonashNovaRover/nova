@@ -47,25 +47,34 @@ class ArmModel : public KDL::Tree
     //------------------------------------------------------------//
     public:
 
-    // List names of hardware modules connected
+    // Names of hardware modules connected
     std::vector<std::string> module_names;
 
-    // List names of all joints. Use for constructing JointState and MultiDOFJointState messages
+    // Names of all joints. Use for constructing JointState and MultiDOFJointState messages
     std::vector<std::string> joint_names;
-    // List names of all endpoints (cameras and tips of end effectors) for constructing messages
+
+    // Names of all endpoints (cameras and tips of end effectors) for constructing messages
     // Also used for IK and endpoint-frame-control
     std::vector<std::string> endpoint_names;
+
     // Add variable for the default end effcetor (set by the end effector module)
     std::string default_endpoint_name;
-    // List names of all segments. Used for calculating FK at all coordinate systems on the arm
+
+    // Names of all segments. Used for calculating FK at all coordinate systems on the arm
     std::vector<std::string> segment_names;
 
-    // List joint limits. Indexed to match joint_names
+    // Joint limits. Indexed to match joint_names
     std::vector<ArmSubModule::JointLimit> joint_limits;
 
-    // List controller coefficients. Indexed to match joint_names
+    // Controller coefficients. Indexed to match joint_names
     std::vector<ArmSubModule::ControlCoeffs> control_coeffs;
-    
+
+    // Number of joints
+    uint16_t num_joints;
+
+    // Number of segments
+    uint16_t num_segments;
+
     /// @brief  Constructor. Builds the arm with the given wrist and end effector.
     ///         Builds the arm out of submodules, with separate modules for the lower joints, wrist and end effector.
     ///         Different modules can be swapped out for another of the same type (eg: swap wrists)

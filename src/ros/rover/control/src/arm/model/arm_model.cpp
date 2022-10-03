@@ -77,4 +77,8 @@ ArmModel::ArmModel(const ArmConfig::WristType wrist_type, const ArmConfig::EndEf
     for (auto const& segment_pair : this->getSegments()){
         segment_names.push_back(segment_pair.first);
     }
+
+    // Set number of joints, number of segments
+    num_joints = joint_names.size();
+    num_segments = segment_names.size();
 }
