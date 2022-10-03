@@ -38,6 +38,12 @@ class LowerJointsModel : public ArmSubModule
     constexpr static double ELBOW_OFFSET = -0.1006;
     constexpr static double ELBOW_OUTPUT_OFFSET = 0.05103;
 
+    // Parameters for lower-joints CMDs
+    constexpr static double GEARBOX_REDUCTION = 2143.75;
+    const static int ENCODER_PPR = 512;
+    constexpr static double VELOCITY_FACTOR = 75;
+    constexpr static double CLOCK_FREQUENCY = 30e6;
+
     /// Constructor. Build the lower joints
     LowerJointsModel()
     {
@@ -57,6 +63,12 @@ class LowerJointsModel : public ArmSubModule
             {1, 1, 0},
             {1, 1, 0},
             {1, 1, 0}
+        };
+        CMDOutputParameters output_params(GEARBOX_REDUCTION, ENCODER_PPR, VELOCITY_FACTOR, CLOCK_FREQUENCY);
+        drivers = std::vector<CMD*> {
+            new CMD(1, 1, PID, 1, STOP, output_params),
+            new CMD(1, 2, PID, 1, STOP, output_params),
+            new CMD(1, 3, PID, 0, STOP, output_params)
         };
         
         // Build the lower joints

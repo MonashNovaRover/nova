@@ -50,6 +50,7 @@ class EeEquipmentServicingModel : public ArmSubModule
         // No zero angles
         // No joint limits
         // No control coefficients
+        // No drivers
 
         // Build the ES end effector
 
