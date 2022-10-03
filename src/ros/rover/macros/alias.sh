@@ -66,6 +66,7 @@ alias unity='ros2 launch core visualisation.launch.py'
 
 # Service Aliases
 alias arm_config_info='ros2 service call control/arm_config_info core/srv/ArmConfigInfo'
+alias arm_reset_control_pose='ros2 service call control/arm_reset_control_pose std_srvs/srv/Trigger'
 alias zero_resolver='~/nova_ws/src/core/macros/zero_resolver.sh'
 
 # eduroam connection
