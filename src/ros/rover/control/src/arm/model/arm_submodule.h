@@ -31,6 +31,8 @@ TODO:
 #include <vector>
 #include <string>
 
+#include "cmd/cmd.h"
+
 #include <kdl/tree.hpp>
 
 
@@ -52,6 +54,7 @@ class ArmSubModule : public KDL::Tree
         //   5. zero_angles
         //   6. joint_limits
         //   7. control_coeffs
+        //   8. drivers
         
         // Build the module segment by segment
         // For each segment, will consist of:
@@ -66,15 +69,15 @@ class ArmSubModule : public KDL::Tree
 
     // Name of the module
     std::string module_name;
-    // List names of all joints use for constructing JointState and MultiDOFJointState messages
+    // Names of all joints use for constructing JointState and MultiDOFJointState messages
     std::vector<std::string> joint_names;
-    // List names of all control points (cameras and tips of end effectors) for constructing messages
+    // Names of all control points (cameras and tips of end effectors) for constructing messages
     // Also used for IK and endpoint-frame-control
     std::vector<std::string> endpoint_names;
     // Name of the segment where any subsequent modules can attach
     std::string output_name;
 
-    // List model angles of each joint when the arm is in the resolver zeroing position.
+    // Model angles of each joint when the arm is in the resolver zeroing position.
     // The model will be initialised in this position, and all angles measured relative to it.
     std::vector<double> zero_angles;
 
@@ -85,7 +88,7 @@ class ArmSubModule : public KDL::Tree
         float lower;
         float upper;
     } JointLimit;
-    // List joint limits. Indexed to match joint_names
+    // Joint limits. Indexed to match joint_names
     std::vector<JointLimit> joint_limits;
 
     // Define a structure for storing control coefficients
@@ -95,7 +98,10 @@ class ArmSubModule : public KDL::Tree
         float integral;
         float diff;
     } ControlCoeffs;
-    // List control coefficients. Indexed to match joint_names
+    // Control coefficients. Indexed to match joint_names
     std::vector<ControlCoeffs> control_coeffs;
+
+    // Motor drivers for each joint
+    std::vector<CMD*> drivers;
 
 };

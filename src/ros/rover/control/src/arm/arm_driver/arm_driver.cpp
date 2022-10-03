@@ -22,16 +22,16 @@ using std::placeholders::_1;
 // Receives the desired commands for the CMDs and sends to CMDs
 void ArmDriver::joint_velocities_callback (const sensor_msgs::msg::JointState::SharedPtr msg)
 {
-    for (std::size_t i = 0; i < msg->name.size(); i++) {
-        joints[i]->drive(msg->velocity[i]); 
+    for (uint16_t i = 0; i < arm_model->num_joints; i++) {
+        arm_model->drivers[i]->drive(msg->velocity[i]); 
     }
 }
 // Reset the internal velocities
 void ArmDriver::joint_velocities_deadline_callback()
 {
     RCLCPP_WARN(this->get_logger(), "control/joint_velocities subscription deadline missed");
-    for (std::size_t i = 0; i < arm_config_info.joint_names.size(); i++) {
-        joints[i]->drive(0);
+    for (uint16_t i = 0; i < arm_model->num_joints; i++) {
+        arm_model->drivers[i]->drive(0);
     }
 }
 
@@ -46,10 +46,10 @@ void ArmDriver::endeffector_input_callback (const core::msg::EndEffectorInput::S
     if (ArmConfig::end_effector_type == ArmConfig::EE_EXTREME_RETRIEVAL && ArmConfig::wrist_type == ArmConfig::WRIST_CYCLOIDAL) {
         msg->end_effector_actuation *= 0.5;
     }
-    joints[6]->drive(msg->end_effector_actuation);
+    end_effector->drive(msg->end_effector_actuation);
 
     // Linear actuator
-    joints[6]->set_linear_actuator(msg->linear_actuation);
+    end_effector->set_linear_actuator(msg->linear_actuation);
 
 }
 // Reset the internal state
@@ -57,35 +57,13 @@ void ArmDriver::endeffector_input_deadline_callback()
 {
     RCLCPP_WARN(this->get_logger(), "control/endeffector_input subscription deadline missed");
     // End effector
-    joints[6]->drive(0);
+    end_effector->drive(0);
     // Linear actuator
-    joints[6]->set_linear_actuator(0);
+    end_effector->set_linear_actuator(0);
 }
 
-void ArmDriver::start_node()
-{    
-    // Create joint instances based on the arm's structure
-    // For now just hardcode for the cycloidal wrist and ES end effector
-    // Eventually make this into a std::map and idenitfy particular joints based on their name instead of their position
-    double lower_joints_reduction = 2143.75;
-    double wrist_reduction = 3002.499;
-    int encoder_ppr = 512;
-    double lower_joints_velocity_factor = 75;
-    double wrist_velocity_factor = 50;
-    double clock_frequency = 30e6;
-    CMDOutputParameters lower_joints_output_parameters(lower_joints_reduction, encoder_ppr, lower_joints_velocity_factor, clock_frequency);
-    CMDOutputParameters wrist_output_parameters(wrist_reduction, encoder_ppr, wrist_velocity_factor, clock_frequency);
-
-    joints = std::vector<CMD*> {
-        new CMD (1, 1, PID, 1, STOP, lower_joints_output_parameters),  // J1
-        new CMD (1, 2, PID, 1, STOP, lower_joints_output_parameters),  // J2
-        new CMD (1, 3, PID, 0, STOP, lower_joints_output_parameters),  // J3
-        new CMD (1, 4, PID, 0, STOP, wrist_output_parameters),  // J4
-        new CMD (1, 5, PID, 0, STOP, wrist_output_parameters),  // J5
-        new CMD (1, 6, PID, 0, STOP, wrist_output_parameters),  // J6
-        new CMD (1, 7, PWM)  // End effector
-    };
-
+ArmDriver::ArmDriver() : Node("arm_driver")
+{
     // Creates the input subscription for the desired CMD commands (first 6 joints)
     rclcpp::SubscriptionOptionsWithAllocator<std::allocator<void>> joint_velocities_options;
     joint_velocities_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void{
@@ -109,6 +87,15 @@ void ArmDriver::start_node()
         std::bind(&ArmDriver::endeffector_input_callback, this, _1),
         endeffector_input_options
     );
+
+
+    // Initialise internal variabels
+
+    // Arm model
+    arm_model = new ArmModel(ArmConfig::wrist_type, ArmConfig::end_effector_type);
+    // End effector
+    end_effector = new CMD(1, 7, PWM);
+
     
     // Output set-up messages
     Print::title("ARM DRIVER");

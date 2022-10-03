@@ -41,7 +41,7 @@ if(Eigen3_FOUND AND Orocos_kdl_FOUND)
 
   # Arm Model
   add_library(arm_model model/arm_model.cpp)
-  target_link_libraries(arm_model orocos-kdl)
+  target_link_libraries(arm_model orocos-kdl cmd)
   target_include_directories(arm_model INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/model)
 
   # Arm Kinematics
@@ -82,7 +82,7 @@ if(Eigen3_FOUND AND Orocos_kdl_FOUND)
 
   # Arm Driver script
   add_executable(arm_driver arm_driver/arm_driver.cpp)
-  target_link_libraries(arm_driver arm_messages arm_config_info_client cmd print)
+  target_link_libraries(arm_driver arm_messages arm_config_info_client arm_model print)
   target_include_directories(arm_inputs INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/arm_driver)
   ament_target_dependencies(arm_driver rclcpp core sensor_msgs)
 
