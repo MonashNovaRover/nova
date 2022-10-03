@@ -36,7 +36,13 @@ class WristCycloidalModel : public ArmSubModule
     constexpr static double J4_OFFSET = 0.09952;
     constexpr static double J5_OFFSET = 0.1041;
     constexpr static double J6_OFFSET = 0.1079;
-    
+
+    // Parameters for the cycloidal wrist CMDs
+    constexpr static double GEARBOX_REDUCTION = 3002.499;
+    const static int ENCODER_PPR = 512;
+    constexpr static double VELOCITY_FACTOR = 50;
+    constexpr static double CLOCK_FREQUENCY = 30e6;
+
     /// Constructor. Build the cycloidal wrist
     WristCycloidalModel()
     {
@@ -56,6 +62,12 @@ class WristCycloidalModel : public ArmSubModule
             {1, 1, 0},
             {1, 1, 0},
             {1, 1, 0}
+        };
+        CMDOutputParameters output_params(GEARBOX_REDUCTION, ENCODER_PPR, VELOCITY_FACTOR, CLOCK_FREQUENCY);
+        drivers = std::vector<CMD*> {
+            new CMD(1, 4, PID, 0, STOP, output_params),
+            new CMD(1, 5, PID, 0, STOP, output_params),
+            new CMD(1, 6, PID, 0, STOP, output_params)
         };
 
         // Build the cycloidal wrist

@@ -32,8 +32,7 @@ TODO:
 #include "sensor_msgs/msg/joint_state.hpp"
 
 // Include libraries
-#include "arm_config_info_client.h"
-#include "cmd/cmd.h"
+#include "arm_model.h"
 
 // Use the standard namespaces
 using namespace std::chrono_literals;
@@ -41,10 +40,9 @@ using std::placeholders::_1;
 
 
 /* 
-Class which receives the commands for the CMDS and interfaces 
-with the joint class to control the CMDs  
+Class which receives the commands for the CMDs and drives the joints
 */
-class ArmDriver : public ArmConfigInfoClient
+class ArmDriver : public rclcpp::Node
 {
     //------------------------------------------------------------//
     private:
@@ -55,9 +53,10 @@ class ArmDriver : public ArmConfigInfoClient
     // Stores the subscriber to the desired actuator commands
     rclcpp::Subscription<core::msg::EndEffectorInput>::SharedPtr endeffector_input_subscription;
 
-    // A vector of pointers to CMD instances
-    std::vector<CMD*> joints;
-
+    // Arm model. Includes motor drivers for all joints
+    ArmModel* arm_model;
+    // End effector
+    CMD* end_effector;
 
     /// @brief      Callback function when input messages are received.
     /// @param      msg - A pointer to the input message
@@ -73,13 +72,10 @@ class ArmDriver : public ArmConfigInfoClient
     ///             Resets the internal state
     void endeffector_input_deadline_callback();
 
-    /// @brief      Application setup function. Starts publishers, subscribers and initialises members
-    void start_node() override;
-
     //------------------------------------------------------------//
     public:
 
-    /// @brief      Constructor. Starts the node
-    ArmDriver() : ArmConfigInfoClient("arm_driver"){}
+    /// @brief      Constructor. Starts publishers, subscribers and initialises members
+    ArmDriver();
 
 };

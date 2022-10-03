@@ -50,6 +50,7 @@ class EeExtremeRetrievalModel : public ArmSubModule
         // No zero angles
         // No joint limits
         // No control coefficients
+        // No drivers
 
         // Build the ER end effector
 
