@@ -120,6 +120,13 @@ ArmTwistMapper::ArmTwistMapper() :
 // Update the internal control scheme
 void ArmTwistMapper::control_scheme_callback(const core::msg::ArmControlScheme::SharedPtr msg)
 {
+    // If rising edge on position control, reset current position and/or orientation
+    if (msg->position_control_linear && !control_scheme.position_control_linear) {
+        reset_control_position();
+    }
+    if (msg->position_control_angular && !control_scheme.position_control_angular) {
+        reset_control_orientation();
+    }
     control_scheme = *msg;
 }
 
@@ -182,7 +189,7 @@ inline KDL::Twist ArmTwistMapper::get_control_twist(const KDL::Rotation& endpoin
 
 
 // Integrate the control position up to the current time
-inline void ArmTwistMapper::update_control_pose(const KDL::Twist& control_twist, const KDL::Frame& endpoint_frame, double timestep)
+inline void ArmTwistMapper::update_control_pose(const KDL::Twist& control_twist, double timestep)
 {
     KDL::Twist pose_change;
     if (control_scheme.position_control_linear || control_scheme.position_control_angular) {
@@ -192,22 +199,16 @@ inline void ArmTwistMapper::update_control_pose(const KDL::Twist& control_twist,
     // Calculate new control position
     if (control_scheme.position_control_linear) {
         control_pose.p += pose_change.vel;
-    }
-    else {
-        control_pose.p = endpoint_frame.p;
+        prev_control_twist.vel = control_twist.vel;
     }
 
     // Calculate new control orientation
     if (control_scheme.position_control_angular) {
         double angle = pose_change.rot.Norm();
         control_pose.M = KDL::Rotation::Rot(pose_change.rot, angle) * control_pose.M;
-    }
-    else {
-        control_pose.M = endpoint_frame.M;
+        prev_control_twist.rot = control_twist.rot;
     }
 
-    // Update previous state
-    prev_control_twist = control_twist;
 }
 
 
@@ -222,7 +223,7 @@ void ArmTwistMapper::publish_task_inputs()
     // Integrate to get the control pose
     rclcpp::Time current_time = this->now();
     double timestep = (current_time - prev_time).seconds();
-    update_control_pose(twist, endpoint_frame_transform, timestep);
+    update_control_pose(twist, timestep);
     prev_time = current_time;
 
     // Fill the output messages
@@ -239,12 +240,20 @@ void ArmTwistMapper::publish_task_inputs()
 
 
 // Set the control pose to the current position
-void ArmTwistMapper::reset_control_pose()
+void ArmTwistMapper::reset_control_position()
 {
     KDL::JntArray joint_positions = ArmTypeTranslation::to_KDL_jnt_array(joints.position);
-    control_pose = arm_kinematics_solver->fk_pos_end_effector(joint_positions);
-    prev_control_twist = KDL::Twist::Zero();
-    prev_time = this->now();
+    control_pose.p = arm_kinematics_solver->fk_pos_end_effector(joint_positions).p;
+    prev_control_twist.vel = KDL::Vector::Zero();
+}
+
+
+// Set the control pose to the current orientation
+void ArmTwistMapper::reset_control_orientation()
+{
+    KDL::JntArray joint_positions = ArmTypeTranslation::to_KDL_jnt_array(joints.position);
+    control_pose.M = arm_kinematics_solver->fk_pos_end_effector(joint_positions).M;
+    prev_control_twist.rot = KDL::Vector::Zero();
 }
 
 
@@ -254,7 +263,8 @@ void ArmTwistMapper::arm_reset_control_pose_callback(
     std_srvs::srv::Trigger::Response::SharedPtr response
 )
 {
-    reset_control_pose();
+    reset_control_position();
+    reset_control_orientation();
     response->success = true;
 }
 
