@@ -152,7 +152,7 @@ void ArmTwistMapper::input_task_velocity_deadline_callback()
 
 
 // Map the input twist to the correct coordinate frame
-inline KDL::Twist ArmTwistMapper::get_control_twist(const KDL::Rotation& endpoint_coord_transform)
+inline KDL::Twist ArmTwistMapper::get_control_twist()
 {
     // Unpack the ROS2 twist into KDL::Vectors
     KDL::Twist twist = ArmTypeTranslation::to_KDL_twist(input_task_velocity.twist);
@@ -161,6 +161,9 @@ inline KDL::Twist ArmTwistMapper::get_control_twist(const KDL::Rotation& endpoin
 
     // Endpoint frame control
     if (control_scheme.endpoint_frame_linear || control_scheme.endpoint_frame_angular){
+        // Update the current end-effector orientation in the rover frame
+        KDL::JntArray joint_positions = ArmTypeTranslation::to_KDL_jnt_array(joints.position);
+        KDL::Rotation endpoint_coord_transform = arm_kinematics_solver->fk_pos_end_effector(joint_positions).M;
         // Transform from end effector coordinates to base frame coordinates
         // Inlcude input transforms to convert from joystick directions to intuitive end-effector frame coordinates
         if (control_scheme.endpoint_frame_linear) {
@@ -214,12 +217,8 @@ inline void ArmTwistMapper::update_control_pose(const KDL::Twist& control_twist,
 
 void ArmTwistMapper::publish_task_inputs()
 {
-    // Update the current end-effector pose in the rover frame
-    KDL::JntArray joint_positions = ArmTypeTranslation::to_KDL_jnt_array(joints.position);
-    KDL::Frame endpoint_frame_transform = arm_kinematics_solver->fk_pos_end_effector(joint_positions);
-
     // Get the control twist in the rover frame, depending on the control scheme
-    KDL::Twist twist = get_control_twist(endpoint_frame_transform.M);
+    KDL::Twist twist = get_control_twist();
     // Integrate to get the control pose
     rclcpp::Time current_time = this->now();
     double timestep = (current_time - prev_time).seconds();
