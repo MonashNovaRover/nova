@@ -40,6 +40,11 @@ KDL::Frame ArmTypeTranslation::to_KDL_frame(const geometry_msgs::msg::Transform&
     return KDL::Frame(to_KDL_rotation(transform.rotation), to_KDL_vector(transform.translation));
 }
 
+std::vector<double> ArmTypeTranslation::to_std_vector(const KDL::JntArray& joints)
+{
+    return std::vector<double> (joints.data.data(), joints.data.data() + joints.data.size());
+}
+
 geometry_msgs::msg::Vector3 ArmTypeTranslation::to_ROS2_vector(const KDL::Vector& kvec)
 {
     geometry_msgs::msg::Vector3 vec3;
