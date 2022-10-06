@@ -39,20 +39,20 @@ class ArmKinematics
 
     // Arm model and solvers
     ArmModel arm_model;
-    KDL::TreeFkSolverPos_recursive serial_fk_solver;
-    KDL::TreeIkSolverVel_wdls serial_ik_solver;
+    KDL::TreeFkSolverPos_recursive fk_solver_6dof;
+    KDL::TreeIkSolverVel_wdls ik_solver_6dof;
     SpmKinematics spm_solver;
 
     // Error logger
     rclcpp::Logger logger;
 
 
-    /// @brief  Get the joint-space positions of the serial model of the arm
+    /// @brief  Get the joint-space positions of the 6-DOF serial model of the arm
     ///         Return as a JntArray for use with KDL kinematics solvers
-    KDL::JntArray serial_joint_positions(KDL::JntArray joint_positions);
+    KDL::JntArray joint_positions_6dof(KDL::JntArray joint_positions);
 
-    /// @brief  Calculate the FK for a single segment using the serial model of the arm
-    KDL::Frame serial_fk_pos_single_segment(KDL::JntArray serial_joint_positions, std::string segment_name);
+    /// @brief  Calculate the FK for a single segment using the 6-DOF serial model of the arm
+    KDL::Frame fk_pos_single_segment_6dof(KDL::JntArray joint_positions_6dof, std::string segment_name);
 
 
     //------------------------------------------------------------//
@@ -67,11 +67,11 @@ class ArmKinematics
     /// @brief  Get the task-space positions of all coordinate frames on the arm using forward kinematics
     std::vector<KDL::Frame> fk_pos_all_segments(KDL::JntArray joint_positions);
 
-    /// @brief  Calculate the IK for the end effector,using a serial joint model
-    KDL::JntArray serial_ik_vel_end_effector(KDL::JntArray serial_joint_positions, KDL::Twist twist);
+    /// @brief  Calculate the IK for the end effector,using a 6-DOF serial joint model
+    KDL::JntArray ik_vel_end_effector_6dof(KDL::JntArray joint_positions_6dof, KDL::Twist twist);
 
     /// @brief  Get the joint velocities for the joints on the arm
-    KDL::JntArray serial_to_actual_joint_vel_transform(KDL::JntArray joint_positions, KDL::JntArray joint_velocities, bool use_spm_roll=false);
+    KDL::JntArray joint_vel_transform_6dof_to_actual(KDL::JntArray joint_positions, KDL::JntArray joint_velocities, bool use_spm_roll=false);
 
     /// @brief  Get the joint-space velocities of all joints on the arm using inverse kinematics
     ///         Uses the current joint positions and desired task velocity, accoutns for SPM
