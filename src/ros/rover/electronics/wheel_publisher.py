@@ -44,14 +44,14 @@ from rclpy.qos import qos_profile_sensor_data as qos
 WHEEL_IDS = [0x410, 0x420, 0x430, 0x440, 0x450, 0x460]
 
 # Mathematical PI
-PI = 3.141593
+PI = 3.1415926535897932384
 
 '''
 The following are the adjustable parameters that can
 be configured for the wheels.
 '''
 
-NUM_WHEELS = 1
+NUM_WHEELS = 6
 
 # The value that 1.0 velocity maps to in RPM
 # Calculated using a Tacometer
@@ -62,8 +62,6 @@ WHEEL_RADIUS = 0.122
 
 # The rate (times per second) to publish the wheels at
 PUBLISH_RATE = 20
-
-
 
 
 # Main Wheel Publisher class
@@ -88,7 +86,11 @@ class WheelPublisher (Node):
         self.t = time.time()
     
         # Create the CAN network
-        self.cans = [CANReceiver(channel="can0", filter_ids=[WHEEL_IDS[i]], receive_timeout=1, receive_fmt="<hhh", bitrate=200000) for i in range(NUM_WHEELS)]
+        self.cans = [CANReceiver(channel="can0", filter_ids=[WHEEL_IDS[i]], # can channel and wheel ids
+                                 receive_timeout=1, # 
+                                 receive_fmt="<hhh", 
+                                 bitrate=200000) 
+                     for i in range(NUM_WHEELS)]
         self.rpms = [0 for _ in range(NUM_WHEELS)]
         self.powers = [0 for _ in range(NUM_WHEELS)]
         self.currents = [0 for _ in range(NUM_WHEELS)]
