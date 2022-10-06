@@ -47,10 +47,6 @@ class ArmKinematics
     rclcpp::Logger logger;
 
 
-    /// @brief  Get the joint-space positions of the 6-DOF serial model of the arm
-    ///         Return as a JntArray for use with KDL kinematics solvers
-    KDL::JntArray joint_positions_6dof(KDL::JntArray joint_positions);
-
     /// @brief  Calculate the FK for a single segment using the 6-DOF serial model of the arm
     KDL::Frame fk_pos_single_segment_6dof(KDL::JntArray joint_positions_6dof, std::string segment_name);
 
@@ -60,6 +56,13 @@ class ArmKinematics
 
     /// Constructor. Initialisers the solvers and starts the node
     ArmKinematics(const ArmModel& arm_model, const rclcpp::Logger& logger);
+
+    /// @brief  Get the joint-space positions of the 6-DOF serial model of the arm
+    ///         Return as a JntArray for use with KDL kinematics solvers
+    KDL::JntArray joint_positions_6dof(KDL::JntArray joint_positions);
+
+    /// @brief  Calculate the FK for the end effector using the 6-DOF serial model of the arm
+    KDL::Frame fk_pos_end_effector_6dof(KDL::JntArray joint_positions_6dof);
 
     /// @brief  Calculate the FK for the end effector
     KDL::Frame fk_pos_end_effector(KDL::JntArray joint_positions);
