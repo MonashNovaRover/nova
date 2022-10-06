@@ -114,15 +114,18 @@ class ArmTwistMapper : public rclcpp::Node
     KDL::Twist get_control_twist(const KDL::Rotation& endpoint_coord_transform);
 
     /// @brief  Integrate the control twist over the given timestep to get a new control pose
-    void update_control_pose(const KDL::Twist& control_twist, const KDL::Frame& endpoint_frame, double timestep);
+    void update_control_pose(const KDL::Twist& control_twist, double timestep);
 
     /// @brief  Callback for task_velocity publisher timer
     ///         Calculates the rover-frame control twist from the task-space input, publishes to task_velocity
     ///         Calculates the rover-frame control pose, publishes to task_position
     void publish_task_inputs();
 
-    /// @brief  Set the control pose to the current position and reinitialise the position control
-    void reset_control_pose();
+    /// @brief  Set the control pose to the current position
+    void reset_control_position();
+
+    /// @brief  Set the control pose to the current orientation
+    void reset_control_orientation();
 
     /// @brief  Callback for arm_reset_control_pose service
     ///         Reinitialises the position control
