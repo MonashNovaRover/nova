@@ -16,8 +16,8 @@ AUTHOR(S):	Jory Braun
 
 ArmKinematics::ArmKinematics(const ArmModel& arm_model, const rclcpp::Logger& logger) :
     arm_model(arm_model),
-    serial_fk_solver(KDL::TreeFkSolverPos_recursive(arm_model)),
-    serial_ik_solver(KDL::TreeIkSolverVel_wdls(arm_model, std::vector<std::string> {arm_model.default_endpoint_name})),
+    fk_solver_6dof(KDL::TreeFkSolverPos_recursive(arm_model)),
+    ik_solver_6dof(KDL::TreeIkSolverVel_wdls(arm_model, std::vector<std::string> {arm_model.default_endpoint_name})),
     spm_solver(SpmKinematics()),
     logger(logger)
 {
@@ -25,8 +25,8 @@ ArmKinematics::ArmKinematics(const ArmModel& arm_model, const rclcpp::Logger& lo
 }
 
 
-// Get the joint-space positions of the serial model of the arm
-inline KDL::JntArray ArmKinematics::serial_joint_positions(KDL::JntArray joint_positions)
+// Get the joint-space positions of the 6-DOF serial model of the arm
+inline KDL::JntArray ArmKinematics::joint_positions_6dof(KDL::JntArray joint_positions)
 {
     // Ensure the input is of the correct size
     if (joint_positions.data.size() != (int)arm_model.num_joints) {
@@ -54,13 +54,13 @@ inline KDL::JntArray ArmKinematics::serial_joint_positions(KDL::JntArray joint_p
 }
 
 // Calculate the FK for a given segment
-inline KDL::Frame ArmKinematics::serial_fk_pos_single_segment(KDL::JntArray serial_joint_positions, std::string segment_name)
+inline KDL::Frame ArmKinematics::fk_pos_single_segment_6dof(KDL::JntArray joint_positions_6dof, std::string segment_name)
 {
     // Prepare the output data structure
     KDL::Frame frame = KDL::Frame::Identity();
     
     // Calculate the FK for the given segment
-    int exit_value = serial_fk_solver.JntToCart(serial_joint_positions, frame, segment_name);
+    int exit_value = fk_solver_6dof.JntToCart(joint_positions_6dof, frame, segment_name);
     if (exit_value == -1){
         RCLCPP_WARN(logger, "Number of positions provided does not match number of joints in tree");
     }
@@ -75,15 +75,15 @@ inline KDL::Frame ArmKinematics::serial_fk_pos_single_segment(KDL::JntArray seri
 // Calculate the FK for the end effector
 KDL::Frame ArmKinematics::fk_pos_end_effector(KDL::JntArray joint_positions)
 {
-    return serial_fk_pos_single_segment(serial_joint_positions(joint_positions), arm_model.default_endpoint_name);
+    return fk_pos_single_segment_6dof(joint_positions_6dof(joint_positions), arm_model.default_endpoint_name);
 }
 
 
 // Get the task-space positions of all coordinate frames on the arm using forward kinematics
 std::vector<KDL::Frame> ArmKinematics::fk_pos_all_segments(KDL::JntArray joint_positions)
 {
-    // Get the input positions for the serial model of the arm, accounting for the SPM wrist
-    joint_positions = serial_joint_positions(joint_positions);
+    // Get the input positions for the 6-DOF serial model of the arm, accounting for the SPM wrist
+    joint_positions = joint_positions_6dof(joint_positions);
 
     // Prepare the output data structure
     std::vector<KDL::Frame> frames;
@@ -92,7 +92,7 @@ std::vector<KDL::Frame> ArmKinematics::fk_pos_all_segments(KDL::JntArray joint_p
     // This is inefficient in KDL. For n joints takes O(n^2) time but could be O(n)
     for (uint16_t i = 0; i < arm_model.num_segments; i++){
         // Calculate the FK for joint i
-        frames.push_back(serial_fk_pos_single_segment(joint_positions, arm_model.segment_names[i]));
+        frames.push_back(fk_pos_single_segment_6dof(joint_positions, arm_model.segment_names[i]));
     }
 
     return frames;
@@ -100,7 +100,7 @@ std::vector<KDL::Frame> ArmKinematics::fk_pos_all_segments(KDL::JntArray joint_p
 
 
 // Solve the velocity inverse kineamtics for the end effector
-inline KDL::JntArray ArmKinematics::serial_ik_vel_end_effector(KDL::JntArray serial_joint_positions, KDL::Twist twist)
+inline KDL::JntArray ArmKinematics::ik_vel_end_effector_6dof(KDL::JntArray joint_positions_6dof, KDL::Twist twist)
 {
     // Prepare the output data structure
     KDL::JntArray joint_velocities (6);
@@ -110,7 +110,7 @@ inline KDL::JntArray ArmKinematics::serial_ik_vel_end_effector(KDL::JntArray ser
         KDL::Twists twists = { {arm_model.default_endpoint_name, twist} };
 
         // Calculate the inverse kinematics
-        double exit_value = serial_ik_solver.CartToJnt(serial_joint_positions, twists, joint_velocities);
+        double exit_value = ik_solver_6dof.CartToJnt(joint_positions_6dof, twists, joint_velocities);
         if (exit_value == -1){
             RCLCPP_WARN(logger, "Must provide 6 positions and have 6 joints in tree");
         }
@@ -126,13 +126,13 @@ inline KDL::JntArray ArmKinematics::serial_ik_vel_end_effector(KDL::JntArray ser
 }
 
 
-inline KDL::JntArray ArmKinematics::serial_to_actual_joint_vel_transform(KDL::JntArray joint_positions, KDL::JntArray joint_velocities, bool use_spm_roll)
+inline KDL::JntArray ArmKinematics::joint_vel_transform_6dof_to_actual(KDL::JntArray joint_positions, KDL::JntArray joint_velocities, bool use_spm_roll)
 {
     if (ArmConfig::wrist_type == ArmConfig::WRIST_SPM) {
         // Add another joint to the array
         joint_velocities.data << 0;
 
-        // If using end rotation instead of SPM roll, move the serial roll to the index for end rotation
+        // If using end rotation instead of SPM roll, move the 6-DOF roll to the index for end rotation
         // Then no roll will be passed to the SPM IK
         if (!use_spm_roll){
             joint_velocities.data[6] = joint_velocities.data[5];
@@ -160,11 +160,11 @@ inline KDL::JntArray ArmKinematics::serial_to_actual_joint_vel_transform(KDL::Jn
 KDL::JntArray ArmKinematics::ik_vel_end_effector(KDL::JntArray joint_positions, KDL::Twist twist, bool use_spm_roll)
 {
     // Calculate IK for the end effector
-    // Gets the joint velocities for the serial model of the arm
-    KDL::JntArray joint_velocities = serial_ik_vel_end_effector(serial_joint_positions(joint_positions), twist);
+    // Gets the joint velocities for the 6-DOF serial model of the arm
+    KDL::JntArray joint_velocities = ik_vel_end_effector_6dof(joint_positions_6dof(joint_positions), twist);
 
     // If using the SPM wrist, replace serial pitch, yaw and roll with SPM joint velocities
-    joint_velocities = serial_to_actual_joint_vel_transform(joint_positions, joint_velocities, use_spm_roll);
+    joint_velocities = joint_vel_transform_6dof_to_actual(joint_positions, joint_velocities, use_spm_roll);
 
     return joint_velocities;
 }
