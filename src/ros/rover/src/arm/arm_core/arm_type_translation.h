@@ -52,6 +52,9 @@ namespace ArmTypeTranslation
     /// Convert ROS2 geometry_msgs::msg::Transform to KDL::Frame
     KDL::Frame to_KDL_frame(const geometry_msgs::msg::Transform& transform);
 
+    /// Convert KDL::JntArray to std::vector<double>
+    std::vector<double> to_std_vector(const KDL::JntArray& joints);
+
     /// Convert KDL::Vector to ROS2 geometry_msgs::msg::Vector3
     geometry_msgs::msg::Vector3 to_ROS2_vector(const KDL::Vector& kvec);
 
