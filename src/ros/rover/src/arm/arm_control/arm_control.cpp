@@ -34,39 +34,39 @@ ArmControl::ArmControl() : Node("arm_control")
     );
 
     // Create subscription to input joint velocities
-    rclcpp::SubscriptionOptionsWithAllocator<std::allocator<void>> input_joint_velocities_options;
-    input_joint_velocities_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void{
-        this->input_joint_velocities_deadline_callback();
+    rclcpp::SubscriptionOptionsWithAllocator<std::allocator<void>> control_joints_options;
+    control_joints_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void{
+        this->control_joints_deadline_callback();
     };
-    input_joint_velocities_sub = this->create_subscription<sensor_msgs::msg::JointState>(
-        "/control/input_joint_velocities",
+    control_joints_sub = this->create_subscription<sensor_msgs::msg::JointState>(
+        "/control/control_joints",
         rclcpp::QoS(1).best_effort().deadline(200ms),
-        std::bind(&ArmControl::input_joint_velocities_callback, this, _1),
-        input_joint_velocities_options
+        std::bind(&ArmControl::control_joints_callback, this, _1),
+        control_joints_options
     );
     
-    // Create subscription to task_velocity
-    rclcpp::SubscriptionOptionsWithAllocator<std::allocator<void>> task_velocity_options;
-    task_velocity_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void{
-        this->task_velocity_deadline_callback();
+    // Create subscription to twist
+    rclcpp::SubscriptionOptionsWithAllocator<std::allocator<void>> control_twist_options;
+    control_twist_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void{
+        this->control_twist_deadline_callback();
     };
-    task_velocity_sub = this->create_subscription<geometry_msgs::msg::TwistStamped>(
-        "/control/task_velocity",
+    control_twist_sub = this->create_subscription<geometry_msgs::msg::TwistStamped>(
+        "/control/control_twist",
         rclcpp::QoS(1).best_effort().deadline(200ms),
-        std::bind(&ArmControl::task_velocity_callback, this, _1),
-        task_velocity_options
+        std::bind(&ArmControl::control_twist_callback, this, _1),
+        control_twist_options
     );
 
-    // Create subscription to task_position
-    rclcpp::SubscriptionOptionsWithAllocator<std::allocator<void>> task_position_options;
-    task_position_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void{
-        this->task_position_deadline_callback();
+    // Create subscription to control_pose
+    rclcpp::SubscriptionOptionsWithAllocator<std::allocator<void>> control_pose_options;
+    control_pose_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void{
+        this->control_pose_deadline_callback();
     };
-    task_position_sub = this->create_subscription<geometry_msgs::msg::TransformStamped>(
-        "/control/task_position",
+    control_pose_sub = this->create_subscription<geometry_msgs::msg::TransformStamped>(
+        "/control/control_pose",
         rclcpp::QoS(1).best_effort().deadline(200ms),
-        std::bind(&ArmControl::task_position_callback, this, _1),
-        task_position_options
+        std::bind(&ArmControl::control_pose_callback, this, _1),
+        control_pose_options
     );
 
     // Create timer and publisher for arm_coord_frames
@@ -110,7 +110,7 @@ ArmControl::ArmControl() : Node("arm_control")
     // Arrays in internal data structures
     // Use data from the arm model
     joints = ArmMessages::get_empty_joint_state(arm_model->joint_names);
-    joint_space_input = ArmMessages::get_empty_joint_state(arm_model->joint_names);
+    control_joints = ArmMessages::get_empty_joint_state(arm_model->JOINT_NAMES_6DOF);
     coord_frames = ArmMessages::get_empty_multi_dof_joint_state(arm_model->segment_names);
 
 
@@ -131,16 +131,16 @@ ArmControl::ArmControl() : Node("arm_control")
     // Output set-up messages
     Print::title("ARM CONTROL");
     Print::print("Subscribed Topics:");
-    Print::print("/control/arm_control_scheme       [core/ArmControlScheme]", 1);
-    Print::print("/electronics/resolvers            [sensor_msgs/JointState]", 1);
-    Print::print("/control/input_joint_velocities   [sensor_msgs/JointState]", 1);
-    Print::print("/control/task_velocity            [geometry_msgs/TwistStamped]", 1);
-    Print::print("/control/task_position            [geometry_msgs/TransformStamped]", 1);
+    Print::print("/control/arm_control_scheme           [core/ArmControlScheme]", 1);
+    Print::print("/electronics/resolvers                [sensor_msgs/JointState]", 1);
+    Print::print("/control/control_joints               [sensor_msgs/JointState]", 1);
+    Print::print("/control/control_twist                [geometry_msgs/TwistStamped]", 1);
+    Print::print("/control/control_pose                 [geometry_msgs/TransformStamped]", 1);
     Print::print("Published Topics:");
-    Print::print("/control/arm_coord_frames         [sensor_msgs/MultiDOFJointState]", 1);
-    Print::print("/control/joint_velocities         [sensor_msgs/JointState]", 1);
+    Print::print("/control/arm_coord_frames             [sensor_msgs/MultiDOFJointState]", 1);
+    Print::print("/control/joint_velocities             [sensor_msgs/JointState]", 1);
     Print::print("Services:");
-    Print::print("/control/arm_config_info          [core/ArmConfigInfo]", 1);
+    Print::print("/control/arm_config_info              [core/ArmConfigInfo]", 1);
     Print::print("", true);
 }
 
@@ -157,39 +157,39 @@ void ArmControl::resolver_callback(const sensor_msgs::msg::JointState::SharedPtr
 }
 
 // Update the internal joint-space joint velocities
-void ArmControl::input_joint_velocities_callback(const sensor_msgs::msg::JointState::SharedPtr msg)
+void ArmControl::control_joints_callback(const sensor_msgs::msg::JointState::SharedPtr msg)
 {
-    joint_space_input = *msg;
+    control_joints = *msg;
 }
 // Reset the internal velocities
-void ArmControl::input_joint_velocities_deadline_callback()
+void ArmControl::control_joints_deadline_callback()
 {
-    RCLCPP_WARN(this->get_logger(), "control/input_joint_velocities subscription deadline missed");
-    joint_space_input = ArmMessages::get_empty_joint_state(arm_model->joint_names);
+    RCLCPP_WARN(this->get_logger(), "control/control_joints subscription deadline missed");
+    control_joints = ArmMessages::get_empty_joint_state(arm_model->JOINT_NAMES_6DOF);
 }
 
 // Update the internal task velocity
-void ArmControl::task_velocity_callback(const geometry_msgs::msg::TwistStamped::SharedPtr msg)
+void ArmControl::control_twist_callback(const geometry_msgs::msg::TwistStamped::SharedPtr msg)
 {
-    task_velocity = *msg;
+    control_twist_msg = *msg;
 }
 // Reset the internal velocity
-void ArmControl::task_velocity_deadline_callback()
+void ArmControl::control_twist_deadline_callback()
 {
-    RCLCPP_WARN(this->get_logger(), "control/task_velocity subscription deadline missed");
-    task_velocity = geometry_msgs::msg::TwistStamped();
+    RCLCPP_WARN(this->get_logger(), "control/control_twist subscription deadline missed");
+    control_twist_msg = geometry_msgs::msg::TwistStamped();
 }
 
 // Update the internal task position
-void ArmControl::task_position_callback(const geometry_msgs::msg::TransformStamped::SharedPtr msg)
+void ArmControl::control_pose_callback(const geometry_msgs::msg::TransformStamped::SharedPtr msg)
 {
-    task_position = *msg;
+    control_pose_msg = *msg;
 }
 // Reset the internal position
-void ArmControl::task_position_deadline_callback()
+void ArmControl::control_pose_deadline_callback()
 {
-    RCLCPP_WARN(this->get_logger(), "control/task_position subscription deadline missed");
-    task_position = geometry_msgs::msg::TransformStamped();
+    RCLCPP_WARN(this->get_logger(), "control/control_pose subscription deadline missed");
+    control_pose_msg = geometry_msgs::msg::TransformStamped();
 }
 
 
@@ -212,45 +212,80 @@ void ArmControl::publish_coord_frames()
 }
 
 
-// Calculate the control error
-inline KDL::Twist ArmControl::get_control_error(const KDL::Frame& control_pose, const KDL::Frame& end_effector_pose)
+// Calculate the joint-space control error using the 6-DOF serial arm model
+inline KDL::JntArray ArmControl::get_joint_space_error(const KDL::JntArray& control_configuration, const KDL::JntArray& joints_configuration)
 {
-    KDL::Twist error;
+    // Initialise error as zero    
+    KDL::JntArray error(6);
+    
+    bool update_lower_joints = !control_scheme.ik_linear && control_scheme.position_control_linear;
+    bool update_wrist = !control_scheme.ik_angular && control_scheme.position_control_angular;
+    if (update_lower_joints || update_wrist) {
 
-    // Position error
-    if (control_scheme.position_control_linear) {
-        error.vel = control_pose.p - end_effector_pose.p;
-    }
-    else {
-        KDL::SetToZero(error.vel);
-    }
+        // Lower-joints error
+        if (update_lower_joints) {
+            for (int i = 0; i < 3; i++) {
+                error.data[i] = control_configuration.data[i] - joints_configuration.data[i];
+            }
+        }
 
-    // Orientation error
-    if (control_scheme.position_control_angular) {
-        KDL::Rotation error_transform = control_pose.M * end_effector_pose.M.Inverse();
-        error.rot = error_transform.GetRot();
-    }
-    else {
-        KDL::SetToZero(error.rot);
-    }
+        // Wrist error
+        if (update_wrist) {
+            for (int i = 3; i < 6; i++) {
+                error.data[i] = control_configuration.data[i] - joints_configuration.data[i];
+            }
+        }
 
-    // Prevent error discontinuities from causing the arm to make large movements
-    if (error.vel.Norm() > ERROR_LIMIT_LINEAR || error.rot.Norm() > ERROR_LIMIT_ANGULAR) {
-        KDL::SetToZero(error);
-        RCLCPP_WARN(this->get_logger(), "Large control error detected. Switch to velocity control or reset position control.");
+        // Prevent error discontinuities from causing the arm to make large movements
+        if (error.data.norm() > ERROR_LIMIT_JOINTS) {
+            KDL::SetToZero(error);
+            RCLCPP_WARN(this->get_logger(), "Large control error detected (joint space). Switch to velocity control or reset position control.");
+        }
     }
 
     return error;
 }
 
 
-inline KDL::JntArray ArmControl::combine_joint_velocities(const KDL::JntArray& joint_velocities_6dof, const KDL::Twist& task_velocity, const KDL::JntArray& joint_positions)
+// Calculate the task-space control error
+inline KDL::Twist ArmControl::get_task_space_error(const KDL::Frame& control_pose, const KDL::Frame& end_effector_pose)
+{
+    // Initialise error as zero    
+    KDL::Twist error = KDL::Twist::Zero();
+    
+    bool update_position = control_scheme.ik_linear && control_scheme.position_control_linear;
+    bool update_orientation = control_scheme.ik_angular && control_scheme.position_control_angular;
+    if (update_position || update_orientation) {
+
+        // Position error
+        if (update_position) {
+            error.vel = control_pose.p - end_effector_pose.p;
+        }
+
+        // Orientation error
+        if (update_orientation) {
+            KDL::Rotation error_transform = control_pose.M * end_effector_pose.M.Inverse();
+            error.rot = error_transform.GetRot();
+        }
+
+        // Prevent error discontinuities from causing the arm to make large movements
+        if (error.vel.Norm() > ERROR_LIMIT_LINEAR || error.rot.Norm() > ERROR_LIMIT_ANGULAR) {
+            KDL::SetToZero(error);
+            RCLCPP_WARN(this->get_logger(), "Large control error detected (task space). Switch to velocity control or reset position control.");
+        }
+    }
+
+    return error;
+}
+
+
+inline KDL::JntArray ArmControl::combine_joint_velocities(const KDL::JntArray& joint_velocities_6dof, const KDL::Twist& twist, const KDL::JntArray& joint_positions)
 {
     // Create the output data structure, initialise with the joint-space velocity
     KDL::JntArray combined_joint_velocities(joint_velocities_6dof);
 
     // Add the 6-DOF joint-space contribution of the task-space twist
-    combined_joint_velocities.data += arm_kinematics_solver->ik_vel_end_effector_6dof(joint_positions, task_velocity).data;
+    combined_joint_velocities.data += arm_kinematics_solver->ik_vel_end_effector_6dof(joint_positions, twist).data;
 
     // Convert to joint space
     return arm_kinematics_solver->joint_vel_transform_6dof_to_actual(joint_positions, combined_joint_velocities, control_scheme.use_spm_roll);
@@ -261,10 +296,11 @@ inline KDL::JntArray ArmControl::combine_joint_velocities(const KDL::JntArray& j
 inline KDL::JntArray ArmControl::get_joint_velocities(double timestep)
 {
     // Get the inputs to the control loop
-    KDL::JntArray control_joint_velocities = ArmTypeTranslation::to_KDL_jnt_array(joint_space_input.position);
-    KDL::Twist control_twist = ArmTypeTranslation::to_KDL_twist(task_velocity.twist);
     KDL::JntArray joint_positions = ArmTypeTranslation::to_KDL_jnt_array(joints.position);
-    KDL::Frame control_pose = ArmTypeTranslation::to_KDL_frame(task_position.transform);
+    KDL::JntArray control_joint_positions = ArmTypeTranslation::to_KDL_jnt_array(control_joints.position);
+    KDL::JntArray control_joint_velocities = ArmTypeTranslation::to_KDL_jnt_array(control_joints.velocity);
+    KDL::Twist control_twist = ArmTypeTranslation::to_KDL_twist(control_twist_msg.twist);
+    KDL::Frame control_pose = ArmTypeTranslation::to_KDL_frame(control_pose_msg.transform);
 
 
     // Calculate the feedforward velocity term
@@ -274,12 +310,18 @@ inline KDL::JntArray ArmControl::get_joint_velocities(double timestep)
     // Calculate the position loop
 
     // Get the control error, accoutning for the control scheme
+    // Joint-space
+    KDL::JntArray joint_positions_6dof = arm_kinematics_solver->joint_positions_6dof(control_joint_positions);
+    KDL::JntArray joint_space_error = get_joint_space_error(joint_positions_6dof, joint_positions);
+    // Task-space
     KDL::Frame end_effector_pose = arm_kinematics_solver->fk_pos_end_effector(joint_positions);
-    KDL::Twist control_error = get_control_error(control_pose, end_effector_pose);
-    // Convert to joint space
-    KDL::JntArray feedback_joint_velocities = arm_kinematics_solver->ik_vel_end_effector(joint_positions, control_error, control_scheme.use_spm_roll);
+    KDL::Twist task_space_error = get_task_space_error(control_pose, end_effector_pose);
+    
+    // Combine, transform to joint-space
+    KDL::JntArray feedback_joint_velocities = combine_joint_velocities(joint_space_error, task_space_error, joint_positions);
+    
     // Apply controllers
-    if (control_error != KDL::Twist::Zero()) {
+    if (feedback_joint_velocities.data.norm() != 0) {
         double* error;
         for (uint16_t i = 0; i < arm_model->num_joints; i++) {
             error = &feedback_joint_velocities.data[i];
@@ -348,7 +390,7 @@ void ArmControl::publish_joint_velocities()
     prev_time = current_time;
 
     // Fill the output message
-    joints.velocity = std::vector<double> (joint_velocities.data.data(), joint_velocities.data.data() + joint_velocities.data.size());
+    joints.velocity = ArmTypeTranslation::to_std_vector(joint_velocities);
 
     // Update the header
     joints.header.stamp = current_time;
@@ -383,6 +425,9 @@ void ArmControl::arm_config_info_callback(
     // Store number of joints and segments
     response->num_joints = arm_model->num_joints;
     response->num_segments = arm_model->num_segments;
+
+    // Store names for joints of the 6-DOF serial model
+    response->joint_names_6dof = arm_model->JOINT_NAMES_6DOF;
 }
 
 
