@@ -256,12 +256,12 @@ inline KDL::JntArray ArmControl::get_joint_velocities(double timestep)
 
     // Calculate the feedforward velocity term
 
-    // Get the control twist into the joint space of the serial model
-    KDL::JntArray feedforward_joint_velocities = arm_kinematics_solver->serial_ik_vel_end_effector(joint_positions, control_twist);
-    // Add the serial joint velocities
+    // Get the control twist into the joint space of the 6-DOF serial model
+    KDL::JntArray feedforward_joint_velocities = arm_kinematics_solver->ik_vel_end_effector_6dof(joint_positions, control_twist);
+    // Add the 6-DOF joint velocities
     feedforward_joint_velocities.data += control_joint_velocities.data;
     // Convert to joint space
-    feedforward_joint_velocities = arm_kinematics_solver->serial_to_actual_joint_vel_transform(joint_positions, feedforward_joint_velocities, control_scheme.use_spm_roll);
+    feedforward_joint_velocities = arm_kinematics_solver->joint_vel_transform_6dof_to_actual(joint_positions, feedforward_joint_velocities, control_scheme.use_spm_roll);
 
 
     // Calculate the position loop
