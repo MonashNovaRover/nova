@@ -49,6 +49,23 @@ void ArmInputs::joystick_l_callback (const core::msg::InputJoystick::SharedPtr m
         control_scheme.joint_limits = false;
         control_scheme_update = true;
     }
+    // Position control
+    if (joystick_l.btn_bottom_l3_state == 1) {
+        control_scheme.position_control_linear = true;
+        control_scheme_update = true;
+    }
+    if (joystick_l.btn_bottom_l6_state == 1) {
+        control_scheme.position_control_linear = false;
+        control_scheme_update = true;
+    }
+    if (joystick_r.btn_bottom_l3_state == 1) {
+        control_scheme.position_control_angular = true;
+        control_scheme_update = true;
+    }
+    if (joystick_r.btn_bottom_l6_state == 1) {
+        control_scheme.position_control_angular = false;
+        control_scheme_update = true;
+    }
     // Immediately publish any new control scheme data
     // Also will continue to publish when the timer expires
     if (control_scheme_update){
