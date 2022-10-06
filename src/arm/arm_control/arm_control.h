@@ -144,6 +144,9 @@ class ArmControl : public rclcpp::Node
     ///         Updates the arm model using the latest resolver info, publishes to arm_cord_frames
     void publish_coord_frames();
 
+    /// @brief  Combine a 6-DOF task velocity and 6-DOF serial joint velocities, output the corresponding actual joint velocities
+    KDL::JntArray combine_joint_velocities(const KDL::JntArray& joint_velocities_6dof, const KDL::Twist& task_velocity, const KDL::JntArray& joint_postions);
+
     /// @brief  Get the control error, which is the twist that takes the end effector pose to the
     ///         control pose in 1 second.
     KDL::Twist get_control_error(const KDL::Frame& control_pose, const KDL::Frame& end_effector_pose);
