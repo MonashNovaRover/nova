@@ -111,7 +111,7 @@ class ArmTwistMapper : public rclcpp::Node
     void input_task_velocity_deadline_callback();
 
     /// @brief  Get the rover-frame twist given the current input twist and the selected control scheme
-    KDL::Twist get_control_twist(const KDL::Rotation& endpoint_coord_transform);
+    KDL::Twist get_control_twist();
 
     /// @brief  Integrate the control twist over the given timestep to get a new control pose
     void update_control_pose(const KDL::Twist& control_twist, double timestep);
