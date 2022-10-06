@@ -244,24 +244,31 @@ inline KDL::Twist ArmControl::get_control_error(const KDL::Frame& control_pose, 
 }
 
 
+inline KDL::JntArray ArmControl::combine_joint_velocities(const KDL::JntArray& joint_velocities_6dof, const KDL::Twist& task_velocity, const KDL::JntArray& joint_positions)
+{
+    // Create the output data structure, initialise with the joint-space velocity
+    KDL::JntArray combined_joint_velocities(joint_velocities_6dof);
+
+    // Add the 6-DOF joint-space contribution of the task-space twist
+    combined_joint_velocities.data += arm_kinematics_solver->ik_vel_end_effector_6dof(joint_positions, task_velocity).data;
+
+    // Convert to joint space
+    return arm_kinematics_solver->joint_vel_transform_6dof_to_actual(joint_positions, combined_joint_velocities, control_scheme.use_spm_roll);
+}
+
+
 // Get the joint-space velocities of all joints on the arm using inverse kinematics
 inline KDL::JntArray ArmControl::get_joint_velocities(double timestep)
 {
     // Get the inputs to the control loop
-    KDL::JntArray joint_positions = ArmTypeTranslation::to_KDL_jnt_array(joints.position);
     KDL::JntArray control_joint_velocities = ArmTypeTranslation::to_KDL_jnt_array(joint_space_input.position);
     KDL::Twist control_twist = ArmTypeTranslation::to_KDL_twist(task_velocity.twist);
+    KDL::JntArray joint_positions = ArmTypeTranslation::to_KDL_jnt_array(joints.position);
     KDL::Frame control_pose = ArmTypeTranslation::to_KDL_frame(task_position.transform);
 
 
     // Calculate the feedforward velocity term
-
-    // Get the control twist into the joint space of the 6-DOF serial model
-    KDL::JntArray feedforward_joint_velocities = arm_kinematics_solver->ik_vel_end_effector_6dof(joint_positions, control_twist);
-    // Add the 6-DOF joint velocities
-    feedforward_joint_velocities.data += control_joint_velocities.data;
-    // Convert to joint space
-    feedforward_joint_velocities = arm_kinematics_solver->joint_vel_transform_6dof_to_actual(joint_positions, feedforward_joint_velocities, control_scheme.use_spm_roll);
+    KDL::JntArray feedforward_joint_velocities = combine_joint_velocities(control_joint_velocities, control_twist, joint_positions);
 
 
     // Calculate the position loop
