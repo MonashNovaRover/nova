@@ -65,6 +65,9 @@ alias unity='ros2 launch core visualisation.launch.py'
 alias arm_config_info='ros2 service call control/arm_config_info core/srv/ArmConfigInfo'
 alias zero_resolver='~/nova_ws/src/core/macros/zero_resolver.sh'
 
+# eduroam connection
+alias eduroam="sudo ip r delete default via 192.168.1.1"
+
 # Hotspots
 alias rescan="sudo nmcli device wifi rescan"
 alias liam="sudo nmcli device wifi connect Iphone11 password sjfwf355"
