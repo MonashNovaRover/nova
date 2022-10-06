@@ -72,10 +72,17 @@ inline KDL::Frame ArmKinematics::fk_pos_single_segment_6dof(KDL::JntArray joint_
 }
 
 
+// Calculate the FK for the end effector using the 6-DOF serial model
+KDL::Frame ArmKinematics::fk_pos_end_effector_6dof(KDL::JntArray joint_positions_6dof)
+{
+    return fk_pos_single_segment_6dof(joint_positions_6dof, arm_model.default_endpoint_name);
+}
+
+
 // Calculate the FK for the end effector
 KDL::Frame ArmKinematics::fk_pos_end_effector(KDL::JntArray joint_positions)
 {
-    return fk_pos_single_segment_6dof(joint_positions_6dof(joint_positions), arm_model.default_endpoint_name);
+    return fk_pos_end_effector_6dof(joint_positions_6dof(joint_positions));
 }
 
 
