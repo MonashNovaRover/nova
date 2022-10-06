@@ -22,12 +22,12 @@ ArmTwistMapper::ArmTwistMapper() :
     Node("arm_twist_mapper"),
     // Transform joystick input directions to intuitive end-effector coordinates
     // eg: forward on the left joystick is +ve x, but should be +ve z in end effector coordinates
-    endpoint_input_transform_linear(KDL::Rotation::EulerZYX(M_PI / 2, -M_PI / 2, 0)),
+    ENDPOINT_INPUT_TRANSFORM_LINEAR(KDL::Rotation::EulerZYX(M_PI / 2, -M_PI / 2, 0)),
     // Switch yaw and roll directions for more intuitive control
-    endpoint_input_transform_angular(KDL::Rotation::RotX(M_PI / 2) * endpoint_input_transform_linear)
+    ENDPOINT_INPUT_TRANSFORM_ANGULAR(KDL::Rotation::RotX(M_PI / 2) * ENDPOINT_INPUT_TRANSFORM_LINEAR)
 {    
     // Initialise publish timer periods
-    task_inputs_timer_period = 50ms;
+    control_pub_timer_period = 50ms;
     
     
     // Create subscription to arm control scheme
@@ -40,28 +40,43 @@ ArmTwistMapper::ArmTwistMapper() :
         "/electronics/resolvers", 10, std::bind(&ArmTwistMapper::resolver_callback, this, _1)
     );
     
-    // Create subscription to input_task_velocity
-    rclcpp::SubscriptionOptionsWithAllocator<std::allocator<void>> input_task_velocity_options;
-    input_task_velocity_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void{
-        this->input_task_velocity_deadline_callback();
+    // Create subscription to joystick_joint_velocities
+    rclcpp::SubscriptionOptionsWithAllocator<std::allocator<void>> joystick_joint_velocities_options;
+    joystick_joint_velocities_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void{
+        this->joystick_joint_velocities_deadline_callback();
     };
-    input_task_velocity_sub = this->create_subscription<geometry_msgs::msg::TwistStamped>(
-        "/control/input_task_velocity",
+    joystick_joint_velocities_sub = this->create_subscription<sensor_msgs::msg::JointState>(
+        "/control/joystick_joint_velocities",
         rclcpp::QoS(1).best_effort().deadline(200ms),
-        std::bind(&ArmTwistMapper::input_task_velocity_callback, this, _1),
-        input_task_velocity_options
+        std::bind(&ArmTwistMapper::joystick_joint_velocities_callback, this, _1),
+        joystick_joint_velocities_options
+    );
+
+    // Create subscription to joystick_twist
+    rclcpp::SubscriptionOptionsWithAllocator<std::allocator<void>> joystick_twist_options;
+    joystick_twist_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void{
+        this->joystick_twist_deadline_callback();
+    };
+    joystick_twist_sub = this->create_subscription<geometry_msgs::msg::TwistStamped>(
+        "/control/joystick_twist",
+        rclcpp::QoS(1).best_effort().deadline(200ms),
+        std::bind(&ArmTwistMapper::joystick_twist_callback, this, _1),
+        joystick_twist_options
     );
 
 
-    // Create timer and publisher for task_velocity
-    task_inputs_timer = this->create_wall_timer(
-        task_inputs_timer_period, std::bind(&ArmTwistMapper::publish_task_inputs, this)
+    // Create timer and publisher for twist
+    control_pub_timer = this->create_wall_timer(
+        control_pub_timer_period, std::bind(&ArmTwistMapper::publish_control_inputs, this)
     );
-    task_velocity_pub = this->create_publisher<geometry_msgs::msg::TwistStamped>(
-        "/control/task_velocity", rclcpp::QoS(1).best_effort().deadline(200ms)
+    control_joints_pub = this->create_publisher<sensor_msgs::msg::JointState>(
+        "/control/control_joints", rclcpp::QoS(1).best_effort().deadline(200ms)
     );
-    task_position_pub = this->create_publisher<geometry_msgs::msg::TransformStamped>(
-        "/control/task_position", rclcpp::QoS(1).best_effort().deadline(200ms)
+    control_twist_pub = this->create_publisher<geometry_msgs::msg::TwistStamped>(
+        "/control/control_twist", rclcpp::QoS(1).best_effort().deadline(200ms)
+    );
+    control_pose_pub = this->create_publisher<geometry_msgs::msg::TransformStamped>(
+        "/control/control_pose", rclcpp::QoS(1).best_effort().deadline(200ms)
     );
 
 
@@ -80,8 +95,11 @@ ArmTwistMapper::ArmTwistMapper() :
     // Arrays in internal data structures
     // Use data from the arm model
     joints = ArmMessages::get_empty_joint_state(arm_model->joint_names);
+    control_joints_msg = ArmMessages::get_empty_joint_state(arm_model->JOINT_NAMES_6DOF);
 
     // Control variables
+    control_configuration = KDL::JntArray(arm_model->num_joints);
+    prev_control_velocities = KDL::JntArray(arm_model->num_joints);
     // The control pose will not be correctly initialised here. Must reset once resolver data comes in
     control_pose = KDL::Frame::Identity();
     prev_control_twist = KDL::Twist::Zero();
@@ -105,14 +123,16 @@ ArmTwistMapper::ArmTwistMapper() :
     // Output set-up messages
     Print::title("ARM TWIST MAPPER");
     Print::print("Subscribed Topics:");
-    Print::print("/control/arm_control_scheme       [core/ArmControlScheme]", 1);
-    Print::print("/electronics/resolvers            [sensor_msgs/JointState]", 1);
-    Print::print("/control/input_task_velocity      [geometry_msgs/TwistStamped]", 1);
+    Print::print("/control/arm_control_scheme           [core/ArmControlScheme]", 1);
+    Print::print("/electronics/resolvers                [sensor_msgs/JointState]", 1);
+    Print::print("/control/joystick_joint_velocities    [sensor_msgs/JointState]", 1);
+    Print::print("/control/joystick_twist               [geometry_msgs/TwistStamped]", 1);
     Print::print("Published Topics:");
-    Print::print("/control/task_velocity            [geometry_msgs/TwistStamped]", 1);
-    Print::print("/control/task_position            [geometry_msgs/TransformStamped]", 1);
+    Print::print("/control/control_joints               [sensor_msgs/JointState]", 1);
+    Print::print("/control/control_twist                [geometry_msgs/TwistStamped]", 1);
+    Print::print("/control/control_pose                 [geometry_msgs/TransformStamped]", 1);
     Print::print("Services:");
-    Print::print("/control/arm_reset_control_pose   [std_srvs/Trigger]", 1);
+    Print::print("/control/arm_reset_control_pose       [std_srvs/Trigger]", 1);
     Print::print("", true);
 }
 
@@ -138,26 +158,38 @@ void ArmTwistMapper::resolver_callback(const sensor_msgs::msg::JointState::Share
 }
 
 
-// Update the internal task velocity
-void ArmTwistMapper::input_task_velocity_callback(const geometry_msgs::msg::TwistStamped::SharedPtr msg)
+// Update the internal joint velocities
+void ArmTwistMapper::joystick_joint_velocities_callback(const sensor_msgs::msg::JointState::SharedPtr msg)
 {
-    input_task_velocity = *msg;
+    control_joints_msg.velocity = msg->velocity;
 }
 // Reset the internal velocity
-void ArmTwistMapper::input_task_velocity_deadline_callback()
+void ArmTwistMapper::joystick_joint_velocities_deadline_callback()
 {
-    RCLCPP_WARN(this->get_logger(), "control/input_task_velocity subscription deadline missed");
-    input_task_velocity = geometry_msgs::msg::TwistStamped();
+    RCLCPP_WARN(this->get_logger(), "control/joystick_joint_velocities subscription deadline missed");
+    control_joints_msg.velocity = std::vector<double> (6);
+}
+
+
+// Update the internal task velocity
+void ArmTwistMapper::joystick_twist_callback(const geometry_msgs::msg::TwistStamped::SharedPtr msg)
+{
+    joystick_twist = *msg;
+}
+// Reset the internal velocity
+void ArmTwistMapper::joystick_twist_deadline_callback()
+{
+    RCLCPP_WARN(this->get_logger(), "control/joystick_twist subscription deadline missed");
+    joystick_twist = geometry_msgs::msg::TwistStamped();
 }
 
 
 // Map the input twist to the correct coordinate frame
-inline KDL::Twist ArmTwistMapper::get_control_twist()
+inline KDL::Twist ArmTwistMapper::get_control_twist(const KDL::Twist& joystick_twist)
 {
     // Unpack the ROS2 twist into KDL::Vectors
-    KDL::Twist twist = ArmTypeTranslation::to_KDL_twist(input_task_velocity.twist);
-    KDL::Vector& twist_linear = twist.vel;
-    KDL::Vector& twist_angular = twist.rot;
+    KDL::Vector twist_linear = joystick_twist.vel;
+    KDL::Vector twist_angular = joystick_twist.rot;
 
     // Endpoint frame control
     if (control_scheme.endpoint_frame_linear || control_scheme.endpoint_frame_angular){
@@ -167,10 +199,10 @@ inline KDL::Twist ArmTwistMapper::get_control_twist()
         // Transform from end effector coordinates to base frame coordinates
         // Inlcude input transforms to convert from joystick directions to intuitive end-effector frame coordinates
         if (control_scheme.endpoint_frame_linear) {
-            twist_linear = endpoint_coord_transform * endpoint_input_transform_linear * twist_linear;
+            twist_linear = endpoint_coord_transform * ENDPOINT_INPUT_TRANSFORM_LINEAR * twist_linear;
         }
         if (control_scheme.endpoint_frame_angular) {
-            twist_angular = endpoint_coord_transform * endpoint_input_transform_angular * twist_angular;
+            twist_angular = endpoint_coord_transform * ENDPOINT_INPUT_TRANSFORM_ANGULAR * twist_angular;
         }
     }
 
@@ -187,62 +219,108 @@ inline KDL::Twist ArmTwistMapper::get_control_twist()
     }
 
     // Return the KDL twist
-    return twist;
+    return KDL::Twist(twist_linear, twist_angular);
 }
 
 
-// Integrate the control position up to the current time
+// Integrate the joint-space control position up to the current time
+inline void ArmTwistMapper::update_control_configuration(const KDL::JntArray& control_velocities, double timestep)
+{
+    bool update_lower_joints = !control_scheme.ik_linear && control_scheme.position_control_linear;
+    bool update_wrist = !control_scheme.ik_angular && control_scheme.position_control_angular;
+    if (update_lower_joints || update_wrist) {
+        KDL::JntArray configuration_change;
+        configuration_change.data = (prev_control_velocities.data + control_velocities.data) / 2 * timestep;
+
+        // Calculate new configuration for lower joints
+        if (update_lower_joints) {
+            for (int i = 0; i < 3; i++) {
+                control_configuration.data[i] += configuration_change.data[i];
+                prev_control_velocities.data[i] = control_velocities.data[i];
+            }
+        }
+
+        // Calculate new configuration for wrist
+        if (update_wrist) {
+            for (int i = 3; i < 6; i++) {
+                control_configuration.data[i] += configuration_change.data[i];
+                prev_control_velocities.data[i] = control_velocities.data[i];
+            }
+        }
+    }
+}
+
+
+// Integrate the task-space control position up to the current time
 inline void ArmTwistMapper::update_control_pose(const KDL::Twist& control_twist, double timestep)
 {
-    KDL::Twist pose_change;
-    if (control_scheme.position_control_linear || control_scheme.position_control_angular) {
-        pose_change = (prev_control_twist + control_twist) / 2 * timestep;
-    }
+    bool update_position = control_scheme.ik_linear && control_scheme.position_control_linear;
+    bool update_orientation = control_scheme.ik_angular && control_scheme.position_control_angular;
+    if (update_position || update_orientation) {
+        KDL::Twist pose_change = (prev_control_twist + control_twist) / 2 * timestep;
 
-    // Calculate new control position
-    if (control_scheme.position_control_linear) {
-        control_pose.p += pose_change.vel;
-        prev_control_twist.vel = control_twist.vel;
-    }
+        // Calculate new control position
+        if (update_position) {
+            control_pose.p += pose_change.vel;
+            prev_control_twist.vel = control_twist.vel;
+        }
 
-    // Calculate new control orientation
-    if (control_scheme.position_control_angular) {
-        double angle = pose_change.rot.Norm();
-        control_pose.M = KDL::Rotation::Rot(pose_change.rot, angle) * control_pose.M;
-        prev_control_twist.rot = control_twist.rot;
+        // Calculate new control orientation
+        if (update_orientation) {
+            double angle = pose_change.rot.Norm();
+            control_pose.M = KDL::Rotation::Rot(pose_change.rot, angle) * control_pose.M;
+            prev_control_twist.rot = control_twist.rot;
+        }
     }
-
 }
 
 
-void ArmTwistMapper::publish_task_inputs()
+void ArmTwistMapper::publish_control_inputs()
 {
+    // Get the control joint velocities
+    KDL::JntArray velocities = ArmTypeTranslation::to_KDL_jnt_array(control_joints_msg.velocity);
     // Get the control twist in the rover frame, depending on the control scheme
-    KDL::Twist twist = get_control_twist();
-    // Integrate to get the control pose
+    KDL::Twist twist = get_control_twist(ArmTypeTranslation::to_KDL_twist(joystick_twist.twist));
+    
+    // Integrate to get the control pose and control configuration
     rclcpp::Time current_time = this->now();
     double timestep = (current_time - prev_time).seconds();
+    update_control_configuration(velocities, timestep);
     update_control_pose(twist, timestep);
     prev_time = current_time;
 
     // Fill the output messages
-    task_velocity.twist = ArmTypeTranslation::to_ROS2_twist(twist);
-    task_position.transform = ArmTypeTranslation::to_ROS2_transform(control_pose);
+    // control_joint_msg.velocity is already filled with the joystick velocities
+    control_joints_msg.position = ArmTypeTranslation::to_std_vector(control_configuration);
+    control_twist_msg.twist = ArmTypeTranslation::to_ROS2_twist(twist);
+    control_pose_msg.transform = ArmTypeTranslation::to_ROS2_transform(control_pose);
 
     // Update the headers
-    task_velocity.header.stamp = current_time;
-    task_position.header.stamp = current_time;
+    control_joints_msg.header.stamp = current_time;
+    control_twist_msg.header.stamp = current_time;
+    control_pose_msg.header.stamp = current_time;
     // Publish the messages
-    task_velocity_pub->publish(task_velocity);
-    task_position_pub->publish(task_position);
+    control_joints_pub->publish(control_joints_msg);
+    control_twist_pub->publish(control_twist_msg);
+    control_pose_pub->publish(control_pose_msg);
 }
 
 
 // Set the control pose to the current position
 void ArmTwistMapper::reset_control_position()
 {
-    KDL::JntArray joint_positions = ArmTypeTranslation::to_KDL_jnt_array(joints.position);
-    control_pose.p = arm_kinematics_solver->fk_pos_end_effector(joint_positions).p;
+    // Get the joint-positions for the 6-DOF serial model of the arm
+    KDL::JntArray joint_positions_6dof = ArmTypeTranslation::to_KDL_jnt_array(joints.position);
+    joint_positions_6dof = arm_kinematics_solver->joint_positions_6dof(joint_positions_6dof);
+    
+    // Reset joint space
+    for (int i = 0; i < 3; i++) {
+        control_configuration.data[i] = joint_positions_6dof.data[i];
+        prev_control_velocities.data[i] = 0;
+    }
+
+    // Reset task space
+    control_pose.p = arm_kinematics_solver->fk_pos_end_effector_6dof(joint_positions_6dof).p;
     prev_control_twist.vel = KDL::Vector::Zero();
 }
 
@@ -250,8 +328,18 @@ void ArmTwistMapper::reset_control_position()
 // Set the control pose to the current orientation
 void ArmTwistMapper::reset_control_orientation()
 {
-    KDL::JntArray joint_positions = ArmTypeTranslation::to_KDL_jnt_array(joints.position);
-    control_pose.M = arm_kinematics_solver->fk_pos_end_effector(joint_positions).M;
+    // Get the joint-positions for the 6-DOF serial model of the arm
+    KDL::JntArray joint_positions_6dof = ArmTypeTranslation::to_KDL_jnt_array(joints.position);
+    joint_positions_6dof = arm_kinematics_solver->joint_positions_6dof(joint_positions_6dof);
+    
+    // Reset joint space
+    for (int i = 3; i < 6; i++) {
+        control_configuration.data[i] = joint_positions_6dof.data[i];
+        prev_control_velocities.data[i] = 0;
+    }
+
+    // Reset task space
+    control_pose.M = arm_kinematics_solver->fk_pos_end_effector_6dof(joint_positions_6dof).M;
     prev_control_twist.rot = KDL::Vector::Zero();
 }
 

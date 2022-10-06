@@ -13,21 +13,21 @@ It reads the desired task position, task velocity and joint
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: arm_control
 TOPICS:
-  - /control/arm_control_scheme        [core/ArmControlScheme]           [Subscribed]
-  - /electronics/resolvers             [sensor_msgs/JointState]          [Subscribed]
-  - /control/task_velocity             [geometry_msgs/TwistStamped]      [Subscribed]
-  - /control/task_position             [geometry_msgs/TransformStamped]  [Subscribed]
-  - /control/input_joint_velocities    [sensor_msgs/JointState]          [Subscribed]
-  - /control/arm_coord_frames          [sensor_msgs/MultiDOFJointState]  [Published]
-  - /control/joint_velocities          [sensor_msgs/JointState]          [Published]
+  - /control/arm_control_scheme           [core/ArmControlScheme]           [Subscribed]
+  - /electronics/resolvers                [sensor_msgs/JointState]          [Subscribed]
+  - /control/control_joints               [sensor_msgs/JointState]          [Subscribed]
+  - /control/control_twist                [geometry_msgs/TwistStamped]      [Subscribed]
+  - /control/control_pose                 [geometry_msgs/TransformStamped]  [Subscribed]
+  - /control/arm_coord_frames             [sensor_msgs/MultiDOFJointState]  [Published]
+  - /control/joint_velocities             [sensor_msgs/JointState]          [Published]
 SERVICES:
-  - /control/arm_config_info           [core/ArmConfigInfo]             [Server]
+  - /control/arm_config_info              [core/ArmConfigInfo]             [Server]
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	   control
 AUTHOR(S):   Jory Braun
 CREATION:	   27/09/2022
-EDITED:		   01/10/2022
+EDITED:		   07/10/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
  - 
@@ -67,9 +67,9 @@ class ArmControl : public rclcpp::Node
     // Subscribers
     rclcpp::Subscription<core::msg::ArmControlScheme>::SharedPtr control_scheme_sub;
     rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr resolver_sub;
-    rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr input_joint_velocities_sub;
-    rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr task_velocity_sub;
-    rclcpp::Subscription<geometry_msgs::msg::TransformStamped>::SharedPtr task_position_sub;
+    rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr control_joints_sub;
+    rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr control_twist_sub;
+    rclcpp::Subscription<geometry_msgs::msg::TransformStamped>::SharedPtr control_pose_sub;
     
     // Periods at which to publish
     std::chrono::milliseconds coord_frames_timer_period;
@@ -89,15 +89,15 @@ class ArmControl : public rclcpp::Node
     // Store state of last-received messages
     core::msg::ArmControlScheme control_scheme;
     sensor_msgs::msg::JointState joints;
-    sensor_msgs::msg::JointState joint_space_input;
-    geometry_msgs::msg::TwistStamped task_velocity;
-    geometry_msgs::msg::TransformStamped task_position;
+    sensor_msgs::msg::JointState control_joints;
+    geometry_msgs::msg::TwistStamped control_twist_msg;
+    geometry_msgs::msg::TransformStamped control_pose_msg;
 
     // Store messages to be published (so only need to initialise once)
     sensor_msgs::msg::MultiDOFJointState coord_frames;
     // For joint_velocities, just use velocities section in joints
 
-    
+
     // Arm model and solvers
     ArmModel* arm_model;
     ArmKinematics* arm_kinematics_solver;
@@ -106,6 +106,7 @@ class ArmControl : public rclcpp::Node
     std::vector<PIController*> controllers;
 
     // Control variables
+    const double ERROR_LIMIT_JOINTS = 0.7;  // rad/s
     const double ERROR_LIMIT_LINEAR = 0.2;  // m/s
     const double ERROR_LIMIT_ANGULAR = 0.7;  // rad/s
     rclcpp::Time prev_time;
@@ -119,37 +120,40 @@ class ArmControl : public rclcpp::Node
     ///         Updates the internal joint state, which is later used to update the model
     void resolver_callback(const sensor_msgs::msg::JointState::SharedPtr msg);
 
-    /// @brief  Callback for input joint velocities subscription
-    ///         Updates the internal joint-space joint velocities
-    void input_joint_velocities_callback(const sensor_msgs::msg::JointState::SharedPtr msg);
-    /// @brief  Deadline callback for input joint velocities subscription
-    ///         Resets the internal joint-space joint velocities
-    void input_joint_velocities_deadline_callback();
+    /// @brief  Callback for control joint-position and velocity subscription
+    ///         Updates the internal joint-space positions and velocities
+    void control_joints_callback(const sensor_msgs::msg::JointState::SharedPtr msg);
+    /// @brief  Deadline callback for control joint-position and velocity subscription
+    ///         Resets the internal joint-space joint positions and velocities
+    void control_joints_deadline_callback();
 
-    /// @brief  Callback for task velocity subscription
-    ///         Updates the internal task velocity, which is later used in the IK control loop
-    void task_velocity_callback(const geometry_msgs::msg::TwistStamped::SharedPtr msg);
-    /// @brief  Deadline callback for input task velocity subscription
-    ///         Resets the internal task velocity
-    void task_velocity_deadline_callback();
+    /// @brief  Callback for control twist subscription
+    ///         Updates the internal control twist, which is later used in the IK control loop
+    void control_twist_callback(const geometry_msgs::msg::TwistStamped::SharedPtr msg);
+    /// @brief  Deadline callback for input control twist subscription
+    ///         Resets the internal control twist
+    void control_twist_deadline_callback();
 
-    /// @brief  Callback for task position subscription
-    ///         Updates the internal task position, which is later used in the IK control loop
-    void task_position_callback(const geometry_msgs::msg::TransformStamped::SharedPtr msg);
-    /// @brief  Deadline callback for input task position subscription
-    ///         Resets the internal task position
-    void task_position_deadline_callback();
+    /// @brief  Callback for control pose subscription
+    ///         Updates the internal control pose, which is later used in the IK control loop
+    void control_pose_callback(const geometry_msgs::msg::TransformStamped::SharedPtr msg);
+    /// @brief  Deadline callback for input control pose subscription
+    ///         Resets the internal control pose
+    void control_pose_deadline_callback();
     
     /// @brief  Callback for arm_coord_frames publisher timer
     ///         Updates the arm model using the latest resolver info, publishes to arm_cord_frames
     void publish_coord_frames();
 
     /// @brief  Combine a 6-DOF task velocity and 6-DOF serial joint velocities, output the corresponding actual joint velocities
-    KDL::JntArray combine_joint_velocities(const KDL::JntArray& joint_velocities_6dof, const KDL::Twist& task_velocity, const KDL::JntArray& joint_postions);
+    KDL::JntArray combine_joint_velocities(const KDL::JntArray& joint_velocities_6dof, const KDL::Twist& twist, const KDL::JntArray& joint_postions);
 
-    /// @brief  Get the control error, which is the twist that takes the end effector pose to the
+    /// @brief  Get the joint-space control error
+    KDL::JntArray get_joint_space_error(const KDL::JntArray& control_configuration, const KDL::JntArray& joints_configuration);
+    
+    /// @brief  Get the task-space control error, which is the twist that takes the end effector pose to the
     ///         control pose in 1 second.
-    KDL::Twist get_control_error(const KDL::Frame& control_pose, const KDL::Frame& end_effector_pose);
+    KDL::Twist get_task_space_error(const KDL::Frame& control_pose, const KDL::Frame& end_effector_pose);
 
     /// @brief  Get the joint-space velocities of all joints on the arm using inverse kinematics
     ///         Uses the current joint positions and desired task velocity and position

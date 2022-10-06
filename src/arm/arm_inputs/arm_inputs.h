@@ -10,19 +10,19 @@ This class reads data from the raw joystick inputs
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: arm_inputs
 TOPICS:
-  - /control/input_joystick_l          [core/InputJoystick]         [Subscribed]
-  - /control/input_joystick_r          [core/InputJoystick]         [Subscribed]
-  - /control/endeffector_input         [core/EndEffectorInput]      [Published]
-  - /control/input_task_velocity       [sensor_msgs/TwistStamped]   [Published]
-  - /control/input_joint_velocities    [sensor_msgs/JointState]     [Published]
-  - /control/arm_control_scheme        [core/ArmControlScheme]      [Published]
+  - /control/input_joystick_l            [core/InputJoystick]          [Subscribed]
+  - /control/input_joystick_r            [core/InputJoystick]          [Subscribed]
+  - /control/endeffector_input           [core/EndEffectorInput]       [Published]
+  - /control/joystick_joint_velocities   [sensor_msgs/JointState]      [Published]
+  - /control/joystick_twist              [geometry_msgs/TwistStamped]  [Published]
+  - /control/arm_control_scheme          [core/ArmControlScheme]       [Published]
 SERVICES: None
 ACTIONS:  None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	control
 AUTHOR(S):  Jess Hepworth, Jory Braun
 CREATION:	02/12/2021
-EDITED:		25/09/2022
+EDITED:		07/10/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
  - 
@@ -59,13 +59,13 @@ class ArmInputs : public ArmConfigInfoClient
     // Stores the loop timers for the update functions
     rclcpp::TimerBase::SharedPtr endeffector_timer;
     rclcpp::TimerBase::SharedPtr joint_velocities_timer;
-    rclcpp::TimerBase::SharedPtr task_velocity_timer;
+    rclcpp::TimerBase::SharedPtr twist_timer;
     rclcpp::TimerBase::SharedPtr control_scheme_timer;
 
     // Stores the publishers for arm inputs
     rclcpp::Publisher<core::msg::EndEffectorInput>::SharedPtr endeffector_pub;
     rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr joint_velocities_pub;
-    rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr task_velocity_pub;
+    rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr twist_pub;
     rclcpp::Publisher<core::msg::ArmControlScheme>::SharedPtr control_scheme_pub;
 
     // Stores the subscribers to the joystick inputs
@@ -74,7 +74,7 @@ class ArmInputs : public ArmConfigInfoClient
 
     // Stores messages to be published
     sensor_msgs::msg::JointState joint_velocities;
-    geometry_msgs::msg::TwistStamped task_velocity;
+    geometry_msgs::msg::TwistStamped twist;
     core::msg::ArmControlScheme control_scheme;
 
     // Store state of last-received messages
@@ -115,7 +115,7 @@ class ArmInputs : public ArmConfigInfoClient
 
     /// @brief      Publishes desired task velocity
     ///             Published as a twist vector in m/s and rad/s
-    void publish_task_velocity ();
+    void publish_twist ();
 
     /// @brief      Publishes control scheme data
     void publish_control_scheme ();
