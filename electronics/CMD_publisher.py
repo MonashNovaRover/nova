@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team
@@ -22,9 +21,16 @@ generalised to all CMDs by Max Tory
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: wheel_publisher
 TOPICS:
-  - /electronics/wheel_data  [WheelData]   [Published]
+  - /electronics/cmd_feedback  [CMDsFeedback]   [Published]
   - /control/drive_inputs    [DriveInput]  [Subscribed]
   - /autonomous/drive_inputs [DriveInput]  [Subscribed]
+TODO:
+  - Get Arm CMD Can IDs
+  - Decide on whether to average past CMD vals
+  - Classes for different CMD collections (Wheels,
+    Wheel pivots, Arm motors, etc to eliminate
+    god class)
+  - Get temperature data from CMDs?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	electronics
 AUTHOR(S):	Harrison Verrios, Liam Whittle, Max Tory
@@ -39,7 +45,7 @@ from rclpy.node import Node
 import time
 
 # Import the wheel message type
-from core.msg import WheelData, DriveInput
+from core.msg import CMDFeedback, CMDsFeedback, DriveInput
 
 # Import the CAN library
 from coms_utils.can_interface import CANReceiver
@@ -72,31 +78,29 @@ NUM_SCIENCE_MOTORS = 0
 
 # The CMD CAN arbitration IDs
 WHEEL_IDS = [0x410, 0x420, 0x430, 0x440, 0x450, 0x460]
-WHEEL_PIVOT_IDS = [None] * 6
-ARM_MOTOR_IDS = [0x111] * 7
-SCIENCE_MOTOR_IDS = []
+WHEEL_PIVOT_IDS = [None] * NUM_WHEELS
+# TODO: Input true CMD IDs 
+ARM_MOTOR_IDS = [0x111] * NUM_ARM_MOTORS
+SCIENCE_MOTOR_IDS = [] * NUM_SCIENCE_MOTORS
 
 
-# Main Wheel Publisher class
-class WheelPublisher (Node):
-
+# Main CMD Publisher class
+class CMDPublisher (Node):
     # Stores the current message values
-    message: WheelData = WheelData()
-    
-    # Whether to ignore data
-    valid: bool = False
+    message: CMDsFeedback = CMDsFeedback()
+    ignore_data: bool = True
 
     # Constructor sets up the publisher
     def __init__ (self):
     
         # Set up the node
-        super().__init__("wheel_publisher")
+        super().__init__("CMD_publisher")
 
-        # Print initialisation information
-        print("Initialising the Wheel Publisher class.")
+        # Log initialisation information
+        self.get_logger().debug("Initialising the Wheel Publisher class.")
 
         # Store the starting time
-        self.t = time.time()
+        self.last_read = time.time()
     
         # Create the CAN network
         self.cans = [CANReceiver(channel="can0", filter_ids=[WHEEL_IDS[i]], # can channel and ids of wheels
@@ -109,7 +113,7 @@ class WheelPublisher (Node):
         self.currents = [0 for _ in range(NUM_WHEELS)]
 
         # Create the publisher
-        self.publisher = self.create_publisher(WheelData, "/electronics/wheel_data", 10)
+        self.publisher = self.create_publisher(CMDsFeedback, "/electronics/cmd_feedback", 10)
 
         # Create a subscriber to drive commands
         self.subscription_man = self.create_subscription(DriveInput, "/control/drive_inputs", self.drive_callback, qos)
@@ -138,17 +142,17 @@ class WheelPublisher (Node):
                     # Get a negative for wheels on one side due to motor orientation 
                     if i <= 2: rpm *= -1
 
-                    # RPM operating as a FIFO Queue
+                    # Most recent angular vel reading 
                     self.rpms[i] = self.convert_rpm(rpm)
                     
-                    # Power operating as a FIFO Queue
+                    # Most recent power reading
                     self.powers[i] = self.convert_power(power)
 
-                    # Current operating as a FIFO Queue
+                    # Most recent current reading
                     self.currents[i] = self.convert_current(current)
                     
                     # Update the timestamp
-                    self.t = time.time()
+                    self.last_read = time.time()
             
             # In case of an eror, just skip and continue
             except:
@@ -158,10 +162,10 @@ class WheelPublisher (Node):
     # Callback that reads an input message from the drive commands
     # Outputs are only valid when a drive message comes through
     def drive_callback(self, msg):
-        self.valid = abs(msg.speed) > 0.0 or abs(msg.steer) > 0.0
+        self.ignore_data = msg.speed == 0.0 and msg.steer == 0.0
 
         # if we aren't driving, we shouldn't accept any previous values in our average
-        if not self.valid:
+        if self.ignore_data:
             # Set up the average arrays
             self.rpms = [0 for _ in range(NUM_WHEELS)]
             self.powers = [0 for _ in range(NUM_WHEELS)]
@@ -176,8 +180,8 @@ class WheelPublisher (Node):
             self.message.velocities[i] = self.convert_rpm_to_vel(self.message.rpms[i])
 
         # Check for invalid data, reset the message
-        if not self.valid:
-            self.message = WheelData()
+        if self.ignore_data:
+            self.message = CMDsFeedback()
 
         # Publish the data
         self.publisher.publish(self.message)
@@ -187,9 +191,9 @@ class WheelPublisher (Node):
     def clear_msg (self):
         
         # Check if the last message was a while ago
-        if time.time() - self.t > 0.5:
+        if time.time() - self.last_read > 0.5:
             # Clear the message
-            self.message = WheelData()
+            self.message = CMDsFeedback()
      
             
     # Converts a raw velocity to an RPM
@@ -216,7 +220,9 @@ def main(args=None):
 
     # Create the publisher
     rclpy.init(args = args)
-    publisher = WheelPublisher()
+    publisher = CMDPublisher()
+
+    # Listen and publish forever
     rclpy.spin(publisher)
 
     # Clean up when complete
