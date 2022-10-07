@@ -141,10 +141,13 @@ ArmTwistMapper::ArmTwistMapper() :
 void ArmTwistMapper::control_scheme_callback(const core::msg::ArmControlScheme::SharedPtr msg)
 {
     // If rising edge on position control, reset current position and/or orientation
-    if (msg->position_control_linear && !control_scheme.position_control_linear) {
+    // Also reset if swapping between task-space and joint-space
+    if ((msg->position_control_linear && !control_scheme.position_control_linear)
+        || msg->ik_linear != control_scheme.ik_linear) {
         reset_control_position();
     }
-    if (msg->position_control_angular && !control_scheme.position_control_angular) {
+    if ((msg->position_control_angular && !control_scheme.position_control_angular)
+        || msg->ik_angular != control_scheme.ik_angular) {
         reset_control_orientation();
     }
     control_scheme = *msg;
@@ -322,6 +325,9 @@ void ArmTwistMapper::reset_control_position()
     // Reset task space
     control_pose.p = arm_kinematics_solver->fk_pos_end_effector_6dof(joint_positions_6dof).p;
     prev_control_twist.vel = KDL::Vector::Zero();
+
+    // Print info message
+    RCLCPP_INFO(this->get_logger(), "Position control reset (position / lower joints)");
 }
 
 
@@ -341,6 +347,9 @@ void ArmTwistMapper::reset_control_orientation()
     // Reset task space
     control_pose.M = arm_kinematics_solver->fk_pos_end_effector_6dof(joint_positions_6dof).M;
     prev_control_twist.rot = KDL::Vector::Zero();
+
+    // Print info message
+    RCLCPP_INFO(this->get_logger(), "Position control reset (orientation / wrist)");
 }
 
 
