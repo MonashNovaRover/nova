@@ -3,15 +3,22 @@
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team
-This node receives data from the wheels, such as
-velocity, current and power, and is able to publish
-over ROS. It uses the CAN receiver class to read the
-data published over the network.
+This node receives data from the CMDs, such as
+angular velocity, current, temperature and power, 
+and is able to publish over ROS. It uses the CAN 
+receiver class to read the data published over the 
+network.
 
-This program operates by polling the can buss for encoder values and adding them to a queue with max len 10,
-then publishing the average value of the data in the queue to ROS. It only publishes non zero values if inputs
-are being sent to the wheels - otherwise it resets the queue to empty.
+This program operates by polling the can bus for 
+encoder values and adding them to a queue with max 
+len 10, then publishing the average value of the 
+data in the queue to ROS. It only publishes non-zero 
+values if inputs are being sent to the wheels - 
+otherwise it resets the queue to empty.
 
+Modified from the initial wheel_publisher.py script
+by Harrison Verrios and Liam Whittle to be
+generalised to all CMDs by Max Tory
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: wheel_publisher
 TOPICS:
@@ -20,9 +27,9 @@ TOPICS:
   - /autonomous/drive_inputs [DriveInput]  [Subscribed]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	electronics
-AUTHOR(S):	Harrison Verrios, Liam Whittle
+AUTHOR(S):	Harrison Verrios, Liam Whittle, Max Tory
 CREATION:	18/02/2022
-EDITED:		07/06/2022
+EDITED:		07/10/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
@@ -40,18 +47,8 @@ from coms_utils.can_interface import CANReceiver
 # Import QoS profile
 from rclpy.qos import qos_profile_sensor_data as qos
 
-# The Wheel CAN arbitration IDs
-WHEEL_IDS = [0x410, 0x420, 0x430, 0x440, 0x450, 0x460]
-
 # Mathematical PI
 PI = 3.1415926535897932384
-
-'''
-The following are the adjustable parameters that can
-be configured for the wheels.
-'''
-
-NUM_WHEELS = 6
 
 # The value that 1.0 velocity maps to in RPM
 # Calculated using a Tacometer
@@ -60,9 +57,24 @@ ENCODER_TO_RPM = 92.9
 # Store the wheel radius [m]
 WHEEL_RADIUS = 0.122
 
-# The rate (times per second) to poll the CAN bus and publish the wheels at
+# ROS timing constants
 POLL_RATE = 100
 PUBLISH_RATE = 20
+
+# The following are the adjustable parameters that can
+# be configured for the CMDs.
+
+# Motor definitions
+NUM_WHEELS = 6
+PIVOT_STEERING = False
+NUM_ARM_MOTORS = 7
+NUM_SCIENCE_MOTORS = 0
+
+# The CMD CAN arbitration IDs
+WHEEL_IDS = [0x410, 0x420, 0x430, 0x440, 0x450, 0x460]
+WHEEL_PIVOT_IDS = [None] * 6
+ARM_MOTOR_IDS = [0x111] * 7
+SCIENCE_MOTOR_IDS = []
 
 
 # Main Wheel Publisher class
