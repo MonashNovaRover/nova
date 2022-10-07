@@ -240,8 +240,14 @@ class CMDPublisher (Node):
                         if i <= 2: omega *= -1
                         # Wheels have a linear velocity based on their radius 
                         ros_msg.vel = self.convert_angular_to_linear_wheel(omega)
+                        bus = 0
                     elif motor_type == MotorType.ARM_EF:
                         ros_msg.vel = self.convert_angular_to_linear_end_effector(omega)
+                        bus = 1
+                    elif motor_type == MotorType.ARM_JOINT or motor_type == MotorType.SCIENCE:
+                        bus = 1
+                    else:
+                        bus = 0
                         
                     ros_msg.omega = omega
                     
@@ -249,8 +255,8 @@ class CMDPublisher (Node):
                     self.last_read = time.time()
 
                     # Get message bus and ID
-                    ros_msg.bus = (can_msg.arbitration_id >> 8) & 0xf
-                    ros_msg.id = (can_msg.arbitration_id >> 4) & 0xf
+                    ros_msg.bus = bus   # science and arm messages are on can1, otherwise can0
+                    ros_msg.id = (can_msg.arbitration_id >> 4) & 0x3f
                     # set timestamp on message
                     ros_msg.time = int(self.last_read * 1000)
 
