@@ -91,6 +91,13 @@ ArmControl::ArmControl() : Node("arm_control")
         "/control/arm_config_info", std::bind(&ArmControl::arm_config_info_callback, this, _1, _2)
     );
 
+    // Create service client for /control/arm_reset_control_pose, wait for it to become available
+    arm_reset_control_pose_client = this->create_client<std_srvs::srv::Trigger>(
+        "/control/arm_reset_control_pose"
+    );
+    while (!arm_reset_control_pose_client->wait_for_service(1s)){
+        RCLCPP_INFO(this->get_logger(), "Service /control/arm_reset_control_pose not available, waiting again...");
+    }
 
     // Initialise internal variables
 
@@ -370,6 +377,12 @@ inline KDL::JntArray ArmControl::get_joint_velocities(double timestep)
     // If saturated, modify joint velocities
     if (joint_limited) {
         KDL::SetToZero(joint_velocities);
+        if (control_scheme.position_control_linear || control_scheme.position_control_angular) {
+            // Reset the control pose and control configuration ot the current position
+            // Prevent them moving out of the workspace
+            auto request = std::make_shared<std_srvs::srv::Trigger::Request>();
+            arm_reset_control_pose_client->async_send_request(request);
+        }
     }
     else if (velocity_multiplier != 1) {
         joint_velocities.data *= velocity_multiplier;
