@@ -388,6 +388,13 @@ inline KDL::JntArray ArmControl::get_joint_velocities(double timestep)
         joint_velocities.data *= velocity_multiplier;
     }
 
+    // If joint velocity would round to 0, then set to 0 here. Prevents stupidly small joint velocities
+    for (uint16_t i = 0; i < arm_model->num_joints; i++) {
+        if (abs(joint_velocities.data[i]) < arm_model->drivers[i]->min_speed / 2) {
+            joint_velocities.data[i] = 0;
+        }
+    }
+
     // Retuen the joint velocities
     return joint_velocities;
 }

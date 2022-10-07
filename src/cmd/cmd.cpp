@@ -19,6 +19,8 @@ CMD::CMD (const int bus, const int id, CMDCommand drive_mode, const bool directi
 {    
     // Set max speed
     max_speed = 1 / scaling_factor;
+    // Set min speed
+    min_speed = max_speed / 32767;
 
     // Set up the CAN interface with the correct bus
     scpp::SocketCanStatus status = can_socket.open(
