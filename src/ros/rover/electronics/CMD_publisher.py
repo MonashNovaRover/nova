@@ -96,21 +96,35 @@ class CMDPublisher (Node):
         # Set up the node
         super().__init__("CMD_publisher")
 
-        # Log initialisation information
-        self.get_logger().debug("Initialising the Wheel Publisher class.")
-
         # Store the starting time
         self.last_read = time.time()
     
         # Create the CAN network
-        self.cans = [CANReceiver(channel="can0", filter_ids=[WHEEL_IDS[i]], # can channel and ids of wheels
+        # receivers for the wheels on the rover
+        self.wheel_cans = [CANReceiver(channel="can0", filter_ids=[WHEEL_IDS[i]], # can channel and ids of wheels
                                  receive_timeout=1, # seconds to wait for message
                                  receive_fmt="<hhh", # 3 shorts in little-endian format 
-                                 bitrate=200000)
+                                 bitrate=200000) # bitrate of can line
                      for i in range(NUM_WHEELS)]
-        self.rpms = [0 for _ in range(NUM_WHEELS)]
-        self.powers = [0 for _ in range(NUM_WHEELS)]
-        self.currents = [0 for _ in range(NUM_WHEELS)]
+
+        if PIVOT_STEERING:
+            self.wheel_pivot_cans = [CANReceiver(channel="can0", filter_ids=[WHEEL_PIVOT_IDS[i]], # can channel and ids of wheels
+                                    receive_timeout=1, # seconds to wait for message
+                                    receive_fmt="<hhh", # 3 shorts in little-endian format 
+                                    bitrate=200000) # bitrate of can line
+                        for i in range(NUM_WHEELS)]
+
+        self.arm_cans = [CANReceiver(channel="can1", filter_ids=[ARM_MOTOR_IDS[i]], # can channel and ids of wheels
+                                 receive_timeout=1, # seconds to wait for message
+                                 receive_fmt="<hhh", # 3 shorts in little-endian format 
+                                 bitrate=200000) # bitrate of can line
+                     for i in range(NUM_ARM_MOTORS)]
+
+        self.science_cans = [CANReceiver(channel="can1", filter_ids=[SCIENCE_MOTOR_IDS[i]], # can channel and ids of wheels
+                                 receive_timeout=1, # seconds to wait for message
+                                 receive_fmt="<hhh", # 3 shorts in little-endian format 
+                                 bitrate=200000) # bitrate of can line
+                     for i in range(NUM_SCIENCE_MOTORS)]
 
         # Create the publisher
         self.publisher = self.create_publisher(CMDsFeedback, "/electronics/cmd_feedback", 10)
@@ -125,6 +139,14 @@ class CMDPublisher (Node):
         # Create a timer to publish the current data
         self.pub_timer = self.create_timer(1.0/float(PUBLISH_RATE), self.publish_msg)
 
+        # Log initialisation information
+        self.get_logger().debug(f"Initialised the Wheel Publisher class with:"\
+                                f"- {NUM_WHEELS} wheels\n"\
+                                f"- {NUM_WHEELS} wheel pivots\n" if PIVOT_STEERING else ""\
+                                f"- {NUM_ARM_MOTORS} arm CMDs\n"\
+                                f"- {NUM_SCIENCE_MOTORS} science CMDs"
+                                )
+
 
     # Method that looks for any changes in the data from the CAN lines
     def read_callback (self):
@@ -135,15 +157,20 @@ class CMDPublisher (Node):
             try:
                 can_msg = can_line.receive()
                 
+            # In case of an eror, just skip and continue
+            except Exception as e:
+                self.get_logger().warn("Error reading CAN lines! Continuing...")
+            # In case of no error, get data from the can msg
+            else:
                 # If a message exists
                 if can_msg:
                     # Read the velocity data
-                    rpm, power, current = can_line.unpack(can_msg.data)
+                    omega, power, current = can_line.unpack(can_msg.data)
                     # Get a negative for wheels on one side due to motor orientation 
-                    if i <= 2: rpm *= -1
+                    if i <= 2: omega *= -1
 
                     # Most recent angular vel reading 
-                    self.rpms[i] = self.convert_rpm(rpm)
+                    self.rpms[i] = self.convert_rpm(omega)
                     
                     # Most recent power reading
                     self.powers[i] = self.convert_power(power)
@@ -154,9 +181,6 @@ class CMDPublisher (Node):
                     # Update the timestamp
                     self.last_read = time.time()
             
-            # In case of an eror, just skip and continue
-            except:
-                continue
 
 
     # Callback that reads an input message from the drive commands
@@ -189,11 +213,7 @@ class CMDPublisher (Node):
     
     # Clears the current message if nothing has happened in a while
     def clear_msg (self):
-        
-        # Check if the last message was a while ago
-        if time.time() - self.last_read > 0.5:
-            # Clear the message
-            self.message = CMDsFeedback()
+        self.message = CMDsFeedback()
      
             
     # Converts a raw velocity to an RPM
