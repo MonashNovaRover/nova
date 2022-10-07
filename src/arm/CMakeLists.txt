@@ -78,7 +78,7 @@ if(Eigen3_FOUND AND Orocos_kdl_FOUND)
   add_executable(arm_control arm_control/arm_control.cpp)
   target_link_libraries(arm_control orocos-kdl arm_messages arm_type_translation arm_model arm_kinematics pi_controller print)
   target_include_directories(arm_control INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/arm_control)
-  ament_target_dependencies(arm_control rclcpp core geometry_msgs sensor_msgs)
+  ament_target_dependencies(arm_control rclcpp core geometry_msgs sensor_msgs std_srvs)
 
   # Arm Driver script
   add_executable(arm_driver arm_driver/arm_driver.cpp)
