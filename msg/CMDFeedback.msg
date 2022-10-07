@@ -11,10 +11,10 @@ int8 bus
 int8 id
 
 # Angular velocity of motor in rad/s (optional)
-float64 v_angular
+float64 omega
 
 # Linear velocity in m/s (optional, for wheels or linear actuators)
-float64 v_linear
+float64 vel
 
 # Power draw in Watts
 float64 power
