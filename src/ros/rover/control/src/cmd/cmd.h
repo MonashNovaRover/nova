@@ -101,7 +101,10 @@ class CMD {
     //------------------------------------------------------------//
     public:
 
+    // Maximum input to drive that will not saturate the CMD. Set by the scaling factor
     double max_speed;
+    // Minimum positive speed that can be represented. Set by the max speed and 16-bit precision.
+    double min_speed;
 
     /// @brief      Constructor for setting up a CMD interface
     /// @param      bus - The bus ID of the CAN device
