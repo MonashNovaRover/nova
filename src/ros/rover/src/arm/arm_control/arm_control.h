@@ -44,6 +44,7 @@ TODO:
 #include "sensor_msgs/msg/multi_dof_joint_state.hpp"
 // Include service types
 #include "core/srv/arm_config_info.hpp"
+#include "std_srvs/srv/trigger.hpp"
 
 // Include libraries
 #include "arm_model.h"
@@ -85,6 +86,8 @@ class ArmControl : public rclcpp::Node
 
     // Services (servers)
     rclcpp::Service<core::srv::ArmConfigInfo>::SharedPtr arm_config_info_service;
+    // Services (clients)
+    rclcpp::Client<std_srvs::srv::Trigger>::SharedPtr arm_reset_control_pose_client;
 
     // Store state of last-received messages
     core::msg::ArmControlScheme control_scheme;
