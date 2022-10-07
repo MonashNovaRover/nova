@@ -239,7 +239,7 @@ inline KDL::JntArray ArmControl::get_joint_space_error(const KDL::JntArray& cont
         // Prevent error discontinuities from causing the arm to make large movements
         if (error.data.norm() > ERROR_LIMIT_JOINTS) {
             KDL::SetToZero(error);
-            RCLCPP_WARN(this->get_logger(), "Large control error detected (joint space). Switch to velocity control or reset position control.");
+            RCLCPP_WARN(this->get_logger(), "Large control error detected (joint space). Change control mode or reset position control.");
         }
     }
 
@@ -271,7 +271,7 @@ inline KDL::Twist ArmControl::get_task_space_error(const KDL::Frame& control_pos
         // Prevent error discontinuities from causing the arm to make large movements
         if (error.vel.Norm() > ERROR_LIMIT_LINEAR || error.rot.Norm() > ERROR_LIMIT_ANGULAR) {
             KDL::SetToZero(error);
-            RCLCPP_WARN(this->get_logger(), "Large control error detected (task space). Switch to velocity control or reset position control.");
+            RCLCPP_WARN(this->get_logger(), "Large control error detected (task space). Change control mode or reset position control.");
         }
     }
 
