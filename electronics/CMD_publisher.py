@@ -40,9 +40,11 @@ EDITED:		07/10/2022
 """
 
 # Include ROS packages
+from matplotlib.pyplot import sci
 import rclpy
 from rclpy.node import Node
 import time
+from std_msgs.msg import Header
 
 # Import the wheel message type
 from core.msg import CMDFeedback, CMDsFeedback, DriveInput
@@ -55,6 +57,7 @@ from rclpy.qos import qos_profile_sensor_data as qos
 
 # For defining different motor types
 from enum import Enum
+from typing import List
 
 # Mathematical PI
 PI = 3.1415926535897932384
@@ -162,6 +165,28 @@ class CMDPublisher (Node):
                                 f"- {NUM_ARM_MOTORS} arm CMDs\n"\
                                 f"- {NUM_SCIENCE_MOTORS} science CMDs"
                                 )
+
+    def construct_message(self, wheel_data: List[CMDFeedback], wheel_pivot_data: List[CMDFeedback], arm_data: List[CMDFeedback], science_data: List[CMDFeedback]):
+        """Constructs a CMDsFeedback data type given the following data
+
+        Args:
+            wheel_data (List[CMDFeedback]): wheel CMD feedback
+            wheel_pivot_data (List[CMDFeedback]): wheel pivot CMD feedback
+            arm_data (List[CMDFeedback]): arm motor CMD feedback
+            science_data (List[CMDFeedback]): science motor CMD feedback
+        """
+        self.message = CMDsFeedback()
+        # create header with frame ID and timestamp
+        header = Header()
+        header.frame_id = "cmd_feedback"
+        header.stamp = self.get_clock().now()
+
+        # Filling the message with the given data
+        self.message.header = header
+        self.message.wheels = wheel_data
+        self.message.wheel_pivots = wheel_pivot_data
+        self.message.arm_motors = arm_data
+        self.message.science_motors = science_data
 
     # Method that looks for any changes in the data from the CAN lines
     def read_callback (self):
