@@ -31,6 +31,9 @@ TODO:
     Wheel pivots, Arm motors, etc to eliminate
     god class)
   - Get temperature data from CMDs?
+  - Ensure that timestamps etc are correct even if
+    we are not sending wheel spins
+  - Still send other motors when wheels are not spinning
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	electronics
 AUTHOR(S):	Harrison Verrios, Liam Whittle, Max Tory
