@@ -53,19 +53,35 @@ from coms_utils.can_interface import CANReceiver
 # Import QoS profile
 from rclpy.qos import qos_profile_sensor_data as qos
 
+# For defining different motor types
+from enum import Enum
+
 # Mathematical PI
 PI = 3.1415926535897932384
 
-# The value that 1.0 velocity maps to in RPM
-# Calculated using a Tacometer
-ENCODER_TO_RPM = 92.9
+# The value that 1.0 velocity maps to in radians per second
+# Calculated using a Tachometer
+ENCODER_TO_RAD_PER_SEC = 9.728465
 
-# Store the wheel radius [m]
+# For converting angular to linear velocities (M)
 WHEEL_RADIUS = 0.122
+END_EFFECTOR_BOLT_PITCH = 1.5e-3
+
+# Maximum value of a 16bit (signed) integer as float for float division
+MAX_INT16 = 32768.
 
 # ROS timing constants
 POLL_RATE = 100
 PUBLISH_RATE = 20
+
+# Motor types
+class MotorType(Enum):
+    WHEEL: 0
+    WHEEL_PIVOT: 1
+    ARM_JOINT: 2
+    ARM_EF: 3
+    SCIENCE: 4
+    
 
 # The following are the adjustable parameters that can
 # be configured for the CMDs.
@@ -81,7 +97,7 @@ WHEEL_IDS = [0x410, 0x420, 0x430, 0x440, 0x450, 0x460]
 WHEEL_PIVOT_IDS = [None] * NUM_WHEELS
 # TODO: Input true CMD IDs 
 ARM_MOTOR_IDS = [0x111] * NUM_ARM_MOTORS
-SCIENCE_MOTOR_IDS = [] * NUM_SCIENCE_MOTORS
+SCIENCE_MOTOR_IDS = [0x470] * NUM_SCIENCE_MOTORS
 
 
 # Main CMD Publisher class
@@ -147,12 +163,31 @@ class CMDPublisher (Node):
                                 f"- {NUM_SCIENCE_MOTORS} science CMDs"
                                 )
 
-
     # Method that looks for any changes in the data from the CAN lines
     def read_callback (self):
         # Loop through each CAN line and receive data
-
-        for i, can_line in enumerate(self.cans):
+        wheel_data = self.read_cans(self.wheel_cans, MotorType.WHEEL)
+        wheel_pivot_data = self.read_cans(self.wheel_pivot_cans, MotorType.WHEEL_PIVOT)
+        arm_data = self.read_cans(
+            self.arm_cans[:6], MotorType.ARM_JOINT
+            ).extend(
+                self.read_cans(
+                    self.arm_cans[-1], MotorType.ARM_EF
+                ))
+        science_data = self.read_cans(self.science_cans, MotorType.SCIENCE)
+        self.construct_message(wheel_data, wheel_pivot_data, arm_data, science_data)
+            
+    def read_cans(self, cans: CANReceiver, motor_type: MotorType):
+        """Take a list of CANReceivers, read each of them into a CMDFeedback message, 
+        then return the list of messages
+        
+        Arguments:
+        cans -- list of can receivers of the same type
+        motor_type -- type of motor - determines how/whether we calculate velocity
+        Return: List of CANFeedback messages for all the CanReceivers we provided
+        """
+        ros_msgs = [None] * 6
+        for i, can_line in enumerate(cans):
             # Catch for an error that come about with the wheels
             try:
                 can_msg = can_line.receive()
@@ -164,23 +199,34 @@ class CMDPublisher (Node):
             else:
                 # If a message exists
                 if can_msg:
-                    # Read the velocity data
-                    omega, power, current = can_line.unpack(can_msg.data)
-                    # Get a negative for wheels on one side due to motor orientation 
-                    if i <= 2: omega *= -1
+                    ros_msg = CMDFeedback()
+                    # Read the can data
+                    raw_omega, power, current = can_line.unpack(can_msg.data)
+                    omega = self.convert_omega_to_SI(raw_omega)
 
-                    # Most recent angular vel reading 
-                    self.rpms[i] = self.convert_rpm(omega)
-                    
-                    # Most recent power reading
-                    self.powers[i] = self.convert_power(power)
+                    ros_msg.power = self.convert_power(power)
+                    ros_msg.current = self.conver_current(current)
 
-                    # Most recent current reading
-                    self.currents[i] = self.convert_current(current)
+                    if motor_type == MotorType.WHEEL:
+                        # Get a negative for wheels on one side due to motor orientation 
+                        if i <= 2: omega *= -1
+                        # Wheels have a linear velocity based on their radius 
+                        ros_msg.vel = self.convert_angular_to_linear_wheel(omega)
+                    elif motor_type == MotorType.ARM_EF:
+                        ros_msg.vel = self.convert_angular_to_linear_end_effector(omega)
+                        
+                    ros_msg.omega = omega
                     
                     # Update the timestamp
                     self.last_read = time.time()
-            
+
+                    # Get message bus and ID
+                    ros_msg.bus = (can_msg.arbitration_id >> 8) & 0xf
+                    ros_msg.id = (can_msg.arbitration_id >> 4) & 0xf
+                    # set timestamp on message
+                    ros_msg.time = int(self.last_read * 1000)
+
+                    ros_msgs[i] == ros_msg
 
 
     # Callback that reads an input message from the drive commands
@@ -188,24 +234,10 @@ class CMDPublisher (Node):
     def drive_callback(self, msg):
         self.ignore_data = msg.speed == 0.0 and msg.steer == 0.0
 
-        # if we aren't driving, we shouldn't accept any previous values in our average
-        if self.ignore_data:
-            # Set up the average arrays
-            self.rpms = [0 for _ in range(NUM_WHEELS)]
-            self.powers = [0 for _ in range(NUM_WHEELS)]
-            self.currents = [0 for _ in range(NUM_WHEELS)]
-
     # Publishes the current message data that exists
     def publish_msg (self):
-        # Get the average data in the message
-        for i in range(NUM_WHEELS):
-            self.message.rpms[i] = self.rpms[i]
-            self.message.powers[i] = self.powers[i]
-            self.message.velocities[i] = self.convert_rpm_to_vel(self.message.rpms[i])
-
-        # Check for invalid data, reset the message
         if self.ignore_data:
-            self.message = CMDsFeedback()
+            self.clear_msg()
 
         # Publish the data
         self.publisher.publish(self.message)
@@ -215,24 +247,27 @@ class CMDPublisher (Node):
     def clear_msg (self):
         self.message = CMDsFeedback()
      
-            
     # Converts a raw velocity to an RPM
-    def convert_rpm (self, value: int) -> float:
-        return value / 32768.0 * ENCODER_TO_RPM
+    def convert_omega_to_SI (self, value: int) -> float:
+        return value / MAX_INT16 * ENCODER_TO_RAD_PER_SEC
         
     # Converts the value of the power to something sensible
     # Converts a signed integer into a float
     def convert_power (self, value: int) -> float:
-        return abs(value) / 32768.0 * 26.0
+        return abs(value) / MAX_INT16 * 26.0
 
     # Converts the value of the current to something sensible
     # Converts a signed integer into a float
     def convert_current (self, value: int) -> float:
         return float(abs(value)) / 4096.0 * 2.5 * 10.0
 
-    # Converts the RPM value to a speed in m/s
-    def convert_rpm_to_vel (self, rpm: float) -> float:
-        return rpm / 60.0 * 2 * PI * WHEEL_RADIUS
+    # Converts the angular velocity value to a speed in m/s based on the wheel radius
+    def convert_angular_to_linear_wheel (self, omega: float) -> float:
+        return omega * WHEEL_RADIUS
+    
+    # Converts the angular velocity value to a speed in m/s based on the end effector bolt pitch
+    def convert_angular_to_linear_end_effector (self, omega: float) -> float:
+        return omega * END_EFFECTOR_BOLT_PITCH / (2 * PI)
     
 
 # Main function sets up the ROS class
