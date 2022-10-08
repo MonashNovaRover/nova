@@ -140,15 +140,11 @@ ArmTwistMapper::ArmTwistMapper() :
 // Update the internal control scheme
 void ArmTwistMapper::control_scheme_callback(const core::msg::ArmControlScheme::SharedPtr msg)
 {
-    // If rising edge on position control, reset current position and/or orientation
+    // If rising edge on position control, reset current control pose
     // Also reset if swapping between task-space and joint-space
-    if ((msg->position_control_linear && !control_scheme.position_control_linear)
-        || msg->ik_linear != control_scheme.ik_linear) {
-        reset_control_position();
-    }
-    if ((msg->position_control_angular && !control_scheme.position_control_angular)
-        || msg->ik_angular != control_scheme.ik_angular) {
-        reset_control_orientation();
+    if ((msg->position_control && !control_scheme.position_control)
+        || (msg->position_control && msg->ik_linear != control_scheme.ik_linear)) {
+        reset_control_pose();
     }
     control_scheme = *msg;
 }
@@ -229,27 +225,12 @@ inline KDL::Twist ArmTwistMapper::get_control_twist(const KDL::Twist& joystick_t
 // Integrate the joint-space control position up to the current time
 inline void ArmTwistMapper::update_control_configuration(const KDL::JntArray& control_velocities, double timestep)
 {
-    bool update_lower_joints = !control_scheme.ik_linear && control_scheme.position_control_linear;
-    bool update_wrist = !control_scheme.ik_angular && control_scheme.position_control_angular;
-    if (update_lower_joints || update_wrist) {
-        KDL::JntArray configuration_change;
-        configuration_change.data = (prev_control_velocities.data + control_velocities.data) / 2 * timestep;
+    if (!control_scheme.ik_linear && control_scheme.position_control) {
+        Eigen::VectorXd configuration_change = (prev_control_velocities.data + control_velocities.data) / 2 * timestep;
 
-        // Calculate new configuration for lower joints
-        if (update_lower_joints) {
-            for (int i = 0; i < 3; i++) {
-                control_configuration.data[i] += configuration_change.data[i];
-                prev_control_velocities.data[i] = control_velocities.data[i];
-            }
-        }
-
-        // Calculate new configuration for wrist
-        if (update_wrist) {
-            for (int i = 3; i < 6; i++) {
-                control_configuration.data[i] += configuration_change.data[i];
-                prev_control_velocities.data[i] = control_velocities.data[i];
-            }
-        }
+        // Calculate new control configuration
+        control_configuration.data += configuration_change;
+        prev_control_velocities.data = control_velocities.data;
     }
 }
 
@@ -257,23 +238,17 @@ inline void ArmTwistMapper::update_control_configuration(const KDL::JntArray& co
 // Integrate the task-space control position up to the current time
 inline void ArmTwistMapper::update_control_pose(const KDL::Twist& control_twist, double timestep)
 {
-    bool update_position = control_scheme.ik_linear && control_scheme.position_control_linear;
-    bool update_orientation = control_scheme.ik_angular && control_scheme.position_control_angular;
-    if (update_position || update_orientation) {
+    if (control_scheme.ik_linear && control_scheme.position_control) {
         KDL::Twist pose_change = (prev_control_twist + control_twist) / 2 * timestep;
 
         // Calculate new control position
-        if (update_position) {
-            control_pose.p += pose_change.vel;
-            prev_control_twist.vel = control_twist.vel;
-        }
+        control_pose.p += pose_change.vel;
+        prev_control_twist.vel = control_twist.vel;
 
         // Calculate new control orientation
-        if (update_orientation) {
-            double angle = pose_change.rot.Norm();
-            control_pose.M = KDL::Rotation::Rot(pose_change.rot, angle) * control_pose.M;
-            prev_control_twist.rot = control_twist.rot;
-        }
+        double angle = pose_change.rot.Norm();
+        control_pose.M = KDL::Rotation::Rot(pose_change.rot, angle) * control_pose.M;
+        prev_control_twist.rot = control_twist.rot;
     }
 }
 
@@ -309,47 +284,26 @@ void ArmTwistMapper::publish_control_inputs()
 }
 
 
-// Set the control pose to the current position
-void ArmTwistMapper::reset_control_position()
+// Set the control pose to the current pose
+void ArmTwistMapper::reset_control_pose()
 {
     // Get the joint-positions for the 6-DOF serial model of the arm
     KDL::JntArray joint_positions_6dof = ArmTypeTranslation::to_KDL_jnt_array(joints.position);
     joint_positions_6dof = arm_kinematics_solver->joint_positions_6dof(joint_positions_6dof);
     
     // Reset joint space
-    for (int i = 0; i < 3; i++) {
-        control_configuration.data[i] = joint_positions_6dof.data[i];
-        prev_control_velocities.data[i] = 0;
-    }
+    control_configuration.data = joint_positions_6dof.data;
+    KDL::SetToZero(prev_control_velocities);
 
     // Reset task space
-    control_pose.p = arm_kinematics_solver->fk_pos_end_effector_6dof(joint_positions_6dof).p;
-    prev_control_twist.vel = KDL::Vector::Zero();
+    control_pose = arm_kinematics_solver->fk_pos_end_effector_6dof(joint_positions_6dof);
+    KDL::SetToZero(prev_control_twist);
+
+    // Reset the integration tiemr
+    prev_time = this->now();
 
     // Print info message
-    RCLCPP_INFO(this->get_logger(), "Position control reset (position / lower joints)");
-}
-
-
-// Set the control pose to the current orientation
-void ArmTwistMapper::reset_control_orientation()
-{
-    // Get the joint-positions for the 6-DOF serial model of the arm
-    KDL::JntArray joint_positions_6dof = ArmTypeTranslation::to_KDL_jnt_array(joints.position);
-    joint_positions_6dof = arm_kinematics_solver->joint_positions_6dof(joint_positions_6dof);
-    
-    // Reset joint space
-    for (int i = 3; i < 6; i++) {
-        control_configuration.data[i] = joint_positions_6dof.data[i];
-        prev_control_velocities.data[i] = 0;
-    }
-
-    // Reset task space
-    control_pose.M = arm_kinematics_solver->fk_pos_end_effector_6dof(joint_positions_6dof).M;
-    prev_control_twist.rot = KDL::Vector::Zero();
-
-    // Print info message
-    RCLCPP_INFO(this->get_logger(), "Position control reset (orientation / wrist)");
+    RCLCPP_INFO(this->get_logger(), "Position control reset");
 }
 
 
@@ -359,8 +313,7 @@ void ArmTwistMapper::arm_reset_control_pose_callback(
     std_srvs::srv::Trigger::Response::SharedPtr response
 )
 {
-    reset_control_position();
-    reset_control_orientation();
+    reset_control_pose();
     response->success = true;
 }
 
