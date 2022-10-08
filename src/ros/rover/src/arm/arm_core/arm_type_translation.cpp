@@ -8,7 +8,6 @@ AUTHOR(S):	Jory Braun
 */
 
 #include "arm_type_translation.h"
-#include <Eigen/Core>
 
 
 KDL::JntArray ArmTypeTranslation::to_KDL_jnt_array(const std::vector<double>& joints)
