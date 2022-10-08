@@ -139,11 +139,8 @@ class ArmTwistMapper : public rclcpp::Node
     ///         Publishes the joint-space control configuration
     void publish_control_inputs();
 
-    /// @brief  Set the control pose to the current position
-    void reset_control_position();
-
-    /// @brief  Set the control pose to the current orientation
-    void reset_control_orientation();
+    /// @brief  Set the control pose to the current pose, reinitialise the position control
+    void reset_control_pose();
 
     /// @brief  Callback for arm_reset_control_pose service
     ///         Reinitialises the position control
