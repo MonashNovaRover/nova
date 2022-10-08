@@ -225,23 +225,9 @@ inline KDL::JntArray ArmControl::get_joint_space_error(const KDL::JntArray& cont
     // Initialise error as zero    
     KDL::JntArray error(6);
     
-    bool update_lower_joints = !control_scheme.ik_linear && control_scheme.position_control_linear;
-    bool update_wrist = !control_scheme.ik_angular && control_scheme.position_control_angular;
-    if (update_lower_joints || update_wrist) {
+    if (!control_scheme.ik_linear && control_scheme.position_control) {
 
-        // Lower-joints error
-        if (update_lower_joints) {
-            for (int i = 0; i < 3; i++) {
-                error.data[i] = control_configuration.data[i] - joints_configuration.data[i];
-            }
-        }
-
-        // Wrist error
-        if (update_wrist) {
-            for (int i = 3; i < 6; i++) {
-                error.data[i] = control_configuration.data[i] - joints_configuration.data[i];
-            }
-        }
+        error.data = control_configuration.data - joints_configuration.data;
 
         // Prevent error discontinuities from causing the arm to make large movements
         if (error.data.norm() > ERROR_LIMIT_JOINTS) {
@@ -260,20 +246,14 @@ inline KDL::Twist ArmControl::get_task_space_error(const KDL::Frame& control_pos
     // Initialise error as zero    
     KDL::Twist error = KDL::Twist::Zero();
     
-    bool update_position = control_scheme.ik_linear && control_scheme.position_control_linear;
-    bool update_orientation = control_scheme.ik_angular && control_scheme.position_control_angular;
-    if (update_position || update_orientation) {
+    if (control_scheme.ik_linear && control_scheme.position_control) {
 
         // Position error
-        if (update_position) {
-            error.vel = control_pose.p - end_effector_pose.p;
-        }
+        error.vel = control_pose.p - end_effector_pose.p;
 
         // Orientation error
-        if (update_orientation) {
-            KDL::Rotation error_transform = control_pose.M * end_effector_pose.M.Inverse();
-            error.rot = error_transform.GetRot();
-        }
+        KDL::Rotation error_transform = control_pose.M * end_effector_pose.M.Inverse();
+        error.rot = error_transform.GetRot();
 
         // Prevent error discontinuities from causing the arm to make large movements
         if (error.vel.Norm() > ERROR_LIMIT_LINEAR || error.rot.Norm() > ERROR_LIMIT_ANGULAR) {
@@ -377,7 +357,7 @@ inline KDL::JntArray ArmControl::get_joint_velocities(double timestep)
     // If saturated, modify joint velocities
     if (joint_limited) {
         KDL::SetToZero(joint_velocities);
-        if (control_scheme.position_control_linear || control_scheme.position_control_angular) {
+        if (control_scheme.position_control) {
             // Reset the control pose and control configuration ot the current position
             // Prevent them moving out of the workspace
             auto request = std::make_shared<std_srvs::srv::Trigger::Request>();
