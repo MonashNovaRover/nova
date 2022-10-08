@@ -128,11 +128,8 @@ class ArmTwistMapper : public rclcpp::Node
     /// @brief  Get the rover-frame twist given the current input twist and the selected control scheme
     KDL::Twist get_control_twist(const KDL::Twist& joystick_twist);
 
-    /// @brief  Integrate the joint-space control configuration over the given timestep
-    void update_control_configuration(const KDL::JntArray& control_velocities, double timestep);
-    
-    /// @brief  Integrate the task-space control twist over the given timestep
-    void update_control_pose(const KDL::Twist& control_twist, double timestep);
+    /// @brief  Integrate the position control over the given timestep
+    void update_position_control(const KDL::JntArray& control_velocities, const KDL::Twist& control_twist, double timestep);
 
     /// @brief  Callback for the control publisher timer
     ///         Publishes the task-space rover-frame control twist and control pose
