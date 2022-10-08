@@ -231,7 +231,13 @@ void ArmInputs::publish_control_scheme()
     control_scheme.ik_angular = joystick_r.btn_thumb_l_state == 2 || control_scheme.endpoint_frame_angular;
     // Set SPM roll handling. Hold back thumb button on right stick
     control_scheme.use_spm_roll = joystick_r.btn_thumb_d_state == 2;
-    
+
+    // Correction for position control - can't have independent linear and angular control
+    if (control_scheme.position_control) {
+        control_scheme.endpoint_frame_angular = control_scheme.endpoint_frame_linear;
+        control_scheme.ik_angular = control_scheme.ik_linear;
+    }
+
     // Set the header and publish
     control_scheme.header.stamp = this->now();
     control_scheme_pub->publish(control_scheme);
