@@ -222,33 +222,32 @@ inline KDL::Twist ArmTwistMapper::get_control_twist(const KDL::Twist& joystick_t
 }
 
 
-// Integrate the joint-space control position up to the current time
-inline void ArmTwistMapper::update_control_configuration(const KDL::JntArray& control_velocities, double timestep)
+// Integrate the control position up to the current time
+inline void ArmTwistMapper::update_position_control(const KDL::JntArray& control_velocities, const KDL::Twist& control_twist, double timestep)
 {
-    if (!control_scheme.ik_linear && control_scheme.position_control) {
-        Eigen::VectorXd configuration_change = (prev_control_velocities.data + control_velocities.data) / 2 * timestep;
+    if (control_scheme.position_control) {
+        if (!control_scheme.ik_linear) {
+            // Joint-space position control
 
-        // Calculate new control configuration
-        control_configuration.data += configuration_change;
-        prev_control_velocities.data = control_velocities.data;
-    }
-}
+            // Calculate new control configuration
+            Eigen::VectorXd configuration_change = (prev_control_velocities.data + control_velocities.data) / 2 * timestep;
+            control_configuration.data += configuration_change;
+            prev_control_velocities.data = control_velocities.data;
+        }
+        else {
+            // Task-space position control
 
+            KDL::Twist pose_change = (prev_control_twist + control_twist) / 2 * timestep;
 
-// Integrate the task-space control position up to the current time
-inline void ArmTwistMapper::update_control_pose(const KDL::Twist& control_twist, double timestep)
-{
-    if (control_scheme.ik_linear && control_scheme.position_control) {
-        KDL::Twist pose_change = (prev_control_twist + control_twist) / 2 * timestep;
+            // Calculate new control position
+            control_pose.p += pose_change.vel;
+            prev_control_twist.vel = control_twist.vel;
 
-        // Calculate new control position
-        control_pose.p += pose_change.vel;
-        prev_control_twist.vel = control_twist.vel;
-
-        // Calculate new control orientation
-        double angle = pose_change.rot.Norm();
-        control_pose.M = KDL::Rotation::Rot(pose_change.rot, angle) * control_pose.M;
-        prev_control_twist.rot = control_twist.rot;
+            // Calculate new control orientation
+            double angle = pose_change.rot.Norm();
+            control_pose.M = KDL::Rotation::Rot(pose_change.rot, angle) * control_pose.M;
+            prev_control_twist.rot = control_twist.rot;
+        }
     }
 }
 
@@ -263,8 +262,7 @@ void ArmTwistMapper::publish_control_inputs()
     // Integrate to get the control pose and control configuration
     rclcpp::Time current_time = this->now();
     double timestep = (current_time - prev_time).seconds();
-    update_control_configuration(velocities, timestep);
-    update_control_pose(twist, timestep);
+    update_position_control(velocities, twist, timestep);
     prev_time = current_time;
 
     // Fill the output messages
