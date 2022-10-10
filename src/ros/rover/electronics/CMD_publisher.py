@@ -38,7 +38,7 @@ TODO:
 PACKAGE: 	electronics
 AUTHOR(S):	Harrison Verrios, Liam Whittle, Max Tory
 CREATION:	18/02/2022
-EDITED:		07/10/2022
+EDITED:		10/10/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
@@ -96,14 +96,14 @@ class MotorType(Enum):
 NUM_WHEELS = 6
 PIVOT_STEERING = False
 NUM_ARM_MOTORS = 7
-NUM_SCIENCE_MOTORS = 0
+NUM_SCIENCE_MOTORS = 2
 
 # The CMD CAN arbitration IDs
 WHEEL_IDS = [0x410, 0x420, 0x430, 0x440, 0x450, 0x460]
 WHEEL_PIVOT_IDS = [None] * NUM_WHEELS
 # TODO: Input true CMD IDs 
-ARM_MOTOR_IDS = [0x111] * NUM_ARM_MOTORS
-SCIENCE_MOTOR_IDS = [0x470] * NUM_SCIENCE_MOTORS
+ARM_MOTOR_IDS = [0x410, 0x420, 0x430, 0x440, 0x450, 0x460, 0x470]
+SCIENCE_MOTOR_IDS = [0x480, 0x490]
 
 
 # Main CMD Publisher class
