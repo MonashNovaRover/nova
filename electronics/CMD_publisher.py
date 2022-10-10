@@ -25,7 +25,6 @@ TOPICS:
   - /control/drive_inputs    [DriveInput]  [Subscribed]
   - /autonomous/drive_inputs [DriveInput]  [Subscribed]
 TODO:
-  - Get Arm CMD Can IDs
   - Decide on whether to average past CMD vals
   - Classes for different CMD collections (Wheels,
     Wheel pivots, Arm motors, etc to eliminate
@@ -194,6 +193,7 @@ class CMDPublisher (Node):
     # Method that looks for any changes in the data from the CAN lines
     def read_callback (self):
         # Loop through each CAN line and receive data
+        # Tell the read_cans method what type of motor we are passing it, so it knows what values to fill out
         wheel_data = self.read_cans(self.wheel_cans, MotorType.WHEEL)
         wheel_pivot_data = self.read_cans(self.wheel_pivot_cans, MotorType.WHEEL_PIVOT)
         arm_data = self.read_cans(
