@@ -59,7 +59,14 @@ from rclpy.qos import qos_profile_sensor_data as qos
 
 # For defining different motor types
 from enum import Enum
+from collections import namedtuple
 from typing import List
+from collections import deque
+import json
+
+# Are we currently tuning PID constants? If so, poll at a higher frequency, 
+# and publish every value as soon as it's read without taking means.
+TUNING_PID = False
 
 # Mathematical PI
 PI = 3.1415926535897932384
@@ -104,6 +111,19 @@ WHEEL_PIVOT_IDS = [None] * NUM_WHEELS
 ARM_MOTOR_IDS = [0x410, 0x420, 0x430, 0x440, 0x450, 0x460, 0x470]
 SCIENCE_MOTOR_IDS = [0x480, 0x490]
 
+# For storing queues of all different data 
+QUEUE_LENGTH = 10  # If not TUNING_PIDS
+CMDFeedbackQueue = namedtuple('CMDFeedbackQueue', ['currents', 'powers', 'v_angulars', 'v_linears', 'temps'])
+# Hooooooo boy. 
+# So: For each type of motor, we need a list with length corresponding to the number of motors of that type, stored in the below dict.
+# For each motor in the list, we have a number of different relevant values (currents, powers, etc) stored in a namedtuple. Each of these
+# value types has a queue with length defined above
+CMDQueues = {
+    TYPE_MOTOR: [CMDFeedbackQueue(*(deque([], maxlen=QUEUE_LENGTH) for _ in CMDFeedbackQueue._fields))
+                    for _ in range(NUM_TYPE_MOTOR)] 
+                    for TYPE_MOTOR, NUM_TYPE_MOTOR in zip(['wheel', 'pivot', 'arm', 'sci'], 
+                                                            [NUM_WHEELS, PIVOT_STEERING, NUM_ARM_MOTORS, NUM_SCIENCE_MOTORS])
+}
 
 # Main CMD Publisher class
 class CMDPublisher (Node):
