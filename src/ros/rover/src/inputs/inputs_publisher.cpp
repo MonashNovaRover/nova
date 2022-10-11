@@ -33,7 +33,7 @@ InputsPublisher::InputsPublisher() : Node("input_pub")
     joystick_r_publisher    = this->create_publisher<core::msg::InputJoystick>("/control/input_joystick_r", rclcpp::QoS(1).best_effort().deadline(200ms));
 
     // Creates a timer function that runs a function on loop every 0.02 seconds
-    timer = this->create_wall_timer(20ms, std::bind(&InputsPublisher::publish_input, this));
+    timer = this->create_wall_timer(10ms, std::bind(&InputsPublisher::publish_input, this));
 
     // Output set-up messages
     Print::title("INPUTS PUBLISHER");
