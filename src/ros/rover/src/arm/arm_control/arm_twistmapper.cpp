@@ -233,6 +233,9 @@ inline void ArmTwistMapper::update_position_control(const KDL::JntArray& control
             Eigen::VectorXd configuration_change = (prev_control_velocities.data + control_velocities.data) / 2 * timestep;
             control_configuration.data += configuration_change;
             prev_control_velocities.data = control_velocities.data;
+
+            // Use FK to find the control pose for visualisation
+            control_pose = arm_kinematics_solver->fk_pos_end_effector_6dof(control_configuration);
         }
         else {
             // Task-space position control
