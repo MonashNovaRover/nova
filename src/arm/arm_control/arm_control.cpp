@@ -324,7 +324,7 @@ inline KDL::JntArray ArmControl::get_joint_velocities(double timestep)
 
     // Apply saturation to each joint
     bool joint_limited = false;
-    double velocity_multiplier = 1;
+    double min_velocity_multiplier = 1;
     for (uint16_t i = 0; i < arm_model->num_joints; i++) {
 
         // Joint limits
@@ -344,7 +344,10 @@ inline KDL::JntArray ArmControl::get_joint_velocities(double timestep)
             if (speed > max_speed) {
                 controllers[i]->saturated = true;
                 RCLCPP_WARN(this->get_logger(), "Joint %s has reached maximum velocity", joints.name[i].c_str());
-                velocity_multiplier = max_speed / speed;
+                double velocity_multiplier = max_speed / speed;
+                if (velocity_multiplier < min_velocity_multiplier) {
+                    min_velocity_multiplier = velocity_multiplier;
+                }
             }
 
             // Not saturated
@@ -364,8 +367,8 @@ inline KDL::JntArray ArmControl::get_joint_velocities(double timestep)
             arm_reset_control_pose_client->async_send_request(request);
         }
     }
-    else if (velocity_multiplier != 1) {
-        joint_velocities.data *= velocity_multiplier;
+    else if (min_velocity_multiplier != 1) {
+        joint_velocities.data *= min_velocity_multiplier;
     }
 
     // If joint velocity would round to 0, then set to 0 here. Prevents stupidly small joint velocities
