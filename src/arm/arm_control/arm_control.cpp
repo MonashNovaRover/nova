@@ -19,7 +19,7 @@ AUTHOR(S):	Jory Braun
 ArmControl::ArmControl() : Node("arm_control")
 {
     // Initialise publish timer periods
-    coord_frames_timer_period = 100ms;
+    coord_frames_timer_period = 10ms;
     joint_velocities_timer_period = 10ms;
     
 
