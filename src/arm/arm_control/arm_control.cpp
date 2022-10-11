@@ -19,8 +19,8 @@ AUTHOR(S):	Jory Braun
 ArmControl::ArmControl() : Node("arm_control")
 {
     // Initialise publish timer periods
-    coord_frames_timer_period = 200ms;
-    joint_velocities_timer_period = 50ms;
+    coord_frames_timer_period = 100ms;
+    joint_velocities_timer_period = 10ms;
     
 
     // Create subscription to arm control scheme

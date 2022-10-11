@@ -19,7 +19,7 @@ AUTHOR(S):	Jory Braun
 void ResolverSpoofer::start_node()
 {
     // Initialise constants
-    timer_period = 200ms;
+    timer_period = 10ms;
     
     // Set up the joints structure
     joints = ArmMessages::get_empty_joint_state(arm_config_info.joint_names);
