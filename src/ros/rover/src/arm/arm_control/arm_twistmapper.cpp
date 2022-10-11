@@ -27,7 +27,7 @@ ArmTwistMapper::ArmTwistMapper() :
     ENDPOINT_INPUT_TRANSFORM_ANGULAR(KDL::Rotation::RotX(M_PI / 2) * ENDPOINT_INPUT_TRANSFORM_LINEAR)
 {    
     // Initialise publish timer periods
-    control_pub_timer_period = 50ms;
+    control_pub_timer_period = 10ms;
     
     
     // Create subscription to arm control scheme

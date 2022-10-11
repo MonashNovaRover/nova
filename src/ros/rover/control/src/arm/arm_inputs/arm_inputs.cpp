@@ -275,7 +275,7 @@ void ArmInputs::start_node()
 
     // Create timer and publisher for endeffector_inputs
     endeffector_timer = this->create_wall_timer(
-        50ms, std::bind(&ArmInputs::publish_endeffector_inputs, this)
+        10ms, std::bind(&ArmInputs::publish_endeffector_inputs, this)
     );
     endeffector_pub = this->create_publisher<core::msg::EndEffectorInput>(
         "/control/endeffector_input", rclcpp::QoS(1).best_effort().deadline(200ms)
@@ -283,7 +283,7 @@ void ArmInputs::start_node()
 
     // Create timer and publisher for joystick_joint_velocities
     joint_velocities_timer = this->create_wall_timer(
-        50ms, std::bind(&ArmInputs::publish_joint_velocities, this)
+        10ms, std::bind(&ArmInputs::publish_joint_velocities, this)
     );
     joint_velocities_pub = this->create_publisher<sensor_msgs::msg::JointState>(
         "/control/joystick_joint_velocities", rclcpp::QoS(1).best_effort().deadline(200ms)
@@ -291,7 +291,7 @@ void ArmInputs::start_node()
 
     // Create timer and publisher for joystick_twist
     twist_timer = this->create_wall_timer(
-        50ms, std::bind(&ArmInputs::publish_twist, this)
+        10ms, std::bind(&ArmInputs::publish_twist, this)
     );
     twist_pub = this->create_publisher<geometry_msgs::msg::TwistStamped>(
         "/control/joystick_twist", rclcpp::QoS(1).best_effort().deadline(200ms)
@@ -299,7 +299,7 @@ void ArmInputs::start_node()
 
     // Create timer and publisher for control_scheme
     control_scheme_timer = this->create_wall_timer(
-        50ms, std::bind(&ArmInputs::publish_control_scheme, this)
+        10ms, std::bind(&ArmInputs::publish_control_scheme, this)
     );    
     control_scheme_pub = this->create_publisher<core::msg::ArmControlScheme>(
         "/control/arm_control_scheme", 10
