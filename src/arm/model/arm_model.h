@@ -81,6 +81,13 @@ class ArmModel : public KDL::Tree
     // Predefined names for the 6-DOF serial model
     const std::vector<std::string> JOINT_NAMES_6DOF;
 
+    // Global control variables
+    const bool USE_GLOBAL_CONTROL = true;
+    const float GLOBAL_DAMPING = 10;
+    const float GLOBAL_NATURAL_FREQUENCY = 10;
+    // Prepare global control coefficients for a PI controller
+    const ArmSubModule::ControlCoeffs GLOBAL_CONTROL;
+
     /// @brief  Constructor. Builds the arm with the given wrist and end effector.
     ///         Builds the arm out of submodules, with separate modules for the lower joints, wrist and end effector.
     ///         Different modules can be swapped out for another of the same type (eg: swap wrists)
