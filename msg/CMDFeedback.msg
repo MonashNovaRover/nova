@@ -16,8 +16,8 @@ float64 omega
 # Linear velocity in m/s (optional, for wheels or linear actuators)
 float64 vel
 
-# Power draw in Watts
-float64 power
+# Voltage scaled by PWM
+float64 pwm_avg_voltage
 
 # Current draw in Amps
 float64 current
