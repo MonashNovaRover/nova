@@ -31,7 +31,7 @@ def main(args):
 
     try:
         executor.spin()
-    except e:
+    except Exception as e:
         print(e)
 
     rclpy.shutdown()
