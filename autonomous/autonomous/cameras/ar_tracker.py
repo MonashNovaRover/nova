@@ -82,7 +82,7 @@ class ArTracker(Node):
         arParam = ar.DetectorParameters_create()
         bboxs, ids, rejected = ar.detectMarkers(imgGray, arDict, parameters=arParam)
         camera_calibration_parameters_filename = "cameras/calib_chessboard.yaml"
-        aruco_marker_side_length = 0.2
+        aruco_marker_side_length = 0.1
         cv_file = cv2.FileStorage(camera_calibration_parameters_filename, cv2.FILE_STORAGE_READ)
         mtx = cv_file.getNode('K').mat()
         dst = cv_file.getNode('D').mat()
@@ -99,9 +99,9 @@ class ArTracker(Node):
                 rot_mat, trans_mat, _ = ar.estimatePoseSingleMarkers(bboxs, aruco_marker_side_length, mtx, dst)
 
             for i, _id in enumerate(ids):
-                x = trans_mat[i][0][2]
-                y = -trans_mat[i][0][0]
-                z = -trans_mat[i][0][1]
+                x = trans_mat[i][0][0]
+                y = trans_mat[i][0][1]
+                z = trans_mat[i][0][2]
 
                 print((x, y, z))
                 # transform = np.load("cameras/ar_2d_calibration.npy")
@@ -136,7 +136,7 @@ class ArTracker(Node):
         arParam = ar.DetectorParameters_create()
         bboxs, ids, rejected = ar.detectMarkers(imgGray, arDict, parameters=arParam)
         camera_calibration_parameters_filename = "cameras/calib_chessboard.yaml"
-        aruco_marker_side_length = 0.2
+        aruco_marker_side_length = 0.1
         cv_file = cv2.FileStorage(camera_calibration_parameters_filename, cv2.FILE_STORAGE_READ)
         mtx = cv_file.getNode('K').mat()
         dst = cv_file.getNode('D').mat()
@@ -153,9 +153,9 @@ class ArTracker(Node):
                 rot_mat, trans_mat, _ = ar.estimatePoseSingleMarkers(bboxs, aruco_marker_side_length, mtx, dst)
 
             for i, _id in enumerate(ids):
-                x = trans_mat[i][0][2]
-                y = -trans_mat[i][0][0]
-                z = -trans_mat[i][0][1]
+                x = trans_mat[i][0][0]
+                y = trans_mat[i][0][1]
+                z = trans_mat[i][0][2]
 
                 print((x, y, z))
                 transform = np.load("cameras/ar_2d_calibration.npy")
@@ -193,3 +193,5 @@ def main():
         cv2.imshow("Image", img)
         cv2.waitKey(1)
 
+if __name__ == "__main__":
+    main()
