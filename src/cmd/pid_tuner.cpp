@@ -121,8 +121,8 @@ void PIDTuner::publish_velocity () {
     CMDData data = this->get_cmd()->receive_feedback();
 
     // Get the data
-    message.rpm = data.rpm;
-    message.power = data.power;
+    message.omega = data.rpm;
+    message.duty_cycle = data.power;
 
     // Make sure data is valid
     if (data.rpm != 0 || data.power != 0) {
