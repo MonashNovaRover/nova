@@ -24,6 +24,3 @@ float64 current
 
 # Encoder interval
 float64 interval
-
-# Time in milliseconds since epoch at which reading was taken
-int64 time
