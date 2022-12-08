@@ -25,14 +25,9 @@ TOPICS:
   - /control/drive_inputs    [DriveInput]  [Subscribed]
   - /autonomous/drive_inputs [DriveInput]  [Subscribed]
 TODO:
-  - Decide on whether to average past CMD vals
-  - Classes for different CMD collections (Wheels,
-    Wheel pivots, Arm motors, etc to eliminate
-    god class)
   - Get temperature data from CMDs?
-  - Ensure that timestamps etc are correct even if
-    we are not sending wheel spins
-  - Still send other motors when wheels are not spinning
+  - Confirm: should the "interval" in the averaged data
+    be an average or a sum?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	electronics
 AUTHOR(S):	Harrison Verrios, Liam Whittle, Max Tory
