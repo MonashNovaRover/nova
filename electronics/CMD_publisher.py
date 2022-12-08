@@ -42,10 +42,8 @@ EDITED:		10/10/2022
 """
 
 # Include ROS packages
-from matplotlib.pyplot import sci
 import rclpy
 from rclpy.node import Node
-import time
 from std_msgs.msg import Header
 
 # Import the wheel message type
@@ -62,7 +60,6 @@ from enum import Enum
 from collections import namedtuple
 from typing import List
 from collections import deque
-import json
 
 # Are we currently tuning PID constants? If so, poll at a higher frequency, 
 # and publish every value as soon as it's read without taking means.
@@ -113,8 +110,10 @@ SCIENCE_MOTOR_IDS = [0x480, 0x490]
 
 # For storing queues of all different data 
 QUEUE_LENGTH = 10  # If not TUNING_PIDS
-CMDFeedbackQueue = namedtuple('CMDFeedbackQueue', ['currents', 'duty_cycles', 'v_angulars', 'v_linears', 'temps', 'intervals'])
-# Hooooooo boy. 
+
+# for each type of motor, we have a queue of length QUEUE_LENGTH. 
+# Each element in the queue is a list of length NUM_X_MOTORS, and each element is a CMDFeedback()
+# Object corresponding to the CMD defined in the Arrays above
 CMDQueues = {
     TYPE_MOTOR: deque([[CMDFeedback() for _ in range(NUM_TYPE_MOTOR)]], maxlen=QUEUE_LENGTH)
         for TYPE_MOTOR, NUM_TYPE_MOTOR in zip(['wheel', 'pivot', 'arm', 'sci'], 
@@ -123,21 +122,13 @@ CMDQueues = {
 
 # Main CMD Publisher class
 class CMDPublisher (Node):
-    # Stores the current message values
-    message: CMDsFeedback = CMDsFeedback()
-    ignore_data: bool = True
-
-    # Constructor sets up the publisher
     def __init__ (self):
-    
-        # Set up the node
         super().__init__("CMD_publisher")
 
         # Store the starting time
-        self.last_read = time.time()
+        self.last_read = self.get_clock().now()
     
-        # Create the CAN network
-        # receivers for the wheels on the rover
+        # Create CAN receivers for each type of motor on the rover
         self.wheel_cans = [CANReceiver(channel="can0", filter_ids=[WHEEL_IDS[i]], # can channel and ids of wheels
                                  receive_timeout=1, # seconds to wait for message
                                  receive_fmt="<hhh", # 3 shorts in little-endian format 
@@ -145,25 +136,24 @@ class CMDPublisher (Node):
                      for i in range(NUM_WHEELS)]
 
         if PIVOT_STEERING:
-            self.wheel_pivot_cans = [CANReceiver(channel="can0", filter_ids=[WHEEL_PIVOT_IDS[i]], # can channel and ids of wheels
-                                    receive_timeout=1, # seconds to wait for message
-                                    receive_fmt="<hhh", # 3 shorts in little-endian format 
-                                    bitrate=200000) # bitrate of can line
+            self.wheel_pivot_cans = [CANReceiver(channel="can0", filter_ids=[WHEEL_PIVOT_IDS[i]], 
+                                    receive_timeout=1, 
+                                    receive_fmt="<hhh", 
+                                    bitrate=200000) 
                         for i in range(NUM_WHEELS)]
 
-        self.arm_cans = [CANReceiver(channel="can1", filter_ids=[ARM_MOTOR_IDS[i]], # can channel and ids of wheels
-                                 receive_timeout=1, # seconds to wait for message
-                                 receive_fmt="<hhh", # 3 shorts in little-endian format 
-                                 bitrate=200000) # bitrate of can line
+        self.arm_cans = [CANReceiver(channel="can1", filter_ids=[ARM_MOTOR_IDS[i]],
+                                 receive_timeout=1, 
+                                 receive_fmt="<hhh",
+                                 bitrate=200000) 
                      for i in range(NUM_ARM_MOTORS)]
 
-        self.science_cans = [CANReceiver(channel="can1", filter_ids=[SCIENCE_MOTOR_IDS[i]], # can channel and ids of wheels
-                                 receive_timeout=1, # seconds to wait for message
-                                 receive_fmt="<hhh", # 3 shorts in little-endian format 
-                                 bitrate=200000) # bitrate of can line
+        self.science_cans = [CANReceiver(channel="can1", filter_ids=[SCIENCE_MOTOR_IDS[i]], 
+                                 receive_timeout=1, 
+                                 receive_fmt="<hhh", 
+                                 bitrate=200000) 
                      for i in range(NUM_SCIENCE_MOTORS)]
 
-        # Create the publisher
         self.publisher = self.create_publisher(CMDsFeedback, "/electronics/cmd_feedback", 10)
 
         # Create a subscriber to drive commands
@@ -173,9 +163,9 @@ class CMDPublisher (Node):
         # Create a time to constantly loop and check for data
         self.read_timer = self.create_timer(1.0/float(POLL_RATE), self.read_callback)
 
-        # Create a timer to publish the current data
+        # Create a timer to publish the current data. Otherwise, it will be published after every read
         if not TUNING_PID:
-            self.pub_timer = self.create_timer(1.0/float(PUBLISH_RATE), self.publish_msg)
+            self.pub_timer = self.create_timer(1.0/float(PUBLISH_RATE), self.publish_feedback)
 
         # Log initialisation information
         self.get_logger().debug(f"Initialised the Wheel Publisher class with:"\
