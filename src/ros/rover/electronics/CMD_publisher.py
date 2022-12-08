@@ -185,42 +185,21 @@ class CMDPublisher (Node):
                                 f"- {NUM_SCIENCE_MOTORS} science CMDs"
                                 )
 
-    def construct_message(self, wheel_data: List[CMDFeedback], wheel_pivot_data: List[CMDFeedback], arm_data: List[CMDFeedback], science_data: List[CMDFeedback]):
-        """Constructs a CMDsFeedback data type given the following data
-
-        Args:
-            wheel_data (List[CMDFeedback]): wheel CMD feedback
-            wheel_pivot_data (List[CMDFeedback]): wheel pivot CMD feedback
-            arm_data (List[CMDFeedback]): arm motor CMD feedback
-            science_data (List[CMDFeedback]): science motor CMD feedback
-        """
-        self.message = CMDsFeedback()
-        # create header with frame ID and timestamp
-        header = Header()
-        header.frame_id = "cmd_feedback"
-        header.stamp = self.get_clock().now()
-
-        # Filling the message with the given data
-        self.message.header = header
-        self.message.wheels = wheel_data
-        self.message.wheel_pivots = wheel_pivot_data
-        self.message.arm_motors = arm_data
-        self.message.science_motors = science_data
-
     # Method that looks for any changes in the data from the CAN lines
     def read_callback (self):
         # Loop through each CAN line and receive data
         # Tell the read_cans method what type of motor we are passing it, so it knows what values to fill out
-        wheel_data = self.read_cans(self.wheel_cans, MotorType.WHEEL)
-        wheel_pivot_data = self.read_cans(self.wheel_pivot_cans, MotorType.WHEEL_PIVOT)
-        arm_data = self.read_cans(
+        CMDQueues["wheel"].append(self.read_cans(self.wheel_cans, MotorType.WHEEL))
+        CMDQueues["pivot"].append(self.read_cans(self.wheel_pivot_cans, MotorType.WHEEL_PIVOT))
+        CMDQueues["arm"].append(self.read_cans(
             self.arm_cans[:6], MotorType.ARM_JOINT
             ).extend(
                 self.read_cans(
                     self.arm_cans[-1], MotorType.ARM_EF
-                ))
-        science_data = self.read_cans(self.science_cans, MotorType.SCIENCE)
-        self.construct_message(wheel_data, wheel_pivot_data, arm_data, science_data)
+                )))
+        CMDQueues["sci"].append(self.read_cans(self.science_cans, MotorType.SCIENCE))
+        if TUNING_PID:
+            self.publish_feedback()
             
     def read_cans(self, cans: List[CANReceiver], motor_type: MotorType):
         """Take a list of CANReceivers, read each of them into a CMDFeedback message, 
@@ -275,26 +254,61 @@ class CMDPublisher (Node):
 
                     ros_msgs.append(ros_msg)
 
-        CMDQueues[motor_type].append(ros_msgs)
+        return ros_msgs
 
-    # Callback that reads an input message from the drive commands
-    # Outputs are only valid when a drive message comes through
-    def drive_callback(self, msg):
-        self.ignore_data = msg.speed == 0.0 and msg.steer == 0.0
+    def average_messages(self, queue: deque) -> List[CMDFeedback]:
+        """
+        Take a queue of Lists of CMDFeedback, and average the CMDFeedback at corresponding positions
+        in each list, then return a list of the averaged messages
+        """
+        averages = []
+        queue_len = len(queue)
 
-    # Publishes the current message data that exists
-    def publish_msg (self):
+        # loop over each CMD 
+        for i in range(len(queue[0])):
+            # to store the average values
+            avg_feedback = CMDFeedback()
+            avg_feedback.bus = queue[0][i].bus
+            avg_feedback.id = queue[0][i].id
+
+            # calculate averages
+            avg_feedback.omega = sum(cmds[i].omega for cmds in queue) / queue_len
+            avg_feedback.vel = sum(cmds[i].vel for cmds in queue) / queue_len
+            avg_feedback.duty_cycle = sum(cmds[i].duty_cycle for cmds in queue) / queue_len
+            avg_feedback.current = sum(cmds[i].current for cmds in queue) / queue_len
+            avg_feedback.interval = sum(cmds[i].interval for cmds in queue) / queue_len
+
+            averages.append(avg_feedback)
+
+        return averages
+
+    # Publishes only the most recent message data
+    def compile_feedback (self) -> CMDsFeedback:
         message = CMDsFeedback()
-        if self.ignore_data:
+        message.header = Header()
+        message.header.frame_id = "cmd_publisher"
+        message.header.stamp = self.get_clock().now()
 
-        # Publish the data
-        self.publisher.publish(self.message)
+        if TUNING_PID:
+            # take only the latest value
+            message.wheels = CMDQueues["wheel"][-1]
+            message.wheel_pivots = CMDQueues["pivot"][-1]
+            message.arm_motors = CMDQueues["arm"][-1]
+            message.science_motors = CMDQueues["sci"][-1]
+        else:
+            # average the queue of values
+            message.wheels = self.average_messages(CMDQueues["wheel"])
+            message.wheel_pivots = self.average_messages(CMDQueues["pivot"])
+            message.arm_motors = self.average_messages(CMDQueues["arm"])
+            message.science_motors = self.average_messages(CMDQueues["sci"])
 
+        return message
+
+    # Publishes the average of the last data readings exists
+    def publish_feedback (self):
+        message = self.compile_feedback()
+        self.publisher.publish(message)
     
-    # Clears the current message if nothing has happened in a while
-    def clear_msg (self):
-        self.message = CMDsFeedback()
-     
     # Converts a raw velocity to an RPM
     def convert_omega_to_SI (self, value: int) -> float:
         return value / MAX_INT16 * ENCODER_TO_RAD_PER_SEC
