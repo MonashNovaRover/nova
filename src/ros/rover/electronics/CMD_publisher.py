@@ -3,7 +3,7 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team
 This node receives data from the CMDs, such as
-angular velocity, current, temperature and power, 
+angular velocity, current, temperature and duty_cycle, 
 and is able to publish over ROS. It uses the CAN 
 receiver class to read the data published over the 
 network.
@@ -113,16 +113,12 @@ SCIENCE_MOTOR_IDS = [0x480, 0x490]
 
 # For storing queues of all different data 
 QUEUE_LENGTH = 10  # If not TUNING_PIDS
-CMDFeedbackQueue = namedtuple('CMDFeedbackQueue', ['currents', 'powers', 'v_angulars', 'v_linears', 'temps'])
+CMDFeedbackQueue = namedtuple('CMDFeedbackQueue', ['currents', 'duty_cycles', 'v_angulars', 'v_linears', 'temps', 'intervals'])
 # Hooooooo boy. 
-# So: For each type of motor, we need a list with length corresponding to the number of motors of that type, stored in the below dict.
-# For each motor in the list, we have a number of different relevant values (currents, powers, etc) stored in a namedtuple. Each of these
-# value types has a queue with length defined above
 CMDQueues = {
-    TYPE_MOTOR: [CMDFeedbackQueue(*(deque([], maxlen=QUEUE_LENGTH) for _ in CMDFeedbackQueue._fields))
-                    for _ in range(NUM_TYPE_MOTOR)] 
-                    for TYPE_MOTOR, NUM_TYPE_MOTOR in zip(['wheel', 'pivot', 'arm', 'sci'], 
-                                                            [NUM_WHEELS, PIVOT_STEERING, NUM_ARM_MOTORS, NUM_SCIENCE_MOTORS])
+    TYPE_MOTOR: deque([[CMDFeedback() for _ in range(NUM_TYPE_MOTOR)]], maxlen=QUEUE_LENGTH)
+        for TYPE_MOTOR, NUM_TYPE_MOTOR in zip(['wheel', 'pivot', 'arm', 'sci'], 
+            [NUM_WHEELS, NUM_WHEELS if PIVOT_STEERING else 0, NUM_ARM_MOTORS, NUM_SCIENCE_MOTORS])
 }
 
 # Main CMD Publisher class
@@ -178,12 +174,13 @@ class CMDPublisher (Node):
         self.read_timer = self.create_timer(1.0/float(POLL_RATE), self.read_callback)
 
         # Create a timer to publish the current data
-        self.pub_timer = self.create_timer(1.0/float(PUBLISH_RATE), self.publish_msg)
+        if not TUNING_PID:
+            self.pub_timer = self.create_timer(1.0/float(PUBLISH_RATE), self.publish_msg)
 
         # Log initialisation information
         self.get_logger().debug(f"Initialised the Wheel Publisher class with:"\
                                 f"- {NUM_WHEELS} wheels\n"\
-                                f"- {NUM_WHEELS} wheel pivots\n" if PIVOT_STEERING else ""\
+                                f"- {NUM_WHEELS} wheel pivots\n" if PIVOT_STEERING else "0 wheel pivots"\
                                 f"- {NUM_ARM_MOTORS} arm CMDs\n"\
                                 f"- {NUM_SCIENCE_MOTORS} science CMDs"
                                 )
@@ -225,7 +222,7 @@ class CMDPublisher (Node):
         science_data = self.read_cans(self.science_cans, MotorType.SCIENCE)
         self.construct_message(wheel_data, wheel_pivot_data, arm_data, science_data)
             
-    def read_cans(self, cans: CANReceiver, motor_type: MotorType):
+    def read_cans(self, cans: List[CANReceiver], motor_type: MotorType):
         """Take a list of CANReceivers, read each of them into a CMDFeedback message, 
         then return the list of messages
         
@@ -234,7 +231,7 @@ class CMDPublisher (Node):
         motor_type -- type of motor - determines how/whether we calculate velocity
         Return: List of CANFeedback messages for all the CanReceivers we provided
         """
-        ros_msgs = [None] * 6
+        ros_msgs = []
         for i, can_line in enumerate(cans):
             # Catch for an error that come about with the wheels
             try:
@@ -249,11 +246,12 @@ class CMDPublisher (Node):
                 if can_msg:
                     ros_msg = CMDFeedback()
                     # Read the can data
-                    raw_omega, power, current = can_line.unpack(can_msg.data)
+                    raw_omega, duty_cycle, current, interval = can_line.unpack(can_msg.data)
                     omega = self.convert_omega_to_SI(raw_omega)
 
-                    ros_msg.power = self.convert_power(power)
-                    ros_msg.current = self.conver_current(current)
+                    ros_msg.duty_cycle = self.convert_duty_cycle(duty_cycle)
+                    ros_msg.current = self.convert_current(current)
+                    ros_msg.interval = self.convert_interval(interval)
 
                     if motor_type == MotorType.WHEEL:
                         # Get a negative for wheels on one side due to motor orientation 
@@ -270,18 +268,14 @@ class CMDPublisher (Node):
                         bus = 0
                         
                     ros_msg.omega = omega
-                    
-                    # Update the timestamp
-                    self.last_read = time.time()
 
                     # Get message bus and ID
                     ros_msg.bus = bus   # science and arm messages are on can1, otherwise can0
                     ros_msg.id = (can_msg.arbitration_id >> 4) & 0x3f
-                    # set timestamp on message
-                    ros_msg.time = int(self.last_read * 1000)
 
-                    ros_msgs[i] == ros_msg
+                    ros_msgs.append(ros_msg)
 
+        CMDQueues[motor_type].append(ros_msgs)
 
     # Callback that reads an input message from the drive commands
     # Outputs are only valid when a drive message comes through
@@ -290,8 +284,8 @@ class CMDPublisher (Node):
 
     # Publishes the current message data that exists
     def publish_msg (self):
+        message = CMDsFeedback()
         if self.ignore_data:
-            self.clear_msg()
 
         # Publish the data
         self.publisher.publish(self.message)
@@ -305,10 +299,14 @@ class CMDPublisher (Node):
     def convert_omega_to_SI (self, value: int) -> float:
         return value / MAX_INT16 * ENCODER_TO_RAD_PER_SEC
         
-    # Converts the value of the power to something sensible
+    # Converts the value of the duty_cycle to something sensible
     # Converts a signed integer into a float
-    def convert_power (self, value: int) -> float:
+    def convert_duty_cycle (self, value: int) -> float:
         return abs(value) / MAX_INT16 * 26.0
+
+    # Converts interval to a realistic value
+    def convert_interval(self, value: int) -> float:
+        return value / MAX_INT16
 
     # Converts the value of the current to something sensible
     # Converts a signed integer into a float
