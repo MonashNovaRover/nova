@@ -50,6 +50,10 @@ CMD::~CMD ()
 
 double CMD::get_scaling_factor(double reduction, int ppr, double velocity_factor, double clock_frequency)
 {
+    // Working for the following formula is given on Nuclino or in Jory Braun's FYP (section 8.1.7)
+    // https://app.nuclino.com/Nova-Rover-Team/Arm/Arm-Control-Hardware-36889286-3c59-431e-8860-fbecf757e00c
+    // https://drive.google.com/drive/folders/1_Qy3f84bZfiX-lKIdvLG0Iklqw85T36b
+    // The calculation excludes rounding errors or saturation
     return 4 * ppr * reduction * velocity_factor / (M_PI * clock_frequency);
 }
 
