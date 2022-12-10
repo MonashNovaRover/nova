@@ -51,10 +51,11 @@ from coms_utils.can_interface import CANReceiver
 from rclpy.qos import qos_profile_sensor_data as qos
 
 # For defining different motor types
-from enum import Enum
-from collections import namedtuple
+from enum import IntEnum
 from typing import List
 from collections import deque
+
+import logging
 
 # Are we currently tuning PID constants? If so, poll at a higher frequency, 
 # and publish every value as soon as it's read without taking means.
@@ -72,32 +73,33 @@ WHEEL_RADIUS = 0.122
 END_EFFECTOR_BOLT_PITCH = 1.5e-3
 
 # Maximum value of a 16bit (signed) integer as float for float division
-MAX_INT16 = 32768.
+MAX_INT16 = 0x7FFF
+MAX_UINT16 = 0xFFFF
 
 # ROS timing constants
 POLL_RATE = 100
 PUBLISH_RATE = 20
 
 # Motor types
-class MotorType(Enum):
-    WHEEL: 0
-    WHEEL_PIVOT: 1
-    ARM_JOINT: 2
-    ARM_EF: 3
-    SCIENCE: 4
+class MotorType(IntEnum):
+    WHEEL = 0
+    WHEEL_PIVOT = 1
+    ARM_JOINT = 2
+    ARM_EF = 3
+    SCIENCE = 4
     
 
 # The following are the adjustable parameters that can
 # be configured for the CMDs.
 
 # Motor definitions
-NUM_WHEELS = 6
+NUM_WHEELS = 1#6
 PIVOT_STEERING = False
 NUM_ARM_MOTORS = 7
 NUM_SCIENCE_MOTORS = 2
 
 # The CMD CAN arbitration IDs
-WHEEL_IDS = [0x410, 0x420, 0x430, 0x440, 0x450, 0x460]
+WHEEL_IDS = [0x430]#[0x410, 0x420, 0x430, 0x440, 0x450, 0x460]
 WHEEL_PIVOT_IDS = [None] * NUM_WHEELS
 # TODO: Input true CMD IDs 
 ARM_MOTOR_IDS = [0x410, 0x420, 0x430, 0x440, 0x450, 0x460, 0x470]
@@ -119,41 +121,42 @@ CMDQueues = {
 class CMDPublisher (Node):
     def __init__ (self):
         super().__init__("CMD_publisher")
+        self.get_logger().set_level(logging.DEBUG)
 
         # Store the starting time
-        self.last_read = self.get_clock().now()
+        self.last_read = self.get_clock().now().to_msg()
     
         # Create CAN receivers for each type of motor on the rover
         self.wheel_cans = [CANReceiver(channel="can0", filter_ids=[WHEEL_IDS[i]], # can channel and ids of wheels
                                  receive_timeout=1, # seconds to wait for message
-                                 receive_fmt="<hhh", # 3 shorts in little-endian format 
+                                 receive_fmt="<HHhh", # 4 shorts in little-endian format 
                                  bitrate=200000) # bitrate of can line
                      for i in range(NUM_WHEELS)]
 
         if PIVOT_STEERING:
             self.wheel_pivot_cans = [CANReceiver(channel="can0", filter_ids=[WHEEL_PIVOT_IDS[i]], 
                                     receive_timeout=1, 
-                                    receive_fmt="<hhh", 
+                                    receive_fmt="<HHhh", 
                                     bitrate=200000) 
                         for i in range(NUM_WHEELS)]
 
         self.arm_cans = [CANReceiver(channel="can1", filter_ids=[ARM_MOTOR_IDS[i]],
                                  receive_timeout=1, 
-                                 receive_fmt="<hhh",
+                                 receive_fmt="<HHhh",
                                  bitrate=200000) 
                      for i in range(NUM_ARM_MOTORS)]
 
         self.science_cans = [CANReceiver(channel="can1", filter_ids=[SCIENCE_MOTOR_IDS[i]], 
                                  receive_timeout=1, 
-                                 receive_fmt="<hhh", 
+                                 receive_fmt="<HHhh", 
                                  bitrate=200000) 
                      for i in range(NUM_SCIENCE_MOTORS)]
 
         self.publisher = self.create_publisher(CMDsFeedback, "/electronics/cmd_feedback", 10)
 
         # Create a subscriber to drive commands
-        self.subscription_man = self.create_subscription(DriveInput, "/control/drive_inputs", self.drive_callback, qos)
-        self.subscription_auto = self.create_subscription(DriveInput, "/autonomous/drive_inputs",  self.drive_callback, 10)
+        #self.subscription_man = self.create_subscription(DriveInput, "/control/drive_inputs", self.drive_callback, qos)
+        #self.subscription_auto = self.create_subscription(DriveInput, "/autonomous/drive_inputs",  self.drive_callback, 10)
 
         # Create a time to constantly loop and check for data
         self.read_timer = self.create_timer(1.0/float(POLL_RATE), self.read_callback)
@@ -174,14 +177,22 @@ class CMDPublisher (Node):
     def read_callback (self):
         # Loop through each CAN line and receive data
         # Tell the read_cans method what type of motor we are passing it, so it knows what values to fill out
-        CMDQueues["wheel"].append(self.read_cans(self.wheel_cans, MotorType.WHEEL))
-        CMDQueues["pivot"].append(self.read_cans(self.wheel_pivot_cans, MotorType.WHEEL_PIVOT))
-        CMDQueues["arm"].append(self.read_cans(
-            self.arm_cans[:6], MotorType.ARM_JOINT
+        self.get_logger().debug("READING CMDS")
+        wheel_feedback = self.read_cans(self.wheel_cans, MotorType.WHEEL)
+        if wheel_feedback is not None: 
+            CMDQueues["wheel"].append(wheel_feedback)
+        if PIVOT_STEERING:
+            pivot_feedback = self.read_cans(self.wheel_pivot_cans, MotorType.WHEEL_PIVOT)
+            if pivot_feedback is not None:
+                CMDQueues["pivot"].append()
+        arm_feedback = self.read_cans(
+            self.arm_cans[:(NUM_ARM_MOTORS - 1)], MotorType.ARM_JOINT
             ).extend(
                 self.read_cans(
-                    self.arm_cans[-1], MotorType.ARM_EF
-                )))
+                    [self.arm_cans[-1]], MotorType.ARM_EF
+                ))
+        if 
+        CMDQueues["arm"].append()
         CMDQueues["sci"].append(self.read_cans(self.science_cans, MotorType.SCIENCE))
         if TUNING_PID:
             self.publish_feedback()
@@ -195,9 +206,11 @@ class CMDPublisher (Node):
         motor_type -- type of motor - determines how/whether we calculate velocity
         Return: List of CANFeedback messages for all the CanReceivers we provided
         """
+        self.get_logger().debug(f"Reading cans of type '{motor_type}': {cans}")
         ros_msgs = []
         for i, can_line in enumerate(cans):
             # Catch for an error that come about with the wheels
+            can_msg = None
             try:
                 can_msg = can_line.receive()
                 
@@ -209,13 +222,14 @@ class CMDPublisher (Node):
                 # If a message exists
                 if can_msg:
                     ros_msg = CMDFeedback()
+
                     # Read the can data
                     raw_omega, duty_cycle, current, interval = can_line.unpack(can_msg.data)
                     omega = self.convert_omega_to_SI(raw_omega)
 
                     ros_msg.duty_cycle = self.convert_duty_cycle(duty_cycle)
                     ros_msg.current = self.convert_current(current)
-                    ros_msg.interval = self.convert_interval(interval)
+                    ros_msg.interval = float(interval)
 
                     if motor_type == MotorType.WHEEL:
                         # Get a negative for wheels on one side due to motor orientation 
@@ -238,6 +252,8 @@ class CMDPublisher (Node):
                     ros_msg.id = (can_msg.arbitration_id >> 4) & 0x3f
 
                     ros_msgs.append(ros_msg)
+                else:
+                    return None
 
         return ros_msgs
 
@@ -248,6 +264,8 @@ class CMDPublisher (Node):
         """
         averages = []
         queue_len = len(queue)
+
+        self.get_logger().debug(f"queue: {queue}")
 
         # loop over each CMD 
         for i in range(len(queue[0])):
@@ -272,7 +290,7 @@ class CMDPublisher (Node):
         message = CMDsFeedback()
         message.header = Header()
         message.header.frame_id = "cmd_publisher"
-        message.header.stamp = self.get_clock().now()
+        message.header.stamp = self.get_clock().now().to_msg()
 
         if TUNING_PID:
             # take only the latest value
@@ -303,14 +321,10 @@ class CMDPublisher (Node):
     def convert_duty_cycle (self, value: int) -> float:
         return abs(value) / MAX_INT16 * 26.0
 
-    # Converts interval to a realistic value
-    def convert_interval(self, value: int) -> float:
-        return value / MAX_INT16
-
     # Converts the value of the current to something sensible
     # Converts a signed integer into a float
     def convert_current (self, value: int) -> float:
-        return float(abs(value)) / 4096.0 * 2.5 * 10.0
+        return float(value) / 4096.0 * 2.5 * 10.0
 
     # Converts the angular velocity value to a speed in m/s based on the wheel radius
     def convert_angular_to_linear_wheel (self, omega: float) -> float:
