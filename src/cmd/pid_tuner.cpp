@@ -115,7 +115,7 @@ void PIDTuner::publish_velocity () {
     // Update the IDs
     message.bus = this->bus;
     message.id = this->id;
-    message.time = this->count;
+    //message.time = this->count;
 
     // Get the data
     CMDData data = this->get_cmd()->receive_feedback();
