@@ -48,7 +48,7 @@ EDITED:		13/09/2022
 struct Vector2 {
 
     //------------------------------------------------------------//
-    public:
+public:
 
     // The position values
     float x, y;
@@ -60,6 +60,22 @@ struct Vector2 {
     }
 };
 
+class Wheel
+{
+public:
+    int id;
+    double angle;
+    CMD *cmdWheel;
+    CMD *cmdPivot;
+
+    Wheel(int id, CMD *cmdWheel, CMD *cmdPivot)
+    {
+        this->id = id;
+        this->cmdWheel = cmdWheel;
+        this->cmdPivot = cmdPivot;
+        this->angle = 0.0;
+    }
+};
 
 // Main subscriber class that receives drives commands and interfaces with the wheel
 class Driver : public rclcpp::Node {
@@ -67,10 +83,8 @@ class Driver : public rclcpp::Node {
     // The number of wheels on the rover
     static const int NUM_WHEELS = 6;
 
-
     //------------------------------------------------------------//
-    private:
-
+private:
     // Stores the subscriber for the drive commands (manual)
     rclcpp::Subscription<core::msg::DriveInput>::SharedPtr subscription_cmds_man;
 
@@ -90,12 +104,11 @@ class Driver : public rclcpp::Node {
     // A flag for whether to use autonomous state or not
     bool is_autonomous = false;
 
-    // An array of pointers to CMD instances
-    CMD* wheels[NUM_WHEELS];
+    // An array of pointers to Wheel instances
+    Wheel *wheels[NUM_WHEELS];
 
-    
     //------------------------------------------------------------//
-    private:
+private:
 
     /// @brief      Sends commands to the wheels using the wheel classes
     /// @param      msg - A pointer to the drive message
@@ -131,7 +144,7 @@ class Driver : public rclcpp::Node {
     /// @param      speed - Speed of each driven wheel
     /// @param      steer - Direction and amount of steering
     void fill_wheel_velocities(float wheel_velocities[NUM_WHEELS], float radius, float speed, float steer);
-    
+
     /// @brief      Calculates the position of the wheel in relation to the wheelbase centre
     /// @param      id - The identification of the wheel
     /// @returns    The position vector (x, y)
@@ -142,15 +155,14 @@ class Driver : public rclcpp::Node {
     /// @param      radius - The turning radius of the rover [m]
     /// @returns    The distance between wheel and the turning centre [m]
     float get_wheel_distance (Vector2 pos, float radius);
-	
+
     /// @brief callback for when drive inputs subscription is exceeded
     void inputs_deadline_exceeded();
 
     //------------------------------------------------------------//
-    public:
+public:
 
     /// @brief      Default constructor function that starts up the node
     Driver();
     
 };
-
