@@ -37,20 +37,22 @@ void DriveInputs::publish_cmds () {
 
     // Create the message
     auto message = core::msg::DriveInput();
-    
+
     if (!prev_msg_received) return;
 
     // Set up the values if the controller is not locked
-    if (!locked && connected) {
-        message.speed = input_axis_y * multiplier_speed * trigger_speed;
-        message.steer = input_axis_x;
-    
-    // Otherwise print lock message
+    if (!locked && connected)
+    {
+        message.speed = right_input_axis_y * multiplier_speed * trigger_speed;
+        message.x_steer = left_input_axis_x;
+        message.y_steer = left_input_axis_y;
+
+        // Otherwise print lock message
     } else if (locked) {
         //cout << "Controller LOCKED." << endl;
         fflush(stdout);
     }
-    
+
     // Publish the drive commands
     publisher->publish(message);
 
@@ -64,7 +66,7 @@ void DriveInputs::deadline_exceeded (){
     // Clear the old inputs
     input_axis_y = 0.0;
     input_axis_x = 0.0;
-    
+
     Print::print("No gamepad input received");
     prev_msg_received = false;
 }
@@ -104,13 +106,13 @@ void DriveInputs::input_callback (const core::msg::InputGamepad::SharedPtr msg) 
         if (msg->btn_back_state == 1) {
             if (!locked)
                 Print::print("Gamepad Locked");
-            locked = true;   
+            locked = true;
         } if (msg->btn_start_state == 1) {
             if (locked)
                 Print::print("Gamepad Unlocked");
-            locked = false;          
+            locked = false;
         }
-        
+
 
         // Prevent changing states if the controller is locked
         if (!locked) {
@@ -120,13 +122,21 @@ void DriveInputs::input_callback (const core::msg::InputGamepad::SharedPtr msg) 
                 adjust_multiplier(multiplier_speed, true);
             else if (msg->btn_dpad_d_state == 1)
                 adjust_multiplier(multiplier_speed, false);
+
+            if (msg->trg_l_val > 0.8)
+            {
+                drive_mode = STRAFE;
+            }
+            else
+            {
+                drive_mode = RADIAL;
+            }
         }
-    }  
+    }
 
     // Get the connection state
-    connected = msg->connected;       
+    connected = msg->connected;
 }
-
 
 // Main constructor that sets up the node
 DriveInputs::DriveInputs() : Node("drive_inputs")
@@ -139,7 +149,7 @@ DriveInputs::DriveInputs() : Node("drive_inputs")
 
     // Create the publisher with a best effort QoS policy
     publisher = this->create_publisher<core::msg::DriveInput>("/control/drive_inputs", qos);
-    
+
     //Sets subscriber options before subscription is made
     subscriber_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void {
         deadline_exceeded();
@@ -175,7 +185,6 @@ DriveInputs::DriveInputs() : Node("drive_inputs")
     Print::print("", true);
     Print::print("Gamepad Locked");
 }
-
 
 //  Main function called when the script execution begins
 int main(int argc, char **argv)
