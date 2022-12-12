@@ -62,6 +62,11 @@ TUNING_PID = False
 # Mathematical PI
 PI = 3.1415926535897932384
 
+# Current conversion constants
+PPR = 0   # Pulses per revolution
+FCY = 0   # Frequency
+VELOCITY_FACTOR = 0.7   # Set in control/drive_inputs
+
 # The value that 1.0 velocity maps to in radians per second
 # Calculated using a Tachometer
 ENCODER_TO_RAD_PER_SEC = 9.728465
@@ -72,7 +77,6 @@ END_EFFECTOR_BOLT_PITCH = 1.5e-3
 
 # Maximum value of a 16bit (signed) integer as float for float division
 MAX_INT16 = 0x7FFF
-MAX_UINT16 = 0xFFFF
 
 # ROS timing constants
 POLL_RATE = 100
@@ -318,17 +322,17 @@ class CMDPublisher (Node):
     
     # Converts a raw velocity to an RPM
     def convert_omega_to_SI (self, value: int) -> float:
-        return value / MAX_INT16 * ENCODER_TO_RAD_PER_SEC
+        return (value / MAX_INT16) / (4 * PPR * VELOCITY_FACTOR) / (PI * FCY) 
         
     # Converts the value of the duty_cycle to something sensible
     # Converts a signed integer into a float
     def convert_duty_cycle (self, value: int) -> float:
-        return abs(value) / MAX_INT16 * 26.0
+        return 26.0 * value / 0x8400
 
     # Converts the value of the current to something sensible
     # Converts a signed integer into a float
     def convert_current (self, value: int) -> float:
-        return float(value) / 4096.0 * 2.5 * 10.0
+        return float(value) / 1600
 
     # Converts the angular velocity value to a speed in m/s based on the wheel radius
     def convert_angular_to_linear_wheel (self, omega: float) -> float:
