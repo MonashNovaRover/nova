@@ -33,7 +33,7 @@ TODO:
 PACKAGE: 	electronics
 AUTHOR(S):	Harrison Verrios, Liam Whittle, Max Tory
 CREATION:	18/02/2022
-EDITED:		10/10/2022
+EDITED:		12/12/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
@@ -180,21 +180,21 @@ class CMDPublisher (Node):
         # Tell the read_cans method what type of motor we are passing it, so it knows what values to fill out
         self.get_logger().debug("READING CMDS")
         wheel_feedback = self.read_cans(self.wheel_cans, MotorType.WHEEL)
-        if wheel_feedback is not None: 
-            CMDQueues["wheel"].append(wheel_feedback)
+        sci_feedback = self.read_cans(self.science_cans, MotorType.SCIENCE)
+        arm_feedback = self.read_cans(self.arm_cans[:(NUM_ARM_MOTORS - 1)], MotorType.ARM_JOINT)
+        arm_ef_feedback = self.read_cans([self.arm_cans[-1]], MotorType.ARM_EF)
         if PIVOT_STEERING:
             pivot_feedback = self.read_cans(self.wheel_pivot_cans, MotorType.WHEEL_PIVOT)
-            if pivot_feedback is not None:
-                CMDQueues["pivot"].append()
-        arm_feedback = self.read_cans(
-            self.arm_cans[:(NUM_ARM_MOTORS - 1)], MotorType.ARM_JOINT
-            ).extend(
-                self.read_cans(
-                    [self.arm_cans[-1]], MotorType.ARM_EF
-                ))
-        if 
-        CMDQueues["arm"].append()
-        CMDQueues["sci"].append(self.read_cans(self.science_cans, MotorType.SCIENCE))
+        else:
+            pivot_feedback = None
+        if wheel_feedback is not None: 
+            CMDQueues["wheel"].append(wheel_feedback)
+        if pivot_feedback is not None:
+            CMDQueues["pivot"].append()
+        if arm_feedback is not None and arm_ef_feedback is not None:
+            CMDQueues["arm"].append(arm_feedback.extend(arm_ef_feedback))
+        if sci_feedback is not None:
+            CMDQueues["sci"].append(sci_feedback)
         if TUNING_PID:
             self.publish_feedback()
             
