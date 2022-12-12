@@ -25,9 +25,10 @@ TOPICS:
   - /control/drive_inputs    [DriveInput]  [Subscribed]
   - /autonomous/drive_inputs [DriveInput]  [Subscribed]
 TODO:
-  - Get temperature data from CMDs?
-  - Confirm: should the "interval" in the averaged data
-    be an average or a sum?
+  - Complete modification of queue addition method to
+    prevent crashes
+  - Add timestamp to each individual CMD message 
+  - Fix unit conversions based on Jory's documentation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	electronics
 AUTHOR(S):	Harrison Verrios, Liam Whittle, Max Tory
