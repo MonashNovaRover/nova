@@ -25,9 +25,6 @@ TOPICS:
   - /control/drive_inputs    [DriveInput]  [Subscribed]
   - /autonomous/drive_inputs [DriveInput]  [Subscribed]
 TODO:
-  - Complete modification of queue addition method to
-    prevent crashes
-  - Add timestamp to each individual CMD message 
   - Fix unit conversions based on Jory's documentation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	electronics
@@ -217,12 +214,17 @@ class CMDPublisher (Node):
                 
             # In case of an eror, just skip and continue
             except Exception as e:
-                self.get_logger().warn("Error reading CAN lines! Continuing...")
+                self.get_logger().warn("Error reading CAN lines! Awaiting next poll...")
+                return None
             # In case of no error, get data from the can msg
             else:
                 # If a message exists
                 if can_msg:
                     ros_msg = CMDFeedback()
+
+                    header = Header()
+                    header.frame_id = f"CMD_{motor_type}_{i}"
+                    header.stamp = self.get_clock().now().to_msg()
 
                     # Read the can data
                     raw_omega, duty_cycle, current, interval = can_line.unpack(can_msg.data)
@@ -230,7 +232,7 @@ class CMDPublisher (Node):
 
                     ros_msg.duty_cycle = self.convert_duty_cycle(duty_cycle)
                     ros_msg.current = self.convert_current(current)
-                    ros_msg.interval = float(interval)
+                    ros_msg.interval = interval
 
                     if motor_type == MotorType.WHEEL:
                         # Get a negative for wheels on one side due to motor orientation 
@@ -254,6 +256,7 @@ class CMDPublisher (Node):
 
                     ros_msgs.append(ros_msg)
                 else:
+                    # If any message is None, return None for all
                     return None
 
         return ros_msgs
