@@ -4,6 +4,9 @@
 # back to the PID tuner, for display on the GUI, and for dead
 # reckoning
 
+# Header
+std_msgs/Header header
+
 # The Bus Index of the CMD
 int8 bus
 
