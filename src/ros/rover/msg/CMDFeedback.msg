@@ -26,4 +26,4 @@ float64 duty_cycle
 float64 current
 
 # Encoder interval
-float64 interval
+int interval
