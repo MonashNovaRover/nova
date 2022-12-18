@@ -25,12 +25,12 @@ TOPICS:
   - /control/drive_inputs    [DriveInput]  [Subscribed]
   - /autonomous/drive_inputs [DriveInput]  [Subscribed]
 TODO:
-  - Fix unit conversions based on Jory's documentation
+  - 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	electronics
 AUTHOR(S):	Harrison Verrios, Liam Whittle, Max Tory
 CREATION:	18/02/2022
-EDITED:		12/12/2022
+EDITED:		12/16/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
@@ -52,20 +52,21 @@ from rclpy.qos import qos_profile_sensor_data as qos
 from enum import IntEnum
 from typing import List
 from collections import deque
+from time import perf_counter
 
 import logging
 
 # Are we currently tuning PID constants? If so, poll at a higher frequency, 
 # and publish every value as soon as it's read without taking means.
-TUNING_PID = False
+TUNING_PID = True
 
 # Mathematical PI
 PI = 3.1415926535897932384
 
 # Current conversion constants
-PPR = 0   # Pulses per revolution
-FCY = 0   # Frequency
-VELOCITY_FACTOR = 0.7   # Set in control/drive_inputs
+PPR = 256   # Pulses per revolution
+FCY = 30e6   # CMD instruction frequency
+VELOCITY_FACTOR = 150   # Set in control/drive/driver.cpp in arm-control branch
 
 # The value that 1.0 velocity maps to in radians per second
 # Calculated using a Tachometer
