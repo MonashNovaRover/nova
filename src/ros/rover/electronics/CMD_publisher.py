@@ -25,7 +25,11 @@ TOPICS:
   - /control/drive_inputs    [DriveInput]  [Subscribed]
   - /autonomous/drive_inputs [DriveInput]  [Subscribed]
 TODO:
-  - 
+  - Set different VELOCITY_FACTOR for each CMD type
+TO IMPROVE:
+  - Ros parameters to store CMD constants (velocity
+    factor, PPR, etc)
+  - do unit conversions more nicely with less dependencies
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	electronics
 AUTHOR(S):	Harrison Verrios, Liam Whittle, Max Tory
@@ -64,9 +68,12 @@ TUNING_PID = True
 PI = 3.1415926535897932384
 
 # Current conversion constants
-PPR = 256   # Pulses per revolution
+CHASSIS_PPR = 256   # Pulses per revolution
+ARM_PPR = 512   
 FCY = 30e6   # CMD instruction frequency
-VELOCITY_FACTOR = 150   # Set in control/drive/driver.cpp in arm-control branch
+CHASSIS_VEL_FAC = 150   # Set in control/drive/driver.cpp in arm-control branch
+ARM_LOW_VEL_FAC = 75   # For lower arm joints
+WRIST_VEL_FAC = 50   # For wrist joints
 
 # The value that 1.0 velocity maps to in radians per second
 # Calculated using a Tachometer
@@ -133,7 +140,7 @@ CONNECTED = {
 class CMDPublisher (Node):
     def __init__ (self):
         super().__init__("CMD_publisher")
-        self.get_logger().set_level(logging.DEBUG)
+        self.get_logger().set_level(logging.INFO)
 
         # Store the starting time
         self.last_read = self.get_clock().now().to_msg()
@@ -252,6 +259,7 @@ class CMDPublisher (Node):
                 # If a message exists
                 if can_msg:
                     ros_msg = CMDFeedback()
+                    ros_msg.id = (can_msg.arbitration_id >> 4) & 0x3f
 
                     header = Header()
                     header.frame_id = f"CMD_{motor_type}_{i}"
@@ -259,7 +267,16 @@ class CMDPublisher (Node):
 
                     # Read the can data
                     raw_omega, duty_cycle, current, interval = can_line.unpack(can_msg.data)
-                    omega = self.convert_omega_to_SI(raw_omega)
+                    if motor_type == MotorType.ARM_JOINT or motor_type == MotorType.ARM_EF:
+                        # Arm conversion constants
+                        ppr = ARM_PPR
+                        vel_fac = ARM_LOW_VEL_FAC if ros_msg.id <= 3 else WRIST_VEL_FAC
+                    else:
+                        # Chassis and (presumed) sci constants
+                        ppr = CHASSIS_PPR
+                        vel_fac = CHASSIS_VEL_FAC
+
+                    omega = self.convert_omega_to_SI(raw_omega, ppr, vel_fac)
 
                     ros_msg.duty_cycle = self.convert_duty_cycle(duty_cycle)
                     ros_msg.current = self.convert_current(current)
@@ -283,7 +300,6 @@ class CMDPublisher (Node):
 
                     # Get message bus and ID
                     ros_msg.bus = bus   # science and arm messages are on can1, otherwise can0
-                    ros_msg.id = (can_msg.arbitration_id >> 4) & 0x3f
 
                     ros_msgs.append(ros_msg)
                 else:
@@ -348,8 +364,8 @@ class CMDPublisher (Node):
         self.publisher.publish(message)
     
     # Converts a raw velocity to an RPM
-    def convert_omega_to_SI (self, value: int) -> float:
-        return (value / MAX_INT16) / (4 * PPR * VELOCITY_FACTOR) / (PI * FCY) 
+    def convert_omega_to_SI (self, value: int, ppr: int, vel_fac: int) -> float:
+        return (value / MAX_INT16) / (4 * ppr * vel_fac) / (PI * FCY) 
         
     # Converts the value of the duty_cycle to something sensible
     # Converts a signed integer into a float
