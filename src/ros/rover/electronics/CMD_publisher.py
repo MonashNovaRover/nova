@@ -120,6 +120,15 @@ CMDQueues = {
             [NUM_WHEELS, NUM_WHEELS if PIVOT_STEERING else 0, NUM_ARM_MOTORS, NUM_SCIENCE_MOTORS])
 }
 
+# Which CMD types are currently connected?
+CONNECTED = {
+        MotorType.WHEEL: True,
+        MotorType.WHEEL_PIVOT: False,
+        MotorType.ARM_JOINT: False,
+        MotorType.ARM_EF: False,
+        MotorType.SCIENCE: False
+}
+
 # Main CMD Publisher class
 class CMDPublisher (Node):
     def __init__ (self):
@@ -180,11 +189,16 @@ class CMDPublisher (Node):
     def read_callback (self):
         # Loop through each CAN line and receive data
         # Tell the read_cans method what type of motor we are passing it, so it knows what values to fill out
+        t1 = perf_counter()
         self.get_logger().debug("READING CMDS")
         wheel_feedback = self.read_cans(self.wheel_cans, MotorType.WHEEL)
+        t2 = perf_counter()
         sci_feedback = self.read_cans(self.science_cans, MotorType.SCIENCE)
+        t3 = perf_counter()
         arm_feedback = self.read_cans(self.arm_cans[:(NUM_ARM_MOTORS - 1)], MotorType.ARM_JOINT)
+        t4 = perf_counter()
         arm_ef_feedback = self.read_cans([self.arm_cans[-1]], MotorType.ARM_EF)
+        t5 = perf_counter()
         if PIVOT_STEERING:
             pivot_feedback = self.read_cans(self.wheel_pivot_cans, MotorType.WHEEL_PIVOT)
         else:
@@ -199,6 +213,13 @@ class CMDPublisher (Node):
             CMDQueues["sci"].append(sci_feedback)
         if TUNING_PID:
             self.publish_feedback()
+        t6 = perf_counter()
+        self.get_logger().debug(f"Performance report:\n"
+                f"Wheels took {t2 -t1}s\n"
+                f"SCI took {t3 - t2}s\n"
+                f"arm took {t4 - t3}s\n"
+                f"arm ef took {t5 - t4}s\n"
+                f"The rest took {t6 - t5}s")
             
     def read_cans(self, cans: List[CANReceiver], motor_type: MotorType):
         """Take a list of CANReceivers, read each of them into a CMDFeedback message, 
@@ -210,6 +231,11 @@ class CMDPublisher (Node):
         Return: List of CANFeedback messages for all the CanReceivers we provided
         """
         self.get_logger().debug(f"Reading cans of type '{motor_type}': {cans}")
+
+        if not CONNECTED[motor_type]:
+            # This motor is not connected
+            return None
+
         ros_msgs = []
         for i, can_line in enumerate(cans):
             # Catch for an error that come about with the wheels
@@ -237,7 +263,7 @@ class CMDPublisher (Node):
 
                     ros_msg.duty_cycle = self.convert_duty_cycle(duty_cycle)
                     ros_msg.current = self.convert_current(current)
-                    ros_msg.interval = interval
+                    ros_msg.interval = int(interval)
 
                     if motor_type == MotorType.WHEEL:
                         # Get a negative for wheels on one side due to motor orientation 
@@ -288,7 +314,7 @@ class CMDPublisher (Node):
             avg_feedback.vel = sum(cmds[i].vel for cmds in queue) / queue_len
             avg_feedback.duty_cycle = sum(cmds[i].duty_cycle for cmds in queue) / queue_len
             avg_feedback.current = sum(cmds[i].current for cmds in queue) / queue_len
-            avg_feedback.interval = sum(cmds[i].interval for cmds in queue) / queue_len
+            avg_feedback.interval = int(sum(cmds[i].interval for cmds in queue) / queue_len)
 
             averages.append(avg_feedback)
 
