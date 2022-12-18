@@ -127,15 +127,6 @@ CMDQueues = {
             [NUM_WHEELS, NUM_WHEELS if PIVOT_STEERING else 0, NUM_ARM_MOTORS, NUM_SCIENCE_MOTORS])
 }
 
-# Which CMD types are currently connected?
-CONNECTED = {
-        MotorType.WHEEL: True,
-        MotorType.WHEEL_PIVOT: False,
-        MotorType.ARM_JOINT: False,
-        MotorType.ARM_EF: False,
-        MotorType.SCIENCE: False
-}
-
 # Main CMD Publisher class
 class CMDPublisher (Node):
     def __init__ (self):
@@ -147,26 +138,26 @@ class CMDPublisher (Node):
     
         # Create CAN receivers for each type of motor on the rover
         self.wheel_cans = [CANReceiver(channel="can0", filter_ids=[WHEEL_IDS[i]], # can channel and ids of wheels
-                                 receive_timeout=1, # seconds to wait for message
+                                 receive_timeout=0.003, # seconds to wait for message
                                  receive_fmt="<HHhh", # 4 shorts in little-endian format 
                                  bitrate=200000) # bitrate of can line
                      for i in range(NUM_WHEELS)]
 
         if PIVOT_STEERING:
             self.wheel_pivot_cans = [CANReceiver(channel="can0", filter_ids=[WHEEL_PIVOT_IDS[i]], 
-                                    receive_timeout=1, 
+                                    receive_timeout=0.003, 
                                     receive_fmt="<HHhh", 
                                     bitrate=200000) 
                         for i in range(NUM_WHEELS)]
 
         self.arm_cans = [CANReceiver(channel="can1", filter_ids=[ARM_MOTOR_IDS[i]],
-                                 receive_timeout=1, 
+                                 receive_timeout=0.003, 
                                  receive_fmt="<HHhh",
                                  bitrate=200000) 
                      for i in range(NUM_ARM_MOTORS)]
 
         self.science_cans = [CANReceiver(channel="can1", filter_ids=[SCIENCE_MOTOR_IDS[i]], 
-                                 receive_timeout=1, 
+                                 receive_timeout=0.003, 
                                  receive_fmt="<HHhh", 
                                  bitrate=200000) 
                      for i in range(NUM_SCIENCE_MOTORS)]
@@ -238,10 +229,6 @@ class CMDPublisher (Node):
         Return: List of CANFeedback messages for all the CanReceivers we provided
         """
         self.get_logger().debug(f"Reading cans of type '{motor_type}': {cans}")
-
-        if not CONNECTED[motor_type]:
-            # This motor is not connected
-            return None
 
         ros_msgs = []
         for i, can_line in enumerate(cans):
