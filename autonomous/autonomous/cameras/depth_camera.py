@@ -22,8 +22,6 @@ class DepthCamera(Thread):
         else:
             self.publisher = None
 
-        self.ar_tracker = ArTracker()
-
         self.running = True
 
         self.callback = callback
@@ -35,10 +33,6 @@ class DepthCamera(Thread):
         self.serial_number = serial_number
         self.config.enable_device(self.serial_number)
 
-        self.pipeline_wrapper = rs.pipeline_wrapper(self.pipeline)
-        self.pipeline_profile = self.config.resolve(self.pipeline_wrapper)
-        self.device = self.pipeline_profile.get_device()
-
         # enable streams for depth and color
         self.config.enable_stream(rs.stream.depth, rs.format.z16, 30)
         self.config.enable_stream(rs.stream.color, rs.format.bgr8, 30)
@@ -48,15 +42,15 @@ class DepthCamera(Thread):
 
         # Get stream profile and camera intrinsics
         self.profile = self.pipeline.get_active_profile()
-        self.depth_profile = rs.video_stream_profile(self.profile.get_stream(rs.stream.depth))
-        self.depth_intrinsics = self.depth_profile.get_intrinsics()
-        # w, h = self.depth_intrinsics.width, self.depth_intrinsics.height
+        self.color_profile = rs.video_stream_profile(self.profile.get_stream(rs.stream.color))
+        self.color_intrinsics = self.color_profile.get_intrinsics()
+
+        self.ar_tracker = ArTracker(self.color_intrinsics, depth_cam_frame_id='d435_1')
 
         # Processing blocks
         self.pc = rs.pointcloud()
         self.decimate = rs.decimation_filter()
         self.decimate.set_option(rs.option.filter_magnitude, 2)
-        self.colorizer = rs.colorizer()
 
     def run(self):
         while self.running:
@@ -86,15 +80,11 @@ class DepthCamera(Thread):
         color_frame = frames.get_color_frame()
         depth_frame = self.decimate.process(depth_frame)
 
-        # Grab new intrinsics (may be changed by decimation)
-        # depth_intrinsics = rs.video_stream_profile(depth_frame.profile).get_intrinsics()
-
         color_image = np.asanyarray(color_frame.get_data())
         self.ar_tracker(color_image)
-        mapped_frame, color_source = color_frame, color_image
 
         points = self.pc.calculate(depth_frame)
-        self.pc.map_to(mapped_frame)
+        self.pc.map_to(color_frame)
 
         # Point-cloud data to arrays
         v, t = points.get_vertices(), points.get_texture_coordinates()
