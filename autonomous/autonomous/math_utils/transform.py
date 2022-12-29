@@ -20,8 +20,7 @@ Raw data from the depth camera:
 
 
 import numpy as np
-from geometry_msgs.msg import Quaternion
-from nav_msgs.msg import Odometry
+from geometry_msgs.msg import Quaternion, Transform
 
 
 class Q:
@@ -47,7 +46,7 @@ def camera_extrinsics():
     return np.array(m)
 
 
-def quat2mat(q):
+def quat2mat(q: Q):
     """
     This function is adapted from example.h in librealsense
     :param q: q is a Q quaternion with respect to the left handed coordinate system described above
@@ -59,12 +58,11 @@ def quat2mat(q):
      [2 * q.x * q.z - 2 * q.y * q.w, 2 * q.y * q.z + 2 * q.x * q.w, 1 - 2 * q.x * q.x - 2 * q.y * q.y]]
     return np.array(m)
 
-def pose_msg_to_quat(pose_msg):
-    
-    qx = pose_msg.pose.pose.orientation.x
-    qy = pose_msg.pose.pose.orientation.y
-    qz = pose_msg.pose.pose.orientation.z
-    qw = pose_msg.pose.pose.orientation.w
+def transform_to_quat(transform: Transform):
+    qx = transform.rotation.x
+    qy = transform.rotation.y
+    qz = transform.rotation.z
+    qw = transform.rotation.w
 
     return Q(qx, qy, qz, qw)
     
@@ -102,14 +100,14 @@ def euler_to_quat(euler_angles):
     return qx, qy, qz, qw
     
 
-def quat_to_euler(pose_msg):
+def quat_to_euler(transform: Transform):
     """
     take a pose message, get the quaternion and convert it to Euler angles. Maths shamelessly
     stolen from: 
     https://math.stackexchange.com/questions/2975109/how-to-convert-euler-angles-to-quaternions-and-get-the-same-euler-angles-back-fr
     """
 
-    q = pose_msg_to_quat(pose_msg)
+    q = transform_to_quat(transform)
     # getting pitch
     t2 = 2 * (q.w*q.y - q.z*q.x)
     t2 = 1 if t2 > 1 else t2
@@ -126,14 +124,14 @@ def quat_to_euler(pose_msg):
     return pitch, roll, yaw
 
 
-def transform_points(pose_msg: Odometry, pts: np.array) -> np.array:
+def transform_points(transform: Transform, pts: np.array) -> np.array:
     """
     pose_msg: nav_msgs.msg.Odometry message
     pts: numpy array with shape (n, 3)
     """
     if len(pts) != 0:
-        pts = transform_from_quat(pose_msg.pose.pose.orientation, pts)
-    return pts + [pose_msg.pose.pose.position.x, pose_msg.pose.pose.position.y, pose_msg.pose.pose.position.z]
+        pts = transform_from_quat(transform.rotation, pts)
+    return pts + [transform.translation.x, transform.translation.y, transform.translation.z]
 
 
 def transform_from_quat(quat: Quaternion, pts: np.array) -> np.array:
