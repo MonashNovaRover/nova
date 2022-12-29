@@ -37,6 +37,9 @@ from config.runtime_params import max_fov_angle, max_point_depth, max_safe_obsta
     obstacle_halve_value, obstacle_ignore_value
 from scipy.signal import convolve2d
 
+from geometry_msgs.msg import TransformStamped
+from tf2_ros import TransformBroadcaster
+
 
 class FlatMapper(Mapper):
     def __init__(
@@ -60,17 +63,40 @@ class FlatMapper(Mapper):
             planner=planner,
             camera=camera
         )
-        self.planning_resolution = resolution
-        self.detection_resolution = detection_resolution
+
+        # For moving the map as we navigate
+        self.tf_map_offset = TransformBroadcaster(self)
+
+        self.planning_resolution = resolution     # resolution of occupancy grid for path planning
+        self.detection_resolution = detection_resolution    # resolution of obstacle deteciton grid
         self.resolution_ratio = int(self.planning_resolution / self.detection_resolution)
         self.detection_length = int(
             np.ceil((max_point_depth / self.detection_resolution) / self.resolution_ratio) * self.resolution_ratio)
         self.detection_width = int(np.ceil(2 * self.detection_length * np.tan(max_fov_angle)))
+
+        self.offset = None  # Sets the position offset of the map in the global frame
         self.initialise_map()
-        self.offset = [0, 0]  # Sets the position offset of the map in the global frame
 
     def initialise_map(self):
         self._map = Grid2D(self.length, self.width, self.planning_resolution)
+        self.set_offset(0, 0)
+
+    def set_offset(self, x, y):
+        """
+        Save new map offset x and y coordinates. These are the offset of the map frame from the 'world' frame.
+        Broadcasts the new transform to tf2
+        """
+        self.offset = [x, y]
+        t = TransformStamped()
+        t.header.stamp = self.get_clock().now().to_msg()
+        t.header.frame_id = 'map'
+        t.child_frame_id = 'local_map'
+
+        # For now we assume the map frame never needs to rotate or move in z axis
+        t.transform.translation.x = float(x)
+        t.transform.translation.y = float(y)
+
+        self.tf_map_offset.sendTransform(t)
 
     def get_detection_map_indexes(self, points):
         """
