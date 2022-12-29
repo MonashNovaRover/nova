@@ -28,9 +28,7 @@ class Grid2D(Node):
         accurately before downscaling to a map we can plan on.
         """
 
-        super().__init__("occupancy_grid_publisher")
-        self.publisher = self.create_publisher(OccupancyGrid, occupancy_grid_topic, qos)
-
+        super().__init__("grid_2d")
         self.length = length
         self.width = width
         self.resolution = resolution
@@ -70,11 +68,11 @@ class Grid2D(Node):
         temp_map[temp_map > 100] = 100
         return temp_map.transpose().flatten().astype(int).tolist()
 
-    def publish_grid(self, offset):
+    def publish_grid(self):
         length = int(self.length / self.resolution)
         width = int(self.width / self.resolution)
-        x = (-self.length / 2) + offset[0]
-        y = (-self.width / 2) + offset[1]
+        x = -self.length / 2
+        y = -self.width / 2
         self.grid_pub.publish_grid(self.resolution, length, width, x, y, self.map_as_sequence())
 
     def get_full_indexes(self, points):

@@ -102,7 +102,7 @@ def create_cloud_color(points):
                         ]
      
     header = Header()
-    header.frame_id = main_frame
+    header.frame_id = 'd435_1'
     t = Time()
     header.stamp = t
     
