@@ -144,21 +144,50 @@ def transform_from_quat(quat: Quaternion, pts: np.array) -> np.array:
     return pts
 
 
-def transform_points_no_yaw(pose_msg, pts):
+def transform_points_no_yaw(transform: Transform, pts):
     """
     Translates points to their x, y and z coordinates assuming that there is no yaw
     """
-    pitch, roll, yaw = quat_to_euler(pose_msg)
+    pitch, roll, yaw = quat_to_euler(transform)
     if len(pts) == 0:
         return pts
     return transform_euler((pitch, roll, 0), pts)
 
 
-def transform_yaw(pose_msg, pts):
+def transform_yaw(transform, pts):
     """
     Finishes the above transform by rotating according to the yaw.
     """
-    pitch, roll, yaw = quat_to_euler(pose_msg)
+    pitch, roll, yaw = quat_to_euler(transform)
     if len(pts) != 0:
         pts = transform_euler((0, 0, yaw), pts)
     return pts
+
+def offset_transform(transform: Transform, offset: Transform):
+    """
+    Returns the transformation of a fixed pose attached to a transformation
+    :param transform: The transform applied to the coordinate frame
+    :param offset: The offset of the initial frame from the pose being transformed
+    :returns: The offset transform undergone by the point to arrive at its final position
+    NOTE: Currently only works if the offset has no rotation
+    TODO: combine offset and transform quaternions to allow rotated offsets
+    """
+    transformed = Transform()
+    # rotation is the same in all frames
+    transformed.rotation = transform.rotation
+
+    # transform to offset frame
+    external_point = np.array([offset.translation.x, offset.translation.y, offset.translation.z])
+
+    # do transform
+    transformed_point = transform_points(transform, external_point).flatten()
+
+    # transform offset
+    transformed_offset = transform_from_quat(transformed.rotation, external_point).flatten()
+
+    # undo transformed offset to get back to original frame
+    transformed.translation.x, transformed.translation.y, transformed.translation.z = transformed_point - transformed_offset
+
+    return transformed
+
+    
