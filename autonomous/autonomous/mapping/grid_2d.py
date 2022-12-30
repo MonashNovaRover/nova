@@ -1,8 +1,5 @@
 #!usr/bin/python3
 __package__ = "autonomous"
-
-from config.ros_config import main_frame
-
 """
 2d map class for storing obstacles detected by our
 obstacle detector, which we can navigate easily 
@@ -15,6 +12,7 @@ from nav_msgs.msg import OccupancyGrid, MapMetaData
 from config.ros_config import occupancy_grid_topic
 from vis.grid_pub import GridPub
 from rclpy.qos import qos_profile_sensor_data as qos
+import logging
 
 
 class Grid2D(Node): 
@@ -34,6 +32,8 @@ class Grid2D(Node):
         self.resolution = resolution
         # unseen areas of the map all have a slight cost 
         self.map = np.full((int(length / resolution), int(width / resolution)), 100 * unseen_map_val)
+
+        self.get_logger().set_level(logging.DEBUG)
 
         self.grid_pub = GridPub()
 
@@ -73,6 +73,7 @@ class Grid2D(Node):
         width = int(self.width / self.resolution)
         x = -self.length / 2
         y = -self.width / 2
+        self.get_logger().debug("Publishing grid...")
         self.grid_pub.publish_grid(self.resolution, length, width, x, y, self.map_as_sequence())
 
     def get_full_indexes(self, points):
@@ -96,8 +97,8 @@ class Grid2D(Node):
                           have been rotated according to the pose of the rover but not translated.
         """
         if obstacles is None: return
-        diff = self.get_full_indexes(np.array([[msg.pose.pose.position.x - offset[0],
-            msg.pose.pose.position.y - offset[1], 0]])).astype(int)
+        diff = self.get_full_indexes(np.array([[msg.translation.x - offset[0],
+            msg.translation.y - offset[1], 0]])).astype(int)
         obstacles = obstacles + diff
         obstacles = np.array([obs for obs in obstacles if 0 < obs[0] < self.length / self.resolution
                               and 0 < obs[1] < self.width / self.resolution])

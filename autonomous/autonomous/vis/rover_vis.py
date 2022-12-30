@@ -11,9 +11,6 @@ import rclpy
 from rclpy.node import Node
 from nav_msgs.msg import Odometry
 import vis.pc_pub as pc_pub
-import math_utils.transform as transform
-from config.ros_config import camera_pose_topic, rover_odom_topic
-from config.runtime_params import tracking_camera_extrinsics
 
 
 class RoverCloud(Node):
@@ -24,7 +21,7 @@ class RoverCloud(Node):
         if mode == "from_pc":
 
             # create the point-cloud publisher (this is how we will visualise the rover)
-            self.pc_pub = pc_pub.PCPub("rover_cloud")
+            self.pc_pub = pc_pub.PCPub("rover_cloud", frame_id="base_link")
             
             # import the rover from mesh file
             mesh = o3d.io.read_triangle_mesh("resources/rover.ply")
@@ -53,33 +50,14 @@ class RoverCloud(Node):
              
             # save to file
             np.save("rover", pts)
-            
-            self.subscriber_points = self.create_subscription(Odometry, rover_odom_topic, self.callback, 10)
         
         # this is what we usually run
         else:
             self.pc_pub = pc_pub.PCPub("rover_cloud")
             self.origin_rover_pts = np.load("resources/rover.npy")
-            self.subscriber_points = self.create_subscription(Odometry, rover_odom_topic, self.callback, 10)
 
-    def callback(self, msg):
-        self.pub_rover_at(msg)
-
-    def pub_rover_at(self, msg):
-        """
-        For publishing the rover where the cameras represent (0,0,0)
-        """
-        
         pts = self.origin_rover_pts
-        pts = transform.transform_points(msg, pts)
-        pts = [pt.tolist() + [0, 77, 255, 0] for pt in pts]
-        self.pc_pub.pub(pts)
-
-    def pub_rover_at_coords(self, coords):
-        pts = self.origin_rover_pts
-        pts = pts + coords 
-
-        # the rover signature orange^tm
+        # Get rover orange
         pts = [pt.tolist() + [0, 77, 255, 0] for pt in pts]
         self.pc_pub.pub(pts)
 

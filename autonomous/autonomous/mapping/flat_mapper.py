@@ -15,7 +15,6 @@ NODE: points_grid
 TOPICS:
   
   - /camera/depth/color/points [sensor_msgs.msg.PointCloud2]
-  - /t265/odom/sample
 SERVICES: None
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -36,6 +35,9 @@ import math_utils.transform as transform
 from config.runtime_params import max_fov_angle, max_point_depth, max_safe_obstacle, min_point_density, \
     obstacle_halve_value, obstacle_ignore_value
 from scipy.signal import convolve2d
+from rclpy.time import Time
+from rclpy.duration import Duration
+import time
 
 from geometry_msgs.msg import TransformStamped
 from tf2_ros import TransformBroadcaster
@@ -50,7 +52,6 @@ class FlatMapper(Mapper):
             resolution=0.1,
             detection_resolution=0.025,
             planner=None,
-            _vis=True,
             camera=False
     ):
 
@@ -73,6 +74,8 @@ class FlatMapper(Mapper):
         self.detection_length = int(
             np.ceil((max_point_depth / self.detection_resolution) / self.resolution_ratio) * self.resolution_ratio)
         self.detection_width = int(np.ceil(2 * self.detection_length * np.tan(max_fov_angle)))
+        # Position of base_link in local map
+        self.local_map_transform = None
 
         self.offset = None  # Sets the position offset of the map in the global frame
         self.initialise_map()
@@ -80,6 +83,10 @@ class FlatMapper(Mapper):
     def initialise_map(self):
         self._map = Grid2D(self.length, self.width, self.planning_resolution)
         self.set_offset(0, 0)
+
+    def shift_offset(self, dx, dy):
+        if self.offset is None: return None
+        self.set_offset(self.offset[0] + dx, self.offset[1] + dy)
 
     def set_offset(self, x, y):
         """
@@ -144,33 +151,38 @@ class FlatMapper(Mapper):
         """
         If we're near the edge of the map, roll the map in a given direction
         """
+        try:
+            self.local_map_transform = self.tf_buffer.lookup_transform(target_frame='base_link', 
+                                                                source_frame='local_map', 
+                                                                time=Time()).transform
+        except Exception as e:
+            self.get_logger().debug(f"transform lookup error: {e}")
+                                                            
         x_change, y_change = 0, 0
         distance_to_edge = (self._map.length / 4)
-        if self.cam_odom.pose.pose.position.x - self.offset[0] + self._map.length / 2 < distance_to_edge:
+        if self.local_map_transform.translation.x < -distance_to_edge:
             x_change = -1
-        elif self._map.length / 2 + self.offset[0] - self.cam_odom.pose.pose.position.x < distance_to_edge:
+        elif self.local_map_transform.translation.x > distance_to_edge:
             x_change = 1
-        if self.cam_odom.pose.pose.position.y - self.offset[1] + self._map.width / 2 < distance_to_edge:
+        if self.local_map_transform.translation.y < -distance_to_edge:
             y_change = -1
-        elif self._map.width / 2 + self.offset[1] - self.cam_odom.pose.pose.position.y < distance_to_edge:
+        elif self.local_map_transform.translation.y > distance_to_edge:
             y_change = 1
         if x_change != 0 or y_change != 0:
             self._map.roll_map(x_change, y_change)
-            self.offset[0] += x_change * distance_to_edge
-            self.offset[1] += y_change * distance_to_edge
-            self.planner.set_offset(self.offset)
+            self.shift_offset(x_change, y_change)
 
     def arrange_obstacles(self, obstacles, min_x):
         """
         Turns a 1d numpy array of obstacle values into a list of coordinates and their
         values. We then cut all points which aren't in the segment within the fov of
-        the rover. Finally, transforms the coordinates to fit with the global map.
+        the rover. Finally, transforms the coordinates to fit with the local map.
         :param: obstacles - 1-dimensional array of obstacles in the map
         """
         obs_as_points = np.array([[x, y, val] for (x, y), val in np.ndenumerate(obstacles) \
                                   if np.abs(np.arctan2(y - len(obstacles[0]) / 2, x)) < max_fov_angle])
         obs_as_points[:, 1] -= int(np.ceil(self.detection_width / (2 * self.resolution_ratio)))
-        obstacles = transform.transform_yaw(self.cam_odom, obs_as_points)
+        obstacles = transform.transform_yaw(self.local_map_transform, obs_as_points)
         obstacles[:, 2] *= 100
 
         # halving non-obstacle values to make us not care so much
@@ -191,5 +203,4 @@ class FlatMapper(Mapper):
         """
         Publish the 2d map over ros to be viewed in RVIZ
         """
-        self._map.publish_grid(self.offset)
-        # super().publish()
+        self._map.publish_grid()
