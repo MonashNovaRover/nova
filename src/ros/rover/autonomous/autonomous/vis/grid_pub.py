@@ -2,7 +2,6 @@ import rclpy
 from nav_msgs.msg import MapMetaData
 from nav_msgs.msg import OccupancyGrid
 from builtin_interfaces.msg import Time
-from config.ros_config import main_frame
 from geometry_msgs.msg import Pose
 from std_msgs.msg import Header
 from rclpy.node import Node
@@ -46,13 +45,15 @@ class GridPub(Node):
         meta_data.origin = pose_origin
 
         header = Header()
-        header.frame_id = 'local_map'   # map frame - this is important for tf2
+        header.frame_id = 'map'   # map frame - this is important for tf2
         header.stamp = self.get_clock().now().to_msg()
 
         grid = OccupancyGrid()
         grid.header = header
         grid.info = meta_data
         grid.data = data
+
+        self.get_logger().debug(f"Publishing occupancy grid: {grid}")
 
         self.publisher.publish(grid)
 

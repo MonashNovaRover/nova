@@ -3,12 +3,9 @@ __package__ = "autonomous"
 import numpy as np
 import rclpy
 from rclpy.node import Node
-from rclpy.duration import Duration
 from rclpy.time import Time
-from nav_msgs.msg import Odometry
 import math_utils.transform as transform
-from config.runtime_params import tracking_camera_extrinsics, t265_serial, pose_file
-from config.ros_config import main_frame, camera_pose_topic, rover_pose_topic
+from config.runtime_params import t265_serial, pose_file
 from tf2_ros import TransformBroadcaster, TransformListener, StaticTransformBroadcaster, Buffer
 from geometry_msgs.msg import TransformStamped, PoseStamped, Transform
 import time
@@ -38,20 +35,25 @@ class TrackingCamera(Node):
         self.pipe = rs.pipeline()
 
         self.tf_base_link = TransformBroadcaster(self)
-        self.tf_buffer = Buffer()
-        self.tf_listener = TransformListener(self.tf_buffer)
 
         # Build config object and request pose data
         self.cfg = rs.config()
         self.cfg.enable_device(serial_number)
         self.cfg.enable_stream(rs.stream.pose)
 
+        self.tf_buffer = Buffer()
+        self.tf_listener = TransformListener(self.tf_buffer, node=self, spin_thread=True)
         self.get_initial_transform()
 
         # Start streaming
         self.pipe_profile = self.pipe.start(self.cfg)
+        self.get_logger().info("Waiting for transform from 'map' to 'base_link'...")
+        if not self.tf_buffer.can_transform('map', 'base_link', Time()):
+            time.sleep(0.1)
+        self.get_logger().info("Found Transform!", once=True)
+        self.create_timer(0.05, self.get_next_pose)
 
-    def get_initial_transform(self, answer):
+    def get_initial_transform(self):
         """
         If we want to, load initial rover position from file
         """
@@ -69,6 +71,17 @@ class TrackingCamera(Node):
 
         tf_initial_offset = StaticTransformBroadcaster(self)
         tf_initial_offset.sendTransform(initial_transform)
+
+        base_link_transform = TransformStamped()
+        base_link_transform.header.frame_id = 'initial_base_link'
+        base_link_transform.header.stamp = self.get_clock().now().to_msg()
+        base_link_transform.child_frame_id = 'base_link'
+
+        base_link_transform.transform.rotation.w = 1.0
+        base_link_transform.transform.rotation.x = 0.0
+        base_link_transform.transform.rotation.y = 0.0
+        base_link_transform.transform.rotation.z = 0.0
+        self.tf_base_link.sendTransform(base_link_transform)
 
     def fill_initial_pose(self, transform: Transform):
         """
@@ -119,7 +132,7 @@ class TrackingCamera(Node):
             base_link_transform.header.frame_id = 'initial_base_link'
             base_link_transform.child_frame_id = 'base_link'
 
-            t265_offset = self.tf_buffer.lookup_transform('base_link', 't265', 0).transform
+            t265_offset = self.tf_buffer.lookup_transform('base_link', 't265', Time()).transform
             base_link_transform.transform = transform.offset_transform(transform=t265_transform, offset=t265_offset)
             
             self.tf_base_link.sendTransform(base_link_transform)
@@ -128,10 +141,9 @@ class TrackingCamera(Node):
 def main():
     rclpy.init()
     camera = TrackingCamera()
-    for i in range(1000000):
-        camera.get_next_pose()
-        time.sleep(0.1)
-
+    rclpy.spin(camera)
+    camera.destroy_node()
+    rclpy.shutdown()
 
 if __name__ == "__main__":
     main()

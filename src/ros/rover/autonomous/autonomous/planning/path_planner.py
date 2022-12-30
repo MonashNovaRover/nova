@@ -27,11 +27,17 @@ TODO:
 from a_star import a_star
 from math_utils.controller_math import *
 from rclpy.node import Node
+from geometry_msgs.msg import Pose2D, Pose, PoseStamped
 from core.msg import Waypoints, Waypoint, RoverPose, Point2D
 from config.ros_config import *
 from config.runtime_params import ignore_waypoints, INITIAL_PADDING_DIST_M, goal_achieved_distance
 from core.srv import PathPlanningRequest
 from mapping.grid_2d import Grid2D
+from math_utils.transform import quat_to_euler
+
+import time
+from tf2_ros import Buffer, TransformListener
+from rclpy.time import Time
 
 
 class PathPlanner(Node):
@@ -47,18 +53,15 @@ class PathPlanner(Node):
         :param resolution_m: planning resolution
         """
         super().__init__("path_planner_node")
-
         # constants
         self.padding_dist_m = INITIAL_PADDING_DIST_M
         self.resolution = resolution_m
 
         # state
-        self.state = Pose2D()
+        self.pose_2d = Pose2D()
         self.start = (0, 0)
-        self.goal = (0, 0)
+        self.goal = Pose()
         self.goal_id = 0
-        self.offset = [0, 0]
-        self.route = []
 
         self.grid2d = None
 
@@ -66,12 +69,20 @@ class PathPlanner(Node):
         # planning service listens to requests for paths to be planned
         self.planning_service = self.create_service(PathPlanningRequest, path_planning_service_name,
                                                     self.path_planning_service_callback)
-        self.pose_subscriber = self.create_subscription(RoverPose, rover_pose_topic, self.update_pose, 10)
         self.planning_subscriber = self.create_subscription(Point2D, planning_destination_topic, self.path_planning_sub_callback, 10)
         self.path_publisher = self.create_publisher(Waypoints, auto_waypoints_topic, 10)
 
+        # Transform listeners
+        self.tf_buffer = Buffer()
+        self.tf_listener = TransformListener(self.tf_buffer, node=self, spin_thread=True)
+
+        self.get_logger().info("Waiting for transform from 'map' to 'base_link'")
+        while not self.tf_buffer.can_transform('map', 'base_link', Time()):
+            time.sleep(0.1)
+        self.get_logger().info("Received transform!")
+
     def update_map(self, msg):
-        print("updating map")
+        self.get_logger().debug("updating map")
         self.grid2d = msg
 
     def path_planning_service_callback(self, request: PathPlanningRequest.Request,
@@ -87,38 +98,37 @@ class PathPlanner(Node):
 
         # fill the way-points
         try:
-            response.path = self.get_path(request.target.x, request.target.y)
+            self.set_goal(request.target)
+            self.update_pose()
+            response.path = self.get_path()
             response.success = True
             return response
-        except e:
+        except Exception as e:
             print(e)
             response.success = False
             return response
 
-    def path_planning_sub_callback(self, msg):
+    def set_goal(self, goal: PoseStamped):
+        """
+        Take a goal in any frame (typically global map frame), transform it into local map frame, and store
+        """
+        try:
+            local_goal : PoseStamped = self.tf_buffer.transform(goal, 'local_map')
+        except Exception as e:
+            self.get_logger().debug(e)
+        self.goal = local_goal.pose
+
+    def path_planning_sub_callback(self, msg: PoseStamped):
         """
         For path planning asynchronously from control loop without services
         """
         if self.grid2d is None:
             self.get_logger().warn("PathPlanner: map has not been updated yet, plan could not be planned")
             return 
-        path = self.get_path(msg.x, msg.y)
+        self.set_goal(goal=msg)
+        self.update_pose()
+        path = self.get_path()
         self.path_publisher.publish(path)
-
-    def set_offset(self, offset):
-        self.offset[0] = offset[0]
-        self.offset[1] = offset[1]
-
-    def manual_goal_callback(self, msg):
-        """
-        1. Check that it's the AR tag we are looking
-        2. Filter out dodgy values
-            - are values within an absolute range?
-            - standard deviation? idk
-        3. Transform pose of tag relative to rover into global pose of tag
-        """
-        self.get_logger().info("Next goal x=" + str(msg.x) + " | y=" + str(msg.y))
-        self.goal = (msg.x, msg.y)
 
     def get_grid_coord(self, position):
         return int((position[0] + self.length_meters / 2) / self.resolution), \
@@ -128,13 +138,17 @@ class PathPlanner(Node):
         return coord[0] * self.resolution - self.length_meters / 2, \
                coord[1] * self.resolution - self.width_meters / 2,
 
-    def update_pose(self, msg): 
+    def update_pose(self): 
         """ 
-        Callback function that updates the current pose of the rover from data in the auto_command_pose_updates topic
+        Callback function that updates the current pose of the rover from transform data
         """
-        self.x = msg.x
-        self.state.y = msg.y
-        self.state.yaw = msg.yaw
+        try:
+            transform = self.tf_buffer.lookup_transform('base_link', 'local_map', time=Time()).transform
+            self.pose_2d.x = transform.translation.x
+            self.pose_2d.y = transform.translation.y
+            self.pose_2d.yaw = quat_to_euler(transform=transform)[2]
+        except Exception as e:
+            self.get_logger().debug(f"Transform lookup error: {e}")
 
     def get_local_coords_route(self, route):
         """
@@ -163,18 +177,17 @@ class PathPlanner(Node):
         if status == PathPlanner.A_STAR_SUCCESS:
             self.get_logger().info("A* found safe path")
 
-    def get_path(self, goal_x, goal_y, padding=None) -> Waypoints:
+    def get_path(self, padding=None) -> Waypoints:
         """
         Repeatedly run A* on the updated rover pose and map to continually redetermine the optimal path.
-        Called on a clock initialised in the add_destination method
         """
         if padding == None:
             padding = self.padding_dist_m
         if padding <= 0.4:
             return []
 
-        self.start = (self.x - self.offset[0], self.state.y - self.offset[1])
-        local_goal = (goal_x - self.offset[0], goal_y - self.offset[1])
+        self.start = self.pose_2d.x, self.pose_2d.y
+        local_goal = self.goal.position.x, self.goal.position.y
         print(f"planning to {(local_goal[0], local_goal[1])}")
 
         self.length = self.grid2d.shape[0]
@@ -183,14 +196,13 @@ class PathPlanner(Node):
         self.length_meters = int(self.grid2d.shape[0] * self.resolution)
         self.width_meters = int(self.grid2d.shape[1] * self.resolution)
         
-        self.route = np.array(a_star(self.grid2d, self.get_grid_coord(self.start), self.get_grid_coord(local_goal), self.resolution, self.padding_dist_m))
-        status = self.route[-1][0]
-        self.route = self.route[:-1]
+        route = np.array(a_star(self.grid2d, self.get_grid_coord(self.start), self.get_grid_coord(local_goal), self.resolution, self.padding_dist_m))
+        status = route[-1][0]
+        route = route[:-1]
         self.get_logger().info(f"planned with status {status}")
         self.handle_path_status(status, padding)
 
-        route_coordinates = np.array(self.get_local_coords_route(self.route))
-        route_coordinates[:] += np.array(self.offset)
+        route_coordinates = np.array(self.get_local_coords_route(route))
         waypoints = Waypoints()
 
         # todo: the logic of ignoring waypoints should be outside the path planner. It should plan a pure path
@@ -204,5 +216,5 @@ class PathPlanner(Node):
 
         self.get_logger().info(f"Path Planner Calculated {len(route_coordinates)} waypoints")
         if status & PathPlanner.A_STAR_CRITICAL_NO_PATH:
-            return self.get_path(goal_x, goal_y, padding-0.1)
+            return self.get_path(padding-0.1)
         return waypoints
