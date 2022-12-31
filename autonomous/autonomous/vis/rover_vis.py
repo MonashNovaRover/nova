@@ -10,18 +10,22 @@ import numpy as np
 import rclpy
 from rclpy.node import Node
 from nav_msgs.msg import Odometry
-import vis.pc_pub as pc_pub
+import autonomous.pc_pub as pc_pub
+import os
+import inspect
+import autonomous
 
 
 class RoverCloud(Node):
     def __init__(self, mode="from_file"):
         super().__init__("cloud_pub_test")
+        self.local_dir = os.path.dirname(inspect.getfile(autonomous))
         if mode == "from_pc":
 
             # create the point-cloud publisher (this is how we will visualise the rover)
             self.pc_pub = pc_pub.PCPub("rover_cloud", frame_id="base_link")
             # import the rover from mesh file
-            mesh = o3d.io.read_triangle_mesh("resources/rover.ply")
+            mesh = o3d.io.read_triangle_mesh(os.path.join(self.local_dir, "resources", "rover.ply"))
             pcd = mesh.sample_points_uniformly(number_of_points=20000)
             pts = np.asarray(pcd.points)
             # the following are a bunch of (rough) transformations which will put the rover in a reasonable position
@@ -47,7 +51,7 @@ class RoverCloud(Node):
         # this is what we usually run
         else:
             self.pc_pub = pc_pub.PCPub("rover_cloud", frame_id="base_link")
-            self.origin_rover_pts = np.load("resources/rover.npy")
+            self.origin_rover_pts = np.load(os.path.join(self.local_dir, "resources", "rover.npy"))
 
         self.create_timer(0.1, self.pub)
     

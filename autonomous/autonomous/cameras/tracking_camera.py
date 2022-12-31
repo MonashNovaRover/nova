@@ -1,5 +1,5 @@
+#!/usr/bin/python3
 __package__ = "autonomous"
-
 import numpy as np
 import rclpy
 from rclpy.node import Node
@@ -91,7 +91,7 @@ class TrackingCamera(Node):
             pose = np.loadtxt(pose_file).reshape(4)
         except FileNotFoundError as e:
             self.get_logger().warn("Couldn't find file!")
-       
+
         transform.translation.x, transform.translation.y, transform.translation.z = pose[:3]
         # filling in yaw
         transform.rotation.z = np.sin(pose[3] / 2)
@@ -100,8 +100,8 @@ class TrackingCamera(Node):
 
     def transform_t265_to_nova(self, data):
         """
-        Transform the raw T265 data into a ROS Odom message, with the right handed coorddinate system 
-        where 
+        Transform the raw T265 data into a ROS Odom message, with the right handed coorddinate system
+        where
         up = +z
         left = +y
         forward = +x
@@ -127,18 +127,18 @@ class TrackingCamera(Node):
 
             t265_transform = self.transform_t265_to_nova(data)
 
-            base_link_transform = TransformStamped() 
+            base_link_transform = TransformStamped()
             base_link_transform.header.stamp = self.get_clock().now().to_msg()
             base_link_transform.header.frame_id = 'initial_base_link'
             base_link_transform.child_frame_id = 'base_link'
 
             t265_offset = self.tf_buffer.lookup_transform('base_link', 't265', Time()).transform
             base_link_transform.transform = transform.offset_transform(transform=t265_transform, offset=t265_offset)
-            
             self.tf_base_link.sendTransform(base_link_transform)
 
 
-def main():
+
+def main(args=None):
     rclpy.init()
     camera = TrackingCamera()
     rclpy.spin(camera)

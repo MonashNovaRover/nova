@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+__package__ = 'autonomous'
 import rclpy
 from nav_msgs.msg import MapMetaData
 from nav_msgs.msg import OccupancyGrid
