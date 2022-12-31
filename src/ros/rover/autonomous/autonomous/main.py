@@ -14,7 +14,7 @@ def main(args):
     rclpy.init(args=args)
 
     print("Welcome to fun car drive!")
-    length = 20 
+    length = 20
     width = 20
     resolution = 0.1
 
@@ -25,7 +25,7 @@ def main(args):
 
     # This allows us to spin both nodes from main.py - we are kind of misusing ros nodes here but oh well it works
     executor = rclpy.executors.MultiThreadedExecutor()
-    
+
     executor.add_node(planner)
     executor.add_node(mapper)
 

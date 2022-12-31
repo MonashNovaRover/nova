@@ -53,6 +53,9 @@ install(DIRECTORY
   DESTINATION share/${PROJECT_NAME}
 )
 
+# Install Python modules
+ament_python_install_package(${PROJECT_NAME})
+
 # Add all Python executables to this list
 install(PROGRAMS
   autonomous/main.py
@@ -75,9 +78,6 @@ install(PROGRAMS
   autonomous/math_utils/controller_math.py
   autonomous/math_utils/transform.py
   autonomous/planning/path_planner.py
-  autonomous/resources/rover.npy
-  autonomous/resources/environment.npy
-  autonomous/resources/rover.ply
   autonomous/vis/grid_pub.py
   autonomous/vis/path_vis.py
   autonomous/vis/pc_converter.py
@@ -88,7 +88,6 @@ install(PROGRAMS
 
   DESTINATION lib/${PROJECT_NAME}
 )
-
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
