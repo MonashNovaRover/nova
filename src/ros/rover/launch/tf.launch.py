@@ -45,5 +45,17 @@ def generate_launch_description():
             arguments= ['0.48', '0', '0.46', '0', '0', '0', 'base_link', 't265'],
             output='screen',
             emulate_tty=True
+        ),
+        Node(
+            package='autonomous',
+            executable='tracking_camera.py',
+            output='screen',
+            emulate_tty=True
+        ),
+        Node(
+            package='autonomous',
+            executable='rover_vis.py',
+            output='screen',
+            emulate_tty=True
         )
     ])
