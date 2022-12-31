@@ -5,12 +5,12 @@ __package__ = "autonomous"
 obstacle detector, which we can navigate easily 
 using A*. 
 """
-from config.runtime_params import unseen_map_val
+from autonomous.config.runtime_params import unseen_map_val
 from rclpy.node import Node
 import numpy as np
 from nav_msgs.msg import OccupancyGrid, MapMetaData
-from config.ros_config import occupancy_grid_topic
-from vis.grid_pub import GridPub
+from autonomous.config.ros_config import occupancy_grid_topic
+from autonomous.vis.grid_pub import GridPub
 from rclpy.qos import qos_profile_sensor_data as qos
 import logging
 

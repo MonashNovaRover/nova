@@ -29,10 +29,10 @@ TODO:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
-from mapping.python_height_mapper import HeightMapper
-from mapping.python_plane_mapper import PlaneMapper
-from mapping.flat_mapper import FlatMapper
-import math_utils.transform as transform
+from autonomous.mapping.python_height_mapper import HeightMapper
+from autonomous.mapping.python_plane_mapper import PlaneMapper
+from autonomous.mapping.flat_mapper import FlatMapper
+import autonomous.math_utils.transform as transform
 
 
 class HeightPlaneMapper(FlatMapper):

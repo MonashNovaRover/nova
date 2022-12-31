@@ -4,7 +4,7 @@ __package__ = "autonomous"
 import rclpy
 from rclpy.node import Node
 from core.msg import AutonomousGoal, Point2D
-from config.ros_config import auto_goal_gps
+from autonomous.config.ros_config import auto_goal_gps
 
 
 class GoalPublisher(Node):

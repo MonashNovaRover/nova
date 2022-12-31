@@ -39,9 +39,9 @@ TODO: work on header data:
 """
 
 import numpy as np
-from config.runtime_params import pub_scale
+from autonomous.config.runtime_params import pub_scale
 
-import vis.pc_converter as pc_converter
+import autonomous.vis.pc_converter as pc_converter
 from rclpy.node import Node
 from std_msgs.msg import Header
 from sensor_msgs.msg import PointCloud2, PointField as PF

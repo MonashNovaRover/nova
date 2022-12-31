@@ -7,9 +7,9 @@ Methods
 
 import rclpy
 from rclpy.node import Node
-import vis.pc_pub as pc_pub
+import autonomous.vis.pc_pub as pc_pub
 
-from config.ros_config import auto_waypoints_topic
+from autonomous.config.ros_config import auto_waypoints_topic
 
 from core.msg import Waypoints
 

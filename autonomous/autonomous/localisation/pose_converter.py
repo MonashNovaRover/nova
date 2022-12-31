@@ -28,11 +28,11 @@ import rclpy
 import numpy as np
 
 # autonomous imports
-import math_utils.transform as transform
-from config.runtime_params import dgps_extrinsics, tracking_camera_extrinsics, pose_pub_rate, minimum_gps_corrections
-from config.ros_config import main_frame, camera_pose_topic, rover_pose_topic, auto_goal_topic, auto_goal_gps, rover_odom_topic
-from localisation.ekf import Ekf
-from localisation.gps_converter import GpsConverter
+import autonomous.math_utils.transform as transform
+from autonomous.config.runtime_params import dgps_extrinsics, tracking_camera_extrinsics, pose_pub_rate, minimum_gps_corrections
+from autonomous.config.ros_config import main_frame, camera_pose_topic, rover_pose_topic, auto_goal_topic, auto_goal_gps, rover_odom_topic
+from autonomous.localisation.ekf import Ekf
+from autonomous.localisation.gps_converter import GpsConverter
 
 # ROS imports
 from rclpy.node import Node

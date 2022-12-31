@@ -6,11 +6,11 @@ try:
     import pyrealsense2.pyrealsense2 as rs
 except:
     import pyrealsense2 as rs
-from vis.pc_pub import PCPub
+from autonomous.vis.pc_pub import PCPub
 import rclpy
 import sys
-from cameras.ar_tracker import ArTracker
-from config.runtime_params import active_depth_camera
+from autonomous.cameras.ar_tracker import ArTracker
+from autonomous.config.runtime_params import active_depth_camera
 from rclpy.logging import LoggingSeverity
 
 
