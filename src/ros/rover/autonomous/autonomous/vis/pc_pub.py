@@ -21,7 +21,6 @@ TOPICS:
   - /D435/depth/color/points [sensor_msgs.msg.PointCloud2]
   OR (can change based on BAG):
   - /D400/depth/color/points [sensor_msgs.msg.PointCloud2]
-  
   - /T265/odom/sample
 
 SERVICES:
@@ -62,9 +61,7 @@ class PCPub(Node):
     def pub(self, points):
         # final transformations JUST for visualization
         points = np.array(points)
-        
         points[:, 0:3] = points[:, 0:3] * self.scale
-        
         points = [pt[0:3].tolist() + pt[3:7].astype(int).tolist() for pt in points]
 
         pc2 = self.create_cloud_color(points)

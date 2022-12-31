@@ -89,7 +89,7 @@ class Grid2D(Node):
     def valid_index(self, index):
         return 0 < index < (self.length / self.resolution)
 
-    def add_obstacles(self, msg, offset, obstacles):
+    def add_obstacles(self, transform, obstacles):
         """
         Function to add a list of coordinates and their values to the 2d map. 
         :param msg: pose message giving the coordinates of the camera so we can translate the points
@@ -97,11 +97,10 @@ class Grid2D(Node):
                           have been rotated according to the pose of the rover but not translated.
         """
         if obstacles is None: return
-        diff = self.get_full_indexes(np.array([[msg.translation.x - offset[0],
-            msg.translation.y - offset[1], 0]])).astype(int)
+        diff = self.get_full_indexes(np.array([[transform.translation.x, transform.translation.y, 0]])).astype(int)
         obstacles = obstacles + diff
         obstacles = np.array([obs for obs in obstacles if 0 < obs[0] < self.length / self.resolution
                               and 0 < obs[1] < self.width / self.resolution])
-        if len(obstacles):
+        if len(obstacles) > 0:
             self.map[obstacles[:, 0], obstacles[:, 1]] = obstacles[:, 2]
 

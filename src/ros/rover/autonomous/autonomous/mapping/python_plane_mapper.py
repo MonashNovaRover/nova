@@ -36,11 +36,11 @@ from plane_fitter import get_obstacles as get_plane_obstacles
 
 class PlaneMapper(FlatMapper):
     def __init__(self, length=20, width=20, height=5, resolution=0.1, detection_resolution=0.025, planner=None,
-                 camera=False):
+                 camera=False, name="plane_mapper"):
 
         # init node with node name points
         super().__init__(length=length, width=width, height=height, resolution=resolution,
-                         detection_resolution=detection_resolution, planner=planner, camera=camera)
+                         detection_resolution=detection_resolution, planner=planner, camera=camera, name=name)
 
     def get_obstacles(self, filtered_indices):
         return get_plane_obstacles(filtered_indices, self.detection_length, self.detection_width, self.resolution_ratio)
@@ -58,8 +58,10 @@ class PlaneMapper(FlatMapper):
 
     def handle_pc(self, pts):
         # transforming pitch and roll to # transforming pitch and roll to flatten the map, but no yaw or translation
-        self.check_position_in_map()
-        no_yaw_pts = transform.transform_points_no_yaw(self.local_map_transform, pts)
+        if self.local_map_to_d435 is None:
+            self.get_logger().warn("No transform to d435 frame!", once=True)
+            return
+        no_yaw_pts = transform.transform_points_no_yaw(self.local_map_to_d435, pts)
 
         filtered_indices = self.filter_points(no_yaw_pts)
 
@@ -70,6 +72,6 @@ class PlaneMapper(FlatMapper):
         downscaled_obs, min_x = self.downscale_obs(obstacles, min_x)
 
         rotated_obs = self.arrange_obstacles(downscaled_obs, min_x)
-        self._map.add_obstacles(self.local_map_transform, self.offset, rotated_obs)
+        self._map.add_obstacles(self.local_map_to_d435, rotated_obs)
         
 

@@ -52,7 +52,8 @@ class FlatMapper(Mapper):
             resolution=0.1,
             detection_resolution=0.025,
             planner=None,
-            camera=False
+            camera=False,
+            name='flat_mapper',
     ):
 
         # init node with node name points
@@ -62,7 +63,8 @@ class FlatMapper(Mapper):
             height=height,
             resolution=resolution,
             planner=planner,
-            camera=camera
+            camera=camera,
+            name=name
         )
 
         # For moving the map as we navigate
@@ -74,11 +76,15 @@ class FlatMapper(Mapper):
         self.detection_length = int(
             np.ceil((max_point_depth / self.detection_resolution) / self.resolution_ratio) * self.resolution_ratio)
         self.detection_width = int(np.ceil(2 * self.detection_length * np.tan(max_fov_angle)))
-        # Position of base_link in local map
-        self.local_map_transform = None
+
+        # Position of depth camera in local map
+        self.local_map_to_base_link = None
+        self.local_map_to_d435 = None
 
         self.offset = None  # Sets the position offset of the map in the global frame
         self.initialise_map()
+
+        self.transform_timer = self.create_timer(0.1, self.check_position_in_map)
 
     def initialise_map(self):
         self._map = Grid2D(self.length, self.width, self.planning_resolution)
@@ -152,25 +158,33 @@ class FlatMapper(Mapper):
         If we're near the edge of the map, roll the map in a given direction
         """
         try:
-            self.local_map_transform = self.tf_buffer.lookup_transform(target_frame='base_link', 
-                                                                source_frame='local_map', 
-                                                                time=Time()).transform
+            self.local_map_to_d435 = self.tf_buffer.lookup_transform(target_frame='local_map', 
+                                                                source_frame='d435_1', 
+                                                                time=Time(),
+                                                                timeout=Duration(seconds=0.1)).transform
         except Exception as e:
-            self.get_logger().debug(f"transform lookup error: {e}")
+            self.get_logger().debug(f"transform lookup error for d435 transform: {e}")
+        try:
+            self.local_map_to_base_link = self.tf_buffer.lookup_transform(target_frame='local_map', 
+                                                                source_frame='base_link', 
+                                                                time=Time(),
+                                                                timeout=Duration(seconds=0.1)).transform
+        except Exception as e:
+            self.get_logger().debug(f"transform lookup error for base_link transform: {e}")
                                                             
         x_change, y_change = 0, 0
         distance_to_edge = (self._map.length / 4)
-        if self.local_map_transform.translation.x < -distance_to_edge:
+        if self.local_map_to_base_link.translation.x < -distance_to_edge:
             x_change = -1
-        elif self.local_map_transform.translation.x > distance_to_edge:
+        elif self.local_map_to_base_link.translation.x > distance_to_edge:
             x_change = 1
-        if self.local_map_transform.translation.y < -distance_to_edge:
+        if self.local_map_to_base_link.translation.y < -distance_to_edge:
             y_change = -1
-        elif self.local_map_transform.translation.y > distance_to_edge:
+        elif self.local_map_to_base_link.translation.y > distance_to_edge:
             y_change = 1
         if x_change != 0 or y_change != 0:
             self._map.roll_map(x_change, y_change)
-            self.shift_offset(x_change, y_change)
+        self.shift_offset(x_change, y_change)
 
     def arrange_obstacles(self, obstacles, min_x):
         """
@@ -182,7 +196,8 @@ class FlatMapper(Mapper):
         obs_as_points = np.array([[x, y, val] for (x, y), val in np.ndenumerate(obstacles) \
                                   if np.abs(np.arctan2(y - len(obstacles[0]) / 2, x)) < max_fov_angle])
         obs_as_points[:, 1] -= int(np.ceil(self.detection_width / (2 * self.resolution_ratio)))
-        obstacles = transform.transform_yaw(self.local_map_transform, obs_as_points)
+        self.get_logger().debug("Rotating obstacles in map")
+        obstacles = transform.transform_yaw(self.local_map_to_d435, obs_as_points)
         obstacles[:, 2] *= 100
 
         # halving non-obstacle values to make us not care so much

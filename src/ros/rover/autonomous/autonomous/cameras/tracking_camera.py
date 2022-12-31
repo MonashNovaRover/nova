@@ -51,7 +51,7 @@ class TrackingCamera(Node):
         if not self.tf_buffer.can_transform('map', 'base_link', Time()):
             time.sleep(0.1)
         self.get_logger().info("Found Transform!", once=True)
-        self.create_timer(0.05, self.get_next_pose)
+        self.create_timer(1./30, self.get_next_pose)
 
     def get_initial_transform(self):
         """
