@@ -33,12 +33,13 @@ import numpy as np
 import time
 from cameras.depth_camera import DepthCamera
 from config.runtime_params import max_point_depth, max_fov_angle, skip_pts, min_map_update_time
+import logging
 
 from tf2_ros import TransformListener, Buffer
 
 class Mapper(Node):
-    def __init__(self, length=20, width=20, height=5, planner=None, resolution=0.1, camera=False):
-        super().__init__('mapper')
+    def __init__(self, length=20, width=20, height=5, planner=None, resolution=0.1, camera=False, name='mapper'):
+        super().__init__(name)
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self, spin_thread=True)
 
@@ -51,6 +52,8 @@ class Mapper(Node):
 
         self.previous_plan = time.perf_counter()
         self.previous_map_update = time.perf_counter()
+
+        self.get_logger().set_level(logging.DEBUG)
 
         self.get_logger().info("Waiting for transform from 'local_map' to 'base_link'...")
         while not self.tf_buffer.can_transform('base_link', 'map', Time()):

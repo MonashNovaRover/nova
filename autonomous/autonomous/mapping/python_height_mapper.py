@@ -36,11 +36,11 @@ from height_mapper import get_obstacles as get_height_obstacles
 
 class HeightMapper(FlatMapper):
     def __init__(self, length=20, width=20, height=5, resolution=0.1, detection_resolution=0.025, planner=None,
-                 camera=False):
+                 camera=False, name="height_mapper"):
 
         # init node with node name points
         super().__init__(length=length, width=width, height=height, resolution=resolution,
-                         detection_resolution=detection_resolution, planner=planner, camera=camera)
+                         detection_resolution=detection_resolution, planner=planner, camera=camera, name=name)
 
     def get_obstacles(self, filtered_indices):
         return get_height_obstacles(filtered_indices, self.detection_length, self.detection_width)
@@ -53,7 +53,9 @@ class HeightMapper(FlatMapper):
         (not transformed).
         """
         # transforming pitch and roll to flatten the map, but no yaw or translation
-        self.check_position_in_map()
+        if self.local_map_to_d435 is None:
+            self.get_logger().warn("No transform to d435 frame!", once=True)
+            return
         no_yaw_pts = transform.transform_points_no_yaw(self.local_map_transform, pts)
 
         filtered_indices = self.filter_points(no_yaw_pts)
@@ -65,5 +67,5 @@ class HeightMapper(FlatMapper):
         obs, min_x = self.downscale_obs(obstacles, min_x)
 
         rotated_obs = self.arrange_obstacles(obs, min_x)
-        self._map.add_obstacles(self.local_map_transform, self.offset, rotated_obs)
+        self._map.add_obstacles(self.local_map_transform, rotated_obs)
 
