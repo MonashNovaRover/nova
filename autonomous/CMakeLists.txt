@@ -55,7 +55,37 @@ install(DIRECTORY
 
 # Add all Python executables to this list
 install(PROGRAMS
-  #autonomous/python.py
+  autonomous/main.py
+  autonomous/cameras/ar_tracker.py
+  autonomous/cameras/depth_camera.py
+  autonomous/cameras/tracking_camera.py
+  autonomous/config/ros_config.py
+  autonomous/config/runtime_params.py
+  autonomous/controller/GRUC.py
+  autonomous/controller/drive_controller.py
+  autonomous/controller/ar_tag_manager.py
+  autonomous/controller/spin_controller.py
+  autonomous/controller/turning.py
+  autonomous/mapping/flat_mapper.py
+  autonomous/mapping/grid_2d.py
+  autonomous/mapping/height_plane_mapper.py
+  autonomous/mapping/mapper.py
+  autonomous/mapping/python_height_mapper.py
+  autonomous/mapping/python_plane_mapper.py
+  autonomous/math_utils/controller_math.py
+  autonomous/math_utils/transform.py
+  autonomous/planning/path_planner.py
+  autonomous/resources/rover.npy
+  autonomous/resources/environment.npy
+  autonomous/resources/rover.ply
+  autonomous/vis/grid_pub.py
+  autonomous/vis/path_vis.py
+  autonomous/vis/pc_converter.py
+  autonomous/vis/pc_pub.py
+  autonomous/vis/rover_vis.py
+  autonomous/main.py
+  autonomous/update_goals.py
+
   DESTINATION lib/${PROJECT_NAME}
 )
 
