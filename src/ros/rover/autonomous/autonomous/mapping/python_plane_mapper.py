@@ -28,9 +28,9 @@ TODO:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
-from mapping.python_height_mapper import FlatMapper
-import math_utils.transform as transform
-from config.runtime_params import max_safe_inc
+from autonomous.mapping.python_height_mapper import FlatMapper
+import autonomous.math_utils.transform as transform
+from autonomous.config.runtime_params import max_safe_inc
 from plane_fitter import get_obstacles as get_plane_obstacles
 
 

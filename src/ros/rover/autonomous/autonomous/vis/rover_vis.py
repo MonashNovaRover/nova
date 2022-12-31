@@ -10,7 +10,7 @@ import numpy as np
 import rclpy
 from rclpy.node import Node
 from nav_msgs.msg import Odometry
-import autonomous.pc_pub as pc_pub
+import autonomous.vis.pc_pub as pc_pub
 import os
 import inspect
 import autonomous

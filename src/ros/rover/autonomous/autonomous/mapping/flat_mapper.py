@@ -28,11 +28,11 @@ TODO:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
-from mapping.mapper import Mapper
-from mapping.grid_2d import Grid2D
+from autonomous.mapping.mapper import Mapper
+from autonomous.mapping.grid_2d import Grid2D
 import numpy as np
-import math_utils.transform as transform
-from config.runtime_params import max_fov_angle, max_point_depth, max_safe_obstacle, min_point_density, \
+import autonomous.math_utils.transform as transform
+from autonomous.config.runtime_params import max_fov_angle, max_point_depth, max_safe_obstacle, min_point_density, \
     obstacle_halve_value, obstacle_ignore_value
 from scipy.signal import convolve2d
 from rclpy.time import Time

@@ -31,8 +31,8 @@ from rclpy.node import Node
 from rclpy.time import Time
 import numpy as np
 import time
-from cameras.depth_camera import DepthCamera
-from config.runtime_params import max_point_depth, max_fov_angle, skip_pts, min_map_update_time
+from autonomous.cameras.depth_camera import DepthCamera
+from autonomous.config.runtime_params import max_point_depth, max_fov_angle, skip_pts, min_map_update_time
 import logging
 
 from tf2_ros import TransformListener, Buffer

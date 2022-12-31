@@ -1,14 +1,10 @@
 #!/usr/bin/env python3
 __package__ = "autonomous"
-from planning.path_planner import PathPlanner
-from controller.GRUC import Controller
+from autonomous.planning.path_planner import PathPlanner
 import rclpy
-from mapping.mapper import Mapper
-from mapping.python_height_mapper import HeightMapper
-from mapping.python_plane_mapper import PlaneMapper
-from mapping.height_plane_mapper import HeightPlaneMapper
-import time
-import threading
+from autonomous.mapping.python_height_mapper import HeightMapper
+from autonomous.mapping.python_plane_mapper import PlaneMapper
+from autonomous.mapping.height_plane_mapper import HeightPlaneMapper
 
 def main(args):
     rclpy.init(args=args)

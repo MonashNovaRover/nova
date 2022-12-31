@@ -29,8 +29,8 @@ TODO:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
-from mapping.flat_mapper import FlatMapper
-import math_utils.transform as transform
+from autonomous.mapping.flat_mapper import FlatMapper
+import autonomous.math_utils.transform as transform
 from height_mapper import get_obstacles as get_height_obstacles
 
 

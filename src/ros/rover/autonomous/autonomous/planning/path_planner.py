@@ -25,15 +25,15 @@ TODO:
 """
 
 from a_star import a_star
-from math_utils.controller_math import *
+from autonomous.math_utils.controller_math import *
 from rclpy.node import Node
 from geometry_msgs.msg import Pose2D, Pose, PoseStamped
 from core.msg import Waypoints, Waypoint, RoverPose, Point2D
-from config.ros_config import *
-from config.runtime_params import ignore_waypoints, INITIAL_PADDING_DIST_M, goal_achieved_distance
+from autonomous.config.ros_config import *
+from autonomous.config.runtime_params import ignore_waypoints, INITIAL_PADDING_DIST_M, goal_achieved_distance
 from core.srv import PathPlanningRequest
-from mapping.grid_2d import Grid2D
-from math_utils.transform import quat_to_euler
+from autonomous.mapping.grid_2d import Grid2D
+from autonomous.math_utils.transform import quat_to_euler
 
 import time
 from tf2_ros import Buffer, TransformListener
