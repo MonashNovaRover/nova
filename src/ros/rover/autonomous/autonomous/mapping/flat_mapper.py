@@ -4,16 +4,16 @@ __package__ = "autonomous"
 
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Monash Nova Rover Team. Abstract child class of the 
+Monash Nova Rover Team. Abstract child class of the
 Mapper class for all mappers that map the 3d
 surrounds in a 2d map. These mappers all require
 common methods, such as separate yaw/pitch+roll
 transformations, publishing, and getting
-indices.  
+indices.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: points_grid
 TOPICS:
-  
+
   - /camera/depth/color/points [sensor_msgs.msg.PointCloud2]
 SERVICES: None
 ACTIONS: None
@@ -24,7 +24,7 @@ CREATION:	28/02/2022
 EDITED:		28/02/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
- - a lot 
+ - a lot
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
@@ -84,7 +84,8 @@ class FlatMapper(Mapper):
         self.offset = None  # Sets the position offset of the map in the global frame
         self.initialise_map()
 
-        self.transform_timer = self.create_timer(0.1, self.check_position_in_map)
+        self.map_roll_timer = self.create_timer(1, self.check_position_in_map)
+        self.map_transform_timer = self.create_timer(1./30, self.update_transforms)
 
     def initialise_map(self):
         self._map = Grid2D(self.length, self.width, self.planning_resolution)
@@ -157,21 +158,6 @@ class FlatMapper(Mapper):
         """
         If we're near the edge of the map, roll the map in a given direction
         """
-        try:
-            self.local_map_to_d435 = self.tf_buffer.lookup_transform(target_frame='local_map', 
-                                                                source_frame='d435_1', 
-                                                                time=Time(),
-                                                                timeout=Duration(seconds=0.1)).transform
-        except Exception as e:
-            self.get_logger().debug(f"transform lookup error for d435 transform: {e}")
-        try:
-            self.local_map_to_base_link = self.tf_buffer.lookup_transform(target_frame='local_map', 
-                                                                source_frame='base_link', 
-                                                                time=Time(),
-                                                                timeout=Duration(seconds=0.1)).transform
-        except Exception as e:
-            self.get_logger().debug(f"transform lookup error for base_link transform: {e}")
-                                                            
         x_change, y_change = 0, 0
         distance_to_edge = (self._map.length / 4)
         if self.local_map_to_base_link.translation.x < -distance_to_edge:
@@ -185,6 +171,25 @@ class FlatMapper(Mapper):
         if x_change != 0 or y_change != 0:
             self._map.roll_map(x_change, y_change)
         self.shift_offset(x_change, y_change)
+
+    def update_transforms(self):
+        """
+        Listen for new tf2 transforms
+        """
+        try:
+            self.local_map_to_d435 = self.tf_buffer.lookup_transform(target_frame='local_map',
+                                                                source_frame='d435_1',
+                                                                time=Time(),
+                                                                timeout=Duration(seconds=0.1)).transform
+        except Exception as e:
+            self.get_logger().debug(f"transform lookup error for d435 transform: {e}")
+        try:
+            self.local_map_to_base_link = self.tf_buffer.lookup_transform(target_frame='local_map',
+                                                                source_frame='base_link',
+                                                                time=Time(),
+                                                                timeout=Duration(seconds=0.1)).transform
+        except Exception as e:
+            self.get_logger().debug(f"transform lookup error for base_link transform: {e}")
 
     def arrange_obstacles(self, obstacles, min_x):
         """
