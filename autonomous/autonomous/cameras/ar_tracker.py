@@ -13,7 +13,7 @@ import logging
 class ArTracker(Node):
     def __init__(self, intrinsics: Intrinsics, depth_cam_frame_id="d435_1"):
         super().__init__("ar_tracker")
-        self.get_logger().set_level(logging.DEBUG)
+        self.get_logger().set_level(logging.INFO)
         self.get_logger().info("Initialising AR Tracker Node...")
 
         self.frame_id = depth_cam_frame_id
