@@ -30,6 +30,7 @@ class TrackingCamera(Node):
     def __init__(self, serial_number=t265_serial):
 
         super().__init__("T265Node")
+        self.param_load_pose_file = self.declare_parameter("load_pose_from_file", False)
 
         # Declare RealSense pipeline, encapsulating the actual device and sensors
         self.pipe = rs.pipeline()
@@ -58,13 +59,11 @@ class TrackingCamera(Node):
         If we want to, load initial rover position from file
         """
         # TODO: set in param somewhere?
-        answer = input("Load pose from file? (y/n): ")
-
         initial_transform = TransformStamped()
         initial_transform.header.frame_id = 'map'
         initial_transform.header.stamp = self.get_clock().now().to_msg()
         initial_transform.child_frame_id = 'initial_base_link'
-        if answer and (answer[0] == "y" or answer[0] == "Y"):
+        if self.param_load_pose_file.value:
             initial_transform.transform = self.fill_initial_pose(initial_transform.transform)
         else:
             initial_transform.transform.rotation.w = 1.0
