@@ -53,7 +53,7 @@ class Mapper(Node):
         self.previous_plan = time.perf_counter()
         self.previous_map_update = time.perf_counter()
 
-        self.get_logger().set_level(logging.DEBUG)
+        self.get_logger().set_level(logging.INFO)
 
         self.get_logger().info("Waiting for transform from 'local_map' to 'base_link'...")
         while not self.tf_buffer.can_transform('base_link', 'map', Time()):

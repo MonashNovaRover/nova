@@ -47,7 +47,7 @@ class GridPub(Node):
         meta_data.origin = pose_origin
 
         header = Header()
-        header.frame_id = 'map'   # map frame - this is important for tf2
+        header.frame_id = 'local_map'   # map frame - this is important for tf2
         header.stamp = self.get_clock().now().to_msg()
 
         grid = OccupancyGrid()

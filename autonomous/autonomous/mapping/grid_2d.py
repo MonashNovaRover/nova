@@ -33,7 +33,7 @@ class Grid2D(Node):
         # unseen areas of the map all have a slight cost 
         self.map = np.full((int(length / resolution), int(width / resolution)), 100 * unseen_map_val)
 
-        self.get_logger().set_level(logging.DEBUG)
+        self.get_logger().set_level(logging.INFO)
 
         self.grid_pub = GridPub()
 
