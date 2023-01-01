@@ -49,7 +49,7 @@ target_link_libraries( plane_fitter PRIVATE ${OpenCV_LIBS} )
 
 # Add all the installation directories
 install(DIRECTORY
-  #launch
+  rviz
   DESTINATION share/${PROJECT_NAME}
 )
 
