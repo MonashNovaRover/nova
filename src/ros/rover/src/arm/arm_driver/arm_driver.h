@@ -20,7 +20,7 @@ ACTIONS:  None
 PACKAGE: 	control
 AUTHOR(S):  Jess Hepworth, Jory Braun
 CREATION:	03/12/2021
-EDITED:		25/04/2022
+EDITED:		13/09/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
  - 
@@ -35,7 +35,7 @@ TODO:
 
 // Include libraries
 #include "arm_config_info_client.h"
-#include "joint.h"
+#include "cmd/cmd.h"
 
 // Use the standard namespaces
 using namespace std::chrono_literals;
@@ -57,8 +57,8 @@ class ArmDriver : public ArmConfigInfoClient
     // Stores the subscriber to the desired actuator commands
     rclcpp::Subscription<core::msg::EndEffectorInput>::SharedPtr endeffector_input_subscription;
 
-    // A vector of pointers to joint instances
-    std::vector<Joint*> joints;
+    // A vector of pointers to CMD instances
+    std::vector<CMD*> joints;
 
     // A vector of cmd drive modes (mode for each joint, PWM=0, PID=1)
     std::vector<CMDCommand> CMD_drive_mode;
