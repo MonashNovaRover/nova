@@ -188,7 +188,7 @@ void CMD::set_tuning_parameters (double kP, double kI, double kD, double kM)
 {
     // Create a new CAN frame
     scpp::CanFrame frame;
-    frame.id = (id << 4) | CMDCommand::TUNER;
+    frame.id = (this->id << 4) | CMDCommand::SET_TUNE;
     frame.len = 8;
 
     // Scale the constants
@@ -216,7 +216,7 @@ CMDData CMD::receive_feedback ()
 {
     // Creates a new CAN frame
     scpp::CanFrame frame;
-    frame.id = (id << 4) | CMDCommand::TUNER;
+    frame.id = (this->id << 4) | 0x400;
     frame.len = 4;
 
     // Read the data
