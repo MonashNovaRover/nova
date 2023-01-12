@@ -210,7 +210,7 @@ Driver::Driver() : Node("driver")
     // Initialise the wheels
     for (size_t i = 0; i < NUM_WHEELS; i++) {
         bool left = i < NUM_WHEELS / 2;
-        wheels[i] = new CMD (0, i + 1, PID, STOP, left);
+        wheels[i] = new CMD (0, i + 1, PID, left, STOP);
     }
     
     rclcpp::QoS qos = rclcpp::QoS(1).best_effort().deadline(ROSTimers::drive_deadline);
