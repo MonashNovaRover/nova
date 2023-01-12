@@ -12,7 +12,6 @@ AUTHOR(S):	Harrison Verrios, Josh Cherubino, Will de la Rue, Jory Braun, Tristan
 
 // Include the header file
 #include "driver.h"
-#include "drive_inputs.h"
 #include "print/print.h"
 #include "config/rosconfig.h"
 
