@@ -43,9 +43,8 @@ void DriveInputs::publish_cmds () {
     // Set up the values if the controller is not locked
     if (!locked && connected)
     {
-        message.speed = right_input_axis_y * multiplier_speed * trigger_speed;
-        message.x_steer = left_input_axis_x;
-        message.y_steer = left_input_axis_y;
+        message.speed = left_input_axis_y * multiplier_speed * trigger_speed;
+        message.steer = calc_steer_angle(right_input_axis_x, right_input_axis_y);
 
         // Otherwise print lock message
     } else if (locked) {
@@ -64,8 +63,9 @@ void DriveInputs::publish_cmds () {
 void DriveInputs::deadline_exceeded (){
 
     // Clear the old inputs
-    input_axis_y = 0.0;
-    input_axis_x = 0.0;
+    left_input_axis_y = 0.0;
+    right_input_axis_x = 0.0;
+    right_input_axis_y = 0.0;
 
     Print::print("No gamepad input received");
     prev_msg_received = false;
@@ -77,8 +77,9 @@ void DriveInputs::input_callback (const core::msg::InputGamepad::SharedPtr msg) 
 
     // If no connection, reset the state
     if (!msg->connected) {
-        input_axis_x = 0.0;
-        input_axis_y = 0.0;
+        left_input_axis_y = 0.0;
+        right_input_axis_x = 0.0;
+        right_input_axis_y = 0.0;
         trigger_speed = 1.0;
 
         // Publish no connection message
@@ -96,8 +97,9 @@ void DriveInputs::input_callback (const core::msg::InputGamepad::SharedPtr msg) 
             Print::print ("Gamepad Connected", C_SUCCESS);
 
         // Update the input axis
-        input_axis_x = msg->ax_stick_r_x;
-        input_axis_y = msg->ax_stick_l_y;
+        left_input_axis_y = msg->ax_stick_l_y;
+        right_input_axis_x = msg->ax_stick_r_x;
+        right_input_axis_y = msg->ax_stick_r_y;
 
         // Get the trigger speed multiplier
         trigger_speed = 1.0 - (msg->trg_r_val * (1 - MIN_TRIGGER_MULTIPLIER));
@@ -138,6 +140,35 @@ void DriveInputs::input_callback (const core::msg::InputGamepad::SharedPtr msg) 
     connected = msg->connected;
 }
 
+float DriveInputs::calc_steer_angle(float x_steer, float y_steer)
+{
+    float steer_angle 0.0;
+
+    // no steer if no x axis
+    if (x_steer == 0.0)
+    {
+        return 0.0;
+    }
+
+    // if the joystick is negative y, the angle is +/-90 degrees
+    if (y_steer < 0.0)
+    {
+        steer_angle = 90;
+    }
+    else
+    {
+        steer_angle += 90 - atan(abs(y_steer) / abs(x_steer));
+    }
+
+    // add left (-) / right(+) direction
+    if (x_steer < 0.0)
+    {
+        steer_angle *= -1;
+    }
+
+    return steer_angle * (pi / 180);
+}
+
 // Main constructor that sets up the node
 DriveInputs::DriveInputs() : Node("drive_inputs")
 {
@@ -173,6 +204,7 @@ DriveInputs::DriveInputs() : Node("drive_inputs")
     Print::print("     Left Stick Y  |  Forward/Back", C_INPUT);
     Print::print("    Right Stick X  |  Left/Right", C_INPUT);
     Print::print("", true);
+    Print::print("    Left Trigger   |  Strafe Mode", C_INPUT);
     Print::print("    Right Trigger  |  Speed Multiplier", C_INPUT);
     Print::print("           DPAD Y  |  Speed Incr/Decr", C_INPUT);
     Print::print("  Left Joy Button  |  Handbrake Enabled", C_INPUT);

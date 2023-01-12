@@ -43,25 +43,50 @@ EDITED:		13/09/2022
 // The distance between each wheel on each side [m]
 #define WHEEL_SEPARATION 0.42426
 
+// Use the standard namespaces
+using namespace std;
+using namespace std::chrono_literals;
+using std::placeholders::_1;
 
 // Store a position structure with x and y
-struct Vector2 {
+struct Vector2
+{
 
     //------------------------------------------------------------//
 public:
-
     // The position values
     float x, y;
 
     // Constructor for the vector
-    Vector2 (float x, float y) {
+    Vector2(float x, float y)
+    {
         this->x = x;
         this->y = y;
     }
 };
 
+class Wheel
+{
+public:
+    int id;
+    double velocity;
+    double angle; // radians
+    CMD *cmdWheel;
+    CMD *cmdPivot;
+
+    Wheel(int id, CMD *cmdWheel, CMD *cmdPivot)
+    {
+        this->id = id;
+        this->cmdWheel = cmdWheel;
+        this->cmdPivot = cmdPivot;
+        this->angle = 0.0;
+        this->velocity = 0.0;
+    }
+};
+
 // Main subscriber class that receives drives commands and interfaces with the wheel
-class Driver : public rclcpp::Node {
+class Driver : public rclcpp::Node
+{
 
     // The number of wheels on the rover
     static const int NUM_WHEELS = 6;
@@ -81,6 +106,8 @@ private:
     rclcpp::TimerBase::SharedPtr mode_timer;
     rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr mode_pub;
 
+    // The period at which we publish whether  we are in autonomous mode
+    std::chrono::milliseconds mode_timer_period = 200ms;
     // A flag for whether to apply the handbrake or not
     bool handbrake;
 
@@ -88,29 +115,28 @@ private:
     bool is_autonomous = false;
 
     // An array of pointers to Wheel instances
-    CMD *wheels[NUM_WHEELS];
+    Wheel *wheels[NUM_WHEELS];
 
     //------------------------------------------------------------//
 private:
-
     /// @brief      Sends commands to the wheels using the wheel classes
     /// @param      msg - A pointer to the drive message
-    void send_commands (const core::msg::DriveInput::SharedPtr msg);
+    void send_commands(const core::msg::DriveInput::SharedPtr msg);
 
     /// @brief      Callback function when drive messages are received
     /// @param      msg - A pointer to the drive message
-    void drive_callback (const core::msg::DriveInput::SharedPtr msg);
+    void drive_callback(const core::msg::DriveInput::SharedPtr msg);
 
     /// @brief      Callback function when autonomous messages are received
     /// @param      msg - A pointer to the drive message
-    void auto_callback (const core::msg::DriveInput::SharedPtr msg);
+    void auto_callback(const core::msg::DriveInput::SharedPtr msg);
 
     /// @brief      Callback function when input messages are received.
     /// @param      msg - A pointer to the input message
-    void input_callback (const core::msg::InputGamepad::SharedPtr msg);
+    void input_callback(const core::msg::InputGamepad::SharedPtr msg);
 
     /// @brief      Callback function to publish whether autonomous
-    void pub_auto_mode ();
+    void pub_auto_mode();
 
     /// @brief      Calculates the signed turning radius based on the steering factor.
     ///             The turning radius is equal to the position of the turning-circle
@@ -118,7 +144,7 @@ private:
     ///             The radius is signed. A positive value indicates turning tp the right.
     /// @param      steer - The steer value between -1 and 1
     /// @returns    The turning radius [m]
-    float get_turning_radius (float steer);
+    float get_turning_radius(float steer);
 
     /// @brief      Get array with velocities for each wheel, with directions and magnitude depending on the radius
     ///             Account for cases where the turning radius is beneath the rover body, or when the radius is 0
@@ -131,21 +157,19 @@ private:
     /// @brief      Calculates the position of the wheel in relation to the wheelbase centre
     /// @param      id - The identification of the wheel
     /// @returns    The position vector (x, y)
-    Vector2 get_wheel_position (int id);
+    Vector2 get_wheel_position(int id);
 
     /// @brief      Calculates the distance from the wheel to the turning centre
     /// @param      pos - The position of the wheel
     /// @param      radius - The turning radius of the rover [m]
     /// @returns    The distance between wheel and the turning centre [m]
-    float get_wheel_distance (Vector2 pos, float radius);
+    float get_wheel_distance(Vector2 pos, float radius);
 
     /// @brief callback for when drive inputs subscription is exceeded
     void inputs_deadline_exceeded();
 
     //------------------------------------------------------------//
 public:
-
     /// @brief      Default constructor function that starts up the node
     Driver();
-    
 };

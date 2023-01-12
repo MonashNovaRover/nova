@@ -3,7 +3,7 @@
 Monash Nova Rover Team
 
 PACKAGE: 	control
-AUTHOR(S):	Harrison Verrios, Josh Cherubino, Will de la Rue, Jory Braun
+AUTHOR(S):	Us
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
@@ -11,19 +11,13 @@ AUTHOR(S):	Harrison Verrios, Josh Cherubino, Will de la Rue, Jory Braun
 #include <cmath>
 
 // Include the header file
-#include "driver.h"
+#include "drive.h"
 #include "drive_inputs.h"
 #include "print/print.h"
 
 // Sends commands to the wheels
 void Driver::send_commands(const core::msg::DriveInput::SharedPtr msg)
 {
-
-    wheels = {
-        Wheel(0, &cmd0, &cmd1),
-        Wheel(1, &cmd2, &cmd3),
-        Wheel(2, &cmd4, &cmd5),
-        Wheel(3, &cmd6, &cmd7)};
 
     // Check if wheels should spin
     if (msg->speed != 0)
@@ -39,7 +33,7 @@ void Driver::send_commands(const core::msg::DriveInput::SharedPtr msg)
         {
             // Find the turning radius form the 'steer' command
             // This defines a turning centre to the left or right of the rover wheelbase
-            float radius = get_turning_radius(msg->x_steer);
+            float radius = get_turning_radius(msg->steer);
 
             // Scale wheel velocities depending on their distance from the turning centre
             // Wheels closer to the turning centre must spin slower to maintain the correct rover angular velocity
@@ -47,18 +41,17 @@ void Driver::send_commands(const core::msg::DriveInput::SharedPtr msg)
             // Disregard any correction for the angle of the wheel relative to the desired circular path
             // fill_wheel_velocities(wheel_velocities, radius, msg->speed, msg->steer);
 
-            fill_wheel_angles_radial(wheels, radius, msg->x_steer);
-            fill_wheel_velocities_radial(wheels, radius, msg->speed, msg->x_steer);
+            fill_wheel_angles_radial(radius);
+            fill_wheel_velocities_radial(radius, msg->speed, msg->steer);
         }
         else if (drive_mode == STRAFE)
         {
-            float turning_angle = get_turning_angle(msg->x_steer, msg->y_steer);
-            // Scale wheel velocities depending on their distance from the turning centre
-            // Wheels closer to the turning centre must spin slower to maintain the correct rover angular velocity
-            // The 'speed' command gives the maximum speed for any wheel
-            // Disregard any correction for the angle of the wheel relative to the desired circular path
+            /*
+            float turning_angle = msg->steer;
+
             fill_wheel_angles_strafe(wheels, msg->steer);
             fill_wheel_velocities_strafe(wheels, msg->speed, msg->steer);
+            */
         }
     }
 
@@ -67,48 +60,6 @@ void Driver::send_commands(const core::msg::DriveInput::SharedPtr msg)
     {
         wheels[i]->drive(wheel_velocities[i]);
     }
-}
-
-float Driver::get_steer_angle(float x_steer, float y_steer)
-{
-    float steer_angle 0.0;
-
-    if (x_steer == 0.0 && y_steer == 0.0)
-    {
-        return 0.0;
-    }
-
-    if (x_steer == 0.0)
-    {
-        if (y_steer > 0.0)
-        {
-            steer_angle = 0;
-        }
-        else
-        {
-            steer_angle = 180;
-        }
-    }
-    else if (y_steer <= 0.0)
-    {
-        steer_angle = 90;
-    }
-    else
-    {
-        steer_angle += atan(abs(y_steer) / abs(x_steer));
-    }
-
-    if (y_steer < 0.0)
-    {
-        steer_angle += 90;
-    }
-
-    if (x_steer < 0.0)
-    {
-        steer_angle *= -1;
-    }
-
-    return steer_angle * (pi / 180);
 }
 
 // Receives drive commands
@@ -139,9 +90,10 @@ void Driver::input_callback(const core::msg::InputGamepad::SharedPtr msg)
         if (!handbrake)
             Print::print("Handbrake Enabled", C_MODE);
         handbrake = true;
-        for (CMD *wheel : wheels)
+        for (Wheel *wheel : wheels)
         {
-            wheel->set_CMD_stop_mode(PID);
+            wheel->cmdWheel->set_CMD_stop_mode(PID);
+            wheel->cmdPivot->set_CMD_stop_mode(PID);
         }
     }
 
@@ -151,9 +103,10 @@ void Driver::input_callback(const core::msg::InputGamepad::SharedPtr msg)
         if (handbrake)
             Print::print("Handbrake Disabled", C_MODE);
         handbrake = false;
-        for (CMD *wheel : wheels)
+        for (Wheel *wheel : wheels)
         {
-            wheel->set_CMD_stop_mode(STOP);
+            wheel->cmdWheel->set_CMD_stop_mode(STOP);
+            wheel->cmdPivot->set_CMD_stop_mode(STOP);
         }
     }
 
@@ -175,16 +128,18 @@ void Driver::input_callback(const core::msg::InputGamepad::SharedPtr msg)
 }
 
 // Gets the turning radius of the rover
-float Driver::get_turning_radius(float x_steer)
+float Driver::get_turning_radius(float steer)
 {
     // Exclude this case. If steer is 0, handle separately in calling code
-    if (x_steer == 0)
+    if (steer == 0)
         return INFINITY;
 
-    return (MAX_RADIUS - CHASSIS_SEPARATION / 2) * abs(x_steer) + MAX_RADIUS;
+    // SHOULD STEER BE -1 to 1 ??
+
+    return (MAX_RADIUS - CHASSIS_SEPARATION / 2) * abs(steer) + MAX_RADIUS;
 }
 
-void Driver::fill_wheel_angles_radial(float wheel_angles[NUM_WHEELS], float radius, float x_steer)
+void Driver::fill_wheel_angles_radial(float radius)
 {
     // gradient of line https://www.desmos.com/calculator/cb3xa9r5ai
 
@@ -198,7 +153,7 @@ void Driver::fill_wheel_angles_radial(float wheel_angles[NUM_WHEELS], float radi
 }
 
 // Fill array with velocities for each wheel, with directions and magnitude depending on the turning radius
-void Driver::fill_wheel_velocities(float wheel_velocities[NUM_WHEELS], float radius, float speed, float steer)
+void Driver::fill_wheel_velocities_radial(float radius, float speed, float steer)
 {
     // determines whether the wheels are turning left or right
     int direction = (steer < 0) ? -1 : 1;
@@ -239,7 +194,9 @@ Driver::Driver() : Node("driver")
     for (size_t i = 0; i < NUM_WHEELS; i++)
     {
         bool left = i < NUM_WHEELS / 2;
-        wheels[i] = new CMD(0, i + 1, PID, STOP, left);
+        CMD cmdWheel = new CMD(0, i + 1, PID, STOP, left);
+        CMD cmdPivot = new CMD(0, i + NUM_WHEELS + 1, PID, STOP, left);
+        wheels[i] = new Wheel(i, cmdWheel, cmdPivot);
     }
 
     rclcpp::QoS qos = rclcpp::QoS(1).best_effort().deadline(200ms);
