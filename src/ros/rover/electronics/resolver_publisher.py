@@ -240,8 +240,12 @@ class ResolverPublisher(Node):
         """
         Setup the node for the application. Create pubs and subs, initialise data members
         """
-        self.receive_timeout = 0.05
-        resolver_pub_timer_period = 0.5
+        # Delay between each bus reading. In practice maxs out at 2+-0.1 ms
+        self.receive_deadtime = 0.0005
+        # Time to wait for a valid reading
+        self.receive_timeout = 0.01
+        # Delay between each ROS publish. In practice maxs out at 12+-0.5 ms
+        resolver_pub_timer_period = 0.01
         
         # Initialise the transceiver
         self.resolver_transceiver = ResolverTransceiver(
@@ -314,15 +318,17 @@ class ResolverPublisher(Node):
 
             # No resolver on J6, so just pretend it is always level
             if joint_name == "j6":
-                # Delay a little to not overwhelm the RS485 bus
-                time.sleep(self.receive_timeout)
+                time.sleep(self.receive_deadtime)
                 continue
 
             joint_position = self.resolver_transceiver.position(joint_name)
             if joint_position != -1:
                 # Successful transmit and receive, update value to be published
                 self.resolver_state.position[i] = joint_position                
+            # Delay a little to not overwhelm the RS485 bus
+            time.sleep(self.receive_deadtime)
         
+        self.resolver_state.header.stamp = self.get_clock().now().to_msg()
         self.publisher.publish(self.resolver_state)
 
     def destroy_node(self):
