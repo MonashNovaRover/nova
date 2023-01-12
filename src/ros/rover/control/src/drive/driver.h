@@ -32,6 +32,7 @@ EDITED:		13/09/2022
 #include "rclcpp/rclcpp.hpp"
 #include "core/msg/input_gamepad.hpp"
 #include "core/msg/drive_input.hpp"
+#include "core/msg/pivot_wheel_data.hpp"
 #include "std_msgs/msg/bool.hpp"
 
 // Include CMD class
@@ -99,6 +100,14 @@ private:
     rclcpp::TimerBase::SharedPtr mode_timer;
     rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr mode_pub;
 
+<<<<<<< HEAD:control/src/drive/driver.h
+=======
+    rclcpp::Publisher<core::msg::PivotWheelData>::SharedPtr pivot_wheel_pub;
+
+    // The period at which we publish whether  we are in autonomous mode
+    std::chrono::milliseconds mode_timer_period = 200ms;
+
+>>>>>>> Adding pivot wheel message to start publisher:src/drive/driver.h
     // A flag for whether to apply the handbrake or not
     bool handbrake;
 
