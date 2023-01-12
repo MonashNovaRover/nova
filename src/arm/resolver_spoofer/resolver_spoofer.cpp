@@ -11,16 +11,17 @@ AUTHOR(S):	Jory Braun
 
 #include "arm_messages.h"
 #include "print/print.h"
+#include "config/rosconfig.h"
 
 #define _USE_MATH_DEFINES
 #include <cmath>
 
+// Use the standard namespace for subscribers
+using std::placeholders::_1;
+
 
 void ResolverSpoofer::start_node()
 {
-    // Initialise constants
-    timer_period = 200ms;
-    
     // Set up the joints structure
     joints = ArmMessages::get_empty_joint_state(arm_config_info.joint_names);
     
@@ -38,13 +39,13 @@ void ResolverSpoofer::start_node()
     // Create the subscription
     outputs_subscription = this->create_subscription<sensor_msgs::msg::JointState>(
         "/control/joint_velocities",
-        rclcpp::QoS(1).best_effort().deadline(200ms),
+        rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline),
         std::bind(&ResolverSpoofer::subscriber_callback, this, _1)
     );
 
     // Create the publisher timer. Controls rate of publihsing to /resolvers topic
     publisher_timer = this->create_wall_timer(
-        timer_period, std::bind(&ResolverSpoofer::publisher_callback, this)
+        ROSTimers::arm_resolvers, std::bind(&ResolverSpoofer::publisher_callback, this)
     );
 
     // Create the publisher

@@ -43,11 +43,6 @@ EDITED:		13/09/2022
 // The distance between each wheel on each side [m]
 #define WHEEL_SEPARATION 0.42426
 
-// Use the standard namespaces
-using namespace std;
-using namespace std::chrono_literals;
-using std::placeholders::_1;
-
 
 // Store a position structure with x and y
 struct Vector2 {
@@ -89,8 +84,6 @@ class Driver : public rclcpp::Node {
     rclcpp::TimerBase::SharedPtr mode_timer;
     rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr mode_pub;
 
-    // The period at which we publish whether  we are in autonomous mode
-    std::chrono::milliseconds mode_timer_period = 200ms;
     // A flag for whether to apply the handbrake or not
     bool handbrake;
 

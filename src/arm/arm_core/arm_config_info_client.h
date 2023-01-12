@@ -32,9 +32,6 @@ TODO:
 // Include other libraries
 #include <string>
 
-// Namespace for timers
-using namespace std::chrono_literals;
-
 /*
 Class which gets arm configuration information from the /control/arm_config_info service
 */

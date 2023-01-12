@@ -12,6 +12,10 @@ AUTHOR(S):	Jess Hepworth, Jory Braun
 
 #include "arm_messages.h"
 #include "print/print.h"
+#include "config/rosconfig.h"
+
+// Use the standard namespaces
+using std::placeholders::_1;
 
 
 // Receives input from left joystick
@@ -233,17 +237,17 @@ void ArmInputs::start_node()
 {
     // Creates the end effector inputs publisher
     endeffector_publisher = this->create_publisher<core::msg::EndEffectorInput>(
-        "/control/endeffector_input", rclcpp::QoS(1).best_effort().deadline(200ms)
+        "/control/endeffector_input", rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline)
     );
 
     // Creates the joint velocity publisher
     joint_vel_publisher = this->create_publisher<sensor_msgs::msg::JointState>(
-        "/control/input_joint_velocities", rclcpp::QoS(1).best_effort().deadline(200ms)
+        "/control/input_joint_velocities", rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline)
     );
 
     // Creates the task velocity publisher
     task_vel_publisher = this->create_publisher<geometry_msgs::msg::TwistStamped>(
-        "/control/task_velocity", rclcpp::QoS(1).best_effort().deadline(200ms)
+        "/control/task_velocity", rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline)
     );
 
     // Create common options for joystick subscriptions
@@ -251,7 +255,7 @@ void ArmInputs::start_node()
     joystick_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void{
         this->joystick_deadline_callback();
     };
-    rclcpp::QoS joystick_qos = rclcpp::QoS(1).best_effort().deadline(200ms);
+    rclcpp::QoS joystick_qos = rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline);
 
     // Creates the input subscription for the left joystick (with QoS options)
     joystick_l_subscription = this->create_subscription<core::msg::InputJoystick>(
@@ -270,17 +274,17 @@ void ArmInputs::start_node()
     );
 
     // Creates a timer function that runs a function on loop every 0.05 seconds
-    timer = this->create_wall_timer(50ms, std::bind(&ArmInputs::publish_endeffector_inputs, this));
+    timer = this->create_wall_timer(ROSTimers::arm_control, std::bind(&ArmInputs::publish_endeffector_inputs, this));
 
     // Creates a timer function that runs a function on loop every 0.05 seconds
-    timer_joint = this->create_wall_timer(50ms, std::bind(&ArmInputs::publish_joint_vel, this));
+    timer_joint = this->create_wall_timer(ROSTimers::arm_control, std::bind(&ArmInputs::publish_joint_vel, this));
 
     // Creates a timer function that runs a function on loop every 0.05 seconds
-    timer_task = this->create_wall_timer(50ms, std::bind(&ArmInputs::publish_task_vel, this));
+    timer_task = this->create_wall_timer(ROSTimers::arm_control, std::bind(&ArmInputs::publish_task_vel, this));
 
     // Create timer and publisher for control_scheme
     control_scheme_timer = this->create_wall_timer(
-        50ms, std::bind(&ArmInputs::publish_control_scheme, this)
+        ROSTimers::arm_control, std::bind(&ArmInputs::publish_control_scheme, this)
     );
     control_scheme_publisher = this->create_publisher<core::msg::ArmControlScheme>(
         "/control/arm_control_scheme", 10
