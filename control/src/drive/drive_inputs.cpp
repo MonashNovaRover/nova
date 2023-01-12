@@ -10,13 +10,18 @@ AUTHOR(S):	Harrison Verrios, Liam Whittle
 // Include the header file
 #include "drive_inputs.h"
 #include "print/print.h"
+<<<<<<< HEAD:control/src/drive/drive_inputs.cpp
 #include "config/rosconfig.h"
 
 using std::placeholders::_1;
 
+=======
+#include <math.h>
+>>>>>>> Code cleanup to build:src/drive/drive_inputs.cpp
 
 // Adjustes the multiplier factor by some amount in some direction
-float DriveInputs::adjust_multiplier (float& multiplier, bool increase) {
+float DriveInputs::adjust_multiplier(float &multiplier, bool increase)
+{
 
     // Adjust the multiplier
     multiplier += (increase) ? DELTA_MULTIPLIER : -DELTA_MULTIPLIER;
@@ -31,24 +36,28 @@ float DriveInputs::adjust_multiplier (float& multiplier, bool increase) {
     return multiplier;
 }
 
-
 // Publishes the drive commands from the speed and steer
-void DriveInputs::publish_cmds () {
+void DriveInputs::publish_cmds()
+{
 
     // Create the message
     auto message = core::msg::DriveInput();
 
-    if (!prev_msg_received) return;
+    if (!prev_msg_received)
+        return;
 
     // Set up the values if the controller is not locked
     if (!locked && connected)
     {
         message.speed = left_input_axis_y * multiplier_speed * trigger_speed;
         message.steer = calc_steer_angle(right_input_axis_x, right_input_axis_y);
+        message.strafe_mode = strafe_mode;
 
         // Otherwise print lock message
-    } else if (locked) {
-        //cout << "Controller LOCKED." << endl;
+    }
+    else if (locked)
+    {
+        // cout << "Controller LOCKED." << endl;
         fflush(stdout);
     }
 
@@ -60,7 +69,8 @@ void DriveInputs::publish_cmds () {
 }
 
 // Stops driving when no input received from radios for a period of time
-void DriveInputs::deadline_exceeded (){
+void DriveInputs::deadline_exceeded()
+{
 
     // Clear the old inputs
     left_input_axis_y = 0.0;
@@ -71,12 +81,13 @@ void DriveInputs::deadline_exceeded (){
     prev_msg_received = false;
 }
 
-
 // Receives input from the gamepad
-void DriveInputs::input_callback (const core::msg::InputGamepad::SharedPtr msg) {
+void DriveInputs::input_callback(const core::msg::InputGamepad::SharedPtr msg)
+{
 
     // If no connection, reset the state
-    if (!msg->connected) {
+    if (!msg->connected)
+    {
         left_input_axis_y = 0.0;
         right_input_axis_x = 0.0;
         right_input_axis_y = 0.0;
@@ -84,17 +95,18 @@ void DriveInputs::input_callback (const core::msg::InputGamepad::SharedPtr msg) 
 
         // Publish no connection message
         if (connected)
-            Print::print ("No Gamepad Connected", C_FAIL);
+            Print::print("No Gamepad Connected", C_FAIL);
     }
 
     // If the controller is connected
-    else {
+    else
+    {
 
         prev_msg_received = true;
 
         // Publish connection message
         if (!connected)
-            Print::print ("Gamepad Connected", C_SUCCESS);
+            Print::print("Gamepad Connected", C_SUCCESS);
 
         // Update the input axis
         left_input_axis_y = msg->ax_stick_l_y;
@@ -105,19 +117,22 @@ void DriveInputs::input_callback (const core::msg::InputGamepad::SharedPtr msg) 
         trigger_speed = 1.0 - (msg->trg_r_val * (1 - MIN_TRIGGER_MULTIPLIER));
 
         // Determine if the conrroller needs to be locked or not
-        if (msg->btn_back_state == 1) {
+        if (msg->btn_back_state == 1)
+        {
             if (!locked)
                 Print::print("Gamepad Locked");
             locked = true;
-        } if (msg->btn_start_state == 1) {
+        }
+        if (msg->btn_start_state == 1)
+        {
             if (locked)
                 Print::print("Gamepad Unlocked");
             locked = false;
         }
 
-
         // Prevent changing states if the controller is locked
-        if (!locked) {
+        if (!locked)
+        {
 
             // Change the speed multipliers
             if (msg->btn_dpad_u_state == 1)
@@ -127,11 +142,11 @@ void DriveInputs::input_callback (const core::msg::InputGamepad::SharedPtr msg) 
 
             if (msg->trg_l_val > 0.8)
             {
-                drive_mode = STRAFE;
+                strafe_mode = true;
             }
             else
             {
-                drive_mode = RADIAL;
+                strafe_mode = false;
             }
         }
     }
@@ -142,7 +157,7 @@ void DriveInputs::input_callback (const core::msg::InputGamepad::SharedPtr msg) 
 
 float DriveInputs::calc_steer_angle(float x_steer, float y_steer)
 {
-    float steer_angle 0.0;
+    float steer_angle = 0.0;
 
     // no steer if no x axis
     if (x_steer == 0.0)
@@ -166,7 +181,7 @@ float DriveInputs::calc_steer_angle(float x_steer, float y_steer)
         steer_angle *= -1;
     }
 
-    return steer_angle * (pi / 180);
+    return steer_angle * (M_PI / 180);
 }
 
 // Main constructor that sets up the node
