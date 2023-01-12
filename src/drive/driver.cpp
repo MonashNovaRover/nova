@@ -204,14 +204,9 @@ Driver::Driver() : Node("driver")
     Print::print("", true);
 
     // Initialise the wheels
-    double reduction = 63;
-    int encoder_ppr = 256;
-    double velocity_factor = 150;
-    double clock_frequency = 30e6;
-    double wheel_scaling_factor = CMD::get_scaling_factor(reduction, encoder_ppr, velocity_factor, clock_frequency);
     for (size_t i = 0; i < NUM_WHEELS; i++) {
         bool left = i < NUM_WHEELS / 2;
-        wheels[i] = new CMD (0, i + 1, PID, left, STOP, wheel_scaling_factor);
+        wheels[i] = new CMD (0, i + 1, PID, left, STOP);
     }
     
     rclcpp::QoS qos = rclcpp::QoS(1).best_effort().deadline(200ms);
