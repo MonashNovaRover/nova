@@ -40,7 +40,7 @@ using std::placeholders::_1;
 
 // The minimum and maximum multipliers
 const float MIN_MULTIPLIER      = 0.1;  // The minimum multiplier value
-const float MAX_MULTIPLIER      = 0.7;  // The maximum multiplier value
+const float MAX_MULTIPLIER      = 1.0;  // The maximum multiplier value
 const float DELTA_MULTIPLIER    = 0.1;  // The change in multiplier
 
 // The initial multipliers
