@@ -84,7 +84,7 @@ class ArmModel : public KDL::Tree
     // Global control variables
     const bool USE_GLOBAL_CONTROL = true;
     const float GLOBAL_DAMPING = 10;
-    const float GLOBAL_NATURAL_FREQUENCY = 10;
+    const float GLOBAL_NATURAL_FREQUENCY = 1;
     // Prepare global control coefficients for a PI controller
     const ArmSubModule::ControlCoeffs GLOBAL_CONTROL;
 
