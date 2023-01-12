@@ -37,10 +37,6 @@ TODO:
 #include "arm_config_info_client.h"
 #include "cmd/cmd.h"
 
-// Use the standard namespaces
-using namespace std::chrono_literals;
-using std::placeholders::_1;
-
 
 /* 
 Class which receives the commands for the CMDS and interfaces 

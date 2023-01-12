@@ -14,17 +14,18 @@ AUTHOR(S):	Jory Braun
 #include "arm_messages.h"
 #include "../arm_configuration.h"
 #include "print/print.h"
+#include "config/rosconfig.h"
 
 #define _USE_MATH_DEFINES
 #include <cmath>
 #include <string>
 
+// Namespaces for subscribers
+using std::placeholders::_1;
+using std::placeholders::_2;
+
 ArmKinematics::ArmKinematics() : Node("arm_kinematics")
 {
-    // Initialise constants
-    coord_frames_timer_period = 200ms;
-    joint_velocities_timer_period = 50ms;
-
     // Initialise arm model
     arm_model = new ArmModel(ArmConfig::wrist_type, ArmConfig::end_effector_type);
     // Initialise arm kinematics solvers
@@ -56,7 +57,7 @@ ArmKinematics::ArmKinematics() : Node("arm_kinematics")
     };
     input_joint_velocities_sub = this->create_subscription<sensor_msgs::msg::JointState>(
         "/control/input_joint_velocities",
-        rclcpp::QoS(1).best_effort().deadline(200ms),
+        rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline),
         std::bind(&ArmKinematics::input_joint_velocities_callback, this, _1),
         input_joint_velocities_options
     );
@@ -68,14 +69,14 @@ ArmKinematics::ArmKinematics() : Node("arm_kinematics")
     };
     task_velocity_sub = this->create_subscription<geometry_msgs::msg::TwistStamped>(
         "/control/task_velocity",
-        rclcpp::QoS(1).best_effort().deadline(200ms),
+        rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline),
         std::bind(&ArmKinematics::task_velocity_callback, this, _1),
         task_velocity_options
     );
 
     // Create timer and publisher for arm_coord_frames
     coord_frames_timer = this->create_wall_timer(
-        coord_frames_timer_period, std::bind(&ArmKinematics::publish_coord_frames, this)
+        ROSTimers::arm_visualisation, std::bind(&ArmKinematics::publish_coord_frames, this)
     );
     coord_frames_pub = this->create_publisher<sensor_msgs::msg::MultiDOFJointState>(
         "/control/arm_coord_frames", 10
@@ -83,10 +84,10 @@ ArmKinematics::ArmKinematics() : Node("arm_kinematics")
 
     // Create timer and publisher for joint_velocities
     joint_velocities_timer = this->create_wall_timer(
-        joint_velocities_timer_period, std::bind(&ArmKinematics::publish_joint_velocities, this)
+        ROSTimers::arm_control, std::bind(&ArmKinematics::publish_joint_velocities, this)
     );
     joint_velocities_pub = this->create_publisher<sensor_msgs::msg::JointState>(
-        "/control/joint_velocities", rclcpp::QoS(1).best_effort().deadline(200ms)
+        "/control/joint_velocities", rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline)
     );
 
     // Create service for arm_config_info

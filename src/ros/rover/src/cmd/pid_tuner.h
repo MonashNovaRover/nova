@@ -33,11 +33,6 @@ EDITED:		06/01/2022
 // Include CMD class
 #include "cmd.h"
 
-// Use the standard namespaces
-using namespace std::chrono_literals;
-using std::placeholders::_1;
-using std::placeholders::_2;
-
 
 // The PID Tuner class
 class PIDTuner : public rclcpp::Node {

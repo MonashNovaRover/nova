@@ -31,10 +31,6 @@ EDITED:		  24/11/2021
 #include "core/msg/input_gamepad.hpp"
 #include "core/msg/input_joystick.hpp"
 
-// Use the standard namespaces
-using namespace std;
-using namespace std::chrono_literals;
-
 
 // Main publisher class that sends input data for the gamepad and joysticks
 class InputsPublisher : public rclcpp::Node {

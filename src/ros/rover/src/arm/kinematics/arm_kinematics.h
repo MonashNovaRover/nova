@@ -50,13 +50,6 @@ TODO:
 #include <kdl/treefksolverpos_recursive.hpp>
 #include <kdl/treeiksolvervel_wdls.hpp>
 
-// Use the standard namespaces
-// For publishers
-using namespace std::chrono_literals;
-// For subscribers
-using std::placeholders::_1;
-using std::placeholders::_2;
-
 /* 
 Class which models the arm.
 Use real positions of joints and end effectors, but idealised links
@@ -65,10 +58,6 @@ class ArmKinematics : public rclcpp::Node
 {
     //------------------------------------------------------------//
     private:
-
-    // Periods at which to publish
-    std::chrono::milliseconds coord_frames_timer_period;
-    std::chrono::milliseconds joint_velocities_timer_period;
 
     // Track internal state
     // Arm control scheme
