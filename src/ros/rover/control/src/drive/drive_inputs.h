@@ -44,11 +44,6 @@ const float INITIAL_MULT_SPEED = 0.5;
 const float MIN_TRIGGER_MULTIPLIER = 0.4;
 
 // The enum denotes the current drive mode of the rover
-enum DriveMode
-{
-    RADIAL,
-    STRAFE
-};
 
 /*
     HOW TO DRIVE THE ROVER:
@@ -88,7 +83,7 @@ private:
     bool locked = true;
 
     // Drive mode
-    bool drive_mode = RADIAL;
+    bool strafe_mode = false;
 
     // Stores the current state of the input axis
     float right_input_axis_y = 0.0;

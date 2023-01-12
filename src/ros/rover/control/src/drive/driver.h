@@ -145,10 +145,9 @@ private:
     void fill_wheel_angles_radial(float radius);
 
     /// @brief
-    /// @param      radius - The turning radius of the rover [m]
     /// @param      speed - Speed of each driven wheel
     /// @param      steer - Direction and amount of steering
-    void fill_wheel_velocities_radial(float radius, float speed, float steer);
+    void fill_wheel_velocities_radial(float speed, float steer);
 
     /// @brief      Callback function to publish whether autonomous
     void pub_auto_mode();

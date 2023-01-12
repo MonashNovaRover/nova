@@ -25,14 +25,7 @@ void Driver::send_commands(const core::msg::DriveInput::SharedPtr msg)
     // Check if wheels should spin
     if (msg->speed != 0)
     {
-
-        // If no steer, spin all wheels with the same speed
-        if (msg->steer == 0)
-        {
-            std::fill(wheel_velocities, wheel_velocities + NUM_WHEELS, msg->speed);
-        }
-        // Otherwise, calculate the speed for each wheel to follow a circular path
-        else if (drive_mode == RADIAL)
+        if (!msg->strafe_mode)
         {
             // Find the turning radius form the 'steer' command
             // This defines a turning centre to the left or right of the rover wheelbase
@@ -45,9 +38,9 @@ void Driver::send_commands(const core::msg::DriveInput::SharedPtr msg)
             // fill_wheel_velocities(wheel_velocities, radius, msg->speed, msg->steer);
 
             fill_wheel_angles_radial(radius);
-            fill_wheel_velocities_radial(radius, msg->speed, msg->steer);
+            fill_wheel_velocities_radial(msg->speed, msg->steer);
         }
-        else if (drive_mode == STRAFE)
+        else
         {
             /*
             float turning_angle = msg->steer;
@@ -64,8 +57,8 @@ void Driver::send_commands(const core::msg::DriveInput::SharedPtr msg)
     for (size_t i = 0; i < NUM_WHEELS; i++)
     {
         // wheels[i]->drive(wheel_velocities[i]);
-        message->angles[i] = wheels[i]->angle;
-        message->velocities[i] = wheels[i]->velocity;
+        message.angles[i] = wheels[i]->angle;
+        message.velocities[i] = wheels[i]->velocity;
     }
     RCLCPP_INFO(this->get_logger(), "Publishing!");
     pivot_wheel_pub->publish(message);
@@ -162,7 +155,7 @@ void Driver::fill_wheel_angles_radial(float radius)
 }
 
 // Fill array with velocities for each wheel, with directions and magnitude depending on the turning radius
-void Driver::fill_wheel_velocities_radial(float radius, float speed, float steer)
+void Driver::fill_wheel_velocities_radial(float speed, float steer)
 {
     // determines whether the wheels are turning left or right
     int direction = (steer < 0) ? -1 : 1;
@@ -203,8 +196,8 @@ Driver::Driver() : Node("driver")
     for (size_t i = 0; i < NUM_WHEELS; i++)
     {
         bool left = i < NUM_WHEELS / 2;
-        CMD cmdWheel = new CMD(0, i + 1, PID, STOP, left);
-        CMD cmdPivot = new CMD(0, i + NUM_WHEELS + 1, PID, STOP, left);
+        CMD *cmdWheel = new CMD(0, i + 1, PID, STOP, left);
+        CMD *cmdPivot = new CMD(0, i + NUM_WHEELS + 1, PID, STOP, left);
         wheels[i] = new Wheel(i, cmdWheel, cmdPivot);
     }
 <<<<<<< HEAD:control/src/drive/driver.cpp
@@ -251,8 +244,11 @@ Driver::Driver() : Node("driver")
 void Driver::inputs_deadline_exceeded()
 {
     RCLCPP_WARN(this->get_logger(), "Drive inputs subscriber deadline missed");
-    for (CMD *wheel : wheels)
-        wheel->stop();
+    for (Wheel *wheel : wheels)
+    {
+        wheel->cmdPivot->stop();
+        wheel->cmdWheel->stop();
+    }
 }
 
 //  Main function called when the script execution begins
