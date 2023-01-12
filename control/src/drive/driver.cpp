@@ -58,11 +58,17 @@ void Driver::send_commands(const core::msg::DriveInput::SharedPtr msg)
         }
     }
 
+    auto message = core::msg::PivotWheelData();
+
     // Send velocities to the wheels
     for (size_t i = 0; i < NUM_WHEELS; i++)
     {
-        wheels[i]->drive(wheel_velocities[i]);
+        // wheels[i]->drive(wheel_velocities[i]);
+        message->angles[i] = wheels[i]->angle;
+        message->velocities[i] = wheels[i]->velocity;
     }
+    RCLCPP_INFO(this->get_logger(), "Publishing!");
+    pivot_wheel_pub->publish(message);
 }
 
 // Receives drive commands
@@ -237,6 +243,8 @@ Driver::Driver() : Node("driver")
 >>>>>>> Archive old drive code, update filenames:src/drive/driver.cpp
     mode_pub = this->create_publisher<std_msgs::msg::Bool>(
         "/autonomous/mode", 10);
+
+    pivot_wheel_pub = this->create_publisher<core::msg::PivotWheelData>("/control/pivot_wheel_data", 10);
 }
 
 // deadline callback for when the drive inputs publisher misses its deadline
