@@ -10,6 +10,9 @@ AUTHOR(S):	Harrison Verrios, Liam Whittle
 // Include the header file
 #include "drive_inputs.h"
 #include "print/print.h"
+#include "config/rosconfig.h"
+
+using std::placeholders::_1;
 
 
 // Adjustes the multiplier factor by some amount in some direction
@@ -130,7 +133,7 @@ DriveInputs::DriveInputs() : Node("drive_inputs")
 {
 
     // Stores QoS options
-    rclcpp::QoS qos = rclcpp::QoS(1).best_effort().deadline(200ms);
+    rclcpp::QoS qos = rclcpp::QoS(1).best_effort().deadline(ROSTimers::drive_deadline);
     rclcpp::SubscriptionOptions subscriber_options;
 
 
@@ -147,7 +150,7 @@ DriveInputs::DriveInputs() : Node("drive_inputs")
         "/control/input_gamepad", qos, std::bind(&DriveInputs::input_callback, this, _1), subscriber_options);
 
     // Creates a timer function that runs a function on loop every 0.05 seconds
-    timer = this->create_wall_timer(20ms, std::bind(&DriveInputs::publish_cmds, this));
+    timer = this->create_wall_timer(ROSTimers::drive_control, std::bind(&DriveInputs::publish_cmds, this));
 
     // Output set-up messages
     Print::title("DRIVE INPUTS");

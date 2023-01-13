@@ -10,6 +10,11 @@ AUTHOR(S):	Harrison Verrios
 // Include the header file
 #include "pid_tuner.h"
 #include "print/print.h"
+#include "config/rosconfig.h"
+
+// Use the standard namespaces for services
+using std::placeholders::_1;
+using std::placeholders::_2;
 
 
 // Selects the device
@@ -147,11 +152,9 @@ PIDTuner::PIDTuner ()
     // Creates the publisher
     publisher = this->create_publisher<core::msg::CMDFeedback>("/control/cmd_feedback", 10);
 
-    // Creates a timer function that runs a function on loop every 0.1 seconds
-    velocity_timer = this->create_wall_timer(100ms, std::bind(&PIDTuner::send_velocity, this));
-
-    // Creates a timer function that runs a function on loop every 0.05 seconds
-    feedback_timer = this->create_wall_timer(50ms, std::bind(&PIDTuner::publish_velocity, this));
+    // Create timers
+    velocity_timer = this->create_wall_timer(ROSTimers::pid_tuner_control, std::bind(&PIDTuner::send_velocity, this));
+    feedback_timer = this->create_wall_timer(ROSTimers::pid_tuenr_feedback, std::bind(&PIDTuner::publish_velocity, this));
 
     // Output set-up messages
     Print::title("PID TUNER");

@@ -13,16 +13,16 @@ AUTHOR(S):	Jory Braun
 #include "arm_type_translation.h"
 #include "../arm_configuration.h"
 #include "print/print.h"
+#include "config/rosconfig.h"
 
 #include <string>
 
+// Use the standard namespaces for services
+using std::placeholders::_1;
+using std::placeholders::_2;
+
 ArmControl::ArmControl() : Node("arm_control")
 {
-    // Initialise publish timer periods
-    coord_frames_timer_period = 10ms;
-    joint_velocities_timer_period = 10ms;
-    
-
     // Create subscription to arm control scheme
     control_scheme_sub = this->create_subscription<core::msg::ArmControlScheme>(
         "/control/arm_control_scheme", 10, std::bind(&ArmControl::control_scheme_callback, this, _1)
@@ -40,7 +40,7 @@ ArmControl::ArmControl() : Node("arm_control")
     };
     control_joints_sub = this->create_subscription<sensor_msgs::msg::JointState>(
         "/control/control_joints",
-        rclcpp::QoS(1).best_effort().deadline(200ms),
+        rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline),
         std::bind(&ArmControl::control_joints_callback, this, _1),
         control_joints_options
     );
@@ -52,7 +52,7 @@ ArmControl::ArmControl() : Node("arm_control")
     };
     control_twist_sub = this->create_subscription<geometry_msgs::msg::TwistStamped>(
         "/control/control_twist",
-        rclcpp::QoS(1).best_effort().deadline(200ms),
+        rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline),
         std::bind(&ArmControl::control_twist_callback, this, _1),
         control_twist_options
     );
@@ -64,14 +64,14 @@ ArmControl::ArmControl() : Node("arm_control")
     };
     control_pose_sub = this->create_subscription<geometry_msgs::msg::TransformStamped>(
         "/control/control_pose",
-        rclcpp::QoS(1).best_effort().deadline(200ms),
+        rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline),
         std::bind(&ArmControl::control_pose_callback, this, _1),
         control_pose_options
     );
 
     // Create timer and publisher for arm_coord_frames
     coord_frames_timer = this->create_wall_timer(
-        coord_frames_timer_period, std::bind(&ArmControl::publish_coord_frames, this)
+        ROSTimers::arm_visualisation, std::bind(&ArmControl::publish_coord_frames, this)
     );
     coord_frames_pub = this->create_publisher<sensor_msgs::msg::MultiDOFJointState>(
         "/control/arm_coord_frames", 10
@@ -79,10 +79,10 @@ ArmControl::ArmControl() : Node("arm_control")
 
     // Create timer and publisher for joint_velocities
     joint_velocities_timer = this->create_wall_timer(
-        joint_velocities_timer_period, std::bind(&ArmControl::publish_joint_velocities, this)
+        ROSTimers::arm_control, std::bind(&ArmControl::publish_joint_velocities, this)
     );
     joint_velocities_pub = this->create_publisher<sensor_msgs::msg::JointState>(
-        "/control/joint_velocities", rclcpp::QoS(1).best_effort().deadline(200ms)
+        "/control/joint_velocities", rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline)
     );
 
 

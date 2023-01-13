@@ -33,20 +33,11 @@ TODO:
 // Include libraries
 #include "arm_config_info_client.h"
 
-// Use the standard namespaces
-// For publishers
-using namespace std::chrono_literals;
-// For subscribers
-using std::placeholders::_1;
-
 
 class ResolverSpoofer : public ArmConfigInfoClient
 {
     //------------------------------------------------------------//
     private:
-
-    // Period at which to publish to /control/resolvers
-    std::chrono::milliseconds timer_period;
 
     // Track internal state of all joints
     // Includes joint names, position, velocity, effort and the corresponding timestamp

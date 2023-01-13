@@ -9,7 +9,8 @@ AUTHOR(S):	Harrison Verrios
 
 // Include the header file
 #include "inputs_publisher.h"
-#include <print/print.h>
+#include "print/print.h"
+#include "config/rosconfig.h"
 
 
 // Main consrtuctor sets up the node and the publishers
@@ -28,12 +29,12 @@ InputsPublisher::InputsPublisher() : Node("input_pub")
 
     // Creates the publishers
     // gamepad_publisher       = this->create_publisher<core::msg::InputGamepad>("/control/input_gamepad", qos, publisher_options);
-    gamepad_publisher       = this->create_publisher<core::msg::InputGamepad>("/control/input_gamepad", rclcpp::QoS(1).best_effort().deadline(200ms));
-    joystick_l_publisher    = this->create_publisher<core::msg::InputJoystick>("/control/input_joystick_l", rclcpp::QoS(1).best_effort().deadline(200ms));
-    joystick_r_publisher    = this->create_publisher<core::msg::InputJoystick>("/control/input_joystick_r", rclcpp::QoS(1).best_effort().deadline(200ms));
+    gamepad_publisher       = this->create_publisher<core::msg::InputGamepad>("/control/input_gamepad", rclcpp::QoS(1).best_effort().deadline(ROSTimers::drive_deadline));
+    joystick_l_publisher    = this->create_publisher<core::msg::InputJoystick>("/control/input_joystick_l", rclcpp::QoS(1).best_effort().deadline(ROSTimers::drive_deadline));
+    joystick_r_publisher    = this->create_publisher<core::msg::InputJoystick>("/control/input_joystick_r", rclcpp::QoS(1).best_effort().deadline(ROSTimers::drive_deadline));
 
-    // Creates a timer function that runs a function on loop every 0.02 seconds
-    timer = this->create_wall_timer(10ms, std::bind(&InputsPublisher::publish_input, this));
+    // Creates a timer function that runs a function on loop
+    timer = this->create_wall_timer(ROSTimers::drive_control, std::bind(&InputsPublisher::publish_input, this));
 
     // Output set-up messages
     Print::title("INPUTS PUBLISHER");

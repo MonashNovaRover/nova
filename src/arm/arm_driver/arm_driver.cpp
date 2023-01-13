@@ -12,7 +12,11 @@ AUTHOR(S):	Jess Hepworth, Jory Braun
 
 // Include other headers
 #include "print/print.h"
+#include "config/rosconfig.h"
 #include "../arm_configuration.h"
+
+// Use the standard namespaces
+using std::placeholders::_1;
 
 
 // Receives the desired commands for the CMDs and sends to CMDs
@@ -67,7 +71,7 @@ ArmDriver::ArmDriver() : Node("arm_driver")
     };
     joint_velocities_subscription = this->create_subscription<sensor_msgs::msg::JointState>(
         "/control/joint_velocities",
-        rclcpp::QoS(1).best_effort().deadline(200ms),
+        rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline),
         std::bind(&ArmDriver::joint_velocities_callback, this, _1),
         joint_velocities_options
     );
@@ -79,7 +83,7 @@ ArmDriver::ArmDriver() : Node("arm_driver")
     };
     endeffector_input_subscription = this->create_subscription<core::msg::EndEffectorInput>(
         "/control/endeffector_input",
-        rclcpp::QoS(1).best_effort().deadline(200ms),
+        rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline),
         std::bind(&ArmDriver::endeffector_input_callback, this, _1),
         endeffector_input_options
     );

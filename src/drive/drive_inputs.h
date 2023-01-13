@@ -31,12 +31,6 @@ EDITED:		31/05/2022
 #include "core/msg/input_gamepad.hpp"
 #include "core/msg/drive_input.hpp"
 
-#include <iostream>
-
-// Use the standard namespaces
-using namespace std;
-using namespace std::chrono_literals;
-using std::placeholders::_1;
 
 // The minimum and maximum multipliers
 const float MIN_MULTIPLIER      = 0.1;  // The minimum multiplier value

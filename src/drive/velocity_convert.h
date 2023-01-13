@@ -31,10 +31,6 @@ TODO:
 #include "core/msg/drive_input.hpp"
 #include "core/msg/drive_vel.hpp"
 
-// Use the standard namespaces
-using namespace std::chrono_literals;
-using std::placeholders::_1;
-
 
 // Main publisher class that sends input data for the gamepad and joysticks
 class VelocityConvert : public rclcpp::Node {

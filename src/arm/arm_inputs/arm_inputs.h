@@ -42,10 +42,6 @@ TODO:
 // Include libraries
 #include "arm_config_info_client.h"
 
-// Use the standard namespaces
-using namespace std::chrono_literals;
-using std::placeholders::_1;
-
 
 /* 
 Arm input class that handles input data from joysticks and publishes 
