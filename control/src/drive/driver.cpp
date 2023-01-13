@@ -22,9 +22,6 @@ using std::placeholders::_1;
 void Driver::send_commands(const core::msg::DriveInput::SharedPtr msg)
 {
 
-    // Check if wheels should spin
-    if (msg->speed != 0)
-    {
         if (!msg->strafe_mode)
         {
             // Find the turning radius form the 'steer' command
@@ -49,7 +46,7 @@ void Driver::send_commands(const core::msg::DriveInput::SharedPtr msg)
             fill_wheel_velocities_strafe(wheels, msg->speed, msg->steer);
             */
         }
-    }
+
 
     auto message = core::msg::PivotWheelData();
 
