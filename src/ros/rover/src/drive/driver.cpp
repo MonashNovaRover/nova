@@ -13,6 +13,10 @@ AUTHOR(S):	Harrison Verrios, Josh Cherubino, Will de la Rue, Jory Braun
 // Include the header file
 #include "driver.h"
 #include "print/print.h"
+#include "config/rosconfig.h"
+
+// Use the standard namespaces for subscribers
+using std::placeholders::_1;
 
 // Sends commands to the wheels
 void Driver::send_commands (const core::msg::DriveInput::SharedPtr msg) {
@@ -209,7 +213,7 @@ Driver::Driver() : Node("driver")
         wheels[i] = new CMD (0, i + 1, PID, left, STOP);
     }
     
-    rclcpp::QoS qos = rclcpp::QoS(1).best_effort().deadline(200ms);
+    rclcpp::QoS qos = rclcpp::QoS(1).best_effort().deadline(ROSTimers::drive_deadline);
 
     rclcpp::SubscriptionOptions subscriber_options;
 	
@@ -230,7 +234,7 @@ Driver::Driver() : Node("driver")
 
     // Creates auto mode timer and associated publisher
     mode_timer = this->create_wall_timer(
-        mode_timer_period, std::bind(&Driver::pub_auto_mode, this)
+        ROSTimers::auto_mode, std::bind(&Driver::pub_auto_mode, this)
     );
     mode_pub = this->create_publisher<std_msgs::msg::Bool>(
         "/autonomous/mode", 10

@@ -12,6 +12,9 @@ AUTHOR(S):  Himsara Gallege, Harrison Verrios
 #include "print/print.h"
 #include <stdio.h>
 
+// Use the standard namespaces for subscribers
+using std::placeholders::_1;
+
 // Create any definitions
 #define PI      3.141593    // Mathematical constant PI
 #define S_PER_M 60          // Seconds per Minute

@@ -10,6 +10,7 @@ AUTHOR(S):	Jory Braun
 #include "arm_config_info_client.h"
 
 #include "print/print.h"
+#include "config/rosconfig.h"
 
 ArmConfigInfoClient::ArmConfigInfoClient(const std::string& node_name) : Node(node_name)
 {
@@ -25,7 +26,7 @@ ArmConfigInfoClient::ArmConfigInfoClient(const std::string& node_name) : Node(no
 
     // Set up the callback timer
     check_receive_timer = this->create_wall_timer(
-        100ms, std::bind(&ArmConfigInfoClient::check_receive_callback, this)
+        ROSTimers::arm_startup_timer, std::bind(&ArmConfigInfoClient::check_receive_callback, this)
     );
 
     // Output set-up messages

@@ -51,11 +51,6 @@ TODO:
 #include "arm_kinematics.h"
 #include "pi_controller.h"
 
-// Use the standard namespaces
-using namespace std::chrono_literals;
-using std::placeholders::_1;
-using std::placeholders::_2;
-
 /* 
 Class which models the arm.
 Use real positions of joints and end effectors, but idealised links
@@ -71,10 +66,6 @@ class ArmControl : public rclcpp::Node
     rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr control_joints_sub;
     rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr control_twist_sub;
     rclcpp::Subscription<geometry_msgs::msg::TransformStamped>::SharedPtr control_pose_sub;
-    
-    // Periods at which to publish
-    std::chrono::milliseconds coord_frames_timer_period;
-    std::chrono::milliseconds joint_velocities_timer_period;
 
     // Publisher timers
     rclcpp::TimerBase::SharedPtr coord_frames_timer;

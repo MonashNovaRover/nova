@@ -12,6 +12,10 @@ AUTHOR(S):	Jess Hepworth, Jory Braun
 
 #include "arm_messages.h"
 #include "print/print.h"
+#include "config/rosconfig.h"
+
+// Use the standard namespaces
+using std::placeholders::_1;
 
 
 // Receives input from left joystick
@@ -251,7 +255,7 @@ void ArmInputs::start_node()
     joystick_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void{
         this->joystick_deadline_callback();
     };
-    rclcpp::QoS joystick_qos = rclcpp::QoS(1).best_effort().deadline(200ms);
+    rclcpp::QoS joystick_qos = rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline);
 
     // Creates the input subscription for the left joystick (with QoS options)
     joystick_l_sub = this->create_subscription<core::msg::InputJoystick>(
@@ -271,31 +275,31 @@ void ArmInputs::start_node()
 
     // Create timer and publisher for endeffector_inputs
     endeffector_timer = this->create_wall_timer(
-        10ms, std::bind(&ArmInputs::publish_endeffector_inputs, this)
+        ROSTimers::arm_control, std::bind(&ArmInputs::publish_endeffector_inputs, this)
     );
     endeffector_pub = this->create_publisher<core::msg::EndEffectorInput>(
-        "/control/endeffector_input", rclcpp::QoS(1).best_effort().deadline(200ms)
+        "/control/endeffector_input", rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline)
     );
 
     // Create timer and publisher for joystick_joint_velocities
     joint_velocities_timer = this->create_wall_timer(
-        10ms, std::bind(&ArmInputs::publish_joint_velocities, this)
+        ROSTimers::arm_control, std::bind(&ArmInputs::publish_joint_velocities, this)
     );
     joint_velocities_pub = this->create_publisher<sensor_msgs::msg::JointState>(
-        "/control/joystick_joint_velocities", rclcpp::QoS(1).best_effort().deadline(200ms)
+        "/control/joystick_joint_velocities", rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline)
     );
 
     // Create timer and publisher for joystick_twist
     twist_timer = this->create_wall_timer(
-        10ms, std::bind(&ArmInputs::publish_twist, this)
+        ROSTimers::arm_control, std::bind(&ArmInputs::publish_twist, this)
     );
     twist_pub = this->create_publisher<geometry_msgs::msg::TwistStamped>(
-        "/control/joystick_twist", rclcpp::QoS(1).best_effort().deadline(200ms)
+        "/control/joystick_twist", rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline)
     );
 
     // Create timer and publisher for control_scheme
     control_scheme_timer = this->create_wall_timer(
-        10ms, std::bind(&ArmInputs::publish_control_scheme, this)
+        ROSTimers::arm_control, std::bind(&ArmInputs::publish_control_scheme, this)
     );    
     control_scheme_pub = this->create_publisher<core::msg::ArmControlScheme>(
         "/control/arm_control_scheme", 10

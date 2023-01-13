@@ -34,10 +34,6 @@ TODO:
 // Include libraries
 #include "arm_model.h"
 
-// Use the standard namespaces
-using namespace std::chrono_literals;
-using std::placeholders::_1;
-
 
 /* 
 Class which receives the commands for the CMDs and drives the joints

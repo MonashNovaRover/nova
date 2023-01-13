@@ -11,6 +11,7 @@ AUTHOR(S):	Jory Braun
 
 #include "../arm_configuration.h"
 #include "print/print.h"
+#include "config/rosconfig.h"
 
 #include <string>
 
