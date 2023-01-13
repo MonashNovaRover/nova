@@ -135,20 +135,20 @@ float Driver::get_turning_radius(float steer)
 
     // SHOULD STEER BE -1 to 1 ??
 
-    return (MAX_RADIUS - CHASSIS_SEPARATION / 2) * abs(steer) + MAX_RADIUS;
+    return (MAX_RADIUS - CHASSIS_WIDTH / 2) * abs(steer) + MAX_RADIUS;
 }
 
 void Driver::fill_wheel_angles_radial(float radius)
 {
     // gradient of line https://www.desmos.com/calculator/cb3xa9r5ai
 
-    wheels[0]->angle = atan(-(2 * radius - CHASSIS_SEPARATION) / (WHEEL_SEPARATION));
+    wheels[0]->angle = atan(-(2 * radius - CHASSIS_WIDTH) / (CHASSIS_LENGTH));
 
-    wheels[1]->angle = atan(-(2 * radius + CHASSIS_SEPARATION) / (WHEEL_SEPARATION));
+    wheels[1]->angle = atan(-(2 * radius + CHASSIS_WIDTH) / (CHASSIS_LENGTH));
 
-    wheels[2]->angle = atan(-(2 * radius - CHASSIS_SEPARATION) / (-WHEEL_SEPARATION));
+    wheels[2]->angle = atan(-(2 * radius - CHASSIS_WIDTH) / (-CHASSIS_LENGTH));
 
-    wheels[3]->angle = atan(-(2 * radius + CHASSIS_SEPARATION) / (-WHEEL_SEPARATION));
+    wheels[3]->angle = atan(-(2 * radius + CHASSIS_WIDTH) / (-CHASSIS_LENGTH));
 }
 
 // Fill array with velocities for each wheel, with directions and magnitude depending on the turning radius
@@ -161,11 +161,11 @@ void Driver::fill_wheel_velocities_radial(float speed, float steer)
     {
         if (i == 0 || i == 2)
         {
-            wheels[i]->velocity = (pow(WHEEL_SEPARATION, 2.0) / 4) + pow(speed + direction * (CHASSIS_SEPARATION / 2), 2.0);
+            wheels[i]->velocity = (pow(CHASSIS_LENGTH, 2.0) / 4) + pow(speed + direction * (CHASSIS_WIDTH / 2), 2.0);
         }
         else if (i == 1 || i == 3)
         {
-            wheels[i]->velocity = (pow(WHEEL_SEPARATION, 2.0) / 4) + pow(speed - direction * (CHASSIS_SEPARATION / 2), 2.0);
+            wheels[i]->velocity = (pow(CHASSIS_LENGTH, 2.0) / 4) + pow(speed - direction * (CHASSIS_WIDTH / 2), 2.0);
         }
     }
 }
@@ -197,13 +197,8 @@ Driver::Driver() : Node("driver")
         CMD *cmdPivot = new CMD(0, i + NUM_WHEELS + 1, PID, STOP, left);
         wheels[i] = new Wheel(i, cmdWheel, cmdPivot);
     }
-<<<<<<< HEAD:control/src/drive/driver.cpp
     
     rclcpp::QoS qos = rclcpp::QoS(1).best_effort().deadline(ROSTimers::drive_deadline);
-=======
-
-    rclcpp::QoS qos = rclcpp::QoS(1).best_effort().deadline(200ms);
->>>>>>> Archive old drive code, update filenames:src/drive/driver.cpp
 
     rclcpp::SubscriptionOptions subscriber_options;
 
@@ -225,12 +220,8 @@ Driver::Driver() : Node("driver")
 
     // Creates auto mode timer and associated publisher
     mode_timer = this->create_wall_timer(
-<<<<<<< HEAD:control/src/drive/driver.cpp
         ROSTimers::auto_mode, std::bind(&Driver::pub_auto_mode, this)
     );
-=======
-        mode_timer_period, std::bind(&Driver::pub_auto_mode, this));
->>>>>>> Archive old drive code, update filenames:src/drive/driver.cpp
     mode_pub = this->create_publisher<std_msgs::msg::Bool>(
         "/autonomous/mode", 10);
 
