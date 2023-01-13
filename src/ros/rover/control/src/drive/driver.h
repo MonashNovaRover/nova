@@ -39,7 +39,7 @@ EDITED:		13/09/2022
 #include "cmd/cmd.h"
 
 // The distance between the two wheel sets [m]
-#define CHASSIS_SEPARATION 0.78058
+#define CHASSIS_LENGTH 0.85
 
 // The distance between each wheel on each side [m]
 #define WHEEL_SEPARATION 0.42426
