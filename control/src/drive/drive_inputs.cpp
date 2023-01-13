@@ -10,14 +10,11 @@ AUTHOR(S):	Harrison Verrios, Liam Whittle
 // Include the header file
 #include "drive_inputs.h"
 #include "print/print.h"
-<<<<<<< HEAD:control/src/drive/drive_inputs.cpp
 #include "config/rosconfig.h"
 
 using std::placeholders::_1;
 
-=======
 #include <math.h>
->>>>>>> Code cleanup to build:src/drive/drive_inputs.cpp
 
 // Adjustes the multiplier factor by some amount in some direction
 float DriveInputs::adjust_multiplier(float &multiplier, bool increase)

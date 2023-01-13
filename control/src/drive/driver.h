@@ -38,12 +38,13 @@ EDITED:		13/09/2022
 // Include CMD class
 #include "cmd/cmd.h"
 
-// The distance between the two wheel sets [m]
+// The distance between left and right wheels [m]
+#define CHASSIS_WIDTH 0.80
+
+// The distance between front and rear wheels [m]
 #define CHASSIS_LENGTH 0.85
 
-// The distance between each wheel on each side [m]
-#define WHEEL_SEPARATION 0.42426
-
+<<<<<<< HEAD:control/src/drive/driver.h
 <<<<<<< HEAD:control/src/drive/driver.h
 
 // Store a position structure with x and y
@@ -52,6 +53,9 @@ struct Vector2 {
     //------------------------------------------------------------//
 =======
 #define MAX_RADIUS 2.0 // TAAJ TO CLARIFY
+=======
+#define MAX_RADIUS 10.0
+>>>>>>> Fix bug and update constants:src/drive/driver.h
 
 // Use the standard namespaces
 using namespace std;
@@ -85,7 +89,6 @@ class Driver : public rclcpp::Node
     // The number of wheels on the rover
     static const int NUM_WHEELS = 4;
 
-    //------------------------------------------------------------//
 private:
     // Stores the subscriber for the drive commands (manual)
     rclcpp::Subscription<core::msg::DriveInput>::SharedPtr subscription_cmds_man;
@@ -99,15 +102,11 @@ private:
     // Publishes whether the rover is in autonomous mode for LEDs
     rclcpp::TimerBase::SharedPtr mode_timer;
     rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr mode_pub;
-
-<<<<<<< HEAD:control/src/drive/driver.h
-=======
     rclcpp::Publisher<core::msg::PivotWheelData>::SharedPtr pivot_wheel_pub;
 
     // The period at which we publish whether  we are in autonomous mode
     std::chrono::milliseconds mode_timer_period = 200ms;
 
->>>>>>> Adding pivot wheel message to start publisher:src/drive/driver.h
     // A flag for whether to apply the handbrake or not
     bool handbrake;
 
@@ -116,8 +115,6 @@ private:
 
     // An array of pointers to Wheel instances
     Wheel *wheels[NUM_WHEELS];
-
-    //------------------------------------------------------------//
 private:
     /// @brief      Sends commands to the wheels using the wheel classes
     /// @param      msg - A pointer to the drive message
