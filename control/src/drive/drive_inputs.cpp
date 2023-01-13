@@ -88,6 +88,7 @@ void DriveInputs::input_callback(const core::msg::InputGamepad::SharedPtr msg)
     // If no connection, reset the state
     if (!msg->connected)
     {
+
         left_input_axis_y = 0.0;
         right_input_axis_x = 0.0;
         right_input_axis_y = 0.0;
