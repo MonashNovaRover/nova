@@ -107,6 +107,8 @@ private:
     // The period at which we publish whether  we are in autonomous mode
     std::chrono::milliseconds mode_timer_period = 200ms;
 
+    rclcpp::Publisher<core::msg::PivotWheelData>::SharedPtr pivot_wheel_pub;
+
     // A flag for whether to apply the handbrake or not
     bool handbrake;
 
