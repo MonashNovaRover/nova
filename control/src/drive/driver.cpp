@@ -4,7 +4,7 @@ Monash Nova Rover Team
 
 PACKAGE: 	control
 AUTHOR(S):	Harrison Verrios, Josh Cherubino, Will de la Rue, Jory Braun, Tristan Clark, Abigail Lithwick, Taaj Street
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~c~~~~~~~~~~~~~~~~~~~~~~
 */
 
 // Include math library
@@ -220,8 +220,7 @@ Driver::Driver() : Node("driver")
 
     // Creates auto mode timer and associated publisher
     mode_timer = this->create_wall_timer(
-        ROSTimers::auto_mode, std::bind(&Driver::pub_auto_mode, this)
-    );
+        ROSTimers::auto_mode, std::bind(&Driver::pub_auto_mode, this));
     mode_pub = this->create_publisher<std_msgs::msg::Bool>(
         "/autonomous/mode", 10);
 
