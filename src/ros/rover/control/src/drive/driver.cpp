@@ -22,30 +22,25 @@ using std::placeholders::_1;
 void Driver::send_commands(const core::msg::DriveInput::SharedPtr msg)
 {
 
-        if (!msg->strafe_mode)
-        {
-            // Find the turning radius form the 'steer' command
-            // This defines a turning centre to the left or right of the rover wheelbase
-            float radius = get_turning_radius(msg->steer);
+    if (!msg->strafe_mode)
+    {
+        // Find the turning radius form the 'steer' command
+        // This defines a turning centre to the left or right of the rover wheelbase
+        float radius = get_turning_radius(msg->steer);
 
-            // Scale wheel velocities depending on their distance from the turning centre
-            // Wheels closer to the turning centre must spin slower to maintain the correct rover angular velocity
-            // The 'speed' command gives the maximum speed for any wheel
-            // Disregard any correction for the angle of the wheel relative to the desired circular path
-            // fill_wheel_velocities(wheel_velocities, radius, msg->speed, msg->steer);
+        // Scale wheel velocities depending on their distance from the turning centre
+        // Wheels closer to the turning centre must spin slower to maintain the correct rover angular velocity
+        // The 'speed' command gives the maximum speed for any wheel
+        // Disregard any correction for the angle of the wheel relative to the desired circular path
+        // fill_wheel_velocities(wheel_velocities, radius, msg->speed, msg->steer);
 
-            fill_wheel_angles_radial(radius);
-            fill_wheel_velocities_radial(msg->speed, msg->steer);
-        }
-        else
-        {
-            /*
-            float turning_angle = msg->steer;
-
-            fill_wheel_angles_strafe(wheels, msg->steer);
-            fill_wheel_velocities_strafe(wheels, msg->speed, msg->steer);
-            */
-        }
+        fill_wheel_angles_radial(radius);
+        fill_wheel_velocities_radial(msg->speed, radius);
+    }
+    else
+    {
+        
+        float turning_angle = msg->steer;
 
 
     auto message = core::msg::PivotWheelData();
@@ -56,8 +51,8 @@ void Driver::send_commands(const core::msg::DriveInput::SharedPtr msg)
         // wheels[i]->drive(wheel_velocities[i]);
         message.angles[i] = wheels[i]->angle;
         message.velocities[i] = wheels[i]->velocity;
+        message.radius = get_turning_radius(msg->steer);
     }
-    RCLCPP_INFO(this->get_logger(), "Publishing!");
     pivot_wheel_pub->publish(message);
 }
 
@@ -92,7 +87,6 @@ void Driver::input_callback(const core::msg::InputGamepad::SharedPtr msg)
         for (Wheel *wheel : wheels)
         {
             wheel->cmdWheel->set_CMD_stop_mode(PID);
-            wheel->cmdPivot->set_CMD_stop_mode(PID);
         }
     }
 
@@ -105,7 +99,6 @@ void Driver::input_callback(const core::msg::InputGamepad::SharedPtr msg)
         for (Wheel *wheel : wheels)
         {
             wheel->cmdWheel->set_CMD_stop_mode(STOP);
-            wheel->cmdPivot->set_CMD_stop_mode(STOP);
         }
     }
 
@@ -131,41 +124,45 @@ float Driver::get_turning_radius(float steer)
 {
     // Exclude this case. If steer is 0, handle separately in calling code
     if (steer == 0)
-        return INFINITY;
+        return 0;
 
-    // SHOULD STEER BE -1 to 1 ??
 
-    return (MAX_RADIUS - CHASSIS_WIDTH / 2) * abs(steer) + MAX_RADIUS;
+    // return ((CHASSIS_WIDTH / 2 - MAX_RADIUS) * abs(steer) + MAX_RADIUS)* ((steer < 0) ? -1 : 1);
+    return (1.0 / steer) - ((steer < 0.0) ? -1.0 : 1.0);
 }
 
 void Driver::fill_wheel_angles_radial(float radius)
 {
     // gradient of line https://www.desmos.com/calculator/cb3xa9r5ai
 
-    wheels[0]->angle = atan(-(2 * radius - CHASSIS_WIDTH) / (CHASSIS_LENGTH));
+    float inner_angle = radius == 0 ? 0 : (M_PI_2 - atan((2 * abs(radius) - CHASSIS_WIDTH)/CHASSIS_LENGTH));
+    float outer_angle = radius == 0 ? 0 : (M_PI_2 - atan((2 * abs(radius) + CHASSIS_WIDTH)/CHASSIS_LENGTH));
 
-    wheels[1]->angle = atan(-(2 * radius + CHASSIS_WIDTH) / (CHASSIS_LENGTH));
+    wheels[0]->angle = radius < 0 ? inner_angle : -outer_angle;
 
-    wheels[2]->angle = atan(-(2 * radius - CHASSIS_WIDTH) / (-CHASSIS_LENGTH));
+    wheels[1]->angle = radius < 0 ? outer_angle : -inner_angle;
 
-    wheels[3]->angle = atan(-(2 * radius + CHASSIS_WIDTH) / (-CHASSIS_LENGTH));
+    wheels[2]->angle = radius < 0 ? -inner_angle : outer_angle;
+
+    wheels[3]->angle = radius < 0 ? -outer_angle : inner_angle;
 }
 
 // Fill array with velocities for each wheel, with directions and magnitude depending on the turning radius
-void Driver::fill_wheel_velocities_radial(float speed, float steer)
+void Driver::fill_wheel_velocities_radial(float speed, float radius)
 {
-    // determines whether the wheels are turning left or right
-    int direction = (steer < 0) ? -1 : 1;
-
+    float inside_ratio = radius == 0 ? 1 : pow((pow(CHASSIS_LENGTH, 2.0) /
+            4 + pow( abs(radius) - (CHASSIS_WIDTH / 2), 2.0)), 0.5)/abs(radius);
+    float outside_ratio = radius == 0 ? 1: pow((pow(CHASSIS_LENGTH, 2.0) /
+            4 + pow( abs(radius) + (CHASSIS_WIDTH / 2), 2.0)), 0.5)/abs(radius);
     for (size_t i = 0; i < NUM_WHEELS; i++)
     {
         if (i == 0 || i == 2)
         {
-            wheels[i]->velocity = (pow(CHASSIS_LENGTH, 2.0) / 4) + pow(speed + direction * (CHASSIS_WIDTH / 2), 2.0);
+            wheels[i]->velocity = speed*inside_ratio;
         }
         else if (i == 1 || i == 3)
         {
-            wheels[i]->velocity = (pow(CHASSIS_LENGTH, 2.0) / 4) + pow(speed - direction * (CHASSIS_WIDTH / 2), 2.0);
+            wheels[i]->velocity = speed*outside_ratio;
         }
     }
 }
@@ -194,8 +191,7 @@ Driver::Driver() : Node("driver")
     {
         bool left = i < NUM_WHEELS / 2;
         CMD *cmdWheel = new CMD(0, i + 1, PID, STOP, left);
-        CMD *cmdPivot = new CMD(0, i + NUM_WHEELS + 1, PID, STOP, left);
-        wheels[i] = new Wheel(i, cmdWheel, cmdPivot);
+        wheels[i] = new Wheel(i, cmdWheel);
     }
     
     rclcpp::QoS qos = rclcpp::QoS(1).best_effort().deadline(ROSTimers::drive_deadline);
@@ -233,7 +229,6 @@ void Driver::inputs_deadline_exceeded()
     RCLCPP_WARN(this->get_logger(), "Drive inputs subscriber deadline missed");
     for (Wheel *wheel : wheels)
     {
-        wheel->cmdPivot->stop();
         wheel->cmdWheel->stop();
     }
 }

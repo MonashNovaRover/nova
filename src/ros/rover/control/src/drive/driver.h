@@ -70,13 +70,11 @@ public:
     double velocity;
     double angle; // radians
     CMD *cmdWheel;
-    CMD *cmdPivot;
 
-    Wheel(int id, CMD *cmdWheel, CMD *cmdPivot)
+    Wheel(int id, CMD *cmdWheel)
     {
         this->id = id;
         this->cmdWheel = cmdWheel;
-        this->cmdPivot = cmdPivot;
         this->angle = 0.0;
         this->velocity = 0.0;
     }

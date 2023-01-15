@@ -47,7 +47,8 @@ void DriveInputs::publish_cmds()
     if (!locked && connected)
     {
         message.speed = left_input_axis_y * multiplier_speed * trigger_speed;
-        message.steer = calc_steer_angle(right_input_axis_x, right_input_axis_y);
+        message.angle = calc_steer_angle(right_input_axis_x, right_input_axis_y);
+        message.steer = right_input_axis_x;
         message.strafe_mode = strafe_mode;
 
         // Otherwise print lock message
@@ -166,11 +167,11 @@ float DriveInputs::calc_steer_angle(float x_steer, float y_steer)
     // if the joystick is negative y, the angle is +/-90 degrees
     if (y_steer < 0.0)
     {
-        steer_angle = 90;
+        steer_angle = M_PI/2;
     }
     else
     {
-        steer_angle += 90 - atan(abs(y_steer) / abs(x_steer));
+        steer_angle = M_PI/2 - atan(abs(y_steer) / abs(x_steer));
     }
 
     // add left (-) / right(+) direction
@@ -179,7 +180,7 @@ float DriveInputs::calc_steer_angle(float x_steer, float y_steer)
         steer_angle *= -1;
     }
 
-    return steer_angle * (M_PI / 180);
+    return steer_angle;
 }
 
 // Main constructor that sets up the node
