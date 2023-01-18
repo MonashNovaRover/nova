@@ -83,7 +83,7 @@ class ArmInputs : public ArmConfigInfoClient
     typedef struct {
         // Multiplier for all inputs
         // Tune this to adjust the max velocity of all joints
-        float all_inputs = 0.70;
+        float all_inputs = 0.30;
         // Separate multipliers for each set of inputs
         // Tune these so joints move at reasonable speeds relative to each other
         float wrist_joints = 1.20;
