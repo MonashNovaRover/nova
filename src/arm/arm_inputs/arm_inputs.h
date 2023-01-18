@@ -42,6 +42,8 @@ TODO:
 // Include libraries
 #include "arm_config_info_client.h"
 
+// Position control enable override
+#define POSITION_CONTROL_ENABLE 0
 
 /* 
 Arm input class that handles input data from joysticks and publishes 
