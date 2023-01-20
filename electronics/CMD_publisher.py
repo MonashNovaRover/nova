@@ -131,7 +131,7 @@ CMDQueues = {
 class CMDPublisher (Node):
     def __init__ (self):
         super().__init__("CMD_publisher")
-        self.get_logger().set_level(logging.DEBUG)
+        self.get_logger().set_level(logging.INFO)
 
         # Store the starting time
         self.last_read = self.get_clock().now().to_msg()
@@ -254,7 +254,11 @@ class CMDPublisher (Node):
                     header.stamp = self.get_clock().now().to_msg()
 
                     # Read the can data
-                    raw_omega, duty_cycle, current, interval = can_line.unpack(can_msg.data)
+                    try:
+                        raw_omega, duty_cycle, current, interval = can_line.unpack(can_msg.data)
+                    except Exception as e:
+                        self.get_logger().debug(f"failed to unpack CAN message: {can_msg}")
+                        continue
                     if motor_type == MotorType.ARM_JOINT or motor_type == MotorType.ARM_EF:
                         # Arm conversion constants
                         ppr = ARM_PPR
