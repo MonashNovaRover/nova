@@ -64,7 +64,6 @@ class FlatMapper(Mapper):
             resolution=resolution,
             planner=planner,
             camera=camera,
-            name=name
         )
 
         # For moving the map as we navigate
@@ -78,11 +77,8 @@ class FlatMapper(Mapper):
         self.detection_width = int(np.ceil(2 * self.detection_length * np.tan(max_fov_angle)))
 
         # Position of depth camera in local map
-        self.local_map_to_base_link = None
-        self.local_map_to_d435 = None
-
-        self.offset = None  # Sets the position offset of the map in the global frame
         self.initialise_map()
+        self.initialise_transforms()
 
         self.map_roll_timer = self.create_timer(1, self.check_position_in_map)
         self.map_transform_timer = self.create_timer(1./30, self.update_transforms)
@@ -94,6 +90,17 @@ class FlatMapper(Mapper):
     def shift_offset(self, dx, dy):
         if self.offset is None: return None
         self.set_offset(self.offset[0] + dx, self.offset[1] + dy)
+
+    def initialise_transforms(self):
+        """
+        Set correct initial transform values, awaiting transforms from tf2
+        """
+        self.local_map_to_d435 = None
+        self.local_map_to_base_link = None
+
+        while self.local_map_to_d435 is None or\
+                self.local_map_to_base_link is None:
+            self.update_transforms()
 
     def set_offset(self, x, y):
         """

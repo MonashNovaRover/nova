@@ -138,7 +138,7 @@ class Controller(Node):
         super().__init__('autonomous_controller_node')
 
         # set debug to not get shown
-        self.get_logger().set_level(LoggingSeverity.DEBUG)
+        self.get_logger().set_level(LoggingSeverity.INFO)
 
         # ~~~~~~~~~~ State ~~~~~~~~
         self.state_rover_pose = Pose2D()
