@@ -24,7 +24,7 @@ def generate_launch_description():
     return LaunchDescription([
         Node(
             package='control',
-            executable='inputs',
+            node_executable='inputs',
             output='screen',
             emulate_tty=True
         ),
