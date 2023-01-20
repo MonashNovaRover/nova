@@ -83,7 +83,7 @@ class ArTracker(Node):
 
         if ids is not None:
             # projecting 2d camera coordinates into space
-            rot_mats, trans_mats, _ = ar.estimatePoseSingleMarkers(bboxs, self.marker_width_m, self.intrinsics, self.distortion)
+            rot_mats, trans_mats, = ar.estimatePoseSingleMarkers(bboxs, self.marker_width_m, self.intrinsics, self.distortion)
             for _id, rot_mat, trans_mat in zip(ids, rot_mats, trans_mats):
                 transform = self.get_transform(rot_mat[0], trans_mat[0])
                 transform.child_frame_id = f"ar_tag_{_id}"

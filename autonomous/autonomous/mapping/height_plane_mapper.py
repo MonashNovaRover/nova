@@ -33,13 +33,15 @@ from autonomous.mapping.python_height_mapper import HeightMapper
 from autonomous.mapping.python_plane_mapper import PlaneMapper
 from autonomous.mapping.flat_mapper import FlatMapper
 import autonomous.math_utils.transform as transform
+import logging
 
 
 class HeightPlaneMapper(FlatMapper):
     def __init__(self, length=20, width=20, height=5, resolution=0.1, detection_resolution=0.025, planner=None, camera=False, name="height_plane_mapper"):
 
         # init node with node name points
-        super().__init__(length=length, width=width, height=height, resolution=resolution, detection_resolution=detection_resolution, planner=planner, camera=camera, name=name)
+        super().__init__(length=length, width=width, height=height, resolution=resolution, detection_resolution=detection_resolution, planner=planner, camera=camera)
+        self.get_logger().set_level(logging.DEBUG)
         self.height_mapper = HeightMapper(length=length, width=width, height=height, resolution=resolution, detection_resolution=detection_resolution)
         self.plane_mapper = PlaneMapper(length=length, width=width, height=height, resolution=resolution, detection_resolution=detection_resolution)
 
