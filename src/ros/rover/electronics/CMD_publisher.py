@@ -131,7 +131,7 @@ CMDQueues = {
 class CMDPublisher (Node):
     def __init__ (self):
         super().__init__("CMD_publisher")
-        self.get_logger().set_level(logging.INFO)
+        self.get_logger().set_level(logging.DEBUG)
 
         # Store the starting time
         self.last_read = self.get_clock().now().to_msg()
@@ -245,6 +245,7 @@ class CMDPublisher (Node):
             else:
                 # If a message exists
                 if can_msg:
+                    self.get_logger().debug(f"CAN message: {can_msg}")
                     ros_msg = CMDFeedback()
                     ros_msg.id = (can_msg.arbitration_id >> 4) & 0x3f
 
