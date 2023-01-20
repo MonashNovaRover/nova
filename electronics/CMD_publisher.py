@@ -62,7 +62,7 @@ import logging
 
 # Are we currently tuning PID constants? If so, poll at a higher frequency, 
 # and publish every value as soon as it's read without taking means.
-TUNING_PID = True
+TUNING_PID = False
 
 # Mathematical PI
 PI = 3.1415926535897932384
@@ -103,13 +103,13 @@ class MotorType(IntEnum):
 # be configured for the CMDs.
 
 # Motor definitions
-NUM_WHEELS = 1#6
+NUM_WHEELS = 6
 PIVOT_STEERING = False
 NUM_ARM_MOTORS = 7
 NUM_SCIENCE_MOTORS = 2
 
 # The CMD CAN arbitration IDs
-WHEEL_IDS = [0x430]#[0x410, 0x420, 0x430, 0x440, 0x450, 0x460]
+WHEEL_IDS = [0x410, 0x420, 0x430, 0x440, 0x450, 0x460]
 WHEEL_PIVOT_IDS = [None] * NUM_WHEELS
 # TODO: Input true CMD IDs 
 ARM_MOTOR_IDS = [0x410, 0x420, 0x430, 0x440, 0x450, 0x460, 0x470]
