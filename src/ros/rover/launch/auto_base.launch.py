@@ -14,7 +14,7 @@ def generate_launch_description():
         # rviz
         Node(
             package='rviz2',
-            executable='rviz2',
+            node_executable='rviz2',
             name="rviz2",
             output='screen',
             arguments=['-d', str(rviz_path)],
@@ -22,19 +22,19 @@ def generate_launch_description():
         ),
         Node(
             package="autonomous",
-            executable="path_vis.py",
+            node_executable="path_vis.py",
             output="screen",
             emulate_tty=True
         ),
         Node(
             package='autonomous',
-            executable='rover_vis.py',
+            node_executable='rover_vis.py',
             output='screen',
             emulate_tty=True
         ),
         Node(
             package="autonomous",
-            executable="update_goals.py",
+            node_executable="update_goals.py",
             output="screen",
             emulate_tty=True
         ),

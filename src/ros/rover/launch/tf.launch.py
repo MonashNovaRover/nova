@@ -24,7 +24,7 @@ def generate_launch_description():
         # Add a new node defining a transform between any two frames necessary (ie GPS, imu, etc)
         Node(
             package='tf2_ros',
-            executable='static_transform_publisher',
+            node_executable='static_transform_publisher',
             # TODO: Work out true extrinsics of camera relative to base of rover
             arguments=['0', '0', '0', '0', '0', '0', 'world', 'map'],
             output='screen',
@@ -32,7 +32,7 @@ def generate_launch_description():
         ),
         Node(
             package='tf2_ros',
-            executable='static_transform_publisher',
+            node_executable='static_transform_publisher',
             # TODO: Work out true extrinsics of camera relative to base of rover
             arguments=['0.48', '0', '0.48', '0', '0', '0', 'base_link', 'd435_1'],
             output='screen',
@@ -40,7 +40,7 @@ def generate_launch_description():
         ),
         Node(
             package='tf2_ros',
-            executable='static_transform_publisher',
+            node_executable='static_transform_publisher',
             # TODO: Work out true extrinsics of camera relative to base of rover
             arguments= ['0.48', '0', '0.46', '0', '0', '0', 'base_link', 't265'],
             output='screen',
@@ -48,7 +48,7 @@ def generate_launch_description():
         ),
         Node(
             package='autonomous',
-            executable='tracking_camera.py',
+            node_executable='tracking_camera.py',
             output='screen',
             emulate_tty=True
         ),

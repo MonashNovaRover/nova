@@ -35,13 +35,13 @@ def generate_launch_description():
         # autonomous nodes
         Node(
             package="autonomous",
-            executable="main.py",
+            node_executable="main.py",
             output="screen",
             emulate_tty=True
         ),
         Node(
             package="autonomous",
-            executable="GRUC.py",
+            node_executable="GRUC.py",
             output="screen",
             emulate_tty=True
         ),
