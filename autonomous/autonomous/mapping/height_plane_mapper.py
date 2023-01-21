@@ -44,6 +44,7 @@ class HeightPlaneMapper(FlatMapper):
         self.get_logger().set_level(logging.DEBUG)
         self.height_mapper = HeightMapper(length=length, width=width, height=height, resolution=resolution, detection_resolution=detection_resolution)
         self.plane_mapper = PlaneMapper(length=length, width=width, height=height, resolution=resolution, detection_resolution=detection_resolution)
+        self.on_initialise()
 
     def handle_pc(self, pts):
         """
