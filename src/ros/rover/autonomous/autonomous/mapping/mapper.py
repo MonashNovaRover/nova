@@ -49,6 +49,8 @@ class Mapper(Node):
         self.resolution = resolution
 
         self.planner = planner
+        self.use_camera = camera
+        self.camera = None
 
         self.previous_plan = time.perf_counter()
         self.previous_map_update = time.perf_counter()
@@ -60,11 +62,13 @@ class Mapper(Node):
             time.sleep(0.1)
         self.get_logger().info("Received Transform!")
 
+        self.has_color = False
+
+    def on_initialise(self):
         # if camera is true we create one, start it, and add a callback. Depth camera runs in a separate thread
-        if camera:
+        if self.use_camera and self.camera is None:
             self.camera = DepthCamera(self.python_callback)
             self.camera.start()
-        self.has_color = False
 
     def check_position_in_map(self):
         """
@@ -161,14 +165,6 @@ class Mapper(Node):
         self.update_map(self.get_pts(pts))
 
 
-def position_callback(msg):
-    """
-    Parses positional data, calculates the average value and publishes
-    it to the topic /obstacle_proximity.
-    """
-    pass
-
-
 def main(args=None):
     rclpy.init(args=args)
     # reset_cameras.reset_cameras()
@@ -176,16 +172,6 @@ def main(args=None):
     rclpy.spin(subscriber)
     subscriber.destroy_node()
     rclpy.shutdown()
-
-
-def vis():
-    """
-    Example function loads a pre existing map into voxel memory and visualises it as a point-cloud
-    """
-    rclpy.init()
-    m = Mapper(length=10, width=10, height=5, resolution=.2)
-    m._map3d.grid2d = np.load("resources/environment.npy")
-    m.publish_vis_dense(extra_pts=2)
 
 
 if __name__ == '__main__':
