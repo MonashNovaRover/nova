@@ -39,18 +39,19 @@ class Grid2D(Node):
 
     def roll_map(self, x_change, y_change):
         """
-        Cut off the 5 meters of the map behind us and add a new 5 meters on the end
+        Shift the map across by x_change meters in x direction and y_change meters in y direction
         """
-        edge_dist_in_px = int(self.length/(4 * self.resolution))
+        x_change_px = abs(x_change) / self.resolution
+        y_change_px = abs(y_change) / self.resolution
         new_map = np.full((int(self.length / self.resolution), int(self.width / self.resolution)), 100 * unseen_map_val)
-        if x_change == -1:
-            new_map[edge_dist_in_px:, :] = self.map[:-edge_dist_in_px, :]
-        elif x_change == 1:
-            new_map[:-edge_dist_in_px, :] = self.map[edge_dist_in_px:, :]
-        if y_change == -1:
-            new_map[:, edge_dist_in_px:] = self.map[:, :-edge_dist_in_px]
-        elif y_change == 1:
-            new_map[:, :-edge_dist_in_px] = self.map[:, edge_dist_in_px:]
+        if x_change < 0:
+            new_map[x_change_px:, :] = self.map[:-x_change_px, :]
+        elif x_change > 0:
+            new_map[:-x_change_px, :] = self.map[x_change_px:, :]
+        if y_change < 0:
+            new_map[:, y_change_px:] = self.map[:, :-y_change_px]
+        elif y_change > 0:
+            new_map[:, :-y_change_px] = self.map[:, y_change_px:]
         self.map = new_map
 
     @staticmethod
