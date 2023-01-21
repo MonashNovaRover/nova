@@ -37,9 +37,9 @@ from autonomous.config.runtime_params import max_fov_angle, max_point_depth, max
 from scipy.signal import convolve2d
 from rclpy.time import Time
 from rclpy.duration import Duration
-import time
+import time, math
 
-from geometry_msgs.msg import TransformStamped
+from geometry_msgs.msg import TransformStamped, Transform
 from tf2_ros import TransformBroadcaster
 
 
@@ -66,6 +66,10 @@ class FlatMapper(Mapper):
             camera=camera,
         )
 
+        self.param_roll_map = self.declare_parameter("roll_map", False)
+        self.param_map_edge_distance = self.declare_parameter("map_edge_dist_m", 3)
+        # How far to roll the map when we approach the edge
+        self.param_map_roll_distance = self.declare_parameter("map_roll_dist_m", 5)   
         # For moving the map as we navigate
         self.tf_map_offset = TransformBroadcaster(self)
 
@@ -80,7 +84,8 @@ class FlatMapper(Mapper):
         self.initialise_map()
         self.initialise_transforms()
 
-        self.map_roll_timer = self.create_timer(1, self.check_position_in_map)
+        if self.param_roll_map:
+            self.map_roll_timer = self.create_timer(1, self.check_position_in_map)
         self.map_transform_timer = self.create_timer(1./30, self.update_transforms)
 
     def initialise_map(self):
@@ -95,8 +100,8 @@ class FlatMapper(Mapper):
         """
         Set correct initial transform values, awaiting transforms from tf2
         """
-        self.local_map_to_d435 = None
-        self.local_map_to_base_link = None
+        self.local_map_to_d435: Transform = None
+        self.local_map_to_base_link: Transform = None
 
         while self.local_map_to_d435 is None or\
                 self.local_map_to_base_link is None:
@@ -163,18 +168,22 @@ class FlatMapper(Mapper):
 
     def check_position_in_map(self):
         """
-        If we're near the edge of the map, roll the map in a given direction
+        If we're near the edge of the map, roll the map in a given direction.
+        Only called if param_roll_map is true
         """
         x_change, y_change = 0, 0
-        distance_to_edge = (self._map.length / 4)
-        if self.local_map_to_base_link.translation.x < -distance_to_edge:
-            x_change = -1
-        elif self.local_map_to_base_link.translation.x > distance_to_edge:
-            x_change = 1
-        if self.local_map_to_base_link.translation.y < -distance_to_edge:
-            y_change = -1
-        elif self.local_map_to_base_link.translation.y > distance_to_edge:
-            y_change = 1
+        x_edge_dist = (self._map.length / 2 - abs(self.local_map_to_base_link.translation.x)) *\
+            np.sign(self.local_map_to_base_link.translation.x)
+        y_edge_dist = (self._map.width / 2 - abs(self.local_map_to_base_link.translation.y)) *\
+            np.sign(self.local_map_to_base_link.translation.y)
+        if x_edge_dist > -self.param_map_edge_distance:
+            x_change = -self.param_map_roll_distance
+        elif x_edge_dist < self.param_map_edge_distance:
+            x_change = self.param_map_roll_distance
+        if y_edge_dist > -self.param_map_edge_distance:
+            y_change = -self.param_map_roll_distance
+        elif y_edge_dist < self.param_map_edge_distance:
+            y_change = self.param_map_roll_distance
         if x_change != 0 or y_change != 0:
             self._map.roll_map(x_change, y_change)
         self.shift_offset(x_change, y_change)
