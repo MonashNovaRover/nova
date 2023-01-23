@@ -29,6 +29,7 @@ TODO:
 import rclpy
 from rclpy.node import Node
 from rclpy.time import Time
+from rclpy.duration import Duration
 import numpy as np
 import time
 from autonomous.cameras.depth_camera import DepthCamera
@@ -40,7 +41,7 @@ from tf2_ros import TransformListener, Buffer
 class Mapper(Node):
     def __init__(self, length=20, width=20, height=5, planner=None, resolution=0.1, camera=False, name='mapper'):
         super().__init__(name)
-        self.tf_buffer = Buffer()
+        self.tf_buffer = Buffer(cache_time=20)
         self.tf_listener = TransformListener(self.tf_buffer, self, spin_thread=True)
 
         self.length = length

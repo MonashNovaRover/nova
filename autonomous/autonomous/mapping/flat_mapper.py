@@ -37,7 +37,7 @@ from autonomous.config.runtime_params import max_fov_angle, max_point_depth, max
 from scipy.signal import convolve2d
 from rclpy.time import Time
 from rclpy.duration import Duration
-import time, math
+import time, math, logging
 
 from geometry_msgs.msg import TransformStamped, Transform
 from tf2_ros import TransformBroadcaster
@@ -66,10 +66,11 @@ class FlatMapper(Mapper):
             camera=camera,
         )
 
-        self.param_roll_map = self.declare_parameter("roll_map", False)
-        self.param_map_edge_distance = self.declare_parameter("map_edge_dist_m", 3)
+        self.get_logger().set_level(logging.DEBUG)
+        self.param_roll_map = self.declare_parameter("roll_map", False).value
+        self.param_map_edge_distance = self.declare_parameter("map_edge_dist_m", 3).value
         # How far to roll the map when we approach the edge
-        self.param_map_roll_distance = self.declare_parameter("map_roll_dist_m", 5)   
+        self.param_map_roll_distance = self.declare_parameter("map_roll_dist_m", 5).value   
         # For moving the map as we navigate
         self.tf_map_offset = TransformBroadcaster(self)
 
@@ -217,7 +218,7 @@ class FlatMapper(Mapper):
         obs_as_points = np.array([[x, y, val] for (x, y), val in np.ndenumerate(obstacles) \
                                   if np.abs(np.arctan2(y - len(obstacles[0]) / 2, x)) < max_fov_angle])
         obs_as_points[:, 1] -= int(np.ceil(self.detection_width / (2 * self.resolution_ratio)))
-        self.get_logger().debug("Rotating obstacles in map")
+        self.get_logger().debug(f"Rotating obstacles in map: {self.local_map_to_d435}")
         obstacles = transform.transform_yaw(self.local_map_to_d435, obs_as_points)
         obstacles[:, 2] *= 100
 
