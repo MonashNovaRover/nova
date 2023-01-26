@@ -10,7 +10,7 @@ This code interfaces with the CAN classes and is
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	control
-AUTHOR(S):	Harrison Verrios, Josh Cherubino, Jory Braun
+AUTHOR(S):	Harrison Verrios, Josh Cherubino, Jory Braun, Taaj Street
 CREATION:	01/12/2021
 EDITED:		13/09/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

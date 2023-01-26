@@ -20,9 +20,12 @@ find_package(rclpy REQUIRED)
 find_package(core REQUIRED)
 set(JCAN_CPP ${CMAKE_SOURCE_DIR}/include/jcan/jcan.cc)
 set(JCAN_LIB ${CMAKE_SOURCE_DIR}/include/jcan/${CMAKE_STATIC_LIBRARY_PREFIX}jcan${CMAKE_STATIC_LIBRARY_SUFFIX})
+# Needed for jcan
+find_package (Threads REQUIRED)
 # Add include directories for all targets
 include_directories(
         ${CMAKE_CURRENT_SOURCE_DIR}/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/jcan
         ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 ################################################
@@ -45,12 +48,15 @@ endif()
 # CAN (jcan)
 if (NOT TARGET jcan)
   add_library(jcan ${JCAN_CPP})
-  target_link_libraries(jcan ${JCAN_LIB})
+  target_link_libraries(jcan ${JCAN_LIB} pthread dl rt)
 endif()
 # Other targets:
 # CMDs
 add_library(cmd src/cmd/cmd.cpp)
 target_link_libraries(cmd print jcan)
+# BLCMDs
+add_library(blcmd src/cmd/blcmd.cpp)
+target_link_libraries(blcmd print jcan)
 ################################################
 # Add executables:
 ################################################
@@ -79,6 +85,9 @@ ament_target_dependencies(driver rclcpp core)
 add_executable(pid_tuner src/cmd/pid_tuner.cpp)
 target_link_libraries(pid_tuner cmd print)
 ament_target_dependencies(pid_tuner rclcpp core)
+#Test CMD script
+add_executable(cmd_test src/cmd/cmd_test.cpp)
+target_link_libraries(cmd_test cmd print)
 ################################################
 # Add Installations
 ################################################
