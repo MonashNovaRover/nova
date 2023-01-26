@@ -3,7 +3,7 @@
 Monash Nova Rover Team
 
 PACKAGE: 	control
-AUTHOR(S):	Harrison Verrios, Josh Cherubino, Jory Braun
+AUTHOR(S):	Harrison Verrios, Josh Cherubino, Jory Braun, Taaj Street
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
@@ -24,20 +24,10 @@ CMD::CMD (const int bus, const int id, CMDCommand drive_mode, const bool directi
     min_speed = max_speed / 32767;
 
     // Set up the CAN interface with the correct bus
+    // TODO: Error Handling
     can_bus = org::jcan::open_bus(
         (bus == 0) ? "can0" : "can1"
     ).into_raw();
-
-    // Check for status
-//    switch (status) {
-//        case scpp::STATUS_OK:
-//            Print::print("Initialised CAN device successfully.", C_SUCCESS);
-//            break;
-//        default:
-//            if (bus == 0)   Print::print("Error: can0 has not been initialized.", C_FAIL);
-//            else            Print::print("Error: can1 has not been initialized.", C_FAIL);
-//            break;
-//    }
 }
 
 
@@ -70,7 +60,6 @@ void CMD::write_frame_no_data (const CMDCommand command)
     // Create a new CAN frame
     Frame frame;
     frame.id = (id << 4) | command;
-    frame.data.push_back(0x00000000);
     // Write the frame to the bus
     can_bus->send(frame);
 }
