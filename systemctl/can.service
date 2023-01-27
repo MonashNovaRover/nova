@@ -1,0 +1,15 @@
+[Unit]
+Description=Runs can start for can0 and can1 on startup
+Requires=network-online.target network.target local-fs.target
+After=network-online.target network.target local-fs.target
+
+[Service]
+User=root
+Group=sudo
+Type=forking
+ExecStart=/home/nvidia/nova_ws/src/core/systemctl/can.sh
+TimeoutStartSec=5
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
