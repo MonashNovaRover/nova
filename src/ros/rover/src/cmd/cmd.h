@@ -25,13 +25,15 @@ EDITED:		13/09/2022
 
 // Specifies the command used
 enum CMDCommand {
-    STOP        = 0,    // All stops commands
-    FORWARD     = 1,    // Drives forward at full power
-    REVERSE     = 2,    // Drives reverse at full power
-    PWM         = 3,    // Drives with PWM control
-    PID         = 4,    // Drives with PID control
-    TUNER       = 5,    // Sends PID tuning commands
-    ACTUATOR    = 6,    // Controls the linear actuator
+    STOP           = 0,    // All stops commands
+    FORWARD        = 1,    // Drives forward at full power
+    REVERSE        = 2,    // Drives reverse at full power
+    PWM            = 3,    // Drives with PWM control
+    PID            = 4,    // Drives with PID control
+    GET_TUNE       = 5,    // Get PID tuning constants
+    SET_TUNE       = 6,    // Set PID tuning constants
+    ACTUATOR       = 7,    // Control the linear actuator
+    FAST_TELEMETRY = 8     // Swap telemetry between fast and slow publishing speeds
 };
 
 
