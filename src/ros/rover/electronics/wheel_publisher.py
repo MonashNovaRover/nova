@@ -162,6 +162,7 @@ class WheelPublisher (Node):
             self.message.rpms[i] = self.rpms[i]
             self.message.powers[i] = self.powers[i]
             self.message.velocities[i] = self.convert_rpm_to_vel(self.message.rpms[i])
+            self.message.currents[i] = self.currents[i]
 
         # Check for invalid data, reset the message
         if not self.valid:
