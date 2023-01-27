@@ -62,7 +62,7 @@ import logging
 
 # Are we currently tuning PID constants? If so, poll at a higher frequency, 
 # and publish every value as soon as it's read without taking means.
-TUNING_PID = True
+TUNING_PID = False
 
 # Mathematical PI
 PI = 3.1415926535897932384
@@ -103,13 +103,13 @@ class MotorType(IntEnum):
 # be configured for the CMDs.
 
 # Motor definitions
-NUM_WHEELS = 1#6
+NUM_WHEELS = 6
 PIVOT_STEERING = False
 NUM_ARM_MOTORS = 7
 NUM_SCIENCE_MOTORS = 2
 
 # The CMD CAN arbitration IDs
-WHEEL_IDS = [0x430]#[0x410, 0x420, 0x430, 0x440, 0x450, 0x460]
+WHEEL_IDS = [0x410, 0x420, 0x430, 0x440, 0x450, 0x460]
 WHEEL_PIVOT_IDS = [None] * NUM_WHEELS
 # TODO: Input true CMD IDs 
 ARM_MOTOR_IDS = [0x410, 0x420, 0x430, 0x440, 0x450, 0x460, 0x470]
@@ -139,7 +139,7 @@ class CMDPublisher (Node):
         # Create CAN receivers for each type of motor on the rover
         self.wheel_cans = [CANReceiver(channel="can0", filter_ids=[WHEEL_IDS[i]], # can channel and ids of wheels
                                  receive_timeout=0.003, # seconds to wait for message
-                                 receive_fmt="<HHhh", # 4 shorts in little-endian format 
+                                 receive_fmt="<HHhh", # 4 shorts in little-endian format, 2 signed, 2 unsigned 
                                  bitrate=200000) # bitrate of can line
                      for i in range(NUM_WHEELS)]
 
@@ -245,6 +245,7 @@ class CMDPublisher (Node):
             else:
                 # If a message exists
                 if can_msg:
+                    self.get_logger().debug(f"CAN message: {can_msg}")
                     ros_msg = CMDFeedback()
                     ros_msg.id = (can_msg.arbitration_id >> 4) & 0x3f
 
@@ -253,7 +254,11 @@ class CMDPublisher (Node):
                     header.stamp = self.get_clock().now().to_msg()
 
                     # Read the can data
-                    raw_omega, duty_cycle, current, interval = can_line.unpack(can_msg.data)
+                    try:
+                        raw_omega, duty_cycle, current, interval = can_line.unpack(can_msg.data)
+                    except Exception as e:
+                        self.get_logger().debug(f"failed to unpack CAN message: {can_msg}")
+                        continue
                     if motor_type == MotorType.ARM_JOINT or motor_type == MotorType.ARM_EF:
                         # Arm conversion constants
                         ppr = ARM_PPR
