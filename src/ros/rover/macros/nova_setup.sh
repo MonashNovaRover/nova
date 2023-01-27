@@ -76,7 +76,7 @@ sudo apt install -y python3-pip -y
 pip3 install -U argcomplete -y
 sudo apt install -y python-rosdep -y
 sudo rosdep init -y
-rosdep update -y
+rosdep update -y --include-eol-distros --rosdistro=eloquent
 sudo apt install python3-colcon-common-extensions -y
 
 # Installing Text Editors
