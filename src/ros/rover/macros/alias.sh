@@ -81,14 +81,14 @@ alias max="sudo nmcli dev wifi connect 'Redmi Note 10 Pro' password Seagull04"
 
 # DGPS
 alias dgps="ros2 launch ublox_dgnss rover.launch.py"
-
-
 alias pi="ssh ubuntu@192.168.1.203"
 alias foxglove_server="ros2-foxy-rosbag.ros2 launch rosbridge_server rosbridge_websocket_launch.xml"
 
 # Science commands
 alias sci_copy="scp -r nvidia@192.168.1.204:nova_ws/src/science/data/spectrometer ~/nova_ws/src/science/data"
 
+# Creating template program
+alias python_template="cp ~/nova_ws/src/core/macros/python_ros_template.py ."
 
 # systemctl / screen aliases
 alias check='. ~/nova_ws/src/core/macros/check.sh'     # Sets up the CAN lines with a virtual or real CAN
