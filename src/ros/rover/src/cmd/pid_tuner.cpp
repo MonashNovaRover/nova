@@ -120,14 +120,13 @@ void PIDTuner::publish_velocity () {
     // Update the IDs
     message.bus = this->bus;
     message.id = this->id;
-    message.time = this->count;
 
     // Get the data
     CMDData data = this->get_cmd()->receive_feedback();
 
     // Get the data
-    message.rpm = data.rpm;
-    message.power = data.power;
+    message.omega = data.rpm;
+    message.duty_cycle = data.power;
 
     // Make sure data is valid
     if (data.rpm != 0 || data.power != 0) {
@@ -135,19 +134,17 @@ void PIDTuner::publish_velocity () {
         // Publish the data
         publisher->publish(message);
     }
-
-    // Increase the time (in milliseconds)
-    this->count += 50;
 }
 
 
 // Constructor initialises all the devices
-PIDTuner::PIDTuner ()
-  : Node("pid_tuner"), count(0) {
+PIDTuner::PIDTuner () : Node("pid_tuner")
+{
 
     // Create the service and bind to the function
-    service = this->create_service<core::srv::PIDTune>("/control/pid_tune", 
-        std::bind(&PIDTuner::select_device, this, _1, _2));
+    service = this->create_service<core::srv::PIDTune>(
+        "/control/pid_tune", std::bind(&PIDTuner::select_device, this, _1, _2)
+    );
 
     // Creates the publisher
     publisher = this->create_publisher<core::msg::CMDFeedback>("/control/cmd_feedback", 10);
