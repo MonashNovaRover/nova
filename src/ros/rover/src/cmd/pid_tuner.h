@@ -64,9 +64,6 @@ class PIDTuner : public rclcpp::Node {
     // Stores the service for the PID commands
     rclcpp::Service<core::srv::PIDTune>::SharedPtr service;
 
-    // Stores a counter for each step
-    size_t count;
-
     // Stores the arrays of CMDs for each bus
     CMD* bus_0 [NUM_WHEELS];
     CMD* bus_1 [NUM_ARM_DEVICES];
