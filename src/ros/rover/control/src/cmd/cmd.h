@@ -10,7 +10,7 @@ This code interfaces with the CAN classes and is
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	control
-AUTHOR(S):	Harrison Verrios, Josh Cherubino, Jory Braun
+AUTHOR(S):	Harrison Verrios, Josh Cherubino, Jory Braun, Taaj Street
 CREATION:	01/12/2021
 EDITED:		13/09/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -20,7 +20,7 @@ EDITED:		13/09/2022
 #include <iostream>
 
 // CAN include
-#include "socketcan/socketcan_cpp.h"
+#include "jcan/jcan.h"
 
 
 // Specifies the command used
@@ -80,8 +80,8 @@ class CMD {
     // Was the last command a STOP? If so, do not bother repeating
     bool already_stopped;
     
-    // CAN socket for the CAN connection
-    scpp::SocketCan can_socket;
+    // CAN bus for the CAN connection
+    org::jcan::Bus *can_bus;
 
 
     /// @brief      Send a CAN frmae with some command in the ID but no data

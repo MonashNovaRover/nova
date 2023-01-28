@@ -3,7 +3,7 @@
 Monash Nova Rover Team
 
 PACKAGE: 	control
-AUTHOR(S):	Harrison Verrios, Josh Cherubino, Jory Braun
+AUTHOR(S):	Harrison Verrios, Josh Cherubino, Jory Braun, Taaj Street
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
@@ -13,6 +13,7 @@ AUTHOR(S):	Harrison Verrios, Josh Cherubino, Jory Braun
 #define _USE_MATH_DEFINES
 #include <cmath>
 
+using namespace org::jcan;
 
 CMD::CMD (const int bus, const int id, CMDCommand drive_mode, const bool direction, CMDCommand stop_mode, double scaling_factor) :
     bus(bus), id(id), drive_mode(drive_mode), direction(direction), stop_mode(stop_mode), scaling_factor(scaling_factor), already_stopped(false)
@@ -23,20 +24,10 @@ CMD::CMD (const int bus, const int id, CMDCommand drive_mode, const bool directi
     min_speed = max_speed / 32767;
 
     // Set up the CAN interface with the correct bus
-    scpp::SocketCanStatus status = can_socket.open(
+    // TODO: Error Handling
+    can_bus = org::jcan::open_bus(
         (bus == 0) ? "can0" : "can1"
-    );
-
-    // Check for status
-    switch (status) {
-        case scpp::STATUS_OK:
-            Print::print("Initialised CAN device successfully.", C_SUCCESS); 
-            break;
-        default:
-            if (bus == 0)   Print::print("Error: can0 has not been initialized.", C_FAIL);
-            else            Print::print("Error: can1 has not been initialized.", C_FAIL);
-            break;
-    }
+    ).into_raw();
 }
 
 
@@ -44,7 +35,7 @@ CMD::~CMD ()
 {
     // Stop the CMD, safely close the socket
     drive(0.0);
-    can_socket.close();
+    //can_socket.close();
 }
 
 
@@ -67,12 +58,10 @@ int CMD::get_id()
 void CMD::write_frame_no_data (const CMDCommand command)
 {
     // Create a new CAN frame
-    scpp::CanFrame frame;
+    Frame frame;
     frame.id = (id << 4) | command;
-    frame.len = 0;
-
     // Write the frame to the bus
-    can_socket.write(frame);
+    can_bus->send(frame);
 }
 
 
@@ -145,19 +134,18 @@ void CMD::drive (float velocity)
     }
 
     // Create a new CAN frame
-    scpp::CanFrame frame;
+    Frame frame;
     frame.id = (id << 4) | drive_mode;
-    frame.len = 2;
 
     // Scale the speed to the range
     int16_t scaled_velocity = convert_to_int16(velocity);
 
     // Order data in big-endian order (MSB first)
-    frame.data[0] = scaled_velocity >> 8;
-    frame.data[1] = scaled_velocity & 0xFF;
+    frame.data.push_back(scaled_velocity >> 8);
+    frame.data.push_back(scaled_velocity & 0xFF);
 
     // Write the frame to the bus
-    can_socket.write(frame);    
+    can_bus->send(frame);
 }
 
 
@@ -172,65 +160,64 @@ void CMD::set_linear_actuator (float value)
     }
 
     // Create a new CAN frame
-    scpp::CanFrame frame;
+    Frame frame;
     frame.id = (id << 4) | CMDCommand::ACTUATOR;
-    frame.len = 2;
 
     // Order data in big-endian order (MSB first)
-    frame.data[0] = actuation;
+    frame.data.push_back(actuation);
 
     // Write the frame to the bus
-    can_socket.write(frame);
+    can_bus->send(frame);
 }
 
 
 void CMD::set_tuning_parameters (double kP, double kI, double kD, double kM)
 {
-    // Create a new CAN frame
-    scpp::CanFrame frame;
-    frame.id = (this->id << 4) | CMDCommand::SET_TUNE;
-    frame.len = 8;
-
-    // Scale the constants
-    int16_t scaled_kP = convert_to_int16(kP);
-    int16_t scaled_kI = convert_to_int16(kI);
-    int16_t scaled_kD = convert_to_int16(kD);
-    int16_t scaled_kM = convert_to_int16(kM);
-
-    // Construct the data
-    frame.data[0] = scaled_kP >> 8;
-    frame.data[1] = scaled_kP & 0xFF;
-    frame.data[2] = scaled_kI >> 8;
-    frame.data[3] = scaled_kI & 0xFF;
-    frame.data[4] = scaled_kD >> 8;
-    frame.data[5] = scaled_kD & 0xFF;
-    frame.data[6] = scaled_kM >> 8;
-    frame.data[7] = scaled_kM & 0xFF;
-
-    // Write the frame to the bus
-    can_socket.write(frame);
+//    // Create a new CAN frame
+//    scpp::CanFrame frame;
+//    frame.id = (this->id << 4) | CMDCommand::SET_TUNE;
+//    frame.len = 8;
+//
+//    // Scale the constants
+//    int16_t scaled_kP = convert_to_int16(kP);
+//    int16_t scaled_kI = convert_to_int16(kI);
+//    int16_t scaled_kD = convert_to_int16(kD);
+//    int16_t scaled_kM = convert_to_int16(kM);
+//
+//    // Construct the data
+//    frame.data[0] = scaled_kP >> 8;
+//    frame.data[1] = scaled_kP & 0xFF;
+//    frame.data[2] = scaled_kI >> 8;
+//    frame.data[3] = scaled_kI & 0xFF;
+//    frame.data[4] = scaled_kD >> 8;
+//    frame.data[5] = scaled_kD & 0xFF;
+//    frame.data[6] = scaled_kM >> 8;
+//    frame.data[7] = scaled_kM & 0xFF;
+//
+//    // Write the frame to the bus
+//    can_socket.write(frame);
 }
 
 
 CMDData CMD::receive_feedback ()
 {
-    // Creates a new CAN frame
-    scpp::CanFrame frame;
-    frame.id = (this->id << 4) | 0x400;
-    frame.len = 4;
-
-    // Read the data
-    can_socket.read(frame);
-
-    // Convert scaled data to the double
-    double velocity = convert_from_bytes(frame.data);
-    double power = convert_from_bytes(frame.data + 2);
-    
-    // Create a new struct
-    CMDData data = CMDData(velocity, power);
-
-    // Return the data
-    return data;
+//    // Creates a new CAN frame
+//    scpp::CanFrame frame;
+//    frame.id = (this->id << 4) | 0x400;
+//    frame.len = 4;
+//
+//    // Read the data
+//    can_socket.read(frame);
+//
+//    // Convert scaled data to the double
+//    double velocity = convert_from_bytes(frame.data);
+//    double power = convert_from_bytes(frame.data + 2);
+//
+//    // Create a new struct
+//    CMDData data = CMDData(velocity, power);
+//
+//    // Return the data
+//    return data;
 }
 
 
