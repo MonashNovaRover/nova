@@ -205,11 +205,11 @@ fi
 
 
 # Fix autonomous installs
-cd ~/nova_ws/src/autonomous
+cd ~/nova_ws/src/rover/autonomous
 git submodule update --init --recursive
 
 # Checkout foxy branch of core
-cd ~/nova_ws/src/core
+cd ~/nova_ws/src/rover/core
 git checkout --track remotes/origin/feature/ros2-foxy
 
 # Clone the other GitHub files
@@ -232,14 +232,14 @@ fi
 
 # Add the nova.sh bash script to the bashrc
 information "Setting up Workspace..."
-sudo echo "source ~/nova_ws/src/core/nova.sh" >> ~/.bashrc
+sudo echo "source ~/nova_ws/src/rover/core/nova.sh" >> ~/.bashrc
 source ~/.bashrc
 
 # Build the workspace
 cd ~/nova_ws
 export CMAKE_PREFIX_PATH=""
 export AMENT_PREFIX_PATH=""
-. ~/nova_ws/src/core/macros/build.sh
+. ~/nova_ws/src/rover/core/macros/build.sh
 
 # Building the GUI
 cd ~/nova_ws/src/gui/wombatx
