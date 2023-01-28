@@ -1,0 +1,13 @@
+# Science command service for specific commands
+# This service requires a response before it can perform another action
+
+# This is a JSON'ified string that is converted as the command. It has:
+#	target: str
+#	action: str
+#	args: dict [optional - can be left empty]
+string command
+
+---
+
+# Each action could fail. This flag shows the output success of the action
+bool success

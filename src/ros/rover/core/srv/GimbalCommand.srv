@@ -1,0 +1,15 @@
+# This messages moves a gimbal camera
+
+# The Gimbal camera ID [1, 3]
+int8 id
+
+# The angle on the x axis in degrees [0, 180]
+int32 angle_x
+
+# The angle on the y axis in degrees [0, 180]
+int32 angle_y
+
+---
+
+# The result of the movement
+bool success
