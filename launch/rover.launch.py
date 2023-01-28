@@ -29,8 +29,8 @@ def generate_launch_description():
             package='electronics', node_executable='wheel_publisher.py', output='screen', emulate_tty=True),
         launch_ros.actions.Node(
 	        package='electronics', node_executable='gimbal_service.py', output='screen', emulate_tty=True),
-        launch_ros.actions.Node(
-	        package='electronics', node_executable='LED_transmitter.py', output='screen', emulate_tty=True),
+        #launch_ros.actions.Node(
+	#        package='electronics', node_executable='LED_transmitter.py', output='screen', emulate_tty=True),
         launch_ros.actions.Node(
             package='imu',  node_executable='imu_node', output='screen', emulate_tty=True),
         launch_ros.actions.Node(
