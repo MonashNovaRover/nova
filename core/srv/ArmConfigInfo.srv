@@ -1,0 +1,21 @@
+# Details of the arm hardware configuration
+# The arm configuration is set at build time in a header file,
+# which then informs how the arm model is constructed.
+# This service returns further info from the arm model
+
+---
+
+# Configuration Info
+string[] module_names
+
+# Joint Info
+string[] joint_names
+float32[] joint_limits_lower
+float32[] joint_limits_upper
+
+# Endpoint Info
+string[] endpoint_names
+string default_endpoint_name
+
+# Segment info
+string[] segment_names

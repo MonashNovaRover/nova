@@ -1,0 +1,22 @@
+# Camera command for sending data
+# This service requires a response before it can perform another action
+
+# This is the target command type
+# Some examples include (playback, ip, props)
+string target
+
+# This is the action that will be completed, depending on the target
+# Some examples include (start, stop, get, set)
+string action
+
+# This is a JSON packed string that contains all the values for the action
+string input
+
+---
+
+# Each action could fail. This flag shows the output success of the action
+bool success
+
+# The output string displays relayed information packed with JSON
+# An error message will be displayed if it fails under {error: ''}
+string output
