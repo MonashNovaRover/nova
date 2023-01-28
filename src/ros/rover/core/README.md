@@ -21,7 +21,7 @@ The core repository comes with some useful commands, all of which are found insi
 ### Setup
 Please add the **nova.sh** bash script to your bashrc.
 
-``sudo echo "source ~/nova_ws/src/core/nova.sh" < ~/.bashrc``
+``sudo echo "source ~/nova_ws/src/rover/core/nova.sh" < ~/.bashrc``
 
 This will run the main bash script after every new Terminal instance. These will be required to run the bash scripts.
 Alternatively, to install all packages, dependencies and repositories to your Linux device, run the following bash script:
