@@ -11,7 +11,7 @@
 ## On Metabox:
 
 ### Metabox Computer
-`cd ~/nova_ws/src/autonomous/autonomous/` \
+`cd ~/nova_ws/src/rover/autonomous/autonomous/` \
 `rviz2 -d config/auto.rviz` \
 `python3 vis/rover_vis.py` \
 `python3 vis/path_vis.py` \
@@ -21,6 +21,6 @@
 `can start all` \
 `rover` \
 `dgps` \
-`cd ~/nova_ws/src/autonomous/autonomous/` \
+`cd ~/nova_ws/src/rover/autonomous/autonomous/` \
 `python3 localisation/pose_converter.py` \
 `python3 main.py`

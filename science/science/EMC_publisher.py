@@ -160,7 +160,7 @@ class EMCPublisher(Node):
         if WRITE_TO_CSV:
         
             # Get the file of the csv
-            directory: str = os.path.expanduser("~") + "/nova_ws/src/science/data/emc/"
+            directory: str = os.path.expanduser("~") + "/nova_ws/src/rover/science/data/emc/"
             filename: str = "%s_emc.csv" % self.file_date
             filepath: str = "%s/%s" % (directory, filename)
 

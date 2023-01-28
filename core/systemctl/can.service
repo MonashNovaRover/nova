@@ -7,7 +7,7 @@ After=network-online.target network.target local-fs.target
 User=root
 Group=sudo
 Type=forking
-ExecStart=/home/nvidia/nova_ws/src/core/systemctl/can.sh
+ExecStart=/home/nvidia/nova_ws/src/rover/core/systemctl/can.sh
 TimeoutStartSec=5
 Restart=on-failure
 

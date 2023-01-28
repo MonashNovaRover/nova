@@ -10,7 +10,7 @@
 # +--------------------------------------------+
 
 # Finds if the ROS settings file exists
-FILE=~/nova_ws/src/core/settings/ROS_SETTINGS.sh
+FILE=~/nova_ws/src/rover/core/settings/ROS_SETTINGS.sh
 if [[ -f "$FILE" ]]
 then
 
@@ -21,7 +21,7 @@ then
 else
 
     # Create and populates the file
-    mkdir -p ~/nova_ws/src/core/settings
+    mkdir -p ~/nova_ws/src/rover/core/settings
     touch $FILE
     echo "export ROS_VERSION=2" > $FILE
     export ROS_VERSION=2
@@ -49,4 +49,4 @@ fi
 unset FASTRTPS_DEFAULT_PROFILES_FILE
 
 # Needs to be fixed
-#export FASTRTPS_DEFAULT_PROFILES_FILE=~/nova_ws/src/core/settings/ROS_DEFAULT_FASTRTPS_PROFILES.xml
+#export FASTRTPS_DEFAULT_PROFILES_FILE=~/nova_ws/src/rover/core/settings/ROS_DEFAULT_FASTRTPS_PROFILES.xml
