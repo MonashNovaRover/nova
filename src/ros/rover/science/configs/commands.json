@@ -1,0 +1,187 @@
+{
+    "targets": {
+
+        "platform": {
+            "hex": "000",
+            "actions": {
+
+                "enable": {
+                    "hex": "00",
+                    "args": [
+                        "enabled"
+                    ]
+                },
+
+                "actuation_manual": {
+                    "hex": "01",
+                    "args": [
+                        "direction",
+                        "type"
+                    ]
+                },
+
+                "actuation_top": {
+                    "hex": "02",
+                    "args": []
+                },
+
+                "actuation_bottom": {
+                    "hex": "03",
+                    "args": []
+                },
+
+                "scoops": {
+                    "hex": "04",
+                    "args": [
+                        "id",
+                        "direction"
+                    ]
+                }
+            }
+        },
+
+        "microscope": {
+            "hex": "000",
+            "actions": {
+                
+                "lens": {
+                    "hex": "05",
+                    "args": [
+                        "lens"
+                    ]
+                },
+
+                "led": {
+                    "hex": "06",
+                    "args": [
+                        "enabled"
+                    ]
+                },
+
+                "laser": {
+                    "hex": "07",
+                    "args": [
+                        "enabled"
+                    ]
+                }
+
+            }
+        },
+
+        "internals": {
+            "hex": "001",
+            "actions": {
+
+                "sequence": {
+                    "hex": "00",
+                    "args": []
+                },
+
+                "fill": {
+                    "hex": "02",
+                    "args": []
+                },
+
+                "pumps": {
+                    "hex": "03",
+                    "args": [
+                        "id"
+                    ]
+                },
+
+                "enable": {
+                    "hex": "05",
+                    "args": []
+                },
+
+                "disable": {
+                    "hex": "06",
+                    "args": []
+                },
+
+                "direction": {
+                    "hex": "07",
+                    "args": [
+                        "direction"
+                    ]
+                },
+
+                "move": {
+                    "hex": "08",
+                    "args": [
+                        "cuvette"
+                    ]
+                },
+
+                "step": {
+                    "hex": "09",
+                    "args": [
+                        "steps"
+                    ]
+                }
+
+            }
+        },
+
+        "spectrometer": {
+            "hex": "001",
+            "actions": {
+
+                "scan_single": {
+                    "hex": "01",
+                    "args": [
+                        "cuvette"
+                    ]
+                },
+
+                "scan_all": {
+                    "hex": "04",
+                    "args": []
+                }
+            }
+        },
+
+        "abort_platform": {
+            "hex": "005",
+            "actions": {
+
+                "abort": {
+                    "hex": "00",
+                    "args": []
+                }
+            }
+        },
+
+        "abort_distribution": {
+            "hex": "00B",
+            "actions": {
+
+                "abort": {
+                    "hex": "00",
+                    "args": []
+                }
+            }
+        }
+    },
+
+
+
+    "arg_encoding": {
+
+        "forward": "00",
+        "reverse": "01",
+        "left": "00",
+        "right": "01",
+        "down": "00",
+        "up": "01",
+        "false": "00",
+        "true": "01",
+        "coarse": "00",
+        "fine": "01",
+        "deposit": "00",
+        "pickup": "01",
+        "off": "00",
+        "on": "01",
+        "cycle": "02"
+    }
+}
