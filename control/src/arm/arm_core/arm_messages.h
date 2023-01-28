@@ -1,0 +1,45 @@
+#pragma once
+
+/*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Monash Nova Rover Team
+
+This class implements helper functions for creating
+  ROS2 messages
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+NODE: None
+TOPICS: None
+SERVICES: None
+ACTIONS: None
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PACKAGE: 	 control
+AUTHOR(S):   Jory Braun
+CREATION:	 17/01/2022
+EDITED:		 27/09/2022
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+TODO:
+ - 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
+
+// Include message types
+#include "sensor_msgs/msg/joint_state.hpp"
+#include "sensor_msgs/msg/multi_dof_joint_state.hpp"
+
+// Include other libraries
+#include <vector>
+#include <string>
+
+
+namespace ArmMessages
+{
+
+    /// @brief  Helper function to construct empty JointState message
+    ///         Uses given names of joints, sizes all other parameter lists to match
+    sensor_msgs::msg::JointState get_empty_joint_state(const std::vector<std::string>& names);
+
+    /// @brief  Helper function to construct empty MultiDOFJointState message
+    ///         Uses given names of joints, sizes all other parameter lists to match
+    sensor_msgs::msg::MultiDOFJointState get_empty_multi_dof_joint_state(const std::vector<std::string>& names);
+
+}
