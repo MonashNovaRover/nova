@@ -10,29 +10,29 @@
 # +--------------------------------------------+
 
 # Macro Aliases
-alias build='. ~/nova_ws/src/core/macros/build.sh'     # Runs colcon build
+alias build='. ~/nova_ws/src/rover/core/macros/build.sh'     # Runs colcon build
 alias setup='. ~/nova_ws/install/setup.bash'           # Sets up the ROS repository when scripts change
-alias pull='. ~/nova_ws/src/core/macros/pull.sh'       # Runs a GitHub pull on all repositories
-alias can='. ~/nova_ws/src/core/macros/can.sh'         # Sets up the CAN lines with a virtual or real CAN
-alias check='. ~/nova_ws/src/core/macros/check.sh'     # Adds an alias for the `check` command for `screen -ls`
-alias stop='. ~/nova_ws/src/core/macros/stop.sh'       # Adds an alias for the `stop` command for stopping systemctl services
-alias restart='. ~/nova_ws/src/core/macros/restart.sh' # Adds an alias for the `restart` command for restarting systemctl services
-alias wifi='. ~/nova_ws/src/core/macros/wifi.sh'       # Allows easy connection to Wifi over command lines
+alias pull='. ~/nova_ws/src/rover/core/macros/pull.sh'       # Runs a GitHub pull on all repositories
+alias can='. ~/nova_ws/src/rover/core/macros/can.sh'         # Sets up the CAN lines with a virtual or real CAN
+alias check='. ~/nova_ws/src/rover/core/macros/check.sh'     # Adds an alias for the `check` command for `screen -ls`
+alias stop='. ~/nova_ws/src/rover/core/macros/stop.sh'       # Adds an alias for the `stop` command for stopping systemctl services
+alias restart='. ~/nova_ws/src/rover/core/macros/restart.sh' # Adds an alias for the `restart` command for restarting systemctl services
+alias wifi='. ~/nova_ws/src/rover/core/macros/wifi.sh'       # Allows easy connection to Wifi over command lines
 
 # Directory Aliases
 alias nova='cd ~/nova_ws'
-alias core='cd ~/nova_ws/src/core'
-alias control='cd ~/nova_ws/src/control'
-alias electronics='cd ~/nova_ws/src/electronics'
+alias core='cd ~/nova_ws/src/rover/core'
+alias control='cd ~/nova_ws/src/rover/control'
+alias electronics='cd ~/nova_ws/src/rover/electronics'
 alias elec=electronics
 alias visualisation='cd ~/nova_ws/src/visualisation'
 alias visualization=visualisation
 alias vis=visualisation
 alias viz=visualisation
-alias science='cd ~/nova_ws/src/science'
+alias science='cd ~/nova_ws/src/rover/science'
 alias cameras='cd ~/nova_ws/src/cameras'
 alias cams=cameras
-alias autonomous='cd ~/nova_ws/src/autonomous'
+alias autonomous='cd ~/nova_ws/src/rover/autonomous'
 alias auto=autonomous
 alias gui='cd ~/nova_ws/src/gui'
 alias tutorials='cd ~/nova_ws/src/tutorials'
@@ -46,7 +46,7 @@ alias fleet='cd ~/nova_ws/src/fleet'
 
 # Camera Aliases
 alias auto_cameras='ros2 launch realsense2-camera rs_d400_and_t265_launch.py'
-alias auto_view='rviz2 -d ~/nova_ws/src/autonomous/config/auto.rviz'
+alias auto_view='rviz2 -d ~/nova_ws/src/rover/autonomous/config/auto.rviz'
 
 # Networking Aliases
 alias jetson='ssh -Y nvidia@192.168.1.204'
@@ -67,7 +67,7 @@ alias unity='ros2 launch core visualisation.launch.py'
 
 # Service Aliases
 alias arm_config_info='ros2 service call control/arm_config_info core/srv/ArmConfigInfo'
-alias zero_resolver='~/nova_ws/src/core/macros/zero_resolver.sh'
+alias zero_resolver='~/nova_ws/src/rover/core/macros/zero_resolver.sh'
 
 # eduroam connection
 alias eduroam="sudo ip r delete default via 192.168.1.1"
@@ -84,11 +84,11 @@ alias pi="ssh ubuntu@192.168.1.203"
 alias foxglove_server="ros2-foxy-rosbag.ros2 launch rosbridge_server rosbridge_websocket_launch.xml"
 
 # Science commands
-alias sci_copy="scp -r nvidia@192.168.1.204:nova_ws/src/science/data/spectrometer ~/nova_ws/src/science/data"
+alias sci_copy="scp -r nvidia@192.168.1.204:nova_ws/src/rover/science/data/spectrometer ~/nova_ws/src/rover/science/data"
 
 # Creating template program
-alias python_template="cp ~/nova_ws/src/core/macros/python_ros_template.py ."
+alias python_template="cp ~/nova_ws/src/rover/core/macros/python_ros_template.py ."
 
 # systemctl / screen aliases
-alias check='. ~/nova_ws/src/core/macros/check.sh'     # Sets up the CAN lines with a virtual or real CAN
-alias rerun='. ~/nova_ws/src/core/macros/rerun.sh'     # Sets up the CAN lines with a virtual or real CAN
+alias check='. ~/nova_ws/src/rover/core/macros/check.sh'     # Sets up the CAN lines with a virtual or real CAN
+alias rerun='. ~/nova_ws/src/rover/core/macros/rerun.sh'     # Sets up the CAN lines with a virtual or real CAN
