@@ -1,0 +1,67 @@
+#pragma once
+
+/*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Monash Nova Rover Team
+
+This class inherits from the base Joystick code and
+    is able to send messages for the Thrustmaster
+    joysticks.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PACKAGE: 	control
+AUTHOR(S):	Harrison Verrios
+CREATION:	19/11/2021
+EDITED:		11/03/2022
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
+
+// Include the joystick and message type
+#include "joystick.h"
+#include "core/msg/input_joystick.hpp"
+
+
+// Thrustmaster class
+class JoystickThrustmaster : public Joystick {
+
+    //------------------------------------------------------------//
+    protected:
+
+    /// @brief      Stores the message data from the joystick
+    core::msg::InputJoystick msg;
+
+    /// @brief      Flags for whether or not certain values have changed
+    bool valid_ax_stick_twist = false;
+    bool valid_ax_thumb_x = false;
+    bool valid_ax_slider = false;
+
+    /// @brief      The default slider value to use when invalid
+    float default_ax_slider = 0.0;
+    
+
+    //------------------------------------------------------------//
+    protected:
+
+    /// @brief      Sets the message values stored in the message object
+    void set_message_values() override;
+
+    /// @brief      Checks the current inputs to make sure they are valid
+    void check_valid_inputs();
+
+
+    //------------------------------------------------------------//
+	public:
+
+    /// @brief      Constructor called when the object is created
+    /// @param      left - Is this the left or the right joystick
+    /// @param      offset - The offset of the input axis to use
+    /// @param      default_slider - The default slider value to use
+    JoystickThrustmaster(const bool left, const float offset, const float default_slider = 0.0);
+
+    /// @brief      Gets the message object from the instance
+    /// @returns    The Input Joystick message object with data
+    core::msg::InputJoystick get_message();
+
+    /// @brief       Resets the invalid inputs back to zero
+    void reset_inputs ();
+};
