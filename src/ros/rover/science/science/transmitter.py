@@ -47,7 +47,7 @@ class ServiceNode(Node):
         self.get_logger().warning("\033[92;1mInitialising the Science Transmitter class.\033[0m")
 
         # Get the directory of the JSON file
-        directory = os.path.expanduser('~') + "/nova_ws/src/science/configs/commands.json"
+        directory = os.path.expanduser('~') + "/nova_ws/src/rover/science/configs/commands.json"
 
         # Reads the command json data
         with open (directory, "r") as file:

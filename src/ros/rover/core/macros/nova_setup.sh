@@ -180,7 +180,7 @@ git clone git@github.com:MonashNovaRover/gui.git
 git clone git@github.com:MonashNovaRover/science.git
 
 # Fix autonomous installs
-cd ~/nova_ws/src/autonomous
+cd ~/nova_ws/src/rover/autonomous
 git submodule update --init --recursive
 
 # Clone the other GitHub files
@@ -193,8 +193,8 @@ git clone git@github.com:MonashNovaRover/coms_utils.git
 
 # Add the nova.sh bash script to the bashrc
 information "Setting up Workspace..."
-sudo echo "source ~/nova_ws/src/core/nova.sh" >> ~/.bashrc
-source ~/nova_ws/src/core/nova.sh
+sudo echo "source ~/nova_ws/src/rover/core/nova.sh" >> ~/.bashrc
+source ~/nova_ws/src/rover/core/nova.sh
 
 # Build the workspace
 cd ~/nova_ws

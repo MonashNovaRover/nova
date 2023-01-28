@@ -192,7 +192,7 @@ class SpectrometerPublisher(Node):
         if WRITE_TO_CSV:
         
             # Get the file of the csv
-            directory: str = os.path.expanduser("~") + "/nova_ws/src/science/data/spectrometer/"
+            directory: str = os.path.expanduser("~") + "/nova_ws/src/rover/science/data/spectrometer/"
             filename: str = "%s_spectrometer.csv" % self.file_date
             filepath: str = "%s/%s" % (directory, filename)
 
