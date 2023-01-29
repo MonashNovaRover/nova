@@ -14,7 +14,7 @@ AUTHOR(S):	Harrison Verrios, Josh Cherubino, Jory Braun, Taaj Street
 #include <cmath>
 
 using namespace org::jcan;
-//TODO: change bus to enable vcan for testing purposes
+//TODO: change bus to have ability to enable vcan for testing purposes.
 BLCMD::BLCMD (const int bus, const int id, BLCMDSendCommand drive_mode, const bool direction, BLCMDSendCommand stop_mode, double scaling_factor) :
     bus(bus), id(id), drive_mode(drive_mode), direction(direction), stop_mode(stop_mode), scaling_factor(scaling_factor), already_stopped(false)
 {    
@@ -26,7 +26,7 @@ BLCMD::BLCMD (const int bus, const int id, BLCMDSendCommand drive_mode, const bo
     // Set up the CAN interface with the correct bus
     //TODO: Proper error handling
     can_bus = org::jcan::open_bus(
-        (bus == 0) ? "can0" : "can1"
+         bus ? (bus == 1) ? "can1" : "vcan0" : "can1"
     ).into_raw();
 }
 
@@ -110,9 +110,11 @@ void BLCMD::drive (float value)
         value = value / M_PI;
     }
     else {
+        //TODO: Check this
+
         // Handle STOPs if set
         // Prevent needless repetition of STOPs (crowds the CAN bus, makes it hard to debug other things)
-        // If using PWM, always use STOP
+        // If using Drive Current, always use STOP
         if (value == 0 && (stop_mode == STOP || drive_mode == DRIVE_CURRENT)) {
             if (!already_stopped) {
                 stop();
@@ -210,33 +212,39 @@ void BLCMD::set_tuning_parameters (double kP, double kI, double kD, double kM)
 }
 
 //TODO: Make better return value.
-BLCMDTelemetry BLCMD::get_telemetry_packet(TelemetryPacket packet_num)
+void BLCMD::get_telemetry_packet(TelemetryPacket packet_num, BLCMDTelemetry* telemetry)
 {
-    can_bus->set_id_filter({4 << 8 | id << 4 | packet_num});
+    can_bus->set_id_filter({static_cast<unsigned int>(4 << 8 | id << 4 | packet_num)});
     Frame packet = can_bus->receive();
-
-    BLCMDTelemetry telemetry;
 
     switch (packet_num){
         case PACKET_1:
-            telemetry.rotor_velocity = bytes_to_int16(&packet.data[0]);
-            telemetry.q_current = bytes_to_int16(&packet.data[2]);
+            telemetry->rotor_velocity = int16_bytes_to_double(&packet.data[0]);
+            telemetry->q_current = int16_bytes_to_double(&packet.data[2]);
             break;
         case PACKET_2:
-            telemetry.rotor_interval = bytes_to_int16(&packet.data[0]);
-            telemetry.d_current = bytes_to_int16(&packet.data[2]);
+            telemetry->rotor_interval = uint16_bytes_to_double(&packet.data[0]);
+            telemetry->d_current = int16_bytes_to_double(&packet.data[2]);
             break;
         case PACKET_3:
-            telemetry.resolver_position = bytes_to_int16(&packet.data[0]);
-            telemetry.resolver_velocity = bytes_to_int16(&packet.data[2]);
+            telemetry->resolver_position = int16_bytes_to_double(&packet.data[0]);
+            telemetry->resolver_velocity = int16_bytes_to_double(&packet.data[2]);
             break;
         case PACKET_4:
-            telemetry.power = bytes_to_int16(&packet.data[0]);
-            telemetry.voltage = bytes_to_int16(&packet.data[2]);
-            telemetry.temp = bytes_to_int16(&packet.data[4]);
+            telemetry->power = uint16_bytes_to_double(&packet.data[0]);
+            telemetry->voltage = uint16_bytes_to_double(&packet.data[2]);
+            telemetry->temp = uint16_bytes_to_double(&packet.data[4]);
             break;
     }
+}
 
+BLCMDTelemetry BLCMD::get_telemetry(TelemetryPacket packet_num)
+{
+    BLCMDTelemetry telemetry;
+    get_telemetry_packet(PACKET_1, &telemetry);
+    get_telemetry_packet(PACKET_2, &telemetry);
+    get_telemetry_packet(PACKET_3, &telemetry);
+    get_telemetry_packet(PACKET_4, &telemetry);
     return telemetry;
 }
 
@@ -246,7 +254,18 @@ int16_t BLCMD::convert_to_int16 (const double value) {
     return (int16_t)(value * 32767.0f);
 }
 
-int16_t BLCMD::bytes_to_int16 (uint8_t* bytes)
-{
+int16_t BLCMD::from_bytes(uint8_t *bytes) {
     return (bytes[0] << 8) | bytes[1];
+}
+
+double BLCMD::int16_bytes_to_double (uint8_t* bytes)
+{
+    // Scale the value to a double
+    return from_bytes(bytes)/32767.0;
+}
+
+double BLCMD::uint16_bytes_to_double (uint8_t* bytes)
+{
+    // Scale the value to a double
+    return from_bytes(bytes)/65535.0;
 }

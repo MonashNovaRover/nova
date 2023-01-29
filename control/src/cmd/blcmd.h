@@ -50,15 +50,15 @@ enum TelemetryPacket{
 // TODO: Set for human readable values
 // Struct for Telemetry data
 struct BLCMDTelemetry {
-    int16_t rotor_velocity;
-    int16_t q_current;
-    uint16_t rotor_interval;
-    int16_t d_current;
-    int16_t resolver_position;
-    int16_t resolver_velocity;
-    uint16_t power;
-    uint16_t voltage;
-    uint16_t temp;
+    double rotor_velocity;
+    double q_current;
+    double rotor_interval;
+    double d_current;
+    double resolver_position;
+    double resolver_velocity;
+    double power;
+    double voltage;
+    double temp;
 
 };
 
@@ -126,7 +126,19 @@ class BLCMD {
     /// @brief      Convert a 2-byte array to an int16_t
     /// @param      bytes - The 2-byte array
     /// @returns    an int16_t
-    static int16_t bytes_to_int16 (uint8_t *bytes);
+    static int16_t from_bytes (uint8_t *bytes);
+
+    /// @brief      Convert a 2-byte array to a double between 1 and -1.
+    /// @param      bytes - The 2-byte array
+    /// @returns    a double
+    static double int16_bytes_to_double (uint8_t *bytes);
+
+    /// @brief      Convert a 2-byte array to a double between 0 and 1.
+    /// @param      bytes - The 2-byte array
+    /// @returns    an double
+    static double uint16_bytes_to_double (uint8_t *bytes);
+
+
     
     //------------------------------------------------------------//
     public:
@@ -135,6 +147,9 @@ class BLCMD {
     double max_speed;
     // Minimum positive speed that can be represented. Set by the max speed and 16-bit precision.
     double min_speed;
+
+
+
 
     /// @brief      Constructor for setting up a BLCMD interface
     /// @param      bus - The bus ID of the CAN device
@@ -194,11 +209,14 @@ class BLCMD {
     /// @param      kM - The Midpoint interval
     void set_tuning_parameters (double kP, double kI, double kD, double kM);
 
-    //TODO: Better way to return packets of telemetry.
-    /// @brief      Gets a packet of telemetry and returns a partially filled BLCMDTelemetry struct.
+    /// @brief      Gets a packet of telemetry and fills the relevant fields of a telemetry struct.
+    /// @param      packet_num - the telemetry packet to get.
+    /// @param      telemetry - pointer to a telemetry struct to get filled.
+    void get_telemetry_packet (TelemetryPacket packet_num, BLCMDTelemetry* telemetry);
+
+    /// @brief      Gets a packet of telemetry and returns a pointer to a telemetry struct.
+    /// @param      packet_num - the telemetry packet to get.
     /// @returns    A struct containing the data
-    BLCMDTelemetry get_telemetry_packet (TelemetryPacket packet_num);
-
-
+    BLCMDTelemetry get_telemetry (TelemetryPacket packet_num);
 
 };
