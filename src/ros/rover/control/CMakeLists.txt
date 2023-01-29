@@ -25,7 +25,7 @@ find_package (Threads REQUIRED)
 # Add include directories for all targets
 include_directories(
         ${CMAKE_CURRENT_SOURCE_DIR}/include
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/jcan
+        # ${CMAKE_CURRENT_SOURCE_DIR}/include/jcan
         ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 ################################################
@@ -85,6 +85,9 @@ ament_target_dependencies(driver rclcpp core)
 add_executable(pid_tuner src/cmd/pid_tuner.cpp)
 target_link_libraries(pid_tuner cmd print)
 ament_target_dependencies(pid_tuner rclcpp core)
+# Testing script
+add_executable(cmd_test src/cmd/cmd_test.cpp)
+target_link_libraries(cmd_test blcmd print)
 ################################################
 # Add Installations
 ################################################
@@ -95,6 +98,7 @@ install(TARGETS
         driver
         vel_convert
         pid_tuner
+        cmd_test
         DESTINATION lib/${PROJECT_NAME}
         )
 # Add all Python executables to this list
