@@ -35,7 +35,6 @@ CMD::~CMD ()
 {
     // Stop the CMD, safely close the socket
     drive(0.0);
-    //can_socket.close();
 }
 
 
