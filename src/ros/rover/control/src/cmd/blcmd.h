@@ -42,12 +42,22 @@ enum BLCMDSendCommand {
 
 enum TelemetryPacket{
     PACKET_1 = 0x1,
-    PACKET_2 = 0x2,
-    PACKET_3 = 0x3,
-    PACKET_4 = 0x4
+    PACKET_2,
+    PACKET_3,
+    PACKET_4
 };
 
-// TODO: Set for human readable values
+enum CanIdPrefeix{
+    SEND = 0,
+    RECIEVE = 4
+};
+
+enum BLCMDRecieveCommand{
+    ERROR = 0x0,
+    CONFIG_DATA = 0x9,
+    WRITE_CONFIRMATION = 0xA
+};
+
 // Struct for Telemetry data
 struct BLCMDTelemetry {
     double rotor_velocity;
@@ -60,6 +70,25 @@ struct BLCMDTelemetry {
     double voltage;
     double temp;
 
+};
+
+// Struct for Config set and get
+enum ConfigVar {
+    HAS_RESOLVER = 0,
+    KP_CURRENT_LOOP,
+    KI_CURRENT_LOOP,
+    MAX_CURRENT_THRESHOLD,
+    KP_VELOCITY_LOOP,
+    KI_VELOCITY_LOOP,
+    MAX_VELOCITY_THRESHOLD,
+    MIN_INTERVAL,
+    KP_POSITION_LOOP,
+    KI_POSITION_LOOP,
+    MAX_POSITION_THRESHOLD,
+    TELEMETRY_P1_SPEED,
+    TELEMETRY_P2_SPEED,
+    TELEMETRY_P3_SPEED,
+    TELEMETRY_P4_SPEED,
 };
 
 // Struct for Config set and get
@@ -138,6 +167,12 @@ class BLCMD {
     /// @returns    an double
     static double uint16_bytes_to_double (uint8_t *bytes);
 
+    uint16_t make_can_id(BLCMDSendCommand command);
+
+    uint16_t make_can_id(BLCMDRecieveCommand command);
+
+    uint16_t make_can_id(TelemetryPacket packet);
+
 
     
     //------------------------------------------------------------//
@@ -152,7 +187,7 @@ class BLCMD {
 
 
     /// @brief      Constructor for setting up a BLCMD interface
-    /// @param      bus - The bus ID of the CAN device
+    /// @param      bus - The can bus to be used. 0 = "can0", 1 = "can1", 2 = "vcan0"
     /// @param      id - The ID of the CAN device on the CAN line
     /// @param      drive_mode - Default drive mode of the CMD. PWM or PID
     /// @param      direction - Direction for the CMD. Determined by hardware
@@ -214,9 +249,28 @@ class BLCMD {
     /// @param      telemetry - pointer to a telemetry struct to get filled.
     void get_telemetry_packet (TelemetryPacket packet_num, BLCMDTelemetry* telemetry);
 
-    /// @brief      Gets a packet of telemetry and returns a pointer to a telemetry struct.
+    /// @brief      Gets all packets of telemetry.
     /// @param      packet_num - the telemetry packet to get.
     /// @returns    A struct containing the data
     BLCMDTelemetry get_telemetry (TelemetryPacket packet_num);
 
+    /// @brief      Gets a signle config variable from the blcmd.
+    /// @param      var - the variable to get.
+    /// @param      telemetry - pointer to a Config struct to get filled.
+    void get_config_variable (ConfigVar var, BLCMDConfig* config);
+
+    /// @brief      Gets all config data and returns a config struct.
+    /// @returns    A struct containing the data.
+    BLCMDConfig get_configuration ();
+
+    /// @brief      Sets a single config variable.
+    /// @param      var - The variable to be set.
+    /// @param      value - The value to set the variable to in an int16_t format.
+    /// @returns    a boolean for success or failure to set.
+    bool set_config_variable (ConfigVar var, int16_t value);
+
+    /// @brief      Sets all config variables.
+    /// @param      config - The struct containing the config data to be set.
+    /// @returns    a boolean for success or failure to set. Returns false if any are not set.
+    bool set_config (BLCMDConfig *config);
 };
