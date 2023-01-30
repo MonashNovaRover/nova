@@ -67,6 +67,8 @@ class FlatMapper(Mapper):
         )
 
         self.get_logger().set_level(logging.DEBUG)
+        self.param_tf_sub_hz = self.declare_parameter("tf_sub_frequency_hz", 30)
+        self.param_tf_sub_hz = self.declare_parameter("tf_pub_frequency_hz", 30)
         self.param_roll_map = self.declare_parameter("roll_map", False).value
         self.param_map_edge_distance = self.declare_parameter("map_edge_dist_m", 3).value
         # How far to roll the map when we approach the edge
@@ -87,7 +89,8 @@ class FlatMapper(Mapper):
 
         if self.param_roll_map:
             self.map_roll_timer = self.create_timer(1, self.check_position_in_map)
-        self.map_transform_timer = self.create_timer(1./30, self.update_transforms)
+        self.pub_transform_timer = self.create_timer(1/self.param_tf_pub_hz, self.pub_transform)
+        self.map_transform_timer = self.create_timer(1./self.param_tf_sub_hz, self.update_transforms)
 
     def initialise_map(self):
         self._map = Grid2D(self.length, self.width, self.planning_resolution)
@@ -114,14 +117,19 @@ class FlatMapper(Mapper):
         Broadcasts the new transform to tf2
         """
         self.offset = [x, y]
+
+    def pub_transform(self):
+        """
+        regularly publish transform from map to local map
+        """
         t = TransformStamped()
         t.header.stamp = self.get_clock().now().to_msg()
         t.header.frame_id = 'map'
         t.child_frame_id = 'local_map'
 
         # For now we assume the map frame never needs to rotate or move in z axis
-        t.transform.translation.x = float(x)
-        t.transform.translation.y = float(y)
+        t.transform.translation.x = float(self.offset(0))
+        t.transform.translation.y = float(self.offset(1))
 
         self.tf_map_offset.sendTransform(t)
 
@@ -196,15 +204,13 @@ class FlatMapper(Mapper):
         try:
             self.local_map_to_d435 = self.tf_buffer.lookup_transform(target_frame='local_map',
                                                                 source_frame='d435_1',
-                                                                time=self.get_clock().now(),
-                                                                timeout=Duration(seconds=0.1)).transform
+                                                                time=Time()).transform
         except Exception as e:
             self.get_logger().debug(f"transform lookup error for d435 transform: {e}")
         try:
             self.local_map_to_base_link = self.tf_buffer.lookup_transform(target_frame='local_map',
                                                                 source_frame='base_link',
-                                                                time=self.get_clock().now(),
-                                                                timeout=Duration(seconds=0.1)).transform
+                                                                time=Time()).transform
         except Exception as e:
             self.get_logger().debug(f"transform lookup error for base_link transform: {e}")
 
