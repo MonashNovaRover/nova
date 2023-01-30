@@ -7,7 +7,7 @@ After=network-online.target network.target local-fs.target
 User=nvidia
 Group=users
 Type=forking
-ExecStart=/home/nvidia/nova_ws/src/rover/core/systemctl/rover.sh
+ExecStart=~/nova_ws/src/rover/core/systemctl/rover.sh
 TimeoutStartSec=5
 Restart=on-failure
 
