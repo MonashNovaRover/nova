@@ -3,7 +3,11 @@ import cv2
 from cv2 import aruco as ar
 from rclpy.node import Node
 import rclpy
-from pyrealsense2 import intrinsics as Intrinsics
+try:
+    from pyrealsense2 import intrinsics as Intrinsics
+except Exception:
+    from pyrealsense2.pyrealsense2 import intrinsics as Intrinsics
+
 from geometry_msgs.msg import Quaternion, TransformStamped
 from tf2_ros import TransformBroadcaster
 import numpy as np

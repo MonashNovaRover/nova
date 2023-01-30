@@ -27,6 +27,7 @@ TODO:
 from a_star import a_star
 from autonomous.math_utils.controller_math import *
 from rclpy.node import Node
+from rclpy.duration import Duration
 from geometry_msgs.msg import Pose2D, Pose, PoseStamped
 from core.msg import Waypoints, Waypoint, RoverPose, Point2D
 from autonomous.config.ros_config import *
@@ -73,7 +74,7 @@ class PathPlanner(Node):
         self.path_publisher = self.create_publisher(Waypoints, auto_waypoints_topic, 10)
 
         # Transform listeners
-        self.tf_buffer = Buffer()
+        self.tf_buffer = Buffer(cache_time=Duration(seconds=20))
         self.tf_listener = TransformListener(self.tf_buffer, node=self, spin_thread=True)
 
         self.get_logger().info("Waiting for transform from 'map' to 'base_link'")
