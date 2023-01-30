@@ -4,6 +4,7 @@ import numpy as np
 import rclpy
 from rclpy.node import Node
 from rclpy.time import Time
+from rclpy.duration import Duration
 import autonomous.math_utils.transform as transform
 from autonomous.config.runtime_params import t265_serial, pose_file
 from tf2_ros import TransformBroadcaster, TransformListener, StaticTransformBroadcaster, Buffer
@@ -42,7 +43,7 @@ class TrackingCamera(Node):
         self.cfg.enable_device(serial_number)
         self.cfg.enable_stream(rs.stream.pose)
 
-        self.tf_buffer = Buffer()
+        self.tf_buffer = Buffer(cache_time=Duration(seconds=20))
         self.tf_listener = TransformListener(self.tf_buffer, node=self, spin_thread=True)
         self.get_initial_transform()
 
@@ -131,7 +132,11 @@ class TrackingCamera(Node):
             base_link_transform.header.frame_id = 'initial_base_link'
             base_link_transform.child_frame_id = 'base_link'
 
-            t265_offset = self.tf_buffer.lookup_transform('base_link', 't265', Time()).transform
+            try:
+                t265_offset = self.tf_buffer.lookup_transform('base_link', 't265', Time()).transform
+            except Exception as e:
+                self.get_logger().warn(e, once=True)
+                return
             base_link_transform.transform = transform.offset_transform(transform=t265_transform, offset=t265_offset)
             self.tf_base_link.sendTransform(base_link_transform)
 

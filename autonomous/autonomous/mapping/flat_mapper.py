@@ -196,14 +196,14 @@ class FlatMapper(Mapper):
         try:
             self.local_map_to_d435 = self.tf_buffer.lookup_transform(target_frame='local_map',
                                                                 source_frame='d435_1',
-                                                                time=Time(),
+                                                                time=self.get_clock().now(),
                                                                 timeout=Duration(seconds=0.1)).transform
         except Exception as e:
             self.get_logger().debug(f"transform lookup error for d435 transform: {e}")
         try:
             self.local_map_to_base_link = self.tf_buffer.lookup_transform(target_frame='local_map',
                                                                 source_frame='base_link',
-                                                                time=Time(),
+                                                                time=self.get_clock().now(),
                                                                 timeout=Duration(seconds=0.1)).transform
         except Exception as e:
             self.get_logger().debug(f"transform lookup error for base_link transform: {e}")
