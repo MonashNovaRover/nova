@@ -74,7 +74,7 @@ class PathPlanner(Node):
         self.path_publisher = self.create_publisher(Waypoints, auto_waypoints_topic, 10)
 
         # Transform listeners
-        self.tf_buffer = Buffer(cache_time=Duration(seconds=20))
+        self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, node=self, spin_thread=True)
 
         self.get_logger().info("Waiting for transform from 'map' to 'base_link'")
