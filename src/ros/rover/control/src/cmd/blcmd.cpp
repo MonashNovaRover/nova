@@ -79,7 +79,8 @@ void BLCMD::write_frame_no_data (const BLCMDSendCommand command)
 
 void BLCMD::stop ()
 {
-    write_frame_no_data(BLCMDSendCommand::STOP);
+	//write_frame_no_data(BLCMDSendCommand::STOP);
+	drive(0.0);
 }
 
 
@@ -126,7 +127,7 @@ void BLCMD::drive (float value)
         // Handle STOPs if set
         // Prevent needless repetition of STOPs (crowds the CAN bus, makes it hard to debug other things)
         // If using Drive Current, always use STOP
-        if (value == 0 && (stop_mode == STOP || drive_mode == DRIVE_CURRENT)) {
+/*        if (value == 0 && (stop_mode == STOP || drive_mode == DRIVE_CURRENT)) {
             if (!already_stopped) {
                 stop();
                 already_stopped = true;
@@ -135,7 +136,7 @@ void BLCMD::drive (float value)
         } else {
             already_stopped = false;
         }
-
+*/
         // Scale physical velocity to an equivalent BLCMD command, which is the fraction of the BLCMDs max speed
         if (scaling_factor != 1) {
             value *= scaling_factor;
@@ -321,6 +322,8 @@ BLCMDConfig BLCMD::get_configuration()
     get_config_variable(TELEMETRY_P2_SPEED, &config);
     get_config_variable(TELEMETRY_P3_SPEED, &config);
     get_config_variable(TELEMETRY_P4_SPEED, &config);
+
+	return config;
 }
 
 bool BLCMD::set_config_variable(ConfigVar var, int16_t value)
@@ -329,6 +332,7 @@ bool BLCMD::set_config_variable(ConfigVar var, int16_t value)
     Frame config_frame;
     config_frame.id = make_can_id(SET_CONFIG);
     config_frame.data.push_back(var);
+	config_frame.data.push_back(value);
 
     can_bus->set_id_filter({make_can_id(WRITE_CONFIRMATION)});
 
