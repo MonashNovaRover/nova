@@ -8,11 +8,13 @@ This code interfaces with the CAN classes and is
     able to communicate with all of the BLCMD/PACMANs
     electronic code by creating instances of each class.
 
+This code used the cmd class code as a base.
+
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	control
-AUTHOR(S):	Harrison Verrios, Josh Cherubino, Jory Braun, Taaj Street
-CREATION:	01/12/2021
-EDITED:		13/09/2022
+AUTHOR(S):	Taaj Street, Harrison Verrios, Josh Cherubino, Jory Braun
+CREATION:	22/01/2023
+EDITED:		01/02/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
@@ -47,13 +49,13 @@ enum TelemetryPacket{
     PACKET_4
 };
 
-enum CanIdPrefeix{
+enum CanIdPrefix{
     SEND = 0,
-    RECIEVE = 4
+    RECEIVE = 4
 };
 
 enum BLCMDRecieveCommand{
-    ERROR = 0x0,
+    ERR_WARN_INF = 0x0,
     CONFIG_DATA = 0x9,
     WRITE_CONFIRMATION = 0xA
 };
@@ -71,6 +73,8 @@ struct BLCMDTelemetry {
     double temp;
 
 };
+
+std::ostream& operator << (std::ostream& o, BLCMDTelemetry& tel);
 
 // Struct for Config set and get
 enum ConfigVar {
@@ -142,7 +146,7 @@ class BLCMD {
     // CAN bus for the CAN connection
     org::jcan::Bus *can_bus;
 
-
+    public:
     /// @brief      Send a CAN frame with some command in the ID but no data
     /// @param      command - The command to send
     void write_frame_no_data (const BLCMDSendCommand command);
@@ -173,18 +177,13 @@ class BLCMD {
 
     uint16_t make_can_id(TelemetryPacket packet);
 
-
-    
     //------------------------------------------------------------//
-    public:
+//    public:
 
     // Maximum input to drive that will not saturate the CMD. Set by the scaling factor
     double max_speed;
     // Minimum positive speed that can be represented. Set by the max speed and 16-bit precision.
     double min_speed;
-
-
-
 
     /// @brief      Constructor for setting up a BLCMD interface
     /// @param      bus - The can bus to be used. 0 = "can0", 1 = "can1", 2 = "vcan0"
@@ -212,7 +211,7 @@ class BLCMD {
     int get_id();
 
     /// @brief      Set the BLCMD drive mode
-    /// @param      drive_mode - Set to PWM or PID
+    /// @param      drive_mode - Set to DRIVE_VELOCITY, DRIVE_POSITION,
     void set_drive_mode (BLCMDSendCommand drive_mode);
 
     /// @brief      Set the BLCMD stop mode
@@ -233,16 +232,13 @@ class BLCMD {
     /// @param      value - Value to send in drive command. Depends on Drive Mode
     void drive (float value);
 
-    /// @brief      Function for sending linear actuator command to CMD
-    /// @param      value - number from thumb stick (-1, 0, 1)
-    void set_linear_actuator (float value);
-    
-    /// @brief      Sends PID commands to the device
-    /// @param      kP - The Proportionality constant
-    /// @param      kI - The Intergral constant
-    /// @param      kD - The Differential constant
-    /// @param      kM - The Midpoint interval
-    void set_tuning_parameters (double kP, double kI, double kD, double kM);
+    ///@brief       Send request to home the rotor
+    ///@returns     a boolean for success or failure to home the rotor.
+    bool home_rotor();
+
+    ///@brief       Send request to zero resolver
+    ///@returns     a boolean for success or failure to zero the resolver.
+    bool zero_resolver();
 
     /// @brief      Gets a packet of telemetry and fills the relevant fields of a telemetry struct.
     /// @param      packet_num - the telemetry packet to get.
@@ -252,7 +248,7 @@ class BLCMD {
     /// @brief      Gets all packets of telemetry.
     /// @param      packet_num - the telemetry packet to get.
     /// @returns    A struct containing the data
-    BLCMDTelemetry get_telemetry (TelemetryPacket packet_num);
+    BLCMDTelemetry get_telemetry ();
 
     /// @brief      Gets a signle config variable from the blcmd.
     /// @param      var - the variable to get.
