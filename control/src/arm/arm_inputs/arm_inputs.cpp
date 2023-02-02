@@ -212,6 +212,13 @@ float ArmInputs::scale_speed (float value){
     return (value * 0.95) + 0.05;
 }
 
+// Publishes control data
+void ArmInputs::publish_inputs()
+{
+    publish_joint_velocities();
+    publish_twist();
+}
+
 // Publishes control scheme data
 void ArmInputs::publish_control_scheme()
 {   
@@ -276,31 +283,26 @@ void ArmInputs::start_node()
     );
 
     // Create timer and publisher for endeffector_inputs
-    endeffector_timer = this->create_wall_timer(
+    endeffector_pub_timer = this->create_wall_timer(
         ROSTimers::arm_control, std::bind(&ArmInputs::publish_endeffector_inputs, this)
     );
     endeffector_pub = this->create_publisher<core::msg::EndEffectorInput>(
         "/control/endeffector_input", rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline)
     );
 
-    // Create timer and publisher for joystick_joint_velocities
-    joint_velocities_timer = this->create_wall_timer(
-        ROSTimers::arm_control, std::bind(&ArmInputs::publish_joint_velocities, this)
+    // Create timer and publisher for joystick_joint_velocities and joystick_twist
+    inputs_pub_timer = this->create_wall_timer(
+        ROSTimers::arm_control, std::bind(&ArmInputs::publish_inputs, this)
     );
     joint_velocities_pub = this->create_publisher<sensor_msgs::msg::JointState>(
         "/control/joystick_joint_velocities", rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline)
-    );
-
-    // Create timer and publisher for joystick_twist
-    twist_timer = this->create_wall_timer(
-        ROSTimers::arm_control, std::bind(&ArmInputs::publish_twist, this)
     );
     twist_pub = this->create_publisher<geometry_msgs::msg::TwistStamped>(
         "/control/joystick_twist", rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline)
     );
 
     // Create timer and publisher for control_scheme
-    control_scheme_timer = this->create_wall_timer(
+    control_scheme_pub_timer = this->create_wall_timer(
         ROSTimers::arm_control, std::bind(&ArmInputs::publish_control_scheme, this)
     );    
     control_scheme_pub = this->create_publisher<core::msg::ArmControlScheme>(
