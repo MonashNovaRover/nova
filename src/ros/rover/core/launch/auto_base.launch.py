@@ -6,7 +6,7 @@ import os
 from ament_index_python.packages import get_package_share_directory
 # directory of rviz config file
 auto_path = os.path.realpath(get_package_share_directory('autonomous'))
-rviz_path = os.path.join(auto_path, 'config', 'auto.rviz')
+rviz_path = os.path.join(auto_path, 'rviz', 'auto.rviz')
 
 
 def generate_launch_description():
