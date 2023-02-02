@@ -45,11 +45,6 @@ TODO:
 #include "arm_model.h"
 #include "arm_kinematics.h"
 
-// Use the standard namespaces
-using namespace std::chrono_literals;
-using std::placeholders::_1;
-using std::placeholders::_2;
-
 /*
 Class which transforms the input twist to the rover coordinate frame
 */
@@ -65,7 +60,6 @@ class ArmTwistMapper : public rclcpp::Node
     rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr joystick_twist_sub;
     
     // Loop timers for publishing
-    std::chrono::milliseconds control_pub_timer_period;
     rclcpp::TimerBase::SharedPtr control_pub_timer;
 
     // Publishers

@@ -13,10 +13,14 @@ AUTHOR(S):	Jory Braun
 #include "arm_type_translation.h"
 #include "../arm_configuration.h"
 #include "print/print.h"
+#include "config/rosconfig.h"
 
 #define _USE_MATH_DEFINES
 #include <cmath>
 #include <string>
+
+using std::placeholders::_1;
+using std::placeholders::_2;
 
 ArmTwistMapper::ArmTwistMapper() :
     Node("arm_twist_mapper"),
@@ -25,11 +29,7 @@ ArmTwistMapper::ArmTwistMapper() :
     ENDPOINT_INPUT_TRANSFORM_LINEAR(KDL::Rotation::EulerZYX(M_PI / 2, -M_PI / 2, 0)),
     // Switch yaw and roll directions for more intuitive control
     ENDPOINT_INPUT_TRANSFORM_ANGULAR(KDL::Rotation::RotX(M_PI / 2) * ENDPOINT_INPUT_TRANSFORM_LINEAR)
-{    
-    // Initialise publish timer periods
-    control_pub_timer_period = 10ms;
-    
-    
+{
     // Create subscription to arm control scheme
     control_scheme_sub = this->create_subscription<core::msg::ArmControlScheme>(
         "/control/arm_control_scheme", 10, std::bind(&ArmTwistMapper::control_scheme_callback, this, _1)
@@ -47,7 +47,7 @@ ArmTwistMapper::ArmTwistMapper() :
     };
     joystick_joint_velocities_sub = this->create_subscription<sensor_msgs::msg::JointState>(
         "/control/joystick_joint_velocities",
-        rclcpp::QoS(1).best_effort().deadline(200ms),
+        rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline),
         std::bind(&ArmTwistMapper::joystick_joint_velocities_callback, this, _1),
         joystick_joint_velocities_options
     );
@@ -59,7 +59,7 @@ ArmTwistMapper::ArmTwistMapper() :
     };
     joystick_twist_sub = this->create_subscription<geometry_msgs::msg::TwistStamped>(
         "/control/joystick_twist",
-        rclcpp::QoS(1).best_effort().deadline(200ms),
+        rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline),
         std::bind(&ArmTwistMapper::joystick_twist_callback, this, _1),
         joystick_twist_options
     );
@@ -67,16 +67,16 @@ ArmTwistMapper::ArmTwistMapper() :
 
     // Create timer and publisher for twist
     control_pub_timer = this->create_wall_timer(
-        control_pub_timer_period, std::bind(&ArmTwistMapper::publish_control_inputs, this)
+        ROSTimers::arm_control, std::bind(&ArmTwistMapper::publish_control_inputs, this)
     );
     control_joints_pub = this->create_publisher<sensor_msgs::msg::JointState>(
-        "/control/control_joints", rclcpp::QoS(1).best_effort().deadline(200ms)
+        "/control/control_joints", rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline)
     );
     control_twist_pub = this->create_publisher<geometry_msgs::msg::TwistStamped>(
-        "/control/control_twist", rclcpp::QoS(1).best_effort().deadline(200ms)
+        "/control/control_twist", rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline)
     );
     control_pose_pub = this->create_publisher<geometry_msgs::msg::TransformStamped>(
-        "/control/control_pose", rclcpp::QoS(1).best_effort().deadline(200ms)
+        "/control/control_pose", rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline)
     );
 
 
