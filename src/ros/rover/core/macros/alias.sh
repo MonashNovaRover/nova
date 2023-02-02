@@ -10,11 +10,14 @@
 # +--------------------------------------------+
 
 # Macro Aliases
-alias build='. ~/nova_ws/src/rover/core/macros/build.sh' # Runs colcon build
-alias setup='. ~/nova_ws/install/setup.bash'       # Sets up the ROS repository when scripts change
-alias pull='. ~/nova_ws/src/rover/core/macros/pull.sh'   # Runs a GitHub pull on all repositories
-alias can='. ~/nova_ws/src/rover/core/macros/can.sh'     # Sets up the CAN lines with a virtual or real CAN
-alias wifi='. ~/nova_ws/src/rover/core/macros/wifi.sh'   # Allows easy connection to Wifi over command lines
+alias build='. ~/nova_ws/src/rover/core/macros/build.sh'     # Runs colcon build
+alias setup='. ~/nova_ws/install/setup.bash'           # Sets up the ROS repository when scripts change
+alias pull='. ~/nova_ws/src/rover/core/macros/pull.sh'       # Runs a GitHub pull on all repositories
+alias can='. ~/nova_ws/src/rover/core/macros/can.sh'         # Sets up the CAN lines with a virtual or real CAN
+alias check='. ~/nova_ws/src/rover/core/macros/check.sh'     # Adds an alias for the `check` command for `screen -ls`
+alias stop='. ~/nova_ws/src/rover/core/macros/stop.sh'       # Adds an alias for the `stop` command for stopping systemctl services
+alias restart='. ~/nova_ws/src/rover/core/macros/restart.sh' # Adds an alias for the `restart` command for restarting systemctl services
+alias wifi='. ~/nova_ws/src/rover/core/macros/wifi.sh'       # Allows easy connection to Wifi over command lines
 
 # Directory Aliases
 alias nova='cd ~/nova_ws'
@@ -47,6 +50,7 @@ alias auto_view='rviz2 -d ~/nova_ws/src/rover/autonomous/config/auto.rviz'
 
 # Networking Aliases
 alias jetson='ssh -Y nvidia@192.168.1.204'
+alias jetson_wifi='ssh -Y nvidia@192.168.0.204'
 alias j2='ssh -Y nova@192.168.1.204'
 
 # GUI Aliases
@@ -65,6 +69,9 @@ alias unity='ros2 launch core visualisation.launch.py'
 alias arm_config_info='ros2 service call control/arm_config_info core/srv/ArmConfigInfo'
 alias zero_resolver='~/nova_ws/src/rover/core/macros/zero_resolver.sh'
 
+# eduroam connection
+alias eduroam="sudo ip r delete default via 192.168.1.1"
+
 # Hotspots
 alias rescan="sudo nmcli device wifi rescan"
 alias liam="sudo nmcli device wifi connect Iphone11 password sjfwf355"
@@ -73,10 +80,11 @@ alias max="sudo nmcli dev wifi connect 'Redmi Note 10 Pro' password Seagull04"
 
 # DGPS
 alias dgps="ros2 launch ublox_dgnss rover.launch.py"
-
-
 alias pi="ssh ubuntu@192.168.1.203"
 alias foxglove_server="ros2-foxy-rosbag.ros2 launch rosbridge_server rosbridge_websocket_launch.xml"
 
 # Science commands
 alias sci_copy="scp -r nvidia@192.168.1.204:nova_ws/src/rover/science/data/spectrometer ~/nova_ws/src/rover/science/data"
+
+# Creating template program
+alias python_template="cp ~/nova_ws/src/rover/core/macros/python_ros_template.py ."
