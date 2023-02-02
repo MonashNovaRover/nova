@@ -7,20 +7,24 @@ using namespace std;
 
 int main(int argc, char **argv)
 {
-    BLCMD* blcmd = new BLCMD(2, 1, DRIVE_VELOCITY, false);
+    BLCMD* blcmd = new BLCMD(1, 1, DRIVE_VELOCITY, false);
+	
 
 
-    blcmd->drive(2.0);
+	if (blcmd->set_config_variable(TELEMETRY_P1_SPEED,0x01)) cout << "PACKET 1 Speed Set" << endl;
+	if (blcmd->set_config_variable(TELEMETRY_P2_SPEED, 0x01)) cout << "PACKET 2 Speed Set" << endl;
+	if (blcmd->set_config_variable(TELEMETRY_P3_SPEED, 0x01)) cout << "PACKET 3 Speed Set" << endl;
+	if (blcmd->set_config_variable(TELEMETRY_P4_SPEED, 0x01)) cout << "PACKET 4 Speed Set" << endl;
 
-    string input_command;
+	string in;
+	blcmd->drive(-0.075);
 
-    blcmd->stop();
+	BLCMDTelemetry tel = blcmd->get_telemetry();
 
-    BLCMDConfig config = blcmd->get_configuration();
+	cin >> in;
+	blcmd->drive(0);
 
-    blcmd->set_drive_mode(DRIVE_POSITION);
-
-    blcmd->drive(3.142/2);
+	cout << tel;
 
     return 0;
 

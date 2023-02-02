@@ -56,8 +56,8 @@ enum CanIdPrefix{
 
 enum BLCMDRecieveCommand{
     ERR_WARN_INF = 0x0,
-    CONFIG_DATA = 0x9,
-    WRITE_CONFIRMATION = 0xA
+    CONFIG_DATA = 0x8,
+    WRITE_CONFIRMATION = 0x9
 };
 
 // Struct for Telemetry data
