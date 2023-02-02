@@ -67,8 +67,8 @@ class FlatMapper(Mapper):
         )
 
         self.get_logger().set_level(logging.DEBUG)
-        self.param_tf_sub_hz = self.declare_parameter("tf_sub_frequency_hz", 30)
-        self.param_tf_sub_hz = self.declare_parameter("tf_pub_frequency_hz", 30)
+        self.param_tf_sub_hz = self.declare_parameter("tf_sub_frequency_hz", 30).value
+        self.param_tf_pub_hz = self.declare_parameter("tf_pub_frequency_hz", 30).value
         self.param_roll_map = self.declare_parameter("roll_map", False).value
         self.param_map_edge_distance = self.declare_parameter("map_edge_dist_m", 3).value
         # How far to roll the map when we approach the edge
@@ -89,7 +89,7 @@ class FlatMapper(Mapper):
 
         if self.param_roll_map:
             self.map_roll_timer = self.create_timer(1, self.check_position_in_map)
-        self.pub_transform_timer = self.create_timer(1/self.param_tf_pub_hz, self.pub_transform)
+        self.pub_transform_timer = self.create_timer(1./self.param_tf_pub_hz, self.pub_transform)
         self.map_transform_timer = self.create_timer(1./self.param_tf_sub_hz, self.update_transforms)
 
     def initialise_map(self):
