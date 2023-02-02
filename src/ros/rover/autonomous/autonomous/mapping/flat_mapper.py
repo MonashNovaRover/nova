@@ -55,7 +55,6 @@ class FlatMapper(Mapper):
             camera=False,
             name='flat_mapper',
     ):
-
         # init node with node name points
         super().__init__(
             length=length,
@@ -66,9 +65,9 @@ class FlatMapper(Mapper):
             camera=camera,
         )
 
-        self.get_logger().set_level(logging.DEBUG)
-        self.param_tf_sub_hz = self.declare_parameter("tf_sub_frequency_hz", 30).value
-        self.param_tf_pub_hz = self.declare_parameter("tf_pub_frequency_hz", 30).value
+        self.get_logger().set_level(logging.INFO)
+        self.param_tf_sub_hz = self.declare_parameter("tf_sub_frequency_hz", 10).value
+        self.param_tf_pub_hz = self.declare_parameter("tf_pub_frequency_hz", 10).value
         self.param_roll_map = self.declare_parameter("roll_map", False).value
         self.param_map_edge_distance = self.declare_parameter("map_edge_dist_m", 3).value
         # How far to roll the map when we approach the edge
@@ -95,6 +94,7 @@ class FlatMapper(Mapper):
     def initialise_map(self):
         self._map = Grid2D(self.length, self.width, self.planning_resolution)
         self.set_offset(0, 0)
+        self.pub_transform()
 
     def shift_offset(self, dx, dy):
         if self.offset is None: return None
@@ -122,14 +122,18 @@ class FlatMapper(Mapper):
         """
         regularly publish transform from map to local map
         """
+        self.get_logger().debug("transform publish callback called")
         t = TransformStamped()
         t.header.stamp = self.get_clock().now().to_msg()
         t.header.frame_id = 'map'
         t.child_frame_id = 'local_map'
 
         # For now we assume the map frame never needs to rotate or move in z axis
-        t.transform.translation.x = float(self.offset(0))
-        t.transform.translation.y = float(self.offset(1))
+        t.transform.translation.x = float(self.offset[0])
+        t.transform.translation.y = float(self.offset[1])
+        t.transform.rotation.w = 1.0
+
+        self.get_logger().debug(f"Publishing local map transform {t}")
 
         self.tf_map_offset.sendTransform(t)
 
