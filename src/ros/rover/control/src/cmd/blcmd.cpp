@@ -13,6 +13,19 @@ AUTHOR(S):	Harrison Verrios, Josh Cherubino, Jory Braun, Taaj Street
 #define _USE_MATH_DEFINES
 #include <cmath>
 
+
+std::ostream& operator << (std::ostream& o, BLCMDTelemetry& tel) {
+    o << "Rotor Velocity    : " << tel.rotor_velocity << std::endl <<
+      "Q Current         : " << tel.q_current << std::endl <<
+      "Rotor Interval    : " << tel.rotor_interval << std::endl <<
+      "D Current         : " << tel.d_current << std::endl <<
+      "Resolver Position : " << tel.resolver_position << std::endl <<
+      "Resolver Velocity : " << tel.resolver_velocity << std::endl <<
+      "Power             : " << tel.power << std::endl <<
+      "Voltage           : " << tel.voltage << std::endl <<
+      "Temperature       : " << tel.temp << std::endl;
+    return o;
+}
 using namespace org::jcan;
 BLCMD::BLCMD (const int bus, const int id, BLCMDSendCommand drive_mode, const bool direction, BLCMDSendCommand stop_mode, double scaling_factor) :
     bus(bus), id(id), drive_mode(drive_mode), direction(direction), stop_mode(stop_mode), scaling_factor(scaling_factor), already_stopped(false)
@@ -59,7 +72,6 @@ void BLCMD::write_frame_no_data (const BLCMDSendCommand command)
     // Create a new CAN frame
     Frame frame;
     frame.id = make_can_id(command);
-    frame.data.push_back(0x00000000);
     // Write the frame to the bus
     can_bus->send(frame);
 }
@@ -82,7 +94,7 @@ void BLCMD::reverse ()
     write_frame_no_data(BLCMDSendCommand::REVERSE);
 }
 
-//TODO: Find
+
 void BLCMD::set_drive_mode (BLCMDSendCommand drive_mode)
 {
     if (drive_mode == DRIVE_VELOCITY || drive_mode == DRIVE_POSITION ||
@@ -160,57 +172,33 @@ void BLCMD::drive (float value)
     can_bus->send(frame);
 }
 
-
-void BLCMD::set_linear_actuator (float value)
+bool BLCMD::home_rotor()
 {
-//    unsigned char actuation = 0;
-//    if (value < 0){
-//        actuation = 2;
-//    }
-//    else if (value > 0){
-//        actuation = 1;
-//    }
-//
-//    // Create a new CAN frame
-//    Frame frame;
-//    frame.id = (id << 4) | BLCMDSendCommand::ACTUATOR;
-//
-//    // Order data in big-endian order (MSB first)
-//    frame.data.push_back(actuation);
-//
-//    // Write the frame to the bus
-//    can_bus->send(frame);
+    can_bus->set_id_filter({make_can_id(ERR_WARN_INF)});
+    write_frame_no_data(HOME_ROTOR);
+    Frame confirm_frame = can_bus->receive();
+
+    for(;;) {
+        if (!confirm_frame.data[0] && confirm_frame.data[1] == 8) return false;
+        if (confirm_frame.data[0] == 2 && confirm_frame.data[1] == 3) return true;
+        confirm_frame = can_bus->receive();
+    }
 }
 
-
-void BLCMD::set_tuning_parameters (double kP, double kI, double kD, double kM)
+bool BLCMD::zero_resolver()
 {
-//    // Create a new CAN frame
-//    scpp::CanFrame frame;
-//    frame.id = (this->id << 4) | BLCMDSendCommand::SET_TUNE;
-//    frame.len = 8;
-//
-//    // Scale the constants
-//    int16_t scaled_kP = convert_to_int16(kP);
-//    int16_t scaled_kI = convert_to_int16(kI);
-//    int16_t scaled_kD = convert_to_int16(kD);
-//    int16_t scaled_kM = convert_to_int16(kM);
-//
-//    // Construct the data
-//    frame.data[0] = scaled_kP >> 8;
-//    frame.data[1] = scaled_kP & 0xFF;
-//    frame.data[2] = scaled_kI >> 8;
-//    frame.data[3] = scaled_kI & 0xFF;
-//    frame.data[4] = scaled_kD >> 8;
-//    frame.data[5] = scaled_kD & 0xFF;
-//    frame.data[6] = scaled_kM >> 8;
-//    frame.data[7] = scaled_kM & 0xFF;
-//
-//    // Write the frame to the bus
-//    can_socket.write(frame);
+    can_bus->set_id_filter({make_can_id(ERR_WARN_INF)});
+    write_frame_no_data(ZERO_RESOLVER);
+    Frame confirm_frame = can_bus->receive();
+
+    for(;;) {
+        if (!confirm_frame.data[0] && (confirm_frame.data[1] == 8 ||
+            confirm_frame.data[1] == 4)) return false;
+        if (confirm_frame.data[0] == 2 && confirm_frame.data[1] == 4) return true;
+        confirm_frame = can_bus->receive();
+    }
 }
 
-//TODO: Make better return value.
 void BLCMD::get_telemetry_packet(TelemetryPacket packet_num, BLCMDTelemetry* telemetry)
 {
     can_bus->set_id_filter({make_can_id(packet_num)});
@@ -237,7 +225,7 @@ void BLCMD::get_telemetry_packet(TelemetryPacket packet_num, BLCMDTelemetry* tel
     }
 }
 
-BLCMDTelemetry BLCMD::get_telemetry(TelemetryPacket packet_num)
+BLCMDTelemetry BLCMD::get_telemetry()
 {
     BLCMDTelemetry telemetry;
     get_telemetry_packet(PACKET_1, &telemetry);
@@ -342,7 +330,7 @@ bool BLCMD::set_config_variable(ConfigVar var, int16_t value)
     config_frame.id = make_can_id(SET_CONFIG);
     config_frame.data.push_back(var);
 
-    can_bus->set_id_filter({make_can_id(SET_CONFIG)});
+    can_bus->set_id_filter({make_can_id(WRITE_CONFIRMATION)});
 
     can_bus->send(config_frame);
 
@@ -399,10 +387,10 @@ uint16_t BLCMD::make_can_id(BLCMDSendCommand command)
 
 uint16_t BLCMD::make_can_id(BLCMDRecieveCommand command)
 {
-    return RECIEVE << 8 | id << 4 | command;
+    return RECEIVE << 8 | id << 4 | command;
 }
 
 uint16_t BLCMD::make_can_id(TelemetryPacket packet)
 {
-    return RECIEVE << 8 | id << 4 | packet;
+    return RECEIVE << 8 | id << 4 | packet;
 }
