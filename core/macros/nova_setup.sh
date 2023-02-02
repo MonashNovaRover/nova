@@ -76,7 +76,7 @@ sudo apt install -y python3-pip -y
 pip3 install -U argcomplete -y
 sudo apt install -y python-rosdep -y
 sudo rosdep init -y
-rosdep update -y
+rosdep update -y --include-eol-distros --rosdistro=eloquent
 sudo apt install python3-colcon-common-extensions -y
 
 #Installing Rosbag
@@ -233,7 +233,7 @@ fi
 # Add the nova.sh bash script to the bashrc
 information "Setting up Workspace..."
 sudo echo "source ~/nova_ws/src/rover/core/nova.sh" >> ~/.bashrc
-source ~/.bashrc
+source ~/nova_ws/src/rover/core/nova.sh
 
 # Build the workspace
 cd ~/nova_ws

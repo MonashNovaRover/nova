@@ -27,17 +27,17 @@ cd ~/nova_ws
 
 # Check if a keyword used
 if [[ -z $1 ]]; then
-    colcon build;   # Build the workspace
+    colcon build --continue-on-error;   # Build the workspace
 
 # Check for clean
 elif [[ $1 = "clean" ]]
 then
     rm -r build install log
-    colcon build
+    colcon build --continue-on-error
 
 # Build only a certain package
 else
-    colcon build --packages-select $1
+    colcon build --continue-on-error --packages-select $1
 fi
 
 cd $cwd;        # Return back to the previous directory
