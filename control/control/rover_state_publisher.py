@@ -8,6 +8,11 @@ from geometry_msgs.msg import Quaternion
 from sensor_msgs.msg import JointState
 from tf2_ros import TransformBroadcaster, TransformStamped
 
+FRONT_LEFT_DIR = 1
+BACK_LEFT_DIR = 1
+FRONT_RIGHT_DIR = -1
+BACK_RIGHT_DIR = -1
+
 class StatePublisher(Node):
     def __init__(self):
         rclpy.init()
@@ -24,6 +29,8 @@ class StatePublisher(Node):
 
         # robot state
         wheel = 0.0
+        pivot = 0.0
+        p_inc = degree
 
         # message declarations
         # odom_trans = TransformStamped()
@@ -48,7 +55,9 @@ class StatePublisher(Node):
                                     'back_left_wheel_to_pivot', 'back_right_wheel_to_pivot',
                                     'front_left_pivot_to_leg', 'front_right_pivot_to_leg',
                                     'back_left_pivot_to_leg', 'back_right_pivot_to_leg']
-                joint_state.position = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+                joint_state.position = [FRONT_LEFT_DIR*wheel, FRONT_RIGHT_DIR*wheel, 
+                                        BACK_LEFT_DIR*wheel, BACK_RIGHT_DIR*wheel, 
+                                        pivot, pivot, pivot, pivot]
 
                 # update transform
                 # (moving in a circle with radius=2)
@@ -64,10 +73,14 @@ class StatePublisher(Node):
                 #self.broadcaster.sendTransform(odom_trans)
 
                 # Create new robot state
-                wheel += degree
+                wheel += 5*degree
+                pivot += p_inc
 
                 if wheel > 360*degree:
                     wheel -= 360*degree
+
+                if pivot > 90*degree or pivot < -90*degree:
+                    p_inc *= -1
 
                 # This will adjust as needed per iteration
                 loop_rate.sleep()
