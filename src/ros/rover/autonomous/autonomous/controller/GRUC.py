@@ -57,12 +57,12 @@ from controller.ar_tag_manager import ArTagManager
 from controller.spin_controller import SpinController
 
 # autonomous imports
-from math_utils.controller_math import *
-from config.runtime_params import *
-from config.ros_config import *
-from planning.path_planner import PathPlanner
-from controller.turning import YawStarTurner
-from controller.drive_controller import DriveController
+from autonomous.math_utils.controller_math import *
+from autonomous.config.runtime_params import *
+from autonomous.config.ros_config import *
+from autonomous.planning.path_planner import PathPlanner
+from autonomous.controller.turning import YawStarTurner
+from autonomous.controller.drive_controller import DriveController
 
 # misc
 from enum import Enum
@@ -138,7 +138,7 @@ class Controller(Node):
         super().__init__('autonomous_controller_node')
 
         # set debug to not get shown
-        self.get_logger().set_level(LoggingSeverity.DEBUG)
+        self.get_logger().set_level(LoggingSeverity.INFO)
 
         # ~~~~~~~~~~ State ~~~~~~~~
         self.state_rover_pose = Pose2D()

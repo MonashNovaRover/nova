@@ -28,20 +28,21 @@ TODO:
 """
 import rclpy
 from rclpy.node import Node
-import vis.pc_converter as pc2
-from sensor_msgs.msg import PointField
-from nav_msgs.msg import Odometry
+from rclpy.time import Time
+from rclpy.duration import Duration
 import numpy as np
 import time
-from cameras.depth_camera import DepthCamera
-from config.ros_config import camera_pose_topic
-from config.runtime_params import max_point_depth, max_fov_angle, skip_pts, min_map_update_time
+from autonomous.cameras.depth_camera import DepthCamera
+from autonomous.config.runtime_params import max_point_depth, max_fov_angle, skip_pts, min_map_update_time
+import logging
 
+from tf2_ros import TransformListener, Buffer
 
 class Mapper(Node):
-    def __init__(self, length=20, width=20, height=5, planner=None, resolution=0.1, camera=False):
-        super().__init__('mapper')
-        self.subscriber_tracking = self.create_subscription(Odometry, camera_pose_topic, self.pose_callback, 100)
+    def __init__(self, length=20, width=20, height=5, planner=None, resolution=0.1, camera=False, name='mapper'):
+        super().__init__(name)
+        self.tf_buffer = Buffer()
+        self.tf_listener = TransformListener(self.tf_buffer, self, spin_thread=True)
 
         self.length = length
         self.width = width
@@ -49,18 +50,26 @@ class Mapper(Node):
         self.resolution = resolution
 
         self.planner = planner
+        self.use_camera = camera
+        self.camera = None
 
         self.previous_plan = time.perf_counter()
         self.previous_map_update = time.perf_counter()
 
-        self.last_cam_odom = None
-        self.cam_odom = None
+        self.get_logger().set_level(logging.INFO)
 
+        self.get_logger().info("Waiting for transform from 'local_map' to 'base_link'...")
+        while not self.tf_buffer.can_transform('base_link', 'map', Time()):
+            time.sleep(0.1)
+        self.get_logger().info("Received Transform!")
+
+        self.has_color = False
+
+    def on_initialise(self):
         # if camera is true we create one, start it, and add a callback. Depth camera runs in a separate thread
-        if camera:
+        if self.use_camera and self.camera is None:
             self.camera = DepthCamera(self.python_callback)
             self.camera.start()
-        self.has_color = False
 
     def check_position_in_map(self):
         """
@@ -68,41 +77,11 @@ class Mapper(Node):
         """
         pass
 
-    def get_points_and_colors(self, msg):
+    def initialise_map(self):
         """
-        Callback used to get points and colors with type np.array from PointCloud2 data from a ros publisher.
-        Also transforms into the Nova left handed coordinate system.
-        :param msg: PointCloud2
-        :return: (n, 6) np.array
+        initialise the map
         """
-
-        # we need to re-set the field names to extract the unsigned ints from the msg type (one for r, g, b)
-        msg.fields = msg.fields[0:3]
-        msg.fields.append(PointField(name="r", offset=16, datatype=2, count=1))
-        msg.fields.append(PointField(name="g", offset=17, datatype=2, count=1))
-        msg.fields.append(PointField(name="b", offset=18, datatype=2, count=1))
-
-        # 1. Parse raw point-cloud data into array of (x, y, z) tuples
-        arr = list(pc2.read_points(msg, field_names=("x", "y", "z", "r", "g", "b"), skip_nans=True))
-
-        # 2. Wrap the point-cloud array in a numpy array np_arr = np.array(arr) 
-        # 3. Split into points (x, y, z) and colors (r, g, b) 
-        pts = np_arr[:, 0:3]
-        colors = np_arr[:, 3:6] / 255.0
-
-        # 4. Swap red and blue (for some reason it's not stored how it should be)
-        colors = colors[:, [0, 1, 2]]
-
-        # 5. converting from (x=right, y=down, z=forward) -> (x=forward, y=right, z=up)
-        pts = self.convert_pts_to_tracking(pts)
-
-        # 6. prune points
-        pts, colors = self.prune_point_cloud(pts, colors=colors)
-
-        # put it all in the one array of shape (n, 6)
-        points = np.concatenate((pts, colors), axis=1)
-
-        return points
+        pass
 
     @staticmethod
     def prune_point_cloud(pts, colors=None):
@@ -146,7 +125,7 @@ class Mapper(Node):
         :param pts: (n, 3) array of points
         :return: what we need to
         """
-        return np.sum(np.abs(pts) ** 2, axis=-1) ** (1.0 / 2)
+        return np.sum(np.abs(pts) ** 2, axis=-1) ** 0.5
 
     def handle_pc(self, pts):
         """
@@ -167,7 +146,7 @@ class Mapper(Node):
         :param pts: np.array(n, 6) - refers to x,y,z,r,g,b
         """
         # transform the points
-        if self.cam_odom and time.perf_counter() - self.previous_map_update > min_map_update_time:
+        if time.perf_counter() - self.previous_map_update > min_map_update_time:
             self.handle_pc(pts)
 
             self.previous_map_update = time.perf_counter()
@@ -184,20 +163,7 @@ class Mapper(Node):
         It calls a function to extract and filter the points (colors are ignored) and updates the map with points only -
         when using the python API, it should be a points only map.
         """
-        self.cam_odom = self.last_cam_odom
-        if self.cam_odom is not None:
-            self.update_map(self.get_pts(pts))
-
-    def pose_callback(self, msg):
-        self.last_cam_odom = msg
-
-
-def position_callback(msg):
-    """
-    Parses positional data, calculates the average value and publishes
-    it to the topic /obstacle_proximity.
-    """
-    pass
+        self.update_map(self.get_pts(pts))
 
 
 def main(args=None):
@@ -207,16 +173,6 @@ def main(args=None):
     rclpy.spin(subscriber)
     subscriber.destroy_node()
     rclpy.shutdown()
-
-
-def vis():
-    """
-    Example function loads a pre existing map into voxel memory and visualises it as a point-cloud
-    """
-    rclpy.init()
-    m = Mapper(length=10, width=10, height=5, resolution=.2)
-    m._map3d.grid2d = np.load("resources/environment.npy")
-    m.publish_vis_dense(extra_pts=2)
 
 
 if __name__ == '__main__':

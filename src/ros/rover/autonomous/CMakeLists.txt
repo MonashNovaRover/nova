@@ -49,16 +49,25 @@ target_link_libraries( plane_fitter PRIVATE ${OpenCV_LIBS} )
 
 # Add all the installation directories
 install(DIRECTORY
-  #launch
+  rviz
   DESTINATION share/${PROJECT_NAME}
 )
 
+# Install Python modules
+ament_python_install_package(${PROJECT_NAME})
+
 # Add all Python executables to this list
 install(PROGRAMS
-  #autonomous/python.py
+  autonomous/main.py
+  autonomous/cameras/tracking_camera.py
+  autonomous/controller/GRUC.py
+  autonomous/vis/grid_pub.py
+  autonomous/vis/path_vis.py
+  autonomous/vis/rover_vis.py
+  autonomous/update_goals.py
+
   DESTINATION lib/${PROJECT_NAME}
 )
-
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

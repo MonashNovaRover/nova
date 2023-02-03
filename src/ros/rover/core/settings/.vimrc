@@ -10,6 +10,7 @@ set ruler " Always shows location in file (line#)
 set smarttab " Autotabs for certain code
 set shiftwidth=4
 set tabstop=4
+set visualbell
 
 let g:pymode_rope = 1
 let g:pymode_rope_completion = 1

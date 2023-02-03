@@ -68,6 +68,3 @@ d435_serial = "829212072166"
 active_depth_camera = d435_serial  # d435_serial
 t265_serial = "952322110473"
 pose_file = "cameras/pose.txt"
-# position of centre of wheel base relative to tracking cam
-dgps_extrinsics = [0.24, -0.26, -0.55]
-tracking_camera_extrinsics = [-0.48, 0., -0.48]

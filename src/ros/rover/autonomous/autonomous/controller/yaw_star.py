@@ -1,5 +1,5 @@
-from math_utils.controller_math import *
-from config.runtime_params import *
+from autonomous.math_utils.controller_math import *
+from autonomous.config.runtime_params import *
 import math
 
 """

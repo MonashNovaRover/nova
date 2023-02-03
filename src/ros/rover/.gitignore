@@ -19,5 +19,9 @@ env.bak/
 venv.bak/
 
 
+## Pycache
+__pycache__
+
+
 ## Rope project settings
 .ropeproject
