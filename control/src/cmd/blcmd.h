@@ -192,7 +192,7 @@ class BLCMD {
     /// @param      direction - Direction for the CMD. Determined by hardware
     /// @param      stop_mode - Default stop mode of the CMD. STOP or PID (handbrake)
     /// @param      scaling_factor - Factor to multiply by input to convert from angular velocity (rad/s) to BLCMD command (unitless)
-    BLCMD (const int bus, const int id, BLCMDSendCommand drive_mode, const bool direction=0, BLCMDSendCommand stop_mode=STOP, double scaling_factor=1);
+    BLCMD (const int bus, const int id, BLCMDSendCommand drive_mode, const bool direction=0, BLCMDSendCommand stop_mode=DRIVE_VELOCITY, double scaling_factor=1);
 
     /// @brief      Destructor is called when object is deleted
     ~BLCMD ();
