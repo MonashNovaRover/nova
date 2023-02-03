@@ -17,12 +17,12 @@ AUTHOR(S):	Jory Braun
 
 #include <string>
 
+// Use the standard namespaces for services
 using std::placeholders::_1;
 using std::placeholders::_2;
 
 ArmControl::ArmControl() : Node("arm_control")
 {
-
     // Create subscription to arm control scheme
     control_scheme_sub = this->create_subscription<core::msg::ArmControlScheme>(
         "/control/arm_control_scheme", 10, std::bind(&ArmControl::control_scheme_callback, this, _1)

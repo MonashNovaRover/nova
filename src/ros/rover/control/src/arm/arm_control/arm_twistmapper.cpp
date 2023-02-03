@@ -19,8 +19,10 @@ AUTHOR(S):	Jory Braun
 #include <cmath>
 #include <string>
 
+// Use the standard namespaces for servcies
 using std::placeholders::_1;
 using std::placeholders::_2;
+
 
 ArmTwistMapper::ArmTwistMapper() :
     Node("arm_twist_mapper"),
