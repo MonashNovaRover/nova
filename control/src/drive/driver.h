@@ -44,18 +44,7 @@ EDITED:		13/09/2022
 // The distance between front and rear wheels [m]
 #define CHASSIS_LENGTH 0.85
 
-<<<<<<< HEAD:control/src/drive/driver.h
-<<<<<<< HEAD:control/src/drive/driver.h
-
-// Store a position structure with x and y
-struct Vector2 {
-
-    //------------------------------------------------------------//
-=======
-#define MAX_RADIUS 2.0 // TAAJ TO CLARIFY
-=======
 #define MAX_RADIUS 10.0
->>>>>>> Fix bug and update constants:src/drive/driver.h
 
 // Use the standard namespaces
 using namespace std;
@@ -64,7 +53,6 @@ using std::placeholders::_1;
 
 class Wheel
 {
->>>>>>> Archive old drive code, update filenames:src/drive/driver.h
 public:
     int id;
     double velocity;
@@ -104,8 +92,6 @@ private:
 
     // The period at which we publish whether  we are in autonomous mode
     std::chrono::milliseconds mode_timer_period = 200ms;
-
-    rclcpp::Publisher<core::msg::PivotWheelData>::SharedPtr pivot_wheel_pub;
 
     // A flag for whether to apply the handbrake or not
     bool handbrake;

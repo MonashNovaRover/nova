@@ -42,7 +42,7 @@ void Driver::send_commands(const core::msg::DriveInput::SharedPtr msg)
         
         float turning_angle = msg->steer;
 
-
+    }
     auto message = core::msg::PivotWheelData();
 
     // Send velocities to the wheels
