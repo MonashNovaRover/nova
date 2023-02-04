@@ -54,7 +54,19 @@ class WristSpmModel : public ArmSubModule
     constexpr static double ROOT_BASE_LINK_LENGTH = 0.500;  // Update this value once SPM is attached to the arm
     constexpr static double CENTER_OFFSET = 0.09176;
     constexpr static double OUTPUT_OFFSET = 0.06373;
+
+    // Parameters for the SPM CMDs
+    constexpr static double GEARBOX_REDUCTION = 3002.499;
+    const static int ENCODER_PPR = 512;
+    constexpr static double VELOCITY_FACTOR = 50;
+    constexpr static double CLOCK_FREQUENCY = 30e6;
     
+    // Parameters for the end-rotation CMD
+    constexpr static double ER_GEARBOX_REDUCTION = 1;  // Check the value
+    const static int ER_ENCODER_PPR = 12;
+    constexpr static double ER_VELOCITY_FACTOR = 1260;
+    constexpr static double ER_CLOCK_FREQUENCY = 30e6;
+
     /// Constructor. Build the SPM wrist
     WristSpmModel()
     {
@@ -71,6 +83,24 @@ class WristSpmModel : public ArmSubModule
             {-2 * M_PI, 2 * M_PI},  // No joint limiting
             {-2 * M_PI, 2 * M_PI},  // No joint limiting
             {-2 * M_PI, 2 * M_PI}  // No joint limiting
+        };
+        control_coeffs = std::vector<ControlCoeffs> {
+            // Control coefficients here apply to the SPM input angles, not the serial pitch, yaw and roll.
+            // P, I, D
+            {1, 1, 0},
+            {1, 1, 0},
+            {1, 1, 0},
+            {1, 1, 0}
+        };
+        double joint_scaling_factor = CMD::get_scaling_factor(GEARBOX_REDUCTION, ENCODER_PPR, VELOCITY_FACTOR, CLOCK_FREQUENCY);
+        double end_rotation_scaling_factor = CMD::get_scaling_factor(ER_GEARBOX_REDUCTION, ER_ENCODER_PPR, ER_VELOCITY_FACTOR, ER_CLOCK_FREQUENCY);
+        drivers = std::vector<CMD*> {
+            // Drivers apply to the SPM input angles, not the serial pitch, yaw and roll
+            new CMD(1, 4, PID, 0, STOP, joint_scaling_factor),
+            new CMD(1, 5, PID, 0, STOP, joint_scaling_factor),
+            new CMD(1, 6, PID, 0, STOP, joint_scaling_factor),
+            // Use ID 8 for end rotation since ID 7 is already taken by end effector
+            new CMD(1, 8, PID, 0, STOP, end_rotation_scaling_factor)
         };
 
         // Build the SPM wrist
