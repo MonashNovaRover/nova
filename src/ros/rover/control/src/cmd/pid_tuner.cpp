@@ -164,12 +164,12 @@ PIDTuner::PIDTuner () : Node("pid_tuner")
 
     // Construct the array of wheels
     for (int i = 0; i < NUM_WHEELS; i++) {
-        bus_0[i] = new CMD(0, i + 1, PID, PID);
+        bus_0[i] = new CMD(0, i + 1, PID, 0, PID);
     }
 
     // Construct the array of arm devices
     for (int i = 0; i < NUM_ARM_DEVICES; i++) {
-        bus_1[i] = new CMD(1, i + 1, PID, PID);
+        bus_1[i] = new CMD(1, i + 1, PID, 0, PID);
     }
 }
 

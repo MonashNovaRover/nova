@@ -78,7 +78,7 @@ void Driver::input_callback (const core::msg::InputGamepad::SharedPtr msg) {
         if (!handbrake) Print::print("Handbrake Enabled", C_MODE);
         handbrake = true;
         for (CMD* wheel : wheels) {
-            wheel->set_CMD_stop_mode(PID);
+            wheel->set_stop_mode(PID);
         }
     }
     
@@ -87,7 +87,7 @@ void Driver::input_callback (const core::msg::InputGamepad::SharedPtr msg) {
         if (handbrake) Print::print("Handbrake Disabled", C_MODE);
         handbrake = false;
         for (CMD* wheel : wheels) {
-            wheel->set_CMD_stop_mode(STOP);
+            wheel->set_stop_mode(STOP);
         }
     }
 
@@ -207,10 +207,10 @@ Driver::Driver() : Node("driver")
     Print::title("DRIVER");
     Print::print("", true);
 
-    // Initialise the wheels in the correct direction
+    // Initialise the wheels
     for (size_t i = 0; i < NUM_WHEELS; i++) {
         bool left = i < NUM_WHEELS / 2;
-        wheels[i] = new CMD (0, i + 1, PID, STOP, left);
+        wheels[i] = new CMD (0, i + 1, PID, left, STOP);
     }
     
     rclcpp::QoS qos = rclcpp::QoS(1).best_effort().deadline(ROSTimers::drive_deadline);
