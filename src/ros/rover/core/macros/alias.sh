@@ -47,6 +47,7 @@ alias fleet='cd ~/nova_ws/src/fleet'
 # Camera Aliases
 alias auto_cameras='ros2 launch realsense2-camera rs_d400_and_t265_launch.py'
 alias auto_view='rviz2 -d ~/nova_ws/src/rover/autonomous/config/auto.rviz'
+alias arm_view='rviz2 -d ~/nova_ws/src/rover/control/rviz/arm_viz_2023.rviz'
 
 # Networking Aliases
 alias jetson='ssh -Y nvidia@192.168.1.204'
