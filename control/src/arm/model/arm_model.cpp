@@ -24,7 +24,10 @@ static void append_to_vector(std::vector<T>& vec1, std::vector<T>& vec2)
 }
 
 
-ArmModel::ArmModel(const ArmConfig::WristType wrist_type, const ArmConfig::EndEffectorType end_effector_type) : Tree("sj0")
+ArmModel::ArmModel(const ArmConfig::WristType wrist_type, const ArmConfig::EndEffectorType end_effector_type) :
+    Tree("sj0"),
+    JOINT_NAMES_6DOF(std::vector<std::string> {"rotation", "elevation", "extension", "pitch", "yaw", "roll"}),
+    GLOBAL_CONTROL(ArmSubModule::ControlCoeffs {2 * GLOBAL_DAMPING * GLOBAL_NATURAL_FREQUENCY, GLOBAL_NATURAL_FREQUENCY * GLOBAL_NATURAL_FREQUENCY, 0})
 {
     // Build the arm.
 
@@ -64,6 +67,16 @@ ArmModel::ArmModel(const ArmConfig::WristType wrist_type, const ArmConfig::EndEf
         append_to_vector<std::string>(endpoint_names, module.endpoint_names);
         // Add the joint limits
         append_to_vector<ArmSubModule::JointLimit>(joint_limits, module.joint_limits);
+        // Add the control coefficients
+        if (USE_GLOBAL_CONTROL) {
+            std::vector<ArmSubModule::ControlCoeffs> global_control_vec (module.control_coeffs.size(), GLOBAL_CONTROL);
+            append_to_vector<ArmSubModule::ControlCoeffs>(control_coeffs, global_control_vec);
+        }
+        else{
+            append_to_vector<ArmSubModule::ControlCoeffs>(control_coeffs, module.control_coeffs);
+        }
+        // Add the drivers
+        append_to_vector<CMD*>(drivers, module.drivers);
         // Save the segment name where the next module attaches
         output_name = module.output_name;
     }
@@ -75,4 +88,8 @@ ArmModel::ArmModel(const ArmConfig::WristType wrist_type, const ArmConfig::EndEf
     for (auto const& segment_pair : this->getSegments()){
         segment_names.push_back(segment_pair.first);
     }
+
+    // Set number of joints, number of segments
+    num_joints = joint_names.size();
+    num_segments = segment_names.size();
 }
