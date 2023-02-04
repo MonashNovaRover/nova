@@ -38,7 +38,6 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/EndEffectorInput.msg"
   "msg/CamsConnected.msg"
   "msg/CMDFeedback.msg"
-  "msg/CMDsFeedback.msg"
   "msg/DistanceData.msg"
   "msg/DriveInput.msg"
   "msg/DriveVel.msg"
