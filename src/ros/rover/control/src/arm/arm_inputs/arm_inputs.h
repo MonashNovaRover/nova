@@ -55,10 +55,9 @@ class ArmInputs : public ArmConfigInfoClient
     private:
 
     // Stores the loop timers for the update functions
-    rclcpp::TimerBase::SharedPtr endeffector_timer;
-    rclcpp::TimerBase::SharedPtr joint_velocities_timer;
-    rclcpp::TimerBase::SharedPtr twist_timer;
-    rclcpp::TimerBase::SharedPtr control_scheme_timer;
+    rclcpp::TimerBase::SharedPtr endeffector_pub_timer;
+    rclcpp::TimerBase::SharedPtr inputs_pub_timer;
+    rclcpp::TimerBase::SharedPtr control_scheme_pub_timer;
 
     // Stores the publishers for arm inputs
     rclcpp::Publisher<core::msg::EndEffectorInput>::SharedPtr endeffector_pub;
@@ -114,6 +113,9 @@ class ArmInputs : public ArmConfigInfoClient
     /// @brief      Publishes desired task velocity
     ///             Published as a twist vector in m/s and rad/s
     void publish_twist ();
+
+    /// @brief      Publishes desired joint velocities and task velocity
+    void publish_inputs();
 
     /// @brief      Publishes control scheme data
     void publish_control_scheme ();
