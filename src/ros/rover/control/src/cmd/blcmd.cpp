@@ -27,7 +27,7 @@ std::ostream& operator << (std::ostream& o, BLCMDTelemetry& tel) {
     return o;
 }
 using namespace org::jcan;
-BLCMD::BLCMD (const int bus, const int id, BLCMDSendCommand drive_mode, const bool direction, BLCMDSendCommand stop_mode, double scaling_factor) :
+BLCMD::BLCMD (const std::string bus, const int id, BLCMDSendCommand drive_mode, const bool direction, BLCMDSendCommand stop_mode, double scaling_factor) :
     bus(bus), id(id), drive_mode(drive_mode), direction(direction), stop_mode(stop_mode), scaling_factor(scaling_factor), already_stopped(false)
 {    
     // Set max speed
@@ -37,9 +37,7 @@ BLCMD::BLCMD (const int bus, const int id, BLCMDSendCommand drive_mode, const bo
 
     // Set up the CAN interface with the correct bus
     //TODO: Proper error handling
-    can_bus = org::jcan::open_bus(
-         bus ? (bus == 1) ? "can1" : "vcan0" : "can1"
-    ).into_raw();
+    can_bus = org::jcan::open_bus(bus).into_raw();
 }
 
 

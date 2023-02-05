@@ -36,7 +36,7 @@ EDITED:		13/09/2022
 #include "std_msgs/msg/bool.hpp"
 
 // Include CMD class
-#include "cmd/cmd.h"
+#include "cmd/blcmd.h"
 
 // The distance between left and right wheels [m]
 #define CHASSIS_WIDTH 0.80
@@ -51,18 +51,24 @@ using namespace std;
 using namespace std::chrono_literals;
 using std::placeholders::_1;
 
-class Wheel
+class PivotModule
 {
 public:
     int id;
     double velocity;
-    double angle; // radians
-    CMD *cmdWheel;
+    double angle;
+    BLCMD *cmdWheel;
+    BLCMD *cmdPivot;
 
-    Wheel(int id, CMD *cmdWheel)
+    ///@brief   contructor for PivotModule
+    ///@param    id - the id of the module
+    ///@param   cmdWheel - BLCMD for the wheel
+    ///@param   cmdPivot - BLCMD for the pivot
+    PivotModule(int id, BLCMD *cmdWheel, BLCMD *cmdPivot)
     {
         this->id = id;
         this->cmdWheel = cmdWheel;
+        this->cmdPivot = cmdPivot;
         this->angle = 0.0;
         this->velocity = 0.0;
     }
@@ -100,7 +106,7 @@ private:
     bool is_autonomous = false;
 
     // An array of pointers to Wheel instances
-    Wheel *wheels[NUM_WHEELS];
+    PivotModule *pivots[NUM_WHEELS];
 private:
     /// @brief      Sends commands to the wheels using the wheel classes
     /// @param      msg - A pointer to the drive message

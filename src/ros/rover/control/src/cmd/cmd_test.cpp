@@ -7,7 +7,7 @@ using namespace std;
 
 int main(int argc, char **argv)
 {
-    BLCMD* blcmd = new BLCMD(1, 1, DRIVE_VELOCITY, false);
+    BLCMD* blcmd = new BLCMD("can1", 1, DRIVE_VELOCITY, false);
 	
 
 

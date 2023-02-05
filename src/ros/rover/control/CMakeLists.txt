@@ -79,7 +79,7 @@ target_link_libraries(vel_convert print)
 ament_target_dependencies(vel_convert rclcpp core)
 # Drive Receiver script
 add_executable(driver src/drive/driver.cpp)
-target_link_libraries(driver cmd print)
+target_link_libraries(driver blcmd print)
 ament_target_dependencies(driver rclcpp core)
 # PID Tuner script
 add_executable(pid_tuner src/cmd/pid_tuner.cpp)
