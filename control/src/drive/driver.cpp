@@ -37,23 +37,21 @@ void Driver::send_commands(const core::msg::DriveInput::SharedPtr msg)
         fill_wheel_angles_radial(radius);
         fill_wheel_velocities_radial(msg->speed, radius);
     }
-    else
-    {
-        
+    else {
         float turning_angle = msg->steer;
-
     }
     auto message = core::msg::PivotWheelData();
 
     // Send velocities to the wheels
     for (size_t i = 0; i < NUM_WHEELS; i++)
     {
-        // wheels[i]->drive(wheel_velocities[i]);
-        message.angles[i] = wheels[i]->angle;
-        message.velocities[i] = wheels[i]->velocity;
+        message.angles[i] = pivots[i]->angle;
+        message.velocities[i] = pivots[i]->velocity;
         message.radius = get_turning_radius(msg->steer);
+        PivotModule *pivot = pivots[i];
+        pivot->cmdWheel->drive(pivot->velocity);
+        pivot->cmdPivot->drive(pivot->angle);
     }
-    pivot_wheel_pub->publish(message);
 }
 
 // Receives drive commands
@@ -84,9 +82,9 @@ void Driver::input_callback(const core::msg::InputGamepad::SharedPtr msg)
         if (!handbrake)
             Print::print("Handbrake Enabled", C_MODE);
         handbrake = true;
-        for (Wheel *wheel : wheels)
+        for (PivotModule *pivot : pivots)
         {
-            wheel->cmdWheel->set_CMD_stop_mode(PID);
+            pivot->cmdWheel->set_stop_mode(DRIVE_VELOCITY);
         }
     }
 
@@ -96,9 +94,9 @@ void Driver::input_callback(const core::msg::InputGamepad::SharedPtr msg)
         if (handbrake)
             Print::print("Handbrake Disabled", C_MODE);
         handbrake = false;
-        for (Wheel *wheel : wheels)
+        for (PivotModule *pivot : pivots)
         {
-            wheel->cmdWheel->set_CMD_stop_mode(STOP);
+            pivot->cmdWheel->set_stop_mode(DRIVE_VELOCITY);
         }
     }
 
@@ -138,13 +136,13 @@ void Driver::fill_wheel_angles_radial(float radius)
     float inner_angle = radius == 0 ? 0 : (M_PI_2 - atan((2 * abs(radius) - CHASSIS_WIDTH)/CHASSIS_LENGTH));
     float outer_angle = radius == 0 ? 0 : (M_PI_2 - atan((2 * abs(radius) + CHASSIS_WIDTH)/CHASSIS_LENGTH));
 
-    wheels[0]->angle = radius < 0 ? inner_angle : -outer_angle;
+    pivots[0]->angle = radius < 0 ? inner_angle : -outer_angle;
 
-    wheels[1]->angle = radius < 0 ? outer_angle : -inner_angle;
+    pivots[1]->angle = radius < 0 ? outer_angle : -inner_angle;
 
-    wheels[2]->angle = radius < 0 ? -inner_angle : outer_angle;
+    pivots[2]->angle = radius < 0 ? -inner_angle : outer_angle;
 
-    wheels[3]->angle = radius < 0 ? -outer_angle : inner_angle;
+    pivots[3]->angle = radius < 0 ? -outer_angle : inner_angle;
 }
 
 // Fill array with velocities for each wheel, with directions and magnitude depending on the turning radius
@@ -158,11 +156,11 @@ void Driver::fill_wheel_velocities_radial(float speed, float radius)
     {
         if (i == 0 || i == 2)
         {
-            wheels[i]->velocity = speed*inside_ratio;
+            pivots[i]->velocity = speed*inside_ratio;
         }
         else if (i == 1 || i == 3)
         {
-            wheels[i]->velocity = speed*outside_ratio;
+            pivots[i]->velocity = speed*outside_ratio;
         }
     }
 }
@@ -182,54 +180,65 @@ void Driver::pub_auto_mode()
 // Main constructor that sets up the node
 Driver::Driver() : Node("driver")
 {
+
+    //this->declare_parameter("canbus", "vcan0");
+
     // Output set-up messages
     Print::title("DRIVER");
     Print::print("", true);
 
     // Initialise the wheels in the correct direction
-    for (size_t i = 0; i < NUM_WHEELS; i++)
+    for (size_t i = 0; i < 2*NUM_WHEELS; i+=2)
     {
-        bool left = i < NUM_WHEELS / 2;
-        CMD *cmdWheel = new CMD(0, i + 1, PID, STOP, left);
-        wheels[i] = new Wheel(i, cmdWheel);
+        bool left = i < NUM_WHEELS / 4;
+        BLCMD *cmdWheel = new BLCMD(//this->get_parameter("canbus").get_parameter_value().get<std::string>(),
+                  "vcan0", i + 1, DRIVE_VELOCITY, left, DRIVE_VELOCITY);
+        BLCMD *cmdPivot = new BLCMD(//this->get_parameter("canbus").get_parameter_value().get<std::string>(),
+                  "vcan0", i + 2, DRIVE_POSITION, false, DRIVE_VELOCITY);
+        pivots[i] = new PivotModule(i, cmdWheel, cmdPivot);
     }
-    
+
     rclcpp::QoS qos = rclcpp::QoS(1).best_effort().deadline(ROSTimers::drive_deadline);
-
+    Print::print("Created Qos\n");
     rclcpp::SubscriptionOptions subscriber_options;
-
+    Print::print("Created subscriber options\n");
     // Sets subscriber options before subscription is made
     subscriber_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void
     { inputs_deadline_exceeded(); };
 
+    Print::print("Created  deadline callback\n");
+
     // Creates the commands subscription (manual)
     subscription_cmds_man = this->create_subscription<core::msg::DriveInput>(
         "/control/drive_inputs", qos, std::bind(&Driver::drive_callback, this, _1), subscriber_options);
-
+    Print::print("Created MANUAL drive inputs sub\n");
     // Creates the commands subscription (autonomous)
     subscription_cmds_auto = this->create_subscription<core::msg::DriveInput>(
         "/autonomous/drive_inputs", 10, std::bind(&Driver::auto_callback, this, _1));
-
+    Print::print("Created AUTO drive inputs sub\n");
     // Creates the input subscription
     subscription_inputs = this->create_subscription<core::msg::InputGamepad>(
         "/control/input_gamepad", qos, std::bind(&Driver::input_callback, this, _1), subscriber_options);
-
+    Print::print("Created input gamepad sub\n");
     // Creates auto mode timer and associated publisher
     mode_timer = this->create_wall_timer(
         ROSTimers::auto_mode, std::bind(&Driver::pub_auto_mode, this));
+    Print::print("Created Timer\n");
     mode_pub = this->create_publisher<std_msgs::msg::Bool>(
         "/autonomous/mode", 10);
+    Print::print("Created auto pub\n");
 
     pivot_wheel_pub = this->create_publisher<core::msg::PivotWheelData>("/control/pivot_wheel_data", 10);
+    Print::print("Created pivot wheel pub\n");
 }
 
 // deadline callback for when the drive inputs publisher misses its deadline
 void Driver::inputs_deadline_exceeded()
 {
     RCLCPP_WARN(this->get_logger(), "Drive inputs subscriber deadline missed");
-    for (Wheel *wheel : wheels)
+    for (PivotModule *pivot : pivots)
     {
-        wheel->cmdWheel->stop();
+        pivot->cmdWheel->stop();
     }
 }
 
@@ -242,9 +251,7 @@ int main(int argc, char **argv)
     // Runs the Subscriber class
     rclcpp::spin(std::make_shared<Driver>());
 
-    // Shutsdown ROS once complete
     rclcpp::shutdown();
-
     // Returns an empty value
     return 0;
 }
