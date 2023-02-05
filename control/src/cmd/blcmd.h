@@ -24,7 +24,7 @@ EDITED:		01/02/2023
 #include <iterator>
 
 // CAN include
-#include "jcan/jcan.h"
+#include "jcan.h"
 
 
 // Specifies the command used
