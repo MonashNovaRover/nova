@@ -181,55 +181,50 @@ void Driver::pub_auto_mode()
 Driver::Driver() : Node("driver")
 {
 
-    //this->declare_parameter("canbus", "vcan0");
+    this->declare_parameter("canbus", "can0");
 
     // Output set-up messages
     Print::title("DRIVER");
     Print::print("", true);
 
     // Initialise the wheels in the correct direction
-    for (size_t i = 0; i < 2*NUM_WHEELS; i+=2)
+    for (size_t i = 0; i < NUM_WHEELS; i++)
     {
         bool left = i < NUM_WHEELS / 4;
-        BLCMD *cmdWheel = new BLCMD(//this->get_parameter("canbus").get_parameter_value().get<std::string>(),
-                  "vcan0", i + 1, DRIVE_VELOCITY, left, DRIVE_VELOCITY);
-        BLCMD *cmdPivot = new BLCMD(//this->get_parameter("canbus").get_parameter_value().get<std::string>(),
-                  "vcan0", i + 2, DRIVE_POSITION, false, DRIVE_VELOCITY);
+        BLCMD *cmdWheel = new BLCMD(this->get_parameter("canbus").get_parameter_value().get<std::string>(),
+                   2*i + 1, DRIVE_VELOCITY, left, DRIVE_VELOCITY);
+        BLCMD *cmdPivot = new BLCMD(this->get_parameter("canbus").get_parameter_value().get<std::string>(),
+                   2*i + 2, DRIVE_POSITION, false, DRIVE_VELOCITY);
         pivots[i] = new PivotModule(i, cmdWheel, cmdPivot);
     }
 
     rclcpp::QoS qos = rclcpp::QoS(1).best_effort().deadline(ROSTimers::drive_deadline);
-    Print::print("Created Qos\n");
+
     rclcpp::SubscriptionOptions subscriber_options;
-    Print::print("Created subscriber options\n");
+
     // Sets subscriber options before subscription is made
     subscriber_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void
     { inputs_deadline_exceeded(); };
 
-    Print::print("Created  deadline callback\n");
 
-    // Creates the commands subscription (manual)
     subscription_cmds_man = this->create_subscription<core::msg::DriveInput>(
         "/control/drive_inputs", qos, std::bind(&Driver::drive_callback, this, _1), subscriber_options);
-    Print::print("Created MANUAL drive inputs sub\n");
+
     // Creates the commands subscription (autonomous)
     subscription_cmds_auto = this->create_subscription<core::msg::DriveInput>(
         "/autonomous/drive_inputs", 10, std::bind(&Driver::auto_callback, this, _1));
-    Print::print("Created AUTO drive inputs sub\n");
+
     // Creates the input subscription
     subscription_inputs = this->create_subscription<core::msg::InputGamepad>(
         "/control/input_gamepad", qos, std::bind(&Driver::input_callback, this, _1), subscriber_options);
-    Print::print("Created input gamepad sub\n");
+;
     // Creates auto mode timer and associated publisher
-    mode_timer = this->create_wall_timer(
-        ROSTimers::auto_mode, std::bind(&Driver::pub_auto_mode, this));
-    Print::print("Created Timer\n");
+    mode_timer = this->create_wall_timer(ROSTimers::auto_mode, std::bind(&Driver::pub_auto_mode, this));
+
     mode_pub = this->create_publisher<std_msgs::msg::Bool>(
         "/autonomous/mode", 10);
-    Print::print("Created auto pub\n");
 
     pivot_wheel_pub = this->create_publisher<core::msg::PivotWheelData>("/control/pivot_wheel_data", 10);
-    Print::print("Created pivot wheel pub\n");
 }
 
 // deadline callback for when the drive inputs publisher misses its deadline
