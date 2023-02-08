@@ -31,6 +31,7 @@ namespace ROSTimers
     const millis arm_startup_timer = 100ms;
     const millis arm_control = 10ms;
     const millis drive_control = 10ms;
+    const millis blcmds_telemetry = 50ms;
     
     // Timers for legacy nodes
     const millis pid_tuner_control = 100ms;

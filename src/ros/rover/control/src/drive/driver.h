@@ -32,7 +32,8 @@ EDITED:		13/09/2022
 #include "rclcpp/rclcpp.hpp"
 #include "core/msg/input_gamepad.hpp"
 #include "core/msg/drive_input.hpp"
-#include "core/msg/pivot_wheel_data.hpp"
+#include "core/msg/telemetry.hpp"
+#include "core/msg/single_telemetry.hpp"
 #include "std_msgs/msg/bool.hpp"
 
 // Include CMD class
@@ -93,11 +94,9 @@ private:
 
     // Publishes whether the rover is in autonomous mode for LEDs
     rclcpp::TimerBase::SharedPtr mode_timer;
+    rclcpp::TimerBase::SharedPtr telemetry_timer;
     rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr mode_pub;
-    rclcpp::Publisher<core::msg::PivotWheelData>::SharedPtr pivot_wheel_pub;
-
-    // The period at which we publish whether  we are in autonomous mode
-    std::chrono::milliseconds mode_timer_period = 200ms;
+    rclcpp::Publisher<core::msg::Telemetry>::SharedPtr telemetry_pub;
 
     // A flag for whether to apply the handbrake or not
     bool handbrake;
@@ -140,6 +139,9 @@ private:
 
     /// @brief      Callback function to publish whether autonomous
     void pub_auto_mode();
+
+    /// @brief      Callback function to publish telemetry data
+    void pub_telemetry();
 
     /// @brief callback for when drive inputs subscription is exceeded
     void inputs_deadline_exceeded();

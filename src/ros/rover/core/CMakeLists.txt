@@ -56,6 +56,8 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/WheelData.msg"
   "msg/AutonomousGoal.msg"
   "msg/PivotWheelData.msg"
+  "msg/SingleTelemetry.msg"
+  "msg/Telemetry.msg"
 
   # Service definitions
   "srv/ArmConfigInfo.srv"

@@ -40,14 +40,10 @@ void Driver::send_commands(const core::msg::DriveInput::SharedPtr msg)
     else {
         float turning_angle = msg->steer;
     }
-    auto message = core::msg::PivotWheelData();
 
     // Send velocities to the wheels
     for (size_t i = 0; i < NUM_WHEELS; i++)
     {
-        message.angles[i] = pivots[i]->angle;
-        message.velocities[i] = pivots[i]->velocity;
-        message.radius = get_turning_radius(msg->steer);
         PivotModule *pivot = pivots[i];
         pivot->cmdWheel->drive(pivot->velocity);
         pivot->cmdPivot->drive(pivot->angle);
@@ -177,11 +173,62 @@ void Driver::pub_auto_mode()
     mode_pub->publish(msg);
 }
 
+void Driver::pub_telemetry() {
+
+    // Construct a message from our current is_autonomous boolean
+    core::msg::Telemetry msg;
+
+    for(PivotModule *pivot : pivots) {
+
+        core::msg::SingleTelemetry wheel_msg;
+        core::msg::SingleTelemetry pivot_msg;
+
+        // Get the telemetry from the wheel and pivot
+        BLCMDTelemetry wheel_tel = pivot->cmdWheel->get_telemetry();
+        BLCMDTelemetry pivot_tel = pivot->cmdPivot->get_telemetry();
+
+        // Fill the wheel message from wheel telemetry
+        wheel_msg.bus = this->get_parameter("canbus").get_parameter_value().get<std::string>();
+        wheel_msg.id = pivot->cmdWheel->get_id();
+        wheel_msg.rotor_velocity = wheel_tel.rotor_velocity;
+        wheel_msg.q_current = wheel_tel.q_current;
+        wheel_msg.rotor_interval = wheel_tel.rotor_interval;
+        wheel_msg.d_current = wheel_tel.d_current;
+        wheel_msg.resolver_position = wheel_tel.resolver_position;
+        wheel_msg.resolver_velocity = wheel_tel.resolver_velocity;
+        wheel_msg.power = wheel_tel.power;
+        wheel_msg.voltage = wheel_tel.voltage;
+        wheel_msg.temperature = wheel_tel.temp;
+
+        // Fill the pivot message from pivot telemetry
+        pivot_msg.bus = this->get_parameter("canbus").get_parameter_value().get<std::string>();
+        pivot_msg.id = pivot->cmdPivot->get_id();
+        pivot_msg.rotor_velocity = pivot_tel.rotor_velocity;
+        pivot_msg.q_current = pivot_tel.q_current;
+        pivot_msg.rotor_interval = pivot_tel.rotor_interval;
+        pivot_msg.d_current = pivot_tel.d_current;
+        pivot_msg.resolver_position = pivot_tel.resolver_position;
+        pivot_msg.resolver_velocity = pivot_tel.resolver_velocity;
+        pivot_msg.power = pivot_tel.power;
+        pivot_msg.voltage = pivot_tel.voltage;
+        pivot_msg.temperature = pivot_tel.temp;
+
+        // Push the messages into the telemetry message
+        msg.wheels.push_back(wheel_msg);
+        msg.pivots.push_back(pivot_msg);
+    }
+
+    // publish the message
+    telemetry_pub->publish(msg);
+}
+
 // Main constructor that sets up the node
 Driver::Driver() : Node("driver")
 {
 
     this->declare_parameter("canbus", "can0");
+
+    cout << "canbus: " << this->get_parameter("canbus").get_parameter_value().get<std::string>() << endl;
 
     // Output set-up messages
     Print::title("DRIVER");
@@ -221,10 +268,12 @@ Driver::Driver() : Node("driver")
     // Creates auto mode timer and associated publisher
     mode_timer = this->create_wall_timer(ROSTimers::auto_mode, std::bind(&Driver::pub_auto_mode, this));
 
+    telemetry_timer = this->create_wall_timer(ROSTimers::blcmds_telemetry, std::bind(&Driver::pub_telemetry, this));
+
     mode_pub = this->create_publisher<std_msgs::msg::Bool>(
         "/autonomous/mode", 10);
 
-    pivot_wheel_pub = this->create_publisher<core::msg::PivotWheelData>("/control/pivot_wheel_data", 10);
+    telemetry_pub = this->create_publisher<core::msg::Telemetry>("/control/telemetry", 10);
 }
 
 // deadline callback for when the drive inputs publisher misses its deadline
