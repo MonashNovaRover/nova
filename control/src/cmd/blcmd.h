@@ -22,10 +22,13 @@ EDITED:		01/02/2023
 #include <iostream>
 #include <vector>
 #include <iterator>
+#include <cmath>
 
 // CAN include
 #include "jcan.h"
 
+const double max_velocity = 2*M_PI;
+const double max_position = 2*M_PI;
 
 // Specifies the command used
 enum BLCMDSendCommand {

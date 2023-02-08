@@ -38,6 +38,8 @@ BLCMD::BLCMD (const std::string bus, const int id, BLCMDSendCommand drive_mode, 
     // Set up the CAN interface with the correct bus
     //TODO: Proper error handling
     can_bus = org::jcan::open_bus(bus).into_raw();
+
+    std::cout << "ID: " << id << std::endl;
 }
 
 
@@ -204,13 +206,16 @@ void BLCMD::get_telemetry_packet(TelemetryPacket packet_num, BLCMDTelemetry* tel
             telemetry->d_current = int16_bytes_to_double(&packet.data[2]);
             break;
         case PACKET_3:
-            telemetry->resolver_position = int16_bytes_to_double(&packet.data[0]);
-            telemetry->resolver_velocity = int16_bytes_to_double(&packet.data[2]);
+            telemetry->resolver_position = int16_bytes_to_double(&packet.data[0])*max_position;
+            telemetry->resolver_velocity = int16_bytes_to_double(&packet.data[2])*max_velocity;
             break;
         case PACKET_4:
             telemetry->power = uint16_bytes_to_double(&packet.data[0]);
+            std::cout << "Received power on BLCMD with ID: " << id << std::endl;
             telemetry->voltage = uint16_bytes_to_double(&packet.data[2]);
+            std::cout << "Received voltage on BLCMD with ID: " << id << std::endl;
             telemetry->temp = uint16_bytes_to_double(&packet.data[4]);
+            std::cout << "Received temp on BLCMD with ID: " << id << std::endl;
             break;
     }
 }
@@ -221,7 +226,7 @@ BLCMDTelemetry BLCMD::get_telemetry()
     get_telemetry_packet(PACKET_1, &telemetry);
     get_telemetry_packet(PACKET_2, &telemetry);
     get_telemetry_packet(PACKET_3, &telemetry);
-    get_telemetry_packet(PACKET_4, &telemetry);
+    //get_telemetry_packet(PACKET_4, &telemetry);
     return telemetry;
 }
 
