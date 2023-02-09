@@ -68,7 +68,7 @@ class WristSpmModel : public ArmSubModule
     constexpr static double ER_CLOCK_FREQUENCY = 30e6;
 
     /// Constructor. Build the SPM wrist
-    WristSpmModel()
+    WristSpmModel(bool can_init=1)
     {
         // Initialise public members
         module_name = "wrist_spm";
@@ -96,11 +96,11 @@ class WristSpmModel : public ArmSubModule
         double end_rotation_scaling_factor = CMD::get_scaling_factor(ER_GEARBOX_REDUCTION, ER_ENCODER_PPR, ER_VELOCITY_FACTOR, ER_CLOCK_FREQUENCY);
         drivers = std::vector<CMD*> {
             // Drivers apply to the SPM input angles, not the serial pitch, yaw and roll
-            new CMD(1, 4, PID, 0, STOP, joint_scaling_factor),
-            new CMD(1, 5, PID, 0, STOP, joint_scaling_factor),
-            new CMD(1, 6, PID, 0, STOP, joint_scaling_factor),
+            new CMD(1, 4, PID, 0, STOP, joint_scaling_factor, can_init),
+            new CMD(1, 5, PID, 0, STOP, joint_scaling_factor, can_init),
+            new CMD(1, 6, PID, 0, STOP, joint_scaling_factor, can_init),
             // Use ID 8 for end rotation since ID 7 is already taken by end effector
-            new CMD(1, 8, PID, 0, STOP, end_rotation_scaling_factor)
+            new CMD(1, 8, PID, 0, STOP, end_rotation_scaling_factor, can_init)
         };
 
         // Build the SPM wrist

@@ -44,7 +44,7 @@ class WristCycloidalModel : public ArmSubModule
     constexpr static double CLOCK_FREQUENCY = 30e6;
 
     /// Constructor. Build the cycloidal wrist
-    WristCycloidalModel()
+    WristCycloidalModel(bool can_init=1)
     {
         // Initialise public members
         module_name = "wrist_cycloidal";
@@ -65,9 +65,9 @@ class WristCycloidalModel : public ArmSubModule
         };
         double scaling_factor = CMD::get_scaling_factor(GEARBOX_REDUCTION, ENCODER_PPR, VELOCITY_FACTOR, CLOCK_FREQUENCY);
         drivers = std::vector<CMD*> {
-            new CMD(1, 4, PID, 0, STOP, scaling_factor),
-            new CMD(1, 5, PID, 0, STOP, scaling_factor),
-            new CMD(1, 6, PID, 0, STOP, scaling_factor)
+            new CMD(1, 4, PID, 0, STOP, scaling_factor, can_init),
+            new CMD(1, 5, PID, 0, STOP, scaling_factor, can_init),
+            new CMD(1, 6, PID, 0, STOP, scaling_factor, can_init)
         };
 
         // Build the cycloidal wrist

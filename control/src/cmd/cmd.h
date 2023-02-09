@@ -113,8 +113,9 @@ class CMD {
     /// @param      direction - Direction for the CMD. Determined by hardware
     /// @param      stop_mode - Default stop mode of the CMD. STOP or PID (handbrake)
     /// @param      scaling_factor - Factor to multiply by input to convert from angular velocity (rad/s) to CMD command (unitless)
-    CMD (int bus, int id, CMDCommand drive_mode, bool direction=0, CMDCommand stop_mode=STOP, double scaling_factor=1);
-
+    /// @param      can_init - Whether to open the CAN socket or not
+    CMD (int bus, int id, CMDCommand drive_mode, bool direction=0, CMDCommand stop_mode=STOP, double scaling_factor=1, bool can_init=1);
+    
     /// @brief      Destructor is called when object is deleted
     ~CMD ();
 
