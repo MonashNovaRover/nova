@@ -24,24 +24,25 @@ static void append_to_vector(std::vector<T>& vec1, std::vector<T>& vec2)
 }
 
 
-ArmModel::ArmModel(const ArmConfig::WristType wrist_type, const ArmConfig::EndEffectorType end_effector_type) :
+ArmModel::ArmModel(const ArmConfig::WristType wrist_type, const ArmConfig::EndEffectorType end_effector_type, bool can_init) :
     Tree("sj0"),
     JOINT_NAMES_6DOF(std::vector<std::string> {"rotation", "elevation", "extension", "pitch", "yaw", "roll"}),
-    GLOBAL_CONTROL(ArmSubModule::ControlCoeffs {2 * GLOBAL_DAMPING * GLOBAL_NATURAL_FREQUENCY, GLOBAL_NATURAL_FREQUENCY * GLOBAL_NATURAL_FREQUENCY, 0})
+    GLOBAL_CONTROL(ArmSubModule::ControlCoeffs {2 * GLOBAL_DAMPING * GLOBAL_NATURAL_FREQUENCY, GLOBAL_NATURAL_FREQUENCY * GLOBAL_NATURAL_FREQUENCY, 0}),
+    can_init(can_init)
 {
     // Build the arm.
 
     // Create the lower joints module
-    ArmSubModule lower_joints = LowerJointsModel();
+    ArmSubModule lower_joints = LowerJointsModel(can_init);
     
     // Create the wrist module
     ArmSubModule wrist;
     switch (wrist_type){
         case ArmConfig::WRIST_CYCLOIDAL:
-            wrist = WristCycloidalModel();
+            wrist = WristCycloidalModel(can_init);
         break;
         case ArmConfig::WRIST_SPM:
-            wrist = WristSpmModel();
+            wrist = WristSpmModel(can_init);
     }
     
     // Crete the end effector module

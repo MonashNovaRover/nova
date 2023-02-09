@@ -14,28 +14,30 @@ AUTHOR(S):	Harrison Verrios, Josh Cherubino, Jory Braun
 #include <cmath>
 
 
-CMD::CMD (int bus, int id, CMDCommand drive_mode, bool direction, CMDCommand stop_mode, double scaling_factor) :
+CMD::CMD (int bus, int id, CMDCommand drive_mode, bool direction, CMDCommand stop_mode, double scaling_factor, bool can_init) :
     bus(bus), id(id), drive_mode(drive_mode), direction(direction), stop_mode(stop_mode), scaling_factor(scaling_factor), already_stopped(false)
 {
     // Set max speed
     max_speed = 1 / scaling_factor;
     // Set min speed
     min_speed = max_speed / 32767;
+    
+    if (can_init) {
+        // Set up the CAN interface with the correct bus
+        scpp::SocketCanStatus status = can_socket.open(
+            (bus == 0) ? "can0" : "can1"
+        );
 
-    // Set up the CAN interface with the correct bus
-    scpp::SocketCanStatus status = can_socket.open(
-        (bus == 0) ? "can0" : "can1"
-    );
-
-    // Check for status
-    switch (status) {
-        case scpp::STATUS_OK:
-            Print::print("Initialised CAN device successfully.", C_SUCCESS); 
-            break;
-        default:
-            if (bus == 0)   Print::print("Error: can0 has not been initialized.", C_FAIL);
-            else            Print::print("Error: can1 has not been initialized.", C_FAIL);
-            break;
+        // Check for status
+        switch (status) {
+            case scpp::STATUS_OK:
+                Print::print("Initialised CAN device successfully.", C_SUCCESS); 
+                break;
+            default:
+                if (bus == 0)   Print::print("Error: can0 has not been initialized.", C_FAIL);
+                else            Print::print("Error: can1 has not been initialized.", C_FAIL);
+                break;
+        }
     }
 }
 
