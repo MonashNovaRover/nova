@@ -86,12 +86,12 @@ class CMD {
 
     /// @brief      Send a CAN frmae with some command in the ID but no data
     /// @param      command - The command to send
-    void write_frame_no_data (const CMDCommand command);
+    void write_frame_no_data (CMDCommand command);
 
     /// @brief      Convert a double to an int16
     /// @param      value - The raw value between -1.0 and 1.0
     /// @returns    A Q15 fractional representing the same value
-    static int16_t convert_to_int16 (const double value);
+    static int16_t convert_to_int16 (double value);
 
     /// @brief      Convert a 2-byte array to a double
     /// @param      bytes - The 2-byte array
@@ -113,7 +113,7 @@ class CMD {
     /// @param      direction - Direction for the CMD. Determined by hardware
     /// @param      stop_mode - Default stop mode of the CMD. STOP or PID (handbrake)
     /// @param      scaling_factor - Factor to multiply by input to convert from angular velocity (rad/s) to CMD command (unitless)
-    CMD (const int bus, const int id, CMDCommand drive_mode, const bool direction=0, CMDCommand stop_mode=STOP, double scaling_factor=1);
+    CMD (int bus, int id, CMDCommand drive_mode, bool direction=0, CMDCommand stop_mode=STOP, double scaling_factor=1);
 
     /// @brief      Destructor is called when object is deleted
     ~CMD ();
