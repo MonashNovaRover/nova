@@ -212,7 +212,7 @@ void CMD::set_tuning_parameters (double kP, double kI, double kD, double kM)
 }
 
 
-CMDData CMD::receive_feedback ()
+CMDFeedback CMD::receive_feedback ()
 {
     // Creates a new CAN frame
     scpp::CanFrame frame;
@@ -227,7 +227,7 @@ CMDData CMD::receive_feedback ()
     double power = convert_from_bytes(frame.data + 2);
     
     // Create a new struct
-    CMDData data = CMDData(velocity, power);
+    CMDFeedback data = CMDFeedback(velocity, power);
 
     // Return the data
     return data;
