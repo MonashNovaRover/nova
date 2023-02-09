@@ -17,11 +17,12 @@ AUTHOR(S):	Harrison Verrios, Josh Cherubino, Will de la Rue, Jory Braun, Tristan
 
 // Use the standard namespaces for subscribers
 using std::placeholders::_1;
+using namespace std;
 
 // Sends commands to the wheels
 void Driver::send_commands(const core::msg::DriveInput::SharedPtr msg)
 {
-
+    core::msg::PivotWheelData data_msg;
     if (!msg->strafe_mode)
     {
         // Find the turning radius form the 'steer' command
@@ -34,8 +35,9 @@ void Driver::send_commands(const core::msg::DriveInput::SharedPtr msg)
         // Disregard any correction for the angle of the wheel relative to the desired circular path
         // fill_wheel_velocities(wheel_velocities, radius, msg->speed, msg->steer);
 
-        fill_wheel_angles_radial(radius);
+        fill_wheel_angles_radial(radius, msg->steer);
         fill_wheel_velocities_radial(msg->speed, radius);
+        data_msg.radius = radius;
     }
     else {
         float turning_angle = msg->steer;
@@ -47,7 +49,10 @@ void Driver::send_commands(const core::msg::DriveInput::SharedPtr msg)
         PivotModule *pivot = pivots[i];
         pivot->cmdWheel->drive(pivot->velocity);
         pivot->cmdPivot->drive(pivot->angle);
+        data_msg.angles[i] = pivot->angle;
+        data_msg.velocities[i] = pivot->velocity;
     }
+    pivot_wheel_pub->publish(data_msg);
 }
 
 // Receives drive commands
@@ -118,45 +123,43 @@ float Driver::get_turning_radius(float steer)
 {
     // Exclude this case. If steer is 0, handle separately in calling code
     if (steer == 0)
-        return 0;
+        return INFINITY;
 
-
-    // return ((CHASSIS_WIDTH / 2 - MAX_RADIUS) * abs(steer) + MAX_RADIUS)* ((steer < 0) ? -1 : 1);
-    return (1.0 / steer) - ((steer < 0.0) ? -1.0 : 1.0);
+    return (1.0 / steer) - (steer > 0 ? 1 : -1);
 }
 
-void Driver::fill_wheel_angles_radial(float radius)
+void Driver::fill_wheel_angles_radial(float radius, float steer)
 {
-    // gradient of line https://www.desmos.com/calculator/cb3xa9r5ai
+    // gradient of line https://www.desmos.com/calculator/opj8exj9gp
+    double sign = steer > 0 ? 1.0 : -1.0;
 
-    float inner_angle = radius == 0 ? 0 : (M_PI_2 - atan((2 * abs(radius) - CHASSIS_WIDTH)/CHASSIS_LENGTH));
-    float outer_angle = radius == 0 ? 0 : (M_PI_2 - atan((2 * abs(radius) + CHASSIS_WIDTH)/CHASSIS_LENGTH));
+    // Front left angle
+    pivots[0]->angle = radius == INFINITY ? 0 : atan((2*radius + CHASSIS_WIDTH)/CHASSIS_LENGTH) - sign * M_PI_2;
 
-    pivots[0]->angle = radius < 0 ? inner_angle : -outer_angle;
+    //Front right angle
+    pivots[1]->angle = radius == INFINITY ? 0 : atan((2*radius - CHASSIS_WIDTH)/CHASSIS_LENGTH)- sign * M_PI_2;
 
-    pivots[1]->angle = radius < 0 ? outer_angle : -inner_angle;
+    // Back left angle
+    pivots[2]->angle = radius == INFINITY ? 0 : sign * M_PI_2 + atan((2*radius + CHASSIS_WIDTH)/-CHASSIS_LENGTH);
 
-    pivots[2]->angle = radius < 0 ? -inner_angle : outer_angle;
-
-    pivots[3]->angle = radius < 0 ? -outer_angle : inner_angle;
+    // Back right angle
+    pivots[3]->angle = radius == INFINITY ? 0 : sign * M_PI_2 + atan((2*radius - CHASSIS_WIDTH)/-CHASSIS_LENGTH);
 }
 
 // Fill array with velocities for each wheel, with directions and magnitude depending on the turning radius
 void Driver::fill_wheel_velocities_radial(float speed, float radius)
 {
-    float inside_ratio = radius == 0 ? 1 : pow((pow(CHASSIS_LENGTH, 2.0) /
-            4 + pow( abs(radius) - (CHASSIS_WIDTH / 2), 2.0)), 0.5)/abs(radius);
-    float outside_ratio = radius == 0 ? 1: pow((pow(CHASSIS_LENGTH, 2.0) /
-            4 + pow( abs(radius) + (CHASSIS_WIDTH / 2), 2.0)), 0.5)/abs(radius);
+    float left_ratio = !radius ? 1 : sqrt(pow(CHASSIS_LENGTH, 2.0)/4 + pow(radius + (CHASSIS_WIDTH / 2), 2.0))/abs(radius);
+    float right_ratio = !radius ? 1 : sqrt(pow(CHASSIS_LENGTH, 2.0)/4 + pow(radius - (CHASSIS_WIDTH / 2), 2.0))/abs(radius);
     for (size_t i = 0; i < NUM_WHEELS; i++)
     {
         if (i == 0 || i == 2)
         {
-            pivots[i]->velocity = speed*inside_ratio;
+            pivots[i]->velocity = radius == INFINITY ? speed : speed*left_ratio;
         }
         else if (i == 1 || i == 3)
         {
-            pivots[i]->velocity = speed*outside_ratio;
+            pivots[i]->velocity =  radius == INFINITY ? speed : speed*right_ratio;
         }
     }
 }
@@ -237,9 +240,9 @@ Driver::Driver() : Node("driver")
     // Initialise the wheels in the correct direction
     for (size_t i = 0; i < NUM_WHEELS; i++)
     {
-        bool left = i < NUM_WHEELS / 4;
+        bool right = i % 2;
         BLCMD *cmdWheel = new BLCMD(this->get_parameter("canbus").get_parameter_value().get<std::string>(),
-                   2*i + 1, DRIVE_VELOCITY, left, DRIVE_VELOCITY);
+                   2*i + 1, DRIVE_VELOCITY, right, DRIVE_VELOCITY);
         BLCMD *cmdPivot = new BLCMD(this->get_parameter("canbus").get_parameter_value().get<std::string>(),
                    2*i + 2, DRIVE_POSITION, false, DRIVE_VELOCITY);
         pivots[i] = new PivotModule(i, cmdWheel, cmdPivot);
@@ -274,6 +277,9 @@ Driver::Driver() : Node("driver")
         "/autonomous/mode", 10);
 
     telemetry_pub = this->create_publisher<core::msg::Telemetry>("/control/telemetry", 10);
+
+    pivot_wheel_pub = this->create_publisher<core::msg::PivotWheelData>("/control/pivot_wheel", 10);
+
 }
 
 // deadline callback for when the drive inputs publisher misses its deadline

@@ -11,8 +11,13 @@ from tf2_ros import TransformBroadcaster, TransformStamped
 
 FRONT_LEFT_DIR = 1
 BACK_LEFT_DIR = 1
-FRONT_RIGHT_DIR = -1
-BACK_RIGHT_DIR = -1
+FRONT_RIGHT_DIR = 1
+BACK_RIGHT_DIR = 1
+
+FRONT_LEFT_PIVOT = -1
+BACK_LEFT_PIVOT = -1
+FRONT_RIGHT_PIVOT = -1
+BACK_RIGHT_PIVOT = -1
 
 class RoverStatePublisher(Node):
     def __init__(self):
@@ -39,10 +44,15 @@ class RoverStatePublisher(Node):
                             'front_left_pivot_to_leg', 'front_right_pivot_to_leg',
                             'back_left_pivot_to_leg', 'back_right_pivot_to_leg']
 
-        joint_state.position = [msg.wheels[0].resolver_position, msg.wheels[1].resolver_position,
-                                msg.wheels[2].resolver_position, msg.wheels[3].resolver_position,
-                                msg.pivots[0].resolver_position, msg.pivots[1].resolver_position,
-                                msg.pivots[2].resolver_position, msg.pivots[3].resolver_position]
+        joint_state.position = [FRONT_LEFT_DIR*msg.wheels[0].resolver_position,
+                                FRONT_RIGHT_DIR*msg.wheels[1].resolver_position,
+                                BACK_LEFT_DIR*msg.wheels[2].resolver_position,
+                                BACK_RIGHT_DIR*msg.wheels[3].resolver_position,
+                                FRONT_LEFT_PIVOT*msg.pivots[0].resolver_position,
+                                FRONT_RIGHT_PIVOT*msg.pivots[1].resolver_position,
+                                BACK_LEFT_PIVOT*msg.pivots[2].resolver_position,
+                                BACK_RIGHT_PIVOT*msg.pivots[3].resolver_position]
+
         self.joint_pub.publish(joint_state)
 
 def euler_to_quaternion(roll, pitch, yaw):
