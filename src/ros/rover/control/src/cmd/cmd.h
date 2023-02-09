@@ -37,18 +37,18 @@ enum CMDCommand {
 };
 
 
-// Struct for CMD data
-struct CMDData {
+// Struct for CMD feedback
+struct CMDFeedback {
 
     // The velocity from the CMD
-    double rpm;
+    double omega;
 
     // The power of the CMD
-    double power;
+    double duty_cycle;
 
     // Constructor for setting the data
-    CMDData (double rpm, double power) : 
-        rpm(rpm), power(power) {}
+    CMDFeedback (double omega, double duty_cycle) : 
+        omega(omega), duty_cycle(duty_cycle) {}
 };
 
 
@@ -166,6 +166,6 @@ class CMD {
 
     /// @brief      Receives feedback from the CMD devices on the CAN lines
     /// @returns    A struct containing the data
-    CMDData receive_feedback ();
+    CMDFeedback receive_feedback ();
 
 };
