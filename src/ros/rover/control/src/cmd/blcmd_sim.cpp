@@ -54,27 +54,31 @@ public:
                     target = int16_bytes_to_double(&frame.data[0])*max_position;
                     velocity = max_velocity/4;
                     pos_direction = position <= target ? 1 : -1;
+                    velocity *= pos_direction;
+//                    cout << "target: " << target << endl;
+//                    cout << "velocity: " << velocity << endl;
+//                    cout << "pos_direction: " << pos_direction << endl;
                 }
             }
 
             if ((chrono::high_resolution_clock::now() - last_time) >= send_rate) {
 //                total_time += chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - last_time);
 //                count++;
-                position += velocity * pos_direction * send_rate.count() / 1000.0;
+                position += velocity * send_rate.count() / 1000.0;
                 if (pos_ctrl && pos_direction != 0) {
                     if ((pos_direction > 0 && position > target) || (pos_direction < 0 && position < target)){
-                        cout << "Target reached" << endl;
                         position = target;
                         velocity = 0;
                         pos_direction = 0;
-                    } else {
-                        cout << "Going to target" << endl;
                     }
-                } else {
+//                    cout << "position: " << position << endl;
+//                    cout << "velocity: " << velocity << endl;
+//                    cout << "pos_direction: " << pos_direction << endl;
+                } else if (!pos_ctrl){
                     if (position > max_position){
-                        position -= max_position;
+                        position = position - max_position + min_position;
                     } else if (position < 0){
-                        position = max_position - position;
+                        position = position + max_position - min_position;
                     }
                 }
 

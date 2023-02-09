@@ -34,16 +34,17 @@ EDITED:		13/09/2022
 #include "core/msg/drive_input.hpp"
 #include "core/msg/telemetry.hpp"
 #include "core/msg/single_telemetry.hpp"
+#include "core/msg/pivot_wheel_data.hpp"
 #include "std_msgs/msg/bool.hpp"
 
 // Include CMD class
 #include "cmd/blcmd.h"
 
 // The distance between left and right wheels [m]
-#define CHASSIS_WIDTH 0.80
+#define CHASSIS_WIDTH 0.7
 
 // The distance between front and rear wheels [m]
-#define CHASSIS_LENGTH 0.85
+#define CHASSIS_LENGTH 0.84
 
 #define MAX_RADIUS 10.0
 
@@ -98,6 +99,9 @@ private:
     rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr mode_pub;
     rclcpp::Publisher<core::msg::Telemetry>::SharedPtr telemetry_pub;
 
+    // Publisher for pivot wheel data
+    rclcpp::Publisher<core::msg::PivotWheelData>::SharedPtr pivot_wheel_pub;
+
     // A flag for whether to apply the handbrake or not
     bool handbrake;
 
@@ -130,7 +134,7 @@ private:
 
     /// @brief
     /// @param      radius - The turning radius of the rover [m]
-    void fill_wheel_angles_radial(float radius);
+    void fill_wheel_angles_radial(float radius, float steer);
 
     /// @brief
     /// @param      speed - Speed of each driven wheel
