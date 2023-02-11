@@ -78,7 +78,7 @@ class EMCPublisher(Node):
         self.publisher = self.create_publisher(EMCData, '/science/emc_data', 10)
         
         # Create the timer to reads data from can
-        self.timer = self.create_timer (0.01, self.read_data)
+        self.create_timer (0.01, self.read_data)
 
 
     # Unpacks CAN data and publishes it

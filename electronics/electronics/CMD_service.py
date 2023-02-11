@@ -48,7 +48,7 @@ class CMDService (Node):
         print("Initialising the CMD sender class.")
 
         # Create the service
-        self.service = self.create_service(CMDCommand, "/electronics/cmd_service", self.service_callback)
+        self.create_service(CMDCommand, "/electronics/cmd_service", self.service_callback)
 
     
     # Retrieves a CAN network based on an ID. If the network

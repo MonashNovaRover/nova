@@ -221,7 +221,7 @@ class ResolverPublisher(Node):
         self.future = self.client.call_async(request)
 
         # Set up the callback timer
-        self.client_check_timer = self.create_timer(0.1, self.client_check_callback)
+        self.create_timer(0.1, self.client_check_callback)
 
     def client_check_callback(self):
         """
@@ -280,9 +280,9 @@ class ResolverPublisher(Node):
 
         # Construct and start the resolver publisher
         self.publisher = self.create_publisher(JointState, '/electronics/resolvers', 10)
-        self.resolver_pub_timer = self.create_timer(resolver_pub_timer_period, self.publish)
+        self.create_timer(resolver_pub_timer_period, self.publish)
         # Construct the service to zero resolvers
-        self.zero_service = self.create_service(StringTrigger, "/electronics/resolver_zero_service", self.zero_callback)
+        self.create_service(StringTrigger, "/electronics/resolver_zero_service", self.zero_callback)
 
     def zero_callback(self, request: StringTrigger.Request, response: StringTrigger.Response):
         """

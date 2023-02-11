@@ -57,10 +57,10 @@ class PoseConverter(Node):
         super().__init__("ConverterNode")
 
         # subscribers
-        self.imu_sub = self.create_subscription(Imu, "/imu/data", self.imu_callback, 10)
-        self.dgps_sub = self.create_subscription(PoseWithCovariance, "/gps_rover/pose_cov", self.dgps_callback, qos)
-        self.drive_sub = self.create_subscription(WheelData, "/electronics/wheel_data", self.drive_callback, 10)
-        self.goals_sub = self.create_subscription(AutonomousGoal, auto_goal_gps, self.goal_callback, 10)
+        self.create_subscription(Imu, "/imu/data", self.imu_callback, 10)
+        self.create_subscription(PoseWithCovariance, "/gps_rover/pose_cov", self.dgps_callback, qos)
+        self.create_subscription(WheelData, "/electronics/wheel_data", self.drive_callback, 10)
+        self.create_subscription(AutonomousGoal, auto_goal_gps, self.goal_callback, 10)
 
         # publishers
         self.camera_pub = self.create_publisher(Odometry, camera_pose_topic, 10)
@@ -76,7 +76,7 @@ class PoseConverter(Node):
         self.goals_pub = self.create_publisher(AutonomousGoal, auto_goal_topic, 10)
 
         # timer 
-        self.pub_timer = self.create_timer(pose_pub_rate, self.publisher_callback)
+        self.create_timer(pose_pub_rate, self.publisher_callback)
 
         # for maintaining accurate pose and converting between gps
         self.ekf = Ekf()

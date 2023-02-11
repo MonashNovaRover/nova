@@ -68,9 +68,9 @@ class PathPlanner(Node):
 
         # subscribers and services
         # planning service listens to requests for paths to be planned
-        self.planning_service = self.create_service(PathPlanningRequest, path_planning_service_name,
+        self.create_service(PathPlanningRequest, path_planning_service_name,
                                                     self.path_planning_service_callback)
-        self.planning_subscriber = self.create_subscription(Point2D, planning_destination_topic, self.path_planning_sub_callback, 10)
+        self.create_subscription(Point2D, planning_destination_topic, self.path_planning_sub_callback, 10)
         self.path_publisher = self.create_publisher(Waypoints, auto_waypoints_topic, 10)
 
         # Transform listeners

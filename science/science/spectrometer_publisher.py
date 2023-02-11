@@ -85,7 +85,7 @@ class SpectrometerPublisher(Node):
         self.publisher = self.create_publisher(SpectrometerData, '/science/spectrometer_data', 10)
         
         # Create the timer to reads data from can
-        self.timer = self.create_timer (0.01, self.read_data)
+        self.create_timer (0.01, self.read_data)
 
 
 

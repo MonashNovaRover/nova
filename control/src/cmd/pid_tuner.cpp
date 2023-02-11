@@ -142,7 +142,7 @@ PIDTuner::PIDTuner () : Node("pid_tuner")
 {
 
     // Create the service and bind to the function
-    service = this->create_service<core::srv::PIDTune>(
+    this->create_service<core::srv::PIDTune>(
         "/control/pid_tune", std::bind(&PIDTuner::select_device, this, _1, _2)
     );
 
@@ -150,8 +150,8 @@ PIDTuner::PIDTuner () : Node("pid_tuner")
     publisher = this->create_publisher<core::msg::CMDFeedback>("/control/cmd_feedback", 10);
 
     // Create timers
-    velocity_timer = this->create_wall_timer(ROSTimers::pid_tuner_control, std::bind(&PIDTuner::send_velocity, this));
-    feedback_timer = this->create_wall_timer(ROSTimers::pid_tuenr_feedback, std::bind(&PIDTuner::publish_velocity, this));
+    this->create_wall_timer(ROSTimers::pid_tuner_control, std::bind(&PIDTuner::send_velocity, this));
+    this->create_wall_timer(ROSTimers::pid_tuenr_feedback, std::bind(&PIDTuner::publish_velocity, this));
 
     // Output set-up messages
     Print::title("PID TUNER");

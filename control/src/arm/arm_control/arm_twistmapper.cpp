@@ -33,12 +33,12 @@ ArmTwistMapper::ArmTwistMapper() :
     ENDPOINT_INPUT_TRANSFORM_ANGULAR(KDL::Rotation::RotX(M_PI / 2) * ENDPOINT_INPUT_TRANSFORM_LINEAR)
 {
     // Create subscription to arm control scheme
-    control_scheme_sub = this->create_subscription<core::msg::ArmControlScheme>(
+    this->create_subscription<core::msg::ArmControlScheme>(
         "/control/arm_control_scheme", 10, std::bind(&ArmTwistMapper::control_scheme_callback, this, _1)
     );
 
     // Create subscription to resolvers
-    resolver_sub = this->create_subscription<sensor_msgs::msg::JointState>(
+    this->create_subscription<sensor_msgs::msg::JointState>(
         "/electronics/resolvers", 10, std::bind(&ArmTwistMapper::resolver_callback, this, _1)
     );
     
@@ -47,7 +47,7 @@ ArmTwistMapper::ArmTwistMapper() :
     joystick_joint_velocities_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void{
         this->joystick_joint_velocities_deadline_callback();
     };
-    joystick_joint_velocities_sub = this->create_subscription<sensor_msgs::msg::JointState>(
+    this->create_subscription<sensor_msgs::msg::JointState>(
         "/control/joystick_joint_velocities",
         rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline),
         std::bind(&ArmTwistMapper::joystick_joint_velocities_callback, this, _1),
@@ -59,7 +59,7 @@ ArmTwistMapper::ArmTwistMapper() :
     joystick_twist_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void{
         this->joystick_twist_deadline_callback();
     };
-    joystick_twist_sub = this->create_subscription<geometry_msgs::msg::TwistStamped>(
+    this->create_subscription<geometry_msgs::msg::TwistStamped>(
         "/control/joystick_twist",
         rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline),
         std::bind(&ArmTwistMapper::joystick_twist_callback, this, _1),
@@ -68,7 +68,7 @@ ArmTwistMapper::ArmTwistMapper() :
 
 
     // Create timer and publisher for twist
-    control_pub_timer = this->create_wall_timer(
+    this->create_wall_timer(
         ROSTimers::arm_control, std::bind(&ArmTwistMapper::publish_control_inputs, this)
     );
     control_joints_pub = this->create_publisher<sensor_msgs::msg::JointState>(
@@ -83,7 +83,7 @@ ArmTwistMapper::ArmTwistMapper() :
 
 
     // Create service for arm_reset_control_pose
-    arm_reset_control_pose_service = this->create_service<std_srvs::srv::Trigger>(
+    this->create_service<std_srvs::srv::Trigger>(
         "/control/arm_reset_control_pose", std::bind(&ArmTwistMapper::arm_reset_control_pose_callback, this, _1, _2)
     );
 

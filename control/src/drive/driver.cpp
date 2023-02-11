@@ -221,19 +221,19 @@ Driver::Driver() : Node("driver")
 	subscriber_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void {inputs_deadline_exceeded();};
 
     // Creates the commands subscription (manual)
-    subscription_cmds_man = this->create_subscription<core::msg::DriveInput>(
+    this->create_subscription<core::msg::DriveInput>(
         "/control/drive_inputs", qos, std::bind(&Driver::drive_callback, this, _1), subscriber_options);
     
     // Creates the commands subscription (autonomous)
-    subscription_cmds_auto = this->create_subscription<core::msg::DriveInput>(
+    this->create_subscription<core::msg::DriveInput>(
         "/autonomous/drive_inputs", 10, std::bind(&Driver::auto_callback, this, _1));
     
     // Creates the input subscription
-    subscription_inputs = this->create_subscription<core::msg::InputGamepad>(
+    this->create_subscription<core::msg::InputGamepad>(
         "/control/input_gamepad", qos, std::bind(&Driver::input_callback, this, _1), subscriber_options);
 
     // Creates auto mode timer and associated publisher
-    mode_timer = this->create_wall_timer(
+    this->create_wall_timer(
         ROSTimers::auto_mode, std::bind(&Driver::pub_auto_mode, this)
     );
     mode_pub = this->create_publisher<std_msgs::msg::Bool>(
