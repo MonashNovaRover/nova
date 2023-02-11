@@ -146,7 +146,7 @@ class HydraprobePublisher(Node):
             exit()
         
         # Create the timer
-        self.publisher_timer = self.create_timer(3, self.publish_values)
+        self.create_timer(3, self.publish_values)
 
         # get firmware version
         self.hydraprobe_transceiver.transmit("FV=?")

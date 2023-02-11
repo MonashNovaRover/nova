@@ -35,7 +35,7 @@ class TemplateNode(Node):
     def __init__(self):
         super().__init__("TemplateNode")
         # way-point publisher publishes a bunch of waypoints at once (hence using the 2D map datatype
-        self.subscriber = self.create_subscription(RoverPose, "/template/subscriber", self.subscriber_callback, 10)
+        self.create_subscription(RoverPose, "/template/subscriber", self.subscriber_callback, 10)
         # current state of internal message
         self.msg = RoverPose()
 

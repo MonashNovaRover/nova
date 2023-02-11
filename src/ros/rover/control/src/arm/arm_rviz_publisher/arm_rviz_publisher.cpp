@@ -20,17 +20,17 @@ ArmVizPublisher::ArmVizPublisher() : Node("arm_rviz_publisher")
 {
 
     // Create subscription to arm_coord_frames
-    coord_frames_sub = this->create_subscription<sensor_msgs::msg::MultiDOFJointState>(
+    this->create_subscription<sensor_msgs::msg::MultiDOFJointState>(
         "/control/arm_coord_frames", 10, std::bind(&ArmVizPublisher::coord_frames_callback, this, _1)
     );
 
     // Create subscription to arm control scheme
-    control_scheme_sub = this->create_subscription<core::msg::ArmControlScheme>(
+    this->create_subscription<core::msg::ArmControlScheme>(
         "/control/arm_control_scheme", 10, std::bind(&ArmVizPublisher::control_scheme_callback, this, _1)
     );
 
     // Create subscription to control_pose
-    control_pose_sub = this->create_subscription<geometry_msgs::msg::TransformStamped>(
+    this->create_subscription<geometry_msgs::msg::TransformStamped>(
         "/control/control_pose",
         rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline),
         std::bind(&ArmVizPublisher::control_pose_callback, this, _1)

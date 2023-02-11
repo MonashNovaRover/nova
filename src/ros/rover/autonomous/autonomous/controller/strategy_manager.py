@@ -86,15 +86,15 @@ class StrategyManager(Node):
         self.target_waypoint = None
 
         # Ros subscribers
-        self.pose_subscriber = self.create_subscription(RoverPose, rover_pose_topic, self.update_pose, 10)
-        self.ar_tag_subscriber = self.create_subscription(AlvarMarker, ar_track_topic, self.ar_goal_callback, 10)
+        self.create_subscription(RoverPose, rover_pose_topic, self.update_pose, 10)
+        self.create_subscription(AlvarMarker, ar_track_topic, self.ar_goal_callback, 10)
 
         # ros publishers
         self.drive_cmd_publisher = self.create_publisher(DriveInput, auto_drive_command_topic, 10)
         self.goal_publisher = self.create_publisher(AutonomousGoal, planning_destination_topic, 10)
 
         # Controls the rate at which drive commands are sent - sleeps for the necessary time to maintain the rate given
-        self.timer = self.create_timer(0.1, self.control)
+        self.create_timer(0.1, self.control)
 
     def update_pose(self, msg):
         """

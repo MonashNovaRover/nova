@@ -69,7 +69,7 @@ ArmDriver::ArmDriver() : Node("arm_driver")
     joint_velocities_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void{
         this->joint_velocities_deadline_callback();
     };
-    joint_velocities_subscription = this->create_subscription<sensor_msgs::msg::JointState>(
+    this->create_subscription<sensor_msgs::msg::JointState>(
         "/control/joint_velocities",
         rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline),
         std::bind(&ArmDriver::joint_velocities_callback, this, _1),
@@ -81,7 +81,7 @@ ArmDriver::ArmDriver() : Node("arm_driver")
     endeffector_input_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void{
         this->endeffector_input_deadline_callback();
     };
-    endeffector_input_subscription = this->create_subscription<core::msg::EndEffectorInput>(
+    this->create_subscription<core::msg::EndEffectorInput>(
         "/control/endeffector_input",
         rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline),
         std::bind(&ArmDriver::endeffector_input_callback, this, _1),
