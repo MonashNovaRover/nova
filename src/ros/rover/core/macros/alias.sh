@@ -18,6 +18,7 @@ alias check='. ~/nova_ws/src/rover/core/macros/check.sh'     # Adds an alias for
 alias stop='. ~/nova_ws/src/rover/core/macros/stop.sh'       # Adds an alias for the `stop` command for stopping systemctl services
 alias restart='. ~/nova_ws/src/rover/core/macros/restart.sh' # Adds an alias for the `restart` command for restarting systemctl services
 alias wifi='. ~/nova_ws/src/rover/core/macros/wifi.sh'       # Allows easy connection to Wifi over command lines
+alias docgen='. ~/nova_ws/src/rover/core/macros/docgen.sh'       # Allows easy connection to Wifi over command lines
 
 # Directory Aliases
 alias nova='cd ~/nova_ws'
