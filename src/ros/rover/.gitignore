@@ -1,9 +1,12 @@
 # Documentation
 *.rst
+*.html
+*.css
+docs/build/html/
 !docs/source/index.rst
 !docs/source/conf.py
 !docs/source/modules.rst
-
+!docs/source/_static/custom.css
 
 ## IDEs
 ## vscode
