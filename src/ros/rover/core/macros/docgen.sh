@@ -13,7 +13,7 @@ for module in autonomous  control  core  electronics  science; do
     sphinx-apidoc -o ~/nova_ws/src/rover/docs/source $module
 done
 
-cd ~/nova_ws/src/docs
+cd ~/nova_ws/src/rover/docs/
 make html
 
-firefox build/index.html
+firefox build/html/index.html
