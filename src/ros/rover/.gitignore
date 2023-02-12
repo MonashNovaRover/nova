@@ -1,3 +1,10 @@
+# Documentation
+*.rst
+!docs/source/index.rst
+!docs/source/conf.py
+!docs/source/modules.rst
+
+
 ## IDEs
 ## vscode
 .vscode/
