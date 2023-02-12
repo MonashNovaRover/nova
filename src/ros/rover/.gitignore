@@ -3,6 +3,7 @@
 *.html
 *.css
 *.doctree
+*.pickle
 docs/build/html/
 !docs/source/index.rst
 !docs/source/conf.py
