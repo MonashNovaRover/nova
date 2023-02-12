@@ -2,6 +2,7 @@
 *.rst
 *.html
 *.css
+*.doctree
 docs/build/html/
 !docs/source/index.rst
 !docs/source/conf.py
