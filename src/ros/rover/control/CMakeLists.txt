@@ -18,16 +18,31 @@ find_package(rclcpp REQUIRED)
 find_package(rclpy REQUIRED)
 # Find and include message types dependencies
 find_package(core REQUIRED)
-set(JCAN_CPP ${CMAKE_SOURCE_DIR}/include/jcan/jcan.cc)
-set(JCAN_LIB ${CMAKE_SOURCE_DIR}/include/jcan/${CMAKE_STATIC_LIBRARY_PREFIX}jcan${CMAKE_STATIC_LIBRARY_SUFFIX})
 # Needed for jcan
 find_package (Threads REQUIRED)
 # Add include directories for all targets
-include_directories(
-        ${CMAKE_CURRENT_SOURCE_DIR}/include
-        # ${CMAKE_CURRENT_SOURCE_DIR}/include/jcan
-        ${CMAKE_CURRENT_SOURCE_DIR}/src
-)
+# Find system architecture to build with correct jcan version
+EXECUTE_PROCESS( COMMAND uname -m COMMAND tr -d '\n' OUTPUT_VARIABLE ARCHITECTURE )
+
+if( ${ARCHITECTURE} STREQUAL "x86_64" )
+  set(JCAN_CPP ${CMAKE_SOURCE_DIR}/include/jcan_x86_64/jcan.cc)
+  set(JCAN_LIB ${CMAKE_SOURCE_DIR}/include/jcan_x86_64/${CMAKE_STATIC_LIBRARY_PREFIX}jcan${CMAKE_STATIC_LIBRARY_SUFFIX})
+  # Add include directories for all targets
+  include_directories(
+          ${CMAKE_CURRENT_SOURCE_DIR}/include
+          ${CMAKE_CURRENT_SOURCE_DIR}/include/jcan_x86_64
+          ${CMAKE_CURRENT_SOURCE_DIR}/src
+  )
+else()
+  set(JCAN_CPP ${CMAKE_SOURCE_DIR}/include/jcan_jetson/jcan.cc)
+  set(JCAN_LIB ${CMAKE_SOURCE_DIR}/include/jcan_jetson/${CMAKE_STATIC_LIBRARY_PREFIX}jcan${CMAKE_STATIC_LIBRARY_SUFFIX})
+  # Add include directories for all targets
+  include_directories(
+          ${CMAKE_CURRENT_SOURCE_DIR}/include
+          ${CMAKE_CURRENT_SOURCE_DIR}/include/jcan_jetson
+          ${CMAKE_CURRENT_SOURCE_DIR}/src
+  )
+endif()
 ################################################
 # Add non-executable targets:
 ################################################
@@ -87,7 +102,7 @@ target_link_libraries(pid_tuner cmd print)
 ament_target_dependencies(pid_tuner rclcpp core)
 # Testing script
 add_executable(cmd_test src/cmd/cmd_test.cpp)
-target_link_libraries(cmd_test blcmd print)
+target_link_libraries(cmd_test blcmd print jcan)
 ################################################
 # Add Installations
 ################################################
