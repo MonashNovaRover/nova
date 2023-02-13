@@ -20,7 +20,7 @@ EDITED:		13/09/2022
 #include <iostream>
 
 // CAN include
-#include "jcan/jcan.h"
+#include "jcan.h"
 
 
 // Specifies the command used
