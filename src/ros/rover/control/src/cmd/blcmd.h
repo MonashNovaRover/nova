@@ -22,10 +22,16 @@ EDITED:		01/02/2023
 #include <iostream>
 #include <vector>
 #include <iterator>
+#include <cmath>
+#include <functional>
+#include <chrono>
 
 // CAN include
-#include "jcan/jcan.h"
+#include "jcan.h"
 
+const double max_velocity = 2*M_PI;
+const double max_position = M_PI;
+const double min_position = -M_PI;
 
 // Specifies the command used
 enum BLCMDSendCommand {
@@ -120,8 +126,8 @@ class BLCMD {
     //------------------------------------------------------------//
     private:
 
-    // CAN bus ID (0 or 1)
-    int bus;
+    // Can bus to use
+    std::string bus;
 
     // BLCMD ID. BLCMD responds to CAN IDs in the range ID << 4 to ID << 4 + F
     int id;
@@ -192,7 +198,7 @@ class BLCMD {
     /// @param      direction - Direction for the CMD. Determined by hardware
     /// @param      stop_mode - Default stop mode of the CMD. STOP or PID (handbrake)
     /// @param      scaling_factor - Factor to multiply by input to convert from angular velocity (rad/s) to BLCMD command (unitless)
-    BLCMD (const int bus, const int id, BLCMDSendCommand drive_mode, const bool direction=0, BLCMDSendCommand stop_mode=DRIVE_VELOCITY, double scaling_factor=1);
+    BLCMD (const std::string bus, const int id, BLCMDSendCommand drive_mode, const bool direction=0, BLCMDSendCommand stop_mode=DRIVE_VELOCITY, double scaling_factor=1);
 
     /// @brief      Destructor is called when object is deleted
     ~BLCMD ();
@@ -243,12 +249,14 @@ class BLCMD {
     /// @brief      Gets a packet of telemetry and fills the relevant fields of a telemetry struct.
     /// @param      packet_num - the telemetry packet to get.
     /// @param      telemetry - pointer to a telemetry struct to get filled.
-    void get_telemetry_packet (TelemetryPacket packet_num, BLCMDTelemetry* telemetry);
+    bool get_telemetry_packet (std::vector<TelemetryPacket> packet_nums, BLCMDTelemetry* telemetry,
+                               std::chrono::milliseconds timeout = std::chrono::milliseconds(50));
 
     /// @brief      Gets all packets of telemetry.
-    /// @param      packet_num - the telemetry packet to get.
+    /// @param      telemetry - a pointer to a telemetry struct to fill
+    /// @param      timeout - the timeout for the CAN read
     /// @returns    A struct containing the data
-    BLCMDTelemetry get_telemetry ();
+    std::vector<bool> get_telemetry(BLCMDTelemetry* telemetry, std::chrono::milliseconds timeout = std::chrono::milliseconds(50));
 
     /// @brief      Gets a signle config variable from the blcmd.
     /// @param      var - the variable to get.

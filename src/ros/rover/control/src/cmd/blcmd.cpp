@@ -13,6 +13,7 @@ AUTHOR(S):	Harrison Verrios, Josh Cherubino, Jory Braun, Taaj Street
 #define _USE_MATH_DEFINES
 #include <cmath>
 
+using namespace org::jcan;
 
 std::ostream& operator << (std::ostream& o, BLCMDTelemetry& tel) {
     o << "Rotor Velocity    : " << tel.rotor_velocity << std::endl <<
@@ -27,7 +28,7 @@ std::ostream& operator << (std::ostream& o, BLCMDTelemetry& tel) {
     return o;
 }
 using namespace org::jcan;
-BLCMD::BLCMD (const int bus, const int id, BLCMDSendCommand drive_mode, const bool direction, BLCMDSendCommand stop_mode, double scaling_factor) :
+BLCMD::BLCMD (const std::string bus, const int id, BLCMDSendCommand drive_mode, const bool direction, BLCMDSendCommand stop_mode, double scaling_factor) :
     bus(bus), id(id), drive_mode(drive_mode), direction(direction), stop_mode(stop_mode), scaling_factor(scaling_factor), already_stopped(false)
 {    
     // Set max speed
@@ -37,9 +38,8 @@ BLCMD::BLCMD (const int bus, const int id, BLCMDSendCommand drive_mode, const bo
 
     // Set up the CAN interface with the correct bus
     //TODO: Proper error handling
-    can_bus = org::jcan::open_bus(
-         bus ? (bus == 1) ? "can1" : "vcan0" : "can1"
-    ).into_raw();
+    can_bus = org::jcan::open_bus(bus).into_raw();
+
 }
 
 
@@ -84,6 +84,9 @@ void BLCMD::stop ()
             write_frame_no_data(BLCMDSendCommand::STOP);
             break;
         case DRIVE_VELOCITY: drive(0.0);
+            break;
+        default:
+            drive(0.0);
     }
 }
 
@@ -120,7 +123,18 @@ void BLCMD::set_stop_mode (BLCMDSendCommand stop_mode)
 void BLCMD::drive (float value)
 {
 
+    // If the motor has already been stopped do not send more stop commands
+   if (value == 0.0 && drive_mode != DRIVE_POSITION) {
+       if (already_stopped) {
+           return;
+       } else {
+           already_stopped = true;
+       }
+   } else {
+       already_stopped = false;
+    }
 
+    // If the BLCMD is in position mode, scale the input value to radians
     if (drive_mode == DRIVE_POSITION){
         // map (-π,π) → (-1,1)
         value = value / M_PI;
@@ -191,40 +205,54 @@ bool BLCMD::zero_resolver()
     }
 }
 
-void BLCMD::get_telemetry_packet(TelemetryPacket packet_num, BLCMDTelemetry* telemetry)
+bool BLCMD::get_telemetry_packet (std::vector<TelemetryPacket> packet_nums, BLCMDTelemetry* telemetry, std::chrono::milliseconds timeout)
 {
-    can_bus->set_id_filter({make_can_id(packet_num)});
-    Frame packet = can_bus->receive();
-
-    switch (packet_num){
-        case PACKET_1:
-            telemetry->rotor_velocity = int16_bytes_to_double(&packet.data[0]);
-            telemetry->q_current = int16_bytes_to_double(&packet.data[2]);
-            break;
-        case PACKET_2:
-            telemetry->rotor_interval = uint16_bytes_to_double(&packet.data[0]);
-            telemetry->d_current = int16_bytes_to_double(&packet.data[2]);
-            break;
-        case PACKET_3:
-            telemetry->resolver_position = int16_bytes_to_double(&packet.data[0]);
-            telemetry->resolver_velocity = int16_bytes_to_double(&packet.data[2]);
-            break;
-        case PACKET_4:
-            telemetry->power = uint16_bytes_to_double(&packet.data[0]);
-            telemetry->voltage = uint16_bytes_to_double(&packet.data[2]);
-            telemetry->temp = uint16_bytes_to_double(&packet.data[4]);
-            break;
-    }
+    return false;
 }
 
-BLCMDTelemetry BLCMD::get_telemetry()
+
+
+std::vector<bool> BLCMD::get_telemetry(BLCMDTelemetry* telemetry, std::chrono::milliseconds timeout)
 {
-    BLCMDTelemetry telemetry;
-    get_telemetry_packet(PACKET_1, &telemetry);
-    get_telemetry_packet(PACKET_2, &telemetry);
-    get_telemetry_packet(PACKET_3, &telemetry);
-    get_telemetry_packet(PACKET_4, &telemetry);
-    return telemetry;
+    // Set the CAN bus to listen for all the packets
+    can_bus->set_id_filter({make_can_id(PACKET_1), make_can_id(PACKET_2), make_can_id(PACKET_3), make_can_id(PACKET_4)});
+
+    auto start = std::chrono::steady_clock::now();
+    auto end = start + timeout;
+
+    // Initialize a vector of booleans to keep track of which packets have been recieved
+    std::vector<bool> received(4, false);
+
+    while (std::chrono::steady_clock::now() < end){
+        auto frames = can_bus->receive_nonblocking();
+        for (auto frame : frames){
+            uint16_t packet = frame.id;
+            switch (packet){
+                case PACKET_1:
+                    telemetry->rotor_velocity = int16_bytes_to_double(&frame.data[0]);
+                    telemetry->q_current = int16_bytes_to_double(&frame.data[2]);
+                     received[0] = true;
+                    break;
+                case PACKET_2:
+                    telemetry->rotor_interval = uint16_bytes_to_double(&frame.data[0]);
+                    telemetry->d_current = int16_bytes_to_double(&frame.data[2]);
+                    received[1] = true;
+                    break;
+                case PACKET_3:
+                    telemetry->resolver_position = int16_bytes_to_double(&frame.data[0])*max_position;
+                    telemetry->resolver_velocity = int16_bytes_to_double(&frame.data[2])*max_velocity;
+                    received[2] = true;
+                    break;
+                case PACKET_4:
+                    telemetry->power = uint16_bytes_to_double(&frame.data[0]);
+                    telemetry->voltage = uint16_bytes_to_double(&frame.data[2]);
+                    telemetry->temp = uint16_bytes_to_double(&frame.data[4]);
+                    received[3] = true;
+                    break;
+            }
+        }
+    }
+    return received;
 }
 
 void BLCMD::get_config_variable(ConfigVar var, BLCMDConfig *config)
