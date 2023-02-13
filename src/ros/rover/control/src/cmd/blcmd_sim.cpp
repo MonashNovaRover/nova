@@ -191,7 +191,6 @@ int main(int argc, char **argv)
     thread back_left_pivot_thread(&BLCMDSim::run, back_left_pivot);
     thread back_right_wheel_thread(&BLCMDSim::run, back_right_wheel);
     thread back_right_pivot_thread(&BLCMDSim::run, back_right_pivot);
-
     // Join the threads
     front_left_wheel_thread.join();
     front_left_pivot_thread.join();

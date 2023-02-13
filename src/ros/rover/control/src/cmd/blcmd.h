@@ -23,6 +23,8 @@ EDITED:		01/02/2023
 #include <vector>
 #include <iterator>
 #include <cmath>
+#include <functional>
+#include <chrono>
 
 // CAN include
 #include "jcan.h"
@@ -247,12 +249,14 @@ class BLCMD {
     /// @brief      Gets a packet of telemetry and fills the relevant fields of a telemetry struct.
     /// @param      packet_num - the telemetry packet to get.
     /// @param      telemetry - pointer to a telemetry struct to get filled.
-    void get_telemetry_packet (TelemetryPacket packet_num, BLCMDTelemetry* telemetry);
+    bool get_telemetry_packet (std::vector<TelemetryPacket> packet_nums, BLCMDTelemetry* telemetry,
+                               std::chrono::milliseconds timeout = std::chrono::milliseconds(50));
 
     /// @brief      Gets all packets of telemetry.
-    /// @param      packet_num - the telemetry packet to get.
+    /// @param      telemetry - a pointer to a telemetry struct to fill
+    /// @param      timeout - the timeout for the CAN read
     /// @returns    A struct containing the data
-    BLCMDTelemetry get_telemetry ();
+    std::vector<bool> get_telemetry(BLCMDTelemetry* telemetry, std::chrono::milliseconds timeout = std::chrono::milliseconds(50));
 
     /// @brief      Gets a signle config variable from the blcmd.
     /// @param      var - the variable to get.
