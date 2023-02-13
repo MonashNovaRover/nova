@@ -21,7 +21,7 @@ SERVICES: None
 ACTIONS:  None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	control
-AUTHOR(S):  Harrison Verrios, Josh Cherubino,
+AUTHOR(S):  Taaj Street, Harrison Verrios, Josh Cherubino,
             Will de la Rue, Jory Braun
 CREATION:	21/11/2021
 EDITED:		13/09/2022
@@ -36,6 +36,9 @@ EDITED:		13/09/2022
 #include "core/msg/single_telemetry.hpp"
 #include "core/msg/pivot_wheel_data.hpp"
 #include "std_msgs/msg/bool.hpp"
+
+// Include other headers
+#include<cmath>
 
 // Include CMD class
 #include "cmd/blcmd.h"
