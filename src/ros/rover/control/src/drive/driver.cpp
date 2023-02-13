@@ -3,12 +3,9 @@
 Monash Nova Rover Team
 
 PACKAGE: 	control
-AUTHOR(S):	Harrison Verrios, Josh Cherubino, Will de la Rue, Jory Braun, Tristan Clark, Abigail Lithwick, Taaj Street
+AUTHOR(S):	Taaj Street, Harrison Verrios, Josh Cherubino, Will de la Rue, Jory Braun, Tristan Clark, Abigail Lithwick
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-
-// Include math library
-#include <cmath>
 
 // Include the header file
 #include "driver.h"
@@ -187,8 +184,10 @@ void Driver::pub_telemetry() {
         core::msg::SingleTelemetry pivot_msg;
 
         // Get the telemetry from the wheel and pivot
-        BLCMDTelemetry wheel_tel = pivot->cmdWheel->get_telemetry();
-        BLCMDTelemetry pivot_tel = pivot->cmdPivot->get_telemetry();
+        BLCMDTelemetry wheel_tel;
+        pivot->cmdWheel->get_telemetry(&wheel_tel, ROSTimers::blcmds_telemetry);
+        BLCMDTelemetry pivot_tel;
+        pivot->cmdPivot->get_telemetry(&pivot_tel, ROSTimers::blcmds_telemetry);
 
         // Fill the wheel message from wheel telemetry
         wheel_msg.bus = this->get_parameter("canbus").get_parameter_value().get<std::string>();
