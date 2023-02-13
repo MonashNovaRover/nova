@@ -226,28 +226,36 @@ std::vector<bool> BLCMD::get_telemetry(BLCMDTelemetry* telemetry, std::chrono::m
     while (std::chrono::steady_clock::now() < end){
         auto frames = can_bus->receive_nonblocking();
         for (auto frame : frames){
-            uint16_t packet = frame.id;
+            uint16_t packet = frame.id & 0x000F;
             switch (packet){
                 case PACKET_1:
-                    telemetry->rotor_velocity = int16_bytes_to_double(&frame.data[0]);
-                    telemetry->q_current = int16_bytes_to_double(&frame.data[2]);
-                     received[0] = true;
+                    if (!received[0]) {
+                        telemetry->rotor_velocity = int16_bytes_to_double(&frame.data[0]);
+                        telemetry->q_current = int16_bytes_to_double(&frame.data[2]);
+                        received[0] = true;
+                    }
                     break;
                 case PACKET_2:
-                    telemetry->rotor_interval = uint16_bytes_to_double(&frame.data[0]);
-                    telemetry->d_current = int16_bytes_to_double(&frame.data[2]);
-                    received[1] = true;
+                    if (!received[1]) {
+                        telemetry->rotor_interval = uint16_bytes_to_double(&frame.data[0]);
+                        telemetry->d_current = int16_bytes_to_double(&frame.data[2]);
+                        received[1] = true;
+                    }
                     break;
                 case PACKET_3:
-                    telemetry->resolver_position = int16_bytes_to_double(&frame.data[0])*max_position;
-                    telemetry->resolver_velocity = int16_bytes_to_double(&frame.data[2])*max_velocity;
-                    received[2] = true;
+                    if (!received[2]){
+                        telemetry->resolver_position = int16_bytes_to_double(&frame.data[0])*max_position;
+                        telemetry->resolver_velocity = int16_bytes_to_double(&frame.data[2])*max_velocity;
+                        received[2] = true;
+                    }
                     break;
                 case PACKET_4:
-                    telemetry->power = uint16_bytes_to_double(&frame.data[0]);
-                    telemetry->voltage = uint16_bytes_to_double(&frame.data[2]);
-                    telemetry->temp = uint16_bytes_to_double(&frame.data[4]);
-                    received[3] = true;
+                    if (!received[3]) {
+                        telemetry->power = uint16_bytes_to_double(&frame.data[0]);
+                        telemetry->voltage = uint16_bytes_to_double(&frame.data[2]);
+                        telemetry->temp = uint16_bytes_to_double(&frame.data[4]);
+                        received[3] = true;
+                    }
                     break;
             }
         }
