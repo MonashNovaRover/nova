@@ -103,6 +103,9 @@ ament_target_dependencies(pid_tuner rclcpp core)
 # Testing script
 add_executable(cmd_test src/cmd/cmd_test.cpp)
 target_link_libraries(cmd_test blcmd print jcan)
+# blcmd sim script
+add_executable(blcmd_sim src/cmd/blcmd_sim.cpp)
+target_link_libraries(blcmd_sim blcmd)
 ################################################
 # Add Installations
 ################################################
