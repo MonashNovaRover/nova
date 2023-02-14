@@ -267,7 +267,7 @@ void ArmInputs::start_node()
     rclcpp::QoS joystick_qos = rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline);
 
     // Creates the input subscription for the left joystick (with QoS options)
-    this->create_subscription<core::msg::InputJoystick>(
+    joystick_l_sub = this->create_subscription<core::msg::InputJoystick>(
         "/control/input_joystick_l",
         joystick_qos,
         std::bind(&ArmInputs::joystick_l_callback, this, _1),
@@ -275,7 +275,7 @@ void ArmInputs::start_node()
     );
 
     // Creates the input subscription for the right joystick (with QoS options)
-    this->create_subscription<core::msg::InputJoystick>(
+    joystick_r_sub = this->create_subscription<core::msg::InputJoystick>(
         "/control/input_joystick_r",
         joystick_qos,
         std::bind(&ArmInputs::joystick_r_callback, this, _1),
@@ -283,7 +283,7 @@ void ArmInputs::start_node()
     );
 
     // Create timer and publisher for endeffector_inputs
-    this->create_wall_timer(
+    endeffector_pub_timer = this->create_wall_timer(
         ROSTimers::arm_control, std::bind(&ArmInputs::publish_endeffector_inputs, this)
     );
     endeffector_pub = this->create_publisher<core::msg::EndEffectorInput>(
@@ -291,7 +291,7 @@ void ArmInputs::start_node()
     );
 
     // Create timer and publisher for joystick_joint_velocities and joystick_twist
-    this->create_wall_timer(
+    inputs_pub_timer = this->create_wall_timer(
         ROSTimers::arm_control, std::bind(&ArmInputs::publish_inputs, this)
     );
     joint_velocities_pub = this->create_publisher<sensor_msgs::msg::JointState>(
@@ -302,7 +302,7 @@ void ArmInputs::start_node()
     );
 
     // Create timer and publisher for control_scheme
-    this->create_wall_timer(
+    control_scheme_pub_timer = this->create_wall_timer(
         ROSTimers::arm_control, std::bind(&ArmInputs::publish_control_scheme, this)
     );    
     control_scheme_pub = this->create_publisher<core::msg::ArmControlScheme>(

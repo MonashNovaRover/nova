@@ -87,9 +87,9 @@ class FlatMapper(Mapper):
         self.initialise_transforms()
 
         if self.param_roll_map:
-            self.create_timer(1, self.check_position_in_map)
-        self.create_timer(1./self.param_tf_pub_hz, self.pub_transform)
-        self.create_timer(1./self.param_tf_sub_hz, self.update_transforms)
+            self.map_roll_timer = self.create_timer(1, self.check_position_in_map)
+        self.pub_transform_timer = self.create_timer(1./self.param_tf_pub_hz, self.pub_transform)
+        self.map_transform_timer = self.create_timer(1./self.param_tf_sub_hz, self.update_transforms)
 
     def initialise_map(self):
         self._map = Grid2D(self.length, self.width, self.planning_resolution)
