@@ -47,6 +47,7 @@ alias fleet='cd ~/nova_ws/src/fleet'
 # Camera Aliases
 alias auto_cameras='ros2 launch realsense2-camera rs_d400_and_t265_launch.py'
 alias auto_view='rviz2 -d ~/nova_ws/src/rover/autonomous/config/auto.rviz'
+alias arm_view='rviz2 -d ~/nova_ws/src/rover/control/rviz/arm_viz_2023.rviz'
 
 # Networking Aliases
 alias jetson='ssh -Y nvidia@192.168.1.204'
@@ -64,9 +65,12 @@ alias arm='ros2 launch core arm.launch.py'
 alias arm_spoof='ros2 launch core arm_spoof.launch.py'
 alias sci='ros2 launch core science.launch.py'
 alias unity='ros2 launch core visualisation.launch.py'
+alias auto_base='ros2 launch core auto_base.launch.py'
+alias auto_rover='ros2 launch core auto_rover.launch.py'
 
 # Service Aliases
 alias arm_config_info='ros2 service call control/arm_config_info core/srv/ArmConfigInfo'
+alias arm_reset_control_pose='ros2 service call control/arm_reset_control_pose std_srvs/srv/Trigger'
 alias zero_resolver='~/nova_ws/src/rover/core/macros/zero_resolver.sh'
 
 # eduroam connection

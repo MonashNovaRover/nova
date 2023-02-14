@@ -50,10 +50,6 @@ class ResolverSpoofer : public ArmConfigInfoClient
     // Store the angles for each joint at which to set the periodic angle discontinuity
     std::vector<float> joint_discontinuity_angles;
 
-    // Subscriber to listen for output joint velocity commands
-    rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr outputs_subscription;
-    // Timer for publishing to /electronics/resolvers
-    rclcpp::TimerBase::SharedPtr publisher_timer;
     // Publisher to resolvers
     rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr resolver_publisher;
 

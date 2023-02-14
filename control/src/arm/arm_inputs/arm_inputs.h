@@ -6,31 +6,26 @@ Monash Nova Rover Team
 
 This class reads data from the raw joystick inputs
     and converts them to arm input messages.
-This does not interface with the CMD library, but
-    instead can be run on the base station to send
-    arm data across the network.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: arm_inputs
 TOPICS:
-  - /control/input_joystick_l          [core/InputJoystick]         [Subscribed]
-  - /control/input_joystick_r          [core/InputJoystick]         [Subscribed]
-  - /control/endeffector_input         [core/EndEffectorInput]      [Published]
-  - /control/task_velocity             [sensor_msgs/TwistStamped]   [Published]
-  - /control/input_joint_velocities    [sensor_msgs/JointState]     [Published]
-  - /control/arm_control_scheme        [core/ArmControlScheme]      [Published]
+  - /control/input_joystick_l            [core/InputJoystick]          [Subscribed]
+  - /control/input_joystick_r            [core/InputJoystick]          [Subscribed]
+  - /control/endeffector_input           [core/EndEffectorInput]       [Published]
+  - /control/joystick_joint_velocities   [sensor_msgs/JointState]      [Published]
+  - /control/joystick_twist              [geometry_msgs/TwistStamped]  [Published]
+  - /control/arm_control_scheme          [core/ArmControlScheme]       [Published]
 SERVICES: None
 ACTIONS:  None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	control
 AUTHOR(S):  Jess Hepworth, Jory Braun
 CREATION:	02/12/2021
-EDITED:		28/04/2022
+EDITED:		07/10/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
- - Add in additional inputs for linear actuate
- - Test with CMD code with subscriber
- - Naming of joint_velocities topic to not clash with joint_velocities_ik
+ - 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
@@ -47,6 +42,8 @@ TODO:
 // Include libraries
 #include "arm_config_info_client.h"
 
+// Position control enable override
+#define POSITION_CONTROL_ENABLE 0
 
 /* 
 Arm input class that handles input data from joysticks and publishes 
@@ -57,25 +54,15 @@ class ArmInputs : public ArmConfigInfoClient
     //------------------------------------------------------------//
     private:
 
-    // Stores the loop timers for the update functions
-    rclcpp::TimerBase::SharedPtr timer;
-    rclcpp::TimerBase::SharedPtr timer_joint;
-    rclcpp::TimerBase::SharedPtr timer_task;
-    rclcpp::TimerBase::SharedPtr control_scheme_timer;
-
     // Stores the publishers for arm inputs
-    rclcpp::Publisher<core::msg::EndEffectorInput>::SharedPtr endeffector_publisher;
-    rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr joint_vel_publisher;
-    rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr task_vel_publisher;
-    rclcpp::Publisher<core::msg::ArmControlScheme>::SharedPtr control_scheme_publisher;
-
-    // Stores the subscribers to the joystick inputs
-    rclcpp::Subscription<core::msg::InputJoystick>::SharedPtr joystick_l_subscription;
-    rclcpp::Subscription<core::msg::InputJoystick>::SharedPtr joystick_r_subscription;
+    rclcpp::Publisher<core::msg::EndEffectorInput>::SharedPtr endeffector_pub;
+    rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr joint_velocities_pub;
+    rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr twist_pub;
+    rclcpp::Publisher<core::msg::ArmControlScheme>::SharedPtr control_scheme_pub;
 
     // Stores messages to be published
     sensor_msgs::msg::JointState joint_velocities;
-    geometry_msgs::msg::TwistStamped task_velocities;
+    geometry_msgs::msg::TwistStamped twist;
     core::msg::ArmControlScheme control_scheme;
 
     // Store state of last-received messages
@@ -86,7 +73,7 @@ class ArmInputs : public ArmConfigInfoClient
     typedef struct {
         // Multiplier for all inputs
         // Tune this to adjust the max velocity of all joints
-        float all_inputs = 0.70;
+        float all_inputs = 0.30;
         // Separate multipliers for each set of inputs
         // Tune these so joints move at reasonable speeds relative to each other
         float wrist_joints = 1.20;
@@ -112,11 +99,14 @@ class ArmInputs : public ArmConfigInfoClient
 
     /// @brief      Publishes desired joint velocities
     ///             Published as a joint-space vector in rad/s
-    void publish_joint_vel ();
+    void publish_joint_velocities ();
 
     /// @brief      Publishes desired task velocity
     ///             Published as a twist vector in m/s and rad/s
-    void publish_task_vel ();
+    void publish_twist ();
+
+    /// @brief      Publishes desired joint velocities and task velocity
+    void publish_inputs();
 
     /// @brief      Publishes control scheme data
     void publish_control_scheme ();

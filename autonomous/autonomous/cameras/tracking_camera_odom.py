@@ -7,7 +7,7 @@ from nav_msgs.msg import Odometry
 from core.msg import RoverPose, DriveVel, WheelData 
 import math
 import math_utils.transform as transform
-from config.ros_config import tracking_camera_extrinsics, main_frame, camera_pose_topic, rover_pose_topic
+from config.ros_config import tracking_camera_extrinsics, camera_pose_topic, rover_pose_topic
 
 # different systems seem to install the pyrealsense wrapper differently
 try:
@@ -42,7 +42,7 @@ class TrackingCamera(Node):
         self.wheel_velocity = rs.vector() # holds wheel velocity input
         
         print("creating wheel subscriber")
-        self.wheel_subscriber = self.create_subscription(WheelData, "/electronics/wheel_data", self.update_wheel_vel, 10)
+        self.create_subscription(WheelData, "/electronics/wheel_data", self.update_wheel_vel, 10)
 
         # Build config object and request pose data
         self.cfg = rs.config()
@@ -74,7 +74,7 @@ class TrackingCamera(Node):
         self.pipe.start(self.cfg)
         #self.pipe_pose.start(self.cfg_pose) 
         print('Pipes started')
-        self.pub_timer = self.create_timer(1.0/float(PUBLISH_RATE), self.get_next_pose) 
+        self.create_timer(1.0/float(PUBLISH_RATE), self.get_next_pose) 
     def transform_t265_to_nova(self, data):
         """
         Transform the raw T265 data into a ROS Odom message, with the right handed coorddinate system 
@@ -86,7 +86,7 @@ class TrackingCamera(Node):
         t265_msg = Odometry()
 
         t265_msg.header.stamp = self.get_clock().now().to_msg()
-        t265_msg.header.frame_id = main_frame
+        t265_msg.header.frame_id = 't265'
 
         t265_msg.pose.pose.position.x = -data.translation.z
         t265_msg.pose.pose.position.y = -data.translation.x

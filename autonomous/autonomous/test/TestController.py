@@ -13,8 +13,8 @@ class TestController(Node):
 
         self.pose_publisher = self.create_publisher(RoverPose, "autonomous/pose", 10)
         self.waypt_publisher = self.create_publisher(Waypoint, "autonomous/goals", 10)
-        self.drive_subscriber = self.create_subscription(DriveCmd, "auto_drive_commands", self.update_pose, 10)
-        self.timer = self.create_timer(0.1, self.publish_waypoint)
+        self.create_subscription(DriveCmd, "auto_drive_commands", self.update_pose, 10)
+        self.create_timer(0.1, self.publish_waypoint)
 
     def update_pose(self, msg):
         dist = msg.drive * 0.1

@@ -122,14 +122,14 @@ void PIDTuner::publish_velocity () {
     message.id = this->id;
 
     // Get the data
-    CMDData data = this->get_cmd()->receive_feedback();
+    CMDFeedback data = this->get_cmd()->receive_feedback();
 
     // Get the data
-    message.omega = data.rpm;
-    message.duty_cycle = data.power;
+    message.omega = data.omega;
+    message.duty_cycle = data.duty_cycle;
 
     // Make sure data is valid
-    if (data.rpm != 0 || data.power != 0) {
+    if (data.omega != 0 || data.duty_cycle != 0) {
 
         // Publish the data
         publisher->publish(message);
@@ -142,7 +142,7 @@ PIDTuner::PIDTuner () : Node("pid_tuner")
 {
 
     // Create the service and bind to the function
-    service = this->create_service<core::srv::PIDTune>(
+    this->create_service<core::srv::PIDTune>(
         "/control/pid_tune", std::bind(&PIDTuner::select_device, this, _1, _2)
     );
 
@@ -150,8 +150,8 @@ PIDTuner::PIDTuner () : Node("pid_tuner")
     publisher = this->create_publisher<core::msg::CMDFeedback>("/control/cmd_feedback", 10);
 
     // Create timers
-    velocity_timer = this->create_wall_timer(ROSTimers::pid_tuner_control, std::bind(&PIDTuner::send_velocity, this));
-    feedback_timer = this->create_wall_timer(ROSTimers::pid_tuenr_feedback, std::bind(&PIDTuner::publish_velocity, this));
+    this->create_wall_timer(ROSTimers::pid_tuner_control, std::bind(&PIDTuner::send_velocity, this));
+    this->create_wall_timer(ROSTimers::pid_tuenr_feedback, std::bind(&PIDTuner::publish_velocity, this));
 
     // Output set-up messages
     Print::title("PID TUNER");
@@ -164,12 +164,12 @@ PIDTuner::PIDTuner () : Node("pid_tuner")
 
     // Construct the array of wheels
     for (int i = 0; i < NUM_WHEELS; i++) {
-        bus_0[i] = new CMD(0, i + 1, PID, PID);
+        bus_0[i] = new CMD(0, i + 1, PID, 0, PID);
     }
 
     // Construct the array of arm devices
     for (int i = 0; i < NUM_ARM_DEVICES; i++) {
-        bus_1[i] = new CMD(1, i + 1, PID, PID);
+        bus_1[i] = new CMD(1, i + 1, PID, 0, PID);
     }
 }
 

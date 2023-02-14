@@ -146,11 +146,11 @@ DriveInputs::DriveInputs() : Node("drive_inputs")
     };
 
     // Creates the input subscription
-    subscription = this->create_subscription<core::msg::InputGamepad>(
+    this->create_subscription<core::msg::InputGamepad>(
         "/control/input_gamepad", qos, std::bind(&DriveInputs::input_callback, this, _1), subscriber_options);
 
     // Creates a timer function that runs a function on loop every 0.05 seconds
-    timer = this->create_wall_timer(ROSTimers::drive_control, std::bind(&DriveInputs::publish_cmds, this));
+    this->create_wall_timer(ROSTimers::drive_control, std::bind(&DriveInputs::publish_cmds, this));
 
     // Output set-up messages
     Print::title("DRIVE INPUTS");

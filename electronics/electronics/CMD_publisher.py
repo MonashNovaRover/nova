@@ -165,15 +165,15 @@ class CMDPublisher (Node):
         self.publisher = self.create_publisher(CMDsFeedback, "/electronics/cmd_feedback", 10)
 
         # Create a subscriber to drive commands
-        #self.subscription_man = self.create_subscription(DriveInput, "/control/drive_inputs", self.drive_callback, qos)
-        #self.subscription_auto = self.create_subscription(DriveInput, "/autonomous/drive_inputs",  self.drive_callback, 10)
+        #self.create_subscription(DriveInput, "/control/drive_inputs", self.drive_callback, qos)
+        #self.create_subscription(DriveInput, "/autonomous/drive_inputs",  self.drive_callback, 10)
 
         # Create a time to constantly loop and check for data
-        self.read_timer = self.create_timer(1.0/float(POLL_RATE), self.read_callback)
+        self.create_timer(1.0/float(POLL_RATE), self.read_callback)
 
         # Create a timer to publish the current data. Otherwise, it will be published after every read
         if not TUNING_PID:
-            self.pub_timer = self.create_timer(1.0/float(PUBLISH_RATE), self.publish_feedback)
+            self.create_timer(1.0/float(PUBLISH_RATE), self.publish_feedback)
 
         # Log initialisation information
         self.get_logger().debug(f"Initialised the Wheel Publisher class with:"\

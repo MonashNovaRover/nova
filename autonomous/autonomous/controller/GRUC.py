@@ -57,12 +57,12 @@ from controller.ar_tag_manager import ArTagManager
 from controller.spin_controller import SpinController
 
 # autonomous imports
-from math_utils.controller_math import *
-from config.runtime_params import *
-from config.ros_config import *
-from planning.path_planner import PathPlanner
-from controller.turning import YawStarTurner
-from controller.drive_controller import DriveController
+from autonomous.math_utils.controller_math import *
+from autonomous.config.runtime_params import *
+from autonomous.config.ros_config import *
+from autonomous.planning.path_planner import PathPlanner
+from autonomous.controller.turning import YawStarTurner
+from autonomous.controller.drive_controller import DriveController
 
 # misc
 from enum import Enum
@@ -138,7 +138,7 @@ class Controller(Node):
         super().__init__('autonomous_controller_node')
 
         # set debug to not get shown
-        self.get_logger().set_level(LoggingSeverity.DEBUG)
+        self.get_logger().set_level(LoggingSeverity.INFO)
 
         # ~~~~~~~~~~ State ~~~~~~~~
         self.state_rover_pose = Pose2D()
@@ -176,19 +176,19 @@ class Controller(Node):
         self.pub_desired_destination = self.create_publisher(Point2D, planning_destination_topic, 10)
 
         # Subscribers
-        self.sub_rover_pose = self.create_subscription(RoverPose, rover_pose_topic, self.callback_rover_pose, 10)
-        self.sub_ar_tags = self.create_subscription(AlvarMarker, ar_track_topic, self.callback_ar_tag, 10)
-        self.sub_autonomous_goal = self.create_subscription(AutonomousGoal, auto_goal_topic,
+        self.create_subscription(RoverPose, rover_pose_topic, self.callback_rover_pose, 10)
+        self.create_subscription(AlvarMarker, ar_track_topic, self.callback_ar_tag, 10)
+        self.create_subscription(AutonomousGoal, auto_goal_topic,
                                                             self.callback_new_autonomous_goal, 10)
-        self.sub_planned_path_to_destination = self.create_subscription(Waypoints, auto_waypoints_topic,
+        self.create_subscription(Waypoints, auto_waypoints_topic,
                                                                         self.callback_planner_path, 10)
         # service for changing the LED
         self.srv_led_success = self.create_client(Trigger, "/autonomous/success")
         self.srv_led_start = self.create_client(Trigger, "/autonomous/start")
 
         # Timers
-        self.control_timer = self.create_timer(0.1, self.control)  # calculate and send drive commands
-        self.planning_timer = self.create_timer(1.0, self.plan)  # update planning state and plan paths
+        self.create_timer(0.1, self.control)  # calculate and send drive commands
+        self.create_timer(1.0, self.plan)  # update planning state and plan paths
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ State Transition Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
