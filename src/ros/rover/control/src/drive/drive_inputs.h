@@ -62,8 +62,14 @@ class DriveInputs : public rclcpp::Node {
     //------------------------------------------------------------//
     private:
 
+    // Stores the loop timer for the update function
+    rclcpp::TimerBase::SharedPtr timer;
+
     // Stores the publisher for the drive commands
     rclcpp::Publisher<core::msg::DriveInput>::SharedPtr publisher;
+
+    // Stores the subscriber to the gamepad inputs
+    rclcpp::Subscription<core::msg::InputGamepad>::SharedPtr subscription;
 
     // A flag for whether the controller is connected
     bool connected = false;

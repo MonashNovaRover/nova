@@ -10,16 +10,14 @@ It is able to publish information from the gamepad and both
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: input_pub
 TOPICS:
-  - /control/input_gamepad     [InputGamepad]     [Published]
-  - /control/input_joystick_l  [InputJoystick]    [Published]
-  - /control/input_joystick_r  [InputJoystick]    [Published]
+  - /control/input_gamepad [InputGamepad]
 SERVICES: None
 ACTIONS:  None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	  control
-AUTHOR(S):	Harrison Verrios, Jory
+AUTHOR(S):	Harrison Verrios
 CREATION:	  13/11/2021
-EDITED:		  11/01/2023
+EDITED:		  24/11/2021
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
@@ -39,6 +37,9 @@ class InputsPublisher : public rclcpp::Node {
 
     //------------------------------------------------------------//
     private:
+
+    // Stores the loop timer for the update function
+    rclcpp::TimerBase::SharedPtr timer;
 
     // Stores the publishers for each of the controllers
     rclcpp::Publisher<core::msg::InputGamepad>::SharedPtr gamepad_publisher;

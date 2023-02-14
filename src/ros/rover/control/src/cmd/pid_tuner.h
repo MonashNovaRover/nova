@@ -47,8 +47,17 @@ class PIDTuner : public rclcpp::Node {
     //------------------------------------------------------------//
     private:
 
+    // Stores the loop timer for the velocity function
+    rclcpp::TimerBase::SharedPtr velocity_timer;
+
+    // Stores the loop timer for the feedback function
+    rclcpp::TimerBase::SharedPtr feedback_timer;
+
     // Stores the publisher for the CMD feedbcak
     rclcpp::Publisher<core::msg::CMDFeedback>::SharedPtr publisher;
+
+    // Stores the service for the PID commands
+    rclcpp::Service<core::srv::PIDTune>::SharedPtr service;
 
     // Stores the arrays of CMDs for each bus
     CMD* bus_0 [NUM_WHEELS];
