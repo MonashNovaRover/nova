@@ -41,7 +41,7 @@ class RFIDService(Node):
             except:
                 time.sleep(1.0)
             
-        self.create_service(RFIDCommand, '/electronics/rfid_service', self.handle_rfid_request)   
+        self.srv = self.create_service(RFIDCommand, '/electronics/rfid_service', self.handle_rfid_request)   
         self.EOM = b'\r' # carriage ret for EOM
         self.get_logger().set_level(10) # FOR DEBUGGING
         self.get_logger().info('Started RFID service successfully!')

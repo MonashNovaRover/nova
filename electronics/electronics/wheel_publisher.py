@@ -100,14 +100,14 @@ class WheelPublisher (Node):
         self.publisher = self.create_publisher(WheelData, "/electronics/wheel_data", 10)
 
         # Create a subscriber to drive commands
-        self.create_subscription(DriveInput, "/control/drive_inputs", self.drive_callback, qos)
-        self.create_subscription(DriveInput, "/autonomous/drive_inputs",  self.drive_callback, 10)
+        self.subscription_man = self.create_subscription(DriveInput, "/control/drive_inputs", self.drive_callback, qos)
+        self.subscription_auto = self.create_subscription(DriveInput, "/autonomous/drive_inputs",  self.drive_callback, 10)
 
         # Create a time to constantly loop and check for data
-        self.create_timer(1.0/float(POLL_RATE), self.read_callback)
+        self.read_timer = self.create_timer(1.0/float(POLL_RATE), self.read_callback)
 
         # Create a timer to publish the current data
-        self.create_timer(1.0/float(PUBLISH_RATE), self.publish_msg)
+        self.pub_timer = self.create_timer(1.0/float(PUBLISH_RATE), self.publish_msg)
 
 
     # Method that looks for any changes in the data from the CAN lines

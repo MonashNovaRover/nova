@@ -48,6 +48,9 @@ class VelocityConvert : public rclcpp::Node {
     const float STEER_FACTOR            = 0.25;
     
 
+    // Stores the subscription to the drive velocity
+    rclcpp::Subscription<core::msg::DriveVel>::SharedPtr subscription;
+
     // Stores the publisher for the drive commands
     rclcpp::Publisher<core::msg::DriveInput>::SharedPtr publisher;
 

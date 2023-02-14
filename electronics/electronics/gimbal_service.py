@@ -70,7 +70,7 @@ class GimbalService (Node):
             exit()
 
         # Create the service
-        self.create_service(GimbalCommand, "/electronics/gimbal_command", self.gimbal_callback)
+        self.service = self.create_service(GimbalCommand, "/electronics/gimbal_command", self.gimbal_callback)
 
 
     # Method that sends data over the CAN lines to the gimbal cameras

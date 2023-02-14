@@ -45,15 +45,20 @@ class ArmVizPublisher : public rclcpp::Node
     //------------------------------------------------------------//
     private:
     
-    // Publisher to /control/arm_poses
+    // Subscriptions
+    rclcpp::Subscription<sensor_msgs::msg::MultiDOFJointState>::SharedPtr coord_frames_sub;
+    rclcpp::Subscription<core::msg::ArmControlScheme>::SharedPtr control_scheme_sub;
+    rclcpp::Subscription<geometry_msgs::msg::TransformStamped>::SharedPtr control_pose_sub;
+    
+    // Publisher to /visualisation/arm_poses
     // Use to display coordinate frames
     rclcpp::Publisher<geometry_msgs::msg::PoseArray>::SharedPtr arm_poses_pub;
     
-    // Publisher to /control/arm_poses_path
+    // Publisher to /visualisation/arm_poses_path
     // Use to display lines between joints' coordinate frames
     rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr arm_path_pub;
 
-    // Publisher to /control/arm_control_pose
+    // Publisher to /visualisation/arm_control_pose
     // Use to display control pose when using position control
     rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr arm_control_pose_pub;
 

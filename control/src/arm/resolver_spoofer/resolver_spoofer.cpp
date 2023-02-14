@@ -37,14 +37,14 @@ void ResolverSpoofer::start_node()
     }
     
     // Create the subscription
-    this->create_subscription<sensor_msgs::msg::JointState>(
+    outputs_subscription = this->create_subscription<sensor_msgs::msg::JointState>(
         "/control/joint_velocities",
         rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline),
         std::bind(&ResolverSpoofer::subscriber_callback, this, _1)
     );
 
     // Create the publisher timer. Controls rate of publihsing to /resolvers topic
-    this->create_wall_timer(
+    publisher_timer = this->create_wall_timer(
         ROSTimers::arm_resolvers, std::bind(&ResolverSpoofer::publisher_callback, this)
     );
 

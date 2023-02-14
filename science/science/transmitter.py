@@ -60,7 +60,7 @@ class ServiceNode(Node):
         self.arg_encoding = self.archive["arg_encoding"]
 
         # Start the service with the callback
-        self.create_service(ScienceCommand, '/science/transmitter', self.callback_func)
+        self.service = self.create_service(ScienceCommand, '/science/transmitter', self.callback_func)
 
         # Sets up the CAN transceiver interface with the correct ID and channels
         try:
