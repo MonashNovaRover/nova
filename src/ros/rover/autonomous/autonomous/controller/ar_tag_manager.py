@@ -20,9 +20,9 @@ from typing import List
 
 from core.msg import AlvarMarker
 from rclpy.node import Node
-from config.runtime_params import *
-from config.ros_config import *
-from math_utils.controller_math import Pose2D
+from autonomous.config.runtime_params import *
+from autonomous.config.ros_config import *
+from autonomous.math_utils.controller_math import Pose2D
 
 
 class ArTagManager(Node):

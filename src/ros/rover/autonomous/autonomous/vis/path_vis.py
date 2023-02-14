@@ -7,9 +7,9 @@ Methods
 
 import rclpy
 from rclpy.node import Node
-import vis.pc_pub as pc_pub
+import autonomous.vis.pc_pub as pc_pub
 
-from config.ros_config import main_frame, auto_waypoints_topic
+from autonomous.config.ros_config import auto_waypoints_topic
 
 from core.msg import Waypoints
 
@@ -26,7 +26,7 @@ class PathCloud(Node):
         # create the path publisher
         self.path_publisher = self.create_publisher(Path, '/autonomous/path', 10) 
          
-        self.subscriber_path = self.create_subscription(Waypoints, auto_waypoints_topic, self.path_callback, 10)
+        self.create_subscription(Waypoints, auto_waypoints_topic, self.path_callback, 10)
         self.path = Path()
     
     def path_callback(self, msg):
@@ -38,7 +38,7 @@ class PathCloud(Node):
         Contstructs a ros2 path message from a list of waypoints
         """
         header = Header()
-        header.frame_id = main_frame
+        header.frame_id = 'local_map'
         path = Path()
         path.header = header
 

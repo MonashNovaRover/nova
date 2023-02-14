@@ -78,7 +78,7 @@ void Driver::input_callback (const core::msg::InputGamepad::SharedPtr msg) {
         if (!handbrake) Print::print("Handbrake Enabled", C_MODE);
         handbrake = true;
         for (CMD* wheel : wheels) {
-            wheel->set_CMD_stop_mode(PID);
+            wheel->set_stop_mode(PID);
         }
     }
     
@@ -87,7 +87,7 @@ void Driver::input_callback (const core::msg::InputGamepad::SharedPtr msg) {
         if (handbrake) Print::print("Handbrake Disabled", C_MODE);
         handbrake = false;
         for (CMD* wheel : wheels) {
-            wheel->set_CMD_stop_mode(STOP);
+            wheel->set_stop_mode(STOP);
         }
     }
 
@@ -207,10 +207,10 @@ Driver::Driver() : Node("driver")
     Print::title("DRIVER");
     Print::print("", true);
 
-    // Initialise the wheels in the correct direction
+    // Initialise the wheels
     for (size_t i = 0; i < NUM_WHEELS; i++) {
         bool left = i < NUM_WHEELS / 2;
-        wheels[i] = new CMD (0, i + 1, PID, STOP, left);
+        wheels[i] = new CMD (0, i + 1, PID, left, STOP);
     }
     
     rclcpp::QoS qos = rclcpp::QoS(1).best_effort().deadline(ROSTimers::drive_deadline);
@@ -221,19 +221,19 @@ Driver::Driver() : Node("driver")
 	subscriber_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void {inputs_deadline_exceeded();};
 
     // Creates the commands subscription (manual)
-    subscription_cmds_man = this->create_subscription<core::msg::DriveInput>(
+    this->create_subscription<core::msg::DriveInput>(
         "/control/drive_inputs", qos, std::bind(&Driver::drive_callback, this, _1), subscriber_options);
     
     // Creates the commands subscription (autonomous)
-    subscription_cmds_auto = this->create_subscription<core::msg::DriveInput>(
+    this->create_subscription<core::msg::DriveInput>(
         "/autonomous/drive_inputs", 10, std::bind(&Driver::auto_callback, this, _1));
     
     // Creates the input subscription
-    subscription_inputs = this->create_subscription<core::msg::InputGamepad>(
+    this->create_subscription<core::msg::InputGamepad>(
         "/control/input_gamepad", qos, std::bind(&Driver::input_callback, this, _1), subscriber_options);
 
     // Creates auto mode timer and associated publisher
-    mode_timer = this->create_wall_timer(
+    this->create_wall_timer(
         ROSTimers::auto_mode, std::bind(&Driver::pub_auto_mode, this)
     );
     mode_pub = this->create_publisher<std_msgs::msg::Bool>(

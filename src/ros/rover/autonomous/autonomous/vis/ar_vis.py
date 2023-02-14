@@ -9,9 +9,9 @@ import numpy as np
 import rclpy
 from rclpy.node import Node
 from nav_msgs.msg import Odometry
-import vis.pc_pub as pc_pub
-import math_utils.transform as transform
-from config.ros_config import camera_pose_topic
+import autonomous.vis.pc_pub as pc_pub
+import autonomous.math_utils.transform as transform
+from autonomous.config.ros_config import camera_pose_topic
 from core.msg import AlvarMarker
 
 
@@ -28,7 +28,7 @@ class RoverCloud(Node):
             for y in range(0, 100):
                 pts.append([x, y, 0])
         self.tag_pts = np.asarray(pts) / 1000.0 - 0.05
-        self.subscriber_points = self.create_subscription(Odometry, "autonomous/ar_tag", self.callback, 10)
+        self.create_subscription(Odometry, "autonomous/ar_tag", self.callback, 10)
 
     def callback(self, msg):
         self.pub_tag_at(msg)

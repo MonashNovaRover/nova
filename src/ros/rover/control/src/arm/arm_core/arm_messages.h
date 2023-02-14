@@ -4,7 +4,8 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team
 
-This class implements helper functions for other nodes
+This class implements helper functions for creating
+  ROS2 messages
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: None
 TOPICS: None
@@ -14,7 +15,7 @@ ACTIONS: None
 PACKAGE: 	 control
 AUTHOR(S):   Jory Braun
 CREATION:	 17/01/2022
-EDITED:		 28/04/2022
+EDITED:		 27/09/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
  - 
@@ -30,23 +31,15 @@ TODO:
 #include <string>
 
 
-class ArmMessages
+namespace ArmMessages
 {
-    //------------------------------------------------------------//
-    public:
 
     /// @brief  Helper function to construct empty JointState message
     ///         Uses given names of joints, sizes all other parameter lists to match
-    static sensor_msgs::msg::JointState get_empty_joint_state(const std::vector<std::string>& names);
+    sensor_msgs::msg::JointState get_empty_joint_state(const std::vector<std::string>& names);
 
     /// @brief  Helper function to construct empty MultiDOFJointState message
     ///         Uses given names of joints, sizes all other parameter lists to match
-    static sensor_msgs::msg::MultiDOFJointState get_empty_multi_dof_joint_state(const std::vector<std::string>& names);
+    sensor_msgs::msg::MultiDOFJointState get_empty_multi_dof_joint_state(const std::vector<std::string>& names);
 
-    //------------------------------------------------------------//
-    protected:
-    
-    /// @brief  Protected constructor so the class cannot be instantiated
-    ArmMessages(){}
-
-};
+}

@@ -35,7 +35,7 @@ class WheelOdomPublisher(Node):
     def __init__(self):
         super().__init__("tracking_wheels_pub")
         # subscriber subscribes to raw wheel encoder data
-        self.subscriber = self.create_subscription(WheelData, "/electronics/wheel_data", self.subscriber_callback, 10)
+        self.create_subscription(WheelData, "/electronics/wheel_data", self.subscriber_callback, 10)
 
         # current state of internal message
         self.msg = WheelData()
