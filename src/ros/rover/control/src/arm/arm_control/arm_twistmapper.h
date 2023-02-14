@@ -53,10 +53,22 @@ class ArmTwistMapper : public rclcpp::Node
     //------------------------------------------------------------//
     private:
 
+    // Subscribers
+    rclcpp::Subscription<core::msg::ArmControlScheme>::SharedPtr control_scheme_sub;
+    rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr resolver_sub;
+    rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr joystick_joint_velocities_sub;
+    rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr joystick_twist_sub;
+    
+    // Loop timers for publishing
+    rclcpp::TimerBase::SharedPtr control_pub_timer;
+
     // Publishers
     rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr control_joints_pub;
     rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr control_twist_pub;
     rclcpp::Publisher<geometry_msgs::msg::TransformStamped>::SharedPtr control_pose_pub;
+
+    // Services (servers)
+    rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr arm_reset_control_pose_service;
 
     // State of last-received messages
     core::msg::ArmControlScheme control_scheme;

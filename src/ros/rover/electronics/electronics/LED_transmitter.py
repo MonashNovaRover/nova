@@ -94,18 +94,18 @@ class LEDUpdateNode(Node):
         self.autonomous_state = AutonomousState.ACTIVE
 
         # Subscriber to handle control state
-        self.create_subscription(Bool, "/autonomous/mode", self.mode_callback, 10)
+        self.mode_subscriber = self.create_subscription(Bool, "/autonomous/mode", self.mode_callback, 10)
         
         # Subscriber to handle connection state
-        self.create_subscription(RadioStatus, "/electronics/radio_status", self.connection_callback, 10)
+        self.radio_subscriber = self.create_subscription(RadioStatus, "/electronics/radio_status", self.connection_callback, 10)
 
         # Services to handle autonomous state
-        self.create_service(Trigger, 'autonomous/success', self.success_callback)
-        self.create_service(Trigger, 'autonomous/start', self.start_callback)
+        self.success_service = self.create_service(Trigger, 'autonomous/success', self.success_callback)
+        self.start_service = self.create_service(Trigger, 'autonomous/start', self.start_callback)
 
         self.qos_time = 200
 
-        self.create_timer(0.5, self.flash_callback)
+        self.flash_timer = self.create_timer(0.5, self.flash_callback)
 
         self.flash_counter = 1  # 1 = on, 0 = off
 

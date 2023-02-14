@@ -26,7 +26,7 @@ class PathCloud(Node):
         # create the path publisher
         self.path_publisher = self.create_publisher(Path, '/autonomous/path', 10) 
          
-        self.create_subscription(Waypoints, auto_waypoints_topic, self.path_callback, 10)
+        self.subscriber_path = self.create_subscription(Waypoints, auto_waypoints_topic, self.path_callback, 10)
         self.path = Path()
     
     def path_callback(self, msg):

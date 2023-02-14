@@ -28,7 +28,7 @@ class RoverCloud(Node):
             for y in range(0, 100):
                 pts.append([x, y, 0])
         self.tag_pts = np.asarray(pts) / 1000.0 - 0.05
-        self.create_subscription(Odometry, "autonomous/ar_tag", self.callback, 10)
+        self.subscriber_points = self.create_subscription(Odometry, "autonomous/ar_tag", self.callback, 10)
 
     def callback(self, msg):
         self.pub_tag_at(msg)

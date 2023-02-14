@@ -51,7 +51,7 @@ VelocityConvert::VelocityConvert() : Node("velocity_convert")
     publisher = this->create_publisher<core::msg::DriveInput>("/autonomous/drive_inputs", 10);
     
     // Creates the input subscription
-    this->create_subscription<core::msg::DriveVel>(
+    subscription = this->create_subscription<core::msg::DriveVel>(
         "/autonomous/drive_velocity", 10, std::bind(&VelocityConvert::velocity_callback, this, _1));
 
 }

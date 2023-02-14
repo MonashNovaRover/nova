@@ -21,8 +21,7 @@ TOPICS:
   - /control/arm_coord_frames             [sensor_msgs/MultiDOFJointState]  [Published]
   - /control/joint_velocities             [sensor_msgs/JointState]          [Published]
 SERVICES:
-  - /control/arm_reset_control_pose       [std_srvs/Trigger]                [Client]
-  - /control/arm_config_info              [core/ArmConfigInfo]              [Server]
+  - /control/arm_config_info              [core/ArmConfigInfo]             [Server]
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	   control
@@ -61,10 +60,23 @@ class ArmControl : public rclcpp::Node
     //------------------------------------------------------------//
     private:
 
+    // Subscribers
+    rclcpp::Subscription<core::msg::ArmControlScheme>::SharedPtr control_scheme_sub;
+    rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr resolver_sub;
+    rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr control_joints_sub;
+    rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr control_twist_sub;
+    rclcpp::Subscription<geometry_msgs::msg::TransformStamped>::SharedPtr control_pose_sub;
+
+    // Publisher timers
+    rclcpp::TimerBase::SharedPtr coord_frames_timer;
+    rclcpp::TimerBase::SharedPtr joint_velocities_timer;
+
     // Publishers
     rclcpp::Publisher<sensor_msgs::msg::MultiDOFJointState>::SharedPtr coord_frames_pub;
     rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr joint_velocities_pub;
 
+    // Services (servers)
+    rclcpp::Service<core::srv::ArmConfigInfo>::SharedPtr arm_config_info_service;
     // Services (clients)
     rclcpp::Client<std_srvs::srv::Trigger>::SharedPtr arm_reset_control_pose_client;
 

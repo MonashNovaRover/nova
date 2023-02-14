@@ -45,7 +45,7 @@ class CMDPlotter (Node):
         self.device = "00"
 
         # Create the subscriber
-        self.create_subscription(CMDFeedback, '/control/cmd_feedback', self.feedback_callback, 10)
+        self.subscription = self.create_subscription(CMDFeedback, '/control/cmd_feedback', self.feedback_callback, 10)
         print("Initialised the Feedback Plotter")
 
 

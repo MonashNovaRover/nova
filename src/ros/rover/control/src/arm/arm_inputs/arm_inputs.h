@@ -54,11 +54,20 @@ class ArmInputs : public ArmConfigInfoClient
     //------------------------------------------------------------//
     private:
 
+    // Stores the loop timers for the update functions
+    rclcpp::TimerBase::SharedPtr endeffector_pub_timer;
+    rclcpp::TimerBase::SharedPtr inputs_pub_timer;
+    rclcpp::TimerBase::SharedPtr control_scheme_pub_timer;
+
     // Stores the publishers for arm inputs
     rclcpp::Publisher<core::msg::EndEffectorInput>::SharedPtr endeffector_pub;
     rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr joint_velocities_pub;
     rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr twist_pub;
     rclcpp::Publisher<core::msg::ArmControlScheme>::SharedPtr control_scheme_pub;
+
+    // Stores the subscribers to the joystick inputs
+    rclcpp::Subscription<core::msg::InputJoystick>::SharedPtr joystick_l_sub;
+    rclcpp::Subscription<core::msg::InputJoystick>::SharedPtr joystick_r_sub;
 
     // Stores messages to be published
     sensor_msgs::msg::JointState joint_velocities;

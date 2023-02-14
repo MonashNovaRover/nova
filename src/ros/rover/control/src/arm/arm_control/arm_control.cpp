@@ -24,12 +24,12 @@ using std::placeholders::_2;
 ArmControl::ArmControl() : Node("arm_control")
 {
     // Create subscription to arm control scheme
-    this->create_subscription<core::msg::ArmControlScheme>(
+    control_scheme_sub = this->create_subscription<core::msg::ArmControlScheme>(
         "/control/arm_control_scheme", 10, std::bind(&ArmControl::control_scheme_callback, this, _1)
     );
     
     // Create subscription to resolvers
-    this->create_subscription<sensor_msgs::msg::JointState>(
+    resolver_sub = this->create_subscription<sensor_msgs::msg::JointState>(
         "/electronics/resolvers", 10, std::bind(&ArmControl::resolver_callback, this, _1)
     );
 
@@ -38,7 +38,7 @@ ArmControl::ArmControl() : Node("arm_control")
     control_joints_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void{
         this->control_joints_deadline_callback();
     };
-    this->create_subscription<sensor_msgs::msg::JointState>(
+    control_joints_sub = this->create_subscription<sensor_msgs::msg::JointState>(
         "/control/control_joints",
         rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline),
         std::bind(&ArmControl::control_joints_callback, this, _1),
@@ -50,7 +50,7 @@ ArmControl::ArmControl() : Node("arm_control")
     control_twist_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void{
         this->control_twist_deadline_callback();
     };
-    this->create_subscription<geometry_msgs::msg::TwistStamped>(
+    control_twist_sub = this->create_subscription<geometry_msgs::msg::TwistStamped>(
         "/control/control_twist",
         rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline),
         std::bind(&ArmControl::control_twist_callback, this, _1),
@@ -62,7 +62,7 @@ ArmControl::ArmControl() : Node("arm_control")
     control_pose_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void{
         this->control_pose_deadline_callback();
     };
-    this->create_subscription<geometry_msgs::msg::TransformStamped>(
+    control_pose_sub = this->create_subscription<geometry_msgs::msg::TransformStamped>(
         "/control/control_pose",
         rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline),
         std::bind(&ArmControl::control_pose_callback, this, _1),
@@ -70,7 +70,7 @@ ArmControl::ArmControl() : Node("arm_control")
     );
 
     // Create timer and publisher for arm_coord_frames
-    this->create_wall_timer(
+    coord_frames_timer = this->create_wall_timer(
         ROSTimers::arm_visualisation, std::bind(&ArmControl::publish_coord_frames, this)
     );
     coord_frames_pub = this->create_publisher<sensor_msgs::msg::MultiDOFJointState>(
@@ -78,7 +78,7 @@ ArmControl::ArmControl() : Node("arm_control")
     );
 
     // Create timer and publisher for joint_velocities
-    this->create_wall_timer(
+    joint_velocities_timer = this->create_wall_timer(
         ROSTimers::arm_control, std::bind(&ArmControl::publish_joint_velocities, this)
     );
     joint_velocities_pub = this->create_publisher<sensor_msgs::msg::JointState>(
@@ -87,7 +87,7 @@ ArmControl::ArmControl() : Node("arm_control")
 
 
     // Create service for arm_config_info
-    this->create_service<core::srv::ArmConfigInfo>(
+    arm_config_info_service = this->create_service<core::srv::ArmConfigInfo>(
         "/control/arm_config_info", std::bind(&ArmControl::arm_config_info_callback, this, _1, _2)
     );
 

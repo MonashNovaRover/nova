@@ -43,6 +43,12 @@ class ArmDriver : public rclcpp::Node
     //------------------------------------------------------------//
     private:
 
+    // Stores the subscriber to the desired joint velocities
+    rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr joint_velocities_subscription;
+
+    // Stores the subscriber to the desired actuator commands
+    rclcpp::Subscription<core::msg::EndEffectorInput>::SharedPtr endeffector_input_subscription;
+
     // Arm model. Includes motor drivers for all joints
     ArmModel* arm_model;
     // End effector

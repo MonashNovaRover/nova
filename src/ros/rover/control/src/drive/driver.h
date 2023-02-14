@@ -17,7 +17,6 @@ TOPICS:
   - /control/input_gamepad  [InputGamepad]  [Subscribed]
   - /control/drive_cmds     [DriveCmd]      [Subscribed]
   - /autonomous/drive_cmds  [DriveCmd]      [Subscribed]
-  - /autonomous/mode        [std_msgs/Bool] [Published]
 SERVICES: None
 ACTIONS:  None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -72,7 +71,17 @@ class Driver : public rclcpp::Node {
     //------------------------------------------------------------//
     private:
 
+    // Stores the subscriber for the drive commands (manual)
+    rclcpp::Subscription<core::msg::DriveInput>::SharedPtr subscription_cmds_man;
+
+    // Stores the subscriber for the drive commands (auto)
+    rclcpp::Subscription<core::msg::DriveInput>::SharedPtr subscription_cmds_auto;
+
+    // Stores the subscriber to the gamepad inputs
+    rclcpp::Subscription<core::msg::InputGamepad>::SharedPtr subscription_inputs;
+
     // Publishes whether the rover is in autonomous mode for LEDs
+    rclcpp::TimerBase::SharedPtr mode_timer;
     rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr mode_pub;
 
     // A flag for whether to apply the handbrake or not
