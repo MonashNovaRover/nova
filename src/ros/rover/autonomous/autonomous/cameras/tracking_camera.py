@@ -9,6 +9,9 @@ import autonomous.math_utils.transform as transform
 from autonomous.config.runtime_params import t265_serial, pose_file
 from tf2_ros import TransformBroadcaster, TransformListener, StaticTransformBroadcaster, Buffer
 from geometry_msgs.msg import TransformStamped, PoseStamped, Transform
+from sensor_msgs.msg import Image
+import cv_bridge
+
 import time
 
 # different systems seem to install the pyrealsense wrapper differently
@@ -39,59 +42,44 @@ class TrackingCamera(Node):
     def __init__(self, serial_number=t265_serial):
 
         super().__init__("T265Node")
-        self.param_load_pose_file = self.declare_parameter("load_pose_from_file", False)
         self.param_use_orbslam = self.declare_parameter("use_orbslam", True)
 
         # Declare RealSense pipeline, encapsulating the actual device and sensors
         self.pipe = rs.pipeline()
 
         # Publish pose of tracking camera
-        self.tf_base_link = TransformBroadcaster(self)
+        self.pub_tracking_cam_pose = self.create_publisher("/T265/Pose", PoseStamped)
 
         # Build config object and request pose data
         self.cfg = rs.config()
         self.cfg.enable_device(serial_number)
-        self.cfg.enable_stream(rs.stream.pose)
-
-        self.tf_buffer = Buffer()
-        self.tf_listener = TransformListener(self.tf_buffer, node=self, spin_thread=True)
-        self.get_initial_transform()
+        if self.param_use_orbslam:
+            # Enable left and right fisheye streams
+            self.cfg.enable_stream(rs.stream.fisheye, 1, rs.format.y8, 30)
+            self.cfg.enable_stream(rs.stream.fisheye, 2, rs.format.y8, 30)
+            
+            # Get IMU data
+            self.cfg.enable_stream(rs.stream.accel, rs.format.xyz32f)
+            self.cfg.enable_stream(rs.stream.gyro, rs.format.xyz32f)
+        else:
+            self.cfg.enable_stream(rs.stream.pose)
 
         # Start streaming
-        self.pipe_profile = self.pipe.start(self.cfg)
-        self.get_logger().info("Waiting for transform from 'map' to 'base_link'...")
-        while not self.tf_buffer.can_transform('map', 'base_link', Time()):
-            time.sleep(0.1)
-        self.get_logger().info("Found Transform!", once=True)
+        self.pipe_profile = self.pipe.start(self.cfg, self.cb_t265_frame)
         self.create_timer(1./30, self.get_next_pose)
 
-    def get_initial_transform(self):
-        """
-        If we want to, load initial rover position from file
-        """
-        # TODO: set in param somewhere?
-        initial_transform = TransformStamped()
-        initial_transform.header.frame_id = 'map'
-        initial_transform.header.stamp = self.get_clock().now().to_msg()
-        initial_transform.child_frame_id = 'initial_base_link'
-        if self.param_load_pose_file.value:
-            initial_transform.transform = self.fill_initial_pose(initial_transform.transform)
-        else:
-            initial_transform.transform.rotation.w = 1.0
+    def cb_t265_frame(self, frame: rs.frame):
+        img_left, img_right = Image(), Image()
 
-        tf_initial_offset = StaticTransformBroadcaster(self)
-        tf_initial_offset.sendTransform(initial_transform)
+        if fs:=frame.as_frameset() is not None:
+            timestamp = fs.get_timestamp() * 1e-3
 
-        base_link_transform = TransformStamped()
-        base_link_transform.header.frame_id = 'initial_base_link'
-        base_link_transform.header.stamp = self.get_clock().now().to_msg()
-        base_link_transform.child_frame_id = 'base_link'
+            left_frame = fs.get_fisheye_frame(1)
+            right_frame = fs.get_fisheye_frame(1)
 
-        base_link_transform.transform.rotation.w = 1.0
-        base_link_transform.transform.rotation.x = 0.0
-        base_link_transform.transform.rotation.y = 0.0
-        base_link_transform.transform.rotation.z = 0.0
-        self.tf_base_link.sendTransform(base_link_transform)
+            img_left = cv_bridge
+            
+    
 
     def fill_initial_pose(self, transform: Transform):
         """
@@ -136,19 +124,8 @@ class TrackingCamera(Node):
             data = pose.get_pose_data()
 
             t265_transform = self.transform_t265_to_nova(data)
+            self.pub_tracking_cam_pose.publish(t265_transform)
 
-            base_link_transform = TransformStamped()
-            base_link_transform.header.stamp = self.get_clock().now().to_msg()
-            base_link_transform.header.frame_id = 'initial_base_link'
-            base_link_transform.child_frame_id = 'base_link'
-
-            try:
-                t265_offset = self.tf_buffer.lookup_transform('base_link', 't265', Time()).transform
-            except Exception as e:
-                self.get_logger().warn(str(e), once=True)
-                return
-            base_link_transform.transform = transform.offset_transform(transform=t265_transform, offset=t265_offset)
-            self.tf_base_link.sendTransform(base_link_transform)
 
 
 
