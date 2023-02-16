@@ -39,10 +39,12 @@ from rclpy.node import Node
 from nav_msgs.msg import Odometry
 from core.msg import RoverPose, WheelData, RoverPoseGPS, AutonomousGoal
 
-from geometry_msgs.msg import PoseWithCovariance, TransformStamped
+from geometry_msgs.msg import PoseWithCovariance, TransformStamped, PoseStamped
 from sensor_msgs.msg import Imu
 from rclpy.qos import qos_profile_sensor_data as qos
 from rclpy.logging import LoggingSeverity
+
+from tf2_ros import TransformBroadcaster, StaticTransformBroadcaster, Buffer, TransformListener
   
 class PoseConverter(Node):
     """
@@ -54,10 +56,17 @@ class PoseConverter(Node):
     """
 
     def __init__(self):
-        super().__init__("ConverterNode")
+        super().__init__("pose_converter")
 
+        # Ros parameters
+        self.param_do_dgps_imu = self.declare_parameter("do_dgps_imu", False).value
+        self.param_do_t265 = self.declare_parameter("do_t265", True).value
+        self.param_do_wheel_odom = self.declare_parameter("do_wheel_odom", False).value
+        self.param_load_pose_file = self.declare_parameter("load_pose_from_file", False)
+        
         # subscribers
-        self.imu_sub = self.create_subscription(Imu, "/imu/data", self.imu_callback, 10)
+        if self.param_do_imu:
+            self.imu_sub = self.create_subscription(Imu, "/imu/data", self.imu_callback, 10)
         self.dgps_sub = self.create_subscription(PoseWithCovariance, "/gps_rover/pose_cov", self.dgps_callback, qos)
         self.drive_sub = self.create_subscription(WheelData, "/electronics/wheel_data", self.drive_callback, 10)
         self.goals_sub = self.create_subscription(AutonomousGoal, auto_goal_gps, self.goal_callback, 10)
@@ -77,6 +86,11 @@ class PoseConverter(Node):
 
         # timer 
         self.pub_timer = self.create_timer(pose_pub_rate, self.publisher_callback)
+        self.tf_base_link = TransformBroadcaster()
+        self.tf_buffer = Buffer()
+        self.tf_listener = TransformListener(self.tf_buffer, node=self, spin_thread=True)
+        self.get_initial_transform()
+        self.latest_pose = None
 
         # for maintaining accurate pose and converting between gps
         self.ekf = Ekf()
@@ -100,6 +114,53 @@ class PoseConverter(Node):
         # we want to get a lot of gps data before we're confident enough to start publishing pose
         self.num_gps_corrections = 0
         self.received_yaw = False
+
+    def get_initial_transform(self):
+        """
+        If we want to, load initial rover position from file
+        """
+        # TODO: set in param somewhere?
+        initial_transform = TransformStamped()
+        initial_transform.header.frame_id = 'map'
+        initial_transform.header.stamp = self.get_clock().now().to_msg()
+        initial_transform.child_frame_id = 'initial_base_link'
+        if self.param_load_pose_file.value:
+            initial_transform.transform = self.fill_initial_pose(initial_transform.transform)
+        else:
+            initial_transform.transform.rotation.w = 1.0
+
+        tf_initial_offset = StaticTransformBroadcaster(self)
+        tf_initial_offset.sendTransform(initial_transform)
+
+        base_link_transform = TransformStamped()
+        base_link_transform.header.frame_id = 'initial_base_link'
+        base_link_transform.header.stamp = self.get_clock().now().to_msg()
+        base_link_transform.child_frame_id = 'base_link'
+
+        base_link_transform.transform.rotation.w = 1.0
+        base_link_transform.transform.rotation.x = 0.0
+        base_link_transform.transform.rotation.y = 0.0
+        base_link_transform.transform.rotation.z = 0.0
+        self.tf_base_link.sendTransform(base_link_transform)
+
+    def callback_t265(self, msg: PoseStamped):
+        """
+        Take T265 messages, offset them to get the rover's pose, and save the pose estimate
+        """
+
+        base_link_transform = TransformStamped()
+        base_link_transform.header.stamp = self.get_clock().now().to_msg()
+        base_link_transform.header.frame_id = 'initial_base_link'
+        base_link_transform.child_frame_id = 'base_link'
+
+        try:
+            t265_offset = self.tf_buffer.lookup_transform('base_link', 't265', Time()).transform
+        except Exception as e:
+            self.get_logger().warn(str(e), once=True)
+            return
+        base_link_transform.transform = transform.offset_transform(transform=t265_transform, offset=t265_offset)
+        self.latest_pose = base_link_transform
+
 
     def transform_imu_to_nova(self, imu_msg):
         """
@@ -291,19 +352,6 @@ class PoseConverter(Node):
         self.camera_pub.publish(camera_msg)
 
     def print_rover_msg(self, rover_msg):
-        # Leigh: why are we writing to stdout directly, what is this, the 80s? 
-        # write to system
-        #sys.stdout.write("\r" + "x: " + str(round(rover_msg.x, 4)).ljust(7)
-        #                 + " | y: " + str(round(rover_msg.y, 4)).ljust(7)
-        #                 + " | z: " + str(round(rover_msg.z, 4)).ljust(7)
-        #                 + " | pitch: " + str(round(rover_msg.pitch, 4)).ljust(7)
-        #                 + " | roll: " + str(round(rover_msg.roll, 4)).ljust(7)
-        #                 + " | yaw: " + str(round(rover_msg.yaw, 4)).ljust(7))
-        #sys.stdout.flush()
-        
-        # LO
-        # Behold the power of fstrings!!!
-        # https://docs.python.org/3/reference/lexical_analysis.html#f-strings
         roverMsgStr = f"""
         x: {rover_msg.x:8.3f}
         y: {rover_msg.y:8.3f}
@@ -314,7 +362,7 @@ class PoseConverter(Node):
         """
         
         # Prints every 1 second to reduce spam
-        self.get_logger().log(roverMsgStr,LoggingSeverity.INFO,throttle_duration_sec=1)
+        self.get_logger().debug(roverMsgStr, throttle_duration_sec=1)
         
         
 
