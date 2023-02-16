@@ -22,6 +22,14 @@ import sys
 Connects to the tracking camera and publishes various transformed pose topics. Runs in a separate thread.
 """
 
+"""
+TODO: Get Pose from slam package
+TODO: Publish camera and IMU data for slam package
+TODO: Publish pose as PoseStamped object over Ros rather than transform
+TODO: Modify localisation/pose_converted to listen to tracking camera poses as well as dgps poses
+TODO: Do pose conversions and publish tf2 transforms in pose converter instead of tracking camera
+"""
+
 
 class TrackingCamera(Node):
     """
@@ -32,10 +40,12 @@ class TrackingCamera(Node):
 
         super().__init__("T265Node")
         self.param_load_pose_file = self.declare_parameter("load_pose_from_file", False)
+        self.param_use_orbslam = self.declare_parameter("use_orbslam", True)
 
         # Declare RealSense pipeline, encapsulating the actual device and sensors
         self.pipe = rs.pipeline()
 
+        # Publish pose of tracking camera
         self.tf_base_link = TransformBroadcaster(self)
 
         # Build config object and request pose data
