@@ -9,10 +9,8 @@ import autonomous.math_utils.transform as transform
 from autonomous.config.runtime_params import t265_serial, pose_file
 from tf2_ros import TransformBroadcaster, TransformListener, StaticTransformBroadcaster, Buffer
 from geometry_msgs.msg import TransformStamped, PoseStamped, Transform
-from sensor_msgs.msg import Image
+from sensor_msgs.msg import Image, Imu
 import cv_bridge
-
-import time
 
 # different systems seem to install the pyrealsense wrapper differently
 try:
@@ -48,7 +46,13 @@ class TrackingCamera(Node):
         self.pipe = rs.pipeline()
 
         # Publish pose of tracking camera
-        self.pub_tracking_cam_pose = self.create_publisher("/T265/Pose", PoseStamped)
+        self.pub_tracking_cam_pose = self.create_publisher("/T265/Pose", PoseStamped, 10)
+        self.pub_left = self.create_publisher("/T265/camera_left_raw/color", Image, 10)
+        self.pub_right = self.create_publisher("/T265/camera_right_raw/color", Image, 10)
+        self.pub_imu = self.create_publisher("/T265/imu", Imu, 10)
+
+        # Subscriber to slam messages
+        self.sub_orbslam_pose = self.create_subscription(PoseStamped, "/slam/pose", self.cb_slam_pose, 10)
 
         # Build config object and request pose data
         self.cfg = rs.config()
@@ -64,20 +68,39 @@ class TrackingCamera(Node):
         else:
             self.cfg.enable_stream(rs.stream.pose)
 
+        self.pose_msg = PoseStamped()
+
         # Start streaming
         self.pipe_profile = self.pipe.start(self.cfg, self.cb_t265_frame)
-        self.create_timer(1./30, self.get_next_pose)
+        self.create_timer(1./30, self.pub_pose)
 
     def cb_t265_frame(self, frame: rs.frame):
-        img_left, img_right = Image(), Image()
+        # creating ros timestamp for message
+        timestamp: float = fs.get_timestamp() * 1e-3
+        seconds = int(timestamp)
+        nanoseconds = int((timestamp - seconds) * 1e9)
+        ros_stamp = Time(seconds=seconds, nanoseconds=nanoseconds)
 
         if fs:=frame.as_frameset() is not None:
-            timestamp = fs.get_timestamp() * 1e-3
 
             left_frame = fs.get_fisheye_frame(1)
             right_frame = fs.get_fisheye_frame(1)
 
-            img_left = cv_bridge
+            img_left = cv_bridge.CvBridge().cv2_to_imgmsg(np.asanyarray(left_frame.get_data()))
+            img_right = cv_bridge.CvBridge().cv2_to_imgmsg(np.asanyarray(right_frame.get_data()))
+
+            img_left.header.frame_id = "T265_left_lens"
+            img_right.header.frame_id = "T265_right_lens"
+
+
+            img_left.header.stamp = ros_stamp
+            img_right.header.stamp = ros_stamp
+
+            self.pub_left.publish(img_left)
+            self.pub_right.publish(img_right)
+        elif motion_frame:=frame.as_motion_frame() is not None:
+            if motion_frame.get_profile().stream_name() == "Gyro":
+
             
     
 
@@ -126,6 +149,8 @@ class TrackingCamera(Node):
             t265_transform = self.transform_t265_to_nova(data)
             self.pub_tracking_cam_pose.publish(t265_transform)
 
+    def pub_pose(self):
+        self.pub_tracking_cam_pose.publish(self.pose_msg)
 
 
 
