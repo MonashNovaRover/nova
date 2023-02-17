@@ -39,7 +39,7 @@ from rclpy.node import Node
 from nav_msgs.msg import Odometry
 from core.msg import RoverPose, WheelData, RoverPoseGPS, AutonomousGoal
 
-from geometry_msgs.msg import PoseWithCovariance, TransformStamped, PoseStamped
+from geometry_msgs.msg import PoseWithCovariance, TransformStamped, PoseStamped, Transform
 from sensor_msgs.msg import Imu
 from rclpy.qos import qos_profile_sensor_data as qos
 from rclpy.logging import LoggingSeverity
@@ -114,6 +114,22 @@ class PoseConverter(Node):
         # we want to get a lot of gps data before we're confident enough to start publishing pose
         self.num_gps_corrections = 0
         self.received_yaw = False
+
+    def fill_initial_pose(self, transform: Transform):
+        """
+        Read data from file and fill transform with it
+        """
+        try:
+            pose = np.loadtxt(pose_file).reshape(4)
+        except FileNotFoundError as e:
+            self.get_logger().warn("Couldn't find file!")
+
+        transform.translation.x, transform.translation.y, transform.translation.z = pose[:3]
+        # filling in yaw
+        transform.rotation.z = np.sin(pose[3] / 2)
+        transform.rotation.w = np.cos(pose[3] / 2)
+        return transform
+
 
     def get_initial_transform(self):
         """
