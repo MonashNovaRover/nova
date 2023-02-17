@@ -221,7 +221,8 @@ std::vector<bool> BLCMD::get_telemetry(BLCMDTelemetry* telemetry, std::chrono::m
     // Initialize a vector of booleans to keep track of which packets have been recieved
     std::vector<bool> received(4, false);
 
-    while (std::chrono::steady_clock::now() < end){
+    while (std::chrono::steady_clock::now() < end &&
+    !std::accumulate(received.begin(), received.end(), false, std::logical_or<bool>())){
         auto frames = can_bus->receive_nonblocking();
         for (auto frame : frames){
             uint16_t packet = frame.id & 0x000F;

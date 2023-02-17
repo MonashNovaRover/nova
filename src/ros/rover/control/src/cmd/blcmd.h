@@ -23,6 +23,7 @@ EDITED:		01/02/2023
 #include <vector>
 #include <iterator>
 #include <cmath>
+#include <numeric>
 #include <functional>
 #include <chrono>
 
