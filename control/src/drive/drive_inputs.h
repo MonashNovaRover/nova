@@ -43,6 +43,8 @@ const float INITIAL_MULT_SPEED = 0.5;
 // The minimum trigger speed multiplier to apply when the right trigger is held
 const float MIN_TRIGGER_MULTIPLIER = 0.4;
 
+// The enum denotes the current drive mode of the rover
+
 /*
     HOW TO DRIVE THE ROVER:
 
@@ -60,7 +62,7 @@ const float MIN_TRIGGER_MULTIPLIER = 0.4;
 class DriveInputs : public rclcpp::Node {
 
     //------------------------------------------------------------//
-    private:
+private:
 
     // Stores the loop timer for the update function
     rclcpp::TimerBase::SharedPtr timer;
@@ -77,13 +79,16 @@ class DriveInputs : public rclcpp::Node {
     // A flag which indicates if a zero message has been received in the previous frame
     bool prev_msg_received = false;
 
-
     // A lock on the controls - can be unlocked
     bool locked = true;
 
+    // Drive mode
+    bool strafe_mode = false;
+
     // Stores the current state of the input axis
-    float input_axis_x = 0.0;
-    float input_axis_y = 0.0;
+    float right_input_axis_y = 0.0;
+    float right_input_axis_x = 0.0;
+    float left_input_axis_y = 0.0;
 
     // Stores the current state of the trigger multiplier
     float trigger_speed = 1.0;
@@ -91,10 +96,8 @@ class DriveInputs : public rclcpp::Node {
     // The current speed and steer multipliers
     float multiplier_speed = INITIAL_MULT_SPEED;
 
-    
     //------------------------------------------------------------//
-    private:
-
+private:
     /// @brief      Adjusts one of the multipliers between 0.1 and 1.0
     /// @param      multiplier - A reference to the speed or steer multiplier
     /// @param      increase - A boolean flag for increasing (or false to decrease)
@@ -114,8 +117,13 @@ class DriveInputs : public rclcpp::Node {
     /// @brief      Callback function when deadline for subscriptions are exceeded
     void deadline_exceeded();
 
+    /// @brief      Calculates steer angle - radians
+    /// @param      x_steer
+    /// @param      y_steer
+    float calc_steer_angle(float x_steer, float y_steer);
+
     //------------------------------------------------------------//
-    public:
+public:
 
     /// @brief      Default constructor function that starts up the node
     DriveInputs();

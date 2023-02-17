@@ -31,7 +31,7 @@ ArmTwistMapper::ArmTwistMapper() :
     ENDPOINT_INPUT_TRANSFORM_LINEAR(KDL::Rotation::EulerZYX(M_PI / 2, -M_PI / 2, 0)),
     // Switch yaw and roll directions for more intuitive control
     ENDPOINT_INPUT_TRANSFORM_ANGULAR(KDL::Rotation::RotX(M_PI / 2) * ENDPOINT_INPUT_TRANSFORM_LINEAR)
-{
+{    
     // Create subscription to arm control scheme
     control_scheme_sub = this->create_subscription<core::msg::ArmControlScheme>(
         "/control/arm_control_scheme", 10, std::bind(&ArmTwistMapper::control_scheme_callback, this, _1)

@@ -92,3 +92,7 @@ alias sci_copy="scp -r nvidia@192.168.1.204:nova_ws/src/rover/science/data/spect
 
 # Creating template program
 alias python_template="cp ~/nova_ws/src/rover/core/macros/python_ros_template.py ."
+
+# systemctl / screen aliases
+alias check='. ~/nova_ws/src/rover/core/macros/check.sh'     # Sets up the CAN lines with a virtual or real CAN
+alias rerun='. ~/nova_ws/src/rover/core/macros/rerun.sh'     # Sets up the CAN lines with a virtual or real CAN
