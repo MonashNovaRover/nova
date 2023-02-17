@@ -1,4 +1,7 @@
 from launch import LaunchDescription
+from launch.actions import IncludeLaunchDescription
+from launch_ros.substitutions import FindPackageShare
+from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 
 # For launching rviz
@@ -20,6 +23,12 @@ def generate_launch_description():
             arguments=['-d', str(rviz_path)],
             emulate_tty=True
         ),
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource([
+                FindPackageShare("control"), '/launch', '/rover_visualisation.launch.py'
+            ])
+        ),
+        # autonomous nodes
         Node(
             package="autonomous",
             node_executable="path_vis.py",
