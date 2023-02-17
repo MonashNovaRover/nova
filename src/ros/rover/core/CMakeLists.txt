@@ -38,7 +38,6 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/EndEffectorInput.msg"
   "msg/CamsConnected.msg"
   "msg/CMDFeedback.msg"
-  "msg/CMDsFeedback.msg"
   "msg/DistanceData.msg"
   "msg/DriveInput.msg"
   "msg/DriveVel.msg"
@@ -56,6 +55,9 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/Waypoints.msg"
   "msg/WheelData.msg"
   "msg/AutonomousGoal.msg"
+  "msg/PivotWheelData.msg"
+  "msg/SingleTelemetry.msg"
+  "msg/Telemetry.msg"
 
   # Service definitions
   "srv/ArmConfigInfo.srv"

@@ -3,12 +3,9 @@
 Monash Nova Rover Team
 
 PACKAGE: 	control
-AUTHOR(S):	Harrison Verrios, Josh Cherubino, Will de la Rue, Jory Braun
+AUTHOR(S):	Taaj Street, Harrison Verrios, Josh Cherubino, Will de la Rue, Jory Braun, Tristan Clark, Abigail Lithwick
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-
-// Include math library
-#include <cmath>
 
 // Include the header file
 #include "driver.h"
@@ -17,179 +14,156 @@ AUTHOR(S):	Harrison Verrios, Josh Cherubino, Will de la Rue, Jory Braun
 
 // Use the standard namespaces for subscribers
 using std::placeholders::_1;
+using namespace std;
 
 // Sends commands to the wheels
-void Driver::send_commands (const core::msg::DriveInput::SharedPtr msg) {
-    
-    // Create array of wheel velocities for each wheel, initialise to 0
-    float wheel_velocities[NUM_WHEELS] = {};
-    
-    // Check if wheels should spin
-    if (msg->speed != 0) {
+void Driver::send_commands(const core::msg::DriveInput::SharedPtr msg)
+{
+    core::msg::PivotWheelData data_msg;
+    if (!msg->strafe_mode)
+    {
+        // Find the turning radius form the 'steer' command
+        // This defines a turning centre to the left or right of the rover wheelbase
+        float radius = get_turning_radius(msg->steer);
 
-        // If no steer, spin all wheels with the same speed
-        if (msg->steer == 0) {
-            std::fill(wheel_velocities, wheel_velocities + NUM_WHEELS, msg->speed);
-        }
-        // Otherwise, calculate the speed for each wheel to follow a circular path 
-        else {       
-            // Find the turning radius form the 'steer' command
-            // This defines a turning centre to the left or right of the rover wheelbase
-            float radius = get_turning_radius(msg->steer);
-            
-            // Scale wheel velocities depending on their distance from the turning centre
-            // Wheels closer to the turning centre must spin slower to maintain the correct rover angular velocity
-            // The 'speed' command gives the maximum speed for any wheel
-            // Disregard any correction for the angle of the wheel relative to the desired circular path
-            fill_wheel_velocities(wheel_velocities, radius, msg->speed, msg->steer);
-        }
+        // Scale wheel velocities depending on their distance from the turning centre
+        // Wheels closer to the turning centre must spin slower to maintain the correct rover angular velocity
+        // The 'speed' command gives the maximum speed for any wheel
+        // Disregard any correction for the angle of the wheel relative to the desired circular path
+        // fill_wheel_velocities(wheel_velocities, radius, msg->speed, msg->steer);
+
+        fill_wheel_angles_radial(radius, msg->steer);
+        fill_wheel_velocities_radial(msg->speed, radius);
+        data_msg.radius = radius;
+    }
+    else {
+        float turning_angle = msg->steer;
     }
 
     // Send velocities to the wheels
-    for (size_t i = 0; i < NUM_WHEELS; i++) {
-        wheels[i]->drive(wheel_velocities[i]);
+    for (size_t i = 0; i < NUM_WHEELS; i++)
+    {
+        PivotModule *pivot = pivots[i];
+        pivot->cmdWheel->drive(pivot->velocity);
+        pivot->cmdPivot->drive(pivot->angle);
+        data_msg.angles[i] = pivot->angle;
+        data_msg.velocities[i] = pivot->velocity;
     }
+    pivot_wheel_pub->publish(data_msg);
 }
 
-
 // Receives drive commands
-void Driver::drive_callback (const core::msg::DriveInput::SharedPtr msg) {
+void Driver::drive_callback(const core::msg::DriveInput::SharedPtr msg)
+{
 
     // If manual driving state, call the commands
     if (!is_autonomous)
-        send_commands(msg);    
+        send_commands(msg);
 }
 
-
 // Receives autonomous commands
-void Driver::auto_callback (const core::msg::DriveInput::SharedPtr msg) {
+void Driver::auto_callback(const core::msg::DriveInput::SharedPtr msg)
+{
 
     // If autonomous driving state, call the commands
     if (is_autonomous)
-        send_commands(msg); 
+        send_commands(msg);
 }
 
-
 // Receives input from the gamepad
-void Driver::input_callback (const core::msg::InputGamepad::SharedPtr msg) {
+void Driver::input_callback(const core::msg::InputGamepad::SharedPtr msg)
+{
 
     // Enable handbraking based on the thumb buttons
-    if (msg->connected && msg->btn_thumb_l_state == 1) {
-        if (!handbrake) Print::print("Handbrake Enabled", C_MODE);
+    if (msg->connected && msg->btn_thumb_l_state == 1)
+    {
+        if (!handbrake)
+            Print::print("Handbrake Enabled", C_MODE);
         handbrake = true;
-        for (CMD* wheel : wheels) {
-            wheel->set_stop_mode(PID);
+        for (PivotModule *pivot : pivots)
+        {
+            pivot->cmdWheel->set_stop_mode(DRIVE_VELOCITY);
         }
     }
-    
+
     // Disable Handbrake
-    else if (msg->connected && msg->btn_thumb_r_state == 1) {
-        if (handbrake) Print::print("Handbrake Disabled", C_MODE);
+    else if (msg->connected && msg->btn_thumb_r_state == 1)
+    {
+        if (handbrake)
+            Print::print("Handbrake Disabled", C_MODE);
         handbrake = false;
-        for (CMD* wheel : wheels) {
-            wheel->set_stop_mode(STOP);
+        for (PivotModule *pivot : pivots)
+        {
+            pivot->cmdWheel->set_stop_mode(DRIVE_VELOCITY);
         }
     }
 
     // Enable  autonomous
-    if (msg->connected && msg->btn_a_state == 1) {
-        if (!is_autonomous) Print::print("Mode: Autonomous", C_MODE);
+    if (msg->connected && msg->btn_a_state == 1)
+    {
+        if (!is_autonomous)
+            Print::print("Mode: Autonomous", C_MODE);
         is_autonomous = true;
     }
 
     // Disable autonomous
-    else if (msg->connected && msg->btn_b_state == 1) {
-        if (is_autonomous) Print::print("Mode: Manual", C_MODE);
+    else if (msg->connected && msg->btn_b_state == 1)
+    {
+        if (is_autonomous)
+            Print::print("Mode: Manual", C_MODE);
         is_autonomous = false;
     }
 }
 
-
 // Gets the turning radius of the rover
-float Driver::get_turning_radius (float steer) {
+float Driver::get_turning_radius(float steer)
+{
     // Exclude this case. If steer is 0, handle separately in calling code
-    if (steer == 0) return NAN;
+    if (steer == 0)
+        return INFINITY;
 
-    // Map a steer mgnitude of 1 to a radius of 0 (turning on the spot)
-    // Map a steer magnitude near 0 to a radius near infinity
-    // Maintain the sign of steer in the sign of radius
-    return (1.0 / steer) - ((steer < 0.0) ? -1.0 : 1.0);
+    return (1.0 / steer) - (steer > 0 ? 1 : -1);
 }
 
+void Driver::fill_wheel_angles_radial(float radius, float steer)
+{
+    // gradient of line https://www.desmos.com/calculator/opj8exj9gp
+    double sign = steer > 0 ? 1.0 : -1.0;
+
+    // Front left angle
+    pivots[0]->angle = radius == INFINITY ? 0 : atan((2*radius + CHASSIS_WIDTH)/CHASSIS_LENGTH) - sign * M_PI_2;
+
+    //Front right angle
+    pivots[1]->angle = radius == INFINITY ? 0 : atan((2*radius - CHASSIS_WIDTH)/CHASSIS_LENGTH)- sign * M_PI_2;
+
+    // Back left angle
+    pivots[2]->angle = radius == INFINITY ? 0 : sign * M_PI_2 + atan((2*radius + CHASSIS_WIDTH)/-CHASSIS_LENGTH);
+
+    // Back right angle
+    pivots[3]->angle = radius == INFINITY ? 0 : sign * M_PI_2 + atan((2*radius - CHASSIS_WIDTH)/-CHASSIS_LENGTH);
+}
 
 // Fill array with velocities for each wheel, with directions and magnitude depending on the turning radius
-void Driver::fill_wheel_velocities(float wheel_velocities[NUM_WHEELS], float radius, float speed, float steer) {
-
-    // Calculate distances from the wheelbase centre to each wheel, and the maximum distance
-    float distances[NUM_WHEELS];
-    float max_distance = 0;
-    for (size_t i = 0; i < NUM_WHEELS; i++){
-        Vector2 position = get_wheel_position(wheels[i]->get_id());
-        distances[i] = get_wheel_distance(position, radius);
-        if (distances[i] > max_distance) max_distance = distances[i];
-    }
-
-    // Fill wheel velocities, scaling each by its distance to the wheelbase centre
-    // Approximating that the wheels drive tangent to the turning circle, the scaling ensures
-    // each wheel achieves the same angular velocity about the turning center the rover
-    for (size_t i = 0; i < NUM_WHEELS; i++){
-        wheel_velocities[i] = speed * distances[i] / max_distance;
-    }
-    
-    // Modify wheel directions if the turning centre is under the rover wheelbase
-    // Ignore the edge case where the turning centre is exactly below the centre of a wheel.
-    // Does not affect the behaviour in practice
-    float wheel_x = CHASSIS_SEPARATION / 2.0;
-    if (abs(radius) < wheel_x) {
-        // If the turning centre is...
-        if (radius > -wheel_x && radius <= 0 && steer < 0) {
-            // Under the left half of the chassis, reverse the left wheels
-            // Also include cases where we are pivoting left
-            wheel_velocities[0] *= -1;
-            wheel_velocities[1] *= -1;
-            wheel_velocities[2] *= -1;
+void Driver::fill_wheel_velocities_radial(float speed, float radius)
+{
+    float left_ratio = !radius ? 1 : sqrt(pow(CHASSIS_LENGTH, 2.0)/4 + pow(radius + (CHASSIS_WIDTH / 2), 2.0))/abs(radius);
+    float right_ratio = !radius ? 1 : sqrt(pow(CHASSIS_LENGTH, 2.0)/4 + pow(radius - (CHASSIS_WIDTH / 2), 2.0))/abs(radius);
+    for (size_t i = 0; i < NUM_WHEELS; i++)
+    {
+        if (i == 0 || i == 2)
+        {
+            pivots[i]->velocity = radius == INFINITY ? speed : speed*left_ratio;
         }
-        else if (radius >= 0 && radius < wheel_x && steer > 0) {
-            // Under the right half of the chassis, reverse the right wheels
-            // Also include cases where we are pivoting right
-            wheel_velocities[3] *= -1;
-            wheel_velocities[4] *= -1;
-            wheel_velocities[5] *= -1;
+        else if (i == 1 || i == 3)
+        {
+            pivots[i]->velocity =  radius == INFINITY ? speed : speed*right_ratio;
         }
     }
 }
-
-
-// Gets the position of the wheel relative to the wheelbase centre
-// Wheels are numbered 1 to 6 going from front to back on the left side, then front to back on the right side
-Vector2 Driver::get_wheel_position (int id) {
-
-    // Determine the y position
-    float y = 0;
-    if (id == 1 || id == 4) y = WHEEL_SEPARATION;
-    else if (id == 3 || id == 6) y = -WHEEL_SEPARATION;
-
-    // Determine the x position
-    float wheel_x = (CHASSIS_SEPARATION / 2.0) * ((id <= 3) ? -1.0 : 1.0);
-
-    // Return the vector struct
-    return Vector2(wheel_x, y);
-}
-
-
-// Determine the distance between the wheel and the turning centre
-float Driver::get_wheel_distance (Vector2 pos, float radius) {
-
-    // Calculate the x component
-    float x = radius - pos.x;
-
-    // Find pythagorus distance
-    return sqrt(pow(x, 2) + pow(pos.y, 2));
-}
-
 
 // Publishes whether or not we are in autonomous mode
-void Driver::pub_auto_mode (){
+void Driver::pub_auto_mode()
+{
 
     // Construct a message from our current is_autonomous boolean
     std_msgs::msg::Bool msg;
@@ -199,52 +173,122 @@ void Driver::pub_auto_mode (){
     mode_pub->publish(msg);
 }
 
+void Driver::pub_telemetry() {
+
+    // Construct a message from our current is_autonomous boolean
+    core::msg::Telemetry msg;
+
+    for(PivotModule *pivot : pivots) {
+
+        core::msg::SingleTelemetry wheel_msg;
+        core::msg::SingleTelemetry pivot_msg;
+
+        // Get the telemetry from the wheel and pivot
+        BLCMDTelemetry wheel_tel;
+        pivot->cmdWheel->get_telemetry(&wheel_tel, ROSTimers::blcmds_telemetry);
+        BLCMDTelemetry pivot_tel;
+        pivot->cmdPivot->get_telemetry(&pivot_tel, ROSTimers::blcmds_telemetry);
+
+        // Fill the wheel message from wheel telemetry
+        wheel_msg.bus = this->get_parameter("canbus").get_parameter_value().get<std::string>();
+        wheel_msg.id = pivot->cmdWheel->get_id();
+        wheel_msg.rotor_velocity = wheel_tel.rotor_velocity;
+        wheel_msg.q_current = wheel_tel.q_current;
+        wheel_msg.rotor_interval = wheel_tel.rotor_interval;
+        wheel_msg.d_current = wheel_tel.d_current;
+        wheel_msg.resolver_position = wheel_tel.resolver_position;
+        wheel_msg.resolver_velocity = wheel_tel.resolver_velocity;
+        wheel_msg.power = wheel_tel.power;
+        wheel_msg.voltage = wheel_tel.voltage;
+        wheel_msg.temperature = wheel_tel.temp;
+
+        // Fill the pivot message from pivot telemetry
+        pivot_msg.bus = this->get_parameter("canbus").get_parameter_value().get<std::string>();
+        pivot_msg.id = pivot->cmdPivot->get_id();
+        pivot_msg.rotor_velocity = pivot_tel.rotor_velocity;
+        pivot_msg.q_current = pivot_tel.q_current;
+        pivot_msg.rotor_interval = pivot_tel.rotor_interval;
+        pivot_msg.d_current = pivot_tel.d_current;
+        pivot_msg.resolver_position = pivot_tel.resolver_position;
+        pivot_msg.resolver_velocity = pivot_tel.resolver_velocity;
+        pivot_msg.power = pivot_tel.power;
+        pivot_msg.voltage = pivot_tel.voltage;
+        pivot_msg.temperature = pivot_tel.temp;
+
+        // Push the messages into the telemetry message
+        msg.wheels.push_back(wheel_msg);
+        msg.pivots.push_back(pivot_msg);
+    }
+
+    // publish the message
+    telemetry_pub->publish(msg);
+}
 
 // Main constructor that sets up the node
 Driver::Driver() : Node("driver")
 {
+
+    this->declare_parameter("canbus", "can0");
+
+    cout << "canbus: " << this->get_parameter("canbus").get_parameter_value().get<std::string>() << endl;
+
     // Output set-up messages
     Print::title("DRIVER");
     Print::print("", true);
 
-    // Initialise the wheels
-    for (size_t i = 0; i < NUM_WHEELS; i++) {
-        bool left = i < NUM_WHEELS / 2;
-        wheels[i] = new CMD (0, i + 1, PID, left, STOP);
+    // Initialise the wheels in the correct direction
+    for (size_t i = 0; i < NUM_WHEELS; i++)
+    {
+        bool right = i % 2;
+        BLCMD *cmdWheel = new BLCMD(this->get_parameter("canbus").get_parameter_value().get<std::string>(),
+                   2*i + 1, DRIVE_VELOCITY, right, DRIVE_VELOCITY);
+        BLCMD *cmdPivot = new BLCMD(this->get_parameter("canbus").get_parameter_value().get<std::string>(),
+                   2*i + 2, DRIVE_POSITION, false, DRIVE_VELOCITY);
+        pivots[i] = new PivotModule(i, cmdWheel, cmdPivot);
     }
-    
+
     rclcpp::QoS qos = rclcpp::QoS(1).best_effort().deadline(ROSTimers::drive_deadline);
 
     rclcpp::SubscriptionOptions subscriber_options;
-	
-    //Sets subscriber options before subscription is made
-	subscriber_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void {inputs_deadline_exceeded();};
 
-    // Creates the commands subscription (manual)
+    // Sets subscriber options before subscription is made
+    subscriber_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void
+    { inputs_deadline_exceeded(); };
+
+
     subscription_cmds_man = this->create_subscription<core::msg::DriveInput>(
         "/control/drive_inputs", qos, std::bind(&Driver::drive_callback, this, _1), subscriber_options);
-    
+
     // Creates the commands subscription (autonomous)
     subscription_cmds_auto = this->create_subscription<core::msg::DriveInput>(
         "/autonomous/drive_inputs", 10, std::bind(&Driver::auto_callback, this, _1));
-    
+
     // Creates the input subscription
     subscription_inputs = this->create_subscription<core::msg::InputGamepad>(
         "/control/input_gamepad", qos, std::bind(&Driver::input_callback, this, _1), subscriber_options);
-
+;
     // Creates auto mode timer and associated publisher
-    mode_timer = this->create_wall_timer(
-        ROSTimers::auto_mode, std::bind(&Driver::pub_auto_mode, this)
-    );
+    mode_timer = this->create_wall_timer(ROSTimers::auto_mode, std::bind(&Driver::pub_auto_mode, this));
+
+    telemetry_timer = this->create_wall_timer(ROSTimers::blcmds_telemetry, std::bind(&Driver::pub_telemetry, this));
+
     mode_pub = this->create_publisher<std_msgs::msg::Bool>(
-        "/autonomous/mode", 10
-    );
+        "/autonomous/mode", 10);
+
+    telemetry_pub = this->create_publisher<core::msg::Telemetry>("/control/telemetry", 10);
+
+    pivot_wheel_pub = this->create_publisher<core::msg::PivotWheelData>("/control/pivot_wheel", 10);
+
 }
 
 // deadline callback for when the drive inputs publisher misses its deadline
-void Driver::inputs_deadline_exceeded(){
-	RCLCPP_WARN(this->get_logger(), "Drive inputs subscriber deadline missed");
-    for (CMD* wheel : wheels) wheel->stop();
+void Driver::inputs_deadline_exceeded()
+{
+    RCLCPP_WARN(this->get_logger(), "Drive inputs subscriber deadline missed");
+    for (PivotModule *pivot : pivots)
+    {
+        pivot->cmdWheel->stop();
+    }
 }
 
 //  Main function called when the script execution begins
@@ -256,10 +300,7 @@ int main(int argc, char **argv)
     // Runs the Subscriber class
     rclcpp::spin(std::make_shared<Driver>());
 
-    // Shutsdown ROS once complete
     rclcpp::shutdown();
-
     // Returns an empty value
     return 0;
 }
-
