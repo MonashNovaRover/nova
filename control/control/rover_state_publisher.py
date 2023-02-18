@@ -6,7 +6,7 @@ from rclpy.node import Node
 from rclpy.qos import QoSProfile
 from geometry_msgs.msg import Quaternion
 from sensor_msgs.msg import JointState
-from core.msg import Telemetry
+from core.msg import Telemetry, SingleTelemetry
 from tf2_ros import TransformBroadcaster, TransformStamped
 
 FRONT_LEFT_DIR = 1
@@ -20,14 +20,13 @@ FRONT_RIGHT_PIVOT = -1
 BACK_RIGHT_PIVOT = -1
 
 # For getting true resolver zeros of front facing wheel
-FRONT_LEFT_PIVOT_ZERO = 0
-FRONT_RIGHT_PIVOT_ZERO = 0
-BACK_LEFT_PIVOT_ZERO = 0
-BACK_RIGHT_PIVOT_ZERO = 0
+FRONT_LEFT_PIVOT_ZERO = 0.
+FRONT_RIGHT_PIVOT_ZERO = 0.
+BACK_LEFT_PIVOT_ZERO = 0.
+BACK_RIGHT_PIVOT_ZERO = 0.
 
 class RoverStatePublisher(Node):
     def __init__(self):
-        rclpy.init()
         super().__init__('rover_state_publisher')
 
         self.param_pub_frequency = self.declare_parameter("joint_pub_rate_hz", 30).value
@@ -42,37 +41,45 @@ class RoverStatePublisher(Node):
         # Telemetry callback to set joint state
         self.telemetry_sub = self.create_subscription(Telemetry, '/control/telemetry', self.telemetry_callback, qos_profile)
 
-        # Publish initial telemetry to give us something to look at
+        # Get initial telemetry so we can visualise even when not receiving messages
+        self.telemetry = None
         self.joint_state = None
-        self.telemetry_callback(Telemetry())
+        self.initialise_telemetry()
+        self.calculate_joint_state()
 
         self.timer = self.create_timer(1/self.param_pub_frequency, self.cb_pub_joint_state)
 
         self.nodeName = self.get_name()
         self.get_logger().info("{0} started".format(self.nodeName))
 
-    def telemetry_callback(self, msg):
+    def initialise_telemetry(self):
+        self.telemetry = Telemetry()
+        self.telemetry.wheels = [SingleTelemetry() for _ in range(4)]
+        self.telemetry.pivots = [SingleTelemetry() for _ in range(4)]
 
-        joint_state = JointState()
+    def telemetry_callback(self, msg):
+        self.telemetry = msg
+        self.calculate_joint_state()
+
+    def calculate_joint_state(self):
+        self.joint_state = JointState()
         now = self.get_clock().now()
 
-        joint_state.header.stamp = now.to_msg()
+        self.joint_state.header.stamp = now.to_msg()
 
-        joint_state.name = ['front_left_wheel_to_pivot', 'front_right_wheel_to_pivot',
+        self.joint_state.name = ['front_left_wheel_to_pivot', 'front_right_wheel_to_pivot',
                             'back_left_wheel_to_pivot', 'back_right_wheel_to_pivot',
                             'front_left_pivot_to_leg', 'front_right_pivot_to_leg',
                             'back_left_pivot_to_leg', 'back_right_pivot_to_leg']
 
-        joint_state.position = [FRONT_LEFT_DIR*msg.wheels[0].resolver_position,
-                                FRONT_RIGHT_DIR*msg.wheels[1].resolver_position,
-                                BACK_LEFT_DIR*msg.wheels[2].resolver_position,
-                                BACK_RIGHT_DIR*msg.wheels[3].resolver_position,
-                                FRONT_LEFT_PIVOT*msg.pivots[0].resolver_position + FRONT_LEFT_PIVOT_ZERO,
-                                FRONT_RIGHT_PIVOT*msg.pivots[1].resolver_position + FRONT_RIGHT_PIVOT_ZERO,
-                                BACK_LEFT_PIVOT*msg.pivots[2].resolver_position + BACK_LFET_PIVOT_ZERO,
-                                BACK_RIGHT_PIVOT*msg.pivots[3].resolver_position + BACK_RIGHT_PIVOT_ZERO]
-
-        self.joint_pub.publish(joint_state)
+        self.joint_state.position = [FRONT_LEFT_DIR*self.telemetry.wheels[0].resolver_position,
+                                FRONT_RIGHT_DIR*self.telemetry.wheels[1].resolver_position,
+                                BACK_LEFT_DIR*self.telemetry.wheels[2].resolver_position,
+                                BACK_RIGHT_DIR*self.telemetry.wheels[3].resolver_position,
+                                FRONT_LEFT_PIVOT*self.telemetry.pivots[0].resolver_position + FRONT_LEFT_PIVOT_ZERO,
+                                FRONT_RIGHT_PIVOT*self.telemetry.pivots[1].resolver_position + FRONT_RIGHT_PIVOT_ZERO,
+                                BACK_LEFT_PIVOT*self.telemetry.pivots[2].resolver_position + BACK_LEFT_PIVOT_ZERO,
+                                BACK_RIGHT_PIVOT*self.telemetry.pivots[3].resolver_position + BACK_RIGHT_PIVOT_ZERO]
 
     def cb_pub_joint_state(self):
         self.joint_pub.publish(self.joint_state)
