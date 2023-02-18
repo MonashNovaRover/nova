@@ -47,6 +47,14 @@ def generate_launch_description():
             emulate_tty=True
         ),
         Node(
+            package='tf2_ros',
+            node_executable='static_transform_publisher',
+            # TODO: Work out true extrinsics of camera relative to base of rover
+            arguments= ['0', '0', '0.44', '0', '0', '0', 'base_link', 'chassis'],
+            output='screen',
+            emulate_tty=True
+        ),
+        Node(
             package='autonomous',
             node_executable='tracking_camera.py',
             output='screen',
