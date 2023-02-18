@@ -34,19 +34,9 @@ def generate_launch_description():
             package='control',
             executable='rover_state_publisher.py')
 
-
-    rviz_node = Node(
-        package='rviz2',
-        executable='rviz2',
-        name='rviz2',
-        output='screen',
-        arguments=['-d', LaunchConfiguration('rvizconfig')],
-    )
-
     return LaunchDescription([
         model_arg,
         rviz_arg,
         joint_state_publisher_node,
         robot_state_publisher_node,
-        rviz_node
     ])

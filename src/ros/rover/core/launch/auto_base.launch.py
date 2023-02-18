@@ -23,11 +23,11 @@ def generate_launch_description():
             arguments=['-d', str(rviz_path)],
             emulate_tty=True
         ),
-        #IncludeLaunchDescription(
-        #    PythonLaunchDescriptionSource([
-        #        FindPackageShare("control"), '/launch', '/rover_visualisation.launch.py'
-        #    ])
-        #),
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource([
+                FindPackageShare("control"), '/launch', '/rover_visualisation.launch.py'
+            ])
+        ),
         # autonomous nodes
         Node(
             package="autonomous",

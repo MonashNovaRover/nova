@@ -25,7 +25,7 @@ class ArTracker(Node):
         self.ar_broadcaster = TransformBroadcaster(self)
 
         self.camera_calib_file = "cameras/calib_chessboard.yaml"
-        self.marker_width_m = 0.15
+        self.marker_width_m = 0.2
 
         self.arDict = ar.Dictionary_get(ar.DICT_4X4_250)
         self.arParam = ar.DetectorParameters_create()
