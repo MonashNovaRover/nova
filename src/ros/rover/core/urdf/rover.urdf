@@ -4,6 +4,7 @@
      For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
 <robot
   name="rover">
+  <link name="base_link"></link>
   <link
     name="chassis">
     <inertial>
@@ -44,6 +45,16 @@
       </geometry>
     </collision>
   </link>
+
+  <joint name="base_to_chassis" type="fixed">
+      <parent link="base_link"/>
+      <child link="chassis"/>
+      <origin 
+          xyz="0. -0. 0.38"
+          rpy="0. 0. ${-pi/2}"
+      />
+  </joint>
+
   <link
     name="left_leg">
     <inertial>

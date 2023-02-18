@@ -127,13 +127,7 @@ install(PROGRAMS
         control/rover_state_publisher.py
         DESTINATION lib/${PROJECT_NAME}
         )
-# Add folders to share
-install(DIRECTORY
-        launch
-        urdf
-        meshes
-        DESTINATION share/${PROJECT_NAME}
-        )
+
 ################################################
 # Add Subdirectories
 ################################################

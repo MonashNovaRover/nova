@@ -82,6 +82,7 @@ class RoverStatePublisher(Node):
                                 BACK_RIGHT_PIVOT*self.telemetry.pivots[3].resolver_position + BACK_RIGHT_PIVOT_ZERO]
 
     def cb_pub_joint_state(self):
+        self.joint_state.header.stamp=self.get_clock().now().to_msg()
         self.joint_pub.publish(self.joint_state)
 
 
