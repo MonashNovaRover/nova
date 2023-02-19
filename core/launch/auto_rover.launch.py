@@ -41,6 +41,12 @@ def generate_launch_description():
         ),
         Node(
             package="autonomous",
+            node_executable="depth_camera.py",
+            output="screen",
+            emulate_tty=True
+        ),
+        Node(
+            package="autonomous",
             node_executable="GRUC.py",
             output="screen",
             emulate_tty=True
