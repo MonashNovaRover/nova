@@ -46,23 +46,19 @@ class TrackingCamera(Node):
         self.pipe_profile = self.pipe.start(self.cfg)
         self.create_timer(1./30, self.get_next_pose)
 
-    def transform_t265_to_nova(self, data):
+    def transform_to_pose(self, data):
         """
-        Transform the raw T265 data into a ROS Odom message, with the right handed coorddinate system
-        where
-        up = +z
-        left = +y
-        forward = +x
+        Transform the raw T265 data transform into a ROS Pose message
         """
         t265_pose = Pose()
 
-        t265_pose.position.x = -data.translation.z
-        t265_pose.position.y = -data.translation.x
-        t265_pose.position.z = data.translation.y
+        t265_pose.position.x = data.translation.x
+        t265_pose.position.y = data.translation.y
+        t265_pose.position.z = data.translation.z
 
-        t265_pose.orientation.x = -data.rotation.z
-        t265_pose.orientation.y = -data.rotation.x
-        t265_pose.orientation.z = data.rotation.y
+        t265_pose.orientation.x = data.rotation.x
+        t265_pose.orientation.y = data.rotation.y
+        t265_pose.orientation.z = data.rotation.z
         t265_pose.orientation.w = data.rotation.w
 
         return t265_pose
@@ -73,7 +69,7 @@ class TrackingCamera(Node):
         if pose is not None:
             data = pose.get_pose_data()
 
-            t265_pose: Pose = self.transform_t265_to_nova(data)
+            t265_pose: Pose = self.transform_to_pose(data)
 
             t265_pose_stamped = PoseStamped()
             t265_pose_stamped.header.stamp = self.get_clock().now().to_msg()
