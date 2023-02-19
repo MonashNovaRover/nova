@@ -37,14 +37,13 @@ import logging
 
 
 class HeightPlaneMapper(FlatMapper):
-    def __init__(self, length=20, width=20, height=5, resolution=0.1, detection_resolution=0.025, planner=None, camera=False, name="height_plane_mapper"):
+    def __init__(self, length=20, width=20, height=5, resolution=0.1, detection_resolution=0.025, planner=None, name="height_plane_mapper"):
 
         # init node with node name points
-        super().__init__(length=length, width=width, height=height, resolution=resolution, detection_resolution=detection_resolution, planner=planner, camera=camera)
+        super().__init__(length=length, width=width, height=height, resolution=resolution, detection_resolution=detection_resolution, planner=planner)
         self.get_logger().set_level(logging.DEBUG)
         self.height_mapper = HeightMapper(length=length, width=width, height=height, resolution=resolution, detection_resolution=detection_resolution)
         self.plane_mapper = PlaneMapper(length=length, width=width, height=height, resolution=resolution, detection_resolution=detection_resolution)
-        self.on_initialise()
 
     def handle_pc(self, pts):
         """
@@ -59,8 +58,11 @@ class HeightPlaneMapper(FlatMapper):
         if self.local_map_to_d435 is None: 
             self.get_logger().warn("No transform to d435 frame!", once=True)
             return
+        self.get_logger().debug(f"Transforming point cloud by transform: {self.orient_nova_frame_transform}")
+        # transform to nova coordinates
+        frame_transformed_points = transform.transform_points(self.orient_nova_frame_transform, pts)
         self.get_logger().debug(f"Transforming point cloud by transform: {self.local_map_to_d435}")
-        no_yaw_pts = transform.transform_points_no_yaw(self.local_map_to_d435, pts)
+        no_yaw_pts = transform.transform_points_no_yaw(self.local_map_to_d435, frame_transformed_points)
 
         filtered_indices = self.filter_points(no_yaw_pts)
 
