@@ -62,6 +62,7 @@ class DepthCamera(Node):
 
         self.timer_process_cloud = self.create_timer(1/self.param_pointcloud_frequency, self.process_pointcloud)
         self.timer_process_image = self.create_timer(1/self.param_image_frequency, self.process_image)
+        self.timer_process_frames = self.create_timer(1/self.param_frame_frequency, self.process_frames)
 
     def process_frames(self):
         """
