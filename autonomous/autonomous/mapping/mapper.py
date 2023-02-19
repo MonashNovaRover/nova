@@ -26,23 +26,27 @@ TODO:
  - a lot 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
+import numpy as np
+import time
+import logging
+
+from autonomous.config.runtime_params import min_map_update_time
+from autonomous.cameras.pc_converter import read_points
+
 import rclpy
 from rclpy.node import Node
 from rclpy.time import Time
 from rclpy.duration import Duration
-import numpy as np
-import time
-from autonomous.cameras.depth_camera import DepthCamera
-from autonomous.config.runtime_params import max_point_depth, max_fov_angle, skip_pts, min_map_update_time
-import logging
-
 from tf2_ros import TransformListener, Buffer
+from sensor_msgs.msg import PointCloud2
 
 class Mapper(Node):
-    def __init__(self, length=20, width=20, height=5, planner=None, resolution=0.1, camera=False, name='mapper'):
+    def __init__(self, length=20, width=20, height=5, planner=None, resolution=0.1, name='mapper'):
         super().__init__(name)
+        self.initialised = False
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self, spin_thread=True)
+        self.sub_pointcloud = self.create_subscription(PointCloud2, f"~d435_1/cloud", self.pointcloud_callback, 10)
 
         self.length = length
         self.width = width
@@ -50,8 +54,6 @@ class Mapper(Node):
         self.resolution = resolution
 
         self.planner = planner
-        self.use_camera = camera
-        self.camera = None
 
         self.previous_plan = time.perf_counter()
         self.previous_map_update = time.perf_counter()
@@ -65,12 +67,6 @@ class Mapper(Node):
 
         self.has_color = False
 
-    def on_initialise(self):
-        # if camera is true we create one, start it, and add a callback. Depth camera runs in a separate thread
-        if self.use_camera and self.camera is None:
-            self.camera = DepthCamera(self.python_callback)
-            self.camera.start()
-
     def check_position_in_map(self):
         """
         Abstract method for use in inherited classes.
@@ -82,40 +78,6 @@ class Mapper(Node):
         initialise the map
         """
         pass
-
-    @staticmethod
-    def prune_point_cloud(pts, colors=None):
-        """
-        :param pts: np.array with shape (n, 3)
-        :param colors: np.array with shape (n, 3)
-        :return: np.array with shape (n, 3) or two such arrays as a tuple
-        """
-        # 1. only taking every 10th value (cos 2 much data)
-        if len(pts) == 0:
-            return pts
-        pts = pts[::skip_pts]
-        if colors:
-            colors = colors[::skip_pts]
-
-        # 2. Pruning out points which are either beyond the max dist, or are outside the max angle
-        indexes = (Mapper.row_norm(pts) < max_point_depth) & (abs(np.arctan(pts[:, 1] / pts[:, 0])) < max_fov_angle) \
-                  & (abs(np.arctan(pts[:, 2] / pts[:, 0])) < max_fov_angle)
-
-        if colors:
-            return pts[indexes], colors
-        return pts[indexes]
-
-    @staticmethod
-    def convert_pts_to_tracking(pts):
-        """
-        Converts a numpy array of points from (x=right, y=down, z=forward) coordinates to (x=forward, y=right, z=up)
-        :param pts: np.array with shape (n, 3), corresponding to an array of [x, y, z] coordinates
-        :return: np.array with shape (n, 3)
-        """
-        pts = pts[:, [2, 0, 1]]
-        pts[:, 2] = -pts[:, 2]
-        pts[:, 1] = -pts[:, 1]
-        return pts
 
     @staticmethod
     def row_norm(pts):
@@ -153,17 +115,14 @@ class Mapper(Node):
 
         self.planner.update_map(self.get_2d_map())
 
-    def get_pts(self, pts):
-        return self.prune_point_cloud(self.convert_pts_to_tracking(pts))
-
-    def python_callback(self, pts):
+    def pointcloud_callback(self, msg):
         """
         This is called when the depth camera receives a new set of points via the python api. It is implemented
         as a callback so it can happen in a separate thread.
         It calls a function to extract and filter the points (colors are ignored) and updates the map with points only -
         when using the python API, it should be a points only map.
         """
-        self.update_map(self.get_pts(pts))
+        self.update_map(np.array(list(read_points(msg, skip_nans=True))))
 
 
 def main(args=None):
