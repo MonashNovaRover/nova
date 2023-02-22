@@ -1,0 +1,36 @@
+[0.671s] Invoking command in 'C:\Users\shelb\Downloads\nova\rover\rover\build\core': PUBLIC=%PUBLIC%
+PyCharm Community Edition=C:\Program Files\JetBrains\PyCharm Community Edition 2022.3.1\bin; C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.EXE C:\Users\shelb\Downloads\nova\rover\rover\core -DCMAKE_INSTALL_PREFIX=C:\Users\shelb\Downloads\nova\rover\rover\install\core -G Visual Studio 16 2019
+[0.875s] -- Selecting Windows SDK version 10.0.19041.0 to target Windows 10.0.22000.
+[7.328s] -- The C compiler identification is MSVC 19.29.30147.0
+[10.546s] -- The CXX compiler identification is MSVC 19.29.30147.0
+[10.890s] -- Detecting C compiler ABI info
+[13.875s] -- Detecting C compiler ABI info - done
+[13.890s] -- Check for working C compiler: C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.29.30133/bin/Hostx64/x64/cl.exe - skipped
+[13.906s] -- Detecting C compile features
+[13.921s] -- Detecting C compile features - done
+[14.000s] -- Detecting CXX compiler ABI info
+[16.984s] -- Detecting CXX compiler ABI info - done
+[16.984s] -- Check for working CXX compiler: C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.29.30133/bin/Hostx64/x64/cl.exe - skipped
+[17.000s] -- Detecting CXX compile features
+[17.000s] -- Detecting CXX compile features - done
+[17.593s] CMake Error at CMakeLists.txt:19 (find_package):
+[17.593s]   By not providing "Findament_cmake.cmake" in CMAKE_MODULE_PATH this project
+[17.593s]   has asked CMake to find a package configuration file provided by
+[17.593s]   "ament_cmake", but CMake did not find one.
+[17.593s] 
+[17.593s]   Could not find a package configuration file provided by "ament_cmake" with
+[17.593s]   any of the following names:
+[17.593s] 
+[17.593s]     ament_cmakeConfig.cmake
+[17.593s]     ament_cmake-config.cmake
+[17.593s] 
+[17.593s]   Add the installation prefix of "ament_cmake" to CMAKE_PREFIX_PATH or set
+[17.593s]   "ament_cmake_DIR" to a directory containing one of the above files.  If
+[17.593s]   "ament_cmake" provides a separate development package or SDK, be sure it
+[17.593s]   has been installed.
+[17.593s] 
+[17.593s] 
+[17.593s] -- Configuring incomplete, errors occurred!
+[17.593s] See also "C:/Users/shelb/Downloads/nova/rover/rover/build/core/CMakeFiles/CMakeOutput.log".
+[17.609s] Invoked command in 'C:\Users\shelb\Downloads\nova\rover\rover\build\core' returned '1': PUBLIC=%PUBLIC%
+PyCharm Community Edition=C:\Program Files\JetBrains\PyCharm Community Edition 2022.3.1\bin; C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.EXE C:\Users\shelb\Downloads\nova\rover\rover\core -DCMAKE_INSTALL_PREFIX=C:\Users\shelb\Downloads\nova\rover\rover\install\core -G Visual Studio 16 2019

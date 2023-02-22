@@ -1,0 +1,172 @@
+[1.882s] [34mcolcon[0m [1;30mDEBUG[0m [32mCommand line arguments: ['C:\\Users\\shelb\\AppData\\Local\\Programs\\Python\\Python310\\Scripts\\colcon', 'build'][0m
+[1.883s] [34mcolcon[0m [1;30mDEBUG[0m [32mParsed command line arguments: Namespace(log_base=None, log_level=None, verb_name='build', build_base='build', install_base='install', merge_install=False, symlink_install=False, test_result_base=None, continue_on_error=False, executor='parallel', parallel_workers=16, event_handlers=None, ignore_user_meta=False, metas=['./colcon.meta'], base_paths=['.'], packages_ignore=None, packages_ignore_regex=None, paths=None, packages_up_to=None, packages_up_to_regex=None, packages_above=None, packages_above_and_dependencies=None, packages_above_depth=None, packages_select_by_dep=None, packages_skip_by_dep=None, packages_skip_up_to=None, packages_select_build_failed=False, packages_skip_build_finished=False, packages_select_test_failures=False, packages_skip_test_passed=False, packages_select=None, packages_skip=None, packages_select_regex=None, packages_skip_regex=None, packages_start=None, packages_end=None, cmake_args=None, cmake_target=None, cmake_target_skip_unavailable=False, cmake_clean_cache=False, cmake_clean_first=False, cmake_force_configure=False, ament_cmake_args=None, catkin_cmake_args=None, catkin_skip_building_tests=False, verb_parser=<colcon_defaults.argument_parser.defaults.DefaultArgumentsDecorator object at 0x000002C4FB302710>, verb_extension=<colcon_core.verb.build.BuildVerb object at 0x000002C4FB302500>, main=<bound method BuildVerb.main of <colcon_core.verb.build.BuildVerb object at 0x000002C4FB302500>>)[0m
+[2.103s] [34mcolcon.colcon_core.package_discovery[0m [1;30mLevel 1[0m discover_packages(colcon_meta) check parameters
+[2.104s] [34mcolcon.colcon_core.package_discovery[0m [1;30mLevel 1[0m discover_packages(recursive) check parameters
+[2.105s] [34mcolcon.colcon_core.package_discovery[0m [1;30mLevel 1[0m discover_packages(ignore) check parameters
+[2.105s] [34mcolcon.colcon_core.package_discovery[0m [1;30mLevel 1[0m discover_packages(path) check parameters
+[2.105s] [34mcolcon.colcon_core.package_discovery[0m [1;30mLevel 1[0m discover_packages(colcon_meta) discover
+[2.105s] [34mcolcon.colcon_core.package_discovery[0m [1;30mLevel 1[0m discover_packages(recursive) discover
+[2.105s] [34mcolcon.colcon_core.package_discovery[0m [1;30mINFO[0m Crawling recursively for packages in 'C:\Users\shelb\Downloads\nova\rover\rover'
+[2.106s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(.) by extensions ['ignore', 'ignore_ament_install']
+[2.107s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(.) by extension 'ignore'
+[2.107s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(.) by extension 'ignore_ament_install'
+[2.107s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(.) by extensions ['colcon_pkg']
+[2.107s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(.) by extension 'colcon_pkg'
+[2.107s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(.) by extensions ['colcon_meta']
+[2.107s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(.) by extension 'colcon_meta'
+[2.107s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(.) by extensions ['ros']
+[2.108s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(.) by extension 'ros'
+[2.177s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(.) by extensions ['cmake', 'python']
+[2.177s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(.) by extension 'cmake'
+[2.177s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(.) by extension 'python'
+[2.177s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(.) by extensions ['python_setup_py']
+[2.177s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(.) by extension 'python_setup_py'
+[2.184s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(autonomous) by extensions ['ignore', 'ignore_ament_install']
+[2.184s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(autonomous) by extension 'ignore'
+[2.184s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(autonomous) by extension 'ignore_ament_install'
+[2.186s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(autonomous) by extensions ['colcon_pkg']
+[2.186s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(autonomous) by extension 'colcon_pkg'
+[2.186s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(autonomous) by extensions ['colcon_meta']
+[2.186s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(autonomous) by extension 'colcon_meta'
+[2.186s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(autonomous) by extensions ['ros']
+[2.186s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(autonomous) by extension 'ros'
+[2.207s] [34mcolcon.colcon_core.package_identification[0m [1;30mDEBUG[0m [32mPackage 'autonomous' with type 'ros.ament_cmake' and name 'autonomous'[0m
+[2.207s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(build) by extensions ['ignore', 'ignore_ament_install']
+[2.207s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(build) by extension 'ignore'
+[2.207s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(build) ignored
+[2.207s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(control) by extensions ['ignore', 'ignore_ament_install']
+[2.207s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(control) by extension 'ignore'
+[2.207s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(control) by extension 'ignore_ament_install'
+[2.207s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(control) by extensions ['colcon_pkg']
+[2.207s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(control) by extension 'colcon_pkg'
+[2.207s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(control) by extensions ['colcon_meta']
+[2.207s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(control) by extension 'colcon_meta'
+[2.207s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(control) by extensions ['ros']
+[2.207s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(control) by extension 'ros'
+[2.226s] [34mcolcon.colcon_core.package_identification[0m [1;30mDEBUG[0m [32mPackage 'control' with type 'ros.ament_cmake' and name 'control'[0m
+[2.227s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(core) by extensions ['ignore', 'ignore_ament_install']
+[2.227s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(core) by extension 'ignore'
+[2.228s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(core) by extension 'ignore_ament_install'
+[2.228s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(core) by extensions ['colcon_pkg']
+[2.228s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(core) by extension 'colcon_pkg'
+[2.228s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(core) by extensions ['colcon_meta']
+[2.228s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(core) by extension 'colcon_meta'
+[2.229s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(core) by extensions ['ros']
+[2.230s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(core) by extension 'ros'
+[2.241s] [34mcolcon.colcon_core.package_identification[0m [1;30mDEBUG[0m [32mPackage 'core' with type 'ros.ament_cmake' and name 'core'[0m
+[2.242s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(electronics) by extensions ['ignore', 'ignore_ament_install']
+[2.242s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(electronics) by extension 'ignore'
+[2.243s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(electronics) by extension 'ignore_ament_install'
+[2.243s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(electronics) by extensions ['colcon_pkg']
+[2.243s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(electronics) by extension 'colcon_pkg'
+[2.243s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(electronics) by extensions ['colcon_meta']
+[2.243s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(electronics) by extension 'colcon_meta'
+[2.243s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(electronics) by extensions ['ros']
+[2.244s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(electronics) by extension 'ros'
+[2.256s] [34mcolcon.colcon_core.package_identification[0m [1;30mDEBUG[0m [32mPackage 'electronics' with type 'ros.ament_cmake' and name 'electronics'[0m
+[2.257s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(install) by extensions ['ignore', 'ignore_ament_install']
+[2.257s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(install) by extension 'ignore'
+[2.257s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(install) ignored
+[2.258s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(log) by extensions ['ignore', 'ignore_ament_install']
+[2.258s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(log) by extension 'ignore'
+[2.259s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(log) ignored
+[2.259s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(science) by extensions ['ignore', 'ignore_ament_install']
+[2.260s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(science) by extension 'ignore'
+[2.260s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(science) by extension 'ignore_ament_install'
+[2.260s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(science) by extensions ['colcon_pkg']
+[2.260s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(science) by extension 'colcon_pkg'
+[2.261s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(science) by extensions ['colcon_meta']
+[2.261s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(science) by extension 'colcon_meta'
+[2.261s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(science) by extensions ['ros']
+[2.261s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(science) by extension 'ros'
+[2.274s] [34mcolcon.colcon_core.package_identification[0m [1;30mDEBUG[0m [32mPackage 'science' with type 'ros.ament_cmake' and name 'science'[0m
+[2.274s] [34mcolcon.colcon_core.package_discovery[0m [1;30mLevel 1[0m discover_packages(recursive) using defaults
+[2.275s] [34mcolcon.colcon_core.package_discovery[0m [1;30mLevel 1[0m discover_packages(ignore) discover
+[2.275s] [34mcolcon.colcon_core.package_discovery[0m [1;30mLevel 1[0m discover_packages(ignore) using defaults
+[2.275s] [34mcolcon.colcon_core.package_discovery[0m [1;30mLevel 1[0m discover_packages(path) discover
+[2.275s] [34mcolcon.colcon_core.package_discovery[0m [1;30mLevel 1[0m discover_packages(path) using defaults
+[2.406s] [34mcolcon.colcon_core.verb[0m [1;30mLevel 5[0m set package 'core' build argument 'cmake_args' from command line to 'None'
+[2.406s] [34mcolcon.colcon_core.verb[0m [1;30mLevel 5[0m set package 'core' build argument 'cmake_target' from command line to 'None'
+[2.406s] [34mcolcon.colcon_core.verb[0m [1;30mLevel 5[0m set package 'core' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[2.406s] [34mcolcon.colcon_core.verb[0m [1;30mLevel 5[0m set package 'core' build argument 'cmake_clean_cache' from command line to 'False'
+[2.406s] [34mcolcon.colcon_core.verb[0m [1;30mLevel 5[0m set package 'core' build argument 'cmake_clean_first' from command line to 'False'
+[2.406s] [34mcolcon.colcon_core.verb[0m [1;30mLevel 5[0m set package 'core' build argument 'cmake_force_configure' from command line to 'False'
+[2.406s] [34mcolcon.colcon_core.verb[0m [1;30mLevel 5[0m set package 'core' build argument 'ament_cmake_args' from command line to 'None'
+[2.406s] [34mcolcon.colcon_core.verb[0m [1;30mLevel 5[0m set package 'core' build argument 'catkin_cmake_args' from command line to 'None'
+[2.406s] [34mcolcon.colcon_core.verb[0m [1;30mLevel 5[0m set package 'core' build argument 'catkin_skip_building_tests' from command line to 'False'
+[2.406s] [34mcolcon.colcon_core.verb[0m [1;30mDEBUG[0m [32mBuilding package 'core' with the following arguments: {'ament_cmake_args': None, 'build_base': 'C:\\Users\\shelb\\Downloads\\nova\\rover\\rover\\build\\core', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': 'C:\\Users\\shelb\\Downloads\\nova\\rover\\rover\\install\\core', 'merge_install': False, 'path': 'C:\\Users\\shelb\\Downloads\\nova\\rover\\rover\\core', 'symlink_install': False, 'test_result_base': None}[0m
+[2.423s] [34mcolcon.colcon_core.verb[0m [1;30mLevel 5[0m set package 'autonomous' build argument 'cmake_args' from command line to 'None'
+[2.423s] [34mcolcon.colcon_core.verb[0m [1;30mLevel 5[0m set package 'autonomous' build argument 'cmake_target' from command line to 'None'
+[2.423s] [34mcolcon.colcon_core.verb[0m [1;30mLevel 5[0m set package 'autonomous' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[2.423s] [34mcolcon.colcon_core.verb[0m [1;30mLevel 5[0m set package 'autonomous' build argument 'cmake_clean_cache' from command line to 'False'
+[2.423s] [34mcolcon.colcon_core.verb[0m [1;30mLevel 5[0m set package 'autonomous' build argument 'cmake_clean_first' from command line to 'False'
+[2.423s] [34mcolcon.colcon_core.verb[0m [1;30mLevel 5[0m set package 'autonomous' build argument 'cmake_force_configure' from command line to 'False'
+[2.423s] [34mcolcon.colcon_core.verb[0m [1;30mLevel 5[0m set package 'autonomous' build argument 'ament_cmake_args' from command line to 'None'
+[2.423s] [34mcolcon.colcon_core.verb[0m [1;30mLevel 5[0m set package 'autonomous' build argument 'catkin_cmake_args' from command line to 'None'
+[2.423s] [34mcolcon.colcon_core.verb[0m [1;30mLevel 5[0m set package 'autonomous' build argument 'catkin_skip_building_tests' from command line to 'False'
+[2.423s] [34mcolcon.colcon_core.verb[0m [1;30mDEBUG[0m [32mBuilding package 'autonomous' with the following arguments: {'ament_cmake_args': None, 'build_base': 'C:\\Users\\shelb\\Downloads\\nova\\rover\\rover\\build\\autonomous', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': 'C:\\Users\\shelb\\Downloads\\nova\\rover\\rover\\install\\autonomous', 'merge_install': False, 'path': 'C:\\Users\\shelb\\Downloads\\nova\\rover\\rover\\autonomous', 'symlink_install': False, 'test_result_base': None}[0m
+[2.456s] [34mcolcon.colcon_core.verb[0m [1;30mLevel 5[0m set package 'control' build argument 'cmake_args' from command line to 'None'
+[2.456s] [34mcolcon.colcon_core.verb[0m [1;30mLevel 5[0m set package 'control' build argument 'cmake_target' from command line to 'None'
+[2.456s] [34mcolcon.colcon_core.verb[0m [1;30mLevel 5[0m set package 'control' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[2.456s] [34mcolcon.colcon_core.verb[0m [1;30mLevel 5[0m set package 'control' build argument 'cmake_clean_cache' from command line to 'False'
+[2.456s] [34mcolcon.colcon_core.verb[0m [1;30mLevel 5[0m set package 'control' build argument 'cmake_clean_first' from command line to 'False'
+[2.456s] [34mcolcon.colcon_core.verb[0m [1;30mLevel 5[0m set package 'control' build argument 'cmake_force_configure' from command line to 'False'
+[2.456s] [34mcolcon.colcon_core.verb[0m [1;30mLevel 5[0m set package 'control' build argument 'ament_cmake_args' from command line to 'None'
+[2.456s] [34mcolcon.colcon_core.verb[0m [1;30mLevel 5[0m set package 'control' build argument 'catkin_cmake_args' from command line to 'None'
+[2.456s] [34mcolcon.colcon_core.verb[0m [1;30mLevel 5[0m set package 'control' build argument 'catkin_skip_building_tests' from command line to 'False'
+[2.456s] [34mcolcon.colcon_core.verb[0m [1;30mDEBUG[0m [32mBuilding package 'control' with the following arguments: {'ament_cmake_args': None, 'build_base': 'C:\\Users\\shelb\\Downloads\\nova\\rover\\rover\\build\\control', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': 'C:\\Users\\shelb\\Downloads\\nova\\rover\\rover\\install\\control', 'merge_install': False, 'path': 'C:\\Users\\shelb\\Downloads\\nova\\rover\\rover\\control', 'symlink_install': False, 'test_result_base': None}[0m
+[2.476s] [34mcolcon.colcon_core.verb[0m [1;30mLevel 5[0m set package 'electronics' build argument 'cmake_args' from command line to 'None'
+[2.476s] [34mcolcon.colcon_core.verb[0m [1;30mLevel 5[0m set package 'electronics' build argument 'cmake_target' from command line to 'None'
+[2.476s] [34mcolcon.colcon_core.verb[0m [1;30mLevel 5[0m set package 'electronics' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[2.476s] [34mcolcon.colcon_core.verb[0m [1;30mLevel 5[0m set package 'electronics' build argument 'cmake_clean_cache' from command line to 'False'
+[2.476s] [34mcolcon.colcon_core.verb[0m [1;30mLevel 5[0m set package 'electronics' build argument 'cmake_clean_first' from command line to 'False'
+[2.476s] [34mcolcon.colcon_core.verb[0m [1;30mLevel 5[0m set package 'electronics' build argument 'cmake_force_configure' from command line to 'False'
+[2.476s] [34mcolcon.colcon_core.verb[0m [1;30mLevel 5[0m set package 'electronics' build argument 'ament_cmake_args' from command line to 'None'
+[2.476s] [34mcolcon.colcon_core.verb[0m [1;30mLevel 5[0m set package 'electronics' build argument 'catkin_cmake_args' from command line to 'None'
+[2.476s] [34mcolcon.colcon_core.verb[0m [1;30mLevel 5[0m set package 'electronics' build argument 'catkin_skip_building_tests' from command line to 'False'
+[2.476s] [34mcolcon.colcon_core.verb[0m [1;30mDEBUG[0m [32mBuilding package 'electronics' with the following arguments: {'ament_cmake_args': None, 'build_base': 'C:\\Users\\shelb\\Downloads\\nova\\rover\\rover\\build\\electronics', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': 'C:\\Users\\shelb\\Downloads\\nova\\rover\\rover\\install\\electronics', 'merge_install': False, 'path': 'C:\\Users\\shelb\\Downloads\\nova\\rover\\rover\\electronics', 'symlink_install': False, 'test_result_base': None}[0m
+[2.489s] [34mcolcon.colcon_core.verb[0m [1;30mLevel 5[0m set package 'science' build argument 'cmake_args' from command line to 'None'
+[2.489s] [34mcolcon.colcon_core.verb[0m [1;30mLevel 5[0m set package 'science' build argument 'cmake_target' from command line to 'None'
+[2.489s] [34mcolcon.colcon_core.verb[0m [1;30mLevel 5[0m set package 'science' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[2.489s] [34mcolcon.colcon_core.verb[0m [1;30mLevel 5[0m set package 'science' build argument 'cmake_clean_cache' from command line to 'False'
+[2.489s] [34mcolcon.colcon_core.verb[0m [1;30mLevel 5[0m set package 'science' build argument 'cmake_clean_first' from command line to 'False'
+[2.489s] [34mcolcon.colcon_core.verb[0m [1;30mLevel 5[0m set package 'science' build argument 'cmake_force_configure' from command line to 'False'
+[2.489s] [34mcolcon.colcon_core.verb[0m [1;30mLevel 5[0m set package 'science' build argument 'ament_cmake_args' from command line to 'None'
+[2.489s] [34mcolcon.colcon_core.verb[0m [1;30mLevel 5[0m set package 'science' build argument 'catkin_cmake_args' from command line to 'None'
+[2.489s] [34mcolcon.colcon_core.verb[0m [1;30mLevel 5[0m set package 'science' build argument 'catkin_skip_building_tests' from command line to 'False'
+[2.489s] [34mcolcon.colcon_core.verb[0m [1;30mDEBUG[0m [32mBuilding package 'science' with the following arguments: {'ament_cmake_args': None, 'build_base': 'C:\\Users\\shelb\\Downloads\\nova\\rover\\rover\\build\\science', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': 'C:\\Users\\shelb\\Downloads\\nova\\rover\\rover\\install\\science', 'merge_install': False, 'path': 'C:\\Users\\shelb\\Downloads\\nova\\rover\\rover\\science', 'symlink_install': False, 'test_result_base': None}[0m
+[2.506s] [34mcolcon.colcon_core.executor[0m [1;30mINFO[0m Executing jobs using 'parallel' executor
+[2.557s] [34mcolcon.colcon_parallel_executor.executor.parallel[0m [1;30mDEBUG[0m [32mrun_until_complete[0m
+[2.559s] [34mcolcon.colcon_ros.task.ament_cmake.build[0m [1;30mINFO[0m Building ROS package in 'C:\Users\shelb\Downloads\nova\rover\rover\core' with build type 'ament_cmake'
+[2.560s] [34mcolcon.colcon_cmake.task.cmake.build[0m [1;30mINFO[0m Building CMake package in 'C:\Users\shelb\Downloads\nova\rover\rover\core'
+[2.585s] [34mcolcon.colcon_core.plugin_system[0m [1;30mINFO[0m Skipping extension 'colcon_core.shell.sh': Not used on Windows systems
+[2.585s] [34mcolcon.colcon_core.shell[0m [1;30mINFO[0m Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[3.236s] [34mcolcon.colcon_core.event_handler.log_command[0m [1;30mDEBUG[0m [32mInvoking command in 'C:\Users\shelb\Downloads\nova\rover\rover\build\core': PUBLIC=%PUBLIC%
+PyCharm Community Edition=C:\Program Files\JetBrains\PyCharm Community Edition 2022.3.1\bin; C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.EXE C:\Users\shelb\Downloads\nova\rover\rover\core -DCMAKE_INSTALL_PREFIX=C:\Users\shelb\Downloads\nova\rover\rover\install\core -G Visual Studio 16 2019[0m
+[20.176s] [34mcolcon.colcon_core.event_handler.log_command[0m [1;30mDEBUG[0m [32mInvoked command in 'C:\Users\shelb\Downloads\nova\rover\rover\build\core' returned '1': PUBLIC=%PUBLIC%
+PyCharm Community Edition=C:\Program Files\JetBrains\PyCharm Community Edition 2022.3.1\bin; C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.EXE C:\Users\shelb\Downloads\nova\rover\rover\core -DCMAKE_INSTALL_PREFIX=C:\Users\shelb\Downloads\nova\rover\rover\install\core -G Visual Studio 16 2019[0m
+[20.188s] [34mcolcon.colcon_core.environment[0m [1;30mLevel 1[0m create_environment_scripts_only(core)
+[20.233s] [34mcolcon.colcon_core.environment[0m [1;30mLevel 1[0m checking 'C:\Users\shelb\Downloads\nova\rover\rover\install\core' for CMake module files
+[20.233s] [34mcolcon.colcon_core.environment[0m [1;30mLevel 1[0m checking 'C:\Users\shelb\Downloads\nova\rover\rover\install\core' for CMake config files
+[20.233s] [34mcolcon.colcon_core.environment[0m [1;30mLevel 1[0m checking 'C:\Users\shelb\Downloads\nova\rover\rover\install\core\bin'
+[20.233s] [34mcolcon.colcon_core.environment[0m [1;30mLevel 1[0m checking 'C:\Users\shelb\Downloads\nova\rover\rover\install\core\bin'
+[20.233s] [34mcolcon.colcon_core.environment[0m [1;30mLevel 1[0m checking 'C:\Users\shelb\Downloads\nova\rover\rover\install\core\lib\pkgconfig\core.pc'
+[20.240s] [34mcolcon.colcon_core.environment[0m [1;30mLevel 1[0m checking 'C:\Users\shelb\Downloads\nova\rover\rover\install\core\Lib\site-packages'
+[20.240s] [34mcolcon.colcon_core.environment[0m [1;30mLevel 1[0m checking 'C:\Users\shelb\Downloads\nova\rover\rover\install\core\Scripts'
+[20.242s] [34mcolcon.colcon_core.shell[0m [1;30mINFO[0m Creating package script 'C:\Users\shelb\Downloads\nova\rover\rover\install\core\share\core\package.ps1'
+[20.266s] [34mcolcon.colcon_core.shell[0m [1;30mINFO[0m Creating package script 'C:\Users\shelb\Downloads\nova\rover\rover\install\core\share\core\package.bat'
+[20.278s] [34mcolcon.colcon_core.shell[0m [1;30mINFO[0m Creating package descriptor 'C:\Users\shelb\Downloads\nova\rover\rover\install\core\share\core\package.dsv'
+[20.287s] [34mcolcon.colcon_core.environment[0m [1;30mLevel 1[0m create_file_with_runtime_dependencies(C:\Users\shelb\Downloads\nova\rover\rover\install\core\share\colcon-core\packages\core)
+[20.290s] [34mcolcon.colcon_parallel_executor.executor.parallel[0m [1;30mDEBUG[0m [32mrun_until_complete finished with '1'[0m
+[20.290s] [34mcolcon.colcon_core.event_reactor[0m [1;30mDEBUG[0m [32mjoining thread[0m
+[20.323s] [34mcolcon.colcon_core.plugin_system[0m [1;30mINFO[0m Skipping extension 'colcon_notification.desktop_notification.notify2': 'notify2' not found
+[20.324s] [34mcolcon.colcon_core.plugin_system[0m [1;30mINFO[0m Skipping extension 'colcon_notification.desktop_notification.notify_send': Not used on non-Linux systems
+[20.324s] [34mcolcon.colcon_core.plugin_system[0m [1;30mINFO[0m Skipping extension 'colcon_notification.desktop_notification.terminal_notifier': Not used on non-Darwin systems
+[20.324s] [34mcolcon.colcon_notification.desktop_notification[0m [1;30mINFO[0m Sending desktop notification using 'win32'
+[25.447s] [34mcolcon.colcon_core.event_reactor[0m [1;30mDEBUG[0m [32mjoined thread[0m
+[25.465s] [34mcolcon.colcon_core.shell[0m [1;30mINFO[0m Creating prefix script 'C:\Users\shelb\Downloads\nova\rover\rover\install\local_setup.ps1'
+[25.499s] [34mcolcon.colcon_core.shell[0m [1;30mINFO[0m Creating prefix util module 'C:\Users\shelb\Downloads\nova\rover\rover\install\_local_setup_util_ps1.py'
+[25.516s] [34mcolcon.colcon_core.shell[0m [1;30mINFO[0m Creating prefix chain script 'C:\Users\shelb\Downloads\nova\rover\rover\install\setup.ps1'
+[25.542s] [34mcolcon.colcon_core.shell[0m [1;30mINFO[0m Creating prefix script 'C:\Users\shelb\Downloads\nova\rover\rover\install\local_setup.bat'
+[25.565s] [34mcolcon.colcon_core.shell[0m [1;30mINFO[0m Creating prefix util module 'C:\Users\shelb\Downloads\nova\rover\rover\install\_local_setup_util_bat.py'
+[25.567s] [34mcolcon.colcon_core.shell[0m [1;30mINFO[0m Creating prefix chain script 'C:\Users\shelb\Downloads\nova\rover\rover\install\setup.bat'

@@ -1,0 +1,4 @@
+Invoking command in 'C:\Users\shelb\Downloads\nova\rover\rover\build\core': PUBLIC=%PUBLIC%
+PyCharm Community Edition=C:\Program Files\JetBrains\PyCharm Community Edition 2022.3.1\bin; C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.EXE C:\Users\shelb\Downloads\nova\rover\rover\core -DCMAKE_INSTALL_PREFIX=C:\Users\shelb\Downloads\nova\rover\rover\install\core
+Invoked command in 'C:\Users\shelb\Downloads\nova\rover\rover\build\core' returned '1': PUBLIC=%PUBLIC%
+PyCharm Community Edition=C:\Program Files\JetBrains\PyCharm Community Edition 2022.3.1\bin; C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.EXE C:\Users\shelb\Downloads\nova\rover\rover\core -DCMAKE_INSTALL_PREFIX=C:\Users\shelb\Downloads\nova\rover\rover\install\core
