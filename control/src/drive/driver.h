@@ -34,14 +34,14 @@ EDITED:		13/09/2022
 #include "core/msg/drive_input.hpp"
 #include "std_msgs/msg/bool.hpp"
 
-// Include CMD class
-#include "cmd/cmd.h"
+// Include BLCMD class
+#include "cmd/blcmd.h"
 
 // The distance between the two wheel sets [m]
-#define CHASSIS_SEPARATION 0.78058
+#define CHASSIS_WIDTH 0.7
 
 // The distance between each wheel on each side [m]
-#define WHEEL_SEPARATION 0.42426
+#define CHASSIS_LENGTH 0.84
 
 
 // Store a position structure with x and y
@@ -65,7 +65,7 @@ struct Vector2 {
 class Driver : public rclcpp::Node {
 
     // The number of wheels on the rover
-    static const int NUM_WHEELS = 6;
+    static const int NUM_WHEELS = 4;
 
 
     //------------------------------------------------------------//
@@ -90,8 +90,8 @@ class Driver : public rclcpp::Node {
     // A flag for whether to use autonomous state or not
     bool is_autonomous = false;
 
-    // An array of pointers to CMD instances
-    CMD* wheels[NUM_WHEELS];
+    // An array of pointers to BLCMD instances
+    BLCMD* wheels[NUM_WHEELS];
 
     
     //------------------------------------------------------------//
