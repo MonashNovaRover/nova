@@ -108,6 +108,9 @@ private:
     // A flag for whether to apply the handbrake or not
     bool handbrake;
 
+    const float alpha = 0.8;
+    float steer = 0.0;
+
     // A flag for whether to use autonomous state or not
     bool is_autonomous = false;
 
