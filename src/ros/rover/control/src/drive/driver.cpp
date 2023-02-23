@@ -19,12 +19,15 @@ using namespace std;
 // Sends commands to the wheels
 void Driver::send_commands(const core::msg::DriveInput::SharedPtr msg)
 {
+    // smooth the input
+    steer = steer * alpha + msg->steer * (1 - alpha);
+
     core::msg::PivotWheelData data_msg;
     if (!msg->strafe_mode)
     {
         // Find the turning radius form the 'steer' command
         // This defines a turning centre to the left or right of the rover wheelbase
-        float radius = get_turning_radius(msg->steer);
+        float radius = get_turning_radius(steer);
 
         // Scale wheel velocities depending on their distance from the turning centre
         // Wheels closer to the turning centre must spin slower to maintain the correct rover angular velocity
@@ -32,12 +35,9 @@ void Driver::send_commands(const core::msg::DriveInput::SharedPtr msg)
         // Disregard any correction for the angle of the wheel relative to the desired circular path
         // fill_wheel_velocities(wheel_velocities, radius, msg->speed, msg->steer);
 
-        fill_wheel_angles_radial(radius, msg->steer);
+        fill_wheel_angles_radial(radius, steer);
         fill_wheel_velocities_radial(msg->speed, radius);
         data_msg.radius = radius;
-    }
-    else {
-        float turning_angle = msg->steer;
     }
 
     // Send velocities to the wheels
