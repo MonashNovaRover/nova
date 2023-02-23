@@ -77,8 +77,8 @@ void Driver::input_callback (const core::msg::InputGamepad::SharedPtr msg) {
     if (msg->connected && msg->btn_thumb_l_state == 1) {
         if (!handbrake) Print::print("Handbrake Enabled", C_MODE);
         handbrake = true;
-        for (CMD* wheel : wheels) {
-            wheel->set_stop_mode(PID);
+        for (BLCMD* wheel : wheels) {
+            wheel->set_stop_mode(DRIVE_VELOCITY);
         }
     }
     
@@ -86,8 +86,8 @@ void Driver::input_callback (const core::msg::InputGamepad::SharedPtr msg) {
     else if (msg->connected && msg->btn_thumb_r_state == 1) {
         if (handbrake) Print::print("Handbrake Disabled", C_MODE);
         handbrake = false;
-        for (CMD* wheel : wheels) {
-            wheel->set_stop_mode(STOP);
+        for (BLCMD* wheel : wheels) {
+            wheel->set_stop_mode(DRIVE_VELOCITY);
         }
     }
 
@@ -139,7 +139,7 @@ void Driver::fill_wheel_velocities(float wheel_velocities[NUM_WHEELS], float rad
     // Modify wheel directions if the turning centre is under the rover wheelbase
     // Ignore the edge case where the turning centre is exactly below the centre of a wheel.
     // Does not affect the behaviour in practice
-    float wheel_x = CHASSIS_SEPARATION / 2.0;
+    float wheel_x = CHASSIS_WIDTH/ 2.0;
     if (abs(radius) < wheel_x) {
         // If the turning centre is...
         if (radius > -wheel_x && radius <= 0 && steer < 0) {
@@ -147,14 +147,12 @@ void Driver::fill_wheel_velocities(float wheel_velocities[NUM_WHEELS], float rad
             // Also include cases where we are pivoting left
             wheel_velocities[0] *= -1;
             wheel_velocities[1] *= -1;
-            wheel_velocities[2] *= -1;
         }
         else if (radius >= 0 && radius < wheel_x && steer > 0) {
             // Under the right half of the chassis, reverse the right wheels
             // Also include cases where we are pivoting right
             wheel_velocities[3] *= -1;
             wheel_velocities[4] *= -1;
-            wheel_velocities[5] *= -1;
         }
     }
 }
@@ -166,11 +164,11 @@ Vector2 Driver::get_wheel_position (int id) {
 
     // Determine the y position
     float y = 0;
-    if (id == 1 || id == 4) y = WHEEL_SEPARATION;
-    else if (id == 3 || id == 6) y = -WHEEL_SEPARATION;
+    if (id == 1 || id == 4) y = CHASSIS_LENGTH/2;
+    else if (id == 2 || id == 3) y = -CHASSIS_LENGTH/2;
 
     // Determine the x position
-    float wheel_x = (CHASSIS_SEPARATION / 2.0) * ((id <= 3) ? -1.0 : 1.0);
+    float wheel_x = (CHASSIS_WIDTH / 2.0) * ((id <= 2) ? -1.0 : 1.0);
 
     // Return the vector struct
     return Vector2(wheel_x, y);
@@ -210,7 +208,7 @@ Driver::Driver() : Node("driver")
     // Initialise the wheels
     for (size_t i = 0; i < NUM_WHEELS; i++) {
         bool left = i < NUM_WHEELS / 2;
-        wheels[i] = new CMD (0, i + 1, PID, left, STOP);
+        wheels[i] = new BLCMD("can0", i + 1, DRIVE_VELOCITY, left, DRIVE_VELOCITY);
     }
     
     rclcpp::QoS qos = rclcpp::QoS(1).best_effort().deadline(ROSTimers::drive_deadline);
@@ -244,7 +242,7 @@ Driver::Driver() : Node("driver")
 // deadline callback for when the drive inputs publisher misses its deadline
 void Driver::inputs_deadline_exceeded(){
 	RCLCPP_WARN(this->get_logger(), "Drive inputs subscriber deadline missed");
-    for (CMD* wheel : wheels) wheel->stop();
+    for (BLCMD* wheel : wheels) wheel->stop();
 }
 
 //  Main function called when the script execution begins
