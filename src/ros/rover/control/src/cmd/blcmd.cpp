@@ -158,11 +158,11 @@ void BLCMD::drive (float value)
 
     // Saturate the input velocity if it is out of range
 
-    if (value > 1.0) {
-        value = 1.0;
+    if (value > 0.5) {
+        value = 0.5;
     }
-    else if (value < -1.0){
-        value = -1.0;
+    else if (value < -0.5){
+        value = -0.5;
     }
 
     // Create a new CAN frame
