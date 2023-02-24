@@ -69,7 +69,6 @@ void Driver::auto_callback (const core::msg::DriveInput::SharedPtr msg) {
         send_commands(msg); 
 }
 
-
 // Receives input from the gamepad
 void Driver::input_callback (const core::msg::InputGamepad::SharedPtr msg) {
 
