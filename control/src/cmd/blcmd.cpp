@@ -39,6 +39,7 @@ BLCMD::BLCMD (const std::string bus, const int id, BLCMDSendCommand drive_mode, 
     // Set up the CAN interface with the correct bus
     //TODO: Proper error handling
     can_bus = org::jcan::open_bus(bus).into_raw();
+    std::cout << "BLCMD Initialised with id:" << id << ", with drive mode: "  << (drive_mode == DRIVE_VELOCITY ? "DRIVE_VELOCITY" : "DRIVE_POSITION") << std::endl;
 }
 
 
@@ -137,6 +138,13 @@ void BLCMD::drive (float value)
     if (drive_mode == DRIVE_POSITION){
         // map (-π,π) → (-1,1)
         value = value / M_PI;
+
+        if (value > 1) {
+            value = 1;
+        }
+        else if (value < -1){
+            value = -1;
+        }
     }
     else {
 
@@ -151,16 +159,18 @@ void BLCMD::drive (float value)
         if (direction) {
             value *= -1;
         }
+
+        if (value > 0.5) {
+            value = 0.5;
+        }
+        else if (value < -0.5){
+            value = -0.5;
+        }
     }
 
     // Saturate the input velocity if it is out of range
 
-    if (value > 0.5) {
-        value = 0.5;
-    }
-    else if (value < -0.5){
-        value = -0.5;
-    }
+
 
     // Create a new CAN frame
     Frame frame;

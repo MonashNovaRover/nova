@@ -95,7 +95,7 @@ void Driver::input_callback(const core::msg::InputGamepad::SharedPtr msg)
         handbrake = false;
         for (PivotModule *pivot : pivots)
         {
-            pivot->cmdWheel->set_stop_mode(DRIVE_VELOCITY);
+            pivot->cmdWheel->set_stop_mode(STOP);
         }
     }
 
@@ -240,9 +240,9 @@ Driver::Driver() : Node("driver")
     {
         bool left = i < 2;
         BLCMD *cmdWheel = new BLCMD(this->get_parameter("canbus").get_parameter_value().get<std::string>(),
-                   left ? i + 1 : i + 5, DRIVE_VELOCITY, left, DRIVE_VELOCITY);
+                    i + 1, DRIVE_VELOCITY, left, DRIVE_VELOCITY);
         BLCMD *cmdPivot = new BLCMD(this->get_parameter("canbus").get_parameter_value().get<std::string>(),
-                   left ? i + 5 : i + 1, DRIVE_POSITION, false, DRIVE_VELOCITY);
+                   i + 5, DRIVE_POSITION, false, DRIVE_VELOCITY);
         pivots[i] = new PivotModule(i, cmdWheel, cmdPivot);
     }
 
@@ -269,7 +269,7 @@ Driver::Driver() : Node("driver")
     // Creates auto mode timer and associated publisher
     mode_timer = this->create_wall_timer(ROSTimers::auto_mode, std::bind(&Driver::pub_auto_mode, this));
 
-    telemetry_timer = this->create_wall_timer(ROSTimers::blcmds_telemetry, std::bind(&Driver::pub_telemetry, this));
+    //telemetry_timer = this->create_wall_timer(ROSTimers::blcmds_telemetry, std::bind(&Driver::pub_telemetry, this));
 
     mode_pub = this->create_publisher<std_msgs::msg::Bool>(
         "/autonomous/mode", 10);
