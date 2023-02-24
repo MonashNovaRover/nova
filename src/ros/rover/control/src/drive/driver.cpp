@@ -49,6 +49,7 @@ void Driver::send_commands(const core::msg::DriveInput::SharedPtr msg)
         data_msg.angles[i] = pivot->angle;
         data_msg.velocities[i] = pivot->velocity;
     }
+    data_msg.steer = steer;
     pivot_wheel_pub->publish(data_msg);
 }
 
@@ -131,16 +132,16 @@ void Driver::fill_wheel_angles_radial(float radius, float steer)
     double sign = steer > 0 ? 1.0 : -1.0;
 
     // Front left angle
-    pivots[0]->angle = radius == INFINITY ? 0 : atan((2*radius + CHASSIS_WIDTH)/CHASSIS_LENGTH) - sign * M_PI_2;
-
-    //Front right angle
-    pivots[1]->angle = radius == INFINITY ? 0 : atan((2*radius - CHASSIS_WIDTH)/CHASSIS_LENGTH)- sign * M_PI_2;
+    pivots[0]->angle = radius == INFINITY ? 0 : -atan((2*radius + CHASSIS_WIDTH)/CHASSIS_LENGTH) - sign * M_PI_2;
 
     // Back left angle
-    pivots[2]->angle = radius == INFINITY ? 0 : sign * M_PI_2 + atan((2*radius + CHASSIS_WIDTH)/-CHASSIS_LENGTH);
+    pivots[1]->angle = radius == INFINITY ? 0 : sign * M_PI_2 + atan((2*radius + CHASSIS_WIDTH)/-CHASSIS_LENGTH);
 
     // Back right angle
-    pivots[3]->angle = radius == INFINITY ? 0 : sign * M_PI_2 + atan((2*radius - CHASSIS_WIDTH)/-CHASSIS_LENGTH);
+    pivots[2]->angle = radius == INFINITY ? 0 : -sign * M_PI_2 + atan((2*radius - CHASSIS_WIDTH)/-CHASSIS_LENGTH);
+
+    //Front right angle
+    pivots[3]->angle = radius == INFINITY ? 0 : atan((2*radius - CHASSIS_WIDTH)/CHASSIS_LENGTH)- sign * M_PI_2;
 }
 
 // Fill array with velocities for each wheel, with directions and magnitude depending on the turning radius
@@ -230,8 +231,6 @@ Driver::Driver() : Node("driver")
 
     this->declare_parameter("canbus", "can0");
 
-    cout << "canbus: " << this->get_parameter("canbus").get_parameter_value().get<std::string>() << endl;
-
     // Output set-up messages
     Print::title("DRIVER");
     Print::print("", true);
@@ -239,11 +238,11 @@ Driver::Driver() : Node("driver")
     // Initialise the wheels in the correct direction
     for (size_t i = 0; i < NUM_WHEELS; i++)
     {
-        bool right = i % 2;
+        bool left = i < 2;
         BLCMD *cmdWheel = new BLCMD(this->get_parameter("canbus").get_parameter_value().get<std::string>(),
-                   2*i + 1, DRIVE_VELOCITY, right, DRIVE_VELOCITY);
+                   left ? i + 1 : i + 5, DRIVE_VELOCITY, left, DRIVE_VELOCITY);
         BLCMD *cmdPivot = new BLCMD(this->get_parameter("canbus").get_parameter_value().get<std::string>(),
-                   2*i + 2, DRIVE_POSITION, false, DRIVE_VELOCITY);
+                   left ? i + 5 : i + 1, DRIVE_POSITION, false, DRIVE_VELOCITY);
         pivots[i] = new PivotModule(i, cmdWheel, cmdPivot);
     }
 

@@ -39,7 +39,6 @@ BLCMD::BLCMD (const std::string bus, const int id, BLCMDSendCommand drive_mode, 
     // Set up the CAN interface with the correct bus
     //TODO: Proper error handling
     can_bus = org::jcan::open_bus(bus).into_raw();
-
 }
 
 
@@ -124,15 +123,15 @@ void BLCMD::drive (float value)
 {
 
     // If the motor has already been stopped do not send more stop commands
-   if (value == 0.0 && drive_mode != DRIVE_POSITION) {
-       if (already_stopped) {
-           return;
-       } else {
-           already_stopped = true;
-       }
-   } else {
-       already_stopped = false;
-    }
+//   if (value == 0.0 && drive_mode != DRIVE_POSITION) {
+//       if (already_stopped) {
+//           return;
+//       } else {
+//           already_stopped = true;
+//       }
+//   } else {
+//       already_stopped = false;
+//    }
 
     // If the BLCMD is in position mode, scale the input value to radians
     if (drive_mode == DRIVE_POSITION){
@@ -156,11 +155,11 @@ void BLCMD::drive (float value)
 
     // Saturate the input velocity if it is out of range
 
-    if (value > 1.0) {
-        value = 1.0;
+    if (value > 0.5) {
+        value = 0.5;
     }
-    else if (value < -1.0){
-        value = -1.0;
+    else if (value < -0.5){
+        value = -0.5;
     }
 
     // Create a new CAN frame
