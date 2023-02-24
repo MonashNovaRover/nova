@@ -37,6 +37,11 @@ class SkytraqNode (Node):
     def get_msg(self):
         txt = str(self.ser.readline())
         return txt.split(",")
+    
+    def config_port(self, com_no, baud):
+        self.ser.baudrate = baud
+        self.ser.port = f'COM{com_no}'
+        self.ser.open()
 
     def print_msg(self, rover_msg):
         roverMsgStr = f"""
