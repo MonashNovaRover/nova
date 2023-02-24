@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 __package__ = "autonomous"
 import time
 import numpy as np
@@ -59,8 +60,8 @@ class DepthCamera(Node):
         self.param_image_frequency = self.declare_parameter("image_process_rate_hz", 10).value
         self.param_frame_frequency = self.declare_parameter("depth_cam_frame_rate_hz", 10).value
 
-        self.cloud_publisher = self.create_publisher(PointCloud2, f"~{self.depth_frame_id}/cloud", 10)
-        self.image_publisher = self.create_publisher(Image, f"~{self.depth_frame_id}/image", 10)
+        self.cloud_publisher = self.create_publisher(PointCloud2, f"~/{self.depth_frame_id}/cloud", 10)
+        self.image_publisher = self.create_publisher(Image, f"~/{self.depth_frame_id}/image", 10)
         # RVIZ CANNOT DISPLAY IMAGE MARKERS. USEFUL IN FOXGLOVE
         # self.marker_publisher = self.create_publisher(ImageMarker, f"~{self.depth_frame_id}/markers", 10)
 
@@ -92,6 +93,8 @@ class DepthCamera(Node):
         self.get_logger().debug(f"getting frames took {t3 - t2} s")
 
     def process_image(self):
+        if self.color_frame is None:
+            return
         color_image = np.asanyarray(self.color_frame.get_data())
         t1 = time.perf_counter()
         self.ar_tracker(color_image)
@@ -114,6 +117,8 @@ class DepthCamera(Node):
         Callback that converts depth frame into a pointcloud and publishes it
         """
         # Scale down depth frame
+        if self.depth_frame is None:
+            return
         t1 = time.perf_counter()
         processed_depth_frame = self.decimate.process(self.depth_frame)
         t2 = time.perf_counter()
@@ -138,9 +143,9 @@ class DepthCamera(Node):
             frame_id = self.depth_frame_id
         )
 
-        pointcloud_msg = create_cloud_xyz32(header=header, points=verts) 
+        pointcloud_msg = create_cloud_xyz32(header=header, points=verts)
         self.cloud_publisher.publish(pointcloud_msg)
-    
+
         # Log state of the pointcloud
         self.get_logger().debug(f"demication took {t2 - t1} s")
         self.get_logger().debug(f"hole filling took {t3 - t2} s")
@@ -165,3 +170,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
