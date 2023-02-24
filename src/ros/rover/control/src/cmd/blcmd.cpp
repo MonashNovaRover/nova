@@ -40,6 +40,8 @@ BLCMD::BLCMD (const std::string bus, const int id, BLCMDSendCommand drive_mode, 
     //TODO: Proper error handling
     can_bus = org::jcan::open_bus(bus).into_raw();
 
+    std::cout << "BLCMD: " << id << " initialised" << std::endl;
+
 }
 
 
