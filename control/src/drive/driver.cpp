@@ -207,7 +207,7 @@ Driver::Driver() : Node("driver")
     // Initialise the wheels
     for (size_t i = 0; i < NUM_WHEELS; i++) {
         bool left = i < NUM_WHEELS / 2;
-        wheels[i] = new BLCMD("can0", i + 1, DRIVE_VELOCITY, left, DRIVE_VELOCITY);
+        wheels[i] = new BLCMD("can0", left ? i + 1 : i + 5, DRIVE_VELOCITY, left, DRIVE_VELOCITY);
     }
     
     rclcpp::QoS qos = rclcpp::QoS(1).best_effort().deadline(ROSTimers::drive_deadline);
