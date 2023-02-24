@@ -20,7 +20,7 @@ using namespace std;
 void Driver::send_commands(const core::msg::DriveInput::SharedPtr msg)
 {
     // smooth the input
-    steer = steer * alpha + msg->steer * (1 - alpha);
+    steer = msg->steer;
 
     core::msg::PivotWheelData data_msg;
     if (!msg->strafe_mode)
