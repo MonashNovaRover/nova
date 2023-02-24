@@ -151,8 +151,8 @@ class DepthCamera(Node):
         elif len(verts) == 0:
             self.get_logger().error(f"Depth camera point cloud contained no points")
 
-    def pub_colour(self):
-        pass
+    #def pub_colour(self):
+    #    pass
 
 
 def main():
