@@ -73,13 +73,13 @@ class RoverStatePublisher(Node):
                             'back_left_pivot_to_leg', 'back_right_pivot_to_leg']
 
         self.joint_state.position = [FRONT_LEFT_DIR*self.telemetry.wheels[0].resolver_position,
-                                FRONT_RIGHT_DIR*self.telemetry.wheels[1].resolver_position,
-                                BACK_LEFT_DIR*self.telemetry.wheels[2].resolver_position,
-                                BACK_RIGHT_DIR*self.telemetry.wheels[3].resolver_position,
+                                FRONT_RIGHT_DIR*self.telemetry.wheels[3].resolver_position,
+                                BACK_LEFT_DIR*self.telemetry.wheels[1].resolver_position,
+                                BACK_RIGHT_DIR*self.telemetry.wheels[2].resolver_position,
                                 FRONT_LEFT_PIVOT*self.telemetry.pivots[0].resolver_position + FRONT_LEFT_PIVOT_ZERO,
-                                FRONT_RIGHT_PIVOT*self.telemetry.pivots[1].resolver_position + FRONT_RIGHT_PIVOT_ZERO,
-                                BACK_LEFT_PIVOT*self.telemetry.pivots[2].resolver_position + BACK_LEFT_PIVOT_ZERO,
-                                BACK_RIGHT_PIVOT*self.telemetry.pivots[3].resolver_position + BACK_RIGHT_PIVOT_ZERO]
+                                FRONT_RIGHT_PIVOT*self.telemetry.pivots[3].resolver_position + FRONT_RIGHT_PIVOT_ZERO,
+                                BACK_LEFT_PIVOT*self.telemetry.pivots[1].resolver_position + BACK_LEFT_PIVOT_ZERO,
+                                BACK_RIGHT_PIVOT*self.telemetry.pivots[2].resolver_position + BACK_RIGHT_PIVOT_ZERO]
 
     def cb_pub_joint_state(self):
         self.joint_state.header.stamp=self.get_clock().now().to_msg()

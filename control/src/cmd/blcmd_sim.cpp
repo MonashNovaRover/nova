@@ -174,13 +174,13 @@ int main(int argc, char **argv)
 {
     // Create the BLCMDs
     BLCMDSim front_left_wheel(false, 1, (1000/20)*1ms);
-    BLCMDSim front_left_pivot(true, 2, (1000/20)*1ms);
-    BLCMDSim front_right_wheel(false, 3, (1000/20)*1ms);
+    BLCMDSim front_left_pivot(true, 5, (1000/20)*1ms);
+    BLCMDSim front_right_wheel(false, 8, (1000/20)*1ms);
     BLCMDSim front_right_pivot(true, 4, (1000/20)*1ms);
-    BLCMDSim back_left_wheel(false, 5, (1000/20)*1ms);
+    BLCMDSim back_left_wheel(false, 2, (1000/20)*1ms);
     BLCMDSim back_left_pivot(true, 6, (1000/20)*1ms);
     BLCMDSim back_right_wheel(false, 7, (1000/20)*1ms);
-    BLCMDSim back_right_pivot(true, 8, (1000/20)*1ms);
+    BLCMDSim back_right_pivot(true, 3, (1000/20)*1ms);
 
     // Create the threads
     thread front_left_wheel_thread(&run_sim, &front_left_wheel);

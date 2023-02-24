@@ -30,7 +30,7 @@ EDITED:		01/02/2023
 // CAN include
 #include "jcan.h"
 
-const double max_velocity = 2*M_PI;
+const double max_velocity = 1;
 const double max_position = M_PI;
 const double min_position = -M_PI;
 
