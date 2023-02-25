@@ -72,7 +72,7 @@ class CameraStreamerService(rclpy.node.Node):
             ):
                 self.create_service(
                     srv_type,
-                    f"/camera_streamer/stream/{camera.serial}/{srv_name}",
+                    f"/camera_streamer/stream/camera{camera.serial}/{srv_name}",
                     lambda request, response: callback(camera, request, response),
                 )
 

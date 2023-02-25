@@ -66,7 +66,7 @@ the future.
    Note: Tab-completion or the [`camera_directory_service`](./cameras2/cameras2/camera_directory_service.py) can be used
    to find a camera serial number.
    ```shell
-   ros2 service call /camera_streamer/stream/<serial>/start std_srvs/srv/Empty
+   ros2 service call /camera_streamer/stream/camera<serial>/start std_srvs/srv/Empty
    ```
 
 #### Frontend
