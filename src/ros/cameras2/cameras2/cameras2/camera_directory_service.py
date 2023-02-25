@@ -58,6 +58,13 @@ class CameraDirectoryService(Node):
     def _discover_cameras(self) -> None:
         self.get_logger().info("Searching for cameras...")
         self._cameras: dict[str, str] = cameras.find_cameras()
+        self.get_logger().info(
+            "Cameras found:\n"
+            + "\n".join(
+                f"- {serial} at {device_node}"
+                for serial, device_node in self._cameras.items()
+            )
+        )
 
     def _start_watching_cameras(self) -> None:
         self.get_logger().info("Starting background camera discovery...")
