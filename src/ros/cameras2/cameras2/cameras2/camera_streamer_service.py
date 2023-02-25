@@ -61,26 +61,27 @@ class CameraStreamerService(rclpy.node.Node):
         # Create control services for each camera.
         self.get_logger().info("Creating camera control services...")
         for camera in cameras:
-
-            def create_stream_service(
-                srv_name: str,
-                callback: Callable[
-                    [Camera, rclpy.node.SrvTypeRequest, rclpy.node.SrvTypeResponse],
-                    rclpy.node.SrvTypeResponse,
-                ],
-                srv_type: Type = Empty,
-            ):
-                self.create_service(
-                    srv_type,
-                    f"/camera_streamer/stream/camera{camera.serial}/{srv_name}",
-                    lambda request, response: callback(camera, request, response),
-                )
-
-            create_stream_service("start", self._stream_start_callback)
-            create_stream_service("pause", self._stream_pause_callback)
-            create_stream_service("stop", self._stream_stop_callback)
+            self._create_stream_service(camera, "start", self._stream_start_callback)
+            self._create_stream_service(camera, "pause", self._stream_pause_callback)
+            self._create_stream_service(camera, "stop", self._stream_stop_callback)
 
         self.get_logger().info("Ready!")
+
+    def _create_stream_service(
+        self,
+        camera: Camera,
+        srv_name: str,
+        callback: Callable[
+            [Camera, rclpy.node.SrvTypeRequest, rclpy.node.SrvTypeResponse],
+            rclpy.node.SrvTypeResponse,
+        ],
+        srv_type: Type = Empty,
+    ):
+        self.create_service(
+            srv_type,
+            f"/camera_streamer/stream/camera{camera.serial}/{srv_name}",
+            lambda request, response: callback(camera, request, response),
+        )
 
     @staticmethod
     def _create_camera_bin(camera: Camera) -> Gst.Bin:
