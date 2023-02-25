@@ -88,6 +88,9 @@ xdg-open http://<rover_ip>:8000
 ```
 
 ## Technical notes
+### Research
+Research and development notes on various topics can be found in the [research](./cameras2/docs/research) directory.
+
 ### Camera identification
 While cameras are ideally identified by serial number (and the APIs provided by the packages in this repository are
 designed with this in mind), some USB webcams do not use a unique serial value in their USB descriptors.
