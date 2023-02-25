@@ -1,3 +1,5 @@
+from typing import Callable, Optional
+
 import pyudev
 
 
@@ -10,22 +12,61 @@ def find_cameras() -> dict[str, str]:
 
     :return: A dictionary mapping serial numbers to device nodes.
     """
-    # Find all Video4Linux devices with the "capture" capability, and generate a
-    # dictionary mapping serial numbers to device nodes.
-    #
-    # Udev properties can be found on the commandline with `udevadm`
-    # (https://www.freedesktop.org/software/systemd/man/udevadm.html),
-    # e.g. `udevadm info --name=/dev/video0 -q property`
     context = pyudev.Context()
     return {
-        _find_camera_serial(device["ID_SERIAL"], device["ID_PATH"]): device.device_node
-        for device in context.list_devices(
-            subsystem="video4linux", ID_V4L_CAPABILITIES=":capture:"
+        serial: device.device_node
+        for serial, device in (
+            (_identify_camera(device), device)
+            for device in context.list_devices(subsystem="video4linux")
         )
+        if serial is not None
     }
 
 
-def _find_camera_serial(serial: str, path: str) -> str:
+def watch_cameras(callback: Callable[[bool, str, str], None]) -> Callable[[], None]:
+    """
+    Continuously watches for cameras to be connected to or removed from the system.
+
+    :param callback: A callback function called whenever a camera is connected or removed.
+                     The callback is passed three arguments: A boolean (True if the camera has been added or updated,
+                     False if it has been removed or taken offline), the serial number of the camera, and the camera's
+                     device node.
+    :return: A function that can be called to stop watching for cameras.
+    """
+    context = pyudev.Context()
+    monitor = pyudev.Monitor.from_netlink(context)
+    monitor.filter_by("video4linux")
+
+    def monitor_callback(device: pyudev.Device) -> None:
+        serial = _identify_camera(device)
+        if serial is None:
+            return None
+
+        callback(
+            device.action in {"add", "change", "move", "online"},
+            serial,
+            device.device_node,
+        )
+
+    observer = pyudev.MonitorObserver(monitor, callback=monitor_callback)
+    observer.start()
+    return observer.stop
+
+
+def _identify_camera(device: pyudev.Device) -> Optional[str]:
+    # Filter out any devices lacking the "capture" capability.
+    #
+    # Udev properties can be found on the commandline with `udevadm`
+    # (https://www.freedesktop.org/software/systemd/man/udevadm.html),
+    # e.g. `udevadm info --name=/dev/video0 -q property`.
+    #
+    # A comprehensive list of V4L capabilities can be found in the udev source code:
+    # https://cgit.freedesktop.org/systemd/systemd/tree/src/udev/v4l_id/v4l_id.c
+    if "capture" not in device["ID_V4L_CAPABILITIES"].strip(":").split(":"):
+        return None
+
+    serial = device["ID_SERIAL"]
+    path = device["ID_PATH"]
     try:
         return serial_overrides[serial][path]
     except KeyError:  # EAFP

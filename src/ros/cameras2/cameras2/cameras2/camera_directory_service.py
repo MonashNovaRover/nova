@@ -5,7 +5,7 @@ from std_srvs.srv import Empty
 from camera_msgs.msg import Camera
 from camera_msgs.srv import GetCameras
 
-from cameras2.cameras import find_cameras
+from cameras2 import cameras
 
 
 class CameraDirectoryService(Node):
@@ -35,7 +35,11 @@ class CameraDirectoryService(Node):
 
     def __init__(self):
         super().__init__("camera_directory")
+
         self._discover_cameras()
+        self._start_watching_cameras()
+
+        self.get_logger().info("Creating camera directory services...")
         self.create_service(
             Empty,
             "/camera_directory/discover",
@@ -47,9 +51,32 @@ class CameraDirectoryService(Node):
             self._get_cameras_callback,
         )
 
+    def destroy_node(self) -> bool:
+        self._stop_watching_cameras()
+        return super().destroy_node()
+
     def _discover_cameras(self) -> None:
-        # Find all cameras connected to the system.
-        self._cameras = find_cameras()
+        self.get_logger().info("Searching for cameras...")
+        self._cameras: dict[str, str] = cameras.find_cameras()
+
+    def _start_watching_cameras(self) -> None:
+        self.get_logger().info("Starting background camera discovery...")
+
+        def callback(added: bool, serial: str, device_node: str) -> None:
+            if added:
+                self.get_logger().info(
+                    f"New camera discovered: {serial} at {device_node}"
+                )
+                self._cameras[serial] = device_node
+            else:
+                self.get_logger().info(f"Camera removed: {serial}")
+                self._cameras.pop(serial, None)
+
+        self._camera_watch_stop_callback = cameras.watch_cameras(callback)
+
+    def _stop_watching_cameras(self) -> None:
+        self.get_logger().info("Stopping background camera discovery...")
+        self._camera_watch_stop_callback()
 
     def _discover_callback(
         self,
