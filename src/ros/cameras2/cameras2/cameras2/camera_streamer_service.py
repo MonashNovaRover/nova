@@ -155,7 +155,7 @@ class CameraStreamerService(rclpy.node.Node):
             return response
 
         self.get_logger().info(f"Stopping stream for camera {camera.serial}.")
-        gst_bin.set_state(Gst.State.READY)
+        gst_bin.set_state(Gst.State.NULL)
         self._gst_pipeline.remove(gst_bin)
 
         return response
