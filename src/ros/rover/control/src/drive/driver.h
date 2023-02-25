@@ -108,8 +108,9 @@ private:
     // A flag for whether to apply the handbrake or not
     bool handbrake;
 
-    const float alpha = 0.95;
+    const float alpha = 0.0;
     float steer = 0.0;
+    const float angle_offset = atan((CHASSIS_WIDTH)/CHASSIS_LENGTH);
 
     // A flag for whether to use autonomous state or not
     bool is_autonomous = false;
