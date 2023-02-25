@@ -132,16 +132,16 @@ void Driver::fill_wheel_angles_radial(float radius, float steer)
     double sign = steer > 0 ? 1.0 : -1.0;
 
     // Front left angle
-    pivots[0]->angle = radius == INFINITY ? 0 : -atan((2*radius + CHASSIS_WIDTH)/CHASSIS_LENGTH) - sign * M_PI_2;
+    pivots[0]->angle = radius == INFINITY ? 0 : atan((2*radius + CHASSIS_WIDTH)/CHASSIS_LENGTH);// - sign * M_PI_2;// - angle_offset;
 
     // Back left angle
-    pivots[1]->angle = radius == INFINITY ? 0 : sign * M_PI_2 + atan((2*radius + CHASSIS_WIDTH)/-CHASSIS_LENGTH);
+    pivots[1]->angle = radius == INFINITY ? 0 : atan((2*radius + CHASSIS_WIDTH)/-CHASSIS_LENGTH);// + sign * M_PI_2;// + angle_offset;
 
     // Back right angle
-    pivots[2]->angle = radius == INFINITY ? 0 : -sign * M_PI_2 + atan((2*radius - CHASSIS_WIDTH)/-CHASSIS_LENGTH);
+    pivots[2]->angle = radius == INFINITY ? 0 : atan((2*radius - CHASSIS_WIDTH)/-CHASSIS_LENGTH);// + sign * M_PI_2;// - angle_offset;
 
     //Front right angle
-    pivots[3]->angle = radius == INFINITY ? 0 : atan((2*radius - CHASSIS_WIDTH)/CHASSIS_LENGTH)- sign * M_PI_2;
+    pivots[3]->angle = radius == INFINITY ? 0 : atan((2*radius - CHASSIS_WIDTH)/CHASSIS_LENGTH);// - sign * M_PI_2;// + angle_offset;
 }
 
 // Fill array with velocities for each wheel, with directions and magnitude depending on the turning radius
@@ -240,9 +240,9 @@ Driver::Driver() : Node("driver")
     {
         bool left = i < 2;
         BLCMD *cmdWheel = new BLCMD(this->get_parameter("canbus").get_parameter_value().get<std::string>(),
-                    i + 1, DRIVE_VELOCITY, left, DRIVE_VELOCITY);
+                    i + 1, DRIVE_VELOCITY, left, STOP);
         BLCMD *cmdPivot = new BLCMD(this->get_parameter("canbus").get_parameter_value().get<std::string>(),
-                   i + 5, DRIVE_POSITION, false, DRIVE_VELOCITY);
+                   i + 5, DRIVE_POSITION, false, STOP);
         pivots[i] = new PivotModule(i, cmdWheel, cmdPivot);
     }
 
@@ -269,7 +269,7 @@ Driver::Driver() : Node("driver")
     // Creates auto mode timer and associated publisher
     mode_timer = this->create_wall_timer(ROSTimers::auto_mode, std::bind(&Driver::pub_auto_mode, this));
 
-    //telemetry_timer = this->create_wall_timer(ROSTimers::blcmds_telemetry, std::bind(&Driver::pub_telemetry, this));
+    // telemetry_timer = this->create_wall_timer(ROSTimers::blcmds_telemetry, std::bind(&Driver::pub_telemetry, this));
 
     mode_pub = this->create_publisher<std_msgs::msg::Bool>(
         "/autonomous/mode", 10);
