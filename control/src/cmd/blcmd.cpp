@@ -126,15 +126,15 @@ void BLCMD::drive (float value)
 {
 
     // If the motor has already been stopped do not send more stop commands
-   if (value == 0.0 && drive_mode != DRIVE_POSITION) {
-       if (already_stopped) {
-           return;
-       } else {
-           already_stopped = true;
-       }
-   } else {
-       already_stopped = false;
-    }
+//   if (value == 0.0 && drive_mode != DRIVE_POSITION) {
+//       if (already_stopped) {
+//           return;
+//       } else {
+//           already_stopped = true;
+//       }
+//   } else {
+//       already_stopped = false;
+//    }
 
     // If the BLCMD is in position mode, scale the input value to radians
     if (drive_mode == DRIVE_POSITION){
