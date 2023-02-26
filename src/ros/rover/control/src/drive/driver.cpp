@@ -132,16 +132,16 @@ void Driver::fill_wheel_angles_radial(float radius, float steer)
     double sign = steer > 0 ? 1.0 : -1.0;
 
     // Front left angle
-    pivots[0]->angle = radius == INFINITY ? 0 : atan((2*radius + CHASSIS_WIDTH)/CHASSIS_LENGTH);// - sign * M_PI_2;// - angle_offset;
+    pivots[0]->angle = (radius == INFINITY ? 0 : atan((2*radius + CHASSIS_WIDTH)/CHASSIS_LENGTH) - sign * M_PI_2) - angle_offset;
 
     // Back left angle
-    pivots[1]->angle = radius == INFINITY ? 0 : atan((2*radius + CHASSIS_WIDTH)/-CHASSIS_LENGTH);// + sign * M_PI_2;// + angle_offset;
+    pivots[1]->angle = (radius == INFINITY ? 0 : atan((2*radius + CHASSIS_WIDTH)/-CHASSIS_LENGTH) + sign * M_PI_2) + angle_offset;
 
     // Back right angle
-    pivots[2]->angle = radius == INFINITY ? 0 : atan((2*radius - CHASSIS_WIDTH)/-CHASSIS_LENGTH);// + sign * M_PI_2;// - angle_offset;
+    pivots[2]->angle = (radius == INFINITY ? 0 : atan((2*radius - CHASSIS_WIDTH)/-CHASSIS_LENGTH) + sign * M_PI_2) - angle_offset;
 
     //Front right angle
-    pivots[3]->angle = radius == INFINITY ? 0 : atan((2*radius - CHASSIS_WIDTH)/CHASSIS_LENGTH);// - sign * M_PI_2;// + angle_offset;
+    pivots[3]->angle = (radius == INFINITY ? 0 : atan((2*radius - CHASSIS_WIDTH)/CHASSIS_LENGTH) - sign * M_PI_2) + angle_offset;
 }
 
 // Fill array with velocities for each wheel, with directions and magnitude depending on the turning radius
