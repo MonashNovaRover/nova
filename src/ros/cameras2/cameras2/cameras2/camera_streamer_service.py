@@ -131,7 +131,7 @@ class CameraStreamerService(rclpy.node.Node):
             self._gst_bins[camera.serial] = gst_bin
 
         self.get_logger().info(f"Starting stream for camera {camera.serial}.")
-        gst_bin.sync_state_with_parent()
+        gst_bin.set_state(Gst.State.PLAYING)
 
         return response
 
