@@ -13,7 +13,7 @@ The [`camera_directory_service`](./cameras2/cameras2/camera_directory_service.py
 over ROS. It can be used to find cameras connected to the rover.
 
 ```shell
-ros2 service call /camera_directory/get_cameras camera_msgs/srv/GetCameras
+ros2 topic echo /camera_directory/cameras --qos-reliability reliable --qos-durability transient_local
 ```
 
 Take a look at the [`camera_streamer_service`](./cameras2/cameras2/camera_streamer_service.py) for an example usage in
