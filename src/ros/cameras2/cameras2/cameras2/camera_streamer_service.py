@@ -2,7 +2,7 @@ from typing import Callable
 
 import gi
 import rclpy
-from rclpy import qos
+from rclpy import Future, qos
 from rclpy.node import Node
 from rclpy.service import Service
 from rclpy.client import Client
@@ -65,7 +65,7 @@ class CameraStreamerService(Node):
         self.create_subscription(
             Cameras,
             "/camera_directory/cameras",
-            self._register_new_cameras,
+            self._update_cameras,
             qos.QoSProfile(
                 history=qos.HistoryPolicy.KEEP_LAST,
                 depth=1,
@@ -79,16 +79,16 @@ class CameraStreamerService(Node):
     def _create_stream_service(
         self,
         srv_name: str,
-        callback: Callable[[str], bool],
+        callback: Callable[[set[str]], bool],
     ) -> Service:
         def srv_callback(
             request: CameraOperation.Request,
             response: CameraOperation.Response,
         ) -> CameraOperation.Response:
-            response.success = (
-                callback(request.serial)
-                if request.serial in self._device_nodes
-                else False
+            response.success = callback(
+                set(request.serials).intersection(self._device_nodes.keys())
+                if request.serials
+                else set(self._device_nodes.keys())
             )
             return response
 
@@ -104,32 +104,55 @@ class CameraStreamerService(Node):
             f"/camera_streamer/stream/{srv_name}",
         )
 
-    def _register_camera(self, camera: Camera) -> None:
-        self.get_logger().info(f"Registering camera {camera.serial}.")
-        self._device_nodes[camera.serial] = camera.node
+    def _register_cameras(self, **kwargs) -> None:
+        if not kwargs:
+            return
+
+        self.get_logger().info(f"Registering cameras: {', '.join(kwargs.keys())}.")
+        self._device_nodes.update(kwargs)
         self._stream_start_client.call_async(
-            CameraOperation.Request(serial=camera.serial)
+            CameraOperation.Request(serials=kwargs.keys())
         )
 
-    def _unregister_camera(self, serial: str) -> None:
-        self.get_logger().info(f"Unregistering camera {serial}.")
+    def _unregister_cameras(self, serials: set[str]) -> None:
+        if not serials:
+            return
+
+        self.get_logger().info(f"Unregistering cameras: {', '.join(serials)}.")
+
+        def callback(future: Future) -> None:
+            for serial in serials:
+                del self._device_nodes[serial]
+
         self._stream_stop_client.call_async(
-            CameraOperation.Request(serial=serial)
-        ).add_done_callback(lambda future: self._device_nodes.pop(serial))
+            CameraOperation.Request(serials=serials)
+        ).add_done_callback(callback)
 
-    def _register_new_cameras(self, cameras: Cameras) -> None:
-        """
-        Register new cameras, and remove old ones.
-        :param cameras: The current list of cameras.
-        """
-        for camera in cameras.cameras:
-            if camera.serial not in self._device_nodes:
-                self._register_camera(camera)
+    def _update_cameras(self, cameras: Cameras) -> None:
+        # Determine which of the given ("available") serials are new or updated.
+        available_serials = set(camera.serial for camera in cameras.cameras)
+        registered_serials = set(self._device_nodes.keys())
+        updated_serials = set(
+            camera.serial
+            for camera in cameras.cameras
+            if camera.serial in registered_serials
+            and camera.node != self._device_nodes[camera.serial]
+        )
 
-        available_serials = (camera.serial for camera in cameras.cameras)
-        registered_serials = self._device_nodes.keys()
-        for serial in registered_serials - available_serials:
-            self._unregister_camera(serial)
+        # Unregister cameras that are no longer available or need updating.
+        self._unregister_cameras(
+            (registered_serials - available_serials) | updated_serials
+        )
+
+        # Register cameras that are newly available or need updating.
+        self._register_cameras(
+            **{
+                camera.serial: camera.node
+                for camera in cameras.cameras
+                if camera.serial
+                in (available_serials - registered_serials) | updated_serials
+            }
+        )
 
     @staticmethod
     def _create_camera_bin(serial: str, device_node: str) -> Gst.Bin:
@@ -166,38 +189,42 @@ class CameraStreamerService(Node):
 
         return gst_bin
 
-    def _stream_start(self, serial: str) -> bool:
-        gst_bin = self._gst_bins.get(serial)
-        if gst_bin is None:
-            gst_bin = self._create_camera_bin(serial, self._device_nodes[serial])
-            self._gst_pipeline.add(gst_bin)
-            self._gst_bins[serial] = gst_bin
+    def _stream_start(self, serials: set[str]) -> bool:
+        for serial in serials:
+            gst_bin = self._gst_bins.get(serial)
+            if gst_bin is None:
+                self.get_logger().info(f"Starting stream for camera {serial}.")
+                gst_bin = self._create_camera_bin(serial, self._device_nodes[serial])
+                self._gst_pipeline.add(gst_bin)
+                self._gst_bins[serial] = gst_bin
+            else:
+                self.get_logger().info(f"Resuming stream for camera {serial}.")
 
-        self.get_logger().info(f"Starting stream for camera {serial}.")
-        gst_bin.set_state(Gst.State.PLAYING)
-
+            gst_bin.set_state(Gst.State.PLAYING)
         return True
 
-    def _stream_pause(self, serial: str) -> bool:
-        gst_bin = self._gst_bins.get(serial)
-        if gst_bin is None:
-            return False
+    def _stream_pause(self, serials: set[str]) -> bool:
+        success = bool(serials)
+        for serial in serials:
+            gst_bin = self._gst_bins.get(serial)
+            if gst_bin is None:
+                success = False
 
-        self.get_logger().info(f"Pausing stream for camera {serial}.")
-        gst_bin.set_state(Gst.State.PAUSED)
+            self.get_logger().info(f"Pausing stream for camera {serial}.")
+            gst_bin.set_state(Gst.State.PAUSED)
+        return success
 
-        return True
+    def _stream_stop(self, serials: set[str]) -> bool:
+        success = bool(serials)
+        for serial in serials:
+            gst_bin = self._gst_bins.pop(serial, None)
+            if gst_bin is None:
+                success = False
 
-    def _stream_stop(self, serial: str) -> bool:
-        gst_bin = self._gst_bins.pop(serial, None)
-        if gst_bin is None:
-            return False
-
-        self.get_logger().info(f"Stopping stream for camera {serial}.")
-        gst_bin.set_state(Gst.State.NULL)
-        self._gst_pipeline.remove(gst_bin)
-
-        return True
+            self.get_logger().info(f"Stopping stream for camera {serial}.")
+            gst_bin.set_state(Gst.State.NULL)
+            self._gst_pipeline.remove(gst_bin)
+        return success
 
 
 def main(args=None):
