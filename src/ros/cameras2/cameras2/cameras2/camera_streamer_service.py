@@ -50,13 +50,15 @@ class CameraStreamerService(rclpy.node.Node):
 
         # Retrieve the list of cameras connected to the system.
         self.get_logger().info("Retrieving list of cameras...")
-        client = self.create_client(GetCameras, "/camera_directory/get_cameras")
-        while not client.wait_for_service(1.0):
+        directory_client = self.create_client(
+            GetCameras, "/camera_directory/get_cameras"
+        )
+        while not directory_client.wait_for_service(1.0):
             self.get_logger().info("Waiting for camera directory service...")
-        cameras_future = client.call_async(GetCameras.Request())
+        cameras_future = directory_client.call_async(GetCameras.Request())
         rclpy.spin_until_future_complete(self, cameras_future)
         cameras = cameras_future.result().cameras
-        self.destroy_client(client)
+        self.destroy_client(directory_client)
 
         # Create control services for each camera.
         self.get_logger().info("Creating camera control services...")
@@ -66,6 +68,15 @@ class CameraStreamerService(rclpy.node.Node):
             self._create_stream_service(camera, "stop", self._stream_stop_callback)
 
         self.get_logger().info("Ready!")
+
+        # Start streaming all cameras, asynchronously.
+        for camera in cameras:
+            start_client = self.create_client(
+                Empty, f"/camera_streamer/stream/camera{camera.serial}/start"
+            )
+            start_client.call_async(Empty.Request()).add_done_callback(
+                lambda future: self.destroy_client(start_client)
+            )
 
     def _create_stream_service(
         self,
