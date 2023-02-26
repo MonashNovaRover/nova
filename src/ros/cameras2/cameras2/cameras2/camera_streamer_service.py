@@ -209,6 +209,7 @@ class CameraStreamerService(Node):
             gst_bin = self._gst_bins.get(serial)
             if gst_bin is None:
                 success = False
+                continue
 
             self.get_logger().info(f"Pausing stream for camera {serial}.")
             gst_bin.set_state(Gst.State.PAUSED)
@@ -220,6 +221,7 @@ class CameraStreamerService(Node):
             gst_bin = self._gst_bins.pop(serial, None)
             if gst_bin is None:
                 success = False
+                continue
 
             self.get_logger().info(f"Stopping stream for camera {serial}.")
             gst_bin.set_state(Gst.State.NULL)
