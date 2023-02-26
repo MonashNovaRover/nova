@@ -60,23 +60,10 @@ class CameraStreamerService(rclpy.node.Node):
         cameras = cameras_future.result().cameras
         self.destroy_client(directory_client)
 
-        # Create control services for each camera.
-        self.get_logger().info("Creating camera control services...")
         for camera in cameras:
-            self._create_stream_service(camera, "start", self._stream_start_callback)
-            self._create_stream_service(camera, "pause", self._stream_pause_callback)
-            self._create_stream_service(camera, "stop", self._stream_stop_callback)
+            self.register_camera(camera)
 
         self.get_logger().info("Ready!")
-
-        # Start streaming all cameras, asynchronously.
-        for camera in cameras:
-            start_client = self.create_client(
-                Empty, f"/camera_streamer/stream/camera{camera.serial}/start"
-            )
-            start_client.call_async(Empty.Request()).add_done_callback(
-                lambda future: self.destroy_client(start_client)
-            )
 
     def _create_stream_service(
         self,
@@ -92,6 +79,22 @@ class CameraStreamerService(rclpy.node.Node):
             srv_type,
             f"/camera_streamer/stream/camera{camera.serial}/{srv_name}",
             lambda request, response: callback(camera, request, response),
+        )
+
+    def register_camera(self, camera: Camera):
+        self.get_logger().info(f"Registering camera {camera.serial}.")
+
+        # Create stream control services for the camera.
+        self._create_stream_service(camera, "start", self._stream_start_callback)
+        self._create_stream_service(camera, "pause", self._stream_pause_callback)
+        self._create_stream_service(camera, "stop", self._stream_stop_callback)
+
+        # Start streaming the camera, asynchronously.
+        start_client = self.create_client(
+            Empty, f"/camera_streamer/stream/camera{camera.serial}/start"
+        )
+        start_client.call_async(Empty.Request()).add_done_callback(
+            lambda future: self.destroy_client(start_client)
         )
 
     @staticmethod
