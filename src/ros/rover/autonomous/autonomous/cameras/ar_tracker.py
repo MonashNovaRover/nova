@@ -18,14 +18,12 @@ class ArTracker(Node):
     def __init__(self, intrinsics: Intrinsics, depth_cam_frame_id="d435_1"):
         super().__init__("ar_tracker")
         self.get_logger().set_level(logging.INFO)
-        self.get_logger().info("Initialising AR Tracker Node...")
 
         self.frame_id = depth_cam_frame_id
 
-        self.ar_broadcaster = TransformBroadcaster(self)
-
-        self.camera_calib_file = "cameras/calib_chessboard.yaml"
         self.marker_width_m = 0.15
+
+        self.ar_broadcaster = TransformBroadcaster(self)
 
         self.arDict = ar.Dictionary_get(ar.DICT_4X4_250)
         self.arParam = ar.DetectorParameters_create()

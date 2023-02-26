@@ -6,6 +6,7 @@ try:
     import pyrealsense2.pyrealsense2 as rs
 except:
     import pyrealsense2 as rs
+import logging
 
 import rclpy
 from rclpy.node import Node
@@ -22,6 +23,7 @@ from autonomous.config.runtime_params import active_depth_camera
 class DepthCamera(Node):
     def __init__(self):
         super().__init__("depth_camera")
+        self.get_logger().set_level(logging.DEBUG)
         # Realsense processing filters and classes
         self.pc = rs.pointcloud()
         self.decimate = rs.decimation_filter(2)
@@ -50,15 +52,15 @@ class DepthCamera(Node):
         self.depth_frame = None
         self.color_frame = None
         self.latest_frame_stamp = None
-        self.depth_frame_id = 'd435_1'
+        self.depth_frame_id = 'map'
 
         self.ar_tracker = ArTracker(self.color_intrinsics, depth_cam_frame_id=self.depth_frame_id)
         # self.object_detector = ObjectDetector()
         self.cv_bridge : CvBridge = CvBridge()
 
-        self.param_pointcloud_frequency = self.declare_parameter("depth_cloud_rate_hz", 10).value
-        self.param_image_frequency = self.declare_parameter("image_process_rate_hz", 10).value
-        self.param_frame_frequency = self.declare_parameter("depth_cam_frame_rate_hz", 10).value
+        self.param_pointcloud_frequency = self.declare_parameter("depth_cloud_rate_hz", 20).value
+        self.param_image_frequency = self.declare_parameter("image_process_rate_hz", 20).value
+        self.param_frame_frequency = self.declare_parameter("depth_cam_frame_rate_hz", 20).value
 
         self.cloud_publisher = self.create_publisher(PointCloud2, f"~/{self.depth_frame_id}/cloud", 10)
         self.image_publisher = self.create_publisher(Image, f"~/{self.depth_frame_id}/image", 10)
@@ -77,6 +79,7 @@ class DepthCamera(Node):
         :return: np.array(n, 6)
         """
         # Wait for frames from camera
+        t0 = time.perf_counter()
         frames = self.pipeline.wait_for_frames()
         self.latest_frame_stamp = self.get_clock().now().to_msg()
 
@@ -88,11 +91,12 @@ class DepthCamera(Node):
         self.color_frame = aligned.get_color_frame()
         t3 = time.perf_counter()
 
-
+        self.get_logger().debug(f"Waiting for frames took {t1 - t0} s")
         self.get_logger().debug(f"frame alignment took {t2 - t1} s")
         self.get_logger().debug(f"getting frames took {t3 - t2} s")
 
     def process_image(self):
+        t0 = time.perf_counter()
         if self.color_frame is None:
             return
         color_image = np.asanyarray(self.color_frame.get_data())
@@ -108,9 +112,12 @@ class DepthCamera(Node):
 
         img_msg = self.cv_bridge.cv2_to_imgmsg(color_image, header=header)
         self.image_publisher.publish(img_msg)
+        t4 = time.perf_counter()
 
+        self.get_logger().debug(f"Getting color image to array took {t1 - t0} s")
         self.get_logger().debug(f"AR tag detection took {t2 - t1} s")
         self.get_logger().debug(f"object detection took {t3 - t2} s")
+        self.get_logger().debug(f"Converting to image message took {t4 - t3} s")
 
     def process_pointcloud(self):
         """
@@ -131,7 +138,8 @@ class DepthCamera(Node):
 
         # Point-cloud data to arrays
         v = points.get_vertices()
-        verts = np.asanyarray(v).view(np.float32)
+        verts = np.asanyarray(v).view(np.float32).reshape((-1, 3))
+        t5 = time.perf_counter()
 
         # Do our own trimming? Not at the moment
         if False:
@@ -144,12 +152,17 @@ class DepthCamera(Node):
         )
 
         pointcloud_msg = create_cloud_xyz32(header=header, points=verts)
+        t6 = time.perf_counter()
         self.cloud_publisher.publish(pointcloud_msg)
+        t7 = time.perf_counter()
 
         # Log state of the pointcloud
         self.get_logger().debug(f"demication took {t2 - t1} s")
         self.get_logger().debug(f"hole filling took {t3 - t2} s")
         self.get_logger().debug(f"calculating pc took {t4 - t3} s")
+        self.get_logger().debug(f"Converting points to np array took {t5 - t4} s")
+        self.get_logger().debug(f"Converting points to pointcloud msg took {t6 - t5} s")
+        self.get_logger().debug(f"Publishing pointcloud took {t7 - t6} s")
         self.get_logger().debug(f"Depth camera point cloud contained {len(verts)} points")
         if len(verts) < 10:
             self.get_logger().warn(f"Depth camera point cloud contained < 10 points")
