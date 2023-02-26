@@ -1,18 +1,23 @@
-from typing import Callable, Type
+from typing import Callable, Type, NamedTuple
 
 import gi
 import rclpy
-import rclpy.node
+from rclpy import qos
+from rclpy.node import Node
+from rclpy.service import Service
 from std_srvs.srv import Empty
 
 gi.require_version("Gst", "1.0")
 from gi.repository import Gst
 
-from camera_msgs.msg import Camera
-from camera_msgs.srv import GetCameras
+from camera_msgs.msg import Camera, Cameras
 
 
-class CameraStreamerService(rclpy.node.Node):
+class CameraRegistration(NamedTuple):
+    services: list[Service] = []
+
+
+class CameraStreamerService(Node):
     """
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     Monash Nova Rover Team
@@ -48,20 +53,21 @@ class CameraStreamerService(rclpy.node.Node):
         self._gst_pipeline.set_state(Gst.State.PLAYING)
         self._gst_bins: dict[str, Gst.Bin] = {}
 
-        # Retrieve the list of cameras connected to the system.
-        self.get_logger().info("Retrieving list of cameras...")
-        directory_client = self.create_client(
-            GetCameras, "/camera_directory/get_cameras"
-        )
-        while not directory_client.wait_for_service(1.0):
-            self.get_logger().info("Waiting for camera directory service...")
-        cameras_future = directory_client.call_async(GetCameras.Request())
-        rclpy.spin_until_future_complete(self, cameras_future)
-        cameras = cameras_future.result().cameras
-        self.destroy_client(directory_client)
+        # Keep track of registered cameras.
+        self._camera_registrations: dict[str, CameraRegistration] = {}
 
-        for camera in cameras:
-            self.register_camera(camera)
+        # Watch the camera directory, and handle camera availability changes.
+        self.create_subscription(
+            Cameras,
+            "/camera_directory/cameras",
+            self._register_new_cameras,
+            qos.QoSProfile(
+                history=qos.HistoryPolicy.KEEP_LAST,
+                depth=1,
+                reliability=qos.ReliabilityPolicy.RELIABLE,
+                durability=qos.DurabilityPolicy.TRANSIENT_LOCAL,
+            ),
+        )
 
         self.get_logger().info("Ready!")
 
@@ -74,28 +80,65 @@ class CameraStreamerService(rclpy.node.Node):
             rclpy.node.SrvTypeResponse,
         ],
         srv_type: Type = Empty,
-    ):
-        self.create_service(
+    ) -> Service:
+        return self.create_service(
             srv_type,
             f"/camera_streamer/stream/camera{camera.serial}/{srv_name}",
             lambda request, response: callback(camera, request, response),
         )
 
-    def register_camera(self, camera: Camera):
+    def _call_stream_service_async(self, serial: str, srv_name: str) -> None:
+        client = self.create_client(
+            Empty, f"/camera_streamer/stream/camera{serial}/{srv_name}"
+        )
+        client.call_async(Empty.Request()).add_done_callback(
+            lambda future: self.destroy_client(client)
+        )
+
+    def _register_camera(self, camera: Camera) -> None:
         self.get_logger().info(f"Registering camera {camera.serial}.")
 
         # Create stream control services for the camera.
-        self._create_stream_service(camera, "start", self._stream_start_callback)
-        self._create_stream_service(camera, "pause", self._stream_pause_callback)
-        self._create_stream_service(camera, "stop", self._stream_stop_callback)
+        self._camera_registrations[camera.serial] = CameraRegistration(
+            services=[
+                self._create_stream_service(
+                    camera, "start", self._stream_start_callback
+                ),
+                self._create_stream_service(
+                    camera, "pause", self._stream_pause_callback
+                ),
+                self._create_stream_service(camera, "stop", self._stream_stop_callback),
+            ]
+        )
 
         # Start streaming the camera, asynchronously.
-        start_client = self.create_client(
-            Empty, f"/camera_streamer/stream/camera{camera.serial}/start"
-        )
-        start_client.call_async(Empty.Request()).add_done_callback(
-            lambda future: self.destroy_client(start_client)
-        )
+        self._call_stream_service_async(camera.serial, "start")
+
+    def _unregister_camera(self, serial: str) -> None:
+        self.get_logger().info(f"Unregistering camera {serial}.")
+
+        # Stop streaming the camera, asynchronously.
+        self._call_stream_service_async(serial, "stop")
+
+        # Remove the camera's stream control services.
+        for service in self._camera_registrations[serial].services:
+            self.destroy_service(service)
+        del self._camera_registrations[serial]
+
+    def _register_new_cameras(self, cameras: Cameras) -> None:
+        """
+        Register new cameras, and remove old ones.
+        :param cameras: The current list of cameras.
+        """
+        for camera in cameras.cameras:
+            if camera.serial not in self._camera_registrations:
+                self._register_camera(camera)
+
+        current_serials = {camera.serial for camera in cameras.cameras}
+        known_serials = set(self._camera_registrations.keys())
+        for known_serial in known_serials:
+            if known_serial not in current_serials:
+                self._unregister_camera(known_serial)
 
     @staticmethod
     def _create_camera_bin(camera: Camera) -> Gst.Bin:
