@@ -4,7 +4,6 @@ from rclpy import qos
 from std_srvs.srv import Empty
 
 from camera_msgs.msg import Camera, Cameras
-from camera_msgs.srv import GetCameras
 
 from cameras2 import cameras
 
@@ -25,7 +24,6 @@ class CameraDirectoryService(Node):
       - /camera_directory/cameras [camera_msgs/Cameras] (transient local)
     SERVICES:
       - /camera_directory/discover [std_srvs/Empty]
-      - /camera_directory/get_cameras [camera_msgs/GetCameras]
     ACTIONS: None
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     PACKAGE: 	cameras2
@@ -55,11 +53,6 @@ class CameraDirectoryService(Node):
             Empty,
             "/camera_directory/discover",
             self._discover_callback,
-        )
-        self.create_service(
-            GetCameras,
-            "/camera_directory/get_cameras",
-            self._get_cameras_callback,
         )
 
         self._discover_cameras()
@@ -117,19 +110,6 @@ class CameraDirectoryService(Node):
         response: Empty.Response,
     ) -> Empty.Response:
         self._discover_cameras()
-        return response
-
-    def _get_cameras_callback(
-        self,
-        request: GetCameras.Request,
-        response: GetCameras.Response,
-    ) -> GetCameras.Response:
-        serials = request.serials if request.serials else self._cameras.keys()
-        response.cameras = [
-            Camera(serial=serial, node=self._cameras[serial])
-            for serial in serials
-            if serial in self._cameras
-        ]
         return response
 
 

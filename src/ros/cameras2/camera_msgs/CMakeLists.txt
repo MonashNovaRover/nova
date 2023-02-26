@@ -33,7 +33,6 @@ endif()
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/Camera.msg"
   "msg/Cameras.msg"
-  "srv/GetCameras.srv"
 )
 
 ament_package()
