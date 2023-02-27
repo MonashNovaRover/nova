@@ -40,7 +40,7 @@ class SkytraqNode (Node):
     
     def config_port(self, com_no, baud):
         self.ser.baudrate = baud
-        self.ser.port = 'ttyUSB0'
+        self.ser.port = '/dev/ttyUSB0'
         self.ser.open()
 
     def print_msg(self, rover_msg):
