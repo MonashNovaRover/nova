@@ -1,4 +1,4 @@
-from typing import Callable, Optional
+from typing import Callable, Optional, NamedTuple
 
 import pyudev
 
@@ -67,30 +67,61 @@ def _identify_camera(device: pyudev.Device) -> Optional[str]:
 
     serial = device["ID_SERIAL"]
     path = device["ID_PATH"]
-    try:
-        return serial_overrides[serial][path]
-    except KeyError:  # EAFP
-        return serial
+    return _serial_override_map.get(path, serial)
+
+
+class _SerialOverride(NamedTuple):
+    roots: list[str]
+    paths: dict[str, str]
 
 
 # Some USB cameras, such as the Microsoft LifeCam HD 3000, do not have a unique serial
-# number. This dictionary can be used to spoof a serial number for specific cameras,
-# based on their Linux device path.
-serial_overrides = {
-    "Microsoft_Microsoft\u00AE_LifeCam_HD-3000": {
-        "platform-3530000.xhci-usb-0:1.1:1.0": "mast_forward",
-        "platform-3530000.xhci-usb-0:1.3:1.0": "mast_down",
-        "platform-3530000.xhci-usb-0:1.4:1.0": "mast_backward",
-        "platform-3530000.xhci-usb-0:1.2:1.0": "mast_arm_stow",
-        "platform-3530000.xhci-usb-0:3.1.3:1.0": "arm_end_forward",
-        "platform-3530000.xhci-usb-0:3.1.4:1.0": "arm_end_top",
-        "platform-3530000.xhci-usb-0:3.1.1:1.0": "arm_end_finger",
-        "platform-3530000.xhci-usb-0:3.1.4:1.0": "arm_end_screw",
-        "platform-3530000.xhci-usb-0:3.2:1.0": "arm_gimbal",
-        "platform-3530000.xhci-usb-0:2.4.4:1.0": "science_forward",
-        "platform-3530000.xhci-usb-0:2.2:1.0": "science_backward",
-        "platform-3530000.xhci-usb-0:2.4.1:1.0": "science_platform",
-        "platform-3530000.xhci-usb-0:2.4.3:1.0": "science_microscope",
-        "platform-3530000.xhci-usb-0:2.4.4:1.0": "science_hypo",
-    },
+# number. This table can be used to spoof a serial number for specific cameras, based
+# on their Linux device path.
+_serial_overrides: list[_SerialOverride] = [
+    _SerialOverride(
+        [
+            "platform-3530000.xhci-usb-0:1",  # Rover
+            "pci-0000:00:14.0-usb-0:1",  # Laptop (generic)
+        ],
+        {
+            "1:1.0": "mast_forward",
+            "3:1.0": "mast_down",
+            "4:1.0": "mast_backward",
+            "2:1.0": "mast_arm_stow",
+        },
+    ),
+    _SerialOverride(
+        [
+            "platform-3530000.xhci-usb-0:2",  # Rover
+            "pci-0000:00:14.0-usb-0:2",  # Laptop (generic)
+        ],
+        {
+            "4.4:1.0": "science_forward",
+            "2:1.0": "science_backward",
+            "4.1:1.0": "science_platform",
+            "4.3:1.0": "science_microscope",
+            "4.4:1.0": "science_hypo",
+        },
+    ),
+    _SerialOverride(
+        [
+            "platform-3530000.xhci-usb-0:3",  # Rover
+            "pci-0000:00:14.0-usb-0:3",  # Laptop (generic)
+        ],
+        {
+            "1.3:1.0": "arm_end_forward",
+            "1.4:1.0": "arm_end_top",
+            "1.1:1.0": "arm_end_finger",
+            "1.4:1.0": "arm_end_screw",
+            "2:1.0": "arm_gimbal",
+        },
+    ),
+]
+
+_serial_override_map = {
+    f"{root}.{path}": serial
+    for override in _serial_overrides
+    for root in override.roots
+    for path, serial in override.paths.items()
 }
