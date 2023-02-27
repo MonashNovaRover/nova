@@ -69,8 +69,10 @@ class SkytraqNode (Node):
     
         
 def main (args = None):
+    com_no = 10;
+    baud = 115200;
     rclpy.init(args = args)
-    gps = SkytraqNode()
+    gps = SkytraqNode(com_no, baud)
     rclpy.spin(gps)
     
     gps.destroy_node()
