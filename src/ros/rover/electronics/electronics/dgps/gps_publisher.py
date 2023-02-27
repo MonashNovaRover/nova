@@ -30,17 +30,19 @@ class SkytraqNode (Node):
         # elif raw_msg[0:2] == ['PSTI', '032']:
         #     db
         elif raw_msg[0] == "b'$GNRMC":
+            pose.lat, pose.lon = raw_msg[3], raw_msg[5]
             if raw_msg[2] == 'A':
-                pose.lat, pose.lon = raw_msg[3], raw_msg[5]
                 pose.valid = True
     
     def get_msg(self):
         txt = str(self.ser.readline())
         return txt.split(",")
     
-    def config_port(self, com_no, baud):
+    def config_port(self, port_name, baud):
         self.ser.baudrate = baud
-        self.ser.port = '/dev/ttyUSB0'
+        if port_name == "":
+            port_name = "/dev/ttyUSB0"
+        self.ser.port = port_name
         self.ser.open()
 
     def print_msg(self, rover_msg):
@@ -69,10 +71,9 @@ class SkytraqNode (Node):
     
         
 def main (args = None):
-    com_no = 10;
     baud = 115200;
     rclpy.init(args = args)
-    gps = SkytraqNode(com_no, baud)
+    gps = SkytraqNode("", baud)
     rclpy.spin(gps)
     
     gps.destroy_node()
