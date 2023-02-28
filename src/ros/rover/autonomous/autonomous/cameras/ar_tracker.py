@@ -9,7 +9,7 @@ except Exception:
     from pyrealsense2.pyrealsense2 import intrinsics as Intrinsics
 
 from geometry_msgs.msg import Quaternion, TransformStamped
-from tf2_ros import TransformBroadcaster
+from tf2_ros import StaticTransformBroadcaster
 import numpy as np
 import logging
 
@@ -22,8 +22,7 @@ class ArTracker(Node):
         self.frame_id = depth_cam_frame_id
 
         self.marker_width_m = 0.15
-
-        self.ar_broadcaster = TransformBroadcaster(self)
+        self.ar_broadcaster = StaticTransformBroadcaster(self)
 
         self.arDict = ar.Dictionary_get(ar.DICT_4X4_250)
         self.arParam = ar.DetectorParameters_create()
@@ -37,6 +36,9 @@ class ArTracker(Node):
         self.intrinsics = np.array([[fx, 0, cx], [0, fy, cy], [0, 0, 1]])
         # realsense 400 series depth cameras do image processing to remove distortion
         self.distortion = np.array([0, 0, 0, 0, 0])
+
+        self.temp_tags = dict()
+        self.tags = dict()
 
     def __call__(self, img):
         self.find_ar_tags(img)
@@ -52,10 +54,6 @@ class ArTracker(Node):
 
         transform.header.stamp = self.get_clock().now().to_msg()
         transform.header.frame_id = self.frame_id
-
-        # flipping coordinate system from opencv coordinates to rover coordinates
-        r[0], r[1], r[2] = r[2], -r[0], -r[1]
-        t[0], t[1], t[2] = t[2], -t[0], -t[1]
 
         # extracting translation
         transform.transform.translation.x = t[0]
@@ -89,8 +87,12 @@ class ArTracker(Node):
             rot_mats, trans_mats = pose[0], pose[1]
             for _id, rot_mat, trans_mat in zip(ids, rot_mats, trans_mats):
                 transform = self.get_transform(rot_mat[0], trans_mat[0])
-                transform.child_frame_id = f"ar_tag_{_id}"
-                self.ar_broadcaster.sendTransform(transform=transform)
+                if not _id in self.temp_tags:
+                    self.temp_tags[_id] = 0
+                self.temp_tags[_id] = self.temp_tags[_id] + 1
+                if self.temp_tags[_id] > 20:
+                    self.ar_broadcaster.sendTransform(transform=transform)
+                    self.tags[_id] = transform
 
 def main():
     rclpy.init()
