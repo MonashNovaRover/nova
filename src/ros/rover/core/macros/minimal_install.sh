@@ -51,19 +51,6 @@ if [[ "$confirmation" != "y"  &&  "$confirmation" != "Y" ]]; then
     exit 1;
 fi
 
-echo "Would you like to skip dependency installation? (Y) to skip."
-read dependencies
-
-# Check if requiring to install dependencies
-if [[ "$dependencies" != "y" && "$dependencies" != "Y" ]]; then
-
-# First step is to install dependencies and packages
-title "Installing Dependencies"
-sudo apt update -y
-
-# Install Git
-sudo apt install git -y
-
 # Installing ROS 2
 information "Installing ROS 2..."
 sudo apt update && sudo apt install curl gnupg2 lsb-release -y
@@ -76,11 +63,8 @@ sudo apt install -y python3-pip -y
 pip3 install -U argcomplete -y
 sudo apt install -y python-rosdep -y
 sudo rosdep init -y
-rosdep update -y --include-eol-distros --rosdistro=eloquent
+rosdep update -y --include-eol-distros --rosdistro=foxy
 sudo apt install python3-colcon-common-extensions -y
-
-#Installing Rosbag
-sudo apt install -y ros-foxy-ros2bag ros-foxy-rosbag2-converter-default-plugins ros-foxy-rosbag2-storage-default-plugins
 
 # Installing Text Editors
 information "Installing Editors..."
@@ -93,24 +77,6 @@ information "Installing C++..."
 sudo apt install build-essential -y
 sudo apt-get install manpages-dev -y
 sudo apt install libudev-dev -y
-
-# Installing Cameras and GStreamer
-information "Installing Cameras..."
-sudo apt-get -y install gstreamer-1.0 python-gi gstreamer1.0-tools gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-dev python-gst-1.0 -y
-sudo apt-get install gstreamer1.0-plugins-ugly -y
-sudo apt install v4l-utils -y
-pip3 install requests -y
-
-# Installing GUI tools
-information "Installing GUI Tools..."
-sudo apt-get -y install nodejs-dev node-gyp libssl1.0-dev
-sudo apt-get -y install npm
-curl -fsSL https://deb.nodesource.com/setup_current.x | sudo -E bash -
-sudo apt-get install -y nodejs
-sudo npm install -g npm@7.11.2
-sudo pip3 install flask_cors
-sudo pip3 install flask_socketio
-sudo pip3 install flask_cors
 
 # Installing Net Tools
 information "Installing Networking..."
@@ -137,16 +103,6 @@ rm -rf orocos_kinematics_dynamics
 # End dependencies
 fi
 
-# Adding Git permissions
-information "Setting up Git..."
-printf "Please enter your Git User Name: "
-read username
-printf "Please enter your Git Email: "
-read email
-git config --global credential.helper store
-git config --global user.name "$username"
-git config --global user.email "$email"
-
 # Create the workspace
 information "Creating Nova Workspace..."
 sudo rm -rf ~/nova_ws
@@ -159,32 +115,11 @@ colcon build
 information "Cloning Repositories..."
 cd ~/nova_ws/src
 
-# Check if the SSH key exists
-if [ ! -f ~/.ssh/id_ed25519.pub ]; then
-    # Create the keygen
-    sudo ssh-keygen -t ed25519 -C "$email"
-
-    echo ""
-
-    # Display the SSH key
-    sudo cat ~/.ssh/id_ed25519.pub
-
-    printf "Please copy your SSH key above to your GitHub account..."
-
-    read empty
-fi
-
 # Clones all folders
-git clone git@github.com:MonashNovaRover/autonomous.git
-git clone git@github.com:MonashNovaRover/cameras.git
-git clone git@github.com:MonashNovaRover/control.git
-git clone git@github.com:MonashNovaRover/core.git
-git clone git@github.com:MonashNovaRover/electronics.git
-git clone git@github.com:MonashNovaRover/gui.git
-git clone git@github.com:MonashNovaRover/science.git
+git clone git@github.com:MonashNovaRover/rover.git
 
-# Fix autonomous installs
-cd ~/nova_ws/src/rover/autonomous
+# Fix submodules installs
+cd ~/nova_ws/src/rover
 git submodule update --init --recursive
 
 # Clone the other GitHub files
@@ -204,12 +139,7 @@ source ~/nova_ws/src/rover/core/nova.sh
 cd ~/nova_ws
 export CMAKE_PREFIX_PATH=""
 export AMENT_PREFIX_PATH=""
-. ~/nova_ws/src/rover/core/macros/build.sh
-
-# Building the GUI
-cd ~/nova_ws/src/gui/wombatx
-npm install
-npm update
+colcon build
 
 # Completed
 title "Installation Complete!"
