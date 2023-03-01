@@ -26,11 +26,11 @@ class SkytraqNode (Node):
         raw_msg = self.get_msg()
 
         if raw_msg[0:2] == ["b'$PSTI", '036']:
-            pose.pitch, pose.roll, pose.yaw = raw_msg[4], raw_msg[5], raw_msg[6]
+            pose.pitch, pose.roll, pose.yaw = float(raw_msg[4]), float(raw_msg[5]), float(raw_msg[6])
         # elif raw_msg[0:2] == ['PSTI', '032']:
         #     db
         elif raw_msg[0] == "b'$GNRMC":
-            pose.lat, pose.lon = raw_msg[3], raw_msg[5]
+            pose.lat, pose.lon = float(raw_msg[3]), float(raw_msg[5])
             if raw_msg[2] == 'A':
                 pose.valid = True
     
