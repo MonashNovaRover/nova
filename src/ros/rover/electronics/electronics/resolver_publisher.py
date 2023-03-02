@@ -29,7 +29,7 @@ from rclpy.impl.rcutils_logger import RcutilsLogger
 from sensor_msgs.msg import JointState
 from core.srv import ArmConfigInfo, StringTrigger
 
-from coms_utils.uart_interface import UARTTransceiver
+from coms_utils.can_interface import CANTransceiver
 from math import pi
 import time
 
@@ -58,7 +58,7 @@ class Joint:
         self.active = active
 
 
-class ResolverTransceiver(UARTTransceiver):
+class ResolverTransceiver(CANTransceiver):
     """
     Transceiver class to handle reading values from encoders
     """
@@ -84,6 +84,13 @@ class ResolverTransceiver(UARTTransceiver):
             "spmz":             Joint("spmz",          0x28, True),
             "end-rotation":     Joint("end-rotation",  0x1C, False)
         }
+
+        # Define an additonal transmitter for zeroing
+        # Change the ID for sending to 0x0A3
+        kwargs["arbitration_id"] = 0x0A3
+        self.zero_transmitter = CANTransceiver(**kwargs)
+        self.zero_transmitter.set_log_level("critical")
+        self.zero_transmitter.logger = logger
 
     def get_joint(self, joint_name: str, exclude_inactive: bool=True) -> Joint:
         """
@@ -112,11 +119,8 @@ class ResolverTransceiver(UARTTransceiver):
         resolver_id = self.get_joint(joint_name).id
 
         self.logger.info(f'Zeroing joint {joint_name}')
-        # Send two bytes, so use 2-byte format
-        # First byte is resolver_id + 0x02. Indicates an extended command
-        # Second byte is zero command: 0x5E
-        data = self.pack([resolver_id + 0x02, 0x5E], fmt='<BB')
-        transmitted = self.transmit(data)
+        data = self.pack([resolver_id])
+        transmitted = self.zero_transmitter.transmit(data)
         if not transmitted:
             self.logger.error(f'Transmit timeout for joint {joint_name}')
         return transmitted
@@ -249,12 +253,14 @@ class ResolverPublisher(Node):
 
         # Initialise the transceiver
         self.resolver_transceiver = ResolverTransceiver(
+            logger = self.get_logger(),
+            channel = 'can1',
+            bitrate = 200000,
+            filter_ids=[0x0A0],
             receive_timeout = self.receive_timeout,
             receive_fmt = '<H',
+            arbitration_id = 0x0A1,
             transmit_fmt = '<B',
-            logger = self.get_logger(),
-            baudrate = 115200,
-            port = '/dev/ttyUSB0',
             )
 
         # Create the output message type to track the resolver state
