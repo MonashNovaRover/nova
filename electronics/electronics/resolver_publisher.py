@@ -144,12 +144,21 @@ class ResolverTransceiver(CANTransceiver):
             return -1
 
         # Read response and decode into radians
-        # Receives two bytes from the resolvers, representing a single 16-bit value
+        # Receives four bytes from the BASE board
+        # The first is the resolver ID, the second are error flags,
+        # The third and fourth are a single 16-bit value
         bytes_data = self.receive()
         if bytes_data is None:
-            self.logger.error(f'Read timeout for joint {joint_name}')
+            self.logger.error(f'CAN read timeout for joint {joint_name}')
             return -1
-        integer_data = self.unpack(bytes_data)[0]
+        received_id, flags, integer_data = self.unpack(bytes_data)
+        # Verify the returned message
+        if received_id != resolver_id:
+            self.logger.warn(f'Got the wrong resolver reply. Wanted {resolver_id}, got {received_id}')
+            return -1
+        if flags != 0:
+            self.logger.warn(f'RS485 read timeout for joint {joint_name}')
+            return -1
         # Handle checksum
         if not self._verify_checksum(integer_data):
             self.logger.warn(f'Invalid checksum from joint {joint_name}')
@@ -258,7 +267,7 @@ class ResolverPublisher(Node):
             bitrate = 200000,
             filter_ids=[0x0A0],
             receive_timeout = self.receive_timeout,
-            receive_fmt = '<H',
+            receive_fmt = '<BBH',
             arbitration_id = 0x0A1,
             transmit_fmt = '<B',
             )
