@@ -150,8 +150,8 @@ void Driver::fill_wheel_velocities(float wheel_velocities[NUM_WHEELS], float rad
         else if (radius >= 0 && radius < wheel_x && steer > 0) {
             // Under the right half of the chassis, reverse the right wheels
             // Also include cases where we are pivoting right
+            wheel_velocities[2] *= -1;
             wheel_velocities[3] *= -1;
-            wheel_velocities[4] *= -1;
         }
     }
 }
@@ -204,10 +204,13 @@ Driver::Driver() : Node("driver")
     Print::title("DRIVER");
     Print::print("", true);
 
+    this->declare_parameter("canbus", "can0");
+
     // Initialise the wheels
     for (size_t i = 0; i < NUM_WHEELS; i++) {
         bool left = i < NUM_WHEELS / 2;
-        wheels[i] = new BLCMD("can0", i + 1, DRIVE_VELOCITY, left, DRIVE_VELOCITY);
+        wheels[i] = new BLCMD(this->get_parameter("canbus").get_parameter_value().get<std::string>(), i + 1,
+                              DRIVE_VELOCITY, left, DRIVE_POSITION);
     }
     
     rclcpp::QoS qos = rclcpp::QoS(1).best_effort().deadline(ROSTimers::drive_deadline);

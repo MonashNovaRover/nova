@@ -139,7 +139,7 @@ void BLCMD::drive (float value)
     // If the BLCMD is in position mode, scale the input value to radians
     if (drive_mode == DRIVE_POSITION){
         // map (-π,π) → (-1,1)
-        value = value / M_PI;
+        value = value / M_PI_2;
     }
     else {
 
