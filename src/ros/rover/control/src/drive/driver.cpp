@@ -165,7 +165,6 @@ void Driver::fill_wheel_velocities_radial(float speed, float radius)
 // Publishes whether or not we are in autonomous mode
 void Driver::pub_auto_mode()
 {
-
     // Construct a message from our current is_autonomous boolean
     std_msgs::msg::Bool msg;
     msg.data = is_autonomous;
@@ -240,7 +239,7 @@ Driver::Driver() : Node("driver")
     {
         bool left = i < 2;
         BLCMD *cmdWheel = new BLCMD(this->get_parameter("canbus").get_parameter_value().get<std::string>(),
-                    i + 1, DRIVE_VELOCITY, left, STOP);
+                    i + 1, DRIVE_VELOCITY, !left, STOP);
         BLCMD *cmdPivot = new BLCMD(this->get_parameter("canbus").get_parameter_value().get<std::string>(),
                    i + 5, DRIVE_POSITION, false, STOP);
         pivots[i] = new PivotModule(i, cmdWheel, cmdPivot);
@@ -269,7 +268,7 @@ Driver::Driver() : Node("driver")
     // Creates auto mode timer and associated publisher
     mode_timer = this->create_wall_timer(ROSTimers::auto_mode, std::bind(&Driver::pub_auto_mode, this));
 
-    // telemetry_timer = this->create_wall_timer(ROSTimers::blcmds_telemetry, std::bind(&Driver::pub_telemetry, this));
+    telemetry_timer = this->create_wall_timer(ROSTimers::blcmds_telemetry, std::bind(&Driver::pub_telemetry, this));
 
     mode_pub = this->create_publisher<std_msgs::msg::Bool>(
         "/autonomous/mode", 10);

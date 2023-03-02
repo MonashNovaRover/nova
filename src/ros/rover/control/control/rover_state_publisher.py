@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from math import sin, cos, pi
+from math import sin, cos, pi, atan
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile
@@ -16,14 +16,19 @@ BACK_RIGHT_DIR = 1
 
 FRONT_LEFT_PIVOT = -1
 BACK_LEFT_PIVOT = -1
-FRONT_RIGHT_PIVOT = -1
 BACK_RIGHT_PIVOT = -1
+FRONT_RIGHT_PIVOT = -1
+
+CHASSIS_WIDTH = 0.7
+CHASSIS_LENGTH = 0.84
+
+ANGLE_OFFSET = atan(CHASSIS_WIDTH / CHASSIS_LENGTH)
 
 # For getting true resolver zeros of front facing wheel
-FRONT_LEFT_PIVOT_ZERO = 0.
-FRONT_RIGHT_PIVOT_ZERO = 0.
-BACK_LEFT_PIVOT_ZERO = 0.
-BACK_RIGHT_PIVOT_ZERO = 0.
+FRONT_LEFT_PIVOT_ZERO = ANGLE_OFFSET
+BACK_LEFT_PIVOT_ZERO = ANGLE_OFFSET
+BACK_RIGHT_PIVOT_ZERO = ANGLE_OFFSET
+FRONT_RIGHT_PIVOT_ZERO = ANGLE_OFFSET
 
 class RoverStatePublisher(Node):
     def __init__(self):
@@ -67,19 +72,20 @@ class RoverStatePublisher(Node):
 
         self.joint_state.header.stamp = now.to_msg()
 
-        self.joint_state.name = ['front_left_wheel_to_pivot', 'front_right_wheel_to_pivot',
-                            'back_left_wheel_to_pivot', 'back_right_wheel_to_pivot',
-                            'front_left_pivot_to_leg', 'front_right_pivot_to_leg',
-                            'back_left_pivot_to_leg', 'back_right_pivot_to_leg']
+        self.joint_state.name = ['front_left_wheel_to_pivot', 'back_left_wheel_to_pivot',
+                                 'back_right_wheel_to_pivot', 'front_right_wheel_to_pivot',
+                                 'front_left_pivot_to_leg', 'back_left_pivot_to_leg',
+                                 'back_right_pivot_to_leg', 'front_right_pivot_to_leg']
 
-        self.joint_state.position = [FRONT_LEFT_DIR*self.telemetry.wheels[0].resolver_position,
-                                FRONT_RIGHT_DIR*self.telemetry.wheels[3].resolver_position,
-                                BACK_LEFT_DIR*self.telemetry.wheels[1].resolver_position,
-                                BACK_RIGHT_DIR*self.telemetry.wheels[2].resolver_position,
-                                FRONT_LEFT_PIVOT*self.telemetry.pivots[0].resolver_position + FRONT_LEFT_PIVOT_ZERO,
-                                FRONT_RIGHT_PIVOT*self.telemetry.pivots[3].resolver_position + FRONT_RIGHT_PIVOT_ZERO,
-                                BACK_LEFT_PIVOT*self.telemetry.pivots[1].resolver_position + BACK_LEFT_PIVOT_ZERO,
-                                BACK_RIGHT_PIVOT*self.telemetry.pivots[2].resolver_position + BACK_RIGHT_PIVOT_ZERO]
+
+        self.joint_state.position = [FRONT_LEFT_DIR * self.telemetry.wheels[0].resolver_position,
+                                     BACK_LEFT_DIR * self.telemetry.wheels[1].resolver_position,
+                                     BACK_RIGHT_DIR * self.telemetry.wheels[2].resolver_position,
+                                     FRONT_RIGHT_DIR * self.telemetry.wheels[3].resolver_position,
+                                     FRONT_LEFT_PIVOT * self.telemetry.pivots[0].resolver_position - ANGLE_OFFSET,
+                                     BACK_LEFT_PIVOT * self.telemetry.pivots[1].resolver_position + ANGLE_OFFSET,
+                                     BACK_RIGHT_PIVOT * self.telemetry.pivots[2].resolver_position - ANGLE_OFFSET,
+                                     FRONT_RIGHT_PIVOT * self.telemetry.pivots[3].resolver_position + ANGLE_OFFSET]
 
     def cb_pub_joint_state(self):
         self.joint_state.header.stamp=self.get_clock().now().to_msg()
