@@ -147,11 +147,11 @@ class ResolverTransceiver(CANTransceiver):
         # Receives four bytes from the BASE board
         # The first is the resolver ID, the second are error flags,
         # The third and fourth are a single 16-bit value
-        bytes_data = self.receive()
-        if bytes_data is None:
+        can_msg = self.receive()
+        if can_msg is None:
             self.logger.error(f'CAN read timeout for joint {joint_name}')
             return -1
-        received_id, flags, integer_data = self.unpack(bytes_data)
+        received_id, flags, integer_data = self.unpack(can_msg.data)
         # Verify the returned message
         if received_id != resolver_id:
             self.logger.warn(f'Got the wrong resolver reply. Wanted {resolver_id}, got {received_id}')
