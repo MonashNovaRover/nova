@@ -13,9 +13,9 @@ SERVICES:
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:     electronics
-AUTHOR(S):   Josh Cherubino, Jory Braun
+AUTHOR(S):   Jory Braun, Josh Cherubino
 CREATION:    14/02/2022
-EDITED:      01/06/2022
+EDITED:      04/03/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
     - Setup appropriate QoS profile for publisher
