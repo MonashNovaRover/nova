@@ -185,10 +185,9 @@ class ResolverTransceiver(CANTransceiver):
         Bits are numbered from 0 starting with the LSB.
         """
         assert raw_value < 65536
-        binary_data = [int(bit) for bit in f"{raw_value:016b}"]
-        even_bits = [binary_data[i] for i in range(len(binary_data)) if i % 2]
-        odd_bits = [binary_data[i] for i in range(len(binary_data)) if not i % 2]
-        return sum(even_bits) % 2 and sum(odd_bits) % 2
+        odds_mask = 0xAAAA
+        evens_mask = 0x5555
+        return ((raw_value & odds_mask).bit_count() & 0x1) and ((raw_value & evens_mask).bit_count() & 0x1)
 
     @staticmethod
     def _convert_to_rad(raw_value: int) -> float:
