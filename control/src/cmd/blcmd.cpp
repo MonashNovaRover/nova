@@ -13,8 +13,6 @@ AUTHOR(S):	Harrison Verrios, Josh Cherubino, Jory Braun, Taaj Street
 #define _USE_MATH_DEFINES
 #include <cmath>
 
-using namespace org::jcan;
-
 std::ostream& operator << (std::ostream& o, BLCMDTelemetry& tel) {
     o << "Rotor Velocity    : " << tel.rotor_velocity << std::endl <<
       "Q Current         : " << tel.q_current << std::endl <<
@@ -37,13 +35,18 @@ BLCMD::BLCMD (const std::string bus, const int id, BLCMDSendCommand drive_mode, 
     min_speed = max_speed / 32767;
 
     // Set up the CAN interface with the correct bus
-    can_bus = org::jcan::open_bus(bus).into_raw();
+    can_bus = org::jcan::new_bus();
     std::cout << "BLCMD Initialised with id:" << id << ", with drive mode: "  << (drive_mode == DRIVE_VELOCITY ? "DRIVE_VELOCITY" : "DRIVE_POSITION") << std::endl;
 
 
 
     can_bus->set_id_filter({make_can_id(PACKET_1), make_can_id(PACKET_2),
                             make_can_id(PACKET_3), make_can_id(PACKET_4)});
+
+    can_bus->add_callback_to(make_can_id(PACKET_1),this, &BLCMD::packet1_callback);
+    can_bus->add_callback_to(make_can_id(PACKET_2), this, &BLCMD::packet2_callback);
+    can_bus->add_callback_to(make_can_id(PACKET_3), this, &BLCMD::packet3_callback);
+    can_bus->add_callback_to(make_can_id(PACKET_4), this, &BLCMD::packet4_callback);
 
 
 }
@@ -76,7 +79,7 @@ int BLCMD::get_id()
 void BLCMD::write_frame_no_data (const BLCMDSendCommand command)
 {
     // Create a new CAN frame
-    Frame frame;
+    org::jcan::Frame frame;
     frame.id = make_can_id(command);
     // Write the frame to the bus
     can_bus->send(frame);
@@ -179,7 +182,7 @@ void BLCMD::drive (float value)
 
 
     // Create a new CAN frame
-    Frame frame;
+    org::jcan::Frame frame;
     frame.id = (id << 4) | drive_mode;
 
     // Scale the speed to the range
@@ -193,215 +196,185 @@ void BLCMD::drive (float value)
     can_bus->send(frame);
 }
 
-bool BLCMD::home_rotor()
-{
-    can_bus->set_id_filter({make_can_id(ERR_WARN_INF)});
-    write_frame_no_data(HOME_ROTOR);
-    Frame confirm_frame = can_bus->receive();
+//bool BLCMD::home_rotor()
+//{
+//    can_bus->set_id_filter({make_can_id(ERR_WARN_INF)});
+//    write_frame_no_data(HOME_ROTOR);
+//    Frame confirm_frame = can_bus->receive();
+//
+//    for(;;) {
+//        if (!confirm_frame.data[0] && confirm_frame.data[1] == 8) return false;
+//        if (confirm_frame.data[0] == 2 && confirm_frame.data[1] == 3) return true;
+//        confirm_frame = can_bus->receive();
+//    }
+//}
+//
+//bool BLCMD::zero_resolver()
+//{
+//    can_bus->set_id_filter({make_can_id(ERR_WARN_INF)});
+//    write_frame_no_data(ZERO_RESOLVER);
+//    Frame confirm_frame = can_bus->receive();
+//
+//    for(;;) {
+//        if (!confirm_frame.data[0] && (confirm_frame.data[1] == 8 ||
+//            confirm_frame.data[1] == 4)) return false;
+//        if (confirm_frame.data[0] == 2 && confirm_frame.data[1] == 4) return true;
+//        confirm_frame = can_bus->receive();
+//    }
+//}
 
-    for(;;) {
-        if (!confirm_frame.data[0] && confirm_frame.data[1] == 8) return false;
-        if (confirm_frame.data[0] == 2 && confirm_frame.data[1] == 3) return true;
-        confirm_frame = can_bus->receive();
-    }
+
+void BLCMD::packet1_callback(org::jcan::Frame frame) {
+    telemetry.rotor_velocity = int16_bytes_to_double(&frame.data[0]);
+    telemetry.q_current = int16_bytes_to_double(&frame.data[2]);
 }
 
-bool BLCMD::zero_resolver()
-{
-    can_bus->set_id_filter({make_can_id(ERR_WARN_INF)});
-    write_frame_no_data(ZERO_RESOLVER);
-    Frame confirm_frame = can_bus->receive();
-
-    for(;;) {
-        if (!confirm_frame.data[0] && (confirm_frame.data[1] == 8 ||
-            confirm_frame.data[1] == 4)) return false;
-        if (confirm_frame.data[0] == 2 && confirm_frame.data[1] == 4) return true;
-        confirm_frame = can_bus->receive();
-    }
+void BLCMD::packet2_callback(org::jcan::Frame frame) {
+    this->telemetry.rotor_interval = uint16_bytes_to_double(&frame.data[0]);
+    this->telemetry.d_current = int16_bytes_to_double(&frame.data[2]);
 }
 
-bool BLCMD::get_telemetry_packet (std::vector<TelemetryPacket> packet_nums, BLCMDTelemetry* telemetry, std::chrono::milliseconds timeout)
-{
-    return false;
+void BLCMD::packet3_callback(org::jcan::Frame frame) {
+    this->telemetry.resolver_position = int16_bytes_to_double(&frame.data[0]) * max_position;
+    this->telemetry.resolver_velocity = int16_bytes_to_double(&frame.data[2]) * max_velocity;
 }
 
-std::vector<bool> BLCMD::get_telemetry(BLCMDTelemetry* telemetry, std::chrono::milliseconds timeout)
-{
-    // Set the CAN bus to listen for all the packets
-    can_bus->set_id_filter({make_can_id(PACKET_1), make_can_id(PACKET_2), make_can_id(PACKET_3), make_can_id(PACKET_4)});
-
-    auto start = std::chrono::steady_clock::now();
-    auto end = start + timeout;
-
-    // Initialize a vector of booleans to keep track of which packets have been recieved
-    std::vector<bool> received(4, false);
-
-    while (std::chrono::steady_clock::now() < end &&
-    !std::accumulate(received.begin(), received.end(), false, std::logical_or<bool>())){
-        auto frames = can_bus->receive_nonblocking();
-        for (auto frame : frames){
-            uint16_t packet = frame.id & 0x000F;
-            switch (packet){
-                case PACKET_1:
-                    if (!received[0]) {
-                        telemetry->rotor_velocity = int16_bytes_to_double(&frame.data[0]);
-                        telemetry->q_current = int16_bytes_to_double(&frame.data[2]);
-                        received[0] = true;
-                    }
-                    break;
-                case PACKET_2:
-                    if (!received[1]) {
-                        telemetry->rotor_interval = uint16_bytes_to_double(&frame.data[0]);
-                        telemetry->d_current = int16_bytes_to_double(&frame.data[2]);
-                        received[1] = true;
-                    }
-                    break;
-                case PACKET_3:
-                    if (!received[2]){
-                        telemetry->resolver_position = int16_bytes_to_double(&frame.data[0])*max_position;
-                        telemetry->resolver_velocity = int16_bytes_to_double(&frame.data[2])*max_velocity;
-                        received[2] = true;
-                    }
-                    break;
-                case PACKET_4:
-                    if (!received[3]) {
-                        telemetry->power = uint16_bytes_to_double(&frame.data[0]);
-                        telemetry->voltage = uint16_bytes_to_double(&frame.data[2]);
-                        telemetry->temp = uint16_bytes_to_double(&frame.data[4]);
-                        received[3] = true;
-                    }
-                    break;
-            }
-        }
-    }
-    return received;
+void BLCMD::packet4_callback(org::jcan::Frame frame) {
+    this->telemetry.power = uint16_bytes_to_double(&frame.data[0]);
+    this->telemetry.voltage = uint16_bytes_to_double(&frame.data[2]);
+    this->telemetry.temp = uint16_bytes_to_double(&frame.data[4]);
 }
 
-void BLCMD::get_config_variable(ConfigVar var, BLCMDConfig *config)
-{
-    //create request can fram
-    Frame config_request;
-    config_request.id = make_can_id(GET_CONFIG);
-    config_request.data.push_back(var);
-
-    //set filter ID
-    can_bus->set_id_filter({make_can_id(CONFIG_DATA)});
-
-    //send data
-    can_bus->send(config_request);
-
-    //receive from config data
-    Frame config_data = can_bus->receive();
-
-    if(config_data.data[0] == var) {
-        switch (var) {
-            case HAS_RESOLVER:
-                config->has_resolver = config_data.data[1];
-                break;
-            case KP_CURRENT_LOOP:
-                config->kp_current_loop = from_bytes(&config_data.data[1]);
-                break;
-            case KI_CURRENT_LOOP:
-                config->ki_current_loop = from_bytes(&config_data.data[1]);
-                break;
-            case MAX_CURRENT_THRESHOLD:
-                config->max_current_threshold = from_bytes(&config_data.data[1]);
-                break;
-            case KP_VELOCITY_LOOP:
-                config->kp_velocity_loop = from_bytes(&config_data.data[1]);
-                break;
-            case KI_VELOCITY_LOOP:
-                config->ki_velocity_loop = from_bytes(&config_data.data[1]);
-                break;
-            case MAX_VELOCITY_THRESHOLD:
-                config->max_velocity_threshold = from_bytes(&config_data.data[1]);
-                break;
-            case MIN_INTERVAL:
-                config->min_interval = from_bytes(&config_data.data[1]);
-                break;
-            case KP_POSITION_LOOP:
-                config->kp_position_loop = from_bytes(&config_data.data[1]);
-                break;
-            case KI_POSITION_LOOP:
-                config->ki_position_loop = from_bytes(&config_data.data[1]);
-                break;
-            case MAX_POSITION_THRESHOLD:
-                config->max_position_threshold = from_bytes(&config_data.data[1]);
-                break;
-            case TELEMETRY_P1_SPEED:
-                config->telemetry_p1_speed = config_data.data[1];
-                break;
-            case TELEMETRY_P2_SPEED:
-                config->telemetry_p2_speed = config_data.data[1];
-                break;
-            case TELEMETRY_P3_SPEED:
-                config->telemetry_p3_speed = config_data.data[1];
-                break;
-            case TELEMETRY_P4_SPEED:
-                config->telemetry_p4_speed = config_data.data[1];
-                break;
-        }
-    }
+BLCMDTelemetry BLCMD::get_telemetry() {
+    return this->telemetry;
 }
 
-BLCMDConfig BLCMD::get_configuration()
-{
-    BLCMDConfig config;
 
-    get_config_variable(HAS_RESOLVER, &config);
-    get_config_variable(KP_CURRENT_LOOP, &config);
-    get_config_variable(KI_CURRENT_LOOP, &config);
-    get_config_variable(MAX_CURRENT_THRESHOLD, &config);
-    get_config_variable(KP_VELOCITY_LOOP, &config);
-    get_config_variable(KI_VELOCITY_LOOP, &config);
-    get_config_variable(MAX_VELOCITY_THRESHOLD, &config);
-    get_config_variable(MIN_INTERVAL, &config);
-    get_config_variable(KP_POSITION_LOOP, &config);
-    get_config_variable(KI_POSITION_LOOP, &config);
-    get_config_variable(MAX_POSITION_THRESHOLD, &config);
-    get_config_variable(TELEMETRY_P1_SPEED, &config);
-    get_config_variable(TELEMETRY_P2_SPEED, &config);
-    get_config_variable(TELEMETRY_P3_SPEED, &config);
-    get_config_variable(TELEMETRY_P4_SPEED, &config);
+//void BLCMD::get_config_variable(ConfigVar var, BLCMDConfig *config)
+//{
+//    //create request can fram
+//    Frame config_request;
+//    config_request.id = make_can_id(GET_CONFIG);
+//    config_request.data.push_back(var);
+//
+//    //set filter ID
+//    can_bus->set_id_filter({make_can_id(CONFIG_DATA)});
+//
+//    //send data
+//    can_bus->send(config_request);
+//
+//    //receive from config data
+//    Frame config_data = can_bus->receive();
+//
+//    if(config_data.data[0] == var) {
+//        switch (var) {
+//            case HAS_RESOLVER:
+//                config->has_resolver = config_data.data[1];
+//                break;
+//            case KP_CURRENT_LOOP:
+//                config->kp_current_loop = from_bytes(&config_data.data[1]);
+//                break;
+//            case KI_CURRENT_LOOP:
+//                config->ki_current_loop = from_bytes(&config_data.data[1]);
+//                break;
+//            case MAX_CURRENT_THRESHOLD:
+//                config->max_current_threshold = from_bytes(&config_data.data[1]);
+//                break;
+//            case KP_VELOCITY_LOOP:
+//                config->kp_velocity_loop = from_bytes(&config_data.data[1]);
+//                break;
+//            case KI_VELOCITY_LOOP:
+//                config->ki_velocity_loop = from_bytes(&config_data.data[1]);
+//                break;
+//            case MAX_VELOCITY_THRESHOLD:
+//                config->max_velocity_threshold = from_bytes(&config_data.data[1]);
+//                break;
+//            case MIN_INTERVAL:
+//                config->min_interval = from_bytes(&config_data.data[1]);
+//                break;
+//            case KP_POSITION_LOOP:
+//                config->kp_position_loop = from_bytes(&config_data.data[1]);
+//                break;
+//            case KI_POSITION_LOOP:
+//                config->ki_position_loop = from_bytes(&config_data.data[1]);
+//                break;
+//            case MAX_POSITION_THRESHOLD:
+//                config->max_position_threshold = from_bytes(&config_data.data[1]);
+//                break;
+//            case TELEMETRY_P1_SPEED:
+//                config->telemetry_p1_speed = config_data.data[1];
+//                break;
+//            case TELEMETRY_P2_SPEED:
+//                config->telemetry_p2_speed = config_data.data[1];
+//                break;
+//            case TELEMETRY_P3_SPEED:
+//                config->telemetry_p3_speed = config_data.data[1];
+//                break;
+//            case TELEMETRY_P4_SPEED:
+//                config->telemetry_p4_speed = config_data.data[1];
+//                break;
+//        }
+//    }
+//}
 
-	return config;
-}
+//BLCMDConfig BLCMD::get_configuration()
+//{
+//    BLCMDConfig config;
+//
+//    get_config_variable(HAS_RESOLVER, &config);
+//    get_config_variable(KP_CURRENT_LOOP, &config);
+//    get_config_variable(KI_CURRENT_LOOP, &config);
+//    get_config_variable(MAX_CURRENT_THRESHOLD, &config);
+//    get_config_variable(KP_VELOCITY_LOOP, &config);
+//    get_config_variable(KI_VELOCITY_LOOP, &config);
+//    get_config_variable(MAX_VELOCITY_THRESHOLD, &config);
+//    get_config_variable(MIN_INTERVAL, &config);
+//    get_config_variable(KP_POSITION_LOOP, &config);
+//    get_config_variable(KI_POSITION_LOOP, &config);
+//    get_config_variable(MAX_POSITION_THRESHOLD, &config);
+//    get_config_variable(TELEMETRY_P1_SPEED, &config);
+//    get_config_variable(TELEMETRY_P2_SPEED, &config);
+//    get_config_variable(TELEMETRY_P3_SPEED, &config);
+//    get_config_variable(TELEMETRY_P4_SPEED, &config);
+//
+//	return config;
+//}
 
-bool BLCMD::set_config_variable(ConfigVar var, int16_t value)
-{
-    //create frame
-    Frame config_frame;
-    config_frame.id = make_can_id(SET_CONFIG);
-    config_frame.data.push_back(var);
-	config_frame.data.push_back(value);
-
-    can_bus->set_id_filter({make_can_id(WRITE_CONFIRMATION)});
-
-    can_bus->send(config_frame);
-
-    Frame confirmation_frame = can_bus->receive();
-
-    return confirmation_frame.data[0] == var ? confirmation_frame.data[1] : false;
-}
-
-bool BLCMD::set_config(BLCMDConfig *config)
-{
-    return set_config_variable(HAS_RESOLVER, config->has_resolver) ||
-    set_config_variable(KP_CURRENT_LOOP, config->kp_current_loop) ||
-    set_config_variable(KI_CURRENT_LOOP, config->ki_current_loop) ||
-    set_config_variable(MAX_CURRENT_THRESHOLD, config->max_current_threshold) ||
-    set_config_variable(KP_VELOCITY_LOOP, config->kp_velocity_loop) ||
-    set_config_variable(KI_VELOCITY_LOOP, config->ki_velocity_loop) ||
-    set_config_variable(MAX_VELOCITY_THRESHOLD, config->max_velocity_threshold) ||
-    set_config_variable(MIN_INTERVAL, config->min_interval) ||
-    set_config_variable(KP_POSITION_LOOP, config->kp_position_loop) ||
-    set_config_variable(KI_POSITION_LOOP, config->ki_position_loop) ||
-    set_config_variable(MAX_POSITION_THRESHOLD, config->max_position_threshold) ||
-    set_config_variable(TELEMETRY_P1_SPEED, config->telemetry_p1_speed) ||
-    set_config_variable(TELEMETRY_P2_SPEED, config->telemetry_p2_speed) ||
-    set_config_variable(TELEMETRY_P3_SPEED, config->telemetry_p3_speed) ||
-    set_config_variable(TELEMETRY_P4_SPEED, config->telemetry_p4_speed);
-}
+//bool BLCMD::set_config_variable(ConfigVar var, int16_t value)
+//{
+//    //create frame
+//    Frame config_frame;
+//    config_frame.id = make_can_id(SET_CONFIG);
+//    config_frame.data.push_back(var);
+//	config_frame.data.push_back(value);
+//
+//    can_bus->set_id_filter({make_can_id(WRITE_CONFIRMATION)});
+//
+//    can_bus->send(config_frame);
+//
+//    Frame confirmation_frame = can_bus->receive();
+//
+//    return confirmation_frame.data[0] == var ? confirmation_frame.data[1] : false;
+//}
+//
+//bool BLCMD::set_config(BLCMDConfig *config)
+//{
+//    return set_config_variable(HAS_RESOLVER, config->has_resolver) ||
+//    set_config_variable(KP_CURRENT_LOOP, config->kp_current_loop) ||
+//    set_config_variable(KI_CURRENT_LOOP, config->ki_current_loop) ||
+//    set_config_variable(MAX_CURRENT_THRESHOLD, config->max_current_threshold) ||
+//    set_config_variable(KP_VELOCITY_LOOP, config->kp_velocity_loop) ||
+//    set_config_variable(KI_VELOCITY_LOOP, config->ki_velocity_loop) ||
+//    set_config_variable(MAX_VELOCITY_THRESHOLD, config->max_velocity_threshold) ||
+//    set_config_variable(MIN_INTERVAL, config->min_interval) ||
+//    set_config_variable(KP_POSITION_LOOP, config->kp_position_loop) ||
+//    set_config_variable(KI_POSITION_LOOP, config->ki_position_loop) ||
+//    set_config_variable(MAX_POSITION_THRESHOLD, config->max_position_threshold) ||
+//    set_config_variable(TELEMETRY_P1_SPEED, config->telemetry_p1_speed) ||
+//    set_config_variable(TELEMETRY_P2_SPEED, config->telemetry_p2_speed) ||
+//    set_config_variable(TELEMETRY_P3_SPEED, config->telemetry_p3_speed) ||
+//    set_config_variable(TELEMETRY_P4_SPEED, config->telemetry_p4_speed);
+//}
 
 
 int16_t BLCMD::convert_to_int16 (const double value) {
@@ -430,7 +403,7 @@ uint16_t BLCMD::make_can_id(BLCMDSendCommand command)
     return SEND << 8 | id << 4 | command;
 }
 
-uint16_t BLCMD::make_can_id(BLCMDRecieveCommand command)
+uint16_t BLCMD::make_can_id(BLCMDReceiveCommand command)
 {
     return RECEIVE << 8 | id << 4 | command;
 }

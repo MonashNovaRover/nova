@@ -25,9 +25,7 @@ CMD::CMD (int bus, int id, CMDCommand drive_mode, bool direction, CMDCommand sto
 
     // Set up the CAN interface with the correct bus
     // TODO: Error Handling
-    can_bus = org::jcan::open_bus(
-        (bus == 0) ? "can0" : "can1"
-    ).into_raw();
+    can_bus = org::jcan::new_bus();
 }
 
 
