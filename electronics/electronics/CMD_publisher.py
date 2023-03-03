@@ -22,6 +22,7 @@ TOPICS:
   - /electronics/cmd_feedback  [CMDsFeedback]   [Published]
   - /control/drive_inputs    [DriveInput]  [Subscribed]
   - /autonomous/drive_inputs [DriveInput]  [Subscribed]
+  - /control/scraper_inputs [ScraperInput] [Subscribed]
 TODO:
   - Set different VELOCITY_FACTOR for each CMD type
 TO IMPROVE:

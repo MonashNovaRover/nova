@@ -18,7 +18,12 @@ sensor_msgs::msg::JointState ArmMessages::get_empty_joint_state(const std::vecto
     sensor_msgs::msg::JointState msg;
     msg.name = names;
     msg.position = std::vector<double> (num_joints);
-    msg.velocity = std::vector<double> (num_joints);
+    msg.
+    
+    
+    
+    
+     = std::vector<double> (num_joints);
     msg.effort = std::vector<double> (num_joints);
     return msg;
 }
