@@ -32,8 +32,7 @@ public:
         velocity = 0;
         position = 0;
         pos_direction = 0;
-        send_bus = org::jcan::open_bus("vcan0").into_raw();
-        recv_bus = org::jcan::open_bus("vcan0").into_raw();
+        shared_ptr<org::jcan::Bus> bus = org::jcan::open_bus("vcan0").into_raw();
 
         recv_bus->set_id_filter({make_can_id(DRIVE_VELOCITY), make_can_id(DRIVE_POSITION)});
     }
@@ -152,7 +151,7 @@ public:
         return SEND << 8 | id << 4 | command;
     }
 
-    uint16_t make_can_id(BLCMDRecieveCommand command)
+    uint16_t make_can_id(BLCMDReceiveCommand command)
     {
         return RECEIVE << 8 | id << 4 | command;
     }

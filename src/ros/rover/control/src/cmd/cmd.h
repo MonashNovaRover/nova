@@ -81,7 +81,7 @@ class CMD {
     bool already_stopped;
     
     // CAN bus for the CAN connection
-    org::jcan::Bus *can_bus;
+    std::shared_ptr<org::jcan::Bus> can_bus;
 
 
     /// @brief      Send a CAN frmae with some command in the ID but no data
