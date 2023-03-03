@@ -251,9 +251,9 @@ class ResolverPublisher(Node):
             bitrate = 200000,
             filter_ids=[0x0A0],
             receive_timeout = self.receive_timeout,
-            receive_fmt = '<BBH',
+            receive_fmt = '>BBH',  # Big-endian. uint8, uint8, uint16
             arbitration_id = 0x0A1,
-            transmit_fmt = '<B',
+            transmit_fmt = '>B',  # Big-endian. uint8
             )
 
         # Create the output message type to track the resolver state
