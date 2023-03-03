@@ -8,8 +8,8 @@ try:
 except Exception:
     from pyrealsense2.pyrealsense2 import intrinsics as Intrinsics
 
-from geometry_msgs.msg import Quaternion, TransformStamped
-from tf2_ros import StaticTransformBroadcaster
+from geometry_msgs.msg import PoseStamped
+from core.msg import AlvarMarker
 import numpy as np
 import logging
 
@@ -22,7 +22,7 @@ class ArTracker(Node):
         self.frame_id = depth_cam_frame_id
 
         self.marker_width_m = 0.15
-        self.ar_broadcaster = StaticTransformBroadcaster(self)
+        self.ar_pose_pub = self.create_publisher(AlvarMarker, "~/tags", 10)
 
         self.arDict = ar.Dictionary_get(ar.DICT_4X4_250)
         self.arParam = ar.DetectorParameters_create()
@@ -43,37 +43,37 @@ class ArTracker(Node):
     def __call__(self, img):
         self.find_ar_tags(img)
 
-    def get_transform(self, r, t) -> TransformStamped:
+    def get_pose(self, r, t) -> PoseStamped:
         """
         r: rotation vector (3, 1)
         t: translation vector (3, 1)
         """
         self.get_logger().debug(f"received rotation vector: {r}")
         self.get_logger().debug(f"received translation vector: {t}")
-        transform = TransformStamped()
+        pose = PoseStamped()
 
-        transform.header.stamp = self.get_clock().now().to_msg()
-        transform.header.frame_id = self.frame_id
+        pose.header.stamp = self.get_clock().now().to_msg()
+        pose.header.frame_id = self.frame_id
 
-        # extracting translation
-        transform.transform.translation.x = t[0]
-        transform.transform.translation.y = t[1]
-        transform.transform.translation.z = t[2]
+        # extracting position
+        pose.pose.position.x = t[0]
+        pose.pose.position.y = t[1]
+        pose.pose.position.z = t[2]
 
         # convert rotation vector to quaternion
         theta = np.linalg.norm(r) # magnitude of vector gives rotation
         unit_rvec = r / theta # normalise vector
 
         # Calculating quaternion (https://en.wikipedia.org/wiki/Quaternion) 
-        transform.transform.rotation.w = np.cos(theta/2)
-        transform.transform.rotation.x = unit_rvec[0] * np.sin(theta/2)
-        transform.transform.rotation.y = unit_rvec[1] * np.sin(theta/2)
-        transform.transform.rotation.z = unit_rvec[2] * np.sin(theta/2)
+        pose.pose.orientation.w = np.cos(theta/2)
+        pose.pose.orientation.x = unit_rvec[0] * np.sin(theta/2)
+        pose.pose.orientation.y = unit_rvec[1] * np.sin(theta/2)
+        pose.pose.orientation.z = unit_rvec[2] * np.sin(theta/2)
 
         # converting rotation matrix to quaternion
-        self.get_logger().debug(f"AR tag transform: {transform.transform}")
+        self.get_logger().debug(f"AR tag pose: {pose.pose}")
 
-        return transform
+        return pose
 
     def find_ar_tags(self, img):
         """
@@ -86,13 +86,9 @@ class ArTracker(Node):
             pose = ar.estimatePoseSingleMarkers(bboxs, self.marker_width_m, self.intrinsics, self.distortion)
             rot_mats, trans_mats = pose[0], pose[1]
             for _id, rot_mat, trans_mat in zip(ids, rot_mats, trans_mats):
-                transform = self.get_transform(rot_mat[0], trans_mat[0])
-                if not _id in self.temp_tags:
-                    self.temp_tags[_id] = 0
-                self.temp_tags[_id] = self.temp_tags[_id] + 1
-                if self.temp_tags[_id] > 20:
-                    self.ar_broadcaster.sendTransform(transform=transform)
-                    self.tags[_id] = transform
+                pose = self.get_pose(rot_mat[0], trans_mat[0])
+                AR_tag = AlvarMarker(tag_id=_id, pose=pose)
+                self.ar_pose_pub.publish(AR_tag)
 
 def main():
     rclpy.init()
