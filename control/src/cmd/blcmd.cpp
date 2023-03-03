@@ -37,9 +37,15 @@ BLCMD::BLCMD (const std::string bus, const int id, BLCMDSendCommand drive_mode, 
     min_speed = max_speed / 32767;
 
     // Set up the CAN interface with the correct bus
-    //TODO: Proper error handling
     can_bus = org::jcan::open_bus(bus).into_raw();
     std::cout << "BLCMD Initialised with id:" << id << ", with drive mode: "  << (drive_mode == DRIVE_VELOCITY ? "DRIVE_VELOCITY" : "DRIVE_POSITION") << std::endl;
+
+
+
+    can_bus->set_id_filter({make_can_id(PACKET_1), make_can_id(PACKET_2),
+                            make_can_id(PACKET_3), make_can_id(PACKET_4)});
+
+
 }
 
 

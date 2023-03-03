@@ -1,3 +1,4 @@
+#include "callback.h"
 #include <algorithm>
 #include <array>
 #include <cassert>
@@ -943,7 +944,8 @@ public:
 namespace org {
   namespace jcan {
     struct Frame;
-    struct Bus;
+    struct JBus;
+    using Bus = ::org::jcan::Bus;
   }
 }
 
@@ -955,21 +957,26 @@ struct Frame final {
   ::std::uint32_t id;
   ::rust::Vec<::std::uint8_t> data;
 
+  ::std::uint32_t get_id() const noexcept;
+  ::rust::Vec<::std::uint8_t> get_data() const noexcept;
+  void set_id(::std::uint32_t id);
+  void set_data(::rust::Vec<::std::uint8_t> data);
   ::rust::String to_string() const noexcept;
   using IsRelocatable = ::std::true_type;
 };
 #endif // CXXBRIDGE1_STRUCT_org$jcan$Frame
 
-#ifndef CXXBRIDGE1_STRUCT_org$jcan$Bus
-#define CXXBRIDGE1_STRUCT_org$jcan$Bus
-struct Bus final : public ::rust::Opaque {
-  ::org::jcan::Frame receive();
-  ::org::jcan::Frame receive_with_id(::std::uint32_t id);
-  void send(::org::jcan::Frame frame);
+#ifndef CXXBRIDGE1_STRUCT_org$jcan$JBus
+#define CXXBRIDGE1_STRUCT_org$jcan$JBus
+struct JBus final : public ::rust::Opaque {
   void set_id_filter(::rust::Vec<::std::uint32_t> allowed);
-  void clear_id_filter();
-  ::rust::Vec<::org::jcan::Frame> receive_nonblocking();
-  ~Bus() = delete;
+  void set_id_filter_mask(::std::uint32_t id, ::std::uint32_t mask);
+  void open(::rust::String interface);
+  bool is_open() const noexcept;
+  ::rust::Vec<::org::jcan::Frame> receive_from_thread_buffer();
+  void send(::org::jcan::Frame frame);
+  ::org::jcan::Frame receive();
+  ~JBus() = delete;
 
 private:
   friend ::rust::layout;
@@ -978,75 +985,111 @@ private:
     static ::std::size_t align() noexcept;
   };
 };
-#endif // CXXBRIDGE1_STRUCT_org$jcan$Bus
+#endif // CXXBRIDGE1_STRUCT_org$jcan$JBus
 
 extern "C" {
-::std::size_t org$jcan$cxxbridge1$Bus$operator$sizeof() noexcept;
-::std::size_t org$jcan$cxxbridge1$Bus$operator$alignof() noexcept;
+::std::size_t org$jcan$cxxbridge1$JBus$operator$sizeof() noexcept;
+::std::size_t org$jcan$cxxbridge1$JBus$operator$alignof() noexcept;
 
-::rust::repr::PtrLen org$jcan$cxxbridge1$new_jbus(::rust::String *interface, ::rust::Box<::org::jcan::Bus> *return$) noexcept;
+::rust::repr::PtrLen org$jcan$cxxbridge1$new_jbus(::rust::Box<::org::jcan::JBus> *return$) noexcept;
 
-::rust::repr::PtrLen org$jcan$cxxbridge1$Bus$receive(::org::jcan::Bus &self, ::org::jcan::Frame *return$) noexcept;
+::rust::repr::PtrLen org$jcan$cxxbridge1$JBus$set_id_filter(::org::jcan::JBus &self, ::rust::Vec<::std::uint32_t> *allowed) noexcept;
 
-::rust::repr::PtrLen org$jcan$cxxbridge1$Bus$receive_with_id(::org::jcan::Bus &self, ::std::uint32_t id, ::org::jcan::Frame *return$) noexcept;
+::rust::repr::PtrLen org$jcan$cxxbridge1$JBus$set_id_filter_mask(::org::jcan::JBus &self, ::std::uint32_t id, ::std::uint32_t mask) noexcept;
 
-::rust::repr::PtrLen org$jcan$cxxbridge1$Bus$send(::org::jcan::Bus &self, ::org::jcan::Frame *frame) noexcept;
+::rust::repr::PtrLen org$jcan$cxxbridge1$JBus$open(::org::jcan::JBus &self, ::rust::String *interface) noexcept;
+
+bool org$jcan$cxxbridge1$JBus$is_open(::org::jcan::JBus const &self) noexcept;
+
+::rust::repr::PtrLen org$jcan$cxxbridge1$JBus$receive_from_thread_buffer(::org::jcan::JBus &self, ::rust::Vec<::org::jcan::Frame> *return$) noexcept;
+
+::rust::repr::PtrLen org$jcan$cxxbridge1$JBus$send(::org::jcan::JBus &self, ::org::jcan::Frame *frame) noexcept;
+
+::rust::repr::PtrLen org$jcan$cxxbridge1$JBus$receive(::org::jcan::JBus &self, ::org::jcan::Frame *return$) noexcept;
 
 ::rust::repr::PtrLen org$jcan$cxxbridge1$new_jframe(::std::uint32_t id, ::rust::Vec<::std::uint8_t> *data, ::org::jcan::Frame *return$) noexcept;
 
+::std::uint32_t org$jcan$cxxbridge1$Frame$get_id(::org::jcan::Frame const &self) noexcept;
+
+void org$jcan$cxxbridge1$Frame$get_data(::org::jcan::Frame const &self, ::rust::Vec<::std::uint8_t> *return$) noexcept;
+
+::rust::repr::PtrLen org$jcan$cxxbridge1$Frame$set_id(::org::jcan::Frame &self, ::std::uint32_t id) noexcept;
+
+::rust::repr::PtrLen org$jcan$cxxbridge1$Frame$set_data(::org::jcan::Frame &self, ::rust::Vec<::std::uint8_t> *data) noexcept;
+
 void org$jcan$cxxbridge1$Frame$to_string(::org::jcan::Frame const &self, ::rust::String *return$) noexcept;
-
-::rust::repr::PtrLen org$jcan$cxxbridge1$Bus$set_id_filter(::org::jcan::Bus &self, ::rust::Vec<::std::uint32_t> *allowed) noexcept;
-
-::rust::repr::PtrLen org$jcan$cxxbridge1$Bus$clear_id_filter(::org::jcan::Bus &self) noexcept;
-
-::rust::repr::PtrLen org$jcan$cxxbridge1$Bus$receive_nonblocking(::org::jcan::Bus &self, ::rust::Vec<::org::jcan::Frame> *return$) noexcept;
 } // extern "C"
 
-::std::size_t Bus::layout::size() noexcept {
-  return org$jcan$cxxbridge1$Bus$operator$sizeof();
+::std::size_t JBus::layout::size() noexcept {
+  return org$jcan$cxxbridge1$JBus$operator$sizeof();
 }
 
-::std::size_t Bus::layout::align() noexcept {
-  return org$jcan$cxxbridge1$Bus$operator$alignof();
+::std::size_t JBus::layout::align() noexcept {
+  return org$jcan$cxxbridge1$JBus$operator$alignof();
 }
 
-::rust::Box<::org::jcan::Bus> open_bus(::rust::String interface) {
-  ::rust::MaybeUninit<::rust::Box<::org::jcan::Bus>> return$;
-  ::rust::repr::PtrLen error$ = org$jcan$cxxbridge1$new_jbus(&interface, &return$.value);
+::rust::Box<::org::jcan::JBus> new_jbus() {
+  ::rust::MaybeUninit<::rust::Box<::org::jcan::JBus>> return$;
+  ::rust::repr::PtrLen error$ = org$jcan$cxxbridge1$new_jbus(&return$.value);
   if (error$.ptr) {
     throw ::rust::impl<::rust::Error>::error(error$);
   }
   return ::std::move(return$.value);
 }
 
-::org::jcan::Frame Bus::receive() {
-  ::rust::MaybeUninit<::org::jcan::Frame> return$;
-  ::rust::repr::PtrLen error$ = org$jcan$cxxbridge1$Bus$receive(*this, &return$.value);
+void JBus::set_id_filter(::rust::Vec<::std::uint32_t> allowed) {
+  ::rust::ManuallyDrop<::rust::Vec<::std::uint32_t>> allowed$(::std::move(allowed));
+  ::rust::repr::PtrLen error$ = org$jcan$cxxbridge1$JBus$set_id_filter(*this, &allowed$.value);
+  if (error$.ptr) {
+    throw ::rust::impl<::rust::Error>::error(error$);
+  }
+}
+
+void JBus::set_id_filter_mask(::std::uint32_t id, ::std::uint32_t mask) {
+  ::rust::repr::PtrLen error$ = org$jcan$cxxbridge1$JBus$set_id_filter_mask(*this, id, mask);
+  if (error$.ptr) {
+    throw ::rust::impl<::rust::Error>::error(error$);
+  }
+}
+
+void JBus::open(::rust::String interface) {
+  ::rust::repr::PtrLen error$ = org$jcan$cxxbridge1$JBus$open(*this, &interface);
+  if (error$.ptr) {
+    throw ::rust::impl<::rust::Error>::error(error$);
+  }
+}
+
+bool JBus::is_open() const noexcept {
+  return org$jcan$cxxbridge1$JBus$is_open(*this);
+}
+
+::rust::Vec<::org::jcan::Frame> JBus::receive_from_thread_buffer() {
+  ::rust::MaybeUninit<::rust::Vec<::org::jcan::Frame>> return$;
+  ::rust::repr::PtrLen error$ = org$jcan$cxxbridge1$JBus$receive_from_thread_buffer(*this, &return$.value);
   if (error$.ptr) {
     throw ::rust::impl<::rust::Error>::error(error$);
   }
   return ::std::move(return$.value);
 }
 
-::org::jcan::Frame Bus::receive_with_id(::std::uint32_t id) {
-  ::rust::MaybeUninit<::org::jcan::Frame> return$;
-  ::rust::repr::PtrLen error$ = org$jcan$cxxbridge1$Bus$receive_with_id(*this, id, &return$.value);
-  if (error$.ptr) {
-    throw ::rust::impl<::rust::Error>::error(error$);
-  }
-  return ::std::move(return$.value);
-}
-
-void Bus::send(::org::jcan::Frame frame) {
+void JBus::send(::org::jcan::Frame frame) {
   ::rust::ManuallyDrop<::org::jcan::Frame> frame$(::std::move(frame));
-  ::rust::repr::PtrLen error$ = org$jcan$cxxbridge1$Bus$send(*this, &frame$.value);
+  ::rust::repr::PtrLen error$ = org$jcan$cxxbridge1$JBus$send(*this, &frame$.value);
   if (error$.ptr) {
     throw ::rust::impl<::rust::Error>::error(error$);
   }
 }
 
-::org::jcan::Frame new_jframe(::std::uint32_t id, ::rust::Vec<::std::uint8_t> data) {
+::org::jcan::Frame JBus::receive() {
+  ::rust::MaybeUninit<::org::jcan::Frame> return$;
+  ::rust::repr::PtrLen error$ = org$jcan$cxxbridge1$JBus$receive(*this, &return$.value);
+  if (error$.ptr) {
+    throw ::rust::impl<::rust::Error>::error(error$);
+  }
+  return ::std::move(return$.value);
+}
+
+::org::jcan::Frame new_frame(::std::uint32_t id, ::rust::Vec<::std::uint8_t> data) {
   ::rust::ManuallyDrop<::rust::Vec<::std::uint8_t>> data$(::std::move(data));
   ::rust::MaybeUninit<::org::jcan::Frame> return$;
   ::rust::repr::PtrLen error$ = org$jcan$cxxbridge1$new_jframe(id, &data$.value, &return$.value);
@@ -1056,42 +1099,43 @@ void Bus::send(::org::jcan::Frame frame) {
   return ::std::move(return$.value);
 }
 
-::rust::String Frame::to_string() const noexcept {
-  ::rust::MaybeUninit<::rust::String> return$;
-  org$jcan$cxxbridge1$Frame$to_string(*this, &return$.value);
+::std::uint32_t Frame::get_id() const noexcept {
+  return org$jcan$cxxbridge1$Frame$get_id(*this);
+}
+
+::rust::Vec<::std::uint8_t> Frame::get_data() const noexcept {
+  ::rust::MaybeUninit<::rust::Vec<::std::uint8_t>> return$;
+  org$jcan$cxxbridge1$Frame$get_data(*this, &return$.value);
   return ::std::move(return$.value);
 }
 
-void Bus::set_id_filter(::rust::Vec<::std::uint32_t> allowed) {
-  ::rust::ManuallyDrop<::rust::Vec<::std::uint32_t>> allowed$(::std::move(allowed));
-  ::rust::repr::PtrLen error$ = org$jcan$cxxbridge1$Bus$set_id_filter(*this, &allowed$.value);
+void Frame::set_id(::std::uint32_t id) {
+  ::rust::repr::PtrLen error$ = org$jcan$cxxbridge1$Frame$set_id(*this, id);
   if (error$.ptr) {
     throw ::rust::impl<::rust::Error>::error(error$);
   }
 }
 
-void Bus::clear_id_filter() {
-  ::rust::repr::PtrLen error$ = org$jcan$cxxbridge1$Bus$clear_id_filter(*this);
+void Frame::set_data(::rust::Vec<::std::uint8_t> data) {
+  ::rust::ManuallyDrop<::rust::Vec<::std::uint8_t>> data$(::std::move(data));
+  ::rust::repr::PtrLen error$ = org$jcan$cxxbridge1$Frame$set_data(*this, &data$.value);
   if (error$.ptr) {
     throw ::rust::impl<::rust::Error>::error(error$);
   }
 }
 
-::rust::Vec<::org::jcan::Frame> Bus::receive_nonblocking() {
-  ::rust::MaybeUninit<::rust::Vec<::org::jcan::Frame>> return$;
-  ::rust::repr::PtrLen error$ = org$jcan$cxxbridge1$Bus$receive_nonblocking(*this, &return$.value);
-  if (error$.ptr) {
-    throw ::rust::impl<::rust::Error>::error(error$);
-  }
+::rust::String Frame::to_string() const noexcept {
+  ::rust::MaybeUninit<::rust::String> return$;
+  org$jcan$cxxbridge1$Frame$to_string(*this, &return$.value);
   return ::std::move(return$.value);
 }
 } // namespace jcan
 } // namespace org
 
 extern "C" {
-::org::jcan::Bus *cxxbridge1$box$org$jcan$Bus$alloc() noexcept;
-void cxxbridge1$box$org$jcan$Bus$dealloc(::org::jcan::Bus *) noexcept;
-void cxxbridge1$box$org$jcan$Bus$drop(::rust::Box<::org::jcan::Bus> *ptr) noexcept;
+::org::jcan::JBus *cxxbridge1$box$org$jcan$JBus$alloc() noexcept;
+void cxxbridge1$box$org$jcan$JBus$dealloc(::org::jcan::JBus *) noexcept;
+void cxxbridge1$box$org$jcan$JBus$drop(::rust::Box<::org::jcan::JBus> *ptr) noexcept;
 
 void cxxbridge1$rust_vec$org$jcan$Frame$new(::rust::Vec<::org::jcan::Frame> const *ptr) noexcept;
 void cxxbridge1$rust_vec$org$jcan$Frame$drop(::rust::Vec<::org::jcan::Frame> *ptr) noexcept;
@@ -1106,16 +1150,16 @@ void cxxbridge1$rust_vec$org$jcan$Frame$truncate(::rust::Vec<::org::jcan::Frame>
 namespace rust {
 inline namespace cxxbridge1 {
 template <>
-::org::jcan::Bus *Box<::org::jcan::Bus>::allocation::alloc() noexcept {
-  return cxxbridge1$box$org$jcan$Bus$alloc();
+::org::jcan::JBus *Box<::org::jcan::JBus>::allocation::alloc() noexcept {
+  return cxxbridge1$box$org$jcan$JBus$alloc();
 }
 template <>
-void Box<::org::jcan::Bus>::allocation::dealloc(::org::jcan::Bus *ptr) noexcept {
-  cxxbridge1$box$org$jcan$Bus$dealloc(ptr);
+void Box<::org::jcan::JBus>::allocation::dealloc(::org::jcan::JBus *ptr) noexcept {
+  cxxbridge1$box$org$jcan$JBus$dealloc(ptr);
 }
 template <>
-void Box<::org::jcan::Bus>::drop() noexcept {
-  cxxbridge1$box$org$jcan$Bus$drop(this);
+void Box<::org::jcan::JBus>::drop() noexcept {
+  cxxbridge1$box$org$jcan$JBus$drop(this);
 }
 template <>
 Vec<::org::jcan::Frame>::Vec() noexcept {

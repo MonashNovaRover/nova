@@ -64,7 +64,7 @@ public:
             if ((chrono::high_resolution_clock::now() - last_time) >= send_rate) {
 //                total_time += chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - last_time);
 //                count++;
-                position += velocity * send_rate.count() / 1000.0;
+                position += velocity*(pos_ctrl ? M_PI : 2*M_PI) * send_rate.count() / 1000.0;
                 if (pos_ctrl && pos_direction != 0) {
                     if ((pos_direction > 0 && position > target) || (pos_direction < 0 && position < target)){
                         position = target;
