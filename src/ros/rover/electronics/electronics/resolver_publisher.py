@@ -86,11 +86,12 @@ class ResolverTransceiver(CANTransceiver):
         }
 
         # Define an additonal transmitter for zeroing
-        # Change the ID for sending to 0x0A3
+        # Change the ID for sending to 0x0A3, make the receive timeout longer
         kwargs["arbitration_id"] = 0x0A3
-        self.zero_transmitter = CANTransceiver(**kwargs)
-        self.zero_transmitter.set_log_level("critical")
-        self.zero_transmitter.logger = logger
+        kwargs["receive_timeout"] = 0.5
+        self.zero_transceiver = CANTransceiver(**kwargs)
+        self.zero_transceiver.set_log_level("critical")
+        self.zero_transceiver.logger = logger
 
     def get_joint(self, joint_name: str, exclude_inactive: bool=True) -> Joint:
         """
@@ -112,18 +113,55 @@ class ResolverTransceiver(CANTransceiver):
         """
         Method to zero a given encoder
 
-        Returns True on success, false otherwise
+        Returns True on success, False otherwise
+
+        Raises KeyError if invalid joint name given
+        """
+        self.logger.info(f'Zeroing joint {joint_name}')
+        integer_data = self.poll_resolver(joint_name, self.zero_transceiver)
+        return integer_data is not None
+    
+    def poll_resolver(self, joint_name: str, transceiver: CANTransceiver=None) -> int:
+        """
+        Method to poll a resolver and validate the output
+
+        Returns the integer value from the resolver (if valid) or None (if invalid)
 
         Raises KeyError if invalid joint name given
         """
         resolver_id = self.get_joint(joint_name).id
-
-        self.logger.info(f'Zeroing joint {joint_name}')
-        data = self.pack([resolver_id])
-        transmitted = self.zero_transmitter.transmit(data)
-        if not transmitted:
-            self.logger.error(f'Transmit timeout for joint {joint_name}')
-        return transmitted
+        
+        # Default to this transceiver
+        if transceiver is None:
+            transceiver = self
+        
+        # Pack and transmit binary data
+        data = transceiver.pack([resolver_id])
+        if not transceiver.transmit(data):
+            transceiver.logger.error(f'Transmit timeout for joint {joint_name}')
+            return None
+        
+        # Receive four bytes from the BASE board
+        # The first is the resolver ID, the second are error flags,
+        # The third and fourth are a single 14-bit value
+        can_msg = transceiver.receive()
+        if can_msg is None:
+            transceiver.logger.error(f'CAN read timeout for joint {joint_name}')
+            return None
+        received_id, flags, integer_data = transceiver.unpack(can_msg.data)
+        # Verify the returned message
+        if received_id != resolver_id:
+            transceiver.logger.warn(f'Got the wrong resolver reply. Wanted {resolver_id}, got {received_id}')
+            return None
+        if flags & 0x01:
+            transceiver.logger.warn(f'RS485 read timeout for joint {joint_name}')
+            return None
+        if flags & 0x02:
+            transceiver.logger.warn(f'Invalid checksum from joint {joint_name}')
+            return None
+        
+        # Return the integer message
+        return integer_data
     
     def position(self, joint_name: str) -> float:
         """
@@ -133,37 +171,14 @@ class ResolverTransceiver(CANTransceiver):
 
         Raises KeyError if invalid joint name given
         """
-        joint = self.get_joint(joint_name)
-
-        resolver_id = joint.id
-
-        # Pack and transmit binary data
-        data = self.pack([resolver_id])
-        if not self.transmit(data):
-            self.logger.error(f'Transmit timeout for joint {joint_name}')
+        # Poll resolver and decode into radians
+        integer_data = self.poll_resolver(joint_name)
+        if integer_data is None:
             return None
-
-        # Read response and decode into radians
-        # Receives four bytes from the BASE board
-        # The first is the resolver ID, the second are error flags,
-        # The third and fourth are a single 16-bit value
-        can_msg = self.receive()
-        if can_msg is None:
-            self.logger.error(f'CAN read timeout for joint {joint_name}')
-            return None
-        received_id, flags, integer_data = self.unpack(can_msg.data)
-        # Verify the returned message
-        if received_id != resolver_id:
-            self.logger.warn(f'Got the wrong resolver reply. Wanted {resolver_id}, got {received_id}')
-            return None
-        if flags & 0x01:
-            self.logger.warn(f'RS485 read timeout for joint {joint_name}')
-            return None
-        if flags & 0x02:
-            self.logger.warn(f'Invalid checksum from joint {joint_name}')
-            return None
-        # Convert from 14-bit integer to radians
         angle_data = self._convert_to_rad(integer_data)
+
+        # Get the joint object for post-processing
+        joint = self.get_joint(joint_name)
 
         # Reverse the increasing direction if necessary
         if joint.reverse:
