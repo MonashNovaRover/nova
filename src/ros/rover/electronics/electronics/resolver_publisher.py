@@ -124,12 +124,12 @@ class ResolverTransceiver(CANTransceiver):
         if not transmitted:
             self.logger.error(f'Transmit timeout for joint {joint_name}')
         return transmitted
-
+    
     def position(self, joint_name: str) -> float:
         """
         Method to read a given encoder
 
-        Returns float value in [0, 2 pi) or -1 on failure
+        Returns float value in [0, 2 pi) or None on failure
 
         Raises KeyError if invalid joint name given
         """
@@ -141,7 +141,7 @@ class ResolverTransceiver(CANTransceiver):
         data = self.pack([resolver_id])
         if not self.transmit(data):
             self.logger.error(f'Transmit timeout for joint {joint_name}')
-            return -1
+            return None
 
         # Read response and decode into radians
         # Receives four bytes from the BASE board
@@ -150,19 +150,19 @@ class ResolverTransceiver(CANTransceiver):
         can_msg = self.receive()
         if can_msg is None:
             self.logger.error(f'CAN read timeout for joint {joint_name}')
-            return -1
+            return None
         received_id, flags, integer_data = self.unpack(can_msg.data)
         # Verify the returned message
         if received_id != resolver_id:
             self.logger.warn(f'Got the wrong resolver reply. Wanted {resolver_id}, got {received_id}')
-            return -1
+            return None
         if flags != 0:
             self.logger.warn(f'RS485 read timeout for joint {joint_name}')
-            return -1
+            return None
         # Handle checksum
         if not self._verify_checksum(integer_data):
             self.logger.warn(f'Invalid checksum from joint {joint_name}')
-            return -1
+            return None
         # Get angle data by removing 2 high order bits
         angle_data = self._convert_to_rad(integer_data & 0x3FFF)
 
@@ -337,7 +337,7 @@ class ResolverPublisher(Node):
                 continue
 
             joint_position = self.resolver_transceiver.position(joint_name)
-            if joint_position != -1:
+            if joint_position is not None:
                 # Successful transmit and receive, update value to be published
                 self.resolver_state.position[i] = joint_position
             # Delay a little to not overwhelm the RS485 bus
