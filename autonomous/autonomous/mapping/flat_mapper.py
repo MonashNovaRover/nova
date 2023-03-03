@@ -61,6 +61,7 @@ class FlatMapper(Mapper):
             height=height,
             resolution=resolution,
             planner=planner,
+            name=name
         )
 
         self.get_logger().set_level(logging.INFO)

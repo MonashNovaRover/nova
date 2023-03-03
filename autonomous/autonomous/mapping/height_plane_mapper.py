@@ -40,7 +40,7 @@ class HeightPlaneMapper(FlatMapper):
     def __init__(self, length=20, width=20, height=5, resolution=0.1, detection_resolution=0.025, planner=None, name="height_plane_mapper"):
 
         # init node with node name points
-        super().__init__(length=length, width=width, height=height, resolution=resolution, detection_resolution=detection_resolution, planner=planner)
+        super().__init__(length=length, width=width, height=height, resolution=resolution, detection_resolution=detection_resolution, planner=planner, name=name)
         self.get_logger().set_level(logging.DEBUG)
         self.height_mapper = HeightMapper(length=length, width=width, height=height, resolution=resolution, detection_resolution=detection_resolution)
         self.plane_mapper = PlaneMapper(length=length, width=width, height=height, resolution=resolution, detection_resolution=detection_resolution)
