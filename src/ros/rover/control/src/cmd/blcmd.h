@@ -149,6 +149,8 @@ class BLCMD {
 
     // Was the last command a STOP? If so, do not bother repeating
     bool already_stopped;
+
+    BLCMDTelemetry telemetry;
     
     // CAN bus for the CAN connection
     org::jcan::Bus *can_bus;
@@ -252,6 +254,8 @@ class BLCMD {
     /// @param      telemetry - pointer to a telemetry struct to get filled.
     bool get_telemetry_packet (std::vector<TelemetryPacket> packet_nums, BLCMDTelemetry* telemetry,
                                std::chrono::milliseconds timeout = std::chrono::milliseconds(50));
+
+    void update_packet1(org::jcan::Frame frame);
 
     /// @brief      Gets all packets of telemetry.
     /// @param      telemetry - a pointer to a telemetry struct to fill
