@@ -156,15 +156,14 @@ class ResolverTransceiver(CANTransceiver):
         if received_id != resolver_id:
             self.logger.warn(f'Got the wrong resolver reply. Wanted {resolver_id}, got {received_id}')
             return None
-        if flags != 0:
+        if flags & 0x01:
             self.logger.warn(f'RS485 read timeout for joint {joint_name}')
             return None
-        # Handle checksum
-        if not self._verify_checksum(integer_data):
+        if flags & 0x02:
             self.logger.warn(f'Invalid checksum from joint {joint_name}')
             return None
-        # Get angle data by removing 2 high order bits
-        angle_data = self._convert_to_rad(integer_data & 0x3FFF)
+        # Convert from 14-bit integer to radians
+        angle_data = self._convert_to_rad(integer_data)
 
         # Reverse the increasing direction if necessary
         if joint.reverse:
@@ -174,20 +173,6 @@ class ResolverTransceiver(CANTransceiver):
         angle_data = self._move_discontinuity(angle_data, joint.discontinuity_angle)
 
         return angle_data
-
-    @staticmethod
-    def _verify_checksum(raw_value: int) -> bool:
-        """
-        Verifies the checksum for CUI Devices AMT21 absolute encodrs
-
-        The data is 16-bits long
-        Valid data has odd parity for all the even bits, and for all the odd bits.
-        Bits are numbered from 0 starting with the LSB.
-        """
-        assert raw_value < 65536
-        odds_mask = 0xAAAA
-        evens_mask = 0x5555
-        return ((raw_value & odds_mask).bit_count() & 0x1) and ((raw_value & evens_mask).bit_count() & 0x1)
 
     @staticmethod
     def _convert_to_rad(raw_value: int) -> float:
