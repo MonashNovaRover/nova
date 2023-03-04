@@ -33,35 +33,16 @@ class TrackingCamera(Node):
         # Declare RealSense pipeline, encapsulating the actual device and sensors
         self.pipe = rs.pipeline()
 
-        self.tf_base_link = TransformBroadcaster(self)
-
         # Build config object and request pose data
         self.cfg = rs.config()
         self.cfg.enable_device(serial_number)
         self.cfg.enable_stream(rs.stream.pose)
 
-        self.pub_pose = self.create_publisher(PoseStamped, "T265/pose", 10)
+        self.pub_pose = self.create_publisher(TransformStamped, "T265/pose", 10)
 
         # Start streaming
         self.pipe_profile = self.pipe.start(self.cfg)
         self.create_timer(1./30, self.get_next_pose)
-
-    def transform_to_pose(self, data):
-        """
-        Transform the raw T265 data transform into a ROS Pose message
-        """
-        t265_pose = Pose()
-
-        t265_pose.position.x = data.translation.x
-        t265_pose.position.y = data.translation.y
-        t265_pose.position.z = data.translation.z
-
-        t265_pose.orientation.x = data.rotation.x
-        t265_pose.orientation.y = data.rotation.y
-        t265_pose.orientation.z = data.rotation.z
-        t265_pose.orientation.w = data.rotation.w
-
-        return t265_pose
 
     def get_next_pose(self):
         frames = self.pipe.wait_for_frames()
@@ -69,14 +50,12 @@ class TrackingCamera(Node):
         if pose is not None:
             data = pose.get_pose_data()
 
-            t265_pose: Pose = self.transform_to_pose(data)
+            t265_transform_stamped = TransformStamped()
+            t265_transform_stamped.header.stamp = self.get_clock().now().to_msg()
+            t265_transform_stamped.header.frame_id = 't265'
 
-            t265_pose_stamped = PoseStamped()
-            t265_pose_stamped.header.stamp = self.get_clock().now().to_msg()
-            t265_pose_stamped.header.frame_id = 'map'
-
-            t265_pose_stamped.pose = t265_pose
-            self.pub_pose.publish(t265_pose_stamped)
+            t265_transform_stamped.transform = data
+            self.pub_pose.publish(t265_transform_stamped)
 
 
 
