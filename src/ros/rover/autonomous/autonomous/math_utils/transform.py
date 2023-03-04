@@ -21,6 +21,7 @@ Raw data from the depth camera:
 
 import numpy as np
 from geometry_msgs.msg import Quaternion, Transform
+import tf2_geometry_msgs
 
 
 def camera_extrinsics():
@@ -143,6 +144,19 @@ def transform_yaw(transform: Transform, pts):
         pts = transform_euler((0, 0, yaw), pts)
     return pts
 
+def quaternion_multiply(quat0: Quaternion, quat1: Quaternion) -> Quaternion:
+    """
+    Returns the product of a quaternion multiplication
+    """
+    return_quat = Quaternion()
+    w0, x0, y0, z0 = quat0.w, quat0.x, quat0.y, quat0.z
+    w1, x1, y1, z1 = quat1.w, quat1.x, quat1.y, quat1.z
+    return_quat.w = -x1 * x0 - y1 * y0 - z1 * z0 + w1 * w0
+    return_quat.x = x1 * w0 + y1 * z0 - z1 * y0 + w1 * x0
+    return_quat.y = -x1 * z0 + y1 * w0 + z1 * x0 + w1 * y0
+    return_quat.z = x1 * y0 - y1 * x0 - z1 * w0 + w1 * z0
+    return return_quat
+
 def offset_transform(transform: Transform, offset: Transform):
     """
     Returns the transformation of a fixed pose attached to a transformation
@@ -154,7 +168,7 @@ def offset_transform(transform: Transform, offset: Transform):
     """
     transformed = Transform()
     # rotation is the same in all frames
-    transformed.rotation = transform.rotation
+    transformed.rotation = quaternion_multiply(transform.rotation, offset.rotation)
 
     # transform to offset frame
     external_point = -np.array([offset.translation.x, offset.translation.y, offset.translation.z])
@@ -162,8 +176,11 @@ def offset_transform(transform: Transform, offset: Transform):
     # do transform
     transformed_point = transform_points(transform, external_point).flatten()
 
+    # transform the offset translation to get back to the base link pose
+    undo_offset = transform_from_quat(transform.rotation, external_point)
+
     # undo transformed offset to get back to original frame
-    transformed.translation.x, transformed.translation.y, transformed.translation.z = transformed_point - external_point
+    transformed.translation.x, transformed.translation.y, transformed.translation.z = transformed_point - undo_offset
 
     return transformed
 
