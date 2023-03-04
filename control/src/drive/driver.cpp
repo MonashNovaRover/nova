@@ -210,7 +210,7 @@ Driver::Driver() : Node("driver")
     for (size_t i = 0; i < NUM_WHEELS; i++) {
         bool left = i < NUM_WHEELS / 2;
         wheels[i] = new BLCMD(this->get_parameter("canbus").get_parameter_value().get<std::string>(), i + 1,
-                              DRIVE_VELOCITY, left, DRIVE_POSITION);
+                              DRIVE_VELOCITY, !left, DRIVE_POSITION);
     }
     
     rclcpp::QoS qos = rclcpp::QoS(1).best_effort().deadline(ROSTimers::drive_deadline);
