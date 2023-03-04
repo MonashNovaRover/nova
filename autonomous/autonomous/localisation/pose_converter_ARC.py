@@ -39,13 +39,16 @@ from autonomous.config.runtime_params import pose_file
 
 import numpy as np
 import time
+import logging
 
 
-class TemplateNode(Node):
+class PoseConverter(Node):
 
     def __init__(self):
-        super().__init__("TemplateNode")
+        super().__init__("pose_converter")
         # way-point publisher publishes a bunch of waypoints at once (hence using the 2D map datatype
+        self.get_logger().set_level(logging.DEBUG)
+
         self.param_do_ORB_SLAM3 = self.declare_parameter("do_orbslam", False).value
         self.param_base_link_rate = self.declare_parameter("base_link_pub_rate_hz", 20).value
         self.param_load_pose_file = self.declare_parameter("load_file_pose", False).value
@@ -57,15 +60,16 @@ class TemplateNode(Node):
         self.last_pose = None
 
         pose_topic = "/slam/pose" if self.param_do_ORB_SLAM3 else "/T265/pose"
-        self.sub_pose = self.create_subscription(TransformStamped, pose_topic, self.pose_callback, 10)
+        self.sub_pose = self.create_subscription(PoseStamped, pose_topic, self.callback_t265, 10)
         # current state of internal message
 
-        self.get_logger().info("Waiting for transform from 'map' to 'base_link'...")
-        while not self.tf_buffer.can_transform('map', 'base_link', Time()):
+        self.get_logger().info("Waiting for transform from 'base_link' to 't265'...")
+        while not self.tf_buffer.can_transform('base_link', 't265', Time()):
             time.sleep(0.1)
-        self.get_logger().info("Found Transform!", once=True)
 
-        self.create_timer(self.param_base_link_rate, self.broadcast_base_link)
+        self.get_initial_transform()
+        self.create_timer(1 / self.param_base_link_rate, self.timer_callback)
+        self.get_logger().info("Pose converter node up!")
 
     def fill_initial_pose(self, transform: Transform):
         """
@@ -136,15 +140,19 @@ class TemplateNode(Node):
         :return:
         """
         if self.last_pose is None:
+            self.get_logger().debug("Exiting localisation! No pose received")
             return
+
         tf_stamped : TransformStamped = self.translate_to_base_link(self.last_pose)
+        self.get_logger().debug(f"Transformed to base_link: \n{self.last_pose}\n{tf_stamped}")
         self.tf_base_link.sendTransform(tf_stamped)
 
 
 def main():
     rclpy.init()
-    template_node = TemplateNode()
-    rclpy.spin(template_node)
+    node = PoseConverter()
+    rclpy.spin(node)
+    node.destroy_node()
     rclpy.shutdown()
 
 

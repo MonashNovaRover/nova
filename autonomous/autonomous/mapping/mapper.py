@@ -46,7 +46,7 @@ class Mapper(Node):
         self.initialised = False
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self, spin_thread=True)
-        self.sub_pointcloud = self.create_subscription(PointCloud2, f"~d435_1/cloud", self.pointcloud_callback, 10)
+        self.sub_pointcloud = self.create_subscription(PointCloud2, "~/d435_1/cloud", self.pointcloud_callback, 10)
 
         self.length = length
         self.width = width

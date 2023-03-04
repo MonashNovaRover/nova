@@ -23,7 +23,7 @@ from autonomous.config.runtime_params import active_depth_camera
 class DepthCamera(Node):
     def __init__(self):
         super().__init__("depth_camera")
-        self.get_logger().set_level(logging.DEBUG)
+        self.get_logger().set_level(logging.INFO)
         # Realsense processing filters and classes
         self.pc = rs.pointcloud()
         self.decimate = rs.decimation_filter(2)
@@ -70,6 +70,7 @@ class DepthCamera(Node):
         self.timer_process_cloud = self.create_timer(1/self.param_pointcloud_frequency, self.process_pointcloud)
         self.timer_process_image = self.create_timer(1/self.param_image_frequency, self.process_image)
         self.timer_process_frames = self.create_timer(1/self.param_frame_frequency, self.process_frames)
+        self.get_logger().info("Depth camera node up!")
 
     def process_frames(self):
         """
