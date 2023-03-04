@@ -87,7 +87,7 @@ class ArTracker(Node):
             rot_mats, trans_mats = pose[0], pose[1]
             for _id, rot_mat, trans_mat in zip(ids, rot_mats, trans_mats):
                 pose = self.get_pose(rot_mat[0], trans_mat[0])
-                AR_tag = AlvarMarker(tag_id=_id, pose=pose)
+                AR_tag = AlvarMarker(tag_id=int(_id), pose=pose)
                 self.ar_pose_pub.publish(AR_tag)
 
 def main():

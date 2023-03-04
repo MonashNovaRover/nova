@@ -29,13 +29,16 @@ TODO:
 """
 import rclpy
 from rclpy.node import Node
+from rclpy.time import Time
 
 from geometry_msgs.msg import PoseStamped, TransformStamped, Transform
 from tf2_ros import TransformBroadcaster, StaticTransformBroadcaster, TransformListener, Buffer
 
 import autonomous.math_utils.transform as transform
+from autonomous.config.runtime_params import pose_file
 
 import numpy as np
+import time
 
 
 class TemplateNode(Node):
@@ -45,6 +48,7 @@ class TemplateNode(Node):
         # way-point publisher publishes a bunch of waypoints at once (hence using the 2D map datatype
         self.param_do_ORB_SLAM3 = self.declare_parameter("do_orbslam", False).value
         self.param_base_link_rate = self.declare_parameter("base_link_pub_rate_hz", 20).value
+        self.param_load_pose_file = self.declare_parameter("load_file_pose", False).value
 
         self.tf_base_link = TransformBroadcaster(self)
         self.tf_initial_offset = StaticTransformBroadcaster(self)
@@ -53,8 +57,13 @@ class TemplateNode(Node):
         self.last_pose = None
 
         pose_topic = "/slam/pose" if self.param_do_ORB_SLAM3 else "/T265/pose"
-        self.sub_pose = self.create_subscription(PoseStamped, pose_topic, self.pose_callback, 10)
+        self.sub_pose = self.create_subscription(TransformStamped, pose_topic, self.pose_callback, 10)
         # current state of internal message
+
+        self.get_logger().info("Waiting for transform from 'map' to 'base_link'...")
+        while not self.tf_buffer.can_transform('map', 'base_link', Time()):
+            time.sleep(0.1)
+        self.get_logger().info("Found Transform!", once=True)
 
         self.create_timer(self.param_base_link_rate, self.broadcast_base_link)
 
@@ -82,7 +91,7 @@ class TemplateNode(Node):
         initial_transform.header.frame_id = 'map'
         initial_transform.header.stamp = self.get_clock().now().to_msg()
         initial_transform.child_frame_id = 'initial_base_link'
-        if self.param_load_pose_file.value:
+        if self.param_load_pose_file:
             initial_transform.transform = self.fill_initial_pose(initial_transform.transform)
         else:
             initial_transform.transform.rotation.w = 1.0
@@ -101,13 +110,13 @@ class TemplateNode(Node):
         self.tf_base_link.sendTransform(base_link_transform)
 
 
-    def callback_t265(self, msg: PoseStamped):
+    def callback_t265(self, msg: TransformStamped):
         """
         Take T265 messages, offset them to get the rover's pose, and save the pose estimate
         """
+        self.last_pose = msg
 
-        t265_transform = self.transform_t265_to_nova(data)
-
+    def translate_to_base_link(self, t265_transform: TransformStamped):
         base_link_transform = TransformStamped()
         base_link_transform.header.stamp = self.get_clock().now().to_msg()
         base_link_transform.header.frame_id = 'initial_base_link'
@@ -119,23 +128,7 @@ class TemplateNode(Node):
             self.get_logger().warn(str(e), once=True)
             return
         base_link_transform.transform = transform.offset_transform(transform=t265_transform, offset=t265_offset)
-        self.tf_base_link.sendTransform(base_link_transform)
-
-        base_link_transform = TransformStamped()
-        base_link_transform.header.stamp = self.get_clock().now().to_msg()
-        base_link_transform.header.frame_id = 'initial_base_link'
-        base_link_transform.child_frame_id = 'base_link'
-
-        try:
-            t265_offset = self.tf_buffer.lookup_transform('base_link', 't265', Time()).transform
-        except Exception as e:
-            self.get_logger().warn(str(e), once=True)
-            return
-        base_link_transform.transform = transform.offset_transform(transform=t265_transform, offset=t265_offset)
-        self.latest_pose = base_link_transform
-
-
-    def translate_to_base_link(self, pose_stamped: PoseStamped)
+        return base_link_transform
 
     def timer_callback(self):
         """
