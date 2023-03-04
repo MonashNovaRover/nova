@@ -121,7 +121,7 @@ class PoseConverter(Node):
         """
         self.last_pose = msg
 
-    def translate_to_base_link(self, t265_transform: PoseStamped):
+    def translate_to_base_link(self, t265_pose: PoseStamped):
         """
         Translates the t265 camera's offset into a base link offset. Requires the following steps:
             1. Get base link to t265 static transform
@@ -132,50 +132,18 @@ class PoseConverter(Node):
         """
         # Static transform from base_link to t265 frame
         try:
-            initial_tracking_cam_from_base_link = self.tf_buffer.lookup_transform('base_link', 't265', Time()).transform
+            t265_offset = self.tf_buffer.lookup_transform('base_link', 't265', Time()).transform
         except Exception as e:
             self.get_logger().warn(str(e), once=True)
             return
 
         # Current t265 pose in base_link frame
-        tracking_cam_from_base_link = PoseStamped()
-        tracking_cam_from_base_link.pose = transform.transform_pose(t265_transform.pose, initial_tracking_cam_from_base_link)
-        self.get_logger().warn(f"Initial T265 -> now t265 = {t265_transform.pose}")
-        self.get_logger().warn(f"base_link -> t265 = {initial_tracking_cam_from_base_link}")
-        self.get_logger().warn(f"base_link -> now t265 = {tracking_cam_from_base_link.pose}")
-
-        # Extract quaternions and invert the static transform
-        try:
-            t265_to_t265_forward = self.tf_buffer.lookup_transform('t265', 't265_forward', Time()).transform
-        except Exception as e:
-            self.get_logger().warn(str(e), once=True)
-            return
-        
-        self.get_logger().warn(f"t265 -> t265_forward = {t265_to_t265_forward}")
-        t265_quat = t265_transform.pose.orientation
-        t265_to_t265_forward_quat = t265_to_t265_forward.rotation
-
-        # Calculate the rotation offset of the base_link frame
-        base_link_rotation = transform.quaternion_multiply(t265_to_t265_forward_quat, t265_quat)
-        self.get_logger().warn(f"base_link rotation: {base_link_rotation}")
-
-
-        # Rotate the t265 translation offset by the rotation of the base link frame
-        t265_pos = initial_tracking_cam_from_base_link.translation
-        t265_offset_array = np.array([t265_pos.x, t265_pos.y, t265_pos.z])
-        rotated_base_link_to_t265 = transform.transform_from_quat(base_link_rotation, t265_offset_array)
-        self.get_logger().warn(f"t265 to base link in initial base link frame: {rotated_base_link_to_t265}")
-
-        # Subtract offset from the t265 position to get the base_link position
-        base_link_translation = Vector3(
-            x=tracking_cam_from_base_link.pose.position.x - rotated_base_link_to_t265[0],
-            y=tracking_cam_from_base_link.pose.position.y - rotated_base_link_to_t265[1],
-            z=tracking_cam_from_base_link.pose.position.z - rotated_base_link_to_t265[2],
-        )
+        t265_transform = Transform()
+        t265_transform.translation = t265_pose.pose.position
+        t265_transform.rotation = t265_pose.pose.orientation
 
         base_link_transform = TransformStamped()
-        base_link_transform.transform.rotation = base_link_rotation
-        base_link_transform.transform.translation = base_link_translation
+        base_link_transform.transform = transform.offset_transform(t265_transform, t265_offset)
         base_link_transform.header.stamp = t265_transform.header.stamp
         base_link_transform.header.frame_id = 'initial_base_link'
         base_link_transform.child_frame_id = 'base_link'
