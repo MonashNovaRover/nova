@@ -26,12 +26,11 @@ class SubToBaseNode(Node):
 
         self.ser.write(msg.data)
 
-
-
-
-    def config_port(self, com_no, baud):
+    def config_port(self, port_name, baud):
         self.ser.baudrate = baud
-        self.ser.port = f'COM{com_no}'
+        if port_name == "":
+            port_name = "/dev/ttyUSB0"
+        self.ser.port = port_name
         self.ser.open()
 
 def main (args = None):
