@@ -152,6 +152,9 @@ class ResolverTransceiver(CANTransceiver):
         # Verify the returned message
         if received_id != resolver_id:
             transceiver.logger.warn(f'Got the wrong resolver reply. Wanted {resolver_id}, got {received_id}')
+            # Receive again so we eventually flush the receive buffer
+            # Needed in case we don't have the most recent messages
+            transceiver.receive()
             return None
         if flags & 0x01:
             transceiver.logger.warn(f'RS485 read timeout for joint {joint_name}')
@@ -308,7 +311,7 @@ class ResolverPublisher(Node):
             if response.success:
                 response.message = f"Successfully transmitted data for joint {joint_name}"
             else:
-                response.message = f"Transmit timeout requesting data from joint {joint_name}"
+                response.message = f"Failed to zero joint {joint_name}"
         except KeyError as e:
             response.success = False
             response.message = str(e).replace("'", "")
