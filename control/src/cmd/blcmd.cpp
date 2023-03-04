@@ -139,6 +139,10 @@ void BLCMD::drive (float value)
         // map (-π,π) → (-1,1)
         value = value / M_PI;
 
+        if (direction) {
+            value *= -1;
+        }
+
         if (value > 1) {
             value = 1;
         }
