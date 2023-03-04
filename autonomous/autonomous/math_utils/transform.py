@@ -21,6 +21,7 @@ Raw data from the depth camera:
 
 import numpy as np
 from geometry_msgs.msg import Quaternion, Transform, Pose
+from quaternions import Quaternion as MathQuaternion
 
 
 def camera_extrinsics():
@@ -147,14 +148,12 @@ def quaternion_multiply(quat0: Quaternion, quat1: Quaternion) -> Quaternion:
     """
     Returns the product of a quaternion multiplication
     """
-    return_quat = Quaternion()
-    w0, x0, y0, z0 = quat0.w, quat0.x, quat0.y, quat0.z
-    w1, x1, y1, z1 = quat1.w, quat1.x, quat1.y, quat1.z
-    return_quat.w = -x1 * x0 - y1 * y0 - z1 * z0 + w1 * w0
-    return_quat.x = x1 * w0 + y1 * z0 - z1 * y0 + w1 * x0
-    return_quat.y = -x1 * z0 + y1 * w0 + z1 * x0 + w1 * y0
-    return_quat.z = x1 * y0 - y1 * x0 - z1 * w0 + w1 * z0
-    return return_quat
+    q0 = MathQuaternion(quat0.w, quat0.x, quat0.y, quat0.z)
+    q1 = MathQuaternion(quat1.w, quat1.x, quat1.y, quat1.z)
+    q = q1 * q0
+    ret_q = Quaternion()
+    ret_q.w, ret_q.x, ret_q.y, ret_q.z = q.real, q.i, q.j, q.k
+    return ret_q
 
 def transform_pose(pose: Pose, transform: Transform) -> Pose:
     """
