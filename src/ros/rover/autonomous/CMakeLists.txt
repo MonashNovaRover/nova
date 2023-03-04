@@ -61,6 +61,7 @@ install(PROGRAMS
   autonomous/main.py
   autonomous/cameras/tracking_camera.py
   autonomous/cameras/depth_camera.py
+  autonomous/localisation/pose_converter_ARC.py
   autonomous/controller/GRUC.py
   autonomous/vis/grid_pub.py
   autonomous/vis/path_vis.py

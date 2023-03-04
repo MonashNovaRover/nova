@@ -3,13 +3,8 @@ __package__ = "autonomous"
 import numpy as np
 import rclpy
 from rclpy.node import Node
-from rclpy.time import Time
-from rclpy.duration import Duration
-import autonomous.math_utils.transform as transform
-from autonomous.config.runtime_params import t265_serial, pose_file
-from tf2_ros import TransformBroadcaster, TransformListener, StaticTransformBroadcaster, Buffer
-from geometry_msgs.msg import TransformStamped, PoseStamped, Pose
-import time
+from autonomous.config.runtime_params import t265_serial
+from geometry_msgs.msg import Pose, PoseStamped
 
 # different systems seem to install the pyrealsense wrapper differently
 try:

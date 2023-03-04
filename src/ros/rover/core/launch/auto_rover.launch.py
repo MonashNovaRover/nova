@@ -47,7 +47,7 @@ def generate_launch_description():
         ),
         Node(
             package="autonomous",
-            node_executable="pose_converter.py",
+            node_executable="pose_converter_ARC.py",
             output="screen",
             emulate_tty=True
         ),
