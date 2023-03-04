@@ -30,7 +30,7 @@ class SkytraqNode (Node):
 
         if raw_msg[0:2] == ["b'$PSTI", '036']:
             if raw_msg[4] != '':
-                pose.pitch, pose.roll, pose.yaw = float(raw_msg[4]), float(raw_msg[5]), float(raw_msg[6])
+                pose.pitch, pose.roll, pose.yaw = float(raw_msg[5]), float(raw_msg[6]), float(raw_msg[4])
         # elif raw_msg[0:2] == ['PSTI', '032']:
         #     db
         elif raw_msg[0] == "b'$GNRMC":
