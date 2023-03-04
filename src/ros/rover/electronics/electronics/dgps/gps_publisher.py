@@ -23,7 +23,7 @@ class SkytraqNode (Node):
         self.config_port(com_no, baud)
 
         self.publisher = self.create_publisher(RoverPoseGPS, 'gps_data', 10)
-        self.timer = self.create_timer(0.5, self.publisher_callback)
+        self.timer = self.create_timer(0.1, self.publisher_callback)
 
     def parse_msg(self, pose):
         raw_msg = self.get_msg()
