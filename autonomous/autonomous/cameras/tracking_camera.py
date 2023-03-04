@@ -33,24 +33,33 @@ class TrackingCamera(Node):
         self.cfg.enable_device(serial_number)
         self.cfg.enable_stream(rs.stream.pose)
 
-        self.pub_pose = self.create_publisher(TransformStamped, "T265/pose", 10)
+        self.pub_pose = self.create_publisher(PoseStamped, "T265/pose", 10)
 
         # Start streaming
         self.pipe_profile = self.pipe.start(self.cfg)
         self.create_timer(1./30, self.get_next_pose)
+        self.get_logger().info("Tracking camera node up!")
 
     def get_next_pose(self):
         frames = self.pipe.wait_for_frames()
         pose = frames.get_pose_frame()
         if pose is not None:
             data = pose.get_pose_data()
+            pose = Pose()
+            pose.position.x = data.translation.x
+            pose.position.y = data.translation.y
+            pose.position.z = data.translation.z
+            pose.orientation.x = data.rotation.x
+            pose.orientation.y = data.rotation.y
+            pose.orientation.z = data.rotation.z
+            pose.orientation.w = data.rotation.w
 
-            t265_transform_stamped = TransformStamped()
-            t265_transform_stamped.header.stamp = self.get_clock().now().to_msg()
-            t265_transform_stamped.header.frame_id = 't265'
+            t265_pose_stamped = PoseStamped()
+            t265_pose_stamped.header.stamp = self.get_clock().now().to_msg()
+            t265_pose_stamped.header.frame_id = 't265'
 
-            t265_transform_stamped.transform = data
-            self.pub_pose.publish(t265_transform_stamped)
+            t265_pose_stamped.pose = pose
+            self.pub_pose.publish(t265_pose_stamped)
 
 
 
