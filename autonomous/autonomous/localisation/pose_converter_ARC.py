@@ -31,7 +31,7 @@ import rclpy
 from rclpy.node import Node
 
 from geometry_msgs.msg import PoseStamped, TransformStamped, Transform
-from tf2_ros import TransformBroadcaster, StaticTransformBroadcaster
+from tf2_ros import TransformBroadcaster, StaticTransformBroadcaster, TransformListener, Buffer
 
 import autonomous.math_utils.transform as transform
 
@@ -48,6 +48,8 @@ class TemplateNode(Node):
 
         self.tf_base_link = TransformBroadcaster(self)
         self.tf_initial_offset = StaticTransformBroadcaster(self)
+        self.tf_buffer = Buffer()
+        self.tf_listener = TransformListener(self.tf_buffer, node=self, spin_thread=True)
         self.last_pose = None
 
         pose_topic = "/slam/pose" if self.param_do_ORB_SLAM3 else "/T265/pose"
@@ -103,6 +105,21 @@ class TemplateNode(Node):
         """
         Take T265 messages, offset them to get the rover's pose, and save the pose estimate
         """
+
+        t265_transform = self.transform_t265_to_nova(data)
+
+        base_link_transform = TransformStamped()
+        base_link_transform.header.stamp = self.get_clock().now().to_msg()
+        base_link_transform.header.frame_id = 'initial_base_link'
+        base_link_transform.child_frame_id = 'base_link'
+
+        try:
+            t265_offset = self.tf_buffer.lookup_transform('base_link', 't265', Time()).transform
+        except Exception as e:
+            self.get_logger().warn(str(e), once=True)
+            return
+        base_link_transform.transform = transform.offset_transform(transform=t265_transform, offset=t265_offset)
+        self.tf_base_link.sendTransform(base_link_transform)
 
         base_link_transform = TransformStamped()
         base_link_transform.header.stamp = self.get_clock().now().to_msg()
