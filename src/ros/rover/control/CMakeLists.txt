@@ -107,6 +107,7 @@ target_link_libraries(cmd_test blcmd print jcan)
 #blcmd simulator script
 add_executable(blcmd_sim src/cmd/blcmd_sim.cpp)
 target_link_libraries(blcmd_sim blcmd jcan)
+ament_target_dependencies(blcmd_sim rclcpp core)
 ################################################
 # Add Installations
 ################################################
