@@ -67,6 +67,7 @@ class SkytraqNode (Node):
     def publisher_callback(self):
         self.parse_msg(self.pose)
         self.publisher.publish(self.pose)
+        self.print_msg(self.pose)
 
 
 
