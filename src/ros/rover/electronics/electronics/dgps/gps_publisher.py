@@ -33,7 +33,7 @@ class SkytraqNode (Node):
         # elif raw_msg[0:2] == ['PSTI', '032']:
         #     db
         elif raw_msg[0] == "b'$GNRMC":
-            pose.lat, pose.lon = float(raw_msg[3]), float(raw_msg[5])
+            pose.latitude, pose.longitude = float(raw_msg[3]), float(raw_msg[5])
             if raw_msg[2] == 'A':
                 pose.valid = True
     
