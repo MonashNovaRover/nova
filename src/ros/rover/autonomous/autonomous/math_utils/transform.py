@@ -175,13 +175,12 @@ def offset_transform(transform: Transform, offset: Transform):
     :param transform: The transform applied to the coordinate frame
     :param offset: The offset of the initial frame from the pose being transformed
     :returns: The offset transform undergone by the point to arrive at its final position
-    NOTE: Only transforms translation, not rotation, as that must be done using a buffer object
+    NOTE: Currently only works if the offset has no rotation
+    TODO: combine offset and transform quaternions to allow rotated offsets
     """
     transformed = Transform()
-
     # rotation is the same in all frames
-    offset.rotation.w = -offset.rotation.w
-    transformed.rotation = quaternion_multiply(transform.rotation, offset.rotation)
+    transformed.rotation = transform.rotation
 
     # transform to offset frame
     external_point = -np.array([offset.translation.x, offset.translation.y, offset.translation.z])
@@ -189,11 +188,8 @@ def offset_transform(transform: Transform, offset: Transform):
     # do transform
     transformed_point = transform_points(transform, external_point).flatten()
 
-    # transform the offset translation to get back to the base link pose
-    undo_offset = transform_from_quat(transform.rotation, external_point)
-
     # undo transformed offset to get back to original frame
-    transformed.translation.x, transformed.translation.y, transformed.translation.z = transformed_point - undo_offset
+    transformed.translation.x, transformed.translation.y, transformed.translation.z = transformed_point - external_point
 
     return transformed
 
