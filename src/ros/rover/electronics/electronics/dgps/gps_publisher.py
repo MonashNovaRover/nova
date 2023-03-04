@@ -1,7 +1,7 @@
 import serial
 import sys
 
-sys.path.append("~/nova_ws/rover/")
+sys.path.append("~/nova_ws/rover/core")
 
 import rclpy
 from rclpy.node import Node
