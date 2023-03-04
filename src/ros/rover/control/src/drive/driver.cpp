@@ -241,7 +241,7 @@ Driver::Driver() : Node("driver")
         BLCMD *cmdWheel = new BLCMD(this->get_parameter("canbus").get_parameter_value().get<std::string>(),
                     i + 1, DRIVE_VELOCITY, !left, STOP);
         BLCMD *cmdPivot = new BLCMD(this->get_parameter("canbus").get_parameter_value().get<std::string>(),
-                   i + 5, DRIVE_POSITION, false, STOP);
+                   i + 5, DRIVE_POSITION, !(i%2), STOP);
         pivots[i] = new PivotModule(i, cmdWheel, cmdPivot);
     }
 
@@ -268,12 +268,12 @@ Driver::Driver() : Node("driver")
     // Creates auto mode timer and associated publisher
     mode_timer = this->create_wall_timer(ROSTimers::auto_mode, std::bind(&Driver::pub_auto_mode, this));
 
-    telemetry_timer = this->create_wall_timer(ROSTimers::blcmds_telemetry, std::bind(&Driver::pub_telemetry, this));
+    //telemetry_timer = this->create_wall_timer(ROSTimers::blcmds_telemetry, std::bind(&Driver::pub_telemetry, this));
 
     mode_pub = this->create_publisher<std_msgs::msg::Bool>(
         "/autonomous/mode", 10);
 
-    telemetry_pub = this->create_publisher<core::msg::Telemetry>("/control/telemetry", 10);
+    //telemetry_pub = this->create_publisher<core::msg::Telemetry>("/control/telemetry", 10);
 
     pivot_wheel_pub = this->create_publisher<core::msg::PivotWheelData>("/control/pivot_wheel", 10);
 
