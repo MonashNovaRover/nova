@@ -30,8 +30,9 @@ TODO:
 import rclpy
 from rclpy.node import Node
 from rclpy.time import Time
+from rclpy.duration import Duration
 
-from geometry_msgs.msg import PoseStamped, TransformStamped, Transform
+from geometry_msgs.msg import PoseStamped, TransformStamped, Transform, Point
 from tf2_ros import TransformBroadcaster, StaticTransformBroadcaster, TransformListener, Buffer
 
 import autonomous.math_utils.transform as transform
@@ -114,24 +115,61 @@ class PoseConverter(Node):
         self.tf_base_link.sendTransform(base_link_transform)
 
 
-    def callback_t265(self, msg: TransformStamped):
+    def callback_t265(self, msg: PoseStamped):
         """
         Take T265 messages, offset them to get the rover's pose, and save the pose estimate
         """
         self.last_pose = msg
 
-    def translate_to_base_link(self, t265_transform: TransformStamped):
-        base_link_transform = TransformStamped()
-        base_link_transform.header.stamp = self.get_clock().now().to_msg()
-        base_link_transform.header.frame_id = 'initial_base_link'
-        base_link_transform.child_frame_id = 'base_link'
-
+    def translate_to_base_link(self, t265_transform: PoseStamped):
+        """
+        Translates the t265 camera's offset into a base link offset. Requires the following steps:
+            1. Get base link to t265 static transform
+            2. Calculate the new t265 pose in the base link frame
+            3. Calculate the orientation of the t265 in the initial base link frame by dividing these two quaternions
+            4. Rotate the base link to t265 offset by that orientation, then subtract it from the t265 pose in the 
+                base link frame to get the base link pose
+        """
+        # Current t265 pose in base_link frame
         try:
-            t265_offset = self.tf_buffer.lookup_transform('base_link', 't265', Time()).transform
+            tracking_cam_from_base_link = self.tf_buffer.transform(self.last_pose, "base_link", Duration(nanoseconds=1e8))
+        except:
+            # This is just so my IDE doesn't blank out the rest of the method thanks to incorrect type hinting >:(
+            pass
+        # Static transform from base_link to t265 frame
+        try:
+            initial_tracking_cam_from_base_link = self.tf_buffer.lookup_transform('base_link', 't265', Time()).transform
         except Exception as e:
             self.get_logger().warn(str(e), once=True)
             return
-        base_link_transform.transform = transform.offset_transform(transform=t265_transform, offset=t265_offset)
+
+        # Extract quaternions and invert the static transform
+        t265_base_quat = tracking_cam_from_base_link.pose.orientation
+        initial_t265_base_quat = initial_tracking_cam_from_base_link.transform.rotation
+        initial_t265_base_quat.w = -initial_t265_base_quat.w
+
+        # Calculate the rotation offset of the base_link frame
+        base_link_rotation = transform.quaternion_multiply(initial_t265_base_quat, t265_base_quat)
+
+        # Rotate the t265 translation offset by the rotation of the base link frame
+        t265_pos = initial_tracking_cam_from_base_link.transform.translation
+        t265_offset_array = np.array([t265_pos.x, t265_pos.y, t265_pos.z])
+        rotated_base_link_to_t265 = transform.transform_from_quat(base_link_rotation, t265_offset_array)
+
+        # Subtract offset from the t265 position to get the base_link position
+        base_link_translation = Point(
+            x=tracking_cam_from_base_link.pose.position.x - rotated_base_link_to_t265[0],
+            y=tracking_cam_from_base_link.pose.position.y - rotated_base_link_to_t265[1],
+            z=tracking_cam_from_base_link.pose.position.z - rotated_base_link_to_t265[2],
+        )
+
+        base_link_transform = TransformStamped()
+        base_link_transform.transform.rotation = base_link_rotation
+        base_link_transform.transform.translation = base_link_translation
+        base_link_transform.header.stamp = t265_transform.header.stamp
+        base_link_transform.header.frame_id = 'initial_base_link'
+        base_link_transform.child_frame_id = 'base_link'
+
         return base_link_transform
 
     def timer_callback(self):

@@ -21,7 +21,6 @@ Raw data from the depth camera:
 
 import numpy as np
 from geometry_msgs.msg import Quaternion, Transform
-import tf2_geometry_msgs
 
 
 def camera_extrinsics():
@@ -163,11 +162,12 @@ def offset_transform(transform: Transform, offset: Transform):
     :param transform: The transform applied to the coordinate frame
     :param offset: The offset of the initial frame from the pose being transformed
     :returns: The offset transform undergone by the point to arrive at its final position
-    NOTE: Currently only works if the offset has no rotation
-    TODO: combine offset and transform quaternions to allow rotated offsets
+    NOTE: Only transforms translation, not rotation, as that must be done using a buffer object
     """
     transformed = Transform()
+
     # rotation is the same in all frames
+    offset.rotation.w = -offset.rotation.w
     transformed.rotation = quaternion_multiply(transform.rotation, offset.rotation)
 
     # transform to offset frame
