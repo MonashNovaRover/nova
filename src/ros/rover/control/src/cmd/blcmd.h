@@ -127,6 +127,8 @@ class BLCMD {
     //------------------------------------------------------------//
     private:
 
+    const float pos_threshold = M_PI/180;
+
     // Can bus to use
     std::string bus;
 
@@ -156,6 +158,8 @@ class BLCMD {
     std::unique_ptr<org::jcan::Bus> can_bus;
 
     public:
+    void spin();
+
     /// @brief      Send a CAN frame with some command in the ID but no data
     /// @param      command - The command to send
     void write_frame_no_data (const BLCMDSendCommand command);

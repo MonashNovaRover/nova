@@ -99,6 +99,8 @@ private:
     // Publishes whether the rover is in autonomous mode for LEDs
     rclcpp::TimerBase::SharedPtr mode_timer;
     rclcpp::TimerBase::SharedPtr telemetry_timer;
+    rclcpp::TimerBase::SharedPtr blcmd_spin_timer;
+
     rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr mode_pub;
     rclcpp::Publisher<core::msg::Telemetry>::SharedPtr telemetry_pub;
 
@@ -133,6 +135,8 @@ private:
     /// @brief      Callback function when input messages are received.
     /// @param      msg - A pointer to the input message
     void input_callback(const core::msg::InputGamepad::SharedPtr msg);
+
+    void blcmd_spinner();
 
     /// @brief     Calculates the turning radius of the rover
     /// @param      steer
