@@ -1,4 +1,7 @@
 import serial
+import sys
+
+sys.path.append("~/nova_ws/rover/")
 
 import rclpy
 from rclpy.node import Node
