@@ -20,7 +20,7 @@ Raw data from the depth camera:
 
 
 import numpy as np
-from geometry_msgs.msg import Quaternion, Transform
+from geometry_msgs.msg import Quaternion, Transform, Pose
 
 
 def camera_extrinsics():
@@ -155,6 +155,20 @@ def quaternion_multiply(quat0: Quaternion, quat1: Quaternion) -> Quaternion:
     return_quat.y = -x1 * z0 + y1 * w0 + z1 * x0 + w1 * y0
     return_quat.z = x1 * y0 - y1 * x0 - z1 * w0 + w1 * z0
     return return_quat
+
+def transform_pose(pose: Pose, transform: Transform) -> Pose:
+    """
+    Transform a pose message according to a transform
+    """
+    return_pose = Pose()
+    pts = np.array([[pose.position.x, pose.position.y, pose.position.z]])
+    new_pts = transform_points(transform=transform, pts=pts).flatten()
+  
+    return_pose.position.x, return_pose.position.y, return_pose.position.z = new_pts[0], new_pts[1], new_pts[2]
+    return_pose.orientation = quaternion_multiply(transform.rotation, pose.orientation)
+
+    return return_pose
+
 
 def offset_transform(transform: Transform, offset: Transform):
     """

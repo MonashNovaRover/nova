@@ -130,12 +130,6 @@ class PoseConverter(Node):
             4. Rotate the base link to t265 offset by that orientation, then subtract it from the t265 pose in the 
                 base link frame to get the base link pose
         """
-        # Current t265 pose in base_link frame
-        try:
-            tracking_cam_from_base_link = self.tf_buffer.transform(self.last_pose, "base_link", Duration(nanoseconds=1e8))
-        except:
-            # This is just so my IDE doesn't blank out the rest of the method thanks to incorrect type hinting >:(
-            pass
         # Static transform from base_link to t265 frame
         try:
             initial_tracking_cam_from_base_link = self.tf_buffer.lookup_transform('base_link', 't265', Time()).transform
@@ -143,9 +137,13 @@ class PoseConverter(Node):
             self.get_logger().warn(str(e), once=True)
             return
 
+        # Current t265 pose in base_link frame
+        tracking_cam_from_base_link = PoseStamped()
+        tracking_cam_from_base_link.pose = transform.transform_pose(t265_transform.pose, initial_tracking_cam_from_base_link)
+
         # Extract quaternions and invert the static transform
         t265_base_quat = tracking_cam_from_base_link.pose.orientation
-        initial_t265_base_quat = initial_tracking_cam_from_base_link.transform.rotation
+        initial_t265_base_quat = initial_tracking_cam_from_base_link.rotation
         initial_t265_base_quat.w = -initial_t265_base_quat.w
 
         # Calculate the rotation offset of the base_link frame
