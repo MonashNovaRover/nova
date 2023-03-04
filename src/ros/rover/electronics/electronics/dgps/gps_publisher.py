@@ -1,13 +1,13 @@
 import serial
 import sys
 
-sys.path.append("~/nova_ws/rover/core")
-
 import rclpy
 from rclpy.node import Node
 
 from core.msg import RoverPoseGPS
 from rclpy.logging import LoggingSeverity
+
+sys.path.insert(0, "/home/nova_ws/rover/core/msg")
 
 class SkytraqNode (Node):
     def __init__ (self, com_no, baud):
