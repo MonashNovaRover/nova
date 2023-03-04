@@ -3,7 +3,7 @@ import serial
 import rclpy
 from rclpy.node import Node
 
-from ~/nova_ws/rover/core/core.msg import RoverPoseGPS
+from core.msg import RoverPoseGPS
 from rclpy.logging import LoggingSeverity
 
 class SkytraqNode (Node):
