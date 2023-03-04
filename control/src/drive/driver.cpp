@@ -239,7 +239,7 @@ Driver::Driver() : Node("driver")
     {
         bool left = i < 2;
         BLCMD *cmdWheel = new BLCMD(this->get_parameter("canbus").get_parameter_value().get<std::string>(),
-                    i + 1, DRIVE_VELOCITY, !left, STOP);
+                    i + 1, DRIVE_VELOCITY, left, STOP);
         BLCMD *cmdPivot = new BLCMD(this->get_parameter("canbus").get_parameter_value().get<std::string>(),
                    i + 5, DRIVE_POSITION, !(i%2), STOP);
         pivots[i] = new PivotModule(i, cmdWheel, cmdPivot);
