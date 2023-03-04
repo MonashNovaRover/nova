@@ -38,7 +38,7 @@ class SkytraqNode (Node):
                 pose.valid = True
     
     def get_msg(self):
-        txt = str(self.sio.readline())
+        txt = str(self.ser.readline())
         return txt.split(",")
     
     def config_port(self, port_name, baud):
