@@ -47,8 +47,7 @@ def generate_launch_description():
         Node(
             package='tf2_ros',
             node_executable='static_transform_publisher',
-            #arguments=[ '0', '0','0', str(-np.pi / 2), '0', str(-np.pi / 2), 'd435_1_forward', 'd435_1'],
-            arguments=[ '0', '0','0', '0', '0', '0', 'd435_1_forward', 'd435_1'],
+            arguments=[ '0', '0','0', str(-np.pi / 2), '0', str(-np.pi / 2), 'd435_1_forward', 'd435_1'],
             output='screen',
             emulate_tty=True
         ),
