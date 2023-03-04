@@ -4,7 +4,7 @@ import sys
 import rclpy
 from rclpy.node import Node
 
-from core.msg import RoverPoseGPS
+import RoverPoseGPS
 from rclpy.logging import LoggingSeverity
 
 sys.path.insert(0, "/home/nova_ws/rover/core/msg")
