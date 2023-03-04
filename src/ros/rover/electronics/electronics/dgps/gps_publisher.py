@@ -1,13 +1,11 @@
 import serial
-import sys
+import io
 
 import rclpy
 from rclpy.node import Node
 
 from core.msg import RoverPoseGPS
 from rclpy.logging import LoggingSeverity
-
-sys.path.insert(1, "/home/nova_ws/rover/core/msg")
 
 class SkytraqNode (Node):
     def __init__ (self, com_no, baud):
@@ -20,6 +18,7 @@ class SkytraqNode (Node):
         self.pose.valid = False
 
         self.ser = serial.Serial()
+        self.sio = io.TextIOWrapper(io.BufferedRWPair(self.ser, self.ser))
         self.config_port(com_no, baud)
 
         self.publisher = self.create_publisher(RoverPoseGPS, 'gps_data', 10)
@@ -43,11 +42,11 @@ class SkytraqNode (Node):
         return txt.split(",")
     
     def config_port(self, port_name, baud):
-        self.ser.baudrate = baud
+        self.sio.baudrate = baud
         if port_name == "":
             port_name = "/dev/ttyUSB0"
-        self.ser.port = port_name
-        self.ser.open()
+        self.sio.port = port_name
+        self.sio.open()
 
     def print_msg(self, rover_msg):
         roverMsgStr = f"""
