@@ -51,7 +51,7 @@ class SkytraqNode (Node):
 
     def print_msg(self, rover_msg):
         roverMsgStr = f"""
-        valid: {rover_msg.valid:8.3f}
+        valid: {rover_msg.valid}
         lat: {rover_msg.latitude:8.3f}
         lon: {rover_msg.longitude:8.3f}
         pitch: {rover_msg.pitch:8.2f}
