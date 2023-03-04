@@ -26,7 +26,7 @@ std::ostream& operator << (std::ostream& o, BLCMDTelemetry& tel) {
     return o;
 }
 
-BLCMD::BLCMD (const std::string bus, const int id, BLCMDSendCommand drive_mode, const bool direction, BLCMDSendCommand stop_mode, double scaling_factor) :
+BLCMD::BLCMD (std::string bus, const int id, BLCMDSendCommand drive_mode, const bool direction, BLCMDSendCommand stop_mode, double scaling_factor) :
     bus(bus), id(id), drive_mode(drive_mode), direction(direction), stop_mode(stop_mode), scaling_factor(scaling_factor), already_stopped(false)
 {    
     // Set max speed
@@ -48,7 +48,7 @@ BLCMD::BLCMD (const std::string bus, const int id, BLCMDSendCommand drive_mode, 
     can_bus->add_callback_to(make_can_id(PACKET_3), this, &BLCMD::packet3_callback);
     can_bus->add_callback_to(make_can_id(PACKET_4), this, &BLCMD::packet4_callback);
 
-
+    can_bus->open(&bus[0]);
 }
 
 
@@ -57,6 +57,10 @@ BLCMD::~BLCMD ()
     // Stop the BLCMD, safely close the socket
     stop();
     //can_socket.close();
+}
+
+void BLCMD::spin() {
+        can_bus->spin();
 }
 
 
@@ -128,7 +132,6 @@ void BLCMD::set_stop_mode (BLCMDSendCommand stop_mode)
     }
 }
 
-
 void BLCMD::drive (float value)
 {
 
@@ -146,6 +149,10 @@ void BLCMD::drive (float value)
     // If the BLCMD is in position mode, scale the input value to radians
     if (drive_mode == DRIVE_POSITION){
         // map (-π,π) → (-1,1)
+        if (telemetry.resolver_position >= (value + pos_threshold) && telemetry.resolver_position <= (value - pos_threshold)) {
+            return;
+        }
+
         value = value / M_PI;
 
         if (value > 1) {

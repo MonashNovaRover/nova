@@ -268,6 +268,10 @@ Driver::Driver() : Node("driver")
 
     telemetry_timer = this->create_wall_timer(ROSTimers::blcmds_telemetry, std::bind(&Driver::pub_telemetry, this));
 
+    //Create blcmd spin timer
+
+    blcmd_spin_timer = this->create_wall_timer(ROSTimers::blcmd_spin, std::bind(&Driver::blcmd_spinner, this));
+
     mode_pub = this->create_publisher<std_msgs::msg::Bool>(
         "/autonomous/mode", 10);
 
@@ -275,6 +279,13 @@ Driver::Driver() : Node("driver")
 
     pivot_wheel_pub = this->create_publisher<core::msg::PivotWheelData>("/control/pivot_wheel", 10);
 
+}
+
+void Driver::blcmd_spinner() {
+    for (PivotModule *pivot : pivots) {
+        pivot->cmdWheel->spin();
+        pivot->cmdPivot->spin();
+    }
 }
 
 // deadline callback for when the drive inputs publisher misses its deadline
