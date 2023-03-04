@@ -18,8 +18,8 @@ class SkytraqNode (Node):
         self.pose.valid = False
 
         self.ser = serial.Serial()
-        self.sio = io.TextIOWrapper(io.BufferedRWPair(self.ser, self.ser))
         self.config_port(com_no, baud)
+        self.sio = io.TextIOWrapper(io.BufferedRWPair(self.ser, self.ser))
 
         self.publisher = self.create_publisher(RoverPoseGPS, 'gps_data', 10)
         self.timer = self.create_timer(0.1, self.publisher_callback)
@@ -38,15 +38,15 @@ class SkytraqNode (Node):
                 pose.valid = True
     
     def get_msg(self):
-        txt = str(self.ser.readline())
+        txt = str(self.sio.readline())
         return txt.split(",")
     
     def config_port(self, port_name, baud):
-        self.sio.baudrate = baud
+        self.ser.baudrate = baud
         if port_name == "":
             port_name = "/dev/ttyUSB0"
-        self.sio.port = port_name
-        self.sio.open()
+        self.ser.port = port_name
+        self.ser.open()
 
     def print_msg(self, rover_msg):
         roverMsgStr = f"""
