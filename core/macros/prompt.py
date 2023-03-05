@@ -32,7 +32,7 @@ def print_jetson():
     print(f"{F.E}{F.B}{F.D}The above commnds will take you to a screen session. {F.WARNING}To EXIT the screen session{F.E}{F.B}, {F.C}press CRTL+A, (release), then press D{F.B}")
     print("")
     print(f"{F.E}{F.B}{F.D}If a screen has crashed and you need to restart, type {F.C}restart [rover | arm | base]")
-    print("")
+    print(f"{F.ENDC}")
 
 
 def print_laptop():
@@ -44,7 +44,7 @@ def print_laptop():
     print(f"{F.E}{F.T}{F.B}2. Follow provided instructions to check the status of running services")
     print("")
     print(f"{F.E}{F.T}{F.B}3. run {F.C}stop base{F.B} to stop base, and run it on your laptop")
-    print("")
+    print(f"{F.ENDC}")
 
 if __name__ == "__main__":
     if path.isdir("/etc/systemd/system") and 'can.service' in listdir("/etc/systemd/system/"):

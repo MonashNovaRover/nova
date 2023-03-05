@@ -3,7 +3,7 @@ import numpy as np
 import cv2
 import logging
 import rclpy
-from config.runtime_params import d435_serial, d415_serial
+from autonomous.config.runtime_params import d435_serial, d415_serial
 from rclpy.logging import LoggingSeverity
 
 class DepthCamera():

@@ -10,12 +10,10 @@ Type: nav_msgs.msg.Odometry
 This topic also follows the standard NOVA Coordinate System:
 Nova standard coordinate system (left handed coordinates) AND raw data from the tracking camera:
     +x : forward
-    +y : right
+    +y : left
     +z : up
 """
 # ~~~~~~~~~~~~~ Tracking & Depth cams ~~~~~~~~~~~~~~~~ 
-camera_pose_topic = "/autonomous/camera/odom"
-rover_odom_topic = "autonomous/rover/odom"
 depth_topic = "/D400/depth/color/points"
 depth_point_cloud_topic = "/camera/depth/color/points"
 # position of centre of wheel base relative to tracking cam
@@ -29,12 +27,7 @@ auto_waypoints_topic = "/autonomous/waypoints"
 planning_destination_topic = "/autonomous/planning_destination"
 auto_goal_gps = "/autonomous/goal/gps"
 auto_goal_topic = "/autonomous/goal"
-ar_goals_topic = "autonomous/ar_tag/global_odom"
 gps_to_xyz_topic = "/autonomous/gps_to_xyz"
 xyz_to_gps_topic = "/autonomous/xyz_to_gps"
 occupancy_grid_topic = "/autonomous/occupancy_grid"
 path_planning_service_name = "autonomous/path_planning_service"
-
-# ~~~~~~~~~~~~~~~~~~~~~ ROS ~~~~~~~~~~~~~~~~~~~~~~~~~~
-# this is the ROS "Frame" which we publish everything to. We don't use ROS transforms
-main_frame = "map"
