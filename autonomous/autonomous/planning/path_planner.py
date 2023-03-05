@@ -54,7 +54,7 @@ class PathPlanner(Node):
         :param resolution_m: planning resolution
         """
         super().__init__("path_planner_node")
-        self.get_logger().set_level(logging.DEBUG)
+        self.get_logger().set_level(logging.INFO)
         # constants
         self.padding_dist_m = INITIAL_PADDING_DIST_M
         self.resolution = resolution_m
