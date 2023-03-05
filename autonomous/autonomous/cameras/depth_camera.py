@@ -52,7 +52,7 @@ class DepthCamera(Node):
         self.depth_frame = None
         self.color_frame = None
         self.latest_frame_stamp = None
-        self.depth_frame_id = 'map'
+        self.depth_frame_id = 'd435_1'
 
         self.ar_tracker = ArTracker(self.color_intrinsics, depth_cam_frame_id=self.depth_frame_id)
         # self.object_detector = ObjectDetector()
@@ -142,10 +142,9 @@ class DepthCamera(Node):
         verts = np.asanyarray(v).view(np.float32).reshape((-1, 3))
         t5 = time.perf_counter()
 
-        # Do our own trimming? Not at the moment
-        if False:
-            verts = verts[~((verts[:, 0] == 0) & (verts[:, 1] == 0) & (verts[:, 2] == 0))]
-            verts = verts[~(verts[:, 2] > 4.5)]
+        # Do our own trimming of nonsense data
+        verts = verts[~((verts[:, 0] == 0) & (verts[:, 1] == 0) & (verts[:, 2] == 0))]
+        verts = verts[~(verts[:, 2] > 4.5)]
 
         header = Header(
             stamp = self.latest_frame_stamp,

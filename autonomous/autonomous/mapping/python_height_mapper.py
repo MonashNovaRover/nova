@@ -36,11 +36,11 @@ from height_mapper import get_obstacles as get_height_obstacles
 
 class HeightMapper(FlatMapper):
     def __init__(self, length=20, width=20, height=5, resolution=0.1, detection_resolution=0.025, planner=None,
-                 name="height_mapper"):
+                 camera=False, name="height_mapper"):
 
         # init node with node name points
         super().__init__(length=length, width=width, height=height, resolution=resolution,
-                         detection_resolution=detection_resolution, planner=planner, name=name)
+                         detection_resolution=detection_resolution, planner=planner, camera=camera, name=name)
 
     def get_obstacles(self, filtered_indices):
         return get_height_obstacles(filtered_indices, self.detection_length, self.detection_width)
