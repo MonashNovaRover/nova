@@ -41,7 +41,6 @@ class YawStarTurner(Turner):
     def turn(self, yaw_difference, position_vector, current_orientation):
         steer_fraction, drive_fraction = 0.0, 0.0
         current_yaw = np.arctan2(current_orientation[1], current_orientation[0])
-        print(f"current yaw = {current_yaw}")
 
         if abs(yaw_difference) > self.MAX_YAW:
             # Big turn, either drive straight or turn
@@ -50,7 +49,6 @@ class YawStarTurner(Turner):
                 self.target_yaw = current_yaw + (np.sign(yaw_difference) * self.MAX_YAW)
                 self.target_yaw %= 2 * np.pi
                 self.target_yaw -= 2 * np.pi if self.target_yaw > np.pi else 0
-                print(f"switching to target yaw of {self.target_yaw}")
                 steer_fraction = tank_turn_target_yaw_rate(yaw_difference)
                 drive_fraction = self.get_turn_speed(yaw_difference)
                 # Update state
@@ -61,7 +59,6 @@ class YawStarTurner(Turner):
                 diff = (current_yaw - self.target_yaw) % (2 * np.pi)
                 diff -= 2 * np.pi if diff > np.pi else 0
                 abs_diff = np.sign(yaw_difference) * diff
-                print(f"absolute difference to target yaw is {abs_diff}")
                 if abs_diff < 0:
                     # Keep turning
                     steer_fraction = tank_turn_target_yaw_rate(yaw_difference)

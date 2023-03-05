@@ -313,7 +313,7 @@ class Controller(Node):
         """
         Stores the latest rover pose message into our State() variable
         """
-        self.get_logger().log("Got rover pose: {}".format(str(msg)), LoggingSeverity.INFO, throttle_duration_sec=1)
+        self.get_logger().debug("Got rover pose: {}".format(str(msg)), throttle_duration_sec=1)
         self.state_rover_pose.x = msg.x
         self.state_rover_pose.y = msg.y
         self.state_rover_pose.yaw = msg.yaw
@@ -538,7 +538,7 @@ class Controller(Node):
         drive_cmd_msg.steer = max(-1.0, min(1.0, float(angular_fraction)))
 
         # Print!
-        self.get_logger().info("Driving at speed {:.4f}, steer {:.4f}".format(
+        self.get_logger().debug("Driving at speed {:.4f}, steer {:.4f}".format(
             drive_cmd_msg.speed, drive_cmd_msg.steer
         ), throttle_duration_sec=1)
 
