@@ -41,12 +41,13 @@ from tf2_ros import TransformListener, Buffer
 from sensor_msgs.msg import PointCloud2
 
 class Mapper(Node):
-    def __init__(self, length=20, width=20, height=5, planner=None, resolution=0.1, name='mapper'):
+    def __init__(self, length=20, width=20, height=5, planner=None, resolution=0.1, name='mapper', camera=False):
         super().__init__(name)
         self.initialised = False
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self, spin_thread=True)
-        self.sub_pointcloud = self.create_subscription(PointCloud2, "~/d435_1/cloud", self.pointcloud_callback, 10)
+        if camera:
+            self.sub_pointcloud = self.create_subscription(PointCloud2, "/depth_camera/d435_1/cloud", self.pointcloud_callback, 10)
 
         self.length = length
         self.width = width
@@ -108,7 +109,9 @@ class Mapper(Node):
         :param pts: np.array(n, 6) - refers to x,y,z,r,g,b
         """
         # transform the points
+        self.get_logger().debug(f"Update map called after {time.perf_counter() - self.previous_map_update} s with {len(pts)} points")
         if time.perf_counter() - self.previous_map_update > min_map_update_time:
+            self.get_logger().debug(f"handling pc: {pts}")
             self.handle_pc(pts)
 
             self.previous_map_update = time.perf_counter()
@@ -122,6 +125,7 @@ class Mapper(Node):
         It calls a function to extract and filter the points (colors are ignored) and updates the map with points only -
         when using the python API, it should be a points only map.
         """
+        self.get_logger().debug("Received pointcloud")
         self.update_map(np.array(list(read_points(msg, skip_nans=True))))
 
 

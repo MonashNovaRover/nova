@@ -52,6 +52,7 @@ class FlatMapper(Mapper):
             resolution=0.1,
             detection_resolution=0.025,
             planner=None,
+            camera=False,
             name='flat_mapper',
     ):
         # init node with node name points
@@ -61,6 +62,7 @@ class FlatMapper(Mapper):
             height=height,
             resolution=resolution,
             planner=planner,
+            camera=camera,
             name=name
         )
 
@@ -111,8 +113,8 @@ class FlatMapper(Mapper):
         self.local_map_to_base_link: Transform = None
         try:
             self.orient_nova_frame_transform = self.tf_buffer.lookup_transform(
-                target_frame="d435_1", 
-                source_frame="d435_1_forward",
+                target_frame="d435_1_forward", 
+                source_frame="d435_1",
                 time=Time()).transform
         except:
             self.get_logger().error(f"Couldn't get depth camera rotation!")

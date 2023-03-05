@@ -48,7 +48,7 @@ class PoseConverter(Node):
     def __init__(self):
         super().__init__("pose_converter")
         # way-point publisher publishes a bunch of waypoints at once (hence using the 2D map datatype
-        self.get_logger().set_level(logging.DEBUG)
+        self.get_logger().set_level(logging.INFO)
 
         self.param_do_ORB_SLAM3 = self.declare_parameter("do_orbslam", False).value
         self.param_base_link_rate = self.declare_parameter("base_link_pub_rate_hz", 20).value
@@ -139,15 +139,17 @@ class PoseConverter(Node):
 
         # Current t265 pose in base_link frame
         t265_transform = Transform()
-        t265_transform.translation = t265_pose.pose.position
+        t265_transform.translation.x = t265_pose.pose.position.x
+        t265_transform.translation.y = t265_pose.pose.position.y
+        t265_transform.translation.z = t265_pose.pose.position.z
         t265_transform.rotation = t265_pose.pose.orientation
 
         base_link_transform = TransformStamped()
         base_link_transform.transform = transform.offset_transform(t265_transform, t265_offset)
-        base_link_transform.header.stamp = t265_transform.header.stamp
+        base_link_transform.header.stamp = t265_pose.header.stamp
         base_link_transform.header.frame_id = 'initial_base_link'
         base_link_transform.child_frame_id = 'base_link'
-        self.get_logger().warn(f"initial base link to base_link: {base_link_transform}")
+        self.get_logger().debug(f"initial base link to base_link: {base_link_transform}")
 
         return base_link_transform
 
