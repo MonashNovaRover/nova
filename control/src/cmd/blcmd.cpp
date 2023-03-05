@@ -164,11 +164,11 @@ void BLCMD::drive (float value)
             value *= -1;
         }
 
-        if (value > 0.5) {
-            value = 0.5;
+        if (value > 0.35) {
+            value = 0.35;
         }
-        else if (value < -0.5){
-            value = -0.5;
+        else if (value < -0.35){
+            value = -0.35;
         }
     }
 

@@ -149,15 +149,27 @@ void Driver::fill_wheel_velocities_radial(float speed, float radius)
 {
     float left_ratio = !radius ? 1 : sqrt(pow(CHASSIS_LENGTH, 2.0)/4 + pow(radius + (CHASSIS_WIDTH / 2), 2.0))/abs(radius);
     float right_ratio = !radius ? 1 : sqrt(pow(CHASSIS_LENGTH, 2.0)/4 + pow(radius - (CHASSIS_WIDTH / 2), 2.0))/abs(radius);
+    float max = 0;
+    int sign = speed > 0 ? 1 : -1;
     for (size_t i = 0; i < NUM_WHEELS; i++)
     {
-        if (i == 0 || i == 2)
+        if (i < 2)
         {
             pivots[i]->velocity = radius == INFINITY ? speed : speed*left_ratio;
         }
-        else if (i == 1 || i == 3)
+        else
         {
             pivots[i]->velocity =  radius == INFINITY ? speed : speed*right_ratio;
+        }
+
+        if (abs(pivots[i]->velocity) > max) max = abs(pivots[i]->velocity);
+
+    }
+
+    if (max > 0.35) {
+        for (size_t i = 0; i < NUM_WHEELS; i++)
+        {
+            pivots[i]->velocity = ((pivots[i] ->velocity)/max)*0.35;
         }
     }
 }
