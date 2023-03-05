@@ -23,7 +23,7 @@ from autonomous.config.runtime_params import active_depth_camera
 class DepthCamera(Node):
     def __init__(self):
         super().__init__("depth_camera")
-        self.get_logger().set_level(logging.INFO)
+        self.get_logger().set_level(logging.DEBUG)
         # Realsense processing filters and classes
         self.pc = rs.pointcloud()
         self.decimate = rs.decimation_filter(2)
@@ -145,6 +145,7 @@ class DepthCamera(Node):
         # Do our own trimming of nonsense data
         verts = verts[~((verts[:, 0] == 0) & (verts[:, 1] == 0) & (verts[:, 2] == 0))]
         verts = verts[~(verts[:, 2] > 4.5)]
+        t6 = time.perf_counter()
 
         header = Header(
             stamp = self.latest_frame_stamp,
@@ -152,17 +153,18 @@ class DepthCamera(Node):
         )
 
         pointcloud_msg = create_cloud_xyz32(header=header, points=verts)
-        t6 = time.perf_counter()
-        self.cloud_publisher.publish(pointcloud_msg)
         t7 = time.perf_counter()
+        self.cloud_publisher.publish(pointcloud_msg)
+        t8 = time.perf_counter()
 
         # Log state of the pointcloud
         self.get_logger().debug(f"demication took {t2 - t1} s")
         self.get_logger().debug(f"hole filling took {t3 - t2} s")
         self.get_logger().debug(f"calculating pc took {t4 - t3} s")
         self.get_logger().debug(f"Converting points to np array took {t5 - t4} s")
-        self.get_logger().debug(f"Converting points to pointcloud msg took {t6 - t5} s")
-        self.get_logger().debug(f"Publishing pointcloud took {t7 - t6} s")
+        self.get_logger().debug(f"Numpy pointcloud trimming took {t6 - t5} s")
+        self.get_logger().debug(f"Converting points to pointcloud msg took {t7 - t6} s")
+        self.get_logger().debug(f"Publishing pointcloud took {t8 - t7} s")
         self.get_logger().debug(f"Depth camera point cloud contained {len(verts)} points")
         if len(verts) < 10:
             self.get_logger().warn(f"Depth camera point cloud contained < 10 points")
