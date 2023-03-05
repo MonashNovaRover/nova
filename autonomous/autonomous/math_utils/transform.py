@@ -20,7 +20,8 @@ Raw data from the depth camera:
 
 
 import numpy as np
-from geometry_msgs.msg import Quaternion, Transform
+from geometry_msgs.msg import Quaternion, Transform, Pose
+from quaternions import Quaternion as MathQuaternion
 
 
 def camera_extrinsics():
@@ -142,6 +143,31 @@ def transform_yaw(transform: Transform, pts):
     if len(pts) != 0:
         pts = transform_euler((0, 0, yaw), pts)
     return pts
+
+def quaternion_multiply(quat0: Quaternion, quat1: Quaternion) -> Quaternion:
+    """
+    Returns the product of a quaternion multiplication
+    """
+    q0 = MathQuaternion(quat0.w, quat0.x, quat0.y, quat0.z)
+    q1 = MathQuaternion(quat1.w, quat1.x, quat1.y, quat1.z)
+    q = q1 * q0
+    ret_q = Quaternion()
+    ret_q.w, ret_q.x, ret_q.y, ret_q.z = q.real, q.i, q.j, q.k
+    return ret_q
+
+def transform_pose(pose: Pose, transform: Transform) -> Pose:
+    """
+    Transform a pose message according to a transform
+    """
+    return_pose = Pose()
+    pts = np.array([[pose.position.x, pose.position.y, pose.position.z]])
+    new_pts = transform_points(transform=transform, pts=pts).flatten()
+  
+    return_pose.position.x, return_pose.position.y, return_pose.position.z = new_pts[0], new_pts[1], new_pts[2]
+    return_pose.orientation = quaternion_multiply(transform.rotation, pose.orientation)
+
+    return return_pose
+
 
 def offset_transform(transform: Transform, offset: Transform):
     """

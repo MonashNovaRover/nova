@@ -26,6 +26,7 @@ TODO:
 
 from a_star import a_star
 from autonomous.math_utils.controller_math import *
+import autonomous.math_utils.transform as transform
 from rclpy.node import Node
 from rclpy.duration import Duration
 from geometry_msgs.msg import Pose2D, Pose, PoseStamped
@@ -33,10 +34,9 @@ from core.msg import Waypoints, Waypoint, RoverPose, Point2D
 from autonomous.config.ros_config import *
 from autonomous.config.runtime_params import ignore_waypoints, INITIAL_PADDING_DIST_M, goal_achieved_distance
 from core.srv import PathPlanningRequest
-from autonomous.mapping.grid_2d import Grid2D
 from autonomous.math_utils.transform import quat_to_euler
 
-import time
+import time, logging
 from tf2_ros import Buffer, TransformListener
 from rclpy.time import Time
 
@@ -54,6 +54,7 @@ class PathPlanner(Node):
         :param resolution_m: planning resolution
         """
         super().__init__("path_planner_node")
+        self.get_logger().set_level(logging.INFO)
         # constants
         self.padding_dist_m = INITIAL_PADDING_DIST_M
         self.resolution = resolution_m
@@ -70,7 +71,7 @@ class PathPlanner(Node):
         # planning service listens to requests for paths to be planned
         self.planning_service = self.create_service(PathPlanningRequest, path_planning_service_name,
                                                     self.path_planning_service_callback)
-        self.planning_subscriber = self.create_subscription(Point2D, planning_destination_topic, self.path_planning_sub_callback, 10)
+        self.planning_subscriber = self.create_subscription(PoseStamped, planning_destination_topic, self.path_planning_sub_callback, 10)
         self.path_publisher = self.create_publisher(Waypoints, auto_waypoints_topic, 10)
 
         # Transform listeners
@@ -114,10 +115,12 @@ class PathPlanner(Node):
         Take a goal in any frame (typically global map frame), transform it into local map frame, and store
         """
         try:
-            local_goal : PoseStamped = self.tf_buffer.transform(goal, 'local_map')
+            map_to_local_map = self.tf_buffer.lookup_transform("local_map", "map", Time()).transform
+            self.get_logger().debug(f"transforming pose: {goal} by transform: {map_to_local_map}")
+            local_goal : PoseStamped = transform.transform_pose(goal.pose, map_to_local_map)
         except Exception as e:
-            self.get_logger().debug(e)
-        self.goal = local_goal.pose
+            self.get_logger().warn(f"Failed to transform local goal: {e}")
+        self.goal = local_goal
 
     def path_planning_sub_callback(self, msg: PoseStamped):
         """
@@ -126,9 +129,11 @@ class PathPlanner(Node):
         if self.grid2d is None:
             self.get_logger().warn("PathPlanner: map has not been updated yet, plan could not be planned")
             return 
+        self.get_logger().debug("Path planner sub callback!")
         self.set_goal(goal=msg)
         self.update_pose()
         path = self.get_path()
+        self.get_logger().debug(f"Publishing path! {path}")
         self.path_publisher.publish(path)
 
     def get_grid_coord(self, position):
