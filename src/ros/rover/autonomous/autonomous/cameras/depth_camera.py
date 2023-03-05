@@ -15,7 +15,7 @@ from sensor_msgs.msg import PointCloud2, Image
 from visualization_msgs.msg import ImageMarker
 
 from autonomous.cameras.ar_tracker import ArTracker
-from autonomous.cameras.pc_converter import create_cloud_xyz32
+from autonomous.cameras.pc_converter import create_cloud_xyz32, get_fields_xyz32
 from cv_bridge import CvBridge
 from autonomous.config.runtime_params import active_depth_camera
 
@@ -139,7 +139,7 @@ class DepthCamera(Node):
 
         # Point-cloud data to arrays
         v = points.get_vertices()
-        verts = np.asanyarray(v).view(np.float32).reshape((-1, 3))
+        verts : np.ndarray = np.asanyarray(v).view(np.float32).reshape((-1, 3))
         t5 = time.perf_counter()
 
         # Do our own trimming of nonsense data
@@ -147,12 +147,7 @@ class DepthCamera(Node):
         verts = verts[~(verts[:, 2] > 4.5)]
         t6 = time.perf_counter()
 
-        header = Header(
-            stamp = self.latest_frame_stamp,
-            frame_id = self.depth_frame_id
-        )
-
-        pointcloud_msg = create_cloud_xyz32(header=header, points=verts)
+        pointcloud_msg = self.get_pc_msg(verts)
         t7 = time.perf_counter()
         self.cloud_publisher.publish(pointcloud_msg)
         t8 = time.perf_counter()
@@ -170,6 +165,28 @@ class DepthCamera(Node):
             self.get_logger().warn(f"Depth camera point cloud contained < 10 points")
         elif len(verts) == 0:
             self.get_logger().error(f"Depth camera point cloud contained no points")
+
+    def get_pc_msg(self, verts):
+        header = Header(
+            stamp = self.latest_frame_stamp,
+            frame_id = self.depth_frame_id
+        )
+
+        pointcloud_msg = PointCloud2()
+        pointcloud_msg.header = header
+        pointcloud_msg.height = 1
+        pointcloud_msg.width = len(verts)
+        pointcloud_msg.is_bigendian = False
+        pointcloud_msg.point_step = 12
+        pointcloud_msg.row_step = 12 * len(verts)
+        pointcloud_msg.is_dense = False
+
+        t0 = time.perf_counter()
+        pointcloud_msg.data = verts.tobytes()
+        t1 = time.perf_counter()
+        self.get_logger().debug(f"Converting numpy array to bytes took {t1 - t0} s")
+        pointcloud_msg.fields = get_fields_xyz32()
+        return pointcloud_msg
 
     #def pub_colour(self):
     #    pass
