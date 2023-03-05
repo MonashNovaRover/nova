@@ -119,6 +119,10 @@ install(TARGETS
         cmd_test
         DESTINATION lib/${PROJECT_NAME}
         )
+
+# Install Python modules
+ament_python_install_package(${PROJECT_NAME})
+
 # Add all Python executables to this list
 install(PROGRAMS
         control/cmd_plotter.py

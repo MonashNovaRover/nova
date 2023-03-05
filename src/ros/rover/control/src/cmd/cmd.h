@@ -37,18 +37,18 @@ enum CMDCommand {
 };
 
 
-// Struct for CMD data
-struct CMDData {
+// Struct for CMD feedback
+struct CMDFeedback {
 
     // The velocity from the CMD
-    double rpm;
+    double omega;
 
     // The power of the CMD
-    double power;
+    double duty_cycle;
 
     // Constructor for setting the data
-    CMDData (double rpm, double power) : 
-        rpm(rpm), power(power) {}
+    CMDFeedback (double omega, double duty_cycle) : 
+        omega(omega), duty_cycle(duty_cycle) {}
 };
 
 
@@ -86,12 +86,12 @@ class CMD {
 
     /// @brief      Send a CAN frmae with some command in the ID but no data
     /// @param      command - The command to send
-    void write_frame_no_data (const CMDCommand command);
+    void write_frame_no_data (CMDCommand command);
 
     /// @brief      Convert a double to an int16
     /// @param      value - The raw value between -1.0 and 1.0
     /// @returns    A Q15 fractional representing the same value
-    static int16_t convert_to_int16 (const double value);
+    static int16_t convert_to_int16 (double value);
 
     /// @brief      Convert a 2-byte array to a double
     /// @param      bytes - The 2-byte array
@@ -113,8 +113,9 @@ class CMD {
     /// @param      direction - Direction for the CMD. Determined by hardware
     /// @param      stop_mode - Default stop mode of the CMD. STOP or PID (handbrake)
     /// @param      scaling_factor - Factor to multiply by input to convert from angular velocity (rad/s) to CMD command (unitless)
-    CMD (const int bus, const int id, CMDCommand drive_mode, const bool direction=0, CMDCommand stop_mode=STOP, double scaling_factor=1);
-
+    /// @param      can_init - Whether to open the CAN socket or not
+    CMD (int bus, int id, CMDCommand drive_mode, bool direction=0, CMDCommand stop_mode=STOP, double scaling_factor=1, bool can_init=1);
+    
     /// @brief      Destructor is called when object is deleted
     ~CMD ();
 
@@ -166,6 +167,6 @@ class CMD {
 
     /// @brief      Receives feedback from the CMD devices on the CAN lines
     /// @returns    A struct containing the data
-    CMDData receive_feedback ();
+    CMDFeedback receive_feedback ();
 
 };

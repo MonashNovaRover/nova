@@ -15,9 +15,9 @@ AUTHOR(S):	Harrison Verrios, Josh Cherubino, Jory Braun, Taaj Street
 
 using namespace org::jcan;
 
-CMD::CMD (const int bus, const int id, CMDCommand drive_mode, const bool direction, CMDCommand stop_mode, double scaling_factor) :
+CMD::CMD (int bus, int id, CMDCommand drive_mode, bool direction, CMDCommand stop_mode, double scaling_factor, bool can_init) :
     bus(bus), id(id), drive_mode(drive_mode), direction(direction), stop_mode(stop_mode), scaling_factor(scaling_factor), already_stopped(false)
-{    
+{
     // Set max speed
     max_speed = 1 / scaling_factor;
     // Set min speed
@@ -54,7 +54,7 @@ int CMD::get_id()
 }
 
 
-void CMD::write_frame_no_data (const CMDCommand command)
+void CMD::write_frame_no_data (CMDCommand command)
 {
     // Create a new CAN frame
     Frame frame;
@@ -198,7 +198,7 @@ void CMD::set_tuning_parameters (double kP, double kI, double kD, double kM)
 }
 
 
-CMDData CMD::receive_feedback ()
+CMDFeedback CMD::receive_feedback ()
 {
 //    // Creates a new CAN frame
 //    scpp::CanFrame frame;
@@ -220,7 +220,7 @@ CMDData CMD::receive_feedback ()
 }
 
 
-int16_t CMD::convert_to_int16 (const double value)
+int16_t CMD::convert_to_int16 (double value)
 {
     // Convert the value to an integer
     return (int16_t)(value * 32767.0f);
