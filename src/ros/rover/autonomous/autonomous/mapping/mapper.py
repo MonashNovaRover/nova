@@ -68,6 +68,9 @@ class Mapper(Node):
 
         self.has_color = False
 
+    def on_initialised(self):
+        self.initialised = True
+
     def check_position_in_map(self):
         """
         Abstract method for use in inherited classes.
@@ -125,6 +128,8 @@ class Mapper(Node):
         It calls a function to extract and filter the points (colors are ignored) and updates the map with points only -
         when using the python API, it should be a points only map.
         """
+        if not self.initialised:
+            return
         self.get_logger().debug("Received pointcloud")
         self.update_map(np.array(list(read_points(msg, skip_nans=True))))
 
