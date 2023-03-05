@@ -235,9 +235,13 @@ void ArmInputs::publish_control_scheme()
     control_scheme.base_frame_offset = base_frame_offset;
 
     // Control schemes
+    // Flat frame control
+    control_scheme.flat_frame_linear = joystick_l.btn_thumd_d_state == 2; 
+    control_scheme.flat_frame_angular = joystick_r.btn_thumb_d_state == 2;
     // Endpoint frame control. Hold trigger
-    control_scheme.endpoint_frame_linear = joystick_l.btn_thumb_u_state == 2;
-    control_scheme.endpoint_frame_angular = joystick_r.btn_thumb_u_state == 2;
+    // Also set if flat frame control is used
+    control_scheme.endpoint_frame_linear = joystick_l.btn_thumb_u_state == 2 || control_scheme.flat_frame_linear;
+    control_scheme.endpoint_frame_angular = joystick_r.btn_thumb_u_state == 2|| control_scheme.flat_frame_angular;
     // IK. Hold inside thumb button.
     // Also set if endpoint frame control is used.
     control_scheme.ik_linear = joystick_l.btn_thumb_r_state == 2 || control_scheme.endpoint_frame_linear;
@@ -247,6 +251,7 @@ void ArmInputs::publish_control_scheme()
 
     // Correction for position control - can't have independent linear and angular control
     if (control_scheme.position_control) {
+        control_scheme.flat_frame_angular = control_scheme.flat_frame_linear;
         control_scheme.endpoint_frame_angular = control_scheme.endpoint_frame_linear;
         control_scheme.ik_angular = control_scheme.ik_linear;
     }
