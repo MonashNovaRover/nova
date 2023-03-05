@@ -1,9 +1,9 @@
 __package__ = "autonomous"
 
-from controller.controller_interface import ControllerInterface
-from controller.drive_controller import DriveController
-from math_utils.controller_math import *
-from config.runtime_params import dist_through_gate_m
+from autonomous.controller.controller_interface import ControllerInterface
+from autonomous.controller.drive_controller import DriveController
+from autonomous.math_utils.controller_math import *
+from autonomous.config.runtime_params import dist_through_gate_m
 from typing import Tuple
 import numpy as np
 

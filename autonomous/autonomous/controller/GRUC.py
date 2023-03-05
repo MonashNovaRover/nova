@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-__package__ = "autonomous"
-
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team
@@ -50,6 +48,7 @@ import rclpy
 from rclpy.node import Node
 from rclpy.logging import LoggingSeverity
 from std_srvs.srv import Trigger
+from geometry_msgs.msg import PoseStamped
 
 # custom message imports
 from core.msg import DriveInput, RoverPose, Waypoints, AlvarMarker, AutonomousGoal, Point2D
@@ -57,12 +56,12 @@ from controller.ar_tag_manager import ArTagManager
 from controller.spin_controller import SpinController
 
 # autonomous imports
-from math_utils.controller_math import *
-from config.runtime_params import *
-from config.ros_config import *
-from planning.path_planner import PathPlanner
-from controller.turning import YawStarTurner
-from controller.drive_controller import DriveController
+from autonomous.math_utils.controller_math import *
+from autonomous.config.runtime_params import *
+from autonomous.config.ros_config import *
+from autonomous.planning.path_planner import PathPlanner
+from autonomous.controller.turning import YawStarTurner
+from autonomous.controller.drive_controller import DriveController
 
 # misc
 from enum import Enum
@@ -138,7 +137,7 @@ class Controller(Node):
         super().__init__('autonomous_controller_node')
 
         # set debug to not get shown
-        self.get_logger().set_level(LoggingSeverity.DEBUG)
+        self.get_logger().set_level(LoggingSeverity.INFO)
 
         # ~~~~~~~~~~ State ~~~~~~~~
         self.state_rover_pose = Pose2D()
@@ -173,7 +172,7 @@ class Controller(Node):
         # 'DriveInput' message is used to make the wheels move!
         self.pub_drive_commands = self.create_publisher(DriveInput, auto_drive_command_topic, 10)
         # Planned destination -> we wish to go here, which is the next step on our path to the target
-        self.pub_desired_destination = self.create_publisher(Point2D, planning_destination_topic, 10)
+        self.pub_desired_destination = self.create_publisher(PoseStamped, planning_destination_topic, 10)
 
         # Subscribers
         self.sub_rover_pose = self.create_subscription(RoverPose, rover_pose_topic, self.callback_rover_pose, 10)
@@ -314,7 +313,7 @@ class Controller(Node):
         """
         Stores the latest rover pose message into our State() variable
         """
-        self.get_logger().log("Got rover pose: {}".format(str(msg)), LoggingSeverity.INFO, throttle_duration_sec=1)
+        self.get_logger().debug("Got rover pose: {}".format(str(msg)), throttle_duration_sec=1)
         self.state_rover_pose.x = msg.x
         self.state_rover_pose.y = msg.y
         self.state_rover_pose.yaw = msg.yaw
@@ -331,6 +330,7 @@ class Controller(Node):
                 and two means we are looking for a gate
         """
         # we update the state of AR tag ids so that it can compare AR tags to the ones we care about
+        self.get_logger().debug(f"Received new goal: {msg}")
         self.reset_goals_and_waypoints()
         self.ar_tag_manager.ar_tag_goals = [iD for iD in msg.ids]
         self.state_current_planning_destination = msg.position.x, msg.position.y
@@ -434,7 +434,10 @@ class Controller(Node):
         else:
             self.get_logger().debug("plan() state is {}".format(self.planning_state.state))
 
-        planning_destination = Point2D()
+        planning_destination = PoseStamped()
+        planning_destination.header.stamp = self.get_clock().now().to_msg()
+        planning_destination.header.frame_id = "map"
+        planning_destination.pose.orientation.w = 1.0
         # polymorphism and ~functional~ programming to get the planner for the particular state
 
         self.get_logger().debug(
@@ -444,7 +447,7 @@ class Controller(Node):
             )
         )
         # self.get_logger().info(str(self.planning_state.state) + " | " +  str(self.planners))
-        planning_destination.x, planning_destination.y = self.planners[self.planning_state.state]()
+        planning_destination.pose.position.x, planning_destination.pose.position.y = self.planners[self.planning_state.state]()
 
         # update search array index        
         if self.planning_state.state == PlanningState.SEARCH:
@@ -455,7 +458,7 @@ class Controller(Node):
             if self.near_current_goal():
                 self.search_array_index += 1
 
-        self.state_current_planning_destination = (planning_destination.x, planning_destination.y)
+        self.state_current_planning_destination = (planning_destination.pose.position.x, planning_destination.pose.position.y)
         self.pub_desired_destination.publish(planning_destination)
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Control Loop Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -535,7 +538,7 @@ class Controller(Node):
         drive_cmd_msg.steer = max(-1.0, min(1.0, float(angular_fraction)))
 
         # Print!
-        self.get_logger().info("Driving at speed {:.4f}, steer {:.4f}".format(
+        self.get_logger().debug("Driving at speed {:.4f}, steer {:.4f}".format(
             drive_cmd_msg.speed, drive_cmd_msg.steer
         ), throttle_duration_sec=1)
 

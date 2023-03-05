@@ -70,14 +70,17 @@ sudo apt update && sudo apt install curl gnupg2 lsb-release -y
 curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | sudo apt-key add -
 sudo sh -c 'echo "deb [arch=$(dpkg --print-architecture)] http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" > /etc/apt/sources.list.d/ros2-latest.list'
 sudo apt update -y
-sudo apt install ros-eloquent-desktop -y
-source /opt/ros/eloquent/setup.bash
+sudo apt install ros-foxy-desktop -y
+source /opt/ros/foxy/setup.bash
 sudo apt install -y python3-pip -y
 pip3 install -U argcomplete -y
 sudo apt install -y python-rosdep -y
 sudo rosdep init -y
 rosdep update -y --include-eol-distros --rosdistro=eloquent
 sudo apt install python3-colcon-common-extensions -y
+
+#Installing Rosbag
+sudo apt install -y ros-foxy-ros2bag ros-foxy-rosbag2-converter-default-plugins ros-foxy-rosbag2-storage-default-plugins
 
 # Installing Text Editors
 information "Installing Editors..."
@@ -140,6 +143,7 @@ printf "Please enter your Git User Name: "
 read username
 printf "Please enter your Git Email: "
 read email
+git config --global credential.helper store
 git config --global user.name "$username"
 git config --global user.email "$email"
 
@@ -200,7 +204,7 @@ source ~/nova_ws/src/rover/core/nova.sh
 cd ~/nova_ws
 export CMAKE_PREFIX_PATH=""
 export AMENT_PREFIX_PATH=""
-colcon build
+. ~/nova_ws/src/rover/core/macros/build.sh
 
 # Building the GUI
 cd ~/nova_ws/src/gui/wombatx

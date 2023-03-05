@@ -9,6 +9,7 @@ if(Eigen3_FOUND AND Orocos_kdl_FOUND)
   # Additional message type dependencies
   find_package(sensor_msgs REQUIRED)
   find_package(geometry_msgs REQUIRED)
+  find_package(nav_msgs REQUIRED)
   find_package(std_srvs REQUIRED)
 
   # Additional includes for Eigen adn KDL
@@ -86,6 +87,12 @@ if(Eigen3_FOUND AND Orocos_kdl_FOUND)
   target_include_directories(arm_inputs INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/arm_driver)
   ament_target_dependencies(arm_driver rclcpp core sensor_msgs)
 
+  # Arm rviz publisher
+  add_executable(arm_rviz_publisher arm_rviz_publisher/arm_rviz_publisher.cpp)
+  target_link_libraries(arm_rviz_publisher print)
+  target_include_directories(arm_rviz_publisher INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/arm_rviz_publisher)
+  ament_target_dependencies(arm_rviz_publisher rclcpp core sensor_msgs nav_msgs)
+
   # Resolver Spoofer script
   add_executable(resolver_spoofer resolver_spoofer/resolver_spoofer.cpp)
   target_link_libraries(resolver_spoofer arm_messages arm_config_info_client print)
@@ -103,6 +110,7 @@ if(Eigen3_FOUND AND Orocos_kdl_FOUND)
     arm_twistmapper
     arm_control
     arm_driver
+    arm_rviz_publisher
     resolver_spoofer
     DESTINATION lib/${PROJECT_NAME}
   )
