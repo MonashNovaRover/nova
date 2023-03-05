@@ -91,7 +91,7 @@ ArmTwistMapper::ArmTwistMapper() :
     // Initialise internal variables
 
     // Arm model and required solvers
-    arm_model = new ArmModel(ArmConfig::wrist_type, ArmConfig::end_effector_type);
+    arm_model = new ArmModel(ArmConfig::wrist_type, ArmConfig::end_effector_type, 0);
     arm_kinematics_solver = new ArmKinematics(*arm_model, this->get_logger());
 
     // Arrays in internal data structures

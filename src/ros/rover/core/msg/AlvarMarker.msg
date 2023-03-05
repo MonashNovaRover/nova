@@ -1,4 +1,2 @@
-std_msgs/Header header
-uint32 id
-uint32 confidence
+uint32 tag_id
 geometry_msgs/PoseStamped pose

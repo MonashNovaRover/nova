@@ -20,19 +20,8 @@ Raw data from the depth camera:
 
 
 import numpy as np
-from geometry_msgs.msg import Quaternion
-from nav_msgs.msg import Odometry
-
-
-class Q:
-    """
-    Basic structure for storing quaternions
-    """
-    def __init__(self, x, y, z, w):
-        self.x = x
-        self.y = y
-        self.z = z
-        self.w = w
+from geometry_msgs.msg import Quaternion, Transform, Pose
+from quaternions import Quaternion as MathQuaternion
 
 
 def camera_extrinsics():
@@ -47,7 +36,7 @@ def camera_extrinsics():
     return np.array(m)
 
 
-def quat2mat(q):
+def quat2mat(q: Quaternion):
     """
     This function is adapted from example.h in librealsense
     :param q: q is a Q quaternion with respect to the left handed coordinate system described above
@@ -59,21 +48,13 @@ def quat2mat(q):
      [2 * q.x * q.z - 2 * q.y * q.w, 2 * q.y * q.z + 2 * q.x * q.w, 1 - 2 * q.x * q.x - 2 * q.y * q.y]]
     return np.array(m)
 
-def pose_msg_to_quat(pose_msg):
-    
-    qx = pose_msg.pose.pose.orientation.x
-    qy = pose_msg.pose.pose.orientation.y
-    qz = pose_msg.pose.pose.orientation.z
-    qw = pose_msg.pose.pose.orientation.w
-
-    return Q(qx, qy, qz, qw)
-    
 
 def get_extrinsics(q_mat):
     """
     Given a raw pose message, we want to create one matrix which can transform all the points
     """
     return np.matmul(camera_extrinsics(), q_mat)
+
 
 def transform_euler(euler_angles, pts):
     """
@@ -83,10 +64,10 @@ def transform_euler(euler_angles, pts):
     :returns: transformed points by the given rotations
     """
     
-    qx, qy, qz, qw = euler_to_quat(euler_angles)    
-
-    mat = quat2mat(Q(qx, qy, qz, qw))
     if len(pts) != 0:
+        quat = euler_to_quat(euler_angles)    
+
+        mat = quat2mat(quat)
         pts = np.matmul(mat, pts.transpose()).transpose()
     return pts
 
@@ -94,22 +75,21 @@ def transform_euler(euler_angles, pts):
 def euler_to_quat(euler_angles):
     pitch, roll, yaw = euler_angles[0], euler_angles[1], euler_angles[2]
 
-    qx = np.sin(roll/2) * np.cos(pitch/2) * np.cos(yaw/2) - np.cos(roll/2) * np.sin(pitch/2) * np.sin(yaw/2)
-    qy = np.cos(roll/2) * np.sin(pitch/2) * np.cos(yaw/2) + np.sin(roll/2) * np.cos(pitch/2) * np.sin(yaw/2)
-    qz = np.cos(roll/2) * np.cos(pitch/2) * np.sin(yaw/2) - np.sin(roll/2) * np.sin(pitch/2) * np.cos(yaw/2)
-    qw = np.cos(roll/2) * np.cos(pitch/2) * np.cos(yaw/2) + np.sin(roll/2) * np.sin(pitch/2) * np.sin(yaw/2)
+    quat = Quaternion()
+    quat.x = np.sin(roll/2) * np.cos(pitch/2) * np.cos(yaw/2) - np.cos(roll/2) * np.sin(pitch/2) * np.sin(yaw/2)
+    quat.y = np.cos(roll/2) * np.sin(pitch/2) * np.cos(yaw/2) + np.sin(roll/2) * np.cos(pitch/2) * np.sin(yaw/2)
+    quat.z = np.cos(roll/2) * np.cos(pitch/2) * np.sin(yaw/2) - np.sin(roll/2) * np.sin(pitch/2) * np.cos(yaw/2)
+    quat.w = np.cos(roll/2) * np.cos(pitch/2) * np.cos(yaw/2) + np.sin(roll/2) * np.sin(pitch/2) * np.sin(yaw/2)
 
-    return qx, qy, qz, qw
+    return quat
     
 
-def quat_to_euler(pose_msg):
+def quat_to_euler(q: Quaternion):
     """
     take a pose message, get the quaternion and convert it to Euler angles. Maths shamelessly
     stolen from: 
     https://math.stackexchange.com/questions/2975109/how-to-convert-euler-angles-to-quaternions-and-get-the-same-euler-angles-back-fr
     """
-
-    q = pose_msg_to_quat(pose_msg)
     # getting pitch
     t2 = 2 * (q.w*q.y - q.z*q.x)
     t2 = 1 if t2 > 1 else t2
@@ -126,18 +106,17 @@ def quat_to_euler(pose_msg):
     return pitch, roll, yaw
 
 
-def transform_points(pose_msg: Odometry, pts: np.array) -> np.array:
+def transform_points(transform: Transform, pts: np.array) -> np.array:
     """
     pose_msg: nav_msgs.msg.Odometry message
     pts: numpy array with shape (n, 3)
     """
     if len(pts) != 0:
-        pts = transform_from_quat(pose_msg.pose.pose.orientation, pts)
-    return pts + [pose_msg.pose.pose.position.x, pose_msg.pose.pose.position.y, pose_msg.pose.pose.position.z]
+        pts = transform_from_quat(transform.rotation, pts)
+    return pts + [transform.translation.x, transform.translation.y, transform.translation.z]
 
 
-def transform_from_quat(quat: Quaternion, pts: np.array) -> np.array:
-    q = Q(quat.x, quat.y, quat.z, quat.w)
+def transform_from_quat(q: Quaternion, pts: np.array) -> np.array:
     q_mat = quat2mat(q)
 
     mat = get_extrinsics(q_mat)
@@ -146,21 +125,72 @@ def transform_from_quat(quat: Quaternion, pts: np.array) -> np.array:
     return pts
 
 
-def transform_points_no_yaw(pose_msg, pts):
+def transform_points_no_yaw(transform: Transform, pts):
     """
     Translates points to their x, y and z coordinates assuming that there is no yaw
     """
-    pitch, roll, yaw = quat_to_euler(pose_msg)
+    pitch, roll, yaw = quat_to_euler(transform.rotation)
     if len(pts) == 0:
         return pts
     return transform_euler((pitch, roll, 0), pts)
 
 
-def transform_yaw(pose_msg, pts):
+def transform_yaw(transform: Transform, pts):
     """
     Finishes the above transform by rotating according to the yaw.
     """
-    pitch, roll, yaw = quat_to_euler(pose_msg)
+    pitch, roll, yaw = quat_to_euler(transform.rotation)
     if len(pts) != 0:
         pts = transform_euler((0, 0, yaw), pts)
     return pts
+
+def quaternion_multiply(quat0: Quaternion, quat1: Quaternion) -> Quaternion:
+    """
+    Returns the product of a quaternion multiplication
+    """
+    q0 = MathQuaternion(quat0.w, quat0.x, quat0.y, quat0.z)
+    q1 = MathQuaternion(quat1.w, quat1.x, quat1.y, quat1.z)
+    q = q1 * q0
+    ret_q = Quaternion()
+    ret_q.w, ret_q.x, ret_q.y, ret_q.z = q.real, q.i, q.j, q.k
+    return ret_q
+
+def transform_pose(pose: Pose, transform: Transform) -> Pose:
+    """
+    Transform a pose message according to a transform
+    """
+    return_pose = Pose()
+    pts = np.array([[pose.position.x, pose.position.y, pose.position.z]])
+    new_pts = transform_points(transform=transform, pts=pts).flatten()
+  
+    return_pose.position.x, return_pose.position.y, return_pose.position.z = new_pts[0], new_pts[1], new_pts[2]
+    return_pose.orientation = quaternion_multiply(transform.rotation, pose.orientation)
+
+    return return_pose
+
+
+def offset_transform(transform: Transform, offset: Transform):
+    """
+    Returns the transformation of a fixed pose attached to a transformation
+    :param transform: The transform applied to the coordinate frame
+    :param offset: The offset of the initial frame from the pose being transformed
+    :returns: The offset transform undergone by the point to arrive at its final position
+    NOTE: Currently only works if the offset has no rotation
+    TODO: combine offset and transform quaternions to allow rotated offsets
+    """
+    transformed = Transform()
+    # rotation is the same in all frames
+    transformed.rotation = transform.rotation
+
+    # transform to offset frame
+    external_point = -np.array([offset.translation.x, offset.translation.y, offset.translation.z])
+
+    # do transform
+    transformed_point = transform_points(transform, external_point).flatten()
+
+    # undo transformed offset to get back to original frame
+    transformed.translation.x, transformed.translation.y, transformed.translation.z = transformed_point - external_point
+
+    return transformed
+
+    

@@ -192,11 +192,8 @@ std::tuple<py::array_t<uint8_t>, int> getObstacles(PointCloud& points, std::size
         if (x >= 0 && y >= 0 && x < (int)XS && y < (int)YS) {
             uint8_t z = pc[i + 2] + MAP_ZERO; 
             if (z > heightMap.at<uint8_t>(x, y)) heightMap.at<uint8_t>(x, y) = (unsigned char) z;
-        } else {
-            std::cout << "Plane Mapper received invalid index - Don't worry it's probably fine" << std::endl;
-            std::cout << "x = " << x << ", y = " << y << std::endl;
-        }
-    }
+        } 
+	}
 
     // size of the map of planes with scaled down resolution
     std::size_t xs = XS/resolution_ratio, ys = YS/resolution_ratio;

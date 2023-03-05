@@ -88,11 +88,17 @@ class ArmModel : public KDL::Tree
     // Prepare global control coefficients for a PI controller
     const ArmSubModule::ControlCoeffs GLOBAL_CONTROL;
 
+    // Whether to initilaise the CAN sockets in motor drivers
+    bool can_init;
+
     /// @brief  Constructor. Builds the arm with the given wrist and end effector.
     ///         Builds the arm out of submodules, with separate modules for the lower joints, wrist and end effector.
     ///         Different modules can be swapped out for another of the same type (eg: swap wrists)
     ///         Each module represents a physical assembly that can be attached or detached to/from the arm.
     ///         Each module is based on a KDL::Tree, and defines its own joints, segments, endpoints (cameras and end effectors), joint limits, etc.
     ///         Each also includes a output 'hook' for attaching the next module to or for defining the arm default endpoint (end effector)
-    ArmModel(const ArmConfig::WristType wrist_type, const ArmConfig::EndEffectorType end_effector_type);
+    /// @param  wrist_type - The type of wrist to attach to the arm
+    /// @param  end_effector_type - The type of end effector to attach to the arm
+    /// @param  can_init - Whether to open the CAN sockets on the motor drivers or not
+    ArmModel(const ArmConfig::WristType wrist_type, const ArmConfig::EndEffectorType end_effector_type, bool can_init=1);
 };

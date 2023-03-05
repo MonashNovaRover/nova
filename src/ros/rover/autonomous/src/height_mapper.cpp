@@ -73,11 +73,8 @@ std::tuple<py::array_t<unsigned char>, int> getObstacles(PointCloud& points, con
             if (z > topHeightMap.at<unsigned char> (x, y)) topHeightMap.at<unsigned char> (x, y) = (unsigned char) z;
             if (z < bottomHeightMap.at<unsigned char> (x, y)) bottomHeightMap.at<unsigned char> (x, y) = (unsigned char) z;
 	    min_x = (x < min_x) ? x : min_x;
-        } else {
-            std::cout << "Height Mapper received invalid index - Don't panic it's probably fine" << std::endl;
-            std::cout << "x = " << x << ", y = " << y << std::endl;
-        }
-    }
+        } 
+	}
     //blurring the top height map so we can compare the heights of adjacent points
     topHeightMap = cv::max(topHeightMap, shift(topHeightMap, -1, 0, c_neg_inf));
     topHeightMap = cv::max(topHeightMap, shift(topHeightMap, 1, 0, c_neg_inf));
