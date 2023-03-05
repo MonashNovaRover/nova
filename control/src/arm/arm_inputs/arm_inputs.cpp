@@ -236,7 +236,7 @@ void ArmInputs::publish_control_scheme()
 
     // Control schemes
     // Flat frame control
-    control_scheme.flat_frame_linear = joystick_l.btn_thumd_d_state == 2; 
+    control_scheme.flat_frame_linear = joystick_l.btn_thumb_d_state == 2; 
     control_scheme.flat_frame_angular = joystick_r.btn_thumb_d_state == 2;
     // Endpoint frame control. Hold trigger
     // Also set if flat frame control is used
