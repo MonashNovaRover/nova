@@ -65,9 +65,9 @@ class WristCycloidalModel : public ArmSubModule
         };
         double scaling_factor = CMD::get_scaling_factor(GEARBOX_REDUCTION, ENCODER_PPR, VELOCITY_FACTOR, CLOCK_FREQUENCY);
         drivers = std::vector<CMD*> {
-            new CMD(1, 4, PID, 0, STOP, scaling_factor, can_init),
-            new CMD(1, 5, PID, 0, STOP, scaling_factor, can_init),
-            new CMD(1, 6, PID, 0, STOP, scaling_factor, can_init)
+            new CMD(1, 4, PID, 1, STOP, scaling_factor, can_init),
+            new CMD(1, 5, PID, 1, STOP, scaling_factor, can_init),
+            new CMD(1, 6, PID, 1, STOP, scaling_factor, can_init)
         };
 
         // Build the cycloidal wrist
