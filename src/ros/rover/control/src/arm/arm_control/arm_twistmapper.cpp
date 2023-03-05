@@ -200,8 +200,8 @@ inline KDL::Twist ArmTwistMapper::get_control_twist(const KDL::Twist& joystick_t
         KDL::Rotation endpoint_coord_transform_angular = endpoint_coord_transform_linear;
         
         // Adjust pitch for flat frame control scheme
-        float unit_y = endpoint_coord_transform_linear.UnitY();
-        float unit_z = endpoint_coord_transform_linear.UnitZ();
+        KDL::Vector unit_y = endpoint_coord_transform_linear.UnitY();
+        KDL::Vector unit_z = endpoint_coord_transform_linear.UnitZ();
 
         float direction = ((unit_z.z() > 0) ? -1 : 1); 
         float angle = acos(KDL::dot(unit_y, KDL::Vector::Vector(0,0,-1)));
