@@ -19,7 +19,7 @@ using std::placeholders::_1;
 
 
 // Receives input from left joystick
-void ScraperInputs::joystick_l_callback (const core::msg::InputJoystick::SharedPtr msg)
+void ExcavationConstructionInputs::joystick_l_callback (const core::msg::InputJoystick::SharedPtr msg)
 {
     // Save data for later, only deal with it when we publish
     // More efficient, works if we only care about the most up-to-date message
@@ -47,10 +47,32 @@ void ScraperInputs::joystick_l_callback (const core::msg::InputJoystick::SharedP
         publish_control_scheme();
     }
 
+    if (joystick_l.btn_thumb_l_state == 1) {
+        if (!control_scheme.tile_placer_mode)
+            Print::print("Tile Placer Mode On");
+        control_scheme.joystick_lock = true;
+        control_scheme_update = true;
+    }
+    if (joystick_l.btn_thumb_l_state == 1){
+        if (control_scheme.tile_placer_modes)
+            Print::print("Tile Placer Mode Off");
+        control_scheme.joystick_lock = false;
+        control_scheme_update = true;
+    }
+#endif
+    // Immediately publish any new control scheme data
+    // Also will continue to publish when the timer expires
+    if (control_scheme_update){
+        publish_control_scheme();
+    } 
+    btn_thumb_l_state
+
 }
 
+
+
 // Receives input from right joystick
-void ArmInputs::joystick_r_callback (const core::msg::InputJoystick::SharedPtr msg)
+void ExcavationConstructionInputs::joystick_r_callback (const core::msg::InputJoystick::SharedPtr msg)
 {
     // Save data for later, only deal with it when we publish
     // More efficient, works if we only care about the most up-to-date message    
@@ -58,7 +80,7 @@ void ArmInputs::joystick_r_callback (const core::msg::InputJoystick::SharedPtr m
 }
 
 // Resets joystick internal state
-void ScraperInputs::joystick_deadline_callback()
+void ExcavationConstructionInputs::joystick_deadline_callback()
 {
     RCLCPP_WARN(this->get_logger(), "Joystick subscriber deadline missed");
     joystick_l = core::msg::InputJoystick();
@@ -66,7 +88,7 @@ void ScraperInputs::joystick_deadline_callback()
 }
 
 // Publishes data on the arm input
-void ScraperInputs::publish_endeffector_inputs ()
+void ExcavationConstructionInputs::publish_endeffector_inputs ()
 {
     // Create a new message
     auto message = core::msg::EndEffectorInput();
@@ -82,7 +104,7 @@ void ScraperInputs::publish_endeffector_inputs ()
 }
 
 // Publishes joint velocity data
-void ArmInputs::publish_scraper_arm_velocity ()
+void ExcavationConstructionInputs::publish_scraper_arm_velocity ()
 {
     // Get the speed from slider, apply scaling
     float speed = scale_speed(joystick_r.ax_slider);
@@ -104,7 +126,7 @@ void ArmInputs::publish_scraper_arm_velocity ()
 }
 
 // Publishes joint velocity data
-void ArmInputs::publish_scraper_scoop_velocity ()
+void ExcavationConstructionInputs::publish_scraper_scoop_velocity ()
 {
     // Get the speed from slider, apply scaling
     float speed = scale_speed(joystick_r.ax_slider);
@@ -125,7 +147,29 @@ void ArmInputs::publish_scraper_scoop_velocity ()
     scraper_scoop_velocity_pub->publish(scraper_scoop_velocity);
 }
 
-float ScraperInputs::calculate_direction (float value){
+// Publishes joint velocity data
+void ExcavationConstructionInputs::publish_tile_placer_velocity ()
+{
+    // Get the speed from slider, apply scaling
+    float speed = scale_speed(joystick_r.ax_slider);
+    
+    // If using lower joints joint-space control
+    if (!control_scheme.joystick_lock) {        
+        
+        // Scraper arm is stick x (forward-backward). Forward pitches scraper arm down
+        scraper_scoop_velocity = speed * -joystick_r.ax_stick_x;
+    }
+    else{
+        scraper_scoop_velocity = 0;
+    }
+
+    // Set the header
+    joint_velocities.header.stamp = this->now();
+    // Publish the joint space velocities
+    scraper_scoop_velocity_pub->publish(scraper_scoop_velocity);
+}
+
+float ExcavationConstructionInputs::calculate_direction (float value){
     if (value > 0){
         return 1.0;
     }
@@ -138,20 +182,21 @@ float ScraperInputs::calculate_direction (float value){
 }
 
 
-float ScraperInputs::scale_speed (float value){
+float ExcavationConstructionInputs::scale_speed (float value){
     // Max scale factor 1.00, min scale factor 0.05
     return (value * 0.95) + 0.05;
 }
 
 // Publishes control data
-void ArmInputs::publish_inputs()
+void ExcavationConstructionInputs::publish_inputs()
 {
+    publish_tile_placer_velocity();
     publish_scraper_arm_velocity();
     publish_scraper_scoop_velocity();
 }
 
 // Publishes control scheme data
-void ArmInputs::publish_control_scheme()
+void ExcavationConstructionInputs::publish_control_scheme()
 {   
     // Buttons are handled separately
     
@@ -188,7 +233,7 @@ void ArmInputs::publish_control_scheme()
 }
 
 
-void ArmInputs::start_node()
+void ExcavationConstructionInputs::start_node()
 {
     // Create common options for joystick subscriptions
     rclcpp::SubscriptionOptionsWithAllocator<std::allocator<void>> joystick_options;
@@ -201,7 +246,7 @@ void ArmInputs::start_node()
     joystick_l_sub = this->create_subscription<core::msg::InputJoystick>(
         "/control/input_joystick_l",
         joystick_qos,
-        std::bind(&ArmInputs::joystick_l_callback, this, _1),
+        std::bind(&ExcavationConstructionInputs::joystick_l_callback, this, _1),
         joystick_options
     );
 
@@ -209,13 +254,13 @@ void ArmInputs::start_node()
     joystick_r_sub = this->create_subscription<core::msg::InputJoystick>(
         "/control/input_joystick_r",
         joystick_qos,
-        std::bind(&ArmInputs::joystick_r_callback, this, _1),
+        std::bind(&ExcavationConstructionInputs::joystick_r_callback, this, _1),
         joystick_options
     );
 
     // Create timer and publisher for endeffector_inputs
     endeffector_pub_timer = this->create_wall_timer(
-        ROSTimers::arm_control, std::bind(&ArmInputs::publish_endeffector_inputs, this)
+        ROSTimers::arm_control, std::bind(&ExcavationConstructionInputs::publish_endeffector_inputs, this)
     );
     endeffector_pub = this->create_publisher<core::msg::EndEffectorInput>(
         "/control/endeffector_input", rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline)
@@ -223,7 +268,7 @@ void ArmInputs::start_node()
 
     // Create timer and publisher for joystick_joint_velocities and joystick_twist
     inputs_pub_timer = this->create_wall_timer(
-        ROSTimers::arm_control, std::bind(&ArmInputs::publish_inputs, this)
+        ROSTimers::arm_control, std::bind(&ExcavationConstructionInputs::publish_inputs, this)
     );
     joint_velocities_pub = this->create_publisher<sensor_msgs::msg::JointState>(
         "/control/joystick_joint_velocities", rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline)
@@ -234,14 +279,14 @@ void ArmInputs::start_node()
 
     // Create timer and publisher for control_scheme
     control_scheme_pub_timer = this->create_wall_timer(
-        ROSTimers::arm_control, std::bind(&ArmInputs::publish_control_scheme, this)
+        ROSTimers::arm_control, std::bind(&ExcavationConstructionInputs::publish_control_scheme, this)
     );    
-    control_scheme_pub = this->create_publisher<core::msg::ArmControlScheme>(
+    control_scheme_pub = this->create_publisher<core::msg::ExcavationConstructionControlScheme>(
         "/control/arm_control_scheme", 10
     );
 
     // Initialise arrays in internal data structures
-    joint_velocities = ArmMessages::get_empty_joint_state(arm_config_info.joint_names_6dof);
+    joint_velocities = ExcavationConstructionMessages::get_empty_joint_state(arm_config_info.joint_names_6dof);
     
     // Publish the control scheme to initialise other nodes
     // Uses the default field values
@@ -256,7 +301,7 @@ void ArmInputs::start_node()
     Print::print("/control/endeffector_input           [core/EndEffectorInput]", 1);
     Print::print("/control/joystick_joint_velocities   [sensor_msgs/JointState]", 1);
     Print::print("/control/joystick_twist              [sensor_msgs/TwistStamped]", 1);
-    Print::print("/control/arm_control_scheme          [core/ArmControlScheme]", 1);
+    Print::print("/control/arm_control_scheme          [core/ExcavationConstructionControlScheme]", 1);
     Print::print("", true);
 }
 
@@ -268,7 +313,7 @@ int main(int argc, char **argv)
     rclcpp::init(argc, argv);
 
     // Runs the Publisher class
-    rclcpp::spin(std::make_shared<ScraperInputs>());
+    rclcpp::spin(std::make_shared<ExcavationConstructionInputs>());
 
     // Shutsdown ROS once complete
     rclcpp::shutdown();
