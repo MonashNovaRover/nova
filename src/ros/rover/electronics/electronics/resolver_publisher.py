@@ -31,6 +31,7 @@ from core.srv import ArmConfigInfo, StringTrigger
 
 from coms_utils.can_interface import CANTransceiver
 from math import pi
+from struct import calcsize
 import time
 
 
@@ -147,6 +148,9 @@ class ResolverTransceiver(CANTransceiver):
         can_msg = transceiver.receive()
         if can_msg is None:
             transceiver.logger.error(f'CAN read timeout for joint {joint_name}')
+            return None
+        if len(can_msg.data) != calcsize(transceiver.receive_fmt):
+            transceiver.logger.warn(f'Got a message of the wrong length for joint {joint_name}')
             return None
         received_id, flags, integer_data = transceiver.unpack(can_msg.data)
         # Verify the returned message
