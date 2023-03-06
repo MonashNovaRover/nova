@@ -137,7 +137,7 @@ void BLCMD::set_stop_mode (BLCMDSendCommand stop_mode)
 void BLCMD::drive (float value)
 {
 
-    // If the motor has already been stopped do not send more stop commands
+//   //  If the motor has already been stopped do not send more stop commands
 //   if (value == 0.0 && drive_mode != DRIVE_POSITION) {
 //       if (already_stopped) {
 //           return;
@@ -151,39 +151,23 @@ void BLCMD::drive (float value)
     // If the BLCMD is in position mode, scale the input value to radians
     if (drive_mode == DRIVE_POSITION){
         // map (-π,π) → (-1,1)
-        value = value / M_PI_2;
-
-        if (direction) {
-            value *= -1;
-        }
-
-        if (value > 1) {
-            value = 1;
-        }
-        else if (value < -1){
-            value = -1;
-        }
+        value = value / position_factor;
     }
     else {
-
-        //TODO: prevent multiple sends
-
-        // Scale physical velocity to an equivalent BLCMD command, which is the fraction of the BLCMDs max speed
         if (scaling_factor != 1) {
             value *= scaling_factor;
         }
+    }
 
-        // Flip output direction if needed
-        if (direction) {
-            value *= -1;
-        }
+    if (direction) {
+        value *= -1;
+    }
 
-        if (value > 0.35) {
-            value = 0.35;
-        }
-        else if (value < -0.35){
-            value = -0.35;
-        }
+    if (value > 1) {
+        value = 1;
+    }
+    else if (value < -1){
+        value = -1;
     }
 
     // Saturate the input velocity if it is out of range
@@ -244,8 +228,8 @@ void BLCMD::packet2_callback(org::jcan::Frame frame) {
 }
 
 void BLCMD::packet3_callback(org::jcan::Frame frame) {
-    this->telemetry.resolver_position = int16_bytes_to_double(&frame.data[0]) * max_position;
-    this->telemetry.resolver_velocity = int16_bytes_to_double(&frame.data[2]) * max_velocity;
+    this->telemetry.resolver_position = int16_bytes_to_double(&frame.data[0]) * position_factor;
+    this->telemetry.resolver_velocity = int16_bytes_to_double(&frame.data[2]) * velocity_factor;
 }
 
 void BLCMD::packet4_callback(org::jcan::Frame frame) {
