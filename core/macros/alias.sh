@@ -21,6 +21,7 @@ alias wifi='. ~/nova_ws/src/rover/core/macros/wifi.sh'       # Allows easy conne
 
 # Directory Aliases
 alias nova='cd ~/nova_ws'
+alias rover='cd ~/nova_ws/src/rover'
 alias core='cd ~/nova_ws/src/rover/core'
 alias control='cd ~/nova_ws/src/rover/control'
 alias electronics='cd ~/nova_ws/src/rover/electronics'
@@ -60,13 +61,13 @@ alias platypus=wombat
 
 # Launching Aliases
 alias base='ros2 launch core base.launch.py'
-alias rover='ros2 launch core rover.launch.py'
+alias drive='ros2 launch core drive.launch.py'
 alias arm='ros2 launch core arm.launch.py'
 alias arm_spoof='ros2 launch core arm_spoof.launch.py'
 alias sci='ros2 launch core science.launch.py'
 alias unity='ros2 launch core visualisation.launch.py'
 alias auto_base='ros2 launch core auto_base.launch.py'
-alias auto_rover='ros2 launch core auto_rover.launch.py'
+alias auto_drive='ros2 launch core auto_drive.launch.py'
 
 # Service Aliases
 alias arm_config_info='ros2 service call control/arm_config_info core/srv/ArmConfigInfo'
