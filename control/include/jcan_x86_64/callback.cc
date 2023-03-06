@@ -25,12 +25,16 @@ namespace org::jcan
       this->jBus->set_id_filter(rust_vec);
    }
 
+   void Bus::set_id_filter_mask(uint32_t allowed, uint32_t allowed_mask) {
+      this->jBus->set_id_filter_mask(allowed, allowed_mask);
+   }
+
    void Bus::send(Frame frame) {
       this->jBus->send(frame);
    }
 
-   void Bus::receive() {
-      this->jBus->receive();
+   Frame Bus::receive() {
+      return this->jBus->receive();
    }
 
    std::vector<Frame> Bus::receive_from_thread_buffer() {

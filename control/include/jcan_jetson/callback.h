@@ -31,9 +31,10 @@ public:
   void open(const char *name);
   
   void set_id_filter(std::vector<uint32_t> allowed_ids);
+  void set_id_filter_mask(uint32_t allowed, uint32_t mask);
 
   void send(Frame frame);
-  void receive();
+  Frame receive();
 
   std::vector<Frame> receive_from_thread_buffer();
 

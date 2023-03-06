@@ -970,7 +970,7 @@ struct Frame final {
 #define CXXBRIDGE1_STRUCT_org$jcan$JBus
 struct JBus final : public ::rust::Opaque {
   void set_id_filter(::rust::Vec<::std::uint32_t> allowed);
-  void set_id_filter_mask(::std::uint32_t id, ::std::uint32_t mask);
+  void set_id_filter_mask(::std::uint32_t allowed, ::std::uint32_t allowed_mask);
   void open(::rust::String interface);
   bool is_open() const noexcept;
   ::rust::Vec<::org::jcan::Frame> receive_from_thread_buffer();
@@ -995,7 +995,7 @@ extern "C" {
 
 ::rust::repr::PtrLen org$jcan$cxxbridge1$JBus$set_id_filter(::org::jcan::JBus &self, ::rust::Vec<::std::uint32_t> *allowed) noexcept;
 
-::rust::repr::PtrLen org$jcan$cxxbridge1$JBus$set_id_filter_mask(::org::jcan::JBus &self, ::std::uint32_t id, ::std::uint32_t mask) noexcept;
+::rust::repr::PtrLen org$jcan$cxxbridge1$JBus$set_id_filter_mask(::org::jcan::JBus &self, ::std::uint32_t allowed, ::std::uint32_t allowed_mask) noexcept;
 
 ::rust::repr::PtrLen org$jcan$cxxbridge1$JBus$open(::org::jcan::JBus &self, ::rust::String *interface) noexcept;
 
@@ -1045,8 +1045,8 @@ void JBus::set_id_filter(::rust::Vec<::std::uint32_t> allowed) {
   }
 }
 
-void JBus::set_id_filter_mask(::std::uint32_t id, ::std::uint32_t mask) {
-  ::rust::repr::PtrLen error$ = org$jcan$cxxbridge1$JBus$set_id_filter_mask(*this, id, mask);
+void JBus::set_id_filter_mask(::std::uint32_t allowed, ::std::uint32_t allowed_mask) {
+  ::rust::repr::PtrLen error$ = org$jcan$cxxbridge1$JBus$set_id_filter_mask(*this, allowed, allowed_mask);
   if (error$.ptr) {
     throw ::rust::impl<::rust::Error>::error(error$);
   }
