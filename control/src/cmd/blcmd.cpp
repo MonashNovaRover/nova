@@ -13,6 +13,8 @@ AUTHOR(S):	Harrison Verrios, Josh Cherubino, Jory Braun, Taaj Street
 #define _USE_MATH_DEFINES
 #include <cmath>
 
+using namespace org::jcan;
+
 std::ostream& operator << (std::ostream& o, BLCMDTelemetry& tel) {
     o << "Rotor Velocity    : " << tel.rotor_velocity << std::endl <<
       "Q Current         : " << tel.q_current << std::endl <<
@@ -26,7 +28,7 @@ std::ostream& operator << (std::ostream& o, BLCMDTelemetry& tel) {
     return o;
 }
 
-BLCMD::BLCMD (std::string bus, const int id, BLCMDSendCommand drive_mode, const bool direction, BLCMDSendCommand stop_mode, double scaling_factor) :
+BLCMD::BLCMD (const std::string bus, const int id, BLCMDSendCommand drive_mode, const bool direction, BLCMDSendCommand stop_mode, double scaling_factor) :
     bus(bus), id(id), drive_mode(drive_mode), direction(direction), stop_mode(stop_mode), scaling_factor(scaling_factor), already_stopped(false)
 {    
     // Set max speed
@@ -149,11 +151,11 @@ void BLCMD::drive (float value)
     // If the BLCMD is in position mode, scale the input value to radians
     if (drive_mode == DRIVE_POSITION){
         // map (-π,π) → (-1,1)
-        if (telemetry.resolver_position >= (value + pos_threshold) && telemetry.resolver_position <= (value - pos_threshold)) {
-            return;
-        }
+        value = value / M_PI_2;
 
-        value = value / M_PI;
+        if (direction) {
+            value *= -1;
+        }
 
         if (value > 1) {
             value = 1;
@@ -176,11 +178,11 @@ void BLCMD::drive (float value)
             value *= -1;
         }
 
-        if (value > 0.5) {
-            value = 0.5;
+        if (value > 0.35) {
+            value = 0.35;
         }
-        else if (value < -0.5){
-            value = -0.5;
+        else if (value < -0.35){
+            value = -0.35;
         }
     }
 
