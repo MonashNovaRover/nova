@@ -128,7 +128,7 @@ float Driver::get_turning_radius(float steer)
 
 void Driver::fill_wheel_angles_radial(float radius, float steer)
 {
-    // gradient of line https://www.desmos.com/calculator/opj8exj9gp
+    // gradient of line https://www.desmos.com/calculator/opj8exj9gps
     double sign = steer > 0 ? 1.0 : -1.0;
 
     // Front left angle
@@ -278,7 +278,7 @@ Driver::Driver() : Node("driver")
     // Creates auto mode timer and associated publisher
     mode_timer = this->create_wall_timer(ROSTimers::auto_mode, std::bind(&Driver::pub_auto_mode, this));
 
-    //telemetry_timer = this->create_wall_timer(ROSTimers::blcmds_telemetry, std::bind(&Driver::pub_telemetry, this));
+    telemetry_timer = this->create_wall_timer(ROSTimers::blcmds_telemetry, std::bind(&Driver::pub_telemetry, this));
 
     //Create blcmd spin timer
 
@@ -287,7 +287,7 @@ Driver::Driver() : Node("driver")
     mode_pub = this->create_publisher<std_msgs::msg::Bool>(
         "/autonomous/mode", 10);
 
-    //telemetry_pub = this->create_publisher<core::msg::Telemetry>("/control/telemetry", 10);
+    telemetry_pub = this->create_publisher<core::msg::Telemetry>("/control/telemetry", 10);
 
     pivot_wheel_pub = this->create_publisher<core::msg::PivotWheelData>("/control/pivot_wheel", 10);
 
