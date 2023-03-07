@@ -27,7 +27,7 @@ std::ostream& operator << (std::ostream& o, BLCMDTelemetry& tel) {
       "Temperature       : " << tel.temp << std::endl;
     return o;
 }
-using namespace org::jcan;
+
 BLCMD::BLCMD (const std::string bus, const int id, BLCMDSendCommand drive_mode, const bool direction, BLCMDSendCommand stop_mode, double scaling_factor) :
     bus(bus), id(id), drive_mode(drive_mode), direction(direction), stop_mode(stop_mode), scaling_factor(scaling_factor), already_stopped(false)
 {    
@@ -39,9 +39,7 @@ BLCMD::BLCMD (const std::string bus, const int id, BLCMDSendCommand drive_mode, 
     // Set up the CAN interface with the correct bus
     //TODO: Proper error handling
     can_bus = org::jcan::open_bus(bus).into_raw();
-
-    std::cout << "BLCMD: " << id << " initialised" << std::endl;
-
+    std::cout << "BLCMD Initialised with id:" << id << ", with drive mode: "  << (drive_mode == DRIVE_VELOCITY ? "DRIVE_VELOCITY" : "DRIVE_POSITION") << std::endl;
 }
 
 
@@ -140,6 +138,17 @@ void BLCMD::drive (float value)
     if (drive_mode == DRIVE_POSITION){
         // map (-π,π) → (-1,1)
         value = value / M_PI_2;
+
+        if (direction) {
+            value *= -1;
+        }
+
+        if (value > 1) {
+            value = 1;
+        }
+        else if (value < -1){
+            value = -1;
+        }
     }
     else {
 
@@ -154,16 +163,17 @@ void BLCMD::drive (float value)
         if (direction) {
             value *= -1;
         }
+
+        if (value > 0.35) {
+            value = 0.35;
+        }
+        else if (value < -0.35){
+            value = -0.35;
+        }
     }
 
     // Saturate the input velocity if it is out of range
 
-    if (value > 0.3) {
-        value = 0.3;
-    }
-    else if (value < -0.3){
-        value = -0.3;
-    }
 
     // Create a new CAN frame
     Frame frame;
@@ -212,8 +222,6 @@ bool BLCMD::get_telemetry_packet (std::vector<TelemetryPacket> packet_nums, BLCM
     return false;
 }
 
-
-
 std::vector<bool> BLCMD::get_telemetry(BLCMDTelemetry* telemetry, std::chrono::milliseconds timeout)
 {
     // Set the CAN bus to listen for all the packets
@@ -225,7 +233,8 @@ std::vector<bool> BLCMD::get_telemetry(BLCMDTelemetry* telemetry, std::chrono::m
     // Initialize a vector of booleans to keep track of which packets have been recieved
     std::vector<bool> received(4, false);
 
-    while (std::chrono::steady_clock::now() < end){
+    while (std::chrono::steady_clock::now() < end &&
+    !std::accumulate(received.begin(), received.end(), false, std::logical_or<bool>())){
         auto frames = can_bus->receive_nonblocking();
         for (auto frame : frames){
             uint16_t packet = frame.id & 0x000F;
