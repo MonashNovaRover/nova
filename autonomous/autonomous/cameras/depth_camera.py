@@ -12,10 +12,10 @@ import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Header
 from sensor_msgs.msg import PointCloud2, Image
-from visualization_msgs.msg import ImageMarker
+from rs2_ros2 import rs2_verts_to_buffer
+from autonomous.cameras.pc_converter import get_fields_xyz32
 
 from autonomous.cameras.ar_tracker import ArTracker
-from autonomous.cameras.pc_converter import create_cloud_xyz32, get_fields_xyz32
 from cv_bridge import CvBridge
 from autonomous.config.runtime_params import active_depth_camera
 
@@ -124,6 +124,10 @@ class DepthCamera(Node):
         """
         Callback that converts depth frame into a pointcloud and publishes it
         """
+        header = Header()
+        header.stamp = self.get_clock().now().to_msg()
+        header.frame_id = self.depth_frame_id
+
         # Scale down depth frame
         if self.depth_frame is None:
             return
@@ -147,7 +151,8 @@ class DepthCamera(Node):
         verts = verts[~(verts[:, 2] > 4.5)]
         t6 = time.perf_counter()
 
-        pointcloud_msg = self.get_pc_msg(verts)
+        pointcloud_msg = self.get_pc_message(verts, header)
+        print(pointcloud_msg)
         t7 = time.perf_counter()
         self.cloud_publisher.publish(pointcloud_msg)
         t8 = time.perf_counter()
@@ -166,27 +171,18 @@ class DepthCamera(Node):
         elif len(verts) == 0:
             self.get_logger().error(f"Depth camera point cloud contained no points")
 
-    def get_pc_msg(self, verts):
-        header = Header(
-            stamp = self.latest_frame_stamp,
-            frame_id = self.depth_frame_id
-        )
-
-        pointcloud_msg = PointCloud2()
-        pointcloud_msg.header = header
-        pointcloud_msg.height = 1
-        pointcloud_msg.width = len(verts)
-        pointcloud_msg.is_bigendian = False
-        pointcloud_msg.point_step = 12
-        pointcloud_msg.row_step = 12 * len(verts)
-        pointcloud_msg.is_dense = False
-
-        t0 = time.perf_counter()
-        pointcloud_msg.data = verts.tobytes()
-        t1 = time.perf_counter()
-        self.get_logger().debug(f"Converting numpy array to bytes took {t1 - t0} s")
-        pointcloud_msg.fields = get_fields_xyz32()
-        return pointcloud_msg
+    def get_pc_message(self, verts: np.ndarray, header: Header) -> PointCloud2:
+        pc_msg = PointCloud2()
+        pc_msg.header = header
+        pc_msg.height = 1
+        pc_msg.width = len(verts)
+        pc_msg.is_dense = False
+        pc_msg.is_bigendian = False
+        pc_msg.point_step = 12
+        pc_msg.row_step = pc_msg.point_step * pc_msg.width
+        pc_msg.fields = get_fields_xyz32()
+        pc_msg.data = rs2_verts_to_buffer(verts)
+        return pc_msg
 
     #def pub_colour(self):
     #    pass

@@ -8,63 +8,46 @@
  * Edited: 07/03/2023
 */
 
+#include "rclcpp/rclcpp.hpp"
+#include "builtin_interfaces/msg/time.hpp"
 #include "sensor_msgs/msg/point_cloud2.hpp"
 #include "std_msgs/msg/header.hpp"
 #include <librealsense2/rs.hpp>
 #include <string.h>
+#include <vector>
 #include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
+#include <pybind11/numpy.h>
 
 
 namespace py = pybind11;
 
-sensor_msgs::msg::PointCloud2 rs2PointCloudToRos2PointCloud2(const rs2::points& points, const std_msgs::msg::Header& header)
+std::vector<uint8_t> rs2VertsToBufferArray(const std::vector<std::vector<float>>& verts)
 {
-    sensor_msgs::msg::PointCloud2 ros2_pointcloud;
-    ros2_pointcloud.header = header;
-    ros2_pointcloud.height = 1;
-    ros2_pointcloud.width = points.size();
-    ros2_pointcloud.is_dense = true;
-    ros2_pointcloud.is_bigendian = false;
-    ros2_pointcloud.point_step = 12;
-    ros2_pointcloud.row_step = ros2_pointcloud.point_step * ros2_pointcloud.width;
+    // There are 4 bytes in a float32 and 1 byte in a uint8
+    const size_t UINT8_PER_FLOAT32 = 4;
+    std::vector<uint8_t> data(UINT8_PER_FLOAT32 * verts.size() * 3, 0);
+    uint8_t* data_ptr = data.data();
 
-    ros2_pointcloud.fields.resize(4);
-    ros2_pointcloud.fields[0].name = "x";
-    ros2_pointcloud.fields[0].offset = 0;
-    ros2_pointcloud.fields[0].datatype = sensor_msgs::msg::PointField::FLOAT32;
-    ros2_pointcloud.fields[0].count = 1;
-    ros2_pointcloud.fields[1].name = "y";
-    ros2_pointcloud.fields[1].offset = sizeof(float);
-    ros2_pointcloud.fields[1].datatype = sensor_msgs::msg::PointField::FLOAT32;
-    ros2_pointcloud.fields[1].count = 1;
-    ros2_pointcloud.fields[2].name = "z";
-    ros2_pointcloud.fields[2].offset = sizeof(float) * 2;
-    ros2_pointcloud.fields[2].datatype = sensor_msgs::msg::PointField::FLOAT32;
-    ros2_pointcloud.fields[2].count = 1;
-
-    ros2_pointcloud.data.resize(ros2_pointcloud.row_step * ros2_pointcloud.height);
-    uint8_t* data_ptr = ros2_pointcloud.data.data();
-
-    for (int i = 0; i < points.size(); ++i)
+    for (size_t i = 0; i < verts.size(); ++i)
     {
-        const rs2::vertex& point = points.get_vertices()[i];
+        const std::vector<float> point = verts[i];
 
-        memcpy(data_ptr, &point.x, sizeof(float));
+        memcpy(data_ptr, &point[0], sizeof(float));
         data_ptr += sizeof(float);
 
-        memcpy(data_ptr, &point.y, sizeof(float));
+        memcpy(data_ptr, &point[1], sizeof(float));
         data_ptr += sizeof(float);
 
-        memcpy(data_ptr, &point.z, sizeof(float));
+        memcpy(data_ptr, &point[2], sizeof(float));
         data_ptr += sizeof(float);
     }
 
-    return ros2_pointcloud;
+    return data;
 }
-
 
 PYBIND11_MODULE(rs2_ros2, m) {
     m.doc() = "Realsense2 to ROS2 PointCloud2 conversion";
 
-    m.def("rs2_to_ros2_cloud", &rs2PointCloudToRos2PointCloud2, "Convert a RealSense2 PointCloud to a ROS2 PointCloud2 message"); 
+    m.def("rs2_verts_to_buffer", &rs2VertsToBufferArray, "Convert RealSense2 PointCloud vertices to a data buffer of uint8s"); 
 }
