@@ -20,28 +20,28 @@ find_package(rclpy REQUIRED)
 find_package(core REQUIRED)
 # Needed for jcan
 find_package (Threads REQUIRED)
-# Add include directories for all targets
+
 # Find system architecture to build with correct jcan version
 EXECUTE_PROCESS( COMMAND uname -m COMMAND tr -d '\n' OUTPUT_VARIABLE ARCHITECTURE )
 
 if( ${ARCHITECTURE} STREQUAL "x86_64" )
-  set(JCAN_CPP ${CMAKE_SOURCE_DIR}/include/jcan_x86_64/jcan.cc)
-  set(JCAN_LIB ${CMAKE_SOURCE_DIR}/include/jcan_x86_64/${CMAKE_STATIC_LIBRARY_PREFIX}jcan${CMAKE_STATIC_LIBRARY_SUFFIX})
-  # Add include directories for all targets
-  include_directories(
-          ${CMAKE_CURRENT_SOURCE_DIR}/include
-          ${CMAKE_CURRENT_SOURCE_DIR}/include/jcan_x86_64
-          ${CMAKE_CURRENT_SOURCE_DIR}/src
-  )
+    set(JCAN_CPP ${CMAKE_SOURCE_DIR}/include/jcan_x86_64/jcan.cc)
+    set(JCAN_LIB ${CMAKE_SOURCE_DIR}/include/jcan_x86_64/${CMAKE_STATIC_LIBRARY_PREFIX}jcan${CMAKE_STATIC_LIBRARY_SUFFIX})
+    # Add include directories for all targets
+    include_directories(
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/jcan_x86_64
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+    )
 else()
-  set(JCAN_CPP ${CMAKE_SOURCE_DIR}/include/jcan_jetson/jcan.cc)
-  set(JCAN_LIB ${CMAKE_SOURCE_DIR}/include/jcan_jetson/${CMAKE_STATIC_LIBRARY_PREFIX}jcan${CMAKE_STATIC_LIBRARY_SUFFIX})
-  # Add include directories for all targets
-  include_directories(
-          ${CMAKE_CURRENT_SOURCE_DIR}/include
-          ${CMAKE_CURRENT_SOURCE_DIR}/include/jcan_jetson
-          ${CMAKE_CURRENT_SOURCE_DIR}/src
-  )
+    set(JCAN_CPP ${CMAKE_SOURCE_DIR}/include/jcan_jetson/jcan.cc)
+    set(JCAN_LIB ${CMAKE_SOURCE_DIR}/include/jcan_jetson/${CMAKE_STATIC_LIBRARY_PREFIX}jcan${CMAKE_STATIC_LIBRARY_SUFFIX})
+    # Add include directories for all targets
+    include_directories(
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/jcan_jetson
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+    )
 endif()
 ################################################
 # Add non-executable targets:
@@ -103,9 +103,10 @@ ament_target_dependencies(pid_tuner rclcpp core)
 # Testing script
 add_executable(cmd_test src/cmd/cmd_test.cpp)
 target_link_libraries(cmd_test blcmd print jcan)
-# blcmd sim script
+
+#blcmd simulator script
 add_executable(blcmd_sim src/cmd/blcmd_sim.cpp)
-target_link_libraries(blcmd_sim blcmd)
+target_link_libraries(blcmd_sim blcmd jcan)
 ################################################
 # Add Installations
 ################################################
@@ -117,6 +118,7 @@ install(TARGETS
         vel_convert
         pid_tuner
         cmd_test
+        blcmd_sim
         DESTINATION lib/${PROJECT_NAME}
         )
 
@@ -126,8 +128,10 @@ ament_python_install_package(${PROJECT_NAME})
 # Add all Python executables to this list
 install(PROGRAMS
         control/cmd_plotter.py
+        control/rover_state_publisher.py
         DESTINATION lib/${PROJECT_NAME}
         )
+
 ################################################
 # Add Subdirectories
 ################################################

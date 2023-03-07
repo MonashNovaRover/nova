@@ -67,9 +67,3 @@ class PathCloud(Node):
         self.path_publisher.publish(self.path)
         self.get_logger().info("visualising_path")
 
-if __name__ == "__main__":
-    rclpy.init(args=None)
-    cloud = PathCloud()
-    rclpy.spin(cloud)
-    rclpy.shutdown()
-    
