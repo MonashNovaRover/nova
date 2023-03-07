@@ -31,6 +31,7 @@ TODO:
 
 from autonomous.mapping.flat_mapper import FlatMapper
 import autonomous.math_utils.transform as transform
+import logging
 from height_mapper import get_obstacles as get_height_obstacles
 
 
@@ -41,6 +42,7 @@ class HeightMapper(FlatMapper):
         # init node with node name points
         super().__init__(length=length, width=width, height=height, resolution=resolution,
                          detection_resolution=detection_resolution, planner=planner, camera=camera, name=name)
+        self.get_logger().set_level(logging.DEBUG)
         self.on_initialised()
 
     def get_obstacles(self, filtered_indices):
@@ -54,12 +56,16 @@ class HeightMapper(FlatMapper):
         (not transformed).
         """
         # transforming pitch and roll to flatten the map, but no yaw or translation
-        if self.local_map_to_d435 is None:
-            self.get_logger().warn("No transform to d435 frame!", once=True)
+        if self.local_map_to_d435 is None: 
+            self.get_logger().warn("No transform to d435 frame!")
+            return
+        if self.orient_nova_frame_transform is None: 
+            self.get_logger().warn("No transform to forward-facing frame!")
             return
         self.get_logger().debug(f"Transforming point cloud by transform: {self.orient_nova_frame_transform}")
         # transform to nova coordinates
         frame_transformed_points = transform.transform_points(self.orient_nova_frame_transform, pts)
+        self.get_logger().debug(f"Transforming point cloud by transform: {self.local_map_to_d435}")
         no_yaw_pts = transform.transform_points_no_yaw(self.local_map_to_d435, frame_transformed_points)
 
         filtered_indices = self.filter_points(no_yaw_pts)
@@ -71,5 +77,7 @@ class HeightMapper(FlatMapper):
         obs, min_x = self.downscale_obs(obstacles, min_x)
 
         rotated_obs = self.arrange_obstacles(obs, min_x)
-        self._map.add_obstacles(self.local_map_transform, rotated_obs)
+        self._map.add_obstacles(self.local_map_to_d435, rotated_obs)
 
+        self.get_logger().warn("publishing map")
+        self.publish()

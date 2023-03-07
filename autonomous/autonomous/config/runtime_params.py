@@ -46,12 +46,11 @@ goal_achieved_distance = 1.4
 
 # ~~~~~~~~~~ MAPPING CONSTANTS ~~~~~~~~~~~~~~~~
 min_point_density = 3  # number of points in voxel before we accept it
-max_point_depth = 2.8  # distance beyond which we don't consider points
-max_fov_angle = np.pi / 8  # 40 degrees
-max_safe_obstacle = 70  # obstacle threshold for 2d map
+max_point_depth = 3.2  # distance beyond which we don't consider points
+max_fov_angle = np.pi / 7  # fov of depth camera for mapping
+max_safe_obstacle = 70  # obstacle threshold for 2d height mapping
 max_safe_inc = 50  # gradient cutoff for obstacles
 depth_mode = " python"  # whether we publish points over ros or use a python callback
-skip_pts = 1  # Step we use when selecting points if we can't handle the full cloud
 unseen_map_val = 0.25  # Fill all points we haven't seen with a set cost to preference known paths
 slice_height = 2.3  # the height we slice the map from when taking 2d slices
 obstacle_halve_value = 50  # All costs below a scaled value of 80 are halved to be more decisive

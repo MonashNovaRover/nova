@@ -177,7 +177,7 @@ class DepthCamera(Node):
 
         # Do our own trimming of nonsense data
         verts = verts[~((verts[:, 0] == 0) & (verts[:, 1] == 0) & (verts[:, 2] == 0))]
-        verts = verts[~(verts[:, 2] > 3.0)]
+        verts = verts[~(verts[:, 2] > 4.0)]
         t6 = time.perf_counter()
 
         pointcloud_msg = self.get_pc_message(verts, header)
