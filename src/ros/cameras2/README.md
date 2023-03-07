@@ -44,7 +44,7 @@ the future.
 
 ###### Executables
 - [gst-plugin-webrtc-signalling](https://gitlab.freedesktop.org/gstreamer/gst-plugins-rs/-/tree/main/net/webrtc/signalling)
-
+- [stunserver](https://github.com/jselbie/stunserver)
 
 ##### Execution
 1. WebRTC needs an independent "signalling server". The intended server for this project is
@@ -55,14 +55,21 @@ the future.
    gst-webrtc-signalling-server
    ```
 
-2. Start the service.
+2. Some browsers require a STUN server for ICE, even though everything is on a LAN.
+   A server such as [stunserver](https://github.com/jselbie/stunserver) should be run.
+   ```shell
+   # On the base station
+   stunserver
+   ```
+
+3. Start the service.
    
    ```shell
    # On the rover
    ros2 run cameras2 camera_streamer_service
    ```
 
-3. Start streaming.  
+4. Start streaming.  
    Note: Tab-completion or the [`camera_directory_service`](./cameras2/cameras2/camera_directory_service.py) can be used
    to find a camera serial number.
    ```shell
