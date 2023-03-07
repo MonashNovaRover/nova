@@ -26,7 +26,7 @@ class DepthCamera(Node):
         self.get_logger().set_level(logging.DEBUG)
         # Realsense processing filters and classes
         self.pc = rs.pointcloud()
-        self.decimate = rs.decimation_filter(2)
+        self.decimate = rs.decimation_filter(5)
         self.hole_filling = rs.hole_filling_filter()
         self.align = rs.align(rs.stream.color)
 
@@ -148,11 +148,10 @@ class DepthCamera(Node):
 
         # Do our own trimming of nonsense data
         verts = verts[~((verts[:, 0] == 0) & (verts[:, 1] == 0) & (verts[:, 2] == 0))]
-        verts = verts[~(verts[:, 2] > 4.5)]
+        verts = verts[~(verts[:, 2] > 3.0)]
         t6 = time.perf_counter()
 
         pointcloud_msg = self.get_pc_message(verts, header)
-        print(pointcloud_msg)
         t7 = time.perf_counter()
         self.cloud_publisher.publish(pointcloud_msg)
         t8 = time.perf_counter()
@@ -162,7 +161,7 @@ class DepthCamera(Node):
         self.get_logger().debug(f"hole filling took {t3 - t2} s")
         self.get_logger().debug(f"calculating pc took {t4 - t3} s")
         self.get_logger().debug(f"Converting points to np array took {t5 - t4} s")
-        self.get_logger().debug(f"Numpy pointcloud trimming took {t6 - t5} s")
+        self.get_logger().debug(f"Numpy pointcloud trimming took {t6 - t5} s. Left with {len(verts)} points remaining")
         self.get_logger().debug(f"Converting points to pointcloud msg took {t7 - t6} s")
         self.get_logger().debug(f"Publishing pointcloud took {t8 - t7} s")
         self.get_logger().debug(f"Depth camera point cloud contained {len(verts)} points")
