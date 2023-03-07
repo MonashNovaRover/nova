@@ -85,14 +85,6 @@ class Driver : public rclcpp::Node
 
     // The number of wheels on the rover
     static const int NUM_WHEELS = 4;
-<<<<<<< HEAD
-
-
-    //------------------------------------------------------------//
-    private:
-=======
->>>>>>> pivot-steering
-
 private:
     // Stores the subscriber for the drive commands (manual)
     rclcpp::Subscription<core::msg::DriveInput>::SharedPtr subscription_cmds_man;
