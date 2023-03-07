@@ -71,7 +71,7 @@ INPUT_WIDTH = 640
 INPUT_HEIGHT = 640
 CONFIDENCE_THRESHOLD = 0.6
 
-model = torch.hub.load('/home/nvidia/yolov5', 'custom', path='config/rubix.pt', source='local')
+model = torch.hub.load('/home/nvidia/yolov5', 'custom', path='config_files/rubix.pt', source='local')
 
 start = time.time_ns()
 frame_count = 0
