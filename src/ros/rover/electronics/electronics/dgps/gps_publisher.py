@@ -19,7 +19,6 @@ class SkytraqNode (Node):
 
         self.ser = serial.Serial()
         self.config_port(com_no, baud)
-        self.sio = io.TextIOWrapper(io.BufferedRWPair(self.ser, self.ser))
 
         self.publisher = self.create_publisher(RoverPoseGPS, 'gps_data', 10)
         self.timer = self.create_timer(0.1, self.publisher_callback)
@@ -28,11 +27,12 @@ class SkytraqNode (Node):
         raw_msg = self.get_msg()
 
         if raw_msg[0:2] == ["b'$PSTI", '036']:
-            if raw_msg[4] != '':
+            if raw_msg[4] != '' and (raw_msg[4].isupper() or raw_msg[4].islower()) == False:
                 pose.pitch, pose.roll, pose.yaw = float(raw_msg[5]), float(raw_msg[6]), float(raw_msg[4])
         # elif raw_msg[0:2] == ['PSTI', '032']:
         #     db
         elif raw_msg[0] == "b'$GNRMC":
+            
             pose.latitude, pose.longitude = float(raw_msg[3]), float(raw_msg[5])
             if raw_msg[2] == 'A':
                 pose.valid = True
