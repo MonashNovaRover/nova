@@ -20,6 +20,8 @@ class SkytraqNode (Node):
         self.ser = serial.Serial()
         self.config_port(com_no, baud)
 
+        self.counter = 0
+
         self.publisher = self.create_publisher(RoverPoseGPS, 'gps_data', 10)
         self.timer = self.create_timer(0.1, self.publisher_callback)
 
@@ -38,6 +40,11 @@ class SkytraqNode (Node):
                 pose.valid = True
     
     def get_msg(self):
+        count+=1
+        if self.counter > 30:
+            self.ser.reset_input_buffer()
+            self.counter = 0
+
         txt = str(self.ser.readline())
         return txt.split(",")
     
@@ -85,3 +92,5 @@ def main (args = None):
     
 if __name__ == "__main__":
     main()
+
+# Serial.reset_input_buffer

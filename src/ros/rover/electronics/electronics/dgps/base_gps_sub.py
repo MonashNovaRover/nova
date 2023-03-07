@@ -5,6 +5,7 @@ import rclpy
 from rclpy.node import Node
 
 from core.msg import RTCM3
+from rclpy.logging import LoggingSeverity
 
 class SubToBaseNode(Node):
     def __init__(self, com_no, baud):
@@ -33,6 +34,10 @@ class SubToBaseNode(Node):
         self.ser.port = port_name
         self.ser.open()
 
+    def parse_rtcm_out(self, rtcm_msg):
+        msg_str = f"raw rtcm: {rtcm_msg}"
+        self.get_logger().log(msg_str,LoggingSeverity.INFO,throttle_duration_sec=2)
+
 def main (args = None):
     rclpy.init(args = args)
     subscriber = SubToBaseNode()
@@ -44,3 +49,4 @@ def main (args = None):
 
 if __name__ == '__main__':
     main()
+
