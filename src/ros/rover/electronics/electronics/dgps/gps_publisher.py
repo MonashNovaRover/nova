@@ -40,7 +40,7 @@ class SkytraqNode (Node):
                 pose.valid = True
     
     def get_msg(self):
-        count+=1
+        self.counter+=1
         if self.counter > 30:
             self.ser.reset_input_buffer()
             self.counter = 0
