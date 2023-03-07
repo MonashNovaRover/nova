@@ -46,7 +46,6 @@ EDITED:         15/05/2022
 # ros import
 import rclpy
 from rclpy.node import Node
-from rclpy.logging import LoggingSeverity
 from std_srvs.srv import Trigger
 from geometry_msgs.msg import PoseStamped
 
@@ -66,7 +65,7 @@ from autonomous.controller.drive_controller import DriveController
 # misc
 from enum import Enum
 from os import listdir
-import sys
+import logging
 
 
 class GoalType(Enum):
@@ -137,7 +136,7 @@ class Controller(Node):
         super().__init__('autonomous_controller_node')
 
         # set debug to not get shown
-        self.get_logger().set_level(LoggingSeverity.INFO)
+        self.get_logger().set_level(logging.INFO)
 
         # ~~~~~~~~~~ State ~~~~~~~~
         self.state_rover_pose = Pose2D()

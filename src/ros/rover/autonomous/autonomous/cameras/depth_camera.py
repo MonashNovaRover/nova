@@ -23,7 +23,7 @@ from autonomous.config.runtime_params import active_depth_camera
 class DepthCamera(Node):
     def __init__(self):
         super().__init__("depth_camera")
-        self.get_logger().set_level(logging.DEBUG)
+        self.get_logger().set_level(logging.INFO)
         # Realsense processing filters and classes
         self.decimation_filters = self.initialise_decimators()
         self.decimation_index = 2
