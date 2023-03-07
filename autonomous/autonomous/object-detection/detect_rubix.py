@@ -3,6 +3,55 @@ import time
 import numpy as np
 import torch
 import pyrealsense2 as rs
+
+from visualization_msgs.msg import Marker
+
+from visualization_msgs.msg import Marker
+from rclpy.node import Node
+from std_msgs.msg import ColorRGBA
+from std_msgs.msg import Header
+from geometry_msgs.msg import Pose
+import rclpy
+from  geometry_msgs.msg import Vector3
+
+import random
+
+class NodePub(Node):
+    def __init__(self):
+        super().__init__("node1")
+        self.pub = self.create_publisher(Marker, "ruuuuubix", 10)
+        self.header = Header()
+        self.header.frame_id = 'map'   # map frame - this is important for tf2
+        self.header.stamp = self.get_clock().now().to_msg()
+
+rclpy.init()
+p = NodePub()
+
+def pub_marker(x, y, z, c: tuple) -> None:
+    """
+    :params: c is color tuple (r,g,b) between 0 and 1
+    """
+    msg = Marker()
+    pose = Pose()
+    pose.position.y = y
+    pose.position.z = z
+    pose.position.x = x
+    pose.orientation.w = 1.0
+    msg.pose = pose
+    msg.type = Marker.CUBE
+    msg.scale.x = .1
+    msg.scale.y = .1
+    msg.scale.z = .1
+    color = ColorRGBA()
+    color.r = c[0]
+    color.g = c[1]
+    color.b = c[2]
+    color.a = 255.
+    msg.color = color
+    msg.header = p.header
+    p.pub.publish(msg)
+
+
 def get_depth_avg(n, depth_frame, cx, cy, point):
     avg_depth = [0,0,0] if point else 0
     total_pixels = 0
@@ -22,7 +71,7 @@ INPUT_WIDTH = 640
 INPUT_HEIGHT = 640
 CONFIDENCE_THRESHOLD = 0.6
 
-model = torch.hub.load('/home/ecthelion/yolov5', 'custom', path='/home/ecthelion/yolov5/rubix.pt', source='local')
+model = torch.hub.load('/home/nvidia/yolov5', 'custom', path='config/rubix.pt', source='local')
 
 start = time.time_ns()
 frame_count = 0
@@ -62,6 +111,7 @@ else:
 cfg = pipeline.start(config)
 intr = cfg.get_stream(rs.stream.depth).as_video_stream_profile().get_intrinsics()
 print(type(intr))
+
 while True:
     frames = pipeline.wait_for_frames()
     depth_frame = frames.get_depth_frame()
@@ -78,9 +128,11 @@ while True:
             cx, cy = int(xmin) + (int(xmax) - int(xmin))//2, int(ymin) + (int(ymax) - int(ymin))//2
             depth = depth_frame.get_distance(cx,cy)
             point = rs.rs2_deproject_pixel_to_point(intr, [float(cx), float(cy)], depth)
+            pub.publish(point[0], point[1], point[2], (.1,.2,.3))
             print(f'cx: {cx}, cy: {cy}')
             print(f'Depth: {depth:.2f}')
             print(f'Point: {point[0]}')
+
             cv2.rectangle(color_image, (int(xmin), int(ymin)), (int(xmax), int(ymax)), (0,0,0), 2)
             cv2.putText(color_image, class_list[int(cl)], (int(xmin), int(ymin) - 30), cv2.FONT_HERSHEY_SIMPLEX, .5, (0, 0, 255))
             cv2.putText(color_image, f'Depth: {depth:.2f}', (int(xmin), int(ymin) - 20), cv2.FONT_HERSHEY_SIMPLEX, .5, (0, 0, 255))
