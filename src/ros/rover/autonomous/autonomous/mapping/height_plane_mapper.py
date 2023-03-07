@@ -81,7 +81,6 @@ class HeightPlaneMapper(FlatMapper):
         min_x = 0.5 * (min_p_x + min_h_x)
         
         # any sharp drops located in the height mapper are added to the plane mapper
-        assert(plane_obs.shape == height_obs.shape)
         plane_obs[height_obs >= 1.0] = 1.1
         
         rotated_obs = self.arrange_obstacles(plane_obs, min_x)
