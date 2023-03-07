@@ -39,7 +39,7 @@ ACTIONS: None
 PACKAGE:        autonomous
 AUTHOR(S):      Max Tory, Liam Whittle
 CREATION:       07/12/2021
-EDITED:         15/05/2022
+EDITED:         07/03/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
@@ -61,11 +61,14 @@ from autonomous.config.ros_config import *
 from autonomous.planning.path_planner import PathPlanner
 from autonomous.controller.turning import YawStarTurner
 from autonomous.controller.drive_controller import DriveController
+import autonomous.config as config
 
 # misc
 from enum import Enum
-from os import listdir
+import os
+from typing import List, Tuple
 import logging
+import json
 
 
 class GoalType(Enum):
@@ -138,6 +141,10 @@ class Controller(Node):
         # set debug to not get shown
         self.get_logger().set_level(logging.INFO)
 
+        # Ros params
+        self.param_is_arc = self.declare_parameter("is_ARC", True).value
+        self.param_conf_filename = self.declare_parameter("conf_filename", "arc_search_config.json").value
+
         # ~~~~~~~~~~ State ~~~~~~~~
         self.state_rover_pose = Pose2D()
         self.ar_tag_manager = ArTagManager()
@@ -150,6 +157,8 @@ class Controller(Node):
         # Global variables containing our search plan
         self.search_plan = []
         self.search_array_index = 0
+
+        if self.
 
         # these are the planners we use when in each particular state
         self.planners = {
@@ -187,6 +196,10 @@ class Controller(Node):
         # Timers
         self.control_timer = self.create_timer(0.1, self.control)  # calculate and send drive commands
         self.planning_timer = self.create_timer(1.0, self.plan)  # update planning state and plan paths
+
+        # Node is initialised, begin search (If ARC)
+        if self.param_is_arc:
+            self.on_state_update(PlanningState.SEARCH)
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ State Transition Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -345,8 +358,23 @@ class Controller(Node):
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 'Util' Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     def setup_search(self):
+        if self.param_is_arc:
+            self.search_plan = self.load_search_layout()
         self.search_plan = interpolate_circle_points(self.state_current_planning_destination)
         self.ctl_spin = SpinController(self.state_rover_pose.yaw, self.ctl_turner)
+
+    def load_search_layout(self) -> List[Tuple[float, float]]:
+        """
+        Read arc_search_config.json to get the list of points for the search
+        """
+        config_dir = os.path.dirname(config.__file__)
+        conf_json_file = os.path.join(config_dir, self.param_conf_filename)
+        with open(conf_json_file, "r") as f:
+            conf_dict = json.load(f)
+
+        return [
+            (goal["x"], goal["y"]) for goal in conf_dict["search_plan"]
+        ]
 
     def near_current_goal(self) -> bool:
         """

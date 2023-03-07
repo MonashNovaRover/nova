@@ -181,7 +181,7 @@ class PathPlanner(Node):
                 self.get_logger().error("Ah HECK")
                 return
         if status == PathPlanner.A_STAR_SUCCESS:
-            self.get_logger().info("A* found safe path")
+            self.get_logger().debug("A* found safe path")
 
     def get_path(self, padding=None) -> Waypoints:
         """
@@ -205,7 +205,7 @@ class PathPlanner(Node):
         route = np.array(a_star(self.grid2d, self.get_grid_coord(self.start), self.get_grid_coord(local_goal), self.resolution, self.padding_dist_m))
         status = route[-1][0]
         route = route[:-1]
-        self.get_logger().info(f"planned with status {status}")
+        self.get_logger().debug(f"planned with status {status}")
         self.handle_path_status(status, padding)
 
         route_coordinates = np.array(self.get_local_coords_route(route))
@@ -220,7 +220,7 @@ class PathPlanner(Node):
             if (not math.isnan(waypoint.x)) and (not math.isnan(waypoint.y)):
                 waypoints.waypoints.append(waypoint)
 
-        self.get_logger().info(f"Path Planner Calculated {len(route_coordinates)} waypoints")
+        self.get_logger().debug(f"Path Planner Calculated {len(route_coordinates)} waypoints")
         if status & PathPlanner.A_STAR_CRITICAL_NO_PATH:
             return self.get_path(padding-0.1)
         return waypoints
