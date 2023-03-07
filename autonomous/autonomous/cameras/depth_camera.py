@@ -25,11 +25,13 @@ class DepthCamera(Node):
         super().__init__("depth_camera")
         self.get_logger().set_level(logging.DEBUG)
         # Realsense processing filters and classes
+        self.decimation_filters = self.initialise_decimators()
+        self.decimation_index = 2
+        self.param_target_cloud_processing_time = self.declare_parameter("target_processing_time_s", 0.2).value
+
         self.pc = rs.pointcloud()
-        self.decimate = rs.decimation_filter(5)
         self.hole_filling = rs.hole_filling_filter()
         self.align = rs.align(rs.stream.color)
-
         # Configure depth and color streams
         self.pipeline = rs.pipeline()
         self.config = rs.config()
@@ -71,6 +73,33 @@ class DepthCamera(Node):
         self.timer_process_image = self.create_timer(1/self.param_image_frequency, self.process_image)
         self.timer_process_frames = self.create_timer(1/self.param_frame_frequency, self.process_frames)
         self.get_logger().info("Depth camera node up!")
+
+    def initialise_decimators(self):
+        """
+        Adaptive decimation.
+        We want to balance between performance and resolution of the pointcloud. This array allows us to
+        dynamically adjust the level of decimation of the pointcloud according to the time taken to process
+        the previous cloud
+        """
+        return [
+            rs.decimation_filter(1),
+            rs.decimation_filter(2),
+            rs.decimation_filter(4),
+            rs.decimation_filter(6),
+            rs.decimation_filter(8),
+        ]
+
+    def adjust_decimation(self, time_taken_s):
+        """
+        Compare the time taken to process the last pointcloud with the target time.
+        If the time is greater by a factor of more than two, increase the decimation.
+        If it is less by a factor of more than two, reduce the decimation
+        """
+        target_ratio = time_taken_s / self.param_target_cloud_processing_time
+        if target_ratio > 2 and self.decimation_index != len(self.decimation_filters) - 1:
+            self.decimation_index += 1
+        elif target_ratio < 0.5 and self.decimation_index != 0:
+            self.decimation_index -= 1
 
     def process_frames(self):
         """
@@ -132,7 +161,7 @@ class DepthCamera(Node):
         if self.depth_frame is None:
             return
         t1 = time.perf_counter()
-        processed_depth_frame = self.decimate.process(self.depth_frame)
+        processed_depth_frame = self.decimation_filters[self.decimation_index].process(self.depth_frame)
         t2 = time.perf_counter()
         # Fill holes in depth frame
         processed_depth_frame = self.hole_filling.process(processed_depth_frame)
@@ -155,6 +184,9 @@ class DepthCamera(Node):
         t7 = time.perf_counter()
         self.cloud_publisher.publish(pointcloud_msg)
         t8 = time.perf_counter()
+
+        pc_process_time = t8 - t3
+        self.adjust_decimation(pc_process_time)
 
         # Log state of the pointcloud
         self.get_logger().debug(f"demication took {t2 - t1} s")
