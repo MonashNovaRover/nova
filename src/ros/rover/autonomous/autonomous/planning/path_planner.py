@@ -149,7 +149,7 @@ class PathPlanner(Node):
         Callback function that updates the current pose of the rover from transform data
         """
         try:
-            transform = self.tf_buffer.lookup_transform('base_link', 'local_map', time=Time()).transform
+            transform = self.tf_buffer.lookup_transform('local_map', 'base_link', time=Time()).transform
             self.pose_2d.x = transform.translation.x
             self.pose_2d.y = transform.translation.y
             self.pose_2d.yaw = quat_to_euler(transform=transform)[2]
