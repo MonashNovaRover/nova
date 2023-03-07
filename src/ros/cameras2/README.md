@@ -71,9 +71,9 @@ the future.
 
 4. Start streaming.  
    Note: Tab-completion or the [`camera_directory_service`](./cameras2/cameras2/camera_directory_service.py) can be used
-   to find a camera serial number.
+   to find a camera serial number. If no serial numbers are given, all connected cameras will be operated on.
    ```shell
-   ros2 service call /camera_streamer/stream/camera<serial>/start std_srvs/srv/Empty
+   ros2 service call /camera_streamer/stream/start camera_msgs/srv/CameraOperation '{ serials: [ ] }'
    ```
 
 #### Frontend
