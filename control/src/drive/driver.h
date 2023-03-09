@@ -39,6 +39,7 @@ EDITED:		13/09/2022
 
 // Include other headers
 #include<cmath>
+#include<vector>
 
 // Include CMD class
 #include "cmd/blcmd.h"
@@ -48,8 +49,6 @@ EDITED:		13/09/2022
 
 // The distance between front and rear wheels [m]
 #define CHASSIS_LENGTH 0.84
-
-#define MAX_RADIUS 10.0
 
 // Use the standard namespaces
 using namespace std;
@@ -69,12 +68,12 @@ public:
     ///@param    id - the id of the module
     ///@param   cmdWheel - BLCMD for the wheel
     ///@param   cmdPivot - BLCMD for the pivot
-    PivotModule(int id, BLCMD *cmdWheel, BLCMD *cmdPivot)
+    PivotModule(int id, BLCMD *cmdWheel, BLCMD *cmdPivot, float angle)
     {
         this->id = id;
         this->cmdWheel = cmdWheel;
         this->cmdPivot = cmdPivot;
-        this->angle = 0.0;
+        this->angle = angle;
         this->velocity = 0.0;
     }
 };
@@ -110,9 +109,11 @@ private:
     const float alpha = 0.0;
     float steer = 0.0;
     const float angle_offset = atan((CHASSIS_WIDTH)/CHASSIS_LENGTH);
+    float prev_sign = 0.0;
 
     // A flag for whether to use autonomous state or not
     bool is_autonomous = false;
+    double d_theta;
 
     // An array of pointers to Wheel instances
     PivotModule *pivots[NUM_WHEELS];
@@ -136,16 +137,16 @@ private:
     /// @brief     Calculates the turning radius of the rover
     /// @param      steer
     /// @returns
-    float get_turning_radius(float steer);
+    void get_turning_radius(float steer, double *radius, int *sign);
 
     /// @brief
     /// @param      radius - The turning radius of the rover [m]
-    void fill_wheel_angles_radial(float radius, float steer);
+    void fill_wheel_angles_radial(double radius);
 
     /// @brief
     /// @param      speed - Speed of each driven wheel
     /// @param      steer - Direction and amount of steering
-    void fill_wheel_velocities_radial(float speed, float steer);
+    void fill_wheel_velocities_radial(float speed, float radius);
 
     /// @brief      Callback function to publish whether autonomous
     void pub_auto_mode();
@@ -155,6 +156,10 @@ private:
 
     /// @brief callback for when drive inputs subscription is exceeded
     void inputs_deadline_exceeded();
+
+    float calc_wheel_angle(float radius, int wheel, int sign);
+
+    double radius_from_angle(double angle, int wheel, int sign);
 
     //------------------------------------------------------------//
 public:
