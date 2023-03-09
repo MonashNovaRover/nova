@@ -19,7 +19,7 @@ min_speed = 2.0  # todo: determine
 
 max_speed = 7.0  # todo: determine
 
-min_waypoint_distance = 0.6  # todo: determine what is achievable
+min_waypoint_distance = 0.1  # todo: determine what is achievable
 ignore_waypoints = 4  # number of waypoints to cut off start of list
 
 # speed of autonomous driving and turning
