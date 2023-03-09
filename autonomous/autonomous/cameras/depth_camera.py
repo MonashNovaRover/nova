@@ -131,7 +131,7 @@ class DepthCamera(Node):
             return
         color_image = np.asanyarray(self.color_frame.get_data())
         t1 = time.perf_counter()
-        self.ar_tracker(color_image)
+        self.ar_tracker.find_ar_tags(color_image)
         t2 = time.perf_counter()
         # self.object_detector(self.color_frame, self.depth_frame)
         t3 = time.perf_counter()
