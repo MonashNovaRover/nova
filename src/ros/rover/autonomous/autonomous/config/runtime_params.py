@@ -26,7 +26,7 @@ ignore_waypoints = 4  # number of waypoints to cut off start of list
 small_turn_angle = np.pi/16
 big_turn_drive_fraction = 0.20
 small_turn_drive_fraction = 0.15
-straight_drive_fraction = 0.4
+straight_drive_fraction = 0.2
 
 # Angle of lenience on completing a full turn on the spot
 spin_achieved_delta = np.pi/10

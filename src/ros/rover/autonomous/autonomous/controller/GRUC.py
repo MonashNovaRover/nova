@@ -59,7 +59,7 @@ from autonomous.math_utils.controller_math import *
 from autonomous.config.runtime_params import *
 from autonomous.config.ros_config import *
 from autonomous.planning.path_planner import PathPlanner
-from autonomous.controller.turning import YawStarTurner
+from autonomous.controller.turning import YawStarTurner, TankTurner
 from autonomous.controller.drive_controller import DriveController
 
 # misc
@@ -136,7 +136,7 @@ class Controller(Node):
         super().__init__('autonomous_controller_node')
 
         # set debug to not get shown
-        self.get_logger().set_level(logging.INFO)
+        self.get_logger().set_level(logging.DEBUG)
 
         # ~~~~~~~~~~ State ~~~~~~~~
         self.state_rover_pose = Pose2D()
