@@ -138,11 +138,11 @@ private:
     /// @brief     Calculates the turning radius of the rover
     /// @param      steer
     /// @returns
-    float get_turning_radius(float steer);
+    void get_turning_radius(float steer, double *radius, int *sign);
 
     /// @brief
     /// @param      radius - The turning radius of the rover [m]
-    void fill_wheel_angles_radial(float radius, float steer);
+    void fill_wheel_angles_radial(double radius);
 
     /// @brief
     /// @param      speed - Speed of each driven wheel
@@ -160,7 +160,7 @@ private:
 
     float calc_wheel_angle(float radius, int wheel, int sign);
 
-    float radius_from_angle(double angle, int wheel);
+    double radius_from_angle(double angle, int wheel, int sign);
 
     //------------------------------------------------------------//
 public:
