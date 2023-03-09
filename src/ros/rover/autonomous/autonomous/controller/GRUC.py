@@ -46,8 +46,10 @@ EDITED:         15/05/2022
 # ros import
 import rclpy
 from rclpy.node import Node
+from rclpy.time import Time
 from std_srvs.srv import Trigger
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PoseStamped, Transform, TransformStamped
+from tf2_ros import Buffer, TransformListener
 
 # custom message imports
 from core.msg import DriveInput, RoverPose, Waypoints, AlvarMarker, AutonomousGoal, Point2D
@@ -56,6 +58,7 @@ from controller.spin_controller import SpinController
 
 # autonomous imports
 from autonomous.math_utils.controller_math import *
+import autonomous.math_utils.transform as transform
 from autonomous.config.runtime_params import *
 from autonomous.config.ros_config import *
 from autonomous.planning.path_planner import PathPlanner
@@ -167,6 +170,10 @@ class Controller(Node):
         self.ctl_spin = None
 
         # ------------- ROS Things ----------
+        # tf2
+        self.tf_buffer = Buffer()
+        self.tf_listener = TransformListener(buffer=self.tf_buffer, node=self, spin_thread=True)
+
         # Publishers
         # 'DriveInput' message is used to make the wheels move!
         self.pub_drive_commands = self.create_publisher(DriveInput, auto_drive_command_topic, 10)
@@ -174,7 +181,6 @@ class Controller(Node):
         self.pub_desired_destination = self.create_publisher(PoseStamped, planning_destination_topic, 10)
 
         # Subscribers
-        self.sub_rover_pose = self.create_subscription(RoverPose, rover_pose_topic, self.callback_rover_pose, 10)
         self.sub_ar_tags = self.create_subscription(AlvarMarker, ar_track_topic, self.callback_ar_tag, 10)
         self.sub_autonomous_goal = self.create_subscription(AutonomousGoal, auto_goal_topic,
                                                             self.callback_new_autonomous_goal, 10)
@@ -187,6 +193,7 @@ class Controller(Node):
         # Timers
         self.control_timer = self.create_timer(0.1, self.control)  # calculate and send drive commands
         self.planning_timer = self.create_timer(1.0, self.plan)  # update planning state and plan paths
+        self.pose_timer = self.create_timer(0.05, self.callback_rover_pose)  # update the rover's pose from tf2
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ State Transition Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -308,16 +315,19 @@ class Controller(Node):
         # (p.x, p.y)) > min_waypoint_distance]
         self.planning_state.num_paths_planned += 1
 
-    def callback_rover_pose(self, msg):
+    def callback_rover_pose(self):
         """
         Stores the latest rover pose message into our State() variable
         """
-        self.get_logger().debug("Got rover pose: {}".format(str(msg)), throttle_duration_sec=1)
-        self.state_rover_pose.x = msg.x
-        self.state_rover_pose.y = msg.y
-        self.state_rover_pose.yaw = msg.yaw
-        self.state_rover_pose.velocity = msg.velocity
-        self.state_rover_pose.angular_velocity = msg.angular_velocity
+        try:
+            base_link_tf : Transform = self.tf_buffer.lookup_transform("local_map", "base_link", Time()).transform
+            self.get_logger().debug("Found transform from local_map to base_link", once=True)
+        except:
+            self.get_logger().warn("No transform from local_map to base_link", once=True)
+        else:
+            self.state_rover_pose.x = base_link_tf.translation.x
+            self.state_rover_pose.y = base_link_tf.translation.y
+            self.state_rover_pose.yaw = transform.quat_to_euler(base_link_tf.rotation)[2]
 
     def callback_new_autonomous_goal(self, msg):
         """
