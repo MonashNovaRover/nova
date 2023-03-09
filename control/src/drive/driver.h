@@ -50,8 +50,6 @@ EDITED:		13/09/2022
 // The distance between front and rear wheels [m]
 #define CHASSIS_LENGTH 0.84
 
-#define MAX_RADIUS 10.0
-
 // Use the standard namespaces
 using namespace std;
 using namespace std::chrono_literals;
@@ -112,6 +110,7 @@ private:
     const float alpha = 0.0;
     float steer = 0.0;
     const float angle_offset = atan((CHASSIS_WIDTH)/CHASSIS_LENGTH);
+    float prev_sign = 0.0;
 
     // A flag for whether to use autonomous state or not
     bool is_autonomous = false;
@@ -143,7 +142,7 @@ private:
 
     /// @brief
     /// @param      radius - The turning radius of the rover [m]
-    void fill_wheel_angles_radial(float radius);
+    void fill_wheel_angles_radial(float radius, float steer);
 
     /// @brief
     /// @param      speed - Speed of each driven wheel
@@ -159,9 +158,9 @@ private:
     /// @brief callback for when drive inputs subscription is exceeded
     void inputs_deadline_exceeded();
 
-    float calc_wheel_angle(float radius, int wheel);
+    float calc_wheel_angle(float radius, int wheel, int sign);
 
-    float radius_from_angle(double angle, int wheel, double sign);
+    float radius_from_angle(double angle, int wheel);
 
     //------------------------------------------------------------//
 public:
