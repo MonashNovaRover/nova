@@ -40,9 +40,6 @@ class ArTracker(Node):
         self.temp_tags = dict()
         self.tags = dict()
 
-    def __call__(self, img):
-        self.find_ar_tags(img)
-
     def get_pose(self, r, t) -> PoseStamped:
         """
         r: rotation vector (3, 1)
