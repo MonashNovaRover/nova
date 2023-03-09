@@ -19,15 +19,13 @@ using namespace std;
 // Sends commands to the wheels
 void Driver::send_commands(const core::msg::DriveInput::SharedPtr msg)
 {
-    // smooth the input
-    steer = msg->steer;
 
     core::msg::PivotWheelData data_msg;
     if (!msg->strafe_mode)
     {
         // Find the turning radius form the 'steer' command
         // This defines a turning centre to the left or right of the rover wheelbase
-        float radius = get_turning_radius(steer);
+        float radius = get_turning_radius(msg->steer);
 
         // Scale wheel velocities depending on their distance from the turning centre
         // Wheels closer to the turning centre must spin slower to maintain the correct rover angular velocity
@@ -35,7 +33,7 @@ void Driver::send_commands(const core::msg::DriveInput::SharedPtr msg)
         // Disregard any correction for the angle of the wheel relative to the desired circular path
         // fill_wheel_velocities(wheel_velocities, radius, msg->speed, msg->steer);
 
-        fill_wheel_angles_radial(radius);
+        fill_wheel_angles_radial(radius, msg->steer);
         fill_wheel_velocities_radial(msg->speed, radius);
         data_msg.radius = radius;
     }
@@ -119,20 +117,22 @@ void Driver::input_callback(const core::msg::InputGamepad::SharedPtr msg)
 // Gets the turning radius of the rover
 float Driver::get_turning_radius(float steer)
 {
-    // Exclude this case. If steer is 0, handle separately in calling code
-    if (steer == 0)
-        return INFINITY;
 
-    float radius = (1.0 / steer) - (steer > 0 ? 1 : -1);
+    float radius = steer == 0 ? INFINITY : (1.0 / steer) - (steer > 0 ? 1 : -1);
+
     cout << "radius: " << radius << endl;
+    cout << "steer: " << steer << endl;
 
-    double sign = steer > 0 ? 1.0 : -1.0;
+    double sign = steer == 0 ? prev_sign : (steer > 0 ? 1.0 : -1.0);
+    prev_sign = sign;
     float max_change = -INFINITY;
     int index = 0;
     //Find the wheel that has to turn the most
     for (size_t i = 0; i < NUM_WHEELS; i++)
     {
-        float target = calc_wheel_angle(radius, i);
+        cout << "pivot " << i + 1 << " current angle: " << pivots[i]->angle << endl;
+        float target = calc_wheel_angle(radius, i, sign);
+        cout << "pivot " << i + 1 << " target angle: " << target << endl;
         // Get the maximum change in angle
         if (abs(target - pivots[i]->angle) > max_change) {
             max_change = abs(target - pivots[i]->angle);
@@ -140,21 +140,23 @@ float Driver::get_turning_radius(float steer)
         }
     }
     cout << "index: " << index << endl;
-    float target = calc_wheel_angle(radius, index);
-    int direction = target > pivots[index]->angle ? 1 : -1;
+    float target = calc_wheel_angle(radius, index, sign);
+    int direction = pivots[index]->angle == target ? 0 : (pivots[index]->angle < target ? 1 : -1);
+    cout << "direction: " << direction << endl;
     // Set the targets to the minimum of the actual target and the target + the angle of the pivot modules
     cout << "target: " << target << endl;
-    cout << "pivots[index]->angle: " << pivots[index]->angle << endl;
-    float theta = abs(target) < abs(pivots[index]->angle + direction *d_theta) ? target :
-                  pivots[index]->angle + direction * d_theta;
+    float theta = pivots[index]->angle + direction * d_theta;
     cout << "theta: " << theta << endl;
-    return radius_from_angle(theta, index, sign);
+    if (abs(theta - target) < d_theta) theta = target;
+    cout << "theta: " << theta << endl;
+    cout << "actual radius: " << radius_from_angle(theta, index) << endl;
+    cout << "----------------------------" << endl;
+    return radius_from_angle(theta, index);
 }
 
-float Driver::calc_wheel_angle(float radius, int wheel)
+float Driver::calc_wheel_angle(float radius, int wheel, int sign)
 {
     float angle;
-    double sign = radius > 0 ? 1.0 : -1.0;
     // gradient of line https://www.desmos.com/calculator/opj8exj9gp
     switch(wheel){
         case 0:
@@ -174,32 +176,44 @@ float Driver::calc_wheel_angle(float radius, int wheel)
     return angle;
 }
 
-float Driver::radius_from_angle(double angle, int wheel, double sign) {
+float Driver::radius_from_angle(double angle, int wheel) {
+
+
     float radius;
+    int sign;
     switch(wheel){
         case 0:
+            sign = angle < -angle_offset ? 1 : -1;
             radius = (angle == -angle_offset ? INFINITY : (tan(angle + angle_offset + sign*M_PI_2) * CHASSIS_LENGTH/2 - CHASSIS_WIDTH/2));
             break;
         case 1:
+            sign = angle < angle_offset ? 1 : -1;
             radius = (angle == angle_offset ? INFINITY : (tan(angle - angle_offset - sign*M_PI_2) * -CHASSIS_LENGTH/2 - CHASSIS_WIDTH/2));
             break;
         case 2:
+            sign = angle < -angle_offset ? 1 : -1;
             radius = (angle == -angle_offset ? INFINITY : (tan(angle + angle_offset - sign*M_PI_2) * -CHASSIS_LENGTH/2 + CHASSIS_WIDTH/2));
             break;
         case 3:
+            sign = angle < angle_offset ? 1 : -1;
             radius = (angle == angle_offset ? INFINITY : (tan(angle - angle_offset + sign*M_PI_2) * CHASSIS_LENGTH/2 + CHASSIS_WIDTH/2));
     }
     return radius;
 }
 
 
-void Driver::fill_wheel_angles_radial(float radius)
+void Driver::fill_wheel_angles_radial(float radius, float steer)
 {
+    cout << "Fill wheel angles" << endl;
+    cout << "radius: " << radius << endl;
+    cout << "steer: " << steer << endl;
     // Fill pivot module angles
     for(int i = 0; i < NUM_WHEELS; i++)
     {
-        pivots[i]->angle = calc_wheel_angle(radius, i);
+        pivots[i]->angle = calc_wheel_angle(radius, i, steer > 0 ? 1.0 : -1.0);
+        cout << "pivot " << i + 1 << " angle: " << pivots[i]->angle << endl;
     }
+    cout << "----------------------------" << endl;
 }
 
 // Fill array with velocities for each wheel, with directions and magnitude depending on the turning radius
@@ -376,4 +390,6 @@ int main(int argc, char **argv)
     rclcpp::shutdown();
     // Returns an empty value
     return 0;
+
+
 }
