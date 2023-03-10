@@ -26,7 +26,7 @@ ignore_waypoints = 4  # number of waypoints to cut off start of list
 small_turn_angle = np.pi/16
 big_turn_drive_fraction = 0.20
 small_turn_drive_fraction = 0.15
-straight_drive_fraction = 0.4
+straight_drive_fraction = 0.2
 
 # Angle of lenience on completing a full turn on the spot
 spin_achieved_delta = np.pi/10
@@ -46,17 +46,16 @@ goal_achieved_distance = 1.4
 
 # ~~~~~~~~~~ MAPPING CONSTANTS ~~~~~~~~~~~~~~~~
 min_point_density = 3  # number of points in voxel before we accept it
-max_point_depth = 2.8  # distance beyond which we don't consider points
-max_fov_angle = np.pi / 8  # 40 degrees
-max_safe_obstacle = 70  # obstacle threshold for 2d map
+max_point_depth = 3.2  # distance beyond which we don't consider points
+max_fov_angle = np.pi / 7  # fov of depth camera for mapping
+max_safe_obstacle = 70  # obstacle threshold for 2d height mapping
 max_safe_inc = 50  # gradient cutoff for obstacles
 depth_mode = " python"  # whether we publish points over ros or use a python callback
-skip_pts = 1  # Step we use when selecting points if we can't handle the full cloud
 unseen_map_val = 0.25  # Fill all points we haven't seen with a set cost to preference known paths
 slice_height = 2.3  # the height we slice the map from when taking 2d slices
 obstacle_halve_value = 50  # All costs below a scaled value of 80 are halved to be more decisive
 obstacle_ignore_value = 20  # All costs below a scaled value of 30 are ignored
-min_map_update_time = .5  # minimum time between updating the map from point-cloud
+min_map_update_time = .2  # minimum time between updating the map from point-cloud
 
 # ~~~~~~~~~~~~~~~LOCALISATION CONSTANTS ~~~~~~~~~~~~~~~~~
 minimum_gps_corrections = 50
@@ -65,6 +64,7 @@ pose_pub_rate = 0.2
 # ~~~~~~~~~~~~~~~~~ CAMERA INFO ~~~~~~~~~~~~~~~~~~~~~
 d415_serial = "932122060332"
 d435_serial = "829212072166"
+d455_serial = "213522254970"
 active_depth_camera = d435_serial  # d435_serial
 t265_serial = "952322110473"
 pose_file = "cameras/pose.txt"

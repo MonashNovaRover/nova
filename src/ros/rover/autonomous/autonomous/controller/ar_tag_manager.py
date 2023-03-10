@@ -73,9 +73,9 @@ class ArTagManager(Node):
         gate_l, gate_r = self.get_average_tag_pose(self.ar_tag_goals[0]),\
                             self.get_average_tag_pose(self.ar_tag_goals[1])
 
-        print(f"gate_l = {gate_l}, gate_r = {gate_r}")
+        self.get_logger().debug(f"gate_l = {gate_l}, gate_r = {gate_r}")
         normal = np.array((gate_l[1] - gate_r[1], gate_r[0] - gate_l[0]))
-        print(f"normal = {normal}")
+        self.get_logger().debug(f"normal = {normal}")
         unit_normal = normal / np.linalg.norm(normal)
         return unit_normal
 
@@ -85,7 +85,7 @@ class ArTagManager(Node):
         """
         # return np.all([self.found_tag(goal) for goal in self.ar_tag_goals])
         found = len(self.ar_tag_goals) and np.all([self.found_tag(goal) for goal in self.ar_tag_goals])
-        print("found all current goals: " + "yes" if found else "no")
+        self.get_logger().debug("found all current goals: " + "yes" if found else "no")
         return found
 
     def found_tag(self, tag_id: int):
