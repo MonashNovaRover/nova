@@ -31,6 +31,7 @@ TODO:
 from autonomous.mapping.python_height_mapper import FlatMapper
 import autonomous.math_utils.transform as transform
 from autonomous.config.runtime_params import max_safe_inc
+import logging
 from plane_fitter import get_obstacles as get_plane_obstacles
 
 
@@ -40,8 +41,9 @@ class PlaneMapper(FlatMapper):
 
         # init node with node name points
         super().__init__(length=length, width=width, height=height, resolution=resolution,
-                         detection_resolution=detection_resolution, planner=planner, camera=camera)
-        self.on_initialise()
+                         detection_resolution=detection_resolution, planner=planner, camera=camera, name=name)
+        self.get_logger().set_level(logging.INFO)
+        self.on_initialised()
 
     def get_obstacles(self, filtered_indices):
         return get_plane_obstacles(filtered_indices, self.detection_length, self.detection_width, self.resolution_ratio)
@@ -59,10 +61,17 @@ class PlaneMapper(FlatMapper):
 
     def handle_pc(self, pts):
         # transforming pitch and roll to # transforming pitch and roll to flatten the map, but no yaw or translation
-        if self.local_map_to_d435 is None:
-            self.get_logger().warn("No transform to d435 frame!", once=True)
+        if self.local_map_to_d435 is None: 
+            self.get_logger().warn("No transform to d435 frame!")
             return
-        no_yaw_pts = transform.transform_points_no_yaw(self.local_map_to_d435, pts)
+        if self.orient_nova_frame_transform is None: 
+            self.get_logger().warn("No transform to forward-facing frame!")
+            return
+        self.get_logger().debug(f"Transforming point cloud by transform: {self.orient_nova_frame_transform}")
+        # transform to nova coordinates
+        frame_transformed_points = transform.transform_points(self.orient_nova_frame_transform, pts)
+        self.get_logger().debug(f"Transforming point cloud by transform: {self.local_map_to_d435}")
+        no_yaw_pts = transform.transform_points_no_yaw(self.local_map_to_d435, frame_transformed_points)
 
         filtered_indices = self.filter_points(no_yaw_pts)
 
@@ -74,5 +83,8 @@ class PlaneMapper(FlatMapper):
 
         rotated_obs = self.arrange_obstacles(downscaled_obs, min_x)
         self._map.add_obstacles(self.local_map_to_d435, rotated_obs)
+
+        self.get_logger().warn("publishing map")
+        self.publish()
         
 

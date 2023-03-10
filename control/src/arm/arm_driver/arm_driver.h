@@ -6,8 +6,6 @@ Monash Nova Rover Team
 
 This class reads data from the arm control script and 
     publishes data to the arm CMDs. 
-Whether to use PID or PWM is decided based on presence 
-    of encoders on joints.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: arm_driver
@@ -20,7 +18,7 @@ ACTIONS:  None
 PACKAGE: 	control
 AUTHOR(S):  Jess Hepworth, Jory Braun
 CREATION:	03/12/2021
-EDITED:		13/09/2022
+EDITED:		02/10/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
  - 
@@ -34,15 +32,13 @@ TODO:
 #include "sensor_msgs/msg/joint_state.hpp"
 
 // Include libraries
-#include "arm_config_info_client.h"
-#include "cmd/cmd.h"
+#include "arm_model.h"
 
 
 /* 
-Class which receives the commands for the CMDS and interfaces 
-with the joint class to control the CMDs  
+Class which receives the commands for the CMDs and drives the joints
 */
-class ArmDriver : public ArmConfigInfoClient
+class ArmDriver : public rclcpp::Node
 {
     //------------------------------------------------------------//
     private:
@@ -53,14 +49,10 @@ class ArmDriver : public ArmConfigInfoClient
     // Stores the subscriber to the desired actuator commands
     rclcpp::Subscription<core::msg::EndEffectorInput>::SharedPtr endeffector_input_subscription;
 
-    // A vector of pointers to CMD instances
-    std::vector<CMD*> joints;
-
-    // A vector of cmd drive modes (mode for each joint, PWM=0, PID=1)
-    std::vector<CMDCommand> CMD_drive_mode;
-
-    // A vector of CMD directions
-    std::vector<bool> CMD_direction;
+    // Arm model. Includes motor drivers for all joints
+    ArmModel* arm_model;
+    // End effector
+    CMD* end_effector;
 
     /// @brief      Callback function when input messages are received.
     /// @param      msg - A pointer to the input message
@@ -68,7 +60,7 @@ class ArmDriver : public ArmConfigInfoClient
     /// @brief      Deadline callback for joint velocities subscription
     ///             Resets the internal joint velocities
     void joint_velocities_deadline_callback();
-    
+
     /// @brief      Callback function when input messages are received.
     /// @param      msg - A pointer to the input message
     void endeffector_input_callback (const core::msg::EndEffectorInput::SharedPtr msg);
@@ -76,13 +68,10 @@ class ArmDriver : public ArmConfigInfoClient
     ///             Resets the internal state
     void endeffector_input_deadline_callback();
 
-    /// @brief      Application setup function. Starts publishers, subscribers and initialises members
-    void start_node() override;
-
     //------------------------------------------------------------//
     public:
 
-    /// @brief      Constructor. Starts the node
-    ArmDriver() : ArmConfigInfoClient("arm_driver"){}
-    
+    /// @brief      Constructor. Starts publishers, subscribers and initialises members
+    ArmDriver();
+
 };
