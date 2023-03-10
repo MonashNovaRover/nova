@@ -60,9 +60,9 @@ class DepthCamera(Node):
         # self.object_detector = ObjectDetector()
         self.cv_bridge : CvBridge = CvBridge()
 
-        self.param_pointcloud_frequency = self.declare_parameter("depth_cloud_rate_hz", 20).value
-        self.param_image_frequency = self.declare_parameter("image_process_rate_hz", 20).value
-        self.param_frame_frequency = self.declare_parameter("depth_cam_frame_rate_hz", 20).value
+        self.param_pointcloud_frequency = self.declare_parameter("depth_cloud_rate_hz", 5).value
+        self.param_image_frequency = self.declare_parameter("image_process_rate_hz", 5).value
+        self.param_frame_frequency = self.declare_parameter("depth_cam_frame_rate_hz", 5).value
 
         self.cloud_publisher = self.create_publisher(PointCloud2, f"~/{self.depth_frame_id}/cloud", 10)
         self.image_publisher = self.create_publisher(Image, f"~/{self.depth_frame_id}/image", 10)
