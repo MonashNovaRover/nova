@@ -19,14 +19,14 @@ min_speed = 2.0  # todo: determine
 
 max_speed = 7.0  # todo: determine
 
-min_waypoint_distance = 0.6  # todo: determine what is achievable
+min_waypoint_distance = 0.1  # todo: determine what is achievable
 ignore_waypoints = 4  # number of waypoints to cut off start of list
 
 # speed of autonomous driving and turning
 small_turn_angle = np.pi/16
 big_turn_drive_fraction = 0.20
 small_turn_drive_fraction = 0.15
-straight_drive_fraction = 0.4
+straight_drive_fraction = 0.2
 
 # Angle of lenience on completing a full turn on the spot
 spin_achieved_delta = np.pi/10

@@ -5,6 +5,7 @@ import rclpy
 from rclpy.node import Node
 from autonomous.config.runtime_params import t265_serial
 from geometry_msgs.msg import Pose, PoseStamped
+import logging
 
 # different systems seem to install the pyrealsense wrapper differently
 try:
@@ -26,6 +27,7 @@ class TrackingCamera(Node):
     def __init__(self, serial_number=t265_serial):
         super().__init__("T265Node")
         # Declare RealSense pipeline, encapsulating the actual device and sensors
+        self.get_logger().set_level(logging.DEBUG)
         self.pipe = rs.pipeline()
 
         # Build config object and request pose data
@@ -53,6 +55,8 @@ class TrackingCamera(Node):
             pose.orientation.y = -data.rotation.x
             pose.orientation.z = data.rotation.y
             pose.orientation.w = data.rotation.w
+
+            self.get_logger().debug(f"Tracking camera pose: {pose}")
 
             t265_pose_stamped = PoseStamped()
             t265_pose_stamped.header.stamp = self.get_clock().now().to_msg()
