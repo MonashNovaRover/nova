@@ -1,6 +1,7 @@
 # GRUC
 /autonomous_controller_node:
   ros__parameters:
+    is_ARC: true
     search_coordinates:
       # x, y
       [
@@ -22,5 +23,17 @@
         "RED", "GREEN"
       ]
 
-# flat mapper
-/flat
+# Initial pose settings
+/pose_converter:
+  ros__parameters:
+    use_euler: false
+    initial_base_link_quat:
+      # x, y, z, qx, qy, qz, qw
+      [
+        0., 0., 0., 0., 0., 0., 1.
+      ]
+    initial_base_link_euler:
+      # x, y, z, yaw, pitch, roll
+      [
+        0., 0., 0., 0., 0., 0.
+      ]
