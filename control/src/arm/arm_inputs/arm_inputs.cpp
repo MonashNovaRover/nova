@@ -342,7 +342,7 @@ int main(int argc, char **argv)
     rclcpp::init(argc, argv);
 
     // Runs the Publisher class
-    rclcpp::spin(std::make_shared<ScraperInputs>());
+    rclcpp::spin(std::make_shared<ArmInputs>());
 
     // Shutsdown ROS once complete
     rclcpp::shutdown();
