@@ -55,6 +55,9 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/Waypoints.msg"
   "msg/WheelData.msg"
   "msg/AutonomousGoal.msg"
+  "msg/PivotWheelData.msg"
+  "msg/SingleTelemetry.msg"
+  "msg/Telemetry.msg"
 
   # Service definitions
   "srv/ArmConfigInfo.srv"
@@ -75,6 +78,9 @@ rosidl_generate_interfaces(${PROJECT_NAME}
 install(DIRECTORY
   launch
   params
+  rviz
+  urdf
+  meshes
   DESTINATION share/${PROJECT_NAME}
 )
 
