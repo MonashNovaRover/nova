@@ -2,11 +2,11 @@
 
 #status options
 byte OK = 0
-byte STALL = 1
-byte DRIVER_FAULT = 2
+byte STALL_TRIGGERED = 1
+byte GATE_DRIVER_FAULT = 2
 
 #status of the BLCMD
 byte status
 
 #id of the BLCMD
-int id
+int8 id
