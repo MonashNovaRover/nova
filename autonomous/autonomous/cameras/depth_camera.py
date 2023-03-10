@@ -51,6 +51,9 @@ class DepthCamera(Node):
         self.color_profile = rs.video_stream_profile(self.profile.get_stream(rs.stream.color))
         self.color_intrinsics = self.color_profile.get_intrinsics()
 
+        # Get depth intrinsics
+        self.depth_intrinsics = self.config.get_stream(rs.stream.depth).as_video_stream_profile().get_intrinsics()
+
         self.depth_frame = None
         self.color_frame = None
         self.latest_frame_stamp = None
