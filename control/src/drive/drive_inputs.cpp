@@ -48,7 +48,7 @@ void DriveInputs::publish_cmds()
     {
         if(strafe_mode)
         {
-            message.speed = left_input_axis_x * multiplier_speed * trigger_speed;
+            message.speed = -left_input_axis_x * multiplier_speed * trigger_speed;
 
         }
         else
