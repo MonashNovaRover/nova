@@ -63,13 +63,13 @@ class ObjectDetection(Node):
     def object_detection(self, color_frame, depth_frame):
         self.get_logger().info("OBJECT DETECTION CALLBACK")
         color_image = np.asanyarray(color_frame.get_data())
-        results = self.model(color_image)
+        results = self.model.predict(color_image)
+        print(results)
+        boxes = results[0].boxes.cpu().numpy()
 
-        frame_count += 1
-        total_frames += 1
 
-        for box in results.boxes:
-            xmin, ymin, xmax, ymax = box.xyxy[0]
+        for box in boxes:
+            xmin, ymin, xmax, ymax = box
 
             if box.conf > self.confidence_threshold:
                 self.get_logger().info("FOUND BOX")
@@ -83,15 +83,3 @@ class ObjectDetection(Node):
                     cv2.rectangle(color_image, (int(xmin), int(ymin)), (int(xmax), int(ymax)), (0,0,0), 2)
                     cv2.putText(color_image, "Cube", (int(xmin), int(ymin) - 30), cv2.FONT_HERSHEY_SIMPLEX, .5, (0, 0, 255))
                     cv2.putText(color_image, f'Depth: {depth:.2f}', (int(xmin), int(ymin) - 20), cv2.FONT_HERSHEY_SIMPLEX, .5, (0, 0, 255))
-
-                    if frame_count >= 30:
-                        end = time.time_ns()
-                        fps = 1000000000 * frame_count / (end - start)
-                        frame_count = 0
-                        start = time.time_ns()
-
-                    if fps > 0:
-                        fps_label = f'FPS: {fps:.2f}'
-                        cv2.putText(color_image, fps_label, (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-
-                        cv2.imshow("output", color_image)
