@@ -243,7 +243,7 @@ void Driver::fill_wheel_angles_strafe() {
 
 void Driver::fill_wheel_velocities_strafe(float speed) {
     for (size_t i = 0; i < NUM_WHEELS; i++) {
-        pivots[i]->velocity = speed * (i%2 ? -1 : 1);
+        pivots[i]->velocity = 0.35*speed * (i%2 ? -1 : 1);
     }
 }
 
