@@ -38,6 +38,12 @@ void Driver::send_commands(const core::msg::DriveInput::SharedPtr msg)
         fill_wheel_velocities_radial(msg->speed, radius);
         data_msg.radius = radius;
     }
+    else if (msg->strafe_mode)
+    {
+        fill_wheel_angles_strafe();
+        fill_wheel_velocities_strafe(msg->speed);
+        data_msg.radius = 0;
+    }
 
     // Send velocities to the wheels
     for (size_t i = 0; i < NUM_WHEELS; i++)
@@ -48,6 +54,7 @@ void Driver::send_commands(const core::msg::DriveInput::SharedPtr msg)
         data_msg.angles[i] = pivot->angle;
         data_msg.velocities[i] = pivot->velocity;
     }
+
     data_msg.steer = steer;
     pivot_wheel_pub->publish(data_msg);
 }
@@ -121,9 +128,6 @@ void Driver::get_turning_radius(float steer, double *radius, int *sign)
 
     double temp_radius = steer == 0 ? INFINITY : (1.0 / steer) - (steer > 0 ? 1 : -1);
 
-//    cout << "radius: " << temp_radius << endl;
-//    cout << "steer: " << steer << endl;
-
     *sign = steer == 0 ? prev_sign : (steer > 0 ? 1.0 : -1.0);
     prev_sign = *sign;
     double max_change = -INFINITY;
@@ -131,27 +135,20 @@ void Driver::get_turning_radius(float steer, double *radius, int *sign)
     //Find the wheel that has to turn the most
     for (size_t i = 0; i < NUM_WHEELS; i++)
     {
-//        cout << "pivot " << i + 1 << " current angle: " << pivots[i]->angle << endl;
+
         double target = calc_wheel_angle(temp_radius, i, *sign);
-//        cout << "pivot " << i + 1 << " target angle: " << target << endl;
+
         // Get the maximum change in angle
         if (abs(target - pivots[i]->angle) > max_change) {
             max_change = abs(target - pivots[i]->angle);
             index = i;
         }
     }
-//    cout << "index: " << index << endl;
+
     double target = calc_wheel_angle(temp_radius, index, *sign);
     int direction = pivots[index]->angle == target ? 0 : (pivots[index]->angle < target ? 1 : -1);
-//    cout << "direction: " << direction << endl;
-    // Set the targets to the minimum of the actual target and the target + the angle of the pivot modules
-//    cout << "target: " << target << endl;
     double theta = pivots[index]->angle + direction * d_theta;
-//    cout << "theta: " << theta << endl;
     if (abs(theta - target) < d_theta) theta = target;
-//    cout << "theta: " << theta << endl;
-//    cout << "actual radius: " << radius_from_angle(theta, index, *sign) << endl;
-//    cout << "----------------------------" << endl;
     *radius = radius_from_angle(theta, index, *sign);
 }
 
@@ -175,6 +172,7 @@ float Driver::calc_wheel_angle(float radius, int wheel, int sign)
     }
 
     return angle;
+
 }
 
 double Driver::radius_from_angle(double angle, int wheel, int sign) {
@@ -202,19 +200,13 @@ double Driver::radius_from_angle(double angle, int wheel, int sign) {
 
 void Driver::fill_wheel_angles_radial(double radius)
 {
-//    cout << "Fill wheel angles" << endl;
-//    cout << "radius: " << radius << endl;
     int sign = radius == 0 ? prev_sign : (radius > 0 ? 1 : -1);
-//    cout << "sign: " << sign << endl;
     for(int i = 0; i < NUM_WHEELS; i++)
     {
         pivots[i]->angle = calc_wheel_angle(radius, i, sign);
-//        cout << "pivot " << i + 1 << " angle: " << pivots[i]->angle << endl;
     }
-//    cout << "----------------------------" << endl;
 }
 
-// Fill array with velocities for each wheel, with directions and magnitude depending on the turning radius
 void Driver::fill_wheel_velocities_radial(float speed, float radius)
 {
     float left_ratio = !radius ? 1 : sqrt(pow(CHASSIS_LENGTH, 2.0)/4 + pow(radius + (CHASSIS_WIDTH / 2), 2.0))/abs(radius);
@@ -240,6 +232,18 @@ void Driver::fill_wheel_velocities_radial(float speed, float radius)
         {
             pivots[i]->velocity = ((pivots[i] ->velocity)/max)*0.35;
         }
+    }
+}
+
+void Driver::fill_wheel_angles_strafe() {
+    for (size_t i = 0; i < NUM_WHEELS; i++) {
+        pivots[i]->angle = M_PI_2 - angle_offset;
+    }
+}
+
+void Driver::fill_wheel_velocities_strafe(float speed) {
+    for (size_t i = 0; i < NUM_WHEELS; i++) {
+        pivots[i]->velocity = speed * (i%2 ? -1 : 1);
     }
 }
 
