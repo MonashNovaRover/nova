@@ -58,8 +58,10 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/PivotWheelData.msg"
   "msg/SingleTelemetry.msg"
   "msg/Telemetry.msg"
+  "msg/BLCMDStatus.msg"
+  "msg/BLCMDStatusArray.msg"
+  "msg/BLCMDReset.msg"
 
-  # Service definitions
   "srv/ArmConfigInfo.srv"
   "srv/CameraCommand.srv"
   "srv/CMDCommand.srv"
