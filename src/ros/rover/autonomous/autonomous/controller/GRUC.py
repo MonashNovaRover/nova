@@ -59,16 +59,14 @@ from autonomous.math_utils.controller_math import *
 from autonomous.config.runtime_params import *
 from autonomous.config.ros_config import *
 from autonomous.planning.path_planner import PathPlanner
-from autonomous.controller.turning import YawStarTurner
+from autonomous.controller.turning import YawStarTurner, TankTurner
 from autonomous.controller.drive_controller import DriveController
 import autonomous.config as config
 
 # misc
 from enum import Enum
-import os
 from typing import List, Tuple
 import logging
-import json
 
 
 class GoalType(Enum):
@@ -143,7 +141,7 @@ class Controller(Node):
 
         # Ros params
         self.param_is_arc = self.declare_parameter("is_ARC", True).value
-        self.param_conf_filename = self.declare_parameter("conf_filename", "arc_search_config.json").value
+        self.param_search_coordinates = self.declare_parameter("search_coordinates", []).value
 
         # ~~~~~~~~~~ State ~~~~~~~~
         self.state_rover_pose = Pose2D()
@@ -158,8 +156,6 @@ class Controller(Node):
         self.search_plan = []
         self.search_array_index = 0
 
-        if self.
-
         # these are the planners we use when in each particular state
         self.planners = {
             PlanningState.GPS_HONING: self.get_honing_goal,
@@ -171,7 +167,7 @@ class Controller(Node):
         }
 
         # Controller classes for turning, driving to waypoints, and spinning
-        self.ctl_turner = YawStarTurner()
+        self.ctl_turner = TankTurner()
         self.ctl_driver = DriveController(self.ctl_turner)
         self.ctl_spin = None
 
@@ -237,10 +233,16 @@ class Controller(Node):
 
         elif self.planning_state.state == PlanningState.SEARCH:
 
-            if self.ar_tag_manager.found_current_goals():
-                self.on_state_update(PlanningState.AR_HONING)
-            elif self.search_array_index == len(self.search_plan):
-                self.on_state_update(PlanningState.SUCCESS)
+            if self.param_is_arc:
+                # At ARC, we stay in search mode until the end of the challenge
+                if self.search_array_index == len(self.search_plan):
+                    self.on_state_update(PlanningState.SUCCESS)
+            else:
+                # At URC, only search until we have found the AR tags for this goal
+                if self.ar_tag_manager.found_current_goals():
+                    self.on_state_update(PlanningState.AR_HONING)
+                elif self.search_array_index == len(self.search_plan):
+                    self.on_state_update(PlanningState.SUCCESS)
 
         elif self.planning_state.state == PlanningState.AR_HONING:
 
@@ -360,21 +362,15 @@ class Controller(Node):
     def setup_search(self):
         if self.param_is_arc:
             self.search_plan = self.load_search_layout()
-        self.search_plan = interpolate_circle_points(self.state_current_planning_destination)
+        else:
+            self.search_plan = interpolate_circle_points(self.state_current_planning_destination)
         self.ctl_spin = SpinController(self.state_rover_pose.yaw, self.ctl_turner)
 
     def load_search_layout(self) -> List[Tuple[float, float]]:
         """
-        Read arc_search_config.json to get the list of points for the search
+        Get search as a list of (x, y) coordinates from the parameter list
         """
-        config_dir = os.path.dirname(config.__file__)
-        conf_json_file = os.path.join(config_dir, self.param_conf_filename)
-        with open(conf_json_file, "r") as f:
-            conf_dict = json.load(f)
-
-        return [
-            (goal["x"], goal["y"]) for goal in conf_dict["search_plan"]
-        ]
+        return np.array(self.param_search_coordinates).reshape(-1, 2)
 
     def near_current_goal(self) -> bool:
         """

@@ -52,7 +52,9 @@ class PoseConverter(Node):
 
         self.param_do_ORB_SLAM3 = self.declare_parameter("do_orbslam", False).value
         self.param_base_link_rate = self.declare_parameter("base_link_pub_rate_hz", 20).value
-        self.param_load_pose_file = self.declare_parameter("load_file_pose", False).value
+        self.param_use_euler_angles = self.declare_parameter("use_euler", False).value
+        self.param_initial_quat = self.declare_parameter("initial_base_link_quat", [0., 0., 0., 0., 0., 0., 1.]).value
+        self.param_initial_euler = self.declare_parameter("initial_base_link_euler", [0., 0., 0., 0., 0., 0.]).value
 
         self.tf_base_link = TransformBroadcaster(self)
         self.tf_initial_offset = StaticTransformBroadcaster(self)
@@ -72,34 +74,45 @@ class PoseConverter(Node):
         self.create_timer(1 / self.param_base_link_rate, self.timer_callback)
         self.get_logger().info("Pose converter node up!")
 
-    def fill_initial_pose(self, transform: Transform):
+    def fill_initial_pose(self, initial_transform: Transform):
         """
-        Read data from file and fill transform with it
+        Read data from params and fill transform with it
         """
-        try:
-            pose = np.loadtxt(pose_file).reshape(4)
-        except FileNotFoundError as e:
-            self.get_logger().warn("Couldn't find file!")
+        if self.param_use_euler_angles:
+            try:
+                initial_transform.translation.x, initial_transform.translation.y, initial_transform.translation.z = \
+                    self.param_initial_euler[0], self.param_initial_euler[1], self.param_initial_euler[2]
+                initial_transform.rotation = transform.quat_to_euler(
+                    self.param_initial_euler[3],
+                    self.param_initial_euler[4],
+                    self.param_initial_euler[5]
+                )
+            except IndexError as e:
+                self.get_logger().error(f"Incorrect euler angle layout in parameter: {e}")
+            except Exception as e:
+                self.get_logger().error(f"Failed to read parameter initial pose {e}")
+        else:
+            try:
+                initial_transform.translation.x, initial_transform.translation.y, initial_transform.translation.z = \
+                    self.param_initial_quat[0], self.param_initial_quat[1], self.param_initial_quat[2]
+                initial_transform.rotation.x, initial_transform.rotation.y, initial_transform.rotation.z, initial_transform.rotation.w = \
+                    self.param_initial_quat[3], self.param_initial_quat[4], self.param_initial_quat[5], self.param_initial_quat[6]
+            except IndexError as e:
+                self.get_logger().error(f"Incorrect quaternion layout in parameter: {e}")
+            except Exception as e:
+                self.get_logger().error(f"Failed to read parameter initial pose {e}")
 
-        transform.translation.x, transform.translation.y, transform.translation.z = pose[:3]
-        # filling in yaw
-        transform.rotation.z = np.sin(pose[3] / 2)
-        transform.rotation.w = np.cos(pose[3] / 2)
-        return transform
+        return initial_transform
 
     def get_initial_transform(self):
         """
         If we want to, load initial rover position from file
         """
-        # TODO: set in param somewhere?
         initial_transform = TransformStamped()
         initial_transform.header.frame_id = 'map'
         initial_transform.header.stamp = self.get_clock().now().to_msg()
         initial_transform.child_frame_id = 'initial_base_link'
-        if self.param_load_pose_file:
-            initial_transform.transform = self.fill_initial_pose(initial_transform.transform)
-        else:
-            initial_transform.transform.rotation.w = 1.0
+        initial_transform.transform = self.fill_initial_pose(initial_transform.transform)
 
         self.tf_initial_offset.sendTransform(initial_transform)
 
