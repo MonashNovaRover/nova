@@ -36,11 +36,11 @@ def generate_launch_description():
     )
 
     joint_state_publisher_node =  Node(
-            package='control',
-            node_executable='rover_state_publisher.py',
-            output='screen',
-            emulate_tty=True
-            )
+        package='control',
+        node_executable='rover_state_publisher.py',
+        output='screen',
+        emulate_tty=True
+    )
 
     # autonomous nodes
     path_vis_node = Node(
@@ -48,12 +48,13 @@ def generate_launch_description():
         node_executable="path_vis.py",
         output="screen",
         emulate_tty=True
-    ),
+    )
 
     return LaunchDescription([
         model_arg,
         rviz_arg,
         rviz_node,
+        path_vis_node,
         joint_state_publisher_node,
         robot_state_publisher_node,
     ])
