@@ -1,0 +1,35 @@
+# 
+/autonomous_controller_node:
+  ros__parameters:
+    is_ARC: true
+    search_coordinates:
+      # x, y
+      [
+        8.0, 8.0,
+        8.0, -8.0,
+        -8.0, -8.0,
+        -8.0, 8.0
+      ]
+    tracked_tag_ids:
+      [
+        0, 1, 2, 3, 4
+      ]
+    tracked_block_colors:
+      [
+        "RED", "GREEN"
+      ]
+
+# Initial pose settings
+/pose_converter:
+  ros__parameters:
+    use_euler: false
+    initial_base_link_quat:
+      # x, y, z, qx, qy, qz, qw
+      [
+        1., 1., 0., 0., 0., 1., 0.
+      ]
+    initial_base_link_euler:
+      # x, y, z, yaw, pitch, roll
+      [
+        0., 0., 0., 0., 0., 0.
+      ]

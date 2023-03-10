@@ -53,14 +53,14 @@ def generate_launch_description():
             package="autonomous",
             node_executable="pose_converter_ARC.py",
             output="screen",
-            parameters=[core_params_path / "pose_converter.yaml"],
+            parameters=[core_params_path / "auto_params.yaml"],
             emulate_tty=True
         ),
         Node(
             package="autonomous",
             node_executable="GRUC.py",
             output="screen",
-            parameters=[core_params_path / "GRUC.yaml"],
+            #parameters=[core_params_path / "auto_params.yaml"],
             emulate_tty=True
         ),
     ])
