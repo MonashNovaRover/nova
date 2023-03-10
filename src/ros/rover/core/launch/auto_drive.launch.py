@@ -21,10 +21,14 @@ from launch.actions import IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
+from ament_index_python.packages import get_package_share_path
 
 
 # Generate the launch file with all inputs
 def generate_launch_description():
+    # Get the path to the parameters files in core package
+    core_params_path = get_package_share_path('core') / "params"
+
     return LaunchDescription([
         # tf2 static transforms
         IncludeLaunchDescription(
@@ -49,12 +53,14 @@ def generate_launch_description():
             package="autonomous",
             node_executable="pose_converter_ARC.py",
             output="screen",
+            parameters=[core_params_path / "pose_converter.yaml"],
             emulate_tty=True
         ),
         Node(
             package="autonomous",
             node_executable="GRUC.py",
             output="screen",
+            parameters=[core_params_path / "GRUC.yaml"],
             emulate_tty=True
         ),
     ])
