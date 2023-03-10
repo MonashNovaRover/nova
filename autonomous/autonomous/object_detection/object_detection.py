@@ -25,7 +25,7 @@ class ObjectDetection(Node):
         :param show: whether to show the image (used for testing)
         """
         super().__init__("object_image_pub")
-        self.obj_pub = self.create_publisher(Marker, "object", 10)
+        self.obj_pub = self.create_publisher(Marker, f"/depth_camera/{frame_id}/markers", 10)
         # Get full path to model from the obj_detect package using os
         model_path = os.path.join(os.path.dirname(models.__file__), "10_mar_cubes_nano.pt")
         
@@ -61,6 +61,7 @@ class ObjectDetection(Node):
         self.obj_pub.publish(msg)
 
     def object_detection(self, color_frame, depth_frame):
+        self.get_logger().info("OBJECT DETECTION CALLBACK")
         color_image = np.asanyarray(color_frame.get_data())
         results = self.model(color_image)
 
@@ -71,6 +72,7 @@ class ObjectDetection(Node):
             xmin, ymin, xmax, ymax = box.xyxy[0]
 
             if box.conf > self.confidence_threshold:
+                self.get_logger().info("FOUND BOX")
                 cx, cy = int(xmin) + (int(xmax) - int(xmin))//2, int(ymin) + (int(ymax) - int(ymin))//2
                 depth = depth_frame.get_distance(cx,cy)
                 point = rs.rs2_deproject_pixel_to_point(self.intr, [float(cx), float(cy)], depth)
