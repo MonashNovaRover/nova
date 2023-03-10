@@ -197,8 +197,8 @@ class Controller(Node):
 
         # Timers
         self.control_timer = self.create_timer(0.1, self.control)  # calculate and send drive commands
-        self.planning_timer = self.create_timer(1.0, self.plan)  # update planning state and plan paths
-        self.pose_timer = self.create_timer(0.05, self.callback_rover_pose)  # update the rover's pose from tf2
+        self.planning_timer = self.create_timer(0.5, self.plan)  # update planning state and plan paths
+        self.pose_timer = self.create_timer(0.1, self.callback_rover_pose)  # update the rover's pose from tf2
 
         # Node is initialised, begin search (If ARC)
         if self.param_is_arc:
@@ -484,7 +484,7 @@ class Controller(Node):
 
         # update search array index        
         if self.planning_state.state == PlanningState.SEARCH:
-            if self.search_array_index % 2 == 0 and self.search_array_index // 2 >= self.spin_counter and self.driving_state == DrivingState.TO_WAYPOINT:
+            if self.search_array_index != 0 and self.search_array_index % 2 == 0 and self.search_array_index // 2 >= self.spin_counter and self.driving_state == DrivingState.TO_WAYPOINT:
                 self.driving_state = DrivingState.TURNING
                 self.spin_counter += 1
                 self.ctl_spin = SpinController(self.state_rover_pose.yaw, self.ctl_turner)
@@ -505,7 +505,7 @@ class Controller(Node):
         :param:
         """
         # calculate target yaw and signed yaw difference using the controller_math module
-        self.get_logger().debug(f"driving to {target_waypoint}")
+        self.get_logger().debug(f"driving to {target_waypoint} from {self.state_rover_pose}")
 
         position_vector = np.array([self.state_rover_pose.x, self.state_rover_pose.y, 0])
         target_vector = np.array([target_waypoint[0], target_waypoint[1], 0])
