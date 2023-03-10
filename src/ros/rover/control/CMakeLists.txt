@@ -137,6 +137,15 @@ install(PROGRAMS
         control/blcmd_status_monitor.py
         DESTINATION lib/${PROJECT_NAME}
         )
+  control/cmd_plotter.py
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+# Add all Python executables to this list
+install(PROGRAMS
+  control/excavation_construction.py
+  DESTINATION lib/${PROJECT_NAME}
+)
 
 # Install Python modules
 ament_python_install_package(${PROJECT_NAME})

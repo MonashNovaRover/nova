@@ -71,6 +71,7 @@ alias auto_base='ros2 launch core auto_base.launch.py'
 alias auto_drive='ros2 launch core auto_drive.launch.py'
 alias launch_viz='ros2 launch core viz.launch.py'
 alias launch_vis='ros2 launch core viz.launch.py'
+alias excavation_construction='ros2 launch core excavation_construction.launch.py'
 
 # Service Aliases
 alias arm_config_info='ros2 service call control/arm_config_info core/srv/ArmConfigInfo'
