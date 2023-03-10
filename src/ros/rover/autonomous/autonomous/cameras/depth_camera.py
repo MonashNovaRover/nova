@@ -14,6 +14,7 @@ from std_msgs.msg import Header
 from sensor_msgs.msg import PointCloud2, Image
 from rs2_ros2 import rs2_verts_to_buffer
 from autonomous.cameras.pc_converter import get_fields_xyz32
+from autonomous.object_detection.object_detection import ObjectDetection
 
 from autonomous.cameras.ar_tracker import ArTracker
 from cv_bridge import CvBridge
@@ -60,7 +61,7 @@ class DepthCamera(Node):
         self.depth_frame_id = 'd435_1'
 
         self.ar_tracker = ArTracker(self.color_intrinsics, depth_cam_frame_id=self.depth_frame_id)
-        # self.object_detector = ObjectDetector()
+        self.object_detector = ObjectDetection(self.depth_intrinsics)
         self.cv_bridge : CvBridge = CvBridge()
 
         self.param_pointcloud_frequency = self.declare_parameter("depth_cloud_rate_hz", 5).value
