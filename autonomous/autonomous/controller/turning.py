@@ -111,7 +111,7 @@ class YawStarTurner(Turner):
 
 class TankTurner(Turner):
     def turn(self, yaw_difference, position_vector=None, current_orientation=None):
-        return tank_turn_target_yaw_rate(yaw_difference), 0
+        return tank_turn_target_yaw_rate(yaw_difference), straight_drive_fraction
 
     def reset(self):
         # do nothing
