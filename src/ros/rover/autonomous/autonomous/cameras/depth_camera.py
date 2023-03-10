@@ -53,7 +53,8 @@ class DepthCamera(Node):
         self.color_intrinsics = self.color_profile.get_intrinsics()
 
         # Get depth intrinsics
-        self.depth_intrinsics = self.config.get_stream(rs.stream.depth).as_video_stream_profile().get_intrinsics()
+        self.depth_profile = rs.video_stream_profile(self.profile.get_stream(rs.stream.depth))
+        self.depth_intrinsics = self.depth_profile.get_intrinsics()
 
         self.depth_frame = None
         self.color_frame = None
@@ -137,7 +138,7 @@ class DepthCamera(Node):
         t1 = time.perf_counter()
         self.ar_tracker.find_ar_tags(color_image)
         t2 = time.perf_counter()
-        # self.object_detector(self.color_frame, self.depth_frame)
+        self.object_detector.object_detection(self.color_frame, self.depth_frame)
         t3 = time.perf_counter()
         header = Header(
             stamp = self.latest_frame_stamp,
