@@ -73,7 +73,7 @@ sudo apt update -y
 sudo apt install ros-foxy-desktop -y
 source /opt/ros/foxy/setup.bash
 sudo apt install -y python3-pip -y
-pip3 install -U argcomplete -y
+pip3 install -U argcomplete
 sudo apt install -y python-rosdep -y
 sudo rosdep init -y
 rosdep update -y --include-eol-distros --rosdistro=eloquent
