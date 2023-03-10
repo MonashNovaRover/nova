@@ -117,11 +117,6 @@ private:
     /// @brief      Callback function when deadline for subscriptions are exceeded
     void deadline_exceeded();
 
-    /// @brief      Calculates steer angle - radians
-    /// @param      x_steer
-    /// @param      y_steer
-    float calc_steer_angle(float x_steer, float y_steer);
-
     //------------------------------------------------------------//
 public:
 
