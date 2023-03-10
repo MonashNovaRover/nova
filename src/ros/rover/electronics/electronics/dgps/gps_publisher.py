@@ -38,6 +38,8 @@ class SkytraqNode (Node):
             pose.latitude, pose.longitude = float(raw_msg[3]), float(raw_msg[5])
             if raw_msg[2] == 'A':
                 pose.valid = True
+            else:
+                pose.valid = False
     
     def get_msg(self):
         self.counter+=1
