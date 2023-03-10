@@ -1,0 +1,26 @@
+# GRUC
+/autonomous_controller_node:
+  ros__parameters:
+    search_coordinates:
+      # x, y
+      [
+        8.0, 8.0,
+        8.0, -8.0,
+        -8.0, -8.0,
+        -8.0, 8.0
+      ]
+
+# target_manager
+/target_manager:
+  ros__parameters:
+    tracked_tag_ids:
+      [
+        0, 1, 2, 3, 4
+      ]
+    tracked_block_colors:
+      [
+        "RED", "GREEN"
+      ]
+
+# flat mapper
+/flat
