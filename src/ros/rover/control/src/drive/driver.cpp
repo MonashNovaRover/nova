@@ -237,7 +237,7 @@ void Driver::fill_wheel_velocities_radial(float speed, float radius)
 
 void Driver::fill_wheel_angles_strafe() {
     for (size_t i = 0; i < NUM_WHEELS; i++) {
-        pivots[i]->angle = i%2 ? -angle_offset : M_PI_2 - angle_offset;
+        pivots[i]->angle = (i%2 ? -1 : 1) * (M_PI_2 - angle_offset);
     }
 }
 
