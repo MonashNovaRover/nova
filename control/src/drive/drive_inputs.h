@@ -89,6 +89,7 @@ private:
     float right_input_axis_y = 0.0;
     float right_input_axis_x = 0.0;
     float left_input_axis_y = 0.0;
+    float left_input_axis_x = 0.0;
 
     // Stores the current state of the trigger multiplier
     float trigger_speed = 1.0;

@@ -46,7 +46,15 @@ void DriveInputs::publish_cmds()
     // Set up the values if the controller is not locked
     if (!locked && connected)
     {
-        message.speed = left_input_axis_y * multiplier_speed * trigger_speed;
+        if(strafe_mode)
+        {
+            message.speed = left_input_axis_x * multiplier_speed * trigger_speed;
+
+        }
+        else
+        {
+            message.speed = left_input_axis_y * multiplier_speed * trigger_speed;
+        }
         message.steer = right_input_axis_x;
         message.strafe_mode = strafe_mode;
 
@@ -108,6 +116,7 @@ void DriveInputs::input_callback(const core::msg::InputGamepad::SharedPtr msg)
 
         // Update the input axis
         left_input_axis_y = msg->ax_stick_l_y;
+        left_input_axis_x = msg->ax_stick_l_x;
         right_input_axis_x = msg->ax_stick_r_x;
         right_input_axis_y = msg->ax_stick_r_y;
 
@@ -131,25 +140,13 @@ void DriveInputs::input_callback(const core::msg::InputGamepad::SharedPtr msg)
         // Prevent changing states if the controller is locked
         if (!locked)
         {
-
             // Change the speed multipliers
             if (msg->btn_dpad_u_state == 1)
                 adjust_multiplier(multiplier_speed, true);
             else if (msg->btn_dpad_d_state == 1)
                 adjust_multiplier(multiplier_speed, false);
 
-            if (msg->btn_shoulder_l_state==1)
-            {
-                if (strafe_mode == false) {
-                    strafe_mode = true;
-                }
-            }
-            if (msg->btn_shoulder_r_state==1)
-            {
-                if (strafe_mode == true) {
-                    strafe_mode = false;
-                }
-            }
+            strafe_mode = msg->btn_shoulder_l_state==2 && msg->btn_shoulder_r_state==2;
         }
     }
 
