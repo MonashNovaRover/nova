@@ -137,7 +137,7 @@ class DepthCamera(Node):
         t1 = time.perf_counter()
         self.ar_tracker.find_ar_tags(color_image)
         t2 = time.perf_counter()
-        # self.object_detector(self.color_frame, self.depth_frame)
+        self.object_detector.object_detection(self.color_frame, self.depth_frame)
         t3 = time.perf_counter()
         header = Header(
             stamp = self.latest_frame_stamp,

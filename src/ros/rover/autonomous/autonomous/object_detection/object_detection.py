@@ -25,7 +25,7 @@ class ObjectDetection(Node):
         :param show: whether to show the image (used for testing)
         """
         super().__init__("object_image_pub")
-        self.obj_pub = self.create_publisher(Marker, "object", 10)
+        self.obj_pub = self.create_publisher(Marker, "/autonomous/depth_camera/cube_marker", 10)
         # Get full path to model from the obj_detect package using os
         model_path = os.path.join(os.path.dirname(models.__file__), "10_mar_cubes_nano.pt")
         
