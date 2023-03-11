@@ -24,7 +24,7 @@ from autonomous.config.runtime_params import active_depth_camera
 class DepthCamera(Node):
     def __init__(self):
         super().__init__("depth_camera")
-        self.get_logger().set_level(logging.DEBUG)
+        self.get_logger().set_level(logging.INFO)
         # Realsense processing filters and classes
         self.decimation_filters = self.initialise_decimators()
         self.decimation_index = 2
@@ -62,7 +62,7 @@ class DepthCamera(Node):
         self.depth_frame_id = 'd435_1'
 
         #self.ar_tracker = ArTracker(self.color_intrinsics, depth_cam_frame_id=self.depth_frame_id)
-        self.object_detector = ObjectDetection(self.depth_intrinsics)
+        #self.object_detector = ObjectDetection(self.depth_intrinsics)
         self.cv_bridge : CvBridge = CvBridge()
 
         self.param_pointcloud_frequency = self.declare_parameter("depth_cloud_rate_hz", 5).value
@@ -138,7 +138,7 @@ class DepthCamera(Node):
         t1 = time.perf_counter()
         #self.ar_tracker.find_ar_tags(color_image)
         t2 = time.perf_counter()
-        self.object_detector.object_detection(self.color_frame, self.depth_frame)
+        #self.object_detector.object_detection(self.color_frame, self.depth_frame)
         t3 = time.perf_counter()
         header = Header(
             stamp = self.latest_frame_stamp,

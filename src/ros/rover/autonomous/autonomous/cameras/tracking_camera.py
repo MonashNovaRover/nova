@@ -27,7 +27,7 @@ class TrackingCamera(Node):
     def __init__(self, serial_number=t265_serial):
         super().__init__("T265Node")
         # Declare RealSense pipeline, encapsulating the actual device and sensors
-        self.get_logger().set_level(logging.INFO)
+        self.get_logger().set_level(logging.DEBUG)
         self.pipe = rs.pipeline()
 
         # Build config object and request pose data
@@ -56,7 +56,7 @@ class TrackingCamera(Node):
             pose.orientation.z = data.rotation.y
             pose.orientation.w = data.rotation.w
 
-            self.get_logger().debug(f"Tracking camera pose: {pose}")
+            self.get_logger().debug(f"Tracking camera pose: {pose}", throttle_duration_sec=1)
 
             t265_pose_stamped = PoseStamped()
             t265_pose_stamped.header.stamp = self.get_clock().now().to_msg()
