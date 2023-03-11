@@ -24,7 +24,7 @@ class SubToBaseNode(Node):
 
 
     def callback_func(self, msg):
-        self.get_logger().info("Received: '%d'" % msg.data)
+        self.get_logger().info("Received: hi" )
 
         self.ser.write(msg.data)
 
