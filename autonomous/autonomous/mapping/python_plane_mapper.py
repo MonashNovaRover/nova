@@ -67,10 +67,10 @@ class PlaneMapper(FlatMapper):
         if self.orient_nova_frame_transform is None: 
             self.get_logger().warn("No transform to forward-facing frame!")
             return
-        self.get_logger().debug(f"Transforming point cloud by transform: {self.orient_nova_frame_transform}")
+        self.get_logger().debug(f"Transforming point cloud by transform: {self.orient_nova_frame_transform}", throttle_duration_sec=1)
         # transform to nova coordinates
         frame_transformed_points = transform.transform_points(self.orient_nova_frame_transform, pts)
-        self.get_logger().debug(f"Transforming point cloud by transform: {self.local_map_to_d435}")
+        self.get_logger().debug(f"Transforming point cloud by transform: {self.local_map_to_d435}", throttle_duration_sec=1)
         no_yaw_pts = transform.transform_points_no_yaw(self.local_map_to_d435, frame_transformed_points)
 
         filtered_indices = self.filter_points(no_yaw_pts)

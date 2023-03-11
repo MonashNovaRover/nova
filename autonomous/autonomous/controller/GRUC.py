@@ -140,7 +140,7 @@ class Controller(Node):
         super().__init__('autonomous_controller_node')
 
         # set debug to not get shown
-        self.get_logger().set_level(logging.DEBUG)
+        self.get_logger().set_level(logging.INFO)
 
         # Ros params
         self.param_is_arc = self.declare_parameter("is_ARC", True).value
@@ -174,6 +174,10 @@ class Controller(Node):
         self.ctl_driver = DriveController(self.ctl_turner)
         self.ctl_spin = None
 
+        # Node is initialised, begin search (If ARC)
+        if self.param_is_arc:
+            self.on_state_update(PlanningState.SEARCH)
+
         # ------------- ROS Things ----------
         # tf2
         self.tf_buffer = Buffer()
@@ -192,17 +196,14 @@ class Controller(Node):
         self.sub_planned_path_to_destination = self.create_subscription(Waypoints, auto_waypoints_topic,
                                                                         self.callback_planner_path, 10)
         # service for changing the LED
-        self.srv_led_success = self.create_client(Trigger, "/autonomous/success")
-        self.srv_led_start = self.create_client(Trigger, "/autonomous/start")
+        #self.srv_led_success = self.create_client(Trigger, "/autonomous/success")
+        #self.srv_led_start = self.create_client(Trigger, "/autonomous/start")
 
         # Timers
         self.control_timer = self.create_timer(0.1, self.control)  # calculate and send drive commands
         self.planning_timer = self.create_timer(0.5, self.plan)  # update planning state and plan paths
         self.pose_timer = self.create_timer(0.1, self.callback_rover_pose)  # update the rover's pose from tf2
 
-        # Node is initialised, begin search (If ARC)
-        if self.param_is_arc:
-            self.on_state_update(PlanningState.SEARCH)
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ State Transition Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -225,7 +226,7 @@ class Controller(Node):
         # note: SUCCESS mode is the only planning mode which required (or can be changed by)
         # an edge triggered change - the only place this happens is in self.callback_new_autonomous_goal()
         if self.planning_state.state == PlanningState.SUCCESS:
-            self.get_logger().debug("In success mode, waiting for edge triggered update to GPS honing")
+            self.get_logger().debug("In success mode, waiting for edge triggered update to GPS honing", throttle_duration_sec=1)
 
         elif self.planning_state.state == PlanningState.GPS_HONING:
             if self.near_current_goal() and len(self.ar_tag_manager.ar_tag_goals) == 0:
@@ -241,9 +242,10 @@ class Controller(Node):
         elif self.planning_state.state == PlanningState.SEARCH:
 
             if self.param_is_arc:
+                pass
                 # At ARC, we stay in search mode until the end of the challenge
-                if self.search_array_index == len(self.search_plan):
-                    self.on_state_update(PlanningState.SUCCESS)
+                #if self.search_array_index == len(self.search_plan):
+                #    self.on_state_update(PlanningState.SUCCESS)
             else:
                 # At URC, only search until we have found the AR tags for this goal
                 if self.ar_tag_manager.found_current_goals():
@@ -275,11 +277,11 @@ class Controller(Node):
         self.driving_state = DrivingState.TO_WAYPOINT
         if new_state == PlanningState.SUCCESS:
             trigger = Trigger.Request()
-            self.srv_led_success.call_async(trigger)
+            #self.srv_led_success.call_async(trigger)
 
         if old_state == PlanningState.SUCCESS:
             trigger = Trigger.Request()
-            self.srv_led_start.call_async(trigger)
+            #self.srv_led_start.call_async(trigger)
             
         if new_state == PlanningState.SEARCH:
             self.setup_search()
@@ -336,7 +338,7 @@ class Controller(Node):
         """
         try:
             base_link_tf : Transform = self.tf_buffer.lookup_transform("local_map", "base_link", Time()).transform
-            self.get_logger().debug("Found transform from local_map to base_link", once=True)
+            self.get_logger().debug("Found transform from local_map to base_link", once=True, throttle_duration_sec=1)
         except:
             self.get_logger().warn("No transform from local_map to base_link", once=True)
         else:
@@ -354,7 +356,7 @@ class Controller(Node):
                 and two means we are looking for a gate
         """
         # we update the state of AR tag ids so that it can compare AR tags to the ones we care about
-        self.get_logger().debug(f"Received new goal: {msg}")
+        self.get_logger().debug(f"Received new goal: {msg}", throttle_duration_sec=1)
         self.reset_goals_and_waypoints()
         self.ar_tag_manager.ar_tag_goals = [iD for iD in msg.ids]
         self.state_current_planning_destination = msg.position.x, msg.position.y
@@ -462,10 +464,10 @@ class Controller(Node):
         self.planning_mode_state_transition()
 
         if self.planning_state.state == PlanningState.SUCCESS:
-            self.get_logger().debug("In SUCCESS state, no planning required.")
+            self.get_logger().debug("In SUCCESS state, no planning required.", throttle_duration_sec=1)
             return
         else:
-            self.get_logger().debug("plan() state is {}".format(self.planning_state.state))
+            self.get_logger().debug("plan() state is {}".format(self.planning_state.state), throttle_duration_sec=1)
 
         planning_destination = PoseStamped()
         planning_destination.header.stamp = self.get_clock().now().to_msg()
@@ -478,7 +480,7 @@ class Controller(Node):
                 self.planners[self.planning_state.state],
                 self.planning_state.state
             )
-        )
+        , throttle_duration_sec=1)
         # self.get_logger().info(str(self.planning_state.state) + " | " +  str(self.planners))
         planning_destination.pose.position.x, planning_destination.pose.position.y = self.planners[self.planning_state.state]()
 
@@ -505,7 +507,7 @@ class Controller(Node):
         :param:
         """
         # calculate target yaw and signed yaw difference using the controller_math module
-        self.get_logger().debug(f"driving to {target_waypoint} from {self.state_rover_pose}")
+        self.get_logger().debug(f"driving to {target_waypoint} from {self.state_rover_pose}", throttle_duration_sec=1)
 
         position_vector = np.array([self.state_rover_pose.x, self.state_rover_pose.y, 0])
         target_vector = np.array([target_waypoint[0], target_waypoint[1], 0])
@@ -517,7 +519,7 @@ class Controller(Node):
 
         yaw_diff = yaw_difference(current_orientation, desired_orientation)
 
-        self.get_logger().debug(f"desired: {desired_orientation}, current: {current_orientation}, yaw_diff: {yaw_diff}")
+        self.get_logger().debug(f"desired: {desired_orientation}, current: {current_orientation}, yaw_diff: {yaw_diff}", throttle_duration_sec=1)
 
         drive = self.ctl_driver.get_drive_command(yaw_diff, position_vector, current_orientation)
         self.send_drive_cmd(drive['drive'], drive['steer'])
@@ -528,16 +530,16 @@ class Controller(Node):
         and calls navigate_to_waypoint, and determines when the rover has arrived
         """
         if self.planning_state.state == PlanningState.SUCCESS:
-            self.get_logger().debug("Controller mode: success")
+            self.get_logger().debug("Controller mode: success", throttle_duration_sec=1)
             return
         if self.planning_state.num_paths_planned < 1:
-            self.get_logger().debug("Not enough paths planned")
+            self.get_logger().debug("Not enough paths planned", throttle_duration_sec=1)
             return
 
         current_orientation = np.array([np.cos(self.state_rover_pose.yaw), np.sin(self.state_rover_pose.yaw), 0.])
         current_position = np.array([self.state_rover_pose.x, self.state_rover_pose.y, 0.])
 
-        self.get_logger().debug("Controller in driving state: " + str(self.driving_state))
+        self.get_logger().debug("Controller in driving state: " + str(self.driving_state), throttle_duration_sec=1)
 
         # -------------------------------------- 0. TURNING ------------------------------
         if self.planning_state.state == PlanningState.SEARCH and self.driving_state == DrivingState.TURNING:
@@ -552,10 +554,10 @@ class Controller(Node):
         if self.driving_state == DrivingState.TO_WAYPOINT and len(path) > 0:
             # can only go to waypoints
             # Drive to a waypoint
-            self.get_logger().debug("In TO_WAYPOINT controller")
+            self.get_logger().debug("In TO_WAYPOINT controller", throttle_duration_sec=1)
             self.go_to_target(path[0])
         elif len(path) == 0:
-            self.get_logger().debug("No more waypoints in path.")
+            self.get_logger().debug("No more waypoints in path.", throttle_duration_sec=1)
 
     def send_drive_cmd(self, drive_fraction: float, angular_fraction: float):
         """

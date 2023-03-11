@@ -55,7 +55,26 @@ def tank_turn_target_yaw_rate(yaw_diff: float) -> float:
     :param yaw_diff: difference between current and desired yaw
     :return: float
     """
-    return -np.sign(yaw_diff)
+    max_non_tank = np.pi/4
+    turn_frac = min(abs(yaw_diff) / max_non_tank, 1)
+    return -np.sign(yaw_diff) * (turn_frac**2)
+
+
+def tank_turn_target_drive_rate(yaw_diff: float) -> float:
+    """
+    Calculates target drive rate. 
+    Domain: This function should have inputs such that:
+        abs(current_yaw - target_yaw) is within pi
+    Range:
+        [0, max_drive_rate]
+
+    :param yaw_diff: difference between current and desired yaw
+    :return: float
+    """
+    max_non_tank = np.pi/4
+    drive_frac = min(abs(yaw_diff) / max_non_tank, 1)
+    half_max_speed = straight_drive_fraction / 2
+    return half_max_speed * drive_frac + half_max_speed
 
 
 def yaw_difference(facing: np.array, target: np.array) -> float:

@@ -60,7 +60,7 @@ def generate_launch_description():
             package="autonomous",
             node_executable="GRUC.py",
             output="screen",
-            #parameters=[core_params_path / "auto_params.yaml"],
+            parameters=[core_params_path / "auto_params.yaml"],
             emulate_tty=True
         ),
     ])
