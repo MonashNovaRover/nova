@@ -9,14 +9,14 @@ from rclpy.logging import LoggingSeverity
 
 class SubToBaseNode(Node):
     def __init__(self, com_no, baud):
-        super().__init__('getBeseCorrection_pub')
+        super().__init__('getBaseCorrection_pub')
 
         self.ser = serial.Serial()
         self.config_port(com_no, baud)
 
         self.subscription = self.create_subscription(
             RTCM3,
-            'gps_base/rtcm3_out', 
+            '/gps_base/rtcm3_out', 
             self.callback_func,
             10)
         self.subscription
