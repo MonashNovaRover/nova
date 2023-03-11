@@ -59,25 +59,25 @@ class ObjectDetection(Node):
         msg.header.frame_id = self.frame_id
         msg.header.stamp = self.get_clock().now().to_msg()
         self.obj_pub.publish(msg)
+        self.get_logger().info(f"PUBLISHED: {msg}")
 
     def object_detection(self, color_frame, depth_frame):
         self.get_logger().info("OBJECT DETECTION CALLBACK")
         color_image = np.asanyarray(color_frame.get_data())
         results = self.model.predict(color_image)
-        print(results)
         boxes = results[0].boxes.cpu().numpy()
 
-
         for box in boxes:
-            xmin, ymin, xmax, ymax = box
+            xmin, ymin, xmax, ymax = box.xyxy.flatten()
+            confidence = box.conf
 
-            if box.conf > self.confidence_threshold:
+            if confidence > self.confidence_threshold:
                 self.get_logger().info("FOUND BOX")
                 cx, cy = int(xmin) + (int(xmax) - int(xmin))//2, int(ymin) + (int(ymax) - int(ymin))//2
                 depth = depth_frame.get_distance(cx,cy)
                 point = rs.rs2_deproject_pixel_to_point(self.intr, [float(cx), float(cy)], depth)
-                self.pub_marker(point, )
-                self.obj_pub.publish(point[0], point[1], point[2], (.1,.2,.3))
+                self.get_logger().info(f"Point: {point}")
+                self.pub_marker(point, (.1, .2, .3))
 
                 if self.show:
                     cv2.rectangle(color_image, (int(xmin), int(ymin)), (int(xmax), int(ymax)), (0,0,0), 2)
