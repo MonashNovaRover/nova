@@ -21,7 +21,6 @@ class SubToBaseNode(Node):
             '/gps_base/rtcm3_out', 
             self.callback_func,
             10)
-        self.subscription
 
 
     def callback_func(self, msg):
