@@ -112,9 +112,9 @@ class Mapper(Node):
         :param pts: np.array(n, 6) - refers to x,y,z,r,g,b
         """
         # transform the points
-        self.get_logger().debug(f"Update map called after {time.perf_counter() - self.previous_map_update} s with {len(pts)} points")
+        self.get_logger().debug(f"Update map called after {time.perf_counter() - self.previous_map_update} s with {len(pts)} points", throttle_duration_sec=1)
         if time.perf_counter() - self.previous_map_update > min_map_update_time:
-            self.get_logger().debug(f"handling pc: {pts}")
+            self.get_logger().debug(f"handling pc: {pts}", throttle_duration_sec=1)
             self.handle_pc(pts)
 
             self.previous_map_update = time.perf_counter()
@@ -130,7 +130,7 @@ class Mapper(Node):
         """
         if not self.initialised:
             return
-        self.get_logger().debug("Received pointcloud")
+        self.get_logger().debug("Received pointcloud", throttle_duration_sec=1)
         self.update_map(np.array(list(read_points(msg, skip_nans=True))))
 
 

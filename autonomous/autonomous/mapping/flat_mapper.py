@@ -135,7 +135,7 @@ class FlatMapper(Mapper):
         """
         regularly publish transform from map to local map
         """
-        self.get_logger().debug("transform publish callback called")
+        self.get_logger().debug("transform publish callback called", throttle_duration_sec=1)
         t = TransformStamped()
         t.header.stamp = self.get_clock().now().to_msg()
         t.header.frame_id = 'map'
@@ -146,7 +146,7 @@ class FlatMapper(Mapper):
         t.transform.translation.y = float(self.offset[1])
         t.transform.rotation.w = 1.0
 
-        self.get_logger().debug(f"Publishing local map transform {t}")
+        self.get_logger().debug(f"Publishing local map transform {t}", throttle_duration_sec=1)
 
         self.tf_map_offset.sendTransform(t)
 
@@ -223,13 +223,13 @@ class FlatMapper(Mapper):
                                                                 source_frame='d435_1_forward',
                                                                 time=Time()).transform
         except Exception as e:
-            self.get_logger().debug(f"transform lookup error for d435 transform: {e}")
+            self.get_logger().debug(f"transform lookup error for d435 transform: {e}", throttle_duration_sec=1)
         try:
             self.local_map_to_base_link = self.tf_buffer.lookup_transform(target_frame='local_map',
                                                                 source_frame='base_link',
                                                                 time=Time()).transform
         except Exception as e:
-            self.get_logger().debug(f"transform lookup error for base_link transform: {e}")
+            self.get_logger().debug(f"transform lookup error for base_link transform: {e}", throttle_duration_sec=1)
 
     def arrange_obstacles(self, obstacles, min_x):
         """
@@ -241,7 +241,7 @@ class FlatMapper(Mapper):
         obs_as_points = np.array([[x, y, val] for (x, y), val in np.ndenumerate(obstacles) \
                                   if np.abs(np.arctan2(y - len(obstacles[0]) / 2, x)) < max_fov_angle])
         obs_as_points[:, 1] -= int(np.ceil(self.detection_width / (2 * self.resolution_ratio)))
-        self.get_logger().debug(f"Rotating obstacles in map: {self.local_map_to_d435}")
+        self.get_logger().debug(f"Rotating obstacles in map: {self.local_map_to_d435}", throttle_duration_sec=1)
         obstacles = transform.transform_yaw(self.local_map_to_d435, obs_as_points)
         obstacles[:, 2] *= 100
 
