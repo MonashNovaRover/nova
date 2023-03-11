@@ -63,6 +63,7 @@ class FlatMapper(Mapper):
             resolution=resolution,
             planner=planner,
             camera=camera,
+            name=name
         )
 
         self.get_logger().set_level(logging.INFO)
@@ -74,6 +75,10 @@ class FlatMapper(Mapper):
         self.param_map_roll_distance = self.declare_parameter("map_roll_dist_m", 5).value   
         # For moving the map as we navigate
         self.tf_map_offset = TransformBroadcaster(self)
+
+        self.local_map_to_base_link: Transform = None
+        self.local_map_to_d435: Transform = None
+        self.orient_nova_frame_transform : Transform = None
 
         self.planning_resolution = resolution     # resolution of occupancy grid for path planning
         self.detection_resolution = detection_resolution    # resolution of obstacle deteciton grid
@@ -106,6 +111,14 @@ class FlatMapper(Mapper):
         """
         self.local_map_to_d435: Transform = None
         self.local_map_to_base_link: Transform = None
+        try:
+            self.orient_nova_frame_transform = self.tf_buffer.lookup_transform(
+                target_frame="d435_1_forward", 
+                source_frame="d435_1",
+                time=Time()).transform
+        except:
+            self.get_logger().error(f"Couldn't get depth camera rotation!")
+
 
         while self.local_map_to_d435 is None or\
                 self.local_map_to_base_link is None:
@@ -207,7 +220,7 @@ class FlatMapper(Mapper):
         """
         try:
             self.local_map_to_d435 = self.tf_buffer.lookup_transform(target_frame='local_map',
-                                                                source_frame='d435_1',
+                                                                source_frame='d435_1_forward',
                                                                 time=Time()).transform
         except Exception as e:
             self.get_logger().debug(f"transform lookup error for d435 transform: {e}")

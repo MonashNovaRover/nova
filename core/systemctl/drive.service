@@ -1,5 +1,5 @@
 [Unit]
-Description=Runs the rover launch file in a new screen
+Description=Runs the drive launch file in a new screen
 Requires=network-online.target network.target local-fs.target
 After=network-online.target network.target local-fs.target
 
@@ -7,7 +7,7 @@ After=network-online.target network.target local-fs.target
 User=nvidia
 Group=users
 Type=forking
-ExecStart=/home/nvidia/nova_ws/src/rover/core/systemctl/rover.sh
+ExecStart=/home/nvidia/nova_ws/src/rover/core/systemctl/drive.sh
 TimeoutStartSec=5
 Restart=on-failure
 
