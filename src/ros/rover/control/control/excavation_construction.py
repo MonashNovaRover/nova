@@ -112,7 +112,7 @@ class ExcavationConstructionNode(Node):
         #     self.joystick_locked = False
 
         # Update the inputs
-        self.scraper_arm_velocity = abs(int (255 * joystick_l.ax_stick_x) )
+        self.scraper_arm_velocity = abs(int (200 * joystick_l.ax_stick_x) )
         self.scraper_arm_direction = self.scraper_arm_id_forwards if joystick_l.ax_stick_x >= 0 else self.scraper_arm_id_backwards
 
     def joystick_r_callback(self, msg):
@@ -130,7 +130,7 @@ class ExcavationConstructionNode(Node):
             # Update the inputs
             self.scraper_scoop_velocity = 0
             self.scraper_arm_velocity = 0
-            self.tile_placer_velocity = abs( int( 255 * joystick_r.ax_stick_x ) )
+            self.tile_placer_velocity = abs( int( 127 * joystick_r.ax_stick_x ) )
             self.scraper_arm_velocity = 0
             self.tile_placer_direction = self.tile_placer_id_forwards if joystick_r.ax_stick_x >= 0 else self.tile_placer_id_backwards
         else:
