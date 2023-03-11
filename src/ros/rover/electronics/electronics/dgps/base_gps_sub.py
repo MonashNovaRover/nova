@@ -18,7 +18,7 @@ class SubToBaseNode(Node):
 
         self.subscription = self.create_subscription(
             RTCM3,
-            '/gps_base/rtcm3_out', 
+            'gps_base/rtcm3_out', 
             self.callback_func,
             10)
 
