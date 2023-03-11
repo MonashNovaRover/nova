@@ -14,6 +14,8 @@ class SubToBaseNode(Node):
         self.ser = serial.Serial()
         self.config_port(com_no, baud)
 
+        self.get_logger().info("hype")
+
         self.subscription = self.create_subscription(
             RTCM3,
             '/gps_base/rtcm3_out', 
