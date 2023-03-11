@@ -39,18 +39,18 @@ class ExcavationConstructionNode(Node):
 
         self.tile_placer_activated = False
         # self.joystick_locked = True
-        self.scraper_arm_direction = 0
-        self.scraper_arm_velocity = 1
-        self.scraper_scoop_velocity = 0
-        self.scraper_scoop_direction = 3
+        # self.scraper_arm_direction = 0x0
+        # self.scraper_arm_velocity = 0x1
+        # self.scraper_scoop_velocity = 0x0
+        # self.scraper_scoop_direction = 0x3
         self.qos = QoSProfile(reliability=QoSReliabilityPolicy.BEST_EFFORT, depth=1)
 
-        self.tile_placer_id_forwards = 1 
-        self.tile_placer_id_backwards = 2
-        self.scraper_arm_id_forwards = 3 
-        self.scraper_arm_id_backwards = 4
-        self.scraper_scoop_id_forwards = 5 
-        self.scraper_scoop_id_backwards = 6
+        self.tile_placer_id_forwards = 0x1
+        self.tile_placer_id_backwards = 0x2
+        self.scraper_arm_id_forwards = 0x3
+        self.scraper_arm_id_backwards = 0x4
+        self.scraper_scoop_id_forwards = 0x5
+        self.scraper_scoop_id_backwards = 0x6
 
         print("calls")
         # TODO: figure out why its not calling the subscriber callback functions
@@ -62,7 +62,7 @@ class ExcavationConstructionNode(Node):
 
         self.bus = jcan.Bus()
         # self.bus.open(self.get_parameter("canbus").value)
-        self.bus.open("can0")
+        self.bus.open("vcan0")
         self.timer_jcan = self.create_timer(0.05, self.callback_send_can_commands)
 
 
@@ -146,20 +146,20 @@ class ExcavationConstructionNode(Node):
     def get_tile_placer_can_commands(self):
         tile_placer_data = []
         tile_placer_data.append(self.tile_placer_direction)        
-        tile_placer_data.append(self.tile_placer_velocity << 4)
-        tile_placer_data.append(self.tile_placer_velocity & 0x0F)
+        tile_placer_data.append(self.tile_placer_velocity)
+        # tile_placer_data.append(self.tile_placer_velocity & 0x0F)
         return tile_placer_data
 
     def get_scraper_can_commands(self):
-        scraper_arm_data = [0]
+        scraper_arm_data = []
         scraper_arm_data.append(self.scraper_arm_direction)       
-        scraper_arm_data.append(self.scraper_arm_velocity << 4)
-        scraper_arm_data.append(self.scraper_arm_velocity & 0x0F)
+        scraper_arm_data.append(self.scraper_arm_velocity)
+        # scraper_arm_data.append(self.scraper_arm_velocity & 0x0F)
 
-        scraper_scoop_data = [0]
+        scraper_scoop_data = []
         scraper_scoop_data.append(self.scraper_scoop_direction)        
-        scraper_scoop_data.append(self.scraper_scoop_velocity << 4)
-        scraper_scoop_data.append(self.scraper_scoop_velocity & 0x0F)
+        scraper_scoop_data.append(self.scraper_scoop_velocity)
+        # scraper_scoop_data.append(self.scraper_scoop_velocity & 0x0F)
 
         return scraper_arm_data, scraper_scoop_data
 
