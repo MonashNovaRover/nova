@@ -45,6 +45,13 @@ class ExcavationConstructionNode(Node):
         self.scraper_scoop_direction = 3
         self.qos = QoSProfile(reliability=QoSReliabilityPolicy.BEST_EFFORT, depth=1)
 
+        self.tile_placer_id_forwards = 1 
+        self.tile_placer_id_backwards = 2
+        self.scraper_arm_id_forwards = 3 
+        self.scraper_arm_id_backwards = 4
+        self.scraper_scoop_id_forwards = 5 
+        self.scraper_scoop_id_backwards = 6
+
         print("calls")
         # TODO: figure out why its not calling the subscriber callback functions
         # way-point publisher publishes a bunch of waypoints at once (hence using the 2D map datatype
@@ -106,7 +113,7 @@ class ExcavationConstructionNode(Node):
 
         # Update the inputs
         self.scraper_arm_velocity = abs(int (255 * joystick_l.ax_stick_x) )
-        self.scraper_arm_direction = 1 if joystick_l.ax_stick_x >= 0 else 2
+        self.scraper_arm_direction = self.scraper_arm_id_forwards if joystick_l.ax_stick_x >= 0 else self.scraper_arm_id_backwards
 
     def joystick_r_callback(self, msg):
         """
@@ -125,13 +132,13 @@ class ExcavationConstructionNode(Node):
             self.scraper_arm_velocity = 0
             self.tile_placer_velocity = abs( int( 255 * joystick_r.ax_stick_x ) )
             self.scraper_arm_velocity = 0
-            self.tile_placer_direction = 5 if joystick_r.ax_stick_x >= 0 else 6
+            self.tile_placer_direction = self.tile_placer_id_forwards if joystick_r.ax_stick_x >= 0 else self.tile_placer_id_backwards
         else:
             self.tile_placer_activated = False
             # Update the inputs
             self.scraper_scoop_velocity = abs( int (255 * joystick_r.ax_stick_x) )
             self.tile_placer_velocity = 0
-            self.scraper_scoop_direction = 3 if joystick_r.ax_stick_x >= 0 else 4
+            self.scraper_scoop_direction = self.scraper_scoop_id_forwards if joystick_r.ax_stick_x >= 0 else self.scraper_scoop_id_backwards
 
     def get_tile_placer_can_commands(self):
         tile_placer_data = [0]
