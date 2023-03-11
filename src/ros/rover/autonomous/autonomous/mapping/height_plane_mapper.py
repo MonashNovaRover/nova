@@ -41,7 +41,7 @@ class HeightPlaneMapper(FlatMapper):
 
         # init node with node name points
         super().__init__(length=length, width=width, height=height, resolution=resolution, detection_resolution=detection_resolution, planner=planner, camera=camera, name=name)
-        self.get_logger().set_level(logging.INFO)
+        self.get_logger().set_level(logging.DEBUG)
         self.height_mapper = HeightMapper(length=length, width=width, height=height, resolution=resolution, detection_resolution=detection_resolution)
         self.plane_mapper = PlaneMapper(length=length, width=width, height=height, resolution=resolution, detection_resolution=detection_resolution)
         self.on_initialised()
@@ -62,10 +62,10 @@ class HeightPlaneMapper(FlatMapper):
         if self.orient_nova_frame_transform is None: 
             self.get_logger().warn("No transform to forward-facing frame!")
             return
-        self.get_logger().debug(f"Transforming point cloud by transform: {self.orient_nova_frame_transform}")
+        self.get_logger().debug(f"Transforming point cloud by transform: {self.orient_nova_frame_transform}", throttle_duration_sec=1)
         # transform to nova coordinates
         frame_transformed_points = transform.transform_points(self.orient_nova_frame_transform, pts)
-        self.get_logger().debug(f"Transforming point cloud by transform: {self.local_map_to_d435}")
+        self.get_logger().debug(f"Transforming point cloud by transform: {self.local_map_to_d435}", throttle_duration_sec=1)
         no_yaw_pts = transform.transform_points_no_yaw(self.local_map_to_d435, frame_transformed_points)
 
         filtered_indices = self.filter_points(no_yaw_pts)
@@ -86,6 +86,6 @@ class HeightPlaneMapper(FlatMapper):
         rotated_obs = self.arrange_obstacles(plane_obs, min_x)
         self._map.add_obstacles(self.local_map_to_d435, rotated_obs)
 
-        self.get_logger().debug("publishing map")
+        self.get_logger().debug("publishing map", throttle_duration_sec=1)
         self.publish()
 
