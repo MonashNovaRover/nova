@@ -39,7 +39,7 @@ class ExcavationConstructionNode(Node):
 
         self.tile_placer_activated = False
         # self.joystick_locked = True
-        self.scraper_arm_direction = 1
+        self.scraper_arm_direction = 0
         self.scraper_arm_velocity = 1
         self.scraper_scoop_velocity = 0
         self.scraper_scoop_direction = 3
@@ -62,7 +62,7 @@ class ExcavationConstructionNode(Node):
 
         self.bus = jcan.Bus()
         # self.bus.open(self.get_parameter("canbus").value)
-        self.bus.open("vcan0")
+        self.bus.open("can0")
         self.timer_jcan = self.create_timer(0.05, self.callback_send_can_commands)
 
 
@@ -73,7 +73,10 @@ class ExcavationConstructionNode(Node):
             tile_placer_commands = self.get_tile_placer_can_commands()
             tilePlacerFrame = jcan.Frame(0x0A0, tile_placer_commands)
             print(f"Sending {tilePlacerFrame}")
-            self.bus.send(tilePlacerFrame)
+            try:
+                self.bus.send(tilePlacerFrame)
+            except Exception as e:
+                print(e)
 
         # elif (not self.joystick_locked):
         else:
@@ -141,7 +144,7 @@ class ExcavationConstructionNode(Node):
             self.scraper_scoop_direction = self.scraper_scoop_id_forwards if joystick_r.ax_stick_x >= 0 else self.scraper_scoop_id_backwards
 
     def get_tile_placer_can_commands(self):
-        tile_placer_data = [0]
+        tile_placer_data = []
         tile_placer_data.append(self.tile_placer_direction)        
         tile_placer_data.append(self.tile_placer_velocity << 4)
         tile_placer_data.append(self.tile_placer_velocity & 0x0F)
