@@ -23,7 +23,7 @@ class ImageSaver(Node):
     
     def cb_save_image(self, msg):
         # only run the save function every RATE seconds 
-        if time.time() - self.last_update < RATE:
+        if time.time() - self.last_update < self.rate:
             print("got image, not saving...")
             return
         self.last_update = time.time()
