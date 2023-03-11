@@ -104,10 +104,7 @@ ament_target_dependencies(pid_tuner rclcpp core)
 add_executable(cmd_test src/cmd/cmd_test.cpp)
 target_link_libraries(cmd_test blcmd print jcan)
 
-#blcmd simulator script
-#add_executable(blcmd_sim src/cmd/blcmd_sim.cpp)
-#target_link_libraries(blcmd_sim blcmd jcan)
-#ament_target_dependencies(blcmd_sim rclcpp core)
+
 ################################################
 # Add Installations
 ################################################
@@ -119,7 +116,6 @@ install(TARGETS
         vel_convert
         pid_tuner
         cmd_test
-#        blcmd_sim
         DESTINATION lib/${PROJECT_NAME}
         )
 # Add all Python executables to this list
@@ -129,6 +125,9 @@ install(PROGRAMS
         control/blcmd_status_monitor.py
         DESTINATION lib/${PROJECT_NAME}
         )
+
+# Install Python modules
+ament_python_install_package(${PROJECT_NAME})
 
 ################################################
 # Add Subdirectories
