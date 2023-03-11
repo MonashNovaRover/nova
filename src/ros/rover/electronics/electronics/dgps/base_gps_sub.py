@@ -4,7 +4,7 @@ import serial
 import rclpy
 from rclpy.node import Node
 
-from core.msg import RTCM3
+from ublox_uxb_msgs.msg import RTCM3
 from rclpy.logging import LoggingSeverity
 
 class SubToBaseNode(Node):
