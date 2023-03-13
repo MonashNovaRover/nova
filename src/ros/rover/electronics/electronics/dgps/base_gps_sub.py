@@ -14,13 +14,15 @@ class SubToBaseNode(Node):
         self.ser = serial.Serial()
         self.config_port(com_no, baud)
 
+        self.count = 0
+
         self.get_logger().info("hype")
 
         self.subscription = self.create_subscription(
             RTCM3,
             'gps_base/rtcm3_out', 
             self.callback_func,
-            10)
+            rclpy.SensorDataQos())
 
 
     def callback_func(self, msg):
