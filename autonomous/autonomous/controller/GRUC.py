@@ -52,7 +52,7 @@ from geometry_msgs.msg import PoseStamped, Transform, TransformStamped
 from tf2_ros import Buffer, TransformListener
 
 # custom message imports
-from core.msg import DriveInput, RoverPose, Waypoints, AlvarMarker, AutonomousGoal, Point2D
+from core.msg import DriveInput, RoverPose, Waypoints, AlvarMarker, AutonomousGoal, PivotWheelData
 from controller.ar_tag_manager import ArTagManager
 from controller.spin_controller import SpinController
 
@@ -154,6 +154,7 @@ class Controller(Node):
         self.state_current_planning_destination = None
         self.driving_state = DrivingState.TO_WAYPOINT
         self.spin_counter = 0
+        self.var_latest_steer = 0
 
         # Global variables containing our search plan
         self.search_plan = []
@@ -195,6 +196,7 @@ class Controller(Node):
                                                             self.callback_new_autonomous_goal, 10)
         self.sub_planned_path_to_destination = self.create_subscription(Waypoints, auto_waypoints_topic,
                                                                         self.callback_planner_path, 10)
+        self.sub_steer = self.create_subscription(PivotWheelData, "/control/wheel_pivots", self.callback_steer, 10)
         # service for changing the LED
         #self.srv_led_success = self.create_client(Trigger, "/autonomous/success")
         #self.srv_led_start = self.create_client(Trigger, "/autonomous/start")
@@ -370,6 +372,12 @@ class Controller(Node):
         # we pass in our current state so the tag manager knows how to transfer the AR tag pose to a global frame
         self.ar_tag_manager.update_tags(msg, self.state_rover_pose, self.get_logger())
 
+    def callback_steer(self, msg):
+        """
+        :param msg: WheelPivotData
+        """
+        self.var_latest_steer = msg
+
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 'Util' Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     def setup_search(self):
         if self.param_is_arc:
@@ -489,7 +497,7 @@ class Controller(Node):
             if self.search_array_index != 0 and self.search_array_index % 2 == 0 and self.search_array_index // 2 >= self.spin_counter and self.driving_state == DrivingState.TO_WAYPOINT:
                 self.driving_state = DrivingState.TURNING
                 self.spin_counter += 1
-                self.ctl_spin = SpinController(self.state_rover_pose.yaw, self.ctl_turner)
+                self.ctl_spin = SpinController(self.state_rover_pose.yaw, self.ctl_driver)
             if self.near_current_goal():
                 self.search_array_index += 1
 
@@ -521,8 +529,8 @@ class Controller(Node):
 
         self.get_logger().debug(f"desired: {desired_orientation}, current: {current_orientation}, yaw_diff: {yaw_diff}", throttle_duration_sec=1)
 
-        drive = self.ctl_driver.get_drive_command(yaw_diff, position_vector, current_orientation)
-        self.send_drive_cmd(drive['drive'], drive['steer'])
+        speed, steer = self.ctl_driver.get_drive_command(yaw_diff, self.var_latest_steer, position_vector, current_orientation)
+        self.send_drive_cmd(speed, steer)
 
     def control(self):
         """
@@ -544,8 +552,8 @@ class Controller(Node):
         # -------------------------------------- 0. TURNING ------------------------------
         if self.planning_state.state == PlanningState.SEARCH and self.driving_state == DrivingState.TURNING:
             if (self.ar_tag_manager.num_tags_found() == 0) and not self.ctl_spin.is_completed():
-                drive = self.ctl_spin.turn_in_place(current_position, current_orientation)
-                self.send_drive_cmd(drive["drive"], drive["steer"])
+                drive, steer = self.ctl_spin.turn_in_place(self.var_latest_steer, current_orientation)
+                self.send_drive_cmd(drive, steer)
             else:
                 self.driving_state = DrivingState.TO_WAYPOINT
 
