@@ -30,12 +30,19 @@ EDITED:		13/09/2022
 
 // Include ROS packages
 #include "rclcpp/rclcpp.hpp"
+
+// Include standard ROS messages
+#include "std_msgs/msg/bool.hpp"
+
+// Include custom ROS messages
 #include "core/msg/input_gamepad.hpp"
 #include "core/msg/drive_input.hpp"
 #include "core/msg/telemetry.hpp"
 #include "core/msg/single_telemetry.hpp"
 #include "core/msg/pivot_wheel_data.hpp"
-#include "std_msgs/msg/bool.hpp"
+#include "core/msg/blcmd_status_array.hpp"
+#include "core/msg/blcmd_status.hpp"
+
 
 // Include other headers
 #include<cmath>
@@ -95,6 +102,9 @@ private:
     // Stores the subscriber to the gamepad inputs
     rclcpp::Subscription<core::msg::InputGamepad>::SharedPtr subscription_inputs;
 
+    // Stores the subscriber to the BLCMD status
+    rclcpp::Subscription<core::msg::BLCMDStatusArray>::SharedPtr subscription_blcmd_status;
+
     // Publishes whether the rover is in autonomous mode for LEDs
     rclcpp::TimerBase::SharedPtr mode_timer;
     rclcpp::TimerBase::SharedPtr telemetry_timer;
@@ -109,6 +119,8 @@ private:
     // A flag for whether to apply the handbrake or not
     bool handbrake;
 
+    bool blcmd_error = false;
+
     const float alpha = 0.0;
     float steer = 0.0;
     const float angle_offset = atan((CHASSIS_WIDTH)/CHASSIS_LENGTH);
@@ -120,7 +132,7 @@ private:
 
     // An array of pointers to Wheel instances
     PivotModule *pivots[NUM_WHEELS];
-private:
+
     /// @brief      Sends commands to the wheels using the wheel classes
     /// @param      msg - A pointer to the drive message
     void send_commands(const core::msg::DriveInput::SharedPtr msg);
@@ -136,6 +148,10 @@ private:
     /// @brief      Callback function when input messages are received.
     /// @param      msg - A pointer to the input message
     void input_callback(const core::msg::InputGamepad::SharedPtr msg);
+
+    /// @brief      Callback function when BLCMD status messages are received.
+    /// @param      msg - A pointer to the BLCMD status message
+    void blcmd_status_callback(const core::msg::BLCMDStatusArray::SharedPtr msg);
 
     void blcmd_spinner();
 

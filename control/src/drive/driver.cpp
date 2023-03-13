@@ -19,6 +19,7 @@ using namespace std;
 // Sends commands to the wheels
 void Driver::send_commands(const core::msg::DriveInput::SharedPtr msg)
 {
+    if (blcmd_error) return;
 
     core::msg::PivotWheelData data_msg;
     if (!msg->strafe_mode)
@@ -120,6 +121,14 @@ void Driver::input_callback(const core::msg::InputGamepad::SharedPtr msg)
             Print::print("Mode: Manual", C_MODE);
         is_autonomous = false;
     }
+}
+
+void Driver::blcmd_status_callback(const core::msg::BLCMDStatusArray::SharedPtr msg) {
+    bool error = false;
+    for(core::msg::BLCMDStatus status : msg->blcmds) {
+        error = error || (status.status != core::msg::BLCMDStatus::OK);
+    }
+    blcmd_error = error;
 }
 
 // Gets the turning radius of the rover
