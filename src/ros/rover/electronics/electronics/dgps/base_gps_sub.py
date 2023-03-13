@@ -50,7 +50,7 @@ class SubToBaseNode(Node):
             self.ser.reset_output_buffer()
 
         self.ser.write(msg.data)
-        count += 1
+        self.count += 1
 
     def config_port(self, port_name, baud):
         self.ser.baudrate = baud
