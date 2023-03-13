@@ -35,7 +35,7 @@ void Driver::send_commands(const core::msg::DriveInput::SharedPtr msg)
         // Disregard any correction for the angle of the wheel relative to the desired circular path
         // fill_wheel_velocities(wheel_velocities, radius, msg->speed, msg->steer);
         fill_wheel_angles_radial(radius);
-        fill_wheel_velocities_radial(msg->speed, radius);
+        fill_wheel_velocities_radial(msg->speed * get_parameter("max-velocity").get_parameter_value().get<double>(), radius);
         data_msg.radius = radius;
     }
     else if (msg->strafe_mode)
@@ -89,7 +89,7 @@ void Driver::input_callback(const core::msg::InputGamepad::SharedPtr msg)
         handbrake = true;
         for (PivotModule *pivot : pivots)
         {
-            pivot->cmdWheel->set_stop_mode(DRIVE_VELOCITY);
+            pivot->cmdWheel->set_stop_mode(STOP);
         }
     }
 
@@ -101,7 +101,7 @@ void Driver::input_callback(const core::msg::InputGamepad::SharedPtr msg)
         handbrake = false;
         for (PivotModule *pivot : pivots)
         {
-            pivot->cmdWheel->set_stop_mode(STOP);
+            pivot->cmdWheel->set_stop_mode(DRIVE_VELOCITY);
         }
     }
 
@@ -211,26 +211,16 @@ void Driver::fill_wheel_velocities_radial(float speed, float radius)
 {
     float left_ratio = !radius ? 1 : sqrt(pow(CHASSIS_LENGTH, 2.0)/4 + pow(radius + (CHASSIS_WIDTH / 2), 2.0))/abs(radius);
     float right_ratio = !radius ? 1 : sqrt(pow(CHASSIS_LENGTH, 2.0)/4 + pow(radius - (CHASSIS_WIDTH / 2), 2.0))/abs(radius);
-    float max = 0;
+    float max_ratio = max(abs(left_ratio), abs(right_ratio));
     for (size_t i = 0; i < NUM_WHEELS; i++)
     {
         if (i < 2)
         {
-            pivots[i]->velocity = radius == INFINITY ? speed : speed*left_ratio;
+            pivots[i]->velocity = radius == INFINITY ? speed : speed*left_ratio/max_ratio;
         }
         else
         {
-            pivots[i]->velocity =  radius == INFINITY ? speed : speed*right_ratio;
-        }
-
-        if (abs(pivots[i]->velocity) > max) max = abs(pivots[i]->velocity);
-
-    }
-
-    if (max > 0.35) {
-        for (size_t i = 0; i < NUM_WHEELS; i++)
-        {
-            pivots[i]->velocity = ((pivots[i] ->velocity)/max)*0.35;
+            pivots[i]->velocity =  radius == INFINITY ? speed : speed*right_ratio/max_ratio;
         }
     }
 }
@@ -243,7 +233,7 @@ void Driver::fill_wheel_angles_strafe() {
 
 void Driver::fill_wheel_velocities_strafe(float speed) {
     for (size_t i = 0; i < NUM_WHEELS; i++) {
-        pivots[i]->velocity = 0.35*speed * (i%2 ? -1 : 1);
+        pivots[i]->velocity = speed * (i%2 ? -1 : 1);
     }
 }
 
@@ -314,6 +304,7 @@ Driver::Driver() : Node("driver")
     this->declare_parameter("canbus", "can0");
     // parameter for change in angle of the pivots in radians per second
     this->declare_parameter("max-theta", M_PI_2);
+    this->declare_parameter("max-speed", 0.35);
     d_theta = this->get_parameter("max-theta").get_parameter_value().get<double>()
             *ROSTimers::drive_control.count()/1000;
 
