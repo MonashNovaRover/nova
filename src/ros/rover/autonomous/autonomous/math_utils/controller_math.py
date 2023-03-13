@@ -46,18 +46,55 @@ class Pose2D:
 
 def tank_turn_target_yaw_rate(yaw_diff: float) -> float:
     """
-    Calculates target yaw rate. Uses sin function so that we smoothly speed up and slow down in order to change yaw
+    Calculates target steer value (mapping to -1:1 controller right stick position)
     Domain: This function should have inputs such that:
-        abs(current_yaw - target_yaw) is within pi
+        abs(yaw_diff) <= pi
     Range:
-        [-max_yaw_rate, -min_yaw_rate], [min_yaw_rate, max_yaw_rate], [0, 0]
+        [-1, 1]
 
     :param yaw_diff: difference between current and desired yaw
-    :return: float
     """
     max_non_tank = np.pi/4
     turn_frac = min(abs(yaw_diff) / max_non_tank, 1)
     return -np.sign(yaw_diff) * (turn_frac**2)
+
+
+def steer_val_to_radius(steer: float) -> float:
+    """
+    Calculate the turn radius associated with a steer value
+    :param steer: the steer value from [-1, 1]
+    :return: the turn radius in meters
+    """
+    return 1 / steer - np.sign(steer)
+
+def steer_val_to_wheel_angles(steer: float) -> float:
+    """
+    Calculate left and right wheel angles for a given steer value. Used to determine wheel angle
+    errors so we can work out how long it will take the wheels to get into position.
+    :param steer: the steer value from [-1, 1]
+    :return: the left and right wheel angles in radians
+    """
+    ROVER_LEN_2 = 0.6
+    ROVER_WIDTH_2 = 0.5
+    radius = steer_val_to_radius(steer)
+    left_angle = np.arctan2(ROVER_LEN_2, (radius - ROVER_WIDTH_2))
+    right_angle = np.arctan2(ROVER_LEN_2, (radius + ROVER_WIDTH_2))
+    return left_angle, right_angle
+
+
+def drive_speed_from_turning_error(target_steer, current_steer) -> float:
+    """
+    :param target_steer: the steer value from [-1, 1] we would like to turn at
+    :param current_steer: the current steer value from [-1, 1] the wheels are oriented at
+    :return: the speed we will drive at given the error of our wheel orientations
+    """
+    MAX_STEER_ERROR = np.pi/4
+    target_left, target_right = steer_val_to_wheel_angles(target_steer)
+    current_left, current_right = steer_val_to_wheel_angles(current_steer)
+    steer_error_radians = max(abs(target_left - current_left), abs(target_right - current_right))
+    scaled_steer_error = max(steer_error_radians / MAX_STEER_ERROR, 1)
+    drive_rate = straight_drive_fraction * (1 - scaled_steer_error**2)
+    return drive_rate
 
 
 def tank_turn_target_drive_rate(yaw_diff: float) -> float:
