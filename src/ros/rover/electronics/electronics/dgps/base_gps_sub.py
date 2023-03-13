@@ -7,24 +7,26 @@ from rclpy.node import Node
 from ublox_ubx_msgs.msg import RTCM3
 from rclpy.logging import LoggingSeverity
 
-from rclpy.qos import QoSDurabilityPolicy, QoSHistoryPolicy, QoSReliabilityPolicy
-from rclpy.qos import QoSProfile
+# from rclpy.qos import QoSDurabilityPolicy, QoSHistoryPolicy, QoSReliabilityPolicy
+# from rclpy.qos import QoSProfile
 
-def generate_qos_profile():
-    profile = QoSProfile()
+from rclpy.qos import qos_profile_sensor_data as qos
+
+# def generate_qos_profile():
+#     profile = QoSProfile()
     
-    # RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT => UDP (won't keep history)
-    # RMW_QOS_POLICY_RELIABILITY_RELIABLE    => TCP (keeps history) 
-    profile.reliability = QoSReliabilityPolicy.RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT
-    from rclpy.qos_event import QoSOfferedDeadlineMissedInfo
+#     # RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT => UDP (won't keep history)
+#     # RMW_QOS_POLICY_RELIABILITY_RELIABLE    => TCP (keeps history) 
+#     profile.reliability = QoSReliabilityPolicy.RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT
+#     from rclpy.qos_event import QoSOfferedDeadlineMissedInfo
 
-    return profile
+#     return profile
 
 class SubToBaseNode(Node):
     def __init__(self, com_no, baud):
         super().__init__('getBaseCorrection_pub')
 
-        self.qos = generate_qos_profile()
+        # self.qos = generate_qos_profile()
 
         self.ser = serial.Serial()
         self.config_port(com_no, baud)
@@ -37,7 +39,7 @@ class SubToBaseNode(Node):
             RTCM3,
             'gps_base/rtcm3_out', 
             self.callback_func,
-            qos_profile=self.qos_profile)
+            qos)
 
 
     def callback_func(self, msg):
