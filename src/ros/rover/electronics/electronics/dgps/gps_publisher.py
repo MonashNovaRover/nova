@@ -1,5 +1,4 @@
 import serial
-import io
 
 import rclpy
 from rclpy.node import Node

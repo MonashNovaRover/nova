@@ -43,9 +43,14 @@ class SubToBaseNode(Node):
 
 
     def callback_func(self, msg):
-        self.get_logger().info("Received: hi" )
+        self.get_logger().info("Received: {msg.data}")
+
+        if self.count > 50:
+            self.count = 0
+            self.ser.reset_output_buffer()
 
         self.ser.write(msg.data)
+        count += 1
 
     def config_port(self, port_name, baud):
         self.ser.baudrate = baud
