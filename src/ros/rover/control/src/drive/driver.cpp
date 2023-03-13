@@ -42,7 +42,7 @@ void Driver::send_commands(const core::msg::DriveInput::SharedPtr msg)
     else if (msg->strafe_mode)
     {
         fill_wheel_angles_strafe();
-        fill_wheel_velocities_strafe(msg->speed);
+        fill_wheel_velocities_strafe(msg->speed * get_parameter("max-velocity").get_parameter_value().get<double>());
         data_msg.radius = 0;
     }
 
@@ -313,7 +313,7 @@ Driver::Driver() : Node("driver")
     this->declare_parameter("canbus", "can0");
     // parameter for change in angle of the pivots in radians per second
     this->declare_parameter("max-theta", M_PI_2);
-    this->declare_parameter("max-speed", 0.35);
+    this->declare_parameter("max-velocity", 0.35);
     d_theta = this->get_parameter("max-theta").get_parameter_value().get<double>()
             *ROSTimers::drive_control.count()/1000;
 
