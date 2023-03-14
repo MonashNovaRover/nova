@@ -62,7 +62,7 @@ import autonomous.math_utils.transform as transform
 from autonomous.config.runtime_params import *
 from autonomous.config.ros_config import *
 from autonomous.planning.path_planner import PathPlanner
-from autonomous.controller.turning import YawStarTurner, TankTurner
+from autonomous.controller.search_manager import SearchManager
 from autonomous.controller.drive_controller import DriveController
 import autonomous.config as config
 
@@ -144,11 +144,13 @@ class Controller(Node):
 
         # Ros params
         self.param_is_arc = self.declare_parameter("is_ARC", True).value
-        self.param_search_coordinates = self.declare_parameter("search_coordinates", []).value
 
         # ~~~~~~~~~~ State ~~~~~~~~
         self.state_rover_pose = Pose2D()
-        self.ar_tag_manager = ArTagManager()
+        if not self.param_is_arc:
+            self.ar_tag_manager = ArTagManager()
+        else:
+            self.search_manager : SearchManager = SearchManager()
         self.planning_state = SavedPlanningState(logger=self.get_logger())
         self.waypoint_path = []
         self.state_current_planning_destination = None
@@ -243,10 +245,8 @@ class Controller(Node):
         elif self.planning_state.state == PlanningState.SEARCH:
 
             if self.param_is_arc:
-                pass
-                # At ARC, we stay in search mode until the end of the challenge
-                #if self.search_array_index == len(self.search_plan):
-                #    self.on_state_update(PlanningState.SUCCESS)
+                if self.search_manager.search_complete():
+                    self.on_state_update(PlanningState.SUCCESS)
             else:
                 # At URC, only search until we have found the AR tags for this goal
                 if self.ar_tag_manager.found_current_goals():
@@ -423,7 +423,7 @@ class Controller(Node):
             ) > min_waypoint_distance]
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Planning Loop Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    def get_honing_goal(self) -> tuple:
+    def get_honing_goal(self) -> AutonomousGoal:
         """
         Calculates the current goal as either the "original" goal, or the average vector of a bunch of AR tags
         """
@@ -436,13 +436,13 @@ class Controller(Node):
             # If we have found ar tags, go to their average position
             return self.state_current_planning_destination
 
-    def get_search_goal(self) -> tuple:
+    def get_search_goal(self) -> AutonomousGoal:
         """
         Returns the current search plan way-point and increments the counter
         """
-        return self.search_plan[self.search_array_index]
+        return self.search_manager.get_current_goal(current_pos=[self.state_rover_pose.x, self.state_rover_pose.y])
 
-    def get_gate_goal(self) -> tuple:
+    def get_gate_goal(self) -> AutonomousGoal:
         """
         Calculates a point some distance through the gate. Assumes we are already
         at the gate, and also that we are facing the direction
@@ -489,16 +489,20 @@ class Controller(Node):
             )
         , throttle_duration_sec=1)
         # self.get_logger().info(str(self.planning_state.state) + " | " +  str(self.planners))
-        planning_destination.pose.position.x, planning_destination.pose.position.y = self.planners[self.planning_state.state]()
+        auto_goal = self.planners[self.planning_state.state]()
+        planning_destination.pose.position.x = auto_goal.position.x
+        planning_destination.pose.position.y = auto_goal.position.y
 
         # update search array index        
         if self.planning_state.state == PlanningState.SEARCH:
-            if self.search_array_index != 0 and self.search_array_index % 2 == 0 and self.search_array_index // 2 >= self.spin_counter and self.driving_state == DrivingState.TO_WAYPOINT:
+            if auto_goal.type == AutonomousGoal.GOAL_TYPE_SPIN and self.driving_state == DrivingState.TO_WAYPOINT:
                 self.driving_state = DrivingState.TURNING
-                self.spin_counter += 1
                 self.ctl_spin = SpinController(self.state_rover_pose.yaw, self.ctl_driver)
             if self.near_current_goal():
-                self.search_array_index += 1
+                if self.param_is_arc:
+                    self.search_manager.at_goal()
+                else:
+                    self.search_array_index += 1
 
         self.state_current_planning_destination = (planning_destination.pose.position.x, planning_destination.pose.position.y)
         self.pub_desired_destination.publish(planning_destination)
@@ -550,11 +554,12 @@ class Controller(Node):
 
         # -------------------------------------- 0. TURNING ------------------------------
         if self.planning_state.state == PlanningState.SEARCH and self.driving_state == DrivingState.TURNING:
-            if (self.ar_tag_manager.num_tags_found() == 0) and not self.ctl_spin.is_completed():
+            if not self.ctl_spin.is_completed():
                 drive, steer = self.ctl_spin.turn_in_place(self.var_latest_steer, current_orientation)
                 self.send_drive_cmd(drive, steer)
             else:
                 self.driving_state = DrivingState.TO_WAYPOINT
+                self.search_manager.at_goal()
 
         # -------------------------------------- 1. DRIVING ------------------------------
         path = self.prune_waypoints()
