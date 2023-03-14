@@ -168,9 +168,9 @@ class CMDPublisher (Node):
         t3 = perf_counter()
         arm_ee_feedback = self.read_cans([self.arm_cans[-1]], MotorType.ARM_EE)
         t4 = perf_counter()
-        if not None in arm_feedback and not None in arm_ee_feedback:
+        if arm_feedback is not None and arm_ee_feedback is not None and not None in arm_feedback and not None in arm_ee_feedback:
             CMDQueues["arm"].append(arm_feedback.extend(arm_ee_feedback))
-        if not None in sci_feedback:
+        if sci_feedback is not None and not None in sci_feedback:
             CMDQueues["sci"].append(sci_feedback)
         if TUNING_PID:
             self.publish_feedback()
