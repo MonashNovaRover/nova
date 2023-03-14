@@ -37,7 +37,7 @@ then
 
 # Build only a certain package
 else
-    colcon build --continue-on-error --packages-select $1
+    colcon build --continue-on-error --packages-up-to $1
 fi
 
 cd $cwd;        # Return back to the previous directory
