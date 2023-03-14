@@ -7,3 +7,4 @@ numpy == 1.13.3
 opencv_contrib_python == 4.5.5.62
 pyrealsense2 == 2.51.1.4348
 scipy == 1.5.4
+quaternions-for-python==1.1.3
