@@ -65,7 +65,10 @@ def steer_val_to_radius(steer: float) -> float:
     :param steer: the steer value from [-1, 1]
     :return: the turn radius in meters
     """
-    return 1 / steer - np.sign(steer)
+    if steer == 0:
+        return np.inf
+    else:
+        return 1 / steer - np.sign(steer)
 
 def steer_val_to_wheel_angles(steer: float) -> float:
     """
@@ -77,8 +80,8 @@ def steer_val_to_wheel_angles(steer: float) -> float:
     ROVER_LEN_2 = 0.6
     ROVER_WIDTH_2 = 0.5
     radius = steer_val_to_radius(steer)
-    left_angle = np.arctan2(ROVER_LEN_2, (radius - ROVER_WIDTH_2))
-    right_angle = np.arctan2(ROVER_LEN_2, (radius + ROVER_WIDTH_2))
+    left_angle = np.arctan2(ROVER_LEN_2, (radius + ROVER_WIDTH_2))
+    right_angle = np.arctan2(ROVER_LEN_2, (radius - ROVER_WIDTH_2))
     return left_angle, right_angle
 
 
@@ -89,10 +92,13 @@ def drive_speed_from_turning_error(target_steer, current_steer) -> float:
     :return: the speed we will drive at given the error of our wheel orientations
     """
     MAX_STEER_ERROR = np.pi/4
+    # left and right desired wheel angles
     target_left, target_right = steer_val_to_wheel_angles(target_steer)
+    # left and right true wheel angles
     current_left, current_right = steer_val_to_wheel_angles(current_steer)
+    # maximum error between desired and true wheel angles
     steer_error_radians = max(abs(target_left - current_left), abs(target_right - current_right))
-    scaled_steer_error = max(steer_error_radians / MAX_STEER_ERROR, 1)
+    scaled_steer_error = min(steer_error_radians / MAX_STEER_ERROR, 1)
     drive_rate = straight_drive_fraction * (1 - scaled_steer_error**2)
     return drive_rate
 
