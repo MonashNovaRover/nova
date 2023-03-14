@@ -124,7 +124,7 @@ class CMDPublisher (Node):
         self.get_logger().set_level(logging.DEBUG)
 
         # Store the starting time
-        self.last_read = self.get_clock().now().to_msg()
+        self.last_read = -1
     
         # Create CAN receivers for each type of motor on the rover
         self.arm_cans = [CANReceiver(channel="can1", filter_ids=[ARM_MOTOR_IDS[i]],
@@ -168,9 +168,9 @@ class CMDPublisher (Node):
         t3 = perf_counter()
         arm_ee_feedback = self.read_cans([self.arm_cans[-1]], MotorType.ARM_EE)
         t4 = perf_counter()
-        if arm_feedback is not None and arm_ee_feedback is not None:
+        if not None in arm_feedback and not None in arm_ee_feedback:
             CMDQueues["arm"].append(arm_feedback.extend(arm_ee_feedback))
-        if sci_feedback is not None:
+        if not None in sci_feedback:
             CMDQueues["sci"].append(sci_feedback)
         if TUNING_PID:
             self.publish_feedback()
@@ -180,6 +180,7 @@ class CMDPublisher (Node):
                 f"arm took {t3 - t2}s\n"
                 f"arm ee took {t4 - t3}s\n"
                 f"The rest took {t5 - t4}s")
+        self.last_read = t5
             
     def read_cans(self, cans: List[CANReceiver], motor_type: MotorType):
         """Take a list of CANReceivers, read each of them into a CMDFeedback message, 
@@ -257,6 +258,9 @@ class CMDPublisher (Node):
         Take a queue of Lists of CMDFeedback, and average the CMDFeedback at corresponding positions
         in each list, then return a list of the averaged messages
         """
+        if self.last_read == -1:
+            # We haven't read anything yet, return
+            return
         averages = []
         queue_len = len(queue)
 
