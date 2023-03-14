@@ -33,5 +33,6 @@ buildRosPackage {
     python3Packages.pyudev
     python3Packages.pygobject-stubs
     python3Packages.pygobject3
+    python3Packages.gst-python
   ];
 }
