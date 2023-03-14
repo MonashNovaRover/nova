@@ -180,6 +180,10 @@ class CMDPublisher (Node):
                 f"arm took {t3 - t2}s\n"
                 f"arm ee took {t4 - t3}s\n"
                 f"The rest took {t5 - t4}s")
+        self.get_logger().debug(f"Data:"
+                f"sci: {sci_feedback}"
+                f"arm: {arm_feedback}, {arm_ee_feedback}"
+                f"queues: {CMDQueues}")
         self.last_read = t5
             
     def read_cans(self, cans: List[CANReceiver], motor_type: MotorType):
