@@ -5,7 +5,7 @@
 
 /search_manager:
   ros__parameters:
-    map_bounds:
+    search_plan:
       # x, y
       [
         8.0, 8.0,
@@ -19,5 +19,5 @@
       ]
     tracked_block_colors:
       [
-        "RED", "GREEN"
+        "RED", "GREEN", "YELLOW", "BLUE", "WHITE"
       ]
