@@ -61,8 +61,8 @@ class DepthCamera(Node):
         self.latest_frame_stamp = None
         self.depth_frame_id = 'd435_1'
 
-        #self.ar_tracker = ArTracker(self.color_intrinsics, depth_cam_frame_id=self.depth_frame_id)
-        #self.object_detector = ObjectDetection(self.depth_intrinsics)
+        self.ar_tracker = ArTracker(self.color_intrinsics, depth_cam_frame_id=self.depth_frame_id)
+        self.object_detector = ObjectDetection(self.depth_intrinsics)
         self.cv_bridge : CvBridge = CvBridge()
 
         self.param_pointcloud_frequency = self.declare_parameter("depth_cloud_rate_hz", 5).value
@@ -136,9 +136,9 @@ class DepthCamera(Node):
             return
         color_image = np.asanyarray(self.color_frame.get_data())
         t1 = time.perf_counter()
-        #self.ar_tracker.find_ar_tags(color_image)
+        self.ar_tracker.find_ar_tags(color_image)
         t2 = time.perf_counter()
-        #self.object_detector.object_detection(self.color_frame, self.depth_frame)
+        self.object_detector.object_detection(self.color_frame, self.depth_frame)
         t3 = time.perf_counter()
         header = Header(
             stamp = self.latest_frame_stamp,
