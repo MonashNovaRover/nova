@@ -171,8 +171,7 @@ class Controller(Node):
         }
 
         # Controller classes for turning, driving to waypoints, and spinning
-        self.ctl_turner = TankTurner()
-        self.ctl_driver = DriveController(self.ctl_turner)
+        self.ctl_driver = DriveController()
         self.ctl_spin = None
 
         # Node is initialised, begin search (If ARC)
@@ -384,7 +383,7 @@ class Controller(Node):
             self.search_plan = self.load_search_layout()
         else:
             self.search_plan = interpolate_circle_points(self.state_current_planning_destination)
-        self.ctl_spin = SpinController(self.state_rover_pose.yaw, self.ctl_turner)
+        self.ctl_spin = SpinController(self.state_rover_pose.yaw, self.ctl_driver)
 
     def load_search_layout(self) -> List[Tuple[float, float]]:
         """
