@@ -129,13 +129,13 @@ class CMDPublisher (Node):
         # Create CAN receivers for each type of motor on the rover
         self.arm_cans = [CANReceiver(channel="can1", filter_ids=[ARM_MOTOR_IDS[i]],
                                  receive_timeout=0.003, 
-                                 receive_fmt="<HHhh",
+                                 receive_fmt=">HHhh",
                                  bitrate=200000) 
                      for i in range(NUM_ARM_MOTORS)]
 
         self.science_cans = [CANReceiver(channel="can1", filter_ids=[SCIENCE_MOTOR_IDS[i]], 
                                  receive_timeout=0.003, 
-                                 receive_fmt="<HHhh", 
+                                 receive_fmt=">HHhh", 
                                  bitrate=200000) 
                      for i in range(NUM_SCIENCE_MOTORS)]
 
