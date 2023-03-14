@@ -127,17 +127,17 @@ class CMDPublisher (Node):
         self.last_read = self.get_clock().now().to_msg()
     
         # Create CAN receivers for each type of motor on the rover
-        #self.arm_cans = [CANReceiver(channel="can1", filter_ids=[ARM_MOTOR_IDS[i]],
-        #                         receive_timeout=0.003, 
-        #                         receive_fmt="<HHhh",
-        #                         bitrate=200000) 
-        #             for i in range(NUM_ARM_MOTORS)]
-#
-        #self.science_cans = [CANReceiver(channel="can1", filter_ids=[SCIENCE_MOTOR_IDS[i]], 
-        #                         receive_timeout=0.003, 
-        #                         receive_fmt="<HHhh", 
-        #                         bitrate=200000) 
-        #             for i in range(NUM_SCIENCE_MOTORS)]
+        self.arm_cans = [CANReceiver(channel="can1", filter_ids=[ARM_MOTOR_IDS[i]],
+                                 receive_timeout=0.003, 
+                                 receive_fmt="<HHhh",
+                                 bitrate=200000) 
+                     for i in range(NUM_ARM_MOTORS)]
+
+        self.science_cans = [CANReceiver(channel="can1", filter_ids=[SCIENCE_MOTOR_IDS[i]], 
+                                 receive_timeout=0.003, 
+                                 receive_fmt="<HHhh", 
+                                 bitrate=200000) 
+                     for i in range(NUM_SCIENCE_MOTORS)]
 
         self.publisher = self.create_publisher(CMDsFeedback, "/electronics/cmd_feedback", 10)
         self.get_logger().debug(f"Initialised the Wheel Publisher class with:"\
