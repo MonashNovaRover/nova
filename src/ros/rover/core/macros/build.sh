@@ -34,6 +34,9 @@ elif [[ $1 = "clean" ]]
 then
     rm -r build install log
     colcon build --continue-on-error
+elif [[ $1 = "rover" ]]
+then
+    colcon build --continue-on-error --packages-up-to core control science electronics autonomous
 
 # Build only a certain package
 else
