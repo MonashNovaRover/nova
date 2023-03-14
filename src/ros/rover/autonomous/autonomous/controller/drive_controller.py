@@ -6,7 +6,7 @@ from autonomous.controller.turning import *
 
 
 class DriveController:
-    def get_drive_command(self, yaw_diff, current_steer, position_vector, current_orientation):
+    def get_drive_command(self, yaw_diff, current_steer):
         """
         :param yaw_diff: shortest direction difference between current and target yaw
         :param current_steer: current steer value (-1 to 1)
