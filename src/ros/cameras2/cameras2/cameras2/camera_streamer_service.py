@@ -110,9 +110,6 @@ class CameraStreamerService(Node):
 
         self.get_logger().info(f"Registering cameras: {', '.join(kwargs.keys())}.")
         self._device_nodes.update(kwargs)
-        self._stream_start_client.call_async(
-            CameraOperation.Request(serials=kwargs.keys())
-        )
 
     def _unregister_cameras(self, serials: set[str]) -> None:
         if not serials:
