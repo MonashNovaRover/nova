@@ -41,7 +41,7 @@ class LowerJointsModel : public ArmSubModule
     // Parameters for lower-joints CMDs
     constexpr static double GEARBOX_REDUCTION = 2143.75;
     const static int ENCODER_PPR = 512;
-    constexpr static double VELOCITY_FACTOR = 75;
+    const static int MIN_INTERVAL = 150;
     constexpr static double CLOCK_FREQUENCY = 30e6;
 
     /// Constructor. Build the lower joints
@@ -64,7 +64,7 @@ class LowerJointsModel : public ArmSubModule
             {1, 1, 0},
             {1, 1, 0}
         };
-        double scaling_factor = CMD::get_scaling_factor(GEARBOX_REDUCTION, ENCODER_PPR, VELOCITY_FACTOR, CLOCK_FREQUENCY);
+        double scaling_factor = CMD::get_scaling_factor(GEARBOX_REDUCTION, ENCODER_PPR, MIN_INTERVAL, CLOCK_FREQUENCY);
         drivers = std::vector<CMD*> {
             new CMD(1, 1, PID, 1, STOP, scaling_factor, can_init),
             new CMD(1, 2, PID, 1, STOP, scaling_factor, can_init),
