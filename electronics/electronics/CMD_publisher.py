@@ -169,7 +169,7 @@ class CMDPublisher (Node):
         arm_ee_feedback = self.read_cans([self.arm_cans[-1]], MotorType.ARM_EE)
         t4 = perf_counter()
         if arm_feedback is not None and arm_ee_feedback is not None and not None in arm_feedback and not None in arm_ee_feedback:
-            CMDQueues["arm"].append(arm_feedback.extend(arm_ee_feedback))
+            CMDQueues["arm"].append(arm_feedback + arm_ee_feedback)
         if sci_feedback is not None and not None in sci_feedback:
             CMDQueues["sci"].append(sci_feedback)
         if TUNING_PID:
@@ -180,10 +180,10 @@ class CMDPublisher (Node):
                 f"arm took {t3 - t2}s\n"
                 f"arm ee took {t4 - t3}s\n"
                 f"The rest took {t5 - t4}s")
-        self.get_logger().debug(f"Data:"
-                f"sci: {sci_feedback}"
-                f"arm: {arm_feedback}, {arm_ee_feedback}"
-                f"queues: {CMDQueues}")
+        self.get_logger().debug(f"Data:\n"
+                f"sci: {sci_feedback}\n"
+                f"arm: {arm_feedback}, {arm_ee_feedback}\n"
+                f"queues: {CMDQueues}\n")
         self.last_read = t5
             
     def read_cans(self, cans: List[CANReceiver], motor_type: MotorType):
