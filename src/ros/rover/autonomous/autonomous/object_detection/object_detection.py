@@ -26,7 +26,7 @@ class ObjectDetection(Node):
         :param show: whether to show the image (used for testing)
         """
         super().__init__("object_detector")
-        self.get_logger().set_level(logging.DEBUG)
+        self.get_logger().set_level(logging.INFO)
         self.obj_pub = self.create_publisher(MarkerArray, f"~/markers", 10)
         # Get full path to model from the obj_detect package using os
         model_path = os.path.join(os.path.dirname(models.__file__), "10_mar_cubes_nano.pt")
@@ -35,7 +35,7 @@ class ObjectDetection(Node):
         self.frame_id = frame_id
         self.get_logger().debug(f"Intrinsics: {intrinsics}")
         self.intr = intrinsics
-        self.show = True
+        self.show = show
         self.confidence_threshold = confidence_threshold
 
     def get_marker(self, point, c: tuple) -> None:
@@ -72,10 +72,10 @@ class ObjectDetection(Node):
 
     def object_detection(self, color_frame, depth_frame):
         self.intr = depth_frame.profile.as_video_stream_profile().get_intrinsics()
-        self.get_logger().debug(f"Intrinsics: {self.intr}")
-        self.get_logger().debug("OBJECT DETECTION CALLBACK")
+        self.get_logger().debug(f"Intrinsics: {self.intr}", throttle_duration_sec=1)
+        self.get_logger().debug("OBJECT DETECTION CALLBACK", throttle_duration_sec=1)
         color_image = np.asanyarray(color_frame.get_data())
-        self.get_logger().debug(f"color frame shape: {color_image.shape}")
+        self.get_logger().debug(f"color frame shape: {color_image.shape}", throttle_duration_sec=1)
         results = self.model.predict(color_image)
         boxes = results[0].boxes.cpu().numpy()
         markers = MarkerArray()
@@ -86,15 +86,15 @@ class ObjectDetection(Node):
             confidence = box.conf
 
             if confidence > self.confidence_threshold:
-                self.get_logger().debug("FOUND BOX")
+                self.get_logger().debug("FOUND BOX", throttle_duration_sec=1)
                 cx, cy = int(xmin) + int(im_width // 2), int(ymin) + int(im_height // 2)
                 area_of_interest = color_image[int(ymin):int(ymax), int(xmin):int(xmax)]
-                self.get_logger().debug(f"Center: {cx}, {cy}")
+                self.get_logger().debug(f"Center: {cx}, {cy}", throttle_duration_sec=1)
                 depth = depth_frame.get_distance(cx,cy)
                 point = rs.rs2_deproject_pixel_to_point(self.intr, [float(cx), float(cy)], depth)
-                self.get_logger().debug(f"Point: {point}")
+                self.get_logger().debug(f"Point: {point}", throttle_duration_sec=1)
                 color = self.get_avg_color(area_of_interest)[::-1] / 255
-                self.get_logger().debug(f"Color: {color}")
+                self.get_logger().debug(f"Color: {color}", throttle_duration_sec=1)
                 markers.markers.append(self.get_marker(point, color))
 
                 if self.show:
