@@ -65,6 +65,6 @@ pose_pub_rate = 0.2
 d415_serial = "932122060332"
 d435_serial = "829212072166"
 d455_serial = "213522254970"
-active_depth_camera = d455_serial  # d435_serial
+active_depth_camera = d435_serial  # d435_serial
 t265_serial = "952322110473"
 pose_file = "cameras/pose.txt"
