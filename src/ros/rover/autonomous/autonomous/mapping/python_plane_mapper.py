@@ -40,8 +40,8 @@ class PlaneMapper(FlatMapper):
 
         # init node with node name points
         super().__init__(length=length, width=width, height=height, resolution=resolution,
-                         detection_resolution=detection_resolution, planner=planner, camera=camera)
-        self.on_initialise()
+                         detection_resolution=detection_resolution, planner=planner, camera=camera, name=name)
+        self.on_initialised()
 
     def get_obstacles(self, filtered_indices):
         return get_plane_obstacles(filtered_indices, self.detection_length, self.detection_width, self.resolution_ratio)
@@ -62,7 +62,10 @@ class PlaneMapper(FlatMapper):
         if self.local_map_to_d435 is None:
             self.get_logger().warn("No transform to d435 frame!", once=True)
             return
-        no_yaw_pts = transform.transform_points_no_yaw(self.local_map_to_d435, pts)
+        self.get_logger().debug(f"Transforming point cloud by transform: {self.orient_nova_frame_transform}")
+        # transform to nova coordinates
+        frame_transformed_points = transform.transform_points(self.orient_nova_frame_transform, pts)
+        no_yaw_pts = transform.transform_points_no_yaw(self.local_map_to_d435, frame_transformed_points)
 
         filtered_indices = self.filter_points(no_yaw_pts)
 

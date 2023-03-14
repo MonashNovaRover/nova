@@ -56,7 +56,7 @@ unseen_map_val = 0.25  # Fill all points we haven't seen with a set cost to pref
 slice_height = 2.3  # the height we slice the map from when taking 2d slices
 obstacle_halve_value = 50  # All costs below a scaled value of 80 are halved to be more decisive
 obstacle_ignore_value = 20  # All costs below a scaled value of 30 are ignored
-min_map_update_time = .5  # minimum time between updating the map from point-cloud
+min_map_update_time = .2  # minimum time between updating the map from point-cloud
 
 # ~~~~~~~~~~~~~~~LOCALISATION CONSTANTS ~~~~~~~~~~~~~~~~~
 minimum_gps_corrections = 50
@@ -65,6 +65,7 @@ pose_pub_rate = 0.2
 # ~~~~~~~~~~~~~~~~~ CAMERA INFO ~~~~~~~~~~~~~~~~~~~~~
 d415_serial = "932122060332"
 d435_serial = "829212072166"
+d455_serial = "213522254970"
 active_depth_camera = d435_serial  # d435_serial
 t265_serial = "952322110473"
 pose_file = "cameras/pose.txt"

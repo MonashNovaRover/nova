@@ -139,7 +139,7 @@ class CMDPublisher (Node):
         # Create CAN receivers for each type of motor on the rover
         self.wheel_cans = [CANReceiver(channel="can0", filter_ids=[WHEEL_IDS[i]], # can channel and ids of wheels
                                  receive_timeout=0.003, # seconds to wait for message
-                                 receive_fmt="<HHhh", # 4 shorts in little-endian format, 2 signed, 2 unsigned 
+                                 receive_fmt=">HHhh", # 4 shorts in big-endian format, 2 signed, 2 unsigned 
                                  bitrate=200000) # bitrate of can line
                      for i in range(NUM_WHEELS)]
 
