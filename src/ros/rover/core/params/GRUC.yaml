@@ -2,10 +2,13 @@
 /autonomous_controller_node:
   ros__parameters:
     is_ARC: true
-    search_coordinates:
+
+/search_manager:
+  ros__parameters:
+    map_bounds:
       # x, y
       [
-        -1.0, 1.1,
+        8.0, 8.0,
         8.0, -8.0,
         -8.0, -8.0,
         -8.0, 8.0
