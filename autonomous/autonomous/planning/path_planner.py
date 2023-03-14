@@ -31,6 +31,7 @@ from rclpy.node import Node
 from rclpy.duration import Duration
 from geometry_msgs.msg import Pose2D, Pose, PoseStamped
 from core.msg import Waypoints, Waypoint, RoverPose, Point2D
+from nav_msgs.msg import Path
 from autonomous.config.ros_config import *
 from autonomous.config.runtime_params import ignore_waypoints, INITIAL_PADDING_DIST_M, goal_achieved_distance
 from core.srv import PathPlanningRequest
@@ -72,7 +73,7 @@ class PathPlanner(Node):
         self.planning_service = self.create_service(PathPlanningRequest, path_planning_service_name,
                                                     self.path_planning_service_callback)
         self.planning_subscriber = self.create_subscription(PoseStamped, planning_destination_topic, self.path_planning_sub_callback, 10)
-        self.path_publisher = self.create_publisher(Waypoints, auto_waypoints_topic, 10)
+        self.path_publisher = self.create_publisher(Path, auto_waypoints_topic, 10)
 
         # Transform listeners
         self.tf_buffer = Buffer()
@@ -183,6 +184,27 @@ class PathPlanner(Node):
         if status == PathPlanner.A_STAR_SUCCESS:
             self.get_logger().debug("A* found safe path", throttle_duration_sec=1)
 
+    def construct_path(self, waypoints):
+            """
+            Contstructs a ros2 path message from a list of waypoints
+            """
+            path = Path()
+            path.header.frame_id = "local_map"
+            path.header.stamp = self.get_clock().now().to_msg()
+
+            for waypoint in waypoints:
+                if math.isnan(waypoint[0]) or math.isnan(waypoint[1]):
+                    continue
+                pose_stamped = PoseStamped()
+                pose_stamped.header = path.header
+                # Orient vertical
+                pose_stamped.pose.orientation.w = 1.0
+                pose_stamped.pose.position.x, pose_stamped.pose.position.y, pose_stamped.pose.position.z = waypoint[0], waypoint[1], 0.0
+
+                path.poses.append(pose_stamped)
+            
+            return path
+
     def get_path(self, padding=None) -> Waypoints:
         """
         Repeatedly run A* on the updated rover pose and map to continually redetermine the optimal path.
@@ -194,7 +216,7 @@ class PathPlanner(Node):
 
         self.start = self.pose_2d.x, self.pose_2d.y
         local_goal = self.goal.position.x, self.goal.position.y
-        print(f"planning to {(local_goal[0], local_goal[1])}")
+        self.get_logger().debug(f"planning to {(local_goal[0], local_goal[1])}")
 
         self.length = self.grid2d.shape[0]
         self.width = self.grid2d.shape[1]
@@ -212,15 +234,9 @@ class PathPlanner(Node):
         waypoints = Waypoints()
 
         # todo: the logic of ignoring waypoints should be outside the path planner. It should plan a pure path
-        for wpt in route_coordinates[min(len(route_coordinates) - 1, ignore_waypoints):]:
-            waypoint = Waypoint()
-            waypoint.x = wpt[0]
-            waypoint.y = wpt[1]
-           
-            if (not math.isnan(waypoint.x)) and (not math.isnan(waypoint.y)):
-                waypoints.waypoints.append(waypoint)
+        path = self.construct_path(route_coordinates[min(len(route_coordinates) - 1, ignore_waypoints):])
 
         self.get_logger().debug(f"Path Planner Calculated {len(route_coordinates)} waypoints", throttle_duration_sec=1)
         if status & PathPlanner.A_STAR_CRITICAL_NO_PATH:
             return self.get_path(padding-0.1)
-        return waypoints
+        return path
