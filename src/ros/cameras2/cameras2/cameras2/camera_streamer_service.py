@@ -157,11 +157,7 @@ class CameraStreamerService(Node):
         gst_bin: Gst.Bin = Gst.Bin.new(f"camera-{serial}-bin")
 
         source = Gst.ElementFactory.make("v4l2src", "source")
-        # TODO: Cameras may not always support JPEG. Fall back to another format if this fails.
-        # videoconvert is recommended here (when not using jpegdec) as v4l2src has unknown capabilities.
-        # https://gstreamer.freedesktop.org/documentation/tutorials/basic/handy-elements.html#videoconvert
-        # videoconvert = Gst.ElementFactory.make("videoconvert", "videoconvert")
-        decoder = Gst.ElementFactory.make("jpegdec", "decoder")
+        videoconvert = Gst.ElementFactory.make("videoconvert", "videoconvert")
         sink = Gst.ElementFactory.make("webrtcsink", "sink")
 
         # Configure the elements.
@@ -179,7 +175,7 @@ class CameraStreamerService(Node):
         sink.props.meta = meta
 
         # Add the elements to the bin, and link them.
-        elements = [source, decoder, sink]
+        elements = [source, videoconvert, sink]
         gst_bin.add(*elements)
         # noinspection PyUnresolvedReferences
         Gst.Element.link_many(*elements)
