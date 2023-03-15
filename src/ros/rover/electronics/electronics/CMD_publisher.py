@@ -121,7 +121,7 @@ CMDQueues = {
 class CMDPublisher (Node):
     def __init__ (self):
         super().__init__("CMD_publisher")
-        self.get_logger().set_level(logging.DEBUG)
+        self.get_logger().set_level(logging.INFO)
 
         # Store the starting time
         self.last_read = -1
