@@ -36,7 +36,7 @@ class RFIDService(Node):
         # Loop until the RFID is plugged in
         while True:
             try:
-                self.ser = Serial(baudrate = 115200, port = '/dev/ttyUSB0') # TODO: Check port
+                self.ser = Serial(baudrate = 115200, port = '/dev/ttyELBAUMRFID69420') # TODO: Check port
                 break
             except:
                 time.sleep(1.0)
@@ -78,9 +78,10 @@ class RFIDService(Node):
         '''
         # read until EOM
         self.get_logger().debug('Reading data')
-        data = self.ser.read_until(expected=self.EOM)
+        data = self.ser.read_until(self.EOM)
         data = data.rstrip(self.EOM) # remove EOM from response
         data = data.rstrip(b'\0') # strip any null chars from data
+        self.get_logger().debug('data')
         print(data) #print raw bytes
         # return as string
         try:

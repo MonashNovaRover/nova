@@ -1,12 +1,6 @@
 __package__ = "autonomous"
 
-from controller.drive_controller import DriveController
-from controller.turning import Turner
-from typing import Tuple
-from math_utils.controller_math import *
-from rclpy.node import Node
-from core.msg import AutonomousGoal, Point2D
-from config.ros_config import planning_destination_topic
+from autonomous.math_utils.controller_math import *
 import numpy as np
 import math
 

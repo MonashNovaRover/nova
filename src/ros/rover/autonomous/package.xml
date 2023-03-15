@@ -8,13 +8,16 @@
   <license>Only for Monash Nova Rover Team to use and distribute.</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>ament_cmake_python</buildtool_depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
 
   <depend>rclcpp</depend>  
+  <depend>rclpy</depend>  
   <depend>core</depend>
   <depend>std_msgs</depend>
+  <depend>tf2_ros</depend>
 
   <export>
     <build_type>ament_cmake</build_type>
