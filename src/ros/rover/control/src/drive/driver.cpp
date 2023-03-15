@@ -126,7 +126,7 @@ void Driver::input_callback(const core::msg::InputGamepad::SharedPtr msg)
 void Driver::blcmd_status_callback(const core::msg::BLCMDStatusArray::SharedPtr msg) {
     bool error = false;
     for(core::msg::BLCMDStatus status : msg->blcmds) {
-        error = error || (status.status != core::msg::BLCMDStatus::OK);
+        error = error || status.gate_fault || status.stall_fault || status.resolver_fault;
     }
     blcmd_error = error;
 }
@@ -353,6 +353,9 @@ Driver::Driver() : Node("driver")
     // Creates the input subscription
     subscription_inputs = this->create_subscription<core::msg::InputGamepad>(
         "/control/input_gamepad", qos, std::bind(&Driver::input_callback, this, _1), subscriber_options);
+
+    subscription_blcmd_status = this->create_subscription<core::msg::BLCMDStatusArray>(
+        "/control/blcmd_status", 10, std::bind(&Driver::blcmd_status_callback, this, _1));
 ;
     // Creates auto mode timer and associated publisher
     mode_timer = this->create_wall_timer(ROSTimers::auto_mode, std::bind(&Driver::pub_auto_mode, this));

@@ -1,12 +1,12 @@
 #Msg for the blcmd status
 
-#status options
-byte OK = 0
-byte STALL_TRIGGERED = 1
-byte GATE_DRIVER_FAULT = 2
+#status's of the BLCMD
 
-#status of the BLCMD
-byte status
+#faults
+bool gate_fault
+bool stall_fault
+bool resolver_fault
+
 
 #id of the BLCMD
 int8 id
