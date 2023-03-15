@@ -122,14 +122,14 @@ void PIDTuner::publish_velocity () {
     message.id = this->id;
 
     // Get the data
-    CMDData data = this->get_cmd()->receive_feedback();
+    CMDFeedback data = this->get_cmd()->receive_feedback();
 
     // Get the data
-    message.omega = data.rpm;
-    message.duty_cycle = data.power;
+    message.omega = data.omega;
+    message.duty_cycle = data.duty_cycle;
 
     // Make sure data is valid
-    if (data.rpm != 0 || data.power != 0) {
+    if (data.omega != 0 || data.duty_cycle != 0) {
 
         // Publish the data
         publisher->publish(message);
@@ -164,12 +164,12 @@ PIDTuner::PIDTuner () : Node("pid_tuner")
 
     // Construct the array of wheels
     for (int i = 0; i < NUM_WHEELS; i++) {
-        bus_0[i] = new CMD(0, i + 1, PID, PID);
+        bus_0[i] = new CMD(0, i + 1, PID, 0, PID);
     }
 
     // Construct the array of arm devices
     for (int i = 0; i < NUM_ARM_DEVICES; i++) {
-        bus_1[i] = new CMD(1, i + 1, PID, PID);
+        bus_1[i] = new CMD(1, i + 1, PID, 0, PID);
     }
 }
 
