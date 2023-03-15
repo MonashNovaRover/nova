@@ -41,15 +41,16 @@ BLCMD::BLCMD (const std::string bus, const int id, BLCMDSendCommand drive_mode, 
     std::cout << "BLCMD Initialised with id:" << id << ", with drive mode: "  << (drive_mode == DRIVE_VELOCITY ? "DRIVE_VELOCITY" : "DRIVE_POSITION") << std::endl;
 
 
-
+    // Set up the CAN ID filter
     can_bus->set_id_filter({make_can_id(PACKET_1), make_can_id(PACKET_2),
                             make_can_id(PACKET_3), make_can_id(PACKET_4)});
-
+    // Set up the CAN callbacks
     can_bus->add_callback_to(make_can_id(PACKET_1),this, &BLCMD::packet1_callback);
     can_bus->add_callback_to(make_can_id(PACKET_2), this, &BLCMD::packet2_callback);
     can_bus->add_callback_to(make_can_id(PACKET_3), this, &BLCMD::packet3_callback);
     can_bus->add_callback_to(make_can_id(PACKET_4), this, &BLCMD::packet4_callback);
 
+    // Open the CAN bus
     can_bus->open(&bus[0]);
 }
 
@@ -136,6 +137,7 @@ void BLCMD::set_stop_mode (BLCMDSendCommand stop_mode)
 
 void BLCMD::drive (float value)
 {
+    // #TODO: Check if this works
 
 //   //  If the motor has already been stopped do not send more stop commands
 //   if (value == 0.0 && drive_mode != DRIVE_POSITION) {
@@ -159,20 +161,18 @@ void BLCMD::drive (float value)
         }
     }
 
+    // Reverse the direction of the motor if necessary
     if (direction) {
         value *= -1;
     }
 
+    // Saturate the input velocity if it is out of range
     if (value > 1) {
         value = 1;
     }
     else if (value < -1){
         value = -1;
     }
-
-    // Saturate the input velocity if it is out of range
-
-
 
     // Create a new CAN frame
     org::jcan::Frame frame;
@@ -189,32 +189,6 @@ void BLCMD::drive (float value)
     can_bus->send(frame);
 }
 
-//bool BLCMD::home_rotor()
-//{
-//    can_bus->set_id_filter({make_can_id(ERR_WARN_INF)});
-//    write_frame_no_data(HOME_ROTOR);
-//    Frame confirm_frame = can_bus->receive();
-//
-//    for(;;) {
-//        if (!confirm_frame.data[0] && confirm_frame.data[1] == 8) return false;
-//        if (confirm_frame.data[0] == 2 && confirm_frame.data[1] == 3) return true;
-//        confirm_frame = can_bus->receive();
-//    }
-//}
-//
-//bool BLCMD::zero_resolver()
-//{
-//    can_bus->set_id_filter({make_can_id(ERR_WARN_INF)});
-//    write_frame_no_data(ZERO_RESOLVER);
-//    Frame confirm_frame = can_bus->receive();
-//
-//    for(;;) {
-//        if (!confirm_frame.data[0] && (confirm_frame.data[1] == 8 ||
-//            confirm_frame.data[1] == 4)) return false;
-//        if (confirm_frame.data[0] == 2 && confirm_frame.data[1] == 4) return true;
-//        confirm_frame = can_bus->receive();
-//    }
-//}
 
 
 void BLCMD::packet1_callback(org::jcan::Frame frame) {
@@ -242,6 +216,70 @@ BLCMDTelemetry BLCMD::get_telemetry() {
     return this->telemetry;
 }
 
+int16_t BLCMD::convert_to_int16 (const double value) {
+    // Convert the value to an integer
+    return (int16_t)(value * 32767.0f);
+}
+
+int16_t BLCMD::from_bytes(uint8_t *bytes) {
+    return (bytes[0] << 8) | bytes[1];
+}
+
+double BLCMD::int16_bytes_to_double (uint8_t* bytes)
+{
+    // Scale the value to a double
+    return from_bytes(bytes)/32767.0;
+}
+
+double BLCMD::uint16_bytes_to_double (uint8_t* bytes)
+{
+    // Scale the value to a double
+    return from_bytes(bytes)/65535.0;
+}
+
+uint16_t BLCMD::make_can_id(BLCMDSendCommand command)
+{
+    return SEND << 8 | id << 4 | command;
+}
+
+uint16_t BLCMD::make_can_id(BLCMDReceiveCommand command)
+{
+    return RECEIVE << 8 | id << 4 | command;
+}
+
+uint16_t BLCMD::make_can_id(TelemetryPacket packet)
+{
+    return RECEIVE << 8 | id << 4 | packet;
+}
+
+/// #TODO: Implement these functions with JCAN 1.8 and in a more elegant way after ARCh
+
+//bool BLCMD::home_rotor()
+//{
+//    can_bus->set_id_filter({make_can_id(ERR_WARN_INF)});
+//    write_frame_no_data(HOME_ROTOR);
+//    Frame confirm_frame = can_bus->receive();
+//
+//    for(;;) {
+//        if (!confirm_frame.data[0] && confirm_frame.data[1] == 8) return false;
+//        if (confirm_frame.data[0] == 2 && confirm_frame.data[1] == 3) return true;
+//        confirm_frame = can_bus->receive();
+//    }
+//}
+//
+//bool BLCMD::zero_resolver()
+//{
+//    can_bus->set_id_filter({make_can_id(ERR_WARN_INF)});
+//    write_frame_no_data(ZERO_RESOLVER);
+//    Frame confirm_frame = can_bus->receive();
+//
+//    for(;;) {
+//        if (!confirm_frame.data[0] && (confirm_frame.data[1] == 8 ||
+//            confirm_frame.data[1] == 4)) return false;
+//        if (confirm_frame.data[0] == 2 && confirm_frame.data[1] == 4) return true;
+//        confirm_frame = can_bus->receive();
+//    }
+//}
 
 //void BLCMD::get_config_variable(ConfigVar var, BLCMDConfig *config)
 //{
@@ -368,40 +406,3 @@ BLCMDTelemetry BLCMD::get_telemetry() {
 //    set_config_variable(TELEMETRY_P3_SPEED, config->telemetry_p3_speed) ||
 //    set_config_variable(TELEMETRY_P4_SPEED, config->telemetry_p4_speed);
 //}
-
-
-int16_t BLCMD::convert_to_int16 (const double value) {
-    // Convert the value to an integer
-    return (int16_t)(value * 32767.0f);
-}
-
-int16_t BLCMD::from_bytes(uint8_t *bytes) {
-    return (bytes[0] << 8) | bytes[1];
-}
-
-double BLCMD::int16_bytes_to_double (uint8_t* bytes)
-{
-    // Scale the value to a double
-    return from_bytes(bytes)/32767.0;
-}
-
-double BLCMD::uint16_bytes_to_double (uint8_t* bytes)
-{
-    // Scale the value to a double
-    return from_bytes(bytes)/65535.0;
-}
-
-uint16_t BLCMD::make_can_id(BLCMDSendCommand command)
-{
-    return SEND << 8 | id << 4 | command;
-}
-
-uint16_t BLCMD::make_can_id(BLCMDReceiveCommand command)
-{
-    return RECEIVE << 8 | id << 4 | command;
-}
-
-uint16_t BLCMD::make_can_id(TelemetryPacket packet)
-{
-    return RECEIVE << 8 | id << 4 | packet;
-}
