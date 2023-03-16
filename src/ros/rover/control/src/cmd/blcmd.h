@@ -30,9 +30,8 @@ EDITED:		01/02/2023
 // CAN include
 #include "jcan.h"
 
-const double max_velocity = 1;
-const double max_position = M_PI;
-const double min_position = -M_PI;
+const double velocity_factor = 1;
+const double position_factor = M_PI_2;
 
 // Specifies the command used
 enum BLCMDSendCommand {
@@ -61,7 +60,7 @@ enum CanIdPrefix{
     RECEIVE = 4
 };
 
-enum BLCMDRecieveCommand{
+enum BLCMDReceiveCommand{
     ERR_WARN_INF = 0x0,
     CONFIG_DATA = 0x8,
     WRITE_CONFIRMATION = 0x9
@@ -127,6 +126,8 @@ class BLCMD {
     //------------------------------------------------------------//
     private:
 
+    const float pos_threshold = M_PI/180;
+
     // Can bus to use
     std::string bus;
 
@@ -149,11 +150,15 @@ class BLCMD {
 
     // Was the last command a STOP? If so, do not bother repeating
     bool already_stopped;
-    
+
+    BLCMDTelemetry telemetry;
+
     // CAN bus for the CAN connection
-    org::jcan::Bus *can_bus;
+    std::unique_ptr<org::jcan::Bus> can_bus;
 
     public:
+    void spin();
+
     /// @brief      Send a CAN frame with some command in the ID but no data
     /// @param      command - The command to send
     void write_frame_no_data (const BLCMDSendCommand command);
@@ -180,7 +185,7 @@ class BLCMD {
 
     uint16_t make_can_id(BLCMDSendCommand command);
 
-    uint16_t make_can_id(BLCMDRecieveCommand command);
+    uint16_t make_can_id(BLCMDReceiveCommand command);
 
     uint16_t make_can_id(TelemetryPacket packet);
 
@@ -250,32 +255,39 @@ class BLCMD {
     /// @brief      Gets a packet of telemetry and fills the relevant fields of a telemetry struct.
     /// @param      packet_num - the telemetry packet to get.
     /// @param      telemetry - pointer to a telemetry struct to get filled.
-    bool get_telemetry_packet (std::vector<TelemetryPacket> packet_nums, BLCMDTelemetry* telemetry,
-                               std::chrono::milliseconds timeout = std::chrono::milliseconds(50));
+//    bool get_telemetry_packet (std::vector<TelemetryPacket> packet_nums, BLCMDTelemetry* telemetry,
+//                               std::chrono::milliseconds timeout = std::chrono::milliseconds(50));
 
+    void packet1_callback(org::jcan::Frame frame);
+
+    void packet2_callback(org::jcan::Frame frame);
+
+    void packet3_callback(org::jcan::Frame frame);
+
+    void packet4_callback(org::jcan::Frame frame);
     /// @brief      Gets all packets of telemetry.
     /// @param      telemetry - a pointer to a telemetry struct to fill
     /// @param      timeout - the timeout for the CAN read
     /// @returns    A struct containing the data
-    std::vector<bool> get_telemetry(BLCMDTelemetry* telemetry, std::chrono::milliseconds timeout = std::chrono::milliseconds(50));
+    BLCMDTelemetry get_telemetry();
 
     /// @brief      Gets a signle config variable from the blcmd.
     /// @param      var - the variable to get.
     /// @param      telemetry - pointer to a Config struct to get filled.
-    void get_config_variable (ConfigVar var, BLCMDConfig* config);
+//    void get_config_variable (ConfigVar var, BLCMDConfig* config);
 
     /// @brief      Gets all config data and returns a config struct.
     /// @returns    A struct containing the data.
-    BLCMDConfig get_configuration ();
+//    BLCMDConfig get_configuration ();
 
     /// @brief      Sets a single config variable.
     /// @param      var - The variable to be set.
     /// @param      value - The value to set the variable to in an int16_t format.
     /// @returns    a boolean for success or failure to set.
-    bool set_config_variable (ConfigVar var, int16_t value);
+//    bool set_config_variable (ConfigVar var, int16_t value);
 
     /// @brief      Sets all config variables.
     /// @param      config - The struct containing the config data to be set.
     /// @returns    a boolean for success or failure to set. Returns false if any are not set.
-    bool set_config (BLCMDConfig *config);
+//    bool set_config (BLCMDConfig *config);
 };
