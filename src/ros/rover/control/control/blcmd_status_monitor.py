@@ -49,7 +49,7 @@ class BLCMDStatusMonitor(Node):
         for i in range(self.get_parameter("num_blcmds").value):
             self.blcmds_status.append(BLCMDStatus())
             self.blcmds_status[i].id = i + 1
-            self.blcmds_status[i].driver_fault = False
+            self.blcmds_status[i].gate_fault = False
             self.blcmds_status[i].stall_fault = False
             self.blcmds_status[i].resolver_fault = False
 
@@ -78,11 +78,9 @@ class BLCMDStatusMonitor(Node):
         :param msg: core.msg.BLCMDReset message from the subscriber callback
         :return: None
         """
-        if ((self.get_clock().now() - self.reset_time) > Time(seconds=2)) and (self.blcmds_status[msg.id - 1].gate_fault
+        if ((self.get_clock().now() - self.reset_time) > Duration(seconds=2)) and (self.blcmds_status[msg.id - 1].gate_fault
             or self.blcmds_status[msg.id - 1].stall_fault or self.blcmds_status[msg.id - 1].resolver_fault):
-
-            self.bus.send(jcan.Frame(0x40B | msg.id << 4, [0]))
-            self.blcmds_status[msg.id - 1].status = BLCMDStatus.OK
+            self.bus.send(jcan.Frame(0x00B | msg.id << 4, [0]))
             self.get_logger().info(f'Reset BLCMD {msg.id}')
 
     def get_callback(self, blcmd):
@@ -95,10 +93,11 @@ class BLCMDStatusMonitor(Node):
             if frame.data[0] == 0:
                 if frame.data[1] == 0x5:
                     self.get_logger().error(f'Gate Driver Fault on BLCMD {blcmd + 1}')
-                    self.blcmds_status[blcmd].gate_driver_fault = True
+                    self.blcmds_status[blcmd].gate_fault = True
                     self.fault_times["gate_fault"] = self.get_clock().now()
                 elif frame.data[1] == 0xA:
                     self.get_logger().error(f'Stall Fault on BLCMD {blcmd + 1}')
+                    self.blcmds_status[blcmd].stall_fault = True
                     self.blcmds_status[blcmd].stall_fault = True
                     self.fault_times["stall_fault"] = self.get_clock().now()
                 elif frame.data[1] == 0x2:
@@ -110,13 +109,13 @@ class BLCMDStatusMonitor(Node):
     def check_status(self):
         for i in range(self.get_parameter("num_blcmds").value):
             if self.blcmds_status[i].gate_fault:
-                if (self.get_clock().now() - self.fault_times["gate_fault"]) > Duration(seconds=2):
+                if (self.get_clock().now() - self.fault_times["gate_fault"]) > Duration(seconds=10):
                     self.blcmds_status[i].gate_fault = False
             if self.blcmds_status[i].stall_fault:
-                if (self.get_clock().now() - self.fault_times["stall_fault"]) > Duration(seconds=2):
+                if (self.get_clock().now() - self.fault_times["stall_fault"]) > Duration(seconds=10):
                     self.blcmds_status[i].stall_fault = False
             if self.blcmds_status[i].resolver_fault:
-                if (self.get_clock().now() - self.fault_times["resolver_fault"]) > Duration(seconds=2):
+                if (self.get_clock().now() - self.fault_times["resolver_fault"]) > Duration(seconds=10):
                     self.blcmds_status[i].resolver_fault = False
 
     def publish_status(self):
