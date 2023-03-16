@@ -19,15 +19,9 @@ int main(int argc, char **argv) {
 
     BLCMDTelemetry tel;
 
-    std::vector<bool> recieved = blcmd->get_telemetry(&tel);
-
-    cout << "Recieved Packet 1: " << recieved[0] << endl;
-    cout << "Recieved Packet 2: " << recieved[1] << endl;
-    cout << "Recieved Packet 3: " << recieved[2] << endl;
-    cout << "Recieved Packet 4: " << recieved[3] << endl;
-
-    cout << tel;
-
+    while(1){
+        BLCMDTelemetry tel = blcmd->get_telemetry();
+        cout << tel << endl;
+    }
     return 0;
-
 }
