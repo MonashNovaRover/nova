@@ -363,7 +363,8 @@ class Controller(Node):
         Return a sub-list of the planning waypoints containing only those at least some minimum distance from
         the rover
         """
-        assert self.waypoint_path is not None
+        if self.waypoint_path is None:
+            return []
         return [point for point in self.waypoint_path if distance(
             (self.state_rover_pose.x, self.state_rover_pose.y),
             point

@@ -46,8 +46,15 @@ void DriveInputs::publish_cmds()
     // Set up the values if the controller is not locked
     if (!locked && connected)
     {
-        message.speed = left_input_axis_y * multiplier_speed * trigger_speed;
-        message.angle = calc_steer_angle(right_input_axis_x, right_input_axis_y);
+        if(strafe_mode)
+        {
+            message.speed = -left_input_axis_x * multiplier_speed * trigger_speed;
+
+        }
+        else
+        {
+            message.speed = left_input_axis_y * multiplier_speed * trigger_speed;
+        }
         message.steer = right_input_axis_x;
         message.strafe_mode = strafe_mode;
 
@@ -109,6 +116,7 @@ void DriveInputs::input_callback(const core::msg::InputGamepad::SharedPtr msg)
 
         // Update the input axis
         left_input_axis_y = msg->ax_stick_l_y;
+        left_input_axis_x = msg->ax_stick_l_x;
         right_input_axis_x = msg->ax_stick_r_x;
         right_input_axis_y = msg->ax_stick_r_y;
 
@@ -132,55 +140,18 @@ void DriveInputs::input_callback(const core::msg::InputGamepad::SharedPtr msg)
         // Prevent changing states if the controller is locked
         if (!locked)
         {
-
             // Change the speed multipliers
             if (msg->btn_dpad_u_state == 1)
                 adjust_multiplier(multiplier_speed, true);
             else if (msg->btn_dpad_d_state == 1)
                 adjust_multiplier(multiplier_speed, false);
 
-            if (msg->trg_l_val > 0.8)
-            {
-                strafe_mode = true;
-            }
-            else
-            {
-                strafe_mode = false;
-            }
+            strafe_mode = msg->btn_shoulder_l_state==2 && msg->btn_shoulder_r_state==2;
         }
     }
 
     // Get the connection state
     connected = msg->connected;
-}
-
-float DriveInputs::calc_steer_angle(float x_steer, float y_steer)
-{
-    float steer_angle = 0.0;
-
-    // no steer if no x axis
-    if (x_steer == 0.0)
-    {
-        return 0.0;
-    }
-
-    // if the joystick is negative y, the angle is +/-90 degrees
-    if (y_steer < 0.0)
-    {
-        steer_angle = M_PI/2;
-    }
-    else
-    {
-        steer_angle = M_PI/2 - atan(abs(y_steer) / abs(x_steer));
-    }
-
-    // add left (-) / right(+) direction
-    if (x_steer < 0.0)
-    {
-        steer_angle *= -1;
-    }
-
-    return steer_angle;
 }
 
 // Main constructor that sets up the node

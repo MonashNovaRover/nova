@@ -1,4 +1,5 @@
 #pragma once
+#include "callback.h"
 #include <algorithm>
 #include <array>
 #include <cassert>
@@ -875,7 +876,8 @@ std::size_t align_of() {
 namespace org {
   namespace jcan {
     struct Frame;
-    struct Bus;
+    struct JBus;
+    using Bus = ::org::jcan::Bus;
   }
 }
 
@@ -887,21 +889,26 @@ struct Frame final {
   ::std::uint32_t id;
   ::rust::Vec<::std::uint8_t> data;
 
+  ::std::uint32_t get_id() const noexcept;
+  ::rust::Vec<::std::uint8_t> get_data() const noexcept;
+  void set_id(::std::uint32_t id);
+  void set_data(::rust::Vec<::std::uint8_t> data);
   ::rust::String to_string() const noexcept;
   using IsRelocatable = ::std::true_type;
 };
 #endif // CXXBRIDGE1_STRUCT_org$jcan$Frame
 
-#ifndef CXXBRIDGE1_STRUCT_org$jcan$Bus
-#define CXXBRIDGE1_STRUCT_org$jcan$Bus
-struct Bus final : public ::rust::Opaque {
-  ::org::jcan::Frame receive();
-  ::org::jcan::Frame receive_with_id(::std::uint32_t id);
-  void send(::org::jcan::Frame frame);
+#ifndef CXXBRIDGE1_STRUCT_org$jcan$JBus
+#define CXXBRIDGE1_STRUCT_org$jcan$JBus
+struct JBus final : public ::rust::Opaque {
   void set_id_filter(::rust::Vec<::std::uint32_t> allowed);
-  void clear_id_filter();
-  ::rust::Vec<::org::jcan::Frame> receive_nonblocking();
-  ~Bus() = delete;
+  void set_id_filter_mask(::std::uint32_t allowed, ::std::uint32_t allowed_mask);
+  void open(::rust::String interface);
+  bool is_open() const noexcept;
+  ::rust::Vec<::org::jcan::Frame> receive_from_thread_buffer();
+  void send(::org::jcan::Frame frame);
+  ::org::jcan::Frame receive();
+  ~JBus() = delete;
 
 private:
   friend ::rust::layout;
@@ -910,10 +917,10 @@ private:
     static ::std::size_t align() noexcept;
   };
 };
-#endif // CXXBRIDGE1_STRUCT_org$jcan$Bus
+#endif // CXXBRIDGE1_STRUCT_org$jcan$JBus
 
-::rust::Box<::org::jcan::Bus> open_bus(::rust::String interface);
+::rust::Box<::org::jcan::JBus> new_jbus();
 
-::org::jcan::Frame new_jframe(::std::uint32_t id, ::rust::Vec<::std::uint8_t> data);
+::org::jcan::Frame new_frame(::std::uint32_t id, ::rust::Vec<::std::uint8_t> data);
 } // namespace jcan
 } // namespace org
