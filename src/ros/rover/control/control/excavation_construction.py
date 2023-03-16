@@ -50,6 +50,8 @@ class ExcavationConstructionNode(Node):
         self.tile_placer_direction = 0x1
         self.tile_placer_velocity = 0
 
+        self.joystick_lock = True
+
 
         deadline = Duration(nanoseconds=2e8)        
         events = SubscriptionEventCallbacks(deadline=self.deadline_callback)
@@ -119,18 +121,23 @@ class ExcavationConstructionNode(Node):
 
         joystick_l = msg
 
-        # # Joysticks lock
-        # if joystick_l.btn_bottom_l2_state == 1 :
-        #     print("Joysticks locked")
-        #     self.joystick_locked = True
+        # Joysticks lock if botton L2 button is pressed on the left joystick
+        if joystick_l.btn_bottom_l2_state == 1 :
+            print("Joysticks locked")
+            self.joystick_lock = True
 
-        # if joystick_l.btn_bottom_l5_state == 1:
-        #     print("Joysticks Unlocked")
-        #     self.joystick_locked = False
+        # joysticks are only unlocked when bottom l5 button is pressed on the left joystick
+        if joystick_l.btn_bottom_l5_state == 1:
+            print("Joysticks Unlocked")
+            self.joystick_lock = False
 
         # Update the inputs
-        self.scraper_arm_velocity = abs(int (200 * joystick_l.ax_stick_x) )
-        self.scraper_arm_direction = self.scraper_arm_id_forwards if joystick_l.ax_stick_x >= 0 else self.scraper_arm_id_backwards
+        if self.joystick_lock == False:
+            self.scraper_arm_velocity = abs(int (200 * joystick_l.ax_stick_x) )
+            self.scraper_arm_direction = self.scraper_arm_id_forwards if joystick_l.ax_stick_x >= 0 else self.scraper_arm_id_backwards
+        else: # send 0 velocity when joystick locked
+            self.scraper_arm_velocity = 0
+            self.scraper_arm_direction = self.scraper_arm_id_forwards
 
     def joystick_r_callback(self, msg):
         """
@@ -142,7 +149,7 @@ class ExcavationConstructionNode(Node):
 
         joystick_r = msg
 
-        if joystick_r.btn_thumb_l_state >= 1 or joystick_r.btn_thumb_d_state >= 1:
+        if self.joystick_lock == False and (joystick_r.btn_thumb_l_state >= 1 or joystick_r.btn_thumb_d_state >= 1):
             self.get_logger().debug("using tile placer!")
             self.tile_placer_activated = True
             # Update the inputs
@@ -155,7 +162,7 @@ class ExcavationConstructionNode(Node):
             self.scraper_arm_velocity = 0
             self.scraper_arm_direction = self.scraper_arm_id_forwards
             self.scraper_scoop_direction = self.scraper_scoop_id_forwards
-        else:
+        elif self.joystick_lock == False:
             self.get_logger().debug("using scraper!")
             self.tile_placer_activated = False
             # Update the inputs
@@ -165,6 +172,18 @@ class ExcavationConstructionNode(Node):
             # set tile placer velocities to 0
             self.tile_placer_velocity = 0
             self.tile_placer_direction = self.tile_placer_id_forwards
+        else:
+            # if joysticks locked
+            self.get_logger().debug("joysticks locked!")
+            self.tile_placer_activated = False
+            # set the scoop velocity to 0
+            self.scraper_scoop_velocity = 0
+            self.scraper_scoop_direction = self.scraper_scoop_id_forwards
+
+            # set tile placer velocity to 0
+            self.tile_placer_velocity = 0
+            self.tile_placer_direction = self.tile_placer_id_forwards
+
 
     def get_tile_placer_can_commands(self):
         tile_placer_data = []
