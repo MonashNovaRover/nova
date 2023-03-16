@@ -66,7 +66,8 @@ def steer_val_to_radius(steer: float) -> float:
     :return: the turn radius in meters
     """
     if steer == 0:
-        return np.inf
+        # When we negate -inf in the steer val to wheel angles function, this will become positive
+        return -np.inf
     else:
         return 1 / steer - np.sign(steer)
 
@@ -80,8 +81,8 @@ def steer_val_to_wheel_angles(steer: float) -> float:
     ROVER_LEN_2 = 0.6
     ROVER_WIDTH_2 = 0.5
     radius = steer_val_to_radius(steer)
-    left_angle = np.arctan2(ROVER_LEN_2, (radius + ROVER_WIDTH_2))
-    right_angle = np.arctan2(ROVER_LEN_2, (radius - ROVER_WIDTH_2))
+    left_angle = np.arctan2(ROVER_LEN_2, -(radius + ROVER_WIDTH_2))
+    right_angle = np.arctan2(ROVER_LEN_2, -(radius - ROVER_WIDTH_2))
     return left_angle, right_angle
 
 
