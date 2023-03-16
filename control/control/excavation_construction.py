@@ -101,6 +101,13 @@ class ExcavationConstructionNode(Node):
     def deadline_callback(self):
         # Set all speeds to 0
 
+        self.scraper_arm_velocity = 0
+        self.scraper_arm_direction = self.scraper_arm_id_forwards
+        self.scraper_scoop_velocity = 0
+        self.scraper_scoop_direction = self.scraper_scoop_id_forwards
+        self.tile_placer_velocity = 0
+        self.tile_placer_direction = self.tile_placer_id_forwards
+
 
     def joystick_l_callback(self, msg):
         """
