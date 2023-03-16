@@ -177,7 +177,7 @@ class Controller(Node):
                                                             self.callback_new_autonomous_goal, 10)
         self.sub_planned_path_to_destination = self.create_subscription(Path, auto_waypoints_topic,
                                                                         self.callback_planner_path, 10)
-        self.sub_steer = self.create_subscription(PivotWheelData, "/control/wheel_pivots", self.callback_steer, 10)
+        self.sub_steer = self.create_subscription(PivotWheelData, "/control/pivot_wheel", self.callback_steer, 10)
         # service for changing the LED
         #self.srv_led_success = self.create_client(Trigger, "/autonomous/success")
         #self.srv_led_start = self.create_client(Trigger, "/autonomous/start")
@@ -332,7 +332,7 @@ class Controller(Node):
         """
         :param msg: WheelPivotData
         """
-        self.var_latest_steer = msg
+        self.var_latest_steer = msg.steer
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 'Util' Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     def setup_search(self):

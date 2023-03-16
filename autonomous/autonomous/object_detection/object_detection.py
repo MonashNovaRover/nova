@@ -35,7 +35,7 @@ class ObjectDetection(Node):
         self.frame_id = frame_id
         self.get_logger().debug(f"Intrinsics: {intrinsics}")
         self.intr = intrinsics
-        self.show = show
+        self.show = True
         self.confidence_threshold = confidence_threshold
 
     def get_marker(self, point, c: tuple) -> None:

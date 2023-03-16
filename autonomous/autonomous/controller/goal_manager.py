@@ -49,9 +49,9 @@ import numpy as np
 
 # Hue ranges for the different block colours except white. Any hue can be white if the lightness is high enough
 COLOR_VECTORS = {
-    "RED": np.array([330., 30.]) / 360,
-    "YELLOW": np.array([35., 75.]) / 360,
-    "GREEN": np.array([80., 155.]) / 360,
+    "RED": np.array([330., 25.]) / 360,
+    "YELLOW": np.array([25., 75.]) / 360,
+    "GREEN": np.array([80., 165.]) / 360,
     "BLUE": np.array([175., 265.]) / 360,
 }
 
@@ -151,11 +151,15 @@ class GoalManager(Node):
         Use the dot product to compare the block's colour to the known block colours. The maximum dot
         product value will be the closest colour.
         """
-        block_color_rgb = np.array([block.color.r, block.color.g, block.color.b])
+        r, g, b = np.array([block.color.r, block.color.g, block.color.b])
         # hue, lightness, saturation allow us to more easily classify the colours
-        h, l, s = colorsys.rgb_to_hls(*block_color_rgb)
-        self.get_logger().debug(f"Block color is {block_color_rgb} with hue {h}, lightness {l}, saturation {s}")
-        if l > 0.85:
+        h, l, s = colorsys.rgb_to_hls(r, g, b)
+        self.get_logger().debug(f"Block color is ({r}, {g}, {b}) with hue {h}, lightness {l}, saturation {s}")
+        max_rgb = max(r, max(g, b))
+        min_rgb = min(r, min(g, b))
+        ratio = min_rgb / max_rgb
+        color = None
+        if ratio > 0.75 and l > 0.75:
             color = "WHITE"
         else:
             for color_name, range in COLOR_VECTORS.items():
