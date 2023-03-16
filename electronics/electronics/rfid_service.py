@@ -51,7 +51,7 @@ class RFIDService(Node):
         self.get_logger().debug(f'Received request: {request.command}\n{request.data}')
         cmd = request.command.lower()
 
-        if cmd in ['read', 'clear', 'restart']:
+        if cmd in ['read', 'clear', 'restart', 'dump']:
             self.write_msg(cmd)
             response.response = self.read_data()
         elif cmd in ['write', 'poll']:
