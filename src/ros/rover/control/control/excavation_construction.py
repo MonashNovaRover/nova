@@ -30,6 +30,8 @@ from core.msg import InputJoystick
 # an example of how to import a standard message type
 from std_msgs.msg import String
 from rclpy.qos import QoSReliabilityPolicy, QoSProfile
+from rclpy.subscription import SubscriptionEventCallbacks
+from rclpy.duration import Duration
 
 
 class ExcavationConstructionNode(Node):
@@ -47,7 +49,11 @@ class ExcavationConstructionNode(Node):
         self.scraper_scoop_direction = 0x5
         self.tile_placer_direction = 0x1
         self.tile_placer_velocity = 0
-        self.qos = QoSProfile(reliability=QoSReliabilityPolicy.BEST_EFFORT, depth=1)
+
+
+        deadline = Duration(nanoseconds=2e8)        
+        events = SubscriptionEventCallbacks(deadline=self.deadline_callback)
+        self.qos = QoSProfile(reliability=QoSReliabilityPolicy.BEST_EFFORT, depth=1, deadline=deadline)
 
         self.tile_placer_id_forwards = 0x2
         self.tile_placer_id_backwards = 0x1
@@ -56,12 +62,13 @@ class ExcavationConstructionNode(Node):
         self.scraper_scoop_id_forwards = 0x6
         self.scraper_scoop_id_backwards = 0x5
 
+
         # TODO: figure out why its not calling the subscriber callback functions
         # way-point publisher publishes a bunch of waypoints at once (hence using the 2D map datatype
-        self.joystick_l_sub = self.create_subscription(InputJoystick, "/control/input_joystick_l", self.joystick_l_callback, self.qos)
+        self.joystick_l_sub = self.create_subscription(InputJoystick, "/control/input_joystick_l", self.joystick_l_callback, self.qos, event_callbacks=events)
         # current state of internal message
 
-        self.joystick_r_sub = self.create_subscription(InputJoystick, "/control/input_joystick_r", self.joystick_r_callback, self.qos)
+        self.joystick_r_sub = self.create_subscription(InputJoystick, "/control/input_joystick_r", self.joystick_r_callback, self.qos, event_callbacks=events)
 
         self.bus = jcan.Bus()
         # self.bus.open(self.get_parameter("canbus").value)
@@ -89,6 +96,10 @@ class ExcavationConstructionNode(Node):
 
         except Exception as e:
             print(e)
+
+    
+    def deadline_callback(self):
+        # Set all speeds to 0
 
 
     def joystick_l_callback(self, msg):
