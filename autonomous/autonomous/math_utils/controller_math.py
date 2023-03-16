@@ -92,15 +92,17 @@ def drive_speed_from_turning_error(target_steer, current_steer) -> float:
     :return: the speed we will drive at given the error of our wheel orientations
     """
     MAX_STEER_ERROR = np.pi/4
+    print(f"Target steer: {target_steer}\n"
+          f"Current steer: {current_steer}\n")
     # left and right desired wheel angles
     target_left, target_right = steer_val_to_wheel_angles(target_steer)
     # left and right true wheel angles
     current_left, current_right = steer_val_to_wheel_angles(current_steer)
     # maximum error between desired and true wheel angles
     steer_error_radians = max(abs(target_left - current_left), abs(target_right - current_right))
-    print(f"target angles: left: {target_left}, right: {target_right}"
-            f"current angles: left: {current_left}, right: {current_right}"
-            f"steer error = {steer_error_radians}")
+    print(f"target angles: left: {target_left}, right: {target_right}\n"
+            f"current angles: left: {current_left}, right: {current_right}\n"
+            f"steer error = {steer_error_radians}\n")
     scaled_steer_error = min(steer_error_radians / MAX_STEER_ERROR, 1)
     drive_rate = straight_drive_fraction * (1 - scaled_steer_error**2)
     return drive_rate
