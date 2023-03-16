@@ -32,6 +32,12 @@ void Driver::send_commands(const core::msg::DriveInput::SharedPtr msg)
         fill_wheel_angles_radial(radius);
         fill_wheel_velocities_radial(msg->speed * get_parameter("max-speed").get_parameter_value().get<double>(), radius);
         data_msg.radius = radius;
+        double steer = 0;
+        if (radius != INFINITY) {
+            steer = radius + sign;
+            steer = 1 / steer;
+        }
+        data_msg.steer = steer;
     }
     else if (msg->strafe_mode)
     {
@@ -50,7 +56,6 @@ void Driver::send_commands(const core::msg::DriveInput::SharedPtr msg)
         data_msg.velocities[i] = pivot->velocity;
     }
 
-    data_msg.steer = msg->steer;
     pivot_wheel_pub->publish(data_msg);
 }
 
