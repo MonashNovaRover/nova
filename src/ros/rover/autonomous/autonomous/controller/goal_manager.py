@@ -29,6 +29,7 @@ TODO:
 from typing import Union
 import rclpy
 import logging
+import colorsys
 
 from rclpy.node import Node
 from rclpy.time import Time
@@ -46,17 +47,12 @@ import autonomous.math_utils.transform as transform
 # standard python imports
 import numpy as np
 
-SQRT_2 = np.sqrt(2)
-SQRT_3 = np.sqrt(2)
-
-# Normalised RGB values for each block colour. The dot product of these with the
-# camera's RGB values will give us a measure of how close the colour is to each colour option
+# Hue ranges for the different block colours except white. Any hue can be white if the lightness is high enough
 COLOR_VECTORS = {
-    "RED": np.array([1., 0., 0.]),
-    "GREEN": np.array([0., 1., 0.]),
-    "BLUE": np.array([0., 0., 1.]),
-    "YELLOW": np.array([1., 1., 0.]) / SQRT_2,
-    "WHITE": np.array([1., 1., 1.]) / SQRT_3
+    "RED": np.array([330., 30.]) / 360,
+    "YELLOW": np.array([35., 75.]) / 360,
+    "GREEN": np.array([80., 155.]) / 360,
+    "BLUE": np.array([175., 265.]) / 360,
 }
 
 
@@ -155,18 +151,25 @@ class GoalManager(Node):
         Use the dot product to compare the block's colour to the known block colours. The maximum dot
         product value will be the closest colour.
         """
-        block_color = np.array([block.color.r, block.color.g, block.color.b])
-        # square each value to exaggerate the differences between rgb so we don't think everything is white
-        block_color_corrected = block_color ** 2
-        max_dot, max_color = 0, None
-        for color in COLOR_VECTORS:
-            dot = np.dot(block_color_corrected, COLOR_VECTORS[color])
-            if dot > max_dot:
-                max_dot = dot
-                max_color = color
+        block_color_rgb = np.array([block.color.r, block.color.g, block.color.b])
+        # hue, lightness, saturation allow us to more easily classify the colours
+        h, l, s = colorsys.rgb_to_hls(*block_color_rgb)
+        self.get_logger().debug(f"Block color is {block_color_rgb} with hue {h}, lightness {l}, saturation {s}")
+        if l > 0.85:
+            color = "WHITE"
+        else:
+            for color_name, range in COLOR_VECTORS.items():
+                if range[0] > range[1]:
+                    range_low = (range[0] - 1, range[1])
+                    range_high = (range[0], range[1] + 1)
+                    if range_low[0] < h < range_low[1] or range_high[0] < h < range_high[1]:
+                        color = color_name
+                else:
+                    if range[0] < h < range[1]:
+                        color = color_name
 
-        self.get_logger().debug(f"Closest color to {block_color} is {max_color} with dot product {max_dot}")
-        return max_color
+        self.get_logger().debug(f"Closest color is {color}")
+        return color
 
     def to_local_map(self, msg: Union[PoseStamped, Marker]):
         """
