@@ -28,10 +28,10 @@ def generate_launch_description():
             output='screen',
             emulate_tty=True
         ),
-        Node(
-            package='electronics',
-            node_executable='radio_monitor.py',
-            output='screen',
-            emulate_tty=True
-        ),
+        # Node(
+        #     package='electronics',
+        #     node_executable='radio_monitor.py',
+        #     output='screen',
+        #     emulate_tty=True
+        # ),
     ])
