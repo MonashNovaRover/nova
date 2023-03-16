@@ -119,12 +119,14 @@ private:
     // A flag for whether to apply the handbrake or not
     bool handbrake;
 
+    // A flag for weather a blcmd has an error
     bool blcmd_error = false;
 
-    const float alpha = 0.0;
-    float steer = 0.0;
+    // The absolute value of the offset between the blcmds 0 and 0 on the rover
     const float angle_offset = atan((CHASSIS_WIDTH)/CHASSIS_LENGTH);
-    float prev_sign = 0.0;
+
+    // the previous sign of the turning radius
+    int sign = 0;
 
     // A flag for whether to use autonomous state or not
     bool is_autonomous = false;
@@ -153,25 +155,42 @@ private:
     /// @param      msg - A pointer to the BLCMD status message
     void blcmd_status_callback(const core::msg::BLCMDStatusArray::SharedPtr msg);
 
+    /// @brief      function that spins all blcmds
     void blcmd_spinner();
 
-    /// @brief     Calculates the turning radius of the rover
-    /// @param      steer
-    /// @returns
-    void get_turning_radius(float steer, double *radius, int *sign);
+    /// @brief      calculates the angle of a wheel
+    /// @param      radius - the radius of the turn
+    /// @param      wheel - the wheel number (0-4 CCW)
+    /// @param      sign - the sign of the radius
+    /// @returns    the angle of the wheel
+    double calc_wheel_angle(float radius, int wheel, int sign);
 
-    /// @brief
+    /// @brief      calculates the radius from the angle of one wheel (inverse of calc_wheel_angle)
+    /// @param      angle - the angle of the wheel
+    /// @param      wheel - the wheel number (0-4 CCW)
+    /// @param      sign - the sign of the radius
+    /// @returns    the radius of the turn
+    double radius_from_angle(double angle, int wheel, int sign);
+
+    /// @brief     Calculates the radius to turn the wheels to such that the radius is valid based on the maximum
+    ///            pivot angular velocity
+    /// @param     steer - The value of steer between -1 and 1 where -1 is on the spot turn left and 1 is on the spot turn right
+    /// @returns   the radius to turn the wheels to
+    double get_turning_radius(float steer);
+
+    /// @brief      fills the wheel angles of the pivots array based on a radius
     /// @param      radius - The turning radius of the rover [m]
     void fill_wheel_angles_radial(double radius);
 
+    /// @brief      fills the wheel angles of the pivots array when strafe mode is enabled
     void fill_wheel_angles_strafe();
 
-    /// @brief
+    /// @brief      fills the wheel velocities of the pivots array based on a radius
     /// @param      speed - Speed of each driven wheel
     /// @param      steer - Direction and amount of steering
     void fill_wheel_velocities_radial(float speed, float radius);
 
-    /// @brief
+    /// @brief      fills the wheel velocities of the pivots array when strafe mode is enabled
     /// @param      speed - Speed of each driven wheel
     void fill_wheel_velocities_strafe(float speed);
 
@@ -183,11 +202,6 @@ private:
 
     /// @brief callback for when drive inputs subscription is exceeded
     void inputs_deadline_exceeded();
-
-    float calc_wheel_angle(float radius, int wheel, int sign);
-
-    double radius_from_angle(double angle, int wheel, int sign);
-
     //------------------------------------------------------------//
 public:
     /// @brief      Default constructor function that starts up the node
