@@ -192,21 +192,37 @@ inline KDL::Twist ArmTwistMapper::get_control_twist(const KDL::Twist& joystick_t
     KDL::Vector twist_linear = joystick_twist.vel;
     KDL::Vector twist_angular = joystick_twist.rot;
 
-    // Endpoint frame control
+    // Endpoint and flat frame control
     if (control_scheme.endpoint_frame_linear || control_scheme.endpoint_frame_angular){
         // Update the current end-effector orientation in the rover frame
         KDL::JntArray joint_positions = ArmTypeTranslation::to_KDL_jnt_array(joints.position);
-        KDL::Rotation endpoint_coord_transform = arm_kinematics_solver->fk_pos_end_effector(joint_positions).M;
+        KDL::Rotation endpoint_coord_transform_linear = arm_kinematics_solver->fk_pos_end_effector(joint_positions).M;
+        KDL::Rotation endpoint_coord_transform_angular = endpoint_coord_transform_linear;
+        
+        // Adjust pitch for flat frame control scheme
+        KDL::Vector end_effector_unit_y = endpoint_coord_transform_linear.UnitY();
+        KDL::Vector end_effector_unit_z = endpoint_coord_transform_linear.UnitZ();
+        KDL::Vector rover_unit_z = KDL::Vector(0, 0, 1);
+
+        int direction = (end_effector_unit_z.z() > 0) ? -1 : 1;
+        double pitch_angle = acos(KDL::dot(end_effector_unit_y, -rover_unit_z));
+        KDL::Rotation flat_coord_transform = KDL::Rotation::RotX(direction * pitch_angle);
+        if (control_scheme.flat_frame_linear){
+            endpoint_coord_transform_linear = endpoint_coord_transform_linear * flat_coord_transform;
+        }
+        if (control_scheme.flat_frame_angular){
+            endpoint_coord_transform_angular = endpoint_coord_transform_angular * flat_coord_transform;
+        }
+        
         // Transform from end effector coordinates to base frame coordinates
         // Inlcude input transforms to convert from joystick directions to intuitive end-effector frame coordinates
         if (control_scheme.endpoint_frame_linear) {
-            twist_linear = endpoint_coord_transform * ENDPOINT_INPUT_TRANSFORM_LINEAR * twist_linear;
+            twist_linear = endpoint_coord_transform_linear * ENDPOINT_INPUT_TRANSFORM_LINEAR * twist_linear;
         }
         if (control_scheme.endpoint_frame_angular) {
-            twist_angular = endpoint_coord_transform * ENDPOINT_INPUT_TRANSFORM_ANGULAR * twist_angular;
+            twist_angular = endpoint_coord_transform_angular * ENDPOINT_INPUT_TRANSFORM_ANGULAR * twist_angular;
         }
     }
-
     // Reference frame offset
     if (control_scheme.base_frame_offset != 0){
         KDL::Rotation base_offset_transform = KDL::Rotation::RotZ(M_PI / 2 * control_scheme.base_frame_offset);
