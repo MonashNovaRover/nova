@@ -40,11 +40,11 @@ class SkytraqNode (Node):
                 pose.valid = True
             else:
                 pose.valid = False
-            if raw_msg[10] != "":
+            if raw_msg[12] != "":
                 self.fix_type = raw_msg[12]
 
-            debug_str = f"""{raw_msg[6]}, {raw_msg[7]}, {raw_msg[8]}, {raw_msg[9]}, {raw_msg[10]}, {raw_msg[11]}, {raw_msg[12]}"""
-            self.get_logger().log(debug_str,LoggingSeverity.INFO,throttle_duration_sec=2)
+        # debug_str = f"""{raw_msg[6]}, {raw_msg[7]}, {raw_msg[8]}, {raw_msg[9]}, {raw_msg[10]}, {raw_msg[11]}, {raw_msg[12]}"""
+          #self.get_logger().log(debug_str,LoggingSeverity.INFO,throttle_duration_sec=2)
             
     
     def get_msg(self):
