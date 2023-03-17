@@ -43,7 +43,7 @@ class SkytraqNode (Node):
             if raw_msg[10] != "":
                 self.fix_type = raw_msg[10]
 
-            self.get_logger().log(raw_msg[11],LoggingSeverity.INFO,throttle_duration_sec=2)
+            self.get_logger().log(raw_msg[8],LoggingSeverity.INFO,throttle_duration_sec=2)
             
     
     def get_msg(self):
