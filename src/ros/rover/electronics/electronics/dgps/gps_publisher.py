@@ -40,7 +40,8 @@ class SkytraqNode (Node):
                 pose.valid = True
             else:
                 pose.valid = False
-            self.fix_type = raw_msg[11]
+            if raw_msg[10] != "":
+                self.fix_type = raw_msg[10]
             
     
     def get_msg(self):
