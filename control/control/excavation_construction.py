@@ -79,8 +79,6 @@ class ExcavationConstructionNode(Node):
 
 
     def callback_send_can_commands(self):
-        # if self.tile_placer_activated and not self.joystick_locked:
-        # if self.tile_placer_activated:
         # The list of values will be cast to uint8's by JCAN library - so be careful to double check the values!
         tile_placer_commands = self.get_tile_placer_can_commands()
         scraper_arm_commands, scraper_scoop_commands = self.get_scraper_can_commands()
@@ -132,7 +130,7 @@ class ExcavationConstructionNode(Node):
             self.joystick_lock = False
 
         # Update the inputs
-        if self.joystick_lock == False:
+        if self.joystick_lock == False and self.tile_placer_activated == False :
             self.scraper_arm_velocity = abs(int (200 * joystick_l.ax_stick_x) )
             self.scraper_arm_direction = self.scraper_arm_id_forwards if joystick_l.ax_stick_x >= 0 else self.scraper_arm_id_backwards
         else: # send 0 velocity when joystick locked
@@ -149,7 +147,17 @@ class ExcavationConstructionNode(Node):
 
         joystick_r = msg
 
-        if self.joystick_lock == False and (joystick_r.btn_thumb_l_state >= 1 or joystick_r.btn_thumb_d_state >= 1):
+        # Joysticks lock if botton L2 button is pressed on the left joystick
+        if joystick_r.btn_bottom_r1_state == 1 :
+            print("Tile Scraper Locked")
+            self.tile_placer_activated = False
+
+        # tile scraper is unlocked when bottom l5 button is pressed on the left joystick
+        if joystick_r.btn_bottom_r4_state == 1:
+            print("Tile Scraper Unlocked")
+            self.tile_placer_activated = True
+
+        if self.joystick_lock == False and self.tile_placer_activated == True:
             self.get_logger().debug("using tile placer!")
             self.tile_placer_activated = True
             # Update the inputs
