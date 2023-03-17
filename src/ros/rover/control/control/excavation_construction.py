@@ -4,21 +4,19 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Purpose: A template ROS node
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-NODE: path_planner_node
+NODE: excavation_construction
 TOPICS:
-  - subscriber: /template/subscriber [RoverPose]
-  - publisher: /template/publisher [String]
-SERVICES:
+  - subscriber: /control/input_joystick_l [InputJoystick]
+  - subscriber: /control/input_joystick_r [InputJoystick]
+SERVICES: None
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:
-AUTHOR(S):	
-CREATION:	08/03/2022
-EDITED:		08/03/2022
+AUTHOR(S):	Manika Goyal, Max Tory, Taaj Street
+CREATION:	08/03/2023
+EDITED:		18/03/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-TODO:
- - change all the template artefacts
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 """
 import rclpy
 from rclpy.node import Node
@@ -121,12 +119,12 @@ class ExcavationConstructionNode(Node):
 
         # Joysticks lock if botton L2 button is pressed on the left joystick
         if joystick_l.btn_bottom_l2_state == 1 :
-            print("Joysticks locked")
+            self.get_logger().info("Joysticks Locked")
             self.joystick_lock = True
 
         # joysticks are only unlocked when bottom l5 button is pressed on the left joystick
         if joystick_l.btn_bottom_l5_state == 1:
-            print("Joysticks Unlocked")
+            self.get_logger().info("Joysticks Unlocked")
             self.joystick_lock = False
 
         # Update the inputs
@@ -147,14 +145,15 @@ class ExcavationConstructionNode(Node):
 
         joystick_r = msg
 
-        # Joysticks lock if botton L2 button is pressed on the left joystick
-        if joystick_r.btn_bottom_r1_state == 1 :
-            print("Tile Scraper Locked")
+        # Scraper mode is on
+        if joystick_r.btn_bottom_r1_state >= 1 :
+            self.get_logger().info("Scraper Mode")
             self.tile_placer_activated = False
 
-        # tile scraper is unlocked when bottom l5 button is pressed on the left joystick
-        if joystick_r.btn_bottom_r4_state == 1:
-            print("Tile Scraper Unlocked")
+        # tile placer is unlocked when bottom l5 button is pressed on the left joystick
+        # Tile Placer mode is on
+        if joystick_r.btn_bottom_r4_state >= 1:
+            self.get_logger().info("Tile Placer Mode")
             self.tile_placer_activated = True
 
         if self.joystick_lock == False and self.tile_placer_activated == True:
