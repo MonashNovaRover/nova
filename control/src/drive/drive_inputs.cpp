@@ -79,6 +79,7 @@ void DriveInputs::deadline_exceeded()
 
     // Clear the old inputs
     left_input_axis_y = 0.0;
+    left_input_axis_x = 0.0;
     right_input_axis_x = 0.0;
     right_input_axis_y = 0.0;
 
