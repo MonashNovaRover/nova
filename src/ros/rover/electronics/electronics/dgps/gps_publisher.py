@@ -42,6 +42,8 @@ class SkytraqNode (Node):
                 pose.valid = False
             if raw_msg[10] != "":
                 self.fix_type = raw_msg[10]
+
+            self.get_logger().log(raw_msg[10],LoggingSeverity.INFO,throttle_duration_sec=2)
             
     
     def get_msg(self):
