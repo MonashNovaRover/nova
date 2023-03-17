@@ -22,7 +22,6 @@ TOPICS:
   - /electronics/cmd_feedback  [CMDsFeedback]   [Published]
   - /control/drive_inputs    [DriveInput]  [Subscribed]
   - /autonomous/drive_inputs [DriveInput]  [Subscribed]
-  - /control/excavation_construction [ExcavationConstruction] [Subscribed]
 TODO:
   - Set different VELOCITY_FACTOR for each CMD type
 TO IMPROVE:
@@ -99,8 +98,7 @@ class MotorType(IntEnum):
 
 # Motor definitions
 NUM_ARM_MOTORS = 7
-NUM_SCIENCE_MOTORS = 2
-NUM_EXCAVATION_CONSTRUCTION_MOTORS = 
+NUM_SCIENCE_MOTORS = 0
 
 # The CMD CAN arbitration IDs
 ARM_MOTOR_IDS = [0x410, 0x420, 0x430, 0x440, 0x450, 0x460, 0x470]
