@@ -24,7 +24,7 @@ class SkytraqNode (Node):
         self.counter = 0
 
         self.publisher = self.create_publisher(RoverPoseGPS, 'gps_data', 10)
-        self.timer = self.create_timer(0.1, self.publisher_callback)
+        self.timer = self.create_timer(0.5, self.publisher_callback)
 
     def parse_msg(self, pose):
         raw_msg = self.get_msg()
@@ -44,7 +44,7 @@ class SkytraqNode (Node):
                 self.fix_type = raw_msg[12]
 
         # debug_str = f"""{raw_msg[6]}, {raw_msg[7]}, {raw_msg[8]}, {raw_msg[9]}, {raw_msg[10]}, {raw_msg[11]}, {raw_msg[12]}"""
-          #self.get_logger().log(debug_str,LoggingSeverity.INFO,throttle_duration_sec=2)
+        # self.get_logger().log(debug_str,LoggingSeverity.INFO,throttle_duration_sec=2)
             
     
     def get_msg(self):
