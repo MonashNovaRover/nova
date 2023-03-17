@@ -135,12 +135,9 @@ install(PROGRAMS
         control/cmd_plotter.py
         control/rover_state_publisher.py
         control/blcmd_status_monitor.py
+        control/excavation_construction.py
         DESTINATION lib/${PROJECT_NAME}
         )
-  control/cmd_plotter.py
-  control/excavation_construction.py
-  DESTINATION lib/${PROJECT_NAME}
-)
 
 # Install Python modules
 ament_python_install_package(${PROJECT_NAME})
