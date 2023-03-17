@@ -903,7 +903,7 @@ struct Frame final {
 struct JBus final : public ::rust::Opaque {
   void set_id_filter(::rust::Vec<::std::uint32_t> allowed);
   void set_id_filter_mask(::std::uint32_t allowed, ::std::uint32_t allowed_mask);
-  void open(::rust::String interface);
+  void open(::rust::String interface, ::std::uint16_t tx_queue_len, ::std::uint16_t rx_queue_len);
   bool is_open() const noexcept;
   ::rust::Vec<::org::jcan::Frame> receive_from_thread_buffer();
   void send(::org::jcan::Frame frame);
