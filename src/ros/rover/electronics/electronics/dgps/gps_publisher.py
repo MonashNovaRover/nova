@@ -12,7 +12,7 @@ class SkytraqNode (Node):
 
         self.pose = RoverPoseGPS()
 
-        self.fix_type = ""
+        self.fix_type = "NA"
 
         self.pose.latitude, self.pose.longitude = 0.0, 0.0
         self.pose.pitch, self.pose.roll, self.pose.yaw  = 0.0, 0.0, 0.0
