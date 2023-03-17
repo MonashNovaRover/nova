@@ -43,7 +43,7 @@ class SubToBaseNode(Node):
 
 
     def callback_func(self, msg):
-        self.get_logger().info(f"Received: {msg.data[1:]}")
+        self.get_logger().info(f"Received: {msg.data}")
 
         if self.count > 50:
             self.count = 0
