@@ -11,15 +11,13 @@ network.
 This program operates by polling the can bus for 
 encoder values and adding them to a queue with max 
 len 10, then publishing the average value of the 
-data in the queue to ROS. It only publishes non-zero 
-values if inputs are being sent to the wheels - 
-otherwise it resets the queue to empty.
+data in the queue to ROS. 
 
 Modified from the initial wheel_publisher.py script
 by Harrison Verrios and Liam Whittle to be
 generalised to all CMDs by Max Tory
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-NODE: wheel_publisher
+NODE: CMD_publisher.py
 TOPICS:
   - /electronics/cmd_feedback  [CMDsFeedback]   [Published]
   - /control/drive_inputs    [DriveInput]  [Subscribed]
@@ -34,7 +32,7 @@ TO IMPROVE:
 PACKAGE: 	electronics
 AUTHOR(S):	Harrison Verrios, Liam Whittle, Max Tory
 CREATION:	18/02/2022
-EDITED:		12/16/2022
+EDITED:		13/03/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
@@ -104,7 +102,8 @@ NUM_SCIENCE_MOTORS = 0
 
 # The CMD CAN arbitration IDs
 ARM_MOTOR_IDS = [0x410, 0x420, 0x430, 0x440, 0x450, 0x460, 0x470]
-SCIENCE_MOTOR_IDS = [0x480, 0x490]
+# TO ADD IF WE NEED SCIENCE ENCODER FEEDBACK
+SCIENCE_MOTOR_IDS = []
 
 # For storing queues of all different data 
 QUEUE_LENGTH = 10  # If not TUNING_PIDS
@@ -140,7 +139,7 @@ class CMDPublisher (Node):
                      for i in range(NUM_SCIENCE_MOTORS)]
 
         self.publisher = self.create_publisher(CMDsFeedback, "/electronics/cmd_feedback", 10)
-        self.get_logger().debug(f"Initialised the Wheel Publisher class with:"\
+        self.get_logger().debug(f"Initialised the CMD Publisher class with:"\
                                 f"- {NUM_ARM_MOTORS} arm CMDs\n"\
                                 f"- {NUM_SCIENCE_MOTORS} science CMDs"
                                 )
@@ -199,7 +198,6 @@ class CMDPublisher (Node):
 
         ros_msgs = []
         for i, can_line in enumerate(cans):
-            # Catch for an error that come about with the wheels
             can_msg = None
             try:
                 can_msg = can_line.receive()
