@@ -12,6 +12,8 @@ class SkytraqNode (Node):
 
         self.pose = RoverPoseGPS()
 
+        self.fix_type = ""
+
         self.pose.latitude, self.pose.longitude = 0.0, 0.0
         self.pose.pitch, self.pose.roll, self.pose.yaw  = 0.0, 0.0, 0.0
         self.pose.valid = False
@@ -39,6 +41,8 @@ class SkytraqNode (Node):
                 pose.valid = True
             else:
                 pose.valid = False
+            self.fix_type = raw_msg[10]
+            
     
     def get_msg(self):
         self.counter+=1
@@ -59,6 +63,7 @@ class SkytraqNode (Node):
     def print_msg(self, rover_msg):
         roverMsgStr = f"""
         valid: {rover_msg.valid}
+        fix type: {self.fix_type}
         lat: {rover_msg.latitude:8.3f}
         lon: {rover_msg.longitude:8.3f}
         pitch: {rover_msg.pitch:8.2f}
