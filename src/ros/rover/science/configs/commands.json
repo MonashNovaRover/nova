@@ -194,13 +194,13 @@
     "on": "01",
     "cycle": "02",
     "pump_on": "64",
-    "tear_kiln": "00",
+    "tare_kiln": "00",
     "read_kiln": "01",
-    "tear_biln_1": "00",
+    "tare_biln_1": "00",
     "read_biln_1": "01",
-    "tear_biln_2": "02",
+    "tare_biln_2": "02",
     "read_biln_2": "03",
-    "tear_biln_3": "04",
+    "tare_biln_3": "04",
     "read_biln_3": "05"
   }
 }
