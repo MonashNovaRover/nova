@@ -186,19 +186,19 @@ DriveInputs::DriveInputs() : Node("drive_inputs")
 
     // Output control messages
     Print::print("Drive Controls:");
-    Print::print("     Left Stick Y  |  Forward/Back", C_INPUT);
-    Print::print("    Right Stick X  |  Left/Right", C_INPUT);
+    Print::print("       Left Stick Y      |  Forward/Back", C_INPUT);
+    Print::print("      Right Stick X      |  Left/Right", C_INPUT);
     Print::print("", true);
-    Print::print("    Left Trigger   |  Strafe Mode", C_INPUT);
-    Print::print("    Right Trigger  |  Speed Multiplier", C_INPUT);
-    Print::print("           DPAD Y  |  Speed Incr/Decr", C_INPUT);
-    Print::print("  Left Joy Button  |  Handbrake Enabled", C_INPUT);
-    Print::print(" Right Joy Button  |  Handbrake Disabled", C_INPUT);
+    Print::print("Left + Right Bumper      |  Strafe Mode", C_INPUT);
+    Print::print("      Right Trigger      |  Speed Multiplier", C_INPUT);
+    Print::print("             DPAD Y      |  Speed Incr/Decr", C_INPUT);
+    Print::print("    Left Joy Button      |  Handbrake Enabled", C_INPUT);
+    Print::print("   Right Joy Button      |  Handbrake Disabled", C_INPUT);
     Print::print("", true);
-    Print::print("             Back  |  Lock", C_INPUT);
-    Print::print("            Start  |  Unlock", C_INPUT);
-    Print::print("                A  |  Autonomous Control", C_INPUT);
-    Print::print("                B  |  Manual Control", C_INPUT);
+    Print::print("               Back      |  Lock", C_INPUT);
+    Print::print("              Start      |  Unlock", C_INPUT);
+    Print::print("                  A      |  Autonomous Control", C_INPUT);
+    Print::print("                  B      |  Manual Control", C_INPUT);
     Print::print("", true);
     Print::print("Gamepad Locked");
 }
