@@ -73,7 +73,7 @@ sudo apt update -y
 sudo apt install ros-foxy-desktop -y
 source /opt/ros/foxy/setup.bash
 sudo apt install -y python3-pip -y
-pip3 install -U argcomplete -y
+pip3 install -U argcomplete
 sudo apt install -y python-rosdep -y
 sudo rosdep init -y
 rosdep update -y --include-eol-distros --rosdistro=eloquent
@@ -159,46 +159,90 @@ colcon build
 information "Cloning Repositories..."
 cd ~/nova_ws/src
 
-# Check if the SSH key exists
-if [ ! -f ~/.ssh/id_ed25519.pub ]; then
-    # Create the keygen
-    sudo ssh-keygen -t ed25519 -C "$email"
+echo "Would you like to clone with the https address and a PAT? (Y for PAT)"
+read PAT
 
-    echo ""
+# Check if requiring to install dependencies
+if [[ "$PAT" != "y" && "$PAT" != "Y" ]]; then
+    # Check if the SSH key exists
+    if [ ! -f ~/.ssh/id_ed25519.pub ]; then
+        # Create the keygen
+        sudo ssh-keygen -t ed25519 -C "$email"
 
-    # Display the SSH key
-    sudo cat ~/.ssh/id_ed25519.pub
+        echo ""
 
-    printf "Please copy your SSH key above to your GitHub account..."
+        # Display the SSH key
+        sudo cat ~/.ssh/id_ed25519.pub
 
+        printf "Please copy your SSH key above to your GitHub account..."
+
+        read empty
+    fi
+
+    # Clones all folders with ssh
+    git clone git@github.com:MonashNovaRover/autonomous.git
+    git clone git@github.com:MonashNovaRover/cameras.git
+    git clone git@github.com:MonashNovaRover/control.git
+    git clone git@github.com:MonashNovaRover/core.git
+    git clone git@github.com:MonashNovaRover/electronics.git
+    git clone git@github.com:MonashNovaRover/gui.git
+    git clone git@github.com:MonashNovaRover/science.git
+else
+    # Clone all folders with ssh
+    echo "Cloning with PAT"
+    echo "Create a Personal Access Token for your device on GitHub if you haven't already"
     read empty
+
+    git clone https://github.com/MonashNovaRover/autonomous.git
+    git clone https://github.com/MonashNovaRover/cameras.git
+    git clone https://github.com/MonashNovaRover/control.git
+    git clone https://github.com/MonashNovaRover/core.git
+    git clone https://github.com/MonashNovaRover/electronics.git
+    git clone https://github.com/MonashNovaRover/gui.git
+    git clone https://github.com/MonashNovaRover/science.git
 fi
 
-# Clones all folders
-git clone git@github.com:MonashNovaRover/autonomous.git
-git clone git@github.com:MonashNovaRover/cameras.git
-git clone git@github.com:MonashNovaRover/control.git
-git clone git@github.com:MonashNovaRover/core.git
-git clone git@github.com:MonashNovaRover/electronics.git
-git clone git@github.com:MonashNovaRover/gui.git
-git clone git@github.com:MonashNovaRover/science.git
+
 
 # Fix autonomous installs
 cd ~/nova_ws/src/rover/autonomous
 git submodule update --init --recursive
 
+# Checkout foxy branch of core
+cd ~/nova_ws/src/rover/core
+git checkout --track remotes/origin/feature/ros2-foxy
+
 # Clone the other GitHub files
 mkdir -p ~/nova_ws/other
 cd ~/nova_ws/other
-git clone git@github.com:MonashNovaRover/arduinos.git
-git clone git@github.com:MonashNovaRover/pics.git
-git clone git@github.com:MonashNovaRover/ik_machine.git
-git clone git@github.com:MonashNovaRover/coms_utils.git
+
+if [[ "$PAT" != "y" && "$PAT" != "Y" ]]; then
+    git clone git@github.com:MonashNovaRover/arduinos.git
+    git clone git@github.com:MonashNovaRover/tutorials.git
+    git clone git@github.com:MonashNovaRover/pics.git
+    git clone git@github.com:MonashNovaRover/ik_machine.git
+    git clone git@github.com:MonashNovaRover/coms_utils.git
+else
+    git clone https://github.com/MonashNovaRover/arduinos.git
+    git clone https://github.com/MonashNovaRover/tutorials.git
+    git clone https://github.com/MonashNovaRover/pics.git
+    git clone https://github.com/MonashNovaRover/ik_machine.git
+    git clone https://github.com/MonashNovaRover/coms_utils.git
+fi
 
 # Add the nova.sh bash script to the bashrc
 information "Setting up Workspace..."
+<<<<<<< HEAD
+<<<<<<< HEAD:core/macros/nova_setup.sh
 sudo echo "source ~/nova_ws/src/rover/core/nova.sh" >> ~/.bashrc
 source ~/nova_ws/src/rover/core/nova.sh
+=======
+sudo echo "source ~/nova_ws/src/core/nova.sh" >> ~/.bashrc
+=======
+sudo echo "source ~/nova_ws/src/rover/core/nova.sh" >> ~/.bashrc
+>>>>>>> Updated directories to use rover repo
+source ~/.bashrc
+>>>>>>> setup before building in install script:macros/nova_setup.sh
 
 # Build the workspace
 cd ~/nova_ws

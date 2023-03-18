@@ -38,7 +38,6 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/EndEffectorInput.msg"
   "msg/CamsConnected.msg"
   "msg/CMDFeedback.msg"
-  "msg/CMDsFeedback.msg"
   "msg/DistanceData.msg"
   "msg/DriveInput.msg"
   "msg/DriveVel.msg"
@@ -46,6 +45,9 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/EMCData.msg"
   "msg/InputGamepad.msg"
   "msg/InputJoystick.msg"
+  "msg/KilnMassData.msg"
+  "msg/KilnMassPollingStatus.msg"
+  "msg/KilnTempData.msg"
   "msg/Map2D.msg"
   "msg/Point2D.msg"
   "msg/RadioStatus.msg"
@@ -56,8 +58,13 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/Waypoints.msg"
   "msg/WheelData.msg"
   "msg/AutonomousGoal.msg"
+  "msg/PivotWheelData.msg"
+  "msg/SingleTelemetry.msg"
+  "msg/Telemetry.msg"
+  "msg/BLCMDStatus.msg"
+  "msg/BLCMDStatusArray.msg"
+  "msg/BLCMDReset.msg"
 
-  # Service definitions
   "srv/ArmConfigInfo.srv"
   "srv/CameraCommand.srv"
   "srv/CMDCommand.srv"
@@ -75,6 +82,9 @@ rosidl_generate_interfaces(${PROJECT_NAME}
 # Add all the installation directories
 install(DIRECTORY
   launch
+  rviz
+  urdf
+  meshes
   DESTINATION share/${PROJECT_NAME}
 )
 

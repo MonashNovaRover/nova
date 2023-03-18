@@ -43,23 +43,13 @@
           "args": []
         },
 
-        "big_kiln_heater": {
+        "big_kiln_heater_1": {
           "hex": "08",
           "args": ["enabled"]
         },
 
-        "baby_kiln_1_heater": {
+        "big_kiln_heater_2": {
           "hex": "09",
-          "args": ["enabled"]
-        },
-
-        "baby_kiln_2_heater": {
-          "hex": "0A",
-          "args": ["enabled"]
-        },
-
-        "baby_kiln_3_heater": {
-          "hex": "0B",
           "args": ["enabled"]
         },
 
@@ -88,7 +78,7 @@
           "args": []
         },
 
-        "big_kiln_heater": {
+        "big_kiln_3_heater": {
           "hex": "08",
           "args": ["enabled"]
         },
