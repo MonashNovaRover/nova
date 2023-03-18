@@ -7,5 +7,5 @@
 int8 id
 
 # Kiln Mass [g]
-int8 mass
+float32 mass
 
