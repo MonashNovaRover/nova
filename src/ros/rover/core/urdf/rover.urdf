@@ -1,0 +1,608 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This URDF was automatically created by SolidWorks to URDF Exporter! Originally created by Stephen Brawner (brawner@gmail.com) 
+     Commit Version: 1.6.0-4-g7f85cfe  Build Version: 1.6.7995.38578
+     For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
+<robot
+  name="rover">
+  <link name="base_link"></link>
+  <link
+    name="chassis">
+    <inertial>
+      <origin
+        xyz="-4.07696484222422E-05 0.022519682157935 0.208053859288305"
+        rpy="0 0 0" />
+      <mass
+        value="2.6545367242346" />
+      <inertia
+        ixx="0.0283595874842368"
+        ixy="3.9795937321472E-05"
+        ixz="2.52963999151071E-06"
+        iyy="0.0550270445941382"
+        iyz="0.00030862665869005"
+        izz="0.0330392069237774" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://core/meshes/chassis.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 0.0784 0.576470588 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://core/meshes/chassis.STL" />
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="base_to_chassis" type="fixed">
+      <parent link="base_link"/>
+      <child link="chassis"/>
+      <origin 
+          xyz="0. -0. 0.38"
+          rpy="0. 0. ${-pi/2}"
+      />
+  </joint>
+
+  <link
+    name="left_leg">
+    <inertial>
+      <origin
+        xyz="0.00390384763690586 0.0720956846040544 0.498331979923236"
+        rpy="0 0 0" />
+      <mass
+        value="1.25561043369653" />
+      <inertia
+        ixx="0.00654422338267773"
+        ixy="-0.00027326319409336"
+        ixz="-0.000555482097613206"
+        iyy="0.00569188177881393"
+        iyz="-0.00168373564898548"
+        izz="0.00170040442773973" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://core/meshes/left_leg.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.533333333 0.545098039 0.552941176 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://core/meshes/left_leg.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="left_leg_to_chassis"
+    type="fixed">
+    <origin
+      xyz="-0.38386 0.45934 0.042036"
+      rpy="-2.8999 -1.4752 -1.5708" />
+    <parent
+      link="chassis" />
+    <child
+      link="left_leg" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+  <link
+    name="front_left_pivot">
+    <inertial>
+      <origin
+        xyz="-0.0509407651052965 0.13077941108793 0.0509500333461809"
+        rpy="0 0 0" />
+      <mass
+        value="0.373462136464724" />
+      <inertia
+        ixx="0.000656196625101315"
+        ixy="0.000140646150151138"
+        ixz="0.000153193809110994"
+        iyy="0.000479765011851179"
+        iyz="-0.000139836484181228"
+        izz="0.00065621231398329" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://core/meshes/front_left_pivot.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.533333333 0.545098039 0.552941176 1" /> />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://core/meshes/front_left_pivot.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="front_left_pivot_to_leg"
+    type="revolute">
+    <origin
+      xyz="-0.077405 -0.001432 0.024083"
+      rpy="0.087743 -0.54404 1.5438" />
+    <parent
+      link="left_leg" />
+    <child
+      link="front_left_pivot" />
+    <axis
+      xyz="0 1 0" />
+    <limit
+      lower="-1.570796327"
+      upper="1.570796327"
+      effort="1"
+      velocity="1" />
+  </joint>
+  <link
+    name="front_left_wheel">
+    <inertial>
+      <origin
+        xyz="-7.90010942331998E-05 -8.38656282198258E-08 -1.81213573036132E-08"
+        rpy="0 0 0" />
+      <mass
+        value="1.22729251567473" />
+      <inertia
+        ixx="0.02286962568937"
+        ixy="-4.31784658527673E-09"
+        ixz="5.89330276934634E-09"
+        iyy="0.0147660079502287"
+        iyz="-4.52024563569672E-09"
+        izz="0.0147659923233673" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://core/meshes/front_left_wheel.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 0.0784 0.576470588 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://core/meshes/front_left_wheel.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="front_left_wheel_to_pivot"
+    type="continuous">
+    <origin
+      xyz="0 0.21 0"
+      rpy="2.618 0.7854 0" />
+    <parent
+      link="front_left_pivot" />
+    <child
+      link="front_left_wheel" />
+    <axis
+      xyz="1 0 0" />
+  </joint>
+  <link
+    name="back_left_pivot">
+    <inertial>
+      <origin
+        xyz="-0.0509408166867233 0.130779437625862 0.0509500072636369"
+        rpy="0 0 0" />
+      <mass
+        value="0.373462104979822" />
+      <inertia
+        ixx="0.000656196850300581"
+        ixy="0.000140645996248605"
+        ixz="0.000153193713279004"
+        iyy="0.000479765057344051"
+        iyz="-0.000139836701004895"
+        izz="0.000656212398774585" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://core/meshes/back_left_pivot.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.533333333 0.545098039 0.552941176 1" /> />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://core/meshes/back_left_pivot.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="back_left_pivot_to_leg"
+    type="revolute">
+    <origin
+      xyz="-0.0093548 0.20893 0.87956"
+      rpy="0.10777 -0.54314 1.5292" />
+    <parent
+      link="left_leg" />
+    <child
+      link="back_left_pivot" />
+    <axis
+      xyz="0 1 0" />
+    <limit
+      lower="-1.570796327"
+      upper="1.570796327"
+      effort="1"
+      velocity="1" />
+  </joint>
+  <link
+    name="back_left_wheel">
+    <inertial>
+      <origin
+        xyz="-7.90010944764497E-05 -8.38537775882386E-08 -1.80987823616974E-08"
+        rpy="0 0 0" />
+      <mass
+        value="1.22729251567558" />
+      <inertia
+        ixx="0.0228696256902818"
+        ixy="-3.82951496475569E-09"
+        ixz="6.17978728298194E-09"
+        iyy="0.0147660079213766"
+        iyz="-4.50491704790529E-09"
+        izz="0.0147659923485163" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://core/meshes/back_left_wheel.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 0.0784 0.576470588 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://core/meshes/back_left_wheel.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="back_left_wheel_to_pivot"
+    type="continuous">
+    <origin
+      xyz="0 0.21 0"
+      rpy="2.618 0.7854 0" />
+    <parent
+      link="back_left_pivot" />
+    <child
+      link="back_left_wheel" />
+    <axis
+      xyz="1 0 0" />
+  </joint>
+  <link
+    name="right_leg">
+    <inertial>
+      <origin
+        xyz="-0.00226247207990352 0.0536510585884346 0.418418287043508"
+        rpy="0 0 0" />
+      <mass
+        value="1.25561019982895" />
+      <inertia
+        ixx="0.00660069180651663"
+        ixy="-0.000109823095066691"
+        ixz="-0.000224910827633487"
+        iyy="0.00621829784486593"
+        iyz="-0.000686960429080017"
+        izz="0.00111752715569272" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://core/meshes/right_leg.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.533333333 0.545098039 0.552941176 1" /> />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://core/meshes/right_leg.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="right_leg_to_chassis"
+    type="fixed">
+    <origin
+      xyz="0.38331 -0.45807 0.025086"
+      rpy="-2.8999 -1.5117 1.5708" />
+    <parent
+      link="chassis" />
+    <child
+      link="right_leg" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+  <link
+    name="front_right_pivot">
+    <inertial>
+      <origin
+        xyz="-0.050941153605312 0.130779305327821 0.0509497328852276"
+        rpy="0 0 0" />
+      <mass
+        value="0.373462300173231" />
+      <inertia
+        ixx="0.00065619172242815"
+        ixy="0.000140644647979565"
+        ixz="0.000153193489397229"
+        iyy="0.000479764220517861"
+        iyz="-0.000139835686905675"
+        izz="0.000656207197300882" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://core/meshes/front_right_pivot.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.533333333 0.545098039 0.552941176 1" /> />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://core/meshes/front_right_pivot.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="front_right_pivot_to_leg"
+    type="revolute">
+    <origin
+      xyz="-0.0090629 0.21252 0.87795"
+      rpy="0.087635 -0.54127 1.507" />
+    <parent
+      link="right_leg" />
+    <child
+      link="front_right_pivot" />
+    <axis
+      xyz="0 1 0" />
+    <limit
+      lower="-1.570796327"
+      upper="1.570796327"
+      effort="1"
+      velocity="1" />
+  </joint>
+  <link
+    name="front_right_wheel">
+    <inertial>
+      <origin
+        xyz="-7.90011156019399E-05 -8.29144279346217E-08 -1.92727805936599E-08"
+        rpy="0 0 0" />
+      <mass
+        value="1.22729252965748" />
+      <inertia
+        ixx="0.0228696257037192"
+        ixy="-4.18223690885389E-09"
+        ixz="6.0815409301606E-09"
+        iyy="0.0147660079444848"
+        iyz="-4.52063863426444E-09"
+        izz="0.0147659923102889" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://core/meshes/front_right_wheel.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 0.0784 0.576470588 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://core/meshes/front_right_wheel.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="front_right_wheel_to_pivot"
+    type="continuous">
+    <origin
+      xyz="0 0.21 0"
+      rpy="2.618 0.7854 0" />
+    <parent
+      link="front_right_pivot" />
+    <child
+      link="front_right_wheel" />
+    <axis
+      xyz="1 0 0" />
+  </joint>
+  <link
+    name="back_right_pivot">
+    <inertial>
+      <origin
+        xyz="-0.0509411508758535 0.130779305337637 0.0509497321900407"
+        rpy="0 0 0" />
+      <mass
+        value="0.373462300161072" />
+      <inertia
+        ixx="0.000656191723164332"
+        ixy="0.000140644648251543"
+        ixz="0.000153193489469593"
+        iyy="0.000479764220630439"
+        iyz="-0.000139835686988376"
+        izz="0.000656207198097132" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://core/meshes/back_right_pivot.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.533333333 0.545098039 0.552941176 1" /> />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://core/meshes/back_right_pivot.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="back_right_pivot_to_leg"
+    type="revolute">
+    <origin
+      xyz="-0.077405 0.0014344 0.024083"
+      rpy="0.087596 -0.54128 1.507" />
+    <parent
+      link="right_leg" />
+    <child
+      link="back_right_pivot" />
+    <axis
+      xyz="0 1 0" />
+    <limit
+      lower="-1.570796327"
+      upper="1.570796327"
+      effort="1"
+      velocity="1" />
+  </joint>
+  <link
+    name="back_right_wheel">
+    <inertial>
+      <origin
+        xyz="-7.90011156012183E-05 -8.29144278791105E-08 -1.92727811487714E-08"
+        rpy="0 0 0" />
+      <mass
+        value="1.22729252965745" />
+      <inertia
+        ixx="0.022869625703719"
+        ixy="-4.18223697240404E-09"
+        ixz="6.0815409278028E-09"
+        iyy="0.0147660079444846"
+        iyz="-4.52063853408416E-09"
+        izz="0.0147659923102887" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://core/meshes/back_right_wheel.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 0.0784 0.576470588 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://core/meshes/back_right_wheel.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="back_right_wheel_to_pivot"
+    type="continuous">
+    <origin
+      xyz="0 0.21 0"
+      rpy="2.618 0.7854 0" />
+    <parent
+      link="back_right_pivot" />
+    <child
+      link="back_right_wheel" />
+    <axis
+      xyz="1 0 0" />
+  </joint>
+</robot>
