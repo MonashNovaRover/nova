@@ -43,7 +43,13 @@ const float INITIAL_MULT_SPEED = 0.5;
 // The minimum trigger speed multiplier to apply when the right trigger is held
 const float MIN_TRIGGER_MULTIPLIER = 0.4;
 
+
 // The enum denotes the current drive mode of the rover
+enum DriveMode {
+    PIVOT = 1,
+    STRAFE,
+    TANK,
+};
 
 /*
     HOW TO DRIVE THE ROVER:
@@ -83,7 +89,7 @@ private:
     bool locked = true;
 
     // Drive mode
-    bool strafe_mode = false;
+    DriveMode mode = TANK;
 
     // Stores the current state of the input axis
     float right_input_axis_y = 0.0;
