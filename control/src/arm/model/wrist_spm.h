@@ -57,14 +57,14 @@ class WristSpmModel : public ArmSubModule
 
     // Parameters for the SPM CMDs
     constexpr static double GEARBOX_REDUCTION = 3002.499;
-    const static int ENCODER_PPR = 512;
-    constexpr static double VELOCITY_FACTOR = 50;
+    const static int ENCODER_PPR = 12;
+    const static int MIN_INTERVAL = 2520;
     constexpr static double CLOCK_FREQUENCY = 30e6;
     
     // Parameters for the end-rotation CMD
     constexpr static double ER_GEARBOX_REDUCTION = 1;  // Check the value
-    const static int ER_ENCODER_PPR = 12;
-    constexpr static double ER_VELOCITY_FACTOR = 1260;
+    const static int ER_ENCODER_PPR = 12;  // Check this value
+    const static int ER_MIN_INTERVAL = 2520;  // Check this value
     constexpr static double ER_CLOCK_FREQUENCY = 30e6;
 
     /// Constructor. Build the SPM wrist
@@ -92,8 +92,8 @@ class WristSpmModel : public ArmSubModule
             {1, 1, 0},
             {1, 1, 0}
         };
-        double joint_scaling_factor = CMD::get_scaling_factor(GEARBOX_REDUCTION, ENCODER_PPR, VELOCITY_FACTOR, CLOCK_FREQUENCY);
-        double end_rotation_scaling_factor = CMD::get_scaling_factor(ER_GEARBOX_REDUCTION, ER_ENCODER_PPR, ER_VELOCITY_FACTOR, ER_CLOCK_FREQUENCY);
+        double joint_scaling_factor = CMD::get_scaling_factor(GEARBOX_REDUCTION, ENCODER_PPR, MIN_INTERVAL, CLOCK_FREQUENCY);
+        double end_rotation_scaling_factor = CMD::get_scaling_factor(ER_GEARBOX_REDUCTION, ER_ENCODER_PPR, ER_MIN_INTERVAL, ER_CLOCK_FREQUENCY);
         drivers = std::vector<CMD*> {
             // Drivers apply to the SPM input angles, not the serial pitch, yaw and roll
             new CMD(1, 4, PID, 0, STOP, joint_scaling_factor, can_init),
