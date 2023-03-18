@@ -62,6 +62,20 @@ using namespace std;
 using namespace std::chrono_literals;
 using std::placeholders::_1;
 
+struct Vector2 {
+
+public:
+
+    // The position values
+    float x, y;
+
+    // Constructor for the vector
+    Vector2 (float x, float y) {
+        this->x = x;
+        this->y = y;
+    }
+};
+
 class PivotModule
 {
 public:
@@ -192,6 +206,21 @@ private:
     /// @brief      fills the wheel velocities of the pivots array when strafe mode is enabled
     /// @param      speed - Speed of each driven wheel
     void fill_wheel_velocities_strafe(float speed);
+
+    /// @brief      fills the wheel velocities of the pivots array when tank mode is enabled
+    /// @param      speed - Speed of each driven wheel
+    void fill_wheel_velocities_tank(float speed, float radius, float steer);
+
+    /// @brief      Calculates the position of the wheel in relation to the wheelbase centre
+    /// @param      id - The identification of the wheel
+    /// @returns    The position vector (x, y)
+    Vector2 get_wheel_position (int id);
+
+    /// @brief      Calculates the distance from the wheel to the turning centre
+    /// @param      pos - The position of the wheel
+    /// @param      radius - The turning radius of the rover [m]
+    /// @returns    The distance between wheel and the turning centre [m]
+    float get_wheel_distance (Vector2 pos, float radius);
 
     /// @brief      Callback function to publish whether autonomous
     void pub_auto_mode();
