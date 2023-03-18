@@ -85,8 +85,7 @@ class RFIDService(Node):
         print(data) #print raw bytes
         # return as string
         try:
-            decoded = data.decode('ascii')
-            return decoded
+            return str(data)
         except Exception:
             self.get_logger().error('Failed to decode RFID arduino response')
             # dump raw hex to logger
