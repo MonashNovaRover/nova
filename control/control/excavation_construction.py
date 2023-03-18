@@ -159,9 +159,7 @@ class ExcavationConstructionNode(Node):
             self.tile_placer_activated = True
 
         if not self.joystick_lock and self.tile_placer_activated:
-            self.get_logger().info("Using tile placer!")
             # Update the inputs
-
             self.tile_placer_velocity = abs( int( self.param_tile_placer_multiplier * joystick_r.ax_stick_x ) )
             self.tile_placer_direction = self.tile_placer_id_forwards if joystick_r.ax_stick_x >= 0 else self.tile_placer_id_backwards
 
@@ -171,7 +169,6 @@ class ExcavationConstructionNode(Node):
             self.scraper_arm_direction = self.scraper_arm_id_forwards
             self.scraper_scoop_direction = self.scraper_scoop_id_forwards
         elif not self.joystick_lock and not self.tile_placer_activated:
-            self.get_logger().info("Using scraper!")
             # Update the inputs
             self.scraper_scoop_velocity = abs( int (self.param_scraper_scoop_multiplier * joystick_r.ax_stick_x) )
             self.scraper_scoop_direction = self.scraper_scoop_id_forwards if joystick_r.ax_stick_x >= 0 else self.scraper_scoop_id_backwards
