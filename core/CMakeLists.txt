@@ -46,6 +46,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/InputGamepad.msg"
   "msg/InputJoystick.msg"
   "msg/KilnMassData.msg"
+  "msg/KilnMassPollingStatus.msg"
   "msg/KilnTempData.msg"
   "msg/Map2D.msg"
   "msg/Point2D.msg"
