@@ -384,10 +384,10 @@ Driver::Driver() : Node("driver")
     // Creates auto mode timer and associated publisher
     mode_timer = this->create_wall_timer(ROSTimers::auto_mode, std::bind(&Driver::pub_auto_mode, this));
 
+    // Create blcmds telemetry timer
     telemetry_timer = this->create_wall_timer(ROSTimers::blcmds_telemetry, std::bind(&Driver::pub_telemetry, this));
 
     //Create blcmd spin timer
-
     blcmd_spin_timer = this->create_wall_timer(ROSTimers::blcmd_spin, std::bind(&Driver::blcmd_spinner, this));
 
     mode_pub = this->create_publisher<std_msgs::msg::Bool>(
