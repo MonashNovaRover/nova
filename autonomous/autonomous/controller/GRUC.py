@@ -147,6 +147,7 @@ class Controller(Node):
 
         # Ros params
         self.param_is_arc = self.declare_parameter("is_ARC", True).value
+        self.param_do_tank_turn = self.declare_parameter("do_tank_turn", False).value
 
         # ~~~~~~~~~~ State ~~~~~~~~
         self.state_rover_pose = Pose2D()
@@ -157,13 +158,14 @@ class Controller(Node):
         self.driving_state = DrivingState.SUCCESS
         self.spin_counter = 0
         self.var_latest_steer = 0
+        self.turning_mode = TurningMode.TANK if self.param_do_tank_turn else TurningMode.PIVOT
 
         # Global variables containing our search plan
         self.search_plan = []
         self.search_array_index = 0
 
         # Controller classes for turning, driving to waypoints, and spinning
-        self.ctl_driver = DriveController()
+        self.ctl_driver = DriveController(self.turning_mode)
         self.ctl_spin = SpinController(0, self.ctl_driver)
 
         # ------------- ROS Things ----------
@@ -448,7 +450,8 @@ class Controller(Node):
 
         # -------------------------------------- 0. TURNING ------------------------------
         if self.driving_state == DrivingState.TURNING:
-            drive, steer = self.ctl_spin.turn_in_place(self.var_latest_steer, current_orientation)
+            position_vector = np.array([self.state_rover_pose.x, self.state_rover_pose.y])
+            drive, steer = self.ctl_spin.turn_in_place(self.var_latest_steer, current_orientation, position_vector=position_vector)
             self.send_drive_cmd(drive, steer)
             return
 
