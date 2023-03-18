@@ -94,7 +94,7 @@ ArmDriver::ArmDriver() : Node("arm_driver")
     // Arm model
     arm_model = new ArmModel(ArmConfig::wrist_type, ArmConfig::end_effector_type);
     // End effector
-    end_effector = new CMD(1, 7, PWM);
+    end_effector = new CMD(1, 7, PWM, 1);
 
     
     // Output set-up messages

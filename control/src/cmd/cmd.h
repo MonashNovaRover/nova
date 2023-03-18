@@ -122,10 +122,10 @@ class CMD {
     /// @brief      Calculate scaling factor to get CMD command from angular velocity
     /// @param      reduction - Gearbox reduction (input speed / output speed)
     /// @param      ppr - Encoder pulses per revolution (number of rising edges on one channel per revolution)
-    /// @param      velocity_factor - CMD velocity factor. Used to scale the measureed velocity from the encoders on the CMD to fill the available int16 range
+    /// @param      min_interval - Number of CMD clock cycles between encoder counts when running at max speed
     /// @param      clock_frequency - CMD clock instruction frequency (FCY), measured in Hz
     /// @returns    The scaling factor in 1/(rad/s)
-    static double get_scaling_factor(double reduction, int ppr, double velocity_factor, double clock_frequency);
+    static double get_scaling_factor(double reduction, int ppr, int min_interval, double clock_frequency);
     
     /// @brief      Get the CMD ID
     ///             Each CMD responds to CAN IDs in the range ID << 4 to ID << 4 + F
