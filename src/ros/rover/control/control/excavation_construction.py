@@ -44,12 +44,21 @@ class ExcavationConstructionNode(Node):
         self.param_tile_placer_multiplier = self.declare_parameter("tile_placer_multiplier", 200).value
 
         self.tile_placer_activated = False
-        # Initially all motors spin forward with 0 velocity
-        self.scraper_arm_direction = 0x3
+
+        # set motor ids
+        self.tile_placer_id_forwards = 0x2
+        self.tile_placer_id_backwards = 0x1
+        self.scraper_arm_id_forwards = 0x4
+        self.scraper_arm_id_backwards = 0x3
+        self.scraper_scoop_id_forwards = 0x6
+        self.scraper_scoop_id_backwards = 0x5
+
+        # Initially all motors spin backwards with 0 velocity
+        self.scraper_arm_direction = self.scraper_arm_id_backwards
+        self.scraper_scoop_direction = self.scraper_scoop_id_backwards
+        self.tile_placer_direction = self.tile_placer_id_backwards
         self.scraper_arm_velocity = 0
         self.scraper_scoop_velocity = 0
-        self.scraper_scoop_direction = 0x5
-        self.tile_placer_direction = 0x1
         self.tile_placer_velocity = 0
 
         self.joystick_lock = True
@@ -59,28 +68,18 @@ class ExcavationConstructionNode(Node):
         events = SubscriptionEventCallbacks(deadline=self.deadline_callback)
         self.qos = QoSProfile(reliability=QoSReliabilityPolicy.BEST_EFFORT, depth=1, deadline=deadline)
 
-        self.tile_placer_id_forwards = 0x2
-        self.tile_placer_id_backwards = 0x1
-        self.scraper_arm_id_forwards = 0x4
-        self.scraper_arm_id_backwards = 0x3
-        self.scraper_scoop_id_forwards = 0x6
-        self.scraper_scoop_id_backwards = 0x5
-
-
-        # TODO: figure out why its not calling the subscriber callback functions
-        # way-point publisher publishes a bunch of waypoints at once (hence using the 2D map datatype
         self.joystick_l_sub = self.create_subscription(InputJoystick, "/control/input_joystick_l", self.joystick_l_callback, self.qos, event_callbacks=events)
-        # current state of internal message
-
         self.joystick_r_sub = self.create_subscription(InputJoystick, "/control/input_joystick_r", self.joystick_r_callback, self.qos, event_callbacks=events)
 
         self.bus = jcan.Bus()
-        # self.bus.open(self.get_parameter("canbus").value)
         self.bus.open(self.param_can)
         self.timer_jcan = self.create_timer(0.05, self.callback_send_can_commands)
 
 
     def callback_send_can_commands(self):
+        """Take current internal state and publish over CAN
+        Sends can commands for scraper scoop, scraper arm and tile placer together
+        """
         # The list of values will be cast to uint8's by JCAN library - so be careful to double check the values!
         tile_placer_commands = self.get_tile_placer_can_commands()
         scraper_arm_commands, scraper_scoop_commands = self.get_scraper_can_commands()
@@ -114,7 +113,6 @@ class ExcavationConstructionNode(Node):
     def joystick_l_callback(self, msg):
         """
         Updates the classes internal msg state
-        :param msg: core.msg.RoverPose message from the subscriber callback
         :return: None
         """
         self.get_logger().info("called l")
@@ -161,8 +159,7 @@ class ExcavationConstructionNode(Node):
             self.tile_placer_activated = True
 
         if self.joystick_lock == False and self.tile_placer_activated == True:
-            self.get_logger().info("using tile placer!")
-            self.tile_placer_activated = True
+            self.get_logger().info("Using tile placer!")
             # Update the inputs
 
             self.tile_placer_velocity = abs( int( self.param_tile_placer_multiplier * joystick_r.ax_stick_x ) )
@@ -173,9 +170,8 @@ class ExcavationConstructionNode(Node):
             self.scraper_arm_velocity = 0
             self.scraper_arm_direction = self.scraper_arm_id_forwards
             self.scraper_scoop_direction = self.scraper_scoop_id_forwards
-        elif self.joystick_lock == False:
-            self.get_logger().info("using scraper!")
-            self.tile_placer_activated = False
+        elif self.joystick_lock == False and not self.tile_placer_activated:
+            self.get_logger().info("Using scraper!")
             # Update the inputs
             self.scraper_scoop_velocity = abs( int (self.param_scraper_scoop_multiplier * joystick_r.ax_stick_x) )
             self.scraper_scoop_direction = self.scraper_scoop_id_forwards if joystick_r.ax_stick_x >= 0 else self.scraper_scoop_id_backwards
@@ -208,12 +204,10 @@ class ExcavationConstructionNode(Node):
         scraper_arm_data = []
         scraper_arm_data.append(self.scraper_arm_direction)       
         scraper_arm_data.append(self.scraper_arm_velocity)
-        # scraper_arm_data.append(self.scraper_arm_velocity & 0x0F)
 
         scraper_scoop_data = []
         scraper_scoop_data.append(self.scraper_scoop_direction)        
         scraper_scoop_data.append(self.scraper_scoop_velocity)
-        # scraper_scoop_data.append(self.scraper_scoop_velocity & 0x0F)
 
         return scraper_arm_data, scraper_scoop_data
 
