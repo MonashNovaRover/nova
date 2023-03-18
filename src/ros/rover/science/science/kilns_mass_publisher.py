@@ -17,8 +17,8 @@ import jcan
 from core.msg import KilnData
 
 
-def convert_to_celcius(data):
-    pass
+def convert_to_grams(data):
+    return int.from_bytes(data, 'little', signed=True)
 
 
 class KilnDataPublisher(Node):
@@ -54,20 +54,16 @@ class KilnDataPublisher(Node):
         :return:
         """
         def callback(frame):
-            if frame.data[0] == 0:
-                if frame.data[1] == 0x5:
-                    self.get_logger().error(f'Gate Driver Fault on BLCMD {kiln + 1}')
-                    self.blcmds_status[kiln].gate_fault = True
-                    self.fault_times["gate_fault"] = self.get_clock().now()
-                elif frame.data[1] == 0xA:
-                    self.get_logger().error(f'Stall Fault on BLCMD {kiln + 1}')
-                    self.blcmds_status[kiln].stall_fault = True
-                    self.blcmds_status[kiln].stall_fault = True
-                    self.fault_times["stall_fault"] = self.get_clock().now()
-                elif frame.data[1] == 0x2:
-                    self.get_logger().error(f'Resolver Fault on BLCMD {kiln + 1}')
-                    self.blcmds_status[kiln].resolver_fault = True
-                    self.fault_times["resolver_fault"] = self.get_clock().now()
+
+            if frame.id == 0x4A1:
+                self.mass_g = convert_to_grams(frame.data[:2])  
+                self.kiln_id = 0
+
+            elif frame.id == 0x4B1:
+                self.mass_g = convert_to_grams(frame.data[:2])
+                self.kiln_id = int(frame.data[1])
+
+                
         return callback
 
 
