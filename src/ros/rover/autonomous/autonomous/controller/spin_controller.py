@@ -12,7 +12,7 @@ class SpinController:
         self.driver = driver
         self.completed = False
 
-    def turn_in_place(self, current_steer, current_orientation):
+    def turn_in_place(self, current_steer, current_orientation, position_vector=None):
         """
         Spins in place for a full circle to scan immediately around the rover
         """
@@ -21,7 +21,7 @@ class SpinController:
         if spin_achieved(1, current_orientation, target_orientation):
             self.completed = True
 
-        return self.driver.get_drive_command(np.pi, current_steer)
+        return self.driver.get_drive_command(np.pi, current_steer, position_vector, current_orientation)
 
     def is_completed(self):
         return self.completed
