@@ -46,7 +46,7 @@ goal_achieved_distance = 1.4
 
 # ~~~~~~~~~~ MAPPING CONSTANTS ~~~~~~~~~~~~~~~~
 min_point_density = 3  # number of points in voxel before we accept it
-max_point_depth = 3.2  # distance beyond which we don't consider points
+max_point_depth = 6  # distance beyond which we don't consider points
 max_fov_angle = np.pi / 7  # fov of depth camera for mapping
 max_safe_obstacle = 70  # obstacle threshold for 2d height mapping
 max_safe_inc = 50  # gradient cutoff for obstacles

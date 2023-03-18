@@ -26,7 +26,7 @@ class ObjectDetection(Node):
         :param show: whether to show the image (used for testing)
         """
         super().__init__("object_detector")
-        self.get_logger().set_level(logging.INFO)
+        self.get_logger().set_level(logging.DEBUG)
         self.obj_pub = self.create_publisher(MarkerArray, f"~/markers", 10)
         # Get full path to model from the obj_detect package using os
         model_path = os.path.join(os.path.dirname(models.__file__), "10_mar_cubes_nano.pt")
@@ -35,7 +35,7 @@ class ObjectDetection(Node):
         self.frame_id = frame_id
         self.get_logger().debug(f"Intrinsics: {intrinsics}")
         self.intr = intrinsics
-        self.show = True
+        self.show = show
         self.confidence_threshold = confidence_threshold
 
     def get_marker(self, point, c: tuple) -> None:
