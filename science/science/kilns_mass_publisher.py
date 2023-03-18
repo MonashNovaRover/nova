@@ -30,7 +30,6 @@ class KilnDataPublisher(Node):
 
         #declare parameters
         self.declare_parameter("canbus", "can1")
-        self.declare_parameter("num_kilns", 4)
 
         #initialise the can bus
         self.bus = jcan.Bus()
@@ -38,9 +37,8 @@ class KilnDataPublisher(Node):
         # TODO: Update these filter masks.
         self.bus.set_id_filter([0x4A1, 0x4B1])
 
-        #add callbacks for each blcmd
-        for i in range(self.get_parameter("num_kilns").value):
-            self.bus.add_callback(0x400 | (i + 1) << 4, self.get_callback(i))
+        self.bus.add_callback(0x4A1, self.get_callback)
+        self.bus.add_callback(0x4B1, self.get_callback)
 
         #create timers
         self.can_spin_timer = self.create_timer(0.01, self.bus.spin)
@@ -50,10 +48,9 @@ class KilnDataPublisher(Node):
         self.bus.open(self.get_parameter("canbus").value)
 
 
-    def get_callback(self, kiln):
+    def get_callback(self):
         """
-        Returns a callback function for the given kiln
-        :param kiln:
+        Returns a callback function for the kilns
         :return:
         """
         def callback(frame):
