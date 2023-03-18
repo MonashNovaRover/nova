@@ -2,6 +2,7 @@
 /autonomous_controller_node:
   ros__parameters:
     is_ARC: true
+    do_tank_turn: False
 
 /search_manager:
   ros__parameters:
