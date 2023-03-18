@@ -65,8 +65,13 @@ from autonomous.controller.goal_manager import GoalManager
 from autonomous.controller.drive_controller import DriveController
 
 # misc
-from enum import Enum
+from enum import Enum, IntEnum
 import logging
+
+
+class TurningMode(IntEnum):
+    PIVOT = 0
+    TANK = 1
 
 
 class GoalType(Enum):
