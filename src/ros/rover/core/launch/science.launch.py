@@ -10,6 +10,7 @@ NODES:
   - science/distance_publisher.py       [distance_data]
   - science/spectrometer_publisher.py   [spectrometer_data]
   - science/EMC_publisher.py            [emc_data]
+  - science/kiln_mass_publisher.py      [kiln_mass_data]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	core
 CREATION:	17/12/2021
@@ -31,4 +32,6 @@ def generate_launch_description():
             package='science', node_executable='spectrometer_publisher.py', output='screen', emulate_tty=True),
         launch_ros.actions.Node(
             package='science', node_executable='EMC_publisher.py', output='screen', emulate_tty=True),
+        launch_ros.actions.Node(
+            package='science', node_executable='kilns_mass_publisher.py', output='screen', emulate_tty=True),
     ])
