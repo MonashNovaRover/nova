@@ -19,25 +19,36 @@ using namespace std;
 // Sends commands to the wheels
 void Driver::send_commands(const core::msg::DriveInput::SharedPtr msg)
 {
-    if (blcmd_error) return;
 
     core::msg::PivotWheelData data_msg;
-    if (!msg->strafe_mode)
-    {
-        // Find the turning radius form the 'steer' command
-        // This will find the valid radius that the wheels can turn to based on max speed of pivots
-        double radius = get_turning_radius(msg->steer);
+    switch (msg->mode) {
+        case core::msg::DriveInput::PIVOT: {
+            // Find the turning radius form the 'steer' command
+            // This will find the valid radius that the wheels can turn to based on max speed of pivots
+            double radius = get_turning_radius(msg->steer);
 
-        // Fill the wheel angles and velocities
-        fill_wheel_angles_radial(radius);
-        fill_wheel_velocities_radial(msg->speed * get_parameter("max-speed").get_parameter_value().get<double>(), radius);
-        data_msg.radius = radius;
-    }
-    else if (msg->strafe_mode)
-    {
-        fill_wheel_angles_strafe();
-        fill_wheel_velocities_strafe(msg->speed * get_parameter("max-speed").get_parameter_value().get<double>());
-        data_msg.radius = 0;
+            // Fill the wheel angles and velocities
+            fill_wheel_angles_radial(radius);
+            fill_wheel_velocities_radial(msg->speed * get_parameter("max-speed").get_parameter_value().get<double>(),
+                                         radius);
+            data_msg.radius = radius;
+            break;
+        }
+        case core::msg::DriveInput::STRAFE: {
+            fill_wheel_angles_strafe();
+            fill_wheel_velocities_strafe(msg->speed * get_parameter("max-speed").get_parameter_value().get<double>());
+            data_msg.radius = 0;
+            break;
+        }
+
+        case core::msg::DriveInput::TANK: {
+            //fill_wheel_angles_tank();
+            double radius = (1.0 / msg->steer) - ((msg->steer < 0.0) ? -1.0 : 1.0);
+            fill_wheel_velocities_tank(msg->speed * get_parameter("max-speed").get_parameter_value().get<double>(),
+                    radius, msg->steer);
+            data_msg.radius = 0;
+            break;
+        }
     }
 
     // Send velocities to the wheels
@@ -45,7 +56,9 @@ void Driver::send_commands(const core::msg::DriveInput::SharedPtr msg)
     {
         PivotModule *pivot = pivots[i];
         pivot->cmdWheel->drive(pivot->velocity);
-        pivot->cmdPivot->drive(pivot->angle);
+        if (msg->mode == core::msg::DriveInput::PIVOT || msg->mode == core::msg::DriveInput::STRAFE) {
+            pivot->cmdPivot->drive(pivot->angle);
+        }
         data_msg.angles[i] = pivot->angle;
         data_msg.velocities[i] = pivot->velocity;
     }
@@ -263,6 +276,75 @@ void Driver::fill_wheel_velocities_strafe(float speed) {
         //diagonals have the same direction as each other and negative x/y neighbors
         pivots[i]->velocity = speed * (i%2 ? -1 : 1);
     }
+}
+
+void Driver::fill_wheel_velocities_tank(float speed, float radius, float steer) {
+    if (steer == 0) {
+        for (size_t i = 0; i < NUM_WHEELS; i++){
+            pivots[i]->velocity = speed;
+        }
+    }
+    else {
+        // Calculate distances from the wheelbase centre to each wheel, and the maximum distance
+        float distances[NUM_WHEELS];
+        float max_distance = 0;
+        for (size_t i = 0; i < NUM_WHEELS; i++) {
+            Vector2 position = get_wheel_position(pivots[i]->cmdWheel->get_id());
+            distances[i] = get_wheel_distance(position, radius);
+            if (distances[i] > max_distance) max_distance = distances[i];
+        }
+
+        // Fill wheel velocities, scaling each by its distance to the wheelbase centre
+        // Approximating that the wheels drive tangent to the turning circle, the scaling ensures
+        // each wheel achieves the same angular velocity about the turning center the rover
+        for (size_t i = 0; i < NUM_WHEELS; i++) {
+            pivots[i]->velocity = speed * distances[i] / max_distance;
+        }
+
+        // Modify wheel directions if the turning centre is under the rover wheelbase
+        // Ignore the edge case where the turning centre is exactly below the centre of a wheel.
+        // Does not affect the behaviour in practice
+        float wheel_x = CHASSIS_WIDTH / 2.0;
+        if (abs(radius) < wheel_x) {
+            // If the turning centre is...
+            if (radius > -wheel_x && radius <= 0 && steer < 0) {
+                // Under the left half of the chassis, reverse the left wheels
+                // Also include cases where we are pivoting left
+                pivots[0]->velocity *= -1;
+                pivots[1]->velocity *= -1;
+            } else if (radius >= 0 && radius < wheel_x && steer > 0) {
+                // Under the right half of the chassis, reverse the right wheels
+                // Also include cases where we are pivoting right
+                pivots[2]->velocity *= -1;
+                pivots[3]->velocity *= -1;
+            }
+        }
+    }
+}
+
+Vector2 Driver::get_wheel_position (int id) {
+
+    // Determine the y position
+    float y = 0;
+    if (id == 1 || id == 4) y = CHASSIS_LENGTH/2;
+    else if (id == 2 || id == 3) y = -CHASSIS_LENGTH/2;
+
+    // Determine the x position
+    float wheel_x = (CHASSIS_WIDTH / 2.0) * ((id <= 2) ? -1.0 : 1.0);
+
+    // Return the vector struct
+    return Vector2(wheel_x, y);
+}
+
+
+// Determine the distance between the wheel and the turning centre
+float Driver::get_wheel_distance (Vector2 pos, float radius) {
+
+    // Calculate the x component
+    float x = radius - pos.x;
+
+    // Find pythagorus distance
+    return sqrt(pow(x, 2) + pow(pos.y, 2));
 }
 
 // Publishes whether or not we are in autonomous mode
