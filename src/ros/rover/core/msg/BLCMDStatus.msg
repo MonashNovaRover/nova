@@ -6,6 +6,7 @@
 bool gate_fault
 bool stall_fault
 bool resolver_fault
+bool overspeed_fault
 
 
 #id of the BLCMD
