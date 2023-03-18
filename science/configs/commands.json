@@ -78,7 +78,7 @@
           "args": []
         },
 
-        "big_kiln_3_heater": {
+        "big_kiln_heater_3": {
           "hex": "08",
           "args": ["enabled"]
         },
