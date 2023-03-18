@@ -6,10 +6,10 @@ float32 speed
 #   (-1) or right (1).
 float32 steer
 
-# The angle is the angle to move the rover in. only applicable in
-# strafe mode
-float32 angle
-
 # Determines whether the rover is in strafe mode
 #   true = strafe, false = normal
-bool strafe_mode
+byte PIVOT = 1
+byte STRAFE = 2
+byte TANK = 3
+
+byte mode
