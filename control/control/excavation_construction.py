@@ -197,7 +197,6 @@ class ExcavationConstructionNode(Node):
         tile_placer_data.append(self.tile_placer_direction)        
         tile_placer_data.append(self.tile_placer_velocity)
 
-        # tile_placer_data.append(self.tile_placer_velocity & 0x0F)
         return tile_placer_data
 
     def get_scraper_can_commands(self):
