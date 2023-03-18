@@ -25,9 +25,14 @@ def convert_to_grams(data):
 class KilnMassDataPublisher(Node):
 
     def __init__(self):
-        super().__init__("kiln data publisher")
+        super().__init__("kiln_data_publisher")
+
+
+        # Print initialisation information
+        self.get_logger().warning("\033[92;1mInitialising the Kiln Mass Publisher class.\033[0m")
+
         #subscriber to polling status
-        self.subscriber = self.create_subscription(KilnMassPollingStatus, "/science/kiln_mass_poll_status", self.check_poll_status_callback, 0.5)
+        self.subscriber = self.create_subscription(KilnMassPollingStatus, "/science/kiln_mass_poll_status", self.check_poll_status_callback, 10)
         #publisher to publish the data from the kilns.
         self.publisher = self.create_publisher(KilnMassData, "/science/kiln_mass_data", 1)
 
@@ -51,7 +56,11 @@ class KilnMassDataPublisher(Node):
         self.polling_status = False
         self.polling_interval = 20
 
-        self.last_time = self.get_clock.now()
+        # initialise kiln mass message
+        self.kiln_id = 0
+        self.mass = 0
+
+        self.last_time = self.get_clock()
 
         #open the can bus
         self.bus.open(self.get_parameter("canbus").value)
@@ -66,11 +75,11 @@ class KilnMassDataPublisher(Node):
 
             if id == 0x4A1:
                 # TODO: check frame type? is it list?
-                self.mass_g = convert_to_grams(frame.data[2:])  
+                self.mass = convert_to_grams(frame.data[2:])  
                 self.kiln_id = 0
 
             elif id == 0x4B1:
-                self.mass_g = convert_to_grams(frame.data[2:])
+                self.mass = convert_to_grams(frame.data[2:])
                 self.kiln_id = int(frame.data[1])
                 
         return callback
@@ -80,7 +89,7 @@ class KilnMassDataPublisher(Node):
         # Publish mass message data.
         msg = KilnMassData()
         msg.id = self.kiln_id
-        msg.mass = self.mass_g
+        msg.mass = self.mass
         self.publisher.publish(msg)
 
 
