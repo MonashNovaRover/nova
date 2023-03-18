@@ -478,6 +478,11 @@ class Controller(Node):
         drive_cmd_msg.speed = max(-1.0, min(1.0, float(drive_fraction)))
         drive_cmd_msg.steer = max(-1.0, min(1.0, float(angular_fraction)))
 
+        if self.param_do_tank_turn:
+            drive_cmd_msg.mode = DriveInput.TANK
+        else:
+            drive_cmd_msg.mode = DriveInput.PIVOT
+
         # Print!
         self.get_logger().debug("Driving at speed {:.4f}, steer {:.4f}".format(
             drive_cmd_msg.speed, drive_cmd_msg.steer
