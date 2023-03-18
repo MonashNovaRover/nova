@@ -33,21 +33,21 @@ def generate_launch_description():
         Node(
             package='tf2_ros',
             node_executable='static_transform_publisher',
-            arguments=['0.48', '0', '0.48', '0', '0', '0', 'base_link', 'd435_1_forward'],
+            arguments=['0.45', '0', '0.48', '0', '0', '0', 'base_link', 'd435_1_forward'],
             output='screen',
             emulate_tty=True
         ),
         Node(
             package='tf2_ros',
             node_executable='static_transform_publisher',
-            arguments= ['0.48', '0', '0.46', '0', '0', '0', 'base_link', 't265_forward'],
+            arguments= ['0.49', '0', '0.46', '0', '0', '0', 'base_link', 't265_forward'],
             output='screen',
             emulate_tty=True
         ),
         Node(
             package='tf2_ros',
             node_executable='static_transform_publisher',
-            arguments=[ '0', '0','0', str(-np.pi / 2), '0', str(-np.pi / 2), 'd435_1_forward', 'd435_1'],
+            arguments=[ '0', '0','0', str(-np.pi / 2), '0', str(-np.pi / 2 - np.pi / 18), 'd435_1_forward', 'd435_1'],
             output='screen',
             emulate_tty=True
         ),
