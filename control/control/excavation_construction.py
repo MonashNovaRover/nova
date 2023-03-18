@@ -37,8 +37,12 @@ class ExcavationConstructionNode(Node):
     def __init__(self):
         super().__init__("excavation_construction")
 
-        self.get_logger().set_level(logging.DEBUG)
+        self.get_logger().set_level(logging.INFO)
         self.param_can = self.declare_parameter("can_bus", "can0").value
+        self.param_scraper_arm_multiplier = self.declare_parameter("scraper_arm_multiplier", 200).value
+        self.param_scraper_scoop_multiplier = self.declare_parameter("scraper_scoop_multiplier", 255).value
+        self.param_tile_placer_multiplier = self.declare_parameter("tile_placer_multiplier", 200).value
+
         self.tile_placer_activated = False
         # Initially all motors spin forward with 0 velocity
         self.scraper_arm_direction = 0x3
@@ -84,9 +88,9 @@ class ExcavationConstructionNode(Node):
         scraperArmFrame = jcan.Frame(0x0A0, scraper_arm_commands)
         scraperScoopFrame = jcan.Frame(0x0A0, scraper_scoop_commands)
 
-        self.get_logger().debug(f"Sending {scraperArmFrame}")
-        self.get_logger().debug(f"Sending {scraperScoopFrame}")
-        self.get_logger().debug(f"Sending {tilePlacerFrame}")
+        self.get_logger().info(f"Sending {scraperArmFrame}")
+        self.get_logger().info(f"Sending {scraperScoopFrame}")
+        self.get_logger().info(f"Sending {tilePlacerFrame}")
         try:
             self.bus.send(tilePlacerFrame)
             self.bus.send(scraperArmFrame)
@@ -113,7 +117,7 @@ class ExcavationConstructionNode(Node):
         :param msg: core.msg.RoverPose message from the subscriber callback
         :return: None
         """
-        self.get_logger().debug("called l")
+        self.get_logger().info("called l")
 
         joystick_l = msg
 
@@ -129,7 +133,7 @@ class ExcavationConstructionNode(Node):
 
         # Update the inputs
         if self.joystick_lock == False and self.tile_placer_activated == False :
-            self.scraper_arm_velocity = abs(int (200 * joystick_l.ax_stick_x) )
+            self.scraper_arm_velocity = abs(int (self.param_scraper_arm_multiplier * joystick_l.ax_stick_x) )
             self.scraper_arm_direction = self.scraper_arm_id_forwards if joystick_l.ax_stick_x >= 0 else self.scraper_arm_id_backwards
         else: # send 0 velocity when joystick locked
             self.scraper_arm_velocity = 0
@@ -141,7 +145,7 @@ class ExcavationConstructionNode(Node):
         :param msg: core.msg.RoverPose message from the subscriber callback
         :return: None
         """
-        self.get_logger().debug("called r")
+        self.get_logger().info("called r")
 
         joystick_r = msg
 
@@ -157,11 +161,11 @@ class ExcavationConstructionNode(Node):
             self.tile_placer_activated = True
 
         if self.joystick_lock == False and self.tile_placer_activated == True:
-            self.get_logger().debug("using tile placer!")
+            self.get_logger().info("using tile placer!")
             self.tile_placer_activated = True
             # Update the inputs
 
-            self.tile_placer_velocity = abs( int( 200 * joystick_r.ax_stick_x ) )
+            self.tile_placer_velocity = abs( int( self.param_tile_placer_multiplier * joystick_r.ax_stick_x ) )
             self.tile_placer_direction = self.tile_placer_id_forwards if joystick_r.ax_stick_x >= 0 else self.tile_placer_id_backwards
 
             # set scraper velocities to 0
@@ -170,10 +174,10 @@ class ExcavationConstructionNode(Node):
             self.scraper_arm_direction = self.scraper_arm_id_forwards
             self.scraper_scoop_direction = self.scraper_scoop_id_forwards
         elif self.joystick_lock == False:
-            self.get_logger().debug("using scraper!")
+            self.get_logger().info("using scraper!")
             self.tile_placer_activated = False
             # Update the inputs
-            self.scraper_scoop_velocity = abs( int (255 * joystick_r.ax_stick_x) )
+            self.scraper_scoop_velocity = abs( int (self.param_scraper_scoop_multiplier * joystick_r.ax_stick_x) )
             self.scraper_scoop_direction = self.scraper_scoop_id_forwards if joystick_r.ax_stick_x >= 0 else self.scraper_scoop_id_backwards
 
             # set tile placer velocities to 0
@@ -181,7 +185,7 @@ class ExcavationConstructionNode(Node):
             self.tile_placer_direction = self.tile_placer_id_forwards
         else:
             # if joysticks locked
-            self.get_logger().debug("joysticks locked!")
+            self.get_logger().info("joysticks locked!")
             self.tile_placer_activated = False
             # set the scoop velocity to 0
             self.scraper_scoop_velocity = 0
