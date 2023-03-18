@@ -120,12 +120,12 @@ class ExcavationConstructionNode(Node):
         joystick_l = msg
 
         # Joysticks lock if botton L2 button is pressed on the left joystick
-        if joystick_l.btn_bottom_l2_state == 1 :
+        if joystick_l.btn_bottom_l2_state >= 1 and not self.joystick_lock:
             self.get_logger().info("Joysticks Locked")
             self.joystick_lock = True
 
         # joysticks are only unlocked when bottom l5 button is pressed on the left joystick
-        if joystick_l.btn_bottom_l5_state == 1:
+        if joystick_l.btn_bottom_l5_state >= 1 and self.joystick_lock:
             self.get_logger().info("Joysticks Unlocked")
             self.joystick_lock = False
 
