@@ -38,7 +38,7 @@ class ObjectDetection(Node):
         self.show = show
         self.confidence_threshold = confidence_threshold
 
-    def get_marker(self, point, c: tuple) -> None:
+    def get_marker(self, point, c: tuple, index: int) -> None:
         """
         :params: c is color tuple (r,g,b) between 0 and 1
         """
@@ -61,6 +61,7 @@ class ObjectDetection(Node):
         msg.color = color
         msg.header.frame_id = self.frame_id
         msg.header.stamp = self.get_clock().now().to_msg()
+        msg.id = index
         return msg
 
     def get_avg_color(self, pixels):
@@ -80,7 +81,7 @@ class ObjectDetection(Node):
         boxes = results[0].boxes.cpu().numpy()
         markers = MarkerArray()
 
-        for box in boxes:
+        for i, box in enumerate(boxes):
             xmin, ymin, xmax, ymax = box.xyxy.flatten()
             im_width, im_height = xmax-xmin, ymax-ymin
             confidence = box.conf
@@ -95,7 +96,7 @@ class ObjectDetection(Node):
                 self.get_logger().debug(f"Point: {point}", throttle_duration_sec=1)
                 color = self.get_avg_color(area_of_interest)[::-1] / 255
                 self.get_logger().debug(f"Color: {color}", throttle_duration_sec=1)
-                markers.markers.append(self.get_marker(point, color))
+                markers.markers.append(self.get_marker(point, color, i))
 
                 if self.show:
                     cv2.rectangle(color_image, (int(xmin), int(ymin)), (int(xmax), int(ymax)), (0,0,0), 2)

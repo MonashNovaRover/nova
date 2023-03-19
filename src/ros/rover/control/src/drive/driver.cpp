@@ -26,12 +26,19 @@ void Driver::send_commands(const core::msg::DriveInput::SharedPtr msg)
             // Find the turning radius form the 'steer' command
             // This will find the valid radius that the wheels can turn to based on max speed of pivots
             double radius = get_turning_radius(msg->steer);
+            double steer = 0;
+
+            if (radius != INFINITY) {
+                steer = radius + (msg->steer > 0 ? 1 : -1);
+                steer = 1 / steer;
+            }
 
             // Fill the wheel angles and velocities
             fill_wheel_angles_radial(radius);
             fill_wheel_velocities_radial(msg->speed * get_parameter("max-speed").get_parameter_value().get<double>(),
                                          radius);
             data_msg.radius = radius;
+            data_msg.steer = steer;
             break;
         }
         case core::msg::DriveInput::STRAFE: {

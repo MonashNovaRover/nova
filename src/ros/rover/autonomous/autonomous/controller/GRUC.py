@@ -54,7 +54,7 @@ from tf2_ros import Buffer, TransformListener
 # custom message imports
 from core.msg import DriveInput, AutonomousGoal, PivotWheelData
 from nav_msgs.msg import Path
-from controller.spin_controller import SpinController
+from autonomous.controller.spin_controller import SpinController
 
 # autonomous imports
 from autonomous.math_utils.controller_math import *
@@ -62,16 +62,11 @@ import autonomous.math_utils.transform as transform
 from autonomous.config.runtime_params import *
 from autonomous.config.ros_config import *
 from autonomous.controller.goal_manager import GoalManager
-from autonomous.controller.drive_controller import DriveController
+from autonomous.controller.drive_controller import DriveController, TurningMode
 
 # misc
-from enum import Enum, IntEnum
+from enum import Enum
 import logging
-
-
-class TurningMode(IntEnum):
-    PIVOT = 0
-    TANK = 1
 
 
 class GoalType(Enum):
@@ -84,7 +79,7 @@ class GoalType(Enum):
 class DrivingState(Enum):
     TURNING = 0  # doing a 360-degree turn on the spot
     TO_WAYPOINT = 1  # driving to the next waypoint in a path
-    SUCCESS = 1  # Completed driving to the current goal
+    SUCCESS = 2  # Completed driving to the current goal
 
 
 class PlanningState(Enum):
@@ -282,16 +277,22 @@ class Controller(Node):
         :param new_state: DrivingState
         Performs a number of internal downstream state updates in response to a drive state update
         """
+        print(new_state)
         old_state = self.driving_state
 
         self.get_logger().info("------ Drive State Transition: " + str(old_state) + " -> " + str(new_state))
+        print(new_state)
 
         self.driving_state = new_state
+        print(new_state)
 
         if new_state == DrivingState.TURNING:
             self.ctl_spin = SpinController(self.state_rover_pose.yaw, self.ctl_driver)
+            print(new_state)
         
         if new_state == DrivingState.SUCCESS:
+            print(new_state)
+            self.get_logger().debug(f"Entering success drive mode, getting next goal")
             self.goal_manager.at_goal()
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Simple State Update Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
