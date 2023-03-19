@@ -19,7 +19,7 @@ from core.msg import KilnMassData, KilnMassPollingStatus
 
 
 def convert_to_grams(data):
-    return int.from_bytes(bytes(data), "big", signed=True)
+    return int.from_bytes(bytes(data), "big", signed=True)/1000
 
 
 class KilnMassDataPublisher(Node):
@@ -60,7 +60,7 @@ class KilnMassDataPublisher(Node):
 
         # initialise kiln mass message
         self.kiln_id = 0
-        self.mass = 0
+        self.mass = 0.
 
         self.last_time = self.get_clock()
 
@@ -74,15 +74,16 @@ class KilnMassDataPublisher(Node):
         :return:
         """
         def callback(frame):
-
             if id == 0x4A1:
                 # TODO: check frame type? is it list?
-                self.mass = convert_to_grams(frame.data[2:])  
+                self.mass = convert_to_grams(frame.data[1:])  
                 self.kiln_id = 0
+                self.get_logger().warning(f"\033[92;1mID: {self.kiln_id}, mass: {self.mass}.\033[0m")
 
             elif id == 0x4B1:
-                self.mass = convert_to_grams(frame.data[2:])
-                self.kiln_id = int(frame.data[1])
+                self.mass = convert_to_grams(frame.data[1:])
+                self.kiln_id = int(frame.data[0])
+                self.get_logger().warning(f"\033[92;1mID: {self.kiln_id}, mass: {self.mass}.\033[0m")
                 
         return callback
     
