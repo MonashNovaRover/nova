@@ -180,7 +180,7 @@ class GoalManager(Node):
         Converts a PoseStamped from the camera frame to the local map frame.
         """
         try: 
-            local_map_transform = self.tf_buffer.lookup_transform(msg.header.frame_id, "local_map", Time.from_msg(msg.header.stamp)).transform
+            local_map_transform = self.tf_buffer.lookup_transform("local_map", msg.header.frame_id, Time.from_msg(msg.header.stamp)).transform
             local_map_pose = transform.transform_pose(msg.pose, local_map_transform)
             return local_map_pose
         except:
@@ -327,10 +327,8 @@ class GoalManager(Node):
         if self.active_goal is None:
             if len(self.goals) > 0:
                 self.active_goal = self.goals.pop(0)
-            else:
-                return None
-        if self.active_goal.type == AutonomousGoal.GOAL_TYPE_BLOCK:
-            if self.active_goal.block_color in self.found_blocks:
+        elif self.active_goal.type == AutonomousGoal.GOAL_TYPE_BLOCK:
+            if self.active_goal.block_color.data in self.found_blocks:
                 # We have found this block, so we can remove it from the search plan
                 self.active_goal = self.goals.pop(0)
         elif self.active_goal.type == AutonomousGoal.GOAL_TYPE_TAG:
@@ -345,6 +343,7 @@ class GoalManager(Node):
                     self.goals = [self.active_goal] + self.goals
                     self.active_goal = nearest_target
         
+        self.get_logger().debug(f"Returning active goal: {self.active_goal}")
         return self.active_goal
 
 
