@@ -13,7 +13,7 @@ SERVICES:
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:     electronics
-AUTHOR(S):   Josh Cherubino, Jory Braun
+AUTHOR(S):   Josh Cherubino, Jory Braun, Tom Newton
 CREATION:    14/02/2022
 EDITED:      01/06/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -38,11 +38,14 @@ class Joint:
     """
     Class to store joint-specific hardware information
     """
-    def __init__(self, joint_name: str, id: int, reverse: bool=False, discontinuity_angle: float=2*pi, active: bool=False):
+    def __init__(self, joint_name: str, id: int, gear_ratio: int, reverse: bool=False, discontinuity_angle: float=2*pi, active: bool=False):
         # Joint names as in the arm model
         self.joint_name = joint_name
         # Resolver ID for sending commands
         self.id = id
+
+        # Gear ratio between actual joint and the resolver
+        self.gear_ratio = gear_ratio
 
         # Bool for whether the resolver angle increases in the wrong direction
         # The joint-angle positive direction is defined by the DH convention
@@ -56,6 +59,14 @@ class Joint:
 
         # Bool for whether the joint is currently attached to the arm
         self.active = active
+
+
+        # Stores the previous angle reading of the resolver
+        self.last_reading = None
+
+        # Sector count tracks which sector the joint is in
+        # where the size of each sector is (2*pi)/self.gear_ratio
+        self.sector_count = 0
 
 
 class ResolverTransceiver(UARTTransceiver):
@@ -73,16 +84,16 @@ class ResolverTransceiver(UARTTransceiver):
         # Initialise using default discontinuity angles and active status,
         # update in the managing ROS node using info from the arm model
         self.joint_map =  {
-            "base-rotation":    Joint("base-rotation", 0x04, True),
-            "shoulder":         Joint("shoulder",      0x08, True),
-            "elbow":            Joint("elbow",         0x0C, False),
-            "j4":               Joint("j4",            0x10, False),
-            "j5":               Joint("j5",            0x14, False),
-            "j6":               Joint("j6",            0x18, False),
-            "spmx":             Joint("spmx",          0x20, True),
-            "spmy":             Joint("spmy",          0x24, True),
-            "spmz":             Joint("spmz",          0x28, True),
-            "end-rotation":     Joint("end-rotation",  0x1C, False)
+            "base-rotation":    Joint("base-rotation", 0x04, 1, True),
+            "shoulder":         Joint("shoulder",      0x08, 1, True),
+            "elbow":            Joint("elbow",         0x0C, 1, False),
+            "j4":               Joint("j4",            0x10, 1, False),
+            "j5":               Joint("j5",            0x14, 1, False),
+            "j6":               Joint("j6",            0x18, 4, False),
+            "spmx":             Joint("spmx",          0x20, 1, True),
+            "spmy":             Joint("spmy",          0x24, 1, True),
+            "spmz":             Joint("spmz",          0x28, 1, True),
+            "end-rotation":     Joint("end-rotation",  0x1C, 1, False)
         }
 
     def get_joint(self, joint_name: str, exclude_inactive: bool=True) -> Joint:
@@ -153,12 +164,36 @@ class ResolverTransceiver(UARTTransceiver):
         # Get angle data by removing 2 high order bits
         angle_data = self._convert_to_rad(integer_data & 0x3FFF)
 
+        # Compare current and previous reading to determine in which direction we have
+        # crossed between 2*pi and 0, increment sector counter accordingly
+        # (3*pi)/4 chosen as an arbitrarily large angle to show that the resolver
+        # must have crossed 0
+        if self.last_reading == None:
+           self.logger.info('No previous reading') 
+        elif self.last_reading - angle_data > ((3*pi)/4):
+            # Resolver has crossed from 2*pi to 0, so joint is in the next sector
+            self.sector_count += 1
+        elif self.last_reading - angle_data < -((3*pi)/4):
+            # Resolver has crossed from 0 to 2*pi, so joint is in the previous sector
+            self.sector_count -= 1
+
+        # Reset sector count once it reaches the gear ratio, as it means the joint has
+        # made a full revolution
+        if self.sector_count == self.gear_ratio:
+            self.sector_count = 0
+        
+        # Divide angle reading by the gear ratio, and add the size of a sector * which sector the joint is in.
+        angle_data = ((angle_data) / (self.gear_ratio)) + (((2*pi)/(self.gear_ratio))*self.sector_count)
+
         # Reverse the increasing direction if necessary
         if joint.reverse:
             angle_data = self._reverse_direction(angle_data)
 
         # Shift the angle discontinuity out of each joint's range of motion
         angle_data = self._move_discontinuity(angle_data, joint.discontinuity_angle)
+
+        # Update self.last_reading 
+        self.last_reading = angle_data
 
         return angle_data
 
@@ -315,11 +350,6 @@ class ResolverPublisher(Node):
         callback to publish position of all joints
         """
         for i, joint_name in enumerate(self.arm_config_info.joint_names):
-
-            # No resolver on J6, so just pretend it is always level
-            if joint_name == "j6":
-                time.sleep(self.receive_deadtime)
-                continue
 
             joint_position = self.resolver_transceiver.position(joint_name)
             if joint_position != -1:
