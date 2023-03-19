@@ -42,6 +42,8 @@ class KilnMassDataPublisher(Node):
         #initialise the can bus
         self.bus = jcan.Bus()
 
+        self.polled = False
+
         # Set filter IDs and callbacks.
         self.bus.set_id_filter([0x4A1, 0x4B1])
         self.bus.add_callback(0x4A1, self.get_callback(0x4A1))
@@ -53,8 +55,8 @@ class KilnMassDataPublisher(Node):
         self.polling_data_timer = self.create_timer(1, self.poll_load_cell)
 
         # create status
-        self.polling_status = False
-        self.polling_interval = 20
+        self.polling_status = True
+        self.polling_interval = 5
 
         # initialise kiln mass message
         self.kiln_id = 0
@@ -87,10 +89,13 @@ class KilnMassDataPublisher(Node):
     
     def publish_data(self):
         # Publish mass message data.
-        msg = KilnMassData()
-        msg.id = self.kiln_id
-        msg.mass = self.mass
-        self.publisher.publish(msg)
+        if self.polled:
+            msg = KilnMassData()
+            msg.id = self.kiln_id
+            msg.mass = self.mass
+            self.publisher.publish(msg)
+
+            self.polled = False
 
 
     def poll_load_cell(self):
@@ -101,6 +106,8 @@ class KilnMassDataPublisher(Node):
             # Check if the duration has been longer than the interval set by GUI.
             # Purpose: Avoid polling too often.
             if duration >= Duration(self.polling_interval):
+
+                self.get_logger().warning("\033[92;1m Here.\033[0m")
                 # Biln 1
                 self.bus.send(jcan.Frame(0x0B0, [0x0D, 0x01]))
                 # Biln 2
@@ -108,6 +115,7 @@ class KilnMassDataPublisher(Node):
                 # Biln 3
                 self.bus.send(jcan.Frame(0x0B0, [0x0D, 0x05]))
                 self.last_time = now
+                self.polled = True
 
 
     def check_poll_status_callback(self, msg):
