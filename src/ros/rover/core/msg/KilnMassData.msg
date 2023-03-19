@@ -9,3 +9,5 @@ int8 id
 # Kiln Mass [g]
 float32 mass
 
+# Kiln time interval since start [s]
+int8 interval
