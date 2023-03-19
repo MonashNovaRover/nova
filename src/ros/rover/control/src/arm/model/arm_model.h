@@ -47,27 +47,58 @@ class ArmModel : public KDL::Tree
     //------------------------------------------------------------//
     public:
 
-    // List names of hardware modules connected
+    // Names of hardware modules connected
     std::vector<std::string> module_names;
 
-    // List names of all joints. Use for constructing JointState and MultiDOFJointState messages
+    // Names of all joints. Use for constructing JointState and MultiDOFJointState messages
     std::vector<std::string> joint_names;
-    // List names of all endpoints (cameras and tips of end effectors) for constructing messages
+
+    // Names of all endpoints (cameras and tips of end effectors) for constructing messages
     // Also used for IK and endpoint-frame-control
     std::vector<std::string> endpoint_names;
+
     // Add variable for the default end effcetor (set by the end effector module)
     std::string default_endpoint_name;
-    // List names of all segments. Used for calculating FK at all coordinate systems on the arm
+
+    // Names of all segments. Used for calculating FK at all coordinate systems on the arm
     std::vector<std::string> segment_names;
 
-    // List joint limits. Indexed to match joint_names
+    // Joint limits. Indexed to match joint_names
     std::vector<ArmSubModule::JointLimit> joint_limits;
-    
+
+    // Controller coefficients. Indexed to match joint_names
+    std::vector<ArmSubModule::ControlCoeffs> control_coeffs;
+
+    // Motor drivers. Indexed to match joint names
+    std::vector<CMD*> drivers;
+
+    // Number of joints
+    uint16_t num_joints;
+
+    // Number of segments
+    uint16_t num_segments;
+
+    // Predefined names for the 6-DOF serial model
+    const std::vector<std::string> JOINT_NAMES_6DOF;
+
+    // Global control variables
+    const bool USE_GLOBAL_CONTROL = true;
+    const float GLOBAL_DAMPING = 10;
+    const float GLOBAL_NATURAL_FREQUENCY = 1;
+    // Prepare global control coefficients for a PI controller
+    const ArmSubModule::ControlCoeffs GLOBAL_CONTROL;
+
+    // Whether to initilaise the CAN sockets in motor drivers
+    bool can_init;
+
     /// @brief  Constructor. Builds the arm with the given wrist and end effector.
     ///         Builds the arm out of submodules, with separate modules for the lower joints, wrist and end effector.
     ///         Different modules can be swapped out for another of the same type (eg: swap wrists)
     ///         Each module represents a physical assembly that can be attached or detached to/from the arm.
-    ///         Each module is based on a KDL::Tree, and defines its own joints, segments, endpoints (cameras and end effectors) and joint limits.
+    ///         Each module is based on a KDL::Tree, and defines its own joints, segments, endpoints (cameras and end effectors), joint limits, etc.
     ///         Each also includes a output 'hook' for attaching the next module to or for defining the arm default endpoint (end effector)
-    ArmModel(const ArmConfig::WristType wrist_type, const ArmConfig::EndEffectorType end_effector_type);
+    /// @param  wrist_type - The type of wrist to attach to the arm
+    /// @param  end_effector_type - The type of end effector to attach to the arm
+    /// @param  can_init - Whether to open the CAN sockets on the motor drivers or not
+    ArmModel(const ArmConfig::WristType wrist_type, const ArmConfig::EndEffectorType end_effector_type, bool can_init=1);
 };

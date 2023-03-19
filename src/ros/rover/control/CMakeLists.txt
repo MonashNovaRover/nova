@@ -22,15 +22,31 @@ find_package(rclcpp REQUIRED)
 find_package(rclpy REQUIRED)
 # Find and include message types dependencies
 find_package(core REQUIRED)
+# Needed for jcan
+find_package (Threads REQUIRED)
 
-# Add include directories for all targets
-include_directories(
-  ${CMAKE_CURRENT_SOURCE_DIR}/include
-  ${CMAKE_CURRENT_SOURCE_DIR}/src
-)
+# Find system architecture to build with correct jcan version
+EXECUTE_PROCESS( COMMAND uname -m COMMAND tr -d '\n' OUTPUT_VARIABLE ARCHITECTURE )
 
-
-
+if( ${ARCHITECTURE} STREQUAL "x86_64" )
+    set(JCAN_CPP ${CMAKE_SOURCE_DIR}/include/jcan_x86_64/jcan.cc)
+    set(JCAN_LIB ${CMAKE_SOURCE_DIR}/include/jcan_x86_64/${CMAKE_STATIC_LIBRARY_PREFIX}jcan${CMAKE_STATIC_LIBRARY_SUFFIX})
+    # Add include directories for all targets
+    include_directories(
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/jcan_x86_64
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+    )
+else()
+    set(JCAN_CPP ${CMAKE_SOURCE_DIR}/include/jcan_jetson/jcan.cc)
+    set(JCAN_LIB ${CMAKE_SOURCE_DIR}/include/jcan_jetson/${CMAKE_STATIC_LIBRARY_PREFIX}jcan${CMAKE_STATIC_LIBRARY_SUFFIX})
+    # Add include directories for all targets
+    include_directories(
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/jcan_jetson
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+    )
+endif()
 ################################################
 # Add non-executable targets:
 ################################################
@@ -51,12 +67,18 @@ endif()
 if (NOT TARGET print)
   add_library(print include/print/print.cpp)
 endif()
-
-
+# CAN (jcan)
+if (NOT TARGET jcan)
+  add_library(jcan ${JCAN_CPP})
+  target_link_libraries(jcan ${JCAN_LIB} pthread dl rt)
+endif()
 # Other targets:
 # CMDs
 add_library(cmd src/cmd/cmd.cpp)
 target_link_libraries(cmd socketcan print)
+# BLCMDs
+add_library(blcmd src/cmd/blcmd.cpp)
+target_link_libraries(blcmd print jcan)
 
 
 
@@ -86,7 +108,7 @@ ament_target_dependencies(vel_convert rclcpp core)
 
 # Drive Receiver script
 add_executable(driver src/drive/driver.cpp)
-target_link_libraries(driver cmd print)
+target_link_libraries(driver blcmd print)
 ament_target_dependencies(driver rclcpp core)
 
 # PID Tuner script
@@ -101,21 +123,24 @@ ament_target_dependencies(pid_tuner rclcpp core)
 
 # Add all the installation targets
 install(TARGETS
-  inputs
-  drive_inputs
-  driver
-  vel_convert
-  pid_tuner
-  DESTINATION lib/${PROJECT_NAME}
-)
-
+        inputs
+        drive_inputs
+        driver
+        vel_convert
+        pid_tuner
+        DESTINATION lib/${PROJECT_NAME}
+        )
 # Add all Python executables to this list
 install(PROGRAMS
-  control/cmd_plotter.py
-  DESTINATION lib/${PROJECT_NAME}
-)
+        control/cmd_plotter.py
+        control/rover_state_publisher.py
+        control/blcmd_status_monitor.py
+        control/excavation_construction.py
+        DESTINATION lib/${PROJECT_NAME}
+        )
 
-
+# Install Python modules
+ament_python_install_package(${PROJECT_NAME})
 
 ################################################
 # Add Subdirectories

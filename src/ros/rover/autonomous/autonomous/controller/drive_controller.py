@@ -1,8 +1,8 @@
 __package__ = "autonomous"
 
-from math_utils.controller_math import *
-from config.runtime_params import *
-from controller.turning import *
+from autonomous.math_utils.controller_math import *
+from autonomous.config.runtime_params import *
+from autonomous.controller.turning import *
 import numpy as np
 
 

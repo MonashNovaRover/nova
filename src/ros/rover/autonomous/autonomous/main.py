@@ -1,20 +1,16 @@
 #!/usr/bin/env python3
 __package__ = "autonomous"
-from planning.path_planner import PathPlanner
-from controller.GRUC import Controller
+from autonomous.planning.path_planner import PathPlanner
 import rclpy
-from mapping.mapper import Mapper
-from mapping.python_height_mapper import HeightMapper
-from mapping.python_plane_mapper import PlaneMapper
-from mapping.height_plane_mapper import HeightPlaneMapper
-import time
-import threading
+from autonomous.mapping.python_height_mapper import HeightMapper
+from autonomous.mapping.python_plane_mapper import PlaneMapper
+from autonomous.mapping.height_plane_mapper import HeightPlaneMapper
 
 def main(args):
     rclpy.init(args=args)
 
     print("Welcome to fun car drive!")
-    length = 20 
+    length = 20
     width = 20
     resolution = 0.1
 
@@ -25,13 +21,13 @@ def main(args):
 
     # This allows us to spin both nodes from main.py - we are kind of misusing ros nodes here but oh well it works
     executor = rclpy.executors.MultiThreadedExecutor()
-    
+
     executor.add_node(planner)
     executor.add_node(mapper)
 
     try:
         executor.spin()
-    except e:
+    except Exception as e:
         print(e)
 
     rclpy.shutdown()

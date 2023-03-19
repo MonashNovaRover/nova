@@ -34,12 +34,11 @@ TODO: investigate more efficient/accurate drive control methods than repeated ta
 
 import rclpy
 from rclpy.node import Node
-from math_utils.controller_math import *
-from config.runtime_params import *
+from autonomous.math_utils.controller_math import *
+from autonomous.config.runtime_params import *
 from core.msg import DriveInput, RoverPose, Waypoints, AutonomousGoal, AlvarMarker
-from controller.drive_controller import DriveController
-from controller.gate_controller import GateController
-from controller.search_controller import SearchController
+from autonomous.controller.drive_controller import DriveController
+from autonomous.controller.gate_controller import GateController
 
 from config.ros_config import *
 
