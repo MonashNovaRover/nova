@@ -85,7 +85,6 @@ class ArTracker(Node):
             pose = ar.estimatePoseSingleMarkers(bboxs, self.marker_width_m, self.intrinsics, self.distortion)
             rot_mats, trans_mats = pose[0], pose[1]
             for _id, rot_mat, trans_mat in zip(ids, rot_mats, trans_mats):
-                print(rot_mat, trans_mat)
                 pose = self.get_pose(rot_mat[0], trans_mat[0])
                 AR_tag = AlvarMarker(tag_id=int(_id), pose=pose)
                 markers.markers.append(AR_tag)

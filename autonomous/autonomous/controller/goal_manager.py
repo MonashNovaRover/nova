@@ -69,10 +69,10 @@ class GoalManager(Node):
 
     def __init__(self):
         super().__init__("goal_manager")
-        self.get_logger().set_level(logging.DEBUG)
+        self.get_logger().set_level(logging.INFO)
         # ROS Subscribers
         self.sub_blocks = self.create_subscription(MarkerArray, "/object_detector/markers", self.cb_cube, 10)
-        self.sub_tags = self.create_subscription(AlvarMarkers, "/tracking_camera/tags", self.cb_tag, 10)
+        self.sub_tags = self.create_subscription(AlvarMarkers, "/ar_tracker/tags", self.cb_tag, 10)
         self.sub_at_goal = self.create_subscription(Empty, "/GRUC/at_goal", self.cb_at_goal, 10)
 
         # ROS publishers
@@ -139,6 +139,10 @@ class GoalManager(Node):
         Initialises the search goals based on the map bounds and the search pattern. Adds a spin on each corner of the map to look
         for targets
         """
+        initial_spin = AutonomousGoal()
+        initial_spin.type = AutonomousGoal.GOAL_TYPE_SPIN
+        self.goals.append(initial_spin)
+
         for x, y in np.array(self.param_search_plan).reshape(-1, 2):
             goal = AutonomousGoal()
             goal.position.x, goal.position.y = x, y
@@ -362,8 +366,7 @@ class GoalManager(Node):
         else:
             self.state_rover_pose.x = base_link_tf.translation.x
             self.state_rover_pose.y = base_link_tf.translation.y
-            self.state_rover_pose.yaw = transform.quat_to_euler(base_link_tf.rotation)[2]
-
+            self.state_rover_pose.theta = transform.quat_to_euler(base_link_tf.rotation)[2]
 
     def get_nearest_block_or_tag(self):
         """
@@ -408,7 +411,7 @@ class GoalManager(Node):
             if self.active_goal.block_color.data in self.found_blocks:
                 # We have found this block, so we can remove it from the search plan
                 color = self.active_goal.block_color
-                self.get_logger().info(f"Locked in {color} block at position {self.found_blocks[color]}")
+                self.get_logger().info(f"Locked in {color} block at position {self.found_blocks[color.data]}")
                 self.active_goal = self.goals.pop(0)
         elif self.active_goal.type == AutonomousGoal.GOAL_TYPE_TAG:
             if self.active_goal.tag_id in self.found_tags:
@@ -429,7 +432,8 @@ class GoalManager(Node):
                     self.get_logger().debug(f"Still going to honing target: {self.active_goal}")
         
         self.get_logger().debug(f"Returning active goal: {self.active_goal}")
-        self.pub_goals.publish(self.active_goal)
+        if self.active_goal is not None:
+            self.pub_goals.publish(self.active_goal)
 
     def publish_found(self):
         """

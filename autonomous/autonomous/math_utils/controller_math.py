@@ -79,17 +79,12 @@ def drive_speed_from_turning_error(target_steer, current_steer) -> float:
     :return: the speed we will drive at given the error of our wheel orientations
     """
     MAX_STEER_ERROR = np.pi/4
-    print(f"Target steer: {target_steer}\n"
-          f"Current steer: {current_steer}\n")
     # left and right desired wheel angles
     target_left, target_right = steer_val_to_wheel_angles(target_steer)
     # left and right true wheel angles
     current_left, current_right = steer_val_to_wheel_angles(current_steer)
     # maximum error between desired and true wheel angles
     steer_error_radians = max(abs(target_left - current_left), abs(target_right - current_right))
-    print(f"target angles: left: {target_left}, right: {target_right}\n"
-            f"current angles: left: {current_left}, right: {current_right}\n"
-            f"steer error = {steer_error_radians}\n")
     scaled_steer_error = min(steer_error_radians / MAX_STEER_ERROR, 1)
     drive_rate = straight_drive_fraction * (1 - scaled_steer_error**2)
     return drive_rate
@@ -138,10 +133,9 @@ def yaw_difference(facing: np.array, target: np.array) -> float:
 
 
 def spin_achieved(direction: int, facing: np.array, target: np.array):
-    assert abs(direction) == 1  # should be +- 1
     delta = direction * yaw_difference(facing, target)
 
-    return 0 < delta < spin_achieved_delta
+    return spin_achieved_delta / 2 < delta < spin_achieved_delta
 
 
 def interpolate_circle_points(centre: Tuple, num_points: int = 8, radius: int = 10):

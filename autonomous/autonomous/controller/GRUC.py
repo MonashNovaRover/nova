@@ -50,7 +50,7 @@ from rclpy.time import Time
 from std_srvs.srv import Trigger
 from nav_msgs.msg import Path
 from std_msgs.msg import Empty
-from geometry_msgs.msg import PoseStamped, Transform, TransformStamped
+from geometry_msgs.msg import PoseStamped, Transform, TransformStamped, Pose2D
 from tf2_ros import Buffer, TransformListener
 
 # custom message imports
@@ -67,6 +67,7 @@ from autonomous.controller.drive_controller import DriveController, TurningMode
 # misc
 from enum import Enum
 import logging
+import time
 
 
 class DrivingState(Enum):
@@ -87,13 +88,13 @@ class Controller(Node):
         super().__init__('GRUC')
 
         # set debug to not get shown
-        self.get_logger().set_level(logging.DEBUG)
+        self.get_logger().set_level(logging.INFO)
 
         # Ros params
         self.param_do_tank_turn = self.declare_parameter("do_tank_turn", False).value
 
         # ~~~~~~~~~~ State ~~~~~~~~
-        self.state_rover_pose = Pose2D()
+        self.state_rover_pose = None
         self.waypoint_path = []
         self.driving_state = DrivingState.SUCCESS
         self.var_latest_steer = 0
@@ -122,6 +123,11 @@ class Controller(Node):
         self.sub_planned_path_to_destination = self.create_subscription(Path, auto_waypoints_topic,
                                                                         self.callback_planner_path, 10)
         self.sub_steer = self.create_subscription(PivotWheelData, "/control/pivot_wheel", self.callback_steer, 10)
+
+        self.get_logger().info("Waiting for transform from 'local_map' to 'base_link'...")
+        while not self.tf_buffer.can_transform('base_link', 'map', Time()):
+            time.sleep(0.1)
+        self.get_logger().info("Received Transform!")
 
         # Timers
         self.control_timer = self.create_timer(0.1, self.control)  # calculate and send drive commands
@@ -175,7 +181,7 @@ class Controller(Node):
         self.driving_state = new_state
 
         if new_state == DrivingState.TURNING:
-            self.ctl_spin = SpinController(self.state_rover_pose.yaw, self.ctl_driver)
+            self.ctl_spin = SpinController(self.state_rover_pose.theta, self.ctl_driver)
         
         if new_state == DrivingState.SUCCESS:
             self.get_logger().debug(f"Entering success drive mode, getting next goal")
@@ -194,9 +200,10 @@ class Controller(Node):
         except:
             self.get_logger().warn("No transform from local_map to base_link", once=True)
         else:
+            self.state_rover_pose = Pose2D()
             self.state_rover_pose.x = base_link_tf.translation.x
             self.state_rover_pose.y = base_link_tf.translation.y
-            self.state_rover_pose.yaw = transform.quat_to_euler(base_link_tf.rotation)[2]
+            self.state_rover_pose.theta = transform.quat_to_euler(base_link_tf.rotation)[2]
 
     def callback_steer(self, msg):
         """
@@ -281,7 +288,7 @@ class Controller(Node):
         desired_orientation = target_vector - position_vector
         desired_orientation /= np.linalg.norm(desired_orientation)
 
-        current_orientation = np.array([np.cos(self.state_rover_pose.yaw), np.sin(self.state_rover_pose.yaw), 0])
+        current_orientation = np.array([np.cos(self.state_rover_pose.theta), np.sin(self.state_rover_pose.theta), 0])
 
         yaw_diff = yaw_difference(current_orientation, desired_orientation)
 
@@ -295,6 +302,8 @@ class Controller(Node):
         Called once every tick by the node's timer. Identifies the next target waypoint
         and calls navigate_to_waypoint, and determines when the rover has arrived
         """
+        if self.state_rover_pose is None:
+            return
         self.drive_mode_state_transition()
         self.get_logger().debug("Controller in driving state: " + str(self.driving_state))
 
@@ -302,12 +311,8 @@ class Controller(Node):
             self.get_logger().debug("Controller mode: success")
             self.send_drive_cmd(0, 0)
             return
-        if self.num_paths_planned < 1:
-            self.get_logger().debug("Not enough paths planned")
-            self.send_drive_cmd(0, 0)
-            return
 
-        current_orientation = np.array([np.cos(self.state_rover_pose.yaw), np.sin(self.state_rover_pose.yaw), 0.])
+        current_orientation = np.array([np.cos(self.state_rover_pose.theta), np.sin(self.state_rover_pose.theta), 0.])
 
         # -------------------------------------- 0. TURNING ------------------------------
         if self.driving_state == DrivingState.TURNING:
@@ -318,6 +323,12 @@ class Controller(Node):
 
         # -------------------------------------- 1. DRIVING ------------------------------
         path = self.prune_waypoints()
+
+        if self.num_paths_planned < 1:
+            self.get_logger().debug("Not enough paths planned")
+            self.send_drive_cmd(0, 0)
+            return
+
         if self.driving_state == DrivingState.TO_WAYPOINT and len(path) > 0:
             # can only go to waypoints
             # Drive to a waypoint

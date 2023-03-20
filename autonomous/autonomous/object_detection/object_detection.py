@@ -32,7 +32,7 @@ class ObjectDetection(Node):
         :param show: whether to show the image (used for testing)
         """
         super().__init__("object_detector")
-        self.get_logger().set_level(logging.DEBUG)
+        self.get_logger().set_level(logging.INFO)
         self.obj_pub = self.create_publisher(MarkerArray, f"~/markers", 10)
         # Get full path to model from the obj_detect package using os
         model_path = os.path.join(os.path.dirname(models.__file__), "10_mar_cubes_nano.pt")
@@ -71,7 +71,7 @@ class ObjectDetection(Node):
         msg.ns = "raw"
         msg.id = index
         # Survive for half a second
-        msg.lifetime = Duration(nanoseconds=5e8)
+        msg.lifetime = Duration(nanoseconds=5e8).to_msg()
         return msg
 
     def get_avg_color(self, pixels):
@@ -87,7 +87,7 @@ class ObjectDetection(Node):
         self.get_logger().debug("OBJECT DETECTION CALLBACK", throttle_duration_sec=1)
         color_image = np.asanyarray(color_frame.get_data())
         self.get_logger().debug(f"color frame shape: {color_image.shape}", throttle_duration_sec=1)
-        results = self.model.predict(color_image)
+        results = self.model.predict(color_image, verbose=False)
         boxes = results[0].boxes.cpu().numpy()
         markers = MarkerArray()
 
