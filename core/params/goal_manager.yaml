@@ -1,5 +1,5 @@
 # 
-/search_manager:
+/goal_manager:
   ros__parameters:
     search_plan:
       # x, y
