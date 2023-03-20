@@ -19,7 +19,6 @@ min_speed = 2.0  # todo: determine
 
 max_speed = 7.0  # todo: determine
 
-min_waypoint_distance = 0.6  # todo: determine what is achievable
 ignore_waypoints = 4  # number of waypoints to cut off start of list
 
 # speed of autonomous driving and turning
@@ -42,7 +41,6 @@ planning_rate = 2.0
 INITIAL_PADDING_DIST_M = 0.6
 min_ar_distance = 0.7
 max_ar_distance = 20
-goal_achieved_distance = 1.4
 
 # ~~~~~~~~~~ MAPPING CONSTANTS ~~~~~~~~~~~~~~~~
 min_point_density = 3  # number of points in voxel before we accept it

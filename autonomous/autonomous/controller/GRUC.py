@@ -92,6 +92,9 @@ class Controller(Node):
 
         # Ros params
         self.param_do_tank_turn = self.declare_parameter("do_tank_turn", False).value
+        self.param_dist_to_targets = self.declare_parameter("dist_to_target_m", 2.5).value
+        self.param_dist_to_search_points = self.declare_parameter("dist_to_search_point_m", 0.4).value
+        self.param_waypoint_follow_distance = self.declare_parameter("waypoint_follow_distance_m", 0.3).value
 
         # ~~~~~~~~~~ State ~~~~~~~~
         self.state_rover_pose = None
@@ -250,12 +253,20 @@ class Controller(Node):
             return False
 
         end_of_path = self.waypoint_path[-1] if len(self.waypoint_path) > 0 else None
+
         if end_of_path is None:
             return True  # path is only empty if
+
+        goal_dist = 0
+        if self.state_current_planning_destination.type in [AutonomousGoal.GOAL_TYPE_BLOCK, AutonomousGoal.GOAL_TYPE_TAG]:
+            goal_dist = self.param_dist_to_targets
+        else:
+            goal_dist = self.param_dist_to_search_points
+
         return distance(
             np.array([self.state_rover_pose.x, self.state_rover_pose.y]),
             end_of_path
-        ) < min_waypoint_distance
+        ) < goal_dist
 
     def prune_waypoints(self):
         """
@@ -267,7 +278,7 @@ class Controller(Node):
         return [point for point in self.waypoint_path if distance(
             (self.state_rover_pose.x, self.state_rover_pose.y),
             point
-            ) > min_waypoint_distance]
+            ) > self.param_waypoint_follow_distance]
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Control Loop Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
