@@ -55,7 +55,7 @@ class PathPlanner(Node):
         :param resolution_m: planning resolution
         """
         super().__init__("path_planner_node")
-        self.get_logger().set_level(logging.INFO)
+        self.get_logger().set_level(logging.DEBUG)
         # constants
         self.padding_dist_m = INITIAL_PADDING_DIST_M
         self.resolution = resolution_m
@@ -85,7 +85,7 @@ class PathPlanner(Node):
         self.get_logger().info("Received transform!")
 
     def update_map(self, msg):
-        self.get_logger().debug("updating map", throttle_duration_sec=1)
+        self.get_logger().debug("updating map")
         self.grid2d = msg
 
     def path_planning_service_callback(self, request: PathPlanningRequest.Request,
@@ -117,11 +117,12 @@ class PathPlanner(Node):
         """
         try:
             map_to_local_map = self.tf_buffer.lookup_transform("local_map", "map", Time()).transform
-            self.get_logger().debug(f"transforming pose: {goal} by transform: {map_to_local_map}", throttle_duration_sec=1)
+            self.get_logger().debug(f"transforming pose: {goal} by transform: {map_to_local_map}")
             local_goal : PoseStamped = transform.transform_pose(goal.pose, map_to_local_map)
         except Exception as e:
             self.get_logger().warn(f"Failed to transform local goal: {e}")
-        self.goal = local_goal
+        else:
+            self.goal = local_goal
 
     def path_planning_sub_callback(self, msg: PoseStamped):
         """
@@ -130,11 +131,11 @@ class PathPlanner(Node):
         if self.grid2d is None:
             self.get_logger().warn("PathPlanner: map has not been updated yet, plan could not be planned")
             return 
-        self.get_logger().debug("Path planner sub callback!", throttle_duration_sec=1)
+        self.get_logger().debug("Path planner sub callback!")
         self.set_goal(goal=msg)
         self.update_pose()
         path = self.get_path()
-        self.get_logger().debug(f"Publishing path! {path}", throttle_duration_sec=1)
+        self.get_logger().debug(f"Publishing path! {path}")
         self.path_publisher.publish(path)
 
     def get_grid_coord(self, position):
@@ -153,9 +154,9 @@ class PathPlanner(Node):
             transform = self.tf_buffer.lookup_transform('local_map', 'base_link', time=Time()).transform
             self.pose_2d.x = transform.translation.x
             self.pose_2d.y = transform.translation.y
-            self.pose_2d.yaw = quat_to_euler(transform=transform)[2]
+            self.pose_2d.theta = quat_to_euler(q=transform.rotation)[2]
         except Exception as e:
-            self.get_logger().debug(f"Transform lookup error: {e}", throttle_duration_sec=1)
+            self.get_logger().debug(f"Transform lookup error: {e}")
 
     def get_local_coords_route(self, route):
         """
@@ -164,7 +165,7 @@ class PathPlanner(Node):
         """
         return [self.get_float_position((x, y)) for (x, y) in route]
 
-    def handle_path_status(self, status, padding):
+    def handle_path_status(self, status):
         """
         Handles logging and adjusting of parameters according to the
         status returned by our c++ A* method.
@@ -177,12 +178,8 @@ class PathPlanner(Node):
             self.get_logger().warn("couldn't find a path initially")
         if status & PathPlanner.A_STAR_CRITICAL_NO_PATH:
             self.get_logger().error("COULDN'T FIND PATH - NEAR OBSTACLE")
-            self.padding_dist_m -= 0.1
-            if self.padding_dist_m < 0.4:
-                self.get_logger().error("Ah HECK")
-                return
         if status == PathPlanner.A_STAR_SUCCESS:
-            self.get_logger().debug("A* found safe path", throttle_duration_sec=1)
+            self.get_logger().debug("A* found safe path")
 
     def construct_path(self, waypoints):
             """
@@ -212,7 +209,7 @@ class PathPlanner(Node):
         if padding == None:
             padding = self.padding_dist_m
         if padding <= 0.4:
-            return []
+            return Path()
 
         self.start = self.pose_2d.x, self.pose_2d.y
         local_goal = self.goal.position.x, self.goal.position.y
@@ -227,16 +224,14 @@ class PathPlanner(Node):
         route = np.array(a_star(self.grid2d, self.get_grid_coord(self.start), self.get_grid_coord(local_goal), self.resolution, self.padding_dist_m))
         status = route[-1][0]
         route = route[:-1]
-        self.get_logger().debug(f"planned with status {status}", throttle_duration_sec=1)
-        self.handle_path_status(status, padding)
+        self.get_logger().debug(f"planned with status {status}")
+        self.handle_path_status(status)
 
         route_coordinates = np.array(self.get_local_coords_route(route))
-        waypoints = Waypoints()
 
-        # todo: the logic of ignoring waypoints should be outside the path planner. It should plan a pure path
         path = self.construct_path(route_coordinates[min(len(route_coordinates) - 1, ignore_waypoints):])
 
-        self.get_logger().debug(f"Path Planner Calculated {len(route_coordinates)} waypoints", throttle_duration_sec=1)
+        self.get_logger().debug(f"Path Planner Calculated {len(route_coordinates)} waypoints")
         if status & PathPlanner.A_STAR_CRITICAL_NO_PATH:
             return self.get_path(padding-0.1)
         return path

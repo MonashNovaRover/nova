@@ -100,7 +100,7 @@ class GRUP(Node):
         super().__init__('GRUP')
 
         # set debug to not get shown
-        self.get_logger().set_level(logging.DEBUG)
+        self.get_logger().set_level(logging.INFO)
 
         # ~~~~~~~~~~ State ~~~~~~~~
         self.planning_state = SavedPlanningState(logger=self.get_logger())
@@ -139,12 +139,12 @@ class GRUP(Node):
         Update current planning mode based on the rest of the state
         """
         current_goal = self.state_current_planning_destination
-        if current_goal is None:
+        if current_goal is None or current_goal.type == AutonomousGoal.GOAL_TYPE_SPIN:
             if self.planning_state.state != PlanningState.SUCCESS:
                 # No goals to look for, so we're done
                 self.on_planning_state_update(PlanningState.SUCCESS)
         elif self.planning_state.state != PlanningState.GPS_HONING and \
-            current_goal.type in [AutonomousGoal.GOAL_TYPE_HONING, AutonomousGoal.GOAL_TYPE_SPIN]:
+            current_goal.type == AutonomousGoal.GOAL_TYPE_HONING:
             # Going to raw search coordinate
             self.on_planning_state_update(PlanningState.GPS_HONING)
         elif self.planning_state.state != PlanningState.AR_HONING and \
