@@ -91,6 +91,9 @@ class ObjectDetection(Node):
                 area_of_interest = color_image[int(ymin):int(ymax), int(xmin):int(xmax)]
                 self.get_logger().debug(f"Center: {cx}, {cy}", throttle_duration_sec=1)
                 depth = depth_frame.get_distance(cx,cy)
+                if depth == 0:
+                    # If there is no good depth for this point, it will appear to have depth 0
+                    continue
                 point = rs.rs2_deproject_pixel_to_point(self.intr, [float(cx), float(cy)], depth)
                 self.get_logger().debug(f"Point: {point}", throttle_duration_sec=1)
                 color = self.get_avg_color(area_of_interest)[::-1] / 255
