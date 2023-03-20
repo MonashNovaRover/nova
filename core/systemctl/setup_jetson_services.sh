@@ -5,7 +5,7 @@
 # sudo apt update
 # sudo apt install screen
 
-for name in base rover arm can; do
+for name in cpu can; do
     echo "Setting up the ${name} service... "
     echo "Placing service in /etc/systemd/system/${name}.service"
     sudo cp ${name}.service /etc/systemd/system/${name}.service

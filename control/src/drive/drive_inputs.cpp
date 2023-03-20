@@ -46,7 +46,7 @@ void DriveInputs::publish_cmds()
     // Set up the values if the controller is not locked
     if (!locked && connected)
     {
-        if(strafe_mode)
+        if(mode == STRAFE)
         {
             message.speed = -left_input_axis_x * multiplier_speed * trigger_speed;
 
@@ -55,8 +55,9 @@ void DriveInputs::publish_cmds()
         {
             message.speed = left_input_axis_y * multiplier_speed * trigger_speed;
         }
+
+
         message.steer = right_input_axis_x;
-        message.strafe_mode = strafe_mode;
 
         // Otherwise print lock message
     }
@@ -65,6 +66,8 @@ void DriveInputs::publish_cmds()
         // cout << "Controller LOCKED." << endl;
         fflush(stdout);
     }
+
+    message.mode = mode;
 
     // Publish the drive commands
     publisher->publish(message);
@@ -79,6 +82,7 @@ void DriveInputs::deadline_exceeded()
 
     // Clear the old inputs
     left_input_axis_y = 0.0;
+    left_input_axis_x = 0.0;
     right_input_axis_x = 0.0;
     right_input_axis_y = 0.0;
 
@@ -94,6 +98,7 @@ void DriveInputs::input_callback(const core::msg::InputGamepad::SharedPtr msg)
     if (!msg->connected)
     {
 
+        left_input_axis_x = 0.0;
         left_input_axis_y = 0.0;
         right_input_axis_x = 0.0;
         right_input_axis_y = 0.0;
@@ -146,7 +151,13 @@ void DriveInputs::input_callback(const core::msg::InputGamepad::SharedPtr msg)
             else if (msg->btn_dpad_d_state == 1)
                 adjust_multiplier(multiplier_speed, false);
 
-            strafe_mode = msg->btn_shoulder_l_state==2 && msg->btn_shoulder_r_state==2;
+            if (msg->btn_y_state != 0){
+                mode = TANK;
+            } else if (msg -> btn_shoulder_l_state != 0) {
+                mode = STRAFE;
+            } else if (msg -> btn_shoulder_r_state != 0) {
+                mode = PIVOT;
+            }
         }
     }
 
@@ -162,7 +173,6 @@ DriveInputs::DriveInputs() : Node("drive_inputs")
     rclcpp::QoS qos = rclcpp::QoS(1).best_effort().deadline(ROSTimers::drive_deadline);
     rclcpp::SubscriptionOptions subscriber_options;
 
-
     // Create the publisher with a best effort QoS policy
     publisher = this->create_publisher<core::msg::DriveInput>("/control/drive_inputs", qos);
 
@@ -170,6 +180,8 @@ DriveInputs::DriveInputs() : Node("drive_inputs")
     subscriber_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void {
         deadline_exceeded();
     };
+
+
 
     // Creates the input subscription
     subscription = this->create_subscription<core::msg::InputGamepad>(
@@ -186,19 +198,19 @@ DriveInputs::DriveInputs() : Node("drive_inputs")
 
     // Output control messages
     Print::print("Drive Controls:");
-    Print::print("     Left Stick Y  |  Forward/Back", C_INPUT);
-    Print::print("    Right Stick X  |  Left/Right", C_INPUT);
+    Print::print("       Left Stick Y      |  Forward/Back", C_INPUT);
+    Print::print("      Right Stick X      |  Left/Right", C_INPUT);
     Print::print("", true);
-    Print::print("    Left Trigger   |  Strafe Mode", C_INPUT);
-    Print::print("    Right Trigger  |  Speed Multiplier", C_INPUT);
-    Print::print("           DPAD Y  |  Speed Incr/Decr", C_INPUT);
-    Print::print("  Left Joy Button  |  Handbrake Enabled", C_INPUT);
-    Print::print(" Right Joy Button  |  Handbrake Disabled", C_INPUT);
+    Print::print("Left + Right Bumper      |  Strafe Mode", C_INPUT);
+    Print::print("      Right Trigger      |  Speed Multiplier", C_INPUT);
+    Print::print("             DPAD Y      |  Speed Incr/Decr", C_INPUT);
+    Print::print("    Left Joy Button      |  Handbrake Enabled", C_INPUT);
+    Print::print("   Right Joy Button      |  Handbrake Disabled", C_INPUT);
     Print::print("", true);
-    Print::print("             Back  |  Lock", C_INPUT);
-    Print::print("            Start  |  Unlock", C_INPUT);
-    Print::print("                A  |  Autonomous Control", C_INPUT);
-    Print::print("                B  |  Manual Control", C_INPUT);
+    Print::print("               Back      |  Lock", C_INPUT);
+    Print::print("              Start      |  Unlock", C_INPUT);
+    Print::print("                  A      |  Autonomous Control", C_INPUT);
+    Print::print("                  B      |  Manual Control", C_INPUT);
     Print::print("", true);
     Print::print("Gamepad Locked");
 }

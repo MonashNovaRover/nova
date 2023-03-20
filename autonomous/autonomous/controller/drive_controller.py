@@ -3,8 +3,15 @@ __package__ = "autonomous"
 from autonomous.math_utils.controller_math import *
 from autonomous.config.runtime_params import *
 from autonomous.controller.turning import *
-from autonomous.controller.GRUC import TurningMode
 from autonomous.controller.turning import YawStarTurner
+from enum import IntEnum
+
+
+class TurningMode(IntEnum):
+    TANK = 0
+    PIVOT = 1
+
+
 
 
 class DriveController:
