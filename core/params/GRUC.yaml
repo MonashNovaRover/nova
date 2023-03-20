@@ -1,24 +1,4 @@
 # 
-/autonomous_controller_node:
+/GRUC:
   ros__parameters:
-    is_ARC: true
     do_tank_turn: False
-
-/search_manager:
-  ros__parameters:
-    search_plan:
-      # x, y
-      [
-        2.0, 2.0,
-        2.0, -2.0,
-        -2.0, -2.0,
-        -2.0, 2.0
-      ]
-    tracked_tag_ids:
-      [
-        0, 1, 2, 3, 4
-      ]
-    tracked_block_colors:
-      [
-        "RED", "GREEN", "YELLOW", "BLUE", "WHITE"
-      ]
