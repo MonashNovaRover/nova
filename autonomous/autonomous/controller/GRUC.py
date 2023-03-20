@@ -48,12 +48,13 @@ import rclpy
 from rclpy.node import Node
 from rclpy.time import Time
 from std_srvs.srv import Trigger
+from nav_msgs.msg import Path
+from std_msgs.msg import Empty
 from geometry_msgs.msg import PoseStamped, Transform, TransformStamped
 from tf2_ros import Buffer, TransformListener
 
 # custom message imports
 from core.msg import DriveInput, AutonomousGoal, PivotWheelData
-from nav_msgs.msg import Path
 from autonomous.controller.spin_controller import SpinController
 
 # autonomous imports
@@ -61,7 +62,6 @@ from autonomous.math_utils.controller_math import *
 import autonomous.math_utils.transform as transform
 from autonomous.config.runtime_params import *
 from autonomous.config.ros_config import *
-from autonomous.controller.goal_manager import GoalManager
 from autonomous.controller.drive_controller import DriveController, TurningMode
 
 # misc
@@ -98,6 +98,7 @@ class Controller(Node):
         self.driving_state = DrivingState.SUCCESS
         self.var_latest_steer = 0
         self.turning_mode = TurningMode.TANK if self.param_do_tank_turn else TurningMode.PIVOT
+        self.state_current_planning_destination = None
         self.num_paths_planned = 0
 
         # Controller classes for turning, driving to waypoints, and spinning
@@ -112,9 +113,12 @@ class Controller(Node):
         # Publishers
         # 'DriveInput' message is used to make the wheels move!
         self.pub_drive_commands = self.create_publisher(DriveInput, auto_drive_command_topic, 10)
+        self.pub_at_goal = self.create_publisher(Empty, "~/at_goal", 10)
         # Planned destination -> we wish to go here, which is the next step on our path to the target
 
         # Subscribers
+        self.sub_autonomous_goal = self.create_subscription(AutonomousGoal, "/goal_manager/goals",
+                                                            self.callback_new_autonomous_goal, 10)
         self.sub_planned_path_to_destination = self.create_subscription(Path, auto_waypoints_topic,
                                                                         self.callback_planner_path, 10)
         self.sub_steer = self.create_subscription(PivotWheelData, "/control/pivot_wheel", self.callback_steer, 10)
@@ -170,23 +174,18 @@ class Controller(Node):
         :param new_state: DrivingState
         Performs a number of internal downstream state updates in response to a drive state update
         """
-        print(new_state)
         old_state = self.driving_state
 
         self.get_logger().info("------ Drive State Transition: " + str(old_state) + " -> " + str(new_state))
-        print(new_state)
 
         self.driving_state = new_state
-        print(new_state)
 
         if new_state == DrivingState.TURNING:
             self.ctl_spin = SpinController(self.state_rover_pose.yaw, self.ctl_driver)
-            print(new_state)
         
         if new_state == DrivingState.SUCCESS:
-            print(new_state)
             self.get_logger().debug(f"Entering success drive mode, getting next goal")
-            self.goal_manager.at_goal()
+            self.pub_at_goal.publish(Empty())
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Simple State Update Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -196,7 +195,7 @@ class Controller(Node):
         """
         try:
             base_link_tf : Transform = self.tf_buffer.lookup_transform("local_map", "base_link", Time()).transform
-            self.get_logger().debug("Found transform from local_map to base_link", once=True, throttle_duration_sec=1)
+            self.get_logger().debug("Found transform from local_map to base_link", once=True)
         except:
             self.get_logger().warn("No transform from local_map to base_link", once=True)
         else:
@@ -209,6 +208,30 @@ class Controller(Node):
         :param msg: WheelPivotData
         """
         self.var_latest_steer = msg.steer
+    
+    def callback_new_autonomous_goal(self, msg):
+        """
+        Callback for autonomous_goal topic.
+        When this callback is called, it means we have received two different pieces of information:
+            - a new goal coordinate to drive to
+            - zero, one, or two AR tag ids to travel to:
+                - zero means we ignore AR tags (but store them for later), one means we search for the AR tag,
+                and two means we are looking for a gate
+        """
+        # we update the state of AR tag ids so that it can compare AR tags to the ones we care about
+        self.get_logger().debug(f"Received new goal: {msg}")
+        self.state_current_planning_destination = msg
+
+    def callback_planner_path(self, msg: Path):
+        """
+        The callback which is called from the path planner subscriber. We need to:
+        - Update list of waypoints in way-point path
+        - update best effort goal
+        Note that when we are near our goal, best effort goal will be set, but way-point path won't be set.
+        :param msg: Waypoints message from the path planner
+        """
+        self.waypoint_path = [(p.pose.position.x, p.pose.position.y) for p in msg.poses]
+        self.num_paths_planned += 1
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 'Util' Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -244,29 +267,6 @@ class Controller(Node):
             point
             ) > min_waypoint_distance]
 
-    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Planning Loop Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    def plan(self):
-        """
-        Function to be called on the goal publisher timer
-        """
-        # update planning mode state - this is the only time in the codebase this function is called
-        self.planning_mode_state_transition()
-
-        if self.planning_state.state == PlanningState.SUCCESS:
-            self.get_logger().debug("In SUCCESS state, no planning required.", throttle_duration_sec=1)
-            return
-        else:
-            self.get_logger().debug("plan() state is {}".format(self.planning_state.state), throttle_duration_sec=1)
-
-        planning_destination = PoseStamped()
-        planning_destination.header.stamp = self.get_clock().now().to_msg()
-        planning_destination.header.frame_id = "map"
-        planning_destination.pose.orientation.w = 1.0
-        planning_destination.pose.position.x = self.state_current_planning_destination.position.x
-        planning_destination.pose.position.y = self.state_current_planning_destination.position.y
-
-        self.pub_desired_destination.publish(planning_destination)
-
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Control Loop Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     def go_to_target(self, target_waypoint: tuple):
@@ -278,7 +278,7 @@ class Controller(Node):
         :param:
         """
         # calculate target yaw and signed yaw difference using the controller_math module
-        self.get_logger().debug(f"driving to {target_waypoint} from {self.state_rover_pose}", throttle_duration_sec=1)
+        self.get_logger().debug(f"driving to {target_waypoint} from {self.state_rover_pose}")
 
         position_vector = np.array([self.state_rover_pose.x, self.state_rover_pose.y, 0])
         target_vector = np.array([target_waypoint[0], target_waypoint[1], 0])
@@ -290,7 +290,7 @@ class Controller(Node):
 
         yaw_diff = yaw_difference(current_orientation, desired_orientation)
 
-        self.get_logger().debug(f"desired: {desired_orientation}, current: {current_orientation}, yaw_diff: {yaw_diff}", throttle_duration_sec=1)
+        self.get_logger().debug(f"desired: {desired_orientation}, current: {current_orientation}, yaw_diff: {yaw_diff}")
 
         speed, steer = self.ctl_driver.get_drive_command(yaw_diff, self.var_latest_steer, position_vector, current_orientation)
         self.send_drive_cmd(speed, steer)
@@ -300,16 +300,15 @@ class Controller(Node):
         Called once every tick by the node's timer. Identifies the next target waypoint
         and calls navigate_to_waypoint, and determines when the rover has arrived
         """
-        self.state_current_planning_destination = self.goal_manager.get_current_goal([self.state_rover_pose.x, self.state_rover_pose.y])
         self.drive_mode_state_transition()
-        self.get_logger().debug("Controller in driving state: " + str(self.driving_state), throttle_duration_sec=1)
+        self.get_logger().debug("Controller in driving state: " + str(self.driving_state))
 
         if self.driving_state == DrivingState.SUCCESS:
-            self.get_logger().debug("Controller mode: success", throttle_duration_sec=1)
+            self.get_logger().debug("Controller mode: success")
             self.send_drive_cmd(0, 0)
             return
         if self.num_paths_planned < 1:
-            self.get_logger().debug("Not enough paths planned", throttle_duration_sec=1)
+            self.get_logger().debug("Not enough paths planned")
             self.send_drive_cmd(0, 0)
             return
 
@@ -329,7 +328,7 @@ class Controller(Node):
             # Drive to a waypoint
             self.go_to_target(path[0])
         elif len(path) == 0:
-            self.get_logger().debug("No more waypoints in path.", throttle_duration_sec=1)
+            self.get_logger().debug("No more waypoints in path.")
             self.send_drive_cmd(0, 0)
 
     def send_drive_cmd(self, drive_fraction: float, angular_fraction: float):
@@ -353,7 +352,7 @@ class Controller(Node):
         # Print!
         self.get_logger().debug("Driving at speed {:.4f}, steer {:.4f}".format(
             drive_cmd_msg.speed, drive_cmd_msg.steer
-        ), throttle_duration_sec=1)
+        ))
 
         # publish to public topic
         self.pub_drive_commands.publish(drive_cmd_msg)
