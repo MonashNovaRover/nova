@@ -69,61 +69,10 @@ from enum import Enum
 import logging
 
 
-class GoalType(Enum):
-    NO_GOAL = 0
-    GPS = 1
-    GPS_TAG = 2
-    GPS_GATE = 3
-
-
 class DrivingState(Enum):
     TURNING = 0  # doing a 360-degree turn on the spot
     TO_WAYPOINT = 1  # driving to the next waypoint in a path
     SUCCESS = 2  # Completed driving to the current goal
-
-
-class PlanningState(Enum):
-    GPS_HONING = 0  # honing in on a GPS coordinate
-    AR_HONING = 1  # honing in on an AR tag
-    SEARCH = 2  # searching for an AR tag
-    GATE = 3  # passing through a gate
-    SUCCESS = 4  # waiting for instruction
-
-
-class SavedPlanningState:
-    def __init__(self, logger):
-        # passed from parent
-        self._logger = logger
-        self.num_paths_planned = 0
-        self.state = PlanningState.SUCCESS
-
-        # warn user if state is being loaded from disk
-        # self.saved_state_fn = "saved_state.txt"
-        # if self.saved_state_fn in listdir("."):
-        #    self.get_logger().warn("State will initialise from saved state as " + str(self.state))
-
-        # if self.saved_state_fn in listdir("."):
-        #    with open(self.saved_state_fn, "r") as fp:
-        #        self.state = PlanningState(int(fp.read()))
-
-    def update_state(self, _state: PlanningState):
-        """
-        Updates the current state and saves to disk
-        :param _state: the state we want to set SavedControllerState to as either and int or ControllerState
-        """
-        if type(_state) is int:
-            self.state = PlanningState(_state)
-        else:
-            self.state = _state
-        #with open(self.saved_state_fn, "w") as fp:
-        #    fp.write(str(int(self.state.value)))
-        self.num_paths_planned = 0
-
-    def get_logger(self):
-        """
-        Keeps code consistent ;)
-        """
-        return self._logger
 
 
 class Controller(Node):
@@ -141,23 +90,15 @@ class Controller(Node):
         self.get_logger().set_level(logging.DEBUG)
 
         # Ros params
-        self.param_is_arc = self.declare_parameter("is_ARC", True).value
         self.param_do_tank_turn = self.declare_parameter("do_tank_turn", False).value
 
         # ~~~~~~~~~~ State ~~~~~~~~
         self.state_rover_pose = Pose2D()
-        self.goal_manager : GoalManager = GoalManager()
-        self.planning_state = SavedPlanningState(logger=self.get_logger())
         self.waypoint_path = []
-        self.state_current_planning_destination : AutonomousGoal = None
         self.driving_state = DrivingState.SUCCESS
-        self.spin_counter = 0
         self.var_latest_steer = 0
         self.turning_mode = TurningMode.TANK if self.param_do_tank_turn else TurningMode.PIVOT
-
-        # Global variables containing our search plan
-        self.search_plan = []
-        self.search_array_index = 0
+        self.num_paths_planned = 0
 
         # Controller classes for turning, driving to waypoints, and spinning
         self.ctl_driver = DriveController(self.turning_mode)
@@ -172,57 +113,28 @@ class Controller(Node):
         # 'DriveInput' message is used to make the wheels move!
         self.pub_drive_commands = self.create_publisher(DriveInput, auto_drive_command_topic, 10)
         # Planned destination -> we wish to go here, which is the next step on our path to the target
-        self.pub_desired_destination = self.create_publisher(PoseStamped, planning_destination_topic, 10)
 
         # Subscribers
-        self.sub_autonomous_goal = self.create_subscription(AutonomousGoal, auto_goal_topic,
-                                                            self.callback_new_autonomous_goal, 10)
         self.sub_planned_path_to_destination = self.create_subscription(Path, auto_waypoints_topic,
                                                                         self.callback_planner_path, 10)
         self.sub_steer = self.create_subscription(PivotWheelData, "/control/pivot_wheel", self.callback_steer, 10)
-        # service for changing the LED
-        #self.srv_led_success = self.create_client(Trigger, "/autonomous/success")
-        #self.srv_led_start = self.create_client(Trigger, "/autonomous/start")
 
         # Timers
         self.control_timer = self.create_timer(0.1, self.control)  # calculate and send drive commands
-        self.planning_timer = self.create_timer(0.5, self.plan)  # update planning state and plan paths
         self.pose_timer = self.create_timer(0.1, self.callback_rover_pose)  # update the rover's pose from tf2
 
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ State Transition Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
     def reset_goals_and_waypoints(self):
         """
         sets all original goals, best effort goals and stored paths back to default state
         """
         # original goal could be a GPS coordinates (in local frame),
         # AR tags, gate based goals, or search goals
+        self.num_paths_planned = 0
         self.waypoint_path = []
-        self.state_current_planning_destination = None
         self.on_drive_state_update(DrivingState.SUCCESS)
-        self.search_array_index = 0
-
-    def planning_mode_state_transition(self):
-        """
-        Update current planning mode based on the rest of the state
-        """
-        current_goal = self.state_current_planning_destination
-        if current_goal is None:
-            if self.planning_state.state != PlanningState.SUCCESS:
-                # No goals to look for, so we're done
-                self.on_planning_state_update(PlanningState.SUCCESS)
-        elif self.planning_state.state != PlanningState.GPS_HONING and \
-            current_goal.type in [AutonomousGoal.GOAL_TYPE_HONING, AutonomousGoal.GOAL_TYPE_SPIN]:
-            # Going to raw search coordinate
-            self.on_planning_state_update(PlanningState.GPS_HONING)
-        elif self.planning_state.state != PlanningState.AR_HONING and \
-              current_goal.type in [AutonomousGoal.GOAL_TYPE_TAG, AutonomousGoal.GOAL_TYPE_BLOCK]:
-            # Going to an AR tag or block
-            self.on_planning_state_update(PlanningState.AR_HONING)
-        elif self.planning_state.state != PlanningState.GATE and \
-            current_goal.type == AutonomousGoal.GOAL_TYPE_GATE:
-            # Going through a gate (URC)
-            self.on_planning_state_update(PlanningState.GATE)
 
     def drive_mode_state_transition(self):
         """
@@ -253,25 +165,6 @@ class Controller(Node):
                 # We have just finished a spin
                 self.on_drive_state_update(DrivingState.SUCCESS)
 
-    def on_planning_state_update(self, new_state: PlanningState):
-        """
-        :param new_state: PlanningState
-        Performs a number of internal downstream state updates in response to a planning update
-        """
-        old_state = self.planning_state.state
-        self.get_logger().info("------ State Transition: " + str(old_state) + " -> " + str(new_state))
-        self.planning_state.update_state(new_state)
-        if new_state == PlanningState.SUCCESS:
-            trigger = Trigger.Request()
-            #self.srv_led_success.call_async(trigger)
-
-        if old_state == PlanningState.SUCCESS:
-            trigger = Trigger.Request()
-            #self.srv_led_start.call_async(trigger)
-            
-        if new_state == PlanningState.SEARCH:
-            self.setup_search()
-
     def on_drive_state_update(self, new_state: DrivingState):
         """
         :param new_state: DrivingState
@@ -297,17 +190,6 @@ class Controller(Node):
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Simple State Update Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    def callback_planner_path(self, msg: Path):
-        """
-        The callback which is called from the path planner subscriber. We need to:
-        - Update list of waypoints in way-point path
-        - update best effort goal
-        Note that when we are near our goal, best effort goal will be set, but way-point path won't be set.
-        :param msg: Waypoints message from the path planner
-        """
-        self.waypoint_path = [(p.pose.position.x, p.pose.position.y) for p in msg.poses]
-        self.planning_state.num_paths_planned += 1
-
     def callback_rover_pose(self):
         """
         Stores the latest rover pose message into our State() variable
@@ -322,20 +204,6 @@ class Controller(Node):
             self.state_rover_pose.y = base_link_tf.translation.y
             self.state_rover_pose.yaw = transform.quat_to_euler(base_link_tf.rotation)[2]
 
-    def callback_new_autonomous_goal(self, msg):
-        """
-        Callback for autonomous_goal topic.
-        When this callback is called, it means we have received two different pieces of information:
-            - a new goal coordinate to drive to
-            - zero, one, or two AR tag ids to travel to:
-                - zero means we ignore AR tags (but store them for later), one means we search for the AR tag,
-                and two means we are looking for a gate
-        """
-        # we update the state of AR tag ids so that it can compare AR tags to the ones we care about
-        self.get_logger().debug(f"Received new goal: {msg}", throttle_duration_sec=1)
-        self.reset_goals_and_waypoints()
-        self.goal_manager.add_goal(msg)
-
     def callback_steer(self, msg):
         """
         :param msg: WheelPivotData
@@ -343,8 +211,6 @@ class Controller(Node):
         self.var_latest_steer = msg.steer
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 'Util' Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    def setup_search(self):
-        self.ctl_spin = SpinController(self.state_rover_pose.yaw, self.ctl_driver)
 
     def near_current_goal(self) -> bool:
         """
@@ -355,7 +221,7 @@ class Controller(Node):
         """
 
         # look for a best effort goal, else compare to an original goal
-        if self.planning_state.num_paths_planned == 0:
+        if self.num_paths_planned == 0:
             return False
 
         end_of_path = self.waypoint_path[-1] if len(self.waypoint_path) > 0 else None
@@ -442,7 +308,7 @@ class Controller(Node):
             self.get_logger().debug("Controller mode: success", throttle_duration_sec=1)
             self.send_drive_cmd(0, 0)
             return
-        if self.planning_state.num_paths_planned < 1:
+        if self.num_paths_planned < 1:
             self.get_logger().debug("Not enough paths planned", throttle_duration_sec=1)
             self.send_drive_cmd(0, 0)
             return
