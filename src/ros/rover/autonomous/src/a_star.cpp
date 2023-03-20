@@ -251,6 +251,30 @@ void precompute_padding_values(array<array<float, COL>, ROW>& grid,
 	}
 }
 
+template <size_t ROW, size_t COL> 
+void add_obstacle_border(array<array<float, COL>, ROW>& grid)
+{
+	/* Adds a border of obstacles around the map to prevent the rover from
+	 driving off the map */
+	uint j = 0;
+	for (uint i = 0; i < ROW; i++) {
+		grid[i][j] = OBSTACLE_VALUE;
+	}
+	j = COL - 1;
+	for (uint i = 0; i < ROW; i++) {
+		grid[i][j] = OBSTACLE_VALUE;
+	}
+
+	uint i = 0;
+	for (uint j = 0; j < COL; j++) {
+		grid[i][j] = OBSTACLE_VALUE;
+	}
+	i = ROW - 1;
+	for (uint i = 0; i < ROW; i++) {
+		grid[i][j] = OBSTACLE_VALUE;
+	}
+}
+
 // A Utility Function to trace the path from the source to
 // destination
 template <size_t ROW, size_t COL>
@@ -322,6 +346,9 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 		status |= Status::A_STAR_DEST_OBSTACLE;
 		clear_obstacles_from_location(grid, dest, clearance);
 	}
+
+	// put a border around the outside of the map
+	add_obstacle_border(grid);
 
 	// assign heuristic values according to distance to nearest obstacle
 	precompute_padding_values(grid, grid_resolution_cm);

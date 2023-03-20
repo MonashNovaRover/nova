@@ -21,7 +21,6 @@ CREATION:	14/03/2023
 EDITED:		14/03/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
-  - Don’t drive as close to AR tags and blocks as you do to goals
   - Input initial map coords
   - Boundary around map before path planning
   - New model/training data
