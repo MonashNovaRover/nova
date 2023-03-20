@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-_package__ = "autonomous"
-
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Purpose: To perform A* path planning and string pulling on 2-d grid maps. 

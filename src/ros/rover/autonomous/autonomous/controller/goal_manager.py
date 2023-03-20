@@ -21,10 +21,14 @@ CREATION:	14/03/2023
 EDITED:		14/03/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
-  - Make it work
-  - testestestestestestestestest
+  - Detecting a shit obstacle - forget it if it isn’t really there
+  - Don’t drive as close to AR tags and blocks as you do to goals
+  - Input initial map coords
+  - Boundary around map before path planning
+  - New model/training data
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
+
 # ros imports
 from typing import Union
 import rclpy
@@ -47,6 +51,7 @@ import autonomous.math_utils.transform as transform
 # standard python imports
 from typing import Dict, List
 import numpy as np
+import time
 
 # Hue ranges for the different block colours except white. Any hue can be white if the lightness is high enough
 COLOR_VECTORS = {
@@ -86,6 +91,7 @@ class GoalManager(Node):
         self.param_max_reasonable_z = self.declare_parameter("maximum_target_z", 1.5).value
         self.param_min_reasonable_z = self.declare_parameter("minimum_target_z", -1.0).value
         self.param_map_coords_counterclockwise = self.declare_parameter("map_coords_cc", [10, 10, -10, 10, -10, -10, 10, -10]).value
+        self.param_goal_forget_time = self.declare_parameter("goal_forget_time_s", 30).value
 
         # ROS Tf2 stuff
         self.tf_buffer = Buffer()
@@ -102,6 +108,11 @@ class GoalManager(Node):
         self.new_tags = False
         self.last_blocks : MarkerArray = None
         self.new_blocks = False
+
+        # The tag or block we are currently searching for, if any
+        self.current_target = None
+        # When we last saw it
+        self.last_seen_current_target = None
 
         self.found_tags = dict()
         self.found_blocks = dict()
@@ -307,6 +318,8 @@ class GoalManager(Node):
                 if _id not in self.unsure_tags:
                     self.unsure_tags[_id] = []
                 self.unsure_tags[_id].append([local_map_pose.position.x, local_map_pose.position.y])
+                if self.current_target.tag_id == _id:
+                    self.last_seen_current_target = time.time()
                 self.attempt_confirm_target(_id=_id)
 
         self.new_tags = False
@@ -330,6 +343,8 @@ class GoalManager(Node):
                 if color not in self.unsure_blocks:
                     self.unsure_blocks[color] = []
                 self.unsure_blocks[color].append([local_map_pose.position.x, local_map_pose.position.y])
+                if self.current_target.block_color.data == color:
+                    self.last_seen_current_target = time.time()
                 self.attempt_confirm_target(color=color)
 
         self.new_blocks = False
@@ -399,6 +414,14 @@ class GoalManager(Node):
 
         return nearest_target, nearest_target_dist
         
+    def clear_target_data(self, target : AutonomousGoal) -> None:
+        """
+        Removes a target from our unkown blocks and unknown tags dicts, assuming it was recorded as a false positive
+        """
+        if target.type == AutonomousGoal.GOAL_TYPE_BLOCK:
+            self.unsure_blocks.pop(target.block_color.data, None)
+        elif target.type == AutonomousGoal.GOAL_TYPE_TAG:
+            self.unsure_tags.pop(target.tag_id, None)
 
     def get_current_goal(self):
         """
@@ -413,6 +436,14 @@ class GoalManager(Node):
                 color = self.active_goal.block_color
                 self.get_logger().info(f"Locked in {color} block at position {self.found_blocks[color.data]}")
                 self.active_goal = self.goals.pop(0)
+            elif time.time() - self.last_seen_current_target > self.param_goal_forget_time:
+                # We haven't seen the current target in a while, so we should forget about it in case it was a false positive
+                self.get_logger().info(f"Lost sight of current target {self.current_target.block_color.data} for over 30 seconds, so we will try to find it again")
+                self.active_goal = self.goals.pop(0)
+                self.clear_target_data(self.current_target)
+                self.current_target = None
+                self.last_seen_current_target = None
+
         elif self.active_goal.type == AutonomousGoal.GOAL_TYPE_TAG:
             if self.active_goal.tag_id in self.found_tags:
                 # We have found this tag, so we can remove it from the search plan
@@ -428,6 +459,8 @@ class GoalManager(Node):
                     self.get_logger().debug(f"Going to closer target: {nearest_target}")
                     self.goals = [self.active_goal] + self.goals
                     self.active_goal = nearest_target
+                    self.current_target = nearest_target
+                    self.last_seen_current_target = time.time()
                 else:
                     self.get_logger().debug(f"Still going to honing target: {self.active_goal}")
         
