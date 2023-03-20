@@ -30,20 +30,6 @@ from autonomous.config.runtime_params import straight_drive_fraction, spin_achie
 from typing import Tuple
 
 
-class Pose2D:
-    """
-    Represents a state of the rover in two dimension space - i.e. it only has an (x, y) position and a yaw.
-    For use as a container in other classes.
-    """
-
-    def __init__(self, x=0.0, y=0.0, yaw=0.0, velocity=0.0, angular_velocity=0.0):
-        self.x = x
-        self.y = y
-        self.yaw = yaw
-        self.velocity = velocity
-        self.angular_velocity = angular_velocity
-
-
 def tank_turn_target_yaw_rate(yaw_diff: float) -> float:
     """
     Calculates target steer value (mapping to -1:1 controller right stick position)
