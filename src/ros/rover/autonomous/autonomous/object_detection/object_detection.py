@@ -1,16 +1,22 @@
 __package__ = "autonomous"
 import cv2
-import time
 import numpy as np
-from rclpy.node import Node
-from visualization_msgs.msg import Marker, MarkerArray
-from geometry_msgs.msg import Pose
-from std_msgs.msg import ColorRGBA
-import autonomous.object_detection.config_files as models
 from ultralytics import YOLO
 import pyrealsense2 as rs
 import os
 import logging
+
+# Ros packages
+from rclpy.node import Node
+from rclpy.duration import Duration
+
+# Ros types
+from visualization_msgs.msg import Marker, MarkerArray
+from geometry_msgs.msg import Pose
+from std_msgs.msg import ColorRGBA
+
+# Our packages
+import autonomous.object_detection.config_files as models
 
 try:
     from pyrealsense2 import intrinsics as Intrinsics
@@ -61,7 +67,11 @@ class ObjectDetection(Node):
         msg.color = color
         msg.header.frame_id = self.frame_id
         msg.header.stamp = self.get_clock().now().to_msg()
+        # Namespace - raw messages can be separated from confirmed cubes
+        msg.ns = "raw"
         msg.id = index
+        # Survive for half a second
+        msg.lifetime = Duration(nanoseconds=5e8)
         return msg
 
     def get_avg_color(self, pixels):
