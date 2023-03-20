@@ -103,9 +103,6 @@ class GRUP(Node):
         # set debug to not get shown
         self.get_logger().set_level(logging.DEBUG)
 
-        # Ros params
-        self.param_is_arc = self.declare_parameter("is_ARC", True).value
-
         # ~~~~~~~~~~ State ~~~~~~~~
         self.state_rover_pose = Pose2D()
         self.goal_manager : GoalManager = GoalManager()

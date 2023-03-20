@@ -63,4 +63,11 @@ def generate_launch_description():
             parameters=[core_params_path / "GRUC.yaml"],
             emulate_tty=True
         ),
+        Node(
+            package="autonomous",
+            node_executable="GRUP.py",
+            output="screen",
+            parameters=[core_params_path / "GRUP.yaml"],
+            emulate_tty=True
+        ),
     ])

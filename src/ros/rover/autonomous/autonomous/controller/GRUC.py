@@ -84,7 +84,7 @@ class Controller(Node):
     """
 
     def __init__(self):
-        super().__init__('autonomous_controller_node')
+        super().__init__('GRUC')
 
         # set debug to not get shown
         self.get_logger().set_level(logging.DEBUG)
