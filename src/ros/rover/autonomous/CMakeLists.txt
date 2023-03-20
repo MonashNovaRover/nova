@@ -112,9 +112,7 @@ install(PROGRAMS
   autonomous/localisation/pose_converter_ARC.py
   autonomous/controller/GRUC.py
   autonomous/controller/GRUP.py
-  autonomous/vis/grid_pub.py
-  autonomous/vis/path_vis.py
-  autonomous/vis/rover_vis.py
+  autonomous/controller/goal_manager.py
   autonomous/update_goals.py
 
   DESTINATION lib/${PROJECT_NAME}

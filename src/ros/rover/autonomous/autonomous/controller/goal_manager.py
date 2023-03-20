@@ -38,8 +38,8 @@ from tf2_ros import Buffer, TransformListener
 # msg types
 from core.msg import AlvarMarker, AlvarMarkers, AutonomousGoal
 from visualization_msgs.msg import MarkerArray, Marker
-from geometry_msgs.msg import PoseStamped, Pose
-from std_msgs.msg import String
+from geometry_msgs.msg import PoseStamped, Pose, Transform, Pose2D
+from std_msgs.msg import String, Empty
 
 # nova imports
 import autonomous.math_utils.transform as transform
@@ -68,11 +68,16 @@ class GoalManager(Node):
     MAX_STD_DEV=0.1
 
     def __init__(self):
-        super().__init__("search_manager")
+        super().__init__("goal_manager")
         self.get_logger().set_level(logging.DEBUG)
         # ROS Subscribers
         self.sub_blocks = self.create_subscription(MarkerArray, "/object_detector/markers", self.cb_cube, 10)
         self.sub_tags = self.create_subscription(AlvarMarkers, "/tracking_camera/tags", self.cb_tag, 10)
+        self.sub_at_goal = self.create_subscription(Empty, "/GRUC/at_goal", self.cb_at_goal, 10)
+
+        # ROS publishers
+        self.pub_goals = self.create_publisher(AutonomousGoal, "~/goals", 10)
+        self.pub_confirmed_targets = self.create_publisher(MarkerArray, "~/confirmed_targets", 10)
 
         # ROS Parameters
         self.param_search_plan = self.declare_parameter("search_plan", []).value
@@ -90,6 +95,7 @@ class GoalManager(Node):
         self.active_goal = None
         self.init_goals()
         self.map_xys_3d, self.map_edges = self.get_map_edges_from_boundary_points()
+        self.state_rover_pose = Pose2D()
 
         # Internal variables
         self.last_tags : AlvarMarkers= None
@@ -105,6 +111,8 @@ class GoalManager(Node):
         
         timer_period = 0.1  # run the timer 10 times per second
         self.create_timer(timer_period, self.handle_targets)
+        self.create_timer(timer_period, self.get_current_goal)
+        self.create_timer(timer_period, self.callback_rover_pose)
 
     def get_map_edges_from_boundary_points(self):
         """
@@ -114,7 +122,7 @@ class GoalManager(Node):
         """
         map_xys = np.array(self.param_map_coords_counterclockwise).reshape(-1, 2)
         map_xys_3d = np.hstack((map_xys, np.zeros((len(map_xys), 1))))
-        map_edges = np.array([map_xys[(i+1) % len(map_xys)] - point for i, point in enumerate(map_xys_3d)])
+        map_edges = np.array([map_xys_3d[(i+1) % len(map_xys_3d)] - point for i, point in enumerate(map_xys_3d)])
         return map_xys_3d, map_edges
 
     def add_goal(self, goal : AutonomousGoal):
@@ -331,7 +339,7 @@ class GoalManager(Node):
             and len(self.goals) == 0 \
             and self.active_goal is None
 
-    def at_goal(self):
+    def cb_at_goal(self, msg: Empty = None):
         """
         Called when the robot has reached its current goal
         """
@@ -342,11 +350,27 @@ class GoalManager(Node):
             else:
                 self.active_goal = None
 
-    def get_nearest_block_or_tag(self, rover_pos):
+    def callback_rover_pose(self):
+        """
+        Stores the latest rover pose message into our State() variable
+        """
+        try:
+            base_link_tf : Transform = self.tf_buffer.lookup_transform("local_map", "base_link", Time()).transform
+            self.get_logger().debug("Found transform from local_map to base_link", once=True)
+        except:
+            self.get_logger().warn("No transform from local_map to base_link", once=True)
+        else:
+            self.state_rover_pose.x = base_link_tf.translation.x
+            self.state_rover_pose.y = base_link_tf.translation.y
+            self.state_rover_pose.yaw = transform.quat_to_euler(base_link_tf.rotation)[2]
+
+
+    def get_nearest_block_or_tag(self):
         """
         Returns the nearest block or tag to the rover which we are unsure about. Returns None if there are
         not tags we are unsure about
         """
+        rover_pos = [self.state_rover_pose.x, self.state_rover_pose.y]
         nearest_target = None
         nearest_target_dist = float("inf")
         self.get_logger().debug(f"Unsure blocks: {self.unsure_blocks}")
@@ -373,7 +397,7 @@ class GoalManager(Node):
         return nearest_target, nearest_target_dist
         
 
-    def get_current_goal(self, current_pos):
+    def get_current_goal(self):
         """
         Returns the next goal to navigate to
         """
@@ -395,9 +419,9 @@ class GoalManager(Node):
         elif self.active_goal.type == AutonomousGoal.GOAL_TYPE_HONING:
             if len(self.unsure_blocks) > 0 or len(self.unsure_tags) > 0:
                 self.get_logger().debug(f"We have {len(self.unsure_blocks)} blocks and {len(self.unsure_tags)} tags we are unsure about")
-                nearest_target, nearest_target_dist = self.get_nearest_block_or_tag(current_pos)
-                if nearest_target_dist < np.linalg.norm([[current_pos[0] - self.active_goal.position.x],
-                                                         [current_pos[1] - self.active_goal.position.y]]):
+                nearest_target, nearest_target_dist = self.get_nearest_block_or_tag()
+                if nearest_target_dist < np.linalg.norm([[self.state_rover_pose.x - self.active_goal.position.x],
+                                                         [self.state_rover_pose.y - self.active_goal.position.y]]):
                     self.get_logger().debug(f"Going to closer target: {nearest_target}")
                     self.goals = [self.active_goal] + self.goals
                     self.active_goal = nearest_target
@@ -405,7 +429,7 @@ class GoalManager(Node):
                     self.get_logger().debug(f"Still going to honing target: {self.active_goal}")
         
         self.get_logger().debug(f"Returning active goal: {self.active_goal}")
-        return self.active_goal
+        self.pub_goals.publish(self.active_goal)
 
     def publish_found(self):
         """

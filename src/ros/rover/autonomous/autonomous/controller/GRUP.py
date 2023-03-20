@@ -47,7 +47,6 @@ from autonomous.math_utils.controller_math import *
 import autonomous.math_utils.transform as transform
 from autonomous.config.runtime_params import *
 from autonomous.config.ros_config import *
-from autonomous.controller.goal_manager import GoalManager
 from autonomous.controller.drive_controller import DriveController, TurningMode
 
 # misc
@@ -104,8 +103,6 @@ class GRUP(Node):
         self.get_logger().set_level(logging.DEBUG)
 
         # ~~~~~~~~~~ State ~~~~~~~~
-        self.state_rover_pose = Pose2D()
-        self.goal_manager : GoalManager = GoalManager()
         self.planning_state = SavedPlanningState(logger=self.get_logger())
         self.state_current_planning_destination : AutonomousGoal = None
 
@@ -119,7 +116,7 @@ class GRUP(Node):
         self.pub_desired_destination = self.create_publisher(PoseStamped, planning_destination_topic, 10)
 
         # Subscribers
-        self.sub_autonomous_goal = self.create_subscription(AutonomousGoal, auto_goal_topic,
+        self.sub_autonomous_goal = self.create_subscription(AutonomousGoal, "/goal_manager/goals",
                                                             self.callback_new_autonomous_goal, 10)
         # service for changing the LED
         #self.srv_led_success = self.create_client(Trigger, "/autonomous/success")
@@ -127,8 +124,6 @@ class GRUP(Node):
 
         # Timers
         self.planning_timer = self.create_timer(0.5, self.plan)  # update planning state and plan paths
-        self.pose_timer = self.create_timer(0.1, self.callback_rover_pose)  # update the rover's pose from tf2
-
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ State Transition Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     def reset_goals_and_waypoints(self):
@@ -178,21 +173,6 @@ class GRUP(Node):
             #self.srv_led_start.call_async(trigger)
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Simple State Update Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    def callback_rover_pose(self):
-        """
-        Stores the latest rover pose message into our State() variable
-        """
-        try:
-            base_link_tf : Transform = self.tf_buffer.lookup_transform("local_map", "base_link", Time()).transform
-            self.get_logger().debug("Found transform from local_map to base_link", once=True, throttle_duration_sec=1)
-        except:
-            self.get_logger().warn("No transform from local_map to base_link", once=True)
-        else:
-            self.state_rover_pose.x = base_link_tf.translation.x
-            self.state_rover_pose.y = base_link_tf.translation.y
-            self.state_rover_pose.yaw = transform.quat_to_euler(base_link_tf.rotation)[2]
-
     def callback_new_autonomous_goal(self, msg):
         """
         Callback for autonomous_goal topic.
@@ -203,9 +183,8 @@ class GRUP(Node):
                 and two means we are looking for a gate
         """
         # we update the state of AR tag ids so that it can compare AR tags to the ones we care about
-        self.get_logger().debug(f"Received new goal: {msg}", throttle_duration_sec=1)
-        self.reset_goals_and_waypoints()
-        self.goal_manager.add_goal(msg)
+        self.get_logger().debug(f"Received new goal: {msg}")
+        self.state_current_planning_destination = msg
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Planning Loop Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     def plan(self):
@@ -216,10 +195,10 @@ class GRUP(Node):
         self.planning_mode_state_transition()
 
         if self.planning_state.state == PlanningState.SUCCESS:
-            self.get_logger().debug("In SUCCESS state, no planning required.", throttle_duration_sec=1)
+            self.get_logger().debug("In SUCCESS state, no planning required.")
             return
         else:
-            self.get_logger().debug("plan() state is {}".format(self.planning_state.state), throttle_duration_sec=1)
+            self.get_logger().debug("plan() state is {}".format(self.planning_state.state))
 
         planning_destination = PoseStamped()
         planning_destination.header.stamp = self.get_clock().now().to_msg()
