@@ -38,13 +38,14 @@ from tf2_ros import Buffer, TransformListener
 # msg types
 from core.msg import AlvarMarker, AlvarMarkers, AutonomousGoal
 from visualization_msgs.msg import MarkerArray, Marker
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PoseStamped, Pose
 from std_msgs.msg import String
 
 # nova imports
 import autonomous.math_utils.transform as transform
 
 # standard python imports
+from typing import Dict, List
 import numpy as np
 
 # Hue ranges for the different block colours except white. Any hue can be white if the lightness is high enough
@@ -77,6 +78,9 @@ class GoalManager(Node):
         self.param_search_plan = self.declare_parameter("search_plan", []).value
         self.param_desired_tags = self.declare_parameter("tracked_tag_ids", []).value
         self.param_desired_blocks = self.declare_parameter("tracked_block_colors", []).value
+        self.param_max_reasonable_z = self.declare_parameter("maximum_target_z", 1.5).value
+        self.param_min_reasonable_z = self.declare_parameter("minimum_target_z", -1.0).value
+        self.param_map_coords_counterclockwise = self.declare_parameter("map_coords_cc", [10, 10, -10, 10, -10, -10, 10, -10]).value
 
         # ROS Tf2 stuff
         self.tf_buffer = Buffer()
@@ -85,6 +89,7 @@ class GoalManager(Node):
         self.goals = []
         self.active_goal = None
         self.init_goals()
+        self.map_xys_3d, self.map_edges = self.get_map_edges_from_boundary_points()
 
         # Internal variables
         self.last_tags : AlvarMarkers= None
@@ -95,11 +100,22 @@ class GoalManager(Node):
         self.found_tags = dict()
         self.found_blocks = dict()
 
-        self.unsure_tags = dict()
-        self.unsure_blocks = dict()
+        self.unsure_tags : Dict[List] = dict()
+        self.unsure_blocks : Dict[List] = dict()
         
         timer_period = 0.1  # run the timer 10 times per second
         self.create_timer(timer_period, self.handle_targets)
+
+    def get_map_edges_from_boundary_points(self):
+        """
+        Takes the map boundary points and returns a list of the edges of the map
+        Map boundary points are assumed to be provided in the counter-clockwise order
+        returns a list of edges, where each edge is a 3d vector with zero z component, to be usable with cross product
+        """
+        map_xys = np.array(self.param_map_coords_counterclockwise).reshape(-1, 2)
+        map_xys_3d = np.hstack((map_xys, np.zeros((len(map_xys), 1))))
+        map_edges = np.array([map_xys[(i+1) % len(map_xys)] - point for i, point in enumerate(map_xys_3d)])
+        return map_xys_3d, map_edges
 
     def add_goal(self, goal : AutonomousGoal):
         """
@@ -227,6 +243,37 @@ class GoalManager(Node):
                 if color is not None:
                     self.found_blocks[color] = avg_pos
                     self.unsure_blocks.pop(color)
+            else:
+                self.get_logger().debug(f"Target {_id if _id is not None else color} is not consistent enough: {consistent_pos}")
+
+    def pose_in_map(self, pose: Pose) -> bool:
+        """
+        Checks if a pose is in the map by taking cross products with the edges of the map, in the counter-clockwise direction.
+        """
+        pos_vec = np.array([pose.position.x, pose.position.y, 0])
+        self.get_logger().debug(f"Checking if pos {pose.position} is in map")
+        for corner, edge in zip(self.map_xys_3d, self.map_edges):
+            self.get_logger().debug(f"corner: {corner}, edge: {edge}, pos_vec: {pos_vec}")
+            if np.cross(edge, pos_vec - corner)[2] < 0:
+                # negative z component of cross product means the point is clockwise from the edge. This places it outside the edge and not in the map
+                # Requires counter-clockwise ordering of edges
+                return False
+
+        return True
+
+    def pose_not_reasonable(self, pose: Pose) -> bool:
+        """
+        Return true if the pose of an object is not reasonable for it to be in the map
+        """
+        not_reasonable = False
+
+        if pose.position.z > self.param_max_reasonable_z or pose.position.z < self.param_min_reasonable_z:
+            not_reasonable = True
+
+        elif not self.pose_in_map(pose):
+            not_reasonable = True
+
+        return not_reasonable
 
     def update_tags(self):
         """
@@ -242,7 +289,7 @@ class GoalManager(Node):
                 # We care about this tag and haven't worked out where it is
                 tag_pose_stamped = tag.pose
                 local_map_pose = self.to_local_map(tag_pose_stamped)
-                if local_map_pose is None:
+                if local_map_pose is None or self.pose_not_reasonable(local_map_pose):
                     continue
                 # Append the tag's pose to the list of estimated poses
                 if _id not in self.unsure_tags:
@@ -265,7 +312,7 @@ class GoalManager(Node):
             else:
                 # We care about this block and haven't worked out where it is
                 local_map_pose = self.to_local_map(block)
-                if local_map_pose is None:
+                if local_map_pose is None or self.pose_not_reasonable(local_map_pose):
                     continue
                 # Append the block's pose to the list of estimated poses
                 if color not in self.unsure_blocks:
@@ -338,28 +385,44 @@ class GoalManager(Node):
         if self.active_goal.type == AutonomousGoal.GOAL_TYPE_BLOCK:
             if self.active_goal.block_color in self.found_blocks:
                 # We have found this block, so we can remove it from the search plan
+                color = self.active_goal.block_color
+                self.get_logger().info(f"Locked in {color} block at position {self.found_blocks[color]}")
                 self.active_goal = self.goals.pop(0)
         elif self.active_goal.type == AutonomousGoal.GOAL_TYPE_TAG:
             if self.active_goal.tag_id in self.found_tags:
                 # We have found this tag, so we can remove it from the search plan
+                _id = self.active_goal.tag_id
+                self.get_logger().info(f"Locked in AR tag {_id} at position {self.found_tags[_id]}")
                 self.active_goal = self.goals.pop(0)
         elif self.active_goal.type == AutonomousGoal.GOAL_TYPE_HONING:
             if len(self.unsure_blocks) > 0 or len(self.unsure_tags) > 0:
+                self.get_logger().debug(f"We have {len(self.unsure_blocks)} blocks and {len(self.unsure_tags)} tags we are unsure about")
                 nearest_target, nearest_target_dist = self.get_nearest_block_or_tag(current_pos)
                 if nearest_target_dist < np.linalg.norm([[current_pos[0] - self.active_goal.position.x],
                                                          [current_pos[1] - self.active_goal.position.y]]):
+                    self.get_logger().debug(f"Going to closer target: {nearest_target}")
                     self.goals = [self.active_goal] + self.goals
                     self.active_goal = nearest_target
+                else:
+                    self.get_logger().debug(f"Still going to honing target: {self.active_goal}")
         
         return self.active_goal
 
-
+    def publish_found(self):
+        """
+        Publishes the found blocks and tags
+        """
+        for color, pos in self.found_blocks.items():
+            pass
+        for _id, pos in self.found_tags.items():
+            pass
 
     def handle_targets(self):
         if self.new_blocks:
             self.update_blocks()
         if self.new_tags:
             self.update_tags()
+        self.publish_found()
 
 
 
