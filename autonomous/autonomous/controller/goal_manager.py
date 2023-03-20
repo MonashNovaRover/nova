@@ -206,9 +206,11 @@ class GoalManager(Node):
         if len(target_pos) >= GoalManager.MIN_SAMPLES:
             consistent_pos = self.remove_outlier_pos(target_pos)
         else:
+            self.get_logger().debug(f"{len(target_pos)} samples is not enough to confirm target {_id if _id is not None else color}")
             return
 
         if len(consistent_pos) >= GoalManager.MIN_SAMPLES:
+            self.get_logger().debug(f"Validating consistency of target {_id if _id is not None else color}: {consistent_pos}")
             target_pos_vals = consistent_pos[-GoalManager.MIN_SAMPLES:]
             # We have enough samples to be confident in this tag's position
             # Calculate the average position of the tag
@@ -217,6 +219,7 @@ class GoalManager(Node):
             std_dev = np.std(target_pos_vals, axis=0)
             # Check that the standard deviation is small enough to be considered a confirmed tag
             if np.all(std_dev < GoalManager.MAX_STD_DEV):
+                self.get_logger().debug(f"Confirmed target {_id if _id is not None else color} consistent pos at {avg_pos}")
                 # We have a confirmed tag
                 if _id is not None:
                     self.found_tags[_id] = avg_pos
@@ -285,6 +288,7 @@ class GoalManager(Node):
         """
         Called when the robot has reached its current goal
         """
+        self.get_logger().info(f"Achieved goal {self.active_goal}")
         if self.active_goal.type in [AutonomousGoal.GOAL_TYPE_HONING, AutonomousGoal.GOAL_TYPE_SPIN]:
             if len(self.goals) > 0:
                 self.active_goal = self.goals.pop(0)
@@ -298,6 +302,8 @@ class GoalManager(Node):
         """
         nearest_target = None
         nearest_target_dist = float("inf")
+        self.get_logger().debug(f"Unsure blocks: {self.unsure_blocks}")
+        self.get_logger().debug(f"Unsure tags: {self.unsure_tags}")
         for color in self.unsure_blocks:
             target_pos = np.mean(self.unsure_blocks[color], axis=0)
             dist = np.linalg.norm(target_pos - np.array(rover_pos))
