@@ -103,7 +103,7 @@ class Controller(Node):
 
         # Controller classes for turning, driving to waypoints, and spinning
         self.ctl_driver = DriveController(self.turning_mode)
-        self.ctl_spin = SpinController(0, self.ctl_driver)
+        self.ctl_spin = None
 
         # ------------- ROS Things ----------
         # tf2
@@ -138,7 +138,7 @@ class Controller(Node):
         # AR tags, gate based goals, or search goals
         self.num_paths_planned = 0
         self.waypoint_path = []
-        self.on_drive_state_update(DrivingState.SUCCESS)
+        self.ctl_spin = None
 
     def drive_mode_state_transition(self):
         """
@@ -150,22 +150,16 @@ class Controller(Node):
                 self.on_drive_state_update(DrivingState.SUCCESS)
         elif self.driving_state == DrivingState.SUCCESS:
             # We've just finished a waypoint, so we need to look for a new one
-            if current_goal.type == AutonomousGoal.GOAL_TYPE_SPIN and not self.ctl_spin.is_completed():
+            if current_goal.type == AutonomousGoal.GOAL_TYPE_SPIN:
                 self.on_drive_state_update(DrivingState.TURNING)
-            elif not self.near_current_goal():
+            elif current_goal.type == AutonomousGoal.GOAL_TYPE_HONING:
                 self.on_drive_state_update(DrivingState.TO_WAYPOINT)
         elif self.driving_state == DrivingState.TO_WAYPOINT:
-            if current_goal.type == AutonomousGoal.GOAL_TYPE_SPIN:
-                # start spinning
-                self.on_drive_state_update(DrivingState.TURNING)
-            elif self.near_current_goal():
+            if self.near_current_goal():
                 # Stop driving to goals when we get close to them
                 self.on_drive_state_update(DrivingState.SUCCESS)
         elif self.driving_state == DrivingState.TURNING:
-            if current_goal.type != AutonomousGoal.GOAL_TYPE_SPIN:
-                # We were turning, but now we're done
-                self.on_drive_state_update(DrivingState.TO_WAYPOINT)
-            elif self.ctl_spin.is_completed():
+            if self.ctl_spin.is_completed():
                 # We have just finished a spin
                 self.on_drive_state_update(DrivingState.SUCCESS)
 
@@ -185,6 +179,7 @@ class Controller(Node):
         
         if new_state == DrivingState.SUCCESS:
             self.get_logger().debug(f"Entering success drive mode, getting next goal")
+            self.reset_goals_and_waypoints()
             self.pub_at_goal.publish(Empty())
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Simple State Update Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
