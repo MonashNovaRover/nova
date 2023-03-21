@@ -230,17 +230,24 @@ class ResolverPublisher(Node):
         """
         super().__init__('resolver_publisher', start_parameter_services=False)
 
-        # Create the client for /control/arm_config_info
-        self.client = self.create_client(ArmConfigInfo, "/control/arm_config_info")
-        # Wait for the service to become available
-        while not self.client.wait_for_service(timeout_sec=1.0):
-            self.get_logger().info("Service /control/arm_config_info not available, waiting again...")
-        # Make the service request
-        request = ArmConfigInfo.Request()
-        self.future = self.client.call_async(request)
+        # If starting the script by itself, don't wait for arm data
+        # If starting from the arm launch file, override parameter as True
+        use_arm_data = self.declare_parameter("use_arm_data", False).value
 
-        # Set up the callback timer
-        self.client_check_timer = self.create_timer(0.1, self.client_check_callback)
+        if use_arm_data:
+            # Create the client for /control/arm_config_info
+            self.client = self.create_client(ArmConfigInfo, "/control/arm_config_info")
+            # Wait for the service to become available
+            while not self.client.wait_for_service(timeout_sec=1.0):
+                self.get_logger().info("Service /control/arm_config_info not available, waiting again...")
+            # Make the service request
+            request = ArmConfigInfo.Request()
+            self.future = self.client.call_async(request)
+
+            # Set up the callback timer
+            self.client_check_timer = self.create_timer(0.1, self.client_check_callback)
+        else:
+            self.start_node()
 
     def client_check_callback(self):
         """
