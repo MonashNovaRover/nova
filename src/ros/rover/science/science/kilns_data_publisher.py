@@ -6,9 +6,10 @@ This file contains the ROS2 receiver code for the kilns and bilns data publisher
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ PACKAGE:     electronics
 AUTHOR(S):   Niko Verrios
 CREATION:    18/03/2023
-EDITED:      18/03/2023
+EDITED:      22/03/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
+import json
 import math
 import rclpy
 from rclpy.node import Node
@@ -17,6 +18,7 @@ import jcan
 
 # import custom messages
 from core.msg import KilnMassData, KilnMassPollingStatus, KilnTempData
+from core.srv import LoadCellPoller
 
 # Constants for temperature conversion.
 SERIES_RESISTOR = 10000     # Might change.
@@ -28,8 +30,10 @@ B_COEFFICIENT = 3950        # Dependent on series resistor
 def convert_to_grams(data):
     return int.from_bytes(bytes(data), "big", signed=True)/1000
 
+
 def convert_to_celcius(data):
-    analog = SERIES_RESISTOR / (1023 / int.from_bytes(bytes(data), "big", signed=True) - 1)
+    byte_int = int.from_bytes(bytes(data), "big", signed=True)
+    analog = SERIES_RESISTOR / (1023 / byte_int - 1)
     steinhart = math.log(analog / R_0) / B_COEFFICIENT + (1 / T_0)
     return 1 / steinhart - 273.15
 
@@ -44,7 +48,7 @@ class KilnMassDataPublisher(Node):
         self.get_logger().warning("\033[92;1mInitialising the Kiln Mass Publisher class.\033[0m")
 
         #subscriber to polling status
-        self.subscriber = self.create_subscription(KilnMassPollingStatus, "/science/kiln_mass_polling_status", self.check_poll_status_callback, 10)
+        self.service = self.create_service(LoadCellPoller, '/science/load_cell_poller', self.load_cell_callback_func)
         #publisher to publish the data from the kilns.
         self.mass_publisher = self.create_publisher(KilnMassData, "/science/kiln_mass_data", 1)
         self.temp_publisher = self.create_publisher(KilnTempData, "/science/kiln_temp_data", 1)
@@ -59,7 +63,7 @@ class KilnMassDataPublisher(Node):
         self.bus.set_id_filter([0x4A1, 0x4B1, 0x4C3])
         self.bus.add_callback(0x4A1, self.get_mass_callback(0x4A1))
         self.bus.add_callback(0x4B1, self.get_mass_callback(0x4B1))
-        self.bus.add_callback(0x4A1, self.get_temp_callback(0x4C3))  
+        self.bus.add_callback(0x4C3, self.get_temp_callback())  
 
         #create timers
         self.can_spin_timer = self.create_timer(0.05, self.bus.spin)
@@ -109,17 +113,16 @@ class KilnMassDataPublisher(Node):
         return callback
     
 
-    def get_temp_callback(self, id):
+    def get_temp_callback(self):
         """
         Returns a callback function for the thermistors
         :return:
         """
         def callback(frame):
             # Data returned is a byte list. First byte is the kiln ID, other bytes is the remaining data.
-            if id == 0x4C3:
-                self.temp = convert_to_celcius(frame.data[1:])
-                self.temp_kiln_id = int(frame.data[0])
-                self.get_logger().info(f"\033[92;1mTemp Data packet received from canbus.\033[0m")
+            self.temp = convert_to_celcius(frame.data[1:])
+            self.temp_kiln_id = int(frame.data[0])
+            self.get_logger().info(f"\033[92;1mTemp Data packet received from canbus.\033[0m")
                 
         return callback
     
@@ -138,6 +141,8 @@ class KilnMassDataPublisher(Node):
         msg = KilnTempData()
         msg.id = self.temp_kiln_id
         msg.temperature = self.temp
+        self.get_logger().info(f"\033[92;1mTemp Data {self.temp}.\033[0m")
+
         self.temp_publisher.publish(msg)
 
 
@@ -172,6 +177,28 @@ class KilnMassDataPublisher(Node):
         
         self.polling_status = msg.enabled
         self.polling_interval = msg.interval
+
+
+    def load_cell_callback_func(self, request, response):
+        try:
+            # Reads the command
+            is_enabled = json.loads(request.enabled)
+            interval = json.loads(request.interval)
+            
+            self.polling_status = is_enabled
+            self.polling_interval = interval
+
+            response.success = True
+        
+        # If an error occurred
+        except Exception as e:
+            self.get_logger().error("\033[1;91m\nLoad Cell Poll ERROR! Exception:\n\t%s\033[0m" % e)
+            
+            # Process failed
+            response.success = False
+
+        # Return the response data
+        return response
 
 
 def main():
