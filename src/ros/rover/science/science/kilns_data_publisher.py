@@ -15,10 +15,15 @@ from rclpy.duration import Duration
 import jcan
 
 # import custom messages
-from core.msg import KilnMassData, KilnMassPollingStatus
+from core.msg import KilnMassData, KilnMassPollingStatus, KilnTempData
 
 
 def convert_to_grams(data):
+    return int.from_bytes(bytes(data), "big", signed=True)/1000
+
+
+def convert_to_celcius(data):
+    #TODO: Update this
     return int.from_bytes(bytes(data), "big", signed=True)/1000
 
 
@@ -34,7 +39,8 @@ class KilnMassDataPublisher(Node):
         #subscriber to polling status
         self.subscriber = self.create_subscription(KilnMassPollingStatus, "/science/kiln_mass_polling_status", self.check_poll_status_callback, 10)
         #publisher to publish the data from the kilns.
-        self.publisher = self.create_publisher(KilnMassData, "/science/kiln_mass_data", 1)
+        self.mass_publisher = self.create_publisher(KilnMassData, "/science/kiln_mass_data", 1)
+        self.temp_publisher = self.create_publisher(KilnTempData, "/science/kiln_temp_data", 1)
 
         #declare parameters
         self.declare_parameter("canbus", "can1")
@@ -42,11 +48,12 @@ class KilnMassDataPublisher(Node):
         #initialise the can bus
         self.bus = jcan.Bus()
 
-
         # Set filter IDs and callbacks.
-        self.bus.set_id_filter([0x4A1, 0x4B1])
-        self.bus.add_callback(0x4A1, self.get_callback(0x4A1))
-        self.bus.add_callback(0x4B1, self.get_callback(0x4B1))
+        self.bus.set_id_filter([0x4A1, 0x4A2, 0x4B1, 0x4B2])
+        self.bus.add_callback(0x4A1, self.get_mass_callback(0x4A1))
+        self.bus.add_callback(0x4B1, self.get_mass_callback(0x4B1))
+        self.bus.add_callback(0x4A1, self.get_temp_callback(0x4A2))
+        self.bus.add_callback(0x4B1, self.get_temp_callback(0x4B2))   
 
         #create timers
         self.can_spin_timer = self.create_timer(0.05, self.bus.spin)
@@ -61,9 +68,11 @@ class KilnMassDataPublisher(Node):
         self.start_time = self.get_clock().now()
 
         # initialise kiln mass message
-        self.kiln_id = 0
+        self.mass_kiln_id = 0
         self.mass = 0.
         self.data_interval = 0
+        self.temp_kiln_id = 0
+        self.temp = 0.
 
         # polling times set
         self.last_time = self.get_clock().now()
@@ -73,23 +82,42 @@ class KilnMassDataPublisher(Node):
         self.bus.open(self.get_parameter("canbus").value)
 
 
-    def get_callback(self, id):
+    def get_mass_callback(self, id):
         """
-        Returns a callback function for the kilns
+        Returns a callback function for the load cell
         :return:
         """
         def callback(frame):
             # Data returned is a byte list. First byte is the kiln ID, other bytes is the remaining data.
             if id == 0x4A1:
                 self.mass = convert_to_grams(frame.data[1:])  
-                self.kiln_id = 0
+                self.mass_kiln_id = 0
                 self.data_interval = int((self.get_clock().now() - self.start_time).nanoseconds/1e9)
-                
+
             elif id == 0x4B1:
                 self.mass = convert_to_grams(frame.data[1:])
-                self.kiln_id = int(frame.data[0])
+                self.mass_kiln_id = int(frame.data[0])
                 self.data_interval = int((self.get_clock().now() - self.start_time).nanoseconds/1e9)
                 self.get_logger().info(f"\033[92;1mMass Data packet received from canbus.\033[0m")
+                
+        return callback
+    
+
+    def get_temp_callback(self, id):
+        """
+        Returns a callback function for the thermistors
+        :return:
+        """
+        def callback(frame):
+            # Data returned is a byte list. First byte is the kiln ID, other bytes is the remaining data.
+            if id == 0x4A2:
+                self.temp = convert_to_celcius(frame.data[1:])  
+                self.temp_kiln_id = 0
+
+            elif id == 0x4B2:
+                self.temp = convert_to_celcius(frame.data[1:])
+                self.temp_kiln_id = int(frame.data[0])
+                self.get_logger().info(f"\033[92;1mTemp Data packet received from canbus.\033[0m")
                 
         return callback
     
@@ -98,12 +126,17 @@ class KilnMassDataPublisher(Node):
         # Publish mass message data.
         if self.polled:
             msg = KilnMassData()
-            msg.id = self.kiln_id
+            msg.id = self.mass_kiln_id
             msg.mass = self.mass
             msg.interval = self.data_interval
 
-            self.publisher.publish(msg)
+            self.mass_publisher.publish(msg)
             self.polled = False
+
+        msg = KilnTempData()
+        msg.id = self.temp_kiln_id
+        msg.temperature = self.temp
+        self.temp_publisher.publish(msg)
 
 
     def poll_load_cell(self):
