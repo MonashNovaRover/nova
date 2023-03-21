@@ -9,6 +9,7 @@ CREATION:    18/03/2023
 EDITED:      18/03/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
+import math
 import rclpy
 from rclpy.node import Node
 from rclpy.duration import Duration
@@ -17,14 +18,21 @@ import jcan
 # import custom messages
 from core.msg import KilnMassData, KilnMassPollingStatus, KilnTempData
 
+# Constants for temperature conversion.
+SERIES_RESISTOR = 10000     # Might change.
+R_0 = 10000                 # Resistance value (10K resistor)
+T_0 = 298                   # Outside temp in K
+B_COEFFICIENT = 3950        # Dependent on series resistor
+
 
 def convert_to_grams(data):
     return int.from_bytes(bytes(data), "big", signed=True)/1000
 
-
 def convert_to_celcius(data):
     #TODO: Update this
-    return int.from_bytes(bytes(data), "big", signed=True)/1000
+    analog = SERIES_RESISTOR / (1023 / int.from_bytes(bytes(data), "big", signed=True) - 1)
+    steinhart = math.log(analog / R_0) / B_COEFFICIENT + (1 / T_0)
+    return 1 / steinhart - 273.15
 
 
 class KilnMassDataPublisher(Node):
@@ -49,11 +57,10 @@ class KilnMassDataPublisher(Node):
         self.bus = jcan.Bus()
 
         # Set filter IDs and callbacks.
-        self.bus.set_id_filter([0x4A1, 0x4A2, 0x4B1, 0x4B2])
+        self.bus.set_id_filter([0x4A1, 0x4B1, 0x4C3])
         self.bus.add_callback(0x4A1, self.get_mass_callback(0x4A1))
         self.bus.add_callback(0x4B1, self.get_mass_callback(0x4B1))
-        self.bus.add_callback(0x4A1, self.get_temp_callback(0x4A2))
-        self.bus.add_callback(0x4B1, self.get_temp_callback(0x4B2))   
+        self.bus.add_callback(0x4A1, self.get_temp_callback(0x4C3))  
 
         #create timers
         self.can_spin_timer = self.create_timer(0.05, self.bus.spin)
@@ -110,11 +117,7 @@ class KilnMassDataPublisher(Node):
         """
         def callback(frame):
             # Data returned is a byte list. First byte is the kiln ID, other bytes is the remaining data.
-            if id == 0x4A2:
-                self.temp = convert_to_celcius(frame.data[1:])  
-                self.temp_kiln_id = 0
-
-            elif id == 0x4B2:
+            if id == 0x4C3:
                 self.temp = convert_to_celcius(frame.data[1:])
                 self.temp_kiln_id = int(frame.data[0])
                 self.get_logger().info(f"\033[92;1mTemp Data packet received from canbus.\033[0m")
