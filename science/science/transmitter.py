@@ -22,8 +22,12 @@ EDITED:		21/03/2023
 # Include all ROS dependencies
 import rclpy
 from rclpy.node import Node
-from core.srv import ScienceCommand
+from rclpy.qos import QoSReliabilityPolicy, QoSProfile
+from rclpy.subscription import SubscriptionEventCallbacks
+from rclpy.duration import Duration
 
+from core.srv import ScienceCommand
+from core.msg import Heartbeat
 # Include other dependencies
 import json, os
 import jcan
@@ -64,6 +68,13 @@ class ServiceNode(Node):
         #declare parameters
         self.declare_parameter("canbus", "can1")
 
+        deadline = Duration(nanoseconds=2e8)
+        events = SubscriptionEventCallbacks(deadline=self.deadline_callback)
+        self.qos = QoSProfile(reliability=QoSReliabilityPolicy.BEST_EFFORT, depth=1, deadline=deadline)
+        #heartbeat
+        self.heartbeat_sub = self.create_subscription(Heartbeat, '/science/heartbeat', self.heartbeat_callback,
+                                                      self.qos, event_callbacks=events)
+
         # Initialise the jcan bus
         try:
             self.bus = jcan.Bus()
@@ -80,6 +91,7 @@ class ServiceNode(Node):
         self.can_timer = self.create_timer(0.5, self.can_send_callback)
 
 
+
     def execute_can_msg(self, arb_id, action_id, arg_id):
         command = action_id + arg_id
         try:
@@ -93,7 +105,10 @@ class ServiceNode(Node):
         else:
             self.get_logger().warning("\033[1;92m\nTransmitter SUCCESS! Command: %s#%s\033[0m" % (arb_id, command))
             return True
-        
+
+    def deadline_callback(self, deadline_info):
+        self.get_logger().warning("\033[1;92m\nTransmitter 200ms Deadline exceeded!")
+        self.can_frame_data = self.can_frame_initialisation()
 
     def can_send_callback(self):
         for arb_id in self.can_frame_data.keys():
@@ -116,7 +131,9 @@ class ServiceNode(Node):
                 frame_data[target_hex][action_hex] = None
 
         return frame_data
-    
+
+    def heartbeat_callback(self, msg):
+        pass
 
     def get_args(self, action, args):
 
@@ -186,7 +203,6 @@ class ServiceNode(Node):
             
             # Process failed
             response.success = False
-
 
         # Return the response data
         return response
