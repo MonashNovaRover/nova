@@ -10,4 +10,4 @@ int8 id
 float32 mass
 
 # Kiln time interval since start [s]
-int8 interval
+int16 interval
