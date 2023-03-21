@@ -6,7 +6,7 @@ uint8 GOAL_TYPE_BLOCK = 3
 uint8 GOAL_TYPE_GATE = 4
 
 # Metadata for the tag or block we are searching for
-uint32 tag_id
+int32 tag_id
 std_msgs/String block_color
 
 uint8 type

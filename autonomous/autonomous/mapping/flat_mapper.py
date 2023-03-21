@@ -63,7 +63,7 @@ class FlatMapper(Mapper):
             name=name
         )
 
-        self.get_logger().set_level(logging.INFO)
+        self.get_logger().set_level(logging.DEBUG)
         self.param_tf_sub_hz = self.declare_parameter("tf_sub_frequency_hz", 10).value
         self.param_tf_pub_hz = self.declare_parameter("tf_pub_frequency_hz", 10).value
         self.param_roll_map = self.declare_parameter("roll_map", False).value
@@ -85,25 +85,26 @@ class FlatMapper(Mapper):
         self.detection_length = int(
             np.ceil((max_point_depth / self.detection_resolution) / self.resolution_ratio) * self.resolution_ratio)
         self.detection_width = int(np.ceil(2 * self.detection_length * np.tan(max_fov_angle)))
+        self.offset = None
 
+        self.map_centre = None
+        self.map_rotation = None
         # Position of depth camera in local map
         self.initialise_map()
         self.initialise_transforms()
 
-        if self.param_roll_map:
-            self.map_roll_timer = self.create_timer(1, self.check_position_in_map)
-        else:
-            self.map_centre = None
-            self.map_rotation = None
-        self.pub_transform_timer = self.create_timer(1./self.param_tf_pub_hz, self.pub_transform)
-        self.map_transform_timer = self.create_timer(1./self.param_tf_sub_hz, self.update_transforms)
+        if camera:
+            if self.param_roll_map:
+                self.map_roll_timer = self.create_timer(1, self.check_position_in_map)
+            self.pub_transform_timer = self.create_timer(1./self.param_tf_pub_hz, self.pub_transform)
+            self.map_transform_timer = self.create_timer(1./self.param_tf_sub_hz, self.update_transforms)
 
     def initialise_map(self):
         self.map_corners = np.array(self.param_map_corners_coords).reshape(-1, 2)
         self.map_centre = np.mean(self.map_corners, axis=0).astype(float)
         length, width, theta = self.get_map_pose()
         self.map_rotation = theta
-        self._map = Grid2D(length, width, theta, self.planning_resolution)
+        self._map = Grid2D(length, width, self.planning_resolution)
         if self.param_roll_map:
             self.set_offset(0, 0)
         self.pub_transform()
@@ -130,7 +131,7 @@ class FlatMapper(Mapper):
 
         len = np.linalg.norm(top_left - bottom_left)
         width = np.linalg.norm(top_left - top_right)
-        theta = np.arctan2(top_left[1], top_left[0])
+        theta = np.arctan2((top_left - bottom_left)[1], (top_left - bottom_left)[0])
 
         return len, width, theta
 
