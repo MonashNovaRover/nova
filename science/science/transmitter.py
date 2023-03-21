@@ -13,9 +13,9 @@ SERVICES:
   - /science/science_transmitter   [ScienceCommand]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	science
-AUTHOR(S):	Miles Higgins, Harrison Verrios
+AUTHOR(S):	Miles Higgins, Harrison Verrios, Niko Verrios
 CREATION:	15/02/2022
-EDITED:		15/05/2022
+EDITED:		21/03/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
@@ -78,7 +78,6 @@ class ServiceNode(Node):
         self.service = self.create_service(ScienceCommand, '/science/transmitter', self.callback_func)
 
         self.can_timer = self.create_timer(0.5, self.can_send_callback)
-        
 
 
     def execute_can_msg(self, arb_id, action_id, arg_id):
