@@ -41,12 +41,14 @@ def generate_launch_description():
             package="autonomous",
             node_executable="main.py",
             output="screen",
+            parameters=[core_params_path / "auto_params.yaml"],
             emulate_tty=True
         ),
         Node(
             package="autonomous",
             node_executable="depth_camera.py",
             output="screen",
+            parameters=[core_params_path / "auto_params.yaml"],
             emulate_tty=True
         ),
         Node(

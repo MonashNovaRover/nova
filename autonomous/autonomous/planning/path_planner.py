@@ -31,7 +31,7 @@ from geometry_msgs.msg import Pose2D, Pose, PoseStamped
 from core.msg import Waypoints, Waypoint, RoverPose, Point2D
 from nav_msgs.msg import Path
 from autonomous.config.ros_config import *
-from autonomous.config.runtime_params import ignore_waypoints, INITIAL_PADDING_DIST_M, goal_achieved_distance
+from autonomous.config.runtime_params import ignore_waypoints, INITIAL_PADDING_DIST_M
 from core.srv import PathPlanningRequest
 from autonomous.math_utils.transform import quat_to_euler
 

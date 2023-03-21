@@ -16,7 +16,7 @@ import logging
 
 
 class Grid2D(Node): 
-    def __init__(self, length: int, width: int, resolution=0.1):
+    def __init__(self, length: float, width: float, orientation: float, resolution=0.1):
         """
         2D flattening of the 3D occupancy grid we use to visualise the map
         :param length: length in m in the x direction
@@ -29,6 +29,7 @@ class Grid2D(Node):
         super().__init__("grid_2d")
         self.length = length
         self.width = width
+        self.orientation = orientation
         self.resolution = resolution
         # unseen areas of the map all have a slight cost 
         self.map = np.full((int(length / resolution), int(width / resolution)), 100 * unseen_map_val)
@@ -75,7 +76,7 @@ class Grid2D(Node):
         x = -self.length / 2
         y = -self.width / 2
         self.get_logger().debug("Publishing grid...")
-        self.grid_pub.publish_grid(self.resolution, length, width, x, y, self.map_as_sequence())
+        self.grid_pub.publish_grid(self.resolution, length, width, x, y, self.orientation, self.map_as_sequence())
 
     def get_full_indexes(self, points):
         """
