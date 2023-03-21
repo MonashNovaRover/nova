@@ -36,11 +36,11 @@ from plane_fitter import get_obstacles as get_plane_obstacles
 
 
 class PlaneMapper(FlatMapper):
-    def __init__(self, length=20, width=20, height=5, resolution=0.1, detection_resolution=0.025, planner=None,
+    def __init__(self, height=5, resolution=0.1, detection_resolution=0.025, planner=None,
                  camera=False, name="plane_mapper"):
 
         # init node with node name points
-        super().__init__(length=length, width=width, height=height, resolution=resolution,
+        super().__init__(height=height, resolution=resolution,
                          detection_resolution=detection_resolution, planner=planner, camera=camera, name=name)
         self.get_logger().set_level(logging.INFO)
         self.on_initialised()

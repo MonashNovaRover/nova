@@ -38,6 +38,7 @@ from scipy.signal import convolve2d
 from rclpy.time import Time
 from rclpy.duration import Duration
 import time, math, logging
+from typing import Tuple
 
 from geometry_msgs.msg import TransformStamped, Transform
 from tf2_ros import TransformBroadcaster
@@ -46,8 +47,6 @@ from tf2_ros import TransformBroadcaster
 class FlatMapper(Mapper):
     def __init__(
             self,
-            length=20,
-            width=20,
             height=5,
             resolution=0.1,
             detection_resolution=0.025,
@@ -57,8 +56,6 @@ class FlatMapper(Mapper):
     ):
         # init node with node name points
         super().__init__(
-            length=length,
-            width=width,
             height=height,
             resolution=resolution,
             planner=planner,
@@ -71,6 +68,8 @@ class FlatMapper(Mapper):
         self.param_tf_pub_hz = self.declare_parameter("tf_pub_frequency_hz", 10).value
         self.param_roll_map = self.declare_parameter("roll_map", False).value
         self.param_map_edge_distance = self.declare_parameter("map_edge_dist_m", 3).value
+        self.param_map_corners_coords = self.declare_parameter("map_corners_coords", [10, 10, -10, 10, -10, -10, 10, -10]).value
+
         # How far to roll the map when we approach the edge
         self.param_map_roll_distance = self.declare_parameter("map_roll_dist_m", 5).value   
         # For moving the map as we navigate
@@ -97,9 +96,37 @@ class FlatMapper(Mapper):
         self.map_transform_timer = self.create_timer(1./self.param_tf_sub_hz, self.update_transforms)
 
     def initialise_map(self):
-        self._map = Grid2D(self.length, self.width, self.planning_resolution)
+        self.map_corners = np.array(self.param_map_corners_coords).reshape(-1, 2)
+        length, width, theta = self.get_map_pose()
+        self._map = Grid2D(length, width, theta, self.planning_resolution)
         self.set_offset(0, 0)
         self.pub_transform()
+
+    def get_furthest_point_in_direction(self, pts, direction):
+        """
+        Take a list of points and a direction vector. Return the point furthest away from the origin in the direction of the 
+        direction vector by comparing the magnitude of dot products with the direction vector
+        """
+        dots = [np.dot(pt, direction) for pt in pts]
+        max_dot = max(dots)
+        max_index = dots.index(max_dot)
+        return pts[max_index]
+
+    def get_map_pose(self) -> Tuple[float, float, float]:
+        """
+        Use the four corners of the map in self.map_corners to calculate the length and width of the map, as well as its orientation
+        Takes dot products with the four diagonal vectors to determine the closest corner to each direction, so that we can provide
+        corners in any order
+        """
+        top_left = self.get_furthest_point_in_direction(self.map_corners, [1, 1])
+        bottom_left = self.get_furthest_point_in_direction(self.map_corners, [-1, 1])
+        top_right = self.get_furthest_point_in_direction(self.map_corners, [1, -1])
+
+        len = np.linalg.norm(top_left - bottom_left)
+        width = np.linalg.norm(top_left - top_right)
+        theta = np.arctan2(top_left[1], top_left[0])
+
+        return len, width, theta
 
     def shift_offset(self, dx, dy):
         if self.offset is None: return None

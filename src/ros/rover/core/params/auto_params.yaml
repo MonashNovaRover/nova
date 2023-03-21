@@ -34,3 +34,14 @@
       [
         "RED", "GREEN", "YELLOW", "BLUE", "WHITE"
       ]
+
+/height_plane_mapper:
+  ros__parameters:
+    map_corners_coords:
+      # x, y
+      [
+        10, 10,
+        -10, 10,
+        -10, -10,
+        10, -10
+      ]

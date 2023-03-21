@@ -41,7 +41,7 @@ from tf2_ros import TransformListener, Buffer
 from sensor_msgs.msg import PointCloud2
 
 class Mapper(Node):
-    def __init__(self, length=20, width=20, height=5, planner=None, resolution=0.1, name='mapper', camera=False):
+    def __init__(self, height=5, planner=None, resolution=0.1, name='mapper', camera=False):
         super().__init__(name)
         self.initialised = False
         self.tf_buffer = Buffer()
@@ -49,8 +49,6 @@ class Mapper(Node):
         if camera:
             self.sub_pointcloud = self.create_subscription(PointCloud2, "/depth_camera/d435_1/cloud", self.pointcloud_callback, 10)
 
-        self.length = length
-        self.width = width
         self.height = height
         self.resolution = resolution
 

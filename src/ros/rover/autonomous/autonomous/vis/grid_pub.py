@@ -7,6 +7,7 @@ from builtin_interfaces.msg import Time
 from geometry_msgs.msg import Pose
 from std_msgs.msg import Header
 from rclpy.node import Node
+import math
 
 
 class GridPub(Node):
@@ -15,7 +16,7 @@ class GridPub(Node):
         super().__init__("grid_pub")
         self.publisher = self.create_publisher(OccupancyGrid, "autonomous/occupancy_grid", 10)
 
-    def publish_grid(self, resolution, width, height, x, y, data):
+    def publish_grid(self, resolution, width, height, x, y, theta, data):
         # This hold basic information about the characteristics of the OccupancyGrid
         """
         # The time at which the map was loaded
@@ -42,8 +43,8 @@ class GridPub(Node):
         # pose_origin.position.x = 1 * self.width * 0.4/ 2
         pose_origin.position.x = x
         pose_origin.position.y = y
-        pose_origin.position.z = 0.0
-        pose_origin.orientation.w = 1.0
+        pose_origin.position.z = math.sin(theta / 2)
+        pose_origin.orientation.w = math.cos(theta / 2)
         meta_data.origin = pose_origin
 
         header = Header()
