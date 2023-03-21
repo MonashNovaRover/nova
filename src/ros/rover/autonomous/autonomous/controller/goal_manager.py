@@ -147,16 +147,16 @@ class GoalManager(Node):
         Initialises the search goals based on the map bounds and the search pattern. Adds a spin on each corner of the map to look
         for targets
         """
-        initial_spin = AutonomousGoal()
+        initial_spin = AutonomousGoal(tag_id=-1)
         initial_spin.type = AutonomousGoal.GOAL_TYPE_SPIN
         self.goals.append(initial_spin)
 
         for x, y in np.array(self.param_search_plan).reshape(-1, 2):
-            goal = AutonomousGoal()
+            goal = AutonomousGoal(tag_id=-1)
             goal.position.x, goal.position.y = x, y
             goal.type = AutonomousGoal.GOAL_TYPE_HONING
 
-            spin_goal = AutonomousGoal()
+            spin_goal = AutonomousGoal(tag_id=-1)
             spin_goal.position.x, spin_goal.position.y = x, y
             spin_goal.type = AutonomousGoal.GOAL_TYPE_SPIN
             
@@ -315,7 +315,7 @@ class GoalManager(Node):
                 if _id not in self.unsure_tags:
                     self.unsure_tags[_id] = []
                 self.unsure_tags[_id].append([local_map_pose.position.x, local_map_pose.position.y])
-                if self.current_target.tag_id == _id:
+                if self.current_target is not None and self.current_target.tag_id == _id:
                     self.last_seen_current_target = time.time()
                 self.attempt_confirm_target(_id=_id)
 
@@ -340,7 +340,7 @@ class GoalManager(Node):
                 if color not in self.unsure_blocks:
                     self.unsure_blocks[color] = []
                 self.unsure_blocks[color].append([local_map_pose.position.x, local_map_pose.position.y])
-                if self.current_target.block_color.data == color:
+                if self.current_target is not None and self.current_target.block_color.data == color:
                     self.last_seen_current_target = time.time()
                 self.attempt_confirm_target(color=color)
 
@@ -394,7 +394,7 @@ class GoalManager(Node):
             target_pos = np.mean(self.unsure_blocks[color], axis=0)
             dist = np.linalg.norm(target_pos - np.array(rover_pos))
             if dist < nearest_target_dist:
-                nearest_target = AutonomousGoal()
+                nearest_target = AutonomousGoal(tag_id=-1)
                 nearest_target.type = AutonomousGoal.GOAL_TYPE_BLOCK
                 nearest_target.block_color = String(data=color)
                 nearest_target.position.x, nearest_target.position.y = target_pos[0], target_pos[1]

@@ -16,7 +16,7 @@ class GridPub(Node):
         super().__init__("grid_pub")
         self.publisher = self.create_publisher(OccupancyGrid, "autonomous/occupancy_grid", 10)
 
-    def publish_grid(self, resolution, width, height, x, y, theta, data):
+    def publish_grid(self, resolution, width, height, x, y, data):
         # This hold basic information about the characteristics of the OccupancyGrid
         """
         # The time at which the map was loaded
