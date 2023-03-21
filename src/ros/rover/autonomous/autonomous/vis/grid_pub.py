@@ -39,16 +39,13 @@ class GridPub(Node):
 
         meta_data.map_load_time = self.get_clock().now().to_msg()
         pose_origin = Pose()
-        # pose_origin.position.x = 1 * self.width * 0.4/ 2
-        # pose_origin.position.x = 1 * self.width * 0.4/ 2
         pose_origin.position.x = x
         pose_origin.position.y = y
-        pose_origin.position.z = math.sin(theta / 2)
-        pose_origin.orientation.w = math.cos(theta / 2)
+        pose_origin.orientation.w = 1.0
         meta_data.origin = pose_origin
 
         header = Header()
-        header.frame_id = 'map'   # map frame - this is important for tf2
+        header.frame_id = 'local_map'   # map frame - this is important for tf2
         header.stamp = self.get_clock().now().to_msg()
 
         grid = OccupancyGrid()

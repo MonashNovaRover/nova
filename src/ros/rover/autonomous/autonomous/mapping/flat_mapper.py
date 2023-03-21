@@ -92,14 +92,20 @@ class FlatMapper(Mapper):
 
         if self.param_roll_map:
             self.map_roll_timer = self.create_timer(1, self.check_position_in_map)
+        else:
+            self.map_centre = None
+            self.map_rotation = None
         self.pub_transform_timer = self.create_timer(1./self.param_tf_pub_hz, self.pub_transform)
         self.map_transform_timer = self.create_timer(1./self.param_tf_sub_hz, self.update_transforms)
 
     def initialise_map(self):
         self.map_corners = np.array(self.param_map_corners_coords).reshape(-1, 2)
+        self.map_centre = np.mean(self.map_corners, axis=0).astype(float)
         length, width, theta = self.get_map_pose()
+        self.map_rotation = theta
         self._map = Grid2D(length, width, theta, self.planning_resolution)
-        self.set_offset(0, 0)
+        if self.param_roll_map:
+            self.set_offset(0, 0)
         self.pub_transform()
 
     def get_furthest_point_in_direction(self, pts, direction):
@@ -169,9 +175,14 @@ class FlatMapper(Mapper):
         t.child_frame_id = 'local_map'
 
         # For now we assume the map frame never needs to rotate or move in z axis
-        t.transform.translation.x = float(self.offset[0])
-        t.transform.translation.y = float(self.offset[1])
-        t.transform.rotation.w = 1.0
+        if self.offset is not None:
+            t.transform.translation.x = float(self.offset[0])
+            t.transform.translation.y = float(self.offset[1])
+            t.transform.rotation.w = 1.0
+        else:
+            t.transform.translation.x, t.transform.translation.y = self.map_centre
+            t.transform.rotation.z = np.sin(self.map_rotation / 2)
+            t.transform.rotation.w = np.cos(self.map_rotation / 2)
 
         self.get_logger().debug(f"Publishing local map transform {t}", throttle_duration_sec=1)
 
