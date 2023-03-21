@@ -41,6 +41,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/DistanceData.msg"
   "msg/DriveInput.msg"
   "msg/DriveVel.msg"
+  "msg/Heartbeat.msg"
   "msg/HydraprobeData.msg"
   "msg/EMCData.msg"
   "msg/InputGamepad.msg"
