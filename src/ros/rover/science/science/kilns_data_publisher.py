@@ -29,7 +29,6 @@ def convert_to_grams(data):
     return int.from_bytes(bytes(data), "big", signed=True)/1000
 
 def convert_to_celcius(data):
-    #TODO: Update this
     analog = SERIES_RESISTOR / (1023 / int.from_bytes(bytes(data), "big", signed=True) - 1)
     steinhart = math.log(analog / R_0) / B_COEFFICIENT + (1 / T_0)
     return 1 / steinhart - 273.15
