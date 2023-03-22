@@ -35,7 +35,7 @@ class ObjectDetection(Node):
         self.get_logger().set_level(logging.INFO)
         self.obj_pub = self.create_publisher(MarkerArray, f"~/markers", 10)
         # Get full path to model from the obj_detect package using os
-        model_path = os.path.join(os.path.dirname(models.__file__), "10_mar_cubes_nano.pt")
+        model_path = os.path.join(os.path.dirname(models.__file__), "best.pt")
         
         self.model = YOLO(model_path) 
         self.frame_id = frame_id
