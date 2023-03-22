@@ -71,7 +71,7 @@ class GoalManager(Node):
 
     def __init__(self):
         super().__init__("goal_manager")
-        self.get_logger().set_level(logging.INFO)
+        self.get_logger().set_level(logging.DEBUG)
         # ROS Subscribers
         self.sub_blocks = self.create_subscription(MarkerArray, "/object_detector/markers", self.cb_cube, 10)
         self.sub_tags = self.create_subscription(AlvarMarkers, "/ar_tracker/tags", self.cb_tag, 10)

@@ -63,7 +63,7 @@ class FlatMapper(Mapper):
             name=name
         )
 
-        self.get_logger().set_level(logging.DEBUG)
+        self.get_logger().set_level(logging.INFO)
         self.param_tf_sub_hz = self.declare_parameter("tf_sub_frequency_hz", 10).value
         self.param_tf_pub_hz = self.declare_parameter("tf_pub_frequency_hz", 10).value
         self.param_roll_map = self.declare_parameter("roll_map", False).value
