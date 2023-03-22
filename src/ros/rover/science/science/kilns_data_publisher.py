@@ -94,7 +94,7 @@ class KilnMassDataPublisher(Node):
             # Data returned is a byte list. First byte is the kiln ID, other bytes is the remaining data.
             try:
                 id = int(frame.data[0])
-                self.masses[id-1] = convert_to_grams(frame.data[1:])
+                self.masses[id] = convert_to_grams(frame.data[1:])
                 self.get_logger().info(f"\033[92;1mMass Data packet received from canbus.\033[0m")
             except Exception as e:
                 self.get_logger().error(f"\033[91;1mMass data packet failed and threw an error: {e}\033[0m")
@@ -123,7 +123,7 @@ class KilnMassDataPublisher(Node):
         if self.polled:
             for i in range(len(self.masses)):
                 msg = KilnMassData()
-                msg.id = i + 1
+                msg.id = i
                 msg.mass = self.masses[i]
                 self.mass_publisher.publish(msg)
                 self.polled = False

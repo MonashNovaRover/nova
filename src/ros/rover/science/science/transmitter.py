@@ -106,9 +106,11 @@ class ServiceNode(Node):
             self.get_logger().warning("\033[1;92m\nTransmitter SUCCESS! Command: %s#%s\033[0m" % (arb_id, command))
             return True
 
+
     def deadline_callback(self, deadline_info):
         self.get_logger().warning("\033[1;92m\nTransmitter 200ms Deadline exceeded!")
         self.can_frame_data = self.can_frame_initialisation()
+
 
     def can_send_callback(self):
         for arb_id in self.can_frame_data.keys():
@@ -116,7 +118,7 @@ class ServiceNode(Node):
                 arg_id = self.can_frame_data[arb_id][action_id]
                 if arg_id is not None:
                     success = self.execute_can_msg(arb_id, action_id, arg_id)
-                    if success and int(arg_id, 16) == 0:
+                    if success and (int(arg_id, 16) == 0 or int(action_id, 16) in [0, 2, 4]):
                         self.can_frame_data[arb_id][action_id] = None
         
 
@@ -132,8 +134,10 @@ class ServiceNode(Node):
 
         return frame_data
 
+
     def heartbeat_callback(self, msg):
         pass
+
 
     def get_args(self, action, args):
 
