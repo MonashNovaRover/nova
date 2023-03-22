@@ -21,11 +21,11 @@ find_package(ament_cmake REQUIRED)
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
 
 # Find default generators
 find_package(rosidl_default_generators REQUIRED)
 find_package(std_msgs REQUIRED)
-find_package(geometry_msgs REQUIRED)
 
 
 # Include all interfaces
@@ -55,6 +55,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/Waypoint.msg"
   "msg/Waypoints.msg"
   "msg/WheelData.msg"
+  "msg/WheelOdometry.msg"
   "msg/AutonomousGoal.msg"
   "msg/PivotWheelData.msg"
   "msg/SingleTelemetry.msg"
