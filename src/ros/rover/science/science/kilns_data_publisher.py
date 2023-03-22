@@ -51,7 +51,7 @@ class KilnMassDataPublisher(Node):
         self.service = self.create_service(LoadCellPoller, '/science/load_cell_poller', self.load_cell_callback_func)
         #publisher to publish the data from the kilns.
         self.mass_publisher = self.create_publisher(KilnMassData, "/science/kiln_mass_data", 1)
-        # self.temp_publisher = self.create_publisher(KilnTempData, "/science/kiln_temp_data", 1)
+        self.temp_publisher = self.create_publisher(KilnTempData, "/science/kiln_temp_data", 1)
 
         #declare parameters
         self.declare_parameter("canbus", "can1")
