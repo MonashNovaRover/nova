@@ -39,8 +39,8 @@ class WristCycloidalModel : public ArmSubModule
 
     // Parameters for the cycloidal wrist CMDs
     constexpr static double GEARBOX_REDUCTION = 3002.499;
-    const static int ENCODER_PPR = 512;
-    constexpr static double VELOCITY_FACTOR = 50;
+    const static int ENCODER_PPR = 256;
+    const static int MIN_INTERVAL = 200;
     constexpr static double CLOCK_FREQUENCY = 30e6;
 
     /// Constructor. Build the cycloidal wrist
@@ -53,7 +53,7 @@ class WristCycloidalModel : public ArmSubModule
         output_name = "sj6";
         zero_angles = std::vector<double> {0, -M_PI / 2, 0};
         joint_limits = std::vector<JointLimit> {
-            {-2.20, 1.35},
+            {-2.00, 1.55},
             {-1.95, 2.15},
             {-2 * M_PI, 2 * M_PI}  // No joint limiting
         };
@@ -63,7 +63,7 @@ class WristCycloidalModel : public ArmSubModule
             {1, 1, 0},
             {1, 1, 0}
         };
-        double scaling_factor = CMD::get_scaling_factor(GEARBOX_REDUCTION, ENCODER_PPR, VELOCITY_FACTOR, CLOCK_FREQUENCY);
+        double scaling_factor = CMD::get_scaling_factor(GEARBOX_REDUCTION, ENCODER_PPR, MIN_INTERVAL, CLOCK_FREQUENCY);
         drivers = std::vector<CMD*> {
             new CMD(1, 4, PID, 1, STOP, scaling_factor, can_init),
             new CMD(1, 5, PID, 1, STOP, scaling_factor, can_init),
