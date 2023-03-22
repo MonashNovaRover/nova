@@ -51,7 +51,7 @@ class KilnMassDataPublisher(Node):
         self.service = self.create_service(LoadCellPoller, '/science/load_cell_poller', self.load_cell_callback_func)
         #publisher to publish the data from the kilns.
         self.mass_publisher = self.create_publisher(KilnMassData, "/science/kiln_mass_data", 1)
-        self.temp_publisher = self.create_publisher(KilnTempData, "/science/kiln_temp_data", 1)
+        # self.temp_publisher = self.create_publisher(KilnTempData, "/science/kiln_temp_data", 1)
 
         #declare parameters
         self.declare_parameter("canbus", "can1")
@@ -95,7 +95,7 @@ class KilnMassDataPublisher(Node):
             try:
                 id = int(frame.data[0])
                 self.masses[id] = convert_to_grams(frame.data[1:])
-                self.get_logger().info(f"\033[92;1mMass Data packet received from canbus.\033[0m")
+                self.get_logger().info(f"\033[92;1mMass Data packet received from canbus for ID: {id} and mass: {self.masses[id]}.\033[0m")
             except Exception as e:
                 self.get_logger().error(f"\033[91;1mMass data packet failed and threw an error: {e}\033[0m")
                 
@@ -113,7 +113,7 @@ class KilnMassDataPublisher(Node):
                 id = int(frame.data[0])
                 self.temps[id-1] = convert_to_celcius(frame.data[1:])
             except Exception as e:
-                self.get_logger().error(f"\033[91;1mMass data packet failed and threw an error: {e}\033[0m")
+                self.get_logger().error(f"\033[91;1mTemp data packet failed and threw an error: {e}\033[0m")
             
         return callback
     
