@@ -48,12 +48,12 @@ class TrackingCamera(Node):
         if pose is not None:
             data = pose.get_pose_data()
             pose = Pose()
-            pose.position.x = -data.translation.z
-            pose.position.y = -data.translation.x
-            pose.position.z = data.translation.y
-            pose.orientation.x = -data.rotation.z
-            pose.orientation.y = -data.rotation.x
-            pose.orientation.z = data.rotation.y
+            pose.position.x = data.translation.x
+            pose.position.y = data.translation.y
+            pose.position.z = data.translation.z
+            pose.orientation.x = data.rotation.x
+            pose.orientation.y = data.rotation.y
+            pose.orientation.z = data.rotation.z
             pose.orientation.w = data.rotation.w
 
             self.get_logger().debug(f"Tracking camera pose: {pose}", throttle_duration_sec=1)
