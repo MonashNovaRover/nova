@@ -10,7 +10,7 @@ NODES:
   - science/distance_publisher.py       [distance_data]
   - science/spectrometer_publisher.py   [spectrometer_data]
   - science/EMC_publisher.py            [emc_data]
-  - science/kiln_mass_publisher.py      [kiln_mass_data]
+  - science/kiln_data_publisher.py      [kiln_mass_data, kiln_temp_data]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	core
 CREATION:	17/12/2021
