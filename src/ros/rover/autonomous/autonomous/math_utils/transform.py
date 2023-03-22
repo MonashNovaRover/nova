@@ -20,6 +20,7 @@ Raw data from the depth camera:
 
 
 import numpy as np
+import copy
 from geometry_msgs.msg import Quaternion, Transform, Pose
 from quaternions import Quaternion as MathQuaternion
 
@@ -122,6 +123,7 @@ def transform_from_quat(q: Quaternion, pts: np.array) -> np.array:
     mat = get_extrinsics(q_mat)
     if len(pts) != 0:
         pts = np.matmul(mat, pts.transpose()).transpose()
+
     return pts
 
 
@@ -155,6 +157,24 @@ def quaternion_multiply(quat0: Quaternion, quat1: Quaternion) -> Quaternion:
     ret_q.w, ret_q.x, ret_q.y, ret_q.z = q.real, q.i, q.j, q.k
     return ret_q
 
+def quaternion_right_divide(quat0: Quaternion, quat1: Quaternion) -> Quaternion:
+    """
+    Returns the quotient of a quaternion division, inverting the second quaternion then multiplying
+    """
+    quat1 = copy.deepcopy(quat1)
+    quat1.w = -quat1.w
+    return quaternion_multiply(quat0, quat1)
+
+
+def quaternion_left_divide(quat0: Quaternion, quat1: Quaternion) -> Quaternion:
+    """
+    Returns the quotient of a quaternion division, inverting the second quaternion then multiplying
+    """
+    quat0 = copy.deepcopy(quat0)
+    quat0.w = -quat0.w
+    return quaternion_multiply(quat0, quat1)
+
+
 def transform_pose(pose: Pose, transform: Transform) -> Pose:
     """
     Transform a pose message according to a transform
@@ -179,14 +199,23 @@ def offset_transform(transform: Transform, offset: Transform):
     TODO: combine offset and transform quaternions to allow rotated offsets
     """
     transformed = Transform()
-    # rotation is the same in all frames
-    transformed.rotation = transform.rotation
+    non_offset_transform = Transform()
+
+    # quaternion multiplication to transform rotation into frame
+    transform_rotation_in_offset_frame = quaternion_left_divide(offset.rotation, transform.rotation)
+    transformed.rotation = quaternion_multiply(transform_rotation_in_offset_frame, offset.rotation)
+    non_offset_transform.rotation = transformed.rotation
+    
+    # rotate translation into correct frame
+    translation_point = np.array([transform.translation.x, transform.translation.y, transform.translation.z])
+    non_offset_transform.translation.x, non_offset_transform.translation.y, non_offset_transform.translation.z = \
+        transform_from_quat(transform.rotation, translation_point)
 
     # transform to offset frame
     external_point = -np.array([offset.translation.x, offset.translation.y, offset.translation.z])
 
     # do transform
-    transformed_point = transform_points(transform, external_point).flatten()
+    transformed_point = transform_points(non_offset_transform, external_point).flatten()
 
     # undo transformed offset to get back to original frame
     transformed.translation.x, transformed.translation.y, transformed.translation.z = transformed_point - external_point
