@@ -55,6 +55,7 @@ alias jetson='ssh -Y nvidia@192.168.1.204'
 alias jetson_wifi='ssh -Y nvidia@tegra-ubuntu'
 alias j2='ssh -Y nvidia@192.168.1.204'
 alias j2_wifi='ssh -Y nvidia@192.168.0.104'
+alias comp='. ~/nova_ws/src/rover/core/macros/comp.sh'
 
 # GUI Aliases
 alias wombat='cd ~/nova_ws/src/gui/wombatx; npm run start'
