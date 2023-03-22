@@ -9,7 +9,6 @@ CREATION:    18/03/2023
 EDITED:      22/03/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
-import json
 import math
 import rclpy
 from rclpy.node import Node

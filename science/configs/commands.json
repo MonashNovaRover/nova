@@ -23,7 +23,7 @@
           "args": []
         },
 
-        "big_kiln_heater_1": {
+        "big_kiln_heater": {
           "hex": "08",
           "args": ["enabled"]
         },
@@ -53,7 +53,7 @@
           "args": []
         },
 
-        "big_kiln_heater_2": {
+        "big_kiln_heater": {
           "hex": "08",
           "args": ["enabled"]
         },
