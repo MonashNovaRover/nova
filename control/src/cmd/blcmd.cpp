@@ -192,7 +192,7 @@ void BLCMD::drive (float value)
 
 
 void BLCMD::packet1_callback(org::jcan::Frame frame) {
-    telemetry.rotor_velocity = int16_bytes_to_double(&frame.data[0]);
+    telemetry.rotor_velocity = (direction ? -1 : 1 ) * int16_bytes_to_double(&frame.data[0]);
     telemetry.q_current = int16_bytes_to_double(&frame.data[2]);
 }
 
