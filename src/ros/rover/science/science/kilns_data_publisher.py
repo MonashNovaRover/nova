@@ -61,8 +61,7 @@ class KilnMassDataPublisher(Node):
         self.bus = jcan.Bus()
 
         # Set filter IDs and callbacks.
-        self.bus.set_id_filter([0x4A1, 0x4B1, 0x4C3])
-        self.bus.add_callback(0x4A1, self.get_mass_callback(0x4A1))
+        self.bus.set_id_filter([0x4B1, 0x4C3])
         self.bus.add_callback(0x4B1, self.get_mass_callback(0x4B1))
         self.bus.add_callback(0x4C3, self.get_temp_callback())  
 
@@ -75,9 +74,8 @@ class KilnMassDataPublisher(Node):
         self.polling_status = False
         self.polling_interval = 20
 
-        # initialise kiln mass message
-        self.mass_kiln_id = 0
-        self.mass = 0.
+        # initialise kiln data 
+        self.masses = [0., 0., 0.]
         self.temps = [0., 0., 0., 0.]
 
         # polling times set
@@ -95,14 +93,12 @@ class KilnMassDataPublisher(Node):
         """
         def callback(frame):
             # Data returned is a byte list. First byte is the kiln ID, other bytes is the remaining data.
-            if id == 0x4A1:
-                self.mass = convert_to_grams(frame.data[1:])  
-                self.mass_kiln_id = 0
-
-            elif id == 0x4B1:
-                self.mass = convert_to_grams(frame.data[1:])
-                self.mass_kiln_id = int(frame.data[0])
+            try:
+                id = int(frame.data[0])
+                self.masses[id-1] = convert_to_grams(frame.data[1:])
                 self.get_logger().info(f"\033[92;1mMass Data packet received from canbus.\033[0m")
+            except Exception as e:
+                self.get_logger().error(f"\033[91;1mMass data packet failed and threw an error: {e}\033[0m")
                 
         return callback
     
@@ -114,29 +110,30 @@ class KilnMassDataPublisher(Node):
         """
         def callback(frame):
             # Data returned is a byte list. First byte is the kiln ID, other bytes is the remaining data.
-            id = int(frame.data[0])                
-            self.temps[id-1] = convert_to_celcius(frame.data[1:])
+            try:
+                id = int(frame.data[0])
+                self.temps[id-1] = convert_to_celcius(frame.data[1:])
+            except Exception as e:
+                self.get_logger().error(f"\033[91;1mMass data packet failed and threw an error: {e}\033[0m")
+            
         return callback
     
     
     def publish_data(self):
         # Publish mass message data.
         if self.polled:
-            msg = KilnMassData()
-            msg.id = self.mass_kiln_id
-            msg.mass = self.mass
-            msg.header.stamp = self.get_clock().now().to_msg()
-
-            self.mass_publisher.publish(msg)
-            self.polled = False
+            for i in range(len(self.masses)):
+                msg = KilnMassData()
+                msg.id = i + 1
+                msg.mass = self.masses[i]
+                self.mass_publisher.publish(msg)
+                self.polled = False
 
         msg = KilnTempData()
         for i in range(len(self.temps)):
             msg.id = i + 1
             msg.temperature = self.temps[i]
             self.temp_publisher.publish(msg)
-
-            # self.get_logger().info(f"\033[92;1mTemp Data for {i}: {msg.temperature}.\033[0m")
 
 
     def poll_load_cell(self, ex_now=False):
