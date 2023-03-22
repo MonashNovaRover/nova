@@ -72,16 +72,12 @@ class KilnMassDataPublisher(Node):
         self.polling_data_timer = self.create_timer(1, self.poll_load_cell)
 
         # create status
-        self.polling_status = True
+        self.polling_status = False
         self.polling_interval = 20
-
-        # create starting time to deduct
-        self.start_time = self.get_clock().now()
 
         # initialise kiln mass message
         self.mass_kiln_id = 0
         self.mass = 0.
-        self.data_interval = 0
         self.temps = [0., 0., 0., 0.]
 
         # polling times set
@@ -102,12 +98,10 @@ class KilnMassDataPublisher(Node):
             if id == 0x4A1:
                 self.mass = convert_to_grams(frame.data[1:])  
                 self.mass_kiln_id = 0
-                self.data_interval = int((self.get_clock().now() - self.start_time).nanoseconds/1e9)
 
             elif id == 0x4B1:
                 self.mass = convert_to_grams(frame.data[1:])
                 self.mass_kiln_id = int(frame.data[0])
-                self.data_interval = int((self.get_clock().now() - self.start_time).nanoseconds/1e9)
                 self.get_logger().info(f"\033[92;1mMass Data packet received from canbus.\033[0m")
                 
         return callback
@@ -131,7 +125,7 @@ class KilnMassDataPublisher(Node):
             msg = KilnMassData()
             msg.id = self.mass_kiln_id
             msg.mass = self.mass
-            msg.interval = self.data_interval
+            msg.header.stamp = self.get_clock().now().to_msg()
 
             self.mass_publisher.publish(msg)
             self.polled = False
@@ -145,7 +139,7 @@ class KilnMassDataPublisher(Node):
             # self.get_logger().info(f"\033[92;1mTemp Data for {i}: {msg.temperature}.\033[0m")
 
 
-    def poll_load_cell(self):
+    def poll_load_cell(self, ex_now=False):
         # Poll only if enabled.
         if self.polling_status:
             now = self.get_clock().now()
@@ -153,7 +147,7 @@ class KilnMassDataPublisher(Node):
             poll_interval: Duration = Duration(seconds=self.polling_interval)
             # Check if the duration has been longer than the interval set by GUI.
             # Purpose: Avoid polling too often.
-            if duration >= poll_interval:
+            if ex_now or duration >= poll_interval:
                 self.get_logger().info("\033[92;1mPolling load cell.\033[0m")
                 # Biln 1
                 self.bus.send(jcan.Frame(0x0B0, [0x0D, 0x01]))
@@ -170,9 +164,8 @@ class KilnMassDataPublisher(Node):
             self.polling_status = request.enabled
             self.polling_interval = request.interval
 
-            response.success = True
-            self.get_logger().info(f"\033[1;92m\nLoad Cell Poll Success! Polling status: {self.polling_status}; interval:{self.polling_interval}\033[0m")
-
+            response.success = True            
+            self.poll_load_cell(ex_now=True)
         
         # If an error occurred
         except Exception as e:
