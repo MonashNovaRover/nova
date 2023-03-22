@@ -18,26 +18,6 @@
           "args": ["speed"]
         },
 
-        "pump_motor_forwards": {
-          "hex": "03",
-          "args": ["enabled"]
-        },
-
-        "pump_motor_backwards": {
-          "hex": "04",
-          "args": ["enabled"]
-        },
-
-        "motor_3_forwards": {
-          "hex": "05",
-          "args": ["speed"]
-        },
-
-        "motor_3_backwards": {
-          "hex": "06",
-          "args": ["speed"]
-        },
-
         "stop_all_heaters": {
           "hex": "07",
           "args": []
@@ -48,7 +28,7 @@
           "args": ["enabled"]
         },
 
-        "big_kiln_heater_2": {
+        "baby_kiln_1_heater": {
           "hex": "09",
           "args": ["enabled"]
         },
@@ -56,11 +36,6 @@
         "fan": {
           "hex": "0C",
           "args": ["enabled"]
-        },
-
-        "load_cell": {
-          "hex": "0D",
-          "args": ["action"]
         },
 
         "rotate_kiln": {
@@ -78,23 +53,18 @@
           "args": []
         },
 
-        "big_kiln_heater_3": {
+        "big_kiln_heater_2": {
           "hex": "08",
           "args": ["enabled"]
         },
 
-        "baby_kiln_1_heater": {
+        "baby_kiln_2_heater": {
           "hex": "09",
           "args": ["enabled"]
         },
 
-        "baby_kiln_2_heater": {
-          "hex": "0A",
-          "args": ["enabled"]
-        },
-
         "baby_kiln_3_heater": {
-          "hex": "0B",
+          "hex": "0A",
           "args": ["enabled"]
         },
 
@@ -113,34 +83,24 @@
           "args": []
         },
 
-        "motor_1_forwards": {
+        "pump_forwards_1": {
           "hex": "01",
-          "args": ["speed"]
+          "args": ["enabled"]
         },
 
-        "motor_1_backwards": {
+        "pump_backwards_1": {
           "hex": "02",
-          "args": ["speed"]
+          "args": ["enabled"]
         },
 
-        "motor_2_forwards": {
+        "pump_forwards_2": {
           "hex": "03",
           "args": ["enabled"]
         },
 
-        "motor_2_backwards": {
+        "pump_backwards_2": {
           "hex": "04",
           "args": ["enabled"]
-        },
-
-        "motor_3_forwards": {
-          "hex": "05",
-          "args": ["speed"]
-        },
-
-        "motor_3_backwards": {
-          "hex": "06",
-          "args": ["speed"]
         }
       }
     },
@@ -183,7 +143,7 @@
     "off": "00",
     "on": "01",
     "cycle": "02",
-    "pump_on": "64",
+    "pump_on": "C9",
     "tare_kiln": "00",
     "read_kiln": "01",
     "tare_biln_1": "00",
