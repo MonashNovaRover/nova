@@ -17,14 +17,15 @@ from rclpy.duration import Duration
 import jcan
 
 # import custom messages
-from core.msg import KilnMassData, KilnMassPollingStatus, KilnTempData
+from core.msg import KilnMassData, KilnTempData
 from core.srv import LoadCellPoller
 
 # Constants for temperature conversion.
-SERIES_RESISTOR = 10000     # Might change.
+SERIES_RESISTOR = 100000    # Might change.
 R_0 = 10000                 # Resistance value (10K resistor)
-T_0 = 298                   # Outside temp in K
+T_0 = 25                    # Outside temp in K
 B_COEFFICIENT = 3950        # Dependent on series resistor
+KELV = 273.15
 
 
 def convert_to_grams(data):
@@ -32,10 +33,10 @@ def convert_to_grams(data):
 
 
 def convert_to_celcius(data):
-    byte_int = int.from_bytes(bytes(data), "big", signed=True)
+    byte_int = int.from_bytes(bytes(data), "big", signed=False)
     analog = SERIES_RESISTOR / (1023 / byte_int - 1)
-    steinhart = math.log(analog / R_0) / B_COEFFICIENT + (1 / T_0)
-    return 1 / steinhart - 273.15
+    steinhart = math.log(analog / R_0) / B_COEFFICIENT + (1 / (T_0 + KELV))
+    return 1 / steinhart - KELV
 
 
 class KilnMassDataPublisher(Node):
@@ -81,8 +82,7 @@ class KilnMassDataPublisher(Node):
         self.mass_kiln_id = 0
         self.mass = 0.
         self.data_interval = 0
-        self.temp_kiln_id = 0
-        self.temp = 0.
+        self.temps = [0., 0., 0., 0.]
 
         # polling times set
         self.last_time = self.get_clock().now()
@@ -120,10 +120,8 @@ class KilnMassDataPublisher(Node):
         """
         def callback(frame):
             # Data returned is a byte list. First byte is the kiln ID, other bytes is the remaining data.
-            self.temp = convert_to_celcius(frame.data[1:])
-            self.temp_kiln_id = int(frame.data[0])
-            self.get_logger().info(f"\033[92;1mTemp Data packet received from canbus.\033[0m")
-                
+            id = int(frame.data[0])                
+            self.temps[id-1] = convert_to_celcius(frame.data[1:])
         return callback
     
     
@@ -139,11 +137,12 @@ class KilnMassDataPublisher(Node):
             self.polled = False
 
         msg = KilnTempData()
-        msg.id = self.temp_kiln_id
-        msg.temperature = self.temp
-        self.get_logger().info(f"\033[92;1mTemp Data {self.temp}.\033[0m")
+        for i in range(len(self.temps)):
+            msg.id = i + 1
+            msg.temperature = self.temps[i]
+            self.temp_publisher.publish(msg)
 
-        self.temp_publisher.publish(msg)
+            # self.get_logger().info(f"\033[92;1mTemp Data for {i}: {msg.temperature}.\033[0m")
 
 
     def poll_load_cell(self):
@@ -166,29 +165,14 @@ class KilnMassDataPublisher(Node):
                 self.polled = True
 
 
-    def check_poll_status_callback(self, msg: KilnMassPollingStatus):
-        # If polling interval changes, reset timer.
-        if self.polling_interval != msg.interval:
-            self.last_time = self.get_clock().now()
-
-        # If enabling graph, set the start time for deduction.
-        if msg.enabled and not self.polling_status:
-            self.start_time = self.get_clock().now()
-        
-        self.polling_status = msg.enabled
-        self.polling_interval = msg.interval
-
-
-    def load_cell_callback_func(self, request, response):
+    def load_cell_callback_func(self, request: LoadCellPoller.Request(), response: LoadCellPoller.Response()):
         try:
-            # Reads the command
-            is_enabled = json.loads(request.enabled)
-            interval = json.loads(request.interval)
-            
-            self.polling_status = is_enabled
-            self.polling_interval = interval
+            self.polling_status = request.enabled
+            self.polling_interval = request.interval
 
             response.success = True
+            self.get_logger().info(f"\033[1;92m\nLoad Cell Poll Success! Polling status: {self.polling_status}; interval:{self.polling_interval}\033[0m")
+
         
         # If an error occurred
         except Exception as e:
