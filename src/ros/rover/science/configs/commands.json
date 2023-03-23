@@ -33,7 +33,7 @@
           "args": ["enabled"]
         },
 
-        "fan": {
+        "pump_forwards": {
           "hex": "0C",
           "args": ["enabled"]
         },
@@ -81,26 +81,6 @@
         "stop_all_motors": {
           "hex": "00",
           "args": []
-        },
-
-        "pump_forwards_1": {
-          "hex": "01",
-          "args": ["enabled"]
-        },
-
-        "pump_backwards_1": {
-          "hex": "02",
-          "args": ["enabled"]
-        },
-
-        "pump_forwards_2": {
-          "hex": "03",
-          "args": ["enabled"]
-        },
-
-        "pump_backwards_2": {
-          "hex": "04",
-          "args": ["enabled"]
         }
       }
     },
@@ -143,7 +123,6 @@
     "off": "00",
     "on": "01",
     "cycle": "02",
-    "pump_on": "C9",
     "tare_kiln": "00",
     "read_kiln": "01",
     "tare_biln_1": "00",
