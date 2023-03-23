@@ -31,13 +31,6 @@ def convert_to_grams(data):
     return int.from_bytes(bytes(data), "big", signed=True)/1000
 
 
-def convert_to_celcius(data):
-    byte_int = int.from_bytes(bytes(data), "big", signed=False)
-    analog = SERIES_RESISTOR / (1023 / byte_int - 1)
-    steinhart = math.log(analog / R_0) / B_COEFFICIENT + (1 / (T_0 + KELV))
-    return 1 / steinhart - KELV
-
-
 class KilnMassDataPublisher(Node):
 
     def __init__(self):
@@ -95,7 +88,6 @@ class KilnMassDataPublisher(Node):
             try:
                 id = int(frame.data[0])
                 self.masses[id] = convert_to_grams(frame.data[1:])
-                self.get_logger().info(f"\033[92;1mMass Data packet received from canbus for ID: {id} and mass: {self.masses[id]}.\033[0m")
             except Exception as e:
                 self.get_logger().error(f"\033[91;1mMass data packet failed and threw an error: {e}\033[0m")
                 
@@ -111,7 +103,7 @@ class KilnMassDataPublisher(Node):
             # Data returned is a byte list. First byte is the kiln ID, other bytes is the remaining data.
             try:
                 id = int(frame.data[0])
-                self.temps[id-1] = convert_to_celcius(frame.data[1:])
+                self.temps[id-1] = int(frame.data[1:])
             except Exception as e:
                 self.get_logger().error(f"\033[91;1mTemp data packet failed and threw an error: {e}\033[0m")
             
@@ -123,10 +115,12 @@ class KilnMassDataPublisher(Node):
         if self.polled:
             for i in range(len(self.masses)):
                 msg = KilnMassData()
-                msg.id = i
+                msg.id = i + 1
                 msg.mass = self.masses[i]
                 self.mass_publisher.publish(msg)
                 self.polled = False
+                self.get_logger().info(f"\033[92;1mPublishing data for ID: {msg.id} and mass: {msg.mass}.\033[0m")
+
 
         msg = KilnTempData()
         for i in range(len(self.temps)):
