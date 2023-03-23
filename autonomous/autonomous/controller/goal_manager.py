@@ -40,7 +40,7 @@ from tf2_ros import Buffer, TransformListener
 from core.msg import AlvarMarker, AlvarMarkers, AutonomousGoal
 from visualization_msgs.msg import MarkerArray, Marker
 from geometry_msgs.msg import PoseStamped, Pose, Transform, Pose2D
-from std_msgs.msg import String, Empty
+from std_msgs.msg import String, Empty, ColorRGBA
 
 # nova imports
 import autonomous.math_utils.transform as transform
@@ -57,6 +57,24 @@ COLOR_VECTORS = {
     "GREEN": np.array([80., 165.]) / 360,
     "BLUE": np.array([175., 265.]) / 360,
 }
+
+IDEAL_VECTORS = {
+    "RED": [1.0, 0.0, 0.0],
+    "YELLOW":[1.0, 1.0, 0.0],
+    "GREEN": [0.0, 1.0, 0.0],
+    "BLUE": [0.0, 0.0, 1.0],
+    "WHITE": [1.0, 1.0, 1.0],
+} 
+
+COLOUR_IDS = {
+    "RED": 0,
+    "YELLOW": 1,
+    "GREEN": 2,
+    "BLUE": 3,
+    "WHITE": 4,
+}
+
+
 
 
 class GoalManager(Node):
@@ -470,9 +488,65 @@ class GoalManager(Node):
         Publishes the found blocks and tags
         """
         for color, pos in self.found_blocks.items():
-            pass
+            msg = self.found_block_msg(color, pos)
+            self.pub_confirmed_targets.publish(msg)
         for _id, pos in self.found_tags.items():
-            pass
+            msg = self.found_tag_msg(_id, pos)
+            self.pub_confirmed_targets.publish(msg)
+
+
+    def found_block_msg(self, color_name: str, pos: List[float]) -> Marker:
+        """
+        Finalises a block
+        """
+        msg = Marker()
+        pose = Pose()
+        pose.position.x = pos[0]
+        pose.position.y = pos[1]
+        pose.position.z = 0.0
+        pose.orientation.w = 1.0
+        msg.pose = pose
+        msg.type = Marker.CUBE
+        msg.scale.x = .1
+        msg.scale.y = .1
+        msg.scale.z = .1
+        color = ColorRGBA()
+        color.r = IDEAL_VECTORS[color_name][0]
+        color.g = IDEAL_VECTORS[color_name][1]
+        color.b = IDEAL_VECTORS[color_name][2]
+        color.a = 1.
+        msg.color = color
+        msg.header.frame_id = "local_map"
+        msg.header.stamp = self.get_clock().now().to_msg()
+        # Namespace - raw messages can be separated from confirmed cubes
+        msg.ns = "completed"
+        msg.id = COLOUR_IDS[color_name]
+     
+        return msg
+    
+    def found_tag_msg(self, tag_id: str, pos: List[float]) -> Marker:
+        """
+        Finalises a block
+        """
+        msg = Marker()
+        pose = Pose()
+        pose.position.x = pos[0]
+        pose.position.y = pos[1]
+        pose.position.z = 0.0
+        pose.orientation.w = 1.0
+        msg.pose = pose
+        msg.type = Marker.TEXT_VIEW_FACING
+        msg.scale.x = .1
+        msg.scale.y = .1
+        msg.scale.z = .1
+        msg.header.frame_id = "local_map"
+        msg.header.stamp = self.get_clock().now().to_msg()
+        # Namespace - raw messages can be separated from confirmed cubes
+        msg.ns = "completed"
+        msg.id = len(COLOUR_IDS) + int(tag_id)
+
+        msg.text = str(tag_id)
+        return msg
 
     def handle_targets(self):
         if self.new_blocks:
