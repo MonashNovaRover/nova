@@ -48,7 +48,7 @@ class PoseConverter(Node):
     def __init__(self):
         super().__init__("pose_converter")
         # way-point publisher publishes a bunch of waypoints at once (hence using the 2D map datatype
-        self.get_logger().set_level(logging.INFO)
+        self.get_logger().set_level(logging.DEBUG)
 
         self.param_do_ORB_SLAM3 = self.declare_parameter("do_orbslam", False).value
         self.param_base_link_rate = self.declare_parameter("base_link_pub_rate_hz", 20).value
@@ -146,7 +146,6 @@ class PoseConverter(Node):
         # Static transform from base_link to t265 frame
         try:
             t265_offset = self.tf_buffer.lookup_transform('base_link', 't265', Time()).transform
-            t265_flattening_offset = self.tf_buffer.lookup_transform('base_link', 't265_flattening', Time()).transform
         except Exception as e:
             self.get_logger().warn(str(e), once=True)
             return
@@ -177,8 +176,9 @@ class PoseConverter(Node):
             return
 
         tf_stamped : TransformStamped = self.translate_to_base_link(self.last_pose)
-        self.get_logger().debug(f"Transformed to base_link: \n{self.last_pose}\n{tf_stamped}")
-        self.tf_base_link.sendTransform(tf_stamped)
+        if tf_stamped is not None:
+            self.get_logger().debug(f"Transformed to base_link: \n{self.last_pose}\n{tf_stamped}")
+            self.tf_base_link.sendTransform(tf_stamped)
 
 
 def main():
