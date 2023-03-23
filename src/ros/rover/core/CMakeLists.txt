@@ -65,6 +65,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/BLCMDStatus.msg"
   "msg/BLCMDStatusArray.msg"
   "msg/BLCMDReset.msg"
+  "msg/ActuatorLimit.msg"
 
   "srv/ArmConfigInfo.srv"
   "srv/CameraCommand.srv"

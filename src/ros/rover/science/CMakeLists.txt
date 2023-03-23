@@ -53,6 +53,7 @@ install(PROGRAMS
   science/EMC_publisher.py
   science/kilns_data_publisher.py
   science/spectrometer_publisher.py
+  science/actuator_limit_publisher.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
