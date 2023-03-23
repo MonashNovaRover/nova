@@ -54,7 +54,7 @@ class TemplateNode(Node):
         self.param_wheel_offsets = self.declare_parameter("pivot_angle_offsets_rad", [-ANGLE_OFFSET, -ANGLE_OFFSET, -ANGLE_OFFSET, -ANGLE_OFFSET]).value
         self.param_wheels_reversed = self.declare_parameter("pivot_angle_reversed", [True, False, True, False]).value
 
-        self.latest_telemetry = None
+        self.latest_telemetry = self.empty_telemetry()
 
         self.pivot_angles_rad = np.zeros(4)
         self.wheel_vels_m_s = np.zeros(4)
@@ -63,6 +63,15 @@ class TemplateNode(Node):
         timer_period = 0.05  # run the timer 10 times per second
         self.create_timer(timer_period, self.construct_vectors)
 
+    def empty_telemetry(self):
+        msg = Telemetry()
+        wheels = [SingleTelemetry() for _ in range(4)]
+        pivots = [SingleTelemetry() for _ in range(4)]
+        msg.pivots = pivots
+        msg.wheels = wheels
+        return msg
+       
+     
     def telem_callback(self, msg: Telemetry):
         """
         Updates the classes internal msg state

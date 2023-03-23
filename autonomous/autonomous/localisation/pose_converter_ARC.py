@@ -48,7 +48,7 @@ class PoseConverter(Node):
     def __init__(self):
         super().__init__("pose_converter")
         # way-point publisher publishes a bunch of waypoints at once (hence using the 2D map datatype
-        self.get_logger().set_level(logging.INFO)
+        self.get_logger().set_level(logging.DEBUG)
 
         self.param_do_ORB_SLAM3 = self.declare_parameter("do_orbslam", False).value
         self.param_base_link_rate = self.declare_parameter("base_link_pub_rate_hz", 20).value
