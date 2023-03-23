@@ -115,12 +115,11 @@ class KilnMassDataPublisher(Node):
         if self.polled:
             for i in range(len(self.masses)):
                 msg = KilnMassData()
-                msg.id = i + 1
+                msg.id = i
                 msg.mass = self.masses[i]
                 self.mass_publisher.publish(msg)
                 self.polled = False
                 self.get_logger().info(f"\033[92;1mPublishing data for ID: {msg.id} and mass: {msg.mass}.\033[0m")
-
 
         msg = KilnTempData()
         for i in range(len(self.resistances)):
