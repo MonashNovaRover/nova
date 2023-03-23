@@ -47,20 +47,23 @@ def generate_launch_description():
         Node(
             package='tf2_ros',
             node_executable='static_transform_publisher',
-            arguments=[ '0', '0','0', str(-np.pi / 2), '0', str(-np.pi / 2 - np.pi / 18), 'd435_1_forward', 'd435_1'],
+            arguments=[ '0', '0','0', str(-np.pi / 2), '0', str(-np.pi / 2 - np.pi * 8 / 180), 'd435_1_forward', 'd435_1'],
             output='screen',
             emulate_tty=True
         ),
         Node(
             package='tf2_ros',
             node_executable='static_transform_publisher',
-            arguments= ['0', '0', '0', str(-np.pi / 2), '0', str(np.pi / 2 - np.pi / 18), 't265_forward', 't265'],
+            # Although the t265 is mounted at a 10 degree angle, the internal gyroscope accounts for this
+            arguments= ['0', '0', '0', str(-np.pi / 2), '0', str(np.pi / 2), 't265_forward', 't265'],
             output='screen',
             emulate_tty=True
         ),
         Node(
-            package='autonomous',
-            node_executable='tracking_camera.py',
+            package='tf2_ros',
+            node_executable='static_transform_publisher',
+            # Although the t265 is mounted at a 10 degree angle, the internal gyroscope accounts for this
+            arguments= ['0', '0', '0', str(-np.pi / 2), '0', str(np.pi / 2 + np.pi * 8 / 180), 't265_forward', 't265_flattened'],
             output='screen',
             emulate_tty=True
         ),

@@ -146,6 +146,7 @@ class PoseConverter(Node):
         # Static transform from base_link to t265 frame
         try:
             t265_offset = self.tf_buffer.lookup_transform('base_link', 't265', Time()).transform
+            t265_flattening_offset = self.tf_buffer.lookup_transform('base_link', 't265_flattening', Time()).transform
         except Exception as e:
             self.get_logger().warn(str(e), once=True)
             return
