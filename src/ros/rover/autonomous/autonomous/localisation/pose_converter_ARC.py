@@ -32,7 +32,7 @@ from rclpy.node import Node
 from rclpy.time import Time
 from rclpy.duration import Duration
 
-from geometry_msgs.msg import PoseStamped, TransformStamped, Transform, Vector3
+from geometry_msgs.msg import PoseStamped, TransformStamped, Transform, Vector3, Quaternion
 from tf2_ros import TransformBroadcaster, StaticTransformBroadcaster, TransformListener, Buffer
 
 import autonomous.math_utils.transform as transform
@@ -127,6 +127,23 @@ class PoseConverter(Node):
         base_link_transform.transform.rotation.z = 0.0
         self.tf_base_link.sendTransform(base_link_transform)
 
+    def transform_t265_orientation(self, t265_tf: Transform) -> Quaternion:
+        """
+        Rotate the t265 orientation from its own frame to our frame
+        """
+        t265_footprint_to_forward_transform = self.tf_buffer.lookup_transform("t265_forward", "t265_footprint", Time()).transform
+        t265_orientation_in_forward_frame = transform.transform_pose(transform.transform_to_pose(t265_tf), t265_footprint_to_forward_transform).orientation
+        t265_to_forward_transform = self.tf_buffer.lookup_transform("t265", "t265_forward", Time()).transform
+        self.get_logger().warn(
+            f"footprint -> forward: {t265_footprint_to_forward_transform}\n"
+            f"t265 orientation in t265 frame: {t265_tf}\n"
+            f"t265 orientation in forward frame: {t265_orientation_in_forward_frame}\n"
+            f"t265 -> forward: {t265_to_forward_transform}\n"
+        )
+
+        base_link_orientation = transform.quaternion_multiply(t265_orientation_in_forward_frame, t265_to_forward_transform.rotation)
+        self.get_logger().warn(f"Base link orientation: {base_link_orientation}")
+        return base_link_orientation
 
     def callback_t265(self, msg: PoseStamped):
         """
@@ -146,7 +163,6 @@ class PoseConverter(Node):
         # Static transform from base_link to t265 frame
         try:
             t265_offset = self.tf_buffer.lookup_transform('base_link', 't265', Time()).transform
-            t265_flattening_offset = self.tf_buffer.lookup_transform('base_link', 't265_flattening', Time()).transform
         except Exception as e:
             self.get_logger().warn(str(e), once=True)
             return
@@ -159,7 +175,8 @@ class PoseConverter(Node):
         t265_transform.rotation = t265_pose.pose.orientation
 
         base_link_transform = TransformStamped()
-        base_link_transform.transform = transform.offset_transform(t265_transform, t265_offset)
+
+        base_link_transform.transform.rotation = self.transform_t265_orientation(t265_transform)
         base_link_transform.header.stamp = t265_pose.header.stamp
         base_link_transform.header.frame_id = 'initial_base_link'
         base_link_transform.child_frame_id = 'base_link'
@@ -177,8 +194,9 @@ class PoseConverter(Node):
             return
 
         tf_stamped : TransformStamped = self.translate_to_base_link(self.last_pose)
-        self.get_logger().debug(f"Transformed to base_link: \n{self.last_pose}\n{tf_stamped}")
-        self.tf_base_link.sendTransform(tf_stamped)
+        if tf_stamped is not None:
+            self.get_logger().debug(f"Transformed to base_link: \n{self.last_pose}\n{tf_stamped}")
+            self.tf_base_link.sendTransform(tf_stamped)
 
 
 def main():

@@ -174,6 +174,23 @@ def quaternion_left_divide(quat0: Quaternion, quat1: Quaternion) -> Quaternion:
     quat0.w = -quat0.w
     return quaternion_multiply(quat0, quat1)
 
+def transform_to_pose(transform: Transform) -> Pose:
+    """
+    Converts a transform message to a pose message
+    """
+    pose = Pose()
+    pose.position.x, pose.position.y, pose.position.z = transform.translation.x, transform.translation.y, transform.translation.z
+    pose.orientation = transform.rotation
+    return pose
+
+def pose_to_transform(pose: Pose) -> Transform:
+    """
+    Converts a pose message to a transform message
+    """
+    transform = Transform()
+    transform.translation.x, transform.translation.y, transform.translation.z = pose.position.x, pose.position.y, pose.position.z
+    transform.rotation = pose.orientation
+    return transform
 
 def transform_pose(pose: Pose, transform: Transform) -> Pose:
     """
@@ -187,6 +204,45 @@ def transform_pose(pose: Pose, transform: Transform) -> Pose:
     return_pose.orientation = quaternion_multiply(transform.rotation, pose.orientation)
 
     return return_pose
+
+def offset_tracking_cam(tracking_cam_pose: Transform, t265_to_base_link: Transform, t265_flattened_to_base_link: Transform) -> Transform:
+    """
+    Returns the transformation of a fixed pose attached to a transformation
+    :param transform: The transform applied to the coordinate frame
+    :param offset: The offset of the initial frame from the pose being transformed
+    :returns: The offset transform undergone by the point to arrive at its final position
+    NOTE: Currently only works if the offset has no rotation
+    TODO: combine offset and transform quaternions to allow rotated offsets
+    """
+    transformed = Transform()
+    non_offset_transform = Transform()
+
+
+    print(f"t265->base: {t265_to_base_link}")
+    print(f"t265_flatten -> base: {t265_flattened_to_base_link}")
+    print(f"transform rotation: {tracking_cam_pose.rotation}")
+    # quaternion multiplication to transform rotation into frame
+    transform_rotation_in_offset_frame = quaternion_left_divide(t265_flattened_to_base_link.rotation, tracking_cam_pose.rotation)
+    print(f"half transformed rotation = {transform_rotation_in_offset_frame}")
+    transformed.rotation = quaternion_multiply(transform_rotation_in_offset_frame, t265_to_base_link.rotation)
+    print(f"transformed rotation: {transformed.rotation}")
+    non_offset_transform.rotation = transformed.rotation
+
+    # rotate translation into correct frame
+    translation_point = np.array([tracking_cam_pose.translation.x, tracking_cam_pose.translation.y, tracking_cam_pose.translation.z])
+    non_offset_transform.translation.x, non_offset_transform.translation.y, non_offset_transform.translation.z = \
+        transform_from_quat(t265_flattened_to_base_link.rotation, translation_point)
+
+    # transform to offset frame
+    external_point = -np.array([t265_flattened_to_base_link.translation.x, t265_flattened_to_base_link.translation.y, t265_flattened_to_base_link.translation.z])
+
+    # do transform
+    transformed_point = transform_points(non_offset_transform, external_point).flatten()
+
+    # undo transformed offset to get back to original frame
+    transformed.translation.x, transformed.translation.y, transformed.translation.z = transformed_point - external_point
+
+    return transformed
 
 def offset_transform(transform: Transform, offset: Transform):
     """
