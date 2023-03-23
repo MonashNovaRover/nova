@@ -64,7 +64,9 @@ class PoseConverter(Node):
 
         pose_topic = "/slam/pose" if self.param_do_ORB_SLAM3 else "/T265/pose"
         self.sub_pose = self.create_subscription(PoseStamped, pose_topic, self.callback_t265, 10)
-        # current state of internal message
+
+        self.pub_t265_forward_frame = self.create_publisher(PoseStamped, "/localisation/t265_forward_frame", 10)
+        self.pub_t265_frame = self.create_publisher(PoseStamped, "/localisation/t265_frame", 10)
 
         self.get_logger().info("Waiting for transform from 'base_link' to 't265'...")
         while not self.tf_buffer.can_transform('base_link', 't265', Time()):
@@ -131,15 +133,28 @@ class PoseConverter(Node):
         """
         Rotate the t265 orientation from its own frame to our frame
         """
+        t265_forward_frame = PoseStamped()
+        t265_forward_frame.header.frame_id = "t265_forward"
+        t265_forward_frame.header.stamp = self.get_clock().now().to_msg()
+
+        t265_frame = PoseStamped()
+        t265_frame.header.frame_id = "t265_forward"
+        t265_frame.header.stamp = self.get_clock().now().to_msg()
+
         t265_footprint_to_forward_transform = self.tf_buffer.lookup_transform("t265_forward", "t265_footprint", Time()).transform
         t265_orientation_in_forward_frame = transform.transform_pose(transform.transform_to_pose(t265_tf), t265_footprint_to_forward_transform).orientation
+        t265_forward_frame.pose.orientation = t265_orientation_in_forward_frame
         t265_to_forward_transform = self.tf_buffer.lookup_transform("t265", "t265_forward", Time()).transform
+        t265_frame.pose.orientation = t265_to_forward_transform.rotation
         self.get_logger().warn(
             f"footprint -> forward: {t265_footprint_to_forward_transform}\n"
             f"t265 orientation in t265 frame: {t265_tf}\n"
             f"t265 orientation in forward frame: {t265_orientation_in_forward_frame}\n"
             f"t265 -> forward: {t265_to_forward_transform}\n"
         )
+
+        self.pub_t265_forward_frame.publish(t265_forward_frame)
+        self.pub_t265_frame.publish(t265_frame)
 
         base_link_orientation = transform.quaternion_multiply(t265_orientation_in_forward_frame, t265_to_forward_transform.rotation)
         self.get_logger().warn(f"Base link orientation: {base_link_orientation}")
