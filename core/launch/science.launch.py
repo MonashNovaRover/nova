@@ -34,4 +34,6 @@ def generate_launch_description():
         #     package='science', node_executable='EMC_publisher.py', output='screen', emulate_tty=True),
         launch_ros.actions.Node(
             package='science', node_executable='kilns_data_publisher.py', output='screen', emulate_tty=True),
+        launch_ros.actions.Node(
+            package='science', node_executable='actuator_limit_publisher.py', output='screen', emulate_tty=True),
     ])
