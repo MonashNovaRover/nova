@@ -200,13 +200,9 @@ def offset_transform(transform: Transform, offset: Transform):
     transformed = Transform()
     non_offset_transform = Transform()
 
-    print(f"offset: {offset}")
-    print(f"transform rotation: {transform.rotation}")
     # quaternion multiplication to transform rotation into frame
     transform_rotation_in_offset_frame = quaternion_left_divide(offset.rotation, transform.rotation)
-    print(f"half transformed rotation = {transform_rotation_in_offset_frame}")
     transformed.rotation = quaternion_multiply(transform_rotation_in_offset_frame, offset.rotation)
-    print(f"transformed rotation: {transformed.rotation}")
     non_offset_transform.rotation = transformed.rotation
 
     # rotate translation into correct frame
