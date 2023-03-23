@@ -30,10 +30,11 @@ class TrackingCamera(Node):
     def __init__(self, serial_number=t265_serial):
         super().__init__("T265Node")
         # Declare RealSense pipeline, encapsulating the actual device and sensors
-        self.get_logger().set_level(logging.INFO)
+        self.get_logger().set_level(logging.DEBUG)
         self.pipe = rs.pipeline()
 
         self.param_do_odometry = self.declare_parameter("do_odometry", False).value
+        self.get_logger().debug(f"do odometry? {self.param_do_odometry}")
         self.wheel_odometer = None
 
         # Build config object and request pose data
