@@ -78,10 +78,11 @@ class RFIDService(Node):
         '''
         # read until EOM
         self.get_logger().debug('Reading data')
-        num_bytes_to_read = self.ser.in_waiting
-        data = self.ser.read(size=num_bytes_to_read)
+        input_buffer_length = self.ser.in_waiting
+        data = self.ser.read(size=input_buffer_length)
         data = data.strip(self.EOM) # remove EOM from response
         data = data.strip(b'\0') # strip any null chars from data
+        self.get_logger().debug('data')
         print(data) #print raw bytes
         # return as string
         try:
