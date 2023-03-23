@@ -5,4 +5,4 @@
 int8 id
 
 # Kiln Temperature [C]
-float32 temperature
+int32 resistance
