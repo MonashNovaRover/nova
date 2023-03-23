@@ -92,16 +92,13 @@ class TemplateNode(Node):
             for i, pivot in enumerate(self.latest_telemetry.pivots)
         ]
 
-        print(self.pivot_angles_rad)
         # Construct vectors from velocities and angles
         self.wheel_vectors = np.array([[vel * math.cos(angle), vel * math.sin(angle)] for vel, angle in zip(self.wheel_vels_m_s, self.pivot_angles_rad)])
-        print(self.wheel_vectors)
 
         # average left and right wheel vectors to get imagined wheel velocity beside the centre of the wheel base
         left_wheel_vector = np.mean(self.wheel_vectors[0:2], axis=0) 
         right_wheel_vector = np.mean(self.wheel_vectors[2:4], axis=0)
 
-        print(left_wheel_vector, right_wheel_vector)
 
         wheel_odom = WheelOdometry()
         # Transforming to dumb frame

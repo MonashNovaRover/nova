@@ -188,7 +188,6 @@ def transform_pose(pose: Pose, transform: Transform) -> Pose:
 
     return return_pose
 
-
 def offset_transform(transform: Transform, offset: Transform):
     """
     Returns the transformation of a fixed pose attached to a transformation
@@ -201,15 +200,19 @@ def offset_transform(transform: Transform, offset: Transform):
     transformed = Transform()
     non_offset_transform = Transform()
 
+    print(f"offset: {offset}")
+    print(f"transform rotation: {transform.rotation}")
     # quaternion multiplication to transform rotation into frame
     transform_rotation_in_offset_frame = quaternion_left_divide(offset.rotation, transform.rotation)
+    print(f"half transformed rotation = {transform_rotation_in_offset_frame}")
     transformed.rotation = quaternion_multiply(transform_rotation_in_offset_frame, offset.rotation)
+    print(f"transformed rotation: {transformed.rotation}")
     non_offset_transform.rotation = transformed.rotation
-    
+
     # rotate translation into correct frame
     translation_point = np.array([transform.translation.x, transform.translation.y, transform.translation.z])
     non_offset_transform.translation.x, non_offset_transform.translation.y, non_offset_transform.translation.z = \
-        transform_from_quat(transform.rotation, translation_point)
+        transform_from_quat(offset.rotation, translation_point)
 
     # transform to offset frame
     external_point = -np.array([offset.translation.x, offset.translation.y, offset.translation.z])

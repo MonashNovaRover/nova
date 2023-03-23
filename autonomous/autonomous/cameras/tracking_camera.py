@@ -76,7 +76,7 @@ class TrackingCamera(Node):
         Gets the calibration json file from the package and returns it as a char array
         """
         import pkg_resources
-        calib_file = pkg_resources.resource_filename('autonomous', 'cameras/t265_odom.json')
+        calib_file = pkg_resources.resource_filename('autonomous', 'cameras/calibration_odometry.json')
         chars = []
         with open(calib_file, 'r') as f:
             for line in f:

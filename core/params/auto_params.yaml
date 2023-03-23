@@ -45,3 +45,7 @@
         -8.0, -12.0,
         12.0, -10.0
       ]
+
+/T265Node:
+  ros__parameters:
+    do_odometry: true
