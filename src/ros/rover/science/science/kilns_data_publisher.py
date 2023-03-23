@@ -123,7 +123,7 @@ class KilnMassDataPublisher(Node):
 
         msg = KilnTempData()
         for i in range(len(self.resistances)):
-            msg.id = i + 1
+            msg.id = i
             msg.resistance = self.resistances[i]
             self.temp_publisher.publish(msg)
 
