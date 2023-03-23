@@ -103,7 +103,7 @@ class KilnMassDataPublisher(Node):
             # Data returned is a byte list. First byte is the kiln ID, other bytes is the remaining data.
             try:
                 id = int(frame.data[0])
-                self.resistances[id-1] = int(frame.data[1:])
+                self.resistances[id-1] = int.from_bytes(bytes(frame.data[1:]), "big", signed=False)
             except Exception as e:
                 self.get_logger().error(f"\033[91;1mTemp data packet failed and threw an error: {e}\033[0m")
             
@@ -126,6 +126,7 @@ class KilnMassDataPublisher(Node):
             msg.id = i
             msg.resistance = self.resistances[i]
             self.temp_publisher.publish(msg)
+            self.get_logger().info(f"\033[92;1mPublishing data for ID: {msg.id} and temp: {msg.resistance}.\033[0m")
 
 
     def poll_load_cell(self, ex_now=False):
