@@ -30,7 +30,7 @@ class TrackingCamera(Node):
     def __init__(self, serial_number=t265_serial):
         super().__init__("T265Node")
         # Declare RealSense pipeline, encapsulating the actual device and sensors
-        self.get_logger().set_level(logging.DEBUG)
+        self.get_logger().set_level(logging.INFO)
         self.pipe = rs.pipeline()
 
         self.param_do_odometry = self.declare_parameter("do_odometry", False).value

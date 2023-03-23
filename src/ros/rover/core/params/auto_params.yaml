@@ -4,12 +4,12 @@
     initial_base_link_quat:
       # x, y, z, qx, qy, qz, qw
       [
-        1., 1., 0., 0., 0., 1., 0.
+        2., -2., 0., 0., 0., 0., 1.
       ]
     initial_base_link_euler:
       # x, y, z, yaw, pitch, roll
       [
-        0., 0., 0., 0., 0., 0.
+        2., -2., 0., 3.927, 0., 0.
       ]
 
 /GRUC:
@@ -21,10 +21,10 @@
     search_plan:
       # x, y
       [
-        2.0, 2.0,
-        2.0, -2.0,
-        -2.0, -2.0,
-        -2.0, 2.0
+        4.0, 6.0,
+        -2.0, 6.0,
+        -2.0, -6.0,
+        4.0, -6.0
       ]
     tracked_tag_ids:
       [
@@ -32,7 +32,7 @@
       ]
     tracked_block_colors:
       [
-        "RED", "GREEN", "YELLOW", "BLUE", "WHITE"
+        "RED", "GREEN", "YELLOW", "BLUE"
       ]
 
 /height_plane_mapper:

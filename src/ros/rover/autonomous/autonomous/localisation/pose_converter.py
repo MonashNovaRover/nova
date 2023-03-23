@@ -196,7 +196,7 @@ class PoseConverter(Node):
         imu_odom.pose.pose.orientation.z = imu_msg.orientation.z
         imu_odom.pose.pose.orientation.w = imu_msg.orientation.w
 
-        pitch, roll, yaw = transform.quat_to_euler(imu_odom)
+        pitch, roll, yaw = transform.quat_to_euler(imu_odom.pose.pose.orientation)
         yaw -= self.gps_converter.magnetic_declination 
         yaw += 0 if yaw > -np.pi else 2 * np.pi
 

@@ -353,6 +353,7 @@ class GoalManager(Node):
                 # We care about this block and haven't worked out where it is
                 local_map_pose = self.to_local_map(block)
                 if local_map_pose is None or self.pose_not_reasonable(local_map_pose):
+                    self.get_logger().debug(f"pose: {local_map_pose} not reasonable")
                     continue
                 # Append the block's pose to the list of estimated poses
                 if color not in self.unsure_blocks:
@@ -487,13 +488,15 @@ class GoalManager(Node):
         """
         Publishes the found blocks and tags
         """
+        array = MarkerArray()
         for color, pos in self.found_blocks.items():
             msg = self.found_block_msg(color, pos)
-            self.pub_confirmed_targets.publish(msg)
+            array.markers.append(msg)
         for _id, pos in self.found_tags.items():
             msg = self.found_tag_msg(_id, pos)
-            self.pub_confirmed_targets.publish(msg)
+            array.markers.append(msg)
 
+        self.pub_confirmed_targets.publish(array)
 
     def found_block_msg(self, color_name: str, pos: List[float]) -> Marker:
         """
