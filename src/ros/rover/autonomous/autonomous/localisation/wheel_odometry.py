@@ -32,6 +32,7 @@ from rclpy.node import Node
 from core.msg import Telemetry, SingleTelemetry, WheelOdometry
 
 import math
+import logging
 import numpy as np
 
 CHASSIS_WIDTH = 0.7
@@ -42,7 +43,8 @@ ANGLE_OFFSET = math.atan2(CHASSIS_WIDTH, CHASSIS_LENGTH)
 class TemplateNode(Node):
 
     def __init__(self):
-        super().__init__("TemplateNode")
+        super().__init__("wheel_odometer")
+        self.get_logger().set_level(logging.INFO)
         # way-point publisher publishes a bunch of waypoints at once (hence using the 2D map datatype
         self.sub_telemetry = self.create_subscription(Telemetry, "/control/telemetry", self.telem_callback, 10)
 
@@ -62,6 +64,7 @@ class TemplateNode(Node):
 
         timer_period = 0.05  # run the timer 10 times per second
         self.create_timer(timer_period, self.construct_vectors)
+        self.get_logger().info("Wheel odom node up!")
 
     def empty_telemetry(self):
         msg = Telemetry()
@@ -70,7 +73,6 @@ class TemplateNode(Node):
         msg.pivots = pivots
         msg.wheels = wheels
         return msg
-       
      
     def telem_callback(self, msg: Telemetry):
         """
@@ -85,6 +87,7 @@ class TemplateNode(Node):
         Constructs the two vectors for the two imaginary rover wheels on either side of the turning centre
         """
         if self.latest_telemetry is None:
+            self.get_logger().warn("Telemetry not constructed correctly!")
             return
         # Get raw wheel velocities
         self.wheel_vels_m_s = [
@@ -115,6 +118,8 @@ class TemplateNode(Node):
         wheel_odom.left_wheel_vel.x = -left_wheel_vector[1]
         wheel_odom.right_wheel_vel.z = -right_wheel_vector[0]
         wheel_odom.right_wheel_vel.x = -right_wheel_vector[1]
+
+        self.get_logger().debug(f"Publishing wheel odometry: {wheel_odom}")
 
         self.pub_odom.publish(wheel_odom)
 
