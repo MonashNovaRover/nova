@@ -70,7 +70,7 @@ class ServiceNode(Node):
         #declare parameters
         self.declare_parameter("canbus", "can1")
 
-        deadline = Duration(nanoseconds=2e8)
+        deadline = Duration(nanoseconds=5e8)
         events = SubscriptionEventCallbacks(deadline=self.deadline_callback)
         self.qos = QoSProfile(reliability=QoSReliabilityPolicy.BEST_EFFORT, depth=1, deadline=deadline)
         #heartbeat
@@ -110,7 +110,7 @@ class ServiceNode(Node):
 
 
     def deadline_callback(self, deadline_info):
-        self.get_logger().warning("\033[1;91m\nTransmitter 200ms Deadline exceeded!")
+        self.get_logger().warning("\033[1;91m\nTransmitter 500ms Deadline exceeded!")
         self.can_frame_data = self.can_frame_initialisation()
 
 
