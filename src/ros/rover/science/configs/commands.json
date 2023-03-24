@@ -40,7 +40,7 @@
 
         "rotate_kiln": {
           "hex": "0F",
-          "args": []
+          "args": ["speed"]
         }
       }
     },
@@ -123,6 +123,7 @@
     "off": "00",
     "on": "01",
     "cycle": "02",
+    "rotate_on": "70",
     "tare_kiln": "00",
     "read_kiln": "01",
     "tare_biln_1": "00",
