@@ -100,8 +100,8 @@ class Grid2D(Node):
         if obstacles is None: return
         diff = self.get_full_indexes(np.array([[transform.translation.x, transform.translation.y, 0]])).astype(int)
         obstacles = obstacles + diff
-        obstacles = np.array([obs for obs in obstacles if 0 < obs[0] < self.length / self.resolution
-                              and 0 < obs[1] < self.width / self.resolution])
+        obstacles = np.array([obs for obs in obstacles if 0 < obs[0] < int(self.length / self.resolution)
+                              and 0 < obs[1] < int(self.width / self.resolution)])
         if len(obstacles) > 0:
             self.map[obstacles[:, 0], obstacles[:, 1]] = obstacles[:, 2]
 
