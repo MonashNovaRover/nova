@@ -55,7 +55,7 @@ def generate_launch_description():
             package='tf2_ros',
             node_executable='static_transform_publisher',
             # Although the t265 is mounted at a 10 degree angle, the internal gyroscope accounts for this
-            arguments= ['0', '0', '0', str(-np.pi / 2), '0', str(np.pi / 2), 't265_forward', 't265_footprint'],
+            arguments= ['0', '0', '0', '0.5', '-0.5', '-0.5', '0.5', 't265_forward', 't265_footprint'],
             output='screen',
             emulate_tty=True
         ),

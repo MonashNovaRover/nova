@@ -47,7 +47,7 @@ class TrackingCamera(Node):
         if self.param_do_odometry:
             self.setup_odom()
             self.frame_num = 0
-            self.sub_odom = self.create_subscription(WheelOdometry, "/localisation/odometry", self.cb_odom, 10)
+            self.sub_odom = self.create_subscription(WheelOdometry, "/localisation/wheel_odom", self.cb_odom, 10)
 
         # Start streaming
         self.pipe_profile = self.pipe.start(self.cfg)
