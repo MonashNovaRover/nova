@@ -18,16 +18,9 @@ import jcan
 from core.msg import KilnMassData, KilnTempData
 from core.srv import LoadCellPoller
 
-# Constants for temperature conversion.
-SERIES_RESISTOR = 100000    # Might change.
-R_0 = 10000                 # Resistance value (10K resistor)
-T_0 = 25                    # Outside temp in K
-B_COEFFICIENT = 3950        # Dependent on series resistor
-KELV = 273.15
-
 
 def convert_to_grams(data):
-    return int.from_bytes(bytes(data), "big", signed=True)/1000
+    return int.from_bytes(bytes(data), "big", signed=True)/-1000
 
 
 class KilnMassDataPublisher(Node):
