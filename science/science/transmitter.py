@@ -65,6 +65,8 @@ class ServiceNode(Node):
         # Initialise all the data frames as found in commands.json
         self.can_frame_data = self.can_frame_initialisation()
 
+        self.heartbeat_disbaled_action_list = [0x0D, 0x0F]
+
         #declare parameters
         self.declare_parameter("canbus", "can1")
 
@@ -120,7 +122,7 @@ class ServiceNode(Node):
                     success = self.execute_can_msg(arb_id, action_id, arg_id)
                     # TODO: need to adapt this for generic transmitter file and not specific to comp.
                     # Possibly change commands.json file to have a heartbeat checked to true or false.
-                    if success and ((arg_id != "" and int(arg_id, 16) == 0) or (action_id != "" and int(action_id, 16) == 13)):
+                    if success and ((arg_id != "" and int(arg_id, 16) == 0) or (action_id != "" and int(action_id, 16) in self.heartbeat_disbaled_action_list)):
                         self.can_frame_data[arb_id][action_id] = None
         
 
