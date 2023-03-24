@@ -73,7 +73,9 @@ import time
 class DrivingState(Enum):
     TURNING = 0  # doing a 360-degree turn on the spot
     TO_WAYPOINT = 1  # driving to the next waypoint in a path
-    SUCCESS = 2  # Completed driving to the current goal
+    TO_TARGET = 2  # driving to a block or tag
+    FACE_TARGET = 3  # turning to face a block or tag
+    SUCCESS = 4  # Completed driving to the current goal
 
 
 class Controller(Node):
@@ -95,6 +97,7 @@ class Controller(Node):
         self.param_dist_to_targets = self.declare_parameter("dist_to_target_m", 2.5).value
         self.param_dist_to_search_points = self.declare_parameter("dist_to_search_point_m", 0.4).value
         self.param_waypoint_follow_distance = self.declare_parameter("waypoint_follow_distance_m", 0.3).value
+        self.param_goal_facing_threshold = self.declare_parameter("goal_facing_threshold_rad", np.pi/8).value
 
         # ~~~~~~~~~~ State ~~~~~~~~
         self.state_rover_pose = None
@@ -102,7 +105,7 @@ class Controller(Node):
         self.driving_state = DrivingState.SUCCESS
         self.var_latest_steer = 0
         self.turning_mode = TurningMode.TANK if self.param_do_tank_turn else TurningMode.PIVOT
-        self.state_current_planning_destination = None
+        self.state_current_planning_destination : AutonomousGoal = None
         self.num_paths_planned = 0
 
         # Controller classes for turning, driving to waypoints, and spinning
@@ -163,9 +166,19 @@ class Controller(Node):
                 self.on_drive_state_update(DrivingState.TURNING)
             elif current_goal.type == AutonomousGoal.GOAL_TYPE_HONING:
                 self.on_drive_state_update(DrivingState.TO_WAYPOINT)
+            elif current_goal.type in [AutonomousGoal.GOAL_TYPE_BLOCK, AutonomousGoal.GOAL_TYPE_TAG]:
+                self.on_drive_state_update(DrivingState.TO_TARGET)
         elif self.driving_state == DrivingState.TO_WAYPOINT:
             if self.near_current_goal():
                 # Stop driving to goals when we get close to them
+                self.on_drive_state_update(DrivingState.SUCCESS)
+        elif self.driving_state == DrivingState.TO_TARGET:
+            if self.near_current_goal():
+                # Stop driving to goals when we get close to them
+                self.on_drive_state_update(DrivingState.FACE_TARGET)
+        elif self.driving_state == DrivingState.FACE_TARGET:
+            if self.facing_current_goal():
+                # near and facing the current goal, so we can stop
                 self.on_drive_state_update(DrivingState.SUCCESS)
         elif self.driving_state == DrivingState.TURNING:
             if self.ctl_spin.is_completed():
@@ -258,7 +271,7 @@ class Controller(Node):
             return True  # path is only empty if
 
         goal_dist = 0
-        if self.state_current_planning_destination.type in [AutonomousGoal.GOAL_TYPE_BLOCK, AutonomousGoal.GOAL_TYPE_TAG]:
+        if self.driving_state == DrivingState.TO_TARGET:
             goal_dist = self.param_dist_to_targets
         else:
             goal_dist = self.param_dist_to_search_points
@@ -267,6 +280,26 @@ class Controller(Node):
             np.array([self.state_rover_pose.x, self.state_rover_pose.y]),
             end_of_path
         ) < goal_dist
+
+    def facing_current_goal(self) -> bool:
+        """
+        Determines whether our current heading is facing the current goal within a desired threshold
+        :return: True if facing goal, False otherwise
+        """ 
+        goal_vector = np.array(self.state_current_planning_destination.position.x, self.state_current_planning_destination.position.y) 
+        our_pose_vector = np.array(self.state_rover_pose.x, self.state_rover_pose.y)
+        desired_heading_vector = goal_vector - our_pose_vector
+
+        # normalise desired heading
+        desired_heading_vector = desired_heading_vector / np.linalg.norm(desired_heading_vector)
+
+        # get unit vector in direction we are facing
+        current_heading_vector = np.array([np.cos(self.state_rover_pose.theta), np.sin(self.state_rover_pose.theta)])
+
+        # dot product gives angle between vectors
+        angle_between_headings = np.arccos(np.dot(desired_heading_vector, current_heading_vector)) 
+
+        return angle_between_headings < self.param_goal_facing_threshold 
 
     def prune_waypoints(self):
         """
@@ -306,7 +339,7 @@ class Controller(Node):
         self.get_logger().debug(f"desired: {desired_orientation}, current: {current_orientation}, yaw_diff: {yaw_diff}")
 
         speed, steer = self.ctl_driver.get_drive_command(yaw_diff, self.var_latest_steer, position_vector, current_orientation)
-        self.send_drive_cmd(speed, steer)
+        return speed, steer
 
     def control(self):
         """
@@ -318,35 +351,34 @@ class Controller(Node):
         self.drive_mode_state_transition()
         self.get_logger().debug("Controller in driving state: " + str(self.driving_state))
 
+        drive, steer = 0, 0
+
         if self.driving_state == DrivingState.SUCCESS:
             self.get_logger().debug("Controller mode: success")
-            self.send_drive_cmd(0, 0)
-            return
-
-        current_orientation = np.array([np.cos(self.state_rover_pose.theta), np.sin(self.state_rover_pose.theta), 0.])
 
         # -------------------------------------- 0. TURNING ------------------------------
-        if self.driving_state == DrivingState.TURNING:
+        elif self.driving_state == DrivingState.TURNING:
+            self.get_logger().debug("Turning in place")
+            current_orientation = np.array([np.cos(self.state_rover_pose.theta), np.sin(self.state_rover_pose.theta), 0.])
+
             position_vector = np.array([self.state_rover_pose.x, self.state_rover_pose.y])
             drive, steer = self.ctl_spin.turn_in_place(self.var_latest_steer, current_orientation, position_vector=position_vector)
-            self.send_drive_cmd(drive, steer)
-            return
 
         # -------------------------------------- 1. DRIVING ------------------------------
-        path = self.prune_waypoints()
-
-        if self.num_paths_planned < 1:
+        elif self.num_paths_planned < 1:
             self.get_logger().debug("Not enough paths planned")
-            self.send_drive_cmd(0, 0)
-            return
 
-        if self.driving_state == DrivingState.TO_WAYPOINT and len(path) > 0:
-            # can only go to waypoints
-            # Drive to a waypoint
-            self.go_to_target(path[0])
-        elif len(path) == 0:
-            self.get_logger().debug("No more waypoints in path.")
-            self.send_drive_cmd(0, 0)
+        elif self.driving_state in [DrivingState.TO_WAYPOINT, DrivingState.TO_TARGET, DrivingState.FACE_TARGET]:
+            path = self.prune_waypoints()
+            if self.driving_state == DrivingState.FACE_TARGET:
+                self.get_logger().debug("Facing target")
+                drive, steer = self.go_to_target([self.state_current_planning_destination.position.x, self.state_current_planning_destination.position.y])
+            elif len(path) > 0:
+                self.get_logger().debug("Driving to waypoint")
+                drive, steer = self.go_to_target(path[0])
+            else:
+                self.get_logger().debug("No more waypoints in path.")
+        self.send_drive_cmd(drive, steer)
 
     def send_drive_cmd(self, drive_fraction: float, angular_fraction: float):
         """
