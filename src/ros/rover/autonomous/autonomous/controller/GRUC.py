@@ -165,9 +165,11 @@ class Controller(Node):
             if current_goal.type == AutonomousGoal.GOAL_TYPE_SPIN:
                 self.on_drive_state_update(DrivingState.TURNING)
             elif current_goal.type == AutonomousGoal.GOAL_TYPE_HONING:
-                self.on_drive_state_update(DrivingState.TO_WAYPOINT)
+                if not self.near_current_goal():
+                    self.on_drive_state_update(DrivingState.TO_WAYPOINT)
             elif current_goal.type in [AutonomousGoal.GOAL_TYPE_BLOCK, AutonomousGoal.GOAL_TYPE_TAG]:
-                self.on_drive_state_update(DrivingState.TO_TARGET)
+                if not self.near_current_goal() or not self.facing_current_goal():
+                    self.on_drive_state_update(DrivingState.TO_TARGET)
         elif self.driving_state == DrivingState.TO_WAYPOINT:
             if self.near_current_goal():
                 # Stop driving to goals when we get close to them
@@ -286,8 +288,8 @@ class Controller(Node):
         Determines whether our current heading is facing the current goal within a desired threshold
         :return: True if facing goal, False otherwise
         """ 
-        goal_vector = np.array(self.state_current_planning_destination.position.x, self.state_current_planning_destination.position.y) 
-        our_pose_vector = np.array(self.state_rover_pose.x, self.state_rover_pose.y)
+        goal_vector = np.array([self.state_current_planning_destination.position.x, self.state_current_planning_destination.position.y]) 
+        our_pose_vector = np.array([self.state_rover_pose.x, self.state_rover_pose.y])
         desired_heading_vector = goal_vector - our_pose_vector
 
         # normalise desired heading

@@ -65,7 +65,7 @@ class FlatMapper(Mapper):
 
         self.get_logger().set_level(logging.INFO)
         self.param_tf_sub_hz = self.declare_parameter("tf_sub_frequency_hz", 10).value
-        self.param_tf_pub_hz = self.declare_parameter("tf_pub_frequency_hz", 10).value
+        self.param_tf_pub_hz = self.declare_parameter("tf_pub_frequency_hz", 30).value
         self.param_roll_map = self.declare_parameter("roll_map", False).value
         self.param_map_edge_distance = self.declare_parameter("map_edge_dist_m", 3).value
         self.param_map_corners_coords = self.declare_parameter("map_corners_coords", [10, 10, -10, 10, -10, -10, 10, -10]).value

@@ -51,7 +51,7 @@ class PoseConverter(Node):
         self.get_logger().set_level(logging.INFO)
 
         self.param_do_ORB_SLAM3 = self.declare_parameter("do_orbslam", False).value
-        self.param_base_link_rate = self.declare_parameter("base_link_pub_rate_hz", 20).value
+        self.param_base_link_rate = self.declare_parameter("base_link_pub_rate_hz", 30).value
         self.param_use_euler_angles = self.declare_parameter("use_euler", False).value
         self.param_initial_quat = self.declare_parameter("initial_base_link_quat", [0., 0., 0., 0., 0., 0., 1.]).value
         self.param_initial_euler = self.declare_parameter("initial_base_link_euler", [0., 0., 0., 0., 0., 0.]).value
