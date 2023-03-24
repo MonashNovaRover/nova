@@ -20,7 +20,7 @@ from core.srv import LoadCellPoller
 
 
 def convert_to_grams(data):
-    return int.from_bytes(bytes(data), "big", signed=True)/-1000
+    return int.from_bytes(bytes(data), "big", signed=True)/1000
 
 
 class KilnMassDataPublisher(Node):
