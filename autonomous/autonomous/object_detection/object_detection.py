@@ -24,12 +24,14 @@ except Exception:
     from pyrealsense2.pyrealsense2 import intrinsics as Intrinsics
 
 class ObjectDetection(Node):
-    def __init__(self, intrinsics: Intrinsics, frame_id: str = "d435_1", show: bool = False, confidence_threshold: float = 0.6):
+    def __init__(self, intrinsics: Intrinsics, frame_id: str = "d435_1", show: bool = False, confidence_threshold: float = 0.6, pixel_border_threshold = 5):
         """
         Initialise object detection node
         :param intrinsics: intrinsics of the camera
         :param model_path: path to the model
         :param show: whether to show the image (used for testing)
+        :param pixel_border_threshold: if the xmin or ymin is less than this or the xmax>(image_width-this)
+        or ymax>(image_height-this) then the object is not detected. This is to remove common false positives on the border of the image
         """
         super().__init__("object_detector")
         self.get_logger().set_level(logging.INFO)
@@ -43,6 +45,7 @@ class ObjectDetection(Node):
         self.intr = intrinsics
         self.show = show
         self.confidence_threshold = confidence_threshold
+        self.pixel_border_threshold = pixel_border_threshold
 
     def get_marker(self, point, c: tuple, index: int) -> None:
         """
@@ -102,7 +105,11 @@ class ObjectDetection(Node):
                 area_of_interest = color_image[int(ymin):int(ymax), int(xmin):int(xmax)]
                 self.get_logger().debug(f"Center: {cx}, {cy}", throttle_duration_sec=1)
                 depth = depth_frame.get_distance(cx,cy)
-                if depth == 0:
+                # boxes with either zero depth or which are too close to the image border are removed.
+                if depth == 0 or xmin < self.pixel_border_threshold \
+                        or ymin < self.pixel_border_threshold \
+                        or xmax > (color_image.shape[1] - self.pixel_border_threshold) \
+                        or ymax > (color_image.shape[0] - self.pixel_border_threshold):
                     # If there is no good depth for this point, it will appear to have depth 0
                     continue
                 point = rs.rs2_deproject_pixel_to_point(self.intr, [float(cx), float(cy)], depth)
