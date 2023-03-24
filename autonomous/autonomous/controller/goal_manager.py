@@ -89,7 +89,7 @@ class GoalManager(Node):
 
     def __init__(self):
         super().__init__("goal_manager")
-        self.get_logger().set_level(logging.DEBUG)
+        self.get_logger().set_level(logging.INFO)
         # ROS Subscribers
         self.sub_blocks = self.create_subscription(MarkerArray, "/object_detector/markers", self.cb_cube, 10)
         self.sub_tags = self.create_subscription(AlvarMarkers, "/ar_tracker/tags", self.cb_tag, 10)
@@ -107,6 +107,13 @@ class GoalManager(Node):
         self.param_min_reasonable_z = self.declare_parameter("minimum_target_z", -1.0).value
         self.param_map_coords_counterclockwise = self.declare_parameter("map_coords_cc", [10, 10, -10, 10, -10, -10, 10, -10]).value
         self.param_goal_forget_time = self.declare_parameter("goal_forget_time_s", 30).value
+
+        if self.param_search_plan is None:
+            self.param_search_plan = []
+        if self.param_desired_tags is None:
+            self.param_desired_tags = []
+        if self.param_desired_blocks is None:
+            self.param_desired_blocks = []
 
         # ROS Tf2 stuff
         self.tf_buffer = Buffer()
@@ -379,6 +386,8 @@ class GoalManager(Node):
         Called when the robot has reached its current goal
         """
         self.get_logger().info(f"Achieved goal {self.active_goal}")
+        if self.active_goal is None:
+            return
         if self.active_goal.type in [AutonomousGoal.GOAL_TYPE_HONING, AutonomousGoal.GOAL_TYPE_SPIN]:
             if len(self.goals) > 0:
                 self.active_goal = self.goals.pop(0)

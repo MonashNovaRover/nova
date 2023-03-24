@@ -43,7 +43,7 @@ class ObjectDetection(Node):
         self.frame_id = frame_id
         self.get_logger().debug(f"Intrinsics: {intrinsics}")
         self.intr = intrinsics
-        self.show = True
+        self.show = show
         self.confidence_threshold = confidence_threshold
         self.pixel_border_threshold = pixel_border_threshold
 
