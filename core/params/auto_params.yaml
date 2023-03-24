@@ -20,8 +20,8 @@
     search_plan:
       # x, y
       [1.0, 3.0, -4.0, 3.0, -4.0, -3.0, 1.0, -3.0]
-    tracked_tag_ids: []
-    tracked_block_colors: []
+    tracked_tag_ids: [0, 1]
+    tracked_block_colors: ["WHITE", "GREEN"]
 
 /height_plane_mapper:
   ros__parameters:

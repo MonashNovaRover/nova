@@ -34,6 +34,7 @@ import colorsys
 
 from rclpy.node import Node
 from rclpy.time import Time
+from rclpy.duration import Duration
 from tf2_ros import Buffer, TransformListener
 
 # msg types
@@ -143,9 +144,10 @@ class GoalManager(Node):
         self.unsure_blocks : Dict[List] = dict()
         
         timer_period = 0.1  # run the timer 10 times per second
+        rover_pose_period = 1 / 30
         self.create_timer(timer_period, self.handle_targets)
         self.create_timer(timer_period, self.get_current_goal)
-        self.create_timer(timer_period, self.callback_rover_pose)
+        self.create_timer(rover_pose_period, self.callback_rover_pose)
 
     def get_map_edges_from_boundary_points(self):
         """
@@ -241,11 +243,11 @@ class GoalManager(Node):
         Converts a PoseStamped from the camera frame to the local map frame.
         """
         try: 
-            local_map_transform = self.tf_buffer.lookup_transform("local_map", msg.header.frame_id, Time.from_msg(msg.header.stamp)).transform
+            local_map_transform = self.tf_buffer.lookup_transform("local_map", msg.header.frame_id, Time.from_msg(msg.header.stamp), Duration(nanoseconds=1e8)).transform
             local_map_pose = transform.transform_pose(msg.pose, local_map_transform)
             return local_map_pose
-        except:
-            self.get_logger().warn("Could not find transform from camera to local map")
+        except Exception as e:
+            self.get_logger().warn(f"Error translating pose to local map frame: {e}")
             return None
 
     def remove_outlier_pos(self, pos_vals):
@@ -388,7 +390,7 @@ class GoalManager(Node):
         self.get_logger().info(f"Achieved goal {self.active_goal}")
         if self.active_goal is None:
             return
-        if self.active_goal.type in [AutonomousGoal.GOAL_TYPE_HONING, AutonomousGoal.GOAL_TYPE_SPIN]:
+        if self.active_goal.type in [AutonomousGoal.GOAL_TYPE_HONING, AutonomousGoal.GOAL_TYPE_SPIN, AutonomousGoal.GOAL_TYPE_TAG, AutonomousGoal.GOAL_TYPE_BLOCK]:
             if len(self.goals) > 0:
                 self.active_goal = self.goals.pop(0)
             else:
