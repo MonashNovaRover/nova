@@ -133,6 +133,7 @@ class PoseConverter(Node):
         """
         Transform the position and orientation of the t265 to our frame"""
         try:
+            t265_forward_to_t265_footprint : Transform = self.tf_buffer.lookup_transform("t265_forward", "t265_footprint", Time()).transform
             t265_to_t265_footprint : Transform = self.tf_buffer.lookup_transform("t265", "t265_footprint", Time()).transform
             base_link_to_t265_footprint : Transform = self.tf_buffer.lookup_transform("base_link", "t265_footprint", Time()).transform
         except Exception as e:
@@ -140,7 +141,7 @@ class PoseConverter(Node):
             return None
 
         return_transform = Transform()
-        return_transform.rotation = self.transform_t265_orientation(t265_tf, t265_to_t265_footprint, base_link_to_t265_footprint)
+        return_transform.rotation = self.transform_t265_orientation(t265_tf, t265_forward_to_t265_footprint, t265_to_t265_footprint)
         return_transform.translation = self.transform_t265_position(t265_tf, return_transform, base_link_to_t265_footprint)
 
         return return_transform
@@ -173,19 +174,21 @@ class PoseConverter(Node):
         position.x, position.y, position.z = transformed_point - external_point
         return position
 
-    def transform_t265_orientation(self, t265_tf: Transform, t265_to_t265_footprint: Transform, base_link_to_t265_footprint: Transform) -> Quaternion:
+    def transform_t265_orientation(self, t265_tf: Transform, t265_forward_to_t265_footprint: Transform, t265_to_t265_footprint: Transform) -> Quaternion:
         """
         Rotate the t265 orientation from its own frame to our frame
         """
-        # Account for the offset of the tracking camera into the mount
-        flattened_t265_orientation = transform.quaternion_multiply(t265_to_t265_footprint.rotation, t265_tf.rotation)
-        # Conjugate the mount coordinates in t265 frame by the transform to nova frame to get the orientation in nova frame
-        tmp = transform.quaternion_multiply(base_link_to_t265_footprint.rotation, flattened_t265_orientation)
-        base_link_orientation = transform.quaternion_right_divide(tmp, base_link_to_t265_footprint.rotation)
+        p, r, y = transform.quat_to_euler(t265_tf.rotation)
+        _, roll_offset, _ = transform.quat_to_euler(t265_to_t265_footprint.rotation)
+        r += roll_offset
+        flat_rotation = transform.euler_to_quat((p, r, y))
+
+        tmp = transform.quaternion_multiply(t265_forward_to_t265_footprint.rotation, flat_rotation)
+        base_link_orientation = transform.quaternion_right_divide(tmp, t265_forward_to_t265_footprint.rotation)
         self.get_logger().debug(f"t265 transform: {t265_tf}")
-        self.get_logger().debug(f"t265 -> footprint: {t265_to_t265_footprint}")
-        self.get_logger().debug(f"base_link -> footprint: {base_link_to_t265_footprint}")
-        self.get_logger().debug(f"flattened t265: {flattened_t265_orientation}")
+        self.get_logger().debug(f"t265_forward -> footprint: {t265_forward_to_t265_footprint}")
+        self.get_logger().debug(f"p, r, y: {p}, {r}, {y}")
+        self.get_logger().debug(f"roll offset: {roll_offset}")
         self.get_logger().debug(f"tmp: {tmp}")
         self.get_logger().debug(f"Base link orientation: {base_link_orientation}")
         return base_link_orientation

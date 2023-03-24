@@ -44,7 +44,7 @@ class TemplateNode(Node):
 
     def __init__(self):
         super().__init__("wheel_odometer")
-        self.get_logger().set_level(logging.DEBUG)
+        self.get_logger().set_level(logging.INFO)
         # way-point publisher publishes a bunch of waypoints at once (hence using the 2D map datatype
         self.sub_telemetry = self.create_subscription(Telemetry, "/control/telemetry", self.telem_callback, 10)
 
