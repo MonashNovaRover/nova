@@ -202,10 +202,10 @@ class ResolverTransceiver(CANTransceiver):
             # must have crossed between 2*pi and 0
             if self.last_reading == None:
                 self.logger.info(f'Getting initial reading for geared resolver {joint_name}') 
-            elif angle_data - self.last_reading < 3*pi/4:
+            elif angle_data - self.last_reading < -3*pi/4:
                 # Resolver has crossed from 2*pi to 0, so joint is in the next sector
                 self.sector_count = (self.sector_count + 1) % self.gear_ratio
-            elif angle_data - self.last_reading > -3*pi/4:
+            elif angle_data - self.last_reading > 3*pi/4:
                 # Resolver has crossed from 0 to 2*pi, so joint is in the previous sector
                 self.sector_count = (self.sector_count - 1) % self.gear_ratio
             # Update last reading 
