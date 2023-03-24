@@ -9,7 +9,6 @@ CREATION:    18/03/2023
 EDITED:      22/03/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
-import math
 import rclpy
 from rclpy.node import Node
 from rclpy.duration import Duration
@@ -28,7 +27,7 @@ KELV = 273.15
 
 
 def convert_to_grams(data):
-    return int.from_bytes(bytes(data), "big", signed=False)/1000
+    return int.from_bytes(bytes(data), "big", signed=True)/1000
 
 
 class KilnMassDataPublisher(Node):
