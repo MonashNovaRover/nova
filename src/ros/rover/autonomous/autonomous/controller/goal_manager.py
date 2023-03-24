@@ -52,9 +52,9 @@ import time
 
 # Hue ranges for the different block colours except white. Any hue can be white if the lightness is high enough
 COLOR_VECTORS = {
-    "RED": np.array([330., 25.]) / 360,
-    "YELLOW": np.array([25., 75.]) / 360,
-    "GREEN": np.array([80., 165.]) / 360,
+    "RED": np.array([330., 20.]) / 360,
+    "YELLOW": np.array([20., 75.]) / 360,
+    "GREEN": np.array([80., 175.]) / 360,
     "BLUE": np.array([175., 265.]) / 360,
 }
 
@@ -213,7 +213,7 @@ class GoalManager(Node):
         min_rgb = min(r, min(g, b))
         ratio = min_rgb / max_rgb
         color = None
-        if ratio > 0.75 and l > 0.75:
+        if ratio > 0.8 or l > 0.8 or (ratio + l) / 2 > 0.75:
             color = "WHITE"
         else:
             for color_name, range in COLOR_VECTORS.items():
