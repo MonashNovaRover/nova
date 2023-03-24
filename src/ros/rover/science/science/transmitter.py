@@ -119,7 +119,8 @@ class ServiceNode(Node):
                 if arg_id is not None:
                     success = self.execute_can_msg(arb_id, action_id, arg_id)
                     # TODO: need to adapt this for generic transmitter file and not specific to comp.
-                    if success and (int(arg_id, 16) == 0 or (action_id != "" and int(action_id, 16) == 13)):
+                    # Possibly change commands.json file to have a heartbeat checked to true or false.
+                    if success and ((arg_id != "" and int(arg_id, 16) == 0) or (action_id != "" and int(action_id, 16) == 13)):
                         self.can_frame_data[arb_id][action_id] = None
         
 
