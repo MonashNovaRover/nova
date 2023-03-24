@@ -115,7 +115,7 @@ class KilnMassDataPublisher(Node):
         if self.polled:
             for i in range(len(self.masses)):
                 msg = KilnMassData()
-                msg.id = i
+                msg.id = i + 1
                 msg.mass = self.masses[i]
                 self.mass_publisher.publish(msg)
                 self.polled = False
