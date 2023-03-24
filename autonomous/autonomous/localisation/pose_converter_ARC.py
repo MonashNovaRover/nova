@@ -48,7 +48,7 @@ class PoseConverter(Node):
     def __init__(self):
         super().__init__("pose_converter")
         # way-point publisher publishes a bunch of waypoints at once (hence using the 2D map datatype
-        self.get_logger().set_level(logging.DEBUG)
+        self.get_logger().set_level(logging.INFO)
 
         self.param_do_ORB_SLAM3 = self.declare_parameter("do_orbslam", False).value
         self.param_base_link_rate = self.declare_parameter("base_link_pub_rate_hz", 20).value
@@ -128,36 +128,66 @@ class PoseConverter(Node):
         base_link_transform.transform.rotation.y = 0.0
         base_link_transform.transform.rotation.z = 0.0
         self.tf_base_link.sendTransform(base_link_transform)
+    
+    def transform_t265_pose_to_base_pose(self, t265_tf: Transform) -> Transform:
+        """
+        Transform the position and orientation of the t265 to our frame"""
+        try:
+            t265_to_t265_footprint : Transform = self.tf_buffer.lookup_transform("t265", "t265_footprint", Time()).transform
+            base_link_to_t265_footprint : Transform = self.tf_buffer.lookup_transform("base_link", "t265_footprint", Time()).transform
+        except Exception as e:
+            self.get_logger.warn(f"Failed to lookup transform: {e}")
+            return None
 
-    def transform_t265_orientation(self, t265_tf: Transform) -> Quaternion:
+        return_transform = Transform()
+        return_transform.rotation = self.transform_t265_orientation(t265_tf, t265_to_t265_footprint, base_link_to_t265_footprint)
+        return_transform.translation = self.transform_t265_position(t265_tf, return_transform, base_link_to_t265_footprint)
+
+        return return_transform
+
+    def transform_t265_position(self, t265_tf: Transform, non_offset_transform: Transform, base_link_to_t265_footprint: Transform) -> Vector3:
+        """
+        Translate and rotate the position point to our frame
+        """
+        position = Vector3()
+
+        translation_point = np.array([t265_tf.translation.x, t265_tf.translation.y, t265_tf.translation.z])
+        non_offset_transform.translation.x, non_offset_transform.translation.y, non_offset_transform.translation.z = \
+            transform.transform_from_quat(base_link_to_t265_footprint.rotation, translation_point)
+
+        self.get_logger().debug(f"t265 position: {translation_point}")
+        self.get_logger().debug(f"transformed position: {position}")
+
+
+        # transform to offset frame
+        external_point = -np.array([base_link_to_t265_footprint.translation.x, base_link_to_t265_footprint.translation.y, base_link_to_t265_footprint.translation.z])
+        
+        self.get_logger().debug(f"external point: {external_point}")
+
+        # do transform
+        transformed_point = transform.transform_points(non_offset_transform, external_point).flatten()
+
+        self.get_logger().debug(f"transformed point: {transformed_point}")
+
+        # undo transformed offset to get back to original frame
+        position.x, position.y, position.z = transformed_point - external_point
+        return position
+
+    def transform_t265_orientation(self, t265_tf: Transform, t265_to_t265_footprint: Transform, base_link_to_t265_footprint: Transform) -> Quaternion:
         """
         Rotate the t265 orientation from its own frame to our frame
         """
-        t265_forward_frame = PoseStamped()
-        t265_forward_frame.header.frame_id = "t265_forward"
-        t265_forward_frame.header.stamp = self.get_clock().now().to_msg()
-
-        t265_frame = PoseStamped()
-        t265_frame.header.frame_id = "t265_forward"
-        t265_frame.header.stamp = self.get_clock().now().to_msg()
-
-        t265_footprint_to_forward_transform = self.tf_buffer.lookup_transform("t265_forward", "t265_footprint", Time()).transform
-        t265_orientation_in_forward_frame = transform.transform_pose(transform.transform_to_pose(t265_tf), t265_footprint_to_forward_transform).orientation
-        t265_forward_frame.pose.orientation = t265_orientation_in_forward_frame
-        t265_to_forward_transform = self.tf_buffer.lookup_transform("t265", "t265_forward", Time()).transform
-        t265_frame.pose.orientation = t265_to_forward_transform.rotation
-        self.get_logger().warn(
-            f"footprint -> forward: {t265_footprint_to_forward_transform}\n"
-            f"t265 orientation in t265 frame: {t265_tf}\n"
-            f"t265 orientation in forward frame: {t265_orientation_in_forward_frame}\n"
-            f"t265 -> forward: {t265_to_forward_transform}\n"
-        )
-
-        self.pub_t265_forward_frame.publish(t265_forward_frame)
-        self.pub_t265_frame.publish(t265_frame)
-
-        base_link_orientation = transform.quaternion_multiply(t265_orientation_in_forward_frame, t265_to_forward_transform.rotation)
-        self.get_logger().warn(f"Base link orientation: {base_link_orientation}")
+        # Account for the offset of the tracking camera into the mount
+        flattened_t265_orientation = transform.quaternion_multiply(t265_to_t265_footprint.rotation, t265_tf.rotation)
+        # Conjugate the mount coordinates in t265 frame by the transform to nova frame to get the orientation in nova frame
+        tmp = transform.quaternion_multiply(base_link_to_t265_footprint.rotation, flattened_t265_orientation)
+        base_link_orientation = transform.quaternion_right_divide(tmp, base_link_to_t265_footprint.rotation)
+        self.get_logger().debug(f"t265 transform: {t265_tf}")
+        self.get_logger().debug(f"t265 -> footprint: {t265_to_t265_footprint}")
+        self.get_logger().debug(f"base_link -> footprint: {base_link_to_t265_footprint}")
+        self.get_logger().debug(f"flattened t265: {flattened_t265_orientation}")
+        self.get_logger().debug(f"tmp: {tmp}")
+        self.get_logger().debug(f"Base link orientation: {base_link_orientation}")
         return base_link_orientation
 
     def callback_t265(self, msg: PoseStamped):
@@ -191,7 +221,11 @@ class PoseConverter(Node):
 
         base_link_transform = TransformStamped()
 
-        base_link_transform.transform.rotation = self.transform_t265_orientation(t265_transform)
+        transformed = self.transform_t265_pose_to_base_pose(t265_transform)
+        if transformed is not None:
+            base_link_transform.transform = transformed
+        else:
+            return None
         base_link_transform.header.stamp = t265_pose.header.stamp
         base_link_transform.header.frame_id = 'initial_base_link'
         base_link_transform.child_frame_id = 'base_link'

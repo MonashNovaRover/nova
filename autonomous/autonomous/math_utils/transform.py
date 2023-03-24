@@ -152,7 +152,7 @@ def quaternion_multiply(quat0: Quaternion, quat1: Quaternion) -> Quaternion:
     """
     q0 = MathQuaternion(quat0.w, quat0.x, quat0.y, quat0.z)
     q1 = MathQuaternion(quat1.w, quat1.x, quat1.y, quat1.z)
-    q = q1 * q0
+    q = q0 * q1
     ret_q = Quaternion()
     ret_q.w, ret_q.x, ret_q.y, ret_q.z = q.real, q.i, q.j, q.k
     return ret_q
@@ -201,7 +201,7 @@ def transform_pose(pose: Pose, transform: Transform) -> Pose:
     new_pts = transform_points(transform=transform, pts=pts).flatten()
   
     return_pose.position.x, return_pose.position.y, return_pose.position.z = new_pts[0], new_pts[1], new_pts[2]
-    return_pose.orientation = quaternion_multiply(transform.rotation, pose.orientation)
+    return_pose.orientation = quaternion_multiply(pose.orientation, transform.rotation)
 
     return return_pose
 
