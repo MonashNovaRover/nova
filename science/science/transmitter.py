@@ -110,7 +110,7 @@ class ServiceNode(Node):
 
 
     def deadline_callback(self, deadline_info):
-        self.get_logger().warning("\033[1;92m\nTransmitter 200ms Deadline exceeded!")
+        self.get_logger().warning("\033[1;91m\nTransmitter 200ms Deadline exceeded!")
         self.can_frame_data = self.can_frame_initialisation()
 
 
