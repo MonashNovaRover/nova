@@ -28,6 +28,7 @@ private:
 public:
 
   Bus();
+  void open(const char *name);
   void open(const char *name, uint16_t tx_queue_len, uint16_t rx_queue_len);
   
   void set_id_filter(std::vector<uint32_t> allowed_ids);

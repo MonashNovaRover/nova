@@ -51,7 +51,7 @@ BLCMD::BLCMD (const std::string bus, const int id, BLCMDSendCommand drive_mode, 
     can_bus->add_callback_to(make_can_id(PACKET_4), this, &BLCMD::packet4_callback);
 
     // Open the CAN bus
-    can_bus->open(&bus[0], 1024, 1024);
+    can_bus->open(&bus[0]);
 }
 
 
