@@ -70,6 +70,14 @@ def generate_launch_description():
         emulate_tty=True,
         condition=UnlessCondition(from_rosbag)
     )
+    stamp_converter_launch = Node(
+        package="autonomous",
+        node_executable="stamp_converter.py",
+        output="screen",
+        parameters=[core_params_path / "auto_params.yaml"],
+        emulate_tty=True,
+        condition=IfCondition(from_rosbag)
+    )
     pose_converter_launch = Node(
         package="autonomous",
         node_executable="pose_converter_ARC.py",
@@ -105,6 +113,7 @@ def generate_launch_description():
         main_launch,
         tracking_cam_launch,
         depth_cam_launch,
+        stamp_converter_launch,
         pose_converter_launch,
         gruc_launch,
         grup_launch,
