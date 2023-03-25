@@ -135,6 +135,13 @@ class FlatMapper(Mapper):
         len = np.linalg.norm(top_left - bottom_left)
         width = np.linalg.norm(top_left - top_right)
         theta = np.arctan2((top_left - bottom_left)[1], (top_left - bottom_left)[0])
+        self.get_logger().debug(f"top left: {top_left}")
+        self.get_logger().debug(f"bottom left: {bottom_left}")
+        self.get_logger().debug(f"top right: {top_right}")
+
+        self.get_logger().debug(f"length: {len}")
+        self.get_logger().debug(f"width: {width}")
+        self.get_logger().debug(f"theta: {theta}")
 
         return len, width, theta
 
