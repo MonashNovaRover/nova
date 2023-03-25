@@ -26,7 +26,7 @@ TODO:
 
 import math
 import numpy as np
-from autonomous.config.runtime_params import straight_drive_fraction, spin_achieved_delta
+from autonomous.config.runtime_params import straight_drive_fraction, spin_achieved_delta, big_turn_drive_fraction
 from typing import Tuple
 
 
@@ -86,7 +86,7 @@ def drive_speed_from_turning_error(target_steer, current_steer) -> float:
     # maximum error between desired and true wheel angles
     steer_error_radians = max(abs(target_left - current_left), abs(target_right - current_right))
     scaled_steer_error = min(steer_error_radians / MAX_STEER_ERROR, 1)
-    drive_rate = straight_drive_fraction * (1 - scaled_steer_error**2)
+    drive_rate = big_turn_drive_fraction * (1 - scaled_steer_error**2)
     return drive_rate
 
 

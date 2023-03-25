@@ -23,7 +23,7 @@ ignore_waypoints = 4  # number of waypoints to cut off start of list
 
 # speed of autonomous driving and turning
 small_turn_angle = np.pi/16
-big_turn_drive_fraction = 0.20
+big_turn_drive_fraction = 0.30
 small_turn_drive_fraction = 0.15
 straight_drive_fraction = 0.6
 
