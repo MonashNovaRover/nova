@@ -50,6 +50,9 @@ class ArTracker(Node):
         self.get_logger().debug(f"received translation vector: {t}")
         pose = PoseStamped()
 
+        pose.header.stamp = self.get_clock().now().to_msg()
+        pose.header.frame_id = self.frame_id
+
         # extracting position
         pose.pose.position.x = t[0]
         pose.pose.position.y = t[1]
@@ -70,7 +73,7 @@ class ArTracker(Node):
 
         return pose
 
-    def find_ar_tags(self, img, stamp):
+    def find_ar_tags(self, img):
         """
         Returns an AlvarMarker message or None
         """
@@ -83,8 +86,6 @@ class ArTracker(Node):
             rot_mats, trans_mats = pose[0], pose[1]
             for _id, rot_mat, trans_mat in zip(ids, rot_mats, trans_mats):
                 pose = self.get_pose(rot_mat[0], trans_mat[0])
-                pose.header.stamp = stamp
-                pose.header.frame_id = self.frame_id
                 AR_tag = AlvarMarker(tag_id=int(_id), pose=pose)
                 markers.markers.append(AR_tag)
         self.ar_pose_pub.publish(markers)

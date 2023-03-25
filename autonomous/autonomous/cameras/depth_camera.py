@@ -10,8 +10,6 @@ import logging
 
 import rclpy
 from rclpy.node import Node
-from rclpy.time import Time
-
 from std_msgs.msg import Header
 from sensor_msgs.msg import PointCloud2, Image
 from rs2_ros2 import rs2_verts_to_buffer
@@ -118,6 +116,7 @@ class DepthCamera(Node):
         # Wait for frames from camera
         t0 = time.perf_counter()
         frames = self.pipeline.wait_for_frames()
+        self.latest_frame_stamp = self.get_clock().now().to_msg()
 
         # Align depth and color images from frames (so pixels match?)
         t1 = time.perf_counter()
@@ -126,11 +125,6 @@ class DepthCamera(Node):
         self.depth_frame = aligned.get_depth_frame()
         self.color_frame = aligned.get_color_frame()
         t3 = time.perf_counter()
-
-        ts = aligned.get_timestamp()
-        ts_seconds = int(ts)
-        ts_nanoseconds = int((ts - ts_seconds) * 1e9)
-        self.latest_frame_stamp = Time(seconds=ts_seconds, nanoseconds=ts_nanoseconds)
 
         self.get_logger().debug(f"Waiting for frames took {t1 - t0} s")
         self.get_logger().debug(f"frame alignment took {t2 - t1} s")
@@ -142,9 +136,9 @@ class DepthCamera(Node):
             return
         color_image = np.asanyarray(self.color_frame.get_data())
         t1 = time.perf_counter()
-        self.ar_tracker.find_ar_tags(color_image, self.latest_frame_stamp)
+        self.ar_tracker.find_ar_tags(color_image)
         t2 = time.perf_counter()
-        self.object_detector.object_detection(self.color_frame, self.depth_frame, self.latest_frame_stamp)
+        self.object_detector.object_detection(self.color_frame, self.depth_frame)
         t3 = time.perf_counter()
         header = Header(
             stamp = self.latest_frame_stamp,
@@ -164,14 +158,13 @@ class DepthCamera(Node):
         """
         Callback that converts depth frame into a pointcloud and publishes it
         """
+        header = Header()
+        header.stamp = self.get_clock().now().to_msg()
+        header.frame_id = self.depth_frame_id
+
         # Scale down depth frame
         if self.depth_frame is None:
             return
-
-        header = Header()
-        header.stamp = self.latest_frame_stamp
-        header.frame_id = self.depth_frame_id
-
         t1 = time.perf_counter()
         processed_depth_frame = self.decimation_filters[self.decimation_index].process(self.depth_frame)
         t2 = time.perf_counter()
