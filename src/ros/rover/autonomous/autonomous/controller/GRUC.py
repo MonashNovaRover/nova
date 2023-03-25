@@ -171,12 +171,10 @@ class Controller(Node):
         Update current planning mode based on the rest of the state
         """
         current_goal = self.state_current_planning_destination
-        #self.get_logger().info(f'My current goal is: {current_goal}')
         if current_goal is None:
             if self.driving_state != DrivingState.SUCCESS:
                 self.on_drive_state_update(DrivingState.SUCCESS)
         elif self.driving_state == DrivingState.SUCCESS:
-            self.get_logger().info(f'SUCCESS TIME')
             # We've just finished a waypoint, so we need to look for a new one
             if current_goal.type == AutonomousGoal.GOAL_TYPE_SPIN:
                 self.on_drive_state_update(DrivingState.TURNING)
@@ -205,11 +203,11 @@ class Controller(Node):
                 # We have just finished a spin
                 self.on_drive_state_update(DrivingState.SUCCESS)
         elif self.driving_state == DrivingState.PRE_RESET:
-            self.get_logger().info(f'{(self.get_clock().now() - self.reset_time).nanoseconds/1e9} since entering pre-reset state')
+            self.get_logger().debug(f'{(self.get_clock().now() - self.reset_time).nanoseconds/1e9} since entering pre-reset state')
             if (self.get_clock().now() - self.reset_time) >= Duration(seconds = 7):
                 self.on_drive_state_update(DrivingState.POST_RESET)
         elif self.driving_state == DrivingState.POST_RESET:
-            self.get_logger().info(
+            self.get_logger().debug(
                 f'{(self.get_clock().now() - self.reset_time).nanoseconds / 1e9} since entering post-reset state')
             if (self.get_clock().now() - self.reset_time) >= Duration(seconds = 3):
                state = self.saved_state
@@ -239,7 +237,7 @@ class Controller(Node):
         
         if new_state == DrivingState.PRE_RESET:
             self.saved_state = old_state
-            self.get_logger().info(f"Entering pre-reset drive mode")
+            self.get_logger().error(f"Resolver fault: resetting resolvers")
             for blcmd_id in self.resolver_errors:
                 msg = BLCMDReset()
                 msg.id = blcmd_id
@@ -247,17 +245,17 @@ class Controller(Node):
                 self.pub_blcmd_reset.publish(msg)
             self.get_logger().info(f"Reset resolvers")
             self.reset_time = self.get_clock().now()
-            self.get_logger().info(f"Reset time set to {self.reset_time}")
+            self.get_logger().debug(f"Reset time set to {self.reset_time}")
         if new_state == DrivingState.POST_RESET:
-            self.get_logger().info(f"Entering post-reset drive mode")
+            self.get_logger().info(f"Resetting any stall faults")
             for blcmd_id in self.blcmd_errors:
                 msg = BLCMDReset()
                 msg.id = blcmd_id
                 msg.type = BLCMDReset.BLCMD
                 self.pub_blcmd_reset.publish(msg)
-            self.get_logger().info(f"Reset blcmds")
+            self.get_logger().debug(f"Reset blcmds")
             self.reset_time = self.get_clock().now()
-            self.get_logger().info(f"Reset time set to {self.reset_time}")
+            self.get_logger().debug(f"Reset time set to {self.reset_time}")
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Simple State Update Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -372,9 +370,9 @@ class Controller(Node):
         # dot product gives angle between vectors
         angle_between_headings = np.arccos(np.dot(desired_heading_vector, current_heading_vector)) 
 
-        self.get_logger().info(f"desired_heading: {desired_heading_vector}")
-        self.get_logger().info(f"current_heading: {current_heading_vector}")
-        self.get_logger().info(f"angle between: {angle_between_headings}")
+        self.get_logger().debug(f"desired_heading: {desired_heading_vector}")
+        self.get_logger().debug(f"current_heading: {current_heading_vector}")
+        self.get_logger().debug(f"angle between: {angle_between_headings}")
 
         return angle_between_headings < self.param_goal_facing_threshold 
 
