@@ -25,43 +25,45 @@ def generate_launch_description():
         # Add a new node defining a transform between any two frames necessary (ie GPS, imu, etc)
         Node(
             package='tf2_ros',
-            node_executable='static_transform_publisher',
+            executable='static_transform_publisher',
             arguments=['0', '0', '0', '0', '0', '0', 'world', 'map'],
             output='screen',
             emulate_tty=True
         ),
         Node(
             package='tf2_ros',
-            node_executable='static_transform_publisher',
-            arguments=['0.48', '0', '0.48', '0', '0', '0', 'base_link', 'd435_1_forward'],
+            executable='static_transform_publisher',
+            arguments=['0.46', '0', '0.45', '0', '0', '0', 'base_link', 'd435_1_forward'],
             output='screen',
             emulate_tty=True
         ),
         Node(
             package='tf2_ros',
-            node_executable='static_transform_publisher',
-            arguments= ['0.48', '0', '0.46', '0', '0', '0', 'base_link', 't265_forward'],
+            executable='static_transform_publisher',
+            arguments= ['0.45', '0', '0.49', '0', '0', '0', 'base_link', 't265_forward'],
             output='screen',
             emulate_tty=True
         ),
         Node(
             package='tf2_ros',
-            node_executable='static_transform_publisher',
-            arguments=[ '0', '0','0', str(-np.pi / 2), '0', str(-np.pi / 2), 'd435_1_forward', 'd435_1'],
+            executable='static_transform_publisher',
+            arguments=[ '0', '0','0', str(-np.pi / 2), '0', str(-np.pi / 2 - np.pi * 8 / 180), 'd435_1_forward', 'd435_1'],
             output='screen',
             emulate_tty=True
         ),
         Node(
             package='tf2_ros',
-            node_executable='static_transform_publisher',
-            #arguments= ['0', '0', '0', str(-np.pi / 2), '0', str(np.pi / 2), 't265_forward', 't265'],
-            arguments= ['0', '0', '0', '0', '0', '0', 't265_forward', 't265'],
+            executable='static_transform_publisher',
+            # Although the t265 is mounted at a 10 degree angle, the internal gyroscope accounts for this
+            arguments= ['0', '0', '0', '0.5', '-0.5', '-0.5', '0.5', 't265_forward', 't265_footprint'],
             output='screen',
             emulate_tty=True
         ),
         Node(
-            package='autonomous',
-            node_executable='tracking_camera.py',
+            package='tf2_ros',
+            executable='static_transform_publisher',
+            # Although the t265 is mounted at a 10 degree angle, the internal gyroscope accounts for this
+            arguments= ['0', '0', '0', str(-np.pi / 2), '0', str(np.pi / 2 - np.pi * 8 / 180), 't265_forward', 't265'],
             output='screen',
             emulate_tty=True
         ),

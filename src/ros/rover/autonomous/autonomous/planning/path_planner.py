@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-_package__ = "autonomous"
-
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Purpose: To perform A* path planning and string pulling on 2-d grid maps. 
@@ -31,8 +29,9 @@ from rclpy.node import Node
 from rclpy.duration import Duration
 from geometry_msgs.msg import Pose2D, Pose, PoseStamped
 from core.msg import Waypoints, Waypoint, RoverPose, Point2D
+from nav_msgs.msg import Path
 from autonomous.config.ros_config import *
-from autonomous.config.runtime_params import ignore_waypoints, INITIAL_PADDING_DIST_M, goal_achieved_distance
+from autonomous.config.runtime_params import INITIAL_PADDING_DIST_M
 from core.srv import PathPlanningRequest
 from autonomous.math_utils.transform import quat_to_euler
 
@@ -72,7 +71,7 @@ class PathPlanner(Node):
         self.planning_service = self.create_service(PathPlanningRequest, path_planning_service_name,
                                                     self.path_planning_service_callback)
         self.planning_subscriber = self.create_subscription(PoseStamped, planning_destination_topic, self.path_planning_sub_callback, 10)
-        self.path_publisher = self.create_publisher(Waypoints, auto_waypoints_topic, 10)
+        self.path_publisher = self.create_publisher(Path, auto_waypoints_topic, 10)
 
         # Transform listeners
         self.tf_buffer = Buffer()
@@ -120,7 +119,8 @@ class PathPlanner(Node):
             local_goal : PoseStamped = transform.transform_pose(goal.pose, map_to_local_map)
         except Exception as e:
             self.get_logger().warn(f"Failed to transform local goal: {e}")
-        self.goal = local_goal
+        else:
+            self.goal = local_goal
 
     def path_planning_sub_callback(self, msg: PoseStamped):
         """
@@ -149,10 +149,10 @@ class PathPlanner(Node):
         Callback function that updates the current pose of the rover from transform data
         """
         try:
-            transform = self.tf_buffer.lookup_transform('base_link', 'local_map', time=Time()).transform
+            transform = self.tf_buffer.lookup_transform('local_map', 'base_link', time=Time()).transform
             self.pose_2d.x = transform.translation.x
             self.pose_2d.y = transform.translation.y
-            self.pose_2d.yaw = quat_to_euler(transform=transform)[2]
+            self.pose_2d.theta = quat_to_euler(q=transform.rotation)[2]
         except Exception as e:
             self.get_logger().debug(f"Transform lookup error: {e}")
 
@@ -163,7 +163,7 @@ class PathPlanner(Node):
         """
         return [self.get_float_position((x, y)) for (x, y) in route]
 
-    def handle_path_status(self, status, padding):
+    def handle_path_status(self, status):
         """
         Handles logging and adjusting of parameters according to the
         status returned by our c++ A* method.
@@ -176,12 +176,29 @@ class PathPlanner(Node):
             self.get_logger().warn("couldn't find a path initially")
         if status & PathPlanner.A_STAR_CRITICAL_NO_PATH:
             self.get_logger().error("COULDN'T FIND PATH - NEAR OBSTACLE")
-            self.padding_dist_m -= 0.1
-            if self.padding_dist_m < 0.4:
-                self.get_logger().error("Ah HECK")
-                return
         if status == PathPlanner.A_STAR_SUCCESS:
-            self.get_logger().info("A* found safe path")
+            self.get_logger().debug("A* found safe path")
+
+    def construct_path(self, waypoints):
+            """
+            Contstructs a ros2 path message from a list of waypoints
+            """
+            path = Path()
+            path.header.frame_id = "local_map"
+            path.header.stamp = self.get_clock().now().to_msg()
+
+            for waypoint in waypoints:
+                if math.isnan(waypoint[0]) or math.isnan(waypoint[1]):
+                    continue
+                pose_stamped = PoseStamped()
+                pose_stamped.header = path.header
+                # Orient vertical
+                pose_stamped.pose.orientation.w = 1.0
+                pose_stamped.pose.position.x, pose_stamped.pose.position.y, pose_stamped.pose.position.z = waypoint[0], waypoint[1], 0.0
+
+                path.poses.append(pose_stamped)
+            
+            return path
 
     def get_path(self, padding=None) -> Waypoints:
         """
@@ -190,11 +207,11 @@ class PathPlanner(Node):
         if padding == None:
             padding = self.padding_dist_m
         if padding <= 0.4:
-            return []
+            return Path()
 
         self.start = self.pose_2d.x, self.pose_2d.y
         local_goal = self.goal.position.x, self.goal.position.y
-        print(f"planning to {(local_goal[0], local_goal[1])}")
+        self.get_logger().debug(f"planning to {(local_goal[0], local_goal[1])}")
 
         self.length = self.grid2d.shape[0]
         self.width = self.grid2d.shape[1]
@@ -205,22 +222,14 @@ class PathPlanner(Node):
         route = np.array(a_star(self.grid2d, self.get_grid_coord(self.start), self.get_grid_coord(local_goal), self.resolution, self.padding_dist_m))
         status = route[-1][0]
         route = route[:-1]
-        self.get_logger().info(f"planned with status {status}")
-        self.handle_path_status(status, padding)
+        self.get_logger().debug(f"planned with status {status}")
+        self.handle_path_status(status)
 
         route_coordinates = np.array(self.get_local_coords_route(route))
-        waypoints = Waypoints()
 
-        # todo: the logic of ignoring waypoints should be outside the path planner. It should plan a pure path
-        for wpt in route_coordinates[min(len(route_coordinates) - 1, ignore_waypoints):]:
-            waypoint = Waypoint()
-            waypoint.x = wpt[0]
-            waypoint.y = wpt[1]
-           
-            if (not math.isnan(waypoint.x)) and (not math.isnan(waypoint.y)):
-                waypoints.waypoints.append(waypoint)
+        path = self.construct_path(route_coordinates)
 
-        self.get_logger().info(f"Path Planner Calculated {len(route_coordinates)} waypoints")
+        self.get_logger().debug(f"Path Planner Calculated {len(route_coordinates)} waypoints")
         if status & PathPlanner.A_STAR_CRITICAL_NO_PATH:
             return self.get_path(padding-0.1)
-        return waypoints
+        return path

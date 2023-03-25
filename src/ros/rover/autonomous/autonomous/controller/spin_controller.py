@@ -6,12 +6,12 @@ import math
 
 
 class SpinController:
-    def __init__(self, start_yaw, turner):
+    def __init__(self, start_yaw, driver):
         self.start_yaw = start_yaw
-        self.turner = turner
+        self.driver = driver
         self.completed = False
 
-    def turn_in_place(self, current_position, current_orientation):
+    def turn_in_place(self, current_steer, current_orientation, position_vector=None):
         """
         Spins in place for a full circle to scan immediately around the rover
         """
@@ -20,8 +20,7 @@ class SpinController:
         if spin_achieved(1, current_orientation, target_orientation):
             self.completed = True
 
-        steer_fraction, drive_fraction = self.turner.turn(math.pi / 2, current_position, current_orientation)
-        return {"drive": drive_fraction, "steer": steer_fraction}
+        return self.driver.get_drive_command(np.pi, current_steer, position_vector, current_orientation)
 
     def is_completed(self):
         return self.completed
