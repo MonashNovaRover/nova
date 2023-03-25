@@ -40,7 +40,7 @@ const float HEIGHT_OBSTACLE_VALUE = 1.1;
 const float PLANE_PADDING_DISTANCE_FRACTION = 1.0;
 const float C_INF = 1e12;
 const float NEAREST_POINT_DIST_WEIGHT = 0.5;
-const float STRING_PULL_OBSTACLE_VALUE = 0.5;
+const float STRING_PULL_OBSTACLE_VAL = 0.5;
 float PADDING_DIST_M = 0; 
 
 // implementation of type-safe enum with bitwise operators taken from:
@@ -232,7 +232,7 @@ void pad_point(array<array<float, COL>, ROW>& grid, const Pair& start_pt, float 
 	int max_x = x + 1.3 * padding_width_pixels, max_y = y + 1.3 * padding_width_pixels;
 
 	// if the obstale is an isolated point - it is likely a phantom obstacle - don't pad around it
-	if (count_adjacent_obstacles(grid, x, y) <= 2) return;
+	if (count_adjacent_obstacles(grid, x, y) <= 1) return;
 
 	optimise_padding_area(grid, x, y, min_x, max_x, min_y, max_y);
 
@@ -376,11 +376,12 @@ void string_pull_from_start(array<array<float, COL>, ROW>& grid, vector<Pair>& p
     Reduce the path to a substring of itself beginning at the first point necessitated by a string pull
     */
     Pair start = path[0];
-    for (size_t i = 1; i < path.size(); i++){
-		Pair this_point = path[i];
+    for (size_t i = 0; i < path.size(); i++){
+		Pair this_point = path[i+1];
 		int num_points = (int) heuristic(start, this_point);
         if (obstacle_between(grid, start, this_point, num_points) || num_points > 50){
             path = {path.begin() + i, path.end()};
+			path[0] = start;
             return;
         }
     }

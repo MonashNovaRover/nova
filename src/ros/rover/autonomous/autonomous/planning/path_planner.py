@@ -31,7 +31,7 @@ from geometry_msgs.msg import Pose2D, Pose, PoseStamped
 from core.msg import Waypoints, Waypoint, RoverPose, Point2D
 from nav_msgs.msg import Path
 from autonomous.config.ros_config import *
-from autonomous.config.runtime_params import ignore_waypoints, INITIAL_PADDING_DIST_M
+from autonomous.config.runtime_params import INITIAL_PADDING_DIST_M
 from core.srv import PathPlanningRequest
 from autonomous.math_utils.transform import quat_to_euler
 
@@ -227,7 +227,7 @@ class PathPlanner(Node):
 
         route_coordinates = np.array(self.get_local_coords_route(route))
 
-        path = self.construct_path(route_coordinates[min(len(route_coordinates) - 1, ignore_waypoints):])
+        path = self.construct_path(route_coordinates)
 
         self.get_logger().debug(f"Path Planner Calculated {len(route_coordinates)} waypoints")
         if status & PathPlanner.A_STAR_CRITICAL_NO_PATH:
