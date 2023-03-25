@@ -15,7 +15,7 @@ def main(args):
     # in this janky night-before-mvp we will be creating a map2d object which is shared by planner and mapper.
     # Mapper updates it, planner just reads from it.
     planner = PathPlanner(resolution)
-    mapper = HeightMapper(resolution=resolution, planner=planner, camera=True)
+    mapper = PlaneMapper(resolution=resolution, planner=planner, camera=True)
 
     # This allows us to spin both nodes from main.py - we are kind of misusing ros nodes here but oh well it works
     executor = rclpy.executors.MultiThreadedExecutor()
