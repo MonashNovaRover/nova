@@ -35,7 +35,7 @@ class BLCMDStatusMonitor(Node):
     def __init__(self):
         super().__init__("blcmd_status_monitor")
         #subscriber to reset the blcmd
-        self.subscriber = self.create_subscription(BLCMDReset, "/control/blcmd_reset", self.reset_blcmd, 10)
+        self.subscriber = self.create_subscription(BLCMDReset, "/control/blcmd_reset", self.reset, 10)
         #publisher to publish the status of the blcmd
         self.publisher = self.create_publisher(BLCMDStatusArray, "/control/blcmd_status", 10)
 
@@ -73,14 +73,22 @@ class BLCMDStatusMonitor(Node):
         #open the can bus
         self.bus.open(self.get_parameter("canbus").value)
 
-    def reset_blcmd(self, msg):
+    def reset(self, msg):
         """
         Updates the classes internal msg state
         :param msg: core.msg.BLCMDReset message from the subscriber callback
         :return: None
         """
-        self.bus.send(jcan.Frame(0x00B | msg.id << 4, [0]))
-        self.get_logger().info(f'Reset BLCMD {msg.id}')
+        if msg.type == BLCMDReset.BLCMD:
+            frame = jcan.Frame(0x00B | msg.id << 4, [0])
+        elif msg.type == BLCMDReset.RESOLVER:
+            frame = jcan.Frame(0x00C | msg.id << 4, [0])
+
+        self.bus.send(frame)
+        if msg.type == BLCMDReset.BLCMD:
+            self.get_logger().info(f'Reset BLCMD {msg.id}')
+        elif msg.type == BLCMDReset.RESOLVER:
+            self.get_logger().info(f'Reset resolver on BLCMD {msg.id}')
 
     def get_callback(self, blcmd):
         """
