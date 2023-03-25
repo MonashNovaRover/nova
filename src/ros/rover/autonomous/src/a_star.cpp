@@ -74,7 +74,7 @@ typedef pair<int, int> Pair;
 typedef tuple<double, int, int> Tuple;
 
 // All possible neighbour points on an octile map
-const array<Pair, 8> BRANCHES = {{{0, 1}, {0, -1}, {1, 0}, {-1, 0},
+const vector<Pair, 8> BRANCHES = {{{0, 1}, {0, -1}, {1, 0}, {-1, 0},
 									{1, 1}, {1, -1}, {-1, 1}, {-1, -1}}};
 
 // A structure to hold the necessary parameters
@@ -110,14 +110,12 @@ bool isObstacle(const float grid_value)
 	return grid_value == OBSTACLE_VALUE || grid_value == HEIGHT_OBSTACLE_VALUE;
 }
 
-bool isSafe(const vector<vector<float>>& grid,
+template <size_t ROW, size_t COL>
+bool isSafe(const vector<vector<float, COL>, ROW>& grid,
 				const Pair& point)
 {
     /*is this square blocked by an obstacle or too close to one
 	to be safe?*/
-	const std::size_t ROW = grid.size();
-	const std::size_t COL = grid[0].size();
-
 	if (isValid(COL, ROW, point)) return grid[point.first][point.second] < OBSTACLE_VALUE;
     return true;
 }
@@ -164,15 +162,14 @@ float padding_value(float dist_sqrd, float padding_width_sqrd)
 	return 0;
 }
 
-void optimise_padding_area(const vector<vector<float>>& grid, 
+template <size_t ROW, size_t COL>
+void optimise_padding_area(const vector<vector<float, COL>, ROW>& grid, 
 							int& x, int& y, int& min_x, int& max_x, int& min_y, int& max_y)
 {
 	/*
 	Looks for other obstacle points around the start point in all 4 directions. If there
 	is a point in one direction, we only need to pad as far as half-way to that point
 	*/
-	const std::size_t ROW = grid.size();
-	const std::size_t COL = grid[0].size();
 
 	// bounding min and max values by dimensions of map
 	min_x = max(min_x, 0); 
@@ -205,12 +202,11 @@ void optimise_padding_area(const vector<vector<float>>& grid,
 	}
 }
 
-int count_adjacent_obstacles(const vector<vector<float>>& grid, int& x, int& y){
+template<size_t ROW, size_t COL>
+int count_adjacent_obstacles(const vector<vector<float, COL>, ROW>& grid, int& x, int& y){
 	/*
 	Count the number of obstacle tiles ( == 1) directly adjacent to an x,y coordinate
 	*/
-	const std::size_t ROW = grid.size();
-	const std::size_t COL = grid[0].size();
 
 	int adjacent = 0;
 
@@ -228,11 +224,9 @@ int count_adjacent_obstacles(const vector<vector<float>>& grid, int& x, int& y){
 }
 
 
-void pad_point(vector<vector<float>>& grid, const Pair& start_pt, float padding_width_pixels)
+template <size_t ROW, size_t COL> 
+void pad_point(vector<vector<float, COL>, ROW>& grid, const Pair& start_pt, float padding_width_pixels)
 {
-	const std::size_t ROW = grid.size();
-	const std::size_t COL = grid[0].size();
-
 	int y = start_pt.first, x = start_pt.second;
 	int min_x = x - 1.3 * padding_width_pixels, min_y = y - 1.3 * padding_width_pixels;
 	int max_x = x + 1.3 * padding_width_pixels, max_y = y + 1.3 * padding_width_pixels;
@@ -258,7 +252,8 @@ void pad_point(vector<vector<float>>& grid, const Pair& start_pt, float padding_
 	}
 }
 
-void precompute_padding_values(vector<vector<float>>& grid, 
+template <size_t ROW, size_t COL>
+void precompute_padding_values(vector<vector<float, COL>, ROW>& grid, 
 									float grid_resolution_cm) 
 {
 	/* Loops through the map, locates every obstacle tile, and maps
@@ -266,9 +261,6 @@ void precompute_padding_values(vector<vector<float>>& grid,
 	 rover cannot travel. Weights tiles with an inverse-square decay
 	 by there distsance to the obstacle to discourage the rover from
 	 coming too close */
-	const std::size_t ROW = grid.size();
-	const std::size_t COL = grid[0].size();
-
 	double padding_width_pixels = PADDING_DIST_M * 100 / grid_resolution_cm;
 
 	for (uint i = 0; i < ROW; i++) {
@@ -285,13 +277,11 @@ void precompute_padding_values(vector<vector<float>>& grid,
 	}
 }
 
-void add_obstacle_border(vector<vector<float>>& grid)
+template <size_t ROW, size_t COL> 
+void add_obstacle_border(vector<vector<float, COL>, ROW>& grid)
 {
 	/* Adds a border of obstacles around the map to prevent the rover from
 	 driving off the map */
-	const std::size_t ROW = grid.size();
-	const std::size_t COL = grid[0].size();
-
 	uint j = 0;
 	for (uint i = 0; i < ROW; i++) {
 		grid[i][j] = OBSTACLE_VALUE;
@@ -313,7 +303,8 @@ void add_obstacle_border(vector<vector<float>>& grid)
 
 // A Utility Function to trace the path from the source to
 // destination
-vector<Pair> tracePath(std::vector<std::vector<cell>> cellDetails, const Pair& dest){
+template <size_t ROW, size_t COL>
+vector<Pair> tracePath(vector<vector<cell, COL>, ROW>& cellDetails, const Pair& dest){
 	stack<Pair> backwards_path;
 
 	int row = dest.second;
@@ -337,7 +328,8 @@ vector<Pair> tracePath(std::vector<std::vector<cell>> cellDetails, const Pair& d
 	return path;
 }
 
-void clear_obstacles_from_location(vector<vector<float>>& grid, const Pair& point, const int cutting_distance) {
+template <size_t ROW, size_t COL>
+void clear_obstacles_from_location(vector<vector<float, COL>, ROW>& grid, const Pair& point, const int cutting_distance) {
 	/*
 	Checks area around a point, and sets any obstacle values in that area to 0.99 rather than 1.
 	Prevents hard failure if the rover thinks its current pose or its destination is inside an obstacle.
@@ -345,8 +337,6 @@ void clear_obstacles_from_location(vector<vector<float>>& grid, const Pair& poin
 	:param point: point around which to remove obstacles
 	:param cutting_distance: (octile) pixel distance around which to clear obstacles
 	*/
-	const std::size_t ROW = grid.size();
-	const std::size_t COL = grid[0].size();
 
 	int x = point.first, y = point.second;
 	for (int i = max(0, x - cutting_distance); i <= min((int) COL, x + cutting_distance); i++) {
@@ -356,7 +346,8 @@ void clear_obstacles_from_location(vector<vector<float>>& grid, const Pair& poin
 	}
 }
 
-bool obstacle_between(vector<vector<float>>& grid, Pair p1, Pair p2, int num_points){
+template <size_t ROW, size_t COL>
+bool obstacle_between(vector<vector<float, COL>, ROW>& grid, Pair p1, Pair p2, int num_points){
     /*
     Interpolates between two points, checking from terrain above a specific obstacle value.
     :return: true if an obstacle is found between p1 and p2, otherwise false
@@ -379,7 +370,8 @@ bool obstacle_between(vector<vector<float>>& grid, Pair p1, Pair p2, int num_poi
     return false;
 }
 
-void string_pull_from_start(vector<vector<float>>& grid, vector<Pair>& path){
+template <size_t ROW, size_t COL>
+void string_pull_from_start(vector<vector<float, COL>, ROW>& grid, vector<Pair>& path){
     /*
     Reduce the path to a substring of itself beginning at the first point necessitated by a string pull
     */
@@ -406,11 +398,10 @@ vector<Pair> construct_return_val(vector<Pair> path, Status status) {
 // source cell to a destination cell according to A* Search
 // Algorithm
 
-vector<Pair> aStarSearch(vector<vector<float>>& grid,
+template <size_t ROW, size_t COL>
+vector<Pair> aStarSearch(vector<vector<float, COL>, ROW>& grid,
 				const Pair& src, const Pair& dest, const float grid_resolution_m, const float padding_dist_m)
 {
-	const std::size_t ROW = grid.size();
-	const std::size_t COL = grid[0].size();
     PADDING_DIST_M = padding_dist_m;
 	const float grid_resolution_cm = grid_resolution_m * 100;
 
@@ -449,9 +440,9 @@ vector<Pair> aStarSearch(vector<vector<float>>& grid,
 
 	// Declare a 2D array of structure to hold the details
 	// of that cell
-	std::vector<std::vector<cell>> cellDetails(COL, std::vector<cell>(ROW));
+	vector<vector<cell, COL>, ROW> cellDetails;
 
-	size_t i, j;
+	int i, j;
 	// Initialising the parameters of the starting node
 	i = src.first, j = src.second;
 	cellDetails[i][j].g = 0.0;
@@ -587,7 +578,8 @@ int main()
 	/* Description of the Grid-
 	1--> The cell is blocked
 	0--> The cell is not blocked */
-	vector<vector<float>> grid;
+	vector<vector<float, 200>, 200> grid;
+	grid.fill({});
 
 	for (int i = 0; i < 100; i++) {
 		grid[i][50] = 1.0;
@@ -603,5 +595,5 @@ int main()
 
 PYBIND11_MODULE(a_star, module_handle) {
     module_handle.doc() = "Nova Rover A* C++ search algorithm binded to Python3";
-    module_handle.def("a_star", &aStarSearch); // 10 cm resolution
+    module_handle.def("a_star", &aStarSearch<200, 200>); // 10 cm resolution
 }
