@@ -3,7 +3,7 @@
     use_euler: false
     initial_base_link_quat:
       # x, y, z, qx, qy, qz, qw
-      [-10., 4., 0., 0., 0., 0., 1.]
+      [-5., -5., 0., 0., 0., 0., 1.]
     initial_base_lin00k_euler:
       # x, y, z, yaw, pitch, roll
       [0., 0., 0., 3.927, 0., 0.]
