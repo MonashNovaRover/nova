@@ -387,9 +387,8 @@ void string_pull_from_start(array<array<float, COL>, ROW>& grid, vector<Pair>& p
     }
 }
 
-template <size_t ROW, size_t COL>
-vector<Pair> construct_return_val(array<array<float, COL>, ROW>& grid, vector<Pair> path, Status status) {
-	string_pull_from_start(grid, path);
+vector<Pair> construct_return_val(vector<Pair> path, Status status) {
+	//string_pull_from_start(grid, path);
 	path.push_back(Pair((int) status, -1));
 
 	return path;
@@ -423,7 +422,7 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 
 	// If the destination cell is the same as source cell, we have already found it
 	if (isDestination(src, dest)) {
-		return construct_return_val(grid, vector<Pair> {{src}}, status);
+		return construct_return_val(vector<Pair> {{src}}, status);
 	}
 
 	// If the source is in an obstacle
@@ -511,7 +510,7 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 					cellDetails[neighbour.first][neighbour.second].parent = { i, j };
 					vector<Pair> path = tracePath(cellDetails, dest);
 
-					return construct_return_val(grid, path, status);
+					return construct_return_val(path, status);
 				}
 				
 				float gNew, hNew, fNew;
@@ -570,7 +569,7 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 	vector<Pair> path = tracePath(cellDetails, nearest_point);
 
 	if (path.size() < CRITICAL_PATH_LEN) status |= Status::A_STAR_CRITICAL_NO_PATH;
-	return construct_return_val(grid, path, status);
+	return construct_return_val(path, status);
 }
 
 // Driver program to test above function
