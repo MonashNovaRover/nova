@@ -130,8 +130,7 @@ class BLCMDStatusMonitor(Node):
                 self.blcmds_status[i].resolver_fault = False
             else:
                 self.blcmds_status[i].resolver_fault = True
-                
-            self.get_logger().info(f'resolver_fault_count[{i}]: {self.resolver_fault_count[i]}')
+
             if self.blcmds_status[i].gate_fault:
                 if (self.get_clock().now() - self.fault_times["gate_fault"]) > Duration(seconds=2):
                     self.blcmds_status[i].gate_fault = False
