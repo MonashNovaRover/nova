@@ -122,7 +122,6 @@ class BLCMDStatusMonitor(Node):
     def check_status(self):
       
         for i in range(self.get_parameter("num_blcmds").value):
-       
             if self.fault_times.get("resolver_fault") is not None and \
             (self.get_clock().now() - self.fault_times["resolver_fault"]) > Duration(seconds=2) and self.resolver_fault_count[i] > 0:
                     self.resolver_fault_count[i] = 0 
