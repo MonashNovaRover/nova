@@ -53,9 +53,11 @@ class Grid2D(Node):
         outer_width_index = int(self.outer_width / self.resolution)
         outer_length_index = int(self.outer_length / self.resolution)
 
+        # 2 boxes wide so we definitely see the obstacle
         outer_edge = np.array([[j > min_j - 1 and j < max_j + 1 and i > min_i - 1 and i < max_i + 1 for j in range(outer_width_index)] for i in range(outer_length_index)])
         inner_edge = np.array([[j > min_j + 1 and j < max_j - 1 and i > min_i + 1 and i < max_i - 1 for j in range(outer_width_index)] for i in range(outer_length_index)])
 
+        # Things that are in the outer region and not in the inner region gives us the border between them
         return np.logical_and(outer_edge, ~inner_edge)
 
     def roll_map(self, x_change, y_change):
