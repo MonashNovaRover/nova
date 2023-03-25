@@ -196,8 +196,10 @@ class FlatMapper(Mapper):
         """
         crop points to the field of view of the depth camera
         """
-        points = points[np.abs(np.arctan2(points[:, 0], points[:, 2])) < max_fov_horizontal]
-        points = points[np.abs(np.arctan2(points[:, 1], points[:, 2])) < max_fov_vertical]
+        self.get_logger().debug(f"Points before fov crop: {points}, len = {len(points)}")
+        points = points[np.abs(np.arctan2(points[:, 1], points[:, 0])) < max_fov_horizontal]
+        points = points[np.abs(np.arctan2(points[:, 2], points[:, 0])) < max_fov_vertical]
+        self.get_logger().debug(f"Points after fov crop: {points}, len = {len(points)}")
         return points
 
     def get_detection_map_indexes(self, points):
@@ -222,9 +224,9 @@ class FlatMapper(Mapper):
         Discretises point cloud into indices, then filters out indices without
         enough points in them to avoid phantom "floating" points
         """
+        points = self.crop_to_fov(points)
         if len(points) == 0:
             return points
-        points = self.crop_to_fov(points)
         indexes = self.get_detection_map_indexes(points)
         indexes, counts = np.unique(indexes, return_counts=True, axis=0)
         counts = (counts // min_point_density).astype(bool)  # filtering out voxels without many points in them
