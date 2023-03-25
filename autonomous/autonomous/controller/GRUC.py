@@ -54,6 +54,7 @@ from geometry_msgs.msg import Transform, Pose2D
 from tf2_ros import Buffer, TransformListener
 from rclpy.duration import Duration
 
+
 # custom message imports
 from core.msg import DriveInput, AutonomousGoal, PivotWheelData, BLCMDReset, BLCMDStatusArray, BLCMDStatus
 from autonomous.controller.spin_controller import SpinController
@@ -69,6 +70,7 @@ from autonomous.controller.drive_controller import DriveController, TurningMode
 from enum import Enum
 import logging
 import time
+import numpy as np
 
 
 class DrivingState(Enum):
@@ -167,10 +169,12 @@ class Controller(Node):
         Update current planning mode based on the rest of the state
         """
         current_goal = self.state_current_planning_destination
+        #self.get_logger().info(f'My current goal is: {current_goal}')
         if current_goal is None:
             if self.driving_state != DrivingState.SUCCESS:
                 self.on_drive_state_update(DrivingState.SUCCESS)
         elif self.driving_state == DrivingState.SUCCESS:
+            self.get_logger().info(f'SUCCESS TIME')
             # We've just finished a waypoint, so we need to look for a new one
             if current_goal.type == AutonomousGoal.GOAL_TYPE_SPIN:
                 self.on_drive_state_update(DrivingState.TURNING)
@@ -197,7 +201,8 @@ class Controller(Node):
                 # We have just finished a spin
                 self.on_drive_state_update(DrivingState.SUCCESS)
         elif self.driving_state == DrivingState.RESET:
-            if self.reset_time - self.get_clock().now() >= Duration(seconds = 10):
+            self.get_logger().info(f'{(self.get_clock().now() - self.reset_time).seconds()} since entering reset state')
+            if (self.get_clock().now() - self.reset_time) >= Duration(seconds = 10):
                 state = self.saved_state
                 self.saved_state = None
                 self.reset_time = None
@@ -218,7 +223,6 @@ class Controller(Node):
         old_state = self.driving_state
 
         self.get_logger().info("------ Drive State Transition: " + str(old_state) + " -> " + str(new_state))
-
         self.driving_state = new_state
 
         if new_state == DrivingState.TURNING:
@@ -230,12 +234,15 @@ class Controller(Node):
             self.pub_at_goal.publish(Empty())
         
         if new_state == DrivingState.RESET:
+            self.get_logger().info(f"Entering reset drive mode")
             for blcmd_id in self.resolver_statuses:
                 msg = BLCMDReset()
                 msg.id = blcmd_id
                 msg.type = BLCMDReset.RESOLVER
                 self.pub_blcmd_reset.publish(msg)
+            self.get_logger().info(f"Reset resolvers")
             self.reset_time = self.get_clock().now()
+            self.get_logger().info(f"Reset time set to {self.reset_time}")
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Simple State Update Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
