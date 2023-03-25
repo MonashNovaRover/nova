@@ -69,9 +69,8 @@ alias arm_spoof='ros2 launch core arm_spoof.launch.py'
 alias sci='ros2 launch core science.launch.py'
 alias unity='ros2 launch core visualisation.launch.py'
 alias auto_drive='ros2 launch core auto_drive.launch.py'
-alias launch_viz='ros2 launch core viz.launch.py'
+alias launch_viz='ros2 launch core viz.launch.py' 
 alias launch_vis='ros2 launch core viz.launch.py'
-
 # Service Aliases
 alias arm_config_info='ros2 service call control/arm_config_info core/srv/ArmConfigInfo'
 alias arm_reset_control_pose='ros2 service call control/arm_reset_control_pose std_srvs/srv/Trigger'
@@ -100,3 +99,6 @@ alias python_template="cp ~/nova_ws/src/rover/core/macros/python_ros_template.py
 # systemctl / screen aliases
 alias check='. ~/nova_ws/src/rover/core/macros/check.sh'     # Sets up the CAN lines with a virtual or real CAN
 alias rerun='. ~/nova_ws/src/rover/core/macros/rerun.sh'     # Sets up the CAN lines with a virtual or real CAN
+
+# autonomous aliases
+alias play_bag='. ~/nova_ws/src/rover/core/macros/bag_play.sh'

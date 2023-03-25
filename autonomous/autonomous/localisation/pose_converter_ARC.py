@@ -137,7 +137,7 @@ class PoseConverter(Node):
             t265_to_t265_footprint : Transform = self.tf_buffer.lookup_transform("t265", "t265_footprint", Time()).transform
             base_link_to_t265_footprint : Transform = self.tf_buffer.lookup_transform("base_link", "t265_footprint", Time()).transform
         except Exception as e:
-            self.get_logger.warn(f"Failed to lookup transform: {e}")
+            self.get_logger().warn(f"Failed to lookup transform: {e}")
             return None
 
         return_transform = Transform()

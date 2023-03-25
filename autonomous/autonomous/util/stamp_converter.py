@@ -38,11 +38,11 @@ class BagStampConverter(Node):
         super().__init__("stamp_remapper")
         # way-point publisher publishes a bunch of waypoints at once (hence using the 2D map datatype
         self.pose_subscriber = self.create_subscription(PoseStamped, "/T265/pose/old", self.pose_callback, 10)
-        self.cloud_subscriber = self.create_subscription(Image, "/depth_camera/d435_1/images/old", self.image_callback, 10)
+        self.cloud_subscriber = self.create_subscription(Image, "/depth_camera/d435_1/image/old", self.image_callback, 10)
         self.image_subscriber = self.create_subscription(PointCloud2, "/depth_camera/d435_1/cloud/old", self.cloud_callback, 10)
 
         self.pose_publisher = self.create_publisher(PoseStamped, "/T265/pose", 10)
-        self.image_publisher = self.create_publisher(Image, "/depth_camera/d435_1/images", 10)
+        self.image_publisher = self.create_publisher(Image, "/depth_camera/d435_1/image", 10)
         self.cloud_publisher = self.create_publisher(PointCloud2, "/depth_camera/d435_1/cloud", 10)
 
     def pose_callback(self, msg: PoseStamped):
