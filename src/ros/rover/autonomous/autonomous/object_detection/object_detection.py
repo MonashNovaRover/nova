@@ -35,9 +35,12 @@ class ObjectDetection(Node):
         """
         super().__init__("object_detector")
         self.get_logger().set_level(logging.INFO)
+
         self.obj_pub = self.create_publisher(MarkerArray, f"~/markers", 10)
         # Get full path to model from the obj_detect package using os
         model_path = os.path.join(os.path.dirname(models.__file__), "best.pt")
+
+        self.param_cube_width_m = self.declare_parameter("cube_width_m", 0.1).value
         
         self.model = YOLO(model_path) 
         self.frame_id = frame_id
@@ -104,7 +107,7 @@ class ObjectDetection(Node):
                 cx, cy = int(xmin) + int(im_width // 2), int(ymin) + int(im_height // 2)
                 area_of_interest = color_image[int(ymin):int(ymax), int(xmin):int(xmax)]
                 self.get_logger().debug(f"Center: {cx}, {cy}", throttle_duration_sec=1)
-                depth = depth_frame.get_distance(cx,cy)
+                depth = depth_frame.get_distance(cx, cy) + self.param_cube_width_m / 2
                 # boxes with either zero depth or which are too close to the image border are removed.
                 if depth == 0 or xmin < self.pixel_border_threshold \
                         or ymin < self.pixel_border_threshold \
