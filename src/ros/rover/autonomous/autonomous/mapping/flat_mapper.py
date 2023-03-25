@@ -32,7 +32,7 @@ from autonomous.mapping.mapper import Mapper
 from autonomous.mapping.grid_2d import Grid2D
 import numpy as np
 import autonomous.math_utils.transform as transform
-from autonomous.config.runtime_params import max_fov_angle, max_point_depth, max_safe_obstacle, min_point_density, \
+from autonomous.config.runtime_params import max_fov_horizontal, max_fov_vertical, max_point_depth, max_safe_obstacle, min_point_density, \
     obstacle_halve_value, obstacle_ignore_value
 from scipy.signal import convolve2d
 from rclpy.time import Time
@@ -87,7 +87,7 @@ class FlatMapper(Mapper):
         self.resolution_ratio = int(self.planning_resolution / self.detection_resolution)
         self.detection_length = int(
             np.ceil((max_point_depth / self.detection_resolution) / self.resolution_ratio) * self.resolution_ratio)
-        self.detection_width = int(np.ceil(2 * self.detection_length * np.tan(max_fov_angle)))
+        self.detection_width = int(np.ceil(2 * self.detection_length * np.tan(max_fov_horizontal)))
         self.offset = None
 
         self.map_centre = None
@@ -192,6 +192,14 @@ class FlatMapper(Mapper):
 
         self.tf_map_offset.sendTransform(t)
 
+    def crop_to_fov(self, points):
+        """
+        crop points to the field of view of the depth camera
+        """
+        points = points[np.abs(np.arctan2(points[:, 0], points[:, 2])) < max_fov_horizontal]
+        points = points[np.abs(np.arctan2(points[:, 1], points[:, 2])) < max_fov_vertical]
+        return points
+
     def get_detection_map_indexes(self, points):
         """
         Scales points in meters to array indices in the sub-section of the grid that contains
@@ -216,6 +224,7 @@ class FlatMapper(Mapper):
         """
         if len(points) == 0:
             return points
+        points = self.crop_to_fov(points)
         indexes = self.get_detection_map_indexes(points)
         indexes, counts = np.unique(indexes, return_counts=True, axis=0)
         counts = (counts // min_point_density).astype(bool)  # filtering out voxels without many points in them
@@ -281,7 +290,7 @@ class FlatMapper(Mapper):
         :param: obstacles - 1-dimensional array of obstacles in the map
         """
         obs_as_points = np.array([[x, y, val] for (x, y), val in np.ndenumerate(obstacles) \
-                                  if np.abs(np.arctan2(y - len(obstacles[0]) / 2, x)) < max_fov_angle])
+                                  if np.abs(np.arctan2(y - len(obstacles[0]) / 2, x)) < max_fov_horizontal])
         obs_as_points[:, 1] -= int(np.ceil(self.detection_width / (2 * self.resolution_ratio)))
         self.get_logger().debug(f"Rotating obstacles in map: {self.local_map_to_d435}", throttle_duration_sec=1)
         obstacles = transform.transform_yaw(self.local_map_to_d435, obs_as_points)
