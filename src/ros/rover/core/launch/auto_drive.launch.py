@@ -49,14 +49,14 @@ def generate_launch_description():
     # autonomous nodes
     main_launch = Node(
         package="autonomous",
-        node_executable="main.py",
+        executable="main.py",
         output="screen",
         parameters=[core_params_path / "auto_params.yaml"],
         emulate_tty=True
     )
     tracking_cam_launch = Node(
         package='autonomous',
-        node_executable='tracking_camera.py',
+        executable='tracking_camera.py',
         output='screen',
         parameters=[core_params_path / "auto_params.yaml"],
         emulate_tty=True,
@@ -64,7 +64,7 @@ def generate_launch_description():
     )
     depth_cam_launch = Node(
         package="autonomous",
-        node_executable="depth_camera.py",
+        executable="depth_camera.py",
         output="screen",
         parameters=[core_params_path / "auto_params.yaml"],
         emulate_tty=True,
@@ -72,7 +72,7 @@ def generate_launch_description():
     )
     stamp_converter_launch = Node(
         package="autonomous",
-        node_executable="stamp_converter.py",
+        executable="stamp_converter.py",
         output="screen",
         parameters=[core_params_path / "auto_params.yaml"],
         emulate_tty=True,
@@ -80,28 +80,28 @@ def generate_launch_description():
     )
     pose_converter_launch = Node(
         package="autonomous",
-        node_executable="pose_converter_ARC.py",
+        executable="pose_converter_ARC.py",
         output="screen",
         parameters=[core_params_path / "auto_params.yaml"],
         emulate_tty=True
     )
     gruc_launch = Node(
         package="autonomous",
-        node_executable="GRUC.py",
+        executable="GRUC.py",
         output="screen",
         parameters=[core_params_path / "auto_params.yaml"],
         emulate_tty=True
     )
     grup_launch = Node(
         package="autonomous",
-        node_executable="GRUP.py",
+        executable="GRUP.py",
         output="screen",
         parameters=[core_params_path / "auto_params.yaml"],
         emulate_tty=True
     )
     goal_manager_launch = Node(
         package="autonomous",
-        node_executable="goal_manager.py",
+        executable="goal_manager.py",
         output="screen",
         parameters=[core_params_path / "auto_params.yaml"],
         emulate_tty=True
