@@ -8,6 +8,7 @@ Methods
 import rclpy
 from rclpy.node import Node
 import autonomous.vis.pc_pub as pc_pub
+import logging
 
 from autonomous.config.ros_config import auto_waypoints_topic
 
@@ -25,6 +26,7 @@ class PathCloud(Node):
         
         # create the path publisher
         self.path_publisher = self.create_publisher(Path, '/autonomous/path', 10) 
+        self.get_logger().set_level(logging.INFO)
          
         self.subscriber_path = self.create_subscription(Waypoints, auto_waypoints_topic, self.path_callback, 10)
         self.path = Path()
@@ -65,5 +67,17 @@ class PathCloud(Node):
         Given a path (which is an array of [x, y] coordinates), we want to publish a PointCloud2 object which shows straight lines for those paths
         """
         self.path_publisher.publish(self.path)
-        self.get_logger().info("visualising_path")
+        self.get_logger().debug("visualising_path")
 
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = PathCloud()
+    rclpy.spin(node)
+    node.destroy_node()
+    rclpy.shutdown()
+
+
+if __name__ == "__main__":
+    main()
+    

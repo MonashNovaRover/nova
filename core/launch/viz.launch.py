@@ -23,32 +23,24 @@ def generate_launch_description():
 
     robot_state_publisher_node = Node(
         package='robot_state_publisher',
-        node_executable='robot_state_publisher',
+        executable='robot_state_publisher',
         parameters=[{'robot_description': robot_description}]
     )
 
     rviz_node = Node(
         package='rviz2',
-        node_executable='rviz2',
+        executable='rviz2',
         name='rviz2',
         output='screen',
         arguments=['-d', LaunchConfiguration('rvizconfig')],
     )
 
     joint_state_publisher_node =  Node(
-            package='control',
-            node_executable='rover_state_publisher.py',
-            output='screen',
-            emulate_tty=True
-            )
-
-    # autonomous nodes
-    path_vis_node = Node(
-        package="autonomous",
-        node_executable="path_vis.py",
-        output="screen",
+        package='control',
+        executable='rover_state_publisher.py',
+        output='screen',
         emulate_tty=True
-    ),
+    )
 
     return LaunchDescription([
         model_arg,
