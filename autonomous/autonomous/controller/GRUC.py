@@ -79,7 +79,9 @@ class DrivingState(Enum):
     TO_TARGET = 2  # driving to a block or tag
     FACE_TARGET = 3  # turning to face a block or tag
     SUCCESS = 4  # Completed driving to the current goal
-    RESET = 5  # Resetting blcmds or resolvers after a fault
+    PRE_RESET = 5  # Resetting resolvers after a fault and waiting
+    POST_RESET = 6  # Resetting blcmds after wait period
+
 
 
 class Controller(Node):
@@ -119,8 +121,8 @@ class Controller(Node):
         # Reset Things
         self.saved_state = None
         self.reset_time = None
-        self.blcmd_statuses = []
-        self.resolver_statuses = []
+        self.blcmd_errors = []
+        self.resolver_errors = []
 
         # ------------- ROS Things ----------
         # tf2
@@ -200,18 +202,18 @@ class Controller(Node):
             if self.ctl_spin.is_completed():
                 # We have just finished a spin
                 self.on_drive_state_update(DrivingState.SUCCESS)
-        elif self.driving_state == DrivingState.RESET:
-            self.get_logger().info(f'{(self.get_clock().now() - self.reset_time).seconds()} since entering reset state')
-            if (self.get_clock().now() - self.reset_time) >= Duration(seconds = 10):
-                state = self.saved_state
-                self.saved_state = None
-                self.reset_time = None
-                for blcmd_id in self.blcmd_statuses:
-                    msg = BLCMDReset()
-                    msg.id = blcmd_id
-                    msg.type = BLCMDReset.BLCMD
-                    self.pub_blcmd_reset.publish(msg)
-                self.on_drive_state_update(state)
+        elif self.driving_state == DrivingState.PRE_RESET:
+            self.get_logger().info(f'{(self.get_clock().now() - self.reset_time).nanoseconds/1e9} since entering pre-reset state')
+            if (self.get_clock().now() - self.reset_time) >= Duration(seconds = 7):
+                self.on_drive_state_update(DrivingState.POST_RESET)
+        elif self.driving_state == DrivingState.POST_RESET:
+            self.get_logger().info(
+                f'{(self.get_clock().now() - self.reset_time).nanoseconds / 1e9} since entering post-reset state')
+            if (self.get_clock().now() - self.reset_time) >= Duration(seconds = 3):
+               state = self.saved_state
+               self.saved_state = None
+               self.reset_time = None
+               self.on_drive_state_update(state)
 
 
 
@@ -233,14 +235,25 @@ class Controller(Node):
             self.reset_goals_and_waypoints()
             self.pub_at_goal.publish(Empty())
         
-        if new_state == DrivingState.RESET:
-            self.get_logger().info(f"Entering reset drive mode")
-            for blcmd_id in self.resolver_statuses:
+        if new_state == DrivingState.PRE_RESET:
+            self.saved_state = old_state
+            self.get_logger().info(f"Entering pre-reset drive mode")
+            for blcmd_id in self.resolver_errors:
                 msg = BLCMDReset()
                 msg.id = blcmd_id
                 msg.type = BLCMDReset.RESOLVER
                 self.pub_blcmd_reset.publish(msg)
             self.get_logger().info(f"Reset resolvers")
+            self.reset_time = self.get_clock().now()
+            self.get_logger().info(f"Reset time set to {self.reset_time}")
+        if new_state == DrivingState.POST_RESET:
+            self.get_logger().info(f"Entering post-reset drive mode")
+            for blcmd_id in self.blcmd_errors:
+                msg = BLCMDReset()
+                msg.id = blcmd_id
+                msg.type = BLCMDReset.BLCMD
+                self.pub_blcmd_reset.publish(msg)
+            self.get_logger().info(f"Reset blcmds")
             self.reset_time = self.get_clock().now()
             self.get_logger().info(f"Reset time set to {self.reset_time}")
 
@@ -293,20 +306,19 @@ class Controller(Node):
 
     def callback_blcmd_status(self, msg: BLCMDStatusArray):
         
-        self.blcmd_statuses = []
-        self.resolver_statuses = []
+        self.blcmd_errors = []
+        self.resolver_errors = []
 
         blcmd : BLCMDStatus
         for blcmd in msg.blcmds:
-            if(blcmd.stall_fault or blcmd.overspeed_fault or blcmd.gate_fault):
-                self.blcmd_statuses.append(blcmd.id)
-                
-            if(blcmd.resolver_fault):
-                self.resolver_statuses.append(blcmd.id)
+            if blcmd.stall_fault or blcmd.overspeed_fault or blcmd.gate_fault:
+                self.blcmd_errors.append(blcmd.id)
+            if blcmd.resolver_fault:
+                self.resolver_errors.append(blcmd.id)
 
-        if self.driving_state != DrivingState.RESET and (len(self.resolver_statuses) != 0 or len(self.blcmd_statuses) != 0):
-            self.saved_state = self.driving_state
-            self.on_drive_state_update(DrivingState.RESET)
+        if (self.driving_state not in [DrivingState.PRE_RESET, DrivingState.POST_RESET]) and \
+                (len(self.resolver_errors) != 0 or len(self.blcmd_errors) != 0):
+            self.on_drive_state_update(DrivingState.PRE_RESET)
             
 
 
@@ -439,9 +451,6 @@ class Controller(Node):
                 self.get_logger().debug("No more waypoints in path.")
         
         # -------------------------------------- 5. RESET ------------------------------
-
-        elif self.driving_state == DrivingState.RESET:
-            drive, steer = 0, 0
             
         self.send_drive_cmd(drive, steer)
 
@@ -459,7 +468,7 @@ class Controller(Node):
         drive_cmd_msg.speed = max(-1.0, min(1.0, float(drive_fraction)))
         drive_cmd_msg.steer = max(-1.0, min(1.0, float(angular_fraction)))
 
-        if self.param_do_tank_turn or self.driving_state == DrivingState.RESET:
+        if self.param_do_tank_turn or self.driving_state in [DrivingState.PRE_RESET, DrivingState.POST_RESET]:
             drive_cmd_msg.mode = DriveInput.TANK
         else:
             drive_cmd_msg.mode = DriveInput.PIVOT
