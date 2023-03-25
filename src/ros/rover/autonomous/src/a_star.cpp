@@ -74,7 +74,7 @@ typedef pair<int, int> Pair;
 typedef tuple<double, int, int> Tuple;
 
 // All possible neighbour points on an octile map
-const array<Pair, 8> BRANCHES = {{{0, 1}, {0, -1}, {1, 0}, {-1, 0},
+const vector<Pair, 8> BRANCHES = {{{0, 1}, {0, -1}, {1, 0}, {-1, 0},
 									{1, 1}, {1, -1}, {-1, 1}, {-1, -1}}};
 
 // A structure to hold the necessary parameters
@@ -111,7 +111,7 @@ bool isObstacle(const float grid_value)
 }
 
 template <size_t ROW, size_t COL>
-bool isSafe(const array<array<float, COL>, ROW>& grid,
+bool isSafe(const vector<vector<float, COL>, ROW>& grid,
 				const Pair& point)
 {
     /*is this square blocked by an obstacle or too close to one
@@ -163,7 +163,7 @@ float padding_value(float dist_sqrd, float padding_width_sqrd)
 }
 
 template <size_t ROW, size_t COL>
-void optimise_padding_area(const array<array<float, COL>, ROW>& grid, 
+void optimise_padding_area(const vector<vector<float, COL>, ROW>& grid, 
 							int& x, int& y, int& min_x, int& max_x, int& min_y, int& max_y)
 {
 	/*
@@ -203,7 +203,7 @@ void optimise_padding_area(const array<array<float, COL>, ROW>& grid,
 }
 
 template<size_t ROW, size_t COL>
-int count_adjacent_obstacles(const array<array<float, COL>, ROW>& grid, int& x, int& y){
+int count_adjacent_obstacles(const vector<vector<float, COL>, ROW>& grid, int& x, int& y){
 	/*
 	Count the number of obstacle tiles ( == 1) directly adjacent to an x,y coordinate
 	*/
@@ -225,7 +225,7 @@ int count_adjacent_obstacles(const array<array<float, COL>, ROW>& grid, int& x, 
 
 
 template <size_t ROW, size_t COL> 
-void pad_point(array<array<float, COL>, ROW>& grid, const Pair& start_pt, float padding_width_pixels)
+void pad_point(vector<vector<float, COL>, ROW>& grid, const Pair& start_pt, float padding_width_pixels)
 {
 	int y = start_pt.first, x = start_pt.second;
 	int min_x = x - 1.3 * padding_width_pixels, min_y = y - 1.3 * padding_width_pixels;
@@ -253,7 +253,7 @@ void pad_point(array<array<float, COL>, ROW>& grid, const Pair& start_pt, float 
 }
 
 template <size_t ROW, size_t COL>
-void precompute_padding_values(array<array<float, COL>, ROW>& grid, 
+void precompute_padding_values(vector<vector<float, COL>, ROW>& grid, 
 									float grid_resolution_cm) 
 {
 	/* Loops through the map, locates every obstacle tile, and maps
@@ -278,7 +278,7 @@ void precompute_padding_values(array<array<float, COL>, ROW>& grid,
 }
 
 template <size_t ROW, size_t COL> 
-void add_obstacle_border(array<array<float, COL>, ROW>& grid)
+void add_obstacle_border(vector<vector<float, COL>, ROW>& grid)
 {
 	/* Adds a border of obstacles around the map to prevent the rover from
 	 driving off the map */
@@ -304,7 +304,7 @@ void add_obstacle_border(array<array<float, COL>, ROW>& grid)
 // A Utility Function to trace the path from the source to
 // destination
 template <size_t ROW, size_t COL>
-vector<Pair> tracePath(array<array<cell, COL>, ROW>& cellDetails, const Pair& dest){
+vector<Pair> tracePath(vector<vector<cell, COL>, ROW>& cellDetails, const Pair& dest){
 	stack<Pair> backwards_path;
 
 	int row = dest.second;
@@ -329,7 +329,7 @@ vector<Pair> tracePath(array<array<cell, COL>, ROW>& cellDetails, const Pair& de
 }
 
 template <size_t ROW, size_t COL>
-void clear_obstacles_from_location(array<array<float, COL>, ROW>& grid, const Pair& point, const int cutting_distance) {
+void clear_obstacles_from_location(vector<vector<float, COL>, ROW>& grid, const Pair& point, const int cutting_distance) {
 	/*
 	Checks area around a point, and sets any obstacle values in that area to 0.99 rather than 1.
 	Prevents hard failure if the rover thinks its current pose or its destination is inside an obstacle.
@@ -347,7 +347,7 @@ void clear_obstacles_from_location(array<array<float, COL>, ROW>& grid, const Pa
 }
 
 template <size_t ROW, size_t COL>
-bool obstacle_between(array<array<float, COL>, ROW>& grid, Pair p1, Pair p2, int num_points){
+bool obstacle_between(vector<vector<float, COL>, ROW>& grid, Pair p1, Pair p2, int num_points){
     /*
     Interpolates between two points, checking from terrain above a specific obstacle value.
     :return: true if an obstacle is found between p1 and p2, otherwise false
@@ -371,7 +371,7 @@ bool obstacle_between(array<array<float, COL>, ROW>& grid, Pair p1, Pair p2, int
 }
 
 template <size_t ROW, size_t COL>
-void string_pull_from_start(array<array<float, COL>, ROW>& grid, vector<Pair>& path){
+void string_pull_from_start(vector<vector<float, COL>, ROW>& grid, vector<Pair>& path){
     /*
     Reduce the path to a substring of itself beginning at the first point necessitated by a string pull
     */
@@ -399,7 +399,7 @@ vector<Pair> construct_return_val(vector<Pair> path, Status status) {
 // Algorithm
 
 template <size_t ROW, size_t COL>
-vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
+vector<Pair> aStarSearch(vector<vector<float, COL>, ROW>& grid,
 				const Pair& src, const Pair& dest, const float grid_resolution_m, const float padding_dist_m)
 {
     PADDING_DIST_M = padding_dist_m;
@@ -440,7 +440,7 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 
 	// Declare a 2D array of structure to hold the details
 	// of that cell
-	array<array<cell, COL>, ROW> cellDetails;
+	vector<vector<cell, COL>, ROW> cellDetails;
 
 	int i, j;
 	// Initialising the parameters of the starting node
@@ -578,7 +578,7 @@ int main()
 	/* Description of the Grid-
 	1--> The cell is blocked
 	0--> The cell is not blocked */
-	array<array<float, 200>, 200> grid;
+	vector<vector<float, 200>, 200> grid;
 	grid.fill({});
 
 	for (int i = 0; i < 100; i++) {
