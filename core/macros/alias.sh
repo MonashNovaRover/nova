@@ -102,3 +102,4 @@ alias rerun='. ~/nova_ws/src/rover/core/macros/rerun.sh'     # Sets up the CAN l
 
 # autonomous aliases
 alias play_bag='. ~/nova_ws/src/rover/core/macros/bag_play.sh'
+alias rosbridge='ros2 launch rosbridge_server rosbridge_websocket_launch.xml'

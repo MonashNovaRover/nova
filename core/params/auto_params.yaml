@@ -6,7 +6,8 @@
       [0.48533, 0.63122, 0., 0., 0., 0., 1.]
     initial_base_link_euler:
       # x, y, z, yaw, pitch, roll
-      [0.48533, 0.63122, 0., 90., 0., 0.]
+      #[0.48533, 0.63122, 0., 90., 0., 0.]
+      [-5.48533, -10.63122, 0., 90., 0., 0.]
 
 /GRUC:
   ros__parameters:
@@ -16,10 +17,10 @@
   ros__parameters:
     map_coords_cc:
       # x, y
-      [10.0, 10.0, -10.0, 10.0, -10.0, -10.0, 10.0, -10.0]
+      [8.0, 7.0, -5.0, 8.0, -6.0, -5.0, 7.0, -6.0]
     search_plan:
       # x, y
-      [4.0, 7.0, -3.0, 7.0, -3.0, -5.0, 4.0, -5.0, 0.0, 0.0]
+      [4.0, 2.0, -3.0, 2.0, -3.0, -5.0, 4.0, -5.0, 0.0, 0.0]
     tracked_tag_ids: [1]
     tracked_block_colors: ['WHITE', 'GREEN', 'YELLOW', 'RED']
 
@@ -27,7 +28,19 @@
   ros__parameters:
     map_corners_coords:
       # x, y
-      [10.0, 10.0, -10.0, 10.0, -10.0, -10.0, 10.0, -10.0]
+      [8.0, 7.0, -5.0, 8.0, -6.0, -5.0, 7.0, -6.0]
+
+/plane_mapper:
+  ros__parameters:
+    map_corners_coords:
+      # x, y
+      [8.0, 7.0, -5.0, 8.0, -6.0, -5.0, 7.0, -6.0]
+
+/height_mapper:
+  ros__parameters:
+    map_corners_coords:
+      # x, y
+      [8.0, 7.0, -5.0, 8.0, -6.0, -5.0, 7.0, -6.0]
 
 /T265Node:
   ros__parameters:
