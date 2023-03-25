@@ -32,7 +32,7 @@ from autonomous.mapping.mapper import Mapper
 from autonomous.mapping.grid_2d import Grid2D
 import numpy as np
 import autonomous.math_utils.transform as transform
-from autonomous.config.runtime_params import max_fov_angle, max_point_depth, max_safe_obstacle, min_point_density, \
+from autonomous.config.runtime_params import max_fov_horizontal, max_fov_vertical, max_point_depth, max_safe_obstacle, min_point_density, \
     obstacle_halve_value, obstacle_ignore_value
 from scipy.signal import convolve2d
 from rclpy.time import Time
@@ -41,7 +41,7 @@ import time, math, logging
 from typing import Tuple
 
 from geometry_msgs.msg import TransformStamped, Transform
-from tf2_ros import TransformBroadcaster
+from tf2_ros import TransformBroadcaster, StaticTransformBroadcaster
 
 
 class FlatMapper(Mapper):
@@ -64,7 +64,7 @@ class FlatMapper(Mapper):
         )
 
         self.get_logger().set_level(logging.INFO)
-        self.param_tf_sub_hz = self.declare_parameter("tf_sub_frequency_hz", 10).value
+        self.param_tf_sub_hz = self.declare_parameter("tf_sub_frequency_hz", 30).value
         self.param_tf_pub_hz = self.declare_parameter("tf_pub_frequency_hz", 30).value
         self.param_roll_map = self.declare_parameter("roll_map", False).value
         self.param_map_edge_distance = self.declare_parameter("map_edge_dist_m", 3).value
@@ -73,7 +73,10 @@ class FlatMapper(Mapper):
         # How far to roll the map when we approach the edge
         self.param_map_roll_distance = self.declare_parameter("map_roll_dist_m", 5).value   
         # For moving the map as we navigate
-        self.tf_map_offset = TransformBroadcaster(self)
+        if not self.param_roll_map:
+            self.tf_map_offset = StaticTransformBroadcaster(self)
+        else:
+            self.tf_map_offset = TransformBroadcaster(self)
 
         self.local_map_to_base_link: Transform = None
         self.local_map_to_d435: Transform = None
@@ -84,7 +87,7 @@ class FlatMapper(Mapper):
         self.resolution_ratio = int(self.planning_resolution / self.detection_resolution)
         self.detection_length = int(
             np.ceil((max_point_depth / self.detection_resolution) / self.resolution_ratio) * self.resolution_ratio)
-        self.detection_width = int(np.ceil(2 * self.detection_length * np.tan(max_fov_angle)))
+        self.detection_width = int(np.ceil(2 * self.detection_length * np.tan(max_fov_horizontal)))
         self.offset = None
 
         self.map_centre = None
@@ -96,7 +99,7 @@ class FlatMapper(Mapper):
         if camera:
             if self.param_roll_map:
                 self.map_roll_timer = self.create_timer(1, self.check_position_in_map)
-            self.pub_transform_timer = self.create_timer(1./self.param_tf_pub_hz, self.pub_transform)
+                self.pub_transform_timer = self.create_timer(1./self.param_tf_pub_hz, self.pub_transform)
             self.map_transform_timer = self.create_timer(1./self.param_tf_sub_hz, self.update_transforms)
 
     def initialise_map(self):
@@ -189,6 +192,16 @@ class FlatMapper(Mapper):
 
         self.tf_map_offset.sendTransform(t)
 
+    def crop_to_fov(self, points):
+        """
+        crop points to the field of view of the depth camera
+        """
+        self.get_logger().debug(f"Points before fov crop: {points}, len = {len(points)}")
+        points = points[np.abs(np.arctan2(points[:, 1], points[:, 0])) < max_fov_horizontal]
+        points = points[np.abs(np.arctan2(points[:, 2], points[:, 0])) < max_fov_vertical]
+        self.get_logger().debug(f"Points after fov crop: {points}, len = {len(points)}")
+        return points
+
     def get_detection_map_indexes(self, points):
         """
         Scales points in meters to array indices in the sub-section of the grid that contains
@@ -211,6 +224,7 @@ class FlatMapper(Mapper):
         Discretises point cloud into indices, then filters out indices without
         enough points in them to avoid phantom "floating" points
         """
+        points = self.crop_to_fov(points)
         if len(points) == 0:
             return points
         indexes = self.get_detection_map_indexes(points)
@@ -278,7 +292,7 @@ class FlatMapper(Mapper):
         :param: obstacles - 1-dimensional array of obstacles in the map
         """
         obs_as_points = np.array([[x, y, val] for (x, y), val in np.ndenumerate(obstacles) \
-                                  if np.abs(np.arctan2(y - len(obstacles[0]) / 2, x)) < max_fov_angle])
+                                  if np.abs(np.arctan2(y - len(obstacles[0]) / 2, x)) < max_fov_horizontal])
         obs_as_points[:, 1] -= int(np.ceil(self.detection_width / (2 * self.resolution_ratio)))
         self.get_logger().debug(f"Rotating obstacles in map: {self.local_map_to_d435}", throttle_duration_sec=1)
         obstacles = transform.transform_yaw(self.local_map_to_d435, obs_as_points)

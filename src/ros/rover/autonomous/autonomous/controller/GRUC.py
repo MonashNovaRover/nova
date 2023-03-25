@@ -101,7 +101,7 @@ class Controller(Node):
         # Ros params
         self.param_do_tank_turn = self.declare_parameter("do_tank_turn", False).value
         self.param_dist_to_targets = self.declare_parameter("dist_to_target_m", 2.5).value
-        self.param_dist_to_search_points = self.declare_parameter("dist_to_search_point_m", 0.4).value
+        self.param_dist_to_search_points = self.declare_parameter("dist_to_search_point_m", 1.0).value
         self.param_waypoint_follow_distance = self.declare_parameter("waypoint_follow_distance_m", 0.3).value
         self.param_goal_facing_threshold = self.declare_parameter("goal_facing_threshold_rad", np.pi/8).value
 
@@ -184,8 +184,10 @@ class Controller(Node):
                 if not self.near_current_goal():
                     self.on_drive_state_update(DrivingState.TO_WAYPOINT)
             elif current_goal.type in [AutonomousGoal.GOAL_TYPE_BLOCK, AutonomousGoal.GOAL_TYPE_TAG]:
-                if not self.near_current_goal() or not self.facing_current_goal():
+                if not self.near_current_goal():
                     self.on_drive_state_update(DrivingState.TO_TARGET)
+                elif not self.facing_current_goal():
+                    self.on_drive_state_update(DrivingState.FACE_TARGET)
         elif self.driving_state == DrivingState.TO_WAYPOINT:
             if self.near_current_goal():
                 # Stop driving to goals when we get close to them
@@ -369,6 +371,10 @@ class Controller(Node):
 
         # dot product gives angle between vectors
         angle_between_headings = np.arccos(np.dot(desired_heading_vector, current_heading_vector)) 
+
+        self.get_logger().info(f"desired_heading: {desired_heading_vector}")
+        self.get_logger().info(f"current_heading: {current_heading_vector}")
+        self.get_logger().info(f"angle between: {angle_between_headings}")
 
         return angle_between_headings < self.param_goal_facing_threshold 
 
