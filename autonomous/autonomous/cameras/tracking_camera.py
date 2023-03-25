@@ -3,6 +3,8 @@ __package__ = "autonomous"
 import numpy as np
 import rclpy
 from rclpy.node import Node
+from rclpy.time import Time
+
 from autonomous.config.runtime_params import t265_serial
 from geometry_msgs.msg import Pose, PoseStamped
 import logging
@@ -107,6 +109,10 @@ class TrackingCamera(Node):
     def get_next_pose(self):
         frames = self.pipe.wait_for_frames()
         pose = frames.get_pose_frame()
+        ts = pose.get_timestamp()
+        ts_seconds = int(ts)
+        ts_nanoseconds = int((ts - ts_seconds) * 1e9)
+        ts_msg = Time(seconds=ts_seconds, nanoseconds=ts_nanoseconds).to_msg()
         if pose is not None:
             data = pose.get_pose_data()
             pose = Pose()
@@ -121,7 +127,7 @@ class TrackingCamera(Node):
             self.get_logger().debug(f"Tracking camera pose: {pose}", throttle_duration_sec=1)
 
             t265_pose_stamped = PoseStamped()
-            t265_pose_stamped.header.stamp = self.get_clock().now().to_msg()
+            t265_pose_stamped.header.stamp = ts_msg
             t265_pose_stamped.header.frame_id = 't265'
 
             t265_pose_stamped.pose = pose

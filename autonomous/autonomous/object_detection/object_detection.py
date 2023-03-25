@@ -47,7 +47,7 @@ class ObjectDetection(Node):
         self.confidence_threshold = confidence_threshold
         self.pixel_border_threshold = pixel_border_threshold
 
-    def get_marker(self, point, c: tuple, index: int) -> None:
+    def get_marker(self, point, c: tuple, index: int) -> Marker:
         """
         :params: c is color tuple (r,g,b) between 0 and 1
         """
@@ -68,8 +68,6 @@ class ObjectDetection(Node):
         color.b = c[2]
         color.a = 1.
         msg.color = color
-        msg.header.frame_id = self.frame_id
-        msg.header.stamp = self.get_clock().now().to_msg()
         # Namespace - raw messages can be separated from confirmed cubes
         msg.ns = "raw"
         msg.id = index
@@ -84,7 +82,7 @@ class ObjectDetection(Node):
         """
         return np.mean(pixels, axis=(0, 1))
 
-    def object_detection(self, color_frame, depth_frame):
+    def object_detection(self, color_frame, depth_frame, stamp):
         self.intr = depth_frame.profile.as_video_stream_profile().get_intrinsics()
         self.get_logger().debug(f"Intrinsics: {self.intr}", throttle_duration_sec=1)
         self.get_logger().debug("OBJECT DETECTION CALLBACK", throttle_duration_sec=1)
@@ -116,7 +114,10 @@ class ObjectDetection(Node):
                 self.get_logger().debug(f"Point: {point}", throttle_duration_sec=1)
                 color = self.get_avg_color(area_of_interest)[::-1] / 255
                 self.get_logger().debug(f"Color: {color}", throttle_duration_sec=1)
-                markers.markers.append(self.get_marker(point, color, i))
+                marker = self.get_marker(point, color, i)
+                marker.header.stamp = stamp
+                marker.header.frame_id = self.frame_id
+                markers.markers.append(marker)
 
                 if self.show:
                     cv2.rectangle(color_image, (int(xmin), int(ymin)), (int(xmax), int(ymax)), (0,0,0), 2)
