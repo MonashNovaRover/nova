@@ -45,7 +45,8 @@ max_ar_distance = 20
 # ~~~~~~~~~~ MAPPING CONSTANTS ~~~~~~~~~~~~~~~~
 min_point_density = 3  # number of points in voxel before we accept it
 max_point_depth = 6  # distance beyond which we don't consider points
-max_fov_angle = np.pi / 6  # fov of depth camera for mapping
+max_fov_horizontal = np.pi / 5  # fov of depth camera for mapping
+max_fov_vertical = np.pi / 8  # fov of depth camera for mapping
 max_safe_obstacle = 30  # obstacle threshold for 2d height mapping
 max_safe_inc = 20  # gradient cutoff for obstacles
 depth_mode = "python"  # whether we publish points over ros or use a python callback

@@ -12,11 +12,11 @@ from nav_msgs.msg import OccupancyGrid, MapMetaData
 from autonomous.config.ros_config import occupancy_grid_topic
 from autonomous.vis.grid_pub import GridPub
 from rclpy.qos import qos_profile_sensor_data as qos
-import logging
+import logging, math
 
 
 class Grid2D(Node): 
-    def __init__(self, length: float, width: float, resolution=0.1):
+    def __init__(self, length: float, width: float, resolution=0.1, outer_length = 20., outer_width=20.):
         """
         2D flattening of the 3D occupancy grid we use to visualise the map
         :param length: length in m in the x direction
@@ -29,13 +29,36 @@ class Grid2D(Node):
         super().__init__("grid_2d")
         self.length = length
         self.width = width
+        self.outer_length = outer_length
+        self.outer_width = outer_width
         self.resolution = resolution
         # unseen areas of the map all have a slight cost 
-        self.map = np.full((int(length / resolution), int(width / resolution)), 100 * unseen_map_val)
+        self.map = np.full((int(outer_length / resolution), int(outer_width / resolution)), 100 * unseen_map_val)
+
+        self.inner_map_border_mask = self.calculate_inner_map_border_mask()
 
         self.get_logger().set_level(logging.INFO)
 
         self.grid_pub = GridPub()
+
+    def calculate_inner_map_border_mask(self):
+        """
+        Calculate a boolean array of all points which are in the boundary of the inner map
+        """
+        min_i = int(math.floor((self.outer_length - self.length) / (2 * self.resolution)))
+        min_j = int(math.floor((self.outer_width - self.width) / (2 * self.resolution)))
+        max_i = int(math.ceil((self.outer_length + self.length) / (2 * self.resolution)))
+        max_j = int(math.ceil((self.outer_width + self.width) / (2 * self.resolution)))
+
+        outer_width_index = int(self.outer_width / self.resolution)
+        outer_length_index = int(self.outer_length / self.resolution)
+
+        # 2 boxes wide so we definitely see the obstacle
+        outer_edge = np.array([[j > min_j - 1 and j < max_j + 1 and i > min_i - 1 and i < max_i + 1 for j in range(outer_width_index)] for i in range(outer_length_index)])
+        inner_edge = np.array([[j > min_j + 1 and j < max_j - 1 and i > min_i + 1 and i < max_i - 1 for j in range(outer_width_index)] for i in range(outer_length_index)])
+
+        # Things that are in the outer region and not in the inner region gives us the border between them
+        return np.logical_and(outer_edge, ~inner_edge)
 
     def roll_map(self, x_change, y_change):
         """
@@ -70,10 +93,10 @@ class Grid2D(Node):
         return temp_map.transpose().flatten().astype(int).tolist()
 
     def publish_grid(self):
-        length = int(self.length / self.resolution)
-        width = int(self.width / self.resolution)
-        x = -self.length / 2
-        y = -self.width / 2
+        length = int(self.outer_length / self.resolution)
+        width = int(self.outer_width / self.resolution)
+        x = -self.outer_length / 2
+        y = -self.outer_width / 2
         self.get_logger().debug("Publishing grid...")
         self.grid_pub.publish_grid(self.resolution, length, width, x, y, self.map_as_sequence())
 
@@ -84,11 +107,15 @@ class Grid2D(Node):
         :param points: (n, 3) ndarray of coordinates in meters
         """
         indexes = (points / self.resolution)
-        indexes += np.array([self.length / (2 * self.resolution), self.width / (2 * self.resolution), 0])
+        indexes += np.array([self.outer_length / (2 * self.resolution), self.outer_width / (2 * self.resolution), 0])
         return indexes.round().astype(int)
 
-    def valid_index(self, index):
-        return 0 < index < (self.length / self.resolution)
+    def bound_inner_map(self):
+        """
+        Manually sets to 1.0 all points around the boundary of the inner map,
+        centered at the midpoint of self.map, with a length of self.length and a width of self.width
+        """
+        self.map[self.inner_map_border_mask] = 100
 
     def add_obstacles(self, transform, obstacles):
         """
@@ -100,8 +127,12 @@ class Grid2D(Node):
         if obstacles is None: return
         diff = self.get_full_indexes(np.array([[transform.translation.x, transform.translation.y, 0]])).astype(int)
         obstacles = obstacles + diff
-        obstacles = np.array([obs for obs in obstacles if 0 < obs[0] < int(self.length / self.resolution)
-                              and 0 < obs[1] < int(self.width / self.resolution)])
+        obstacles = np.array([obs for obs in obstacles if 0 < obs[0] < int(self.outer_length / self.resolution)
+                              and 0 < obs[1] < int(self.outer_width / self.resolution)])
         if len(obstacles) > 0:
             self.map[obstacles[:, 0], obstacles[:, 1]] = obstacles[:, 2]
+        
+        self.bound_inner_map()
+
+        
 

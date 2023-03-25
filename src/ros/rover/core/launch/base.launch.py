@@ -24,13 +24,13 @@ def generate_launch_description():
     return LaunchDescription([
         Node(
             package='control',
-            node_executable='inputs',
+            executable='inputs',
             output='screen',
             emulate_tty=True
         ),
         # Node(
         #     package='electronics',
-        #     node_executable='radio_monitor.py',
+        #     executable='radio_monitor.py',
         #     output='screen',
         #     emulate_tty=True
         # ),
