@@ -191,7 +191,6 @@ class EMCPublisher(Node):
         self.new_message()
 
 
-
 # The main code that executes when starting
 def main(args=None):
 
