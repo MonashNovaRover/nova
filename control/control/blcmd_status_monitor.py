@@ -53,6 +53,8 @@ class BLCMDStatusMonitor(Node):
             self.blcmds_status[i].stall_fault = False
             self.blcmds_status[i].resolver_fault = False
             self.blcmds_status[i].overspeed_fault = False
+        
+        self.resolver_fault_count = [0 for _ in range(self.get_parameter("num_blcmds").value)]
 
         #create reset_time variable to prevent multiple resets in a short time
         self.reset_time = self.get_clock().now()
@@ -67,7 +69,7 @@ class BLCMDStatusMonitor(Node):
 
         #create timers
         self.can_spin_timer = self.create_timer(0.01, self.bus.spin)
-        self.publish_status_timer = self.create_timer(1/50, self.publish_status)
+        self.publish_status_timer = self.create_timer(0.5, self.publish_status)
         self.status_check_timer = self.create_timer(1, self.check_status)
 
         #open the can bus
@@ -90,7 +92,7 @@ class BLCMDStatusMonitor(Node):
         elif msg.type == BLCMDReset.RESOLVER:
             self.get_logger().info(f'Reset resolver on BLCMD {msg.id}')
 
-    def get_callback(self, blcmd):
+    def get_callback(self, blcmd: int):
         """
         Returns a callback function for the given blcmd
         :param blcmd:
@@ -100,7 +102,8 @@ class BLCMDStatusMonitor(Node):
             if frame.data[0] == 0:
                 if frame.data[1] == 0x2:
                     self.get_logger().error(f'Resolver Fault on BLCMD {blcmd + 1}')
-                    self.blcmds_status[blcmd].resolver_fault = True
+                    if self.resolver_fault_count[blcmd] < 5:
+                        self.resolver_fault_count[blcmd] += 1
                     self.fault_times["resolver_fault"] = self.get_clock().now()
                 elif frame.data[1] == 0x5:
                     self.get_logger().error(f'Gate Driver Fault on BLCMD {blcmd + 1}')
@@ -117,10 +120,16 @@ class BLCMDStatusMonitor(Node):
         return callback
 
     def check_status(self):
+      
         for i in range(self.get_parameter("num_blcmds").value):
-            if self.blcmds_status[i].resolver_fault:
-                if (self.get_clock().now() - self.fault_times["resolver_fault"]) > Duration(seconds=2):
-                    self.blcmds_status[i].resolver_fault = False
+            if self.fault_times.get("resolver_fault") is not None and \
+            (self.get_clock().now() - self.fault_times["resolver_fault"]) > Duration(seconds=2) and self.resolver_fault_count[i] > 0:
+                    self.resolver_fault_count[i] = 0 
+            if self.resolver_fault_count[i] < 5:
+                self.blcmds_status[i].resolver_fault = False
+            else:
+                self.blcmds_status[i].resolver_fault = True
+
             if self.blcmds_status[i].gate_fault:
                 if (self.get_clock().now() - self.fault_times["gate_fault"]) > Duration(seconds=2):
                     self.blcmds_status[i].gate_fault = False
@@ -130,6 +139,7 @@ class BLCMDStatusMonitor(Node):
             if self.blcmds_status[i].overspeed_fault:
                 if (self.get_clock().now() - self.fault_times["overspeed_fault"]) > Duration(seconds=2):
                     self.blcmds_status[i].overspeed_fault = False
+
 
     def publish_status(self):
         """
@@ -146,7 +156,6 @@ def main():
     monitor_node = BLCMDStatusMonitor()
     rclpy.spin(monitor_node)
     rclpy.shutdown()
-
 
 if __name__ == "__main__":
     main()

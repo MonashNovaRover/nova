@@ -50,11 +50,13 @@ from rclpy.time import Time
 from std_srvs.srv import Trigger
 from nav_msgs.msg import Path
 from std_msgs.msg import Empty
-from geometry_msgs.msg import PoseStamped, Transform, TransformStamped, Pose2D
+from geometry_msgs.msg import Transform, Pose2D
 from tf2_ros import Buffer, TransformListener
+from rclpy.duration import Duration
+
 
 # custom message imports
-from core.msg import DriveInput, AutonomousGoal, PivotWheelData
+from core.msg import DriveInput, AutonomousGoal, PivotWheelData, BLCMDReset, BLCMDStatusArray, BLCMDStatus
 from autonomous.controller.spin_controller import SpinController
 
 # autonomous imports
@@ -77,6 +79,9 @@ class DrivingState(Enum):
     TO_TARGET = 2  # driving to a block or tag
     FACE_TARGET = 3  # turning to face a block or tag
     SUCCESS = 4  # Completed driving to the current goal
+    PRE_RESET = 5  # Resetting resolvers after a fault and waiting
+    POST_RESET = 6  # Resetting blcmds after wait period
+
 
 
 class Controller(Node):
@@ -113,6 +118,12 @@ class Controller(Node):
         self.ctl_driver = DriveController(self.turning_mode)
         self.ctl_spin = None
 
+        # Reset Things
+        self.saved_state = None
+        self.reset_time = None
+        self.blcmd_errors = []
+        self.resolver_errors = []
+
         # ------------- ROS Things ----------
         # tf2
         self.tf_buffer = Buffer()
@@ -122,6 +133,7 @@ class Controller(Node):
         # 'DriveInput' message is used to make the wheels move!
         self.pub_drive_commands = self.create_publisher(DriveInput, auto_drive_command_topic, 10)
         self.pub_at_goal = self.create_publisher(Empty, "~/at_goal", 10)
+        self.pub_blcmd_reset = self.create_publisher(BLCMDReset, "/control/blcmd_reset", 10)
         # Planned destination -> we wish to go here, which is the next step on our path to the target
 
         # Subscribers
@@ -130,6 +142,7 @@ class Controller(Node):
         self.sub_planned_path_to_destination = self.create_subscription(Path, auto_waypoints_topic,
                                                                         self.callback_planner_path, 10)
         self.sub_steer = self.create_subscription(PivotWheelData, "/control/pivot_wheel", self.callback_steer, 10)
+        self.sub_blcmd_status = self.create_subscription(BLCMDStatusArray, "/control/blcmd_status", self.callback_blcmd_status, 10)
 
         self.get_logger().info("Waiting for transform from 'local_map' to 'base_link'...")
         while not self.tf_buffer.can_transform('base_link', 'map', Time()):
@@ -189,6 +202,20 @@ class Controller(Node):
             if self.ctl_spin.is_completed():
                 # We have just finished a spin
                 self.on_drive_state_update(DrivingState.SUCCESS)
+        elif self.driving_state == DrivingState.PRE_RESET:
+            self.get_logger().debug(f'{(self.get_clock().now() - self.reset_time).nanoseconds/1e9} since entering pre-reset state')
+            if (self.get_clock().now() - self.reset_time) >= Duration(seconds = 7):
+                self.on_drive_state_update(DrivingState.POST_RESET)
+        elif self.driving_state == DrivingState.POST_RESET:
+            self.get_logger().debug(
+                f'{(self.get_clock().now() - self.reset_time).nanoseconds / 1e9} since entering post-reset state')
+            if (self.get_clock().now() - self.reset_time) >= Duration(seconds = 3):
+               state = self.saved_state
+               self.saved_state = None
+               self.reset_time = None
+               self.on_drive_state_update(state)
+
+
 
     def on_drive_state_update(self, new_state: DrivingState):
         """
@@ -198,7 +225,6 @@ class Controller(Node):
         old_state = self.driving_state
 
         self.get_logger().info("------ Drive State Transition: " + str(old_state) + " -> " + str(new_state))
-
         self.driving_state = new_state
 
         if new_state == DrivingState.TURNING:
@@ -208,6 +234,28 @@ class Controller(Node):
             self.get_logger().debug(f"Entering success drive mode, getting next goal")
             self.reset_goals_and_waypoints()
             self.pub_at_goal.publish(Empty())
+        
+        if new_state == DrivingState.PRE_RESET:
+            self.saved_state = old_state
+            self.get_logger().error(f"Resolver fault: resetting resolvers")
+            for blcmd_id in self.resolver_errors:
+                msg = BLCMDReset()
+                msg.id = blcmd_id
+                msg.type = BLCMDReset.RESOLVER
+                self.pub_blcmd_reset.publish(msg)
+            self.get_logger().info(f"Reset resolvers")
+            self.reset_time = self.get_clock().now()
+            self.get_logger().debug(f"Reset time set to {self.reset_time}")
+        if new_state == DrivingState.POST_RESET:
+            self.get_logger().info(f"Resetting any stall faults")
+            for blcmd_id in self.blcmd_errors:
+                msg = BLCMDReset()
+                msg.id = blcmd_id
+                msg.type = BLCMDReset.BLCMD
+                self.pub_blcmd_reset.publish(msg)
+            self.get_logger().debug(f"Reset blcmds")
+            self.reset_time = self.get_clock().now()
+            self.get_logger().debug(f"Reset time set to {self.reset_time}")
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Simple State Update Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -255,6 +303,24 @@ class Controller(Node):
         """
         self.waypoint_path = [(p.pose.position.x, p.pose.position.y) for p in msg.poses]
         self.num_paths_planned += 1
+
+    def callback_blcmd_status(self, msg: BLCMDStatusArray):
+        
+        self.blcmd_errors = []
+        self.resolver_errors = []
+
+        blcmd : BLCMDStatus
+        for blcmd in msg.blcmds:
+            if blcmd.stall_fault or blcmd.overspeed_fault or blcmd.gate_fault:
+                self.blcmd_errors.append(blcmd.id)
+            if blcmd.resolver_fault:
+                self.resolver_errors.append(blcmd.id)
+
+        if (self.driving_state not in [DrivingState.PRE_RESET, DrivingState.POST_RESET]) and \
+                (len(self.resolver_errors) != 0 or len(self.blcmd_errors) != 0):
+            self.on_drive_state_update(DrivingState.PRE_RESET)
+            
+
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 'Util' Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -304,9 +370,9 @@ class Controller(Node):
         # dot product gives angle between vectors
         angle_between_headings = np.arccos(np.dot(desired_heading_vector, current_heading_vector)) 
 
-        self.get_logger().info(f"desired_heading: {desired_heading_vector}")
-        self.get_logger().info(f"current_heading: {current_heading_vector}")
-        self.get_logger().info(f"angle between: {angle_between_headings}")
+        self.get_logger().debug(f"desired_heading: {desired_heading_vector}")
+        self.get_logger().debug(f"current_heading: {current_heading_vector}")
+        self.get_logger().debug(f"angle between: {angle_between_headings}")
 
         return angle_between_headings < self.param_goal_facing_threshold 
 
@@ -387,7 +453,11 @@ class Controller(Node):
                 drive, steer = self.go_to_target(path[0])
             else:
                 self.get_logger().debug("No more waypoints in path.")
+        
+        # -------------------------------------- 5. RESET ------------------------------
+            
         self.send_drive_cmd(drive, steer)
+
 
     def send_drive_cmd(self, drive_fraction: float, angular_fraction: float):
         """
@@ -402,7 +472,7 @@ class Controller(Node):
         drive_cmd_msg.speed = max(-1.0, min(1.0, float(drive_fraction)))
         drive_cmd_msg.steer = max(-1.0, min(1.0, float(angular_fraction)))
 
-        if self.param_do_tank_turn:
+        if self.param_do_tank_turn or self.driving_state in [DrivingState.PRE_RESET, DrivingState.POST_RESET]:
             drive_cmd_msg.mode = DriveInput.TANK
         else:
             drive_cmd_msg.mode = DriveInput.PIVOT
