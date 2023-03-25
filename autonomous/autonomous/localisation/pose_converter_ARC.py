@@ -40,6 +40,7 @@ from autonomous.config.runtime_params import pose_file
 
 import numpy as np
 import time
+import math
 import logging
 
 
@@ -84,11 +85,12 @@ class PoseConverter(Node):
             try:
                 initial_transform.translation.x, initial_transform.translation.y, initial_transform.translation.z = \
                     self.param_initial_euler[0], self.param_initial_euler[1], self.param_initial_euler[2]
-                initial_transform.rotation = transform.quat_to_euler(
-                    self.param_initial_euler[3],
-                    self.param_initial_euler[4],
-                    self.param_initial_euler[5]
+                initial_transform.rotation = transform.euler_to_quat(
+                    (math.radians(self.param_initial_euler[4]),
+                    math.radians(self.param_initial_euler[5]),
+                    math.radians(self.param_initial_euler[3]))
                 )
+                print(f"INITIAL TRANSFORM: {initial_transform}")
             except IndexError as e:
                 self.get_logger().error(f"Incorrect euler angle layout in parameter: {e}")
             except Exception as e:

@@ -62,6 +62,8 @@ class HeightPlaneMapper(FlatMapper):
         if self.orient_nova_frame_transform is None: 
             self.get_logger().warn("No transform to forward-facing frame!")
             return
+        if len(pts) < 10:
+            return
         self.get_logger().debug(f"Transforming point cloud by transform: {self.orient_nova_frame_transform}", throttle_duration_sec=1)
         # transform to nova coordinates
         frame_transformed_points = transform.transform_points(self.orient_nova_frame_transform, pts)

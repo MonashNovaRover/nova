@@ -28,6 +28,8 @@ void Driver::send_commands(const core::msg::DriveInput::SharedPtr msg)
             double radius = get_turning_radius(msg->steer);
             double steer = 0;
 
+            std::cout << "desired steer: " << msg->steer << ", best effort radius: " << radius << std::endl;
+
             // Fill the wheel angles and velocities
             fill_wheel_angles_radial(radius);
             fill_wheel_velocities_radial(msg->speed * get_parameter("max-speed").get_parameter_value().get<double>(),
@@ -37,6 +39,8 @@ void Driver::send_commands(const core::msg::DriveInput::SharedPtr msg)
                 steer = radius + (msg->steer > 0 ? 1 : -1);
                 steer = 1 / steer;
             }
+            
+            std::cout << "returning steer: " << steer << std::endl;
 
             data_msg.radius = radius;
             data_msg.steer = steer;
