@@ -69,7 +69,7 @@ class BLCMDStatusMonitor(Node):
 
         #create timers
         self.can_spin_timer = self.create_timer(0.01, self.bus.spin)
-        self.publish_status_timer = self.create_timer(1/50, self.publish_status)
+        self.publish_status_timer = self.create_timer(0.5, self.publish_status)
         self.status_check_timer = self.create_timer(1, self.check_status)
 
         #open the can bus
