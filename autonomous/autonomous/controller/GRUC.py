@@ -104,6 +104,7 @@ class Controller(Node):
         self.param_dist_to_search_points = self.declare_parameter("dist_to_search_point_m", 1.0).value
         self.param_waypoint_follow_distance = self.declare_parameter("waypoint_follow_distance_m", 0.3).value
         self.param_goal_facing_threshold = self.declare_parameter("goal_facing_threshold_rad", np.pi/8).value
+        self.param_max_goal_achieved_dist = self.declare_parameter("max_distance_to_achieve_goal_m", 4.0)
 
         # ~~~~~~~~~~ State ~~~~~~~~
         self.state_rover_pose = None
@@ -337,9 +338,17 @@ class Controller(Node):
             return False
 
         end_of_path = self.waypoint_path[-1] if len(self.waypoint_path) > 0 else None
+        goal_vector = np.array([self.state_current_planning_destination.position.x, self.state_current_planning_destination.position.y]) 
+
+        if distance(
+            np.array([self.state_rover_pose.x, self.state_rover_pose.y]),
+            goal_vector
+            ) > self.param_max_goal_achieved_dist:
+            # We are too far to have reached the goal, even if we are close to the end of our path
+            return False
 
         if end_of_path is None:
-            return True  # path is only empty if
+            return True  # path is only empty if we are at the end of it
 
         goal_dist = 0
         if self.driving_state == DrivingState.TO_TARGET:
