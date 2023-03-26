@@ -38,12 +38,12 @@ pub_scale = 1.0
 # ~~~~~~~~~~ PLANNING CONSTANTS ~~~~~~~~~~~~~~~
 
 planning_rate = 2.0
-INITIAL_PADDING_DIST_M = 0.8
+INITIAL_PADDING_DIST_M = 1.0
 min_ar_distance = 0.7
 max_ar_distance = 20
 
 # ~~~~~~~~~~ MAPPING CONSTANTS ~~~~~~~~~~~~~~~~
-min_point_density = 3  # number of points in voxel before we accept it
+min_point_density = 2  # number of points in voxel before we accept it
 max_point_depth = 6  # distance beyond which we don't consider points
 max_fov_horizontal = np.pi / 5  # fov of depth camera for mapping
 max_fov_vertical = np.pi / 8  # fov of depth camera for mapping

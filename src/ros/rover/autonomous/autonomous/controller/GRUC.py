@@ -104,7 +104,7 @@ class Controller(Node):
         self.param_dist_to_search_points = self.declare_parameter("dist_to_search_point_m", 1.0).value
         self.param_waypoint_follow_distance = self.declare_parameter("waypoint_follow_distance_m", 0.3).value
         self.param_goal_facing_threshold = self.declare_parameter("goal_facing_threshold_rad", np.pi/8).value
-        self.param_max_goal_achieved_dist = self.declare_parameter("max_distance_to_achieve_goal_m", 4.0)
+        self.param_max_goal_achieved_dist = self.declare_parameter("max_distance_to_achieve_goal_m", 4.0).value
 
         # ~~~~~~~~~~ State ~~~~~~~~
         self.state_rover_pose = None
