@@ -49,7 +49,7 @@ from rclpy.node import Node
 from rclpy.time import Time
 from std_srvs.srv import Trigger
 from nav_msgs.msg import Path
-from std_msgs.msg import Empty
+from std_msgs.msg import Empty, Bool
 from geometry_msgs.msg import Transform, Pose2D
 from tf2_ros import Buffer, TransformListener
 from rclpy.duration import Duration
@@ -81,6 +81,7 @@ class DrivingState(Enum):
     SUCCESS = 4  # Completed driving to the current goal
     PRE_RESET = 5  # Resetting resolvers after a fault and waiting
     POST_RESET = 6  # Resetting blcmds after wait period
+    RESET_WAIT = 7 # Wait for 1 minute
 
 
 
@@ -115,6 +116,8 @@ class Controller(Node):
         self.state_current_planning_destination : AutonomousGoal = None
         self.num_paths_planned = 0
 
+        self.auto_mode = False
+
         # Controller classes for turning, driving to waypoints, and spinning
         self.ctl_driver = DriveController(self.turning_mode)
         self.ctl_spin = None
@@ -124,6 +127,7 @@ class Controller(Node):
         self.reset_time = None
         self.blcmd_errors = []
         self.resolver_errors = []
+        self.last_reset = None
 
         # ------------- ROS Things ----------
         # tf2
@@ -144,6 +148,7 @@ class Controller(Node):
                                                                         self.callback_planner_path, 10)
         self.sub_steer = self.create_subscription(PivotWheelData, "/control/pivot_wheel", self.callback_steer, 10)
         self.sub_blcmd_status = self.create_subscription(BLCMDStatusArray, "/control/blcmd_status", self.callback_blcmd_status, 10)
+        self.auto_mode_sub = self.create_subscription(Bool, "/autonomous/mode", self.auto_mode_callback, 10)
 
         self.get_logger().info("Waiting for transform from 'local_map' to 'base_link'...")
         while not self.tf_buffer.can_transform('base_link', 'map', Time()):
@@ -204,17 +209,22 @@ class Controller(Node):
                 # We have just finished a spin
                 self.on_drive_state_update(DrivingState.SUCCESS)
         elif self.driving_state == DrivingState.PRE_RESET:
-            self.get_logger().debug(f'{(self.get_clock().now() - self.reset_time).nanoseconds/1e9} since entering pre-reset state')
+            self.get_logger().info(f'{(self.get_clock().now() - self.reset_time).nanoseconds/1e9} since entering pre-reset state', throttle_duration_sec=1)
             if (self.get_clock().now() - self.reset_time) >= Duration(seconds = 7):
                 self.on_drive_state_update(DrivingState.POST_RESET)
         elif self.driving_state == DrivingState.POST_RESET:
-            self.get_logger().debug(
-                f'{(self.get_clock().now() - self.reset_time).nanoseconds / 1e9} since entering post-reset state')
+            self.get_logger().info(
+                f'{(self.get_clock().now() - self.reset_time).nanoseconds / 1e9} since entering post-reset state', throttle_duration_sec=1)
             if (self.get_clock().now() - self.reset_time) >= Duration(seconds = 3):
                state = self.saved_state
                self.saved_state = None
                self.reset_time = None
                self.on_drive_state_update(state)
+        elif self.driving_state == DrivingState.RESET_WAIT:
+            self.get_logger().info(
+                f'{(self.get_clock().now() - self.last_reset).nanoseconds / 1e9} since last reset state', throttle_duration_sec=1)
+            if (self.get_clock().now() - self.last_reset) >= Duration(seconds=10):
+                self.on_drive_state_update(DrivingState.PRE_RESET)
 
 
 
@@ -235,28 +245,48 @@ class Controller(Node):
             self.get_logger().debug(f"Entering success drive mode, getting next goal")
             self.reset_goals_and_waypoints()
             self.pub_at_goal.publish(Empty())
-        
+
         if new_state == DrivingState.PRE_RESET:
-            self.saved_state = old_state
-            self.get_logger().error(f"Resolver fault: resetting resolvers")
-            for blcmd_id in self.resolver_errors:
-                msg = BLCMDReset()
-                msg.id = blcmd_id
-                msg.type = BLCMDReset.RESOLVER
-                self.pub_blcmd_reset.publish(msg)
+            if old_state != DrivingState.RESET_WAIT:
+                self.saved_state = old_state
+
+            if self.last_reset is not None and ((self.get_clock().now() - self.last_reset) < Duration(seconds=10)):
+                self.get_logger().info(f"Tying to reset within {(self.get_clock().now() - self.last_reset).nanoseconds/1e9}", throttle_duration_sec=1)
+                self.on_drive_state_update(DrivingState.RESET_WAIT)
+
+            else:
+                for blcmd_id in self.resolver_errors:
+                    self.get_logger().info(f"Resetting Resolver {blcmd_id}")
+                    if self.auto_mode:
+                        msg = BLCMDReset()
+                        msg.id = blcmd_id
+                        msg.type = BLCMDReset.RESOLVER
+                        self.pub_blcmd_reset.publish(msg)
+                    else:
+                        self.get_logger().info(f"Not in auto mode, could not reset resolver {blcmd_id}")
+
+
             self.get_logger().info(f"Reset resolvers")
             self.reset_time = self.get_clock().now()
             self.get_logger().debug(f"Reset time set to {self.reset_time}")
+
         if new_state == DrivingState.POST_RESET:
             self.get_logger().info(f"Resetting any stall faults")
             for blcmd_id in self.blcmd_errors:
-                msg = BLCMDReset()
-                msg.id = blcmd_id
-                msg.type = BLCMDReset.BLCMD
-                self.pub_blcmd_reset.publish(msg)
-            self.get_logger().debug(f"Reset blcmds")
+                if self.auto_mode:
+                    self.get_logger().info(f"Resetting BLCMD {blcmd_id}")
+                    msg = BLCMDReset()
+                    msg.id = blcmd_id
+                    msg.type = BLCMDReset.BLCMD
+                    self.pub_blcmd_reset.publish(msg)
+                else:
+                    self.get_logger().info(f"Not in auto mode, could not reset BLCMD {blcmd_id}")
+
+            self.get_logger().info(f"last_reset time set to {self.reset_time}")
+            self.last_reset = self.get_clock().now()
+            self.get_logger().info(f"Reset blcmds")
             self.reset_time = self.get_clock().now()
-            self.get_logger().debug(f"Reset time set to {self.reset_time}")
+            self.get_logger().info(f"Reset time set to {self.reset_time}")
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Simple State Update Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -317,10 +347,13 @@ class Controller(Node):
             if blcmd.resolver_fault:
                 self.resolver_errors.append(blcmd.id)
 
-        if (self.driving_state not in [DrivingState.PRE_RESET, DrivingState.POST_RESET]) and \
+        if (self.driving_state not in [DrivingState.PRE_RESET, DrivingState.POST_RESET, DrivingState.RESET_WAIT]) and \
                 (len(self.resolver_errors) != 0 or len(self.blcmd_errors) != 0):
             self.on_drive_state_update(DrivingState.PRE_RESET)
-            
+
+
+    def auto_mode_callback(self, msg: Bool):
+        self.auto_mode = msg.data
 
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 'Util' Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
