@@ -28,20 +28,19 @@
   ros__parameters:
     map_corners_coords:
       # x, y
-      [15.0, 7.0, -1.0, 7.0, -1.0, -7.0, 15.0, -7.0]
+      [15.0, 7.0, -1.5, 7.0, -1.5, -7.0, 15.0, -7.0]
 
 /plane_mapper:
   ros__parameters:
     map_corners_coords:
       # x, y
-      [15.0, 7.0, -1.0, 7.0, -1.0, -7.0, 15.0, -7.0]
+      [15.0, 7.0, -1.5, 7.0, -1.5, -7.0, 15.0, -7.0]
 
 /height_mapper:
   ros__parameters:
     map_corners_coords:
       # x, y
-      [15.0, 7.0, -1.0, 7.0, -1.0, -7.0, 15.0, -7.0]
-
+      [15.0, 7.0, -1.5, 7.0, -1.5, -7.0, 15.0, -7.0]
 /T265Node:
   ros__parameters:
     do_odometry: false
