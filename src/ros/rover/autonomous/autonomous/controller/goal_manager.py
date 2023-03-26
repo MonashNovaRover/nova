@@ -85,8 +85,8 @@ class GoalManager(Node):
     detected block or AR tag wiill initially be stored as "unsure", and will only be added to the search plan once its
     location has been repeatedly confirmed. Once a block or AR tag has been found, it will be removed from the search.
     """
-    MIN_SAMPLES=10
-    MAX_STD_DEV=0.1
+    MIN_SAMPLES=5
+    MAX_STD_DEV=0.2
 
     def __init__(self):
         super().__init__("goal_manager")
@@ -549,17 +549,22 @@ class GoalManager(Node):
         pose.position.z = 0.0
         pose.orientation.w = 1.0
         msg.pose = pose
-        msg.type = Marker.TEXT_VIEW_FACING
+        msg.type = Marker.CUBE
         msg.scale.x = .1
         msg.scale.y = .1
         msg.scale.z = .1
+        color = ColorRGBA()
+        color.r = 0.
+        color.g = 0.
+        color.b = 0.
+        color.a = 1.
+        msg.color = color
         msg.header.frame_id = "local_map"
         msg.header.stamp = self.get_clock().now().to_msg()
         # Namespace - raw messages can be separated from confirmed cubes
         msg.ns = "completed"
         msg.id = len(COLOUR_IDS) + int(tag_id)
 
-        msg.text = str(tag_id)
         return msg
 
     def handle_targets(self):

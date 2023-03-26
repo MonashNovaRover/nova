@@ -12,6 +12,11 @@ namespace org::jcan
       return std::unique_ptr<Bus>(new Bus());
    }
 
+   void Bus::open(const char *name) {
+      // Default queue lengths
+      this->jBus->open(name, 2, 256);
+   }
+
    void Bus::open(const char *name, uint16_t tx_queue_len, uint16_t rx_queue_len) {
       this->jBus->open(name, tx_queue_len, rx_queue_len);
    }
