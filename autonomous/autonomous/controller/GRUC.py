@@ -101,7 +101,7 @@ class Controller(Node):
         # Ros params
         self.param_do_tank_turn = self.declare_parameter("do_tank_turn", False).value
         self.param_dist_to_targets = self.declare_parameter("dist_to_target_m", 2.5).value
-        self.param_dist_to_search_points = self.declare_parameter("dist_to_search_point_m", 1.0).value
+        self.param_dist_to_search_points = self.declare_parameter("dist_to_search_point_m", 2.0).value
         self.param_waypoint_follow_distance = self.declare_parameter("waypoint_follow_distance_m", 0.3).value
         self.param_goal_facing_threshold = self.declare_parameter("goal_facing_threshold_rad", np.pi/8).value
         self.param_max_goal_achieved_dist = self.declare_parameter("max_distance_to_achieve_goal_m", 4.0).value
@@ -335,6 +335,7 @@ class Controller(Node):
 
         # look for a best effort goal, else compare to an original goal
         if self.num_paths_planned == 0:
+            self.get_logger().info("Haven't planned paths yet. Not near goal")
             return False
 
         end_of_path = self.waypoint_path[-1] if len(self.waypoint_path) > 0 else None
@@ -345,9 +346,11 @@ class Controller(Node):
             goal_vector
             ) > self.param_max_goal_achieved_dist:
             # We are too far to have reached the goal, even if we are close to the end of our path
+            self.get_logger().info("Too far from goal to achieve path success")
             return False
 
         if end_of_path is None:
+            self.get_logger().info(f"No end of path, we are done!")
             return True  # path is only empty if we are at the end of it
 
         goal_dist = 0
@@ -355,6 +358,8 @@ class Controller(Node):
             goal_dist = self.param_dist_to_targets
         else:
             goal_dist = self.param_dist_to_search_points
+
+        self.get_logger().info(f"End of path: {end_of_path}")
 
         return distance(
             np.array([self.state_rover_pose.x, self.state_rover_pose.y]),
