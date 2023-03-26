@@ -21,7 +21,7 @@
     search_plan:
       # x, y
       [0.63, -2.0, 3.63, -2.0, 9.0, 3.0, 9.0, -3.0, 0.0, -4.0, 0.0, 0.0]
-    tracked_tag_ids: [1]
+    tracked_tag_ids: [1, 0, 5]
     tracked_block_colors: ['WHITE', 'GREEN', 'YELLOW', 'RED']
 
 /height_plane_mapper:
