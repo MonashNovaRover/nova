@@ -73,6 +73,7 @@ class ResolverTransceiver(CANTransceiver):
         # Create mapping of joint names to their respective Joint objects
         # Initialise using default discontinuity angles and active status,
         # update in the managing ROS node using info from the arm model
+        # Keys must match the joint names in the arm model
         self.joint_map =  {
             "base-rotation":    Joint("base-rotation", 0x04, True),
             "shoulder":         Joint("shoulder",      0x08, True),
