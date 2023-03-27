@@ -28,7 +28,7 @@ using std::placeholders::_2;
 
 #define ROS2_INIT_SUBSCRIPTION_WITH_DEADLINE(NODE_PTR, SUBSCRIPTION, TOPIC, MESSAGE_TYPE, QOS, CALLBACK_PTR, DEADLINE_CB_PTR) \
     rclcpp::SubscriptionOptionsWithAllocator<std::allocator<void>> options; \
-    options.event_callbacks.deadline_callback = [NODE_PTR](rclcpp::QOSDeadlineRequestedInfo) -> void{ \
+    options.event_callbacks.deadline_callback = [NODE_PTR](rclcpp::QOSDeadlineRequestedInfo) -> void { \
         (NODE_PTR->*DEADLINE_CB_PTR)(); \
     }; \
     SUBSCRIPTION = NODE_PTR->create_subscription<MESSAGE_TYPE>( \
