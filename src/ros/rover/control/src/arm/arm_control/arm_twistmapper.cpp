@@ -44,7 +44,7 @@ ArmTwistMapper::ArmTwistMapper() :
     
     // Create subscription to joystick_joint_velocities
     rclcpp::SubscriptionOptionsWithAllocator<std::allocator<void>> joystick_joint_velocities_options;
-    joystick_joint_velocities_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void{
+    joystick_joint_velocities_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void {
         this->joystick_joint_velocities_deadline_callback();
     };
     joystick_joint_velocities_sub = this->create_subscription<sensor_msgs::msg::JointState>(
@@ -56,7 +56,7 @@ ArmTwistMapper::ArmTwistMapper() :
 
     // Create subscription to joystick_twist
     rclcpp::SubscriptionOptionsWithAllocator<std::allocator<void>> joystick_twist_options;
-    joystick_twist_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void{
+    joystick_twist_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void {
         this->joystick_twist_deadline_callback();
     };
     joystick_twist_sub = this->create_subscription<geometry_msgs::msg::TwistStamped>(

@@ -29,15 +29,15 @@ def generate_launch_description():
     
     return LaunchDescription([      
         launch_ros.actions.Node(
-            package='control', node_executable='arm_inputs', output='screen', emulate_tty=True),
+            package='control', executable='arm_inputs', output='screen', emulate_tty=True),
         launch_ros.actions.Node(
-            package='control', node_executable='arm_twistmapper', output='screen', emulate_tty=True),
+            package='control', executable='arm_twistmapper', output='screen', emulate_tty=True),
         launch_ros.actions.Node(
-            package='control', node_executable='arm_control', output='screen', emulate_tty=True),
+            package='control', executable='arm_control', output='screen', emulate_tty=True),
         launch_ros.actions.Node(
-            package='control', node_executable='arm_driver', output='screen', emulate_tty=True),
+            package='control', executable='arm_driver', output='screen', emulate_tty=True),
         launch_ros.actions.Node(
-            package='electronics', node_executable='resolver_publisher.py', parameters=[core_params_path / 'arm_params.yaml'], output='screen', emulate_tty=True),
+            package='electronics', executable='resolver_publisher.py', parameters=[core_params_path / 'arm_params.yaml'], output='screen', emulate_tty=True),
         launch_ros.actions.Node(
-            package='control', node_executable='arm_rviz_publisher', output='screen', emulate_tty=True),
+            package='control', executable='arm_rviz_publisher', output='screen', emulate_tty=True),
     ])

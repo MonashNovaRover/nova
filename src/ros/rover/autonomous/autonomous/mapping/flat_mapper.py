@@ -32,22 +32,21 @@ from autonomous.mapping.mapper import Mapper
 from autonomous.mapping.grid_2d import Grid2D
 import numpy as np
 import autonomous.math_utils.transform as transform
-from autonomous.config.runtime_params import max_fov_angle, max_point_depth, max_safe_obstacle, min_point_density, \
+from autonomous.config.runtime_params import max_fov_horizontal, max_fov_vertical, max_point_depth, max_safe_obstacle, min_point_density, \
     obstacle_halve_value, obstacle_ignore_value
 from scipy.signal import convolve2d
 from rclpy.time import Time
 from rclpy.duration import Duration
 import time, math, logging
+from typing import Tuple
 
 from geometry_msgs.msg import TransformStamped, Transform
-from tf2_ros import TransformBroadcaster
+from tf2_ros import TransformBroadcaster, StaticTransformBroadcaster
 
 
 class FlatMapper(Mapper):
     def __init__(
             self,
-            length=20,
-            width=20,
             height=5,
             resolution=0.1,
             detection_resolution=0.025,
@@ -57,8 +56,6 @@ class FlatMapper(Mapper):
     ):
         # init node with node name points
         super().__init__(
-            length=length,
-            width=width,
             height=height,
             resolution=resolution,
             planner=planner,
@@ -67,14 +64,19 @@ class FlatMapper(Mapper):
         )
 
         self.get_logger().set_level(logging.INFO)
-        self.param_tf_sub_hz = self.declare_parameter("tf_sub_frequency_hz", 10).value
-        self.param_tf_pub_hz = self.declare_parameter("tf_pub_frequency_hz", 10).value
+        self.param_tf_sub_hz = self.declare_parameter("tf_sub_frequency_hz", 30).value
+        self.param_tf_pub_hz = self.declare_parameter("tf_pub_frequency_hz", 30).value
         self.param_roll_map = self.declare_parameter("roll_map", False).value
         self.param_map_edge_distance = self.declare_parameter("map_edge_dist_m", 3).value
+        self.param_map_corners_coords = self.declare_parameter("map_corners_coords", [10, 10, -10, 10, -10, -10, 10, -10]).value
+
         # How far to roll the map when we approach the edge
         self.param_map_roll_distance = self.declare_parameter("map_roll_dist_m", 5).value   
         # For moving the map as we navigate
-        self.tf_map_offset = TransformBroadcaster(self)
+        if not self.param_roll_map:
+            self.tf_map_offset = StaticTransformBroadcaster(self)
+        else:
+            self.tf_map_offset = TransformBroadcaster(self)
 
         self.local_map_to_base_link: Transform = None
         self.local_map_to_d435: Transform = None
@@ -85,21 +87,63 @@ class FlatMapper(Mapper):
         self.resolution_ratio = int(self.planning_resolution / self.detection_resolution)
         self.detection_length = int(
             np.ceil((max_point_depth / self.detection_resolution) / self.resolution_ratio) * self.resolution_ratio)
-        self.detection_width = int(np.ceil(2 * self.detection_length * np.tan(max_fov_angle)))
+        self.detection_width = int(np.ceil(2 * self.detection_length * np.tan(max_fov_horizontal)))
+        self.offset = None
 
+        self.map_centre = None
+        self.map_rotation = None
         # Position of depth camera in local map
         self.initialise_map()
         self.initialise_transforms()
 
-        if self.param_roll_map:
-            self.map_roll_timer = self.create_timer(1, self.check_position_in_map)
-        self.pub_transform_timer = self.create_timer(1./self.param_tf_pub_hz, self.pub_transform)
-        self.map_transform_timer = self.create_timer(1./self.param_tf_sub_hz, self.update_transforms)
+        if camera:
+            if self.param_roll_map:
+                self.map_roll_timer = self.create_timer(1, self.check_position_in_map)
+                self.pub_transform_timer = self.create_timer(1./self.param_tf_pub_hz, self.pub_transform)
+            self.map_transform_timer = self.create_timer(1./self.param_tf_sub_hz, self.update_transforms)
 
     def initialise_map(self):
-        self._map = Grid2D(self.length, self.width, self.planning_resolution)
-        self.set_offset(0, 0)
+        self.map_corners = np.array(self.param_map_corners_coords).reshape(-1, 2)
+        self.map_centre = np.mean(self.map_corners, axis=0).astype(float)
+        length, width, theta = self.get_map_pose()
+        self.map_rotation = theta
+        self._map = Grid2D(length, width, self.planning_resolution)
+        if self.param_roll_map:
+            self.set_offset(0, 0)
         self.pub_transform()
+
+    def get_furthest_point_in_direction(self, pts, direction):
+        """
+        Take a list of points and a direction vector. Return the point furthest away from the origin in the direction of the 
+        direction vector by comparing the magnitude of dot products with the direction vector
+        """
+        dots = [np.dot(pt, direction) for pt in pts]
+        max_dot = max(dots)
+        max_index = dots.index(max_dot)
+        return pts[max_index]
+
+    def get_map_pose(self) -> Tuple[float, float, float]:
+        """
+        Use the four corners of the map in self.map_corners to calculate the length and width of the map, as well as its orientation
+        Takes dot products with the four diagonal vectors to determine the closest corner to each direction, so that we can provide
+        corners in any order
+        """
+        top_left = self.get_furthest_point_in_direction(self.map_corners, [1, 1])
+        bottom_left = self.get_furthest_point_in_direction(self.map_corners, [-1, 1])
+        top_right = self.get_furthest_point_in_direction(self.map_corners, [1, -1])
+
+        len = np.linalg.norm(top_left - bottom_left)
+        width = np.linalg.norm(top_left - top_right)
+        theta = np.arctan2((top_left - bottom_left)[1], (top_left - bottom_left)[0])
+        self.get_logger().debug(f"top left: {top_left}")
+        self.get_logger().debug(f"bottom left: {bottom_left}")
+        self.get_logger().debug(f"top right: {top_right}")
+
+        self.get_logger().debug(f"length: {len}")
+        self.get_logger().debug(f"width: {width}")
+        self.get_logger().debug(f"theta: {theta}")
+
+        return len, width, theta
 
     def shift_offset(self, dx, dy):
         if self.offset is None: return None
@@ -135,20 +179,35 @@ class FlatMapper(Mapper):
         """
         regularly publish transform from map to local map
         """
-        self.get_logger().debug("transform publish callback called")
+        self.get_logger().debug("transform publish callback called", throttle_duration_sec=1)
         t = TransformStamped()
         t.header.stamp = self.get_clock().now().to_msg()
         t.header.frame_id = 'map'
         t.child_frame_id = 'local_map'
 
         # For now we assume the map frame never needs to rotate or move in z axis
-        t.transform.translation.x = float(self.offset[0])
-        t.transform.translation.y = float(self.offset[1])
-        t.transform.rotation.w = 1.0
+        if self.offset is not None:
+            t.transform.translation.x = float(self.offset[0])
+            t.transform.translation.y = float(self.offset[1])
+            t.transform.rotation.w = 1.0
+        else:
+            t.transform.translation.x, t.transform.translation.y = self.map_centre
+            t.transform.rotation.z = np.sin(self.map_rotation / 2)
+            t.transform.rotation.w = np.cos(self.map_rotation / 2)
 
-        self.get_logger().debug(f"Publishing local map transform {t}")
+        self.get_logger().debug(f"Publishing local map transform {t}", throttle_duration_sec=1)
 
         self.tf_map_offset.sendTransform(t)
+
+    def crop_to_fov(self, points):
+        """
+        crop points to the field of view of the depth camera
+        """
+        self.get_logger().debug(f"Points before fov crop: {points}, len = {len(points)}")
+        points = points[np.abs(np.arctan2(points[:, 1], points[:, 0])) < max_fov_horizontal]
+        points = points[np.abs(np.arctan2(points[:, 2], points[:, 0])) < max_fov_vertical]
+        self.get_logger().debug(f"Points after fov crop: {points}, len = {len(points)}")
+        return points
 
     def get_detection_map_indexes(self, points):
         """
@@ -172,6 +231,7 @@ class FlatMapper(Mapper):
         Discretises point cloud into indices, then filters out indices without
         enough points in them to avoid phantom "floating" points
         """
+        points = self.crop_to_fov(points)
         if len(points) == 0:
             return points
         indexes = self.get_detection_map_indexes(points)
@@ -223,13 +283,13 @@ class FlatMapper(Mapper):
                                                                 source_frame='d435_1_forward',
                                                                 time=Time()).transform
         except Exception as e:
-            self.get_logger().debug(f"transform lookup error for d435 transform: {e}")
+            self.get_logger().debug(f"transform lookup error for d435 transform: {e}", throttle_duration_sec=1)
         try:
             self.local_map_to_base_link = self.tf_buffer.lookup_transform(target_frame='local_map',
                                                                 source_frame='base_link',
                                                                 time=Time()).transform
         except Exception as e:
-            self.get_logger().debug(f"transform lookup error for base_link transform: {e}")
+            self.get_logger().debug(f"transform lookup error for base_link transform: {e}", throttle_duration_sec=1)
 
     def arrange_obstacles(self, obstacles, min_x):
         """
@@ -239,9 +299,9 @@ class FlatMapper(Mapper):
         :param: obstacles - 1-dimensional array of obstacles in the map
         """
         obs_as_points = np.array([[x, y, val] for (x, y), val in np.ndenumerate(obstacles) \
-                                  if np.abs(np.arctan2(y - len(obstacles[0]) / 2, x)) < max_fov_angle])
+                                  if np.abs(np.arctan2(y - len(obstacles[0]) / 2, x)) < max_fov_horizontal])
         obs_as_points[:, 1] -= int(np.ceil(self.detection_width / (2 * self.resolution_ratio)))
-        self.get_logger().debug(f"Rotating obstacles in map: {self.local_map_to_d435}")
+        self.get_logger().debug(f"Rotating obstacles in map: {self.local_map_to_d435}", throttle_duration_sec=1)
         obstacles = transform.transform_yaw(self.local_map_to_d435, obs_as_points)
         obstacles[:, 2] *= 100
 

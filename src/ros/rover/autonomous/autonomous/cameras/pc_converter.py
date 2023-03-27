@@ -176,6 +176,13 @@ def create_cloud(header, fields, points):
                        data=buff.raw)
 
 
+def get_fields_xyz32():
+    fields = [PointField(name='x', offset=0, datatype=PointField.FLOAT32, count=1),
+              PointField(name='y', offset=4, datatype=PointField.FLOAT32, count=1),
+              PointField(name='z', offset=8, datatype=PointField.FLOAT32, count=1)]
+    return fields
+
+
 def create_cloud_xyz32(header, points):
     """
     Create a L{sensor_msgs.msg.PointCloud2} message with 3 float32 fields (x, y, z).
