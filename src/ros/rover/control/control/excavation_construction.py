@@ -37,7 +37,7 @@ class ExcavationConstructionNode(Node):
     def __init__(self):
         super().__init__("excavation_construction")
 
-        self.get_logger().set_level(logging.INFO)
+        self.get_logger().set_level(logging.WARN)
         self.param_can = self.declare_parameter("can_bus", "can0").value
         self.param_scraper_arm_multiplier = self.declare_parameter("scraper_arm_multiplier", 200).value
         self.param_scraper_scoop_multiplier = self.declare_parameter("scraper_scoop_multiplier", 255).value
@@ -99,9 +99,9 @@ class ExcavationConstructionNode(Node):
             print(e)
 
     
-    def deadline_callback(self):
+    def deadline_callback(self, info):
         # Set all speeds to 0
-
+        self.get_logger().warning("200ms Callback deadline missed")
         self.scraper_arm_velocity = 0
         self.scraper_arm_direction = self.scraper_arm_id_forwards
         self.scraper_scoop_velocity = 0

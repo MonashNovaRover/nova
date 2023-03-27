@@ -12,10 +12,11 @@ import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Header
 from sensor_msgs.msg import PointCloud2, Image
-from visualization_msgs.msg import ImageMarker
+from rs2_ros2 import rs2_verts_to_buffer
+from autonomous.cameras.pc_converter import get_fields_xyz32
+from autonomous.object_detection.object_detection import ObjectDetection
 
 from autonomous.cameras.ar_tracker import ArTracker
-from autonomous.cameras.pc_converter import create_cloud_xyz32
 from cv_bridge import CvBridge
 from autonomous.config.runtime_params import active_depth_camera
 
@@ -25,11 +26,13 @@ class DepthCamera(Node):
         super().__init__("depth_camera")
         self.get_logger().set_level(logging.INFO)
         # Realsense processing filters and classes
+        self.decimation_filters = self.initialise_decimators()
+        self.decimation_index = 2
+        self.param_target_cloud_processing_time = self.declare_parameter("target_processing_time_s", 0.2).value
+
         self.pc = rs.pointcloud()
-        self.decimate = rs.decimation_filter(2)
         self.hole_filling = rs.hole_filling_filter()
         self.align = rs.align(rs.stream.color)
-
         # Configure depth and color streams
         self.pipeline = rs.pipeline()
         self.config = rs.config()
@@ -49,18 +52,22 @@ class DepthCamera(Node):
         self.color_profile = rs.video_stream_profile(self.profile.get_stream(rs.stream.color))
         self.color_intrinsics = self.color_profile.get_intrinsics()
 
+        # Get depth intrinsics
+        self.depth_profile = rs.video_stream_profile(self.profile.get_stream(rs.stream.depth))
+        self.depth_intrinsics = self.depth_profile.get_intrinsics()
+
         self.depth_frame = None
         self.color_frame = None
         self.latest_frame_stamp = None
         self.depth_frame_id = 'd435_1'
 
         self.ar_tracker = ArTracker(self.color_intrinsics, depth_cam_frame_id=self.depth_frame_id)
-        # self.object_detector = ObjectDetector()
+        self.object_detector = ObjectDetection(self.depth_intrinsics)
         self.cv_bridge : CvBridge = CvBridge()
 
-        self.param_pointcloud_frequency = self.declare_parameter("depth_cloud_rate_hz", 20).value
-        self.param_image_frequency = self.declare_parameter("image_process_rate_hz", 20).value
-        self.param_frame_frequency = self.declare_parameter("depth_cam_frame_rate_hz", 20).value
+        self.param_pointcloud_frequency = self.declare_parameter("depth_cloud_rate_hz", 5).value
+        self.param_image_frequency = self.declare_parameter("image_process_rate_hz", 5).value
+        self.param_frame_frequency = self.declare_parameter("depth_cam_frame_rate_hz", 5).value
 
         self.cloud_publisher = self.create_publisher(PointCloud2, f"~/{self.depth_frame_id}/cloud", 10)
         self.image_publisher = self.create_publisher(Image, f"~/{self.depth_frame_id}/image", 10)
@@ -71,6 +78,33 @@ class DepthCamera(Node):
         self.timer_process_image = self.create_timer(1/self.param_image_frequency, self.process_image)
         self.timer_process_frames = self.create_timer(1/self.param_frame_frequency, self.process_frames)
         self.get_logger().info("Depth camera node up!")
+
+    def initialise_decimators(self):
+        """
+        Adaptive decimation.
+        We want to balance between performance and resolution of the pointcloud. This array allows us to
+        dynamically adjust the level of decimation of the pointcloud according to the time taken to process
+        the previous cloud
+        """
+        return [
+            rs.decimation_filter(1),
+            rs.decimation_filter(2),
+            rs.decimation_filter(4),
+            rs.decimation_filter(6),
+            rs.decimation_filter(8),
+        ]
+
+    def adjust_decimation(self, time_taken_s):
+        """
+        Compare the time taken to process the last pointcloud with the target time.
+        If the time is greater by a factor of more than two, increase the decimation.
+        If it is less by a factor of more than two, reduce the decimation
+        """
+        target_ratio = time_taken_s / self.param_target_cloud_processing_time
+        if target_ratio > 2 and self.decimation_index != len(self.decimation_filters) - 1:
+            self.decimation_index += 1
+        elif target_ratio < 0.5 and self.decimation_index != 0:
+            self.decimation_index -= 1
 
     def process_frames(self):
         """
@@ -102,9 +136,9 @@ class DepthCamera(Node):
             return
         color_image = np.asanyarray(self.color_frame.get_data())
         t1 = time.perf_counter()
-        self.ar_tracker(color_image)
+        self.ar_tracker.find_ar_tags(color_image)
         t2 = time.perf_counter()
-        # self.object_detector(self.color_frame, self.depth_frame)
+        self.object_detector.object_detection(self.color_frame, self.depth_frame)
         t3 = time.perf_counter()
         header = Header(
             stamp = self.latest_frame_stamp,
@@ -124,11 +158,15 @@ class DepthCamera(Node):
         """
         Callback that converts depth frame into a pointcloud and publishes it
         """
+        header = Header()
+        header.stamp = self.get_clock().now().to_msg()
+        header.frame_id = self.depth_frame_id
+
         # Scale down depth frame
         if self.depth_frame is None:
             return
         t1 = time.perf_counter()
-        processed_depth_frame = self.decimate.process(self.depth_frame)
+        processed_depth_frame = self.decimation_filters[self.decimation_index].process(self.depth_frame)
         t2 = time.perf_counter()
         # Fill holes in depth frame
         processed_depth_frame = self.hole_filling.process(processed_depth_frame)
@@ -139,35 +177,48 @@ class DepthCamera(Node):
 
         # Point-cloud data to arrays
         v = points.get_vertices()
-        verts = np.asanyarray(v).view(np.float32).reshape((-1, 3))
+        verts : np.ndarray = np.asanyarray(v).view(np.float32).reshape((-1, 3))
         t5 = time.perf_counter()
 
         # Do our own trimming of nonsense data
         verts = verts[~((verts[:, 0] == 0) & (verts[:, 1] == 0) & (verts[:, 2] == 0))]
-        verts = verts[~(verts[:, 2] > 4.5)]
-
-        header = Header(
-            stamp = self.latest_frame_stamp,
-            frame_id = self.depth_frame_id
-        )
-
-        pointcloud_msg = create_cloud_xyz32(header=header, points=verts)
+        verts = verts[~(verts[:, 2] > 6.0)]
         t6 = time.perf_counter()
-        self.cloud_publisher.publish(pointcloud_msg)
+
+        pointcloud_msg = self.get_pc_message(verts, header)
         t7 = time.perf_counter()
+        self.cloud_publisher.publish(pointcloud_msg)
+        t8 = time.perf_counter()
+
+        pc_process_time = t8 - t3
+        self.adjust_decimation(pc_process_time)
 
         # Log state of the pointcloud
         self.get_logger().debug(f"demication took {t2 - t1} s")
         self.get_logger().debug(f"hole filling took {t3 - t2} s")
         self.get_logger().debug(f"calculating pc took {t4 - t3} s")
         self.get_logger().debug(f"Converting points to np array took {t5 - t4} s")
-        self.get_logger().debug(f"Converting points to pointcloud msg took {t6 - t5} s")
-        self.get_logger().debug(f"Publishing pointcloud took {t7 - t6} s")
+        self.get_logger().debug(f"Numpy pointcloud trimming took {t6 - t5} s. Left with {len(verts)} points remaining")
+        self.get_logger().debug(f"Converting points to pointcloud msg took {t7 - t6} s")
+        self.get_logger().debug(f"Publishing pointcloud took {t8 - t7} s")
         self.get_logger().debug(f"Depth camera point cloud contained {len(verts)} points")
         if len(verts) < 10:
             self.get_logger().warn(f"Depth camera point cloud contained < 10 points")
         elif len(verts) == 0:
             self.get_logger().error(f"Depth camera point cloud contained no points")
+
+    def get_pc_message(self, verts: np.ndarray, header: Header) -> PointCloud2:
+        pc_msg = PointCloud2()
+        pc_msg.header = header
+        pc_msg.height = 1
+        pc_msg.width = len(verts)
+        pc_msg.is_dense = False
+        pc_msg.is_bigendian = False
+        pc_msg.point_step = 12
+        pc_msg.row_step = pc_msg.point_step * pc_msg.width
+        pc_msg.fields = get_fields_xyz32()
+        pc_msg.data = rs2_verts_to_buffer(verts)
+        return pc_msg
 
     #def pub_colour(self):
     #    pass

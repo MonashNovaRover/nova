@@ -71,7 +71,9 @@ ARM_PPR = 512
 FCY = 30e6   # CMD instruction frequency
 CHASSIS_VEL_FAC = 150   # Set in control/drive/driver.cpp in arm-control branch
 ARM_LOW_VEL_FAC = 75   # For lower arm joints
+ARM_LOW_GEARBOX_RATIO = 2143.75
 WRIST_VEL_FAC = 50   # For wrist joints
+WRIST_GEARBOX_RATIO = 3002.499
 DUTY_CYCLE_FACTOR = 0x8400
 CURRENT_FACTOR = 1600
 
@@ -228,8 +230,9 @@ class CMDPublisher (Node):
                         # Arm conversion constants
                         ppr = ARM_PPR
                         vel_fac = ARM_LOW_VEL_FAC if ros_msg.id <= 3 else WRIST_VEL_FAC
+                        gear_ratio = ARM_LOW_GEARBOX_RATIO if ros_msg.id <= 3 else WRIST_GEARBOX_RATIO
 
-                    omega = self.convert_omega_to_SI(raw_omega, ppr, vel_fac)
+                    omega = self.convert_omega_to_SI(raw_omega, ppr, vel_fac, gear_ratio)
 
                     ros_msg.duty_cycle = self.convert_duty_cycle(duty_cycle)
                     ros_msg.current = self.convert_current(current)
@@ -310,8 +313,8 @@ class CMDPublisher (Node):
         self.publisher.publish(message)
     
     # Converts a raw velocity to an RPM
-    def convert_omega_to_SI (self, value: int, ppr: int, vel_fac: int) -> float:
-        return (value / MAX_INT16) / (4 * ppr * vel_fac / (PI * FCY))
+    def convert_omega_to_SI (self, value: int, ppr: int, vel_fac: int, gear_ratio: float) -> float:
+        return (value / MAX_INT16) / (4 * ppr * vel_fac * gear_ratio / (PI * FCY))
         
     # Converts the value of the duty_cycle to something sensible
     # Converts a signed integer into a float

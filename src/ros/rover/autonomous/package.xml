@@ -17,6 +17,7 @@
   <depend>rclpy</depend>  
   <depend>core</depend>
   <depend>std_msgs</depend>
+  <depend>sensor_msgs</depend>
   <depend>tf2_ros</depend>
 
   <export>
