@@ -51,7 +51,7 @@ BLCMD::BLCMD (const std::string bus, const int id, BLCMDSendCommand drive_mode, 
     can_bus->add_callback_to(make_can_id(PACKET_4), this, &BLCMD::packet4_callback);
 
     // Open the CAN bus
-    can_bus->open(&bus[0], 1024, 1024);
+    can_bus->open(&bus[0]);
 }
 
 
@@ -192,7 +192,7 @@ void BLCMD::drive (float value)
 
 
 void BLCMD::packet1_callback(org::jcan::Frame frame) {
-    telemetry.rotor_velocity = int16_bytes_to_double(&frame.data[0]);
+    telemetry.rotor_velocity = (direction ? -1 : 1 ) * int16_bytes_to_double(&frame.data[0]);
     telemetry.q_current = int16_bytes_to_double(&frame.data[2]);
 }
 

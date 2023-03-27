@@ -34,12 +34,13 @@ const float TERRAIN_IMPORTANCE = 300; // How much we value smooth terrain over d
 const float SAFETY_FACTOR = 1.6; // Factor by which we multiply rover radius to pad.
 const float WEIGHT = 1.0; // weight of heuristic for A*
 const float OBSTACLE_CUTTING_RANGE_M = 0.4; // distance to which we remove obstacles at src or dest
-const int CRITICAL_PATH_LEN = 7;
+const int CRITICAL_PATH_LEN = 1;
 const float OBSTACLE_VALUE = 1.0;
 const float HEIGHT_OBSTACLE_VALUE = 1.1;
 const float PLANE_PADDING_DISTANCE_FRACTION = 1.0;
 const float C_INF = 1e12;
 const float NEAREST_POINT_DIST_WEIGHT = 0.5;
+const float STRING_PULL_OBSTACLE_VAL = 0.5;
 float PADDING_DIST_M = 0; 
 
 // implementation of type-safe enum with bitwise operators taken from:
@@ -201,12 +202,37 @@ void optimise_padding_area(const array<array<float, COL>, ROW>& grid,
 	}
 }
 
+template<size_t ROW, size_t COL>
+int count_adjacent_obstacles(const array<array<float, COL>, ROW>& grid, int& x, int& y){
+	/*
+	Count the number of obstacle tiles ( == 1) directly adjacent to an x,y coordinate
+	*/
+
+	int adjacent = 0;
+
+	for (int dx = -1; dx <= 1; dx += 2){
+		if (x + dx < 0 || (size_t) (x + dx) >= COL) continue;
+		if (grid[y][x + dx] == OBSTACLE_VALUE || grid[y][x + dx] == HEIGHT_OBSTACLE_VALUE) adjacent++;
+	}
+
+	for (int dy = -1; dy <= 1; dy += 2){
+		if (y + dy < 0 || (size_t) (y + dy) >= ROW) continue;
+		if (grid[y + dy][x] == OBSTACLE_VALUE || grid[y + dy][x] == HEIGHT_OBSTACLE_VALUE) adjacent++;
+	}
+
+	return adjacent;
+}
+
+
 template <size_t ROW, size_t COL> 
 void pad_point(array<array<float, COL>, ROW>& grid, const Pair& start_pt, float padding_width_pixels)
 {
 	int y = start_pt.first, x = start_pt.second;
 	int min_x = x - 1.3 * padding_width_pixels, min_y = y - 1.3 * padding_width_pixels;
 	int max_x = x + 1.3 * padding_width_pixels, max_y = y + 1.3 * padding_width_pixels;
+
+	// if the obstale is an isolated point - it is likely a phantom obstacle - don't pad around it
+	if (count_adjacent_obstacles(grid, x, y) <= 1) return;
 
 	optimise_padding_area(grid, x, y, min_x, max_x, min_y, max_y);
 
@@ -248,6 +274,30 @@ void precompute_padding_values(array<array<float, COL>, ROW>& grid,
                 else if (grid[i][j] == HEIGHT_OBSTACLE_VALUE) pad_point(grid, here, padding_width_pixels);
 			}
 		}
+	}
+}
+
+template <size_t ROW, size_t COL> 
+void add_obstacle_border(array<array<float, COL>, ROW>& grid)
+{
+	/* Adds a border of obstacles around the map to prevent the rover from
+	 driving off the map */
+	uint j = 0;
+	for (uint i = 0; i < ROW; i++) {
+		grid[i][j] = OBSTACLE_VALUE;
+	}
+	j = COL - 1;
+	for (uint i = 0; i < ROW; i++) {
+		grid[i][j] = OBSTACLE_VALUE;
+	}
+
+	uint i = 0;
+	for (uint j = 0; j < COL; j++) {
+		grid[i][j] = OBSTACLE_VALUE;
+	}
+	i = ROW - 1;
+	for (uint i = 0; i < ROW; i++) {
+		grid[i][j] = OBSTACLE_VALUE;
 	}
 }
 
@@ -296,8 +346,49 @@ void clear_obstacles_from_location(array<array<float, COL>, ROW>& grid, const Pa
 	}
 }
 
+template <size_t ROW, size_t COL>
+bool obstacle_between(array<array<float, COL>, ROW>& grid, Pair p1, Pair p2, int num_points){
+    /*
+    Interpolates between two points, checking from terrain above a specific obstacle value.
+    :return: true if an obstacle is found between p1 and p2, otherwise false
+    */
+    int x1 = p1.first, y1 = p1.second;
+    int x2 = p2.first, y2 = p2.second;
+
+    double dx = (double) (x2 - x1) / num_points;
+    double dy = (double) (y2 - y1) / num_points;
+
+    double x = x1, y = y1;
+
+    for (int i = 0; i < num_points; i++){
+		x += dx;
+		y += dy;
+		if (grid[(int) x][(int) y] > STRING_PULL_OBSTACLE_VAL){
+			return true;
+		}
+    }
+    return false;
+}
+
+template <size_t ROW, size_t COL>
+void string_pull_from_start(array<array<float, COL>, ROW>& grid, vector<Pair>& path){
+    /*
+    Reduce the path to a substring of itself beginning at the first point necessitated by a string pull
+    */
+    Pair start = path[0];
+    for (size_t i = 0; i < path.size(); i++){
+		Pair this_point = path[i+1];
+		int num_points = (int) heuristic(start, this_point);
+        if (obstacle_between(grid, start, this_point, num_points) || num_points > 50){
+            path = {path.begin() + i, path.end()};
+			path[0] = start;
+            return;
+        }
+    }
+}
+
 vector<Pair> construct_return_val(vector<Pair> path, Status status) {
-	// I hate this but python doesn't know how to interpret it another way.
+	//string_pull_from_start(grid, path);
 	path.push_back(Pair((int) status, -1));
 
 	return path;
@@ -322,6 +413,9 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 		status |= Status::A_STAR_DEST_OBSTACLE;
 		clear_obstacles_from_location(grid, dest, clearance);
 	}
+
+	// put a border around the outside of the map
+	add_obstacle_border(grid);
 
 	// assign heuristic values according to distance to nearest obstacle
 	precompute_padding_values(grid, grid_resolution_cm);

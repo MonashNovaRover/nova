@@ -35,7 +35,7 @@ ArmControl::ArmControl() : Node("arm_control")
 
     // Create subscription to input joint velocities
     rclcpp::SubscriptionOptionsWithAllocator<std::allocator<void>> control_joints_options;
-    control_joints_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void{
+    control_joints_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void {
         this->control_joints_deadline_callback();
     };
     control_joints_sub = this->create_subscription<sensor_msgs::msg::JointState>(
@@ -47,7 +47,7 @@ ArmControl::ArmControl() : Node("arm_control")
     
     // Create subscription to twist
     rclcpp::SubscriptionOptionsWithAllocator<std::allocator<void>> control_twist_options;
-    control_twist_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void{
+    control_twist_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void {
         this->control_twist_deadline_callback();
     };
     control_twist_sub = this->create_subscription<geometry_msgs::msg::TwistStamped>(
@@ -59,7 +59,7 @@ ArmControl::ArmControl() : Node("arm_control")
 
     // Create subscription to control_pose
     rclcpp::SubscriptionOptionsWithAllocator<std::allocator<void>> control_pose_options;
-    control_pose_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void{
+    control_pose_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void {
         this->control_pose_deadline_callback();
     };
     control_pose_sub = this->create_subscription<geometry_msgs::msg::TransformStamped>(

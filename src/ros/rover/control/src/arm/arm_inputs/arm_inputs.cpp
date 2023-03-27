@@ -266,7 +266,7 @@ void ArmInputs::start_node()
 {
     // Create common options for joystick subscriptions
     rclcpp::SubscriptionOptionsWithAllocator<std::allocator<void>> joystick_options;
-    joystick_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void{
+    joystick_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void {
         this->joystick_deadline_callback();
     };
     rclcpp::QoS joystick_qos = rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline);

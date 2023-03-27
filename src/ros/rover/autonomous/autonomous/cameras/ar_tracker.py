@@ -8,8 +8,9 @@ try:
 except Exception:
     from pyrealsense2.pyrealsense2 import intrinsics as Intrinsics
 
-from geometry_msgs.msg import PoseStamped
-from core.msg import AlvarMarker
+from geometry_msgs.msg import PoseStamped, TransformStamped
+from core.msg import AlvarMarker, AlvarMarkers
+from tf2_ros import TransformBroadcaster
 import numpy as np
 import logging
 
@@ -22,7 +23,7 @@ class ArTracker(Node):
         self.frame_id = depth_cam_frame_id
 
         self.marker_width_m = 0.15
-        self.ar_pose_pub = self.create_publisher(AlvarMarker, "~/tags", 10)
+        self.ar_pose_pub = self.create_publisher(AlvarMarkers, "~/tags", 10)
 
         self.arDict = ar.Dictionary_get(ar.DICT_4X4_250)
         self.arParam = ar.DetectorParameters_create()
@@ -39,9 +40,6 @@ class ArTracker(Node):
 
         self.temp_tags = dict()
         self.tags = dict()
-
-    def __call__(self, img):
-        self.find_ar_tags(img)
 
     def get_pose(self, r, t) -> PoseStamped:
         """
@@ -80,6 +78,7 @@ class ArTracker(Node):
         Returns an AlvarMarker message or None
         """
         bboxs, ids, _ = ar.detectMarkers(img, self.arDict, parameters=self.arParam)
+        markers = AlvarMarkers()
 
         if ids is not None:
             # projecting 2d camera coordinates into space
@@ -88,7 +87,8 @@ class ArTracker(Node):
             for _id, rot_mat, trans_mat in zip(ids, rot_mats, trans_mats):
                 pose = self.get_pose(rot_mat[0], trans_mat[0])
                 AR_tag = AlvarMarker(tag_id=int(_id), pose=pose)
-                self.ar_pose_pub.publish(AR_tag)
+                markers.markers.append(AR_tag)
+        self.ar_pose_pub.publish(markers)
 
 def main():
     rclpy.init()
