@@ -66,7 +66,7 @@ ArmDriver::ArmDriver() : Node("arm_driver")
 {
     // Creates the input subscription for the desired CMD commands (first 6 joints)
     rclcpp::SubscriptionOptionsWithAllocator<std::allocator<void>> joint_velocities_options;
-    joint_velocities_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void{
+    joint_velocities_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void {
         this->joint_velocities_deadline_callback();
     };
     joint_velocities_subscription = this->create_subscription<sensor_msgs::msg::JointState>(
@@ -78,7 +78,7 @@ ArmDriver::ArmDriver() : Node("arm_driver")
     
     // Creates the input subscription for the desired CMD commands (EE, LA)
     rclcpp::SubscriptionOptionsWithAllocator<std::allocator<void>> endeffector_input_options;
-    endeffector_input_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void{
+    endeffector_input_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void {
         this->endeffector_input_deadline_callback();
     };
     endeffector_input_subscription = this->create_subscription<core::msg::EndEffectorInput>(
