@@ -248,6 +248,16 @@ class ResolverPublisher(Node):
             # Set up the callback timer
             self.client_check_timer = self.create_timer(0.1, self.client_check_callback)
         else:
+            # Set up the data structure that we would otherwise get from the arm nodes
+            self.arm_config_info = ArmConfigInfo.Response()
+            # Include all resolvers
+            for joint_name in self.joints_map.keys():
+                self.arm_config_info.joint_names.append(joint_name)
+            # Assume no joint limits
+            num_joints = len(self.arm_config_info.joint_names)
+            self.arm_config_info.joint_limits_lower = [-2*pi] * num_joints
+            self.arm_config_info.joint_limits_upper = [2*pi] * num_joints
+            # Start the node
             self.start_node()
 
     def client_check_callback(self):
