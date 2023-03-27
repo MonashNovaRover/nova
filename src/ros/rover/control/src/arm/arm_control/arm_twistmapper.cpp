@@ -192,6 +192,13 @@ inline KDL::Twist ArmTwistMapper::get_control_twist(const KDL::Twist& joystick_t
     KDL::Vector twist_linear = joystick_twist.vel;
     KDL::Vector twist_angular = joystick_twist.rot;
 
+    // Reference frame offset
+    if (control_scheme.base_frame_offset != 0){
+        KDL::Rotation base_offset_transform = KDL::Rotation::RotZ(M_PI / 2 * control_scheme.base_frame_offset);
+        twist_linear = base_offset_transform * twist_linear;
+        twist_angular = base_offset_transform * twist_angular;
+    }
+
     // Endpoint and flat frame control
     if (control_scheme.endpoint_frame_linear || control_scheme.endpoint_frame_angular){
         // Update the current end-effector orientation in the rover frame
@@ -221,17 +228,6 @@ inline KDL::Twist ArmTwistMapper::get_control_twist(const KDL::Twist& joystick_t
         }
         if (control_scheme.endpoint_frame_angular) {
             twist_angular = endpoint_coord_transform_angular * ENDPOINT_INPUT_TRANSFORM_ANGULAR * twist_angular;
-        }
-    }
-    // Reference frame offset
-    if (control_scheme.base_frame_offset != 0){
-        KDL::Rotation base_offset_transform = KDL::Rotation::RotZ(M_PI / 2 * control_scheme.base_frame_offset);
-        // Apply offset only if endpoint-frame control not applied
-        if (!control_scheme.endpoint_frame_linear){
-            twist_linear = base_offset_transform * twist_linear;
-        }
-        if (!control_scheme.endpoint_frame_angular) {
-            twist_angular = base_offset_transform * twist_angular;
         }
     }
 
