@@ -42,13 +42,18 @@ install(DIRECTORY
   DESTINATION share/${PROJECT_NAME}
 )
 
+# Install Python modules
+ament_python_install_package(${PROJECT_NAME})
+
 # Add all Python executables to this list
 install(PROGRAMS
   science/transmitter.py
   science/hydraprobe_publisher.py
   science/distance_publisher.py
   science/EMC_publisher.py
+  science/kilns_data_publisher.py
   science/spectrometer_publisher.py
+  science/actuator_limit_publisher.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

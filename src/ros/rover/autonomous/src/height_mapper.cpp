@@ -5,6 +5,7 @@
 #include <vector>
 #include <tuple>
 #include <cmath>
+#include <string>
 #include <opencv2/opencv.hpp>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
@@ -22,6 +23,15 @@ static const unsigned char c_neg_inf = 0;
 static const unsigned char c_inf = 255;
 const unsigned char MAP_BOTTOM = 128;
 
+void save(cv::Mat& img) {
+    // use this function to easily display what c++ sees for debugging
+    static int count = 0; 
+    count++;
+    std::stringstream ss;
+    ss << "./debug/cpp_map" << count << ".jpeg";
+    cv::imwrite(ss.str(), img);
+}
+
 cv::Mat shift(cv::Mat& original, float x, float y, unsigned char fill_val){
     // shift a cv::Mat in the direction given by x and y.
     float shifter[6] = {1, 0, x, 0, 1, y};
@@ -30,28 +40,21 @@ cv::Mat shift(cv::Mat& original, float x, float y, unsigned char fill_val){
     cv::Mat shifted;
     cv::warpAffine(original, shifted, shift_mat, original.size());
     
-    int start_x = (x >= 0) ? 0 : original.rows - 1;
-    int start_y = (y >= 0) ? 0 : original.cols - 1;
+    int start_x = (x >= 0) ? 0 : shifted.cols - 1;
+    int start_y = (y >= 0) ? 0 : shifted.rows - 1;
 
     if (x == 0) {
-        for (int i = 0; i < original.rows; i++) {
-            shifted.at<unsigned char>(i, start_y) = fill_val;
+        for (int i = 0; i < original.cols; i++) {
+            shifted.at<unsigned char>(start_y, i) = fill_val;
         }
     }
     else if (y == 0) {
-        for (int i = 0; i < original.cols; i++) {
-            shifted.at<unsigned char>(start_x, i) = fill_val;
+        for (int i = 0; i < original.rows; i++) {
+            shifted.at<unsigned char>(i, start_x) = fill_val;
         }
     }
 
     return shifted;
-}
-
-void save(cv::Mat& img, cv::Mat& img2, cv::Mat& img3) {
-    // use this function to easily display what c++ sees for debugging
-    cv::imwrite("../debug/cpp_map.png", img);
-    cv::imwrite("../debug/cpp_map2.png", img2);
-    cv::imwrite("../debug/cpp_map3.png", img3);
 }
 
 std::tuple<py::array_t<unsigned char>, int> getObstacles(PointCloud& points, const int XS, const int YS){
@@ -73,11 +76,8 @@ std::tuple<py::array_t<unsigned char>, int> getObstacles(PointCloud& points, con
             if (z > topHeightMap.at<unsigned char> (x, y)) topHeightMap.at<unsigned char> (x, y) = (unsigned char) z;
             if (z < bottomHeightMap.at<unsigned char> (x, y)) bottomHeightMap.at<unsigned char> (x, y) = (unsigned char) z;
 	    min_x = (x < min_x) ? x : min_x;
-        } else {
-            std::cout << "Height Mapper received invalid index - Don't panic it's probably fine" << std::endl;
-            std::cout << "x = " << x << ", y = " << y << std::endl;
-        }
-    }
+        } 
+	}
     //blurring the top height map so we can compare the heights of adjacent points
     topHeightMap = cv::max(topHeightMap, shift(topHeightMap, -1, 0, c_neg_inf));
     topHeightMap = cv::max(topHeightMap, shift(topHeightMap, 1, 0, c_neg_inf));
@@ -92,13 +92,13 @@ std::tuple<py::array_t<unsigned char>, int> getObstacles(PointCloud& points, con
     
     cv::Mat diff;
     cv::subtract(topHeightMap, bottomHeightMap, diff);
+
     cv::threshold(diff, diff, c_inf, 0, cv::THRESH_TOZERO_INV);
 
     auto end = std::chrono::high_resolution_clock::now();
     auto time = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
     // converting to numpy array to return
     py::array_t<unsigned char> numpy_diff = py::array_t<unsigned char>({ diff.rows, diff.cols }, diff.data);
-    save(topHeightMap, bottomHeightMap, diff);
     auto converted = std::chrono::high_resolution_clock::now();
     time = std::chrono::duration_cast<std::chrono::microseconds>(converted - end);
     return std::tuple<py::array_t<unsigned char>, int> (numpy_diff, min_x);

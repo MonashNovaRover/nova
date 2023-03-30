@@ -22,26 +22,29 @@ ACTIONS: None
 PACKAGE: 	autonomous
 AUTHOR(S):	Max
 CREATION:	25/02/2022
-EDITED:		25/02/2022
+EDITED:		31/12/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
- - a lot 
+  - Correctly transform points
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
-from mapping.python_height_mapper import HeightMapper
-from mapping.python_plane_mapper import PlaneMapper
-from mapping.flat_mapper import FlatMapper
-import math_utils.transform as transform
+from autonomous.mapping.python_height_mapper import HeightMapper
+from autonomous.mapping.python_plane_mapper import PlaneMapper
+from autonomous.mapping.flat_mapper import FlatMapper
+import autonomous.math_utils.transform as transform
+import logging
 
 
 class HeightPlaneMapper(FlatMapper):
-    def __init__(self, length=20, width=20, height=5, resolution=0.1, detection_resolution=0.025, planner=None, camera=False):
+    def __init__(self, height=5, resolution=0.1, detection_resolution=0.025, planner=None, camera=False, name="height_plane_mapper"):
 
         # init node with node name points
-        super().__init__(length=length, width=width, height=height, resolution=resolution, detection_resolution=detection_resolution, planner=planner, camera=camera)
-        self.height_mapper = HeightMapper(length=length, width=width, height=height, resolution=resolution, detection_resolution=detection_resolution)
-        self.plane_mapper = PlaneMapper(length=length, width=width, height=height, resolution=resolution, detection_resolution=detection_resolution)
+        super().__init__(height=height, resolution=resolution, detection_resolution=detection_resolution, planner=planner, camera=camera, name=name)
+        self.get_logger().set_level(logging.INFO)
+        self.height_mapper = HeightMapper(height=height, resolution=resolution, detection_resolution=detection_resolution)
+        self.plane_mapper = PlaneMapper(height=height, resolution=resolution, detection_resolution=detection_resolution)
+        self.on_initialised()
 
     def handle_pc(self, pts):
         """
@@ -53,9 +56,19 @@ class HeightPlaneMapper(FlatMapper):
         # If we want the 3d map as well
         # super().handle_pc(pts)
         # transforming pitch and roll to flatten the map, but no yaw or translation
-        self.get_logger().info("Rolling map")
-        self.check_position_in_map()
-        no_yaw_pts = transform.transform_points_no_yaw(self.cam_odom, pts)
+        if self.local_map_to_d435 is None: 
+            self.get_logger().warn("No transform to d435 frame!")
+            return
+        if self.orient_nova_frame_transform is None: 
+            self.get_logger().warn("No transform to forward-facing frame!")
+            return
+        if len(pts) < 10:
+            return
+        self.get_logger().debug(f"Transforming point cloud by transform: {self.orient_nova_frame_transform}", throttle_duration_sec=1)
+        # transform to nova coordinates
+        frame_transformed_points = transform.transform_points(self.orient_nova_frame_transform, pts)
+        self.get_logger().debug(f"Transforming point cloud by transform: {self.local_map_to_d435}", throttle_duration_sec=1)
+        no_yaw_pts = transform.transform_points_no_yaw(self.local_map_to_d435, frame_transformed_points)
 
         filtered_indices = self.filter_points(no_yaw_pts)
 
@@ -70,12 +83,11 @@ class HeightPlaneMapper(FlatMapper):
         min_x = 0.5 * (min_p_x + min_h_x)
         
         # any sharp drops located in the height mapper are added to the plane mapper
-        assert(plane_obs.shape == height_obs.shape)
         plane_obs[height_obs >= 1.0] = 1.1
         
         rotated_obs = self.arrange_obstacles(plane_obs, min_x)
-        self._map.add_obstacles(self.cam_odom, self.offset, rotated_obs)
+        self._map.add_obstacles(self.local_map_to_d435, rotated_obs)
 
-        self.get_logger().info("publishing map")
+        self.get_logger().debug("publishing map", throttle_duration_sec=1)
         self.publish()
 

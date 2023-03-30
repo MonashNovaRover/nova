@@ -1,11 +1,13 @@
+#!/usr/bin/env python3
+__package__ = 'autonomous'
 import rclpy
 from nav_msgs.msg import MapMetaData
 from nav_msgs.msg import OccupancyGrid
 from builtin_interfaces.msg import Time
-from config.ros_config import main_frame
 from geometry_msgs.msg import Pose
 from std_msgs.msg import Header
 from rclpy.node import Node
+import math
 
 
 class GridPub(Node):
@@ -37,22 +39,21 @@ class GridPub(Node):
 
         meta_data.map_load_time = self.get_clock().now().to_msg()
         pose_origin = Pose()
-        # pose_origin.position.x = 1 * self.width * 0.4/ 2
-        # pose_origin.position.x = 1 * self.width * 0.4/ 2
         pose_origin.position.x = x
         pose_origin.position.y = y
-        pose_origin.position.z = 0.0
         pose_origin.orientation.w = 1.0
         meta_data.origin = pose_origin
 
         header = Header()
-        header.frame_id = main_frame
+        header.frame_id = 'local_map'   # map frame - this is important for tf2
         header.stamp = self.get_clock().now().to_msg()
 
         grid = OccupancyGrid()
         grid.header = header
         grid.info = meta_data
         grid.data = data
+
+        self.get_logger().debug(f"Publishing occupancy grid: {grid}")
 
         self.publisher.publish(grid)
 
