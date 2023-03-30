@@ -17,16 +17,19 @@ usage examples:
 <response message>
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:     electronics
-AUTHOR(S):    Josh Cherubino
+AUTHOR(S):   Jory Braun, Josh Cherubino
 CREATION:    9/3/2022
-EDITED:      9/3/2022 by Josh Cherubino
+EDITED:      20/3/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 from core.srv import RFIDCommand
 import rclpy
 from rclpy.node import Node
+
+import argparse
+
 
 class RFIDClient(Node):
 
@@ -37,36 +40,46 @@ class RFIDClient(Node):
             print('Service not available')
         self.future = None
 
-    def send_request(self):
+    def send_request(self, args):
         req = RFIDCommand.Request()
-        # The first word is the command, and the second word is the data field
-        # Accordingly, split on space allowing max of 1 split
-        split_string = input('>>>').strip().split(' ', 1)
-        # should always be at least 1 element
-        req.command = split_string[0]
-        if len(split_string) == 2:
-            req.data = split_string[1]
+        req.command = args.command
+        if args.data is not None:
+            req.data = args.data
 
         self.future = self.cli.call_async(req)
 
-def main(args=None):
-    rclpy.init(args=args)
+def cli_parser():
+    parser = argparse.ArgumentParser(description="Send or receive using the RFID scanner", usage="rfid [-h] {read,clear,restart,dump,write,poll} [-d DATA]")
+    parser.add_argument("command", type=str, choices=['read', 'clear', 'restart', 'dump', 'write', 'poll'], default='read', help="Command to send to the RFID reader")
+    parser.add_argument("-d", "--data", type=str, default=None, help="Data to write to the RFID reader. Only used if using the 'write' or 'poll' commands")
+    args = parser.parse_args()
+    
+    # Only use data if writing, otherwise delete
+    if args.data is not None and args.command not in ['write', 'poll']:
+        print("[Warning]: Data given for a command that does not take data. Ignoring data")
+        args.data = None
+
+    return args
+
+
+def main():
+    rclpy.init()
+
+    args = cli_parser()
 
     rfid_client = RFIDClient()
+    rfid_client.send_request(args)
 
-    while rclpy.ok():
-        if rfid_client.future is None:
-            # then we should ask request
-            rfid_client.send_request()
+    while rfid_client.future is None:
         rclpy.spin_once(rfid_client)
-        if rfid_client.future.done():
-            try:
-                # get and print text data to user
-                response = rfid_client.future.result()
-                print(response.response)
-                rfid_client.future = None # clear future to indicate new request can be made
-            except Exception as e:
-                print('Service call failed')
+    
+    if rfid_client.future.done():
+        try:
+            # get and print text data to user
+            response = rfid_client.future.result()
+            print(response.response)
+        except Exception as e:
+            print('[Error]: Service call failed')
 
     rfid_client.destroy_node()
     rclpy.shutdown()

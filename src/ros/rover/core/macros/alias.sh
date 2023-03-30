@@ -75,6 +75,7 @@ alias launch_vis='ros2 launch core viz.launch.py'
 alias arm_config_info='ros2 service call control/arm_config_info core/srv/ArmConfigInfo'
 alias arm_reset_control_pose='ros2 service call control/arm_reset_control_pose std_srvs/srv/Trigger'
 alias zero_resolver='~/nova_ws/src/rover/core/macros/zero_resolver.sh'
+alias rfid='~/nova_ws/src/rover/electronics/electronics/rfid_client_terminal.py'
 
 # eduroam connection
 alias eduroam="sudo ip r delete default via 192.168.1.1"
