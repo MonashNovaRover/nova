@@ -54,7 +54,6 @@ from geometry_msgs.msg import Transform, Pose2D
 from tf2_ros import Buffer, TransformListener
 from rclpy.duration import Duration
 
-
 # custom message imports
 from core.msg import DriveInput, AutonomousGoal, PivotWheelData, BLCMDReset, BLCMDStatusArray, BLCMDStatus
 from autonomous.controller.spin_controller import SpinController
@@ -97,7 +96,7 @@ class Controller(Node):
         super().__init__('GRUC')
 
         # set debug to not get shown
-        self.get_logger().set_level(logging.INFO)
+        self.get_logger().set_level(logging.DEBUG)
 
         # Ros params
         self.param_do_tank_turn = self.declare_parameter("do_tank_turn", False).value

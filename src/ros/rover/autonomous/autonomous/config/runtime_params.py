@@ -43,7 +43,7 @@ min_ar_distance = 0.7
 max_ar_distance = 20
 
 # ~~~~~~~~~~ MAPPING CONSTANTS ~~~~~~~~~~~~~~~~
-min_point_density = 2  # number of points in voxel before we accept it
+min_point_density = 1  # number of points in voxel before we accept it
 max_point_depth = 6  # distance beyond which we don't consider points
 max_fov_horizontal = np.pi / 5  # fov of depth camera for mapping
 max_fov_vertical = np.pi / 8  # fov of depth camera for mapping

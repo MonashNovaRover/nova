@@ -34,20 +34,16 @@ import rclpy
 from rclpy.node import Node
 from rclpy.time import Time
 from std_srvs.srv import Trigger
-from geometry_msgs.msg import PoseStamped, Transform, TransformStamped
+from geometry_msgs.msg import PoseStamped
 from tf2_ros import Buffer, TransformListener
 
 # custom message imports
-from core.msg import DriveInput, AutonomousGoal, PivotWheelData
-from nav_msgs.msg import Path
-from autonomous.controller.spin_controller import SpinController
+from core.msg import AutonomousGoal
 
 # autonomous imports
 from autonomous.math_utils.controller_math import *
-import autonomous.math_utils.transform as transform
 from autonomous.config.runtime_params import *
 from autonomous.config.ros_config import *
-from autonomous.controller.drive_controller import DriveController, TurningMode
 
 # misc
 from enum import Enum
