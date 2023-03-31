@@ -201,8 +201,7 @@ class GRUP(Node):
             self.get_logger().debug("plan() state is {}".format(self.planning_state.state))
 
         planning_destination = PoseStamped()
-        planning_destination.header.stamp = self.get_clock().now().to_msg()
-        planning_destination.header.frame_id = "map"
+        planning_destination.header = self.state_current_planning_destination.header
         planning_destination.pose.orientation.w = 1.0
         planning_destination.pose.position.x = self.state_current_planning_destination.position.x
         planning_destination.pose.position.y = self.state_current_planning_destination.position.y
