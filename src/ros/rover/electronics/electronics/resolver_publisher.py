@@ -128,7 +128,12 @@ class ResolverTransceiver(CANTransceiver):
         Raises KeyError if invalid joint name given
         """
         self.logger.info(f'Zeroing joint {joint_name}')
+        # Send the zeroing command
         integer_data = self.poll_resolver(joint_name, self.zero_transceiver)
+        # Reset the info for geared resolvers
+        joint = self.get_joint(joint_name)
+        joint.sector_count = 0
+        joint.last_reading = None
         return integer_data is not None
     
     def poll_resolver(self, joint_name: str, transceiver: CANTransceiver=None) -> int:
