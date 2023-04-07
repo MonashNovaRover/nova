@@ -207,18 +207,21 @@ inline KDL::Twist ArmTwistMapper::get_control_twist(const KDL::Twist& joystick_t
         KDL::Rotation endpoint_coord_transform_angular = endpoint_coord_transform_linear;
         
         // Adjust pitch for flat frame control scheme
-        KDL::Vector end_effector_unit_y = endpoint_coord_transform_linear.UnitY();
-        KDL::Vector end_effector_unit_z = endpoint_coord_transform_linear.UnitZ();
-        KDL::Vector rover_unit_z = KDL::Vector(0, 0, 1);
+        if (control_scheme.flat_frame_linear || control_scheme.flat_frame_angular)
+        {
+            KDL::Vector end_effector_unit_y = endpoint_coord_transform_linear.UnitY();
+            KDL::Vector end_effector_unit_z = endpoint_coord_transform_linear.UnitZ();
+            KDL::Vector rover_unit_z = KDL::Vector(0, 0, 1);
 
-        int direction = (end_effector_unit_z.z() > 0) ? -1 : 1;
-        double pitch_angle = acos(KDL::dot(end_effector_unit_y, -rover_unit_z));
-        KDL::Rotation flat_coord_transform = KDL::Rotation::RotX(direction * pitch_angle);
-        if (control_scheme.flat_frame_linear){
-            endpoint_coord_transform_linear = endpoint_coord_transform_linear * flat_coord_transform;
-        }
-        if (control_scheme.flat_frame_angular){
-            endpoint_coord_transform_angular = endpoint_coord_transform_angular * flat_coord_transform;
+            int direction = (end_effector_unit_z.z() > 0) ? -1 : 1;
+            double pitch_angle = acos(KDL::dot(end_effector_unit_y, -rover_unit_z));
+            KDL::Rotation flat_coord_transform = KDL::Rotation::RotX(direction * pitch_angle);
+            if (control_scheme.flat_frame_linear){
+                endpoint_coord_transform_linear = endpoint_coord_transform_linear * flat_coord_transform;
+            }
+            if (control_scheme.flat_frame_angular){
+                endpoint_coord_transform_angular = endpoint_coord_transform_angular * flat_coord_transform;
+            }
         }
         
         // Transform from end effector coordinates to base frame coordinates
