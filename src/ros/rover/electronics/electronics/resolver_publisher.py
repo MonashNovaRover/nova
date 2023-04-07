@@ -192,30 +192,30 @@ class ResolverTransceiver(CANTransceiver):
         if integer_data is None:
             return None
         angle_data = self._convert_to_rad(integer_data)
+        
+        # Get the joint object for post-processing
+        joint = self.get_joint(joint_name)
 
         # Handle rotation counting if gear ratio is not 1
-        if self.gear_ratio != 1:
+        if joint.gear_ratio != 1:
             # Update the sector count
             # Compare current and previous reading to determine if, and in which direction
             # we have crossed between 2*pi and 0
             # (3*pi)/4 chosen as an arbitrarily large angle to show that the resolver
             # must have crossed between 2*pi and 0
-            if self.last_reading == None:
+            if joint.last_reading == None:
                 self.logger.info(f'Getting initial reading for geared resolver {joint_name}') 
-            elif angle_data - self.last_reading < -3*pi/4:
+            elif angle_data - joint.last_reading < -3*pi/4:
                 # Resolver has crossed from 2*pi to 0, so joint is in the next sector
-                self.sector_count = (self.sector_count + 1) % self.gear_ratio
-            elif angle_data - self.last_reading > 3*pi/4:
+                joint.sector_count = (joint.sector_count + 1) % joint.gear_ratio
+            elif angle_data - joint.last_reading > 3*pi/4:
                 # Resolver has crossed from 0 to 2*pi, so joint is in the previous sector
-                self.sector_count = (self.sector_count - 1) % self.gear_ratio
+                joint.sector_count = (joint.sector_count - 1) % joint.gear_ratio
             # Update last reading 
-            self.last_reading = angle_data
+            joint.last_reading = angle_data
 
             # Modify the joint output angle to account for the gearing
-            angle_data = (angle_data + 2*pi*self.sector_count) / self.gear_ratio
-
-        # Get the joint object for post-processing
-        joint = self.get_joint(joint_name)
+            angle_data = (angle_data + 2*pi*joint.sector_count) / joint.gear_ratio
 
         # Reverse the increasing direction if necessary
         if joint.reverse:
