@@ -85,12 +85,12 @@ class GoalManager(Node):
     detected block or AR tag wiill initially be stored as "unsure", and will only be added to the search plan once its
     location has been repeatedly confirmed. Once a block or AR tag has been found, it will be removed from the search.
     """
-    MIN_SAMPLES=10
-    MAX_STD_DEV=0.1
+    MIN_SAMPLES=5
+    MAX_STD_DEV=0.2
 
     def __init__(self):
         super().__init__("goal_manager")
-        self.get_logger().set_level(logging.INFO)
+        self.get_logger().set_level(logging.DEBUG)
         # ROS Subscribers
         self.sub_blocks = self.create_subscription(MarkerArray, "/object_detector/markers", self.cb_cube, 10)
         self.sub_tags = self.create_subscription(AlvarMarkers, "/ar_tracker/tags", self.cb_tag, 10)
@@ -238,12 +238,12 @@ class GoalManager(Node):
         self.get_logger().debug(f"Closest color is {color}")
         return color
 
-    def to_local_map(self, msg: Union[PoseStamped, Marker]):
+    def to_map(self, msg: Union[PoseStamped, Marker]):
         """
         Converts a PoseStamped from the camera frame to the local map frame.
         """
         try: 
-            local_map_transform = self.tf_buffer.lookup_transform("local_map", msg.header.frame_id, Time.from_msg(msg.header.stamp), Duration(nanoseconds=1e8)).transform
+            local_map_transform = self.tf_buffer.lookup_transform("map", msg.header.frame_id, Time.from_msg(msg.header.stamp), Duration(nanoseconds=1e8)).transform
             local_map_pose = transform.transform_pose(msg.pose, local_map_transform)
             return local_map_pose
         except Exception as e:
@@ -335,13 +335,15 @@ class GoalManager(Node):
             else:
                 # We care about this tag and haven't worked out where it is
                 tag_pose_stamped = tag.pose
-                local_map_pose = self.to_local_map(tag_pose_stamped)
-                if local_map_pose is None or self.pose_not_reasonable(local_map_pose):
+                self.get_logger().debug(f"pose in d435 frame: {tag_pose_stamped}")
+                map_pose = self.to_map(tag_pose_stamped)
+                self.get_logger().debug(f"pose in map frame: {map_pose}")
+                if map_pose is None or self.pose_not_reasonable(map_pose):
                     continue
                 # Append the tag's pose to the list of estimated poses
                 if _id not in self.unsure_tags:
                     self.unsure_tags[_id] = []
-                self.unsure_tags[_id].append([local_map_pose.position.x, local_map_pose.position.y])
+                self.unsure_tags[_id].append([map_pose.position.x, map_pose.position.y])
                 if self.current_target is not None and self.current_target.tag_id == _id:
                     self.last_seen_current_target = time.time()
                 self.attempt_confirm_target(_id=_id)
@@ -360,7 +362,7 @@ class GoalManager(Node):
                 continue
             else:
                 # We care about this block and haven't worked out where it is
-                local_map_pose = self.to_local_map(block)
+                local_map_pose = self.to_map(block)
                 if local_map_pose is None or self.pose_not_reasonable(local_map_pose):
                     self.get_logger().debug(f"pose: {local_map_pose} not reasonable")
                     continue
@@ -401,7 +403,7 @@ class GoalManager(Node):
         Stores the latest rover pose message into our State() variable
         """
         try:
-            base_link_tf : Transform = self.tf_buffer.lookup_transform("local_map", "base_link", Time()).transform
+            base_link_tf : Transform = self.tf_buffer.lookup_transform("map", "base_link", Time()).transform
             self.get_logger().debug("Found transform from local_map to base_link", once=True)
         except:
             self.get_logger().warn("No transform from local_map to base_link", once=True)
@@ -530,7 +532,7 @@ class GoalManager(Node):
         color.b = IDEAL_VECTORS[color_name][2]
         color.a = 1.
         msg.color = color
-        msg.header.frame_id = "local_map"
+        msg.header.frame_id = "map"
         msg.header.stamp = self.get_clock().now().to_msg()
         # Namespace - raw messages can be separated from confirmed cubes
         msg.ns = "completed"
@@ -549,17 +551,22 @@ class GoalManager(Node):
         pose.position.z = 0.0
         pose.orientation.w = 1.0
         msg.pose = pose
-        msg.type = Marker.TEXT_VIEW_FACING
+        msg.type = Marker.CUBE
         msg.scale.x = .1
         msg.scale.y = .1
         msg.scale.z = .1
-        msg.header.frame_id = "local_map"
+        color = ColorRGBA()
+        color.r = 0.
+        color.g = 0.
+        color.b = 0.
+        color.a = 1.
+        msg.color = color
+        msg.header.frame_id = "map"
         msg.header.stamp = self.get_clock().now().to_msg()
         # Namespace - raw messages can be separated from confirmed cubes
         msg.ns = "completed"
         msg.id = len(COLOUR_IDS) + int(tag_id)
 
-        msg.text = str(tag_id)
         return msg
 
     def handle_targets(self):
