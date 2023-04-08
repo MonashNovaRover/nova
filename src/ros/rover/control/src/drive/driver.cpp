@@ -32,7 +32,7 @@ void Driver::send_commands(const core::msg::DriveInput::SharedPtr msg)
 
             // Fill the wheel angles and velocities
             fill_wheel_angles_radial(radius);
-            fill_wheel_velocities_radial(msg->speed * get_parameter("max-speed").get_parameter_value().get<double>(),
+            fill_wheel_velocities_radial(msg->speed * get_parameter("max_speed").get_parameter_value().get<double>(),
                                          radius);
 
             if (radius != INFINITY) {
@@ -48,7 +48,7 @@ void Driver::send_commands(const core::msg::DriveInput::SharedPtr msg)
         }
         case core::msg::DriveInput::STRAFE: {
             fill_wheel_angles_strafe();
-            fill_wheel_velocities_strafe(msg->speed * get_parameter("max-speed").get_parameter_value().get<double>());
+            fill_wheel_velocities_strafe(msg->speed * get_parameter("max_speed").get_parameter_value().get<double>());
             data_msg.radius = 0;
             break;
         }
@@ -56,7 +56,7 @@ void Driver::send_commands(const core::msg::DriveInput::SharedPtr msg)
         case core::msg::DriveInput::TANK: {
             //fill_wheel_angles_tank();
             double radius = (1.0 / msg->steer) - ((msg->steer < 0.0) ? -1.0 : 1.0);
-            fill_wheel_velocities_tank(msg->speed * get_parameter("max-speed").get_parameter_value().get<double>(),
+            fill_wheel_velocities_tank(msg->speed * get_parameter("max_speed").get_parameter_value().get<double>(),
                     radius, msg->steer);
             data_msg.radius = 0;
             break;
@@ -180,7 +180,7 @@ double Driver::get_turning_radius(float steer)
     //determine the direction this wheel has to turn
     int direction = pivots[index]->angle == target ? 0 : (pivots[index]->angle < target ? 1 : -1);
     //calculate the maximum angle the wheel can turn until the next drive command is recieved.
-    d_theta = this->get_parameter("max-theta").get_parameter_value().get<double>()
+    d_theta = this->get_parameter("max_theta").get_parameter_value().get<double>()
               *ROSTimers::drive_control.count()/1000;
     double theta = pivots[index]->angle + direction * d_theta;
     //if the target is closer than the maximum angle the wheel can turn, set the angle to the target
@@ -424,9 +424,9 @@ Driver::Driver() : Node("driver")
 
     this->declare_parameter("canbus", "can0");
     // parameter for change in angle of the pivots in radians per second
-    this->declare_parameter("max-theta", M_PI_2);
+    this->declare_parameter("max_theta", M_PI_2);
     // parameter for max velocity of the wheels, all speeds received from /control/drive_inputs are scaled by this value
-    this->declare_parameter("max-speed", 0.35);
+    this->declare_parameter("max_speed", 0.35);
 
 
     // Output set-up messages
