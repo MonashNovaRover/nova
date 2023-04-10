@@ -426,7 +426,7 @@ Driver::Driver() : Node("driver")
     // parameter for change in angle of the pivots in radians per second
     this->declare_parameter("max_theta", M_PI_2);
     // parameter for max velocity of the wheels, all speeds received from /control/drive_inputs are scaled by this value
-    this->declare_parameter("max_speed", 0.35);
+    this->declare_parameter("max_speed", 0.9);
 
 
     // Output set-up messages
