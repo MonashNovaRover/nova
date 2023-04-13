@@ -38,7 +38,7 @@ const float MAX_MULTIPLIER      = 1.0;  // The maximum multiplier value
 const float DELTA_MULTIPLIER    = 0.1;  // The change in multiplier
 
 // The initial multipliers
-const float INITIAL_MULT_SPEED = 0.5;
+const float INITIAL_MULT_SPEED = 0.3;
 
 // The minimum trigger speed multiplier to apply when the right trigger is held
 const float MIN_TRIGGER_MULTIPLIER = 0.4;
