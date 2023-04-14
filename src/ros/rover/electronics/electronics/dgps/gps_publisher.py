@@ -24,17 +24,17 @@ class SkytraqNode (Node):
         self.counter = 0
 
         self.publisher = self.create_publisher(RoverPoseGPS, 'gps_data', 10)
-        self.timer = self.create_timer(0.5, self.publisher_callback)
+        self.timer = self.create_timer(0, self.publisher_callback)
 
     def parse_msg(self, pose):
         raw_msg = self.get_msg()
 
-        if raw_msg[0:2] == ["b'$PSTI", '036']:
+        if raw_msg[0:2] == ["PSTI", '036']:
             if raw_msg[4] != '' and (raw_msg[4].isupper() or raw_msg[4].islower()) == False:
                 pose.pitch, pose.roll, pose.yaw = float(raw_msg[5]), float(raw_msg[6]), float(raw_msg[4])
         # elif raw_msg[0:2] == ['PSTI', '032']:
         #     db
-        elif raw_msg[0] == "b'$GNRMC":
+        elif raw_msg[0] == "GNRMC":
             pose.latitude, pose.longitude = float(raw_msg[3]), float(raw_msg[5])
             if raw_msg[2] == 'A':
                 pose.valid = True
@@ -42,7 +42,7 @@ class SkytraqNode (Node):
                 pose.valid = False
             if raw_msg[12] != "":
                 self.fix_type = raw_msg[12]
-        elif raw_msg[0] == "b'$GPGAA":
+        elif raw_msg[0] == "GPGGA":
             self.get_logger().log(raw_msg[6],LoggingSeverity.WARN)
             
 
@@ -53,10 +53,12 @@ class SkytraqNode (Node):
     def get_msg(self):
         self.counter+=1
         if self.counter > 30:
-            self.ser.reset_input_buffer()
+            #self.ser.reset_input_buffer()
             self.counter = 0
-
-        txt = str(self.ser.readline())
+        txt = str(self.ser.read_until(b"$"))#readline())
+        txt = txt.rstrip("\\r\\n$'")
+        txt = txt.lstrip("b'")
+        #print(txt)
         return txt.split(",")
     
     def config_port(self, port_name, baud):
