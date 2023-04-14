@@ -42,6 +42,9 @@ class SkytraqNode (Node):
                 pose.valid = False
             if raw_msg[12] != "":
                 self.fix_type = raw_msg[12]
+        elif raw_msg[0] == "b'$GPGAA":
+            self.get_logger().log(raw_msg[6],LoggingSeverity.WARN)
+            
 
         # debug_str = f"""{raw_msg[6]}, {raw_msg[7]}, {raw_msg[8]}, {raw_msg[9]}, {raw_msg[10]}, {raw_msg[11]}, {raw_msg[12]}"""
         # self.get_logger().log(debug_str,LoggingSeverity.INFO,throttle_duration_sec=2)
