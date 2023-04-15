@@ -1,0 +1,15 @@
+[Unit]
+Description=Sets DSCP priority for ROS 2 port ids to prioritise ros messages over radios
+Requires=network-online.target network.target local-fs.target
+After=network-online.target network.target local-fs.target
+
+[Service]
+Group=sudo
+User=root
+Type=exec
+ExecStart=/home/max/nova_ws/src/rover/core/systemctl/dscp.sh
+TimeoutStartSec=10
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
