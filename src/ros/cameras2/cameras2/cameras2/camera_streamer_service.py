@@ -157,12 +157,24 @@ class CameraStreamerService(Node):
         gst_bin: Gst.Bin = Gst.Bin.new(f"camera-{serial}-bin")
 
         source = Gst.ElementFactory.make("v4l2src", "source")
+        capsfilter = Gst.ElementFactory.make("capsfilter", "capsfilter")
         videoconvert = Gst.ElementFactory.make("videoconvert", "videoconvert")
         sink = Gst.ElementFactory.make("webrtcsink", "sink")
 
         # Configure the elements.
         # # Source
         source.props.device = device_node
+
+        # # Capability filter
+        # Hardcoded values optimized for several Microsoft LifeCam 3000s on a USB hub.
+        # TODO: Use ROS parameters for per-device capability filter attributes.
+        caps_structure: Gst.Structure = Gst.Structure.new_empty("video/x-raw")
+        caps_structure.set_value("width", 640)
+        caps_structure.set_value("framerate", Gst.Fraction(10, 1))
+
+        caps: Gst.Caps = Gst.Caps.new_empty()
+        caps.append_structure(caps_structure)
+        capsfilter.props.caps = caps
 
         # # Sink
         # ## WebRTC settings
@@ -175,7 +187,7 @@ class CameraStreamerService(Node):
         sink.props.meta = meta
 
         # Add the elements to the bin, and link them.
-        elements = [source, videoconvert, sink]
+        elements = [source, capsfilter, videoconvert, sink]
         gst_bin.add(*elements)
         # noinspection PyUnresolvedReferences
         Gst.Element.link_many(*elements)
