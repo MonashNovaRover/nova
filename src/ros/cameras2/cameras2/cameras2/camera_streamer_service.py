@@ -10,7 +10,7 @@ from rclpy.client import Client
 gi.require_version("Gst", "1.0")
 from gi.repository import Gst
 
-from camera_msgs.msg import Camera, Cameras
+from camera_msgs.msg import Cameras
 from camera_msgs.srv import CameraOperation
 
 
