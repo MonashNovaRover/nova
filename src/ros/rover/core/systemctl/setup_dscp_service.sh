@@ -5,11 +5,10 @@
 for name in dscp; do
     echo "Setting up the ${name} service... "
     echo "Placing service in /etc/systemd/system/${name}.service"
-    echo "Placing executable in /etc/systemd/system/${name}.sh"
     # Find and replace with this user's home directory
+    cp ${name}_template.service ${name}.service
     sed -i 's/HOMEDIR/\/home\/'$USER'/' ${name}.service
-    sudo cp ${name}.service /etc/systemd/system/${name}.service
-    sudo cp ${name}.sh /usr/sbin/${name}.sh
+    sudo mv ${name}.service /etc/systemd/system/${name}.service
     sudo systemctl daemon-reload
     sudo systemctl enable ${name}.service
 done

@@ -7,8 +7,8 @@ After=network-online.target network.target local-fs.target
 Group=sudo
 User=root
 Type=exec
-ExecStart=/home/max/nova_ws/src/rover/core/systemctl/dscp.sh
-TimeoutStartSec=10
+ExecStart=HOMEDIR/nova_ws/src/rover/core/systemctl/dscp.sh
+TimeoutStartSec=30
 Restart=on-failure
 
 [Install]
