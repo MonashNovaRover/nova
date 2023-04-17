@@ -15,17 +15,13 @@ dist_through_gate_m = 2 # the distance we drive through the gate before stopping
 
 slowdown_distance = 2.0 # don't use these ones either lol
 
-min_speed = 2.0  # todo: determine
-
-max_speed = 7.0  # todo: determine
-
 ignore_waypoints = 4  # number of waypoints to cut off start of list
 
 # speed of autonomous driving and turning
 small_turn_angle = np.pi/16
-big_turn_drive_fraction = 0.30
+big_turn_drive_fraction = 0.20
 small_turn_drive_fraction = 0.15
-straight_drive_fraction = 0.6
+straight_drive_fraction = 0.2
 
 # Angle of lenience on completing a full turn on the spot
 spin_achieved_delta = np.pi/10
