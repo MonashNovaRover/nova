@@ -1,5 +1,5 @@
 { cmake, wrapGAppsHook, gobject-introspection, gst_all_1, gst-plugin-webrtc, gst-plugin-rtp, libnice }:
-{ buildRosPackage, rclpy, std-srvs, python3Packages }:
+{ buildRosPackage, rclpy, std-srvs, camera-msgs, python3Packages }:
 
 buildRosPackage {
   pname = "ros-cameras2";
@@ -29,6 +29,7 @@ buildRosPackage {
   propagatedBuildInputs = [
     rclpy
     std-srvs
+    camera-msgs
 
     python3Packages.pyudev
     python3Packages.pygobject-stubs
