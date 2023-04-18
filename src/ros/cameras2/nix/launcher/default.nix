@@ -1,0 +1,34 @@
+{ lib
+, writeShellScriptBin
+, stunserver
+, gst-plugin-webrtc-signalling
+}:
+
+{ buildEnv
+, rmw-fastrtps-dynamic-cpp
+, cameras2
+}:
+
+let
+  packages = [
+    (buildEnv {
+      paths = [
+        rmw-fastrtps-dynamic-cpp
+        cameras2
+      ];
+    })
+    stunserver
+    gst-plugin-webrtc-signalling
+  ];
+in
+writeShellScriptBin "gst-nova-launcher" ''
+  export PATH="${lib.makeBinPath packages}:$PATH"
+  export RMW_IMPLEMENTATION=rmw_fastrtps_dynamic_cpp # https://github.com/lopsided98/nix-ros-overlay/issues/45
+
+  if [ -z "''${1-}" ]; then
+    echo >&2 "Usage: $(basename "$0") command-to-run args..."
+    exit 1
+  fi
+
+  exec -- "$1" "''${@:2}"
+''

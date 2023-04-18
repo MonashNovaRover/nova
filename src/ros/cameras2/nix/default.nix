@@ -1,3 +1,6 @@
-{ pkgs ? import <nixpkgs> { } }:
+{ nixpkgs ? import <nixpkgs> { } }:
 
-pkgs.callPackage ./packages { }
+rec {
+  pkgs = nixpkgs.callPackage ./packages { };
+  launcher = pkgs.callRosPackage ./launcher { } { };
+}
