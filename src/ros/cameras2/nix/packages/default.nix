@@ -1,6 +1,7 @@
-{ pkgs }:
+{ pkgs, stdenv }:
 
 pkgs.callPackage ./ros.nix { } {
+  inherit (stdenv.buildPlatform) system;
   overlays = [
     (self: super: {
       ros = self.rosPackages.foxy;
