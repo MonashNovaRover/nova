@@ -49,7 +49,7 @@ class CameraStreamerService(Node):
         Gst.init(None)
         self._gst_pipeline: Gst.Pipeline = Gst.Pipeline.new("camera-server-pipeline")
         self._gst_pipeline.set_state(Gst.State.PLAYING)
-        self._gst_pipeline.get_bus().add_watch(GLib.PRIORITY_DEFAULT, self._handle_gst_message, None)
+        self._gst_pipeline.get_bus().set_sync_handler(self._handle_gst_message, None)
         self._gst_bins: dict[str, Gst.Bin] = {}
 
         # Create services and clients.
@@ -78,7 +78,7 @@ class CameraStreamerService(Node):
 
         self.get_logger().info("Ready!")
 
-    def _handle_gst_message(self, bus: Gst.Bus, message: Gst.Message, *user_data) -> bool:
+    def _handle_gst_message(self, bus: Gst.Bus, message: Gst.Message, *user_data) -> Gst.BusSyncReply:
         error: GLib.Error
         debug_info: str
         severity: LoggingSeverity
@@ -93,13 +93,13 @@ class CameraStreamerService(Node):
                 error, debug_info = message.parse_info()
                 severity = LoggingSeverity.WARN
             case _:
-                return True
+                return Gst.BusSyncReply.PASS
 
         logger = self.get_logger().get_child("GStreamer")
         logger.log(f"{message.src.get_name()}: {error.message}", severity)
         if debug_info:
             logger.log(debug_info, severity)
-        return True
+        return Gst.BusSyncReply.DROP
 
     def _create_stream_service(
         self,
@@ -256,9 +256,7 @@ class CameraStreamerService(Node):
 def main(args=None):
     rclpy.init(args=args)
     server = CameraStreamerService()
-    while rclpy.ok():
-        GLib.main_context_default().iteration(False)
-        rclpy.spin_once(server, timeout_sec=0.1)
+    rclpy.spin(server)
     server.destroy_node()
     rclpy.shutdown()
 
