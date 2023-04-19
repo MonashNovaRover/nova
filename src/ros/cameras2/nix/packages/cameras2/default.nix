@@ -1,4 +1,4 @@
-{ cmake, wrapGAppsHook, gobject-introspection, gst_all_1, gst-plugin-webrtc, gst-plugin-rtp, libnice }:
+{ cmake, wrapGAppsNoGuiHook, gobject-introspection, gst_all_1, gst-plugin-webrtc, gst-plugin-rtp, libnice }:
 { buildRosPackage, rclpy, std-srvs, camera-msgs, python3Packages }:
 
 buildRosPackage {
@@ -9,7 +9,7 @@ buildRosPackage {
   src = ../../../cameras2;
 
   nativeBuildInputs = [
-    wrapGAppsHook
+    wrapGAppsNoGuiHook
     gobject-introspection
     gst_all_1.gstreamer
   ];
