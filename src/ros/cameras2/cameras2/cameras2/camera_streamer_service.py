@@ -3,12 +3,13 @@ from typing import Callable
 import gi
 import rclpy
 from rclpy import Future, qos
+from rclpy.logging import LoggingSeverity
 from rclpy.node import Node
 from rclpy.service import Service
 from rclpy.client import Client
 
 gi.require_version("Gst", "1.0")
-from gi.repository import Gst
+from gi.repository import Gst, GLib
 
 from camera_msgs.msg import Cameras
 from camera_msgs.srv import CameraOperation
@@ -48,6 +49,7 @@ class CameraStreamerService(Node):
         Gst.init(None)
         self._gst_pipeline: Gst.Pipeline = Gst.Pipeline.new("camera-server-pipeline")
         self._gst_pipeline.set_state(Gst.State.PLAYING)
+        self._gst_pipeline.get_bus().add_watch(GLib.PRIORITY_DEFAULT, self._handle_gst_message, None)
         self._gst_bins: dict[str, Gst.Bin] = {}
 
         # Create services and clients.
@@ -75,6 +77,29 @@ class CameraStreamerService(Node):
         )
 
         self.get_logger().info("Ready!")
+
+    def _handle_gst_message(self, bus: Gst.Bus, message: Gst.Message, *user_data) -> bool:
+        error: GLib.Error
+        debug_info: str
+        severity: LoggingSeverity
+        match message.type:
+            case Gst.MessageType.ERROR:
+                error, debug_info = message.parse_error()
+                severity = LoggingSeverity.ERROR
+            case Gst.MessageType.WARNING:
+                error, debug_info = message.parse_warning()
+                severity = LoggingSeverity.WARN
+            case Gst.MessageType.INFO:
+                error, debug_info = message.parse_info()
+                severity = LoggingSeverity.WARN
+            case _:
+                return True
+
+        logger = self.get_logger().get_child("GStreamer")
+        logger.log(f"{message.src.get_name()}: {error.message}", severity)
+        if debug_info:
+            logger.log(debug_info, severity)
+        return True
 
     def _create_stream_service(
         self,
@@ -231,7 +256,9 @@ class CameraStreamerService(Node):
 def main(args=None):
     rclpy.init(args=args)
     server = CameraStreamerService()
-    rclpy.spin(server)
+    while rclpy.ok():
+        GLib.main_context_default().iteration(False)
+        rclpy.spin_once(server, timeout_sec=0.1)
     server.destroy_node()
     rclpy.shutdown()
 
