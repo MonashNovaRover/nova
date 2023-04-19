@@ -7,7 +7,13 @@ pkgs.mkShell {
   ];
 
   inputsFrom = [
-    (pkgs.ros.buildEnv { paths = [ pkgs.ros.rmw-fastrtps-dynamic-cpp ]; }).env
+    (pkgs.ros.buildEnv {
+      paths = [
+        pkgs.ros.rmw-fastrtps-dynamic-cpp
+        pkgs.ros.python.pkgs.pygobject-stubs
+        pkgs.ros.python.pkgs.pyqt5-stubs
+      ];
+    }).env
     pkgs.ros.cameras2
   ];
 
