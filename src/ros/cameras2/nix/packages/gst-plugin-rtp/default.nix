@@ -1,7 +1,6 @@
 { fetchFromGitLab
 , rustPlatform
 , pkg-config
-, wrapGAppsHook
 , glib
 , gst_all_1
 }:
@@ -22,7 +21,7 @@ rustPlatform.buildRustPackage rec {
 
   cargoHash = "sha256-HMEJHyqT6xsEx+NT/8H7atRvO0q5QcrPt3Ta04OZqHk=";
 
-  nativeBuildInputs = [ pkg-config wrapGAppsHook ];
+  nativeBuildInputs = [ pkg-config ];
   buildInputs = [
     glib
     gst_all_1.gstreamer
