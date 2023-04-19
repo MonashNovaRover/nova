@@ -121,9 +121,7 @@ class CameraStreamerService(Node):
             for serial in serials:
                 del self._device_nodes[serial]
 
-        self._stream_stop_client.call_async(
-            CameraOperation.Request(serials=serials)
-        ).add_done_callback(callback)
+        self._stream_stop_client.call_async(CameraOperation.Request(serials=serials)).add_done_callback(callback)
 
     def _update_cameras(self, cameras: Cameras) -> None:
         # Determine which of the given ("available") serials are new or updated.
@@ -132,22 +130,18 @@ class CameraStreamerService(Node):
         updated_serials = set(
             camera.serial
             for camera in cameras.cameras
-            if camera.serial in registered_serials
-            and camera.node != self._device_nodes[camera.serial]
+            if camera.serial in registered_serials and camera.node != self._device_nodes[camera.serial]
         )
 
         # Unregister cameras that are no longer available or need updating.
-        self._unregister_cameras(
-            (registered_serials - available_serials) | updated_serials
-        )
+        self._unregister_cameras((registered_serials - available_serials) | updated_serials)
 
         # Register cameras that are newly available or need updating.
         self._register_cameras(
             **{
                 camera.serial: camera.node
                 for camera in cameras.cameras
-                if camera.serial
-                in (available_serials - registered_serials) | updated_serials
+                if camera.serial in (available_serials - registered_serials) | updated_serials
             }
         )
 
