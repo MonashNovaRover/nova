@@ -86,9 +86,9 @@ _serial_overrides: list[_SerialOverride] = [
             "pci-0000:00:14.0-usb-0:1",  # Laptop (generic)
         ],
         {
-            "1:1.0": "mast_forward",
+            "1:1.0": "mast_backward",
             "3:1.0": "mast_down",
-            "4:1.0": "mast_backward",
+            "4:1.0": "mast_forward",
             "2:1.0": "mast_arm_stow",
         },
     ),
