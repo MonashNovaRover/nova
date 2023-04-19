@@ -82,6 +82,7 @@ _serial_overrides: list[_SerialOverride] = [
     _SerialOverride(
         [
             "platform-3530000.xhci-usb-0:1",  # Rover
+            "platform-3530000.xhci-usb-0:2",  # Jetson devboard
             "pci-0000:00:14.0-usb-0:1",  # Laptop (generic)
         ],
         {
