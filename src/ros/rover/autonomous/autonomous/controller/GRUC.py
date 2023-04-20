@@ -136,7 +136,7 @@ class Controller(Node):
         # Publishers
         # 'DriveInput' message is used to make the wheels move!
         self.pub_drive_commands = self.create_publisher(DriveInput, auto_drive_command_topic, 10)
-        self.pub_at_goal = self.create_publisher(Empty, "~/at_goal", 10)
+        self.pub_at_goal = self.create_publisher(Empty, "~/skip_goal", 10)
         self.pub_blcmd_reset = self.create_publisher(BLCMDReset, "/control/blcmd_reset", 10)
         # Planned destination -> we wish to go here, which is the next step on our path to the target
 
