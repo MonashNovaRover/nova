@@ -18,11 +18,12 @@ EDITED:         15/05/2022
 """
 from typing import List
 
-from core.msg import AlvarMarker
+from core.msg import AlvarMarkers, AutonomousGoal, AlvarMarker
 from rclpy.node import Node
 from config.runtime_params import *
 from config.ros_config import *
 from math_utils.controller_math import Pose2D
+from collections import deque
 
 
 class ArTagManager(Node):
@@ -31,18 +32,27 @@ class ArTagManager(Node):
     Manages the state of AR tags. Keeps track of the last 10 AR tag global pose
     """
 
-    max_tag_id = 5
-    queue_size = 10
-
-    def __init__(self):
+    def __init__(self, max_tag_id=5, queue_size=10):
         super().__init__('autonomous_ar_tag_manager')
+        self.max_tag_id = max_tag_id
+        self.queue_size = queue_size
 
-        # These are the ids of the AR tags we want to go to
-        self.ar_tag_goals = []  # if None, go to coord, if one, go to tag, if two, go through gate
+        self.goal : AutonomousGoal = None
+        self.ar_tag_poses : dict = dict()
 
-        # global poses of the AR tags. We need to keep track of them as we update them since the pose at the
-        # time of record is import
-        self.ar_tag_poses = {i: [] for i in range(ArTagManager.max_tag_id + 1)}
+        self.sub_ar_tags = self.create_subscription(AlvarMarkers, "/ar_tracker/tags", self.callback_ar_tag, 10)
+
+    def set_goal(self, goal: AutonomousGoal):
+        """
+        Provides a new goal to the AR tag manager
+        """
+        for _id in goal.tag_ids:
+            assert(0 <= _id <= self.max_tag_id, "AR tag id out of range")
+
+        self.goal = goal
+        self.ar_tag_poses = {
+            _id: deque([], maxlen=self.queue_size) for _id in goal.tag_ids
+        }
 
     def num_tags_found(self) -> int:
         """
@@ -79,14 +89,21 @@ class ArTagManager(Node):
         unit_normal = normal / np.linalg.norm(normal)
         return unit_normal
 
-    def found_current_goals(self):
+    def found_current_tag(self):
+        """
+        Were we looking for a single AR tag, and if so, have we found it?
+        """
+        if self.goal.type != AutonomousGoal.GOAL_TYPE_TAG:
+            return False
+        return len(self.ar_tag_poses[self.goal.tag_ids[0]]) > 0
+
+    def found_current_gate(self):
         """
         Have we found all the goals we set out to?
         """
-        # return np.all([self.found_tag(goal) for goal in self.ar_tag_goals])
-        found = len(self.ar_tag_goals) and np.all([self.found_tag(goal) for goal in self.ar_tag_goals])
-        print("found all current goals: " + "yes" if found else "no")
-        return found
+        if self.goal.type != AutonomousGoal.GOAL_TYPE_GATE:
+            return False
+        return np.all([(len(self.ar_tag_poses[_id]) > 0) for _id in self.goal.tag_ids])
 
     def found_tag(self, tag_id: int):
         """
@@ -96,41 +113,11 @@ class ArTagManager(Node):
         assert tag_id <= ArTagManager.max_tag_id
         return len(self.ar_tag_poses[tag_id]) > 0
 
-    def update_tags(self, msg: AlvarMarker, state: Pose2D, logger):
+    def callback_ar_tag(self, msg: AlvarMarkers):
         """
-        Given a new AR tag and rover state, update internal AR tag lists
-        :param msg: AlvarMarker message type
-        :param state: State of the Rover when the AR tag was recorded
-        :return: None
+        :param msg: AlvarMarker msg type, received from the ar_tag_topic
         """
-
-        # maintain a fixed size queue of the most recent 10 global poses
-        pose = msg.pose.pose.position
-        local_pose = np.array([pose.x, pose.y])
-
-        # tracking cam extrinsics are included in global pose as 0, 0 is the centre of the rover
-        extrinsics = np.array(tracking_camera_extrinsics)[:2]
-        local_pose -= extrinsics
-
-        # distance from centre of camera to ar tag
-        dist = (np.dot(local_pose, local_pose)) ** 0.5
-
-        # check it is an AR tag we care about or could care about in the future, and that the
-        # distance to the camera is within our defined bounds
-        if msg.id > ArTagManager.max_tag_id or (not (min_ar_distance <= dist <= max_ar_distance)):
-            return
-
-        # translate step
-        rot_mat = np.array(
-            [[np.cos(state.yaw), -np.sin(state.yaw)], [np.sin(state.yaw), np.cos(state.yaw)]])
-        local_pose.reshape(2, 1)
-
-        global_pose = np.matmul(rot_mat, local_pose).reshape(2) + np.array([state.x, state.y])
-
-        logger.info("found tag: x=" + str(global_pose[0]) + " | y=" + str(global_pose[1]))
-
-        # maintain a fixed size queue of poses
-        if len(self.ar_tag_poses[msg.id]) < ArTagManager.queue_size:
-            self.ar_tag_poses[msg.id] = self.ar_tag_poses[msg.id][1:]
-        self.ar_tag_poses[msg.id].append((global_pose[0], global_pose[1]))
-
+        tag: AlvarMarker
+        for tag in msg.markers:
+            if tag.tag_id in self.ar_tag_poses:
+                self.ar_tag_poses[tag.tag_id].append(tag.pose.pose.position)
