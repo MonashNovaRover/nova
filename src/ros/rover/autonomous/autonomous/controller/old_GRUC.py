@@ -11,6 +11,8 @@ TOPICS:
 SERVICES:
         - /autonomous/success [Trigger]
         - /autonomous/start [Trigger]
+CLIENTS:
+        - /autonomous/return [Trigger]
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:        autonomous
@@ -81,7 +83,7 @@ class Controller(Node):
         # ~~~~~~~~~~ State ~~~~~~~~
         self.state_num_paths_planned = 0
         self.state_spin_counter = 0
-        self.state_skip_goal = False
+        self.state_at_planning_destination = False
         self.state: PlanningState = PlanningState.IDLE
         self.state_current_goal : AutonomousGoal = None
         self.state_ar_tag_manager = ArTagManager()
@@ -103,7 +105,7 @@ class Controller(Node):
         self.pub_desired_destination = self.create_publisher(Point2D, planning_destination_topic, 10)
 
         # Subscribers
-        self.sub_skip_goal = self.create_subscription(Empty, "/GRUC/skip_goal", self.callback_skip_goal, 10)
+        self.sub_skip_goal = self.create_subscription(Empty, "/GRUC/at_planning_destination", self.callback_skip_goal, 10)
         self.sub_ar_tags = self.create_subscription(AlvarMarker, ar_track_topic, self.callback_ar_tag, 10)
         self.sub_autonomous_goal = self.create_subscription(AutonomousGoal, auto_goal_topic,
                                                             self.callback_new_autonomous_goal, 10)
@@ -128,10 +130,10 @@ class Controller(Node):
     
     def at_current_goal(self) -> bool:
         """
-        Function determines (if there is a goal) if we are near the goal. If there is no
-        planned goal or state_current_goal, we return False, since we 
-        must have a goal to be near it. 
-        :return: Boolean value of True if we are near goal (and goal exists), False otherwise
+        Function determines if we are near the final goal of this planning state. 
+        This is not responsible for determining when we are approaching intermediate goals,
+        as may be the case during a search plan or while passing through a gate.
+        :return: True if we are near goal (and goal exists), False otherwise
         """
         # If we don't have a goal, we can't be at it
         if not self.has_goal():
@@ -197,7 +199,8 @@ class Controller(Node):
 
         # In TO_COORDINATE state, rover follows intermediate goals towards new goal. If an intermediate goal 
         # is reached then re-initialize TO_COORDINATE. If the individual tag or gate tags are located, then
-        # transition to TO_AR_TAG or THROUGH_GATE. If new goal is reached without locating tags, transition to SEARCH
+        # transition to TO_AR_TAG or THROUGH_GATE. If new goal is reached without locating tags, transition to SEARCH.
+        # If new goal is reached and we have no tags to search for, transition to SUCCESS.
         elif self.state == PlanningState.TO_COORDINATE:
             if self.at_current_goal() and self.has_intermediate_goals():
                 self.on_state_update(PlanningState.TO_COORDINATE)
@@ -205,6 +208,8 @@ class Controller(Node):
                 self.on_state_update(PlanningState.TO_AR_TAG)
             elif self.at_current_goal() and not self.has_intermediate_goals() and self.state_ar_tag_manager.found_current_gate():
                 self.on_state_update(PlanningState.THROUGH_GATE)
+            elif self.at_current_goal() and not self.has_intermediate_goals() and not self.state_ar_tag_manager.has_ar_tags():
+                self.on_state_update(PlanningState.SUCCESS)
             elif self.at_current_goal() and not self.has_intermediate_goals() and not \
                     (self.state_ar_tag_manager.found_current_tag() or self.state_ar_tag_manager.found_current_gate()):
                 self.on_state_update(PlanningState.SEARCH)
@@ -227,8 +232,6 @@ class Controller(Node):
                 self.on_state_update(PlanningState.SUCCESS)
      
         # PLACEHOLDER --> add state FAILED if necessary 
-
-
 
     def on_state_update(self, new_state: PlanningState):
         """

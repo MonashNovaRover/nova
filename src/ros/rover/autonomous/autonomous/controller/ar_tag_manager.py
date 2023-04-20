@@ -54,11 +54,11 @@ class ArTagManager(Node):
             _id: deque([], maxlen=self.queue_size) for _id in goal.tag_ids
         }
 
-    def num_tags_found(self) -> int:
+    def has_ar_tags(self) -> bool:
         """
-        :return: the number of tags we have found out of the ones we are currently searching for
+        Returns true if the current goal has AR tags, else false
         """
-        return len([1 for _id in self.ar_tag_goals if len(self.ar_tag_poses[_id]) > 0])
+        return not self.goal.type == AutonomousGoal.GOAL_TYPE_COORDINATE
 
     def get_average_tag_pose(self, tag_id):
         """
