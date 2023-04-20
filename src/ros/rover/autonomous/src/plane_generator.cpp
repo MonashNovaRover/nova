@@ -49,6 +49,10 @@ Vec3 Vec3::operator-(const Vec3& other) {
     return Vec3 (x-other.x, y-other.y, z-other.z);
 }
 
+Vec3 Vec3::operator=(const Vec3& other) {
+    return Vec3 (other.x, other.y, other.z);
+}
+
 Vec3 Vec3::operator*(float other) {
     return Vec3 (x*other, y*other, z*other);
 }
@@ -93,6 +97,8 @@ void fit_planes(cv::Mat& heightMap, cv::Mat& incs, int& min_x) {
         for (std::size_t plane_j = 0; plane_j < plane_ys - 1; plane_j++) {
             Vec3 point_sum;
             std::vector<Vec3> these_pts;
+            // Construct 3d points from height map coordinates and heights, and
+            // Track their sum
             for (std::size_t i = 0; i < plane_x_pixels; i++) {
                 for (std::size_t j = 0; j < plane_y_pixels; j++) {
                     int x_index = plane_i * plane_x_pixels/2 + i;

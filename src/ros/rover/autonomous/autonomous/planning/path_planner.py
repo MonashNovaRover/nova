@@ -133,7 +133,6 @@ class PathPlanner(Node):
         self.set_goal(goal=msg)
         self.update_pose()
         path = self.get_path()
-        self.get_logger().debug(f"Publishing path! {path}")
         self.path_publisher.publish(path)
 
     def get_grid_coord(self, position):
@@ -219,10 +218,12 @@ class PathPlanner(Node):
         self.length_meters = int(self.grid2d.shape[0] * self.resolution)
         self.width_meters = int(self.grid2d.shape[1] * self.resolution)
         
+        t1 = time.perf_counter()
         route = np.array(a_star(self.grid2d, self.get_grid_coord(self.start), self.get_grid_coord(local_goal), self.resolution, self.padding_dist_m))
         status = route[-1][0]
         route = route[:-1]
         self.get_logger().debug(f"planned with status {status}")
+        self.get_logger().debug(f"took {time.perf_counter() - t1} s")
         self.handle_path_status(status)
 
         route_coordinates = np.array(self.get_local_coords_route(route))

@@ -54,7 +54,6 @@ from geometry_msgs.msg import Transform, Pose2D
 from tf2_ros import Buffer, TransformListener
 from rclpy.duration import Duration
 
-
 # custom message imports
 from core.msg import DriveInput, AutonomousGoal, PivotWheelData, BLCMDReset, BLCMDStatusArray, BLCMDStatus
 from autonomous.controller.spin_controller import SpinController
@@ -358,6 +357,20 @@ class Controller(Node):
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 'Util' Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+    def get_goal_vector(self) -> np.ndarray:
+        """
+        Use tf2 lookups to translate the goal state variable into the local map frame, and return it as a 1x2 numpy array
+        """
+        goal_vector = np.array([self.state_current_planning_destination.position.x, self.state_current_planning_destination.position.y, 0.]) 
+
+        try:
+            goal_to_local_map = self.tf_buffer.lookup_transform("local_map", self.state_current_planning_destination.header.frame_id, Time()).transform
+            goal_vector = transform.transform_points(goal_to_local_map, goal_vector)[:-1]
+            return goal_vector.flatten()
+        except Exception as e:
+            self.get_logger().warn(f"Failed to look up goal in local map: {e}")
+            return None
+
     def near_current_goal(self) -> bool:
         """
         Function determines (if there is a goal) if we are near the goal. If there is no
@@ -365,46 +378,61 @@ class Controller(Node):
         must have a goal to be near it. 
         :return: Boolean value of True if we are near goal (and goal exists), False otherwise
         """
-
-        # look for a best effort goal, else compare to an original goal
-        if self.num_paths_planned == 0:
-            self.get_logger().info("Haven't planned paths yet. Not near goal")
-            return False
-
-        end_of_path = self.waypoint_path[-1] if len(self.waypoint_path) > 0 else None
-        goal_vector = np.array([self.state_current_planning_destination.position.x, self.state_current_planning_destination.position.y]) 
-
-        if distance(
-            np.array([self.state_rover_pose.x, self.state_rover_pose.y]),
-            goal_vector
-            ) > self.param_max_goal_achieved_dist:
-            # We are too far to have reached the goal, even if we are close to the end of our path
-            self.get_logger().info("Too far from goal to achieve path success")
-            return False
-
-        if end_of_path is None:
-            self.get_logger().info(f"No end of path, we are done!")
-            return True  # path is only empty if we are at the end of it
-
+        # Get goal distance according to the kind of goal we are driving to
         goal_dist = 0
         if self.driving_state == DrivingState.TO_TARGET:
             goal_dist = self.param_dist_to_targets
         else:
             goal_dist = self.param_dist_to_search_points
 
-        self.get_logger().info(f"End of path: {end_of_path}")
+        end_of_path = self.waypoint_path[-1] if len(self.waypoint_path) > 0 else None
+        goal_vector = self.get_goal_vector()
+        current_pos = np.array([self.state_rover_pose.x, self.state_rover_pose.y])
 
-        return distance(
-            np.array([self.state_rover_pose.x, self.state_rover_pose.y]),
+        self.get_logger().debug(f"End of path: {end_of_path}")
+        self.get_logger().debug(f"Goal: {goal_vector}")
+        self.get_logger().debug(f"Current position: {current_pos}")
+
+        # evaluate criteria bools
+        no_plan = self.num_paths_planned == 0
+        empty_path = end_of_path is None
+
+        too_far_from_goal = distance(
+            current_pos,
+            goal_vector
+            ) > self.param_max_goal_achieved_dist
+
+        near_end_of_path =  distance(
+            current_pos,
             end_of_path
         ) < goal_dist
+
+        # We can't be near the goal if we haven't planned yet
+        if no_plan:
+            self.get_logger().debug("Haven't planned paths yet. Not near goal")
+            return False
+        # If we have planned, and the path is still empty, we must have reached the goal
+        elif empty_path:
+            self.get_logger().debug(f"No end of path, we are done!")
+            return True  # path is only empty if we are at the end of it
+        elif near_end_of_path:
+            self.get_logger().debug(f"Near end of path")
+            if too_far_from_goal:
+                # We are too far to have reached the goal, even if we are close to the end of our path
+                self.get_logger().debug("Too far from goal to achieve path success")
+                return False
+            else:
+                return True
+        else:
+            # Not near the end of the path
+            return False
 
     def facing_current_goal(self) -> bool:
         """
         Determines whether our current heading is facing the current goal within a desired threshold
         :return: True if facing goal, False otherwise
         """ 
-        goal_vector = np.array([self.state_current_planning_destination.position.x, self.state_current_planning_destination.position.y]) 
+        goal_vector = self.get_goal_vector()
         our_pose_vector = np.array([self.state_rover_pose.x, self.state_rover_pose.y])
         desired_heading_vector = goal_vector - our_pose_vector
 

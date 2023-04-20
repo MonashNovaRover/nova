@@ -9,6 +9,7 @@ public:
     Vec3 cross(const Vec3& other);
     Vec3 operator+(const Vec3& other);
     Vec3 operator-(const Vec3& other);
+    Vec3 operator=(const Vec3& other);
     Vec3 operator*(float other);
     Vec3 operator/(float other);
     float magnitude();
