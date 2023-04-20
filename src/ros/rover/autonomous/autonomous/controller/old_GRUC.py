@@ -2,42 +2,21 @@
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team
-This script is the controller node for the rover 
-which receives the destination and processed map, 
-then publishing the drive command for movement.
-Receives pose updates and waypoints via subscribers
-and publishes drive commands. Converted to Ros2 by
-Max Tory from initial code by Aidan Pritchard and 
-Liam Whittle. Adapted to include extra URC2022 logic. 
-
-Things to watch out for:
--- asynchronous callbacks
-    -- state update only happens on planning callback? 
-    -- 
-
-Do we put state transition in before or after planning (on planning cycle frequency)
-- publishing plan goals every second
-- receiving way point lists every second
-
--- controller timer only handles actual driving, based on set of current states and variables
-
-If update state just before path plan, not wasting a path planning cycle, and never update while path planning.
-
-Could have a counter for number of paths planned in current state cycle (reset to zero on every state transition)
-
-
+State machine that manages selection of goals to
+be sent to the path planner.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: Controller
 TOPICS:
-        - Publishes: /autonomous/drive_inputs [DriveInput]
-        - Subscribes: /rover/pose [RoverPose]
-        - Subscribes: /autonomous/goals [Waypoints]
+        - /autonomous/goals [AutonomousGoal]
 SERVICES:
-        - PathPlanningService 
+        - /autonomous/success [Trigger]
+        - /autonomous/start [Trigger]
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:        autonomous
-AUTHOR(S):      Autonomous subteam
+AUTHOR(S):      Max Tory, Liam Whittle, Liam Roy,
+                Taaj Street, Aarushi Raheja,
+                Niko Verrios
 CREATION:       07/12/2021
 EDITED:         20/04/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
