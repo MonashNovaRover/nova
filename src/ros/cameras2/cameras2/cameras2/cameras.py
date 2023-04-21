@@ -62,7 +62,15 @@ def _identify_camera(device: pyudev.Device) -> Optional[str]:
     #
     # A comprehensive list of V4L capabilities can be found in the udev source code:
     # https://cgit.freedesktop.org/systemd/systemd/tree/src/udev/v4l_id/v4l_id.c
-    if "capture" not in device["ID_V4L_CAPABILITIES"].strip(":").split(":"):
+    capabilities: list[str]
+    try:
+        capabilities = device.properties["ID_V4L_CAPABILITIES"].strip(":").split(":")
+    except KeyError:
+        # Sometimes, V4L is still initializing and has not yet made a capabilities property available.
+        # In this situation, treat the camera as if it were incapable of recording.
+        # Once V4L has finished initializing, it will be reported again by the udev through the monitor.
+        capabilities = []
+    if "capture" not in capabilities:
         return None
 
     serial = device["ID_SERIAL"]
