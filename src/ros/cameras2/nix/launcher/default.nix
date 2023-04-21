@@ -5,6 +5,7 @@
 }:
 
 { buildEnv
+, ros2launch
 , rmw-fastrtps-dynamic-cpp
 , cameras2
 }:
@@ -13,6 +14,7 @@ let
   packages = [
     (buildEnv {
       paths = [
+        ros2launch
         rmw-fastrtps-dynamic-cpp
         cameras2
       ];
