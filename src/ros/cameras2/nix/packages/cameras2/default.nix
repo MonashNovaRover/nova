@@ -36,4 +36,9 @@ buildRosPackage {
     python3Packages.pygobject3
     python3Packages.gst-python
   ];
+
+  postInstall = ''
+    mkdir -p $out/lib/cameras2
+    ln -s $out/bin/* $out/lib/cameras2
+  '';
 }
