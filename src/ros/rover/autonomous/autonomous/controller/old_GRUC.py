@@ -49,13 +49,13 @@ from rclpy.node import Node
 from rclpy.time import Time
 from rclpy.duration import Duration
 from rclpy.logging import LoggingSeverity
-from geometry_msgs.msg import Transform
+from geometry_msgs.msg import Transform, PoseStamped
 from std_msgs.msg import Empty
 from std_srvs.srv import Trigger
 from tf2_ros import Buffer, TransformListener
 
 # custom message imports
-from core.msg import DriveInput, AlvarMarker, AutonomousGoal, Point2D
+from core.msg import DriveInput, AlvarMarker, AutonomousGoal, Point2D, AutonomousGoalArray
 
 # autonomous imports
 from autonomous.math_utils.controller_math import *
@@ -70,12 +70,13 @@ from enum import Enum
 class PlanningState(Enum):
     IDLE = 0  # awaiting a goal
     TO_COORDINATE = 1  # honing in on a GPS coordinate
-    SEARCH = 2  # searching for an AR tag
-    TO_AR_TAG = 3  # honing in on an AR tag
-    THROUGH_GATE = 4  # passing through a gate
-    SUCCESS = 5  # waiting for instruction
-    RETURN = 6  # returning autonomously to the last goal
-    FAILED = 7  # failed to reach goal - currently unusued
+    SEARCH_SPIN = 2  # searching for an AR tag
+    SEARCH = 3  # searching for an AR tag
+    TO_AR_TAG = 4  # honing in on an AR tag
+    THROUGH_GATE = 5  # passing through a gate
+    SUCCESS = 6  # waiting for instruction
+    RETURN = 7  # returning autonomously to the last goal
+    FAILED = 8  # failed to reach goal - currently unusued
 
 
 class Controller(Node):
@@ -100,19 +101,21 @@ class Controller(Node):
         self.param_return_goal_tolerance = self.declare_parameter("return_tolerance_m", 5.0).value
 
         # ~~~~~~~~~~ State ~~~~~~~~
-        self.state_num_paths_planned = 0
-        self.state_spin_counter = 0
-        self.state_skip_goal = False
         self.state: PlanningState = PlanningState.IDLE
         self.state_current_goal : AutonomousGoal = None
+        self.state_long_term_goal : AutonomousGoal = None
+        # Initial return goal at 0, 0
+        self.state_return_goal : AutonomousGoal = AutonomousGoal()
+        self.state_return_goal.type == AutonomousGoal.GOAL_TYPE_COORDINATE
         self.state_ar_tag_manager = ArTagManager()
-        self.state_visited_intermediate_goals = []
-        self.state_unvisited_intermediate_goals = []
+        self.state_achieved_goal = False
         self.state_return = False
 
-        # Global variables containing our search plan
-        self.search_plan = []
-        self.gate_goals = []
+        # Arrays for storing intermediate goals
+        self.state_visited_intermediate_goals = []
+        self.state_unvisited_intermediate_goals = []
+        self.state_search_goals = []
+        self.state_gate_goals = []
 
         # ------------- ROS Things ----------
         # tf2 buffer and listener
@@ -124,9 +127,9 @@ class Controller(Node):
         self.pub_desired_destination = self.create_publisher(Point2D, planning_destination_topic, 10)
 
         # Subscribers
-        self.sub_skip_goal = self.create_subscription(Empty, "/GRUC/skip_goal", self.callback_skip_goal, 10)
+        self.sub_controller_goal_override = self.create_subscription(Empty, "/GRUC/goal_achieved", self.callback_controller_goal_override, 10)
         self.sub_ar_tags = self.create_subscription(AlvarMarker, ar_track_topic, self.callback_ar_tag, 10)
-        self.sub_autonomous_goal = self.create_subscription(AutonomousGoal, auto_goal_topic,
+        self.sub_autonomous_goal = self.create_subscription(AutonomousGoalArray, auto_goal_topic,
                                                             self.callback_new_autonomous_goal, 10)
 
         # service for changing the LED
@@ -143,8 +146,7 @@ class Controller(Node):
         # Do we have a goal?
         return self.state_current_goal is not None
 
-    def has_intermediate_goals(self) -> bool:
-        # Do we have intermediate goals we haven't gone to yet?
+    def intermediate_goal(self) -> bool:
         return self.state_current_goal.type == AutonomousGoal.GOAL_TYPE_INTERMEDIATE
     
     def at_current_goal(self) -> bool:
@@ -159,8 +161,12 @@ class Controller(Node):
             return False
         
         # controller told us to skip this goal because it couldn't get to it
-        if self.state_skip_goal:
+        if self.state_achieved_goal:
             return True
+
+        # If we haven't received an override from the controller, we haven't completed a spin
+        if self.state == PlanningState.SEARCH_SPIN:
+            return False
 
         # get our pose
         try:
@@ -348,22 +354,21 @@ class Controller(Node):
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Simple State Update Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    def callback_new_autonomous_goal(self, msg : AutonomousGoal):
+    def callback_new_autonomous_goal(self, msg : AutonomousGoalArray):
         """
         Callback for autonomous_goal topic.
-        When this callback is called, it means we have received two different pieces of information:
-            - a new goal coordinate to drive to
-            - zero, one, or two AR tag ids to travel to:
-                - zero means we ignore AR tags (but store them for later), one means we search for the AR tag,
-                and two means we are looking for a gate
         """
         # we update the state of AR tag ids so that it can compare AR tags to the ones we care about
-        self.state_ar_tag_manager.set_goal(msg)
-        self.state_current_goal = msg
+        self.state_ar_tag_manager.set_goal(msg.goals[-1])
+        self.state_long_term_goal = msg.goals[-1]
+        self.state_unvisited_intermediate_goals = msg.goals[:-1]
+        if len(self.state_unvisited_intermediate_goals) == 0:
+            self.state_current_goal = self.state_long_term_goal
+        else:
+            self.state_current_goal = self.state_unvisited_intermediate_goals.pop(0)
 
-
-    def callback_skip_goal(self, msg):
-        self.state_skip_goal = True
+    def callback_controller_goal_override(self, msg):
+        self.state_achieved_goal = True
 
     def callback_return(self, msg):
         self.state_return = True
@@ -373,7 +378,7 @@ class Controller(Node):
         self.search_array_index = 0
         self.search_plan = interpolate_circle_points(self.state_current_planning_destination)
 
-    def setup_gate(self):
+    def set_gate_goals(self):
         assert len(self.ar_tag_manager.ar_tag_goals) == 2
         self.gate_array_index = 0
         gate_mid = self.ar_tag_manager.get_average_goal_pose()
