@@ -211,31 +211,44 @@ class Controller(Node):
         # In RETURN state, rover follows intermediate goals back to previous goal. If an intermediate goal 
         # is reached then re-initialize RETURN. If previous goal is reached then transition to IDLE  
         if self.state == PlanningState.RETURN:
-            if self.at_current_goal() and self.has_intermediate_goals():
+            if self.at_current_goal() and self.intermediate_goal():
                 self.on_state_update(PlanningState.RETURN)
-            if self.at_current_goal() and not self.has_intermediate_goals():
+            if self.at_current_goal() and not self.intermediate_goal():
                 self.on_state_update(PlanningState.IDLE)
 
         # In TO_COORDINATE state, rover follows intermediate goals towards new goal. If an intermediate goal 
         # is reached then re-initialize TO_COORDINATE. If the individual tag or gate tags are located, then
         # transition to TO_AR_TAG or THROUGH_GATE. If new goal is reached without locating tags, transition to SEARCH
         elif self.state == PlanningState.TO_COORDINATE:
-            if self.at_current_goal() and self.has_intermediate_goals():
+            if self.at_current_goal() and self.intermediate_goal():
                 self.on_state_update(PlanningState.TO_COORDINATE)
-            elif self.at_current_goal() and not self.has_intermediate_goals() and self.state_ar_tag_manager.found_current_tag():
+            elif self.at_current_goal() and not self.intermediate_goal() and self.state_ar_tag_manager.found_current_tag():
                 self.on_state_update(PlanningState.TO_AR_TAG)
-            elif self.at_current_goal() and not self.has_intermediate_goals() and self.state_ar_tag_manager.found_current_gate():
+            elif self.at_current_goal() and not self.intermediate_goal() and self.state_ar_tag_manager.found_current_gate():
                 self.on_state_update(PlanningState.THROUGH_GATE)
-            elif self.at_current_goal() and not self.has_intermediate_goals() and not \
+            elif self.at_current_goal() and not self.intermediate_goal() and not \
                     (self.state_ar_tag_manager.found_current_tag() or self.state_ar_tag_manager.found_current_gate()):
+                self.on_state_update(PlanningState.SEARCH_SPIN)
+
+        # Transition from SEARCH_SPIN to TO_AR_TAG or THROUGH_GATE if individual tag or gate tags are located.
+        # Transition to SEARCH if we have completed the spin
+        elif self.state == PlanningState.SEARCH_SPIN:
+            if self.state_ar_tag_manager.found_current_tag():
+                self.on_state_update(PlanningState.TO_AR_TAG)
+            elif self.state_ar_tag_manager.found_current_gate():
+                self.on_state_update(PlanningState.THROUGH_GATE)
+            elif self.at_current_goal():
                 self.on_state_update(PlanningState.SEARCH)
 
-        # Transition from SEARCH to TO_AR_TAG or THROUGH_GATE if individual tag or gate tags are located
+        # Transition from SEARCH to TO_AR_TAG or THROUGH_GATE if individual tag or gate tags are located.
+        # Transition to SEARCH_SPIN if we have reached the next intermediate goal
         elif self.state == PlanningState.SEARCH:
             if self.state_ar_tag_manager.found_current_tag():
                 self.on_state_update(PlanningState.TO_AR_TAG)
             elif self.state_ar_tag_manager.found_current_gate():
                 self.on_state_update(PlanningState.THROUGH_GATE)
+            elif self.at_current_goal():
+                self.on_state_update(PlanningState.SEARCH_SPIN)
 
         # Transition from TO_AR_TAG to SUCCESS if reached the tag goal
         elif self.state == PlanningState.TO_AR_TAG:
@@ -244,12 +257,12 @@ class Controller(Node):
 
         # Transition from THROUGH_GATE to SUCCESS if reached the gate goal
         elif self.state == PlanningState.THROUGH_GATE:
-            if self.at_current_goal():
+            if self.at_current_goal() and self.intermediate_goal():
+                self.on_state_update(PlanningState.THROUGH_GATE)
+            elif self.at_current_goal():
                 self.on_state_update(PlanningState.SUCCESS)
      
         # PLACEHOLDER --> add state FAILED if necessary 
-
-
 
     def on_state_update(self, new_state: PlanningState):
         """
@@ -257,31 +270,81 @@ class Controller(Node):
         Performs a number of internal downstream state updates in response to a planning update
         """
         old_state = self.state
-        self.get_logger().info("------ State Transition: " + str(old_state) + " -> " + str(new_state))
+        self.get_logger().info(f"------ State Transition: {old_state} -> {new_state}")
+        self.get_logger().debug(f"After transition:\n"
+                                f"Current Goal: {self.state_current_goal}\n"
+                                f"Return Goal: {self.state_return_goal}\n"
+                                f"Visited Intermediate Goals: {self.state_visited_intermediate_goals}\n"
+                                f"Unvisited Intermediate Goals: {self.state_unvisited_intermediate_goals}\n"
+                                f"Gate Goals: {self.state_gate_goals}\n"
+                                f"Search Goals: {self.state_search_goals}\n"
+                                )
         self.state = new_state
+
+        # Reset trigger state variables
+        self.state_return = False
+        self.state_achieved_goal = False
+
+        # Handle transition triggered state updates
+        # Entering success state means we have reached our goal, set the LED color and current goal to None
         if new_state == PlanningState.SUCCESS:
-            # Entering success state means we have reached our goal, therefore clear any goals and intermediate goals, and set the LED color
             trigger = Trigger.Request()
             self.srv_led_success.call_async(trigger)
-            self.return_goal = self.state_current_goal
+            self.state_return_goal = self.state_current_goal
             self.state_current_goal = None
+
+        # We aren't doing anything - set current goal to None
         elif new_state == PlanningState.IDLE:
             self.state_current_goal = None
-        if new_state == PlanningState.TO_COORDINATE:
+
+        # We are driving to a coordinate - set the LED red if it isn't already, and if this is an intermediate goal, get the next goal
+        elif new_state == PlanningState.TO_COORDINATE:
             if old_state == PlanningState.TO_COORDINATE:
-                # We reached an intermediate goal
-                self.state_visited_intermediate_goals.append(self.state_unvisited_intermediate_goals.pop(0))
+                # We reached an intermediate goal, add it to the list of visited goals
+                self.state_visited_intermediate_goals.append(self.state_current_goal)
+                # If we have more intermediate goals, set the next one as the current goal
+                if len(self.state_unvisited_intermediate_goals > 0):
+                    self.state_current_goal = self.state_unvisited_intermediate_goals.pop(0)
+                # Otherwise, we will now go to the final goal
+                else:
+                    self.state_current_goal = self.state_long_term_goal
             else:
-                # We are starting a new goal
+                # We are starting a new goal, set the LED to flash red
                 trigger = Trigger.Request()
                 self.srv_led_start.call_async(trigger)
-        if 
+        
+        # We are returning to the previous goal by traversing the intermediate waypoints in reverse
+        elif new_state == PlanningState.RETURN:
+            if len(self.state_visited_intermediate_goals) > 0:
+                # visit intermediate goals in reverse order
+                self.state_current_goal = self.state_visited_intermediate_goals.pop(-1)
+            else:
+                self.state_current_goal = self.state_return_goal
+                
+        # We are going straight to a detected AR tag 
+        elif new_state == PlanningState.TO_AR_TAG:
+            self.state_current_goal = self.get_ar_tag_goal()
 
         elif new_state == PlanningState.THROUGH_GATE:
-            self.setup_gate()
+            if old_state != PlanningState.THROUGH_GATE:
+                self.set_gate_goals()
+            self.state_current_goal = self.state_gate_goals.pop(0)
             
+        elif new_state == PlanningState.SEARCH_SPIN:
+            if not old_state == PlanningState.SEARCH:
+                self.setup_search()
+        
         elif new_state == PlanningState.SEARCH:
-            self.setup_search()
+            self.state_current_goal = self.state_search_goals.pop(0)
+
+        self.get_logger().debug(f"After transition:\n"
+                                f"Current Goal: {self.state_current_goal}\n"
+                                f"Return Goal: {self.state_return_goal}\n"
+                                f"Visited Intermediate Goals: {self.state_visited_intermediate_goals}\n"
+                                f"Unvisited Intermediate Goals: {self.state_unvisited_intermediate_goals}\n"
+                                f"Gate Goals: {self.state_gate_goals}\n"
+                                f"Search Goals: {self.state_search_goals}\n"
+                                )
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Simple State Update Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
