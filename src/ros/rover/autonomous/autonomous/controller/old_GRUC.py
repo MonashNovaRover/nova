@@ -21,6 +21,10 @@ AUTHOR(S):      Max Tory, Liam Whittle, Liam Roy,
                 Niko Verrios
 CREATION:       07/12/2021
 EDITED:         20/04/2023
+TODO:
+    - Set gate goals and search goals properly
+    - Get correct message from new GRUC when goals are complete
+    - Update new GRUC
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
@@ -36,7 +40,7 @@ from std_srvs.srv import Trigger
 from tf2_ros import Buffer, TransformListener
 
 # custom message imports
-from core.msg import DriveInput, AlvarMarker, AutonomousGoal, Point2D, AutonomousGoalArray
+from core.msg import AlvarMarker, AutonomousGoal, Point2D, AutonomousGoalArray
 
 # autonomous imports
 from autonomous.math_utils.controller_math import *
@@ -62,10 +66,11 @@ class PlanningState(Enum):
 
 class Controller(Node):
     """
-    Controls the movement of the rover between waypoints determined by the path planner.
-    Receives updates about the current pose of the rover and the waypoints to
-    navigate between via ros topics autonomous/pose and autonomous/goals. Publishes drive
-    commands to auto_drive_commands
+    State machine that determines the goals to be sent to the path planner at each point in time.
+    Every state transition corresponds to a change in state_current_goal, indicating that we are now planning
+    to a different location. The state_long_term_goal is the coordinate we provide manually to the rover.
+    Receives updates about the current pose of the rover in order to determine when goals have been achieved.
+    Triggers the changing of LED colours along with state transitions.
     """
 
     def __init__(self):
@@ -120,7 +125,7 @@ class Controller(Node):
         self.srv_return = self.create_service(Trigger, "/autonomous/return", self.callback_return)
 
         # Timers
-        self.planning_timer = self.create_timer(1 / self.param_plan_frequency, self.send_next_goal)  # update planning state and plan paths
+        self.timer_planning = self.create_timer(1 / self.param_plan_frequency, self.send_next_goal)  # update planning state and plan paths
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ State Transition Helper Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     def has_goal(self) -> bool:
@@ -214,7 +219,7 @@ class Controller(Node):
                 self.on_state_update(PlanningState.TO_AR_TAG)
             elif self.at_current_goal() and not self.intermediate_goal() and self.state_ar_tag_manager.found_current_gate():
                 self.on_state_update(PlanningState.THROUGH_GATE)
-            elif self.at_current_goal() and not self.has_intermediate_goals() and not self.state_ar_tag_manager.has_ar_tags():
+            elif self.at_current_goal() and not self.intermediate_goal() and not self.state_ar_tag_manager.has_ar_tags():
                 self.on_state_update(PlanningState.SUCCESS)
             elif self.at_current_goal() and not self.intermediate_goal() and not \
                 (self.state_ar_tag_manager.found_current_tag() or self.state_ar_tag_manager.found_current_gate()):
@@ -258,7 +263,9 @@ class Controller(Node):
         """
         :param new_state: PlanningState
         Performs a number of internal downstream state updates in response to a planning update
+        Most importantly, this is responsible for setting or changing the state variable "state_current_goal" at every state update
         """
+        # Do the state update
         old_state = self.state
         self.get_logger().info(f"------ State Transition: {old_state} -> {new_state}")
         self.get_logger().debug(f"After transition:\n"
@@ -275,8 +282,10 @@ class Controller(Node):
         self.state_return = False
         self.state_achieved_goal = False
 
-        # Handle transition triggered state updates
-        # Entering success state means we have reached our goal, set the LED color and current goal to None
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~   Update State on Transition   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+        # Entering success state means we have reached our goal, set the LED color to Green and current goal to None,
+        # and set the return goal to the goal we just reached, so we can get back there if we screw up later
         if new_state == PlanningState.SUCCESS:
             trigger = Trigger.Request()
             self.srv_led_success.call_async(trigger)
@@ -292,16 +301,16 @@ class Controller(Node):
             if old_state == PlanningState.TO_COORDINATE:
                 # We reached an intermediate goal, add it to the list of visited goals
                 self.state_visited_intermediate_goals.append(self.state_current_goal)
-                # If we have more intermediate goals, set the next one as the current goal
-                if len(self.state_unvisited_intermediate_goals > 0):
-                    self.state_current_goal = self.state_unvisited_intermediate_goals.pop(0)
-                # Otherwise, we will now go to the final goal
-                else:
-                    self.state_current_goal = self.state_long_term_goal
             else:
                 # We are starting a new goal, set the LED to flash red
                 trigger = Trigger.Request()
                 self.srv_led_start.call_async(trigger)
+            # If we have more intermediate goals, set the next one as the current goal
+            if len(self.state_unvisited_intermediate_goals > 0):
+                self.state_current_goal = self.state_unvisited_intermediate_goals.pop(0)
+            # Otherwise, we will now go to the final goal
+            else:
+                self.state_current_goal = self.state_long_term_goal
         
         # We are returning to the previous goal by traversing the intermediate waypoints in reverse
         elif new_state == PlanningState.RETURN:
@@ -315,15 +324,18 @@ class Controller(Node):
         elif new_state == PlanningState.TO_AR_TAG:
             self.state_current_goal = self.get_ar_tag_goal()
 
+        # We are going through a gate - set up the gate goals if we haven't already, then go to the next one in the queue
         elif new_state == PlanningState.THROUGH_GATE:
             if old_state != PlanningState.THROUGH_GATE:
                 self.set_gate_goals()
             self.state_current_goal = self.state_gate_goals.pop(0)
             
+        # We are spinning in place to search for a tag or gate, no need to set current goal since this is never used
         elif new_state == PlanningState.SEARCH_SPIN:
             if not old_state == PlanningState.SEARCH:
-                self.setup_search()
+                self.set_search_goals()
         
+        # We are driving to the next coordinate in the search plan
         elif new_state == PlanningState.SEARCH:
             self.state_current_goal = self.state_search_goals.pop(0)
 
@@ -336,7 +348,7 @@ class Controller(Node):
                                 f"Search Goals: {self.state_search_goals}\n"
                                 )
 
-    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Simple State Update Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ROS callbacks ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     def callback_new_autonomous_goal(self, msg : AutonomousGoalArray):
         """
@@ -346,10 +358,6 @@ class Controller(Node):
         self.state_ar_tag_manager.set_goal(msg.goals[-1])
         self.state_long_term_goal = msg.goals[-1]
         self.state_unvisited_intermediate_goals = msg.goals[:-1]
-        if len(self.state_unvisited_intermediate_goals) == 0:
-            self.state_current_goal = self.state_long_term_goal
-        else:
-            self.state_current_goal = self.state_unvisited_intermediate_goals.pop(0)
 
     def callback_controller_goal_override(self, msg):
         self.state_achieved_goal = True
@@ -357,8 +365,9 @@ class Controller(Node):
     def callback_return(self, msg):
         self.state_return = True
 
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Special Goal Helper Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    def setup_search(self):
+    def set_search_goals(self):
         self.search_array_index = 0
         self.search_plan = interpolate_circle_points(self.state_current_planning_destination)
 
@@ -392,7 +401,7 @@ class Controller(Node):
         goal.type = AutonomousGoal.GOAL_TYPE_TAG
         return goal
 
-    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Planning Loop Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Planning Loop ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     def send_next_goal(self):
         """
         Function to be called on the goal publisher timer
