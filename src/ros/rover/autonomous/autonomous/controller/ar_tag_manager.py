@@ -71,8 +71,7 @@ class ArTagManager(Node):
         If we have one tag, what is the average vector of that tag?
         If we have two tags, what is their midpoint
         """
-        assert len(self.ar_tag_goals) == 1 or len(self.ar_tag_goals) == 2
-        average_tags = [self.get_average_tag_pose(_id) for _id in self.ar_tag_goals]
+        average_tags = [self.get_average_tag_pose(_id) for _id in self.goal.tag_ids]
         return np.mean(average_tags, axis=0)
 
     def get_gate_normal(self):
