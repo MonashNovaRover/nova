@@ -2,42 +2,23 @@
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team
-This script is the controller node for the rover 
-which receives the destination and processed map, 
-then publishing the drive command for movement.
-Receives pose updates and waypoints via subscribers
-and publishes drive commands. Converted to Ros2 by
-Max Tory from initial code by Aidan Pritchard and 
-Liam Whittle. Adapted to include extra URC2022 logic. 
-
-Things to watch out for:
--- asynchronous callbacks
-    -- state update only happens on planning callback? 
-    -- 
-
-Do we put state transition in before or after planning (on planning cycle frequency)
-- publishing plan goals every second
-- receiving way point lists every second
-
--- controller timer only handles actual driving, based on set of current states and variables
-
-If update state just before path plan, not wasting a path planning cycle, and never update while path planning.
-
-Could have a counter for number of paths planned in current state cycle (reset to zero on every state transition)
-
-
+State machine that manages selection of goals to
+be sent to the path planner.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: Controller
 TOPICS:
-        - Publishes: /autonomous/drive_inputs [DriveInput]
-        - Subscribes: /rover/pose [RoverPose]
-        - Subscribes: /autonomous/goals [Waypoints]
+        - /autonomous/goals [AutonomousGoal]
 SERVICES:
-        - PathPlanningService 
+        - /autonomous/success [Trigger]
+        - /autonomous/start [Trigger]
+CLIENTS:
+        - /autonomous/return [Trigger]
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:        autonomous
-AUTHOR(S):      Autonomous subteam
+AUTHOR(S):      Max Tory, Liam Whittle, Liam Roy,
+                Taaj Street, Aarushi Raheja,
+                Niko Verrios
 CREATION:       07/12/2021
 EDITED:         20/04/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -151,10 +132,10 @@ class Controller(Node):
     
     def at_current_goal(self) -> bool:
         """
-        Function determines (if there is a goal) if we are near the goal. If there is no
-        planned goal or state_current_goal, we return False, since we 
-        must have a goal to be near it. 
-        :return: Boolean value of True if we are near goal (and goal exists), False otherwise
+        Function determines if we are near the final goal of this planning state. 
+        This is not responsible for determining when we are approaching intermediate goals,
+        as may be the case during a search plan or while passing through a gate.
+        :return: True if we are near goal (and goal exists), False otherwise
         """
         # If we don't have a goal, we can't be at it
         if not self.has_goal():
@@ -224,7 +205,8 @@ class Controller(Node):
 
         # In TO_COORDINATE state, rover follows intermediate goals towards new goal. If an intermediate goal 
         # is reached then re-initialize TO_COORDINATE. If the individual tag or gate tags are located, then
-        # transition to TO_AR_TAG or THROUGH_GATE. If new goal is reached without locating tags, transition to SEARCH
+        # transition to TO_AR_TAG or THROUGH_GATE. If new goal is reached without locating tags, transition to SEARCH.
+        # If new goal is reached and we have no tags to search for, transition to SUCCESS.
         elif self.state == PlanningState.TO_COORDINATE:
             if self.at_current_goal() and self.intermediate_goal():
                 self.on_state_update(PlanningState.TO_COORDINATE)
@@ -232,8 +214,10 @@ class Controller(Node):
                 self.on_state_update(PlanningState.TO_AR_TAG)
             elif self.at_current_goal() and not self.intermediate_goal() and self.state_ar_tag_manager.found_current_gate():
                 self.on_state_update(PlanningState.THROUGH_GATE)
+            elif self.at_current_goal() and not self.has_intermediate_goals() and not self.state_ar_tag_manager.has_ar_tags():
+                self.on_state_update(PlanningState.SUCCESS)
             elif self.at_current_goal() and not self.intermediate_goal() and not \
-                    (self.state_ar_tag_manager.found_current_tag() or self.state_ar_tag_manager.found_current_gate()):
+                (self.state_ar_tag_manager.found_current_tag() or self.state_ar_tag_manager.found_current_gate()):
                 self.on_state_update(PlanningState.SEARCH_SPIN)
 
         # Transition from SEARCH_SPIN to TO_AR_TAG or THROUGH_GATE if individual tag or gate tags are located.
