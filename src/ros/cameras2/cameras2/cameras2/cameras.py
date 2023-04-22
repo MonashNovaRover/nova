@@ -119,11 +119,11 @@ _serial_overrides: list[_SerialOverride] = [
             "pci-0000:00:14.0-usb-0:3",  # Laptop (generic)
         ],
         {
-            "1.3:1.0": "arm_end_forward",
-            "1.4:1.0": "arm_end_top",
-            "1.1:1.0": "arm_end_finger",
-            "1.4:1.0": "arm_end_screw",
-            "2:1.0": "arm_gimbal",
+            "2.1:1.0": "arm_end_screw",
+            "2.2:1.0": "arm_end_top",
+            "2.3:1.0": "arm_end_finger",
+            "2.4:1.0": "arm_end_forward",
+            "1:1.0": "arm_gimbal",
         },
     ),
 ]
