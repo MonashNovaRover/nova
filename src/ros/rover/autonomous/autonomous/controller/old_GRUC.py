@@ -397,39 +397,18 @@ class Controller(Node):
         goal_2 = gate_mid - centre_of_gate_to_target
         self.gate_goals = [goal_0, goal_1, goal_2]
 
+    def get_ar_tag_goal(self) -> AutonomousGoal:
+        """
+        Returns the averaged position of the current targeted AR tag as a goal
+        """
+        x, y = self.state_ar_tag_manager.get_average_goal_pose()
+        goal = AutonomousGoal()
+        goal.position.x = x
+        goal.position.y = y
+        goal.type = AutonomousGoal.GOAL_TYPE_TAG
+        return goal
+
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Planning Loop Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    def get_honing_goal(self) -> tuple:
-        """
-        Calculates the current goal as either the "original" goal, or the average vector of a bunch of AR tags
-        """
-        # if we have goals to find, and we have found those goals, hone into the goal
-        if self.ar_tag_manager.found_current_goals() and len(self.ar_tag_manager.ar_tag_goals) > 0:
-            if len(self.ar_tag_manager.ar_tag_goals) == 1:
-                return self.ar_tag_manager.get_average_goal_pose()
-
-        # If we weren't looking for or haven't found ar tags, go to the original goal
-        else:
-            # If we have found ar tags, go to their average position
-            return self.state_current_planning_destination
-
-    def get_search_goal(self) -> tuple:
-        """
-        Returns the current search plan way-point and increments the counter
-        """
-        return self.search_plan[self.search_array_index]
-
-    def get_gate_goal(self) -> tuple:
-        """
-        Calculates a point some distance through the gate. Assumes we are already
-        at the gate, and also that we are facing the direction
-        """
-        assert self.ar_tag_manager.num_tags_found() == 2 and "Tried to path through a gate without two points!"
-
-        return self.gate_goals[self.gate_array_index]
-
-    def get_return_goal(self) -> tuple:
-        return self.return_goal
-
     def send_next_goal(self):
         """
         Function to be called on the goal publisher timer
@@ -437,38 +416,19 @@ class Controller(Node):
         # update planning mode state - this is the only time in the codebase this function is called
         self.planning_mode_state_transition()
 
-        if self.state.state == PlanningState.SUCCESS:
-            self.get_logger().debug("In SUCCESS state, no planning required.")
+        if self.state in [PlanningState.SUCCESS, PlanningState.IDLE, PlanningState.FAILED, PlanningState.SEARCH_SPIN]:
+            self.get_logger().debug("No planning required.")
             return
         else:
-            self.get_logger().debug("plan() state is {}".format(self.state.state))
+            self.get_logger().debug(f"plan state is {self.state}")
 
-        planning_destination = Point2D()
-        # polymorphism and ~functional~ programming to get the planner for the particular state
+        planning_destination = PoseStamped()
+        planning_destination.header.stamp = self.get_clock().now().to_msg()
+        planning_destination.header.frame_id = "map"
 
-        self.get_logger().debug(
-            f"Calling planner {self.planners[self.state.state]} for state {self.state.state}"
-        )
+        planning_destination.pose.position.x = self.state_current_goal.position.x
+        planning_destination.pose.position.y = self.state_current_goal.position.y
 
-        # self.get_logger().info(str(self.state.state) + " | " +  str(self.planners))
-        planning_destination.x, planning_destination.y = self.planners[self.state.state]()
-
-        # update search array index        
-        if self.state.state == PlanningState.SEARCH:
-            if self.search_array_index % 2 == 0 \
-                    and self.search_array_index // 2 >= self.spin_counter \
-                    and self.driving_state == DrivingState.TO_WAYPOINT:
-                self.driving_state = DrivingState.TURNING
-                self.spin_counter += 1
-                self.ctl_spin = SpinController(self.state_rover_pose.yaw, self.ctl_turner)
-            if self.near_current_goal():
-                self.search_array_index += 1
-
-        elif self.state.state == PlanningState.GATE_HONING:
-            if self.near_current_goal():
-                self.gate_array_index += 1
-
-        self.state_current_planning_destination = (planning_destination.x, planning_destination.y)
         self.pub_desired_destination.publish(planning_destination)
 
 
