@@ -87,15 +87,16 @@ class Controller(Node):
         self.param_return_goal_tolerance = self.declare_parameter("return_tolerance_m", 5.0).value
 
         # ~~~~~~~~~~ State ~~~~~~~~
-        self.state: PlanningState = PlanningState.IDLE
+        self.state: PlanningState = None
         self.state_current_goal : AutonomousGoal = None
         self.state_long_term_goal : AutonomousGoal = None
         # Initial return goal at 0, 0
-        self.state_return_goal : AutonomousGoal = AutonomousGoal()
-        self.state_return_goal.type == AutonomousGoal.GOAL_TYPE_COORDINATE
+        self.state_return_goal : AutonomousGoal = None
         self.state_ar_tag_manager = ArTagManager()
-        self.state_achieved_goal = False
-        self.state_return = False
+        
+        # Trigger variables set by ros callbacks
+        self.trigger_achieved_goal = False
+        self.trigger_return = False
 
         # Arrays for storing intermediate goals
         self.state_visited_intermediate_goals = []
@@ -147,7 +148,7 @@ class Controller(Node):
             return False
         
         # controller told us to skip this goal because it couldn't get to it
-        if self.state_achieved_goal:
+        if self.trigger_achieved_goal:
             return True
 
         # If we haven't received an override from the controller, we haven't completed a spin
@@ -185,24 +186,27 @@ class Controller(Node):
         state transition logic, see the state diagram on Lucid here: 
         https://lucid.app/lucidspark/67741129-7fc4-42a9-8c29-8b47f2b29881/edit?viewport_loc=-916%2C-393%2C3240%2C1779%2C0_0&invitationId=inv_222475ed-1c41-47ec-a82e-0f737d617e60
         """
+        # On startup, set to IDLE
+        if self.state is None:
+            self.on_state_update(PlanningState.IDLE)
 
         # Transition from IDLE to TO_COORDINATE when provided with a new goal
-        if self.state == PlanningState.IDLE:    
+        elif self.state == PlanningState.IDLE:    
             if self.has_goal():
                 self.on_state_update(PlanningState.TO_COORDINATE)
 
         # Transition from SUCCESS to TO_COORDINATE when provided with a new goal
-        if self.state == PlanningState.SUCCESS:
+        elif self.state == PlanningState.SUCCESS:
             if self.has_goal():
                 self.on_state_update(PlanningState.TO_COORDINATE)
 
-        # If "state_return" is raised as True, transition to RETURN
-        if self.state_return:
+        # If "trigger_return" is raised as True, transition to RETURN
+        elif self.trigger_return:
             self.on_state_update(PlanningState.RETURN)
 
         # In RETURN state, rover follows intermediate goals back to previous goal. If an intermediate goal 
         # is reached then re-initialize RETURN. If previous goal is reached then transition to IDLE  
-        if self.state == PlanningState.RETURN:
+        elif self.state == PlanningState.RETURN:
             if self.at_current_goal() and self.intermediate_goal():
                 self.on_state_update(PlanningState.RETURN)
             if self.at_current_goal() and not self.intermediate_goal():
@@ -279,8 +283,8 @@ class Controller(Node):
         self.state = new_state
 
         # Reset trigger state variables
-        self.state_return = False
-        self.state_achieved_goal = False
+        self.trigger_return = False
+        self.trigger_achieved_goal = False
 
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~   Update State on Transition   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -289,12 +293,14 @@ class Controller(Node):
         if new_state == PlanningState.SUCCESS:
             trigger = Trigger.Request()
             self.srv_led_success.call_async(trigger)
-            self.state_return_goal = self.state_current_goal
+            self.state_return_goal = self.get_current_pose_as_goal()
             self.state_current_goal = None
 
         # We aren't doing anything - set current goal to None
         elif new_state == PlanningState.IDLE:
             self.state_current_goal = None
+            if self.state_return_goal is None:
+                self.state_return_goal = self.get_current_pose_as_goal()
 
         # We are driving to a coordinate - set the LED red if it isn't already, and if this is an intermediate goal, get the next goal
         elif new_state == PlanningState.TO_COORDINATE:
@@ -360,10 +366,10 @@ class Controller(Node):
         self.state_unvisited_intermediate_goals = msg.goals[:-1]
 
     def callback_controller_goal_override(self, msg):
-        self.state_achieved_goal = True
+        self.trigger_achieved_goal = True
 
     def callback_return(self, msg):
-        self.state_return = True
+        self.trigger_return = True
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Special Goal Helper Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -399,6 +405,20 @@ class Controller(Node):
         goal.position.x = x
         goal.position.y = y
         goal.type = AutonomousGoal.GOAL_TYPE_TAG
+        return goal
+
+    def get_current_pose_as_goal(self) -> AutonomousGoal:
+        """
+        Returns the current position of the rover as an AutonomousGoal of type GOAL_TYPE_COORDINATE
+        """
+        try:
+            current_pose : Transform = self.tf_buffer.lookup_transform("map", "base_link", Time(), Duration(nanoseconds=1e8)).transform
+        except Exception as e:
+            self.get_logger().warn(f"Error in at_current_goal: {e}")
+            return None
+        goal = AutonomousGoal()
+        goal.position.x, goal.position.y = current_pose.translation.x, current_pose.translation.y
+        goal.type = AutonomousGoal.GOAL_TYPE_COORDINATE
         return goal
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Planning Loop ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
