@@ -95,7 +95,9 @@ class Controller(Node):
         self.state_ar_tag_manager = ArTagManager()
         
         # Trigger variables set by ros callbacks
+        self.trigger_received_goal = False
         self.trigger_achieved_goal = False
+        self.trigger_completed_spin = False
         self.trigger_return = False
 
         # Arrays for storing intermediate goals
@@ -112,10 +114,11 @@ class Controller(Node):
         # Publishers
         # Planned destination -> we wish to go here, which is the next step on our path to the target
         self.pub_desired_destination = self.create_publisher(Point2D, planning_destination_topic, 10)
+        self.pub_do_spin = self.create_publisher(Empty, "/GRUC/do_spin", 10)
 
         # Subscribers
         self.sub_controller_goal_override = self.create_subscription(Empty, "/GRUC/goal_achieved", self.callback_controller_goal_override, 10)
-        self.sub_ar_tags = self.create_subscription(AlvarMarker, ar_track_topic, self.callback_ar_tag, 10)
+        self.sub_spin_completed = self.create_subscription(Empty, "/GRUC/spin_achieved", self.callback_spin_completed, 10)
         self.sub_autonomous_goal = self.create_subscription(AutonomousGoalArray, auto_goal_topic,
                                                             self.callback_new_autonomous_goal, 10)
 
@@ -129,12 +132,22 @@ class Controller(Node):
         self.timer_planning = self.create_timer(1 / self.param_plan_frequency, self.send_next_goal)  # update planning state and plan paths
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ State Transition Helper Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    def has_goal(self) -> bool:
-        # Do we have a goal?
-        return self.state_current_goal is not None
-
     def intermediate_goal(self) -> bool:
         return self.state_current_goal.type == AutonomousGoal.GOAL_TYPE_INTERMEDIATE
+
+    def dist_to_goal(self, goal: AutonomousGoal) -> float:
+        """
+        Returns the distance between the current position (obtained from tf2) and a given goal.
+        Assumes the goal is given in the global map frame
+        """
+        try:
+            current_pose : Transform = self.tf_buffer.lookup_transform("map", "base_link", Time(), Duration(nanoseconds=1e8)).transform
+        except Exception as e:
+            self.get_logger().warn(f"Error in obtaining current pose: {e}")
+            return -1
+        
+        return distance([current_pose.translation.x, current_pose.translation.y], 
+                                [goal.position.x, goal.position.y])
     
     def at_current_goal(self) -> bool:
         """
@@ -144,26 +157,22 @@ class Controller(Node):
         :return: True if we are near goal (and goal exists), False otherwise
         """
         # If we don't have a goal, we can't be at it
-        if not self.has_goal():
+        if self.state_current_goal is None:
             return False
         
         # controller told us to skip this goal because it couldn't get to it
-        if self.trigger_achieved_goal:
+        if self.state != PlanningState.SEARCH_SPIN and self.trigger_achieved_goal:
             return True
 
         # If we haven't received an override from the controller, we haven't completed a spin
         if self.state == PlanningState.SEARCH_SPIN:
-            return False
+            return self.trigger_completed_spin
 
-        # get our pose
-        try:
-            current_pose : Transform = self.tf_buffer.lookup_transform("map", "base_link", Time(), Duration(nanoseconds=1e8)).transform
-        except Exception as e:
-            self.get_logger().warn(f"Error in at_current_goal: {e}")
-            return False
+        dist_to_goal = self.dist_to_goal(self.state_current_goal)
 
-        dist_to_goal = distance([current_pose.translation.x, current_pose.translation.y], 
-                                [self.state_current_goal.position.x, self.state_current_goal.position.y])
+        # Couldn't calculate the distance to the goal - return False
+        if dist_to_goal == -1:
+            return False
                                 
         # We are returning to the previous goal
         if self.state == PlanningState.RETURN and self.state_current_goal.type != AutonomousGoal.GOAL_TYPE_INTERMEDIATE:
@@ -192,12 +201,12 @@ class Controller(Node):
 
         # Transition from IDLE to TO_COORDINATE when provided with a new goal
         elif self.state == PlanningState.IDLE:    
-            if self.has_goal():
+            if self.trigger_received_goal:
                 self.on_state_update(PlanningState.TO_COORDINATE)
 
         # Transition from SUCCESS to TO_COORDINATE when provided with a new goal
         elif self.state == PlanningState.SUCCESS:
-            if self.has_goal():
+            if self.trigger_received_goal:
                 self.on_state_update(PlanningState.TO_COORDINATE)
 
         # If "trigger_return" is raised as True, transition to RETURN
