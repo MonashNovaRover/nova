@@ -133,6 +133,9 @@ class Controller(Node):
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ State Transition Helper Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     def intermediate_goal(self) -> bool:
+        """
+        Returns whether our current goal is an intermediate goal
+        """
         return self.state_current_goal.type == AutonomousGoal.GOAL_TYPE_INTERMEDIATE
 
     def dist_to_goal(self, goal: AutonomousGoal) -> float:
@@ -368,21 +371,30 @@ class Controller(Node):
 
     def callback_new_autonomous_goal(self, msg : AutonomousGoalArray):
         """
-        Callback for autonomous_goal topic.
+        Callback for autonomous_goal topic. Called when we have received a new goal from the planner with its
+        associated intermediate path goals
         """
-        # we update the state of AR tag ids so that it can compare AR tags to the ones we care about
         self.state_ar_tag_manager.set_goal(msg.goals[-1])
         self.state_long_term_goal = msg.goals[-1]
         self.state_unvisited_intermediate_goals = msg.goals[:-1]
         self.trigger_received_goal = True
 
     def callback_controller_goal_override(self, msg):
+        """
+        The controller has indicated that it can't get any closer to this goal
+        """
         self.trigger_achieved_goal = True
 
     def callback_spin_completed(self, msg):
+        """
+        The controller has indicated that it has finished spinning
+        """
         self.trigger_completed_spin = True
 
     def callback_return(self, msg):
+        """
+        We have received a return message over ROS
+        """
         self.trigger_return = True
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Special Goal Helper Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -404,7 +416,8 @@ class Controller(Node):
     def set_gate_goals(self):
         """
         Gets the midpoint of the gate and the vector perpendicular to the gate. Then constructs a list of three
-        AutonomousGoal objects of type INTERMEDIATE, one at the midpoint of the gate, and one at each end of the gate
+        AutonomousGoal objects, on the closer side of the gate, in the middle of the gate, and on the further side of the gate.
+        The first two goals must be of type GOAL_TYPE_INTERMEDIATE, and the last of type GOAL_TYPE_GATE 
         """
         gate_mid = self.state_ar_tag_manager.get_average_goal_pose()
 
