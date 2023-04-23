@@ -267,7 +267,7 @@ class Controller(Node):
         elif self.state == PlanningState.THROUGH_GATE:
             if self.at_current_goal() and self.intermediate_goal():
                 self.on_state_update(PlanningState.THROUGH_GATE)
-            elif self.at_current_goal():
+            elif self.at_current_goal() and not self.intermediate_goal():
                 self.on_state_update(PlanningState.SUCCESS)
      
         # PLACEHOLDER --> add state FAILED if necessary 
@@ -403,7 +403,8 @@ class Controller(Node):
 
     def set_gate_goals(self):
         """
-        Gets the gate 
+        Gets the midpoint of the gate and the vector perpendicular to the gate. Then constructs a list of three
+        AutonomousGoal objects of type INTERMEDIATE, one at the midpoint of the gate, and one at each end of the gate
         """
         gate_mid = self.state_ar_tag_manager.get_average_goal_pose()
 
@@ -431,14 +432,13 @@ class Controller(Node):
 
         if dist_1 == -1 or dist_2 == -1:
             self.get_logger().warn("Not checking gate goal orientation")
-            self.state_gate_goals = gate_goals
         
         elif dist_1 > dist_2:
             # We are closer to the last goal than the first, so we should reverse the order
-            self.state_gate_goals = gate_goals[::-1]
-        else:
-            self.state_gate_goals = gate_goals
+            gate_goals = gate_goals[::-1]
 
+        gate_goals[-1].type = AutonomousGoal.GOAL_TYPE_GATE
+        self.state_gate_goals = gate_goals
 
     def get_ar_tag_goal(self) -> AutonomousGoal:
         """
