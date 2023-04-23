@@ -302,20 +302,20 @@ class Controller(Node):
         if new_state == PlanningState.SUCCESS:
             trigger = Trigger.Request()
             self.srv_led_success.call_async(trigger)
-            self.state_return_goal = self.get_current_pose_as_goal()
             self.state_current_goal = None
 
         # We aren't doing anything - set current goal to None
         elif new_state == PlanningState.IDLE:
             self.state_current_goal = None
-            if self.state_return_goal is None:
-                self.state_return_goal = self.get_current_pose_as_goal()
 
         # We are driving to a coordinate - set the LED red if it isn't already, and if this is an intermediate goal, get the next goal
         elif new_state == PlanningState.TO_COORDINATE:
             if old_state == PlanningState.TO_COORDINATE:
                 # We reached an intermediate goal, add it to the list of visited goals
                 self.state_visited_intermediate_goals.append(self.state_current_goal)
+            elif old_state == PlanningState.IDLE or old_state == PlanningState.SUCCESS:
+                # We should return to our current position if we get lost
+                self.state_return_goal = self.get_current_pose_as_goal()
             else:
                 # We are starting a new goal, set the LED to flash red
                 trigger = Trigger.Request()
@@ -349,6 +349,7 @@ class Controller(Node):
         elif new_state == PlanningState.SEARCH_SPIN:
             if not old_state == PlanningState.SEARCH:
                 self.set_search_goals()
+            self.pub_do_spin.publish(Empty())
         
         # We are driving to the next coordinate in the search plan
         elif new_state == PlanningState.SEARCH:

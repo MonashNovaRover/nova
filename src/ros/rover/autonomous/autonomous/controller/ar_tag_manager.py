@@ -22,7 +22,6 @@ from core.msg import AlvarMarkers, AutonomousGoal, AlvarMarker
 from rclpy.node import Node
 from config.runtime_params import *
 from config.ros_config import *
-from math_utils.controller_math import Pose2D
 from collections import deque
 
 
