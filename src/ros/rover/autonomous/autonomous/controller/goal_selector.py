@@ -40,12 +40,11 @@ from std_srvs.srv import Trigger
 from tf2_ros import Buffer, TransformListener
 
 # custom message imports
-from core.msg import AlvarMarker, AutonomousGoal, Point2D, AutonomousGoalArray
+from core.msg import AutonomousGoal, Point2D, AutonomousGoalArray
 
 # autonomous imports
-from autonomous.math_utils.controller_math import *
-from autonomous.config.runtime_params import *
-from autonomous.config.ros_config import *
+from autonomous.math_utils.controller_math import distance
+from autonomous.config.ros_config import auto_goal_topic, planning_destination_topic
 from autonomous.controller.ar_tag_manager import ArTagManager
 
 # misc
@@ -85,6 +84,7 @@ class Controller(Node):
         self.param_ar_tag_tolerance = self.declare_parameter("ar_tag_tolerance_m", 1.0).value
         self.param_gate_goal_tolerance = self.declare_parameter("gate_tolerance_m", 0.3).value
         self.param_return_goal_tolerance = self.declare_parameter("return_tolerance_m", 5.0).value
+        self.param_dist_through_gate = self.declare_parameter("dist_through_gate_m", 2.0).value
 
         # ~~~~~~~~~~ State ~~~~~~~~
         self.state: PlanningState = None
@@ -425,7 +425,7 @@ class Controller(Node):
         gate_perpendicular = self.state_ar_tag_manager.get_gate_normal()
 
         # Vector from the middle of the two gate poles to our target
-        centre_of_gate_to_target = dist_through_gate_m * gate_perpendicular
+        centre_of_gate_to_target = self.param_dist_through_gate * gate_perpendicular
         goal_0 = gate_mid + centre_of_gate_to_target
         goal_1 = gate_mid
         goal_2 = gate_mid - centre_of_gate_to_target
