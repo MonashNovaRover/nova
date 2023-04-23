@@ -373,9 +373,13 @@ class Controller(Node):
         self.state_ar_tag_manager.set_goal(msg.goals[-1])
         self.state_long_term_goal = msg.goals[-1]
         self.state_unvisited_intermediate_goals = msg.goals[:-1]
+        self.trigger_received_goal = True
 
     def callback_controller_goal_override(self, msg):
         self.trigger_achieved_goal = True
+
+    def callback_spin_completed(self, msg):
+        self.trigger_completed_spin = True
 
     def callback_return(self, msg):
         self.trigger_return = True
@@ -383,27 +387,57 @@ class Controller(Node):
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Special Goal Helper Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     def set_search_goals(self):
-        self.search_array_index = 0
-        self.search_plan = interpolate_circle_points(self.state_current_planning_destination)
+        """
+        Constructs a list of AutonomousGoal objects of type INTERMEDIATE in a circle around the location we expect
+        to find a tag or gate
+        """
+        search_plan_coords = interpolate_circle_points(self.state_current_goal)
+        self.state_search_goals = []
+        for x, y in search_plan_coords:
+            search_goal = AutonomousGoal()
+            search_goal.position.x = x
+            search_goal.position.y = y
+            search_goal.type = AutonomousGoal.GOAL_TYPE_INTERMEDIATE
+            self.state_search_goals.append(search_goal)
 
     def set_gate_goals(self):
-        assert len(self.ar_tag_manager.ar_tag_goals) == 2
-        self.gate_array_index = 0
-        gate_mid = self.ar_tag_manager.get_average_goal_pose()
+        """
+        Gets the gate 
+        """
+        gate_mid = self.state_ar_tag_manager.get_average_goal_pose()
 
         # negative reciprocal gives perpendicular vector to the vector between the gate
-        gate_perpendicular = self.ar_tag_manager.get_gate_normal()
-        # Current yaw as vector
-        vec_to_gate = gate_mid - np.array([self.state_rover_pose.x, self.state_rover_pose.y])
-        # -1 if we are facing away from perpendicular vector, +1 if we are towards it
-        direction = -np.sign(np.dot(vec_to_gate, gate_perpendicular))
+        gate_perpendicular = self.state_ar_tag_manager.get_gate_normal()
 
         # Vector from the middle of the two gate poles to our target
-        centre_of_gate_to_target = direction * dist_through_gate_m * gate_perpendicular
+        centre_of_gate_to_target = dist_through_gate_m * gate_perpendicular
         goal_0 = gate_mid + centre_of_gate_to_target
         goal_1 = gate_mid
         goal_2 = gate_mid - centre_of_gate_to_target
-        self.gate_goals = [goal_0, goal_1, goal_2]
+
+        goal_coords = [goal_0, goal_1, goal_2]
+        gate_goals = []
+
+        for x, y in goal_coords:
+            goal = AutonomousGoal()
+            goal.position.x = x
+            goal.position.y = y
+            goal.type = AutonomousGoal.GOAL_TYPE_INTERMEDIATE
+            gate_goals.append(goal)
+        
+        dist_1 = self.dist_to_goal(gate_goals[0]) 
+        dist_2 = self.dist_to_goal(gate_goals[2])
+
+        if dist_1 == -1 or dist_2 == -1:
+            self.get_logger().warn("Not checking gate goal orientation")
+            self.state_gate_goals = gate_goals
+        
+        elif dist_1 > dist_2:
+            # We are closer to the last goal than the first, so we should reverse the order
+            self.state_gate_goals = gate_goals[::-1]
+        else:
+            self.state_gate_goals = gate_goals
+
 
     def get_ar_tag_goal(self) -> AutonomousGoal:
         """
