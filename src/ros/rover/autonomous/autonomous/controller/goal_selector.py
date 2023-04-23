@@ -22,9 +22,7 @@ AUTHOR(S):      Max Tory, Liam Whittle, Liam Roy,
 CREATION:       07/12/2021
 EDITED:         22/04/2023
 TODO:
-    - Set gate goals and search goals properly
-    - Get correct message from new GRUC when goals are complete
-    - Update new GRUC
+    - Update autonomous_controller
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
@@ -49,6 +47,7 @@ from autonomous.controller.ar_tag_manager import ArTagManager
 
 # misc
 from enum import Enum
+import time
 
 
 class PlanningState(Enum):
@@ -73,7 +72,7 @@ class Controller(Node):
     """
 
     def __init__(self):
-        super().__init__('autonomous_controller_node')
+        super().__init__('goal_selector')
 
         # set debug to not get shown
         self.get_logger().set_level(LoggingSeverity.INFO)
@@ -114,11 +113,11 @@ class Controller(Node):
         # Publishers
         # Planned destination -> we wish to go here, which is the next step on our path to the target
         self.pub_desired_destination = self.create_publisher(Point2D, planning_destination_topic, 10)
-        self.pub_do_spin = self.create_publisher(Empty, "/GRUC/do_spin", 10)
+        self.pub_do_spin = self.create_publisher(Empty, "/autonomous_controller/do_spin", 10)
 
         # Subscribers
-        self.sub_controller_goal_override = self.create_subscription(Empty, "/GRUC/goal_achieved", self.callback_controller_goal_override, 10)
-        self.sub_spin_completed = self.create_subscription(Empty, "/GRUC/spin_achieved", self.callback_spin_completed, 10)
+        self.sub_controller_goal_override = self.create_subscription(Empty, "/autonomous_controller/goal_achieved", self.callback_controller_goal_override, 10)
+        self.sub_spin_completed = self.create_subscription(Empty, "/autonomous_controller/spin_achieved", self.callback_spin_completed, 10)
         self.sub_autonomous_goal = self.create_subscription(AutonomousGoalArray, auto_goal_topic,
                                                             self.callback_new_autonomous_goal, 10)
 
@@ -127,6 +126,11 @@ class Controller(Node):
         self.srv_led_start = self.create_client(Trigger, "/autonomous/start")
 
         self.srv_return = self.create_service(Trigger, "/autonomous/return", self.callback_return)
+
+        self.get_logger().info("Waiting for transform from 'local_map' to 'base_link'...")
+        while not self.tf_buffer.can_transform('base_link', 'map', Time()):
+            time.sleep(0.1)
+        self.get_logger().info("Received Transform!")
 
         # Timers
         self.timer_planning = self.create_timer(1 / self.param_plan_frequency, self.send_next_goal)  # update planning state and plan paths
