@@ -13,9 +13,9 @@ SERVICES:
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:     electronics
-AUTHOR(S):   Josh Cherubino, Jory Braun
+AUTHOR(S):   Jory Braun, Tom Newton, Josh Cherubino
 CREATION:    14/02/2022
-EDITED:      01/06/2022
+EDITED:      21/03/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
     - Setup appropriate QoS profile for publisher
@@ -29,8 +29,9 @@ from rclpy.impl.rcutils_logger import RcutilsLogger
 from sensor_msgs.msg import JointState
 from core.srv import ArmConfigInfo, StringTrigger
 
-from coms_utils.uart_interface import UARTTransceiver
+from coms_utils.can_interface import CANTransceiver
 from math import pi
+from struct import calcsize
 import time
 
 
@@ -38,7 +39,7 @@ class Joint:
     """
     Class to store joint-specific hardware information
     """
-    def __init__(self, joint_name: str, id: int, reverse: bool=False, discontinuity_angle: float=2*pi, active: bool=False):
+    def __init__(self, joint_name: str, id: int, reverse: bool=False, discontinuity_angle: float=2*pi, gear_ratio: int=1, active: bool=False):
         # Joint names as in the arm model
         self.joint_name = joint_name
         # Resolver ID for sending commands
@@ -54,11 +55,20 @@ class Joint:
         # Makes the joint limits calculation much simpler
         self.discontinuity_angle = discontinuity_angle
 
+        # Parameters for resolvers with a geared connection to a joint
+        # Gear ratio between actual joint and the resolver (resolver turns per joint turn)
+        self.gear_ratio = gear_ratio
+        # Previous angle reading of the resolver
+        self.last_reading = None
+        # Track which sector the joint is in on the actual joint
+        # The size of each sector is 2*pi/gear_ratio
+        self.sector_count = 0
+
         # Bool for whether the joint is currently attached to the arm
         self.active = active
 
 
-class ResolverTransceiver(UARTTransceiver):
+class ResolverTransceiver(CANTransceiver):
     """
     Transceiver class to handle reading values from encoders
     """
@@ -78,12 +88,20 @@ class ResolverTransceiver(UARTTransceiver):
             "elbow":            Joint("elbow",         0x0C, False),
             "j4":               Joint("j4",            0x10, False),
             "j5":               Joint("j5",            0x14, False),
-            "j6":               Joint("j6",            0x18, False),
+            "j6":               Joint("j6",            0x18, False, gear_ratio=4),
             "spmx":             Joint("spmx",          0x20, True),
             "spmy":             Joint("spmy",          0x24, True),
             "spmz":             Joint("spmz",          0x28, True),
             "end-rotation":     Joint("end-rotation",  0x1C, False)
         }
+
+        # Define an additonal transmitter for zeroing
+        # Change the ID for sending to 0x0A3, make the receive timeout longer
+        kwargs["arbitration_id"] = 0x0A3
+        kwargs["receive_timeout"] = 0.5
+        self.zero_transceiver = CANTransceiver(**kwargs)
+        self.zero_transceiver.set_log_level("critical")
+        self.zero_transceiver.logger = logger
 
     def get_joint(self, joint_name: str, exclude_inactive: bool=True) -> Joint:
         """
@@ -105,53 +123,104 @@ class ResolverTransceiver(UARTTransceiver):
         """
         Method to zero a given encoder
 
-        Returns True on success, false otherwise
+        Returns True on success, False otherwise
+
+        Raises KeyError if invalid joint name given
+        """
+        self.logger.info(f'Zeroing joint {joint_name}')
+        # Send the zeroing command
+        integer_data = self.poll_resolver(joint_name, self.zero_transceiver)
+        # Reset the info for geared resolvers
+        joint = self.get_joint(joint_name)
+        joint.sector_count = 0
+        joint.last_reading = None
+        return integer_data is not None
+    
+    def poll_resolver(self, joint_name: str, transceiver: CANTransceiver=None) -> int:
+        """
+        Method to poll a resolver and validate the output
+
+        Returns the integer value from the resolver (if valid) or None (if invalid)
 
         Raises KeyError if invalid joint name given
         """
         resolver_id = self.get_joint(joint_name).id
-
-        self.logger.info(f'Zeroing joint {joint_name}')
-        # Send two bytes, so use 2-byte format
-        # First byte is resolver_id + 0x02. Indicates an extended command
-        # Second byte is zero command: 0x5E
-        data = self.pack([resolver_id + 0x02, 0x5E], fmt='<BB')
-        transmitted = self.transmit(data)
-        if not transmitted:
-            self.logger.error(f'Transmit timeout for joint {joint_name}')
-        return transmitted
-
+        
+        # Default to this transceiver
+        if transceiver is None:
+            transceiver = self
+        
+        # Pack and transmit binary data
+        data = transceiver.pack([resolver_id])
+        if not transceiver.transmit(data):
+            transceiver.logger.error(f'Transmit timeout for joint {joint_name}')
+            return None
+        
+        # Receive four bytes from the BASE board
+        # The first is the resolver ID, the second are error flags,
+        # The third and fourth are a single 14-bit value
+        can_msg = transceiver.receive()
+        if can_msg is None:
+            transceiver.logger.error(f'CAN read timeout for joint {joint_name}')
+            return None
+        if len(can_msg.data) != calcsize(transceiver.receive_fmt):
+            transceiver.logger.warn(f'Got a message of the wrong length for joint {joint_name}')
+            return None
+        received_id, flags, integer_data = transceiver.unpack(can_msg.data)
+        # Verify the returned message
+        if received_id != resolver_id:
+            transceiver.logger.warn(f'Got the wrong resolver reply. Wanted {resolver_id}, got {received_id}')
+            # Receive again so we eventually flush the receive buffer
+            # Needed in case we don't have the most recent messages
+            transceiver.receive()
+            return None
+        if flags & 0x01:
+            transceiver.logger.warn(f'RS485 read timeout for joint {joint_name}')
+            return None
+        if flags & 0x02:
+            transceiver.logger.warn(f'Invalid checksum from joint {joint_name}')
+            return None
+        
+        # Return the integer message
+        return integer_data
+    
     def position(self, joint_name: str) -> float:
         """
         Method to read a given encoder
 
-        Returns float value in [0, 2 pi) or -1 on failure
+        Returns float value in [0, 2 pi) or None on failure
 
         Raises KeyError if invalid joint name given
         """
+        # Poll resolver and decode into radians
+        integer_data = self.poll_resolver(joint_name)
+        if integer_data is None:
+            return None
+        angle_data = self._convert_to_rad(integer_data)
+        
+        # Get the joint object for post-processing
         joint = self.get_joint(joint_name)
 
-        resolver_id = joint.id
+        # Handle rotation counting if gear ratio is not 1
+        if joint.gear_ratio != 1:
+            # Update the sector count
+            # Compare current and previous reading to determine if, and in which direction
+            # we have crossed between 2*pi and 0
+            # (3*pi)/4 chosen as an arbitrarily large angle to show that the resolver
+            # must have crossed between 2*pi and 0
+            if joint.last_reading == None:
+                self.logger.info(f'Getting initial reading for geared resolver {joint_name}') 
+            elif angle_data - joint.last_reading < -3*pi/4:
+                # Resolver has crossed from 2*pi to 0, so joint is in the next sector
+                joint.sector_count = (joint.sector_count + 1) % joint.gear_ratio
+            elif angle_data - joint.last_reading > 3*pi/4:
+                # Resolver has crossed from 0 to 2*pi, so joint is in the previous sector
+                joint.sector_count = (joint.sector_count - 1) % joint.gear_ratio
+            # Update last reading 
+            joint.last_reading = angle_data
 
-        # Pack and transmit binary data
-        data = self.pack([resolver_id])
-        if not self.transmit(data):
-            self.logger.error(f'Transmit timeout for joint {joint_name}')
-            return -1
-
-        # Read response and decode into radians
-        # Receives two bytes from the resolvers, representing a single 16-bit value
-        bytes_data = self.receive()
-        if bytes_data is None:
-            self.logger.error(f'Read timeout for joint {joint_name}')
-            return -1
-        integer_data = self.unpack(bytes_data)[0]
-        # Handle checksum
-        if not self._verify_checksum(integer_data):
-            self.logger.warn(f'Invalid checksum from joint {joint_name}')
-            return -1
-        # Get angle data by removing 2 high order bits
-        angle_data = self._convert_to_rad(integer_data & 0x3FFF)
+            # Modify the joint output angle to account for the gearing
+            angle_data = (angle_data + 2*pi*joint.sector_count) / joint.gear_ratio
 
         # Reverse the increasing direction if necessary
         if joint.reverse:
@@ -161,21 +230,6 @@ class ResolverTransceiver(UARTTransceiver):
         angle_data = self._move_discontinuity(angle_data, joint.discontinuity_angle)
 
         return angle_data
-
-    @staticmethod
-    def _verify_checksum(raw_value: int) -> bool:
-        """
-        Verifies the checksum for CUI Devices AMT21 absolute encodrs
-
-        The data is 16-bits long
-        Valid data has odd parity for all the even bits, and for all the odd bits.
-        Bits are numbered from 0 starting with the LSB.
-        """
-        assert raw_value < 65536
-        binary_data = [int(bit) for bit in f"{raw_value:016b}"]
-        even_bits = [binary_data[i] for i in range(len(binary_data)) if i % 2]
-        odd_bits = [binary_data[i] for i in range(len(binary_data)) if not i % 2]
-        return sum(even_bits) % 2 and sum(odd_bits) % 2
 
     @staticmethod
     def _convert_to_rad(raw_value: int) -> float:
@@ -249,12 +303,14 @@ class ResolverPublisher(Node):
 
         # Initialise the transceiver
         self.resolver_transceiver = ResolverTransceiver(
-            receive_timeout = self.receive_timeout,
-            receive_fmt = '<H',
-            transmit_fmt = '<B',
             logger = self.get_logger(),
-            baudrate = 115200,
-            port = '/dev/ttyUSB0',
+            channel = 'can1',
+            bitrate = 200000,
+            filter_ids = [0x0A0],
+            receive_timeout = self.receive_timeout,
+            receive_fmt = '>BBH',  # Big-endian. uint8, uint8, uint16
+            arbitration_id = 0x0A1,
+            transmit_fmt = '>B',  # Big-endian. uint8
             )
 
         # Create the output message type to track the resolver state
@@ -294,7 +350,7 @@ class ResolverPublisher(Node):
             if response.success:
                 response.message = f"Successfully transmitted data for joint {joint_name}"
             else:
-                response.message = f"Transmit timeout requesting data from joint {joint_name}"
+                response.message = f"Failed to zero joint {joint_name}"
         except KeyError as e:
             response.success = False
             response.message = str(e).replace("'", "")
@@ -316,13 +372,8 @@ class ResolverPublisher(Node):
         """
         for i, joint_name in enumerate(self.arm_config_info.joint_names):
 
-            # No resolver on J6, so just pretend it is always level
-            if joint_name == "j6":
-                time.sleep(self.receive_deadtime)
-                continue
-
             joint_position = self.resolver_transceiver.position(joint_name)
-            if joint_position != -1:
+            if joint_position is not None:
                 # Successful transmit and receive, update value to be published
                 self.resolver_state.position[i] = joint_position
             # Delay a little to not overwhelm the RS485 bus

@@ -36,7 +36,7 @@ class RFIDService(Node):
         # Loop until the RFID is plugged in
         while True:
             try:
-                self.ser = Serial(baudrate = 115200, port = '/dev/ttyUSB0') # TODO: Check port
+                self.ser = Serial(baudrate = 115200, port = '/dev/ttyELBAUMRFID69420') # TODO: Check port
                 break
             except:
                 time.sleep(1.0)
@@ -51,7 +51,7 @@ class RFIDService(Node):
         self.get_logger().debug(f'Received request: {request.command}\n{request.data}')
         cmd = request.command.lower()
 
-        if cmd in ['read', 'clear', 'restart']:
+        if cmd in ['read', 'clear', 'restart', 'dump']:
             self.write_msg(cmd)
             response.response = self.read_data()
         elif cmd in ['write', 'poll']:
@@ -78,14 +78,15 @@ class RFIDService(Node):
         '''
         # read until EOM
         self.get_logger().debug('Reading data')
-        data = self.ser.read_until(expected=self.EOM)
-        data = data.rstrip(self.EOM) # remove EOM from response
-        data = data.rstrip(b'\0') # strip any null chars from data
+        input_buffer_length = self.ser.in_waiting
+        data = self.ser.read(size=input_buffer_length)
+        data = data.strip(self.EOM) # remove EOM from response
+        data = data.strip(b'\0') # strip any null chars from data
+        self.get_logger().debug('data')
         print(data) #print raw bytes
         # return as string
         try:
-            decoded = data.decode('ascii')
-            return decoded
+            return str(data)
         except Exception:
             self.get_logger().error('Failed to decode RFID arduino response')
             # dump raw hex to logger

@@ -33,13 +33,15 @@ const float ROVER_WIDTH_CM = 50.0;
 const float TERRAIN_IMPORTANCE = 300; // How much we value smooth terrain over distance
 const float SAFETY_FACTOR = 1.6; // Factor by which we multiply rover radius to pad.
 const float WEIGHT = 1.0; // weight of heuristic for A*
-const float OBSTACLE_CUTTING_RANGE_M = 0.4; // distance to which we remove obstacles at src or dest
-const int CRITICAL_PATH_LEN = 7;
+const float SOURCE_OBSTACLE_CLEARANCE_RADIUS_M = 0.6; // distance to which we remove obstacles at src
+const float DEST_OBSTACLE_CLEARANCE_RADIUS_M = 0.3; // distance to which we remove obstacles at dest
+const int CRITICAL_PATH_LEN = 5;
 const float OBSTACLE_VALUE = 1.0;
 const float HEIGHT_OBSTACLE_VALUE = 1.1;
 const float PLANE_PADDING_DISTANCE_FRACTION = 1.0;
 const float C_INF = 1e12;
 const float NEAREST_POINT_DIST_WEIGHT = 0.5;
+const float STRING_PULL_OBSTACLE_VAL = 0.5;
 float PADDING_DIST_M = 0; 
 
 // implementation of type-safe enum with bitwise operators taken from:
@@ -115,8 +117,9 @@ bool isSafe(const array<array<float, COL>, ROW>& grid,
 {
     /*is this square blocked by an obstacle or too close to one
 	to be safe?*/
-	if (isValid(COL, ROW, point)) return grid[point.first][point.second] < OBSTACLE_VALUE;
-    return true;
+	if (isValid(COL, ROW, point)) 
+		return grid[point.first][point.second] < OBSTACLE_VALUE;
+    return true; // destination is not valid (ie not in map), so it is not in an obstacle to our knowledge
 }
 
 // A Utility Function to check whether destination cell has
@@ -146,7 +149,9 @@ float heuristic(const Pair& p1, const Pair& p2) {
 
     return ((float) approx) / 1024;*/
 
-	return abs(p1.first - p2.first) + abs(p1.second - p2.second);
+	return std::sqrt(dist_squared(p1, p2));
+
+	//return abs(p1.first - p2.first) + abs(p1.second - p2.second);
 }
 
 float padding_value(float dist_sqrd, float padding_width_sqrd) 
@@ -201,12 +206,37 @@ void optimise_padding_area(const array<array<float, COL>, ROW>& grid,
 	}
 }
 
+template<size_t ROW, size_t COL>
+int count_adjacent_obstacles(const array<array<float, COL>, ROW>& grid, int& x, int& y){
+	/*
+	Count the number of obstacle tiles ( == 1) directly adjacent to an x,y coordinate
+	*/
+
+	int adjacent = 0;
+
+	for (int dx = -1; dx <= 1; dx += 2){
+		if (x + dx < 0 || (size_t) (x + dx) >= COL) continue;
+		if (grid[y][x + dx] == OBSTACLE_VALUE || grid[y][x + dx] == HEIGHT_OBSTACLE_VALUE) adjacent++;
+	}
+
+	for (int dy = -1; dy <= 1; dy += 2){
+		if (y + dy < 0 || (size_t) (y + dy) >= ROW) continue;
+		if (grid[y + dy][x] == OBSTACLE_VALUE || grid[y + dy][x] == HEIGHT_OBSTACLE_VALUE) adjacent++;
+	}
+
+	return adjacent;
+}
+
+
 template <size_t ROW, size_t COL> 
 void pad_point(array<array<float, COL>, ROW>& grid, const Pair& start_pt, float padding_width_pixels)
 {
 	int y = start_pt.first, x = start_pt.second;
 	int min_x = x - 1.3 * padding_width_pixels, min_y = y - 1.3 * padding_width_pixels;
 	int max_x = x + 1.3 * padding_width_pixels, max_y = y + 1.3 * padding_width_pixels;
+
+	// if the obstale is an isolated point - it is likely a phantom obstacle - don't pad around it
+	if (count_adjacent_obstacles(grid, x, y) <= 1) return;
 
 	optimise_padding_area(grid, x, y, min_x, max_x, min_y, max_y);
 
@@ -248,6 +278,30 @@ void precompute_padding_values(array<array<float, COL>, ROW>& grid,
                 else if (grid[i][j] == HEIGHT_OBSTACLE_VALUE) pad_point(grid, here, padding_width_pixels);
 			}
 		}
+	}
+}
+
+template <size_t ROW, size_t COL> 
+void add_obstacle_border(array<array<float, COL>, ROW>& grid)
+{
+	/* Adds a border of obstacles around the map to prevent the rover from
+	 driving off the map */
+	uint j = 0;
+	for (uint i = 0; i < ROW; i++) {
+		grid[i][j] = OBSTACLE_VALUE;
+	}
+	j = COL - 1;
+	for (uint i = 0; i < ROW; i++) {
+		grid[i][j] = OBSTACLE_VALUE;
+	}
+
+	uint i = 0;
+	for (uint j = 0; j < COL; j++) {
+		grid[i][j] = OBSTACLE_VALUE;
+	}
+	i = ROW - 1;
+	for (uint i = 0; i < ROW; i++) {
+		grid[i][j] = OBSTACLE_VALUE;
 	}
 }
 
@@ -296,8 +350,50 @@ void clear_obstacles_from_location(array<array<float, COL>, ROW>& grid, const Pa
 	}
 }
 
-vector<Pair> construct_return_val(vector<Pair> path, Status status) {
-	// I hate this but python doesn't know how to interpret it another way.
+template <size_t ROW, size_t COL>
+bool obstacle_between(array<array<float, COL>, ROW>& grid, Pair p1, Pair p2, int num_points){
+    /*
+    Interpolates between two points, checking from terrain above a specific obstacle value.
+    :return: true if an obstacle is found between p1 and p2, otherwise false
+    */
+    int x1 = p1.first, y1 = p1.second;
+    int x2 = p2.first, y2 = p2.second;
+
+    double dx = (double) (x2 - x1) / num_points;
+    double dy = (double) (y2 - y1) / num_points;
+
+    double x = x1, y = y1;
+
+    for (int i = 0; i < num_points; i++){
+		x += dx;
+		y += dy;
+		if (grid[(int) x][(int) y] > STRING_PULL_OBSTACLE_VAL){
+			return true;
+		}
+    }
+    return false;
+}
+
+template <size_t ROW, size_t COL>
+void string_pull_from_start(array<array<float, COL>, ROW>& grid, vector<Pair>& path){
+    /*
+    Reduce the path to a substring of itself beginning at the first point necessitated by a string pull
+    */
+    Pair start = path[0];
+    for (size_t i = 0; i < path.size(); i++){
+		Pair this_point = path[i+1];
+		int num_points = (int) heuristic(start, this_point);
+        if (obstacle_between(grid, start, this_point, num_points) || num_points > 50){
+            path = {path.begin() + i, path.end()};
+			path[0] = start;
+            return;
+        }
+    }
+}
+
+template <size_t ROW, size_t COL>
+vector<Pair> construct_return_val(array<array<float, COL>, ROW>& grid, vector<Pair> path, Status status) {
+	string_pull_from_start(grid, path);
 	path.push_back(Pair((int) status, -1));
 
 	return path;
@@ -315,26 +411,30 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 	const float grid_resolution_cm = grid_resolution_m * 100;
 
 	Status status = Status::A_STAR_SUCCESS;
-	int clearance = OBSTACLE_CUTTING_RANGE_M / grid_resolution_m;
+	int src_clearance = SOURCE_OBSTACLE_CLEARANCE_RADIUS_M / grid_resolution_m;
+	int dst_clearance = DEST_OBSTACLE_CLEARANCE_RADIUS_M / grid_resolution_m;
 
 	// If the destination is in an obstacle
 	if (!isSafe(grid, dest)) {
 		status |= Status::A_STAR_DEST_OBSTACLE;
-		clear_obstacles_from_location(grid, dest, clearance);
+		clear_obstacles_from_location(grid, dest, dst_clearance);
 	}
+
+	// put a border around the outside of the map
+	add_obstacle_border(grid);
 
 	// assign heuristic values according to distance to nearest obstacle
 	precompute_padding_values(grid, grid_resolution_cm);
 
 	// If the destination cell is the same as source cell, we have already found it
 	if (isDestination(src, dest)) {
-		return construct_return_val(vector<Pair> {{src}}, status);
+		return construct_return_val(grid, vector<Pair> {{src}}, status);
 	}
 
 	// If the source is in an obstacle
 	if (!isSafe(grid, src)) {
 		status |= Status::A_STAR_START_OBSTACLE;
-		clear_obstacles_from_location(grid, src, clearance);
+		clear_obstacles_from_location(grid, src, src_clearance);
 	}
 
 
@@ -383,50 +483,37 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 		// Remove this vertex from the open list
 		openList.pop();
 		closedList[i][j] = true;
-		/*
-				Generating all the 8 successor of this cell
-						N.W N N.E
-						\ | /
-						\ | /
-						W----Cell----E
-								/ | \
-						/ | \
-						S.W S S.E
 
-				Cell-->Popped Cell (i, j)
-				N --> North	 (i-1, j)
-				S --> South	 (i+1, j)
-				E --> East	 (i, j+1)
-				W --> West		 (i, j-1)
-				N.E--> North-East (i-1, j+1)
-				N.W--> North-West (i-1, j-1)
-				S.E--> South-East (i+1, j+1)
-				S.W--> South-West (i+1, j-1)
-		*/
+		// Generating all the 8 successors of this cell
 	    for (Pair branch : BRANCHES) {
 			int diff_x = branch.first, diff_y = branch.second;
 
 			Pair neighbour(i + diff_x, j + diff_y);
-			// Only process this cell if this is a valid
-			// one
-			if (isSafe(grid, neighbour) && isValid(COL, ROW, neighbour) && !closedList[neighbour.first][neighbour.second]) {
-				// If the destination cell is the same
-				// as the current successor
-				if (isDestination(neighbour, dest)) { // Set the Parent of the destination cell
+			
+			// If the cell doesn't contain an obstacle, is in the map, and hasn't already been explored
+			if (isSafe(grid, neighbour) 
+				&& isValid(COL, ROW, neighbour) 
+				&& !closedList[neighbour.first][neighbour.second]) {
+				
+				if (isDestination(neighbour, dest)) {
+					// We have found the destination!
+					// Set the parent to the current cell
 					cellDetails[neighbour.first][neighbour.second].parent = { i, j };
 					vector<Pair> path = tracePath(cellDetails, dest);
 
-					return construct_return_val(path, status);
+					return construct_return_val(grid, path, status);
 				}
 				
 				float gNew, hNew, fNew;
 				// additional distance to next point
 				float g_diff = (diff_y == 0 || diff_x == 0) ? 1.0 : sqrt(2.0);
 				gNew = cellDetails[i][j].g + g_diff;
+				// Heuristic contains weighted combination of the terrain cost of driving here and the distance to the goal
 				hNew = grid[neighbour.first][neighbour.second] * TERRAIN_IMPORTANCE + heuristic(neighbour, dest) * WEIGHT;
 				fNew = gNew + hNew;
 
-				// updating shortest distance we have found to dest
+				// In case we can't get to the destination, we keep track of the best effort so far:
+				// A point that optimises between being as close to the goal as possible while not requiring us to drive too far
 				double dist_sqrd = dist_squared(neighbour, dest);
 				if (NEAREST_POINT_DIST_WEIGHT * dist_sqrd + gNew < min_dist_to_dest_squared) {
 					// if the distance is much better, 
@@ -434,31 +521,15 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 					nearest_point = neighbour;
 				}
 				
-				// If it isn’t on the open list, add
-				// it to the open list. Make the
-				// current square the parent of this
-				// square. Record the f, g, and h
-				// costs of the square cell
-				//			 OR
-				// If it is on the open list
-				// already, check to see if this
-				// path to that square is better,
-				// using 'f' cost as the measure.
+				// If we hadn't explored this cell before, or we have found a new, shorter path to it
 				if (cellDetails[neighbour.first][neighbour.second].g == -1
 					|| cellDetails[neighbour.first][neighbour.second].g > gNew) {
+					// Put this cell in the open list
 					openList.emplace(fNew, neighbour.first, neighbour.second);
 
-					// Update the details of this
-					// cell
-					cellDetails[neighbour.first]
-							[neighbour.second]
-								.g
-						= gNew;
-					
-					cellDetails[neighbour.first]
-							[neighbour.second]
-								.parent
-						= { i, j };
+					// Update the details of this cell
+					cellDetails[neighbour.first][neighbour.second].g = gNew;
+					cellDetails[neighbour.first][neighbour.second].parent = { i, j };
 				}
 			}
 		}
@@ -475,7 +546,7 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 	vector<Pair> path = tracePath(cellDetails, nearest_point);
 
 	if (path.size() < CRITICAL_PATH_LEN) status |= Status::A_STAR_CRITICAL_NO_PATH;
-	return construct_return_val(path, status);
+	return construct_return_val(grid, path, status);
 }
 
 // Driver program to test above function

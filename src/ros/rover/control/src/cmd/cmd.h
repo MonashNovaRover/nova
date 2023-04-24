@@ -37,23 +37,18 @@ enum CMDCommand {
 };
 
 
-// Struct for CMD data
-struct CMDData {
+// Struct for CMD feedback
+struct CMDFeedback {
 
-    //------------------------------------------------------------//
-    public:
-
-    // The RPM from the CMD
-    double rpm;
+    // The velocity from the CMD
+    double omega;
 
     // The power of the CMD
-    double power;
+    double duty_cycle;
 
     // Constructor for setting the data
-    CMDData (double rpm, double power) {
-        this->rpm = rpm;
-        this->power = power;
-    };
+    CMDFeedback (double omega, double duty_cycle) : 
+        omega(omega), duty_cycle(duty_cycle) {}
 };
 
 
@@ -70,13 +65,17 @@ class CMD {
     int id;
 
     // Drive mode. Set to PWM or PID
-    CMDCommand CMD_drive_mode;
-    // Stop mode. Set to STOP or PID (handbrake)
-    CMDCommand CMD_stop_mode;
+    CMDCommand drive_mode;
 
     // Store whether we need to flip the output direction
     // 0 for regular, 1 for flipped
-    bool CMD_direction;
+    bool direction;
+
+    // Stop mode. Set to STOP or PID (handbrake)
+    CMDCommand stop_mode;
+
+    // Scaling factor to convert angular velocity (rad/s) to CMD command
+    double scaling_factor;
 
     // Was the last command a STOP? If so, do not bother repeating
     bool already_stopped;
@@ -87,31 +86,46 @@ class CMD {
 
     /// @brief      Send a CAN frmae with some command in the ID but no data
     /// @param      command - The command to send
-    void write_frame_no_data (const CMDCommand command);
-    
-    //------------------------------------------------------------//
-    public:
-
-    /// @brief      Constructor for setting up a CMD interface
-    /// @param      bus - The bus ID of the CAN device
-    /// @param      id - The ID of the CAN device on the CAN line
-    /// @param      CMD_drive_mode - Default drive mode of the CMD. PWM or PID
-    /// @param      CMD_stop_mode - Default stop mode of the CMD. STOP or PID (handbrake)
-    /// @param      CMD_direction - Direction for the CMD. Determined by hardware
-    CMD (const int bus, const int id, CMDCommand CMD_drive_mode, CMDCommand CMD_stop_mode, const bool CMD_direction=0);
-
-    /// @brief      Destructor is called when object is deleted
-    ~CMD ();
+    void write_frame_no_data (CMDCommand command);
 
     /// @brief      Convert a double to an int16
     /// @param      value - The raw value between -1.0 and 1.0
     /// @returns    A Q15 fractional representing the same value
-    static int16_t convert_to_int16 (const double value);
+    static int16_t convert_to_int16 (double value);
 
     /// @brief      Convert a 2-byte array to a double
     /// @param      bytes - The 2-byte array
     /// @returns    A double scaled between -1 and 1
     static double convert_from_bytes (uint8_t* bytes);
+    
+    //------------------------------------------------------------//
+    public:
+
+    // Maximum input to drive that will not saturate the CMD. Set by the scaling factor
+    double max_speed;
+    // Minimum positive speed that can be represented. Set by the max speed and 16-bit precision.
+    double min_speed;
+
+    /// @brief      Constructor for setting up a CMD interface
+    /// @param      bus - The bus ID of the CAN device
+    /// @param      id - The ID of the CAN device on the CAN line
+    /// @param      drive_mode - Default drive mode of the CMD. PWM or PID
+    /// @param      direction - Direction for the CMD. Determined by hardware
+    /// @param      stop_mode - Default stop mode of the CMD. STOP or PID (handbrake)
+    /// @param      scaling_factor - Factor to multiply by input to convert from angular velocity (rad/s) to CMD command (unitless)
+    /// @param      can_init - Whether to open the CAN socket or not
+    CMD (int bus, int id, CMDCommand drive_mode, bool direction=0, CMDCommand stop_mode=STOP, double scaling_factor=1, bool can_init=1);
+    
+    /// @brief      Destructor is called when object is deleted
+    ~CMD ();
+
+    /// @brief      Calculate scaling factor to get CMD command from angular velocity
+    /// @param      reduction - Gearbox reduction (input speed / output speed)
+    /// @param      ppr - Encoder pulses per revolution (number of rising edges on one channel per revolution)
+    /// @param      min_interval - Number of CMD clock cycles between encoder counts when running at max speed
+    /// @param      clock_frequency - CMD clock instruction frequency (FCY), measured in Hz
+    /// @returns    The scaling factor in 1/(rad/s)
+    static double get_scaling_factor(double reduction, int ppr, int min_interval, double clock_frequency);
     
     /// @brief      Get the CMD ID
     ///             Each CMD responds to CAN IDs in the range ID << 4 to ID << 4 + F
@@ -119,12 +133,12 @@ class CMD {
     int get_id();
 
     /// @brief      Set the CMD drive mode
-    /// @param      CMD_drive_mode - Set to PWM or PID
-    void set_CMD_drive_mode (CMDCommand CMD_drive_mode);
+    /// @param      drive_mode - Set to PWM or PID
+    void set_drive_mode (CMDCommand drive_mode);
 
     /// @brief      Set the CMD stop mode
-    /// @param      CMD_stop_mode - Set to STOP or PID
-    void set_CMD_stop_mode (CMDCommand CMD_stop_mode);
+    /// @param      stop_mode - Set to STOP or PID
+    void set_stop_mode (CMDCommand stop_mode);
     
     /// @brief      Send a CAN message to stop driving the CMD
     void stop ();
@@ -136,7 +150,8 @@ class CMD {
     void reverse ();
 
     /// @brief      Send a CAN message to drive the motor at the given velocity
-    /// @param      velocity - Motor velocity, between -1 and 1
+    /// @param      velocity - Motor velocity. If the scaling factor set, then is
+    ///             in rad/s. Otherwise is a fraction of the max CMD speed between -1 and 1
     void drive (float velocity);
 
     /// @brief      Function for sending linear actuator command to CMD
@@ -152,6 +167,6 @@ class CMD {
 
     /// @brief      Receives feedback from the CMD devices on the CAN lines
     /// @returns    A struct containing the data
-    CMDData receive_feedback ();
+    CMDFeedback receive_feedback ();
 
 };

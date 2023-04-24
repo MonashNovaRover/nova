@@ -1,5 +1,5 @@
 __package__ = "autonomous"
-from config.runtime_params import min_point_density 
+from autonomous.config.runtime_params import min_point_density 
 import numpy as np
 import time
 

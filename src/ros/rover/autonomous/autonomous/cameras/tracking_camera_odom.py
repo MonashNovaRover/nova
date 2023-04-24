@@ -7,7 +7,7 @@ from nav_msgs.msg import Odometry
 from core.msg import RoverPose, DriveVel, WheelData 
 import math
 import math_utils.transform as transform
-from config.ros_config import tracking_camera_extrinsics, main_frame, camera_pose_topic, rover_pose_topic
+from config.ros_config import tracking_camera_extrinsics, camera_pose_topic, rover_pose_topic
 
 # different systems seem to install the pyrealsense wrapper differently
 try:
@@ -86,7 +86,7 @@ class TrackingCamera(Node):
         t265_msg = Odometry()
 
         t265_msg.header.stamp = self.get_clock().now().to_msg()
-        t265_msg.header.frame_id = main_frame
+        t265_msg.header.frame_id = 't265'
 
         t265_msg.pose.pose.position.x = -data.translation.z
         t265_msg.pose.pose.position.y = -data.translation.x

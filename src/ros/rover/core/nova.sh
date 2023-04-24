@@ -18,9 +18,11 @@ python3 ~/nova_ws/src/rover/core/macros/prompt.py
 
 
 # appending to pythonpath for autonomous folders
-export PYTHONPATH=$PYTHONPATH:~/nova_ws/src/rover/autonomous/autonomous
+
+export PYTHONPATH=$PYTHONPATH:~/nova_ws/install/autonomous/lib/python3.8/site-packages
 export PYTHONPATH=$PYTHONPATH:~/nova_ws/src/gui/gui/
 export PYTHONPATH=$PYTHONPATH:~/nova_ws/src/rover/core/
+export PYTHONPATH=$PYTHONPATH:/usr/lib/python3.8/site-packages/pyrealsense2
 
 # Source the aliases (if ROS 2)
 if [[ $ROS_VERSION -eq 2 ]]; then
