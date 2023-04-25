@@ -58,11 +58,17 @@ class SkytraqNode (Node):
                 pose.pitch, pose.roll, pose.yaw = float(raw_msg[5]), float(raw_msg[6]), float(raw_msg[4])
         
         elif raw_msg[0] == "GNRMC":
-            pose.latitude, pose.longitude = float(raw_msg[3]), float(raw_msg[5])
+            pose.latitude, pose.longitude = float(raw_msg[3])/100, float(raw_msg[5])/100
+            if raw_msg[4] == "S":
+                pose.latitude = -1 * pose.latitude
+            if raw_msg[6] == "W":
+                pose.longitude = -1 * pose.longitude
+
             if raw_msg[2] == 'A':
                 pose.valid = True
             else:
                 pose.valid = False
+
             if raw_msg[12] != "":
                 self.fix_type = raw_msg[12]
         
