@@ -32,8 +32,6 @@ class SkytraqNode (Node):
         if raw_msg[0:2] == ["PSTI", '036']:
             if raw_msg[4] != '' and (raw_msg[4].isupper() or raw_msg[4].islower()) == False:
                 pose.pitch, pose.roll, pose.yaw = float(raw_msg[5]), float(raw_msg[6]), float(raw_msg[4])
-        # elif raw_msg[0:2] == ['PSTI', '032']:
-        #     db
         elif raw_msg[0] == "GNRMC":
             pose.latitude, pose.longitude = float(raw_msg[3]), float(raw_msg[5])
             if raw_msg[2] == 'A':
@@ -44,21 +42,15 @@ class SkytraqNode (Node):
                 self.fix_type = raw_msg[12]
         elif raw_msg[0] == "GPGGA":
             self.get_logger().log(raw_msg[6],LoggingSeverity.WARN)
-            
 
-        # debug_str = f"""{raw_msg[6]}, {raw_msg[7]}, {raw_msg[8]}, {raw_msg[9]}, {raw_msg[10]}, {raw_msg[11]}, {raw_msg[12]}"""
-        # self.get_logger().log(debug_str,LoggingSeverity.INFO,throttle_duration_sec=2)
-            
-    
     def get_msg(self):
         self.counter+=1
-        if self.counter > 30:
-            #self.ser.reset_input_buffer()
+        if self.counter > 50:
+            self.ser.reset_input_buffer()
             self.counter = 0
-        txt = str(self.ser.read_until(b"$"))#readline())
+        txt = str(self.ser.read_until(b"$"))
         txt = txt.rstrip("\\r\\n$'")
         txt = txt.lstrip("b'")
-        #print(txt)
         return txt.split(",")
     
     def config_port(self, port_name, baud):
@@ -106,5 +98,3 @@ def main (args = None):
     
 if __name__ == "__main__":
     main()
-
-# Serial.reset_input_buffer
