@@ -1,4 +1,25 @@
 #!/usr/bin/env python3
+"""
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Purpose: Takes RTCM correction data from base gps (ublox)
+and writes data to the rover gps (skytraq) over USB
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+NODE: SubToBaseNode
+TOPICS:
+  - subscriber: /gps_base/rtcm3_out [RTCM3]
+SERVICES: None
+ACTIONS: None
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PACKAGE: 	electronics
+AUTHOR(S):	shelby n
+CREATION:	25/02/2023
+EDITED:		25/04/2023
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+TODO:
+ - check if buffer clearing is necessary
+ - convert log to debug
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+"""
 import serial
 
 import rclpy
@@ -31,9 +52,9 @@ class SubToBaseNode(Node):
         # if self.count > 50:                 # need to test w/out, error may have been fixed by different section
         #     self.count = 0
         #     self.ser.reset_output_buffer()
+        # self.count += 1
 
         self.ser.write(msg.data)
-        self.count += 1
 
     def config_port(self, port_name, baud):
         self.ser.baudrate = baud

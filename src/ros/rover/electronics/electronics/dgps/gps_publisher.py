@@ -1,5 +1,27 @@
 #!/usr/bin/env python3
-
+"""
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Purpose: Read rover gps (skytraq) data from USB. Extract
+relevant data and publish to network
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+NODE: SkytraqNode
+TOPICS:
+  - publisher: /electronics/gps_data [RoverPoseGPS]
+SERVICES: None
+ACTIONS: None
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PACKAGE: 	electronics
+AUTHOR(S):	shelby n
+CREATION:	25/02/2023
+EDITED:		25/04/2023
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+TODO:
+ - check if buffer clearing is needed
+ - convert log to debug
+ - test msg type initialisation
+ - add lat/lon polarity
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+"""
 import serial
 
 import rclpy
@@ -52,6 +74,7 @@ class SkytraqNode (Node):
         # if self.counter > 50:                  # test if code works w/out buffer clear
         #     self.ser.reset_input_buffer()
         #     self.counter = 0
+
         txt = str(self.ser.read_until(b"$"))
         txt = txt.rstrip("\\r\\n$'")
         txt = txt.lstrip("b'")
