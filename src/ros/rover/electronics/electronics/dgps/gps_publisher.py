@@ -67,7 +67,7 @@ class SkytraqNode (Node):
                 self.fix_type = raw_msg[12]
         
         elif raw_msg[0] == "GPGGA":
-            self.get_logger().log(raw_msg[6],LoggingSeverity.WARN)
+            self.get_logger().debug(f'fix type: {raw_msg[6]}')
 
     def get_msg(self):
         self.counter+=1
@@ -99,20 +99,15 @@ class SkytraqNode (Node):
         """
 
         if rover_msg.valid:
-            self.get_logger().log(roverMsgStr,LoggingSeverity.INFO,throttle_duration_sec=2)
+            self.get_logger().debug(roverMsgStr,throttle_duration_sec=2)
         else:
-            self.get_logger().log(roverMsgStr,LoggingSeverity.WARN,throttle_duration_sec=2)
+            self.get_logger().debug(f'[WARN] {roverMsgStr}',throttle_duration_sec=2)
 
     def publisher_callback(self):
         self.parse_msg(self.pose)
         self.publisher.publish(self.pose)
         self.print_msg(self.pose)
 
-
-
-
-
-    
         
 def main (args = None):
     baud = 115200;

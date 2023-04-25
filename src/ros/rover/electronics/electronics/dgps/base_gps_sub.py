@@ -47,13 +47,12 @@ class SubToBaseNode(Node):
 
 
     def callback_func(self, msg):
-        self.get_logger().info(f"Received: {msg.data}")
-
+        self.parse_rtcm_out(msg.data)
+        
         # if self.count > 50:                 # need to test w/out, error may have been fixed by different section
         #     self.count = 0
         #     self.ser.reset_output_buffer()
         # self.count += 1
-
         self.ser.write(msg.data)
 
     def config_port(self, port_name, baud):
@@ -65,7 +64,7 @@ class SubToBaseNode(Node):
 
     def parse_rtcm_out(self, rtcm_msg):
         msg_str = f"raw rtcm: {rtcm_msg}"
-        self.get_logger().debug(msg_str,LoggingSeverity.INFO,throttle_duration_sec=2)
+        self.get_logger().debug(msg_str,throttle_duration_sec=2)
 
 def main (args = None):
     rclpy.init(args = args)
