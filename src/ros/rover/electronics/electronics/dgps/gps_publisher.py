@@ -16,10 +16,7 @@ CREATION:	25/02/2023
 EDITED:		25/04/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
- - check if buffer clearing is needed
  - convert log to debug
- - test msg type initialisation
- - add lat/lon polarity
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 import serial
@@ -38,14 +35,8 @@ class SkytraqNode (Node):
 
         self.fix_type : str = None
 
-        # self.pose.latitude, self.pose.longitude = 0.0, 0.0                # test to make sure values are initilised above
-        # self.pose.pitch, self.pose.roll, self.pose.yaw  = 0.0, 0.0, 0.0
-        # self.pose.valid = False
-
         self.ser = serial.Serial()
         self.config_port(com_no, baud)
-
-        self.counter = 0
 
         self.publisher = self.create_publisher(RoverPoseGPS, '/electronics/gps_data', 10)
         self.timer = self.create_timer(0, self.publisher_callback)
@@ -54,8 +45,8 @@ class SkytraqNode (Node):
         raw_msg = self.get_msg()
 
         if raw_msg[0:2] == ["PSTI", '036']:
-            if raw_msg[4] != '' and (raw_msg[4].isupper() or raw_msg[4].islower()) == False:
-                pose.pitch, pose.roll, pose.yaw = float(raw_msg[5]), float(raw_msg[6]), float(raw_msg[4])
+            #if raw_msg[4] != '' and (raw_msg[4].isupper() or raw_msg[4].islower()) == False:
+            pose.pitch, pose.roll, pose.yaw = float(raw_msg[5]), float(raw_msg[6]), float(raw_msg[4])
         
         elif raw_msg[0] == "GNRMC":
             pose.latitude, pose.longitude = float(raw_msg[3])/100, float(raw_msg[5])/100
@@ -76,11 +67,6 @@ class SkytraqNode (Node):
             self.get_logger().debug(f'fix type: {raw_msg[6]}')
 
     def get_msg(self):
-        self.counter+=1
-        # if self.counter > 50:                  # test if code works w/out buffer clear
-        #     self.ser.reset_input_buffer()
-        #     self.counter = 0
-
         txt = str(self.ser.read_until(b"$"))
         txt = txt.rstrip("\\r\\n$'")
         txt = txt.lstrip("b'")
