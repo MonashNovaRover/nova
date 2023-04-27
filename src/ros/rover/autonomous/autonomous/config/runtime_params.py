@@ -1,5 +1,3 @@
-__package__ = "autonomous"
-
 import numpy as np
 
 # ~~~~~~~~~~ CONTROLLER CONSTANTS ~~~~~~~~~~~~~
