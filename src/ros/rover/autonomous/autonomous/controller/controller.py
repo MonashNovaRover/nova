@@ -19,22 +19,20 @@ EDITED:         23/04/2023
 import rclpy
 from rclpy.node import Node
 from rclpy.time import Time
-from std_srvs.srv import Trigger
-from nav_msgs.msg import Path
-from std_msgs.msg import Empty, Bool
-from geometry_msgs.msg import Transform, Pose2D
-from tf2_ros import Buffer, TransformListener
 from rclpy.duration import Duration
+from tf2_ros import Buffer, TransformListener
 
-# custom message imports
-from core.msg import DriveInput, AutonomousGoal, PivotWheelData
-from autonomous.controller.spin_controller import SpinController
+# message imports
+from core.msg import DriveInput, PivotWheelData
+from geometry_msgs.msg import Transform, Pose2D, PoseStamped
+from nav_msgs.msg import Path
+from std_msgs.msg import Empty
 
 # autonomous imports
-from autonomous.math_utils.controller_math import *
+from autonomous.controller.spin_controller import SpinController
+from autonomous.math_utils.controller_math import distance
 import autonomous.math_utils.transform as transform
-from autonomous.config.runtime_params import *
-from autonomous.config.ros_config import *
+from autonomous.config.ros_config import auto_drive_command_topic, auto_waypoints_topic
 from autonomous.controller.drive_controller import DriveController, TurningMode
 
 # misc
@@ -196,7 +194,7 @@ class Controller(Node):
         Stores the latest rover pose message into our State() variable
         """
         try:
-            base_link_tf : Transform = self.tf_buffer.lookup_transform("local_map", "base_link", Time()).transform
+            base_link_tf : Transform = self.tf_buffer.lookup_transform("local_map", "base_link", Time(), Duration(nanoseconds=5e7)).transform
             self.get_logger().debug("Found transform from local_map to base_link", once=True)
         except:
             self.get_logger().warn("No transform from local_map to base_link", once=True)
@@ -220,14 +218,16 @@ class Controller(Node):
         :param msg: Waypoints message from the path planner
         """
         self.state_waypoint_path = [(p.pose.position.x, p.pose.position.y) for p in msg.poses]
+        self.trigger_to_waypoint = True
+
+    def callback_do_spin(self, msg: Empty):
+        """
+        Callback for the spin trigger subscriber. Sets the spin trigger to True
+        :param msg: Empty message
+        """
+        self.trigger_spin = True
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 'Util' Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    def completed_path(self) -> bool:
-        """
-        TODO
-        """
-        pass
 
     def prune_waypoints(self):
         """
@@ -293,18 +293,12 @@ class Controller(Node):
             drive, steer = self.ctl_spin.turn_in_place(self.state_latest_steer, current_orientation, position_vector=position_vector)
 
         # -------------------------------------- 1. DRIVING ------------------------------
-        elif self.state_num_paths_planned < 1:
-            self.get_logger().debug("Not enough paths planned")
-
         elif self.state == DrivingState.TO_WAYPOINT:
             path = self.prune_waypoints()
             self.get_logger().debug("Driving to waypoint")
             drive, steer = self.go_to_target(path[0])
-        
-        # -------------------------------------- 5. RESET ------------------------------
             
         self.send_drive_cmd(drive, steer)
-
 
     def send_drive_cmd(self, drive_fraction: float, angular_fraction: float):
         """
