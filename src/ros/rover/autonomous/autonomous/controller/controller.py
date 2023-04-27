@@ -2,38 +2,10 @@
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team
-This script is the controller node for the rover 
-which receives the destination and processed map, 
-then publishing the drive command for movement.
-Receives pose updates and waypoints via subscribers
-and publishes drive commands. Converted to Ros2 by
-Max Tory from initial code by Aidan Pritchard and 
-Liam Whittle. Adapted to include extra URC2022 logic. 
-
-Things to watch out for:
--- asynchronous callbacks
-    -- state update only happens on planning callback? 
-    -- 
-
-Do we put state transition in before or after planning (on planning cycle frequency)
-- publishing plan goals every second
-- receiving way point lists every second
-
--- controller timer only handles actual driving, based on set of current states and variables
-
-If update state just before path plan, not wasting a path planning cycle, and never update while path planning.
-
-Could have a counter for number of paths planned in current state cycle (reset to zero on every state transition)
-
-
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: Controller
 TOPICS:
-        - Publishes: /autonomous/drive_inputs [DriveInput]
-        - Subscribes: /rover/pose [RoverPose]
-        - Subscribes: /autonomous/goals [Waypoints]
 SERVICES:
-        - PathPlanningService 
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:        autonomous
@@ -103,9 +75,12 @@ class Controller(Node):
         self.state_latest_steer = 0
         self.state_turning_mode = TurningMode.TANK if self.param_do_tank_turn else TurningMode.PIVOT
 
+        self.trigger_spin = False
+        self.trigger_to_waypoint = False
+
         # Controller classes for turning, driving to waypoints, and spinning
-        self.ctl_driver = DriveController(self.state_turning_mode)
-        self.ctl_spin = None
+        self.ctl_driver : DriveController = DriveController(self.state_turning_mode)
+        self.ctl_spin : SpinController = None
 
         # ------------- ROS Things ----------
         # tf2
@@ -132,21 +107,88 @@ class Controller(Node):
         self.timer_control = self.create_timer(0.1, self.control)  # calculate and send drive commands
         self.timer_pose = self.create_timer(0.1, self.callback_rover_pose)  # update the rover's pose from tf2
 
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ State Transition Helper Functions ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    def turn_completed(self) -> bool:
+        """
+        Determines whether we have completed a turn
+        """
+        if self.ctl_spin is None:
+            return False
+        return self.ctl_spin.is_completed()
+
+    def finished_waypoint_path(self) -> bool:
+        """
+        Returns True if there are no waypoints left in the path, or we are sufficiently
+        close to the last waypoint
+        """
+        if len(self.state_waypoint_path) == 0:
+            return True
+        
+        our_pos = np.array([self.state_rover_pose.x, self.state_rover_pose.y])
+        last_waypoint = self.state_waypoint_path[-1]
+
+        return distance(our_pos, last_waypoint) < self.param_waypoint_follow_distance
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ State Transition Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     def drive_mode_state_transition(self):
         """
-        TODO
+        Update current driving mode based on received triggers and internal state of the state machine
         """
-        pass
+        
+        # If we are in SUCCESS state, transitioning to the driving state is triggered by receiving a ros2 message
+        if self.state == DrivingState.SUCCESS:
+            if self.trigger_spin:
+                self.on_state_update(DrivingState.TURNING)
+            elif self.trigger_to_waypoint:
+                self.on_state_update(DrivingState.TO_WAYPOINT)
+
+        # If we are in TURNING state, we are only done turning when the spin controller says so
+        elif self.state == DrivingState.TURNING:
+            if self.turn_completed():
+                self.on_state_update(DrivingState.SUCCESS)
+
+        # If we are in TO_WAYPOINT state, we are done when we are out of goals to go to
+        elif self.state == DrivingState.TO_WAYPOINT:
+            if self.finished_waypoint_path():
+                self.on_state_update(DrivingState.SUCCESS)
 
     def on_state_update(self, new_state: DrivingState):
         """
-        TODO
+        Set current state to new_state, and perform any necessary state changes
         """
-        pass
+        # Do the state update
+        old_state = self.state
+        self.get_logger().info(f"------ State Transition: {old_state} -> {new_state}")
+        self.get_logger().debug(f"Before transition:\n"
+                                f"trigger_spin: {self.trigger_spin}\n"
+                                f"trigger_to_waypoint: {self.trigger_to_waypoint}\n"
+                                f"Spin controller: {self.ctl_spin}\n"
+                                f"Waypoints: {self.state_waypoint_path}\n"
+                                )
+        self.state = new_state
 
+        # Perform any necessary state changes
+        # Entering turning state we initialise a new spin controller
+        if self.state == DrivingState.TURNING:
+            self.ctl_spin = SpinController(self.state_rover_pose.theta, self.ctl_driver)
+            self.trigger_spin = False
+        # Entering to waypoint state, reset the trigger
+        elif self.state == DrivingState.TO_WAYPOINT:
+            self.trigger_to_waypoint = False
+        # Entering success, clear state variables and await new trigger
+        elif self.state == DrivingState.SUCCESS:
+            self.ctl_spin = None
+            self.state_waypoint_path = []
+            self.state_latest_steer = 0
+
+        self.get_logger().debug(f"After transition:\n"
+                                f"trigger_spin: {self.trigger_spin}\n"
+                                f"trigger_to_waypoint: {self.trigger_to_waypoint}\n"
+                                f"Spin controller: {self.ctl_spin}\n"
+                                f"Waypoints: {self.state_waypoint_path}\n"
+                                )
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Simple State Update Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     def callback_rover_pose(self):

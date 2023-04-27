@@ -288,7 +288,7 @@ class Controller(Node):
         # Do the state update
         old_state = self.state
         self.get_logger().info(f"------ State Transition: {old_state} -> {new_state}")
-        self.get_logger().debug(f"After transition:\n"
+        self.get_logger().debug(f"Before transition:\n"
                                 f"Current Goal: {self.state_current_goal}\n"
                                 f"Return Goal: {self.state_return_goal}\n"
                                 f"Visited Intermediate Goals: {self.state_visited_intermediate_goals}\n"
