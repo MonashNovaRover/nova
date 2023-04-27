@@ -24,6 +24,7 @@ TODO:
 """
 
 # standard imports
+import time
 import math
 import numpy as np
 
@@ -155,10 +156,8 @@ class PoseConverter(Node):
         self.tf_base_link.sendTransform(base_link_transform)
 
         self.get_logger().info("Waiting for GPS offset transform...")
-        while self.gps_offset is None:
-            gps_transform_stamped : TransformStamped = self.tf_buffer.lookup_transform("base_link", "gps_link", Time(), Duration(seconds=1.0))
-            if gps_transform_stamped is not None:
-                self.gps_offset = transform.quat_to_euler(gps_transform_stamped.transform.rotation)
+        while not self.tf_buffer.can_transform("base_link", "gps_link", Time()):
+            time.sleep(0.1)
 
         self.get_logger().info("Received GPS offset transform")
 
