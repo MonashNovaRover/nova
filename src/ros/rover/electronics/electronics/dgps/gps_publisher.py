@@ -45,8 +45,8 @@ class SkytraqNode (Node):
         raw_msg = self.get_msg()
 
         if raw_msg[0:2] == ["PSTI", '036']:
-            #if raw_msg[4] != '' and (raw_msg[4].isupper() or raw_msg[4].islower()) == False:
-            pose.pitch, pose.roll, pose.yaw = float(raw_msg[5]), float(raw_msg[6]), float(raw_msg[4])
+            if raw_msg[4] != '' and (raw_msg[4].isupper() or raw_msg[4].islower()) == False:
+                pose.pitch, pose.roll, pose.yaw = float(raw_msg[5]), float(raw_msg[6]), float(raw_msg[4])
         
         elif raw_msg[0] == "GNRMC":
             pose.latitude, pose.longitude = float(raw_msg[3])/100, float(raw_msg[5])/100
