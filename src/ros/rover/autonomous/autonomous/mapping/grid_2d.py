@@ -69,8 +69,9 @@ class Grid2D(Node):
         """
         Shift the map across by x_change meters in x direction and y_change meters in y direction
         """
-        x_change_px = abs(x_change) / self.resolution
-        y_change_px = abs(y_change) / self.resolution
+        self.get_logger().debug(f"Rolling map: dx = {x_change}, dy = {y_change}")
+        x_change_px = int(abs(x_change) / self.resolution)
+        y_change_px = int(abs(y_change) / self.resolution)
         new_map = np.full((int(self.length / self.resolution), int(self.width / self.resolution)), 100 * unseen_map_val)
         if x_change < 0:
             new_map[x_change_px:, :] = self.map[:-x_change_px, :]
