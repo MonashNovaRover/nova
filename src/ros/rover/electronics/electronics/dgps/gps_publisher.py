@@ -32,6 +32,7 @@ class SkytraqNode (Node):
         super().__init__('gps_data')
 
         self.pose = RoverPoseGPS()
+        self.pose.header.frame_id = "gps_link"
 
         self.fix_type : str = None
 
@@ -42,6 +43,7 @@ class SkytraqNode (Node):
         self.timer = self.create_timer(0, self.publisher_callback)
 
     def parse_msg(self, pose):
+        self.pose.header.stamp = self.get_clock().now().to_msg()
         raw_msg = self.get_msg()
 
         if raw_msg[0:2] == ["PSTI", '036']:
