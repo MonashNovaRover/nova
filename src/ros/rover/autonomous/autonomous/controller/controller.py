@@ -2,16 +2,31 @@
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team
+Determines the drive commands sent to the rover
+based on the current pose and goal.
+Has three states:
+    SUCCESS: The rover has reached its goal and is
+        awaiting the next
+    TURNING: The rover is turning on the spot
+    TO_WAYPOINT: The rover is driving to the next
+        waypoint in the path returned by the path
+        planner
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-NODE: Controller
+NODE: autonomous_controller
 TOPICS:
-SERVICES:
+    - /autonomous_controller/goal_achieved  [pub]
+    - /autonomous_controller/spin_achieved  [pub]
+    - /autonomous/drive_inputs              [pub]
+    - /autonomous_controller/do_spin        [sub]
+    - /control/pivot_wheel                  [sub]
+    - /autonomous/waypoints                 [sub]
+SERVICES: None
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:        autonomous
 AUTHOR(S):      Max Tory, Liam Whittle
 CREATION:       07/12/2021
-EDITED:         23/04/2023
+EDITED:         27/04/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
