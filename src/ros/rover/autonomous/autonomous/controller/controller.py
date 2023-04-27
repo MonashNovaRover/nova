@@ -37,6 +37,7 @@ from autonomous.controller.drive_controller import DriveController, TurningMode
 
 # misc
 from enum import Enum
+from typing import List
 import logging
 import time
 import numpy as np
@@ -117,16 +118,9 @@ class Controller(Node):
 
     def finished_waypoint_path(self) -> bool:
         """
-        Returns True if there are no waypoints left in the path, or we are sufficiently
-        close to the last waypoint
+        Returns True if there are no waypoints left in the pruned path
         """
-        if len(self.state_waypoint_path) == 0:
-            return True
-        
-        our_pos = np.array([self.state_rover_pose.x, self.state_rover_pose.y])
-        last_waypoint = self.state_waypoint_path[-1]
-
-        return distance(our_pos, last_waypoint) < self.param_waypoint_follow_distance
+        return self.state_waypoint_path is not None and len(self.state_waypoint_path) == 0
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ State Transition Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -187,6 +181,7 @@ class Controller(Node):
                                 f"Spin controller: {self.ctl_spin}\n"
                                 f"Waypoints: {self.state_waypoint_path}\n"
                                 )
+
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ROS callbacks ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     def callback_rover_pose(self):
@@ -212,13 +207,13 @@ class Controller(Node):
     def callback_planner_path(self, msg: Path):
         """
         The callback which is called from the path planner subscriber. We need to:
-        - Update list of waypoints in way-point path
-        - update best effort goal
-        Note that when we are near our goal, best effort goal will be set, but way-point path won't be set.
+        - Update list of waypoints in way-point path with a pruned set of waypoints from the path planner
+        - Set the to_waypoint trigger to True
         :param msg: Waypoints message from the path planner
         """
-        self.state_waypoint_path = [(p.pose.position.x, p.pose.position.y) for p in msg.poses]
-        self.trigger_to_waypoint = True
+        points = [(p.pose.position.x, p.pose.position.y) for p in msg.poses]
+        self.trigger_to_waypoint = True 
+        self.state_waypoint_path = self.prune_waypoints(points)
 
     def callback_do_spin(self, msg: Empty):
         """
@@ -229,14 +224,14 @@ class Controller(Node):
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 'Util' Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    def prune_waypoints(self):
+    def prune_waypoints(self, points: List[tuple]) -> bool:
         """
         Return a sub-list of the planning waypoints containing only those at least some minimum distance from
         the rover
         """
-        if self.state_waypoint_path is None:
+        if points is None:
             return []
-        return [point for point in self.state_waypoint_path if distance(
+        return [point for point in points if distance(
             (self.state_rover_pose.x, self.state_rover_pose.y),
             point
             ) > self.param_waypoint_follow_distance]
@@ -294,9 +289,11 @@ class Controller(Node):
 
         # -------------------------------------- 1. DRIVING ------------------------------
         elif self.state == DrivingState.TO_WAYPOINT:
-            path = self.prune_waypoints()
+            if self.state_waypoint_path is None or len(self.state_waypoint_path) == 0:
+                self.get_logger().error("No waypoints to drive to - This should be detected in state transition!")
+                return
             self.get_logger().debug("Driving to waypoint")
-            drive, steer = self.go_to_target(path[0])
+            drive, steer = self.go_to_target(self.state_waypoint_path[0])
             
         self.send_drive_cmd(drive, steer)
 
