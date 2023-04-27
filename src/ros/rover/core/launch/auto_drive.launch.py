@@ -39,13 +39,6 @@ def generate_launch_description():
         description="Set to 'True' to run autonomous algorithms on camera data we will play from a rosbag"
     )
 
-    # tf2 static transforms
-    tf_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([
-            FindPackageShare("core"), '/launch', '/tf.launch.py'
-        ])
-    )
-
     # autonomous nodes
     main_launch = Node(
         package="autonomous",
@@ -78,30 +71,16 @@ def generate_launch_description():
         emulate_tty=True,
         condition=IfCondition(from_rosbag)
     )
-    pose_converter_launch = Node(
+    controller_launch = Node(
         package="autonomous",
-        executable="pose_converter_ARC.py",
+        executable="controller.py",
         output="screen",
         parameters=[core_params_path / "auto_params.yaml"],
         emulate_tty=True
     )
-    gruc_launch = Node(
+    goal_selector_launch = Node(
         package="autonomous",
-        executable="GRUC.py",
-        output="screen",
-        parameters=[core_params_path / "auto_params.yaml"],
-        emulate_tty=True
-    )
-    grup_launch = Node(
-        package="autonomous",
-        executable="GRUP.py",
-        output="screen",
-        parameters=[core_params_path / "auto_params.yaml"],
-        emulate_tty=True
-    )
-    goal_manager_launch = Node(
-        package="autonomous",
-        executable="goal_manager.py",
+        executable="goal_selector.py",
         output="screen",
         parameters=[core_params_path / "auto_params.yaml"],
         emulate_tty=True
@@ -109,13 +88,10 @@ def generate_launch_description():
 
     return LaunchDescription([
         from_rosbag_arg,
-        tf_launch,
         main_launch,
         tracking_cam_launch,
         depth_cam_launch,
         stamp_converter_launch,
-        pose_converter_launch,
-        gruc_launch,
-        grup_launch,
-        goal_manager_launch
+        controller_launch,
+        goal_selector_launch,
     ])
