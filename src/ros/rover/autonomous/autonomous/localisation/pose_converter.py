@@ -1,5 +1,4 @@
 #!/usr/bin/python3
-__package__ = "autonomous"
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team
@@ -10,23 +9,21 @@ Subscribes to the DGPS and IMU topics and publishes some combined, transformed v
 NODE: ConverterNode
 TOPICS:
   - /imu/euler   [Subscribed]
-  - /            [Subscribed]
-  - /imu/euler   [Publisher]
-  - /            [Published]
-  - /            [Published]
+  - /electronics/gps_data            [Subscribed]
+  - /autonomous/goals            [Subscribed]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:  autonomous    
 AUTHOR(S): Liam Whittle, Max Tory
 CREATION:    06/05/2022
-EDITED:        09/05/2022
+EDITED:        27/04/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
     - Implement EKF for fun
     - GPS converter takes into account pose offset
     - Use TF2 properly from imu coordinate transformation
 """
+
 # standard imports
-import time
 import math
 import numpy as np
 
@@ -39,16 +36,17 @@ from autonomous.localisation.gps_converter import GpsConverter
 # ROS imports
 import rclpy
 from rclpy.node import Node
-from rclpy.logging import LoggingSeverity
+from rclpy.time import Time
+from rclpy.duration import Duration
 
 from tf2_ros import TransformBroadcaster, StaticTransformBroadcaster, Buffer, TransformListener
 
-from nav_msgs.msg import Odometry
-from core.msg import RoverPose, WheelData, RoverPoseGPS, AutonomousGoal, AutonomousGoalArray
+from core.msg import RoverPoseGPS, AutonomousGoal, AutonomousGoalArray, WheelData 
 
 from geometry_msgs.msg import TransformStamped, Transform, Vector3Stamped
 from sensor_msgs.msg import Imu
   
+
 class PoseConverter(Node):
     """
     ROS2 Node to listen to:
@@ -81,8 +79,8 @@ class PoseConverter(Node):
         # tf2 objects
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, node=self, spin_thread=True)
-        self.tf_base_link = TransformBroadcaster()
-        self.tf_initial_offset = StaticTransformBroadcaster()
+        self.tf_base_link = TransformBroadcaster(self)
+        self.tf_initial_offset = StaticTransformBroadcaster(self)
 
         # timer 
         self.pub_timer = self.create_timer(1/self.param_base_link_rate, self.cb_publish_transform)
@@ -91,6 +89,7 @@ class PoseConverter(Node):
         self.gps_converter : GpsConverter = GpsConverter()
         self.latest_imu : Vector3Stamped = None
         self.latest_gps_pose : RoverPoseGPS = None
+        self.gps_offset : np.ndarray = None
         self.get_initial_transform()
 
         # for maintaining accurate pose and converting between gps
@@ -131,7 +130,7 @@ class PoseConverter(Node):
 
     def get_initial_transform(self):
         """
-        If we want to, load initial rover position from file
+        If we want to, load initial transform from params
         """
         initial_transform = TransformStamped()
         initial_transform.header.frame_id = 'map'
@@ -155,6 +154,14 @@ class PoseConverter(Node):
         base_link_transform.transform.rotation.z = 0.0
         self.tf_base_link.sendTransform(base_link_transform)
 
+        self.get_logger().info("Waiting for GPS offset transform...")
+        while self.gps_offset is None:
+            gps_transform_stamped : TransformStamped = self.tf_buffer.lookup_transform("base_link", "gps_link", Time(), Duration(seconds=1.0))
+            if gps_transform_stamped is not None:
+                self.gps_offset = transform.quat_to_euler(gps_transform_stamped.transform.rotation)
+
+        self.get_logger().info("Received GPS offset transform")
+
     def transform_imu_to_nova(self):
         """
         Transform the fused imu data into a ROS Odom message, with the right handed coordinate system
@@ -162,9 +169,9 @@ class PoseConverter(Node):
         up = +z
         left = +y
         forward = +x
+        TODO: set IMU transform in URDF, and we can use tf2 to transform properly. Note that there are serious complications
+        Caused by IMUs having absolute pitch and roll but relative yaw, so this is non-trivial
         """
-        # Some day, set IMU transform in URDF, and we can use tf2 to transform properly, but there are serious complications
-        # Caused by IMUs having absolute pitch and roll but relative yaw, so this is non-trivial
         imu_roll, imu_pitch = math.radians(self.latest_imu.vector.y), math.radians(self.latest_imu.vector.x)
         return np.array([imu_roll, imu_pitch, 0.])
 
@@ -178,7 +185,7 @@ class PoseConverter(Node):
         imu_eulers = self.transform_imu_to_nova()
         # GPS heading is positive in the clockwise direction, but the right hand rule dictates for us that positive yaw is counter-clockwise
         gps_eulers = np.array([0., 0., -math.radians(self.latest_gps_pose.yaw)])
-        eulers = imu_eulers + gps_eulers
+        eulers = imu_eulers + gps_eulers + self.gps_offset
         quat = transform.euler_to_quat(eulers)
         gps_x, gps_y = self.gps_converter.get_local_coord(self.latest_gps_pose.latitude, self.latest_gps_pose.longitude)
 
@@ -204,7 +211,8 @@ class PoseConverter(Node):
         """
         Updates locally stored message
         """
-        self.latest_gps_pose = msg
+        if msg.valid:
+            self.latest_gps_pose = msg
 
     def cb_goal(self, msg : AutonomousGoalArray):                                               
         """
@@ -218,7 +226,7 @@ class PoseConverter(Node):
             goal.position.x, goal.position.y = self.gps_converter.get_local_coord(
                     goal.position.x, goal.position.y
             )
-            transformed_goals.goals.append(self.transform_goal(goal))
+            transformed_goals.goals.append(goal)
 
         self.goals_pub.publish(transformed_goals)
 
@@ -226,8 +234,12 @@ class PoseConverter(Node):
         """
         On a 5 hz timer, publish all necessary rover poses
         """
-        tf = self.calculate_transform()
-        self.tf_base_link.sendTransform(tf)
+        if self.latest_gps_pose is None or self.latest_imu is None:
+            self.get_logger().info("Waiting for imu and dgps to come online...", once=True)
+        else:
+            self.get_logger().info("Received imu and dgps data, publishing transforms...", once=True)
+            tf = self.calculate_transform()
+            self.tf_base_link.sendTransform(tf)
 
 
 def main():

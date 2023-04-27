@@ -110,6 +110,7 @@ install(PROGRAMS
   autonomous/cameras/tracking_camera.py
   autonomous/cameras/depth_camera.py
   autonomous/localisation/pose_converter_ARC.py
+  autonomous/localisation/pose_converter.py
   autonomous/localisation/wheel_odometry.py
   autonomous/controller/controller.py
   autonomous/planning/goal_selector.py
