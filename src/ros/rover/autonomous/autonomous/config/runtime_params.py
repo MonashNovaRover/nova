@@ -13,10 +13,6 @@ min_yaw_difference = np.pi / 25.0  # this number has worked well for us so far
 
 dist_through_gate_m = 2 # the distance we drive through the gate before stopping
 
-slowdown_distance = 2.0 # don't use these ones either lol
-
-ignore_waypoints = 4  # number of waypoints to cut off start of list
-
 # speed of autonomous driving and turning
 small_turn_angle = np.pi/16
 big_turn_drive_fraction = 0.20
@@ -40,14 +36,12 @@ max_ar_distance = 20
 
 # ~~~~~~~~~~ MAPPING CONSTANTS ~~~~~~~~~~~~~~~~
 min_point_density = 1  # number of points in voxel before we accept it
-max_point_depth = 6  # distance beyond which we don't consider points
+max_point_depth = 6.0  # distance (m) beyond which we don't consider points
 max_fov_horizontal = np.pi / 5  # fov of depth camera for mapping
 max_fov_vertical = np.pi / 8  # fov of depth camera for mapping
 max_safe_obstacle = 30  # obstacle threshold for 2d height mapping
 max_safe_inc = 20  # gradient cutoff for obstacles
-depth_mode = "python"  # whether we publish points over ros or use a python callback
 unseen_map_val = 0.25  # Fill all points we haven't seen with a set cost to preference known paths
-slice_height = 2.3  # the height we slice the map from when taking 2d slices
 obstacle_halve_value = 50  # All costs below a scaled value of 80 are halved to be more decisive
 obstacle_ignore_value = 20  # All costs below a scaled value of 30 are ignored
 min_map_update_time = .2  # minimum time between updating the map from point-cloud

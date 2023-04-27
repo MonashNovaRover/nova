@@ -1,12 +1,10 @@
-__package__ = "autonomous"
-
 from autonomous.math_utils.controller_math import *
+from autonomous.controller.drive_controller import DriveController
 import numpy as np
-import math
 
 
 class SpinController:
-    def __init__(self, start_yaw, driver):
+    def __init__(self, start_yaw: float, driver: DriveController):
         self.start_yaw = start_yaw
         self.driver = driver
         self.completed = False

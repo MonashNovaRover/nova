@@ -24,13 +24,13 @@ from tf2_ros import Buffer, TransformListener
 
 # message imports
 from core.msg import DriveInput, PivotWheelData
-from geometry_msgs.msg import Transform, Pose2D, PoseStamped
+from geometry_msgs.msg import Transform, Pose2D
 from nav_msgs.msg import Path
 from std_msgs.msg import Empty
 
 # autonomous imports
 from autonomous.controller.spin_controller import SpinController
-from autonomous.math_utils.controller_math import distance
+from autonomous.math_utils.controller_math import distance, yaw_difference
 import autonomous.math_utils.transform as transform
 from autonomous.config.ros_config import auto_drive_command_topic, auto_waypoints_topic
 from autonomous.controller.drive_controller import DriveController, TurningMode
@@ -187,11 +187,11 @@ class Controller(Node):
                                 f"Spin controller: {self.ctl_spin}\n"
                                 f"Waypoints: {self.state_waypoint_path}\n"
                                 )
-    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Simple State Update Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ROS callbacks ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     def callback_rover_pose(self):
         """
-        Stores the latest rover pose message into our State() variable
+        Stores the latest rover pose into our Pose2D variable
         """
         try:
             base_link_tf : Transform = self.tf_buffer.lookup_transform("local_map", "base_link", Time(), Duration(nanoseconds=5e7)).transform
@@ -313,7 +313,7 @@ class Controller(Node):
         drive_cmd_msg.speed = max(-1.0, min(1.0, float(drive_fraction)))
         drive_cmd_msg.steer = max(-1.0, min(1.0, float(angular_fraction)))
 
-        if self.param_do_tank_turn or self.state in [DrivingState.PRE_RESET, DrivingState.POST_RESET]:
+        if self.param_do_tank_turn:
             drive_cmd_msg.mode = DriveInput.TANK
         else:
             drive_cmd_msg.mode = DriveInput.PIVOT
