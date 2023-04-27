@@ -13,6 +13,9 @@
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
 
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>core.msg</exec_depend>
+
   <depend>rclcpp</depend>  
   <depend>core</depend>
   <depend>std_msgs</depend>

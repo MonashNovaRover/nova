@@ -38,9 +38,14 @@ elif [[ $1 = "rover" ]]
 then
     colcon build --continue-on-error --packages-up-to core control science electronics autonomous
 
+# Build only a certain package and its dependencies
+elif [[ $1 = "to" ]]
+then
+    colcon build --continue-on-error --packages-up-to $2
+
 # Build only a certain package
 else
-    colcon build --continue-on-error --packages-up-to $1
+    colcon build --continue-on-error --packages-select $1
 fi
 
 cd $cwd;        # Return back to the previous directory

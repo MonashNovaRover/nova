@@ -60,6 +60,8 @@ install(PROGRAMS
   electronics/tests/test_wheels.py
   electronics/wheel_publisher.py
   electronics/LED_transmitter.py
+  electronics/dgps/base_gps_sub.py
+  electronics/dgps/gps_publisher.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

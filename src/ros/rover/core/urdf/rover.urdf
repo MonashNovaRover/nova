@@ -4,7 +4,48 @@
      For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
 <robot
   name="rover">
+  <!-- Manually added links-->
   <link name="base_link"></link>
+  <link name="gps_link"></link>
+  <joint name="base_to_gps" type="fixed">
+    <parent link="base_link"/>
+    <child link="gps_link"/>
+    <origin 
+        xyz="0. 0. 0.38"
+        rpy="0. 0. ${-5 * pi / 18}"
+    />
+  </joint>
+
+  <link name="imu_link"></link>
+  <joint name="base_to_imu" type="fixed">
+    <parent link="base_link"/>
+    <child link="imu_link"/>
+    <origin 
+        xyz="0. 0. 0.38"
+        rpy="0. 0. 0."
+    />
+  </joint>
+
+  <link name="d435_1_forward"></link>
+  <joint name="base_to_depth_forward" type="fixed">
+    <parent link="base_link"/>
+    <child link="d435_1_forward"/>
+    <origin
+        xyz="0.46 0. 0.45"
+        rpy="0. 0. 0."
+    />
+  </joint>
+
+  <link name="d435_1"></link>
+  <joint name="depth_forward_to_depth" type="fixed">
+    <parent link="d435_1_forward"/>
+    <child link="d435_1"/>
+    <origin
+        xyz="0. 0. 0."
+        rpy="${-49 * pi / 90} 0. ${-pi / 2}"
+    />
+  </joint>
+
   <link
     name="chassis">
     <inertial>
@@ -46,13 +87,14 @@
     </collision>
   </link>
 
+  <!-- Positions the chassis mesh in space relative to the wheel base -->
   <joint name="base_to_chassis" type="fixed">
-      <parent link="base_link"/>
-      <child link="chassis"/>
-      <origin 
-          xyz="0. -0. 0.38"
-          rpy="0. 0. ${-pi/2}"
-      />
+    <parent link="base_link"/>
+    <child link="chassis"/>
+    <origin 
+        xyz="0. -0. 0.38"
+        rpy="0. 0. ${-pi/2}"
+    />
   </joint>
 
   <link
