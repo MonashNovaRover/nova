@@ -111,9 +111,8 @@ install(PROGRAMS
   autonomous/cameras/depth_camera.py
   autonomous/localisation/pose_converter_ARC.py
   autonomous/localisation/wheel_odometry.py
-  autonomous/controller/GRUC.py
-  autonomous/controller/GRUP.py
-  autonomous/controller/goal_manager.py
+  autonomous/controller/controller.py
+  autonomous/planning/goal_selector.py
   autonomous/update_goals.py
   autonomous/util/stamp_converter.py
 

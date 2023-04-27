@@ -60,6 +60,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/WheelData.msg"
   "msg/WheelOdometry.msg"
   "msg/AutonomousGoal.msg"
+  "msg/AutonomousGoalArray.msg"
   "msg/PivotWheelData.msg"
   "msg/SingleTelemetry.msg"
   "msg/Telemetry.msg"
