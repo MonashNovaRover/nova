@@ -16,24 +16,32 @@ CREATION:	15/12/2021
 
 # Include the required launch parameters
 from launch import LaunchDescription
-import launch_ros.actions
+from launch.substitutions import LaunchConfiguration
+from launch.conditions import IfCondition, UnlessCondition
+from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument
+from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch_ros.actions import Node
+from launch_ros.substitutions import FindPackageShare
+from ament_index_python.packages import get_package_share_path
+
 
 # Generate the launch file with all inputs
 def generate_launch_description():
+    urdf_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([
+            FindPackageShare("core"), '/launch', '/urdf.launch.py'
+        ])
+    )
     return LaunchDescription([
-        launch_ros.actions.Node(
+        urdf_launch,
+        Node(
             package='control', executable='drive_inputs', output='screen', emulate_tty=True),
-        launch_ros.actions.Node(
+        Node(
             package='control', executable='driver', output='screen', emulate_tty=True),
-        # launch_ros.actions.Node(
-        #     package='electronics', executable='wheel_publisher.py', output='screen', emulate_tty=True),
+        Node(
+	        package='electronics', executable='LED_transmitter.py', output='screen', emulate_tty=True),
+        Node(
+            package='imu',  executable='imu_node', output='screen', emulate_tty=True),
         # launch_ros.actions.Node(
 	    #     package='electronics', executable='gimbal_service.py', output='screen', emulate_tty=True),
-        # launch_ros.actions.Node(
-	    #     package='electronics', executable='LED_transmitter.py', output='screen', emulate_tty=True),
-        # launch_ros.actions.Node(
-        #     package='imu',  executable='imu_node', output='screen', emulate_tty=True),
-        # launch_ros.actions.Node(
-        #     package='electronics', executable='CMD_service.py', output='screen', emulate_tty=True), 
-        
     ])
