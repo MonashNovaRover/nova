@@ -1,11 +1,12 @@
 # Stores information about the GPS and IMU data
+std_msgs/Header header
 
 # If the data is valid
 bool valid
 
 # GPS data
-float32 latitude
-float32 longitude
+float64 latitude
+float64 longitude
 
 # IMU angles
 float32 pitch
