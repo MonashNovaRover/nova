@@ -16,7 +16,7 @@ import logging, math
 
 
 class Grid2D(Node): 
-    def __init__(self, length: float, width: float, resolution=0.1, outer_length = 20., outer_width=20.):
+    def __init__(self, length: float = 20.0, width: float = 20.0, resolution=0.1, outer_length = 20., outer_width=20., with_border=False):
         """
         2D flattening of the 3D occupancy grid we use to visualise the map
         :param length: length in m in the x direction
@@ -27,15 +27,20 @@ class Grid2D(Node):
         """
 
         super().__init__("grid_2d")
-        self.length = length
-        self.width = width
         self.outer_length = outer_length
         self.outer_width = outer_width
         self.resolution = resolution
         # unseen areas of the map all have a slight cost 
         self.map = np.full((int(outer_length / resolution), int(outer_width / resolution)), 100 * unseen_map_val)
+        self.with_border = with_border
 
-        self.inner_map_border_mask = self.calculate_inner_map_border_mask()
+        if with_border:
+            self.length = length
+            self.width = width
+            self.inner_map_border_mask = self.calculate_inner_map_border_mask()
+        else:
+            self.length = self.outer_length
+            self.width = self.outer_width
 
         self.get_logger().set_level(logging.INFO)
 
@@ -132,7 +137,5 @@ class Grid2D(Node):
         if len(obstacles) > 0:
             self.map[obstacles[:, 0], obstacles[:, 1]] = obstacles[:, 2]
         
-        self.bound_inner_map()
-
-        
-
+        if self.with_border:
+            self.bound_inner_map()

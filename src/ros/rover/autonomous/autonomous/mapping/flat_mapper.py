@@ -88,8 +88,8 @@ class FlatMapper(Mapper):
         self.detection_length = int(
             np.ceil((max_point_depth / self.detection_resolution) / self.resolution_ratio) * self.resolution_ratio)
         self.detection_width = int(np.ceil(2 * self.detection_length * np.tan(max_fov_horizontal)))
-        self.offset = None
 
+        self.offset = None
         self.map_centre = None
         self.map_rotation = None
         # Position of depth camera in local map
@@ -103,13 +103,15 @@ class FlatMapper(Mapper):
             self.map_transform_timer = self.create_timer(1./self.param_tf_sub_hz, self.update_transforms)
 
     def initialise_map(self):
-        self.map_corners = np.array(self.param_map_corners_coords).reshape(-1, 2)
-        self.map_centre = np.mean(self.map_corners, axis=0).astype(float)
-        length, width, theta = self.get_map_pose()
-        self.map_rotation = theta
-        self._map = Grid2D(length, width, self.planning_resolution)
         if self.param_roll_map:
             self.set_offset(0, 0)
+            self._map = Grid2D(self.planning_resolution, with_border=False)
+        else:
+            self.map_corners = np.array(self.param_map_corners_coords).reshape(-1, 2)
+            self.map_centre = np.mean(self.map_corners, axis=0).astype(float)
+            length, width, theta = self.get_map_pose()
+            self.map_rotation = theta
+            self._map = Grid2D(length, width, self.planning_resolution, with_border=True)
         self.pub_transform()
 
     def get_furthest_point_in_direction(self, pts, direction):
@@ -186,7 +188,7 @@ class FlatMapper(Mapper):
         t.child_frame_id = 'local_map'
 
         # For now we assume the map frame never needs to rotate or move in z axis
-        if self.offset is not None:
+        if self.param_roll_map:
             t.transform.translation.x = float(self.offset[0])
             t.transform.translation.y = float(self.offset[1])
             t.transform.rotation.w = 1.0
