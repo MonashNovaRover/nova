@@ -69,7 +69,7 @@ class Controller(Node):
     Controls the movement of the rover between waypoints determined by the path planner.
     Receives updates about the current pose of the rover and the waypoints to
     navigate between via ros topics autonomous/pose and autonomous/goals. Publishes drive
-    commands to auto_drive_commands
+    commands 
     """
 
     def __init__(self):
