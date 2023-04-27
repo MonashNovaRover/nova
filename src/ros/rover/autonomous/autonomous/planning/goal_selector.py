@@ -43,7 +43,7 @@ from core.msg import AutonomousGoal, Point2D, AutonomousGoalArray
 # autonomous imports
 from autonomous.math_utils.controller_math import distance
 from autonomous.config.ros_config import auto_goal_topic, planning_destination_topic
-from autonomous.controller.ar_tag_manager import ArTagManager
+from autonomous.planning.ar_tag_manager import ArTagManager
 
 # misc
 from enum import Enum
@@ -57,7 +57,7 @@ class PlanningState(Enum):
     SEARCH = 3  # searching for an AR tag
     TO_AR_TAG = 4  # honing in on an AR tag
     THROUGH_GATE = 5  # passing through a gate
-    SUCCESS = 6  # waiting for instruction
+    SUCCESS = 6  # achieved goal and awaiting new instructions
     RETURN = 7  # returning autonomously to the last goal
     FAILED = 8  # failed to reach goal - currently unusued
 

@@ -20,8 +20,8 @@ from typing import List
 
 from core.msg import AlvarMarkers, AutonomousGoal, AlvarMarker
 from rclpy.node import Node
-from config.runtime_params import *
-from config.ros_config import *
+from autonomous.config.runtime_params import *
+from autonomous.config.ros_config import *
 from collections import deque
 
 
@@ -46,7 +46,7 @@ class ArTagManager(Node):
         Provides a new goal to the AR tag manager
         """
         for _id in goal.tag_ids:
-            assert(0 <= _id <= self.max_tag_id, "AR tag id out of range")
+            assert 0 <= _id <= self.max_tag_id, "AR tag id out of range"
 
         self.goal = goal
         self.ar_tag_poses = {
@@ -77,9 +77,9 @@ class ArTagManager(Node):
         """
         Assuming we have 2 tags, what is the unit vector normal to the line between them
         """
-        assert len(self.ar_tag_goals) == 2
-        gate_l, gate_r = self.get_average_tag_pose(self.ar_tag_goals[0]),\
-                            self.get_average_tag_pose(self.ar_tag_goals[1])
+        assert self.goal.type == AutonomousGoal.GOAL_TYPE_GATE, "Goal type is not gate"
+        gate_l, gate_r = self.get_average_tag_pose(self.goal.tag_ids[0]),\
+                            self.get_average_tag_pose(self.goal.tag_ids[1])
 
         print(f"gate_l = {gate_l}, gate_r = {gate_r}")
         normal = np.array((gate_l[1] - gate_r[1], gate_r[0] - gate_l[0]))
