@@ -67,7 +67,7 @@ def cli_parser():
     
     # Only use data if writing, otherwise delete
     if args.data is not None and args.command not in ['write', 'poll']:
-        print("[Warning]: Data given for a command that does not take data. Ignoring data")
+        print("[Warning]: Data given for a command that does not need data. Ignoring data")
         args.data = None
 
     return args
