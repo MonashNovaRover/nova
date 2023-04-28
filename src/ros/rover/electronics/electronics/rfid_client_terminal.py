@@ -70,16 +70,14 @@ def main():
     rfid_client = RFIDClient()
     rfid_client.send_request(args)
 
-    while rfid_client.future is None:
-        rclpy.spin_once(rfid_client)
+    rclpy.spin_until_future_complete(rfid_client, rfid_client.future)
     
-    if rfid_client.future.done():
-        try:
-            # get and print text data to user
-            response = rfid_client.future.result()
-            print(response.response)
-        except Exception as e:
-            print('[Error]: Service call failed')
+    try:
+        # get and print text data to user
+        response = rfid_client.future.result()
+        print(response.response)
+    except Exception as e:
+        print('[Error]: Service call failed')
 
     rfid_client.destroy_node()
     rclpy.shutdown()
