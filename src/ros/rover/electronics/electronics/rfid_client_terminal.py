@@ -29,6 +29,17 @@ import rclpy
 from rclpy.node import Node
 
 import argparse
+import sys
+
+
+class DefaultHelpParser(argparse.ArgumentParser):
+    def error(self, message):
+        """
+        Override the error function to also print the help
+        """
+        sys.stderr.write(f"error: {message}\n")
+        self.print_help()
+        sys.exit(2)
 
 
 class RFIDClient(Node):
@@ -49,9 +60,9 @@ class RFIDClient(Node):
         self.future = self.cli.call_async(req)
 
 def cli_parser():
-    parser = argparse.ArgumentParser(description="Send or receive using the RFID scanner", usage="rfid [-h] {read,clear,restart,dump,write,poll} [-d DATA]")
+    parser = DefaultHelpParser(description="Send or receive using the RFID scanner", usage="rfid [-h] {read,clear,restart,dump,write,poll} [-d DATA]")
     parser.add_argument("command", type=str, choices=['read', 'clear', 'restart', 'dump', 'write', 'poll'], default='read', help="Command to send to the RFID reader")
-    parser.add_argument("-d", "--data", type=str, default=None, help="Data to write to the RFID reader. Only used if using the 'write' or 'poll' commands")
+    parser.add_argument("-d", "--data", type=str, default=None, help="Data to write to the RFID reader. Only required if using the 'write' or 'poll' commands")
     args = parser.parse_args()
     
     # Only use data if writing, otherwise delete
