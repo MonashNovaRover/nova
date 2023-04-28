@@ -264,7 +264,7 @@ class ResolverPublisher(Node):
         """
         Start the node and make a service request to /control/arm_config_info
         """
-        super().__init__('resolver_publisher', start_parameter_services=False)
+        super().__init__('resolver_publisher')
 
         # If starting the script by itself, don't wait for arm data
         # If starting from the arm launch file, override parameter as True
