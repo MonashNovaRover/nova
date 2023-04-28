@@ -41,7 +41,7 @@ from tf2_ros import Buffer, TransformListener
 from core.msg import AlvarMarker, AlvarMarkers, AutonomousGoal
 from visualization_msgs.msg import MarkerArray, Marker
 from geometry_msgs.msg import PoseStamped, Pose, Transform, Pose2D
-from std_msgs.msg import String, Empty, ColorRGBA
+from std_msgs.msg import String, Empty, ColorRGBA, Header
 
 # nova imports
 import autonomous.math_utils.transform as transform
@@ -90,7 +90,7 @@ class GoalManager(Node):
 
     def __init__(self):
         super().__init__("goal_manager")
-        self.get_logger().set_level(logging.DEBUG)
+        self.get_logger().set_level(logging.INFO)
         # ROS Subscribers
         self.sub_blocks = self.create_subscription(MarkerArray, "/object_detector/markers", self.cb_cube, 10)
         self.sub_tags = self.create_subscription(AlvarMarkers, "/ar_tracker/tags", self.cb_tag, 10)
@@ -108,6 +108,7 @@ class GoalManager(Node):
         self.param_min_reasonable_z = self.declare_parameter("minimum_target_z", -1.0).value
         self.param_map_coords_counterclockwise = self.declare_parameter("map_coords_cc", [10, 10, -10, 10, -10, -10, 10, -10]).value
         self.param_goal_forget_time = self.declare_parameter("goal_forget_time_s", 30).value
+        self.param_frame_id = self.declare_parameter("frame_id", "map").value
 
         if self.param_search_plan is None:
             self.param_search_plan = []
@@ -495,6 +496,8 @@ class GoalManager(Node):
         
         self.get_logger().debug(f"Returning active goal: {self.active_goal}")
         if self.active_goal is not None:
+            self.active_goal.header.frame_id = self.param_frame_id
+            self.active_goal.header.stamp = self.get_clock().now().to_msg()
             self.pub_goals.publish(self.active_goal)
 
     def publish_found(self):
