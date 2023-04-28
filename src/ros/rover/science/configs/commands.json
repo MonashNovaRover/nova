@@ -1,106 +1,131 @@
 {
   "targets": {
-    "extractor": {
-      "hex": "0A0",
+    "platform": {
+      "hex": "000",
       "actions": {
-        "stop_all_motors": {
+        "enable": {
           "hex": "00",
-          "args": []
+          "args": ["enabled"]
         },
 
-        "selector_motor_forwards": {
+        "actuation_manual": {
           "hex": "01",
-          "args": ["speed"]
+          "args": ["direction", "type"]
         },
 
-        "selector_motor_backwards": {
+        "actuation_top": {
           "hex": "02",
-          "args": ["speed"]
-        },
-
-        "stop_all_heaters": {
-          "hex": "07",
           "args": []
         },
 
-        "big_kiln_heater": {
-          "hex": "08",
-          "args": ["enabled"]
+        "actuation_bottom": {
+          "hex": "03",
+          "args": []
         },
 
-        "baby_kiln_1_heater": {
-          "hex": "09",
-          "args": ["enabled"]
-        },
-
-        "pump_forwards": {
-          "hex": "0C",
-          "args": ["enabled"]
-        },
-
-        "rotate_kiln": {
-          "hex": "0F",
-          "args": ["speed"]
+        "scoops": {
+          "hex": "04",
+          "args": ["id", "direction"]
         }
       }
     },
 
-    "biln": {
-      "hex": "0B0",
+    "microscope": {
+      "hex": "000",
       "actions": {
-        "stop_all_heaters": {
+        "lens": {
+          "hex": "05",
+          "args": ["lens"]
+        },
+
+        "led": {
+          "hex": "06",
+          "args": ["enabled"]
+        },
+
+        "laser": {
           "hex": "07",
-          "args": []
-        },
-
-        "big_kiln_heater": {
-          "hex": "08",
           "args": ["enabled"]
-        },
-
-        "baby_kiln_2_heater": {
-          "hex": "09",
-          "args": ["enabled"]
-        },
-
-        "baby_kiln_3_heater": {
-          "hex": "0A",
-          "args": ["enabled"]
-        },
-
-        "load_cell": {
-          "hex": "0D",
-          "args": ["action"]
         }
       }
     },
 
-    "science_misc": {
-      "hex": "0C0",
+    "internals": {
+      "hex": "001",
       "actions": {
-        "stop_all_motors": {
+        "sequence": {
+          "hex": "00",
+          "args": []
+        },
+
+        "fill": {
+          "hex": "02",
+          "args": []
+        },
+
+        "pumps": {
+          "hex": "03",
+          "args": ["id"]
+        },
+
+        "enable": {
+          "hex": "05",
+          "args": []
+        },
+
+        "disable": {
+          "hex": "06",
+          "args": []
+        },
+
+        "direction": {
+          "hex": "07",
+          "args": ["direction"]
+        },
+
+        "move": {
+          "hex": "08",
+          "args": ["cuvette"]
+        },
+
+        "step": {
+          "hex": "09",
+          "args": ["steps"]
+        }
+      }
+    },
+
+    "spectrometer": {
+      "hex": "001",
+      "actions": {
+        "scan_single": {
+          "hex": "01",
+          "args": ["cuvette"]
+        },
+
+        "scan_all": {
+          "hex": "04",
+          "args": []
+        }
+      }
+    },
+
+    "abort_platform": {
+      "hex": "005",
+      "actions": {
+        "abort": {
           "hex": "00",
           "args": []
         }
       }
     },
 
-    "auger_platform": {
-      "hex": "033",
+    "abort_distribution": {
+      "hex": "00B",
       "actions": {
-        "height_change": {
-          "hex": "",
-          "args": ["speed"]
-        }
-      }
-    },
-
-    "auger_drill": {
-      "hex": "013",
-      "actions": {
-        "drill": {
-          "hex": "",
-          "args": ["speed"]
+        "abort": {
+          "hex": "00",
+          "args": []
         }
       }
     }
@@ -119,18 +144,8 @@
     "fine": "01",
     "deposit": "00",
     "pickup": "01",
-
     "off": "00",
     "on": "01",
-    "cycle": "02",
-    "rotate_on": "70",
-    "tare_kiln": "00",
-    "read_kiln": "01",
-    "tare_biln_1": "00",
-    "read_biln_1": "01",
-    "tare_biln_2": "02",
-    "read_biln_2": "03",
-    "tare_biln_3": "04",
-    "read_biln_3": "05"
+    "cycle": "02"
   }
 }
