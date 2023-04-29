@@ -88,6 +88,9 @@ private:
     // A lock on the controls - can be unlocked
     bool locked = true;
 
+    // A flag for the handbrake
+    bool handbrake = false;
+
     // Drive mode
     DriveMode mode = TANK;
 
@@ -102,6 +105,7 @@ private:
 
     // The current speed and steer multipliers
     float multiplier_speed = INITIAL_MULT_SPEED;
+
 
     //------------------------------------------------------------//
 private:

@@ -56,8 +56,8 @@ void DriveInputs::publish_cmds()
             message.speed = left_input_axis_y * multiplier_speed * trigger_speed;
         }
 
-
-        message.steer = right_input_axis_x;
+        message.radius = abs(right_input_axis_x == 0 ? INFINITY : (1.0 / right_input_axis_x) - (right_input_axis_x > 0 ? 1 : -1));
+        message.direction = right_input_axis_x > 0 ? 1 : right_input_axis_x < 0 ? -1 : 0;
 
         // Otherwise print lock message
     }
@@ -68,6 +68,7 @@ void DriveInputs::publish_cmds()
     }
 
     message.mode = mode;
+    message.handbrake = handbrake;
 
     // Publish the drive commands
     publisher->publish(message);
@@ -145,6 +146,20 @@ void DriveInputs::input_callback(const core::msg::InputGamepad::SharedPtr msg)
         // Prevent changing states if the controller is locked
         if (!locked)
         {
+            if (msg->btn_thumb_l_state == 1)
+            {
+                if (!handbrake)
+                    Print::print("Handbrake Enabled", C_MODE);
+                handbrake = true;
+            }
+                // Disable Handbrake
+            else if (msg->btn_thumb_r_state == 1)
+            {
+                if (handbrake)
+                    Print::print("Handbrake Disabled", C_MODE);
+                handbrake = false;
+            }
+
             // Change the speed multipliers
             if (msg->btn_dpad_u_state == 1)
                 adjust_multiplier(multiplier_speed, true);
