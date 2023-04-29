@@ -5,7 +5,7 @@ Monash Nova Rover Team
 This file contains a command-line interface to call the rfid service and
 print out the response
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-NODE: None
+NODE: rfid_client_terminal
 TOPICS: None
 SERVICES:
   - /electronics/rfid_service    [core/RFIDCommand]        [Client]
@@ -56,7 +56,7 @@ class RFIDClient(Node):
 
 def cli_parser():
     parser = DefaultHelpParser(description="Send or receive using the RFID scanner", usage="rfid [-h] {read,clear,restart,dump,write,poll} [-d DATA]")
-    parser.add_argument("command", type=str, choices=['read', 'clear', 'restart', 'dump', 'write', 'poll'], default='read', help="Command to send to the RFID reader")
+    parser.add_argument("command", type=str, choices=['read', 'clear', 'restart', 'dump', 'write', 'poll'], help="Command to send to the RFID reader")
     parser.add_argument("-d", "--data", type=str, default=None, help="Data to write to the RFID reader. Only required if using the 'write' or 'poll' commands")
     args = parser.parse_args()
     
