@@ -83,7 +83,7 @@ class Controller(Node):
         self.param_waypoint_follow_distance = self.declare_parameter("waypoint_follow_distance_m", 0.3).value
 
         # ~~~~~~~~~~ State ~~~~~~~~
-        self.state = DrivingState.SUCCESS
+        self.state = None
         self.state_rover_pose = Pose2D()
         self.state_waypoint_path = []
         self.state_latest_steer = 0
@@ -120,6 +120,7 @@ class Controller(Node):
         # Timers
         self.timer_control = self.create_timer(0.1, self.control)  # calculate and send drive commands
         self.timer_pose = self.create_timer(0.1, self.callback_rover_pose)  # update the rover's pose from tf2
+        self.on_state_update(DrivingState.SUCCESS)
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ State Transition Helper Functions ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

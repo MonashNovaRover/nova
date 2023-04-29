@@ -220,6 +220,7 @@ class PoseConverter(Node):
         """
         Takes GPS coordinate goals, transforms them one-by-one into x, y coordinates and publishes them
         """
+        self.get_logger().debug("received goal: {msg}")
         transformed_goals = AutonomousGoalArray()
         transformed_goals.header = msg.header
 

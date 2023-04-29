@@ -75,7 +75,7 @@ class Controller(Node):
         super().__init__('goal_selector')
 
         # set debug to not get shown
-        self.get_logger().set_level(LoggingSeverity.INFO)
+        self.get_logger().set_level(LoggingSeverity.DEBUG)
 
         # Params
         self.param_plan_frequency = self.declare_parameter("plan_frequency", 1.0).value
@@ -107,8 +107,8 @@ class Controller(Node):
 
         # ------------- ROS Things ----------
         # tf2 buffer and listener
-        self.tf_buffer = Buffer(node=self)
-        self.tf_listener = TransformListener(self.tf_buffer, self)
+        self.tf_buffer = Buffer()
+        self.tf_listener = TransformListener(buffer=self.tf_buffer, node=self, spin_thread=True)
 
         # Publishers
         # Planned destination -> we wish to go here, which is the next step on our path to the target
@@ -129,11 +129,13 @@ class Controller(Node):
 
         self.get_logger().info("Waiting for transform from 'local_map' to 'base_link'...")
         while not self.tf_buffer.can_transform('base_link', 'map', Time()):
+            print("No transform")
             time.sleep(0.1)
         self.get_logger().info("Received Transform!")
 
         # Timers
         self.timer_planning = self.create_timer(1 / self.param_plan_frequency, self.send_next_goal)  # update planning state and plan paths
+        self.on_state_update(PlanningState.IDLE)
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ State Transition Helper Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     def intermediate_goal(self) -> bool:
