@@ -160,6 +160,9 @@ class PoseConverter(Node):
             time.sleep(0.1)
 
         self.get_logger().info("Received GPS offset transform")
+        gps_tf = self.tf_buffer.lookup_transform("base_link", "gps_link", Time()).transform
+        r, p, y = transform.quat_to_euler(gps_tf.rotation)
+        self.gps_offset = np.array([0., 0., y])
 
     def transform_imu_to_nova(self):
         """
@@ -198,7 +201,7 @@ class PoseConverter(Node):
 
         tf_msg.transform.rotation = quat
         
-        return quat
+        return tf_msg
 
     def cb_imu(self, msg: Vector3Stamped):
         """
