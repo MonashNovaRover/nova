@@ -1,4 +1,3 @@
-__package__ = "autonomous"
 # !/usr/bin/python3
 
 
