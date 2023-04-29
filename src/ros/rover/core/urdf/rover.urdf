@@ -12,7 +12,7 @@
     <child link="gps_link"/>
     <origin 
         xyz="0. 0. 0.38"
-        rpy="0. 0. ${-5 * pi / 18}"
+        rpy="0. 0. ${-5.35 * pi / 18}"
     />
   </joint>
 
