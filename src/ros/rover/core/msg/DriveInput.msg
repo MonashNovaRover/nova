@@ -13,6 +13,9 @@ float32 speed
 # negative is right.
 float32 radius
 
+# The direction of the turning radius, left -1, right 1
+int8 direction
+
 # Determines the drive mode the rover is in.
 byte mode
 
