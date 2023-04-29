@@ -47,14 +47,6 @@ def generate_launch_description():
         parameters=[core_params_path / "auto_params.yaml"],
         emulate_tty=True
     )
-    tracking_cam_launch = Node(
-        package='autonomous',
-        executable='tracking_camera.py',
-        output='screen',
-        parameters=[core_params_path / "auto_params.yaml"],
-        emulate_tty=True,
-        condition=UnlessCondition(from_rosbag)
-    )
     depth_cam_launch = Node(
         package="autonomous",
         executable="depth_camera.py",
@@ -89,7 +81,6 @@ def generate_launch_description():
     return LaunchDescription([
         from_rosbag_arg,
         main_launch,
-        tracking_cam_launch,
         depth_cam_launch,
         stamp_converter_launch,
         controller_launch,
