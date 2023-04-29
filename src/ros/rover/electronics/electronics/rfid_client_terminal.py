@@ -2,24 +2,19 @@
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team
-This file contains a convenience little wrapper on a ros service client to call
-the rfid service and print out the responses. Its pretty jank but should
-just be an intermediate testing thing to having a GUI
-The script is designed to appear somewhat like a terminal which will accept
-input commands to appropriately control and read data from the RFID tag
-
-usage examples:
->>>read
-<data read from rfid or error message>
->>>write <data to write to rfid card>
-<response message>
->>>clear
-<response message>
+This file contains a command-line interface to call the rfid service and
+print out the response
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+NODE: None
+TOPICS: None
+SERVICES:
+  - /electronics/rfid_service    [core/RFIDCommand]        [Client]
+ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:     electronics
 AUTHOR(S):   Jory Braun, Josh Cherubino
-CREATION:    9/3/2022
-EDITED:      20/3/2023
+CREATION:    09/03/2022
+EDITED:      29/04/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
