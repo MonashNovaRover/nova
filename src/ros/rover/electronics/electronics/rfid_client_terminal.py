@@ -65,6 +65,10 @@ def cli_parser():
     parser.add_argument("-d", "--data", type=str, default=None, help="Data to write to the RFID reader. Only required if using the 'write' or 'poll' commands")
     args = parser.parse_args()
     
+    # Require data for some instructions
+    if args.data is None and args.command in ['write', 'poll']:
+        parser.error(f"command '{args.command}' requires data")
+    
     # Only use data if writing, otherwise delete
     if args.data is not None and args.command not in ['write', 'poll']:
         print("[Warning]: Data given for a command that does not need data. Ignoring data")
