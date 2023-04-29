@@ -28,8 +28,6 @@ def generate_launch_description():
             package='control', executable='driver', output='screen', emulate_tty=True),
         Node(
 	        package='electronics', executable='LED_transmitter.py', output='screen', emulate_tty=True),
-        Node(
-            package='imu',  executable='imu_node', output='screen', emulate_tty=True),
         # launch_ros.actions.Node(
 	    #     package='electronics', executable='gimbal_service.py', output='screen', emulate_tty=True),
     ])
