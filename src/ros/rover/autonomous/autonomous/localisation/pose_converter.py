@@ -171,7 +171,7 @@ class PoseConverter(Node):
         TODO: set IMU transform in URDF, and we can use tf2 to transform properly. Note that there are serious complications
         Caused by IMUs having absolute pitch and roll but relative yaw, so this is non-trivial
         """
-        imu_roll, imu_pitch = math.radians(self.latest_imu.vector.y), math.radians(self.latest_imu.vector.x)
+        imu_roll, imu_pitch = math.radians(self.latest_imu.vector.x), math.radians(self.latest_imu.vector.y)
         return np.array([imu_roll, imu_pitch, 0.])
 
     def calculate_transform(self) -> TransformStamped:
@@ -184,7 +184,7 @@ class PoseConverter(Node):
         imu_eulers = self.transform_imu_to_nova()
         # GPS heading is positive in the clockwise direction, but the right hand rule dictates for us that positive yaw is counter-clockwise
         gps_eulers = np.array([0., 0., -math.radians(self.latest_gps_pose.yaw)])
-        eulers = imu_eulers + gps_eulers + self.gps_offset
+        eulers = imu_eulers + gps_eulers - self.gps_offset
         quat = transform.euler_to_quat(eulers)
         gps_x, gps_y = self.gps_converter.get_local_coord(self.latest_gps_pose.latitude, self.latest_gps_pose.longitude)
 
