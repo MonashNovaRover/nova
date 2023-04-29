@@ -114,7 +114,7 @@ void Driver::set_best_effort_radius() {
 double Driver::calc_wheel_angle(float radius, bool left, int dir)
 {
     double angle;
-    // gradient of line https://www.desmos.com/calculator/opj8exj9gp
+    // math for angles and radius https://www.desmos.com/calculator/oq5bbayhio
 
     // only need to consider left and right wheel angles as they are the same angles but opposite direction, and
     // front and back wheels are driven in opposite directions by blcmd boards
@@ -381,10 +381,11 @@ void Driver::blcmd_spinner() {
 void Driver::drive_inputs_deadline_exceeded()
 {
     RCLCPP_WARN(this->get_logger(), "Drive inputs subscriber deadline missed");
-    for (PivotModule *pivot : pivots)
-    {
-        pivot->cmdWheel->stop();
-    }
+    //set target radius and direction to the best effort direction so the wheels don't move
+    target_radius = best_effort_radius;
+    target_direction = best_effort_direction;
+    //set velocity to zero to stop moving
+    velocity = 0.0;
 }
 
 //  Main function called when the script execution begins

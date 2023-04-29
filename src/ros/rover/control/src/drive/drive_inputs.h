@@ -77,7 +77,7 @@ private:
     rclcpp::Publisher<core::msg::DriveInput>::SharedPtr publisher;
 
     // Stores the subscriber to the gamepad inputs
-    rclcpp::Subscription<core::msg::InputGamepad>::SharedPtr subscription;
+    rclcpp::Subscription<core::msg::InputGamepad>::SharedPtr gamepad_input_subscription;
 
     // A flag for whether the controller is connected
     bool connected = false;

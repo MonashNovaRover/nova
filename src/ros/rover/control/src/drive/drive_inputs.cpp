@@ -40,9 +40,6 @@ void DriveInputs::publish_cmds()
     // Create the message
     auto message = core::msg::DriveInput();
 
-    if (!prev_msg_received)
-        return;
-
     // Set up the values if the controller is not locked
     if (!locked && connected)
     {
@@ -84,10 +81,12 @@ void DriveInputs::deadline_exceeded()
     // Clear the old inputs
     left_input_axis_y = 0.0;
     left_input_axis_x = 0.0;
-    right_input_axis_x = 0.0;
+    // don't include right_input_axis_x as this will change the radius during deadline. Want to keep the radius
+    // the same so pivots don't change.
     right_input_axis_y = 0.0;
 
     Print::print("No gamepad input received");
+    RCLCPP_WARN(rclcpp::get_logger("rclcpp"), "Input gamepad subscriber deadline missed");
     prev_msg_received = false;
 }
 
@@ -101,7 +100,7 @@ void DriveInputs::input_callback(const core::msg::InputGamepad::SharedPtr msg)
 
         left_input_axis_x = 0.0;
         left_input_axis_y = 0.0;
-        right_input_axis_x = 0.0;
+        //dont include right_input_axis_x as this will change the radius.
         right_input_axis_y = 0.0;
         trigger_speed = 1.0;
 
@@ -199,7 +198,7 @@ DriveInputs::DriveInputs() : Node("drive_inputs")
 
 
     // Creates the input subscription
-    subscription = this->create_subscription<core::msg::InputGamepad>(
+    gamepad_input_subscription = this->create_subscription<core::msg::InputGamepad>(
         "/control/input_gamepad", qos, std::bind(&DriveInputs::input_callback, this, _1), subscriber_options);
 
     // Creates a timer function that runs a function on loop every 0.05 seconds
