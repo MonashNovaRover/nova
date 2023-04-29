@@ -40,11 +40,12 @@ class SkytraqNode (Node):
         self.config_port(com_no, baud)
 
         self.publisher = self.create_publisher(RoverPoseGPS, '/electronics/gps_data', 10)
-        self.timer = self.create_timer(0, self.publisher_callback)
+        self.timer = self.create_timer(1 / 30, self.publisher_callback)
 
     def parse_msg(self, pose):
         self.pose.header.stamp = self.get_clock().now().to_msg()
         raw_msg = self.get_msg()
+        self.get_logger().debug(f"raw message: {raw_msg}")
 
         if raw_msg[0:2] == ["PSTI", '036']:
             if raw_msg[4] != '' and (raw_msg[4].isupper() or raw_msg[4].islower()) == False:
