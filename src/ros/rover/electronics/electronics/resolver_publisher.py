@@ -162,10 +162,6 @@ class ResolverTransceiver(CANTransceiver):
         self.logger.info(f'Zeroing joint {joint_name}')
         # Send the zeroing command
         integer_data = self.poll_resolver(joint_name, self.zero_transceiver)
-        # Reset the info for geared resolvers
-        joint = self.get_joint(joint_name)
-        joint.sector_count = 0
-        joint.last_reading = None
         return integer_data is not None
     
     def poll_resolver(self, joint_name: str, transceiver: CANTransceiver=None) -> int:
@@ -404,11 +400,24 @@ class ResolverPublisher(Node):
         """
         joint_name = request.value
         try:
+            # Zero the joint
             response.success = self.resolver_transceiver.zero(joint_name)
             if response.success:
-                response.message = f"Successfully transmitted data for joint {joint_name}"
+                response.message = f"Successfully transmitted zeroing data for joint {joint_name}"
             else:
                 response.message = f"Failed to zero joint {joint_name}"
+                return response
+
+            # If successful, reset the sector if the joint is geared
+            joint = self.resolver_transceiver.get_joint(joint_name)
+            if joint.gear_ratio != 1:
+                response.success = self.resolver_transceiver.reset_sector_count(joint_name)
+                if response.success:
+                    response.message += f"\nSuccessfully reset sector count for joint {joint_name}"
+                else:
+                    response.message += f"\nFailed to reset sector count got joint {joint_name}"
+                    return response
+            
         except KeyError as e:
             response.success = False
             response.message = str(e).replace("'", "")
