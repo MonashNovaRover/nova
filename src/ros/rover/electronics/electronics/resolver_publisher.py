@@ -383,7 +383,7 @@ class ResolverPublisher(Node):
 
             # Initialisation if this resolver is geared
             if joint.gear_ratio != 1:
-                self.logger.info(f'Getting initial reading for geared resolver {joint_name}')
+                self.get_logger().info(f'Getting initial reading for geared resolver {joint_name}')
                 while not self.reset_sector_count(joint_name):
                     # If reset failed, wait and try again
                     time.sleep(self.receive_timeout)
