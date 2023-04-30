@@ -75,7 +75,7 @@ class Controller(Node):
         super().__init__('goal_selector')
 
         # set debug to not get shown
-        self.get_logger().set_level(LoggingSeverity.DEBUG)
+        self.get_logger().set_level(LoggingSeverity.INFO)
 
         # Params
         self.param_plan_frequency = self.declare_parameter("plan_frequency", 1.0).value
@@ -129,7 +129,6 @@ class Controller(Node):
 
         self.get_logger().info("Waiting for transform from 'local_map' to 'base_link'...")
         while not self.tf_buffer.can_transform('base_link', 'map', Time()):
-            print("No transform")
             time.sleep(0.1)
         self.get_logger().info("Received Transform!")
 
@@ -330,7 +329,7 @@ class Controller(Node):
                 trigger = Trigger.Request()
                 self.srv_led_start.call_async(trigger)
             # If we have more intermediate goals, set the next one as the current goal
-            if len(self.state_unvisited_intermediate_goals > 0):
+            if len(self.state_unvisited_intermediate_goals) > 0:
                 self.state_current_goal = self.state_unvisited_intermediate_goals.pop(0)
             # Otherwise, we will now go to the final goal
             else:
