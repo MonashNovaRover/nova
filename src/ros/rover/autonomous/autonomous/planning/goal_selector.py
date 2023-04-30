@@ -112,7 +112,7 @@ class Controller(Node):
 
         # Publishers
         # Planned destination -> we wish to go here, which is the next step on our path to the target
-        self.pub_desired_destination = self.create_publisher(Point2D, planning_destination_topic, 10)
+        self.pub_desired_destination = self.create_publisher(PoseStamped, planning_destination_topic, 10)
         self.pub_do_spin = self.create_publisher(Empty, "/autonomous_controller/do_spin", 10)
 
         # Subscribers
