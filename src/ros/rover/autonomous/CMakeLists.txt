@@ -88,13 +88,6 @@ ament_target_dependencies_private(
     pybind11::module
     )
 
-
-install(TARGETS a_star DESTINATION ~/nova_ws/install/autonomous/lib/python3.8/site-packages)
-install(TARGETS height_mapper DESTINATION ~/nova_ws/install/autonomous/lib/python3.8/site-packages)
-install(TARGETS plane_fitter DESTINATION ~/nova_ws/install/autonomous/lib/python3.8/site-packages)
-install(TARGETS rs2_ros2 DESTINATION ~/nova_ws/install/autonomous/lib/python3.8/site-packages)
-
-
 # Add all the installation directories
 install(DIRECTORY
   rviz
