@@ -18,7 +18,7 @@ from ament_index_python.packages import get_package_share_path
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
-from launch.substitutions import Command, LaunchConfiguration
+from launch.substitutions import LaunchConfiguration
 from launch.conditions import IfCondition, UnlessCondition
 from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -26,25 +26,27 @@ from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
 from launch_ros.actions import Node
-from launch_ros.parameter_descriptions import ParameterValue
 
 # Generate the launch file with all inputs
 def generate_launch_description():
-    core_path = get_package_share_path("core")
+    # Declare a launch configuration argument of the name "t265"
     from_tracking_cam = LaunchConfiguration('t265')
 
+    # Define a launch argument that runs another launch file
     urdf_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            FindPackageShare
-        )
+        PythonLaunchDescriptionSource([
+            FindPackageShare('core'), "/launch", "/urdf.launch.py"
+        ])
     )
 
+    # Define t265 argument default and description
     tracking_cam_arg = DeclareLaunchArgument(
         name='t265',
         default_value='False',
         description="Set to 'True' to run localisation from the t265 tracking camera"
     )
 
+    # Define a launch argument to launch a ros node
     world_to_map_node = Node(
             package='tf2_ros',
             executable='static_transform_publisher',
@@ -53,6 +55,7 @@ def generate_launch_description():
             emulate_tty=True
         )
 
+    # Launch URC pose converter unless we're using tracking cam
     pose_converter_node = Node(
         package='autonomous',
         executable='pose_converter.py',
@@ -101,6 +104,7 @@ def generate_launch_description():
         condition=IfCondition(from_tracking_cam)
     )
     return LaunchDescription([
+        urdf_launch,
         tracking_cam_arg,
         imu_node,
         gps_sub_node,
