@@ -29,74 +29,10 @@ def generate_launch_description():
     core_path = get_package_share_path('core')
     default_model_path = core_path / 'urdf/rover.urdf'
 
-    from_tracking_cam = LaunchConfiguration('t265')
-
-    tracking_cam_arg = DeclareLaunchArgument(
-        name='t265',
-        default_value='False',
-        description="Set to 'True' to run localisation from the t265 tracking camera"
-    )
-
     model_arg = DeclareLaunchArgument(name='model', default_value=str(default_model_path),
             description='Absolute path to robot urdf file')
     robot_description = ParameterValue(Command(['xacro ', LaunchConfiguration('model')]),
                                        value_type=str)
-
-    world_to_map_node = Node(
-            package='tf2_ros',
-            executable='static_transform_publisher',
-            arguments=['0', '0', '0', '0', '0', '0', 'world', 'map'],
-            output='screen',
-            emulate_tty=True
-        )
-
-    pose_converter_node = Node(
-        package='autonomous',
-        executable='pose_converter.py',
-        output='screen',
-        emulate_tty=True,
-        condition=UnlessCondition(from_tracking_cam)
-    )
-
-    imu_node = Node(
-        package='imu',
-        executable='imu_node',
-        output='screen',
-        emulate_tty=True,
-        condition=UnlessCondition(from_tracking_cam)
-    )
-
-    gps_pub_node = Node(
-        package='electronics',
-        executable='gps_publisher.py',
-        output='screen',
-        emulate_tty=True,
-        condition=UnlessCondition(from_tracking_cam)
-    )
-
-    gps_sub_node = Node(
-        package='electronics',
-        executable='base_gps_sub.py',
-        output='screen',
-        emulate_tty=True,
-        condition=UnlessCondition(from_tracking_cam)
-    )
-
-    pose_converter_t265_node = Node(
-        package='autonomous',
-        executable='pose_converter_ARC.py',
-        output='screen',
-        emulate_tty=True,
-        condition=IfCondition(from_tracking_cam)
-    )
-
-    t265_node = Node(
-        package='autonomous',
-        executable='tracking_camera.py',
-        output='screen',
-        emulate_tty=True,
-        condition=IfCondition(from_tracking_cam)
-    )
 
     robot_state_publisher_node = Node(
         package='robot_state_publisher',
@@ -112,15 +48,7 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
-        tracking_cam_arg,
-        imu_node,
-        gps_sub_node,
-        gps_pub_node,
-        t265_node,
         model_arg,
-        world_to_map_node,
         robot_state_publisher_node,
-        pose_converter_node,
-        pose_converter_t265_node,
         joint_state_publisher_node,
     ])
