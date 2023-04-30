@@ -10,7 +10,14 @@ from autonomous.config.ros_config import auto_goal_topic, auto_goal_gps
 class GoalPublisher(Node):
     def __init__(self):
         super().__init__("goal_publisher")
-        self.publisher = self.create_publisher(AutonomousGoalArray, auto_goal_gps, 10)
+        self.param_do_gps = self.declare_parameter("do_gps", True).value
+        if self.param_do_gps:
+            # Publish goals to pose_converter to turn into x, y coords
+            goal_topic = auto_goal_gps
+        else:
+            # Publish direct x, y coords
+            goal_topic = auto_goal_topic
+        self.publisher = self.create_publisher(AutonomousGoalArray, goal_topic, 10)
         self.timer = self.create_timer(0.1, self.get_input)
 
     def get_input(self):
@@ -20,17 +27,20 @@ class GoalPublisher(Node):
         Assumes latitude, longitude coordinates in decimal form (ie 40.443, -79.944)
         """
         # take user input for main goal
-        coord = input("Enter new goal as lat, lon tuple: ").replace(",", " ")
+        if self.param_do_gps:
+            coord = input("Enter new goal as lat, lon tuple: ").replace(",", " ")
+        else:
+            coord = input("Enter new goal as x, y tuple: ").replace(",", " ")
         ids_string = input("Enter integer ids of AR beacons if any: ").replace(",", " ")
 
         # Make AutonomousGoal out of user input
-        lat, lon = float(coord.split()[0]), float(coord.split()[1])
+        x, y = float(coord.split()[0]), float(coord.split()[1])
         ids = [int(id_string) for id_string in ids_string.split()]
 
         main_goal = AutonomousGoal()
         position = Point2D()
 
-        position.x, position.y = lat, lon
+        position.x, position.y = x, y
         # Check the number of AR tags to work out what type of goal we're going to
         main_goal.tag_ids = ids
         if len(ids) == 0:
