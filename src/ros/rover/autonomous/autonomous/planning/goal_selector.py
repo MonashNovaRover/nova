@@ -41,7 +41,7 @@ from tf2_ros import Buffer, TransformListener
 from core.msg import AutonomousGoal, Point2D, AutonomousGoalArray
 
 # autonomous imports
-from autonomous.math_utils.controller_math import distance
+from autonomous.math_utils.controller_math import distance, interpolate_circle_points
 from autonomous.config.ros_config import auto_goal_topic, planning_destination_topic
 from autonomous.planning.ar_tag_manager import ArTagManager
 
@@ -75,7 +75,7 @@ class Controller(Node):
         super().__init__('goal_selector')
 
         # set debug to not get shown
-        self.get_logger().set_level(LoggingSeverity.INFO)
+        self.get_logger().set_level(LoggingSeverity.DEBUG)
 
         # Params
         self.param_plan_frequency = self.declare_parameter("plan_frequency", 1.0).value
@@ -153,6 +153,9 @@ class Controller(Node):
         except Exception as e:
             self.get_logger().warn(f"Error in obtaining current pose: {e}")
             return -1
+
+        self.get_logger().debug("Current position: " + str(current_pose.translation))
+        self.get_logger().debug("Current goal: " + str(goal.position))
         
         return distance([current_pose.translation.x, current_pose.translation.y], 
                                 [goal.position.x, goal.position.y])
@@ -166,17 +169,22 @@ class Controller(Node):
         """
         # If we don't have a goal, we can't be at it
         if self.state_current_goal is None:
+            self.get_logger().debug("No current goal in at_current_goal()")
             return False
         
         # controller told us to skip this goal because it couldn't get to it
         if self.state != PlanningState.SEARCH_SPIN and self.trigger_achieved_goal:
+            self.get_logger().debug("Triggered achieved goal")
             return True
 
         # If we haven't received an override from the controller, we haven't completed a spin
         if self.state == PlanningState.SEARCH_SPIN:
+            # self.get_logger().debug(f"Triggered completed spin: {self.trigger_completed_spin}")
             return self.trigger_completed_spin
 
         dist_to_goal = self.dist_to_goal(self.state_current_goal)
+
+        self.get_logger().debug(f"Distance to goal: {dist_to_goal}, in at_current_goal()")
 
         # Couldn't calculate the distance to the goal - return False
         if dist_to_goal == -1:
@@ -302,6 +310,8 @@ class Controller(Node):
         # Reset trigger state variables
         self.trigger_return = False
         self.trigger_achieved_goal = False
+        self.trigger_received_goal = False
+        self.trigger_completed_spin = False
 
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~   Update State on Transition   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -311,6 +321,8 @@ class Controller(Node):
             trigger = Trigger.Request()
             self.srv_led_success.call_async(trigger)
             self.state_current_goal = None
+            self.state_visited_intermediate_goals = []
+            self.state_unvisited_intermediate_goals = []
 
         # We aren't doing anything - set current goal to None
         elif new_state == PlanningState.IDLE:
@@ -409,7 +421,8 @@ class Controller(Node):
         Constructs a list of AutonomousGoal objects of type INTERMEDIATE in a circle around the location we expect
         to find a tag or gate
         """
-        search_plan_coords = interpolate_circle_points(self.state_current_goal)
+        goal_coord = [self.state_current_goal.position.x, self.state_current_goal.position.y]
+        search_plan_coords = interpolate_circle_points(goal_coord)
         self.state_search_goals = []
         for x, y in search_plan_coords:
             search_goal = AutonomousGoal()

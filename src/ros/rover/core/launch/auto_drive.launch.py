@@ -78,7 +78,7 @@ def generate_launch_description():
 
     return LaunchDescription([
         from_rosbag_arg,
-        main_launch,
+        #main_launch,
         depth_cam_launch,
         stamp_converter_launch,
         controller_launch,
