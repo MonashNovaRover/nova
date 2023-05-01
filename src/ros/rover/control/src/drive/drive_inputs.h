@@ -78,6 +78,7 @@ private:
 
     // Stores the subscriber to the gamepad inputs
     rclcpp::Subscription<core::msg::InputGamepad>::SharedPtr gamepad_input_subscription;
+    rclcpp::Subscription<core::msg::DriveInput>::SharedPtr autonomous_input_subscription;
 
     // A flag for whether the controller is connected
     bool connected = false;
@@ -91,8 +92,13 @@ private:
     // A flag for the handbrake
     bool handbrake = false;
 
+    // Autonomous mode
+    bool autonomous = false;
+
     // Drive mode
     DriveMode mode = TANK;
+
+
 
     // Stores the current state of the input axis
     float right_input_axis_y = 0.0;

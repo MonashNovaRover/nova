@@ -88,6 +88,7 @@ void DriveInputs::deadline_exceeded()
     Print::print("No gamepad input received");
     RCLCPP_WARN(rclcpp::get_logger("rclcpp"), "Input gamepad subscriber deadline missed");
     prev_msg_received = false;
+    autonomous = false;
 }
 
 // Receives input from the gamepad
@@ -140,6 +141,20 @@ void DriveInputs::input_callback(const core::msg::InputGamepad::SharedPtr msg)
             if (locked)
                 Print::print("Gamepad Unlocked");
             locked = false;
+        }
+
+        //Checking for autonomous mode
+        if (msg->btn_a_state == 1)
+        {
+            if (!autonomous)
+                Print::print("Autonomous Mode Enabled", C_MODE);
+            autonomous = true;
+        }
+        else if (msg->btn_b_state == 1)
+        {
+            if (autonomous)
+                Print::print("Autonomous Mode Disabled", C_MODE);
+            autonomous = false;
         }
 
         // Prevent changing states if the controller is locked
