@@ -179,6 +179,14 @@ private:
     ///            pivot angular velocity
     void set_best_effort_radius();
 
+    /// @brief      Calculates the radius when the side that must turn the most to reach the target moves the maximum
+    ///             amount possible based on pivots angular velocity (max_d_theta). Can result in the other side
+    ///             turning more than the maximum angular velocity.
+    /// @param      curr_left - the current angle of the left wheels
+    /// @param      curr_right - the current angle of the right wheels
+    /// @param      radius - the target radius
+    /// @param      dir - the direction of the turn
+    /// @returns    a tuple containing the best effort radius and the direction of the turn
     tuple<float, int> calc_best_effort_radius_once(float curr_left, float curr_right, float radius, float dir);
 
     /// @brief      fills the wheel angles of the pivots array based on a radius
@@ -188,19 +196,13 @@ private:
     void fill_wheel_angles_strafe();
 
     /// @brief      fills the wheel velocities of the pivots array based on a radius
-    /// @param      speed - Speed of each driven wheel
-    /// @param      steer - Direction and amount of steering
-    void fill_wheel_velocities_radial(float speed, float radius);
+    void fill_wheel_velocities_radial();
 
     /// @brief      fills the wheel velocities of the pivots array when strafe mode is enabled
-    /// @param      speed - Speed of each driven wheel
-    void fill_wheel_velocities_strafe(float speed);
+    void fill_wheel_velocities_strafe();
 
     /// @brief      fills the wheel velocities of the pivots array when tank mode is enabled
-    /// @param      speed - Speed of each driven wheel
-    /// @param      radius - Radius of the turn
-    /// @param      dir - Direction of the turn
-    void fill_wheel_velocities_tank(float speed, float radius, float dir);
+    void fill_wheel_velocities_tank();
 
     /// @brief      Calculates the position of the wheel in relation to the wheelbase centre
     /// @param      id - The identification of the wheel

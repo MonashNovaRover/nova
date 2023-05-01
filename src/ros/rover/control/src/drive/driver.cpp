@@ -32,21 +32,19 @@ void Driver::send_commands()
 
             // Fill the wheel angles and velocities
             fill_wheel_angles_radial();
-            fill_wheel_velocities_radial(velocity * get_parameter("max_speed").get_parameter_value().get<double>(),
-                                         best_effort_radius);
+            fill_wheel_velocities_radial();
             data_msg.radius = best_effort_radius;
             break;
         }
         case core::msg::DriveInput::STRAFE: {
             fill_wheel_angles_strafe();
-            fill_wheel_velocities_strafe(velocity * get_parameter("max_speed").get_parameter_value().get<double>());
+            fill_wheel_velocities_strafe();
             data_msg.radius = 0;
             break;
         }
 
         case core::msg::DriveInput::TANK: {
-            fill_wheel_velocities_tank(velocity * get_parameter("max_speed").get_parameter_value().get<double>(),
-                    target_radius, target_direction);
+            fill_wheel_velocities_tank();
             data_msg.radius = target_radius;
             break;
         }
@@ -74,7 +72,7 @@ void Driver::drive_callback(const core::msg::DriveInput::SharedPtr msg)
     mode = msg->mode;
     // Set the speed and radius
     float prev_velocity = velocity;
-    velocity = msg->speed;
+    velocity = this->get_parameter("max_speed").get_parameter_value().get<double>()*msg->speed;
     float d_vel = velocity - prev_velocity;
     if (abs(d_vel) > max_d_vel) {
         velocity = prev_velocity + max_d_vel * (d_vel > 0 ? 1 : -1);
@@ -86,23 +84,28 @@ void Driver::drive_callback(const core::msg::DriveInput::SharedPtr msg)
 
 // Gets the turning radius of the rover
 void Driver::set_best_effort_radius() {
+    // Initialise the iteration radius and direction as the targets
     float iter_radius = target_radius;
     float iter_direction = target_direction;
     bool valid_radius;
     do {
+        ///Calculate the best effort radius.
         tuple<float, int> best_effort = calc_best_effort_radius_once(pivots[0]->angle, pivots[3]->angle,
                                                                      iter_radius, iter_direction);
         RCLCPP_DEBUG(this->get_logger(), "iter_radius: %f", get<0>(best_effort));
         RCLCPP_DEBUG(this->get_logger(), "iter_direction: %d", get<1>(best_effort));
         iter_radius = get<0>(best_effort);
         iter_direction = get<1>(best_effort);
+        // Calculate the new angles based on bes effort radius
         double left_angle = calc_wheel_angle(iter_radius, true, iter_direction);
         double right_angle = calc_wheel_angle(iter_radius, false, iter_direction);
         RCLCPP_DEBUG(this->get_logger(), "best effort: left_angle: %f, right_angle: %f", left_angle, right_angle);
         RCLCPP_DEBUG(this->get_logger(), "best effort radius: %f", iter_radius);
+        //check if the radius is valid
         valid_radius = abs(left_angle - pivots[0]->angle) <= max_d_theta*1.01 &&
                             abs(right_angle - pivots[3]->angle) <= max_d_theta*1.01;
         } while (!valid_radius);
+    //update the best effort radius and direction
     best_effort_radius = iter_radius;
     best_effort_direction = iter_direction;
 }
@@ -140,7 +143,7 @@ tuple<float, int> Driver::calc_best_effort_radius_once(float curr_left, float cu
 double Driver::calc_wheel_angle(float radius, bool left, int dir)
 {
     double angle;
-    // math for angles and radius https://www.desmos.com/calculator/oq5bbayhio
+    // math for angles and radius https://www.desmos.com/calculator/4syrariwlt
 
     // only need to consider left and right wheel angles as they are the same angles but opposite direction, and
     // front and back wheels are driven in opposite directions by blcmd boards
@@ -182,11 +185,20 @@ void Driver::fill_wheel_angles_radial()
     }
 }
 
-void Driver::fill_wheel_velocities_radial(float speed, float radius)
+void Driver::fill_wheel_velocities_radial()
 {
     //calculate the ration of the left and right wheels
-    float left_ratio = !radius ? 1 : sqrt(pow(CHASSIS_LENGTH, 2.0)/4 + pow(radius + (CHASSIS_WIDTH / 2), 2.0))/abs(radius);
-    float right_ratio = !radius ? 1 : sqrt(pow(CHASSIS_LENGTH, 2.0)/4 + pow(radius - (CHASSIS_WIDTH / 2), 2.0))/abs(radius);
+    float left_ratio, right_ratio;
+    if (best_effort_radius == 0 || best_effort_radius == INFINITY){
+        left_ratio = 1;
+        right_ratio = 1;
+    }
+    else {
+        left_ratio = sqrt(pow(CHASSIS_LENGTH, 2.0)/4 +
+                pow(best_effort_radius*best_effort_direction + (CHASSIS_WIDTH / 2), 2.0))/best_effort_radius;
+        right_ratio = sqrt(pow(CHASSIS_LENGTH, 2.0)/4 +
+                pow(best_effort_radius*best_effort_direction - (CHASSIS_WIDTH / 2), 2.0))/best_effort_radius;
+    }
 
     float max_ratio = max(abs(left_ratio), abs(right_ratio));
 
@@ -196,11 +208,11 @@ void Driver::fill_wheel_velocities_radial(float speed, float radius)
         // of the relevant side and divide by the maximum ratio
         if (i < 2) //left wheels
         {
-            pivots[i]->velocity = radius == INFINITY ? speed : speed*left_ratio/max_ratio;
+            pivots[i]->velocity = velocity*left_ratio/max_ratio;
         }
         else //right wheels
         {
-            pivots[i]->velocity =  radius == INFINITY ? speed : speed*right_ratio/max_ratio;
+            pivots[i]->velocity =  velocity*right_ratio/max_ratio;
         }
     }
 }
@@ -212,17 +224,18 @@ void Driver::fill_wheel_angles_strafe() {
     }
 }
 
-void Driver::fill_wheel_velocities_strafe(float speed) {
+void Driver::fill_wheel_velocities_strafe() {
     for (size_t i = 0; i < NUM_WHEELS; i++) {
         //diagonals have the same direction as each other and negative x/y neighbors
-        pivots[i]->velocity = speed * (i%2 ? -1 : 1);
+        pivots[i]->velocity = velocity * (i%2 ? -1 : 1);
     }
 }
 
-void Driver::fill_wheel_velocities_tank(float speed, float radius, float dir) {
-    if (radius == INFINITY) {
+void Driver::fill_wheel_velocities_tank() {
+    float radius = target_radius*target_direction;
+    if (radius == INFINITY || radius == -INFINITY || target_direction == 0) {
         for (size_t i = 0; i < NUM_WHEELS; i++){
-            pivots[i]->velocity = speed;
+            pivots[i]->velocity = velocity;
         }
     }
     else {
@@ -239,7 +252,7 @@ void Driver::fill_wheel_velocities_tank(float speed, float radius, float dir) {
         // Approximating that the wheels drive tangent to the turning circle, the scaling ensures
         // each wheel achieves the same angular velocity about the turning center the rover
         for (size_t i = 0; i < NUM_WHEELS; i++) {
-            pivots[i]->velocity = speed * distances[i] / max_distance;
+            pivots[i]->velocity = velocity * distances[i] / max_distance;
         }
 
         // Modify wheel directions if the turning centre is under the rover wheelbase
@@ -248,12 +261,12 @@ void Driver::fill_wheel_velocities_tank(float speed, float radius, float dir) {
         float wheel_x = CHASSIS_WIDTH / 2.0;
         if (abs(radius) < wheel_x) {
             // If the turning centre is...
-            if (radius > -wheel_x && radius <= 0 && dir < 0) {
+            if (radius > -wheel_x && radius <= 0 && target_direction < 0) {
                 // Under the left half of the chassis, reverse the left wheels
                 // Also include cases where we are pivoting left
                 pivots[0]->velocity *= -1;
                 pivots[1]->velocity *= -1;
-            } else if (radius >= 0 && radius < wheel_x && dir > 0) {
+            } else if (radius >= 0 && radius < wheel_x && target_direction > 0) {
                 // Under the right half of the chassis, reverse the right wheels
                 // Also include cases where we are pivoting right
                 pivots[2]->velocity *= -1;
