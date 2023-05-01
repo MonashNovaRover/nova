@@ -24,11 +24,11 @@ void Driver::send_commands()
         case core::msg::DriveInput::PIVOT: {
             // Find the turning radius form the 'steer' command
             // This will find the valid radius that the wheels can turn to based on max speed of pivots
-            RCLCPP_INFO(this->get_logger(), "target radius: %f", target_radius);
-            RCLCPP_INFO(this->get_logger(), "target direction: %d", target_direction);
+            RCLCPP_DEBUG(this->get_logger(), "target radius: %f", target_radius);
+            RCLCPP_DEBUG(this->get_logger(), "target direction: %d", target_direction);
             set_best_effort_radius();
-            RCLCPP_INFO(this->get_logger(), "new best effort radius: %f", best_effort_radius);
-            RCLCPP_INFO(this->get_logger(), "new best effort direction: %d", best_effort_direction);
+            RCLCPP_DEBUG(this->get_logger(), "new best effort radius: %f", best_effort_radius);
+            RCLCPP_DEBUG(this->get_logger(), "new best effort direction: %d", best_effort_direction);
 
             // Fill the wheel angles and velocities
             fill_wheel_angles_radial();
@@ -86,29 +86,55 @@ void Driver::drive_callback(const core::msg::DriveInput::SharedPtr msg)
 
 // Gets the turning radius of the rover
 void Driver::set_best_effort_radius() {
+    float iter_radius = target_radius;
+    float iter_direction = target_direction;
+    bool valid_radius;
+    do {
+        tuple<float, int> best_effort = calc_best_effort_radius_once(pivots[0]->angle, pivots[3]->angle,
+                                                                     iter_radius, iter_direction);
+        RCLCPP_DEBUG(this->get_logger(), "iter_radius: %f", get<0>(best_effort));
+        RCLCPP_DEBUG(this->get_logger(), "iter_direction: %d", get<1>(best_effort));
+        iter_radius = get<0>(best_effort);
+        iter_direction = get<1>(best_effort);
+        double left_angle = calc_wheel_angle(iter_radius, true, iter_direction);
+        double right_angle = calc_wheel_angle(iter_radius, false, iter_direction);
+        RCLCPP_DEBUG(this->get_logger(), "best effort: left_angle: %f, right_angle: %f", left_angle, right_angle);
+        RCLCPP_DEBUG(this->get_logger(), "best effort radius: %f", iter_radius);
+        valid_radius = abs(left_angle - pivots[0]->angle) <= max_d_theta*1.01 &&
+                            abs(right_angle - pivots[3]->angle) <= max_d_theta*1.01;
+        } while (!valid_radius);
+    best_effort_radius = iter_radius;
+    best_effort_direction = iter_direction;
+}
 
-    bool left;
+tuple<float, int> Driver::calc_best_effort_radius_once(float curr_left, float curr_right, float radius, float dir) {
     //Find the wheel that has to turn the most to get to the target
-    double left_angle = calc_wheel_angle(target_radius, true, target_direction);
-    double right_angle = calc_wheel_angle(target_radius, false, target_direction);
-    RCLCPP_INFO(this->get_logger(), "target: left angle: %f, right_angle: %f", left_angle, right_angle);
-    RCLCPP_INFO(this->get_logger(), "current: left angle: %f, right_angle: %f", pivots[0]->angle, pivots[3]->angle);
-    left = abs(left_angle - pivots[0]->angle) >= abs(right_angle - pivots[3]->angle);
-    RCLCPP_INFO(this->get_logger(), "furthest side: %s", left ? "left" : "right");
-    int index = left ? 0 : 3;
+    double left_angle = calc_wheel_angle(radius, true, dir);
+    double right_angle = calc_wheel_angle(radius, false, dir);
+    RCLCPP_DEBUG(this->get_logger(), "current: left: %f, right: %f", curr_left, curr_right);
+    RCLCPP_DEBUG(this->get_logger(), "target: left: %f, right: %f", left_angle, right_angle);
+    RCLCPP_DEBUG(this->get_logger(), "difference: left: %.10f, right: %.10f", abs(left_angle - curr_left), abs(right_angle - curr_right));
+    RCLCPP_DEBUG(this->get_logger(), "max_d_theta: %.10f", max_d_theta);
+    bool left = abs(left_angle - curr_left) >= abs(right_angle - curr_right);
+    RCLCPP_DEBUG(this->get_logger(), "target_side: %s", left ? "left" : "right");
     double target = left ? left_angle : right_angle;
+    float target_curr = left ? curr_left : curr_right;
     //determine the direction this wheel has to turn
-    int drive_dir = pivots[index]->angle == target ? 0 : (pivots[index]->angle < target ? 1 : -1);
-    RCLCPP_INFO(this->get_logger(), "drive direction: %d", drive_dir);
+    int drive_dir = target_curr == target ? 0 : (target_curr < target ? 1 : -1);
+    RCLCPP_DEBUG(this->get_logger(), "drive_dir: %d", drive_dir);
     //calculate the maximum angle the wheel can turn until the next drive command is recieved.
-    double best_effort_angle = pivots[index]->angle + drive_dir * max_d_theta;
+    double best_effort_angle = target_curr + drive_dir * max_d_theta;
+    RCLCPP_DEBUG(this->get_logger(), "best effort angle: %f", best_effort_angle);
     //if the target is closer than the maximum angle the wheel can turn, set the angle to the target
-    if (abs(best_effort_angle - target) < max_d_theta) best_effort_angle = target;
-    RCLCPP_INFO(this->get_logger(), "best effort angle: %f", best_effort_angle);
-    if(left) best_effort_direction = best_effort_angle > angle_offset ? 1 : -1;
-    else best_effort_direction = best_effort_angle > angle_offset ? -1 : 1;
+    if (abs(target_curr - target) < max_d_theta) best_effort_angle = target;
+    int best_dir;
+    if (target_curr == target) best_dir = 0;
+    else if(left) best_dir = best_effort_angle > angle_offset ? 1 : -1;
+    else best_dir = best_effort_angle > angle_offset ? -1 : 1;
     // return the radius of the circle the wheel is turning to
-    best_effort_radius = abs(radius_from_angle(best_effort_angle, left));
+    float best_radius = abs(radius_from_angle(best_effort_angle, left));
+    RCLCPP_DEBUG(this->get_logger(), "best effort radius: %f", best_radius);
+    return {best_radius, best_dir};
 }
 
 double Driver::calc_wheel_angle(float radius, bool left, int dir)
@@ -367,10 +393,10 @@ Driver::Driver() : Node("driver")
     // Create pivot wheel data publisher
     pivot_wheel_pub = this->create_publisher<core::msg::PivotWheelData>("/control/pivot_wheel", 10);
 
-    RCLCPP_INFO(this->get_logger(), "R = 0, D = -1, side = left, angle = %f", calc_wheel_angle(0, true, -1));
-    RCLCPP_INFO(this->get_logger(), "R = 0, D = 1, side = left, angle = %f", calc_wheel_angle(0, true, 1));
-    RCLCPP_INFO(this->get_logger(), "R = 0, D = -1, side = right, angle = %f", calc_wheel_angle(0, false, -1));
-    RCLCPP_INFO(this->get_logger(), "R = 0, D = 1, side = right, angle = %f", calc_wheel_angle(0, false, 1));
+    RCLCPP_DEBUG(this->get_logger(), "R = 0, D = -1, side = left, angle = %f", calc_wheel_angle(0, true, -1));
+    RCLCPP_DEBUG(this->get_logger(), "R = 0, D = 1, side = left, angle = %f", calc_wheel_angle(0, true, 1));
+    RCLCPP_DEBUG(this->get_logger(), "R = 0, D = -1, side = right, angle = %f", calc_wheel_angle(0, false, -1));
+    RCLCPP_DEBUG(this->get_logger(), "R = 0, D = 1, side = right, angle = %f", calc_wheel_angle(0, false, 1));
 }
 
 void Driver::blcmd_spinner() {

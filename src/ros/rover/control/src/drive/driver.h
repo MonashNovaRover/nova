@@ -49,6 +49,8 @@ EDITED:		13/09/2022
 #include<cmath>
 #include<vector>
 #include<chrono>
+#include<tuple>
+#include<tuple>
 
 // Include CMD class
 #include "cmd/blcmd.h"
@@ -176,6 +178,8 @@ private:
     /// @brief     Calculates the radius to turn the wheels to such that the radius is valid based on the maximum
     ///            pivot angular velocity
     void set_best_effort_radius();
+
+    tuple<float, int> calc_best_effort_radius_once(float curr_left, float curr_right, float radius, float dir);
 
     /// @brief      fills the wheel angles of the pivots array based on a radius
     void fill_wheel_angles_radial();
