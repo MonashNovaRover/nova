@@ -228,7 +228,7 @@ void Driver::fill_wheel_velocities_radial()
 void Driver::fill_wheel_angles_strafe() {
     for (size_t i = 0; i < NUM_WHEELS; i++) {
         //diagonals have the same angles as each other and negative x/y neighbors
-        pivots[i]->angle = (i%2 ? -1 : 1) * (M_PI_2 - angle_offset);
+        pivots[i]->angle = -M_PI_2 + angle_offset;
     }
 }
 
