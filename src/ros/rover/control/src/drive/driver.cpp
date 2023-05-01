@@ -68,6 +68,17 @@ void Driver::send_commands()
 // Receives drive commands
 void Driver::drive_callback(const core::msg::DriveInput::SharedPtr msg)
 {
+    if(mode == core::msg::DriveInput::STRAFE && msg->mode == core::msg::DriveInput::PIVOT){
+        target_radius = INFINITY;
+        target_direction = 0;
+        for (PivotModule *pivot: pivots){
+            pivot->angle = angle_offset;
+        }
+    } else {
+        target_radius = msg->radius;
+        target_direction = msg->direction;
+        handbrake = msg->handbrake;
+    }
     // Set the mode
     mode = msg->mode;
     // Set the speed and radius
@@ -77,9 +88,6 @@ void Driver::drive_callback(const core::msg::DriveInput::SharedPtr msg)
     if (abs(d_vel) > max_d_vel) {
         velocity = prev_velocity + max_d_vel * (d_vel > 0 ? 1 : -1);
     };
-    target_radius = msg->radius;
-    target_direction = msg->direction;
-    handbrake = msg->handbrake;
 }
 
 // Gets the turning radius of the rover
