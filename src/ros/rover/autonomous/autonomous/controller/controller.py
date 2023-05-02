@@ -76,7 +76,7 @@ class Controller(Node):
         super().__init__('autonomous_controller')
 
         # set debug to not get shown
-        self.get_logger().set_level(logging.INFO)
+        self.get_logger().set_level(logging.DEBUG)
 
         # Ros params
         self.param_do_tank_turn = self.declare_parameter("do_tank_turn", False).value
@@ -130,6 +130,7 @@ class Controller(Node):
         """
         if self.ctl_spin is None:
             return False
+        self.get_logger().debug(f"Target_heading: {self.ctl_spin.start_yaw}, current_heading: {self.state_rover_pose.theta}")
         return self.ctl_spin.is_completed()
 
     def finished_waypoint_path(self) -> bool:
@@ -190,6 +191,10 @@ class Controller(Node):
             self.ctl_spin = None
             self.state_waypoint_path = []
             self.state_latest_steer = 0
+            if old_state == DrivingState.TO_WAYPOINT:
+                self.pub_at_goal.publish(Empty())
+            elif old_state == DrivingState.TURNING:
+                self.pub_done_spin.publish(Empty())
 
         self.get_logger().debug(f"After transition:\n"
                                 f"trigger_spin: {self.trigger_spin}\n"
@@ -205,11 +210,12 @@ class Controller(Node):
         Stores the latest rover pose into our Pose2D variable
         """
         try:
-            base_link_tf : Transform = self.tf_buffer.lookup_transform("local_map", "base_link", Time(), Duration(nanoseconds=5e7)).transform
+            base_link_tf : Transform = self.tf_buffer.lookup_transform("local_map", "base_link", Time()).transform
             self.get_logger().debug("Found transform from local_map to base_link", once=True)
-        except:
-            self.get_logger().warn("No transform from local_map to base_link", once=True)
+        except Exception as e:
+            self.get_logger().warn(f"No transform from local_map to base_link: {e}", throttle_duration_sec=1)
         else:
+            self.get_logger().debug(f"base_link_tf: {base_link_tf}")
             self.state_rover_pose.x = base_link_tf.translation.x
             self.state_rover_pose.y = base_link_tf.translation.y
             self.state_rover_pose.theta = transform.quat_to_euler(base_link_tf.rotation)[2]
