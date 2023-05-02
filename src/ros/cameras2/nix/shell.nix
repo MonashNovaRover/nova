@@ -18,4 +18,8 @@ pkgs.mkShell {
   ];
 
   RMW_IMPLEMENTATION = "rmw_fastrtps_dynamic_cpp"; # https://github.com/lopsided98/nix-ros-overlay/issues/45
+
+  shellHook = ''
+    export PYTHONPATH="${toString ../cameras2}:$PYTHONPATH"
+  '';
 }
