@@ -197,8 +197,7 @@ class CameraStreamerService(Node):
 
         # # Sink
         # ## WebRTC settings
-        # TODO: Move to gcc (Google Congestion Control) when GStreamer 1.22 is released.
-        sink.props.congestion_control = "homegrown"
+        sink.props.congestion_control = "gcc"
 
         # ## Metadata
         meta: Gst.Structure = Gst.Structure.new_empty("meta")
