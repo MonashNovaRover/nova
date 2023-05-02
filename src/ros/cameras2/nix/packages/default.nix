@@ -41,7 +41,7 @@ pkgs.callPackage ./ros.nix { } {
       # Runtime dependencies
       gst_all_1 = super.gst_all_1 // {
         gst-plugins-rs-webrtc = self.gst_all_1.gst-plugins-rs.override {
-          plugins = [ "webrtc" ];
+          plugins = [ "webrtc" "rtp" ];
         };
       };
       stunserver = self.callPackage ./stunserver { };
