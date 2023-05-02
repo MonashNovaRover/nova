@@ -1,4 +1,4 @@
-{ cmake, wrapGAppsNoGuiHook, gobject-introspection, gst_all_1, gst-plugin-webrtc, gst-plugin-rtp, libnice }:
+{ cmake, wrapGAppsNoGuiHook, gobject-introspection, gst_all_1, libnice }:
 { buildRosPackage, launch, launch-ros, rclpy, std-srvs, camera-msgs, python3Packages }:
 
 buildRosPackage {
@@ -21,8 +21,7 @@ buildRosPackage {
     gst_all_1.gst-plugins-good # V4L2
     gst_all_1.gst-plugins-bad # WebRTC
     gst_all_1.gst-plugins-ugly # H264
-    gst-plugin-webrtc # WebRTC
-    gst-plugin-rtp # WebRTC
+    gst_all_1.gst-plugins-rs-webrtc # WebRTC
     libnice # WebRTC
   ];
 

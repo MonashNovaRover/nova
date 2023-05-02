@@ -39,11 +39,11 @@ pkgs.callPackage ./ros.nix { } {
       ];
 
       # Runtime dependencies
-      gst-plugin-webrtc = self.callPackage ./gst-plugin-webrtc { };
-      gst-plugin-rtp = self.callPackage ./gst-plugin-rtp { };
-
-      # External tools
-      gst-plugin-webrtc-signalling = self.callPackage ./gst-plugin-webrtc-signalling { };
+      gst_all_1 = super.gst_all_1 // {
+        gst-plugins-rs-webrtc = self.gst_all_1.gst-plugins-rs.override {
+          plugins = [ "webrtc" ];
+        };
+      };
       stunserver = self.callPackage ./stunserver { };
     })
   ];

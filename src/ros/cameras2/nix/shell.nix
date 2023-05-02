@@ -2,7 +2,7 @@
 
 pkgs.mkShell {
   packages = with pkgs; [
-    gst-plugin-webrtc-signalling
+    gst_all_1.gst-plugins-rs-webrtc
     stunserver
   ];
 

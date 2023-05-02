@@ -1,7 +1,7 @@
 { lib
 , writeShellScriptBin
 , stunserver
-, gst-plugin-webrtc-signalling
+, gst_all_1
 }:
 
 { buildEnv
@@ -20,7 +20,7 @@ let
       ];
     })
     stunserver
-    gst-plugin-webrtc-signalling
+    gst_all_1.gst-plugins-rs-webrtc # For the signalling server
   ];
 in
 writeShellScriptBin "gst-nova-launcher" ''
