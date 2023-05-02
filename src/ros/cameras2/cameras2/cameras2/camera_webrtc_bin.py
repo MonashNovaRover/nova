@@ -5,6 +5,8 @@ import gi
 gi.require_version("Gst", "1.0")  # noqa
 from gi.repository import Gst
 
+from cameras2.utils import gst_structure_to_dict
+
 
 class CameraWebRTCBin:
     bin: Gst.Bin
@@ -63,3 +65,7 @@ class CameraWebRTCBin:
         ]
         self.bin.add(*elements)
         Gst.Element.link_many(*elements)
+
+    @property
+    def webrtc_stats(self) -> dict[str, object]:
+        return gst_structure_to_dict(self._sink.props.stats)

@@ -8,7 +8,7 @@ from rclpy.node import Node
 from rclpy.service import Service
 from rclpy.client import Client
 
-gi.require_version("Gst", "1.0")
+gi.require_version("Gst", "1.0")  # noqa
 from gi.repository import Gst, GLib
 
 from camera_msgs.msg import Cameras
