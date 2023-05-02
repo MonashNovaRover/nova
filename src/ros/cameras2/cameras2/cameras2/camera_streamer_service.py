@@ -1,4 +1,5 @@
 from typing import Callable
+import json
 
 import gi
 import rclpy
@@ -12,7 +13,7 @@ gi.require_version("Gst", "1.0")  # noqa
 from gi.repository import Gst, GLib
 
 from camera_msgs.msg import Cameras
-from camera_msgs.srv import CameraOperation
+from camera_msgs.srv import CameraOperation, GetCameraStreamStats
 
 from cameras2.camera_webrtc_bin import CameraWebRTCBin
 
@@ -59,6 +60,7 @@ class CameraStreamerService(Node):
         self._create_stream_service("start", self._stream_start)
         self._create_stream_service("pause", self._stream_pause)
         self._create_stream_service("stop", self._stream_stop)
+        self.create_service(GetCameraStreamStats, "/camera_streamer/stream/get_stats", self._stats_callback)
 
         self._stream_start_client = self._create_stream_client("start")
         self._stream_stop_client = self._create_stream_client("stop")
@@ -223,6 +225,19 @@ class CameraStreamerService(Node):
             camera_bin.bin.set_state(Gst.State.NULL)
             self._gst_pipeline.remove(camera_bin.bin)
         return success
+
+    def _stats_callback(
+        self,
+        request: GetCameraStreamStats.Request,
+        response: GetCameraStreamStats.Response,
+    ) -> GetCameraStreamStats.Response:
+        result = {
+            serial: self._camera_bins[serial].webrtc_stats
+            for serial in (request.serials if request.serials else self._camera_bins.keys())
+            if serial in self._camera_bins
+        }
+        response.result_json = json.dumps(result)
+        return response
 
 
 def main(args=None):
