@@ -31,9 +31,10 @@ class CameraStreamerService(Node):
     NODE: camera_streamer
     TOPICS: None
     SERVICES:
-      - /camera_streamer/stream/<camera_serial>/start [std_srvs/Empty]
-      - /camera_streamer/stream/<camera_serial>/pause [std_srvs/Empty]
-      - /camera_streamer/stream/<camera_serial>/stop [std_srvs/Empty]
+      - /camera_streamer/stream/start [camera_msgs/CameraOperation]
+      - /camera_streamer/stream/pause [camera_msgs/CameraOperation]
+      - /camera_streamer/stream/stop [camera_msgs/CameraOperation]
+      - /camera_streamer/stream/get_stats [camera_msgs/GetCameraStreamStats]
     ACTIONS: None
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     PACKAGE: 	cameras2
