@@ -198,6 +198,8 @@ class CameraStreamerService(Node):
         # # Sink
         # ## WebRTC settings
         sink.props.congestion_control = "gcc"
+        sink.props.do_fec = True
+        sink.props.do_retransmission = True
 
         # ## Metadata
         meta: Gst.Structure = Gst.Structure.new_empty("meta")
