@@ -14,6 +14,8 @@ from gi.repository import Gst, GLib
 from camera_msgs.msg import Cameras
 from camera_msgs.srv import CameraOperation
 
+from cameras2.camera_webrtc_bin import CameraWebRTCBin
+
 
 class CameraStreamerService(Node):
     """
@@ -50,7 +52,7 @@ class CameraStreamerService(Node):
         self._gst_pipeline: Gst.Pipeline = Gst.Pipeline.new("camera-server-pipeline")
         self._gst_pipeline.set_state(Gst.State.PLAYING)
         self._gst_pipeline.get_bus().set_sync_handler(self._handle_gst_message, None)
-        self._gst_bins: dict[str, Gst.Bin] = {}
+        self._camera_bins: dict[str, CameraWebRTCBin] = {}
 
         # Create services and clients.
         self.get_logger().info("Creating stream control services...")
@@ -171,86 +173,55 @@ class CameraStreamerService(Node):
         )
 
     @staticmethod
-    def _create_camera_bin(serial: str, device_node: str) -> Gst.Bin:
-        # Create the bin and elements.
-        gst_bin: Gst.Bin = Gst.Bin.new(f"camera-{serial}-bin")
+    def _create_camera_bin(serial: str, device_node: str) -> CameraWebRTCBin:
+        camera_bin = CameraWebRTCBin(
+            serial,
+            device_node,
+            # Hardcoded values optimized for several Microsoft LifeCam 3000s on a USB hub.
+            # TODO: Use ROS parameters for per-device capability filter attributes.
+            width=640,
+            fps=10,
+        )
 
-        source = Gst.ElementFactory.make("v4l2src", "source")
-        capsfilter = Gst.ElementFactory.make("capsfilter", "capsfilter")
-        videoconvert = Gst.ElementFactory.make("videoconvert", "videoconvert")
-        sink = Gst.ElementFactory.make("webrtcsink", "sink")
-
-        # Configure the elements.
-        # # Source
-        source.props.device = device_node
-
-        # # Capability filter
-        # Hardcoded values optimized for several Microsoft LifeCam 3000s on a USB hub.
-        # TODO: Use ROS parameters for per-device capability filter attributes.
-        caps_structure: Gst.Structure = Gst.Structure.new_empty("video/x-raw")
-        caps_structure.set_value("width", 640)
-        caps_structure.set_value("framerate", Gst.Fraction(10, 1))
-
-        caps: Gst.Caps = Gst.Caps.new_empty()
-        caps.append_structure(caps_structure)
-        capsfilter.props.caps = caps
-
-        # # Sink
-        # ## WebRTC settings
-        sink.props.congestion_control = "gcc"
-        sink.props.do_fec = True
-        sink.props.do_retransmission = True
-
-        # ## Metadata
-        meta: Gst.Structure = Gst.Structure.new_empty("meta")
-        meta.set_value("serial", serial)
-        sink.props.meta = meta
-
-        # Add the elements to the bin, and link them.
-        elements = [source, capsfilter, videoconvert, sink]
-        gst_bin.add(*elements)
-        # noinspection PyUnresolvedReferences
-        Gst.Element.link_many(*elements)
-
-        return gst_bin
+        return camera_bin
 
     def _stream_start(self, serials: set[str]) -> bool:
         for serial in serials:
-            gst_bin = self._gst_bins.get(serial)
-            if gst_bin is None:
+            camera_bin = self._camera_bins.get(serial)
+            if camera_bin is None:
                 self.get_logger().info(f"Starting stream for camera {serial}.")
-                gst_bin = self._create_camera_bin(serial, self._device_nodes[serial])
-                self._gst_pipeline.add(gst_bin)
-                self._gst_bins[serial] = gst_bin
+                camera_bin = self._create_camera_bin(serial, self._device_nodes[serial])
+                self._gst_pipeline.add(camera_bin.bin)
+                self._camera_bins[serial] = camera_bin
             else:
                 self.get_logger().info(f"Resuming stream for camera {serial}.")
 
-            gst_bin.set_state(Gst.State.PLAYING)
+            camera_bin.bin.set_state(Gst.State.PLAYING)
         return True
 
     def _stream_pause(self, serials: set[str]) -> bool:
         success = bool(serials)
         for serial in serials:
-            gst_bin = self._gst_bins.get(serial)
-            if gst_bin is None:
+            camera_bin = self._camera_bins.get(serial)
+            if camera_bin is None:
                 success = False
                 continue
 
             self.get_logger().info(f"Pausing stream for camera {serial}.")
-            gst_bin.set_state(Gst.State.PAUSED)
+            camera_bin.bin.set_state(Gst.State.PAUSED)
         return success
 
     def _stream_stop(self, serials: set[str]) -> bool:
         success = bool(serials)
         for serial in serials:
-            gst_bin = self._gst_bins.pop(serial, None)
-            if gst_bin is None:
+            camera_bin = self._camera_bins.pop(serial, None)
+            if camera_bin is None:
                 success = False
                 continue
 
             self.get_logger().info(f"Stopping stream for camera {serial}.")
-            gst_bin.set_state(Gst.State.NULL)
-            self._gst_pipeline.remove(gst_bin)
+            camera_bin.bin.set_state(Gst.State.NULL)
+            self._gst_pipeline.remove(camera_bin.bin)
         return success
 
 
