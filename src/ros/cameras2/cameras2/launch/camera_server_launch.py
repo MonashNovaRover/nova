@@ -6,7 +6,13 @@ from launch_ros.actions import Node
 def generate_launch_description():
     return LaunchDescription(
         [
-            ExecuteProcess(cmd=["gst-webrtc-signalling-server"], output="screen"),
+            ExecuteProcess(
+                cmd=["gst-webrtc-signalling-server"],
+                additional_env={
+                    "WEBRTCSINK_SIGNALLING_SERVER_LOG": "warn",
+                },
+                output="screen",
+            ),
             Node(
                 package="cameras2",
                 executable="camera_directory_service",
