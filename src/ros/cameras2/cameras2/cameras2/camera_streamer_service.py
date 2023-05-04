@@ -1,9 +1,9 @@
-from typing import Callable
+from typing import Callable, cast, NamedTuple
 import json
 
 import gi
 import rclpy
-from rclpy import Future, qos
+from rclpy import Future, qos, Parameter
 from rclpy.logging import LoggingSeverity
 from rclpy.node import Node
 from rclpy.service import Service
@@ -44,8 +44,21 @@ class CameraStreamerService(Node):
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     """
 
+    class CameraConfiguration(NamedTuple):
+        width: int
+        height: int
+        framerate: int
+        meta: dict[str, object]
+
     def __init__(self):
-        super().__init__("camera_streamer")
+        super().__init__(
+            "camera_streamer",
+            allow_undeclared_parameters=True,
+            automatically_declare_parameters_from_overrides=True,
+        )
+
+        # Load the camera configuration parameters.
+        self._default_camera_configuration, self._camera_configurations = self._load_camera_configurations()
 
         # Initialize GStreamer.
         self.get_logger().info("Initializing GStreamer...")
@@ -105,6 +118,56 @@ class CameraStreamerService(Node):
         if debug_info:
             logger.log(debug_info, severity)
         return Gst.BusSyncReply.DROP
+
+    def _load_camera_configurations(self) -> tuple[CameraConfiguration, dict[str, CameraConfiguration]]:
+        def expand_dictionary(dictionary: dict[str, object]) -> dict[str, object]:
+            output = {}
+            for key, value in dictionary.items():
+                keys = key.split(".")
+                current = output
+                for subkey in keys[:-1]:
+                    current = current.setdefault(subkey, {})
+                current[keys[-1]] = value
+            return output
+
+        def read_meta(parameters: dict[str, object]) -> dict[str, object]:
+            return {
+                name: read_meta(value) if isinstance(value, dict) else cast(Parameter, value).value
+                for name, value in parameters.items()
+            }
+
+        def read_camera_configuration(
+            defaults: CameraStreamerService.CameraConfiguration,
+            parameters: dict[str, object],
+        ) -> CameraStreamerService.CameraConfiguration:
+            def get_parameter_value(name: str, read: Callable[[Parameter], object]):
+                return read(cast(Parameter, parameters[name]).get_parameter_value()) if name in parameters else None
+
+            width = get_parameter_value("width", lambda p: p.integer_value)
+            height = get_parameter_value("height", lambda p: p.integer_value)
+            framerate = get_parameter_value("framerate", lambda p: p.integer_value)
+
+            return CameraStreamerService.CameraConfiguration(
+                width=width if width is not None else defaults.width,
+                height=height if height is not None else defaults.height,
+                framerate=framerate if framerate is not None else defaults.framerate,
+                meta={**defaults.meta, **read_meta(parameters.get("meta", {}))},
+            )
+
+        param_defaults = read_camera_configuration(
+            CameraStreamerService.CameraConfiguration(
+                width=0,
+                height=0,
+                framerate=0,
+                meta={},
+            ),
+            expand_dictionary(self.get_parameters_by_prefix("defaults")),
+        )
+
+        return param_defaults, {
+            serial: read_camera_configuration(param_defaults, cast(dict[str, object], camera_parameters))
+            for serial, camera_parameters in expand_dictionary(self.get_parameters_by_prefix("cameras")).items()
+        }
 
     def _create_stream_service(
         self,
@@ -175,15 +238,15 @@ class CameraStreamerService(Node):
             }
         )
 
-    @staticmethod
-    def _create_camera_bin(serial: str, device_node: str) -> CameraWebRTCBin:
+    def _create_camera_bin(self, serial: str, device_node: str) -> CameraWebRTCBin:
+        camera_configuration = self._camera_configurations.get(serial, self._default_camera_configuration)
         camera_bin = CameraWebRTCBin(
             serial,
             device_node,
-            # Hardcoded values optimized for several Microsoft LifeCam 3000s on a USB hub.
-            # TODO: Use ROS parameters for per-device capability filter attributes.
-            width=640,
-            fps=10,
+            width=camera_configuration.width if camera_configuration.width != 0 else None,
+            height=camera_configuration.height if camera_configuration.height != 0 else None,
+            framerate=camera_configuration.framerate if camera_configuration.framerate != 0 else None,
+            extra_meta=camera_configuration.meta,
         )
 
         return camera_bin

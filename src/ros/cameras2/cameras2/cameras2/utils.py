@@ -4,6 +4,22 @@ gi.require_version("Gst", "1.0")  # noqa
 from gi.repository import Gst, GObject
 
 
+def dict_to_gst_structure(name: str, dictionary: dict[str, object]) -> Gst.Structure:
+    structure = Gst.Structure.new_empty(name)
+    for key, value in dictionary.items():
+        gst_value: object
+        if isinstance(value, dict):
+            structure.set_value(key, dict_to_gst_structure(key, value))
+        elif isinstance(value, list):
+            array = GObject.ValueArray.new(len(value))
+            for item in value:
+                array.append(item)
+            structure.set_array(key, array)
+        else:
+            structure.set_value(key, value)
+    return structure
+
+
 def gst_structure_to_dict(structure: Gst.Structure) -> dict[str, object]:
     output: dict[str, object] = {}
     for n in range(structure.n_fields()):

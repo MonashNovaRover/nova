@@ -5,7 +5,7 @@ import gi
 gi.require_version("Gst", "1.0")  # noqa
 from gi.repository import Gst
 
-from cameras2.utils import gst_structure_to_dict
+from cameras2.utils import dict_to_gst_structure, gst_structure_to_dict
 
 
 class CameraWebRTCBin:
@@ -21,7 +21,9 @@ class CameraWebRTCBin:
         serial: str,
         device_node: str,
         width: Optional[int] = None,
-        fps: Optional[int] = None,
+        height: Optional[int] = None,
+        framerate: Optional[int] = None,
+        extra_meta: Optional[dict[str, object]] = None,
     ):
         # Create and configure the elements.
         # # Source
@@ -32,8 +34,10 @@ class CameraWebRTCBin:
         caps_structure = Gst.Structure.new_empty("video/x-raw")
         if width is not None:
             caps_structure.set_value("width", width)
-        if fps is not None:
-            caps_structure.set_value("framerate", Gst.Fraction(fps, 1))
+        if height is not None:
+            caps_structure.set_value("height", height)
+        if framerate is not None:
+            caps_structure.set_value("framerate", Gst.Fraction(framerate, 1))
 
         caps = Gst.Caps.new_empty()
         caps.append_structure(caps_structure)
@@ -51,9 +55,10 @@ class CameraWebRTCBin:
         self._sink.props.do_fec = True
         self._sink.props.do_retransmission = True
         # ## Metadata
-        meta = Gst.Structure.new_empty("meta")
-        meta.set_value("serial", serial)
-        self._sink.props.meta = meta
+        self._sink.props.meta = dict_to_gst_structure(
+            "meta",
+            {"serial": serial, **(extra_meta if extra_meta is not None else {})},
+        )
 
         # Create the bin, and add the elements.
         self.bin = Gst.Bin.new(f"camera-{serial}-bin")
