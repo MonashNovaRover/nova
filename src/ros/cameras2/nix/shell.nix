@@ -9,6 +9,7 @@ pkgs.mkShell {
   inputsFrom = [
     (pkgs.ros.buildEnv {
       paths = [
+        pkgs.ros.ros2service
         pkgs.ros.rmw-fastrtps-dynamic-cpp
         pkgs.ros.python.pkgs.pygobject-stubs
         pkgs.ros.python.pkgs.pyqt5-stubs
