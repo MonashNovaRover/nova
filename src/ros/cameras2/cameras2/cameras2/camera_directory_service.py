@@ -1,11 +1,13 @@
+from typing import cast
+
 import rclpy
 from rclpy.node import Node
-from rclpy import qos
+from rclpy import qos, Parameter
 from std_srvs.srv import Empty
 
 from camera_msgs.msg import Camera, Cameras
 
-from cameras2 import cameras
+from cameras2.camera_scanner import CameraScanner
 
 
 class CameraDirectoryService(Node):
@@ -34,7 +36,11 @@ class CameraDirectoryService(Node):
     """
 
     def __init__(self):
-        super().__init__("camera_directory")
+        super().__init__(
+            "camera_directory",
+            allow_undeclared_parameters=True,
+            automatically_declare_parameters_from_overrides=True,
+        )
 
         self.get_logger().info("Creating camera directory publishers...")
         self._cameras_publisher = self.create_publisher(
@@ -55,6 +61,7 @@ class CameraDirectoryService(Node):
             self._discover_callback,
         )
 
+        self._camera_scanner = self._create_camera_scanner()
         self._discover_cameras()
         self._start_watching_cameras()
 
@@ -62,9 +69,32 @@ class CameraDirectoryService(Node):
         self._stop_watching_cameras()
         return super().destroy_node()
 
+    def _create_camera_scanner(self) -> CameraScanner:
+        serial_override_roots = {
+            name: cast(Parameter, parameter).get_parameter_value().string_value
+            for name, parameter in self.get_parameters_by_prefix(
+                "serial_overrides.roots"
+            ).items()
+        }
+
+        serial_overrides = [
+            CameraScanner.SerialOverride(
+                root,
+                {
+                    path: cast(Parameter, parameter).get_parameter_value().string_value
+                    for path, parameter in self.get_parameters_by_prefix(
+                        f"serial_overrides.paths.{name}"
+                    ).items()
+                },
+            )
+            for name, root in serial_override_roots.items()
+        ]
+
+        return CameraScanner(serial_overrides)
+
     def _discover_cameras(self) -> None:
         self.get_logger().info("Searching for cameras...")
-        self._cameras: dict[str, str] = cameras.find_cameras()
+        self._cameras: dict[str, str] = self._camera_scanner.find_cameras()
         self.get_logger().info(
             "Cameras found:\n"
             + "\n".join(
@@ -88,7 +118,7 @@ class CameraDirectoryService(Node):
                 self._cameras.pop(serial, None)
             self._publish_cameras()
 
-        self._camera_watch_stop_callback = cameras.watch_cameras(callback)
+        self._camera_watch_stop_callback = self._camera_scanner.watch_cameras(callback)
 
     def _stop_watching_cameras(self) -> None:
         self.get_logger().info("Stopping background camera discovery...")

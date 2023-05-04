@@ -68,7 +68,9 @@ the future.
    # On the rover
 
    # Make sure the camera directory service is running
-   ros2 run cameras2 camera_directory_service
+   ros2 run cameras2 camera_directory_service --ros-args \
+     --params-file params/waratah/core.yaml \
+     --params-file params/waratah/platform/rover.yaml
 
    ros2 run cameras2 camera_streamer_service
    ```
