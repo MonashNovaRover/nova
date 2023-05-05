@@ -236,7 +236,14 @@ class ResolverTransceiver(CANTransceiver):
             # we have crossed between 2*pi and 0
             # (3*pi)/4 chosen as an arbitrarily large angle to show that the resolver
             # must have crossed between 2*pi and 0
-            if angle_data - joint.last_reading < -3*pi/4:
+            
+            if joint.last_reading is None:
+                # Initialisation for first reading
+                self.logger.info(f'Getting initial reading for geared resolver {joint_name}')
+                success = self.reset_sector_count(joint_name)
+                if not success:
+                    return None
+            elif angle_data - joint.last_reading < -3*pi/4:
                 # Resolver has crossed from 2*pi to 0, so joint is in the next sector
                 joint.sector_count = (joint.sector_count + 1) % joint.gear_ratio
             elif angle_data - joint.last_reading > 3*pi/4:
@@ -380,13 +387,6 @@ class ResolverPublisher(Node):
             joint_limit_lower = self.arm_config_info.joint_limits_lower[i]
             joint_limit_upper = self.arm_config_info.joint_limits_upper[i]
             joint.discontinuity_angle = self.wrap_to_2pi((joint_limit_lower + joint_limit_upper) / 2 + pi)
-
-            # Initialisation if this resolver is geared
-            if joint.gear_ratio != 1:
-                self.get_logger().info(f'Getting initial reading for geared resolver {joint_name}')
-                while not self.resolver_transceiver.reset_sector_count(joint_name):
-                    # If reset failed, wait and try again
-                    time.sleep(self.receive_timeout)
         
         # Construct and start the resolver publisher
         self.publisher = self.create_publisher(JointState, '/electronics/resolvers', 10)
