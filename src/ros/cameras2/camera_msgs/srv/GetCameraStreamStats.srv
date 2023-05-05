@@ -1,3 +1,4 @@
 string[] serials
+uint8 indent
 ---
 string result_json

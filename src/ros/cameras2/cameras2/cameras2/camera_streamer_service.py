@@ -300,7 +300,7 @@ class CameraStreamerService(Node):
             for serial in (request.serials if request.serials else self._camera_bins.keys())
             if serial in self._camera_bins
         }
-        response.result_json = json.dumps(result)
+        response.result_json = json.dumps(result, indent=None if request.indent == 0 else request.indent)
         return response
 
 
