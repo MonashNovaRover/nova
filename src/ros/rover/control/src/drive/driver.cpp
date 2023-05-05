@@ -92,60 +92,67 @@ void Driver::drive_callback(const core::msg::DriveInput::SharedPtr msg)
 
 // Gets the turning radius of the rover
 void Driver::set_best_effort_radius() {
-    // Initialise the iteration radius and direction as the targets
-    float iter_radius = target_radius;
-    float iter_direction = target_direction;
-    bool valid_radius;
-    do {
-        ///Calculate the best effort radius.
-        tuple<float, int> best_effort = calc_best_effort_radius_once(pivots[0]->angle, pivots[3]->angle,
-                                                                     iter_radius, iter_direction);
-        RCLCPP_DEBUG(this->get_logger(), "iter_radius: %f", get<0>(best_effort));
-        RCLCPP_DEBUG(this->get_logger(), "iter_direction: %d", get<1>(best_effort));
-        iter_radius = get<0>(best_effort);
-        iter_direction = get<1>(best_effort);
-        // Calculate the new angles based on bes effort radius
-        double left_angle = calc_wheel_angle(iter_radius, true, iter_direction);
-        double right_angle = calc_wheel_angle(iter_radius, false, iter_direction);
-        RCLCPP_DEBUG(this->get_logger(), "best effort: left_angle: %f, right_angle: %f", left_angle, right_angle);
-        RCLCPP_DEBUG(this->get_logger(), "best effort radius: %f", iter_radius);
-        //check if the radius is valid
-        valid_radius = abs(left_angle - pivots[0]->angle) <= max_d_theta*1.01 &&
-                            abs(right_angle - pivots[3]->angle) <= max_d_theta*1.01;
-        } while (!valid_radius);
-    //update the best effort radius and direction
-    best_effort_radius = iter_radius;
-    best_effort_direction = iter_direction;
+    // Calculate the best effort radius of the left wheel
+    tuple<float, int, bool> best_effort_left = calc_best_effort_radius(pivots[0]->angle,
+                                                                            pivots[3]->angle,
+                                                                            target_radius,
+                                                                            target_direction,
+                                                                            true);
+    RCLCPP_DEBUG(this->get_logger(), "best effort left: radius : %f, direction %d, valid: %s",
+                 get<0>(best_effort_left), get<1>(best_effort_left), get<2>(best_effort_left) ? "true" : "false");
+    // Calculate the best effort radius of the right wheel
+    tuple<float, int, bool> best_effort_right = calc_best_effort_radius(pivots[0]->angle,
+                                                                       pivots[3]->angle,
+                                                                       target_radius,
+                                                                       target_direction,
+                                                                       false);
+    RCLCPP_DEBUG(this->get_logger(), "best effort right: radius : %f, direction %d, valid: %s",
+                 get<0>(best_effort_right), get<1>(best_effort_right), get<2>(best_effort_right) ? "true" : "false");
+    if(get<2>(best_effort_left) && get<2>(best_effort_right)){
+        // If both are valid, choose the one that is closest to the target radius
+        float signed_radius_left = get<0>(best_effort_left)*get<1>(best_effort_left);
+        float signed_radius_right = get<0>(best_effort_right)*get<1>(best_effort_right);
+        float signed_radius = target_radius*target_direction;
+        if (abs(signed_radius_left - signed_radius) > abs(signed_radius_right-signed_radius)){
+            best_effort_radius = get<0>(best_effort_left);
+            best_effort_direction = get<1>(best_effort_left);
+        } else {
+            best_effort_radius = get<0>(best_effort_right);
+            best_effort_direction = get<1>(best_effort_right);
+        }
+    } else if(get<2>(best_effort_left)) {
+        // If only the left is valid, choose that one
+        best_effort_radius = get<0>(best_effort_left);
+        best_effort_direction = get<1>(best_effort_left);
+    } else if(get<2>(best_effort_right)) {
+        // If only the right is valid, choose that one
+        best_effort_radius = get<0>(best_effort_right);
+        best_effort_direction = get<1>(best_effort_right);
+    }
 }
 
-tuple<float, int> Driver::calc_best_effort_radius_once(float curr_left, float curr_right, float radius, float dir) {
+tuple<float, int, bool> Driver::calc_best_effort_radius(float curr_left, float curr_right, float radius, int dir, bool left) {
     //Find the wheel that has to turn the most to get to the target
-    double left_angle = calc_wheel_angle(radius, true, dir);
-    double right_angle = calc_wheel_angle(radius, false, dir);
-    RCLCPP_DEBUG(this->get_logger(), "current: left: %f, right: %f", curr_left, curr_right);
-    RCLCPP_DEBUG(this->get_logger(), "target: left: %f, right: %f", left_angle, right_angle);
-    RCLCPP_DEBUG(this->get_logger(), "difference: left: %.10f, right: %.10f", abs(left_angle - curr_left), abs(right_angle - curr_right));
-    RCLCPP_DEBUG(this->get_logger(), "max_d_theta: %.10f", max_d_theta);
-    bool left = abs(left_angle - curr_left) >= abs(right_angle - curr_right);
-    RCLCPP_DEBUG(this->get_logger(), "target_side: %s", left ? "left" : "right");
-    double target = left ? left_angle : right_angle;
-    float target_curr = left ? curr_left : curr_right;
+    double target = calc_wheel_angle(radius, left, dir);
+    // The current angle the wheel is at
+    float curr = left ? curr_left : curr_right;
     //determine the direction this wheel has to turn
     int drive_dir = target_curr == target ? 0 : (target_curr < target ? 1 : -1);
-    RCLCPP_DEBUG(this->get_logger(), "drive_dir: %d", drive_dir);
     //calculate the maximum angle the wheel can turn until the next drive command is recieved.
     double best_effort_angle = target_curr + drive_dir * max_d_theta;
-    RCLCPP_DEBUG(this->get_logger(), "best effort angle: %f", best_effort_angle);
     //if the target is closer than the maximum angle the wheel can turn, set the angle to the target
-    if (abs(target_curr - target) < max_d_theta) best_effort_angle = target;
+    if (abs(curr - target) < max_d_theta) best_effort_angle = target;
     int best_dir;
-    if (target_curr == target) best_dir = 0;
+    if (curr == target) best_dir = 0;
     else if(left) best_dir = best_effort_angle > angle_offset ? 1 : -1;
     else best_dir = best_effort_angle > angle_offset ? -1 : 1;
     // return the radius of the circle the wheel is turning to
     float best_radius = abs(radius_from_angle(best_effort_angle, left));
-    RCLCPP_DEBUG(this->get_logger(), "best effort radius: %f", best_radius);
-    return {best_radius, best_dir};
+    double left_angle = calc_wheel_angle(best_radius, true, best_dir);
+    double right_angle = calc_wheel_angle(best_radius, false, best_dir);
+    bool valid = (abs(left_angle - curr_left) <= max_d_theta*1.01) &&
+            (abs(right_angle - curr_right) <= max_d_theta*1.01);
+    return {best_radius, best_dir, valid};
 }
 
 double Driver::calc_wheel_angle(float radius, bool left, int dir)

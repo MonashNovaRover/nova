@@ -179,15 +179,15 @@ private:
     ///            pivot angular velocity
     void set_best_effort_radius();
 
-    /// @brief      Calculates the radius when the side that must turn the most to reach the target moves the maximum
-    ///             amount possible based on pivots angular velocity (max_d_theta). Can result in the other side
-    ///             turning more than the maximum angular velocity.
+    /// @brief      Calculates the radius when the when wheel is moved in the direction of the target radius
+    ///             by the max_d_theta amount.
     /// @param      curr_left - the current angle of the left wheels
     /// @param      curr_right - the current angle of the right wheels
     /// @param      radius - the target radius
     /// @param      dir - the direction of the turn
-    /// @returns    a tuple containing the best effort radius and the direction of the turn
-    tuple<float, int> calc_best_effort_radius_once(float curr_left, float curr_right, float radius, float dir);
+    /// @param      left - calculate the left radius, else calculate the right radius
+    /// @returns    a tuple containing the best effort radius, direction and if the radius is valid
+    tuple<float, int, bool> calc_best_effort_radius(float curr_left, float curr_right, float radius, int dir, bool left);
 
     /// @brief      fills the wheel angles of the pivots array based on a radius
     void fill_wheel_angles_radial();
