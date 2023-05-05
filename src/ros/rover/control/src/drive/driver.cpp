@@ -137,9 +137,9 @@ tuple<float, int, bool> Driver::calc_best_effort_radius(float curr_left, float c
     // The current angle the wheel is at
     float curr = left ? curr_left : curr_right;
     //determine the direction this wheel has to turn
-    int drive_dir = target_curr == target ? 0 : (target_curr < target ? 1 : -1);
+    int drive_dir = curr == target ? 0 : (curr < target ? 1 : -1);
     //calculate the maximum angle the wheel can turn until the next drive command is recieved.
-    double best_effort_angle = target_curr + drive_dir * max_d_theta;
+    double best_effort_angle = curr + drive_dir * max_d_theta;
     //if the target is closer than the maximum angle the wheel can turn, set the angle to the target
     if (abs(curr - target) < max_d_theta) best_effort_angle = target;
     int best_dir;
