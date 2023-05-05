@@ -71,6 +71,8 @@ alias arm_spoof='ros2 launch core arm_spoof.launch.py'
 alias sci='ros2 launch core science.launch.py'
 alias unity='ros2 launch core visualisation.launch.py'
 alias auto_drive='ros2 launch core auto_drive.launch.py'
+alias localisation='ros2 launch core localisation.launch.py'
+alias urdf='ros2 launch core urdf.launch.py'
 alias launch_viz='ros2 launch core viz.launch.py' 
 alias launch_vis='ros2 launch core viz.launch.py'
 # Service Aliases
@@ -78,6 +80,7 @@ alias arm_config_info='ros2 service call control/arm_config_info core/srv/ArmCon
 alias arm_reset_control_pose='ros2 service call control/arm_reset_control_pose std_srvs/srv/Trigger'
 alias zero_resolver='~/nova_ws/src/rover/electronics/electronics/zero_resolver_client_terminal.py'
 alias rfid='~/nova_ws/src/rover/electronics/electronics/rfid_client_terminal.py'
+
 
 # eduroam connection
 alias eduroam="sudo ip r delete default via 192.168.1.1"
