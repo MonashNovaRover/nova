@@ -545,7 +545,9 @@ class Controller(Node):
         drive_cmd_msg = DriveInput()
         # Values are validated to stay within -1:1
         drive_cmd_msg.speed = max(-1.0, min(1.0, float(drive_fraction)))
-        drive_cmd_msg.steer = max(-1.0, min(1.0, float(angular_fraction)))
+        steer = max(-1.0, min(1.0, float(angular_fraction)))
+        drive_cmd_msg.radius = float('inf') if steer == 0 else abs(1/steer - (1 if steer > 1 else -1))
+        drive_cmd_msg.direction = 0 if steer == 0 else 1 if steer > 0 else -1
 
         if self.param_do_tank_turn or self.driving_state in [DrivingState.PRE_RESET, DrivingState.POST_RESET]:
             drive_cmd_msg.mode = DriveInput.TANK
