@@ -1,0 +1,62 @@
+camera_directory:
+  ros__parameters:
+    serial_overrides:
+      paths:
+        mast:
+          '1:1.0': mast_backward
+          '2:1.0': mast_arm_stow
+          '3:1.0': mast_down
+          '4:1.0': mast_forward
+        arm:
+          '1:1.0': arm_gimbal
+          '2.1:1.0': arm_end_screw
+          '2.2:1.0': arm_end_top
+          '2.3:1.0': arm_end_finger
+          '2.4:1.0': arm_end_forward
+
+camera_streamer:
+  ros__parameters:
+    defaults:
+      width: 640
+      framerate: 10
+
+    cameras:
+      # Mast
+      mast_backward:
+        meta:
+          uiProps:
+            name: Mast - Backwards
+      mast_arm_stow:
+        meta:
+          uiProps:
+            name: Mast - Arm Stow
+      mast_down:
+        meta:
+          uiProps:
+            name: Mast - Down
+      mast_forward:
+        meta:
+          uiProps:
+            name: Mast - Forwards
+
+      # Arm
+      arm_gimbal:
+        meta:
+          uiProps:
+            name: Arm - Gimbal
+      arm_end_screw:
+        meta:
+          uiProps:
+            name: Arm - Screw
+      arm_end_top:
+        meta:
+          uiProps:
+            name: Arm - Top
+      arm_end_finger:
+        meta:
+          uiProps:
+            name: Arm - Finger
+      arm_end_forward:
+        meta:
+          uiProps:
+            name: Arm - Forwards

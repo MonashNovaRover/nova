@@ -1,0 +1,7 @@
+camera_directory:
+  ros__parameters:
+    serial_overrides:
+      roots:
+        mast: platform-3530000.xhci-usb-0:1
+        science: platform-3530000.xhci-usb-0:2
+        arm: platform-3530000.xhci-usb-0:3
