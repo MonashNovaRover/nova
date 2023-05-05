@@ -35,7 +35,7 @@ def gst_structure_to_dict(structure: Gst.Structure) -> dict[str, object]:
 
 
 def gst_array_to_list(array: Gst.ValueArray) -> list[object]:
-    return [gst_value_to_py(Gst.ValueArray.get_value(array, i)) for i in range(Gst.ValueArray.get_size(array))]
+    return list(map(gst_value_to_py, array))
 
 
 def gst_value_to_py(value: object) -> object:
