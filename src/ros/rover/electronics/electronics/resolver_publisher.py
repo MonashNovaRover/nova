@@ -82,6 +82,7 @@ class ResolverTransceiver(CANTransceiver):
         # Create mapping of joint names to their respective Joint objects
         # Initialise using default discontinuity angles and active status,
         # update in the managing ROS node using info from the arm model
+        # Keys must match the joint names in the arm model
         self.joint_map =  {
             "base-rotation":    Joint("base-rotation", 0x04, True),
             "shoulder":         Joint("shoulder",      0x08, True),
@@ -119,9 +120,40 @@ class ResolverTransceiver(CANTransceiver):
             raise KeyError(f"Inactive joint: {joint_name}")
         return joint
 
+    def reset_sector_count(self, joint_name: str) -> bool:
+        """
+        Method to reset the sector count for a given resolver
+
+        Return True on success, False otherwise
+
+        Assume the joint is within half a resolver-revolution of the zero point
+        """
+        joint = self.get_joint(joint_name)
+        if joint.gear_ratio != 1:
+            self.logger.info(f'Resetting sector for geared joint {joint_name}')
+            
+            # Get an initial reading
+            integer_data = self.poll_resolver(joint_name)
+            if integer_data is None:
+                return False
+            angle_data = self._convert_to_rad(integer_data)
+            joint.last_reading = angle_data
+
+            # Set sector
+            # Joint angle will be close to zero, but may be just above or just below
+            # Set sector to first or last depending on which one
+            if angle_data < pi:
+                # Joint is in the first sector
+                joint.sector_count = 0
+            if angle_data >= pi:
+                # Joint is in the last sector
+                joint.sector_count = joint.gear_ratio - 1
+
+        return True
+    
     def zero(self, joint_name: str) -> bool:
         """
-        Method to zero a given encoder
+        Method to zero a given resolver
 
         Returns True on success, False otherwise
 
@@ -130,10 +162,6 @@ class ResolverTransceiver(CANTransceiver):
         self.logger.info(f'Zeroing joint {joint_name}')
         # Send the zeroing command
         integer_data = self.poll_resolver(joint_name, self.zero_transceiver)
-        # Reset the info for geared resolvers
-        joint = self.get_joint(joint_name)
-        joint.sector_count = 0
-        joint.last_reading = None
         return integer_data is not None
     
     def poll_resolver(self, joint_name: str, transceiver: CANTransceiver=None) -> int:
@@ -208,8 +236,13 @@ class ResolverTransceiver(CANTransceiver):
             # we have crossed between 2*pi and 0
             # (3*pi)/4 chosen as an arbitrarily large angle to show that the resolver
             # must have crossed between 2*pi and 0
-            if joint.last_reading == None:
-                self.logger.info(f'Getting initial reading for geared resolver {joint_name}') 
+            
+            if joint.last_reading is None:
+                # Initialisation for first reading
+                self.logger.info(f'Getting initial reading for geared resolver {joint_name}')
+                success = self.reset_sector_count(joint_name)
+                if not success:
+                    return None
             elif angle_data - joint.last_reading < -3*pi/4:
                 # Resolver has crossed from 2*pi to 0, so joint is in the next sector
                 joint.sector_count = (joint.sector_count + 1) % joint.gear_ratio
@@ -263,19 +296,27 @@ class ResolverPublisher(Node):
         """
         Start the node and make a service request to /control/arm_config_info
         """
-        super().__init__('resolver_publisher', start_parameter_services=False)
+        super().__init__('resolver_publisher')
 
-        # Create the client for /control/arm_config_info
-        self.client = self.create_client(ArmConfigInfo, "/control/arm_config_info")
-        # Wait for the service to become available
-        while not self.client.wait_for_service(timeout_sec=1.0):
-            self.get_logger().info("Service /control/arm_config_info not available, waiting again...")
-        # Make the service request
-        request = ArmConfigInfo.Request()
-        self.future = self.client.call_async(request)
+        # If starting the script by itself, don't wait for arm data
+        # If starting from the arm launch file, override parameter as True
+        use_arm_data = self.declare_parameter("use_arm_data", False).value
 
-        # Set up the callback timer
-        self.client_check_timer = self.create_timer(0.1, self.client_check_callback)
+        if use_arm_data:
+            # Create the client for /control/arm_config_info
+            self.client = self.create_client(ArmConfigInfo, "/control/arm_config_info")
+            # Wait for the service to become available
+            while not self.client.wait_for_service(timeout_sec=1.0):
+                self.get_logger().info("Service /control/arm_config_info not available, waiting again...")
+            # Make the service request
+            request = ArmConfigInfo.Request()
+            self.future = self.client.call_async(request)
+
+            # Set up the callback timer
+            self.client_check_timer = self.create_timer(0.1, self.client_check_callback)
+        else:
+            # Start the node
+            self.start_node()
 
     def client_check_callback(self):
         """
@@ -313,6 +354,19 @@ class ResolverPublisher(Node):
             transmit_fmt = '>B',  # Big-endian. uint8
             )
 
+        # Handle if the node is being run without the arm model
+        use_arm_data = self.get_parameter("use_arm_data").value
+        if not use_arm_data:
+            # Set up the data structure that we would otherwise get from the arm nodes
+            self.arm_config_info = ArmConfigInfo.Response()
+            # Include all resolvers
+            for joint_name in self.resolver_transceiver.joint_map.keys():
+                self.arm_config_info.joint_names.append(joint_name)
+            # Assume no joint limits
+            num_joints = len(self.arm_config_info.joint_names)
+            self.arm_config_info.joint_limits_lower = [-2*pi] * num_joints
+            self.arm_config_info.joint_limits_upper = [2*pi] * num_joints
+
         # Create the output message type to track the resolver state
         self.resolver_state = JointState()
         joint_names = self.arm_config_info.joint_names
@@ -333,7 +387,7 @@ class ResolverPublisher(Node):
             joint_limit_lower = self.arm_config_info.joint_limits_lower[i]
             joint_limit_upper = self.arm_config_info.joint_limits_upper[i]
             joint.discontinuity_angle = self.wrap_to_2pi((joint_limit_lower + joint_limit_upper) / 2 + pi)
-
+        
         # Construct and start the resolver publisher
         self.publisher = self.create_publisher(JointState, '/electronics/resolvers', 10)
         self.resolver_pub_timer = self.create_timer(resolver_pub_timer_period, self.publish)
@@ -346,11 +400,24 @@ class ResolverPublisher(Node):
         """
         joint_name = request.value
         try:
+            # Zero the joint
             response.success = self.resolver_transceiver.zero(joint_name)
             if response.success:
-                response.message = f"Successfully transmitted data for joint {joint_name}"
+                response.message = f"Successfully transmitted zeroing data for joint {joint_name}"
             else:
                 response.message = f"Failed to zero joint {joint_name}"
+                return response
+
+            # If successful, reset the sector if the joint is geared
+            joint = self.resolver_transceiver.get_joint(joint_name)
+            if joint.gear_ratio != 1:
+                response.success = self.resolver_transceiver.reset_sector_count(joint_name)
+                if response.success:
+                    response.message += f"\nSuccessfully reset sector count for joint {joint_name}"
+                else:
+                    response.message += f"\nFailed to reset sector count got joint {joint_name}"
+                    return response
+            
         except KeyError as e:
             response.success = False
             response.message = str(e).replace("'", "")
