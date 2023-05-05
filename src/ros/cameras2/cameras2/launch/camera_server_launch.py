@@ -8,6 +8,7 @@ from launch_ros.actions import Node
 def generate_launch_description():
     param_dir = LaunchConfiguration("param-dir")
     platform = LaunchConfiguration("platform")
+    autostart = LaunchConfiguration("autostart")
 
     node_parameters = [
         _substitute_if_not_empty(param_dir, PathJoinSubstitution([param_dir, "core.yaml"])),
@@ -28,6 +29,12 @@ def generate_launch_description():
                 default_value="local",
                 description="The target platform.",
             ),
+            DeclareLaunchArgument(
+                "autostart",
+                choices=["true", "false"],
+                default_value="false",
+                description="Enable the camera streamer autostart parameter.",
+            ),
             ExecuteProcess(
                 cmd=["gst-webrtc-signalling-server"],
                 additional_env={
@@ -43,7 +50,12 @@ def generate_launch_description():
             Node(
                 package="cameras2",
                 executable="camera_streamer_service",
-                parameters=node_parameters,
+                parameters=[
+                    *node_parameters,
+                    {
+                        "autostart": autostart,
+                    },
+                ],
             ),
         ]
     )

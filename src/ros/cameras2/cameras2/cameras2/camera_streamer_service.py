@@ -9,6 +9,8 @@ from rclpy.node import Node
 from rclpy.service import Service
 from rclpy.client import Client
 
+from rcl_interfaces.msg import ParameterDescriptor, ParameterType
+
 gi.require_version("Gst", "1.0")  # noqa
 from gi.repository import Gst, GLib
 
@@ -55,6 +57,19 @@ class CameraStreamerService(Node):
             "camera_streamer",
             allow_undeclared_parameters=True,
             automatically_declare_parameters_from_overrides=True,
+        )
+
+        # Declare general configuration options.
+        for name in {"autostart"}:
+            if self.has_parameter(name):
+                self.undeclare_parameter(name)
+        self.declare_parameter(
+            "autostart",
+            False,
+            ParameterDescriptor(
+                type=ParameterType.PARAMETER_BOOL,
+                description="Automatically start streaming cameras when they are connected.",
+            ),
         )
 
         # Load the camera configuration parameters.
@@ -203,6 +218,9 @@ class CameraStreamerService(Node):
 
         self.get_logger().info(f"Registering cameras: {', '.join(kwargs.keys())}.")
         self._device_nodes.update(kwargs)
+
+        if self.get_parameter("autostart").get_parameter_value().bool_value:
+            self._stream_start_client.call_async(CameraOperation.Request(serials=set(kwargs.keys())))
 
     def _unregister_cameras(self, serials: set[str]) -> None:
         if not serials:
