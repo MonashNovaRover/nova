@@ -1,15 +1,11 @@
 # Goal types for the path planner and controller
-uint8 GOAL_TYPE_HONING = 0
-uint8 GOAL_TYPE_SPIN = 1
+uint8 GOAL_TYPE_INTERMEDIATE = 0
+uint8 GOAL_TYPE_COORDINATE = 1
 uint8 GOAL_TYPE_TAG = 2
-uint8 GOAL_TYPE_BLOCK = 3
-uint8 GOAL_TYPE_GATE = 4
-
-std_msgs/Header header
+uint8 GOAL_TYPE_GATE = 3
 
 # Metadata for the tag or block we are searching for
-int32 tag_id
-std_msgs/String block_color
+int32[] tag_ids
 
 uint8 type
 Point2D position
