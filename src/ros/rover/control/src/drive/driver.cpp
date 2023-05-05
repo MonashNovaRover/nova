@@ -370,7 +370,7 @@ Driver::Driver() : Node("driver")
 {
     this->declare_parameter("canbus", "can0");
     // parameter for change in angle of the pivots in radians per second
-    this->declare_parameter("max_theta", M_PI_2);
+    this->declare_parameter("max_theta", 2*M_PI*0.5625);
     max_d_theta = this->get_parameter("max_theta").get_parameter_value().get<double>()*
             ROSTimers::drive_control.count()/1000;
     // parameter for max velocity of the wheels, all speeds received from /control/drive_inputs are scaled by this value
