@@ -54,6 +54,7 @@ class CameraWebRTCBin:
         self._sink.props.congestion_control = "gcc"
         self._sink.props.do_fec = True
         self._sink.props.do_retransmission = True
+        self._sink.props.stun_server = None
         # ## Metadata
         self._sink.props.meta = dict_to_gst_structure(
             "meta",
