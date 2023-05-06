@@ -179,7 +179,7 @@ class Controller(Node):
 
         # If we haven't received an override from the controller, we haven't completed a spin
         if self.state == PlanningState.SEARCH_SPIN:
-            # self.get_logger().debug(f"Triggered completed spin: {self.trigger_completed_spin}")
+            self.get_logger().debug(f"Triggered completed spin: {self.trigger_completed_spin}")
             return self.trigger_completed_spin
 
         dist_to_goal = self.dist_to_goal(self.state_current_goal)
@@ -215,15 +215,9 @@ class Controller(Node):
         if self.state is None:
             self.on_state_update(PlanningState.IDLE)
 
-        # Transition from IDLE to TO_COORDINATE when provided with a new goal
-        elif self.state == PlanningState.IDLE:    
-            if self.trigger_received_goal:
-                self.on_state_update(PlanningState.TO_COORDINATE)
-
-        # Transition from SUCCESS to TO_COORDINATE when provided with a new goal
-        elif self.state == PlanningState.SUCCESS:
-            if self.trigger_received_goal:
-                self.on_state_update(PlanningState.TO_COORDINATE)
+        # Transition to TO_COORDINATE whenever we receive a goal, regardless of what we are doing
+        if self.trigger_received_goal:
+            self.on_state_update(PlanningState.TO_COORDINATE)
 
         # If "trigger_return" is raised as True, transition to RETURN
         elif self.trigger_return:

@@ -76,7 +76,7 @@ class Controller(Node):
         super().__init__('autonomous_controller')
 
         # set debug to not get shown
-        self.get_logger().set_level(logging.DEBUG)
+        self.get_logger().set_level(logging.INFO)
 
         # Ros params
         self.param_do_tank_turn = self.declare_parameter("do_tank_turn", False).value
@@ -147,11 +147,10 @@ class Controller(Node):
         """
         
         # If we are in SUCCESS state, transitioning to the driving state is triggered by receiving a ros2 message
-        if self.state == DrivingState.SUCCESS:
-            if self.trigger_spin:
-                self.on_state_update(DrivingState.TURNING)
-            elif self.trigger_to_waypoint:
-                self.on_state_update(DrivingState.TO_WAYPOINT)
+        if self.trigger_spin:
+            self.on_state_update(DrivingState.TURNING)
+        elif self.state == DrivingState.SUCCESS and self.trigger_to_waypoint:
+            self.on_state_update(DrivingState.TO_WAYPOINT)
 
         # If we are in TURNING state, we are only done turning when the spin controller says so
         elif self.state == DrivingState.TURNING:
@@ -234,8 +233,10 @@ class Controller(Node):
         :param msg: Waypoints message from the path planner
         """
         points = [(p.pose.position.x, p.pose.position.y) for p in msg.poses]
-        self.trigger_to_waypoint = True 
         self.state_waypoint_path = self.prune_waypoints(points)
+
+        if len(self.state_waypoint_path) > 0:
+            self.trigger_to_waypoint = True 
 
     def callback_do_spin(self, msg: Empty):
         """
@@ -333,7 +334,7 @@ class Controller(Node):
         drive_cmd_msg.radius = float('inf') if steer == 0 else abs(1/steer - (1 if steer > 1 else -1))
         drive_cmd_msg.direction = 0 if steer == 0 else 1 if steer > 0 else -1
 
-        if self.param_do_tank_turn or self.driving_state in [DrivingState.PRE_RESET, DrivingState.POST_RESET]:
+        if self.param_do_tank_turn:
             drive_cmd_msg.mode = DriveInput.TANK
         else:
             drive_cmd_msg.mode = DriveInput.PIVOT
