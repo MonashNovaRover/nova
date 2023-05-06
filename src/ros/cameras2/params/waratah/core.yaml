@@ -48,6 +48,7 @@ camera_streamer:
         meta:
           uiProps:
             name: Arm - Screw
+            mirrorX: true
       arm_end_top:
         meta:
           uiProps:
