@@ -50,6 +50,7 @@ class CameraStreamerService(Node):
         width: int
         height: int
         framerate: int
+        show_clock: bool
         meta: dict[str, object]
 
     def __init__(self):
@@ -161,11 +162,13 @@ class CameraStreamerService(Node):
             width = get_parameter_value("width", lambda p: p.integer_value)
             height = get_parameter_value("height", lambda p: p.integer_value)
             framerate = get_parameter_value("framerate", lambda p: p.integer_value)
+            show_clock = get_parameter_value("show_clock", lambda p: p.bool_value)
 
             return CameraStreamerService.CameraConfiguration(
                 width=width if width is not None else defaults.width,
                 height=height if height is not None else defaults.height,
                 framerate=framerate if framerate is not None else defaults.framerate,
+                show_clock=show_clock if show_clock is not None else defaults.show_clock,
                 meta={**defaults.meta, **read_meta(parameters.get("meta", {}))},
             )
 
@@ -174,6 +177,7 @@ class CameraStreamerService(Node):
                 width=0,
                 height=0,
                 framerate=0,
+                show_clock=True,
                 meta={},
             ),
             expand_dictionary(self.get_parameters_by_prefix("defaults")),
@@ -264,6 +268,7 @@ class CameraStreamerService(Node):
             width=camera_configuration.width if camera_configuration.width != 0 else None,
             height=camera_configuration.height if camera_configuration.height != 0 else None,
             framerate=camera_configuration.framerate if camera_configuration.framerate != 0 else None,
+            show_clock=camera_configuration.show_clock,
             extra_meta=camera_configuration.meta,
         )
 

@@ -14,6 +14,7 @@ class CameraWebRTCBin:
     _source: Gst.Element
     _caps_filter: Gst.Element
     _video_converter: Gst.Element
+    _clock_overlay: Gst.Element
     _sink: Gst.Element
 
     def __init__(
@@ -23,6 +24,7 @@ class CameraWebRTCBin:
         width: Optional[int] = None,
         height: Optional[int] = None,
         framerate: Optional[int] = None,
+        show_clock: bool = True,
         extra_meta: Optional[dict[str, object]] = None,
     ):
         # Create and configure the elements.
@@ -48,6 +50,9 @@ class CameraWebRTCBin:
         # # Video converter
         self._video_converter = Gst.ElementFactory.make("videoconvert", "videoconvert")
 
+        # # Clock overlay
+        self._clock_overlay = Gst.ElementFactory.make("clockoverlay", "clockoverlay")
+
         # # Sink
         self._sink = Gst.ElementFactory.make("webrtcsink", "sink")
         # ## WebRTC settings
@@ -63,12 +68,14 @@ class CameraWebRTCBin:
 
         # Create the bin, and add the elements.
         self.bin = Gst.Bin.new(f"camera-{serial}-bin")
-        elements = [
+        potential_elements = [
             self._source,
             self._caps_filter,
             self._video_converter,
+            self._clock_overlay if show_clock else None,
             self._sink,
         ]
+        elements = list(filter(lambda element: element is not None, potential_elements))
         self.bin.add(*elements)
         Gst.Element.link_many(*elements)
 
