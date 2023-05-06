@@ -37,12 +37,9 @@ then
 elif [[ $1 = "rover" ]]
 then
     colcon build --continue-on-error --packages-up-to core control science electronics autonomous
-elif [[ $1 = "up-to" ]]
-then
-    colcon build --continue-on-error --packages-up-to $2
 
 # Build only a certain package and its dependencies
-elif [[ $1 = "to" ]]
+elif [[ $1 = "up-to" ]]
 then
     colcon build --continue-on-error --packages-up-to $2
 
