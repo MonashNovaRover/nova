@@ -24,6 +24,8 @@ class CameraWebRTCBin:
         width: Optional[int] = None,
         height: Optional[int] = None,
         framerate: Optional[int] = None,
+        do_fec: bool = True,
+        do_retransmission: bool = True,
         show_clock: bool = True,
         extra_meta: Optional[dict[str, object]] = None,
     ):
@@ -57,8 +59,8 @@ class CameraWebRTCBin:
         self._sink = Gst.ElementFactory.make("webrtcsink", "sink")
         # ## WebRTC settings
         self._sink.props.congestion_control = "gcc"
-        self._sink.props.do_fec = True
-        self._sink.props.do_retransmission = True
+        self._sink.props.do_fec = do_fec
+        self._sink.props.do_retransmission = do_retransmission
         self._sink.props.stun_server = None
         # ## Metadata
         self._sink.props.meta = dict_to_gst_structure(

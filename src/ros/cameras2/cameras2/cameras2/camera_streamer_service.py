@@ -50,6 +50,8 @@ class CameraStreamerService(Node):
         width: int
         height: int
         framerate: int
+        do_fec: bool
+        do_retransmission: bool
         show_clock: bool
         meta: dict[str, object]
 
@@ -162,12 +164,16 @@ class CameraStreamerService(Node):
             width = get_parameter_value("width", lambda p: p.integer_value)
             height = get_parameter_value("height", lambda p: p.integer_value)
             framerate = get_parameter_value("framerate", lambda p: p.integer_value)
+            do_fec = get_parameter_value("do_fec", lambda p: p.bool_value)
+            do_retransmission = get_parameter_value("do_retransmission", lambda p: p.bool_value)
             show_clock = get_parameter_value("show_clock", lambda p: p.bool_value)
 
             return CameraStreamerService.CameraConfiguration(
                 width=width if width is not None else defaults.width,
                 height=height if height is not None else defaults.height,
                 framerate=framerate if framerate is not None else defaults.framerate,
+                do_fec=do_fec if do_fec is not None else defaults.do_fec,
+                do_retransmission=do_retransmission if do_retransmission is not None else defaults.do_retransmission,
                 show_clock=show_clock if show_clock is not None else defaults.show_clock,
                 meta={**defaults.meta, **read_meta(parameters.get("meta", {}))},
             )
@@ -177,6 +183,8 @@ class CameraStreamerService(Node):
                 width=0,
                 height=0,
                 framerate=0,
+                do_fec=True,
+                do_retransmission=True,
                 show_clock=True,
                 meta={},
             ),
@@ -268,6 +276,8 @@ class CameraStreamerService(Node):
             width=camera_configuration.width if camera_configuration.width != 0 else None,
             height=camera_configuration.height if camera_configuration.height != 0 else None,
             framerate=camera_configuration.framerate if camera_configuration.framerate != 0 else None,
+            do_fec=camera_configuration.do_fec,
+            do_retransmission=camera_configuration.do_retransmission,
             show_clock=camera_configuration.show_clock,
             extra_meta=camera_configuration.meta,
         )
