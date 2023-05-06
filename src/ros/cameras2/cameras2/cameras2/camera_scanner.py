@@ -38,9 +38,7 @@ class CameraScanner:
         # https://cgit.freedesktop.org/systemd/systemd/tree/src/udev/v4l_id/v4l_id.c
         capabilities: list[str]
         try:
-            capabilities = (
-                device.properties["ID_V4L_CAPABILITIES"].strip(":").split(":")
-            )
+            capabilities = device.properties["ID_V4L_CAPABILITIES"].strip(":").split(":")
 
         except KeyError:
             # Sometimes, V4L is still initializing and has not yet made a capabilities property available.
@@ -68,8 +66,7 @@ class CameraScanner:
         return {
             serial: device.device_node
             for serial, device in (
-                (self._identify_camera(device), device)
-                for device in context.list_devices(subsystem="video4linux")
+                (self._identify_camera(device), device) for device in context.list_devices(subsystem="video4linux")
             )
             if serial is not None
         }

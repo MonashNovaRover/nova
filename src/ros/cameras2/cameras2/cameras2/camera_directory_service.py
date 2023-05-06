@@ -77,9 +77,7 @@ class CameraDirectoryService(Node):
 
         serial_override_roots = {
             name: cast(Parameter, parameter).get_parameter_value().string_value
-            for name, parameter in self.get_parameters_by_prefix(
-                "serial_overrides.roots"
-            ).items()
+            for name, parameter in self.get_parameters_by_prefix("serial_overrides.roots").items()
         }
 
         serial_overrides = [
@@ -87,9 +85,7 @@ class CameraDirectoryService(Node):
                 root,
                 {
                     path: cast(Parameter, parameter).get_parameter_value().string_value
-                    for path, parameter in self.get_parameters_by_prefix(
-                        f"serial_overrides.paths.{name}"
-                    ).items()
+                    for path, parameter in self.get_parameters_by_prefix(f"serial_overrides.paths.{name}").items()
                 },
             )
             for name, root in serial_override_roots.items()
@@ -102,10 +98,7 @@ class CameraDirectoryService(Node):
         self._cameras: dict[str, str] = self._camera_scanner.find_cameras()
         self.get_logger().info(
             "Cameras found:\n"
-            + "\n".join(
-                f"- {serial} at {device_node}"
-                for serial, device_node in self._cameras.items()
-            )
+            + "\n".join(f"- {serial} at {device_node}" for serial, device_node in self._cameras.items())
         )
         self._publish_cameras()
 
@@ -114,9 +107,7 @@ class CameraDirectoryService(Node):
 
         def callback(added: bool, serial: str, device_node: str) -> None:
             if added:
-                self.get_logger().info(
-                    f"New camera discovered: {serial} at {device_node}"
-                )
+                self.get_logger().info(f"New camera discovered: {serial} at {device_node}")
                 self._cameras[serial] = device_node
             else:
                 self.get_logger().info(f"Camera removed: {serial}")
@@ -131,12 +122,7 @@ class CameraDirectoryService(Node):
 
     def _publish_cameras(self) -> None:
         self._cameras_publisher.publish(
-            Cameras(
-                cameras=[
-                    Camera(serial=serial, node=device_node)
-                    for serial, device_node in self._cameras.items()
-                ]
-            )
+            Cameras(cameras=[Camera(serial=serial, node=device_node) for serial, device_node in self._cameras.items()])
         )
 
     def _discover_callback(
