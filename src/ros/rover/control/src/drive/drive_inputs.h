@@ -83,20 +83,11 @@ private:
     // A lock on the controls - can be unlocked
     bool locked = true;
 
-    // A flag for the handbrake
-    bool handbrake = false;
-
     // Autonomous mode
     bool autonomous = false;
 
-    float radius = INFINITY;
-
-    int direction = 0;
-
-    float speed = 0.0;
-
-    // Drive mode
-    unsigned char mode = core::msg::DriveInput::TANK;
+    // Message to store our drive inputs
+    core::msg::DriveInput latest_drive_input = core::msg::DriveInput(); 
 
     // Stores the current state of the trigger multiplier
     float trigger_speed = 1.0;

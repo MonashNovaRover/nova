@@ -9,7 +9,7 @@ byte TANK = 3
 #   to drive at, between -1 and 1. This is equivalent to % RPM.
 float32 speed
 
-# The radius value specifies the turning radius of the rover, positive is left
+# The radius value specifies the turning radius of the rover in m, positive is left
 # negative is right.
 float32 radius
 

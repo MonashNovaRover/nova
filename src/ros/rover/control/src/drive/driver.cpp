@@ -77,10 +77,21 @@ void Driver::drive_callback(const core::msg::DriveInput::SharedPtr msg)
     } else {
         target_radius = msg->radius;
         target_direction = msg->direction;
-        handbrake = msg->handbrake;
     }
+
+    if (!handbrake && msg->handbrake) {
+        for (PivotModule *pivot: pivots){
+            pivot->cmdWheel->set_stop_mode(STOP);
+        }
+    } else if (handbrake && !msg->handbrake) {
+        for (PivotModule *pivot: pivots){
+            pivot->cmdWheel->set_stop_mode(DRIVE_VELOCITY);
+        }
+    }
+
     // Set the mode
     mode = msg->mode;
+    handbrake = msg->handbrake;
     // Set the speed and radius
     float prev_velocity = velocity;
     velocity = this->get_parameter("max_speed").get_parameter_value().get<double>()*msg->speed;
@@ -109,7 +120,7 @@ void Driver::set_best_effort_radius() {
     RCLCPP_DEBUG(this->get_logger(), "best effort right: radius : %f, direction %d, valid: %s",
                  get<0>(best_effort_right), get<1>(best_effort_right), get<2>(best_effort_right) ? "true" : "false");
     if(get<2>(best_effort_left) && get<2>(best_effort_right)){
-        // If both are valid, choose the one that is closest to the target radius
+        // If both are valid, choose the one that is furthest from the target radius
         float signed_radius_left = get<0>(best_effort_left)*get<1>(best_effort_left);
         float signed_radius_right = get<0>(best_effort_right)*get<1>(best_effort_right);
         float signed_radius = target_radius*target_direction;
@@ -141,11 +152,15 @@ tuple<float, int, bool> Driver::calc_best_effort_radius(float curr_left, float c
     //calculate the maximum angle the wheel can turn until the next drive command is recieved.
     double best_effort_angle = curr + drive_dir * max_d_theta;
     //if the target is closer than the maximum angle the wheel can turn, set the angle to the target
-    if (abs(curr - target) < max_d_theta) best_effort_angle = target;
+    if (abs(curr - target) < max_d_theta) 
+        best_effort_angle = target;
     int best_dir;
-    if (curr == target) best_dir = 0;
-    else if(left) best_dir = best_effort_angle > angle_offset ? 1 : -1;
-    else best_dir = best_effort_angle > angle_offset ? -1 : 1;
+    if (curr == target) 
+        best_dir = 0;
+    else if(left) 
+        best_dir = best_effort_angle > angle_offset ? 1 : -1;
+    else 
+        best_dir = best_effort_angle > angle_offset ? -1 : 1;
     // return the radius of the circle the wheel is turning to
     float best_radius = abs(radius_from_angle(best_effort_angle, left));
     double left_angle = calc_wheel_angle(best_radius, true, best_dir);
@@ -209,9 +224,9 @@ void Driver::fill_wheel_velocities_radial()
         right_ratio = 1;
     }
     else {
-        left_ratio = sqrt(pow(CHASSIS_LENGTH, 2.0)/4 +
+        left_ratio = sqrt(pow(CHASSIS_LENGTH / 2, 2.0) +
                 pow(best_effort_radius*best_effort_direction + (CHASSIS_WIDTH / 2), 2.0))/best_effort_radius;
-        right_ratio = sqrt(pow(CHASSIS_LENGTH, 2.0)/4 +
+        right_ratio = sqrt(pow(CHASSIS_LENGTH / 2, 2.0) +
                 pow(best_effort_radius*best_effort_direction - (CHASSIS_WIDTH / 2), 2.0))/best_effort_radius;
     }
 
@@ -403,7 +418,7 @@ Driver::Driver() : Node("driver")
     subscriber_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void
     { drive_inputs_deadline_exceeded(); };
 
-    subscription_cmds_man = this->create_subscription<core::msg::DriveInput>(
+    subscription_cmds = this->create_subscription<core::msg::DriveInput>(
         "/control/drive_inputs", qos, std::bind(&Driver::drive_callback, this, _1), subscriber_options);
 
     // Create send commands timer

@@ -37,15 +37,8 @@ float DriveInputs::adjust_multiplier(float &multiplier, bool increase)
 void DriveInputs::publish_cmds()
 {
     if (prev_msg_received) {
-        auto message = core::msg::DriveInput();
-        message.speed = speed;
-        message.radius = radius;
-        message.direction = direction;
-        message.mode = mode;
-        message.handbrake = handbrake;
-
         // Publish the drive commands
-        publisher->publish(message);
+        publisher->publish(latest_drive_input);
 
         // Clear the msg_received flag
         prev_msg_received = false;
@@ -55,38 +48,46 @@ void DriveInputs::publish_cmds()
 // Stops driving when no input received from radios for a period of time
 void DriveInputs::input_deadline_exceeded()
 {
-    // Clear the old inputs
-    speed = 0.0;
-    Print::print("No gamepad input received");
-    RCLCPP_WARN(this->get_logger(), "Input gamepad subscriber deadline missed");
-    prev_msg_received = false;
+    if (!autonomous) {
+        // Clear the old inputs
+        latest_drive_input.speed = 0.0;
+        Print::print("No gamepad input received");
+        RCLCPP_WARN(this->get_logger(), "Input gamepad subscriber deadline missed");
+        prev_msg_received = false;
+    }
 }
 
 void DriveInputs::auto_deadline_exceeded() {
-    speed = 0.0;
-    prev_msg_received = false;
-    Print::print("No autonomous input received");
-    RCLCPP_WARN(this->get_logger(), "Autonomous input subscriber deadline missed");
+    if (autonomous) {
+        latest_drive_input.speed = 0.0;
+        prev_msg_received = false;
+        Print::print("No autonomous input received");
+        RCLCPP_WARN(this->get_logger(), "Autonomous input subscriber deadline missed");
+    }
 }
 
 void DriveInputs::autonomous_callback(const  core::msg::DriveInput::SharedPtr msg) {
     if (autonomous){
-        mode = msg->mode;
-        speed = msg->speed;
-        radius = msg->radius;
-        direction = msg->direction;
+        latest_drive_input.mode = msg->mode;
+        latest_drive_input.speed = msg->speed;
+        latest_drive_input.radius = msg->radius;
+        latest_drive_input.direction = msg->direction;
+
+        prev_msg_received = true;
     }
 }
 
 // Receives input from the gamepad
 void DriveInputs::input_callback(const core::msg::InputGamepad::SharedPtr msg)
 {
-    prev_msg_received = true;
+    if (!autonomous)
+        prev_msg_received = true;
+
     if (!msg->connected)
     {
-        radius = INFINITY;
-        direction = 0;
-        speed = 0.0;
+        latest_drive_input.radius = INFINITY;
+        latest_drive_input.direction = 0;
+        latest_drive_input.speed = 0.0;
         // Publish no connection message
         if (connected)
             Print::print("No Gamepad Connected", C_FAIL);
@@ -108,6 +109,10 @@ void DriveInputs::input_callback(const core::msg::InputGamepad::SharedPtr msg)
             Print::print("Gamepad Unlocked");
         locked = false;
     }
+
+    if (locked && !autonomous) {
+        latest_drive_input.speed = 0.0;
+    }
     // Determine if the conrroller needs to be locked or not
     // If no connection, reset the state
     if (!locked && connected) {
@@ -123,15 +128,15 @@ void DriveInputs::input_callback(const core::msg::InputGamepad::SharedPtr msg)
         }
 
         if (msg->btn_thumb_l_state == 1) {
-            if (!handbrake)
+            if (!latest_drive_input.handbrake)
                 Print::print("Handbrake Enabled", C_MODE);
-            handbrake = true;
+            latest_drive_input.handbrake = true;
         }
             // Disable Handbrake
         else if (msg->btn_thumb_r_state == 1) {
-            if (handbrake)
+            if (latest_drive_input.handbrake)
                 Print::print("Handbrake Disabled", C_MODE);
-            handbrake = false;
+            latest_drive_input.handbrake = false;
         }
         if (!autonomous) {
             // Change the speed multipliers
@@ -141,34 +146,29 @@ void DriveInputs::input_callback(const core::msg::InputGamepad::SharedPtr msg)
                 adjust_multiplier(multiplier_speed, false);
 
             if (msg->btn_y_state != 0) {
-                if (mode != core::msg::DriveInput::TANK)
+                if (latest_drive_input.mode != core::msg::DriveInput::TANK)
                     Print::print("Tank Mode", C_MODE);
-                mode = core::msg::DriveInput::TANK;
+                latest_drive_input.mode = core::msg::DriveInput::TANK;
             } else if (msg->btn_shoulder_l_state != 0) {
-                if (mode != core::msg::DriveInput::STRAFE)
+                if (latest_drive_input.mode != core::msg::DriveInput::STRAFE)
                     Print::print("Strafe Mode", C_MODE);
-                mode = core::msg::DriveInput::STRAFE;
+                latest_drive_input.mode = core::msg::DriveInput::STRAFE;
             } else if (msg->btn_shoulder_r_state != 0) {
-                if (mode != core::msg::DriveInput::PIVOT)
+                if (latest_drive_input.mode != core::msg::DriveInput::PIVOT)
                     Print::print("Pivot Mode", C_MODE);
-                mode = core::msg::DriveInput::PIVOT;
+                latest_drive_input.mode = core::msg::DriveInput::PIVOT;
             }
             trigger_speed = 1.0 - (msg->trg_r_val * (1 - MIN_TRIGGER_MULTIPLIER));
-            if (mode == core::msg::DriveInput::STRAFE) {
-                speed = -msg->ax_stick_l_x * multiplier_speed * trigger_speed;
+            if (latest_drive_input.mode == core::msg::DriveInput::STRAFE) {
+                latest_drive_input.speed = -msg->ax_stick_l_x * multiplier_speed * trigger_speed;
 
             } else {
-                speed = msg->ax_stick_l_y * multiplier_speed * trigger_speed;
+                latest_drive_input.speed = msg->ax_stick_l_y * multiplier_speed * trigger_speed;
             }
 
-            radius = abs(msg->ax_stick_r_x == 0 ? INFINITY : (1.0 / msg->ax_stick_r_x) -
+            latest_drive_input.radius = abs(msg->ax_stick_r_x == 0 ? INFINITY : (1.0 / msg->ax_stick_r_x) -
                                                                   (msg->ax_stick_r_x > 0 ? 1 : -1));
-            direction = msg->ax_stick_r_x > 0 ? 1 : msg->ax_stick_r_x < 0 ? -1 : 0;
-
-            // Otherwise print lock message
-        } else if (locked) {
-            // cout << "Controller LOCKED." << endl;
-            fflush(stdout);
+            latest_drive_input.direction = msg->ax_stick_r_x > 0 ? 1 : msg->ax_stick_r_x < 0 ? -1 : 0;
         }
     }
 }
@@ -176,6 +176,12 @@ void DriveInputs::input_callback(const core::msg::InputGamepad::SharedPtr msg)
 // Main constructor that sets up the node
 DriveInputs::DriveInputs() : Node("drive_inputs")
 {
+    // Fill with default values on startup
+    latest_drive_input.radius = INFINITY;
+    latest_drive_input.mode = core::msg::DriveInput::TANK;
+    latest_drive_input.handbrake = false;
+    latest_drive_input.speed = 0.0;
+    latest_drive_input.direction = 0;
 
     // Stores QoS options
     rclcpp::QoS qos = rclcpp::QoS(1).best_effort().deadline(ROSTimers::drive_deadline);

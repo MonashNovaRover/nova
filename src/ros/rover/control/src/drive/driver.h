@@ -50,7 +50,6 @@ EDITED:		13/09/2022
 #include<vector>
 #include<chrono>
 #include<tuple>
-#include<tuple>
 
 // Include CMD class
 #include "cmd/blcmd.h"
@@ -113,16 +112,7 @@ class Driver : public rclcpp::Node
     const float angle_offset = atan((CHASSIS_WIDTH)/CHASSIS_LENGTH);
 private:
     // Stores the subscriber for the drive commands (manual)
-    rclcpp::Subscription<core::msg::DriveInput>::SharedPtr subscription_cmds_man;
-
-    // Stores the subscriber for the drive commands (auto)
-    rclcpp::Subscription<core::msg::DriveInput>::SharedPtr subscription_cmds_auto;
-
-    // Stores the subscriber to the gamepad inputs
-    rclcpp::Subscription<core::msg::InputGamepad>::SharedPtr subscription_inputs;
-
-    // Stores the subscriber to the BLCMD status
-    rclcpp::Subscription<core::msg::BLCMDStatusArray>::SharedPtr subscription_blcmd_status;
+    rclcpp::Subscription<core::msg::DriveInput>::SharedPtr subscription_cmds;
 
     rclcpp::TimerBase::SharedPtr telemetry_timer;
     rclcpp::TimerBase::SharedPtr blcmd_spin_timer;
