@@ -325,25 +325,28 @@ class Controller(Node):
         :param: drive_fraction: [-1:1]
         :param: angular_fraction: [-1:1]
         """
-
         # construct message to publish
         drive_cmd_msg = DriveInput()
         # Values are validated to stay within -1:1
         drive_cmd_msg.speed = max(-1.0, min(1.0, float(drive_fraction)))
-        drive_cmd_msg.steer = max(-1.0, min(1.0, float(angular_fraction)))
+        steer = max(-1.0, min(1.0, float(angular_fraction)))
+        drive_cmd_msg.radius = float('inf') if steer == 0 else abs(1/steer - (1 if steer > 1 else -1))
+        drive_cmd_msg.direction = 0 if steer == 0 else 1 if steer > 0 else -1
 
-        if self.param_do_tank_turn:
+        if self.param_do_tank_turn or self.driving_state in [DrivingState.PRE_RESET, DrivingState.POST_RESET]:
             drive_cmd_msg.mode = DriveInput.TANK
         else:
             drive_cmd_msg.mode = DriveInput.PIVOT
 
         # Print!
-        self.get_logger().debug("Driving at speed {:.4f}, steer {:.4f}".format(
-            drive_cmd_msg.speed, drive_cmd_msg.steer
-        ))
+        self.get_logger().debug(
+                f"Driving at speed {drive_cmd_msg.speed:.4f}, radius {drive_cmd_msg.radius:.4f}, direction {drive_cmd_msg.direction}"
+            )
 
         # publish to public topic
         self.pub_drive_commands.publish(drive_cmd_msg)
+
+
 
 
 def main(args=None):
