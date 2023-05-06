@@ -26,18 +26,21 @@
 
 /height_plane_mapper:
   ros__parameters:
+    roll_map: true
     map_corners_coords:
       # x, y
       [15.0, 7.0, -1.5, 7.0, -1.5, -7.0, 15.0, -7.0]
 
 /plane_mapper:
   ros__parameters:
+    roll_map: true
     map_corners_coords:
       # x, y
       [15.0, 7.0, -1.5, 7.0, -1.5, -7.0, 15.0, -7.0]
 
 /height_mapper:
   ros__parameters:
+    roll_map: true
     map_corners_coords:
       # x, y
       [15.0, 7.0, -1.5, 7.0, -1.5, -7.0, 15.0, -7.0]

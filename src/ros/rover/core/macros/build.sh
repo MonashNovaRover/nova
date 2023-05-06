@@ -41,6 +41,11 @@ elif [[ $1 = "up-to" ]]
 then
     colcon build --continue-on-error --packages-up-to $2
 
+# Build only a certain package and its dependencies
+elif [[ $1 = "to" ]]
+then
+    colcon build --continue-on-error --packages-up-to $2
+
 # Build only a certain package
 else
     colcon build --continue-on-error --packages-select $1

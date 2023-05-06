@@ -1,5 +1,4 @@
 #!/usr/bin/python3
-__package__ = "autonomous"
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team
@@ -10,42 +9,45 @@ Subscribes to the DGPS and IMU topics and publishes some combined, transformed v
 NODE: ConverterNode
 TOPICS:
   - /imu/euler   [Subscribed]
-  - /            [Subscribed]
-  - /imu/euler   [Publisher]
-  - /            [Published]
-  - /            [Published]
+  - /electronics/gps_data            [Subscribed]
+  - /autonomous/goals            [Subscribed]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:  autonomous    
 AUTHOR(S): Liam Whittle, Max Tory
 CREATION:    06/05/2022
-EDITED:        09/05/2022
+EDITED:        27/04/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+TODO:
+    - Implement EKF for fun
+    - GPS converter takes into account pose offset
+    - Use TF2 properly from imu coordinate transformation
 """
+
 # standard imports
 import time
-import sys
-import rclpy
+import math
 import numpy as np
 
 # autonomous imports
 import autonomous.math_utils.transform as transform
-from autonomous.config.runtime_params import dgps_extrinsics, tracking_camera_extrinsics, pose_pub_rate, minimum_gps_corrections
-from autonomous.config.ros_config import main_frame, camera_pose_topic, rover_pose_topic, auto_goal_topic, auto_goal_gps, rover_odom_topic
+from autonomous.config.ros_config import auto_goal_topic, auto_goal_gps
 from autonomous.localisation.ekf import Ekf
 from autonomous.localisation.gps_converter import GpsConverter
 
 # ROS imports
+import rclpy
 from rclpy.node import Node
-from nav_msgs.msg import Odometry
-from core.msg import RoverPose, WheelData, RoverPoseGPS, AutonomousGoal
-
-from geometry_msgs.msg import PoseWithCovariance, TransformStamped, PoseStamped, Transform
-from sensor_msgs.msg import Imu
-from rclpy.qos import qos_profile_sensor_data as qos
-from rclpy.logging import LoggingSeverity
+from rclpy.time import Time
+from rclpy.duration import Duration
 
 from tf2_ros import TransformBroadcaster, StaticTransformBroadcaster, Buffer, TransformListener
+
+from core.msg import RoverPoseGPS, AutonomousGoal, AutonomousGoalArray, WheelData 
+
+from geometry_msgs.msg import TransformStamped, Transform, Vector3Stamped
+from sensor_msgs.msg import Imu
   
+
 class PoseConverter(Node):
     """
     ROS2 Node to listen to:
@@ -58,95 +60,89 @@ class PoseConverter(Node):
     def __init__(self):
         super().__init__("pose_converter")
 
-        # Ros parameters
-        self.param_do_dgps_imu = self.declare_parameter("do_dgps_imu", False).value
-        self.param_do_t265 = self.declare_parameter("do_t265", True).value
-        self.param_do_wheel_odom = self.declare_parameter("do_wheel_odom", False).value
-        self.param_load_pose_file = self.declare_parameter("load_pose_from_file", False)
+        # Ros params
+        self.param_do_ekf = self.declare_parameter("do_ekf", False).value
+        self.param_gps_frame_id = self.declare_parameter("gps_frame_id", "gps_link").value
+        self.param_imu_frame_id = self.declare_parameter("imu_frame_id", "imu_link").value
+        self.param_base_link_rate = self.declare_parameter("base_link_pub_rate_hz", 30).value
+        self.param_use_euler_angles = self.declare_parameter("use_euler", False).value
+        self.param_initial_quat = self.declare_parameter("initial_base_link_quat", [0., 0., 0., 0., 0., 0., 1.]).value
+        self.param_initial_euler = self.declare_parameter("initial_base_link_euler", [0., 0., 0., 0., 0., 0.]).value
         
         # subscribers
-        if self.param_do_imu:
-            self.imu_sub = self.create_subscription(Imu, "/imu/data", self.imu_callback, 10)
-        self.dgps_sub = self.create_subscription(PoseWithCovariance, "/gps_rover/pose_cov", self.dgps_callback, qos)
-        self.drive_sub = self.create_subscription(WheelData, "/electronics/wheel_data", self.drive_callback, 10)
-        self.goals_sub = self.create_subscription(AutonomousGoal, auto_goal_gps, self.goal_callback, 10)
+        self.imu_sub = self.create_subscription(Vector3Stamped, "/imu/euler", self.cb_imu, 10)
+        self.gps_sub = self.create_subscription(RoverPoseGPS, "/electronics/gps_data", self.cb_dgps, 10)
+        self.goals_sub = self.create_subscription(AutonomousGoal, auto_goal_gps, self.cb_goal, 10)
 
         # publishers
-        self.camera_pub = self.create_publisher(Odometry, camera_pose_topic, 10)
-
-        # coordinate system: 
-        #     positive pitch        => up
-        #     positive roll         => right (clockwise)
-        #     positive yaw (0, 2pi) => counterlockwise
-        self.rover_pose_pub = self.create_publisher(RoverPose, rover_pose_topic, 10)
-        self.rover_pose_gps_pub = self.create_publisher(RoverPoseGPS, "/electronics/rover_pose_gps", 10)
-
-        self.rover_pose_odom_pub = self.create_publisher(Odometry, rover_odom_topic, 10)
         self.goals_pub = self.create_publisher(AutonomousGoal, auto_goal_topic, 10)
 
-        # timer 
-        self.pub_timer = self.create_timer(pose_pub_rate, self.publisher_callback)
-        self.tf_base_link = TransformBroadcaster()
+        # tf2 objects
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, node=self, spin_thread=True)
+        self.tf_base_link = TransformBroadcaster(self)
+        self.tf_initial_offset = StaticTransformBroadcaster(self)
+
+        # timer 
+        self.pub_timer = self.create_timer(1/self.param_base_link_rate, self.cb_publish_transform)
+
+        # state
+        self.gps_converter : GpsConverter = GpsConverter()
+        self.latest_imu : Vector3Stamped = None
+        self.latest_gps_pose : RoverPoseGPS = None
+        self.gps_offset : np.ndarray = None
         self.get_initial_transform()
-        self.latest_pose = None
 
         # for maintaining accurate pose and converting between gps
-        self.ekf = Ekf()
-        self.gps_converter = GpsConverter()
+        if self.param_do_ekf:
+            raise NotImplementedError("EKF not integrated yet")
 
-        # state and covariance used for EKF
-        self.x = np.zeros((2, 1))
-        self.p = np.zeros((2, 2))
-        self.u = np.array([[None] * 3]).reshape((3, 1))
-
-        self.rover_pose = RoverPose()
-        self.rover_pose_gps = RoverPoseGPS()
-        self.odom = Odometry()
-        self.odom.header.frame_id = "map"
-
-        self.initial_yaw = 0
-        # for publishing
-
-        self.previous_prediction = time.perf_counter()
-
-        # we want to get a lot of gps data before we're confident enough to start publishing pose
-        self.num_gps_corrections = 0
-        self.received_yaw = False
-
-    def fill_initial_pose(self, transform: Transform):
+    def fill_initial_pose(self, initial_transform: Transform):
         """
-        Read data from file and fill transform with it
+        Read data from params and fill transform with it
         """
-        try:
-            pose = np.loadtxt(pose_file).reshape(4)
-        except FileNotFoundError as e:
-            self.get_logger().warn("Couldn't find file!")
+        
+        if self.param_use_euler_angles:
+            try:
+                initial_transform.translation.x, initial_transform.translation.y, initial_transform.translation.z = \
+                    self.param_initial_euler[0], self.param_initial_euler[1], self.param_initial_euler[2]
+                initial_transform.rotation = transform.euler_to_quat(
+                    (math.radians(self.param_initial_euler[4]),
+                    math.radians(self.param_initial_euler[5]),
+                    math.radians(self.param_initial_euler[3]))
+                )
+                print(f"INITIAL TRANSFORM: {initial_transform}")
+            except IndexError as e:
+                self.get_logger().error(f"Incorrect euler angle layout in parameter: {e}")
+            except Exception as e:
+                self.get_logger().error(f"Failed to read parameter initial pose {e}")
+        else:
+            try:
+                initial_transform.translation.x, initial_transform.translation.y, initial_transform.translation.z = \
+                    self.param_initial_quat[0], self.param_initial_quat[1], self.param_initial_quat[2]
+                initial_transform.rotation.x, initial_transform.rotation.y, initial_transform.rotation.z, initial_transform.rotation.w = \
+                    self.param_initial_quat[3], self.param_initial_quat[4], self.param_initial_quat[5], self.param_initial_quat[6]
+            except IndexError as e:
+                self.get_logger().error(f"Incorrect quaternion layout in parameter: {e}")
+            except Exception as e:
+                self.get_logger().error(f"Failed to read parameter initial pose {e}")
 
-        transform.translation.x, transform.translation.y, transform.translation.z = pose[:3]
-        # filling in yaw
-        transform.rotation.z = np.sin(pose[3] / 2)
-        transform.rotation.w = np.cos(pose[3] / 2)
-        return transform
-
+        return initial_transform
 
     def get_initial_transform(self):
         """
-        If we want to, load initial rover position from file
+        If we want to, load initial transform from params
         """
-        # TODO: set in param somewhere?
         initial_transform = TransformStamped()
         initial_transform.header.frame_id = 'map'
         initial_transform.header.stamp = self.get_clock().now().to_msg()
         initial_transform.child_frame_id = 'initial_base_link'
-        if self.param_load_pose_file.value:
-            initial_transform.transform = self.fill_initial_pose(initial_transform.transform)
-        else:
-            initial_transform.transform.rotation.w = 1.0
+        # TODO : Allow initial offsets for some reason
+        # initial_transform.transform = self.fill_initial_pose(initial_transform.transform)
 
-        tf_initial_offset = StaticTransformBroadcaster(self)
-        tf_initial_offset.sendTransform(initial_transform)
+        initial_transform.transform.rotation.w = 1.0
+
+        self.tf_initial_offset.sendTransform(initial_transform)
 
         base_link_transform = TransformStamped()
         base_link_transform.header.frame_id = 'initial_base_link'
@@ -159,233 +155,101 @@ class PoseConverter(Node):
         base_link_transform.transform.rotation.z = 0.0
         self.tf_base_link.sendTransform(base_link_transform)
 
-    def callback_t265(self, msg: PoseStamped):
-        """
-        Take T265 messages, offset them to get the rover's pose, and save the pose estimate
-        """
+        self.get_logger().info("Waiting for GPS offset transform...")
+        while not self.tf_buffer.can_transform("base_link", "gps_link", Time()):
+            time.sleep(0.1)
 
-        base_link_transform = TransformStamped()
-        base_link_transform.header.stamp = self.get_clock().now().to_msg()
-        base_link_transform.header.frame_id = 'initial_base_link'
-        base_link_transform.child_frame_id = 'base_link'
+        self.get_logger().info("Received GPS offset transform")
+        gps_tf = self.tf_buffer.lookup_transform("base_link", "gps_link", Time()).transform
+        r, p, y = transform.quat_to_euler(gps_tf.rotation)
+        self.gps_offset = np.array([0., 0., y])
 
-        try:
-            t265_offset = self.tf_buffer.lookup_transform('base_link', 't265', Time()).transform
-        except Exception as e:
-            self.get_logger().warn(str(e), once=True)
-            return
-        base_link_transform.transform = transform.offset_transform(transform=t265_transform, offset=t265_offset)
-        self.latest_pose = base_link_transform
-
-
-    def transform_imu_to_nova(self, imu_msg):
+    def transform_imu_to_nova(self):
         """
         Transform the fused imu data into a ROS Odom message, with the right handed coordinate system
         where
         up = +z
         left = +y
         forward = +x
+        TODO: set IMU transform in URDF, and we can use tf2 to transform properly. Note that there are serious complications
+        Caused by IMUs having absolute pitch and roll but relative yaw, so this is non-trivial
         """
-        imu_odom = Odometry()
+        imu_roll, imu_pitch = math.radians(self.latest_imu.vector.x), math.radians(self.latest_imu.vector.y)
+        return np.array([imu_roll, imu_pitch, 0.])
 
-        imu_odom.header.stamp = self.get_clock().now().to_msg()
-        imu_odom.header.frame_id = main_frame
-
-        imu_odom.pose.pose.orientation.x = imu_msg.orientation.x
-        imu_odom.pose.pose.orientation.y = imu_msg.orientation.y
-        imu_odom.pose.pose.orientation.z = imu_msg.orientation.z
-        imu_odom.pose.pose.orientation.w = imu_msg.orientation.w
-
-        pitch, roll, yaw = transform.quat_to_euler(imu_odom.pose.pose.orientation)
-        yaw -= self.gps_converter.magnetic_declination 
-        yaw += 0 if yaw > -np.pi else 2 * np.pi
-
-        qx, qy, qz, qw = transform.euler_to_quat((pitch, roll, yaw))
-        imu_odom.pose.pose.orientation.x = qx
-        imu_odom.pose.pose.orientation.y = qy
-        imu_odom.pose.pose.orientation.z = qz
-        imu_odom.pose.pose.orientation.w = qw
-
-        return pitch, roll, yaw, imu_odom
-
-    def imu_callback(self, msg):
+    def calculate_transform(self) -> TransformStamped:
         """
-        updates msg
+        Calculate the transform between the intial_base_link and the base_link frame
+        Converts the latest IMU euler angles and latest dgps latitude, longitude and yaw into a combined
+        TransformStamped message, then returns that
         """
-        pitch, roll, yaw, imu_odom = self.transform_imu_to_nova(msg)
-        self.odom.pose.pose.orientation = imu_odom.pose.pose.orientation
+        # Take pitch and roll from imu and heading from gps
+        imu_eulers = self.transform_imu_to_nova()
+        # GPS heading is positive in the clockwise direction, but the right hand rule dictates for us that positive yaw is counter-clockwise
+        gps_eulers = np.array([0., 0., -math.radians(self.latest_gps_pose.yaw)])
+        eulers = imu_eulers + gps_eulers - self.gps_offset
+        quat = transform.euler_to_quat(eulers)
+        gps_x, gps_y = self.gps_converter.get_local_coord(self.latest_gps_pose.latitude, self.latest_gps_pose.longitude)
 
-        self.u[1:] = np.array([[-pitch], [yaw]])
-        # uncomment if we work out how to do covariance of imu measurements
+        tf_msg = TransformStamped()
+        tf_msg.header.frame_id = 'initial_base_link'
+        tf_msg.header.stamp = self.get_clock().now().to_msg()
+        tf_msg.child_frame_id = 'base_link'
+
+        tf_msg.transform.translation.x = gps_x
+        tf_msg.transform.translation.y = gps_y
+
+        tf_msg.transform.rotation = quat
+        
+        return tf_msg
+
+    def cb_imu(self, msg: Vector3Stamped):
         """
-        p_xx, p_xy, p_yx, p_yy = msg.orientation_covariance[0], msg.orientation_covariance[1],\
-                                    msg.orientation_covariance[4], msg.orientation_covariance[5]
-
-        x = np.array([[pitch], [yaw]])
-        P = np.array([[p_xx, p_xy], [p_yx, p_yy]])
-
-        self.x, self.p = self.ekf.correct_imu(self.x, self.p, x, P)
+        Updates locally stored message
         """
+        self.latest_imu = msg
 
-    def dgps_callback(self, msg):
+    def cb_dgps(self, msg : RoverPoseGPS):
         """
-        Gets data from a gps message, converts it to local coordinates, and updates
-        the ekf model with its covariance (if the variance of lat and long is not too high)
+        Updates locally stored message
         """
-        # getting covariance values
-        p_xx, p_xy, p_yx, p_yy = msg.covariance[0], msg.covariance[1], msg.covariance[6], msg.covariance[7]
+        if msg.valid:
+            self.latest_gps_pose = msg
 
-        # Leigh Oliver 23/05/22
-        # Now prints warning messages abt high covariance, every 5 seconds
-        if p_xx > 1 or p_yy > 1:
-            # high variance -> warn
-            self.get_logger().log("High dGPS Covariance (p_xx: {:.2f}, p_yy: {:.2f})".format(p_xx,p_yy),LoggingSeverity.WARN,throttle_duration_sec=5)
-
-        cov = np.array([[p_xx, p_xy], [p_yx, p_yy]])
-
-        # lat and lon
-        coord = self.gps_converter.get_local_coord(
-                msg.pose.position.x, msg.pose.position.y
-                )
-
-        x, y = coord[0], coord[1]
-
-        obs = np.array([x, y]).reshape((2, 1))
-
-        if self.num_gps_corrections == 0:
-            self.x = obs
-            self.p = cov
-
-        else:
-            self.x, self.p = self.ekf.correct_gps(self.x, self.p, obs, cov)
-
-        self.num_gps_corrections += 1
-
-        transformed_dgps_extrinsics = transform.transform_from_quat(self.odom.pose.pose.orientation, np.array(dgps_extrinsics))
-        self.odom.pose.pose.position.x = self.x[0, 0] + transformed_dgps_extrinsics[0]
-        self.odom.pose.pose.position.y = self.x[1, 0] + transformed_dgps_extrinsics[1]
-        self.odom.pose.pose.position.z = 0.0
-
-        cov_odom = [0.] * 36
-        cov_odom[0], cov_odom[1] = self.p[0, 0], self.p[1, 0]
-        cov_odom[6], cov_odom[7] = self.p[0, 1], self.p[0, 1]
-        self.odom.pose.covariance = cov_odom
-
-    def drive_callback(self, msg):
+    def cb_goal(self, msg : AutonomousGoalArray):                                               
         """
-        Takes velocities from all 6 wheels and approximates rover velocity, then propagates a prediction step
-        from the ekf
+        Takes GPS coordinate goals, transforms them one-by-one into x, y coordinates and publishes them
         """
-        vel = sum(msg.velocities) / 6.0
-        self.u[0, 0] = vel
-        if self.num_gps_corrections == 0 or None in self.u:
-            return
-        if self.num_gps_corrections < minimum_gps_corrections:
-            # don't publish until we've collated enough data
-            return
-        t = time.perf_counter()
-        self.x, self.p = self.ekf.predict(self.x, self.p, self.u, t - self.previous_prediction)
-        self.previous_prediction = t
+        self.get_logger().debug("received goal: {msg}")
+        transformed_goals = AutonomousGoalArray()
+        transformed_goals.header = msg.header
 
-    def goal_callback(self, msg):                                               
-        local_goal = AutonomousGoal()
-                                                                                  
-        local_goal.ids = [iD for iD in msg.ids]
-        local_goal.position.x, local_goal.position.y = self.gps_converter.get_local_coord(
-                  msg.position.x, msg.position.y                                  
-                  )                                                               
+        goal : AutonomousGoal
+        for goal in msg.goals:
+            goal.position.x, goal.position.y = self.gps_converter.get_local_coord(
+                    goal.position.x, goal.position.y
+            )
+            transformed_goals.goals.append(goal)
 
-        self.goals_pub.publish(local_goal)
+        self.goals_pub.publish(transformed_goals)
 
-    def publisher_callback(self):
+    def cb_publish_transform(self):
         """
         On a 5 hz timer, publish all necessary rover poses
         """
-        # set z = 0 always
-        if self.num_gps_corrections < minimum_gps_corrections:
-            # don't publish until we've collated enough data
-            return
-        self.publish_rover_pose()
-        self.odom.header.stamp = self.get_clock().now().to_msg()
-        self.rover_pose_odom_pub.publish(self.odom)
-        self.publish_cam_odom()
+        if self.latest_gps_pose is None or self.latest_imu is None:
+            self.get_logger().info("Waiting for imu and dgps to come online...", once=True)
+        else:
+            self.get_logger().info("Received imu and dgps data, publishing transforms...", once=True)
+            tf = self.calculate_transform()
+            self.tf_base_link.sendTransform(tf)
 
-    def publish_rover_pose(self):
-        """
-        Publish the rover's pose as an x, y, z, pitch, roll, yaw (no quaternions)
-        Also publishes gps coordinates based on the x and y by calling the xyz_to_gps service
-        """
-        gps_msg = RoverPoseGPS()
-        rover_msg = RoverPose()
-
-        # get rover position as centre of wheel-base
-        rover_msg.x = self.odom.pose.pose.position.x
-        rover_msg.y = self.odom.pose.pose.position.y
-        rover_msg.z = self.odom.pose.pose.position.z
-
-        # gets euler angles from imu quaternion
-        pitch, roll, yaw = transform.quat_to_euler(self.odom)
-        rover_msg.pitch, rover_msg.roll, rover_msg.yaw = -pitch, -roll, yaw
-
-        self.rover_pose_pub.publish(rover_msg)
-        self.print_rover_msg(rover_msg)
-
-        # filling out gps message
-        gps_msg.valid = True
-        gps_msg.pitch, gps_msg.roll, gps_msg.yaw = -pitch, -roll, -yaw
-        # convert x, y to lat, lon
-        
-        coord = self.gps_converter.get_global_coord(
-                rover_msg.x, rover_msg.y
-                )
-        if coord is None:
-            return
-
-        gps_msg.latitude, gps_msg.longitude = coord[0], coord[1]
-
-        self.rover_pose_gps_pub.publish(gps_msg)
-
-    def publish_cam_odom(self):
-        """
-        Converts self.odom (which is odometry of the rover's wheelbase) into an odometry relative
-        to the cameras' positions. This is used to translate points received from the depth camera
-        """
-        # vector from depth cam to rover centre
-        depth_cam_offset = transform.transform_from_quat(self.odom.pose.pose.orientation, np.array(tracking_camera_extrinsics))
-        camera_msg = Odometry()
-        camera_msg.header.frame_id = "map"
-        camera_msg.header.stamp = self.get_clock().now().to_msg()
-
-        camera_msg.pose.pose.orientation.x = self.odom.pose.pose.orientation.x
-        camera_msg.pose.pose.orientation.y = self.odom.pose.pose.orientation.y
-        camera_msg.pose.pose.orientation.z = self.odom.pose.pose.orientation.z
-        camera_msg.pose.pose.orientation.w = self.odom.pose.pose.orientation.w
-
-        camera_msg.pose.pose.position.x = self.odom.pose.pose.position.x - depth_cam_offset[0]
-        camera_msg.pose.pose.position.y = self.odom.pose.pose.position.y - depth_cam_offset[1]
-        camera_msg.pose.pose.position.z = self.odom.pose.pose.position.z - depth_cam_offset[2]
-
-        self.camera_pub.publish(camera_msg)
-
-    def print_rover_msg(self, rover_msg):
-        roverMsgStr = f"""
-        x: {rover_msg.x:8.3f}
-        y: {rover_msg.y:8.3f}
-        z: {rover_msg.z:8.3f}
-        pitch: {rover_msg.pitch:8.2f}
-        roll: {rover_msg.roll:8.2f}
-        yaw: {rover_msg.yaw:8.2f}
-        """
-        
-        # Prints every 1 second to reduce spam
-        self.get_logger().debug(roverMsgStr, throttle_duration_sec=1)
-        
-        
 
 def main():
     rclpy.init()
     converter = PoseConverter()
     rclpy.spin(converter)
+    converter.destroy_node()
     rclpy.shutdown()
     
 if __name__ == "__main__":
