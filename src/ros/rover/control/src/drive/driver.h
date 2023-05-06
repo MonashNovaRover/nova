@@ -33,6 +33,7 @@ EDITED:		13/09/2022
 
 // Include standard ROS messages
 #include "std_msgs/msg/bool.hpp"
+#include "std_msgs/msg/byte.hpp"
 
 // Include custom ROS messages
 #include "core/msg/input_gamepad.hpp"
@@ -47,6 +48,8 @@ EDITED:		13/09/2022
 // Include other headers
 #include<cmath>
 #include<vector>
+#include<chrono>
+#include<tuple>
 
 // Include CMD class
 #include "cmd/blcmd.h"
@@ -105,23 +108,15 @@ class Driver : public rclcpp::Node
 
     // The number of wheels on the rover
     static const int NUM_WHEELS = 4;
+    // The absolute value of the offset between the blcmds 0 and 0 on the rover
+    const float angle_offset = atan((CHASSIS_WIDTH)/CHASSIS_LENGTH);
 private:
     // Stores the subscriber for the drive commands (manual)
-    rclcpp::Subscription<core::msg::DriveInput>::SharedPtr subscription_cmds_man;
+    rclcpp::Subscription<core::msg::DriveInput>::SharedPtr subscription_cmds;
 
-    // Stores the subscriber for the drive commands (auto)
-    rclcpp::Subscription<core::msg::DriveInput>::SharedPtr subscription_cmds_auto;
-
-    // Stores the subscriber to the gamepad inputs
-    rclcpp::Subscription<core::msg::InputGamepad>::SharedPtr subscription_inputs;
-
-    // Stores the subscriber to the BLCMD status
-    rclcpp::Subscription<core::msg::BLCMDStatusArray>::SharedPtr subscription_blcmd_status;
-
-    // Publishes whether the rover is in autonomous mode for LEDs
-    rclcpp::TimerBase::SharedPtr mode_timer;
     rclcpp::TimerBase::SharedPtr telemetry_timer;
     rclcpp::TimerBase::SharedPtr blcmd_spin_timer;
+    rclcpp::TimerBase::SharedPtr send_commands_timer;
 
     rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr mode_pub;
     rclcpp::Publisher<core::msg::Telemetry>::SharedPtr telemetry_pub;
@@ -129,87 +124,75 @@ private:
     // Publisher for pivot wheel data
     rclcpp::Publisher<core::msg::PivotWheelData>::SharedPtr pivot_wheel_pub;
 
-    // A flag for whether to apply the handbrake or not
+    double max_d_theta;
+    double max_d_vel;
+
+    // Default control data
+    float target_radius = INFINITY;
+    float best_effort_radius = INFINITY;
+    float velocity = 0.0;
+    int8_t target_direction = 0;
+    int8_t best_effort_direction = 0;
+    unsigned char mode = core::msg::DriveInput::TANK;
     bool handbrake;
 
-    // A flag for weather a blcmd has an error
-    bool blcmd_error = false;
 
-    // The absolute value of the offset between the blcmds 0 and 0 on the rover
-    const float angle_offset = atan((CHASSIS_WIDTH)/CHASSIS_LENGTH);
-
-    // the previous sign of the turning radius
-    int sign = 0;
-
-    // A flag for whether to use autonomous state or not
-    bool is_autonomous = false;
-    double d_theta;
 
     // An array of pointers to Wheel instances
     PivotModule *pivots[NUM_WHEELS];
 
-    /// @brief      Sends commands to the wheels using the wheel classes
-    /// @param      msg - A pointer to the drive message
-    void send_commands(const core::msg::DriveInput::SharedPtr msg);
+    /// @brief      Sends commands to the blcmds using the PivotModule classes
+    void send_commands();
 
     /// @brief      Callback function when drive messages are received
     /// @param      msg - A pointer to the drive message
     void drive_callback(const core::msg::DriveInput::SharedPtr msg);
 
-    /// @brief      Callback function when autonomous messages are received
-    /// @param      msg - A pointer to the drive message
-    void auto_callback(const core::msg::DriveInput::SharedPtr msg);
-
-    /// @brief      Callback function when input messages are received.
-    /// @param      msg - A pointer to the input message
-    void input_callback(const core::msg::InputGamepad::SharedPtr msg);
-
-    /// @brief      Callback function when BLCMD status messages are received.
-    /// @param      msg - A pointer to the BLCMD status message
-    void blcmd_status_callback(const core::msg::BLCMDStatusArray::SharedPtr msg);
 
     /// @brief      function that spins all blcmds
     void blcmd_spinner();
 
     /// @brief      calculates the angle of a wheel
     /// @param      radius - the radius of the turn
-    /// @param      wheel - the wheel number (0-4 CCW)
-    /// @param      sign - the sign of the radius
+    /// @param      left - the wheel side, left is true
+    /// @param      dir - the direction of the radius, -1 left turn, 1 right turn
     /// @returns    the angle of the wheel
-    double calc_wheel_angle(float radius, int wheel, int sign);
+    double calc_wheel_angle(float radius, bool left, int dir);
 
     /// @brief      calculates the radius from the angle of one wheel (inverse of calc_wheel_angle)
     /// @param      angle - the angle of the wheel
-    /// @param      wheel - the wheel number (0-4 CCW)
-    /// @param      sign - the sign of the radius
+    /// @param      left - the wheel side, left is true
     /// @returns    the radius of the turn
-    double radius_from_angle(double angle, int wheel, int sign);
+    double radius_from_angle(double angle, bool left);
 
     /// @brief     Calculates the radius to turn the wheels to such that the radius is valid based on the maximum
     ///            pivot angular velocity
-    /// @param     steer - The value of steer between -1 and 1 where -1 is on the spot turn left and 1 is on the spot turn right
-    /// @returns   the radius to turn the wheels to
-    double get_turning_radius(float steer);
+    void set_best_effort_radius();
+
+    /// @brief      Calculates the radius when the when wheel is moved in the direction of the target radius
+    ///             by the max_d_theta amount.
+    /// @param      curr_left - the current angle of the left wheels
+    /// @param      curr_right - the current angle of the right wheels
+    /// @param      radius - the target radius
+    /// @param      dir - the direction of the turn
+    /// @param      left - calculate the left radius, else calculate the right radius
+    /// @returns    a tuple containing the best effort radius, direction and if the radius is valid
+    tuple<float, int, bool> calc_best_effort_radius(float curr_left, float curr_right, float radius, int dir, bool left);
 
     /// @brief      fills the wheel angles of the pivots array based on a radius
-    /// @param      radius - The turning radius of the rover [m]
-    void fill_wheel_angles_radial(double radius);
+    void fill_wheel_angles_radial();
 
     /// @brief      fills the wheel angles of the pivots array when strafe mode is enabled
     void fill_wheel_angles_strafe();
 
     /// @brief      fills the wheel velocities of the pivots array based on a radius
-    /// @param      speed - Speed of each driven wheel
-    /// @param      steer - Direction and amount of steering
-    void fill_wheel_velocities_radial(float speed, float radius);
+    void fill_wheel_velocities_radial();
 
     /// @brief      fills the wheel velocities of the pivots array when strafe mode is enabled
-    /// @param      speed - Speed of each driven wheel
-    void fill_wheel_velocities_strafe(float speed);
+    void fill_wheel_velocities_strafe();
 
     /// @brief      fills the wheel velocities of the pivots array when tank mode is enabled
-    /// @param      speed - Speed of each driven wheel
-    void fill_wheel_velocities_tank(float speed, float radius, float steer);
+    void fill_wheel_velocities_tank();
 
     /// @brief      Calculates the position of the wheel in relation to the wheelbase centre
     /// @param      id - The identification of the wheel
@@ -229,7 +212,7 @@ private:
     void pub_telemetry();
 
     /// @brief callback for when drive inputs subscription is exceeded
-    void inputs_deadline_exceeded();
+    void drive_inputs_deadline_exceeded();
     //------------------------------------------------------------//
 public:
     /// @brief      Default constructor function that starts up the node

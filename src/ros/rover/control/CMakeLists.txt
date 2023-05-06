@@ -101,11 +101,6 @@ add_executable(drive_inputs src/drive/drive_inputs.cpp)
 target_link_libraries(drive_inputs print)
 ament_target_dependencies(drive_inputs rclcpp core)
 
-# Velocity Converter script
-add_executable(vel_convert src/drive/velocity_convert.cpp)
-target_link_libraries(vel_convert print)
-ament_target_dependencies(vel_convert rclcpp core)
-
 # Drive Receiver script
 add_executable(driver src/drive/driver.cpp)
 target_link_libraries(driver blcmd print)
@@ -126,7 +121,6 @@ install(TARGETS
         inputs
         drive_inputs
         driver
-        vel_convert
         pid_tuner
         DESTINATION lib/${PROJECT_NAME}
         )
