@@ -8,12 +8,19 @@ class CameraScanner:
         root: str
         paths: dict[str, str]
 
+    _serial_remaps = dict[str, str]
+
     # Some USB cameras, such as the Microsoft LifeCam HD 3000, do not have a unique serial
     # number. This table can be used to spoof a serial number for specific cameras, based
     # on their Linux device path.
     _serial_override_map: dict[str, str]
 
-    def __init__(self, serial_overrides: list[SerialOverride] = None):
+    def __init__(
+        self,
+        serial_remaps: dict[str, str] = None,
+        serial_overrides: list[SerialOverride] = None,
+    ):
+        self._serial_remaps = serial_remaps if serial_remaps is not None else {}
         self._serial_override_map = {
             f"{override.root}.{path}": serial
             for override in (serial_overrides if serial_overrides is not None else [])
@@ -45,7 +52,8 @@ class CameraScanner:
 
         serial = device["ID_SERIAL"]
         path = device["ID_PATH"]
-        return self._serial_override_map.get(path, serial)
+        overriden_serial = self._serial_override_map.get(path, serial)
+        return self._serial_remaps.get(overriden_serial, overriden_serial)
 
     def find_cameras(self) -> dict[str, str]:
         """
