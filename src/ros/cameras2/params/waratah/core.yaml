@@ -3,16 +3,16 @@ camera_directory:
     serial_overrides:
       paths:
         mast:
-          '1:1.0': mast_backward
-          '2:1.0': mast_arm_stow
-          '3:1.0': mast_down
-          '4:1.0': mast_forward
+          '1:1.0': mast_forward
+          '2:1.0': mast_down
+          '3:1.0': mast_arm_stow
+          '4:1.0': mast_backward
         arm:
           '1:1.0': arm_gimbal
-          '2.1:1.0': arm_end_screw
+          '2.1:1.0': arm_end_forward
           '2.2:1.0': arm_end_top
           '2.3:1.0': arm_end_finger
-          '2.4:1.0': arm_end_forward
+          '2.4:1.0': arm_end_screw
 
 camera_streamer:
   ros__parameters:
