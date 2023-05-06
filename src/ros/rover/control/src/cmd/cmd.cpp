@@ -15,7 +15,7 @@ AUTHOR(S):	Harrison Verrios, Josh Cherubino, Jory Braun
 
 
 CMD::CMD (int bus, int id, CMDCommand drive_mode, bool direction, CMDCommand stop_mode, double scaling_factor, bool can_init) :
-    bus(bus), id(id), drive_mode(drive_mode), direction(direction), stop_mode(stop_mode), scaling_factor(scaling_factor), already_stopped(false)
+    bus(bus), id(id), drive_mode(drive_mode), direction(direction), stop_mode(stop_mode), scaling_factor(scaling_factor), already_stopped_drive(false), already_stopped_actuator(false)
 {
     // Set max speed
     max_speed = 1 / scaling_factor;
@@ -119,14 +119,14 @@ void CMD::drive (float velocity)
     // Prevent needless repetition of STOPs (crowds the CAN bus, makes it hard to debug other things)
     // If using PWM, always use STOP
     if (velocity == 0 && (stop_mode == STOP || drive_mode == PWM)) {
-        if (!already_stopped) {
+        if (!already_stopped_drive) {
             stop();
-            already_stopped = true;
+            already_stopped_drive = true;
         }
         return;
     }
     else {
-        already_stopped = false;
+        already_stopped_drive = false;
     }
 
     // Scale physical velocity to an equivalent CMD command, which is the fraction of the CMDs max speed
@@ -166,6 +166,20 @@ void CMD::drive (float velocity)
 
 void CMD::set_linear_actuator (float value)
 {
+    // Prevent needless repetition of 0s (crowds the CAN bus, makes it hard to debug other things)
+    if (value == 0) {
+        if (already_stopped_actuator) {
+            return;
+        }
+        else {
+            already_stopped_actuator = true;
+        }
+    }
+    else {
+        already_stopped_actuator = false;
+    }
+    
+    // Create the data to send
     unsigned char actuation = 0;
     if (value < 0){
         actuation = 2;

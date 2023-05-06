@@ -78,7 +78,8 @@ class CMD {
     double scaling_factor;
 
     // Was the last command a STOP? If so, do not bother repeating
-    bool already_stopped;
+    bool already_stopped_drive;
+    bool already_stopped_actuator;
     
     // CAN socket for the CAN connection
     scpp::SocketCan can_socket;
