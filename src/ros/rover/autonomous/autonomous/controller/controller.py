@@ -223,7 +223,9 @@ class Controller(Node):
         """
         :param msg: WheelPivotData
         """
-        self.state_latest_steer = msg.steer
+        radius, direction = msg.radius, msg.direction
+        signed_radius = radius if direction >= 1 else -radius
+        self.state_latest_steer = 1 / (signed_radius + direction)
 
     def callback_planner_path(self, msg: Path):
         """
