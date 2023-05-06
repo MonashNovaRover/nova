@@ -70,6 +70,8 @@ class CameraDirectoryService(Node):
         return super().destroy_node()
 
     def _create_camera_scanner(self) -> CameraScanner:
+        blacklist = self.get_parameter("blacklist").get_parameter_value().string_array_value
+
         serial_remaps = {
             original: cast(Parameter, new).get_parameter_value().string_value
             for original, new in self.get_parameters_by_prefix("serial_remaps").items()
@@ -91,7 +93,7 @@ class CameraDirectoryService(Node):
             for name, root in serial_override_roots.items()
         ]
 
-        return CameraScanner(serial_remaps, serial_overrides)
+        return CameraScanner(blacklist, serial_remaps, serial_overrides)
 
     def _discover_cameras(self) -> None:
         self.get_logger().info("Searching for cameras...")

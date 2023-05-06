@@ -8,6 +8,8 @@ class CameraScanner:
         root: str
         paths: dict[str, str]
 
+    _blacklist = set[str]
+
     _serial_remaps = dict[str, str]
 
     # Some USB cameras, such as the Microsoft LifeCam HD 3000, do not have a unique serial
@@ -17,6 +19,7 @@ class CameraScanner:
 
     def __init__(
         self,
+        blacklist: set[str] = None,
         serial_remaps: dict[str, str] = None,
         serial_overrides: list[SerialOverride] = None,
     ):
@@ -26,6 +29,7 @@ class CameraScanner:
             for override in (serial_overrides if serial_overrides is not None else [])
             for path, serial in override.paths.items()
         }
+        self._blacklist = blacklist if blacklist is not None else set()
 
     def _identify_camera(self, device: pyudev.Device) -> Optional[str]:
         # Filter out any devices lacking the "capture" capability.
@@ -51,7 +55,8 @@ class CameraScanner:
         serial = device["ID_SERIAL"]
         path = device["ID_PATH"]
         overriden_serial = self._serial_override_map.get(path, serial)
-        return self._serial_remaps.get(overriden_serial, overriden_serial)
+        remapped_serial = self._serial_remaps.get(overriden_serial, overriden_serial)
+        return remapped_serial if remapped_serial not in self._blacklist else None
 
     def find_cameras(self) -> dict[str, str]:
         """
