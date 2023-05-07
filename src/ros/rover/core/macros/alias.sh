@@ -33,8 +33,7 @@ alias visualization=visualisation
 alias vis=visualisation
 alias viz=visualisation
 alias science='cd ~/nova_ws/src/rover/science'
-alias cameras='cd ~/nova_ws/src/cameras'
-alias cams=cameras
+alias camerasdir='cd ~/nova_ws/src/cameras2'
 alias autonomous='cd ~/nova_ws/src/rover/autonomous'
 alias auto=autonomous
 alias gui='cd ~/nova_ws/src/gui'
@@ -48,6 +47,8 @@ alias coms='cd ~/nova_ws/other/coms_utils'
 alias fleet='cd ~/nova_ws/src/fleet'
 
 # Camera Aliases
+alias cameras='~/nova_ws/src/cameras2/result/bin/gst-nova-launcher ros2 launch cameras2 camera_server_launch.py param-dir:="$HOME/nova_ws/src/cameras2/params/waratah" platform:=rover'
+alias cameras_all='cameras autostart:=true'
 alias auto_cameras='ros2 launch realsense2-camera rs_d400_and_t265_launch.py'
 alias auto_view='rviz2 -d ~/nova_ws/src/rover/autonomous/config/auto.rviz'
 alias arm_view='rviz2 -d ~/nova_ws/src/rover/control/rviz/arm_viz_2023.rviz'
