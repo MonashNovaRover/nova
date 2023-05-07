@@ -61,6 +61,7 @@ alias j2_wifi='ssh -Y nvidia@192.168.0.104'
 alias comp='. ~/nova_ws/src/rover/core/macros/comp.sh'
 
 # GUI Aliases
+gui_rover_host() { export REACT_APP_ROVER_HOST="$1"; }
 alias wombat='cd ~/nova_ws/src/gui/wombatx; npm run start'
 alias platypus=wombat
 
