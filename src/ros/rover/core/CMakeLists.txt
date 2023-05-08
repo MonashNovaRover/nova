@@ -40,6 +40,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/CMDFeedback.msg"
   "msg/CMDsFeedback.msg"
   "msg/DistanceData.msg"
+  "msg/DriveInfo.msg"
   "msg/DriveInput.msg"
   "msg/DriveVel.msg"
   "msg/Heartbeat.msg"
