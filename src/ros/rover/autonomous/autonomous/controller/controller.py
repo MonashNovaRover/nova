@@ -36,6 +36,7 @@ from rclpy.node import Node
 from rclpy.time import Time
 from rclpy.duration import Duration
 from tf2_ros import Buffer, TransformListener
+from rclpy.qos import QoSReliabilityPolicy, QoSProfile
 
 # message imports
 from core.msg import DriveInput, PivotWheelData
@@ -101,8 +102,12 @@ class Controller(Node):
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(buffer=self.tf_buffer, node=self, spin_thread=True)
 
+        # Drive commands publisher QoS
+        deadline = Duration(nanoseconds=2e8)        
+        self.qos = QoSProfile(reliability=QoSReliabilityPolicy.BEST_EFFORT, depth=1, deadline=deadline)
+
         # Publishers
-        self.pub_drive_commands = self.create_publisher(DriveInput, auto_drive_command_topic, 10)
+        self.pub_drive_commands = self.create_publisher(DriveInput, auto_drive_command_topic, self.qos)
         self.pub_at_goal = self.create_publisher(Empty, "~/goal_achieved", 10)
         self.pub_done_spin = self.create_publisher(Empty, "~/spin_achieved", 10)
 

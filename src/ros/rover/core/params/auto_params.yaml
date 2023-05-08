@@ -9,7 +9,7 @@
       #[0.48533, 0.63122, 0., 90., 0., 0.]
       [0.63122, 1.11467, 0., 0., 0., 0.]
 
-/GRUC:
+/autonomous_controller:
   ros__parameters:
     do_tank_turn: False
 
