@@ -32,6 +32,7 @@ EDITED:		01/02/2023
 
 const double velocity_factor = 1;
 const double position_factor = M_PI_2;
+const double resolver_reduction = 4. / 3.;
 
 // Specifies the command used
 enum BLCMDSendCommand {
