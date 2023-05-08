@@ -6,20 +6,21 @@ This file contains the ROS2 publisher code for the motor resolvers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: resolver_publisher
 TOPICS:
-  - /electronics/resolvers                [sensor_msgs/JointState]    [Published]
+  - /electronics/resolvers                       [sensor_msgs/JointState]    [Published]
 SERVICES:
-  - /control/arm_config_info              [core/ArmConfigInfo]        [Client]
-  - /electronics/resolver_zero_service    [core/StringTrigger]        [Server]
+  - /control/arm_config_info                     [core/ArmConfigInfo]        [Client]
+  - /electronics/resolver_zero_service           [core/StringTrigger]        [Server]
+  - /electronics/resolver_sector_zero_service    [core/StringTrigger]        [Server]
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:     electronics
 AUTHOR(S):   Jory Braun, Tom Newton, Josh Cherubino
 CREATION:    14/02/2022
-EDITED:      21/03/2023
+EDITED:      08/05/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
     - Setup appropriate QoS profile for publisher
-    - Set appropriate transmit and receive timeouts
+    - Transition to JCAN once it is stable
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
@@ -393,6 +394,8 @@ class ResolverPublisher(Node):
         self.resolver_pub_timer = self.create_timer(resolver_pub_timer_period, self.publish)
         # Construct the service to zero resolvers
         self.zero_service = self.create_service(StringTrigger, "/electronics/resolver_zero_service", self.zero_callback)
+        # Construct the service to zero resolver sector
+        self.sector_zero_service = self.create_service(StringTrigger, "electronics/resolver_sector_zero_service", self.sector_zero_callback)
 
     def zero_callback(self, request: StringTrigger.Request, response: StringTrigger.Response):
         """
@@ -418,6 +421,29 @@ class ResolverPublisher(Node):
                     response.message += f"\nFailed to reset sector count got joint {joint_name}"
                     return response
             
+        except KeyError as e:
+            response.success = False
+            response.message = str(e).replace("'", "")
+        return response
+    
+    def sector_zero_callback(self, request: StringTrigger.Request, response: StringTrigger.Response):
+        """
+        Callback for the resolver sector zero service
+        """
+        joint_name = request.value
+        try:
+            # Reset the sector if the joint is geared
+            joint = self.resolver_transceiver.get_joint(joint_name)
+            if joint.gear_ratio != 1:
+                response.success = self.resolver_transceiver.reset_sector_count(joint_name)
+                if response.success:
+                    response.message = f"\nSuccessfully reset sector count for joint {joint_name}"
+                else:
+                    response.message = f"\nFailed to reset sector count got joint {joint_name}"
+            else:
+                response.success = True
+                response.message = f"\nJoint {joint_name} is not a geared joint"
+
         except KeyError as e:
             response.success = False
             response.message = str(e).replace("'", "")
