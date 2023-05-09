@@ -33,8 +33,7 @@ alias visualization=visualisation
 alias vis=visualisation
 alias viz=visualisation
 alias science='cd ~/nova_ws/src/rover/science'
-alias cameras='cd ~/nova_ws/src/cameras'
-alias cams=cameras
+alias camerasdir='cd ~/nova_ws/src/cameras2'
 alias autonomous='cd ~/nova_ws/src/rover/autonomous'
 alias auto=autonomous
 alias gui='cd ~/nova_ws/src/gui'
@@ -48,6 +47,8 @@ alias coms='cd ~/nova_ws/other/coms_utils'
 alias fleet='cd ~/nova_ws/src/fleet'
 
 # Camera Aliases
+alias cameras='~/nova_ws/src/cameras2/result/bin/gst-nova-launcher ros2 launch cameras2 camera_server_launch.py param-dir:="$HOME/nova_ws/src/cameras2/params/waratah" platform:=rover'
+alias cameras_all='cameras autostart:=true'
 alias auto_cameras='ros2 launch realsense2-camera rs_d400_and_t265_launch.py'
 alias auto_view='rviz2 -d ~/nova_ws/src/rover/autonomous/config/auto.rviz'
 alias arm_view='rviz2 -d ~/nova_ws/src/rover/control/rviz/arm_viz_2023.rviz'
@@ -60,6 +61,7 @@ alias j2_wifi='ssh -Y nvidia@192.168.0.104'
 alias comp='. ~/nova_ws/src/rover/core/macros/comp.sh'
 
 # GUI Aliases
+gui_rover_host() { export REACT_APP_ROVER_HOST="$1"; }
 alias wombat='cd ~/nova_ws/src/gui/wombatx; npm run start'
 alias platypus=wombat
 
@@ -79,6 +81,7 @@ alias launch_vis='ros2 launch core viz.launch.py'
 alias arm_config_info='ros2 service call control/arm_config_info core/srv/ArmConfigInfo'
 alias arm_reset_control_pose='ros2 service call control/arm_reset_control_pose std_srvs/srv/Trigger'
 alias zero_resolver='~/nova_ws/src/rover/electronics/electronics/zero_resolver_client_terminal.py'
+alias zero_resolver_sector='~/nova_ws/src/rover/electronics/electronics/zero_resolver_sector_client_terminal.py'
 alias rfid='~/nova_ws/src/rover/electronics/electronics/rfid_client_terminal.py'
 
 

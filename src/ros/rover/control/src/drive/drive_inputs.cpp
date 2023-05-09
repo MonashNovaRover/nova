@@ -37,12 +37,26 @@ float DriveInputs::adjust_multiplier(float &multiplier, bool increase)
 void DriveInputs::publish_cmds()
 {
     if (prev_msg_received) {
-        // Publish the drive commands
-        publisher->publish(latest_drive_input);
+        // Publish the drive command
+        drive_publisher->publish(latest_drive_input);
 
         // Clear the msg_received flag
         prev_msg_received = false;
     }
+}
+
+void DriveInputs::publish_info()
+{
+    // Create the info message
+    auto info_msg = core::msg::DriveInfo();
+    info_msg.multiplier = multiplier_speed;
+    info_msg.locked = locked;
+    info_msg.autonomous_mode = autonomous;
+    info_msg.connected = connected;
+    info_msg.drive_mode = latest_drive_input.mode;
+    info_msg.handbrake = latest_drive_input.handbrake;
+    // Publish the info
+    info_publisher->publish(info_msg);
 }
 
 // Stops driving when no input received from radios for a period of time
@@ -66,7 +80,7 @@ void DriveInputs::auto_deadline_exceeded() {
     }
 }
 
-void DriveInputs::autonomous_callback(const  core::msg::DriveInput::SharedPtr msg) {
+void DriveInputs::autonomous_callback(const core::msg::DriveInput::SharedPtr msg) {
     if (autonomous){
         latest_drive_input.mode = msg->mode;
         latest_drive_input.speed = msg->speed;
@@ -190,8 +204,8 @@ DriveInputs::DriveInputs() : Node("drive_inputs")
     rclcpp::SubscriptionOptions auto_subscriber_options;
 
     // Create the publisher with a best effort QoS policy
-    publisher = this->create_publisher<core::msg::DriveInput>("/control/drive_inputs", qos);
-
+    drive_publisher = this->create_publisher<core::msg::DriveInput>("/control/drive_inputs", qos);
+    info_publisher = this->create_publisher<core::msg::DriveInfo>("/control/drive_info",10);
     //Sets subscriber options before subscription is made
     input_subscriber_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void {
         input_deadline_exceeded();
@@ -208,8 +222,8 @@ DriveInputs::DriveInputs() : Node("drive_inputs")
     autonomous_commands_subscription = this->create_subscription<core::msg::DriveInput>(
         "/control/autonomous_commands", qos, std::bind(&DriveInputs::autonomous_callback, this, _1), auto_subscriber_options);
     // Creates a timer function that runs a function on loop every 0.05 seconds
-    timer = this->create_wall_timer(ROSTimers::drive_control, std::bind(&DriveInputs::publish_cmds, this));
-
+    drive_timer = this->create_wall_timer(ROSTimers::drive_control, std::bind(&DriveInputs::publish_cmds, this));
+    info_timer = this->create_wall_timer(ROSTimers::drive_info, std::bind(&DriveInputs::publish_info, this));
     // Output set-up messages
     Print::title("DRIVE INPUTS");
     Print::print("Valid Topics:");

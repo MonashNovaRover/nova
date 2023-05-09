@@ -30,7 +30,7 @@ EDITED:		31/05/2022
 #include "rclcpp/rclcpp.hpp"
 #include "core/msg/input_gamepad.hpp"
 #include "core/msg/drive_input.hpp"
-
+#include "core/msg/drive_info.hpp"
 
 // The minimum and maximum multipliers
 const float MIN_MULTIPLIER      = 0.1;  // The minimum multiplier value
@@ -65,10 +65,12 @@ class DriveInputs : public rclcpp::Node {
 private:
 
     // Stores the loop timer for the update function
-    rclcpp::TimerBase::SharedPtr timer;
+    rclcpp::TimerBase::SharedPtr drive_timer;
+    rclcpp::TimerBase::SharedPtr info_timer;
 
     // Stores the publisher for the drive commands
-    rclcpp::Publisher<core::msg::DriveInput>::SharedPtr publisher;
+    rclcpp::Publisher<core::msg::DriveInput>::SharedPtr drive_publisher;
+    rclcpp::Publisher<core::msg::DriveInfo>::SharedPtr info_publisher;
 
     // Stores the subscriber to the gamepad inputs
     rclcpp::Subscription<core::msg::InputGamepad>::SharedPtr gamepad_input_subscription;
@@ -106,6 +108,9 @@ private:
     ///                 the input data.
     void publish_cmds ();
 
+    ///@brief       Publishes info messages
+    void publish_info();
+
     /// @brief      Callback function when input messages are received.
     /// @param      msg - A pointer to the input message
     void input_callback (const core::msg::InputGamepad::SharedPtr msg);
@@ -119,6 +124,9 @@ private:
 
     /// @brief      Callback function when deadline for auto subscription is exceeded
     void auto_deadline_exceeded();
+
+    ///@brief       Callback function to publish info messages
+    void info_callback();
     //------------------------------------------------------------//
 public:
 

@@ -202,8 +202,8 @@ void BLCMD::packet2_callback(org::jcan::Frame frame) {
 }
 
 void BLCMD::packet3_callback(org::jcan::Frame frame) {
-    this->telemetry.resolver_position = int16_bytes_to_double(&frame.data[0]) * position_factor;
-    this->telemetry.resolver_velocity = int16_bytes_to_double(&frame.data[2]) * velocity_factor;
+    this->telemetry.resolver_position = int16_bytes_to_double(&frame.data[0]) * position_factor * resolver_reduction;
+    this->telemetry.resolver_velocity = int16_bytes_to_double(&frame.data[2]) * velocity_factor * resolver_reduction;
 }
 
 void BLCMD::packet4_callback(org::jcan::Frame frame) {

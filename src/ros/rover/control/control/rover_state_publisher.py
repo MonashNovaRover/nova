@@ -14,9 +14,9 @@ BACK_LEFT_DIR = 1
 FRONT_RIGHT_DIR = 1
 BACK_RIGHT_DIR = 1
 
-FRONT_LEFT_PIVOT = -1
+FRONT_LEFT_PIVOT = 1
 BACK_LEFT_PIVOT = -1
-BACK_RIGHT_PIVOT = -1
+BACK_RIGHT_PIVOT = 1
 FRONT_RIGHT_PIVOT = -1
 
 CHASSIS_WIDTH = 0.7
@@ -60,7 +60,7 @@ class RoverStatePublisher(Node):
     def initialise_telemetry(self):
         self.telemetry = Telemetry()
         self.telemetry.wheels = [SingleTelemetry() for _ in range(4)]
-        self.telemetry.pivots = [SingleTelemetry() for _ in range(4)]
+        self.telemetry.pivots = [SingleTelemetry(resolver_positio=ANGLE_OFFSET) for i in range(4)]
 
     def telemetry_callback(self, msg):
         self.telemetry = msg
@@ -82,10 +82,10 @@ class RoverStatePublisher(Node):
                                      BACK_LEFT_DIR * self.telemetry.wheels[1].resolver_position,
                                      BACK_RIGHT_DIR * self.telemetry.wheels[2].resolver_position,
                                      FRONT_RIGHT_DIR * self.telemetry.wheels[3].resolver_position,
-                                     FRONT_LEFT_PIVOT * self.telemetry.pivots[0].resolver_position - ANGLE_OFFSET,
-                                     BACK_LEFT_PIVOT * self.telemetry.pivots[1].resolver_position + ANGLE_OFFSET,
-                                     BACK_RIGHT_PIVOT * self.telemetry.pivots[2].resolver_position - ANGLE_OFFSET,
-                                     FRONT_RIGHT_PIVOT * self.telemetry.pivots[3].resolver_position + ANGLE_OFFSET]
+                                     FRONT_LEFT_PIVOT * (self.telemetry.pivots[0].resolver_position - ANGLE_OFFSET),
+                                     BACK_LEFT_PIVOT * (self.telemetry.pivots[1].resolver_position - ANGLE_OFFSET),
+                                     BACK_RIGHT_PIVOT * (self.telemetry.pivots[2].resolver_position - ANGLE_OFFSET),
+                                     FRONT_RIGHT_PIVOT * (self.telemetry.pivots[3].resolver_position - ANGLE_OFFSET)]
 
     def cb_pub_joint_state(self):
         self.joint_state.header.stamp=self.get_clock().now().to_msg()
