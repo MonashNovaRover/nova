@@ -46,8 +46,6 @@ class ArTagManager(Node):
 
         self.goal : AutonomousGoal = None
         self.ar_tag_poses : dict = dict()
-
-        self.sub_ar_tags = self.create_subscription(AlvarMarkers, "/ar_tracker/tags", self.callback_ar_tag, 10)
         self.get_logger().debug("AR tag manager initialised!")
 
     def set_goal(self, goal: AutonomousGoal):

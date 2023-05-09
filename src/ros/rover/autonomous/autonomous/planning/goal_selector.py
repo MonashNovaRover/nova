@@ -75,7 +75,7 @@ class Controller(Node):
         super().__init__('goal_selector')
 
         # set debug to not get shown
-        self.get_logger().set_level(LoggingSeverity.INFO)
+        self.get_logger().set_level(LoggingSeverity.DEBUG)
 
         # Params
         self.param_plan_frequency = self.declare_parameter("plan_frequency", 1.0).value
@@ -120,6 +120,7 @@ class Controller(Node):
         self.sub_spin_completed = self.create_subscription(Empty, "/autonomous_controller/spin_achieved", self.callback_spin_completed, 10)
         self.sub_autonomous_goal = self.create_subscription(AutonomousGoalArray, auto_goal_topic,
                                                             self.callback_new_autonomous_goal, 10)
+        self.sub_ar_tags = self.create_subscription(AlvarMarkers, "/ar_tracker/tags", self.callback_ar_tag, 10)
 
         # service for changing the LED
         self.srv_led_success = self.create_client(Trigger, "/autonomous/success")

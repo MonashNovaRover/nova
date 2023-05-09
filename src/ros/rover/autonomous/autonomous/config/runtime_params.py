@@ -18,7 +18,7 @@ small_turn_drive_fraction = 0.15
 straight_drive_fraction = 0.2
 
 # Angle of lenience on completing a full turn on the spot
-spin_achieved_delta = np.pi/10
+spin_achieved_delta = np.pi/5
 
 controller_ros_rate = 10  # 10hz
 
@@ -28,7 +28,7 @@ pub_scale = 1.0
 # ~~~~~~~~~~ PLANNING CONSTANTS ~~~~~~~~~~~~~~~
 
 planning_rate = 2.0
-INITIAL_PADDING_DIST_M = 1.0
+INITIAL_PADDING_DIST_M = 0.6
 min_ar_distance = 0.7
 max_ar_distance = 20
 
