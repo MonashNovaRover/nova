@@ -17,6 +17,7 @@ EDITED:         15/05/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 from typing import List
+import logging
 
 from core.msg import AlvarMarkers, AutonomousGoal, AlvarMarker
 from rclpy.node import Node
@@ -33,6 +34,7 @@ class ArTagManager(Node):
 
     def __init__(self, max_tag_id=5, queue_size=10):
         super().__init__('autonomous_ar_tag_manager')
+        self.get_logger().set_level(logging.DEBUG)
         self.max_tag_id = max_tag_id
         self.queue_size = queue_size
 
@@ -40,11 +42,13 @@ class ArTagManager(Node):
         self.ar_tag_poses : dict = dict()
 
         self.sub_ar_tags = self.create_subscription(AlvarMarkers, "/ar_tracker/tags", self.callback_ar_tag, 10)
+        self.get_logger().debug("AR tag manager initialised!")
 
     def set_goal(self, goal: AutonomousGoal):
         """
         Provides a new goal to the AR tag manager
         """
+        self.get_logger().debug(f"received goal: {goal}")
         for _id in goal.tag_ids:
             assert 0 <= _id <= self.max_tag_id, "AR tag id out of range"
 
@@ -117,5 +121,6 @@ class ArTagManager(Node):
         """
         tag: AlvarMarker
         for tag in msg.markers:
+            self.get_logger().debug(f"saw AR tag: {tag}")
             if tag.tag_id in self.ar_tag_poses:
                 self.ar_tag_poses[tag.tag_id].append(tag.pose.pose.position)
