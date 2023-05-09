@@ -17,11 +17,11 @@ using std::placeholders::_1;
 #include <math.h>
 
 // Adjustes the multiplier factor by some amount in some direction
-float DriveInputs::adjust_multiplier(float &multiplier, bool increase)
+float DriveInputs::adjust_multiplier(float &multiplier, bool increase, bool course)
 {
 
-    // Adjust the multiplier
-    multiplier += (increase) ? DELTA_MULTIPLIER : -DELTA_MULTIPLIER;
+// Adjust the multiplier
+    multiplier += (course ? DELTA_MULTIPLIER_COURSE : DELTA_MULTIPLIER_FINE) * (increase ? 1 : -1);
 
     // Check for minimum and maximums
     if (multiplier > MAX_MULTIPLIER)
@@ -155,10 +155,13 @@ void DriveInputs::input_callback(const core::msg::InputGamepad::SharedPtr msg)
         if (!autonomous) {
             // Change the speed multipliers
             if (msg->btn_dpad_u_state == 1)
-                adjust_multiplier(multiplier_speed, true);
+                adjust_multiplier(multiplier_speed, true, true);
             else if (msg->btn_dpad_d_state == 1)
-                adjust_multiplier(multiplier_speed, false);
-
+                adjust_multiplier(multiplier_speed, false, true);
+            if (msg->btn_dpad_l_state == 1)
+                adjust_multiplier(multiplier_speed, false, false);
+            else if (msg->btn_dpad_r_state == 1)
+                adjust_multiplier(multiplier_speed, true, false);
             if (msg->btn_y_state != 0) {
                 if (latest_drive_input.mode != core::msg::DriveInput::TANK)
                     Print::print("Tank Mode", C_MODE);
@@ -235,9 +238,9 @@ DriveInputs::DriveInputs() : Node("drive_inputs")
     Print::print("       Left Stick Y      |  Forward/Back", C_INPUT);
     Print::print("      Right Stick X      |  Left/Right", C_INPUT);
     Print::print("", true);
-    Print::print("Left + Right Bumper      |  Strafe Mode", C_INPUT);
     Print::print("      Right Trigger      |  Speed Multiplier", C_INPUT);
-    Print::print("             DPAD Y      |  Speed Incr/Decr", C_INPUT);
+    Print::print("             DPAD Y      |  Speed Incr/Decr Course", C_INPUT);
+    Print::print("             DPAD X      |  Speed Incr/Decr Fine", C_INPUT);
     Print::print("    Left Joy Button      |  Handbrake Enabled", C_INPUT);
     Print::print("   Right Joy Button      |  Handbrake Disabled", C_INPUT);
     Print::print("", true);
@@ -245,8 +248,12 @@ DriveInputs::DriveInputs() : Node("drive_inputs")
     Print::print("              Start      |  Unlock", C_INPUT);
     Print::print("                  A      |  Autonomous Control", C_INPUT);
     Print::print("                  B      |  Manual Control", C_INPUT);
+    Print::print("                  Y      |  Tank Mode", C_INPUT);
+    Print::print("       Right Bumper      |  Pivot Mode", C_INPUT);
+    Print::print("       Left Bumper       |  Strafe Mode", C_INPUT);
     Print::print("", true);
     Print::print("Gamepad Locked");
+    Print::print("Tank Mode", C_MODE);
 }
 
 //  Main function called when the script execution begins
