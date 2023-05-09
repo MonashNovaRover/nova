@@ -248,6 +248,7 @@ DriveInputs::DriveInputs() : Node("drive_inputs")
     Print::print("              Start      |  Unlock", C_INPUT);
     Print::print("                  A      |  Autonomous Control", C_INPUT);
     Print::print("                  B      |  Manual Control", C_INPUT);
+    Print::print("", true);
     Print::print("                  Y      |  Tank Mode", C_INPUT);
     Print::print("       Right Bumper      |  Pivot Mode", C_INPUT);
     Print::print("       Left Bumper       |  Strafe Mode", C_INPUT);
