@@ -38,7 +38,7 @@ from std_srvs.srv import Trigger
 from tf2_ros import Buffer, TransformListener
 
 # custom message imports
-from core.msg import AutonomousGoal, Point2D, AutonomousGoalArray
+from core.msg import AutonomousGoal, AutonomousGoalArray, AlvarMarkers
 
 # autonomous imports
 from autonomous.math_utils.controller_math import distance, interpolate_circle_points
@@ -389,6 +389,17 @@ class Controller(Node):
         self.state_long_term_goal = msg.goals[-1]
         self.state_unvisited_intermediate_goals = msg.goals[:-1]
         self.trigger_received_goal = True
+    
+    def callback_ar_tag(self, msg: AlvarMarkers):
+        """
+        :param msg: AlvarMarker msg type, received from the ar_tag_topic
+        """
+        try:
+            depth_cam_transform : Transform = self.tf_buffer.lookup_transform("map", "d435_1", Time(), Duration(nanoseconds=1e8))
+        except Exception as e:
+            self.get_logger().warn(f"Failed to find deptch camera transform: {e}")
+            return
+        self.state_ar_tag_manager.update_tags(msg, depth_cam_transform)
 
     def callback_controller_goal_override(self, msg):
         """

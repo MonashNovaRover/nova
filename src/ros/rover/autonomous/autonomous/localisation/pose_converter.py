@@ -90,6 +90,7 @@ class PoseConverter(Node):
         self.gps_converter : GpsConverter = GpsConverter()
         self.latest_imu : Vector3Stamped = None
         self.latest_gps_pose : RoverPoseGPS = None
+        # r, p, y, x, y, z
         self.gps_offset : np.ndarray = None
         self.get_initial_transform()
 
@@ -161,8 +162,9 @@ class PoseConverter(Node):
 
         self.get_logger().info("Received GPS offset transform")
         gps_tf = self.tf_buffer.lookup_transform("base_link", "gps_link", Time()).transform
-        r, p, y = transform.quat_to_euler(gps_tf.rotation)
-        self.gps_offset = np.array([0., 0., y])
+        r, p, yaw = transform.quat_to_euler(gps_tf.rotation)
+        x, y, z = gps_tf.translation.x, gps_tf.translation.y, gps_tf.translation.z
+        self.gps_offset = np.array([0., 0., yaw, x, y, z])
 
     def transform_imu_to_nova(self):
         """
@@ -171,11 +173,9 @@ class PoseConverter(Node):
         up = +z
         left = +y
         forward = +x
-        TODO: set IMU transform in URDF, and we can use tf2 to transform properly. Note that there are serious complications
-        Caused by IMUs having absolute pitch and roll but relative yaw, so this is non-trivial
         """
-        imu_roll, imu_pitch = math.radians(self.latest_imu.vector.x), math.radians(self.latest_imu.vector.y)
-        return np.array([imu_roll, imu_pitch, 0.])
+        imu_roll, imu_pitch, imu_yaw= math.radians(self.latest_imu.vector.x), math.radians(self.latest_imu.vector.y), math.radians(self.latest_imu.vector.z)
+        return np.array([imu_roll, imu_pitch, imu_yaw])
 
     def calculate_transform(self) -> TransformStamped:
         """
@@ -187,7 +187,7 @@ class PoseConverter(Node):
         imu_eulers = self.transform_imu_to_nova()
         # GPS heading is positive in the clockwise direction, but the right hand rule dictates for us that positive yaw is counter-clockwise
         gps_eulers = np.array([0., 0., -math.radians(self.latest_gps_pose.yaw)])
-        eulers = imu_eulers + gps_eulers - self.gps_offset
+        eulers = imu_eulers + gps_eulers - self.gps_offset[:3]
         quat = transform.euler_to_quat(eulers)
         gps_x, gps_y = self.gps_converter.get_local_coord(self.latest_gps_pose.latitude, self.latest_gps_pose.longitude)
 
@@ -196,8 +196,8 @@ class PoseConverter(Node):
         tf_msg.header.stamp = self.get_clock().now().to_msg()
         tf_msg.child_frame_id = 'base_link'
 
-        tf_msg.transform.translation.x = gps_x
-        tf_msg.transform.translation.y = gps_y
+        tf_msg.transform.translation.x = gps_x + self.gps_offset[3] * math.cos(gps_eulers[2])
+        tf_msg.transform.translation.y = gps_y + self.gps_offset[4] * math.sin(gps_eulers[2])
 
         tf_msg.transform.rotation = quat
         
@@ -215,6 +215,7 @@ class PoseConverter(Node):
         """
         if msg.valid:
             self.latest_gps_pose = msg
+            if msg.heading_valid:
 
     def cb_goal(self, msg : AutonomousGoalArray):                                               
         """

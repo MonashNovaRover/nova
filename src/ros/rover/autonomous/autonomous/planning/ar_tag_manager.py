@@ -16,13 +16,19 @@ CREATION:       07/12/2021
 EDITED:         15/05/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
-from typing import List
-import logging
-
-from core.msg import AlvarMarkers, AutonomousGoal, AlvarMarker
+# ros imports
 from rclpy.node import Node
-from autonomous.config.runtime_params import *
-from autonomous.config.ros_config import *
+from geometry_msgs.msg import TransformStamped, Pose
+
+# our imports
+from core.msg import AlvarMarkers, AutonomousGoal, AlvarMarker, AutonomousGoalArray, AutonomousGoal
+#from autonomous.config.runtime_params import *
+from autonomous.config.ros_config import auto_goal_topic
+from autonomous.math_utils import transform
+
+# regular imports
+import numpy as np
+import logging
 from collections import deque
 
 
@@ -115,12 +121,12 @@ class ArTagManager(Node):
         assert tag_id <= ArTagManager.max_tag_id
         return len(self.ar_tag_poses[tag_id]) > 0
 
-    def callback_ar_tag(self, msg: AlvarMarkers):
+    def update_tags(self, msg: AlvarMarkers, depth_cam_transform: TransformStamped):
         """
         :param msg: AlvarMarker msg type, received from the ar_tag_topic
         """
         tag: AlvarMarker
         for tag in msg.markers:
-            self.get_logger().debug(f"saw AR tag: {tag}")
             if tag.tag_id in self.ar_tag_poses:
-                self.ar_tag_poses[tag.tag_id].append(tag.pose.pose.position)
+                tag_pose_map_frame : Pose = transform.transform_pose(tag.pose.pose, depth_cam_transform.transform)
+                self.ar_tag_poses[tag.tag_id].append(np.array([tag_pose_map_frame.position.x, tag_pose_map_frame.position.y]))
