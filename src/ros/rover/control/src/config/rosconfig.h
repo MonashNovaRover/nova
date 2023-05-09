@@ -31,6 +31,7 @@ namespace ROSTimers
     const millis arm_startup_timer = 100ms;
     const millis arm_control = 10ms;
     const millis drive_control = 50ms;
+    const millis drive_info = 200ms;
     const millis blcmds_telemetry = 50ms;
     const millis blcmd_spin = 10ms;
     
