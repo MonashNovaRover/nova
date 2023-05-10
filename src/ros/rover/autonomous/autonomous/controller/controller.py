@@ -92,6 +92,7 @@ class Controller(Node):
 
         self.trigger_spin = False
         self.trigger_to_waypoint = False
+        self.trigger_success = False
 
         # Controller classes for turning, driving to waypoints, and spinning
         self.ctl_driver : DriveController = DriveController(self.state_turning_mode)
@@ -116,6 +117,7 @@ class Controller(Node):
                                                                         self.callback_planner_path, 10)
         self.sub_steer = self.create_subscription(PivotWheelData, "/control/pivot_wheel", self.callback_steer, 10)
         self.sub_do_spin = self.create_subscription(Empty, "~/do_spin", self.callback_do_spin, 10)
+        self.sub_success = self.create_subscription(Empty, "/autonomous_controller/success_trigger", self.callback_success, 10)
 
         self.get_logger().info("Waiting for transform from 'local_map' to 'base_link'...")
         while not self.tf_buffer.can_transform('base_link', 'map', Time()):
@@ -154,6 +156,8 @@ class Controller(Node):
         # If we are in SUCCESS state, transitioning to the driving state is triggered by receiving a ros2 message
         if self.trigger_spin:
             self.on_state_update(DrivingState.TURNING)
+        elif self.trigger_success:
+            self.on_state_update(DrivingState.SUCCESS)
         elif self.state == DrivingState.SUCCESS and self.trigger_to_waypoint:
             self.on_state_update(DrivingState.TO_WAYPOINT)
 
@@ -192,6 +196,7 @@ class Controller(Node):
             self.trigger_to_waypoint = False
         # Entering success, clear state variables and await new trigger
         elif self.state == DrivingState.SUCCESS:
+            self.trigger_success = False
             self.ctl_spin = None
             self.state_waypoint_path = []
             self.state_latest_steer = 0
@@ -244,6 +249,13 @@ class Controller(Node):
 
         if len(self.state_waypoint_path) > 0:
             self.trigger_to_waypoint = True 
+
+    def callback_success(self, msg: Empty):
+        """
+        Callback for the success trigger subscriber. Sets the success trigger to True
+        :param msg: Empty message
+        """
+        self.trigger_success = True
 
     def callback_do_spin(self, msg: Empty):
         """

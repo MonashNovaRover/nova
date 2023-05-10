@@ -114,6 +114,7 @@ class Controller(Node):
         # Planned destination -> we wish to go here, which is the next step on our path to the target
         self.pub_desired_destination = self.create_publisher(PoseStamped, planning_destination_topic, 10)
         self.pub_do_spin = self.create_publisher(Empty, "/autonomous_controller/do_spin", 10)
+        self.pub_success = self.create_publisher(Empty, "/autonomous_controller/success_trigger", 10)
 
         # Subscribers
         self.sub_controller_goal_override = self.create_subscription(Empty, "/autonomous_controller/goal_achieved", self.callback_controller_goal_override, 10)
@@ -315,6 +316,7 @@ class Controller(Node):
         if new_state == PlanningState.SUCCESS:
             trigger = Trigger.Request()
             self.srv_led_success.call_async(trigger)
+            self.pub_success.publish(Empty())
             self.state_current_goal = None
             self.state_visited_intermediate_goals = []
             self.state_unvisited_intermediate_goals = []
