@@ -75,7 +75,7 @@ class Controller(Node):
         super().__init__('goal_selector')
 
         # set debug to not get shown
-        self.get_logger().set_level(LoggingSeverity.DEBUG)
+        self.get_logger().set_level(LoggingSeverity.INFO)
 
         # Params
         self.param_plan_frequency = self.declare_parameter("plan_frequency", 1.0).value
@@ -240,9 +240,9 @@ class Controller(Node):
         elif self.state == PlanningState.TO_COORDINATE:
             if self.at_current_goal() and self.intermediate_goal():
                 self.on_state_update(PlanningState.TO_COORDINATE)
-            elif self.at_current_goal() and not self.intermediate_goal() and self.state_ar_tag_manager.found_current_tag():
+            elif not self.intermediate_goal() and self.state_ar_tag_manager.found_current_tag():
                 self.on_state_update(PlanningState.TO_AR_TAG)
-            elif self.at_current_goal() and not self.intermediate_goal() and self.state_ar_tag_manager.found_current_gate():
+            elif not self.intermediate_goal() and self.state_ar_tag_manager.found_current_gate():
                 self.on_state_update(PlanningState.THROUGH_GATE)
             elif self.at_current_goal() and not self.intermediate_goal() and not self.state_ar_tag_manager.has_ar_tags():
                 self.on_state_update(PlanningState.SUCCESS)
