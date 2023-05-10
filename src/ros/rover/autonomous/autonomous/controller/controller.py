@@ -77,7 +77,7 @@ class Controller(Node):
         super().__init__('autonomous_controller')
 
         # set debug to not get shown
-        self.get_logger().set_level(logging.INFO)
+        self.get_logger().set_level(logging.DEBUG)
 
         # Ros params
         self.param_do_tank_turn = self.declare_parameter("do_tank_turn", False).value
@@ -219,7 +219,7 @@ class Controller(Node):
         except Exception as e:
             self.get_logger().warn(f"No transform from local_map to base_link: {e}", throttle_duration_sec=1)
         else:
-            self.get_logger().debug(f"base_link_tf: {base_link_tf}")
+            self.get_logger().debug(f"base_link_tf: {base_link_tf}", throttle_duration_sec=1)
             self.state_rover_pose.x = base_link_tf.translation.x
             self.state_rover_pose.y = base_link_tf.translation.y
             self.state_rover_pose.theta = transform.quat_to_euler(base_link_tf.rotation)[2]
@@ -289,7 +289,8 @@ class Controller(Node):
 
         yaw_diff = yaw_difference(current_orientation, desired_orientation)
 
-        self.get_logger().debug(f"desired: {desired_orientation}, current: {current_orientation}, yaw_diff: {yaw_diff}")
+        self.get_logger().debug(f"desired: {desired_orientation}, current: {current_orientation}, yaw_diff: {yaw_diff}", throttle_duration_sec=1)
+        self.get_logger().debug(f"latest steer: {self.state_latest_steer}", throttle_duration_sec=1)
 
         speed, steer = self.ctl_driver.get_drive_command(yaw_diff, self.state_latest_steer, position_vector, current_orientation)
         return speed, steer
@@ -302,16 +303,16 @@ class Controller(Node):
         if self.state_rover_pose is None:
             return
         self.drive_mode_state_transition()
-        self.get_logger().debug("Controller in driving state: " + str(self.state))
+        self.get_logger().debug("Controller in driving state: " + str(self.state), throttle_duration_sec=1)
 
         drive, steer = 0, 0
 
         if self.state == DrivingState.SUCCESS:
-            self.get_logger().debug("Controller mode: success")
+            self.get_logger().debug("Controller mode: success", throttle_duration_sec=1)
 
         # -------------------------------------- 0. TURNING ------------------------------
         elif self.state == DrivingState.TURNING:
-            self.get_logger().debug("Turning in place")
+            self.get_logger().debug("Turning in place", throttle_duration_sec=1)
             current_orientation = np.array([np.cos(self.state_rover_pose.theta), np.sin(self.state_rover_pose.theta), 0.])
 
             position_vector = np.array([self.state_rover_pose.x, self.state_rover_pose.y])
@@ -322,7 +323,7 @@ class Controller(Node):
             if self.state_waypoint_path is None or len(self.state_waypoint_path) == 0:
                 self.get_logger().error("No waypoints to drive to - This should be detected in state transition!")
                 return
-            self.get_logger().debug("Driving to waypoint")
+            self.get_logger().debug("Driving to waypoint", throttle_duration_sec=1)
             drive, steer = self.go_to_target(self.state_waypoint_path[0])
             
         self.send_drive_cmd(drive, steer)
@@ -338,7 +339,9 @@ class Controller(Node):
         # Values are validated to stay within -1:1
         drive_cmd_msg.speed = max(-1.0, min(1.0, float(drive_fraction)))
         steer = max(-1.0, min(1.0, float(angular_fraction)))
-        drive_cmd_msg.radius = float('inf') if steer == 0 else abs(1/steer - (1 if steer > 1 else -1))
+        self.get_logger().debug(f"clamped steer: {steer}",throttle_duration_sec=1)
+        drive_cmd_msg.radius = float('inf') if steer == 0 else abs(1/steer - (1 if steer > 0 else -1))
+        self.get_logger().debug(f"radius: {drive_cmd_msg.radius}", throttle_duration_sec=1)
         drive_cmd_msg.direction = 0 if steer == 0 else 1 if steer > 0 else -1
 
         if self.param_do_tank_turn:
@@ -348,7 +351,7 @@ class Controller(Node):
 
         # Print!
         self.get_logger().debug(
-                f"Driving at speed {drive_cmd_msg.speed:.4f}, radius {drive_cmd_msg.radius:.4f}, direction {drive_cmd_msg.direction}"
+                f"Driving at speed {drive_cmd_msg.speed:.4f}, radius {drive_cmd_msg.radius:.4f}, direction {drive_cmd_msg.direction}", throttle_duration_sec=1
             )
 
         # publish to public topic
