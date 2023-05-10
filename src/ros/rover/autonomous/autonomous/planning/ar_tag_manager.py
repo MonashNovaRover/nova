@@ -101,7 +101,9 @@ class ArTagManager(Node):
         """
         if self.goal.type != AutonomousGoal.GOAL_TYPE_TAG:
             return False
-        return len(self.ar_tag_poses[self.goal.tag_ids[0]]) > 0
+        retval = len(self.ar_tag_poses[self.goal.tag_ids[0]]) > 0
+        self.get_logger().debug(f"found current tag: {retval}")
+        return retval
 
     def found_current_gate(self):
         """
@@ -109,7 +111,9 @@ class ArTagManager(Node):
         """
         if self.goal.type != AutonomousGoal.GOAL_TYPE_GATE:
             return False
-        return np.all([(len(self.ar_tag_poses[_id]) > 0) for _id in self.goal.tag_ids])
+        retval = np.all([(len(self.ar_tag_poses[_id]) > 0) for _id in self.goal.tag_ids])
+        self.get_logger().debug(f"found current gate: {retval}")
+        return retval
 
     def found_tag(self, tag_id: int):
         """
@@ -128,3 +132,4 @@ class ArTagManager(Node):
             if tag.tag_id in self.ar_tag_poses:
                 tag_pose_map_frame : Pose = transform.transform_pose(tag.pose.pose, depth_cam_transform.transform)
                 self.ar_tag_poses[tag.tag_id].append(np.array([tag_pose_map_frame.position.x, tag_pose_map_frame.position.y]))
+                self.get_logger().debug(f"found AR tag {tag.tag_id} at pose {self.ar_tag_poses[tag.tag_id]}")

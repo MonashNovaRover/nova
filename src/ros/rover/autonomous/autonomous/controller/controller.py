@@ -77,7 +77,7 @@ class Controller(Node):
         super().__init__('autonomous_controller')
 
         # set debug to not get shown
-        self.get_logger().set_level(logging.DEBUG)
+        self.get_logger().set_level(logging.INFO)
 
         # Ros params
         self.param_do_tank_turn = self.declare_parameter("do_tank_turn", False).value
@@ -229,8 +229,11 @@ class Controller(Node):
         :param msg: WheelPivotData
         """
         radius, direction = msg.radius, msg.direction
-        signed_radius = radius if direction >= 1 else -radius
-        self.state_latest_steer = 1 / (signed_radius + direction)
+        if direction == 0:
+            self.state_latest_steer = 0
+        else:
+            signed_radius = radius * direction
+            self.state_latest_steer = 1 / (signed_radius + direction)
 
     def callback_planner_path(self, msg: Path):
         """
