@@ -156,11 +156,11 @@ class PoseConverter(Node):
         self.tf_base_link.sendTransform(base_link_transform)
 
         self.get_logger().info("Waiting for GPS offset transform...")
-        while not self.tf_buffer.can_transform("base_link", "gps_link", Time()):
+        while not self.tf_buffer.can_transform("base_link", "gps_secondary", Time()):
             time.sleep(0.1)
 
         self.get_logger().info("Received GPS offset transform")
-        gps_tf = self.tf_buffer.lookup_transform("base_link", "gps_link", Time()).transform
+        gps_tf = self.tf_buffer.lookup_transform("base_link", "gps_secondary", Time()).transform
         r, p, y = transform.quat_to_euler(gps_tf.rotation)
         self.gps_offset = np.array([0., 0., y])
 
