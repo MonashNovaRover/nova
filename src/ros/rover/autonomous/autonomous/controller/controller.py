@@ -71,6 +71,7 @@ class Controller(Node):
     Receives updates about the current pose of the rover and the waypoints to
     navigate between via ros topics autonomous/pose and autonomous/goals. Publishes drive
     commands 
+    State transition diagram at: tinyurl.com/m2uaeycx 
     """
 
     def __init__(self):
@@ -150,7 +151,8 @@ class Controller(Node):
 
     def drive_mode_state_transition(self):
         """
-        Update current driving mode based on received triggers and internal state of the state machine
+        Update current driving mode based on received triggers and internal state of the state machine.
+        State transition diagram at: tinyurl.com/m2uaeycx 
         """
         
         # If we are in SUCCESS state, transitioning to the driving state is triggered by receiving a ros2 message

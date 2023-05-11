@@ -69,6 +69,7 @@ class Controller(Node):
     to a different location. The state_long_term_goal is the coordinate we provide manually to the rover.
     Receives updates about the current pose of the rover in order to determine when goals have been achieved.
     Triggers the changing of LED colours along with state transitions.
+    State transition diagram at: tinyurl.com/m2uaeycx 
     """
 
     def __init__(self):
@@ -211,7 +212,7 @@ class Controller(Node):
         """
         Update current planning mode based on the rest of the state. For a visualization of the planning 
         state transition logic, see the state diagram on Lucid here: 
-        https://lucid.app/lucidspark/67741129-7fc4-42a9-8c29-8b47f2b29881/edit?viewport_loc=-916%2C-393%2C3240%2C1779%2C0_0&invitationId=inv_222475ed-1c41-47ec-a82e-0f737d617e60
+        tinyurl.com/m2uaeycx 
         """
         # On startup, set to IDLE
         if self.state is None:
