@@ -161,7 +161,7 @@ class PoseConverter(Node):
             time.sleep(0.1)
 
         self.get_logger().info("Received GPS offset transform")
-        gps_tf = self.tf_buffer.lookup_transform("base_link", "gps_link", Time()).transform
+        gps_tf : Transform = self.tf_buffer.lookup_transform("base_link", "gps_link", Time()).transform
         r, p, yaw = transform.quat_to_euler(gps_tf.rotation)
         x, y, z = gps_tf.translation.x, gps_tf.translation.y, gps_tf.translation.z
         self.gps_offset = np.array([0., 0., yaw, x, y, z])
@@ -216,6 +216,7 @@ class PoseConverter(Node):
         if msg.valid:
             self.latest_gps_pose = msg
             if msg.heading_valid:
+                
 
     def cb_goal(self, msg : AutonomousGoalArray):                                               
         """
