@@ -21,6 +21,7 @@ find_package(ament_cmake REQUIRED)
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(nav_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 
 # Find default generators
@@ -77,7 +78,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/StringTrigger.srv"
 
   # Action definitions
-  DEPENDENCIES std_msgs geometry_msgs
+  DEPENDENCIES std_msgs geometry_msgs nav_msgs
 )
 
 # Add all the installation directories
