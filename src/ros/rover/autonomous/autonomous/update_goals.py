@@ -28,10 +28,10 @@ class GoalPublisher(Node):
         """
         # take user input for main goal
         if self.param_do_gps:
-            coord = input("Enter new goal as lat, lon tuple: ").replace(",", " ")
+            coord = input("Enter new goal as lat, lon tuple: ").replace(",", " ").strip()
         else:
             coord = input("Enter new goal as x, y tuple: ").replace(",", " ")
-        ids_string = input("Enter integer ids of AR beacons if any: ").replace(",", " ")
+        ids_string = input("Enter integer ids of AR beacons if any: ").replace(",", " ").strip()
 
         # Make AutonomousGoal out of user input
         x, y = float(coord.split()[0]), float(coord.split()[1])
@@ -63,8 +63,8 @@ class GoalPublisher(Node):
 
         # Get intermediate goals
         for i in range(intermediates):
-            coord = input(f"Enter intermediate goal {i + 1} as lat, lon tuple: ")
-            lat, lon = float(coord.split()[0]), float(coord.replace(",", " ").split()[1])
+            coord = input(f"Enter intermediate goal {i + 1} as lat, lon tuple: ").replace(",", " ").strip()
+            lat, lon = float(coord.split()[0]), float(coord.split()[1])
             intermediate_goal = AutonomousGoal()
             intermediate_goal.type = AutonomousGoal.GOAL_TYPE_INTERMEDIATE
             intermediate_position = Point2D()
