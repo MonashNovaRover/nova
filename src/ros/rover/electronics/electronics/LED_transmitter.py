@@ -15,11 +15,11 @@ import rclpy
 from rclpy.node import Node
 from std_srvs.srv import Trigger
 from std_msgs.msg import Bool
-from core.msg import RadioStatus
+from core.msg import RadioStatus, DriveInfo
 from coms_utils.can_interface import CANTransmitter
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy
 import time
-from enum import Enum
+from enum import Enum, IntEnum
 
 """
 Goal 1: get a request in the service, and execute
@@ -45,14 +45,16 @@ class AutonomousState(Enum):
     SUCCESS = 1
 
 
-class CanLEDCommunicator:
-    """
-    Handles communication with LED
-    """
+class LedColor(IntEnum):
     RED = 0x091
     GREEN = 0x092
     BLUE = 0x093
 
+
+class CanLEDCommunicator:
+    """
+    Handles communication with LED
+    """
     def __init__(self):
         self.transmitter = CANTransmitter(
             channel='can0',  # Can channel to transmit on
@@ -73,9 +75,9 @@ class CanLEDCommunicator:
         """
         Tells a given colour line to display 0 intensity
         """
-        self.set_led(CanLEDCommunicator.RED, 0)
-        self.set_led(CanLEDCommunicator.GREEN, 0)
-        self.set_led(CanLEDCommunicator.BLUE, 0)
+        self.set_led(LedColor.RED, 0)
+        self.set_led(LedColor.GREEN, 0)
+        self.set_led(LedColor.BLUE, 0)
 
 
 class LEDUpdateNode(Node):
@@ -94,10 +96,10 @@ class LEDUpdateNode(Node):
         self.autonomous_state = AutonomousState.ACTIVE
 
         # Subscriber to handle control state
-        self.mode_subscriber = self.create_subscription(Bool, "/autonomous/mode", self.mode_callback, 10)
+        self.drive_info_subscriber = self.create_subscription(DriveInfo, "/control/drive_info", self.drive_info_callback, 10)
         
         # Subscriber to handle connection state
-        self.radio_subscriber = self.create_subscription(RadioStatus, "/electronics/radio_status", self.connection_callback, 10)
+        # self.radio_subscriber = self.create_subscription(RadioStatus, "/electronics/radio_status", self.connection_callback, 10)
 
         # Services to handle autonomous state
         self.success_service = self.create_service(Trigger, 'autonomous/success', self.success_callback)
@@ -115,9 +117,9 @@ class LEDUpdateNode(Node):
         
     def get_control_state_colours(self, state):
         if state == ControlState.MANUAL:
-            return CanLEDCommunicator.BLUE, 255
+            return LedColor.BLUE, 255
         elif state == ControlState.AUTONOMOUS:
-            return CanLEDCommunicator.RED, 255
+            return LedColor.RED, 255
     
     def get_control_state_flash(self, state):
         if state == ControlState.MANUAL:
@@ -129,7 +131,7 @@ class LEDUpdateNode(Node):
         if state == ConnectionState.CONNECTED or self.control_state == ControlState.AUTONOMOUS:
             return self.get_control_state_colours(self.control_state)
         elif state == ConnectionState.DISCONNECTED:
-            return CanLEDCommunicator.RED, 255
+            return LedColor.RED, 255
 
     def get_connection_state_flash(self, state):
         if state == ConnectionState.CONNECTED or self.control_state == ControlState.AUTONOMOUS:
@@ -141,7 +143,7 @@ class LEDUpdateNode(Node):
         if state == AutonomousState.ACTIVE or self.control_state == ControlState.MANUAL:
             return self.get_connection_state_colours(self.connection_state)
         elif state == AutonomousState.SUCCESS:
-            return CanLEDCommunicator.GREEN, 255
+            return LedColor.GREEN, 255
     
     def get_state_flash(self, state):
         if state == AutonomousState.ACTIVE or self.control_state == ControlState.MANUAL:
@@ -164,18 +166,25 @@ class LEDUpdateNode(Node):
 
         self.change_connection_state(new_connection_state)
 
-    def mode_callback(self, message):
+    def drive_info_callback(self, msg: DriveInfo):
         """
         callback that checks for the button B or A pressed on the controller and updates the state accordingly
         :param message: InputGamepad.msg type
         """
-        new_control_state = self.control_state
-        if message.data:
+        # Check autonomous mode
+        if msg.autonomous_mode:
             new_control_state = ControlState.AUTONOMOUS
         else:
             new_control_state = ControlState.MANUAL
-
         self.change_control_state(new_control_state)
+
+        # Check connection
+        if msg.connected:
+            new_connection_state = ConnectionState.CONNECTED
+        else:
+            new_connection_state = ConnectionState.DISCONNECTED
+
+        self.change_connection_state(new_connection_state)
 
     def success_callback(self, request, response):
         response.success = True
