@@ -90,8 +90,9 @@ class PoseConverter(Node):
         self.gps_converter : GpsConverter = GpsConverter()
         self.latest_imu : Vector3Stamped = None
         self.latest_gps_pose : RoverPoseGPS = None
-        # r, p, y, x, y, z
+        # p, r, y, x, y, z
         self.gps_offset : np.ndarray = None
+        self.imu_heading_offset = 0
         self.get_initial_transform()
 
         # for maintaining accurate pose and converting between gps
@@ -162,7 +163,7 @@ class PoseConverter(Node):
 
         self.get_logger().info("Received GPS offset transform")
         gps_tf : Transform = self.tf_buffer.lookup_transform("base_link", "gps_link", Time()).transform
-        r, p, yaw = transform.quat_to_euler(gps_tf.rotation)
+        p, r, yaw = transform.quat_to_euler(gps_tf.rotation)
         x, y, z = gps_tf.translation.x, gps_tf.translation.y, gps_tf.translation.z
         self.gps_offset = np.array([0., 0., yaw, x, y, z])
 
@@ -175,7 +176,9 @@ class PoseConverter(Node):
         forward = +x
         """
         imu_roll, imu_pitch, imu_yaw= math.radians(self.latest_imu.vector.x), math.radians(self.latest_imu.vector.y), math.radians(self.latest_imu.vector.z)
-        return np.array([imu_roll, imu_pitch, imu_yaw])
+        # Imu is upsy-downsies
+        imu_pitch, imu_roll = imu_roll, imu_pitch
+        return np.array([imu_pitch, imu_roll, imu_yaw])
 
     def calculate_transform(self) -> TransformStamped:
         """
@@ -186,8 +189,8 @@ class PoseConverter(Node):
         # Take pitch and roll from imu and heading from gps
         imu_eulers = self.transform_imu_to_nova()
         # GPS heading is positive in the clockwise direction, but the right hand rule dictates for us that positive yaw is counter-clockwise
-        gps_eulers = np.array([0., 0., -math.radians(self.latest_gps_pose.yaw)])
-        eulers = imu_eulers + gps_eulers - self.gps_offset[:3]
+        
+        eulers = imu_eulers + [0, 0, self.imu_heading_offset]
         quat = transform.euler_to_quat(eulers)
         gps_x, gps_y = self.gps_converter.get_local_coord(self.latest_gps_pose.latitude, self.latest_gps_pose.longitude)
 
@@ -196,12 +199,26 @@ class PoseConverter(Node):
         tf_msg.header.stamp = self.get_clock().now().to_msg()
         tf_msg.child_frame_id = 'base_link'
 
-        tf_msg.transform.translation.x = gps_x + self.gps_offset[3] * math.cos(gps_eulers[2])
-        tf_msg.transform.translation.y = gps_y + self.gps_offset[4] * math.sin(gps_eulers[2])
+        # Offset to centre of rover from GPS antenna
+        tf_msg.transform.translation.x = gps_x + self.gps_offset[3] * math.cos(eulers[2])
+        tf_msg.transform.translation.y = gps_y + self.gps_offset[4] * math.sin(eulers[2])
 
         tf_msg.transform.rotation = quat
         
         return tf_msg
+
+    def calibrate_heading(self):
+        """
+        Comparing the most recent GPS heading value to the current imu heading, store the heading offset which corrects for
+        absolute drift errors in the imu heading.
+        """
+        imu_heading_rads = self.transform_imu_to_nova()[2]
+        gps_heading_rads = -math.radians(self.latest_gps_pose.yaw) + self.gps_offset[2]
+        self.imu_heading_offset = gps_heading_rads - imu_heading_rads
+        self.get_logger().debug(f"imu heading: {imu_heading_rads}")
+        self.get_logger().debug(f"gps heading: {gps_heading_rads}")
+        self.get_logger().debug(f"gps_offset: {self.gps_offset[2]}")
+        self.get_logger().debug(f"imu heading offset: {self.imu_heading_offset}")
 
     def cb_imu(self, msg: Vector3Stamped):
         """
@@ -216,7 +233,7 @@ class PoseConverter(Node):
         if msg.valid:
             self.latest_gps_pose = msg
             if msg.heading_valid:
-                
+                self.calibrate_heading()
 
     def cb_goal(self, msg : AutonomousGoalArray):                                               
         """
