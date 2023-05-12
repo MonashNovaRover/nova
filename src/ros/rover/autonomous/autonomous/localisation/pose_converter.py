@@ -83,9 +83,6 @@ class PoseConverter(Node):
         self.tf_base_link = TransformBroadcaster(self)
         self.tf_initial_offset = StaticTransformBroadcaster(self)
 
-        # timer 
-        self.pub_timer = self.create_timer(1/self.param_base_link_rate, self.cb_publish_transform)
-
         # state
         self.gps_converter : GpsConverter = GpsConverter()
         self.latest_imu : Vector3Stamped = None
@@ -98,6 +95,9 @@ class PoseConverter(Node):
         # for maintaining accurate pose and converting between gps
         if self.param_do_ekf:
             raise NotImplementedError("EKF not integrated yet")
+
+        # timer 
+        self.pub_timer = self.create_timer(1/self.param_base_link_rate, self.cb_publish_transform)
 
     def fill_initial_pose(self, initial_transform: Transform):
         """
