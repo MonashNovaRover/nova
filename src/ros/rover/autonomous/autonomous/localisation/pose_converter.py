@@ -241,8 +241,8 @@ class PoseConverter(Node):
         """
         if msg.valid:
             self.latest_gps_pose = msg
-            #if msg.heading_valid and self.latest_imu is not None:
-            #    self.calibrate_heading()
+            if msg.heading_valid and self.latest_imu is not None and self.imu_heading_offset == 0:
+                self.calibrate_heading()
 
     def cb_goal(self, msg : AutonomousGoalArray):                                               
         """
