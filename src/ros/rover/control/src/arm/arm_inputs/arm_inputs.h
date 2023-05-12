@@ -120,11 +120,6 @@ class ArmInputs : public ArmConfigInfoClient
     /// @brief      Publishes control scheme data
     void publish_control_scheme ();
 
-    /// @brief      Calculates a direction from a fraction
-    /// @param      value - A fraction to be converted to a direction
-    /// @returns    The calculated direction (-1, 0 or 1) 
-    float calculate_direction (float value);
-
     /// @brief      Obtains postive scaling factor from slider input
     /// @param      value - number in range [-1, 1] to map to [0, 1]
     /// @returns    The new scale factor in range [0, 1]
