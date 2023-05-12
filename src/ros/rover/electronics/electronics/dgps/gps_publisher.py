@@ -31,7 +31,7 @@ class SkytraqNode (Node):
     def __init__ (self, com_no, baud):
         super().__init__('gps_data')
 
-        self.pose = RoverPoseGPS()
+        self.pose : RoverPoseGPS = RoverPoseGPS()
         self.pose.header.frame_id = "gps_link"
 
         self.fix_type : str = None
@@ -42,7 +42,7 @@ class SkytraqNode (Node):
         self.publisher = self.create_publisher(RoverPoseGPS, '/electronics/gps_data', 10)
         self.timer = self.create_timer(1 / 30, self.publisher_callback)
 
-    def parse_msg(self, pose):
+    def parse_msg(self, pose : RoverPoseGPS):
         self.pose.header.stamp = self.get_clock().now().to_msg()
         raw_msg = self.get_msg()
         self.get_logger().debug(f"raw message: {raw_msg}")
@@ -50,6 +50,7 @@ class SkytraqNode (Node):
         if raw_msg[0:2] == ["PSTI", '036']:
             if raw_msg[4] != '' and (raw_msg[4].isupper() or raw_msg[4].islower()) == False:
                 pose.pitch, pose.roll, pose.yaw = float(raw_msg[5]), float(raw_msg[6]), float(raw_msg[4])
+                pose.heading_valid = True
         
         elif raw_msg[0] == "GNRMC":
             pose.latitude, pose.longitude = float(raw_msg[3])/100, float(raw_msg[5])/100
@@ -105,7 +106,7 @@ class SkytraqNode (Node):
 
         
 def main (args = None):
-    baud = 115200;
+    baud = 115200
     rclpy.init(args = args)
     gps = SkytraqNode("", baud)
     rclpy.spin(gps)
