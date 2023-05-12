@@ -27,7 +27,7 @@ TODO:
 import time
 import math
 import numpy as np
-
+import logging
 # autonomous imports
 import autonomous.math_utils.transform as transform
 from autonomous.config.ros_config import auto_goal_topic, auto_goal_gps
@@ -59,7 +59,8 @@ class PoseConverter(Node):
 
     def __init__(self):
         super().__init__("pose_converter")
-
+        
+        self.get_logger().set_level(logging.DEBUG)
         # Ros params
         self.param_do_ekf = self.declare_parameter("do_ekf", False).value
         self.param_gps_frame_id = self.declare_parameter("gps_frame_id", "gps_link").value
@@ -162,8 +163,10 @@ class PoseConverter(Node):
             time.sleep(0.1)
 
         self.get_logger().info("Received GPS offset transform")
-        gps_tf : Transform = self.tf_buffer.lookup_transform("base_link", "gps_link", Time()).transform
-        p, r, yaw = transform.quat_to_euler(gps_tf.rotation)
+        gps_tf : Transform = self.tf_buffer.lookup_transform("gps_link", "gps_secondary", Time()).transform
+        x, y, z = gps_tf.translation.x, gps_tf.translation.y, gps_tf.translation.z
+        yaw = math.atan2(y,x)
+        gps_tf = self.tf_buffer.lookup_transform("gps_link", "base_link", Time()).transform
         x, y, z = gps_tf.translation.x, gps_tf.translation.y, gps_tf.translation.z
         self.gps_offset = np.array([0., 0., yaw, x, y, z])
 
@@ -175,7 +178,7 @@ class PoseConverter(Node):
         left = +y
         forward = +x
         """
-        imu_roll, imu_pitch, imu_yaw= math.radians(self.latest_imu.vector.x), math.radians(self.latest_imu.vector.y), math.radians(self.latest_imu.vector.z)
+        imu_roll, imu_pitch, imu_yaw= math.radians(self.latest_imu.vector.x), math.radians(self.latest_imu.vector.y), -math.radians(self.latest_imu.vector.z)
         # Imu is upsy-downsies
         imu_pitch, imu_roll = imu_roll, imu_pitch
         return np.array([imu_pitch, imu_roll, imu_yaw])
@@ -198,6 +201,11 @@ class PoseConverter(Node):
         tf_msg.header.frame_id = 'initial_base_link'
         tf_msg.header.stamp = self.get_clock().now().to_msg()
         tf_msg.child_frame_id = 'base_link'
+        
+        self.get_logger().debug(f'gps_x: {gps_x}, gps_y: {gps_y}')
+        self.get_logger().debug(f'gps_offset[3]: {self.gps_offset[3]}, gps_offset[4]: {self.gps_offset[4]}')
+        self.get_logger().debug(f'eulers: {eulers}')
+
 
         # Offset to centre of rover from GPS antenna
         tf_msg.transform.translation.x = gps_x + self.gps_offset[3] * math.cos(eulers[2])
@@ -213,7 +221,7 @@ class PoseConverter(Node):
         absolute drift errors in the imu heading.
         """
         imu_heading_rads = self.transform_imu_to_nova()[2]
-        gps_heading_rads = -math.radians(self.latest_gps_pose.yaw) + self.gps_offset[2]
+        gps_heading_rads = -math.radians(self.latest_gps_pose.yaw) - self.gps_offset[2]
         self.imu_heading_offset = gps_heading_rads - imu_heading_rads
         self.get_logger().debug(f"imu heading: {imu_heading_rads}")
         self.get_logger().debug(f"gps heading: {gps_heading_rads}")
@@ -232,8 +240,8 @@ class PoseConverter(Node):
         """
         if msg.valid:
             self.latest_gps_pose = msg
-            if msg.heading_valid:
-                self.calibrate_heading()
+            #if msg.heading_valid and self.latest_imu is not None:
+            #    self.calibrate_heading()
 
     def cb_goal(self, msg : AutonomousGoalArray):                                               
         """
