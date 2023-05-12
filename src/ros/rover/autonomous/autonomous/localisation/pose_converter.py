@@ -69,14 +69,6 @@ class PoseConverter(Node):
         self.param_initial_quat = self.declare_parameter("initial_base_link_quat", [0., 0., 0., 0., 0., 0., 1.]).value
         self.param_initial_euler = self.declare_parameter("initial_base_link_euler", [0., 0., 0., 0., 0., 0.]).value
         
-        # subscribers
-        self.imu_sub = self.create_subscription(Vector3Stamped, "/imu/euler", self.cb_imu, 10)
-        self.gps_sub = self.create_subscription(RoverPoseGPS, "/electronics/gps_data", self.cb_dgps, 10)
-        self.goals_sub = self.create_subscription(AutonomousGoal, auto_goal_gps, self.cb_goal, 10)
-
-        # publishers
-        self.goals_pub = self.create_publisher(AutonomousGoal, auto_goal_topic, 10)
-
         # tf2 objects
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, node=self, spin_thread=True)
@@ -91,6 +83,14 @@ class PoseConverter(Node):
         self.gps_offset : np.ndarray = None
         self.imu_heading_offset = 0
         self.get_initial_transform()
+
+        # subscribers
+        self.imu_sub = self.create_subscription(Vector3Stamped, "/imu/euler", self.cb_imu, 10)
+        self.gps_sub = self.create_subscription(RoverPoseGPS, "/electronics/gps_data", self.cb_dgps, 10)
+        self.goals_sub = self.create_subscription(AutonomousGoal, auto_goal_gps, self.cb_goal, 10)
+
+        # publishers
+        self.goals_pub = self.create_publisher(AutonomousGoal, auto_goal_topic, 10)
 
         # for maintaining accurate pose and converting between gps
         if self.param_do_ekf:

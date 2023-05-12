@@ -47,12 +47,12 @@ class SkytraqNode (Node):
         raw_msg = self.get_msg()
         self.get_logger().debug(f"raw message: {raw_msg}")
 
-        if raw_msg[0:2] == ["PSTI", '036']:
+        if raw_msg[0:2] == ["PSTI", '036'] and len(raw_msg) >= 7:
             if raw_msg[4] != '' and (raw_msg[4].isupper() or raw_msg[4].islower()) == False:
                 pose.pitch, pose.roll, pose.yaw = float(raw_msg[5]), float(raw_msg[6]), float(raw_msg[4])
                 pose.heading_valid = True
         
-        elif raw_msg[0] == "GNRMC":
+        elif raw_msg[0] == "GNRMC" and len(raw_msg) >= 13:
             pose.latitude, pose.longitude = float(raw_msg[3])/100, float(raw_msg[5])/100
             if raw_msg[4] == "S":
                 pose.latitude = -1 * pose.latitude
@@ -67,7 +67,7 @@ class SkytraqNode (Node):
             if raw_msg[12] != "":
                 self.fix_type = raw_msg[12]
         
-        elif raw_msg[0] == "GPGGA":
+        elif raw_msg[0] == "GPGGA" and len(raw_msg) >= 7:
             self.get_logger().debug(f'fix type: {raw_msg[6]}')
 
     def get_msg(self):
