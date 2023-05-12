@@ -206,10 +206,11 @@ class PoseConverter(Node):
         self.get_logger().debug(f'gps_offset[3]: {self.gps_offset[3]}, gps_offset[4]: {self.gps_offset[4]}')
         self.get_logger().debug(f'eulers: {eulers}')
 
-
         # Offset to centre of rover from GPS antenna
-        tf_msg.transform.translation.x = gps_x + self.gps_offset[3] * math.cos(eulers[2])
-        tf_msg.transform.translation.y = gps_y + self.gps_offset[4] * math.sin(eulers[2])
+        x, y = self.gps_offset[3], self.gps_offset[4]
+        yaw = eulers[2]
+        tf_msg.transform.translation.x = gps_x + x * math.cos(yaw) + y * math.sin(yaw) 
+        tf_msg.transform.translation.y = gps_y - x * math.sin(yaw) + y * math.cos(yaw)
 
         tf_msg.transform.rotation = quat
         
