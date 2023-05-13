@@ -53,8 +53,8 @@ class WristCycloidalModel : public ArmSubModule
         output_name = "sj6";
         zero_angles = std::vector<double> {0, -M_PI / 2, 0};
         joint_limits = std::vector<JointLimit> {
-            {-2.00, 1.55},
-            {-1.95, 2.15},
+            {-1.95, 1.57},
+            {-1.95, 1.75},
             {-2 * M_PI, 2 * M_PI}  // No joint limiting
         };
         control_coeffs = std::vector<ControlCoeffs> {

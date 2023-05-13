@@ -56,7 +56,7 @@ class LowerJointsModel : public ArmSubModule
         joint_limits = std::vector<JointLimit> {
             {-2 * M_PI, 2 * M_PI},  // No joint limiting
             {-1.75, 1.55},
-            {-2.85, 2.50}
+            {-2.75, 2.40}
         };
         control_coeffs = std::vector<ControlCoeffs> {
             // P, I, D

@@ -182,10 +182,10 @@ void CMD::set_linear_actuator (float value)
     // Create the data to send
     unsigned char actuation = 0;
     if (value < 0){
-        actuation = 2;
+        actuation = 1;
     }
     else if (value > 0){
-        actuation = 1;
+        actuation = 2;
     }
 
     // Create a new CAN frame

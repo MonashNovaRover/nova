@@ -60,7 +60,7 @@ class RoverStatePublisher(Node):
     def initialise_telemetry(self):
         self.telemetry = Telemetry()
         self.telemetry.wheels = [SingleTelemetry() for _ in range(4)]
-        self.telemetry.pivots = [SingleTelemetry(resolver_positio=ANGLE_OFFSET) for i in range(4)]
+        self.telemetry.pivots = [SingleTelemetry(resolver_position=ANGLE_OFFSET) for i in range(4)]
 
     def telemetry_callback(self, msg):
         self.telemetry = msg

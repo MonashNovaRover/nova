@@ -92,8 +92,8 @@ void ArmInputs::publish_endeffector_inputs ()
 
     if (!control_scheme.joystick_lock){
         // Set the values for linear actuator and end effector actuation
-        message.linear_actuation = joystick_l.ax_thumb_x;
-        message.end_effector_actuation = calculate_direction(joystick_r.ax_thumb_x) * 0.95;
+        message.linear_actuation = -joystick_r.ax_thumb_y;
+        message.end_effector_actuation = joystick_r.ax_thumb_x * 0.95;
     }
     
     // Publish the arm inputs
@@ -193,19 +193,6 @@ void ArmInputs::publish_twist ()
     // Publish the joint space velocities
     twist_pub->publish(twist);
 }
-
-float ArmInputs::calculate_direction (float value){
-    if (value > 0){
-        return 1.0;
-    }
-    else if (value < 0){
-        return -1.0;
-    }
-    else{
-        return 0.0;
-    }
-}
-
 
 float ArmInputs::scale_speed (float value){
     // Max scale factor 1.00, min scale factor 0.05
