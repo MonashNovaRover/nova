@@ -49,31 +49,35 @@ class SkytraqNode (Node):
 
         if raw_msg[0:2] == ["PSTI", '036'] and len(raw_msg) >= 7:
             try:    
-                pose.pitch, pose.roll, pose.yaw = float(raw_msg[5]), float(raw_msg[6]), float(raw_msg[4])
-                pose.heading_valid = True
+                if raw_msg[6] == 'R':
+                    pose.pitch, pose.roll, pose.yaw = float(raw_msg[5]), float(raw_msg[6]), float(raw_msg[4])
+                    pose.heading_valid = True
+                else:
+                    pose.heading_valid = False
             except:
+                self.get_logger().error(f"Received message that doesn't fit specifications: {raw_msg}")
                 pose.heading_valid = False
 
         elif raw_msg[0] == "GNRMC" and len(raw_msg) >= 13:
             try:
-                pose.latitude, pose.longitude = float(raw_msg[3])/100, float(raw_msg[5])/100
-                if raw_msg[4] == "S":
-                    pose.latitude = -1 * pose.latitude
-                if raw_msg[6] == "W":
-                    pose.longitude = -1 * pose.longitude
-
                 if raw_msg[2] == 'A':
                     pose.valid = True
+                    lat_degrees, lon_degrees = int(float(raw_msg[3]) / 100), int(float(raw_msg[5])/100)
+                    lat_mins, lon_mins = (float(raw_msg[3]) - lat_degrees*100), (float(raw_msg[5]) - lon_degrees*100)
+                    pose.latitude, pose.longitude = lat_degrees + lat_mins/60, lon_degrees + lon_mins/60
+                    if raw_msg[4] == "S":
+                        pose.latitude = -1 * pose.latitude
+                    if raw_msg[6] == "W":
+                        pose.longitude = -1 * pose.longitude
                 else:
                     pose.valid = False
 
-                if raw_msg[12] != "":
-                    self.fix_type = raw_msg[12]
             except:
                 pose.valid = False
+                self.get_logger().error(f"Received message that doesn't fit specifications: {raw_msg}")
         
         elif raw_msg[0] == "GPGGA" and len(raw_msg) >= 7:
-            self.get_logger().debug(f'fix type: {raw_msg[6]}')
+            self.fix_type = raw_msg[6]
 
     def get_msg(self):
         txt = str(self.ser.read_until(b"$"))
@@ -102,7 +106,7 @@ class SkytraqNode (Node):
         if rover_msg.valid:
             self.get_logger().debug(roverMsgStr,throttle_duration_sec=2)
         else:
-            self.get_logger().debug(f'[WARN] {roverMsgStr}',throttle_duration_sec=2)
+            self.get_logger().warn(f'{roverMsgStr}',throttle_duration_sec=2)
 
     def publisher_callback(self):
         self.parse_msg(self.pose)
@@ -111,7 +115,7 @@ class SkytraqNode (Node):
 
         
 def main (args = None):
-    baud = 460800
+    baud = 115200
     rclpy.init(args = args)
     gps = SkytraqNode("", baud)
     rclpy.spin(gps)

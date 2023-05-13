@@ -68,7 +68,7 @@ class SubToBaseNode(Node):
 
 def main (args = None):
     rclpy.init(args = args)
-    subscriber = SubToBaseNode("", 460800)
+    subscriber = SubToBaseNode("", 115200)
     rclpy.spin(subscriber)
 
     subscriber.destroy_node()
