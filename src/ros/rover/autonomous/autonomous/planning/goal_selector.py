@@ -222,10 +222,6 @@ class Controller(Node):
         if self.trigger_received_goal:
             self.on_state_update(PlanningState.TO_COORDINATE)
 
-        # If "trigger_return" is raised as True, transition to RETURN
-        elif self.trigger_return:
-            self.on_state_update(PlanningState.RETURN)
-
         # In RETURN state, rover follows intermediate goals back to previous goal. If an intermediate goal 
         # is reached then re-initialize RETURN. If previous goal is reached then transition to IDLE  
         elif self.state == PlanningState.RETURN:
@@ -239,7 +235,9 @@ class Controller(Node):
         # transition to TO_AR_TAG or THROUGH_GATE. If new goal is reached without locating tags, transition to SEARCH.
         # If new goal is reached and we have no tags to search for, transition to SUCCESS.
         elif self.state == PlanningState.TO_COORDINATE:
-            if self.at_current_goal() and self.intermediate_goal():
+            if self.trigger_return:
+                self.on_state_update(PlanningState.RETURN)
+            elif self.at_current_goal() and self.intermediate_goal():
                 self.on_state_update(PlanningState.TO_COORDINATE)
             elif not self.intermediate_goal() and self.state_ar_tag_manager.found_current_tag():
                 self.on_state_update(PlanningState.TO_AR_TAG)
@@ -254,7 +252,9 @@ class Controller(Node):
         # Transition from SEARCH_SPIN to TO_AR_TAG or THROUGH_GATE if individual tag or gate tags are located.
         # Transition to SEARCH if we have completed the spin
         elif self.state == PlanningState.SEARCH_SPIN:
-            if self.state_ar_tag_manager.found_current_tag():
+            if self.trigger_return:
+                self.on_state_update(PlanningState.RETURN)
+            elif self.state_ar_tag_manager.found_current_tag():
                 self.on_state_update(PlanningState.TO_AR_TAG)
             elif self.state_ar_tag_manager.found_current_gate():
                 self.on_state_update(PlanningState.THROUGH_GATE)
@@ -264,7 +264,9 @@ class Controller(Node):
         # Transition from SEARCH to TO_AR_TAG or THROUGH_GATE if individual tag or gate tags are located.
         # Transition to SEARCH_SPIN if we have reached the next intermediate goal
         elif self.state == PlanningState.SEARCH:
-            if self.state_ar_tag_manager.found_current_tag():
+            if self.trigger_return:
+                self.on_state_update(PlanningState.RETURN)
+            elif self.state_ar_tag_manager.found_current_tag():
                 self.on_state_update(PlanningState.TO_AR_TAG)
             elif self.state_ar_tag_manager.found_current_gate():
                 self.on_state_update(PlanningState.THROUGH_GATE)
@@ -273,12 +275,16 @@ class Controller(Node):
 
         # Transition from TO_AR_TAG to SUCCESS if reached the tag goal
         elif self.state == PlanningState.TO_AR_TAG:
-            if self.at_current_goal():
+            if self.trigger_return:
+                self.on_state_update(PlanningState.RETURN)
+            elif self.at_current_goal():
                 self.on_state_update(PlanningState.SUCCESS)
 
         # Transition from THROUGH_GATE to SUCCESS if reached the gate goal
         elif self.state == PlanningState.THROUGH_GATE:
-            if self.at_current_goal() and self.intermediate_goal():
+            if self.trigger_return:
+                self.on_state_update(PlanningState.RETURN)
+            elif self.at_current_goal() and self.intermediate_goal():
                 self.on_state_update(PlanningState.THROUGH_GATE)
             elif self.at_current_goal() and not self.intermediate_goal():
                 self.on_state_update(PlanningState.SUCCESS)
