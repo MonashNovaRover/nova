@@ -116,7 +116,7 @@ class Controller(Node):
         # Subscribers
         self.sub_planned_path = self.create_subscription(Path, auto_waypoints_topic,
                                                                         self.callback_planner_path, 10)
-        self.sub_steer = self.create_subscription(PivotWheelData, "/control/pivot_wheel", self.callback_steer, 10)
+        self.sub_radius = self.create_subscription(PivotWheelData, "/control/pivot_wheel", self.callback_steer, 10)
         self.sub_do_spin = self.create_subscription(Empty, "~/do_spin", self.callback_do_spin, 10)
         self.sub_success = self.create_subscription(Empty, "/autonomous_controller/success_trigger", self.callback_success, 10)
 
