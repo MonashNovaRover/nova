@@ -156,22 +156,29 @@ class Controller(Node):
         """
         
         # If we are in SUCCESS state, transitioning to the driving state is triggered by receiving a ros2 message
-        if self.trigger_spin:
-            self.on_state_update(DrivingState.TURNING)
-        elif self.trigger_success:
-            self.on_state_update(DrivingState.SUCCESS)
-        elif self.state == DrivingState.SUCCESS and self.trigger_to_waypoint:
-            self.on_state_update(DrivingState.TO_WAYPOINT)
+        if self.state == DrivingState.SUCCESS:
+            if self.trigger_spin:
+                self.on_state_update(DrivingState.TURNING)
+            elif self.trigger_to_waypoint:
+                self.on_state_update(DrivingState.TO_WAYPOINT)
 
-        # If we are in TURNING state, we are only done turning when the spin controller says so
+        # If we are in TURNING state, we are only done turning when the spin controller says so, or when we receive a
+        # trigger from the goal_selector state machine
         elif self.state == DrivingState.TURNING:
             if self.turn_completed():
                 self.on_state_update(DrivingState.SUCCESS)
+            elif self.trigger_success:
+                self.on_state_update(DrivingState.SUCCESS)
 
-        # If we are in TO_WAYPOINT state, we are done when we are out of goals to go to
+        # If we are in TO_WAYPOINT state, we are done when we are out of goals to go to, or when we receive a message
+        # From the goal_selector state machine telling us to begin a spin or enter success mode
         elif self.state == DrivingState.TO_WAYPOINT:
             if self.finished_waypoint_path():
                 self.on_state_update(DrivingState.SUCCESS)
+            elif self.trigger_success:
+                self.on_state_update(DrivingState.SUCCESS)
+            if self.trigger_spin:
+                self.on_state_update(DrivingState.TURNING)
 
     def on_state_update(self, new_state: DrivingState):
         """
