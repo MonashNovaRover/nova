@@ -285,10 +285,10 @@ class Controller(Node):
         """
         if points is None:
             return []
-        return [point for point in points if distance(
-            (self.state_rover_pose.x, self.state_rover_pose.y),
-            point
-            ) > self.param_waypoint_follow_distance]
+        current_position = (self.state_rover_pose.x, self.state_rover_pose.y)
+        return [point for point in points if 
+                distance(current_position, point) 
+                    > self.param_waypoint_follow_distance]
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Control Loop Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
