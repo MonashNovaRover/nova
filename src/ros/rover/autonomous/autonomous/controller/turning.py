@@ -1,4 +1,3 @@
-__package__ = "autonomous"
 """
 Some day, we will refactor this... for now, good luck
 """

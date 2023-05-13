@@ -11,8 +11,18 @@
     <parent link="base_link"/>
     <child link="gps_link"/>
     <origin 
-        xyz="0. 0. 0.38"
-        rpy="0. 0. ${-5.35 * pi / 18}"
+        xyz="-0.33 0.23 0.38"
+        rpy="0. 0. 0."
+    />
+  </joint>
+
+  <link name="gps_secondary"></link>
+  <joint name="gps_link_to_gps_secondary" type="fixed">
+    <parent link="gps_link"/>
+    <child link="gps_secondary"/>
+    <origin 
+        xyz="0.33 -0.46 0."
+        rpy="0. 0. 0."
     />
   </joint>
 

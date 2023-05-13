@@ -5,4 +5,4 @@ Point2D target
 ---
 
 int32 response_code
-Waypoints waypoints
+nav_msgs/Path path

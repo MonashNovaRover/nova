@@ -383,9 +383,9 @@ void string_pull_from_start(array<array<float, COL>, ROW>& grid, vector<Pair>& p
     for (size_t i = 0; i < path.size(); i++){
 		Pair this_point = path[i+1];
 		int num_points = (int) heuristic(start, this_point);
-        if (obstacle_between(grid, start, this_point, num_points) || num_points > 50){
+        if (obstacle_between(grid, start, this_point, num_points)){
             path = {path.begin() + i, path.end()};
-			path[0] = start;
+			path.insert(path.begin(), start);
             return;
         }
     }
