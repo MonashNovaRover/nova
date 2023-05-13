@@ -17,17 +17,17 @@ using std::placeholders::_1;
 #include <math.h>
 
 // Adjustes the multiplier factor by some amount in some direction
-float DriveInputs::adjust_multiplier(float &multiplier, bool increase, bool course)
+float DriveInputs::adjust_multiplier(float &multiplier, bool increase, bool coarse)
 {
 
 // Adjust the multiplier
-    multiplier += (course ? DELTA_MULTIPLIER_COURSE : DELTA_MULTIPLIER_FINE) * (increase ? 1 : -1);
+    multiplier += (coarse ? DELTA_MULTIPLIER_COARSE : DELTA_MULTIPLIER_FINE) * (increase ? 1 : -1);
 
     // Check for minimum and maximums
     if (multiplier > MAX_MULTIPLIER)
         multiplier = MAX_MULTIPLIER;
-    else if (multiplier <= MIN_MULTIPLIER)
-        multiplier = MIN_MULTIPLIER;
+    else if (multiplier <= (coarse ? MIN_COARSE_MULTIPLIER : MIN_FINE_MULTIPLIER))
+        multiplier = coarse ? MIN_COARSE_MULTIPLIER : MIN_FINE_MULTIPLIER;
 
     // Return the new multiplier
     return multiplier;
