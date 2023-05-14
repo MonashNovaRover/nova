@@ -25,18 +25,24 @@ CREATION:	14/05/2023
 EDITED:		14/05/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
- - All
+ - Fix mapping transforms and nodes generally so
+    we can get all transforms even with no depth
+    cam
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 # ros imports
 import rclpy
 from rclpy.node import Node
+from rclpy.duration import Duration
 from rclpy.qos import QoSReliabilityPolicy, QoSProfile
-from tf2_ros import TransformBroadcaster
+from tf2_ros import TransformBroadcaster, StaticTransformBroadcaster
 
 # msg imports
 from core.msg import DriveInput, PivotWheelData
 from geometry_msgs.msg import Transform, TransformStamped
+
+# nova import
+from autonomous.math_utils import transform
 
 # python imports 
 from typing import Tuple
@@ -45,23 +51,7 @@ import numpy as np
 MAX_VEL_M_S = 12
 
 
-def steer_to_radius_direction(steer: float) -> Tuple(float, int):
-    """
-    Take a steer value like what is given by the controller in the range [-1, 1]
-    and map it to a radius in the range [0, inf] and a direction {-1, 1}
-    """
-    assert steer <= 1 and steer >= -1, f"Steer {steer} not in required range"
-    direction = np.sign(steer)
-    if steer = 0:
-        radius = float('inf')
-    else:
-        abs_steer = np.abs(steer)
-        radius = (1 / abs_steer) - 1
-
-    return radius, direction
-
-
-def delta_pose_from_dist_radius(signed_dist: float, radius: float, turn_dir: int) -> Tuple(float, float, float):
+def delta_pose_from_dist_radius(signed_dist: float, radius: float, turn_dir: int) -> Tuple[float, float, float]:
     """
     Take a signed distance and radius, and assuming we have moved that distance around
     the circumference of a circle, return the dx, dy, and dtheta associated
@@ -71,11 +61,14 @@ def delta_pose_from_dist_radius(signed_dist: float, radius: float, turn_dir: int
     :returns dy - distance in left direction
     :returns dtheta - radians
     """
-    if signed_dist > np.pi * signed_radius or signed_radius == 0:
+    if signed_dist > np.pi * radius or radius == 0:
         # Very tight turn
         return 0.0, 0.0, 2.0 * turn_dir
-    dist_sign = np.sign(dist)
-    dist_abs = np.abs(dist)
+    elif radius == float('inf'):
+        # Straight line
+        return signed_dist, 0.0, 0.0
+    dist_sign = np.sign(signed_dist)
+    dist_abs = np.abs(signed_dist)
 
     rad_sign = turn_dir
     rad_abs = radius
@@ -105,13 +98,17 @@ class DriveSimNode(Node):
         self.subscriber = self.create_subscription(DriveInput, "/control/autonomous_commands", self.cb_drive_sub, self.qos)
 
         self.tf_broadcaster = TransformBroadcaster(self)
+        self.static_tf_broadcaster = StaticTransformBroadcaster(self)
         self.pub_pivot_wheel = self.create_publisher(PivotWheelData, "/control/pivot_wheel", 10)
 
         self.state_current_transform : TransformStamped = None
         self.state_current_drive_input : DriveInput = None
+        self.state_current_pivot_wheel : PivotWheelData = PivotWheelData()
 
-        pub_rate_hz = 0.1  # run the timer 10 times per second
-        self.timer_pub_tf = self.create_timer(timer_pub_tf, self.cb_tf_timer)
+        self.initialise_transform()
+
+        self.pub_rate_hz = 0.1  # run the timer 10 times per second
+        self.timer_pub_tf = self.create_timer(self.pub_rate_hz, self.cb_tf_timer)
 
     def cb_drive_sub(self, msg: DriveInput):
         self.state_current_drive_input = msg
@@ -121,9 +118,53 @@ class DriveSimNode(Node):
         Called every timer_period. Publishes to self.publisher
         :return:
         """
-        string_msg = String()
-        string_msg.data = "Rover's x coordinate: " + str(self.msg.x)
-        self.publisher.publish(string_msg)
+        self.get_logger().debug("timer callback!")
+        if self.state_current_drive_input is None:
+            self.get_logger().debug("Exiting early since no drive received")
+            self.tf_broadcaster.sendTransform(self.state_current_transform)
+            self.pub_pivot_wheel.publish(self.state_current_pivot_wheel)
+            return
+        radius, direction = self.state_current_drive_input.radius, self.state_current_drive_input.direction
+        speed = self.state_current_drive_input.speed
+
+        # Linearly approximate our distance travelled based on the most recent control information
+        signed_dist_m = MAX_VEL_M_S * speed * self.pub_rate_hz
+        dx, dy, dtheta = delta_pose_from_dist_radius(signed_dist_m, radius, direction)
+        self.apply_tf_offset(dx, dy, dtheta)
+
+        # Immediately update wheel angles, assuming instant pivots for simplicity
+        self.state_current_pivot_wheel.direction = direction
+        self.state_current_pivot_wheel.radius = radius
+
+        # Set timestamp on tf2 transform
+        self.state_current_transform.header.stamp = self.get_clock().now().to_msg()
+        self.get_logger().debug(f"Publishing transform: {self.state_current_transform}")
+
+        self.tf_broadcaster.sendTransform(self.state_current_transform)
+        self.pub_pivot_wheel.publish(self.state_current_pivot_wheel)
+
+    def apply_tf_offset(self, dx, dy, dtheta):
+        p, r, y = transform.quat_to_euler(self.state_current_transform.transform.rotation)
+        y += dtheta
+        self.state_current_transform.transform.rotation = transform.euler_to_quat((p, r, y))
+        self.state_current_transform.transform.translation.x += dx
+        self.state_current_transform.transform.translation.y += dy
+
+    def initialise_transform(self):
+        # initial map -> base_link
+        initial_transform = TransformStamped()
+        initial_transform.header.frame_id = 'map'
+        initial_transform.header.stamp = self.get_clock().now().to_msg()
+        initial_transform.child_frame_id = 'initial_base_link'
+        initial_transform.transform.rotation.w = 1.0
+        self.static_tf_broadcaster.sendTransform(initial_transform)
+
+        tf = TransformStamped()
+        tf.transform.rotation.z = 1.0
+        tf.header.frame_id = 'initial_base_link'
+        tf.header.stamp = self.get_clock().now().to_msg()
+        tf.child_frame_id = 'base_link'
+        self.state_current_transform = tf
 
 
 def main():
