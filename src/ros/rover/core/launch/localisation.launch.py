@@ -18,7 +18,7 @@ from ament_index_python.packages import get_package_share_path
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
-from launch.substitutions import LaunchConfiguration
+from launch.substitutions import LaunchConfiguration, PythonExpression
 from launch.conditions import IfCondition, UnlessCondition
 from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -30,6 +30,7 @@ from launch_ros.actions import Node
 # Generate the launch file with all inputs
 def generate_launch_description():
     # Declare a launch configuration argument of the name "t265"
+    use_sim_drive = LaunchConfiguration('sim_drive')
     from_tracking_cam = LaunchConfiguration('t265')
 
     # Define a launch argument that runs another launch file
@@ -44,6 +45,12 @@ def generate_launch_description():
         name='t265',
         default_value='False',
         description="Set to 'True' to run localisation from the t265 tracking camera"
+    )
+
+    use_sim_drive_arg = DeclareLaunchArgument(
+        name='sim_drive',
+        default_value='False',
+        description="Set to 'True' to run localisation which moves the rover based on drive inputs received"
     )
 
     # Define a launch argument to launch a ros node
@@ -61,7 +68,9 @@ def generate_launch_description():
         executable='pose_converter.py',
         output='screen',
         emulate_tty=True,
-        condition=UnlessCondition(from_tracking_cam)
+        condition=UnlessCondition(PythonExpression(
+            [from_tracking_cam, " or ", use_sim_drive]
+        ))
     )
 
     imu_node = Node(
@@ -69,7 +78,9 @@ def generate_launch_description():
         executable='imu_node',
         output='screen',
         emulate_tty=True,
-        condition=UnlessCondition(from_tracking_cam)
+        condition=UnlessCondition(PythonExpression(
+            [from_tracking_cam, " or ", use_sim_drive]
+        ))
     )
 
     gps_pub_node = Node(
@@ -77,7 +88,9 @@ def generate_launch_description():
         executable='gps_publisher.py',
         output='screen',
         emulate_tty=True,
-        condition=UnlessCondition(from_tracking_cam)
+        condition=UnlessCondition(PythonExpression(
+            [from_tracking_cam, " or ", use_sim_drive]
+        ))
     )
 
     gps_sub_node = Node(
@@ -85,7 +98,9 @@ def generate_launch_description():
         executable='base_gps_sub.py',
         output='screen',
         emulate_tty=True,
-        condition=UnlessCondition(from_tracking_cam)
+        condition=UnlessCondition(PythonExpression(
+            [from_tracking_cam, " or ", use_sim_drive]
+        ))
     )
 
     pose_converter_t265_node = Node(
@@ -93,7 +108,9 @@ def generate_launch_description():
         executable='pose_converter_ARC.py',
         output='screen',
         emulate_tty=True,
-        condition=IfCondition(from_tracking_cam)
+        condition=IfCondition(PythonExpression(
+            [from_tracking_cam, " and not ", use_sim_drive]
+        ))
     )
 
     t265_node = Node(
@@ -101,16 +118,28 @@ def generate_launch_description():
         executable='tracking_camera.py',
         output='screen',
         emulate_tty=True,
-        condition=IfCondition(from_tracking_cam)
+        condition=IfCondition(PythonExpression(
+            [from_tracking_cam, " and not ", use_sim_drive]
+        ))
+    )
+
+    sim_drive_node = Node(
+        package='control',
+        executable='drive_sim.py',
+        output='screen',
+        emulate_tty=True,
+        condition=IfCondition(use_sim_drive)
     )
     return LaunchDescription([
         urdf_launch,
         tracking_cam_arg,
+        use_sim_drive_arg,
         imu_node,
         gps_sub_node,
         gps_pub_node,
         t265_node,
-        world_to_map_node,
+        sim_drive_node,
+        #world_to_map_node,
         pose_converter_node,
         pose_converter_t265_node,
     ])
