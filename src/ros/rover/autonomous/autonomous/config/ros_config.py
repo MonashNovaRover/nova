@@ -20,7 +20,7 @@ depth_point_cloud_topic = "/camera/depth/color/points"
 tracking_camera_extrinsics = [-.48, 0., -0.48] 
 
 # ~~~~~~~~~~~~~~~~~~ Autonomous ~~~~~~~~~~~~~~~~~~~~~~
-auto_drive_command_topic = "/autonomous/drive_commands"
+auto_drive_command_topic = "/control/autonomous_commands"
 rover_pose_topic = "/rover/pose"
 ar_track_topic = "/autonomous/ar_tag"
 auto_waypoints_topic = "/autonomous/waypoints"

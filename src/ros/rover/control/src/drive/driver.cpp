@@ -33,7 +33,9 @@ void Driver::send_commands()
             // Fill the wheel angles and velocities
             fill_wheel_angles_radial();
             fill_wheel_velocities_radial();
+            
             data_msg.radius = best_effort_radius;
+            data_msg.direction = best_effort_direction;
             break;
         }
         case core::msg::DriveInput::STRAFE: {

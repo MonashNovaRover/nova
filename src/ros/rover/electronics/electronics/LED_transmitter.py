@@ -15,11 +15,11 @@ import rclpy
 from rclpy.node import Node
 from std_srvs.srv import Trigger
 from std_msgs.msg import Bool
-from core.msg import RadioStatus
+from core.msg import RadioStatus, DriveInfo
 from coms_utils.can_interface import CANTransmitter
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy
 import time
-from enum import Enum
+from enum import Enum, IntEnum
 
 """
 Goal 1: get a request in the service, and execute
@@ -36,23 +36,25 @@ class ConnectionState(Enum):
 
 
 class ControlState(Enum):
-    AUTONOMOUS = 0
-    MANUAL = 1
+    AUTONOMOUS = 2
+    MANUAL = 3
 
 
 class AutonomousState(Enum):
-    ACTIVE = 0
-    SUCCESS = 1
+    ACTIVE = 4
+    SUCCESS = 5
+
+
+class LedColor(IntEnum):
+    RED = 0x091
+    GREEN = 0x092
+    BLUE = 0x093
 
 
 class CanLEDCommunicator:
     """
     Handles communication with LED
     """
-    RED = 0x091
-    GREEN = 0x092
-    BLUE = 0x093
-
     def __init__(self):
         self.transmitter = CANTransmitter(
             channel='can0',  # Can channel to transmit on
@@ -73,9 +75,9 @@ class CanLEDCommunicator:
         """
         Tells a given colour line to display 0 intensity
         """
-        self.set_led(CanLEDCommunicator.RED, 0)
-        self.set_led(CanLEDCommunicator.GREEN, 0)
-        self.set_led(CanLEDCommunicator.BLUE, 0)
+        self.set_led(LedColor.RED, 0)
+        self.set_led(LedColor.GREEN, 0)
+        self.set_led(LedColor.BLUE, 0)
 
 
 class LEDUpdateNode(Node):
@@ -89,23 +91,23 @@ class LEDUpdateNode(Node):
         super().__init__('LED_status_update_node')
         self.can_communicator = CanLEDCommunicator()
 
-        self.connection_state = ConnectionState.CONNECTED
+        self.connection_state = ConnectionState.DISCONNECTED
         self.control_state = ControlState.MANUAL
         self.autonomous_state = AutonomousState.ACTIVE
 
         # Subscriber to handle control state
-        self.mode_subscriber = self.create_subscription(Bool, "/autonomous/mode", self.mode_callback, 10)
+        self.drive_info_subscriber = self.create_subscription(DriveInfo, "/control/drive_info", self.callback_drive_info, 10)
         
         # Subscriber to handle connection state
-        self.radio_subscriber = self.create_subscription(RadioStatus, "/electronics/radio_status", self.connection_callback, 10)
+        # self.radio_subscriber = self.create_subscription(RadioStatus, "/electronics/radio_status", self.callback_connection, 10)
 
         # Services to handle autonomous state
-        self.success_service = self.create_service(Trigger, 'autonomous/success', self.success_callback)
-        self.start_service = self.create_service(Trigger, 'autonomous/start', self.start_callback)
+        self.success_service = self.create_service(Trigger, 'autonomous/success', self.callback_auto_success)
+        self.start_service = self.create_service(Trigger, 'autonomous/start', self.callback_auto_start)
 
         self.qos_time = 200
 
-        self.flash_timer = self.create_timer(0.5, self.flash_callback)
+        self.flash_timer = self.create_timer(0.5, self.callback_flash)
 
         self.flash_counter = 1  # 1 = on, 0 = off
 
@@ -113,43 +115,45 @@ class LEDUpdateNode(Node):
 
         self.display()
         
-    def get_control_state_colours(self, state):
-        if state == ControlState.MANUAL:
-            return CanLEDCommunicator.BLUE, 255
-        elif state == ControlState.AUTONOMOUS:
-            return CanLEDCommunicator.RED, 255
-    
-    def get_control_state_flash(self, state):
-        if state == ControlState.MANUAL:
-            return False
-        elif state == ControlState.AUTONOMOUS:
-            return False
-    
-    def get_connection_state_colours(self, state):
-        if state == ConnectionState.CONNECTED or self.control_state == ControlState.AUTONOMOUS:
-            return self.get_control_state_colours(self.control_state)
-        elif state == ConnectionState.DISCONNECTED:
-            return CanLEDCommunicator.RED, 255
-
-    def get_connection_state_flash(self, state):
-        if state == ConnectionState.CONNECTED or self.control_state == ControlState.AUTONOMOUS:
-            return self.get_control_state_flash(self.control_state)
-        elif state == ConnectionState.DISCONNECTED:
+    def do_flash(self):
+        """
+        Returns true if the LEDs should flash in the current state, otherwise false
+        """
+        if self.autonomous_state == AutonomousState.SUCCESS:
+            # Always flash in Success state, to make sure we get points when we finish a task
             return True
-            
-    def get_state_colours(self, state):
-        if state == AutonomousState.ACTIVE or self.control_state == ControlState.MANUAL:
-            return self.get_connection_state_colours(self.connection_state)
-        elif state == AutonomousState.SUCCESS:
-            return CanLEDCommunicator.GREEN, 255
-    
-    def get_state_flash(self, state):
-        if state == AutonomousState.ACTIVE or self.control_state == ControlState.MANUAL:
-            return self.get_connection_state_flash(self.connection_state)
-        elif state == AutonomousState.SUCCESS:
+        elif self.control_state == ControlState.AUTONOMOUS \
+            and self.autonomous_state == AutonomousState.ACTIVE:
+                # In autonomous mode our autonomous state determines whether we flash
+                return False
+        elif self.connection_state == ConnectionState.CONNECTED:
+            # we are in manual mode, so flashing is determined by whether the controller is connected or not
+            # Solid blue if we are connected in manual mode
+            return False
+        else:
+            # Flash red if we have lost connection in manual mode
             return True
 
-    def connection_callback(self, msg):
+    def get_color(self):
+        """
+        Returns the LED colour and intensity [0, 255] to be displayed depending on the current state
+        """
+        if self.autonomous_state == AutonomousState.SUCCESS:
+            # Always flash in Success state, to make sure we get points when we finish a task
+            return LedColor.GREEN, 255
+        elif self.control_state == ControlState.AUTONOMOUS \
+            and self.autonomous_state == AutonomousState.ACTIVE:
+                # In autonomous mode we always display red
+                return LedColor.RED, 255
+        elif self.connection_state == ConnectionState.CONNECTED:
+            # we are in manual mode, so color is determined by whether the controller is connected or not
+            # Solid blue if we are connected in manual mode
+            return LedColor.BLUE, 255
+        else:
+            # Flash red if we have lost connection in manual mode
+            return LedColor.RED, 255
+
+    def callback_connection(self, msg):
         """
         simple method called every second to check that the node has still
         been receiving Gamepad messages
@@ -164,26 +168,33 @@ class LEDUpdateNode(Node):
 
         self.change_connection_state(new_connection_state)
 
-    def mode_callback(self, message):
+    def callback_drive_info(self, msg: DriveInfo):
         """
         callback that checks for the button B or A pressed on the controller and updates the state accordingly
         :param message: InputGamepad.msg type
         """
-        new_control_state = self.control_state
-        if message.data:
+        # Check autonomous mode
+        if msg.autonomous_mode:
             new_control_state = ControlState.AUTONOMOUS
         else:
             new_control_state = ControlState.MANUAL
-
         self.change_control_state(new_control_state)
 
-    def success_callback(self, request, response):
+        # Check connection
+        if msg.connected:
+            new_connection_state = ConnectionState.CONNECTED
+        else:
+            new_connection_state = ConnectionState.DISCONNECTED
+
+        self.change_connection_state(new_connection_state)
+
+    def callback_auto_success(self, request, response):
         response.success = True
         self.autonomous_state = AutonomousState.SUCCESS
         self.display()
         return response
 
-    def start_callback(self, request, response):
+    def callback_auto_start(self, request, response):
         response.success = True
         self.autonomous_state = AutonomousState.ACTIVE
         self.display()
@@ -199,11 +210,12 @@ class LEDUpdateNode(Node):
             self.control_state = new_control_state
             self.display()
 
-    def flash_callback(self):
+    def callback_flash(self):
         """
         Display a colour based on the mode of the rover either continuous or flashing
         """
-        if not self.get_state_flash(self.autonomous_state):
+        self.get_logger().debug("Flash callback")
+        if not self.do_flash():
             return   # don't care about non-flashing modes
 
         if self.flash_counter == 0: 
@@ -218,7 +230,7 @@ class LEDUpdateNode(Node):
         Displays a colour based on the current mode of the Rover
         """
         # get colour and brightness
-        colour_info = self.get_state_colours(self.autonomous_state)
+        colour_info = self.get_color()
         self.can_communicator.turn_off()
         self.can_communicator.set_led(*colour_info)
 
@@ -227,6 +239,7 @@ def main(args=None):
     rclpy.init(args=args)
     led_updater = LEDUpdateNode()
     rclpy.spin(led_updater)
+    led_updater.destroy_node()
     rclpy.shutdown()
 
 
