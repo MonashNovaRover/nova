@@ -48,7 +48,21 @@ from autonomous.math_utils import transform
 from typing import Tuple
 import numpy as np
 
-MAX_VEL_M_S = 12
+MAX_VEL_M_S = 6
+
+CHASSIS_WIDTH = 0.7
+CHASSIS_LENGTH = 0.84
+
+def calculate_max_wheel_radius(radius: float) -> float:
+    """
+    Calculate the maximum distance of a wheel from the centre of a turn.
+    This limits how fast we can turn
+    """
+    x_dist = CHASSIS_LENGTH / 2
+    y_dist_l = abs(radius + CHASSIS_WIDTH / 2)
+    y_dist_r = abs(radius - CHASSIS_WIDTH / 2)
+    y_dist = max(y_dist_l, y_dist_r)
+    return (x_dist ** 2 + y_dist ** 2) ** 0.5
 
 
 def delta_pose_from_dist_radius(signed_dist: float, radius: float, turn_dir: int) -> Tuple[float, float, float]:
@@ -61,10 +75,7 @@ def delta_pose_from_dist_radius(signed_dist: float, radius: float, turn_dir: int
     :returns dy - distance in left direction
     :returns dtheta - radians
     """
-    if signed_dist > np.pi * radius or radius == 0:
-        # Very tight turn
-        return 0.0, 0.0, 2.0 * turn_dir
-    elif radius == float('inf'):
+    if radius == float('inf'):
         # Straight line
         return signed_dist, 0.0, 0.0
     dist_sign = np.sign(signed_dist)
@@ -73,8 +84,13 @@ def delta_pose_from_dist_radius(signed_dist: float, radius: float, turn_dir: int
     rad_sign = turn_dir
     rad_abs = radius
 
+    rad_wheels = calculate_max_wheel_radius(rad_abs)
+
     # radians are cool
-    dtheta_abs = dist_abs / rad_abs
+    dtheta_abs = dist_abs / rad_wheels
+    if signed_dist > np.pi * radius or radius == 0:
+        # Very tight turn
+        return 0.0, 0.0, -1 * dist_sign * rad_sign * dtheta_abs
     dy_abs = rad_abs * (1 - np.cos(dtheta_abs))
     dx_abs = rad_abs * np.sin(dtheta_abs)
 
@@ -95,7 +111,7 @@ class DriveSimNode(Node):
         self.qos = QoSProfile(reliability=QoSReliabilityPolicy.BEST_EFFORT, depth=1, deadline=deadline)
 
         # Subscribe to Drive Inputs from autonomous
-        self.subscriber = self.create_subscription(DriveInput, "/control/autonomous_commands", self.cb_drive_sub, self.qos)
+        self.sub_manual = self.create_subscription(DriveInput, "/control/drive_inputs", self.cb_drive_sub, self.qos)
 
         self.tf_broadcaster = TransformBroadcaster(self)
         self.static_tf_broadcaster = StaticTransformBroadcaster(self)
@@ -107,7 +123,7 @@ class DriveSimNode(Node):
 
         self.initialise_transform()
 
-        self.pub_rate_hz = 0.1  # run the timer 10 times per second
+        self.pub_rate_hz = 0.05  # run the timer 10 times per second
         self.timer_pub_tf = self.create_timer(self.pub_rate_hz, self.cb_tf_timer)
 
     def cb_drive_sub(self, msg: DriveInput):
@@ -145,10 +161,10 @@ class DriveSimNode(Node):
 
     def apply_tf_offset(self, dx, dy, dtheta):
         p, r, y = transform.quat_to_euler(self.state_current_transform.transform.rotation)
+        self.state_current_transform.transform.translation.x += dx * np.cos(y) - dy * np.sin(y)
+        self.state_current_transform.transform.translation.y += dx * np.sin(y) + dy * np.cos(y)
         y += dtheta
         self.state_current_transform.transform.rotation = transform.euler_to_quat((p, r, y))
-        self.state_current_transform.transform.translation.x += dx
-        self.state_current_transform.transform.translation.y += dy
 
     def initialise_transform(self):
         # initial map -> base_link
