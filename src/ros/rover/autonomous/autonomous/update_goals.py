@@ -81,7 +81,7 @@ class GoalPublisher(Node):
 
         self.get_logger().info(f"Publishing new goals: {goals}")
 
-        self.publisher.publish(goals)
+        self.pub_goals.publish(goals)
 
 
 def main(args=None):
