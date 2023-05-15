@@ -47,7 +47,7 @@ from std_msgs.msg import Empty
 # autonomous imports
 from autonomous.controller.spin_controller import SpinController
 from autonomous.math_utils.controller_math import distance, yaw_difference
-import autonomous.math_utils.transform as transform
+from autonomous.math_utils import transform 
 from autonomous.config.ros_config import auto_drive_command_topic, auto_waypoints_topic
 from autonomous.controller.drive_controller import DriveController, TurningMode
 
@@ -121,7 +121,7 @@ class Controller(Node):
         self.sub_success = self.create_subscription(Empty, "/autonomous_controller/success_trigger", self.callback_success, 10)
 
         self.get_logger().info("Waiting for transform from 'local_map' to 'base_link'...")
-        while not self.tf_buffer.can_transform('base_link', 'map', Time()):
+        while not self.tf_buffer.can_transform('base_link', 'local_map', Time()):
             time.sleep(0.1)
         self.get_logger().info("Received Transform!")
 
@@ -228,7 +228,7 @@ class Controller(Node):
         Stores the latest rover pose into our Pose2D variable
         """
         try:
-            base_link_tf : Transform = self.tf_buffer.lookup_transform("local_map", "base_link", Time()).transform
+            base_link_tf : Transform = self.tf_buffer.lookup_transform("map", "base_link", Time()).transform
             self.get_logger().debug("Found transform from local_map to base_link", once=True)
         except Exception as e:
             self.get_logger().warn(f"No transform from local_map to base_link: {e}", throttle_duration_sec=1)
@@ -256,7 +256,14 @@ class Controller(Node):
         - Set the to_waypoint trigger to True
         :param msg: Waypoints message from the path planner
         """
-        points = [(p.pose.position.x, p.pose.position.y) for p in msg.poses]
+        try:
+            local_map_to_map : Transform = self.tf_buffer.lookup_transform("map", "local_map", Time()).transform
+            self.get_logger().debug(f"transforming path by transform: {local_map_to_map}")
+        except:
+            self.get_logger().warn("No transform from local_map to map", throttle_duration_sec=1)
+            return
+        transformed_path = [transform.transform_pose(p.pose, local_map_to_map) for p in msg.poses]
+        points = [(p.position.x, p.position.y) for p in transformed_path]
         self.state_waypoint_path = self.prune_waypoints(points)
 
         if len(self.state_waypoint_path) > 0:

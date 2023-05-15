@@ -131,7 +131,7 @@ class Controller(Node):
 
 
         self.get_logger().info("Waiting for transform from 'local_map' to 'base_link'...")
-        while not self.tf_buffer.can_transform('base_link', 'map', Time()):
+        while not self.tf_buffer.can_transform('base_link', 'local_map', Time()):
             time.sleep(0.1)
         self.get_logger().info("Received Transform!")
 
