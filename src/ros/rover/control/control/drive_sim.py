@@ -47,6 +47,7 @@ from autonomous.math_utils import transform
 # python imports 
 from typing import Tuple
 import numpy as np
+import logging
 
 MAX_VEL_M_S = 6
 
@@ -78,6 +79,9 @@ def delta_pose_from_dist_radius(signed_dist: float, radius: float, turn_dir: int
     if radius == float('inf'):
         # Straight line
         return signed_dist, 0.0, 0.0
+
+    if signed_dist == 0:
+        return 0.0, 0.0, 0.0
     dist_sign = np.sign(signed_dist)
     dist_abs = np.abs(signed_dist)
 
@@ -105,6 +109,7 @@ class DriveSimNode(Node):
 
     def __init__(self):
         super().__init__("drive_sim_node")
+        self.get_logger().set_level(logging.INFO)
 
         # Drive commands subscriber QoS
         deadline = Duration(nanoseconds=2e8)        
@@ -165,11 +170,14 @@ class DriveSimNode(Node):
         self.pub_pivot_wheel.publish(self.state_current_pivot_wheel)
 
     def apply_tf_offset(self, dx, dy, dtheta):
+        self.get_logger().debug(f"Applying tf offset: dx={dx}, dy={dy}, dtheta={dtheta}")
+        self.get_logger().debug(f"Current transform: {self.state_current_transform}")
         p, r, y = transform.quat_to_euler(self.state_current_transform.transform.rotation)
         self.state_current_transform.transform.translation.x += dx * np.cos(y) - dy * np.sin(y)
         self.state_current_transform.transform.translation.y += dx * np.sin(y) + dy * np.cos(y)
         y += dtheta
         self.state_current_transform.transform.rotation = transform.euler_to_quat((p, r, y))
+        self.get_logger().debug(f"Offset transform: {self.state_current_transform}")
 
     def initialise_transform(self):
         # initial map -> base_link
@@ -181,7 +189,7 @@ class DriveSimNode(Node):
         self.static_tf_broadcaster.sendTransform(initial_transform)
 
         tf = TransformStamped()
-        tf.transform.rotation.z = 1.0
+        tf.transform.rotation.w = 1.0
         tf.header.frame_id = 'initial_base_link'
         tf.header.stamp = self.get_clock().now().to_msg()
         tf.child_frame_id = 'base_link'

@@ -1,4 +1,4 @@
-# !/usr/bin/python3
+#!/usr/bin/env python3
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team. 
@@ -74,8 +74,8 @@ class Mapper(Node):
         self.param_map_pub_hz = self.declare_parameter("map_pub_frequency_hz", 3).value
 
         # Map dimensions and rolling
-        self.param_roll_map = self.declare_parameter("roll_map", False).value
-        self.param_map_edge_distance = self.declare_parameter("map_edge_dist_m", 5).value
+        self.param_roll_map = self.declare_parameter("roll_map", True).value
+        self.param_map_roll_distance = self.declare_parameter("map_roll_dist_m", 5).value
         self.param_map_corners_coords = self.declare_parameter("map_corners_coords", [10, 10, -10, 10, -10, -10, 10, -10]).value
         self.param_map_len_m = self.declare_parameter("map_len_m", 20).value
         self.param_map_width_m = self.declare_parameter("map_width_m", 20).value
@@ -99,8 +99,6 @@ class Mapper(Node):
 
         self.previous_map_update = time.perf_counter()
 
-        # How far to roll the map when we approach the edge
-        self.param_map_roll_distance = self.declare_parameter("map_roll_dist_m", 5).value   
         # For moving the map as we navigate
         if not self.param_roll_map:
             self.tf_map_offset = StaticTransformBroadcaster(self)
@@ -128,6 +126,8 @@ class Mapper(Node):
         self.get_logger().info("Waiting for transform from 'local_map' to 'd435_1'...")
         while not self.tf_buffer.can_transform('d435_1', 'local_map', Time()):
             time.sleep(0.1)
+            if self.param_roll_map:
+                self.pub_transform()
         self.get_logger().info("Received Transform!")
 
         self.initialise_transforms()
@@ -299,16 +299,14 @@ class Mapper(Node):
         Only called if param_roll_map is true
         """
         x_change, y_change = 0, 0
-        x_edge_dist = (self.grid_2d.length / 2 - abs(self.local_map_to_base_link.translation.x)) *\
-            np.sign(self.local_map_to_base_link.translation.x)
-        y_edge_dist = (self.grid_2d.width / 2 - abs(self.local_map_to_base_link.translation.y)) *\
-            np.sign(self.local_map_to_base_link.translation.y)
-        self.get_logger().debug(f"Edge distances: x = {x_edge_dist}, y = {y_edge_dist}")
+        x_dist = self.local_map_to_base_link.translation.x
+        y_dist = self.local_map_to_base_link.translation.y
+        self.get_logger().debug(f"Edge distances: x = {x_dist}, y = {y_dist}")
         self.get_logger().debug(f"local map -> base link = {self.local_map_to_base_link}")
-        if abs(x_edge_dist) < self.param_map_edge_distance:
-            x_change = self.param_map_roll_distance * np.sign(x_edge_dist)
-        elif abs(y_edge_dist) < self.param_map_edge_distance:
-            y_change = self.param_map_roll_distance * np.sign(y_edge_dist)
+        if abs(x_dist) > self.param_map_roll_distance:
+            x_change = self.param_map_roll_distance * np.sign(x_dist)
+        elif abs(y_dist) > self.param_map_roll_distance:
+            y_change = self.param_map_roll_distance * np.sign(y_dist)
         if x_change != 0 or y_change != 0:
             self.grid_2d.roll_map(x_change, y_change)
         self.shift_offset(x_change, y_change)
@@ -441,12 +439,12 @@ class Mapper(Node):
 
         meta_data = MapMetaData()
         meta_data.resolution = self.grid_2d.resolution
-        meta_data.width = self.grid_2d.width
-        meta_data.height = self.grid_2d.length
+        meta_data.width = int(self.grid_2d.outer_width / self.grid_2d.resolution)
+        meta_data.height = int(self.grid_2d.outer_length / self.grid_2d.resolution)
 
         meta_data.map_load_time = self.get_clock().now().to_msg()
         meta_data.origin.position.x = -self.grid_2d.outer_length / 2
-        meta_data.origin.position.x = -self.grid_2d.outer_width / 2
+        meta_data.origin.position.y = -self.grid_2d.outer_width / 2
         meta_data.origin.orientation.w = 1.0
 
         grid = OccupancyGrid()

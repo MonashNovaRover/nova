@@ -40,6 +40,7 @@ class Grid2D(Node):
 
         if with_border:
             self.inner_map_border_mask = self.calculate_inner_map_border_mask()
+            self.bound_inner_map()
 
     def calculate_inner_map_border_mask(self):
         """
@@ -93,7 +94,7 @@ class Grid2D(Node):
         # have to get all values between 0 and 100 without changing the map we store
         temp_map = np.copy(self.map)
         temp_map[0][0] = 101
-        #temp_map[temp_map > 100] = 100
+        temp_map[temp_map > 100] = 100
         return temp_map.transpose().flatten().astype(int).tolist()
 
     def get_full_indexes(self, points):
