@@ -92,6 +92,9 @@ class FlatMapper(Node):
             # Subscribing to pointclouds
             self.sub_pointcloud = self.create_subscription(PointCloud2, "/depth_camera/d435_1/cloud", self.pointcloud_callback, 10)
 
+        # For publishing the map
+        self.pub_occupancy_grid = self.create_publisher(OccupancyGrid, "/autonomous/occupancy_grid", 10)
+
         self.previous_map_update = time.perf_counter()
 
         # How far to roll the map when we approach the edge
@@ -440,8 +443,8 @@ class FlatMapper(Node):
         meta_data.height = self.grid_2d.length
 
         meta_data.map_load_time = self.get_clock().now().to_msg()
-        meta_data.origin.position.x = x
-        meta_data.origin.position.x = y
+        meta_data.origin.position.x = -self.grid_2d.outer_length / 2
+        meta_data.origin.position.x = -self.grid_2d.outer_width / 2
         meta_data.origin.orientation.w = 1.0
 
         grid = OccupancyGrid()
@@ -452,7 +455,7 @@ class FlatMapper(Node):
 
         self.get_logger().debug(f"Publishing occupancy grid: {grid}")
 
-        self.publisher.publish(grid)
+        self.pub_occupancy_grid.publish(grid)
 
 
 
