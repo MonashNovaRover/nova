@@ -95,7 +95,8 @@ class Grid2D(Node):
     def map_as_sequence(self):
         # have to get all values between 0 and 100 without changing the map we store
         temp_map = np.copy(self.map)
-        temp_map[temp_map > 100] = 100
+        temp_map[0][0] = 101
+        #temp_map[temp_map > 100] = 100
         return temp_map.transpose().flatten().astype(int).tolist()
 
     def publish_grid(self):

@@ -29,45 +29,61 @@ TODO:
 
 from autonomous.mapping.mapper import Mapper
 from autonomous.mapping.grid_2d import Grid2D
-import numpy as np
-import autonomous.math_utils.transform as transform
-from autonomous.config.runtime_params import max_fov_horizontal, max_fov_vertical, max_point_depth, max_safe_obstacle, min_point_density, \
-    obstacle_halve_value, obstacle_ignore_value
-from scipy.signal import convolve2d
+from autonomous.math_utils import transform
+from autonomous.cameras.pc_converter import read_points
+from autonomous.config.runtime_params import (
+    max_fov_horizontal, 
+    max_fov_vertical, 
+    max_point_depth, 
+    max_safe_obstacle, 
+    min_point_density, 
+    obstacle_halve_value, 
+    obstacle_ignore_value, 
+    min_map_update_time
+)
+
+# ros imports
+import rclpy
+from rclpy.node import Node
 from rclpy.time import Time
 from rclpy.duration import Duration
-import time, math, logging
+from tf2_ros import TransformBroadcaster, StaticTransformBroadcaster, TransformListener, Buffer
+
+# python imports
+import time, logging
 from typing import Tuple
+import numpy as np
+from scipy.signal import convolve2d
 
 from geometry_msgs.msg import TransformStamped, Transform
-from tf2_ros import TransformBroadcaster, StaticTransformBroadcaster
+from sensor_msgs.msg import PointCloud2
 
 
-class FlatMapper(Mapper):
+class FlatMapper(Node):
     def __init__(
             self,
-            height=5,
             resolution=0.1,
             detection_resolution=0.025,
-            planner=None,
-            camera=False,
             name='flat_mapper',
     ):
         # init node with node name points
-        super().__init__(
-            height=height,
-            resolution=resolution,
-            planner=planner,
-            camera=camera,
-            name=name
-        )
+        super().__init__(name=name)
 
         self.get_logger().set_level(logging.INFO)
         self.param_tf_sub_hz = self.declare_parameter("tf_sub_frequency_hz", 30).value
         self.param_tf_pub_hz = self.declare_parameter("tf_pub_frequency_hz", 30).value
+        self.param_map_pub_hz = self.declare_parameter("tf_pub_frequency_hz", 3).value
         self.param_roll_map = self.declare_parameter("roll_map", False).value
         self.param_map_edge_distance = self.declare_parameter("map_edge_dist_m", 5).value
         self.param_map_corners_coords = self.declare_parameter("map_corners_coords", [10, 10, -10, 10, -10, -10, 10, -10]).value
+
+        self.tf_buffer = Buffer()
+        self.tf_listener = TransformListener(self.tf_buffer, self, spin_thread=True)
+        self.sub_pointcloud = self.create_subscription(PointCloud2, "/depth_camera/d435_1/cloud", self.pointcloud_callback, 10)
+
+        self.resolution = resolution
+
+        self.previous_map_update = time.perf_counter()
 
         # How far to roll the map when we approach the edge
         self.param_map_roll_distance = self.declare_parameter("map_roll_dist_m", 5).value   
@@ -91,15 +107,23 @@ class FlatMapper(Mapper):
         self.offset = None
         self.map_centre = None
         self.map_rotation = None
+        self.initialised = False
+        
+        # Wait for localisation transforms
+        self.get_logger().info("Waiting for transform from 'map' to 'base_link'...")
+        while not self.tf_buffer.can_transform('base_link', 'map', Time()):
+            time.sleep(0.1)
+        self.get_logger().info("Received Transform!")
+
         # Position of depth camera in local map
         self.initialise_map()
         self.initialise_transforms()
 
-        if camera:
-            if self.param_roll_map:
-                self.map_roll_timer = self.create_timer(1, self.check_position_in_map)
-                self.pub_transform_timer = self.create_timer(1./self.param_tf_pub_hz, self.pub_transform)
-            self.map_transform_timer = self.create_timer(1./self.param_tf_sub_hz, self.update_transforms)
+        if self.param_roll_map:
+            self.map_roll_timer = self.create_timer(1, self.check_position_in_map)
+            self.pub_transform_timer = self.create_timer(1./self.param_tf_pub_hz, self.pub_transform)
+        self.map_transform_timer = self.create_timer(1./self.param_tf_sub_hz, self.update_transforms)
+        self.map_pub_timer = self.create_timer(1./self.param_map_pub_hz, self.publish)
 
     def initialise_map(self):
         if self.param_roll_map:
@@ -112,6 +136,9 @@ class FlatMapper(Mapper):
             self.map_rotation = theta
             self._map = Grid2D(length, width, self.planning_resolution, with_border=True)
         self.pub_transform()
+
+    def on_initialised(self):
+        self.initialised = True
 
     def get_furthest_point_in_direction(self, pts, direction):
         """
@@ -311,12 +338,44 @@ class FlatMapper(Mapper):
         obstacles[obstacles[:, 2] < obstacle_ignore_value, 2] = 5
         return np.round(obstacles).astype(int)
 
+    def update_map(self, pts):
+        """
+        We only update the map every .5 seconds at most - need to take out magic number
+        :param pts: np.array(n, 6) - refers to x,y,z,r,g,b
+        """
+        # transform the points
+        self.get_logger().debug(f"Update map called after {time.perf_counter() - self.previous_map_update} s with {len(pts)} points", throttle_duration_sec=1)
+        if time.perf_counter() - self.previous_map_update > min_map_update_time:
+            self.get_logger().debug(f"handling pc: {pts}", throttle_duration_sec=1)
+            self.handle_pc(pts)
+
+            self.previous_map_update = time.perf_counter()
+
+    def pointcloud_callback(self, msg):
+        """
+        This is called when the depth camera receives a new set of points via the python api. It is implemented
+        as a callback so it can happen in a separate thread.
+        It calls a function to extract and filter the points (colors are ignored) and updates the map with points only -
+        when using the python API, it should be a points only map.
+        """
+        if not self.initialised:
+            return
+        self.get_logger().debug("Received pointcloud", throttle_duration_sec=1)
+        self.update_map(np.array(list(read_points(msg, skip_nans=True))))
+
     def get_2d_map(self):
         """
         Returns the 2d version of the map according to this Mapper's mapping policy.
         Default Mapper class simply adds slices above a pre-defined z coordinate.
         """
         return self._map.map.astype(float) / 100
+
+    def handle_pc(self, pts):
+        """
+        Abstract method
+        """
+        # transforming to the global frame
+        raise NotImplemented("handle_pc must be implemented in a sub class")
 
     def publish(self):
         """
