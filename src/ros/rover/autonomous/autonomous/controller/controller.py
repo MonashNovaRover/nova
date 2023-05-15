@@ -256,10 +256,10 @@ class Controller(Node):
         :param msg: Waypoints message from the path planner
         """
         try:
-            local_map_to_map : Transform = self.tf_buffer.lookup_transform("map", "local_map", Time.from_msg(msg.header.stamp)).transform
+            local_map_to_map : Transform = self.tf_buffer.lookup_transform("map", "local_map", Time.from_msg(msg.header.stamp), Duration(nanoseconds=1e8)).transform
             self.get_logger().debug(f"transforming path by transform: {local_map_to_map}")
-        except:
-            self.get_logger().warn("No transform from local_map to map", throttle_duration_sec=1)
+        except Exception as e:
+            self.get_logger().warn(f"Couldn't get transform from local_map to map: {e}", throttle_duration_sec=1)
             return
         transformed_path = [transform.transform_pose(p.pose, local_map_to_map) for p in msg.poses]
         points = [(p.position.x, p.position.y) for p in transformed_path]

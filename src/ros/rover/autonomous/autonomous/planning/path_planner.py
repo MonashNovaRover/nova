@@ -66,6 +66,8 @@ class PathPlanner(Node):
         self.start = (0, 0)
         self.goal = Pose()
         self.goal_id = 0
+        self.path = Path()
+        self.path.header.frame_id = "local_map"
 
         self.grid2d = None
 
@@ -109,9 +111,12 @@ class PathPlanner(Node):
             return 
         self.get_logger().debug("Path planner sub callback!")
         self.set_goal(goal=msg)
-        self.update_pose()
-        path = self.get_path()
-        self.path_publisher.publish(path)
+        try:
+            self.update_pose()
+        except Exception as e:
+            self.get_logger().debug(f"Transform lookup error: {e}")
+        self.get_path()
+        self.path_publisher.publish(self.path)
 
     def get_grid_coord(self, position):
         return int((position[0] + self.length_meters / 2) / self.resolution), \
@@ -125,13 +130,11 @@ class PathPlanner(Node):
         """ 
         Callback function that updates the current pose of the rover from transform data
         """
-        try:
-            tf = self.tf_buffer.lookup_transform('local_map', 'base_link', time=Time()).transform
-            self.pose_2d.x = tf.translation.x
-            self.pose_2d.y = tf.translation.y
-            self.pose_2d.theta = transform.quat_to_euler(q=tf.rotation)[2]
-        except Exception as e:
-            self.get_logger().debug(f"Transform lookup error: {e}")
+        tf = self.tf_buffer.lookup_transform('local_map', 'base_link', time=Time())
+        self.pose_2d.x = tf.transform.translation.x
+        self.pose_2d.y = tf.transform.translation.y
+        self.pose_2d.theta = transform.quat_to_euler(q=tf.transform.rotation)[2]
+        self.path.header.stamp = tf.header.stamp
 
     def get_local_coords_route(self, route):
         """
@@ -156,26 +159,20 @@ class PathPlanner(Node):
         if status == PathPlanner.A_STAR_SUCCESS:
             self.get_logger().debug("A* found safe path")
 
-    def construct_path(self, waypoints) -> Path:
+    def construct_path(self, waypoints) -> None:
             """
             Contstructs a ros2 path message from a list of waypoints
             """
-            path = Path()
-            path.header.frame_id = "local_map"
-            path.header.stamp = self.get_clock().now().to_msg()
-
             for waypoint in waypoints:
                 if math.isnan(waypoint[0]) or math.isnan(waypoint[1]):
                     continue
                 pose_stamped = PoseStamped()
-                pose_stamped.header = path.header
+                pose_stamped.header = self.path.header
                 # Orient vertical
                 pose_stamped.pose.orientation.w = 1.0
                 pose_stamped.pose.position.x, pose_stamped.pose.position.y, pose_stamped.pose.position.z = waypoint[0], waypoint[1], 0.0
 
-                path.poses.append(pose_stamped)
-            
-            return path
+                self.path.poses.append(pose_stamped)
 
     def get_path(self, padding=None) -> Path:
         """
@@ -206,12 +203,11 @@ class PathPlanner(Node):
 
         route_coordinates = np.array(self.get_local_coords_route(route))
 
-        path = self.construct_path(route_coordinates)
+        self.construct_path(route_coordinates)
 
         self.get_logger().debug(f"Path Planner Calculated {len(route_coordinates)} waypoints")
         if status & PathPlanner.A_STAR_CRITICAL_NO_PATH:
-            return self.get_path(padding-0.1)
-        return path
+            self.get_path(padding-0.1)
 
 
 def main(args=None):
