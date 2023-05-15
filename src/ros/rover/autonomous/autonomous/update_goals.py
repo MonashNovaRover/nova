@@ -3,6 +3,7 @@ __package__ = "autonomous"
 
 import rclpy
 from rclpy.node import Node
+from std_msgs.msg import Empty
 from core.msg import AutonomousGoal, AutonomousGoalArray, Point2D
 from autonomous.config.ros_config import auto_goal_topic, auto_goal_gps
 
@@ -17,7 +18,8 @@ class GoalPublisher(Node):
         else:
             # Publish direct x, y coords
             goal_topic = auto_goal_topic
-        self.publisher = self.create_publisher(AutonomousGoalArray, goal_topic, 10)
+        self.pub_goals = self.create_publisher(AutonomousGoalArray, goal_topic, 10)
+        self.pub_return = self.create_publisher(Empty, "/autonomous/return", 10)
         self.timer = self.create_timer(0.1, self.get_input)
 
     def get_input(self):
@@ -28,9 +30,12 @@ class GoalPublisher(Node):
         """
         # take user input for main goal
         if self.param_do_gps:
-            coord = input("Enter new goal as lat, lon tuple: ").replace(",", " ").strip()
+            coord = input("Enter new goal as lat, lon tuple, or type 'return': ").replace(",", " ").strip()
         else:
-            coord = input("Enter new goal as x, y tuple: ").replace(",", " ")
+            coord = input("Enter new goal as x, y tuple, or type 'return': ").replace(",", " ")
+        if coord[0].lower() == 'r':
+            self.pub_return.publish(Empty())
+            return
         ids_string = input("Enter integer ids of AR beacons if any: ").replace(",", " ").strip()
 
         # Make AutonomousGoal out of user input

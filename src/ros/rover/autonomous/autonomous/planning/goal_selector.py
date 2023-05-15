@@ -120,6 +120,7 @@ class Controller(Node):
         # Subscribers
         self.sub_controller_goal_override = self.create_subscription(Empty, "/autonomous_controller/goal_achieved", self.callback_controller_goal_override, 10)
         self.sub_spin_completed = self.create_subscription(Empty, "/autonomous_controller/spin_achieved", self.callback_spin_completed, 10)
+        self.sub_return = self.create_service(Empty, "/autonomous/return", self.callback_return)
         self.sub_autonomous_goal = self.create_subscription(AutonomousGoalArray, auto_goal_topic,
                                                             self.callback_new_autonomous_goal, 10)
         self.sub_ar_tags = self.create_subscription(AlvarMarkers, "/ar_tracker/tags", self.callback_ar_tag, 10)
@@ -128,7 +129,6 @@ class Controller(Node):
         self.srv_led_success = self.create_client(Trigger, "/autonomous/success")
         self.srv_led_start = self.create_client(Trigger, "/autonomous/start")
 
-        self.srv_return = self.create_service(Trigger, "/autonomous/return", self.callback_return)
 
         self.get_logger().info("Waiting for transform from 'local_map' to 'base_link'...")
         while not self.tf_buffer.can_transform('base_link', 'map', Time()):
@@ -438,12 +438,11 @@ class Controller(Node):
         """
         self.trigger_completed_spin = True
 
-    def callback_return(self, req, response):
+    def callback_return(self, msg):
         """
         We have received a return message over ROS
         """
         self.trigger_return = True
-        response = resp
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Special Goal Helper Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
