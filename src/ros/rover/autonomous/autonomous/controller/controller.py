@@ -195,17 +195,16 @@ class Controller(Node):
                                 )
         self.state = new_state
 
+        self.trigger_spin = False
+        self.trigger_success = False
+        self.trigger_to_waypoint = False
+
         # Perform any necessary state changes
         # Entering turning state we initialise a new spin controller
         if self.state == DrivingState.TURNING:
             self.ctl_spin = SpinController(self.state_rover_pose.theta, self.ctl_driver)
-            self.trigger_spin = False
         # Entering to waypoint state, reset the trigger
-        elif self.state == DrivingState.TO_WAYPOINT:
-            self.trigger_to_waypoint = False
-        # Entering success, clear state variables and await new trigger
         elif self.state == DrivingState.SUCCESS:
-            self.trigger_success = False
             self.ctl_spin = None
             self.state_waypoint_path = []
             self.state_latest_steer = 0
@@ -257,7 +256,7 @@ class Controller(Node):
         :param msg: Waypoints message from the path planner
         """
         try:
-            local_map_to_map : Transform = self.tf_buffer.lookup_transform("map", "local_map", Time()).transform
+            local_map_to_map : Transform = self.tf_buffer.lookup_transform("map", "local_map", Time.from_msg(msg.header.stamp)).transform
             self.get_logger().debug(f"transforming path by transform: {local_map_to_map}")
         except:
             self.get_logger().warn("No transform from local_map to map", throttle_duration_sec=1)
