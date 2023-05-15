@@ -162,6 +162,12 @@ class Controller(Node):
         
         return distance([current_pose.translation.x, current_pose.translation.y], 
                                 [goal.position.x, goal.position.y])
+
+    def has_search_goals(self) -> bool:
+        """
+        Returns whether there are any search goals left to visit
+        """
+        return len(self.state_search_goals) > 0
     
     def at_current_goal(self) -> bool:
         """
@@ -258,8 +264,10 @@ class Controller(Node):
                 self.on_state_update(PlanningState.TO_AR_TAG)
             elif self.state_ar_tag_manager.found_current_gate():
                 self.on_state_update(PlanningState.THROUGH_GATE)
-            elif self.at_current_goal():
+            elif self.at_current_goal() and self.has_search_goals():
                 self.on_state_update(PlanningState.SEARCH)
+            elif self.at_current_goal() and not self.has_search_goals():
+                self.on_state_update(PlanningState.FAILED)
 
         # Transition from SEARCH to TO_AR_TAG or THROUGH_GATE if individual tag or gate tags are located.
         # Transition to SEARCH_SPIN if we have reached the next intermediate goal
@@ -289,7 +297,10 @@ class Controller(Node):
             elif self.at_current_goal() and not self.intermediate_goal():
                 self.on_state_update(PlanningState.SUCCESS)
      
-        # PLACEHOLDER --> add state FAILED if necessary 
+        # Once we have failed, we will return or wait for another goal
+        elif self.state == PlanningState.FAILED:
+            if self.trigger_return:
+                self.on_state_update(PlanningState.RETURN)
 
     def on_state_update(self, new_state: PlanningState):
         """
@@ -379,6 +390,10 @@ class Controller(Node):
         elif new_state == PlanningState.SEARCH:
             self.state_current_goal = self.state_search_goals.pop(0)
 
+        elif new_state == PlanningState.FAILED:
+            self.get_logger().error("FAILED TO REACH GOAL")
+            self.state_current_goal = None
+
         self.get_logger().debug(f"After transition:\n"
                                 f"Current Goal: {self.state_current_goal}\n"
                                 f"Return Goal: {self.state_return_goal}\n"
@@ -423,11 +438,12 @@ class Controller(Node):
         """
         self.trigger_completed_spin = True
 
-    def callback_return(self, msg):
+    def callback_return(self, req, response):
         """
         We have received a return message over ROS
         """
         self.trigger_return = True
+        response = resp
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Special Goal Helper Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

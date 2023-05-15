@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Purpose: To perform A* path planning and string pulling on 2-d grid maps. 
@@ -21,21 +20,27 @@ TODO:
  - a lot 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
-
-from a_star import a_star
-from autonomous.math_utils.controller_math import *
-import autonomous.math_utils.transform as transform
-from rclpy.node import Node
-from rclpy.duration import Duration
-from geometry_msgs.msg import Pose2D, Pose, PoseStamped
-from nav_msgs.msg import Path
-from autonomous.config.ros_config import *
+# nova imports
+from autonomous.config.ros_config import planning_destination_topic, auto_waypoints_topic
 from autonomous.config.runtime_params import INITIAL_PADDING_DIST_M
-from autonomous.math_utils.transform import quat_to_euler
+from autonomous.math_utils import transform
+from autonomous.mapping.grid_2d import Grid2D
+from a_star import a_star
 
-import time, logging
-from tf2_ros import Buffer, TransformListener
+# ros imports
+import rclpy
+from rclpy.node import Node
 from rclpy.time import Time
+from tf2_ros import Buffer, TransformListener
+
+# msg types
+from geometry_msgs.msg import Pose2D, Pose, PoseStamped
+from nav_msgs.msg import Path, OccupancyGrid
+
+# python imports
+import numpy as np
+import math
+import time, logging
 
 
 class PathPlanner(Node):
@@ -46,7 +51,7 @@ class PathPlanner(Node):
     A_STAR_NO_PATH = 4
     A_STAR_CRITICAL_NO_PATH = 8
 
-    def __init__(self, resolution_m):
+    def __init__(self):
         """
         :param resolution_m: planning resolution
         """
@@ -54,7 +59,7 @@ class PathPlanner(Node):
         self.get_logger().set_level(logging.INFO)
         # constants
         self.padding_dist_m = INITIAL_PADDING_DIST_M
-        self.resolution = resolution_m
+        self.resolution = self.declare_parameter("resolution_m", 0.1).value
 
         # state
         self.pose_2d = Pose2D()
@@ -66,6 +71,7 @@ class PathPlanner(Node):
 
         # subscribers and publishers
         self.planning_subscriber = self.create_subscription(PoseStamped, planning_destination_topic, self.path_planning_sub_callback, 10)
+        self.map_subscriber = self.create_subscription(OccupancyGrid, "/autonomous/occupancy_grid", self.update_map, 10)
         self.path_publisher = self.create_publisher(Path, auto_waypoints_topic, 10)
 
         # Transform listeners
@@ -79,7 +85,7 @@ class PathPlanner(Node):
 
     def update_map(self, msg):
         self.get_logger().debug("updating map")
-        self.grid2d = msg
+        self.grid2d = Grid2D.map_from_occupancy(msg)
 
     def set_goal(self, goal: PoseStamped):
         """
@@ -88,7 +94,7 @@ class PathPlanner(Node):
         try:
             map_to_local_map = self.tf_buffer.lookup_transform("local_map", "map", Time()).transform
             self.get_logger().debug(f"transforming pose: {goal} by transform: {map_to_local_map}")
-            local_goal : PoseStamped = transform.transform_pose(goal.pose, map_to_local_map)
+            local_goal : Pose = transform.transform_pose(goal.pose, map_to_local_map)
         except Exception as e:
             self.get_logger().warn(f"Failed to transform local goal: {e}")
         else:
@@ -120,10 +126,10 @@ class PathPlanner(Node):
         Callback function that updates the current pose of the rover from transform data
         """
         try:
-            transform = self.tf_buffer.lookup_transform('local_map', 'base_link', time=Time()).transform
-            self.pose_2d.x = transform.translation.x
-            self.pose_2d.y = transform.translation.y
-            self.pose_2d.theta = quat_to_euler(q=transform.rotation)[2]
+            tf = self.tf_buffer.lookup_transform('local_map', 'base_link', time=Time()).transform
+            self.pose_2d.x = tf.translation.x
+            self.pose_2d.y = tf.translation.y
+            self.pose_2d.theta = transform.quat_to_euler(q=tf.rotation)[2]
         except Exception as e:
             self.get_logger().debug(f"Transform lookup error: {e}")
 
@@ -206,3 +212,15 @@ class PathPlanner(Node):
         if status & PathPlanner.A_STAR_CRITICAL_NO_PATH:
             return self.get_path(padding-0.1)
         return path
+
+
+def main(args=None):
+    rclpy.init(args=args)
+    path_planner = PathPlanner()
+    rclpy.spin(path_planner)
+    path_planner.destroy_node()
+    rclpy.shutdown()
+
+
+if __name__ == '__main__':
+    main()

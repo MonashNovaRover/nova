@@ -38,9 +38,16 @@ def generate_launch_description():
     )
 
     # autonomous nodes
-    main_launch = Node(
+    map_launch = Node(
         package="autonomous",
-        executable="main.py",
+        executable="mapper.py",
+        output="screen",
+        parameters=[core_params_path / "auto_params.yaml"],
+        emulate_tty=True
+    )
+    planner_launch = Node(
+        package="autonomous",
+        executable="path_planner.py",
         output="screen",
         parameters=[core_params_path / "auto_params.yaml"],
         emulate_tty=True
@@ -78,7 +85,8 @@ def generate_launch_description():
 
     return LaunchDescription([
         from_rosbag_arg,
-        main_launch,
+        map_launch,
+        planner_launch,
         depth_cam_launch,
         stamp_converter_launch,
         controller_launch,

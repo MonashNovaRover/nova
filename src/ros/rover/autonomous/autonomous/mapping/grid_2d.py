@@ -80,21 +80,19 @@ class Grid2D(Node):
         self.map = new_map
 
     @staticmethod
-    def map_from_occupancy(grid: OccupancyGrid, offset: tuple, resolution: float, width: int, length: int) -> np.array:
+    def map_from_occupancy(grid: OccupancyGrid) -> np.array:
         """
         This method effectively aims to re-create a self.map using what this node would be publishing as OccupancyGrid,
         so any subscribers to the occupancy_grid_topic can use this method to create an equivalent self.map
         :param: OccupancyGrid which
         """
         return np.asanyarray(grid.data, dtype=np.int8)\
-            .reshape((grid.info.width, grid.info.height))\
+            .reshape((grid.info.width, grid.info.height), order='F')\
             .astype(float) / 100
 
     def as_bytes(self):
         # have to get all values between 0 and 100 without changing the map we store
         temp_map = np.copy(self.map)
-        temp_map[0][0] = 101
-        temp_map[temp_map > 100] = 100
         return temp_map.transpose().flatten().astype(int).tolist()
 
     def get_full_indexes(self, points):

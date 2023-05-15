@@ -140,6 +140,7 @@ class DriveSimNode(Node):
         :return:
         """
         self.get_logger().debug("timer callback!")
+        self.state_current_transform.header.stamp = self.get_clock().now().to_msg()
         if self.state_current_drive_input is None:
             self.get_logger().debug("Exiting early since no drive received")
             self.tf_broadcaster.sendTransform(self.state_current_transform)
@@ -163,7 +164,6 @@ class DriveSimNode(Node):
         self.state_current_pivot_wheel.radius = radius
 
         # Set timestamp on tf2 transform
-        self.state_current_transform.header.stamp = self.get_clock().now().to_msg()
         self.get_logger().debug(f"Publishing transform: {self.state_current_transform}")
 
         self.tf_broadcaster.sendTransform(self.state_current_transform)

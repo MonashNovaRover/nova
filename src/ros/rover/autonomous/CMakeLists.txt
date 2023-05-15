@@ -114,6 +114,7 @@ install(PROGRAMS
   autonomous/localisation/wheel_odometry.py
   autonomous/controller/controller.py
   autonomous/planning/goal_selector.py
+  autonomous/planning/path_planner.py
   autonomous/update_goals.py
   autonomous/util/stamp_converter.py
 
