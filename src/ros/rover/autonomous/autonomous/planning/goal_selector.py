@@ -339,9 +339,10 @@ class Controller(Node):
             self.state_visited_intermediate_goals = []
             self.state_unvisited_intermediate_goals = []
 
-        # We aren't doing anything - set current goal to None
+        # We aren't doing anything - set current goal to None, and stop driving
         elif new_state == PlanningState.IDLE:
             self.state_current_goal = None
+            self.pub_success.publish(Empty())
 
         # We are driving to a coordinate - set the LED red if it isn't already, and if this is an intermediate goal, get the next goal
         elif new_state == PlanningState.TO_COORDINATE:
@@ -392,6 +393,7 @@ class Controller(Node):
 
         elif new_state == PlanningState.FAILED:
             self.get_logger().error("FAILED TO REACH GOAL")
+            self.pub_success.publish(Empty())
             self.state_current_goal = None
 
         self.get_logger().debug(f"After transition:\n"
