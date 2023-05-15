@@ -1,27 +1,29 @@
 # !/usr/bin/python3
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Monash Nova Rover Team. Abstract child class of the
-Mapper class for all mappers that map the 3d
-surrounds in a 2d map. These mappers all require
-common methods, such as separate yaw/pitch+roll
-transformations, publishing, and getting
-indices.
+Monash Nova Rover Team. 
+Mapper class that subscribes to pointclouds and
+uses tf2 transforms to place them in the map. 
+Calls C++ processing functions to handle the
+conversion of pointclouds into occupancy grids.
+Publishes the occupancy grid over ros for use by
+the path planner and visualisation.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-NODE: points_grid
+NODE: mapper
 TOPICS:
-
-  - /camera/depth/color/points [sensor_msgs.msg.PointCloud2]
+  - /depth_camera/d435_1/cloud [PointCloud2]
+  - /autonomous/occupancy_grid [OccupancyGrid]
 SERVICES: None
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	autonomous
-AUTHOR(S):	Max
+AUTHOR(S):	Max Tory
 CREATION:	28/02/2022
-EDITED:		28/02/2022
+EDITED:		15/05/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
- - a lot
+ - test post-refactor with pointcloud input
+ - test mapping 'invalid' occupancy grids in rviz
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
@@ -60,10 +62,10 @@ from geometry_msgs.msg import TransformStamped, Transform
 from sensor_msgs.msg import PointCloud2
 
 
-class FlatMapper(Node):
+class Mapper(Node):
     def __init__(self):
         # init node with node name points
-        super().__init__('flat_mapper')
+        super().__init__('mapper')
 
         self.get_logger().set_level(logging.INFO)
         # Timer frequencies
@@ -461,7 +463,7 @@ class FlatMapper(Node):
 
 def main():
     rclpy.init()
-    mapper = FlatMapper()
+    mapper = Mapper()
     rclpy.spin(mapper)
     mapper.destroy_node()
     rclpy.shutdown()
