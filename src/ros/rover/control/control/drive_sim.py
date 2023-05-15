@@ -145,7 +145,12 @@ class DriveSimNode(Node):
 
         # Linearly approximate our distance travelled based on the most recent control information
         signed_dist_m = MAX_VEL_M_S * speed * self.pub_rate_hz
-        dx, dy, dtheta = delta_pose_from_dist_radius(signed_dist_m, radius, direction)
+        if self.state_current_drive_input.mode in [DriveInput.PIVOT, DriveInput.TANK]:
+            dx, dy, dtheta = delta_pose_from_dist_radius(signed_dist_m, radius, direction)
+        elif self.state_current_drive_input.mode == DriveInput.STRAFE:
+            dx, dy, dtheta = 0.0, signed_dist_m, 0.0
+        else:
+            raise AttributeError(f"Invalid drive mode: {self.state_current_drive_input.mode}")
         self.apply_tf_offset(dx, dy, dtheta)
 
         # Immediately update wheel angles, assuming instant pivots for simplicity
