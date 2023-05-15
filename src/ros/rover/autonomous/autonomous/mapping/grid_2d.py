@@ -1,17 +1,16 @@
 #!usr/bin/python3
-__package__ = "autonomous"
 """
 2d map class for storing obstacles detected by our
 obstacle detector, which we can navigate easily 
 using A*. 
 """
 from autonomous.config.runtime_params import unseen_map_val
+
 from rclpy.node import Node
+
+from nav_msgs.msg import OccupancyGrid
+
 import numpy as np
-from nav_msgs.msg import OccupancyGrid, MapMetaData
-from autonomous.config.ros_config import occupancy_grid_topic
-from autonomous.vis.grid_pub import GridPub
-from rclpy.qos import qos_profile_sensor_data as qos
 import logging, math
 
 
@@ -25,26 +24,22 @@ class Grid2D(Node):
         that we use to plan paths (meters)
         accurately before downscaling to a map we can plan on.
         """
-
         super().__init__("grid_2d")
+        self.get_logger().set_level(logging.INFO)
+        self.param_tf_sub_hz = self.declare_parameter("tf_sub_frequency_hz", 30).value
+
         self.outer_length = outer_length
         self.outer_width = outer_width
+        self.length = length
+        self.width = width
         self.resolution = resolution
+
         # unseen areas of the map all have a slight cost 
         self.map = np.full((int(outer_length / resolution), int(outer_width / resolution)), 100 * unseen_map_val)
         self.with_border = with_border
 
         if with_border:
-            self.length = length
-            self.width = width
             self.inner_map_border_mask = self.calculate_inner_map_border_mask()
-        else:
-            self.length = self.outer_length
-            self.width = self.outer_width
-
-        self.get_logger().set_level(logging.INFO)
-
-        self.grid_pub = GridPub()
 
     def calculate_inner_map_border_mask(self):
         """
@@ -90,22 +85,16 @@ class Grid2D(Node):
         so any subscribers to the occupancy_grid_topic can use this method to create an equivalent self.map
         :param: OccupancyGrid which
         """
-        pass
+        return np.asanyarray(grid.data, dtype=np.int8)\
+            .reshape((grid.info.width, grid.info.height))\
+            .astype(float) / 100
 
-    def map_as_sequence(self):
+    def as_bytes(self):
         # have to get all values between 0 and 100 without changing the map we store
         temp_map = np.copy(self.map)
         temp_map[0][0] = 101
         #temp_map[temp_map > 100] = 100
         return temp_map.transpose().flatten().astype(int).tolist()
-
-    def publish_grid(self):
-        length = int(self.outer_length / self.resolution)
-        width = int(self.outer_width / self.resolution)
-        x = -self.outer_length / 2
-        y = -self.outer_width / 2
-        self.get_logger().debug("Publishing grid...")
-        self.grid_pub.publish_grid(self.resolution, length, width, x, y, self.map_as_sequence())
 
     def get_full_indexes(self, points):
         """

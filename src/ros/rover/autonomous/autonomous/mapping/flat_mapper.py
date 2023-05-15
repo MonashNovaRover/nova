@@ -1,6 +1,4 @@
 # !/usr/bin/python3
-
-
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team. Abstract child class of the
@@ -27,7 +25,6 @@ TODO:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
-from autonomous.mapping.mapper import Mapper
 from autonomous.mapping.grid_2d import Grid2D
 from autonomous.math_utils import transform
 from autonomous.cameras.pc_converter import read_points
@@ -39,8 +36,11 @@ from autonomous.config.runtime_params import (
     min_point_density, 
     obstacle_halve_value, 
     obstacle_ignore_value, 
+    max_safe_inc,
     min_map_update_time
 )
+from plane_fitter import get_obstacles as get_plane_obstacles
+from height_mapper import get_obstacles as get_height_obstacles
 
 # ros imports
 import rclpy
@@ -55,33 +55,42 @@ from typing import Tuple
 import numpy as np
 from scipy.signal import convolve2d
 
+from nav_msgs.msg import OccupancyGrid, MapMetaData
 from geometry_msgs.msg import TransformStamped, Transform
 from sensor_msgs.msg import PointCloud2
 
 
 class FlatMapper(Node):
-    def __init__(
-            self,
-            resolution=0.1,
-            detection_resolution=0.025,
-            name='flat_mapper',
-    ):
+    def __init__(self):
         # init node with node name points
-        super().__init__(name=name)
+        super().__init__('flat_mapper')
 
         self.get_logger().set_level(logging.INFO)
+        # Timer frequencies
         self.param_tf_sub_hz = self.declare_parameter("tf_sub_frequency_hz", 30).value
         self.param_tf_pub_hz = self.declare_parameter("tf_pub_frequency_hz", 30).value
-        self.param_map_pub_hz = self.declare_parameter("tf_pub_frequency_hz", 3).value
+        self.param_map_pub_hz = self.declare_parameter("map_pub_frequency_hz", 3).value
+
+        # Map dimensions and rolling
         self.param_roll_map = self.declare_parameter("roll_map", False).value
         self.param_map_edge_distance = self.declare_parameter("map_edge_dist_m", 5).value
         self.param_map_corners_coords = self.declare_parameter("map_corners_coords", [10, 10, -10, 10, -10, -10, 10, -10]).value
+        self.param_map_len_m = self.declare_parameter("map_len_m", 20).value
+        self.param_map_width_m = self.declare_parameter("map_width_m", 20).value
+        self.param_resolution_m = self.declare_parameter("resolution_m", 0.1).value
+        self.param_detection_resolution_m = self.declare_parameter("detection_resolution_m", 0.025).value
+
+        # How to map obstacles
+        self.param_do_height_mapping = self.declare_parameter("do_height_mapping", True).value
+        self.param_do_plane_mapping = self.declare_parameter("do_plane_mapping", True).value
+        self.do_mapping = self.param_do_height_mapping or self.param_do_plane_mapping
 
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self, spin_thread=True)
-        self.sub_pointcloud = self.create_subscription(PointCloud2, "/depth_camera/d435_1/cloud", self.pointcloud_callback, 10)
-
-        self.resolution = resolution
+        if self.do_mapping:
+            # In case we just want to point and shoot without worrying about obstacles, we should avoid the extra ros overhead of
+            # Subscribing to pointclouds
+            self.sub_pointcloud = self.create_subscription(PointCloud2, "/depth_camera/d435_1/cloud", self.pointcloud_callback, 10)
 
         self.previous_map_update = time.perf_counter()
 
@@ -97,11 +106,9 @@ class FlatMapper(Node):
         self.local_map_to_d435: Transform = None
         self.orient_nova_frame_transform : Transform = None
 
-        self.planning_resolution = resolution     # resolution of occupancy grid for path planning
-        self.detection_resolution = detection_resolution    # resolution of obstacle deteciton grid
-        self.resolution_ratio = int(self.planning_resolution / self.detection_resolution)
+        self.resolution_ratio = int(self.param_resolution_m / self.param_detection_resolution_m)
         self.detection_length = int(
-            np.ceil((max_point_depth / self.detection_resolution) / self.resolution_ratio) * self.resolution_ratio)
+            np.ceil((max_point_depth / self.param_detection_resolution_m) / self.resolution_ratio) * self.resolution_ratio)
         self.detection_width = int(np.ceil(2 * self.detection_length * np.tan(max_fov_horizontal)))
 
         self.offset = None
@@ -109,14 +116,15 @@ class FlatMapper(Node):
         self.map_rotation = None
         self.initialised = False
         
+        # Position of depth camera in local map
+        self.initialise_map()
+
         # Wait for localisation transforms
-        self.get_logger().info("Waiting for transform from 'map' to 'base_link'...")
-        while not self.tf_buffer.can_transform('base_link', 'map', Time()):
+        self.get_logger().info("Waiting for transform from 'local_map' to 'd435_1'...")
+        while not self.tf_buffer.can_transform('d435_1', 'local_map', Time()):
             time.sleep(0.1)
         self.get_logger().info("Received Transform!")
 
-        # Position of depth camera in local map
-        self.initialise_map()
         self.initialise_transforms()
 
         if self.param_roll_map:
@@ -128,13 +136,13 @@ class FlatMapper(Node):
     def initialise_map(self):
         if self.param_roll_map:
             self.set_offset(0, 0)
-            self._map = Grid2D(self.planning_resolution, with_border=False)
+            self.grid_2d = Grid2D(length=self.param_map_len_m, width=self.param_map_width_m, resolution=self.param_resolution_m, with_border=False)
         else:
             self.map_corners = np.array(self.param_map_corners_coords).reshape(-1, 2)
             self.map_centre = np.mean(self.map_corners, axis=0).astype(float)
             length, width, theta = self.get_map_pose()
             self.map_rotation = theta
-            self._map = Grid2D(length, width, self.planning_resolution, with_border=True)
+            self.grid_2d = Grid2D(length=length, width=width, resolution=self.param_resolution_m, with_border=True)
         self.pub_transform()
 
     def on_initialised(self):
@@ -250,7 +258,7 @@ class FlatMapper(Node):
         """
         if len(points) == 0:
             return []
-        indexes = np.floor((points/self.detection_resolution)).astype(int)
+        indexes = np.floor((points/self.param_detection_resolution_m)).astype(int)
         indexes[:, 1] += (np.ceil(self.detection_width/2)).astype(int)
         return indexes
 
@@ -286,9 +294,9 @@ class FlatMapper(Node):
         Only called if param_roll_map is true
         """
         x_change, y_change = 0, 0
-        x_edge_dist = (self._map.length / 2 - abs(self.local_map_to_base_link.translation.x)) *\
+        x_edge_dist = (self.grid_2d.length / 2 - abs(self.local_map_to_base_link.translation.x)) *\
             np.sign(self.local_map_to_base_link.translation.x)
-        y_edge_dist = (self._map.width / 2 - abs(self.local_map_to_base_link.translation.y)) *\
+        y_edge_dist = (self.grid_2d.width / 2 - abs(self.local_map_to_base_link.translation.y)) *\
             np.sign(self.local_map_to_base_link.translation.y)
         self.get_logger().debug(f"Edge distances: x = {x_edge_dist}, y = {y_edge_dist}")
         self.get_logger().debug(f"local map -> base link = {self.local_map_to_base_link}")
@@ -297,27 +305,10 @@ class FlatMapper(Node):
         elif abs(y_edge_dist) < self.param_map_edge_distance:
             y_change = self.param_map_roll_distance * np.sign(y_edge_dist)
         if x_change != 0 or y_change != 0:
-            self._map.roll_map(x_change, y_change)
+            self.grid_2d.roll_map(x_change, y_change)
         self.shift_offset(x_change, y_change)
 
-    def update_transforms(self):
-        """
-        Listen for new tf2 transforms
-        """
-        try:
-            self.local_map_to_d435 = self.tf_buffer.lookup_transform(target_frame='local_map',
-                                                                source_frame='d435_1_forward',
-                                                                time=Time()).transform
-        except Exception as e:
-            self.get_logger().debug(f"transform lookup error for d435 transform: {e}", throttle_duration_sec=1)
-        try:
-            self.local_map_to_base_link = self.tf_buffer.lookup_transform(target_frame='local_map',
-                                                                source_frame='base_link',
-                                                                time=Time()).transform
-        except Exception as e:
-            self.get_logger().debug(f"transform lookup error for base_link transform: {e}", throttle_duration_sec=1)
-
-    def arrange_obstacles(self, obstacles, min_x):
+    def arrange_obstacles(self, obstacles):
         """
         Turns a 1d numpy array of obstacle values into a list of coordinates and their
         values. We then cut all points which aren't in the segment within the fov of
@@ -337,6 +328,23 @@ class FlatMapper(Node):
         # all points below a certain value get set to the minimum value
         obstacles[obstacles[:, 2] < obstacle_ignore_value, 2] = 5
         return np.round(obstacles).astype(int)
+
+    def update_transforms(self):
+        """
+        Listen for new tf2 transforms
+        """
+        try:
+            self.local_map_to_d435 = self.tf_buffer.lookup_transform(target_frame='local_map',
+                                                                source_frame='d435_1_forward',
+                                                                time=Time()).transform
+        except Exception as e:
+            self.get_logger().debug(f"transform lookup error for d435 transform: {e}", throttle_duration_sec=1)
+        try:
+            self.local_map_to_base_link = self.tf_buffer.lookup_transform(target_frame='local_map',
+                                                                source_frame='base_link',
+                                                                time=Time()).transform
+        except Exception as e:
+            self.get_logger().debug(f"transform lookup error for base_link transform: {e}", throttle_duration_sec=1)
 
     def update_map(self, pts):
         """
@@ -368,17 +376,93 @@ class FlatMapper(Node):
         Returns the 2d version of the map according to this Mapper's mapping policy.
         Default Mapper class simply adds slices above a pre-defined z coordinate.
         """
-        return self._map.map.astype(float) / 100
+        return self.grid_2d.map.astype(float) / 100
 
     def handle_pc(self, pts):
         """
-        Abstract method
+        Uses height mapping to identify obstacles in 3d point cloud and generate a 2d
+        Occupancy grid for planning on
+        :param pts: list of points in meters coordinates relative to the tracking camera
+        (not transformed).
         """
-        # transforming to the global frame
-        raise NotImplemented("handle_pc must be implemented in a sub class")
+        # If we want the 3d map as well
+        # super().handle_pc(pts)
+        # transforming pitch and roll to flatten the map, but no yaw or translation
+        if self.local_map_to_d435 is None: 
+            self.get_logger().warn("No transform to d435 frame!")
+            return
+        if self.orient_nova_frame_transform is None: 
+            self.get_logger().warn("No transform to forward-facing frame!")
+            return
+        if len(pts) < 10:
+            return
+        self.get_logger().debug(f"Transforming point cloud by transform: {self.orient_nova_frame_transform}", throttle_duration_sec=1)
+        # transform to nova coordinates
+        frame_transformed_points = transform.transform_points(self.orient_nova_frame_transform, pts)
+        self.get_logger().debug(f"Transforming point cloud by transform: {self.local_map_to_d435}", throttle_duration_sec=1)
+        no_yaw_pts = transform.transform_points_no_yaw(self.local_map_to_d435, frame_transformed_points)
+
+        filtered_indices = self.filter_points(no_yaw_pts)
+
+        height_obstacles, plane_obstacles = None, None
+        # cpp functions finds steep areas in the high resolution map
+        if self.param_do_plane_mapping:
+            plane_obstacles, min_p_x = get_plane_obstacles(filtered_indices)
+            scaled_safe_inc = max_safe_inc * 255 / 90
+            plane_obs = plane_obstacles.astype(float) / scaled_safe_inc
+            plane_obs[plane_obs > 1.0] = 1.0
+            plane_obs = plane_obs[min_p_x:, :]
+        if self.param_do_height_mapping:
+            height_obstacles, min_h_x = get_height_obstacles(filtered_indices)
+            height_obs, min_h_x = self.downscale_obs(height_obstacles, min_h_x)
+            height_obs = height_obs[min_h_x:, :]
+        
+        if self.param_do_plane_mapping:
+            obstacles = plane_obs
+            if self.param_do_height_mapping:
+                # any sharp drops located in the height mapper are added to the plane mapper
+                obstacles[height_obs >= 1.0] = 1.1
+        else:
+            obstacles = height_obs
+        
+        rotated_obs = self.arrange_obstacles(obstacles)
+        self.grid_2d.add_obstacles(self.local_map_to_d435, rotated_obs)
 
     def publish(self):
         """
         Publish the 2d map over ros to be viewed in RVIZ
         """
-        self._map.publish_grid()
+        self.get_logger().debug("Publishing grid...")
+
+        meta_data = MapMetaData()
+        meta_data.resolution = self.grid_2d.resolution
+        meta_data.width = self.grid_2d.width
+        meta_data.height = self.grid_2d.length
+
+        meta_data.map_load_time = self.get_clock().now().to_msg()
+        meta_data.origin.position.x = x
+        meta_data.origin.position.x = y
+        meta_data.origin.orientation.w = 1.0
+
+        grid = OccupancyGrid()
+        grid.header.stamp = self.get_clock().now().to_msg()
+        grid.header.frame_id = 'local_map'
+        grid.info = meta_data
+        grid.data = self.grid_2d.as_bytes()
+
+        self.get_logger().debug(f"Publishing occupancy grid: {grid}")
+
+        self.publisher.publish(grid)
+
+
+
+def main():
+    rclpy.init()
+    mapper = FlatMapper()
+    rclpy.spin(mapper)
+    mapper.destroy_node()
+    rclpy.shutdown()
+
+
+if __name__=='__main__':
+    main()
