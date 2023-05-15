@@ -40,11 +40,12 @@ class GimbleCam(Node):
 
         self.get_logger().set_level(logging.INFO)
         self.param_can = self.declare_parameter("can_bus", "can1").value
-        self.param_velocity_factor = self.declare_parameter("velocity_factor", 1.0).value
-
+        self.param_velocity_increment = self.declare_parameter("velocity_factor", 0.1).value
+        self.max_velocity_value = self.declare_parameter("max_velocity_value", 128).value
         # can commands for gimble cam
         self.velocity_cmd = 0x081
         # Initially all motors spin backwards with 0 velocity
+        self.velocity_factor = 0.5
         self.x_velocity = 0
         self.y_velocity = 0
         self.joystick_lock = True
@@ -89,16 +90,38 @@ class GimbleCam(Node):
             self.joystick_lock = False
 
         if not self.joystick_lock:
-            # Update the inputs
-            self.x_velocity = msg.ax_thumb_x
-            self.y_velocity = msg.ax_thumb_y
+
+            #set the velocity factor
+            if msg.btn_bottom_r1_state == 1:
+                self.velocity_factor = min(self.param_velocity_increment + self.velocity_factor, 1)
+            elif msg.btn_bottom_r4_state == 1:
+                self.velocity_factor = max(self.velocity_factor - self.param_velocity_increment, 0)
+
+            # set the x velocity
+            if msg.btn_bottom_r2_state >= 1:
+                self.x_velocity = self.velocity_factor * self.max_velocity_value
+            elif msg.btn_bottom_r5_state >= 1:
+                self.x_velocity = -self.velocity_factor * self.max_velocity_value
+            else:
+                self.x_velocity = 0
+
+            # set the y velocity
+            if msg.btn_bottom_r3_state >= 1:
+                self.y_velocity = self.velocity_factor * self.max_velocity_value
+            elif msg.btn_bottom_r6_state >= 1:
+                self.y_velocity = -self.velocity_factor * self.max_velocity_value
+            else:
+                self.y_velocity = 0
+
         else:
             self.x_velocity = 0
             self.y_velocity = 0
 
+        self.get_logger().info("x_velocity: " + str(self.x_velocity) + " y_velocity: " + str(self.y_velocity))
+        self.get_logger().info("velocity_factor: " + str(self.velocity_factor))
+
     def get_can_data(self):
-       return list(pack('>bb', int(127*self.param_velocity_factor*self.x_velocity),
-                                    int(127*self.param_velocity_factor*self.y_velocity)))
+       return list(pack('>bb', int(self.x_velocity), int(self.y_velocity)))
 
 
 def main():
