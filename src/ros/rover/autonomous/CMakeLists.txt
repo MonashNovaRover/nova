@@ -109,6 +109,7 @@ install(PROGRAMS
   autonomous/mapping/mapper.py
   autonomous/cameras/tracking_camera.py
   autonomous/cameras/depth_camera.py
+  autonomous/cameras/ar_tag_sim.py
   autonomous/localisation/pose_converter_ARC.py
   autonomous/localisation/pose_converter.py
   autonomous/localisation/wheel_odometry.py
