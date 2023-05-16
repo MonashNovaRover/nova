@@ -61,7 +61,7 @@ class GoalPublisher(Node):
 
         # Array to store intermediate and main goals
         goals = AutonomousGoalArray()
-        goals.header.frame_id = "world"
+        goals.header.frame_id = "map"
         goals.header.stamp = self.get_clock().now().to_msg()
 
         intermediates = int(input("Enter number of intermediate goals (0 for none): "))

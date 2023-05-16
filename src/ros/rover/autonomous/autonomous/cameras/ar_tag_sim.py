@@ -52,10 +52,10 @@ tags = {
     5: Pose(position=Point(x=5., y=0., z=0.), orientation=Quaternion(x=0., y=0., z=0., w=1.)),
 }
 
-class TemplateNode(Node):
+class ArTagSimulator(Node):
 
     def __init__(self):
-        super().__init__("TemplateNode")
+        super().__init__("ArTagSimulator")
 
         self.tf_buffer = Buffer()
         self.tf_listerner = TransformListener(self.tf_buffer, self, spin_thread=True)
@@ -99,8 +99,8 @@ class TemplateNode(Node):
 
 def main():
     rclpy.init()
-    template_node = TemplateNode()
-    rclpy.spin(template_node)
+    node = ArTagSimulator()
+    rclpy.spin(node)
     rclpy.shutdown()
 
 

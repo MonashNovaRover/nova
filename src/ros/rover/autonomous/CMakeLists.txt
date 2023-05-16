@@ -118,6 +118,7 @@ install(PROGRAMS
   autonomous/planning/path_planner.py
   autonomous/update_goals.py
   autonomous/util/stamp_converter.py
+  autonomous/vis/marker_vis.py
 
   DESTINATION lib/${PROJECT_NAME}
 )
