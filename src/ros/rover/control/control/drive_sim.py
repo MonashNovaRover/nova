@@ -116,11 +116,11 @@ class DriveSimNode(Node):
         self.qos = QoSProfile(reliability=QoSReliabilityPolicy.BEST_EFFORT, depth=1, deadline=deadline)
 
         # Subscribe to Drive Inputs from autonomous
-        self.sub_manual = self.create_subscription(DriveInput, "/control/drive_inputs", self.cb_drive_sub, self.qos)
+        self.sub_drive = self.create_subscription(DriveInput, "/control/drive_inputs", self.cb_drive_sub, self.qos)
+        self.sub_pivot_wheel = self.create_subscription(PivotWheelData, "/control/pivot_wheel", self.cb_pivot_wheel, 10)
 
         self.tf_broadcaster = TransformBroadcaster(self)
         self.static_tf_broadcaster = StaticTransformBroadcaster(self)
-        self.pub_pivot_wheel = self.create_publisher(PivotWheelData, "/control/pivot_wheel", 10)
 
         self.state_current_transform : TransformStamped = None
         self.state_current_drive_input : DriveInput = None
@@ -134,6 +134,9 @@ class DriveSimNode(Node):
     def cb_drive_sub(self, msg: DriveInput):
         self.state_current_drive_input = msg
 
+    def cb_pivot_wheel(self, msg: PivotWheelData):
+        self.state_current_pivot_wheel = msg
+
     def cb_tf_timer(self):
         """
         Called every timer_period. Publishes to self.publisher
@@ -144,9 +147,8 @@ class DriveSimNode(Node):
         if self.state_current_drive_input is None:
             self.get_logger().debug("Exiting early since no drive received")
             self.tf_broadcaster.sendTransform(self.state_current_transform)
-            self.pub_pivot_wheel.publish(self.state_current_pivot_wheel)
             return
-        radius, direction = self.state_current_drive_input.radius, self.state_current_drive_input.direction
+        radius, direction = self.state_current_pivot_wheel.radius, self.state_current_drive_input.direction
         speed = self.state_current_drive_input.speed
 
         # Linearly approximate our distance travelled based on the most recent control information
@@ -159,15 +161,10 @@ class DriveSimNode(Node):
             raise AttributeError(f"Invalid drive mode: {self.state_current_drive_input.mode}")
         self.apply_tf_offset(dx, dy, dtheta)
 
-        # Immediately update wheel angles, assuming instant pivots for simplicity
-        self.state_current_pivot_wheel.direction = direction
-        self.state_current_pivot_wheel.radius = radius
-
         # Set timestamp on tf2 transform
         self.get_logger().debug(f"Publishing transform: {self.state_current_transform}")
 
         self.tf_broadcaster.sendTransform(self.state_current_transform)
-        self.pub_pivot_wheel.publish(self.state_current_pivot_wheel)
 
     def apply_tf_offset(self, dx, dy, dtheta):
         self.get_logger().debug(f"Applying tf offset: dx={dx}, dy={dy}, dtheta={dtheta}")
