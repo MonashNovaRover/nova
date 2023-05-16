@@ -422,7 +422,7 @@ class Controller(Node):
         :param msg: AlvarMarker msg type, received from the ar_tag_topic
         """
         try:
-            depth_cam_transform : Transform = self.tf_buffer.lookup_transform("map", "d435_1", Time(), Duration(nanoseconds=1e8))
+            depth_cam_transform : Transform = self.tf_buffer.lookup_transform("map", msg.header.frame_id, Time(), Duration(nanoseconds=1e8))
         except Exception as e:
             self.get_logger().warn(f"Failed to find deptch camera transform: {e}")
             return

@@ -22,12 +22,9 @@ ACTIONS: None
 PACKAGE:        control
 AUTHOR(S):	Max Tory
 CREATION:	14/05/2023
-EDITED:		14/05/2023
+EDITED:		16/05/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
- - Fix mapping transforms and nodes generally so
-    we can get all transforms even with no depth
-    cam
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 # ros imports

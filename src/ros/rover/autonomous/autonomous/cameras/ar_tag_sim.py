@@ -85,7 +85,7 @@ class TemplateNode(Node):
             return
 
         msg = AlvarMarkers()
-        msg.header.stamp = self.get_clock().now().to_msg()
+        msg.header.stamp = tf_map_to_cam.header.stamp
         msg.header.frame_id = "d435_1_forward"
         for tag in tags:
             cam_frame_pose = transform.transform_pose(tags[tag], tf_map_to_cam.transform)

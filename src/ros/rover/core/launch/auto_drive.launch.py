@@ -17,7 +17,7 @@ CREATION:	15/12/2021
 
 # Include the required launch parameters
 from launch import LaunchDescription
-from launch.substitutions import LaunchConfiguration
+from launch.substitutions import LaunchConfiguration, PythonExpression
 from launch.conditions import IfCondition, UnlessCondition
 from launch.actions import DeclareLaunchArgument
 from launch_ros.actions import Node
@@ -30,11 +30,18 @@ def generate_launch_description():
     core_params_path = get_package_share_path('core') / "params"
 
     from_rosbag = LaunchConfiguration('from_rosbag')
+    from_sim = LaunchConfiguration('sim_cameras')
 
     from_rosbag_arg = DeclareLaunchArgument(
         name='from_rosbag',
         default_value='False',
         description="Set to 'True' to run autonomous algorithms on camera data we will play from a rosbag"
+    )
+
+    from_sim_arg = DeclareLaunchArgument(
+        name='sim_cameras',
+        default_value='False',
+        description="Set to 'True' to run autonomous algorithms with simulated ar tags"
     )
 
     # autonomous nodes
@@ -58,7 +65,9 @@ def generate_launch_description():
         output="screen",
         parameters=[core_params_path / "auto_params.yaml"],
         emulate_tty=True,
-        condition=UnlessCondition(from_rosbag)
+        condition=UnlessCondition(PythonExpression(
+            [from_rosbag, " or ", from_sim]
+        ))
     )
     stamp_converter_launch = Node(
         package="autonomous",
@@ -67,6 +76,14 @@ def generate_launch_description():
         parameters=[core_params_path / "auto_params.yaml"],
         emulate_tty=True,
         condition=IfCondition(from_rosbag)
+    )
+    ar_sim_node = Node(
+        package="autonomous",
+        executable="ar_tag_sim.py",
+        output="screen",
+        parameters=[core_params_path / "auto_params.yaml"],
+        emulate_tty=True,
+        condition=IfCondition(from_sim)
     )
     controller_launch = Node(
         package="autonomous",
@@ -85,9 +102,11 @@ def generate_launch_description():
 
     return LaunchDescription([
         from_rosbag_arg,
+        from_sim_arg,
         map_launch,
         planner_launch,
         depth_cam_launch,
+        ar_sim_node,
         stamp_converter_launch,
         controller_launch,
         goal_selector_launch,

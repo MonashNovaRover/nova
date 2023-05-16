@@ -305,7 +305,7 @@ class Mapper(Node):
         self.get_logger().debug(f"local map -> base link = {self.local_map_to_base_link}")
         if abs(x_dist) > self.param_map_roll_distance:
             x_change = self.param_map_roll_distance * np.sign(x_dist)
-        elif abs(y_dist) > self.param_map_roll_distance:
+        if abs(y_dist) > self.param_map_roll_distance:
             y_change = self.param_map_roll_distance * np.sign(y_dist)
         if x_change != 0 or y_change != 0:
             self.grid_2d.roll_map(x_change, y_change)
