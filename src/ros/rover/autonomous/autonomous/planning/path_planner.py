@@ -22,7 +22,7 @@ TODO:
 """
 # nova imports
 from autonomous.config.ros_config import planning_destination_topic, auto_waypoints_topic
-from autonomous.config.runtime_params import INITIAL_PADDING_DIST_M
+from autonomous.config.runtime_params import INITIAL_PADDING_DIST_M, unseen_map_cost
 from autonomous.math_utils import transform
 from autonomous.mapping.grid_2d import Grid2D
 from a_star import a_star
@@ -69,7 +69,7 @@ class PathPlanner(Node):
         self.path = Path()
         self.path.header.frame_id = "local_map"
 
-        self.grid2d = None
+        self._map = None
 
         # subscribers and publishers
         self.planning_subscriber = self.create_subscription(PoseStamped, planning_destination_topic, self.path_planning_sub_callback, 10)
@@ -87,7 +87,8 @@ class PathPlanner(Node):
 
     def update_map(self, msg):
         self.get_logger().debug("updating map")
-        self.grid2d = Grid2D.map_from_occupancy(msg)
+        self._map = Grid2D.map_from_occupancy(msg)
+        self._map[self._map < 0] = unseen_map_cost
 
     def set_goal(self, goal: PoseStamped):
         """
@@ -106,7 +107,7 @@ class PathPlanner(Node):
         """
         For path planning asynchronously from control loop without services
         """
-        if self.grid2d is None:
+        if self._map is None:
             self.get_logger().warn("PathPlanner: map has not been updated yet, plan could not be planned")
             return 
         self.get_logger().debug("Path planner sub callback!")
@@ -189,14 +190,14 @@ class PathPlanner(Node):
         local_goal = self.goal.position.x, self.goal.position.y
         self.get_logger().debug(f"planning to {(local_goal[0], local_goal[1])}")
 
-        self.length = self.grid2d.shape[0]
-        self.width = self.grid2d.shape[1]
+        self.length = self._map.shape[0]
+        self.width = self._map.shape[1]
 
-        self.length_meters = int(self.grid2d.shape[0] * self.resolution)
-        self.width_meters = int(self.grid2d.shape[1] * self.resolution)
+        self.length_meters = int(self._map.shape[0] * self.resolution)
+        self.width_meters = int(self._map.shape[1] * self.resolution)
         
         t1 = time.perf_counter()
-        route = np.array(a_star(self.grid2d, self.get_grid_coord(self.start), self.get_grid_coord(local_goal), self.resolution, self.padding_dist_m))
+        route = np.array(a_star(self._map, self.get_grid_coord(self.start), self.get_grid_coord(local_goal), self.resolution, self.padding_dist_m))
         status = route[-1][0]
         route = route[:-1]
         self.get_logger().debug(f"planned with status {status}")

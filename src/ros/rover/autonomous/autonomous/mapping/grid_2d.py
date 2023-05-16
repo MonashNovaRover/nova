@@ -35,7 +35,7 @@ class Grid2D(Node):
         self.resolution = resolution
 
         # unseen areas of the map all have a slight cost 
-        self.map = np.full((int(outer_length / resolution), int(outer_width / resolution)), 100 * unseen_map_val)
+        self.map = np.full((int(outer_length / resolution), int(outer_width / resolution)), unseen_map_val)
         self.with_border = with_border
 
         if with_border:
@@ -68,7 +68,7 @@ class Grid2D(Node):
         self.get_logger().debug(f"Rolling map: dx = {x_change}, dy = {y_change}")
         x_change_px = int(abs(x_change) / self.resolution)
         y_change_px = int(abs(y_change) / self.resolution)
-        new_map = np.full((int(self.length / self.resolution), int(self.width / self.resolution)), 100 * unseen_map_val)
+        new_map = np.full((int(self.length / self.resolution), int(self.width / self.resolution)), unseen_map_val)
         if x_change < 0:
             new_map[x_change_px:, :] = self.map[:-x_change_px, :]
         elif x_change > 0:

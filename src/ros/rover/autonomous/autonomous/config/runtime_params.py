@@ -39,9 +39,10 @@ max_fov_horizontal = np.pi / 5  # fov of depth camera for mapping
 max_fov_vertical = np.pi / 8  # fov of depth camera for mapping
 max_safe_obstacle = 30  # obstacle threshold for 2d height mapping
 max_safe_inc = 20  # gradient cutoff for obstacles
-unseen_map_val = 0.25  # Fill all points we haven't seen with a set cost to preference known paths
-obstacle_halve_value = 50  # All costs below a scaled value of 80 are halved to be more decisive
-obstacle_ignore_value = 20  # All costs below a scaled value of 30 are ignored
+unseen_map_cost = 0.25  # Fill all points we haven't seen with a set cost to preference known paths
+unseen_map_val = -1  # The value we set to indicate unknown areas - this is useful for visualisation
+obstacle_halve_value = 20  # All costs below a scaled value of 80 are halved to be more decisive
+obstacle_ignore_value = 5  # All costs below a scaled value of 30 are ignored
 min_map_update_time = .2  # minimum time between updating the map from point-cloud
 
 # ~~~~~~~~~~~~~~~LOCALISATION CONSTANTS ~~~~~~~~~~~~~~~~~

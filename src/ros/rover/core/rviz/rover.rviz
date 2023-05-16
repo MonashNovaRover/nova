@@ -5,7 +5,10 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Global Options1
+        - /Map1
+        - /Map1/Status1
         - /Pose1
+        - /Path1
       Splitter Ratio: 0.5
     Tree Height: 427
   - Class: rviz_common/Views
@@ -81,6 +84,14 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
+        d435_1:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        d435_1_forward:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
         front_left_pivot:
           Alpha: 1
           Show Axes: false
@@ -101,6 +112,18 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
+        gps_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        gps_secondary:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        imu_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
         left_leg:
           Alpha: 1
           Show Axes: false
@@ -111,6 +134,18 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
+        t265:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        t265_footprint:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        t265_forward:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
       Name: RobotModel
       TF Prefix: ""
       Update Interval: 0
@@ -145,6 +180,12 @@ Visualization Manager:
           Value: true
         front_right_wheel:
           Value: true
+        gps_link:
+          Value: true
+        gps_secondary:
+          Value: true
+        imu_link:
+          Value: true
         initial_base_link:
           Value: true
         left_leg:
@@ -157,9 +198,9 @@ Visualization Manager:
           Value: true
         t265:
           Value: true
-        t265_forward:
+        t265_footprint:
           Value: true
-        world:
+        t265_forward:
           Value: true
       Marker Scale: 1
       Name: TF
@@ -167,39 +208,45 @@ Visualization Manager:
       Show Axes: true
       Show Names: false
       Tree:
-        world:
-          map:
-            initial_base_link:
-              base_link:
-                chassis:
-                  left_leg:
-                    back_left_pivot:
-                      back_left_wheel:
-                        {}
-                    front_left_pivot:
-                      front_left_wheel:
-                        {}
-                  right_leg:
-                    back_right_pivot:
-                      back_right_wheel:
-                        {}
-                    front_right_pivot:
-                      front_right_wheel:
-                        {}
-                d435_1_forward:
-                  d435_1:
-                    {}
-                t265_forward:
-                  t265:
-                    {}
-            local_map:
-              {}
+        map:
+          initial_base_link:
+            base_link:
+              chassis:
+                left_leg:
+                  back_left_pivot:
+                    back_left_wheel:
+                      {}
+                  front_left_pivot:
+                    front_left_wheel:
+                      {}
+                right_leg:
+                  back_right_pivot:
+                    back_right_wheel:
+                      {}
+                  front_right_pivot:
+                    front_right_wheel:
+                      {}
+              d435_1_forward:
+                d435_1:
+                  {}
+              gps_link:
+                gps_secondary:
+                  {}
+              imu_link:
+                {}
+              t265_forward:
+                t265:
+                  {}
+                t265_footprint:
+                  {}
+          local_map:
+            {}
       Update Interval: 0
       Value: true
     - Alpha: 0.699999988079071
       Class: rviz_default_plugins/Map
       Color Scheme: map
-      Draw Behind: false
+      Draw Behind: true
       Enabled: true
       Name: Map
       Topic:
@@ -324,7 +371,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 12.410196304321289
+      Distance: 22.906320571899414
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -339,10 +386,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.6097972393035889
+      Pitch: 0.5297976136207581
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 1.2268279790878296
+      Yaw: 1.494998812675476
     Saved:
       - Class: rviz_default_plugins/Orbit
         Distance: 2.995980978012085

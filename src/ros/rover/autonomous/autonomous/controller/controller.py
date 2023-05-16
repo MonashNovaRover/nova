@@ -78,7 +78,7 @@ class Controller(Node):
         super().__init__('autonomous_controller')
 
         # set debug to not get shown
-        self.get_logger().set_level(logging.INFO)
+        self.get_logger().set_level(logging.DEBUG)
 
         # Ros params
         self.param_do_tank_turn = self.declare_parameter("do_tank_turn", False).value
