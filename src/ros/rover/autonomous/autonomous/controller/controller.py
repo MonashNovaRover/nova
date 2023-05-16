@@ -78,7 +78,7 @@ class Controller(Node):
         super().__init__('autonomous_controller')
 
         # set debug to not get shown
-        self.get_logger().set_level(logging.INFO)
+        self.get_logger().set_level(logging.DEBUG)
 
         # Ros params
         self.param_do_tank_turn = self.declare_parameter("do_tank_turn", False).value
@@ -88,7 +88,7 @@ class Controller(Node):
         self.state = None
         self.state_rover_pose = Pose2D()
         self.state_waypoint_path = []
-        self.state_latest_steer = 0
+        self.state_latest_radius = 0
         self.state_turning_mode = TurningMode.TANK if self.param_do_tank_turn else TurningMode.PIVOT
 
         self.trigger_spin = False
@@ -116,13 +116,14 @@ class Controller(Node):
         # Subscribers
         self.sub_planned_path = self.create_subscription(Path, auto_waypoints_topic,
                                                                         self.callback_planner_path, 10)
-        self.sub_radius = self.create_subscription(PivotWheelData, "/control/pivot_wheel", self.callback_steer, 10)
+        self.sub_radius = self.create_subscription(PivotWheelData, "/control/pivot_wheel", self.callback_radius, 10)
         self.sub_do_spin = self.create_subscription(Empty, "~/do_spin", self.callback_do_spin, 10)
         self.sub_success = self.create_subscription(Empty, "/autonomous_controller/success_trigger", self.callback_success, 10)
 
         self.get_logger().info("Waiting for transform from 'local_map' to 'base_link'...")
         while not self.tf_buffer.can_transform('base_link', 'local_map', Time()):
             time.sleep(0.1)
+            rclpy.spin_once(self)
         self.get_logger().info("Received Transform!")
 
         # Timers
@@ -207,7 +208,7 @@ class Controller(Node):
         elif self.state == DrivingState.SUCCESS:
             self.ctl_spin = None
             self.state_waypoint_path = []
-            self.state_latest_steer = 0
+            self.state_latest_radius = 0
             if old_state == DrivingState.TO_WAYPOINT:
                 self.pub_at_goal.publish(Empty())
             elif old_state == DrivingState.TURNING:
@@ -237,16 +238,16 @@ class Controller(Node):
             self.state_rover_pose.y = base_link_tf.translation.y
             self.state_rover_pose.theta = transform.quat_to_euler(base_link_tf.rotation)[2]
 
-    def callback_steer(self, msg: PivotWheelData):
+    def callback_radius(self, msg: PivotWheelData):
         """
         :param msg: WheelPivotData
         """
         radius, direction = msg.radius, msg.direction
         if direction == 0:
-            self.state_latest_steer = 0
+            self.state_latest_radius = float('inf')
         else:
             signed_radius = radius * direction
-            self.state_latest_steer = 1 / (signed_radius + direction)
+            self.state_latest_radius = signed_radius
 
     def callback_planner_path(self, msg: Path):
         """
@@ -320,10 +321,10 @@ class Controller(Node):
         yaw_diff = yaw_difference(current_orientation, desired_orientation)
 
         self.get_logger().debug(f"desired: {desired_orientation}, current: {current_orientation}, yaw_diff: {yaw_diff}", throttle_duration_sec=1)
-        self.get_logger().debug(f"latest steer: {self.state_latest_steer}", throttle_duration_sec=1)
+        self.get_logger().debug(f"latest radius: {self.state_latest_radius}", throttle_duration_sec=1)
 
-        speed, steer = self.ctl_driver.get_drive_command(yaw_diff, self.state_latest_steer, position_vector, current_orientation)
-        return speed, steer
+        speed, radius, direction = self.ctl_driver.get_drive_command(yaw_diff, self.state_latest_radius, position_vector, current_orientation)
+        return speed, radius, direction
 
     def control(self):
         """
@@ -332,10 +333,11 @@ class Controller(Node):
         """
         if self.state_rover_pose is None:
             return
+        self.state_waypoint_path = self.prune_waypoints(self.state_waypoint_path)
         self.drive_mode_state_transition()
         self.get_logger().debug("Controller in driving state: " + str(self.state), throttle_duration_sec=1)
 
-        drive, steer = 0, 0
+        speed, radius, direction = 0, float('inf'), 0
 
         if self.state == DrivingState.SUCCESS:
             self.get_logger().debug("Controller mode: success", throttle_duration_sec=1)
@@ -346,7 +348,7 @@ class Controller(Node):
             current_orientation = np.array([np.cos(self.state_rover_pose.theta), np.sin(self.state_rover_pose.theta), 0.])
 
             position_vector = np.array([self.state_rover_pose.x, self.state_rover_pose.y])
-            drive, steer = self.ctl_spin.turn_in_place(self.state_latest_steer, current_orientation, position_vector=position_vector)
+            speed, radius, direction = self.ctl_spin.turn_in_place(self.state_latest_radius, current_orientation, position_vector=position_vector)
 
         # -------------------------------------- 1. DRIVING ------------------------------
         elif self.state == DrivingState.TO_WAYPOINT:
@@ -354,11 +356,11 @@ class Controller(Node):
                 self.get_logger().error("No waypoints to drive to - This should be detected in state transition!")
                 return
             self.get_logger().debug("Driving to waypoint", throttle_duration_sec=1)
-            drive, steer = self.go_to_target(self.state_waypoint_path[0])
+            speed, radius, direction = self.go_to_target(self.state_waypoint_path[0])
             
-        self.send_drive_cmd(drive, steer)
+        self.send_drive_cmd(speed, radius, direction)
 
-    def send_drive_cmd(self, drive_fraction: float, angular_fraction: float):
+    def send_drive_cmd(self, speed: float, radius: float, direction: int):
         """
         Publishes drive commands to the auto_drive_commands topic
         :param: drive_fraction: [-1:1]
@@ -367,12 +369,9 @@ class Controller(Node):
         # construct message to publish
         drive_cmd_msg = DriveInput()
         # Values are validated to stay within -1:1
-        drive_cmd_msg.speed = max(-1.0, min(1.0, float(drive_fraction)))
-        steer = max(-1.0, min(1.0, float(angular_fraction)))
-        self.get_logger().debug(f"clamped steer: {steer}",throttle_duration_sec=1)
-        drive_cmd_msg.radius = float('inf') if steer == 0 else abs(1/steer - (1 if steer > 0 else -1))
-        self.get_logger().debug(f"radius: {drive_cmd_msg.radius}", throttle_duration_sec=1)
-        drive_cmd_msg.direction = 0 if steer == 0 else 1 if steer > 0 else -1
+        drive_cmd_msg.speed = max(-1.0, min(1.0, float(speed)))
+        drive_cmd_msg.radius = radius
+        drive_cmd_msg.direction = direction
 
         if self.param_do_tank_turn:
             drive_cmd_msg.mode = DriveInput.TANK

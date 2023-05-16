@@ -128,6 +128,7 @@ class Mapper(Node):
             time.sleep(0.1)
             if self.param_roll_map:
                 self.pub_transform()
+            rclpy.spin_once(self)
         self.get_logger().info("Received Transform!")
 
         self.initialise_transforms()

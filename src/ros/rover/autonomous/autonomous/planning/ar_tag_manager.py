@@ -40,7 +40,7 @@ class ArTagManager(Node):
 
     def __init__(self, max_tag_id=5, queue_size=10):
         super().__init__('autonomous_ar_tag_manager')
-        self.get_logger().set_level(logging.DEBUG)
+        self.get_logger().set_level(logging.INFO)
         self.max_tag_id = max_tag_id
         self.queue_size = queue_size
 

@@ -133,6 +133,7 @@ class Controller(Node):
         self.get_logger().info("Waiting for transform from 'local_map' to 'base_link'...")
         while not self.tf_buffer.can_transform('base_link', 'local_map', Time()):
             time.sleep(0.1)
+            rclpy.spin_once(self)
         self.get_logger().info("Received Transform!")
 
         # Timers
@@ -424,7 +425,7 @@ class Controller(Node):
         try:
             depth_cam_transform : Transform = self.tf_buffer.lookup_transform("map", msg.header.frame_id, Time(), Duration(nanoseconds=1e8))
         except Exception as e:
-            self.get_logger().warn(f"Failed to find deptch camera transform: {e}")
+            self.get_logger().warn(f"Failed to find depth camera transform: {e}", throttle_duration_sec=1)
             return
         self.state_ar_tag_manager.update_tags(msg, depth_cam_transform)
 

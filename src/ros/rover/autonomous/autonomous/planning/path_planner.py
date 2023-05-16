@@ -83,6 +83,7 @@ class PathPlanner(Node):
         self.get_logger().info("Waiting for transform from 'map' to 'base_link'")
         while not self.tf_buffer.can_transform('map', 'base_link', Time()):
             time.sleep(0.1)
+            rclpy.spin_once(self)
         self.get_logger().info("Received transform!")
 
     def update_map(self, msg):
