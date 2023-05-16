@@ -5,6 +5,8 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Global Options1
+        - /Map1
+        - /Pose1
       Splitter Ratio: 0.5
     Tree Height: 427
   - Class: rviz_common/Views
