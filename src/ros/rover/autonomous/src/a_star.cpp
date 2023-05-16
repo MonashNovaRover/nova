@@ -389,6 +389,8 @@ void string_pull_from_start(array<array<float, COL>, ROW>& grid, vector<Pair>& p
             return;
         }
     }
+	path = {path.end()-1, path.end()};
+	path.insert(path.begin(), start);
 }
 
 template <size_t ROW, size_t COL>
@@ -421,7 +423,7 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 	}
 
 	// put a border around the outside of the map
-	add_obstacle_border(grid);
+	// add_obstacle_border(grid);
 
 	// assign heuristic values according to distance to nearest obstacle
 	precompute_padding_values(grid, grid_resolution_cm);
