@@ -45,7 +45,9 @@ class ArTagManager(Node):
         self.queue_size = queue_size
 
         self.goal : AutonomousGoal = None
-        self.ar_tag_poses : dict = dict()
+        self.ar_tag_poses = {
+            _id: deque([], maxlen=self.queue_size) for _id in range(self.max_tag_id + 1)
+        }
         self.get_logger().debug("AR tag manager initialised!")
 
     def set_goal(self, goal: AutonomousGoal):
@@ -57,9 +59,6 @@ class ArTagManager(Node):
             assert 0 <= _id <= self.max_tag_id, "AR tag id out of range"
 
         self.goal = goal
-        self.ar_tag_poses = {
-            _id: deque([], maxlen=self.queue_size) for _id in goal.tag_ids
-        }
 
     def has_ar_tags(self) -> bool:
         """
