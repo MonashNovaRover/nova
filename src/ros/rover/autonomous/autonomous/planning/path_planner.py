@@ -163,6 +163,7 @@ class PathPlanner(Node):
             """
             Contstructs a ros2 path message from a list of waypoints
             """
+            poses = []
             for waypoint in waypoints:
                 if math.isnan(waypoint[0]) or math.isnan(waypoint[1]):
                     continue
@@ -172,7 +173,8 @@ class PathPlanner(Node):
                 pose_stamped.pose.orientation.w = 1.0
                 pose_stamped.pose.position.x, pose_stamped.pose.position.y, pose_stamped.pose.position.z = waypoint[0], waypoint[1], 0.0
 
-                self.path.poses.append(pose_stamped)
+                poses.append(pose_stamped)
+            self.path.poses = poses
 
     def get_path(self, padding=None) -> Path:
         """
