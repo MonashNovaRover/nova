@@ -5,10 +5,6 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Global Options1
-        - /Map1
-        - /Map1/Status1
-        - /Pose1
-        - /Path1
       Splitter Ratio: 0.5
     Tree Height: 427
   - Class: rviz_common/Views
@@ -355,6 +351,18 @@ Visualization Manager:
         History Policy: Keep Last
         Reliability Policy: Reliable
         Value: /autonomous/waypoints
+      Value: true
+    - Class: rviz_default_plugins/MarkerArray
+      Enabled: true
+      Name: MarkerArray
+      Namespaces:
+        tag: true
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /visualisation/markers
       Value: true
   Enabled: true
   Global Options:
