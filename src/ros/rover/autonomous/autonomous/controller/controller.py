@@ -168,12 +168,12 @@ class Controller(Node):
         # If we are in TO_WAYPOINT state, we are done when we are out of goals to go to, or when we receive a message
         # From the goal_selector state machine telling us to begin a spin or enter success mode
         elif self.state == DrivingState.TO_WAYPOINT:
-            if self.finished_waypoint_path():
+            if self.trigger_spin:
+                self.on_state_update(DrivingState.TURNING)
+            elif self.finished_waypoint_path():
                 self.on_state_update(DrivingState.SUCCESS)
             elif self.trigger_success:
                 self.on_state_update(DrivingState.SUCCESS)
-            if self.trigger_spin:
-                self.on_state_update(DrivingState.TURNING)
 
     def on_state_update(self, new_state: DrivingState):
         """
@@ -190,10 +190,6 @@ class Controller(Node):
                                 )
         self.state = new_state
 
-        self.trigger_spin = False
-        self.trigger_success = False
-        self.trigger_to_waypoint = False
-
         # Perform any necessary state changes
         # Entering turning state we initialise a new spin controller
         if self.state == DrivingState.TURNING:
@@ -203,10 +199,14 @@ class Controller(Node):
             self.ctl_spin = None
             self.state_waypoint_path = []
             self.state_latest_radius = 0
-            if old_state == DrivingState.TO_WAYPOINT:
+            if old_state == DrivingState.TO_WAYPOINT and not self.trigger_success:
                 self.pub_at_goal.publish(Empty())
-            elif old_state == DrivingState.TURNING:
+            elif old_state == DrivingState.TURNING and not self.trigger_success:
                 self.pub_done_spin.publish(Empty())
+
+        self.trigger_spin = False
+        self.trigger_success = False
+        self.trigger_to_waypoint = False
 
         self.get_logger().debug(f"After transition:\n"
                                 f"trigger_spin: {self.trigger_spin}\n"
