@@ -71,13 +71,19 @@ class PoseConverter(Node):
         self.pub_t265_frame = self.create_publisher(PoseStamped, "/localisation/t265_frame", 10)
 
         self.get_logger().info("Waiting for transform from 'base_link' to 't265'...")
-        self.transform_future : Future = self.tf_buffer.wait_for_transform_async('base_link', 't265', Time(), Duration(seconds=5))
+        self.transform_future : Future = self.tf_buffer.wait_for_transform_async('base_link', 't265', Time())
         self.transform_future.add_done_callback(self.cb_set_up_timers)
 
-    def cb_set_up_timers(self):
-        self.get_initial_transform()
-        self.create_timer(1 / self.param_base_link_rate, self.timer_callback)
-        self.get_logger().info("Received Transform!")
+    def cb_set_up_timers(self, future: Future):
+        try:
+            future.result()
+        except Exception as e:
+            self.get_logger().error(f"Failed to get transform: {e}")
+            self.destroy_node()
+        else:
+            self.get_initial_transform()
+            self.create_timer(1 / self.param_base_link_rate, self.timer_callback)
+            self.get_logger().info("Received Transform!")
 
     def fill_initial_pose(self, initial_transform: Transform):
         """

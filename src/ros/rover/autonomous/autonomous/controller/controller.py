@@ -217,17 +217,22 @@ class Controller(Node):
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ROS callbacks ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    def callback_set_up_timers(self):
+    def callback_set_up_timers(self, future: Future):
         """
         Called once we have received the transform from local_map to base_link
         """
-        self.get_logger().info("Received Transform!")
+        try:
+            future.result()
+        except Exception as e:
+            self.get_logger().error(f"Failed to get transform: {e}")
+            self.destroy_node()
+        else:
+            self.get_logger().info("Received Transform!")
 
-        # Timers
-        self.timer_control = self.create_timer(0.1, self.control)  # calculate and send drive commands
-        self.timer_pose = self.create_timer(0.1, self.callback_rover_pose)  # update the rover's pose from tf2
-        self.on_state_update(DrivingState.SUCCESS)
-
+            # Timers
+            self.timer_control = self.create_timer(0.1, self.control)  # calculate and send drive commands
+            self.timer_pose = self.create_timer(0.1, self.callback_rover_pose)  # update the rover's pose from tf2
+            self.on_state_update(DrivingState.SUCCESS)
 
     def callback_rover_pose(self):
         """

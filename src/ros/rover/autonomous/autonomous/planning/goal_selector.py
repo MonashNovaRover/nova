@@ -403,15 +403,21 @@ class Controller(Node):
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ROS callbacks ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    def callback_transform_received(self):
+    def callback_transform_received(self, future: Future):
         """
         Called when we have received a transform from the tf buffer
         """
-        self.get_logger().info("Received Transform!")
+        try:
+            future.result()
+        except Exception as e:
+            self.get_logger().error(f"Failed to get transform: {e}")
+            self.destroy_node()
+        else:
+            self.get_logger().info("Received Transform!")
 
-        # Timers
-        self.timer_planning = self.create_timer(1 / self.param_plan_frequency, self.send_next_goal)  # update planning state and plan paths
-        self.on_state_update(PlanningState.IDLE)
+            # Timers
+            self.timer_planning = self.create_timer(1 / self.param_plan_frequency, self.send_next_goal)  # update planning state and plan paths
+            self.on_state_update(PlanningState.IDLE)
 
     def callback_new_autonomous_goal(self, msg : AutonomousGoalArray):
         """

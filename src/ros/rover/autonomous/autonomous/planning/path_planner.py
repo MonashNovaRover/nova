@@ -85,10 +85,16 @@ class PathPlanner(Node):
         self.transform_future : Future = self.tf_buffer.wait_for_transform_async('map', 'base_link', Time())
         self.transform_future.add_done_callback(self.transform_ready_callback)
 
-    def transform_ready_callback(self):
-        self.get_logger().info("Received transform!")
-        self.planning_subscriber = self.create_subscription(PoseStamped, planning_destination_topic, self.path_planning_sub_callback, 10)
-        self.map_subscriber = self.create_subscription(OccupancyGrid, "/autonomous/occupancy_grid", self.update_map, 10)
+    def transform_ready_callback(self, future: Future):
+        try:
+            future.result()
+        except Exception as e:
+            self.get_logger().error(f"Failed to get transform: {e}")
+            self.destroy_node()
+        else:
+            self.get_logger().info("Received transform!")
+            self.planning_subscriber = self.create_subscription(PoseStamped, planning_destination_topic, self.path_planning_sub_callback, 10)
+            self.map_subscriber = self.create_subscription(OccupancyGrid, "/autonomous/occupancy_grid", self.update_map, 10)
 
     def update_map(self, msg):
         self.get_logger().debug("updating map")

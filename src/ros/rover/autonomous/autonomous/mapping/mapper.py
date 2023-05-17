@@ -68,7 +68,7 @@ class Mapper(Node):
         # init node with node name points
         super().__init__('mapper')
 
-        self.get_logger().set_level(logging.DEBUG)
+        self.get_logger().set_level(logging.INFO)
         # Timer frequencies
         self.param_tf_sub_hz = self.declare_parameter("tf_sub_frequency_hz", 30).value
         self.param_tf_pub_hz = self.declare_parameter("tf_pub_frequency_hz", 30).value
@@ -130,18 +130,24 @@ class Mapper(Node):
         if self.param_roll_map:
             self.pub_transform_timer = self.create_timer(1./self.param_tf_pub_hz, self.pub_transform)
 
-    def callback_set_up_transforms(self):
+    def callback_set_up_transforms(self, future: Future):
         """
         Called when transform from 'local_map' to 'd435_1' is ready
         """
-        self.get_logger().info("Received Transform!")
+        try:
+            future.result()
+        except Exception as e:
+            self.get_logger().error(f"Failed to get transform: {e}")
+            self.destroy_node()
+        else:
+            self.get_logger().info("Received Transform!")
 
-        self.initialise_transforms()
+            self.initialise_transforms()
 
-        if self.param_roll_map:
-            self.map_roll_timer = self.create_timer(1, self.check_position_in_map)
-        self.map_transform_timer = self.create_timer(1./self.param_tf_sub_hz, self.update_transforms)
-        self.map_pub_timer = self.create_timer(1./self.param_map_pub_hz, self.publish)
+            if self.param_roll_map:
+                self.map_roll_timer = self.create_timer(1, self.check_position_in_map)
+            self.map_transform_timer = self.create_timer(1./self.param_tf_sub_hz, self.update_transforms)
+            self.map_pub_timer = self.create_timer(1./self.param_map_pub_hz, self.publish)
 
     def initialise_map(self):
         if self.param_roll_map:
@@ -424,6 +430,7 @@ class Mapper(Node):
             obstacles = plane_obs
             if self.param_do_height_mapping:
                 # any sharp drops located in the height mapper are added to the plane mapper
+                print(obstacles.shape, height_obs.shape)
                 obstacles[height_obs >= 1.0] = 1.1
         else:
             obstacles = height_obs
@@ -452,8 +459,6 @@ class Mapper(Node):
         grid.header.frame_id = 'local_map'
         grid.info = meta_data
         grid.data = self.grid_2d.as_bytes()
-
-        self.get_logger().debug(f"Publishing occupancy grid: {grid}")
 
         self.pub_occupancy_grid.publish(grid)
 
