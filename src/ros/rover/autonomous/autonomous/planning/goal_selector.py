@@ -32,13 +32,14 @@ from rclpy.node import Node
 from rclpy.time import Time
 from rclpy.duration import Duration
 from rclpy.logging import LoggingSeverity
-from geometry_msgs.msg import Transform, PoseStamped
-from std_msgs.msg import Empty
-from std_srvs.srv import Trigger
+from rclpy.task import Future
 from tf2_ros import Buffer, TransformListener
 
 # custom message imports
 from core.msg import AutonomousGoal, AutonomousGoalArray, AlvarMarkers
+from geometry_msgs.msg import Transform, PoseStamped
+from std_msgs.msg import Empty
+from std_srvs.srv import Trigger
 
 # autonomous imports
 from autonomous.math_utils.controller_math import distance, interpolate_circle_points
@@ -131,14 +132,8 @@ class Controller(Node):
 
 
         self.get_logger().info("Waiting for transform from 'local_map' to 'base_link'...")
-        while not self.tf_buffer.can_transform('base_link', 'local_map', Time()):
-            time.sleep(0.1)
-            rclpy.spin_once(self)
-        self.get_logger().info("Received Transform!")
-
-        # Timers
-        self.timer_planning = self.create_timer(1 / self.param_plan_frequency, self.send_next_goal)  # update planning state and plan paths
-        self.on_state_update(PlanningState.IDLE)
+        self.transform_future : Future = self.tf_buffer.wait_for_transform_async('base_link', 'local_map', Time())
+        self.transform_future.add_done_callback(self.callback_transform_received)
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ State Transition Helper Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     def intermediate_goal(self) -> bool:
@@ -407,6 +402,16 @@ class Controller(Node):
                                 )
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ROS callbacks ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    def callback_transform_received(self):
+        """
+        Called when we have received a transform from the tf buffer
+        """
+        self.get_logger().info("Received Transform!")
+
+        # Timers
+        self.timer_planning = self.create_timer(1 / self.param_plan_frequency, self.send_next_goal)  # update planning state and plan paths
+        self.on_state_update(PlanningState.IDLE)
 
     def callback_new_autonomous_goal(self, msg : AutonomousGoalArray):
         """

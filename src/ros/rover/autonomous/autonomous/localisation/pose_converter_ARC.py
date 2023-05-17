@@ -31,6 +31,7 @@ import rclpy
 from rclpy.node import Node
 from rclpy.time import Time
 from rclpy.duration import Duration
+from rclpy.task import Future
 
 from geometry_msgs.msg import PoseStamped, TransformStamped, Transform, Vector3, Quaternion
 from tf2_ros import TransformBroadcaster, StaticTransformBroadcaster, TransformListener, Buffer
@@ -70,12 +71,13 @@ class PoseConverter(Node):
         self.pub_t265_frame = self.create_publisher(PoseStamped, "/localisation/t265_frame", 10)
 
         self.get_logger().info("Waiting for transform from 'base_link' to 't265'...")
-        while not self.tf_buffer.can_transform('base_link', 't265', Time()):
-            time.sleep(0.1)
+        self.transform_future : Future = self.tf_buffer.wait_for_transform_async('base_link', 't265', Time(), Duration(seconds=5))
+        self.transform_future.add_done_callback(self.cb_set_up_timers)
 
+    def cb_set_up_timers(self):
         self.get_initial_transform()
         self.create_timer(1 / self.param_base_link_rate, self.timer_callback)
-        self.get_logger().info("Pose converter node up!")
+        self.get_logger().info("Received Transform!")
 
     def fill_initial_pose(self, initial_transform: Transform):
         """

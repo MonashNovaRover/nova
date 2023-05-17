@@ -35,8 +35,9 @@ import rclpy
 from rclpy.node import Node
 from rclpy.time import Time
 from rclpy.duration import Duration
-from tf2_ros import Buffer, TransformListener
+from rclpy.task import Future
 from rclpy.qos import QoSReliabilityPolicy, QoSProfile
+from tf2_ros import Buffer, TransformListener
 
 # message imports
 from core.msg import DriveInput, PivotWheelData
@@ -121,15 +122,8 @@ class Controller(Node):
         self.sub_success = self.create_subscription(Empty, "/autonomous_controller/success_trigger", self.callback_success, 10)
 
         self.get_logger().info("Waiting for transform from 'local_map' to 'base_link'...")
-        while not self.tf_buffer.can_transform('base_link', 'local_map', Time()):
-            time.sleep(0.1)
-            rclpy.spin_once(self)
-        self.get_logger().info("Received Transform!")
-
-        # Timers
-        self.timer_control = self.create_timer(0.1, self.control)  # calculate and send drive commands
-        self.timer_pose = self.create_timer(0.1, self.callback_rover_pose)  # update the rover's pose from tf2
-        self.on_state_update(DrivingState.SUCCESS)
+        self.transform_future : Future = self.tf_buffer.wait_for_transform_async('base_link', 'local_map', Time())
+        self.transform_future.add_done_callback(self.callback_set_up_timers)
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ State Transition Helper Functions ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -222,6 +216,18 @@ class Controller(Node):
                                 )
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ROS callbacks ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    def callback_set_up_timers(self):
+        """
+        Called once we have received the transform from local_map to base_link
+        """
+        self.get_logger().info("Received Transform!")
+
+        # Timers
+        self.timer_control = self.create_timer(0.1, self.control)  # calculate and send drive commands
+        self.timer_pose = self.create_timer(0.1, self.callback_rover_pose)  # update the rover's pose from tf2
+        self.on_state_update(DrivingState.SUCCESS)
+
 
     def callback_rover_pose(self):
         """

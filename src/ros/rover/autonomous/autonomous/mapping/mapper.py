@@ -49,6 +49,7 @@ import rclpy
 from rclpy.node import Node
 from rclpy.time import Time
 from rclpy.duration import Duration
+from rclpy.task import Future
 from tf2_ros import TransformBroadcaster, StaticTransformBroadcaster, TransformListener, Buffer
 
 # python imports
@@ -123,18 +124,22 @@ class Mapper(Node):
 
         # Wait for localisation transforms
         self.get_logger().info("Waiting for transform from 'local_map' to 'd435_1'...")
-        while not self.tf_buffer.can_transform('d435_1', 'local_map', Time()):
-            time.sleep(0.1)
-            if self.param_roll_map:
-                self.pub_transform()
-            rclpy.spin_once(self)
+        self.transform_future : Future = self.tf_buffer.wait_for_transform_async('d435_1', 'local_map', Time())
+        self.transform_future.add_done_callback(self.callback_set_up_transforms)
+
+        if self.param_roll_map:
+            self.pub_transform_timer = self.create_timer(1./self.param_tf_pub_hz, self.pub_transform)
+
+    def callback_set_up_transforms(self):
+        """
+        Called when transform from 'local_map' to 'd435_1' is ready
+        """
         self.get_logger().info("Received Transform!")
 
         self.initialise_transforms()
 
         if self.param_roll_map:
             self.map_roll_timer = self.create_timer(1, self.check_position_in_map)
-            self.pub_transform_timer = self.create_timer(1./self.param_tf_pub_hz, self.pub_transform)
         self.map_transform_timer = self.create_timer(1./self.param_tf_sub_hz, self.update_transforms)
         self.map_pub_timer = self.create_timer(1./self.param_map_pub_hz, self.publish)
 
@@ -405,13 +410,13 @@ class Mapper(Node):
         height_obstacles, plane_obstacles = None, None
         # cpp functions finds steep areas in the high resolution map
         if self.param_do_plane_mapping:
-            plane_obstacles, min_p_x = get_plane_obstacles(filtered_indices)
+            plane_obstacles, min_p_x = get_plane_obstacles(filtered_indices, self.detection_length, self.detection_width, self.resolution_ratio)
             scaled_safe_inc = max_safe_inc * 255 / 90
             plane_obs = plane_obstacles.astype(float) / scaled_safe_inc
             plane_obs[plane_obs > 1.0] = 1.0
             plane_obs = plane_obs[min_p_x:, :]
         if self.param_do_height_mapping:
-            height_obstacles, min_h_x = get_height_obstacles(filtered_indices)
+            height_obstacles, min_h_x = get_height_obstacles(filtered_indices, self.detection_length, self.detection_width)
             height_obs, min_h_x = self.downscale_obs(height_obstacles, min_h_x)
             height_obs = height_obs[min_h_x:, :]
         

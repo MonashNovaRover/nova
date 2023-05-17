@@ -31,6 +31,7 @@ from a_star import a_star
 import rclpy
 from rclpy.node import Node
 from rclpy.time import Time
+from rclpy.task import Future
 from tf2_ros import Buffer, TransformListener
 
 # msg types
@@ -71,9 +72,9 @@ class PathPlanner(Node):
 
         self._map = None
 
-        # subscribers and publishers
-        self.planning_subscriber = self.create_subscription(PoseStamped, planning_destination_topic, self.path_planning_sub_callback, 10)
-        self.map_subscriber = self.create_subscription(OccupancyGrid, "/autonomous/occupancy_grid", self.update_map, 10)
+        # subscribers and publishers (subscribers initialised once we have a transform)
+        self.planning_subscriber = None
+        self.map_subscriber = None
         self.path_publisher = self.create_publisher(Path, auto_waypoints_topic, 10)
 
         # Transform listeners
@@ -81,10 +82,13 @@ class PathPlanner(Node):
         self.tf_listener = TransformListener(self.tf_buffer, node=self, spin_thread=True)
 
         self.get_logger().info("Waiting for transform from 'map' to 'base_link'")
-        while not self.tf_buffer.can_transform('map', 'base_link', Time()):
-            time.sleep(0.1)
-            rclpy.spin_once(self)
+        self.transform_future : Future = self.tf_buffer.wait_for_transform_async('map', 'base_link', Time())
+        self.transform_future.add_done_callback(self.transform_ready_callback)
+
+    def transform_ready_callback(self):
         self.get_logger().info("Received transform!")
+        self.planning_subscriber = self.create_subscription(PoseStamped, planning_destination_topic, self.path_planning_sub_callback, 10)
+        self.map_subscriber = self.create_subscription(OccupancyGrid, "/autonomous/occupancy_grid", self.update_map, 10)
 
     def update_map(self, msg):
         self.get_logger().debug("updating map")
