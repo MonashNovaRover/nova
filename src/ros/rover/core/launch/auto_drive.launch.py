@@ -69,6 +69,14 @@ def generate_launch_description():
             [from_rosbag, " or ", from_sim]
         ))
     )
+
+    marker_vis_node = Node(
+        package='autonomous',
+        executable='marker_vis.py',
+        output='screen',
+        emulate_tty=True
+    )
+
     stamp_converter_launch = Node(
         package="autonomous",
         executable="stamp_converter.py",
@@ -106,6 +114,7 @@ def generate_launch_description():
         map_launch,
         planner_launch,
         depth_cam_launch,
+        marker_vis_node,
         ar_sim_node,
         stamp_converter_launch,
         controller_launch,
