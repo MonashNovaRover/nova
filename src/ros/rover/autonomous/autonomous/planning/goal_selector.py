@@ -317,12 +317,6 @@ class Controller(Node):
                                 )
         self.state = new_state
 
-        # Reset trigger state variables
-        self.trigger_return = False
-        self.trigger_achieved_goal = False
-        self.trigger_received_goal = False
-        self.trigger_completed_spin = False
-
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~   Update State on Transition   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         # Entering success state means we have reached our goal, set the LED color to Green and current goal to None,
@@ -391,6 +385,12 @@ class Controller(Node):
             self.get_logger().error("FAILED TO REACH GOAL")
             self.pub_success.publish(Empty())
             self.state_current_goal = None
+
+        # Reset trigger state variables
+        self.trigger_return = False
+        self.trigger_achieved_goal = False
+        self.trigger_received_goal = False
+        self.trigger_completed_spin = False
 
         self.get_logger().debug(f"After transition:\n"
                                 f"Current Goal: {self.state_current_goal}\n"

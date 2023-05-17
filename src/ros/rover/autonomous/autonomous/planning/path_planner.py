@@ -57,7 +57,7 @@ class PathPlanner(Node):
         :param resolution_m: planning resolution
         """
         super().__init__("path_planner_node")
-        self.get_logger().set_level(logging.INFO)
+        self.get_logger().set_level(logging.DEBUG)
         # constants
         self.padding_dist_m = INITIAL_PADDING_DIST_M
         self.resolution = self.declare_parameter("resolution_m", 0.1).value
@@ -208,7 +208,10 @@ class PathPlanner(Node):
         self.width_meters = int(self._map.shape[1] * self.resolution)
         
         t1 = time.perf_counter()
-        route = np.array(a_star(self._map, self.get_grid_coord(self.start), self.get_grid_coord(local_goal), self.resolution, self.padding_dist_m))
+        start_coord =self.get_grid_coord(self.start)
+        goal_coord = self.get_grid_coord(local_goal)
+        self.get_logger().debug(f"Calling a_star C++ with start: {start_coord} and goal: {goal_coord}")
+        route = np.array(a_star(self._map, start_coord, goal_coord, self.resolution, padding))
         status = route[-1][0]
         route = route[:-1]
         self.get_logger().debug(f"planned with status {status}")

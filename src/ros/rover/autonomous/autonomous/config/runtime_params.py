@@ -28,7 +28,7 @@ pub_scale = 1.0
 # ~~~~~~~~~~ PLANNING CONSTANTS ~~~~~~~~~~~~~~~
 
 planning_rate = 2.0
-INITIAL_PADDING_DIST_M = 0.6
+INITIAL_PADDING_DIST_M = 0.9
 min_ar_distance = 0.7
 sim_ar_tag_range = 8
 max_ar_distance = 20
