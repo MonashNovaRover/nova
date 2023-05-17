@@ -67,7 +67,7 @@ class Mapper(Node):
         # init node with node name points
         super().__init__('mapper')
 
-        self.get_logger().set_level(logging.INFO)
+        self.get_logger().set_level(logging.DEBUG)
         # Timer frequencies
         self.param_tf_sub_hz = self.declare_parameter("tf_sub_frequency_hz", 30).value
         self.param_tf_pub_hz = self.declare_parameter("tf_pub_frequency_hz", 30).value
@@ -117,7 +117,6 @@ class Mapper(Node):
         self.offset = None
         self.map_centre = None
         self.map_rotation = None
-        self.initialised = False
         
         # Position of depth camera in local map
         self.initialise_map()
@@ -150,9 +149,6 @@ class Mapper(Node):
             self.map_rotation = theta
             self.grid_2d = Grid2D(length=length, width=width, resolution=self.param_resolution_m, with_border=True)
         self.pub_transform()
-
-    def on_initialised(self):
-        self.initialised = True
 
     def get_furthest_point_in_direction(self, pts, direction):
         """
@@ -370,8 +366,6 @@ class Mapper(Node):
         It calls a function to extract and filter the points (colors are ignored) and updates the map with points only -
         when using the python API, it should be a points only map.
         """
-        if not self.initialised:
-            return
         self.get_logger().debug("Received pointcloud", throttle_duration_sec=1)
         self.update_map(np.array(list(read_points(msg, skip_nans=True))))
 

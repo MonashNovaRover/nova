@@ -79,7 +79,7 @@ class Controller(Node):
         self.get_logger().set_level(LoggingSeverity.INFO)
 
         # Params
-        self.param_plan_frequency = self.declare_parameter("plan_frequency", 1.0).value
+        self.param_plan_frequency = self.declare_parameter("plan_frequency", 2.0).value
         self.param_coordinate_tolerance = self.declare_parameter("coordinate_tolerance_m", 0.5).value
         self.param_ar_tag_tolerance = self.declare_parameter("ar_tag_tolerance_m", 1.3).value
         self.param_gate_goal_tolerance = self.declare_parameter("gate_tolerance_m", 0.3).value

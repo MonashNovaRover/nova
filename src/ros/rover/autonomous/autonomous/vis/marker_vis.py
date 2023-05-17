@@ -24,15 +24,19 @@ TODO:
 """
 import rclpy
 from rclpy.node import Node
-
+from rclpy.duration import Duration
 
 from core.msg import AutonomousGoal, AutonomousGoalArray, AlvarMarkers, AlvarMarker
 from visualization_msgs.msg import MarkerArray, Marker
+from geometry_msgs.msg import PoseStamped
+
+from autonomous.config.ros_config import planning_destination_topic
 
 COLORS = {
     "tag": (0.9, 0.9, 0.9),
     "intermediate": (0.9, 0.45, 0.0),
     "final": (0.0, 0.9, 0.0),
+    "planning_goal": (0.0, 0.0, 0.9),
 }
 
 class TemplateNode(Node):
@@ -41,9 +45,11 @@ class TemplateNode(Node):
         super().__init__("TemplateNode")
         self.sub_goals = self.create_subscription(AutonomousGoalArray, "/autonomous/goal", self.cb_auto_goals, 10)
         self.sub_tags = self.create_subscription(AlvarMarkers, "/ar_tracker/tags", self.cb_ar_tags, 10)
+        self.sub_planning_goals = self.create_subscription(PoseStamped, planning_destination_topic, self.cb_planning_goals, 10)
 
         self.last_goals : AutonomousGoalArray = None
         self.last_tags : AlvarMarkers = None
+        self.last_planning_goal : PoseStamped = None
 
         self.publisher = self.create_publisher(MarkerArray, "/visualisation/markers", 10)
 
@@ -52,6 +58,9 @@ class TemplateNode(Node):
 
     def cb_auto_goals(self, msg):
         self.last_goals = msg
+
+    def cb_planning_goals(self, msg):
+        self.last_planning_goal = msg
 
     def cb_ar_tags(self, msg):
         self.last_tags = msg
@@ -73,6 +82,7 @@ class TemplateNode(Node):
         msg.color.g = c[1]
         msg.color.b = c[2]
         msg.color.a = 1.
+        msg.lifetime = Duration(seconds=0.2).to_msg()
         # Namespace - raw messages can be separated from confirmed cubes
         msg.ns = namespace
         msg.id = index
@@ -88,7 +98,6 @@ class TemplateNode(Node):
         for i, goal in enumerate(self.last_goals.goals):
             color = COLORS["intermediate"] if i < len(self.last_goals.goals) - 1 else COLORS["final"]
             marker : Marker = self.get_marker((goal.position.x, goal.position.y, 0.), color, i, "goal")
-            marker.header.stamp = self.last_goals.header.stamp
             marker.header.frame_id = self.last_goals.header.frame_id
             msg.markers.append(marker)
         self.publisher.publish(msg)
@@ -107,6 +116,21 @@ class TemplateNode(Node):
             msg.markers.append(marker)
         self.publisher.publish(msg)
 
+    def pub_last_planning_goal(self):
+        """
+        Publishes the last goals
+        """
+        msg = MarkerArray()
+        goal = self.last_planning_goal
+        color = COLORS["planning_goal"] 
+        marker : Marker = self.get_marker((goal.pose.position.x, goal.pose.position.y, 0.), color, 0, "planning_goal")
+        marker.scale.x = 0.3
+        marker.scale.y = 0.3
+        marker.scale.z = 0.1
+        marker.header = self.last_planning_goal.header
+        msg.markers.append(marker)
+        self.publisher.publish(msg)
+
     def timer_callback(self):
         """
         Called every timer_period. Publishes to self.publisher
@@ -116,6 +140,8 @@ class TemplateNode(Node):
             self.pub_last_goals()
         if self.last_tags is not None:
             self.pub_last_tags()
+        if self.last_planning_goal is not None:
+            self.pub_last_planning_goal()
 
 
 def main():
