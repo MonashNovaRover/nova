@@ -19,9 +19,30 @@ CREATION:	15/12/2021
 from launch import LaunchDescription
 from launch.substitutions import LaunchConfiguration, PythonExpression
 from launch.conditions import IfCondition, UnlessCondition
-from launch.actions import DeclareLaunchArgument
+from launch.actions import DeclareLaunchArgument, RegisterEventHandler
+from launch.event_handlers import OnProcessExit
+from launch.launch_context import LaunchContext
+from launch.events.process.process_exited import ProcessExited
 from launch_ros.actions import Node
 from ament_index_python.packages import get_package_share_path
+
+
+# For re-launching path_planner if it crashes
+def planner_description():
+    return Node(
+        package="autonomous",
+        executable="path_planner.py",
+        output='screen',
+        emulate_tty=True
+    )
+
+
+def on_exit_restart(event: ProcessExited, context:LaunchContext):
+    if event.returncode != 0:
+        print(f"\n\nProcess[{event.action.name}] exited, pid: {event.pid}, return code: {event.returncode}")
+        if 'planner' in event.action.name:
+            print("Restarting planner...")
+            return planner_description()
 
 
 # Generate the launch file with all inputs
@@ -57,7 +78,8 @@ def generate_launch_description():
         executable="path_planner.py",
         output="screen",
         parameters=[core_params_path / "auto_params.yaml"],
-        emulate_tty=True
+        emulate_tty=True,
+
     )
     depth_cam_launch = Node(
         package="autonomous",
@@ -119,4 +141,5 @@ def generate_launch_description():
         stamp_converter_launch,
         controller_launch,
         goal_selector_launch,
+        RegisterEventHandler(event_handler=OnProcessExit(on_exit=on_exit_restart))
     ])
