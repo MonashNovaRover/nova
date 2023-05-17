@@ -35,7 +35,7 @@ from geometry_msgs.msg import TransformStamped, Pose, Point, Quaternion
 # nova import
 from autonomous.math_utils import transform
 from autonomous.math_utils.controller_math import distance
-from autonomous.config.runtime_params import max_point_depth, max_fov_horizontal, min_ar_distance
+from autonomous.config.runtime_params import sim_ar_tag_range, max_fov_horizontal, min_ar_distance
 
 # python imports 
 from typing import Tuple
@@ -69,7 +69,7 @@ class ArTagSimulator(Node):
         Check if a pose is in the rover's field of view
         """
         return abs(np.arctan2(pose.position.y, pose.position.x)) < max_fov_horizontal \
-            and min_ar_distance < distance((0, 0), (pose.position.x, pose.position.y)) < max_point_depth \
+            and min_ar_distance < distance((0, 0), (pose.position.x, pose.position.y)) < sim_ar_tag_range \
             and pose.position.x > 0
 
     def cb_ar_tags(self):
