@@ -420,20 +420,22 @@ class Mapper(Node):
             scaled_safe_inc = max_safe_inc * 255 / 90
             plane_obs = plane_obstacles.astype(float) / scaled_safe_inc
             plane_obs[plane_obs > 1.0] = 1.0
-            plane_obs = plane_obs[min_p_x:, :]
         if self.param_do_height_mapping:
             height_obstacles, min_h_x = get_height_obstacles(filtered_indices, self.detection_length, self.detection_width)
             height_obs, min_h_x = self.downscale_obs(height_obstacles, min_h_x)
-            height_obs = height_obs[min_h_x:, :]
         
         if self.param_do_plane_mapping:
             obstacles = plane_obs
+            min_x = min_p_x
             if self.param_do_height_mapping:
                 # any sharp drops located in the height mapper are added to the plane mapper
-                print(obstacles.shape, height_obs.shape)
                 obstacles[height_obs >= 1.0] = 1.1
+                min_x = min(min_p_x, min_h_x)
         else:
             obstacles = height_obs
+            min_x = min_h_x
+
+        obstacles = obstacles[min_x:, :]
         
         rotated_obs = self.arrange_obstacles(obstacles)
         self.grid_2d.add_obstacles(self.local_map_to_d435, rotated_obs)
@@ -461,7 +463,6 @@ class Mapper(Node):
         grid.data = self.grid_2d.as_bytes()
 
         self.pub_occupancy_grid.publish(grid)
-
 
 
 def main():
