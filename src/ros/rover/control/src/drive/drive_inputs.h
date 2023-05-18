@@ -31,7 +31,7 @@ EDITED:		31/05/2022
 #include "core/msg/input_gamepad.hpp"
 #include "core/msg/drive_input.hpp"
 #include "core/msg/drive_info.hpp"
-
+#include <math.h>
 // The minimum and maximum multipliers
 const float MIN_COARSE_MULTIPLIER              = 0.1;  // The minimum coarse multiplier value
 const float MIN_FINE_MULTIPLIER                = 0.02; // The minimum fine multiplier value

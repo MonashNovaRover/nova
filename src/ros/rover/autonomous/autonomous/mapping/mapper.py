@@ -435,7 +435,7 @@ class Mapper(Node):
             obstacles = height_obs
             min_x = min_h_x
 
-        obstacles = obstacles[min_x:, :]
+        obstacles[:min_x, :] = 0
         
         rotated_obs = self.arrange_obstacles(obstacles)
         self.grid_2d.add_obstacles(self.local_map_to_d435, rotated_obs)
