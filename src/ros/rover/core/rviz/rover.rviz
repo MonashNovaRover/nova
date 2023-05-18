@@ -7,8 +7,9 @@ Panels:
         - /Global Options1
         - /Map1
         - /Pose1
+        - /Axes1
       Splitter Ratio: 0.5
-    Tree Height: 643
+    Tree Height: 421
   - Class: rviz_common/Views
     Expanded:
       - /Current View1
@@ -358,13 +359,20 @@ Visualization Manager:
       Enabled: true
       Name: MarkerArray
       Namespaces:
-        goal: true
+        {}
       Topic:
         Depth: 5
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
         Value: /visualisation/markers
+      Value: true
+    - Class: rviz_default_plugins/Axes
+      Enabled: true
+      Length: 1
+      Name: Axes
+      Radius: 0.10000000149011612
+      Reference Frame: map
       Value: true
   Enabled: true
   Global Options:
@@ -464,14 +472,14 @@ Visualization Manager:
 Window Geometry:
   Displays:
     collapsed: false
-  Height: 1385
+  Height: 1016
   Hide Left Dock: false
   Hide Right Dock: false
   Image:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd0000000100000000000001cb0000050cfc0200000003fb000000100044006900730070006c00610079007301000000400000030c000000d500fffffffb0000000a005600690065007700730100000352000001fa000000aa00fffffffb0000000a0049006d0061006700650000000310000000cb0000002a00ffffff000003260000050c00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000100000000000001cb0000039efc0200000003fb000000100044006900730070006c006100790073010000003d0000022e000000c900fffffffb0000000a0056006900650077007301000002710000016a000000a400fffffffb0000000a0049006d0061006700650000000310000000cb0000002800ffffff000003260000039e00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Views:
     collapsed: false
   Width: 1271
-  X: 6
-  Y: 49
+  X: 72
+  Y: 27
