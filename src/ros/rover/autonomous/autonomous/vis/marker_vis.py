@@ -39,10 +39,10 @@ COLORS = {
     "planning_goal": (0.0, 0.0, 0.9),
 }
 
-class TemplateNode(Node):
+class MarkerPublisher(Node):
 
     def __init__(self):
-        super().__init__("TemplateNode")
+        super().__init__("marker_publisher")
         self.sub_goals = self.create_subscription(AutonomousGoalArray, "/autonomous/goal", self.cb_auto_goals, 10)
         self.sub_tags = self.create_subscription(AlvarMarkers, "/ar_tracker/tags", self.cb_ar_tags, 10)
         self.sub_planning_goals = self.create_subscription(PoseStamped, planning_destination_topic, self.cb_planning_goals, 10)
@@ -146,8 +146,8 @@ class TemplateNode(Node):
 
 def main():
     rclpy.init()
-    template_node = TemplateNode()
-    rclpy.spin(template_node)
+    node = MarkerPublisher()
+    rclpy.spin(node)
     rclpy.shutdown()
 
 
