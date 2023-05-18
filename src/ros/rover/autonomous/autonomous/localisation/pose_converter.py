@@ -88,10 +88,10 @@ class PoseConverter(Node):
         # subscribers
         self.imu_sub = self.create_subscription(Vector3Stamped, "/imu/euler", self.cb_imu, 10)
         self.gps_sub = self.create_subscription(RoverPoseGPS, "/electronics/gps_data", self.cb_dgps, 10)
-        self.goals_sub = self.create_subscription(AutonomousGoal, auto_goal_gps, self.cb_goal, 10)
+        self.goals_sub = self.create_subscription(AutonomousGoalArray, auto_goal_gps, self.cb_goal, 10)
 
         # publishers
-        self.goals_pub = self.create_publisher(AutonomousGoal, auto_goal_topic, 10)
+        self.goals_pub = self.create_publisher(AutonomousGoalArray, auto_goal_topic, 10)
 
         # for maintaining accurate pose and converting between gps
         if self.param_do_ekf:
