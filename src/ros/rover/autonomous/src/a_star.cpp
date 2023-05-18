@@ -56,7 +56,8 @@ enum class Status : unsigned {
 	A_STAR_START_OBSTACLE = 1,
 	A_STAR_DEST_OBSTACLE = 2,
 	A_STAR_NO_PATH = 4,
-	A_STAR_CRITICAL_NO_PATH = 8
+	A_STAR_CRITICAL_NO_PATH = 8,
+	A_STAR_START_INVALID = 16,
 };
 
 Status& operator |=(Status &lhs, Status rhs)
@@ -93,7 +94,7 @@ struct cell {
 // A Utility Function to check whether given cell (row, col)
 // is a valid cell or not.
 
-bool isValid(const int cols, const int rows,
+bool inMap(const int cols, const int rows,
 			const Pair& point)
 { // Returns true if row number and column number is in
 
@@ -117,7 +118,7 @@ bool isSafe(const array<array<float, COL>, ROW>& grid,
 {
     /*is this square blocked by an obstacle or too close to one
 	to be safe?*/
-	if (isValid(COL, ROW, point)) 
+	if (inMap(COL, ROW, point)) 
 		return grid[point.first][point.second] < OBSTACLE_VALUE;
     return true; // destination is not valid (ie not in map), so it is not in an obstacle to our knowledge
 }
@@ -162,7 +163,6 @@ float padding_value(float dist_sqrd, float padding_width_sqrd)
 	distinguish between the two kinds of impassable points when padding)
 	*/
 	if (dist_sqrd < padding_width_sqrd) return 1.2 * OBSTACLE_VALUE;
-    if (dist_sqrd < 2 * padding_width_sqrd) return 0.0;
 	return 0;
 }
 
@@ -178,8 +178,8 @@ void optimise_padding_area(const array<array<float, COL>, ROW>& grid,
 	// bounding min and max values by dimensions of map
 	min_x = max(min_x, 0); 
 	min_y = max(min_y, 0);
-	max_x = min(max_x, (int) COL);
-	max_y = min(max_y, (int) ROW);
+	max_x = min(max_x, (int) COL - 1);
+	max_y = min(max_y, (int) ROW - 1);
 
 	for (int i = y - 1; i >= min_y; i--) {
 		if (isObstacle(grid[i][x])) {
@@ -231,28 +231,32 @@ int count_adjacent_obstacles(const array<array<float, COL>, ROW>& grid, int& x, 
 template <size_t ROW, size_t COL> 
 void pad_point(array<array<float, COL>, ROW>& grid, const Pair& start_pt, float padding_width_pixels)
 {
-	int y = start_pt.first, x = start_pt.second;
-	int min_x = x - 1.3 * padding_width_pixels, min_y = y - 1.3 * padding_width_pixels;
-	int max_x = x + 1.3 * padding_width_pixels, max_y = y + 1.3 * padding_width_pixels;
+	if (inMap(COL, ROW, start_pt)){
+		int y = start_pt.first, x = start_pt.second;
+		int min_x = x - padding_width_pixels, min_y = y - padding_width_pixels;
+		int max_x = x + padding_width_pixels, max_y = y + padding_width_pixels;
 
-	// if the obstale is an isolated point - it is likely a phantom obstacle - don't pad around it
-	if (count_adjacent_obstacles(grid, x, y) <= 1) return;
+		// if the obstale is an isolated point - it is likely a phantom obstacle - don't pad around it
+		if (count_adjacent_obstacles(grid, x, y) <= 1) return;
 
-	optimise_padding_area(grid, x, y, min_x, max_x, min_y, max_y);
+		optimise_padding_area(grid, x, y, min_x, max_x, min_y, max_y);
 
-	for (int k = min_y; k <= max_y; k++) {
-		for (int l = min_x; l <= max_x; l++) {
-			Pair there(k, l);
-			if (isValid(COL, ROW, there)) {
-				float grid_val = grid[k][l];
-				float new_val = padding_value(dist_squared(there, start_pt),
-									pow(padding_width_pixels, 2.0));
+		for (int k = min_y; k <= max_y; k++) {
+			for (int l = min_x; l <= max_x; l++) {
+				Pair there(k, l);
+				if (inMap(COL, ROW, there)) {
+					float grid_val = grid[k][l];
+					float new_val = padding_value(dist_squared(there, start_pt),
+										pow(padding_width_pixels, 2.0));
 
-				if (new_val > grid_val && !isObstacle(grid_val)) {
-					grid[k][l] = new_val;
+					if (new_val > grid_val && !isObstacle(grid_val)) {
+						grid[k][l] = new_val;
+					}
 				}
 			}
 		}
+	} else {
+		std::cout << "Error: padding point not in map" << std::endl;
 	}
 }
 
@@ -343,8 +347,8 @@ void clear_obstacles_from_location(array<array<float, COL>, ROW>& grid, const Pa
 	*/
 
 	int x = point.first, y = point.second;
-	for (int i = max(0, x - cutting_distance); i <= min((int) COL, x + cutting_distance); i++) {
-		for (int j = max(0, y - cutting_distance); j <= min((int) ROW, y + cutting_distance); j++){
+	for (int i = max(0, x - cutting_distance); i <= min((int) COL - 1, x + cutting_distance); i++) {
+		for (int j = max(0, y - cutting_distance); j <= min((int) ROW - 1, y + cutting_distance); j++){
 			if (grid[i][j] >= OBSTACLE_VALUE) grid[i][j] = 0.99 * OBSTACLE_VALUE;
 		}
 	}
@@ -367,6 +371,7 @@ bool obstacle_between(array<array<float, COL>, ROW>& grid, Pair p1, Pair p2, int
     for (int i = 0; i < num_points; i++){
 		x += dx;
 		y += dy;
+		if (!inMap(COL, ROW, Pair((int) x, (int) y))) continue;
 		if (grid[(int) x][(int) y] > STRING_PULL_OBSTACLE_VAL){
 			return true;
 		}
@@ -416,12 +421,6 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 	int src_clearance = SOURCE_OBSTACLE_CLEARANCE_RADIUS_M / grid_resolution_m;
 	int dst_clearance = DEST_OBSTACLE_CLEARANCE_RADIUS_M / grid_resolution_m;
 
-	// If the destination is in an obstacle
-	if (!isSafe(grid, dest)) {
-		status |= Status::A_STAR_DEST_OBSTACLE;
-		clear_obstacles_from_location(grid, dest, dst_clearance);
-	}
-
 	// put a border around the outside of the map
 	// add_obstacle_border(grid);
 
@@ -433,12 +432,22 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 		return construct_return_val(grid, vector<Pair> {{src}}, status);
 	}
 
+	if (!inMap(COL, ROW, src)) {
+		status |= Status::A_STAR_START_INVALID;
+		return vector<Pair> {{src}, {Pair((int) status, -1)}};
+	}
+
 	// If the source is in an obstacle
 	if (!isSafe(grid, src)) {
 		status |= Status::A_STAR_START_OBSTACLE;
 		clear_obstacles_from_location(grid, src, src_clearance);
 	}
 
+	// If the destination is in an obstacle
+	if (!isSafe(grid, dest)) {
+		status |= Status::A_STAR_DEST_OBSTACLE;
+		clear_obstacles_from_location(grid, dest, dst_clearance);
+	}
 
 	// Create a closed list and initialise it to false which
 	// means that no cell has been included yet This closed
@@ -494,7 +503,7 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 			
 			// If the cell doesn't contain an obstacle, is in the map, and hasn't already been explored
 			if (isSafe(grid, neighbour) 
-				&& isValid(COL, ROW, neighbour) 
+				&& inMap(COL, ROW, neighbour) 
 				&& !closedList[neighbour.first][neighbour.second]) {
 				
 				if (isDestination(neighbour, dest)) {
