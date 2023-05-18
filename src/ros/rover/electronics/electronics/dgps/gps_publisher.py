@@ -64,26 +64,29 @@ class SkytraqNode (Node):
         if parsed_msg is None:
             return
 
-        if parsed_msg.talker == "P" and parsed_msg.msgID == "STI" and parsed_msg.msgId == "036":
-            # We are dealing with a PSTI036 message, which contains orientation information
-            if parsed_msg.mode == "R":
-                # RTK (Real-Time Kinematic) mode. We have valid heading
-                self.pose.heading_valid = True
-                self.pose.pitch, self.pose.roll, self.pose.yaw = parsed_msg.pitch, parsed_msg.roll, parsed_msg.heading
-            else:
-                # Not RTK mode. We don't have valid heading
-                self.pose.heading_valid = False
+        try:
+            if parsed_msg.talker == "P" and parsed_msg.msgID == "STI" and parsed_msg.msgId == "036":
+                # We are dealing with a PSTI036 message, which contains orientation information
+                if parsed_msg.mode == "R":
+                    # RTK (Real-Time Kinematic) mode. We have valid heading
+                    self.pose.heading_valid = True
+                    self.pose.pitch, self.pose.roll, self.pose.yaw = parsed_msg.pitch, parsed_msg.roll, parsed_msg.heading
+                else:
+                    # Not RTK mode. We don't have valid heading
+                    self.pose.heading_valid = False
 
-        elif parsed_msg.talker == "GN" and parsed_msg.msgID == "RMC":
-            if parsed_msg.status == 'A':
-                # Valid
-                self.pose.valid = True
-                self.pose.latitude, self.pose.longitude = parsed_msg.lat, parsed_msg.lon
-            else:
-                self.pose.valid = False
+            elif parsed_msg.talker == "GN" and parsed_msg.msgID == "RMC":
+                if parsed_msg.status == 'A':
+                    # Valid
+                    self.pose.valid = True
+                    self.pose.latitude, self.pose.longitude = parsed_msg.lat, parsed_msg.lon
+                else:
+                    self.pose.valid = False
 
-        elif parsed_msg.talker == "GN" and parsed_msg.msgID == "GSA":
-            self.fix_type = parsed_msg.navMode   # 1 = No fix, 2 = 2D fix, 3 = 3D fix
+            elif parsed_msg.talker == "GP" and parsed_msg.msgID == "GGA":
+                self.fix_type = parsed_msg.quality   # 1 = No fix, 2 = 2D fix, 3 = 3D fix
+        except Exception as e:
+            self.get_logger().warn(f"Bad message {parsed_msg}")
 
     def config_port(self, port_name, baud):
         self.ser.baudrate = baud
