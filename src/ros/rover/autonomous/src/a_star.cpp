@@ -30,7 +30,7 @@ namespace py = pybind11;
    weigh distance to the destination. Higher values run quicker but find
    a less optimal path. */
 const float ROVER_WIDTH_CM = 50.0;
-const float TERRAIN_IMPORTANCE = 1; // How much we value smooth terrain over distance
+const float TERRAIN_IMPORTANCE = 300; // How much we value smooth terrain over distance
 const float SAFETY_FACTOR = 1.6; // Factor by which we multiply rover radius to pad.
 const float WEIGHT = 1.0; // weight of heuristic for A*
 const float SOURCE_OBSTACLE_CLEARANCE_RADIUS_M = 0.6; // distance to which we remove obstacles at src
@@ -40,7 +40,7 @@ const float OBSTACLE_VALUE = 1.0;
 const float HEIGHT_OBSTACLE_VALUE = 1.1;
 const float PLANE_PADDING_DISTANCE_FRACTION = 1.0;
 const float C_INF = 1e12;
-const float GOAL_DISTANCE_WEIGHT = 0.5;
+const float NEAREST_POINT_DIST_WEIGHT = 0.5;
 const float STRING_PULL_OBSTACLE_VAL = 0.5;
 float PADDING_DIST_M = 0; 
 
@@ -480,9 +480,11 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 	openList.emplace(0.0, i, j);
 
 	// for storing the nearest point to the destination we could find
-	double best_cost = C_INF;
-	Pair best_point = src;
+	double min_dist_to_dest_squared = C_INF;
+	Pair nearest_point = src;
 
+	// We set this boolean value as false as initially
+	// the destination is not reached.
 	while (!openList.empty()) {
 		const Tuple& p = openList.top();
 		// Add this vertex to the closed list
@@ -495,8 +497,7 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 
 		// Generating all the 8 successors of this cell
 	    for (Pair branch : BRANCHES) {
-			int diff_x = branch.first;
-			int diff_y = branch.second;
+			int diff_x = branch.first, diff_y = branch.second;
 
 			Pair neighbour(i + diff_x, j + diff_y);
 			
@@ -517,18 +518,18 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 				float gNew, hNew, fNew;
 				// additional distance to next point
 				float g_diff = (diff_y == 0 || diff_x == 0) ? 1.0 : sqrt(2.0);
-				float terrain_cost = grid[neighbour.first][neighbour.second] * TERRAIN_IMPORTANCE;
-				gNew = cellDetails[i][j].g + g_diff + terrain_cost;
+				gNew = cellDetails[i][j].g + g_diff;
 				// Heuristic contains weighted combination of the terrain cost of driving here and the distance to the goal
-				hNew = heuristic(neighbour, dest) * WEIGHT;
+				hNew = grid[neighbour.first][neighbour.second] * TERRAIN_IMPORTANCE + heuristic(neighbour, dest) * WEIGHT;
 				fNew = gNew + hNew;
 
 				// In case we can't get to the destination, we keep track of the best effort so far:
 				// A point that optimises between being as close to the goal as possible while not requiring us to drive too far
-				if (GOAL_DISTANCE_WEIGHT * hNew + gNew < best_cost) {
+				double dist_sqrd = dist_squared(neighbour, dest);
+				if (NEAREST_POINT_DIST_WEIGHT * dist_sqrd + gNew < min_dist_to_dest_squared) {
 					// if the distance is much better, 
-					best_cost = GOAL_DISTANCE_WEIGHT * hNew + fNew; 
-					best_point = neighbour;
+					min_dist_to_dest_squared = NEAREST_POINT_DIST_WEIGHT * dist_sqrd + gNew; 
+					nearest_point = neighbour;
 				}
 				
 				// If we hadn't explored this cell before, or we have found a new, shorter path to it
@@ -553,7 +554,7 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 	status |= Status::A_STAR_NO_PATH;
 	
 	// instead return path to the nearest point we could find
-	vector<Pair> path = tracePath(cellDetails, best_point);
+	vector<Pair> path = tracePath(cellDetails, nearest_point);
 
 	if (path.size() < CRITICAL_PATH_LEN) status |= Status::A_STAR_CRITICAL_NO_PATH;
 	return construct_return_val(grid, path, status);
