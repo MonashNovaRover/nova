@@ -60,7 +60,7 @@ class PoseConverter(Node):
     def __init__(self):
         super().__init__("pose_converter")
         
-        self.get_logger().set_level(logging.DEBUG)
+        self.get_logger().set_level(logging.INFO)
         # Ros params
         self.param_do_ekf = self.declare_parameter("do_ekf", False).value
         self.param_gps_frame_id = self.declare_parameter("gps_frame_id", "gps_link").value
@@ -209,8 +209,8 @@ class PoseConverter(Node):
         # Offset to centre of rover from GPS antenna
         x, y = self.gps_offset[3], self.gps_offset[4]
         yaw = eulers[2]
-        tf_msg.transform.translation.x = gps_x + x * math.cos(yaw) + y * math.sin(yaw) 
-        tf_msg.transform.translation.y = gps_y - x * math.sin(yaw) + y * math.cos(yaw)
+        tf_msg.transform.translation.x = gps_x + x * math.cos(yaw) - y * math.sin(yaw) 
+        tf_msg.transform.translation.y = gps_y + x * math.sin(yaw) + y * math.cos(yaw)
 
         tf_msg.transform.rotation = quat
         
