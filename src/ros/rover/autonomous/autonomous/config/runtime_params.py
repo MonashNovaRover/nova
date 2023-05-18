@@ -13,7 +13,7 @@ dist_through_gate_m = 2 # the distance we drive through the gate before stopping
 
 # speed of autonomous driving and turning
 small_turn_angle = np.pi/16
-big_turn_drive_fraction = 0.10
+big_turn_drive_fraction = 0.20
 small_turn_drive_fraction = 0.15
 straight_drive_fraction = 0.2
 
