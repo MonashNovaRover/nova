@@ -119,11 +119,11 @@ class LEDUpdateNode(Node):
         """
         Returns true if the LEDs should flash in the current state, otherwise false
         """
-        if self.autonomous_state == AutonomousState.SUCCESS:
-            # Always flash in Success state, to make sure we get points when we finish a task
-            return True
-        elif self.control_state == ControlState.AUTONOMOUS \
-            and self.autonomous_state == AutonomousState.ACTIVE:
+        if self.control_state == ControlState.AUTONOMOUS:
+            if self.autonomous_state == AutonomousState.SUCCESS:
+                # Always flash in Success state, to make sure we get points when we finish a task
+                return True
+            elif self.autonomous_state == AutonomousState.ACTIVE:
                 # In autonomous mode our autonomous state determines whether we flash
                 return False
         elif self.connection_state == ConnectionState.CONNECTED:
@@ -138,11 +138,11 @@ class LEDUpdateNode(Node):
         """
         Returns the LED colour and intensity [0, 255] to be displayed depending on the current state
         """
-        if self.autonomous_state == AutonomousState.SUCCESS:
-            # Always flash in Success state, to make sure we get points when we finish a task
-            return LedColor.GREEN, 255
-        elif self.control_state == ControlState.AUTONOMOUS \
-            and self.autonomous_state == AutonomousState.ACTIVE:
+        if self.control_state == ControlState.AUTONOMOUS:
+            if self.autonomous_state == AutonomousState.SUCCESS:
+                # Always flash in Success state, to make sure we get points when we finish a task
+                return LedColor.GREEN, 255
+            else:
                 # In autonomous mode we always display red
                 return LedColor.RED, 255
         elif self.connection_state == ConnectionState.CONNECTED:

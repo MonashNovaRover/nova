@@ -60,7 +60,7 @@ class PoseConverter(Node):
     def __init__(self):
         super().__init__("pose_converter")
         
-        self.get_logger().set_level(logging.DEBUG)
+        self.get_logger().set_level(logging.INFO)
         # Ros params
         self.param_do_ekf = self.declare_parameter("do_ekf", False).value
         self.param_gps_frame_id = self.declare_parameter("gps_frame_id", "gps_link").value
@@ -88,10 +88,10 @@ class PoseConverter(Node):
         # subscribers
         self.imu_sub = self.create_subscription(Vector3Stamped, "/imu/euler", self.cb_imu, 10)
         self.gps_sub = self.create_subscription(RoverPoseGPS, "/electronics/gps_data", self.cb_dgps, 10)
-        self.goals_sub = self.create_subscription(AutonomousGoal, auto_goal_gps, self.cb_goal, 10)
+        self.goals_sub = self.create_subscription(AutonomousGoalArray, auto_goal_gps, self.cb_goal, 10)
 
         # publishers
-        self.goals_pub = self.create_publisher(AutonomousGoal, auto_goal_topic, 10)
+        self.goals_pub = self.create_publisher(AutonomousGoalArray, auto_goal_topic, 10)
 
         # for maintaining accurate pose and converting between gps
         if self.param_do_ekf:
@@ -209,8 +209,8 @@ class PoseConverter(Node):
         # Offset to centre of rover from GPS antenna
         x, y = self.gps_offset[3], self.gps_offset[4]
         yaw = eulers[2]
-        tf_msg.transform.translation.x = gps_x + x * math.cos(yaw) + y * math.sin(yaw) 
-        tf_msg.transform.translation.y = gps_y - x * math.sin(yaw) + y * math.cos(yaw)
+        tf_msg.transform.translation.x = gps_x + x * math.cos(yaw) - y * math.sin(yaw) 
+        tf_msg.transform.translation.y = gps_y + x * math.sin(yaw) + y * math.cos(yaw)
 
         tf_msg.transform.rotation = quat
         

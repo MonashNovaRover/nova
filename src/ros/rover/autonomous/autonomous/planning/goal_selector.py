@@ -342,7 +342,6 @@ class Controller(Node):
             elif old_state == PlanningState.IDLE or old_state == PlanningState.SUCCESS:
                 # We should return to our current position if we get lost
                 self.state_return_goal = self.get_current_pose_as_goal()
-            else:
                 # We are starting a new goal, set the LED to flash red
                 trigger = Trigger.Request()
                 self.srv_led_start.call_async(trigger)

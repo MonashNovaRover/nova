@@ -111,6 +111,7 @@ class MarkerPublisher(Node):
         for tag in self.last_tags.markers:
             color = COLORS["tag"] 
             marker : Marker = self.get_marker((tag.pose.pose.position.x, tag.pose.pose.position.y, 0.), color, tag.tag_id, "tag")
+            marker.pose = tag.pose.pose
             marker.header.stamp = self.last_tags.header.stamp
             marker.header.frame_id = self.last_tags.header.frame_id
             msg.markers.append(marker)
