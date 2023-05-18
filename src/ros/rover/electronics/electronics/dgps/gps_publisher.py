@@ -26,10 +26,12 @@ import rclpy
 from rclpy.node import Node
 
 from core.msg import RoverPoseGPS
+import logging
 
 class SkytraqNode (Node):
     def __init__ (self, com_no, baud):
         super().__init__('gps_data')
+        self.get_logger().set_level(logging.DEBUG)
 
         self.pose : RoverPoseGPS = RoverPoseGPS()
         self.pose.header.frame_id = "gps_link"
@@ -40,7 +42,8 @@ class SkytraqNode (Node):
         self.config_port(com_no, baud)
         self.reader = NMEAReader(
             self.ser,
-            validate=0x03   # validate both checksum and message id
+            validate=0x03,   # validate both checksum and message id
+            nmeaonly=True    # Raise an error on receiving a badly formatted message
         )
 
         self.publisher = self.create_publisher(RoverPoseGPS, '/electronics/gps_data', 10)
@@ -49,11 +52,16 @@ class SkytraqNode (Node):
     def parse_msg(self):
         
         self.pose.header.stamp = self.get_clock().now().to_msg()
-        raw_msg, parsed_msg : NMEAMessage = self.reader.read()
+        raw_msg : NMEAMessage
+        try:
+            raw_msg, parsed_msg = self.reader.read()
+        except Exception as e:
+            self.get_logger().warn(f"Failed to read NMEA sentence: {e}")
+            return
+
         self.get_logger().debug(f"raw message: {raw_msg}")
 
         if parsed_msg is None:
-            self.get_logger().warn(f"Received message that doesn't fit specifications: {raw_msg}")
             return
 
         if parsed_msg.talker == "P" and parsed_msg.msgID == "STI" and parsed_msg.msgId == "036":
