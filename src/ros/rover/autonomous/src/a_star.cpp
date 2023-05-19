@@ -366,12 +366,12 @@ bool obstacle_between(array<array<float, COL>, ROW>& grid, Pair p1, Pair p2, int
     double dx = (double) (x2 - x1) / num_points;
     double dy = (double) (y2 - y1) / num_points;
 
-    double x = x1, y = y1;
+    int x = x1, y = y1;
 
     for (int i = 0; i < num_points; i++){
-		x += dx;
-		y += dy;
-		if (grid[(int) x][(int) y] > STRING_PULL_OBSTACLE_VAL){
+		x += (int) dx;
+		y += (int) dy;
+		if (grid[x][y] > STRING_PULL_OBSTACLE_VAL){
 			return true;
 		}
     }
@@ -525,7 +525,7 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 
 				// In case we can't get to the destination, we keep track of the best effort so far:
 				// A point that optimises between being as close to the goal as possible while not requiring us to drive too far
-				if (GOAL_DISTANCE_WEIGHT * hNew + gNew < best_cost) {
+				if (GOAL_DISTANCE_WEIGHT * hNew + fNew < best_cost) {
 					// if the distance is much better, 
 					best_cost = GOAL_DISTANCE_WEIGHT * hNew + fNew; 
 					best_point = neighbour;
