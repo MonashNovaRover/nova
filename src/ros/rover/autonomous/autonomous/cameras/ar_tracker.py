@@ -22,7 +22,7 @@ class ArTracker(Node):
 
         self.frame_id = depth_cam_frame_id
 
-        self.marker_width_m = 0.15
+        self.marker_width_m = 0.143
         self.ar_pose_pub = self.create_publisher(AlvarMarkers, "~/tags", 10)
 
         self.arDict = ar.Dictionary_get(ar.DICT_4X4_250)
@@ -79,6 +79,7 @@ class ArTracker(Node):
         """
         bboxs, ids, _ = ar.detectMarkers(img, self.arDict, parameters=self.arParam)
         markers = AlvarMarkers()
+        markers.header.frame_id = self.frame_id
 
         if ids is not None:
             # projecting 2d camera coordinates into space
