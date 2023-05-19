@@ -60,7 +60,7 @@ class PoseConverter(Node):
     def __init__(self):
         super().__init__("pose_converter")
         
-        self.get_logger().set_level(logging.DEBUG)
+        self.get_logger().set_level(logging.INFO)
         # Ros params
         self.param_do_ekf = self.declare_parameter("do_ekf", False).value
         self.param_gps_frame_id = self.declare_parameter("gps_frame_id", "gps_link").value
@@ -80,6 +80,7 @@ class PoseConverter(Node):
         self.gps_converter : GpsConverter = GpsConverter()
         self.latest_imu : Vector3Stamped = None
         self.latest_gps_pose : RoverPoseGPS = None
+        self.latest_eulers : tuple = None
         # p, r, y, x, y, z
         self.gps_offset : np.ndarray = None
         self.imu_heading_offset = 0
@@ -88,10 +89,11 @@ class PoseConverter(Node):
         # subscribers
         self.imu_sub = self.create_subscription(Vector3Stamped, "/imu/euler", self.cb_imu, 10)
         self.gps_sub = self.create_subscription(RoverPoseGPS, "/electronics/gps_data", self.cb_dgps, 10)
-        self.goals_sub = self.create_subscription(AutonomousGoal, auto_goal_gps, self.cb_goal, 10)
+        self.goals_sub = self.create_subscription(AutonomousGoalArray, auto_goal_gps, self.cb_goal, 10)
 
         # publishers
-        self.goals_pub = self.create_publisher(AutonomousGoal, auto_goal_topic, 10)
+        self.goals_pub = self.create_publisher(AutonomousGoalArray, auto_goal_topic, 10)
+        self.gui_pub = self.create_publisher(RoverPoseGPS, "/gui/pose_data", 10)
 
         # for maintaining accurate pose and converting between gps
         if self.param_do_ekf:
@@ -193,8 +195,8 @@ class PoseConverter(Node):
         imu_eulers = self.transform_imu_to_nova()
         # GPS heading is positive in the clockwise direction, but the right hand rule dictates for us that positive yaw is counter-clockwise
         
-        eulers = imu_eulers + [0, 0, self.imu_heading_offset]
-        quat = transform.euler_to_quat(eulers)
+        self.latest_eulers = imu_eulers + [0, 0, self.imu_heading_offset]
+        quat = transform.euler_to_quat(self.latest_eulers)
         gps_x, gps_y = self.gps_converter.get_local_coord(self.latest_gps_pose.latitude, self.latest_gps_pose.longitude)
 
         tf_msg = TransformStamped()
@@ -204,17 +206,22 @@ class PoseConverter(Node):
         
         self.get_logger().debug(f'gps_x: {gps_x}, gps_y: {gps_y}')
         self.get_logger().debug(f'gps_offset[3]: {self.gps_offset[3]}, gps_offset[4]: {self.gps_offset[4]}')
-        self.get_logger().debug(f'eulers: {eulers}')
+        self.get_logger().debug(f'eulers: {self.latest_eulers}')
 
         # Offset to centre of rover from GPS antenna
         x, y = self.gps_offset[3], self.gps_offset[4]
-        yaw = eulers[2]
-        tf_msg.transform.translation.x = gps_x + x * math.cos(yaw) + y * math.sin(yaw) 
-        tf_msg.transform.translation.y = gps_y - x * math.sin(yaw) + y * math.cos(yaw)
+        yaw = self.latest_eulers[2]
+        tf_msg.transform.translation.x = gps_x + x * math.cos(yaw) - y * math.sin(yaw) 
+        tf_msg.transform.translation.y = gps_y + x * math.sin(yaw) + y * math.cos(yaw)
 
         tf_msg.transform.rotation = quat
         
         return tf_msg
+    
+    def get_rover_pose(self) -> RoverPoseGPS:
+        msg = self.latest_gps_pose
+        msg.pitch, msg.roll, msg.yaw = self.latest_eulers
+        return msg
 
     def calibrate_heading(self):
         """
@@ -271,6 +278,8 @@ class PoseConverter(Node):
             self.get_logger().info("Received imu and dgps data, publishing transforms...", once=True)
             tf = self.calculate_transform()
             self.tf_base_link.sendTransform(tf)
+            rover_pose = self.get_rover_pose()
+            self.gui_pub.publish(rover_pose)
 
 
 def main():

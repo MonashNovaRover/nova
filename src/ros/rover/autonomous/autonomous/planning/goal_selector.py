@@ -32,13 +32,14 @@ from rclpy.node import Node
 from rclpy.time import Time
 from rclpy.duration import Duration
 from rclpy.logging import LoggingSeverity
-from geometry_msgs.msg import Transform, PoseStamped
-from std_msgs.msg import Empty
-from std_srvs.srv import Trigger
+from rclpy.task import Future
 from tf2_ros import Buffer, TransformListener
 
 # custom message imports
 from core.msg import AutonomousGoal, AutonomousGoalArray, AlvarMarkers
+from geometry_msgs.msg import Transform, PoseStamped
+from std_msgs.msg import Empty
+from std_srvs.srv import Trigger
 
 # autonomous imports
 from autonomous.math_utils.controller_math import distance, interpolate_circle_points
@@ -79,9 +80,9 @@ class Controller(Node):
         self.get_logger().set_level(LoggingSeverity.INFO)
 
         # Params
-        self.param_plan_frequency = self.declare_parameter("plan_frequency", 1.0).value
+        self.param_plan_frequency = self.declare_parameter("plan_frequency", 2.0).value
         self.param_coordinate_tolerance = self.declare_parameter("coordinate_tolerance_m", 0.5).value
-        self.param_ar_tag_tolerance = self.declare_parameter("ar_tag_tolerance_m", 1.0).value
+        self.param_ar_tag_tolerance = self.declare_parameter("ar_tag_tolerance_m", 1.3).value
         self.param_gate_goal_tolerance = self.declare_parameter("gate_tolerance_m", 0.3).value
         self.param_return_goal_tolerance = self.declare_parameter("return_tolerance_m", 5.0).value
         self.param_dist_through_gate = self.declare_parameter("dist_through_gate_m", 2.0).value
@@ -120,6 +121,7 @@ class Controller(Node):
         # Subscribers
         self.sub_controller_goal_override = self.create_subscription(Empty, "/autonomous_controller/goal_achieved", self.callback_controller_goal_override, 10)
         self.sub_spin_completed = self.create_subscription(Empty, "/autonomous_controller/spin_achieved", self.callback_spin_completed, 10)
+        self.sub_return = self.create_subscription(Empty, "/autonomous/return", self.callback_return, 10)
         self.sub_autonomous_goal = self.create_subscription(AutonomousGoalArray, auto_goal_topic,
                                                             self.callback_new_autonomous_goal, 10)
         self.sub_ar_tags = self.create_subscription(AlvarMarkers, "/ar_tracker/tags", self.callback_ar_tag, 10)
@@ -128,16 +130,10 @@ class Controller(Node):
         self.srv_led_success = self.create_client(Trigger, "/autonomous/success")
         self.srv_led_start = self.create_client(Trigger, "/autonomous/start")
 
-        self.srv_return = self.create_service(Trigger, "/autonomous/return", self.callback_return)
 
         self.get_logger().info("Waiting for transform from 'local_map' to 'base_link'...")
-        while not self.tf_buffer.can_transform('base_link', 'map', Time()):
-            time.sleep(0.1)
-        self.get_logger().info("Received Transform!")
-
-        # Timers
-        self.timer_planning = self.create_timer(1 / self.param_plan_frequency, self.send_next_goal)  # update planning state and plan paths
-        self.on_state_update(PlanningState.IDLE)
+        self.transform_future : Future = self.tf_buffer.wait_for_transform_async('base_link', 'local_map', Time())
+        self.transform_future.add_done_callback(self.callback_transform_received)
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ State Transition Helper Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     def intermediate_goal(self) -> bool:
@@ -162,6 +158,12 @@ class Controller(Node):
         
         return distance([current_pose.translation.x, current_pose.translation.y], 
                                 [goal.position.x, goal.position.y])
+
+    def has_search_goals(self) -> bool:
+        """
+        Returns whether there are any search goals left to visit
+        """
+        return len(self.state_search_goals) > 0
     
     def at_current_goal(self) -> bool:
         """
@@ -258,8 +260,10 @@ class Controller(Node):
                 self.on_state_update(PlanningState.TO_AR_TAG)
             elif self.state_ar_tag_manager.found_current_gate():
                 self.on_state_update(PlanningState.THROUGH_GATE)
-            elif self.at_current_goal():
+            elif self.at_current_goal() and self.has_search_goals():
                 self.on_state_update(PlanningState.SEARCH)
+            elif self.at_current_goal() and not self.has_search_goals():
+                self.on_state_update(PlanningState.FAILED)
 
         # Transition from SEARCH to TO_AR_TAG or THROUGH_GATE if individual tag or gate tags are located.
         # Transition to SEARCH_SPIN if we have reached the next intermediate goal
@@ -289,7 +293,10 @@ class Controller(Node):
             elif self.at_current_goal() and not self.intermediate_goal():
                 self.on_state_update(PlanningState.SUCCESS)
      
-        # PLACEHOLDER --> add state FAILED if necessary 
+        # Once we have failed, we will return or wait for another goal
+        elif self.state == PlanningState.FAILED:
+            if self.trigger_return:
+                self.on_state_update(PlanningState.RETURN)
 
     def on_state_update(self, new_state: PlanningState):
         """
@@ -310,12 +317,6 @@ class Controller(Node):
                                 )
         self.state = new_state
 
-        # Reset trigger state variables
-        self.trigger_return = False
-        self.trigger_achieved_goal = False
-        self.trigger_received_goal = False
-        self.trigger_completed_spin = False
-
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~   Update State on Transition   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         # Entering success state means we have reached our goal, set the LED color to Green and current goal to None,
@@ -328,9 +329,10 @@ class Controller(Node):
             self.state_visited_intermediate_goals = []
             self.state_unvisited_intermediate_goals = []
 
-        # We aren't doing anything - set current goal to None
+        # We aren't doing anything - set current goal to None, and stop driving
         elif new_state == PlanningState.IDLE:
             self.state_current_goal = None
+            self.pub_success.publish(Empty())
 
         # We are driving to a coordinate - set the LED red if it isn't already, and if this is an intermediate goal, get the next goal
         elif new_state == PlanningState.TO_COORDINATE:
@@ -340,7 +342,6 @@ class Controller(Node):
             elif old_state == PlanningState.IDLE or old_state == PlanningState.SUCCESS:
                 # We should return to our current position if we get lost
                 self.state_return_goal = self.get_current_pose_as_goal()
-            else:
                 # We are starting a new goal, set the LED to flash red
                 trigger = Trigger.Request()
                 self.srv_led_start.call_async(trigger)
@@ -379,6 +380,17 @@ class Controller(Node):
         elif new_state == PlanningState.SEARCH:
             self.state_current_goal = self.state_search_goals.pop(0)
 
+        elif new_state == PlanningState.FAILED:
+            self.get_logger().error("FAILED TO REACH GOAL")
+            self.pub_success.publish(Empty())
+            self.state_current_goal = None
+
+        # Reset trigger state variables
+        self.trigger_return = False
+        self.trigger_achieved_goal = False
+        self.trigger_received_goal = False
+        self.trigger_completed_spin = False
+
         self.get_logger().debug(f"After transition:\n"
                                 f"Current Goal: {self.state_current_goal}\n"
                                 f"Return Goal: {self.state_return_goal}\n"
@@ -389,6 +401,22 @@ class Controller(Node):
                                 )
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ROS callbacks ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    def callback_transform_received(self, future: Future):
+        """
+        Called when we have received a transform from the tf buffer
+        """
+        try:
+            future.result()
+        except Exception as e:
+            self.get_logger().error(f"Failed to get transform: {e}")
+            self.destroy_node()
+        else:
+            self.get_logger().info("Received Transform!")
+
+            # Timers
+            self.timer_planning = self.create_timer(1 / self.param_plan_frequency, self.send_next_goal)  # update planning state and plan paths
+            self.on_state_update(PlanningState.IDLE)
 
     def callback_new_autonomous_goal(self, msg : AutonomousGoalArray):
         """
@@ -405,9 +433,9 @@ class Controller(Node):
         :param msg: AlvarMarker msg type, received from the ar_tag_topic
         """
         try:
-            depth_cam_transform : Transform = self.tf_buffer.lookup_transform("map", "d435_1", Time(), Duration(nanoseconds=1e8))
+            depth_cam_transform : Transform = self.tf_buffer.lookup_transform("map", msg.header.frame_id, Time(), Duration(nanoseconds=1e8))
         except Exception as e:
-            self.get_logger().warn(f"Failed to find deptch camera transform: {e}")
+            self.get_logger().warn(f"Failed to find depth camera transform: {e}", throttle_duration_sec=1)
             return
         self.state_ar_tag_manager.update_tags(msg, depth_cam_transform)
 
@@ -517,6 +545,7 @@ class Controller(Node):
         Function to be called on the goal publisher timer
         """
         # update planning mode state - this is the only time in the codebase this function is called
+        rclpy.spin_once(self.state_ar_tag_manager)
         self.planning_mode_state_transition()
 
         if self.state in [PlanningState.SUCCESS, PlanningState.IDLE, PlanningState.FAILED, PlanningState.SEARCH_SPIN]:

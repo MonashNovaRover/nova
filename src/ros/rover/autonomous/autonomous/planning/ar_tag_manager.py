@@ -18,7 +18,9 @@ EDITED:         15/05/2022
 """
 # ros imports
 from rclpy.node import Node
+from rclpy.duration import Duration
 from geometry_msgs.msg import TransformStamped, Pose
+from visualization_msgs.msg import Marker, MarkerArray
 
 # our imports
 from core.msg import AlvarMarkers, AutonomousGoal, AlvarMarker, AutonomousGoalArray, AutonomousGoal
@@ -40,13 +42,62 @@ class ArTagManager(Node):
 
     def __init__(self, max_tag_id=5, queue_size=10):
         super().__init__('autonomous_ar_tag_manager')
-        self.get_logger().set_level(logging.DEBUG)
+        self.get_logger().set_level(logging.INFO)
         self.max_tag_id = max_tag_id
         self.queue_size = queue_size
 
+        self.marker_color = (0.9, 0.9, 0.9)
+
         self.goal : AutonomousGoal = None
-        self.ar_tag_poses : dict = dict()
+        self.ar_tag_poses = {
+            _id: deque([], maxlen=self.queue_size) for _id in range(self.max_tag_id + 1)
+        }
+        self.publisher = self.create_publisher(MarkerArray, "/visualisation/markers", 10)
+
+        timer_period = 0.1  # run the timer 10 times per second
+        self.create_timer(timer_period, self.pub_last_tags)
+
         self.get_logger().debug("AR tag manager initialised!")
+
+    def get_marker(self, point, c: tuple, index: int, namespace: str) -> None:
+        """
+        :params: c is color tuple (r,g,b) between 0 and 1
+        """
+        msg = Marker()
+        msg.pose.position.x = point[0]
+        msg.pose.position.y = point[1]
+        msg.pose.position.z = 0.5
+        msg.pose.orientation.w = 1.0
+        msg.type = Marker.CYLINDER
+        msg.scale.x = .15
+        msg.scale.y = .15
+        msg.scale.z = 1.0
+        msg.color.r = c[0]
+        msg.color.g = c[1]
+        msg.color.b = c[2]
+        msg.color.a = 1.
+        # Namespace - raw messages can be separated from confirmed cubes
+        msg.ns = namespace
+        msg.id = index
+        # Survive for half a second
+        return msg
+
+    def pub_last_tags(self):
+        """
+        Publishes the last goals
+        """
+        msg = MarkerArray()
+        tag : AlvarMarker
+        for _id in self.ar_tag_poses:
+            if len(self.ar_tag_poses[_id]) == 0:
+                continue
+            color = self.marker_color
+            tag_pos = self.get_average_tag_pose(_id)
+            marker : Marker = self.get_marker(tag_pos, color, _id, "tag")
+            marker.header.stamp = self.get_clock().now().to_msg()
+            marker.header.frame_id = "map"
+            msg.markers.append(marker)
+        self.publisher.publish(msg)
 
     def set_goal(self, goal: AutonomousGoal):
         """
@@ -57,9 +108,6 @@ class ArTagManager(Node):
             assert 0 <= _id <= self.max_tag_id, "AR tag id out of range"
 
         self.goal = goal
-        self.ar_tag_poses = {
-            _id: deque([], maxlen=self.queue_size) for _id in goal.tag_ids
-        }
 
     def has_ar_tags(self) -> bool:
         """

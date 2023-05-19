@@ -106,16 +106,19 @@ ament_python_install_package(${PROJECT_NAME})
 
 # Add all Python executables to this list
 install(PROGRAMS
-  autonomous/main.py
+  autonomous/mapping/mapper.py
   autonomous/cameras/tracking_camera.py
   autonomous/cameras/depth_camera.py
+  autonomous/cameras/ar_tag_sim.py
   autonomous/localisation/pose_converter_ARC.py
   autonomous/localisation/pose_converter.py
   autonomous/localisation/wheel_odometry.py
   autonomous/controller/controller.py
   autonomous/planning/goal_selector.py
+  autonomous/planning/path_planner.py
   autonomous/update_goals.py
   autonomous/util/stamp_converter.py
+  autonomous/vis/marker_vis.py
 
   DESTINATION lib/${PROJECT_NAME}
 )
