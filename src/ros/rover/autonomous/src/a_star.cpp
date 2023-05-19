@@ -371,7 +371,6 @@ bool obstacle_between(array<array<float, COL>, ROW>& grid, Pair p1, Pair p2, int
     for (int i = 0; i < num_points; i++){
 		x += dx;
 		y += dy;
-		if (!inMap(COL, ROW, Pair((int) x, (int) y))) continue;
 		if (grid[(int) x][(int) y] > STRING_PULL_OBSTACLE_VAL){
 			return true;
 		}
@@ -448,6 +447,7 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 		status |= Status::A_STAR_DEST_OBSTACLE;
 		clear_obstacles_from_location(grid, dest, dst_clearance);
 	}
+
 
 	// Create a closed list and initialise it to false which
 	// means that no cell has been included yet This closed
