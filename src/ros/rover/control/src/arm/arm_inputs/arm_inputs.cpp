@@ -92,7 +92,7 @@ void ArmInputs::publish_endeffector_inputs ()
 
     if (!control_scheme.joystick_lock){
         // Set the values for linear actuator and end effector actuation
-        message.linear_actuation = -joystick_r.ax_thumb_y;
+        message.linear_actuation = joystick_l.ax_thumb_x;
         message.end_effector_actuation = joystick_r.ax_thumb_x * 0.95;
     }
     

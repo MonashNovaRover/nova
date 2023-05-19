@@ -28,11 +28,9 @@ import autonomous.math_utils.transform as transform
 from rclpy.node import Node
 from rclpy.duration import Duration
 from geometry_msgs.msg import Pose2D, Pose, PoseStamped
-from core.msg import Waypoints, Waypoint, RoverPose, Point2D
 from nav_msgs.msg import Path
 from autonomous.config.ros_config import *
 from autonomous.config.runtime_params import INITIAL_PADDING_DIST_M
-from core.srv import PathPlanningRequest
 from autonomous.math_utils.transform import quat_to_euler
 
 import time, logging
@@ -66,10 +64,7 @@ class PathPlanner(Node):
 
         self.grid2d = None
 
-        # subscribers and services
-        # planning service listens to requests for paths to be planned
-        self.planning_service = self.create_service(PathPlanningRequest, path_planning_service_name,
-                                                    self.path_planning_service_callback)
+        # subscribers and publishers
         self.planning_subscriber = self.create_subscription(PoseStamped, planning_destination_topic, self.path_planning_sub_callback, 10)
         self.path_publisher = self.create_publisher(Path, auto_waypoints_topic, 10)
 
@@ -85,29 +80,6 @@ class PathPlanner(Node):
     def update_map(self, msg):
         self.get_logger().debug("updating map")
         self.grid2d = msg
-
-    def path_planning_service_callback(self, request: PathPlanningRequest.Request,
-                                       response: PathPlanningRequest.Response):
-        """
-        This callback is used in the path planning service. The service will receive a goal coordinate and return
-        a set of destination coordinates, and a valid boolean response if a reasonable path could be found
-        """
-        if self.grid2d is None:
-            response.success = False
-            response.path = []
-            self.get_logger().warn("PathPlanner: map has not been updated yet, plan could not be planned")
-
-        # fill the way-points
-        try:
-            self.set_goal(request.target)
-            self.update_pose()
-            response.path = self.get_path()
-            response.success = True
-            return response
-        except Exception as e:
-            print(e)
-            response.success = False
-            return response
 
     def set_goal(self, goal: PoseStamped):
         """
@@ -178,7 +150,7 @@ class PathPlanner(Node):
         if status == PathPlanner.A_STAR_SUCCESS:
             self.get_logger().debug("A* found safe path")
 
-    def construct_path(self, waypoints):
+    def construct_path(self, waypoints) -> Path:
             """
             Contstructs a ros2 path message from a list of waypoints
             """
@@ -199,7 +171,7 @@ class PathPlanner(Node):
             
             return path
 
-    def get_path(self, padding=None) -> Waypoints:
+    def get_path(self, padding=None) -> Path:
         """
         Repeatedly run A* on the updated rover pose and map to continually redetermine the optimal path.
         """

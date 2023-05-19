@@ -7,6 +7,25 @@ Purpose: Manages a search plan, taking an initial
             listening to detected blocks and AR 
             tags to dynamically update the
             rover's planning goals
+What this is currently doing:
+    - Storing search plan (list of waypoints to search)
+    - Listening to AR tags
+    - Listening to detected blocks
+    - Determining whether detected blocks/tags are reliable
+    - Determining whether tags/blocks are in the map
+    - Getting goals for the planner based on what
+        goals are available, and how close they are
+    - Determining when we have confirmed a target, and
+        can move on to the next goal in the search plan
+Things it should be doing:
+    - Listen to AR tags
+    - Determine position of a gate based on AR tags
+Extract into GRUP:
+    - State transition (what goal we go to next) should
+        be decided by GRUP, not by goal_manager.py
+    - Search plan generation
+    - Gate plan generation
+    - All goal generation functions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: search_manager
 TOPICS:
@@ -21,8 +40,9 @@ CREATION:	14/03/2023
 EDITED:		14/03/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
-  - Input initial map coords
-  - New model/training data
+  - Adding a parameter that turns blocks on/off
+  - Adding a parameter that turns AR tags on/off
+  - Refactor as above
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
