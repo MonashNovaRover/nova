@@ -545,6 +545,7 @@ class Controller(Node):
         Function to be called on the goal publisher timer
         """
         # update planning mode state - this is the only time in the codebase this function is called
+        rclpy.spin_once(self.state_ar_tag_manager)
         self.planning_mode_state_transition()
 
         if self.state in [PlanningState.SUCCESS, PlanningState.IDLE, PlanningState.FAILED, PlanningState.SEARCH_SPIN]:

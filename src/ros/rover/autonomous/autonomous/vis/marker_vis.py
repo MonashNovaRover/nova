@@ -44,7 +44,6 @@ class MarkerPublisher(Node):
     def __init__(self):
         super().__init__("marker_publisher")
         self.sub_goals = self.create_subscription(AutonomousGoalArray, "/autonomous/goal", self.cb_auto_goals, 10)
-        self.sub_tags = self.create_subscription(AlvarMarkers, "/ar_tracker/tags", self.cb_ar_tags, 10)
         self.sub_planning_goals = self.create_subscription(PoseStamped, planning_destination_topic, self.cb_planning_goals, 10)
 
         self.last_goals : AutonomousGoalArray = None
@@ -61,9 +60,6 @@ class MarkerPublisher(Node):
 
     def cb_planning_goals(self, msg):
         self.last_planning_goal = msg
-
-    def cb_ar_tags(self, msg):
-        self.last_tags = msg
 
     def get_marker(self, point, c: tuple, index: int, namespace: str) -> None:
         """
@@ -102,21 +98,6 @@ class MarkerPublisher(Node):
             msg.markers.append(marker)
         self.publisher.publish(msg)
 
-    def pub_last_tags(self):
-        """
-        Publishes the last goals
-        """
-        msg = MarkerArray()
-        tag : AlvarMarker
-        for tag in self.last_tags.markers:
-            color = COLORS["tag"] 
-            marker : Marker = self.get_marker((tag.pose.pose.position.x, tag.pose.pose.position.y, 0.), color, tag.tag_id, "tag")
-            marker.pose = tag.pose.pose
-            marker.header.stamp = self.last_tags.header.stamp
-            marker.header.frame_id = self.last_tags.header.frame_id
-            msg.markers.append(marker)
-        self.publisher.publish(msg)
-
     def pub_last_planning_goal(self):
         """
         Publishes the last goals
@@ -139,8 +120,6 @@ class MarkerPublisher(Node):
         """
         if self.last_goals is not None:
             self.pub_last_goals()
-        if self.last_tags is not None:
-            self.pub_last_tags()
         if self.last_planning_goal is not None:
             self.pub_last_planning_goal()
 
