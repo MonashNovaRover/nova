@@ -19,16 +19,18 @@ using std::placeholders::_1;
 // Adjustes the multiplier factor by some amount in some direction
 float DriveInputs::adjust_multiplier(float &multiplier, bool increase, bool coarse)
 {
-
-// Adjust the multiplier
+   float old_multiplier = multiplier;
+    // Adjust the multiplier
     multiplier += (coarse ? DELTA_MULTIPLIER_COARSE : DELTA_MULTIPLIER_FINE) * (increase ? 1 : -1);
-
     // Check for minimum and maximums
     if (multiplier > MAX_MULTIPLIER)
         multiplier = MAX_MULTIPLIER;
     else if (multiplier <= (coarse ? MIN_COARSE_MULTIPLIER : MIN_FINE_MULTIPLIER))
         multiplier = coarse ? MIN_COARSE_MULTIPLIER : MIN_FINE_MULTIPLIER;
 
+    if (!increase && multiplier > old_multiplier) {
+        multiplier = old_multiplier;
+    }
     // Return the new multiplier
     return multiplier;
 }
