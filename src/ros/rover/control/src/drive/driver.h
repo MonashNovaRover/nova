@@ -44,6 +44,8 @@ EDITED:		13/09/2022
 #include "core/msg/blcmd_status_array.hpp"
 #include "core/msg/blcmd_status.hpp"
 
+// Include custom ROS services
+#include "core/srv/disable_blcmd.hpp"
 
 // Include other headers
 #include<cmath>
@@ -83,6 +85,8 @@ class PivotModule
 {
 public:
     int id;
+    bool pivot_enabled;
+    bool wheel_enabled;
     double velocity;
     double angle;
     BLCMD *cmdWheel;
@@ -92,14 +96,13 @@ public:
     ///@param    id - the id of the module
     ///@param   cmdWheel - BLCMD for the wheel
     ///@param   cmdPivot - BLCMD for the pivot
-    PivotModule(int id, BLCMD *cmdWheel, BLCMD *cmdPivot, float angle)
-    {
-        this->id = id;
-        this->cmdWheel = cmdWheel;
-        this->cmdPivot = cmdPivot;
-        this->angle = angle;
-        this->velocity = 0.0;
-    }
+    PivotModule(int id, BLCMD *cmdWheel, BLCMD *cmdPivot, float angle);
+
+    ///@brief   drives the pivot angle if enabled
+    void drive_pivot();
+
+    ///@brief   drives the wheel if enabled
+    void drive_wheel();
 };
 
 // Main subscriber class that receives drives commands and interfaces with the wheel
@@ -124,6 +127,9 @@ private:
     // Publisher for pivot wheel data
     rclcpp::Publisher<core::msg::PivotWheelData>::SharedPtr pivot_wheel_pub;
 
+    // blcmd disable service
+    rclcpp::Service<core::srv::DisableBLCMD>::SharedPtr disable_blcmd_srv;
+
     double max_d_theta;
     double max_d_vel;
 
@@ -136,8 +142,6 @@ private:
     unsigned char mode = core::msg::DriveInput::TANK;
     bool handbrake;
 
-
-
     // An array of pointers to Wheel instances
     PivotModule *pivots[NUM_WHEELS];
 
@@ -148,6 +152,9 @@ private:
     /// @param      msg - A pointer to the drive message
     void drive_callback(const core::msg::DriveInput::SharedPtr msg);
 
+    /// @brief      Disable BLCMD service callback
+    void disable_blcmd_callback(const std::shared_ptr<core::srv::DisableBLCMD::Request> request,
+                                std::shared_ptr<core::srv::DisableBLCMD::Response> response);
 
     /// @brief      function that spins all blcmds
     void blcmd_spinner();

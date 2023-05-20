@@ -83,7 +83,8 @@ alias arm_reset_control_pose='ros2 service call control/arm_reset_control_pose s
 alias zero_resolver='~/nova_ws/src/rover/electronics/electronics/zero_resolver_client_terminal.py'
 alias zero_resolver_sector='~/nova_ws/src/rover/electronics/electronics/zero_resolver_sector_client_terminal.py'
 alias rfid='~/nova_ws/src/rover/electronics/electronics/rfid_client_terminal.py'
-
+alias disable_blcmd='~/nova_ws/src/rover/core/macros/blcmd_disable.sh true'
+alias enable_blcmd='~/nova_ws/src/rover/core/macros/blcmd_disable.sh false'
 
 # eduroam connection
 alias eduroam="sudo ip r delete default via 192.168.1.1"

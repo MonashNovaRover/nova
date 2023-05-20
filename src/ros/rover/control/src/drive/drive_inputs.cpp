@@ -19,16 +19,18 @@ using std::placeholders::_1;
 // Adjustes the multiplier factor by some amount in some direction
 float DriveInputs::adjust_multiplier(float &multiplier, bool increase, bool coarse)
 {
-
-// Adjust the multiplier
+   float old_multiplier = multiplier;
+    // Adjust the multiplier
     multiplier += (coarse ? DELTA_MULTIPLIER_COARSE : DELTA_MULTIPLIER_FINE) * (increase ? 1 : -1);
-
     // Check for minimum and maximums
     if (multiplier > MAX_MULTIPLIER)
         multiplier = MAX_MULTIPLIER;
     else if (multiplier <= (coarse ? MIN_COARSE_MULTIPLIER : MIN_FINE_MULTIPLIER))
         multiplier = coarse ? MIN_COARSE_MULTIPLIER : MIN_FINE_MULTIPLIER;
 
+    if (!increase && multiplier > old_multiplier) {
+        multiplier = old_multiplier;
+    }
     // Return the new multiplier
     return multiplier;
 }
@@ -182,8 +184,8 @@ void DriveInputs::input_callback(const core::msg::InputGamepad::SharedPtr msg)
             } else {
                 latest_drive_input.speed = msg->ax_stick_l_y * multiplier_speed * trigger_speed;
             }
-
-            latest_drive_input.radius = abs(msg->ax_stick_r_x == 0 ? INFINITY : (1.0 / msg->ax_stick_r_x) -
+            
+            latest_drive_input.radius = abs(msg->ax_stick_r_x == 0 ? INFINITY : (1.0 / pow(msg->ax_stick_r_x, 3)) -
                                                                   (msg->ax_stick_r_x > 0 ? 1 : -1));
             latest_drive_input.direction = msg->ax_stick_r_x > 0 ? 1 : msg->ax_stick_r_x < 0 ? -1 : 0;
         }
