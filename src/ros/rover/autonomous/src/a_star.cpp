@@ -366,12 +366,15 @@ bool obstacle_between(array<array<float, COL>, ROW>& grid, Pair p1, Pair p2, int
     double dx = (double) (x2 - x1) / num_points;
     double dy = (double) (y2 - y1) / num_points;
 
-    int x = x1, y = y1;
+    double x = x1, y = y1;
 
     for (int i = 0; i < num_points; i++){
-		x += (int) dx;
-		y += (int) dy;
-		if (grid[x][y] > STRING_PULL_OBSTACLE_VAL){
+		x += dx;
+		y += dy;
+
+        size_t x_index = (size_t) x;
+        size_t y_index = (size_t) y;
+		if (grid[x_index][y_index] > STRING_PULL_OBSTACLE_VAL){
 			return true;
 		}
     }
