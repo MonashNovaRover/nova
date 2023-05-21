@@ -43,7 +43,7 @@ class GimbleCam(Node):
         self.param_velocity_increment = self.declare_parameter("velocity_factor", 0.1).value
         self.max_velocity_value = self.declare_parameter("max_velocity_value", 128).value
         # can commands for gimble cam
-        self.velocity_cmd = 0x080
+        self.velocity_cmd = 0x081
         # Initially all motors spin backwards with 0 velocity
         self.velocity_factor = 0.5
         self.x_velocity = 0
