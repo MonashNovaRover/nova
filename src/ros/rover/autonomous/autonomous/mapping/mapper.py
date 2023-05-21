@@ -39,7 +39,6 @@ from autonomous.config.runtime_params import (
     obstacle_halve_value, 
     obstacle_ignore_value, 
     max_safe_inc,
-    min_map_update_time
 )
 from plane_fitter import get_obstacles as get_plane_obstacles
 from height_mapper import get_obstacles as get_height_obstacles
@@ -85,7 +84,7 @@ class Mapper(Node):
 
         # How to map obstacles
         self.param_do_height_mapping = self.declare_parameter("do_height_mapping", True).value
-        self.param_do_plane_mapping = self.declare_parameter("do_plane_mapping", True).value
+        self.param_do_plane_mapping = self.declare_parameter("do_plane_mapping", False).value
         self.do_mapping = self.param_do_height_mapping or self.param_do_plane_mapping
 
         self.tf_buffer = Buffer()
