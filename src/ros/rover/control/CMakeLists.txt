@@ -131,6 +131,7 @@ install(PROGRAMS
         control/rover_state_publisher.py
         control/blcmd_status_monitor.py
         control/excavation_construction.py
+        control/gimbal_cam.py
         control/drive_sim.py
         DESTINATION lib/${PROJECT_NAME}
         )
