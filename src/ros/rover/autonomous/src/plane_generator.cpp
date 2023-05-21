@@ -69,7 +69,7 @@ Vec3 Vec3::normalise(){
 static const unsigned char c_neg_inf = 0;
 static const unsigned char c_inf = 255;
 static const unsigned char MAP_ZERO = 128;
-static const float FRACTION_OF_PLANE = 0.5; // number of points / total points in a plane that we require before we accept it. (you know what I mean).
+static const float FRACTION_OF_PLANE = 0.2; // number of points / total points in a plane that we require before we accept it. (you know what I mean).
 
 void save(cv::Mat& img, cv::Mat& img2) {
     // use this function to easily display what c++ sees for debugging
@@ -101,7 +101,7 @@ void fit_planes(cv::Mat& heightMap, cv::Mat& incs, int& min_x) {
                     int y_index = plane_j * plane_y_pixels/2 + j;
 
                     int z = heightMap.at<uint8_t>(x_index, y_index);
-                    //if (z <= 5) continue;
+                    if (z == c_neg_inf) continue;
                     Vec3 p(x_index, y_index, z);
                     these_pts.push_back(p);
                     point_sum = point_sum + p;

@@ -84,7 +84,7 @@ class Mapper(Node):
 
         # How to map obstacles
         self.param_do_height_mapping = self.declare_parameter("do_height_mapping", True).value
-        self.param_do_plane_mapping = self.declare_parameter("do_plane_mapping", False).value
+        self.param_do_plane_mapping = self.declare_parameter("do_plane_mapping", True).value
         self.do_mapping = self.param_do_height_mapping or self.param_do_plane_mapping
 
         self.tf_buffer = Buffer()

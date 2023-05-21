@@ -100,8 +100,11 @@ class DepthCamera(Node):
         return [
             rs.decimation_filter(1),
             rs.decimation_filter(2),
+            rs.decimation_filter(3),
             rs.decimation_filter(4),
+            rs.decimation_filter(5),
             rs.decimation_filter(6),
+            rs.decimation_filter(7),
             rs.decimation_filter(8),
         ]
 
