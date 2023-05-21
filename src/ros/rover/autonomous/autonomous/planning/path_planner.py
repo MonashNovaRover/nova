@@ -51,6 +51,7 @@ class PathPlanner(Node):
     A_STAR_DEST_OBSTACLE = 2
     A_STAR_NO_PATH = 4
     A_STAR_CRITICAL_NO_PATH = 8
+    A_STAR_START_OUT_OF_MAP = 16
 
     def __init__(self):
         """
@@ -168,6 +169,8 @@ class PathPlanner(Node):
             self.get_logger().warn("couldn't find a path initially")
         if status & PathPlanner.A_STAR_CRITICAL_NO_PATH:
             self.get_logger().error("COULDN'T FIND PATH - NEAR OBSTACLE")
+        if status & PathPlanner.A_STAR_START_OUT_OF_MAP:
+            self.get_logger().error("Start coordinate was not within map bounds")
         if status == PathPlanner.A_STAR_SUCCESS:
             self.get_logger().debug("A* found safe path")
 
