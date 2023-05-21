@@ -387,8 +387,11 @@ bool obstacle_between(array<array<float, COL>, ROW>& grid, Pair p1, Pair p2, int
         size_t x_index = (size_t) x;
         size_t y_index = (size_t) y;
 
-		//if (!inMap(COL, ROW, Pair(x_index, y_index))) continue;
-		if (grid[x_index][y_index] > STRING_PULL_OBSTACLE_VAL){
+		if (onBorder(COL, ROW, Pair(x_index, y_index)) || !inMap(COL, ROW, Pair(x_index, y_index))) {
+			return true;
+		}
+
+		if (grid.at(x_index).at(y_index) > STRING_PULL_OBSTACLE_VAL){
 			return true;
 		}
     }
