@@ -55,12 +55,10 @@ class ObjectDetection(Node):
         :params: c is color tuple (r,g,b) between 0 and 1
         """
         msg = Marker()
-        pose = Pose()
-        pose.position.x = point[0]
-        pose.position.y = point[1]
-        pose.position.z = point[2]
-        pose.orientation.w = 1.0
-        msg.pose = pose
+        msg.pose.position.x = point[0]
+        msg.pose.position.y = point[1]
+        msg.pose.position.z = point[2]
+        msg.pose.orientation.w = 1.0
         msg.type = Marker.CUBE
         msg.scale.x = .1
         msg.scale.y = .1

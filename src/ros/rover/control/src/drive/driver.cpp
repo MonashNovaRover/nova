@@ -14,7 +14,30 @@ AUTHOR(S):	Taaj Street, Harrison Verrios, Josh Cherubino, Will de la Rue, Jory B
 
 // Use the standard namespaces for subscribers
 using std::placeholders::_1;
+using std::placeholders::_2;
 using namespace std;
+
+PivotModule::PivotModule(int id, BLCMD *cmdWheel, BLCMD *cmdPivot, float angle) {
+    this->id = id;
+    this->cmdWheel = cmdWheel;
+    this->cmdPivot = cmdPivot;
+    this->angle = angle;
+    this->pivot_enabled = true;
+    this->wheel_enabled = true;
+    this->velocity = 0.0;
+}
+
+void PivotModule::drive_pivot() {
+    if (pivot_enabled) {
+        cmdPivot->drive(angle);
+    }
+}
+
+void PivotModule::drive_wheel() {
+    if (wheel_enabled) {
+        cmdWheel->drive(velocity);
+    }
+}
 
 // Sends commands to the wheels
 void Driver::send_commands()
@@ -33,7 +56,9 @@ void Driver::send_commands()
             // Fill the wheel angles and velocities
             fill_wheel_angles_radial();
             fill_wheel_velocities_radial();
+            
             data_msg.radius = best_effort_radius;
+            data_msg.direction = best_effort_direction;
             break;
         }
         case core::msg::DriveInput::STRAFE: {
@@ -54,9 +79,9 @@ void Driver::send_commands()
     for (size_t i = 0; i < NUM_WHEELS; i++)
     {
         PivotModule *pivot = pivots[i];
-        pivot->cmdWheel->drive(pivot->velocity);
+        pivot->drive_wheel();
         if (mode == core::msg::DriveInput::PIVOT || mode == core::msg::DriveInput::STRAFE) {
-            pivot->cmdPivot->drive(pivot->angle);
+            pivot->drive_pivot();
         }
         data_msg.angles[i] = pivot->angle;
         data_msg.velocities[i] = pivot->velocity;
@@ -99,6 +124,21 @@ void Driver::drive_callback(const core::msg::DriveInput::SharedPtr msg)
     if (abs(d_vel) > max_d_vel) {
         velocity = prev_velocity + max_d_vel * (d_vel > 0 ? 1 : -1);
     };
+}
+
+void Driver::disable_blcmd_callback(const std::shared_ptr<core::srv::DisableBLCMD::Request> request,
+                           std::shared_ptr<core::srv::DisableBLCMD::Response> response) {
+    if (!request->id || request->id > 8) {
+        response->success = false;
+        return;
+    }
+    if(request->id <= 4){
+        pivots[request->id - 1]->wheel_enabled = !(request->disable);
+    } else {
+        pivots[request->id - 5]->pivot_enabled = !(request->disable);
+    }
+
+    response->success = true;
 }
 
 // Gets the turning radius of the rover
@@ -435,6 +475,9 @@ Driver::Driver() : Node("driver")
 
     // Create pivot wheel data publisher
     pivot_wheel_pub = this->create_publisher<core::msg::PivotWheelData>("/control/pivot_wheel", 10);
+
+    disable_blcmd_srv = this->create_service<core::srv::DisableBLCMD>("/control/disable_blcmd",
+        std::bind(&Driver::disable_blcmd_callback, this, _1, _2));
 
     RCLCPP_DEBUG(this->get_logger(), "R = 0, D = -1, side = left, angle = %f", calc_wheel_angle(0, true, -1));
     RCLCPP_DEBUG(this->get_logger(), "R = 0, D = 1, side = left, angle = %f", calc_wheel_angle(0, true, 1));

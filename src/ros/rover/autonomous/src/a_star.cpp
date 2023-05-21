@@ -30,7 +30,7 @@ namespace py = pybind11;
    weigh distance to the destination. Higher values run quicker but find
    a less optimal path. */
 const float ROVER_WIDTH_CM = 50.0;
-const float TERRAIN_IMPORTANCE = 300; // How much we value smooth terrain over distance
+const float TERRAIN_IMPORTANCE = 1; // How much we value smooth terrain over distance
 const float SAFETY_FACTOR = 1.6; // Factor by which we multiply rover radius to pad.
 const float WEIGHT = 1.0; // weight of heuristic for A*
 const float SOURCE_OBSTACLE_CLEARANCE_RADIUS_M = 0.6; // distance to which we remove obstacles at src
@@ -40,7 +40,7 @@ const float OBSTACLE_VALUE = 1.0;
 const float HEIGHT_OBSTACLE_VALUE = 1.1;
 const float PLANE_PADDING_DISTANCE_FRACTION = 1.0;
 const float C_INF = 1e12;
-const float NEAREST_POINT_DIST_WEIGHT = 0.5;
+const float GOAL_DISTANCE_WEIGHT = 0.5;
 const float STRING_PULL_OBSTACLE_VAL = 0.5;
 float PADDING_DIST_M = 0; 
 
@@ -56,7 +56,8 @@ enum class Status : unsigned {
 	A_STAR_START_OBSTACLE = 1,
 	A_STAR_DEST_OBSTACLE = 2,
 	A_STAR_NO_PATH = 4,
-	A_STAR_CRITICAL_NO_PATH = 8
+	A_STAR_CRITICAL_NO_PATH = 8,
+	A_STAR_START_INVALID = 16,
 };
 
 Status& operator |=(Status &lhs, Status rhs)
@@ -93,7 +94,7 @@ struct cell {
 // A Utility Function to check whether given cell (row, col)
 // is a valid cell or not.
 
-bool isValid(const int cols, const int rows,
+bool inMap(const int cols, const int rows,
 			const Pair& point)
 { // Returns true if row number and column number is in
 
@@ -117,7 +118,7 @@ bool isSafe(const array<array<float, COL>, ROW>& grid,
 {
     /*is this square blocked by an obstacle or too close to one
 	to be safe?*/
-	if (isValid(COL, ROW, point)) 
+	if (inMap(COL, ROW, point)) 
 		return grid[point.first][point.second] < OBSTACLE_VALUE;
     return true; // destination is not valid (ie not in map), so it is not in an obstacle to our knowledge
 }
@@ -162,7 +163,6 @@ float padding_value(float dist_sqrd, float padding_width_sqrd)
 	distinguish between the two kinds of impassable points when padding)
 	*/
 	if (dist_sqrd < padding_width_sqrd) return 1.2 * OBSTACLE_VALUE;
-    if (dist_sqrd < 2 * padding_width_sqrd) return 0.0;
 	return 0;
 }
 
@@ -178,8 +178,8 @@ void optimise_padding_area(const array<array<float, COL>, ROW>& grid,
 	// bounding min and max values by dimensions of map
 	min_x = max(min_x, 0); 
 	min_y = max(min_y, 0);
-	max_x = min(max_x, (int) COL);
-	max_y = min(max_y, (int) ROW);
+	max_x = min(max_x, (int) COL - 1);
+	max_y = min(max_y, (int) ROW - 1);
 
 	for (int i = y - 1; i >= min_y; i--) {
 		if (isObstacle(grid[i][x])) {
@@ -231,28 +231,32 @@ int count_adjacent_obstacles(const array<array<float, COL>, ROW>& grid, int& x, 
 template <size_t ROW, size_t COL> 
 void pad_point(array<array<float, COL>, ROW>& grid, const Pair& start_pt, float padding_width_pixels)
 {
-	int y = start_pt.first, x = start_pt.second;
-	int min_x = x - 1.3 * padding_width_pixels, min_y = y - 1.3 * padding_width_pixels;
-	int max_x = x + 1.3 * padding_width_pixels, max_y = y + 1.3 * padding_width_pixels;
+	if (inMap(COL, ROW, start_pt)){
+		int y = start_pt.first, x = start_pt.second;
+		int min_x = x - padding_width_pixels, min_y = y - padding_width_pixels;
+		int max_x = x + padding_width_pixels, max_y = y + padding_width_pixels;
 
-	// if the obstale is an isolated point - it is likely a phantom obstacle - don't pad around it
-	if (count_adjacent_obstacles(grid, x, y) <= 1) return;
+		// if the obstale is an isolated point - it is likely a phantom obstacle - don't pad around it
+		if (count_adjacent_obstacles(grid, x, y) <= 1) return;
 
-	optimise_padding_area(grid, x, y, min_x, max_x, min_y, max_y);
+		optimise_padding_area(grid, x, y, min_x, max_x, min_y, max_y);
 
-	for (int k = min_y; k <= max_y; k++) {
-		for (int l = min_x; l <= max_x; l++) {
-			Pair there(k, l);
-			if (isValid(COL, ROW, there)) {
-				float grid_val = grid[k][l];
-				float new_val = padding_value(dist_squared(there, start_pt),
-									pow(padding_width_pixels, 2.0));
+		for (int k = min_y; k <= max_y; k++) {
+			for (int l = min_x; l <= max_x; l++) {
+				Pair there(k, l);
+				if (inMap(COL, ROW, there)) {
+					float grid_val = grid[k][l];
+					float new_val = padding_value(dist_squared(there, start_pt),
+										pow(padding_width_pixels, 2.0));
 
-				if (new_val > grid_val && !isObstacle(grid_val)) {
-					grid[k][l] = new_val;
+					if (new_val > grid_val && !isObstacle(grid_val)) {
+						grid[k][l] = new_val;
+					}
 				}
 			}
 		}
+	} else {
+		std::cout << "Error: padding point not in map" << std::endl;
 	}
 }
 
@@ -343,8 +347,8 @@ void clear_obstacles_from_location(array<array<float, COL>, ROW>& grid, const Pa
 	*/
 
 	int x = point.first, y = point.second;
-	for (int i = max(0, x - cutting_distance); i <= min((int) COL, x + cutting_distance); i++) {
-		for (int j = max(0, y - cutting_distance); j <= min((int) ROW, y + cutting_distance); j++){
+	for (int i = max(0, x - cutting_distance); i <= min((int) COL - 1, x + cutting_distance); i++) {
+		for (int j = max(0, y - cutting_distance); j <= min((int) ROW - 1, y + cutting_distance); j++){
 			if (grid[i][j] >= OBSTACLE_VALUE) grid[i][j] = 0.99 * OBSTACLE_VALUE;
 		}
 	}
@@ -362,12 +366,12 @@ bool obstacle_between(array<array<float, COL>, ROW>& grid, Pair p1, Pair p2, int
     double dx = (double) (x2 - x1) / num_points;
     double dy = (double) (y2 - y1) / num_points;
 
-    double x = x1, y = y1;
+    int x = x1, y = y1;
 
     for (int i = 0; i < num_points; i++){
-		x += dx;
-		y += dy;
-		if (grid[(int) x][(int) y] > STRING_PULL_OBSTACLE_VAL){
+		x += (int) dx;
+		y += (int) dy;
+		if (grid[x][y] > STRING_PULL_OBSTACLE_VAL){
 			return true;
 		}
     }
@@ -383,12 +387,14 @@ void string_pull_from_start(array<array<float, COL>, ROW>& grid, vector<Pair>& p
     for (size_t i = 0; i < path.size(); i++){
 		Pair this_point = path[i+1];
 		int num_points = (int) heuristic(start, this_point);
-        if (obstacle_between(grid, start, this_point, num_points) || num_points > 50){
+        if (obstacle_between(grid, start, this_point, num_points)){
             path = {path.begin() + i, path.end()};
-			path[0] = start;
+			path.insert(path.begin(), start);
             return;
         }
     }
+	path = {path.end()-1, path.end()};
+	path.insert(path.begin(), start);
 }
 
 template <size_t ROW, size_t COL>
@@ -414,14 +420,8 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 	int src_clearance = SOURCE_OBSTACLE_CLEARANCE_RADIUS_M / grid_resolution_m;
 	int dst_clearance = DEST_OBSTACLE_CLEARANCE_RADIUS_M / grid_resolution_m;
 
-	// If the destination is in an obstacle
-	if (!isSafe(grid, dest)) {
-		status |= Status::A_STAR_DEST_OBSTACLE;
-		clear_obstacles_from_location(grid, dest, dst_clearance);
-	}
-
 	// put a border around the outside of the map
-	add_obstacle_border(grid);
+	// add_obstacle_border(grid);
 
 	// assign heuristic values according to distance to nearest obstacle
 	precompute_padding_values(grid, grid_resolution_cm);
@@ -431,10 +431,21 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 		return construct_return_val(grid, vector<Pair> {{src}}, status);
 	}
 
+	if (!inMap(COL, ROW, src)) {
+		status |= Status::A_STAR_START_INVALID;
+		return vector<Pair> {{src}, {Pair((int) status, -1)}};
+	}
+
 	// If the source is in an obstacle
 	if (!isSafe(grid, src)) {
 		status |= Status::A_STAR_START_OBSTACLE;
 		clear_obstacles_from_location(grid, src, src_clearance);
+	}
+
+	// If the destination is in an obstacle
+	if (!isSafe(grid, dest)) {
+		status |= Status::A_STAR_DEST_OBSTACLE;
+		clear_obstacles_from_location(grid, dest, dst_clearance);
 	}
 
 
@@ -469,11 +480,9 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 	openList.emplace(0.0, i, j);
 
 	// for storing the nearest point to the destination we could find
-	double min_dist_to_dest_squared = C_INF;
-	Pair nearest_point = src;
+	double best_cost = C_INF;
+	Pair best_point = src;
 
-	// We set this boolean value as false as initially
-	// the destination is not reached.
 	while (!openList.empty()) {
 		const Tuple& p = openList.top();
 		// Add this vertex to the closed list
@@ -486,13 +495,14 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 
 		// Generating all the 8 successors of this cell
 	    for (Pair branch : BRANCHES) {
-			int diff_x = branch.first, diff_y = branch.second;
+			int diff_x = branch.first;
+			int diff_y = branch.second;
 
 			Pair neighbour(i + diff_x, j + diff_y);
 			
 			// If the cell doesn't contain an obstacle, is in the map, and hasn't already been explored
 			if (isSafe(grid, neighbour) 
-				&& isValid(COL, ROW, neighbour) 
+				&& inMap(COL, ROW, neighbour) 
 				&& !closedList[neighbour.first][neighbour.second]) {
 				
 				if (isDestination(neighbour, dest)) {
@@ -507,18 +517,18 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 				float gNew, hNew, fNew;
 				// additional distance to next point
 				float g_diff = (diff_y == 0 || diff_x == 0) ? 1.0 : sqrt(2.0);
-				gNew = cellDetails[i][j].g + g_diff;
+				float terrain_cost = grid[neighbour.first][neighbour.second] * TERRAIN_IMPORTANCE;
+				gNew = cellDetails[i][j].g + g_diff + terrain_cost;
 				// Heuristic contains weighted combination of the terrain cost of driving here and the distance to the goal
-				hNew = grid[neighbour.first][neighbour.second] * TERRAIN_IMPORTANCE + heuristic(neighbour, dest) * WEIGHT;
+				hNew = heuristic(neighbour, dest) * WEIGHT;
 				fNew = gNew + hNew;
 
 				// In case we can't get to the destination, we keep track of the best effort so far:
 				// A point that optimises between being as close to the goal as possible while not requiring us to drive too far
-				double dist_sqrd = dist_squared(neighbour, dest);
-				if (NEAREST_POINT_DIST_WEIGHT * dist_sqrd + gNew < min_dist_to_dest_squared) {
+				if (GOAL_DISTANCE_WEIGHT * hNew + fNew < best_cost) {
 					// if the distance is much better, 
-					min_dist_to_dest_squared = NEAREST_POINT_DIST_WEIGHT * dist_sqrd + gNew; 
-					nearest_point = neighbour;
+					best_cost = GOAL_DISTANCE_WEIGHT * hNew + fNew; 
+					best_point = neighbour;
 				}
 				
 				// If we hadn't explored this cell before, or we have found a new, shorter path to it
@@ -543,7 +553,7 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 	status |= Status::A_STAR_NO_PATH;
 	
 	// instead return path to the nearest point we could find
-	vector<Pair> path = tracePath(cellDetails, nearest_point);
+	vector<Pair> path = tracePath(cellDetails, best_point);
 
 	if (path.size() < CRITICAL_PATH_LEN) status |= Status::A_STAR_CRITICAL_NO_PATH;
 	return construct_return_val(grid, path, status);

@@ -29,6 +29,7 @@ class DepthCamera(Node):
         self.decimation_filters = self.initialise_decimators()
         self.decimation_index = 2
         self.param_target_cloud_processing_time = self.declare_parameter("target_processing_time_s", 0.2).value
+        self.param_do_blocks = self.declare_parameter("do_blocks", False).value
 
         self.pc = rs.pointcloud()
         self.hole_filling = rs.hole_filling_filter()
@@ -62,7 +63,8 @@ class DepthCamera(Node):
         self.depth_frame_id = 'd435_1'
 
         self.ar_tracker = ArTracker(self.color_intrinsics, depth_cam_frame_id=self.depth_frame_id)
-        self.object_detector = ObjectDetection(self.depth_intrinsics)
+        if self.param_do_blocks:
+            self.object_detector = ObjectDetection(self.depth_intrinsics)
         self.cv_bridge : CvBridge = CvBridge()
 
         self.param_pointcloud_frequency = self.declare_parameter("depth_cloud_rate_hz", 5).value
@@ -138,7 +140,8 @@ class DepthCamera(Node):
         t1 = time.perf_counter()
         self.ar_tracker.find_ar_tags(color_image)
         t2 = time.perf_counter()
-        self.object_detector.object_detection(self.color_frame, self.depth_frame)
+        if self.param_do_blocks:
+            self.object_detector.object_detection(self.color_frame, self.depth_frame)
         t3 = time.perf_counter()
         header = Header(
             stamp = self.latest_frame_stamp,
@@ -151,7 +154,8 @@ class DepthCamera(Node):
 
         self.get_logger().debug(f"Getting color image to array took {t1 - t0} s")
         self.get_logger().debug(f"AR tag detection took {t2 - t1} s")
-        self.get_logger().debug(f"object detection took {t3 - t2} s")
+        if self.param_do_blocks:
+            self.get_logger().debug(f"object detection took {t3 - t2} s")
         self.get_logger().debug(f"Converting to image message took {t4 - t3} s")
 
     def process_pointcloud(self):

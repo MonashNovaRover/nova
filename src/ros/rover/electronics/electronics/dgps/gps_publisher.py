@@ -19,61 +19,75 @@ TODO:
  - convert log to debug
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
-import serial
+from serial import Serial
+from pynmeagps import NMEAReader, NMEAMessage
 
 import rclpy
 from rclpy.node import Node
 
 from core.msg import RoverPoseGPS
-from rclpy.logging import LoggingSeverity
+import logging
 
 class SkytraqNode (Node):
     def __init__ (self, com_no, baud):
         super().__init__('gps_data')
+        self.get_logger().set_level(logging.DEBUG)
 
-        self.pose = RoverPoseGPS()
+        self.pose : RoverPoseGPS = RoverPoseGPS()
         self.pose.header.frame_id = "gps_link"
 
         self.fix_type : str = None
 
-        self.ser = serial.Serial()
+        self.ser : Serial = Serial()
         self.config_port(com_no, baud)
+        self.reader = NMEAReader(
+            self.ser,
+            validate=0x03,   # validate both checksum and message id
+            nmeaonly=True    # Raise an error on receiving a badly formatted message
+        )
 
         self.publisher = self.create_publisher(RoverPoseGPS, '/electronics/gps_data', 10)
         self.timer = self.create_timer(0, self.publisher_callback)
 
-    def parse_msg(self, pose):
+    def parse_msg(self):
+        
         self.pose.header.stamp = self.get_clock().now().to_msg()
-        raw_msg = self.get_msg()
+        raw_msg : NMEAMessage
+        try:
+            raw_msg, parsed_msg = self.reader.read()
+        except Exception as e:
+            self.get_logger().warn(f"Failed to read NMEA sentence: {e}")
+            return
 
-        if raw_msg[0:2] == ["PSTI", '036']:
-            if raw_msg[4] != '' and (raw_msg[4].isupper() or raw_msg[4].islower()) == False:
-                pose.pitch, pose.roll, pose.yaw = float(raw_msg[5]), float(raw_msg[6]), float(raw_msg[4])
-        
-        elif raw_msg[0] == "GNRMC":
-            pose.latitude, pose.longitude = float(raw_msg[3])/100, float(raw_msg[5])/100
-            if raw_msg[4] == "S":
-                pose.latitude = -1 * pose.latitude
-            if raw_msg[6] == "W":
-                pose.longitude = -1 * pose.longitude
+        self.get_logger().debug(f"raw message: {raw_msg}")
 
-            if raw_msg[2] == 'A':
-                pose.valid = True
-            else:
-                pose.valid = False
+        if parsed_msg is None:
+            return
 
-            if raw_msg[12] != "":
-                self.fix_type = raw_msg[12]
-        
-        elif raw_msg[0] == "GPGGA":
-            self.get_logger().debug(f'fix type: {raw_msg[6]}')
+        try:
+            if parsed_msg.talker == "P" and parsed_msg.msgID == "STI" and parsed_msg.msgId == "036":
+                # We are dealing with a PSTI036 message, which contains orientation information
+                if parsed_msg.mode == "R":
+                    # RTK (Real-Time Kinematic) mode. We have valid heading
+                    self.pose.heading_valid = True
+                    self.pose.pitch, self.pose.roll, self.pose.yaw = parsed_msg.pitch, parsed_msg.roll, parsed_msg.heading
+                else:
+                    # Not RTK mode. We don't have valid heading
+                    self.pose.heading_valid = False
 
-    def get_msg(self):
-        txt = str(self.ser.read_until(b"$"))
-        txt = txt.rstrip("\\r\\n$'")
-        txt = txt.lstrip("b'")
-        return txt.split(",")
-    
+            elif parsed_msg.talker == "GN" and parsed_msg.msgID == "RMC":
+                if parsed_msg.status == 'A':
+                    # Valid
+                    self.pose.valid = True
+                    self.pose.latitude, self.pose.longitude = parsed_msg.lat, parsed_msg.lon
+                else:
+                    self.pose.valid = False
+
+            elif parsed_msg.talker == "GP" and parsed_msg.msgID == "GGA":
+                self.fix_type = parsed_msg.quality   # 1 = No fix, 2 = 2D fix, 3 = 3D fix
+        except Exception as e:
+            self.get_logger().warn(f"Bad message {parsed_msg}")
+
     def config_port(self, port_name, baud):
         self.ser.baudrate = baud
         if port_name == "":
@@ -81,30 +95,30 @@ class SkytraqNode (Node):
         self.ser.port = port_name
         self.ser.open()
 
-    def print_msg(self, rover_msg):
+    def print_msg(self):
         roverMsgStr = f"""
-        valid: {rover_msg.valid}
-        fix type: {self.fix_type}
-        lat: {rover_msg.latitude:8.3f}
-        lon: {rover_msg.longitude:8.3f}
-        pitch: {rover_msg.pitch:8.2f}
-        roll: {rover_msg.roll:8.2f}
-        yaw: {rover_msg.yaw:8.2f}
+        valid: {self.pose.valid}
+        fix type: {"None" if self.fix_type == 1 else "2D" if self.fix_type == 2 else "3D" if self.fix_type == 3 else self.fix_type}
+        lat: {self.pose.latitude:8.3f}
+        lon: {self.pose.longitude:8.3f}
+        pitch: {self.pose.pitch:8.2f}
+        roll: {self.pose.roll:8.2f}
+        yaw: {self.pose.yaw:8.2f}
         """
 
-        if rover_msg.valid:
+        if self.pose.valid:
             self.get_logger().debug(roverMsgStr,throttle_duration_sec=2)
         else:
-            self.get_logger().debug(f'[WARN] {roverMsgStr}',throttle_duration_sec=2)
+            self.get_logger().warn(f'{roverMsgStr}',throttle_duration_sec=2)
 
     def publisher_callback(self):
-        self.parse_msg(self.pose)
+        self.parse_msg()
         self.publisher.publish(self.pose)
-        self.print_msg(self.pose)
+        self.print_msg()
 
         
 def main (args = None):
-    baud = 115200;
+    baud = 115200
     rclpy.init(args = args)
     gps = SkytraqNode("", baud)
     rclpy.spin(gps)

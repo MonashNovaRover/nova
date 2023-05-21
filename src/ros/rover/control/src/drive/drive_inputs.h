@@ -31,11 +31,13 @@ EDITED:		31/05/2022
 #include "core/msg/input_gamepad.hpp"
 #include "core/msg/drive_input.hpp"
 #include "core/msg/drive_info.hpp"
-
+#include <math.h>
 // The minimum and maximum multipliers
-const float MIN_MULTIPLIER      = 0.1;  // The minimum multiplier value
-const float MAX_MULTIPLIER      = 1.0;  // The maximum multiplier value
-const float DELTA_MULTIPLIER    = 0.1;  // The change in multiplier
+const float MIN_COARSE_MULTIPLIER              = 0.1;  // The minimum coarse multiplier value
+const float MIN_FINE_MULTIPLIER                = 0.02; // The minimum fine multiplier value
+const float MAX_MULTIPLIER              = 1.0;  // The maximum multiplier value
+const float DELTA_MULTIPLIER_COARSE     = 0.1;  // The coarse change in multiplier
+const float DELTA_MULTIPLIER_FINE       = 0.02; // The fine change in multiplier
 
 // The initial multipliers
 const float INITIAL_MULT_SPEED = 0.3;
@@ -101,8 +103,9 @@ private:
     /// @brief      Adjusts one of the multipliers between 0.1 and 1.0
     /// @param      multiplier - A reference to the speed or steer multiplier
     /// @param      increase - A boolean flag for increasing (or false to decrease)
+    /// @param      coarse - A boolean flag for a coarse change (or false for a fine change)
     /// @returns    The current value of the multiplier
-    float adjust_multiplier (float& multiplier, bool increase);
+    float adjust_multiplier (float& multiplier, bool increase, bool coarse);
 
     /// @brief      Publishes the drive commands after analysing
     ///                 the input data.

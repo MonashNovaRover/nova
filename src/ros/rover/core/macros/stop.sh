@@ -13,11 +13,11 @@ then
 
     bash -c "sudo systemctl stop arm.service" 
 
-elif [[ $1 = "rover" ]] 
+elif [[ $1 = "drive" ]] 
 
 then
 
-    bash -c "sudo systemctl stop rover.service" 
+    bash -c "sudo systemctl stop drive.service" 
 
 else
 

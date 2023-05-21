@@ -5,7 +5,7 @@
 # sudo apt update
 # sudo apt install screen
 
-for name in cpu can; do
+for name in cpu can drive base; do
     echo "Setting up the ${name} service... "
     echo "Placing service in /etc/systemd/system/${name}.service"
     sudo cp ${name}.service /etc/systemd/system/${name}.service

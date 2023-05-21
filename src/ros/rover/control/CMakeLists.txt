@@ -132,6 +132,7 @@ install(PROGRAMS
         control/blcmd_status_monitor.py
         control/excavation_construction.py
         control/gimble_cam.py
+        control/drive_sim.py
         DESTINATION lib/${PROJECT_NAME}
         )
 

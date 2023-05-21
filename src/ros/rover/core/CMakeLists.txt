@@ -21,12 +21,12 @@ find_package(ament_cmake REQUIRED)
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(nav_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 
 # Find default generators
 find_package(rosidl_default_generators REQUIRED)
 find_package(std_msgs REQUIRED)
-
 
 # Include all interfaces
 rosidl_generate_interfaces(${PROJECT_NAME}
@@ -42,24 +42,14 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/DistanceData.msg"
   "msg/DriveInfo.msg"
   "msg/DriveInput.msg"
-  "msg/DriveVel.msg"
-  "msg/Heartbeat.msg"
   "msg/HydraprobeData.msg"
   "msg/EMCData.msg"
   "msg/InputGamepad.msg"
   "msg/InputJoystick.msg"
-  "msg/KilnMassData.msg"
-  "msg/KilnTempData.msg"
-  "msg/Map2D.msg"
   "msg/Point2D.msg"
   "msg/RadioStatus.msg"
   "msg/RoverPoseGPS.msg"
-  "msg/RoverPose.msg"
   "msg/SpectrometerData.msg"
-  "msg/Waypoint.msg"
-  "msg/Waypoints.msg"
-  "msg/WheelData.msg"
-  "msg/WheelOdometry.msg"
   "msg/AutonomousGoal.msg"
   "msg/AutonomousGoalArray.msg"
   "msg/PivotWheelData.msg"
@@ -69,6 +59,12 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/BLCMDStatusArray.msg"
   "msg/BLCMDReset.msg"
   "msg/ActuatorLimit.msg"
+
+  "msg/Heartbeat.msg"
+  "msg/KilnMassData.msg"
+  "msg/KilnTempData.msg"
+  "msg/WheelOdometry.msg"
+  "msg/RoverPose.msg"
 
   "srv/ArmConfigInfo.srv"
   "srv/CameraCommand.srv"
@@ -80,9 +76,10 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/RFIDCommand.srv"
   "srv/PathPlanningRequest.srv"
   "srv/StringTrigger.srv"
+  "srv/DisableBLCMD.srv"
 
   # Action definitions
-  DEPENDENCIES std_msgs geometry_msgs
+  DEPENDENCIES std_msgs geometry_msgs nav_msgs
 )
 
 # Add all the installation directories

@@ -1,0 +1,5 @@
+bool disable    #disable the blcmd. True to disable, false to enable
+uint8 id        #id of the blcmd to be disabled
+---
+
+bool success #true if the blcmd was disabled, false otherwise
