@@ -33,16 +33,16 @@ from rclpy.subscription import SubscriptionEventCallbacks
 from rclpy.duration import Duration
 
 
-class GimbleCam(Node):
+class GimbalCam(Node):
 
     def __init__(self):
-        super().__init__("gimble_cam")
+        super().__init__("gimbal_cam")
 
         self.get_logger().set_level(logging.INFO)
         self.param_can = self.declare_parameter("can_bus", "can1").value
         self.param_velocity_increment = self.declare_parameter("velocity_factor", 0.1).value
         self.max_velocity_value = self.declare_parameter("max_velocity_value", 127).value
-        # can commands for gimble cam
+        # can commands for gimbal cam
         self.velocity_cmd = 0x081
         # Initially all motors spin backwards with 0 velocity
         self.velocity_factor = 0.5
@@ -124,8 +124,8 @@ class GimbleCam(Node):
 
 def main():
     rclpy.init()
-    excavation_construction = GimbleCam()
-    rclpy.spin(excavation_construction)
+    gimbal_cam = GimbalCam()
+    rclpy.spin(gimbal_cam)
     rclpy.shutdown()
 
 
