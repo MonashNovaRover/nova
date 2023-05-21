@@ -73,13 +73,14 @@ class ArTracker(Node):
 
         return pose
 
-    def find_ar_tags(self, img):
+    def find_ar_tags(self, img, stamp):
         """
         Returns an AlvarMarker message or None
         """
         bboxs, ids, _ = ar.detectMarkers(img, self.arDict, parameters=self.arParam)
         markers = AlvarMarkers()
         markers.header.frame_id = self.frame_id
+        markers.header.stamp = stamp
 
         if ids is not None:
             # projecting 2d camera coordinates into space

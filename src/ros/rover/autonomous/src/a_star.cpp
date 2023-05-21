@@ -361,6 +361,8 @@ void clear_obstacles_from_location(array<array<float, COL>, ROW>& grid, const Pa
 	int x = point.first, y = point.second;
 	for (int i = max(0, x - cutting_distance); i <= min((int) COL - 1, x + cutting_distance); i++) {
 		for (int j = max(0, y - cutting_distance); j <= min((int) ROW - 1, y + cutting_distance); j++){
+			if (!inMap(COL, ROW, Pair(i, j)))
+				continue;
 			if (grid[i][j] >= OBSTACLE_VALUE) grid[i][j] = 0.99 * OBSTACLE_VALUE;
 		}
 	}

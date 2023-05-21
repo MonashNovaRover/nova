@@ -70,9 +70,9 @@ class Mapper(Node):
 
         self.get_logger().set_level(logging.INFO)
         # Timer frequencies
-        self.param_tf_sub_hz = self.declare_parameter("tf_sub_frequency_hz", 30).value
         self.param_tf_pub_hz = self.declare_parameter("tf_pub_frequency_hz", 30).value
         self.param_map_pub_hz = self.declare_parameter("map_pub_frequency_hz", 3).value
+        self.param_map_update_hz = self.declare_parameter("map_update_frequency_hz", 3).value
 
         # Map dimensions and rolling
         self.param_roll_map = self.declare_parameter("roll_map", True).value
@@ -98,17 +98,15 @@ class Mapper(Node):
         # For publishing the map
         self.pub_occupancy_grid = self.create_publisher(OccupancyGrid, "/autonomous/occupancy_grid", 10)
 
-        self.previous_map_update = time.perf_counter()
-
         # For moving the map as we navigate
         if not self.param_roll_map:
             self.tf_map_offset = StaticTransformBroadcaster(self)
         else:
             self.tf_map_offset = TransformBroadcaster(self)
 
-        self.local_map_to_base_link: Transform = None
-        self.local_map_to_d435: Transform = None
         self.orient_nova_frame_transform : Transform = None
+
+        self.latest_msg : PointCloud2 = None
 
         self.resolution_ratio = int(self.param_resolution_m / self.param_detection_resolution_m)
         self.detection_length = int(
@@ -146,8 +144,8 @@ class Mapper(Node):
 
             if self.param_roll_map:
                 self.map_roll_timer = self.create_timer(1, self.check_position_in_map)
-            self.map_transform_timer = self.create_timer(1./self.param_tf_sub_hz, self.update_transforms)
             self.map_pub_timer = self.create_timer(1./self.param_map_pub_hz, self.publish)
+            self.pc_timer = self.create_timer(1./self.param_map_update_hz, self.handle_pc)
 
     def initialise_map(self):
         if self.param_roll_map:
@@ -202,8 +200,6 @@ class Mapper(Node):
         """
         Set correct initial transform values, awaiting transforms from tf2
         """
-        self.local_map_to_d435: Transform = None
-        self.local_map_to_base_link: Transform = None
         try:
             self.orient_nova_frame_transform = self.tf_buffer.lookup_transform(
                 target_frame="d435_1_forward", 
@@ -211,11 +207,7 @@ class Mapper(Node):
                 time=Time()).transform
         except:
             self.get_logger().error(f"Couldn't get depth camera rotation!")
-
-
-        while self.local_map_to_d435 is None or\
-                self.local_map_to_base_link is None:
-            self.update_transforms()
+            self.destroy_node()
 
     def set_offset(self, x, y):
         """
@@ -306,20 +298,27 @@ class Mapper(Node):
         If we're near the edge of the map, roll the map in a given direction.
         Only called if param_roll_map is true
         """
-        x_change, y_change = 0, 0
-        x_dist = self.local_map_to_base_link.translation.x
-        y_dist = self.local_map_to_base_link.translation.y
-        self.get_logger().debug(f"Edge distances: x = {x_dist}, y = {y_dist}")
-        self.get_logger().debug(f"local map -> base link = {self.local_map_to_base_link}")
-        if abs(x_dist) > self.param_map_roll_distance:
-            x_change = self.param_map_roll_distance * np.sign(x_dist)
-        if abs(y_dist) > self.param_map_roll_distance:
-            y_change = self.param_map_roll_distance * np.sign(y_dist)
-        if x_change != 0 or y_change != 0:
-            self.grid_2d.roll_map(x_change, y_change)
-        self.shift_offset(x_change, y_change)
+        try:
+            local_map_to_base_link = self.tf_buffer.lookup_transform(target_frame='local_map',
+                                                                source_frame='base_link',
+                                                                time=Time()).transform
+        except Exception as e:
+            self.get_logger().debug(f"transform lookup error for base_link transform: {e}", throttle_duration_sec=1)
+        else:
+            x_change, y_change = 0, 0
+            x_dist = local_map_to_base_link.translation.x
+            y_dist = local_map_to_base_link.translation.y
+            self.get_logger().debug(f"Edge distances: x = {x_dist}, y = {y_dist}")
+            self.get_logger().debug(f"local map -> base link = {local_map_to_base_link}")
+            if abs(x_dist) > self.param_map_roll_distance:
+                x_change = self.param_map_roll_distance * np.sign(x_dist)
+            if abs(y_dist) > self.param_map_roll_distance:
+                y_change = self.param_map_roll_distance * np.sign(y_dist)
+            if x_change != 0 or y_change != 0:
+                self.grid_2d.roll_map(x_change, y_change)
+            self.shift_offset(x_change, y_change)
 
-    def arrange_obstacles(self, obstacles):
+    def arrange_obstacles(self, obstacles, local_map_to_d435):
         """
         Turns a 1d numpy array of obstacle values into a list of coordinates and their
         values. We then cut all points which aren't in the segment within the fov of
@@ -329,8 +328,8 @@ class Mapper(Node):
         obs_as_points = np.array([[x, y, val] for (x, y), val in np.ndenumerate(obstacles) \
                                   if np.abs(np.arctan2(y - len(obstacles[0]) / 2, x)) < max_fov_horizontal])
         obs_as_points[:, 1] -= int(np.ceil(self.detection_width / (2 * self.resolution_ratio)))
-        self.get_logger().debug(f"Rotating obstacles in map: {self.local_map_to_d435}", throttle_duration_sec=1)
-        obstacles = transform.transform_yaw(self.local_map_to_d435, obs_as_points)
+        self.get_logger().debug(f"Rotating obstacles in map: {local_map_to_d435}", throttle_duration_sec=1)
+        obstacles = transform.transform_yaw(local_map_to_d435, obs_as_points)
         obstacles[:, 2] *= 100
 
         # halving non-obstacle values to make us not care so much
@@ -340,36 +339,6 @@ class Mapper(Node):
         obstacles[obstacles[:, 2] < obstacle_ignore_value, 2] = 5
         return np.round(obstacles).astype(int)
 
-    def update_transforms(self):
-        """
-        Listen for new tf2 transforms
-        """
-        try:
-            self.local_map_to_d435 = self.tf_buffer.lookup_transform(target_frame='local_map',
-                                                                source_frame='d435_1_forward',
-                                                                time=Time()).transform
-        except Exception as e:
-            self.get_logger().debug(f"transform lookup error for d435 transform: {e}", throttle_duration_sec=1)
-        try:
-            self.local_map_to_base_link = self.tf_buffer.lookup_transform(target_frame='local_map',
-                                                                source_frame='base_link',
-                                                                time=Time()).transform
-        except Exception as e:
-            self.get_logger().debug(f"transform lookup error for base_link transform: {e}", throttle_duration_sec=1)
-
-    def update_map(self, pts):
-        """
-        We only update the map every .5 seconds at most - need to take out magic number
-        :param pts: np.array(n, 6) - refers to x,y,z,r,g,b
-        """
-        # transform the points
-        self.get_logger().debug(f"Update map called after {time.perf_counter() - self.previous_map_update} s with {len(pts)} points", throttle_duration_sec=1)
-        if time.perf_counter() - self.previous_map_update > min_map_update_time:
-            self.get_logger().debug(f"handling pc: {pts}", throttle_duration_sec=1)
-            self.handle_pc(pts)
-
-            self.previous_map_update = time.perf_counter()
-
     def pointcloud_callback(self, msg):
         """
         This is called when the depth camera receives a new set of points via the python api. It is implemented
@@ -378,7 +347,7 @@ class Mapper(Node):
         when using the python API, it should be a points only map.
         """
         self.get_logger().debug("Received pointcloud", throttle_duration_sec=1)
-        self.update_map(np.array(list(read_points(msg, skip_nans=True))))
+        self.latest_msg = msg
 
     def get_2d_map(self):
         """
@@ -387,29 +356,34 @@ class Mapper(Node):
         """
         return self.grid_2d.map.astype(float) / 100
 
-    def handle_pc(self, pts):
+    def handle_pc(self):
         """
         Uses height mapping to identify obstacles in 3d point cloud and generate a 2d
         Occupancy grid for planning on
         :param pts: list of points in meters coordinates relative to the tracking camera
         (not transformed).
         """
-        # If we want the 3d map as well
-        # super().handle_pc(pts)
-        # transforming pitch and roll to flatten the map, but no yaw or translation
-        if self.local_map_to_d435 is None: 
-            self.get_logger().warn("No transform to d435 frame!")
+        if self.latest_msg is None:
             return
-        if self.orient_nova_frame_transform is None: 
-            self.get_logger().warn("No transform to forward-facing frame!")
+        # extract numpy array of points from pointcloud2 message
+        pts = np.array(list(read_points(self.latest_msg, skip_nans=True)))
+
+        # Looking up transform to our position at the time the frame was taken
+        try:
+            local_map_to_d435 = self.tf_buffer.lookup_transform(target_frame='local_map',
+                                                                source_frame='d435_1_forward',
+                                                                time=Time.from_msg(self.latest_msg.header.stamp),
+                                                                timeout=Duration(nanoseconds=1e8)).transform
+        except Exception as e:
+            self.get_logger().debug(f"transform lookup error for d435 transform: {e}", throttle_duration_sec=1)
             return
         if len(pts) < 10:
             return
         self.get_logger().debug(f"Transforming point cloud by transform: {self.orient_nova_frame_transform}", throttle_duration_sec=1)
         # transform to nova coordinates
         frame_transformed_points = transform.transform_points(self.orient_nova_frame_transform, pts)
-        self.get_logger().debug(f"Transforming point cloud by transform: {self.local_map_to_d435}", throttle_duration_sec=1)
-        no_yaw_pts = transform.transform_points_no_yaw(self.local_map_to_d435, frame_transformed_points)
+        self.get_logger().debug(f"Transforming point cloud by transform: {local_map_to_d435}", throttle_duration_sec=1)
+        no_yaw_pts = transform.transform_points_no_yaw(local_map_to_d435, frame_transformed_points)
 
         filtered_indices = self.filter_points(no_yaw_pts)
 
@@ -437,8 +411,8 @@ class Mapper(Node):
 
         obstacles[:min_x, :] = 0
         
-        rotated_obs = self.arrange_obstacles(obstacles)
-        self.grid_2d.add_obstacles(self.local_map_to_d435, rotated_obs)
+        rotated_obs = self.arrange_obstacles(obstacles, local_map_to_d435)
+        self.grid_2d.add_obstacles(local_map_to_d435, rotated_obs)
 
     def publish(self):
         """
