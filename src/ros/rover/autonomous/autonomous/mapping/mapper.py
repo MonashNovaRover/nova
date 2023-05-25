@@ -55,6 +55,7 @@ from tf2_ros import TransformBroadcaster, StaticTransformBroadcaster, TransformL
 import time, logging
 from typing import Tuple
 import numpy as np
+import math
 from scipy.signal import convolve2d
 
 from nav_msgs.msg import OccupancyGrid, MapMetaData
@@ -81,6 +82,9 @@ class Mapper(Node):
         self.param_map_width_m = self.declare_parameter("map_width_m", 20).value
         self.param_resolution_m = self.declare_parameter("resolution_m", 0.1).value
         self.param_detection_resolution_m = self.declare_parameter("detection_resolution_m", 0.025).value
+
+        # Max pitch beyond which we do not map, as we will be looking at the sky
+        self.param_max_pitch = self.declare_parameter("max_mapping_pitch_rad", np.pi / 4)
 
         # How to map obstacles
         self.param_do_height_mapping = self.declare_parameter("do_height_mapping", True).value
@@ -376,7 +380,11 @@ class Mapper(Node):
         except Exception as e:
             self.get_logger().debug(f"transform lookup error for d435 transform: {e}", throttle_duration_sec=1)
             return
+        pitch, _, _ = transform.quat_to_euler(local_map_to_d435.rotation)
         if len(pts) < 10:
+            return
+        if pitch > self.param_max_pitch:
+            self.get_logger().debug(f"Pitch of {math.degrees(pitch)} degrees, skipping mapping")
             return
         self.get_logger().debug(f"Transforming point cloud by transform: {self.orient_nova_frame_transform}", throttle_duration_sec=1)
         # transform to nova coordinates
