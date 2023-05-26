@@ -71,7 +71,7 @@ class Mapper(Node):
         self.get_logger().set_level(logging.INFO)
         # Timer frequencies
         self.param_tf_pub_hz = self.declare_parameter("tf_pub_frequency_hz", 30).value
-        self.param_sim_map = self.declare_parameter("sim_map", False).value
+        self.param_sim_map = self.declare_parameter("sim_map", True).value
         self.param_map_pub_hz = self.declare_parameter("map_pub_frequency_hz", 3).value
         self.param_map_update_hz = self.declare_parameter("map_update_frequency_hz", 3).value
 

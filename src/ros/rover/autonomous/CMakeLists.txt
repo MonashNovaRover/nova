@@ -106,6 +106,7 @@ ament_python_install_package(${PROJECT_NAME})
 # Add all Python executables to this list
 install(PROGRAMS
   autonomous/mapping/mapper.py
+  autonomous/mapping/map_sim.py
   autonomous/cameras/tracking_camera.py
   autonomous/cameras/depth_camera.py
   autonomous/cameras/ar_tag_sim.py
