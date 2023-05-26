@@ -71,6 +71,7 @@ class Mapper(Node):
         self.get_logger().set_level(logging.INFO)
         # Timer frequencies
         self.param_tf_pub_hz = self.declare_parameter("tf_pub_frequency_hz", 30).value
+        self.param_sim_map = self.declare_parameter("sim_map", False).value
         self.param_map_pub_hz = self.declare_parameter("map_pub_frequency_hz", 3).value
         self.param_map_update_hz = self.declare_parameter("map_update_frequency_hz", 3).value
 
@@ -147,7 +148,8 @@ class Mapper(Node):
 
             if self.param_roll_map:
                 self.map_roll_timer = self.create_timer(1, self.check_position_in_map)
-            self.map_pub_timer = self.create_timer(1./self.param_map_pub_hz, self.publish)
+            if not self.param_sim_map:
+                self.map_pub_timer = self.create_timer(1./self.param_map_pub_hz, self.publish)
             self.pc_timer = self.create_timer(1./self.param_map_update_hz, self.handle_pc)
 
     def initialise_map(self):
