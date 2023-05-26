@@ -77,7 +77,7 @@ class Controller(Node):
         super().__init__('goal_selector')
 
         # set debug to not get shown
-        self.get_logger().set_level(LoggingSeverity.DEBUG)
+        self.get_logger().set_level(LoggingSeverity.INFO)
 
         # Params
         self.param_plan_frequency = self.declare_parameter("plan_frequency", 2.0).value

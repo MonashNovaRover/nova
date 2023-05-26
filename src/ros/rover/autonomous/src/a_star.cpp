@@ -418,7 +418,7 @@ bool obstacle_between(array<array<float, COL>, ROW>& grid, Pair p1, Pair p2, int
         size_t x_index = (size_t) x;
         size_t y_index = (size_t) y;
 
-		if (onBorder(COL, ROW, Pair(x_index, y_index)) || !inMap(COL, ROW, Pair(x_index, y_index))) {
+		if (!inMap(COL, ROW, Pair(x_index, y_index))) {
 			return true;
 		}
 
