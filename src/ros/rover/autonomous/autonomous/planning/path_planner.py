@@ -59,7 +59,7 @@ class PathPlanner(Node):
         :param resolution_m: planning resolution
         """
         super().__init__("path_planner_node")
-        self.get_logger().set_level(logging.DEBUG)
+        self.get_logger().set_level(logging.INFO)
 
         self.param_obstacle_near_dist = self.declare_parameter("obstacle_near_dist_m", 2).value
         self.param_near_obstacle_thresh = self.declare_parameter("num_near_obstacles_thresh", 5).value
@@ -119,7 +119,7 @@ class PathPlanner(Node):
         max_y_idx = min(len(self._map[0]) - 1, int((self.pose_2d.y + self.param_obstacle_near_dist) / self.resolution))
         region_of_interest = self._map[min_x_idx:max_x_idx, min_y_idx:max_y_idx]
         near_obstacle = np.sum((region_of_interest >= 1).astype(float)) > self.param_near_obstacle_thresh
-        self.pub_near_obstacle.publish(Bool(near_obstacle))
+        self.pub_near_obstacle.publish(Bool(data=bool(near_obstacle)))
 
     def set_goal(self, goal: PoseStamped):
         """

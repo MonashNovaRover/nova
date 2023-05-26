@@ -556,7 +556,7 @@ class Controller(Node):
             self.get_logger().debug(f"plan state is {self.state}")
 
         dist_to_goal = self.dist_to_goal(self.state_current_goal)
-        self.pub_goal_dist.publish(Float64(dist_to_goal))
+        self.pub_goal_dist.publish(Float64(data=dist_to_goal))
         planning_destination = PoseStamped()
         planning_destination.header.stamp = self.get_clock().now().to_msg()
         planning_destination.header.frame_id = "map"

@@ -32,18 +32,16 @@ from typing import Tuple
 
 def get_target_radius(yaw_diff: float) -> float:
     """
-    Calculates target steer value (mapping to -1:1 controller right stick position)
-    Domain: This function should have inputs such that:
-        abs(yaw_diff) <= pi
-    Range:
-        [-1, 1]
+    Calculates target radius at which the rover should turn given a yaw difference between
+    its current heading and the vector to its goal. This value is scaled to approach a radius of 0 (turning on the spot)
+    for large yaw differences, with larger radii corresponding to smaller yaw differences
 
     :param yaw_diff: difference between current and desired yaw
     """
     max_non_tank = np.pi/4
     turn_frac = min(abs(yaw_diff) / max_non_tank, 1)
     steer = -np.sign(yaw_diff) * turn_frac
-    return abs(steer_val_to_radius(steer))
+    return steer_val_to_radius(steer)
 
 
 def steer_val_to_radius(steer: float) -> float:

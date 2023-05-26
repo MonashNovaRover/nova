@@ -46,7 +46,6 @@ from nav_msgs.msg import Path
 from std_msgs.msg import Empty, Bool, Float64
 
 # autonomous imports
-from autonomous.controller.spin_controller import SpinController
 from autonomous.math_utils.controller_math import distance, yaw_difference, get_target_radius, wheel_angle_error
 from autonomous.math_utils import transform 
 from autonomous.config.ros_config import auto_drive_command_topic, auto_waypoints_topic
@@ -79,7 +78,7 @@ class Controller(Node):
         super().__init__('autonomous_controller')
 
         # set debug to not get shown
-        self.get_logger().set_level(logging.INFO)
+        self.get_logger().set_level(logging.DEBUG)
 
         # Ros params
         self.param_do_tank_turn = self.declare_parameter("do_tank_turn", False).value
@@ -90,6 +89,8 @@ class Controller(Node):
         self.param_near_goal_speed = self.declare_parameter("near_goal_speed", 0.2).value
         self.param_near_goal_dist = self.declare_parameter("near_goal_dist", 20).value
         self.param_big_turn_frac = self.declare_parameter("big_turn_frac", 0.5).value
+        self.param_min_spin_complete_yaw_diff = self.declare_parameter("min_spin_complete_yaw_diff", np.pi / 8).value
+        self.param_max_spin_complete_yaw_diff = self.declare_parameter("max_spin_complete_yaw_diff", np.pi / 4).value
 
         # ~~~~~~~~~~ State ~~~~~~~~
         self.state = None
@@ -97,7 +98,7 @@ class Controller(Node):
         self.state_waypoint_path = []
         self.state_latest_radius = 0
         self.state_turning_mode = TurningMode.TANK if self.param_do_tank_turn else TurningMode.PIVOT
-        self.state_spin_start_yaw = None
+        self.state_spin_start_heading = None
         self.state_near_goal = False
         self.state_near_obstacle = False
 
@@ -107,7 +108,6 @@ class Controller(Node):
 
         # Controller classes for turning, driving to waypoints, and spinning
         self.ctl_driver : DriveController = DriveController(self.state_turning_mode)
-        self.ctl_spin : SpinController = None
 
         # ------------- ROS Things ----------
         # tf2
@@ -141,10 +141,10 @@ class Controller(Node):
         """
         Determines whether we have completed a turn
         """
-        if self.ctl_spin is None:
-            return False
-        self.get_logger().debug(f"Target_heading: {self.ctl_spin.start_yaw}, current_heading: {self.state_rover_pose.theta}")
-        return self.ctl_spin.is_completed()
+        heading_vec = np.array([np.cos(self.state_rover_pose.theta), np.sin(self.state_rover_pose.theta), 0.])
+        self.get_logger().debug(f"Target heading: {self.state_spin_start_heading}, current heading: {heading_vec}")
+        yaw_diff = yaw_difference(heading_vec, self.state_spin_start_heading)
+        return self.param_min_spin_complete_yaw_diff < yaw_diff < self.param_max_spin_complete_yaw_diff
 
     def finished_waypoint_path(self) -> bool:
         """
@@ -195,8 +195,8 @@ class Controller(Node):
         self.get_logger().debug(f"Before transition:\n"
                                 f"trigger_spin: {self.trigger_spin}\n"
                                 f"trigger_to_waypoint: {self.trigger_to_waypoint}\n"
-                                f"Spin controller: {self.ctl_spin}\n"
                                 f"Waypoints: {self.state_waypoint_path}\n"
+                                f"Spin start yaw: {self.state_spin_start_heading}\n"
                                 )
         self.state = new_state
 
@@ -206,7 +206,7 @@ class Controller(Node):
             self.state_spin_start_heading = np.array([np.cos(self.state_rover_pose.theta), np.sin(self.state_rover_pose.theta), 0])
         # Entering to waypoint state, reset the trigger
         elif self.state == DrivingState.SUCCESS:
-            self.ctl_spin = None
+            self.state_spin_start_heading = None
             self.state_waypoint_path = []
             self.state_latest_radius = 0
             if old_state == DrivingState.TO_WAYPOINT and not self.trigger_success:
@@ -221,8 +221,8 @@ class Controller(Node):
         self.get_logger().debug(f"After transition:\n"
                                 f"trigger_spin: {self.trigger_spin}\n"
                                 f"trigger_to_waypoint: {self.trigger_to_waypoint}\n"
-                                f"Spin controller: {self.ctl_spin}\n"
                                 f"Waypoints: {self.state_waypoint_path}\n"
+                                f"Spin start yaw: {self.state_spin_start_heading}\n"
                                 )
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ROS callbacks ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -347,24 +347,25 @@ class Controller(Node):
         # Current orientation as a unit vector
         current_orientation = np.array([np.cos(self.state_rover_pose.theta), np.sin(self.state_rover_pose.theta), 0])
 
-        self.get_logger().debug(f"desired: {desired_orientation}, current: {current_orientation}, yaw_diff: {yaw_diff}", throttle_duration_sec=1)
+        self.get_logger().debug(f"desired: {desired_orientation}, current: {current_orientation}", throttle_duration_sec=1)
 
         return yaw_difference(current_orientation, desired_orientation)
 
     def get_drive_command(self, yaw_diff):
         # Turn radius for this yaw difference
-        radius = get_target_radius(yaw_diff)
+        signed_radius = get_target_radius(yaw_diff)
 
         # Turn in the opposite direction of our yaw difference as we consider turns to the left to be negative
         direction = int(-np.sign(yaw_diff))
 
         # Get a factor to scale our speed by based on our current wheel pivot error
-        wheel_angle_rads = wheel_angle_error(radius, self.state_latest_radius)
+        wheel_angle_rads = wheel_angle_error(signed_radius, self.state_latest_radius)
         scaled_angle_error = min(wheel_angle_rads / self.param_max_wheel_angle_err, 1)
         wheel_error_speed_factor = 1 - scaled_angle_error**2
 
         # Scale speed by how sharply we are turning
         # Clamp radius between 0.5 and 2 m
+        radius = abs(signed_radius)
         clamped_radius = min(max(radius, 0.5), 2)
         # scale from 0.5 - 1
         turn_size_speed_factor = self.param_big_turn_frac + (1 - self.param_big_turn_frac) * (clamped_radius - 0.5) / 1.5
@@ -377,6 +378,14 @@ class Controller(Node):
             speed = self.param_max_speed
         
         speed *= turn_size_speed_factor * wheel_error_speed_factor
+
+        self.get_logger().debug(f"Turn radius: {radius}")
+        self.get_logger().debug(f"Current radius: {self.state_latest_radius}")
+        self.get_logger().debug(f"Direction: {direction}")
+        self.get_logger().debug(f"wheel angle error: {wheel_angle_rads}")
+        self.get_logger().debug(f"wheel error speed factor: {wheel_error_speed_factor}")
+        self.get_logger().debug(f"turn size speed factor: {turn_size_speed_factor}")
+        self.get_logger().debug(f"speed: {speed}")
         return speed, radius, direction
 
     def control(self):
@@ -399,7 +408,7 @@ class Controller(Node):
         elif self.state == DrivingState.TURNING:
             self.get_logger().debug("Turning in place", throttle_duration_sec=1)
             # Get drive commands for a turn 90 degrees to the left
-            speed, radius, direction = self.get_drive_command(np.pi, self.state_latest_radius)
+            speed, radius, direction = self.get_drive_command(np.pi)
 
         # -------------------------------------- 1. DRIVING ------------------------------
         elif self.state == DrivingState.TO_WAYPOINT:
