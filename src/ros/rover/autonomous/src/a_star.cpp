@@ -130,6 +130,35 @@ bool onBorder(const int cols, const int rows, const Pair& point)
 			|| point.second == 0 || point.second == cols - 1);
 }
 
+bool onNearestBorder(const int cols, const int rows, const Pair& point, const Pair& other)
+{
+	/*
+	Assuming point `other` is outside the range [0, rows-1][0, cols-1], Is `point` on the nearest border
+	of the map to `other`?
+	*/
+	// Is this square on the border of the map?
+	if (!(point.first == 0 || point.first == rows - 1
+			|| point.second == 0 || point.second == cols - 1))
+		return false;
+
+	// Which edge of the map is closest to the goal?
+	int dist_x_pos = other.first - rows;
+	int dist_x_neg = 0 - other.first;
+	int dist_y_pos = other.second - cols;
+	int dist_y_neg = 0 - other.second;
+
+	int max_dist = dist_x_pos;
+	if (dist_x_neg > max_dist) max_dist = dist_x_neg;
+	if (dist_y_pos > max_dist) max_dist = dist_y_pos;
+	if (dist_y_neg > max_dist) max_dist = dist_y_neg;
+
+	if (point.first == 0 && dist_x_neg == max_dist) return true;
+	if (point.first == rows - 1 && dist_x_pos == max_dist) return true;
+	if (point.second == 0 && dist_y_neg == max_dist) return true;
+	if (point.second == cols - 1 && dist_y_pos == max_dist) return true;
+	return false;
+}
+
 // A Utility Function to check whether destination cell has
 // been reached or not
 bool isDestination(const Pair& position, const Pair& dest, const int cols, const size_t rows)
@@ -138,7 +167,7 @@ bool isDestination(const Pair& position, const Pair& dest, const int cols, const
 		return true;
 	// If we have hit the border and are going to a goal outside the map, this is the best we can do
 	else {
-		return (!inMap(cols, rows, dest) && onBorder(cols, rows, position));
+		return (!inMap(cols, rows, dest) && onNearestBorder(cols, rows, position, dest));
 	}
 }
 
