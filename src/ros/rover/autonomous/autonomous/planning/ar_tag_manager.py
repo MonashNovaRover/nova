@@ -115,6 +115,9 @@ class ArTagManager(Node):
         """
         return not self.goal.type == AutonomousGoal.GOAL_TYPE_COORDINATE
 
+    def has_goal(self) -> bool:
+        return self.goal is not None and (self.found_current_gate() or self.found_current_tag())
+
     def get_average_tag_pose(self, tag_id):
         """
         Gets the average pose of the current AR tag poses
@@ -137,9 +140,7 @@ class ArTagManager(Node):
         gate_l, gate_r = self.get_average_tag_pose(self.goal.tag_ids[0]),\
                             self.get_average_tag_pose(self.goal.tag_ids[1])
 
-        print(f"gate_l = {gate_l}, gate_r = {gate_r}")
         normal = np.array((gate_l[1] - gate_r[1], gate_r[0] - gate_l[0]))
-        print(f"normal = {normal}")
         unit_normal = normal / np.linalg.norm(normal)
         return unit_normal
 

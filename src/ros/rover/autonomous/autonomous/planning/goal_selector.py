@@ -48,7 +48,7 @@ from autonomous.planning.ar_tag_manager import ArTagManager
 
 # misc
 from enum import Enum
-import time
+import numpy as np
 
 
 class PlanningState(Enum):
@@ -77,10 +77,11 @@ class Controller(Node):
         super().__init__('goal_selector')
 
         # set debug to not get shown
-        self.get_logger().set_level(LoggingSeverity.INFO)
+        self.get_logger().set_level(LoggingSeverity.DEBUG)
 
         # Params
         self.param_plan_frequency = self.declare_parameter("plan_frequency", 2.0).value
+        self.param_ar_tag_update_frequency = self.declare_parameter("ar_tag_update_frequency", 10.0).value
         self.param_coordinate_tolerance = self.declare_parameter("coordinate_tolerance_m", 0.5).value
         self.param_ar_tag_tolerance = self.declare_parameter("ar_tag_tolerance_m", 1.3).value
         self.param_gate_goal_tolerance = self.declare_parameter("gate_tolerance_m", 0.3).value
@@ -94,6 +95,9 @@ class Controller(Node):
         # Initial return goal at 0, 0
         self.state_return_goal : AutonomousGoal = None
         self.state_ar_tag_manager = ArTagManager()
+        self.state_gate_relative_vectors = None
+        self.state_latest_tag_mean_pose = None
+        self.state_gate_index = -1
         
         # Trigger variables set by ros callbacks
         self.trigger_received_goal = False
@@ -105,7 +109,6 @@ class Controller(Node):
         self.state_visited_intermediate_goals = []
         self.state_unvisited_intermediate_goals = []
         self.state_search_goals = []
-        self.state_gate_goals = []
 
         # ------------- ROS Things ----------
         # tf2 buffer and listener
@@ -143,10 +146,10 @@ class Controller(Node):
         """
         return self.state_current_goal.type == AutonomousGoal.GOAL_TYPE_INTERMEDIATE
 
-    def dist_to_goal(self, goal: AutonomousGoal) -> float:
+    def dist_to_point(self, point) -> float:
         """
-        Returns the distance between the current position (obtained from tf2) and a given goal.
-        Assumes the goal is given in the global map frame
+        Returns the distance between teh current position and a given point, assumed
+        to be in the global map frame
         """
         try:
             current_pose : Transform = self.tf_buffer.lookup_transform("map", "base_link", Time(), Duration(nanoseconds=1e8)).transform
@@ -155,10 +158,17 @@ class Controller(Node):
             return -1
 
         self.get_logger().debug("Current position: " + str(current_pose.translation))
-        self.get_logger().debug("Current goal: " + str(goal.position))
+        self.get_logger().debug("other position: " + str(point))
         
-        return distance([current_pose.translation.x, current_pose.translation.y], 
-                                [goal.position.x, goal.position.y])
+        return distance([current_pose.translation.x, current_pose.translation.y], point) 
+
+    def dist_to_goal(self, goal: AutonomousGoal) -> float:
+        """
+        Returns the distance between the current position (obtained from tf2) and a given goal.
+        Assumes the goal is given in the global map frame
+        """
+        goal_coord = [goal.position.x, goal.position.y]
+        return self.dist_to_point(goal_coord)
 
     def has_search_goals(self) -> bool:
         """
@@ -313,7 +323,7 @@ class Controller(Node):
                                 f"Return Goal: {self.state_return_goal}\n"
                                 f"Visited Intermediate Goals: {self.state_visited_intermediate_goals}\n"
                                 f"Unvisited Intermediate Goals: {self.state_unvisited_intermediate_goals}\n"
-                                f"Gate Goals: {self.state_gate_goals}\n"
+                                f"Gate Goals: {self.state_gate_index}\n"
                                 f"Search Goals: {self.state_search_goals}\n"
                                 )
         self.state = new_state
@@ -329,6 +339,7 @@ class Controller(Node):
             self.state_current_goal = None
             self.state_visited_intermediate_goals = []
             self.state_unvisited_intermediate_goals = []
+            self.state_gate_index = -1
 
         # We aren't doing anything - set current goal to None, and stop driving
         elif new_state == PlanningState.IDLE:
@@ -369,7 +380,10 @@ class Controller(Node):
         elif new_state == PlanningState.THROUGH_GATE:
             if old_state != PlanningState.THROUGH_GATE:
                 self.set_gate_goals()
-            self.state_current_goal = self.state_gate_goals.pop(0)
+                self.state_gate_index = 0
+            else:
+                self.state_gate_index += 1
+            self.state_current_goal = self.get_gate_goal()
             
         # We are spinning in place to search for a tag or gate, no need to set current goal since this is never used
         elif new_state == PlanningState.SEARCH_SPIN:
@@ -397,7 +411,7 @@ class Controller(Node):
                                 f"Return Goal: {self.state_return_goal}\n"
                                 f"Visited Intermediate Goals: {self.state_visited_intermediate_goals}\n"
                                 f"Unvisited Intermediate Goals: {self.state_unvisited_intermediate_goals}\n"
-                                f"Gate Goals: {self.state_gate_goals}\n"
+                                f"Gate index: {self.state_gate_index}\n"
                                 f"Search Goals: {self.state_search_goals}\n"
                                 )
 
@@ -417,6 +431,7 @@ class Controller(Node):
 
             # Timers
             self.timer_planning = self.create_timer(1 / self.param_plan_frequency, self.send_next_goal)  # update planning state and plan paths
+            self.timer_ar_tag_update = self.create_timer(1 / self.param_ar_tag_update_frequency, self.update_ar_tags)  # update planning state and plan paths
             self.on_state_update(PlanningState.IDLE)
 
     def callback_new_autonomous_goal(self, msg : AutonomousGoalArray):
@@ -475,57 +490,6 @@ class Controller(Node):
             search_goal.type = AutonomousGoal.GOAL_TYPE_INTERMEDIATE
             self.state_search_goals.append(search_goal)
 
-    def set_gate_goals(self):
-        """
-        Gets the midpoint of the gate and the vector perpendicular to the gate. Then constructs a list of three
-        AutonomousGoal objects, on the closer side of the gate, in the middle of the gate, and on the further side of the gate.
-        The first two goals must be of type GOAL_TYPE_INTERMEDIATE, and the last of type GOAL_TYPE_GATE 
-        """
-        gate_mid = self.state_ar_tag_manager.get_average_goal_pose()
-
-        # negative reciprocal gives perpendicular vector to the vector between the gate
-        gate_perpendicular = self.state_ar_tag_manager.get_gate_normal()
-
-        # Vector from the middle of the two gate poles to our target
-        centre_of_gate_to_target = self.param_dist_through_gate * gate_perpendicular
-        goal_0 = gate_mid + centre_of_gate_to_target
-        goal_1 = gate_mid
-        goal_2 = gate_mid - centre_of_gate_to_target
-
-        goal_coords = [goal_0, goal_1, goal_2]
-        gate_goals = []
-
-        for x, y in goal_coords:
-            goal = AutonomousGoal()
-            goal.position.x = x
-            goal.position.y = y
-            goal.type = AutonomousGoal.GOAL_TYPE_INTERMEDIATE
-            gate_goals.append(goal)
-        
-        dist_1 = self.dist_to_goal(gate_goals[0]) 
-        dist_2 = self.dist_to_goal(gate_goals[2])
-
-        if dist_1 == -1 or dist_2 == -1:
-            self.get_logger().warn("Not checking gate goal orientation")
-        
-        elif dist_1 > dist_2:
-            # We are closer to the last goal than the first, so we should reverse the order
-            gate_goals = gate_goals[::-1]
-
-        gate_goals[-1].type = AutonomousGoal.GOAL_TYPE_GATE
-        self.state_gate_goals = gate_goals
-
-    def get_ar_tag_goal(self) -> AutonomousGoal:
-        """
-        Returns the averaged position of the current targeted AR tag as a goal
-        """
-        x, y = self.state_ar_tag_manager.get_average_goal_pose()
-        goal = AutonomousGoal()
-        goal.position.x = x
-        goal.position.y = y
-        goal.type = AutonomousGoal.GOAL_TYPE_TAG
-        return goal
-
     def get_current_pose_as_goal(self) -> AutonomousGoal:
         """
         Returns the current position of the rover as an AutonomousGoal of type GOAL_TYPE_COORDINATE
@@ -546,7 +510,6 @@ class Controller(Node):
         Function to be called on the goal publisher timer
         """
         # update planning mode state - this is the only time in the codebase this function is called
-        rclpy.spin_once(self.state_ar_tag_manager)
         self.planning_mode_state_transition()
 
         if self.state in [PlanningState.SUCCESS, PlanningState.IDLE, PlanningState.FAILED, PlanningState.SEARCH_SPIN]:
@@ -554,6 +517,11 @@ class Controller(Node):
             return
         else:
             self.get_logger().debug(f"plan state is {self.state}")
+        
+        if self.state == PlanningState.TO_AR_TAG:
+            self.state_current_goal = self.get_ar_tag_goal()
+        elif self.state == PlanningState.THROUGH_GATE:
+            self.state_current_goal = self.get_gate_goal()
 
         dist_to_goal = self.dist_to_goal(self.state_current_goal)
         self.pub_goal_dist.publish(Float64(data=dist_to_goal))
@@ -565,6 +533,69 @@ class Controller(Node):
         planning_destination.pose.position.y = self.state_current_goal.position.y
 
         self.pub_desired_destination.publish(planning_destination)
+
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ AR tag methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    def set_gate_goals(self):
+        """
+        Gets the midpoint of the gate and the vector perpendicular to the gate. Then constructs a list of three
+        AutonomousGoal objects, on the closer side of the gate, in the middle of the gate, and on the further side of the gate.
+        The first two goals must be of type GOAL_TYPE_INTERMEDIATE, and the last of type GOAL_TYPE_GATE 
+        """
+        gate_centre = self.state_ar_tag_manager.get_average_goal_pose()
+        
+        # Vector perpendicular to the vector between the two gate points
+        gate_perpendicular = self.state_ar_tag_manager.get_gate_normal()
+
+        # Vector from the middle of the two gate poles to our target
+        centre_of_gate_to_target = self.param_dist_through_gate * gate_perpendicular
+        goal_0 = centre_of_gate_to_target
+        goal_1 = np.array([0.0, 0.0])
+        goal_2 = -centre_of_gate_to_target
+
+        goal_coords = [goal_0, goal_1, goal_2]
+
+        dist_1 = self.dist_to_point(goal_coords[0] + gate_centre) 
+        dist_2 = self.dist_to_point(goal_coords[2] + gate_centre)
+
+        if dist_1 == -1 or dist_2 == -1:
+            self.get_logger().warn("Not checking gate goal orientation")
+        
+        elif dist_1 > dist_2:
+            # We are closer to the last goal than the first, so we should reverse the order
+            goal_coords = goal_coords[::-1]
+
+        self.state_gate_relative_vectors = goal_coords
+
+    def coord_to_goal(self, coord, type) -> AutonomousGoal:
+        """
+        Utility method that creates an AutonomousGoal type from a coordinate
+        """
+        x, y = coord[:2]
+        goal = AutonomousGoal()
+        goal.position.x = x
+        goal.position.y = y
+        goal.type = type
+        return goal
+
+    def get_ar_tag_goal(self) -> AutonomousGoal:
+        """
+        Returns the averaged position of the current targeted AR tag as a goal
+        """
+        tag_coord = self.state_ar_tag_manager.get_average_goal_pose()
+        return self.coord_to_goal(tag_coord, type=AutonomousGoal.GOAL_TYPE_TAG)
+    
+    def get_gate_goal(self) -> AutonomousGoal:
+        gate_centre_coord = self.state_ar_tag_manager.get_average_goal_pose()
+        gate_poses = [np.array(gate_centre_coord) + offset for offset in self.state_gate_relative_vectors]
+        gate_goals = [self.coord_to_goal(pose, type=AutonomousGoal.GOAL_TYPE_INTERMEDIATE) for pose in gate_poses]
+        gate_goals[-1].type = AutonomousGoal.GOAL_TYPE_GATE
+        return gate_goals[self.state_gate_index]
+
+    def update_ar_tags(self):
+        rclpy.spin_once(self.state_ar_tag_manager)
+        if self.state_ar_tag_manager.has_goal():
+            self.state_latest_tag_mean_pose = self.state_ar_tag_manager.get_average_goal_pose()
 
 
 def main(args=None):

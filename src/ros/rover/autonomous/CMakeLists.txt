@@ -97,7 +97,6 @@ install(TARGETS rs2_ros2 DESTINATION ~/nova_ws/install/autonomous/lib/python3.8/
 
 # Add all the installation directories
 install(DIRECTORY
-  rviz
   DESTINATION share/${PROJECT_NAME}
 )
 
