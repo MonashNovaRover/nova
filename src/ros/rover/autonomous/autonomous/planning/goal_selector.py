@@ -340,6 +340,7 @@ class Controller(Node):
             self.state_visited_intermediate_goals = []
             self.state_unvisited_intermediate_goals = []
             self.state_gate_index = -1
+            self.state_gate_relative_vectors = None
 
         # We aren't doing anything - set current goal to None, and stop driving
         elif new_state == PlanningState.IDLE:
@@ -586,6 +587,12 @@ class Controller(Node):
         return self.coord_to_goal(tag_coord, type=AutonomousGoal.GOAL_TYPE_TAG)
     
     def get_gate_goal(self) -> AutonomousGoal:
+        """
+        Assumes we are going to a gate and have already called self.set_gate_goals()
+        """
+        if self.state_gate_relative_vectors is None:
+            self.get_logger().error("Cannot get gate goal without initialising gate vectors!!")
+            return
         gate_centre_coord = self.state_ar_tag_manager.get_average_goal_pose()
         gate_poses = [np.array(gate_centre_coord) + offset for offset in self.state_gate_relative_vectors]
         gate_goals = [self.coord_to_goal(pose, type=AutonomousGoal.GOAL_TYPE_INTERMEDIATE) for pose in gate_poses]
@@ -593,6 +600,9 @@ class Controller(Node):
         return gate_goals[self.state_gate_index]
 
     def update_ar_tags(self):
+        """
+        Spin the AR tag tracker and check if we know the latest mean pose
+        """
         rclpy.spin_once(self.state_ar_tag_manager)
         if self.state_ar_tag_manager.has_goal():
             self.state_latest_tag_mean_pose = self.state_ar_tag_manager.get_average_goal_pose()
