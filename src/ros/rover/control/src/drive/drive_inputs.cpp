@@ -185,8 +185,7 @@ void DriveInputs::input_callback(const core::msg::InputGamepad::SharedPtr msg)
                 latest_drive_input.speed = msg->ax_stick_l_y * multiplier_speed * trigger_speed;
             }
             
-            latest_drive_input.radius = abs(msg->ax_stick_r_x == 0 ? INFINITY : (1.0 / pow(msg->ax_stick_r_x, 3)) -
-                                                                  (msg->ax_stick_r_x > 0 ? 1 : -1));
+            latest_drive_input.radius = msg->ax_stick_r_x == 0 ? INFINITY : (1.0 / pow(abs(msg->ax_stick_r_x), 2)) - 1;
             latest_drive_input.direction = msg->ax_stick_r_x > 0 ? 1 : msg->ax_stick_r_x < 0 ? -1 : 0;
         }
     }
