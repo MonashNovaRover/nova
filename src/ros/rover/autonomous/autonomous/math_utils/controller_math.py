@@ -30,7 +30,7 @@ from autonomous.config.runtime_params import straight_drive_fraction, spin_achie
 from typing import Tuple
 
 
-def tank_turn_target_yaw_rate(yaw_diff: float) -> float:
+def get_target_radius(yaw_diff: float) -> float:
     """
     Calculates target steer value (mapping to -1:1 controller right stick position)
     Domain: This function should have inputs such that:
@@ -43,7 +43,7 @@ def tank_turn_target_yaw_rate(yaw_diff: float) -> float:
     max_non_tank = np.pi/4
     turn_frac = min(abs(yaw_diff) / max_non_tank, 1)
     steer = -np.sign(yaw_diff) * turn_frac
-    return steer_val_to_radius(steer)
+    return abs(steer_val_to_radius(steer))
 
 
 def steer_val_to_radius(steer: float) -> float:
@@ -72,7 +72,7 @@ def radius_to_wheel_angles(radius: float) -> float:
     return left_angle, right_angle
 
 
-def drive_speed_from_turning_error(target_radius, current_radius) -> float:
+def wheel_angle_error(target_radius, current_radius) -> float:
     """
     :param target_steer: the steer value from [-1, 1] we would like to turn at
     :param current_steer: the current steer value from [-1, 1] the wheels are oriented at
@@ -84,10 +84,9 @@ def drive_speed_from_turning_error(target_radius, current_radius) -> float:
     # left and right true wheel angles
     current_left, current_right = radius_to_wheel_angles(current_radius)
     # maximum error between desired and true wheel angles
-    steer_error_radians = max(abs(target_left - current_left), abs(target_right - current_right))
-    scaled_steer_error = min(steer_error_radians / MAX_STEER_ERROR, 1)
-    drive_rate = big_turn_drive_fraction * (1 - scaled_steer_error**2)
-    return drive_rate
+    wheel_error_radians = max(abs(target_left - current_left), abs(target_right - current_right))
+    return wheel_error_radians
+    return speed_factor
 
 
 def tank_turn_target_drive_rate(yaw_diff: float) -> float:

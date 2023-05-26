@@ -37,6 +37,7 @@ from tf2_ros import Buffer, TransformListener
 # msg types
 from geometry_msgs.msg import Pose2D, Pose, PoseStamped
 from nav_msgs.msg import Path, OccupancyGrid
+from std_msgs.msg import Bool
 
 # python imports
 import numpy as np
@@ -59,9 +60,13 @@ class PathPlanner(Node):
         """
         super().__init__("path_planner_node")
         self.get_logger().set_level(logging.DEBUG)
+
+        self.param_obstacle_near_dist = self.declare_parameter("obstacle_near_dist_m", 2).value
+        self.param_near_obstacle_thresh = self.declare_parameter("num_near_obstacles_thresh", 5).value
+        self.resolution = self.declare_parameter("resolution_m", 0.1).value
+
         # constants
         self.padding_dist_m = INITIAL_PADDING_DIST_M
-        self.resolution = self.declare_parameter("resolution_m", 0.1).value
 
         # state
         self.pose_2d = Pose2D()
@@ -77,6 +82,7 @@ class PathPlanner(Node):
         self.planning_subscriber = None
         self.map_subscriber = None
         self.path_publisher = self.create_publisher(Path, auto_waypoints_topic, 10)
+        self.pub_near_obstacle = self.create_publisher(Bool, "/autonomous/near_obstacle", 10)
 
         # Transform listeners
         self.tf_buffer = Buffer()
@@ -101,6 +107,19 @@ class PathPlanner(Node):
         self.get_logger().debug("updating map")
         self._map = Grid2D.map_from_occupancy(msg)
         self._map[self._map < 0] = unseen_map_cost
+        self.check_near_obstacle()
+
+    def check_near_obstacle(self):
+        """
+        Checks if the rover is near an obstacle, and publishes True if it is
+        """
+        min_x_idx = max(0, int((self.pose_2d.x - self.param_obstacle_near_dist) / self.resolution))
+        min_y_idx = max(0, int((self.pose_2d.y - self.param_obstacle_near_dist) / self.resolution))
+        max_x_idx = min(len(self._map) - 1, int((self.pose_2d.x + self.param_obstacle_near_dist) / self.resolution))
+        max_y_idx = min(len(self._map[0]) - 1, int((self.pose_2d.y + self.param_obstacle_near_dist) / self.resolution))
+        region_of_interest = self._map[min_x_idx:max_x_idx, min_y_idx:max_y_idx]
+        near_obstacle = np.sum((region_of_interest >= 1).astype(float)) > self.param_near_obstacle_thresh
+        self.pub_near_obstacle.publish(Bool(near_obstacle))
 
     def set_goal(self, goal: PoseStamped):
         """

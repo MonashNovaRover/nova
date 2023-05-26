@@ -38,7 +38,7 @@ from tf2_ros import Buffer, TransformListener
 # custom message imports
 from core.msg import AutonomousGoal, AutonomousGoalArray, AlvarMarkers
 from geometry_msgs.msg import Transform, PoseStamped
-from std_msgs.msg import Empty
+from std_msgs.msg import Empty, Float64
 from std_srvs.srv import Trigger
 
 # autonomous imports
@@ -117,6 +117,7 @@ class Controller(Node):
         self.pub_desired_destination = self.create_publisher(PoseStamped, planning_destination_topic, 10)
         self.pub_do_spin = self.create_publisher(Empty, "/autonomous_controller/do_spin", 10)
         self.pub_success = self.create_publisher(Empty, "/autonomous_controller/success_trigger", 10)
+        self.pub_goal_dist = self.create_publisher(Float64, "/autonomous/goal_dist", 10)
 
         # Subscribers
         self.sub_controller_goal_override = self.create_subscription(Empty, "/autonomous_controller/goal_achieved", self.callback_controller_goal_override, 10)
@@ -554,6 +555,8 @@ class Controller(Node):
         else:
             self.get_logger().debug(f"plan state is {self.state}")
 
+        dist_to_goal = self.dist_to_goal(self.state_current_goal)
+        self.pub_goal_dist.publish(Float64(dist_to_goal))
         planning_destination = PoseStamped()
         planning_destination.header.stamp = self.get_clock().now().to_msg()
         planning_destination.header.frame_id = "map"
