@@ -136,7 +136,8 @@ private:
     // Default control data
     float target_radius = INFINITY;
     float best_effort_radius = INFINITY;
-    float velocity = 0.0;
+    float target_velocity = 0.0;
+    float best_effort_velocity = 0.0;
     int8_t target_direction = 0;
     int8_t best_effort_direction = 0;
     unsigned char mode = core::msg::DriveInput::TANK;
@@ -171,6 +172,9 @@ private:
     /// @param      left - the wheel side, left is true
     /// @returns    the radius of the turn
     double radius_from_angle(double angle, bool left);
+
+    /// @brief     calculates the best_effort_velocity based on the target_velocity and the max_d_vel
+    void set_best_effort_velocity();
 
     /// @brief     Calculates the radius to turn the wheels to such that the radius is valid based on the maximum
     ///            pivot angular velocity

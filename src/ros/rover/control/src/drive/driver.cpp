@@ -43,6 +43,7 @@ void PivotModule::drive_wheel() {
 void Driver::send_commands()
 {
     core::msg::PivotWheelData data_msg;
+    set_best_effort_velocity();
     switch (mode) {
         case core::msg::DriveInput::PIVOT: {
             // Find the turning radius form the 'steer' command
@@ -118,12 +119,7 @@ void Driver::drive_callback(const core::msg::DriveInput::SharedPtr msg)
     mode = msg->mode;
     handbrake = msg->handbrake;
     // Set the speed and radius
-    float prev_velocity = velocity;
-    velocity = this->get_parameter("max_speed").get_parameter_value().get<double>()*msg->speed;
-    float d_vel = velocity - prev_velocity;
-    if (abs(d_vel) > max_d_vel) {
-        velocity = prev_velocity + max_d_vel * (d_vel > 0 ? 1 : -1);
-    };
+    target_velocity = this->get_parameter("max_speed").get_parameter_value().get<double>()*msg->speed;
 }
 
 void Driver::disable_blcmd_callback(const std::shared_ptr<core::srv::DisableBLCMD::Request> request,
@@ -139,6 +135,13 @@ void Driver::disable_blcmd_callback(const std::shared_ptr<core::srv::DisableBLCM
     }
 
     response->success = true;
+}
+
+void Driver::set_best_effort_velocity(){
+    float d_vel = target_velocity - best_effort_velocity;
+    if (abs(d_vel) > max_d_vel) {
+        best_effort_velocity += max_d_vel * (d_vel > 0 ? 1 : -1);
+    };
 }
 
 // Gets the turning radius of the rover
@@ -278,11 +281,11 @@ void Driver::fill_wheel_velocities_radial()
         // of the relevant side and divide by the maximum ratio
         if (i < 2) //left wheels
         {
-            pivots[i]->velocity = velocity*left_ratio/max_ratio;
+            pivots[i]->velocity = best_effort_velocity*left_ratio/max_ratio;
         }
         else //right wheels
         {
-            pivots[i]->velocity =  velocity*right_ratio/max_ratio;
+            pivots[i]->velocity =  best_effort_velocity*right_ratio/max_ratio;
         }
     }
 }
@@ -297,7 +300,7 @@ void Driver::fill_wheel_angles_strafe() {
 void Driver::fill_wheel_velocities_strafe() {
     for (size_t i = 0; i < NUM_WHEELS; i++) {
         //diagonals have the same direction as each other and negative x/y neighbors
-        pivots[i]->velocity = velocity * (i%2 ? -1 : 1);
+        pivots[i]->velocity = best_effort_velocity * (i%2 ? -1 : 1);
     }
 }
 
@@ -305,7 +308,7 @@ void Driver::fill_wheel_velocities_tank() {
     float radius = target_radius*target_direction;
     if (radius == INFINITY || radius == -INFINITY || target_direction == 0) {
         for (size_t i = 0; i < NUM_WHEELS; i++){
-            pivots[i]->velocity = velocity;
+            pivots[i]->velocity = best_effort_velocity;
         }
     }
     else {
@@ -322,7 +325,7 @@ void Driver::fill_wheel_velocities_tank() {
         // Approximating that the wheels drive tangent to the turning circle, the scaling ensures
         // each wheel achieves the same angular velocity about the turning center the rover
         for (size_t i = 0; i < NUM_WHEELS; i++) {
-            pivots[i]->velocity = velocity * distances[i] / max_distance;
+            pivots[i]->velocity = best_effort_velocity * distances[i] / max_distance;
         }
 
         // Modify wheel directions if the turning centre is under the rover wheelbase
@@ -501,7 +504,7 @@ void Driver::drive_inputs_deadline_exceeded()
     target_radius = best_effort_radius;
     target_direction = best_effort_direction;
     //set velocity to zero to stop moving
-    velocity = 0.0;
+    target_velocity = 0.0;
 }
 
 //  Main function called when the script execution begins
