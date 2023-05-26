@@ -31,7 +31,7 @@ import logging
 class SkytraqNode (Node):
     def __init__ (self, com_no, baud):
         super().__init__('gps_data')
-        self.get_logger().set_level(logging.DEBUG)
+        self.get_logger().set_level(logging.INFO)
 
         self.pose : RoverPoseGPS = RoverPoseGPS()
         self.pose.header.frame_id = "gps_link"
