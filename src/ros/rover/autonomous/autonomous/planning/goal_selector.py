@@ -524,7 +524,7 @@ class Controller(Node):
         elif self.state == PlanningState.THROUGH_GATE:
             self.state_current_goal = self.get_gate_goal()
 
-        dist_to_goal = self.dist_to_goal(self.state_current_goal)
+        dist_to_goal = self.dist_to_goal(self.state_long_term_goal)
         self.pub_goal_dist.publish(Float64(data=dist_to_goal))
         planning_destination = PoseStamped()
         planning_destination.header.stamp = self.get_clock().now().to_msg()

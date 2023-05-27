@@ -29,6 +29,7 @@ from rclpy.time import Time
 from tf2_ros import TransformListener, Buffer
 
 # local imports
+from autonomous import mapping
 
 # message types
 from nav_msgs.msg import OccupancyGrid, MapMetaData
@@ -38,6 +39,7 @@ from geometry_msgs.msg import Transform
 import cv2
 import logging
 import numpy as np
+from pathlib import Path
 
 
 class SimulatedMapper(Node):
@@ -45,7 +47,7 @@ class SimulatedMapper(Node):
     def __init__(self):
         super().__init__("TemplateNode")
         self.get_logger().set_level(logging.INFO)
-        self.param_full_map_path = self.declare_parameter("full_map_path", "map.png").value
+        self.param_local_map_path = self.declare_parameter("local_map_path", "map.png").value
         self.param_map_pub_hz = self.declare_parameter("map_pub_rate_hz", 10).value
         self.param_map_resolution = self.declare_parameter("map_resolution_m", 0.1).value
         self.param_local_map_width = self.declare_parameter("local_map_width_px", 200).value
@@ -77,10 +79,11 @@ class SimulatedMapper(Node):
 
     def load_initial_map(self):
         """
-        Loads the map from the param_full_map_path
+        Loads the map from the param_local_map_path
         :return: None
         """
-        self.global_map = cv2.imread(self.param_full_map_path, 0)
+        abs_file_path = Path(mapping.__file__).parent / self.param_local_map_path
+        self.global_map = cv2.imread(abs_file_path.resolve().as_posix(), 0)
         self.global_map = 1 - self.global_map / 255
         self.global_map = (self.global_map * 100).astype(np.ubyte)
         self.global_map_len = self.global_map.shape[0]
