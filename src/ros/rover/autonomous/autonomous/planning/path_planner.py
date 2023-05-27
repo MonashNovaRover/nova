@@ -59,7 +59,7 @@ class PathPlanner(Node):
         :param resolution_m: planning resolution
         """
         super().__init__("path_planner_node")
-        self.get_logger().set_level(logging.DEBUG)
+        self.get_logger().set_level(logging.INFO)
 
         self.param_obstacle_near_dist = self.declare_parameter("obstacle_near_dist_m", 2).value
         self.param_near_obstacle_thresh = self.declare_parameter("num_near_obstacles_thresh", 5).value

@@ -71,7 +71,7 @@ class Mapper(Node):
         self.get_logger().set_level(logging.INFO)
         # Timer frequencies
         self.param_tf_pub_hz = self.declare_parameter("tf_pub_frequency_hz", 30).value
-        self.param_sim_map = self.declare_parameter("sim_map", True).value
+        self.param_sim_map = self.declare_parameter("sim_map", False).value
         self.param_map_pub_hz = self.declare_parameter("map_pub_frequency_hz", 3).value
         self.param_map_update_hz = self.declare_parameter("map_update_frequency_hz", 3).value
 
@@ -85,7 +85,7 @@ class Mapper(Node):
         self.param_detection_resolution_m = self.declare_parameter("detection_resolution_m", 0.025).value
 
         # Max pitch beyond which we do not map, as we will be looking at the sky
-        self.param_max_pitch = self.declare_parameter("max_mapping_pitch_rad", np.pi / 4)
+        self.param_max_pitch = self.declare_parameter("max_mapping_pitch_rad", np.pi / 6).value
 
         # How to map obstacles
         self.param_do_height_mapping = self.declare_parameter("do_height_mapping", True).value
@@ -385,7 +385,8 @@ class Mapper(Node):
         pitch, _, _ = transform.quat_to_euler(local_map_to_d435.rotation)
         if len(pts) < 10:
             return
-        if pitch > self.param_max_pitch:
+        if pitch < -self.param_max_pitch:
+            # negative rotation about the y axis is up
             self.get_logger().debug(f"Pitch of {math.degrees(pitch)} degrees, skipping mapping")
             return
         self.get_logger().debug(f"Transforming point cloud by transform: {self.orient_nova_frame_transform}", throttle_duration_sec=1)
