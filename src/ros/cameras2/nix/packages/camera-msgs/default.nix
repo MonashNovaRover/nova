@@ -1,5 +1,4 @@
-{ cmake, }:
-{ buildEnv, buildRosPackage, ament-cmake, rosidl-default-generators, }:
+{ cmake, buildRosPackage, ament-cmake, rosidl-default-generators, }:
 
 buildRosPackage {
   pname = "ros-camera-msgs";

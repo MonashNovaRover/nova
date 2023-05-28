@@ -1,29 +1,13 @@
-{ lib
-, writeShellScriptBin
-, stunserver
-, gst_all_1
-}:
-
-{ buildEnv
-, ros2launch
-, rmw-fastrtps-dynamic-cpp
-, cameras2
-}:
+{ lib, writeShellScriptBin, stunserver, gst_all_1, buildEnv, ros2launch
+, rmw-fastrtps-dynamic-cpp, cameras2 }:
 
 let
   packages = [
-    (buildEnv {
-      paths = [
-        ros2launch
-        rmw-fastrtps-dynamic-cpp
-        cameras2
-      ];
-    })
+    (buildEnv { paths = [ ros2launch rmw-fastrtps-dynamic-cpp cameras2 ]; })
     stunserver
     gst_all_1.gst-plugins-rs-webrtc # For the signalling server
   ];
-in
-writeShellScriptBin "gst-nova-launcher" ''
+in writeShellScriptBin "gst-nova-launcher" ''
   export PATH="${lib.makeBinPath packages}:$PATH"
   export RMW_IMPLEMENTATION=rmw_fastrtps_dynamic_cpp # https://github.com/lopsided98/nix-ros-overlay/issues/45
 

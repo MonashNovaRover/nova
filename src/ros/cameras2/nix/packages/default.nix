@@ -17,16 +17,12 @@ in import rospkgs {
   inherit (stdenv.buildPlatform) system;
   inherit nixpkgs;
   overlays = [
-    (self: super: {
-      ros = self.rosPackages.foxy;
-      callRosPackage = path: overrides: rosOverrides:
-        self.ros.callPackage (self.callPackage path overrides) rosOverrides;
-    })
+    (self: super: { ros = self.rosPackages.foxy; })
     (self: super: {
       # ROS packages
       ros = super.ros.overrideScope (rosSelf: rosSuper: {
-        camera-msgs = self.callRosPackage ./camera-msgs { } { };
-        cameras2 = self.callRosPackage ./cameras2 { } { };
+        camera-msgs = rosSelf.callPackage ./camera-msgs { };
+        cameras2 = rosSelf.callPackage ./cameras2 { };
       });
 
       # Python packages

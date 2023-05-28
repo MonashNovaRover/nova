@@ -1,5 +1,5 @@
-{ cmake, wrapGAppsNoGuiHook, gobject-introspection, gst_all_1, libnice }:
-{ buildRosPackage, launch, launch-ros, rclpy, std-srvs, camera-msgs, python3Packages }:
+{ wrapGAppsNoGuiHook, gobject-introspection, gst_all_1, libnice, buildRosPackage
+, launch, launch-ros, rclpy, std-srvs, camera-msgs, python3Packages }:
 
 buildRosPackage {
   pname = "ros-cameras2";
@@ -8,11 +8,8 @@ buildRosPackage {
 
   src = ../../../cameras2;
 
-  nativeBuildInputs = [
-    wrapGAppsNoGuiHook
-    gobject-introspection
-    gst_all_1.gstreamer
-  ];
+  nativeBuildInputs =
+    [ wrapGAppsNoGuiHook gobject-introspection gst_all_1.gstreamer ];
 
   buildInputs = [
     gobject-introspection
