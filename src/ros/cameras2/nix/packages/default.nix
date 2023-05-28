@@ -41,7 +41,9 @@ in import rospkgs {
       # Runtime dependencies
       gst_all_1 = super.gst_all_1 // {
         gst-plugins-rs-webrtc = self.gst_all_1.gst-plugins-rs.override {
-          plugins = [ "webrtc" "rtp" ];
+          # Using binary substitutions from Hydra are typically more convinent than building a minimal version of gst-plugins-rs.
+          # The minimal version is 90% smaller, but takes a very long time to build.
+          # plugins = [ "webrtc" "rtp" ];
         };
       };
       stunserver = self.callPackage ./stunserver { };
