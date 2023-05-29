@@ -141,6 +141,8 @@ void Driver::set_best_effort_velocity(){
     float d_vel = target_velocity - best_effort_velocity;
     if (abs(d_vel) > max_d_vel) {
         best_effort_velocity += max_d_vel * (d_vel > 0 ? 1 : -1);
+    } else {
+        best_effort_velocity = target_velocity;
     };
 }
 
