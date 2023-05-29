@@ -4,8 +4,8 @@ let
   nixpkgs = pkgs.fetchFromGitHub {
     owner = "NixOS";
     repo = "nixpkgs";
-    rev = "aeb75dba965e790de427b73315d5addf91a54955";
-    hash = "sha256-U3oOge4cHnav8OLGdRVhL45xoRj4Ppd+It6nPC9nNIU=";
+    rev = "5b1bc788f578cd83d54b48bb057d6f6703ae7725";
+    hash = "sha256-sDMEZ4HLP6sVNiBcgla3KWihdDjh67DP5ZWkGKWFgY0=";
   };
   rospkgs = pkgs.fetchFromGitHub {
     owner = "lopsided98";
