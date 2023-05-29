@@ -40,14 +40,13 @@ class GimbalCam(Node):
         self.get_logger().set_level(logging.INFO)
         self.param_can = self.declare_parameter("can_bus", "can1").value
         self.param_do_pwm = self.declare_parameter("do_pwm", True).value
-        self.param_velocity_steps = self.declare_parameter("velocity_factor", 10).value
-        self.max_velocity_value = self.declare_parameter("max_velocity_value", 127).value
-        self.min_velocity_value = 0x3F/0x7F if self.param_do_pwm else self.param_velocity_increment
-        self.velocity_increment = (self.max_velocity_value - self.min_velocity_value)/self.param_velocity_steps
+        self.param_velocity_steps = self.declare_parameter("velocity_steps", 10).value
+        self.max_velocity_cmd = self.declare_parameter("max_velocity_cmd", 127).value
+        self.min_velocity = 0x3F/0x7F if self.param_do_pwm else self.declare_parameter("min_velocity", 0.1).value
+        self.velocity_increment = (1.0 - self.min_velocity)/self.param_velocity_steps
         # can commands for gimbal cam
         self.velocity_cmd = 0x081
-        # Initially all motors spin backwards with 0 velocity
-        self.velocity_factor = (self.max_velocity_value - self.min_velocity_value)/2 + self.min_velocity_value
+        self.velocity = (1.0 - self.min_velocity)/2 + self.min_velocity
         self.x_velocity = 0
         self.y_velocity = 0
         self.joystick_lock = True
@@ -95,23 +94,23 @@ class GimbalCam(Node):
 
             #set the velocity factor
             if msg.btn_bottom_r1_state == 1:
-                self.velocity_factor = min(self.param_velocity_increment + self.velocity_factor, 1)
+                self.velocity = min(self.velocity_increment + self.velocity, 1)
             elif msg.btn_bottom_r4_state == 1:
-                self.velocity_factor = max(self.velocity_factor - self.param_velocity_increment, self.min_velocity_value)
+                self.velocity = max(self.velocity - self.velocity_increment, self.min_velocity)
 
             # set the x velocity
             if msg.btn_bottom_r2_state >= 1:
-                self.x_velocity = self.velocity_factor * self.max_velocity_value
+                self.x_velocity = self.velocity * self.max_velocity_cmd
             elif msg.btn_bottom_r5_state >= 1:
-                self.x_velocity = -self.velocity_factor * self.max_velocity_value
+                self.x_velocity = -self.velocity * self.max_velocity_cmd
             else:
                 self.x_velocity = 0
 
             # set the y velocity
             if msg.btn_bottom_r3_state >= 1:
-                self.y_velocity = self.velocity_factor * self.max_velocity_value
+                self.y_velocity = self.velocity * self.max_velocity_cmd
             elif msg.btn_bottom_r6_state >= 1:
-                self.y_velocity = -self.velocity_factor * self.max_velocity_value
+                self.y_velocity = -self.velocity * self.max_velocity_cmd
             else:
                 self.y_velocity = 0
 
