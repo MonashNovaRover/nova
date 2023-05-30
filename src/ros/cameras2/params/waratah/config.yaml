@@ -28,18 +28,26 @@ camera_streamer:
         meta:
           uiProps:
             name: Science - Microscope
-      science_payload:
+            rotation: 180
+      science_gantry:
         meta:
           uiProps:
-            name: Science - Payload
-      science_spectrometer_top:
+            name: Science - Gantry
+            rotation: 180
+      science_spectrometer_side:
         meta:
           uiProps:
-            name: Science - Spectrometer (Top)
+            name: Science - Spectrometer (Side)
+            rotation: 180
       science_backward:
         meta:
           uiProps:
             name: Science - Butt
+            rotation: 180
+      science_rock_flipper:
+        meta:
+          uiProps:
+            name: Science - Rock flipper
 
       # Arm
       arm_gimbal:

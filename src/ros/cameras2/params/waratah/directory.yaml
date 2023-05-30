@@ -13,10 +13,11 @@ camera_directory:
           '3:1.0': mast_arm_stow
           '4:1.0': mast_backward
         science:
-          '2:1.0': science_microscope
-          '4.1:1.0': science_payload
+          '2:1.0': science_spectrometer_side
+          '4.1:1.0': science_microscope
           '4.2:1.0': science_backward
-          '3:1.0': science_spectrometer_top
+          '4.4:1.0': science_rock_flipper
+          '3:1.0': science_gantry
         arm:
           '1:1.0': arm_gimbal
           '2.1:1.0': arm_end_forward
