@@ -61,6 +61,7 @@ class PathPlanner(Node):
         super().__init__("path_planner_node")
         self.get_logger().set_level(logging.INFO)
 
+        self.param_obstacle_very_near_dist = self.declare_parameter("obstacle_very_near_dist_m", 1).value
         self.param_obstacle_near_dist = self.declare_parameter("obstacle_near_dist_m", 2).value
         self.param_near_obstacle_thresh = self.declare_parameter("num_near_obstacles_thresh", 5).value
         self.resolution = self.declare_parameter("resolution_m", 0.1).value
@@ -83,6 +84,7 @@ class PathPlanner(Node):
         self.map_subscriber = None
         self.path_publisher = self.create_publisher(Path, auto_waypoints_topic, 10)
         self.pub_near_obstacle = self.create_publisher(Bool, "/autonomous/near_obstacle", 10)
+        self.pub_very_near_obstacle = self.create_publisher(Bool, "/autonomous/very_near_obstacle", 10)
 
         # Transform listeners
         self.tf_buffer = Buffer()
@@ -115,19 +117,20 @@ class PathPlanner(Node):
         self.length_meters = int(self._map.shape[0] * self.resolution)
         self.width_meters = int(self._map.shape[1] * self.resolution)
         
-        self.check_near_obstacle()
+        self.pub_near_obstacle.publish(Bool(data=self.check_near_obstacle(self.param_obstacle_near_dist)))
+        self.pub_very_near_obstacle.publish(Bool(data=self.check_near_obstacle(self.param_obstacle_very_near_dist)))
 
-    def check_near_obstacle(self):
+    def check_near_obstacle(self, dist):
         """
         Checks if the rover is near an obstacle, and publishes True if it is
         """
         if self._map is None:
             return
         pos = (self.pose_2d.x, self.pose_2d.y)
-        min_x = pos[0] - self.param_obstacle_near_dist
-        min_y = pos[1] - self.param_obstacle_near_dist
-        max_x = pos[0] + self.param_obstacle_near_dist
-        max_y = pos[1] + self.param_obstacle_near_dist
+        min_x = pos[0] - dist
+        min_y = pos[1] - dist
+        max_x = pos[0] + dist
+        max_y = pos[1] + dist
         min_coord = self.get_grid_coord((min_x, min_y))
         max_coord = self.get_grid_coord((max_x, max_y))
         min_x_idx = max(0, min_coord[0])
@@ -140,7 +143,7 @@ class PathPlanner(Node):
         self.get_logger().debug(f"max_x: {max_x_idx}, max_y: {max_y_idx}")
         self.get_logger().debug(f"Obstacle ROI: {region_of_interest}")
         near_obstacle = np.sum((region_of_interest >= 1).astype(float)) > self.param_near_obstacle_thresh
-        self.pub_near_obstacle.publish(Bool(data=bool(near_obstacle)))
+        return bool(near_obstacle)
 
     def set_goal(self, goal: PoseStamped):
         """

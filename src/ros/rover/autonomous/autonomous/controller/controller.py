@@ -84,11 +84,13 @@ class Controller(Node):
         self.param_do_tank_turn = self.declare_parameter("do_tank_turn", False).value
         self.param_waypoint_follow_distance = self.declare_parameter("waypoint_follow_distance_m", 0.3).value
         self.param_max_speed = self.declare_parameter("max_speed", 0.4).value
-        self.param_near_obstacle_speed = self.declare_parameter("obstacle_speed", 0.1).value
+        self.param_near_obstacle_speed = self.declare_parameter("near_obstacle_speed", 0.2).value
+        self.param_very_near_obstacle_speed = self.declare_parameter("very_near_obstacle_speed", 0.1).value
         self.param_max_wheel_angle_err = self.declare_parameter("max_wheel_err_rads", np.pi / 4).value
         self.param_near_goal_speed = self.declare_parameter("near_goal_speed", 0.2).value
         self.param_near_goal_dist = self.declare_parameter("near_goal_dist", 20).value
-        self.param_big_turn_frac = self.declare_parameter("big_turn_frac", 0.5).value
+        self.param_big_turn_speed = self.declare_parameter("big_turn_speed", 0.15).value
+        self.param_big_turn_radius = self.declare_parameter("big_turn_radius_m", 0.2).value
         self.param_min_spin_complete_yaw_diff = self.declare_parameter("min_spin_complete_yaw_diff", np.pi / 8).value
         self.param_max_spin_complete_yaw_diff = self.declare_parameter("max_spin_complete_yaw_diff", np.pi / 4).value
 
@@ -101,6 +103,7 @@ class Controller(Node):
         self.state_spin_start_heading = None
         self.state_near_goal = False
         self.state_near_obstacle = False
+        self.state_very_near_obstacle = False
 
         self.trigger_spin = False
         self.trigger_to_waypoint = False
@@ -130,6 +133,7 @@ class Controller(Node):
         self.sub_success = self.create_subscription(Empty, "/autonomous_controller/success_trigger", self.callback_success, 10)
         self.sub_goal_dist = self.create_subscription(Float64, "/autonomous/goal_dist", self.callback_goal_dist, 10)
         self.sub_near_obstacle = self.create_subscription(Bool, "/autonomous/near_obstacle", self.callback_near_obstacle, 10)
+        self.sub_very_near_obstacle = self.create_subscription(Bool, "/autonomous/very_near_obstacle", self.callback_very_near_obstacle, 10)
 
         self.get_logger().info("Waiting for transform from 'local_map' to 'base_link'...")
         self.transform_future : Future = self.tf_buffer.wait_for_transform_async('base_link', 'local_map', Time())
@@ -318,6 +322,13 @@ class Controller(Node):
         """
         self.state_near_obstacle = msg.data
 
+    def callback_very_near_obstacle(self, msg: Bool):
+        """
+        Callback for the near goal subscriber. Sets the near goal trigger to True
+        :param msg: Bool message
+        """
+        self.state_very_near_obstacle = msg.data
+
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 'Util' Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -366,25 +377,25 @@ class Controller(Node):
         # Scale speed by how sharply we are turning
         # Clamp radius between 0.5 and 2 m
         radius = abs(signed_radius)
-        clamped_radius = min(max(radius, 0.5), 2)
-        # scale from 0.5 - 1
-        turn_size_speed_factor = self.param_big_turn_frac + (1 - self.param_big_turn_frac) * (clamped_radius - 0.5) / 1.5
 
-        if self.state_near_obstacle:
+        if radius < self.param_big_turn_radius:
+            speed = self.param_big_turn_speed
+        elif self.state_very_near_obstacle:
+            speed = self.param_very_near_obstacle_speed
+        elif self.state_near_obstacle:
             speed = self.param_near_obstacle_speed
         elif self.state_near_goal:
             speed = self.param_near_goal_speed
         else:
             speed = self.param_max_speed
         
-        speed *= turn_size_speed_factor * wheel_error_speed_factor
+        speed *= wheel_error_speed_factor
 
         self.get_logger().debug(f"Turn radius: {radius}")
         self.get_logger().debug(f"Current radius: {self.state_latest_radius}")
         self.get_logger().debug(f"Direction: {direction}")
         self.get_logger().debug(f"wheel angle error: {wheel_angle_rads}")
         self.get_logger().debug(f"wheel error speed factor: {wheel_error_speed_factor}")
-        self.get_logger().debug(f"turn size speed factor: {turn_size_speed_factor}")
         self.get_logger().debug(f"speed: {speed}")
         return speed, radius, direction
 
