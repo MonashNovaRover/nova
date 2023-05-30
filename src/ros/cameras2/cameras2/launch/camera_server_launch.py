@@ -1,3 +1,5 @@
+from functools import reduce
+
 from launch import LaunchDescription, Substitution, SomeSubstitutionsType
 from launch.actions import DeclareLaunchArgument, ExecuteProcess
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, PythonExpression
@@ -6,14 +8,18 @@ from launch_ros.actions import Node
 
 
 def generate_launch_description():
-    param_dir = LaunchConfiguration("param-dir")
-    platform = LaunchConfiguration("platform")
-    autostart = LaunchConfiguration("autostart")
+    param_dir = LaunchConfiguration("param-dir", default="")
+    platform = LaunchConfiguration("platform", default="")
+    payload = LaunchConfiguration("payload", default="")
+    autostart = LaunchConfiguration("autostart", default="")
 
     node_parameters = [
-        _substitute_if_not_empty(param_dir, PathJoinSubstitution([param_dir, "core.yaml"])),
-        _substitute_if_not_empty(
-            param_dir, PathJoinSubstitution([param_dir, "platform", _cat_substitutions([platform, ".yaml"])])
+        _substitute_if_not_empty(param_dir, PathJoinSubstitution([param_dir, "directory.yaml"])),
+        _substitute_if_not_empty(param_dir, PathJoinSubstitution([param_dir, "config.yaml"])),
+        _substitute_if_not_empty(param_dir, PathJoinSubstitution([param_dir, "platform", platform, "core.yaml"])),
+        _substitute_if_not_empties(
+            (param_dir, payload),
+            PathJoinSubstitution([param_dir, "platform", platform, "payload", _cat_substitutions([payload, ".yaml"])]),
         ),
     ]
 
@@ -71,3 +77,11 @@ def _substitute_if_not_empty(
 ) -> Substitution:
     # https://github.com/ros2/launch/issues/290#issuecomment-520643662
     return PythonExpression(["'", substitution, "'", "if '' != '", value, "' else ''"])
+
+
+def _substitute_if_not_empties(values: SomeSubstitutionsType, substitution: str | Substitution) -> Substitution:
+    return reduce(
+        lambda result, value: _substitute_if_not_empty(value, result),
+        reversed(normalize_to_list_of_substitutions(values)),
+        substitution,
+    )
