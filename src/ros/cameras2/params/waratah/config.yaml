@@ -3,6 +3,10 @@ camera_streamer:
     defaults:
       width: 640
       framerate: 10
+      profiles:
+        snail:
+          width: 320
+          framerate: 7.5
 
     cameras:
       # Mast
