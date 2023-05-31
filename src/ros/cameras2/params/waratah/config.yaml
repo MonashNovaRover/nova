@@ -58,10 +58,10 @@ camera_streamer:
         meta:
           uiProps:
             name: Arm - Gimbal
-      arm_end_screw:
+      arm_end_forward:
         meta:
           uiProps:
-            name: Arm - Screw
+            name: Arm - Forward
             mirrorX: true
       arm_end_top:
         meta:
@@ -71,7 +71,7 @@ camera_streamer:
         meta:
           uiProps:
             name: Arm - Finger
-      arm_end_forward:
+      arm_end_side:
         meta:
           uiProps:
-            name: Arm - Forwards
+            name: Arm - Side

@@ -20,7 +20,7 @@ camera_directory:
           '3:1.0': science_gantry
         arm:
           '1:1.0': arm_gimbal
-          '2.1:1.0': arm_end_forward
+          '2.1:1.0': arm_end_side
           '2.2:1.0': arm_end_top
           '2.3:1.0': arm_end_finger
-          '2.4:1.0': arm_end_screw
+          '2.4:1.0': arm_end_forward
