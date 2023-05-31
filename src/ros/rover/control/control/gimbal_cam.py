@@ -43,7 +43,7 @@ class GimbalCam(Node):
         self.param_velocity_steps = self.declare_parameter("velocity_steps", 10).value
         self.max_velocity_cmd = self.declare_parameter("max_velocity_cmd", 127).value
         self.min_velocity_cmd = 0x3F if self.param_do_pwm else self.declare_parameter("min_velocity", 0.1).value * \
-                                                           self.max_velocity
+                                                           self.max_velocity_cmd
         self.velocity_increment = 1/self.param_velocity_steps
         # can commands for gimbal cam
         self.velocity_cmd = 0x081
