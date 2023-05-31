@@ -36,6 +36,11 @@ def generate_launch_description():
                 description="The target platform.",
             ),
             DeclareLaunchArgument(
+                "payload",
+                default_value="",
+                description="The payload type.",
+            ),
+            DeclareLaunchArgument(
                 "autostart",
                 choices=["true", "false"],
                 default_value="false",
