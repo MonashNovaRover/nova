@@ -33,7 +33,7 @@
     "boop_raise": {
       "hex": "098",
       "actions": {
-        "raise": {
+        "boop": {
           "hex": "",
           "args": []
         }
@@ -43,7 +43,7 @@
     "boop_lower": {
       "hex": "097",
       "actions": {
-        "lower": {
+        "boop": {
           "hex": "",
           "args": []
         }
