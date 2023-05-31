@@ -103,9 +103,9 @@ class GimbalCam(Node):
 
             # set the y velocity
             if msg.btn_bottom_r2_state >= 1:
-                self.y_velocity = self.get_velocity_cmd()
-            elif msg.btn_bottom_r5_state >= 1:
                 self.y_velocity = -self.get_velocity_cmd()
+            elif msg.btn_bottom_r5_state >= 1:
+                self.y_velocity = self.get_velocity_cmd()
             else:
                 self.y_velocity = 0
 
