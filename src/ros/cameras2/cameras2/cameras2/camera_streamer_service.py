@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Callable, cast, NamedTuple
 import json
 
@@ -54,6 +56,7 @@ class CameraStreamerService(Node):
         do_retransmission: bool
         show_clock: bool
         meta: dict[str, object]
+        profiles: dict[str, CameraStreamerService.CameraConfiguration]
 
     def __init__(self):
         super().__init__(
@@ -176,6 +179,13 @@ class CameraStreamerService(Node):
                 do_retransmission=do_retransmission if do_retransmission is not None else defaults.do_retransmission,
                 show_clock=show_clock if show_clock is not None else defaults.show_clock,
                 meta={**defaults.meta, **read_meta(parameters.get("meta", {}))},
+                profiles={
+                    **defaults.profiles,
+                    **{
+                        name: read_camera_configuration(defaults, value)
+                        for name, value in parameters.get("profiles", {}).items()
+                    },
+                },
             )
 
         param_defaults = read_camera_configuration(
@@ -187,6 +197,7 @@ class CameraStreamerService(Node):
                 do_retransmission=True,
                 show_clock=True,
                 meta={},
+                profiles={},
             ),
             expand_dictionary(self.get_parameters_by_prefix("defaults")),
         )
