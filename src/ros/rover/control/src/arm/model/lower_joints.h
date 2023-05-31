@@ -40,8 +40,8 @@ class LowerJointsModel : public ArmSubModule
 
     // Parameters for lower-joints CMDs
     constexpr static double GEARBOX_REDUCTION = 2143.75;
-    const static int ENCODER_PPR = 512;
-    const static int MIN_INTERVAL = 150;
+    const static int ENCODER_PPR = 256;
+    const static int MIN_INTERVAL = 300;
     constexpr static double CLOCK_FREQUENCY = 30e6;
 
     /// Constructor. Build the lower joints
