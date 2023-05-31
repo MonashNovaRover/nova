@@ -166,7 +166,10 @@ class CameraStreamerService(Node):
 
             width = get_parameter_value("width", lambda p: p.integer_value)
             height = get_parameter_value("height", lambda p: p.integer_value)
-            framerate = get_parameter_value("framerate", lambda p: p.integer_value)
+            framerate = get_parameter_value("framerate", lambda p: p.double_value)
+            if framerate == 0:
+                # If the double value is zero, an integer value was given instead.
+                framerate = get_parameter_value("framerate", lambda p: p.integer_value)
             do_fec = get_parameter_value("do_fec", lambda p: p.bool_value)
             do_retransmission = get_parameter_value("do_retransmission", lambda p: p.bool_value)
             show_clock = get_parameter_value("show_clock", lambda p: p.bool_value)
