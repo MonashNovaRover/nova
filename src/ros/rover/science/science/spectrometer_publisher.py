@@ -34,13 +34,13 @@ from core.msg import SpectrometerData
 BCA_CAN_ID = 0x008
 
 # The number of BCA frames to receive
-BCA_FRAMES = 3
+NUM_BCA_FRAMES = 3
 
 # The ID for the CAN frame for FDA
 FDA_CAN_ID = 0x007
 
 # The number of FDA frames to receive
-FDA_FRAMES = 5
+NUM_FDA_FRAMES = 5
 
 # Whether or not to store the data in a csv
 WRITE_TO_CSV = True
@@ -96,10 +96,10 @@ class SpectrometerPublisher(Node):
         try:
 
             # Process the FDA
-            self.process_data (self.can_fda, False, FDA_FRAMES)
+            self.process_data (self.can_fda, False, NUM_FDA_FRAMES)
 
             # Process the BCA
-            self.process_data (self.can_bca, True, BCA_FRAMES)
+            self.process_data (self.can_bca, True, NUM_BCA_FRAMES)
 
         
         # In case of an eror, just continue
@@ -119,6 +119,7 @@ class SpectrometerPublisher(Node):
         # Attempt to receive data from the BCA
         for frame in range(frames):
             can_msg = can.receive()
+            self.get_logger().debug(f"Received can frame: {can_msg.data}")
 
             # Get the current frame ID and if it is valid
             frame_id, valid, _, _ = can.unpack(can_msg.data, fmt=">bbhf")
