@@ -8,10 +8,10 @@ from launch_ros.actions import Node
 
 
 def generate_launch_description():
-    param_dir = LaunchConfiguration("param-dir", default="")
-    platform = LaunchConfiguration("platform", default="")
-    payload = LaunchConfiguration("payload", default="")
-    autostart = LaunchConfiguration("autostart", default="")
+    param_dir = LaunchConfiguration("param-dir")
+    platform = LaunchConfiguration("platform")
+    payload = LaunchConfiguration("payload")
+    autostart = LaunchConfiguration("autostart")
 
     node_parameters = [
         _substitute_if_not_empty(param_dir, PathJoinSubstitution([param_dir, "directory.yaml"])),
