@@ -38,6 +38,10 @@ camera_streamer:
           uiProps:
             name: Science - Gantry
             rotation: 180
+      science_spectrometer_top:
+        meta:
+          uiProps:
+            name: Science - Spectrometer (Top)
       science_spectrometer_side:
         meta:
           uiProps:

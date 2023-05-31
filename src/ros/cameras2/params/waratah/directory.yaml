@@ -13,6 +13,7 @@ camera_directory:
           '3:1.0': mast_forward
           '4:1.0': mast_backward
         science:
+          '1:1.0': science_spectrometer_top
           '2:1.0': science_spectrometer_side
           '4.1:1.0': science_microscope
           '4.2:1.0': science_backward
