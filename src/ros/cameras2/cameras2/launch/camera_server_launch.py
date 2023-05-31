@@ -12,6 +12,7 @@ def generate_launch_description():
     platform = LaunchConfiguration("platform")
     payload = LaunchConfiguration("payload")
     autostart = LaunchConfiguration("autostart")
+    snail_mode = LaunchConfiguration("snail-mode")
 
     node_parameters = [
         _substitute_if_not_empty(param_dir, PathJoinSubstitution([param_dir, "directory.yaml"])),
@@ -46,6 +47,12 @@ def generate_launch_description():
                 default_value="false",
                 description="Enable the camera streamer autostart parameter.",
             ),
+            DeclareLaunchArgument(
+                "snail-mode",
+                choices=["true", "false"],
+                default_value="false",
+                description="Enable the camera streamer snail mode",
+            ),
             ExecuteProcess(
                 cmd=["gst-webrtc-signalling-server"],
                 additional_env={
@@ -65,6 +72,7 @@ def generate_launch_description():
                     *node_parameters,
                     {
                         "autostart": autostart,
+                        "defaults.profile": _substitute_if_true(snail_mode, "snail"),
                     },
                 ],
             ),
@@ -90,3 +98,10 @@ def _substitute_if_not_empties(values: SomeSubstitutionsType, substitution: str 
         reversed(normalize_to_list_of_substitutions(values)),
         substitution,
     )
+
+
+def _substitute_if_true(
+    value: str | Substitution,
+    substitution: str | Substitution,
+) -> Substitution:
+    return PythonExpression(["'", substitution, "'", "if 'true' == '", value, "' else ''"])
