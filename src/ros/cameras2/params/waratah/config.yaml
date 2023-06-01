@@ -7,6 +7,9 @@ camera_streamer:
         snail:
           width: 320
           framerate: 7.5
+        super:
+          width: 1280
+          framerate: 10
 
     cameras:
       # Mast
