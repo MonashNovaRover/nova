@@ -28,3 +28,6 @@ camera_streamer:
       arm_end_finger:
         autostart: true
         profile: super
+      mast_backward:
+        autostart: true
+        profile: snail
