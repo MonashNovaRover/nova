@@ -13,6 +13,7 @@ def generate_launch_description():
     payload = LaunchConfiguration("payload")
     autostart = LaunchConfiguration("autostart")
     profile = LaunchConfiguration("profile")
+    task = LaunchConfiguration("task")
 
     node_parameters = [
         _substitute_if_not_empty(param_dir, PathJoinSubstitution([param_dir, "directory.yaml"])),
@@ -21,6 +22,10 @@ def generate_launch_description():
         _substitute_if_not_empties(
             (param_dir, payload),
             PathJoinSubstitution([param_dir, "platform", platform, "payload", _cat_substitutions([payload, ".yaml"])]),
+        ),
+        _substitute_if_not_empties(
+            (param_dir, task),
+            PathJoinSubstitution([param_dir, "tasks", _cat_substitutions([task, ".yaml"])]),
         ),
     ]
 
@@ -51,6 +56,11 @@ def generate_launch_description():
                 "profile",
                 default_value="",
                 description="Select a stream profile.",
+            ),
+            DeclareLaunchArgument(
+                "task",
+                default_value="",
+                description="Select a specific task.",
             ),
             ExecuteProcess(
                 cmd=["gst-webrtc-signalling-server"],

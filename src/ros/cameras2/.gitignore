@@ -1,2 +1,3 @@
 # Local platform parameters
 params/*/platform/local/
+params/*/tasks/local.yaml
