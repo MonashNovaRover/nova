@@ -26,10 +26,6 @@ camera_streamer:
         meta:
           uiProps:
             name: Mast - Forwards
-        profiles:
-          rocks:
-            width: 1280
-            framerate: 10
 
       # Science
       science_microscope:

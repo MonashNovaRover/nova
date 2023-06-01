@@ -1,0 +1,16 @@
+camera_streamer:
+  ros__parameters:
+    defaults:
+      autostart: false
+
+    cameras:
+      arm_gimbal.autostart: true
+      mast_down.autostart: true
+      mast_forward:
+        autostart: true
+        width: 1280
+        framerate: 10
+      arm_end_forward.autostart: true
+      mast_arm_stow.autostart: true
+      arm_end_top.autostart: true
+      mast_backward.autostart: true
