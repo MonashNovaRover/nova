@@ -49,6 +49,7 @@ class CameraStreamerService(Node):
     """
 
     class CameraConfiguration(NamedTuple):
+        autostart: bool
         width: int
         height: int
         framerate: int
@@ -178,6 +179,7 @@ class CameraStreamerService(Node):
                 profiles.get(profile_name, defaults.profiles.get(profile_name, {})) if profile_name is not None else {}
             )
 
+            autostart = get_parameter_value("autostart", lambda p: p.bool_value)
             width = get_parameter_value("width", lambda p: p.integer_value)
             height = get_parameter_value("height", lambda p: p.integer_value)
             framerate = get_parameter_value("framerate", lambda p: p.double_value)
@@ -192,6 +194,7 @@ class CameraStreamerService(Node):
             # storing the former inside the latter. It also has issues with nested dictionaries.
             # A more robust system should be made, with proper support for merging nested dictionaries.
             return CameraStreamerService.CameraConfiguration(
+                autostart=autostart if autostart is not None else defaults.autostart,
                 width=width if width is not None else defaults.width,
                 height=height if height is not None else defaults.height,
                 framerate=framerate if framerate is not None else defaults.framerate,
@@ -205,6 +208,7 @@ class CameraStreamerService(Node):
 
         param_defaults = read_camera_configuration(
             CameraStreamerService.CameraConfiguration(
+                autostart=True,
                 width=0,
                 height=0,
                 framerate=0,
@@ -259,7 +263,15 @@ class CameraStreamerService(Node):
         self._device_nodes.update(kwargs)
 
         if self.get_parameter("autostart").get_parameter_value().bool_value:
-            self._stream_start_client.call_async(CameraOperation.Request(serials=set(kwargs.keys())))
+            serials = {
+                "nop",  # If no cameras have autostart enabled, the set will be empty and the service call will start everything.
+                *(
+                    serial
+                    for serial in kwargs.keys()
+                    if self._camera_configurations.get(serial, self._default_camera_configuration).autostart
+                ),
+            }
+            self._stream_start_client.call_async(CameraOperation.Request(serials=serials))
 
     def _unregister_cameras(self, serials: set[str]) -> None:
         if not serials:
