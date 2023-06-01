@@ -26,6 +26,10 @@ camera_streamer:
         meta:
           uiProps:
             name: Mast - Forwards
+        profiles:
+          rocks:
+            width: 1280
+            framerate: 10
 
       # Science
       science_microscope:
@@ -52,6 +56,10 @@ camera_streamer:
           uiProps:
             name: Science - Butt
             rotation: 180
+      science_shotglass:
+        meta:
+          uiProps:
+            name: Science - Shotglass
       science_rock_flipper:
         meta:
           uiProps:

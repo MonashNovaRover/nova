@@ -17,6 +17,7 @@ camera_directory:
           '2:1.0': science_spectrometer_side
           '4.1:1.0': science_microscope
           '4.2:1.0': science_backward
+          '4.3:1.0': science_shotglass
           '4.4:1.0': science_rock_flipper
           '3:1.0': science_gantry
         arm:
