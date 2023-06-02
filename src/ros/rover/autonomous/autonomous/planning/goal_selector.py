@@ -190,9 +190,9 @@ class Controller(Node):
             return False
         
         # controller told us to skip this goal because it couldn't get to it
-        if self.state != PlanningState.SEARCH_SPIN and self.trigger_achieved_goal:
-            self.get_logger().debug("Triggered achieved goal")
-            return True
+        #if self.state != PlanningState.SEARCH_SPIN and self.trigger_achieved_goal:
+        #    self.get_logger().debug("Triggered achieved goal")
+        #    return True
 
         # If we haven't received an override from the controller, we haven't completed a spin
         if self.state == PlanningState.SEARCH_SPIN:
@@ -239,9 +239,11 @@ class Controller(Node):
         # In RETURN state, rover follows intermediate goals back to previous goal. If an intermediate goal 
         # is reached then re-initialize RETURN. If previous goal is reached then transition to IDLE  
         elif self.state == PlanningState.RETURN:
-            if self.at_current_goal() and self.intermediate_goal():
+            if self.trigger_achieved_goal:
+                self.on_state_update(PlanningState.FAILED)
+            elif self.at_current_goal() and self.intermediate_goal():
                 self.on_state_update(PlanningState.RETURN)
-            if self.at_current_goal() and not self.intermediate_goal():
+            elif self.at_current_goal() and not self.intermediate_goal():
                 self.on_state_update(PlanningState.IDLE)
 
         # In TO_COORDINATE state, rover follows intermediate goals towards new goal. If an intermediate goal 
@@ -251,6 +253,8 @@ class Controller(Node):
         elif self.state == PlanningState.TO_COORDINATE:
             if self.trigger_return:
                 self.on_state_update(PlanningState.RETURN)
+            elif self.trigger_achieved_goal:
+                self.on_state_update(PlanningState.FAILED)
             elif self.at_current_goal() and self.intermediate_goal():
                 self.on_state_update(PlanningState.TO_COORDINATE)
             elif not self.intermediate_goal() and self.state_ar_tag_manager.found_current_tag():
