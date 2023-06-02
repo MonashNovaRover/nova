@@ -135,9 +135,9 @@ def spin_achieved(direction: int, facing: np.array, target: np.array):
     return spin_achieved_delta / 2 < delta < spin_achieved_delta
 
 
-def interpolate_circle_points(centre: Tuple, num_points: int = 8, radius: int = 10):
+def interpolate_circle_points(centre: Tuple, num_points: int = 8, radius: int = 10, halfway=False):
     d_theta = 2 * np.pi / num_points
-    theta = 0
+    theta = d_theta / 2 if halfway else 0
     pts = []
     for _ in range(num_points):
         pts.append((radius * np.cos(theta) + centre[0], radius * np.sin(theta) + centre[1]))

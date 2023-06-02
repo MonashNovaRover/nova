@@ -83,12 +83,12 @@ class Controller(Node):
         # Ros params
         self.param_do_tank_turn = self.declare_parameter("do_tank_turn", False).value
         self.param_waypoint_follow_distance = self.declare_parameter("waypoint_follow_distance_m", 0.3).value
-        self.param_max_speed = self.declare_parameter("max_speed", 0.4).value
-        self.param_near_obstacle_speed = self.declare_parameter("near_obstacle_speed", 0.2).value
+        self.param_max_speed = self.declare_parameter("max_speed", 0.5).value
+        self.param_near_obstacle_speed = self.declare_parameter("near_obstacle_speed", 0.25).value
         self.param_very_near_obstacle_speed = self.declare_parameter("very_near_obstacle_speed", 0.1).value
         self.param_max_wheel_angle_err = self.declare_parameter("max_wheel_err_rads", np.pi / 4).value
-        self.param_near_goal_speed = self.declare_parameter("near_goal_speed", 0.2).value
-        self.param_near_goal_dist = self.declare_parameter("near_goal_dist", 20).value
+        self.param_near_goal_speed = self.declare_parameter("near_goal_speed", 0.25).value
+        self.param_near_goal_dist = self.declare_parameter("near_goal_dist", 10).value
         self.param_big_turn_speed = self.declare_parameter("big_turn_speed", 0.15).value
         self.param_big_turn_radius = self.declare_parameter("big_turn_radius_m", 0.2).value
         self.param_min_spin_complete_yaw_diff = self.declare_parameter("min_spin_complete_yaw_diff", np.pi / 8).value
