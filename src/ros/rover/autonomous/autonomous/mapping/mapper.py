@@ -71,6 +71,7 @@ class Mapper(Node):
         self.get_logger().set_level(logging.INFO)
         # Timer frequencies
         self.param_tf_pub_hz = self.declare_parameter("tf_pub_frequency_hz", 30).value
+        self.declare_parameter("do_mapping", True)
         self.param_sim_map = self.declare_parameter("sim_map", False).value
         self.param_map_pub_hz = self.declare_parameter("map_pub_frequency_hz", 3).value
         self.param_map_update_hz = self.declare_parameter("map_update_frequency_hz", 3).value
@@ -351,8 +352,13 @@ class Mapper(Node):
         It calls a function to extract and filter the points (colors are ignored) and updates the map with points only -
         when using the python API, it should be a points only map.
         """
-        self.get_logger().debug("Received pointcloud", throttle_duration_sec=1)
-        self.latest_msg = msg
+        do_map = self.get_parameter("do_mapping").value
+        if do_map:
+            self.get_logger().debug("Received pointcloud", throttle_duration_sec=1)
+            self.latest_msg = msg
+        else:
+            self.get_logger().debug("Skipping mapping", throttle_duration_sec=1)
+            self.grid_2d.clear()
 
     def get_2d_map(self):
         """
