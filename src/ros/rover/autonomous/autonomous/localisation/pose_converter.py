@@ -69,6 +69,8 @@ class PoseConverter(Node):
         self.param_use_euler_angles = self.declare_parameter("use_euler", False).value
         self.param_initial_quat = self.declare_parameter("initial_base_link_quat", [0., 0., 0., 0., 0., 0., 1.]).value
         self.param_initial_euler = self.declare_parameter("initial_base_link_euler", [0., 0., 0., 0., 0., 0.]).value
+        self.param_heading_queue_len = self.declare_parameter("heading_queue_length", 20).value
+        self.param_heading_update_std_dev = math.radians(self.declare_parameter("heading_update_std_dev", 3).value)
         
         # tf2 objects
         self.tf_buffer = Buffer()
@@ -81,6 +83,8 @@ class PoseConverter(Node):
         self.latest_imu : Vector3Stamped = None
         self.latest_gps_pose : RoverPoseGPS = None
         self.latest_eulers : tuple = None
+        self.heading_queue : list[float] = []
+
         # p, r, y, x, y, z
         self.gps_offset : np.ndarray = None
         self.imu_heading_offset = 0
@@ -225,30 +229,41 @@ class PoseConverter(Node):
 
     def calibrate_heading(self):
         """
-        Comparing the most recent GPS heading value to the current imu heading, store the heading offset which corrects for
-        absolute drift errors in the imu heading.
+        Checks if the standard deviation of the gps heading queue is below the threshold,
+        and if so, updates the heading offset
         """
-        imu_heading_rads = self.transform_imu_to_nova()[2]
-        gps_heading_rads = -math.radians(self.latest_gps_pose.yaw) - self.gps_offset[2]
-        self.imu_heading_offset = gps_heading_rads - imu_heading_rads
-        self.get_logger().debug(f"imu heading: {imu_heading_rads}")
-        self.get_logger().debug(f"gps heading: {gps_heading_rads}")
-        self.get_logger().debug(f"gps_offset: {self.gps_offset[2]}")
-        self.get_logger().debug(f"imu heading offset: {self.imu_heading_offset}")
+        std = np.std(self.heading_queue)
+        if  std <= self.param_heading_update_std_dev:
+            self.get_logger().info(f"Updating heading offset, std: {std}")
+            imu_heading_rads = self.transform_imu_to_nova()[2]
+            gps_heading_rads = np.mean(self.heading_queue)
+            self.imu_heading_offset = gps_heading_rads - imu_heading_rads
+            self.get_logger().info(f"imu heading: {imu_heading_rads}")
+            self.get_logger().info(f"gps mean heading: {gps_heading_rads}")
+            self.get_logger().info(f"gps_offset: {self.gps_offset[2]}")
+            self.get_logger().info(f"imu heading offset: {self.imu_heading_offset}")
+
+    def update_heading_queue(self):
+        """
+        Update the heading queue with the latest heading value
+        """
+        self.heading_queue.append(-math.radians(self.latest_gps_pose.yaw) - self.gps_offset[2])
+        if len(self.heading_queue) > self.param_heading_queue_len:
+            self.heading_queue.pop(0)
 
     def cb_imu(self, msg: Vector3Stamped):
         """
         Updates locally stored message
         """
         self.latest_imu = msg
-
     def cb_dgps(self, msg : RoverPoseGPS):
         """
         Updates locally stored message
         """
         if msg.valid:
             self.latest_gps_pose = msg
-            if msg.heading_valid and self.latest_imu is not None and self.imu_heading_offset == 0:
+            if msg.heading_valid:
+                self.update_heading_queue()
                 self.calibrate_heading()
 
     def cb_goal(self, msg : AutonomousGoalArray):                                               
