@@ -71,6 +71,7 @@ class PoseConverter(Node):
         self.param_use_euler_angles = self.declare_parameter("use_euler", False).value
         self.param_initial_quat = self.declare_parameter("initial_base_link_quat", [0., 0., 0., 0., 0., 0., 1.]).value
         self.param_initial_euler = self.declare_parameter("initial_base_link_euler", [0., 0., 0., 0., 0., 0.]).value
+        self.param_max_queue_len = self.declare_parameter("max_queue, len", 5).value
         
         # tf2 objects
         self.tf_buffer = Buffer()
@@ -89,6 +90,8 @@ class PoseConverter(Node):
         self.gps_offset : np.ndarray = None
         self.imu_heading_offset = 0
         self.get_initial_transform()
+
+        self.headings_queue = []
 
         # subscribers
         self.imu_sub = self.create_subscription(Vector3Stamped, "/imu/euler", self.cb_imu, 10)
@@ -259,6 +262,9 @@ class PoseConverter(Node):
         Updates locally stored message
         """
         self.latest_imu = msg
+        self.headings_queue.append(msg.vector.z)
+        if len(self.headings_queue) > self.param_max_queue_len:
+            self.headings_queue.pop(0)
 
     def cb_dgps(self, msg : RoverPoseGPS):
         """
@@ -266,7 +272,7 @@ class PoseConverter(Node):
         """
         if msg.valid:
             self.latest_gps_pose = msg
-            if msg.heading_valid and self.latest_imu is not None and self.imu_heading_offset == 0:
+            if msg.heading_valid and self.latest_imu is not None and np.std(self.headings_queue) < 2:
                 self.calibrate_heading()
 
     def cb_goal(self, msg : AutonomousGoalArray):                                               

@@ -495,8 +495,9 @@ class Controller(Node):
         to find a tag or gate
         """
         goal_coord = [self.state_current_goal.position.x, self.state_current_goal.position.y]
-        search_plan_coords = interpolate_circle_points(goal_coord, num_points=6, radius=12)
-        search_plan_coords += interpolate_circle_points(goal_coord, num_points=6, radius=12, halfway=True)
+        search_plan_coords = interpolate_circle_points(goal_coord, num_points=4, radius=5)
+        search_plan_coords += interpolate_circle_points(goal_coord, num_points=4, radius=12, halfway=True)
+        search_plan_coords += interpolate_circle_points(goal_coord, num_points=4, radius=18)
         self.state_search_goals = []
         for x, y in search_plan_coords:
             search_goal = AutonomousGoal()
