@@ -38,7 +38,7 @@ from tf2_ros import Buffer, TransformListener
 # custom message imports
 from core.msg import AutonomousGoal, AutonomousGoalArray, AlvarMarkers
 from geometry_msgs.msg import Transform, PoseStamped
-from std_msgs.msg import Empty, Float64
+from std_msgs.msg import Empty, Float64, String
 from std_srvs.srv import Trigger
 
 # autonomous imports
@@ -121,6 +121,7 @@ class Controller(Node):
         self.pub_do_spin = self.create_publisher(Empty, "/autonomous_controller/do_spin", 10)
         self.pub_success = self.create_publisher(Empty, "/autonomous_controller/success_trigger", 10)
         self.pub_goal_dist = self.create_publisher(Float64, "/autonomous/goal_dist", 10)
+        self.pub_state = self.create_publisher(String, "/autonomous/planning-state", 10)
 
         # Subscribers
         self.sub_controller_goal_override = self.create_subscription(Empty, "/autonomous_controller/goal_achieved", self.callback_controller_goal_override, 10)
@@ -329,10 +330,12 @@ class Controller(Node):
         self.state = new_state
 
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~   Update State on Transition   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        state_string = ""
 
         # Entering success state means we have reached our goal, set the LED color to Green and current goal to None,
         # and set the return goal to the goal we just reached, so we can get back there if we screw up later
         if new_state == PlanningState.SUCCESS:
+            state_string = "SUCCESS"
             trigger = Trigger.Request()
             self.srv_led_success.call_async(trigger)
             self.pub_success.publish(Empty())
@@ -344,11 +347,13 @@ class Controller(Node):
 
         # We aren't doing anything - set current goal to None, and stop driving
         elif new_state == PlanningState.IDLE:
+            state_string = "IDLE"
             self.state_current_goal = None
             self.pub_success.publish(Empty())
 
         # We are driving to a coordinate - set the LED red if it isn't already, and if this is an intermediate goal, get the next goal
         elif new_state == PlanningState.TO_COORDINATE:
+            state_string = "TO_COORDINATE"
             if old_state == PlanningState.TO_COORDINATE:
                 # We reached an intermediate goal, add it to the list of visited goals
                 self.state_visited_intermediate_goals.append(self.state_current_goal)
@@ -367,6 +372,7 @@ class Controller(Node):
         
         # We are returning to the previous goal by traversing the intermediate waypoints in reverse
         elif new_state == PlanningState.RETURN:
+            state_string = "RETURN"
             if len(self.state_visited_intermediate_goals) > 0:
                 # visit intermediate goals in reverse order
                 self.state_current_goal = self.state_visited_intermediate_goals.pop(-1)
@@ -375,10 +381,12 @@ class Controller(Node):
                 
         # We are going straight to a detected AR tag 
         elif new_state == PlanningState.TO_AR_TAG:
+            state_string = "TO_TAG"
             self.state_current_goal = self.get_ar_tag_goal()
 
         # We are going through a gate - set up the gate goals if we haven't already, then go to the next one in the queue
         elif new_state == PlanningState.THROUGH_GATE:
+            state_string = "THROUGH_GATE"
             if old_state != PlanningState.THROUGH_GATE:
                 self.set_gate_goals()
                 self.state_gate_index = 0
@@ -388,15 +396,18 @@ class Controller(Node):
             
         # We are spinning in place to search for a tag or gate, no need to set current goal since this is never used
         elif new_state == PlanningState.SEARCH_SPIN:
+            state_string = "SPIN"
             if not old_state == PlanningState.SEARCH:
                 self.set_search_goals()
             self.pub_do_spin.publish(Empty())
         
         # We are driving to the next coordinate in the search plan
         elif new_state == PlanningState.SEARCH:
+            state_string = "SEARCH"
             self.state_current_goal = self.state_search_goals.pop(0)
 
         elif new_state == PlanningState.FAILED:
+            state_string = "FAILED"
             self.get_logger().error("FAILED TO REACH GOAL")
             self.pub_success.publish(Empty())
             self.state_current_goal = None
@@ -406,6 +417,8 @@ class Controller(Node):
         self.trigger_achieved_goal = False
         self.trigger_received_goal = False
         self.trigger_completed_spin = False
+        
+        self.pub_state.publish(String(data=state_string))
 
         self.get_logger().debug(f"After transition:\n"
                                 f"Current Goal: {self.state_current_goal}\n"
