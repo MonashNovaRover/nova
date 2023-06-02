@@ -55,46 +55,47 @@ class SkytraqNode (Node):
         self.offset_service = self.create_service(GpsOffset, '/electronics/gps_offset', self.offset_callback)
 
         self.publisher = self.create_publisher(RoverPoseGPS, '/electronics/gps_data', 10)
-        self.timer = self.create_timer(0, self.publisher_callback)
+        self.timer = self.create_timer(1/10, self.publisher_callback)
 
-    def parse_msg(self):
+    def parse_msgs(self):
         
         self.pose.header.stamp = self.get_clock().now().to_msg()
         raw_msg : NMEAMessage
         try:
-            raw_msg, parsed_msg = self.reader.read()
+            data = [(raw_msg, parsed_msg) for raw_msg, parsed_msg in self.reader]
         except Exception as e:
             self.get_logger().warn(f"Failed to read NMEA sentence: {e}")
             return
 
-        self.get_logger().debug(f"raw message: {raw_msg}")
+        for raw_msg, parsed_msg in data:
+            self.get_logger().debug(f"raw message: {raw_msg}")
 
-        if parsed_msg is None:
-            return
+            if parsed_msg is None:
+                return
 
-        try:
-            if parsed_msg.talker == "P" and parsed_msg.msgID == "STI" and parsed_msg.msgId == "036":
-                # We are dealing with a PSTI036 message, which contains orientation information
-                if parsed_msg.mode == "R":
-                    # RTK (Real-Time Kinematic) mode. We have valid heading
-                    self.pose.heading_valid = True
-                    self.pose.pitch, self.pose.roll, self.pose.yaw = parsed_msg.pitch, parsed_msg.roll, parsed_msg.heading
-                else:
-                    # Not RTK mode. We don't have valid heading
-                    self.pose.heading_valid = False
+            try:
+                if parsed_msg.talker == "P" and parsed_msg.msgID == "STI" and parsed_msg.msgId == "036":
+                    # We are dealing with a PSTI036 message, which contains orientation information
+                    if parsed_msg.mode == "R":
+                        # RTK (Real-Time Kinematic) mode. We have valid heading
+                        self.pose.heading_valid = True
+                        self.pose.pitch, self.pose.roll, self.pose.yaw = parsed_msg.pitch, parsed_msg.roll, parsed_msg.heading
+                    else:
+                        # Not RTK mode. We don't have valid heading
+                        self.pose.heading_valid = False
 
-            elif parsed_msg.talker == "GN" and parsed_msg.msgID == "RMC":
-                if parsed_msg.status == 'A':
-                    # Valid
-                    self.pose.valid = True
-                    self.pose.latitude, self.pose.longitude = parsed_msg.lat, parsed_msg.lon
-                else:
-                    self.pose.valid = False
+                elif parsed_msg.talker == "GN" and parsed_msg.msgID == "RMC":
+                    if parsed_msg.status == 'A':
+                        # Valid
+                        self.pose.valid = True
+                        self.pose.latitude, self.pose.longitude = parsed_msg.lat, parsed_msg.lon
+                    else:
+                        self.pose.valid = False
 
-            elif parsed_msg.talker == "GP" and parsed_msg.msgID == "GGA":
-                self.fix_type = parsed_msg.quality   # 1 = No fix, 2 = 2D fix, 3 = 3D fix
-        except Exception as e:
-            self.get_logger().warn(f"Bad message {parsed_msg}")
+                elif parsed_msg.talker == "GP" and parsed_msg.msgID == "GGA":
+                    self.fix_type = parsed_msg.quality   # 1 = No fix, 2 = 2D fix, 3 = 3D fix
+            except Exception as e:
+                self.get_logger().warn(f"Bad message {parsed_msg}")
 
     def config_port(self, port_name, baud):
         self.ser.baudrate = baud
@@ -120,7 +121,7 @@ class SkytraqNode (Node):
             self.get_logger().warn(f'{roverMsgStr}',throttle_duration_sec=2)
 
     def publisher_callback(self):
-        self.parse_msg()
+        self.parse_msgs()
         self.pose.latitude += self.lat_offset
         self.pose.longitude += self.lon_offset
         self.publisher.publish(self.pose)
