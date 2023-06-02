@@ -34,6 +34,8 @@ class SkytraqNode (Node):
         super().__init__('gps_data')
         self.get_logger().set_level(logging.INFO)
 
+        self.param_max_calibration_error = self.declare_parameter("max_calibration_error_degrees", 5e-5).value
+
         self.pose : RoverPoseGPS = RoverPoseGPS()
         self.pose.header.frame_id = "gps_link"
 
@@ -47,11 +49,8 @@ class SkytraqNode (Node):
             nmeaonly=True    # Raise an error on receiving a badly formatted message
         )
 
-        self.true_lat = None
-        self.true_lon = None
-
-        self.lat_offset = None
-        self.lon_offset = None
+        self.lat_offset = 0
+        self.lon_offset = 0
 
         self.offset_service = self.create_service(GpsOffset, '/electronics/gps_offset', self.offset_callback)
 
@@ -122,10 +121,6 @@ class SkytraqNode (Node):
 
     def publisher_callback(self):
         self.parse_msg()
-        if self.lat_offset is None and self.pose.valid and self.true_lat is not None:
-            # set offset for the first time
-            self.lat_offset = self.true_lat - self.pose.latitude
-            self.lon_offset = self.true_lon - self.pose.longitude
         self.pose.latitude += self.lat_offset
         self.pose.longitude += self.lon_offset
         self.publisher.publish(self.pose)
@@ -138,11 +133,23 @@ class SkytraqNode (Node):
         correct by that offset on all future measurements, unless calibrated again for another position
         """
         if self.pose.valid:
-            self.true_lat = request.lat
-            self.true_lon = request.lon
-            response.success = True
+            true_lat = request.lat
+            true_lon = request.lon
+            lat_offset = true_lat - self.pose.latitude
+            lon_offset = true_lon - self.pose.longitude
+
+            # If error is too great assume we have given a bad coordinate, don't calibrate
+            if lat_offset > self.param_max_calibration_error or lon_offset > self.param_max_calibration_error:
+                response.success = False
+                response.message = "Error too great"
+            else:
+                self.lat_offset = lat_offset
+                self.lon_offset = lon_offset
+                response.success = True
+                response.message = "Good"
         else:
             response.success = False
+            response.message = "No rover fix"
         return response
 
         
