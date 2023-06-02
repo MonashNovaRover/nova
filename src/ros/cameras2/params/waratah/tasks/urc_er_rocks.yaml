@@ -13,3 +13,4 @@ camera_streamer:
       mast_arm_stow.autostart: true
       arm_end_top.autostart: true
       mast_backward.autostart: true
+      arm_end_finger.autostart: true
