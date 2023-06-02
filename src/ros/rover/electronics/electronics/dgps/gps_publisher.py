@@ -26,6 +26,7 @@ import rclpy
 from rclpy.node import Node
 
 from core.msg import RoverPoseGPS
+from core.srv import GpsOffset
 import logging
 
 class SkytraqNode (Node):
@@ -45,6 +46,14 @@ class SkytraqNode (Node):
             validate=0x03,   # validate both checksum and message id
             nmeaonly=True    # Raise an error on receiving a badly formatted message
         )
+
+        self.true_lat = None
+        self.true_lon = None
+
+        self.lat_offset = None
+        self.lon_offset = None
+
+        self.offset_service = self.create_service(GpsOffset, '/electronics/gps_offset', self.offset_callback)
 
         self.publisher = self.create_publisher(RoverPoseGPS, '/electronics/gps_data', 10)
         self.timer = self.create_timer(0, self.publisher_callback)
@@ -113,8 +122,28 @@ class SkytraqNode (Node):
 
     def publisher_callback(self):
         self.parse_msg()
+        if self.lat_offset is None and self.pose.valid and self.true_lat is not None:
+            # set offset for the first time
+            self.lat_offset = self.true_lat - self.pose.latitude
+            self.lon_offset = self.true_lon - self.pose.longitude
+        self.pose.latitude += self.lat_offset
+        self.pose.longitude += self.lon_offset
         self.publisher.publish(self.pose)
         self.print_msg()
+
+    def offset_callback(self, request: GpsOffset.Request, response: GpsOffset.Response):
+        """
+        Accepts an accurate GPS coordinate for the current position of the rover.
+        Stores an offset for the latitude and longitude we are currently receiving, and will
+        correct by that offset on all future measurements, unless calibrated again for another position
+        """
+        if self.pose.valid:
+            self.true_lat = request.lat
+            self.true_lon = request.lon
+            response.success = True
+        else:
+            response.success = False
+        return response
 
         
 def main (args = None):
