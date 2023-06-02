@@ -28,12 +28,12 @@ def generate_launch_description():
             package='science', executable='transmitter.py', output='screen', emulate_tty=True),
         # launch_ros.actions.Node(
         #     package='science', executable='distance_publisher.py', output='screen', emulate_tty=True),
-        # launch_ros.actions.Node(
-        #     package='science', executable='spectrometer_publisher.py', output='screen', emulate_tty=True),
-        # launch_ros.actions.Node(
-        #     package='science', executable='EMC_publisher.py', output='screen', emulate_tty=True),
         launch_ros.actions.Node(
-            package='science', executable='kilns_data_publisher.py', output='screen', emulate_tty=True),
+            package='science', executable='spectrometer_publisher.py', output='screen', emulate_tty=True),
         launch_ros.actions.Node(
-            package='science', executable='actuator_limit_publisher.py', output='screen', emulate_tty=True),
+            package='science', executable='EMC_publisher.py', output='screen', emulate_tty=True),
+        #launch_ros.actions.Node(
+        #    package='science', executable='kilns_data_publisher.py', output='screen', emulate_tty=True),
+        #launch_ros.actions.Node(
+        #    package='science', executable='actuator_limit_publisher.py', output='screen', emulate_tty=True),
     ])

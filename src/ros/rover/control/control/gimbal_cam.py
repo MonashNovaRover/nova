@@ -2,19 +2,18 @@
 
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Purpose: A template ROS node
+Purpose: ROS Node for controlling the gimbal cam
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: excavation_construction
 TOPICS:
   - subscriber: /control/input_joystick_l [InputJoystick]
-  - subscriber: /control/input_joystick_r [InputJoystick]
 SERVICES: None
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:
-AUTHOR(S):	Manika Goyal, Max Tory, Taaj Street
-CREATION:	08/03/2023
-EDITED:		18/03/2023
+AUTHOR(S):	Taaj Street
+CREATION:	08/05/2023
+EDITED:		27/05/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 """
@@ -40,12 +39,15 @@ class GimbalCam(Node):
 
         self.get_logger().set_level(logging.INFO)
         self.param_can = self.declare_parameter("can_bus", "can1").value
-        self.param_velocity_increment = self.declare_parameter("velocity_factor", 0.1).value
-        self.max_velocity_value = self.declare_parameter("max_velocity_value", 127).value
+        self.param_do_pwm = self.declare_parameter("do_pwm", True).value
+        self.param_velocity_steps = self.declare_parameter("velocity_steps", 10).value
+        self.max_velocity_cmd = self.declare_parameter("max_velocity_cmd", 127).value
+        self.min_velocity_cmd = 0x3F if self.param_do_pwm else self.declare_parameter("min_velocity", 0.1).value * \
+                                                           self.max_velocity_cmd
+        self.velocity_increment = 1/self.param_velocity_steps
         # can commands for gimbal cam
         self.velocity_cmd = 0x081
-        # Initially all motors spin backwards with 0 velocity
-        self.velocity_factor = 0.5
+        self.velocity = 0.5
         self.x_velocity = 0
         self.y_velocity = 0
         self.joystick_lock = True
@@ -93,31 +95,34 @@ class GimbalCam(Node):
 
             #set the velocity factor
             if msg.btn_bottom_r1_state == 1:
-                self.velocity_factor = min(self.param_velocity_increment + self.velocity_factor, 1)
-            elif msg.btn_bottom_r4_state == 1:
-                self.velocity_factor = max(self.velocity_factor - self.param_velocity_increment, self.param_velocity_increment)
-
-            # set the x velocity
-            if msg.btn_bottom_r2_state >= 1:
-                self.x_velocity = self.velocity_factor * self.max_velocity_value
-            elif msg.btn_bottom_r5_state >= 1:
-                self.x_velocity = -self.velocity_factor * self.max_velocity_value
-            else:
-                self.x_velocity = 0
+                self.velocity = max(self.velocity - self.velocity_increment, 0)
+                self.get_logger().info(f"Velocity decreased to {self.velocity}")
+            elif msg.btn_bottom_r3_state == 1:
+                self.velocity = min(self.velocity + self.velocity_increment, 1)
+                self.get_logger().info(f"Velocity increased to {self.velocity}")
 
             # set the y velocity
-            if msg.btn_bottom_r3_state >= 1:
-                self.y_velocity = self.velocity_factor * self.max_velocity_value
-            elif msg.btn_bottom_r6_state >= 1:
-                self.y_velocity = -self.velocity_factor * self.max_velocity_value
+            if msg.btn_bottom_r2_state >= 1:
+                self.y_velocity = -self.get_velocity_cmd()
+            elif msg.btn_bottom_r5_state >= 1:
+                self.y_velocity = self.get_velocity_cmd()
             else:
                 self.y_velocity = 0
+
+            # set the x velocity
+            if msg.btn_bottom_r4_state >= 1:
+                self.x_velocity = -self.get_velocity_cmd()
+            elif msg.btn_bottom_r6_state >= 1:
+                self.x_velocity = self.get_velocity_cmd()
+            else:
+                self.x_velocity = 0
 
         else:
             self.x_velocity = 0
             self.y_velocity = 0
 
-
+    def get_velocity_cmd(self):
+        return self.velocity*(self.max_velocity_cmd - self.min_velocity_cmd) + self.min_velocity_cmd
     def get_can_data(self):
        return list(pack('>bb', int(self.x_velocity), int(self.y_velocity)))
 

@@ -30,6 +30,26 @@
       }
     },
 
+    "boop_raise": {
+      "hex": "098",
+      "actions": {
+        "boop": {
+          "hex": "",
+          "args": []
+        }
+      }
+    },
+
+    "boop_lower": {
+      "hex": "097",
+      "actions": {
+        "boop": {
+          "hex": "",
+          "args": []
+        }
+      }
+    },
+
     "microscope": {
       "hex": "000",
       "actions": {
