@@ -184,8 +184,6 @@ class Controller(Node):
         elif self.state == DrivingState.TO_WAYPOINT:
             if self.trigger_spin:
                 self.on_state_update(DrivingState.TURNING)
-            elif self.finished_waypoint_path():
-                self.on_state_update(DrivingState.SUCCESS)
             elif self.trigger_success:
                 self.on_state_update(DrivingState.SUCCESS)
 
@@ -213,9 +211,8 @@ class Controller(Node):
             self.state_spin_start_heading = None
             self.state_waypoint_path = []
             self.state_latest_radius = 0
-            if old_state == DrivingState.TO_WAYPOINT and not self.trigger_success:
-                self.pub_at_goal.publish(Empty())
-            elif old_state == DrivingState.TURNING and not self.trigger_success:
+
+            if old_state == DrivingState.TURNING and not self.trigger_success:
                 self.pub_done_spin.publish(Empty())
 
         self.trigger_spin = False
@@ -418,17 +415,21 @@ class Controller(Node):
         # -------------------------------------- 0. TURNING ------------------------------
         elif self.state == DrivingState.TURNING:
             self.get_logger().debug("Turning in place", throttle_duration_sec=1)
+                
             # Get drive commands for a turn 90 degrees to the left
             speed, radius, direction = self.get_drive_command(np.pi)
 
         # -------------------------------------- 1. DRIVING ------------------------------
         elif self.state == DrivingState.TO_WAYPOINT:
-            if self.state_waypoint_path is None or len(self.state_waypoint_path) == 0:
+            if self.finished_waypoint_path():
+                self.pub_at_goal.publish(Empty())
+            elif self.state_waypoint_path is None:
                 self.get_logger().error("No waypoints to drive to - This should be detected in state transition!")
                 return
-            self.get_logger().debug("Driving to waypoint", throttle_duration_sec=1)
-            yaw_diff = self.get_yaw_difference(self.state_waypoint_path[0])
-            speed, radius, direction = self.get_drive_command(yaw_diff)
+            else:
+                self.get_logger().debug("Driving to waypoint", throttle_duration_sec=1)
+                yaw_diff = self.get_yaw_difference(self.state_waypoint_path[0])
+                speed, radius, direction = self.get_drive_command(yaw_diff)
             
         self.send_drive_cmd(speed, radius, direction)
 
