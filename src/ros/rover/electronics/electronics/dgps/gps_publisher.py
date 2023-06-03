@@ -82,6 +82,7 @@ class SkytraqNode (Node):
                     # Valid
                     self.pose.valid = True
                     self.pose.latitude, self.pose.longitude = parsed_msg.lat, parsed_msg.lon
+                    self.publisher.publish(self.pose)
                 else:
                     self.pose.valid = False
 
@@ -115,7 +116,6 @@ class SkytraqNode (Node):
 
     def publisher_callback(self):
         self.parse_msg()
-        self.publisher.publish(self.pose)
         self.print_msg()
 
         
