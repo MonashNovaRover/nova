@@ -98,7 +98,7 @@ class Controller(Node):
         self.state = None
         self.state_rover_pose = Pose2D()
         self.state_waypoint_path = []
-        self.state_latest_radius = 0
+        self.state_latest_signed_radius = 0
         self.state_turning_mode = TurningMode.TANK if self.param_do_tank_turn else TurningMode.PIVOT
         self.state_spin_start_heading = None
         self.state_near_goal = False
@@ -210,7 +210,7 @@ class Controller(Node):
         elif self.state == DrivingState.SUCCESS:
             self.state_spin_start_heading = None
             self.state_waypoint_path = []
-            self.state_latest_radius = 0
+            self.state_latest_signed_radius = 0
 
             if old_state == DrivingState.TURNING and not self.trigger_success:
                 self.pub_done_spin.publish(Empty())
@@ -266,10 +266,10 @@ class Controller(Node):
         """
         radius, direction = msg.radius, msg.direction
         if direction == 0:
-            self.state_latest_radius = float('inf')
+            self.state_latest_signed_radius = float('inf')
         else:
             signed_radius = radius * direction
-            self.state_latest_radius = signed_radius
+            self.state_latest_signed_radius = signed_radius
 
     def callback_planner_path(self, msg: Path):
         """
@@ -367,8 +367,8 @@ class Controller(Node):
         direction = int(-np.sign(yaw_diff))
 
         # Get a factor to scale our speed by based on our current wheel pivot error
-        wheel_angle_rads = wheel_angle_error(signed_radius, self.state_latest_radius)
-        scaled_angle_error = min(wheel_angle_rads / self.param_max_wheel_angle_err, 1)
+        wheel_err_rads = wheel_angle_error(signed_radius, self.state_latest_signed_radius)
+        scaled_angle_error = min(wheel_err_rads / self.param_max_wheel_angle_err, 1)
         wheel_error_speed_factor = 1 - scaled_angle_error**2
 
         # Scale speed by how sharply we are turning
@@ -388,11 +388,11 @@ class Controller(Node):
         
         speed *= wheel_error_speed_factor
 
-        self.get_logger().debug(f"Turn radius: {radius}")
-        self.get_logger().debug(f"Current radius: {self.state_latest_radius}")
-        self.get_logger().debug(f"Direction: {direction}")
-        self.get_logger().debug(f"wheel angle error: {wheel_angle_rads}")
-        self.get_logger().debug(f"wheel error speed factor: {wheel_error_speed_factor}")
+        self.get_logger().debug(f"Turn target radius: {signed_radius}")
+        self.get_logger().debug(f"Current radius: {self.state_latest_signed_radius}")
+        self.get_logger().debug(f"Wheel angle error: {wheel_err_rads}")
+        self.get_logger().debug(f"Scaled wheel error: {wheel_error_speed_factor}")
+        self.get_logger().debug(f"Wheel error speed factor: {wheel_error_speed_factor}")
         self.get_logger().debug(f"speed: {speed}")
         return speed, radius, direction
 

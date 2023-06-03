@@ -81,10 +81,12 @@ def wheel_angle_error(target_radius, current_radius) -> float:
     target_left, target_right = radius_to_wheel_angles(target_radius)
     # left and right true wheel angles
     current_left, current_right = radius_to_wheel_angles(current_radius)
-    # maximum error between desired and true wheel angles
-    wheel_error_radians = max(abs(target_left - current_left), abs(target_right - current_right))
+    left_error = abs(target_left - current_left)
+    right_error = abs(target_right - current_right)
+    left_error = min(left_error, np.pi - left_error)
+    right_error = min(right_error, np.pi - right_error)
+    wheel_error_radians = max(left_error, right_error)
     return wheel_error_radians
-    return speed_factor
 
 
 def tank_turn_target_drive_rate(yaw_diff: float) -> float:
