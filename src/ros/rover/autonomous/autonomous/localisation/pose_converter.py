@@ -43,9 +43,11 @@ from rclpy.duration import Duration
 from tf2_ros import TransformBroadcaster, StaticTransformBroadcaster, Buffer, TransformListener
 
 from core.msg import RoverPoseGPS, AutonomousGoal, AutonomousGoalArray
+from core.srv import GpsOffset
 
 from geometry_msgs.msg import TransformStamped, Transform, Vector3Stamped
 from sensor_msgs.msg import Imu
+
   
 
 class PoseConverter(Node):
@@ -69,6 +71,7 @@ class PoseConverter(Node):
         self.param_use_euler_angles = self.declare_parameter("use_euler", False).value
         self.param_initial_quat = self.declare_parameter("initial_base_link_quat", [0., 0., 0., 0., 0., 0., 1.]).value
         self.param_initial_euler = self.declare_parameter("initial_base_link_euler", [0., 0., 0., 0., 0., 0.]).value
+        self.param_max_queue_len = self.declare_parameter("max_queue, len", 5).value
         
         # tf2 objects
         self.tf_buffer = Buffer()
@@ -81,10 +84,14 @@ class PoseConverter(Node):
         self.latest_imu : Vector3Stamped = None
         self.latest_gps_pose : RoverPoseGPS = None
         self.latest_eulers : tuple = None
+        self.lat_offset = 0
+        self.lon_offset = 0
         # p, r, y, x, y, z
         self.gps_offset : np.ndarray = None
         self.imu_heading_offset = 0
         self.get_initial_transform()
+
+        self.headings_queue = []
 
         # subscribers
         self.imu_sub = self.create_subscription(Vector3Stamped, "/imu/euler", self.cb_imu, 10)
@@ -94,6 +101,9 @@ class PoseConverter(Node):
         # publishers
         self.goals_pub = self.create_publisher(AutonomousGoalArray, auto_goal_topic, 10)
         self.gui_pub = self.create_publisher(RoverPoseGPS, "/gui/pose_data", 10)
+
+        # services
+        self.gps_correct_service = self.create_service(GpsOffset, "electronics/gps_offset", self.correct_gps)
 
         # for maintaining accurate pose and converting between gps
         if self.param_do_ekf:
@@ -185,6 +195,14 @@ class PoseConverter(Node):
         imu_pitch, imu_roll = imu_roll, imu_pitch
         return np.array([imu_pitch, imu_roll, imu_yaw])
 
+    def correct_gps(self, request: GpsOffset.Request, response: GpsOffset.Response):
+        lat, lon = request.lat, request.lon
+        self.lat_offset = lat - self.latest_gps_pose.latitude
+        self.lon_offset = lon - self.latest_gps_pose.longitude
+        response.success = True
+        return response
+
+
     def calculate_transform(self) -> TransformStamped:
         """
         Calculate the transform between the intial_base_link and the base_link frame
@@ -197,7 +215,7 @@ class PoseConverter(Node):
         
         self.latest_eulers = imu_eulers + [0, 0, self.imu_heading_offset]
         quat = transform.euler_to_quat(self.latest_eulers)
-        gps_x, gps_y = self.gps_converter.get_local_coord(self.latest_gps_pose.latitude, self.latest_gps_pose.longitude)
+        gps_x, gps_y = self.gps_converter.get_local_coord(self.latest_gps_pose.latitude + self.lat_offset, self.latest_gps_pose.longitude + self.lon_offset)
 
         tf_msg = TransformStamped()
         tf_msg.header.frame_id = 'initial_base_link'
@@ -219,7 +237,10 @@ class PoseConverter(Node):
         return tf_msg
     
     def get_rover_pose(self) -> RoverPoseGPS:
-        msg = self.latest_gps_pose
+        msg = RoverPoseGPS()
+        msg.valid = self.latest_gps_pose.valid
+        msg.latitude = self.latest_gps_pose.latitude + self.lat_offset
+        msg.longitude = self.latest_gps_pose.longitude + self.lon_offset
         msg.pitch, msg.roll, msg.yaw = self.latest_eulers
         return msg
 
@@ -241,6 +262,9 @@ class PoseConverter(Node):
         Updates locally stored message
         """
         self.latest_imu = msg
+        self.headings_queue.append(msg.vector.z)
+        if len(self.headings_queue) > self.param_max_queue_len:
+            self.headings_queue.pop(0)
 
     def cb_dgps(self, msg : RoverPoseGPS):
         """
@@ -248,7 +272,7 @@ class PoseConverter(Node):
         """
         if msg.valid:
             self.latest_gps_pose = msg
-            if msg.heading_valid and self.latest_imu is not None and self.imu_heading_offset == 0:
+            if msg.heading_valid and self.latest_imu is not None and np.std(self.headings_queue) < 2:
                 self.calibrate_heading()
 
     def cb_goal(self, msg : AutonomousGoalArray):                                               

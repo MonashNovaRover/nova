@@ -129,3 +129,9 @@ class Grid2D(Node):
         
         if self.with_border:
             self.bound_inner_map()
+
+    def clear(self):
+        """
+        Empty the map
+        """
+        self.map = np.full((int(self.outer_length / self.resolution), int(self.outer_width / self.resolution)), unseen_map_val)

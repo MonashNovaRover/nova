@@ -49,10 +49,6 @@ Vec3 Vec3::operator-(const Vec3& other) {
     return Vec3 (x-other.x, y-other.y, z-other.z);
 }
 
-Vec3 Vec3::operator=(const Vec3& other) {
-    return Vec3 (other.x, other.y, other.z);
-}
-
 Vec3 Vec3::operator*(float other) {
     return Vec3 (x*other, y*other, z*other);
 }
@@ -105,7 +101,7 @@ void fit_planes(cv::Mat& heightMap, cv::Mat& incs, int& min_x) {
                     int y_index = plane_j * plane_y_pixels/2 + j;
 
                     int z = heightMap.at<uint8_t>(x_index, y_index);
-                    if (z <= 5) continue;
+                    if (z == c_neg_inf) continue;
                     Vec3 p(x_index, y_index, z);
                     these_pts.push_back(p);
                     point_sum = point_sum + p;
@@ -158,7 +154,7 @@ void fit_planes(cv::Mat& heightMap, cv::Mat& incs, int& min_x) {
             if (weighted_dir.dot(axis_dir) < 0.0) weight = -weight;
 
             weighted_dir = weighted_dir + axis_dir * weight;
-            
+
             // linear regression in z direction
             axis_dir = Vec3(xy*yz - xz*yy, xy*xz - yz*xx, det_z);
             weight = det_z * det_z;

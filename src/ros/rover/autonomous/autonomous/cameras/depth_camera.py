@@ -10,6 +10,7 @@ import logging
 
 import rclpy
 from rclpy.node import Node
+from rclpy.time import Time
 from std_msgs.msg import Header
 from sensor_msgs.msg import PointCloud2, Image
 from rs2_ros2 import rs2_verts_to_buffer
@@ -81,6 +82,14 @@ class DepthCamera(Node):
         self.timer_process_frames = self.create_timer(1/self.param_frame_frequency, self.process_frames)
         self.get_logger().info("Depth camera node up!")
 
+    def to_stamp_message(self, stamp: float):
+        """
+        Convert a timestamp from the camera to a ROS message
+        """
+        time_s = int(stamp / 1000)
+        time_ns = int((stamp / 1000 - time_s) * 1e9)
+        return Time(seconds=time_s, nanoseconds=time_ns).to_msg()
+
     def initialise_decimators(self):
         """
         Adaptive decimation.
@@ -91,8 +100,11 @@ class DepthCamera(Node):
         return [
             rs.decimation_filter(1),
             rs.decimation_filter(2),
+            rs.decimation_filter(3),
             rs.decimation_filter(4),
+            rs.decimation_filter(5),
             rs.decimation_filter(6),
+            rs.decimation_filter(7),
             rs.decimation_filter(8),
         ]
 
@@ -118,7 +130,7 @@ class DepthCamera(Node):
         # Wait for frames from camera
         t0 = time.perf_counter()
         frames = self.pipeline.wait_for_frames()
-        self.latest_frame_stamp = self.get_clock().now().to_msg()
+        self.latest_frame_stamp = self.to_stamp_message(frames.get_timestamp())
 
         # Align depth and color images from frames (so pixels match?)
         t1 = time.perf_counter()
@@ -138,7 +150,7 @@ class DepthCamera(Node):
             return
         color_image = np.asanyarray(self.color_frame.get_data())
         t1 = time.perf_counter()
-        self.ar_tracker.find_ar_tags(color_image)
+        self.ar_tracker.find_ar_tags(color_image, self.latest_frame_stamp)
         t2 = time.perf_counter()
         if self.param_do_blocks:
             self.object_detector.object_detection(self.color_frame, self.depth_frame)
@@ -162,13 +174,13 @@ class DepthCamera(Node):
         """
         Callback that converts depth frame into a pointcloud and publishes it
         """
+        if self.depth_frame is None:
+            return
         header = Header()
-        header.stamp = self.get_clock().now().to_msg()
+        header.stamp = self.latest_frame_stamp
         header.frame_id = self.depth_frame_id
 
         # Scale down depth frame
-        if self.depth_frame is None:
-            return
         t1 = time.perf_counter()
         processed_depth_frame = self.decimation_filters[self.decimation_index].process(self.depth_frame)
         t2 = time.perf_counter()

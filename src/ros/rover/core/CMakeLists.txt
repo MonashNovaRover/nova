@@ -77,6 +77,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/PathPlanningRequest.srv"
   "srv/StringTrigger.srv"
   "srv/DisableBLCMD.srv"
+  "srv/GpsOffset.srv"
 
   # Action definitions
   DEPENDENCIES std_msgs geometry_msgs nav_msgs

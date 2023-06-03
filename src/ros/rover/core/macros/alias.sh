@@ -114,3 +114,5 @@ alias rerun='. ~/nova_ws/src/rover/core/macros/rerun.sh'     # Sets up the CAN l
 alias play_bag='. ~/nova_ws/src/rover/core/macros/bag_play.sh'
 alias rosbridge='ros2 launch rosbridge_server rosbridge_websocket_launch.xml'
 alias bag="ros2 bag record /T265/pose /depth_camera/d435_1/cloud /autonomous/occupancy_grid /object_detector/markers /ar_tracker/tags goal_manager/confirmed_targets -s mcap -b 500000000"
+alias stop_mapping='ros2 param set /mapper do_mapping False'
+alias start_mapping='ros2 param set /mapper do_mapping True'

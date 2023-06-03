@@ -97,7 +97,6 @@ install(TARGETS rs2_ros2 DESTINATION ~/nova_ws/install/autonomous/lib/python3.8/
 
 # Add all the installation directories
 install(DIRECTORY
-  rviz
   DESTINATION share/${PROJECT_NAME}
 )
 
@@ -107,6 +106,7 @@ ament_python_install_package(${PROJECT_NAME})
 # Add all Python executables to this list
 install(PROGRAMS
   autonomous/mapping/mapper.py
+  autonomous/mapping/map_sim.py
   autonomous/cameras/tracking_camera.py
   autonomous/cameras/depth_camera.py
   autonomous/cameras/ar_tag_sim.py
@@ -117,7 +117,7 @@ install(PROGRAMS
   autonomous/planning/goal_selector.py
   autonomous/planning/path_planner.py
   autonomous/update_goals.py
-  autonomous/util/stamp_converter.py
+  autonomous/vis/stamp_converter.py
   autonomous/vis/marker_vis.py
 
   DESTINATION lib/${PROJECT_NAME}

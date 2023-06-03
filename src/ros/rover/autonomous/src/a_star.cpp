@@ -123,11 +123,52 @@ bool isSafe(const array<array<float, COL>, ROW>& grid,
     return true; // destination is not valid (ie not in map), so it is not in an obstacle to our knowledge
 }
 
+bool onBorder(const int cols, const int rows, const Pair& point)
+{
+	// Is this square on the border of the map?
+	return (point.first == 0 || point.first == rows - 1
+			|| point.second == 0 || point.second == cols - 1);
+}
+
+bool onNearestBorder(const int cols, const int rows, const Pair& point, const Pair& other)
+{
+	/*
+	Assuming point `other` is outside the range [0, rows-1][0, cols-1], Is `point` on the nearest border
+	of the map to `other`?
+	*/
+	// Is this square on the border of the map?
+	if (!(point.first == 0 || point.first == rows - 1
+			|| point.second == 0 || point.second == cols - 1))
+		return false;
+
+	// Which edge of the map is closest to the goal?
+	int dist_x_pos = other.first - rows;
+	int dist_x_neg = 0 - other.first;
+	int dist_y_pos = other.second - cols;
+	int dist_y_neg = 0 - other.second;
+
+	int max_dist = dist_x_pos;
+	if (dist_x_neg > max_dist) max_dist = dist_x_neg;
+	if (dist_y_pos > max_dist) max_dist = dist_y_pos;
+	if (dist_y_neg > max_dist) max_dist = dist_y_neg;
+
+	if (point.first == 0 && dist_x_neg == max_dist) return true;
+	if (point.first == rows - 1 && dist_x_pos == max_dist) return true;
+	if (point.second == 0 && dist_y_neg == max_dist) return true;
+	if (point.second == cols - 1 && dist_y_pos == max_dist) return true;
+	return false;
+}
+
 // A Utility Function to check whether destination cell has
 // been reached or not
-bool isDestination(const Pair& position, const Pair& dest)
+bool isDestination(const Pair& position, const Pair& dest, const int cols, const size_t rows)
 {
-	return position == dest;
+	if (position == dest) 
+		return true;
+	// If we have hit the border and are going to a goal outside the map, this is the best we can do
+	else {
+		return (!inMap(cols, rows, dest) && onNearestBorder(cols, rows, position, dest));
+	}
 }
 
 float dist_squared(const Pair& p1, const Pair& p2)
@@ -349,6 +390,8 @@ void clear_obstacles_from_location(array<array<float, COL>, ROW>& grid, const Pa
 	int x = point.first, y = point.second;
 	for (int i = max(0, x - cutting_distance); i <= min((int) COL - 1, x + cutting_distance); i++) {
 		for (int j = max(0, y - cutting_distance); j <= min((int) ROW - 1, y + cutting_distance); j++){
+			if (!inMap(COL, ROW, Pair(i, j)))
+				continue;
 			if (grid[i][j] >= OBSTACLE_VALUE) grid[i][j] = 0.99 * OBSTACLE_VALUE;
 		}
 	}
@@ -366,12 +409,19 @@ bool obstacle_between(array<array<float, COL>, ROW>& grid, Pair p1, Pair p2, int
     double dx = (double) (x2 - x1) / num_points;
     double dy = (double) (y2 - y1) / num_points;
 
-    int x = x1, y = y1;
+    double x = x1, y = y1;
 
     for (int i = 0; i < num_points; i++){
-		x += (int) dx;
-		y += (int) dy;
-		if (grid[x][y] > STRING_PULL_OBSTACLE_VAL){
+		x += dx;
+		y += dy;
+
+        size_t x_index = (size_t) x;
+        size_t y_index = (size_t) y;
+		if (!inMap(COL, ROW, Pair(x_index, y_index))) {
+			return true;
+		}
+
+		if (grid.at(x_index).at(y_index) > STRING_PULL_OBSTACLE_VAL){
 			return true;
 		}
     }
@@ -427,7 +477,7 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 	precompute_padding_values(grid, grid_resolution_cm);
 
 	// If the destination cell is the same as source cell, we have already found it
-	if (isDestination(src, dest)) {
+	if (isDestination(src, dest, COL, ROW)) {
 		return construct_return_val(grid, vector<Pair> {{src}}, status);
 	}
 
@@ -505,11 +555,11 @@ vector<Pair> aStarSearch(array<array<float, COL>, ROW>& grid,
 				&& inMap(COL, ROW, neighbour) 
 				&& !closedList[neighbour.first][neighbour.second]) {
 				
-				if (isDestination(neighbour, dest)) {
+				if (isDestination(neighbour, dest, COL, ROW)) {
 					// We have found the destination!
 					// Set the parent to the current cell
 					cellDetails[neighbour.first][neighbour.second].parent = { i, j };
-					vector<Pair> path = tracePath(cellDetails, dest);
+					vector<Pair> path = tracePath(cellDetails, neighbour);
 
 					return construct_return_val(grid, path, status);
 				}

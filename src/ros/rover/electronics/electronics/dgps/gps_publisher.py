@@ -31,7 +31,9 @@ import logging
 class SkytraqNode (Node):
     def __init__ (self, com_no, baud):
         super().__init__('gps_data')
-        self.get_logger().set_level(logging.DEBUG)
+        self.get_logger().set_level(logging.INFO)
+
+        self.param_max_calibration_error = self.declare_parameter("max_calibration_error_degrees", 5e-5).value
 
         self.pose : RoverPoseGPS = RoverPoseGPS()
         self.pose.header.frame_id = "gps_link"
@@ -80,6 +82,7 @@ class SkytraqNode (Node):
                     # Valid
                     self.pose.valid = True
                     self.pose.latitude, self.pose.longitude = parsed_msg.lat, parsed_msg.lon
+                    self.publisher.publish(self.pose)
                 else:
                     self.pose.valid = False
 
@@ -113,7 +116,6 @@ class SkytraqNode (Node):
 
     def publisher_callback(self):
         self.parse_msg()
-        self.publisher.publish(self.pose)
         self.print_msg()
 
         

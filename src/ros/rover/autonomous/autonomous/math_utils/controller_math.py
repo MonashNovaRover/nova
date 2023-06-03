@@ -30,13 +30,11 @@ from autonomous.config.runtime_params import straight_drive_fraction, spin_achie
 from typing import Tuple
 
 
-def tank_turn_target_yaw_rate(yaw_diff: float) -> float:
+def get_target_radius(yaw_diff: float) -> float:
     """
-    Calculates target steer value (mapping to -1:1 controller right stick position)
-    Domain: This function should have inputs such that:
-        abs(yaw_diff) <= pi
-    Range:
-        [-1, 1]
+    Calculates target radius at which the rover should turn given a yaw difference between
+    its current heading and the vector to its goal. This value is scaled to approach a radius of 0 (turning on the spot)
+    for large yaw differences, with larger radii corresponding to smaller yaw differences
 
     :param yaw_diff: difference between current and desired yaw
     """
@@ -72,7 +70,7 @@ def radius_to_wheel_angles(radius: float) -> float:
     return left_angle, right_angle
 
 
-def drive_speed_from_turning_error(target_radius, current_radius) -> float:
+def wheel_angle_error(target_radius, current_radius) -> float:
     """
     :param target_steer: the steer value from [-1, 1] we would like to turn at
     :param current_steer: the current steer value from [-1, 1] the wheels are oriented at
@@ -83,11 +81,12 @@ def drive_speed_from_turning_error(target_radius, current_radius) -> float:
     target_left, target_right = radius_to_wheel_angles(target_radius)
     # left and right true wheel angles
     current_left, current_right = radius_to_wheel_angles(current_radius)
-    # maximum error between desired and true wheel angles
-    steer_error_radians = max(abs(target_left - current_left), abs(target_right - current_right))
-    scaled_steer_error = min(steer_error_radians / MAX_STEER_ERROR, 1)
-    drive_rate = big_turn_drive_fraction * (1 - scaled_steer_error**2)
-    return drive_rate
+    left_error = abs(target_left - current_left)
+    right_error = abs(target_right - current_right)
+    left_error = min(left_error, np.pi - left_error)
+    right_error = min(right_error, np.pi - right_error)
+    wheel_error_radians = max(left_error, right_error)
+    return wheel_error_radians
 
 
 def tank_turn_target_drive_rate(yaw_diff: float) -> float:
@@ -138,9 +137,9 @@ def spin_achieved(direction: int, facing: np.array, target: np.array):
     return spin_achieved_delta / 2 < delta < spin_achieved_delta
 
 
-def interpolate_circle_points(centre: Tuple, num_points: int = 8, radius: int = 10):
+def interpolate_circle_points(centre: Tuple, num_points: int = 8, radius: int = 10, halfway=False):
     d_theta = 2 * np.pi / num_points
-    theta = 0
+    theta = d_theta / 2 if halfway else 0
     pts = []
     for _ in range(num_points):
         pts.append((radius * np.cos(theta) + centre[0], radius * np.sin(theta) + centre[1]))

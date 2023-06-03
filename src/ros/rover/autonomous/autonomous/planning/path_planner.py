@@ -37,6 +37,7 @@ from tf2_ros import Buffer, TransformListener
 # msg types
 from geometry_msgs.msg import Pose2D, Pose, PoseStamped
 from nav_msgs.msg import Path, OccupancyGrid
+from std_msgs.msg import Bool
 
 # python imports
 import numpy as np
@@ -51,20 +52,26 @@ class PathPlanner(Node):
     A_STAR_DEST_OBSTACLE = 2
     A_STAR_NO_PATH = 4
     A_STAR_CRITICAL_NO_PATH = 8
+    A_STAR_START_OUT_OF_MAP = 16
 
     def __init__(self):
         """
         :param resolution_m: planning resolution
         """
         super().__init__("path_planner_node")
-        self.get_logger().set_level(logging.DEBUG)
+        self.get_logger().set_level(logging.INFO)
+
+        self.param_obstacle_very_near_dist = self.declare_parameter("obstacle_very_near_dist_m", 1).value
+        self.param_obstacle_near_dist = self.declare_parameter("obstacle_near_dist_m", 2).value
+        self.param_near_obstacle_thresh = self.declare_parameter("num_near_obstacles_thresh", 5).value
+        self.resolution = self.declare_parameter("resolution_m", 0.1).value
+        self.param_update_pose_freq = self.declare_parameter("update_pose_hz", 10).value
+
         # constants
         self.padding_dist_m = INITIAL_PADDING_DIST_M
-        self.resolution = self.declare_parameter("resolution_m", 0.1).value
 
         # state
         self.pose_2d = Pose2D()
-        self.start = (0, 0)
         self.goal = Pose()
         self.goal_id = 0
         self.path = Path()
@@ -76,6 +83,8 @@ class PathPlanner(Node):
         self.planning_subscriber = None
         self.map_subscriber = None
         self.path_publisher = self.create_publisher(Path, auto_waypoints_topic, 10)
+        self.pub_near_obstacle = self.create_publisher(Bool, "/autonomous/near_obstacle", 10)
+        self.pub_very_near_obstacle = self.create_publisher(Bool, "/autonomous/very_near_obstacle", 10)
 
         # Transform listeners
         self.tf_buffer = Buffer()
@@ -95,11 +104,46 @@ class PathPlanner(Node):
             self.get_logger().info("Received transform!")
             self.planning_subscriber = self.create_subscription(PoseStamped, planning_destination_topic, self.path_planning_sub_callback, 10)
             self.map_subscriber = self.create_subscription(OccupancyGrid, "/autonomous/occupancy_grid", self.update_map, 10)
+            self.update_pose_timer = self.create_timer(1 / self.param_update_pose_freq, self.update_pose)
 
     def update_map(self, msg):
         self.get_logger().debug("updating map")
         self._map = Grid2D.map_from_occupancy(msg)
         self._map[self._map < 0] = unseen_map_cost
+
+        self.length = self._map.shape[0]
+        self.width = self._map.shape[1]
+
+        self.length_meters = int(self._map.shape[0] * self.resolution)
+        self.width_meters = int(self._map.shape[1] * self.resolution)
+        
+        self.pub_near_obstacle.publish(Bool(data=self.check_near_obstacle(self.param_obstacle_near_dist)))
+        self.pub_very_near_obstacle.publish(Bool(data=self.check_near_obstacle(self.param_obstacle_very_near_dist)))
+
+    def check_near_obstacle(self, dist):
+        """
+        Checks if the rover is near an obstacle, and publishes True if it is
+        """
+        if self._map is None:
+            return
+        pos = (self.pose_2d.x, self.pose_2d.y)
+        min_x = pos[0] - dist
+        min_y = pos[1] - dist
+        max_x = pos[0] + dist
+        max_y = pos[1] + dist
+        min_coord = self.get_grid_coord((min_x, min_y))
+        max_coord = self.get_grid_coord((max_x, max_y))
+        min_x_idx = max(0, min_coord[0])
+        min_y_idx = max(0, min_coord[1])
+        max_x_idx = min(len(self._map), max_coord[0])
+        max_y_idx = min(len(self._map[0]), max_coord[1])
+        region_of_interest = self._map[min_x_idx:max_x_idx, min_y_idx:max_y_idx]
+        self.get_logger().debug(f"pos: {pos}")
+        self.get_logger().debug(f"min_x: {min_x_idx}, min_y: {min_y_idx}")
+        self.get_logger().debug(f"max_x: {max_x_idx}, max_y: {max_y_idx}")
+        self.get_logger().debug(f"Obstacle ROI: {region_of_interest}")
+        near_obstacle = np.sum((region_of_interest >= 1).astype(float)) > self.param_near_obstacle_thresh
+        return bool(near_obstacle)
 
     def set_goal(self, goal: PoseStamped):
         """
@@ -123,10 +167,7 @@ class PathPlanner(Node):
             return 
         self.get_logger().debug("Path planner sub callback!")
         self.set_goal(goal=msg)
-        try:
-            self.update_pose()
-        except Exception as e:
-            self.get_logger().debug(f"Transform lookup error: {e}")
+        self.update_pose()
         self.get_path()
         self.path_publisher.publish(self.path)
 
@@ -142,7 +183,11 @@ class PathPlanner(Node):
         """ 
         Callback function that updates the current pose of the rover from transform data
         """
-        tf = self.tf_buffer.lookup_transform('local_map', 'base_link', time=Time())
+        try: 
+            tf = self.tf_buffer.lookup_transform('local_map', 'base_link', time=Time())
+        except Exception as e:
+            self.get_logger().warn(f"Couldn't find transform: {e}")
+            return
         self.pose_2d.x = tf.transform.translation.x
         self.pose_2d.y = tf.transform.translation.y
         self.pose_2d.theta = transform.quat_to_euler(q=tf.transform.rotation)[2]
@@ -168,6 +213,8 @@ class PathPlanner(Node):
             self.get_logger().warn("couldn't find a path initially")
         if status & PathPlanner.A_STAR_CRITICAL_NO_PATH:
             self.get_logger().error("COULDN'T FIND PATH - NEAR OBSTACLE")
+        if status & PathPlanner.A_STAR_START_OUT_OF_MAP:
+            self.get_logger().error("Start coordinate was not within map bounds")
         if status == PathPlanner.A_STAR_SUCCESS:
             self.get_logger().debug("A* found safe path")
 
@@ -197,18 +244,12 @@ class PathPlanner(Node):
         if padding <= 0.4:
             return Path()
 
-        self.start = self.pose_2d.x, self.pose_2d.y
+        start = self.pose_2d.x, self.pose_2d.y
         local_goal = self.goal.position.x, self.goal.position.y
         self.get_logger().debug(f"planning to {(local_goal[0], local_goal[1])}")
 
-        self.length = self._map.shape[0]
-        self.width = self._map.shape[1]
-
-        self.length_meters = int(self._map.shape[0] * self.resolution)
-        self.width_meters = int(self._map.shape[1] * self.resolution)
-        
         t1 = time.perf_counter()
-        start_coord =self.get_grid_coord(self.start)
+        start_coord =self.get_grid_coord(start)
         goal_coord = self.get_grid_coord(local_goal)
         self.get_logger().debug(f"Calling a_star C++ with start: {start_coord} and goal: {goal_coord}")
         route = np.array(a_star(self._map, start_coord, goal_coord, self.resolution, padding))
