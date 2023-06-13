@@ -2,6 +2,4 @@ camera_directory:
   ros__parameters:
     serial_overrides:
       roots:
-        mast: pci-0000:00:14.0-usb-0:1
         science: pci-0000:00:14.0-usb-0:2
-        arm: pci-0000:00:14.0-usb-0:3

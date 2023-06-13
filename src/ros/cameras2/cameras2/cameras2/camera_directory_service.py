@@ -1,16 +1,15 @@
 from typing import cast
 
 import rclpy
-from rclpy.node import Node
-from rclpy import qos, Parameter
-from std_srvs.srv import Empty
+from rclpy import Parameter
 
 from camera_msgs.msg import Camera, Cameras
 
+from cameras2.base_camera_directory_service import BaseCameraDirectoryService
 from cameras2.camera_scanner import CameraScanner
 
 
-class CameraDirectoryService(Node):
+class CameraDirectoryService(BaseCameraDirectoryService):
     """
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     Monash Nova Rover Team
@@ -37,28 +36,8 @@ class CameraDirectoryService(Node):
 
     def __init__(self):
         super().__init__(
-            "camera_directory",
             allow_undeclared_parameters=True,
             automatically_declare_parameters_from_overrides=True,
-        )
-
-        self.get_logger().info("Creating camera directory publishers...")
-        self._cameras_publisher = self.create_publisher(
-            Cameras,
-            "/camera_directory/cameras",
-            qos.QoSProfile(
-                history=qos.HistoryPolicy.KEEP_LAST,
-                depth=1,
-                reliability=qos.ReliabilityPolicy.RELIABLE,
-                durability=qos.DurabilityPolicy.TRANSIENT_LOCAL,
-            ),
-        )
-
-        self.get_logger().info("Creating camera directory services...")
-        self.create_service(
-            Empty,
-            "/camera_directory/discover",
-            self._discover_callback,
         )
 
         self._camera_scanner = self._create_camera_scanner()
@@ -126,14 +105,6 @@ class CameraDirectoryService(Node):
         self._cameras_publisher.publish(
             Cameras(cameras=[Camera(serial=serial, node=device_node) for serial, device_node in self._cameras.items()])
         )
-
-    def _discover_callback(
-        self,
-        request: Empty.Request,
-        response: Empty.Response,
-    ) -> Empty.Response:
-        self._discover_cameras()
-        return response
 
 
 def main(args=None):

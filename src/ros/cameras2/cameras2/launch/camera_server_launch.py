@@ -1,3 +1,5 @@
+from functools import reduce
+
 from launch import LaunchDescription, Substitution, SomeSubstitutionsType
 from launch.actions import DeclareLaunchArgument, ExecuteProcess
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, PythonExpression
@@ -8,12 +10,22 @@ from launch_ros.actions import Node
 def generate_launch_description():
     param_dir = LaunchConfiguration("param-dir")
     platform = LaunchConfiguration("platform")
+    payload = LaunchConfiguration("payload")
     autostart = LaunchConfiguration("autostart")
+    profile = LaunchConfiguration("profile")
+    task = LaunchConfiguration("task")
 
     node_parameters = [
-        _substitute_if_not_empty(param_dir, PathJoinSubstitution([param_dir, "core.yaml"])),
-        _substitute_if_not_empty(
-            param_dir, PathJoinSubstitution([param_dir, "platform", _cat_substitutions([platform, ".yaml"])])
+        _substitute_if_not_empty(param_dir, PathJoinSubstitution([param_dir, "directory.yaml"])),
+        _substitute_if_not_empty(param_dir, PathJoinSubstitution([param_dir, "config.yaml"])),
+        _substitute_if_not_empty(param_dir, PathJoinSubstitution([param_dir, "platform", platform, "core.yaml"])),
+        _substitute_if_not_empties(
+            (param_dir, payload),
+            PathJoinSubstitution([param_dir, "platform", platform, "payload", _cat_substitutions([payload, ".yaml"])]),
+        ),
+        _substitute_if_not_empties(
+            (param_dir, task),
+            PathJoinSubstitution([param_dir, "tasks", _cat_substitutions([task, ".yaml"])]),
         ),
     ]
 
@@ -30,10 +42,25 @@ def generate_launch_description():
                 description="The target platform.",
             ),
             DeclareLaunchArgument(
+                "payload",
+                default_value="",
+                description="The payload type.",
+            ),
+            DeclareLaunchArgument(
                 "autostart",
                 choices=["true", "false"],
                 default_value="false",
                 description="Enable the camera streamer autostart parameter.",
+            ),
+            DeclareLaunchArgument(
+                "profile",
+                default_value="",
+                description="Select a stream profile.",
+            ),
+            DeclareLaunchArgument(
+                "task",
+                default_value="",
+                description="Select a specific task.",
             ),
             ExecuteProcess(
                 cmd=["gst-webrtc-signalling-server"],
@@ -54,6 +81,7 @@ def generate_launch_description():
                     *node_parameters,
                     {
                         "autostart": autostart,
+                        "defaults.profile": profile,
                     },
                 ],
             ),
@@ -71,3 +99,11 @@ def _substitute_if_not_empty(
 ) -> Substitution:
     # https://github.com/ros2/launch/issues/290#issuecomment-520643662
     return PythonExpression(["'", substitution, "'", "if '' != '", value, "' else ''"])
+
+
+def _substitute_if_not_empties(values: SomeSubstitutionsType, substitution: str | Substitution) -> Substitution:
+    return reduce(
+        lambda result, value: _substitute_if_not_empty(value, result),
+        reversed(normalize_to_list_of_substitutions(values)),
+        substitution,
+    )

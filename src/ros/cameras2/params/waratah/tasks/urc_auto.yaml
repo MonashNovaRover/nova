@@ -1,0 +1,12 @@
+camera_streamer:
+  ros__parameters:
+    defaults:
+      autostart: false
+
+    cameras:
+      mast_forward:
+        autostart: true
+        profile: snail
+      mast_down:
+        autostart: true
+        profile: snail

@@ -1,33 +1,15 @@
-camera_directory:
-  ros__parameters:
-    blacklist:
-      # The RealSense cameras expose many video device nodes, all with the same serial number and USB device path.
-      # This is incompatible with the design of the camera_directory node.
-      - Intel_R__RealSense_TM__Depth_Camera_455_Intel_R__RealSense_TM__Depth_Camera_455_210523060485
-    serial_overrides:
-      paths:
-        mast:
-          '1:1.0': mast_forward
-          '2:1.0': mast_down
-          '3:1.0': mast_arm_stow
-          '4:1.0': mast_backward
-        science:
-          '2:1.0': science_microscope
-          '4.1:1.0': science_payload
-          '4.2:1.0': science_backward
-          '3:1.0': science_spectrometer_top
-        arm:
-          '1:1.0': arm_gimbal
-          '2.1:1.0': arm_end_forward
-          '2.2:1.0': arm_end_top
-          '2.3:1.0': arm_end_finger
-          '2.4:1.0': arm_end_screw
-
 camera_streamer:
   ros__parameters:
     defaults:
       width: 640
       framerate: 10
+      profiles:
+        snail:
+          width: 320
+          framerate: 7.5
+        super:
+          width: 1280
+          framerate: 10
 
     cameras:
       # Mast
@@ -53,28 +35,44 @@ camera_streamer:
         meta:
           uiProps:
             name: Science - Microscope
-      science_payload:
+            rotation: 180
+      science_gantry:
         meta:
           uiProps:
-            name: Science - Payload
+            name: Science - Gantry
+            rotation: 180
       science_spectrometer_top:
         meta:
           uiProps:
             name: Science - Spectrometer (Top)
+      science_spectrometer_side:
+        meta:
+          uiProps:
+            name: Science - Spectrometer (Side)
+            rotation: 180
       science_backward:
         meta:
           uiProps:
             name: Science - Butt
+            rotation: 180
+      science_shotglass:
+        meta:
+          uiProps:
+            name: Science - Shotglass
+      science_rock_flipper:
+        meta:
+          uiProps:
+            name: Science - Rock flipper
 
       # Arm
       arm_gimbal:
         meta:
           uiProps:
             name: Arm - Gimbal
-      arm_end_screw:
+      arm_end_forward:
         meta:
           uiProps:
-            name: Arm - Screw
+            name: Arm - Forward
             mirrorX: true
       arm_end_top:
         meta:
@@ -84,7 +82,7 @@ camera_streamer:
         meta:
           uiProps:
             name: Arm - Finger
-      arm_end_forward:
+      arm_end_side:
         meta:
           uiProps:
-            name: Arm - Forwards
+            name: Arm - Side

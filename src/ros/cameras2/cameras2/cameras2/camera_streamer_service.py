@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Callable, cast, NamedTuple
 import json
 
@@ -47,6 +49,7 @@ class CameraStreamerService(Node):
     """
 
     class CameraConfiguration(NamedTuple):
+        autostart: bool
         width: int
         height: int
         framerate: int
@@ -54,6 +57,8 @@ class CameraStreamerService(Node):
         do_retransmission: bool
         show_clock: bool
         meta: dict[str, object]
+        profile_name: str | None
+        profiles: dict[str, dict[str, Parameter | dict]]
 
     def __init__(self):
         super().__init__(
@@ -158,28 +163,52 @@ class CameraStreamerService(Node):
             defaults: CameraStreamerService.CameraConfiguration,
             parameters: dict[str, object],
         ) -> CameraStreamerService.CameraConfiguration:
-            def get_parameter_value(name: str, read: Callable[[Parameter], object]):
-                return read(cast(Parameter, parameters[name]).get_parameter_value()) if name in parameters else None
+            profile: dict[str, Parameter] = {}
 
+            def get_parameter_value(name: str, read: Callable[[Parameter], object]):
+                parameter = cast(Parameter, profile.get(name, parameters.get(name, None)))
+                if parameter is None:
+                    return None
+                return read(parameter.get_parameter_value())
+
+            profile_name = get_parameter_value("profile", lambda p: p.string_value)
+            if profile_name is None:
+                profile_name = defaults.profile_name
+            profiles = parameters.get("profiles", {})
+            profile = (
+                profiles.get(profile_name, defaults.profiles.get(profile_name, {})) if profile_name is not None else {}
+            )
+
+            autostart = get_parameter_value("autostart", lambda p: p.bool_value)
             width = get_parameter_value("width", lambda p: p.integer_value)
             height = get_parameter_value("height", lambda p: p.integer_value)
-            framerate = get_parameter_value("framerate", lambda p: p.integer_value)
+            framerate = get_parameter_value("framerate", lambda p: p.double_value)
+            if framerate == 0:
+                # If the double value is zero, an integer value was given instead.
+                framerate = get_parameter_value("framerate", lambda p: p.integer_value)
             do_fec = get_parameter_value("do_fec", lambda p: p.bool_value)
             do_retransmission = get_parameter_value("do_retransmission", lambda p: p.bool_value)
             show_clock = get_parameter_value("show_clock", lambda p: p.bool_value)
 
+            # TODO: This default merging system incorrectly mixes low-level parameters with high-level configuration objects,
+            # storing the former inside the latter. It also has issues with nested dictionaries.
+            # A more robust system should be made, with proper support for merging nested dictionaries.
             return CameraStreamerService.CameraConfiguration(
+                autostart=autostart if autostart is not None else defaults.autostart,
                 width=width if width is not None else defaults.width,
                 height=height if height is not None else defaults.height,
                 framerate=framerate if framerate is not None else defaults.framerate,
                 do_fec=do_fec if do_fec is not None else defaults.do_fec,
                 do_retransmission=do_retransmission if do_retransmission is not None else defaults.do_retransmission,
                 show_clock=show_clock if show_clock is not None else defaults.show_clock,
-                meta={**defaults.meta, **read_meta(parameters.get("meta", {}))},
+                meta={**defaults.meta, **read_meta(profile.get("meta", parameters.get("meta", {})))},
+                profile_name=profile_name,
+                profiles=profiles,
             )
 
         param_defaults = read_camera_configuration(
             CameraStreamerService.CameraConfiguration(
+                autostart=True,
                 width=0,
                 height=0,
                 framerate=0,
@@ -187,6 +216,8 @@ class CameraStreamerService(Node):
                 do_retransmission=True,
                 show_clock=True,
                 meta={},
+                profile_name=None,
+                profiles={},
             ),
             expand_dictionary(self.get_parameters_by_prefix("defaults")),
         )
@@ -232,7 +263,15 @@ class CameraStreamerService(Node):
         self._device_nodes.update(kwargs)
 
         if self.get_parameter("autostart").get_parameter_value().bool_value:
-            self._stream_start_client.call_async(CameraOperation.Request(serials=set(kwargs.keys())))
+            serials = {
+                "nop",  # If no cameras have autostart enabled, the set will be empty and the service call will start everything.
+                *(
+                    serial
+                    for serial in kwargs.keys()
+                    if self._camera_configurations.get(serial, self._default_camera_configuration).autostart
+                ),
+            }
+            self._stream_start_client.call_async(CameraOperation.Request(serials=serials))
 
     def _unregister_cameras(self, serials: set[str]) -> None:
         if not serials:
