@@ -88,13 +88,6 @@ ament_target_dependencies_private(
     pybind11::module
     )
 
-
-install(TARGETS a_star DESTINATION ~/nova_ws/install/autonomous/lib/python3.8/site-packages)
-install(TARGETS height_mapper DESTINATION ~/nova_ws/install/autonomous/lib/python3.8/site-packages)
-install(TARGETS plane_fitter DESTINATION ~/nova_ws/install/autonomous/lib/python3.8/site-packages)
-install(TARGETS rs2_ros2 DESTINATION ~/nova_ws/install/autonomous/lib/python3.8/site-packages)
-
-
 # Add all the installation directories
 install(DIRECTORY
   DESTINATION share/${PROJECT_NAME}
@@ -102,6 +95,11 @@ install(DIRECTORY
 
 # Install Python modules
 ament_python_install_package(${PROJECT_NAME})
+
+install(TARGETS a_star DESTINATION ${PYTHON_INSTALL_DIR}/${PROJECT_NAME})
+install(TARGETS height_mapper DESTINATION ${PYTHON_INSTALL_DIR}/${PROJECT_NAME})
+install(TARGETS plane_fitter DESTINATION ${PYTHON_INSTALL_DIR}/${PROJECT_NAME})
+install(TARGETS rs2_ros2 DESTINATION ${PYTHON_INSTALL_DIR}/${PROJECT_NAME})
 
 # Add all Python executables to this list
 install(PROGRAMS
