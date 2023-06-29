@@ -36,7 +36,6 @@ let
     rmw-fastrtps-dynamic-cpp # https://github.com/lopsided98/nix-ros-overlay/issues/45
     ros-core # https://github.com/ros2/variants
     python.pkgs.argcomplete
-    colcon
     rviz2 # Note: Cannot run without Xwayland (https://github.com/ros-visualization/rviz/issues/1442)
 
     (writeShellScriptBin "mk-nova-shell-setup" "cat ${./setup.sh}")
@@ -63,7 +62,12 @@ in
     # for that package instead (e.g. `nix-shell -A ros.nova.core`).
     env = mkShell {
       # Add general packages to the environment.
-      inherit packages;
+      packages = packages ++ [
+        # Add colcon, for building packages.
+        # This is a build tool that wraps other build tools, so it is not needed
+        # normally in any of the ROS derivations and must be manually added here.
+        colcon
+      ];
 
       # Use the build inputs from Nova packages, so that they can be built manually for development.
       inputsFrom = novaPackages;
