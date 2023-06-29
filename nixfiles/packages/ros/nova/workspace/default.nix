@@ -85,7 +85,11 @@ in
         else
           # If a different shell is in use through a tool like https://github.com/chisui/zsh-nix-shell,
           # this hook will not be running in it. "mk-nova-shell-setup" must be run manually.
-          :
+          if [ -z "$I_WILL_RUN_NOVA_SHELL_SETUP" ]; then
+            echo >&2 'The shell setup script must be manually run.'
+            echo >&2 '$ eval "$(mk-nova-shell-setup)"'
+            echo >&2 'Set I_WILL_RUN_NOVA_SHELL_SETUP=1 to silence this message.'
+          fi
         fi
       '';
     };
