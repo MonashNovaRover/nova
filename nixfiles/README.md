@@ -1,0 +1,116 @@
+# Nixfiles
+
+This repository contains Nix files that set up a ROS workspace and build environment for our software.
+
+## Preparation
+
+1. Use any Linux distro. macOS will in theory work to some extent, but is untested. Some of our software requires Linux.
+2. Install [Nix](https://nixos.org/).
+3. Use the [ROS binary cache](https://github.com/lopsided98/nix-ros-overlay/#configure-binary-cache). This is optional, but highly recommended to cut down on build times.
+4. In this repository directory, run the [checkout script](./scripts/checkout-nova-sources.sh).
+5. Make sure the repositories cloned to [external/src](./external/src) are on up-to-date branches with a `default.nix`.
+
+> Note: Any commands in this README starting with `nix-shell`, `nix-build`, etc.
+> should be started in the top-level repository directory.
+
+## Execution
+
+There are two alternate ways to enter the Nova Rover ROS workspace.
+
+---
+
+To open a temporary shell in the workspace, run the following command:
+
+```
+nix-shell -p 'with import ./. { }; pkgs.ros.nova.workspace'
+```
+
+---
+
+Alternatively, for something a little more permanent, you can build the
+workspace and manually add `result/bin` to your `PATH`. `result` is a symbolic
+link that gets updated whenever the workspace package is built. Its existance
+will also prevent Nix from garbage collecting it or any dependencies.
+
+```
+nix-build -A pkgs.ros.nova.workspace
+
+export PATH="$PWD/result/bin:$PATH"
+# Add something similar to your shell init script.
+```
+
+---
+
+After you are in the workspace, run the following command, which configures
+things like shell completion.
+
+```
+eval "$(mk-nova-shell-setup)"
+```
+
+Now, the workspace can be used like normal. `ros2 run` to your heart's content.
+
+> Whenever you change any source code, you can re-enter the shell or rebuild the
+> workspace to use the new version. Only the packages that changed will be
+> rebuilt.
+>
+> Note that this is not recommended for general development due to the lack of
+> incremental compilation in individual packages. Read on for development
+> instructions.
+
+## Development
+
+Development can be done in two styles:
+
+1. Using [colcon](https://colcon.readthedocs.io/en/released/) as normal
+   (recommended when working on multiple packages at once).
+2. Using build tools like CMake directly (recommended when working on just one package).
+
+### Colcon
+
+1. Enter the workspace development shell.
+   ```
+   nix-shell -A pkgs.ros.nova.workspace.env
+   ```
+
+2. Switch to a workspace directory.
+   ```
+   cd external/src
+   ```
+
+3. Build the workspace.
+   ```
+   colcon build
+   ```
+
+4. Hack away.
+
+### Direct
+
+1. Enter a package development shell. For example, `control`:
+   ```
+   nix-shell -A pkgs.ros.nova.control
+   ```
+
+2. Switch to the package directory.
+   ```
+   cd external/src/ros/rover/control
+   ```
+
+3. Build the package with regular build tools.
+   Note that some CMake packages will need `-DBUILD_TESTING=OFF`.
+   ```
+   mkdir -p build
+   cd build
+   cmake .. -DBUILD_TESTING=OFF
+   cmake --build .
+   ```
+
+4. IDEs such as CLion will be able to work with the package as a regular CMake
+   project, so long as they are started from the shell.
+
+   When using CLion, make sure to manually enter the build tool executable names
+   in a toolchain profile. This will force the IDE to use the tools in `PATH`
+   instead of using incorrect autodetection results.
+
+   ![](./doc/images/clion_toolchain_setup.png)
