@@ -12,7 +12,7 @@ buildRosPackage {
   name = "core";
   buildType = "ament_cmake";
 
-  src = lib.cleanNovaSource [ ] ./.;
+  src = lib.cleanNovaSource [ ] ../../../core;
 
   nativeBuildInputs = [ ament-cmake rosidl-default-generators ];
   buildInputs = [ std-msgs nav-msgs ];

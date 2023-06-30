@@ -6,16 +6,16 @@
 , rclpy
 , geometry-msgs
 , nav-msgs
-, core
+, nova-core
 }:
 
 buildRosPackage {
   name = "science";
   buildType = "ament_cmake";
 
-  src = lib.cleanNovaSource [ ] ./.;
+  src = lib.cleanNovaSource [ ] ../../../science;
 
   nativeBuildInputs = [ ament-cmake ];
-  buildInputs = [ rclcpp rclpy geometry-msgs nav-msgs core ];
-  propagatedBuildInputs = with pythonPackages; [ coms-utils ];
+  buildInputs = [ rclcpp rclpy geometry-msgs nav-msgs nova-core ];
+  propagatedBuildInputs = with pythonPackages; [ nova-coms-utils ];
 }

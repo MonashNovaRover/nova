@@ -7,14 +7,14 @@
 , nav-msgs
 , opencv
 , librealsense2
-, core
+, nova-core
 }:
 
 buildRosPackage {
   name = "autonomous";
   buildType = "ament_cmake";
 
-  src = lib.cleanNovaSource [ ] ./.;
+  src = lib.cleanNovaSource [ ] ../../../autonomous;
 
   nativeBuildInputs = [ ament-cmake ];
   buildInputs = [
@@ -24,6 +24,6 @@ buildRosPackage {
     nav-msgs
     opencv
     librealsense2
-    core
+    nova-core
   ];
 }

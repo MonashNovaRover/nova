@@ -10,7 +10,7 @@
 , eigen
 , orocos-kdl
 , systemd
-, core
+, nova-core
 }:
 
 buildRosPackage {
@@ -19,7 +19,7 @@ buildRosPackage {
 
   src = lib.cleanNovaSource [
     "!include/jcan_*/libjcan.a"
-  ] ./.;
+  ] ../../../control;
 
   nativeBuildInputs = [ ament-cmake ];
   buildInputs = [
@@ -32,6 +32,6 @@ buildRosPackage {
     eigen
     orocos-kdl
     systemd
-    core
+    nova-core
   ];
 }
