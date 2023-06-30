@@ -12,14 +12,14 @@
 , rviz2
 
   # Nova Rover packages
+, nova
 , core
 , control
 , autonomous
 , electronics
 , science
 , cameras2
-, gui
-, gui-frontend
+, gui-backend
 
 , wrapPrograms ? true
 }:
@@ -32,9 +32,9 @@ let
     electronics
     science
     cameras2
-    gui
-    gui-frontend
-    gui-frontend.server
+    gui-backend
+    nova.gui-frontend
+    nova.gui-frontend-server
   ];
 
   packages = [

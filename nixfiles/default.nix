@@ -1,7 +1,7 @@
 { pkgs ? import <nixpkgs> { }
 
   # The locations of checked-out Nova Rover repositories.
-  # See the default value for the structure.
+  # Each repository in this list should have a default.nix module file.
 , repos ? import ./external/default-paths.nix
 }:
 
@@ -45,9 +45,14 @@ let
     ];
   };
 
-  external = import ./external/out-of-tree.nix repos;
+  config = (pkgs.lib.evalModules {
+    modules = [
+      (import ./external/out-of-tree.nix)
+    ] ++ map (repo: import repo) repos;
+  }).config;
 in
 {
+  inherit repos config;
   pkgs = import nixpkgs {
     overlays = [
       # Add the nix-ros-overlay. This supplies vanilla ROS packages.
@@ -62,37 +67,58 @@ in
       # Add internally defined packages and scopes.
       (self: super:
         import ./packages { inherit (self) callPackage; } // {
+          nova = self.lib.makeScope self.newScope (nova:
+            import ./packages/nova { inherit (nova) callPackage; }
+          );
+          pythonPackagesExtensions = super.pythonPackagesExtensions ++ [
+            (pyself: pysuper:
+              import ./packages/python { inherit (pyself) callPackage; } // {
+                nova = pyself.lib.makeScope pyself.newScope (nova:
+                  import ./packages/python/nova { inherit (nova) callPackage; }
+                );
+              })
+          ];
           ros = super.ros.overrideScope (rosSelf: rosSuper:
             import ./packages/ros { inherit (rosSelf) callPackage; } // {
-              # Add ROS packages to a "nova" scope to avoid naming colisions
-              # with public ROS packages.
               nova = rosSelf.lib.makeScope rosSelf.newScope (nova:
                 import ./packages/ros/nova { inherit (nova) callPackage; }
               );
             });
         })
 
-      # Add externally defined (out-of-tree) Nova Rover packages.
+      # Add externally defined (out-of-tree) packages.
+      ## Non-Nova packages.
+      (self: super: config.packages.other self)
       (self: super: {
         # Add non-ROS Python packages.
         pythonPackagesExtensions = super.pythonPackagesExtensions ++ [
-          (pyself: pysuper:
-            builtins.mapAttrs
-              (name: directory: pyself.callPackage directory { })
-              external.pythonPackages)
+          (pyself: pysuper: config.pythonPackages.other pyself)
+        ];
+
+        # Add ROS packages.
+        ros = super.ros.overrideScope
+          (rosSelf: rosSuper: config.rosPackages.other rosSelf);
+      })
+
+      ## Nova packages.
+      (self: super: {
+        nova = super.nova.overrideScope'
+          (novaSelf: novaSuper: config.packages.nova novaSelf);
+
+        # Add non-ROS Python packages.
+        pythonPackagesExtensions = super.pythonPackagesExtensions ++ [
+          (pyself: pysuper: {
+            nova = pysuper.nova.overrideScope'
+              (novaSelf: novaSuper: config.pythonPackages.nova novaSelf);
+          })
         ];
 
         # Add ROS packages.
         ros = super.ros.overrideScope (rosSelf: rosSuper: {
-          nova = rosSuper.nova.overrideScope' (novaSelf: novaSuper:
-            builtins.mapAttrs
-              (name: directory: novaSelf.callPackage directory { })
-              external.rosPackages);
+          nova = rosSuper.nova.overrideScope'
+            (novaSelf: novaSuper: config.rosPackages.nova novaSelf);
         });
-      } // # Add other packages.
-      builtins.mapAttrs
-        (name: directory: self.callPackage directory { })
-        external.otherPackages)
+      })
     ];
   };
 }
