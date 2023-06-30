@@ -48,7 +48,7 @@ let
   config = (pkgs.lib.evalModules {
     modules = [
       (import ./external/out-of-tree.nix)
-    ] ++ map (repo: import repo) repos;
+    ] ++ map import repos;
   }).config;
 in
 {
