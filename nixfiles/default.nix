@@ -33,8 +33,8 @@ let
     src = pkgs.fetchFromGitHub {
       owner = "lopsided98";
       repo = "nix-ros-overlay";
-      rev = "381164fc34d6b9d8b59f4e45e19cad1bec709892";
-      hash = "sha256-6RBNIfxJFMMKaOfSG/h3w0zWTQU/cAHbDRnhI7vMLFw=";
+      rev = "6b6482e0b4cb197f77ef2cacdb69c5ba233c44b1";
+      hash = "sha256-RA2mdhz7MM10MuAYUDmkJg3cZucize6IluZfcLwpBvM=";
     };
     patches = [
       # Make buildEnv more flexible
