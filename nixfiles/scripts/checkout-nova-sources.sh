@@ -4,6 +4,7 @@
 ROS_REPOS=(
     rover
     cameras2
+    gui
 )
 
 OTHER_REPOS=(

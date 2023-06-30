@@ -59,7 +59,7 @@ in
         })
 
       # Add externally defined (out-of-tree) Nova Rover packages.
-      (self: super: import ./packages { inherit (self) callPackage; } // {
+      (self: super: {
         # Add non-ROS Python packages.
         pythonPackagesExtensions = super.pythonPackagesExtensions ++ [
           (pyself: pysuper:
@@ -75,7 +75,10 @@ in
               (name: directory: novaSelf.callPackage directory { })
               external.rosPackages);
         });
-      })
+      } // # Add other packages.
+      builtins.mapAttrs
+        (name: directory: self.callPackage directory { })
+        external.otherPackages)
     ];
   };
 }

@@ -18,6 +18,8 @@
 , electronics
 , science
 , cameras2
+, gui
+, gui-frontend
 
 , wrapPrograms ? true
 }:
@@ -30,6 +32,9 @@ let
     electronics
     science
     cameras2
+    gui
+    gui-frontend
+    gui-frontend.server
   ];
 
   packages = [
