@@ -114,3 +114,63 @@ Development can be done in two styles:
    instead of using incorrect autodetection results.
 
    ![](./doc/images/clion_toolchain_setup.png)
+
+## Structure
+
+Importing this repository in Nix will create the entrypoint function.
+
+**Arguments (in an attribute set):**
+
+`pkgs`: Optional. An instance of [Nixpkgs](https://github.com/NixOS/nixpkgs). This is used only to download pinned revisions of it and other package sources.
+
+`repos`: Optional. A list of paths to out-of-tree Nova Rover software repositories. (Tip: [Use `--arg` to set this on the CLI.](https://nixos.org/manual/nix/unstable/command-ref/opt-common.html#opt-arg))
+
+**Return values (in an attribute set):**
+
+`pkgs`: An instance of a pinned (non-updating) revision of Nixpkgs with additional packages added.
+
+### Using ROS packages
+
+ROS packages can be accessed through either the `rosPackages` set or the `ros` alias (equivalent to `rosPackages.${defaultVersion}`).
+
+Here are some examples:
+
+- `pkgs.ros.nova-workspace` - The main workspace, with ROS 2 Foxy
+- `pkgs.rosPackages.humble.nova-control` - The `control` package, built against ROS 2 Humble
+- `pkgs.rosPackages.rolling.ros-core` - The [core variant](https://ros.org/reps/rep-2001.html#id32) of ROS 2 Rolling
+
+### Adding out-of-tree packages
+
+Out-of-tree packages are expected to be structured like so:
+
+```
+├── default.nix
+├── nix
+│  └── packages
+│     ├── <name>
+│     │  └── default.nix
+│     ├── <name>
+│     │  └── default.nix
+│     └── ... (additional packages)
+└── ... (the rest of the repository)
+```
+
+`default.nix` is a NixOS-style module that configures this repository, primarily to add packages.
+
+There are three options:
+
+- `packages`: Regular packages to add.
+- `pythonPackages`: Python packages to add.
+- `rosPackages`: ROS packages to add.
+
+A typical `default.nix` would look like this:
+
+```nix
+{
+  rosPackages = pkgs: with pkgs; {
+    nova-my-ros-package = callPackage ./nix/packages/my-ros-package.nix { };
+  };
+}
+```
+
+Consult existing repositories for practical examples.
