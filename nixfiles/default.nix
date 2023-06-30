@@ -8,11 +8,25 @@
 let
   # Pin the version of Nixpkgs to ensure reproducibility.
   # Use the fork made for ROS.
-  nixpkgs = pkgs.fetchFromGitHub {
-    owner = "lopsided98";
-    repo = "nixpkgs";
-    rev = "f68a0d0fd7539d93c7454989f71fd1c824f3b46f";
-    hash = "sha256-oJhMiKnJeb47gTxyyIgAJf+aWC4IbVmG3wgL3ZVJ0Eg=";
+  nixpkgs = pkgs.applyPatches {
+    src = pkgs.fetchFromGitHub {
+      owner = "lopsided98";
+      repo = "nixpkgs";
+      rev = "f68a0d0fd7539d93c7454989f71fd1c824f3b46f";
+      hash = "sha256-oJhMiKnJeb47gTxyyIgAJf+aWC4IbVmG3wgL3ZVJ0Eg=";
+    };
+    patches = [
+      # prefetch-npm-deps: add retry
+      (pkgs.fetchpatch {
+        url = "https://github.com/NixOS/nixpkgs/pull/238452.patch";
+        hash = "sha256-15sPCCdpirn4u6NflqZ0cknT/N96gd3RLXZVxBG4LWw=";
+      })
+      # prefetch-npm-deps: use isahc instead of ureq
+      (pkgs.fetchpatch {
+        url = "https://github.com/NixOS/nixpkgs/pull/240419.patch";
+        hash = "sha256-utwcc06OdsHh4/ZL9nwY0AedH8nmWya7aEMUuFhlo5w=";
+      })
+    ];
   };
 
   nix-ros-overlay = pkgs.applyPatches {
