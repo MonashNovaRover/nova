@@ -70,8 +70,9 @@ in
           pythonPackagesExtensions = super.pythonPackagesExtensions ++ [
             (pyself: pysuper: import ./packages/python { inherit (pyself) callPackage; })
           ];
-          ros = super.ros.overrideScope
-            (rosSelf: rosSuper: import ./packages/ros { inherit (rosSelf) callPackage; });
+          rosPackages = super.rosPackages.appendDistroOverlay
+            (rosSelf: rosSuper: import ./packages/ros { inherit (rosSelf) callPackage; })
+            super.rosPackages;
         })
 
       # Add externally defined (out-of-tree) packages.
@@ -82,8 +83,9 @@ in
         ];
       })
       (self: super: {
-        ros = super.ros.overrideScope
-          (rosSelf: rosSuper: config.rosPackages rosSelf);
+        rosPackages = super.rosPackages.appendDistroOverlay
+          (rosSelf: rosSuper: config.rosPackages rosSelf)
+          super.rosPackages;
       })
     ];
   };
