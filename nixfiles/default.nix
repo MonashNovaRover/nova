@@ -65,15 +65,17 @@ in
       (import ./overlay)
 
       # Add internally defined packages.
-      (self: super:
-        import ./packages { inherit (self) callPackage; } // {
-          pythonPackagesExtensions = super.pythonPackagesExtensions ++ [
-            (pyself: pysuper: import ./packages/python { inherit (pyself) callPackage; })
-          ];
-          rosPackages = super.rosPackages.appendDistroOverlay
-            (rosSelf: rosSuper: import ./packages/ros { inherit (rosSelf) callPackage; })
-            super.rosPackages;
-        })
+      (self: super: import ./packages { inherit (self) callPackage; })
+      (self: super: {
+        pythonPackagesExtensions = super.pythonPackagesExtensions ++ [
+          (pyself: pysuper: import ./packages/python { inherit (pyself) callPackage; })
+        ];
+      })
+      (self: super: {
+        rosPackages = super.rosPackages.appendDistroOverlay
+          (rosSelf: rosSuper: import ./packages/ros { inherit (rosSelf) callPackage; })
+          super.rosPackages;
+      })
 
       # Add externally defined (out-of-tree) packages.
       (self: super: config.packages self)
