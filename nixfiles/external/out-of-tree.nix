@@ -19,17 +19,17 @@ in
   options = {
     packages = lib.mkOption {
       type = packageSetType;
-      default = { };
+      default = null;
       description = "Regular packages.";
     };
     pythonPackages = lib.mkOption {
       type = packageSetType;
-      default = { };
+      default = null;
       description = "Python packages.";
     };
     rosPackages = lib.mkOption {
       type = packageSetType;
-      default = { };
+      default = null;
       description = "ROS packages.";
     };
   };
