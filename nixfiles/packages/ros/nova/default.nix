@@ -1,5 +1,0 @@
-{ callPackage }:
-
-{
-  workspace = callPackage ./workspace { };
-}

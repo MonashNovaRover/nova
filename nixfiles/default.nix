@@ -64,60 +64,26 @@ in
       #  - Creates a "ros" alias pointing to "rosPackages.${version}"
       (import ./overlay)
 
-      # Add internally defined packages and scopes.
+      # Add internally defined packages.
       (self: super:
         import ./packages { inherit (self) callPackage; } // {
-          nova = self.lib.makeScope self.newScope (nova:
-            import ./packages/nova { inherit (nova) callPackage; }
-          );
           pythonPackagesExtensions = super.pythonPackagesExtensions ++ [
-            (pyself: pysuper:
-              import ./packages/python { inherit (pyself) callPackage; } // {
-                nova = pyself.lib.makeScope pyself.newScope (nova:
-                  import ./packages/python/nova { inherit (nova) callPackage; }
-                );
-              })
+            (pyself: pysuper: import ./packages/python { inherit (pyself) callPackage; })
           ];
-          ros = super.ros.overrideScope (rosSelf: rosSuper:
-            import ./packages/ros { inherit (rosSelf) callPackage; } // {
-              nova = rosSelf.lib.makeScope rosSelf.newScope (nova:
-                import ./packages/ros/nova { inherit (nova) callPackage; }
-              );
-            });
+          ros = super.ros.overrideScope
+            (rosSelf: rosSuper: import ./packages/ros { inherit (rosSelf) callPackage; });
         })
 
       # Add externally defined (out-of-tree) packages.
-      ## Non-Nova packages.
-      (self: super: config.packages.other self)
+      (self: super: config.packages self)
       (self: super: {
-        # Add non-ROS Python packages.
         pythonPackagesExtensions = super.pythonPackagesExtensions ++ [
-          (pyself: pysuper: config.pythonPackages.other pyself)
+          (pyself: pysuper: config.pythonPackages pyself)
         ];
-
-        # Add ROS packages.
-        ros = super.ros.overrideScope
-          (rosSelf: rosSuper: config.rosPackages.other rosSelf);
       })
-
-      ## Nova packages.
       (self: super: {
-        nova = super.nova.overrideScope'
-          (novaSelf: novaSuper: config.packages.nova novaSelf);
-
-        # Add non-ROS Python packages.
-        pythonPackagesExtensions = super.pythonPackagesExtensions ++ [
-          (pyself: pysuper: {
-            nova = pysuper.nova.overrideScope'
-              (novaSelf: novaSuper: config.pythonPackages.nova novaSelf);
-          })
-        ];
-
-        # Add ROS packages.
-        ros = super.ros.overrideScope (rosSelf: rosSuper: {
-          nova = rosSuper.nova.overrideScope'
-            (novaSelf: novaSuper: config.rosPackages.nova novaSelf);
-        });
+        ros = super.ros.overrideScope
+          (rosSelf: rosSuper: config.rosPackages rosSelf);
       })
     ];
   };

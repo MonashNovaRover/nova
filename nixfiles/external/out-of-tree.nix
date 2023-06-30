@@ -14,35 +14,21 @@ let
       (pkgs: { })
       (lib.getValues defs);
   };
-
-
-  categoryModule.options = {
-    nova = lib.mkOption {
-      type = packageSetType;
-      default = null;
-      description = lib.mdDoc "Nova Rover packages.";
-    };
-    other = lib.mkOption {
-      type = packageSetType;
-      default = null;
-      description = lib.mdDoc "Third-party packages.";
-    };
-  };
 in
 {
   options = {
     packages = lib.mkOption {
-      type = with lib.types; submodule categoryModule;
+      type = packageSetType;
       default = { };
       description = "Regular packages.";
     };
     pythonPackages = lib.mkOption {
-      type = with lib.types; submodule categoryModule;
+      type = packageSetType;
       default = { };
       description = "Python packages.";
     };
     rosPackages = lib.mkOption {
-      type = with lib.types; submodule categoryModule;
+      type = packageSetType;
       default = { };
       description = "ROS packages.";
     };

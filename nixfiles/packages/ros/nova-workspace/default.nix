@@ -12,29 +12,30 @@
 , rviz2
 
   # Nova Rover packages
-, nova
-, core
-, control
-, autonomous
-, electronics
-, science
-, cameras2
-, gui-backend
+, nova-core
+, nova-control
+, nova-autonomous
+, nova-electronics
+, nova-science
+, nova-cameras2
+, nova-gui-backend
+, nova-gui-frontend
+, nova-gui-frontend-server
 
 , wrapPrograms ? true
 }:
 
 let
   novaPackages = [
-    core
-    control
-    autonomous
-    electronics
-    science
-    cameras2
-    gui-backend
-    nova.gui-frontend
-    nova.gui-frontend-server
+    nova-core
+    nova-control
+    nova-autonomous
+    nova-electronics
+    nova-science
+    nova-cameras2
+    nova-gui-backend
+    nova-gui-frontend
+    nova-gui-frontend-server
   ];
 
   packages = [

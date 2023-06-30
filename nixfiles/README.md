@@ -22,7 +22,7 @@ There are two alternate ways to enter the Nova Rover ROS workspace.
 To open a temporary shell in the workspace, run the following command:
 
 ```
-nix-shell -p 'with import ./. { }; pkgs.ros.nova.workspace'
+nix-shell -p 'with import ./. { }; pkgs.ros.nova-workspace'
 ```
 
 ---
@@ -33,7 +33,7 @@ link that gets updated whenever the workspace package is built. Its existance
 will also prevent Nix from garbage collecting it or any dependencies.
 
 ```
-nix-build -A pkgs.ros.nova.workspace
+nix-build -A pkgs.ros.nova-workspace
 
 export PATH="$PWD/result/bin:$PATH"
 # Add something similar to your shell init script.
@@ -70,7 +70,7 @@ Development can be done in two styles:
 
 1. Enter the workspace development shell.
    ```
-   nix-shell -A pkgs.ros.nova.workspace.env
+   nix-shell -A pkgs.ros.nova-workspace.env
    ```
 
 2. Switch to a workspace directory.
@@ -89,7 +89,7 @@ Development can be done in two styles:
 
 1. Enter a package development shell. For example, `control`:
    ```
-   nix-shell -A pkgs.ros.nova.control
+   nix-shell -A pkgs.ros.nova-control
    ```
 
 2. Switch to the package directory.
