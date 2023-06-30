@@ -8,7 +8,7 @@ buildRosPackage {
   name = "camera-msgs";
   buildType = "ament_cmake";
 
-  src = lib.cleanNovaSource [ ] ./.;
+  src = lib.cleanNovaSource [ ] ../../../camera_msgs;
 
   nativeBuildInputs = [ ament-cmake rosidl-default-generators ];
 }

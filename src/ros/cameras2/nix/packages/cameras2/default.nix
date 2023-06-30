@@ -9,7 +9,7 @@
 , launch-ros
 , rclpy
 , std-srvs
-, camera-msgs
+, nova-camera-msgs
 , pythonPackages
 }:
 
@@ -17,11 +17,11 @@ buildRosPackage {
   name = "cameras2";
   buildType = "ament_python";
 
-  src = lib.cleanNovaSource [ ] ./.;
+  src = lib.cleanNovaSource [ ] ../../../cameras2;
 
   patches = [
     (substituteAll {
-      src = ./nix/patches/launch-executable-locations.patch;
+      src = ./patches/launch-executable-locations.patch;
       gst_plugins_rs = gst_all_1.gst-plugins-rs;
     })
   ];
@@ -48,15 +48,16 @@ buildRosPackage {
     launch-ros
     rclpy
     std-srvs
-    camera-msgs
+    nova-camera-msgs
 
     pythonPackages.pyudev
     pythonPackages.pygobject3
     pythonPackages.gst-python
   ];
 
+  # https://github.com/lopsided98/nix-ros-overlay/issues/230
   postInstall = ''
     mkdir -p $out/lib/cameras2
-    ln -s $out/bin/* $out/lib/cameras2
+    mv $out/bin/* $out/lib/cameras2
   '';
 }
