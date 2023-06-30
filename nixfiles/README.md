@@ -168,7 +168,7 @@ A typical `default.nix` would look like this:
 ```nix
 {
   rosPackages = pkgs: with pkgs; {
-    nova-my-ros-package = callPackage ./nix/packages/my-ros-package.nix { };
+    nova-my-ros-package = callPackage ./nix/packages/my-ros-package { };
   };
 }
 ```
