@@ -54,10 +54,4 @@ buildRosPackage {
     pythonPackages.pygobject3
     pythonPackages.gst-python
   ];
-
-  # https://github.com/lopsided98/nix-ros-overlay/issues/230
-  postInstall = ''
-    mkdir -p $out/lib/cameras2
-    mv $out/bin/* $out/lib/cameras2
-  '';
 }
