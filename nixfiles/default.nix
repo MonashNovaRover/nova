@@ -42,6 +42,11 @@ let
         url = "https://github.com/lopsided98/nix-ros-overlay/pull/269.patch";
         hash = "sha256-9jxS4/5YskbxFhqnGoNsgXX21IK+YJWyyICsWCZZnfo=";
       })
+      # Build ROS Python packages like colcon
+      (pkgs.fetchpatch {
+        url = "https://github.com/lopsided98/nix-ros-overlay/pull/272.patch";
+        hash = "sha256-lC7FyipVQ1egLH0uhOdAPjTyQYjIi+PaCQWxcWxpizs=";
+      })
     ];
   };
 
