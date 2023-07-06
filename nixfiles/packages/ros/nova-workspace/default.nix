@@ -1,6 +1,7 @@
 {
   # Nixpkgs functions
-  buildEnv
+  lib
+, buildEnv
 , mkShell
 , writeShellScriptBin
 
@@ -23,6 +24,7 @@
 , nova-gui-frontend-server
 
 , wrapPrograms ? true
+, includeGraphicalApplications ? true
 }:
 
 let
@@ -42,9 +44,10 @@ let
     rmw-fastrtps-dynamic-cpp # https://github.com/lopsided98/nix-ros-overlay/issues/45
     ros-core # https://github.com/ros2/variants
     python.pkgs.argcomplete
-    rviz2 # Note: Cannot run without Xwayland (https://github.com/ros-visualization/rviz/issues/1442)
 
     (writeShellScriptBin "mk-nova-shell-setup" "cat ${./setup.sh}")
+  ] ++ lib.optionals includeGraphicalApplications [
+    rviz2 # Note: Cannot run without Xwayland (https://github.com/ros-visualization/rviz/issues/1442)
   ];
 
   mkEnv = { wrapPrograms }: buildEnv {
