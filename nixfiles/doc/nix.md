@@ -112,7 +112,7 @@ Development can be done in two styles:
    in a toolchain profile. This will force the IDE to use the tools in `PATH`
    instead of using incorrect autodetection results.
 
-   ![](./doc/images/clion_toolchain_setup.png)
+   ![](/doc/images/clion_toolchain_setup.png)
 
 ## Structure
 
