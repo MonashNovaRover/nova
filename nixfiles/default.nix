@@ -56,7 +56,7 @@ let
     ] ++ map import repos;
   }).config;
 in
-{
+rec {
   inherit repos config;
   pkgs = import nixpkgs {
     overlays = [
@@ -70,7 +70,7 @@ in
       (import ./overlay)
 
       # Add internally defined packages.
-      (self: super: import ./packages { inherit (self) callPackage; })
+      (self: super: import ./packages/other { inherit (self) callPackage; })
       (self: super: {
         pythonPackagesExtensions = super.pythonPackagesExtensions ++ [
           (pyself: pysuper: import ./packages/python { inherit (pyself) callPackage; })
@@ -95,5 +95,16 @@ in
           super.rosPackages;
       })
     ];
+  };
+
+  homeModule = {
+    imports = [ ./home ];
+    nixpkgs.overlays = [ (self: super: { nova = pkgs; }) ];
+  };
+
+  nixosModule = {
+    imports = [ ./nixos ];
+    nixpkgs.overlays = [ (self: super: { nova = pkgs; }) ];
+    home-manager.nova.sharedModules = [ homeModule ];
   };
 }
