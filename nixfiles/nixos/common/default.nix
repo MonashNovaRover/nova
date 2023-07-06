@@ -3,5 +3,6 @@
     ./branding
     ./desktop
     ./users
+    ./workspace
   ];
 }
