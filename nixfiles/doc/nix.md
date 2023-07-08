@@ -140,13 +140,19 @@ Development can be done in two styles:
 
    ![](/doc/images/clion_toolchain_setup.png)
 
-## Structure
+## Advanced Nix usage
+
+### Structure
 
 Importing this repository in Nix will create the entrypoint function.
 
 **Arguments (in an attribute set):**
 
-`pkgs`: Optional. An instance of [Nixpkgs](https://github.com/NixOS/nixpkgs). This is used only to download pinned revisions of it and other package sources.
+`localSystem`: The architecture of the build platform. Defaults to the current system. e.g. `x86_64-linux`.
+
+`crossSystem`: The architecture of the host platform (Nix's name for the runtime platform). Defaults to `localSystem`. e.g. `aarch64-linux`.
+
+`pkgs`: Optional. An instance of [Nixpkgs](https://github.com/NixOS/nixpkgs). This is used only to download pinned revisions of it and other package sources. If set, overrides `localSystem` and `crossSystem`.
 
 `repos`: Optional. A list of paths to out-of-tree Nova Rover software repositories. (Tip: [Use `--arg` to set this on the CLI.](https://nixos.org/manual/nix/unstable/command-ref/opt-common.html#opt-arg))
 
@@ -154,7 +160,7 @@ Importing this repository in Nix will create the entrypoint function.
 
 `pkgs`: An instance of a pinned (non-updating) revision of Nixpkgs with additional packages added.
 
-### Using ROS packages
+#### Using ROS packages
 
 ROS packages can be accessed through either the `rosPackages` set or the `ros` alias (equivalent to `rosPackages.${defaultVersion}`).
 
@@ -164,7 +170,7 @@ Here are some examples:
 - `pkgs.rosPackages.humble.nova-control` - The `control` package, built against ROS 2 Humble
 - `pkgs.rosPackages.rolling.ros-core` - The [core variant](https://ros.org/reps/rep-2001.html#id32) of ROS 2 Rolling
 
-### Adding out-of-tree packages
+#### Adding out-of-tree packages
 
 Out-of-tree packages are expected to be structured like so:
 
@@ -199,3 +205,43 @@ A typical `default.nix` would look like this:
 ```
 
 Consult existing repositories for practical examples.
+
+### Cross compilation
+
+Cross compilation can be achieved by setting the `localSystem` and `crossSystem`
+arguments described above.
+
+For example, if compiling for AArch64 (64-bit ARM), `crossSystem` would be set
+to `aarch64-linux`.
+
+Cross compiling is quite impractical, though, for the following reasons:
+- The build platform's compiler will be used. This changes the build inputs and
+  corresponding output path of every derivation. Only a handful of
+  cross-compiled packages are available in the official binary cache, leading to
+  a lot of local compilation.
+- Cross-compiled packages are of no use to development on the target device.  
+  As the cross-compiled packages and all their dependencies have different build
+  inputs to their natively-compiled counterparts, developent on the target
+  device will require a natively-compiled copy of every dependency.
+- A lot of Nix packages are broken and do not compile in a cross-compilation
+  environment.  
+  Cross-compilation support in Nixpkgs is still fairly new, and has very little
+  testing.
+
+A better solution is emulated compilation.
+
+#### Emulated compilation
+
+Emulated compilation is an alternative to cross compilation. Instead of
+cross-compiling to another architecture, the compiler and all other build tools
+are executed in an emulated environment, as if they were running on the target
+device.
+
+Luckily, Nix makes this easy to set up.
+
+1. Enable QEMU emulation via `binfmt_misc`. This allows foreign executables to
+   run as if they are native programs.
+   - On NixOS, add `aarch64-linux` to [`boot.binfmt.emulatedSystems`](https://search.nixos.org/options?show=boot.binfmt.emulatedSystems).
+   - On Debian/Ubuntu, follow the [instructions in the Debian Wiki](https://wiki.debian.org/QemuUserEmulation). Do not install any multiarch Debian packages; they are not needed when using Nix. Then, add `aarch64-linux` to [`extra-platforms`](https://nixos.org/manual/nix/unstable/command-ref/conf-file.html#conf-extra-platforms) in `nix.conf`.
+2. Build packages with `localSystem` set to `aarch64-linux`.  
+   e.g. `nix-build --argstr localSystem "aarch64-linux" -A pkgs.ros.nova-workspace`

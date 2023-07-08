@@ -1,4 +1,6 @@
-{ pkgs ? import <nixpkgs> { }
+{ localSystem ? builtins.currentSystem
+, crossSystem ? localSystem
+, pkgs ? import <nixpkgs> { inherit localSystem crossSystem; }
 
   # The locations of checked-out Nova Rover repositories.
   # Each repository in this list should have a default.nix module file.
@@ -52,6 +54,8 @@ in
 rec {
   inherit repos config;
   pkgs = import nixpkgs {
+    inherit localSystem crossSystem;
+
     overlays = [
       # Add the nix-ros-overlay. This supplies vanilla ROS packages.
       (import (nix-ros-overlay + /overlay.nix))
