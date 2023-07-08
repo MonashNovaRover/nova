@@ -28,7 +28,7 @@
 
   # Configuration options
   ## Include graphical applications in the workspace.
-, includeGraphicalApplications ? true
+, graphical ? true
 
   ## Configure the workspace for interactive use.
 , interactive ? true
@@ -60,7 +60,7 @@ let
         inherit runtimeShell;
         argcomplete = python.pkgs.argcomplete;
       }}")
-  ] ++ lib.optionals includeGraphicalApplications [
+  ] ++ lib.optionals graphical [
     rviz2
   ]);
 
