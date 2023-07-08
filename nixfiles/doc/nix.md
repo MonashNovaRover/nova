@@ -24,6 +24,22 @@ To open a temporary shell in the workspace, run the following command:
 nix-shell -p 'with import ./. { }; pkgs.ros.nova-workspace'
 ```
 
+Note that the workspace includes all Nova Rover packages by default, which can
+lead to long evaluation and build times. The GUI frontend is one of the [worst
+offenders](https://www.reddit.com/r/ProgrammerHumor/comments/6s0wov).
+
+To create a workspace with a specific set of packages, the `novaPackages`
+argument can be set. For example:
+
+```
+nix-shell -p 'with import ./. { }; pkgs.ros.nova-workspace.override {
+  novaPackages = with pkgs.ros; [
+   nova-core
+   nova-control
+  ];
+}'
+```
+
 ---
 
 Alternatively, for something a little more permanent, you can build the
@@ -38,6 +54,17 @@ export PATH="$PWD/result/bin:$PATH"
 # Add something similar to your shell init script.
 ```
 
+As is explained in the shell example, it is often beneficial to build the
+workspace with a small subset of Nova Rover packages. This can be done like so:
+
+```
+nix-build -E 'with import ./. { }; pkgs.ros.nova-workspace.override {
+  novaPackages = with pkgs.ros; [
+   nova-core
+   nova-control
+  ];
+}'
+```
 ---
 
 After you are in the workspace, run the following command, which configures
