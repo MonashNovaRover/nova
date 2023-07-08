@@ -3,7 +3,7 @@ self: super:
 {
   pythonPackagesExtensions = super.pythonPackagesExtensions ++ [
     (pyself: pysuper: {
-      argcomplete = pysuper.argcomplete.overrideAttrs ({ pname, ... }: rec {
+      argcomplete = pysuper.argcomplete.overridePythonAttrs ({ pname, ... }: rec {
         version = "3.1.1";
         src = pyself.fetchPypi {
           inherit pname version;

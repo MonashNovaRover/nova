@@ -20,10 +20,7 @@ self: super:
         # https://github.com/ros2/ros2cli/pull/564
         # https://github.com/ros2/ros2cli/blob/26715cbb0948258d6f04b94c909d035c5130456a/ros2cli/ros2cli/cli.py#L45
         ros2cli = rosSuper.ros2cli.overrideAttrs ({ propagatedBuildInputs ? [ ], ... }: {
-          propagatedBuildInputs = propagatedBuildInputs ++ [
-            # TODO: Work out why the argcomplete overlay from maintanence is not being used here.
-            rosSelf.pythonPackages.argcomplete
-          ];
+          propagatedBuildInputs = propagatedBuildInputs ++ [ rosSelf.pythonPackages.argcomplete ];
         });
 
         # Backported compilation error fixes.
