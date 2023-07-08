@@ -52,9 +52,7 @@
 let
   extraPackages = [
     ros-core # https://github.com/ros2/variants
-  ] ++ lib.optionals includeGraphicalApplications [
-    rviz2
-  ] ++ lib.optionals interactive [
+  ] ++ lib.optionals interactive ([
     (writeShellScriptBin "mk-nova-shell-setup"
       "cat ${substituteAll {
         name = "nova-shell-setup.sh";
@@ -62,7 +60,9 @@ let
         inherit runtimeShell;
         argcomplete = python.pkgs.argcomplete;
       }}")
-  ];
+  ] ++ lib.optionals includeGraphicalApplications [
+    rviz2
+  ]);
 
   splitRosPackages = builtins.partition (pkg: pkg.rosPackage or false);
   splitNovaPackages = splitRosPackages novaPackages;
