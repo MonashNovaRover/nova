@@ -80,21 +80,11 @@ let
   # including them.
   # We must use a combination of the ROS buildEnv and Nixpkgs buildEnv to
   # include all packages in the environment.
-  rosEnv = buildEnv {
-    paths = novaRosPackages ++ extraRosPackages ++ [
-      # https://github.com/lopsided98/nix-ros-overlay/issues/45
-      rmw-fastrtps-dynamic-cpp
-    ];
-
-    postBuild = ''
-      # https://github.com/lopsided98/nix-ros-overlay/issues/45
-      rosWrapperArgs+=(--set-default RMW_IMPLEMENTATION rmw_fastrtps_dynamic_cpp)
-    '';
-  };
-
   workspace = pkgs.buildEnv {
     name = "nova-workspace";
-    paths = [ rosEnv ] ++ novaOtherPackages ++ extraOtherPackages;
+    paths =
+      [ (buildEnv { paths = novaRosPackages ++ extraRosPackages; }) ]
+      ++ novaOtherPackages ++ extraOtherPackages;
     passthru = {
       inherit
         novaPackages extraPackages

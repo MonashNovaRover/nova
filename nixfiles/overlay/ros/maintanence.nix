@@ -4,6 +4,19 @@ self: super:
   rosPackages = (super.rosPackages.appendDistroOverlay
     # Overlay for all ROS distros.
     (rosSelf: rosSuper: {
+      # Use a working RMW implementation by default.
+      # https://github.com/lopsided98/nix-ros-overlay/issues/45
+      buildEnv = { paths, postBuild ? "", ... }@args: rosSuper.buildEnv {
+        paths = paths ++ [
+          rosSelf.rmw-fastrtps-dynamic-cpp
+        ];
+
+        postBuild = ''
+          ${postBuild}
+          rosWrapperArgs+=(--set-default RMW_IMPLEMENTATION rmw_fastrtps_dynamic_cpp)
+        '';
+      };
+
       # Use X11 by default in RViz2.
       # https://github.com/ros-visualization/rviz/issues/1442
       rviz2 = rosSuper.rviz2.overrideAttrs ({ qtWrapperArgs ? [ ], ... }: {
