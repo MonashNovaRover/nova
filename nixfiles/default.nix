@@ -7,34 +7,27 @@
 
 let
   # Pin the version of Nixpkgs to ensure reproducibility.
-  # Use the fork made for ROS.
+  # Preferably, this will come from https://github.com/lopsided98/nixpkgs/tree/nix-ros,
+  # but upstream Nixpkgs may be used if it a) has merged all pending PRs from
+  # nix-ros and b) has newer changes we need.
+  # Using the nix-ros branch with specific patches added is preferred because
+  # it allows use of the https://ros.cachix.org binary cache.
   nixpkgs = pkgs.applyPatches {
     src = pkgs.fetchFromGitHub {
-      owner = "lopsided98";
+      owner = "NixOS";
       repo = "nixpkgs";
-      rev = "f68a0d0fd7539d93c7454989f71fd1c824f3b46f";
-      hash = "sha256-oJhMiKnJeb47gTxyyIgAJf+aWC4IbVmG3wgL3ZVJ0Eg=";
+      rev = "0d2f526dbb0736ebdef819f2eee164590f588e5c";
+      hash = "sha256-cMQtXL1JEs+dnG71XOAdoNrkVzih5l7x1BCVo7G8sH4=";
     };
-    patches = [
-      # prefetch-npm-deps: add retry
-      (pkgs.fetchpatch {
-        url = "https://github.com/NixOS/nixpkgs/pull/238452.patch";
-        hash = "sha256-15sPCCdpirn4u6NflqZ0cknT/N96gd3RLXZVxBG4LWw=";
-      })
-      # prefetch-npm-deps: use isahc instead of ureq
-      (pkgs.fetchpatch {
-        url = "https://github.com/NixOS/nixpkgs/pull/240419.patch";
-        hash = "sha256-utwcc06OdsHh4/ZL9nwY0AedH8nmWya7aEMUuFhlo5w=";
-      })
-    ];
+    patches = [ ];
   };
 
   nix-ros-overlay = pkgs.applyPatches {
     src = pkgs.fetchFromGitHub {
       owner = "lopsided98";
       repo = "nix-ros-overlay";
-      rev = "6b6482e0b4cb197f77ef2cacdb69c5ba233c44b1";
-      hash = "sha256-RA2mdhz7MM10MuAYUDmkJg3cZucize6IluZfcLwpBvM=";
+      rev = "494f8fd2cdc68df2451fb49355799e3d500fd0a9";
+      hash = "sha256-6kkXYikRov3OGW1WLRRK8MDt5xCVY63rCdHSb8GvHH0==";
     };
     patches = [
       # Make buildEnv more flexible
