@@ -32,10 +32,11 @@
 
   ## Configure the workspace for interactive use.
 , interactive ? true
-}:
 
-let
-  novaRosPackages = [
+  ## Manually specify which Nova Rover packages to include.
+  ## Note that some packages may have dependencies on others that will be
+  ## implicitly included.
+, novaPackages ? [
     nova-core
     nova-control
     nova-autonomous
@@ -43,21 +44,17 @@ let
     nova-science
     nova-cameras2
     nova-gui-backend
-  ];
-
-  novaOtherPackages = [
     nova-gui-frontend
     nova-gui-frontend-server
-  ];
+  ]
+}:
 
-  rosPackages = [
+let
+  extraPackages = [
     ros-core # https://github.com/ros2/variants
   ] ++ lib.optionals includeGraphicalApplications [
     rviz2 # Note: Cannot run without Xwayland (https://github.com/ros-visualization/rviz/issues/1442)
-  ];
-
-  otherPackages = lib.optionals interactive [
-    # Nix-related utility scripts
+  ] ++ lib.optionals interactive [
     (writeShellScriptBin "mk-nova-shell-setup"
       "cat ${substituteAll {
         name = "nova-shell-setup.sh";
@@ -67,6 +64,15 @@ let
       }}")
   ];
 
+  splitRosPackages = builtins.partition (pkg: pkg.rosPackage or false);
+  splitNovaPackages = splitRosPackages novaPackages;
+  splitExtraPackages = splitRosPackages extraPackages;
+
+  novaRosPackages = splitNovaPackages.right;
+  novaOtherPackages = splitNovaPackages.wrong;
+  extraRosPackages = splitExtraPackages.right;
+  extraOtherPackages = splitExtraPackages.wrong;
+
   # The ROS overlay's buildEnv has special logic to wrap ROS packages so that
   # they can find each other.
   # Unlike the regular buildEnv from Nixpkgs, however, it is designed only with
@@ -75,7 +81,7 @@ let
   # We must use a combination of the ROS buildEnv and Nixpkgs buildEnv to
   # include all packages in the environment.
   rosEnv = buildEnv {
-    paths = novaRosPackages ++ rosPackages ++ [
+    paths = novaRosPackages ++ extraRosPackages ++ [
       # https://github.com/lopsided98/nix-ros-overlay/issues/45
       rmw-fastrtps-dynamic-cpp
     ];
@@ -88,14 +94,20 @@ let
 
   workspace = pkgs.buildEnv {
     name = "nova-workspace";
-    paths = [ rosEnv ] ++ novaOtherPackages ++ otherPackages;
-    passthru.env = workspaceEnv;
+    paths = [ rosEnv ] ++ novaOtherPackages ++ extraOtherPackages;
+    passthru = {
+      inherit
+        novaPackages extraPackages
+        novaRosPackages extraRosPackages
+        novaOtherPackages extraOtherPackages;
+      env = workspaceEnv;
+    };
   };
 
   # A development environment for all Nova packages.
   workspaceEnv = mkShell {
     # Add non-Nova software to the environment.
-    packages = rosPackages ++ otherPackages ++ [
+    packages = extraPackages ++ [
       # https://github.com/lopsided98/nix-ros-overlay/issues/45
       rmw-fastrtps-dynamic-cpp
 
@@ -107,7 +119,7 @@ let
 
     # Add the build inputs from Nova packages to the environment, so that they
     # can be built manually during development.
-    inputsFrom = novaRosPackages ++ novaOtherPackages;
+    inputsFrom = novaPackages;
 
     shellHook = ''
       # https://github.com/lopsided98/nix-ros-overlay/issues/45
