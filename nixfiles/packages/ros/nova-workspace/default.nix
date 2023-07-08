@@ -27,7 +27,11 @@
 , nova-gui-frontend-server
 
   # Configuration options
+  ## Include graphical applications in the workspace.
 , includeGraphicalApplications ? true
+
+  ## Configure the workspace for interactive use.
+, interactive ? true
 }:
 
 let
@@ -52,7 +56,7 @@ let
     rviz2 # Note: Cannot run without Xwayland (https://github.com/ros-visualization/rviz/issues/1442)
   ];
 
-  otherPackages = [
+  otherPackages = lib.optionals interactive [
     # Nix-related utility scripts
     (writeShellScriptBin "mk-nova-shell-setup"
       "cat ${substituteAll {
