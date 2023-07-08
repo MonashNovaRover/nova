@@ -97,15 +97,16 @@ let
   # A development environment for all Nova packages.
   workspaceEnv = mkShell {
     # Add non-Nova software to the environment.
-    packages = extraPackages ++ [
-      # https://github.com/lopsided98/nix-ros-overlay/issues/45
-      rmw-fastrtps-dynamic-cpp
+    packages = extraOtherPackages ++
+      [
+        # Add colcon, for building packages.
+        # This is a build tool that wraps other build tools, so it is not needed
+        # normally in any of the ROS derivations and must be manually added here.
+        colcon
 
-      # Add colcon, for building packages.
-      # This is a build tool that wraps other build tools, so it is not needed
-      # normally in any of the ROS derivations and must be manually added here.
-      colcon
-    ];
+        # Build a ROS environment for non-Nova ROS packages.
+        (buildEnv { paths = extraRosPackages; })
+      ];
 
     # Add the build inputs from Nova packages to the environment, so that they
     # can be built manually during development.
