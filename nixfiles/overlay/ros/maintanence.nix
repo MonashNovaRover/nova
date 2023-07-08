@@ -22,6 +22,21 @@ self: super:
       rviz2 = rosSuper.rviz2.overrideAttrs ({ qtWrapperArgs ? [ ], ... }: {
         qtWrapperArgs = qtWrapperArgs ++ [ "--set-default QT_QPA_PLATFORM xcb" ];
       });
+
+      # Fix AArch64 builds of RViz2.
+      rviz-ogre-vendor = rosSuper.rviz-ogre-vendor.overrideAttrs ({ patches ? [ ], ... }: {
+        patches = patches ++
+          # While this patch should not break builds on non-ARM platforms,
+          # applying it invalidates the upstream binary cache. It is therefore
+          # only used on platforms where it is needed.
+          self.lib.optional
+            self.hostPlatform.isAarch64
+            (self.fetchpatch {
+              url = "https://github.com/ros2/rviz/pull/828.patch";
+              stripLen = 1;
+              hash = "sha256-KpY9+oOsFxH+zhIxyP6UTOXTLaaUdCRzUMZnM7+uRAk=";
+            });
+      });
     })
     # Overlays for individual ROS distros.
     (super.rosPackages // {
