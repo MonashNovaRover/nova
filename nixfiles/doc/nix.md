@@ -4,8 +4,7 @@
 
 1. Use any Linux distro. macOS will in theory work to some extent, but is untested. Some of our software requires Linux.
 2. Install [Nix](https://nixos.org/).
-3. Use the [ROS binary cache](https://github.com/lopsided98/nix-ros-overlay/#configure-binary-cache). This is optional, but highly recommended to cut down on build times.
-   > Warning: The upstream [nix-ros-overlay](https://github.com/lopsided98/nix-ros-overlay) is often slow to merge PRs. Some of our patches may invalidate a significant amount of the binary cache before they are accepted upstream.
+3. Configure Nix to use the [binary caches](./caches.md). This is optional, but highly recommended to cut down on build times.
 4. In this repository directory, run the [checkout script](./scripts/checkout-nova-sources.sh).
 5. Make sure the repositories cloned to [external/src](./external/src) are on up-to-date branches with a `default.nix`.
 
