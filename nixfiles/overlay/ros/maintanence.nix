@@ -3,7 +3,13 @@ self: super:
 {
   rosPackages = (super.rosPackages.appendDistroOverlay
     # Overlay for all ROS distros.
-    (rosSelf: rosSuper: { })
+    (rosSelf: rosSuper: {
+      # Use X11 by default in RViz2.
+      # https://github.com/ros-visualization/rviz/issues/1442
+      rviz2 = rosSuper.rviz2.overrideAttrs ({ qtWrapperArgs ? [ ], ... }: {
+        qtWrapperArgs = qtWrapperArgs ++ [ "--set-default QT_QPA_PLATFORM xcb" ];
+      });
+    })
     # Overlays for individual ROS distros.
     (super.rosPackages // {
       foxy = super.rosPackages.foxy.overrideScope (rosSelf: rosSuper: {

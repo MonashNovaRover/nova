@@ -53,7 +53,7 @@ let
   extraPackages = [
     ros-core # https://github.com/ros2/variants
   ] ++ lib.optionals includeGraphicalApplications [
-    rviz2 # Note: Cannot run without Xwayland (https://github.com/ros-visualization/rviz/issues/1442)
+    rviz2
   ] ++ lib.optionals interactive [
     (writeShellScriptBin "mk-nova-shell-setup"
       "cat ${substituteAll {
