@@ -6,7 +6,7 @@ self: super:
     (rosSelf: rosSuper: {
       # Use a working RMW implementation by default.
       # https://github.com/lopsided98/nix-ros-overlay/issues/45
-      buildEnv = { paths, postBuild ? "", ... }@args: rosSuper.buildEnv {
+      buildEnv = { paths, postBuild ? "", ... }@args: rosSuper.buildEnv (args // {
         paths = paths ++ [
           rosSelf.rmw-fastrtps-dynamic-cpp
         ];
@@ -15,7 +15,7 @@ self: super:
           ${postBuild}
           rosWrapperArgs+=(--set-default RMW_IMPLEMENTATION rmw_fastrtps_dynamic_cpp)
         '';
-      };
+      });
 
       # Use X11 by default in RViz2.
       # https://github.com/ros-visualization/rviz/issues/1442
