@@ -6,6 +6,13 @@
 let
   pkgs = import nixpkgs { };
 
+  repos = [
+    { repo = "rover"; branch = "feature/nix"; }
+    { repo = "cameras2"; }
+    { repo = "gui"; branch = "feature/nix"; }
+    { repo = "coms_utils"; branch = "feature/nix"; }
+  ];
+
   mkJobset = { description, nixexprpath, inputs ? { }, ... }@args: {
     enabled = 1;
     hidden = false;
@@ -20,30 +27,30 @@ let
     keepnr = 3;
   } // args // {
     inputs = {
-      nixpkgs = mkGitHubInput "NixOS" "nixpkgs";
-      src = mkNovaInput "nixfiles";
+      nixpkgs = mkGitHubInput { owner = "NixOS"; repo = "nixpkgs"; };
+      src = mkNovaInput { repo = "nixfiles"; };
     } // inputs;
   };
 
-  mkGitHubInput = owner: repo: {
+  mkGitHubInput = { owner, repo, branch ? null }: {
     type = "git";
-    value = "git@github.com:${owner}/${repo}.git";
+    value = "git@github.com:${owner}/${repo}.git${pkgs.lib.optionalString (branch != null) (" ${branch}")}";
     emailresponsible = false;
   };
 
-  mkNovaInput = mkGitHubInput "MonashNovaRover";
+  mkNovaInput = args: mkGitHubInput ({ owner = "MonashNovaRover"; } // args);
 
   jobsets = {
     workspaces = mkJobset {
       description = "Nova Rover workspaces";
       nixexprpath = "release.nix";
-      inputs = pkgs.lib.genAttrs [
-        "rover"
-        "cameras2"
-        "gui"
-        "coms_utils"
-      ]
-        mkNovaInput;
+      inputs = builtins.listToAttrs
+        (map
+          ({ repo, branch ? null }:
+            pkgs.lib.nameValuePair
+              repo
+              (mkNovaInput { inherit repo branch; }))
+          repos);
     };
   };
 in
