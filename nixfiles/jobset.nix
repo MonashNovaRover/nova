@@ -27,7 +27,7 @@ let
     keepnr = 3;
   } // args // {
     inputs = {
-      nixpkgs = mkGitHubInput { owner = "NixOS"; repo = "nixpkgs"; };
+      nixpkgs = mkGitHubInput { owner = "NixOS"; repo = "nixpkgs"; branch = "nixos-unstable"; };
       src = mkNovaInput { repo = "nixfiles"; };
     } // inputs;
   };
