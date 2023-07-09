@@ -1,0 +1,25 @@
+{
+    "enabled": 1,
+    "hidden": false,
+    "description": "jobsets",
+    "nixexprinput": "src",
+    "nixexprpath": "jobset.nix",
+    "checkinterval": 60,
+    "schedulingshares": 100,
+    "enableemail": false,
+    "enable_dynamic_run_command": false,
+    "emailoverride": "",
+    "keepnr": 3,
+    "inputs": {
+        "nixpkgs": {
+            "type": "git",
+            "value": "git@github.com:NixOS/nixpkgs.git",
+            "emailresponsible": false
+        },
+        "src": {
+            "type": "git",
+            "value": "git@github.com:MonashNovaRover/nixfiles.git",
+            "emailresponsible": false
+        }
+    }
+}
