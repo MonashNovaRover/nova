@@ -31,17 +31,22 @@ let
   };
 
   mkNovaInput = mkGitHubInput "MonashNovaRover";
-in
-pkgs.writeText "jobset.json" (builtins.toJSON {
-  workspaces = mkJobset {
-    description = "Nova Rover workspaces";
-    nixexprpath = "release.nix";
-    inputs = pkgs.lib.genAttrs [
-      "rover"
-      "cameras2"
-      "gui"
-      "coms_utils"
-    ]
-      mkNovaInput;
+
+  jobsets = {
+    workspaces = mkJobset {
+      description = "Nova Rover workspaces";
+      nixexprpath = "release.nix";
+      inputs = pkgs.lib.genAttrs [
+        "rover"
+        "cameras2"
+        "gui"
+        "coms_utils"
+      ]
+        mkNovaInput;
+    };
   };
-})
+in
+{
+  jobsets =
+    pkgs.writeText "jobset.json" (builtins.toJSON jobsets);
+}
