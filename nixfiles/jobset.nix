@@ -18,11 +18,12 @@ let
     enable_dynamic_run_command = false;
     emailoverride = "";
     keepnr = 3;
+  } // args // {
     inputs = {
       nixpkgs = mkGitHubInput "NixOS" "nixpkgs";
       src = mkNovaInput "nixfiles";
     } // inputs;
-  } // args;
+  };
 
   mkGitHubInput = owner: repo: {
     type = "git";
