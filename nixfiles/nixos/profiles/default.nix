@@ -4,6 +4,7 @@ let
   profiles = [
     "personal"
     "shared"
+    "server"
   ];
 in
 {
