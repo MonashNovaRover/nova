@@ -22,7 +22,7 @@ checkout_group() {
     for repo in "${repos[@]}"; do
         if [ ! -d "$SRCDIR/$groupName/$repo" ]; then
             echo Cloning "$repo"...
-            git clone "https://github.com/MonashNovaRover/$repo.git" "$SRCDIR/$groupName/$repo"
+            git clone --recurse-submodules "https://github.com/MonashNovaRover/$repo.git" "$SRCDIR/$groupName/$repo"
         else
             echo "$repo" already exists. Skipping.
         fi
