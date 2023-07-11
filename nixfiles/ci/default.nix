@@ -43,7 +43,7 @@ let
   jobsets = {
     workspaces = mkJobset {
       description = "Nova Rover workspaces";
-      nixexprpath = "release.nix";
+      nixexprpath = "ci/release.nix";
       inputs = builtins.listToAttrs
         (map
           ({ repo, branch ? null }:
