@@ -5,7 +5,7 @@
 1. Use any Linux distro. macOS will in theory work to some extent, but is untested. Some of our software requires Linux.
 2. Install [Nix](https://nixos.org/).
 3. Configure Nix to use the [binary caches](./caches.md). This is optional, but highly recommended to cut down on build times.
-4. In this repository directory, run the [checkout script](./scripts/checkout-nova-sources.sh).
+4. In the top-level repository directory, run the [checkout script](../scripts/checkout-nova-sources.sh).
 5. Make sure the repositories cloned to [external/src](./external/src) are on up-to-date branches with a `default.nix`.
 
 Any commands in this README starting with `nix-shell`, `nix-build`, etc.
