@@ -18,7 +18,11 @@ in
     };
     gitSSHKey = lib.mkOption {
       type = with lib.types; path;
-      description = lib.mdDoc "The SSH key to use to clone Git repositories.";
+      description = lib.mdDoc "The SSH key uses to clone Git repositories.";
+    };
+    cacheSecretKey = lib.mkOption {
+      type = with lib.types; path;
+      description = lib.mdDoc "The secret key used to sign binary cache artifacts.";
     };
   };
 
@@ -26,11 +30,15 @@ in
     services.hydra = {
       enable = true;
       listenHost = "localhost";
-      hydraURL = "http://${cfg.hydra.subdomain}.${cfg.domain}";
+      hydraURL = "https://${cfg.hydra.subdomain}.${cfg.domain}";
       notificationSender = "nova@monash.edu";
       useSubstitutes = true;
       logo = pkgs.nova.nova-icons + /share/icons/hicolor/512x512/apps/nova-logo-white-and-orange.png;
       extraConfig = ''
+        server_store_uri = file:///var/cache/hydra/nar-cache?secret-key=${cfg.cacheSecretKey}&want-mass-query=true&compression=zstd&parallel-compression=true
+        binary_cache_secret_key_file = ${cfg.cacheSecretKey}
+        binary_cache_public_uri = ${config.services.hydra.hydraURL}
+
         <dynamicruncommand>
           enable = 1
         </dynamicruncommand>
@@ -68,6 +76,11 @@ in
         ''} ~/.ssh/known_hosts
       '';
     };
+
+    systemd.tmpfiles.rules = [
+      "d /var/cache/hydra             0755 hydra hydra - -"
+      "d /var/cache/hydra/nar-cache   0775 hydra hydra - -"
+    ];
 
     services.caddy = lib.mkIf (cfg.domain != "localhost") {
       enable = true;
