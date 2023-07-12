@@ -50,6 +50,9 @@ in
       '';
     };
 
+    # https://github.com/NixOS/hydra/issues/1186
+    systemd.services.hydra-evaluator.environment.GC_DONT_GC = "true";
+
     systemd.services.hydra-setup = {
       description = "Set up Hydra";
       wantedBy = [ "multi-user.target" ];
