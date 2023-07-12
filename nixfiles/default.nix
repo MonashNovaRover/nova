@@ -50,6 +50,9 @@ let
       (import ./external/out-of-tree.nix)
     ] ++ map import repos;
   }).config;
+
+  localSystem = pkgs.buildPlatform;
+  crossSystem = pkgs.hostPlatform;
 in
 rec {
   inherit repos config;
