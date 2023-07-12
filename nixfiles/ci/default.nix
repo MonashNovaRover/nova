@@ -1,4 +1,5 @@
-{ nixpkgs
+{ supportedSystems ? [ "x86_64-linux" "aarch64-linux" ]
+, nixpkgs
 , src
 , declInput
 }:
@@ -29,6 +30,11 @@ let
     inputs = {
       nixpkgs = mkGitHubInput { owner = "NixOS"; repo = "nixpkgs"; branch = "nixos-unstable"; };
       src = mkNovaInput { repo = "nixfiles"; };
+      supportedSystems = {
+        type = "nix";
+        value = ''[ "${builtins.concatStringsSep ''" "'' supportedSystems}" ]'';
+        emailresponsible = false;
+      };
     } // inputs;
   };
 

@@ -1,4 +1,4 @@
-{ supportedSystems ? [ "x86_64-linux" "aarch64-linux" ]
+{ supportedSystems
 , nixpkgs
 , src
 , rover
