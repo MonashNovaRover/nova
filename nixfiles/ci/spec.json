@@ -13,7 +13,7 @@
     "inputs": {
         "nixpkgs": {
             "type": "git",
-            "value": "git@github.com:NixOS/nixpkgs.git",
+            "value": "git@github.com:NixOS/nixpkgs.git nixos-unstable",
             "emailresponsible": false
         },
         "src": {
