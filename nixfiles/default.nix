@@ -51,13 +51,10 @@ let
     ] ++ map import repos;
   }).config;
 
-  localSystem = pkgs.buildPlatform;
-  crossSystem = pkgs.hostPlatform;
-in
-rec {
-  inherit repos config;
-  pkgs = import nixpkgs {
-    inherit localSystem crossSystem;
+  novaPkgs = import nixpkgs {
+    localSystem = pkgs.buildPlatform;
+    crossSystem = pkgs.hostPlatform;
+    inherit (pkgs) config;
 
     overlays = [
       # Add the nix-ros-overlay. This supplies vanilla ROS packages.
@@ -96,6 +93,10 @@ rec {
       })
     ];
   };
+in
+rec {
+  inherit repos config;
+  pkgs = novaPkgs;
 
   homeModule = {
     imports = [ ./home ];
