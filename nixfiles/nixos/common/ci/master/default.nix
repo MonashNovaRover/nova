@@ -35,7 +35,9 @@ in
       useSubstitutes = true;
       logo = pkgs.nova.nova-icons + /share/icons/hicolor/512x512/apps/nova-logo-white-and-orange.png;
       extraConfig = ''
-        server_store_uri = file:///var/cache/hydra/nar-cache?secret-key=${cfg.cacheSecretKey}&want-mass-query=true&compression=zstd&parallel-compression=true
+        # Note: Some people say that server_store_uri replaces store_uri, and a quick search through the Hydra codebase seems to support this.
+        # server_store_uri causes problems with declarative jobsets, though. Do not use it. You have been warned.
+        store_uri = file:///var/cache/hydra/nar-cache?secret-key=${cfg.cacheSecretKey}&want-mass-query=true&compression=zstd&parallel-compression=true
         binary_cache_secret_key_file = ${cfg.cacheSecretKey}
         binary_cache_public_uri = ${config.services.hydra.hydraURL}
 
