@@ -1,4 +1,4 @@
-{ supportedSystems
+{ supportedSystems ? [ "x86_64-linux" "aarch64-linux" ]
 , nixpkgs
 , src
 , rover
@@ -21,13 +21,7 @@ let
     ];
   };
 
-  systems = pkgs.lib.intersectLists supportedSystems [
-    "x86_64-linux"
-    "aarch64-linux"
-  ];
-
-  genNovaPlatformRecipes = f: pkgs.lib.genAttrs
-    systems
+  genNovaPlatformRecipes = f: lib.forAllSystems
     (system: f (mkNova (lib.pkgsFor system)));
 in
 builtins.mapAttrs (name: genNovaPlatformRecipes) rec {
