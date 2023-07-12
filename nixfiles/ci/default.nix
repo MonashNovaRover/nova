@@ -32,7 +32,7 @@ let
       src = mkNovaInput { repo = "nixfiles"; };
       supportedSystems = {
         type = "nix";
-        value = ''[ "${builtins.concatStringsSep ''" "'' supportedSystems}" ]'';
+        value = "[ ''${builtins.concatStringsSep "'' ''" supportedSystems}'' ]";
         emailresponsible = false;
       };
     } // inputs;
