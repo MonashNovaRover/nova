@@ -41,7 +41,7 @@ let
     #
     # The non-patched workspace is used here, to build regular development
     # dependencies.
-    ++ map (pkg: pkg.inputDerivation) workspace.novaPackages
+    ++ map (pkg: (pkg.overrideAttrs ({ name, ... }: { name = "${name}-inputs"; })).inputDerivation) workspace.novaPackages
 
     # Build software in the workspace development environment.
     # While this will mostly overlap in scope with the line above, the workspace
@@ -50,7 +50,7 @@ let
     #
     # The non-patched workspace is used here, to build regular development
     # dependencies.
-    ++ [ workspace.env.inputDerivation ]);
+    ++ [ (workspace.env.overrideAttrs ({ ... }: { name = "workspace-inputs"; })).inputDerivation ]);
 
   packageJobs = builtins.mapAttrs
     (system: packageList:
