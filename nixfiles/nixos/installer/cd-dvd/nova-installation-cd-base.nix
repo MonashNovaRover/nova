@@ -19,6 +19,10 @@
   # the builder.
   documentation.nixos.enable = lib.mkForce false;
 
+  # The base installation modules create a "nixos" user.
+  # There is no way to disable this, but the autologin can be overidden.
+  services.getty.autologinUser = lib.mkForce "nova";
+
   nova = {
     profile = "shared";
     desktop.enable = lib.mkOverride 900 false;

@@ -6,5 +6,10 @@
     ((if modulesPath == "" then <nixpkgs> + /nixos/modules else modulesPath) + /installer/cd-dvd/installation-cd-graphical-base.nix)
   ];
 
+  services.xserver.displayManager.autoLogin = {
+    enable = true;
+    user = "nova";
+  };
+
   nova.desktop.enable = true;
 }
