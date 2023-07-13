@@ -12,7 +12,7 @@ in
   config = lib.mkIf cfg.enable {
     home.packages = [
       (pkgs.nova.ros.nova-workspace.override {
-        includeGraphicalApplications = cfg.gui.enable;
+        graphical = cfg.gui.enable;
       })
     ];
 
