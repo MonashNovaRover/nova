@@ -40,5 +40,15 @@ let
     # development environment contains additional tools that aren't needed to
     # build individual packages, like Colcon.
     ++ [ nova.pkgs.ros.nova-workspace.env.inputDerivation ]);
+
+  packageJobs = builtins.mapAttrs
+    (system: packageList:
+      builtins.listToAttrs
+        (map
+          (pkg: pkgs.lib.nameValuePair
+            (pkg.pname or pkg.name)
+            (lib.hydraJob' pkg))
+          packageList))
+    packageLists;
 in
-packageLists
+packageJobs
