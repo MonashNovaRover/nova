@@ -47,7 +47,7 @@ let
         (map
           (pkg: pkgs.lib.nameValuePair
             (pkg.pname or pkg.name)
-            (lib.hydraJob' pkg))
+            pkg)
           packageList))
     packageLists;
 in
