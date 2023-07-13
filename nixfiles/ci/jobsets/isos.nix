@@ -42,6 +42,7 @@ let
           };
           nova = {
             desktop.enable = graphical;
+            substituters.nova.password = "***REMOVED***";
           };
           home-manager.sharedModules = [{
             # The Home Manager manual causes issues on Hydra.
