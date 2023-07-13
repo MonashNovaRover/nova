@@ -1,7 +1,7 @@
 {
     "enabled": 1,
     "hidden": false,
-    "description": "jobsets",
+    "description": "Project jobset generator",
     "nixexprinput": "src",
     "nixexprpath": "ci/default.nix",
     "checkinterval": 60,
