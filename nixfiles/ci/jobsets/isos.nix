@@ -26,7 +26,6 @@ let
   mkIso = nova: { graphical ? false, includeWorkspace ? false }:
     (import (nixpkgs + /nixos/lib/eval-config.nix) {
       system = nova.pkgs.hostPlatform.system;
-      specialArgs.modulesPath = nixpkgs + /nixos/modules;
       modules = [
         nova.nixosModule
         ../../nixos/installer/cd-dvd/nova-installation-cd-${if graphical then "graphical" else "base"}.nix
