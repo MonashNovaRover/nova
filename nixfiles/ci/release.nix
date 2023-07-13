@@ -24,30 +24,51 @@ let
 
 
   packageLists = novaForAllSystems (nova:
+    let
+      workspace = nova.pkgs.ros.nova-workspace;
+      patchedWorkspace = workspace.override
+        (pkgs.lib.optionalAttrs (pkgs.hostPlatform.isAarch64 && nova.pkgs.hostPlatform.isx86_64) {
+          # Some x86_64 packages fail to build in QEMU on Aarch64. Workarounds
+          # must be made to avoid these failures.
+          # There is no easy way at this stage to determine if Hydra has access to
+          # any real x86_64 machines, so these changes will apply indiscriminately.
+
+          # The GUI frontend fails to build, but the output contains only static
+          # Web assets, and is architecture-independent. Use the Aarch64 version
+          # instead.
+          novaPackages = (builtins.filter (pkg: lib.getName pkg != "gui-frontend") workspace.novaPackages) ++ [
+            (novaFor "aarch64-linux").pkgs.nova-gui-frontend
+          ];
+        });
+    in
     # Build Nova Rover packages.
-    nova.pkgs.ros.nova-workspace.novaPackages
+    patchedWorkspace.novaPackages
 
     # Build other workspace packages.
-    ++ nova.pkgs.ros.nova-workspace.extraPackages
+    ++ patchedWorkspace.extraPackages
 
     # Build development dependencies of Nova packages.
     # This ensures that all the software needed to develop Nova software is
     # available.
-    ++ map (pkg: pkg.inputDerivation) nova.pkgs.ros.nova-workspace.novaPackages
+    #
+    # The non-patched workspace is used here, to build regular development
+    # dependencies.
+    ++ map (pkg: pkg.inputDerivation) workspace.novaPackages
 
     # Build software in the workspace development environment.
     # While this will mostly overlap in scope with the line above, the workspace
     # development environment contains additional tools that aren't needed to
     # build individual packages, like Colcon.
-    ++ [ nova.pkgs.ros.nova-workspace.env.inputDerivation ]);
+    #
+    # The non-patched workspace is used here, to build regular development
+    # dependencies.
+    ++ [ workspace.env.inputDerivation ]);
 
   packageJobs = builtins.mapAttrs
     (system: packageList:
       builtins.listToAttrs
         (map
-          (pkg: pkgs.lib.nameValuePair
-            (pkg.pname or pkg.name)
-            pkg)
+          (pkg: pkgs.lib.nameValuePair (pkgs.lib.getName pkg) pkg)
           packageList))
     packageLists;
 in
