@@ -46,17 +46,29 @@ let
 
   mkNovaInput = args: mkGitHubInput ({ owner = "MonashNovaRover"; } // args);
 
+  novaInputs = builtins.listToAttrs
+    (map
+      ({ repo, branch ? null }:
+        pkgs.lib.nameValuePair
+          repo
+          (mkNovaInput { inherit repo branch; }))
+      repos);
+
   jobsets = {
     workspaces = mkJobset {
       description = "Nova Rover workspaces";
-      nixexprpath = "ci/release.nix";
-      inputs = builtins.listToAttrs
-        (map
-          ({ repo, branch ? null }:
-            pkgs.lib.nameValuePair
-              repo
-              (mkNovaInput { inherit repo branch; }))
-          repos);
+      nixexprpath = "ci/jobsets/workspaces.nix";
+      inputs = novaInputs;
+    };
+    isos = mkJobset {
+      description = "Nova Rover ISOs";
+      nixexprpath = "ci/jobsets/isos.nix";
+      inputs = novaInputs // {
+        home-manager = mkGitHubInput {
+          owner = "nix-community";
+          repo = "home-manager";
+        };
+      };
     };
   };
 in

@@ -15,15 +15,15 @@ let
     coms_utils
   ];
 
-  lib = import (nixpkgs + /pkgs/top-level/release-lib.nix) { inherit supportedSystems; };
-  pkgs = lib.pkgs;
+  lib = import ../lib.nix {
+    inherit
+      supportedSystems
+      nixpkgs
+      src
+      novaRepos;
+  };
 
-  mkNova = pkgs: import src { inherit pkgs; repos = novaRepos; };
-  novaFor = system: mkNova (lib.pkgsFor system);
-  novaForAllSystems = f: lib.forAllSystems (system: f (novaFor system));
-
-
-  packageLists = novaForAllSystems (nova:
+  packageLists = lib.novaForAllSystems (nova:
     let
       workspace = nova.pkgs.ros.nova-workspace;
       hydraPatchedWorkspace = workspace.override
@@ -31,13 +31,13 @@ let
         # must be made to avoid these failures.
         # There is no easy way at this stage to determine if Hydra has access to
         # any real x86_64 machines, so these changes will apply indiscriminately.
-        (pkgs.lib.optionalAttrs (nova.pkgs.hostPlatform.isx86_64 && (pkgs.lib.systems.elaborate builtins.currentSystem).isAarch64) {
+        (lib.releaseLib.pkgs.lib.optionalAttrs (nova.pkgs.hostPlatform.isx86_64 && (lib.releaseLib.pkgs.lib.systems.elaborate builtins.currentSystem).isAarch64) {
           novaPackages =
             let
               # The GUI frontend fails to build, but the output contains only
               # static Web assets, and is architecture-independent. Use the
               # Aarch64 version instead.
-              nova-gui-frontend = (novaFor "aarch64-linux").pkgs.nova-gui-frontend;
+              nova-gui-frontend = (lib.novaFor "aarch64-linux").pkgs.nova-gui-frontend;
               nova-gui-frontend-server = nova.pkgs.nova-gui-frontend-server.override { inherit nova-gui-frontend; };
 
               added = [
@@ -49,9 +49,9 @@ let
                 nova.pkgs.nova-gui-frontend-server
               ];
 
-              removedNames = map pkgs.lib.getName removed;
+              removedNames = map lib.releaseLib.pkgs.lib.getName removed;
             in
-            (builtins.filter (pkg: !builtins.elem (pkgs.lib.getName pkg) removedNames) workspace.novaPackages) ++ added;
+            (builtins.filter (pkg: !builtins.elem (lib.releaseLib.pkgs.lib.getName pkg) removedNames) workspace.novaPackages) ++ added;
         });
     in
     # Build Nova Rover packages.
@@ -81,7 +81,7 @@ let
     (system: packageList:
       builtins.listToAttrs
         (map
-          (pkg: pkgs.lib.nameValuePair (pkgs.lib.getName pkg) pkg)
+          (pkg: lib.releaseLib.pkgs.lib.nameValuePair (lib.releaseLib.pkgs.lib.getName pkg) pkg)
           packageList))
     packageLists;
 in
