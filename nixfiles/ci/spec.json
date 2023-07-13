@@ -1,6 +1,6 @@
 {
     "enabled": 1,
-    "hidden": false,
+    "hidden": true,
     "description": "Project jobset generator",
     "nixexprinput": "src",
     "nixexprpath": "ci/default.nix",
