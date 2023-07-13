@@ -2,7 +2,7 @@
 
 {
   imports = [
-    (modulesPath + /installer/cd-dvd/installation-cd-base.nix)
+    ((if modulesPath == "" then <nixpkgs> + /nixos/modules else modulesPath) + /installer/cd-dvd/installation-cd-base.nix)
   ];
 
   system.nixos.tags = [ "nova" ];
