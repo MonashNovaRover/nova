@@ -11,7 +11,7 @@ in
       initrd.systemd.enable = lib.mkDefault true;
       plymouth = {
         enable = true;
-        logo = "${pkgs.nova.nova-icons}/share/icons/hicolor/512x512/apps/nova-logo-white.png";
+        logo = "${pkgs.nova.nova-icons}/share/icons/hicolor/128x128/apps/nova-logo-white.png";
       };
     };
 
