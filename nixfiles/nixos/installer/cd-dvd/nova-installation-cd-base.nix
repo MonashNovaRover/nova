@@ -8,6 +8,7 @@
   system.nixos.tags = [ "nova" ];
   isoImage = rec {
     edition = lib.mkDefault "nova";
+    appendToMenuLabel = " Live System";
     efiSplashImage = splashImage;
     splashImage = "${pkgs.nova.nova-backgrounds}/share/backgrounds/nova/logo-dark.png";
   };
