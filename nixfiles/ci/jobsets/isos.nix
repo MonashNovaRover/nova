@@ -23,7 +23,13 @@ let
       novaRepos;
   };
 
-  mkIso = nova: { graphical ? false, includeWorkspace ? false }:
+  mkIso = nova:
+    let
+      inherit (import ../workspaces.nix { inherit lib nova; })
+        workspace
+        hydraPatchedWorkspace;
+    in
+    { graphical ? false, includeWorkspace ? false }:
     (import (nixpkgs + /nixos/lib/eval-config.nix) {
       system = nova.pkgs.hostPlatform.system;
       modules = [
@@ -45,7 +51,10 @@ let
               json.enable = false;
             };
             nova = {
-              workspace.enable = includeWorkspace;
+              workspace = {
+                enable = includeWorkspace;
+                package = hydraPatchedWorkspace;
+              };
             };
           }];
         }
