@@ -31,7 +31,7 @@ let
         # must be made to avoid these failures.
         # There is no easy way at this stage to determine if Hydra has access to
         # any real x86_64 machines, so these changes will apply indiscriminately.
-        (pkgs.lib.optionalAttrs ((pkgs.lib.systems.elaborate builtins.currentSystem).isAarch64 && nova.pkgs.hostPlatform.isx86_64) {
+        (pkgs.lib.optionalAttrs (nova.pkgs.hostPlatform.isx86_64 && (pkgs.lib.systems.elaborate builtins.currentSystem).isAarch64) {
           novaPackages =
             let
               # The GUI frontend fails to build, but the output contains only
