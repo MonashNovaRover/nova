@@ -41,6 +41,9 @@ in
         binary_cache_secret_key_file = ${cfg.cacheSecretKey}
         binary_cache_public_uri = ${config.services.hydra.hydraURL}
 
+        # Increase the maximum output size (useful for things like ISO images)
+        max_output_size = 34359738368
+
         <dynamicruncommand>
           enable = 1
         </dynamicruncommand>
