@@ -8,7 +8,6 @@ in
 
   config = lib.mkIf cfg.enable {
     boot = {
-      initrd.systemd.enable = lib.mkDefault true;
       plymouth = {
         enable = true;
         logo = "${pkgs.nova.nova-icons}/share/icons/hicolor/128x128/apps/nova-logo-white.png";
