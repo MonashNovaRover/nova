@@ -27,7 +27,7 @@ let
     let
       workspace = nova.pkgs.ros.nova-workspace;
       patchedWorkspace = workspace.override
-        (pkgs.lib.optionalAttrs (pkgs.hostPlatform.isAarch64 && nova.pkgs.hostPlatform.isx86_64) {
+        (pkgs.lib.optionalAttrs ((pkgs.lib.systems.elaborate builtins.currentSystem).isAarch64 && nova.pkgs.hostPlatform.isx86_64) {
           # Some x86_64 packages fail to build in QEMU on Aarch64. Workarounds
           # must be made to avoid these failures.
           # There is no easy way at this stage to determine if Hydra has access to
@@ -36,7 +36,7 @@ let
           # The GUI frontend fails to build, but the output contains only static
           # Web assets, and is architecture-independent. Use the Aarch64 version
           # instead.
-          novaPackages = (builtins.filter (pkg: lib.getName pkg != "gui-frontend") workspace.novaPackages) ++ [
+          novaPackages = (builtins.filter (pkg: pkgs.lib.getName pkg != "gui-frontend") workspace.novaPackages) ++ [
             (novaFor "aarch64-linux").pkgs.nova-gui-frontend
           ];
         });
