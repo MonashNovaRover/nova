@@ -38,6 +38,12 @@ let
             desktop.enable = graphical;
           };
           home-manager.sharedModules = [{
+            # The Home Manager manual causes issues on Hydra.
+            manual = {
+              html.enable = false;
+              manpages.enable = false;
+              json.enable = false;
+            };
             nova = {
               workspace.enable = includeWorkspace;
             };
