@@ -9,7 +9,7 @@ in
   config = lib.mkIf cfg.enable {
     home.file.".face".source = "${pkgs.nova.nova-icons}/share/icons/hicolor/1024x1024/apps/nova-logo-white-and-orange.png";
 
-    dconf.settings = {
+    dconf.settings = lib.mkIf config.nova.desktop.enable {
       "org/gnome/desktop/interface" = {
         color-scheme = "prefer-dark";
       };
