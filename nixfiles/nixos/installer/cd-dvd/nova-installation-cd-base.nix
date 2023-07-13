@@ -11,6 +11,7 @@
     appendToMenuLabel = " Live System";
     efiSplashImage = splashImage;
     splashImage = "${pkgs.nova.nova-backgrounds}/share/backgrounds/nova/logo-dark.png";
+    graphicalGrub = lib.mkDefault true;
   };
 
   # For some reason, including documentation crashes the build of the
