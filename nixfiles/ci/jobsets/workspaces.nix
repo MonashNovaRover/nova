@@ -34,7 +34,10 @@ let
     #
     # The non-patched workspace is used here, to build regular development
     # dependencies.
-    ++ [ (workspace.env.overrideAttrs ({ ... }: { name = "workspace-inputs"; })).inputDerivation ]);
+    ++ [ (workspace.env.overrideAttrs ({ ... }: { name = "workspace-inputs"; })).inputDerivation ]
+
+    # Build the workspace itself.
+    ++ [ hydraPatchedWorkspace ]);
 
   packageJobs = builtins.mapAttrs
     (system: packageList:
