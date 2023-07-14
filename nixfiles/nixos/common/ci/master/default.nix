@@ -2,6 +2,10 @@
 
 let
   cfg = config.nova.ci.master;
+
+  cachePath = "/var/cache/hydra";
+  storePath = "${cachePath}/nar-cache";
+  storeUri = "file://${storePath}?secret-key=${cfg.cacheSecretKey}&want-mass-query=true&compression=zstd&parallel-compression=true";
 in
 {
   options.nova.ci.master = {
@@ -12,6 +16,16 @@ in
       default = "localhost";
     };
     hydra = {
+      localMaxJobs = lib.mkOption {
+        type = with lib.types; ints.unsigned;
+        description = lib.mdDoc "The maximum number of local build jobs to run concurrently.";
+        default = 0;
+      };
+      localSpeedFactor = lib.mkOption {
+        type = with lib.types; int;
+        description = lib.mdDoc "The relative speed of this builder. Higher is faster.";
+        default = 1;
+      };
       subdomain = lib.mkOption {
         type = with lib.types; str;
         description = lib.mdDoc "The subdomain that Hydra is served on.";
@@ -40,11 +54,16 @@ in
       hydraURL = "https://${cfg.hydra.subdomain}.${cfg.domain}";
       notificationSender = "nova@monash.edu";
       useSubstitutes = true;
+      buildMachinesFiles =
+        (lib.optional (config.nix.buildMachines != [ ]) "/etc/nix/machines") ++
+        (lib.optional (cfg.hydra.localMaxJobs != 0) (pkgs.writeText "hydra-build-machines" ''
+          localhost ${builtins.concatStringsSep "," ([ builtins.currentSystem ] ++ config.nix.settings.extra-platforms or [ ])} - ${toString cfg.hydra.localMaxJobs} ${toString cfg.hydra.localSpeedFactor}
+        ''));
       logo = pkgs.nova.nova-icons + /share/icons/hicolor/512x512/apps/nova-logo-white-and-orange.png;
       extraConfig = ''
         # Note: Some people say that server_store_uri replaces store_uri, and a quick search through the Hydra codebase seems to support this.
         # server_store_uri causes problems with declarative jobsets, though. Do not use it. You have been warned.
-        store_uri = file:///var/cache/hydra/nar-cache?secret-key=${cfg.cacheSecretKey}&want-mass-query=true&compression=zstd&parallel-compression=true
+        store_uri = ${storeUri}
         binary_cache_secret_key_file = ${cfg.cacheSecretKey}
         binary_cache_public_uri = ${config.services.hydra.hydraURL}
 
@@ -105,8 +124,8 @@ in
     };
 
     systemd.tmpfiles.rules = [
-      "d /var/cache/hydra             0755 hydra hydra - -"
-      "d /var/cache/hydra/nar-cache   0775 hydra hydra - -"
+      "d ${cachePath} 0755 hydra hydra - -"
+      "d ${storePath} 0775 hydra hydra - -"
     ];
 
     services.caddy = lib.mkIf (cfg.domain != "localhost") {
