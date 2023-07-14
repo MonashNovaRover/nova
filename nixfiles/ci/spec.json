@@ -20,6 +20,26 @@
             "type": "git",
             "value": "git@github.com:MonashNovaRover/nixfiles.git",
             "emailresponsible": false
+        },
+        "rover-pr-json": {
+            "type": "githubpulls",
+            "value": "MonashNovaRover rover",
+            "emailresponsible": false
+        },
+        "cameras2-pr-json": {
+            "type": "githubpulls",
+            "value": "MonashNovaRover cameras2",
+            "emailresponsible": false
+        },
+        "gui-pr-json": {
+            "type": "githubpulls",
+            "value": "MonashNovaRover gui",
+            "emailresponsible": false
+        },
+        "coms_utils-pr-json": {
+            "type": "githubpulls",
+            "value": "MonashNovaRover coms_utils",
+            "emailresponsible": false
         }
     }
 }
