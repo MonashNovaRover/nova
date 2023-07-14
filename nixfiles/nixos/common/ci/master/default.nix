@@ -71,6 +71,10 @@ in
         </git-input>
 
         ${lib.optionalString (cfg.hydra.githubToken != null) ''
+          <github_authorization>
+            MonashNovaRover = Bearer ${cfg.hydra.githubToken}
+          </github_authorization>
+
           <githubstatus>
             jobs = nova:workspaces:(?!.*-inputs).*
             useShortContext = 1
@@ -78,7 +82,6 @@ in
             ${builtins.concatStringsSep "\n" (map
               (repo: "inputs = ${repo}")
               (builtins.attrNames (import ../../../../ci/nova-repos.nix)))}
-            authorization = Bearer ${cfg.hydra.githubToken}
           </githubstatus>
         ''}
       '';
