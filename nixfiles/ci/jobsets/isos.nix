@@ -22,7 +22,6 @@ let
           {
             isoImage = {
               isoBaseName = "nixos-nova${lib.releaseLib.pkgs.lib.optionalString graphical "-graphical"}${lib.releaseLib.pkgs.lib.optionalString includeWorkspace "-workspace"}";
-              compressImage = true;
             };
 
             nova = {
