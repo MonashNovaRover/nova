@@ -76,7 +76,7 @@ in
           </github_authorization>
 
           <githubstatus>
-            jobs = nova:workspaces:(?!.*-inputs).*
+            jobs = nova:workspaces(?:-pr-.*-\d+)?:(?!.*-inputs).*
             useShortContext = 1
             inputs = src
             ${builtins.concatStringsSep "\n" (map
