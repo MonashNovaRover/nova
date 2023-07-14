@@ -7,13 +7,6 @@
 let
   pkgs = import nixpkgs { };
 
-  repos = [
-    { repo = "rover"; branch = "feature/nix"; }
-    { repo = "cameras2"; }
-    { repo = "gui"; branch = "feature/nix"; }
-    { repo = "coms_utils"; branch = "feature/nix"; }
-  ];
-
   mkJobset = { description, nixexprpath, inputs ? { }, ... }@args: {
     enabled = 1;
     hidden = false;
@@ -46,13 +39,9 @@ let
 
   mkNovaInput = args: mkGitHubInput ({ owner = "MonashNovaRover"; } // args);
 
-  novaInputs = builtins.listToAttrs
-    (map
-      ({ repo, branch ? null }:
-        pkgs.lib.nameValuePair
-          repo
-          (mkNovaInput { inherit repo branch; }))
-      repos);
+  novaInputs = builtins.mapAttrs
+    (repo: branch: mkNovaInput { inherit repo branch; })
+    (import ./nova-repos.nix);
 
   jobsets = {
     workspaces = mkJobset {

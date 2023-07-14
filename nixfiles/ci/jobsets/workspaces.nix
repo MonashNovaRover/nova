@@ -1,27 +1,11 @@
 { supportedSystems
 , nixpkgs
 , src
-, rover
-, cameras2
-, gui
-, coms_utils
-}:
+, ...
+}@args:
 
 let
-  novaRepos = [
-    rover
-    cameras2
-    gui
-    coms_utils
-  ];
-
-  lib = import ../lib.nix {
-    inherit
-      supportedSystems
-      nixpkgs
-      src
-      novaRepos;
-  };
+  lib = import ../lib.nix args;
 
   packageLists = lib.novaForAllSystems (nova:
     let
