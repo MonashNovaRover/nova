@@ -2,10 +2,6 @@
 
 let
   cfg = config.nova.ci.master;
-
-  cachePath = "/var/cache/hydra";
-  storePath = "${cachePath}/nar-cache";
-  storeUri = "file://${storePath}?secret-key=${cfg.cacheSecretKey}&want-mass-query=true&compression=zstd&parallel-compression=true";
 in
 {
   options.nova.ci.master = {
@@ -61,9 +57,6 @@ in
         ''));
       logo = pkgs.nova.nova-icons + /share/icons/hicolor/512x512/apps/nova-logo-white-and-orange.png;
       extraConfig = ''
-        # Note: Some people say that server_store_uri replaces store_uri, and a quick search through the Hydra codebase seems to support this.
-        # server_store_uri causes problems with declarative jobsets, though. Do not use it. You have been warned.
-        store_uri = ${storeUri}
         binary_cache_secret_key_file = ${cfg.cacheSecretKey}
         binary_cache_public_uri = ${config.services.hydra.hydraURL}
 
@@ -122,11 +115,6 @@ in
         ''} ~/.ssh/known_hosts
       '';
     };
-
-    systemd.tmpfiles.rules = [
-      "d ${cachePath} 0755 hydra hydra - -"
-      "d ${storePath} 0775 hydra hydra - -"
-    ];
 
     services.caddy = lib.mkIf (cfg.domain != "localhost") {
       enable = true;
