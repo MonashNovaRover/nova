@@ -11,10 +11,17 @@ in
       description = lib.mdDoc "The primary domain name of the server.";
       default = "localhost";
     };
-    hydra.subdomain = lib.mkOption {
-      type = with lib.types; str;
-      description = lib.mdDoc "The subdomain that Hydra is served on.";
-      default = "hydra";
+    hydra = {
+      subdomain = lib.mkOption {
+        type = with lib.types; str;
+        description = lib.mdDoc "The subdomain that Hydra is served on.";
+        default = "hydra";
+      };
+      githubToken = lib.mkOption {
+        type = with lib.types; nullOr str;
+        description = lib.mdDoc "The GitHub token used to authenticate with the GitHub API. ";
+        default = null;
+      };
     };
     gitSSHKey = lib.mkOption {
       type = with lib.types; path;
@@ -50,6 +57,18 @@ in
         <git-input>
           timeout = 3600
         </git-input>
+
+        ${lib.optionalString (cfg.hydra.githubToken != null) ''
+          <githubstatus>
+            jobs = nova:workspaces:(?!.*-inputs$)
+            useShortContext = 1
+            inputs = src
+            ${builtins.concatStringsSep "\n" (map
+              (repo: "inputs = ${repo}")
+              (builtins.attrNames (import ../../../../ci/nova-repos.nix)))}
+            authorization = Bearer ${cfg.hydra.githubToken}
+          </githubstatus>
+        ''}
       '';
     };
 
