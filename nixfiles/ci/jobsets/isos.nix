@@ -47,24 +47,29 @@ let
         ];
       });
 
-      config = (baseSystem.extendModules {
-        modules = lib.releaseLib.pkgs.lib.optionals (nova.pkgs.hostPlatform.isx86_64 && (lib.releaseLib.pkgs.lib.systems.elaborate builtins.currentSystem).isAarch64) [
-          # Some build tools are prohibitively slow in QEMU.
-          # We can use the host tools to build the ISO.
-          {
-            system.build.squashfsStore = lib.releaseLib.pkgs.lib.mkForce (baseSystem.config.system.build.squashfsStore.override {
-              inherit (lib.releaseLib.pkgsFor builtins.currentSystem)
-                squashfsTools;
-            });
+      extensions = lib.releaseLib.pkgs.lib.optionals (nova.pkgs.hostPlatform.isx86_64 && (lib.releaseLib.pkgs.lib.systems.elaborate builtins.currentSystem).isAarch64) [
+        # Some build tools are prohibitively slow in QEMU.
+        # We can use the host tools to build the ISO.
+        (prev: [{
+          system.build.squashfsStore = lib.releaseLib.pkgs.lib.mkForce (prev.system.build.squashfsStore.override {
+            inherit (lib.releaseLib.pkgsFor builtins.currentSystem)
+              squashfsTools;
+          });
+        }])
+        (prev: [{
+          system.build.isoImage = lib.releaseLib.pkgs.lib.mkForce (prev.system.build.isoImage.override {
+            inherit (lib.releaseLib.pkgsFor builtins.currentSystem)
+              xorriso
+              zstd;
+          });
+        }])
+      ];
 
-            system.build.isoImage = lib.releaseLib.pkgs.lib.mkForce (baseSystem.config.system.build.isoImage.override {
-              inherit (lib.releaseLib.pkgsFor builtins.currentSystem)
-                xorriso
-                zstd;
-            });
-          }
-        ];
-      }).config;
+      config = (builtins.foldl'
+        (system: mkModules: system.extendModules { modules = mkModules system.config; })
+        baseSystem
+        extensions
+      ).config;
     in
     config.system.build.isoImage;
 
