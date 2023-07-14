@@ -79,7 +79,7 @@ in
 
         ${lib.optionalString (cfg.hydra.githubToken != null) ''
           <githubstatus>
-            jobs = nova:workspaces:(?!.*-inputs$)
+            jobs = nova:workspaces:(?!.*-inputs).*
             useShortContext = 1
             inputs = src
             ${builtins.concatStringsSep "\n" (map
