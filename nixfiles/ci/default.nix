@@ -63,18 +63,13 @@ let
     (builtins.attrNames novaRepos);
 
   mkWorkspaceJobset = pr: mkJobset {
-    # If a PR is given, make a oneshot jobset.
-    # When the PR is updated, its commit SHA will change, and the jobset will
-    # change and be re-evaluated - so there's no need for scheduling.
-    # These magic numbers come from https://github.com/NixOS/hydra/blob/526e8bd7441d1beb271ff89bbca3604077ecffdb/src/hydra-evaluator/hydra-evaluator.cc#L142.
-    enabled = if pr == null then 1 else 2;
     description = "Nova Rover workspaces${pkgs.lib.optionalString (pr != null) (" - ${pr.base.repo.name}#${toString pr.number} (${pr.title})")}";
     nixexprpath = "ci/jobsets/workspaces.nix";
     inputs = novaInputs // (pkgs.lib.optionalAttrs (pr != null) {
       ${pr.base.repo.name} = mkGitHubInput {
         owner = pr.head.repo.owner.login;
         repo = pr.head.repo.name;
-        branch = pr.head.sha;
+        branch = pr.head.ref;
       };
     });
   };
