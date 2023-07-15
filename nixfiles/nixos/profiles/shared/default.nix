@@ -7,6 +7,8 @@ let
 in
 {
   config = lib.mkIf (profile == "shared") {
+    users.mutableUsers = false;
+
     nova = {
       users.nova.enable = true;
       branding.enable = true;
