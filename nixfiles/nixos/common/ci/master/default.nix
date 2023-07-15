@@ -48,6 +48,16 @@ in
 
     services.hydra = {
       enable = true;
+      package = pkgs.hydra_unstable.overrideAttrs ({ patches ? [ ], ... }: {
+        patches = patches ++ [
+          # Fix MIME types when serving .js and .css
+          # https://github.com/NixOS/hydra/issues/1267
+          (pkgs.fetchpatch {
+            url = "https://github.com/Ma27/hydra/commit/4e907ce667987b06ac6a7d154619df0cda1cb757.patch";
+            hash = "sha256-sUf7qUZsxC/R6oH64jFWYsKVfCkDI617Xic1hklq76Q=";
+          })
+        ];
+      });
       listenHost = "localhost";
       hydraURL = "https://${cfg.hydra.subdomain}.${cfg.domain}";
       notificationSender = "nova@monash.edu";
