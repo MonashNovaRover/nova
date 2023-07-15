@@ -45,11 +45,11 @@ let
     ];
   };
 
-  config = (pkgs.lib.evalModules {
+  inherit (pkgs.lib.evalModules {
     modules = [
       (import ./external/out-of-tree.nix)
     ] ++ map import repos;
-  }).config;
+  }) config options;
 
   novaPkgs = import nixpkgs {
     localSystem = pkgs.buildPlatform;
@@ -95,7 +95,7 @@ let
   };
 in
 rec {
-  inherit repos config;
+  inherit repos config options;
   pkgs = novaPkgs;
 
   homeModule = {
