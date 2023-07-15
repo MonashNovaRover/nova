@@ -34,15 +34,15 @@ let
       option // {
         declarations = map
           (declaration:
-            if pkgs.lib.path.hasPrefix src (/. + declaration) then
-              rec {
-                # Structure format described in nixos-render-docs:
-                # https://github.com/NixOS/nixpkgs/blob/45ae0efbbce2aada6d5e8de6ace0c803b08ac9c7/pkgs/tools/nix/nixos-render-docs/src/nixos_render_docs/options.py#L52-L53
-                name = (pkgs.lib.removePrefix ((toString src) + "/") declaration) +
-                (pkgs.lib.optionalString (builtins.readFileType declaration == "directory") "/default.nix");
-                url = "https://github.com/MonashNovaRover/nixfiles/blob/master/${name}";
-                # TODO: Is there a way to generate URLs with a fixed Git revision?
-              }
+            if pkgs.lib.path.hasPrefix (if pkgs.lib.isDerivation src then (/. + src.outPath) else src) (/. + declaration) then
+            rec {
+              # Structure format described in nixos-render-docs:
+              # https://github.com/NixOS/nixpkgs/blob/45ae0efbbce2aada6d5e8de6ace0c803b08ac9c7/pkgs/tools/nix/nixos-render-docs/src/nixos_render_docs/options.py#L52-L53
+              name = (pkgs.lib.removePrefix ((toString src) + "/") declaration) +
+              (pkgs.lib.optionalString (builtins.readFileType declaration == "directory") "/default.nix");
+              url = "https://github.com/MonashNovaRover/nixfiles/blob/master/${name}";
+              # TODO: Is there a way to generate URLs with a fixed Git revision?
+            }
             else declaration
           )
           option.declarations;
