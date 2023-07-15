@@ -9,6 +9,8 @@ in
   config = lib.mkIf cfg.enable {
     nix.settings = lib.mkDefault {
       keep-outputs = true;
+      min-free = 01 * 1024 * 1024 * 1024;
+      max-free = 32 * 1024 * 1024 * 1024;
     };
   };
 }
