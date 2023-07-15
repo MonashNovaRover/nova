@@ -8,5 +8,12 @@ in
 
   config = lib.mkIf cfg.enable {
     nova.ci.common.enable = true;
+
+    assertions = [
+      {
+        assertion = !config.nova.ci.master.enable;
+        message = "The CI master and slave modules cannot be enabled simultaneously.";
+      }
+    ];
   };
 }
