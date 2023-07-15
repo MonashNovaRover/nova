@@ -44,6 +44,8 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    nova.ci.common.enable = true;
+
     services.hydra = {
       enable = true;
       listenHost = "localhost";
