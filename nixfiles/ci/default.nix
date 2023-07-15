@@ -62,6 +62,11 @@ let
     [ ]
     (builtins.attrNames novaRepos);
 
+  homeManagerInput = mkGitHubInput {
+    owner = "nix-community";
+    repo = "home-manager";
+  };
+
   mkWorkspaceJobset = pr: mkJobset {
     description = "Nova Rover workspaces${pkgs.lib.optionalString (pr != null) (" - ${pr.base.repo.name}#${toString pr.number} (${pr.title})")}";
     nixexprpath = "ci/jobsets/workspaces.nix";
@@ -75,15 +80,15 @@ let
   };
 
   jobsets = {
+    docs = mkJobset {
+      description = "Nova Rover documentation";
+      nixexprpath = "ci/jobsets/docs.nix";
+      inputs = { home-manager = homeManagerInput; };
+    };
     isos = mkJobset {
       description = "Nova Rover ISOs";
       nixexprpath = "ci/jobsets/isos.nix";
-      inputs = novaInputs // {
-        home-manager = mkGitHubInput {
-          owner = "nix-community";
-          repo = "home-manager";
-        };
-      };
+      inputs = novaInputs // { home-manager = homeManagerInput; };
     };
     workspaces = mkWorkspaceJobset null;
   } // builtins.listToAttrs
