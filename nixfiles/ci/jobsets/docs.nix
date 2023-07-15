@@ -34,7 +34,7 @@ let
       option // {
         declarations = map
           (declaration:
-            if pkgs.lib.path.hasPrefix (if pkgs.lib.isDerivation src then (/. + src.outPath) else src) (/. + declaration) then
+            if (if builtins.isPath src then pkgs.lib.path.hasPrefix src else pkgs.lib.hasPrefix (toString src)) (/. + declaration) then
             rec {
               # Structure format described in nixos-render-docs:
               # https://github.com/NixOS/nixpkgs/blob/45ae0efbbce2aada6d5e8de6ace0c803b08ac9c7/pkgs/tools/nix/nixos-render-docs/src/nixos_render_docs/options.py#L52-L53
