@@ -136,10 +136,14 @@ in
       virtualHosts.hydra = {
         hostName = "${cfg.hydra.subdomain}.${cfg.domain}";
         extraConfig = ''
-          reverse_proxy :${toString config.services.hydra.port}
           basicauth {
             nova $2a$14$4EcarI150GjEOzkmgmTS2eynl4P5XBNcr9n3tDV8P2igqgLyrFtky
           }
+
+          reverse_proxy :${toString config.services.hydra.port}
+
+          @doc_matcher vars_regexp doc {http.request.orig_uri.path} ^\/manual\/(.+?)(?:\/|$)(.*)$
+          rewrite @doc_matcher /job/nova/docs/{re.doc.1}/latest/download-by-type/doc/manual/{re.doc.2}
         '';
       };
     };
