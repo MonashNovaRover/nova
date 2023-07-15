@@ -20,13 +20,21 @@ is updated. Unfortunately, this is not a frequent occurance, and we often need
 to make modifications to the overlay. Invalidated packages will be made
 available through our cache instead.
 
+### Setup
+
+When using the [NixOS module](./nixos.md), set [`nova.substituters.ros.enable`](https://hydra.ulna.leivenzon.id.au/manual/nixos#novasubstitutersrosenable) to
+`true`. Otherwise, follow the instructions on the project page.
+
 ## The Nova Rover binary cache
 
-[Our cache](https://app.cachix.org/cache/nova) contains prebuilt ROS packages
-and other dependencies of our software. In the future, it can be used to store
-our software itself.
+[Our cache](https://hydra.ulna.leivenzon.id.au/jobset/nova/workspaces#tabs-jobs)
+contains prebuilt copies of our ROS packages and their build and runtime
+dependencies.
 
-Follow the [ROS binary cache](https://github.com/lopsided98/nix-ros-overlay#configure-binary-cache)
+### Setup
+
+When using the [NixOS module](./nixos.md), configure the [`nova.substituters.nova`](https://hydra.ulna.leivenzon.id.au/manual/nixos#novasubstitutersnovaenable)
+options. Otherwise, Follow the [ROS binary cache](https://github.com/lopsided98/nix-ros-overlay#configure-binary-cache)
 instructions, replacing `ros` with `nova` where appropriate.
 
 The public key is `nova.cachix.org-1:lGXmFv5muzN5S4Q1CHFqgDC8c0ponqy5albHQMNE5C8=`.
