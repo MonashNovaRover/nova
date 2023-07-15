@@ -65,8 +65,6 @@ let
       nativeBuildInputs = with pkgs; [
         python3Packages.mkdocs
         python3Packages.mkdocs-material
-        nova.pkgs.python3Packages.mkdocs-safe-text-plugin
-        nodejs
         jq
       ];
       dontUnpack = true;
