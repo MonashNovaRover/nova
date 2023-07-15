@@ -1,6 +1,7 @@
 { supportedSystems
 , nixpkgs
 , src
+, repos ? builtins.attrNames (import ./nova-repos.nix)
 , ...
 }@args:
 
@@ -9,7 +10,7 @@ rec {
 
   mkNova = pkgs: import src {
     inherit pkgs;
-    repos = map (repo: args.${repo}) (builtins.attrNames (import ./nova-repos.nix));
+    repos = map (repo: args.${repo}) repos;
   };
   novaFor = system: mkNova (releaseLib.pkgsFor system);
   novaForAllSystems = f: releaseLib.forAllSystems (system: f (novaFor system));
