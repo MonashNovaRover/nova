@@ -46,7 +46,8 @@ let
         ];
       });
 
-      extensions = lib.releaseLib.pkgs.lib.optionals (nova.pkgs.hostPlatform.isx86_64 && (lib.releaseLib.pkgs.lib.systems.elaborate builtins.currentSystem).isAarch64) [
+      # "extensions" cannot be used as the variable name due to https://github.com/NixOS/nix/issues/8701.
+      extensions' = lib.releaseLib.pkgs.lib.optionals (nova.pkgs.hostPlatform.isx86_64 && (lib.releaseLib.pkgs.lib.systems.elaborate builtins.currentSystem).isAarch64) [
         # Some build tools are prohibitively slow in QEMU.
         # We can use the host tools to build the ISO.
         (prev: [{
@@ -67,7 +68,7 @@ let
       config = (builtins.foldl'
         (system: mkModules: system.extendModules { modules = mkModules system.config; })
         baseSystem
-        extensions
+        extensions'
       ).config;
     in
     config.system.build.isoImage;
