@@ -19,4 +19,4 @@ Add it to your Home Manager configuration with an import, like so:
 Users called `nova` will have a standard team configuration enabled. If you do
 not want this, choose another username.
 
-Available options can be found [in the module definitions](../home).
+Available options can be found in the [option documentation](https://hydra.ulna.leivenzon.id.au/manual/home-manager).

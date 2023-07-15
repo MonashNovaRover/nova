@@ -30,4 +30,4 @@ You must set state versions and a _Nova device profile_ for the configuration to
 }
 ```
 
-Available options can be found [in the module definitions](../nixos).
+Available options can be found in the [option documentation](https://hydra.ulna.leivenzon.id.au/manual/nixos).
