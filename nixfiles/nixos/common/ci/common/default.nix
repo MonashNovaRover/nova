@@ -7,10 +7,10 @@ in
   options.nova.ci.common.enable = lib.mkEnableOption "CI common services" // { internal = true; };
 
   config = lib.mkIf cfg.enable {
-    nix.settings = lib.mkDefault {
-      keep-outputs = true;
-      min-free = 01 * 1024 * 1024 * 1024;
-      max-free = 32 * 1024 * 1024 * 1024;
+    nix.settings = {
+      keep-outputs = lib.mkDefault true;
+      min-free = lib.mkDefault (01 * 1024 * 1024 * 1024);
+      max-free = lib.mkDefault (32 * 1024 * 1024 * 1024);
     };
   };
 }
