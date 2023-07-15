@@ -150,12 +150,12 @@ let
     { home-manager = { inherit (allOSOptions.home-manager) nova; }; };
 in
 {
-  home-manager-docs = mkDocumentationSite {
+  home-manager = mkDocumentationSite {
     pname = "nova-home-manager-docs";
     topic = "Nova Rover Home Manager";
     options = novaHMOptions;
   };
-  nixos-docs = mkDocumentationSite {
+  nixos = mkDocumentationSite {
     pname = "nova-nixos-docs";
     topic = "Nova Rover NixOS";
     options = novaOSOptions;
