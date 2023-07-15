@@ -1,10 +1,6 @@
 { options, config, lib, ... }:
 
 {
-  imports = [
-    <home-manager/nixos>
-  ];
-
   options = {
     nova.users = lib.mkOption {
       type = with lib.types; attrsOf (submodule {

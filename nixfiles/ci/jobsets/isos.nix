@@ -1,5 +1,6 @@
 { supportedSystems
 , nixpkgs
+, home-manager
 , src
 , ...
 }@args:
@@ -17,7 +18,9 @@ let
       baseSystem = (import (nixpkgs + /nixos/lib/eval-config.nix) {
         system = nova.pkgs.hostPlatform.system;
         modules = [
-          nova.nixosModule
+          (nova.nixosModule.override {
+            homeManagerNixOSModule = "${home-manager}/nixos";
+          })
           ../../nixos/installer/cd-dvd/nova-installation-cd-${if graphical then "graphical" else "base"}.nix
           {
             isoImage = {
