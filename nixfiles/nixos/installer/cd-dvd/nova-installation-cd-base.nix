@@ -17,8 +17,15 @@
   documentation.nixos.enable = lib.mkForce false;
 
   # The base installation modules create a "nixos" user.
-  # There is no way to disable this, but the autologin can be overidden.
-  services.getty.autologinUser = lib.mkForce "nova";
+  # There is no way to disable this, but the autologin can be disabled.
+  # Users should use the "nova" user instead.
+  services.getty.autologinUser = lib.mkForce null;
+  environment.etc.issue.source = pkgs.writeText "issue" ''
+
+    [1;32m${config.services.getty.greetingLine}[0m
+    To continue, login as the "nova" user.
+
+  '';
 
   nova = {
     profile = "shared";
