@@ -32,7 +32,7 @@
     desktop.enable = lib.mkOverride 900 false;
   };
 
-  home-manager.sharedModules = [{
+  home-manager.nova.sharedModules = [{
     nova = {
       workspace.enable = lib.mkDefault false;
     };
