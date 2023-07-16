@@ -1,6 +1,7 @@
 { callPackage }:
 
 {
-  nova-icons = callPackage ./nova-icons { };
+  novafox = callPackage ./novafox { };
   nova-backgrounds = callPackage ./nova-backgrounds { };
+  nova-icons = callPackage ./nova-icons { };
 }
