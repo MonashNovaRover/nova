@@ -7,6 +7,7 @@ in
   imports = [
     ./browser.nix
     ./extensions
+    ./keybindings.nix
     ./terminal.nix
   ];
 
