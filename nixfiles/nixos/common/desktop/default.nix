@@ -4,12 +4,18 @@ let
   cfg = config.nova.desktop;
 in
 {
+  imports = [
+    ./browser.nix
+  ];
+
   options.nova.desktop = {
     enable = lib.mkEnableOption "the standard Nova Rover desktop environment";
     wayland.enable = lib.mkEnableOption "Wayland" // { default = true; };
   };
 
   config = lib.mkIf cfg.enable {
+    nova.desktop.browser.enable = true;
+
     services.xserver = {
       displayManager.gdm = {
         enable = true;

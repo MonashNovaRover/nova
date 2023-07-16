@@ -5,6 +5,7 @@ let
 in
 {
   imports = [
+    ./browser.nix
     ./extensions
   ];
 
