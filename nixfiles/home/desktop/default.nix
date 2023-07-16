@@ -7,6 +7,7 @@ in
   imports = [
     ./browser.nix
     ./extensions
+    ./terminal.nix
   ];
 
   options.nova.desktop = {

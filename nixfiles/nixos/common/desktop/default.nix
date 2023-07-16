@@ -61,6 +61,7 @@ in
       epiphany
       gnome-boxes
       gnome-calendar
+      pkgs.gnome-console
       gnome-contacts
       gnome-maps
       gnome-music
