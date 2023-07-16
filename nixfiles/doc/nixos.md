@@ -10,6 +10,8 @@ user and binary cache
 - [graphical](https://hydra.ulna.leivenzon.id.au/job/nova/isos/x86_64-linux.iso-graphical/latest/download-by-type/file/iso): `base` + the standard team desktop environment
 - [`graphical-workspace`](https://hydra.ulna.leivenzon.id.au/job/nova/isos/x86_64-linux.iso-graphical-workspace/latest/download-by-type/file/iso): `base-workspace` + `graphical`
 
+Builds for `aarch64-linux` are also available. See the [complete Hydra jobset](https://hydra.ulna.leivenzon.id.au/jobset/nova/isos/latest-eval).
+
 The `workspace` variants are recommended for trying out all of the features
 before installing. Otherwise, the non-workspace variants are recommened for
 installation purposes.
