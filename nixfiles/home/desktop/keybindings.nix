@@ -7,22 +7,22 @@ in
   config = lib.mkIf cfg.enable {
     dconf.settings =
       let
-        keybinds = [
-          {
+        keybinds = {
+          terminal = {
             name = "Terminal";
             command = "blackbox";
             binding = "<Control><Alt>t";
-          }
-        ];
+          };
+        };
       in
       lib.mkMerge [
         {
           "org/gnome/settings-daemon/plugins/media-keys".custom-keybindings =
-            builtins.genList
-              (i: "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom${toString i}/")
-              (builtins.length keybinds);
+            map
+              (name: "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/${name}/")
+              (builtins.attrNames keybinds);
         }
-        (builtins.listToAttrs (lib.imap0 (i: lib.nameValuePair "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom${toString i}") keybinds))
+        (lib.mapAttrs' (name: lib.nameValuePair "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/${name}") keybinds)
       ];
   };
 }
