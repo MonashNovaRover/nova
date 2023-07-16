@@ -27,21 +27,6 @@ in
         dynamic-workspaces = true;
       };
 
-      "org/gnome/shell" = {
-        # Extension customization
-        disable-user-extensions = false;
-        disabled-extensions = [ ];
-        enabled-extensions =
-          # Useful official extensions (https://gitlab.gnome.org/GNOME/gnome-shell-extensions)
-          map (name: "${name}@gnome-shell-extensions.gcampax.github.com") [
-            "apps-menu"
-            "places-menu"
-            "drive-menu"
-            "native-window-placement"
-            "workspace-indicator"
-          ];
-      };
-
       "org/gnome/desktop/session" = {
         idle-delay = 15 * 60; # 15 minutes before screen off
       };
@@ -58,6 +43,21 @@ in
 
       "org/gnome/desktop/sound" = {
         allow-volume-above-100-percent = true;
+      };
+
+      "org/gnome/shell" = {
+        # Extension customization
+        disable-user-extensions = false;
+        disabled-extensions = [ ];
+        enabled-extensions =
+          # Useful official extensions (https://gitlab.gnome.org/GNOME/gnome-shell-extensions)
+          map (name: "${name}@gnome-shell-extensions.gcampax.github.com") [
+            "apps-menu"
+            "places-menu"
+            "drive-menu"
+            "native-window-placement"
+            "workspace-indicator"
+          ];
       };
     };
   };
