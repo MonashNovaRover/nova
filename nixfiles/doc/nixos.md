@@ -1,3 +1,30 @@
+# Installing NixOS
+
+ISO images of NixOS with our custom modules are available from [Hydra](./hydra.md).
+
+The following links go to the latest ISO builds. There are four variants:
+
+- [base](https://hydra.ulna.leivenzon.id.au/job/nova/isos/x86_64-linux.iso-base/latest/download-by-type/file/iso): The standard NixOS installer, with the `nova`
+user and binary cache
+- [base-workspace](https://hydra.ulna.leivenzon.id.au/job/nova/isos/x86_64-linux.iso-base-workspace/latest/download-by-type/file/iso): `base` + our software preinstalled
+- [graphical](https://hydra.ulna.leivenzon.id.au/job/nova/isos/x86_64-linux.iso-graphical/latest/download-by-type/file/iso): `base` + the standard team desktop environment
+- [`graphical-workspace`](https://hydra.ulna.leivenzon.id.au/job/nova/isos/x86_64-linux.iso-graphical-workspace/latest/download-by-type/file/iso): `base-workspace` + `graphical`
+
+The `workspace` variants are recommended for trying out all of the features
+before installing. Otherwise, the non-workspace variants are recommened for
+installation purposes.
+
+Follow the NixOS [manual installation instructions](https://nixos.org/manual/nixos/unstable/index.html#sec-installation-manual).
+When the time comes to edit `configuration.nix`, follow the instructions below
+to add the NixOS module. It is important that this is done at this stage, and
+not after installation, as the ISO is configured with our binary caches and the
+installed system will not be.
+
+If the `shared` profile is not in use, you will need to create a user account
+for yourself with [`nova.users`](https://hydra.ulna.leivenzon.id.au/manual/nixos#novausersnameenable).
+Choose `nova` as the usename to add the standard team user, or choos something
+else if you do not want this.
+
 # Using the NixOS module
 
 Include the [NixOS](https://nixos.org/manual/nixos/stable) module with an import, like so:
