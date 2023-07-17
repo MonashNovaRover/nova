@@ -1,10 +1,14 @@
 # NixOS virtualisation
 
-NixOS systems does not have to activate on bare metal; they can just as easily
+NixOS systems do not have to activate on bare metal; they can just as easily
 activate in containers and virtual machines.
 
 This repository contains prebuilt configurations for use in both containers and
 virtual machines.
+
+> While both these technologies can be used on any distribution with Nix,
+> distributions other than NixOS may require [NixGL](https://github.com/guibou/nixGL)
+> to prevent issues running graphical applications.
 
 ## Advantages and disadvantages of containers and VMs
 
@@ -17,10 +21,11 @@ disadvantages, particularly in the context of NixOS.
 | Resource usage | **Low** | High |
 | Isolation | Low (see the [warning][nixos-container]) | **High** |
 | System integration | **High** | Low |
+| Nix store access | Shared with host | **Shared or duplicated** |
 | Re-activation from host (like `nixos-rebuild switch`) | **Fast** | Slow |
 | Emulated kernel | No | **Yes** |
 | Accurate boot process | No (skips bootloader and NixOS stage 1) | **Partial** |
-| Hardware-accelerated graphics | No | **[With effort](https://nixos.wiki/wiki/IGVT-g)** |
+| Hardware-accelerated graphics | No | **[With effort][GVT-g]** |
 
 ## Using containers
 
@@ -81,7 +86,7 @@ name. Use the `--update-changed` (`-u`) flag to active the new system
 configuration, and/or the `--restart-changed` (`-r`) flag to restart the
 container.
 
-### Container customisation
+### Customising containers
 
 `./nixos/installer/container` can be called with the following arguments:
 
@@ -92,13 +97,130 @@ For example:
 
 ```
 $ extra-container create --expr 'import ./nixos/installer/container {
-  name = "nova-headless";
-  modules = [{
-    services.xserver.enable = false;
-    nova.desktop.enable = false;
-  }];
-}'
+    name = "nova-headless";
+    modules = [{
+      services.xserver.enable = false;
+      nova.desktop.enable = false;
+    }];
+  }'
 ```
 
 [nixos-container]: https://nixos.org/manual/nixos/unstable/index.html#ch-containers
 [extra-container]: https://github.com/erikarvstedt/extra-container
+
+## Using virtual machines
+
+NixOS's first-party virtual machine derivation is fully supported, with useful
+defaults.
+
+### Creating virtual machines
+
+To create a VM, simply build the derivation and run the result:
+
+```
+$ nix-build '<nixpkgs/nixos>' \
+    --arg configuration '(import ./. { }).nixosModule' \
+    -A vm
+```
+
+If no disk image yet exists, one will be automatically created. This is a fast
+process, as the Nix store is shared with the host by default and most of the
+system files are set up at boot during the system activation stage.
+
+### Updating virtual machines
+
+The derivation can be rebuilt once the system configuration is modified by
+running the build command again. The VM will need to be restarted for changes
+to take effect.
+
+### Customising virtual machines
+
+The virtual machine system configuration can be changed by adding NixOS module
+options under the [`virtualisation.vmVariant`](https://search.nixos.org/options?show=virtualisation.vmVariant)
+prefix.
+
+The `virtualisation.vmVariant` module also adds several options to configure the
+virtual machine settings. These options are not visible in the NixOS manual,
+but can be found in the `options` section of the [module source code](https://github.com/NixOS/nixpkgs/blob/nixos-unstable/nixos/modules/virtualisation/qemu-vm.nix).
+
+A notable option is `useBootLoader`, which will use a more traditional boot
+process and generate a disk image for the Nix store rather than mounting the
+host's read-only. The persistent disk image is not compatible between VMs with
+this option enabled and disabled, and must be changed in-between runs.
+
+#### Hardware configuration
+
+Customising the virtual machine to suit the hardware of the host platform is
+recommended. A useful pattern is to put the VM hardware configuration in a
+separate Nix file that can be used with all VMs. For example, if the file is put
+in `~/Documents/VM.nix`, the VM should be built like so:
+
+```
+$ nix-build '<nixpkgs/nixos>' \
+    --arg configuration "{
+      imports = [
+        (import ./. { }).nixosModule
+        ~/Documents/VM.nix
+      ]
+    }" \
+    -A vm
+```
+
+##### Example hardware configuation
+
+An example configuration with custom system specifications,
+[SPICE](https://www.spice-space.org), a copy of [QEMU](https://www.qemu.org)
+patched for 60Hz, and GPU access through [GVT-g] is given below.
+
+Note that GVT-g may cause X11 to hang briefly during startup, and may [require
+a larger memlock limit on the host system](https://github.com/intel/gvt-linux/issues/69#issue-406134079)
+or even a [jailbroken UEFI firmware setting](https://github.com/intel/gvt-linux/issues/131).
+
+<details>
+  <summary>Click to expand</summary>
+
+  ```
+  {
+    virtualisation.vmVariant = ({ options, config, pkgs, ... }: {
+      services.xserver.videoDrivers = [ "modesetting" ];
+      services.spice-vdagentd.enable = true;
+      services.spice-webdavd.enable = true;
+      virtualisation = {
+        host.pkgs = import <nixpkgs> { };
+        useEFIBoot = true;
+        cores = 2;
+        memorySize = 4096;
+        resolution = { x = 1280; y = 720; };
+        qemu = {
+          package = options.virtualisation.qemu.package.default.overrideAttrs ({ patches ? [ ], ... }: {
+            # Warning: These modifications will cause QEMU to be built locally
+            # rather than being pulled down from the NixOS binary cache.
+            patches = patches ++ [
+              (pkgs.fetchpatch {
+                url = "https://github.com/qemu/qemu/commit/67036ce24594cd04690e83a4cb005672cf2a9668.patch";
+                hash = "sha256-aJD8U5u8v9wVab1WzHLI1yPm6kiPxbsI8mOkY1RX7UU=";
+              })
+            ];
+          });
+          options = [
+            "-vga none"
+            "-display spice-app,gl=on"
+            "-spice image-compression=off,playback-compression=off,streaming-video=off"
+            "-device ${builtins.concatStringsSep "," [
+              "vfio-pci"
+              "sysfsdev=/sys/bus/mdev/devices/90ce754f-8bf8-488b-a693-73ed08cce2e9"
+              "x-igd-opregion=on"
+              "display=on"
+              "driver=vfio-pci-nohotplug,ramfb=on"
+              "xres=${toString config.virtualisation.resolution.x},yres=${toString config.virtualisation.resolution.y}"
+            ]}"
+          ];
+        };
+      };
+    });
+  }
+  ```
+
+</details>
+
+[GVT-g]: https://nixos.wiki/wiki/IGVT-g

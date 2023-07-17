@@ -5,6 +5,7 @@
     ./desktop
     ./substituters
     ./users
+    ./virtualisation
     ./workspace
   ];
 }
