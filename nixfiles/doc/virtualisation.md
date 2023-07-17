@@ -179,7 +179,7 @@ or even a [jailbroken UEFI firmware setting](https://github.com/intel/gvt-linux/
 <details>
   <summary>Click to expand</summary>
 
-  ```
+  ```nix
   {
     virtualisation.vmVariant = ({ options, config, pkgs, ... }: {
       services.xserver.videoDrivers = [ "modesetting" ];
