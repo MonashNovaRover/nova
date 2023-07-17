@@ -13,5 +13,6 @@ in
   options.nova.profile = lib.mkOption {
     type = with lib.types; enum profiles;
     description = lib.mdDoc "The device configuration profile.";
+    default = "personal";
   };
 }

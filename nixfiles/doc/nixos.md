@@ -39,7 +39,7 @@ Include the [NixOS](https://nixos.org/manual/nixos/stable) module with an import
 }
 ```
 
-You must set state versions and a _Nova device profile_ for the configuration to work. For example:
+You should set state versions and a _Nova device profile_.
 
 ```nix
 {
