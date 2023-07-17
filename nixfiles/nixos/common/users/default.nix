@@ -24,6 +24,11 @@
       (builtins.mapAttrs
         (name: userConfig: lib.mkIf userConfig.enable {
           isNormalUser = true;
+          extraGroups =
+            # https://github.com/NixOS/nixpkgs/issues/222943
+            lib.optional
+              config.networking.networkmanager.enable
+              config.users.groups.networkmanager.name;
         })
         config.nova.users)
 
