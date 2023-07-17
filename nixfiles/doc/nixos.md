@@ -1,5 +1,7 @@
 # Installing NixOS
 
+## Bare metal
+
 ISO images of NixOS with our custom modules are available from [Hydra](./hydra.md).
 
 The following links go to the latest ISO builds. There are four variants:
@@ -26,6 +28,11 @@ If the `shared` profile is not in use, you will need to create a user account
 for yourself with [`nova.users`](https://hydra.ulna.leivenzon.id.au/manual/nixos#novausersnameenable).
 Choose `nova` as the usename to add the standard team user, or choos something
 else if you do not want this.
+
+## Virtualisation
+
+NixOS can be virtualised in a container or virtual machine.
+See: [NixOS virtualisation](./virtualisation.md)
 
 # Using the NixOS module
 
