@@ -1,6 +1,7 @@
 { supportedSystems
 , nixpkgs
 , src
+, rosDistro
 , ...
 }@args:
 
@@ -9,7 +10,7 @@ let
 
   packageLists = lib.novaForAllSystems (nova:
     let
-      inherit (import ../workspaces.nix { inherit lib nova; })
+      inherit (import ../workspaces.nix { inherit lib nova rosDistro; })
         workspace
         hydraPatchedWorkspace;
     in

@@ -1,7 +1,7 @@
-{ lib, nova }:
+{ lib, nova, rosDistro ? null }:
 
 rec {
-  workspace = nova.pkgs.ros.nova-workspace;
+  workspace = (if rosDistro == null then nova.pkgs.ros else nova.pkgs.rosPackages.${rosDistro}).nova-workspace;
   hydraPatchedWorkspace = workspace.override
     # Some x86_64 packages fail to build in QEMU on Aarch64. Workarounds
     # must be made to avoid these failures.

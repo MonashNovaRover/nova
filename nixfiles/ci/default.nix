@@ -67,19 +67,46 @@ let
     repo = "home-manager";
   };
 
-  mkWorkspaceJobset = pr: mkJobset {
+  mkWorkspaceJobset = rosDistro: pr: mkJobset {
     description = "Nova Rover workspaces${pkgs.lib.optionalString (pr != null) (" - ${pr.base.repo.name}#${toString pr.number} (${pr.title})")}";
     nixexprpath = "ci/jobsets/workspaces.nix";
-    inputs = novaInputs // (pkgs.lib.optionalAttrs (pr != null) {
-      ${pr.base.repo.name} = mkGitHubInput {
-        owner = pr.head.repo.owner.login;
-        repo = pr.head.repo.name;
-        branch = pr.head.ref;
-      };
-    });
+    inputs = novaInputs //
+      {
+        rosDistro = {
+          type = "nix";
+          value = "${if rosDistro == null then "null" else "\"${rosDistro}\""}";
+          emailresponsible = false;
+        };
+      } //
+      (pkgs.lib.optionalAttrs (pr != null) {
+        ${pr.base.repo.name} = mkGitHubInput {
+          owner = pr.head.repo.owner.login;
+          repo = pr.head.repo.name;
+          branch = pr.head.ref;
+        };
+      });
   };
 
-  jobsets = {
+  mkWorkspaceDistroJobsets = rosDistro:
+    let
+      baseName = "workspaces";
+      distroTag = pkgs.lib.optionalString (rosDistro != null) "-${rosDistro}";
+    in
+    {
+      "${baseName}${distroTag}" = mkWorkspaceJobset rosDistro null;
+    } // builtins.listToAttrs
+      (map
+        (pr: pkgs.lib.nameValuePair
+          "workspaces${distroTag}-pr-${pr.base.repo.name}-${toString pr.number}"
+          (mkWorkspaceJobset rosDistro pr))
+        novaPrs);
+
+  mkAllWorkspaceJobsets = extraDistros: builtins.foldl'
+    (jobs: distro: jobs // mkWorkspaceDistroJobsets distro)
+    (mkWorkspaceDistroJobsets null)
+    extraDistros;
+
+  jobsets = mkAllWorkspaceJobsets [ "humble" ] // {
     docs = mkJobset {
       description = "Nova Rover documentation";
       nixexprpath = "ci/jobsets/docs.nix";
@@ -91,14 +118,7 @@ let
       inputs = novaInputs // { home-manager = homeManagerInput; };
       checkinterval = 60 * 60 * 24 * 7;
     };
-    workspaces = mkWorkspaceJobset null;
-  } // builtins.listToAttrs
-    (map
-      (pr:
-        pkgs.lib.nameValuePair
-          "workspaces-pr-${pr.base.repo.name}-${toString pr.number}"
-          (mkWorkspaceJobset pr))
-      novaPrs);
+  };
 in
 {
   jobsets =
