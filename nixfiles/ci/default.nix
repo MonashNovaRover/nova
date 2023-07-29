@@ -68,7 +68,12 @@ let
   };
 
   mkWorkspaceJobset = rosDistro: pr: mkJobset {
-    description = "Nova Rover workspaces${pkgs.lib.optionalString (pr != null) (" - ${pr.base.repo.name}#${toString pr.number} (${pr.title})")}";
+    description =
+      let
+        distroTag = pkgs.lib.optionalString (rosDistro != null) " (for ${pkgs.lib.toUpper (builtins.substring 0 1 rosDistro)}${builtins.substring 1 (builtins.stringLength rosDistro) rosDistro})";
+        prTag = pkgs.lib.optionalString (pr != null) (" - ${pr.base.repo.name}#${toString pr.number} (${pr.title})");
+      in
+      "Nova Rover workspaces${distroTag}${prTag}";
     nixexprpath = "ci/jobsets/workspaces.nix";
     inputs = novaInputs //
       {
