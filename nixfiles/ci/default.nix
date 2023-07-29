@@ -20,7 +20,7 @@ let
     enableemail = false;
     enable_dynamic_run_command = false;
     emailoverride = "";
-    keepnr = 3;
+    keepnr = 1;
   } // args // {
     inputs = {
       nixpkgs = mkGitHubInput { owner = "NixOS"; repo = "nixpkgs"; branch = "nixos-unstable"; };
