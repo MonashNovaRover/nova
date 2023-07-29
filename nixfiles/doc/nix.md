@@ -70,7 +70,7 @@ After you are in the workspace, run the following command, which configures
 things like shell completion.
 
 ```
-eval "$(mk-nova-shell-setup)"
+eval "$(mk-workspace-shell-setup)"
 ```
 
 Now, the workspace can be used like normal. `ros2 run` to your heart's content.

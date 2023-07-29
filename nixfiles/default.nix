@@ -45,6 +45,13 @@ let
     ];
   };
 
+  nix-ros-workspace = pkgs.fetchFromGitHub {
+    owner = "hacker1024";
+    repo = "nix-ros-workspace";
+    rev = "f1dc3b760e6d1a19e6dce054ee418dd3a829b99e";
+    hash = "sha256-K6QQA9Km/31z92SBOfIr1qw5MEU+dNJXP4SjFv3IJSg=";
+  };
+
   inherit (pkgs.lib.evalModules {
     modules = [
       (import ./external/out-of-tree.nix)
@@ -59,6 +66,9 @@ let
     overlays = [
       # Add the nix-ros-overlay. This supplies vanilla ROS packages.
       (import (nix-ros-overlay + /overlay.nix))
+
+      # Add the nix-ros-workspace overlay. This adds more functionallity to nix-ros-overlay.
+      (import nix-ros-workspace).overlay
 
       # Add the custom overlay. This:
       #  - Adds custom library functions
