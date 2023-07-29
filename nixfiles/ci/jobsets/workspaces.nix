@@ -13,19 +13,19 @@ let
         workspace
         hydraPatchedWorkspace;
     in
-    # Build Nova Rover packages.
-    hydraPatchedWorkspace.novaPackages
+    # Build our packages.
+    hydraPatchedWorkspace.devPackages
 
     # Build other workspace packages.
-    ++ hydraPatchedWorkspace.extraPackages
+    ++ hydraPatchedWorkspace.prebuiltPackages
 
-    # Build development dependencies of Nova packages.
-    # This ensures that all the software needed to develop Nova software is
+    # Build development dependencies of our packages.
+    # This ensures that all the software needed to develop our software is
     # available.
     #
     # The non-patched workspace is used here, to build regular development
     # dependencies.
-    ++ map (pkg: (pkg.overrideAttrs ({ name, ... }: { name = "${name}-inputs"; })).inputDerivation) workspace.novaPackages
+    ++ map (pkg: (pkg.overrideAttrs ({ name, ... }: { name = "${name}-inputs"; })).inputDerivation) workspace.devPackages
 
     # Build software in the workspace development environment.
     # While this will mostly overlap in scope with the line above, the workspace
