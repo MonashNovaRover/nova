@@ -35,11 +35,15 @@
   ]
 }:
 
-buildROSWorkspace {
+(buildROSWorkspace {
   name = "nova";
   inherit interactive;
   devPackages = novaPackages;
   prebuiltPackages = lib.optionals graphical [
     rviz2
   ];
-}
+}).overrideAttrs ({ passthru ? { }, ... }: {
+  passthru = passthru // {
+    inherit novaPackages;
+  };
+})
