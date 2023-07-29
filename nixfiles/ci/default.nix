@@ -89,6 +89,7 @@ let
       description = "Nova Rover ISOs";
       nixexprpath = "ci/jobsets/isos.nix";
       inputs = novaInputs // { home-manager = homeManagerInput; };
+      checkinterval = 60 * 60 * 24 * 7;
     };
     workspaces = mkWorkspaceJobset null;
   } // builtins.listToAttrs
