@@ -18,8 +18,8 @@ let
     src = pkgs.fetchFromGitHub {
       owner = "NixOS";
       repo = "nixpkgs";
-      rev = "e74e68449c385db82de3170288a28cd0f608544f";
-      hash = "sha256-VNhuyb10c9SV+3hZOlxwJwzEGytZ31gN9w4nPCnNvdI=";
+      rev = "2a9d660ff0f7ffde9d73be328ee6e6f10ef66b28";
+      hash = "sha256-x3ZOPGLvtC0/+iFAg9Kvqm/8hTAIkGjc634SqtgaXTA=";
     };
     patches = [ ];
   };
@@ -28,8 +28,8 @@ let
     src = pkgs.fetchFromGitHub {
       owner = "lopsided98";
       repo = "nix-ros-overlay";
-      rev = "cd320a369b3b05f0be7b78ceb2287d7ac4c9e804";
-      hash = "sha256-tbvHbFiKim1rZR4hRky6dOVn7QTccHnKe637dkbZLlU=";
+      rev = "3205dadcff4e1fbc779ce3962bafcf3e9f3e931b";
+      hash = "sha256-FUAvjcpVyDMZ2zCqUrpGlLtRZlF3PqW2alpyi82bMa8=";
     };
     patches = [
       # Make buildEnv more flexible
