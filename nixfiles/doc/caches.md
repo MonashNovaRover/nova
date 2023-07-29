@@ -34,7 +34,7 @@ dependencies.
 ### Setup
 
 When using the [NixOS module](./nixos.md), configure the [`nova.substituters.nova`](https://hydra.ulna.leivenzon.id.au/manual/nixos#novasubstitutersnovaenable)
-options. Otherwise, Follow the [ROS binary cache](https://github.com/lopsided98/nix-ros-overlay#configure-binary-cache)
-instructions, replacing `ros` with `nova` where appropriate.
+options. Otherwise, add the [Hydra server](./hydra.md) to the [substituter list](https://nixos.org/manual/nix/unstable/command-ref/conf-file.html#conf-substituters),
+along with a [netrc file](https://nixos.org/manual/nix/unstable/command-ref/conf-file.html#conf-netrc-file) including the required credentials.
 
-The public key is `nova.cachix.org-1:lGXmFv5muzN5S4Q1CHFqgDC8c0ponqy5albHQMNE5C8=`.
+The public key is `***REMOVED***`.
