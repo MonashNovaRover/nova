@@ -57,7 +57,7 @@ let
                   json.enable = false;
                 };
 
-                home.activation.livecd-workspace-source-setup = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+                home.activation.livecd-workspace-source-setup = lib.mkif includeWorkspace (lib.hm.dag.entryAfter [ "writeBoundary" ] ''
                   if [ ! -f ~/src ]; then
                     echo 'Populating initial workspace source tree...'
                     cp -r '${src}' ~/src
@@ -72,7 +72,7 @@ let
                     }
                     chmod -R u+w ~/src
                   fi
-                '';
+                '');
               })
             ];
           })
