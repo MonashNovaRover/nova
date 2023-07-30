@@ -1,13 +1,24 @@
-{ config, lib, ... }:
+{ config, pkgs, lib, ... }:
 
+let
+  cfg = config.nova.workspace;
+in
 {
-  # Note: Ideally, the workspace should be configured entirely in the Home Manager
-  # module for cross-distro accesibility.
-  # The purpose of this module is to configure defaults based on NixOS settings.
+  imports = [
+    ./services.nix
+  ];
 
-  home-manager.nova.sharedModules = [{
-    nova.workspace = {
-      gui.enable = lib.mkDefault config.services.xserver.enable;
-    };
-  }];
+  options.nova.workspace = {
+    enable = lib.mkEnableOption "the Nova Rover ROS workspace" // { default = true; };
+    package = lib.mkPackageOption pkgs [ "nova" "ros" "nova-workspace" ] { };
+  };
+
+  config = lib.mkIf cfg.enable {
+    home-manager.nova.sharedModules = [{
+      nova.workspace = {
+        inherit (cfg) enable package;
+        gui.enable = lib.mkDefault config.services.xserver.enable;
+      };
+    }];
+  };
 }

@@ -33,6 +33,9 @@
     nova-gui-frontend
     nova-gui-frontend-server
   ]
+
+  ## Extra packages to add to the workspace.
+, extraPackages ? [ ]
 }:
 
 (buildROSWorkspace {
@@ -41,9 +44,10 @@
   devPackages = novaPackages;
   prebuiltPackages = lib.optionals graphical [
     rviz2
-  ];
+  ]
+  ++ extraPackages;
 }).overrideAttrs ({ passthru ? { }, ... }: {
   passthru = passthru // {
-    inherit novaPackages;
+    inherit novaPackages extraPackages;
   };
 })
