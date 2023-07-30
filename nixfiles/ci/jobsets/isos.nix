@@ -30,8 +30,12 @@ let
             };
 
             nova = {
-              desktop.enable = graphical;
               substituters.nova.password = "***REMOVED***";
+              desktop.enable = graphical;
+              workspace = {
+                enable = includeWorkspace;
+                package = hydraPatchedWorkspace;
+              };
             };
             home-manager.sharedModules = [{
               # The Home Manager manual causes issues on Hydra.
@@ -40,14 +44,8 @@ let
                 manpages.enable = false;
                 json.enable = false;
               };
-              nova = {
-                workspace = {
-                  enable = includeWorkspace;
-                  package = hydraPatchedWorkspace;
-                };
-              };
             }];
-          }
+          })
         ];
       });
 
