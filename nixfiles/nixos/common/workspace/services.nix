@@ -20,6 +20,8 @@ in
       lib.nova.mkWorkspaceService = { path ? [ ], script, ... }@args: args // {
         serviceConfig.User = config.users.users.nova-workspace.name;
         serviceConfig.Group = config.users.users.nova-workspace.group;
+        serviceConfig.StateDirectory = "nova-workspace";
+        serviceConfig.StateDirectoryMode = 0750;
         serviceConfig.LogsDirectory = "nova-workspace";
         path = [
           (config.nova.workspace.package.override {
@@ -33,6 +35,7 @@ in
           })
         ] ++ path;
         script = ''
+          export ROS_HOME="$STATE_DIRECTORY"
           export ROS_LOG_DIR="$LOGS_DIRECTORY"
           ${script}
         '';
