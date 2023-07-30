@@ -18,8 +18,8 @@ in
     ];
 
     programs = {
-      bash.initExtra = "eval \"$(mk-nova-shell-setup)\"";
-      zsh.initExtra = "eval \"$(mk-nova-shell-setup)\"";
+      bash.initExtra = "eval \"$(mk-workspace-shell-setup)\"";
+      zsh.initExtra = "eval \"$(mk-workspace-shell-setup)\"";
     };
   };
 }
