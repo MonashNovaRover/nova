@@ -1,10 +1,12 @@
 { pkgs, ... }:
 
+let
+  extensions = with pkgs.gnomeExtensions; [ dash-to-dock ];
+in
 {
-  home.packages = with pkgs.gnomeExtensions; [ dash-to-dock ];
-
+  home.packages = extensions;
   dconf.settings = {
-    "org/gnome/shell".enabled-extensions = [ "dash-to-dock@micxgx.gmail.com" ];
+    "org/gnome/shell".enabled-extensions = map (extension: extension.extensionUuid) extensions;
     "org/gnome/shell/extensions/dash-to-dock" = {
       # Multi-monitor
       multi-monitor = true;
