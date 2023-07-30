@@ -54,7 +54,7 @@ Note that graphical applications will not work in NixOS's imperative containers,
 1. [Install extra-container](https://github.com/erikarvstedt/extra-container#install)
 2. Create a container
    ```
-   $ extra-container create --expr 'import ./nixos/installer/container { }'
+   $ extra-container create -E 'import ./nixos/installer/container { }'
    ```
 3. Start the container
    ```
@@ -96,7 +96,7 @@ container.
 For example:
 
 ```
-$ extra-container create --expr 'import ./nixos/installer/container {
+$ extra-container create -E 'import ./nixos/installer/container {
     name = "nova-headless";
     modules = [{
       services.xserver.enable = false;
