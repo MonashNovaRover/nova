@@ -27,7 +27,6 @@ let
           ({ lib, ... }: {
             isoImage = {
               isoBaseName = "nixos-nova${lib.optionalString graphical "-graphical"}${lib.optionalString includeWorkspace "-workspace"}";
-              makeBiosBootable = false;
               squashfsCompression = lib.mkIf (!enableCompression) "xz -noI -noD -noF -noX";
 
               # Add workspace development dependencies, so that the live
