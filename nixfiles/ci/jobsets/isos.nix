@@ -2,6 +2,7 @@
 , nixpkgs
 , home-manager
 , src
+, enableCompression ? true
 , ...
 }@args:
 
@@ -22,9 +23,10 @@ let
             homeManagerNixOSModule = "${home-manager}/nixos";
           })
           ../../nixos/installer/cd-dvd/nova-installation-cd-${if graphical then "graphical" else "base"}.nix
-          {
+          ({ lib, ... }: {
             isoImage = {
-              isoBaseName = "nixos-nova${lib.releaseLib.pkgs.lib.optionalString graphical "-graphical"}${lib.releaseLib.pkgs.lib.optionalString includeWorkspace "-workspace"}";
+              isoBaseName = "nixos-nova${lib.optionalString graphical "-graphical"}${lib.optionalString includeWorkspace "-workspace"}";
+              squashfsCompression = lib.mkIf (!enableCompression) "xz -noI -noD -noF -noX";
             };
 
             nova = {
