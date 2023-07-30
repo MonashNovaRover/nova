@@ -6,5 +6,9 @@ in
 {
   config = lib.mkIf cfg.enable {
     home.packages = with pkgs; [ blackbox-terminal ];
+
+    dconf.settings."com/raggesilver/BlackBox" = {
+      headerbar-drag-area = true;
+    };
   };
 }
