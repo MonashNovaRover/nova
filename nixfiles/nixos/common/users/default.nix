@@ -44,6 +44,8 @@
       }
     ];
 
+    nix.settings.trusted-users = lib.optional config.nova.users.nova.enable config.users.users.nova.name;
+
     home-manager = {
       useUserPackages = true;
       users =
