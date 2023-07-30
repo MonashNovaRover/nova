@@ -29,7 +29,17 @@ let
               isoBaseName = "nixos-nova${lib.optionalString graphical "-graphical"}${lib.optionalString includeWorkspace "-workspace"}";
               makeBiosBootable = false;
               squashfsCompression = lib.mkIf (!enableCompression) "xz -noI -noD -noF -noX";
+
+              # Add workspace development dependencies, so that the live
+              # environment can be used for development right away.
+              # The difference between the workspace build and runtime input
+              # closures is around ~600MB uncompressed at the time of writing.
+              storeContents = lib.mkIf includeWorkspace ([ workspace.env.inputDerivation ] ++ (builtins.attrValues nova.inputs));
             };
+
+            # The configuration is too complicated to express in static module
+            # files.
+            installer.cloneConfig = false;
 
             nova = {
               substituters.nova.password = "***REMOVED***";
@@ -39,14 +49,36 @@ let
                 package = hydraPatchedWorkspace;
               };
             };
-            home-manager.sharedModules = [{
-              # The Home Manager manual causes issues on Hydra.
-              manual = {
-                html.enable = false;
-                manpages.enable = false;
-                json.enable = false;
-              };
-            }];
+            home-manager.sharedModules = [
+              ({ lib, ... }: {
+                # The Home Manager manual causes issues on Hydra.
+                manual = {
+                  html.enable = false;
+                  manpages.enable = false;
+                  json.enable = false;
+                };
+
+                home.activation.livecd-workspace-source-setup = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+                  if [ ! -f ~/src ]; then
+                    echo 'Populating initial workspace source tree...'
+                    cp -r '${src}' ~/src
+                    chmod -R u+w ~/src
+                    ${builtins.concatStringsSep "\n" (lib.mapAttrsToList
+                      (category: repos: builtins.concatStringsSep "\n"
+                        ([ "mkdir -p ~/src/external/src/'${category}'" ] ++
+                        (map
+                          (repo: "cp -r '${args.${repo}}' ~/src/external/src/${category}/'${repo}'")
+                          repos)))
+                      {
+                        ros = [ "rover" "cameras2" "gui" ];
+                        other = [ "coms_utils" ];
+                      })
+                    }
+                    chmod -R u+w ~/src
+                  fi
+                '';
+              })
+            ];
           })
         ] ++ extraModules;
       });

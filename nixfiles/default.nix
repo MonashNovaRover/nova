@@ -106,6 +106,15 @@ let
 in
 rec {
   inherit repos config options;
+
+  # Inputs required for the evaluation of expressions in this repository.
+  # It is useful to keep track of these, because Nix has no built-in way to do
+  # so, and they are often accidentally garbage collected.
+  inputs = {
+    inherit nixpkgs nix-ros-overlay nix-ros-workspace;
+    inherit (pkgs) github-gitignore;
+  };
+
   pkgs = novaPkgs;
 
   homeModule = {

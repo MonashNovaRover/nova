@@ -3,7 +3,7 @@ pkgs: lib:
 let
   inherit (pkgs)
     nix-gitignore
-    fetchFromGitHub;
+    github-gitignore;
 in
 {
   # Filters a Nova Rover source tree, removing:
@@ -49,45 +49,35 @@ in
           "shell.nix"
           "nix/"
         ]
-        ++ (
-          let
-            gitignores = fetchFromGitHub {
-              owner = "github";
-              repo = "gitignore";
-              rev = "4488915eec0b3a45b5c63ead28f286819c0917de";
-              hash = "sha256-t/+ZQiGEziCqs8kIdlb/3/KBs0XQnHyQC+xoV2rzfbQ=";
-            };
-          in
-          builtins.foldl'
-            # While gitignoreFilterSourcePure does support paths in the pattern
-            # list, it is not possible to turn a derivation output path string
-            # into a true path type.
-            #
-            # This is because Nix has no way to associate paths with derivations
-            # like it does with strings, so when the path is used, Nix will not
-            # know to build the derivation beforehand.
-            #
-            # The logic from gitignoreCompileIgnore to read patterns from a file
-            # is therefore replicated here.
-            (patterns: file: patterns ++ lib.toList (builtins.readFile file))
-            [ ]
-            ([
-              # Languages and frameworks
-              (gitignores + /C.gitignore)
-              # (gitignores + /C++.gitignore) # Disabled to reduce evaluation time. Almost completely a subset of C.gitignore.
-              (gitignores + /Python.gitignore)
-              (gitignores + /CMake.gitignore)
-              # (gitignores + /ROS.gitignore) # Faulty - filters out certain message files.
-              (gitignores + /community/ROS2.gitignore)
-              (gitignores + /community/Nix.gitignore)
+        ++ builtins.foldl'
+          # While gitignoreFilterSourcePure does support paths in the pattern
+          # list, it is not possible to turn a derivation output path string
+          # into a true path type.
+          #
+          # This is because Nix has no way to associate paths with derivations
+          # like it does with strings, so when the path is used, Nix will not
+          # know to build the derivation beforehand.
+          #
+          # The logic from gitignoreCompileIgnore to read patterns from a file
+          # is therefore replicated here.
+          (patterns: file: patterns ++ lib.toList (builtins.readFile file))
+          [ ]
+          ([
+            # Languages and frameworks
+            "${github-gitignore}/C.gitignore"
+            # "${github-gitignore}/C++.gitignore # Disabled to reduce evaluation time. Almost completely a subset of C.gitignore".
+            "${github-gitignore}/Python.gitignore"
+            "${github-gitignore}/CMake.gitignore"
+            # "${github-gitignore}/ROS.gitignore" # Faulty - filters out certain message files.
+            "${github-gitignore}/community/ROS2.gitignore"
+            "${github-gitignore}/community/Nix.gitignore"
 
-              # Operating systems and editors
-              (gitignores + /Global/Linux.gitignore)
-              # (gitignores + /Global/macOS.gitignore) # Disabled to reduce evaluation time.
-              (gitignores + /Global/Vim.gitignore)
-              (gitignores + /Global/JetBrains.gitignore)
-            ])
-        )
+            # Operating systems and editors
+            "${github-gitignore}/Global/Linux.gitignore"
+            # "${github-gitignore}/Global/macOS.gitignore" # Disabled to reduce evaluation time.
+            "${github-gitignore}/Global/Vim.gitignore"
+            "${github-gitignore}/Global/JetBrains.gitignore"
+          ])
         ++ lib.optional (builtins.pathExists (src + /.gitignore)) (src + /.gitignore)
         ++ extraPatterns
       )
