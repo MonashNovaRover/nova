@@ -5,4 +5,6 @@
     ./nova
     ./workspace
   ];
+
+  nixpkgs.config.allowUnfree = true;
 }
