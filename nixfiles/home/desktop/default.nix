@@ -10,6 +10,7 @@ in
     ./keybindings.nix
     ./shortcuts.nix
     ./terminal.nix
+    ./vscode
   ];
 
   options.nova.desktop = {

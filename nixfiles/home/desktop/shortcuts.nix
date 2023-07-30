@@ -11,7 +11,10 @@ in
           "org.gnome.Nautilus.desktop"
           "com.raggesilver.BlackBox.desktop"
         ]
-        ++ lib.optional config.nova.desktop.browser.enable "chromium-browser.desktop";
+        ++ lib.optional config.nova.desktop.browser.enable "chromium-browser.desktop"
+        ++ [
+          "codium.desktop"
+        ];
       };
     };
   };
