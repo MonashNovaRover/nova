@@ -3,6 +3,7 @@
 , home-manager
 , src
 , enableCompression ? true
+, extraModules ? [ ]
 , ...
 }@args:
 
@@ -46,7 +47,7 @@ let
               };
             }];
           })
-        ];
+        ] ++ extraModules;
       });
 
       # "extensions" cannot be used as the variable name due to https://github.com/NixOS/nix/issues/8701.
