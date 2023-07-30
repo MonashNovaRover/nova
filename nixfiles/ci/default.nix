@@ -6,8 +6,8 @@
 }@args:
 
 let
-  novaRepos = import ./nova-repos.nix;
   pkgs = import nixpkgs { };
+  allNovaRepos = builtins.foldl' pkgs.lib.recursiveUpdate { } (builtins.attrValues (import ./nova-repos.nix));
 
   mkJobset = { description, nixexprpath, inputs ? { }, ... }@args: {
     enabled = 1;
@@ -43,12 +43,12 @@ let
 
   novaInputs = builtins.mapAttrs
     (repo: branch: mkNovaInput { inherit repo branch; })
-    novaRepos;
+    allNovaRepos;
 
   novaPrs = builtins.foldl'
     (allPrs: repo:
       let
-        branch = novaRepos.${repo};
+        branch = allNovaRepos.${repo};
         repoPrs = builtins.attrValues (builtins.fromJSON (builtins.readFile args."${repo}-pr-json"));
       in
       allPrs ++ builtins.filter
@@ -60,7 +60,7 @@ let
           (pr.base.ref == (if branch == null then pr.base.repo.default_branch else branch)))
         repoPrs)
     [ ]
-    (builtins.attrNames novaRepos);
+    (builtins.attrNames allNovaRepos);
 
   homeManagerInput = mkGitHubInput {
     owner = "nix-community";

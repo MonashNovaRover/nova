@@ -1,7 +1,7 @@
 { supportedSystems
 , nixpkgs
 , src
-, repos ? builtins.attrNames (import ./nova-repos.nix)
+, repos ? builtins.foldl' (repos: category: repos ++ builtins.attrNames category) [ ] (builtins.attrValues (import ./nova-repos.nix))
 , ...
 }@args:
 

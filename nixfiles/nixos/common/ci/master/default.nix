@@ -93,7 +93,7 @@ in
             inputs = src
             ${builtins.concatStringsSep "\n" (map
               (repo: "inputs = ${repo}")
-              (builtins.attrNames (import ../../../../ci/nova-repos.nix)))}
+              (builtins.foldl' (repos: category: repos ++ builtins.attrNames category) [ ] (builtins.attrValues (import ../../../../ci/nova-repos.nix))))}
           </githubstatus>
         ''}
       '';

@@ -68,11 +68,8 @@ let
                         ([ "mkdir -p ~/src/external/src/'${category}'" ] ++
                         (map
                           (repo: "cp -r '${args.${repo}}' ~/src/external/src/${category}/'${repo}'")
-                          repos)))
-                      {
-                        ros = [ "rover" "cameras2" "gui" ];
-                        other = [ "coms_utils" ];
-                      })
+                          (builtins.attrNames repos))))
+                      (import ../nova-repos.nix))
                     }
                     chmod -R u+w ~/src
                   fi
