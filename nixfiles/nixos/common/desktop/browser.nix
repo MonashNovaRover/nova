@@ -2,6 +2,7 @@
 
 let
   cfg = config.nova.desktop.browser;
+  guiEnabled = config.nova.workspace.services.enable;
 in
 {
   options.nova.desktop.browser.enable = lib.mkEnableOption "Nova Rover Chromium configuration";
@@ -11,13 +12,18 @@ in
       enable = true;
       extraOpts = {
         # Startup
-        RestoreOnStartup = false;
-        HomepageIsNewTabPage = true;
-        HomepageLocation = "https://www.novarover.space";
+        RestoreOnStartup = if guiEnabled then 4 else 5;
+        HomepageIsNewTabPage = false;
+        HomepageLocation =
+          if guiEnabled then
+            "http://localhost"
+          else
+            "https://www.novarover.space";
+        RestoreOnStartupURLs = lib.optional guiEnabled "http://localhost";
 
         # Appearance
         BrowserThemeColor = "#D4627A";
-        ShowHomeButton = false;
+        ShowHomeButton = guiEnabled;
         NTPCardsVisible = false;
         NTPContentSuggestionsEnabled = false;
         NTPMiddleSlotAnnouncementVisible = false;
@@ -30,6 +36,11 @@ in
           {
             name = "Monash Nova Rover";
             url = "https://www.novarover.space";
+          }
+        ] ++ lib.optionals guiEnabled [
+          {
+            name = "Rover GUI";
+            url = "http://localhost";
           }
         ];
 
