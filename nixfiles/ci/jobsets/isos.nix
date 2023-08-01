@@ -78,7 +78,7 @@ let
                       # so that the directory derivation generated later matches.
                       let
                         prefix = "${directory}/.${baseNameOf args.${repo}}";
-                        destination = "${prefix}/${builtins.substring 33 (builtins.stringLength (baseNameOf args.${repo})) (baseNameOf args.${repo})}";
+                        destination = "${prefix}/${baseNameOf args.${repo}}";
                       in
                       ''
                         mkdir "${prefix}"
