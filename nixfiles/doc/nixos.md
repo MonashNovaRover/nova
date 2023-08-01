@@ -15,8 +15,12 @@ user and binary cache
 Builds for `aarch64-linux` are also available. See the [complete Hydra jobset](https://hydra.ulna.leivenzon.id.au/jobset/nova/isos/latest-eval).
 
 The `workspace` variants are recommended for trying out all of the features
-before installing. Otherwise, the non-workspace variants are recommened for
-installation purposes. [The GNOME Partition Editor (GParted)](https://gparted.org) is included in all `graphical` variants.
+before installing. As well as including all our software preinstalled, they ship
+with source code in `~/src` and build dependencies in the Nix store. You can
+boot the ISO and work on any package of ours immediately.
+
+The non-workspace variants are recommened for pure installation purposes.
+[The GNOME Partition Editor (GParted)](https://gparted.org) is included in all `graphical` variants.
 
 Follow the NixOS [manual installation instructions](https://nixos.org/manual/nixos/unstable/index.html#sec-installation-manual).
 When the time comes to edit `configuration.nix`, follow the instructions below
