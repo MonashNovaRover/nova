@@ -17,7 +17,11 @@ buildRosPackage {
   name = "cameras2";
   buildType = "ament_python";
 
-  src = lib.cleanNovaSource [ ] ../../../cameras2;
+  src = builtins.path rec {
+    name = "cameras2-source";
+    path = ../../../cameras2;
+    filter = lib.novaSourceFilter [ ] path;
+  };
 
   patches = [
     (substituteAll {

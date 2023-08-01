@@ -8,7 +8,11 @@ buildRosPackage {
   name = "camera-msgs";
   buildType = "ament_cmake";
 
-  src = lib.cleanNovaSource [ ] ../../../camera_msgs;
+  src = builtins.path rec {
+    name = "camera-msgs-source";
+    path = ../../../camera_msgs;
+    filter = lib.novaSourceFilter [ ] path;
+  };
 
   nativeBuildInputs = [ ament-cmake rosidl-default-generators ];
 }
