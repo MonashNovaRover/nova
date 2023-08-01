@@ -23,30 +23,31 @@
   ## Manually specify which Nova Rover packages to include.
   ## Note that some packages may have dependencies on others that will be
   ## implicitly included.
-, novaPackages ? [
-    nova-core
-    nova-control
-    nova-autonomous
-    nova-electronics
-    nova-science
-    nova-cameras2
-    nova-gui-backend
-    nova-gui-frontend
-    nova-gui-frontend-server
-  ]
+, novaPackages ? {
+    inherit
+      nova-core
+      nova-control
+      nova-autonomous
+      nova-electronics
+      nova-science
+      nova-cameras2
+      nova-gui-backend
+      nova-gui-frontend
+      nova-gui-frontend-server;
+  }
 
   ## Extra packages to add to the workspace.
-, extraPackages ? [ ]
+, extraPackages ? { }
 }:
 
 (buildROSWorkspace {
   name = "nova";
   inherit interactive;
   devPackages = novaPackages;
-  prebuiltPackages = lib.optionals graphical [
-    rviz2
-  ]
-  ++ extraPackages;
+  prebuiltPackages = (lib.optionalAttrs graphical {
+    inherit
+      rviz2;
+  }) // extraPackages;
 }).overrideAttrs ({ passthru ? { }, ... }: {
   passthru = passthru // {
     inherit novaPackages extraPackages;

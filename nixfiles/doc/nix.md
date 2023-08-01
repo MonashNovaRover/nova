@@ -34,13 +34,14 @@ and `extraPackages` arguments can be set. For example:
 
 ```
 nix-shell -p 'with import ./. { }; pkgs.ros.nova-workspace.override {
-  novaPackages = with pkgs.ros; [
-    nova-core
-    nova-control
-  ];
-  extraPackages = with pkgs.ros; [
-    turtlesim
-  ];
+  novaPackages = with pkgs.ros; {
+    inherit
+      nova-core
+      nova-control;
+  };
+  extraPackages = with pkgs.ros; {
+    inherit turtlesim;
+  };
 }'
 ```
 
@@ -64,13 +65,14 @@ This can be done like so:
 
 ```
 nix-build -E 'with import ./. { }; pkgs.ros.nova-workspace.override {
-  novaPackages = with pkgs.ros; [
-    nova-core
-    nova-control
-  ];
-  extraPackages = with pkgs.ros; [
-    turtlesim
-  ];
+  novaPackages = with pkgs.ros; {
+    inherit
+      nova-core
+      nova-control;
+  };
+  extraPackages = with pkgs.ros; {
+    inherit turtlesim;
+  };
 }'
 ```
 ---
@@ -123,7 +125,7 @@ Development can be done in two styles:
 
 1. Enter a package development shell. For example, `control`:
    ```
-   nix-shell -A pkgs.ros.nova-control
+   nix-shell -A pkgs.ros.nova-workspace.env.nova-control
    ```
 
 2. Switch to the package directory.
