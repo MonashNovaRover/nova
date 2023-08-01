@@ -1,6 +1,7 @@
 { lib
 , buildROSWorkspace
 , rviz2
+, gdb
 
 , nova-core ? throw "core is needed, but not available!"
 , nova-control ? throw "control is needed, but not available!"
@@ -49,5 +50,11 @@
 }).overrideAttrs ({ passthru ? { }, ... }: {
   passthru = passthru // {
     inherit novaPackages extraPackages;
+
+    env = passthru.env.overrideAttrs ({ nativeBuildInputs ? [ ], ... }: {
+      nativeBuildInputs = nativeBuildInputs ++ [
+        gdb
+      ];
+    });
   };
 })
