@@ -6,7 +6,7 @@
 }@args:
 
 rec {
-  releaseLib = import (nixpkgs + /pkgs/top-level/release-lib.nix) { inherit supportedSystems; };
+  releaseLib = import ("${nixpkgs}/pkgs/top-level/release-lib.nix") { inherit supportedSystems; };
 
   mkNova = pkgs: import src {
     inherit pkgs;

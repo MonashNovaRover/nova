@@ -1,5 +1,6 @@
 { supportedSystems
 , nixpkgs
+, nixpkgs-stable
 , home-manager
 , src
 , enableCompression ? true
@@ -17,7 +18,7 @@ let
         workspace
         hydraPatchedWorkspace;
 
-      baseSystem = (import (nixpkgs + /nixos/lib/eval-config.nix) {
+      baseSystem = (import ("${nixpkgs}/nixos/lib/eval-config.nix") {
         system = nova.pkgs.hostPlatform.system;
         modules = [
           (nova.nixosModule.override {
@@ -25,6 +26,17 @@ let
           })
           ../../nixos/installer/cd-dvd/nova-installation-cd-${if graphical then "graphical" else "base"}.nix
           ({ lib, ... }: {
+            nixpkgs.overlays = [
+              (self: super:
+                let
+                  stablePkgs = (import ("${nixpkgs-stable}/pkgs/top-level/release-lib.nix") { inherit supportedSystems; }).pkgsFor self.hostPlatform.system;
+                in
+                {
+                  # https://github.com/NixOS/nixpkgs/issues/245915
+                  grub2 = stablePkgs.grub2;
+                })
+            ];
+
             isoImage = {
               isoBaseName = "nixos-nova${lib.optionalString graphical "-graphical"}${lib.optionalString includeWorkspace "-workspace"}";
               squashfsCompression = lib.mkIf (!enableCompression) "xz -noI -noD -noF -noX";

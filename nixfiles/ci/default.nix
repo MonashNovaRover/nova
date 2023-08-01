@@ -120,7 +120,10 @@ let
     isos = mkJobset {
       description = "Nova Rover ISOs";
       nixexprpath = "ci/jobsets/isos.nix";
-      inputs = novaInputs // { home-manager = homeManagerInput; };
+      inputs = novaInputs // {
+        nixpkgs-stable = mkGitHubInput { owner = "NixOS"; repo = "nixpkgs"; branch = "nixos-23.05"; };
+        home-manager = homeManagerInput;
+      };
       checkinterval = 60 * 60 * 24 * 7;
     };
   };
