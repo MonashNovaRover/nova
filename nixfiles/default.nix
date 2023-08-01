@@ -123,9 +123,9 @@ rec {
   };
 
   nixosModule = pkgs.lib.makeOverridable
-    ({ homeManagerNixOSModule }: { ... }: {
+    ({ homeManagerNixOSModule }: { lib, ... }: {
       imports = [ homeManagerNixOSModule ./nixos ];
-      nixpkgs.overlays = [ (self: super: { nova = pkgs; }) ];
+      nixpkgs.overlays = lib.mkBefore [ (self: super: { nova = pkgs; }) ];
       home-manager.nova.sharedModules = [ homeModule ];
     })
     { homeManagerNixOSModule = <home-manager/nixos>; };
