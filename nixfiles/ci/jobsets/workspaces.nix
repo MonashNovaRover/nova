@@ -8,7 +8,7 @@
 let
   lib = import ../lib.nix args;
 
-  packageLists = lib.novaForAllSystems (nova:
+  packageJobs = lib.novaForAllSystems (nova:
     let
       inherit (import ../workspaces.nix { inherit lib nova rosDistro; })
         workspace
@@ -18,7 +18,7 @@ let
     hydraPatchedWorkspace.devPackages
 
     # Build other workspace packages.
-    ++ hydraPatchedWorkspace.prebuiltPackages
+    // hydraPatchedWorkspace.prebuiltPackages
 
     # Build development dependencies of our packages.
     # This ensures that all the software needed to develop our software is
@@ -26,7 +26,7 @@ let
     #
     # The non-patched workspace is used here, to build regular development
     # dependencies.
-    ++ map (pkg: (pkg.overrideAttrs ({ name, ... }: { name = "${name}-inputs"; })).inputDerivation) workspace.devPackages
+    // lib.releaseLib.pkgs.lib.mapAttrs' (name: pkg: lib.releaseLib.pkgs.lib.nameValuePair "${name}-inputs" pkg.inputDerivation) workspace.devPackages
 
     # Build software in the workspace development environment.
     # While this will mostly overlap in scope with the line above, the workspace
@@ -35,17 +35,9 @@ let
     #
     # The non-patched workspace is used here, to build regular development
     # dependencies.
-    ++ [ (workspace.env.overrideAttrs ({ ... }: { name = "workspace-inputs"; })).inputDerivation ]
+    // { nova-workspace-inputs = workspace.env.inputDerivation; }
 
     # Build the workspace itself.
-    ++ [ hydraPatchedWorkspace ]);
-
-  packageJobs = builtins.mapAttrs
-    (system: packageList:
-      builtins.listToAttrs
-        (map
-          (pkg: lib.releaseLib.pkgs.lib.nameValuePair (lib.releaseLib.pkgs.lib.getName pkg) pkg)
-          packageList))
-    packageLists;
+    // { nova-workspace = hydraPatchedWorkspace; });
 in
 packageJobs
