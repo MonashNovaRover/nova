@@ -32,12 +32,16 @@
       nova-science
       nova-cameras2
       nova-gui-backend
-      nova-gui-frontend
-      nova-gui-frontend-server;
+      nova-gui-frontend;
   }
 
   ## Extra packages to add to the workspace.
-, extraPackages ? { }
+, extraPackages ? {
+    inherit
+      # Some of our packages are simple constructions written in Nix and do not
+      # need to be considered in the build environment.
+      nova-gui-frontend-server;
+  }
 }:
 
 (buildROSWorkspace {
