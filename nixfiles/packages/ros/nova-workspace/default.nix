@@ -48,14 +48,12 @@
     inherit
       rviz2;
   }) // extraPackages;
+  prebuiltShellPackages = {
+    inherit
+      gdb;
+  };
 }).overrideAttrs ({ passthru ? { }, ... }: {
   passthru = passthru // {
     inherit novaPackages extraPackages;
-
-    env = passthru.env.overrideAttrs ({ nativeBuildInputs ? [ ], ... }: {
-      nativeBuildInputs = nativeBuildInputs ++ [
-        gdb
-      ];
-    });
   };
 })
