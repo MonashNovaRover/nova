@@ -27,11 +27,12 @@ in
           (config.nova.workspace.package.override {
             interactive = false;
             graphical = false;
-            extraPackages = with pkgs.nova.rosPackages.${config.nova.workspace.package.rosDistro}; [
-              ros2cli
-              ros2run
-              ros2launch
-            ];
+            extraPackages = {
+              inherit (pkgs.nova.rosPackages.${config.nova.workspace.package.rosDistro})
+                ros2cli
+                ros2run
+                ros2launch;
+            };
           })
         ] ++ path;
         script = ''
