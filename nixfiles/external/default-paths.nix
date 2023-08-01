@@ -2,7 +2,7 @@ let
   # Searches for directories in a directory listing.
   filterDirectories = entries: builtins.foldl'
     (directories: entry:
-      if entries.${entry} == "directory"
+      if entries.${entry} == "directory" || entries.${entry} == "symlink"
       then directories ++ [ entry ]
       else directories)
     [ ]
