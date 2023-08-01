@@ -58,6 +58,11 @@ let
               # environment can be used for development right away.
               # The difference between the workspace build and runtime input
               # closures is around ~600MB uncompressed at the time of writing.
+              #
+              # Note: The Hydra-patched-workspace is not used here, because it
+              # will not match the development environment.
+              # This means that some packages may fail to build, and will need
+              # to be built manually and pushed to Hydra's Nix store.
               storeContents = lib.mkIf includeWorkspace ([ workspace.env.inputDerivation ] ++ (builtins.attrValues nova.inputs));
             };
 
