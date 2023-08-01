@@ -27,6 +27,15 @@ let
           ../../nixos/installer/cd-dvd/nova-installation-cd-${if graphical then "graphical" else "base"}.nix
           ({ lib, ... }: {
             nixpkgs.overlays = [
+              # HACK: We need to apply to QEMU workarounds applied in the
+              # patched workspace to the whole package set, as some of the non-
+              # ROS packages are used outside the workspace.
+              (self: super: {
+                inherit (hydraPatchedWorkspace.novaPackages // hydraPatchedWorkspace.extraPackages)
+                  nova-gui-frontend
+                  nova-gui-frontend-server;
+              })
+
               (self: super:
                 let
                   stablePkgs = (import ("${nixpkgs-stable}/pkgs/top-level/release-lib.nix") { inherit supportedSystems; }).pkgsFor self.hostPlatform.system;
