@@ -34,13 +34,13 @@ and `extraPackages` arguments can be set. For example:
 
 ```
 nix-shell -p 'with import ./. { }; pkgs.ros.nova-workspace.override {
-  novaPackages = with pkgs.ros; {
-    inherit
+  novaPackages = {
+    inherit (pkgs.ros)
       nova-core
       nova-control;
   };
-  extraPackages = with pkgs.ros; {
-    inherit turtlesim;
+  extraPackages = {
+    inherit (pkgs.ros) turtlesim;
   };
 }'
 ```
@@ -65,13 +65,13 @@ This can be done like so:
 
 ```
 nix-build -E 'with import ./. { }; pkgs.ros.nova-workspace.override {
-  novaPackages = with pkgs.ros; {
-    inherit
+  novaPackages = {
+    inherit (pkgs.ros)
       nova-core
       nova-control;
   };
-  extraPackages = with pkgs.ros; {
-    inherit turtlesim;
+  extraPackages = {
+    inherit (pkgs.ros) turtlesim;
   };
 }'
 ```
