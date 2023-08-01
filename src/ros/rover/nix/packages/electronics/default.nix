@@ -13,7 +13,11 @@ buildRosPackage {
   name = "electronics";
   buildType = "ament_cmake";
 
-  src = lib.cleanNovaSource [ ] ../../../electronics;
+  src = builtins.path rec {
+    name = "electronics-source";
+    path = ../../../electronics;
+    filter = lib.novaSourceFilter [ ] path;
+  };
 
   nativeBuildInputs = [ ament-cmake ];
   buildInputs = [ rclcpp rclpy geometry-msgs nav-msgs nova-core ];

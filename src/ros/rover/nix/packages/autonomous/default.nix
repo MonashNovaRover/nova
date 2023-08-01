@@ -14,7 +14,11 @@ buildRosPackage {
   name = "autonomous";
   buildType = "ament_cmake";
 
-  src = lib.cleanNovaSource [ ] ../../../autonomous;
+  src = builtins.path rec {
+    name = "autonomous-source";
+    path = ../../../autonomous;
+    filter = lib.novaSourceFilter [ ] path;
+  };
 
   nativeBuildInputs = [ ament-cmake ];
   buildInputs = [

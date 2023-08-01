@@ -17,9 +17,14 @@ buildRosPackage {
   name = "control";
   buildType = "ament_cmake";
 
-  src = lib.cleanNovaSource [
-    "!include/jcan_*/libjcan.a"
-  ] ../../../control;
+  src = builtins.path rec {
+    name = "control-source";
+    path = ../../../control;
+    filter = lib.novaSourceFilter [
+      "!include/jcan_*/libjcan.a"
+    ]
+      path;
+  };
 
   nativeBuildInputs = [ ament-cmake ];
   buildInputs = [

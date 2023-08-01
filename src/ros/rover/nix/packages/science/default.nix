@@ -13,7 +13,11 @@ buildRosPackage {
   name = "science";
   buildType = "ament_cmake";
 
-  src = lib.cleanNovaSource [ ] ../../../science;
+  src = builtins.path rec {
+    name = "science-source";
+    path = ../../../science;
+    filter = lib.novaSourceFilter [ ] path;
+  };
 
   nativeBuildInputs = [ ament-cmake ];
   buildInputs = [ rclcpp rclpy geometry-msgs nav-msgs nova-core ];
