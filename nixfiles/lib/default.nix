@@ -24,6 +24,9 @@ in
         "default.nix"
         "shell.nix"
         "nix/"
+
+        # We do not share JetBrains IDE configuration files.
+        ".idea/"
       ]
       ++ builtins.foldl'
         # While gitignoreFilterPure does support paths in the pattern list, it
