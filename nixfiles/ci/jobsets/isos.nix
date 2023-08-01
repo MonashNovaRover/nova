@@ -57,22 +57,51 @@ let
                   json.enable = false;
                 };
 
-                home.activation.livecd-workspace-source-setup = lib.mkIf includeWorkspace (lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-                  if [ ! -f ~/src ]; then
-                    echo 'Populating initial workspace source tree...'
-                    cp -r '${src}' ~/src
-                    chmod -R u+w ~/src
-                    ${builtins.concatStringsSep "\n" (lib.mapAttrsToList
-                      (category: repos: builtins.concatStringsSep "\n"
-                        ([ "mkdir -p ~/src/external/src/'${category}'" ] ++
-                        (map
-                          (repo: "cp -r '${args.${repo}}' ~/src/external/src/${category}/'${repo}'")
-                          (builtins.attrNames repos))))
-                      (import ../nova-repos.nix))
-                    }
-                    chmod -R u+w ~/src
-                  fi
-                '');
+                home.activation.livecd-workspace-source-setup = lib.mkIf includeWorkspace (lib.hm.dag.entryAfter [ "writeBoundary" ] (
+                  let
+                    cpRepo = repo: directory:
+                      # Symlinks are used here in a very specific way.
+                      #
+                      # Our repositories contain their own package definitions,
+                      # which means that their source directories are copied into
+                      # the Nix store from path references. This means that the
+                      # name of source derivations is derived from the name of
+                      # the source directory itself.
+                      #
+                      # The source derivations given by Hydra, however, have no
+                      # such guarantee. At the time of writing, Git inputs have
+                      # a derivation name ending in "source".
+                      #
+                      # This difference changes the input hashes of many of our
+                      # packages. To mitigate this, we create symlinks to
+                      # directories with the name of the Hydra source derivation,
+                      # so that the directory derivation generated later matches.
+                      let
+                        prefix = "${directory}/.${baseNameOf args.${repo}}";
+                        destination = "${prefix}/${builtins.substring 33 (builtins.stringLength (baseNameOf args.${repo})) (baseNameOf args.${repo})}";
+                      in
+                      ''
+                        mkdir "${prefix}"
+                        cp -r ${args.${repo}} "${destination}"
+                        chmod -R u+w "${destination}"
+                        ln -s "${destination}" "${directory}/${repo}"
+                      '';
+                  in
+                  ''
+                    if [ ! -f ~/src ]; then
+                      echo 'Populating initial workspace source tree...'
+                      ${cpRepo "src" "$HOME"}
+                      ${builtins.concatStringsSep "\n" (lib.mapAttrsToList
+                        (category: repos: builtins.concatStringsSep "\n"
+                          ([ "mkdir -p ~/src/external/src/'${category}'" ] ++
+                          (map
+                            (repo: cpRepo repo "$HOME/src/external/src/${category}")
+                            (builtins.attrNames repos))))
+                        (import ../nova-repos.nix))
+                      }
+                    fi
+                  ''
+                ));
               })
             ];
           })
