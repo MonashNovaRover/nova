@@ -11,5 +11,10 @@
       bash.enable = true;
       git.enable = true;
     };
+
+    home.sessionVariables = {
+      NIX_AUTO_RUN = "1";
+      NIX_AUTO_RUN_INTERACTIVE = "1";
+    };
   };
 }
