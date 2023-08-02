@@ -25,8 +25,9 @@ in
         "shell.nix"
         "nix/"
 
-        # We do not share JetBrains IDE configuration files.
+        # IDE configuration files have no impact on build outputs.
         ".idea/"
+        ".vscode/"
       ]
       ++ builtins.foldl'
         # While gitignoreFilterPure does support paths in the pattern list, it
@@ -56,6 +57,7 @@ in
           # "${github-gitignore}/Global/macOS.gitignore" # Disabled to reduce evaluation time.
           "${github-gitignore}/Global/Vim.gitignore"
           "${github-gitignore}/Global/JetBrains.gitignore"
+          "${github-gitignore}/Global/VisualStudioCode.gitignore"
         ])
       ++ lib.optional (builtins.pathExists (root + /.gitignore)) (root + /.gitignore)
       ++ extraPatterns
