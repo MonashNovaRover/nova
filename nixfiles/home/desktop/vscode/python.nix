@@ -18,6 +18,13 @@ in
       ];
 
       userSettings = {
+        # Use Python from the environment 
+        "python.defaultInterpreterPath" = "${pkgs.runCommand "python-env-launcher" { nativeBuildInputs = with pkgs; [ makeWrapper ]; } ''
+          mkdir -p "$out/bin"
+          makeWrapper '${pkgs.coreutils}/bin/env' "$out/bin/python" \
+            --add-flags python
+        ''}/bin/python";
+
         "python.experiments.enabled" = false;
       };
     };
