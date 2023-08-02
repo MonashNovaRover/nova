@@ -18,7 +18,10 @@ in
       ];
 
       userSettings = {
-        # Use Python from the environment 
+        # Use Python from the environment. By default, the Python extension will
+        # search the filesystem for Python binaries, which does not work well
+        # with the Nix store.
+        # This is a simple wrapper that uses Python from PATH.
         "python.defaultInterpreterPath" = "${pkgs.runCommand "python-env-launcher" { nativeBuildInputs = with pkgs; [ makeWrapper ]; } ''
           mkdir -p "$out/bin"
           makeWrapper '${pkgs.coreutils}/bin/env' "$out/bin/python" \
