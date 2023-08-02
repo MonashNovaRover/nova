@@ -15,6 +15,10 @@ in
         }))
         ms-vscode.cmake-tools
       ];
+
+      userSettings = {
+        "cmake.configureOnOpen" = true;
+      };
     };
   };
 }
