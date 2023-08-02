@@ -59,7 +59,7 @@ in
             "apps-menu"
             "places-menu"
             "drive-menu"
-            "native-window-placement"
+            # "native-window-placement" # Buggy on some devices
             "workspace-indicator"
           ];
       };
