@@ -13,12 +13,10 @@ in
     package = lib.mkPackageOption pkgs [ "nova" "ros" "nova-workspace" ] { };
   };
 
-  config = lib.mkIf cfg.enable {
-    home-manager.nova.sharedModules = [{
-      nova.workspace = {
-        inherit (cfg) enable package;
-        gui.enable = lib.mkDefault config.services.xserver.enable;
-      };
-    }];
-  };
+  config.home-manager.nova.sharedModules = [{
+    nova.workspace = {
+      inherit (cfg) enable package;
+      gui.enable = lib.mkDefault config.services.xserver.enable;
+    };
+  }];
 }
