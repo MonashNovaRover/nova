@@ -8,6 +8,7 @@ in
     ./browser.nix
     ./extensions
     ./file-manager.nix
+    ./fonts.nix
     ./keybindings.nix
     ./shortcuts.nix
     ./terminal.nix
