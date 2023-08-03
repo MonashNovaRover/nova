@@ -1,5 +1,7 @@
 {
-  virtualisation.vmVariant = { lib, ... }: {
+  virtualisation.vmVariant = { modulesPath, lib, ... }: {
+    imports = [ "${modulesPath}/installer/cd-dvd/channel.nix" ];
+
     # Persist store operations by default to reduce confusion.
     #
     # When the Nix store is cleaned on a reboot, its database is not updated
