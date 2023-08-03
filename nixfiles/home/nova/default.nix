@@ -12,9 +12,24 @@
       git.enable = true;
     };
 
-    home.sessionVariables = {
-      NIX_AUTO_RUN = "1";
-      NIX_AUTO_RUN_INTERACTIVE = "1";
+    home = {
+      sessionVariables = {
+        NIX_AUTO_RUN = "1";
+        NIX_AUTO_RUN_INTERACTIVE = "1";
+      };
+
+      shellAliases = rec {
+        # Default options
+        grep = "grep --color=auto";
+
+        # Option shortcuts
+        ll = "ls -l";
+        la = "ls -a";
+        lla = "ls -la";
+
+        # Drop-in replacements
+        sudo = "sudo ";
+      };
     };
   };
 }
