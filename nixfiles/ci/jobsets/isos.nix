@@ -63,7 +63,25 @@ let
               # will not match the development environment.
               # This means that some packages may fail to build, and will need
               # to be built manually and pushed to Hydra's Nix store.
-              storeContents = lib.mkIf includeWorkspace ([ workspace.env.inputDerivation ] ++ (builtins.attrValues nova.inputs));
+              storeContents = lib.mkIf includeWorkspace ([
+                workspace.env.inputDerivation
+
+                # Add the build inputs of the ROS environment of a basic Nova
+                # ROS workspace with no Nova packages.
+                # nix-ros-workspace has features to generate custom environment
+                # derivations for the development of individual packages.
+                # We do not need to pre-generate these environment generations,
+                # as they can be built offline so long as all the required build
+                # inputs are available.
+                # Those build inputs consist of the workspace development
+                # packages (which can be built offline using the workspace input
+                # derivation added above), the workspace prebuilt packages
+                # (which are also added above) and the build inputs of the ROS
+                # environment derivation, which have not yet been added.
+                # We can find the missing inputs by creating an empty ROS
+                # environment.
+                (workspace.override { novaPackages = { }; }).rosEnv.inputDerivation
+              ] ++ (builtins.attrValues nova.inputs));
             };
 
             # The configuration is too complicated to express in static module
