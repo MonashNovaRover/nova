@@ -105,23 +105,13 @@ let
                   json.enable = false;
                 };
 
-                home.activation.livecd-workspace-source-setup = lib.mkIf includeWorkspace (lib.hm.dag.entryAfter [ "writeBoundary" ] (
-                  ''
-                    if [ ! -f ~/src ]; then
-                      echo 'Populating initial workspace source tree...'
-                      cp -r '${src}' ~/src
-                      chmod -R u+w ~/src
-                      ${builtins.concatStringsSep "\n" (lib.mapAttrsToList
-                        (category: repos: builtins.concatStringsSep "\n"
-                          ([ "mkdir -p ~/src/external/src/'${category}'" ] ++
-                          (map
-                            (repo: "cp -r '${args.${repo}}' ~/src/external/src/'${category}'/'${repo}'")
-                            (builtins.attrNames repos))))
-                        (import ../nova-repos.nix))}
-                      chmod -R u+w ~/src
-                    fi
-                  ''
-                ));
+                # Ship Nova package sources, so that the live environment can be
+                # used right away.
+                nova.workspace.sources = lib.mkIf includeWorkspace {
+                  enable = true;
+                  inherit src;
+                  external = builtins.mapAttrs (category: builtins.mapAttrs (repo: branch: args.${repo})) (import ../nova-repos.nix);
+                };
               })
             ];
           })

@@ -4,6 +4,8 @@ let
   cfg = config.nova.workspace;
 in
 {
+  imports = [ ./sources.nix ];
+
   options.nova.workspace = {
     enable = lib.mkEnableOption "the Nova Rover ROS workspace" // { default = true; };
     package = lib.mkPackageOption pkgs [ "nova" "ros" "nova-workspace" ] { };
