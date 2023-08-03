@@ -9,7 +9,25 @@
 
     programs = {
       bash.enable = true;
+
       git.enable = true;
+
+      powerline-go = {
+        enable = true;
+        modules = [
+          "nix-shell"
+          "venv"
+          "user"
+          "host"
+          "ssh"
+          "cwd"
+          "perms"
+          "git"
+          "jobs"
+          "exit"
+          "root"
+        ];
+      };
     };
 
     home = {
