@@ -62,6 +62,11 @@ let
       # Add the nix-ros-overlay. This supplies vanilla ROS packages.
       (import (nix-ros-overlay + /overlay.nix))
 
+      # Add the nix-ros-overlay FOD as a package.
+      # This, much like Nixpkgs's path attribute, allows callers to access files
+      # from the project.
+      (self: super: { inherit nix-ros-overlay; })
+
       # Add the nix-ros-workspace overlay. This adds more functionallity to nix-ros-overlay.
       (import nix-ros-workspace).overlay
 
