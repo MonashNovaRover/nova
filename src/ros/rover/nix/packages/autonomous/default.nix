@@ -5,8 +5,7 @@
 , rclpy
 , sensor-msgs
 , nav-msgs
-, opencv
-, librealsense2
+, pythonPackages
 , nova-core
 }:
 
@@ -23,13 +22,13 @@ buildRosPackage {
   nativeBuildInputs = [ ament-cmake ];
   buildInputs = [
     rclcpp
-    opencv
-    librealsense2
   ];
   propagatedBuildInputs = [
     rclpy
     sensor-msgs
     nav-msgs
+    pythonPackages.pyrealsense2
+    pythonPackages.opencv4
     nova-core
   ];
 }
