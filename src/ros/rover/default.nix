@@ -6,4 +6,8 @@
     nova-electronics = callPackage ./nix/packages/electronics { };
     nova-science = callPackage ./nix/packages/science { };
   };
+
+  pythonPackages = pythonPackages: with pythonPackages; {
+    ultralytics = pythonPackages.callPackage ./nix/packages/misc/ultralytics { };
+  };
 }
