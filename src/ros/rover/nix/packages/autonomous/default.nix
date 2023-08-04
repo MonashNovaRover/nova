@@ -29,6 +29,7 @@ buildRosPackage {
     nav-msgs
     pythonPackages.pyrealsense2
     pythonPackages.opencv4
+    pythonPackages.ultralytics
     nova-core
   ];
 }
