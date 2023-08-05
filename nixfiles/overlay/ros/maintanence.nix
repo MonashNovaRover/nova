@@ -52,7 +52,7 @@ self: super:
     }));
 
   # Overlay for distro-agnostic packages.
-  gazebo = super.gazebo.overrideAttrs ({ qtWrapperArgs ? [ ], ... }: {
+  gazebo_11 = super.gazebo_11.overrideAttrs ({ qtWrapperArgs ? [ ], ... }: {
     qtWrapperArgs = qtWrapperArgs ++ [
       # Let the gazebo binary see neighboring binaries.
       # It attempts to run gzclient from PATH.
