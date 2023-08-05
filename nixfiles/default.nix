@@ -18,8 +18,8 @@ let
     src = pkgs.fetchFromGitHub {
       owner = "NixOS";
       repo = "nixpkgs";
-      rev = "9e1960bc196baf6881340d53dccb203a951745a2";
-      hash = "sha256-h/nXluEqdiQHs1oSgkOOWF+j8gcJMWhwnZ9PFabN6q0=";
+      rev = "66aedfd010204949cb225cf749be08cb13ce1813";
+      hash = "sha256-DbtxVWPt+ZP5W0Usg7jAyTomIM//c3Jtfa59Ht7AV8s=";
     };
     patches = [ ];
   };
@@ -28,8 +28,8 @@ let
     src = pkgs.fetchFromGitHub {
       owner = "lopsided98";
       repo = "nix-ros-overlay";
-      rev = "ae882f3c535456f36e4826eb863a78b5199c4c66";
-      hash = "sha256-W32hUJ0cUVPpyjBpG51eFbv4kWDvncBxdzereTxniIw=";
+      rev = "969eeac1fa4b4ad0abad3c1c682c787002a2b41d";
+      hash = "sha256-BxRkwbMCtOtCXzXEiS30xfYUiqRWcJXWUAO4rdDu/qw=";
     };
     patches = [
       # Build ROS Python packages like colcon
