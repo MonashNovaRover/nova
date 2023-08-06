@@ -73,6 +73,8 @@ in
       rclnodejs.nodejs
       rosEnv
     ];
+
+    passthru.original = rclnodejs;
   }
 ) ''
   # rclnodejs attempts to modify its own library files to add message
