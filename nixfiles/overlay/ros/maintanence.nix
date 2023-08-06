@@ -9,6 +9,14 @@ self: super:
       rviz2 = rosSuper.rviz2.overrideAttrs ({ qtWrapperArgs ? [ ], ... }: {
         qtWrapperArgs = qtWrapperArgs ++ [ "--set-default QT_QPA_PLATFORM xcb" ];
       });
+
+      # Use PyMongo for BSON.
+      # https://github.com/RobotWebTools/rosbridge_suite/issues/198
+      rosbridge-library = rosSuper.rosbridge-library.override {
+        python3Packages = rosSuper.python3Packages.overrideScope (pySelf: pySuper: {
+          bson = pySelf.pymongo;
+        });
+      };
     })
     # Overlays for individual ROS distros.
     (super.rosPackages // {
