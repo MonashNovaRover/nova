@@ -9,7 +9,7 @@ in
   ];
 
   options.nova.workspace = {
-    enable = lib.mkEnableOption "the Nova Rover ROS workspace" // { default = true; };
+    enable = lib.mkEnableOption "the Nova Rover ROS workspace";
     package = lib.mkPackageOption pkgs [ "nova" "ros" "nova-workspace" ] { };
   };
 
