@@ -9,7 +9,10 @@ let
     (builtins.attrNames entries);
 
   # Find the categories (the first directory level in ./src)
-  categories = filterDirectories (builtins.readDir ./src);
+  categories =
+    if builtins.pathExists ./src
+    then filterDirectories (builtins.readDir ./src)
+    else [ ];
 
   # Look inside the category directories for repository directories.
   # Returns absolute paths.
