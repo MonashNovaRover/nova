@@ -58,4 +58,10 @@ buildRosPackage {
     pythonPackages.pygobject3
     pythonPackages.gst-python
   ];
+
+  dontWrapGapps = true;
+
+  preFixup = ''
+    wrapGApp "$out/lib/cameras2/camera_streamer_service"
+  '';
 }
