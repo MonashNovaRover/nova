@@ -1,4 +1,4 @@
-{ pkgs, lib, ... }:
+{ config, pkgs, lib, ... }:
 
 {
   imports = [
@@ -8,5 +8,12 @@
     ./profiles
   ];
 
-  home-manager.nova.sharedModules = [ ../home ];
+  home-manager.nova.sharedModules = [
+    ../home
+    {
+      nova = {
+        inherit (config.nova) repos;
+      };
+    }
+  ];
 }
