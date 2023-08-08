@@ -159,11 +159,7 @@ Importing this repository in Nix will create the entrypoint function.
 
 **Arguments (in an attribute set):**
 
-`localSystem`: The architecture of the build platform. Defaults to the current system. e.g. `x86_64-linux`.
-
-`crossSystem`: The architecture of the host platform (Nix's name for the runtime platform). Defaults to `localSystem`. e.g. `aarch64-linux`.
-
-`pkgs`: Optional. An instance of [Nixpkgs](https://github.com/NixOS/nixpkgs). This is used only to download pinned revisions of it and other package sources. If set, overrides `localSystem` and `crossSystem`.
+`pkgs`: Optional. A custom instance of [Nixpkgs](https://github.com/NixOS/nixpkgs). This is used to download pinned revisions of it and other package sources. The build and host platforms are inherited from this instance.
 
 `repos`: Optional. A list of paths to out-of-tree Nova Rover software repositories. (Tip: [Use `--arg` to set this on the CLI.](https://nixos.org/manual/nix/unstable/command-ref/opt-common.html#opt-arg))
 
@@ -219,11 +215,15 @@ Consult existing repositories for practical examples.
 
 ### Cross compilation
 
-Cross compilation can be achieved by setting the `localSystem` and `crossSystem`
-arguments described above.
+Cross compilation can be achieved by passing in a custom instance of Nixpkgs
+with a different `crossSystem` setting.
 
 For example, if compiling for AArch64 (64-bit ARM), `crossSystem` would be set
-to `aarch64-linux`.
+to `aarch64-linux`:
+
+```
+$ nix-build --arg pkgs 'import <nixpkgs> { crossSystem = "aarch64-linux"; }' -A ...
+```
 
 Cross compiling is quite impractical, though, for the following reasons:
 - The build platform's compiler will be used. This changes the build inputs and
@@ -254,5 +254,7 @@ Luckily, Nix makes this easy to set up.
    run as if they are native programs.
    - On NixOS, add `aarch64-linux` to [`boot.binfmt.emulatedSystems`](https://search.nixos.org/options?show=boot.binfmt.emulatedSystems).
    - On Debian/Ubuntu, follow the [instructions in the Debian Wiki](https://wiki.debian.org/QemuUserEmulation). Do not install any multiarch Debian packages; they are not needed when using Nix. Then, add `aarch64-linux` to [`extra-platforms`](https://nixos.org/manual/nix/unstable/command-ref/conf-file.html#conf-extra-platforms) in `nix.conf`.
-2. Build packages with `localSystem` set to `aarch64-linux`.  
-   e.g. `nix-build --argstr localSystem "aarch64-linux" -A pkgs.ros.nova-workspace`
+2. Build packages with `localSystem` set to `aarch64-linux`. e.g:
+   ```
+   $ nix-build --arg pkgs 'import <nixpkgs> { localSystem = "aarch64-linux"; }' -A pkgs.ros.nova-workspace
+   ```

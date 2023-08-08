@@ -1,6 +1,4 @@
-{ localSystem ? builtins.currentSystem
-, crossSystem ? localSystem
-, pkgs ? import <nixpkgs> { inherit localSystem crossSystem; }
+{ pkgs ? import <nixpkgs> { }
 
   # The locations of checked-out Nova Rover repositories.
   # Each repository in this list should have a default.nix module file.
