@@ -10,7 +10,7 @@ let
 
   packageJobs = lib.novaForAllSystems (nova:
     let
-      inherit (import ../workspaces.nix { inherit lib nova rosDistro; })
+      inherit (import ../workspaces.nix { inherit lib rosDistro; novaPkgs = nova.pkgs; })
         workspace
         hydraPatchedWorkspace;
     in

@@ -10,22 +10,17 @@
 
 let
   lib = import ../lib.nix args;
+  mkWorkspaces = args: import ../workspaces.nix ({ inherit lib; } // args);
 
-  mkIso = nova:
+  mkIso = system:
     { graphical ? false, includeWorkspace ? false }:
     let
-      inherit (import ../workspaces.nix { inherit lib nova; })
-        workspace
-        hydraPatchedWorkspace;
-
       baseSystem = (import ("${nixpkgs}/nixos/lib/eval-config.nix") {
-        system = nova.pkgs.hostPlatform.system;
+        inherit system;
         modules = [
-          (nova.nixosModule.override {
-            homeManagerNixOSModule = "${home-manager}/nixos";
-          })
+          (src + /nixos)
           ../../nixos/installer/cd-dvd/nova-installation-cd-${if graphical then "graphical" else "base"}.nix
-          ({ lib, ... }: {
+          ({ pkgs, lib, ... }: {
             nixpkgs.overlays = lib.mkAfter [
               # HACK: We need to apply to QEMU workarounds applied in the
               # patched workspace to the whole package set, as some of the non-
@@ -33,7 +28,8 @@ let
               (self: super: {
                 nova = super.nova.appendOverlays [
                   (novaSelf: novaSuper: {
-                    inherit (hydraPatchedWorkspace.novaPackages // hydraPatchedWorkspace.extraPackages)
+                    inherit (mkWorkspaces { novaPkgs = novaSuper; }) hydraPatchedWorkspace;
+                    inherit (novaSelf.hydraPatchedWorkspace.novaPackages // novaSelf.hydraPatchedWorkspace.extraPackages)
                       nova-gui-frontend
                       nova-gui-frontend-server;
                   })
@@ -64,7 +60,7 @@ let
               # This means that some packages may fail to build, and will need
               # to be built manually and pushed to Hydra's Nix store.
               storeContents = lib.mkIf includeWorkspace ([
-                workspace.env.inputDerivation
+                pkgs.nova.workspace.env.inputDerivation
 
                 # Add the build inputs of the ROS environment of a basic Nova
                 # ROS workspace with no Nova packages.
@@ -80,8 +76,8 @@ let
                 # environment derivation, which have not yet been added.
                 # We can find the missing inputs by creating an empty ROS
                 # environment.
-                (workspace.override { novaPackages = { }; }).rosEnv.inputDerivation
-              ] ++ (builtins.attrValues nova.inputs));
+                (pkgs.nova.workspace.override { novaPackages = { }; }).rosEnv.inputDerivation
+              ] ++ (builtins.attrValues pkgs.nova.nova.inputs));
             };
 
             # The configuration is too complicated to express in static module
@@ -93,7 +89,7 @@ let
               desktop.enable = graphical;
               workspace = {
                 enable = includeWorkspace;
-                package = hydraPatchedWorkspace;
+                package = pkgs.nova.hydraPatchedWorkspace;
               };
             };
             home-manager.sharedModules = [
@@ -119,7 +115,7 @@ let
       });
 
       # "extensions" cannot be used as the variable name due to https://github.com/NixOS/nix/issues/8701.
-      extensions' = lib.releaseLib.pkgs.lib.optionals (nova.pkgs.hostPlatform.isx86_64 && (lib.releaseLib.pkgs.lib.systems.elaborate builtins.currentSystem).isAarch64) [
+      extensions' = lib.releaseLib.pkgs.lib.optionals ((lib.releaseLib.pkgs.lib.systems.elaborate system).isx86_64 && (lib.releaseLib.pkgs.lib.systems.elaborate builtins.currentSystem).isAarch64) [
         # Some build tools are prohibitively slow in QEMU.
         # We can use the host tools to build the ISO.
         (prev: [{
@@ -145,11 +141,11 @@ let
     in
     config.system.build.isoImage;
 
-  isoJobs = lib.novaForAllSystems (nova: {
-    iso-base = mkIso nova { };
-    iso-base-workspace = mkIso nova { includeWorkspace = true; };
-    iso-graphical = mkIso nova { graphical = true; };
-    iso-graphical-workspace = mkIso nova { graphical = true; includeWorkspace = true; };
+  isoJobs = lib.releaseLib.forAllSystems (system: {
+    iso-base = mkIso system { };
+    iso-base-workspace = mkIso system { includeWorkspace = true; };
+    iso-graphical = mkIso system { graphical = true; };
+    iso-graphical-workspace = mkIso system { graphical = true; includeWorkspace = true; };
   });
 in
 isoJobs

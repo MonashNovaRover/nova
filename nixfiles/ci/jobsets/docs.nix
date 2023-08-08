@@ -147,10 +147,10 @@ let
       '';
     };
 
-  allHMOptions = mkOptions nova.homeModule;
+  allHMOptions = mkOptions (src + /home);
   novaHMOptions = allHMOptions;
 
-  allOSOptions = mkOptions nova.nixosModule;
+  allOSOptions = mkOptions (src + /nixos);
   novaOSOptions = allOSOptions //
     { home-manager = { inherit (allOSOptions.home-manager) nova; }; };
 in

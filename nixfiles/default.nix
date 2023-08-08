@@ -51,6 +51,7 @@ let
     ] ++ map import repos;
   }) config options;
 
+  # Extend Nixpkgs with custom packages.
   novaPkgs = import nixpkgs {
     localSystem = pkgs.buildPlatform;
     crossSystem = pkgs.hostPlatform;
@@ -99,32 +100,25 @@ let
           (rosSelf: rosSuper: config.rosPackages rosSelf)
           super.rosPackages;
       })
+
+      # Add the return value of this function. Some other attributes are useful
+      # when  only pkgs is available.
+      (self: super: { nova = result; })
     ];
   };
+
+  result = {
+    inherit repos config options;
+
+    # Inputs required for the evaluation of expressions in this repository.
+    # It is useful to keep track of these, because Nix has no built-in way to do
+    # so, and they are often accidentally garbage collected.
+    inputs = {
+      inherit nixpkgs nix-ros-overlay nix-ros-workspace;
+      inherit (novaPkgs) github-gitignore;
+    };
+
+    pkgs = novaPkgs;
+  };
 in
-rec {
-  inherit repos config options;
-
-  # Inputs required for the evaluation of expressions in this repository.
-  # It is useful to keep track of these, because Nix has no built-in way to do
-  # so, and they are often accidentally garbage collected.
-  inputs = {
-    inherit nixpkgs nix-ros-overlay nix-ros-workspace;
-    inherit (pkgs) github-gitignore;
-  };
-
-  pkgs = novaPkgs;
-
-  homeModule = {
-    imports = [ ./home ];
-    nixpkgs.overlays = [ (self: super: { nova = pkgs; }) ];
-  };
-
-  nixosModule = pkgs.lib.makeOverridable
-    ({ homeManagerNixOSModule }: { lib, ... }: {
-      imports = [ homeManagerNixOSModule ./nixos ];
-      nixpkgs.overlays = lib.mkBefore [ (self: super: { nova = pkgs; }) ];
-      home-manager.nova.sharedModules = [ homeModule ];
-    })
-    { homeManagerNixOSModule = <home-manager/nixos>; };
-}
+result

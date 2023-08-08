@@ -21,7 +21,7 @@
       };
     };
     config = { config, pkgs, lib, ... }: {
-      imports = [ (import ../../.. { }).nixosModule ] ++ modules;
+      imports = [ import ../../../nixos ] ++ modules;
 
       config = lib.mkMerge [
         {

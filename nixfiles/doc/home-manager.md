@@ -11,7 +11,7 @@ Add it to your Home Manager configuration with an import, like so:
 ```nix
 {
   imports = [
-    (import ./path/to/repo { }).homeModule
+    ./path/to/repo/home
   ];
 }
 ```
