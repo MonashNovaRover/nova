@@ -9,8 +9,7 @@
 }@args:
 
 let
-  lib = import ../lib.nix args;
-  mkWorkspaces = args: import ../workspaces.nix ({ inherit lib; } // args);
+  ciLib = import ../lib.nix args;
 
   mkIso = system:
     { graphical ? false, includeWorkspace ? false }:
@@ -28,7 +27,7 @@ let
               (self: super: {
                 nova = super.nova.appendOverlays [
                   (novaSelf: novaSuper: {
-                    inherit (mkWorkspaces { novaPkgs = novaSuper; }) hydraPatchedWorkspace;
+                    inherit (import ../workspaces.nix { lib = ciLib; novaPkgs = novaSuper; }) hydraPatchedWorkspace;
                     inherit (novaSelf.hydraPatchedWorkspace.novaPackages // novaSelf.hydraPatchedWorkspace.extraPackages)
                       nova-gui-frontend
                       nova-gui-frontend-server;
@@ -85,6 +84,7 @@ let
             installer.cloneConfig = false;
 
             nova = {
+              inherit (ciLib) repos;
               substituters.nova.password = "***REMOVED***";
               desktop.enable = graphical;
               workspace = {
@@ -115,18 +115,18 @@ let
       });
 
       # "extensions" cannot be used as the variable name due to https://github.com/NixOS/nix/issues/8701.
-      extensions' = lib.releaseLib.pkgs.lib.optionals ((lib.releaseLib.pkgs.lib.systems.elaborate system).isx86_64 && (lib.releaseLib.pkgs.lib.systems.elaborate builtins.currentSystem).isAarch64) [
+      extensions' = ciLib.releaseLib.pkgs.lib.optionals ((ciLib.releaseLib.pkgs.lib.systems.elaborate system).isx86_64 && (ciLib.releaseLib.pkgs.lib.systems.elaborate builtins.currentSystem).isAarch64) [
         # Some build tools are prohibitively slow in QEMU.
         # We can use the host tools to build the ISO.
         (prev: [{
-          system.build.squashfsStore = lib.releaseLib.pkgs.lib.mkForce (prev.system.build.squashfsStore.override {
-            inherit (lib.releaseLib.pkgsFor builtins.currentSystem)
+          system.build.squashfsStore = ciLib.releaseLib.pkgs.lib.mkForce (prev.system.build.squashfsStore.override {
+            inherit (ciLib.releaseLib.pkgsFor builtins.currentSystem)
               squashfsTools;
           });
         }])
         (prev: [{
-          system.build.isoImage = lib.releaseLib.pkgs.lib.mkForce (prev.system.build.isoImage.override {
-            inherit (lib.releaseLib.pkgsFor builtins.currentSystem)
+          system.build.isoImage = ciLib.releaseLib.pkgs.lib.mkForce (prev.system.build.isoImage.override {
+            inherit (ciLib.releaseLib.pkgsFor builtins.currentSystem)
               xorriso
               zstd;
           });
@@ -141,7 +141,7 @@ let
     in
     config.system.build.isoImage;
 
-  isoJobs = lib.releaseLib.forAllSystems (system: {
+  isoJobs = ciLib.releaseLib.forAllSystems (system: {
     iso-base = mkIso system { };
     iso-base-workspace = mkIso system { includeWorkspace = true; };
     iso-graphical = mkIso system { graphical = true; };

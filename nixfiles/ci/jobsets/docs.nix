@@ -10,7 +10,7 @@ let
       supportedSystems
       nixpkgs
       src;
-    repos = [ ];
+    repoNames = [ ];
   };
 
   # We are building documentation, not native code.
