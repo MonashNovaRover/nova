@@ -2,7 +2,7 @@
 
 let
   cfg = config.nova.desktop.browser;
-  guiEnabled = config.nova.workspace.services.enable;
+  guiEnabled = config.nova.workspace.services.enable && config.nova.workspace.services.gui.enable;
 in
 {
   options.nova.desktop.browser.enable = lib.mkEnableOption "Nova Rover Chromium configuration";
