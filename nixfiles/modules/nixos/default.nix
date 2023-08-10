@@ -6,6 +6,7 @@
     <home-manager/nixos>
     ./common
     ./profiles
+    ./devices
   ];
 
   home-manager.nova.sharedModules = [
