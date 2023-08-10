@@ -21,7 +21,7 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    home.sessionVariables.NIXOS_OZONE_WL = lib.mkIf cfg.wayland.enable "1";
+    home.sessionVariables.NIXOS_OZONE_WL = if cfg.wayland.enable then "1" else "0";
 
     dconf.settings = {
       # GNOME desktop settings schemas can be found here:
