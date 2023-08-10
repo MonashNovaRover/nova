@@ -1,5 +1,7 @@
-{ config, ... }:
+{ config, lib, ... }:
 
 {
-  boot.extraModulePackages = with config.boot.kernelPackages; [ tuxedo-keyboard ];
+  config = lib.mkIf config.devices.metabox-n850hk.enable {
+    boot.extraModulePackages = with config.boot.kernelPackages; [ tuxedo-keyboard ];
+  };
 }
