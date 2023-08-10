@@ -55,6 +55,11 @@
       };
 
       packages = with pkgs; [
+        # Shell ulilities
+        pciutils
+        usbutils
+
+        # Desktop apps
         gitkraken
       ];
     };
