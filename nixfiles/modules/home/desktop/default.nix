@@ -40,9 +40,10 @@ in
       };
 
       "org/gnome/desktop/interface" = {
-        # Clock settings
+        # Top bar
         clock-show-weekday = true; # Why not? Otherwise wasted space.
         clock-show-seconds = true; # Useful during competition
+        show-battery-percentage = true; # Why not? Otherwise wasted space.
 
         # Accesibility improvements for multi-monitor usage
         enable-hot-corners = false; # Too easily triggered when moving between monitors
