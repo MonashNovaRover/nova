@@ -15,6 +15,7 @@
         userName = "Monash Nova Rover";
         userEmail = "novaroverteam@monash.edu";
       };
+      gh.enable = true;
 
       powerline-go = {
         enable = true;
