@@ -3,6 +3,7 @@
 {
   imports = [
     ./boot
+    ./fingerprint
     ./graphics
     ./keyboard
   ];
