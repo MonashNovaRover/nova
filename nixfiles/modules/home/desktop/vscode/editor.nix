@@ -12,6 +12,7 @@ in
 
       userSettings = {
         "workbench.startupEditor" = "none";
+        "git.openRepositoryInParentFolders" = "never";
       };
     };
   };
