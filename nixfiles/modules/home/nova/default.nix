@@ -1,4 +1,4 @@
-{ config, lib, ... }:
+{ config, pkgs, lib, ... }:
 
 {
   config = lib.mkIf (config.home.username == "nova") {
@@ -53,6 +53,10 @@
         # Drop-in replacements
         sudo = "sudo ";
       };
+
+      packages = with pkgs; [
+        gitkraken
+      ];
     };
   };
 }
