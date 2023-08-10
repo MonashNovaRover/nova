@@ -9,6 +9,8 @@ in
   config = lib.mkIf (profile == "shared") {
     users.mutableUsers = false;
 
+    services.openssh.enable = true;
+
     nova = {
       users.nova.enable = true;
       branding.enable = true;
