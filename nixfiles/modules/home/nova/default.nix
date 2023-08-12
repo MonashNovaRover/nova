@@ -70,7 +70,7 @@
         ''}";
       };
 
-      packages = with pkgs; [
+      packages = with pkgs; builtins.filter (lib.meta.availableOn hostPlatform) [
         # Shell ulilities
         pciutils
         usbutils
