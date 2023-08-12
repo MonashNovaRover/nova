@@ -68,6 +68,8 @@
           echo >&2 'Feel free to reach out to a software subteam member for futher explanation.'
           exit 1
         ''}";
+        microsoft-edge = "xdg-open 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'";
+        edge = microsoft-edge;
       };
 
       packages = with pkgs; builtins.filter (lib.meta.availableOn hostPlatform) [
