@@ -1,4 +1,5 @@
 { lib
+, writeShellApplication
 , buildRosPackage
 , ament-cmake
 , rclcpp
@@ -32,4 +33,12 @@ buildRosPackage {
     pythonPackages.ultralytics
     nova-core
   ];
+
+  postInstall = ''
+    mkdir -p "$out/bin"
+    ln -s ${writeShellApplication {
+      name = "bag_play";
+      text = builtins.readFile ./macros/bag_play.sh;
+    }}/bin/* "$out/bin"
+  '';
 }

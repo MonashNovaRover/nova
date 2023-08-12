@@ -1,4 +1,5 @@
 { lib
+, writeShellApplication
 , buildRosPackage
 , ament-cmake
 , rclcpp
@@ -39,4 +40,12 @@ buildRosPackage {
     systemd
     nova-core
   ];
+
+  postInstall = ''
+    mkdir -p "$out/bin"
+    ln -s ${writeShellApplication {
+      name = "blcmd_disable";
+      text = builtins.readFile ./macros/blcmd_disable.sh;
+    }}/bin/* "$out/bin"
+  '';
 }
