@@ -5,6 +5,7 @@
     ../common
     ./branding
     ./desktop
+    ./macros
     ./nova
     ./workspace
   ];

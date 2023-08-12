@@ -2,6 +2,10 @@
 
 {
   config = lib.mkIf (config.home.username == "nova") {
+    nova = {
+      macros.enable = true;
+    };
+
     xdg.userDirs = {
       enable = true;
       createDirectories = true;
