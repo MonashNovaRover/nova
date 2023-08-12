@@ -46,12 +46,12 @@ let
                 # The difference between the workspace build and runtime input
                 # closures is around ~600MB uncompressed at the time of writing.
                 #
-                # Note: The Hydra-patched-workspace is not used here, because it
-                # will not match the development environment.
-                # This means that some packages may fail to build, and will need
-                # to be built manually and pushed to Hydra's Nix store.
+                # Hydra-patched extraPackages are used, as we do not care about
+                # their development dependencies.
+                # The original novaPackages must be used to ensure that the
+                # development dependencies are relevant.
                 storeContents = lib.mkIf includeWorkspace ([
-                  workspace.env.inputDerivation
+                  (workspace.override { inherit (hydraPatchedWorkspace) extraPackages; }).env.inputDerivation
 
                   # Add the build inputs of the ROS environment of a basic Nova
                   # ROS workspace with no Nova packages.
@@ -67,7 +67,7 @@ let
                   # environment derivation, which have not yet been added.
                   # We can find the missing inputs by creating an empty ROS
                   # environment.
-                  (workspace.override { novaPackages = { }; }).rosEnv.inputDerivation
+                  (workspace.override { novaPackages = { }; extraPackages = { }; }).rosEnv.inputDerivation
                 ] ++ (builtins.attrValues pkgs.nova.nova.inputs));
               };
 

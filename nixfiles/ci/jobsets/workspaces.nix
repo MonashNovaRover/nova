@@ -34,8 +34,9 @@ let
     # build individual packages, like Colcon.
     #
     # The non-patched workspace is used here, to build regular development
-    # dependencies.
-    // { nova-workspace-inputs = workspace.env.inputDerivation; }
+    # dependencies. extraPackages is cleared as they are required by the main
+    # workspace derivation anyway (and may need to be patched for Hydra).
+    // { nova-workspace-inputs = (workspace.override { extraPackages = { }; }).env.inputDerivation; }
 
     # Build the workspace itself.
     // { nova-workspace = hydraPatchedWorkspace; });
