@@ -32,5 +32,17 @@ in
       default = null;
       description = "ROS packages.";
     };
+
+    shellAliases = lib.mkOption {
+      type = with lib.types; attrsOf str;
+      default = { };
+      description = lib.mdDoc ''
+        An attribute set that maps aliases (the top level attribute names
+        in this option) to command strings or directly to build outputs.
+
+        This option should only be used to manage simple aliases that are
+        compatible across all shells.
+      '';
+    };
   };
 }

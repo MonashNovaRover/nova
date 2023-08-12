@@ -195,11 +195,12 @@ Out-of-tree packages are expected to be structured like so:
 
 `default.nix` is a NixOS-style module that configures this repository, primarily to add packages.
 
-There are three options:
+There are multiple options:
 
 - `packages`: Regular packages to add.
 - `pythonPackages`: Python packages to add.
 - `rosPackages`: ROS packages to add.
+- `shellAliases`: Shell aliases to add.
 
 A typical `default.nix` would look like this:
 
@@ -207,6 +208,10 @@ A typical `default.nix` would look like this:
 {
   rosPackages = pkgs: with pkgs; {
     nova-my-ros-package = callPackage ./nix/packages/my-ros-package { };
+  };
+
+  shellAliases = {
+    my-ros-package = "ros2 launch my-ros-package main.launch.py";
   };
 }
 ```
