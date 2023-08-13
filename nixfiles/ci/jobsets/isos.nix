@@ -132,7 +132,12 @@ let
         extensions'
       ).config;
     in
-    config.system.build.isoImage;
+    config.system.build.isoImage.overrideAttrs ({ meta ? { }, ... }: {
+      meta = meta // rec {
+        timeout = 60 * 60 * 10;
+        maxSilent = timeout; # The SquashFS compression is silent, and can take a long time.
+      };
+    });
 
   isoJobs = ciLib.releaseLib.forAllSystems (system: {
     iso-base = mkIso system { };
