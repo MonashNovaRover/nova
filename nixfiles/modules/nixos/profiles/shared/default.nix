@@ -11,6 +11,9 @@ in
 
     services.openssh.enable = true;
 
+    # Most fingerprint hardware and software only supports 10 fingers.
+    services.fprintd.enable = false;
+
     nova = {
       users.nova.enable = true;
       branding.enable = true;

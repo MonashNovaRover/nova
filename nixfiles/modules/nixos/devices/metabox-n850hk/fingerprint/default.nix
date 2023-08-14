@@ -2,6 +2,6 @@
 
 {
   config = lib.mkIf config.devices.metabox-n850hk.enable {
-    services.fprintd.enable = true;
+    services.fprintd.enable = lib.mkDefault true;
   };
 }
