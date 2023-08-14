@@ -20,6 +20,11 @@ buildRosPackage {
   };
 
   nativeBuildInputs = [ ament-cmake ];
+
   buildInputs = [ rclcpp rclpy geometry-msgs nav-msgs nova-core ];
-  propagatedBuildInputs = with pythonPackages; [ nova-coms-utils ];
+
+  propagatedBuildInputs = with pythonPackages; [
+    jcan
+    nova-coms-utils
+  ];
 }
