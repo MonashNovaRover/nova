@@ -1,6 +1,7 @@
 { lib
 , buildROSWorkspace
 , rviz2
+, gazebo
 , gdb
 
 , nova-core ? throw "core is needed, but not available!"
@@ -50,7 +51,8 @@
   devPackages = novaPackages;
   prebuiltPackages = (lib.optionalAttrs graphical {
     inherit
-      rviz2;
+      rviz2
+      gazebo;
   }) // extraPackages;
   prebuiltShellPackages = {
     inherit
