@@ -24,7 +24,8 @@ checkout_group() {
             echo Cloning "$repo"...
             git clone --recurse-submodules "https://github.com/MonashNovaRover/$repo.git" "$SRCDIR/$groupName/$repo"
         else
-            echo "$repo" already exists. Skipping.
+            echo "$repo" already exists. Pulling.
+            git -C "$SRCDIR/$groupName/$repo" pull
         fi
     done
 }
