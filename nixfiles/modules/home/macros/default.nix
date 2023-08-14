@@ -19,6 +19,12 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    programs.bash.initExtra = lib.mkAfter ''
+      COMPAL_AUTO_UNMASK=1
+      . '${pkgs.complete-alias}/bin/complete_alias'
+      complete -F _complete_alias "''${!BASH_ALIASES[@]}"
+    '';
+
     home = {
       shellAliases =
         lib.mkMerge [
