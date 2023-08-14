@@ -11,6 +11,7 @@
 , eigen
 , orocos-kdl
 , systemd
+, pythonPackages
 , nova-core
 }:
 
@@ -28,6 +29,7 @@ buildRosPackage {
   };
 
   nativeBuildInputs = [ ament-cmake ];
+
   buildInputs = [
     rclcpp
     rclpy
@@ -39,6 +41,10 @@ buildRosPackage {
     orocos-kdl
     systemd
     nova-core
+  ];
+
+  propagatedBuildInputs = with pythonPackages; [
+    jcan
   ];
 
   postInstall = ''
