@@ -27,7 +27,7 @@ from launch_ros.parameter_descriptions import ParameterValue
 # Generate the launch file with all inputs
 def generate_launch_description():
     core_path = get_package_share_path('core')
-    default_model_path = core_path / 'urdf/rover.urdf'
+    default_model_path = core_path / 'urdf/rover.urdf.xacro'
 
     model_arg = DeclareLaunchArgument(name='model', default_value=str(default_model_path),
             description='Absolute path to robot urdf file')
