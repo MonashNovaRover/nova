@@ -22,18 +22,18 @@ available through our cache instead.
 
 ### Setup
 
-When using the [NixOS module](./nixos.md), set [`nova.substituters.ros.enable`](https://hydra.ulna.leivenzon.id.au/manual/nixos#novasubstitutersrosenable) to
+When using the [NixOS module](./nixos.md), set [`nova.substituters.ros.enable`](https://hydra.novarover.space/manual/nixos#novasubstitutersrosenable) to
 `true`. Otherwise, follow the instructions on the project page.
 
 ## The Nova Rover binary cache
 
-[Our cache](https://hydra.ulna.leivenzon.id.au/jobset/nova/workspaces#tabs-jobs)
+[Our cache](https://hydra.novarover.space/jobset/nova/workspaces#tabs-jobs)
 contains prebuilt copies of our ROS packages and their build and runtime
 dependencies.
 
 ### Setup
 
-When using the [NixOS module](./nixos.md), configure the [`nova.substituters.nova`](https://hydra.ulna.leivenzon.id.au/manual/nixos#novasubstitutersnovaenable)
+When using the [NixOS module](./nixos.md), configure the [`nova.substituters.nova`](https://hydra.novarover.space/manual/nixos#novasubstitutersnovaenable)
 options. Otherwise, add the [Hydra server](./hydra.md) to the [substituter list](https://nixos.org/manual/nix/unstable/command-ref/conf-file.html#conf-substituters),
 along with a [netrc file](https://nixos.org/manual/nix/unstable/command-ref/conf-file.html#conf-netrc-file) including the required credentials.
 

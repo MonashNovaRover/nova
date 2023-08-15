@@ -11,7 +11,7 @@ for various CI and CD tasks, such as:
 
 ## Using Hydra
 
-Hydra can currently be accessed at https://hydra.ulna.leivenzon.id.au.
+Hydra can currently be accessed at https://hydra.novarover.space.
 The username is `nova`, and the password is `***REMOVED***`.
 
 To use the binary cache, see: [Binary caches](./caches.md).
@@ -29,7 +29,7 @@ The manual can be found [here](https://nixos.org/hydra/manual).
 1. Set up a NixOS server. Oracle Cloud with [NixOS-Infect](https://github.com/elitak/nixos-infect)
 is recommended.
 2. Add the [NixOS module](./nixos.md).
-3. Configure the [`nova.ci.master` module](https://hydra.ulna.leivenzon.id.au/manual/nixos#novacimasterenable).
+3. Configure the [`nova.ci.master` module](https://hydra.novarover.space/manual/nixos#novacimasterenable).
 4. Log in to Hydra at _hydra.example.org_. The username is `nova` and the password is `***REMOVED***`. You'll need to log in twice - this is due to a layer
 put in place to protect our binary cache.
 5. Create a project with the following entries:  

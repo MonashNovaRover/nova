@@ -11,7 +11,7 @@ in
       url = lib.mkOption {
         type = with lib.types; str;
         description = "The URL of the Nova Rover binary cache";
-        default = "https://hydra.ulna.leivenzon.id.au";
+        default = "https://hydra.novarover.space";
       };
       password = lib.mkOption {
         type = with lib.types; str;

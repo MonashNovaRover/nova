@@ -6,13 +6,13 @@ ISO images of NixOS with our custom modules are available from [Hydra](./hydra.m
 
 The following links go to the latest ISO builds. There are four variants:
 
-- [base](https://hydra.ulna.leivenzon.id.au/job/nova/isos/x86_64-linux.iso-base/latest/download-by-type/file/iso): The standard NixOS installer, with the `nova`
+- [base](https://hydra.novarover.space/job/nova/isos/x86_64-linux.iso-base/latest/download-by-type/file/iso): The standard NixOS installer, with the `nova`
 user and binary cache
-- [base-workspace](https://hydra.ulna.leivenzon.id.au/job/nova/isos/x86_64-linux.iso-base-workspace/latest/download-by-type/file/iso): `base` + our software preinstalled
-- [graphical](https://hydra.ulna.leivenzon.id.au/job/nova/isos/x86_64-linux.iso-graphical/latest/download-by-type/file/iso): `base` + the standard team desktop environment
-- [`graphical-workspace`](https://hydra.ulna.leivenzon.id.au/job/nova/isos/x86_64-linux.iso-graphical-workspace/latest/download-by-type/file/iso): `base-workspace` + `graphical`
+- [base-workspace](https://hydra.novarover.space/job/nova/isos/x86_64-linux.iso-base-workspace/latest/download-by-type/file/iso): `base` + our software preinstalled
+- [graphical](https://hydra.novarover.space/job/nova/isos/x86_64-linux.iso-graphical/latest/download-by-type/file/iso): `base` + the standard team desktop environment
+- [`graphical-workspace`](https://hydra.novarover.space/job/nova/isos/x86_64-linux.iso-graphical-workspace/latest/download-by-type/file/iso): `base-workspace` + `graphical`
 
-Builds for `aarch64-linux` are also available. See the [complete Hydra jobset](https://hydra.ulna.leivenzon.id.au/jobset/nova/isos/latest-eval).
+Builds for `aarch64-linux` are also available. See the [complete Hydra jobset](https://hydra.novarover.space/jobset/nova/isos/latest-eval).
 
 The `workspace` variants are recommended for trying out all of the features
 before installing. As well as including all our software preinstalled, they ship
@@ -29,7 +29,7 @@ not after installation, as the ISO is configured with our binary caches and the
 installed system will not be.
 
 If the `shared` profile is not in use, you will need to create a user account
-for yourself with [`nova.users`](https://hydra.ulna.leivenzon.id.au/manual/nixos#novausersnameenable).
+for yourself with [`nova.users`](https://hydra.novarover.space/manual/nixos#novausersnameenable).
 Choose `nova` as the usename to add the standard team user, or choos something
 else if you do not want this.
 
@@ -70,4 +70,4 @@ You should set state versions and a _Nova device profile_.
 }
 ```
 
-Available options can be found in the [option documentation](https://hydra.ulna.leivenzon.id.au/manual/nixos).
+Available options can be found in the [option documentation](https://hydra.novarover.space/manual/nixos).
