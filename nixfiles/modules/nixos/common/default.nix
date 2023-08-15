@@ -4,6 +4,7 @@
     ./ci
     ./desktop
     ./networking
+    ./peripherals
     ./substituters
     ./users
     ./virtualisation
