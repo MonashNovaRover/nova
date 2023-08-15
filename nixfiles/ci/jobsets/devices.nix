@@ -28,7 +28,16 @@ let
           substituters.nova.enable = false;
         };
 
-        home-manager.sharedModules = [{ home.stateVersion = config.system.nixos.release; }];
+        home-manager.sharedModules = [{
+          home.stateVersion = config.system.nixos.release;
+
+          # The Home Manager manual causes issues on Hydra.
+          manual = {
+            html.enable = false;
+            manpages.enable = false;
+            json.enable = false;
+          };
+        }];
 
         fileSystems."/".fsType = "tmpfs";
       })
