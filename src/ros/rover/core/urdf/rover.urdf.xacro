@@ -207,7 +207,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find core)/meshes/front_left_wheel.STL" />
+          filename="file:///$(find core)/meshes/wheel_collision.stl" />
       </geometry>
     </collision>
   </link>
@@ -319,7 +319,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find core)/meshes/back_left_wheel.STL" />
+          filename="file:///$(find core)/meshes/wheel_collision.stl" />
       </geometry>
     </collision>
   </link>
@@ -485,7 +485,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find core)/meshes/front_right_wheel.STL" />
+          filename="file:///$(find core)/meshes/wheel_collision.stl" />
       </geometry>
     </collision>
   </link>
@@ -597,7 +597,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find core)/meshes/back_right_wheel.STL" />
+          filename="file:///$(find core)/meshes/wheel_collision.stl" />
       </geometry>
     </collision>
   </link>
