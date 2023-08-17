@@ -57,10 +57,12 @@ buildRosPackage {
     pythonPackages.pyudev
     pythonPackages.pygobject3
     pythonPackages.gst-python
+    pythonPackages.psutil
   ];
 
   nativeCheckInputs = [
     pythonPackages.pygobject-stubs
+    pythonPackages.types-psutil
   ];
 
   dontWrapGapps = true;

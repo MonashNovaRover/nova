@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import typing
+from socket import AddressFamily
 from typing import Callable, cast, NamedTuple
 import json
 
 import gi
+import psutil
 import rclpy
 from rclpy import Future, qos, Parameter
 from rclpy.logging import LoggingSeverity
@@ -17,7 +20,7 @@ gi.require_version("Gst", "1.0")  # noqa
 from gi.repository import Gst, GLib
 
 from camera_msgs.msg import Cameras
-from camera_msgs.srv import CameraOperation, GetCameraStreamStats
+from camera_msgs.srv import CameraOperation, GetCameraStreamStats, GetIPList
 
 from cameras2.camera_webrtc_bin import CameraWebRTCBin
 
@@ -98,6 +101,7 @@ class CameraStreamerService(Node):
         self._create_stream_service("pause", self._stream_pause)
         self._create_stream_service("stop", self._stream_stop)
         self.create_service(GetCameraStreamStats, "/camera_streamer/stream/get_stats", self._stats_callback)
+        self._ip_service = self.create_service(GetIPList, "/camera_streamer/get_host_ip", self._ips_callback)
 
         self._stream_start_client = self._create_stream_client("start")
         self._stream_stop_client = self._create_stream_client("stop")
@@ -373,6 +377,41 @@ class CameraStreamerService(Node):
             if serial in self._camera_bins
         }
         response.result_json = json.dumps(result, indent=None if request.indent == 0 else request.indent)
+        return response
+
+    def _ips_callback(
+        self,
+        request: GetIPList.Request,
+        response: GetIPList.Response,
+    ) -> GetIPList.Response:
+        if_addrs = psutil.net_if_addrs()
+        if_stats = psutil.net_if_stats()
+        addresses = {
+            interface: address
+            for interface, addresses in if_addrs.items()
+            if (
+                address := next(
+                    (address.address for address in addresses if address.family == AddressFamily.AF_INET),
+                    None,
+                )
+            )
+            is not None
+        }
+
+        def key(entry: tuple[str, str]) -> int:
+            interface = entry[0]
+            address = entry[1]
+            flags = set(if_stats[interface].flags.split(","))
+            if "loopback" in flags:  # Local
+                return 0
+            elif address.startswith("192.168.1"):  # Nova radios
+                return 1
+            elif address.startswith("192.168.0"):  # Nova Wi-Fi
+                return 2
+            else:  # Other
+                return 3
+
+        response.ips = [address for interface, address in sorted(addresses.items(), key=key)]
         return response
 
 

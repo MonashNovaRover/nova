@@ -35,6 +35,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/Cameras.msg"
   "srv/CameraOperation.srv"
   "srv/GetCameraStreamStats.srv"
+  "srv/GetIPList.srv"
 )
 
 ament_package()
