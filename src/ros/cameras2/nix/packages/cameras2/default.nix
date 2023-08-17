@@ -59,9 +59,15 @@ buildRosPackage {
     pythonPackages.gst-python
   ];
 
+  nativeCheckInputs = [
+    pythonPackages.pygobject-stubs
+  ];
+
   dontWrapGapps = true;
 
   preFixup = ''
     wrapGApp "$out/lib/cameras2/camera_streamer_service"
   '';
+
+  doCheck = true;
 }
