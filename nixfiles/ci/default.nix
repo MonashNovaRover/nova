@@ -67,21 +67,20 @@ let
     repo = "home-manager";
   };
 
+  mkRosDistroInput = rosDistro: {
+    type = "nix";
+    value = "${if rosDistro == null then "null" else "\"${rosDistro}\""}";
+    emailresponsible = false;
+  };
+
+  mkRosDistroDescriptionTag = rosDistro: pkgs.lib.optionalString (rosDistro != null) " (for ${pkgs.lib.toUpper (builtins.substring 0 1 rosDistro)}${builtins.substring 1 (builtins.stringLength rosDistro) rosDistro})";
+
   mkWorkspaceJobset = rosDistro: pr: mkJobset {
-    description =
-      let
-        distroTag = pkgs.lib.optionalString (rosDistro != null) " (for ${pkgs.lib.toUpper (builtins.substring 0 1 rosDistro)}${builtins.substring 1 (builtins.stringLength rosDistro) rosDistro})";
-        prTag = pkgs.lib.optionalString (pr != null) (" - ${pr.base.repo.name}#${toString pr.number} (${pr.title})");
-      in
-      "Nova Rover workspaces${distroTag}${prTag}";
+    description = "Nova Rover workspaces${mkRosDistroDescriptionTag rosDistro}${pkgs.lib.optionalString (pr != null) (" - ${pr.base.repo.name}#${toString pr.number} (${pr.title})")}";
     nixexprpath = "ci/jobsets/workspaces.nix";
     inputs = novaInputs //
       {
-        rosDistro = {
-          type = "nix";
-          value = "${if rosDistro == null then "null" else "\"${rosDistro}\""}";
-          emailresponsible = false;
-        };
+        rosDistro = mkRosDistroInput rosDistro;
       } //
       (pkgs.lib.optionalAttrs (pr != null) {
         ${pr.base.repo.name} = mkGitHubInput {
@@ -111,7 +110,22 @@ let
     (mkWorkspaceDistroJobsets null)
     extraDistros;
 
-  jobsets = mkAllWorkspaceJobsets [ "humble" ] // {
+  mkMiscDistroJobsets = rosDistro: {
+    "misc${pkgs.lib.optionalString (rosDistro != null) "-${rosDistro}"}" = mkJobset {
+      description = "Miscellaneous packages${mkRosDistroDescriptionTag rosDistro}";
+      nixexprpath = "ci/jobsets/misc.nix";
+      inputs = { rosDistro = mkRosDistroInput rosDistro; };
+    };
+  };
+
+  mkAllMiscJobsets = extraDistros: builtins.foldl'
+    (jobs: distro: jobs // mkMiscDistroJobsets distro)
+    (mkMiscDistroJobsets null)
+    extraDistros;
+
+  extraDistros = [ "humble" ];
+
+  jobsets = mkAllWorkspaceJobsets extraDistros // {
     docs = mkJobset {
       description = "Nova Rover documentation";
       nixexprpath = "ci/jobsets/docs.nix";
@@ -134,7 +148,7 @@ let
       };
       checkinterval = 60 * 60 * 24 * 7;
     };
-  };
+  } // mkAllMiscJobsets extraDistros;
 in
 {
   jobsets =
