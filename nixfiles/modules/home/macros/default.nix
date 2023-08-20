@@ -64,6 +64,9 @@ in
             jetson = "ssh -Y nvidia@192.168.1.204";
             jetson_wifi = "ssh -Y nvidia@tegra-ubuntu";
 
+            # Application aliases
+            code = "codium";
+
             # Stubs to ease migration
             setup = ''echo 'The setup alias is no longer necessary. To try new changes, please use "ws-build" or "nixos-rebuild" instead.' #'';
             check = ''echo 'The check alias is no longer relevant. Use "journalctl -u <service>" instead.' #'';
