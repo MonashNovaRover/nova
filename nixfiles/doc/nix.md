@@ -106,8 +106,10 @@ Development can be done in two styles:
 
 1. Enter the workspace development shell.
    ```
-   nix-shell -A pkgs.ros.nova-workspace.env
+   nix-shell -A env
    ```
+
+   (`env` is an alias for `pkgs.ros.nova-workspace.env`.)
 
 2. Switch to a workspace directory.
    ```
@@ -125,7 +127,7 @@ Development can be done in two styles:
 
 1. Enter a package development shell. For example, `control`:
    ```
-   nix-shell -A pkgs.ros.nova-workspace.env.nova-control
+   nix-shell -A env.nova-control
    ```
 
 2. Switch to the package directory.
@@ -166,6 +168,8 @@ Importing this repository in Nix will create the entrypoint function.
 **Return values (in an attribute set):**
 
 `pkgs`: An instance of a pinned (non-updating) revision of Nixpkgs with additional packages added.
+
+`env`: An alias to `pkgs.ros.nova-workspace.env`.
 
 #### Using ROS packages
 

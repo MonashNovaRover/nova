@@ -125,6 +125,9 @@ let
     };
 
     pkgs = novaPkgs;
+
+    # Make an alias to the nova-workspace environment for convenience.
+    inherit (result.pkgs.ros.nova-workspace) env;
   };
 in
 result
