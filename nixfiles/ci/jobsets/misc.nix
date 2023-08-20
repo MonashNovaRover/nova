@@ -6,7 +6,13 @@
 }@args:
 
 let
-  lib = import ../lib.nix args;
+  lib = import ../lib.nix {
+    inherit
+      supportedSystems
+      nixpkgs
+      src;
+    repoNames = [ ];
+  };
 in
 lib.novaForAllSystems (nova: {
   inherit (if rosDistro == null then nova.pkgs.ros else nova.pkgs.rosPackages.${rosDistro})
