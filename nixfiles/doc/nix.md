@@ -171,6 +171,8 @@ Importing this repository in Nix will create the entrypoint function.
 
 `env`: An alias to `pkgs.ros.nova-workspace.env`.
 
+`config`, `options`: Results of the out-of-tree module evaluation.
+
 #### Using ROS packages
 
 ROS packages can be accessed through either the `rosPackages` set or the `ros` alias (equivalent to `rosPackages.${defaultVersion}`).
