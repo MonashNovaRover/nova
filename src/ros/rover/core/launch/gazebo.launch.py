@@ -61,10 +61,10 @@ def generate_launch_description():
         arguments=["wheel_velocity_controller"]
     )
 
-    pivot_position_controller = Node(
+    pivot_joint_trajectory_controller = Node(
         package="controller_manager",
         executable="spawner.py",
-        arguments=["pivot_position_controller"]
+        arguments=["pivot_joint_trajectory_controller"]
     )
 
     return LaunchDescription([
@@ -73,5 +73,6 @@ def generate_launch_description():
         gazebo,
         spawn_entity,
         wheel_velocity_controller,
-        pivot_position_controller,
+        # pivot_position_controller,
+        pivot_joint_trajectory_controller,
     ])
