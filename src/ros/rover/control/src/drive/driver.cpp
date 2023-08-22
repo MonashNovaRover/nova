@@ -77,15 +77,33 @@ void Driver::send_commands()
     }
 
     // Send velocities to the wheels
-    for (size_t i = 0; i < NUM_WHEELS; i++)
-    {
-        PivotModule *pivot = pivots[i];
-        pivot->drive_wheel();
+    if(this->get_parameter("gazebo").get_parameter_value().get<bool>()){
+        std_msgs::msg::Float64MultiArray wheel_velocities;
+        wheel_velocities.data = {pivots[0]->velocity*WHEEL_VELOCITY_OUTPUT,
+                                 pivots[1]->velocity*WHEEL_VELOCITY_OUTPUT,
+                                 -pivots[2]->velocity*WHEEL_VELOCITY_OUTPUT,
+                                 -pivots[3]->velocity*WHEEL_VELOCITY_OUTPUT};
+        wheel_joint_velocity_pub->publish(wheel_velocities);
         if (mode == core::msg::DriveInput::PIVOT || mode == core::msg::DriveInput::STRAFE) {
-            pivot->drive_pivot();
+            trajectory_msgs::msg::JointTrajectory pivot_trajectories;
+            trajectory_msgs::msg::JointTrajectoryPoint points;
+            points.positions = {pivots[0]->angle - angle_offset,
+                                -(pivots[1]->angle - angle_offset),
+                                pivots[2]->angle - angle_offset,
+                                -(pivots[3]->angle - angle_offset)};
+            pivot_trajectories.joint_names = {"flp", "blp", "brp", "frp"};
+            pivot_trajectories.points = {points};
+            pivot_joint_trajectory_pub->publish(pivot_trajectories);
         }
-        data_msg.angles[i] = pivot->angle;
-        data_msg.velocities[i] = pivot->velocity;
+    } else {
+        for (size_t i = 0; i < NUM_WHEELS; i++) {
+            PivotModule *pivot = pivots[i];
+            if (mode == core::msg::DriveInput::PIVOT || mode == core::msg::DriveInput::STRAFE) {
+                pivot->drive_pivot();
+            }
+            data_msg.angles[i] = pivot->angle;
+            data_msg.velocities[i] = pivot->velocity;
+        }
     }
 
     pivot_wheel_pub->publish(data_msg);
@@ -168,7 +186,7 @@ void Driver::set_best_effort_radius() {
         // If both are valid, choose the one that is furthest from the target radius
         float signed_radius_left = get<0>(best_effort_left)*get<1>(best_effort_left);
         float signed_radius_right = get<0>(best_effort_right)*get<1>(best_effort_right);
-        float signed_radius = target_radius*target_direction;
+        float signed_radius = target_radius * target_direction;
         if (abs(signed_radius_left - signed_radius) > abs(signed_radius_right-signed_radius)){
             best_effort_radius = get<0>(best_effort_left);
             best_effort_direction = get<1>(best_effort_left);
@@ -224,9 +242,9 @@ double Driver::calc_wheel_angle(float radius, bool left, int dir)
     // front and back wheels are driven in opposite directions by blcmd boards
     //TODO: Verify maths
     if(left){
-        angle = (radius == INFINITY ? 0 : -(atan((2*radius*dir + CHASSIS_WIDTH)/CHASSIS_LENGTH) - dir * M_PI_2)) + angle_offset;
+        angle = (radius == INFINITY ? 0 : -(atan((2*radius * dir + CHASSIS_WIDTH)/CHASSIS_LENGTH) - dir * M_PI_2)) + angle_offset;
     } else {
-        angle = (radius == INFINITY ? 0 : atan((2*radius*dir - CHASSIS_WIDTH)/CHASSIS_LENGTH) - dir * M_PI_2) + angle_offset;
+        angle = (radius == INFINITY ? 0 : atan((2*radius * dir - CHASSIS_WIDTH)/CHASSIS_LENGTH) - dir * M_PI_2) + angle_offset;
     }
     return angle;
 }
@@ -429,6 +447,7 @@ void Driver::pub_telemetry() {
 Driver::Driver() : Node("driver")
 {
     this->declare_parameter("canbus", "can0");
+    this->declare_parameter("gazebo", false);
     // parameter for change in angle of the pivots in radians per second
     this->declare_parameter("max_theta", 2*M_PI*0.5625);
     max_d_theta = this->get_parameter("max_theta").get_parameter_value().get<double>()*
@@ -480,6 +499,12 @@ Driver::Driver() : Node("driver")
 
     // Create pivot wheel data publisher
     pivot_wheel_pub = this->create_publisher<core::msg::PivotWheelData>("/control/pivot_wheel", 10);
+
+    //create gazebo publishers
+    pivot_joint_trajectory_pub = this->create_publisher<trajectory_msgs::msg::JointTrajectory>(
+            "/pivot_joint_trajectory_controller/joint_trajectory", 10);
+    wheel_joint_velocity_pub = this->create_publisher<std_msgs::msg::Float64MultiArray>(
+            "/wheel_velocity_controller/commands", 10);
 
     disable_blcmd_srv = this->create_service<core::srv::DisableBLCMD>("/control/disable_blcmd",
         std::bind(&Driver::disable_blcmd_callback, this, _1, _2));
