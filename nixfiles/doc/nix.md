@@ -110,7 +110,7 @@ Development can be done in two styles:
    ```
 
    You can also enter the combined shell for multiple packages by chaining them.
-   This is useful, for example, to open an IDE though and work on several packages at once.
+   This is useful, for example, to open an IDE through and work on several packages at once.
    See the [nix-ros-workspace documentation](https://github.com/hacker1024/nix-ros-workspace#composition)
    for more details.
 
