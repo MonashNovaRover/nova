@@ -132,14 +132,38 @@ Development can be done in two styles:
    cmake --build .
    ```
 
-4. IDE development: IDEs such as CLion will be able to work with the package as a regular CMake
-   project, so long as they are started from the shell.
+#### IDE configuration
 
-   When using CLion, make sure to manually enter the build tool executable names
-   in a toolchain profile. This will force the IDE to use the tools in `PATH`
-   instead of using incorrect autodetection results.
+All IDEs should be opened from a `nix-shell` session.
 
-   ![](/doc/images/clion_toolchain_setup.png)
+##### C++
+
+ROS C++ packages use CMake, which is well supported by most IDEs.
+
+###### Visual Studio Code
+
+Get the [C/C++](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) and [CMake Tools](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cmake-tools) extensions, and choose the ["unspecified" kit](https://code.visualstudio.com/docs/cpp/cmake-linux#_select-a-kit) when prompted.
+
+###### CLion
+
+CLion supports CMake out of the box.
+
+When using CLion, make sure to manually enter the build tool executable names
+in a toolchain profile. This will force the IDE to use the tools in `PATH`
+instead of using incorrect autodetection results.
+
+![](/doc/images/clion_toolchain_setup.png)
+
+#### Python
+
+Both Visual Studio Code and PyCharm are unable to use a Python interpreter directly from the `PATH` variable, which is ideal for `nix-shell`.
+
+To work around this, create a shell script to launch Python, and set it as the Python interpreter.
+
+```sh
+#!/bin/sh
+exec python "$@"
+```
 
 ### Colcon
 
