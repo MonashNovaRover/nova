@@ -80,3 +80,6 @@ Install the [Nix IDE](https://marketplace.visualstudio.com/items?itemName=jnoort
     }
 }
 ```
+
+
+These settings are already preconfigured when using `nova.desktop.enable` in the Home Manager or NixOS modules.
