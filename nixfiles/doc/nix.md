@@ -98,9 +98,48 @@ Now, the workspace can be used like normal. `ros2 run` to your heart's content.
 
 Development can be done in two styles:
 
-1. Using [colcon](https://colcon.readthedocs.io/en/released/) as normal
-   (recommended when working on multiple packages at once).
-2. Using build tools like CMake directly (recommended when working on just one package).
+1. Using IDEs or build tools like CMake directly (recommended in most cases).
+2. Using [colcon](https://colcon.readthedocs.io/en/released/) as normal
+   (recommended when working on multiple large packages that depend on one another).
+
+### Direct
+
+1. Enter a package development shell. For example, `control`:
+   ```
+   nix-shell -A env.nova-control
+   ```
+
+   You can also enter the combined shell for multiple packages by chaining them.
+   This is useful, for example, to open an IDE though and work on several packages at once.
+   See the [nix-ros-workspace documentation](https://github.com/hacker1024/nix-ros-workspace#composition)
+   for more details.
+
+   ```
+   nix-shell -A env.nova-control.nova-autonomous
+   ```
+
+2. Switch to the package directory.
+   ```
+   cd external/src/ros/rover/control
+   ```
+
+3. CLI development: Build the package with regular build tools.
+   Note that some CMake packages will need `-DBUILD_TESTING=OFF`.
+   ```
+   mkdir -p build
+   cd build
+   cmake .. -DBUILD_TESTING=OFF
+   cmake --build .
+   ```
+
+4. IDE development: IDEs such as CLion will be able to work with the package as a regular CMake
+   project, so long as they are started from the shell.
+
+   When using CLion, make sure to manually enter the build tool executable names
+   in a toolchain profile. This will force the IDE to use the tools in `PATH`
+   instead of using incorrect autodetection results.
+
+   ![](/doc/images/clion_toolchain_setup.png)
 
 ### Colcon
 
@@ -122,36 +161,6 @@ Development can be done in two styles:
    ```
 
 4. Hack away.
-
-### Direct
-
-1. Enter a package development shell. For example, `control`:
-   ```
-   nix-shell -A env.nova-control
-   ```
-
-2. Switch to the package directory.
-   ```
-   cd external/src/ros/rover/control
-   ```
-
-3. Build the package with regular build tools.
-   Note that some CMake packages will need `-DBUILD_TESTING=OFF`.
-   ```
-   mkdir -p build
-   cd build
-   cmake .. -DBUILD_TESTING=OFF
-   cmake --build .
-   ```
-
-4. IDEs such as CLion will be able to work with the package as a regular CMake
-   project, so long as they are started from the shell.
-
-   When using CLion, make sure to manually enter the build tool executable names
-   in a toolchain profile. This will force the IDE to use the tools in `PATH`
-   instead of using incorrect autodetection results.
-
-   ![](/doc/images/clion_toolchain_setup.png)
 
 ## Advanced Nix usage
 
