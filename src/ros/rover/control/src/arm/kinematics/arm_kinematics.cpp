@@ -27,7 +27,7 @@ ArmKinematics::ArmKinematics(const ArmModel& arm_model, const rclcpp::Logger& lo
 
 
 // Get the joint-space positions of the 6-DOF serial model of the arm
-inline KDL::JntArray ArmKinematics::joint_positions_6dof(KDL::JntArray joint_positions)
+KDL::JntArray ArmKinematics::joint_positions_6dof(KDL::JntArray joint_positions)
 {
     // Ensure the input is of the correct size
     if (joint_positions.data.size() != (int)arm_model.num_joints) {
@@ -55,7 +55,7 @@ inline KDL::JntArray ArmKinematics::joint_positions_6dof(KDL::JntArray joint_pos
 }
 
 // Calculate the FK for a given segment
-inline KDL::Frame ArmKinematics::fk_pos_single_segment_6dof(KDL::JntArray joint_positions_6dof, std::string segment_name)
+KDL::Frame ArmKinematics::fk_pos_single_segment_6dof(KDL::JntArray joint_positions_6dof, std::string segment_name)
 {
     // Prepare the output data structure
     KDL::Frame frame = KDL::Frame::Identity();
@@ -108,7 +108,7 @@ std::vector<KDL::Frame> ArmKinematics::fk_pos_all_segments(KDL::JntArray joint_p
 
 
 // Solve the velocity inverse kineamtics for the end effector
-inline KDL::JntArray ArmKinematics::ik_vel_end_effector_6dof(KDL::JntArray joint_positions_6dof, KDL::Twist twist)
+KDL::JntArray ArmKinematics::ik_vel_end_effector_6dof(KDL::JntArray joint_positions_6dof, KDL::Twist twist)
 {
     // Prepare the output data structure
     KDL::JntArray joint_velocities (6);
@@ -134,7 +134,7 @@ inline KDL::JntArray ArmKinematics::ik_vel_end_effector_6dof(KDL::JntArray joint
 }
 
 
-inline KDL::JntArray ArmKinematics::joint_vel_transform_6dof_to_actual(KDL::JntArray joint_positions, KDL::JntArray joint_velocities, bool use_spm_roll)
+KDL::JntArray ArmKinematics::joint_vel_transform_6dof_to_actual(KDL::JntArray joint_positions, KDL::JntArray joint_velocities, bool use_spm_roll)
 {
     if (ArmConfig::wrist_type == ArmConfig::WRIST_SPM) {
         // Add another joint to the array
