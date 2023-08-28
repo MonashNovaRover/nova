@@ -4,8 +4,17 @@
 , rosidl-default-generators
 , std-msgs
 , nav-msgs
+, trajectory-msgs
 , launch
 , launch-ros
+, xacro
+, robot-state-publisher
+, controller-manager
+, ros2-control
+, gazebo-ros
+, gazebo-ros2-control
+, ros2-controllers
+, pluginlib
 }:
 
 buildRosPackage {
@@ -19,6 +28,18 @@ buildRosPackage {
   };
 
   nativeBuildInputs = [ ament-cmake rosidl-default-generators ];
-  buildInputs = [ std-msgs nav-msgs ];
+  buildInputs = [ std-msgs nav-msgs trajectory-msgs ];
   propagatedBuildInputs = [ launch launch-ros ];
+
+  passthru.workspacePackages = {
+    inherit
+      xacro
+      robot-state-publisher
+      controller-manager
+      ros2-control
+      gazebo-ros
+      gazebo-ros2-control
+      ros2-controllers
+      pluginlib;
+  };
 }

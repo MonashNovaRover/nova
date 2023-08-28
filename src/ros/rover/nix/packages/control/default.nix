@@ -7,6 +7,7 @@
 , std-srvs
 , geometry-msgs
 , nav-msgs
+, trajectory-msgs
 , sensor-msgs
 , eigen
 , orocos-kdl
@@ -36,6 +37,7 @@ buildRosPackage {
     std-srvs
     geometry-msgs
     nav-msgs
+    trajectory-msgs
     sensor-msgs
     eigen
     orocos-kdl
