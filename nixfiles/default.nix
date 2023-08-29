@@ -20,6 +20,13 @@ let
       hash = "sha256-QZUxjv/MsWjradxgHlQFkP1ynR4BAuedY/Hs+gMyss8=";
     };
     patches = [
+      # protobuf3: 24.4 -> 21.12
+      # Newer versions of protobuf have issues releated to abseil-cpp.
+      (pkgs.fetchpatch {
+        url = "https://github.com/NixOS/nixpkgs/commit/9e397b9d0042839420047a4154e6e33fd634a846.patch";
+        revert = true;
+        hash = "sha256-npLoOB8eOLcJFgkoARzH9GfU5OUKJjfUf5c2l2IAzWk=";
+      })
     ];
   };
 
