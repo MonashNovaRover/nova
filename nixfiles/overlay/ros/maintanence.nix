@@ -69,4 +69,22 @@ self: super:
       "--set WAYLAND_DISPLAY dummy" # "dummy" is arbitrary - it just doesn't exist.
     ];
   });
+
+  ignition =
+    let
+      fixMsgs = pkg: pkg.overrideAttrs ({ patches, ... }: {
+        patches = patches ++ [
+          # GzProtobuf: Do not require version 3 to support Protobuf 4.23.2 (23.2)
+          (self.fetchpatch {
+            url = "https://github.com/gazebosim/gz-msgs/commit/0c0926c37042ac8f5aeb49ac36101acd3e084c6b.patch";
+            hash = "sha256-QnR1WtB4gbgyJKbQ4doMhfSjJBksEeQ3Us4y9KqCWeY=";
+          })
+        ];
+      });
+    in
+    super.ignition // {
+      msgs1 = fixMsgs super.ignition.msgs1;
+      msgs5 = fixMsgs super.ignition.msgs5;
+      msgs8 = fixMsgs super.ignition.msgs8;
+    };
 }
