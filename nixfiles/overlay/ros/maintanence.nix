@@ -40,7 +40,7 @@ self: super:
           ];
         });
 
-        rviz-ogre-vendor = rosSuper.rviz-ogre-vendor.overrideAttrs ({ patches ? [ ], ... }: {
+        rviz-ogre-vendor = rosSuper.rviz-ogre-vendor.overrideAttrs ({ patches ? [ ], preFixup ? "", ... }: {
           patches = patches ++
             # Fix AArch64 builds of RViz2.
             # While this patch should not break builds on non-ARM platforms,
@@ -53,6 +53,11 @@ self: super:
                 stripLen = 1;
                 hash = "sha256-KpY9+oOsFxH+zhIxyP6UTOXTLaaUdCRzUMZnM7+uRAk=";
               });
+
+          preFixup = ''
+            # Prevent /build RPATH references
+            rm -r ogre_install
+          '' + preFixup;
         });
       });
     }));
