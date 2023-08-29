@@ -16,15 +16,10 @@ let
     src = pkgs.fetchFromGitHub {
       owner = "NixOS";
       repo = "nixpkgs";
-      rev = "66aedfd010204949cb225cf749be08cb13ce1813";
-      hash = "sha256-DbtxVWPt+ZP5W0Usg7jAyTomIM//c3Jtfa59Ht7AV8s=";
+      rev = "3d958404528cd939451ca2ed30473c3d7ae4d746";
+      hash = "sha256-QZUxjv/MsWjradxgHlQFkP1ynR4BAuedY/Hs+gMyss8=";
     };
     patches = [
-      # python3.pkgs.pygobject-stubs: init at 2.8.0
-      (pkgs.fetchpatch {
-        url = "https://github.com/NixOS/nixpkgs/pull/249663/commits/83326c2d47189cbe098c0719c56408f93c1e61d7.patch";
-        hash = "sha256-qRjwkTbqLGG7/tvW1tXZZd2Tj88rmFkmoUNxgUs+yC0=";
-      })
     ];
   };
 
@@ -32,10 +27,17 @@ let
     src = pkgs.fetchFromGitHub {
       owner = "lopsided98";
       repo = "nix-ros-overlay";
-      rev = "969eeac1fa4b4ad0abad3c1c682c787002a2b41d";
-      hash = "sha256-BxRkwbMCtOtCXzXEiS30xfYUiqRWcJXWUAO4rdDu/qw=";
+      rev = "4c0baef357f0d0c84502202d75a69c496feb433e";
+      hash = "sha256-PoL3GNYeexLNGTNHm3qkAv25aL4pbsMKepW7CT9Z1c8=";
     };
     patches = [
+      # Bring back Foxy
+      (pkgs.fetchpatch {
+        url = "https://github.com/lopsided98/nix-ros-overlay/commit/113129c9daf2edfcb4a12593a60e918116dee671.patch";
+        revert = true;
+        hash = "sha256-73+rJj9c34cHQkDqxHzSe0HDAf+3zMJj4g+04y25xAU=";
+      })
+
       # Build ROS Python packages like colcon
       (pkgs.fetchpatch {
         url = "https://github.com/lopsided98/nix-ros-overlay/compare/3205dadcff4e1fbc779ce3962bafcf3e9f3e931b...6bdb199e0656650ad9d2e458be21a51d53c993e9.patch";

@@ -10,13 +10,11 @@ self: super:
         qtWrapperArgs = qtWrapperArgs ++ [ "--set-default QT_QPA_PLATFORM xcb" ];
       });
 
-      # Use PyMongo for BSON.
-      # https://github.com/RobotWebTools/rosbridge_suite/issues/198
-      rosbridge-library = rosSuper.rosbridge-library.override {
-        python3Packages = rosSuper.python3Packages.overrideScope (pySelf: pySuper: {
-          bson = pySelf.pymongo;
-        });
-      };
+      pythonPackages = rosSuper.pythonPackages.overrideScope (pyself: pysuper: {
+        # https://github.com/ros/rosdistro/pull/38361
+        # As there is no rosdep key for OpenCV 3 specifically, all uses of OpenCV intend to reference OpenCV 4.
+        opencv3 = pyself.opencv4;
+      });
     })
     # Overlays for individual ROS distros.
     (super.rosPackages // {
