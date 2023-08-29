@@ -16,16 +16,14 @@ let
     src = pkgs.fetchFromGitHub {
       owner = "NixOS";
       repo = "nixpkgs";
-      rev = "3d958404528cd939451ca2ed30473c3d7ae4d746";
-      hash = "sha256-QZUxjv/MsWjradxgHlQFkP1ynR4BAuedY/Hs+gMyss8=";
+      rev = "66aedfd010204949cb225cf749be08cb13ce1813";
+      hash = "sha256-DbtxVWPt+ZP5W0Usg7jAyTomIM//c3Jtfa59Ht7AV8s=";
     };
     patches = [
-      # protobuf3: 24.4 -> 21.12
-      # Newer versions of protobuf have issues releated to abseil-cpp.
+      # python3.pkgs.pygobject-stubs: init at 2.8.0
       (pkgs.fetchpatch {
-        url = "https://github.com/NixOS/nixpkgs/commit/9e397b9d0042839420047a4154e6e33fd634a846.patch";
-        revert = true;
-        hash = "sha256-npLoOB8eOLcJFgkoARzH9GfU5OUKJjfUf5c2l2IAzWk=";
+        url = "https://github.com/NixOS/nixpkgs/pull/249663/commits/83326c2d47189cbe098c0719c56408f93c1e61d7.patch";
+        hash = "sha256-qRjwkTbqLGG7/tvW1tXZZd2Tj88rmFkmoUNxgUs+yC0=";
       })
     ];
   };
