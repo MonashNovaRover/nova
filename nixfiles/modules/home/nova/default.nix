@@ -1,7 +1,13 @@
 { config, pkgs, lib, ... }:
 
+let
+  cfg = config.nova.user;
+in
 {
-  config = lib.mkIf (config.home.username == "nova") {
+  options.nova.user.enable = lib.mkEnableOption "Standard Nova Rover user settings."
+    // { default = config.home.username == "nova"; };
+
+  config = lib.mkIf cfg.enable {
     nova = {
       macros.enable = true;
     };
