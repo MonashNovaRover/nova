@@ -19,6 +19,7 @@ in
 
     programs = {
       bash.enable = true;
+      command-not-found.enable = true;
 
       git = {
         enable = true;
