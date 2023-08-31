@@ -1,6 +1,6 @@
 { supportedSystems
 , nixpkgs
-, src
+, nixfiles
 , rosDistro
 , ...
 }@args:

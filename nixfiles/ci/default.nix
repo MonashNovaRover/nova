@@ -1,6 +1,6 @@
 { supportedSystems ? [ "x86_64-linux" "aarch64-linux" ]
 , nixpkgs
-, src
+, nixfiles
 , declInput
 , ...
 }@args:
@@ -13,7 +13,7 @@ let
     enabled = 1;
     hidden = false;
     inherit description;
-    nixexprinput = "src";
+    nixexprinput = "nixfiles";
     inherit nixexprpath;
     checkinterval = 60;
     schedulingshares = 100;
@@ -24,7 +24,7 @@ let
   } // args // {
     inputs = {
       nixpkgs = mkGitHubInput { owner = "NixOS"; repo = "nixpkgs"; branch = "nixos-unstable"; };
-      src = mkNovaInput { repo = "nixfiles"; };
+      nixfiles = mkNovaInput { repo = "nixfiles"; };
       supportedSystems = {
         type = "nix";
         value = "[ \"${builtins.concatStringsSep "\" \"" supportedSystems}\" ]";

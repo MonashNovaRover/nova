@@ -90,7 +90,7 @@ in
           <githubstatus>
             jobs = nova:workspaces(?:-pr-.*-\d+)?:(?!.*-inputs).*
             useShortContext = 1
-            inputs = src
+            inputs = nixfiles
             ${builtins.concatStringsSep "\n" (map
               (repo: "inputs = ${repo}")
               (builtins.foldl' (repos: category: repos ++ builtins.attrNames category) [ ] (builtins.attrValues (import ../../../../../ci/nova-repos.nix))))}

@@ -2,7 +2,7 @@
 , nixpkgs
 , nixpkgs-stable
 , home-manager
-, src
+, nixfiles
 , enableCompression ? true
 , extraModules ? [ ]
 , ...
@@ -17,7 +17,7 @@ let
       baseSystem = (import ("${nixpkgs}/nixos/lib/eval-config.nix") {
         inherit system;
         modules = [
-          (src + /nixos)
+          (nixfiles + /nixos)
           ../../nixos/installer/cd-dvd/nova-installation-cd-${if graphical then "graphical" else "base"}.nix
           ({ pkgs, lib, ... }:
             let
@@ -98,7 +98,7 @@ let
                   # used right away.
                   nova.workspace.sources = lib.mkIf includeWorkspace {
                     enable = true;
-                    inherit src;
+                    src = nixfiles;
                     external = builtins.mapAttrs (category: builtins.mapAttrs (repo: branch: args.${repo})) (import ../nova-repos.nix);
                   };
                 })

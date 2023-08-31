@@ -1,6 +1,6 @@
 { supportedSystems
 , nixpkgs
-, src
+, nixfiles
 , rosDistro
 , ...
 }@args:
@@ -10,7 +10,7 @@ let
     inherit
       supportedSystems
       nixpkgs
-      src;
+      nixfiles;
     repoNames = [ ];
   };
 in

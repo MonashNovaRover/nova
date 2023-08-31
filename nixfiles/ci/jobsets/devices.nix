@@ -1,7 +1,7 @@
 { supportedSystems
 , nixpkgs
 , home-manager
-, src
+, nixfiles
 }:
 
 let
@@ -9,13 +9,13 @@ let
     inherit
       supportedSystems
       nixpkgs
-      src;
+      nixfiles;
     repoNames = [ ];
   };
 
   mkDeviceSystem = device: (import "${nixpkgs}/nixos/lib/eval-config.nix" {
     modules = [
-      (src + /nixos)
+      (nixfiles + /nixos)
       ({ config, ... }: {
         # Cross-compilation here is not useful, as these jobs are designed to
         # populate a cache to make rebuilds on the devices themselves faster.

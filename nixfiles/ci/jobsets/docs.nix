@@ -1,7 +1,7 @@
 { supportedSystems
 , nixpkgs
 , home-manager
-, src
+, nixfiles
 }:
 
 let
@@ -9,7 +9,7 @@ let
     inherit
       supportedSystems
       nixpkgs
-      src;
+      nixfiles;
     repoNames = [ ];
   };
 
@@ -36,16 +36,16 @@ let
           (declaration:
             let
               isLocalModule =
-                if builtins.isPath src then
-                  pkgs.lib.path.hasPrefix src (/. + declaration)
+                if builtins.isPath nixfiles then
+                  pkgs.lib.path.hasPrefix nixfiles (/. + declaration)
                 else
-                  pkgs.lib.hasPrefix (toString src) (toString declaration);
+                  pkgs.lib.hasPrefix (toString nixfiles) (toString declaration);
             in
             if isLocalModule then
               rec {
                 # Structure format described in nixos-render-docs:
                 # https://github.com/NixOS/nixpkgs/blob/45ae0efbbce2aada6d5e8de6ace0c803b08ac9c7/pkgs/tools/nix/nixos-render-docs/src/nixos_render_docs/options.py#L52-L53
-                name = (pkgs.lib.removePrefix ((toString src) + "/") declaration) +
+                name = (pkgs.lib.removePrefix ((toString nixfiles) + "/") declaration) +
                 (pkgs.lib.optionalString (builtins.readFileType declaration == "directory") "/default.nix");
                 url = "https://github.com/MonashNovaRover/nixfiles/blob/master/${name}";
                 # TODO: Is there a way to generate URLs with a fixed Git revision?
