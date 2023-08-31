@@ -21,6 +21,11 @@
             "value": "git@github.com:MonashNovaRover/nixfiles.git",
             "emailresponsible": false
         },
+        "nixfiles-pr-json": {
+            "type": "githubpulls",
+            "value": "MonashNovaRover nixfiles",
+            "emailresponsible": false
+        },
         "rover-pr-json": {
             "type": "githubpulls",
             "value": "MonashNovaRover rover",
