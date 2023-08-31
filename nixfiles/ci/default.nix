@@ -60,7 +60,7 @@ let
           (pr.base.ref == (if branch == null then pr.base.repo.default_branch else branch)))
         repoPrs)
     [ ]
-    (builtins.attrNames allNovaRepos);
+    ([ "nixfiles" ] ++ builtins.attrNames allNovaRepos);
 
   homeManagerInput = mkGitHubInput {
     owner = "nix-community";
