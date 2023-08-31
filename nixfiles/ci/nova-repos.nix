@@ -3,7 +3,7 @@
 
 {
   ros = {
-    rover = "feature/nix";
+    rover = "testing";
     cameras2 = null;
     gui = "feature/nix";
   };
