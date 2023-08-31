@@ -54,8 +54,8 @@ let
   nix-ros-workspace = pkgs.fetchFromGitHub {
     owner = "hacker1024";
     repo = "nix-ros-workspace";
-    rev = "a79bac0a7c984f90e7924c378f9d93917dfed92f";
-    hash = "sha256-Hj65PG6ykCHd51CWL1HGLX96HfEuxEv+8HQJVe0AjzI=";
+    rev = "7e3d83a090024d700729fa2dc81fbb0a2f15388e";
+    hash = "sha256-rsQBiiOMh57A4FQv6CMbxIlA95qKvZ0PCIR/vDrCJko=";
   };
 
   inherit (pkgs.lib.evalModules {
