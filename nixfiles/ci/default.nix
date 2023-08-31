@@ -48,7 +48,7 @@ let
   novaPrs = builtins.foldl'
     (allPrs: repo:
       let
-        branch = allNovaRepos.${repo};
+        branch = allNovaRepos.${repo} or null;
         repoPrs = builtins.attrValues (builtins.fromJSON (builtins.readFile args."${repo}-pr-json"));
       in
       allPrs ++ builtins.filter
