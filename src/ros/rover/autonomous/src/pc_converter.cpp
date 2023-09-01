@@ -8,7 +8,6 @@
  * Edited: 07/03/2023
 */
 
-#include "rclcpp/rclcpp.hpp"
 #include "builtin_interfaces/msg/time.hpp"
 #include "sensor_msgs/msg/point_cloud2.hpp"
 #include "std_msgs/msg/header.hpp"
