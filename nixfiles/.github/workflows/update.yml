@@ -25,6 +25,8 @@ jobs:
           owner: lopsided98
           repo: nix-ros-overlay
           branch: develop
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Determine latest SHA
         id: latest
         run: |
