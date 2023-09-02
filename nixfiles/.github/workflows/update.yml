@@ -2,7 +2,7 @@ name: Update
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 4 * * *'
+    - cron: '0 12 * * SAT'
 jobs:
   get-latest-overlay:
     name: Get latest nix-ros-overlay
