@@ -6,6 +6,8 @@
 }:
 
 let
+  revisions = builtins.fromJSON (builtins.readFile ./revisions.json);
+
   # Pin the version of Nixpkgs to ensure reproducibility.
   # Preferably, this will come from https://github.com/lopsided98/nixpkgs/tree/nix-ros,
   # but upstream Nixpkgs may be used if it a) has merged all pending PRs from
@@ -16,8 +18,7 @@ let
     src = pkgs.fetchFromGitHub {
       owner = "NixOS";
       repo = "nixpkgs";
-      rev = "66aedfd010204949cb225cf749be08cb13ce1813";
-      hash = "sha256-DbtxVWPt+ZP5W0Usg7jAyTomIM//c3Jtfa59Ht7AV8s=";
+      inherit (revisions.nixpkgs) rev hash;
     };
     patches = [
       # python3.pkgs.pygobject-stubs: init at 2.8.0
@@ -32,8 +33,7 @@ let
     src = pkgs.fetchFromGitHub {
       owner = "lopsided98";
       repo = "nix-ros-overlay";
-      rev = "4c0baef357f0d0c84502202d75a69c496feb433e";
-      hash = "sha256-PoL3GNYeexLNGTNHm3qkAv25aL4pbsMKepW7CT9Z1c8=";
+      inherit (revisions.nix-ros-overlay) rev hash;
     };
     patches = [
       # Bring back Foxy
@@ -54,8 +54,7 @@ let
   nix-ros-workspace = pkgs.fetchFromGitHub {
     owner = "hacker1024";
     repo = "nix-ros-workspace";
-    rev = "7e3d83a090024d700729fa2dc81fbb0a2f15388e";
-    hash = "sha256-rsQBiiOMh57A4FQv6CMbxIlA95qKvZ0PCIR/vDrCJko=";
+    inherit (revisions.nix-ros-workspace) rev hash;
   };
 
   inherit (pkgs.lib.evalModules {
