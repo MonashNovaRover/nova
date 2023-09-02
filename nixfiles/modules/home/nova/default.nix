@@ -4,8 +4,11 @@ let
   cfg = config.nova.user;
 in
 {
-  options.nova.user.enable = lib.mkEnableOption "Standard Nova Rover user settings."
-    // { default = config.home.username == "nova"; };
+  options.nova.user.enable =
+    lib.mkEnableOption "standard Nova Rover user settings" // {
+      default = config.home.username == "nova";
+      defaultText = lib.literalExpression ''"nova"'';
+    };
 
   config = lib.mkIf cfg.enable {
     nova = {
