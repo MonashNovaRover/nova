@@ -1,0 +1,69 @@
+name: Update
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 4 * * *'
+jobs:
+  get-latest-overlay:
+    name: Get latest nix-ros-overlay
+    runs-on: ubuntu-latest
+    outputs:
+      sha: ${{ steps.latest.outputs.sha }}
+    steps:
+      - uses: 'octokit/request-action@v2.x'
+        id: get_pulls
+        with:
+          route: 'GET /repos/{owner}/{repo}/pulls?state=open&sort=created&direction=desc&per_page=30' # TODO: Paginate
+          owner: lopsided98
+          repo: nix-ros-overlay
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: 'octokit/request-action@v2.x'
+        id: get_latest
+        with:
+          route: 'GET /repos/{owner}/{repo}/git/ref/heads/{branch}'
+          owner: lopsided98
+          repo: nix-ros-overlay
+          branch: develop
+      - name: Determine latest SHA
+        id: latest
+        run: |
+          LATEST_SHA="$(jq -r 'sort_by(.number) | map(select(.title | startswith("rosdistro sync"))) | first | .head.sha' <(echo '${{ steps.get_pulls.outputs.data }}'))"
+          if [ "$LATEST_SHA" == "null" ]; then
+            LATEST_SHA="$(jq -r '.object.sha' <(echo '${{ steps.get_latest.outputs.data }}'))"
+          fi
+
+          echo "sha=$LATEST_SHA" >> "$GITHUB_OUTPUT"
+
+  make-update-pr:
+    name: Make update PR
+    runs-on: ubuntu-latest
+    needs: get-latest-overlay
+    steps:
+      - uses: actions/checkout@v3
+      - uses: cachix/install-nix-action@v22
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+      - name: Update revisions
+        run: |
+          SHA='${{ needs.get-latest-overlay.outputs.sha }}'
+          HASH=$(nix-shell -p nurl --run 'nurl https://github.com/lopsided98/nix-ros-overlay ${{ needs.get-latest-overlay.outputs.sha }} --hash')
+          jq --indent 2 ".nixpkgs.rev |= \"$SHA\" | .nixpkgs.hash |= \"$HASH\"" revisions.json > revisions.json.tmp
+          mv revisions.json{.tmp,}
+      - name: Get time
+        id: get_time
+        run: |
+          echo "time=$(TZ="Australia/Melbourne" date)" >> "$GITHUB_OUTPUT"
+      - name: Generate PR
+        uses: peter-evans/create-pull-request@v5
+        with:
+          commit-message: Update nix-ros-overlay
+          branch: update/nix-ros-overlay
+          delete-branch: true
+          title: Update nix-ros-overlay (${{ steps.get_time.outputs.time }})
+          body: |-
+            Updates nix-ros-overlay to revision ${{ needs.get-latest-overlay.outputs.sha }}.
+
+            This is an automated pull request, and may need manual intervention to update patches or overrides.
+            Wait for CI to build workspace packages before merging to check for errors and avoid disrupting development.
