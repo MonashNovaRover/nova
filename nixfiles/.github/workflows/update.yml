@@ -30,7 +30,7 @@ jobs:
       - name: Determine latest SHA
         id: latest
         run: |
-          LATEST_SHA="$(jq -r 'sort_by(.number) | map(select(.title | startswith("rosdistro sync"))) | first | .head.sha' <(echo '${{ steps.get_pulls.outputs.data }}'))"
+          LATEST_SHA="$(jq -r 'sort_by(.number) | map(select((.state == "open") and (.title | startswith("rosdistro sync")))) | first | .head.sha' <(echo '${{ steps.get_pulls.outputs.data }}'))"
           if [ "$LATEST_SHA" == "null" ]; then
             LATEST_SHA="$(jq -r '.object.sha' <(echo '${{ steps.get_latest.outputs.data }}'))"
           fi
