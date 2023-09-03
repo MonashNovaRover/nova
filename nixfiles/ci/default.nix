@@ -123,7 +123,7 @@ let
     (mkMiscDistroJobsets null)
     extraDistros;
 
-  extraDistros = [ "humble" ];
+  extraDistros = [ "foxy" ];
 
   jobsets = mkAllWorkspaceJobsets extraDistros // {
     docs = mkJobset {

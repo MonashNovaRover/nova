@@ -1,5 +1,5 @@
 self: super:
 
 {
-  ros = self.rosPackages.foxy;
+  ros = self.rosPackages.humble;
 }
