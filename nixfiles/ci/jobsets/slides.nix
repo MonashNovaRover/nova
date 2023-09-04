@@ -1,5 +1,6 @@
 { supportedSystems
 , nixpkgs
+, nixfiles
 , slides
 }:
 
