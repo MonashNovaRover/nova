@@ -148,6 +148,16 @@ let
       };
       checkinterval = 60 * 60 * 24 * 7;
     };
+    slides =
+      let
+        jobset = mkJobset {
+          description = "Workshop slides";
+          nixexprpath = "ci/jobsets/slides.nix";
+          checkinterval = 60 * 60 * 24;
+          inputs.slides = mkNovaInput { repo = "slides"; };
+        };
+      in
+      jobset // { inputs = builtins.removeAttrs jobset.inputs [ "nixfiles" ]; };
   } // mkAllMiscJobsets extraDistros;
 in
 {
