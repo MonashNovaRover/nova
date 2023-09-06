@@ -57,13 +57,13 @@ def generate_launch_description():
 
     wheel_velocity_controller = Node(
         package="controller_manager",
-        executable="spawner.py",
+        executable="spawner",
         arguments=["wheel_velocity_controller"]
     )
 
     pivot_joint_trajectory_controller = Node(
         package="controller_manager",
-        executable="spawner.py",
+        executable="spawner",
         arguments=["pivot_joint_trajectory_controller"]
     )
 
