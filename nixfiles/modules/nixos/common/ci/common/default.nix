@@ -13,5 +13,7 @@ in
       max-free = lib.mkDefault (32 * 1024 * 1024 * 1024);
       keep-outputs = lib.mkDefault true;
     };
+
+    nova.substituters.ros.enable = true;
   };
 }
