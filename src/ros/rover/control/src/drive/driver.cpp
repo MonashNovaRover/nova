@@ -98,6 +98,7 @@ void Driver::send_commands()
     } else {
         for (size_t i = 0; i < NUM_WHEELS; i++) {
             PivotModule *pivot = pivots[i];
+            pivot->drive_wheel();
             if (mode == core::msg::DriveInput::PIVOT || mode == core::msg::DriveInput::STRAFE) {
                 pivot->drive_pivot();
             }
