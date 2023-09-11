@@ -54,6 +54,10 @@ in
         allow-volume-above-100-percent = true;
       };
 
+      "org/gnome/desktop/wm/preferences" = {
+        button-layout = "appmenu:minimize,maximize,close";
+      };
+
       "org/gnome/shell" = {
         # Extension customization
         disable-user-extensions = false;
