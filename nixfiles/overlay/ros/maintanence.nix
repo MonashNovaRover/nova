@@ -3,13 +3,7 @@ self: super:
 {
   rosPackages = (super.rosPackages.appendDistroOverlay
     # Overlay for all ROS distros.
-    (rosSelf: rosSuper: {
-      # Use X11 by default in RViz2.
-      # https://github.com/ros-visualization/rviz/issues/1442
-      rviz2 = rosSuper.rviz2.overrideAttrs ({ qtWrapperArgs ? [ ], ... }: {
-        qtWrapperArgs = qtWrapperArgs ++ [ "--set-default QT_QPA_PLATFORM xcb" ];
-      });
-    })
+    (rosSelf: rosSuper: { })
     # Overlays for individual ROS distros.
     (super.rosPackages // {
       foxy = super.rosPackages.foxy.overrideScope (rosSelf: rosSuper:
@@ -71,35 +65,4 @@ self: super:
           });
         });
     }));
-
-  # Overlay for distro-agnostic packages.
-  gazebo_11 = super.gazebo_11.overrideAttrs ({ qtWrapperArgs ? [ ], ... }: {
-    qtWrapperArgs = qtWrapperArgs ++ [
-      # Let the gazebo binary see neighboring binaries.
-      # It attempts to run gzclient from PATH.
-      "--prefix PATH : ${placeholder "out"}/bin"
-
-      # Prevent Gazebo from attempting to use Wayland.
-      # As is the case with RViz2, OGRE does not yet support it.
-      "--set WAYLAND_DISPLAY dummy" # "dummy" is arbitrary - it just doesn't exist.
-    ];
-  });
-
-  ignition =
-    let
-      fixMsgs = pkg: pkg.overrideAttrs ({ patches, ... }: {
-        patches = patches ++ [
-          # GzProtobuf: Do not require version 3 to support Protobuf 4.23.2 (23.2)
-          (self.fetchpatch {
-            url = "https://github.com/gazebosim/gz-msgs/commit/0c0926c37042ac8f5aeb49ac36101acd3e084c6b.patch";
-            hash = "sha256-QnR1WtB4gbgyJKbQ4doMhfSjJBksEeQ3Us4y9KqCWeY=";
-          })
-        ];
-      });
-    in
-    super.ignition // {
-      msgs1 = fixMsgs super.ignition.msgs1;
-      msgs5 = fixMsgs super.ignition.msgs5;
-      msgs8 = fixMsgs super.ignition.msgs8;
-    };
 }

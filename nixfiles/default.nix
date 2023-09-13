@@ -36,12 +36,6 @@ let
       inherit (revisions.nix-ros-overlay) rev hash;
     };
     patches = [
-      # Bring back Foxy
-      (pkgs.fetchpatch {
-        url = "https://github.com/lopsided98/nix-ros-overlay/commit/113129c9daf2edfcb4a12593a60e918116dee671.patch";
-        revert = true;
-        hash = "sha256-73+rJj9c34cHQkDqxHzSe0HDAf+3zMJj4g+04y25xAU=";
-      })
     ];
   };
 
