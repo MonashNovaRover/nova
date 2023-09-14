@@ -38,3 +38,17 @@ options. Otherwise, add the [Hydra server](./hydra.md) to the [substituter list]
 along with a [netrc file](https://nixos.org/manual/nix/unstable/command-ref/conf-file.html#conf-netrc-file) including the required credentials.
 
 The public key is `***REMOVED***`.
+
+## The CUDA binary cache
+
+The [cuda-maintainers binary cache](https://github.com/SomeoneSerge/nixpkgs-cuda-ci)
+contains prebuilt copies of CUDA-enabled packages from Nixpkgs.
+
+### Setup
+
+To use it, add `https://cuda-maintainers.cachix.org` to the [substituter list](https://nixos.org/manual/nix/unstable/command-ref/conf-file.html#conf-substituters),
+and add the public key to the [trusted list](https://nixos.org/manual/nix/unstable/command-ref/conf-file.html#conf-trusted-public-keys).
+
+On NixOS, the `nix.settings` options can be used to do this.
+
+The public key is `cuda-maintainers.cachix.org-1:0dq3bujKpuEPMCX6U4WylrUDZ9JyUG0VpVZa7CNfq5E=`.
