@@ -90,7 +90,7 @@ in
         # Shell ulilities
         pciutils
         usbutils
-
+      ] ++ lib.optionals config.nova.desktop.enable [
         # Desktop apps
         gitkraken
       ];
