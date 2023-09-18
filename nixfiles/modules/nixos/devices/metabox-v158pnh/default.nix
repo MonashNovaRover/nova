@@ -5,6 +5,7 @@ let
 in
 {
   imports = [
+    ./apps
     ./boot
     ./graphics
     ./keyboard
