@@ -10,6 +10,7 @@
   programs.command-not-found.enable = true;
 
   # Networking
+  networking.useHostResolvConf = false;
   services.resolved.enable = true;
 
   nova = {
