@@ -9,6 +9,9 @@
   environment.noXlibs = false;
   programs.command-not-found.enable = true;
 
+  # Networking
+  services.resolved.enable = true;
+
   nova = {
     profile = "shared";
     desktop.enable = false;
