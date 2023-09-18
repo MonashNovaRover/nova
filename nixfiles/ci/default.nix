@@ -140,6 +140,12 @@ let
       };
       checkinterval = 60 * 60 * 24 * 7;
     };
+    docker = mkJobset {
+      description = "Docker images";
+      nixexprpath = "ci/jobsets/docker.nix";
+      inputs = { home-manager = homeManagerInput; };
+      checkinterval = 60 * 60 * 24 * 7;
+    };
     devices = mkJobset {
       description = "Team device configurations";
       nixexprpath = "ci/jobsets/devices.nix";
