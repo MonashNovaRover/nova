@@ -52,7 +52,10 @@ let
       extensions' = [
         (prev: [{
           system.build.tarball = ciLib.releaseLib.pkgs.lib.mkForce (prev.system.build.tarball.override
-            (ciLib.releaseLib.pkgs.lib.optionalAttrs
+            ({
+              fileName = "nixos-nova-docker-${system}";
+            }
+            // ciLib.releaseLib.pkgs.lib.optionalAttrs
               ((ciLib.releaseLib.pkgs.lib.systems.elaborate system).isx86_64 && (ciLib.releaseLib.pkgs.lib.systems.elaborate builtins.currentSystem).isAarch64)
               {
                 # Some build tools are prohibitively slow in QEMU.
