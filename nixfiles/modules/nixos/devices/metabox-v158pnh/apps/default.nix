@@ -1,7 +1,9 @@
-{ pkgs, ... }:
+{ config, pkgs, lib, ... }:
 
 {
-  environment.systemPackages = with pkgs; [
-    (blender.override { cudaSupport = true; })
-  ];
+  config = lib.mkIf config.devices.metabox-v158pnh.enable {
+    environment.systemPackages = with pkgs; [
+      (blender.override { cudaSupport = true; })
+    ];
+  };
 }
