@@ -15,21 +15,24 @@ virtual machines.
 Containers and virtual machines each have their own advantages and
 disadvantages, particularly in the context of NixOS.
 
-| Feature | Container | Virtual machine |
-| :------ | :-------: | :-------------: |
-| Startup time | **Fast** | Slow |
-| Resource usage | **Low** | High |
-| Isolation | Low (see the [warning][nixos-container]) | **High** |
-| System integration | **High** | Low |
-| Nix store access | Shared with host | **Shared or duplicated** |
-| Re-activation from host (like `nixos-rebuild switch`) | **Fast** | Slow |
-| Emulated kernel | No | **Yes** |
-| Accurate boot process | No (skips bootloader and NixOS stage 1) | **Partial** |
-| Hardware-accelerated graphics | No | **[With effort][GVT-g]** |
+| Feature | Docker container | NixOS container | Nixos virtual machine | Regular virtual machine |
+| :------ | :--------------: | :-------------: | :-------------------: | :---------------------: |
+| Supported host platforms | All | Linux | Linux | All
+| Startup time | Fast | Fast | Slow | Slow |
+| Resource usage | Low | Low | High | High |
+| Isolation | Medium | Low (see the [warning][nixos-container]) | High | High |
+| System integration | Medium | High | Low | Medium |
+| Nix store access | Duplicated | Shared with host | Shared or duplicated | Duplicated |
+| Re-activation from host (like `nixos-rebuild switch`) | N/A | Fast | Slow | N/A |
+| Emulated kernel | On non-Linux platforms | No | Yes | Yes |
+| Accurate boot process | No (skips bootloader and NixOS stage 1) | No (skips bootloader and NixOS stage 1) | Partial | Yes |
+| Hardware-accelerated graphics | N/A | No | [With effort][GVT-g] | Partial |
 
 ## Using containers
 
-### Creating containers
+### NixOS containers
+
+#### Creating NixOS containers
 
 There are three NixOS container management interfaces, all based on
 [systemd-nspawn](https://www.freedesktop.org/software/systemd/man/systemd-nspawn.html).
@@ -74,7 +77,7 @@ Note that graphical applications will not work in NixOS's imperative containers,
    $ startx-nested
    ```
 
-### Updating containers
+#### Updating NixOS containers
 
 Containers can be updated with a new system configuration at runtime, through
 the same mechanism used by `nixos-rebuild switch`. The container configuration
@@ -86,7 +89,7 @@ name. Use the `--update-changed` (`-u`) flag to active the new system
 configuration, and/or the `--restart-changed` (`-r`) flag to restart the
 container.
 
-### Customising containers
+#### Customising NixOS containers
 
 `./nixos/installer/container` can be called with the following arguments:
 
@@ -107,6 +110,65 @@ $ extra-container create -E 'import ./nixos/installer/container {
 
 [nixos-container]: https://nixos.org/manual/nixos/unstable/index.html#ch-containers
 [extra-container]: https://github.com/erikarvstedt/extra-container
+
+### Docker containers
+
+Docker images with our NixOS distribution can be downloaded from [Hydra](./hydra.md).
+
+#### Creating Docker containers
+
+1. Download an image for your platform:
+   - [x86_64](https://hydra.novarover.space/job/nova/docker/x86_64-linux.base/latest/download-by-type/file/system-tarball)
+   - [AArch64](https://hydra.novarover.space/job/nova/docker/aarch64-linux.base/latest/download-by-type/file/system-tarball)
+1. Import the image:
+   ```console
+   $ docker import path/to/image.tar.xz nova
+   ```
+1. Create a container:
+   > Note: it is highly recommended to [add a volume](https://docs.docker.com/storage/volumes)
+   > for source code in this step. Clone repositories in this volume and link
+   them to their regular locations with `ln -s`.
+   ```console
+   $ docker create --name=nova \
+       --privileged --entrypoint=/init \
+       --network=host --hostname=nova-container \
+       nova
+   ```
+1. Start the container:
+   ```console
+   $ docker start nova
+   ```
+1. Log in:
+   ```console
+   $ docker exec -it nova /run/current-system/sw/bin/login -f nova
+   ```
+
+#### Updating Docker containers
+
+The Docker images do not ship with a `configuration.nix` - you'll need to make
+one after installation.
+
+1. Log in to GitHub:
+   ```console
+   $ gh auth login
+   ```
+1. Clone this repository:
+   ```console
+   $ gh repo clone MonashNovaRover/nixfiles ~/nixfiles
+   ```
+1. Use the following template in `/etc/nixos/configuration.nix`:
+   ```nix
+   {
+     imports = [
+       /home/nova/nixfiles/nixos
+       /home/nova/nixfiles/nixos/installer/docker
+     ];
+
+     nova.substituters.nova.password = "***REMOVED***";
+   }
+   ```
+
+You can then use NixOS like normal.
 
 ## Using virtual machines
 
