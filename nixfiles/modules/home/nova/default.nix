@@ -86,14 +86,14 @@ in
         edge = microsoft-edge;
       };
 
-      packages = with pkgs; builtins.filter (lib.meta.availableOn hostPlatform) [
+      packages = with pkgs; builtins.filter (lib.meta.availableOn hostPlatform) ([
         # Shell ulilities
         pciutils
         usbutils
       ] ++ lib.optionals config.nova.desktop.enable [
         # Desktop apps
         gitkraken
-      ];
+      ]);
     };
   };
 }
