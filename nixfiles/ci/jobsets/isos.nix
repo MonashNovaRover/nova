@@ -17,7 +17,7 @@ let
       baseSystem = (import ("${nixpkgs}/nixos/lib/eval-config.nix") {
         inherit system;
         modules = [
-          (nixfiles + /nixos)
+          (nixfiles + "/nixos")
           ../../nixos/installer/cd-dvd/nova-installation-cd-${if graphical then "graphical" else "base"}.nix
           ({ pkgs, lib, ... }:
             let
