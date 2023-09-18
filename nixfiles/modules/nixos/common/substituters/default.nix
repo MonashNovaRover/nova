@@ -5,7 +5,7 @@ let
 in
 {
   options.nova.substituters = {
-    ros.enable = lib.mkEnableOption "the upstream nix-ros-overlay binary cache";
+    ros.enable = lib.mkEnableOption "the upstream nix-ros-overlay binary cache" // { default = true; };
     nova = {
       enable = lib.mkEnableOption "the Nova Rover binary cache" // { default = true; };
       url = lib.mkOption {
