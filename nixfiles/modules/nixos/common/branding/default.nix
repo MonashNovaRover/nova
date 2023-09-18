@@ -7,6 +7,8 @@ in
   options.nova.branding.enable = lib.mkEnableOption "Nova Rover branding";
 
   config = lib.mkIf cfg.enable {
+    system.nixos.tags = [ "nova" ];
+
     boot = {
       plymouth = {
         enable = true;

@@ -5,7 +5,6 @@
     "${modulesPath}/installer/cd-dvd/installation-cd-base.nix"
   ];
 
-  system.nixos.tags = [ "nova" ];
   isoImage = rec {
     edition = lib.mkDefault "nova";
     appendToMenuLabel = " Live System";
