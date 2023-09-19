@@ -22,6 +22,10 @@ find_package(pluginlib REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
 
+# find jcan
+find_package(PkgConfig)
+pkg_check_modules(JCAN REQUIRED jcan)
+
 add_library(
   rover_hardware
   SHARED
@@ -31,7 +35,14 @@ target_include_directories(
   rover_hardware
   PUBLIC
   include
+  ${JCAN_INCLUDE_DIRS}
 )
+
+target_link_libraries(
+  rover_hardware
+  ${JCAN_LIBRARIES}
+)
+
 ament_target_dependencies(
   rover_hardware
   hardware_interface

@@ -4,6 +4,7 @@
 , rclcpp
 , rclcpp-lifecycle
 , hardware-interface
+, jcan
 }:
 
 buildRosPackage {
@@ -23,5 +24,6 @@ buildRosPackage {
     rclcpp
     rclcpp-lifecycle
     hardware-interface
+    jcan
   ];
 }
