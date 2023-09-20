@@ -4,7 +4,7 @@ let
   cfg = config.devices.jetson.orin-nano;
 in
 {
-  options.devices.jetson.orin-nano.enable = lib.mkEnableOption "configuration for the NVIDIA Jetson Orin Nano" // { internal = true; };
+  options.devices.jetson.orin-nano.enable = lib.mkEnableOption "configuration for the NVIDIA Jetson Orin Nano";
 
   config = lib.mkIf cfg.enable {
     devices.jetson.enable = true;
