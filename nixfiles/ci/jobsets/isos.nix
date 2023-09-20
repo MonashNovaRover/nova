@@ -39,7 +39,7 @@ let
               ];
 
               isoImage = {
-                isoBaseName = "nixos-nova${lib.optionalString graphical "-graphical"}${lib.optionalString includeWorkspace "-workspace"}";
+                isoBaseName = "nixos${lib.optionalString graphical "-graphical"}${lib.optionalString includeWorkspace "-workspace"}";
                 squashfsCompression = lib.mkIf (!enableCompression) "xz -noI -noD -noF -noX";
 
                 # Add workspace development dependencies, so that the live
