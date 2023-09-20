@@ -143,6 +143,10 @@ let
   mkJetsonIso = som: carrierBoard: { extraPlatformModules ? [ ], ... }@args: mkIso "aarch64-linux" (args // {
     extraPlatformModules = extraPlatformModules ++ [{
       imports = [ (jetpack-nixos + "/modules") ];
+
+      # https://github.com/anduril/jetpack-nixos/blob/57b79aba8d4608839f9777a775bfcb1354d88f21/flake.nix#L15C3
+      disabledModules = [ "profiles/all-hardware.nix" ];
+
       hardware.nvidia-jetpack = {
         enable = true;
         inherit som carrierBoard;
