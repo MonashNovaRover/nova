@@ -148,7 +148,7 @@ let
       checkinterval = 60 * 60 * 24 * 7;
     };
     devices = mkJobset {
-      description = "Team device configurations";
+      description = "Team device configurations, prebuilt for binary cache convenience";
       nixexprpath = "ci/jobsets/devices.nix";
       inputs = novaInputs // {
         home-manager = homeManagerInput;
