@@ -137,6 +137,7 @@ let
       inputs = novaInputs // {
         nixpkgs-stable = mkGitHubInput { owner = "NixOS"; repo = "nixpkgs"; branch = "nixos-23.05"; };
         home-manager = homeManagerInput;
+        jetpack-nixos = mkGitHubInput { owner = "anduril"; repo = "jetpack-nixos"; };
       };
       checkinterval = 60 * 60 * 24 * 7;
     };

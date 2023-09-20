@@ -2,6 +2,7 @@
 , nixpkgs
 , nixpkgs-stable
 , home-manager
+, jetpack-nixos
 , nixfiles
 , enableCompression ? true
 , extraModules ? [ ]
@@ -12,7 +13,7 @@ let
   ciLib = import ../lib.nix args;
 
   mkIso = system:
-    { graphical ? false, includeWorkspace ? false }:
+    { graphical ? false, includeWorkspace ? false, extraPlatformModules ? [ ] }:
     let
       baseSystem = (import ("${nixpkgs}/nixos/lib/eval-config.nix") {
         inherit system;
@@ -104,7 +105,7 @@ let
                 })
               ];
             })
-        ] ++ extraModules;
+        ] ++ extraModules ++ extraPlatformModules;
       });
 
       # "extensions" cannot be used as the variable name due to https://github.com/NixOS/nix/issues/8701.
@@ -139,11 +140,28 @@ let
       };
     });
 
-  isoJobs = ciLib.releaseLib.forAllSystems (system: {
-    iso-base = mkIso system { };
-    iso-base-workspace = mkIso system { includeWorkspace = true; };
-    iso-graphical = mkIso system { graphical = true; };
-    iso-graphical-workspace = mkIso system { graphical = true; includeWorkspace = true; };
+  mkJetsonIso = som: carrierBoard: { extraPlatformModules ? [ ], ... }@args: mkIso "aarch64-linux" (args // {
+    extraPlatformModules = extraPlatformModules ++ [{
+      imports = [ (jetpack-nixos + "/modules") ];
+      hardware.nvidia-jetpack = {
+        enable = true;
+        inherit som carrierBoard;
+      };
+    }];
   });
+
+  mkIsoJobs = mkPlatformIso: { includeGraphical ? true }: {
+    iso-base = mkPlatformIso { };
+    iso-base-workspace = mkPlatformIso { includeWorkspace = true; };
+  } // ciLib.releaseLib.pkgs.lib.optionalAttrs includeGraphical {
+    iso-graphical = mkPlatformIso { graphical = true; };
+    iso-graphical-workspace = mkPlatformIso { graphical = true; includeWorkspace = true; };
+  };
+
+  isoJobs =
+    (ciLib.releaseLib.forAllSystems (system: mkIsoJobs (mkIso system) { }))
+    // {
+      jetson-orin-nano-devkit = mkIsoJobs (mkJetsonIso "orin-nano" "devkit") { includeGraphical = false; };
+    };
 in
 isoJobs
