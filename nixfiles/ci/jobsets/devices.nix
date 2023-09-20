@@ -13,15 +13,14 @@ let
     repoNames = [ ];
   };
 
-  mkDeviceSystem = device: (import "${nixpkgs}/nixos/lib/eval-config.nix" {
+  mkDeviceSystem = deviceModule: (import "${nixpkgs}/nixos/lib/eval-config.nix" {
     modules = [
       (nixfiles + /nixos)
+      deviceModule
       ({ config, ... }: {
         # Cross-compilation here is not useful, as these jobs are designed to
         # populate a cache to make rebuilds on the devices themselves faster.
         nixpkgs.buildPlatform = config.nixpkgs.hostPlatform;
-
-        devices.${device}.enable = true;
 
         nova = {
           profile = "shared";
@@ -44,8 +43,8 @@ let
     ];
   }).config.system.build.toplevel;
 in
-lib.releaseLib.pkgs.lib.genAttrs [
-  "metabox-n850hk"
-  "metabox-v158pnh"
-]
-  mkDeviceSystem
+{
+  metabox-n850hk = mkDeviceSystem { devices.metabox-n850hk.enable = true; };
+  metabox-v158pnh = mkDeviceSystem { devices.metabox-v158pnh.enable = true; };
+  jetson-orin-nano-devkit = mkDeviceSystem { devices.jetson = { orin-nano.enable = true; devkit.enable = true; }; };
+}
