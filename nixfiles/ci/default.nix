@@ -67,6 +67,11 @@ let
     repo = "home-manager";
   };
 
+  jetpackNixosInput = mkGitHubInput {
+    owner = "anduril";
+    repo = "jetpack-nixos";
+  };
+
   mkRosDistroInput = rosDistro: {
     type = "nix";
     value = "${if rosDistro == null then "null" else "\"${rosDistro}\""}";
@@ -137,7 +142,7 @@ let
       inputs = novaInputs // {
         nixpkgs-stable = mkGitHubInput { owner = "NixOS"; repo = "nixpkgs"; branch = "nixos-23.05"; };
         home-manager = homeManagerInput;
-        jetpack-nixos = mkGitHubInput { owner = "anduril"; repo = "jetpack-nixos"; };
+        jetpack-nixos = jetpackNixosInput;
       };
       checkinterval = 60 * 60 * 24 * 7;
     };
@@ -152,6 +157,7 @@ let
       nixexprpath = "ci/jobsets/devices.nix";
       inputs = novaInputs // {
         home-manager = homeManagerInput;
+        jetpack-nixos = jetpackNixosInput;
       };
       checkinterval = 60 * 60 * 24 * 7;
     };
