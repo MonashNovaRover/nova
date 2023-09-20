@@ -11,5 +11,10 @@ in
 
     # Use NetworkManager on developer kits for flexibility.
     networking.networkmanager.enable = true;
+
+    assertions = [{
+      assertion = config.devices.jetson.enable;
+      message = "The Jetson Developer Kit configuration can only be enabled alongside a Jetson device configuration.";
+    }];
   };
 }
