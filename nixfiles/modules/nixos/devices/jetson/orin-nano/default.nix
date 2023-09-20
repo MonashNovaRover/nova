@@ -4,6 +4,10 @@ let
   cfg = config.devices.jetson.orin-nano;
 in
 {
+  imports = [
+    ./boot
+  ];
+
   options.devices.jetson.orin-nano.enable = lib.mkEnableOption "configuration for the NVIDIA Jetson Orin Nano";
 
   config = lib.mkIf cfg.enable {
