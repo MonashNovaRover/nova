@@ -11,17 +11,19 @@ in
     ./orin-nano
   ];
 
-  options.devices.jetson.enable = lib.mkEnableOption "configuration for NVIDIA Jetson SoMs" // { internal = true; };
+  options = {
+    devices.jetson.enable = lib.mkEnableOption "configuration for NVIDIA Jetson SoMs" // { internal = true; };
+  } // lib.optionalAttrs (!hasJetpackChannel) {
+    hardware.nvidia-jetpack = lib.mkSinkUndeclaredOptions { };
+  };
 
-  config = lib.mkIf (cfg.enable) (if hasJetpackChannel then {
+  config = lib.mkIf cfg.enable ({
     nixpkgs.hostPlatform = "aarch64-linux";
     hardware.nvidia-jetpack.enable = true;
-  } else {
-    assertions = [
-      {
-        assertion = false;
-        message = "The jetpack-nixos channel is not available! It must be added.";
-      }
-    ];
+
+    assertions = [{
+      assertion = hasJetpackChannel;
+      message = "The jetpack-nixos channel is not available! It must be added.";
+    }];
   });
 }
