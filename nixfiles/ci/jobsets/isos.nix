@@ -76,6 +76,9 @@ let
               # files.
               installer.cloneConfig = false;
 
+              # The installation profiles configure their own networking.
+              networking.networkmanager.enable = lib.mkForce false;
+
               nova = {
                 inherit (ciLib) repos;
                 substituters.nova.password = "***REMOVED***";
@@ -140,21 +143,16 @@ let
       };
     });
 
-  mkJetsonIso = som: carrierBoard: { extraPlatformModules ? [ ], ... }@args: mkIso "aarch64-linux" (args // {
+  mkJetsonIso = deviceConfig: { extraPlatformModules ? [ ], ... }@args: mkIso "aarch64-linux" (args // {
     extraPlatformModules = extraPlatformModules ++ [
       ({ lib, ... }: {
-        imports = [ (jetpack-nixos + "/modules") ];
+        devices.jetson = deviceConfig;
 
         # https://github.com/anduril/jetpack-nixos/blob/57b79aba8d4608839f9777a775bfcb1354d88f21/flake.nix#L15C3
         disabledModules = [ "profiles/all-hardware.nix" ];
 
         # Disable incompatible VM guest drivers.
         virtualisation.hypervGuest.enable = lib.mkForce false;
-
-        hardware.nvidia-jetpack = {
-          enable = true;
-          inherit som carrierBoard;
-        };
       })
     ];
   });
@@ -170,7 +168,12 @@ let
   isoJobs =
     (ciLib.releaseLib.forAllSystems (system: mkIsoJobs (mkIso system) { }))
     // {
-      jetson-orin-nano-devkit = mkIsoJobs (mkJetsonIso "orin-nano" "devkit") { includeGraphical = false; };
+      jetson-orin-nano-devkit = mkIsoJobs
+        (mkJetsonIso {
+          orin-nano.enable = true;
+          devkit.enable = true;
+        })
+        { includeGraphical = false; };
     };
 in
 isoJobs
