@@ -7,6 +7,7 @@ in
 {
   imports = [
     (lib.optionalAttrs hasJetpackChannel <jetpack-nixos/modules>)
+    ./devkit
     ./orin-nano
   ];
 
