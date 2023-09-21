@@ -1,6 +1,7 @@
 { callPackage }:
 
 {
+  librealsense2-gui = callPackage ./librealsense2-gui { };
   nova-workspace = callPackage ./nova-workspace { };
   rclnodejs = callPackage ./rclnodejs { };
   realsense-patches = callPackage ./realsense-patches { };
