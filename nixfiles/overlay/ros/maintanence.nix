@@ -46,6 +46,9 @@ self: super:
           name = "2.48.0-1.tar.gz";
           hash = "sha256-44iXQiCHMTF8ZJJ8UuVU1osSBLb6cPMk41SbMlzFPLY=";
         };
+        passthru.original = {
+          inherit (rosSuper.librealsense2) version src;
+        };
       });
     })
     # Overlays for individual ROS distros.

@@ -6,9 +6,7 @@
 
 stdenvNoCC.mkDerivation {
   pname = "librealsense2-patches";
-  version = lib.getVersion librealsense2;
-
-  inherit (librealsense2) src;
+  inherit (librealsense2.original) version src;
 
   installPhase = ''
     mkdir "$out"
