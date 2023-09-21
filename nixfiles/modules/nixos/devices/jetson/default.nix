@@ -7,8 +7,9 @@ in
 {
   imports = [
     (lib.optionalAttrs hasJetpackChannel <jetpack-nixos/modules>)
+    ./boot
     ./devkit
-    ./orin-nano
+    ./devices
   ];
 
   options = {
