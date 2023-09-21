@@ -9,6 +9,7 @@ in
     (lib.optionalAttrs hasJetpackChannel <jetpack-nixos/modules>)
     ./boot
     ./devkit
+    ./peripherals
     ./devices
   ];
 
