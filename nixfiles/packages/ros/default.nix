@@ -4,5 +4,6 @@
   nova-workspace = callPackage ./nova-workspace { };
   rclnodejs = callPackage ./rclnodejs { };
   realsense-patches = callPackage ./realsense-patches { };
+  realsense-udev = callPackage ./realsense-udev { };
   ros-typescript-definitions = callPackage ./ros-typescript-definitions { };
 }

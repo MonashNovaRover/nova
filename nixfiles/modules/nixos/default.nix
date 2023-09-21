@@ -7,6 +7,7 @@
     ./common
     ./profiles
     ./devices
+    ./peripherals
   ];
 
   home-manager.nova.sharedModules = [
