@@ -12,6 +12,7 @@
   programs.command-not-found.enable = true;
 
   # Networking
+  networking.hostName = "";
   networking.useHostResolvConf = false;
   networking.dhcpcd.enable = false;
   services.resolved.enable = true;
