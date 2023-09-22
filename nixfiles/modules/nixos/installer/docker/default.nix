@@ -13,6 +13,7 @@
 
   # Networking
   networking.useHostResolvConf = false;
+  networking.dhcpcd.enable = false;
   services.resolved.enable = true;
 
   nova = {
