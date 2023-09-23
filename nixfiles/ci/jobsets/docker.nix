@@ -2,7 +2,6 @@
 , nixpkgs
 , home-manager
 , nixfiles
-, enableCompression ? true
 , extraModules ? [ ]
 , ...
 }@args:
@@ -16,74 +15,62 @@ let
     repoNames = [ ];
   };
 
-  mkImage = system:
+  mkImageJob = system:
     let
-      baseSystem = (import ("${nixpkgs}/nixos/lib/eval-config.nix") {
-        inherit system;
-        modules = [
-          (nixfiles + "/nixos")
-          ../../nixos/installer/docker
-          ({ pkgs, lib, ... }:
+      nixos = import (nixpkgs + "/nixos") {
+        configuration = { pkgs, lib, ... }: {
+          imports = [
+            (nixfiles + "/nixos")
+            (nixfiles + "/nixos/installer/docker")
+          ];
+
+          # The configuration is too complicated to express in static module
+          # files.
+          installer.cloneConfig = false;
+
+          nova = {
+            substituters.nova.password = "***REMOVED***";
+            desktop.enable = false;
+          };
+
+          home-manager.sharedModules = [
             {
-              # The configuration is too complicated to express in static module
-              # files.
-              installer.cloneConfig = false;
-
-              nova = {
-                substituters.nova.password = "***REMOVED***";
-                desktop.enable = false;
+              # The Home Manager manual causes issues on Hydra.
+              manual = {
+                html.enable = false;
+                manpages.enable = false;
+                json.enable = false;
               };
-
-              home-manager.sharedModules = [
-                {
-                  # The Home Manager manual causes issues on Hydra.
-                  manual = {
-                    html.enable = false;
-                    manpages.enable = false;
-                    json.enable = false;
-                  };
-                }
-              ];
-            })
-        ] ++ extraModules;
-      });
-
-      # "extensions" cannot be used as the variable name due to https://github.com/NixOS/nix/issues/8701.
-      extensions' = [
-        (prev: [{
-          system.build.tarball = ciLib.releaseLib.pkgs.lib.mkForce (prev.system.build.tarball.override
-            ({
-              fileName = "nixos-nova-docker-${system}";
             }
-            // ciLib.releaseLib.pkgs.lib.optionalAttrs
-              ((ciLib.releaseLib.pkgs.lib.systems.elaborate system).isx86_64 && (ciLib.releaseLib.pkgs.lib.systems.elaborate builtins.currentSystem).isAarch64)
-              {
-                # Some build tools are prohibitively slow in QEMU.
-                # We can use the host tools to build the ISO.
-                inherit (ciLib.releaseLib.pkgsFor builtins.currentSystem)
-                  pixz;
-              }
-            // ciLib.releaseLib.pkgs.lib.optionalAttrs (!enableCompression) {
-              compressionExtension = "";
-              compressCommand = "cat";
-              extraInputs = [ ];
-            }));
-        }])
-      ];
-
-      config = (builtins.foldl'
-        (system: mkModules: system.extendModules { modules = mkModules system.config; })
-        baseSystem
-        extensions'
-      ).config;
-    in
-    config.system.build.tarball.overrideAttrs ({ meta ? { }, ... }: {
-      meta = meta // rec {
-        timeout = 60 * 60 * 10;
-        maxSilent = timeout; # The compression is silent, and can take a long time.
+          ];
+        };
       };
-    });
 
-  dockerJobs = ciLib.releaseLib.forAllSystems (system: { base = mkImage system; });
+      image = ciLib.releaseLib.pkgs.dockerTools.buildImage {
+        name = "nova-nixos";
+        tag = "latest";
+        # https://github.com/NixOS/nixpkgs/blob/f63a5ba18f3b1b9cce1a9a68d33330989978edae/pkgs/build-support/docker/default.nix#L77C35
+        architecture = nixos.pkgs.go.GOARCH;
+
+        extraCommands = ''
+          # Copy the Nix store registration list.
+          # The Docker container module loads store registrations upon boot.
+          # This is better than the dockerTools buildImageWithNixDb implementation as buildImageWithNixDb creates GC roots, which is not appropriate here.
+          ln -s '${ciLib.releaseLib.pkgs.closureInfo { rootPaths = [ nixos.config.system.build.toplevel ]; }}/registration' nix-path-registration
+
+          # Make the init script available in the root directory.
+          # This allows the latest init script to be used as an entrypoint.
+          # The Docker container module updates this link upon activation.
+          ln -s '${nixos.config.system.build.toplevel}/init' init
+        '';
+
+        config.Cmd = [ "/init" ];
+      };
+    in
+    ciLib.releaseLib.pkgs.writeTextDir "nix-support/hydra-build-products" ''
+      file docker-image ${image}
+    '';
+
+  dockerJobs = ciLib.releaseLib.forAllSystems (system: { base = mkImageJob system; });
 in
 dockerJobs

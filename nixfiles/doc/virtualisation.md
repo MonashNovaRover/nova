@@ -120,19 +120,19 @@ Docker images with our NixOS distribution can be downloaded from [Hydra](./hydra
 1. Download an image for your platform:
    - [x86_64](https://hydra.novarover.space/job/nova/docker/x86_64-linux.base/latest/download-by-type/file/system-tarball)
    - [AArch64](https://hydra.novarover.space/job/nova/docker/aarch64-linux.base/latest/download-by-type/file/system-tarball)
-1. Import the image:
+1. Load the image:
    ```console
-   $ docker import path/to/image.tar.xz nova
+   $ docker load -i path/to/image.tar.gz
    ```
 1. Create a container:
    > Note: it is highly recommended to [add a volume](https://docs.docker.com/storage/volumes)
-   > for source code in this step. Clone repositories in this volume and link
-   them to their regular locations with `ln -s`.
+   > for source code in this step. When following later setup instructions, clone
+   > repositories into this volume and link them to their regular locations with `ln -s`.
+   >
+   > If you do not do this, you will be unable to easily access files from your
+   > host OS.
    ```console
-   $ docker create --name=nova \
-       --privileged --entrypoint=/init \
-       --network=host --hostname=nova-container \
-       nova
+   $ docker create --privileged --network=host --hostname=nova-container --name=nova nova-nixos
    ```
 1. Start the container:
    ```console
