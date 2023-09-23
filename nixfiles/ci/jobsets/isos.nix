@@ -134,13 +134,16 @@ let
         }])
       ];
 
-      config = (builtins.foldl'
+      eval = (builtins.foldl'
         (system: mkModules: system.extendModules { modules = mkModules system.config; })
         baseSystem
         extensions'
-      ).config;
+      );
     in
-    config.system.build.isoImage.overrideAttrs ({ meta ? { }, ... }: {
+    eval.config.system.build.isoImage.overrideAttrs ({ passthru ? { }, meta ? { }, ... }: {
+      passthru = passthru // {
+        inherit (eval) config options;
+      };
       meta = meta // rec {
         timeout = 60 * 60 * 10;
         maxSilent = timeout; # The SquashFS compression is silent, and can take a long time.
