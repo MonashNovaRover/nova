@@ -20,7 +20,7 @@ let
         modules = [
           (nixfiles + "/nixos")
           ../../nixos/installer/cd-dvd/nova-installation-cd-${if graphical then "graphical" else "base"}.nix
-          ({ pkgs, lib, ... }:
+          ({ config, pkgs, lib, ... }:
             let
               inherit (import ../workspaces.nix { lib = ciLib; novaPkgs = pkgs.nova; })
                 workspace
@@ -76,8 +76,12 @@ let
               # files.
               installer.cloneConfig = false;
 
-              # The installation profiles configure their own networking.
-              networking.networkmanager.enable = lib.mkForce false;
+              # Some device configurations explicitly enable NetworkManager,
+              # but the installation profiles configure their own networking.
+              # In particular, some use networking.wireless.enable, which is
+              # incompatible with NetworkManager. In these cases, it should be
+              # disabled.
+              networking.networkmanager.enable = lib.mkIf config.networking.wireless.enable (lib.mkForce false);
 
               nova = {
                 inherit (ciLib) repos;
