@@ -4,7 +4,7 @@
 
 ISO images of NixOS with our custom modules are available from [Hydra](./hydra.md).
 
-The following links go to the latest ISO builds. There are four variants:
+The following links go to the latest generic PC ISO builds. There are four variants:
 
 - [base](https://hydra.novarover.space/job/nova/isos/x86_64-linux.iso-base/latest/download-by-type/file/iso): The standard NixOS installer, with the `nova`
 user and binary cache
@@ -12,7 +12,7 @@ user and binary cache
 - [graphical](https://hydra.novarover.space/job/nova/isos/x86_64-linux.iso-graphical/latest/download-by-type/file/iso): `base` + the standard team desktop environment
 - [`graphical-workspace`](https://hydra.novarover.space/job/nova/isos/x86_64-linux.iso-graphical-workspace/latest/download-by-type/file/iso): `base-workspace` + `graphical`
 
-Builds for `aarch64-linux` are also available. See the [complete Hydra jobset](https://hydra.novarover.space/jobset/nova/isos/latest-eval).
+Builds for other types of devices, including generic AArch64 devices, NVIDIA Jetson SoMs, and MacBooks with Apple T2 chips, are also available. See the [complete Hydra jobset](https://hydra.novarover.space/jobset/nova/isos/latest-eval).
 
 The `workspace` variants are recommended for trying out all of the features
 before installing. As well as including all our software preinstalled, they ship

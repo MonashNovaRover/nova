@@ -72,6 +72,11 @@ let
     repo = "jetpack-nixos";
   };
 
+  nixosHardwareInput = mkGitHubInput {
+    owner = "NixOS";
+    repo = "nixos-hardware";
+  };
+
   mkRosDistroInput = rosDistro: {
     type = "nix";
     value = "${if rosDistro == null then "null" else "\"${rosDistro}\""}";
@@ -143,6 +148,7 @@ let
         nixpkgs-stable = mkGitHubInput { owner = "NixOS"; repo = "nixpkgs"; branch = "nixos-23.05"; };
         home-manager = homeManagerInput;
         jetpack-nixos = jetpackNixosInput;
+        nixos-hardware = nixosHardwareInput;
       };
       checkinterval = 60 * 60 * 24 * 7;
     };

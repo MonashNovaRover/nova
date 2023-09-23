@@ -3,6 +3,7 @@
 , nixpkgs-stable
 , home-manager
 , jetpack-nixos
+, nixos-hardware
 , nixfiles
 , enableCompression ? true
 , extraModules ? [ ]
@@ -12,8 +13,8 @@
 let
   ciLib = import ../lib.nix args;
 
-  mkIso = system:
-    { graphical ? false, includeWorkspace ? false, extraPlatformModules ? [ ] }:
+  mkIso = system: extraPlatformModules:
+    { graphical ? false, includeWorkspace ? false }:
     let
       baseSystem = (import ("${nixpkgs}/nixos/lib/eval-config.nix") {
         inherit system;
@@ -150,37 +151,69 @@ let
       };
     });
 
-  mkJetsonIso = deviceConfig: { extraPlatformModules ? [ ], ... }@args: mkIso "aarch64-linux" (args // {
-    extraPlatformModules = extraPlatformModules ++ [
-      ({ lib, ... }: {
-        devices.jetson = deviceConfig;
+  mkJetsonIso = deviceConfig: mkIso "aarch64-linux" [
+    ({ lib, ... }: {
+      devices.jetson = deviceConfig;
 
-        # https://github.com/anduril/jetpack-nixos/blob/57b79aba8d4608839f9777a775bfcb1354d88f21/flake.nix#L15C3
-        disabledModules = [ "profiles/all-hardware.nix" ];
+      # https://github.com/anduril/jetpack-nixos/blob/57b79aba8d4608839f9777a775bfcb1354d88f21/flake.nix#L15C3
+      disabledModules = [ "profiles/all-hardware.nix" ];
 
-        # Disable incompatible VM guest drivers.
-        virtualisation.hypervGuest.enable = lib.mkForce false;
-      })
-    ];
+      # Disable incompatible VM guest drivers.
+      virtualisation.hypervGuest.enable = lib.mkForce false;
+    })
+  ];
+
+  mkMacbookT2Iso = mkIso "x86_64-linux" [
+    ({ modulesPath, ... }: {
+      imports = [
+        (nixos-hardware + "/apple")
+        (nixos-hardware + "/apple/t2")
+
+        # Disable ZFS - the kernel version is not always supported.
+        (modulesPath + "/installer/cd-dvd/installation-cd-minimal-new-kernel-no-zfs.nix")
+      ];
+
+      disabledModules = [
+        # Imported by installation-cd-minimal-new-kernel-no-zfs.nix.
+        # We want to disable ZFS, but we don't want the new kernel.
+        "installer/cd-dvd/installation-cd-minimal-new-kernel.nix"
+      ];
+    })
+  ];
+
+  mkIsoJobs = mkPlatformIso: { includeWorkspace ? true, includeGraphical ? true }: {
+    iso-base = mkPlatformIso { };
+  } // ciLib.releaseLib.pkgs.lib.optionalAttrs includeWorkspace {
+    iso-base-workspace = mkPlatformIso { includeWorkspace = true; };
+  } // ciLib.releaseLib.pkgs.lib.optionalAttrs includeGraphical ({
+    iso-graphical = mkPlatformIso { graphical = true; };
+  } // ciLib.releaseLib.pkgs.lib.optionalAttrs includeWorkspace {
+    iso-graphical-workspace = mkPlatformIso { graphical = true; includeWorkspace = true; };
   });
 
-  mkIsoJobs = mkPlatformIso: { includeGraphical ? true }: {
-    iso-base = mkPlatformIso { };
-    iso-base-workspace = mkPlatformIso { includeWorkspace = true; };
-  } // ciLib.releaseLib.pkgs.lib.optionalAttrs includeGraphical {
-    iso-graphical = mkPlatformIso { graphical = true; };
-    iso-graphical-workspace = mkPlatformIso { graphical = true; includeWorkspace = true; };
+  genericIsoJobs = ciLib.releaseLib.forAllSystems (system: mkIsoJobs (mkIso system [ ]) { });
+
+  customIsoJobs = {
+    jetson-orin-nano-devkit = mkIsoJobs
+      (mkJetsonIso {
+        orin-nano.enable = true;
+        devkit.enable = true;
+      })
+      {
+        includeGraphical = false;
+      };
+
+    macbook-t2 = mkIsoJobs mkMacbookT2Iso {
+      # Disable workspace variants to save resources. There's not much of a
+      # usecase for Macbooks.
+      includeWorkspace = false;
+
+      # Macbook users will need to do some tricky bootloader setup anyway;
+      # they can handle some manual partitioning.
+      includeGraphical = false;
+    };
   };
 
-  isoJobs =
-    (ciLib.releaseLib.forAllSystems (system: mkIsoJobs (mkIso system) { }))
-    // {
-      jetson-orin-nano-devkit = mkIsoJobs
-        (mkJetsonIso {
-          orin-nano.enable = true;
-          devkit.enable = true;
-        })
-        { includeGraphical = false; };
-    };
+  isoJobs = genericIsoJobs // customIsoJobs;
 in
 isoJobs
