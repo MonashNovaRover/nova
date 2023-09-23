@@ -167,6 +167,11 @@ one after installation.
      nova.substituters.nova.password = "***REMOVED***";
    }
    ```
+1. Add the Home Manager channel:
+   ```console
+   $ sudo nix-channel --add https://github.com/nix-community/home-manager/archive/master.tar.gz home-manager
+   $ sudo nix-channel --update
+   ```
 
 You can then use NixOS like normal.
 
