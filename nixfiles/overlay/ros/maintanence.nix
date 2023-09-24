@@ -58,16 +58,6 @@ self: super:
         });
       in
       {
-        navigation2 = rosSuper.navigation2.overrideAttrs ({ propagatedBuildInputs ? [ ], ... }: {
-          # https://github.com/lopsided98/nix-ros-overlay/issues/286#issuecomment-1712360747
-          propagatedBuildInputs = self.lib.subtractLists
-            (with rosSelf; [
-              nav2-dwb-controller
-              nav2-mppi-controller
-            ])
-            propagatedBuildInputs;
-        });
-
         nav2-behaviors = fixNav2Package rosSuper.nav2-behaviors;
         nav2-constrained-smoother = fixNav2Package rosSuper.nav2-constrained-smoother;
         nav2-planner = fixNav2Package rosSuper.nav2-planner;
