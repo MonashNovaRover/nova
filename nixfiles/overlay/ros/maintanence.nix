@@ -50,7 +50,41 @@ self: super:
           inherit (rosSuper.librealsense2) version src;
         };
       });
-    })
+    } // (
+      let
+        fixNav2Package = pkg: pkg.overrideAttrs ({ CXXFLAGS ? "", ... }: {
+          # https://answers.ros.org/question/379173
+          CXXFLAGS = "${CXXFLAGS} -Wno-error=maybe-uninitialized";
+        });
+      in
+      {
+        navigation2 = rosSuper.navigation2.overrideAttrs ({ propagatedBuildInputs ? [ ], ... }: {
+          # https://github.com/lopsided98/nix-ros-overlay/issues/286#issuecomment-1712360747
+          propagatedBuildInputs = self.lib.subtractLists
+            (with rosSelf; [
+              nav2-dwb-controller
+              nav2-mppi-controller
+            ])
+            propagatedBuildInputs;
+        });
+
+        nav2-behaviors = fixNav2Package rosSuper.nav2-behaviors;
+        nav2-constrained-smoother = fixNav2Package rosSuper.nav2-constrained-smoother;
+        nav2-planner = fixNav2Package rosSuper.nav2-planner;
+        nav2-smoother = fixNav2Package rosSuper.nav2-smoother;
+        nav2-waypoint-follower = fixNav2Package rosSuper.nav2-waypoint-follower;
+
+        ompl = rosSuper.ompl.overrideAttrs ({ patches ? [ ], ... }: {
+          patches = [
+            # Use full install paths for pkg-config
+            (self.fetchpatch {
+              url = "https://github.com/hacker1024/ompl/commit/1ddecbad87b454ac0d8e1821030e4cf7eeff2db2.patch";
+              hash = "sha256-sAQLrWHoR/DhHk8TtUEy8E8VXqrvtXl2BGS5UvElJl8=";
+            })
+          ];
+        });
+      }
+    ))
     # Overlays for individual ROS distros.
     (super.rosPackages // {
       foxy = super.rosPackages.foxy.overrideScope (rosSelf: rosSuper:
