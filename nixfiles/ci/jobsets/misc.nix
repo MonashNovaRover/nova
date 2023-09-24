@@ -21,5 +21,6 @@ lib.novaForAllSystems (nova: {
     ros2-control
     ros2-controllers
     gazebo-ros2-control
-    pluginlib;
+    pluginlib
+    navigation2;
 })
