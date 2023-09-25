@@ -86,6 +86,7 @@ let
   mkRosDistroDescriptionTag = rosDistro: pkgs.lib.optionalString (rosDistro != null) " (for ${pkgs.lib.toUpper (builtins.substring 0 1 rosDistro)}${builtins.substring 1 (builtins.stringLength rosDistro) rosDistro})";
 
   mkWorkspaceJobset = rosDistro: pr: mkJobset {
+    hidden = pr != null;
     description = "Nova Rover workspaces${mkRosDistroDescriptionTag rosDistro}${pkgs.lib.optionalString (pr != null) (" - ${pr.base.repo.name}#${toString pr.number} (${pr.title})")}";
     nixexprpath = "ci/jobsets/workspaces.nix";
     inputs = novaInputs //
