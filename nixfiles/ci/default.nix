@@ -33,7 +33,7 @@ let
     } // inputs;
   };
 
-  mkJobsets = builtins.mapAttrs mkJobset;
+  mkJobsets = builtins.mapAttrs (name: mkJobset);
 
   mkGitHubInput = { owner, repo, branch ? null }: {
     type = "git";
@@ -89,20 +89,22 @@ let
     let extraDistros = [ "foxy" ];
     in
     { name = args // { inputs = inputs // { rosDistro = mkRosDistroInput null; }; }; }
-    // pkgs.lib.genAttrs (map (rosDistro: "${name}-${rosDistro}") extraDistros) (rosDistro: args // {
-      description = "${description} (for ${pkgs.lib.toUpper (builtins.substring 0 1 rosDistro)}${builtins.substring 1 (builtins.stringLength rosDistro) rosDistro})";
-      inputs = inputs // { rosDistro = mkRosDistroInput rosDistro; };
-    });
+    // builtins.listToAttrs (map
+      (rosDistro: pkgs.lib.nameValuePair "${name}-${rosDistro}" (args // {
+        description = "${description} (for ${pkgs.lib.toUpper (builtins.substring 0 1 rosDistro)}${builtins.substring 1 (builtins.stringLength rosDistro) rosDistro})";
+        inputs = inputs // { rosDistro = mkRosDistroInput rosDistro; };
+      }))
+      extraDistros);
 
   planPrJobsets = name: { description, inputs ? { }, ... }@args:
     let
       # Exclude PRs for repositories that aren't used in the jobset.
       repoWhitelist = [ "nixfiles" ] ++ builtins.attrNames inputs;
-      relevantPrs = builtins.filter (pr: builtins.elem repoWhitelist pr.base.repo.name) novaPrs;
+      relevantPrs = builtins.filter (pr: builtins.elem pr.base.repo.name repoWhitelist) novaPrs;
     in
     { name = args; }
     // builtins.listToAttrs (map
-      (pr: pkgs.lib.nameValuePair "${name}-pr-${pr.base.repo.name}-${pr.number}" {
+      (pr: pkgs.lib.nameValuePair "${name}-pr-${pr.base.repo.name}-${pr.number}" (args // {
         hidden = true;
         description = "${description} - ${pr.base.repo.name}#${toString pr.number} (${pr.title})";
         inputs = inputs // {
@@ -120,11 +122,11 @@ let
             emailresponsible = false;
           };
         };
-      })
+      }))
       relevantPrs);
 
-  planRosDistroAndPrJobsets = name: args: pkgs.lib.foldAttrs
-    (acc: curr: acc // planPrJobsets curr)
+  planRosDistroAndPrJobsets = name: args: pkgs.lib.foldlAttrs
+    (acc: name: plan: acc // planPrJobsets name plan)
     { }
     (planRosDistroJobsets name args);
 
