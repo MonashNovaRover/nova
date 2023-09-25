@@ -62,6 +62,21 @@ let
     [ ]
     ([ "nixfiles" ] ++ builtins.attrNames allNovaRepos);
 
+  mkPrInputs = pr: {
+    ${pr.base.repo.name} = mkGitHubInput {
+      owner = pr.head.repo.owner.login;
+      repo = pr.head.repo.name;
+      branch = "pull/${pr.number}/merge";
+    };
+
+    # Add the link as an input, for convenience in the Web UI.
+    "${pr.base.repo.name}-pr-${pr.number}-link" = {
+      type = "string";
+      value = pr.html_url;
+      emailresponsible = false;
+    };
+  };
+
   homeManagerInput = mkGitHubInput {
     owner = "nix-community";
     repo = "home-manager";
@@ -89,17 +104,9 @@ let
     hidden = pr != null;
     description = "Nova Rover workspaces${mkRosDistroDescriptionTag rosDistro}${pkgs.lib.optionalString (pr != null) (" - ${pr.base.repo.name}#${toString pr.number} (${pr.title})")}";
     nixexprpath = "ci/jobsets/workspaces.nix";
-    inputs = novaInputs //
-      {
-        rosDistro = mkRosDistroInput rosDistro;
-      } //
-      (pkgs.lib.optionalAttrs (pr != null) {
-        ${pr.base.repo.name} = mkGitHubInput {
-          owner = pr.head.repo.owner.login;
-          repo = pr.head.repo.name;
-          branch = "pull/${pr.number}/merge";
-        };
-      });
+    inputs = novaInputs
+      // { rosDistro = mkRosDistroInput rosDistro; }
+      // pkgs.lib.optionalAttrs (pr != null) (mkPrInputs pr);
   };
 
   mkWorkspaceDistroJobsets = rosDistro:
