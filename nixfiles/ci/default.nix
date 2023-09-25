@@ -97,7 +97,7 @@ let
         ${pr.base.repo.name} = mkGitHubInput {
           owner = pr.head.repo.owner.login;
           repo = pr.head.repo.name;
-          branch = pr.head.ref;
+          branch = "pull/${pr.number}/merge";
         };
       });
   };
