@@ -88,7 +88,7 @@ let
   planRosDistroJobsets = name: { description, inputs ? { }, ... }@args:
     let extraDistros = [ "foxy" ];
     in
-    { name = args // { inputs = inputs // { rosDistro = mkRosDistroInput null; }; }; }
+    { ${name} = args // { inputs = inputs // { rosDistro = mkRosDistroInput null; }; }; }
     // builtins.listToAttrs (map
       (rosDistro: pkgs.lib.nameValuePair "${name}-${rosDistro}" (args // {
         description = "${description} (for ${pkgs.lib.toUpper (builtins.substring 0 1 rosDistro)}${builtins.substring 1 (builtins.stringLength rosDistro) rosDistro})";
@@ -102,7 +102,7 @@ let
       repoWhitelist = [ "nixfiles" ] ++ builtins.attrNames inputs;
       relevantPrs = builtins.filter (pr: builtins.elem pr.base.repo.name repoWhitelist) novaPrs;
     in
-    { name = args; }
+    { ${name} = args; }
     // builtins.listToAttrs (map
       (pr: pkgs.lib.nameValuePair "${name}-pr-${pr.base.repo.name}-${pr.number}" (args // {
         hidden = true;
