@@ -24,6 +24,8 @@ let
             (nixfiles + "/nixos/installer/docker")
           ];
 
+          nixpkgs.hostPlatform = system;
+
           # The configuration is too complicated to express in static module
           # files.
           installer.cloneConfig = false;
