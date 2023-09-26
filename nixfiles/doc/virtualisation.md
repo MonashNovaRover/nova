@@ -118,8 +118,8 @@ Docker images with our NixOS distribution can be downloaded from [Hydra](./hydra
 #### Creating Docker containers
 
 1. Download an image for your platform:
-   - [x86_64](https://hydra.novarover.space/job/nova/docker/x86_64-linux.base/latest/download-by-type/file/system-tarball)
-   - [AArch64](https://hydra.novarover.space/job/nova/docker/aarch64-linux.base/latest/download-by-type/file/system-tarball)
+   - [x86_64](https://hydra.novarover.space/job/nova/docker/x86_64-linux.base/latest/download-by-type/file/docker-image)
+   - [AArch64](https://hydra.novarover.space/job/nova/docker/aarch64-linux.base/latest/download-by-type/file/docker-image)
 1. Load the image:
    ```console
    $ docker load -i path/to/image.tar.gz
