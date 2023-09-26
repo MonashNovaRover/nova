@@ -63,6 +63,7 @@ self: super:
         nav2-planner = fixNav2Package rosSuper.nav2-planner;
         nav2-smoother = fixNav2Package rosSuper.nav2-smoother;
         nav2-waypoint-follower = fixNav2Package rosSuper.nav2-waypoint-follower;
+        nav2-bringup = fixNav2Package rosSuper.nav2-bringup;
         dwb-critics = fixNav2Package rosSuper.dwb-critics;
         dwb-plugins = fixNav2Package rosSuper.dwb-plugins;
 
