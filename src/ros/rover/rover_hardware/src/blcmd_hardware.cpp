@@ -29,8 +29,32 @@ hardware_interface::CallbackReturn BLCMDHardware::on_init(
     return CallbackReturn::ERROR;
   }
 
+  auto canbus_search = info.hardware_parameters.find("candevice");
+  if (canbus_search == info.hardware_parameters.end()){
+      RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName), "No canbus provided");
+      return CallbackReturn::ERROR;
+  }
+  for(auto joint : info.joints) {
+      std::cout << "--------------------"  << std::endl;
+      std::cout << "Name: " << joint.name << ", Type: " << joint.type << std::endl;
+      std::cout << "State Interfaces: ";
+      for(auto interface : joint.state_interfaces){
+          std::cout << interface.name << ", ";
+      }
+      std::cout << std::endl << "Command Interfaces: ";
+      for(auto interface : joint.command_interfaces){
+          std::cout << interface.name << ", ";
+      }
+      std::cout << std::endl <<  "--------------------"  << std::endl;
+  }
+  this->candevice = canbus_search->second;
+  RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+              "using can device " << this->candevice.c_str());
+
+  this->bus_ = org::jcan::new_bus();
+
   // TODO(anyone): read parameters and initialize the hardware
-  hw_states_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
+  hw_velocity_states_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
   hw_commands_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
 
   return CallbackReturn::SUCCESS;
@@ -51,7 +75,7 @@ std::vector<hardware_interface::StateInterface> BLCMDHardware::export_state_inte
   {
     state_interfaces.emplace_back(hardware_interface::StateInterface(
       // TODO(anyone): insert correct interfaces
-      info_.joints[i].name, hardware_interface::HW_IF_POSITION, &hw_states_[i]));
+      info_.joints[i].name, hardware_interface::HW_IF_POSITION, &hw_velocity_states_[i]));
   }
 
   return state_interfaces;

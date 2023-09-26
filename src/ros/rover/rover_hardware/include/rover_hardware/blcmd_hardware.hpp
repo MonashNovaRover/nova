@@ -18,6 +18,7 @@
 #include <string>
 #include <vector>
 
+#include "rclcpp/rclcpp.hpp"
 #include "hardware_interface/actuator_interface.hpp"
 #include "hardware_interface/handle.hpp"
 #include "hardware_interface/hardware_info.hpp"
@@ -25,8 +26,43 @@
 #include "rclcpp/macros.hpp"
 #include "rclcpp_lifecycle/state.hpp"
 
+#include "jcan.h"
+
 namespace rover_hardware
 {
+constexpr const char * BLCMDHardwareLoggerName = "BLCMDHardware";
+struct PIConfig {
+    int16_t kp;
+    int16_t ki_ts;
+    int16_t max_threshold;
+};
+
+struct BLCMDConfig {
+    bool has_resolver;
+    PIConfig current_config;
+    PIConfig velocity_config;
+    PIConfig position_config;
+    int16_t min_interval;
+};
+
+struct JointValue {
+    double position{0.0};
+    double velocity{0.0};
+    double current{0.0};
+};
+
+struct Joint {
+    int16_t id;
+    JointValue state;
+    JointValue command;
+};
+
+enum class ControlMode {
+    Position,
+    Velocity,
+    Current,
+};
+
 class BLCMDHardware : public hardware_interface::ActuatorInterface
 {
 public:
@@ -54,7 +90,10 @@ public:
 
 private:
   std::vector<double> hw_commands_;
-  std::vector<double> hw_states_;
+  std::vector<double> hw_velocity_states_;
+  std::vector<double> hw_position_states_;
+  std::unique_ptr<org::jcan::Bus> bus_;
+  std::basic_string<char> candevice;
 
 };
 
