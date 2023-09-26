@@ -52,7 +52,7 @@ def generate_launch_description():
     spawn_entity = Node(
         package='gazebo_ros',
         executable='spawn_entity.py',
-        arguments=["-topic", "robot_description", "-entity", "Warratah"]
+        arguments=["-topic", "robot_description", "-entity", "Waratah"]
     )
 
     wheel_velocity_controller = Node(
@@ -65,6 +65,12 @@ def generate_launch_description():
         package="controller_manager",
         executable="spawner",
         arguments=["pivot_joint_trajectory_controller"]
+    )
+
+    joint_broad = Node(
+        package="controller_manager",
+        executable="spawner.py",
+        arguments=["joint_broad"],
     )
 
     return LaunchDescription([

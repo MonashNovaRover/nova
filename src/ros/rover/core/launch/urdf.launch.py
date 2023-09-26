@@ -18,21 +18,38 @@ from ament_index_python.packages import get_package_share_path
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
-from launch.substitutions import Command, LaunchConfiguration
+from launch.substitutions import (
+    Command,
+    LaunchConfiguration,
+    FindExecutable,
+    PathJoinSubstitution,
+)
 from launch.conditions import IfCondition, UnlessCondition
 
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
+import xacro
 
 # Generate the launch file with all inputs
 def generate_launch_description():
+    gazebo = LaunchConfiguration('gazebo', default=False)
     core_path = get_package_share_path('core')
     default_model_path = core_path / 'urdf/rover.urdf.xacro'
-
     model_arg = DeclareLaunchArgument(name='model', default_value=str(default_model_path),
             description='Absolute path to robot urdf file')
-    robot_description = ParameterValue(Command(['xacro ', LaunchConfiguration('model')]),
-                                       value_type=str)
+
+    model = Command(
+        [
+            PathJoinSubstitution([FindExecutable(name='xacro')]),
+            " ",
+            default_model_path,
+            " ",
+            "gazebo:=",
+            gazebo,
+        ]
+    )
+
+    robot_description = ParameterValue(model, value_type=str)
 
     robot_state_publisher_node = Node(
         package='robot_state_publisher',
