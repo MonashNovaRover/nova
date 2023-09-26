@@ -5,7 +5,7 @@
   ros = {
     rover = "testing";
     cameras2 = null;
-    gui = "feature/nix";
+    gui = "testing";
   };
   other = {
     coms_utils = "feature/nix";

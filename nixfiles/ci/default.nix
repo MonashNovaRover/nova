@@ -6,8 +6,20 @@
 }@args:
 
 let
+  inherit (import ./generation/variation args)
+    mergeJobsetPlanners
+    planPrJobsets
+    planRosDistroJobsets;
+
+  inherit (import ./generation/inputs.nix args)
+    mkGitHubInput
+    mkNovaInput
+    novaInputs
+    homeManagerInput
+    jetpackNixosInput
+    nixosHardwareInput;
+
   pkgs = import nixpkgs { };
-  allNovaRepos = builtins.foldl' pkgs.lib.recursiveUpdate { } (builtins.attrValues (import ./nova-repos.nix));
 
   mkJobset = { description, nixexprpath, inputs ? { }, ... }@args: {
     enabled = 1;
@@ -33,149 +45,60 @@ let
     } // inputs;
   };
 
-  mkGitHubInput = { owner, repo, branch ? null }: {
-    type = "git";
-    value = "git@github.com:${owner}/${repo}.git${pkgs.lib.optionalString (branch != null) (" ${branch}")}";
-    emailresponsible = false;
-  };
+  mkJobsets = builtins.mapAttrs (name: mkJobset);
 
-  mkNovaInput = args: mkGitHubInput ({ owner = "MonashNovaRover"; } // args);
+  planRosDistroAndPrJobsets = mergeJobsetPlanners [ planRosDistroJobsets planPrJobsets ];
 
-  novaInputs = builtins.mapAttrs
-    (repo: branch: mkNovaInput { inherit repo branch; })
-    allNovaRepos;
-
-  novaPrs = builtins.foldl'
-    (allPrs: repo:
-      let
-        branch = allNovaRepos.${repo} or null;
-        repoPrs = builtins.attrValues (builtins.fromJSON (builtins.readFile args."${repo}-pr-json"));
-      in
-      allPrs ++ builtins.filter
-        (pr:
-          # We're only interested in open PRs.
-          pr.state == "open" &&
-
-          # Ensure that the PR is targeting the expected branch, or the default branch if none is specified.
-          (pr.base.ref == (if branch == null then pr.base.repo.default_branch else branch)))
-        repoPrs)
-    [ ]
-    ([ "nixfiles" ] ++ builtins.attrNames allNovaRepos);
-
-  homeManagerInput = mkGitHubInput {
-    owner = "nix-community";
-    repo = "home-manager";
-  };
-
-  jetpackNixosInput = mkGitHubInput {
-    owner = "anduril";
-    repo = "jetpack-nixos";
-  };
-
-  nixosHardwareInput = mkGitHubInput {
-    owner = "NixOS";
-    repo = "nixos-hardware";
-  };
-
-  mkRosDistroInput = rosDistro: {
-    type = "nix";
-    value = "${if rosDistro == null then "null" else "\"${rosDistro}\""}";
-    emailresponsible = false;
-  };
-
-  mkRosDistroDescriptionTag = rosDistro: pkgs.lib.optionalString (rosDistro != null) " (for ${pkgs.lib.toUpper (builtins.substring 0 1 rosDistro)}${builtins.substring 1 (builtins.stringLength rosDistro) rosDistro})";
-
-  mkWorkspaceJobset = rosDistro: pr: mkJobset {
-    description = "Nova Rover workspaces${mkRosDistroDescriptionTag rosDistro}${pkgs.lib.optionalString (pr != null) (" - ${pr.base.repo.name}#${toString pr.number} (${pr.title})")}";
-    nixexprpath = "ci/jobsets/workspaces.nix";
-    inputs = novaInputs //
-      {
-        rosDistro = mkRosDistroInput rosDistro;
-      } //
-      (pkgs.lib.optionalAttrs (pr != null) {
-        ${pr.base.repo.name} = mkGitHubInput {
-          owner = pr.head.repo.owner.login;
-          repo = pr.head.repo.name;
-          branch = pr.head.ref;
-        };
-      });
-  };
-
-  mkWorkspaceDistroJobsets = rosDistro:
-    let
-      baseName = "workspaces";
-      distroTag = pkgs.lib.optionalString (rosDistro != null) "-${rosDistro}";
-    in
-    {
-      "${baseName}${distroTag}" = mkWorkspaceJobset rosDistro null;
-    } // builtins.listToAttrs
-      (map
-        (pr: pkgs.lib.nameValuePair
-          "workspaces${distroTag}-pr-${pr.base.repo.name}-${toString pr.number}"
-          (mkWorkspaceJobset rosDistro pr))
-        novaPrs);
-
-  mkAllWorkspaceJobsets = extraDistros: builtins.foldl'
-    (jobs: distro: jobs // mkWorkspaceDistroJobsets distro)
-    (mkWorkspaceDistroJobsets null)
-    extraDistros;
-
-  mkMiscDistroJobsets = rosDistro: {
-    "misc${pkgs.lib.optionalString (rosDistro != null) "-${rosDistro}"}" = mkJobset {
-      description = "Miscellaneous packages${mkRosDistroDescriptionTag rosDistro}";
+  jobsets =
+    (mkJobsets (planRosDistroAndPrJobsets "workspaces" {
+      description = "Nova Rover software";
+      nixexprpath = "ci/jobsets/workspaces.nix";
+      inputs = novaInputs;
+    })) //
+    (mkJobsets (planRosDistroAndPrJobsets "misc" {
+      description = "Miscellaneous packages";
       nixexprpath = "ci/jobsets/misc.nix";
-      inputs = { rosDistro = mkRosDistroInput rosDistro; };
-    };
-  };
-
-  mkAllMiscJobsets = extraDistros: builtins.foldl'
-    (jobs: distro: jobs // mkMiscDistroJobsets distro)
-    (mkMiscDistroJobsets null)
-    extraDistros;
-
-  extraDistros = [ "foxy" ];
-
-  jobsets = mkAllWorkspaceJobsets extraDistros // {
-    docs = mkJobset {
-      description = "Nova Rover documentation";
-      nixexprpath = "ci/jobsets/docs.nix";
-      inputs = { home-manager = homeManagerInput; };
-    };
-    isos = mkJobset {
-      description = "Nova Rover ISOs";
-      nixexprpath = "ci/jobsets/isos.nix";
-      inputs = novaInputs // {
-        nixpkgs-stable = mkGitHubInput { owner = "NixOS"; repo = "nixpkgs"; branch = "nixos-23.05"; };
-        home-manager = homeManagerInput;
-        jetpack-nixos = jetpackNixosInput;
-        nixos-hardware = nixosHardwareInput;
+    })) //
+    {
+      docs = mkJobset {
+        description = "Nova Rover documentation";
+        nixexprpath = "ci/jobsets/docs.nix";
+        inputs = { home-manager = homeManagerInput; };
       };
-      checkinterval = 60 * 60 * 24 * 7;
-    };
-    docker = mkJobset {
-      description = "Docker images";
-      nixexprpath = "ci/jobsets/docker.nix";
-      inputs = { home-manager = homeManagerInput; };
-      checkinterval = 60 * 60 * 24 * 7;
-    };
-    devices = mkJobset {
-      description = "Team device configurations, prebuilt for binary cache convenience";
-      nixexprpath = "ci/jobsets/devices.nix";
-      inputs = novaInputs // {
-        home-manager = homeManagerInput;
-        jetpack-nixos = jetpackNixosInput;
+      isos = mkJobset {
+        description = "Nova Rover ISOs";
+        nixexprpath = "ci/jobsets/isos.nix";
+        inputs = novaInputs // {
+          nixpkgs-stable = mkGitHubInput { owner = "NixOS"; repo = "nixpkgs"; branch = "nixos-23.05"; };
+          home-manager = homeManagerInput;
+          jetpack-nixos = jetpackNixosInput;
+          nixos-hardware = nixosHardwareInput;
+        };
+        checkinterval = 60 * 60 * 24 * 7;
       };
-      checkinterval = 60 * 60 * 24 * 7;
+      docker = mkJobset {
+        description = "Docker images";
+        nixexprpath = "ci/jobsets/docker.nix";
+        inputs = { home-manager = homeManagerInput; };
+        checkinterval = 60 * 60 * 24 * 7;
+      };
+      devices = mkJobset {
+        description = "Team device configurations, prebuilt for binary cache convenience";
+        nixexprpath = "ci/jobsets/devices.nix";
+        inputs = novaInputs // {
+          home-manager = homeManagerInput;
+          jetpack-nixos = jetpackNixosInput;
+        };
+        checkinterval = 60 * 60 * 24 * 7;
+      };
+      slides = mkJobset {
+        description = "Workshop slides";
+        nixexprpath = "ci/jobsets/slides.nix";
+        checkinterval = 60 * 60 * 24;
+        inputs.slides = mkNovaInput { repo = "slides"; };
+      };
     };
-    slides = mkJobset {
-      description = "Workshop slides";
-      nixexprpath = "ci/jobsets/slides.nix";
-      checkinterval = 60 * 60 * 24;
-      inputs.slides = mkNovaInput { repo = "slides"; };
-    };
-  } // mkAllMiscJobsets extraDistros;
 in
 {
-  jobsets =
-    pkgs.writeText "jobset.json" (builtins.toJSON jobsets);
+  jobsets = pkgs.writeText "jobset.json" (builtins.toJSON jobsets);
 }
