@@ -1,9 +1,12 @@
 { lib
+, pkg-config
 , buildRosPackage
 , ament-cmake
+, rclpy
 , rclcpp
 , rclcpp-lifecycle
 , hardware-interface
+, pluginlib
 , jcan
 }:
 
@@ -13,12 +16,12 @@ buildRosPackage {
 
   src = builtins.path rec {
     name = "rover_hardware-source";
-    path = ../../../control;
+    path = ../../../rover_hardware;
     filter = lib.novaSourceFilter [ ]
       path;
   };
 
-  nativeBuildInputs = [ ament-cmake ];
+  nativeBuildInputs = [ ament-cmake pkg-config];
 
   buildInputs = [
     rclcpp
