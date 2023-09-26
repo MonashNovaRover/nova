@@ -67,8 +67,12 @@ let
         config.Cmd = [ "/init" ];
       };
     in
-    ciLib.releaseLib.pkgs.writeTextDir "nix-support/hydra-build-products" ''
-      file docker-image ${image}
+    ciLib.releaseLib.pkgs.runCommand "docker-image-hydra" { } ''
+      mkdir -p "$out/docker-image"
+      ln -s '${image}' "$out/docker-image"
+
+      mkdir -p "$out/nix-support"
+      echo "file docker-image $out/docker-image/${baseNameOf image}" > "$out/nix-support/hydra-build-products"
     '';
 
   dockerJobs = ciLib.releaseLib.forAllSystems (system: { base = mkImageJob system; });
