@@ -31,6 +31,18 @@ pivot_position_controller:
       - brp
       - frp
 
+joint_broad:
+  ros__parameters:
+    joints:
+      - flp
+      - blp
+      - brp
+      - frp
+      - flw
+      - blw
+      - brw
+      - frw
+
 pivot_joint_trajectory_controller:
   ros__parameters:
     joints:
