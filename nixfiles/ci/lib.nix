@@ -6,7 +6,8 @@
 }@args:
 
 rec {
-  releaseLib = import ("${nixpkgs}/pkgs/top-level/release-lib.nix") { inherit supportedSystems; };
+  pkgs = import nixpkgs { };
+  releaseLib = import (pkgs.path + "/pkgs/top-level/release-lib.nix") { inherit supportedSystems; };
 
   repos = map (repo: args.${repo}) repoNames;
 

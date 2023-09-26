@@ -26,7 +26,7 @@ let
     #
     # The non-patched workspace is used here, to build regular development
     # dependencies.
-    // lib.releaseLib.pkgs.lib.mapAttrs' (name: pkg: lib.releaseLib.pkgs.lib.nameValuePair "${name}-inputs" pkg.inputDerivation) workspace.devPackages
+    // lib.pkgs.lib.mapAttrs' (name: pkg: lib.pkgs.lib.nameValuePair "${name}-inputs" pkg.inputDerivation) workspace.devPackages
 
     # Build software in the workspace development environment.
     # While this will mostly overlap in scope with the line above, the workspace

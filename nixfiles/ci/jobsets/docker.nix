@@ -48,7 +48,7 @@ let
         };
       };
 
-      image = ciLib.releaseLib.pkgs.dockerTools.buildImage {
+      image = ciLib.pkgs.dockerTools.buildImage {
         name = "nova-nixos";
         tag = "latest";
         # https://github.com/NixOS/nixpkgs/blob/f63a5ba18f3b1b9cce1a9a68d33330989978edae/pkgs/build-support/docker/default.nix#L77C35
@@ -58,7 +58,7 @@ let
           # Copy the Nix store registration list.
           # The Docker container module loads store registrations upon boot.
           # This is better than the dockerTools buildImageWithNixDb implementation as buildImageWithNixDb creates GC roots, which is not appropriate here.
-          ln -s '${ciLib.releaseLib.pkgs.closureInfo { rootPaths = [ nixos.config.system.build.toplevel ]; }}/registration' nix-path-registration
+          ln -s '${ciLib.pkgs.closureInfo { rootPaths = [ nixos.config.system.build.toplevel ]; }}/registration' nix-path-registration
 
           # Make the init script available in the root directory.
           # This allows the latest init script to be used as an entrypoint.
@@ -69,7 +69,7 @@ let
         config.Cmd = [ "/init" ];
       };
     in
-    ciLib.releaseLib.pkgs.runCommand "docker-image-hydra" { } ''
+    ciLib.pkgs.runCommand "docker-image-hydra" { } ''
       mkdir -p "$out/docker-image"
       ln -s '${image}' "$out/docker-image"
 

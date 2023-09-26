@@ -117,18 +117,18 @@ let
       });
 
       # "extensions" cannot be used as the variable name due to https://github.com/NixOS/nix/issues/8701.
-      extensions' = ciLib.releaseLib.pkgs.lib.optionals ((ciLib.releaseLib.pkgs.lib.systems.elaborate system).isx86_64 && (ciLib.releaseLib.pkgs.lib.systems.elaborate builtins.currentSystem).isAarch64) [
+      extensions' = ciLib.pkgs.lib.optionals ((ciLib.pkgs.lib.systems.elaborate system).isx86_64 && (ciLib.pkgs.lib.systems.elaborate builtins.currentSystem).isAarch64) [
         # Some build tools are prohibitively slow in QEMU.
         # We can use the host tools to build the ISO.
         (prev: [{
-          system.build.squashfsStore = ciLib.releaseLib.pkgs.lib.mkForce (prev.system.build.squashfsStore.override {
-            inherit (ciLib.releaseLib.pkgsFor builtins.currentSystem)
+          system.build.squashfsStore = ciLib.pkgs.lib.mkForce (prev.system.build.squashfsStore.override {
+            inherit (ciLib.pkgsFor builtins.currentSystem)
               squashfsTools;
           });
         }])
         (prev: [{
-          system.build.isoImage = ciLib.releaseLib.pkgs.lib.mkForce (prev.system.build.isoImage.override {
-            inherit (ciLib.releaseLib.pkgsFor builtins.currentSystem)
+          system.build.isoImage = ciLib.pkgs.lib.mkForce (prev.system.build.isoImage.override {
+            inherit (ciLib.pkgsFor builtins.currentSystem)
               xorriso
               zstd;
           });
@@ -183,11 +183,11 @@ let
 
   mkIsoJobs = mkPlatformIso: { includeWorkspace ? true, includeGraphical ? true }: {
     iso-base = mkPlatformIso { };
-  } // ciLib.releaseLib.pkgs.lib.optionalAttrs includeWorkspace {
+  } // ciLib.pkgs.lib.optionalAttrs includeWorkspace {
     iso-base-workspace = mkPlatformIso { includeWorkspace = true; };
-  } // ciLib.releaseLib.pkgs.lib.optionalAttrs includeGraphical ({
+  } // ciLib.pkgs.lib.optionalAttrs includeGraphical ({
     iso-graphical = mkPlatformIso { graphical = true; };
-  } // ciLib.releaseLib.pkgs.lib.optionalAttrs includeWorkspace {
+  } // ciLib.pkgs.lib.optionalAttrs includeWorkspace {
     iso-graphical-workspace = mkPlatformIso { graphical = true; includeWorkspace = true; };
   });
 
