@@ -5,6 +5,8 @@
 <robot
   name="rover"
   xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:arg name="gazebo" default="false"/>
   <!-- Manually added links-->
   <link name="base_link"></link>
   
@@ -615,5 +617,13 @@
       xyz="1 0 0" />
   </joint>
 
-  <xacro:include filename="ros2_control.xacro" />
+  <!-- gazebo -->
+  <xacro:if value="$(arg gazebo)">
+  <xacro:include filename="$(find core)/urdf/gazebo_ros2_control.xacro" />
+  </xacro:if>
+
+  <xacro:unless value="$(arg gazebo)">
+  <xacro:include filename="$(find core)/urdf/ros2_control.xacro" />
+  </xacro:unless>
+
 </robot>
