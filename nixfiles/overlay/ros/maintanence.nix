@@ -76,6 +76,11 @@ self: super:
             })
           ];
         });
+
+        slam-toolbox = (rosSuper.slam-toolbox.override {
+          # https://github.com/ros/rosdistro/pull/38642
+          tbb = self.tbb_2021_8;
+        });
       }
     ))
     # Overlays for individual ROS distros.
