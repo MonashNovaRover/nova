@@ -5,6 +5,7 @@ from launch.actions import DeclareLaunchArgument, ExecuteProcess
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, PythonExpression
 from launch.utilities import normalize_to_list_of_substitutions
 from launch_ros.actions import Node
+from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
@@ -33,7 +34,7 @@ def generate_launch_description():
         [
             DeclareLaunchArgument(
                 "param-dir",
-                default_value="",
+                default_value=PathJoinSubstitution([FindPackageShare("cameras2"), "params"]),
                 description="The path to the directory holding camera parameter files.",
             ),
             DeclareLaunchArgument(
