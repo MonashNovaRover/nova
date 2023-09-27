@@ -4,7 +4,5 @@ let
   cfg = config.devices.jetson;
 in
 {
-  config = lib.mkIf cfg.enable {
-    peripherals.realsense.enable = true;
-  };
+  config = lib.mkIf cfg.enable { };
 }

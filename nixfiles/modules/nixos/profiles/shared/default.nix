@@ -19,5 +19,8 @@ in
       branding.enable = true;
       desktop.enable = lib.mkDefault true;
     };
+
+    peripherals.webcams.enable = true;
+    peripherals.realsense.enable = true;
   };
 }
