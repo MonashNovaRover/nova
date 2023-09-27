@@ -37,8 +37,9 @@
           description = "Monash Nova Rover";
           hashedPassword =
             "***REMOVED***";
-          extraGroups = [
-            config.users.groups.wheel.name
+          extraGroups = with config.users.groups; [
+            wheel.name
+            video.name
           ];
         };
       }
