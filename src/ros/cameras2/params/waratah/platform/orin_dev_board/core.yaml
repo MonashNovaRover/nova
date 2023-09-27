@@ -1,7 +1,7 @@
 # Expected USB slots:
 # -------------------------------------
 # ---- | Mast hub |          | --------
-# HDMI |          |          | ETHERNET
+# HDMI | Arm hub  |          | ETHERNET
 # -------------------------------------
 
 camera_directory:
@@ -9,3 +9,4 @@ camera_directory:
     serial_overrides:
       roots:
         mast: platform-3610000.xhci-usb-0:2.1
+        arm: platform-3610000.xhci-usb-0:2.2
