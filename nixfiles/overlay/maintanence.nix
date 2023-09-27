@@ -11,4 +11,9 @@ self: super:
       hash = "sha256-+ewKbce+rjNWQ0nQzm6O4xSwgzizSPpDPidkQYuoSTU=";
     };
   });
+
+  xtensor = super.xtensor.override {
+    # https://github.com/xtensor-stack/xsimd/issues/945
+    useXsimd = !self.hostPlatform.isAarch64;
+  };
 }
