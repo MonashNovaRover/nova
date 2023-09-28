@@ -11,6 +11,16 @@ in
       "kernel.dmesg_restrict" = false;
     };
 
+    security.polkit.extraConfig = ''
+      polkit.addRule(function(action, subject) {
+        // Lookup properties for manage-units are defined here:
+        // https://github.com/systemd/systemd/blob/v254/src/core/dbus-util.c#L160
+        if (action.id === "org.freedesktop.systemd1.manage-units" && subject.user === "nova") {
+          return polkit.Result.YES;
+        }
+      });
+    '';
+
     services.openssh = {
       enable = true;
       settings.X11Forwarding = true;
