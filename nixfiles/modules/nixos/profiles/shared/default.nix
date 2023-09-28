@@ -7,7 +7,9 @@ let
 in
 {
   config = lib.mkIf (profile == "shared") {
-    users.mutableUsers = false;
+    boot.kernel.sysctl = {
+      "kernel.dmesg_restrict" = false;
+    };
 
     services.openssh = {
       enable = true;
@@ -16,6 +18,8 @@ in
 
     # Most fingerprint hardware and software only supports 10 fingers.
     services.fprintd.enable = false;
+
+    users.mutableUsers = false;
 
     nova = {
       users.nova.enable = true;
