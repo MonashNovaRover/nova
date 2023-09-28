@@ -9,7 +9,10 @@ in
   config = lib.mkIf (profile == "shared") {
     users.mutableUsers = false;
 
-    services.openssh.enable = true;
+    services.openssh = {
+      enable = true;
+      settings.X11Forwarding = true;
+    };
 
     # Most fingerprint hardware and software only supports 10 fingers.
     services.fprintd.enable = false;
