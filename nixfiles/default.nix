@@ -97,7 +97,7 @@ let
       (self: super: { inherit nix-ros-overlay; })
 
       # Add the nix-ros-workspace overlay. This adds more functionallity to nix-ros-overlay.
-      (import nix-ros-workspace).overlay
+      (import nix-ros-workspace { }).overlay
 
       # Add the custom overlay. This:
       #  - Adds custom library functions
