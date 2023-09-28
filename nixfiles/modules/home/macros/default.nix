@@ -63,6 +63,7 @@ in
             # Networking aliases
             jetson = "ssh -Y nvidia@192.168.1.204";
             jetson_wifi = "ssh -Y nvidia@tegra-ubuntu";
+            orin-devkit-1 = "ssh -Y nova@orin-devkit-1";
 
             # Application aliases
             code = "codium";
