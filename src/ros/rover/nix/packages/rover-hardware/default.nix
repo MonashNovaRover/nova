@@ -15,10 +15,9 @@ buildRosPackage {
   buildType = "ament_cmake";
 
   src = builtins.path rec {
-    name = "rover_hardware-source";
+    name = "rover-hardware-source";
     path = ../../../rover_hardware;
-    filter = lib.novaSourceFilter [ ]
-      path;
+    filter = lib.novaSourceFilter [ ] path;
   };
 
   nativeBuildInputs = [ ament-cmake pkg-config];

@@ -5,7 +5,7 @@
     nova-autonomous = callPackage ./nix/packages/autonomous { };
     nova-electronics = callPackage ./nix/packages/electronics { };
     nova-science = callPackage ./nix/packages/science { };
-    nova-rover_hardware = callPackage ./nix/packages/rover_hardware { };
+    nova-rover-hardware = callPackage ./nix/packages/rover-hardware { };
   };
 
   pythonPackages = pythonPackages: with pythonPackages; {
