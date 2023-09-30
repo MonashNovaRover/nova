@@ -25,11 +25,13 @@ EDITED:		  24/11/2021
 #include <gamepad/gamepad.h>
 #include "joystick_gamepad.h"
 #include "joystick_thrustmaster.h"
+#include "keyboard.h"
 
 // Include ROS packages
 #include "rclcpp/rclcpp.hpp"
 #include "core/msg/input_gamepad.hpp"
 #include "core/msg/input_joystick.hpp"
+#include "core/msg/input_keyboard.hpp"
 
 
 // Main publisher class that sends input data for the gamepad and joysticks
@@ -45,6 +47,7 @@ class InputsPublisher : public rclcpp::Node {
     rclcpp::Publisher<core::msg::InputGamepad>::SharedPtr gamepad_publisher;
     rclcpp::Publisher<core::msg::InputJoystick>::SharedPtr joystick_l_publisher;
     rclcpp::Publisher<core::msg::InputJoystick>::SharedPtr joystick_r_publisher;
+    rclcpp::Publisher<core::msg::InputKeyboard>::SharedPtr keyboard_publisher;
 
     // A pointer to the joystick object stored (for the gamepad)
     JoystickGamepad* gamepad;
@@ -54,6 +57,9 @@ class InputsPublisher : public rclcpp::Node {
 
     // A pointer to the joystick object stored (for the right joystick)
     JoystickThrustmaster* joystick_r;
+
+    // A pointer to the keyboard object stored
+    Keyboard* keyboard;
 
     
     //------------------------------------------------------------//
