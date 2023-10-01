@@ -8,6 +8,7 @@ AUTHOR(S):	Matthew Gu
 TODO: 
 Should I use a vector or just individual keys for key states?
 Add capability to detect usb keyboards and select that as the input device
+Switch to arrays for the keys
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
