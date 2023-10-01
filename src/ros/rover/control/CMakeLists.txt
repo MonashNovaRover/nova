@@ -92,6 +92,7 @@ add_executable(inputs
   src/inputs/joystick.cpp 
   src/inputs/joystick_gamepad.cpp 
   src/inputs/joystick_thrustmaster.cpp 
+  src/inputs/keyboard.cpp
 )
 target_link_libraries(inputs gamepad print)
 ament_target_dependencies(inputs rclcpp core)

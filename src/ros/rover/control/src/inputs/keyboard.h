@@ -21,15 +21,11 @@ EDITED:		30/09/2023
 #include <fcntl.h>
 #include <unistd.h>
 #include <vector>
-#include <string>
 
 #include "core/msg/input_keyboard.hpp"
 
 // Use the standard namespace
 using namespace std;
-
-/// @brief     The path to the keyboard input device (can be not event0, need to identify)
-const string INPUT_DEVICE_PATH = "/dev/input/event0";
 
 class Keyboard {
     //------------------------------------------------------------//
@@ -44,13 +40,6 @@ class Keyboard {
     bool reconnected;
     /// @brief      A flag for whether this frame the keyboard disconnected
     bool disconnected;                      
-
-    /// @brief     The vector for storing the key states
-    vector<uint8_t> key_alphabet_state;
-    vector<uint8_t> key_number_state;
-    uint8_t key_ctrl_state;
-    uint8_t key_alt_state;
-    uint8_t key_tab_state;
 
     /// @brief    The file descriptor for the keyboard input device
     int fd;

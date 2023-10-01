@@ -16,9 +16,9 @@ Switch to arrays for the keys
 #include <iostream>
 
 // fix the checking for connection
-void Keyboard::Keyboard() : connected(true), reconnected(false), disconnected(false) {
+Keyboard::Keyboard() : connected(true), reconnected(false), disconnected(false) {
     // Open the keyboard input device
-    fd = open(INPUT_DEVICE_PATH, O_RDONLY);
+    fd = open("/dev/input/event0", O_RDONLY | O_NONBLOCK);
     if (fd < 0) {
         cerr << "Error opening keyboard input device" << endl;
         return;
@@ -28,53 +28,47 @@ void Keyboard::Keyboard() : connected(true), reconnected(false), disconnected(fa
 void Keyboard::set_message_values() {
     // Clear the key states
     reset_key_states();
+    msg.connected = connected;
 
     if (msg.connected){
-        key_ctrl_state = is_key_down(KEY_LEFTCTRL) || is_key_down(KEY_RIGHTCTRL);
-        key_alt_state = is_key_down(KEY_LEFTALT) || is_key_down(KEY_RIGHTALT);
-        key_tab_state = is_key_down(KEY_TAB);
+        msg.key_ctrl_state = is_key_down(KEY_LEFTCTRL) || is_key_down(KEY_RIGHTCTRL);
+        msg.key_alt_state = is_key_down(KEY_LEFTALT) || is_key_down(KEY_RIGHTALT);
+        msg.key_tab_state = is_key_down(KEY_TAB);
 
-        key_number_state.clear();
         // note that key codes are not in order in linux input
-        key_number_state.push_back(is_key_down(KEY_0));
+        msg.key_number_state.push_back(is_key_down(KEY_0));
         for (int key_code = KEY_1; key_code <= KEY_9; key_code++) {
-            key_number_state.push_back(is_key_down(key_code));
+            msg.key_number_state.push_back(is_key_down(key_code));
         }
 
-        key_alphabet_state.clear();
         // note that key codes are not in alphabetical order in linux input (in fact it is in QWERTY order)
-        key_alphabet_state.push_back(is_key_down(KEY_A));
-        key_alphabet_state.push_back(is_key_down(KEY_B));
-        key_alphabet_state.push_back(is_key_down(KEY_C));
-        key_alphabet_state.push_back(is_key_down(KEY_D));
-        key_alphabet_state.push_back(is_key_down(KEY_E));
-        key_alphabet_state.push_back(is_key_down(KEY_F));
-        key_alphabet_state.push_back(is_key_down(KEY_G));
-        key_alphabet_state.push_back(is_key_down(KEY_H));
-        key_alphabet_state.push_back(is_key_down(KEY_I));
-        key_alphabet_state.push_back(is_key_down(KEY_J));
-        key_alphabet_state.push_back(is_key_down(KEY_K));
-        key_alphabet_state.push_back(is_key_down(KEY_L));
-        key_alphabet_state.push_back(is_key_down(KEY_M));
-        key_alphabet_state.push_back(is_key_down(KEY_N));
-        key_alphabet_state.push_back(is_key_down(KEY_O));
-        key_alphabet_state.push_back(is_key_down(KEY_P));
-        key_alphabet_state.push_back(is_key_down(KEY_Q));
-        key_alphabet_state.push_back(is_key_down(KEY_R));
-        key_alphabet_state.push_back(is_key_down(KEY_S));
-        key_alphabet_state.push_back(is_key_down(KEY_T));
-        key_alphabet_state.push_back(is_key_down(KEY_U));
-        key_alphabet_state.push_back(is_key_down(KEY_V));
-        key_alphabet_state.push_back(is_key_down(KEY_W));
-        key_alphabet_state.push_back(is_key_down(KEY_X));
-        key_alphabet_state.push_back(is_key_down(KEY_Y));
-        key_alphabet_state.push_back(is_key_down(KEY_Z));
+        msg.key_alphabet_state.push_back(is_key_down(KEY_A));
+        msg.key_alphabet_state.push_back(is_key_down(KEY_B));
+        msg.key_alphabet_state.push_back(is_key_down(KEY_C));
+        msg.key_alphabet_state.push_back(is_key_down(KEY_D));
+        msg.key_alphabet_state.push_back(is_key_down(KEY_E));
+        msg.key_alphabet_state.push_back(is_key_down(KEY_F));
+        msg.key_alphabet_state.push_back(is_key_down(KEY_G));
+        msg.key_alphabet_state.push_back(is_key_down(KEY_H));
+        msg.key_alphabet_state.push_back(is_key_down(KEY_I));
+        msg.key_alphabet_state.push_back(is_key_down(KEY_J));
+        msg.key_alphabet_state.push_back(is_key_down(KEY_K));
+        msg.key_alphabet_state.push_back(is_key_down(KEY_L));
+        msg.key_alphabet_state.push_back(is_key_down(KEY_M));
+        msg.key_alphabet_state.push_back(is_key_down(KEY_N));
+        msg.key_alphabet_state.push_back(is_key_down(KEY_O));
+        msg.key_alphabet_state.push_back(is_key_down(KEY_P));
+        msg.key_alphabet_state.push_back(is_key_down(KEY_Q));
+        msg.key_alphabet_state.push_back(is_key_down(KEY_R));
+        msg.key_alphabet_state.push_back(is_key_down(KEY_S));
+        msg.key_alphabet_state.push_back(is_key_down(KEY_T));
+        msg.key_alphabet_state.push_back(is_key_down(KEY_U));
+        msg.key_alphabet_state.push_back(is_key_down(KEY_V));
+        msg.key_alphabet_state.push_back(is_key_down(KEY_W));
+        msg.key_alphabet_state.push_back(is_key_down(KEY_X));
+        msg.key_alphabet_state.push_back(is_key_down(KEY_Y));
+        msg.key_alphabet_state.push_back(is_key_down(KEY_Z));
     }
-    msg.key_alphabet_state = key_alphabet_state;
-    msg.key_number_state = key_number_state;
-    msg.key_ctrl_state = key_ctrl_state;
-    msg.key_alt_state = key_alt_state;
-    msg.key_tab_state = key_tab_state;
 }
 
 void Keyboard::update() {
@@ -112,21 +106,22 @@ bool Keyboard::is_key_down(int key_code) {
 
     // Check for key presses or releases
     if (ev.type == EV_KEY && ev.code == key_code) {
-        if (ev.value == 1) {
+        if (ev.value == 1 || ev.value == 2) {
             return true;
         } else if (ev.value == 0) {
             return false;
         }
     }
+    return false;
 }
 
 void Keyboard::reset_key_states() {
     // Clear the key states
-    key_alphabet_state.clear();
-    key_number_state.clear();
-    key_alt_state = false;
-    key_ctrl_state = false;
-    key_tab_state = false;
+    msg.key_alphabet_state.clear();
+    msg.key_number_state.clear();
+    msg.key_alt_state = false;
+    msg.key_ctrl_state = false;
+    msg.key_tab_state = false;
 }
 
 // return the message object
