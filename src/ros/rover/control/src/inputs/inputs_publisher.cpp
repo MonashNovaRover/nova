@@ -47,6 +47,7 @@ InputsPublisher::InputsPublisher() : Node("input_pub")
     Print::print("/control/input_gamepad      [InputGamepad]", 1);
     Print::print("/control/input_joystick_l   [InputJoystick]", 1);
     Print::print("/control/input_joystick_r   [InputJoystick]", 1);
+    Print::print("/control/input_keyboard     [InputKeyboard]", 1);
     Print::print("", true);
 }
 
@@ -55,13 +56,12 @@ void InputsPublisher::publish_input () {
 
     // Updates the state of the gamepad controller
     GamepadUpdate();
-    KeyboardUpdate();
 
     // Update the status of each controller
     gamepad->update();
     joystick_l->update();
     joystick_r->update();
-    keyboard -> update();
+    keyboard ->update();
 
     // Display information about connections (in case they change)
     if (gamepad->is_disconnected())
