@@ -122,13 +122,13 @@ let
         # We can use the host tools to build the ISO.
         (prev: [{
           system.build.squashfsStore = ciLib.pkgs.lib.mkForce (prev.system.build.squashfsStore.override {
-            inherit (ciLib.pkgsFor builtins.currentSystem)
+            inherit (ciLib.releaseLib.pkgsFor builtins.currentSystem)
               squashfsTools;
           });
         }])
         (prev: [{
           system.build.isoImage = ciLib.pkgs.lib.mkForce (prev.system.build.isoImage.override {
-            inherit (ciLib.pkgsFor builtins.currentSystem)
+            inherit (ciLib.releaseLib.pkgsFor builtins.currentSystem)
               xorriso
               zstd;
           });

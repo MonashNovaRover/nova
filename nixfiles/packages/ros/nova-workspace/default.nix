@@ -50,29 +50,31 @@
   }
 }:
 
-(buildROSWorkspace.override
-  {
+let
+  buildWorkspace = buildROSWorkspace.override {
+    buildROSWorkspace = buildWorkspace;
     buildROSEnv = args: buildEnv (args // {
       # There are too many packages to completely avoid collisions.
       # Warnings during build time should be carefully observed.
       ignoreCollisions = true;
     });
-  }
-  {
-    name = "nova";
-    inherit interactive;
-    devPackages = novaPackages;
-    prebuiltPackages = (lib.optionalAttrs graphical {
-      inherit
-        rviz2
-        gazebo
-        rqt rqt-common-plugins;
-    }) // extraPackages;
-    prebuiltShellPackages = {
-      inherit
-        gdb;
-    };
-  }).overrideAttrs ({ passthru ? { }, ... }: {
+  };
+in
+(buildWorkspace {
+  name = "nova";
+  inherit interactive;
+  devPackages = novaPackages;
+  prebuiltPackages = (lib.optionalAttrs graphical {
+    inherit
+      rviz2
+      gazebo
+      rqt rqt-common-plugins;
+  }) // extraPackages;
+  prebuiltShellPackages = {
+    inherit
+      gdb;
+  };
+}).overrideAttrs ({ passthru ? { }, ... }: {
   passthru = passthru // {
     inherit novaPackages extraPackages;
   };
