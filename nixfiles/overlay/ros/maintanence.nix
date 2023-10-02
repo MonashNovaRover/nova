@@ -94,7 +94,7 @@ self: super:
   # Overlay for distro-agnostic packages.
   ignition =
     let
-      fixMsgs = pkg: pkg.overrideAttrs ({ patches, ... }: {
+      fixMsgs = pkg: pkg.overrideAttrs ({ patches ? [ ], ... }: {
         patches = patches ++ [
           # GzProtobuf: Do not require version 3 to support Protobuf 4.23.2 (23.2)
           (self.fetchpatch {
@@ -103,10 +103,23 @@ self: super:
           })
         ];
       });
+      fixTransport = pkg: pkg.overrideAttrs ({ patches ? [ ], ... }: {
+        patches = patches ++ [
+          # Fix compatibility with protobuf 22
+          (self.fetchpatch {
+            url = "https://github.com/gazebosim/gz-transport/commit/5b7f8100b22ee701817653f14916e61a9d2fc477.patch";
+            hash = "sha256-vzc+iVqDDoRd2B0J2WbSzctWuhcTMUkqWJ9owcDNHmo=";
+          })
+        ];
+      });
     in
     super.ignition // {
       msgs1 = fixMsgs super.ignition.msgs1;
       msgs5 = fixMsgs super.ignition.msgs5;
       msgs8 = fixMsgs super.ignition.msgs8;
+      transport = fixTransport super.ignition.transport;
+      transport4 = fixTransport super.ignition.transport4;
+      transport8 = fixTransport super.ignition.transport8;
+      transport11 = fixTransport super.ignition.transport11;
     };
 }
