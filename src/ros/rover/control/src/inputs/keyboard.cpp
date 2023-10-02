@@ -99,8 +99,9 @@ void Keyboard::update() {
 uint8_t Keyboard::is_key_down(int key_code) {
     // read the current input
     ssize_t bytesRead = read(fd, &ev, sizeof(ev));
-    if (bytesRead == -1) {
-        std::cerr << "Error reading input event." << std::endl;
+    if (bytesRead < 0) {
+        int err = errno;
+        fprintf(stderr, "%s\n", explain_errno_read(err, fd, ev, sizeof(ev)));
         return false;
     }
 
@@ -109,6 +110,7 @@ uint8_t Keyboard::is_key_down(int key_code) {
         // key press or key repeat
         if (ev.value == 1 || ev.value == 2) {
             return true;
+        }
     }
     // key release or no event
     return false;
