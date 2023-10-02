@@ -20,7 +20,6 @@ EDITED:		30/09/2023
 #include <linux/input.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <vector>
 
 #include "core/msg/input_keyboard.hpp"
 
