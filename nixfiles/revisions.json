@@ -1,7 +1,7 @@
 {
   "nixpkgs": {
-    "rev": "66aedfd010204949cb225cf749be08cb13ce1813",
-    "hash": "sha256-DbtxVWPt+ZP5W0Usg7jAyTomIM//c3Jtfa59Ht7AV8s="
+    "rev": "f5892ddac112a1e9b3612c39af1b72987ee5783a",
+    "hash": "sha256-X3+DKYWJm93DRSdC5M6K5hLqzSya9BjibtBsuARoPco="
   },
   "nix-ros-overlay": {
     "rev": "21ee9a00b734aec25a378641b894fa6209aff175",
