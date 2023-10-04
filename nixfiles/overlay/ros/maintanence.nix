@@ -67,7 +67,7 @@ self: super:
         dwb-plugins = fixNav2Package rosSuper.dwb-plugins;
 
         ompl = rosSuper.ompl.overrideAttrs ({ patches ? [ ], ... }: {
-          patches = [
+          patches = patches ++ [
             # Use full install paths for pkg-config
             (self.fetchpatch {
               url = "https://github.com/hacker1024/ompl/commit/1ddecbad87b454ac0d8e1821030e4cf7eeff2db2.patch";
