@@ -14,10 +14,13 @@
 
 #include <limits>
 #include <vector>
+#include <callback.h>
 
 #include "rover_hardware/blcmd_hardware.hpp"
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 #include "rclcpp/rclcpp.hpp"
+
+#include "jcan.h"
 
 namespace rover_hardware
 {
@@ -29,41 +32,69 @@ hardware_interface::CallbackReturn BLCMDHardware::on_init(
     return CallbackReturn::ERROR;
   }
 
-  auto canbus_search = info.hardware_parameters.find("candevice");
+  if (info_.joints.size() != 1)
+  {
+    RCLCPP_FATAL_STREAM(
+      rclcpp::get_logger(BLCMDHardwareLoggerName),
+      "Hardware interface '" << info_.name << "got " << info_.joints.size() << " joints but expected 1");
+    return CallbackReturn::ERROR;
+  }
+
+  auto canbus_search = info_.hardware_parameters.find("candevice");
   if (canbus_search == info.hardware_parameters.end()){
       RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName), "No canbus provided");
       return CallbackReturn::ERROR;
   }
+    std::stringstream joints_info;
+
   for(auto joint : info.joints) {
-      std::cout << "--------------------"  << std::endl;
-      std::cout << "Name: " << joint.name << ", Type: " << joint.type << std::endl;
-      std::cout << "State Interfaces: ";
+      joints_info << "--------------------"  << std::endl;
+      joints_info << "Name: " << joint.name << ", Type: " << joint.type << std::endl;
+      joints_info << "State Interfaces: ";
       for(auto interface : joint.state_interfaces){
-          std::cout << interface.name << ", ";
+          joints_info << interface.name << ", ";
       }
-      std::cout << std::endl << "Command Interfaces: ";
+      joints_info << std::endl << "Command Interfaces: ";
       for(auto interface : joint.command_interfaces){
-          std::cout << interface.name << ", ";
+          joints_info << interface.name << ", ";
       }
-      std::cout << std::endl <<  "--------------------"  << std::endl;
+      joints_info << std::endl <<  "--------------------"  << std::endl;
   }
-  this->candevice = canbus_search->second;
+  RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName), joints_info.str());
+  this->can_device = canbus_search->second;
   RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
-              "using can device " << this->candevice.c_str());
+              "Using can device " << this->can_device.c_str());
 
   this->bus_ = org::jcan::new_bus();
 
-  // TODO(anyone): read parameters and initialize the hardware
+  hw_effort_commands_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
+  hw_velocity_commands_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
+  hw_position_commands_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
+
+  hw_effort_states_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
   hw_velocity_states_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
-  hw_commands_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
+  hw_velocity_states_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
+
+  control_modes_.resize(info_.joints.size(), rover_hardware::ControlMode::Undefined);
 
   return CallbackReturn::SUCCESS;
 }
 
 hardware_interface::CallbackReturn BLCMDHardware::on_configure(
-  const rclcpp_lifecycle::State & /*previous_state*/)
+  const rclcpp_lifecycle::State & previous_state)
 {
-  // TODO(anyone): prepare the robot to be ready for read calls and write calls of some interfaces
+  // open the can bus
+    try {
+        bus_->open(this->can_device.c_str());
+        RCLCPP_INFO(rclcpp::get_logger(BLCMDHardwareLoggerName), "Opened canbus on device %s",
+                    this->can_device.c_str());
+    } catch (std::exception &e) {
+        RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName), "Failed to start canbus with error: %s",
+                     e.what());
+        return CallbackReturn::ERROR;
+    }
+
+    // if joint has a position interface, check for resolver
 
   return CallbackReturn::SUCCESS;
 }

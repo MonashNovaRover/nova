@@ -58,6 +58,7 @@ struct Joint {
 };
 
 enum class ControlMode {
+    Undefined,
     Position,
     Velocity,
     Current,
@@ -89,11 +90,17 @@ public:
     const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
 private:
-  std::vector<double> hw_commands_;
+  std::vector<double> hw_effort_commands_;
+  std::vector<double> hw_velocity_commands_;
+  std::vector<double> hw_position_commands_;
+  std::vector<double> hw_effort_states_;
   std::vector<double> hw_velocity_states_;
   std::vector<double> hw_position_states_;
+
+  std::vector<ControlMode> control_modes_;
+
   std::unique_ptr<org::jcan::Bus> bus_;
-  std::basic_string<char> candevice;
+  std::basic_string<char> can_device;
 
 };
 
