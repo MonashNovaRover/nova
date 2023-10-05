@@ -28,6 +28,7 @@ from launch.conditions import IfCondition, UnlessCondition
 
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
+from launch_ros.substitutions import FindPackageShare
 import xacro
 
 # Generate the launch file with all inputs
@@ -38,34 +39,26 @@ def generate_launch_description():
     model_arg = DeclareLaunchArgument(name='model', default_value=str(default_model_path),
             description='Absolute path to robot urdf file')
 
-    model = Command(
+    robot_description = Command(
         [
             PathJoinSubstitution([FindExecutable(name='xacro')]),
             " ",
-            default_model_path,
+            PathJoinSubstitution([
+                FindPackageShare("core"),
+                "urdf",
+                "rover.urdf.xacro"
+            ]),
             " ",
-            "gazebo:=",
-            gazebo,
+            "gazebo:=false",
         ]
     )
-
-    robot_description = ParameterValue(model, value_type=str)
 
     robot_state_publisher_node = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
-        parameters=[{'robot_description': robot_description}]
-    )
-
-    joint_state_publisher_node =  Node(
-        package='control',
-        executable='rover_state_publisher.py',
-        output='screen',
-        emulate_tty=True
+        parameters=[{'robot_description': ParameterValue(robot_description, value_type=str)}]
     )
 
     return LaunchDescription([
-        model_arg,
         robot_state_publisher_node,
-        joint_state_publisher_node,
     ])
