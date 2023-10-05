@@ -4,6 +4,7 @@
     <ros2_control name="BLCMDHardware" type="actuator">
         <hardware>
             <plugin>rover_hardware/BLCMDHardware</plugin>
+            <param name="candevice">can0</param>
         </hardware>
 
         <joint name="flp">
@@ -20,6 +21,6 @@
             <param name="id">5</param>
         </joint>
 
-        <param name="candevice">can0</param>
+
     </ros2_control>
 </robot>
