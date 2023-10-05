@@ -2,6 +2,7 @@
 
 {
   github-gitignore = callPackage ./github-gitignore { };
+  gstthetauvc = callPackage ./gstthetauvc { };
   jcan = callPackage ./jcan { };
   libuvc-theta = callPackage ./libuvc-theta { };
   novafox = callPackage ./novafox { };
