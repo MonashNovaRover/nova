@@ -17,6 +17,7 @@
 
 #include <string>
 #include <vector>
+#include <optional>
 
 #include "rclcpp/rclcpp.hpp"
 #include "hardware_interface/actuator_interface.hpp"
@@ -90,17 +91,17 @@ public:
     const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
 private:
-  std::vector<double> hw_effort_commands_;
-  std::vector<double> hw_velocity_commands_;
-  std::vector<double> hw_position_commands_;
-  std::vector<double> hw_effort_states_;
-  std::vector<double> hw_velocity_states_;
-  std::vector<double> hw_position_states_;
+  std::optional<double> hw_effort_command_;
+  std::optional<double> hw_velocity_command_;
+  std::optional<double> hw_position_command_;
+  std::optional<double> hw_effort_state_;
+  std::optional<double> hw_velocity_state_;
+  std::optional<double> hw_position_state_;
 
-  std::vector<ControlMode> control_modes_;
+  ControlMode control_mode_;
 
   std::unique_ptr<org::jcan::Bus> bus_;
-  std::basic_string<char> can_device;
+  std::basic_string<char> can_device_;
 
 };
 
