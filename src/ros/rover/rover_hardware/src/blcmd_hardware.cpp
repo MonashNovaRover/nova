@@ -41,26 +41,11 @@ hardware_interface::CallbackReturn BLCMDHardware::on_init(
   }
 
   auto canbus_search = info_.hardware_parameters.find("candevice");
-  if (canbus_search == info.hardware_parameters.end()){
+  if (canbus_search == info_.hardware_parameters.end()){
       RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName), "No canbus provided");
       return CallbackReturn::ERROR;
   }
-    std::stringstream joints_info;
 
-  for(auto joint : info.joints) {
-      joints_info << "--------------------"  << std::endl;
-      joints_info << "Name: " << joint.name << ", Type: " << joint.type << std::endl;
-      joints_info << "State Interfaces: ";
-      for(auto interface : joint.state_interfaces){
-          joints_info << interface.name << ", ";
-      }
-      joints_info << std::endl << "Command Interfaces: ";
-      for(auto interface : joint.command_interfaces){
-          joints_info << interface.name << ", ";
-      }
-      joints_info << std::endl <<  "--------------------"  << std::endl;
-  }
-  RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName), joints_info.str());
   can_device_ = canbus_search->second;
   RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
               "Using can device " << can_device_.c_str());
@@ -79,7 +64,7 @@ hardware_interface::CallbackReturn BLCMDHardware::on_init(
 
   for (const auto& interface : info_.joints[0].command_interfaces){
       if(interface.name == hardware_interface::HW_IF_POSITION){
-          hw_position_state_ = std::numeric_limits<double>::quiet_NaN();
+            hw_position_state_ = std::numeric_limits<double>::quiet_NaN();
       } else if(interface.name == hardware_interface::HW_IF_VELOCITY){
             hw_velocity_state_ = std::numeric_limits<double>::quiet_NaN();
       } else if(interface.name == hardware_interface::HW_IF_EFFORT){
