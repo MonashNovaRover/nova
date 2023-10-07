@@ -19,6 +19,8 @@ EDITED:		30/09/2023
 #include <stdio.h>
 #include <linux/input.h>
 #include <fcntl.h>
+#include <errno.h>
+#include <cstring>
 #include <unistd.h>
 
 #include "core/msg/input_keyboard.hpp"
@@ -43,9 +45,6 @@ class Keyboard {
     /// @brief    The file descriptor for the keyboard input device
     int fd;
 
-    /// @brief    The linux input event struct
-    struct input_event ev;
-
     //------------------------------------------------------------//
     protected:
 
@@ -54,7 +53,7 @@ class Keyboard {
 
     /// @brief     Returns whether the key is down
     /// @param key_code the linux event code for key, can be found in linux/input.h
-    bool is_key_down(int key_code);
+    uint8_t is_key_down(int key_code);
 
     /// @brief    Resets the key states
     void reset_key_states();
@@ -63,7 +62,7 @@ class Keyboard {
 	public:
 
     /// @brief      Constructor that finds and intialzes the device
-    Keyboard();
+    Keyboard(const char* devPath);
 
     /// @brief      Updates the input data and stores data to the message object
     void update();

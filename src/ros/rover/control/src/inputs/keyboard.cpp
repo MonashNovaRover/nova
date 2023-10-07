@@ -16,11 +16,11 @@ Switch to uint32_t for the keys (by bit shifting) make be hard to debug though
 #include <iostream>
 
 // fix the checking for connection
-Keyboard::Keyboard() : connected(true), reconnected(false), disconnected(false) {
+Keyboard::Keyboard(const char* devPath) : connected(true), reconnected(false), disconnected(false) {
     // Open the keyboard input device
-    fd = open("/dev/input/event0", O_RDONLY | O_NONBLOCK);
+    fd = open(devPath, O_RDONLY | O_NONBLOCK);
     if (fd < 0) {
-        cerr << "Error opening keyboard input device" << endl;
+        cerr << "Error opening keyboard input device" << strerror(errno) << endl;
         return;
     }
 }
@@ -98,10 +98,10 @@ void Keyboard::update() {
 // Get the state of a key
 uint8_t Keyboard::is_key_down(int key_code) {
     // read the current input
+    struct input_event ev;
     ssize_t bytesRead = read(fd, &ev, sizeof(ev));
-    if (bytesRead < 0) {
-        int err = errno;
-        fprintf(stderr, "%s\n", explain_errno_read(err, fd, ev, sizeof(ev)));
+    // if there is no input, return false
+    if (bytesRead == -1) {
         return false;
     }
 
@@ -118,8 +118,8 @@ uint8_t Keyboard::is_key_down(int key_code) {
 
 void Keyboard::reset_key_states() {
     // Clear the key states
-    msg.key_alphabet_state.clear();
-    msg.key_number_state.clear();
+    fill(begin(msg.key_alphabet_state), end(msg.key_alphabet_state), false);
+    fill(begin(msg.key_number_state), end(msg.key_number_state), false);
     msg.key_alt_state = false;
     msg.key_ctrl_state = false;
     msg.key_tab_state = false;
