@@ -27,8 +27,6 @@ Keyboard::Keyboard(const char* devPath) : connected(true), reconnected(false), d
 
 // key board has not need for additional operations on the key values (as it will be 0 or 1)
 void Keyboard::set_message_values() {
-    // Clear the key states
-    reset_key_states();
     msg.connected = connected;
 
     if (msg.connected){
@@ -114,15 +112,6 @@ uint8_t Keyboard::is_key_down(int key_code) {
     }
     // key release or no event
     return false;
-}
-
-void Keyboard::reset_key_states() {
-    // Clear the key states
-    fill(begin(msg.key_alphabet_state), end(msg.key_alphabet_state), false);
-    fill(begin(msg.key_number_state), end(msg.key_number_state), false);
-    msg.key_alt_state = false;
-    msg.key_ctrl_state = false;
-    msg.key_tab_state = false;
 }
 
 // return the message object

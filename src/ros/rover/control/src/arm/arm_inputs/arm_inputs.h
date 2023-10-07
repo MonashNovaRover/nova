@@ -12,6 +12,7 @@ NODE: arm_inputs
 TOPICS:
   - /control/input_joystick_l            [core/InputJoystick]          [Subscribed]
   - /control/input_joystick_r            [core/InputJoystick]          [Subscribed]
+  - /control/input_keyboard              [core/InputKeyboard]          [Subscribed]
   - /control/endeffector_input           [core/EndEffectorInput]       [Published]
   - /control/joystick_joint_velocities   [sensor_msgs/JointState]      [Published]
   - /control/joystick_twist              [geometry_msgs/TwistStamped]  [Published]
@@ -20,9 +21,9 @@ SERVICES: None
 ACTIONS:  None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	control
-AUTHOR(S):  Jess Hepworth, Jory Braun
+AUTHOR(S):  Jess Hepworth, Jory Braun, Matthew Gu
 CREATION:	02/12/2021
-EDITED:		07/10/2022
+EDITED:		07/10/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
  - 
@@ -34,6 +35,7 @@ TODO:
 
 // Include messages types
 #include "core/msg/input_joystick.hpp"
+#include "core/msg/input_keyboard.hpp"
 #include "core/msg/end_effector_input.hpp"
 #include "core/msg/arm_control_scheme.hpp"
 #include "sensor_msgs/msg/joint_state.hpp"
@@ -68,6 +70,7 @@ class ArmInputs : public ArmConfigInfoClient
     // Stores the subscribers to the joystick inputs
     rclcpp::Subscription<core::msg::InputJoystick>::SharedPtr joystick_l_sub;
     rclcpp::Subscription<core::msg::InputJoystick>::SharedPtr joystick_r_sub;
+    rclcpp::Subscription<core::msg::InputKeyboard>::SharedPtr keyboard_sub;
 
     // Stores messages to be published
     sensor_msgs::msg::JointState joint_velocities;
@@ -77,6 +80,7 @@ class ArmInputs : public ArmConfigInfoClient
     // Store state of last-received messages
     core::msg::InputJoystick joystick_l;
     core::msg::InputJoystick joystick_r;
+    core::msg::InputKeyboard keyboard;
 
     // Store speed multipliers for different joystick inputs
     typedef struct {

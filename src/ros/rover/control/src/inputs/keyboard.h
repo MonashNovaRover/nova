@@ -15,7 +15,6 @@ EDITED:		30/09/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-#include <libudev.h>
 #include <stdio.h>
 #include <linux/input.h>
 #include <fcntl.h>
@@ -54,9 +53,6 @@ class Keyboard {
     /// @brief     Returns whether the key is down
     /// @param key_code the linux event code for key, can be found in linux/input.h
     uint8_t is_key_down(int key_code);
-
-    /// @brief    Resets the key states
-    void reset_key_states();
 
     //------------------------------------------------------------//
 	public:

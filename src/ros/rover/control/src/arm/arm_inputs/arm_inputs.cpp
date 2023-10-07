@@ -82,6 +82,7 @@ void ArmInputs::joystick_deadline_callback()
     RCLCPP_WARN(this->get_logger(), "Joystick subscriber deadline missed");
     joystick_l = core::msg::InputJoystick();
     joystick_r = core::msg::InputJoystick();
+    keyboard   = core::msg::InputKeyboard();
 }
 
 // Publishes data on the arm input
@@ -274,6 +275,14 @@ void ArmInputs::start_node()
         joystick_options
     );
 
+    // Creates the input subscription for the keyboard (with QoS options)
+    // keyboard_sub = this->create_subscription<core::msg::InputKeyboard>(
+    //     "/control/input_keyboard",
+    //     joystick_qos,
+    //     std::bind(&ArmInputs::keyboard_callback, this, _1),
+    //     joystick_options
+    // );
+
     // Create timer and publisher for endeffector_inputs
     endeffector_pub_timer = this->create_wall_timer(
         ROSTimers::arm_control, std::bind(&ArmInputs::publish_endeffector_inputs, this)
@@ -313,6 +322,7 @@ void ArmInputs::start_node()
     Print::print("Subscribed Topics:");
     Print::print("/control/input_joystick_l            [core/InputJoystick]", 1);
     Print::print("/control/input_joystick_r            [core/InputJoystick]", 1);
+    Print::print("/control/input_keyboard              [core/InputKeyboard]", 1);
     Print::print("Published Topics:");
     Print::print("/control/endeffector_input           [core/EndEffectorInput]", 1);
     Print::print("/control/joystick_joint_velocities   [sensor_msgs/JointState]", 1);
