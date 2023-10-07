@@ -34,6 +34,8 @@ class Keyboard {
     /// @brief      Stores the message data from the joystick
     core::msg::InputKeyboard msg;
 
+    const char* devicePath;
+
     /// @brief      A flag for whether the keyboard is connected
     bool connected;
     /// @brief      A flag for whether this frame the keyboard connected                   
@@ -46,6 +48,10 @@ class Keyboard {
 
     //------------------------------------------------------------//
     protected:
+
+    /// @brief      Opens the keyboard input device
+    /// @param      devPath the path to the keyboard input device
+    void open_keyboard_device(const char* devPath);
 
     /// @brief      Sets the message values stored in the message object
     void set_message_values();
