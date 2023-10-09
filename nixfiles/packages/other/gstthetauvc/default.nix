@@ -4,7 +4,7 @@
 , gst_all_1
 , libuvc-theta
 , libusb
-, libglvnd
+, libGL
 }:
 
 stdenv.mkDerivation (finalAttrs: {
@@ -27,7 +27,7 @@ stdenv.mkDerivation (finalAttrs: {
     gst_all_1.gst-plugins-base
     libuvc-theta
     libusb
-    libglvnd
+    libGL
   ];
 
   makeFlags = [ "WITH_TRANSFORM_FILTER=1" ];
