@@ -53,6 +53,7 @@ class CameraStreamerService(Node):
 
     class CameraConfiguration(NamedTuple):
         autostart: bool
+        mime: str
         width: int
         height: int
         framerate: int
@@ -184,6 +185,7 @@ class CameraStreamerService(Node):
             )
 
             autostart = get_parameter_value("autostart", lambda p: p.bool_value)
+            mime = get_parameter_value("mime", lambda p: p.string_value)
             width = get_parameter_value("width", lambda p: p.integer_value)
             height = get_parameter_value("height", lambda p: p.integer_value)
             framerate = get_parameter_value("framerate", lambda p: p.double_value)
@@ -199,6 +201,7 @@ class CameraStreamerService(Node):
             # A more robust system should be made, with proper support for merging nested dictionaries.
             return CameraStreamerService.CameraConfiguration(
                 autostart=autostart if autostart is not None else defaults.autostart,
+                mime=mime if mime is not None else defaults.mime,
                 width=width if width is not None else defaults.width,
                 height=height if height is not None else defaults.height,
                 framerate=framerate if framerate is not None else defaults.framerate,
@@ -213,6 +216,7 @@ class CameraStreamerService(Node):
         param_defaults = read_camera_configuration(
             CameraStreamerService.CameraConfiguration(
                 autostart=True,
+                mime="video/x-raw",
                 width=0,
                 height=0,
                 framerate=0,
@@ -316,6 +320,7 @@ class CameraStreamerService(Node):
         camera_bin = CameraWebRTCBin(
             serial,
             device_node,
+            mime=camera_configuration.mime,
             width=camera_configuration.width if camera_configuration.width != 0 else None,
             height=camera_configuration.height if camera_configuration.height != 0 else None,
             framerate=camera_configuration.framerate if camera_configuration.framerate != 0 else None,
