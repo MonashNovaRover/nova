@@ -9,13 +9,13 @@
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "gstthetauvc";
-  version = "2914a3ef2feb39a182a8cc505cfae0e2d8922f0a";
+  version = "0c2bd3dbd2c061941796e423e1c84debd621867e";
 
   src = fetchFromGitHub {
     owner = "nickel110";
     repo = "gstthetauvc";
     rev = finalAttrs.version;
-    hash = "sha256-oWbi2oz/ErOZXPNTjiPmlVRo/XGFVteZou0K3SObdM0=";
+    hash = "sha256-Zuy6e2M1d9r/vzT8H2G83aMka32Pcbx3ngB4ZHxoGAE=";
   };
 
   sourceRoot = "source/thetauvc";
