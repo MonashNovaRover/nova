@@ -1,12 +1,13 @@
 { libuvc
-, fetchpatch
+, fetchFromGitHub
 }:
 
-libuvc.overrideAttrs ({ patches ? [ ], ... }: {
-  patches = patches ++ [
-    (fetchpatch {
-      url = "https://github.com/ricohapi/libuvc-theta/commit/092cf64c2c942a2fa985f56cb5f69e7407141a2f.patch";
-      hash = "sha256-S9StMJyW/vlHb7IFOavawwneOpWjJ0eq1o/lDXkZb2Y=";
-    })
-  ];
+libuvc.overrideAttrs ({ pname, patches ? [ ], ... }: {
+  pname = "libuvc-theta";
+  src = fetchFromGitHub {
+    owner = "nickel110";
+    repo = "libuvc";
+    rev = "8b58a694e4cdedd6dc09031398e927c3092f1b70";
+    hash = "sha256-sPc3mazgKMvLwn8mD0XzKeXrJcu+bleLQJ9zznkq5AE=";
+  };
 })
