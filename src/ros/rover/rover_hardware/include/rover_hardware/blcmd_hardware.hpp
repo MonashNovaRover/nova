@@ -46,16 +46,10 @@ struct BLCMDConfig {
     int16_t min_interval;
 };
 
-struct JointValue {
-    double position{0.0};
-    double velocity{0.0};
-    double current{0.0};
-};
-
-struct Joint {
-    int16_t id;
-    JointValue state;
-    JointValue command;
+struct ControlInterface {
+    double value {std::numeric_limits<double>::quiet_NaN()};
+    double min {std::numeric_limits<double>::quiet_NaN()};
+    double max {std::numeric_limits<double>::quiet_NaN()};
 };
 
 enum class ControlMode {
@@ -68,40 +62,42 @@ enum class ControlMode {
 class BLCMDHardware : public hardware_interface::ActuatorInterface
 {
 public:
-  hardware_interface::CallbackReturn on_init(
-    const hardware_interface::HardwareInfo & info) override;
+    hardware_interface::CallbackReturn on_init(
+        const hardware_interface::HardwareInfo & info) override;
 
-  hardware_interface::CallbackReturn on_configure(
-    const rclcpp_lifecycle::State & previous_state) override;
+    hardware_interface::CallbackReturn on_configure(
+        const rclcpp_lifecycle::State & previous_state) override;
 
-  std::vector<hardware_interface::StateInterface> export_state_interfaces() override;
+    std::vector<hardware_interface::StateInterface> export_state_interfaces() override;
 
-  std::vector<hardware_interface::CommandInterface> export_command_interfaces() override;
+    std::vector<hardware_interface::CommandInterface> export_command_interfaces() override;
 
-  hardware_interface::CallbackReturn on_activate(
-    const rclcpp_lifecycle::State & previous_state) override;
+    hardware_interface::CallbackReturn on_activate(
+        const rclcpp_lifecycle::State & previous_state) override;
 
-  hardware_interface::CallbackReturn on_deactivate(
-    const rclcpp_lifecycle::State & previous_state) override;
+    hardware_interface::CallbackReturn on_deactivate(
+        const rclcpp_lifecycle::State & previous_state) override;
 
-  hardware_interface::return_type read(
-    const rclcpp::Time & time, const rclcpp::Duration & period) override;
+    hardware_interface::return_type read(
+        const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
-  hardware_interface::return_type write(
-    const rclcpp::Time & time, const rclcpp::Duration & period) override;
+    hardware_interface::return_type write(
+        const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
 private:
-  std::optional<double> hw_effort_command_;
-  std::optional<double> hw_velocity_command_;
-  std::optional<double> hw_position_command_;
-  std::optional<double> hw_effort_state_;
-  std::optional<double> hw_velocity_state_;
-  std::optional<double> hw_position_state_;
+    std::optional<ControlInterface> hw_velocity_command_;
+    std::optional<ControlInterface> hw_position_command_;
+    std::optional<ControlInterface> hw_effort_command_;
+    std::optional<ControlInterface> hw_effort_state_;
+    std::optional<ControlInterface> hw_velocity_state_;
+    std::optional<ControlInterface> hw_position_state_;
 
-  ControlMode control_mode_;
+    ControlMode control_mode_;
 
-  std::unique_ptr<org::jcan::Bus> bus_;
-  std::basic_string<char> can_device_;
+    std::unique_ptr<org::jcan::Bus> bus_;
+    std::basic_string<char> can_device_;
+
+    bool set_control_interface(const hardware_interface::InterfaceInfo & interface_info, bool command);
 
 };
 
