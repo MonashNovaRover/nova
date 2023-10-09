@@ -2,6 +2,7 @@
 
 {
   github-gitignore = callPackage ./github-gitignore { };
+  libgphoto2-theta = callPackage ./libgphoto2-theta { };
   gstthetauvc = callPackage ./gstthetauvc { };
   jcan = callPackage ./jcan { };
   libuvc-theta = callPackage ./libuvc-theta { };
