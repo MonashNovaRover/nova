@@ -1,18 +1,10 @@
 { lib
 , mkYarnPackage
-, fetchYarnDeps
-, nodejs_20
-, yarn-berry
 }:
 
 mkYarnPackage {
   name = "gui";
   
-  # offlineCache = fetchYarnDeps {
-  #   yarnLock = src + "/yarn.lock";
-  #   hash = "....";
-  # };
-
   src = builtins.path rec {
     name = "gui";
     path = ../../../nova-gui;
