@@ -58,7 +58,7 @@ class Keyboard {
 
     /// @brief     Returns whether the key is down
     /// @param key_code the linux event code for key, can be found in linux/input.h
-    uint8_t is_key_down(int key_code);
+    int get_key_state(int key_code);
 
     //------------------------------------------------------------//
 	public:

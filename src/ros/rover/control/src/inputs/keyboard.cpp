@@ -37,7 +37,7 @@ void Keyboard::set_message_values() {
     if (msg.connected){
         // note that key codes are not in order in linux input, see linux/input_event_codes.h
         for (int key_code = KEY_ESC; key_code <= KEY_CAPSLOCK; key_code++) {
-            msg.key_number_state[key_code-KEY_ESC+1] = is_key_down(key_code);
+            msg.key_number_state[key_code-KEY_ESC+1] = get_key_state(key_code);
         }
     }
 }
@@ -70,24 +70,22 @@ void Keyboard::update() {
 }
 
 // Get the state of a key
-uint8_t Keyboard::is_key_down(int key_code) {
+int Keyboard::get_key_state(int key_code) {
     // read the current input
     struct input_event ev;
     ssize_t bytesRead = read(fd, &ev, sizeof(ev));
     // if there is no input, return false
     if (bytesRead == -1) {
-        return false;
+        return 0;
     }
 
     // Check for key presses
     if (ev.type == EV_KEY && ev.code == key_code) {
         // key press or key repeat
-        if (ev.value == 1 || ev.value == 2) {
-            return true;
-        }
+        return ev.value; // 1 for press, 2 for repeat, 0 for release
     }
-    // key release or no event
-    return false;
+    // catch all
+    return 0;
 }
 
 // return the message object
