@@ -32,6 +32,7 @@
 namespace rover_hardware
 {
 constexpr const char * BLCMDHardwareLoggerName = "BLCMDHardware";
+
 struct PIConfig {
     int16_t kp;
     int16_t ki_ts;
@@ -47,9 +48,14 @@ struct BLCMDConfig {
 };
 
 struct ControlInterface {
-    double value {std::numeric_limits<double>::quiet_NaN()};
+    std::optional<double> command;
+    std::optional<double> state;
     double min {std::numeric_limits<double>::quiet_NaN()};
     double max {std::numeric_limits<double>::quiet_NaN()};
+};
+
+struct PositionInterface : ControlInterface {
+    double resolver_reduction {std::numeric_limits<double>::quiet_NaN()};
 };
 
 enum class ControlMode {
@@ -57,6 +63,38 @@ enum class ControlMode {
     Position,
     Velocity,
     Current,
+};
+
+enum class BLCMDSendCommand {
+    STOP                = 0x0,    // Disables all current through the motor, free spinning.
+    FORWARD             = 0x1,    // Drive with FOC velocity control forward for 0.5s
+    REVERSE             = 0x2,    // Drive with FOC velocity control forward for 0.5s
+    DRIVE_VELOCITY      = 0x3,    // Drive with FOC velocity control at given signed integer speed
+    DRIVE_POSITION      = 0x4,    // Drive with FOC position control to given angle. (-32,768 to +32,767) → (-π,π)
+    DRIVE_CURRENT       = 0x5,    // Drive with FOC at selected current (torque)
+    DRIVE_OPEN_LOOP     = 0x6,    // Drive open loop interpolating some set speed.
+    HOME_ROTOR          = 0x7,    // Send request to home rotor
+    ZERO_RESOLVER       = 0x8,    // Send request to zero resolver
+    GET_CONFIG          = 0x9,    // Send request to get configuration
+    SET_CONFIG          = 0xA     // Send request to set configuration
+};
+
+enum class TelemetryPacket{
+    PACKET_1 = 0x1,
+    PACKET_2,
+    PACKET_3,
+    PACKET_4
+};
+
+enum class CanIdPrefix{
+    SEND = 0,
+    RECEIVE = 4
+};
+
+enum class BLCMDReceiveCommand{
+    ERR_WARN_INF = 0x0,
+    CONFIG_DATA = 0x9,
+    WRITE_CONFIRMATION = 0xA
 };
 
 class BLCMDHardware : public hardware_interface::ActuatorInterface
@@ -85,20 +123,47 @@ public:
         const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
 private:
-    std::optional<ControlInterface> hw_velocity_command_;
-    std::optional<ControlInterface> hw_position_command_;
-    std::optional<ControlInterface> hw_effort_command_;
-    std::optional<ControlInterface> hw_effort_state_;
-    std::optional<ControlInterface> hw_velocity_state_;
-    std::optional<ControlInterface> hw_position_state_;
+    ControlInterface hw_velocity_;
+    PositionInterface hw_position_;
+    ControlInterface hw_effort_;
 
     ControlMode control_mode_;
 
     std::unique_ptr<org::jcan::Bus> bus_;
     std::basic_string<char> can_device_;
 
+    uint32_t can_id_;
+
     bool set_control_interface(const hardware_interface::InterfaceInfo & interface_info, bool command);
 
+    void can_setup();
+
+    /// @brief      Create the can ID for a given BLCMDSendCommand
+    /// @param      command - The command to send
+    /// @returns    The can ID
+    uint32_t make_can_id(BLCMDSendCommand command);
+
+    /// @brief      Create the can ID for a given BLCMDReceiveCommand
+    /// @param      command - The command to send
+    /// @returns    The can ID
+    uint32_t make_can_id(BLCMDReceiveCommand command);
+
+    /// @brief      Create the can ID for a given TelemetryPacket
+    /// @param      command - The command to send
+    /// @returns    The can ID
+    uint32_t make_can_id(TelemetryPacket packet);
+
+    void packet_1_callback(org::jcan::Frame);
+
+    int16_t convert_to_int16(const double value);
+
+    double int16_bytes_to_double(uint8_t *bytes);
+
+    double uint16_bytes_to_double(uint8_t *bytes);
+
+    int16_t from_bytes(const uint8_t *bytes);
+
+    void packet3_callback(org::jcan::Frame frame);
 };
 
 }  // namespace rover_hardware

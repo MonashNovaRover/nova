@@ -15,6 +15,7 @@
 #include <limits>
 #include <vector>
 #include <callback.h>
+#include <unistd.h>
 
 #include "rover_hardware/blcmd_hardware.hpp"
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
@@ -50,6 +51,14 @@ hardware_interface::CallbackReturn BLCMDHardware::on_init(
     RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
                 "Using can device " << can_device_.c_str());
 
+    auto canid_search = info_.hardware_parameters.find("canid");
+    if (canid_search == info_.hardware_parameters.end()){
+        RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName), "No canid provided");
+        return CallbackReturn::ERROR;
+    }
+
+    can_id_ = std::stoi(canid_search->second);
+
     bus_ = org::jcan::new_bus();
 
     for (const auto& interface : info_.joints[0].command_interfaces){
@@ -74,9 +83,9 @@ hardware_interface::CallbackReturn BLCMDHardware::on_configure(
 {
   // open the can bus
     try {
-        bus_->open(this->can_device_.c_str());
+        bus_->open(can_device_.c_str());
         RCLCPP_INFO(rclcpp::get_logger(BLCMDHardwareLoggerName), "Opened canbus on device %s",
-                    this->can_device_.c_str());
+                    can_device_.c_str());
     } catch (std::exception &e) {
         RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName), "Failed to start canbus with error: %s",
                      e.what());
@@ -90,12 +99,18 @@ hardware_interface::CallbackReturn BLCMDHardware::on_configure(
 std::vector<hardware_interface::StateInterface> BLCMDHardware::export_state_interfaces()
 {
   std::vector<hardware_interface::StateInterface> state_interfaces;
-  if (hw_position_state_.has_value()) state_interfaces.emplace_back(hardware_interface::StateInterface(
-      info_.joints[0].name, hardware_interface::HW_IF_POSITION, &hw_position_state_.value().value));
-  if (hw_velocity_state_.has_value()) state_interfaces.emplace_back(hardware_interface::StateInterface(
-      info_.joints[0].name, hardware_interface::HW_IF_VELOCITY, &hw_velocity_state_.value().value));
-  if (hw_effort_state_.has_value())state_interfaces.emplace_back(hardware_interface::StateInterface(
-      info_.joints[0].name, hardware_interface::HW_IF_EFFORT, &hw_effort_state_.value().value));
+  if (hw_position_.state.has_value()) {
+      state_interfaces.emplace_back(
+              info_.joints[0].name, hardware_interface::HW_IF_POSITION, &hw_position_.state.value());
+  }
+  if (hw_velocity_.state.has_value()) {
+      state_interfaces.emplace_back(
+              info_.joints[0].name, hardware_interface::HW_IF_VELOCITY, &hw_velocity_.state.value());
+  }
+  if (hw_effort_.state.has_value()) {
+      state_interfaces.emplace_back(
+              info_.joints[0].name, hardware_interface::HW_IF_EFFORT, &hw_effort_.state.value());
+  }
 
   return state_interfaces;
 }
@@ -103,12 +118,18 @@ std::vector<hardware_interface::StateInterface> BLCMDHardware::export_state_inte
 std::vector<hardware_interface::CommandInterface> BLCMDHardware::export_command_interfaces()
 {
   std::vector<hardware_interface::CommandInterface> command_interfaces;
-    if (hw_position_command_.has_value()) command_interfaces.emplace_back(hardware_interface::CommandInterface(
-        info_.joints[0].name, hardware_interface::HW_IF_POSITION, &hw_position_command_.value().value));
-    if (hw_velocity_command_.has_value()) command_interfaces.emplace_back(hardware_interface::CommandInterface(
-        info_.joints[0].name, hardware_interface::HW_IF_VELOCITY, &hw_velocity_command_.value().value));
-    if (hw_effort_command_.has_value()) command_interfaces.emplace_back(hardware_interface::CommandInterface(
-            info_.joints[0].name, hardware_interface::HW_IF_EFFORT, &hw_effort_command_.value().value));
+    if (hw_position_.command.has_value()) {
+        command_interfaces.emplace_back(
+                info_.joints[0].name, hardware_interface::HW_IF_POSITION, &hw_position_.command.value());
+    }
+    if (hw_velocity_.command.has_value()) {
+        command_interfaces.emplace_back(
+                info_.joints[0].name, hardware_interface::HW_IF_VELOCITY, &hw_velocity_.command.value());
+    }
+    if (hw_effort_.command.has_value()) {
+        command_interfaces.emplace_back(
+                info_.joints[0].name, hardware_interface::HW_IF_EFFORT, &hw_effort_.command.value());
+    }
 
   return command_interfaces;
 }
@@ -145,32 +166,111 @@ hardware_interface::return_type BLCMDHardware::write(
     return hardware_interface::return_type::OK;
 }
 
-// TODO(taaj): better error handling
+// TODO: better error handling
 bool BLCMDHardware::set_control_interface(
         const hardware_interface::InterfaceInfo &interface_info, bool command) {
-    double min_position = std::stod(interface_info.min);
-    double max_position = std::stod(interface_info.max);
-    auto interface = ControlInterface {
-            .value = std::numeric_limits<double>::quiet_NaN(),
-            .min = min_position,
-            .max = max_position,
-    };
-
+        RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                           "Setting interface " << interface_info.name.c_str() << " with min " << interface_info.min <<
+                           " and max " << interface_info.max << " as " << (command ? "command" : "state") << " interface");
+    double min = std::stod(interface_info.min);
+    double max = std::stod(interface_info.max);
     if(interface_info.name == hardware_interface::HW_IF_POSITION){
-        if (command) hw_position_command_ = interface;
-        else hw_position_state_ = interface;
+        //TODO: deal with case with state interface and no command interface
+        if (command){
+            hw_position_.min = min;
+            hw_position_.max = max;
+            hw_position_.resolver_reduction = std::stod(info_.joints[0].parameters.at("resolver_reduction"));
+            hw_position_.command = std::numeric_limits<double>::quiet_NaN();
+        } else {
+            hw_position_.state = std::numeric_limits<double>::quiet_NaN();
+        }
     } else if(interface_info.name == hardware_interface::HW_IF_VELOCITY){
-        if (command) hw_velocity_command_ = interface;
-        else hw_velocity_state_ = interface;
+        if(command) {
+            hw_velocity_.min = min;
+            hw_velocity_.max = max;
+            hw_velocity_.command = std::numeric_limits<double>::quiet_NaN();
+        } else {
+            hw_velocity_.state = std::numeric_limits<double>::quiet_NaN();
+        }
     } else if(interface_info.name == hardware_interface::HW_IF_EFFORT){
-        if (command) hw_effort_command_ = interface;
-        else hw_effort_state_ = interface;
+        if(command){
+            hw_effort_.min = min;
+            hw_effort_.max = max;
+            hw_effort_.command = std::numeric_limits<double>::quiet_NaN();
+        } else {
+            hw_effort_.state = std::numeric_limits<double>::quiet_NaN();
+        }
     } else {
-        RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName), "Unexpected interface %s", name.c_str());
+        RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName), "Unexpected interface %s",
+                     interface_info.name.c_str());
         return false;
     }
     return true;
 }
+
+    void BLCMDHardware::can_setup() {
+        std::vector<uint32_t> ids = {make_can_id(BLCMDReceiveCommand::CONFIG_DATA)};
+        if (hw_velocity_.state.has_value() || hw_effort_.state.has_value())
+            ids.push_back(make_can_id(TelemetryPacket::PACKET_1));
+        if (hw_position_.state.has_value())
+            ids.push_back(make_can_id(TelemetryPacket::PACKET_3));
+        bus_->set_id_filter(ids);
+        if (hw_velocity_.state.has_value() || hw_effort_.state.has_value())
+            bus_->add_callback_to(make_can_id(TelemetryPacket::PACKET_1), this, &BLCMDHardware::packet_1_callback);
+        if (hw_position_.state.has_value())
+            bus_->add_callback_to(make_can_id(TelemetryPacket::PACKET_3), this, &BLCMDHardware::packet3_callback);
+   }
+
+    uint32_t BLCMDHardware::make_can_id(BLCMDSendCommand command)
+    {
+        return static_cast<uint32_t>(CanIdPrefix::SEND) << 8 | can_id_ << 4 |
+               static_cast<uint32_t>(command);
+    }
+
+    uint32_t BLCMDHardware::make_can_id(BLCMDReceiveCommand command)
+    {
+        return static_cast<uint32_t>(CanIdPrefix::RECEIVE) << 8 | can_id_ << 4 |
+               static_cast<uint32_t>(command);
+    }
+
+    uint32_t BLCMDHardware::make_can_id(TelemetryPacket packet)
+    {
+        return static_cast<uint32_t>(CanIdPrefix::RECEIVE) << 8 | can_id_ << 4|
+               static_cast<uint32_t>(packet);
+    }
+
+    void BLCMDHardware::packet_1_callback(org::jcan::Frame frame) {
+    if(hw_velocity_.state.has_value()) hw_velocity_.state = int16_bytes_to_double(&frame.data[0]);
+    if(hw_effort_.state.has_value()) hw_effort_.state = int16_bytes_to_double(&frame.data[2]);
+    }
+
+    void BLCMDHardware::packet3_callback(org::jcan::Frame frame) {
+        hw_position_.state = int16_bytes_to_double(&frame.data[0]) * (hw_position_.max - hw_position_.min)/2 *
+                hw_position_.resolver_reduction;
+    }
+
+
+
+    int16_t BLCMDHardware::convert_to_int16 (const double value) {
+        // Convert the value to an integer
+        return static_cast<int16_t>(value * 32767.0f);
+    }
+
+    int16_t BLCMDHardware::from_bytes(const uint8_t *bytes) {
+        return static_cast<int16_t>(bytes[0] << 8) | static_cast<int16_t>(bytes[1]);
+    }
+
+    double BLCMDHardware::int16_bytes_to_double (uint8_t* bytes)
+    {
+        // Scale the value to a double
+        return from_bytes(bytes)/32767.0;
+    }
+
+    double BLCMDHardware::uint16_bytes_to_double (uint8_t* bytes)
+    {
+        // Scale the value to a double
+        return from_bytes(bytes)/65535.0;
+    }
 
 }  // namespace rover_hardware
 
