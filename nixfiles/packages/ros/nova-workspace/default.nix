@@ -13,6 +13,7 @@
 , nova-electronics ? throw "electronics is needed, but not available!"
 , nova-science ? throw "science is needed, but not available!"
 , nova-cameras2 ? throw "cameras2 is needed, but not available!"
+, nova-nav2-bringup ? throw "nav2-bringup is needed, but not available!"
 , nova-gui-backend ? throw "gui-backend is needed, but not available!"
 , nova-gui-frontend ? throw "gui-frontend is needed, but not available!"
 , nova-gui-frontend-server ? throw "gui-frontend-server is needed, but not available!"
@@ -35,6 +36,7 @@
       nova-electronics
       nova-science
       nova-cameras2
+      nova-nav2-bringup
       nova-gui-backend
       nova-gui-frontend;
   }
@@ -66,6 +68,9 @@ in
     inherit
       rviz2
       gazebo
+      navigation2
+      nav2-common
+      turtlebot3-gazebo
       rqt rqt-common-plugins;
   }) // extraPackages;
   prebuiltShellPackages = {
