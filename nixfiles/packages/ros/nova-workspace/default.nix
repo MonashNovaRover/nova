@@ -68,9 +68,6 @@ in
     inherit
       rviz2
       gazebo
-      navigation2
-      nav2-common
-      turtlebot3-gazebo
       rqt rqt-common-plugins;
   }) // extraPackages;
   prebuiltShellPackages = {
