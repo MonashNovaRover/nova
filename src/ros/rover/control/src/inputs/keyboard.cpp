@@ -23,11 +23,13 @@ Keyboard::Keyboard(const char* devPath) : connected(false), reconnected(false), 
 void Keyboard::open_keyboard_device(const char* devPath){
     fd = open(devPath, O_RDONLY | O_NONBLOCK);
     if (fd < 0) {
-        cerr << "Error opening keyboard input device" << strerror(errno) << endl;
+        // most likely permission denied, read the errono and chmod 777 the device input file. 
+        cerr << "Error opening keyboard input device. " << strerror(errno) << endl;
         connected = false;
         return;
     } else {
         connected = true;
+        return;
     }
 }
 
@@ -35,10 +37,37 @@ void Keyboard::set_message_values() {
     msg.connected = connected;
 
     if (msg.connected){
-        // note that key codes are not in order in linux input, see linux/input_event_codes.h
-        for (int key_code = KEY_ESC; key_code <= KEY_CAPSLOCK; key_code++) {
-            msg.key_number_state[key_code-KEY_ESC+1] = get_key_state(key_code);
+        msg.keys_pressed.clear();
+        msg.keys_repeated.clear();
+        msg.keys_released.clear();
+        read_key_presses();
+    }
+}
+
+void Keyboard::read_key_presses()
+{
+    // read the current input
+    struct input_event ev;
+    int num_read = 0;
+    while (read(fd, &ev, sizeof(ev)) != -1 && num_read < READ_CAP){
+        // Check for key presses
+        if (ev.type == EV_KEY) {
+            switch (ev.value)
+            {
+            case 0:
+                msg.keys_released.push_back(ev.code);
+                break;
+            case 1:
+                msg.keys_pressed.push_back(ev.code);
+                break;
+            case 2:
+                msg.keys_repeated.push_back(ev.code);
+                break;
+            default:
+                break;
+            }
         }
+        num_read++;
     }
 }
 
@@ -67,25 +96,6 @@ void Keyboard::update() {
 
     // Updated the connection state
     connected = new_connected;
-}
-
-// Get the state of a key
-int Keyboard::get_key_state(int key_code) {
-    // read the current input
-    struct input_event ev;
-    ssize_t bytesRead = read(fd, &ev, sizeof(ev));
-    // if there is no input, return false
-    if (bytesRead == -1) {
-        return 0;
-    }
-
-    // Check for key presses
-    if (ev.type == EV_KEY && ev.code == key_code) {
-        // key press or key repeat
-        return ev.value; // 1 for press, 2 for repeat, 0 for release
-    }
-    // catch all
-    return 0;
 }
 
 // return the message object

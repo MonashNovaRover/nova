@@ -29,8 +29,7 @@ using namespace std;
 
 class Keyboard {
     //------------------------------------------------------------//
-    protected:
-
+    private:
     /// @brief      Stores the message data from the joystick
     core::msg::InputKeyboard msg;
 
@@ -46,6 +45,9 @@ class Keyboard {
     /// @brief    The file descriptor for the keyboard input device
     int fd;
 
+    /// @brief Cap the number of keys to read to avoid infinite loop (last 8 key presses)
+    static int READ_CAP = 8;
+
     //------------------------------------------------------------//
     protected:
 
@@ -56,9 +58,8 @@ class Keyboard {
     /// @brief      Sets the message values stored in the message object
     void set_message_values();
 
-    /// @brief     Returns whether the key is down
-    /// @param key_code the linux event code for key, can be found in linux/input.h
-    int get_key_state(int key_code);
+    /// @brief     Grabs all key presses generated since last sampling
+    void read_key_presses();
 
     //------------------------------------------------------------//
 	public:

@@ -2,4 +2,6 @@
 bool connected
 
 # Code of key pressed from esc to capslock
-int8[58] key_state
+int32[] keys_pressed
+int32[] keys_repeated
+int32[] keys_released
