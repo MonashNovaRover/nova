@@ -21,40 +21,10 @@ let
       inherit (revisions.nixpkgs) rev hash;
     };
     patches = [
-      # python3.pkgs.pygobject-stubs: init at 2.8.0
+      # xtensor, xsimd: Update, fix compilation on AArch64
       (pkgs.fetchpatch {
-        url = "https://github.com/NixOS/nixpkgs/pull/249663/commits/83326c2d47189cbe098c0719c56408f93c1e61d7.patch";
-        hash = "sha256-qRjwkTbqLGG7/tvW1tXZZd2Tj88rmFkmoUNxgUs+yC0=";
-      })
-
-      # Update xsimd
-      (pkgs.fetchpatch {
-        url = "https://github.com/NixOS/nixpkgs/commit/8056d8544f315deb6bd4e490164fb19f7acb1e73.patch";
-        hash = "sha256-3z/T8kFhQye67fJ/Q9akhpPpkolcYSV3XB3veN/qryU=";
-      })
-      (pkgs.fetchpatch {
-        url = "https://github.com/NixOS/nixpkgs/commit/86d286cb9ef5d1d26b5c35add35be80269c03a5c.patch";
-        hash = "sha256-JhD5FehMD14d/Q0AxqRovALhkU/9p8KxB5XrAS3VOyA=";
-      })
-      (pkgs.fetchpatch {
-        url = "https://github.com/NixOS/nixpkgs/commit/8bd2ba2f434489a86e7289e024efb33d094dcaf8.patch";
-        hash = "sha256-Hx3cwO3zMcKOppQ4YoLRFPfh3mRgnuS9xfrjxVtm5hc=";
-      })
-      ## Incompatible with 10.0.0:
-      # (pkgs.fetchpatch {
-      #   url = "https://github.com/NixOS/nixpkgs/commit/88b2797038045ef81fa9973195b2274902c59ec9.patch";
-      #   hash = "sha256-OgQVRMbHHTU5tlwCcBk/4AlCDwkhCQ8ma2Qx1K3pHiw=";
-      # })
-      # (pkgs.fetchpatch {
-      #   url = "https://github.com/NixOS/nixpkgs/commit/a4a03bb261829d49d0cc19b06d435ce371addd5a.patch";
-      #   hash = "sha256-kIi923mM7P+NCStIDe+N8eXCj4Bq8pS8cx4Nw9cti4I=";
-      # })
-
-      # Update xtensor, build with xsimd
-      # https://github.com/NixOS/nixpkgs/pull/225904
-      (pkgs.fetchpatch {
-        url = "https://github.com/NixOS/nixpkgs/compare/aa827460ae6ca3b1d4f2e30d9b1c468f92554476...SomeoneSerge:nixpkgs:5e3ca18ea9df9c6611d51168bcbad37baa5d5987.patch";
-        hash = "sha256-RIK+hVkx/OwKxIKn7W1rdyHWpAkHyJOZNxJESONdShs=";
+        url = "https://github.com/SomeoneSerge/nixpkgs/compare/2ece2a0701055e8093b3ab9f904e86b4c396e712..e7ae0498eb9f65b16f18fb39e4cb5fd699ef6687.patch";
+        hash = "sha256-rDedxvq2utnm86loRbJokSRLdunEfgvG58XE25nb9hM=";
       })
     ];
   };

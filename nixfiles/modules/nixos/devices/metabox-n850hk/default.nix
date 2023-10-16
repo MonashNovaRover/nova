@@ -8,7 +8,7 @@ in
     ./boot
     ./fingerprint
     ./graphics
-    ./keyboard
+    ./oem
   ];
 
   options.devices.metabox-n850hk.enable = lib.mkEnableOption "configuration for the Metabox N850HK";

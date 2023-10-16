@@ -8,7 +8,7 @@ in
     ./apps
     ./boot
     ./graphics
-    ./keyboard
+    ./oem
   ];
 
   options.devices.metabox-v158pnh.enable = lib.mkEnableOption "configuration for the Metabox V158PNH";
