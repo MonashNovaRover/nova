@@ -74,11 +74,12 @@ class InputDevice {
 
     virtual ControlSchemeInputs get_arm_lock_inputs() = 0;
     virtual ControlSchemeInputs get_control_scheme_inputs() = 0;
-    virtual EndEffectorInputs get_endeffector_inputs() = 0;
+    virtual EndEffectorInputs get_end_effector_inputs() = 0;
     virtual JointVelocityInputs get_joint_velocity_inputs() = 0;
     virtual TwistInputs get_twist_inputs() = 0;
     virtual bool is_connected() = 0;
     // Should take argument type of any message share ptr, but I cannot find the base class for that 
     template<typename Message>
     virtual void set_message(Message msg, int idx) = 0;
+    virtual void reset_message() = 0;
 };

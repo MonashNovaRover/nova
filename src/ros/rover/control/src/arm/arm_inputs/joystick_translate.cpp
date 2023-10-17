@@ -40,7 +40,6 @@ ArmLockInputs JoystickTranslate::get_arm_lock_inputs()
         control_scheme_inputs.control_scheme_update = true;
     }
 #endif
-    control_scheme_inputs = control_scheme_inputs;
     return control_scheme_inputs;
 }
 
@@ -62,25 +61,25 @@ ControlSchemeInputs JoystickTranslate::get_control_scheme_inputs()
     control_scheme_inputs.flat_frame_angular = joystick_r.btn_thumb_r_state == 2;
     // Endpoint frame control. Hold trigger
     // Also set if flat frame control is used
-    control_scheme_inputs.endpoint_frame_linear = joystick_l.btn_thumb_u_state == 2 || res.flat_frame_linear;
-    control_scheme_inputs.endpoint_frame_angular = joystick_r.btn_thumb_u_state == 2 || res.flat_frame_angular;
+    control_scheme_inputs.endpoint_frame_linear = joystick_l.btn_thumb_u_state == 2 || control_scheme_inputs.flat_frame_linear;
+    control_scheme_inputs.endpoint_frame_angular = joystick_r.btn_thumb_u_state == 2 || control_scheme_inputs.flat_frame_angular;
     // IK. Hold inside thumb button.
     // Also set if endpoint frame control is used.
-    control_scheme_inputs.ik_linear = joystick_l.btn_thumb_r_state == 2 || res.endpoint_frame_linear;
-    control_scheme_inputs.ik_angular = joystick_r.btn_thumb_l_state == 2 || res.endpoint_frame_angular;
+    control_scheme_inputs.ik_linear = joystick_l.btn_thumb_r_state == 2 || control_scheme_inputs.endpoint_frame_linear;
+    control_scheme_inputs.ik_angular = joystick_r.btn_thumb_l_state == 2 || control_scheme_inputs.endpoint_frame_angular;
     // Set SPM roll handling. Hold back thumb button on right stick
     control_scheme_inputs.use_spm_roll = joystick_r.btn_thumb_d_state == 2;
 
     // Correction for position control - can't have independent linear and angular control
     if (control_scheme_inputs.position_control) {
-        control_scheme_inputs.flat_frame_angular = res.flat_frame_linear;
-        control_scheme_inputs.endpoint_frame_angular = res.endpoint_frame_linear;
-        control_scheme_inputs.ik_angular = res.ik_linear;
+        control_scheme_inputs.flat_frame_angular = control_scheme_inputs.flat_frame_linear;
+        control_scheme_inputs.endpoint_frame_angular = control_scheme_inputs.endpoint_frame_linear;
+        control_scheme_inputs.ik_angular = control_scheme_inputs.ik_linear;
     }
     return control_scheme_inputs;
 }
 
-EndEffectorInputs JoystickTranslate::get_endeffector_inputs()
+EndEffectorInputs JoystickTranslate::get_end_effector_inputs()
 {
     if (!control_scheme_inputs.input_lock){
         // Set the values for linear actuator and end effector actuation
@@ -93,7 +92,7 @@ EndEffectorInputs JoystickTranslate::get_endeffector_inputs()
 JointVelocityInputs JoystickTranslate::get_joint_velocity_inputs()
 {
     float speed = scale_speed(joystick_r.ax_slider) * speed_multipliers.all_inputs;
-    if (!control_scheme_inputs.joystick_lock && !control_scheme_inputs.ik_linear) {
+    if (!control_scheme_inputs.input_lock && !control_scheme_inputs.ik_linear) {
         // No speed scaling for lower joints;
         
         // Base rotation is stick twist. CCW rotates arm CCW (from above)
@@ -110,7 +109,7 @@ JointVelocityInputs JoystickTranslate::get_joint_velocity_inputs()
     }
 
     // If using wrist joint-space control
-    if (!control_scheme_inputs.joystick_lock && !control_scheme_inputs.ik_angular) {
+    if (!control_scheme_inputs.input_lock && !control_scheme_inputs.ik_angular) {
         // Scale speed for wrist joints
         float speed_wrist_joints = speed * speed_multipliers.wrist_joints;
         
@@ -135,7 +134,7 @@ TwistInputs JoystickTranslate::get_twist_inputs()
     float speed = scale_speed(joystick_r.ax_slider) * speed_multipliers.all_inputs;
     
     // If using lower joints IK, set the values for linear velocity
-    if (!control_scheme_inputs.joystick_lock && control_scheme_inputs.ik_linear) {
+    if (!control_scheme_inputs.input_lock && control_scheme_inputs.ik_linear) {
         // Scale speed for linear IK
         float speed_ik_linear = speed * speed_multipliers.ik_linear;
 
@@ -150,7 +149,7 @@ TwistInputs JoystickTranslate::get_twist_inputs()
         twist_inputs.linear.z = 0;
     }
     // If using wrist IK, set the values for angular velocity
-    if (!control_scheme_inputs.joystick_lock && control_scheme_inputs.ik_angular) {
+    if (!control_scheme_inputs.input_lock && control_scheme_inputs.ik_angular) {
         // Scale speed for angular IK
         float speed_ik_angular = speed * speed_multipliers.ik_angular;
         
@@ -194,4 +193,10 @@ void JoystickTranslate::set_message(Message msg, int idx)
         joystick_r = *joystickMessage;
     else
         Print::print("Invalid index for joystick translate");
+}
+
+void JoystickTranslate::reset_message()
+{
+    joystick_l = core::msg::InputJoystick();
+    joystick_r = core::msg::InputJoystick();
 }

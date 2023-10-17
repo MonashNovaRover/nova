@@ -9,32 +9,34 @@ UnifiedArmInput::UnifiedArmInput(bool joystick_override) {
 
 void UnifiedArmInput::joystick_l_callback(const core::msg::InputJoystick::SharedPtr msg)
 {
-    joystick_l = *msg;
     input_devices[InputDeviceIndex.JOYSTICK_INDEX].set_message(msg, 0);
 }
 
 void UnifiedArmInput::joystick_r_callback(const core::msg::InputJoystick::SharedPtr msg)
 {
-    joystick_r = *msg;
-    input_devices[InputDeviceIndex.JOYSTICK_INDEX].set_message(msg, 0);
+    input_devices[InputDeviceIndex.JOYSTICK_INDEX].set_message(msg, 1);
 }
 
 void UnifiedArmInput::keyboard_callback(const core::msg::InputKeyboard::SharedPtr msg)
 {
-    keyboard = *msg;
     input_devices[InputDeviceIndex.KEYBOARD_INDEX].set_message(msg, 0);
+}
+
+void UnifiedArmInput::deadline_callback(int device_index)
+{
+    input_devices[device_index].reset_message();
 }
 
 InputDevice& UnifiedArmInput::get_input_device()
 {
     if (joystick_override) {
-        if (joystick_l.connected && joystick_r.connected) {
+        if (input_devices[InputDeviceIndex.JOYSTICK_INDEX].is_connected()) {
             return input_devices[InputDeviceIndex.JOYSTICK_INDEX];
         } else {
             return input_devices[InputDeviceIndex.KEYBOARD_INDEX];
         }
     } else {
-        if (keyboard.connected) {
+        if (input_devices[InputDeviceIndex.KEYBOARD_INDEX].is_connected()) {
             return input_devices[InputDeviceIndex.KEYBOARD_INDEX];
         } else if (joystick_l.connected && joystick_r.connected) {
             return input_devices[InputDeviceIndex.JOYSTICK_INDEX];

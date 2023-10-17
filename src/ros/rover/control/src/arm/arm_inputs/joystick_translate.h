@@ -44,6 +44,11 @@ class JoystickTranslate: public InputDevice {
     } SpeedMultipliers;
     SpeedMultipliers speed_multipliers;
 
+    /// @brief      Obtains postive scaling factor from slider input
+    /// @param      value - number in range [-1, 1] to map to [0, 1]
+    /// @returns    The new scale factor in range [0, 1]
+    float scale_speed(float value);
+
     //------------------------------------------------------------//
     public:
 
@@ -53,15 +58,15 @@ class JoystickTranslate: public InputDevice {
 
     ControlSchemeInputs get_control_scheme_inputs() override;
 
-    EndEffectorInputs get_endeffector_inputs() override;
+    EndEffectorInputs get_end_effector_inputs() override;
 
     JointVelocityInputs get_joint_velocity_inputs() override;
 
     TwistInputs get_twist_inputs() override;
 
-    float scale_speed(float value);
-
     bool is_connected();
 
     void set_message(Message msg, int idx);
+    
+    void reset_message();
 };

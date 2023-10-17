@@ -25,10 +25,9 @@ Note: implement a get_device to be called
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-// Include messages types
+#include "input_device.h"
 #include "core/msg/input_joystick.hpp"
 #include "core/msg/input_keyboard.hpp"
-#include "input_device.h"
 
 // Define an enum for the input device indices
 enum InputDeviceIndex {
@@ -67,6 +66,8 @@ class UnifiedArmInput {
     /// @brief      Callback function when input messages are received.
     /// @param      msg - A pointer to the input message
     void keyboard_callback (const core::msg::InputKeyboard::SharedPtr msg);
+
+    void deadline_callback (int device_index);
 
     /// @brief      Returns the input device to use
     InputDevice& get_input_device ();
