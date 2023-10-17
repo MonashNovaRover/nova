@@ -13,6 +13,7 @@ Add capability to detect usb keyboards and select that as the input device (not 
 
 #include "keyboard.h"
 #include <iostream>
+#include <linux/inputs.h>
 
 Keyboard::Keyboard(const char* devPath) : connected(false), reconnected(false), disconnected(false) {
     devicePath = devPath;
