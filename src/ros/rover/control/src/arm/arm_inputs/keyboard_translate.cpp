@@ -1,3 +1,12 @@
+/*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Monash Nova Rover Team
+
+PACKAGE: 	control
+AUTHOR(S):	Jess Hepworth, Jory Braun, Matthew Gu
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
+
 #include "keyboard_translate.h"
 
 KeyboardTranslate::KeyboardTranslate() {}

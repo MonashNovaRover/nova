@@ -3,7 +3,7 @@
 Monash Nova Rover Team
 
 PACKAGE: 	control
-AUTHOR(S):	Jess Hepworth, Jory Braun
+AUTHOR(S):	Jess Hepworth, Jory Braun, Matthew Gu
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 

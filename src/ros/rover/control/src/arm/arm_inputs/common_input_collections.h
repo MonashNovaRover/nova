@@ -1,5 +1,18 @@
+#pragma once
+/*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Monash Nova Rover Team
 
-    
+This class is a collection of the arm inputs that
+should be supported by any input device.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PACKAGE: 	control
+AUTHOR(S):	Matthew Gu
+CREATION:	18/10/2023
+EDITED:		18/10/2023
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
 #include <cstdint>
 class CommonInputCollections {    
     typedef struct {

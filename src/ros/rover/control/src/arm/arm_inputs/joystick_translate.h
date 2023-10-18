@@ -4,17 +4,14 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team
 
-This class is an interface for the input devices
-and converts them to arm input messages.
+This class is responsible for translating joystick
+messages into common arm input messages.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	control
 AUTHOR(S):	Matthew Gu
-CREATION:	23/09/2023
-EDITED:		30/09/2023
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-TODO:
-
+CREATION:	09/10/2023
+EDITED:		18/10/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 

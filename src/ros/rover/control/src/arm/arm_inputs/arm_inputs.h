@@ -23,14 +23,16 @@ ACTIONS:  None
 PACKAGE: 	control
 AUTHOR(S):  Jess Hepworth, Jory Braun, Matthew Gu
 CREATION:	02/12/2021
-EDITED:		07/10/2023
+EDITED:		18/10/2023
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
-Find out where to put the device update
 Find out where the constructor is called/defined
 Find out why we are doing arm lock detection in callback
-Current implementation updates all devices regardless of which ones are connected
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Note:
+Current implementation updates all devices regardless 
+of which ones are connected
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 

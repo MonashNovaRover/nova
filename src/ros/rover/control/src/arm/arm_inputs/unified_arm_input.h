@@ -14,12 +14,9 @@ EDITED:		30/09/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
 High: Swap JoyStick message to use Joy message type
-High: Make joystick override changeable in launch file/runtime
-High: See if it is more appropriate to move the subscribes to the translator
-Medium: Make key mapping changeable in runtime (json config file)?
-Low: Possibly make another class as parent class of 
-each individual input type, and then have array for priority. 
-
+Medium: Make joystick override changeable in launch file/runtime
+Low: See if it is more appropriate to move the subscribes to the translator
+Low: Make key mapping changeable in runtime (json config file)?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
@@ -42,12 +39,6 @@ class UnifiedArmInput {
 
     // Store the input devices
     InputDevice input_devices [NUM_INPUT_DEVICES];
-
-    // Store state of last-received messages from the arm inputs
-    core::msg::InputJoystick joystick_l;
-    core::msg::InputJoystick joystick_r;
-    core::msg::InputKeyboard keyboard;
-
     
     /// @brief      Returns the input device to use
     InputDevice& get_input_device ();

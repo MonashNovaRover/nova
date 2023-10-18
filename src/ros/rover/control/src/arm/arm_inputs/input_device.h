@@ -14,11 +14,9 @@ CREATION:	23/09/2023
 EDITED:		30/09/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
-- Make the set_message function take in a message type
+High: Make the set_message function take in a message type
     instead of a variadic template as the non typed 
     arguments is not safe
-- Make the set_message index to be some enum or something
-    instead of an int
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
