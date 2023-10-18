@@ -19,9 +19,9 @@ wheel_velocity_controller:
   ros__parameters:
     joints:
       - flw
-      - blw
-      - brw
-      - frw
+#      - blw
+#      - brw
+#      - frw
 
 pivot_position_controller:
   ros__parameters:
