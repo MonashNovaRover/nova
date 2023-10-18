@@ -66,13 +66,13 @@ def generate_launch_description():
         parameters=[robot_description, controllers]
     )
 
-
-# robot_state_publisher_node = Node(
-    #     package='robot_state_publisher',
-    #     executable='robot_state_publisher',
-    #     parameters=[{'robot_description': ParameterValue(robot_description, value_type=str)}]
-    # )
+    wheel_velocity_controller = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["wheel_velocity_controller"]
+    )
 
     return LaunchDescription([
         control_node,
+        wheel_velocity_controller,
     ])
