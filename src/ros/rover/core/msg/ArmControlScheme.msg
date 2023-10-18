@@ -3,8 +3,8 @@
 
 std_msgs/Header header
 
-# Joystick control lock
-bool joystick_lock 1
+# Input control lock
+bool input_lock 1
 
 # Joint limits toggle
 bool joint_limits 1
