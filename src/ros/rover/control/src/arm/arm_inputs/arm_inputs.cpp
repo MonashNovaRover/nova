@@ -24,9 +24,8 @@ void ArmInputs::joystick_l_callback (const core::msg::InputJoystick::SharedPtr m
     // Save data for later, only deal with it when we publish
     // More efficient, works if we only care about the most up-to-date message
     unified_arm_input.joystick_l_callback(msg);
-    device = unified_arm_input.get_input_device();
 
-    InputDevice::ControlSchemeInputs device_output = device.get_arm_lock_inputs();
+    CommonInputCollections::ControlSchemeInputs arm_lock_inputs = unified_arm_input.get_arm_lock_inputs();
 
     // Set button-based data here so we don't miss any button-press events
     bool control_scheme_update = false;
@@ -104,7 +103,7 @@ void ArmInputs::publish_endeffector_inputs ()
     auto message = core::msg::EndEffectorInput();
 
     // Get output from device
-    InputDevice::EndEffectorInputs end_effector_inputs = device.get_end_effector_inputs();
+    CommonInputCollections::EndEffectorInputs end_effector_inputs = device.get_end_effector_inputs();
 
     message.linear_actuation = end_effector_inputs.linear_actuation;
     message.end_effector_actuation = end_effector_inputs.end_effector_actuation;
@@ -116,7 +115,7 @@ void ArmInputs::publish_endeffector_inputs ()
 // Publishes joint velocity data
 void ArmInputs::publish_joint_velocities ()
 {
-    InputDevice::JointVelocityInputs velocities = device.get_joint_velocity_inputs();
+    CommonInputCollections::JointVelocityInputs velocities = device.get_joint_velocity_inputs();
 
     for (int i = 0; i < sizeof(velocities.velocities)/sizeof(velocities[0]); i++) {
         joint_velocities.velocity[i] = velocities.velocities[i];
@@ -131,7 +130,7 @@ void ArmInputs::publish_joint_velocities ()
 // Publishes task velocity data
 void ArmInputs::publish_twist ()
 {
-    InputDevice::TwistInputs twist_inputs = device.get_twist_inputs();
+    CommonInputCollections::TwistInputs twist_inputs = device.get_twist_inputs();
 
     twist.twist.linear.x = twist_inputs.linear.x;
     twist.twist.linear.y = twist_inputs.linear.y;
@@ -157,7 +156,7 @@ void ArmInputs::publish_inputs()
 // Publishes control scheme data
 void ArmInputs::publish_control_scheme()
 {   
-    InputDevice::ControlSchemeInputs control_scheme_inputs = device.get_control_scheme_inputs();
+    CommonInputCollections::ControlSchemeInputs control_scheme_inputs = device.get_control_scheme_inputs();
 
     control_scheme.base_frame_offset = control_scheme_inputs.base_frame_offset;
     control_scheme.flat_frame_linear = control_scheme_inputs.flat_frame_linear;

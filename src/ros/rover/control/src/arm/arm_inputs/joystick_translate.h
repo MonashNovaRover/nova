@@ -27,10 +27,10 @@ class JoystickTranslate: public InputDevice {
     core::msg::InputJoystick joystick_l;
     core::msg::InputJoystick joystick_r;
 
-    ControlSchemeInputs control_scheme_inputs;
-    EndEffectorInputs end_effector_inputs;
-    JointVelocityInputs joint_velocity_inputs;
-    TwistInputs twist_inputs;
+    CommonInputCollections::ControlSchemeInputs control_scheme_inputs;
+    CommonInputCollections::EndEffectorInputs end_effector_inputs;
+    CommonInputCollections::JointVelocityInputs joint_velocity_inputs;
+    CommonInputCollections::TwistInputs twist_inputs;
 
     typedef struct {
         // Multiplier for all inputs
@@ -54,15 +54,15 @@ class JoystickTranslate: public InputDevice {
 
     JoystickTranslate();
 
-    ControlSchemeInputs get_arm_lock_inputs() override;
+    CommonInputCollections::ControlSchemeInputs get_arm_lock_inputs() override;
 
-    ControlSchemeInputs get_control_scheme_inputs() override;
+    CommonInputCollections::ControlSchemeInputs get_control_scheme_inputs() override;
 
-    EndEffectorInputs get_end_effector_inputs() override;
+    CommonInputCollections::EndEffectorInputs get_end_effector_inputs() override;
 
-    JointVelocityInputs get_joint_velocity_inputs() override;
+    CommonInputCollections::JointVelocityInputs get_joint_velocity_inputs() override;
 
-    TwistInputs get_twist_inputs() override;
+    CommonInputCollections::TwistInputs get_twist_inputs() override;
 
     bool is_connected();
 

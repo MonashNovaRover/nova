@@ -3,7 +3,7 @@
 
 JoystickTranslate::JoystickTranslate() { }
 
-ArmLockInputs JoystickTranslate::get_arm_lock_inputs()
+CommonInputCollections::ArmLockInputs JoystickTranslate::get_arm_lock_inputs()
 {
     // Set button-based data here so we don't miss any button-press events
     control_scheme_inputs.control_scheme_update = false;
@@ -43,7 +43,7 @@ ArmLockInputs JoystickTranslate::get_arm_lock_inputs()
     return control_scheme_inputs;
 }
 
-ControlSchemeInputs JoystickTranslate::get_control_scheme_inputs()
+CommonInputCollections::ControlSchemeInputs JoystickTranslate::get_control_scheme_inputs()
 {
     // Set base reference frame offset
     int8_t base_frame_offset = 0;
@@ -79,7 +79,7 @@ ControlSchemeInputs JoystickTranslate::get_control_scheme_inputs()
     return control_scheme_inputs;
 }
 
-EndEffectorInputs JoystickTranslate::get_end_effector_inputs()
+CommonInputCollections::EndEffectorInputs JoystickTranslate::get_end_effector_inputs()
 {
     if (!control_scheme_inputs.input_lock){
         // Set the values for linear actuator and end effector actuation
@@ -89,7 +89,7 @@ EndEffectorInputs JoystickTranslate::get_end_effector_inputs()
     return end_effector_inputs;
 }
 
-JointVelocityInputs JoystickTranslate::get_joint_velocity_inputs()
+CommonInputCollections::JointVelocityInputs JoystickTranslate::get_joint_velocity_inputs()
 {
     float speed = scale_speed(joystick_r.ax_slider) * speed_multipliers.all_inputs;
     if (!control_scheme_inputs.input_lock && !control_scheme_inputs.ik_linear) {
@@ -129,7 +129,7 @@ JointVelocityInputs JoystickTranslate::get_joint_velocity_inputs()
     return joint_velocity_inputs;
 }
 
-TwistInputs JoystickTranslate::get_twist_inputs()
+CommonInputCollections::TwistInputs JoystickTranslate::get_twist_inputs()
 {
     float speed = scale_speed(joystick_r.ax_slider) * speed_multipliers.all_inputs;
     

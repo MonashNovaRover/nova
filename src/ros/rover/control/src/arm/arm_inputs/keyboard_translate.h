@@ -61,15 +61,15 @@ class KeyboardTranslate: public InputDevice {
 
     KeyboardTranslate();
 
-    ControlSchemeInputs get_arm_lock_inputs() override;
+    CommonInputCollections::ControlSchemeInputs get_arm_lock_inputs() override;
 
-    ControlSchemeInputs get_control_scheme_inputs() override;
+    CommonInputCollections::ControlSchemeInputs get_control_scheme_inputs() override;
 
-    EndEffectorInputs get_end_effector_inputs() override;
+    CommonInputCollections::EndEffectorInputs get_end_effector_inputs() override;
 
-    JointVelocityInputs get_joint_velocity_inputs() override;
+    CommonInputCollections::JointVelocityInputs get_joint_velocity_inputs() override;
 
-    TwistInputs get_twist_inputs() override;
+    CommonInputCollections::TwistInputs get_twist_inputs() override;
 
     void set_message(Message msg, int idx);
 

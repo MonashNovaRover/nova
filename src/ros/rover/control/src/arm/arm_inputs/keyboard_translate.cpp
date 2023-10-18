@@ -2,7 +2,7 @@
 
 KeyboardTranslate::KeyboardTranslate() {}
 
-ControlSchemeInputs KeyboardTranslate::get_arm_lock_inputs() {
+CommonInputCollections::ControlSchemeInputs KeyboardTranslate::get_arm_lock_inputs() {
     control_scheme_inputs.control_scheme_update = false;
     // Arm lock
     if (is_ctrl() && is_pressed(KEY_L)) {
@@ -24,7 +24,7 @@ ControlSchemeInputs KeyboardTranslate::get_arm_lock_inputs() {
     return control_scheme_inputs;
 }
 
-ControlSchemeInputs KeyboardTranslate::get_control_scheme_inputs() {
+CommonInputCollections::ControlSchemeInputs KeyboardTranslate::get_control_scheme_inputs() {
     // Set base reference frame offset
     int8_t base_frame_offset = 0;
     // seems to only allow left or right? Not too sure. 
@@ -63,7 +63,7 @@ ControlSchemeInputs KeyboardTranslate::get_control_scheme_inputs() {
 
 }
 
-EndEffectorInputs KeyboardTranslate::get_end_effector_inputs() {
+CommonInputCollections::EndEffectorInputs KeyboardTranslate::get_end_effector_inputs() {
     if (is_shift()) {
         if (is_pressed(KEY_LEFT)) {
             end_effector_speed = increase_speed(end_effector_speed);
@@ -80,7 +80,7 @@ EndEffectorInputs KeyboardTranslate::get_end_effector_inputs() {
     return end_effector_inputs;
 }
 
-JointVelocityInputs KeyboardTranslate::get_joint_velocity_inputs() {
+CommonInputCollections::JointVelocityInputs KeyboardTranslate::get_joint_velocity_inputs() {
     if (is_shift()) {
         if (is_pressed(KEY_UP)) {
             joint_twist_speed = increase_speed(joint_twist_speed);
@@ -128,7 +128,7 @@ JointVelocityInputs KeyboardTranslate::get_joint_velocity_inputs() {
 
 }
 
-TwistInputs KeyboardTranslate::get_twist_inputs() {
+CommonInputCollections::TwistInputs KeyboardTranslate::get_twist_inputs() {
     if (is_shift()) {
         if (is_pressed(KEY_UP)) {
             joint_twist_speed = increase_speed(joint_twist_speed);

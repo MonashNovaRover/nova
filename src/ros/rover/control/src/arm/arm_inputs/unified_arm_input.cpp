@@ -54,22 +54,22 @@ InputDevice& UnifiedArmInput::get_input_device()
     }
 }
 
-ControlSchemeInputs UnifiedArmInput::get_arm_lock_inputs(){
+CommonInputCollections::ControlSchemeInputs UnifiedArmInput::get_arm_lock_inputs(){
     return get_input_device().get_arm_lock_inputs();
 }
 
-ControlSchemeInputs UnifiedArmInput::get_control_scheme_inputs(){
+CommonInputCollections::ControlSchemeInputs UnifiedArmInput::get_control_scheme_inputs(){
     return get_input_device().get_control_scheme_inputs();
 }
 
-EndEffectorInputs UnifiedArmInput::get_end_effector_inputs(){
+CommonInputCollections::EndEffectorInputs UnifiedArmInput::get_end_effector_inputs(){
     return get_input_device().get_end_effector_inputs();
 }
 
-JointVelocityInputs UnifiedArmInput::get_joint_velocity_inputs(){
+CommonInputCollections::JointVelocityInputs UnifiedArmInput::get_joint_velocity_inputs(){
     return get_input_device().get_joint_velocity_inputs();
 }
 
-TwistInputs UnifiedArmInput::get_twist_inputs(){
+CommonInputCollections::TwistInputs UnifiedArmInput::get_twist_inputs(){
     return get_input_device().get_twist_inputs();
 }
