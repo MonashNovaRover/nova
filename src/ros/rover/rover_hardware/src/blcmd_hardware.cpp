@@ -137,34 +137,96 @@ std::vector<hardware_interface::CommandInterface> BLCMDHardware::export_command_
 hardware_interface::CallbackReturn BLCMDHardware::on_activate(
         const rclcpp_lifecycle::State & /*previous_state*/)
 {
-  // TODO(anyone): prepare the robot to receive commands
-
+    bus_->receive_from_thread_buffer();
     return CallbackReturn::SUCCESS;
 }
 
 hardware_interface::CallbackReturn BLCMDHardware::on_deactivate(
     const rclcpp_lifecycle::State & /*previous_state*/)
 {
-    // TODO(anyone): prepare the robot to stop receiving commands
-
     return CallbackReturn::SUCCESS;
 }
 
 hardware_interface::return_type BLCMDHardware::read(
         const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
 {
-    // TODO(anyone): read robot states
-
+    bus_->spin();
     return hardware_interface::return_type::OK;
 }
 
 hardware_interface::return_type BLCMDHardware::write(
         const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
 {
-    // TODO(anyone): write robot's commands'
-
+    switch(control_mode_){
+        case rover_hardware::ControlMode::Undefined:
+            RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName), "Control mode undefined");
+            break;
+        case rover_hardware::ControlMode::Position:
+            RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                               "Writing position " << hw_position_.command.value());
+            break;
+        case rover_hardware::ControlMode::Velocity:
+            RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                               "Writing velocity " << hw_velocity_.command.value());
+            break;
+        case rover_hardware::ControlMode::Effort:
+            RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                               "Writing effort " << hw_effort_.command.value());
+            break;
+    }
     return hardware_interface::return_type::OK;
 }
+
+    hardware_interface::return_type
+    BLCMDHardware::prepare_command_mode_switch(const std::vector<std::string> &start_interfaces,
+                                               const std::vector<std::string> &stop_interfaces) {
+        if (stop_interfaces.size() > 1) {
+            RCLCPP_FATAL_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                                "Expected 0 or 1 command interfaces, got " << stop_interfaces.size());
+        }
+        control_mode_ = rover_hardware::ControlMode::Undefined;
+
+        if (start_interfaces.size() > 1) {
+            RCLCPP_FATAL_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                                "Expected 0 or 1 command interfaces, got " << start_interfaces.size());
+            return hardware_interface::return_type::ERROR;
+        }
+        if (start_interfaces[0] == info_.joints[0].name + "/" + hardware_interface::HW_IF_POSITION) {
+            control_mode_ = rover_hardware::ControlMode::Position;
+        } else if (start_interfaces[0] == info_.joints[0].name + "/" + hardware_interface::HW_IF_VELOCITY) {
+            control_mode_ = rover_hardware::ControlMode::Velocity;
+        } else if (start_interfaces[0] == info_.joints[0].name + "/" + hardware_interface::HW_IF_EFFORT) {
+            control_mode_ = rover_hardware::ControlMode::Effort;
+        } else {
+            RCLCPP_FATAL_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                                    "Unexpected interface " << start_interfaces[0]);
+                return hardware_interface::return_type::ERROR;
+        }
+
+        std::string new_control_mode;
+        switch(control_mode_){
+            case(rover_hardware::ControlMode::Position):{
+                new_control_mode = "position";
+                break;
+            }
+            case(rover_hardware::ControlMode::Velocity): {
+                new_control_mode = "velocity";
+                break;
+            }
+            case(rover_hardware::ControlMode::Effort): {
+                new_control_mode = "effort";
+                break;
+            }
+            case(rover_hardware::ControlMode::Undefined): {
+                new_control_mode = "undefined";
+                break;
+            }
+        }
+
+        RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                           "Preparing command mode switch to " << new_control_mode);
+        return hardware_interface::return_type::OK;
+    }
 
 // TODO: better error handling
 bool BLCMDHardware::set_control_interface(
