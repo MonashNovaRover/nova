@@ -88,13 +88,13 @@ void ArmInputs::keyboard_callback(const core::msg::InputKeyboard::SharedPtr msg)
 void ArmInputs::joystick_deadline_callback()
 {
     RCLCPP_WARN(this->get_logger(), "Joystick subscriber deadline missed");
-    unified_arm_input.deadline_callback(InputDeviceIndex::JOYSTICK_INDEX);
+    unified_arm_input.joystick_deadline_callback();
 }
 
 void ArmInputs::keyboard_deadline_callback()
 {   
-    RCLCPP_WARN(this->get_logger(), "Joystick subscriber deadline missed");
-    unified_arm_input.deadline_callback(InputDeviceIndex::KEYBOARD_INDEX);
+    RCLCPP_WARN(this->get_logger(), "Keyboard subscriber deadline missed");
+    unified_arm_input.keyboard_deadline_callback();
 }
 
 // Publishes data on the arm input
@@ -102,9 +102,6 @@ void ArmInputs::publish_endeffector_inputs ()
 {
     // Create a new message
     auto message = core::msg::EndEffectorInput();
-
-    // update the device
-    device = unified_arm_input.get_input_device();
 
     // Get output from device
     InputDevice::EndEffectorInputs end_effector_inputs = device.get_end_effector_inputs();
@@ -119,8 +116,6 @@ void ArmInputs::publish_endeffector_inputs ()
 // Publishes joint velocity data
 void ArmInputs::publish_joint_velocities ()
 {
-    device = unified_arm_input.get_input_device();
-
     InputDevice::JointVelocityInputs velocities = device.get_joint_velocity_inputs();
 
     for (int i = 0; i < sizeof(velocities.velocities)/sizeof(velocities[0]); i++) {
@@ -136,9 +131,6 @@ void ArmInputs::publish_joint_velocities ()
 // Publishes task velocity data
 void ArmInputs::publish_twist ()
 {
-
-    device = unified_arm_input.get_input_device();
-
     InputDevice::TwistInputs twist_inputs = device.get_twist_inputs();
 
     twist.twist.linear.x = twist_inputs.linear.x;
@@ -165,8 +157,6 @@ void ArmInputs::publish_inputs()
 // Publishes control scheme data
 void ArmInputs::publish_control_scheme()
 {   
-    device = unified_arm_input.get_input_device();
-
     InputDevice::ControlSchemeInputs control_scheme_inputs = device.get_control_scheme_inputs();
 
     control_scheme.base_frame_offset = control_scheme_inputs.base_frame_offset;
@@ -177,7 +167,7 @@ void ArmInputs::publish_control_scheme()
     control_scheme.ik_linear = control_scheme_inputs.ik_linear;
     control_scheme.ik_angular = control_scheme_inputs.ik_angular;
     control_scheme.use_spm_roll = control_scheme_inputs.use_spm_roll;
-    
+
     // Correction for position control - can't have independent linear and angular control
     if (control_scheme.position_control) {
         control_scheme.flat_frame_angular = control_scheme.flat_frame_linear;

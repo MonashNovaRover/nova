@@ -22,6 +22,16 @@ void UnifiedArmInput::keyboard_callback(const core::msg::InputKeyboard::SharedPt
     input_devices[InputDeviceIndex.KEYBOARD_INDEX].set_message(msg, 0);
 }
 
+void UnifiedArmInput::joystick_deadline_callback()
+{
+    deadline_callback(InputDeviceIndex.JOYSTICK_INDEX);
+}
+
+void UnifiedArmInput::keyboard_deadline_callback()
+{
+    deadline_callback(InputDeviceIndex.KEYBOARD_INDEX);
+}
+
 void UnifiedArmInput::deadline_callback(int device_index)
 {
     input_devices[device_index].reset_message();
@@ -42,4 +52,24 @@ InputDevice& UnifiedArmInput::get_input_device()
             return input_devices[InputDeviceIndex.JOYSTICK_INDEX];
         }
     }
+}
+
+ControlSchemeInputs UnifiedArmInput::get_arm_lock_inputs(){
+    return get_input_device().get_arm_lock_inputs();
+}
+
+ControlSchemeInputs UnifiedArmInput::get_control_scheme_inputs(){
+    return get_input_device().get_control_scheme_inputs();
+}
+
+EndEffectorInputs UnifiedArmInput::get_end_effector_inputs(){
+    return get_input_device().get_end_effector_inputs();
+}
+
+JointVelocityInputs UnifiedArmInput::get_joint_velocity_inputs(){
+    return get_input_device().get_joint_velocity_inputs();
+}
+
+TwistInputs UnifiedArmInput::get_twist_inputs(){
+    return get_input_device().get_twist_inputs();
 }

@@ -83,8 +83,6 @@ class ArmInputs : public ArmConfigInfoClient
     geometry_msgs::msg::TwistStamped twist;
     core::msg::ArmControlScheme control_scheme;
 
-    // Store the device to be used
-    InputDevice device;
     // Store the unified arm input
     UnifiedArmInput unified_arm_input;
 

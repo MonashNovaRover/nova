@@ -20,8 +20,6 @@ Medium: Make key mapping changeable in runtime (json config file)?
 Low: Possibly make another class as parent class of 
 each individual input type, and then have array for priority. 
 
-
-Note: implement a get_device to be called
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
@@ -29,25 +27,32 @@ Note: implement a get_device to be called
 #include "core/msg/input_joystick.hpp"
 #include "core/msg/input_keyboard.hpp"
 
-// Define an enum for the input device indices
-enum InputDeviceIndex {
-    JOYSTICK_INDEX = 0,
-    KEYBOARD_INDEX = 1
-};
-
 class UnifiedArmInput {
     //------------------------------------------------------------//
     private:
+    static const int NUM_INPUT_DEVICES = 2;
 
     bool joystick_override;
 
+    // Define an enum for the input device indices
+    enum InputDeviceIndex {
+        JOYSTICK_INDEX = 0,
+        KEYBOARD_INDEX = 1
+    };
+
     // Store the input devices
-    InputDevice input_devices [2];
+    InputDevice input_devices [NUM_INPUT_DEVICES];
 
     // Store state of last-received messages from the arm inputs
     core::msg::InputJoystick joystick_l;
     core::msg::InputJoystick joystick_r;
     core::msg::InputKeyboard keyboard;
+
+    
+    /// @brief      Returns the input device to use
+    InputDevice& get_input_device ();
+
+    void deadline_callback (int device_index);
 
     //------------------------------------------------------------//
     public:
@@ -67,8 +72,15 @@ class UnifiedArmInput {
     /// @param      msg - A pointer to the input message
     void keyboard_callback (const core::msg::InputKeyboard::SharedPtr msg);
 
-    void deadline_callback (int device_index);
+    void joystick_deadline_callback ();
 
-    /// @brief      Returns the input device to use
-    InputDevice& get_input_device ();
+    void keyboard_deadline_callback ();
+
+    /// @brief 
+    /// @return 
+    ControlSchemeInputs get_arm_lock_inputs();
+    ControlSchemeInputs get_control_scheme_inputs();
+    EndEffectorInputs get_end_effector_inputs();
+    JointVelocityInputs get_joint_velocity_inputs();
+    TwistInputs get_twist_inputs();
 }
