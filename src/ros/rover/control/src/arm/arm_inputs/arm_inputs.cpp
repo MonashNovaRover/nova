@@ -18,7 +18,7 @@ AUTHOR(S):	Jess Hepworth, Jory Braun, Matthew Gu
 using std::placeholders::_1;
 
 
-ArmInputs() : ArmConfigInfoClient("arm_inputs"), unified_arm_input(UnifiedArmInput(true)) { }
+ArmInputs::ArmInputs() : ArmConfigInfoClient("arm_inputs"), unified_arm_input(UnifiedArmInput(true)) { }
 
 // Receives input from left joystick
 void ArmInputs::joystick_l_callback (const core::msg::InputJoystick::SharedPtr msg)
