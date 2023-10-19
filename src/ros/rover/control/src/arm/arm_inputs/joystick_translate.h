@@ -21,9 +21,11 @@ EDITED:		18/10/2023
 class JoystickTranslate: public InputDevice {
     //------------------------------------------------------------//
     private:
+    // store the messages
     core::msg::InputJoystick joystick_l;
     core::msg::InputJoystick joystick_r;
 
+    // store the inputs to be returned
     CommonInputCollections::ControlSchemeInputs control_scheme_inputs;
     CommonInputCollections::EndEffectorInputs end_effector_inputs;
     CommonInputCollections::JointVelocityInputs joint_velocity_inputs;
@@ -63,7 +65,7 @@ class JoystickTranslate: public InputDevice {
 
     bool is_connected();
 
-    void set_message(Message msg, int idx);
+    void set_message(std::shared_ptr<void> msg, int idx);
     
     void reset_message();
 };

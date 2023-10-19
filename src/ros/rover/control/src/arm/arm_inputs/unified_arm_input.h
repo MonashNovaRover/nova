@@ -38,7 +38,7 @@ class UnifiedArmInput {
     };
 
     // Store the input devices
-    InputDevice input_devices [NUM_INPUT_DEVICES];
+    InputDevice* input_devices [NUM_INPUT_DEVICES];
     
     /// @brief      Returns the input device to use
     InputDevice& get_input_device ();
@@ -69,9 +69,9 @@ class UnifiedArmInput {
 
     /// @brief 
     /// @return 
-    ControlSchemeInputs get_arm_lock_inputs();
-    ControlSchemeInputs get_control_scheme_inputs();
-    EndEffectorInputs get_end_effector_inputs();
-    JointVelocityInputs get_joint_velocity_inputs();
-    TwistInputs get_twist_inputs();
-}
+    CommonInputCollections::ControlSchemeInputs get_arm_lock_inputs();
+    CommonInputCollections::ControlSchemeInputs get_control_scheme_inputs();
+    CommonInputCollections::EndEffectorInputs get_end_effector_inputs();
+    CommonInputCollections::JointVelocityInputs get_joint_velocity_inputs();
+    CommonInputCollections::TwistInputs get_twist_inputs();
+};

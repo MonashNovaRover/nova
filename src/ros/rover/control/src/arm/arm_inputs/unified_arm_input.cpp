@@ -13,7 +13,8 @@ AUTHOR(S):	Matthew Gu
 
 UnifiedArmInput::UnifiedArmInput(bool joystick_override) { 
     this->joystick_override = joystick_override;
-    this->input_devices = {JoystickTranslate(), KeyboardTranslate()};
+    this->input_devices[JOYSTICK_INDEX] = new JoystickTranslate();
+    this->input_devices[KEYBOARD_INDEX] = new KeyboardTranslate();
 }
 
 void UnifiedArmInput::joystick_l_callback(const core::msg::InputJoystick::SharedPtr msg)

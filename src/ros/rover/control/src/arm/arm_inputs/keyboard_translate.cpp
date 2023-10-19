@@ -184,7 +184,8 @@ CommonInputCollections::TwistInputs KeyboardTranslate::get_twist_inputs() {
     return twist_inputs;
 }
 
-void KeyboardTranslate::set_message(Message msg, int idx) {
+void KeyboardTranslate::set_message(std::shared_ptr<void> msg, int idx) {
+    // static_point_cast may be faster here
     auto keyboardMessage = std::dynamic_pointer_cast<core::msg::InputKeyboard>(msg);
     if (!keyboardMessage) {
         Print::print("Invalid message type for keyboard translate");

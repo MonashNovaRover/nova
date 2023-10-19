@@ -71,7 +71,7 @@ class KeyboardTranslate: public InputDevice {
 
     CommonInputCollections::TwistInputs get_twist_inputs() override;
 
-    void set_message(Message msg, int idx);
+    void set_message(std::shared_ptr<void> msg, int idx);
 
     void reset_message();
 

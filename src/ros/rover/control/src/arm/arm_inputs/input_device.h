@@ -17,6 +17,7 @@ TODO:
 High: Make the set_message function take in a message type
     instead of a variadic template as the non typed 
     arguments is not safe
+Low: Should std::any be used here? or the shared_ptr<void>?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
@@ -48,9 +49,9 @@ class InputDevice {
     virtual bool is_connected() = 0;
 
     // Should take argument type of any message share ptr, but I cannot find the base class for that 
-    template<typename Message>
+
     /// @brief      Sets the message to the input device
-    virtual void set_message(Message msg, int idx) = 0;
+    virtual void set_message(std::shared_ptr<void> msg, int idx) = 0;
     
     /// @brief     Resets the message of the input device
     virtual void reset_message() = 0;

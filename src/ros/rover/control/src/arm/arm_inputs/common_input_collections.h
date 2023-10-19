@@ -15,6 +15,7 @@ EDITED:		18/10/2023
 */
 #include <cstdint>
 class CommonInputCollections {    
+    public:
     typedef struct {
         float x; 
         float y; 
@@ -30,7 +31,7 @@ class CommonInputCollections {
         bool position_control;
 
         int8_t base_frame_offset;
-        bool flat_fram_linear;
+        bool flat_frame_linear;
         bool flat_frame_angular;
         bool endpoint_frame_linear;
         bool endpoint_frame_angular;

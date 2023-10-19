@@ -28,46 +28,17 @@ void ArmInputs::joystick_l_callback (const core::msg::InputJoystick::SharedPtr m
     CommonInputCollections::ControlSchemeInputs arm_lock_inputs = unified_arm_input.get_arm_lock_inputs();
 
     // Set button-based data here so we don't miss any button-press events
-    bool control_scheme_update = false;
-    // Arm lock
-    if (joystick_l.btn_bottom_l2_state == 1) {
-        if (!control_scheme.joystick_lock)
-            Print::print("Joysticks locked");
-        control_scheme.joystick_lock = true;
-        control_scheme_update = true;
-    }
-    if (joystick_l.btn_bottom_l5_state == 1){
-        if (control_scheme.joystick_lock)
-            Print::print("Joysticks Unlocked");
-        control_scheme.joystick_lock = false;
-        control_scheme_update = true;
-    }
-    // Joint limits
-    if (joystick_l.btn_bottom_l1_state == 1) {
-        control_scheme.joint_limits = true;
-        control_scheme_update = true;
-    }
-    if (joystick_l.btn_bottom_l4_state == 1) {
-        control_scheme.joint_limits = false;
-        control_scheme_update = true;
-    }
+    control_scheme.input_lock = arm_lock_inputs.input_lock;
+    control_scheme.joint_limits = arm_lock_inputs.joint_limits;
 #if POSITION_CONTROL_ENABLE
     // Position control
-    if (joystick_l.btn_bottom_l3_state == 1) {
-        control_scheme.position_control = true;
-        control_scheme_update = true;
-    }
-    if (joystick_l.btn_bottom_l6_state == 1) {
-        control_scheme.position_control = false;
-        control_scheme_update = true;
-    }
+    control_scheme.position_control = arm_lock_inputs.position_control;
 #endif
     // Immediately publish any new control scheme data
     // Also will continue to publish when the timer expires
-    if (control_scheme_update){
+    if (arm_lock_inputs.control_scheme_update){
         publish_control_scheme();
     }
-
 }
 
 // Receives input from right joystick
@@ -103,7 +74,7 @@ void ArmInputs::publish_endeffector_inputs ()
     auto message = core::msg::EndEffectorInput();
 
     // Get output from device
-    CommonInputCollections::EndEffectorInputs end_effector_inputs = device.get_end_effector_inputs();
+    CommonInputCollections::EndEffectorInputs end_effector_inputs = unified_arm_input.get_end_effector_inputs();
 
     message.linear_actuation = end_effector_inputs.linear_actuation;
     message.end_effector_actuation = end_effector_inputs.end_effector_actuation;
@@ -115,9 +86,9 @@ void ArmInputs::publish_endeffector_inputs ()
 // Publishes joint velocity data
 void ArmInputs::publish_joint_velocities ()
 {
-    CommonInputCollections::JointVelocityInputs velocities = device.get_joint_velocity_inputs();
+    CommonInputCollections::JointVelocityInputs velocities = unified_arm_input.get_joint_velocity_inputs();
 
-    for (int i = 0; i < sizeof(velocities.velocities)/sizeof(velocities[0]); i++) {
+    for (int i = 0; i < sizeof(velocities.velocities)/sizeof(velocities.velocities[0]); i++) {
         joint_velocities.velocity[i] = velocities.velocities[i];
     }
 
@@ -130,7 +101,7 @@ void ArmInputs::publish_joint_velocities ()
 // Publishes task velocity data
 void ArmInputs::publish_twist ()
 {
-    CommonInputCollections::TwistInputs twist_inputs = device.get_twist_inputs();
+    CommonInputCollections::TwistInputs twist_inputs = unified_arm_input.get_twist_inputs();
 
     twist.twist.linear.x = twist_inputs.linear.x;
     twist.twist.linear.y = twist_inputs.linear.y;
@@ -156,7 +127,7 @@ void ArmInputs::publish_inputs()
 // Publishes control scheme data
 void ArmInputs::publish_control_scheme()
 {   
-    CommonInputCollections::ControlSchemeInputs control_scheme_inputs = device.get_control_scheme_inputs();
+    CommonInputCollections::ControlSchemeInputs control_scheme_inputs = unified_arm_input.get_control_scheme_inputs();
 
     control_scheme.base_frame_offset = control_scheme_inputs.base_frame_offset;
     control_scheme.flat_frame_linear = control_scheme_inputs.flat_frame_linear;
