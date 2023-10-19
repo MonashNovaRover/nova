@@ -46,7 +46,7 @@ class Keyboard {
     int fd;
 
     /// @brief Cap the number of keys to read to avoid infinite loop (last 8 key presses)
-    static int READ_CAP = 8;
+    const static int READ_CAP = 8;
 
     //------------------------------------------------------------//
     protected:
