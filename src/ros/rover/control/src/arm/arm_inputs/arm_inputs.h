@@ -86,7 +86,7 @@ class ArmInputs : public ArmConfigInfoClient
     core::msg::ArmControlScheme control_scheme;
 
     // Store the unified arm input
-    const UnifiedArmInput unified_arm_input = UnifiedArmInput(true);
+    UnifiedArmInput unified_arm_input;
 
     /// @brief      Callback function when input messages are received.
     /// @param      msg - A pointer to the input message
@@ -132,6 +132,6 @@ class ArmInputs : public ArmConfigInfoClient
     public:
 
     /// @brief      Constructor. Starts the node
-    ArmInputs() : ArmConfigInfoClient("arm_inputs"){}
+    ArmInputs();
     
 };

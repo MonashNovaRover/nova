@@ -18,6 +18,10 @@ AUTHOR(S):	Jess Hepworth, Jory Braun, Matthew Gu
 using std::placeholders::_1;
 
 
+ArmInputs() : ArmConfigInfoClient("arm_inputs"){
+    this->unified_arm_input = UnifiedArmInput(true);
+}
+
 // Receives input from left joystick
 void ArmInputs::joystick_l_callback (const core::msg::InputJoystick::SharedPtr msg)
 {
@@ -88,7 +92,7 @@ void ArmInputs::publish_joint_velocities ()
 {
     CommonInputCollections::JointVelocityInputs velocities = unified_arm_input.get_joint_velocity_inputs();
 
-    for (int i = 0; i < sizeof(velocities.velocities)/sizeof(velocities.velocities[0]); i++) {
+    for (long unsigned int i = 0; i < sizeof(velocities.velocities)/sizeof(velocities.velocities[0]); i++) {
         joint_velocities.velocity[i] = velocities.velocities[i];
     }
 
