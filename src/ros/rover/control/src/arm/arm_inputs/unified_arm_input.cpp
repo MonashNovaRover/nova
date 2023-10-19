@@ -50,17 +50,9 @@ void UnifiedArmInput::deadline_callback(int device_index)
 InputDevice& UnifiedArmInput::get_input_device()
 {
     if (joystick_override) {
-        if (input_devices[InputDeviceIndex.JOYSTICK_INDEX].is_connected()) {
-            return input_devices[InputDeviceIndex.JOYSTICK_INDEX];
-        } else {
-            return input_devices[InputDeviceIndex.KEYBOARD_INDEX];
-        }
+        return input_devices[JOYSTICK_INDEX]->is_connected() ? *input_devices[JOYSTICK_INDEX] : *input_devices[KEYBOARD_INDEX];
     } else {
-        if (input_devices[InputDeviceIndex.KEYBOARD_INDEX].is_connected()) {
-            return input_devices[InputDeviceIndex.KEYBOARD_INDEX];
-        } else if (joystick_l.connected && joystick_r.connected) {
-            return input_devices[InputDeviceIndex.JOYSTICK_INDEX];
-        }
+        return input_devices[KEYBOARD_INDEX]->is_connected() ? *input_devices[KEYBOARD_INDEX] : *input_devices[JOYSTICK_INDEX];
     }
 }
 
