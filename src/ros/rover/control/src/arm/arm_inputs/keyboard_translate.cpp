@@ -56,12 +56,12 @@ CommonInputCollections::ControlSchemeInputs KeyboardTranslate::get_control_schem
     control_scheme_inputs.flat_frame_angular = is_ctrl() && is_held(KEY_2);
     // Endpoint frame control. Hold trigger
     // Also set if flat frame control is used
-    control_scheme_inputs.endpoint_frame_linear = (is_ctrl() && is_held(KEY_3)) || control_scheme_inputs.flat_frame_linear;
-    control_scheme_inputs.endpoint_frame_angular = (is_ctrl() && is_held(KEY_4)) || control_scheme_inputs.flat_frame_angular;
+    control_scheme_inputs.endpoint_frame_linear = is_ctrl() && is_held(KEY_3) || control_scheme_inputs.flat_frame_linear;
+    control_scheme_inputs.endpoint_frame_angular = is_ctrl() && is_held(KEY_4) || control_scheme_inputs.flat_frame_angular;
     // IK. Hold inside thumb button.
     // Also set if endpoint frame control is used.
-    control_scheme_inputs.ik_linear = (is_ctrl() && is_held(KEY_5)) || control_scheme_inputs.endpoint_frame_linear;
-    control_scheme_inputs.ik_angular = (is_ctrl() && is_held(KEY_6)) || control_scheme_inputs.endpoint_frame_angular;
+    control_scheme_inputs.ik_linear = is_ctrl() && is_held(KEY_5) || control_scheme_inputs.endpoint_frame_linear;
+    control_scheme_inputs.ik_angular = is_ctrl() && is_held(KEY_6) || control_scheme_inputs.endpoint_frame_angular;
     // Set SPM roll handling. Hold back thumb button on right stick
     control_scheme_inputs.use_spm_roll = is_ctrl() && is_held(KEY_7);
 
@@ -187,19 +187,14 @@ CommonInputCollections::TwistInputs KeyboardTranslate::get_twist_inputs() {
     return twist_inputs;
 }
 
-void KeyboardTranslate::set_message(std::any msg, int idx) {
-    try{
-        auto keyboardMessage = std::any_cast<core::msg::InputKeyboard::SharedPtr>(msg);
-        if (idx == 0) {
-            keyboard = *keyboardMessage;
-        }
-        else {
-            Print::print("Keyboard translate only takes one message");
-        }
-    } catch (const std::bad_any_cast& e) {
-        Print::print("Bad any cast in keyboard translate");
-        std::cerr << "Error: " << e.what() << std::endl;
+void KeyboardTranslate::set_message(std::shared_ptr<void> msg, int idx) {
+    // static_point_cast may be faster here
+    auto keyboardMessage = std::dynamic_pointer_cast<core::msg::InputKeyboard>(msg);
+    if (!keyboardMessage || idx != 0) {
+        Print::print("Invalid message type for keyboard translate");
         return;
+    } else {
+        keyboard = *keyboardMessage;
     }
 }
 
@@ -210,14 +205,14 @@ void KeyboardTranslate::reset_message()
 
 bool KeyboardTranslate::is_connected()
 {
-    return keyboard.connected;
+    return keyboard.is_connected;
 }
 
 bool KeyboardTranslate::is_released(int key)
 {
     for (long unsigned int i = 0; i < keyboard.keys_released.size(); i++) {
         if (key == keyboard.keys_released[i]) {
-            return true;
+            return true
         }
     }
     return false;
@@ -227,7 +222,7 @@ bool KeyboardTranslate::is_pressed(int key)
 {
     for (long unsigned int i = 0; i < keyboard.keys_pressed.size(); i++) {
         if (key == keyboard.keys_pressed[i]) {
-            return true;
+            return true
         }
     }
     return false;
@@ -237,7 +232,7 @@ bool KeyboardTranslate::is_held(int key)
 {
     for (long unsigned int i = 0; i < keyboard.keys_repeated.size(); i++) {
         if (key == keyboard.keys_repeated[i]) {
-            return true;
+            return true
         }
     }
     return false;

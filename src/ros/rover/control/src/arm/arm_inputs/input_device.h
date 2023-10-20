@@ -23,7 +23,6 @@ Low: Should std::any be used here? or the shared_ptr<void>?
 
 #include "common_input_collections.h"
 #include <memory>
-#include <any>
 
 class InputDevice {
     //------------------------------------------------------------//
@@ -50,7 +49,7 @@ class InputDevice {
     // Should take argument type of any message share ptr, but I cannot find the base class for that 
 
     /// @brief      Sets the message to the input device
-    virtual void set_message(std::any msg, int idx) = 0;
+    virtual void set_message(std::shared_ptr<void> msg, int idx) = 0;
     
     /// @brief     Resets the message of the input device
     virtual void reset_message() = 0;
