@@ -192,7 +192,7 @@ bool JoystickTranslate::is_connected()
 void JoystickTranslate::set_message(std::shared_ptr<void> msg, int idx)
 {
     // static_point_cast may be faster here
-    auto joystickMessage = std::dynamic_pointer_cast<core::msg::InputJoystick>(msg);
+    auto joystickMessage = std::dynamic_pointer_cast<core::msg::InputJoystick::SharedPtr>(msg);
     if (!joystickMessage) {
         Print::print("Invalid message type for joystick translate");
         return;
