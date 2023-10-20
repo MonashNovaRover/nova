@@ -12,6 +12,8 @@ AUTHOR(S):	Matthew Gu
 #include "joystick_translate.h"
 #include "keyboard_translate.h"
 
+#include <memory>
+
 UnifiedArmInput::UnifiedArmInput(bool joystick_override) { 
     this->joystick_override = joystick_override;
     this->input_devices[JOYSTICK_INDEX] = new JoystickTranslate();
@@ -20,17 +22,17 @@ UnifiedArmInput::UnifiedArmInput(bool joystick_override) {
 
 void UnifiedArmInput::joystick_l_callback(const core::msg::InputJoystick::SharedPtr msg)
 {
-    input_devices[InputDeviceIndex.JOYSTICK_INDEX].set_message(msg, 0);
+    input_devices[InputDeviceIndex.JOYSTICK_INDEX].set_message(std::dynamic_pointer_cast<void>(msg), 0);
 }
 
 void UnifiedArmInput::joystick_r_callback(const core::msg::InputJoystick::SharedPtr msg)
 {
-    input_devices[InputDeviceIndex.JOYSTICK_INDEX].set_message(msg, 1);
+    input_devices[InputDeviceIndex.JOYSTICK_INDEX].set_message(std::dynamic_pointer_cast<void>(msg), 1);
 }
 
 void UnifiedArmInput::keyboard_callback(const core::msg::InputKeyboard::SharedPtr msg)
 {
-    input_devices[InputDeviceIndex.KEYBOARD_INDEX].set_message(msg, 0);
+    input_devices[InputDeviceIndex.KEYBOARD_INDEX].set_message(std::dynamic_pointer_cast<void>(msg), 0);
 }
 
 void UnifiedArmInput::joystick_deadline_callback()
