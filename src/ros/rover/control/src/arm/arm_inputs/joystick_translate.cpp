@@ -12,7 +12,7 @@ AUTHOR(S):	Jess Hepworth, Jory Braun, Matthew Gu
 
 JoystickTranslate::JoystickTranslate() { }
 
-CommonInputCollections::ArmLockInputs JoystickTranslate::get_arm_lock_inputs()
+CommonInputCollections::ControlSchemeInputs JoystickTranslate::get_arm_lock_inputs()
 {
     // Set button-based data here so we don't miss any button-press events
     control_scheme_inputs.control_scheme_update = false;
