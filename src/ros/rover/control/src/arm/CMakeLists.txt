@@ -62,11 +62,13 @@ if(Eigen3_FOUND AND Orocos_kdl_FOUND)
   add_library(joystick_translate arm_inputs/joystick_translate.cpp)
   target_link_libraries(joystick_translate print)
   target_include_directories(joystick_translate PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/arm_inputs)
+  ament_target_dependencies(joystick_translate core)
 
   # Keyboard Translate
   add_library(keyboard_translate arm_inputs/keyboard_translate.cpp)
   target_link_libraries(keyboard_translate print)
   target_include_directories(keyboard_translate PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/arm_inputs)
+  ament_target_dependencies(keyboard_translate core)
 
   # Unified Arm Input
   add_library(unified_arm_input arm_inputs/unified_arm_input.cpp)
