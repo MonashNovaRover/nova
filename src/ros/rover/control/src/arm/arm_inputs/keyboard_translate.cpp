@@ -11,7 +11,7 @@ AUTHOR(S):	Jess Hepworth, Jory Braun, Matthew Gu
 #include <linux/input.h>
 #include "print/print.h"
 
-KeyboardTranslate::KeyboardTranslate() {}
+KeyboardTranslate::KeyboardTranslate(): joint_twist_speed(0), end_effector_speed(0) {}
 
 CommonInputCollections::ControlSchemeInputs KeyboardTranslate::get_arm_lock_inputs() {
     control_scheme_inputs.control_scheme_update = false;
@@ -215,7 +215,7 @@ bool KeyboardTranslate::is_connected()
 
 bool KeyboardTranslate::is_released(int key)
 {
-    for (int i = 0; i < keyboard.keys_released.size(); i++) {
+    for (long unsigned int i = 0; i < keyboard.keys_released.size(); i++) {
         if (key == keyboard.keys_released[i]) {
             return true;
         }
@@ -225,7 +225,7 @@ bool KeyboardTranslate::is_released(int key)
 
 bool KeyboardTranslate::is_pressed(int key)
 {
-    for (int i = 0; i < keyboard.keys_pressed.size(); i++) {
+    for (long unsigned int i = 0; i < keyboard.keys_pressed.size(); i++) {
         if (key == keyboard.keys_pressed[i]) {
             return true;
         }
@@ -235,7 +235,7 @@ bool KeyboardTranslate::is_pressed(int key)
 
 bool KeyboardTranslate::is_held(int key)
 {
-    for (int i = 0; i < keyboard.keys_repeated.size(); i++) {
+    for (long unsigned int i = 0; i < keyboard.keys_repeated.size(); i++) {
         if (key == keyboard.keys_repeated[i]) {
             return true;
         }
