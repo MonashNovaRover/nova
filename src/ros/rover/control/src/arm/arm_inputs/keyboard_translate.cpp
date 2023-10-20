@@ -8,6 +8,8 @@ AUTHOR(S):	Jess Hepworth, Jory Braun, Matthew Gu
 */
 
 #include "keyboard_translate.h"
+#include <linux/input.h>
+#include "print/print.h"
 
 KeyboardTranslate::KeyboardTranslate() {}
 
@@ -15,9 +17,10 @@ CommonInputCollections::ControlSchemeInputs KeyboardTranslate::get_arm_lock_inpu
     control_scheme_inputs.control_scheme_update = false;
     // Arm lock
     if (is_ctrl() && is_pressed(KEY_L)) {
-        if (!control_scheme_inputs.input_lock)
+        if (!control_scheme_inputs.input_lock) {
             Print::print("Keyboard locked");
             control_scheme_inputs.input_lock = true;
+        }
         else{
             Print::print("Keyboard Unlocked");
             control_scheme_inputs.input_lock = false;
@@ -102,16 +105,16 @@ CommonInputCollections::JointVelocityInputs KeyboardTranslate::get_joint_velocit
         // No speed scaling for lower joints;
         
         // Base rotation is stick twist. CCW rotates arm CCW (from above)
-        joint_velocity_inputs.velocity[0] = speed * (is_pressed_or_held(KEY_Q)-is_pressed_or_held(KEY_E));
+        joint_velocity_inputs.velocities[0] = speed * (is_pressed_or_held(KEY_Q)-is_pressed_or_held(KEY_E));
         // Shoulder is stick y (left-right). Left moves the arm towards the back of the rover
-        joint_velocity_inputs.velocity[1] = speed * (is_pressed_or_held(KEY_A)-is_pressed_or_held(KEY_D));
+        joint_velocity_inputs.velocities[1] = speed * (is_pressed_or_held(KEY_A)-is_pressed_or_held(KEY_D));
         // Elbow is stick x (forward-backward). Forward pitches arm down
-        joint_velocity_inputs.velocity[2] = speed * (is_pressed_or_held(KEY_Z)-is_pressed_or_held(KEY_C));
+        joint_velocity_inputs.velocities[2] = speed * (is_pressed_or_held(KEY_Z)-is_pressed_or_held(KEY_C));
     }
     else{
-        joint_velocity_inputs.velocity[0] = 0;
-        joint_velocity_inputs.velocity[1] = 0;
-        joint_velocity_inputs.velocity[2] = 0;
+        joint_velocity_inputs.velocities[0] = 0;
+        joint_velocity_inputs.velocities[1] = 0;
+        joint_velocity_inputs.velocities[2] = 0;
     }
 
     // If using wrist joint-space control
@@ -120,16 +123,16 @@ CommonInputCollections::JointVelocityInputs KeyboardTranslate::get_joint_velocit
         float speed_wrist_joints = joint_twist_speed * speed_multipliers.wrist_joints;
         
         // J4 is stick x. Forward pitches arm down
-        joint_velocity_inputs.velocity[3] = speed_wrist_joints * (is_pressed_or_held(KEY_I)-is_pressed_or_held(KEY_P));
+        joint_velocity_inputs.velocities[3] = speed_wrist_joints * (is_pressed_or_held(KEY_I)-is_pressed_or_held(KEY_P));
         // J5 is stick y. Left yaws arm left
-        joint_velocity_inputs.velocity[4] = speed_wrist_joints * (is_pressed_or_held(KEY_J)-is_pressed_or_held(KEY_L));
+        joint_velocity_inputs.velocities[4] = speed_wrist_joints * (is_pressed_or_held(KEY_J)-is_pressed_or_held(KEY_L));
         // J6 is stick twist. CCW tilts end effector CCW (looking out from end effector)
-        joint_velocity_inputs.velocity[5] = speed_wrist_joints * (is_pressed_or_held(KEY_N)-is_pressed_or_held(KEY_COMMA));
+        joint_velocity_inputs.velocities[5] = speed_wrist_joints * (is_pressed_or_held(KEY_N)-is_pressed_or_held(KEY_COMMA));
     }
     else{
-        joint_velocity_inputs.velocity[3] = 0;
-        joint_velocity_inputs.velocity[4] = 0;
-        joint_velocity_inputs.velocity[5] = 0;
+        joint_velocity_inputs.velocities[3] = 0;
+        joint_velocity_inputs.velocities[4] = 0;
+        joint_velocity_inputs.velocities[5] = 0;
     }
 
     return joint_velocity_inputs;
@@ -187,7 +190,7 @@ CommonInputCollections::TwistInputs KeyboardTranslate::get_twist_inputs() {
 void KeyboardTranslate::set_message(std::shared_ptr<void> msg, int idx) {
     // static_point_cast may be faster here
     auto keyboardMessage = std::dynamic_pointer_cast<core::msg::InputKeyboard>(msg);
-    if (!keyboardMessage) {
+    if (!keyboardMessage || idx != 0) {
         Print::print("Invalid message type for keyboard translate");
         return;
     } else {

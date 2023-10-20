@@ -21,6 +21,7 @@ Low: Make key mapping changeable in runtime (json config file)?
 */
 
 #include "input_device.h"
+#include "common_input_collections.h"
 #include "core/msg/input_joystick.hpp"
 #include "core/msg/input_keyboard.hpp"
 

@@ -15,12 +15,6 @@ EDITED:		30/09/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-#include <stdio.h>
-#include <linux/input.h>
-#include <fcntl.h>
-#include <errno.h>
-#include <cstring>
-#include <unistd.h>
 
 #include "core/msg/input_keyboard.hpp"
 

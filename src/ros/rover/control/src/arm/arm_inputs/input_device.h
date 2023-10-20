@@ -22,9 +22,7 @@ Low: Should std::any be used here? or the shared_ptr<void>?
 */
 
 #include "common_input_collections.h"
-#include <cstdint>
 #include <memory>
-#include <vector>
 
 class InputDevice {
     //------------------------------------------------------------//

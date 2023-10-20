@@ -19,7 +19,10 @@ Ask operator for key mapping
 */
 
 #include "input_device.h"
+#include "common_input_collections.h"
 #include "core/msg/input_keyboard.hpp"
+
+#include <memory>
 
 class KeyboardTranslate: public InputDevice {
     //------------------------------------------------------------//
@@ -42,10 +45,10 @@ class KeyboardTranslate: public InputDevice {
     } SpeedMultipliers;
     SpeedMultipliers speed_multipliers;
 
-    ControlSchemeInputs control_scheme_inputs;
-    EndEffectorInputs end_effector_inputs;
-    JointVelocityInputs joint_velocity_inputs;
-    TwistInputs twist_inputs;
+    CommonInputCollections::ControlSchemeInputs control_scheme_inputs;
+    CommonInputCollections::EndEffectorInputs end_effector_inputs;
+    CommonInputCollections::JointVelocityInputs joint_velocity_inputs;
+    CommonInputCollections::TwistInputs twist_inputs;
 
     bool is_released(int key);
     bool is_pressed(int key);

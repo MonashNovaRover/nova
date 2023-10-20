@@ -9,7 +9,8 @@ AUTHOR(S):	Matthew Gu
 
 #include "unified_arm_input.h"
 
-#include "print/print.h"
+#include "joystick_translate.h"
+#include "keyboard_translate.h"
 
 UnifiedArmInput::UnifiedArmInput(bool joystick_override) { 
     this->joystick_override = joystick_override;

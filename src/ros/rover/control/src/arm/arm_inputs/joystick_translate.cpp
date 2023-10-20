@@ -105,16 +105,16 @@ CommonInputCollections::JointVelocityInputs JoystickTranslate::get_joint_velocit
         // No speed scaling for lower joints;
         
         // Base rotation is stick twist. CCW rotates arm CCW (from above)
-        joint_velocity_inputs.velocity[0] = speed * joystick_l.ax_stick_twist;
+        joint_velocity_inputs.velocities[0] = speed * joystick_l.ax_stick_twist;
         // Shoulder is stick y (left-right). Left moves the arm towards the back of the rover
-        joint_velocity_inputs.velocity[1] = speed * joystick_l.ax_stick_y;
+        joint_velocity_inputs.velocities[1] = speed * joystick_l.ax_stick_y;
         // Elbow is stick x (forward-backward). Forward pitches arm down
-        joint_velocity_inputs.velocity[2] = speed * -joystick_l.ax_stick_x;
+        joint_velocity_inputs.velocities[2] = speed * -joystick_l.ax_stick_x;
     }
     else{
-        joint_velocity_inputs.velocity[0] = 0;
-        joint_velocity_inputs.velocity[1] = 0;
-        joint_velocity_inputs.velocity[2] = 0;
+        joint_velocity_inputs.velocities[0] = 0;
+        joint_velocity_inputs.velocities[1] = 0;
+        joint_velocity_inputs.velocities[2] = 0;
     }
 
     // If using wrist joint-space control
@@ -123,16 +123,16 @@ CommonInputCollections::JointVelocityInputs JoystickTranslate::get_joint_velocit
         float speed_wrist_joints = speed * speed_multipliers.wrist_joints;
         
         // J4 is stick x. Forward pitches arm down
-        joint_velocity_inputs.velocity[3] = speed_wrist_joints * -joystick_r.ax_stick_x;
+        joint_velocity_inputs.velocities[3] = speed_wrist_joints * -joystick_r.ax_stick_x;
         // J5 is stick y. Left yaws arm left
-        joint_velocity_inputs.velocity[4] = speed_wrist_joints * joystick_r.ax_stick_y;
+        joint_velocity_inputs.velocities[4] = speed_wrist_joints * joystick_r.ax_stick_y;
         // J6 is stick twist. CCW tilts end effector CCW (looking out from end effector)
-        joint_velocity_inputs.velocity[5] = speed_wrist_joints * -joystick_r.ax_stick_twist;
+        joint_velocity_inputs.velocities[5] = speed_wrist_joints * -joystick_r.ax_stick_twist;
     }
     else{
-        joint_velocity_inputs.velocity[3] = 0;
-        joint_velocity_inputs.velocity[4] = 0;
-        joint_velocity_inputs.velocity[5] = 0;
+        joint_velocity_inputs.velocities[3] = 0;
+        joint_velocity_inputs.velocities[4] = 0;
+        joint_velocity_inputs.velocities[5] = 0;
     }
 
     return joint_velocity_inputs;

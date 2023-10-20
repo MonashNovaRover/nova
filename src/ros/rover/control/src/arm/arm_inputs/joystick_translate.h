@@ -16,7 +16,10 @@ EDITED:		18/10/2023
 */
 
 #include "input_device.h"
+#include "common_input_collections.h"
 #include "core/msg/input_joystick.hpp"
+
+#include <memory>
 
 class JoystickTranslate: public InputDevice {
     //------------------------------------------------------------//
