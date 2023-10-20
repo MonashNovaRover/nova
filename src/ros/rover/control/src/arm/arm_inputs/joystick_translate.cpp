@@ -12,7 +12,7 @@ AUTHOR(S):	Jess Hepworth, Jory Braun, Matthew Gu
 
 JoystickTranslate::JoystickTranslate() { }
 
-CommonInputCollections::ArmLockInputs JoystickTranslate::get_arm_lock_inputs()
+CommonInputCollections::ControlSchemeInputs JoystickTranslate::get_arm_lock_inputs()
 {
     // Set button-based data here so we don't miss any button-press events
     control_scheme_inputs.control_scheme_update = false;
@@ -189,20 +189,21 @@ bool JoystickTranslate::is_connected()
     return joystick_l.connected && joystick_r.connected;
 }
 
-void JoystickTranslate::set_message(std::shared_ptr<void> msg, int idx)
+void JoystickTranslate::set_message(std::any msg, int idx)
 {
-    // static_point_cast may be faster here
-    auto joystickMessage = std::dynamic_pointer_cast<core::msg::InputJoystick>(msg);
-    if (!joystickMessage) {
+    try{
+        auto joystickMessage = std::any_cast<core::msg::InputJoystick::SharedPtr>(msg);
+        if (idx == 0)
+            joystick_l = *joystickMessage;
+        else if (idx == 1)
+            joystick_r = *joystickMessage;
+        else
+            Print::print("Invalid index for joystick translate");
+    } catch (const std::bad_any_cast& e) {
         Print::print("Invalid message type for joystick translate");
+        std::cerr << "Error: " << e.what() << std::endl;
         return;
     }
-    if (idx == 0)
-        joystick_l = *joystickMessage;
-    else if (idx == 1)
-        joystick_r = *joystickMessage;
-    else
-        Print::print("Invalid index for joystick translate");
 }
 
 void JoystickTranslate::reset_message()

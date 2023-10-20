@@ -23,13 +23,14 @@ Ask operator for key mapping
 #include "core/msg/input_keyboard.hpp"
 
 #include <memory>
+#include <any>
 
 class KeyboardTranslate: public InputDevice {
     //------------------------------------------------------------//
     private:
     core::msg::InputKeyboard keyboard;
 
-    static float speed_increment = 0.05;
+    const static float speed_increment = 0.05;
     float joint_twist_speed;
     float end_effector_speed;
 
@@ -74,7 +75,7 @@ class KeyboardTranslate: public InputDevice {
 
     CommonInputCollections::TwistInputs get_twist_inputs() override;
 
-    void set_message(std::shared_ptr<void> msg, int idx);
+    void set_message(std::any msg, int idx);
 
     void reset_message();
 

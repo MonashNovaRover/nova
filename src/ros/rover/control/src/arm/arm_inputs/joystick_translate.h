@@ -19,7 +19,7 @@ EDITED:		18/10/2023
 #include "common_input_collections.h"
 #include "core/msg/input_joystick.hpp"
 
-#include <memory>
+#include <any>
 
 class JoystickTranslate: public InputDevice {
     //------------------------------------------------------------//
@@ -68,7 +68,7 @@ class JoystickTranslate: public InputDevice {
 
     bool is_connected();
 
-    void set_message(std::shared_ptr<void> msg, int idx);
+    void set_message(std::any msg, int idx);
     
     void reset_message();
 };
