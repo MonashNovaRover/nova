@@ -58,6 +58,20 @@ if(Eigen3_FOUND AND Orocos_kdl_FOUND)
   add_library(pi_controller arm_control/pi_controller.cpp)
   target_include_directories(pi_controller INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/arm_control)
 
+  # Joystick Translate
+  add_library(joystick_translate arm_inputs/joystick_translate.cpp)
+  target_link_libraries(joystick_translate print)
+  target_include_directories(joystick_translate PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/arm_inputs)
+
+  # Keyboard Translate
+  add_library(keyboard_translate arm_inputs/keyboard_translate.cpp)
+  target_link_libraries(keyboard_translate print)
+  target_include_directories(keyboard_translate PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/arm_inputs)
+
+  # Unified Arm Input
+  add_library(unified_arm_input arm_inputs/unified_arm_input.cpp)
+  target_link_libraries(unified_arm_input print joystick_translate keyboard_translate)
+  target_include_directories(unified_arm_input PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/arm_inputs)
 
   ################################################
   # Add executables:
@@ -65,7 +79,7 @@ if(Eigen3_FOUND AND Orocos_kdl_FOUND)
 
   # Arm Inputs script
   add_executable(arm_inputs arm_inputs/arm_inputs.cpp)
-  target_link_libraries(arm_inputs arm_messages arm_config_info_client print)
+  target_link_libraries(arm_inputs unified_arm_input arm_messages arm_config_info_client print)
   target_include_directories(arm_inputs INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/arm_inputs)
   ament_target_dependencies(arm_inputs rclcpp core geometry_msgs sensor_msgs)
 
