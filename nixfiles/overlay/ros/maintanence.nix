@@ -90,4 +90,33 @@ self: super:
           ros2doctor = rosSelf.callPackage self.rosPackages.humble.ros2doctor.override { };
         });
     }));
+
+  # Overlays for non-ROS packages
+  ignition = super.ignition // (
+    let
+      fixCommon = common: common.overrideAttrs ({ patches, ... }: {
+        patches = patches ++ [
+          # Fix for ffmpeg v6
+          (self.fetchpatch {
+            url = "https://github.com/gazebosim/gz-common/commit/d6024ce4acd3a961e3d026e5bc1bfbcb1e4b99e6.patch";
+            hash = "sha256-4Iu7GQ/BsvpzBkloO3LIsMiN/STHRhbhMMAs4d1FzrY=";
+          })
+        ];
+      });
+    in
+    {
+      common3 = fixCommon super.ignition.common3;
+      common4 = fixCommon super.ignition.common4;
+    }
+  );
+
+  gazebo_11 = super.gazebo_11.overrideAttrs ({ patches ? [ ], ... }: {
+    patches = patches ++ [
+      # Fix build with graphviz 9
+      (self.fetchpatch {
+        url = "https://github.com/gazebosim/gazebo-classic/commit/87ac01bd72c7b35217ab9ebf69cba69dc7780b39.patch";
+        hash = "sha256-HJyQ4yzehhbqzO+5IUVvKnRBg7rOEIZJqqRm8LzpAkc=";
+      })
+    ];
+  });
 }
