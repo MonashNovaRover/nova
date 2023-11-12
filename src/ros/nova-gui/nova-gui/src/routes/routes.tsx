@@ -1,0 +1,74 @@
+import { RouteObject } from "react-router-dom";
+import ARCExcavationConstructionView from "../views/arc/ARCEscavationConstructionView";
+import ARCMappingAutonomousView from "../views/arc/ARCMappingAutonomous";
+import ARCPostLandingView from "../views/arc/ARCPostLandingView";
+import ARCSpaceResourcesView from "../views/arc/ARCSpaceResourcesView";
+import ARCBaseView from "../views/base/ARCBaseView";
+import GeneralBaseView from "../views/base/GeneralBaseView";
+import URCBaseView from "../views/base/URCBaseView";
+import { NullView } from "../views/null/NullView";
+import URCAutonomousNavigationView from "../views/urc/URCAutonomousNavigationView";
+import URCDeliveryView from "../views/urc/URCDeliveryView";
+import URCEquipmentServicingView from "../views/urc/URCEquipmentServicingView";
+import URCScienceView from "../views/urc/URCScienceView";
+
+export const arcRoutes: RouteObject[] = [
+  {
+    path: "/arc/post-landing",
+    element: <ARCPostLandingView />,
+  },
+  {
+    path: "/arc/space-resources",
+    element: <ARCSpaceResourcesView />,
+  },
+  {
+    path: "/arc/excavation-construction",
+    element: <ARCExcavationConstructionView />,
+  },
+  {
+    path: "/arc/mapping-autonomous",
+    element: <ARCMappingAutonomousView />,
+  },
+];
+
+export const urcRoutes: RouteObject[] = [
+  {
+    path: "/urc/science",
+    element: <URCScienceView />,
+  },
+  {
+    path: "/urc/delivery",
+    element: <URCDeliveryView />,
+  },
+  {
+    path: "/urc/equipment-servicing",
+    element: <URCEquipmentServicingView />,
+  },
+  {
+    path: "/urc/autonomous-navigation",
+    element: <URCAutonomousNavigationView />,
+  },
+];
+
+export const routes: RouteObject[] = [
+  {
+    path: "/",
+    element: <NullView />,
+    children: [
+      {
+        path: "/arc",
+        element: <ARCBaseView />,
+        children: arcRoutes,
+      },
+      {
+        path: "/urc",
+        element: <URCBaseView />,
+        children: urcRoutes,
+      },
+      {
+        path: "/general",
+        element: <GeneralBaseView />,
+      },
+    ],
+  },
+];

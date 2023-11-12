@@ -1,13 +1,13 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import './index.css'
-import { NextUIProvider } from '@nextui-org/react'
-import { Root } from './root'
+import React from "react";
+import ReactDOM from "react-dom/client";
+import "./index.css";
+import { Root } from "./root";
+import { BrowserRouter } from "react-router-dom";
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
+ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <NextUIProvider>
+    <BrowserRouter>
       <Root />
-    </NextUIProvider>
-  </React.StrictMode>,
-)
+    </BrowserRouter>
+  </React.StrictMode>
+);
