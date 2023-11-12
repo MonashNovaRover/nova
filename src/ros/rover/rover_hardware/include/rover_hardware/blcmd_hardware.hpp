@@ -27,6 +27,7 @@
 #include "rclcpp/macros.hpp"
 #include "rclcpp_lifecycle/state.hpp"
 
+
 #include "jcan.h"
 
 namespace rover_hardware
@@ -159,15 +160,19 @@ private:
 
     void packet_1_callback(org::jcan::Frame);
 
-    int16_t convert_to_int16(const double value);
+    void packet_3_callback(org::jcan::Frame);
 
-    double int16_bytes_to_double(uint8_t *bytes);
+    template<typename T>
+    double convert_scaled(const uint8_t *bytes, double max);
 
-    double uint16_bytes_to_double(uint8_t *bytes);
+    template<typename T>
+    T from_bytes(const uint8_t *bytes);
 
-    int16_t from_bytes(const uint8_t *bytes);
+    template<typename T>
+    void send_raw(uint32_t id, T data);
 
-    void packet3_callback(org::jcan::Frame frame);
+    template<typename T>
+    void send_scaled(uint32_t id, double value, double max);
 };
 
 }  // namespace rover_hardware

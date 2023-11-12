@@ -164,14 +164,35 @@ hardware_interface::return_type BLCMDHardware::write(
         case rover_hardware::ControlMode::Position:
             RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
                                "Writing position " << hw_position_.command.value());
+            if (hw_position_.command.has_value()) {
+                send_scaled<int16_t>(make_can_id(BLCMDSendCommand::DRIVE_POSITION),
+                                     hw_position_.command.value(), hw_position_.max);
+            } else {
+                RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName), "No position command");
+                return hardware_interface::return_type::ERROR;
+            }
             break;
         case rover_hardware::ControlMode::Velocity:
             RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
                                "Writing velocity " << hw_velocity_.command.value());
+            if (hw_velocity_.command.has_value()) {
+                send_scaled<int16_t>(make_can_id(BLCMDSendCommand::DRIVE_VELOCITY),
+                                     hw_velocity_.command.value(), hw_velocity_.max);
+            } else {
+                RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName), "No velocity command");
+                return hardware_interface::return_type::ERROR;
+            }
             break;
         case rover_hardware::ControlMode::Effort:
             RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
                                "Writing effort " << hw_effort_.command.value());
+            if (hw_effort_.command.has_value()) {
+                send_scaled<int16_t>(make_can_id(BLCMDSendCommand::DRIVE_CURRENT),
+                                     hw_effort_.command.value(), hw_effort_.max);
+            } else {
+                RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName), "No effort command");
+                return hardware_interface::return_type::ERROR;
+            }
             break;
     }
     return hardware_interface::return_type::OK;
@@ -242,25 +263,25 @@ bool BLCMDHardware::set_control_interface(
             hw_position_.min = min;
             hw_position_.max = max;
             hw_position_.resolver_reduction = std::stod(info_.joints[0].parameters.at("resolver_reduction"));
-            hw_position_.command = std::numeric_limits<double>::quiet_NaN();
+            hw_position_.command = 0.0;
         } else {
-            hw_position_.state = std::numeric_limits<double>::quiet_NaN();
+            hw_position_.state = 0.0;
         }
     } else if(interface_info.name == hardware_interface::HW_IF_VELOCITY){
         if(command) {
             hw_velocity_.min = min;
             hw_velocity_.max = max;
-            hw_velocity_.command = std::numeric_limits<double>::quiet_NaN();
+            hw_velocity_.command = 0.0;
         } else {
-            hw_velocity_.state = std::numeric_limits<double>::quiet_NaN();
+            hw_velocity_.state = 0.0;
         }
     } else if(interface_info.name == hardware_interface::HW_IF_EFFORT){
         if(command){
             hw_effort_.min = min;
             hw_effort_.max = max;
-            hw_effort_.command = std::numeric_limits<double>::quiet_NaN();
+            hw_effort_.command = 0.0;
         } else {
-            hw_effort_.state = std::numeric_limits<double>::quiet_NaN();
+            hw_effort_.state = 0.0;
         }
     } else {
         RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName), "Unexpected interface %s",
@@ -280,7 +301,7 @@ bool BLCMDHardware::set_control_interface(
         if (hw_velocity_.state.has_value() || hw_effort_.state.has_value())
             bus_->add_callback_to(make_can_id(TelemetryPacket::PACKET_1), this, &BLCMDHardware::packet_1_callback);
         if (hw_position_.state.has_value())
-            bus_->add_callback_to(make_can_id(TelemetryPacket::PACKET_3), this, &BLCMDHardware::packet3_callback);
+            bus_->add_callback_to(make_can_id(TelemetryPacket::PACKET_3), this, &BLCMDHardware::packet_3_callback);
    }
 
     uint32_t BLCMDHardware::make_can_id(BLCMDSendCommand command)
@@ -302,36 +323,43 @@ bool BLCMDHardware::set_control_interface(
     }
 
     void BLCMDHardware::packet_1_callback(org::jcan::Frame frame) {
-    if(hw_velocity_.state.has_value()) hw_velocity_.state = int16_bytes_to_double(&frame.data[0]);
-    if(hw_effort_.state.has_value()) hw_effort_.state = int16_bytes_to_double(&frame.data[2]);
+    if(hw_velocity_.state.has_value()) hw_velocity_.state = convert_scaled<int16_t>(&frame.data[0], hw_velocity_.max);
+    if(hw_effort_.state.has_value()) hw_effort_.state = convert_scaled<int16_t>(&frame.data[2], hw_effort_.max);
     }
 
-    void BLCMDHardware::packet3_callback(org::jcan::Frame frame) {
-        hw_position_.state = int16_bytes_to_double(&frame.data[0]) * (hw_position_.max - hw_position_.min)/2 *
+    void BLCMDHardware::packet_3_callback(org::jcan::Frame frame) {
+        if(hw_position_.state.has_value()) hw_position_.state = convert_scaled<int16_t>(&frame.data[0], hw_position_.max)*
                 hw_position_.resolver_reduction;
     }
 
-
-
-    int16_t BLCMDHardware::convert_to_int16 (const double value) {
-        // Convert the value to an integer
-        return static_cast<int16_t>(value * 32767.0f);
+    template<typename T>
+    double BLCMDHardware::convert_scaled(const uint8_t *bytes, double max) {
+        return static_cast<double>(from_bytes<T>(bytes))/ std::numeric_limits<T>::max() * max;
     }
 
-    int16_t BLCMDHardware::from_bytes(const uint8_t *bytes) {
-        return static_cast<int16_t>(bytes[0] << 8) | static_cast<int16_t>(bytes[1]);
+    template<typename T>
+    T BLCMDHardware::from_bytes(const uint8_t *bytes) {
+        T data;
+        for(unsigned int i = 0; i < sizeof(T); i++) {
+            ((uint8_t*)&data)[i] = bytes[i];
+        }
+        return data;
     }
 
-    double BLCMDHardware::int16_bytes_to_double (uint8_t* bytes)
-    {
-        // Scale the value to a double
-        return from_bytes(bytes)/32767.0;
+    template<typename T>
+    void BLCMDHardware::send_scaled(uint32_t id, double value, double max) {
+        T data = static_cast<T>( (value > max ? 1.0 : value/max)* std::numeric_limits<T>::max());
+        send_raw(id, data);
     }
 
-    double BLCMDHardware::uint16_bytes_to_double (uint8_t* bytes)
-    {
-        // Scale the value to a double
-        return from_bytes(bytes)/65535.0;
+    template<typename T>
+    void BLCMDHardware::send_raw(const uint32_t id, T data) {
+        org::jcan::Frame frame;
+        frame.id = id;
+        for(unsigned int i = 0; i < sizeof(T); i++) {
+            frame.data.push_back(data >> 8*(sizeof(T) - (i + 1)) & 0xFF);
+        }
+        bus_->send(frame);
     }
 
 }  // namespace rover_hardware
