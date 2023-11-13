@@ -27,8 +27,7 @@
 #include "rclcpp/macros.hpp"
 #include "rclcpp_lifecycle/state.hpp"
 
-
-#include "jcan.h"
+#include "jcan/jcan.h"
 
 namespace rover_hardware
 {
@@ -134,7 +133,7 @@ private:
 
     ControlMode control_mode_;
 
-    std::unique_ptr<org::jcan::Bus> bus_;
+    std::unique_ptr<leigh::jcan::Bus> bus_;
     std::basic_string<char> can_device_;
 
     uint32_t can_id_;
@@ -158,9 +157,9 @@ private:
     /// @returns    The can ID
     uint32_t make_can_id(TelemetryPacket packet);
 
-    void packet_1_callback(org::jcan::Frame);
+    void packet_1_callback(leigh::jcan::Frame);
 
-    void packet_3_callback(org::jcan::Frame);
+    void packet_3_callback(leigh::jcan::Frame);
 
     template<typename T>
     double convert_scaled(const uint8_t *bytes, double max);

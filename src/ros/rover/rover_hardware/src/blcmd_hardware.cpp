@@ -14,14 +14,12 @@
 
 #include <limits>
 #include <vector>
-#include <callback.h>
-#include <unistd.h>
 
 #include "rover_hardware/blcmd_hardware.hpp"
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 #include "rclcpp/rclcpp.hpp"
 
-#include "jcan.h"
+#include "jcan/jcan.h"
 
 namespace rover_hardware
 {
@@ -59,7 +57,8 @@ hardware_interface::CallbackReturn BLCMDHardware::on_init(
 
     can_id_ = std::stoi(canid_search->second);
 
-    bus_ = org::jcan::new_bus();
+    bus_ = leigh::jcan::new_bus();
+    can_setup();
 
     for (const auto& interface : info_.joints[0].command_interfaces){
         if(!set_control_interface(interface, true)){
@@ -91,6 +90,9 @@ hardware_interface::CallbackReturn BLCMDHardware::on_configure(
                      e.what());
         return CallbackReturn::ERROR;
     }
+
+    // check for resolver if there is a position interface
+
     // if joint has a position interface, check for resolver
     
   return CallbackReturn::SUCCESS;
@@ -137,13 +139,14 @@ std::vector<hardware_interface::CommandInterface> BLCMDHardware::export_command_
 hardware_interface::CallbackReturn BLCMDHardware::on_activate(
         const rclcpp_lifecycle::State & /*previous_state*/)
 {
-    bus_->receive_from_thread_buffer();
+    bus_->set_callbacks_enabled(true);
     return CallbackReturn::SUCCESS;
 }
 
 hardware_interface::CallbackReturn BLCMDHardware::on_deactivate(
     const rclcpp_lifecycle::State & /*previous_state*/)
 {
+    bus_->set_callbacks_enabled(false);
     return CallbackReturn::SUCCESS;
 }
 
@@ -302,6 +305,7 @@ bool BLCMDHardware::set_control_interface(
             bus_->add_callback_to(make_can_id(TelemetryPacket::PACKET_1), this, &BLCMDHardware::packet_1_callback);
         if (hw_position_.state.has_value())
             bus_->add_callback_to(make_can_id(TelemetryPacket::PACKET_3), this, &BLCMDHardware::packet_3_callback);
+        bus_->set_callbacks_enabled(false);
    }
 
     uint32_t BLCMDHardware::make_can_id(BLCMDSendCommand command)
@@ -322,12 +326,12 @@ bool BLCMDHardware::set_control_interface(
                static_cast<uint32_t>(packet);
     }
 
-    void BLCMDHardware::packet_1_callback(org::jcan::Frame frame) {
+    void BLCMDHardware::packet_1_callback(leigh::jcan::Frame frame) {
     if(hw_velocity_.state.has_value()) hw_velocity_.state = convert_scaled<int16_t>(&frame.data[0], hw_velocity_.max);
     if(hw_effort_.state.has_value()) hw_effort_.state = convert_scaled<int16_t>(&frame.data[2], hw_effort_.max);
     }
 
-    void BLCMDHardware::packet_3_callback(org::jcan::Frame frame) {
+    void BLCMDHardware::packet_3_callback(leigh::jcan::Frame frame) {
         if(hw_position_.state.has_value()) hw_position_.state = convert_scaled<int16_t>(&frame.data[0], hw_position_.max)*
                 hw_position_.resolver_reduction;
     }
@@ -354,7 +358,7 @@ bool BLCMDHardware::set_control_interface(
 
     template<typename T>
     void BLCMDHardware::send_raw(const uint32_t id, T data) {
-        org::jcan::Frame frame;
+        leigh::jcan::Frame frame;
         frame.id = id;
         for(unsigned int i = 0; i < sizeof(T); i++) {
             frame.data.push_back(data >> 8*(sizeof(T) - (i + 1)) & 0xFF);
