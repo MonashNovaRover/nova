@@ -6,13 +6,17 @@ import ARCSpaceResourcesView from "../views/arc/ARCSpaceResourcesView";
 import ARCBaseView from "../views/base/ARCBaseView";
 import GeneralBaseView from "../views/base/GeneralBaseView";
 import URCBaseView from "../views/base/URCBaseView";
-import { NullView } from "../views/null/NullView";
 import URCAutonomousNavigationView from "../views/urc/URCAutonomousNavigationView";
 import URCDeliveryView from "../views/urc/URCDeliveryView";
 import URCEquipmentServicingView from "../views/urc/URCEquipmentServicingView";
 import URCScienceView from "../views/urc/URCScienceView";
+import { Root } from "../root";
 
 export const arcRoutes: RouteObject[] = [
+  {
+    path: "/arc",
+    element: <ARCBaseView />,
+  },
   {
     path: "/arc/post-landing",
     element: <ARCPostLandingView />,
@@ -32,6 +36,10 @@ export const arcRoutes: RouteObject[] = [
 ];
 
 export const urcRoutes: RouteObject[] = [
+  {
+    path: "/urc",
+    element: <URCBaseView />,
+  },
   {
     path: "/urc/science",
     element: <URCScienceView />,
@@ -53,7 +61,7 @@ export const urcRoutes: RouteObject[] = [
 export const routes: RouteObject[] = [
   {
     path: "/",
-    element: <NullView />,
+    element: <Root />,
     children: [
       {
         path: "/arc",

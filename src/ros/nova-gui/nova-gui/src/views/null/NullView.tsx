@@ -6,6 +6,7 @@ import {
   ModalContent,
   ModalHeader,
 } from "@nextui-org/react";
+import { Link } from "react-router-dom";
 
 export const NullView = () => {
   return (
@@ -15,9 +16,11 @@ export const NullView = () => {
           <ModalHeader className="flex flex-col gap-1">Mode</ModalHeader>
           <ModalBody>
             <div className="flex flex-row w-full h-24">
-              <Card isPressable shadow="sm" className="flex-1 m-2">
-                <CardBody>Base</CardBody>
-              </Card>
+              <Link to={"/"} className="flex-1 m-2">
+                <Card isPressable shadow="sm" className="w-full h-full">
+                  <CardBody>Base</CardBody>
+                </Card>
+              </Link>
               <Card isPressable shadow="sm" className="flex-1 m-2">
                 <CardBody>ARC</CardBody>
               </Card>
