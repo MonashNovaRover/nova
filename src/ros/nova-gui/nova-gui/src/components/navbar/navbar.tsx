@@ -9,9 +9,21 @@ import {
   NavbarContent,
   NavbarItem,
 } from "@nextui-org/react";
+import { useEffect, useState } from "react";
 import { ChevronDown, Settings } from "react-feather";
+import { Ros } from "roslib";
 
 export const NovaNavbar = () => {
+  const [connected, setConnected] = useState(false);
+
+  useEffect(() => {
+    const ros = new Ros({ url: "ws://localhost:9090" });
+
+    ros.on("connection", () => {
+      setConnected(true);
+    });
+  }, []);
+
   return (
     <Navbar maxWidth="full" isBordered position="static">
       <NavbarContent justify="start">
@@ -22,7 +34,7 @@ export const NovaNavbar = () => {
           <Dropdown placement="bottom-end">
             <DropdownTrigger>
               <Button radius="sm" color="success" size="sm" variant="shadow">
-                Connected
+                {connected ? "Connected" : "Connecting"}
               </Button>
             </DropdownTrigger>
             <DropdownMenu>
