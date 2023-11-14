@@ -39,14 +39,6 @@ struct PIConfig {
     int16_t max_threshold;
 };
 
-struct BLCMDConfig {
-    bool has_resolver;
-    PIConfig current_config;
-    PIConfig velocity_config;
-    PIConfig position_config;
-    int16_t min_interval;
-};
-
 struct ControlInterface {
     std::optional<double> command;
     std::optional<double> state;
@@ -95,6 +87,24 @@ enum class BLCMDReceiveCommand{
     ERR_WARN_INF = 0x0,
     CONFIG_DATA = 0x9,
     WRITE_CONFIRMATION = 0xA
+};
+
+enum class BLCMDConfigCommand{
+    HAS_RESOLVER    = 0x0,
+    KP_CURRENT      = 0x1,
+    KI_CURRENT      = 0x2,
+    MAX_CURRENT     = 0x3,
+    KP_VELOCITY     = 0x4,
+    KI_VELOCITY     = 0x5,
+    MAX_VELOCITY    = 0x6,
+    MIN_INTERVAL    = 0x7,
+    KP_POSITION     = 0x8,
+    KI_POSITION     = 0x9,
+    MAX_POSITION    = 0xA,
+    PACKET_1_SPEED  = 0xB,
+    PACKET_2_SPEED  = 0xC,
+    PACKET_3_SPEED  = 0xD,
+    PACKET_4_SPEED  = 0xE,
 };
 
 class BLCMDHardware : public hardware_interface::ActuatorInterface

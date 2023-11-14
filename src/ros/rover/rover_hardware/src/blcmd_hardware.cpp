@@ -14,6 +14,7 @@
 
 #include <limits>
 #include <vector>
+#include <chrono>
 
 #include "rover_hardware/blcmd_hardware.hpp"
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
@@ -92,8 +93,34 @@ hardware_interface::CallbackReturn BLCMDHardware::on_configure(
     }
 
     // check for resolver if there is a position interface
+    if(hw_position_.state.has_value()) {
+        RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                           "Checking for resolver on BLCMD " << can_id_);
+        const leigh::jcan::Frame resolver_request = {
+                make_can_id(BLCMDSendCommand::GET_CONFIG),
+                {static_cast<uint8_t>(BLCMDConfigCommand::HAS_RESOLVER)},
+        };
+        auto start = std::chrono::steady_clock::now();
+        bus_->send(resolver_request);
 
-    // if joint has a position interface, check for resolver
+        while (std::chrono::steady_clock::now() - start < std::chrono::seconds(1)) {
+            auto frame = bus_->receive();
+            if (frame.id == make_can_id(BLCMDReceiveCommand::CONFIG_DATA)) {
+                if (frame.data[0] == 1) {
+                    RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                                       "Resolver detected on BLCMD " << can_id_);
+                    return CallbackReturn::SUCCESS;
+                } else {
+                    RCLCPP_FATAL_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                                 "No resolver detected on BLCMD " << can_id_ );
+                    return CallbackReturn::ERROR;
+                }
+            }
+        }
+        RCLCPP_FATAL_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                      "No response from resolver request on BLCMD" << can_id_);
+        return CallbackReturn::ERROR;
+    }
     
   return CallbackReturn::SUCCESS;
 }
