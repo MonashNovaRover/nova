@@ -1,9 +1,0 @@
-<library path="rover_hardware">
-  <class name="rover_hardware/BLCMDHardware"
-         type="rover_hardware::BLCMDHardware"
-         base_class_type="hardware_interface::ActuatorInterface">
-    <description>
-      ros2_control hardware interface.
-    </description>
-  </class>
-</library>

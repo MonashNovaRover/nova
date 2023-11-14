@@ -11,12 +11,12 @@
 }:
 
 buildRosPackage {
-  name = "rover_hardware";
+  name = "blcmd_hardware";
   buildType = "ament_cmake";
 
   src = builtins.path rec {
-    name = "rover-hardware-source";
-    path = ../../../rover_hardware;
+    name = "blcmd-hardware-source";
+    path = ../../../hardware_interfaces/blcmd_hardware;
     filter = lib.novaSourceFilter [ ] path;
   };
 

@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef ROVER_HARDWARE__BLCMD_HARDWARE_HPP_
-#define ROVER_HARDWARE__BLCMD_HARDWARE_HPP_
+#ifndef BLCMD_HARDWARE__BLCMD_HARDWARE_HPP_
+#define BLCMD_HARDWARE__BLCMD_HARDWARE_HPP_
 
 #include <string>
 #include <vector>
@@ -29,7 +29,7 @@
 
 #include "jcan/jcan.h"
 
-namespace rover_hardware
+namespace blcmd_hardware
 {
 constexpr const char * BLCMDHardwareLoggerName = "BLCMDHardware";
 
@@ -184,6 +184,6 @@ private:
     void send_scaled(uint32_t id, double value, double max);
 };
 
-}  // namespace rover_hardware
+}  // namespace blcmd_hardware
 
-#endif  // ROVER_HARDWARE__BLCMD_HARDWARE_HPP_
+#endif  // BLCMD_HARDWARE__BLCMD_HARDWARE_HPP_

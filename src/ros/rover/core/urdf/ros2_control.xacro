@@ -3,7 +3,7 @@
 
     <ros2_control name="BLCMDHardware" type="actuator">
         <hardware>
-            <plugin>rover_hardware/BLCMDHardware</plugin>
+            <plugin>blcmd_hardware/BLCMDHardware</plugin>
             <param name="candevice">can0</param>
             <param name="canid">5</param>
         </hardware>

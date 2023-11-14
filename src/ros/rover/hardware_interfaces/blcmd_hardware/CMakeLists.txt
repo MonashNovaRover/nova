@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(rover_hardware)
+project(blcmd_hardware)
 
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
@@ -27,37 +27,37 @@ find_package(PkgConfig)
 pkg_check_modules(JCAN REQUIRED jcan)
 
 add_library(
-  rover_hardware
+  blcmd_hardware
   SHARED
   src/blcmd_hardware.cpp
 )
 target_include_directories(
-  rover_hardware
+  blcmd_hardware
   PUBLIC
   include
   ${JCAN_INCLUDE_DIRS}
 )
 
 target_link_libraries(
-  rover_hardware
+  blcmd_hardware
   ${JCAN_LIBRARIES}
 )
 
 ament_target_dependencies(
-  rover_hardware
+  blcmd_hardware
   hardware_interface
   rclcpp
   rclcpp_lifecycle
 )
 # prevent pluginlib from using boost
-target_compile_definitions(rover_hardware PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")
+target_compile_definitions(blcmd_hardware PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")
 
 pluginlib_export_plugin_description_file(
-  hardware_interface rover_hardware.xml)
+  hardware_interface blcmd_hardware.xml)
 
 install(
   TARGETS
-  rover_hardware
+  blcmd_hardware
   RUNTIME DESTINATION bin
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
@@ -94,7 +94,7 @@ ament_export_include_directories(
   include
 )
 ament_export_libraries(
-  rover_hardware
+  blcmd_hardware
 )
 ament_export_dependencies(
   hardware_interface

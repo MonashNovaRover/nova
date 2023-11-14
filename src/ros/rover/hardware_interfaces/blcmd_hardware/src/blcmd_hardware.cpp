@@ -16,13 +16,13 @@
 #include <vector>
 #include <chrono>
 
-#include "rover_hardware/blcmd_hardware.hpp"
+#include "blcmd_hardware/blcmd_hardware.hpp"
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 #include "rclcpp/rclcpp.hpp"
 
 #include "jcan/jcan.h"
 
-namespace rover_hardware
+namespace blcmd_hardware
 {
 hardware_interface::CallbackReturn BLCMDHardware::on_init(
         const hardware_interface::HardwareInfo & info)
@@ -73,7 +73,7 @@ hardware_interface::CallbackReturn BLCMDHardware::on_init(
         }
     }
 
-    control_mode_ = rover_hardware::ControlMode::Undefined;
+    control_mode_ = blcmd_hardware::ControlMode::Undefined;
 
     return CallbackReturn::SUCCESS;
 }
@@ -93,7 +93,7 @@ hardware_interface::CallbackReturn BLCMDHardware::on_configure(
     }
 
     // check for resolver if there is a position interface
-    if(hw_position_.state.has_value()) {
+    if(hw_position_.state.has_value() || hw_position_.command.has_value()) {
         RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
                            "Checking for resolver on BLCMD " << can_id_);
         const leigh::jcan::Frame resolver_request = {
@@ -188,10 +188,10 @@ hardware_interface::return_type BLCMDHardware::write(
         const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
 {
     switch(control_mode_){
-        case rover_hardware::ControlMode::Undefined:
+        case blcmd_hardware::ControlMode::Undefined:
             RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName), "Control mode undefined");
             break;
-        case rover_hardware::ControlMode::Position:
+        case blcmd_hardware::ControlMode::Position:
             RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
                                "Writing position " << hw_position_.command.value());
             if (hw_position_.command.has_value()) {
@@ -202,7 +202,7 @@ hardware_interface::return_type BLCMDHardware::write(
                 return hardware_interface::return_type::ERROR;
             }
             break;
-        case rover_hardware::ControlMode::Velocity:
+        case blcmd_hardware::ControlMode::Velocity:
             RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
                                "Writing velocity " << hw_velocity_.command.value());
             if (hw_velocity_.command.has_value()) {
@@ -213,7 +213,7 @@ hardware_interface::return_type BLCMDHardware::write(
                 return hardware_interface::return_type::ERROR;
             }
             break;
-        case rover_hardware::ControlMode::Effort:
+        case blcmd_hardware::ControlMode::Effort:
             RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
                                "Writing effort " << hw_effort_.command.value());
             if (hw_effort_.command.has_value()) {
@@ -235,7 +235,7 @@ hardware_interface::return_type BLCMDHardware::write(
             RCLCPP_FATAL_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
                                 "Expected 0 or 1 command interfaces, got " << stop_interfaces.size());
         }
-        control_mode_ = rover_hardware::ControlMode::Undefined;
+        control_mode_ = blcmd_hardware::ControlMode::Undefined;
 
         if (start_interfaces.size() > 1) {
             RCLCPP_FATAL_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
@@ -243,11 +243,11 @@ hardware_interface::return_type BLCMDHardware::write(
             return hardware_interface::return_type::ERROR;
         }
         if (start_interfaces[0] == info_.joints[0].name + "/" + hardware_interface::HW_IF_POSITION) {
-            control_mode_ = rover_hardware::ControlMode::Position;
+            control_mode_ = blcmd_hardware::ControlMode::Position;
         } else if (start_interfaces[0] == info_.joints[0].name + "/" + hardware_interface::HW_IF_VELOCITY) {
-            control_mode_ = rover_hardware::ControlMode::Velocity;
+            control_mode_ = blcmd_hardware::ControlMode::Velocity;
         } else if (start_interfaces[0] == info_.joints[0].name + "/" + hardware_interface::HW_IF_EFFORT) {
-            control_mode_ = rover_hardware::ControlMode::Effort;
+            control_mode_ = blcmd_hardware::ControlMode::Effort;
         } else {
             RCLCPP_FATAL_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
                                     "Unexpected interface " << start_interfaces[0]);
@@ -256,19 +256,19 @@ hardware_interface::return_type BLCMDHardware::write(
 
         std::string new_control_mode;
         switch(control_mode_){
-            case(rover_hardware::ControlMode::Position):{
+            case(blcmd_hardware::ControlMode::Position):{
                 new_control_mode = "position";
                 break;
             }
-            case(rover_hardware::ControlMode::Velocity): {
+            case(blcmd_hardware::ControlMode::Velocity): {
                 new_control_mode = "velocity";
                 break;
             }
-            case(rover_hardware::ControlMode::Effort): {
+            case(blcmd_hardware::ControlMode::Effort): {
                 new_control_mode = "effort";
                 break;
             }
-            case(rover_hardware::ControlMode::Undefined): {
+            case(blcmd_hardware::ControlMode::Undefined): {
                 new_control_mode = "undefined";
                 break;
             }
@@ -393,9 +393,9 @@ bool BLCMDHardware::set_control_interface(
         bus_->send(frame);
     }
 
-}  // namespace rover_hardware
+}  // namespace blcmd_hardware
 
 #include "pluginlib/class_list_macros.hpp"
 
 PLUGINLIB_EXPORT_CLASS(
-  rover_hardware::BLCMDHardware, hardware_interface::ActuatorInterface)
+  blcmd_hardware::BLCMDHardware, hardware_interface::ActuatorInterface)
