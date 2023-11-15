@@ -14,12 +14,15 @@ namespace pivot_drive_controller
 {
     class PivotDriveController : public controller_interface:ControllerInterface
     {
-        // (if param_.autonomous_mode){
-        //     using CommandMsg = geometry_msgs::msg::Twist;
-        // } else {
-        //     using CommandMsg = core::msg::DriveInput;
-        // }
-        using DriveInput = core::msg::DriveInput;
+        using CommandMsg;
+        (if param_.autonomous_mode){
+            CommandMsg = geometry_msgs::msg::Twist;
+            //convert angular velocity to steering radius
+
+        } else {
+            CommandMsg = core::msg::DriveInput;
+        }
+        //using DriveInput = core::msg::DriveInput;
 
     public:
         PIVOT_DRIVE_CONTROLLER_PUBLIC
@@ -99,18 +102,18 @@ namespace pivot_drive_controller
         realtime_odometry_transform_publisher_ = nullptr;
 
         bool subscriber_is_active_ = false;
-        rclcpp::Subscription<DriveInput>::SharedPtr drive_input_subscriber_ = nullptr;
+        rclcpp::Subscription<CommandMsg>::SharedPtr command_subscriber_ = nullptr;
 
-        realtime_tools::RealtimeBox<std::shared_ptr<DriveInput>> received_drive_input_msg_ptr_{nullptr};
+        realtime_tools::RealtimeBox<std::shared_ptr<CommandMsg>> received_command_msg_ptr_{nullptr};
 
-        std::queue<DriveInput> previous_commands_;  // last two commands
+        std::queue<CommandMsg> previous_commands_;  // last two commands
 
         // speed limiters
         SpeedLimiter limiter_linear_;
 
         bool publish_limited_drive_pivot_ = false;
-        std::shared_ptr<rclcpp::Publisher<DriveInput>> limited_drive_pivot_publisher_ = nullptr;
-        std::shared_ptr<realtime_tools::RealtimePublisher<DriveInput>> realtime_limited_drive_pivot_publisher_ =
+        std::shared_ptr<rclcpp::Publisher<CommandMsg>> limited_drive_pivot_publisher_ = nullptr;
+        std::shared_ptr<realtime_tools::RealtimePublisher<CommandMsg>> realtime_limited_drive_pivot_publisher_ =
         nullptr;
 
         rclcpp::Time previous_update_timestamp_{0};

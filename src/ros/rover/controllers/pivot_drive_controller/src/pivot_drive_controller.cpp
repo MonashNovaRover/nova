@@ -122,7 +122,7 @@ namespace pivot_drive_controller
 
         // command may be limited further by SpeedLimit,
         // without affecting the stored DriveInput command
-        core::msg::DriveInput command = *last_command_msg;
+        CommandMsg command = *last_command_msg;
 
         previous_update_timestamp_ = time;
 
@@ -138,6 +138,11 @@ namespace pivot_drive_controller
         limiter_drive_.limit(
             command.speed, last_command.speed, second_to_last_command.speed, period.seconds());
 
+        /* autonomous mode
+        limiter_drive_.limit(
+            command.angular, last_command.angular, second_to_last_command.angular, period.seconds());
+            */
+
         //previous_commands only ever contains x2 values
         previous_commands_.pop();
         previous_commands_.emplace(command);
@@ -148,8 +153,8 @@ namespace pivot_drive_controller
             auto & limited_drive_pivot_command = realtime_limited_drive_pivot_publisher_->msg_;
             limited_drive_pivot_command.header.stamp = time;
             limited_drive_pivot_command.speed = command.speed;
-            limited_drive_pivot_command.pivot = command.pivot;
-            realtime_limited_velocity_publisher_->unlockAndPublish();
+            limited_drive_pivot_command.radius = command.radius;
+            realtime_limited_drive_pivot_publisher_->unlockAndPublish();
         }
 
         float target_radius, target_direction;
@@ -386,7 +391,7 @@ namespace pivot_drive_controller
         return {get<0>best_efforts_left_right[pivot_with_best_radius], get<1>best_efforts_left_right[pivot_with_best_radius]};
     }
 
-    controller_interface::CallbackReturn DiffDriveController::on_configure(
+    controller_interface::CallbackReturn PivotDriveController::on_configure(
       const rclcpp_lifecycle::State &)
     {
         auto logger = get_node()->get_logger();
@@ -465,7 +470,7 @@ namespace pivot_drive_controller
 
         // initialize command subscriber
         drive_input_subscriber_ = get_node()->create_subscription<core::msg::DriveInput>(
-            DEFAULT_COMMAND_TOPIC, rclcpp::SystemDefaultsQoS(),
+            DEFAULT_INPUT_TOPIC, rclcpp::SystemDefaultsQoS(),
             [this](const std::shared_ptr<core::msg::DriveInput> msg) -> void
             {
               if (!subscriber_is_active_)
