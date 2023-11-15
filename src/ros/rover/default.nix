@@ -6,7 +6,7 @@
     nova-electronics = callPackage ./nix/packages/electronics { };
     nova-science = callPackage ./nix/packages/science { };
     nova-rover_hardware = callPackage ./nix/packages/rover_hardware { };
-  };
+  } // import ./nix/packages/controllers { inherit pkgs; };
 
   pythonPackages = pythonPackages: with pythonPackages; {
     ultralytics = pythonPackages.callPackage ./nix/packages/misc/ultralytics { };
