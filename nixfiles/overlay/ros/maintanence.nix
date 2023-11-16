@@ -70,6 +70,12 @@ self: super:
         # conventional ways (cmakeFlags, CFLAGS) of doing so.
         NIX_CFLAGS_COMPILE = "${NIX_CFLAGS_COMPILE} -Wno-error=maybe-uninitialized";
       });
+
+      velodyne-pointcloud = rosSuper.velodyne-pointcloud.overrideAttrs ({ nativeBuildInputs ? [ ], buildInputs ? [ ], ... }: {
+        nativeBuildInputs = nativeBuildInputs ++ (with self; [ pkg-config ]);
+
+        buildInputs = buildInputs ++ (with self; [ eigen ]);
+      });
     } // (
       let
         fixNav2Package = pkg: pkg.overrideAttrs ({ CXXFLAGS ? "", ... }: {
