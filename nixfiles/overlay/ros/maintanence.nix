@@ -56,6 +56,14 @@ self: super:
 
         buildInputs = buildInputs ++ (with self; [ eigen ]);
       });
+
+      rtabmap-conversions = rosSuper.rtabmap-conversions.overrideAttrs ({ nativeBuildInputs ? [ ], buildInputs ? [ ], ... }: {
+        buildInputs = buildInputs ++ (with self; [
+          # For some reason, this is not probably included from rtabmap's
+          # propagatedBuildInputs.
+          (pcl.override { vtk = vtkWithQt5; })
+        ]);
+      });
     } // (
       let
         # Cartographer needs Google Logging 0.5.0
