@@ -57,14 +57,30 @@ self: super:
         buildInputs = buildInputs ++ (with self; [ eigen ]);
       });
 
-      rtabmap-conversions = rosSuper.rtabmap-conversions.overrideAttrs ({ nativeBuildInputs ? [ ], buildInputs ? [ ], ... }: {
-        buildInputs = buildInputs ++ (with self; [
-          # For some reason, this is not probably included from rtabmap's
-          # propagatedBuildInputs.
-          (pcl.override { vtk = vtkWithQt5; })
-        ]);
-      });
     } // (
+      let
+        fixRtabmapDependent = pkg: pkg.overrideAttrs ({ buildInputs ? [ ], ... }: {
+          buildInputs = buildInputs ++ (with self; [
+            # For some reason, this is not properly included from rtabmap's
+            # propagatedBuildInputs.
+            (pcl.override { vtk = vtkWithQt5; })
+          ]);
+        });
+      in
+      {
+        rtabmap-ros = rosSuper.rtabmap-ros.overrideAttrs ({ propagatedBuildInputs ? [ ], ... }: {
+          propagatedBuildInputs = self.lib.remove rosSelf.rtabmap-demos propagatedBuildInputs;
+        });
+
+        rtabmap-conversions = fixRtabmapDependent rosSuper.rtabmap-conversions;
+        rtabmap-odom = fixRtabmapDependent rosSuper.rtabmap-odom;
+        rtabmap-rviz-plugins = fixRtabmapDependent rosSuper.rtabmap-rviz-plugins;
+        rtabmap-slam = fixRtabmapDependent rosSuper.rtabmap-slam;
+        rtabmap-sync = fixRtabmapDependent rosSuper.rtabmap-sync;
+        rtabmap-util = fixRtabmapDependent rosSuper.rtabmap-util;
+        rtabmap-viz = fixRtabmapDependent rosSuper.rtabmap-viz;
+      }
+    ) // (
       let
         # Cartographer needs Google Logging 0.5.0
         # https://github.com/cartographer-project/cartographer_ros/issues/1741#issuecomment-1288152407
