@@ -50,6 +50,26 @@ self: super:
           inherit (rosSuper.librealsense2) version src;
         };
       });
+
+      cartographer = rosSuper.cartographer.overrideAttrs ({ patches ? [ ], nativeBuildInputs ? [ ], NIX_CFLAGS_COMPILE ? "", ... }: {
+        patches = patches ++ [
+          # Update code to work with recent abseil changes
+          # https://github.com/cartographer-project/cartographer/pull/1919
+          (self.fetchpatch {
+            url = "https://github.com/kkufieta/cartographer/commit/da4d12c905ccb4b6115e052f257ee92f238771cb.patch";
+            hash = "sha256-SULgbAnCM9w4CARUUOYi0F5LvSwxHWzLfOMStcSj1nE=";
+          })
+        ];
+
+        nativeBuildInputs = nativeBuildInputs ++ (with self; [ pkg-config ]);
+
+        # Ideally, these flags would be given to the build system. Using the
+        # Nix wrapper directly is a bit of a hack.
+        #
+        # Unfortunately, Cartographer does not seem to respect any of the
+        # conventional ways (cmakeFlags, CFLAGS) of doing so.
+        NIX_CFLAGS_COMPILE = "${NIX_CFLAGS_COMPILE} -Wno-error=maybe-uninitialized";
+      });
     } // (
       let
         fixNav2Package = pkg: pkg.overrideAttrs ({ CXXFLAGS ? "", ... }: {
