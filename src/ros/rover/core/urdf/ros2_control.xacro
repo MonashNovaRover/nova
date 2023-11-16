@@ -5,7 +5,7 @@
         <hardware>
             <plugin>blcmd_hardware/BLCMDHardware</plugin>
             <param name="candevice">can0</param>
-            <param name="canid">5</param>
+            <param name="canid">3</param>
         </hardware>
 
         <joint name="flw">
