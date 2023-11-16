@@ -51,32 +51,75 @@ self: super:
         };
       });
 
-      cartographer = rosSuper.cartographer.overrideAttrs ({ patches ? [ ], nativeBuildInputs ? [ ], NIX_CFLAGS_COMPILE ? "", ... }: {
-        patches = patches ++ [
-          # Update code to work with recent abseil changes
-          # https://github.com/cartographer-project/cartographer/pull/1919
-          (self.fetchpatch {
-            url = "https://github.com/kkufieta/cartographer/commit/da4d12c905ccb4b6115e052f257ee92f238771cb.patch";
-            hash = "sha256-SULgbAnCM9w4CARUUOYi0F5LvSwxHWzLfOMStcSj1nE=";
-          })
-        ];
-
-        nativeBuildInputs = nativeBuildInputs ++ (with self; [ pkg-config ]);
-
-        # Ideally, these flags would be given to the build system. Using the
-        # Nix wrapper directly is a bit of a hack.
-        #
-        # Unfortunately, Cartographer does not seem to respect any of the
-        # conventional ways (cmakeFlags, CFLAGS) of doing so.
-        NIX_CFLAGS_COMPILE = "${NIX_CFLAGS_COMPILE} -Wno-error=maybe-uninitialized";
-      });
-
       velodyne-pointcloud = rosSuper.velodyne-pointcloud.overrideAttrs ({ nativeBuildInputs ? [ ], buildInputs ? [ ], ... }: {
         nativeBuildInputs = nativeBuildInputs ++ (with self; [ pkg-config ]);
 
         buildInputs = buildInputs ++ (with self; [ eigen ]);
       });
     } // (
+      let
+        # Cartographer needs Google Logging 0.5.0
+        # https://github.com/cartographer-project/cartographer_ros/issues/1741#issuecomment-1288152407
+        cartographer-glog = self.glog.overrideAttrs rec {
+          version = "0.5.0";
+          src = self.fetchFromGitHub {
+            owner = "google";
+            repo = "glog";
+            rev = "v${version}";
+            sha256 = "17014q25c99qyis6l3fwxidw6222bb269fdlr74gn7pzmzg4lvg3";
+          };
+          patches = [
+            # Fix duplicate-concatenated nix store path in cmake file, see:
+            # https://github.com/NixOS/nixpkgs/pull/144561#issuecomment-960296043
+            (self.fetchpatch {
+              name = "glog-cmake-Fix-incorrect-relative-path-concatenation.patch";
+              url = "https://github.com/google/glog/pull/733/commits/57c636c02784f909e4b5d3c2f0ecbdbb47097266.patch";
+              sha256 = "1py93gkzmcyi2ypcwyj3nri210z8fmlaif51yflzmrrv507zd7bi";
+            })
+          ];
+        };
+      in
+      {
+        cartographer = (rosSuper.cartographer.override {
+          glog = cartographer-glog;
+          ceres-solver = self.ceres-solver.override {
+            glog = cartographer-glog;
+          };
+        }).overrideAttrs ({ patches ? [ ], nativeBuildInputs ? [ ], NIX_CFLAGS_COMPILE ? "", ... }: {
+          patches = patches ++ [
+            # Update code to work with recent abseil changes
+            # https://github.com/cartographer-project/cartographer/pull/1919
+            (self.fetchpatch {
+              url = "https://github.com/kkufieta/cartographer/commit/da4d12c905ccb4b6115e052f257ee92f238771cb.patch";
+              hash = "sha256-SULgbAnCM9w4CARUUOYi0F5LvSwxHWzLfOMStcSj1nE=";
+            })
+          ];
+
+          nativeBuildInputs = nativeBuildInputs ++ (with self; [ pkg-config ]);
+
+          # Ideally, these flags would be given to the build system. Using the
+          # Nix wrapper directly is a bit of a hack.
+          #
+          # Unfortunately, Cartographer does not seem to respect any of the
+          # conventional ways (cmakeFlags, CFLAGS) of doing so.
+          NIX_CFLAGS_COMPILE = "${NIX_CFLAGS_COMPILE} -Wno-error=maybe-uninitialized";
+        });
+
+        cartographer-ros = (rosSuper.cartographer-ros.override {
+          glog = cartographer-glog;
+        }).overrideAttrs ({ patches ? [ ], ... }: {
+          patches = patches ++ [
+            # Fix cmake to prevent multiple definitions
+            # https://github.com/ros2/cartographer_ros/pull/63
+            (self.fetchpatch {
+              url = "https://github.com/ros2/cartographer_ros/commit/098e6bf8556070b9228b9fa7d5766238bc141a90.patch";
+              stripLen = 1;
+              hash = "sha256-4hdpQ8LnjT6zuCq/Cr5gACAPpfvCSoGv4BNjERtdpgQ=";
+            })
+          ];
+        });
+      }
+    ) // (
       let
         fixNav2Package = pkg: pkg.overrideAttrs ({ CXXFLAGS ? "", ... }: {
           # https://answers.ros.org/question/379173
