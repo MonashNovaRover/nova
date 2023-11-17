@@ -44,7 +44,7 @@ export const NovaNavbar: React.FC = () => {
                 size="sm"
                 endContent={<ChevronDown className="w-4 h-4" />}
               >
-                {rosUrl}
+                General
               </Button>
             </DropdownTrigger>
             <DropdownMenu>
@@ -74,7 +74,7 @@ export const NovaNavbar: React.FC = () => {
             isIconOnly
             size="sm"
             variant="shadow"
-            onClick={() => uiActions?.updateROSurl("Bro!!")}
+            onClick={() => uiActions.setSettingsModal(true)}
           >
             <Settings className="w-4 h-4" />
           </Button>

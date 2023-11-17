@@ -1,21 +1,16 @@
 import { useDispatch } from "react-redux";
-import { uiSlice } from "../slices/UIReducer";
-
-export enum UIActions {
-  UPDATE_ROS_URL,
-  SET_SETTINGS_MODAL,
-}
+import { UIActions } from "../slices/UIReducer";
 
 export function useUIActions() {
   const dispatch = useDispatch();
 
   return {
     updateROSurl(rosUrl: string) {
-      dispatch({ type: UIActions.UPDATE_ROS_URL, payload: rosUrl });
+      dispatch({ type: UIActions.URL_UPDATE, payload: rosUrl });
     },
     setSettingsModal(settingsModalOpen: boolean) {
       dispatch({
-        type: UIActions.SET_SETTINGS_MODAL,
+        type: UIActions.MODAL_UPDATE,
         payload: settingsModalOpen,
       });
     },
