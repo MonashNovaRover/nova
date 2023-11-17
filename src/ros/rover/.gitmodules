@@ -7,3 +7,6 @@
 [submodule "controllers/ros2_controllers_fixit_davide"]
 	path = controllers/ros2_controllers_fixit_davide
 	url = https://github.com/Fixit-Davide/ros2_controllers.git
+[submodule "controllers/ros2_controllers"]
+	path = controllers/ros2_controllers
+	url = git@github.com:dylan-gonzalez/ros2_controllers.git
