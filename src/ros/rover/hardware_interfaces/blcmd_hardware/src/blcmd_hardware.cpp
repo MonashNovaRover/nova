@@ -196,11 +196,8 @@ hardware_interface::return_type BLCMDHardware::write(
 {
     switch(control_mode_){
         case blcmd_hardware::ControlMode::Undefined:
-            RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName), "Control mode undefined");
             break;
         case blcmd_hardware::ControlMode::Position:
-            RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
-                               "Writing position " << hw_position_.command.value());
             if (hw_position_.command.has_value()) {
                 send_scaled<int16_t>(make_can_id(BLCMDSendCommand::DRIVE_POSITION),
                                      hw_position_.command.value(), hw_position_.max);
@@ -210,8 +207,6 @@ hardware_interface::return_type BLCMDHardware::write(
             }
             break;
         case blcmd_hardware::ControlMode::Velocity:
-            RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
-                               "Writing velocity " << hw_velocity_.command.value());
             if (hw_velocity_.command.has_value()) {
                 send_scaled<int16_t>(make_can_id(BLCMDSendCommand::DRIVE_VELOCITY),
                                      hw_velocity_.command.value(), hw_velocity_.max);
@@ -221,8 +216,6 @@ hardware_interface::return_type BLCMDHardware::write(
             }
             break;
         case blcmd_hardware::ControlMode::Effort:
-            RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
-                               "Writing effort " << hw_effort_.command.value());
             if (hw_effort_.command.has_value()) {
                 send_scaled<int16_t>(make_can_id(BLCMDSendCommand::DRIVE_CURRENT),
                                      hw_effort_.command.value(), hw_effort_.max);
@@ -235,7 +228,7 @@ hardware_interface::return_type BLCMDHardware::write(
     return hardware_interface::return_type::OK;
 }
 
-    hardware_interface::return_type
+hardware_interface::return_type
     BLCMDHardware::prepare_command_mode_switch(const std::vector<std::string> &start_interfaces,
                                                const std::vector<std::string> &stop_interfaces) {
         if (stop_interfaces.size() > 1) {
