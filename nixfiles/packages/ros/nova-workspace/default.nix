@@ -16,7 +16,7 @@
 , nova-gui-backend ? throw "gui-backend is needed, but not available!"
 , nova-gui-frontend ? throw "gui-frontend is needed, but not available!"
 , nova-gui-frontend-server ? throw "gui-frontend-server is needed, but not available!"
-, nova-rover-hardware ? throw "nova-rover_hardware is needed, but not available!"
+, nova-blcmd-hardware ? throw "nova-rover_hardware is needed, but not available!"
 
   # Configuration options
   ## Include graphical applications in the workspace.
@@ -38,7 +38,7 @@
       nova-cameras2
       nova-gui-backend
       nova-gui-frontend
-      nova-rover-hardware;
+      nova-blcmd-hardware;
   }
 
   ## Extra packages to add to the workspace.
