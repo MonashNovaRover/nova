@@ -104,17 +104,23 @@ hardware_interface::CallbackReturn BLCMDHardware::on_configure(
         bus_->send(resolver_request);
 
         while (std::chrono::steady_clock::now() - start < std::chrono::seconds(1)) {
-            auto frame = bus_->receive();
-            if (frame.id == make_can_id(BLCMDReceiveCommand::CONFIG_DATA)) {
-                if (frame.data[0] == 1) {
-                    RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
-                                       "Resolver detected on BLCMD " << can_id_);
-                    return CallbackReturn::SUCCESS;
-                } else {
-                    RCLCPP_FATAL_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
-                                 "No resolver detected on BLCMD " << can_id_ );
-                    return CallbackReturn::ERROR;
+            try {
+                auto frame = bus_->receive_with_timeout(1000);
+                if (frame.id == make_can_id(BLCMDReceiveCommand::CONFIG_DATA)) {
+                    if (frame.data[0] == 1) {
+                        RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                                           "Resolver detected on BLCMD " << can_id_);
+                        return CallbackReturn::SUCCESS;
+                    } else {
+                        RCLCPP_FATAL_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                                            "No resolver detected on BLCMD " << can_id_ );
+                        return CallbackReturn::ERROR;
+                    }
                 }
+            } catch (std::exception &e) {
+                RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                             "Failed to receive frame with error: %s", e.what());
+                return CallbackReturn::ERROR;
             }
         }
         RCLCPP_FATAL_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
@@ -292,7 +298,12 @@ bool BLCMDHardware::set_control_interface(
         if (command){
             hw_position_.min = min;
             hw_position_.max = max;
-            hw_position_.resolver_reduction = std::stod(info_.joints[0].parameters.at("resolver_reduction"));
+            auto resolver_reduction_search = info_.hardware_parameters.find("resolver_reduction");
+            if (resolver_reduction_search == info_.joints[0].parameters.end()){
+                RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName), "No resolver reduction provided");
+                return false;
+            }
+            hw_position_.resolver_reduction = std::stod(resolver_reduction_search->second);
             hw_position_.command = 0.0;
         } else {
             hw_position_.state = 0.0;

@@ -43,24 +43,24 @@ joint_broad:
       - brw
       - frw
 
-pivot_joint_trajectory_controller:
-  ros__parameters:
-    joints:
-      - flp
-      - blp
-      - brp
-      - frp
+# pivot_joint_trajectory_controller:
+#   ros__parameters:
+#     joints:
+#       - flp
+#       - blp
+#       - brp
+#       - frp
     
-    command_interfaces:
-      - position
-      - velocity
+#     command_interfaces:
+#       - position
+#       - velocity
 
-    state_interfaces:
-      - position
-      - velocity
+#     state_interfaces:
+#       - position
+#       - velocity
 
-    allow_partial_joints_goal: true
-    open_loop_control: true
+#     allow_partial_joints_goal: true
+#     open_loop_control: true
     
 
   

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
-    <ros2_control name="BLCMDHardware" type="actuator">
+    <ros2_control name="FrontLeftWheel" type="actuator">
         <hardware>
             <plugin>blcmd_hardware/BLCMDHardware</plugin>
             <param name="candevice">can0</param>
@@ -26,11 +26,12 @@
         </joint>
     </ros2_control>
 
-        <ros2_control name="BLCMDHardware" type="actuator">
+    <ros2_control name="FrontLeftPivot" type="actuator">
         <hardware>
             <plugin>blcmd_hardware/BLCMDHardware</plugin>
             <param name="candevice">can0</param>
             <param name="canid">5</param>
+            <param name="resolver_reduction">1</param>
         </hardware>
 
         <joint name="flp">
