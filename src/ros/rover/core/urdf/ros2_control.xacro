@@ -5,10 +5,40 @@
         <hardware>
             <plugin>blcmd_hardware/BLCMDHardware</plugin>
             <param name="candevice">can0</param>
-            <param name="canid">3</param>
+            <param name="canid">1</param>
         </hardware>
 
         <joint name="flw">
+            <command_interface name="velocity">
+                <param name="min">-5.0</param>
+                <param name="max">5.0</param>
+            </command_interface>
+
+            <command_interface name="effort">
+                <param name="min">-1</param>
+                <param name="max">1</param>
+            </command_interface>
+
+            <state_interface name="velocity">
+                <param name="min">-5</param>
+                <param name="max">5</param>
+            </state_interface>
+        </joint>
+    </ros2_control>
+
+        <ros2_control name="BLCMDHardware" type="actuator">
+        <hardware>
+            <plugin>blcmd_hardware/BLCMDHardware</plugin>
+            <param name="candevice">can0</param>
+            <param name="canid">5</param>
+        </hardware>
+
+        <joint name="flp">
+            <command_interface name="position">
+                <param name="min">-5.0</param>
+                <param name="max">5.0</param>
+            </command_interface>
+
             <command_interface name="velocity">
                 <param name="min">-5.0</param>
                 <param name="max">5.0</param>
