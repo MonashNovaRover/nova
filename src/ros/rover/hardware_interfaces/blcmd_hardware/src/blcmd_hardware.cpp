@@ -235,6 +235,14 @@ hardware_interface::return_type
             RCLCPP_FATAL_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
                                 "Expected 0 or 1 command interfaces, got " << stop_interfaces.size());
         }
+        if (stop_interfaces.size() == 1) {
+            if (stop_interfaces[0] == info_.joints[0].name + "/" + hardware_interface::HW_IF_VELOCITY) {
+                hw_velocity_.command = 0.0;
+            } else if (stop_interfaces[0] == info_.joints[0].name + "/" + hardware_interface::HW_IF_EFFORT) {
+                hw_effort_.command = 0.0;
+            }
+        }
+
         control_mode_ = blcmd_hardware::ControlMode::Undefined;
 
         if (start_interfaces.size() > 1) {
@@ -242,16 +250,14 @@ hardware_interface::return_type
                                 "Expected 0 or 1 command interfaces, got " << start_interfaces.size());
             return hardware_interface::return_type::ERROR;
         }
-        if (start_interfaces[0] == info_.joints[0].name + "/" + hardware_interface::HW_IF_POSITION) {
-            control_mode_ = blcmd_hardware::ControlMode::Position;
-        } else if (start_interfaces[0] == info_.joints[0].name + "/" + hardware_interface::HW_IF_VELOCITY) {
-            control_mode_ = blcmd_hardware::ControlMode::Velocity;
-        } else if (start_interfaces[0] == info_.joints[0].name + "/" + hardware_interface::HW_IF_EFFORT) {
-            control_mode_ = blcmd_hardware::ControlMode::Effort;
-        } else {
-            RCLCPP_FATAL_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
-                                    "Unexpected interface " << start_interfaces[0]);
-                return hardware_interface::return_type::ERROR;
+        if (start_interfaces.size() == 1) {
+            if (start_interfaces[0] == info_.joints[0].name + "/" + hardware_interface::HW_IF_POSITION) {
+                control_mode_ = blcmd_hardware::ControlMode::Position;
+            } else if (start_interfaces[0] == info_.joints[0].name + "/" + hardware_interface::HW_IF_VELOCITY) {
+                control_mode_ = blcmd_hardware::ControlMode::Velocity;
+            } else if (start_interfaces[0] == info_.joints[0].name + "/" + hardware_interface::HW_IF_EFFORT) {
+                control_mode_ = blcmd_hardware::ControlMode::Effort;
+            }
         }
 
         std::string new_control_mode;

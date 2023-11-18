@@ -19,17 +19,12 @@ wheel_velocity_controller:
   ros__parameters:
     joints:
       - flw
-#      - blw
-#      - brw
-#      - frw
 
 pivot_position_controller:
   ros__parameters:
     joints:
       - flp
-      # - blp
-      # - brp
-      # - frp
+
 
 joint_broad:
   ros__parameters:
@@ -42,25 +37,6 @@ joint_broad:
       - blw
       - brw
       - frw
-
-# pivot_joint_trajectory_controller:
-#   ros__parameters:
-#     joints:
-#       - flp
-#       - blp
-#       - brp
-#       - frp
-    
-#     command_interfaces:
-#       - position
-#       - velocity
-
-#     state_interfaces:
-#       - position
-#       - velocity
-
-#     allow_partial_joints_goal: true
-#     open_loop_control: true
     
 
   
