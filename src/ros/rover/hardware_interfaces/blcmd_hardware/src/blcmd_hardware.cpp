@@ -107,7 +107,8 @@ hardware_interface::CallbackReturn BLCMDHardware::on_configure(
             try {
                 auto frame = bus_->receive_with_timeout(1000);
                 if (frame.id == make_can_id(BLCMDReceiveCommand::CONFIG_DATA)) {
-                    if (frame.data[0] == 1) {
+                    auto resolver = from_bytes<uint16_t>(&frame.data[0]);
+                    if (resolver) {
                         RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
                                            "Resolver detected on BLCMD " << can_id_);
                         return CallbackReturn::SUCCESS;
