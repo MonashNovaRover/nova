@@ -94,42 +94,48 @@ hardware_interface::CallbackReturn BLCMDHardware::on_configure(
 
     // check for resolver if there is a position interface
     if(hw_position_.state.has_value() || hw_position_.command.has_value()) {
-        RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
-                           "Checking for resolver on BLCMD " << can_id_);
-        const leigh::jcan::Frame resolver_request = {
-                make_can_id(BLCMDSendCommand::GET_CONFIG),
-                {static_cast<uint8_t>(BLCMDConfigCommand::HAS_RESOLVER)},
-        };
-        auto start = std::chrono::steady_clock::now();
-        bus_->send(resolver_request);
-
-        while (std::chrono::steady_clock::now() - start < std::chrono::seconds(1)) {
-            try {
-                auto frame = bus_->receive_with_timeout(1000);
-                if (frame.id == make_can_id(BLCMDReceiveCommand::CONFIG_DATA)) {
-                    auto resolver = from_bytes<uint16_t>(&frame.data[0]);
-                    if (resolver) {
-                        RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
-                                           "Resolver detected on BLCMD " << can_id_);
-                        return CallbackReturn::SUCCESS;
-                    } else {
-                        RCLCPP_FATAL_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
-                                            "No resolver detected on BLCMD " << can_id_ );
-                        return CallbackReturn::ERROR;
-                    }
-                }
-            } catch (std::exception &e) {
-                RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName),
-                             "Failed to receive frame with error: %s", e.what());
-                return CallbackReturn::ERROR;
-            }
+        if (!check_resolver()) {
+            return CallbackReturn::ERROR;
         }
-        RCLCPP_FATAL_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
-                      "No response from resolver request on BLCMD" << can_id_);
-        return CallbackReturn::ERROR;
     }
     
   return CallbackReturn::SUCCESS;
+}
+
+bool BLCMDHardware::check_resolver() {
+    RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                       "Checking for resolver on BLCMD " << can_id_);
+    const leigh::jcan::Frame resolver_request = {
+            make_can_id(BLCMDSendCommand::GET_CONFIG),
+            {static_cast<uint8_t>(BLCMDConfigCommand::HAS_RESOLVER)},
+    };
+    auto start = std::chrono::steady_clock::now();
+    bus_->send(resolver_request);
+
+    while (std::chrono::steady_clock::now() - start < std::chrono::seconds(1)) {
+        try {
+            auto frame = bus_->receive_with_timeout(1000);
+            if (frame.id == make_can_id(BLCMDReceiveCommand::CONFIG_DATA)) {
+                auto resolver = from_bytes<uint16_t>(&frame.data[0]);
+                if (resolver) {
+                    RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                                       "Resolver detected on BLCMD " << can_id_);
+                    return true;
+                } else {
+                    RCLCPP_FATAL_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                                        "No resolver detected on BLCMD " << can_id_ );
+                    return false;
+                }
+            }
+        } catch (std::exception &e) {
+            RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                         "Failed to receive frame with error: %s", e.what());
+            return false;
+        }
+    }
+    RCLCPP_FATAL_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                        "No response from resolver request on BLCMD" << can_id_);
+    return false;
 }
 
 std::vector<hardware_interface::StateInterface> BLCMDHardware::export_state_interfaces()

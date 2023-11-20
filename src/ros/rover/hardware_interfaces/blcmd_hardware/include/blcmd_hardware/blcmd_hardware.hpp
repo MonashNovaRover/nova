@@ -148,6 +148,8 @@ private:
 
     uint32_t can_id_;
 
+    bool check_resolver();
+
     bool set_control_interface(const hardware_interface::InterfaceInfo & interface_info, bool command);
 
     bool stop_interface(const std::string &interface);
