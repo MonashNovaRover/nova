@@ -12,8 +12,29 @@ import {
 import { ChevronDown, Settings } from "react-feather";
 import novaLogo from "../../assets/nova-logo.png";
 import React from "react";
+import { useSelector } from "react-redux";
+import { RootState } from "../../redux/models/RootState";
+import { useUIActions } from "../../redux/actions/useUIActions";
+import { useBifrostAction } from "../../redux/actions/useBifrostAction";
+import { Ros } from "roslib";
 
 export const NovaNavbar: React.FC = () => {
+  const [connected, setConnected] = useState(false);
+
+  const rosUrl = useSelector((state: RootState) => state.uiState.rosUrl);
+
+  const uiActions = useUIActions();
+
+  const bifrostActions = useBifrostAction<IRadioStatus>();
+
+  useEffect(() => {
+    const ros = new Ros({ url: rosUrl });
+
+    ros.on("connection", () => {
+      setConnected(true);
+    });
+  }, [rosUrl]);
+
   return (
     <Navbar maxWidth="full" isBordered position="static">
       <NavbarContent justify="start">
@@ -74,7 +95,7 @@ export const NovaNavbar: React.FC = () => {
             isIconOnly
             size="sm"
             variant="shadow"
-            onClick={() => uiActions.setSettingsModal(true)}
+            onClick={() => bifrostActions.updateStuff({ ping: 200 })}
           >
             <Settings className="w-4 h-4" />
           </Button>

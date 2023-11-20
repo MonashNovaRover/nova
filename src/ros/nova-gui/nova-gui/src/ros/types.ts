@@ -1,0 +1,3 @@
+interface IRadioStatus {
+  ping: number;
+}
