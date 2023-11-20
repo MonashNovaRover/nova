@@ -231,59 +231,114 @@ hardware_interface::return_type BLCMDHardware::write(
 hardware_interface::return_type
     BLCMDHardware::prepare_command_mode_switch(const std::vector<std::string> &start_interfaces,
                                                const std::vector<std::string> &stop_interfaces) {
-        if (stop_interfaces.size() > 1) {
-            RCLCPP_FATAL_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
-                                "Expected 0 or 1 command interfaces, got " << stop_interfaces.size());
-        }
-        if (stop_interfaces.size() == 1) {
-            if (stop_interfaces[0] == info_.joints[0].name + "/" + hardware_interface::HW_IF_VELOCITY) {
-                hw_velocity_.command = 0.0;
-            } else if (stop_interfaces[0] == info_.joints[0].name + "/" + hardware_interface::HW_IF_EFFORT) {
-                hw_effort_.command = 0.0;
-            }
-        }
+    if (stop_interfaces.size() > 1){
+        RCLCPP_FATAL_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                            "Unexpected number of interfaces to stop " << stop_interfaces.size());
+        return hardware_interface::return_type::ERROR;
+    }
 
-        control_mode_ = blcmd_hardware::ControlMode::Undefined;
+    if (start_interfaces.size() > 1){
+        RCLCPP_FATAL_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                            "Unexpected number of interfaces to start " << start_interfaces.size());
+        return hardware_interface::return_type::ERROR;
+    }
 
-        if (start_interfaces.size() > 1) {
-            RCLCPP_FATAL_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
-                                "Expected 0 or 1 command interfaces, got " << start_interfaces.size());
+    if(stop_interfaces.size() == 1){
+        if(!stop_interface(stop_interfaces[0])){
             return hardware_interface::return_type::ERROR;
         }
-        if (start_interfaces.size() == 1) {
-            if (start_interfaces[0] == info_.joints[0].name + "/" + hardware_interface::HW_IF_POSITION) {
-                control_mode_ = blcmd_hardware::ControlMode::Position;
-            } else if (start_interfaces[0] == info_.joints[0].name + "/" + hardware_interface::HW_IF_VELOCITY) {
-                control_mode_ = blcmd_hardware::ControlMode::Velocity;
-            } else if (start_interfaces[0] == info_.joints[0].name + "/" + hardware_interface::HW_IF_EFFORT) {
-                control_mode_ = blcmd_hardware::ControlMode::Effort;
-            }
-        }
-
-        std::string new_control_mode;
-        switch(control_mode_){
-            case(blcmd_hardware::ControlMode::Position):{
-                new_control_mode = "position";
-                break;
-            }
-            case(blcmd_hardware::ControlMode::Velocity): {
-                new_control_mode = "velocity";
-                break;
-            }
-            case(blcmd_hardware::ControlMode::Effort): {
-                new_control_mode = "effort";
-                break;
-            }
-            case(blcmd_hardware::ControlMode::Undefined): {
-                new_control_mode = "undefined";
-                break;
-            }
-        }
-
-        RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
-                           "Preparing command mode switch to " << new_control_mode);
-        return hardware_interface::return_type::OK;
     }
+
+    if (start_interfaces.size() == 1){
+        if(!start_interface(start_interfaces[0])){
+            return hardware_interface::return_type::ERROR;
+        }
+    }
+
+    return hardware_interface::return_type::OK;
+}
+
+bool BLCMDHardware::stop_interface(const std::string &interface){
+
+    size_t delimiter_pos = interface.find('/');
+
+    std::string joint_name = interface.substr(0, delimiter_pos);
+    std::string interface_name = interface.substr(delimiter_pos + 1);
+
+    if (joint_name != info_.joints[0].name){
+        return true;
+    }
+
+    if (interface_name == hardware_interface::HW_IF_POSITION) {
+        if (control_mode_ == blcmd_hardware::ControlMode::Position) {
+            control_mode_ = blcmd_hardware::ControlMode::Undefined;
+            return true;
+        } else {
+            RCLCPP_FATAL_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                                "Requested stop position when control mode was not position");
+            return false;
+        }
+    }
+    if (interface_name == hardware_interface::HW_IF_VELOCITY) {
+        if (control_mode_ == blcmd_hardware::ControlMode::Velocity) {
+            hw_velocity_.command = 0.0;
+            control_mode_ = blcmd_hardware::ControlMode::Undefined;
+            return true;
+        } else {
+            RCLCPP_FATAL_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                                "Requested stop " << interface_name.c_str() << "when control mode was not velocity");
+            return false;
+        }
+    }
+    if (interface_name == hardware_interface::HW_IF_EFFORT) {
+        if (control_mode_ == blcmd_hardware::ControlMode::Effort) {
+            hw_effort_.command = 0.0;
+            control_mode_ = blcmd_hardware::ControlMode::Undefined;
+            return true;
+        } else {
+            RCLCPP_FATAL_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                                "Requested stop " << interface_name.c_str() << "when control mode was not effort");
+            return false;
+        }
+    }
+
+    RCLCPP_FATAL_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                        "Unexpected interface " << interface_name.c_str());
+    return false;
+
+}
+
+bool BLCMDHardware::start_interface(const std::string &interface){
+
+    if(control_mode_ != blcmd_hardware::ControlMode::Undefined){
+        RCLCPP_FATAL_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                            "Requested start interface " << interface.c_str() << " when control mode was not undefined");
+        return false;
+    }
+
+    size_t delimiter_pos = interface.find('/');
+
+    std::string joint_name = interface.substr(0, delimiter_pos);
+    std::string interface_name = interface.substr(delimiter_pos + 1);
+
+    if (joint_name != info_.joints[0].name){
+        return true;
+    }
+
+    if (interface_name == hardware_interface::HW_IF_POSITION){
+        control_mode_ = blcmd_hardware::ControlMode::Position;
+    } else if (interface_name == hardware_interface::HW_IF_VELOCITY){
+        control_mode_ = blcmd_hardware::ControlMode::Velocity;
+    } else if (interface_name == hardware_interface::HW_IF_EFFORT){
+        control_mode_ = blcmd_hardware::ControlMode::Effort;
+    } else {
+        RCLCPP_FATAL_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                            "Unexpected interface " << interface_name.c_str());
+        return false;
+    }
+
+    return true;
+}
 
 // TODO: better error handling
 bool BLCMDHardware::set_control_interface(

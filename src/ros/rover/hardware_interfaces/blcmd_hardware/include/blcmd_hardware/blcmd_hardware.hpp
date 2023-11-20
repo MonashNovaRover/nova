@@ -150,6 +150,10 @@ private:
 
     bool set_control_interface(const hardware_interface::InterfaceInfo & interface_info, bool command);
 
+    bool stop_interface(const std::string &interface);
+
+    bool start_interface(const std::string &interface);
+
     void can_setup();
 
     /// @brief      Create the can ID for a given BLCMDSendCommand
