@@ -316,12 +316,6 @@ bool BLCMDHardware::stop_interface(const std::string &interface){
 
 bool BLCMDHardware::start_interface(const std::string &interface){
 
-    if(control_mode_ != blcmd_hardware::ControlMode::Undefined){
-        RCLCPP_FATAL_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
-                            "Requested start interface " << interface.c_str() << " when control mode was not undefined");
-        return false;
-    }
-
     size_t delimiter_pos = interface.find('/');
 
     std::string joint_name = interface.substr(0, delimiter_pos);
@@ -329,6 +323,12 @@ bool BLCMDHardware::start_interface(const std::string &interface){
 
     if (joint_name != info_.joints[0].name){
         return true;
+    }
+
+    if(control_mode_ != blcmd_hardware::ControlMode::Undefined){
+        RCLCPP_FATAL_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                            "Requested start interface " << interface.c_str() << " when control mode was not undefined");
+        return false;
     }
 
     if (interface_name == hardware_interface::HW_IF_POSITION){
