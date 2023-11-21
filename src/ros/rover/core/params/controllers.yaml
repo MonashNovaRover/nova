@@ -30,13 +30,7 @@ joint_broad:
   ros__parameters:
     joints:
       - flp
-      - blp
-      - brp
-      - frp
       - flw
-      - blw
-      - brw
-      - frw
     
 
   
