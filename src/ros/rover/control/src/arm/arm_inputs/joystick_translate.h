@@ -68,7 +68,9 @@ class JoystickTranslate: public InputDevice {
 
     bool is_connected();
 
-    void set_message(std::shared_ptr<void> msg, int idx);
+    void joystick_l_callback(core::msg::InputJoystick::SharedPtr msg);
+
+    void joystick_r_callback(core::msg::InputJoystick::SharedPtr msg);
     
     void reset_message();
 };

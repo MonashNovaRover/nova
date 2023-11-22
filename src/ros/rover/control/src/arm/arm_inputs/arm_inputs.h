@@ -27,7 +27,7 @@ EDITED:		18/10/2023
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
-Find out where the constructor is called/defined
+Maybe use unique pointers for the translators?
 Find out why we are doing arm lock detection in callback
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Note:
@@ -50,7 +50,8 @@ of which ones are connected
 // Include libraries
 #include "arm_config_info_client.h"
 
-#include "unified_arm_input.h"
+#include "joystick_translate.h"
+#include "keyboard_translate.h"
 
 // Position control enable override
 #define POSITION_CONTROL_ENABLE 0
@@ -85,8 +86,15 @@ class ArmInputs : public ArmConfigInfoClient
     geometry_msgs::msg::TwistStamped twist;
     core::msg::ArmControlScheme control_scheme;
 
-    // Store the unified arm input
-    UnifiedArmInput unified_arm_input;
+    // on whether the joystick input is used for override
+    bool joystick_override;
+
+    // Store the input device translators
+    JoystickTranslate joystick_translate;
+    KeyboardTranslate keyboard_translate;
+
+    // Store the input device translators
+    InputDevice& select_input_device();
 
     /// @brief      Callback function when input messages are received.
     /// @param      msg - A pointer to the input message

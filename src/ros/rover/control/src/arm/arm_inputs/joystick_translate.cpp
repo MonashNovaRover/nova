@@ -189,20 +189,13 @@ bool JoystickTranslate::is_connected()
     return joystick_l.connected && joystick_r.connected;
 }
 
-void JoystickTranslate::set_message(std::shared_ptr<void> msg, int idx)
-{
-    // static_point_cast may be faster here
-    auto joystickMessage = std::dynamic_pointer_cast<core::msg::InputJoystick::SharedPtr>(msg);
-    if (!joystickMessage) {
-        Print::print("Invalid message type for joystick translate");
-        return;
-    }
-    if (idx == 0)
-        joystick_l = *joystickMessage;
-    else if (idx == 1)
-        joystick_r = *joystickMessage;
-    else
-        Print::print("Invalid index for joystick translate");
+
+void JoystickTranslate::joystick_l_callback(core::msg::InputJoystick::SharedPtr msg){
+    joystick_l = *msg;
+}
+
+void JoystickTranslate::joystick_r_callback(core::msg::InputJoystick::SharedPtr msg){
+    joystick_r = *msg;
 }
 
 void JoystickTranslate::reset_message()

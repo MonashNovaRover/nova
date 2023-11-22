@@ -46,10 +46,8 @@ class InputDevice {
     /// @brief returns whether the device is connected
     virtual bool is_connected() = 0;
 
-    // Should take argument type of any message share ptr, but I cannot find the base class for that 
-
-    /// @brief      Sets the message to the input device
-    virtual void set_message(std::shared_ptr<void> msg, int idx) = 0;
+    // Should find a way to set message as well, but I cannot find a common base class for messages. 
+    // Maybe use std::any or std::variant? not supported in c++ version used though
     
     /// @brief     Resets the message of the input device
     virtual void reset_message() = 0;
