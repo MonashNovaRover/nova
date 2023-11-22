@@ -15,24 +15,31 @@ import React from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/models/RootState";
 import { useUIActions } from "../../redux/actions/useUIActions";
-import { useBifrostAction } from "../../redux/actions/useBifrostAction";
-import { Ros } from "roslib";
+import { useBifrostActions } from "../../redux/actions/useBifrostAction";
+import { RosTopics } from "../../ros/topics";
+import { BifrostConnectionStatus } from "../../redux/models/BifrostTypes";
+
+const connectionStatusColor: {
+  [key: string]: "success" | "warning" | "danger";
+} = {
+  [BifrostConnectionStatus.CONNECTED]: "success",
+  [BifrostConnectionStatus.CONNECTING]: "warning",
+  [BifrostConnectionStatus.DISCONNECTED]: "danger",
+};
 
 export const NovaNavbar: React.FC = () => {
-  const [connected, setConnected] = useState(false);
-
   const rosUrl = useSelector((state: RootState) => state.uiState.rosUrl);
+
+  const bifrostStatus = useSelector(
+    (state: RootState) => state.bifrostStatus.connectionStatus
+  );
 
   const uiActions = useUIActions();
 
-  const bifrostActions = useBifrostAction<IRadioStatus>();
+  const bifrostActions = useBifrostActions(RosTopics.RADIO_STATUS);
 
   useEffect(() => {
-    const ros = new Ros({ url: rosUrl });
-
-    ros.on("connection", () => {
-      setConnected(true);
-    });
+    bifrostActions.initiateContact(rosUrl);
   }, [rosUrl]);
 
   return (
@@ -46,8 +53,13 @@ export const NovaNavbar: React.FC = () => {
         <NavbarItem>
           <Dropdown placement="bottom-end">
             <DropdownTrigger>
-              <Button radius="sm" color="success" size="sm" variant="shadow">
-                Connected
+              <Button
+                radius="sm"
+                color={connectionStatusColor[bifrostStatus]}
+                size="sm"
+                variant="shadow"
+              >
+                {bifrostStatus.toString()}
               </Button>
             </DropdownTrigger>
             <DropdownMenu>
@@ -95,7 +107,7 @@ export const NovaNavbar: React.FC = () => {
             isIconOnly
             size="sm"
             variant="shadow"
-            onClick={() => bifrostActions.updateStuff({ ping: 200 })}
+            onClick={() => uiActions.setSettingsModal(true)}
           >
             <Settings className="w-4 h-4" />
           </Button>

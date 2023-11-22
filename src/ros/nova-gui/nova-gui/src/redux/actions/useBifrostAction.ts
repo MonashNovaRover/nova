@@ -1,15 +1,11 @@
 import { useDispatch } from "react-redux";
 import { createBifrostAction } from "./createBifrostAction";
-import { useMemo } from "react";
 import { bindActionCreators } from "@reduxjs/toolkit";
+import { RosTopics } from "../../ros/topics";
 
-export const useBifrostAction = <T>() => {
-  const bifrostActions = createBifrostAction<T>();
+export const useBifrostActions = (topic: RosTopics) => {
+  const bifrostActions = createBifrostAction(topic);
   const dispatch = useDispatch();
 
-  //   return useMemo(
-  //     () => bindActionCreators(bifrostActions, dispatch),
-  //     [bifrostActions, dispatch]
-  //   );
   return bindActionCreators(bifrostActions, dispatch);
 };

@@ -1,7 +1,12 @@
+import { Ros } from "roslib";
+import { BifrostConnectionStatus } from "../models/BifrostTypes";
 import { RootState } from "../models/RootState";
+import { RosTopics, RosTopicTypes } from "../../ros/topics";
 
 export enum BifrostActionTypes {
-  UPDATE_DATA,
+  UPDATE_DATA = "UPDATE_DATA_",
+  INITIATE_CONTACT = "INITIATE_CONTACT",
+  ESTABLISH_CONTACT = "ESTABLISH_CONTACT",
 }
 
 export interface BifrostActionType<P> {
@@ -9,82 +14,61 @@ export interface BifrostActionType<P> {
   payload: P;
 }
 
-export function createBifrostAction<T>() {
+export function createBifrostAction(topic: RosTopics) {
   return {
-    update(object: T): () => BifrostActionType<T> {
+    update(
+      object: RosTopicTypes[typeof topic]
+    ): () => BifrostActionType<RosTopicTypes[typeof topic]> {
       return () => ({
-        type: BifrostActionTypes.UPDATE_DATA.toString(),
+        type: BifrostActionTypes.UPDATE_DATA.toString() + topic.toString(),
         payload: object,
       });
     },
-    updateStuff(object: T) {
-      return async (dispatch: Function, getState: () => RootState) => {
+    _updateBifrostConnectionStatus(connectionStatus: BifrostConnectionStatus) {
+      return () => ({
+        type: BifrostActionTypes.ESTABLISH_CONTACT,
+        payload: connectionStatus,
+      });
+    },
+    updateStuff(object: RosTopicTypes[typeof topic]) {
+      return async (dispatch: Function) => {
         dispatch(this.update(object));
       };
     },
-    // /**
-    //  * Populates store & establishes WS for live-store updates
-    //  * @param filters
-    //  * @param wsFilter
-    //  */
-    // ensureConsistent(
-    //   filters: QueryFilter<T>,
-    //   wsFilter?: WSQueryFilter<T>,
-    //   ignorePrevious: boolean = false
-    // ) {
-    //   return async (dispatch: Function, getState: () => RootState) => {
-    //     const state = getState();
-    //     const store: Y = selectFn(state);
-    //     const filter = pickBy(filters, identity) as QueryFilter<T>;
+    initiateContact(rosUrl: string) {
+      return async (dispatch: Function) => {
+        dispatch(
+          this._updateBifrostConnectionStatus(
+            BifrostConnectionStatus.CONNECTING
+          )
+        );
 
-    //     const response = await fetchData(
-    //       filter,
-    //       store.fetchHistory,
-    //       dispatch,
-    //       fetchFn,
-    //       this._startFetch,
-    //       this._errorFetch,
-    //       this._finishFetch,
-    //       ignorePrevious
-    //     );
+        const ros = new Ros({ url: rosUrl });
 
-    //     if (!response) return;
-    //     if (!wsUrl) return;
+        ros.on("connection", () => {
+          dispatch(
+            this._updateBifrostConnectionStatus(
+              BifrostConnectionStatus.CONNECTED
+            )
+          );
+        });
 
-    //     if (!!store.lastWsConn && !!store.lastWsConn.close) {
-    //       store.lastWsConn.close();
-    //     }
+        ros.on("error", () => {
+          dispatch(
+            this._updateBifrostConnectionStatus(
+              BifrostConnectionStatus.DISCONNECTED
+            )
+          );
+        });
 
-    //     // Establish new WS connection if wsUrl provided
-    //     const conn = await subscribeToLiveResource<T>(
-    //       wsUrl,
-    //       (msg) => {
-    //         if (msg.resource === resourceType) {
-    //           switch (msg.type) {
-    //             case MessageType.UPDATE:
-    //             case MessageType.INSERT:
-    //               dispatch(this.update(msg.payload as any));
-    //               break;
-    //             case MessageType.DELETE:
-    //               dispatch(this.delete(msg.payload as any));
-    //               break;
-    //             default:
-    //               assertUnreachable(msg);
-    //           }
-    //         }
-    //       },
-    //       () => {},
-    //       (_msg: string) => {
-    //         if (conn && conn.close) {
-    //           conn.close();
-    //         }
-    //       },
-    //       wsFilter || filters
-    //     );
-
-    //     // Store last WS connection for later
-    //     dispatch(this._logLastWsConn(conn));
-    //   };
-    // },
+        ros.on("close", () => {
+          dispatch(
+            this._updateBifrostConnectionStatus(
+              BifrostConnectionStatus.DISCONNECTED
+            )
+          );
+        });
+      };
+    },
   };
 }

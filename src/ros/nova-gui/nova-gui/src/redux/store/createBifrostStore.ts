@@ -3,9 +3,9 @@ import {
   BifrostActionType,
   BifrostActionTypes,
 } from "../actions/createBifrostAction";
-import { CornerDownLeft } from "react-feather";
+import { RosTopicTypes, RosTopics } from "../../ros/topics";
 
-const createCustomReducer = <S>(initialState: S, handlers: any) => {
+export const createCustomReducer = <S>(initialState: S, handlers: any) => {
   const reducer = (state: S = initialState, action: any): S => {
     if (handlers.hasOwnProperty(action.type)) {
       return handlers[action.type](state, action);
@@ -16,9 +16,15 @@ const createCustomReducer = <S>(initialState: S, handlers: any) => {
   return reducer as Reducer<S>;
 };
 
-export const createBifrostStore = <T>(initialState: T) => {
+export const createBifrostStore = (
+  topic: RosTopics,
+  initialState: RosTopicTypes[typeof topic]
+) => {
   const reducerFunctions = {
-    [BifrostActionTypes.UPDATE_DATA]: (_: T, action: BifrostActionType<T>) => {
+    [BifrostActionTypes.UPDATE_DATA + topic]: (
+      _: RosTopicTypes[typeof topic],
+      action: BifrostActionType<RosTopicTypes[typeof topic]>
+    ) => {
       action;
       return {
         ...action.payload,
@@ -26,5 +32,8 @@ export const createBifrostStore = <T>(initialState: T) => {
     },
   };
 
-  return createCustomReducer<T>(initialState, reducerFunctions);
+  return createCustomReducer<RosTopicTypes[typeof topic]>(
+    initialState,
+    reducerFunctions
+  );
 };
