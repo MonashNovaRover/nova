@@ -20,11 +20,19 @@ using std::placeholders::_1;
 
 ArmInputs::ArmInputs() : ArmConfigInfoClient("arm_inputs"), joystick_override(true) { }
 
-InputDevice& ArmInputs::select_input_device(){
+InputDevice* ArmInputs::select_input_device(){
     if (joystick_override) {
-        return joystickTranslate.is_connected() ? joystick_translate : keyboard_translate;
+        if (joystick_translate.is_connected()) {
+            return &joystick_translate;
+        } else {
+            return &keyboard_translate;
+        }
     } else {
-        return keyboard_translate.is_connected() ? keyboard_translate : joystick_translate;
+        if (keyboard_translate.is_connected()) {
+            return &keyboard_translate;
+        } else {
+            return &joystick_translate;
+        }
     }
 }
 
@@ -35,9 +43,7 @@ void ArmInputs::joystick_l_callback (const core::msg::InputJoystick::SharedPtr m
     // More efficient, works if we only care about the most up-to-date message
     joystick_translate.joystick_l_callback(msg);
 
-    InputDevice& input_device = select_input_device();
-
-    CommonInputCollections::ControlSchemeInputs arm_lock_inputs = input_device.get_arm_lock_inputs();
+    CommonInputCollections::ControlSchemeInputs arm_lock_inputs = select_input_device()->get_arm_lock_inputs();
 
     // Set button-based data here so we don't miss any button-press events
     control_scheme.input_lock = arm_lock_inputs.input_lock;
@@ -84,11 +90,9 @@ void ArmInputs::publish_endeffector_inputs ()
 {
     // Create a new message
     auto message = core::msg::EndEffectorInput();
-    
-    InputDevice& input_device = select_input_device();
 
     // Get output from device
-    CommonInputCollections::EndEffectorInputs end_effector_inputs = input_device.get_end_effector_inputs();
+    CommonInputCollections::EndEffectorInputs end_effector_inputs = select_input_device()->get_end_effector_inputs();
 
     message.linear_actuation = end_effector_inputs.linear_actuation;
     message.end_effector_actuation = end_effector_inputs.end_effector_actuation;
@@ -100,8 +104,7 @@ void ArmInputs::publish_endeffector_inputs ()
 // Publishes joint velocity data
 void ArmInputs::publish_joint_velocities ()
 {   
-    InputDevice& input_device = select_input_device();
-    CommonInputCollections::JointVelocityInputs velocities = input_device.get_joint_velocity_inputs();
+    CommonInputCollections::JointVelocityInputs velocities = select_input_device()->get_joint_velocity_inputs();
 
     for (long unsigned int i = 0; i < sizeof(velocities.velocities)/sizeof(velocities.velocities[0]); i++) {
         joint_velocities.velocity[i] = velocities.velocities[i];
@@ -116,8 +119,7 @@ void ArmInputs::publish_joint_velocities ()
 // Publishes task velocity data
 void ArmInputs::publish_twist ()
 {
-    InputDevice& input_device = select_input_device();
-    CommonInputCollections::TwistInputs twist_inputs = input_device.get_twist_inputs();
+    CommonInputCollections::TwistInputs twist_inputs = select_input_device()->get_twist_inputs();
 
     twist.twist.linear.x = twist_inputs.linear.x;
     twist.twist.linear.y = twist_inputs.linear.y;
@@ -143,8 +145,7 @@ void ArmInputs::publish_inputs()
 // Publishes control scheme data
 void ArmInputs::publish_control_scheme()
 {   
-    InputDevice& input_device = select_input_device();
-    CommonInputCollections::ControlSchemeInputs control_scheme_inputs = input_device.get_control_scheme_inputs();
+    CommonInputCollections::ControlSchemeInputs control_scheme_inputs = select_input_device()->get_control_scheme_inputs();
 
     control_scheme.base_frame_offset = control_scheme_inputs.base_frame_offset;
     control_scheme.flat_frame_linear = control_scheme_inputs.flat_frame_linear;

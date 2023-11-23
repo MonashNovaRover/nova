@@ -93,8 +93,10 @@ class ArmInputs : public ArmConfigInfoClient
     JoystickTranslate joystick_translate;
     KeyboardTranslate keyboard_translate;
 
+    InputDevice* input_device;
+
     // Store the input device translators
-    InputDevice& select_input_device();
+    InputDevice* select_input_device();
 
     /// @brief      Callback function when input messages are received.
     /// @param      msg - A pointer to the input message
