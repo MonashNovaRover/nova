@@ -12,6 +12,9 @@ controller_manager:
     pivot_joint_trajectory_controller:
       type: joint_trajectory_controller/JointTrajectoryController
 
+    four_wheel_steering_controller:
+      type: four_wheel_steering_controller/FourWheelSteeringController
+
     joint_broad:
       type: joint_state_broadcaster/JointStateBroadcaster
 
@@ -50,5 +53,24 @@ pivot_joint_trajectory_controller:
     allow_partial_joints_goal: true
     open_loop_control: true
     
+four_wheel_steering_controller:
+  ros__parameters:
+    wheel_radius: 5.0
+    wheel_track: 5.0
+    wheelbase: 10.0
+    y_steering_offset: 5.0
+
+    #steering_controllers_library params
+    reference_timeout: 0.1
+    four_steering: true
+    front_steering: false
+    open_loop: false
+    velocity_rolling_window_size: 10
+    position_feedback: false
+    use_stamped_vel: true
+    rear_wheels_names: ["blw", "brw"]
+    front_wheels_names: ["flw", "frw"]
+    #wheels_names: ["blw", "brw", "flw", "frw"]
+    #steers_names: ["blp", "brp", "flp", "frp"]
 
   

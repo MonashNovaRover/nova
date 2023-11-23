@@ -55,6 +55,7 @@ def generate_launch_description():
         arguments=["-topic", "robot_description", "-entity", "Warratah"]
     )
 
+    '''
     wheel_velocity_controller = Node(
         package="controller_manager",
         executable="spawner",
@@ -66,13 +67,21 @@ def generate_launch_description():
         executable="spawner",
         arguments=["pivot_joint_trajectory_controller"]
     )
+    '''
+
+    four_wheel_steering_controller = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["four_wheel_steering_controller"]
+    )
 
     return LaunchDescription([
         model_arg,
         robot_state_publisher_node,
         gazebo,
         spawn_entity,
-        wheel_velocity_controller,
+        #wheel_velocity_controller,
         # pivot_position_controller,
-        pivot_joint_trajectory_controller,
+        #pivot_joint_trajectory_controller,
+        four_wheel_steering_controller,
     ])

@@ -39,55 +39,55 @@
         </joint>
 
         <joint name="flp">
-        <command_interface name="position">
-          <param name="min">-${pi}</param>
-          <param name="max">${pi}</param>
-        </command_interface>
-        <command_interface name="velocity">
-          <param name="min">-${pi}</param>
-          <param name="max">${pi}</param>
-        </command_interface>
-        <state_interface name="velocity"/>
-        <state_interface name="position"/>
+            <command_interface name="position">
+              <param name="min">-${pi}</param>
+              <param name="max">${pi}</param>
+            </command_interface>
+            <command_interface name="velocity">
+              <param name="min">-${pi}</param>
+              <param name="max">${pi}</param>
+            </command_interface>
+            <state_interface name="velocity"/>
+            <state_interface name="position"/>
         </joint>
 
         <joint name="frp">
-        <command_interface name="position">
-          <param name="min">-${pi}</param>
-          <param name="max">${pi}</param>
-        </command_interface>
-        <command_interface name="velocity">
-          <param name="min">-${pi}</param>
-          <param name="max">${pi}</param>
-        </command_interface>
-        <state_interface name="velocity"/>
-        <state_interface name="position"/>
+            <command_interface name="position">
+              <param name="min">-${pi}</param>
+              <param name="max">${pi}</param>
+            </command_interface>
+            <command_interface name="velocity">
+              <param name="min">-${pi}</param>
+              <param name="max">${pi}</param>
+            </command_interface>
+            <state_interface name="velocity"/>
+            <state_interface name="position"/>
         </joint>
 
         <joint name="blp">
-        <command_interface name="position">
-          <param name="min">-${pi}</param>
-          <param name="max">${pi}</param>
-        </command_interface>
-        <command_interface name="velocity">
-          <param name="min">-${pi}</param>
-          <param name="max">${pi}</param>
-        </command_interface>
-        <state_interface name="velocity"/>
-        <state_interface name="position"/>
+            <command_interface name="position">
+              <param name="min">-${pi}</param>
+              <param name="max">${pi}</param>
+            </command_interface>
+            <command_interface name="velocity">
+              <param name="min">-${pi}</param>
+              <param name="max">${pi}</param>
+            </command_interface>
+            <state_interface name="velocity"/>
+            <state_interface name="position"/>
         </joint>
 
         <joint name="brp">
-        <command_interface name="position">
-          <param name="min">-${pi}</param>
-          <param name="max">${pi}</param>
-        </command_interface>
-        <command_interface name="velocity">
-          <param name="min">-${pi}</param>
-          <param name="max">${pi}</param>
-        </command_interface>
-        <state_interface name="velocity"/>
-        <state_interface name="position"/>
+            <command_interface name="position">
+              <param name="min">-${pi}</param>
+              <param name="max">${pi}</param>
+            </command_interface>
+            <command_interface name="velocity">
+              <param name="min">-${pi}</param>
+              <param name="max">${pi}</param>
+            </command_interface>
+            <state_interface name="velocity"/>
+            <state_interface name="position"/>
         </joint>
 
     </ros2_control>
