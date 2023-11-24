@@ -3,9 +3,9 @@ import ARCExcavationConstructionView from "../views/arc/ARCEscavationConstructio
 import ARCMappingAutonomousView from "../views/arc/ARCMappingAutonomous";
 import ARCPostLandingView from "../views/arc/ARCPostLandingView";
 import ARCSpaceResourcesView from "../views/arc/ARCSpaceResourcesView";
-import ARCBaseView from "../views/base/ARCBaseView";
-import GeneralBaseView from "../views/base/GeneralBaseView";
-import URCBaseView from "../views/base/URCBaseView";
+import ARCBaseView from "../views/arc/ARCBaseView";
+import GeneralBaseView from "../views/general/GeneralBaseView";
+import URCBaseView from "../views/urc/URCBaseView";
 import URCAutonomousNavigationView from "../views/urc/URCAutonomousNavigationView";
 import URCDeliveryView from "../views/urc/URCDeliveryView";
 import URCEquipmentServicingView from "../views/urc/URCEquipmentServicingView";
@@ -58,6 +58,8 @@ export const urcRoutes: RouteObject[] = [
   },
 ];
 
+export const generalRoutes:RouteObject[]=[]
+
 export const routes: RouteObject[] = [
   {
     path: "/",
@@ -76,6 +78,7 @@ export const routes: RouteObject[] = [
       {
         path: "/general",
         element: <GeneralBaseView />,
+        children: generalRoutes
       },
     ],
   },
