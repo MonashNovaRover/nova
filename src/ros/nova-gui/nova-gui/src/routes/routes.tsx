@@ -58,7 +58,7 @@ export const urcRoutes: RouteObject[] = [
   },
 ];
 
-export const generalRoutes:RouteObject[]=[]
+export const generalRoutes: RouteObject[] = [];
 
 export const routes: RouteObject[] = [
   {
@@ -78,7 +78,7 @@ export const routes: RouteObject[] = [
       {
         path: "/general",
         element: <GeneralBaseView />,
-        children: generalRoutes
+        children: generalRoutes,
       },
     ],
   },

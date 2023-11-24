@@ -10,13 +10,15 @@ import {
   NavbarItem,
 } from "@nextui-org/react";
 import { ChevronDown, Settings } from "react-feather";
-import novaLogo from '../../assets/nova-logo.png'
+import novaLogo from "../../assets/nova-logo.png";
 
 export const NovaNavbar = () => {
   return (
     <Navbar maxWidth="full" isBordered position="static">
       <NavbarContent justify="start">
-        <NavbarBrand><img src={novaLogo} className="w-14"></img></NavbarBrand>
+        <NavbarBrand>
+          <img src={novaLogo} className="w-14"></img>
+        </NavbarBrand>
       </NavbarContent>
       <NavbarContent as="div" className="items-center" justify="end">
         <NavbarItem>
