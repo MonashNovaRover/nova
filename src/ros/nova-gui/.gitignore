@@ -1,0 +1,41 @@
+# Node.js
+/nova-gui/node_modules/
+
+# Build artifacts
+/nova-gui/build/
+/nova-gui/dist/
+
+# Dependency directories
+/nova-gui/jspm_packages/
+/nova-gui/bower_components/
+
+# IDE files
+/nova-gui/.idea/
+/nova-gui/.vscode/
+
+# Logs and databases
+/nova-gui/*.log
+/nova-gui/*.sqlite
+
+# Environment files
+.env
+
+# Build files
+/nova-gui/.DS_Store
+/nova-gui/Thumbs.db
+
+# Yarn
+/nova-gui/yarn-error.log
+
+# OS generated files
+/nova-gui/.DS_Store
+/nova-gui/.DS_Store?
+/nova-gui/._*
+/nova-gui/.Spotlight-V100
+/nova-gui/.Trashes
+/nova-gui/Icon?
+/nova-gui/ehthumbs.db
+/nova-gui/Thumbs.db
+
+# npm
+/nova-gui/npm-debug.log
