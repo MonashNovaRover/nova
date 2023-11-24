@@ -9,32 +9,21 @@ import {
   NavbarContent,
   NavbarItem,
 } from "@nextui-org/react";
-import { useEffect, useState } from "react";
 import { ChevronDown, Settings } from "react-feather";
-import { Ros } from "roslib";
+import novaLogo from '../../assets/nova-logo.png'
 
 export const NovaNavbar = () => {
-  const [connected, setConnected] = useState(false);
-
-  useEffect(() => {
-    const ros = new Ros({ url: "ws://localhost:9090" });
-
-    ros.on("connection", () => {
-      setConnected(true);
-    });
-  }, []);
-
   return (
     <Navbar maxWidth="full" isBordered position="static">
       <NavbarContent justify="start">
-        <NavbarBrand className="">Nova</NavbarBrand>
+        <NavbarBrand><img src={novaLogo} className="w-14"></img></NavbarBrand>
       </NavbarContent>
       <NavbarContent as="div" className="items-center" justify="end">
         <NavbarItem>
           <Dropdown placement="bottom-end">
             <DropdownTrigger>
               <Button radius="sm" color="success" size="sm" variant="shadow">
-                {connected ? "Connected" : "Connecting"}
+                Connected
               </Button>
             </DropdownTrigger>
             <DropdownMenu>
