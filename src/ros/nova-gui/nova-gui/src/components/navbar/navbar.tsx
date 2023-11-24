@@ -11,8 +11,9 @@ import {
 } from "@nextui-org/react";
 import { ChevronDown, Settings } from "react-feather";
 import novaLogo from "../../assets/nova-logo.png";
+import React from "react";
 
-export const NovaNavbar = () => {
+export const NovaNavbar: React.FC = () => {
   return (
     <Navbar maxWidth="full" isBordered position="static">
       <NavbarContent justify="start">
