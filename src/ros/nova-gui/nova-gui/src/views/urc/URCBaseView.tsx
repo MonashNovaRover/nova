@@ -1,6 +1,6 @@
 import React from "react";
 
-const ARCSpaceResourcesView: React.FC = () => {
+const URCBaseView: React.FC = () => {
   return (
     <div>
       <h1>Hello!</h1>
@@ -8,4 +8,4 @@ const ARCSpaceResourcesView: React.FC = () => {
   );
 };
 
-export default ARCSpaceResourcesView;
+export default URCBaseView;
