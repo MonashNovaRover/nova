@@ -5,7 +5,12 @@ export enum RosTopics {
   TALKER = "talker",
 }
 
-export interface RosTopicTypes {
+export const rosTopicMessages = {
+  [RosTopics.RADIO_STATUS]: "nova_msgs/radio",
+  [RosTopics.TALKER]: "nova_msgs/talker",
+};
+
+export interface RosTopicInterfaces {
   [RosTopics.TALKER]: ITalker;
   [RosTopics.RADIO_STATUS]: IRadioStatus;
 }

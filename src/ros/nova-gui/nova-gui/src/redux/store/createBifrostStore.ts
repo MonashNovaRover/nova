@@ -3,7 +3,7 @@ import {
   BifrostActionType,
   BifrostActionTypes,
 } from "../actions/createBifrostAction";
-import { RosTopicTypes, RosTopics } from "../../ros/topics";
+import { RosTopicInterfaces, RosTopics } from "../../ros/topics";
 
 export const createCustomReducer = <S>(initialState: S, handlers: any) => {
   const reducer = (state: S = initialState, action: any): S => {
@@ -18,12 +18,12 @@ export const createCustomReducer = <S>(initialState: S, handlers: any) => {
 
 export const createBifrostStore = (
   topic: RosTopics,
-  initialState: RosTopicTypes[typeof topic]
+  initialState: RosTopicInterfaces[typeof topic]
 ) => {
   const reducerFunctions = {
     [BifrostActionTypes.UPDATE_DATA + topic]: (
-      _: RosTopicTypes[typeof topic],
-      action: BifrostActionType<RosTopicTypes[typeof topic]>
+      _: RosTopicInterfaces[typeof topic],
+      action: BifrostActionType<RosTopicInterfaces[typeof topic]>
     ) => {
       action;
       return {
@@ -32,7 +32,7 @@ export const createBifrostStore = (
     },
   };
 
-  return createCustomReducer<RosTopicTypes[typeof topic]>(
+  return createCustomReducer<RosTopicInterfaces[typeof topic]>(
     initialState,
     reducerFunctions
   );

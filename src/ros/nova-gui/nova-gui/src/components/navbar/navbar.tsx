@@ -15,8 +15,6 @@ import React from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/models/RootState";
 import { useUIActions } from "../../redux/actions/useUIActions";
-import { useBifrostActions } from "../../redux/actions/useBifrostAction";
-import { RosTopics } from "../../ros/topics";
 import { BifrostConnectionStatus } from "../../redux/models/BifrostTypes";
 
 const connectionStatusColor: {
@@ -28,19 +26,12 @@ const connectionStatusColor: {
 };
 
 export const NovaNavbar: React.FC = () => {
-  const rosUrl = useSelector((state: RootState) => state.uiState.rosUrl);
+  const uiActions = useUIActions();
+  // const rosUrl = useSelector((state: RootState) => state.uiState.rosUrl);
 
   const bifrostStatus = useSelector(
     (state: RootState) => state.bifrostStatus.connectionStatus
   );
-
-  const uiActions = useUIActions();
-
-  const bifrostActions = useBifrostActions(RosTopics.RADIO_STATUS);
-
-  useEffect(() => {
-    bifrostActions.initiateContact(rosUrl);
-  }, [rosUrl]);
 
   return (
     <Navbar maxWidth="full" isBordered position="static">
