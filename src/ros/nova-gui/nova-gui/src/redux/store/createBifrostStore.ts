@@ -3,7 +3,7 @@ import {
   BifrostActionType,
   BifrostActionTypes,
 } from "../actions/createBifrostAction";
-import { RosTopicInterfaces, RosTopics } from "../../ros/topics";
+import { RosTopicInterfaces, RosTopics } from "../../ros/rosMessages";
 
 export const createCustomReducer = <S>(initialState: S, handlers: any) => {
   const reducer = (state: S = initialState, action: any): S => {

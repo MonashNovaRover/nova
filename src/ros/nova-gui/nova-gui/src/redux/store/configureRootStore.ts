@@ -1,5 +1,5 @@
 import { configureStore } from "@reduxjs/toolkit";
-import { rootReducer } from "../slices/RootReducer";
+import { rootReducer } from "../RootReducer";
 
 export default function configureRootStore() {
   const store = configureStore({

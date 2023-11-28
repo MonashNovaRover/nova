@@ -1,18 +1,17 @@
 import { Topic } from "roslib";
 import { BifrostConnectionStatus } from "../models/BifrostTypes";
-import {
-  RosTopics,
-  RosTopicInterfaces,
-  rosTopicMessages,
-} from "../../ros/topics";
-import { RootState } from "../models/RootState";
+import { RootState } from "../RootState";
 import { useContext } from "react";
 import { RosContext } from "../../RosRoot";
+import { RosTopicInterfaces } from "../../ros/rosTopicInterfaces";
+import { RosTopics } from "../../ros/rosTopics";
+import { rosMessages } from "../../ros/rosMessages";
 
 export enum BifrostActionTypes {
   UPDATE_DATA = "UPDATE_DATA_",
   INITIATE_CONTACT = "INITIATE_CONTACT",
   ESTABLISH_CONTACT = "ESTABLISH_CONTACT",
+  SUBSCRIBE_TOPIC = "SUBSCRIBE_TOPIC",
 }
 
 export interface BifrostActionType<P> {
@@ -36,6 +35,12 @@ export function createBifrostAction(topic: RosTopics) {
         payload: connectionStatus,
       });
     },
+    _updateSubscribedTopics(topic: RosTopics) {
+      return () => ({
+        type: BifrostActionTypes.SUBSCRIBE_TOPIC,
+        payload: topic,
+      });
+    },
     _updateState(object: RosTopicInterfaces[typeof topic]) {
       return async (dispatch: Function) => {
         dispatch(this._update(object));
@@ -56,12 +61,14 @@ export function createBifrostAction(topic: RosTopics) {
         const rosTopic = new Topic({
           ros: ros,
           name: topic.toString(),
-          messageType: rosTopicMessages[topic],
+          messageType: rosMessages[topic],
         });
 
         rosTopic.on("message", (message: RosTopicInterfaces[typeof topic]) => {
           dispatch(this._updateState(message));
         });
+
+        dispatch(this._updateSubscribedTopics(topic));
       };
     },
   };

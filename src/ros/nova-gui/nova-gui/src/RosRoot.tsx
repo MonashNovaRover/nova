@@ -2,19 +2,19 @@ import React, { createContext, useEffect, useState } from "react";
 import { Outlet } from "react-router-dom";
 import { SettingsModal } from "./components/settings/SettingsModal";
 import { NovaNavbar } from "./components/navbar/Navbar";
-import { useBifrostActions } from "./redux/actions/useBifrostAction";
-import { RosTopics } from "./ros/topics";
+import { useBifrost } from "./redux/actions/useBifrostAction";
 import ROSLIB, { Ros } from "roslib";
 import { BifrostConnectionStatus } from "./redux/models/BifrostTypes";
 import { useSelector } from "react-redux";
-import { RootState } from "./redux/models/RootState";
+import { RootState } from "./redux/RootState";
+import { RosTopics } from "./ros/rosTopics";
 
 export const RosContext = createContext<ROSLIB.Ros | undefined>(undefined);
 
 const RosProvider = (props: { children: React.ReactNode }) => {
   const uiStore = useSelector((state: RootState) => state.uiState);
   const [ros, setRos] = useState<ROSLIB.Ros | undefined>();
-  const bifrostActions = useBifrostActions(RosTopics.TALKER);
+  const bifrostActions = useBifrost(RosTopics.DEMO_TOPIC);
 
   useEffect(() => {
     bifrostActions.updateBifrostConnection(BifrostConnectionStatus.CONNECTING);

@@ -13,7 +13,7 @@ import { ChevronDown, Settings } from "react-feather";
 import novaLogo from "../../assets/nova-logo.png";
 import React from "react";
 import { useSelector } from "react-redux";
-import { RootState } from "../../redux/models/RootState";
+import { RootState } from "../../redux/RootState";
 import { useUIActions } from "../../redux/actions/useUIActions";
 import { BifrostConnectionStatus } from "../../redux/models/BifrostTypes";
 

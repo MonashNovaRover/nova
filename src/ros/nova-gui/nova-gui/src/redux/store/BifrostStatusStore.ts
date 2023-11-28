@@ -1,3 +1,4 @@
+import { RosTopics } from "../../ros/rosTopics";
 import {
   BifrostActionType,
   BifrostActionTypes,
@@ -15,10 +16,18 @@ export default function BifrostStatusStore() {
       state: BifrostStatus,
       action: BifrostActionType<BifrostConnectionStatus>
     ) => {
-      action;
       return {
         ...state,
         connectionStatus: action.payload,
+      };
+    },
+    [BifrostActionTypes.SUBSCRIBE_TOPIC]: (
+      state: BifrostStatus,
+      action: BifrostActionType<RosTopics>
+    ) => {
+      return {
+        ...state,
+        subscribedTopics: [...state.subsribedTopics, action.payload],
       };
     },
   };

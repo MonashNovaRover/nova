@@ -8,7 +8,7 @@ import {
   ModalHeader,
 } from "@nextui-org/react";
 import { useSelector } from "react-redux";
-import { RootState } from "../../redux/models/RootState";
+import { RootState } from "../../redux/RootState";
 import { useUIActions } from "../../redux/actions/useUIActions";
 
 export function SettingsModal() {
