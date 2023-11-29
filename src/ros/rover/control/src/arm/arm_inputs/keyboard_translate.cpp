@@ -8,7 +8,7 @@ AUTHOR(S):	Jess Hepworth, Jory Braun, Matthew Gu
 */
 
 #include "keyboard_translate.h"
-#include <linux/input.h>
+#include <SDL2/SDL.h>
 #include "print/print.h"
 
 KeyboardTranslate::KeyboardTranslate(): joint_twist_speed(0), end_effector_speed(0) {}
@@ -16,7 +16,7 @@ KeyboardTranslate::KeyboardTranslate(): joint_twist_speed(0), end_effector_speed
 CommonInputCollections::ControlSchemeInputs KeyboardTranslate::get_arm_lock_inputs() {
     control_scheme_inputs.control_scheme_update = false;
     // Arm lock
-    if (is_ctrl() && is_pressed(KEY_L)) {
+    if (is_pressed(ctrl(SDLK_l))) {
         if (!control_scheme_inputs.input_lock) {
             Print::print("Keyboard locked");
             control_scheme_inputs.input_lock = true;
@@ -28,7 +28,7 @@ CommonInputCollections::ControlSchemeInputs KeyboardTranslate::get_arm_lock_inpu
         control_scheme_inputs.control_scheme_update = true;
     }
     // Joint limits
-    if (is_ctrl() && is_pressed(KEY_ENTER)){
+    if (is_pressed(ctrl(SDLK_RETURN))){
         control_scheme_inputs.joint_limits = !control_scheme_inputs.joint_limits;
         control_scheme_inputs.control_scheme_update = true;
     }
@@ -40,10 +40,10 @@ CommonInputCollections::ControlSchemeInputs KeyboardTranslate::get_control_schem
     // Set base reference frame offset
     int8_t base_frame_offset = 0;
     // seems to only allow left or right? Not too sure. 
-    if (is_ctrl() && is_pressed(KEY_BACKSPACE)) {
+    if (is_pressed(ctrl(SDLK_BACKSPACE))) {
         base_frame_offset = -1;
     }
-    else if (is_ctrl() && is_pressed(KEY_DELETE)) {
+    else if (&& is_pressed(ctrl(SDLK_DELETE))) {
         base_frame_offset = 1;
     }
     control_scheme_inputs.base_frame_offset = base_frame_offset;
@@ -52,18 +52,18 @@ CommonInputCollections::ControlSchemeInputs KeyboardTranslate::get_control_schem
 
     // Control schemes
     // Flat frame control
-    control_scheme_inputs.flat_frame_linear = is_ctrl() && is_held(KEY_1);
-    control_scheme_inputs.flat_frame_angular = is_ctrl() && is_held(KEY_2);
+    control_scheme_inputs.flat_frame_linear = is_held(ctrl(SDLK_1));
+    control_scheme_inputs.flat_frame_angular = is_held(ctrl(SDLK_2));
     // Endpoint frame control. Hold trigger
     // Also set if flat frame control is used
-    control_scheme_inputs.endpoint_frame_linear = (is_ctrl() && is_held(KEY_3)) || control_scheme_inputs.flat_frame_linear;
-    control_scheme_inputs.endpoint_frame_angular = (is_ctrl() && is_held(KEY_4)) || control_scheme_inputs.flat_frame_angular;
+    control_scheme_inputs.endpoint_frame_linear = (is_held(ctrl(SDLK_3))) || control_scheme_inputs.flat_frame_linear;
+    control_scheme_inputs.endpoint_frame_angular = (is_held(ctrl(SDLK_4))) || control_scheme_inputs.flat_frame_angular;
     // IK. Hold inside thumb button.
     // Also set if endpoint frame control is used.
-    control_scheme_inputs.ik_linear = (is_ctrl() && is_held(KEY_5)) || control_scheme_inputs.endpoint_frame_linear;
-    control_scheme_inputs.ik_angular = (is_ctrl() && is_held(KEY_6)) || control_scheme_inputs.endpoint_frame_angular;
+    control_scheme_inputs.ik_linear = (is_held(ctrl(SDLK_5))) || control_scheme_inputs.endpoint_frame_linear;
+    control_scheme_inputs.ik_angular = (is_held(ctrl(SDLK_6))) || control_scheme_inputs.endpoint_frame_angular;
     // Set SPM roll handling. Hold back thumb button on right stick
-    control_scheme_inputs.use_spm_roll = is_ctrl() && is_held(KEY_7);
+    control_scheme_inputs.use_spm_roll = is_held(ctrl(SDLK_7));
 
     // Correction for position control - can't have independent linear and angular control
     if (control_scheme_inputs.position_control) {
@@ -76,12 +76,10 @@ CommonInputCollections::ControlSchemeInputs KeyboardTranslate::get_control_schem
 }
 
 CommonInputCollections::EndEffectorInputs KeyboardTranslate::get_end_effector_inputs() {
-    if (is_shift()) {
-        if (is_pressed(KEY_LEFT)) {
-            end_effector_speed = increase_speed(end_effector_speed);
-        } else if (is_pressed(KEY_RIGHT)) {
-            end_effector_speed = decrease_speed(end_effector_speed);
-        }
+    if (is_pressed(shift(KEY_LEFT))) {
+        end_effector_speed = increase_speed(end_effector_speed);
+    } else if (is_pressed(shift(KEY_RIGHT))) {
+        end_effector_speed = decrease_speed(end_effector_speed);
     }
 
     if (!control_scheme_inputs.input_lock){
@@ -93,13 +91,12 @@ CommonInputCollections::EndEffectorInputs KeyboardTranslate::get_end_effector_in
 }
 
 CommonInputCollections::JointVelocityInputs KeyboardTranslate::get_joint_velocity_inputs() {
-    if (is_shift()) {
-        if (is_pressed(KEY_UP)) {
-            joint_twist_speed = increase_speed(joint_twist_speed);
-        } else if (is_pressed(KEY_DOWN)) {
-            joint_twist_speed = decrease_speed(joint_twist_speed);
-        }
+    if (is_pressed(shift(KEY_UP))) {
+        joint_twist_speed = increase_speed(joint_twist_speed);
+    } else if (is_pressed(shift(KEY_DOWN))) {
+        joint_twist_speed = decrease_speed(joint_twist_speed);
     }
+
     float speed = joint_twist_speed * speed_multipliers.all_inputs;
     if (!control_scheme_inputs.input_lock && !control_scheme_inputs.ik_linear) {
         // No speed scaling for lower joints;
@@ -141,12 +138,10 @@ CommonInputCollections::JointVelocityInputs KeyboardTranslate::get_joint_velocit
 }
 
 CommonInputCollections::TwistInputs KeyboardTranslate::get_twist_inputs() {
-    if (is_shift()) {
-        if (is_pressed(KEY_UP)) {
-            joint_twist_speed = increase_speed(joint_twist_speed);
-        } else if (is_pressed(KEY_DOWN)) {
-            joint_twist_speed = decrease_speed(joint_twist_speed);
-        }
+    if (is_pressed(shift(KEY_UP))) {
+        joint_twist_speed = increase_speed(joint_twist_speed);
+    } else if (is_pressed(shift(KEY_DOWN))) {
+        joint_twist_speed = decrease_speed(joint_twist_speed);
     }
     float speed = joint_twist_speed * speed_multipliers.all_inputs;
     
@@ -201,16 +196,6 @@ bool KeyboardTranslate::is_connected()
     return keyboard.connected;
 }
 
-bool KeyboardTranslate::is_released(int key)
-{
-    for (long unsigned int i = 0; i < keyboard.keys_released.size(); i++) {
-        if (key == keyboard.keys_released[i]) {
-            return true;
-        }
-    }
-    return false;
-}
-
 bool KeyboardTranslate::is_pressed(int key)
 {
     for (long unsigned int i = 0; i < keyboard.keys_pressed.size(); i++) {
@@ -236,14 +221,19 @@ bool KeyboardTranslate::is_pressed_or_held(int key)
     return is_pressed(key) || is_held(key);
 }
 
-bool KeyboardTranslate::is_ctrl()
+int KeyboardTranslate::ctrl(int key)
 {
-    return is_pressed_or_held(KEY_LEFTCTRL) || is_pressed_or_held(KEY_RIGHTCTRL);
+    return key & CTRL_MASK;
 }
 
-bool KeyboardTranslate::is_shift()
+int KeyboardTranslate::shift(int key)
 {
-    return is_pressed_or_held(KEY_LEFTSHIFT) || is_pressed_or_held(KEY_RIGHTSHIFT);
+    return key & SHIFT_MASK;
+}
+
+int KeyboardTranslate::alt(int key)
+{
+    return key & ALT_MASK;
 }
 
 float KeyboardTranslate::increase_speed(float value)

@@ -27,6 +27,16 @@ Ask operator for key mapping
 class KeyboardTranslate: public InputDevice {
     //------------------------------------------------------------//
     private:
+
+    /// @brief The key mask for the control key
+    const static int CTRL_MASK = 1<<31;
+
+    /// @brief The key mask for the shift key
+    const static int SHIFT_MASK = 1<<30;
+
+    /// @brief The key mask for the alt key
+    const static int ALT_MASK = 1<<29;
+
     core::msg::InputKeyboard keyboard;
 
     const float speed_increment = 0.05f;
@@ -50,12 +60,12 @@ class KeyboardTranslate: public InputDevice {
     CommonInputCollections::JointVelocityInputs joint_velocity_inputs;
     CommonInputCollections::TwistInputs twist_inputs;
 
-    bool is_released(int key);
     bool is_pressed(int key);
     bool is_held(int key);
     bool is_pressed_or_held(int key);
-    bool is_ctrl();
-    bool is_shift();
+    int ctrl(int key);
+    int shift(int key);
+    int alt(int key);
 
     float increase_speed(float value);
     float decrease_speed(float value);
