@@ -5,38 +5,30 @@ Monash Nova Rover Team
 PACKAGE: 	control
 AUTHOR(S):	Matthew Gu 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-TODO: 
-Should I use an array or just individual keys for key states?
-Add capability to detect usb keyboards and select that as the input device (not doable yet due to being on VM)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
 #include "keyboard.h"
-#include <iostream>
-#include <stdio.h>
-#include <linux/input.h>
-#include <fcntl.h>
-#include <errno.h>
-#include <cstring>
-#include <unistd.h>
+#include "print.h"
+#include <SDL2/SDL.h>
 
-Keyboard::Keyboard(const char* devPath) : connected(false), reconnected(false), disconnected(false) {
-    devicePath = devPath;
-    // Open the keyboard input device, requires sudo, which breaks input_publisher
-    open_keyboard_device(devicePath);
+Keyboard::Keyboard() : connected(false), reconnected(false), disconnected(false) {
+    open_keyboard_device();
 }
 
-void Keyboard::open_keyboard_device(const char* devPath){
-    fd = open(devPath, O_RDONLY | O_NONBLOCK);
-    if (fd < 0) {
-        // most likely permission denied, read the errono and chmod 777 the device input file. 
-        cerr << "Error opening keyboard input device. " << strerror(errno) << endl;
-        connected = false;
-        return;
-    } else {
-        connected = true;
-        return;
+Keyboard::~Keyboard(void) {
+    SDL_Quit();
+}
+
+void Keyboard::open_keyboard_device() {
+    // Open the keyboard input device, requires sudo, which breaks input_publisher
+    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+        Print::print("Keyboard Input SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
     }
+    window = SDL_CreateWindow("Keyboard Input Window",
+                            SDL_WINDOWPOS_UNDEFINED,
+                            SDL_WINDOWPOS_UNDEFINED,
+                            DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT,
+                            SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN);
 }
 
 void Keyboard::set_message_values() {
@@ -50,30 +42,33 @@ void Keyboard::set_message_values() {
     }
 }
 
+
 void Keyboard::read_key_presses()
 {
-    // read the current input
-    struct input_event ev;
-    int num_read = 0;
-    while (read(fd, &ev, sizeof(ev)) != -1 && num_read < READ_CAP){
-        // Check for key presses
-        if (ev.type == EV_KEY) {
-            switch (ev.value)
-            {
-            case 0:
-                msg.keys_released.push_back(ev.code);
+    int event_count = 0;
+    while (SDL_PollEvent(&event) && ++event_count < READ_CAP) {
+        switch(event.type) {
+            // key released, not used in this project
+            case SDL_KEYUP:
                 break;
-            case 1:
-                msg.keys_pressed.push_back(ev.code);
+            // key down
+            case SDL_KEYDOWN:
+                // if key press
+                // See https://wiki.libsdl.org/SDL2/SDL_KeyboardEvent
+                if (event.key.repeat == 0) {
+                    msg.keys_pressed.push_back(key_mask(event.key.keysym));
+                }
+                // if key repeat
+                else {
+                    msg.keys_repeated.push_back(key_mask(event.key.keysym));
+                }
                 break;
-            case 2:
-                msg.keys_repeated.push_back(ev.code);
+            case SDL_QUIT:
+                SDL_Quit();
                 break;
-            default:
+            default: 
                 break;
-            }
         }
-        num_read++;
     }
 }
 
@@ -82,11 +77,11 @@ void Keyboard::update() {
     set_message_values();
 
     if (!connected) {
-        open_keyboard_device(devicePath);
+        open_keyboard_device();
     }
 
     // Get connected state
-    bool new_connected = (fd != -1);
+    bool new_connected = (SDL_GetWindowFlags(window) & SDL_WINDOW_SHOWN) != 0;
 
     // Look for reconnection
     if (!connected && new_connected)
@@ -102,6 +97,22 @@ void Keyboard::update() {
 
     // Updated the connection state
     connected = new_connected;
+}
+
+int Keyboard::key_mask(SDL_Keysym key) {
+    // virtual key code
+    int key_code = key.sym;
+    int mod = key.mod;
+    if (mod & KMOD_CTRL){
+        key_code |= CTRL_MASK;
+    }
+    if (mod & KMOD_SHIFT){
+        key_code |= SHIFT_MASK;
+    }
+    if (mod & KMOD_ALT){
+        key_code |= ALT_MASK;
+    }
+    return key_code;
 }
 
 // return the message object

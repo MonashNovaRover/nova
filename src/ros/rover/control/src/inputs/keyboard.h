@@ -4,18 +4,22 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team
 
-TODO: Add description, and refactor to InputDevices
-interface 
-
+This code uses SDL2 to detect inputs from the keyboard
+See https://wiki.libsdl.org/SDL_KeyboardEvent for more info
+This code requires the message types from the core
+    repository.
+Previous version uses Linux Input for synchronous sampling, 
+    and was replaced as that required sudo permission. 
+Requires InputKeyboard message type from core. 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	control
 AUTHOR(S):	Matthew Gu
 CREATION:	23/09/2023
-EDITED:		30/09/2023
+EDITED:		29/10/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-
+#include <SDL2/SDL.h>
 #include "core/msg/input_keyboard.hpp"
 
 // Use the standard namespace
@@ -27,8 +31,6 @@ class Keyboard {
     /// @brief      Stores the message data from the joystick
     core::msg::InputKeyboard msg;
 
-    const char* devicePath;
-
     /// @brief      A flag for whether the keyboard is connected
     bool connected;
     /// @brief      A flag for whether this frame the keyboard connected                   
@@ -36,18 +38,32 @@ class Keyboard {
     /// @brief      A flag for whether this frame the keyboard disconnected
     bool disconnected;                      
 
-    /// @brief    The file descriptor for the keyboard input device
-    int fd;
+    /// @brief    The SDL window instance created for reading
+    SDL_Window* window;
+
+    /// @brief   The SDL event instance created for reading
+    SDL_Event event;
+
+    /// @brief  The SDL initial window width
+    const static int DEFAULT_WINDOW_WIDTH = 640;
+
+    /// @brief The SDL initial window height
+    const static int DEFAULT_WINDOW_HEIGHT = 480;
 
     /// @brief Cap the number of keys to read to avoid infinite loop (last 8 key presses)
     const static int READ_CAP = 8;
 
-    //------------------------------------------------------------//
-    protected:
+    /// @brief The key mask for the control key
+    const static int CTRL_MASK = 1<<31;
+
+    /// @brief The key mask for the shift key
+    const static int SHIFT_MASK = 1<<30;
+
+    /// @brief The key mask for the alt key
+    const static int ALT_MASK = 1<<29;
 
     /// @brief      Opens the keyboard input device
-    /// @param      devPath the path to the keyboard input device
-    void open_keyboard_device(const char* devPath);
+    void open_keyboard_device();
 
     /// @brief      Sets the message values stored in the message object
     void set_message_values();
@@ -55,11 +71,17 @@ class Keyboard {
     /// @brief     Grabs all key presses generated since last sampling
     void read_key_presses();
 
+    /// @brief     Returns the key after anded with masks
+    int key_mask(SDL_Keysym key);
+
     //------------------------------------------------------------//
 	public:
 
     /// @brief      Constructor that finds and intialzes the device
-    Keyboard(const char* devPath);
+    Keyboard();
+
+    /// @brief     Destructor that closes the device
+    ~Keyboard();
 
     /// @brief      Updates the input data and stores data to the message object
     void update();
