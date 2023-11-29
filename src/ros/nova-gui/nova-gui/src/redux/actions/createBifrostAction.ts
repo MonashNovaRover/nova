@@ -24,7 +24,9 @@ export function createBifrostAction(topic: RosTopics, ros?: Ros) {
     ): () => BifrostActionType<RosTopicInterfaces[typeof topic]> {
       return () => ({
         type: BifrostActionTypes.UPDATE_DATA.toString() + topic.toString(),
-        payload: object,
+        // @ts-ignore
+        // Todo: Force Serialze Object (wkt this one does't have any functions)
+        payload: object as {[key:string]:any},
       });
     },
     _updateBifrostConnectionStatus(connectionStatus: BifrostConnectionStatus) {
@@ -41,7 +43,7 @@ export function createBifrostAction(topic: RosTopics, ros?: Ros) {
     },
     _updateState(object: RosTopicInterfaces[typeof topic]) {
       return async (dispatch: Function) => {
-        dispatch(this._update(object));
+        dispatch(this._update(object as RosTopicInterfaces[typeof topic]));
       };
     },
     updateBifrostConnection(connectionStatus: BifrostConnectionStatus) {
@@ -60,6 +62,7 @@ export function createBifrostAction(topic: RosTopics, ros?: Ros) {
           messageType: rosMessages[topic],
         });
 
+        rosTopic.subscribe(()=>console.log(`Subscribed to ${topic}`))
         rosTopic.on("message", (message: RosTopicInterfaces[typeof topic]) => {
           dispatch(this._updateState(message));
         });

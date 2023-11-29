@@ -3,7 +3,6 @@ import { RosTopics } from "../../ros/rosTopics";
 import { useBifrost } from "../../redux/actions/useBifrostAction";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/RootState";
-import { RosContext } from "../../RosRoot";
 
 const URCBaseView: React.FC = () => {
   const bifrost = useBifrost(RosTopics.BLCMD_STATUS);
