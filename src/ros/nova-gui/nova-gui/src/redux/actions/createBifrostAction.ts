@@ -52,7 +52,6 @@ export function createBifrostAction(topic: RosTopics, ros?: Ros) {
     syncWithRover() {
       return (dispatch: Function, getState: () => RootState) => {
         const state = getState();
-
         if (state.bifrostStatus.subsribedTopics.includes(topic) || !ros) return;
 
         const rosTopic = new Topic({

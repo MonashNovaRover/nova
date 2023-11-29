@@ -1,7 +1,7 @@
 import React, { createContext, useEffect, useState } from "react";
 import { Outlet } from "react-router-dom";
 import { SettingsModal } from "./components/settings/SettingsModal";
-import { NovaNavbar } from "./components/navbar/Navbar";
+import { NovaNavbar } from "./components/navbar/navbar";
 import { useBifrost } from "./redux/actions/useBifrostAction";
 import ROSLIB, { Ros } from "roslib";
 import { BifrostConnectionStatus } from "./redux/models/BifrostTypes";

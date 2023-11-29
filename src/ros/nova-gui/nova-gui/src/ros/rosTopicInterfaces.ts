@@ -1,5 +1,5 @@
 import { RosTopics } from "./rosTopics";
-import { IRosDemoMessage } from "./rosMessageTypes";
+import { IRosBLCMDStatusMessage, IRosDemoMessage } from "./rosMessageTypes";
 
 /**
  * This Interface exists to link Individual topics to The Messages.
@@ -10,4 +10,5 @@ import { IRosDemoMessage } from "./rosMessageTypes";
  */
 export interface RosTopicInterfaces {
   [RosTopics.DEMO_TOPIC]: IRosDemoMessage;
+  [RosTopics.BLCMD_STATUS]:IRosBLCMDStatusMessage;
 }

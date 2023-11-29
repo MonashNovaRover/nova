@@ -8,4 +8,5 @@
 
 export enum RosTopics {
   DEMO_TOPIC = "topics/demo",
+  BLCMD_STATUS='/blcmd_status'
 }

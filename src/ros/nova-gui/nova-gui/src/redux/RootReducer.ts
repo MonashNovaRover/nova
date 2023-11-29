@@ -7,4 +7,5 @@ export const rootReducer = {
   uiState: uiSlice.reducer,
   bifrostStatus: BifrostStatusStore(),
   demoStore: createBifrostStore(RosTopics.DEMO_TOPIC, {}),
+  blcmdStore: createBifrostStore(RosTopics.BLCMD_STATUS,{}),
 };
