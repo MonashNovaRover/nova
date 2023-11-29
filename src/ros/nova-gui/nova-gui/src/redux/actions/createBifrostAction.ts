@@ -1,8 +1,6 @@
-import { Topic } from "roslib";
+import { Ros, Topic } from "roslib";
 import { BifrostConnectionStatus } from "../models/BifrostTypes";
 import { RootState } from "../RootState";
-import { useContext } from "react";
-import { RosContext } from "../../RosRoot";
 import { RosTopicInterfaces } from "../../ros/rosTopicInterfaces";
 import { RosTopics } from "../../ros/rosTopics";
 import { rosMessages } from "../../ros/rosMessages";
@@ -19,7 +17,7 @@ export interface BifrostActionType<P> {
   payload: P;
 }
 
-export function createBifrostAction(topic: RosTopics) {
+export function createBifrostAction(topic: RosTopics, ros?: Ros) {
   return {
     _update(
       object: RosTopicInterfaces[typeof topic]
@@ -53,7 +51,6 @@ export function createBifrostAction(topic: RosTopics) {
     },
     syncWithRover() {
       return (dispatch: Function, getState: () => RootState) => {
-        const ros = useContext(RosContext);
         const state = getState();
 
         if (state.bifrostStatus.subsribedTopics.includes(topic) || !ros) return;

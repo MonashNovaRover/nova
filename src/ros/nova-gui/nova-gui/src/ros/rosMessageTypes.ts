@@ -7,10 +7,8 @@
  * Consider `demo_msg.msg` consisting of
  *
  * string info
- * int32 info_id
  *
  */
 export interface IRosDemoMessage {
-  info: string;
-  info_id: number;
+  data: string;
 }
