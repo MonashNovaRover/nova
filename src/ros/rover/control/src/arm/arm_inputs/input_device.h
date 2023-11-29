@@ -13,12 +13,6 @@ AUTHOR(S):	Matthew Gu
 CREATION:	23/09/2023
 EDITED:		30/09/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-TODO:
-High: Make the set_message function take in a message type
-    instead of a variadic template as the non typed 
-    arguments is not safe
-Low: Should std::any be used here? or the shared_ptr<void>?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
 #include "common_input_collections.h"

@@ -9,9 +9,10 @@ messages into common arm input messages.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	control
-AUTHOR(S):	Matthew Gu
+AUTHOR(S):	Jess Hepworth, Jory Braun
+MODIFIED:	Matthew Gu
 CREATION:	09/10/2023
-EDITED:		18/10/2023
+EDITED:		29/11/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 

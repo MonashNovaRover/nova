@@ -11,7 +11,7 @@ messages into common arm input messages.
 PACKAGE: 	control
 AUTHOR(S):	Matthew Gu
 CREATION:	23/09/2023
-EDITED:		30/09/2023
+EDITED:		29/11/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
 Ask operator for key mapping
@@ -28,6 +28,7 @@ class KeyboardTranslate: public InputDevice {
     //------------------------------------------------------------//
     private:
 
+    // below constants need to match the key from inputs/keyboard.h
     /// @brief The key mask for the control key
     const static int CTRL_MASK = 1<<31;
 

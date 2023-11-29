@@ -23,12 +23,7 @@ ACTIONS:  None
 PACKAGE: 	control
 AUTHOR(S):  Jess Hepworth, Jory Braun, Matthew Gu
 CREATION:	02/12/2021
-EDITED:		18/10/2023
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-TODO:
-Maybe use unique pointers for the translators?
-Find out why we are doing arm lock detection in callback
+EDITED:		29/11/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Note:
 Current implementation updates all devices regardless 
