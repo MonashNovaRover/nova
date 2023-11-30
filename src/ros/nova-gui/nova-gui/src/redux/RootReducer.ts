@@ -7,11 +7,8 @@ export const rootReducer = {
   uiState: uiSlice.reducer,
   bifrostStatus: BifrostStatusStore(),
   demoStore: createBifrostStore(RosTopics.DEMO_TOPIC, { data: "" }),
-  blcmdStore: createBifrostStore(RosTopics.BLCMD_STATUS, {
-    gate_fault: false,
-    id: 1,
-    overspeed_fault: true,
-    resolver_fault: false,
-    stall_fault: true,
+  poseStore: createBifrostStore(RosTopics.POSE, {
+    orientation: { x: 0, y: 0, z: 0, w: 0 },
+    position: { x: 0, y: 0, z: 0 },
   }),
 };

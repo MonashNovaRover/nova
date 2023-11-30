@@ -10,5 +10,5 @@ import { RosTopics } from "./rosTopics";
  */
 export const rosMessages = {
   [RosTopics.DEMO_TOPIC]: "custom_msgs/demo_msg",
-  [RosTopics.BLCMD_STATUS]: "core/msg/BLCMDStatus",
+  [RosTopics.POSE]: "geometry_msgs/msg/Pose",
 };

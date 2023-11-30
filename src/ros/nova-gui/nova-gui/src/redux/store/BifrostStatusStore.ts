@@ -12,7 +12,7 @@ import { createCustomReducer } from "./createBifrostStore";
 
 export default function BifrostStatusStore() {
   const reducerFunctions = {
-    [BifrostActionTypes.ESTABLISH_CONTACT]: (
+    [BifrostActionTypes.CONNECTION_UPDATE]: (
       state: BifrostStatus,
       action: BifrostActionType<BifrostConnectionStatus>
     ) => {

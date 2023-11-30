@@ -8,7 +8,7 @@ import { rosMessages } from "../../ros/rosMessages";
 export enum BifrostActionTypes {
   UPDATE_DATA = "UPDATE_DATA_",
   INITIATE_CONTACT = "INITIATE_CONTACT",
-  ESTABLISH_CONTACT = "ESTABLISH_CONTACT",
+  CONNECTION_UPDATE = "CONNECTION_UPDATE",
   SUBSCRIBE_TOPIC = "SUBSCRIBE_TOPIC",
 }
 
@@ -29,7 +29,7 @@ export function createBifrostAction(topic: RosTopics, ros?: Ros) {
     },
     _updateBifrostConnectionStatus(connectionStatus: BifrostConnectionStatus) {
       return () => ({
-        type: BifrostActionTypes.ESTABLISH_CONTACT,
+        type: BifrostActionTypes.CONNECTION_UPDATE,
         payload: connectionStatus,
       });
     },
@@ -40,7 +40,7 @@ export function createBifrostAction(topic: RosTopics, ros?: Ros) {
       });
     },
     _updateState(object: RosTopicInterfaces[typeof topic]) {
-      return async (dispatch: Function) => {
+      return (dispatch: Function) => {
         dispatch(this._update(object as RosTopicInterfaces[typeof topic]));
       };
     },
@@ -61,9 +61,10 @@ export function createBifrostAction(topic: RosTopics, ros?: Ros) {
           messageType: rosMessages[topic],
         });
 
-        rosTopic.subscribe(() => console.log(`Subscribed to ${topic}`));
+        rosTopic.subscribe(() => {});
+
         rosTopic.on("message", (message: RosTopicInterfaces[typeof topic]) => {
-          dispatch(this._updateState(message));
+          this._updateState(message);
         });
 
         dispatch(this._updateSubscribedTopics(topic));

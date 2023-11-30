@@ -1,10 +1,11 @@
-import { IRosBLCMDStatusMessage, IRosDemoMessage } from "../ros/rosMessageTypes";
+import { IRosDemoMessage, IRosPose } from "../ros/rosMessageTypes";
 import { BifrostStatus } from "./models/BifrostTypes";
 import { UIState } from "./models/UIState";
 
 export interface RootState {
+  // Essential UI Management States
   uiState: UIState;
   bifrostStatus: BifrostStatus;
-  demo: IRosDemoMessage;
-  blcmdStore: IRosBLCMDStatusMessage;
+  // Bifrost States. Ros Messages go here
+  poseStore: IRosPose;
 }

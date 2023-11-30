@@ -13,10 +13,16 @@ export interface IRosDemoMessage {
   data: string;
 }
 
-export interface IRosBLCMDStatusMessage{
-  gate_fault:boolean;
-  stall_fault:boolean;
-  resolver_fault: boolean;
-  overspeed_fault: boolean;
-  id: number;
+export interface IRosPose {
+  position: {
+    x: number;
+    y: number;
+    z: number;
+  };
+  orientation: {
+    x: number;
+    y: number;
+    z: number;
+    w: number;
+  };
 }
