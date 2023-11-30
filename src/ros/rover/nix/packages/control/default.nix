@@ -43,6 +43,8 @@ buildRosPackage {
     orocos-kdl
     systemd
     nova-core
+    SDL2
+    SDL2.dev
   ];
 
   propagatedBuildInputs = with pythonPackages; [

@@ -11,11 +11,14 @@ if(Eigen3_FOUND AND Orocos_kdl_FOUND)
   find_package(geometry_msgs REQUIRED)
   find_package(nav_msgs REQUIRED)
   find_package(std_srvs REQUIRED)
+  # Needed for keyboard input
+  find_package(SDL2 REQUIRED)
 
   # Additional includes for Eigen adn KDL
   include_directories(
     ${EIGEN3_INCLUDE_DIRS}
     include
+    ${SDL2_INCLUDE_DIRS}
   )
 
 
@@ -68,7 +71,7 @@ if(Eigen3_FOUND AND Orocos_kdl_FOUND)
   add_library(keyboard_translate arm_inputs/keyboard_translate.cpp)
   target_link_libraries(keyboard_translate print)
   target_include_directories(keyboard_translate PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/arm_inputs)
-  ament_target_dependencies(keyboard_translate core)
+  ament_target_dependencies(keyboard_translate core SDL2)
 
   ################################################
   # Add executables:
