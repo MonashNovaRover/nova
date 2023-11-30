@@ -24,9 +24,7 @@ export function createBifrostAction(topic: RosTopics, ros?: Ros) {
     ): () => BifrostActionType<RosTopicInterfaces[typeof topic]> {
       return () => ({
         type: BifrostActionTypes.UPDATE_DATA.toString() + topic.toString(),
-        // @ts-ignore
-        // Todo: Force Serialze Object (wkt this one does't have any functions)
-        payload: object as {[key:string]:any},
+        payload: { ...object },
       });
     },
     _updateBifrostConnectionStatus(connectionStatus: BifrostConnectionStatus) {
@@ -54,7 +52,8 @@ export function createBifrostAction(topic: RosTopics, ros?: Ros) {
     syncWithRover() {
       return (dispatch: Function, getState: () => RootState) => {
         const state = getState();
-        if (state.bifrostStatus.subsribedTopics.includes(topic) || !ros) return;
+        if (state.bifrostStatus.subscribedTopics.includes(topic) || !ros)
+          return;
 
         const rosTopic = new Topic({
           ros: ros,
@@ -62,7 +61,7 @@ export function createBifrostAction(topic: RosTopics, ros?: Ros) {
           messageType: rosMessages[topic],
         });
 
-        rosTopic.subscribe(()=>console.log(`Subscribed to ${topic}`))
+        rosTopic.subscribe(() => console.log(`Subscribed to ${topic}`));
         rosTopic.on("message", (message: RosTopicInterfaces[typeof topic]) => {
           dispatch(this._updateState(message));
         });

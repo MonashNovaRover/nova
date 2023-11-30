@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from "react";
+import React, { useEffect } from "react";
 import { RosTopics } from "../../ros/rosTopics";
 import { useBifrost } from "../../redux/actions/useBifrostAction";
 import { useSelector } from "react-redux";
@@ -8,11 +8,11 @@ const URCBaseView: React.FC = () => {
   const bifrost = useBifrost(RosTopics.BLCMD_STATUS);
   const blcmdStore = useSelector((state: RootState) => state.blcmdStore);
 
-  useEffect(()=>{
-    bifrost.syncWithRover()
-  },[])
+  useEffect(() => {
+    bifrost.syncWithRover();
+  }, []);
 
-  if(!blcmdStore) return <>Loading</>;
+  if (!blcmdStore) return <>Loading</>;
   return (
     <div>
       <div>BLCMD ID: {blcmdStore.id}</div>

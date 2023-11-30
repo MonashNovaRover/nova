@@ -3,7 +3,7 @@ import { createBifrostAction } from "./createBifrostAction";
 import { bindActionCreators } from "@reduxjs/toolkit";
 import { RosTopics } from "../../ros/rosTopics";
 import { useContext } from "react";
-import { RosContext } from "../../RosRoot";
+import { RosContext } from "../context/RosContext";
 
 export const useBifrost = (topic: RosTopics) => {
   const ros = useContext(RosContext);

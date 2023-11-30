@@ -8,10 +8,10 @@ export enum BifrostConnectionStatus {
 
 export interface BifrostStatus {
   connectionStatus: BifrostConnectionStatus;
-  subsribedTopics: RosTopics[];
+  subscribedTopics: RosTopics[];
 }
 
 export const initalBifrostState: BifrostStatus = {
   connectionStatus: BifrostConnectionStatus.DISCONNECTED,
-  subsribedTopics: [],
+  subscribedTopics: [],
 };

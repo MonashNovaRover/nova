@@ -27,7 +27,7 @@ export default function BifrostStatusStore() {
     ) => {
       return {
         ...state,
-        subscribedTopics: [...state.subsribedTopics, action.payload],
+        subscribedTopics: [...state.subscribedTopics, action.payload],
       };
     },
   };
