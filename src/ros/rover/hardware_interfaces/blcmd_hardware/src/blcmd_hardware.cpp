@@ -58,10 +58,7 @@ hardware_interface::CallbackReturn BLCMDHardware::on_init(
 
     can_id_ = std::stoi(canid_search->second);
 
-    bus_ = leigh::jcan::new_bus();
-    can_setup();
-
-    for (const auto& interface : info_.joints[0].command_interfaces){
+        for (const auto& interface : info_.joints[0].command_interfaces){
         if(!set_control_interface(interface, true)){
             return CallbackReturn::ERROR;
         }
@@ -74,6 +71,9 @@ hardware_interface::CallbackReturn BLCMDHardware::on_init(
     }
 
     control_mode_ = blcmd_hardware::ControlMode::Undefined;
+	
+    bus_ = leigh::jcan::new_bus();
+    can_setup();
 
     return CallbackReturn::SUCCESS;
 }
@@ -179,6 +179,7 @@ std::vector<hardware_interface::CommandInterface> BLCMDHardware::export_command_
 hardware_interface::CallbackReturn BLCMDHardware::on_activate(
         const rclcpp_lifecycle::State & /*previous_state*/)
 {
+    RCLCPP_INFO(rclcpp::get_logger(BLCMDHardwareLoggerName), "Activating BLCMD %d", can_id_);
     bus_->set_callbacks_enabled(true);
     return CallbackReturn::SUCCESS;
 }
@@ -395,11 +396,17 @@ bool BLCMDHardware::set_control_interface(
 
     void BLCMDHardware::can_setup() {
         std::vector<uint32_t> ids = {make_can_id(BLCMDReceiveCommand::CONFIG_DATA)};
-        if (hw_velocity_.state.has_value() || hw_effort_.state.has_value())
+                if (hw_velocity_.state.has_value() || hw_effort_.state.has_value()) {
             ids.push_back(make_can_id(TelemetryPacket::PACKET_1));
-        if (hw_position_.state.has_value())
+            RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                               "Adding filter id " << make_can_id(TelemetryPacket::PACKET_1));
+        }
+        if (hw_position_.state.has_value()) {
             ids.push_back(make_can_id(TelemetryPacket::PACKET_3));
-        bus_->set_id_filter(ids);
+            RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                               "Adding filter id " << make_can_id(TelemetryPacket::PACKET_3));
+        }
+	bus_->set_id_filter(ids);
         if (hw_velocity_.state.has_value() || hw_effort_.state.has_value())
             bus_->add_callback_to(make_can_id(TelemetryPacket::PACKET_1), this, &BLCMDHardware::packet_1_callback);
         if (hw_position_.state.has_value())
@@ -426,10 +433,13 @@ bool BLCMDHardware::set_control_interface(
     }
 
     void BLCMDHardware::packet_1_callback(leigh::jcan::Frame frame) {
-    RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
-                        "Received packet 1 with data " << frame.data[0] << " " << frame.data[1] << " " <<
-                        frame.data[2] << " " << frame.data[3]);
-    if(hw_velocity_.state.has_value()) hw_velocity_.state = convert_scaled<int16_t>(&frame.data[0], hw_velocity_.max);
+        RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                        "Received packet 1 with data "
+                                << std::hex << std::setw(2) << frame.data[0] << " "
+                                << std::hex << std::setw(2) << frame.data[1] << " "
+                                << std::hex << std::setw(2) << frame.data[2] << " "
+                                << std::hex << std::setw(2) << frame.data[3]);
+	    if(hw_velocity_.state.has_value()) hw_velocity_.state = convert_scaled<int16_t>(&frame.data[0], hw_velocity_.max);
     if(hw_effort_.state.has_value()) hw_effort_.state = convert_scaled<int16_t>(&frame.data[2], hw_effort_.max);
     }
 
@@ -448,9 +458,9 @@ bool BLCMDHardware::set_control_interface(
 
     template<typename T>
     T BLCMDHardware::from_bytes(const uint8_t *bytes) {
-        T data;
-        for(unsigned int i = 0; i < sizeof(T); i++) {
-            ((uint8_t*)&data)[i] = bytes[i];
+        T data = bytes[0];
+        for(unsigned int i = 1; i < sizeof(T); i++) {
+            data = data << 8 | bytes[i];
         }
         return data;
     }

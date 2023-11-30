@@ -5,7 +5,7 @@
         <hardware>
             <plugin>blcmd_hardware/BLCMDHardware</plugin>
             <param name="candevice">can0</param>
-            <param name="canid">1</param>
+            <param name="canid">2</param>
         </hardware>
 
         <joint name="flw">
@@ -21,7 +21,7 @@
 
             <state_interface name="velocity">
                 <param name="min">-5</param>
-                <param name="max">5</param>
+                <param name="max">6</param>
             </state_interface>
         </joint>
     </ros2_control>
