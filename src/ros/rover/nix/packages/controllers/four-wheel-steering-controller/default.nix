@@ -20,7 +20,7 @@ buildRosPackage {
 
   src = builtins.path rec {
     name = "four_wheel_steering_controller-source";
-    path = ../../../../controllers/ros2_controllers_fixit_davide/four_wheel_steering_controller;
+    path = ../../../../controllers/ros2_controllers/four_wheel_steering_controller;
     filter = lib.novaSourceFilter [ ] path;
   };
 
@@ -37,7 +37,7 @@ buildRosPackage {
     (steering-controllers-library.overrideAttrs {
       src = builtins.path rec {
         name = "steering_controllers_library-source";
-        path = ../../../../controllers/ros2_controllers_fixit_davide/steering_controllers_library;
+        path = ../../../../controllers/ros2_controllers/steering_controllers_library;
         filter = lib.novaSourceFilter [ ] path;
       };
     })
