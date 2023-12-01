@@ -8,10 +8,10 @@ AUTHOR(S):	Matthew Gu
 */
 
 #include "keyboard.h"
-#include "print.h"
+#include "print/print.h"
 #include <SDL2/SDL.h>
 
-Keyboard::Keyboard() : connected(false), reconnected(false), disconnected(false) {
+Keyboard::Keyboard() : connected(false), reconnected(false), disconnected(true) {
     open_keyboard_device();
 }
 
@@ -25,10 +25,17 @@ void Keyboard::open_keyboard_device() {
         Print::print("Keyboard Input SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
     }
     window = SDL_CreateWindow("Keyboard Input Window",
-                            SDL_WINDOWPOS_UNDEFINED,
-                            SDL_WINDOWPOS_UNDEFINED,
-                            DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT,
-                            SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN);
+                    SDL_WINDOWPOS_UNDEFINED,
+                    SDL_WINDOWPOS_UNDEFINED,
+                    DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT,
+                    SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN);
+    if (window == NULL) {
+        Print::print("Keyboard Input could not create window! SDL_Error: %s\n", SDL_GetError());
+        connected = false;
+    }
+    else {
+        connected = true;
+    }
 }
 
 void Keyboard::set_message_values() {
@@ -37,7 +44,6 @@ void Keyboard::set_message_values() {
     if (msg.connected){
         msg.keys_pressed.clear();
         msg.keys_repeated.clear();
-        msg.keys_released.clear();
         read_key_presses();
     }
 }
@@ -64,6 +70,7 @@ void Keyboard::read_key_presses()
                 }
                 break;
             case SDL_QUIT:
+                SDL_DestroyWindow(window);
                 SDL_Quit();
                 break;
             default: 
@@ -81,7 +88,7 @@ void Keyboard::update() {
     }
 
     // Get connected state
-    bool new_connected = (SDL_GetWindowFlags(window) & SDL_WINDOW_SHOWN) != 0;
+    bool new_connected = (window != NULL);
 
     // Look for reconnection
     if (!connected && new_connected)

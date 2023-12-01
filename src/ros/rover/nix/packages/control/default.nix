@@ -14,6 +14,7 @@
 , systemd
 , pythonPackages
 , nova-core
+, SDL2
 }:
 
 buildRosPackage {
