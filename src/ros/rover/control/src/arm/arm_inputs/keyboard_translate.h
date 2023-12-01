@@ -40,7 +40,7 @@ class KeyboardTranslate: public InputDevice {
 
     core::msg::InputKeyboard keyboard;
 
-    const float speed_increment = 0.05f;
+    const float speed_increment = 0.01f;
     float joint_twist_speed;
     float end_effector_speed;
 
