@@ -4,6 +4,6 @@ export interface UIState {
 }
 
 export const initialUIState: UIState = {
-  rosUrl: "ws://192.168.1.5:9090",
+  rosUrl: "ws://localhost:9090",
   settingsModalOpen: false,
 };

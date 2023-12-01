@@ -1,4 +1,4 @@
-import { IRosDemoMessage, IRosPose } from "../ros/rosMessageTypes";
+import { IRosPose } from "../ros/rosMessageTypes";
 import { BifrostStatus } from "./models/BifrostTypes";
 import { UIState } from "./models/UIState";
 
