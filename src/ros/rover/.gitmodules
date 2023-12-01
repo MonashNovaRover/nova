@@ -9,4 +9,4 @@
 	url = https://github.com/Fixit-Davide/ros2_controllers.git
 [submodule "controllers/ros2_controllers"]
 	path = controllers/ros2_controllers
-	url = git@github.com:dylan-gonzalez/ros2_controllers.git
+	url = git@github.com:MonashNovaRover/ros2_controllers.git

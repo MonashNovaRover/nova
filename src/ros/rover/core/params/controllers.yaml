@@ -68,9 +68,11 @@ four_wheel_steering_controller:
     velocity_rolling_window_size: 10
     position_feedback: false
     use_stamped_vel: true
-    rear_wheels_names: ["blw", "brw"]
-    front_wheels_names: ["flw", "frw"]
-    #wheels_names: ["blw", "brw", "flw", "frw"]
-    #steers_names: ["blp", "brp", "flp", "frp"]
+      #rear_wheels_names: ["brw", "blw"]
+      #front_wheels_names: ["frw","flw"]
+    wheels_names: ["blw", "brw", "flw", "frw"]
+    steers_names: ["blp", "brp", "flp", "frp"]
+    rear_wheels_state_names: ["blw", "brw"] 
+    front_wheels_state_names: ["flw", "frw"]
 
   
