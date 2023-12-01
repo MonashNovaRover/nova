@@ -17,7 +17,9 @@
 , nova-gui-frontend ? throw "gui-frontend is needed, but not available!"
 , nova-gui-frontend-server ? throw "gui-frontend-server is needed, but not available!"
 , nova-blcmd-hardware ? throw "nova-rover_hardware is needed, but not available!"
-, nova-four-wheel-steering-controller ? throw "nova-four-wheel-steering-controller is needed, but not available!"
+#, nova-four-wheel-steering-controller ? throw "nova-four-wheel-steering-controller is needed, but not available!"
+#, nova-four-steering-controller ? throw "nova-four-steering-controller is needed, but not available!"
+, nova-pivot-drive-controller ? throw "nova-pivot-drive-controller is needed, but not available!"
 
   # Configuration options
   ## Include graphical applications in the workspace.
@@ -40,7 +42,9 @@
       nova-gui-backend
       nova-gui-frontend
       nova-blcmd-hardware
-      nova-four-wheel-steering-controller;
+      #nova-four-wheel-steering-controller
+      #nova-four-steering-controller;
+      nova-pivot-drive-controller;
   }
 
   ## Extra packages to add to the workspace.
