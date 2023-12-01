@@ -50,9 +50,6 @@ class Keyboard {
     /// @brief The SDL initial window height
     const static int DEFAULT_WINDOW_HEIGHT = 480;
 
-    /// @brief Cap the number of keys to read to avoid infinite loop (last 8 key presses)
-    const static int READ_CAP = 8;
-
     /// @brief The key mask for the control key
     const static int CTRL_MASK = 1<<31;
 

@@ -11,9 +11,7 @@ AUTHOR(S):	Matthew Gu
 #include "print/print.h"
 #include <SDL2/SDL.h>
 
-Keyboard::Keyboard() : connected(false), reconnected(false), disconnected(true) {
-    open_keyboard_device();
-}
+Keyboard::Keyboard() : connected(false), reconnected(false), disconnected(false) {}
 
 Keyboard::~Keyboard(void) {
     SDL_Quit();
@@ -31,10 +29,6 @@ void Keyboard::open_keyboard_device() {
                     SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN);
     if (window == NULL) {
         Print::print("Keyboard Input could not create window! SDL_Error: %s\n", SDL_GetError());
-        connected = false;
-    }
-    else {
-        connected = true;
     }
 }
 
@@ -52,7 +46,7 @@ void Keyboard::set_message_values() {
 void Keyboard::read_key_presses()
 {
     int event_count = 0;
-    while (SDL_PollEvent(&event) && ++event_count < READ_CAP) {
+    while (SDL_PollEvent(&event)) {
         switch(event.type) {
             // key released, not used in this project
             case SDL_KEYUP:
@@ -71,7 +65,6 @@ void Keyboard::read_key_presses()
                 break;
             case SDL_QUIT:
                 SDL_DestroyWindow(window);
-                SDL_Quit();
                 break;
             default: 
                 break;
