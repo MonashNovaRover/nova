@@ -11,7 +11,7 @@ and converts them to arm input messages.
 PACKAGE: 	control
 AUTHOR(S):	Matthew Gu
 CREATION:	23/09/2023
-EDITED:		30/09/2023
+EDITED:		02/12/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
@@ -40,9 +40,6 @@ class InputDevice {
     /// @brief returns whether the device is connected
     virtual bool is_connected() = 0;
 
-    // Should find a way to set message as well, but I cannot find a common base class for messages. 
-    // Maybe use std::any or std::variant? not supported in c++ version used though
-    
     /// @brief     Resets the message of the input device
     virtual void reset_message() = 0;
 };

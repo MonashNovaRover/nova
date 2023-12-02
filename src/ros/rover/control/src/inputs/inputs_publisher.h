@@ -15,7 +15,7 @@ SERVICES: None
 ACTIONS:  None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	  control
-AUTHOR(S):	Harrison Verrios
+AUTHOR(S):	Harrison Verrios, Matthew Gu
 CREATION:	  13/11/2021
 EDITED:		  24/11/2021
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

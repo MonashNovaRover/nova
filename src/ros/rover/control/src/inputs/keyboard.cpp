@@ -43,7 +43,8 @@ void Keyboard::set_message_values() {
 
 
 void Keyboard::read_key_presses()
-{
+{   
+    // poll and update keys
     while (SDL_PollEvent(&event)) {
         switch(event.type) {
             // key presses

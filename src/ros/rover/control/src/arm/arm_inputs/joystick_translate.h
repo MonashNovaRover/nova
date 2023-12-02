@@ -55,8 +55,10 @@ class JoystickTranslate: public InputDevice {
     //------------------------------------------------------------//
     public:
 
+    /// @brief      Constructor for the joystick translator
     JoystickTranslate();
 
+    // See input_device.h for documentation
     CommonInputCollections::ControlSchemeInputs get_arm_lock_inputs() override;
 
     CommonInputCollections::ControlSchemeInputs get_control_scheme_inputs() override;
@@ -69,8 +71,12 @@ class JoystickTranslate: public InputDevice {
 
     bool is_connected();
 
+    /// @brief  Callback for the left joystick message
+    /// @param msg - the joystick message 
     void joystick_l_callback(core::msg::InputJoystick::SharedPtr msg);
 
+    /// @brief  Callback for the right joystick message
+    /// @param msg - the joystick message
     void joystick_r_callback(core::msg::InputJoystick::SharedPtr msg);
     
     void reset_message();

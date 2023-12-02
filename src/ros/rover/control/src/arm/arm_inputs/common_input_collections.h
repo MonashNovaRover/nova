@@ -16,6 +16,7 @@ EDITED:		18/10/2023
 #include <cstdint>
 class CommonInputCollections {    
     public:
+    // Collection of twist inputs
     typedef struct {
         float x; 
         float y; 
@@ -51,8 +52,7 @@ class CommonInputCollections {
     typedef struct {
         float velocities [6];
     } JointVelocityInputs;
-    
-        
+    // Twist inputs
     typedef struct{
         Twist linear;
         Twist angular;

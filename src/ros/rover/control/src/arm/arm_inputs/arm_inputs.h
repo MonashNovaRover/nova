@@ -23,7 +23,7 @@ ACTIONS:  None
 PACKAGE: 	control
 AUTHOR(S):  Jess Hepworth, Jory Braun, Matthew Gu
 CREATION:	02/12/2021
-EDITED:		29/11/2023
+EDITED:		02/12/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Note:
 Current implementation updates all devices regardless 
@@ -88,9 +88,11 @@ class ArmInputs : public ArmConfigInfoClient
     JoystickTranslate joystick_translate;
     KeyboardTranslate keyboard_translate;
 
+    /// @brief     Input device selected
     InputDevice* input_device;
 
-    // Store the input device translators
+    /// @brief     Selects the input device to use
+    /// @return    A pointer to the input device
     InputDevice* select_input_device();
 
     /// @brief      Callback function when input messages are received.
