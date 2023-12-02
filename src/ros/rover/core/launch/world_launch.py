@@ -29,7 +29,6 @@ from launch_ros.substitutions import FindPackageShare
 # Generate the launch file with all inputs
 def generate_launch_description():
     core_dir = get_package_share_directory('core')
-    bringup_dir = get_package_share_directory('nova_nav2_bringup')
     default_model_path = core_dir + '/urdf/rover.urdf.xacro'
 
     namespace = LaunchConfiguration('namespace')
