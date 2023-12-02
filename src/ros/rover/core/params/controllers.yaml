@@ -1,0 +1,54 @@
+controller_manager:
+  ros__parameters:
+    update_rate: 30
+    use_sim_time: true
+
+    wheel_velocity_controller:
+      type: velocity_controllers/JointGroupVelocityController
+
+    pivot_position_controller:
+      type: position_controllers/JointGroupPositionController
+
+    pivot_joint_trajectory_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+
+    joint_broad:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+wheel_velocity_controller:
+  ros__parameters:
+    joints:
+      - flw
+      - blw
+      - brw
+      - frw
+
+pivot_position_controller:
+  ros__parameters:
+    joints:
+      - flp
+      - blp
+      - brp
+      - frp
+
+pivot_joint_trajectory_controller:
+  ros__parameters:
+    joints:
+      - flp
+      - blp
+      - brp
+      - frp
+    
+    command_interfaces:
+      - position
+      - velocity
+
+    state_interfaces:
+      - position
+      - velocity
+
+    allow_partial_joints_goal: true
+    open_loop_control: true
+    
+
+  

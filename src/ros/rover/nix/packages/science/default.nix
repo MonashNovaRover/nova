@@ -6,6 +6,7 @@
 , rclpy
 , geometry-msgs
 , nav-msgs
+, trajectory-msgs
 , nova-core
 }:
 
@@ -21,7 +22,7 @@ buildRosPackage {
 
   nativeBuildInputs = [ ament-cmake ];
 
-  buildInputs = [ rclcpp rclpy geometry-msgs nav-msgs nova-core ];
+  buildInputs = [ rclcpp rclpy geometry-msgs nav-msgs trajectory-msgs nova-core ];
 
   propagatedBuildInputs = with pythonPackages; [
     jcan
