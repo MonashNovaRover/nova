@@ -69,7 +69,7 @@ class Keyboard {
     void read_key_presses();
 
     /// @brief     Returns the key after anded with masks
-    int key_mask(SDL_Keysym key);
+    uint32_t key_mask(SDL_Keycode key, SDL_Keymod mod);
 
     //------------------------------------------------------------//
 	public:

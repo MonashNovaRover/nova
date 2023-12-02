@@ -45,22 +45,12 @@ void Keyboard::set_message_values() {
 
 void Keyboard::read_key_presses()
 {
-    int event_count = 0;
     while (SDL_PollEvent(&event)) {
         switch(event.type) {
-            // key released, not used in this project
-            case SDL_KEYUP:
-                break;
-            // key down
+            // key presses
             case SDL_KEYDOWN:
-                // if key press
-                // See https://wiki.libsdl.org/SDL2/SDL_KeyboardEvent
                 if (event.key.repeat == 0) {
-                    msg.keys_pressed.push_back(key_mask(event.key.keysym));
-                }
-                // if key repeat
-                else {
-                    msg.keys_repeated.push_back(key_mask(event.key.keysym));
+                    msg.keys_pressed.push_back(key_mask(event.key.keysym.sym, event.key.keysym.mod));
                 }
                 break;
             case SDL_QUIT:
@@ -68,6 +58,13 @@ void Keyboard::read_key_presses()
                 break;
             default: 
                 break;
+        }
+    }
+    int num_keys;
+    const uint8_t* state = SDL_GetKeyboardState(&num_keys);
+    for (int i = 0; i < num_keys; i++) {
+        if (state[i]) {
+            msg.keys_repeated.push_back(key_mask(SDL_GetKeyFromScancode(i), SDL_GetModState()));
         }
     }
 }
@@ -99,10 +96,9 @@ void Keyboard::update() {
     connected = new_connected;
 }
 
-int Keyboard::key_mask(SDL_Keysym key) {
+uint32_t Keyboard::key_mask(SDL_Keycode key, SDL_Keymod mod) {
     // virtual key code
-    int key_code = key.sym;
-    int mod = key.mod;
+    uint32_t key_code = key;
     if (mod & KMOD_CTRL){
         key_code |= CTRL_MASK;
     }
