@@ -6,6 +6,6 @@ export interface RootState {
   // Essential UI Management States
   uiState: UIState;
   bifrostStatus: BifrostStatus;
-  // Bifrost States. Ros Messages go here
+  // Bifrost States. Ros Stores go here
   poseStore: IRosPose;
 }

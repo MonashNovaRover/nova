@@ -9,6 +9,6 @@ import { RosTopics } from "./rosTopics";
  * "custom_msgs/demo_msgs" comes purely from ROS
  */
 export const rosMessages = {
-  [RosTopics.DEMO_TOPIC]: "custom_msgs/demo_msg",
+  [RosTopics.NULL_TOPIC]: "",
   [RosTopics.POSE]: "geometry_msgs/msg/Pose",
 };

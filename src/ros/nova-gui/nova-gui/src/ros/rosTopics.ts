@@ -7,6 +7,8 @@
  */
 
 export enum RosTopics {
-  DEMO_TOPIC = "topics/demo",
+  // NULL TOPIC to Test Rosbridge Connections
+  NULL_TOPIC = "",
+  // ROS Topics
   POSE = "/pose",
 }
