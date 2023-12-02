@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <ros2_control name="GazeboSystem" type="system">
+        <hardware>
+            <plugin>gazebo_ros2_control/GazeboSystem</plugin>
+        </hardware>
+
+        <joint name='flw'>
+            <command_interface name="velocity">
+                <param name="min">-50</param>
+                <param name="max">50</param>
+            </command_interface>
+            <state_interface name="velocity"/>
+        </joint>
+
+        <joint name='frw'>
+            <command_interface name="velocity">
+                <param name="min">-50</param>
+                <param name="max">50</param>
+            </command_interface>
+            <state_interface name="velocity"/>
+        </joint>
+
+        <joint name='blw'>
+            <command_interface name="velocity">
+                <param name="min">-50</param>
+                <param name="max">50</param>
+            </command_interface>
+            <state_interface name="velocity"/>
+        </joint>
+
+        <joint name='brw'>
+            <command_interface name="velocity">
+                <param name="min">-50</param>
+                <param name="max">50</param>
+            </command_interface>
+            <state_interface name="velocity"/>
+        </joint>
+
+        <joint name="flp">
+            <command_interface name="position">
+                <param name="min">-${pi}</param>
+                <param name="max">${pi}</param>
+            </command_interface>
+            <command_interface name="velocity">
+                <param name="min">-${pi}</param>
+                <param name="max">${pi}</param>
+            </command_interface>
+            <state_interface name="velocity"/>
+            <state_interface name="position"/>
+        </joint>
+
+        <joint name="frp">
+            <command_interface name="position">
+                <param name="min">-${pi}</param>
+                <param name="max">${pi}</param>
+            </command_interface>
+            <command_interface name="velocity">
+                <param name="min">-${pi}</param>
+                <param name="max">${pi}</param>
+            </command_interface>
+            <state_interface name="velocity"/>
+            <state_interface name="position"/>
+        </joint>
+
+        <joint name="blp">
+            <command_interface name="position">
+                <param name="min">-${pi}</param>
+                <param name="max">${pi}</param>
+            </command_interface>
+            <command_interface name="velocity">
+                <param name="min">-${pi}</param>
+                <param name="max">${pi}</param>
+            </command_interface>
+            <state_interface name="velocity"/>
+            <state_interface name="position"/>
+        </joint>
+
+        <joint name="brp">
+            <command_interface name="position">
+                <param name="min">-${pi}</param>
+                <param name="max">${pi}</param>
+            </command_interface>
+            <command_interface name="velocity">
+                <param name="min">-${pi}</param>
+                <param name="max">${pi}</param>
+            </command_interface>
+            <state_interface name="velocity"/>
+            <state_interface name="position"/>
+        </joint>
+
+    </ros2_control>
+
+    <gazebo>
+        <plugin filename="libgazebo_ros2_control.so" name="gazebo_ros2_control">
+            <parameters>$(find core)/params/controllers.yaml</parameters>
+        </plugin>
+    </gazebo>
+
+
+</robot>
