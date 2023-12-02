@@ -1,6 +1,6 @@
 controller_manager:
   ros__parameters:
-    update_rate: 1
+    update_rate: 10 
     use_sim_time: false
 
     wheel_velocity_controller:

@@ -179,7 +179,7 @@ std::vector<hardware_interface::CommandInterface> BLCMDHardware::export_command_
 hardware_interface::CallbackReturn BLCMDHardware::on_activate(
         const rclcpp_lifecycle::State & /*previous_state*/)
 {
-    RCLCPP_INFO(rclcpp::get_logger(BLCMDHardwareLoggerName), "Activating BLCMD %d", can_id_);
+    //RCLCPP_INFO(rclcpp::get_logger(BLCMDHardwareLoggerName), "Activating BLCMD %d", can_id_);
     bus_->set_callbacks_enabled(true);
     return CallbackReturn::SUCCESS;
 }
@@ -433,20 +433,11 @@ bool BLCMDHardware::set_control_interface(
     }
 
     void BLCMDHardware::packet_1_callback(leigh::jcan::Frame frame) {
-        RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
-                        "Received packet 1 with data "
-                                << std::hex << std::setw(2) << frame.data[0] << " "
-                                << std::hex << std::setw(2) << frame.data[1] << " "
-                                << std::hex << std::setw(2) << frame.data[2] << " "
-                                << std::hex << std::setw(2) << frame.data[3]);
 	    if(hw_velocity_.state.has_value()) hw_velocity_.state = convert_scaled<int16_t>(&frame.data[0], hw_velocity_.max);
     if(hw_effort_.state.has_value()) hw_effort_.state = convert_scaled<int16_t>(&frame.data[2], hw_effort_.max);
     }
 
     void BLCMDHardware::packet_3_callback(leigh::jcan::Frame frame) {
-        RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
-                            "Received packet 2 with data " << frame.data[0] << " " << frame.data[1] << " " <<
-                                                           frame.data[2] << " " << frame.data[3]);
         if(hw_position_.state.has_value()) hw_position_.state = convert_scaled<int16_t>(&frame.data[0], hw_position_.max)*
                 hw_position_.resolver_reduction;
     }
