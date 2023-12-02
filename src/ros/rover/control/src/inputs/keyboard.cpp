@@ -18,7 +18,6 @@ Keyboard::~Keyboard(void) {
 }
 
 void Keyboard::open_keyboard_device() {
-    // Open the keyboard input device, requires sudo, which breaks input_publisher
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         Print::print("Keyboard Input SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
     }
@@ -50,7 +49,7 @@ void Keyboard::read_key_presses()
             // key presses
             case SDL_KEYDOWN:
                 if (event.key.repeat == 0) {
-                    msg.keys_pressed.push_back(key_mask(event.key.keysym.sym, event.key.keysym.mod));
+                    msg.keys_pressed.push_back(key_mask(event.key.keysym.scancode, event.key.keysym.mod));
                 }
                 break;
             case SDL_QUIT:
@@ -60,11 +59,11 @@ void Keyboard::read_key_presses()
                 break;
         }
     }
-    int num_keys;
-    const uint8_t* state = SDL_GetKeyboardState(&num_keys);
-    for (int i = 0; i < num_keys; i++) {
+    state = SDL_GetKeyboardState(&num_keys);
+    uint16_t mod = SDL_GetModState();
+    for (uint16_t i = 0; i < num_keys; i++) {
         if (state[i]) {
-            msg.keys_repeated.push_back(key_mask(SDL_GetKeyFromScancode(i), SDL_GetModState()));
+            msg.keys_repeated.push_back(key_mask(i, mod));
         }
     }
 }
@@ -96,7 +95,7 @@ void Keyboard::update() {
     connected = new_connected;
 }
 
-uint32_t Keyboard::key_mask(SDL_Keycode key, SDL_Keymod mod) {
+uint32_t Keyboard::key_mask(uint8_t key, uint16_t mod) {
     // virtual key code
     uint32_t key_code = key;
     if (mod & KMOD_CTRL){

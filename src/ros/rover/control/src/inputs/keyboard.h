@@ -44,6 +44,12 @@ class Keyboard {
     /// @brief   The SDL event instance created for reading
     SDL_Event event;
 
+    /// @brief  A snapshot of the on the keyboard
+    const uint8_t* state;
+
+    /// @brief  The number of key events read
+    int num_keys;
+
     /// @brief  The SDL initial window width
     const static int DEFAULT_WINDOW_WIDTH = 640;
 
@@ -69,7 +75,7 @@ class Keyboard {
     void read_key_presses();
 
     /// @brief     Returns the key after anded with masks
-    uint32_t key_mask(SDL_Keycode key, SDL_Keymod mod);
+    uint32_t key_mask(uint8_t key, uint16_t mod);
 
     //------------------------------------------------------------//
 	public:
