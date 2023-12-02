@@ -500,7 +500,7 @@
     <child
       link="front_right_wheel" />
     <axis
-      xyz="1 0 0" />
+      xyz="-1 0 0" />
   </joint>
   <link
     name="back_right_pivot">
@@ -612,7 +612,7 @@
     <child
       link="back_right_wheel" />
     <axis
-      xyz="1 0 0" />
+      xyz="-1 0 0" />
   </joint>
 
   <xacro:include filename="ros2_control.xacro" />
