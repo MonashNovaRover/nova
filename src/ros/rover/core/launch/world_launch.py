@@ -28,9 +28,9 @@ from launch_ros.substitutions import FindPackageShare
 
 # Generate the launch file with all inputs
 def generate_launch_description():
-    core_path = get_package_share_path('core')
+    core_dir = get_package_share_directory('core')
     bringup_dir = get_package_share_directory('nova_nav2_bringup')
-    default_model_path = core_path / 'urdf/rover.urdf.xacro'
+    default_model_path = core_dir + '/urdf/rover.urdf.xacro'
 
     namespace = LaunchConfiguration('namespace')
     pose = {'x': LaunchConfiguration('x_pose', default='-2.00'),
@@ -45,6 +45,11 @@ def generate_launch_description():
 
     model_arg = DeclareLaunchArgument(name='model', default_value=str(default_model_path),
             description='Absolute path to robot urdf file')
+
+    robot_name_arg = DeclareLaunchArgument(
+        'robot_name',
+        default_value='Waratah',
+        description='name of the robot')
 
     namespace_arg = DeclareLaunchArgument(
         'namespace',
@@ -62,7 +67,7 @@ def generate_launch_description():
         #              https://github.com/ROBOTIS-GIT/turtlebot3_simulations/issues/91
         # default_value=os.path.join(get_package_share_directory('turtlebot3_gazebo'),
         # worlds/turtlebot3_worlds/waffle.model')
-        default_value=PathJoinSubstitution([bringup_dir, 'worlds', 'model.sdf']),
+        default_value=PathJoinSubstitution([core_dir, 'worlds', 'urc_er.model']),
         description='Full path to world model file to load')
 
     robot_description = ParameterValue(Command(['xacro ', LaunchConfiguration('model')]),
@@ -72,13 +77,6 @@ def generate_launch_description():
         package='robot_state_publisher',
         executable='robot_state_publisher',
         parameters=[{'robot_description': robot_description}]
-    )
-
-    gazebo = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            [PathJoinSubstitution([FindPackageShare("gazebo_ros"), "launch", "gazebo.launch.py"])]
-        ),
-        launch_arguments={"verbose": "false"}.items(),
     )
 
     gazebo_dir = get_package_share_directory('gazebo_ros')
@@ -93,12 +91,7 @@ def generate_launch_description():
         condition=UnlessCondition(headless),
     )
 
-    spawn_entity = Node(
-        package='gazebo_ros',
-        executable='spawn_entity.py',
-        arguments=["-topic", "robot_description", "-entity", "Warratah"]
-    )
-    start_gazebo_spawner_cmd = Node(
+    spawn_rover_cmd = Node(
         package='gazebo_ros',
         executable='spawn_entity.py',
         output='screen',
@@ -110,38 +103,14 @@ def generate_launch_description():
             '-R', pose['R'], '-P', pose['P'], '-Y', pose['Y']])
 
 
-    '''
-    wheel_velocity_controller = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["wheel_velocity_controller"]
-    )
-
-    pivot_joint_trajectory_controller = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["pivot_joint_trajectory_controller"]
-    )
-    '''
-
-    four_wheel_steering_controller = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["four_wheel_steering_controller"]
-    )
-
     return LaunchDescription([
         model_arg,
+        robot_name_arg,
         namespace_arg,
         headless_arg,
         world_arg,
         robot_state_publisher_node,
         start_gazebo_server_cmd,
         start_gazebo_client_cmd,
-        #gazebo,
-        spawn_entity,
-        #wheel_velocity_controller,
-        # pivot_position_controller,
-        #pivot_joint_trajectory_controller,
-        four_wheel_steering_controller,
+        spawn_rover_cmd,
     ])
