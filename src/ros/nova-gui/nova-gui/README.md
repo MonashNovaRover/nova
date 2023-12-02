@@ -50,7 +50,7 @@ The Streaming of data from Topics involves communicating to ROS topics through R
 
 The first step to narrow down the topics which publish data of interest. Inspect [ros/rosTopics.ts](./src/ros/rosTopics.ts) to check if Bifrost is aware of this topic.
 
-If the topic of interest isin't listed on [ros/rosTopics.ts](./src/ros/rosTopics.ts), refer to this section for adding the topic to Bifrost.
+If the topic of interest isin't listed on [ros/rosTopics.ts](./src/ros/rosTopics.ts), refer to [this](../docs/bifrost.md#bifrost-topics) section for adding the topic to Bifrost.
 
 Once the Topic is made available to bifrost, the store has to be created to store the information on redux. Refer to this section for instructions on how to create the store.
 
