@@ -31,8 +31,6 @@
 
 namespace blcmd_hardware
 {
-constexpr const char * BLCMDHardwareLoggerName = "BLCMDHardware";
-
 struct PIConfig {
     int16_t kp;
     int16_t ki_ts;
@@ -137,6 +135,8 @@ public:
         const std::vector<std::string> & stop_interfaces) override;
 
 private:
+    std::string BLCMDHardwareLoggerName;
+
     ControlInterface hw_velocity_;
     PositionInterface hw_position_;
     ControlInterface hw_effort_;

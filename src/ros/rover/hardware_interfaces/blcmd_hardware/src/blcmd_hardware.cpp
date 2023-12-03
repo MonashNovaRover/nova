@@ -32,6 +32,8 @@ hardware_interface::CallbackReturn BLCMDHardware::on_init(
       return CallbackReturn::ERROR;
     }
 
+    BLCMDHardwareLoggerName = info_.name;
+
     if (info_.joints.size() != 1)
     {
       RCLCPP_FATAL_STREAM(
@@ -179,7 +181,6 @@ std::vector<hardware_interface::CommandInterface> BLCMDHardware::export_command_
 hardware_interface::CallbackReturn BLCMDHardware::on_activate(
         const rclcpp_lifecycle::State & /*previous_state*/)
 {
-    //RCLCPP_INFO(rclcpp::get_logger(BLCMDHardwareLoggerName), "Activating BLCMD %d", can_id_);
     bus_->set_callbacks_enabled(true);
     return CallbackReturn::SUCCESS;
 }
@@ -398,13 +399,9 @@ bool BLCMDHardware::set_control_interface(
         std::vector<uint32_t> ids = {make_can_id(BLCMDReceiveCommand::CONFIG_DATA)};
                 if (hw_velocity_.state.has_value() || hw_effort_.state.has_value()) {
             ids.push_back(make_can_id(TelemetryPacket::PACKET_1));
-            RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
-                               "Adding filter id " << make_can_id(TelemetryPacket::PACKET_1));
         }
         if (hw_position_.state.has_value()) {
             ids.push_back(make_can_id(TelemetryPacket::PACKET_3));
-            RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
-                               "Adding filter id " << make_can_id(TelemetryPacket::PACKET_3));
         }
 	bus_->set_id_filter(ids);
         if (hw_velocity_.state.has_value() || hw_effort_.state.has_value())
