@@ -22,6 +22,7 @@ Ask operator for key mapping, specifically the frame controls
 #include "core/msg/input_keyboard.hpp"
 
 #include <memory>
+#include <string>
 
 class KeyboardTranslate: public InputDevice {
     //------------------------------------------------------------//
@@ -29,13 +30,16 @@ class KeyboardTranslate: public InputDevice {
 
     // below constants need to match the key from inputs/keyboard.h
     /// @brief  The key mask for the control key
-    const static int CTRL_MASK = 1<<31;
+    const static uint32_t CTRL_MASK = 1<<31;
 
     /// @brief  The key mask for the shift key
-    const static int SHIFT_MASK = 1<<30;
+    const static uint32_t SHIFT_MASK = 1<<30;
 
     /// @brief The key mask for the alt key
-    const static int ALT_MASK = 1<<29;
+    const static uint32_t ALT_MASK = 1<<29;
+
+    /// @brief Buffer for messages to print
+    std::string message = "";
 
     /// @brief  The keyboard message
     core::msg::InputKeyboard keyboard;
@@ -79,50 +83,50 @@ class KeyboardTranslate: public InputDevice {
     /// @brief  Searches for if a key is pressed
     /// @param  key SDL Scancode of the key, OR'd with masks
     /// @return Returns true if the key is pressed
-    bool is_pressed(int key);
+    bool is_pressed(uint32_t key);
 
     /// @brief  Searches for if a key is held
     /// @param  key SDL Scancode of the key, OR'd with masks
     /// @return Returns true if the key is held
-    bool is_held(int key);
+    bool is_held(uint32_t key);
 
     /// @brief  Searches for if a key is pressed or held
     /// @param  key SDL Scancode of the key, OR'd with masks
     /// @return Returns true if the key is pressed or held
-    bool is_pressed_or_held(int key);
+    bool is_pressed_or_held(uint32_t key);
 
     /// @brief Toggles the given control input, and sets the update flag
-    /// @param toggle The control message to toggle
-    /// @param key Corresponding key to check
-    /// @return the toggled output
-    bool toggle_control(bool toggle, int key);
+    /// @param field_name The name of the field to toggle
+    /// @param value The value of the field to toggle
+    /// @param key The key to toggle the field with
+    void toggle_control(std::string field_name, bool& value, uint32_t key)
 
     // Function below allows separation of ctrl+key and key
 
     /// @brief  Ctrl masks a key
     /// @param  key SDL Scancode of the key
     /// @return Returns the key with control masked
-    int ctrl(int key);
+    uint32_t ctrl(uint32_t key);
 
     /// @brief  Shift masks a key
     /// @param  key SDL Scancode of the key
     /// @return Returns the key with shift masked
-    int shift(int key);
+    uint32_t shift(uint32_t key);
 
     /// @brief  Alt masks a key
     /// @param  key SDL Scancode of the key
     /// @return Returns the key with alt masked
-    int alt(int key);
+    uint32_t alt(uint32_t key);
 
-    /// @brief  increases the speed of the arm (EE or joints)
+    /// @brief  increases the speed of the arm (EE, joints or twist)
+    /// @param  field_name the name of the field to increase
     /// @param  value the current speed
-    /// @return Returns the new speed
-    float increase_speed(float value);
+    void increase_speed(std::string field_name, float& value);
 
-    /// @brief  decreases the speed of the arm (EE or joints)
+    /// @brief  decreases the speed of the arm (EE, joints or twist)
+    /// @param  field_name the name of the field to decrease
     /// @param  value the current speed
-    /// @return Returns the new speed
-    float decrease_speed(float value);
+    void decrease_speed(std::string field_name, float& value);
     //------------------------------------------------------------//
     public:
 

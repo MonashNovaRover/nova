@@ -16,64 +16,48 @@ KeyboardTranslate::KeyboardTranslate(): joint_twist_speed(0), end_effector_speed
 CommonInputCollections::ControlSchemeInputs KeyboardTranslate::get_arm_lock_inputs() {
     control_scheme_inputs.control_scheme_update = false;
     // Arm lock
-    if (is_pressed(ctrl(SDL_SCANCODE_L))) {
-        if (!control_scheme_inputs.input_lock) {
-            Print::print("Keyboard locked");
-            control_scheme_inputs.input_lock = true;
-        }
-        else{
-            Print::print("Keyboard Unlocked");
-            control_scheme_inputs.input_lock = false;
-        }
-        control_scheme_inputs.control_scheme_update = true;
-    }
+    toggle_control("Input lock", control_scheme_inputs.arm_lock, ctrl(SDL_SCANCODE_L));
     // Joint limits
-    if (is_pressed(ctrl(SDL_SCANCODE_RETURN))){
-        control_scheme_inputs.joint_limits = !control_scheme_inputs.joint_limits;
-        control_scheme_inputs.control_scheme_update = true;
-        Print::print("Joint limits: " + std::to_string(control_scheme_inputs.joint_limits));
-    }
-    // TODO: Position control
+    toggle_control("Joint Limits", control_scheme_inputs.joint_limits, ctrl(SDL_SCANCODE_RETURN));
+
     return control_scheme_inputs;
 }
 
 CommonInputCollections::ControlSchemeInputs KeyboardTranslate::get_control_scheme_inputs() {
-    control_scheme_inputs.control_scheme_update = false;
+    // Used here for determining whether printing is needed
     if (is_pressed(ctrl(SDL_SCANCODE_TAB))) {
         base_frame_offset++;
         if (base_frame_offset >= 2) {
             base_frame_offset = -1;
         }
-        Print::print("Base frame offset: " + std::to_string(base_frame_offset));
+        message = "Base frame offset: " + std::to_string(base_frame_offset);
+        Print::print(message.c_str());
     }
     control_scheme_inputs.base_frame_offset = base_frame_offset;
     // Control schemes
     // Flat frame control
-    control_scheme_inputs.flat_frame_linear = toggle_control(control_scheme_inputs.flat_frame_linear, ctrl(SDL_SCANCODE_1));
-    control_scheme_inputs.flat_frame_angular = toggle_control(control_scheme_inputs.flat_frame_angular, ctrl(SDL_SCANCODE_2));
+    toggle_control("Flat frame linear", control_scheme_inputs.flat_frame_linear, ctrl(SDL_SCANCODE_1));
+    toggle_control("Flat frame angular", control_scheme_inputs.flat_frame_angular, ctrl(SDL_SCANCODE_2));
+
     // Endpoint frame control. Hold trigger
     // Also set if flat frame control is used
-    control_scheme_inputs.endpoint_frame_linear = toggle_control(control_scheme_inputs.endpoint_frame_linear, ctrl(SDL_SCANCODE_3)) || control_scheme_inputs.flat_frame_linear;
-    control_scheme_inputs.endpoint_frame_angular = toggle_control(control_scheme_inputs.endpoint_frame_angular, ctrl(SDL_SCANCODE_4)) || control_scheme_inputs.flat_frame_angular;
+    toggle_control("Endpoint frame linear", control_scheme_inputs.endpoint_frame_linear, ctrl(SDL_SCANCODE_3));
+    control_scheme_inputs.endpoint_frame_linear = control_scheme_inputs.endpoint_frame_linear || control_scheme_inputs.flat_frame_linear;
+    toggle_control("Endpoint frame angular", control_scheme_inputs.endpoint_frame_angular, ctrl(SDL_SCANCODE_4));
+    control_scheme_inputs.endpoint_frame_angular = control_scheme_inputs.endpoint_frame_angular || control_scheme_inputs.flat_frame_angular;
+
     // IK. Hold inside thumb button.
     // Also set if endpoint frame control is used.
-    control_scheme_inputs.ik_linear = toggle_control(control_scheme_inputs.ik_linear, ctrl(SDL_SCANCODE_5)) || control_scheme_inputs.endpoint_frame_linear;
-    control_scheme_inputs.ik_angular = toggle_control(control_scheme_inputs.ik_angular, ctrl(SDL_SCANCODE_6)) || control_scheme_inputs.endpoint_frame_angular;
-    // Set SPM roll handling. Hold back thumb button on right stick
-    control_scheme_inputs.use_spm_roll = toggle_control(control_scheme_inputs.use_spm_roll, ctrl(SDL_SCANCODE_7));
+    toggle_control("IK linear", control_scheme_inputs.ik_linear, ctrl(SDL_SCANCODE_5));
+    control_scheme_inputs.ik_linear = control_scheme_inputs.ik_linear || control_scheme_inputs.endpoint_frame_linear;
+    toggle_control("IK angular", control_scheme_inputs.ik_angular, ctrl(SDL_SCANCODE_6));
+    control_scheme_inputs.ik_angular = control_scheme_inputs.ik_angular || control_scheme_inputs.endpoint_frame_angular;
 
-    if (control_scheme_inputs.control_scheme_update) {
-        Print::print("Control scheme update");
-        Print::print("Flat frame linear: " + std::to_string(control_scheme_inputs.flat_frame_linear));
-        Print::print("Flat frame angular: " + std::to_string(control_scheme_inputs.flat_frame_angular));
-        Print::print("Endpoint frame linear: " + std::to_string(control_scheme_inputs.endpoint_frame_linear));
-        Print::print("Endpoint frame angular: " + std::to_string(control_scheme_inputs.endpoint_frame_angular));
-        Print::print("IK linear: " + std::to_string(control_scheme_inputs.ik_linear));
-        Print::print("IK angular: " + std::to_string(control_scheme_inputs.ik_angular));
-        Print::print("Use SPM roll: " + std::to_string(control_scheme_inputs.use_spm_roll));
-    }
+    // Set SPM roll handling. Hold back thumb button on right stick
+    toggle_control("Use SPM roll", control_scheme_inputs.use_spm_roll, ctrl(SDL_SCANCODE_7));
 
     // Correction for position control - can't have independent linear and angular control
+    // Not yet implemented
     if (control_scheme_inputs.position_control) {
         control_scheme_inputs.flat_frame_angular = control_scheme_inputs.flat_frame_linear;
         control_scheme_inputs.endpoint_frame_angular = control_scheme_inputs.endpoint_frame_linear;
@@ -85,11 +69,9 @@ CommonInputCollections::ControlSchemeInputs KeyboardTranslate::get_control_schem
 
 CommonInputCollections::EndEffectorInputs KeyboardTranslate::get_end_effector_inputs() {
     if (is_pressed(shift(SDL_SCANCODE_LEFT))) {
-        end_effector_speed = increase_speed(end_effector_speed);
-        Print::print("EE Speed: " + std::to_string(end_effector_speed));
+        increase_speed("EE Speed", end_effector_speed);
     } else if (is_pressed(shift(SDL_SCANCODE_RIGHT))) {
-        end_effector_speed = decrease_speed(end_effector_speed);
-        Print::print("EE Speed: " + std::to_string(end_effector_speed));
+        decrease_speed("EE Speed", end_effector_speed);
     }
 
     if (!control_scheme_inputs.input_lock){
@@ -102,11 +84,9 @@ CommonInputCollections::EndEffectorInputs KeyboardTranslate::get_end_effector_in
 
 CommonInputCollections::JointVelocityInputs KeyboardTranslate::get_joint_velocity_inputs() {
     if (is_pressed(shift(SDL_SCANCODE_UP))) {
-        joint_twist_speed = increase_speed(joint_twist_speed);
-        Print::print("Joint Velocity: " + std::to_string(joint_twist_speed));
+        increase_speed("Joint Velocity", joint_twist_speed);
     } else if (is_pressed(shift(SDL_SCANCODE_DOWN))) {
-        joint_twist_speed = decrease_speed(joint_twist_speed);
-        Print::print("Joint Velocity: " + std::to_string(joint_twist_speed));
+        decrease_speed("Joint Velocity", joint_twist_speed);
     }
 
     float speed = joint_twist_speed * speed_multipliers.all_inputs;
@@ -151,11 +131,9 @@ CommonInputCollections::JointVelocityInputs KeyboardTranslate::get_joint_velocit
 
 CommonInputCollections::TwistInputs KeyboardTranslate::get_twist_inputs() {
     if (is_pressed(shift(SDL_SCANCODE_UP))) {
-        joint_twist_speed = increase_speed(joint_twist_speed);
-        Print::print("Joint Twist Speed: " + std::to_string(joint_twist_speed));
+        increase_speed("Joint Twist Speed", joint_twist_speed);
     } else if (is_pressed(shift(SDL_SCANCODE_DOWN))) {
-        joint_twist_speed = decrease_speed(joint_twist_speed);
-        Print::print("Joint Twist Speed: " + std::to_string(joint_twist_speed));
+        decrease_speed("Joint Twist Speed", joint_twist_speed);
     }
     float speed = joint_twist_speed * speed_multipliers.all_inputs;
     
@@ -210,7 +188,7 @@ bool KeyboardTranslate::is_connected()
     return keyboard.connected;
 }
 
-bool KeyboardTranslate::is_pressed(int key)
+bool KeyboardTranslate::is_pressed(uint32_t key)
 {
     for (long unsigned int i = 0; i < keyboard.keys_pressed.size(); i++) {
         if (key == keyboard.keys_pressed[i]) {
@@ -220,7 +198,7 @@ bool KeyboardTranslate::is_pressed(int key)
     return false;
 }
 
-bool KeyboardTranslate::is_held(int key)
+bool KeyboardTranslate::is_held(uint32_t key)
 {
     for (long unsigned int i = 0; i < keyboard.keys_repeated.size(); i++) {
         if (key == keyboard.keys_repeated[i]) {
@@ -230,40 +208,46 @@ bool KeyboardTranslate::is_held(int key)
     return false;
 }
 
-bool KeyboardTranslate::is_pressed_or_held(int key)
+bool KeyboardTranslate::is_pressed_or_held(uint32_t key)
 {
     return is_pressed(key) || is_held(key);
 }
 
-bool KeyboardTranslate::toggle_control(bool toggle, int key)
+void KeyboardTranslate::toggle_control(std::string field_name, bool& value, uint32_t key)
 {   
     if (is_pressed(key)){
-        toggle = !toggle;
+        value = !value;
         control_scheme_inputs.control_scheme_update = true;
+        message = field_name + ": " + std::to_string(value?"true":"false");
+        Print::print(message.c_str());
     }
 }
 
-int KeyboardTranslate::ctrl(int key)
+uint32_t KeyboardTranslate::ctrl(uint32_t key)
 {
     return key | CTRL_MASK;
 }
 
-int KeyboardTranslate::shift(int key)
+uint32_t KeyboardTranslate::shift(uint32_t key)
 {
     return key | SHIFT_MASK;
 }
 
-int KeyboardTranslate::alt(int key)
+uint32_t KeyboardTranslate::alt(uint32_t key)
 {
     return key | ALT_MASK;
 }
 
-float KeyboardTranslate::increase_speed(float value)
+void KeyboardTranslate::increase_speed(std::string field_name, float& value)
 {
-    return std::min(value + speed_increment, 1.0f);
+    value = std::min(value + speed_increment, 1.0f);
+    message = field_name + ": " + std::to_string(value);
+    Print::print(message.c_str());
 }
 
-float KeyboardTranslate::decrease_speed(float value)
+void KeyboardTranslate::decrease_speed(std::string field_name, float& value)
 {
-    return std::max(value - speed_increment, 0.0f);
+    value = std::max(value - speed_increment, 0.0f);
+    message = field_name + ": " + std::to_string(value);
+    Print::print(message.c_str());
 }
