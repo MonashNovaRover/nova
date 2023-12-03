@@ -31,36 +31,47 @@ CommonInputCollections::ControlSchemeInputs KeyboardTranslate::get_arm_lock_inpu
     if (is_pressed(ctrl(SDL_SCANCODE_RETURN))){
         control_scheme_inputs.joint_limits = !control_scheme_inputs.joint_limits;
         control_scheme_inputs.control_scheme_update = true;
+        Print::print("Joint limits: " + std::to_string(control_scheme_inputs.joint_limits));
     }
     // TODO: Position control
     return control_scheme_inputs;
 }
 
 CommonInputCollections::ControlSchemeInputs KeyboardTranslate::get_control_scheme_inputs() {
-    // Set base reference frame offset
-    int8_t base_frame_offset = 0;
-    // seems to only allow left or right? Not too sure. 
-    if (is_pressed(ctrl(SDL_SCANCODE_BACKSPACE))) {
-        base_frame_offset = -1;
-    }
-    else if (is_pressed(ctrl(SDL_SCANCODE_DELETE))) {
-        base_frame_offset = 1;
+    control_scheme_inputs.control_scheme_update = false;
+    if (is_pressed(ctrl(SDL_SCANCODE_TAB))) {
+        base_frame_offset++;
+        if (base_frame_offset >= 2) {
+            base_frame_offset = -1;
+        }
+        Print::print("Base frame offset: " + std::to_string(base_frame_offset));
     }
     control_scheme_inputs.base_frame_offset = base_frame_offset;
     // Control schemes
     // Flat frame control
-    control_scheme_inputs.flat_frame_linear = is_held(ctrl(SDL_SCANCODE_1));
-    control_scheme_inputs.flat_frame_angular = is_held(ctrl(SDL_SCANCODE_2));
+    control_scheme_inputs.flat_frame_linear = toggle_control(control_scheme_inputs.flat_frame_linear, ctrl(SDL_SCANCODE_1));
+    control_scheme_inputs.flat_frame_angular = toggle_control(control_scheme_inputs.flat_frame_angular, ctrl(SDL_SCANCODE_2));
     // Endpoint frame control. Hold trigger
     // Also set if flat frame control is used
-    control_scheme_inputs.endpoint_frame_linear = (is_held(ctrl(SDL_SCANCODE_3))) || control_scheme_inputs.flat_frame_linear;
-    control_scheme_inputs.endpoint_frame_angular = (is_held(ctrl(SDL_SCANCODE_4))) || control_scheme_inputs.flat_frame_angular;
+    control_scheme_inputs.endpoint_frame_linear = toggle_control(control_scheme_inputs.endpoint_frame_linear, ctrl(SDL_SCANCODE_3)) || control_scheme_inputs.flat_frame_linear;
+    control_scheme_inputs.endpoint_frame_angular = toggle_control(control_scheme_inputs.endpoint_frame_angular, ctrl(SDL_SCANCODE_4)) || control_scheme_inputs.flat_frame_angular;
     // IK. Hold inside thumb button.
     // Also set if endpoint frame control is used.
-    control_scheme_inputs.ik_linear = (is_held(ctrl(SDL_SCANCODE_5))) || control_scheme_inputs.endpoint_frame_linear;
-    control_scheme_inputs.ik_angular = (is_held(ctrl(SDL_SCANCODE_6))) || control_scheme_inputs.endpoint_frame_angular;
+    control_scheme_inputs.ik_linear = toggle_control(control_scheme_inputs.ik_linear, ctrl(SDL_SCANCODE_5)) || control_scheme_inputs.endpoint_frame_linear;
+    control_scheme_inputs.ik_angular = toggle_control(control_scheme_inputs.ik_angular, ctrl(SDL_SCANCODE_6)) || control_scheme_inputs.endpoint_frame_angular;
     // Set SPM roll handling. Hold back thumb button on right stick
-    control_scheme_inputs.use_spm_roll = is_held(ctrl(SDL_SCANCODE_7));
+    control_scheme_inputs.use_spm_roll = toggle_control(control_scheme_inputs.use_spm_roll, ctrl(SDL_SCANCODE_7));
+
+    if (control_scheme_inputs.control_scheme_update) {
+        Print::print("Control scheme update");
+        Print::print("Flat frame linear: " + std::to_string(control_scheme_inputs.flat_frame_linear));
+        Print::print("Flat frame angular: " + std::to_string(control_scheme_inputs.flat_frame_angular));
+        Print::print("Endpoint frame linear: " + std::to_string(control_scheme_inputs.endpoint_frame_linear));
+        Print::print("Endpoint frame angular: " + std::to_string(control_scheme_inputs.endpoint_frame_angular));
+        Print::print("IK linear: " + std::to_string(control_scheme_inputs.ik_linear));
+        Print::print("IK angular: " + std::to_string(control_scheme_inputs.ik_angular));
+        Print::print("Use SPM roll: " + std::to_string(control_scheme_inputs.use_spm_roll));
+    }
 
     // Correction for position control - can't have independent linear and angular control
     if (control_scheme_inputs.position_control) {
@@ -75,8 +86,10 @@ CommonInputCollections::ControlSchemeInputs KeyboardTranslate::get_control_schem
 CommonInputCollections::EndEffectorInputs KeyboardTranslate::get_end_effector_inputs() {
     if (is_pressed(shift(SDL_SCANCODE_LEFT))) {
         end_effector_speed = increase_speed(end_effector_speed);
+        Print::print("EE Speed: " + std::to_string(end_effector_speed));
     } else if (is_pressed(shift(SDL_SCANCODE_RIGHT))) {
         end_effector_speed = decrease_speed(end_effector_speed);
+        Print::print("EE Speed: " + std::to_string(end_effector_speed));
     }
 
     if (!control_scheme_inputs.input_lock){
@@ -90,8 +103,10 @@ CommonInputCollections::EndEffectorInputs KeyboardTranslate::get_end_effector_in
 CommonInputCollections::JointVelocityInputs KeyboardTranslate::get_joint_velocity_inputs() {
     if (is_pressed(shift(SDL_SCANCODE_UP))) {
         joint_twist_speed = increase_speed(joint_twist_speed);
+        Print::print("Joint Velocity: " + std::to_string(joint_twist_speed));
     } else if (is_pressed(shift(SDL_SCANCODE_DOWN))) {
         joint_twist_speed = decrease_speed(joint_twist_speed);
+        Print::print("Joint Velocity: " + std::to_string(joint_twist_speed));
     }
 
     float speed = joint_twist_speed * speed_multipliers.all_inputs;
@@ -137,8 +152,10 @@ CommonInputCollections::JointVelocityInputs KeyboardTranslate::get_joint_velocit
 CommonInputCollections::TwistInputs KeyboardTranslate::get_twist_inputs() {
     if (is_pressed(shift(SDL_SCANCODE_UP))) {
         joint_twist_speed = increase_speed(joint_twist_speed);
+        Print::print("Joint Twist Speed: " + std::to_string(joint_twist_speed));
     } else if (is_pressed(shift(SDL_SCANCODE_DOWN))) {
         joint_twist_speed = decrease_speed(joint_twist_speed);
+        Print::print("Joint Twist Speed: " + std::to_string(joint_twist_speed));
     }
     float speed = joint_twist_speed * speed_multipliers.all_inputs;
     
@@ -216,6 +233,14 @@ bool KeyboardTranslate::is_held(int key)
 bool KeyboardTranslate::is_pressed_or_held(int key)
 {
     return is_pressed(key) || is_held(key);
+}
+
+bool KeyboardTranslate::toggle_control(bool toggle, int key)
+{   
+    if (is_pressed(key)){
+        toggle = !toggle;
+        control_scheme_inputs.control_scheme_update = true;
+    }
 }
 
 int KeyboardTranslate::ctrl(int key)

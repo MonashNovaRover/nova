@@ -48,6 +48,8 @@ class KeyboardTranslate: public InputDevice {
     float joint_twist_speed;
     /// @brief  The current speed for the end effector
     float end_effector_speed;
+    /// @brief  Base frame offset
+    int8_t base_frame_offset
 
     /// @brief  The speed multipliers for each set of inputs, copied from Joysticks
     typedef struct {
@@ -89,6 +91,11 @@ class KeyboardTranslate: public InputDevice {
     /// @return Returns true if the key is pressed or held
     bool is_pressed_or_held(int key);
 
+    /// @brief Toggles the given control input, and sets the update flag
+    /// @param toggle The control message to toggle
+    /// @param key Corresponding key to check
+    /// @return the toggled output
+    bool toggle_control(bool toggle, int key);
 
     // Function below allows separation of ctrl+key and key
 
