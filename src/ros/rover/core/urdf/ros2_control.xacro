@@ -6,22 +6,20 @@
             <plugin>blcmd_hardware/BLCMDHardware</plugin>
             <param name="candevice">can0</param>
             <param name="canid">2</param>
+            <param name="resolver_reduction">1</param>
+            <param name="clock_rate">100000000</param>
+            <param name="revolution_pulses">8192</param>
         </hardware>
 
         <joint name="flw">
             <command_interface name="velocity">
-                <param name="min">-5.0</param>
-                <param name="max">5.0</param>
             </command_interface>
 
             <command_interface name="effort">
-                <param name="min">-1</param>
                 <param name="max">1</param>
             </command_interface>
 
             <state_interface name="velocity">
-                <param name="min">-5</param>
-                <param name="max">6</param>
             </state_interface>
         </joint>
     </ros2_control>
@@ -32,31 +30,26 @@
             <param name="candevice">can0</param>
             <param name="canid">5</param>
             <param name="resolver_reduction">1</param>
+            <param name="clock_rate">100000000</param>
+            <param name="revolution_pulses">8192</param>
         </hardware>
 
         <joint name="flp">
             <command_interface name="position">
-                <param name="min">-5.0</param>
                 <param name="max">5.0</param>
             </command_interface>
 
             <command_interface name="velocity">
-                <param name="min">-5.0</param>
-                <param name="max">5.0</param>
             </command_interface>
 
             <command_interface name="effort">
-                <param name="min">-1</param>
                 <param name="max">1</param>
             </command_interface>
 
             <state_interface name="velocity">
-                <param name="min">-5.0</param>
-                <param name="max">5.0</param>
             </state_interface>
 
             <state_interface name="position">
-                <param name="min">-5.0</param>
                 <param name="max">5.0</param>
             </state_interface>
         </joint>

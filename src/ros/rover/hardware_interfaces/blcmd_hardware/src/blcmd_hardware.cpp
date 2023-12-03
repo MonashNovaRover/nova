@@ -49,6 +49,7 @@ hardware_interface::CallbackReturn BLCMDHardware::on_init(
     }
 
     can_device_ = canbus_search->second;
+
     RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
                 "Using can device " << can_device_.c_str());
 
@@ -58,9 +59,28 @@ hardware_interface::CallbackReturn BLCMDHardware::on_init(
         return CallbackReturn::ERROR;
     }
 
-    can_id_ = std::stoi(canid_search->second);
+    can_id_ = std::stoul(canid_search->second);
+    RCLCPP_INFO(rclcpp::get_logger(BLCMDHardwareLoggerName), "Using can id %d", can_id_);
 
-        for (const auto& interface : info_.joints[0].command_interfaces){
+    auto clock_rate_search = info_.hardware_parameters.find("clock_rate");
+    if (clock_rate_search == info_.hardware_parameters.end()){
+        RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName), "No clock rate provided");
+        return CallbackReturn::ERROR;
+    }
+
+    clock_rate_ = std::stoul(clock_rate_search->second);
+
+    auto revolution_pulses_search = info_.hardware_parameters.find("revolution_pulses");
+
+    if (revolution_pulses_search == info_.hardware_parameters.end()){
+        RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName), "No revolution pulses provided");
+        return CallbackReturn::ERROR;
+    }
+
+    revolution_pulses_ = std::stoul(revolution_pulses_search->second);
+
+
+    for (const auto& interface : info_.joints[0].command_interfaces){
         if(!set_control_interface(interface, true)){
             return CallbackReturn::ERROR;
         }
@@ -94,50 +114,71 @@ hardware_interface::CallbackReturn BLCMDHardware::on_configure(
         return CallbackReturn::ERROR;
     }
 
-    // check for resolver if there is a position interface
-    if(hw_position_.state.has_value() || hw_position_.command.has_value()) {
-        if (!check_resolver()) {
+    //get min_interval
+    if (hw_velocity_.state.has_value()) {
+        RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                           "Getting min interval on BLCMD " << can_id_);
+        auto min_interval = get_config<uint16_t>(BLCMDConfigCommand::MIN_INTERVAL);
+
+        if (min_interval.has_value()) {
+            min_interval_ = min_interval.value();
+            RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                               "Min interval on BLCMD " << can_id_ << " is " << min_interval_);
+        } else {
+            RCLCPP_FATAL_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                                "Error getting min interval on BLCMD " << can_id_);
             return CallbackReturn::ERROR;
         }
+    }
+
+    // check for resolver if there is a position interface
+    if(hw_position_.state.has_value() || hw_position_.command.has_value()) {
+        RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                                "Checking for resolver on BLCMD " << can_id_);
+
+        auto resolver_check = get_config<uint16_t>(BLCMDConfigCommand::HAS_RESOLVER);
+        if (resolver_check.has_value()) {
+            if (resolver_check.value()) {
+                RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                                   "Resolver detected on BLCMD " << can_id_);
+                return CallbackReturn::SUCCESS;
+            } else {
+                RCLCPP_FATAL_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                                    "No resolver detected on BLCMD " << can_id_);
+                return CallbackReturn::ERROR;
+            }
+        }
+        RCLCPP_FATAL_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                                "Error with resolver request on BLCMD" << can_id_);
+        return CallbackReturn::ERROR;
+
     }
     
   return CallbackReturn::SUCCESS;
 }
 
-bool BLCMDHardware::check_resolver() {
-    RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
-                       "Checking for resolver on BLCMD " << can_id_);
-    const leigh::jcan::Frame resolver_request = {
+template<typename T>
+std::optional<T> BLCMDHardware::get_config(BLCMDConfigCommand command) {
+
+    const leigh::jcan::Frame min_interval_request = {
             make_can_id(BLCMDSendCommand::GET_CONFIG),
-            {static_cast<uint8_t>(BLCMDConfigCommand::HAS_RESOLVER)},
+            {static_cast<uint8_t>(command)},
     };
     auto start = std::chrono::steady_clock::now();
-    bus_->send(resolver_request);
+    bus_->send(min_interval_request);
 
     while (std::chrono::steady_clock::now() - start < std::chrono::seconds(1)) {
         try {
             auto frame = bus_->receive_with_timeout(1000);
             if (frame.id == make_can_id(BLCMDReceiveCommand::CONFIG_DATA)) {
-                auto resolver = from_bytes<uint16_t>(&frame.data[0]);
-                if (resolver) {
-                    RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
-                                       "Resolver detected on BLCMD " << can_id_);
-                    return true;
-                } else {
-                    RCLCPP_FATAL_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
-                                        "No resolver detected on BLCMD " << can_id_ );
-                    return false;
-                }
+                auto config_value = from_bytes<T>(&frame.data[0]);
+                return std::optional(config_value);
             }
         } catch (std::exception &e) {
-            RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName),
-                         "Failed to receive frame with error: %s", e.what());
-            return false;
+            return std::nullopt;
         }
     }
-    RCLCPP_FATAL_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
-                        "No response from resolver request on BLCMD" << can_id_);
-    return false;
+    return std::nullopt;
 }
 
 std::vector<hardware_interface::StateInterface> BLCMDHardware::export_state_interfaces()
@@ -351,16 +392,10 @@ bool BLCMDHardware::start_interface(const std::string &interface){
 // TODO: better error handling
 bool BLCMDHardware::set_control_interface(
         const hardware_interface::InterfaceInfo &interface_info, bool command) {
-        RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
-                           "Setting interface " << interface_info.name.c_str() << " with min " << interface_info.min <<
-                           " and max " << interface_info.max << " as " << (command ? "command" : "state") << " interface");
-    double min = std::stod(interface_info.min);
-    double max = std::stod(interface_info.max);
     if(interface_info.name == hardware_interface::HW_IF_POSITION){
         //TODO: deal with case with state interface and no command interface
         if (command){
-            hw_position_.min = min;
-            hw_position_.max = max;
+            hw_position_.max = std::stod(interface_info.max);;
             auto resolver_reduction_search = info_.hardware_parameters.find("resolver_reduction");
             if (resolver_reduction_search == info_.joints[0].parameters.end()){
                 RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName), "No resolver reduction provided");
@@ -373,16 +408,14 @@ bool BLCMDHardware::set_control_interface(
         }
     } else if(interface_info.name == hardware_interface::HW_IF_VELOCITY){
         if(command) {
-            hw_velocity_.min = min;
-            hw_velocity_.max = max;
+            hw_velocity_.max = static_cast<double>(clock_rate_)/(min_interval_*revolution_pulses_);
             hw_velocity_.command = 0.0;
         } else {
             hw_velocity_.state = 0.0;
         }
     } else if(interface_info.name == hardware_interface::HW_IF_EFFORT){
         if(command){
-            hw_effort_.min = min;
-            hw_effort_.max = max;
+            hw_effort_.max = std::stod(interface_info.max);;
             hw_effort_.command = 0.0;
         } else {
             hw_effort_.state = 0.0;
@@ -430,7 +463,10 @@ bool BLCMDHardware::set_control_interface(
     }
 
     void BLCMDHardware::packet_1_callback(leigh::jcan::Frame frame) {
-	    if(hw_velocity_.state.has_value()) hw_velocity_.state = convert_scaled<int16_t>(&frame.data[0], hw_velocity_.max);
+    if(hw_velocity_.state.has_value()) {
+        hw_velocity_.state = convert_scaled<int16_t>(&frame.data[0], hw_velocity_.max)*hw_velocity_.max;
+
+    }
     if(hw_effort_.state.has_value()) hw_effort_.state = convert_scaled<int16_t>(&frame.data[2], hw_effort_.max);
     }
 

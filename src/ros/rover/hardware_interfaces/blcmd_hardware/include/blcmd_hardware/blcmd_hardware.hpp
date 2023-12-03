@@ -40,7 +40,6 @@ struct PIConfig {
 struct ControlInterface {
     std::optional<double> command;
     std::optional<double> state;
-    double min {std::numeric_limits<double>::quiet_NaN()};
     double max {std::numeric_limits<double>::quiet_NaN()};
 };
 
@@ -148,6 +147,12 @@ private:
 
     uint32_t can_id_;
 
+    uint16_t min_interval_;
+
+    uint16_t clock_rate_;
+
+    uint16_t revolution_pulses_;
+
     bool check_resolver();
 
     bool set_control_interface(const hardware_interface::InterfaceInfo & interface_info, bool command);
@@ -157,6 +162,12 @@ private:
     bool start_interface(const std::string &interface);
 
     void can_setup();
+
+    /// @brief      Get a configuration value from the BLCMD
+    /// @param      command - The config value to get
+    /// @returns    The optional with config value if received, empty optional otherwise
+    template<typename T>
+    std::optional<T> get_config(BLCMDConfigCommand command);
 
     /// @brief      Create the can ID for a given BLCMDSendCommand
     /// @param      command - The command to send
