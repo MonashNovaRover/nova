@@ -5,15 +5,15 @@ which is how it gets added to the gazebo sim. Author/s: Victor Bartlinski-->
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" >
 
     <joint name="camera_joint" type="fixed">
-        <parent link="chassis"/>
+        <parent link="base_link"/>
         <child link="camera_link"/>
-        <origin xyz="0 1 0.3" rpy="0 0 0"/>
+        <origin xyz="0.46 0 0.45" rpy="0 0 0"/>
     </joint>
 
     <link name="camera_link">
         <visual>
             <geometry>
-                <box size="0.2 0.2 0.2"/>
+                <box size="0.05 0.2 0.05"/>
             </geometry>
         </visual>
     </link>
@@ -33,7 +33,7 @@ which is how it gets added to the gazebo sim. Author/s: Victor Bartlinski-->
             <visualize>true</visualize>
             <update_rate>10</update_rate>
             <camera>
-                <horizontal_fov>1.089</horizontal_fov>
+                <horizontal_fov>1.5</horizontal_fov>
                 <image>
                     <format>B8G8R8</format>
                     <width>640</width>
@@ -41,13 +41,13 @@ which is how it gets added to the gazebo sim. Author/s: Victor Bartlinski-->
                 </image>
                 <clip>
                     <near>0.05</near>
-                    <far>8.0</far>
+                    <far>100.0</far>
                 </clip>
             </camera>
             <plugin name="camera_controller" filename="libgazebo_ros_camera.so">
                 <frame_name>camera_link_optical</frame_name>
                 <min_depth>0.1</min_depth>
-                <max_depth>100.0</max_depth>
+                <max_depth>6.0</max_depth>
 
                 <imageTopicName>image_raw</imageTopicName>
                 <pointCloudTopicName>points</pointCloudTopicName>
