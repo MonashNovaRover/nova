@@ -51,7 +51,7 @@ class KeyboardTranslate: public InputDevice {
     /// @brief  The current speed for joints
     float speed;
     /// @brief  Base frame offset
-    int8_t base_frame_offset
+    int8_t base_frame_offset;
 
     /// @brief  The speed multipliers for each set of inputs, copied from Joysticks
     typedef struct {
@@ -158,7 +158,7 @@ class KeyboardTranslate: public InputDevice {
     /// @param field_name The name of the field to toggle
     /// @param value The value of the field to toggle
     /// @param key The key to toggle the field with
-    void toggle_control(std::string field_name, bool& value, uint32_t key)
+    void toggle_control(std::string field_name, bool& value, uint32_t key);
 
     // Function below allows separation of ctrl+key and key
 
