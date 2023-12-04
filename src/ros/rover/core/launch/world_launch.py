@@ -101,6 +101,17 @@ def generate_launch_description():
             '-x', pose['x'], '-y', pose['y'], '-z', pose['z'],
             '-R', pose['R'], '-P', pose['P'], '-Y', pose['Y']])
 
+    wheel_velocity_controller = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["wheel_velocity_controller"]
+    )
+
+    pivot_joint_trajectory_controller = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["pivot_joint_trajectory_controller"]
+    )
 
     return LaunchDescription([
         model_arg,
@@ -112,4 +123,6 @@ def generate_launch_description():
         start_gazebo_server_cmd,
         start_gazebo_client_cmd,
         spawn_rover_cmd,
+        wheel_velocity_controller,
+        pivot_joint_trajectory_controller,
     ])
