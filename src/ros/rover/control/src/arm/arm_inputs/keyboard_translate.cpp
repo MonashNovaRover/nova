@@ -56,6 +56,18 @@ CommonInputCollections::ControlSchemeInputs KeyboardTranslate::get_control_schem
     // Set SPM roll handling. Hold back thumb button on right stick
     toggle_control("Use SPM roll", control_scheme_inputs.use_spm_roll, ctrl(SDL_SCANCODE_7));
 
+    // Joint space if 0
+    if (is_pressed(ctrl(SDL_SCANCODE_0))) {
+        control_scheme_inputs.ik_linear = false;
+        control_scheme_inputs.ik_angular = false;
+        control_scheme_inputs.flat_frame_linear = false;
+        control_scheme_inputs.flat_frame_angular = false;
+        control_scheme_inputs.endpoint_frame_linear = false;
+        control_scheme_inputs.endpoint_frame_angular = false;
+        control_scheme_inputs.control_scheme_update = true;
+        Print::print("Joint Space: On");
+    }
+
     // Correction for position control - can't have independent linear and angular control
     // Not yet implemented
     if (control_scheme_inputs.position_control) {
@@ -131,9 +143,9 @@ CommonInputCollections::JointVelocityInputs KeyboardTranslate::get_joint_velocit
 
 CommonInputCollections::TwistInputs KeyboardTranslate::get_twist_inputs() {
     if (is_pressed(shift(SDL_SCANCODE_UP))) {
-        increase_speed("Joint Twist Speed", joint_twist_speed);
+        increase_speed("Joint Speed", joint_twist_speed);
     } else if (is_pressed(shift(SDL_SCANCODE_DOWN))) {
-        decrease_speed("Joint Twist Speed", joint_twist_speed);
+        decrease_speed("Joint Speed", joint_twist_speed);
     }
     float speed = joint_twist_speed * speed_multipliers.all_inputs;
     
