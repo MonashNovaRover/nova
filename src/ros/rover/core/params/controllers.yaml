@@ -12,8 +12,11 @@ controller_manager:
     pivot_joint_trajectory_controller:
       type: joint_trajectory_controller/JointTrajectoryController
 
-    four_wheel_steering_controller:
-      type: four_wheel_steering_controller/FourWheelSteeringController
+    #four_wheel_steering_controller:
+    #  type: four_wheel_steering_controller/FourWheelSteeringController
+
+    four_steering_controller:
+      type: four_steering_controller/FourSteeringController
 
     joint_broad:
       type: joint_state_broadcaster/JointStateBroadcaster
@@ -75,4 +78,14 @@ four_wheel_steering_controller:
     rear_wheels_state_names: ["blw", "brw"] 
     front_wheels_state_names: ["flw", "frw"]
 
+four_steering_controller:
+  ros__parameters:
+    wheel_names: ["flw", "frw", "blw", "brw"]
+    steer_names: ["flp", "frp", "blp", "brp"]
+    enable_twist_cmd_: true
+    wheel_steering_y_offset_: 0.0
+    track_: 0.7
+    wheel_base_: 0.84
+    wheel_radius_: 0.15
+    
   

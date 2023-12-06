@@ -11,15 +11,16 @@
 , generate-parameter-library
 , rcpputils
 , admittance-controller
+, four-wheel-steering-msgs
 }:
 
 buildRosPackage {
-  name = "pivot-drive-controller";
+  name = "four-steering-controller";
   buildType = "ament_cmake";
 
   src = builtins.path rec {
-    name = "pivot_drive_controller-source";
-    path = ../../../../controllers/pivot_drive_controller;
+    name = "four_steering_controller-source";
+    path = ../../../../controllers/ros2_controllers/four_steering_controller;
     filter = lib.novaSourceFilter [ ] path;
   };
 
@@ -34,5 +35,6 @@ buildRosPackage {
     rclcpp-lifecycle
     std-srvs
     generate-parameter-library
+    four-wheel-steering-msgs
   ];
 }

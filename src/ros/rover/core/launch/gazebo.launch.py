@@ -67,12 +67,18 @@ def generate_launch_description():
         executable="spawner",
         arguments=["pivot_joint_trajectory_controller"]
     )
-    '''
 
     four_wheel_steering_controller = Node(
         package="controller_manager",
         executable="spawner",
         arguments=["four_wheel_steering_controller"]
+    )
+    '''
+
+    four_steering_controller = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["four_steering_controller"]
     )
 
     return LaunchDescription([
@@ -83,5 +89,6 @@ def generate_launch_description():
         #wheel_velocity_controller,
         # pivot_position_controller,
         #pivot_joint_trajectory_controller,
-        four_wheel_steering_controller,
+        #four_wheel_steering_controller,
+        four_steering_controller,
     ])
