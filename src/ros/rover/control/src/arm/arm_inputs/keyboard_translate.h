@@ -49,9 +49,7 @@ class KeyboardTranslate: public InputDevice {
     ///         Currently allows about 10 levels. 
     const float speed_increment = 0.01f;
     /// @brief  The current speed for joints
-    float joint_twist_speed;
-    /// @brief  The current speed for the end effector
-    float end_effector_speed;
+    float speed;
     /// @brief  Base frame offset
     int8_t base_frame_offset
 
@@ -68,6 +66,64 @@ class KeyboardTranslate: public InputDevice {
     } SpeedMultipliers;
     SpeedMultipliers speed_multipliers;
 
+    /// @brief The key mappings for the keyboard
+    typedef struct {
+        // Control scheme
+        uint32_t input_lock;
+        uint32_t joint_limits;
+
+        uint32_t ik_linear;
+        uint32_t ik_angular;
+        uint32_t flat_frame_linear;
+        uint32_t flat_frame_angular;
+        uint32_t endpoint_frame_linear;
+        uint32_t endpoint_frame_angular;
+        uint32_t use_spm_roll;
+        uint32_t position_control;
+        uint32_t all_joint_space;
+        uint32_t all_task_space;
+        
+        // Shift based
+        uint32_t speed_increase;
+        uint32_t speed_decrease;
+        uint32_t base_frame_offset_toggle;
+
+        // End effector
+        uint32_t end_effector_actuation_increase;
+        uint32_t end_effector_actuation_decrease;
+        uint32_t linear_actuation_increase;
+        uint32_t linear_actuation_decrease;
+
+        // Joint Space control
+        uint32_t joint_1_increase;
+        uint32_t joint_1_decrease;
+        uint32_t joint_2_increase;
+        uint32_t joint_2_decrease;
+        uint32_t joint_3_increase;
+        uint32_t joint_3_decrease;
+        uint32_t joint_4_increase;
+        uint32_t joint_4_decrease;
+        uint32_t joint_5_increase;
+        uint32_t joint_5_decrease;
+        uint32_t joint_6_increase;
+        uint32_t joint_6_decrease;
+        
+        // Task Space control
+        uint32_t x_increase;
+        uint32_t x_decrease;
+        uint32_t y_increase;
+        uint32_t y_decrease;
+        uint32_t z_increase;
+        uint32_t z_decrease;
+        uint32_t roll_increase;
+        uint32_t roll_decrease;
+        uint32_t pitch_increase;
+        uint32_t pitch_decrease;
+        uint32_t yaw_increase;
+        uint32_t yaw_decrease;
+    } KeyMappings;
+    KeyMappings key_mappings;
+
     /// @brief  Input collections for control scheme
     CommonInputCollections::ControlSchemeInputs control_scheme_inputs;
     
@@ -79,6 +135,9 @@ class KeyboardTranslate: public InputDevice {
 
     /// @brief  Input collections for twist
     CommonInputCollections::TwistInputs twist_inputs;
+
+    /// @brief  Sets the key mappings
+    void set_key_mappings();
 
     /// @brief  Searches for if a key is pressed
     /// @param  key SDL Scancode of the key, OR'd with masks
@@ -118,15 +177,9 @@ class KeyboardTranslate: public InputDevice {
     /// @return Returns the key with alt masked
     uint32_t alt(uint32_t key);
 
-    /// @brief  increases the speed of the arm (EE, joints or twist)
-    /// @param  field_name the name of the field to increase
-    /// @param  value the current speed
-    void increase_speed(std::string field_name, float& value);
+    /// @brief  changes the speed of the arm (EE, joints or twist)
+    void change_speed();
 
-    /// @brief  decreases the speed of the arm (EE, joints or twist)
-    /// @param  field_name the name of the field to decrease
-    /// @param  value the current speed
-    void decrease_speed(std::string field_name, float& value);
     //------------------------------------------------------------//
     public:
 

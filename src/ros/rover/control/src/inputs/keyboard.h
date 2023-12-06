@@ -56,6 +56,12 @@ class Keyboard {
     /// @brief The SDL initial window height
     const static int DEFAULT_WINDOW_HEIGHT = 480;
 
+    /// @brief The number of samples before a key press is registered again
+    const static int REPEAT_DELAY = 5;
+
+    /// @brief The delay to remove multiple key presses registered
+    int timeout;
+
     /// @brief The key mask for the control key
     const static int CTRL_MASK = 1<<31;
 

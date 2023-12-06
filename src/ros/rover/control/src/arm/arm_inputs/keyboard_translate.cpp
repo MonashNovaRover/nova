@@ -11,21 +11,75 @@ AUTHOR(S):	Matthew Gu
 #include <SDL2/SDL.h>
 #include "print/print.h"
 
-KeyboardTranslate::KeyboardTranslate(): joint_twist_speed(0), end_effector_speed(0) {}
+KeyboardTranslate::KeyboardTranslate(): speed(0f) {
+    set_key_mappings();
+}
+
+void KeyboardTranslate::set_key_mappings(){
+    // Control scheme
+    key_mappings.input_lock = ctrl(SDL_SCANCODE_L);
+    key_mappings.joint_limits = ctrl(SDL_SCANCODE_RETURN);
+    key_mappings.ik_linear = ctrl(SDL_SCANCODE_5);
+    key_mappings.ik_angular = ctrl(SDL_SCANCODE_6);
+    key_mappings.flat_frame_linear = ctrl(SDL_SCANCODE_1);
+    key_mappings.flat_frame_angular = ctrl(SDL_SCANCODE_2);
+    key_mappings.endpoint_frame_linear = ctrl(SDL_SCANCODE_3);
+    key_mappings.endpoint_frame_angular = ctrl(SDL_SCANCODE_4);
+    key_mappings.use_spm_roll = ctrl(SDL_SCANCODE_7);
+    key_mappings.position_control = ctrl(SDL_SCANCODE_8); // not implemented
+    key_mappings.all_joint_space = ctrl(SDL_SCANCODE_SPACE);
+    key_mappings.all_task_space = ctrl(SDL_SCANCODE_9); // not implemented
+    // Shift based
+    // note that equals is really plus on the keyboard
+    key_mappings.speed_increase = shift(SDL_SCANCODE_EQUALS);
+    key_mappings.speed_decrease = shift(SDL_SCANCODE_MINUS);
+    key_mappings.base_frame_offset_toggle = shift(SDL_SCANCODE_TAB);
+    // End Effector
+    key_mappings.end_effector_actuation_increase = SDL_SCANCODE_RIGHT;
+    key_mappings.end_effector_actuation_decrease = SDL_SCANCODE_LEFT;
+    key_mappings.linear_actuation_increase = SDL_SCANCODE_UP;
+    key_mappings.linear_actuation_decrease = SDL_SCANCODE_DOWN;
+    key_mappings.joint_1_increase = SDL_SCANCODE_Q;
+    key_mappings.joint_1_decrease = SDL_SCANCODE_E;
+    key_mappings.joint_2_increase = SDL_SCANCODE_A;
+    key_mappings.joint_2_decrease = SDL_SCANCODE_D;
+    key_mappings.joint_3_increase = SDL_SCANCODE_Z;
+    key_mappings.joint_3_decrease = SDL_SCANCODE_C;
+    key_mappings.joint_4_increase = SDL_SCANCODE_I;
+    key_mappings.joint_4_decrease = SDL_SCANCODE_P;
+    key_mappings.joint_5_increase = SDL_SCANCODE_J;
+    key_mappings.joint_5_decrease = SDL_SCANCODE_L;
+    key_mappings.joint_6_increase = SDL_SCANCODE_N;
+    key_mappings.joint_6_decrease = SDL_SCANCODE_COMMA;
+
+    // Task space control
+    key_mappings.x_increase = SDL_SCANCODE_W;
+    key_mappings.x_decrease = SDL_SCANCODE_S;
+    key_mappings.y_increase = SDL_SCANCODE_A;
+    key_mappings.y_decrease = SDL_SCANCODE_D;
+    key_mappings.z_increase = SDL_SCANCODE_Q;
+    key_mappings.z_decrease = SDL_SCANCODE_E;
+    key_mappings.roll_increase = SDL_SCANCODE_L;
+    key_mappings.roll_decrease = SDL_SCANCODE_J;
+    key_mappings.pitch_increase = SDL_SCANCODE_I;
+    key_mappings.pitch_decrease = SDL_SCANCODE_K;
+    key_mappings.yaw_increase = SDL_SCANCODE_O;
+    key_mappings.yaw_decrease = SDL_SCANCODE_U;
+}
 
 CommonInputCollections::ControlSchemeInputs KeyboardTranslate::get_arm_lock_inputs() {
     control_scheme_inputs.control_scheme_update = false;
     // Arm lock
-    toggle_control("Input lock", control_scheme_inputs.arm_lock, ctrl(SDL_SCANCODE_L));
+    toggle_control("Keyboard lock", control_scheme_inputs.arm_lock, key_mappings.input_lock);
     // Joint limits
-    toggle_control("Joint Limits", control_scheme_inputs.joint_limits, ctrl(SDL_SCANCODE_RETURN));
+    toggle_control("Joint Limits", control_scheme_inputs.joint_limits, key_mappings.joint_limits);
 
     return control_scheme_inputs;
 }
 
 CommonInputCollections::ControlSchemeInputs KeyboardTranslate::get_control_scheme_inputs() {
     // Used here for determining whether printing is needed
-    if (is_pressed(ctrl(SDL_SCANCODE_TAB))) {
+    if (is_pressed(key_mappings.base_frame_offset_toggle)) {
         base_frame_offset++;
         if (base_frame_offset >= 2) {
             base_frame_offset = -1;
@@ -36,28 +90,28 @@ CommonInputCollections::ControlSchemeInputs KeyboardTranslate::get_control_schem
     control_scheme_inputs.base_frame_offset = base_frame_offset;
     // Control schemes
     // Flat frame control
-    toggle_control("Flat frame linear", control_scheme_inputs.flat_frame_linear, ctrl(SDL_SCANCODE_1));
-    toggle_control("Flat frame angular", control_scheme_inputs.flat_frame_angular, ctrl(SDL_SCANCODE_2));
+    toggle_control("Flat frame linear", control_scheme_inputs.flat_frame_linear, key_mappings.flat_frame_linear);
+    toggle_control("Flat frame angular", control_scheme_inputs.flat_frame_angular, key_mappings.flat_frame_angular);
 
     // Endpoint frame control. Hold trigger
     // Also set if flat frame control is used
-    toggle_control("Endpoint frame linear", control_scheme_inputs.endpoint_frame_linear, ctrl(SDL_SCANCODE_3));
+    toggle_control("Endpoint frame linear", control_scheme_inputs.endpoint_frame_linear, key_mappings.endpoint_frame_linear);
     control_scheme_inputs.endpoint_frame_linear = control_scheme_inputs.endpoint_frame_linear || control_scheme_inputs.flat_frame_linear;
-    toggle_control("Endpoint frame angular", control_scheme_inputs.endpoint_frame_angular, ctrl(SDL_SCANCODE_4));
+    toggle_control("Endpoint frame angular", control_scheme_inputs.endpoint_frame_angular, key_mappings.endpoint_frame_angular);
     control_scheme_inputs.endpoint_frame_angular = control_scheme_inputs.endpoint_frame_angular || control_scheme_inputs.flat_frame_angular;
 
     // IK. Hold inside thumb button.
     // Also set if endpoint frame control is used.
-    toggle_control("IK linear", control_scheme_inputs.ik_linear, ctrl(SDL_SCANCODE_5));
+    toggle_control("IK linear", control_scheme_inputs.ik_linear, key_mappings.ik_linear);
     control_scheme_inputs.ik_linear = control_scheme_inputs.ik_linear || control_scheme_inputs.endpoint_frame_linear;
-    toggle_control("IK angular", control_scheme_inputs.ik_angular, ctrl(SDL_SCANCODE_6));
+    toggle_control("IK angular", control_scheme_inputs.ik_angular, key_mappings.ik_angular);
     control_scheme_inputs.ik_angular = control_scheme_inputs.ik_angular || control_scheme_inputs.endpoint_frame_angular;
 
     // Set SPM roll handling. Hold back thumb button on right stick
-    toggle_control("Use SPM roll", control_scheme_inputs.use_spm_roll, ctrl(SDL_SCANCODE_7));
+    toggle_control("Use SPM roll", control_scheme_inputs.use_spm_roll, key_mappings.ik_angular);
 
-    // Joint space if 0
-    if (is_pressed(ctrl(SDL_SCANCODE_0))) {
+    // All Joint space
+    if (is_pressed(key_mappings.all_joint_space)) {
         control_scheme_inputs.ik_linear = false;
         control_scheme_inputs.ik_angular = false;
         control_scheme_inputs.flat_frame_linear = false;
@@ -80,37 +134,30 @@ CommonInputCollections::ControlSchemeInputs KeyboardTranslate::get_control_schem
 }
 
 CommonInputCollections::EndEffectorInputs KeyboardTranslate::get_end_effector_inputs() {
-    if (is_pressed(shift(SDL_SCANCODE_LEFT))) {
-        increase_speed("EE Speed", end_effector_speed);
-    } else if (is_pressed(shift(SDL_SCANCODE_RIGHT))) {
-        decrease_speed("EE Speed", end_effector_speed);
-    }
+    change_speed();
 
     if (!control_scheme_inputs.input_lock){
         // Set the values for linear actuator and end effector actuation
-        end_effector_inputs.linear_actuation = is_pressed_or_held(SDL_SCANCODE_W);
-        end_effector_inputs.end_effector_actuation = is_pressed_or_held(SDL_SCANCODE_O) * 0.95;
+        end_effector_inputs.linear_actuation = (is_pressed_or_held(key_mappings.linear_actuation_increase)-is_pressed_or_held(key_mappings.linear_actuation_decrease));
+        end_effector_inputs.end_effector_actuation = (is_pressed_or_held(key_mappings.end_effector_actuation_increase)-is_pressed_or_held(key_mappings.end_effector_actuation_decrease));
     }
     return end_effector_inputs;
 }
 
 CommonInputCollections::JointVelocityInputs KeyboardTranslate::get_joint_velocity_inputs() {
-    if (is_pressed(shift(SDL_SCANCODE_UP))) {
-        increase_speed("Joint Velocity", joint_twist_speed);
-    } else if (is_pressed(shift(SDL_SCANCODE_DOWN))) {
-        decrease_speed("Joint Velocity", joint_twist_speed);
-    }
+    change_speed();
 
-    float speed = joint_twist_speed * speed_multipliers.all_inputs;
+    float speed = speed * speed_multipliers.all_inputs;
     if (!control_scheme_inputs.input_lock && !control_scheme_inputs.ik_linear) {
         // No speed scaling for lower joints;
         
         // Base rotation is stick twist. CCW rotates arm CCW (from above)
-        joint_velocity_inputs.velocities[0] = speed * (is_pressed_or_held(SDL_SCANCODE_Q)-is_pressed_or_held(SDL_SCANCODE_E));
+        joint_velocity_inputs.velocities[0] = speed * (is_pressed_or_held(key_mappings.joint_1_increase)-is_pressed_or_held(key_mappings.joint_1_decrease));
         // Shoulder is stick y (left-right). Left moves the arm towards the back of the rover
-        joint_velocity_inputs.velocities[1] = speed * (is_pressed_or_held(SDL_SCANCODE_A)-is_pressed_or_held(SDL_SCANCODE_D));
+        joint_velocity_inputs.velocities[1] = speed * (is_pressed_or_held(key_mappings.joint_2_increase)-is_pressed_or_held(key_mappings.joint_2_decrease));
         // Elbow is stick x (forward-backward). Forward pitches arm down
-        joint_velocity_inputs.velocities[2] = speed * (is_pressed_or_held(SDL_SCANCODE_Z)-is_pressed_or_held(SDL_SCANCODE_C));
+        joint_velocity_inputs.velocities[2] = speed * (is_pressed_or_held(key_mappings.joint_3_increase)-is_pressed_or_held(key_mappings.joint_3_decrease));
+    
     }
     else{
         joint_velocity_inputs.velocities[0] = 0;
@@ -121,14 +168,14 @@ CommonInputCollections::JointVelocityInputs KeyboardTranslate::get_joint_velocit
     // If using wrist joint-space control
     if (!control_scheme_inputs.input_lock && !control_scheme_inputs.ik_angular) {
         // Scale speed for wrist joints
-        float speed_wrist_joints = joint_twist_speed * speed_multipliers.wrist_joints;
+        float speed_wrist_joints = speed * speed_multipliers.wrist_joints;
         
         // J4 is stick x. Forward pitches arm down
-        joint_velocity_inputs.velocities[3] = speed_wrist_joints * (is_pressed_or_held(SDL_SCANCODE_I)-is_pressed_or_held(SDL_SCANCODE_P));
+        joint_velocity_inputs.velocities[3] = speed_wrist_joints * (is_pressed_or_held(key_mappings.joint_4_increase)-is_pressed_or_held(key_mappings.joint_4_decrease));
         // J5 is stick y. Left yaws arm left
-        joint_velocity_inputs.velocities[4] = speed_wrist_joints * (is_pressed_or_held(SDL_SCANCODE_J)-is_pressed_or_held(SDL_SCANCODE_L));
+        joint_velocity_inputs.velocities[4] = speed_wrist_joints * (is_pressed_or_held(key_mappings.joint_5_increase)-is_pressed_or_held(key_mappings.joint_5_decrease));
         // J6 is stick twist. CCW tilts end effector CCW (looking out from end effector)
-        joint_velocity_inputs.velocities[5] = speed_wrist_joints * (is_pressed_or_held(SDL_SCANCODE_N)-is_pressed_or_held(SDL_SCANCODE_COMMA));
+        joint_velocity_inputs.velocities[5] = speed_wrist_joints * (is_pressed_or_held(key_mappings.joint_6_increase)-is_pressed_or_held(key_mappings.joint_6_decrease));
     }
     else{
         joint_velocity_inputs.velocities[3] = 0;
@@ -142,22 +189,17 @@ CommonInputCollections::JointVelocityInputs KeyboardTranslate::get_joint_velocit
 }
 
 CommonInputCollections::TwistInputs KeyboardTranslate::get_twist_inputs() {
-    if (is_pressed(shift(SDL_SCANCODE_UP))) {
-        increase_speed("Joint Speed", joint_twist_speed);
-    } else if (is_pressed(shift(SDL_SCANCODE_DOWN))) {
-        decrease_speed("Joint Speed", joint_twist_speed);
-    }
-    float speed = joint_twist_speed * speed_multipliers.all_inputs;
-    
+    change_speed();
+    float speed = speed * speed_multipliers.all_inputs;
     // If using lower joints IK, set the values for linear velocity
     if (!control_scheme_inputs.input_lock && control_scheme_inputs.ik_linear) {
         // Scale speed for linear IK
         float speed_ik_linear = speed * speed_multipliers.ik_linear;
 
         // Linear velocities map directly from joystick. Directions are already in arm base coords
-        twist_inputs.linear.x = speed_ik_linear * (is_pressed_or_held(SDL_SCANCODE_Q)-is_pressed_or_held(SDL_SCANCODE_E));
-        twist_inputs.linear.y = speed_ik_linear * (is_pressed_or_held(SDL_SCANCODE_A)-is_pressed_or_held(SDL_SCANCODE_D));
-        twist_inputs.linear.z = speed_ik_linear * (is_pressed_or_held(SDL_SCANCODE_Z)-is_pressed_or_held(SDL_SCANCODE_C));
+        twist_inputs.linear.x = speed_ik_linear * (is_pressed_or_held(key_mappings.x_increase)-is_pressed_or_held(key_mappings.x_decrease));
+        twist_inputs.linear.y = speed_ik_linear * (is_pressed_or_held(key_mappings.y_increase)-is_pressed_or_held(key_mappings.y_decrease));
+        twist_inputs.linear.z = speed_ik_linear * (is_pressed_or_held(key_mappings.z_increase)-is_pressed_or_held(key_mappings.z_decrease));
     }
     else {
         twist_inputs.linear.x = 0;
@@ -172,11 +214,11 @@ CommonInputCollections::TwistInputs KeyboardTranslate::get_twist_inputs() {
         // Adjust roll and pitch directions so control is more intuitive
         // Equivalent to a rotation of the input angular velocity vector by +pi/2 about z axis
         // Roll is stick y (left-right)
-        twist_inputs.angular.x = speed_ik_angular * (is_pressed_or_held(SDL_SCANCODE_I)-is_pressed_or_held(SDL_SCANCODE_P));
+        twist_inputs.angular.x = speed_ik_angular * (is_pressed_or_held(key_mappings.roll_increase)-is_pressed_or_held(key_mappings.roll_decrease));
         // Pitch is stick x (forward-backward)
-        twist_inputs.angular.y = speed_ik_angular * (is_pressed_or_held(SDL_SCANCODE_J)-is_pressed_or_held(SDL_SCANCODE_L));
+        twist_inputs.angular.y = speed_ik_angular * (is_pressed_or_held(key_mappings.pitch_increase)-is_pressed_or_held(key_mappings.pitch_decrease));
         // Yaw is stick twist
-        twist_inputs.angular.z = speed_ik_angular * (is_pressed_or_held(SDL_SCANCODE_N)-is_pressed_or_held(SDL_SCANCODE_COMMA));
+        twist_inputs.angular.z = speed_ik_angular * (is_pressed_or_held(key_mappings.yaw_increase)-is_pressed_or_held(key_mappings.yaw_decrease));
     }
     else{
         twist_inputs.angular.x = 0;
@@ -202,22 +244,12 @@ bool KeyboardTranslate::is_connected()
 
 bool KeyboardTranslate::is_pressed(uint32_t key)
 {
-    for (long unsigned int i = 0; i < keyboard.keys_pressed.size(); i++) {
-        if (key == keyboard.keys_pressed[i]) {
-            return true;
-        }
-    }
-    return false;
+    return std::find(keyboard.keys_pressed.begin(), keyboard.keys_pressed.end(), key) != keyboard.keys_pressed.end();
 }
 
 bool KeyboardTranslate::is_held(uint32_t key)
 {
-    for (long unsigned int i = 0; i < keyboard.keys_repeated.size(); i++) {
-        if (key == keyboard.keys_repeated[i]) {
-            return true;
-        }
-    }
-    return false;
+    return std::find(keyboard.keys_repeated.begin(), keyboard.keys_repeated.end(), key) != keyboard.keys_repeated.end();
 }
 
 bool KeyboardTranslate::is_pressed_or_held(uint32_t key)
@@ -230,7 +262,7 @@ void KeyboardTranslate::toggle_control(std::string field_name, bool& value, uint
     if (is_pressed(key)){
         value = !value;
         control_scheme_inputs.control_scheme_update = true;
-        message = field_name + ": " + std::to_string(value?"true":"false");
+        message = field_name + std::to_string(value?": true":": false");
         Print::print(message.c_str());
     }
 }
@@ -250,16 +282,12 @@ uint32_t KeyboardTranslate::alt(uint32_t key)
     return key | ALT_MASK;
 }
 
-void KeyboardTranslate::increase_speed(std::string field_name, float& value)
-{
-    value = std::min(value + speed_increment, 1.0f);
-    message = field_name + ": " + std::to_string(value);
-    Print::print(message.c_str());
-}
-
-void KeyboardTranslate::decrease_speed(std::string field_name, float& value)
-{
-    value = std::max(value - speed_increment, 0.0f);
-    message = field_name + ": " + std::to_string(value);
+inline void KeyboardTranslate::change_speed(){
+    if (is_pressed(key_mappings.speed_increase)) {
+        speed = std::min(speed + speed_increment, 1.0f);
+    } else if (is_pressed(key_mappings.speed_decrease)) {
+        speed = std::max(speed - speed_increment, 0.0f);
+    }
+    message = "Speed: " + std::to_string(speed);
     Print::print(message.c_str());
 }
