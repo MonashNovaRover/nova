@@ -23,7 +23,7 @@ ACTIONS:  None
 PACKAGE: 	control
 AUTHOR(S):  Jess Hepworth, Jory Braun, Matthew Gu
 CREATION:	02/12/2021
-EDITED:		02/12/2023
+EDITED:		07/12/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Note:
 Current implementation updates all devices regardless 
@@ -83,9 +83,6 @@ class ArmInputs : public ArmConfigInfoClient
 
     // set to true when the joystick input is prioritised
     bool joystick_override;
-
-    // Priority control scheme update for locking arm
-    bool lock_arm;
 
     // Store the input device translators
     JoystickTranslate joystick_translate;

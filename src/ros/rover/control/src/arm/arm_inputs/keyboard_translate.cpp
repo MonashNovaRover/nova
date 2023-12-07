@@ -30,16 +30,20 @@ void KeyboardTranslate::set_key_mappings(){
     key_mappings.position_control = ctrl(SDL_SCANCODE_8); // not implemented
     key_mappings.all_joint_space = ctrl(SDL_SCANCODE_SPACE);
     key_mappings.all_task_space = ctrl(SDL_SCANCODE_9); // not implemented
+    
     // Shift based
     // note that equals is really plus on the keyboard
     key_mappings.speed_increase = shift(SDL_SCANCODE_EQUALS);
     key_mappings.speed_decrease = shift(SDL_SCANCODE_MINUS);
     key_mappings.base_frame_offset_toggle = shift(SDL_SCANCODE_TAB);
+
     // End Effector
     key_mappings.end_effector_actuation_increase = SDL_SCANCODE_RIGHT;
     key_mappings.end_effector_actuation_decrease = SDL_SCANCODE_LEFT;
     key_mappings.linear_actuation_increase = SDL_SCANCODE_UP;
     key_mappings.linear_actuation_decrease = SDL_SCANCODE_DOWN;
+
+    // Joint space control
     key_mappings.joint_1_increase = SDL_SCANCODE_Q;
     key_mappings.joint_1_decrease = SDL_SCANCODE_E;
     key_mappings.joint_2_increase = SDL_SCANCODE_A;
@@ -148,12 +152,8 @@ CommonInputCollections::JointVelocityInputs KeyboardTranslate::get_joint_velocit
     change_speed();
     if (!control_scheme_inputs.input_lock && !control_scheme_inputs.ik_linear) {
         // No speed scaling for lower joints;
-        
-        // Base rotation is stick twist. CCW rotates arm CCW (from above)
         joint_velocity_inputs.velocities[0] = speed * (is_pressed_or_held(key_mappings.joint_1_increase)-is_pressed_or_held(key_mappings.joint_1_decrease));
-        // Shoulder is stick y (left-right). Left moves the arm towards the back of the rover
         joint_velocity_inputs.velocities[1] = speed * (is_pressed_or_held(key_mappings.joint_2_increase)-is_pressed_or_held(key_mappings.joint_2_decrease));
-        // Elbow is stick x (forward-backward). Forward pitches arm down
         joint_velocity_inputs.velocities[2] = speed * (is_pressed_or_held(key_mappings.joint_3_increase)-is_pressed_or_held(key_mappings.joint_3_decrease));
     
     }
@@ -168,11 +168,8 @@ CommonInputCollections::JointVelocityInputs KeyboardTranslate::get_joint_velocit
         // Scale speed for wrist joints
         float speed_wrist_joints = speed * speed_multipliers.wrist_joints;
         
-        // J4 is stick x. Forward pitches arm down
         joint_velocity_inputs.velocities[3] = speed_wrist_joints * (is_pressed_or_held(key_mappings.joint_4_increase)-is_pressed_or_held(key_mappings.joint_4_decrease));
-        // J5 is stick y. Left yaws arm left
         joint_velocity_inputs.velocities[4] = speed_wrist_joints * (is_pressed_or_held(key_mappings.joint_5_increase)-is_pressed_or_held(key_mappings.joint_5_decrease));
-        // J6 is stick twist. CCW tilts end effector CCW (looking out from end effector)
         joint_velocity_inputs.velocities[5] = speed_wrist_joints * (is_pressed_or_held(key_mappings.joint_6_increase)-is_pressed_or_held(key_mappings.joint_6_decrease));
     }
     else{
@@ -193,7 +190,7 @@ CommonInputCollections::TwistInputs KeyboardTranslate::get_twist_inputs() {
         // Scale speed for linear IK
         float speed_ik_linear = speed * speed_multipliers.ik_linear;
 
-        // Linear velocities map directly from joystick. Directions are already in arm base coords
+        // Linear velocities map directly
         twist_inputs.linear.x = speed_ik_linear * (is_pressed_or_held(key_mappings.x_increase)-is_pressed_or_held(key_mappings.x_decrease));
         twist_inputs.linear.y = speed_ik_linear * (is_pressed_or_held(key_mappings.y_increase)-is_pressed_or_held(key_mappings.y_decrease));
         twist_inputs.linear.z = speed_ik_linear * (is_pressed_or_held(key_mappings.z_increase)-is_pressed_or_held(key_mappings.z_decrease));
@@ -210,11 +207,9 @@ CommonInputCollections::TwistInputs KeyboardTranslate::get_twist_inputs() {
         
         // Adjust roll and pitch directions so control is more intuitive
         // Equivalent to a rotation of the input angular velocity vector by +pi/2 about z axis
-        // Roll is stick y (left-right)
+        // roll pitch yaw
         twist_inputs.angular.x = speed_ik_angular * (is_pressed_or_held(key_mappings.roll_increase)-is_pressed_or_held(key_mappings.roll_decrease));
-        // Pitch is stick x (forward-backward)
         twist_inputs.angular.y = speed_ik_angular * (is_pressed_or_held(key_mappings.pitch_increase)-is_pressed_or_held(key_mappings.pitch_decrease));
-        // Yaw is stick twist
         twist_inputs.angular.z = speed_ik_angular * (is_pressed_or_held(key_mappings.yaw_increase)-is_pressed_or_held(key_mappings.yaw_decrease));
     }
     else{

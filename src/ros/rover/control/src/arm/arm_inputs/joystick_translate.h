@@ -12,7 +12,7 @@ PACKAGE: 	control
 AUTHOR(S):	Jess Hepworth, Jory Braun
 MODIFIED:	Matthew Gu
 CREATION:	09/10/2023
-EDITED:		29/11/2023
+EDITED:		07/12/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
@@ -67,7 +67,7 @@ class JoystickTranslate: public InputDevice {
 
     CommonInputCollections::TwistInputs get_twist_inputs() override;
 
-    bool is_connected();
+    bool is_connected() override;
 
     /// @brief  Callback for the left joystick message
     /// @param msg - the joystick message 
@@ -77,5 +77,5 @@ class JoystickTranslate: public InputDevice {
     /// @param msg - the joystick message
     void joystick_r_callback(core::msg::InputJoystick::SharedPtr msg);
     
-    void reset_message();
+    void reset_message() override;
 };

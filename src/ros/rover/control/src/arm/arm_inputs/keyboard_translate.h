@@ -10,7 +10,7 @@ messages into common arm input messages.
 PACKAGE: 	control
 AUTHOR(S):	Matthew Gu
 CREATION:	23/09/2023
-EDITED:		02/12/2023
+EDITED:		07/12/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
 Ask operator for key mapping, specifically the frame controls
@@ -140,10 +140,10 @@ class KeyboardTranslate: public InputDevice {
     /// @brief  Input collections for end effector
     CommonInputCollections::EndEffectorInputs end_effector_inputs;
 
-    /// @brief  Input collections for joint velocity
+    /// @brief  Input collections for joint velocity (Joint space control)
     CommonInputCollections::JointVelocityInputs joint_velocity_inputs;
 
-    /// @brief  Input collections for twist
+    /// @brief  Input collections for twist (Task space control)
     CommonInputCollections::TwistInputs twist_inputs;
 
     /// @brief  Sets the key mappings
@@ -209,7 +209,7 @@ class KeyboardTranslate: public InputDevice {
     /// @param msg The keyboard message
     void keyboard_callback(core::msg::InputKeyboard::SharedPtr msg);
 
-    void reset_message();
+    void reset_message() override;
 
-    bool is_connected();
+    bool is_connected() override;
 };

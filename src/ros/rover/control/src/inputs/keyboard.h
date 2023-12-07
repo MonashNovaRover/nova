@@ -56,12 +56,6 @@ class Keyboard {
     /// @brief The SDL initial window height
     const static int DEFAULT_WINDOW_HEIGHT = 480;
 
-    /// @brief The number of samples before a key press is registered again
-    const static int REPEAT_DELAY = 5;
-
-    /// @brief The delay to remove multiple key presses registered
-    int timeout;
-
     /// @brief The key mask for the control key
     const static int CTRL_MASK = 1<<31;
 
@@ -81,6 +75,10 @@ class Keyboard {
     void read_key_presses();
 
     /// @brief     Returns the key after anded with masks
+    ///            Allows Key to be separated from Ctrl+Key
+    /// @param     key The key to mask
+    /// @param     mod The modifier to mask
+    /// @returns   The masked key
     uint32_t key_mask(uint8_t key, uint16_t mod);
 
     //------------------------------------------------------------//
