@@ -59,8 +59,6 @@ class JoystickTranslate: public InputDevice {
     JoystickTranslate();
 
     // See input_device.h for documentation
-    CommonInputCollections::ControlSchemeInputs get_arm_lock_inputs() override;
-
     CommonInputCollections::ControlSchemeInputs get_control_scheme_inputs() override;
 
     CommonInputCollections::EndEffectorInputs get_end_effector_inputs() override;

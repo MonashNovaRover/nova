@@ -22,9 +22,6 @@ class InputDevice {
     //------------------------------------------------------------//
     public:
 
-    /// @brief returns the inputs for locking devices and joint limits
-    virtual CommonInputCollections::ControlSchemeInputs get_arm_lock_inputs() = 0;
-
     /// @brief returns the inputs for the control scheme
     virtual CommonInputCollections::ControlSchemeInputs get_control_scheme_inputs() = 0;
     

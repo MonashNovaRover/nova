@@ -12,45 +12,6 @@ AUTHOR(S):	Jess Hepworth, Jory Braun, Matthew Gu
 
 JoystickTranslate::JoystickTranslate() { }
 
-CommonInputCollections::ControlSchemeInputs JoystickTranslate::get_arm_lock_inputs()
-{
-    // Set button-based data here so we don't miss any button-press events
-    control_scheme_inputs.control_scheme_update = false;
-    // Arm lock
-    if (joystick_l.btn_bottom_l2_state == 1) {
-        if (!control_scheme_inputs.input_lock)
-            Print::print("Joysticks locked");
-        control_scheme_inputs.input_lock = true;
-        control_scheme_inputs.control_scheme_update = true;
-    }
-    if (joystick_l.btn_bottom_l5_state == 1){
-        if (control_scheme_inputs.input_lock)
-            Print::print("Joysticks Unlocked");
-        control_scheme_inputs.input_lock = false;
-        control_scheme_inputs.control_scheme_update = true;
-    }
-    // Joint limits
-    if (joystick_l.btn_bottom_l1_state == 1) {
-        control_scheme_inputs.joint_limits = true;
-        control_scheme_inputs.control_scheme_update = true;
-    }
-    if (joystick_l.btn_bottom_l4_state == 1) {
-        control_scheme_inputs.joint_limits = false;
-        control_scheme_inputs.control_scheme_update = true;
-    }
-#if POSITION_CONTROL_ENABLE
-    // Position control
-    if (joystick_l.btn_bottom_l3_state == 1) {
-        control_scheme_inputs.position_control = true;
-        control_scheme_inputs.control_scheme_update = true;
-    }
-    if (joystick_l.btn_bottom_l6_state == 1) {
-        control_scheme_inputs.position_control = false;
-        control_scheme_inputs.control_scheme_update = true;
-    }
-#endif
-    return control_scheme_inputs;
-}
 
 CommonInputCollections::ControlSchemeInputs JoystickTranslate::get_control_scheme_inputs()
 {
@@ -63,6 +24,34 @@ CommonInputCollections::ControlSchemeInputs JoystickTranslate::get_control_schem
         base_frame_offset = 1;
     }
     control_scheme_inputs.base_frame_offset = base_frame_offset;
+    
+    // Arm lock
+    if (joystick_l.btn_bottom_l2_state == 1) {
+        if (!control_scheme_inputs.input_lock)
+            Print::print("Joysticks locked");
+        control_scheme_inputs.input_lock = true;
+    }
+    if (joystick_l.btn_bottom_l5_state == 1){
+        if (control_scheme_inputs.input_lock)
+            Print::print("Joysticks Unlocked");
+        control_scheme_inputs.input_lock = false;
+    }
+    // Joint limits
+    if (joystick_l.btn_bottom_l1_state == 1) {
+        control_scheme_inputs.joint_limits = true;
+    }
+    if (joystick_l.btn_bottom_l4_state == 1) {
+        control_scheme_inputs.joint_limits = false;
+    }
+#if POSITION_CONTROL_ENABLE
+    // Position control
+    if (joystick_l.btn_bottom_l3_state == 1) {
+        control_scheme_inputs.position_control = true;
+    }
+    if (joystick_l.btn_bottom_l6_state == 1) {
+        control_scheme_inputs.position_control = false;
+    }
+#endif
 
     // Control schemes
     // Flat frame control

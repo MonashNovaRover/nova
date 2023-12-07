@@ -47,11 +47,21 @@ class KeyboardTranslate: public InputDevice {
     /// @brief  speeds increment each time it is increased or decreased. 
     ///         This is to allow for gradual speed changes. 
     ///         Currently allows about 10 levels. 
-    const float speed_increment = 0.01f;
+    const float speed_increment = 0.1f;
+
     /// @brief  The current speed for joints
     float speed;
+
     /// @brief  Base frame offset
     int8_t base_frame_offset;
+    
+    /// @brief  Sets to false whenever a callback is received, to not over sample key presses
+    ///         Oddly enough, we sample inputs every 50ms but updates/publishes every 10ms
+    ///         I am not sure why this is the case, but I will keep it. 
+    bool updated_controls;
+
+    /// @brief  Sets to false whenever a callback is received, to not over sample key presses
+    bool updated_speed;
 
     /// @brief  The speed multipliers for each set of inputs, copied from Joysticks
     typedef struct {
@@ -187,8 +197,6 @@ class KeyboardTranslate: public InputDevice {
     KeyboardTranslate();
 
     // See documentation in input_device.h
-    CommonInputCollections::ControlSchemeInputs get_arm_lock_inputs() override;
-
     CommonInputCollections::ControlSchemeInputs get_control_scheme_inputs() override;
 
     CommonInputCollections::EndEffectorInputs get_end_effector_inputs() override;

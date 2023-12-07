@@ -10,8 +10,9 @@ AUTHOR(S):	Matthew Gu
 #include "keyboard_translate.h"
 #include <SDL2/SDL.h>
 #include "print/print.h"
+#include <string>
 
-KeyboardTranslate::KeyboardTranslate(): speed(0f) {
+KeyboardTranslate::KeyboardTranslate(): speed(0) {
     set_key_mappings();
 }
 
@@ -67,75 +68,74 @@ void KeyboardTranslate::set_key_mappings(){
     key_mappings.yaw_decrease = SDL_SCANCODE_U;
 }
 
-CommonInputCollections::ControlSchemeInputs KeyboardTranslate::get_arm_lock_inputs() {
-    control_scheme_inputs.control_scheme_update = false;
-    // Arm lock
-    toggle_control("Keyboard lock", control_scheme_inputs.arm_lock, key_mappings.input_lock);
-    // Joint limits
-    toggle_control("Joint Limits", control_scheme_inputs.joint_limits, key_mappings.joint_limits);
-
-    return control_scheme_inputs;
-}
-
 CommonInputCollections::ControlSchemeInputs KeyboardTranslate::get_control_scheme_inputs() {
-    // Used here for determining whether printing is needed
-    if (is_pressed(key_mappings.base_frame_offset_toggle)) {
-        base_frame_offset++;
-        if (base_frame_offset >= 2) {
-            base_frame_offset = -1;
+    if (!updated_controls){
+        // Used here for determining whether printing is needed
+        if (is_pressed(key_mappings.base_frame_offset_toggle)) {
+            updated_controls = true;
+            base_frame_offset++;
+            if (base_frame_offset >= 2) {
+                base_frame_offset = -1;
+            }
+            message = "Base frame offset: " + std::to_string(base_frame_offset);
+            Print::print(message.c_str());
         }
-        message = "Base frame offset: " + std::to_string(base_frame_offset);
-        Print::print(message.c_str());
+        control_scheme_inputs.base_frame_offset = base_frame_offset;
+
+        // Arm lock
+        toggle_control("Keyboard lock", control_scheme_inputs.input_lock, key_mappings.input_lock);
+        // Joint limits
+        toggle_control("Joint Limits", control_scheme_inputs.joint_limits, key_mappings.joint_limits);
+
+        // Control schemes
+        // Flat frame control
+        toggle_control("Flat frame linear", control_scheme_inputs.flat_frame_linear, key_mappings.flat_frame_linear);
+        toggle_control("Flat frame angular", control_scheme_inputs.flat_frame_angular, key_mappings.flat_frame_angular);
+
+        // Endpoint frame control. Hold trigger
+        // Also set if flat frame control is used
+        toggle_control("Endpoint frame linear", control_scheme_inputs.endpoint_frame_linear, key_mappings.endpoint_frame_linear);
+        control_scheme_inputs.endpoint_frame_linear = control_scheme_inputs.endpoint_frame_linear || control_scheme_inputs.flat_frame_linear;
+        toggle_control("Endpoint frame angular", control_scheme_inputs.endpoint_frame_angular, key_mappings.endpoint_frame_angular);
+        control_scheme_inputs.endpoint_frame_angular = control_scheme_inputs.endpoint_frame_angular || control_scheme_inputs.flat_frame_angular;
+
+        // IK. Hold inside thumb button.
+        // Also set if endpoint frame control is used.
+        toggle_control("IK linear", control_scheme_inputs.ik_linear, key_mappings.ik_linear);
+        control_scheme_inputs.ik_linear = control_scheme_inputs.ik_linear || control_scheme_inputs.endpoint_frame_linear;
+        toggle_control("IK angular", control_scheme_inputs.ik_angular, key_mappings.ik_angular);
+        control_scheme_inputs.ik_angular = control_scheme_inputs.ik_angular || control_scheme_inputs.endpoint_frame_angular;
+
+        // Set SPM roll handling. Hold back thumb button on right stick
+        toggle_control("Use SPM roll", control_scheme_inputs.use_spm_roll, key_mappings.use_spm_roll);
+
+        // All Joint space
+        if (is_pressed(key_mappings.all_joint_space) && !updated_controls) {
+            updated_controls = true;
+            control_scheme_inputs.ik_linear = false;
+            control_scheme_inputs.ik_angular = false;
+            control_scheme_inputs.flat_frame_linear = false;
+            control_scheme_inputs.flat_frame_angular = false;
+            control_scheme_inputs.endpoint_frame_linear = false;
+            control_scheme_inputs.endpoint_frame_angular = false;
+            Print::print("Joint Space: On");
+        }
+
+        // Correction for position control - can't have independent linear and angular control
+        // Not yet implemented
+        if (control_scheme_inputs.position_control) {
+            control_scheme_inputs.flat_frame_angular = control_scheme_inputs.flat_frame_linear;
+            control_scheme_inputs.endpoint_frame_angular = control_scheme_inputs.endpoint_frame_linear;
+            control_scheme_inputs.ik_angular = control_scheme_inputs.ik_linear;
+        }
     }
-    control_scheme_inputs.base_frame_offset = base_frame_offset;
-    // Control schemes
-    // Flat frame control
-    toggle_control("Flat frame linear", control_scheme_inputs.flat_frame_linear, key_mappings.flat_frame_linear);
-    toggle_control("Flat frame angular", control_scheme_inputs.flat_frame_angular, key_mappings.flat_frame_angular);
-
-    // Endpoint frame control. Hold trigger
-    // Also set if flat frame control is used
-    toggle_control("Endpoint frame linear", control_scheme_inputs.endpoint_frame_linear, key_mappings.endpoint_frame_linear);
-    control_scheme_inputs.endpoint_frame_linear = control_scheme_inputs.endpoint_frame_linear || control_scheme_inputs.flat_frame_linear;
-    toggle_control("Endpoint frame angular", control_scheme_inputs.endpoint_frame_angular, key_mappings.endpoint_frame_angular);
-    control_scheme_inputs.endpoint_frame_angular = control_scheme_inputs.endpoint_frame_angular || control_scheme_inputs.flat_frame_angular;
-
-    // IK. Hold inside thumb button.
-    // Also set if endpoint frame control is used.
-    toggle_control("IK linear", control_scheme_inputs.ik_linear, key_mappings.ik_linear);
-    control_scheme_inputs.ik_linear = control_scheme_inputs.ik_linear || control_scheme_inputs.endpoint_frame_linear;
-    toggle_control("IK angular", control_scheme_inputs.ik_angular, key_mappings.ik_angular);
-    control_scheme_inputs.ik_angular = control_scheme_inputs.ik_angular || control_scheme_inputs.endpoint_frame_angular;
-
-    // Set SPM roll handling. Hold back thumb button on right stick
-    toggle_control("Use SPM roll", control_scheme_inputs.use_spm_roll, key_mappings.ik_angular);
-
-    // All Joint space
-    if (is_pressed(key_mappings.all_joint_space)) {
-        control_scheme_inputs.ik_linear = false;
-        control_scheme_inputs.ik_angular = false;
-        control_scheme_inputs.flat_frame_linear = false;
-        control_scheme_inputs.flat_frame_angular = false;
-        control_scheme_inputs.endpoint_frame_linear = false;
-        control_scheme_inputs.endpoint_frame_angular = false;
-        control_scheme_inputs.control_scheme_update = true;
-        Print::print("Joint Space: On");
-    }
-
-    // Correction for position control - can't have independent linear and angular control
-    // Not yet implemented
-    if (control_scheme_inputs.position_control) {
-        control_scheme_inputs.flat_frame_angular = control_scheme_inputs.flat_frame_linear;
-        control_scheme_inputs.endpoint_frame_angular = control_scheme_inputs.endpoint_frame_linear;
-        control_scheme_inputs.ik_angular = control_scheme_inputs.ik_linear;
-    }
+    
     return control_scheme_inputs;
 
 }
 
 CommonInputCollections::EndEffectorInputs KeyboardTranslate::get_end_effector_inputs() {
     change_speed();
-
     if (!control_scheme_inputs.input_lock){
         // Set the values for linear actuator and end effector actuation
         end_effector_inputs.linear_actuation = (is_pressed_or_held(key_mappings.linear_actuation_increase)-is_pressed_or_held(key_mappings.linear_actuation_decrease));
@@ -146,8 +146,6 @@ CommonInputCollections::EndEffectorInputs KeyboardTranslate::get_end_effector_in
 
 CommonInputCollections::JointVelocityInputs KeyboardTranslate::get_joint_velocity_inputs() {
     change_speed();
-
-    float speed = speed * speed_multipliers.all_inputs;
     if (!control_scheme_inputs.input_lock && !control_scheme_inputs.ik_linear) {
         // No speed scaling for lower joints;
         
@@ -190,7 +188,6 @@ CommonInputCollections::JointVelocityInputs KeyboardTranslate::get_joint_velocit
 
 CommonInputCollections::TwistInputs KeyboardTranslate::get_twist_inputs() {
     change_speed();
-    float speed = speed * speed_multipliers.all_inputs;
     // If using lower joints IK, set the values for linear velocity
     if (!control_scheme_inputs.input_lock && control_scheme_inputs.ik_linear) {
         // Scale speed for linear IK
@@ -230,6 +227,8 @@ CommonInputCollections::TwistInputs KeyboardTranslate::get_twist_inputs() {
 
 void KeyboardTranslate::keyboard_callback(core::msg::InputKeyboard::SharedPtr msg) {
     keyboard = *msg;
+    updated_controls = false;
+    updated_speed = false;
 }
 
 void KeyboardTranslate::reset_message()
@@ -261,8 +260,8 @@ void KeyboardTranslate::toggle_control(std::string field_name, bool& value, uint
 {   
     if (is_pressed(key)){
         value = !value;
-        control_scheme_inputs.control_scheme_update = true;
-        message = field_name + std::to_string(value?": true":": false");
+        updated_controls = true;
+        message = field_name + (value?": true":": false");
         Print::print(message.c_str());
     }
 }
@@ -283,11 +282,16 @@ uint32_t KeyboardTranslate::alt(uint32_t key)
 }
 
 inline void KeyboardTranslate::change_speed(){
-    if (is_pressed(key_mappings.speed_increase)) {
-        speed = std::min(speed + speed_increment, 1.0f);
-    } else if (is_pressed(key_mappings.speed_decrease)) {
-        speed = std::max(speed - speed_increment, 0.0f);
+    if (!updated_speed){
+        updated_speed = true;
+        if (is_pressed(key_mappings.speed_increase)) {
+            speed = std::min(speed + speed_increment, 1.0f);
+            message = "Speed: " + std::to_string(speed);
+            Print::print(message.c_str());
+        } else if (is_pressed(key_mappings.speed_decrease)) {
+            speed = std::max(speed - speed_increment, 0.0f);
+            message = "Speed: " + std::to_string(speed);
+            Print::print(message.c_str());
+        }
     }
-    message = "Speed: " + std::to_string(speed);
-    Print::print(message.c_str());
 }

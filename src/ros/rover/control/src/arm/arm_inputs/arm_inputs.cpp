@@ -42,21 +42,6 @@ void ArmInputs::joystick_l_callback (const core::msg::InputJoystick::SharedPtr m
     // Save data for later, only deal with it when we publish
     // More efficient, works if we only care about the most up-to-date message
     joystick_translate.joystick_l_callback(msg);
-
-    CommonInputCollections::ControlSchemeInputs arm_lock_inputs = select_input_device()->get_arm_lock_inputs();
-
-    // Set button-based data here so we don't miss any button-press events
-    control_scheme.input_lock = arm_lock_inputs.input_lock;
-    control_scheme.joint_limits = arm_lock_inputs.joint_limits;
-#if POSITION_CONTROL_ENABLE
-    // Position control
-    control_scheme.position_control = arm_lock_inputs.position_control;
-#endif
-    // Immediately publish any new control scheme data
-    // Also will continue to publish when the timer expires
-    if (arm_lock_inputs.control_scheme_update){
-        publish_control_scheme();
-    }
 }
 
 // Receives input from right joystick
@@ -145,8 +130,16 @@ void ArmInputs::publish_inputs()
 // Publishes control scheme data
 void ArmInputs::publish_control_scheme()
 {   
+
     CommonInputCollections::ControlSchemeInputs control_scheme_inputs = select_input_device()->get_control_scheme_inputs();
 
+    // Set button-based data here so we don't miss any button-press events
+    control_scheme.input_lock = control_scheme_inputs.input_lock;
+    control_scheme.joint_limits = control_scheme_inputs.joint_limits;
+#if POSITION_CONTROL_ENABLE
+    // Position control
+    control_scheme.position_control = control_scheme_inputs.position_control;
+#endif
     control_scheme.base_frame_offset = control_scheme_inputs.base_frame_offset;
     control_scheme.flat_frame_linear = control_scheme_inputs.flat_frame_linear;
     control_scheme.flat_frame_angular = control_scheme_inputs.flat_frame_angular;
@@ -162,10 +155,6 @@ void ArmInputs::publish_control_scheme()
         control_scheme.endpoint_frame_angular = control_scheme.endpoint_frame_linear;
         control_scheme.ik_angular = control_scheme.ik_linear;
     }
-
-    // Set the header and publish
-    control_scheme.header.stamp = this->now();
-    control_scheme_pub->publish(control_scheme);
 }
 
 

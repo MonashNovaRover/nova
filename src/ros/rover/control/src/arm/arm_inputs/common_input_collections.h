@@ -26,7 +26,6 @@ class CommonInputCollections {
     // Stores the abstracted inputs the arm will use
     // control scheme inputs
     typedef struct {
-        bool control_scheme_update;
         bool input_lock;
         bool joint_limits;
         bool position_control;

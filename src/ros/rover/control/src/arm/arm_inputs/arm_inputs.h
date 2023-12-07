@@ -81,8 +81,11 @@ class ArmInputs : public ArmConfigInfoClient
     geometry_msgs::msg::TwistStamped twist;
     core::msg::ArmControlScheme control_scheme;
 
-    // on whether the joystick input is used for override
+    // set to true when the joystick input is prioritised
     bool joystick_override;
+
+    // Priority control scheme update for locking arm
+    bool lock_arm;
 
     // Store the input device translators
     JoystickTranslate joystick_translate;
