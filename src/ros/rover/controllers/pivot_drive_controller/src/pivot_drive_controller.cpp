@@ -118,11 +118,22 @@ namespace pivot_drive_controller
         std::shared_ptr<core::msg::DriveInputStamped> last_command_msg;
         received_drive_input_msg_ptr_.get(last_command_msg);
 
+        std::shared_ptr<geometry_msgs::msg::Twist> last_twist_command_msg;
+        received_twist_msg_ptr_.get(last_twist_command_msg);
+
+        if (last_twist_command_msg == nullptr)
+        {
+            RCLCPP_WARN(logger, "Twist message received was a nullptr.");
+            return controller_interface::return_type::ERROR;
+        }
+        
         if (last_command_msg == nullptr)
         {
             RCLCPP_WARN(logger, "DriveInputStamped message received was a nullptr.");
             return controller_interface::return_type::ERROR;
         }
+
+        RCLCPP_INFO(logger, "yes");
 
         //const auto age_of_last_command = time - last_command_msg->header.stamp;
         const auto age_of_last_command = time - last_command_msg->header.stamp;
@@ -164,10 +175,11 @@ namespace pivot_drive_controller
         previous_commands_.pop();
         previous_commands_.emplace(command);
 
-        const core::msg::DriveInputStamped empty_drive_input;
+        //const core::msg::DriveInputStamped empty_drive_input;
 
-        /*
+        
         //    Publish limited velocity
+        /*
         if (publish_limited_drive_pivot_ && realtime_limited_drive_pivot_publisher_->trylock())
         {
             auto & limited_drive_pivot_command = realtime_limited_drive_pivot_publisher_->msg_;
@@ -177,6 +189,7 @@ namespace pivot_drive_controller
             realtime_limited_drive_pivot_publisher_->unlockAndPublish();
         }
         */
+        
 
         float target_radius, target_direction;
 
@@ -384,6 +397,7 @@ namespace pivot_drive_controller
         odometry_.setVelocityRollingWindowSize(params_.velocity_rolling_window_size);
 
         cmd_vel_timeout_ = std::chrono::milliseconds{static_cast<int>(params_.cmd_vel_timeout * 1000.0)};
+        
         //publish_limited_drive_pivot_ = params_.publish_limited_drive_pivot;
 
         limiter_linear_ = SpeedLimiter(
@@ -417,20 +431,29 @@ namespace pivot_drive_controller
             realtime_limited_drive_pivot_publisher_ =
               std::make_shared<realtime_tools::RealtimePublisher<core::msg::DriveInputStamped>>(limited_drive_pivot_publisher_);
         }
-*/
+        */
 
         const core::msg::DriveInputStamped empty_drive_input;
+        const geometry_msgs::msg::Twist empty_twist;
         received_drive_input_msg_ptr_.set(std::make_shared<core::msg::DriveInputStamped>(empty_drive_input));
+        received_twist_msg_ptr_.set(std::make_shared<geometry_msgs::msg::Twist>(empty_twist));
+
+
+
+        RCLCPP_INFO(get_node()->get_logger(), "drive_input_msg_ptr");
 
         // Fill last two commands with default constructed commands
         previous_commands_.emplace(empty_drive_input);
         previous_commands_.emplace(empty_drive_input);
+
+        RCLCPP_INFO(get_node()->get_logger(), "about to initialize subscriber");
 
         // initialize command subscriber
         drive_input_subscriber_ = get_node()->create_subscription<core::msg::DriveInputStamped>(
             DEFAULT_INPUT_TOPIC, rclcpp::SystemDefaultsQoS(),
             [this](const std::shared_ptr<core::msg::DriveInputStamped> msg) -> void
             {
+              RCLCPP_INFO(get_node()->get_logger(), "subscription to /drive_input_cmd");
               if (!subscriber_is_active_)
               {
                 RCLCPP_WARN(get_node()->get_logger(), "Can't accept new commands. subscriber is inactive");
@@ -446,6 +469,8 @@ namespace pivot_drive_controller
               }
               received_drive_input_msg_ptr_.set(std::move(msg));
             });
+
+        RCLCPP_INFO(get_node()->get_logger(),"about to initiliase odometry publisher");
 
         // initialize odometry publisher and messasge
         odometry_publisher_ = get_node()->create_publisher<nav_msgs::msg::Odometry>(
@@ -520,6 +545,8 @@ namespace pivot_drive_controller
     controller_interface::CallbackReturn PivotDriveController::on_activate(
         const rclcpp_lifecycle::State &)
     {
+
+        RCLCPP_INFO(get_node()->get_logger(),"on activate");
         const auto left_drives_result =
             configure_drive_pivots(true, params_.left_drive_names, registered_left_drive_handles_);
         const auto right_drives_result =
@@ -529,14 +556,18 @@ namespace pivot_drive_controller
         const auto right_pivots_result =
             configure_drive_pivots(false, params_.right_pivot_names, registered_right_pivot_handles_);
 
-        if (
+        if (              
+
             left_drives_result == controller_interface::CallbackReturn::ERROR ||
             right_drives_result == controller_interface::CallbackReturn::ERROR ||
             left_pivots_result == controller_interface::CallbackReturn::ERROR ||
-            right_pivots_result == controller_interface::CallbackReturn::ERROR)
+            right_pivots_result == controller_interface::CallbackReturn::ERROR )
         {
+            RCLCPP_ERROR(get_node()->get_logger(), "Error configuring drives and pivots");
             return controller_interface::CallbackReturn::ERROR;
         }
+
+        RCLCPP_INFO(get_node()->get_logger(),"if 1");
 
         if (registered_left_drive_handles_.empty() || registered_right_drive_handles_.empty())
         {
@@ -545,9 +576,12 @@ namespace pivot_drive_controller
                 "Either left drive interfaces, right drive interfaces are non existent");
             return controller_interface::CallbackReturn::ERROR;
         }
+        RCLCPP_INFO(get_node()->get_logger(),"if 2");
 
         if (registered_left_pivot_handles_.empty() || registered_right_pivot_handles_.empty())
         {
+            RCLCPP_INFO(get_node()->get_logger(),"stuck here");
+
             RCLCPP_ERROR(
                 get_node()->get_logger(),
                 "Either left pivot interfaces, right pivot interfaces are non existent");
@@ -557,7 +591,7 @@ namespace pivot_drive_controller
         is_halted = false;
         subscriber_is_active_ = true;
 
-        RCLCPP_DEBUG(get_node()->get_logger(), "Subscriber and publisher are now active.");
+        RCLCPP_INFO(get_node()->get_logger(), "Subscriber and publisher are now active.");
         return controller_interface::CallbackReturn::SUCCESS;
     }
 
@@ -615,6 +649,8 @@ namespace pivot_drive_controller
 
         subscriber_is_active_ = false;
         drive_input_subscriber_.reset();
+
+        RCLCPP_DEBUG(get_node()->get_logger(), "reset");
 
         received_drive_input_msg_ptr_.set(nullptr);
         is_halted = false;

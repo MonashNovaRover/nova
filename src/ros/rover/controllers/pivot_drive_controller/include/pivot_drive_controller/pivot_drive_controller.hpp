@@ -49,7 +49,6 @@ namespace pivot_drive_controller
             const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
 
-
         PIVOT_DRIVE_CONTROLLER_PUBLIC
         controller_interface::CallbackReturn on_init() override;
 
@@ -123,6 +122,9 @@ namespace pivot_drive_controller
         rclcpp::Subscription<core::msg::DriveInputStamped>::SharedPtr drive_input_subscriber_ = nullptr;
 
         realtime_tools::RealtimeBox<std::shared_ptr<core::msg::DriveInputStamped>> received_drive_input_msg_ptr_{nullptr};
+        realtime_tools::RealtimeBox<std::shared_ptr<geometry_msgs::msg::Twist>> received_twist_msg_ptr_{nullptr};
+
+
 
         std::queue<core::msg::DriveInputStamped> previous_commands_;  // last two commands
 
@@ -134,9 +136,9 @@ namespace pivot_drive_controller
         /*
         bool publish_limited_drive_pivot_ = false;
         std::shared_ptr<rclcpp::Publisher<CommandMsg>> limited_drive_pivot_publisher_ = nullptr;
-        std::shared_ptr<realtime_tools::RealtimePublisher<CommandMsg>> realtime_limited_drive_pivot_publisher_ =
-        nullptr;
+        std::shared_ptr<realtime_tools::RealtimePublisher<CommandMsg>> realtime_limited_drive_pivot_publisher_ = nullptr;
         */
+        
 
 
         rclcpp::Time previous_update_timestamp_{0};
