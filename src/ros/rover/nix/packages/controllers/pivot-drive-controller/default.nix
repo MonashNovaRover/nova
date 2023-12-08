@@ -10,7 +10,13 @@
 , std-srvs
 , generate-parameter-library
 , rcpputils
-, admittance-controller
+, backward-ros
+, nav-msgs
+, realtime-tools
+, tf2
+, tf2-msgs
+, geometry-msgs
+, nova-core
 }:
 
 buildRosPackage {
@@ -34,5 +40,12 @@ buildRosPackage {
     rclcpp-lifecycle
     std-srvs
     generate-parameter-library
+    backward-ros
+    nav-msgs
+    realtime-tools
+    tf2
+    tf2-msgs
+    geometry-msgs
+    nova-core
   ];
 }
