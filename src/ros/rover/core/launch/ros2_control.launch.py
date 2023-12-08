@@ -33,37 +33,75 @@ import xacro
 
 # Generate the launch file with all inputs
 def generate_launch_description():
-    gazebo = LaunchConfiguration('gazebo', default=False)
     core_path = get_package_share_path('core')
     default_model_path = core_path / 'urdf/rover.urdf.xacro'
-    model_arg = DeclareLaunchArgument(name='model', default_value=str(default_model_path),
-            description='Absolute path to robot urdf file')
+    
+    #Declare Arguments
+    declared_arguments = []
+    #we aren't using the model argument here.. do we need this?
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            name='model', 
+            default_value=str(default_model_path),
+            description='Absolute path to robot urdf file'
+        )
+    )
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            name="use_mock_hardware",
+            default_value="false",
+            description="Start rover with mock hardware mirroring commands to its states"
+        )
+    )
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            name="gazebo",
+            default_value="false",
+            description="Run Gazebo simulation using gazebo_ros2_control"
+        )
+    )
+
+    model = LaunchConfiguration("model")
+    use_mock_hardware = LaunchConfiguration("use_mock_hardware")
+    gazebo = LaunchConfiguration("gazebo")
+    
 
     robot_description_content = Command(
         [
             PathJoinSubstitution([FindExecutable(name='xacro')]),
             " ",
-            PathJoinSubstitution([
-                FindPackageShare("core"),
-                "urdf",
-                "rover.urdf.xacro"
-            ]),
+            PathJoinSubstitution(
+                [
+                    FindPackageShare("core"),
+                    "urdf",
+                    "rover.urdf.xacro"
+                ]
+            ),
             " ",
             "gazebo:=",
-            gazebo
+            gazebo,
+            " ",
+            "use_mock_hardware:=",
+            use_mock_hardware,
         ]
     )
 
     robot_description = {'robot_description': ParameterValue(robot_description_content, value_type=str)}
 
     controllers = PathJoinSubstitution(
-        [FindPackageShare("core"), "params", "controllers.yaml"]
+        [
+            FindPackageShare("core"), 
+            "params", 
+            "controllers.yaml"
+        ]
     )
 
     control_node = Node(
         package="controller_manager",
         executable="ros2_control_node",
-        parameters=[robot_description, controllers]
+        parameters=[robot_description, controllers], # Deprecated: passing the robot description parameter directly to the control_manager node is deprecated. Use robot_state_publisher instead.
+        arguments=['--ros-args', '--log-level','DEBUG'],
+        output="both" #added - not too sure what it does
     )
 
     wheel_velocity_controller = Node(
@@ -84,23 +122,18 @@ def generate_launch_description():
         arguments=["joint_broad"]
     )
 
-    pivot_drive = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["four_steering_controller"]
-    )
-
     pivot_drive_controller = Node(
         package="controller_manager",
         executable="spawner",
         arguments=["pivot_drive_controller"]
     )
 
-    return LaunchDescription([
+    nodes = [
         control_node,
-        # wheel_velocity_controller,
-        # pivot_position_controller,
+        #wheel_velocity_controller,
+        #pivot_position_controller,
         #joint_broad,
-        pivot_drive_controller
+        pivot_drive_controller,
+    ]
 
-    ])
+    return LaunchDescription(declared_arguments + nodes)
