@@ -287,29 +287,17 @@ hardware_interface::return_type BLCMDHardware::write(
 hardware_interface::return_type
     BLCMDHardware::prepare_command_mode_switch(const std::vector<std::string> &start_interfaces,
                                                const std::vector<std::string> &stop_interfaces) {
-    if (stop_interfaces.size() > 1){
-        RCLCPP_FATAL_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
-                            "Unexpected number of interfaces to stop " << stop_interfaces.size());
-        return hardware_interface::return_type::ERROR;
-    }
+   for (const auto& interface : stop_interfaces) {
+       if (!stop_interface(interface)) {
+           return hardware_interface::return_type::ERROR;
+       }
+   }
 
-    if (start_interfaces.size() > 1){
-        RCLCPP_FATAL_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
-                            "Unexpected number of interfaces to start " << start_interfaces.size());
-        return hardware_interface::return_type::ERROR;
-    }
-
-    if(stop_interfaces.size() == 1){
-        if(!stop_interface(stop_interfaces[0])){
-            return hardware_interface::return_type::ERROR;
-        }
-    }
-
-    if (start_interfaces.size() == 1){
-        if(!start_interface(start_interfaces[0])){
-            return hardware_interface::return_type::ERROR;
-        }
-    }
+   for (const auto& interface : start_interfaces) {
+       if (!start_interface(interface)) {
+           return hardware_interface::return_type::ERROR;
+       }
+   }
 
     return hardware_interface::return_type::OK;
 }
