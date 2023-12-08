@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--This is a file coding up the depth camera for the rover in gazebo. This file is referenced at the bottom of rover.urdf.xacro, 
+<!--This is a file for the depth camera plugin for the rover in gazebo. This file is referenced at the bottom of rover.urdf.xacro, 
 which is how it gets added to the gazebo sim. Author/s: Victor Bartlinski-->
 
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" >

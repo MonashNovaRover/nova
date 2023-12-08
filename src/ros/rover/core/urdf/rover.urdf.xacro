@@ -617,4 +617,5 @@
 
   <xacro:include filename="ros2_control.xacro" />
   <xacro:include filename="depth_camera.xacro" />
+  <xacro:include filename="p3d.xacro" />
 </robot>
