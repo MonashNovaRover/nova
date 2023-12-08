@@ -139,8 +139,6 @@ namespace pivot_drive_controller
         std::shared_ptr<realtime_tools::RealtimePublisher<CommandMsg>> realtime_limited_drive_pivot_publisher_ = nullptr;
         */
         
-
-
         rclcpp::Time previous_update_timestamp_{0};
 
         // publish rate limiter
