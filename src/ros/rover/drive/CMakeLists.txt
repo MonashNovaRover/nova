@@ -11,12 +11,11 @@ find_package(rclcpp REQUIRED)
 find_package(core REQUIRED)
 
 #find libcanmd
-find_package(PkgConfig)
-pkg_check_modules(LIB_CANMD REQUIRED libcanmd)
+find_package(libcanmd REQUIRED)
 
 add_executable(driver src/driver.cpp)
-target_link_libraries(drive PRIVATE ${LIB_CANMD_LIBRARIES})
-target_include_directories(drive PRIVATE ${JCAN_INCLUDE_DIRS})
+target_link_libraries(drive PRIVATE libcanmd)
+target_include_directories(drive PRIVATE libcanmd)
 ament_target_dependencies(driver rclcpp core)
 
 install(TARGETS
