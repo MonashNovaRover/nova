@@ -147,20 +147,10 @@ pivot_drive_controller:
     default_value: true,
     description: "Publish transformation between ``odom_frame_id`` and ``base_frame_id``.",
   }
-  cmd_vel_timeout: {
-    type: double,
-    default_value: 0.5, # seconds
-    description: "Timeout in seconds, after which input command on ``cmd_vel`` topic is considered staled.",
-  }
   publish_limited_velocity: {
     type: bool,
     default_value: false,
     description: "Publish limited velocity value.",
-  }
-  velocity_rolling_window_size: {
-    type: int,
-    default_value: 10,
-    description: "Size of the rolling window for calculation of mean velocity use in odometry.",
   }
   
   publish_rate: {
@@ -171,6 +161,6 @@ pivot_drive_controller:
 
   max_d_theta: {
     type: double,
-    default_value: 0.0,
+    default_value: 3.5342, #2*pi*0.5625 (control/src/drive/driver.cpp:453
     description: "Max. theta displacement in one iteration",
   }

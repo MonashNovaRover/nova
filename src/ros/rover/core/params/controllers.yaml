@@ -15,8 +15,13 @@ controller_manager:
     #four_wheel_steering_controller:
     #  type: four_wheel_steering_controller/FourWheelSteeringController
 
-    four_steering_controller:
-      type: four_steering_controller/FourSteeringController
+        #four_steering_controller:
+        #  type: four_steering_controller/FourSteeringController
+    pivot_drive_controller:
+      type: pivot_drive_controller/PivotDriveController
+
+    diff_drive_controller:
+      type: diff_drive_controller/DiffDriveController
 
     joint_broad:
       type: joint_state_broadcaster/JointStateBroadcaster
@@ -87,5 +92,19 @@ four_steering_controller:
     track_: 0.7
     wheel_base_: 0.84
     wheel_radius_: 0.15
+
+pivot_drive_controller:
+  ros__parameters:
+    left_drive_names: ["flw", "blw"]
+    right_drive_names: ["frw", "brw"]
+    left_pivot_names: ["flp", "blp"]
+    right_pivot_names: ["frp", "brp"]
+
+diff_drive_controller:
+  ros__parameters:
+    left_wheel_names: ["flw", "blw"]
+    right_wheel_names: ["frw", "brw"]
+    position_feedback: false
+    
     
   

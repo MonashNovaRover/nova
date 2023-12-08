@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.26.4)
+cmake_minimum_required(VERSION 3.16)
 project(pivot_drive_controller)
 
 # Default to C++17
@@ -56,24 +56,60 @@ target_link_libraries(${PROJECT_NAME}
 target_compile_definitions(${PROJECT_NAME} PRIVATE "pivot_drive_controller_BUILDING_DLL")
 pluginlib_export_plugin_description_file(controller_interface pivot_drive_controller.xml)
 
+if(BUILD_TESTING)
+  find_package(ament_cmake_gmock REQUIRED)
+  find_package(controller_manager REQUIRED)
+  #find_package(ros2_control_test_assets REQUIRED)
+
+  ament_add_gmock(test_pivot_drive_controller
+    test/test_pivot_drive_controller.cpp
+    ENV config_file=${CMAKE_CURRENT_SOURCE_DIR}/test/config/test_pivot_drive_controller.yaml)
+  target_link_libraries(test_pivot_drive_controller
+    pivot_drive_controller
+  )
+  ament_target_dependencies(test_pivot_drive_controller
+    geometry_msgs
+    hardware_interface
+    nav_msgs
+    rclcpp
+    rclcpp_lifecycle
+    realtime_tools
+    tf2
+    tf2_msgs
+    core
+  )
+
+  ament_add_gmock(test_load_pivot_drive_controller
+    test/test_load_pivot_drive_controller.cpp
+  )
+  ament_target_dependencies(test_load_pivot_drive_controller
+    controller_manager
+    #ros2_control_test_assets
+  )
+endif()
+
 install(DIRECTORY include/
-  DESTINATION include
+  DESTINATION include/pivot_drive_controller
 )
 
-install(TARGETS ${PROJECT_NAME}
+install(TARGETS pivot_drive_controller pivot_drive_controller_parameters
+  EXPORT export_pivot_drive_controller
   RUNTIME DESTINATION bin
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
 )
 
+ament_export_targets(export_pivot_drive_controller HAS_LIBRARY_TARGET)
+
 ament_export_dependencies(
   ${THIS_PACKAGE_INCLUDE_DEPENDS}
 )
-ament_export_include_directories(
-  include
-)
-ament_export_libraries(
-  ${PROJECT_NAME}
-)
+
+#ament_export_include_directories(
+#  include
+#)
+#ament_export_libraries(
+#  ${PROJECT_NAME}
+#)
 ament_package()
 
