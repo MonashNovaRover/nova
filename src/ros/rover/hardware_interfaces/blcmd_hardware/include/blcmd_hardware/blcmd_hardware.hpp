@@ -153,6 +153,8 @@ private:
 
     uint16_t revolution_pulses_;
 
+    bool mock_ = false;
+
     bool check_resolver();
 
     bool set_control_interface(const hardware_interface::InterfaceInfo & interface_info, bool command);

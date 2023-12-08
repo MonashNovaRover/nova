@@ -76,6 +76,11 @@ hardware_interface::CallbackReturn BLCMDHardware::on_init(
         return CallbackReturn::ERROR;
     }
 
+    auto mock_search = info_.hardware_parameters.find("mock");
+    if (mock_search != info_.hardware_parameters.end() && mock_search->second == "true"){
+        mock_ = true;
+    }
+
     revolution_pulses_ = std::stoul(revolution_pulses_search->second);
 
 
@@ -113,44 +118,47 @@ hardware_interface::CallbackReturn BLCMDHardware::on_configure(
         return CallbackReturn::ERROR;
     }
 
-    //get min_interval
-    if (hw_velocity_.state.has_value()) {
-        RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
-                           "Getting min interval on BLCMD " << can_id_);
-        auto min_interval = get_config<uint16_t>(BLCMDConfigCommand::MIN_INTERVAL);
 
-        if (min_interval.has_value()) {
-            min_interval_ = min_interval.value();
+    if (!mock_) {
+        //get min_interval
+        if (hw_velocity_.state.has_value()) {
             RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
-                               "Min interval on BLCMD " << can_id_ << " is " << min_interval_);
-        } else {
-            RCLCPP_FATAL_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
-                                "Error getting min interval on BLCMD " << can_id_);
-            return CallbackReturn::ERROR;
-        }
-    }
+                               "Getting min interval on BLCMD " << can_id_);
+            auto min_interval = get_config<uint16_t>(BLCMDConfigCommand::MIN_INTERVAL);
 
-    // check for resolver if there is a position interface
-    if(hw_position_.state.has_value() || hw_position_.command.has_value()) {
-        RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
-                                "Checking for resolver on BLCMD " << can_id_);
-
-        auto resolver_check = get_config<uint16_t>(BLCMDConfigCommand::HAS_RESOLVER);
-        if (resolver_check.has_value()) {
-            if (resolver_check.value()) {
+            if (min_interval.has_value()) {
+                min_interval_ = min_interval.value();
                 RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
-                                   "Resolver detected on BLCMD " << can_id_);
-                return CallbackReturn::SUCCESS;
+                                   "Min interval on BLCMD " << can_id_ << " is " << min_interval_);
             } else {
                 RCLCPP_FATAL_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
-                                    "No resolver detected on BLCMD " << can_id_);
+                                    "Error getting min interval on BLCMD " << can_id_);
                 return CallbackReturn::ERROR;
             }
         }
-        RCLCPP_FATAL_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
-                                "Error with resolver request on BLCMD" << can_id_);
-        return CallbackReturn::ERROR;
 
+        // check for resolver if there is a position interface
+        if (hw_position_.state.has_value() || hw_position_.command.has_value()) {
+            RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                               "Checking for resolver on BLCMD " << can_id_);
+
+            auto resolver_check = get_config<uint16_t>(BLCMDConfigCommand::HAS_RESOLVER);
+            if (resolver_check.has_value()) {
+                if (resolver_check.value()) {
+                    RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                                       "Resolver detected on BLCMD " << can_id_);
+                    return CallbackReturn::SUCCESS;
+                } else {
+                    RCLCPP_FATAL_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                                        "No resolver detected on BLCMD " << can_id_);
+                    return CallbackReturn::ERROR;
+                }
+            }
+            RCLCPP_FATAL_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                                "Error with resolver request on BLCMD" << can_id_);
+            return CallbackReturn::ERROR;
+
+        }
     }
     
   return CallbackReturn::SUCCESS;

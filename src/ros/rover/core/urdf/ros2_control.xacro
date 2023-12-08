@@ -5,13 +5,86 @@
         <hardware>
             <plugin>blcmd_hardware/BLCMDHardware</plugin>
             <param name="candevice">can0</param>
+            <param name="canid">1</param>
+            <param name="resolver_reduction">1</param>
+            <param name="clock_rate">100000000</param>
+            <param name="revolution_pulses">8192</param>
+            <param name="mock">true</param>
+        </hardware>
+
+        <joint name="flw">
+            <command_interface name="velocity">
+            </command_interface>
+
+            <command_interface name="effort">
+                <param name="max">1</param>
+            </command_interface>
+
+            <state_interface name="velocity">
+            </state_interface>
+        </joint>
+    </ros2_control>
+
+    <ros2_control name="BackLeftWheel" type="actuator">
+        <hardware>
+            <plugin>blcmd_hardware/BLCMDHardware</plugin>
+            <param name="candevice">can0</param>
             <param name="canid">2</param>
             <param name="resolver_reduction">1</param>
             <param name="clock_rate">100000000</param>
             <param name="revolution_pulses">8192</param>
+            <param name="mock">true</param>
         </hardware>
 
-        <joint name="flw">
+        <joint name="blw">
+            <command_interface name="velocity">
+            </command_interface>
+
+            <command_interface name="effort">
+                <param name="max">1</param>
+            </command_interface>
+
+            <state_interface name="velocity">
+            </state_interface>
+        </joint>
+    </ros2_control>
+
+    <ros2_control name="BackRightWheel" type="actuator">
+        <hardware>
+            <plugin>blcmd_hardware/BLCMDHardware</plugin>
+            <param name="candevice">can0</param>
+            <param name="canid">3</param>
+            <param name="resolver_reduction">1</param>
+            <param name="clock_rate">100000000</param>
+            <param name="revolution_pulses">8192</param>
+            <param name="mock">true</param>
+        </hardware>
+
+        <joint name="brw">
+            <command_interface name="velocity">
+            </command_interface>
+
+            <command_interface name="effort">
+                <param name="max">1</param>
+            </command_interface>
+
+            <state_interface name="velocity">
+            </state_interface>
+        </joint>
+    </ros2_control>
+
+    <ros2_control name="FronRightWheel" type="actuator">
+        <hardware>
+            <plugin>blcmd_hardware/BLCMDHardware</plugin>
+            <param name="candevice">can0</param>
+            <param name="canid">4</param>
+            <param name="resolver_reduction">1</param>
+            <param name="clock_rate">100000000</param>
+            <param name="revolution_pulses">8192</param>
+            <param name="mock">true</param>
+        </hardware>
+
+        <joint name="frw">
             <command_interface name="velocity">
             </command_interface>
 
@@ -32,9 +105,106 @@
             <param name="resolver_reduction">1</param>
             <param name="clock_rate">100000000</param>
             <param name="revolution_pulses">8192</param>
+            <param name="mock">true</param>
         </hardware>
 
         <joint name="flp">
+            <command_interface name="position">
+                <param name="max">5.0</param>
+            </command_interface>
+
+            <command_interface name="velocity">
+            </command_interface>
+
+            <command_interface name="effort">
+                <param name="max">1</param>
+            </command_interface>
+
+            <state_interface name="velocity">
+            </state_interface>
+
+            <state_interface name="position">
+                <param name="max">5.0</param>
+            </state_interface>
+        </joint>
+    </ros2_control>
+
+    <ros2_control name="BackLeftPivot" type="actuator">
+        <hardware>
+            <plugin>blcmd_hardware/BLCMDHardware</plugin>
+            <param name="candevice">can0</param>
+            <param name="canid">6</param>
+            <param name="resolver_reduction">1</param>
+            <param name="clock_rate">100000000</param>
+            <param name="revolution_pulses">8192</param>
+            <param name="mock">true</param>
+        </hardware>
+
+        <joint name="blp">
+            <command_interface name="position">
+                <param name="max">5.0</param>
+            </command_interface>
+
+            <command_interface name="velocity">
+            </command_interface>
+
+            <command_interface name="effort">
+                <param name="max">1</param>
+            </command_interface>
+
+            <state_interface name="velocity">
+            </state_interface>
+
+            <state_interface name="position">
+                <param name="max">5.0</param>
+            </state_interface>
+        </joint>
+    </ros2_control>
+
+        <ros2_control name="BackRightPivot" type="actuator">
+        <hardware>
+            <plugin>blcmd_hardware/BLCMDHardware</plugin>
+            <param name="candevice">can0</param>
+            <param name="canid">7</param>
+            <param name="resolver_reduction">1</param>
+            <param name="clock_rate">100000000</param>
+            <param name="revolution_pulses">8192</param>
+            <param name="mock">true</param>
+        </hardware>
+
+        <joint name="brp">
+            <command_interface name="position">
+                <param name="max">5.0</param>
+            </command_interface>
+
+            <command_interface name="velocity">
+            </command_interface>
+
+            <command_interface name="effort">
+                <param name="max">1</param>
+            </command_interface>
+
+            <state_interface name="velocity">
+            </state_interface>
+
+            <state_interface name="position">
+                <param name="max">5.0</param>
+            </state_interface>
+        </joint>
+    </ros2_control>
+
+    <ros2_control name="FrontRightPivot" type="actuator">
+        <hardware>
+            <plugin>blcmd_hardware/BLCMDHardware</plugin>
+            <param name="candevice">can0</param>
+            <param name="canid">8</param>
+            <param name="resolver_reduction">1</param>
+            <param name="clock_rate">100000000</param>
+            <param name="revolution_pulses">8192</param>
+            <param name="mock">true</param>
+        </hardware>
+
+        <joint name="frp">
             <command_interface name="position">
                 <param name="max">5.0</param>
             </command_interface>
