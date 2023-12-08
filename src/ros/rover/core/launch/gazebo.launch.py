@@ -46,7 +46,7 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(
             [PathJoinSubstitution([FindPackageShare("gazebo_ros"), "launch", "gazebo.launch.py"])]
         ),
-        launch_arguments={"verbose": "false"}.items(),
+        launch_arguments={"verbose": "true"}.items(),
     )
 
     spawn_entity = Node(
@@ -55,6 +55,7 @@ def generate_launch_description():
         arguments=["-topic", "robot_description", "-entity", "Waratah"]
     )
 
+    
     wheel_velocity_controller = Node(
         package="controller_manager",
         executable="spawner",
@@ -66,6 +67,33 @@ def generate_launch_description():
         executable="spawner",
         arguments=["pivot_joint_trajectory_controller"]
     )
+    '''
+
+    four_wheel_steering_controller = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["four_wheel_steering_controller"]
+    )
+
+    four_steering_controller = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["four_steering_controller"]
+    )
+
+    ''' 
+    pivot_drive_controller = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["pivot_drive_controller"]
+    )
+
+    diff_drive_controller = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["diff_drive_controller"]
+    )
+
 
     joint_broad = Node(
         package="controller_manager",
@@ -78,7 +106,10 @@ def generate_launch_description():
         robot_state_publisher_node,
         gazebo,
         spawn_entity,
-        wheel_velocity_controller,
-        # pivot_position_controller,
-        pivot_joint_trajectory_controller,
+        #wheel_velocity_controller,
+        #pivot_joint_trajectory_controller,
+        #four_wheel_steering_controller,
+        #four_steering_controller,
+        #diff_drive_controller,
+        pivot_drive_controller,
     ])

@@ -49,7 +49,6 @@ hardware_interface::CallbackReturn BLCMDHardware::on_init(
     }
 
     can_device_ = canbus_search->second;
-
     RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
                 "Using can device " << can_device_.c_str());
 
