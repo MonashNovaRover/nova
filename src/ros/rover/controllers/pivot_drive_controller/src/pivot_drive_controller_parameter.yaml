@@ -17,11 +17,16 @@ pivot_drive_controller:
     description: "Link names of the left drive joints"
   }
 
-
   right_pivot_names: {
     type: string_array,
     default_value: [],
     description: "Link names of the left drive joints"
+  }
+
+  wheels_per_side: {
+    type: int,
+    default_value: 2,
+    description: "No. wheels per side of the vehicle"
   }
 
   wheel_steering_y_offset: {
