@@ -33,8 +33,18 @@ def generate_launch_description():
 
     model_arg = DeclareLaunchArgument(name='model', default_value=str(default_model_path),
             description='Absolute path to robot urdf file')
-    robot_description = ParameterValue(Command(['xacro ', LaunchConfiguration('model')]),
-                                       value_type=str)
+    robot_description = ParameterValue(
+        Command(
+            [
+                'xacro ', 
+                LaunchConfiguration('model'),
+                " ",
+                "gazebo:=",
+                "true"
+            ]
+        ),
+        value_type=str
+    )
 
     robot_state_publisher_node = Node(
         package='robot_state_publisher',
