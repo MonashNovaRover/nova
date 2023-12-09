@@ -24,7 +24,7 @@ export function createBifrostAction(topic: RosTopics, ros?: Ros) {
     ): () => BifrostActionType<RosTopicInterfaces[typeof topic]> {
       return () => ({
         type: BifrostActionTypes.UPDATE_DATA.toString() + topic.toString(),
-        payload: { ...object },
+        payload: { ...object } as RosTopicInterfaces[typeof topic],
       });
     },
     _updateBifrostConnectionStatus(connectionStatus: BifrostConnectionStatus) {
