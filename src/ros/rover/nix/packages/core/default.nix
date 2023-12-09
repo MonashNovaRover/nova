@@ -15,6 +15,7 @@
 , gazebo-ros2-control
 , ros2-controllers
 , pluginlib
+, gazebo-ros-pkgs
 }:
 
 buildRosPackage {
@@ -40,6 +41,7 @@ buildRosPackage {
       gazebo-ros
       gazebo-ros2-control
       ros2-controllers
-      pluginlib;
+      pluginlib
+      gazebo-ros-pkgs;
   };
 }

@@ -46,7 +46,7 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(
             [PathJoinSubstitution([FindPackageShare("gazebo_ros"), "launch", "gazebo.launch.py"])]
         ),
-        launch_arguments={"verbose": "false"}.items(),
+        launch_arguments={"verbose": "true"}.items(),
     )
 
     spawn_entity = Node(
