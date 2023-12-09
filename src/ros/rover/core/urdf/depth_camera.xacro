@@ -30,7 +30,6 @@ which is how it gets added to the gazebo sim. Author/s: Victor Bartlinski-->
   <link name="camera_link_frame"></link>
 
   <gazebo reference="camera_link">
-
     <sensor type="depth" name="camera">
       <pose>0 0 0 0 0 0</pose>
       <visualize>true</visualize>
@@ -54,5 +53,4 @@ which is how it gets added to the gazebo sim. Author/s: Victor Bartlinski-->
       </plugin>
     </sensor>
   </gazebo>
-
 </robot>
