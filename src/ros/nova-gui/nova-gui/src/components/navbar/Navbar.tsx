@@ -53,7 +53,7 @@ export const NovaNavbar: React.FC = () => {
                 {bifrostStatus.toString()}
               </Button>
             </DropdownTrigger>
-            <DropdownMenu>
+            <DropdownMenu aria-label="ROS Connection">
               <DropdownItem>Shut Down</DropdownItem>
               <DropdownItem>Restart</DropdownItem>
               <DropdownItem>Disconnect</DropdownItem>
