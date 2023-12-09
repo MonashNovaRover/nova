@@ -41,7 +41,8 @@ export const RosProvider = (props: { children: React.ReactNode }) => {
     });
 
     setRos(ros);
-  }, [uiStore.rosUrl, bifrostActions]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [uiStore.rosUrl]);
 
   return (
     <RosContext.Provider value={ros}>{props.children}</RosContext.Provider>
