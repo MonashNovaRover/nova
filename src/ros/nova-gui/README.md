@@ -4,7 +4,7 @@ Nova-GUI is the Primary Means of Communication and Control of the Rover During O
 
 ### Tech Stack
 
-Nova-GUI is a React Powered Webapp connected to ROS using the [Rosbridge Suite](https://wiki.ros.org/rosbridge_suite). The Frontend Uses [ReactJS](https://react.dev/) with [NextUI](https://nextui.org/) for the User Interface and [Redux-Toolkit](https://redux-toolkit.js.org/) for Complex State Management. [Tailwind CSS](https://tailwindcss.com/) along with [styled-components](https://styled-components.com/) are used for general styling of the Page.
+Nova-GUI is a React Powered Webapp connected to ROS using the [Rosbridge Suite](https://wiki.ros.org/rosbridge_suite). The Frontend Uses [ReactJS](https://react.dev/) with [NextUI](https://nextui.org/) for the User Interface and [Redux-Toolkit](https://redux-toolkit.js.org/) for Complex State Management. [Tailwind CSS](https://tailwindcss.com/) along with [styled-components](https://styled-components.com/) and [Boostrap Icons](https://icons.getbootstrap.com/) are used for general styling of the Page.
 
 <center>
 
