@@ -151,7 +151,7 @@ namespace pivot_drive_controller
         // without affecting the stored DriveInputStamped command
         core::msg::DriveInputStamped command = *last_command_msg;
     
-        //float & linear_command = command.speed;
+        float & linear_command = command.speed;
 
 
         previous_update_timestamp_ = time;
@@ -166,10 +166,9 @@ namespace pivot_drive_controller
         auto & last_command = previous_commands_.back();
         auto & second_to_last_command = previous_commands_.front();
 
-        /*
         limiter_linear_.limit(
             linear_command, last_command.speed, second_to_last_command.speed, period.seconds());
-        */
+       
 
         /* autonomous mode
         limiter_drive_.limit(
@@ -195,7 +194,6 @@ namespace pivot_drive_controller
         }
         */
         
-        // --09-12-23
         float target_radius, target_direction;
 
         angle_offset = params_.steering_track / params_.wheel_base;
@@ -206,8 +204,13 @@ namespace pivot_drive_controller
             //initialise all pivot angles
             for (size_t index = 0; index < static_cast<size_t>(params_.wheels_per_side); ++index)
             {
+                registered_left_pivot_handles_.at(index).command.get().set_value(angle_offset);
+                registered_right_pivot_handles_.at(index).command.get().set_value(angle_offset);
+
+                /*
                 registered_left_pivot_handles_[index].command.get().set_value(angle_offset);
                 registered_right_pivot_handles_[index].command.get().set_value(angle_offset);
+                */
             }
             
         } else {
@@ -225,8 +228,13 @@ namespace pivot_drive_controller
         //set pivot angles
         for (size_t index = 0; index < static_cast<size_t>(params_.wheels_per_side); ++index)
         {
+            registered_left_pivot_handles_.at(index).command.get().set_value(left_angle);
+            registered_right_pivot_handles_.at(index).command.get().set_value(right_angle);
+
+            /*
             registered_left_pivot_handles_[index].command.get().set_value(left_angle);
             registered_right_pivot_handles_[index].command.get().set_value(right_angle);
+            */
         }
 
         //set drive velocities
@@ -246,8 +254,13 @@ namespace pivot_drive_controller
 
         for (size_t index = 0; index < static_cast<size_t>(params_.wheels_per_side); ++index)
         {
+            registered_left_drive_handles_.at(index).command.get().set_value(command.speed * left_ratio/max_ratio);
+            registered_right_drive_handles_.at(index).command.get().set_value(command.speed * right_ratio/max_ratio);
+
+            /*
             registered_left_drive_handles_[index].command.get().set_value(command.speed * left_ratio/max_ratio);
             registered_right_drive_handles_[index].command.get().set_value(command.speed * right_ratio/max_ratio);
+            */
         }
 
 
