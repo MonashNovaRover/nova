@@ -67,6 +67,12 @@ def generate_launch_description():
         arguments=["pivot_joint_trajectory_controller"]
     )
 
+    joint_broad = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["joint_broad"]
+    )
+
     return LaunchDescription([
         model_arg,
         robot_state_publisher_node,
@@ -75,4 +81,5 @@ def generate_launch_description():
         wheel_velocity_controller,
         # pivot_position_controller,
         pivot_joint_trajectory_controller,
+        joint_broad,
     ])

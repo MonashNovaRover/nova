@@ -50,5 +50,15 @@ pivot_joint_trajectory_controller:
     allow_partial_joints_goal: true
     open_loop_control: true
     
-
-  
+joint_broad:
+  ros__parameters:
+    joints:
+      - flw
+      - blw
+      - brw
+      - frw
+      - flp
+      - blp
+      - brp
+      - frp
+    use_local_topics: false

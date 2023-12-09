@@ -40,15 +40,15 @@ def generate_launch_description():
         parameters=[{'robot_description': robot_description}]
     )
 
-    joint_state_publisher_node =  Node(
-        package='control',
-        executable='rover_state_publisher.py',
-        output='screen',
-        emulate_tty=True
-    )
+    # joint_state_publisher_node =  Node(
+    #     package='control',
+    #     executable='rover_state_publisher.py',
+    #     output='screen',
+    #     emulate_tty=True
+    # )
 
     return LaunchDescription([
         model_arg,
         robot_state_publisher_node,
-        joint_state_publisher_node,
+        # joint_state_publisher_node,
     ])
