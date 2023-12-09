@@ -1,5 +1,6 @@
 { lib
 , mkYarnPackage
+, rosbridge-server
 }:
 
 mkYarnPackage {
@@ -29,4 +30,8 @@ mkYarnPackage {
   '';
 
   distPhase = "true";
+  passthru.workspacePackages = {
+    inherit rosbridge-server;
+  };
+
 }

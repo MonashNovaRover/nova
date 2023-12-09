@@ -12,8 +12,27 @@ import {
 import { ChevronDown, Settings } from "react-feather";
 import novaLogo from "../../assets/nova-logo.png";
 import React from "react";
+import { useSelector } from "react-redux";
+import { RootState } from "../../redux/RootState";
+import { useUIActions } from "../../redux/actions/useUIActions";
+import { BifrostConnectionStatus } from "../../redux/models/BifrostTypes";
+
+const connectionStatusColor: {
+  [key: string]: "success" | "warning" | "danger";
+} = {
+  [BifrostConnectionStatus.CONNECTED]: "success",
+  [BifrostConnectionStatus.CONNECTING]: "warning",
+  [BifrostConnectionStatus.DISCONNECTED]: "danger",
+};
 
 export const NovaNavbar: React.FC = () => {
+  const uiActions = useUIActions();
+  // const rosUrl = useSelector((state: RootState) => state.uiState.rosUrl);
+
+  const bifrostStatus = useSelector(
+    (state: RootState) => state.bifrostStatus.connectionStatus
+  );
+
   return (
     <Navbar maxWidth="full" isBordered position="static">
       <NavbarContent justify="start">
@@ -25,11 +44,16 @@ export const NovaNavbar: React.FC = () => {
         <NavbarItem>
           <Dropdown placement="bottom-end">
             <DropdownTrigger>
-              <Button radius="sm" color="success" size="sm" variant="shadow">
-                Connected
+              <Button
+                radius="sm"
+                color={connectionStatusColor[bifrostStatus]}
+                size="sm"
+                variant="shadow"
+              >
+                {bifrostStatus.toString()}
               </Button>
             </DropdownTrigger>
-            <DropdownMenu>
+            <DropdownMenu aria-label="ROS Connection">
               <DropdownItem>Shut Down</DropdownItem>
               <DropdownItem>Restart</DropdownItem>
               <DropdownItem>Disconnect</DropdownItem>
@@ -70,7 +94,12 @@ export const NovaNavbar: React.FC = () => {
           </Dropdown>
         </NavbarItem>
         <NavbarItem>
-          <Button isIconOnly size="sm" variant="shadow">
+          <Button
+            isIconOnly
+            size="sm"
+            variant="shadow"
+            onClick={() => uiActions.setSettingsModal(true)}
+          >
             <Settings className="w-4 h-4" />
           </Button>
         </NavbarItem>

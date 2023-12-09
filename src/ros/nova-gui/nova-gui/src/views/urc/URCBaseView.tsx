@@ -1,10 +1,10 @@
-import React from "react";
+import { PoseDataWidget } from "../../components/PoseDataWidget/PoseDataWidget";
 
 const URCBaseView: React.FC = () => {
   return (
-    <div>
-      <h1>Hello!</h1>
-    </div>
+    <>
+      <PoseDataWidget />
+    </>
   );
 };
 
