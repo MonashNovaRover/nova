@@ -17,6 +17,8 @@ export interface BifrostActionType<P> {
   payload: P;
 }
 
+type CustomDispatch<P> = (action: () => BifrostActionType<P>) => void;
+
 export function createBifrostAction(topic: RosTopics, ros?: Ros) {
   return {
     _update(
@@ -40,17 +42,20 @@ export function createBifrostAction(topic: RosTopics, ros?: Ros) {
       });
     },
     _updateState(object: RosTopicInterfaces[typeof topic]) {
-      return (dispatch: Function) => {
+      return (dispatch: CustomDispatch<RosTopicInterfaces[typeof topic]>) => {
         dispatch(this._update(object as RosTopicInterfaces[typeof topic]));
       };
     },
     updateBifrostConnection(connectionStatus: BifrostConnectionStatus) {
-      return (dispatch: Function) => {
+      return (dispatch: CustomDispatch<BifrostConnectionStatus>) => {
         dispatch(this._updateBifrostConnectionStatus(connectionStatus));
       };
     },
     syncWithRover() {
-      return (dispatch: Function, getState: () => RootState) => {
+      return (
+        dispatch: CustomDispatch<RosTopics>,
+        getState: () => RootState
+      ) => {
         const state = getState();
         if (state.bifrostStatus.subscribedTopics.includes(topic) || !ros)
           return;
