@@ -198,6 +198,7 @@ namespace pivot_drive_controller
 
         angle_offset = params_.steering_track / params_.wheel_base;
         if(second_to_last_command.mode == core::msg::DriveInputStamped::STRAFE && command.mode == core::msg::DriveInputStamped::PIVOT){
+            RCLCPP_INFO(logger, "switching from strafe to pivot drive");
             target_radius = INFINITY;
             target_direction = 0;
 
@@ -469,7 +470,6 @@ namespace pivot_drive_controller
             DEFAULT_INPUT_TOPIC, rclcpp::SystemDefaultsQoS(),
             [this](const std::shared_ptr<core::msg::DriveInputStamped> msg) -> void
             {
-              RCLCPP_INFO(get_node()->get_logger(), "subscription to /drive_input_cmd");
               if (!subscriber_is_active_)
               {
                 RCLCPP_WARN(get_node()->get_logger(), "Can't accept new commands. subscriber is inactive");
