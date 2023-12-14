@@ -8,8 +8,7 @@ AUTHOR(S):	Taaj Street, Harrison Verrios, Josh Cherubino, Will de la Rue, Jory B
 */
 
 // Include the header file
-#include "driver.h"
-#include "config/rosconfig.h"
+#include "drive/driver.h"
 
 // Use the standard namespaces for subscribers
 using std::placeholders::_1;

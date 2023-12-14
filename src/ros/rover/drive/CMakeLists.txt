@@ -5,6 +5,8 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
+include_directories(include)
+
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
@@ -14,9 +16,10 @@ find_package(core REQUIRED)
 find_package(libcanmd REQUIRED)
 
 add_executable(driver src/driver.cpp)
-target_link_libraries(drive PRIVATE libcanmd)
-target_include_directories(drive PRIVATE libcanmd)
-ament_target_dependencies(driver rclcpp core)
+target_link_libraries(driver PUBLIC libcanmd)
+target_include_directories(driver PUBLIC 
+      ${libcanmd_INCLUDE_DIRS})
+ament_target_dependencies(driver PUBLIC rclcpp core)
 
 install(TARGETS
         driver

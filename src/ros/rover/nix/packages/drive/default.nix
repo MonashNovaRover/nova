@@ -4,6 +4,7 @@
 , rclcpp
 , nova-core
 , libcanmd
+, jcan
 , pkg-config
 }:
 
@@ -18,10 +19,12 @@ buildRosPackage {
       path;
   };
 
-  nativeBuildInputs = [ ament-cmake pkg-config];
+  nativeBuildInputs = [ ament-cmake pkg-config ];
 
   buildInputs = [
     rclcpp
     nova-core
+    libcanmd
+    jcan
   ];
 }
