@@ -81,8 +81,7 @@
                     <param name="resolver_reduction">1</param>
                     <param name="clock_rate">100000000</param>
                     <param name="revolution_pulses">8192</param>
-                    <param name="mock">true</param    <param name="initial_value">0.0</param>
->
+                    <param name="mock">true</param> 
                 </hardware>
             </xacro:unless>
             <xacro:if value="${use_mock_hardware}">
@@ -177,8 +176,7 @@
 
                 <state_interface name="position">
                     <param name="inital_value">0.0</param>
-                    <param name="max">5.0</param>    <param name="initial_value">0.0</param>
-
+                    <param name="max">5.0</param>    
                 </state_interface>
             </joint>
         </ros2_control>
