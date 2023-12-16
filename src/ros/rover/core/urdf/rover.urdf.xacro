@@ -161,7 +161,7 @@
     type="revolute">
     <origin
       xyz="-0.077405 -0.001432 0.024083"
-      rpy="0.087743 -0.54404 1.5438" />
+      rpy="0.087743 -39 1.5438" />
     <parent
       link="left_leg" />
     <child
@@ -273,7 +273,7 @@
     type="revolute">
     <origin
       xyz="-0.0093548 0.20893 0.87956"
-      rpy="0.10777 -0.54314 1.5292" />
+      rpy="0.10777 0 1.5292" />
     <parent
       link="left_leg" />
     <child
@@ -438,7 +438,7 @@
     type="revolute">
     <origin
       xyz="-0.0090629 0.21252 0.87795"
-      rpy="0.087635 -0.54127 1.507" />
+      rpy="0.087635 0 1.507" />
     <parent
       link="right_leg" />
     <child
@@ -551,7 +551,7 @@
     type="revolute">
     <origin
       xyz="-0.077405 0.0014344 0.024083"
-      rpy="0.087596 -0.54128 1.507" />
+      rpy="0.087596 -39 1.507" />
     <parent
       link="right_leg" />
     <child
