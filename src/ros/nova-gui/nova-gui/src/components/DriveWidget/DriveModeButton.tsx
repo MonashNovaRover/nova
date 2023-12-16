@@ -2,15 +2,20 @@ import { Badge, Button, ButtonProps, Kbd, Tooltip } from "@nextui-org/react"
 import { IDriveModeDisplayData } from "./DriveModeDisplayData"
 import { cloneElement } from "react"
 
+type TooltipPlacement = "top-start" | "top" | "top-end" | "bottom-start" 
+| "bottom" | "bottom-end" | "left-start" | "left" | "left-end" | "right-start" 
+| "right" | "right-end";
+type BadgePlacement = "top-left" | "top-right" | "bottom-left" | "bottom-right"
+
 // Properties for the DriveModeButton component.
 export interface IDriveModeButtonProps extends ButtonProps {
   driveModeData: IDriveModeDisplayData,
   driveModeActive: boolean,
   iconClassName?: string,
-  tooltopPlacement?: "top-start" | "top" | "top-end" | "bottom-start" | "bottom"
-    | "bottom-end" | "left-start" | "left" | "left-end" | "right-start" 
-    | "right" | "right-end"
-  hideTooltip?: boolean
+  tooltopPlacement?: TooltipPlacement,
+  keybindPlacement?: BadgePlacement,
+  hideTooltip?: boolean,
+  wrapperClassName?: string,
 }
 
 // A button used for selecting a drive mode for the DriveWidget
@@ -26,7 +31,7 @@ export const DriveModeButton: React.FC<IDriveModeButtonProps> =
   // The inner button element containing the drive mode's icon
   const innerButton = (
     <Button {...props}
-      isIconOnly 
+      isIconOnly = { props.children === undefined }
       color = {props.driveModeActive ? "primary" : "default"} 
       variant = {props.driveModeActive ? "shadow" : "ghost"} 
     >
@@ -53,6 +58,7 @@ export const DriveModeButton: React.FC<IDriveModeButtonProps> =
       content = {<span>{props.driveModeData.keybind}</span>} 
       classNames={{"badge": `DriveModeKeybind text-foreground-600 bg-default-100
         rounded-small text-center text-small font-sans font-normal`}}
+      placement={props.keybindPlacement}
     >
       {tooltipButton}
     </Badge>
