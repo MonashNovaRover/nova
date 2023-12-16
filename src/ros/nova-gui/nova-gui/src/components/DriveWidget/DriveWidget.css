@@ -1,0 +1,12 @@
+
+.StrafeDriveModeIcon {
+    transform: rotate(0.125turn);
+}
+
+.PivotDriveModeIcon {
+    transform: rotate(0.0turn);
+}
+
+.DriveModeKeybind {
+    min-width: calc(var(--nextui-line-height-small) + 4px);
+}

@@ -1,6 +1,12 @@
+import DriveWidget from "../../components/DriveWidget/DriveWidget";
+
 
 const GeneralBaseView: React.FC = () => {
-  return <></>
+  return (
+    <>
+      <DriveWidget/>
+    </>
+  )
 };
 
 export default GeneralBaseView;
