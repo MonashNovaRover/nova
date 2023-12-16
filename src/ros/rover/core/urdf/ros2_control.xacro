@@ -2,8 +2,7 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
     <xacro:macro name="rover_ros2_control" params="use_mock_hardware">
-        <ros2_control name="FrontLeftWheel" type="actuator">
-        <!-- <ros2_control name="FrontLeftWheel" type="system"> -->
+        <ros2_control name="FrontLeftWheel" type="system">
 
             <xacro:unless value="${use_mock_hardware}">
                 <hardware>
@@ -37,8 +36,7 @@
             </joint>
         </ros2_control>
 
-        <ros2_control name="BackLeftWheel" type="actuator">
-        <!-- <ros2_control name="BackLeftWheel" type="system"> -->
+        <ros2_control name="BackLeftWheel" type="system">
             <xacro:unless value="${use_mock_hardware}">
                 <hardware>
                     <plugin>blcmd_hardware/BLCMDHardware</plugin>
@@ -71,8 +69,7 @@
             </joint>
         </ros2_control>
 
-        <ros2_control name="BackRightWheel" type="actuator">
-        <!-- <ros2_control name="BackRightWheel" type="system"> -->
+        <ros2_control name="BackRightWheel" type="system">
             <xacro:unless value="${use_mock_hardware}">
                 <hardware>
                     <plugin>blcmd_hardware/BLCMDHardware</plugin>
@@ -105,8 +102,7 @@
             </joint>
         </ros2_control>
 
-        <ros2_control name="FrontRightWheel" type="actuator">
-        <!-- <ros2_control name="FrontRightWheel" type="system"> -->
+        <ros2_control name="FrontRightWheel" type="system">
             <xacro:unless value="${use_mock_hardware}">
                 <hardware>
                     <plugin>blcmd_hardware/BLCMDHardware</plugin>
@@ -139,8 +135,7 @@
             </joint>
         </ros2_control>
 
-        <ros2_control name="FrontLeftPivot" type="actuator">
-        <!-- <ros2_control name="FrontLeftPivot" type="system"> -->
+        <ros2_control name="FrontLeftPivot" type="system">
             <xacro:unless value="${use_mock_hardware}">
                 <hardware>
                     <plugin>blcmd_hardware/BLCMDHardware</plugin>
@@ -181,8 +176,7 @@
             </joint>
         </ros2_control>
 
-        <!-- <ros2_control name="BackLeftPivot" type="system"> -->
-        <ros2_control name="BackLeftPivot" type="actuator">
+        <ros2_control name="BackLeftPivot" type="system">
             <xacro:unless value="${use_mock_hardware}">
                 <hardware>
                     <plugin>blcmd_hardware/BLCMDHardware</plugin>
@@ -224,8 +218,7 @@
             </joint>
         </ros2_control>
 
-        <ros2_control name="BackRightPivot" type="actuator">
-        <!-- <ros2_control name="BackRightPivot" type="system"> -->
+        <ros2_control name="BackRightPivot" type="system">
             <xacro:unless value="${use_mock_hardware}">
 
                 <hardware>
@@ -268,8 +261,7 @@
             </joint>
         </ros2_control>
 
-        <ros2_control name="FrontRightPivot" type="actuator">
-        <!-- <ros2_control name="FrontRightPivot" type="system"> -->
+        <ros2_control name="FrontRightPivot" type="system">
             <xacro:unless value="${use_mock_hardware}">
                 <hardware>
                     <plugin>blcmd_hardware/BLCMDHardware</plugin>

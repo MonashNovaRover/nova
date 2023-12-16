@@ -28,7 +28,7 @@ protected:
     // TODO(anyone): Extend this description to your robot
     blcmd_hardware_2dof_ =
       R"(
-        <ros2_control name="BLCMDHardware2dof" type="actuator">
+        <ros2_control name="BLCMDHardware2dof" type="system">
           <hardware>
             <plugin>rover_hardware/BLCMDHardware</plugin>
           </hardware>

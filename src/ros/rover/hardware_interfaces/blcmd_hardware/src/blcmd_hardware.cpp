@@ -27,7 +27,7 @@ namespace blcmd_hardware
 hardware_interface::CallbackReturn BLCMDHardware::on_init(
         const hardware_interface::HardwareInfo & info)
 {
-    if (hardware_interface::ActuatorInterface::on_init(info) != CallbackReturn::SUCCESS)
+    if (hardware_interface::SystemInterface::on_init(info) != CallbackReturn::SUCCESS)
     {
       return CallbackReturn::ERROR;
     }
@@ -505,4 +505,4 @@ bool BLCMDHardware::set_control_interface(
 #include "pluginlib/class_list_macros.hpp"
 
 PLUGINLIB_EXPORT_CLASS(
-  blcmd_hardware::BLCMDHardware, hardware_interface::ActuatorInterface)
+  blcmd_hardware::BLCMDHardware, hardware_interface::SystemInterface)

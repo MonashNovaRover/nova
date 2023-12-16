@@ -20,7 +20,7 @@
 #include <optional>
 
 #include "rclcpp/rclcpp.hpp"
-#include "hardware_interface/actuator_interface.hpp"
+#include "hardware_interface/system_interface.hpp"
 #include "hardware_interface/handle.hpp"
 #include "hardware_interface/hardware_info.hpp"
 #include "hardware_interface/types/hardware_interface_return_values.hpp"
@@ -104,7 +104,7 @@ enum class BLCMDConfigCommand{
     PACKET_4_SPEED  = 0xE,
 };
 
-class BLCMDHardware : public hardware_interface::ActuatorInterface
+class BLCMDHardware : public hardware_interface::SystemInterface
 {
 public:
     hardware_interface::CallbackReturn on_init(
