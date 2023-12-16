@@ -619,7 +619,6 @@
       xyz="-1 0 0" />
   </joint>
 
-  <!-- gazebo -->
   <xacro:if value="$(arg gazebo)">
     <xacro:include filename="$(find core)/urdf/gazebo_ros2_control.xacro" />
   </xacro:if>
