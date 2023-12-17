@@ -1,5 +1,5 @@
 import { RosTopics } from "./rosTopics";
-import { IRosPose } from "./rosMessageTypes";
+import { IRosGeometryMsgsPose } from "./rosMessageTypes";
 
 /**
  * This Interface exists to link Individual topics to The Messages.
@@ -10,5 +10,5 @@ import { IRosPose } from "./rosMessageTypes";
  */
 export interface RosTopicInterfaces {
   [RosTopics.NULL_TOPIC]: undefined;
-  [RosTopics.POSE]: IRosPose;
+  [RosTopics.POSE]: IRosGeometryMsgsPose;
 }
