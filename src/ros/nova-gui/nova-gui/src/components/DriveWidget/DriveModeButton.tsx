@@ -1,20 +1,20 @@
 import { Badge, Button, ButtonProps, Kbd, Tooltip } from "@nextui-org/react"
 import { IDriveModeDisplayData } from "./DriveModeDisplayData"
 import { cloneElement } from "react"
+import { OverlayPlacement } from "@nextui-org/aria-utils"
+import * as tailwind_variants from "tailwind-variants";
 
-type TooltipPlacement = "top-start" | "top" | "top-end" | "bottom-start" 
-| "bottom" | "bottom-end" | "left-start" | "left" | "left-end" | "right-start" 
-| "right" | "right-end";
-type BadgePlacement = "top-left" | "top-right" | "bottom-left" | "bottom-right"
+type BadgePlacement = "top-right" | "top-left" |  "bottom-right" | "bottom-left"
 
 // Properties for the DriveModeButton component.
 export interface IDriveModeButtonProps extends ButtonProps {
   driveModeData: IDriveModeDisplayData,
   driveModeActive: boolean,
   iconClassName?: string,
-  tooltopPlacement?: TooltipPlacement,
+  tooltipPlacement?: OverlayPlacement,
   keybindPlacement?: BadgePlacement,
   hideTooltip?: boolean,
+  hideKeybind?: boolean,
   wrapperClassName?: string,
 }
 
@@ -27,16 +27,22 @@ export const DriveModeButton: React.FC<IDriveModeButtonProps> =
     cloneElement(props.driveModeData.icon, { className: 
       `${props.driveModeData.icon.props.className} ${props.iconClassName}`}
     )
-  
+
+
+
   // The inner button element containing the drive mode's icon
   const innerButton = (
     <Button {...props}
-      isIconOnly = { props.children === undefined }
+      isIconOnly = { props.children === undefined || props.children.length === 0 || props.isIconOnly }
       color = {props.driveModeActive ? "primary" : "default"} 
-      variant = {props.driveModeActive ? "shadow" : "ghost"} 
+      variant = {props.driveModeActive ? "shadow" : "ghost"}
+            className={`${props.className} DriveModeButton`}
     >
-      {icon}
-      {props.children}
+      <div className="DriveModeButtonIconContainer">
+        <div>{icon}</div>
+        {props.children}
+      </div>
+
     </Button>
   );
 
@@ -44,24 +50,27 @@ export const DriveModeButton: React.FC<IDriveModeButtonProps> =
   const tooltipButton = props.hideTooltip ? innerButton : (
     <Tooltip 
       content={props.driveModeData.name} 
-      placement={props.tooltopPlacement}
+      placement={props.tooltipPlacement ?? "top-end"}
       showArrow={true}
+      className={props.className}
     > 
       {innerButton}
     </Tooltip>
   );
 
-  // The result is wrapped in a badge with the drive mode's keybind
-  return (
-    <Badge
-      isInvisible = {props.driveModeData.keybind === undefined}
-      content = {<span>{props.driveModeData.keybind}</span>} 
-      classNames={{"badge": `DriveModeKeybind text-foreground-600 bg-default-100
+  const badgedButton = props.driveModeData.keybind === undefined || props.hideKeybind ? tooltipButton : (
+      <Badge
+          isInvisible = {props.driveModeData.keybind === undefined}
+          content = {<span>{props.driveModeData.keybind}</span>}
+          classNames={{"badge": `DriveModeKeybind text-foreground-600 bg-default-100
         rounded-small text-center text-small font-sans font-normal`}}
-      placement={props.keybindPlacement}
-    >
-      {tooltipButton}
-    </Badge>
+          placement={props.keybindPlacement ?? "top-right"}
+      >
+        {tooltipButton}
+      </Badge>
   )
+
+  // The result is wrapped in a badge with the drive mode's keybind
+  return badgedButton;
 }
 

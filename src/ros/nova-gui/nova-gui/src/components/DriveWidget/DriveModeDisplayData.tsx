@@ -1,10 +1,10 @@
-import { ReactElement } from "react";
+import {DetailedReactHTMLElement, ReactElement} from "react";
 import { Maximize2, Meh, RefreshCw, Truck } from "react-feather";
 
 // Data required for displaying a drive mode in the GUI
 export interface IDriveModeDisplayData {
   name: string,
-  icon: ReactElement,
+  icon: DetailedReactHTMLElement<{className: string}, HTMLElement>,
   keybind?: string,
 }
 
@@ -26,7 +26,7 @@ export const driveModes : IDriveModeDisplayData[] = [
     keybind: "X" 
   } as IDriveModeDisplayData,
   { 
-    name: "Autonomous", 
+    name: "Auto",
     icon: <Meh className=""/>, 
     keybind: "Y" 
   } as IDriveModeDisplayData,

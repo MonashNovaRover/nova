@@ -1,4 +1,5 @@
 
+
 .StrafeDriveModeIcon {
     transform: rotate(0.125turn);
 }
@@ -9,4 +10,64 @@
 
 .DriveModeKeybind {
     min-width: calc(var(--nextui-line-height-small) + 4px);
+}
+
+.DriveModeButton {
+    padding-left: 0;
+}
+
+.DriveModeButtonIconContainer > *:first-child {
+    aspect-ratio: 1;
+
+    height: 100%;
+    width: auto;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    align-self: stretch;
+}
+
+
+.DriveModeButtonIconContainer {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
+
+    padding-left: 0;
+
+    display: flex;
+    flex-flow: row;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+/* Progress bar */
+
+.DriveModeProgress {
+
+}
+
+.DriveModeProgressInnerText {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 1px;
+    top: 0;
+
+    mix-blend-mode: overlay;
+
+    text-shadow: black 0 1pt 5pt;
+
+    overflow: hidden;
+
+    border-radius: var(--nextui-line-height-small);
+    vertical-align: center;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
