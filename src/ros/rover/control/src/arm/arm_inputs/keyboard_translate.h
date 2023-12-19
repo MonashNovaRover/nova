@@ -10,7 +10,7 @@ messages into common arm input messages.
 PACKAGE: 	control
 AUTHOR(S):	Matthew Gu
 CREATION:	23/09/2023
-EDITED:		07/12/2023
+EDITED:		18/12/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
 Ask operator for key mapping, specifically the frame controls
@@ -49,8 +49,11 @@ class KeyboardTranslate: public InputDevice {
     ///         Currently allows about 10 levels. 
     const float speed_increment = 0.1f;
 
-    /// @brief  The current speed for joints
+    /// @brief  The actual current speed for joints
     float speed;
+
+    /// @brief  The speed to display in 0 to 1 scale
+    float display_speed;
 
     /// @brief  Base frame offset
     int8_t base_frame_offset;

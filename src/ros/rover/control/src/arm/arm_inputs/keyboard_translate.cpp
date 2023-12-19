@@ -280,13 +280,14 @@ inline void KeyboardTranslate::change_speed(){
     if (!updated_speed){
         updated_speed = true;
         if (is_pressed(key_mappings.speed_increase)) {
-            speed = std::min(speed + speed_increment, 1.0f);
-            message = "Speed: " + std::to_string(speed);
+            display_speed = std::min(display_speed + speed_increment, 1.0f);
+            message = "Speed: " + std::to_string(display_speed);
             Print::print(message.c_str());
         } else if (is_pressed(key_mappings.speed_decrease)) {
-            speed = std::max(speed - speed_increment, 0.0f);
-            message = "Speed: " + std::to_string(speed);
+            display_speed = std::max(display_speed - speed_increment, 0.0f);
+            message = "Speed: " + std::to_string(display_speed);
             Print::print(message.c_str());
         }
+        speed = display_speed * speed_multipliers.all_inputs;
     }
 }
