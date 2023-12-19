@@ -9,6 +9,7 @@
 , launch-ros
 , xacro
 , robot-state-publisher
+, joint-state-publisher
 , controller-manager
 , ros2-control
 , gazebo-ros
@@ -37,6 +38,7 @@ buildRosPackage {
     inherit
       xacro
       robot-state-publisher
+      joint-state-publisher
       controller-manager
       ros2-control
       gazebo-ros
