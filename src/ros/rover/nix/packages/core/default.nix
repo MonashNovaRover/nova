@@ -16,6 +16,7 @@
 , ros2-controllers
 , pluginlib
 , gazebo-ros-pkgs
+, robot-localization
 }:
 
 buildRosPackage {
@@ -42,6 +43,7 @@ buildRosPackage {
       gazebo-ros2-control
       ros2-controllers
       pluginlib
+      robot-localization
       gazebo-ros-pkgs;
   };
 }
