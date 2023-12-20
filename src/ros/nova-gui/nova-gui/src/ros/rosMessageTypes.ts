@@ -26,3 +26,19 @@ export interface IRosPose {
     w: number;
   };
 }
+
+// Enum used for drive_mode in IRosDriveInfo
+export enum DriveMode {
+  PIVOT = 1,
+  STRAFE = 2,
+  TANK = 3
+}
+
+export interface IRosDriveInfo {
+  multiplier: number,
+  locked: boolean,
+  autonomous_mode: boolean,
+  connected: boolean,
+  drive_mode: DriveMode,
+  handbrake: boolean
+}
