@@ -10,6 +10,38 @@ let
     node.pkgs = novaPkgs;
     node.pkgsReadOnly = false;
 
+    defaults = { pkgs, ... }: {
+      # Protect machines from external influence.
+      virtualisation.restrictNetwork = true;
+
+      # Manually configure FastDDS.
+      # TODO: When https://github.com/eProsima/Fast-DDS/pull/3973 is available,
+      # inter-VM interfaces can be whitelisted.
+      environment.sessionVariables.FASTRTPS_DEFAULT_PROFILES_FILE = pkgs.writeText "profiles.xml" ''
+        <?xml version="1.0" encoding="UTF-8" ?>
+        <dds>
+            <profiles xmlns="http://www.eprosima.com/XMLSchemas/fastRTPS_Profiles">
+                <transport_descriptors>
+                    <transport_descriptor>
+                        <transport_id>CustomTransport</transport_id>
+                        <type>UDPv4</type>
+                    </transport_descriptor>
+                </transport_descriptors>
+
+                <participant profile_name="participant_profile_ros2" is_default_profile="true">
+                    <rtps>
+                        <name>profile_for_ros2_context</name>
+                        <useBuiltinTransports>false</useBuiltinTransports>
+                        <userTransports>
+                            <transport_id>CustomTransport</transport_id>
+                        </userTransports>
+                    </rtps>
+                </participant>
+            </profiles>
+        </dds>
+      '';
+    };
+
     nodes =
       let
         novaCommon = { config, lib, ... }: {
