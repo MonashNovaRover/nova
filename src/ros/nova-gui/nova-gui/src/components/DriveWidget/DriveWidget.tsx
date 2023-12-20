@@ -1,241 +1,117 @@
-import { Card, CardHeader, CardBody, Divider, Progress, Select, SelectItem, Button } from "@nextui-org/react";
-import { cloneElement, useState } from "react";
+import {
+  Card,
+  CardHeader,
+  CardBody,
+  Divider,
+  Progress,
+  Select,
+  SelectItem,
+  Button,
+  ButtonProps, CardProps
+} from "@nextui-org/react";
+import {cloneElement, ReactNode, useState} from "react";
 import './DriveWidget.css';
-import { driveModes } from "./DriveModeDisplayData";
 import { DriveModeButton } from "./DriveModeButton";
 import {DriveProgress} from "./DriveProgress";
+import { driveModes } from "./DriveModeDisplayData";
 
+// Properties for the DriveModeButton component.
+export interface IDriveWidgetProps extends CardProps {
+  driveModeIndex: string,
+  handleDriveModeSelectChange: (e: React.ChangeEvent<HTMLSelectElement>) => void,
+  setDriveModeIndex: (string) => void
+}
 
-const DriveWidget: React.FC = () => {
+export interface IDriveWidgetWheelData {
+  wheelValue: number,
+  pivotValue: number,
+  name: ReactNode
+}
 
-  const [driveModeIndex, setDriveModeIndex] = useState("0");
-
-  const handleDriveModeSelectChange = 
-    (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setDriveModeIndex(e.target.value);
-  };
-
-  //  <div className="grid auto-cols-fr w-full gap-3 p-3 s:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 xxl:grid-cols-6">
-  return (
-    <div className="grid  w-full gap-3 p-3 auto-cols-fr
-      s:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-6">
-
-      <Card className="w-full col-span-1 row-span-2">
-        <CardHeader>Drive Mode Select<br/>Old style with dropdown 1</CardHeader>
-        <CardBody className="px-0 flex justify-center flex-col content-center">
-          <div className="flex gap-3 justify-center overflow-hidden">
-            <div>
-              <Select
-                variant="underlined"
-                label="Drive mode"
-                className="max-w-xs"
-                selectedKeys={[driveModeIndex]}
-                onChange={handleDriveModeSelectChange}
-              >
-                {driveModes.map((mode, index) => (
-                  <SelectItem key={index} value={`${index}`}
-                    startContent={cloneElement(mode.icon, {className:
-                      `${mode.icon.props.className} w-3 h-3`})}
-                  >
-                    {mode.name}
-                  </SelectItem>
-                ))}
-              </Select>
-
-              <div className="flex gap-3 items-center pt-3 justify-center">
-                {driveModes.map((mode, index) => (
-                  <DriveModeButton
-                    key={index}
-                    driveModeData={mode}
-                    driveModeActive={driveModeIndex === `${index}`}
-                    onPress={() => setDriveModeIndex(`${index}`)}
-                    iconClassName="w-5 h-5"
-                    tooltipPlacement="bottom"
-                  />
-                ))}
-              </div>
-            </div>
+const DriveWidgetWheelData: React.FC<IDriveWidgetWheelData> = (props: IDriveWidgetWheelData) => {
+  return <Card shadow="sm" isBlurred>
+    <CardBody className="grid grid-rows-1 grid-cols-4 content-center place-content-stretch">
+      <div className="flex flex-col justify-center">
+        <span className="align-middle">{props.name}</span>
+      </div>
+      <div className="flex flex-col gap-2 col-span-3">
+        <DriveProgress size="lg" value={props.wheelValue} maxValue={1}>
+          <div className="grid grid-flow-col gap-3 auto-cols-fr text-small">
+            <span>WHEEL</span>
+            <span>{`${(props.wheelValue * 100).toFixed(0)}%`}</span>
           </div>
-        </CardBody>
-      </Card>
-
-      <Card className="w-full col-span-1 row-span-2">
-        <CardHeader>Drive Mode Select<br/>Old style with dropdown 2</CardHeader>
-        <CardBody className="px-0 flex justify-center flex-col content-center">
-          <div className="flex gap-3 justify-center overflow-hidden">
-            <div>
-              <div className="flex gap-3 items-center pt-3 justify-center">
-                {driveModes.map((mode, index) => (
-                    <DriveModeButton
-                        key={index}
-                        driveModeData={mode}
-                        driveModeActive={driveModeIndex === `${index}`}
-                        onPress={() => setDriveModeIndex(`${index}`)}
-                        iconClassName="w-5 h-5"
-                    />
-                ))}
-              </div>
-
-              <Select
-                  labelPlacement="outside"
-                  color="primary"
-                  variant="faded"
-                  className="max-w-xs mt-2"
-                  selectedKeys={[driveModeIndex]}
-                  onChange={handleDriveModeSelectChange}
-              >
-                {driveModes.map((mode, index) => (
-                    <SelectItem key={index} value={`${index}`}
-                                startContent={cloneElement(mode.icon, {className:
-                                      `${mode.icon.props.className} w-3 h-3`})}
-                    >
-                      {mode.name}
-                    </SelectItem>
-                ))}
-              </Select>
-            </div>
+        </DriveProgress>
+        <DriveProgress size="lg" value={props.pivotValue} maxValue={1}>
+          <div className="grid grid-flow-col gap-3 auto-cols-fr text-small">
+            <span>PIVOT</span>
+            <span>{`${(props.pivotValue * 100).toFixed(0)}%`}</span>
           </div>
-        </CardBody>
-      </Card>
+        </DriveProgress>
+      </div>
+    </CardBody>
+  </Card>
+}
 
 
+const DriveWidget: React.FC<IDriveWidgetProps> = (props: IDriveWidgetProps) => {
 
-      <Card className="w-full col-span-1 row-span-2">
-        <CardHeader>Drive Mode Select<br/>Vertical list (small buttons)</CardHeader>
-        <CardBody>
-          <div className="grid grid-flow-col gap-3 auto-cols-fr">
-            <div>
-              <div className="flex gap-3 flex-col">
-                {driveModes.map((mode, index) => (
-                  <div key={index} className="flex gap-3 flex-row items-center">
-                    <DriveModeButton
-                      driveModeData={mode}
-                      driveModeActive={driveModeIndex === `${index}`}
-                      onPress={() => setDriveModeIndex(`${index}`)}
-                      iconClassName="w-5 h-5"
-                      tooltipPlacement="right"
-                      hideTooltip
-                    />
-                    <span className="">{mode.name}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </CardBody>
-      </Card>
+  const selector = (
+    <CardBody className="grid DriveWidgetTopGrid gap-y-2.5 gap-x-5">
+      <div className="flex flex-col justify-end items-center">
+        <span>Average Velocity</span>
+      </div>
 
-      <Card className="w-full col-span-1 row-span-2">
-        <CardHeader>Drive Mode Select<br/>Vertical list (large buttons)</CardHeader>
-        <CardBody>
-          <div className="grid grid-flow-col gap-3 auto-cols-fr">
-            <div>
-              <div className="grid grid-flow-row gap-3 auto-cols-fr">
-                {driveModes.map((mode, index) => (
+      <div className="flex flex-col justify-end items-center">
+        <span>{driveModes[props.driveModeIndex].fullName ?? driveModes[props.driveModeIndex].name} Mode</span>
+      </div>
 
-                    <DriveModeButton
-                        driveModeData={mode}
-                        driveModeActive={driveModeIndex === `${index}`}
-                        onPress={() => setDriveModeIndex(`${index}`)}
-                        iconClassName="w-5 h-5"
-                        tooltipPlacement="right"
-                        hideTooltip
-                        className="grow w-1/4 justify-start"
-                        fullWidth="true"
-                    >
-                      <span className="">{mode.name}</span>
+      <div className="flex flex-col justify-end items-center">
+        <span>Speed Control</span>
+      </div>
 
-                    </DriveModeButton>
+      <div>
+        <DriveProgress size="lg" value={0.314} maxValue={1}>
+          31.4%
+        </DriveProgress>
+      </div>
 
-                ))}
-              </div>
-            </div>
-          </div>
-        </CardBody>
-      </Card>
+      <div className="flex gap-3 items-center justify-center">
+        {driveModes.map((mode, index) => (
+          <DriveModeButton
+            key={index}
+            driveModeData={mode}
+            tooltipPlacement="bottom"
+            driveModeActive={props.driveModeIndex === `${index}`}
+            onPress={() => props.setDriveModeIndex(`${index}`)}
+            iconClassName="w-5 h-5"
+          />
+        ))}
+      </div>
 
+      <div>
+        <DriveProgress size="lg">
+          0%
+        </DriveProgress>
+      </div>
+    </CardBody>
+  )
 
+  return (<Card {...props} >
+    <CardHeader className="text-h1">
+      Drive
+    </CardHeader>
 
-      <Card className="w-full col-span-2">
-        <CardHeader>Drive Mode Select - Horizontal List 1</CardHeader>
-        <CardBody className="flex justify-center flex-col content-center">
-          <div>
-            <div className="flex gap-3 flex-row">
-              {driveModes.map((mode, index) => (
-                <div key={index} className="flex w-1/4 gap-3 flex-row items-center">
-                  <DriveModeButton
-                    driveModeData={mode}
-                    driveModeActive={driveModeIndex === `${index}`}
-                    onPress={() => setDriveModeIndex(`${index}`)}
-                    iconClassName="w-5 h-5"
-                    tooltipPlacement="right"
-                    hideTooltip
-                  />
-                  <span className="">{mode.name}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </CardBody>
-      </Card>
-
-      <Card className="w-full col-span-2">
-        <CardHeader>Drive Mode Select - Horizontal List 2</CardHeader>
-        <CardBody className="flex justify-center flex-col content-center">
-          <div>
-            <div className="grid grid-flow-col gap-3 auto-cols-fr">
-              {driveModes.map((mode, index) => (
-
-                  <DriveModeButton
-                      driveModeData={mode}
-                      driveModeActive={driveModeIndex === `${index}`}
-                      onPress={() => setDriveModeIndex(`${index}`)}
-                      iconClassName="w-5 h-5"
-                      tooltipPlacement="right"
-                      hideTooltip
-                      className="grow w-1/4 justify-start"
-                      fullWidth="true"
-                      keybindPlacement="top-left"
-                  >
-                    <span className="">{mode.name}</span>
-
-                  </DriveModeButton>
-              ))}
-            </div>
-          </div>
-        </CardBody>
-      </Card>
-
-      <Card className="w-full col-span-2">
-        <CardHeader>Progress w/ label overlay</CardHeader>
-        <CardBody className="flex justify-center flex-col content-center gap-2" >
-          <DriveProgress
-            value={1+(+driveModeIndex)}
-            maxValue={4}
-            valueLabel={<span className="text-white">{`${100 * (1+(+driveModeIndex)) / 4}%`}</span>}
-            size="lg" className=""></DriveProgress>
-          <DriveProgress
-            value={1+(+driveModeIndex)}
-            maxValue={4}
-            size="lg"
-            label="Value:"
-            valueLabel={<span className="text-white">{`${100 * (1+(+driveModeIndex)) / 4}%`}</span>}
-            className="">
-          </DriveProgress>
-        </CardBody>
-      </Card>
-
-    </div>
-
-
-  );
+    {selector}
+    <Divider/>
+    <CardBody className="flex flex-col gap-3">
+      <div className="grid grid-cols-2 grid-rows-2 gap-2">
+        <DriveWidgetWheelData wheelValue={0.2} pivotValue={0.5} name={<>Front<br/>Left</>}/>
+        <DriveWidgetWheelData wheelValue={0.8} pivotValue={0.5} name={<>Front<br/>Right</>}/>
+        <DriveWidgetWheelData wheelValue={0.2} pivotValue={0.7} name={<>Back<br/>Left</>}/>
+        <DriveWidgetWheelData wheelValue={0.7} pivotValue={0.1} name={<>Back<br/>Right</>}/>
+      </div>
+    </CardBody>
+  </Card>)
 };
-
-/*
-<div className="ExpandingDriveModeButton">
-
-                </div>
-
- */
 
 export default DriveWidget;

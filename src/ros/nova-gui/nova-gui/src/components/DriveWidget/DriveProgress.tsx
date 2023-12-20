@@ -14,16 +14,17 @@ export const DriveProgress: React.FC<IDriveProgressProps> = (props: IDriveProgre
               label={undefined}
               valueLabel={undefined}>
       <p>hello</p>
-      {props.children}
+
     </Progress>
   )
 
   // Overlay the props.valueLabel on the Progress (if any)
-  const valueLabelledProgress = props.valueLabel === undefined ? progress : (
+  const valueLabelledProgress = props.valueLabel === undefined && props.children === undefined ? progress : (
     <div className="relative">
       {progress}
       <div className="DriveModeProgressInnerText">
         {props.valueLabel}
+        {props.children}
       </div>
     </div>
   )

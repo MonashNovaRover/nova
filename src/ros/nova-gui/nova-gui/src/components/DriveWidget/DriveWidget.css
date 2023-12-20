@@ -16,7 +16,7 @@
     padding-left: 0;
 }
 
-.DriveModeButtonIconContainer > *:first-child {
+.DriveModeButtonIconContainer {
     aspect-ratio: 1;
 
     height: 100%;
@@ -30,7 +30,7 @@
 }
 
 
-.DriveModeButtonIconContainer {
+.DriveModeButtonContainer {
     position: absolute;
     top: 0px;
     left: 0px;
@@ -70,4 +70,11 @@
     display: flex;
     justify-content: center;
     align-items: center;
+}
+
+/* Drive Widget */
+.DriveWidgetTopGrid {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr; /* 1fr for the first and third columns, auto for the second column */
+
 }

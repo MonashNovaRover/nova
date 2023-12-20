@@ -38,8 +38,8 @@ export const DriveModeButton: React.FC<IDriveModeButtonProps> =
       variant = {props.driveModeActive ? "shadow" : "ghost"}
             className={`${props.className} DriveModeButton`}
     >
-      <div className="DriveModeButtonIconContainer">
-        <div>{icon}</div>
+      <div className="DriveModeButtonContainer">
+        <div className="DriveModeButtonIconContainer">{icon}</div>
         {props.children}
       </div>
 
@@ -49,7 +49,7 @@ export const DriveModeButton: React.FC<IDriveModeButtonProps> =
   // The inner button wrapped in a tooltip
   const tooltipButton = props.hideTooltip ? innerButton : (
     <Tooltip 
-      content={props.driveModeData.name} 
+      content={props.driveModeData.fullName ?? props.driveModeData.name}
       placement={props.tooltipPlacement ?? "top-end"}
       showArrow={true}
       className={props.className}
@@ -58,9 +58,9 @@ export const DriveModeButton: React.FC<IDriveModeButtonProps> =
     </Tooltip>
   );
 
-  const badgedButton = props.driveModeData.keybind === undefined || props.hideKeybind ? tooltipButton : (
+  const badgedButton = (
       <Badge
-          isInvisible = {props.driveModeData.keybind === undefined}
+          isInvisible={props.driveModeData.keybind === undefined || (props.hideKeybind ?? false)}
           content = {<span>{props.driveModeData.keybind}</span>}
           classNames={{"badge": `DriveModeKeybind text-foreground-600 bg-default-100
         rounded-small text-center text-small font-sans font-normal`}}

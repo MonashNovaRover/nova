@@ -1,10 +1,10 @@
-import DriveWidget from "../../components/DriveWidget/DriveWidget";
+import DriveWidgetDemo from "../../components/DriveWidget/DriveWidgetDemo";
 
 
 const GeneralBaseView: React.FC = () => {
   return (
     <>
-      <DriveWidget/>
+      <DriveWidgetDemo/>
     </>
   )
 };
