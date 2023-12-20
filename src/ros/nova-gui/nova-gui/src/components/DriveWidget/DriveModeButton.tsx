@@ -1,8 +1,7 @@
-import { Badge, Button, ButtonProps, Kbd, Tooltip } from "@nextui-org/react"
+import { Badge, Button, ButtonProps, Tooltip } from "@nextui-org/react"
 import { IDriveModeDisplayData } from "./DriveModeDisplayData"
 import { cloneElement } from "react"
 import { OverlayPlacement } from "@nextui-org/aria-utils"
-import * as tailwind_variants from "tailwind-variants";
 
 type BadgePlacement = "top-right" | "top-left" |  "bottom-right" | "bottom-left"
 
@@ -32,8 +31,8 @@ export const DriveModeButton: React.FC<IDriveModeButtonProps> =
 
   // The inner button element containing the drive mode's icon
   const innerButton = (
-    <Button {...props}
-      isIconOnly = { props.children === undefined || props.children.length === 0 || props.isIconOnly }
+    <Button  {...props} aria-label={`${props.driveModeData.name} Mode`}
+      isIconOnly = { props.children === undefined || props.isIconOnly }
       color = {props.driveModeActive ? "primary" : "default"} 
       variant = {props.driveModeActive ? "shadow" : "ghost"}
             className={`${props.className} DriveModeButton`}
@@ -60,11 +59,11 @@ export const DriveModeButton: React.FC<IDriveModeButtonProps> =
 
   const badgedButton = (
       <Badge
-          isInvisible={props.driveModeData.keybind === undefined || (props.hideKeybind ?? false)}
-          content = {<span>{props.driveModeData.keybind}</span>}
-          classNames={{"badge": `DriveModeKeybind text-foreground-600 bg-default-100
-        rounded-small text-center text-small font-sans font-normal`}}
-          placement={props.keybindPlacement ?? "top-right"}
+        isInvisible={props.driveModeData.keybind === undefined || (props.hideKeybind ?? false)}
+        content = {<span>{props.driveModeData.keybind}</span>}
+        classNames={{"badge": `DriveModeKeybind text-foreground-600 bg-default-100
+          rounded-small text-center text-small font-sans font-normal`}}
+        placement={props.keybindPlacement ?? "top-right"}
       >
         {tooltipButton}
       </Badge>

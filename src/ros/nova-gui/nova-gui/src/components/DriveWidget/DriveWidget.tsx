@@ -3,13 +3,9 @@ import {
   CardHeader,
   CardBody,
   Divider,
-  Progress,
-  Select,
-  SelectItem,
-  Button,
-  ButtonProps, CardProps
+  CardProps
 } from "@nextui-org/react";
-import {cloneElement, ReactNode, useState} from "react";
+import { ReactNode } from "react";
 import './DriveWidget.css';
 import { DriveModeButton } from "./DriveModeButton";
 import {DriveProgress} from "./DriveProgress";
@@ -19,7 +15,7 @@ import { driveModes } from "./DriveModeDisplayData";
 export interface IDriveWidgetProps extends CardProps {
   driveModeIndex: string,
   handleDriveModeSelectChange: (e: React.ChangeEvent<HTMLSelectElement>) => void,
-  setDriveModeIndex: (string) => void
+  setDriveModeIndex: (content: string) => void
 }
 
 // Properties for the DriveWidgetWheelData component.
@@ -34,7 +30,7 @@ export interface IDriveWidgetWheelDataProps {
  */
 const DriveWidgetWheelData: React.FC<IDriveWidgetWheelDataProps> = (props: IDriveWidgetWheelDataProps) => {
   const wheelProgress = (
-    <DriveProgress size="lg" value={props.wheelValue} maxValue={1}>
+    <DriveProgress size="lg" value={props.wheelValue} maxValue={1} aria-label="Wheel Amount">
       <div className="grid grid-flow-col gap-3 auto-cols-fr text-small">
         <span>WHEEL</span>
         <span>{`${(props.wheelValue * 100).toFixed(0)}%`}</span>
@@ -43,7 +39,7 @@ const DriveWidgetWheelData: React.FC<IDriveWidgetWheelDataProps> = (props: IDriv
   );
 
   const pivotProgress = (
-    <DriveProgress size="lg" value={props.pivotValue} maxValue={1}>
+    <DriveProgress size="lg" value={props.pivotValue} maxValue={1} aria-label="Pivot Amount">
       <div className="grid grid-flow-col gap-3 auto-cols-fr text-small">
         <span>PIVOT</span>
         <span>{`${(props.pivotValue * 100).toFixed(0)}%`}</span>
@@ -69,7 +65,7 @@ const DriveWidgetWheelData: React.FC<IDriveWidgetWheelDataProps> = (props: IDriv
  */
 const DriveWidget: React.FC<IDriveWidgetProps> = (props: IDriveWidgetProps) => {
   // Text to display for the current drive mode
-  const driveModeLabelText = driveModes[props.driveModeIndex].name;
+  const driveModeLabelText = driveModes[+props.driveModeIndex].name;
 
   // Helper function for creating labels in the driveInfoCardBody
   const createLabelCell = (content: ReactNode) => (
@@ -84,7 +80,7 @@ const DriveWidget: React.FC<IDriveWidgetProps> = (props: IDriveWidgetProps) => {
       { createLabelCell(<>Speed Control</>) }
 
       <div>
-        <DriveProgress size="lg" value={0.314} maxValue={1}>
+        <DriveProgress size="lg" value={0.314} maxValue={1} aria-label="Average Velocity">
           31.4%
         </DriveProgress>
       </div>
@@ -103,7 +99,7 @@ const DriveWidget: React.FC<IDriveWidgetProps> = (props: IDriveWidgetProps) => {
       </div>
 
       <div>
-        <DriveProgress size="lg" value={0.8} maxValue={1}>
+        <DriveProgress size="lg" value={0.8} maxValue={1} aria-label="Speed Control">
           80%
         </DriveProgress>
       </div>

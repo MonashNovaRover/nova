@@ -1,9 +1,8 @@
-import {Card, CardHeader, CardBody, Divider, Progress, Select, SelectItem, Button, Kbd} from "@nextui-org/react";
+import {Card, CardHeader, CardBody, Select, SelectItem, Kbd} from "@nextui-org/react";
 import { cloneElement, useState } from "react";
 import './DriveWidget.css';
 import { driveModes } from "./DriveModeDisplayData";
 import { DriveModeButton } from "./DriveModeButton";
-import { DriveProgress } from "./DriveProgress";
 import DriveWidget from "./DriveWidget";
 
 
@@ -27,6 +26,7 @@ const DriveWidgetDemo: React.FC = () => {
             <div>
               <Select
                 variant="underlined"
+                aria-label="Drive mode"
                 label="Drive mode"
                 className="max-w-xs"
                 selectedKeys={[driveModeIndex]}
@@ -36,6 +36,7 @@ const DriveWidgetDemo: React.FC = () => {
                   <SelectItem key={index} value={`${index}`}
                               startContent={cloneElement(mode.icon, {className:
                                   `${mode.icon.props.className} w-3 h-3`})}
+                              aria-label={mode.name}
                   >
                     {mode.name}
                   </SelectItem>
@@ -79,6 +80,7 @@ const DriveWidgetDemo: React.FC = () => {
 
               <Select
                 labelPlacement="outside"
+                aria-label="Drive mode"
                 color="primary"
                 variant="faded"
                 className="max-w-xs mt-2"
@@ -89,6 +91,7 @@ const DriveWidgetDemo: React.FC = () => {
                   <SelectItem key={index} value={`${index}`}
                               startContent={cloneElement(mode.icon, {className:
                                   `${mode.icon.props.className} w-3 h-3`})}
+                              aria-label={mode.name}
                   >
                     {mode.name + " Mode"}
                   </SelectItem>
@@ -133,8 +136,8 @@ const DriveWidgetDemo: React.FC = () => {
             <div>
               <div className="grid grid-flow-row gap-3 auto-cols-fr">
                 {driveModes.map((mode, index) => (
-
                   <DriveModeButton
+                    key={index}
                     driveModeData={mode}
                     driveModeActive={driveModeIndex === `${index}`}
                     onPress={() => setDriveModeIndex(`${index}`)}
@@ -143,7 +146,6 @@ const DriveWidgetDemo: React.FC = () => {
                     hideTooltip
                     hideKeybind
                     className="grow w-1/4 justify-start"
-                    fullWidth="true"
                   >
                     <span className="ml-1">{mode.name}</span>
                     <div className="grow"></div>
@@ -191,8 +193,8 @@ const DriveWidgetDemo: React.FC = () => {
           <div>
             <div className="grid grid-flow-col gap-3 auto-cols-fr">
               {driveModes.map((mode, index) => (
-
                 <DriveModeButton
+                  key={index}
                   driveModeData={mode}
                   driveModeActive={driveModeIndex === `${index}`}
                   onPress={() => setDriveModeIndex(`${index}`)}
@@ -200,7 +202,6 @@ const DriveWidgetDemo: React.FC = () => {
                   tooltipPlacement="right"
                   hideTooltip hideKeybind
                   className="grow w-1/4 justify-start"
-                  fullWidth="true"
                   keybindPlacement="top-left"
                 >
                   <span className="ml-0.5">{mode.shortName ?? mode.name}</span>
@@ -213,27 +214,11 @@ const DriveWidgetDemo: React.FC = () => {
           </div>
         </CardBody>
       </Card>
-
-      <Card className="w-full col-span-2">
-        <CardHeader>Progress w/ label overlay</CardHeader>
-        <CardBody className="flex justify-center flex-col content-center gap-2" >
-          <DriveProgress
-            value={1+(+driveModeIndex)}
-            maxValue={4}
-            valueLabel={<span className="text-white">{`${100 * (1+(+driveModeIndex)) / 4}%`}</span>}
-            size="lg" className=""></DriveProgress>
-          <DriveProgress
-            value={1+(+driveModeIndex)}
-            maxValue={4}
-            size="lg"
-            label="Value:"
-            valueLabel={<span className="text-white">{`${100 * (1+(+driveModeIndex)) / 4}%`}</span>}
-            className="">
-          </DriveProgress>
-        </CardBody>
-      </Card>
       
-      <DriveWidget className="w-full col-span-2 row-span-2" driveModeIndex={driveModeIndex} handleDriveModeSelectChange={handleDriveModeSelectChange} setDriveModeIndex={setDriveModeIndex}>
+      <DriveWidget className="w-full col-span-2 row-span-2"
+                   driveModeIndex={driveModeIndex}
+                   handleDriveModeSelectChange={handleDriveModeSelectChange}
+                   setDriveModeIndex={setDriveModeIndex}>
 
       </DriveWidget>
 
