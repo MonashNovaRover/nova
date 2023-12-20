@@ -30,7 +30,7 @@ export const DriveProgress: React.FC<IDriveProgressProps> = (props: IDriveProgre
   )
 
   // Prepend the props.label to the progress bar (if any)
-  const labelledProgress = props.label === undefined ? valueLabelledProgress : (
+  return props.label === undefined ? valueLabelledProgress : (
     <div className="flex flex-row items-center p-0 m-0">
       <div className="m-0 p-0">
         {props.label}
@@ -40,7 +40,4 @@ export const DriveProgress: React.FC<IDriveProgressProps> = (props: IDriveProgre
       </div>
     </div>
   )
-
-  // The result is wrapped in a badge with the drive mode's keybind
-  return labelledProgress;
 }

@@ -49,7 +49,7 @@ export const DriveModeButton: React.FC<IDriveModeButtonProps> =
   // The inner button wrapped in a tooltip
   const tooltipButton = props.hideTooltip ? innerButton : (
     <Tooltip 
-      content={props.driveModeData.fullName ?? props.driveModeData.name}
+      content={props.driveModeData.name}
       placement={props.tooltipPlacement ?? "top-end"}
       showArrow={true}
       className={props.className}

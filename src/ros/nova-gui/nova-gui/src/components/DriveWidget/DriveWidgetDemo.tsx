@@ -16,7 +16,6 @@ const DriveWidgetDemo: React.FC = () => {
       setDriveModeIndex(e.target.value);
     };
 
-  //  <div className="grid auto-cols-fr w-full gap-3 p-3 s:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 xxl:grid-cols-6">
   return (
     <div className="grid  w-full gap-3 p-3 auto-cols-fr
       s:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-6">
@@ -24,7 +23,7 @@ const DriveWidgetDemo: React.FC = () => {
       <Card className="w-full col-span-1 row-span-2">
         <CardHeader>Drive Mode Select<br/>Old style with dropdown 1</CardHeader>
         <CardBody className="px-0 flex justify-center flex-col content-center">
-          <div className="flex gap-3 justify-center overflow-hidden">
+          <div className="flex gap-3 justify-center overflow-hidden overflow-visible">
             <div>
               <Select
                 variant="underlined"
@@ -91,7 +90,7 @@ const DriveWidgetDemo: React.FC = () => {
                               startContent={cloneElement(mode.icon, {className:
                                   `${mode.icon.props.className} w-3 h-3`})}
                   >
-                    {mode.name}
+                    {mode.name + " Mode"}
                   </SelectItem>
                 ))}
               </Select>
@@ -178,7 +177,7 @@ const DriveWidgetDemo: React.FC = () => {
                     tooltipPlacement="right"
                     hideTooltip
                   />
-                  <span className="">{mode.name}</span>
+                  <span className="">{mode.shortName ?? mode.name}</span>
                 </div>
               ))}
             </div>
@@ -204,7 +203,7 @@ const DriveWidgetDemo: React.FC = () => {
                   fullWidth="true"
                   keybindPlacement="top-left"
                 >
-                  <span className="ml-0.5">{mode.name}</span>
+                  <span className="ml-0.5">{mode.shortName ?? mode.name}</span>
                   <div className="grow"></div>
                   <Kbd className="mx-1.5">{mode.keybind}</Kbd>
 
