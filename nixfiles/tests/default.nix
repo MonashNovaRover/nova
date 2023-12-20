@@ -42,6 +42,10 @@ let
             user = config.users.users.nova.name;
           };
 
+          # https://github.com/NixOS/nixpkgs/issues/103746#issuecomment-945091229
+          systemd.services."getty@tty1".enable = lib.mkIf config.services.xserver.enable false;
+          systemd.services."autovt@tty1".enable = lib.mkIf config.services.xserver.enable false;
+
           # The tests do not typically keep state, so their state version can
           # always be the latest.
           home-manager.users.nova.home.stateVersion = lib.mkDefault lib.trivial.release;
