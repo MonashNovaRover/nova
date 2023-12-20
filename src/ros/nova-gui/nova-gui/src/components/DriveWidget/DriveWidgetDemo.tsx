@@ -219,7 +219,6 @@ const DriveWidgetDemo: React.FC = () => {
                    driveModeIndex={driveModeIndex}
                    handleDriveModeSelectChange={handleDriveModeSelectChange}
                    setDriveModeIndex={setDriveModeIndex}>
-
       </DriveWidget>
 
     </div>

@@ -47,7 +47,7 @@ const DriveWidgetWheelData: React.FC<IDriveWidgetWheelDataProps> = (props: IDriv
     </DriveProgress>
   );
 
-  return <Card shadow="sm" isBlurred>
+  return <Card shadow="sm" className="bg-content2">
     <CardBody className="grid grid-rows-1 grid-cols-4 content-center place-content-stretch">
       <div className="flex flex-col justify-center">
         <span className="align-middle">{props.name}</span>
