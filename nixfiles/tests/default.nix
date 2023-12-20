@@ -106,4 +106,4 @@ let
       };
   };
 in
-{ }
+import ./tests.nix { inherit runTest; }
