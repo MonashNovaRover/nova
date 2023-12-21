@@ -7,7 +7,7 @@ which is how it gets added to the gazebo sim. Author/s: Victor Bartlinski-->
   <gazebo>
     <plugin name="gazebo_ros_p3d" filename="libgazebo_ros_p3d.so">
       <body_name>base_link</body_name>
-      <frame_name>map</frame_name>
+      <frame_name>odom</frame_name>
       <update_rate>30</update_rate>
       <gaussian_noise>0.01</gaussian_noise>
     </plugin>
