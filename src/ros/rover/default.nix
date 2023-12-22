@@ -5,6 +5,7 @@
     nova-autonomous = callPackage ./nix/packages/autonomous { };
     nova-electronics = callPackage ./nix/packages/electronics { };
     nova-science = callPackage ./nix/packages/science { };
+    nova-costmap-2d = callPackage ./nix/packages/nova-costmap-2d { };
   };
 
   pythonPackages = pythonPackages: with pythonPackages; {
