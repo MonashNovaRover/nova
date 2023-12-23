@@ -77,7 +77,7 @@ void save(cv::Mat& img, cv::Mat& img2) {
     cv::imwrite("../debug/cpp_heightmap2.png", img2);
 }
 
-void fit_planes(cv::Mat& heightMap, cv::Mat& incs, ) {
+void fit_planes(cv::Mat& heightMap, cv::Mat& incs, int min_x) {
     const std::size_t XS = heightMap.rows;
     const std::size_t YS = heightMap.cols;
 
