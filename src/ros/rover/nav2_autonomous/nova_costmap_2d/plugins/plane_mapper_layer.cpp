@@ -16,9 +16,9 @@ void PlaneMapperLayer::onInitialize()
   declareParameter("max_obstacle_height", rclcpp::ParameterValue(2.0));
   declareParameter("combination_method", rclcpp::ParameterValue(1));
   declareParameter("observation_sources", rclcpp::ParameterValue(std::string("")));
-  declareParameter("max_safe_inc", rclcpp::ParameterValue(20));  // Approximately represents total height diff in a 10x10cm area
+  declareParameter("max_safe_inc", rclcpp::ParameterValue(20.0));  // Approximately represents total height diff in a 10x10cm area
   declareParameter("resolution_ratio", rclcpp::ParameterValue(4));  // Ratio between resolution of mini-heightmaps and final costmap
-  declareParameter("height_map_mid_z", rclcpp::ParameterValue(64));  // Ratio between resolution of mini-heightmaps and final costmap
+  declareParameter("height_map_mid_z", rclcpp::ParameterValue(64.0));  // Ratio between resolution of mini-heightmaps and final costmap
   declareParameter("vertical_resolution", rclcpp::ParameterValue(0.02));  // Ratio between resolution of mini-heightmaps and final costmap
   declareParameter("min_plane_density", rclcpp::ParameterValue(0.3));  // Ratio between resolution of mini-heightmaps and final costmap
   declareParameter("plane_overlap", rclcpp::ParameterValue(2));  // Ratio between resolution of mini-heightmaps and final costmap
@@ -256,9 +256,9 @@ bool PlaneMapperLayer::worldToIntermediateMap(double wx, double wy, uint32_t & m
 
 bool PlaneMapperLayer::worldToIntermediateMap(double wz, uint8_t & mz) const
 {
-  mz = static_cast<uint8_t>(wz / vertical_resolution_ + map_mid_val_);
-  double max_z = (std::numeric_limits<uint8_t>::max() - map_mid_val_) * vertical_resolution_;
-  double min_z = (std::numeric_limits<uint8_t>::min() - map_mid_val_) * vertical_resolution_;
+  mz = static_cast<float>(wz / vertical_resolution_ + map_mid_val_);
+  double max_z = (std::numeric_limits<float>::max() - map_mid_val_) * vertical_resolution_;
+  double min_z = (std::numeric_limits<float>::min() - map_mid_val_) * vertical_resolution_;
   if (wz <= max_z && wz >= min_z)
   {
     return true;
@@ -294,9 +294,9 @@ PlaneMapperLayer::updateBounds(
   const uint32_t XS = xs * resolution_ratio_;
   const uint32_t YS = ys * resolution_ratio_;
 
-  const uint8_t C_NEG_INF = std::numeric_limits<uint8_t>::min();
+  const float C_NEG_INF = -std::numeric_limits<float>::infinity();
 
-	cv::Mat top_height_map(cv::Size(XS, YS), CV_8UC1, cv::Scalar(C_NEG_INF));
+	cv::Mat top_height_map(cv::Size(XS, YS), CV_32FC1, cv::Scalar(C_NEG_INF));
 	std::vector<std::vector<bool>> has_data_map(xs, std::vector<bool>(ys));
 
   /**
@@ -362,14 +362,10 @@ PlaneMapperLayer::updateBounds(
       // Update that we have seen this point
       has_data_map.at(seen_mx).at(seen_my) = true;
 
-      uint8_t mz;
-      if (!worldToIntermediateMap(pz, mz)) {
-        RCLCPP_DEBUG(logger_, "Point out of height map z bounds");
-        continue;
-      }
+      float mz = static_cast<float>(pz);
       
-			if (mz > top_height_map.at<uint8_t> (mx, my)) {
-        top_height_map.at<uint8_t> (mx, my) = mz;
+			if (mz > top_height_map.at<float> (mx, my)) {
+        top_height_map.at<float> (mx, my) = mz;
       }
 
       touch(px, py, min_x, min_y, max_x, max_y);
@@ -379,7 +375,7 @@ PlaneMapperLayer::updateBounds(
   /**
    * CALCULATE BEST FIT PLANE INCLINATIONS
   */
-  cv::Mat incs(cv::Size(xs, ys), CV_8UC1, cv::Scalar(C_NEG_INF));
+  cv::Mat incs(cv::Size(xs, ys), CV_32FC1, cv::Scalar(C_NEG_INF));
 
   for (uint32_t plane_i = 0; plane_i < xs; plane_i++) {
     for (uint32_t plane_j = 0; plane_j < ys; plane_j++) {
@@ -393,9 +389,11 @@ PlaneMapperLayer::updateBounds(
       // Track their sum
       for (std::size_t i = min_x; i < max_x; i++) {
         for (std::size_t j = min_y; j < max_y; j++) {
-          uint8_t z = top_height_map.at<uint8_t>(i, j);
+          float z = top_height_map.at<float>(i, j);
+          float x = i * resolution_ / resolution_ratio_;
+          float y = j * resolution_ / resolution_ratio_;
           if (z == C_NEG_INF) continue;
-          Eigen::Vector3d p(i, j, z);
+          Eigen::Vector3d p(x, y, z);
           these_pts.push_back(p);
           point_sum = point_sum + p;
         }
@@ -469,8 +467,8 @@ PlaneMapperLayer::updateBounds(
       double inc = std::acos(std::min(1.0, std::abs(plane_normal.z())));
       if (inc != 0) {
         // scaling to size of char so we can send back as much info as possible
-        uint8_t scaled_inc = static_cast<uint8_t>(inc * 255 * 2 / M_PI);
-        incs.at<uint8_t>(plane_i, plane_j) = std::max(incs.at<uint8_t>(plane_i, plane_j), scaled_inc);
+        float scaled_inc = static_cast<float>(inc * 255 * 2 / M_PI);
+        incs.at<float>(plane_i, plane_j) = std::max(incs.at<float>(plane_i, plane_j), scaled_inc);
       }
     }
   }
@@ -481,9 +479,8 @@ PlaneMapperLayer::updateBounds(
         // No pointcloud points fell in this pixel... so don't update
         continue;
 			} 
-
       size_t index = getIndex(mx, my);
-      uint8_t char_inc = incs.at<uint8_t> (mx, my);
+      float char_inc = incs.at<float> (mx, my);
       double inc = static_cast<double>(char_inc) * 90 / 255;
 
       if (inc >= max_safe_inc_){

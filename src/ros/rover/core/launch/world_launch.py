@@ -50,6 +50,7 @@ def generate_launch_description():
     robot_name = LaunchConfiguration('robot_name')
     headless = LaunchConfiguration('headless')
     world = LaunchConfiguration('world')
+    log_level = LaunchConfiguration('log_level')
     #world_name = LaunchConfiguration('world_name')
 
     # Launch arguments
@@ -117,6 +118,9 @@ def generate_launch_description():
         'use_respawn', default_value='False',
         description='Whether to respawn if a node crashes. Applied when composition is disabled.')
 
+    log_level_arg = DeclareLaunchArgument(
+        'log_level', default_value='info',
+        description='What level of logging output should be displayed')
 
     robot_description = ParameterValue(Command(['xacro ', LaunchConfiguration('model')]),
                                        value_type=str)
@@ -191,7 +195,8 @@ def generate_launch_description():
             'params_file': params_file,
             'use_composition': use_composition,
             'use_respawn': use_respawn,
-            'container_name': 'nav2_container'
+            'container_name': 'nav2_container',
+            'log_level': log_level,
         }.items()
     )
 
@@ -208,6 +213,7 @@ def generate_launch_description():
         declare_autostart_arg,
         declare_use_composition_arg,
         declare_use_respawn_arg,
+        log_level_arg,
         start_gazebo_server_cmd,
         start_gazebo_client_cmd,
         spawn_rover_cmd,

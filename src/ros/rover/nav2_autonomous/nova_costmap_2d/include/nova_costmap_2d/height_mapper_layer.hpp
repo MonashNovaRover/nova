@@ -118,6 +118,11 @@ private:
   int resolution_ratio_;
 
   /**
+   * @brief The minimum number of cells required to be occupied for this to be included in height mapping
+  */
+  float min_plane_density_;
+
+  /**
    * @brief maximum obstacle value that is safe to traverse
   */
   float max_safe_val_;

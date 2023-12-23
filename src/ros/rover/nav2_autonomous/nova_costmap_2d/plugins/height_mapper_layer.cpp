@@ -19,6 +19,7 @@ void HeightMapperLayer::onInitialize()
   declareParameter("max_safe_val", rclcpp::ParameterValue(16.0));  // Approximately represents total height diff in a 10x10cm area
   declareParameter("resolution_ratio", rclcpp::ParameterValue(4));  // Ratio between resolution of mini-heightmaps and final costmap
   declareParameter("height_map_mid_z", rclcpp::ParameterValue(64.0));  // Approximately represents total height diff in a 10x10cm area
+  declareParameter("min_plane_density", rclcpp::ParameterValue(0.3));  // Ratio between resolution of mini-heightmaps and final costmap
   declareParameter("vertical_resolution", rclcpp::ParameterValue(0.05));  // Ratio between resolution of mini-heightmaps and final costmap
 
   auto node = node_.lock();
@@ -37,6 +38,7 @@ void HeightMapperLayer::onInitialize()
   node->get_parameter(name_ + "." + "max_safe_val", max_safe_val_);
   node->get_parameter(name_ + "." + "resolution_ratio", resolution_ratio_);
   node->get_parameter(name_ + "." + "height_map_mid_z", map_mid_val_);
+  node->get_parameter(name_ + "." + "min_plane_density", min_plane_density_);
   node->get_parameter(name_ + "." + "vertical_resolution", vertical_resolution_);
 
   dyn_params_handler_ = node->add_on_set_parameters_callback(
@@ -400,11 +402,20 @@ HeightMapperLayer::updateBounds(
 
       // Get sum of this region in the diff map
       float val = 0;
+      int num_vals = 0;
       for (size_t i = 0; i < static_cast<size_t>(resolution_ratio_); ++i){
         for (size_t j = 0; j < static_cast<size_t>(resolution_ratio_); ++j){
-          val += diff.at<float>(mx * resolution_ratio_ + i, my * resolution_ratio_ + j);
+          float cell_val = diff.at<float>(mx * resolution_ratio_ + i, my * resolution_ratio_ + j);
+          if (cell_val > C_NEG_INF) {
+            num_vals++;
+            val += cell_val;
+          }
         }
       }      
+
+      if (num_vals < min_plane_density_ * resolution_ratio_ * resolution_ratio_) continue;
+      
+      val /= num_vals;
 
       size_t index = getIndex(mx, my);
       if (val >= max_safe_val_){

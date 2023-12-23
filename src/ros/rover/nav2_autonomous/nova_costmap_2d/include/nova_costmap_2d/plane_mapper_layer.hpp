@@ -122,12 +122,12 @@ private:
   /**
    * @brief maximum inclination (deg) that is safe to traverse
   */
-  int max_safe_inc_;
+  float max_safe_inc_;
 
   /**
    * @brief middle of the height map uchar value
    */
-  uint8_t map_mid_val_;
+  float map_mid_val_;
 
   /**
     * @brief vertical resolution of height map (m)
