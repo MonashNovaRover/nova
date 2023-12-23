@@ -67,7 +67,7 @@ public:
   */
   HeightMapperLayer()
   {
-    costmap_ = NULL;  // this is the uint8_t* member of parent class Costmap2D.
+    costmap_ = NULL;  // this is the float* member of parent class Costmap2D.
   }
 
   /**
@@ -96,7 +96,7 @@ public:
    * @param  mz Will be set to the associated height map z coordinate
    * @return True if the conversion was successful (legal bounds) false otherwise
    */
-  bool worldToIntermediateMap(double wz, uint8_t & mz) const;
+  bool worldToIntermediateMap(double wz, float & mz) const;
 
   /**
    * @brief Update the bounds of the master costmap by this layer's update dimensions
@@ -120,12 +120,12 @@ private:
   /**
    * @brief maximum obstacle value that is safe to traverse
   */
-  uint8_t max_safe_val_;
+  float max_safe_val_;
 
   /**
    * @brief middle of the height map uchar value
    */
-  uint8_t map_mid_val_;
+  float map_mid_val_;
 
   /**
     * @brief vertical resolution of height map (m)
@@ -135,7 +135,7 @@ private:
   
 };
 
-cv::Mat shift(cv::Mat& original, float x, float y, uint8_t fill_val){
+cv::Mat shift(cv::Mat& original, float x, float y, float fill_val){
 	// shift a cv::Mat in the direction given by x and y.
 	float shifter[6] = {1, 0, x, 0, 1, y};
 	cv::Mat shift_mat(cv::Size(3, 2), CV_32FC1, shifter);
@@ -148,12 +148,12 @@ cv::Mat shift(cv::Mat& original, float x, float y, uint8_t fill_val){
 
 	if (x == 0) {
 			for (int i = 0; i < original.cols; i++) {
-					shifted.at<uint8_t>(start_y, i) = fill_val;
+					shifted.at<float>(start_y, i) = fill_val;
 			}
 	}
 	else if (y == 0) {
 			for (int i = 0; i < original.rows; i++) {
-					shifted.at<uint8_t>(i, start_x) = fill_val;
+					shifted.at<float>(i, start_x) = fill_val;
 			}
 	}
 

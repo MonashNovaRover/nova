@@ -16,9 +16,9 @@ void HeightMapperLayer::onInitialize()
   declareParameter("max_obstacle_height", rclcpp::ParameterValue(2.0));
   declareParameter("combination_method", rclcpp::ParameterValue(1));
   declareParameter("observation_sources", rclcpp::ParameterValue(std::string("")));
-  declareParameter("max_safe_val", rclcpp::ParameterValue(16));  // Approximately represents total height diff in a 10x10cm area
+  declareParameter("max_safe_val", rclcpp::ParameterValue(16.0));  // Approximately represents total height diff in a 10x10cm area
   declareParameter("resolution_ratio", rclcpp::ParameterValue(4));  // Ratio between resolution of mini-heightmaps and final costmap
-  declareParameter("height_map_mid_z", rclcpp::ParameterValue(64));  // Approximately represents total height diff in a 10x10cm area
+  declareParameter("height_map_mid_z", rclcpp::ParameterValue(64.0));  // Approximately represents total height diff in a 10x10cm area
   declareParameter("vertical_resolution", rclcpp::ParameterValue(0.05));  // Ratio between resolution of mini-heightmaps and final costmap
 
   auto node = node_.lock();
@@ -251,11 +251,11 @@ bool HeightMapperLayer::worldToIntermediateMap(double wx, double wy, uint32_t & 
   return false;
 }
 
-bool HeightMapperLayer::worldToIntermediateMap(double wz, uint8_t & mz) const
+bool HeightMapperLayer::worldToIntermediateMap(double wz, float & mz) const
 {
-  mz = static_cast<uint8_t>(wz / vertical_resolution_ + map_mid_val_);
-  double max_z = (std::numeric_limits<uint8_t>::max() - map_mid_val_) * vertical_resolution_;
-  double min_z = (std::numeric_limits<uint8_t>::min() - map_mid_val_) * vertical_resolution_;
+  mz = static_cast<float>(wz / vertical_resolution_ + map_mid_val_);
+  double max_z = (std::numeric_limits<float>::max() - map_mid_val_) * vertical_resolution_;
+  double min_z = (std::numeric_limits<float>::min() - map_mid_val_) * vertical_resolution_;
   if (wz <= max_z && wz >= min_z)
   {
     return true;
@@ -291,11 +291,11 @@ HeightMapperLayer::updateBounds(
   const uint32_t XS = xs * resolution_ratio_;
   const uint32_t YS = ys * resolution_ratio_;
 
-  const uint8_t C_NEG_INF = std::numeric_limits<uint8_t>::min();
-  const uint8_t C_INF = std::numeric_limits<uint8_t>::max();
+  const float C_NEG_INF = -std::numeric_limits<float>::infinity();
+  const float C_INF = std::numeric_limits<float>::infinity();
 
-	cv::Mat top_height_map(cv::Size(XS, YS), CV_8UC1, cv::Scalar(C_NEG_INF));
-	cv::Mat bottom_height_map(cv::Size(XS, YS), CV_8UC1, cv::Scalar(C_INF));
+	cv::Mat top_height_map(cv::Size(XS, YS), CV_32FC1, cv::Scalar(C_NEG_INF));
+	cv::Mat bottom_height_map(cv::Size(XS, YS), CV_32FC1, cv::Scalar(C_INF));
 	std::vector<std::vector<bool>> has_data_map(xs, std::vector<bool>(ys));
 
   // place the new obstacles into a priority queue... each with a priority of zero to begin with
@@ -359,17 +359,17 @@ HeightMapperLayer::updateBounds(
       // Update that we have seen this point
       has_data_map.at(seen_mx).at(seen_my) = true;
 
-      uint8_t mz;
-      if (!worldToIntermediateMap(pz, mz)) {
-        RCLCPP_DEBUG(logger_, "Point out of height map z bounds");
-        continue;
-      }
+      float mz = static_cast<float>(pz);
+      // if (!worldToIntermediateMap(pz, mz)) {
+      //   RCLCPP_DEBUG(logger_, "Point out of height map z bounds");
+      //   continue;
+      // }
       
-			if (mz > top_height_map.at<uint8_t> (mx, my)) {
-        top_height_map.at<uint8_t> (mx, my) = mz;
+			if (mz > top_height_map.at<float> (mx, my)) {
+        top_height_map.at<float> (mx, my) = mz;
       }
-			if (mz < bottom_height_map.at<uint8_t> (mx, my)) {
-        bottom_height_map.at<uint8_t> (mx, my) = mz;
+			if (mz < bottom_height_map.at<float> (mx, my)) {
+        bottom_height_map.at<float> (mx, my) = mz;
       }
 
       touch(px, py, min_x, min_y, max_x, max_y);
@@ -399,10 +399,10 @@ HeightMapperLayer::updateBounds(
 			} 
 
       // Get sum of this region in the diff map
-      uint8_t val = 0;
+      float val = 0;
       for (size_t i = 0; i < static_cast<size_t>(resolution_ratio_); ++i){
         for (size_t j = 0; j < static_cast<size_t>(resolution_ratio_); ++j){
-          val += diff.at<uint8_t>(mx * resolution_ratio_ + i, my * resolution_ratio_ + j);
+          val += diff.at<float>(mx * resolution_ratio_ + i, my * resolution_ratio_ + j);
         }
       }      
 
