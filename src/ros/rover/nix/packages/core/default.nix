@@ -27,7 +27,7 @@ buildRosPackage {
   src = builtins.path rec {
     name = "core-source";
     path = ../../../core;
-    filter = lib.novaSourceFilter [ ] path;
+    filter = lib.novaSourceFilter [ "!worlds/**" ] path;
   };
 
   nativeBuildInputs = [ ament-cmake rosidl-default-generators ];
