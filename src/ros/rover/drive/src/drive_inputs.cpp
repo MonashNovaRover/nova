@@ -3,18 +3,17 @@
 Monash Nova Rover Team
 
 PACKAGE: 	control
-AUTHOR(S):	Harrison Verrios, Liam Whittle
+AUTHOR(S):	Harrison Verrios, Liam Whittle, Taaj Street
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
 // Include the header file
-#include "drive_inputs.h"
-#include "print/print.h"
-#include "config/rosconfig.h"
+#include "drive/drive_inputs.h"
+#include "colors.h"
+#include "drive/drive_timers.h"
+#include <math.h>
 
 using std::placeholders::_1;
-
-#include <math.h>
 
 // Adjustes the multiplier factor by some amount in some direction
 float DriveInputs::adjust_multiplier(float &multiplier, bool increase, bool coarse)
@@ -50,7 +49,7 @@ void DriveInputs::publish_cmds()
 void DriveInputs::publish_info()
 {
     // Create the info message
-    auto info_msg = core::msg::DriveInfo();
+    auto info_msg = drive_msgs::msg::DriveInfo();
     info_msg.multiplier = multiplier_speed;
     info_msg.locked = locked;
     info_msg.autonomous_mode = autonomous;
@@ -67,7 +66,6 @@ void DriveInputs::input_deadline_exceeded()
     if (!autonomous) {
         // Clear the old inputs
         latest_drive_input.speed = 0.0;
-        Print::print("No gamepad input received");
         RCLCPP_WARN(this->get_logger(), "Input gamepad subscriber deadline missed");
         prev_msg_received = false;
     }
@@ -77,12 +75,11 @@ void DriveInputs::auto_deadline_exceeded() {
     if (autonomous) {
         latest_drive_input.speed = 0.0;
         prev_msg_received = false;
-        Print::print("No autonomous input received");
         RCLCPP_WARN(this->get_logger(), "Autonomous input subscriber deadline missed");
     }
 }
 
-void DriveInputs::autonomous_callback(const core::msg::DriveInput::SharedPtr msg) {
+void DriveInputs::autonomous_callback(const drive_msgs::msg::DriveInput::SharedPtr msg) {
     if (autonomous){
         latest_drive_input.mode = msg->mode;
         latest_drive_input.speed = msg->speed;
@@ -106,23 +103,23 @@ void DriveInputs::input_callback(const core::msg::InputGamepad::SharedPtr msg)
         latest_drive_input.speed = 0.0;
         // Publish no connection message
         if (connected)
-            Print::print("No Gamepad Connected", C_FAIL);
+            RCLCPP_INFO_STREAM(this->get_logger(), C_FAIL << "No Gamepad Connected" << C_END);
     } else {
         if (!connected)
-            Print::print("Gamepad Connected", C_SUCCESS);
+            RCLCPP_INFO_STREAM(this->get_logger(), C_SUCCESS << "Gamepad Connected" << C_END);
     }
     connected = msg->connected;
 
     if (msg->btn_back_state == 1)
     {
         if (!locked)
-            Print::print("Gamepad Locked");
+            RCLCPP_INFO_STREAM(this->get_logger(), "Gamepad Locked");
         locked = true;
     }
     if (msg->btn_start_state == 1)
     {
         if (locked)
-            Print::print("Gamepad Unlocked");
+            RCLCPP_INFO_STREAM(this->get_logger(), "Gamepad Unlocked");
         locked = false;
     }
 
@@ -135,23 +132,24 @@ void DriveInputs::input_callback(const core::msg::InputGamepad::SharedPtr msg)
 
         if (msg->btn_a_state == 1) {
             if (!autonomous)
-                Print::print("Autonomous Mode Enabled", C_MODE);
+                RCLCPP_INFO_STREAM(this->get_logger(), C_MODE << "Autonomous Mode Enabled" << C_END);
+                
             autonomous = true;
         } else if (msg->btn_b_state == 1) {
             if (autonomous)
-                Print::print("Autonomous Mode Disabled", C_MODE);
+                RCLCPP_INFO_STREAM(this->get_logger(), C_MODE << "Autonomous Mode Disabled" << C_END);
             autonomous = false;
         }
 
         if (msg->btn_thumb_l_state == 1) {
             if (!latest_drive_input.handbrake)
-                Print::print("Handbrake Enabled", C_MODE);
+                RCLCPP_INFO_STREAM(this->get_logger(), C_MODE << "Handbrake Enabled" << C_END);
             latest_drive_input.handbrake = true;
         }
             // Disable Handbrake
         else if (msg->btn_thumb_r_state == 1) {
             if (latest_drive_input.handbrake)
-                Print::print("Handbrake Disabled", C_MODE);
+                RCLCPP_INFO_STREAM(this->get_logger(), C_MODE << "Handbrake Disabled" << C_END);
             latest_drive_input.handbrake = false;
         }
         if (!autonomous) {
@@ -165,20 +163,20 @@ void DriveInputs::input_callback(const core::msg::InputGamepad::SharedPtr msg)
             else if (msg->btn_dpad_r_state == 1)
                 adjust_multiplier(multiplier_speed, true, false);
             if (msg->btn_y_state != 0) {
-                if (latest_drive_input.mode != core::msg::DriveInput::TANK)
-                    Print::print("Tank Mode", C_MODE);
-                latest_drive_input.mode = core::msg::DriveInput::TANK;
+                if (latest_drive_input.mode != drive_msgs::msg::DriveInput::TANK)
+                    RCLCPP_INFO_STREAM(this->get_logger(), C_MODE << "Tank Mode" << C_END);                    
+                latest_drive_input.mode = drive_msgs::msg::DriveInput::TANK;
             } else if (msg->btn_shoulder_l_state != 0) {
-                if (latest_drive_input.mode != core::msg::DriveInput::STRAFE)
-                    Print::print("Strafe Mode", C_MODE);
-                latest_drive_input.mode = core::msg::DriveInput::STRAFE;
+                if (latest_drive_input.mode != drive_msgs::msg::DriveInput::STRAFE)
+                    RCLCPP_INFO_STREAM(this->get_logger(), C_MODE << "Strafe Mode" << C_END);
+                latest_drive_input.mode = drive_msgs::msg::DriveInput::STRAFE;
             } else if (msg->btn_shoulder_r_state != 0) {
-                if (latest_drive_input.mode != core::msg::DriveInput::PIVOT)
-                    Print::print("Pivot Mode", C_MODE);
-                latest_drive_input.mode = core::msg::DriveInput::PIVOT;
+                if (latest_drive_input.mode != drive_msgs::msg::DriveInput::PIVOT)
+                    RCLCPP_INFO_STREAM(this->get_logger(), C_MODE << "Pivot Mode" << C_END);
+                latest_drive_input.mode = drive_msgs::msg::DriveInput::PIVOT;
             }
             trigger_speed = 1.0 - (msg->trg_r_val * (1 - MIN_TRIGGER_MULTIPLIER));
-            if (latest_drive_input.mode == core::msg::DriveInput::STRAFE) {
+            if (latest_drive_input.mode == drive_msgs::msg::DriveInput::STRAFE) {
                 latest_drive_input.speed = -msg->ax_stick_l_x * multiplier_speed * trigger_speed;
 
             } else {
@@ -196,20 +194,20 @@ DriveInputs::DriveInputs() : Node("drive_inputs")
 {
     // Fill with default values on startup
     latest_drive_input.radius = INFINITY;
-    latest_drive_input.mode = core::msg::DriveInput::TANK;
+    latest_drive_input.mode = drive_msgs::msg::DriveInput::TANK;
     latest_drive_input.handbrake = false;
     latest_drive_input.speed = 0.0;
     latest_drive_input.direction = 0;
 
     // Stores QoS options
-    rclcpp::QoS qos = rclcpp::QoS(1).best_effort().deadline(ROSTimers::drive_deadline);
+    rclcpp::QoS qos = rclcpp::QoS(1).best_effort().deadline(DriveTimers::drive_deadline);
     rclcpp::SubscriptionOptions input_subscriber_options;
 
     rclcpp::SubscriptionOptions auto_subscriber_options;
 
     // Create the publisher with a best effort QoS policy
-    drive_publisher = this->create_publisher<core::msg::DriveInput>("/control/drive_inputs", qos);
-    info_publisher = this->create_publisher<core::msg::DriveInfo>("/control/drive_info",10);
+    drive_publisher = this->create_publisher<drive_msgs::msg::DriveInput>("/control/drive_inputs", qos);
+    info_publisher = this->create_publisher<drive_msgs::msg::DriveInfo>("/control/drive_info",10);
     //Sets subscriber options before subscription is made
     input_subscriber_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void {
         input_deadline_exceeded();
@@ -223,39 +221,32 @@ DriveInputs::DriveInputs() : Node("drive_inputs")
     // Creates the input subscription
     gamepad_input_subscription = this->create_subscription<core::msg::InputGamepad>(
         "/control/input_gamepad", qos, std::bind(&DriveInputs::input_callback, this, _1), input_subscriber_options);
-    autonomous_commands_subscription = this->create_subscription<core::msg::DriveInput>(
+    autonomous_commands_subscription = this->create_subscription<drive_msgs::msg::DriveInput>(
         "/control/autonomous_commands", qos, std::bind(&DriveInputs::autonomous_callback, this, _1), auto_subscriber_options);
     // Creates a timer function that runs a function on loop every 0.05 seconds
-    drive_timer = this->create_wall_timer(ROSTimers::drive_control, std::bind(&DriveInputs::publish_cmds, this));
-    info_timer = this->create_wall_timer(ROSTimers::drive_info, std::bind(&DriveInputs::publish_info, this));
-    // Output set-up messages
-    Print::title("DRIVE INPUTS");
-    Print::print("Valid Topics:");
-    Print::print("/control/drive_inputs         [DriveInput]", 1);
-    Print::print("", true);
+    drive_timer = this->create_wall_timer(DriveTimers::drive_control, std::bind(&DriveInputs::publish_cmds, this));
+    info_timer = this->create_wall_timer(DriveTimers::drive_info, std::bind(&DriveInputs::publish_info, this));
 
-    // Output control messages
-    Print::print("Drive Controls:");
-    Print::print("       Left Stick Y      |  Forward/Back", C_INPUT);
-    Print::print("      Right Stick X      |  Left/Right", C_INPUT);
-    Print::print("", true);
-    Print::print("      Right Trigger      |  Speed Multiplier", C_INPUT);
-    Print::print("             DPAD Y      |  Speed Incr/Decr Course", C_INPUT);
-    Print::print("             DPAD X      |  Speed Incr/Decr Fine", C_INPUT);
-    Print::print("    Left Joy Button      |  Handbrake Enabled", C_INPUT);
-    Print::print("   Right Joy Button      |  Handbrake Disabled", C_INPUT);
-    Print::print("", true);
-    Print::print("               Back      |  Lock", C_INPUT);
-    Print::print("              Start      |  Unlock", C_INPUT);
-    Print::print("                  A      |  Autonomous Control", C_INPUT);
-    Print::print("                  B      |  Manual Control", C_INPUT);
-    Print::print("", true);
-    Print::print("                  Y      |  Tank Mode", C_INPUT);
-    Print::print("       Right Bumper      |  Pivot Mode", C_INPUT);
-    Print::print("       Left Bumper       |  Strafe Mode", C_INPUT);
-    Print::print("", true);
-    Print::print("Gamepad Locked");
-    Print::print("Tank Mode", C_MODE);
+    RCLCPP_INFO_STREAM(this->get_logger(), C_TITLE << "Drive Controls:" << C_END);
+    RCLCPP_INFO_STREAM(this->get_logger(), C_INPUT << "       Left Stick Y      |  Forward/Back" << C_END);
+    RCLCPP_INFO_STREAM(this->get_logger(), C_INPUT << "       Right Stick X     |  Left/Right" << C_END);
+    RCLCPP_INFO_STREAM(this->get_logger(), C_INPUT << "      Right Trigger      |  Speed Multiplier" << C_END);
+    RCLCPP_INFO_STREAM(this->get_logger(), C_INPUT << "             DPAD Y      |  Speed Incr/Decr Course" << C_END);
+    RCLCPP_INFO_STREAM(this->get_logger(), C_INPUT << "             DPAD X      |  Speed Incr/Decr Fine" << C_END);
+    RCLCPP_INFO_STREAM(this->get_logger(), C_INPUT << "    Left Joy Button      |  Handbrake Enabled" << C_END);
+    RCLCPP_INFO_STREAM(this->get_logger(), C_INPUT << "   Right Joy Button      |  Handbrake Disabled" << C_END);
+    RCLCPP_INFO_STREAM(this->get_logger(), C_INPUT << "               Back      |  Lock" << C_END);
+    RCLCPP_INFO_STREAM(this->get_logger(), C_INPUT << "              Start      |  Unlock" << C_END);
+    RCLCPP_INFO_STREAM(this->get_logger(), C_INPUT << "                  A      |  Autonomous Control" << C_END);
+    RCLCPP_INFO_STREAM(this->get_logger(), C_INPUT << "                  B      |  Manual Control" << C_END);
+    RCLCPP_INFO_STREAM(this->get_logger(), C_INPUT << "                  Y      |  Tank Mode" << C_END);
+    RCLCPP_INFO_STREAM(this->get_logger(), C_INPUT << "       Right Bumper      |  Pivot Mode" << C_END);
+    RCLCPP_INFO_STREAM(this->get_logger(), C_INPUT << "       Right Bumper      |  Pivot Mode" << C_END);
+    RCLCPP_INFO_STREAM(this->get_logger(), C_INPUT << "       Left Bumper       |  Strafe Mode" << C_END);
+    RCLCPP_INFO_STREAM(this->get_logger(), "Gamepad Locked");
+    RCLCPP_INFO_STREAM(this->get_logger(), C_MODE << "Tank Mode" << C_END);
+    
+
 }
 
 //  Main function called when the script execution begins

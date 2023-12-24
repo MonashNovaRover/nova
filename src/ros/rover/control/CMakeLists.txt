@@ -61,10 +61,6 @@ add_executable(inputs
 target_link_libraries(inputs gamepad print keyboard)
 ament_target_dependencies(inputs rclcpp core SDL2)
 
-# Drive Command script
-add_executable(drive_inputs src/drive/drive_inputs.cpp)
-target_link_libraries(drive_inputs print)
-ament_target_dependencies(drive_inputs rclcpp core)
 
 # PID Tuner script
 add_executable(pid_tuner src/cmd/pid_tuner.cpp)

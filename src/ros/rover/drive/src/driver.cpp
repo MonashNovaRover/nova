@@ -9,6 +9,8 @@ AUTHOR(S):	Taaj Street, Harrison Verrios, Josh Cherubino, Will de la Rue, Jory B
 
 // Include the header file
 #include "drive/driver.h"
+#include "drive/drive_timers.h"
+#include "colors.h"
 
 // Use the standard namespaces for subscribers
 using std::placeholders::_1;
@@ -450,17 +452,12 @@ Driver::Driver() : Node("driver")
     // parameter for change in angle of the pivots in radians per second
     this->declare_parameter("max_theta", 2*M_PI*0.5625);
     max_d_theta = this->get_parameter("max_theta").get_parameter_value().get<double>()*
-            ROSTimers::drive_control.count()/1000;
+            DriveTimers::drive_control.count()/1000;
     // parameter for max velocity of the wheels, all speeds received from /control/drive_inputs are scaled by this value
     this->declare_parameter("max_acceleration", 1.0);
     max_d_vel = this->get_parameter("max_acceleration").get_parameter_value().get<double>()*
-            ROSTimers::drive_control.count()/1000;
+            DriveTimers::drive_control.count()/1000;
     this->declare_parameter("max_speed", 0.9);
-    
-    // Output set-up messages
-    cout << "--------------------" << endl;
-    cout << C_TITLE << "DRIVER" << C_END << endl;
-    cout << "--------------------\n" << endl;
 
     // Initialise the wheels in the correct direction
     for (size_t i = 0; i < NUM_WHEELS; i++)
@@ -475,7 +472,7 @@ Driver::Driver() : Node("driver")
 
     }
 
-    rclcpp::QoS qos = rclcpp::QoS(1).best_effort().deadline(ROSTimers::drive_deadline);
+    rclcpp::QoS qos = rclcpp::QoS(1).best_effort().deadline(DriveTimers::drive_deadline);
 
     rclcpp::SubscriptionOptions subscriber_options;
 
@@ -487,13 +484,13 @@ Driver::Driver() : Node("driver")
         "/control/drive_inputs", qos, std::bind(&Driver::drive_callback, this, _1), subscriber_options);
 
     // Create send commands timer
-    send_commands_timer = this->create_wall_timer(ROSTimers::drive_control, std::bind(&Driver::send_commands, this));
+    send_commands_timer = this->create_wall_timer(DriveTimers::drive_control, std::bind(&Driver::send_commands, this));
 
     // Create blcmds telemetry timer
-    telemetry_timer = this->create_wall_timer(ROSTimers::blcmds_telemetry, std::bind(&Driver::pub_telemetry, this));
+    telemetry_timer = this->create_wall_timer(DriveTimers::blcmds_telemetry, std::bind(&Driver::pub_telemetry, this));
 
     //Create blcmd spin timer
-    blcmd_spin_timer = this->create_wall_timer(ROSTimers::blcmd_spin, std::bind(&Driver::blcmd_spinner, this));
+    blcmd_spin_timer = this->create_wall_timer(DriveTimers::blcmd_spin, std::bind(&Driver::blcmd_spinner, this));
 
     // Create telemetry publisher
     telemetry_pub = this->create_publisher<blcmd_interfaces::msg::Telemetry>("/control/telemetry", 10);

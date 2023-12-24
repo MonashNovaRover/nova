@@ -12,7 +12,7 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(drive_msgs REQUIRED)
 find_package(blcmd_interfaces REQUIRED)
-# find_package(core REQUIRED)
+find_package(core REQUIRED)
 
 #find libcanmd
 find_package(libcanmd REQUIRED)
@@ -23,8 +23,12 @@ target_include_directories(driver PUBLIC
       ${libcanmd_INCLUDE_DIRS})
 ament_target_dependencies(driver PUBLIC rclcpp drive_msgs blcmd_interfaces)
 
+add_executable(drive_inputs src/drive_inputs.cpp)
+ament_target_dependencies(drive_inputs rclcpp core drive_msgs)
+
 install(TARGETS
         driver
+        drive_inputs
         DESTINATION lib/${PROJECT_NAME}
 )
 
