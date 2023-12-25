@@ -11,6 +11,7 @@ import URCDeliveryView from "../views/urc/URCDeliveryView";
 import URCEquipmentServicingView from "../views/urc/URCEquipmentServicingView";
 import URCScienceView from "../views/urc/URCScienceView";
 import { Root } from "../root";
+import { CameraPage } from "../views/shared/CamerasPage";
 
 export const arcRoutes: RouteObject[] = [
   {
@@ -58,7 +59,12 @@ export const urcRoutes: RouteObject[] = [
   },
 ];
 
-export const generalRoutes: RouteObject[] = [];
+export const generalRoutes: RouteObject[] = [
+  {
+    path: "/general/cameras",
+    element: <CameraPage />,
+  },
+];
 
 export const routes: RouteObject[] = [
   {
@@ -77,7 +83,7 @@ export const routes: RouteObject[] = [
       },
       {
         path: "/general",
-        element: <GeneralBaseView />,
+        element: <CameraPage />,
         children: generalRoutes,
       },
     ],
