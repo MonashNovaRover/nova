@@ -35,10 +35,44 @@ class CameraWebRTCBin:
         self.bin = Gst.Bin.new(f"camera-{serial}-bin")
 
         # Create and configure the elements.
-        # # Source
-        self._source = Gst.ElementFactory.make("v4l2src", "source")
-        self._source.props.device = device_node
-        self.bin.add(self._source)
+        # # Sink
+        self._sink = Gst.ElementFactory.make("webrtcsink", "sink")
+        # ## WebRTC settings
+        self._sink.props.congestion_control = "gcc"
+        self._sink.props.do_fec = do_fec
+        self._sink.props.do_retransmission = do_retransmission
+        self._sink.props.stun_server = None
+        # ## Metadata
+        self._sink.props.meta = dict_to_gst_structure(
+            "meta",
+            {"serial": serial, **(extra_meta if extra_meta is not None else {})},
+        )
+        self.bin.add(self._sink)
+
+        # # Clock overlay
+        if show_clock:
+            self._clock_overlay = Gst.ElementFactory.make(
+                "clockoverlay", "clockoverlay"
+            )
+            self.bin.add(self._clock_overlay)
+            self._clock_overlay.link(self._sink)
+        else:
+            self._clock_overlay = None
+
+        # # Converter
+        self._video_converter = Gst.ElementFactory.make("videoconvert", "converter")
+        self.bin.add(self._video_converter)
+        self._video_converter.link(
+            self._clock_overlay if self._clock_overlay is not None else self._sink
+        )
+
+        # # Decoder
+        self._decoder = Gst.ElementFactory.make("decodebin", "decoder")
+        self._decoder.connect(
+            "pad-added",
+            lambda element, pad: pad.link(self._video_converter.get_static_pad("sink")),
+        )
+        self.bin.add(self._decoder)
 
         # # Capability filter
         caps = Gst.Caps.new_empty()
@@ -54,65 +88,13 @@ class CameraWebRTCBin:
         self._caps_filter = Gst.ElementFactory.make("capsfilter", "capsfilter")
         self._caps_filter.props.caps = caps
         self.bin.add(self._caps_filter)
-        self._source.link(self._caps_filter)
-
-        self._decoder = Gst.ElementFactory.make("decodebin", "decoder")
-        self._decoder.connect(
-            "pad-added",
-            functools.partial(
-                self._finish_pipeline,
-                serial,
-                do_fec,
-                do_retransmission,
-                show_clock,
-                extra_meta,
-            ),
-        )
-        self.bin.add(self._decoder)
         self._caps_filter.link(self._decoder)
 
-    def _finish_pipeline(
-        self,
-        serial: str,
-        do_fec: bool,
-        do_retransmission: bool,
-        show_clock: bool,
-        extra_meta: Optional[dict[str, object]],
-        element: Gst.Element,
-        pad: Gst.Pad,
-    ):
-        """
-        Continues configuring the pipeline, after the decoder source pad has been
-        created.
-        """
-
-        # # Video converter
-        self._video_converter = Gst.ElementFactory.make("videoconvert", "videoconvert")
-        self.bin.add(self._video_converter)
-        pad.link(self._video_converter.get_static_pad("sink"))
-
-        # # Clock overlay
-        if show_clock:
-            self._clock_overlay = Gst.ElementFactory.make("clockoverlay", "clockoverlay")
-            self.bin.add(self._clock_overlay)
-            self._video_converter.link(self._clock_overlay)
-        else:
-            self._clock_overlay = None
-
-        # # Sink
-        self._sink = Gst.ElementFactory.make("webrtcsink", "sink")
-        # ## WebRTC settings
-        self._sink.props.congestion_control = "gcc"
-        self._sink.props.do_fec = do_fec
-        self._sink.props.do_retransmission = do_retransmission
-        self._sink.props.stun_server = None
-        # ## Metadata
-        self._sink.props.meta = dict_to_gst_structure(
-            "meta",
-            {"serial": serial, **(extra_meta if extra_meta is not None else {})},
-        )
-        self.bin.add(self._sink)
-        (self._clock_overlay or self._video_converter).link(self._sink)
+        # # Source
+        self._source = Gst.ElementFactory.make("v4l2src", "source")
+        self._source.props.device = device_node
+        self.bin.add(self._source)
+        self._source.link(self._caps_filter)
 
     @property
     def webrtc_stats(self) -> dict[str, object]:
