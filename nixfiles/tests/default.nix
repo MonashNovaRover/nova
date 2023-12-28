@@ -87,11 +87,12 @@ let
         };
       in
       {
-        rover = { lib, ... }: {
+        rover = { pkgs, lib, ... }: {
           imports = [ novaCommon ];
 
           virtualisation = {
             cores = 2;
+            memorySize = lib.mkDefault (2 * 1024); # ROS is not very efficient!
           };
 
           # Use a similar kernel version to the rover. JetPack 5 uses Linux 5.10.
@@ -102,8 +103,8 @@ let
           imports = [ novaCommon ];
 
           virtualisation = {
-            memorySize = 4 * 1024;
             cores = 2;
+            memorySize = lib.mkDefault (4 * 1024); # GNOME...
             qemu.options = lib.optionals config.nova.desktop.wayland.enable [ "-vga virtio" ];
           };
 
