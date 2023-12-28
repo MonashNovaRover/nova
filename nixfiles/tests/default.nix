@@ -87,12 +87,15 @@ let
         };
       in
       {
-        rover = {
+        rover = { lib, ... }: {
           imports = [ novaCommon ];
 
           virtualisation = {
             cores = 2;
           };
+
+          # Use a similar kernel version to the rover. JetPack 5 uses Linux 5.10.
+          boot.kernelPackages = pkgs.linuxKernel.packages.linux_5_10;
         };
 
         base = {
