@@ -122,9 +122,6 @@ let
             enable = true;
             wayland.enable = false; # Wayland is not as easy to control remotely as Xorg.
           };
-
-          # https://github.com/NixOS/nixpkgs/blob/bccd3c82dbbbad83d34a4bb286653e44bdf8fc70/nixos/tests/chromium.nix#L56C14-L56C14
-          # environment.variables."XAUTHORITY" = builtins.trace "${config.users.users.nova.home}/.Xauthority" "${config.users.users.nova.home}/.Xauthority";
         });
       };
 
