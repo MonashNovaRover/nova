@@ -98,18 +98,53 @@ let
           boot.kernelPackages = pkgs.linuxKernel.packages.linux_5_10;
         };
 
-        base = {
+        base = ({ config, lib, ... }: {
           imports = [ novaCommon ];
 
           virtualisation = {
             memorySize = 4 * 1024;
             cores = 2;
+            qemu.options = lib.optionals config.nova.desktop.wayland.enable [ "-vga virtio" ];
           };
 
-          services.xserver.enable = true;
-          nova.desktop.enable = true;
-        };
+          services.xserver = {
+            enable = true;
+            xrandrHeads = [{
+              output = "Virtual-1";
+              monitorConfig = ''
+                Option "PreferredMode" "1360x768"
+              '';
+            }];
+          };
+
+          nova.desktop = {
+            enable = true;
+            wayland.enable = false; # Wayland is not as easy to control remotely as Xorg.
+          };
+
+          # https://github.com/NixOS/nixpkgs/blob/bccd3c82dbbbad83d34a4bb286653e44bdf8fc70/nixos/tests/chromium.nix#L56C14-L56C14
+          # environment.variables."XAUTHORITY" = builtins.trace "${config.users.users.nova.home}/.Xauthority" "${config.users.users.nova.home}/.Xauthority";
+        });
       };
+
+    _module.args.testScriptCommon = { nodes, ... }:
+      let
+        dbus = "unix:path=/run/user/${toString nodes.base.users.users.nova.uid}/bus";
+        xauthority = "/run/user/${toString nodes.base.users.users.nova.uid}/gdm/Xauthority";
+      in
+      ''
+        # Graphical features
+        # Based on GNOME test: https://github.com/NixOS/nixpkgs/blob/bccd3c82dbbbad83d34a4bb286653e44bdf8fc70/nixos/tests/gnome-xorg.nix#L45
+
+        def init_graphical() -> None:
+            base.wait_for_x()
+            base.wait_for_unit("default.target", "${nodes.base.users.users.nova.name}")
+            base.wait_for_file("${xauthority}")
+            base.succeed("xauth merge '${xauthority}'")
+
+        def run_graphical(command: str) -> str:
+            return f"su - '${nodes.base.users.users.nova.name}' -c 'DBUS_SESSION_BUS_ADDRESS=\"${dbus}\" XAUTHORITY=\"${xauthority}\" {command}'"
+      '';
   };
 in
 import ./tests.nix { inherit runTest; }
