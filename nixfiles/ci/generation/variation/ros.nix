@@ -13,7 +13,7 @@ let
 in
 {
   planRosDistroJobsets = name: { description, inputs ? { }, ... }@args:
-    let extraDistros = [ "foxy" ];
+    let extraDistros = [ ];
     in
     { ${name} = args // { inputs = inputs // { rosDistro = mkRosDistroInput null; }; }; }
     // builtins.listToAttrs (map

@@ -21,11 +21,6 @@ let
       inherit (revisions.nixpkgs) rev hash;
     };
     patches = [
-      # xtensor, xsimd: Update, fix compilation on AArch64
-      (pkgs.fetchpatch {
-        url = "https://github.com/SomeoneSerge/nixpkgs/compare/2ece2a0701055e8093b3ab9f904e86b4c396e712..e7ae0498eb9f65b16f18fb39e4cb5fd699ef6687.patch";
-        hash = "sha256-rDedxvq2utnm86loRbJokSRLdunEfgvG58XE25nb9hM=";
-      })
     ];
   };
 
