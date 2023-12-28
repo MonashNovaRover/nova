@@ -33,10 +33,10 @@ in
     };
 
     base = { pkgs, ... }: {
-      home-manager.users.nova = {
+      home-manager.users.nova = { options, ... }: {
         programs.firefox = {
           enable = true;
-          package = pkgs.nova.novafox.override {
+          package = options.programs.firefox.package.default.override {
             extraPrefs = ''
               // Prevent dialogs from interrupting the test flow
               lockPref("browser.shell.checkDefaultBrowser", false)
