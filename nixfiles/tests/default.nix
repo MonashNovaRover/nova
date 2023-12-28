@@ -50,6 +50,9 @@ let
           # Use the shared profile, as all team devices do.
           nova.profile = "shared";
 
+          # Lock in the UID for stability in tests.
+          users.users.nova.uid = 1000;
+
           # Disable the Nova substituter to avoid providing a password.
           # There is no need for substitutions in the VM anyway: Everything is
           # built beforehand by the host.
