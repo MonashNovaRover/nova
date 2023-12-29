@@ -17,6 +17,8 @@
 , nova-gui-frontend ? throw "gui-frontend is needed, but not available!"
 , nova-gui-frontend-server ? throw "gui-frontend-server is needed, but not available!"
 , nova-drive ? throw "drive is needed, but not available!"
+, nova-drive-msgs ? throw "drive-msgs is needed, but not available!"
+, nova-blcmd-interfaces ? throw "blcmd-interfaces is needed, but not available!"
 
   # Configuration options
   ## Include graphical applications in the workspace.
@@ -38,7 +40,9 @@
       nova-cameras2
       nova-gui-backend
       nova-gui-frontend
-      nova-drive;
+      nova-drive
+      nova-drive-msgs
+      nova-blcmd-interfaces;
   }
 
   ## Extra packages to add to the workspace.
