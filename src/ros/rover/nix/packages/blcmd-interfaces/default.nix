@@ -6,7 +6,7 @@
 }:
 
 buildRosPackage {
-  name = "blcmd-interfaces-msgs";
+  name = "blcmd-interfaces";
   buildType = "ament_cmake";
 
   src = builtins.path rec {
