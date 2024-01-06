@@ -1,7 +1,17 @@
-import { Button, Card, CardFooter, Image } from "@nextui-org/react";
+import {
+  Button,
+  Card,
+  CardFooter,
+  Image,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@nextui-org/react";
 import { useEffect, useRef, useState } from "react";
-import { Info } from "react-feather";
-import { CameraInfoModal } from "./CameraInfoModal";
+import { Camera, Info, Play, Square } from "react-feather";
+import { CameraInfoModal } from "./components/CameraInfoModal";
+import { StreamingState, useCameraStream } from "./hooks/useCameraStream";
+import { CameraSettingsForm } from "./components/CameraSettingsForm";
 
 export interface CameraComponentProps {
   cameraName: string;
@@ -13,6 +23,8 @@ export const CameraComponent = (props: CameraComponentProps) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
   const [isCameraInfoModalOpen, setCameraInfoModalOpen] = useState(false);
+  const { streamingState, initiateStreaming } = useCameraStream();
+  const [isSettingsOpen, setSettingsOpen] = useState(false);
 
   useEffect(() => {
     const handleMouseEnter = () => {
@@ -38,30 +50,71 @@ export const CameraComponent = (props: CameraComponentProps) => {
   }, []);
 
   return (
-    <>
-      <Card isFooterBlurred isHoverable className="m-4" ref={cardRef}>
-        <CameraInfoModal
-          {...props}
-          isModalOpen={isCameraInfoModalOpen}
-          setCameraModalOpen={setCameraInfoModalOpen}
-        />
-        <Image
-          removeWrapper
-          alt={cameraName}
-          className="z-0 w-full h-full object-cover"
-          src={src}
-        />
-        {isHovered && (
-          <CardFooter className="absolute bottom-0">
-            <div className="w-full flex flex-row justify-between px-2 items-center">
+    <Card className="m-4 h-[25vh]" ref={cardRef}>
+      <CameraInfoModal
+        {...props}
+        isModalOpen={isCameraInfoModalOpen}
+        setCameraModalOpen={setCameraInfoModalOpen}
+      />
+      {streamingState === StreamingState.STOPPED ? (
+        <>
+          <div className="mx-auto my-auto">
+            <div className="flex flex-col gap-2">
               <div className="font-semibold text-lg">{cameraName}</div>
-              <Button isIconOnly onClick={() => setCameraInfoModalOpen(true)}>
-                <Info />
+              <Button
+                size="sm"
+                color="primary"
+                className="w-min mx-auto"
+                onClick={initiateStreaming}
+              >
+                <Play size="15px" fill="white" /> Start
               </Button>
             </div>
-          </CardFooter>
-        )}
-      </Card>
-    </>
+          </div>
+        </>
+      ) : (
+        <>
+          <Image
+            removeWrapper
+            alt={cameraName}
+            className="z-0 w-full h-full object-cover"
+            src={src}
+          />
+        </>
+      )}
+
+      <CardFooter className="absolute z-1 bottom-0 bg-gradient-to-t from-black/100 to-black/15">
+        <div className="w-full flex flex-row justify-between px-1 items-center">
+          <div className="text-lg font-semibold py-1">{cameraName}</div>
+          {(isHovered || isSettingsOpen) && (
+            <div className="flex flex-ow gap-2">
+              <Button size="sm" color="danger" className="w-min mx-auto">
+                <Square size="15px" fill="white" /> Stop
+              </Button>
+              <Button isIconOnly size="sm">
+                <Camera size="15px" />
+              </Button>
+              <Popover
+                placement="bottom"
+                size="lg"
+                isOpen={isSettingsOpen}
+                onOpenChange={(open) => setSettingsOpen(open)}
+              >
+                <PopoverTrigger>
+                  <Button isIconOnly size="sm">
+                    <Info size="15px" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[360px] dark text-foreground">
+                  <div className="px-1 py-2 w-full">
+                    <CameraSettingsForm />
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </div>
+          )}
+        </div>
+      </CardFooter>
+    </Card>
   );
 };
