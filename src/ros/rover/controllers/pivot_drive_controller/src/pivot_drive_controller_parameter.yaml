@@ -37,12 +37,12 @@ pivot_drive_controller:
 
   steering_track: {
     type: double,
-    default_value: 0.84,
+    default_value: 0.7,
   }
 
   wheel_base: {
     type: double,
-    default_value: 0.7,
+    default_value: 0.84,
   }
 
   wheel_radius: {
