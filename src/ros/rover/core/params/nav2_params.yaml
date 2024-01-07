@@ -188,12 +188,12 @@ local_costmap:
       robot_base_frame: base_link
       use_sim_time: True
       rolling_window: true
-      width: 6
-      height: 6
+      width: 20
+      height: 20
       resolution: 0.1
       robot_radius: 0.52
       track_unknown_space: False
-      plugins: ["plane_mapper_layer", "inflation_layer"]
+      plugins: ["plane_mapper_layer", "height_mapper_layer", "inflation_layer"]
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 3.0
@@ -205,7 +205,7 @@ local_costmap:
         max_obstacle_height: 20.0
         observation_sources: depth_camera
         vertical_resolution: 0.025
-        max_safe_val: 0.04
+        max_safe_val: 1.6
         min_plane_density: 0.2
         height_map_mid_z: 64.0
         depth_camera:
@@ -272,12 +272,12 @@ global_costmap:
       publish_frequency: 1.0
       global_frame: map
       robot_base_frame: base_link
-      width: 20
-      height: 20
+      width: 100
+      height: 100
       use_sim_time: True
       rolling_window: True
       robot_radius: 0.22
-      resolution: 0.1
+      resolution: 0.4
       track_unknown_space: False
       plugins: ["height_mapper_layer", "inflation_layer"]
       obstacle_layer:
@@ -302,8 +302,9 @@ global_costmap:
         observation_sources: depth_camera
         vertical_resolution: 0.025
         height_map_mid_z: 64.0
-        max_safe_val: 0.04
+        max_safe_val: 1.6
         min_plane_density: 0.2
+        resolution_ratio: 16
         depth_camera:
           topic: /camera/points
           min_obstacle_height: -10.0
@@ -320,7 +321,7 @@ global_costmap:
         enabled: True
         min_obstacle_height: -10.0
         max_obstacle_height: 20.0
-        resolution_ratio: 4
+        resolution_ratio: 16
         max_safe_inc: 25.0
         observation_sources: depth_camera
         vertical_resolution: 0.025
