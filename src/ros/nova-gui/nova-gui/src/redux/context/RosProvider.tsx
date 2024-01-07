@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { Ros } from "roslib";
-import { RosTopics } from "../../ros/rosTopics";
+import { RosTopics } from "../../ros/topics/rosTopics";
 import { RootState } from "../RootState";
 import { useBifrost } from "../actions/useBifrostAction";
 import { BifrostConnectionStatus } from "../models/BifrostTypes";

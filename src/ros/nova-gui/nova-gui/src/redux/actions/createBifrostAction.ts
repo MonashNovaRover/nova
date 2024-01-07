@@ -1,9 +1,9 @@
 import { Ros, Topic } from "roslib";
 import { BifrostConnectionStatus } from "../models/BifrostTypes";
 import { RootState } from "../RootState";
-import { RosTopicInterfaces } from "../../ros/rosTopicTypes";
-import { RosTopics } from "../../ros/rosTopics";
-import { rosMessages } from "../../ros/rosMessages";
+import { RosTopicInterfaces } from "../../ros/topics/rosTopicTypes";
+import { RosTopics } from "../../ros/topics/rosTopics";
+import { rosTopicMessages } from "../../ros/topics/rosTopicMessages";
 
 export enum BifrostActionTypes {
   UPDATE_DATA = "UPDATE_DATA_",
@@ -63,7 +63,7 @@ export function createBifrostAction(topic: RosTopics, ros?: Ros) {
         const rosTopic = new Topic({
           ros: ros,
           name: topic.toString(),
-          messageType: rosMessages[topic],
+          messageType: rosTopicMessages[topic],
         });
 
         rosTopic.subscribe(() => {

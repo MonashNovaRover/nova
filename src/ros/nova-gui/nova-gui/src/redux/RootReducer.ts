@@ -1,7 +1,7 @@
 import BifrostStatusStore from "./store/BifrostStatusStore";
-import {createBifrostStore} from "./store/createBifrostStore";
-import {uiSlice} from "./slices/UIReducer";
-import {RosTopics} from "../ros/rosTopics";
+import { createBifrostStore } from "./store/createBifrostStore";
+import { uiSlice } from "./slices/UIReducer";
+import { RosTopics } from "../ros/topics/rosTopics";
 
 export const rootReducer = {
   uiState: uiSlice.reducer,

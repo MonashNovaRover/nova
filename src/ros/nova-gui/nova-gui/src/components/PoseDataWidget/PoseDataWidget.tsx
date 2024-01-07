@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/RootState";
 import { useBifrost } from "../../redux/actions/useBifrostAction";
-import { RosTopics } from "../../ros/rosTopics";
+import { RosTopics } from "../../ros/topics/rosTopics";
 
 export const PoseDataWidget: React.FC = () => {
   const bifrost = useBifrost(RosTopics.POSE);

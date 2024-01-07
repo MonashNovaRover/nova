@@ -1,4 +1,4 @@
-import { RosTopics } from "../../ros/rosTopics";
+import { RosTopics } from "../../ros/topics/rosTopics";
 import {
   BifrostActionType,
   BifrostActionTypes,

@@ -1,7 +1,7 @@
 import { useDispatch } from "react-redux";
 import { createBifrostAction } from "./createBifrostAction";
 import { bindActionCreators } from "@reduxjs/toolkit";
-import { RosTopics } from "../../ros/rosTopics";
+import { RosTopics } from "../../ros/topics/rosTopics";
 import { useContext } from "react";
 import { RosContext } from "../context/RosContext";
 
