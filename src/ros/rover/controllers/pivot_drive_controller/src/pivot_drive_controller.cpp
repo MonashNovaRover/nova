@@ -196,7 +196,7 @@ namespace pivot_drive_controller
         
         float target_radius, target_direction;
 
-        angle_offset = params_.steering_track / params_.wheel_base;
+        angle_offset = atan(params_.steering_track / params_.wheel_base);
         if(second_to_last_command.mode == core::msg::DriveInputStamped::STRAFE && command.mode == core::msg::DriveInputStamped::PIVOT){
             RCLCPP_INFO(logger, "switching from strafe to pivot drive");
             target_radius = INFINITY;
@@ -225,6 +225,8 @@ namespace pivot_drive_controller
 
         double left_angle = get_pivot_angle_from_radius(radius, true, direction);
         double right_angle = get_pivot_angle_from_radius(radius, false, direction);
+
+        RCLCPP_INFO(logger, "left and right angles: %f, %f", left_angle, right_angle);
 
         //set pivot angles
         for (size_t index = 0; index < static_cast<size_t>(params_.wheels_per_side); ++index)
@@ -304,6 +306,8 @@ namespace pivot_drive_controller
         std::tuple<float,int,bool> best_efforts_left_right[2]; //array of {radius, direction, valid} for front left and front right pivots
         int drive_dir, best_dir, pivot_with_best_radius = 0;
 
+        RCLCPP_INFO(get_node()->get_logger(), "target radius: %f, target direction: %f", target_radius, target_direction);
+
         //iterate through each front pivot
         for (int i = 0; i < 2; i++) 
         {
@@ -326,6 +330,8 @@ namespace pivot_drive_controller
                 best_effort_angle = target_angle;
            }
 
+
+           // RCLCPP_INFO(get_node()->get_logger(), "best_effort_angle for %d: %f", i, best_effort_angle);
            //calculate direction
            if (current_pivot_angle == target_angle)
            {
@@ -340,6 +346,8 @@ namespace pivot_drive_controller
            }
 
            float best_radius = abs(get_radius_from_angle(best_effort_angle, i == 0));
+           //RCLCPP_INFO(get_node()->get_logger(), "best_radius for %d: %f", i, best_radius);
+
            double left_angle = get_pivot_angle_from_radius(best_radius, true, best_dir);
            double right_angle = get_pivot_angle_from_radius(best_radius, false, best_dir);
            //bool valid = (abs(left_angle - curr_left) <= max_d_theta*1.01) && (abs(right_angle - curr_right) <= max_d_theta*1.01);
@@ -353,6 +361,8 @@ namespace pivot_drive_controller
         //calculate which radius is 'best' to use
         pivot_with_best_radius = 0; //0 = left, 1 = right
         for (int i =0; i < 2; i++) {
+            RCLCPP_INFO(get_node()->get_logger(), "Wheel %d: Radius: %f, Dir: %f", i, std::get<0>(best_efforts_left_right[i]), std::get<1>(best_efforts_left_right[i]));
+
             //if this configuration is invalid
             if (std::get<2>(best_efforts_left_right[i]) == 0) {
                 return {std::get<0>(best_efforts_left_right[1-i]), std::get<1>(best_efforts_left_right[i-1])};
