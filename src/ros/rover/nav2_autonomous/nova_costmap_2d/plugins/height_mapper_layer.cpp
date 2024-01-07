@@ -253,16 +253,14 @@ bool HeightMapperLayer::worldToIntermediateMap(double wx, double wy, uint32_t & 
   return false;
 }
 
-bool HeightMapperLayer::worldToIntermediateMap(double wz, float & mz) const
+bool HeightMapperLayer::getIntermediateResolution(double & res) const
 {
-  mz = static_cast<float>(wz / vertical_resolution_ + map_mid_val_);
-  double max_z = (std::numeric_limits<float>::max() - map_mid_val_) * vertical_resolution_;
-  double min_z = (std::numeric_limits<float>::min() - map_mid_val_) * vertical_resolution_;
-  if (wz <= max_z && wz >= min_z)
-  {
-    return true;
+  if (resolution_ratio_ > 0) {
+      res = resolution_ / resolution_ratio_;
+      return true;
+  } else {
+    return false;
   }
-  return false;
 }
 
 void
@@ -292,6 +290,12 @@ HeightMapperLayer::updateBounds(
   const uint32_t ys = getSizeInCellsY();
   const uint32_t XS = xs * resolution_ratio_;
   const uint32_t YS = ys * resolution_ratio_;
+  double intermediate_resolution;
+
+  if (!getIntermediateResolution(intermediate_resolution)) {
+    RCLCPP_ERROR(logger_, "Failed to calculate intermediate resolution! Check resolution_ratio parameter > 0");
+    return;
+  }
 
   const float C_NEG_INF = -std::numeric_limits<float>::infinity();
   const float C_INF = std::numeric_limits<float>::infinity();
@@ -362,10 +366,6 @@ HeightMapperLayer::updateBounds(
       has_data_map.at(seen_mx).at(seen_my) = true;
 
       float mz = static_cast<float>(pz);
-      // if (!worldToIntermediateMap(pz, mz)) {
-      //   RCLCPP_DEBUG(logger_, "Point out of height map z bounds");
-      //   continue;
-      // }
       
 			if (mz > top_height_map.at<float> (mx, my)) {
         top_height_map.at<float> (mx, my) = mz;
@@ -415,7 +415,7 @@ HeightMapperLayer::updateBounds(
 
       if (num_vals < min_plane_density_ * resolution_ratio_ * resolution_ratio_) continue;
       
-      val /= num_vals;
+      val /= (num_vals * intermediate_resolution);
 
       size_t index = getIndex(mx, my);
       if (val >= max_safe_val_){
