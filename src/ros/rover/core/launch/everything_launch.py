@@ -39,6 +39,7 @@ def generate_launch_description():
     autostart = LaunchConfiguration('autostart')
     use_composition = LaunchConfiguration('use_composition')
     use_respawn = LaunchConfiguration('use_respawn')
+    use_real_odometry = LaunchConfiguration('use_real_odometry')
     log_level = LaunchConfiguration('log_level')
     gazebo = LaunchConfiguration('gazebo')
     autonomous = LaunchConfiguration('autonomous')
@@ -81,6 +82,12 @@ def generate_launch_description():
         'use_respawn', default_value='False',
         description='Whether to respawn if a node crashes. Applied when composition is disabled.')
 
+    use_real_odom_arg = DeclareLaunchArgument(
+        'use_real_odometry',
+        default_value='true',
+        description='True to use robot_localisation odometry, False to use p3d gazebo plugin'
+    )
+
     log_level_arg = DeclareLaunchArgument(
         'log_level', default_value='info',
         description='What level of logging output should be displayed')
@@ -114,6 +121,7 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(os.path.join(core_dir, 'launch', 'localisation_launch.py')),
         launch_arguments={
             'use_sim_time': gazebo,
+            'use_real_odometry': use_real_odometry,
         }.items()
     )
 
@@ -152,6 +160,7 @@ def generate_launch_description():
         autostart_arg,
         use_composition_arg,
         use_respawn_arg,
+        use_real_odom_arg,
         log_level_arg,
         gazebo_arg,
         autonomous_arg,

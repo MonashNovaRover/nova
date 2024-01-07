@@ -52,7 +52,7 @@ def generate_launch_description():
           'subscribe_depth':True,
           'use_action_for_goal':True,
           'publish_tf': True,
-          #'odom_frame_id': 'odom',
+          'odom_frame_id': 'odom',
           'qos_image':qos,
           'qos_imu':qos,
     }

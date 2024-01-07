@@ -18,7 +18,7 @@ from ament_index_python.packages import get_package_share_path
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
-from launch.substitutions import LaunchConfiguration, PythonExpression
+from launch.substitutions import LaunchConfiguration, PythonExpression, OrSubstitution, AndSubstitution
 from launch.conditions import IfCondition, UnlessCondition
 from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -31,38 +31,46 @@ from launch_ros.actions import Node
 def generate_launch_description():
     # Declare a launch configuration argument of the name "t265"
     use_sim_time = LaunchConfiguration('use_sim_time')
-    slam = LaunchConfiguration('slam')
+    use_real_odometry = LaunchConfiguration('use_real_odometry')
 
     use_sim_time_arg = DeclareLaunchArgument(
         'use_sim_time',
         default_value='true',
         description='Use simulation (Gazebo) clock if true')
 
-    use_slam_arg = DeclareLaunchArgument(
-        'slam',
+    use_real_odom_arg = DeclareLaunchArgument(
+        'use_real_odometry',
         default_value='true',
-        description='True to use RTABMAP, False to use robot_localization'
+        description='True to use robot_localisation odometry, False to use p3d gazebo plugin'
     )
 
-    ukf_localisation = Node(
+    ukf_localisation_gazebo = Node(
+        condition=UnlessCondition(use_real_odometry),
         package='robot_localization',
         executable='ukf_node',
         name='ukf_filter_node',
         output='screen',
-        parameters=[(get_package_share_path("core") / 'params' / 'ukf.yaml').as_posix(), {"use_sim_time": use_sim_time}],
+        parameters=[(get_package_share_path("core") / 'params' / 'ukf.yaml').as_posix(), {"use_sim_time": use_sim_time, "odom0": "/gazebo/odom"}],
     )
 
-    # TODO: Implement real SLAM rather than publishing a static transform. This is currently necessary for things to be visible in the RVIZ 'map' frame
-    slam_cmd = Node(
-        condition=UnlessCondition(slam),
+    # TODO: Get normal odom working
+    # ukf_localisation_odom = Node(
+    #     condition=IfCondition(AndSubstitution(use_real_odometry)),
+    #     package='robot_localization',
+    #     executable='ukf_node',
+    #     name='ukf_filter_node',
+    #     output='screen',
+    #     parameters=[(get_package_share_path("core") / 'params' / 'ukf.yaml').as_posix(), {"use_sim_time": use_sim_time, "odom0": "/odom"}],
+    # )
+    ukf_localisation_odom = Node(
+        condition=IfCondition(use_real_odometry),
         package='tf2_ros',
         executable='static_transform_publisher',
-        arguments = ['--x', '0', '--y', '0', '--z', '0', '--yaw', '0', '--pitch', '0', '--roll', '0', '--frame-id', 'map', '--child-frame-id', 'odom']
+        arguments = ['--x', '0', '--y', '0', '--z', '0', '--yaw', '0', '--pitch', '0', '--roll', '0', '--frame-id', 'odom', '--child-frame-id', 'base_link']
     )
 
     slam_cmd = IncludeLaunchDescription(
         PythonLaunchDescriptionSource((get_package_share_path("core") / 'launch' / 'rtabmap_launch.py').as_posix()),
-        condition=IfCondition(slam),
         launch_arguments={
             'use_sim_time': use_sim_time,
         }.items()
@@ -70,7 +78,8 @@ def generate_launch_description():
     
     return LaunchDescription([
         use_sim_time_arg,
-        use_slam_arg,
-        ukf_localisation,
+        use_real_odom_arg,
+        ukf_localisation_gazebo,
+        ukf_localisation_odom,
         slam_cmd,
     ])
