@@ -132,7 +132,7 @@ def generate_launch_description():
         control_node,
         #wheel_velocity_controller,
         #pivot_position_controller,
-        #joint_broad,
+        joint_broad,
         pivot_drive_controller,
     ]
 

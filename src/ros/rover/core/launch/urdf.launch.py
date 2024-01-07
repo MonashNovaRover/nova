@@ -36,29 +36,51 @@ def generate_launch_description():
     gazebo = LaunchConfiguration('gazebo', default=False)
     core_path = get_package_share_path('core')
     default_model_path = core_path / 'urdf/rover.urdf.xacro'
+
     model_arg = DeclareLaunchArgument(name='model', default_value=str(default_model_path),
             description='Absolute path to robot urdf file')
 
-    robot_description = Command(
-        [
-            PathJoinSubstitution([FindExecutable(name='xacro')]),
-            " ",
-            PathJoinSubstitution([
-                FindPackageShare("core"),
-                "urdf",
-                "rover.urdf.xacro"
-            ]),
-            " ",
-            "gazebo:=false",
-        ]
+    #robot_description = Command(
+    #    [
+    #        PathJoinSubstitution([FindExecutable(name='xacro')]),
+    #        " ",
+    #        PathJoinSubstitution([
+    #            FindPackageShare("core"),
+    #            "urdf",
+    #            "rover.urdf.xacro"
+    #        ]),
+    #        " ",
+    #        "gazebo:=false",
+    #    ]
+    #)
+
+    robot_description = ParameterValue(
+        Command(
+            [
+                'xacro ', 
+                LaunchConfiguration('model'),
+                " ",
+                "gazebo:=",
+                "false"
+            ]
+        ),
+        value_type=str
+    )
+
+    joint_state_publisher_node = Node(
+        package="joint_state_publisher",
+        executable="joint_state_publisher",
+        parameters=[{'robot_description': robot_description}]
     )
 
     robot_state_publisher_node = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
-        parameters=[{'robot_description': ParameterValue(robot_description, value_type=str)}]
+        parameters=[{'robot_description': robot_description}]
     )
 
     return LaunchDescription([
+        model_arg,
         robot_state_publisher_node,
+        joint_state_publisher_node,
     ])

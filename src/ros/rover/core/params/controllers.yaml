@@ -36,7 +36,14 @@ joint_broad:
   ros__parameters:
     joints:
       - flp
+      - frp
+      - blp
+      - brp
       - flw
+      - frw
+      - blw
+      - brw
+    use_local_topics: false
     
 pivot_drive_controller:
   ros__parameters:

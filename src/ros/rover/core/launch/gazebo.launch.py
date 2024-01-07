@@ -49,8 +49,14 @@ def generate_launch_description():
     robot_state_publisher_node = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
-        parameters=[{'robot_description': robot_description}]
+        parameters=[{'use_sim_time': True, 'robot_description': robot_description}]
     )
+
+    #joint_state_publisher_node = Node(
+    #    package="joint_state_publisher",
+    #    executable="joint_state_publisher",
+    #    parameters=[{'robot_description': robot_description}]
+    #)
 
     gazebo = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -65,7 +71,6 @@ def generate_launch_description():
         arguments=["-topic", "robot_description", "-entity", "Waratah"]
     )
 
-    
     wheel_velocity_controller = Node(
         package="controller_manager",
         executable="spawner",
@@ -77,21 +82,7 @@ def generate_launch_description():
         executable="spawner",
         arguments=["pivot_joint_trajectory_controller"]
     )
-    '''
 
-    four_wheel_steering_controller = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["four_wheel_steering_controller"]
-    )
-
-    four_steering_controller = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["four_steering_controller"]
-    )
-
-    ''' 
     pivot_drive_controller = Node(
         package="controller_manager",
         executable="spawner",
@@ -104,22 +95,21 @@ def generate_launch_description():
         arguments=["diff_drive_controller"]
     )
 
-
     joint_broad = Node(
         package="controller_manager",
-        executable="spawner.py",
+        executable="spawner",
         arguments=["joint_broad"],
     )
 
     return LaunchDescription([
         model_arg,
         robot_state_publisher_node,
+        #joint_state_publisher_node,
         gazebo,
         spawn_entity,
+        joint_broad,
         #wheel_velocity_controller,
         #pivot_joint_trajectory_controller,
-        #four_wheel_steering_controller,
-        #four_steering_controller,
         #diff_drive_controller,
         pivot_drive_controller,
     ])
