@@ -124,18 +124,6 @@ private:
    * @brief maximum obstacle value that is safe to traverse
   */
   float max_safe_val_;
-
-  /**
-   * @brief middle of the height map uchar value
-   */
-  float map_mid_val_;
-
-  /**
-    * @brief vertical resolution of height map (m)
-  */
-  float vertical_resolution_;
-
-  
 };
 
 cv::Mat shift(cv::Mat& original, float x, float y, float fill_val){

@@ -123,16 +123,6 @@ private:
   float max_safe_inc_;
 
   /**
-   * @brief middle of the height map uchar value
-   */
-  float map_mid_val_;
-
-  /**
-    * @brief vertical resolution of height map (m)
-  */
-  float vertical_resolution_;
-
-  /**
    * @brief minimum fraction of plane pixels that we must have information about
   */
   double min_plane_density_;

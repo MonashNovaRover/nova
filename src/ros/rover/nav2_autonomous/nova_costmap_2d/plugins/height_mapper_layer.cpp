@@ -18,9 +18,7 @@ void HeightMapperLayer::onInitialize()
   declareParameter("observation_sources", rclcpp::ParameterValue(std::string("")));
   declareParameter("max_safe_val", rclcpp::ParameterValue(16.0));  // Approximately represents total height diff in a 10x10cm area
   declareParameter("resolution_ratio", rclcpp::ParameterValue(4));  // Ratio between resolution of mini-heightmaps and final costmap
-  declareParameter("height_map_mid_z", rclcpp::ParameterValue(64.0));  // Approximately represents total height diff in a 10x10cm area
   declareParameter("min_plane_density", rclcpp::ParameterValue(0.3));  // Ratio between resolution of mini-heightmaps and final costmap
-  declareParameter("vertical_resolution", rclcpp::ParameterValue(0.05));  // Ratio between resolution of mini-heightmaps and final costmap
 
   auto node = node_.lock();
   if (!node) {
@@ -37,9 +35,7 @@ void HeightMapperLayer::onInitialize()
   node->get_parameter(name_ + "." + "observation_sources", topics_string);
   node->get_parameter(name_ + "." + "max_safe_val", max_safe_val_);
   node->get_parameter(name_ + "." + "resolution_ratio", resolution_ratio_);
-  node->get_parameter(name_ + "." + "height_map_mid_z", map_mid_val_);
   node->get_parameter(name_ + "." + "min_plane_density", min_plane_density_);
-  node->get_parameter(name_ + "." + "vertical_resolution", vertical_resolution_);
 
   dyn_params_handler_ = node->add_on_set_parameters_callback(
     std::bind(
@@ -286,16 +282,17 @@ HeightMapperLayer::updateBounds(
   current = current && getMarkingObservations(observations);
   current_ = current;
 
-  const uint32_t xs = getSizeInCellsX();
-  const uint32_t ys = getSizeInCellsY();
-  const uint32_t XS = xs * resolution_ratio_;
-  const uint32_t YS = ys * resolution_ratio_;
   double intermediate_resolution;
 
   if (!getIntermediateResolution(intermediate_resolution)) {
     RCLCPP_ERROR(logger_, "Failed to calculate intermediate resolution! Check resolution_ratio parameter > 0");
     return;
   }
+
+  const uint32_t xs = getSizeInCellsX();
+  const uint32_t ys = getSizeInCellsY();
+  const uint32_t XS = xs * resolution_ratio_;
+  const uint32_t YS = ys * resolution_ratio_;
 
   const float C_NEG_INF = -std::numeric_limits<float>::infinity();
   const float C_INF = std::numeric_limits<float>::infinity();
