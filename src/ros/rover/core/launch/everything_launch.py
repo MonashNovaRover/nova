@@ -40,6 +40,7 @@ def generate_launch_description():
     use_composition = LaunchConfiguration('use_composition')
     use_respawn = LaunchConfiguration('use_respawn')
     use_real_odometry = LaunchConfiguration('use_real_odometry')
+    localization = LaunchConfiguration('localization')
     log_level = LaunchConfiguration('log_level')
     gazebo = LaunchConfiguration('gazebo')
     autonomous = LaunchConfiguration('autonomous')
@@ -88,6 +89,12 @@ def generate_launch_description():
         description='True to use robot_localisation odometry, False to use p3d gazebo plugin'
     )
 
+    localization_arg = DeclareLaunchArgument(
+        'localization',
+        default_value='false',
+        description='Localize the rover in a pre-existing map'
+    )
+
     log_level_arg = DeclareLaunchArgument(
         'log_level', default_value='info',
         description='What level of logging output should be displayed')
@@ -122,6 +129,7 @@ def generate_launch_description():
         launch_arguments={
             'use_sim_time': gazebo,
             'use_real_odometry': use_real_odometry,
+            'localization': localization,
         }.items()
     )
 
@@ -161,6 +169,7 @@ def generate_launch_description():
         use_composition_arg,
         use_respawn_arg,
         use_real_odom_arg,
+        localization_arg,
         log_level_arg,
         gazebo_arg,
         autonomous_arg,
