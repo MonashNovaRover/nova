@@ -15,7 +15,7 @@ import React from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/RootState";
 import { useUIActions } from "../../redux/actions/useUIActions";
-import { BifrostConnectionStatus } from "../../redux/models/BifrostTypes";
+import { BifrostConnectionStatus } from "../../redux/models/bifrost/BifrostTypes";
 
 const connectionStatusColor: {
   [key: string]: "success" | "warning" | "danger";

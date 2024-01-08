@@ -1,9 +1,9 @@
 import { Ros, Topic } from "roslib";
-import { BifrostConnectionStatus } from "../models/BifrostTypes";
-import { RootState } from "../RootState";
-import { RosTopicInterfaces } from "../../ros/rosTopicTypes";
-import { RosTopics } from "../../ros/rosTopics";
-import { rosMessages } from "../../ros/rosMessages";
+import { BifrostConnectionStatus } from "../../models/bifrost/BifrostTypes";
+import { RootState } from "../../RootState";
+import { RosTopicInterfaces } from "../../../ros/rosTopicTypes";
+import { RosTopics } from "../../../ros/rosTopics";
+import { rosMessages } from "../../../ros/rosMessages";
 
 export enum BifrostActionTypes {
   UPDATE_DATA = "UPDATE_DATA_",

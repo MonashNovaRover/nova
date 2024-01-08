@@ -1,9 +1,9 @@
 import { useDispatch } from "react-redux";
 import { createBifrostAction } from "./createBifrostAction";
 import { bindActionCreators } from "@reduxjs/toolkit";
-import { RosTopics } from "../../ros/rosTopics";
+import { RosTopics } from "../../../ros/rosTopics";
 import { useContext } from "react";
-import { RosContext } from "../context/RosContext";
+import { RosContext } from "../../context/RosContext";
 
 export const useBifrost = (topic: RosTopics) => {
   const ros = useContext(RosContext);

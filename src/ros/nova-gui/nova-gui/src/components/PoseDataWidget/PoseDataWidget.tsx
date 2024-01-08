@@ -2,7 +2,7 @@ import { Card, CardHeader, CardBody } from "@nextui-org/react";
 import { useEffect } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/RootState";
-import { useBifrost } from "../../redux/actions/useBifrostAction";
+import { useBifrost } from "../../redux/actions/bifrost/useBifrostAction";
 import { RosTopics } from "../../ros/rosTopics";
 
 export const PoseDataWidget: React.FC = () => {
