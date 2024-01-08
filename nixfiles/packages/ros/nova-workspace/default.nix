@@ -19,6 +19,8 @@
 , nova-drive ? throw "drive is needed, but not available!"
 , nova-drive-msgs ? throw "drive-msgs is needed, but not available!"
 , nova-blcmd-interfaces ? throw "blcmd-interfaces is needed, but not available!"
+, nova-arm-interfaces ? throw "arm-interfaces is needed, but not available!"
+, nova-arm ? throw "arm is needed, but not available!"
 
   # Configuration options
   ## Include graphical applications in the workspace.
@@ -42,7 +44,9 @@
       nova-gui-frontend
       nova-drive
       nova-drive-msgs
-      nova-blcmd-interfaces;
+      nova-blcmd-interfaces
+      nova-arm-interfaces
+      nova-arm;
   }
 
   ## Extra packages to add to the workspace.
