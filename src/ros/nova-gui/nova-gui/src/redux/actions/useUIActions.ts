@@ -1,5 +1,5 @@
 import { useDispatch } from "react-redux";
-import { UIActions } from "../slices/UIReducer";
+import { UIActions } from "../slices/UISlice";
 
 export function useUIActions() {
   const dispatch = useDispatch();
