@@ -6,6 +6,8 @@
 , rqt
 , rqt-common-plugins
 , gdb
+, navigation2
+, nav2-common
 
 , nova-core ? throw "core is needed, but not available!"
 , nova-control ? throw "control is needed, but not available!"
@@ -13,6 +15,7 @@
 , nova-electronics ? throw "electronics is needed, but not available!"
 , nova-science ? throw "science is needed, but not available!"
 , nova-cameras2 ? throw "cameras2 is needed, but not available!"
+, nova-costmap-2d ? throw "nova-costmap-2d is needed, but not available!"
 , nova-gui-backend ? throw "gui-backend is needed, but not available!"
 , nova-gui-frontend ? throw "gui-frontend is needed, but not available!"
 , nova-gui-frontend-server ? throw "gui-frontend-server is needed, but not available!"
@@ -33,6 +36,7 @@
       nova-control
       nova-autonomous
       nova-electronics
+      nova-costmap-2d
       nova-science
       nova-cameras2
       nova-gui-backend
@@ -66,7 +70,10 @@ in
     inherit
       rviz2
       gazebo
-      rqt rqt-common-plugins;
+      rqt 
+      rqt-common-plugins
+      navigation2
+      nav2-common;
   }) // extraPackages;
   prebuiltShellPackages = {
     inherit
