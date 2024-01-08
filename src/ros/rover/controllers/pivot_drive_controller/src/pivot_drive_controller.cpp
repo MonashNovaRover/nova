@@ -195,8 +195,8 @@ namespace pivot_drive_controller
         */
         
         float target_radius, target_direction;
-
         angle_offset = atan(params_.steering_track / params_.wheel_base);
+
         if(second_to_last_command.mode == core::msg::DriveInputStamped::STRAFE && command.mode == core::msg::DriveInputStamped::PIVOT){
             RCLCPP_INFO(logger, "switching from strafe to pivot drive");
             target_radius = INFINITY;
@@ -219,26 +219,40 @@ namespace pivot_drive_controller
             target_direction = command.direction;
         }
 
+        if (target_direction == 0) target_direction = 1;
+
+        RCLCPP_INFO(get_node()->get_logger(), "----------------------------------------------------------");
+        RCLCPP_INFO(get_node()->get_logger(), "Target radius of %f and direction of %f", target_radius, target_direction);
+
         //don't need this if command.speed isn't a percentage
         //float target_velocity = params_.max_speed * command.speed; //command.speed is a value between 0--1 (or -1--1, not sure)
-        auto [radius, direction] = get_best_effort_radius_direction(target_radius,target_direction);
+        float radius;
+        int direction;
+        std::tie(radius, direction) = get_best_effort_radius_direction(target_radius,target_direction);
+        RCLCPP_INFO(get_node()->get_logger(), "Best effort radius: %f; Best effort direction: %d", radius, direction);
 
         double left_angle = get_pivot_angle_from_radius(radius, true, direction);
+        RCLCPP_INFO(get_node()->get_logger(), "left_angle: %f", left_angle);
         double right_angle = get_pivot_angle_from_radius(radius, false, direction);
-
-        RCLCPP_INFO(logger, "left and right angles: %f, %f", left_angle, right_angle);
+        RCLCPP_INFO(get_node()->get_logger(), "right_angle: %f", right_angle);
 
         //set pivot angles
         for (size_t index = 0; index < static_cast<size_t>(params_.wheels_per_side); ++index)
         {
-            registered_left_pivot_handles_.at(index).command.get().set_value(left_angle);
-            registered_right_pivot_handles_.at(index).command.get().set_value(right_angle);
-
-            /*
-            registered_left_pivot_handles_[index].command.get().set_value(left_angle);
-            registered_right_pivot_handles_[index].command.get().set_value(right_angle);
-            */
+            RCLCPP_INFO(get_node()->get_logger(), "setting left and right angles to: %f, %f", left_angle, right_angle);
+            //registered_left_pivot_handles_.at(index).command.get().set_value(left_angle);
+            //registered_right_pivot_handles_.at(index).command.get().set_value(right_angle);
         }
+
+        registered_left_pivot_handles_.at(0).command.get().set_value(left_angle);
+        registered_left_pivot_handles_.at(1).command.get().set_value(-left_angle);
+        registered_right_pivot_handles_.at(0).command.get().set_value(-right_angle);
+        registered_right_pivot_handles_.at(1).command.get().set_value(right_angle);
+
+
+
+
+        
 
         //set drive velocities
         
@@ -272,6 +286,9 @@ namespace pivot_drive_controller
 
     double PivotDriveController::get_pivot_angle_from_radius(float radius, bool left, int dir)
     {
+        RCLCPP_INFO(get_node()->get_logger(), "**get_pivot_angle_from_radius**");
+        RCLCPP_INFO(get_node()->get_logger(), "Left: %d, radius: %f, dir: %d\n-----", left, radius, dir);
+
         double angle;
         if(left){
             angle = (radius == INFINITY ? 0 : -(atan((2*radius*dir + params_.steering_track)/params_.wheel_base) - dir * M_PI_2)) + angle_offset;
@@ -301,26 +318,31 @@ namespace pivot_drive_controller
     }
 
     // Gets the turning radius of the rover
-    std::tuple<float,float> PivotDriveController::get_best_effort_radius_direction(float target_radius, float target_direction) 
+    std::tuple<float,int> PivotDriveController::get_best_effort_radius_direction(float target_radius, float target_direction) 
     {
+        RCLCPP_INFO(get_node()->get_logger(),"**get_best_effort_radius_direction**");
+
         std::tuple<float,int,bool> best_efforts_left_right[2]; //array of {radius, direction, valid} for front left and front right pivots
         int drive_dir, best_dir, pivot_with_best_radius = 0;
 
-        RCLCPP_INFO(get_node()->get_logger(), "target radius: %f, target direction: %f", target_radius, target_direction);
+        //RCLCPP_INFO(get_node()->get_logger(), "target radius: %f, target direction: %f", target_radius, target_direction);
 
         //iterate through each front pivot
         for (int i = 0; i < 2; i++) 
         {
            //calc angle for turning radius 
-           double target_angle = get_pivot_angle_from_radius(target_radius, i && true, target_direction);
+           double target_angle = get_pivot_angle_from_radius(target_radius, i == 0, target_direction);
+           RCLCPP_INFO(get_node()->get_logger(), "target angle: %f", target_angle);
 
            float current_pivot_angle = i == 0 ? registered_left_pivot_handles_[0].state.get().get_value() : registered_right_pivot_handles_[0].state.get().get_value();
            
            //determine drive direction to reach target_angle
            if (current_pivot_angle < target_angle) {
                drive_dir = 1;
-           } else {
+           } else if (current_pivot_angle > target_angle) {
                drive_dir = -1;
+           } else {
+                drive_dir = 0;
            }
 
            //calculate max. angle of pivot
@@ -329,7 +351,6 @@ namespace pivot_drive_controller
            {
                 best_effort_angle = target_angle;
            }
-
 
            // RCLCPP_INFO(get_node()->get_logger(), "best_effort_angle for %d: %f", i, best_effort_angle);
            //calculate direction
@@ -340,7 +361,7 @@ namespace pivot_drive_controller
            } else if (i == 0)
            {
                 best_dir = best_effort_angle > angle_offset ? 1 : -1;
-           } else
+           } else if (i == 1)
            {
                 best_dir = best_effort_angle > angle_offset ? -1 : 1;
            }
@@ -361,16 +382,18 @@ namespace pivot_drive_controller
         //calculate which radius is 'best' to use
         pivot_with_best_radius = 0; //0 = left, 1 = right
         for (int i =0; i < 2; i++) {
-            RCLCPP_INFO(get_node()->get_logger(), "Wheel %d: Radius: %f, Dir: %f", i, std::get<0>(best_efforts_left_right[i]), std::get<1>(best_efforts_left_right[i]));
+            //RCLCPP_INFO(get_node()->get_logger(), "Wheel %d: Radius: %f, Dir: %f", i, std::get<0>(best_efforts_left_right[i]), std::get<1>(best_efforts_left_right[i]));
+
+            RCLCPP_INFO(get_node()->get_logger(), "best_effort_left_right[%d], dir: %f", i, std::get<1>(best_efforts_left_right[i]));
 
             //if this configuration is invalid
             if (std::get<2>(best_efforts_left_right[i]) == 0) {
-                return {std::get<0>(best_efforts_left_right[1-i]), std::get<1>(best_efforts_left_right[i-1])};
+                return {std::get<0>(best_efforts_left_right[1-i]), std::get<1>(best_efforts_left_right[1-i])};
             }
 
             if (i == 1) {
                 float radius_difference_1 = abs(std::get<0>(best_efforts_left_right[i])*std::get<1>(best_efforts_left_right[i]) - target_radius * target_direction);
-                float radius_difference_0 = abs(std::get<0>(best_efforts_left_right[0])*std::get<1>(best_efforts_left_right[i]) - target_radius * target_direction);
+                float radius_difference_0 = abs(std::get<0>(best_efforts_left_right[0])*std::get<1>(best_efforts_left_right[0]) - target_radius * target_direction);
 
                 if (radius_difference_1 < radius_difference_0) {
                     pivot_with_best_radius = 1;
@@ -378,7 +401,8 @@ namespace pivot_drive_controller
             }
         }
 
-        return {std::get<0>(best_efforts_left_right[pivot_with_best_radius]), std::get<1>(best_efforts_left_right[pivot_with_best_radius])};
+        RCLCPP_INFO(get_node()->get_logger(), "pivot_with_best_radius: %d, dir: %f", pivot_with_best_radius, std::get<1>(best_efforts_left_right[pivot_with_best_radius]));
+        return std::make_tuple(std::get<0>(best_efforts_left_right[pivot_with_best_radius]), std::get<1>(best_efforts_left_right[pivot_with_best_radius]));
     }
 
     controller_interface::CallbackReturn PivotDriveController::on_configure(

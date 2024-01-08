@@ -91,7 +91,7 @@ namespace pivot_drive_controller
 
         double get_pivot_angle_from_radius(float radius, bool left, int dir);
 
-        std::tuple<float,float> get_best_effort_radius_direction(float radius, float dir);
+        std::tuple<float,int> get_best_effort_radius_direction(float radius, float dir);
         
         double get_radius_from_angle(double angle, bool left);
 
