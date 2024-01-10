@@ -169,7 +169,45 @@ self: super:
           ];
         });
       }
-    ))
+    ) // {
+      aruco-opencv = rosSuper.aruco-opencv.overrideAttrs ({ buildInputs ? [ ], ... }: {
+        buildInputs = buildInputs ++ [
+          # aruco_opencv is not yet compatible with OpenCV 4.7.0+.
+          # https://github.com/fictionlab/ros_aruco_opencv/issues/27
+          #
+          # The package does not actually declare a dependency on OpenCV in its
+          # manifest, and so it is not included in any build input list. This
+          # has not caused any issues as cv_bridge propagates OpenCV.
+          #
+          # By adding OpenCV 4.6.0 as a direct build input, it is used in place
+          # of the propagated version.
+          (self.opencv.overrideAttrs ({ postUnpack ? "", ... }: {
+            version = "4.6.0";
+
+            src = self.fetchFromGitHub {
+              owner = "opencv";
+              repo = "opencv";
+              rev = "4.6.0";
+              hash = "sha256-zPkMc6xEDZU5TlBH3LAzvB17XgocSPeHVMG/U6kfpxg=";
+            };
+
+            postUnpack =
+              let
+                contribSrc = self.fetchFromGitHub {
+                  owner = "opencv";
+                  repo = "opencv_contrib";
+                  rev = "4.6.0";
+                  sha256 = "sha256-hjRqT7V4Sz7t4IEy89F5M+b0x2ObBbqF8GWLKhWFXtE=";
+                };
+              in
+              postUnpack + ''
+                rm -r "$NIX_BUILD_TOP/source/opencv_contrib"
+                cp --no-preserve=mode -r "${contribSrc}/modules" "$NIX_BUILD_TOP/source/opencv_contrib"
+              '';
+          }))
+        ];
+      });
+    })
     # Overlays for individual ROS distros.
     (super.rosPackages // {
       foxy = super.rosPackages.foxy.overrideScope (rosSelf: rosSuper:
