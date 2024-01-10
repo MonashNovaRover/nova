@@ -6,35 +6,7 @@ import {
 } from "../../../redux/models/CameraStreamState";
 import { RootState } from "../../../redux/RootState";
 import { useEffect } from "react";
-
-type PeerRole = "producer" | "listerner";
-
-interface CameraMetadata {
-  serial: string;
-}
-
-interface Producer {
-  id: string;
-  meta: CameraMetadata;
-}
-
-interface WelcomeMessage {
-  type: "welcome";
-}
-
-interface ListMessage {
-  type: "list";
-  producers: Producer[];
-}
-
-interface PeerStatusChangedMessage {
-  type: "peerStatusChanged";
-  roles: PeerRole[];
-  peerId: string;
-  meta?: CameraMetadata;
-}
-
-type ServerMessage = WelcomeMessage | ListMessage | PeerStatusChangedMessage;
+import { ServerMessage } from "./serverMessages";
 
 export const useCameraStreamer = () => {
   const cameraStreamerActions = useCameraStreamerActions();
