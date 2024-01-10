@@ -6,11 +6,11 @@ export function useUIActions() {
 
   return {
     updateROSurl(rosUrl: string) {
-      dispatch({ type: UIActions.URL_UPDATE, payload: rosUrl });
+      dispatch({ type: UIActions.URL_UPDATE.type, payload: rosUrl });
     },
     setSettingsModal(settingsModalOpen: boolean) {
       dispatch({
-        type: UIActions.MODAL_UPDATE,
+        type: UIActions.MODAL_UPDATE.type,
         payload: settingsModalOpen,
       });
     },

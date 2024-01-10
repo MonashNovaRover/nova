@@ -1,4 +1,7 @@
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Camera } from "../../../redux/models/CameraStreamState";
+import { PeerMessage, ServerMessage } from "./serverMessages";
+import useWebSocket from "react-use-websocket";
 
 export enum StreamingState {
   STOPPED,
@@ -6,14 +9,116 @@ export enum StreamingState {
   STREAMING,
 }
 
-export const useCameraStream = () => {
-  const [streamingState, setStreamingState] = useState<StreamingState>(
-    StreamingState.STOPPED
+const ICE_SERVERS = [
+  {
+    // STUN should not be necessary, but Firefox does not play nicely
+    // with LAN connections without it.
+    // - https://groups.google.com/g/mozilla.dev.media/c/rQUhtfBNRgU
+    // - https://bugzilla.mozilla.org/show_bug.cgi?id=1659672
+    // A local server can be used, such as this one:
+    // https://github.com/jselbie/stunserver
+    urls: [
+      "stun:stun.l.google.com:19302",
+      "stun:stun1.l.google.com:19302",
+      "stun:stun.iptel.org",
+    ],
+  },
+];
+
+export const useCameraStream = (camera: Camera) => {
+  const { sendJsonMessage, lastJsonMessage } = useWebSocket<ServerMessage>(
+    "ws://192.168.64.7:8443",
+    {
+      onOpen: () => {
+        sendSessionStartMessage();
+      },
+    }
   );
 
-  const initiateStreaming = () => {
-    setStreamingState(StreamingState.STREAMING);
+  const [sessionId, setSessionId] = useState<string>();
+  const rtcRef = useRef<RTCPeerConnection>();
+  const streamRef = useRef<MediaStream>();
+
+  const [streamingState, setStreamingState] = useState<StreamingState>(
+    StreamingState.LOADING
+  );
+
+  const sendSessionStartMessage = useCallback(() => {
+    sendJsonMessage({ type: "startSession", peerId: camera.peerId });
+  }, [sendJsonMessage]);
+
+  const iceCandidateCallback = useCallback(
+    (event: RTCPeerConnectionIceEvent) => {
+      if (!event.candidate) return;
+      sendJsonMessage({
+        type: "peer",
+        sessionId: sessionId,
+        ice: event.candidate.toJSON(),
+      });
+    },
+    [sessionId]
+  );
+
+  const handlePeerMessage = useCallback(
+    async (rtcPeerConnection: RTCPeerConnection, message: PeerMessage) => {
+      if (message.sdp) {
+        rtcPeerConnection.setRemoteDescription(message.sdp);
+        const answer = await rtcPeerConnection.createAnswer();
+        await rtcPeerConnection.setLocalDescription(answer);
+        if (!rtcPeerConnection.localDescription) return;
+        sendJsonMessage({
+          type: "peer",
+          sessionId: sessionId,
+          sdp: rtcPeerConnection.localDescription.toJSON(),
+        });
+      } else if (message.ice) {
+        const candidate = new RTCIceCandidate(message.ice);
+        await rtcPeerConnection.addIceCandidate(candidate);
+      } else {
+        throw new Error(`Unknown peer message: ${message}`);
+      }
+    },
+    [sendJsonMessage, sessionId]
+  );
+
+  const handOverRTCPeerConnection: () => RTCPeerConnection = () => {
+    if (rtcRef.current) {
+      return rtcRef.current;
+    } else {
+      const rtcConnection = new RTCPeerConnection({
+        iceServers: ICE_SERVERS,
+      });
+
+      rtcConnection.onicecandidate = iceCandidateCallback;
+      rtcConnection.ontrack = (event) => {
+        setStreamingState(StreamingState.STREAMING);
+        streamRef.current = event.streams[0];
+      };
+
+      rtcRef.current = rtcConnection;
+      return rtcRef.current;
+    }
   };
 
-  return { streamingState, initiateStreaming };
+  useEffect(() => {
+    if (!lastJsonMessage) return;
+    switch (lastJsonMessage.type) {
+      case "welcome":
+        break;
+      case "registered":
+        sendSessionStartMessage();
+        break;
+      case "sessionStarted":
+        setSessionId(lastJsonMessage.sessionId);
+        break;
+      case "peer":
+        const rtcPeerConnection = handOverRTCPeerConnection();
+        handlePeerMessage(rtcPeerConnection, lastJsonMessage);
+        break;
+      default:
+        throw new Error(`Unknown message ${lastJsonMessage}`);
+    }
+  }, [lastJsonMessage]);
+
+  return { streamingState, stream: streamRef.current };
 };

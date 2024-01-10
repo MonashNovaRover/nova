@@ -2,28 +2,31 @@ import {
   Button,
   Card,
   CardFooter,
-  Image,
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@nextui-org/react";
 import { useEffect, useRef, useState } from "react";
-import { Camera, Info, Play, Square } from "react-feather";
+import { Camera as CameraIcon, Info, Play, Square } from "react-feather";
 import { CameraInfoModal } from "./components/CameraInfoModal";
 import { StreamingState, useCameraStream } from "./hooks/useCameraStream";
 import { CameraSettingsForm } from "./components/CameraSettingsForm";
+import { Camera } from "../../redux/models/CameraStreamState";
+import CameraVideo from "./components/CameraVideo";
+import { CameraVideo as CamIcon } from "react-bootstrap-icons";
 
 export interface CameraComponentProps {
   cameraName: string;
-  src: string;
+  camera: Camera;
 }
 
 export const CameraComponent = (props: CameraComponentProps) => {
-  const { cameraName, src } = props;
+  const { cameraName, camera } = props;
   const cardRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
   const [isCameraInfoModalOpen, setCameraInfoModalOpen] = useState(false);
-  const { streamingState, initiateStreaming } = useCameraStream();
+  // const { streamingState, stream } = useCameraStream(camera);
+  const { streamingState, stream } = useCameraStream(camera);
   const [isSettingsOpen, setSettingsOpen] = useState(false);
 
   useEffect(() => {
@@ -65,7 +68,7 @@ export const CameraComponent = (props: CameraComponentProps) => {
                 size="sm"
                 color="primary"
                 className="w-min mx-auto"
-                onClick={initiateStreaming}
+                onClick={() => console.log("FOR ROS")}
               >
                 <Play size="15px" fill="white" /> Start
               </Button>
@@ -73,14 +76,7 @@ export const CameraComponent = (props: CameraComponentProps) => {
           </div>
         </>
       ) : (
-        <>
-          <Image
-            removeWrapper
-            alt={cameraName}
-            className="z-0 w-full h-full object-cover"
-            src={src}
-          />
-        </>
+        <>{stream ? <CameraVideo mediaStream={stream} /> : <CamIcon />}</>
       )}
 
       <CardFooter className="absolute z-1 bottom-0 bg-gradient-to-t from-black/100 to-black/15">
@@ -92,7 +88,7 @@ export const CameraComponent = (props: CameraComponentProps) => {
                 <Square size="15px" fill="white" /> Stop
               </Button>
               <Button isIconOnly size="sm">
-                <Camera size="15px" />
+                <CameraIcon size="15px" />
               </Button>
               <Popover
                 placement="bottom"

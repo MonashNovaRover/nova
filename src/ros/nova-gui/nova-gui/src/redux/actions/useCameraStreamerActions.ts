@@ -6,11 +6,17 @@ export const useCameraStreamerActions = () => {
   const dispatch = useDispatch();
 
   const updateStatus = (status: CameraStreamerStatus) => {
-    dispatch({ type: CameraStreamerAction.UPDATE_STATUS, payload: status });
+    dispatch({
+      type: CameraStreamerAction.UPDATE_STATUS.type,
+      payload: status,
+    });
   };
 
   const updateCameras = (cameras: Camera[]) => {
-    dispatch({ type: CameraStreamerAction.UPDATE_STATUS, payload: cameras });
+    dispatch({
+      type: CameraStreamerAction.UPDATE_CAMERAS.type,
+      payload: cameras,
+    });
   };
 
   return {
