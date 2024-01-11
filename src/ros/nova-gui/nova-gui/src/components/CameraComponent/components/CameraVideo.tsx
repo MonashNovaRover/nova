@@ -32,7 +32,7 @@ const CameraVideo: React.FC<CameraVideoProps> = ({ mediaStream }) => {
       loop
       muted
       playsInline
-      className="z-0 w-full h-full object-cover"
+      // className="z-0 w-full h-full object-cover"
       ref={videoRef}
     />
   );
