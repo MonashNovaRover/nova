@@ -5,8 +5,9 @@ import {
   CameraStreamerStatus,
 } from "../../../redux/models/CameraStreamState";
 import { RootState } from "../../../redux/RootState";
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { ServerMessage } from "./serverMessages";
+import useWebSocket from "react-use-websocket";
 
 export const useCameraStreamer = () => {
   const cameraStreamerActions = useCameraStreamerActions();
@@ -15,51 +16,60 @@ export const useCameraStreamer = () => {
     (state: RootState) => state.cameraStreamerState.cameras
   );
 
+  const { sendJsonMessage, lastJsonMessage } = useWebSocket<ServerMessage>(
+    "ws://192.168.64.7:8443",
+    {
+      onOpen: () => {
+        sendPeerStatusMessage(CameraStreamerStatus.CONNECTED);
+      },
+      onError: () => {
+        sendPeerStatusMessage(CameraStreamerStatus.DISCONNECTED);
+      },
+    }
+  );
+
+  const sendPeerStatusMessage = useCallback(
+    (cameraStreamerStatus: CameraStreamerStatus) => {
+      cameraStreamerActions.updateStatus(cameraStreamerStatus);
+      sendJsonMessage({ type: "setPeerStatus", roles: ["listener"] });
+    },
+    [sendJsonMessage]
+  );
+
   useEffect(() => {
-    cameraStreamerActions.updateStatus(CameraStreamerStatus.CONNECTING);
-    const ws = new WebSocket("ws://192.168.64.7:8443");
-
-    ws.addEventListener("open", () => {
-      cameraStreamerActions.updateStatus(CameraStreamerStatus.CONNECTED);
-      ws.send(JSON.stringify({ type: "setPeerStatus", roles: ["listener"] }));
-    });
-
-    ws.addEventListener("error", () => {
-      cameraStreamerActions.updateStatus(CameraStreamerStatus.DISCONNECTED);
-    });
-
-    ws.addEventListener("message", (event: MessageEvent) => {
-      const message: ServerMessage = JSON.parse(event.data);
-      switch (message.type) {
-        case "welcome":
-          ws.send(JSON.stringify({ type: "list" }));
-          break;
-        case "list":
-          cameraStreamerActions.updateCameras(
-            message.producers.map<Camera>((producer) => ({
-              peerId: producer.id,
-              serial: producer.meta.serial,
-            }))
+    if (!lastJsonMessage) return;
+    switch (lastJsonMessage.type) {
+      case "welcome":
+        sendJsonMessage({ type: "list" });
+        break;
+      case "list":
+        cameraStreamerActions.updateCameras(
+          lastJsonMessage.producers.map<Camera>((producer) => ({
+            peerId: producer.id,
+            serial: producer.meta.serial,
+          }))
+        );
+        break;
+      case "peerStatusChanged":
+        let updatedCameras: Camera[];
+        if (lastJsonMessage.roles.includes("producer")) {
+          updatedCameras = cameras.map<Camera>((camera) => {
+            if (camera.peerId === lastJsonMessage.peerId)
+              return {
+                peerId: lastJsonMessage.peerId,
+                serial: lastJsonMessage.meta!.serial,
+              };
+            else return camera;
+          });
+        } else {
+          updatedCameras = cameras.filter(
+            (camera) => camera.peerId !== lastJsonMessage.peerId
           );
-          break;
-        case "peerStatusChanged":
-          let updatedCameras: Camera[];
-          if (message.roles.includes("producer")) {
-            updatedCameras = cameras.map<Camera>((camera) => {
-              if (camera.peerId === message.peerId)
-                return { peerId: message.peerId, serial: message.meta!.serial };
-              else return camera;
-            });
-          } else {
-            updatedCameras = cameras.filter(
-              (camera) => camera.peerId !== message.peerId
-            );
-          }
-          cameraStreamerActions.updateCameras(updatedCameras);
-          break;
-        default:
-          throw new Error(`Unknown Message ${message}`);
-      }
-    });
-  }, []);
+        }
+        cameraStreamerActions.updateCameras(updatedCameras);
+        break;
+      default:
+        throw new Error(`Unknown Message ${lastJsonMessage}`);
+    }
+  }, [lastJsonMessage]);
 };

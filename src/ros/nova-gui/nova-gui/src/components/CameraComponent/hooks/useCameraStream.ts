@@ -91,8 +91,10 @@ export const useCameraStream = (camera: Camera) => {
 
       rtcConnection.onicecandidate = iceCandidateCallback;
       rtcConnection.ontrack = (event) => {
+        console.log("You gotta believe me bois, it's streaming");
         setStreamingState(StreamingState.STREAMING);
         streamRef.current = event.streams[0];
+        console.log(event.streams[0]);
       };
 
       rtcRef.current = rtcConnection;
