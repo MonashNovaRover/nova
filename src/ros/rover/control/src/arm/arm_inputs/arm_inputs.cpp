@@ -148,6 +148,7 @@ void ArmInputs::publish_control_scheme()
     control_scheme.ik_linear = control_scheme_inputs.ik_linear;
     control_scheme.ik_angular = control_scheme_inputs.ik_angular;
     control_scheme.use_spm_roll = control_scheme_inputs.use_spm_roll;
+    control_scheme.zero_resolvers = control_scheme_inputs.zero_resolvers;
 
     // Correction for position control - can't have independent linear and angular control
     if (control_scheme.position_control) {
@@ -155,6 +156,8 @@ void ArmInputs::publish_control_scheme()
         control_scheme.endpoint_frame_angular = control_scheme.endpoint_frame_linear;
         control_scheme.ik_angular = control_scheme.ik_linear;
     }
+    control_scheme.header.stamp = this->now();
+    control_scheme_pub->publish(control_scheme);
 }
 
 

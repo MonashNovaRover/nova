@@ -23,6 +23,7 @@ Ask operator for key mapping, specifically the frame controls
 
 #include <memory>
 #include <string>
+#include <map>
 
 class KeyboardTranslate: public InputDevice {
     //------------------------------------------------------------//
@@ -95,6 +96,8 @@ class KeyboardTranslate: public InputDevice {
         uint32_t position_control;
         uint32_t all_joint_space;
         uint32_t all_task_space;
+        uint32_t zero_resolvers;
+        std::map<int, uint32_t> resolver_to_key;
         
         // Shift based
         uint32_t speed_increase;

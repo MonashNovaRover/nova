@@ -38,6 +38,7 @@ class CommonInputCollections {
         bool ik_linear;
         bool ik_angular;
         bool use_spm_roll;
+        uint8_t zero_resolvers;
     } ControlSchemeInputs;
     
 

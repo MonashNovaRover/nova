@@ -21,7 +21,8 @@ TOPICS:
   - /control/arm_coord_frames             [sensor_msgs/MultiDOFJointState]  [Published]
   - /control/joint_velocities             [sensor_msgs/JointState]          [Published]
 SERVICES:
-  - /control/arm_config_info              [core/ArmConfigInfo]             [Server]
+  - /control/arm_config_info              [core/ArmConfigInfo]              [Server]
+  - /electronics/resolver_zero_service    [core/StringTrigger]              [Client]
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	   control
@@ -45,6 +46,7 @@ TODO:
 // Include service types
 #include "core/srv/arm_config_info.hpp"
 #include "std_srvs/srv/trigger.hpp"
+#include "core/srv/string_trigger.hpp"
 
 // Include libraries
 #include "arm_model.h"
@@ -79,6 +81,7 @@ class ArmControl : public rclcpp::Node
     rclcpp::Service<core::srv::ArmConfigInfo>::SharedPtr arm_config_info_service;
     // Services (clients)
     rclcpp::Client<std_srvs::srv::Trigger>::SharedPtr arm_reset_control_pose_client;
+    rclcpp::Client<core::srv::StringTrigger>::SharedPtr resolver_zero_client;
 
     // Store state of last-received messages
     core::msg::ArmControlScheme control_scheme;
@@ -109,6 +112,8 @@ class ArmControl : public rclcpp::Node
     /// @brief  Callback for control scheme subscription
     ///         Updates the internal control scheme, which is used to determine how to solve IK
     void control_scheme_callback(const core::msg::ArmControlScheme::SharedPtr msg);
+
+    void zero_resolver_callback(rclcpp::Client<core::srv::StringTrigger>::SharedFuture future);
     
     /// @brief  Callback for resolver subscription
     ///         Updates the internal joint state, which is later used to update the model

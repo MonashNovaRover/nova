@@ -30,6 +30,15 @@ void KeyboardTranslate::set_key_mappings(){
     key_mappings.position_control = ctrl(SDL_SCANCODE_8); // not implemented
     key_mappings.all_joint_space = ctrl(SDL_SCANCODE_SPACE);
     key_mappings.all_task_space = ctrl(SDL_SCANCODE_9); // not implemented
+    key_mappings.zero_resolvers = alt(SDL_SCANCODE_J);
+    key_mappings.resolver_to_key = {
+        {1, alt(SDL_SCANCODE_1)}, // key for resolver J1, J2 etc
+        {2, alt(SDL_SCANCODE_2)},
+        {3, alt(SDL_SCANCODE_3)},
+        {4, alt(SDL_SCANCODE_4)},
+        {5, alt(SDL_SCANCODE_5)},
+        {6, alt(SDL_SCANCODE_6)},
+    };
     
     // Shift based
     // note that equals is really plus on the keyboard
@@ -85,7 +94,21 @@ CommonInputCollections::ControlSchemeInputs KeyboardTranslate::get_control_schem
             Print::print(message.c_str());
         }
         control_scheme_inputs.base_frame_offset = base_frame_offset;
-
+        // turn off zeroing as it should be a temporary signal
+        control_scheme_inputs.zero_resolvers = 0;
+        // Zeroing the resolver
+        if (is_pressed_or_held(key_mappings.zero_resolvers)){
+            // zero each of the 6 resolvers with 1~6
+            for (int i = 1; i <= 6; i++){
+                if (is_pressed_or_held(key_mappings.resolver_to_key[i])){
+                    control_scheme_inputs.zero_resolvers = i;
+                    updated_controls = true;
+                    message = "Zeroing resolver: " + std::to_string(i);
+                    Print::print(message.c_str());
+                }
+            }
+        }
+        
         // Arm lock
         toggle_control("Keyboard lock", control_scheme_inputs.input_lock, key_mappings.input_lock);
         // Joint limits

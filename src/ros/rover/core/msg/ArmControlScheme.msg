@@ -28,5 +28,8 @@ int8 base_frame_offset 0
 # SPM roll vs end rotation
 bool use_spm_roll 0
 
+# Zeroing resolvers
+uint8 zero_resolvers 0
+
 # Position control
 bool position_control 0
