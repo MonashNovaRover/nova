@@ -57,6 +57,12 @@ self: super:
         buildInputs = buildInputs ++ (with self; [ eigen ]);
       });
 
+      rosbridge-library = rosSuper.rosbridge-library.override {
+		    python3Packages=rosSuper.python3Packages.overrideScope (pySelf: pySuper: {
+			    bson = pySelf.pymongo;
+		  });
+	};
+
     } // (
       let
         fixRtabmapDependent = pkg: pkg.overrideAttrs ({ buildInputs ? [ ], ... }: {
