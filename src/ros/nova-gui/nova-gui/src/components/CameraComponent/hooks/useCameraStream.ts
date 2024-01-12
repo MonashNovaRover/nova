@@ -25,7 +25,10 @@ const ICE_SERVERS = [
   },
 ];
 
-export const useCameraStream = (camera: Camera) => {
+export const useCameraStream = (
+  camera: Camera,
+  videoRef: React.MutableRefObject<HTMLVideoElement | null>
+) => {
   const { sendJsonMessage, lastJsonMessage } = useWebSocket<ServerMessage>(
     "ws://192.168.64.7:8443",
     {
@@ -37,7 +40,6 @@ export const useCameraStream = (camera: Camera) => {
 
   const [sessionId, setSessionId] = useState<string>();
   const rtcRef = useRef<RTCPeerConnection>();
-  const streamRef = useRef<MediaStream>();
 
   const [streamingState, setStreamingState] = useState<StreamingState>(
     StreamingState.LOADING
@@ -81,7 +83,7 @@ export const useCameraStream = (camera: Camera) => {
     [sendJsonMessage, sessionId]
   );
 
-  const handOverRTCPeerConnection: () => RTCPeerConnection = () => {
+  const handOverRTCPeerConnection: () => RTCPeerConnection = useCallback(() => {
     if (rtcRef.current) {
       return rtcRef.current;
     } else {
@@ -91,16 +93,14 @@ export const useCameraStream = (camera: Camera) => {
 
       rtcConnection.onicecandidate = iceCandidateCallback;
       rtcConnection.ontrack = (event) => {
-        console.log("You gotta believe me bois, it's streaming");
         setStreamingState(StreamingState.STREAMING);
-        streamRef.current = event.streams[0];
-        console.log(event.streams[0]);
+        if (videoRef.current) videoRef.current.srcObject = event.streams[0];
       };
 
       rtcRef.current = rtcConnection;
       return rtcRef.current;
     }
-  };
+  }, [videoRef]);
 
   useEffect(() => {
     if (!lastJsonMessage) return;
@@ -122,5 +122,5 @@ export const useCameraStream = (camera: Camera) => {
     }
   }, [lastJsonMessage]);
 
-  return { streamingState, stream: streamRef.current };
+  return { streamingState };
 };
