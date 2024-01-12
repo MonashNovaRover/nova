@@ -25,8 +25,8 @@ export const CameraComponent = (props: CameraComponentProps) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
   const [isCameraInfoModalOpen, setCameraInfoModalOpen] = useState(false);
-  // const { streamingState, stream } = useCameraStream(camera);
-  const { streamingState, stream } = useCameraStream(camera);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const { streamingState } = useCameraStream(camera, videoRef);
   const [isSettingsOpen, setSettingsOpen] = useState(false);
 
   useEffect(() => {
@@ -76,7 +76,7 @@ export const CameraComponent = (props: CameraComponentProps) => {
           </div>
         </>
       ) : (
-        <>{stream ? <CameraVideo mediaStream={stream} /> : <CamIcon />}</>
+        <CameraVideo videoRef={videoRef} />
       )}
 
       <CardFooter className="absolute z-1 bottom-0 bg-gradient-to-t from-black/100 to-black/15">

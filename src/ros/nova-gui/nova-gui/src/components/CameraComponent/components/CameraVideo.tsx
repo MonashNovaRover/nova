@@ -1,30 +1,10 @@
-import React, { useEffect, useRef } from "react";
+import React, { LegacyRef } from "react";
 
 interface CameraVideoProps {
-  mediaStream: MediaStream | null;
+  videoRef: LegacyRef<HTMLVideoElement> | undefined;
 }
 
-const CameraVideo: React.FC<CameraVideoProps> = ({ mediaStream }) => {
-  const videoRef = useRef<HTMLVideoElement>(null);
-
-  useEffect(() => {
-    if (mediaStream && videoRef.current) {
-      // Assign the media stream to the video element
-      videoRef.current.srcObject = mediaStream;
-    }
-
-    // Cleanup: stop the media stream when the component unmounts
-    return () => {
-      if (videoRef.current) {
-        const currentStream = videoRef.current.srcObject as MediaStream;
-        if (currentStream) {
-          const tracks = currentStream.getTracks();
-          tracks.forEach((track) => track.stop());
-        }
-      }
-    };
-  }, [mediaStream]);
-
+const CameraVideo: React.FC<CameraVideoProps> = ({ videoRef }) => {
   return (
     <video
       controls={false}
@@ -32,8 +12,8 @@ const CameraVideo: React.FC<CameraVideoProps> = ({ mediaStream }) => {
       loop
       muted
       playsInline
-      // className="z-0 w-full h-full object-cover"
       ref={videoRef}
+      className="z-0 w-full h-full object-cover"
     />
   );
 };
