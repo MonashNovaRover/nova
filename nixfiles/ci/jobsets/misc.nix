@@ -29,5 +29,6 @@ lib.novaForAllSystems (nova: {
     ## Nav2
     nav2-bringup
     navigation2
-    robot-localization;
+    robot-localization
+    rtabmap-ros;
 })
