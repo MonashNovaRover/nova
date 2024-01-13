@@ -151,8 +151,7 @@ namespace pivot_drive_controller
         // without affecting the stored DriveInputStamped command
         core::msg::DriveInputStamped command = *last_command_msg;
     
-        float & linear_command = command.speed;
-
+        double & linear_command = command.speed;
 
         previous_update_timestamp_ = time;
 
@@ -160,8 +159,6 @@ namespace pivot_drive_controller
         //const double wheel_separation = params_.wheel_separation_multiplier * params_.wheel_separation;
         //const double left_wheel_radius = params_.left_wheel_radius_multiplier * params_.wheel_radius;
         //const double right_wheel_radius = params_.right_wheel_radius_multiplier * params_.wheel_radius;
-
-        // **********ODOMETRY UPDATE STUFF HERE *****************
 
         auto & last_command = previous_commands_.back();
         auto & second_to_last_command = previous_commands_.front();
@@ -249,12 +246,101 @@ namespace pivot_drive_controller
         registered_right_pivot_handles_.at(0).command.get().set_value(-right_angle);
         registered_right_pivot_handles_.at(1).command.get().set_value(right_angle);
 
+        // Update Odometry
+        if (params_.open_loop)
+        {
+            double angular_command = (linear_command / radius) * direction * -1
+            odometry_.updateOpenLoop(linear_command, angular_command, time);
+        }
+        else
+        {
+            const double front_right_wheel_value = registered_right_wheel_handles_.at(0).state.get().get_value();
+            const double back_right_wheel_value = registered_right_wheel_handles_.at(1).state.get().get_value();
+            const double front_left_wheel_value = registered_left_wheel_handles_.at(0).state.get().get_value();
+            const double back_left_wheel_value = registered_left_wheel_handles_.at(1).state.get().get_value();
 
+            const double front_right_pivot_value = registered_right_pivot_handles_.at(0).state.get().get_value();
+            const double back_right_pivot_value = registered_right_pivot_handles_.at(1).state.get().get_value();
+            const double front_left_pivot_value = registered_left_pivot_handles_.at(0).state.get().get_value();
+            const double back_left_pivot_value = registered_left_pivot_handles_.at(1).state.get().get_value();
 
+            if (
+                !std::isnan(front_right_wheel_value) && !std::isnan(front_left_wheel_value) &&
+                !std::isnan(rear_right_wheel_value) && !std::isnan(rear_left_wheel_value) &&
+                !std::isnan(front_right_steer_position) && !std::isnan(front_left_steer_position) &&
+                !std::isnan(rear_right_steer_position) && !std::isnan(rear_left_steer_position))
+            {
+                if (params_.position_feedback)
+                {
+                    double front_steer_position = 0.0;
+                    if (fabs(front_right_steer_position) > 0.001 || fabs(front_left_steer_position) > 0.001)
+                    {
+                        front_steer_position = atan(2 * tan(front_right_steer_position) * tan(front_left_steer_position) /
+                                                    (tan(front_right_steer_position) + tan(front_left_steer_position)));
+                    }
+                    double rear_steer_position = 0.0;
+                    if (fabs(rear_right_steer_position) > 0.001 || fabs(rear_left_steer_position) > 0.001)
+                    {
+                        rear_steer_position = atan(2 * tan(rear_right_steer_position) * tan(rear_left_steer_position) /
+                                                   (tan(rear_right_steer_position) + tan(rear_left_steer_position)));
+                    }
+                    // Estimate linear and angular velocity using joint information
+                    odometry_.update_four_steering(
+                        front_right_wheel_value, front_left_wheel_value, rear_right_wheel_value,
+                        rear_left_wheel_value, front_steer_position, rear_steer_position, period.seconds());
+                }
+            }
+        }
 
-        
+        tf2::Quaternion orientation;
+        orientation.setRPY(0.0, 0.0, odometry_.getHeading());
 
-        //set drive velocities
+        bool should_publish = false;
+        try
+        {
+            if (previous_publish_timestamp_ + publish_period_ < time)
+            {
+                previous_publish_timestamp_ += publish_period_;
+                should_publish = true;
+            }
+        }
+        catch (const std::runtime_error &)
+        {
+            // Handle exceptions when the time source changes and initialize publish timestamp
+            previous_publish_timestamp_ = time;
+            should_publish = true;
+        }
+
+        if (should_publish)
+        {
+            if (realtime_odometry_publisher_->trylock())
+            {
+                auto &odometry_message = realtime_odometry_publisher_->msg_;
+                odometry_message.header.stamp = time;
+                odometry_message.pose.pose.position.x = odometry_.getX();
+                odometry_message.pose.pose.position.y = odometry_.getY();
+                odometry_message.pose.pose.orientation.x = orientation.x();
+                odometry_message.pose.pose.orientation.y = orientation.y();
+                odometry_message.pose.pose.orientation.z = orientation.z();
+                odometry_message.pose.pose.orientation.w = orientation.w();
+                odometry_message.twist.twist.linear.x = odometry_.getLinear();
+                odometry_message.twist.twist.angular.z = odometry_.getAngular();
+                realtime_odometry_publisher_->unlockAndPublish();
+            }
+
+            if (params_.enable_odom_tf && realtime_odometry_transform_publisher_->trylock())
+            {
+                auto &transform = realtime_odometry_transform_publisher_->msg_.transforms.front();
+                transform.header.stamp = time;
+                transform.transform.translation.x = odometry_.getX();
+                transform.transform.translation.y = odometry_.getY();
+                transform.transform.rotation.x = orientation.x();
+                transform.transform.rotation.y = orientation.y();
+                transform.transform.rotation.z = orientation.z();
+                transform.transform.rotation.w = orientation.w();
+                realtime_odometry_transform_publisher_->unlockAndPublish();
+            }
+        }
         
         float left_ratio =1;
         float right_ratio = 1;
