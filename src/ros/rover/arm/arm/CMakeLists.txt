@@ -38,24 +38,24 @@ include_directories(
 
 # Arm Messages
 add_library(arm_messages src/arm_core/arm_messages.cpp)
-target_include_directories(arm_messages INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/arm_core)
+target_include_directories(arm_messages INTERFACE arm_core)
 ament_target_dependencies(arm_messages sensor_msgs)
 
 # Arm Type Translation
 add_library(arm_type_translation src/arm_core/arm_type_translation.cpp)
 target_link_libraries(arm_type_translation orocos-kdl)
-target_include_directories(arm_type_translation INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/arm_core)
+target_include_directories(arm_type_translation INTERFACE arm_core)
 ament_target_dependencies(arm_type_translation sensor_msgs geometry_msgs)
 
 # Arm Config Info Client
 add_library(arm_config_info_client src/arm_core/arm_config_info_client.cpp)
-target_include_directories(arm_config_info_client INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/arm_core)
+target_include_directories(arm_config_info_client INTERFACE arm_core)
 ament_target_dependencies(arm_config_info_client rclcpp core arm_interfaces)
 
 # Arm Model
 add_library(arm_model src/model/arm_model.cpp)
 target_link_libraries(arm_model orocos-kdl libcanmd)
-target_include_directories(arm_model INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/model ${libcanmd_INCLUDE_DIRS})
+target_include_directories(arm_model INTERFACE model ${libcanmd_INCLUDE_DIRS})
 
 # Arm Kinematics
 add_library(arm_kinematics
@@ -63,12 +63,12 @@ add_library(arm_kinematics
   src/kinematics/spm_kinematics.cpp
 )
 target_link_libraries(arm_kinematics orocos-kdl arm_messages arm_model)
-target_include_directories(arm_kinematics INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/kinematics)
+target_include_directories(arm_kinematics INTERFACE kinematics)
 ament_target_dependencies(arm_kinematics rclcpp core arm_interfaces geometry_msgs sensor_msgs)
 
 # PI Controller
 add_library(pi_controller src/arm_control/pi_controller.cpp)
-target_include_directories(pi_controller INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/arm_control)
+target_include_directories(pi_controller INTERFACE arm_control)
 
 
 ################################################
@@ -78,37 +78,37 @@ target_include_directories(pi_controller INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/a
 # Arm Inputs script
 add_executable(arm_inputs src/arm_inputs/arm_inputs.cpp)
 target_link_libraries(arm_inputs arm_messages arm_config_info_client)
-target_include_directories(arm_inputs INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/arm_inputs)
+target_include_directories(arm_inputs INTERFACE arm_inputs)
 ament_target_dependencies(arm_inputs rclcpp core geometry_msgs sensor_msgs)
 
 # Arm Twist Mapper script
 add_executable(arm_twistmapper src/arm_control/arm_twistmapper.cpp)
 target_link_libraries(arm_twistmapper orocos-kdl arm_messages arm_type_translation arm_model arm_kinematics)
-target_include_directories(arm_twistmapper INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/arm_control)
+target_include_directories(arm_twistmapper INTERFACE arm_control)
 ament_target_dependencies(arm_twistmapper rclcpp core arm_interfaces geometry_msgs std_srvs)
 
 # Arm Control script
 add_executable(arm_control src/arm_control/arm_control.cpp)
 target_link_libraries(arm_control orocos-kdl arm_messages arm_type_translation arm_model arm_kinematics pi_controller)
-target_include_directories(arm_control INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/arm_control)
+target_include_directories(arm_control INTERFACE arm_control)
 ament_target_dependencies(arm_control rclcpp core arm_interfaces geometry_msgs sensor_msgs std_srvs)
 
 # Arm Driver script
 add_executable(arm_driver src/arm_driver/arm_driver.cpp)
 target_link_libraries(arm_driver arm_messages arm_config_info_client arm_model libcanmd)
-target_include_directories(arm_inputs INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/arm_driver)
+target_include_directories(arm_inputs INTERFACE arm_driver ${libcanmd_INCLUDE_DIRS})
 ament_target_dependencies(arm_driver rclcpp core arm_interfaces sensor_msgs)
 
 # Arm rviz publisher
 add_executable(arm_rviz_publisher src/arm_rviz_publisher/arm_rviz_publisher.cpp)
 target_link_libraries(arm_rviz_publisher)
-target_include_directories(arm_rviz_publisher INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/arm_rviz_publisher)
+target_include_directories(arm_rviz_publisher INTERFACE arm_rviz_publisher)
 ament_target_dependencies(arm_rviz_publisher rclcpp core arm_interfaces sensor_msgs nav_msgs)
 
 # Resolver Spoofer script
 add_executable(resolver_spoofer src/resolver_spoofer/resolver_spoofer.cpp)
 target_link_libraries(resolver_spoofer arm_messages arm_config_info_client)
-target_include_directories(resolver_spoofer INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/resolver_spoofer)
+target_include_directories(resolver_spoofer INTERFACE resolver_spoofer)
 ament_target_dependencies(resolver_spoofer rclcpp sensor_msgs)
 
 
