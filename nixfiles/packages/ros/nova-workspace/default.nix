@@ -8,7 +8,6 @@
 , gdb
 , navigation2
 , nav2-common
-, rtabmap-ros
 
 , nova-core ? throw "core is needed, but not available!"
 , nova-control ? throw "control is needed, but not available!"
@@ -73,7 +72,6 @@ in
       gazebo
       rqt 
       rqt-common-plugins
-      rtabmap-ros
       navigation2
       nav2-common;
   }) // extraPackages;
