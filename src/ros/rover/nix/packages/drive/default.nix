@@ -5,9 +5,7 @@
 , nova-blcmd-interfaces
 , nova-drive-msgs
 , nova-core
-, libcanmd
-, jcan
-, pkg-config
+, libblcmd
 }:
 
 buildRosPackage {
@@ -21,14 +19,13 @@ buildRosPackage {
       path;
   };
 
-  nativeBuildInputs = [ ament-cmake pkg-config ];
+  nativeBuildInputs = [ ament-cmake ];
 
   buildInputs = [
     rclcpp
     nova-blcmd-interfaces
     nova-drive-msgs
     nova-core
-    libcanmd
-    jcan
+    libblcmd
   ];
 }

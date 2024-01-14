@@ -14,13 +14,13 @@ find_package(drive_msgs REQUIRED)
 find_package(blcmd_interfaces REQUIRED)
 find_package(core REQUIRED)
 
-#find libcanmd
-find_package(libcanmd REQUIRED)
+#find libblcmd
+find_package(libblcmd REQUIRED)
 
 add_executable(driver src/driver.cpp)
-target_link_libraries(driver PUBLIC libcanmd)
+target_link_libraries(driver PUBLIC libblcmd)
 target_include_directories(driver PUBLIC 
-      ${libcanmd_INCLUDE_DIRS})
+      ${libblcmd_INCLUDE_DIRS})
 ament_target_dependencies(driver PUBLIC rclcpp drive_msgs blcmd_interfaces)
 
 add_executable(drive_inputs src/drive_inputs.cpp)
