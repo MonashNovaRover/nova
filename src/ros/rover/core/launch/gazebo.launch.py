@@ -73,12 +73,29 @@ def generate_launch_description():
         arguments=["joint_broad"]
     )
 
+    ukf_localisation = Node(
+        package='robot_localization',
+        executable='ukf_node',
+        name='ukf_filter_node',
+        output='screen',
+        parameters=[(get_package_share_path("core") / 'params' / 'ukf.yaml').as_posix()],
+    )
+
+    # TODO: Implement real SLAM rather than publishing a static transform. This is currently necessary for things to be visible in the RVIZ 'map' frame
+    slam = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        arguments = ['--x', '0', '--y', '0', '--z', '0', '--yaw', '0', '--pitch', '0', '--roll', '0', '--frame-id', 'map', '--child-frame-id', 'odom']
+    )
+
     return LaunchDescription([
         model_arg,
         robot_state_publisher_node,
         gazebo,
         spawn_entity,
         wheel_velocity_controller,
+        ukf_localisation,
+        slam,
         # pivot_position_controller,
         pivot_joint_trajectory_controller,
         joint_broad,

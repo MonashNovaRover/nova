@@ -9,6 +9,7 @@
 , launch-ros
 , xacro
 , robot-state-publisher
+, joint-state-publisher
 , controller-manager
 , ros2-control
 , gazebo-ros
@@ -16,6 +17,7 @@
 , ros2-controllers
 , pluginlib
 , gazebo-ros-pkgs
+, robot-localization
 }:
 
 buildRosPackage {
@@ -36,12 +38,14 @@ buildRosPackage {
     inherit
       xacro
       robot-state-publisher
+      joint-state-publisher
       controller-manager
       ros2-control
       gazebo-ros
       gazebo-ros2-control
       ros2-controllers
       pluginlib
+      robot-localization
       gazebo-ros-pkgs;
   };
 }
