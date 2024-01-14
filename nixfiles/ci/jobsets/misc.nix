@@ -28,6 +28,5 @@ lib.novaForAllSystems (nova: {
     pluginlib
     ## Nav2
     nav2-bringup
-    navigation2
-    robot-localization;
+    navigation2;
 })
