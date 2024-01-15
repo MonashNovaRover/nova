@@ -21,6 +21,9 @@ controller_manager:
     joint_broad:
       type: joint_state_broadcaster/JointStateBroadcaster
 
+    twist_controller:
+      type: twist_controller/TwistController
+
 wheel_velocity_controller:
   ros__parameters:
     joints:
@@ -46,6 +49,13 @@ joint_broad:
     use_local_topics: false
     
 pivot_drive_controller:
+  ros__parameters:
+    left_drive_names: ["flw", "blw"]
+    right_drive_names: ["frw", "brw"]
+    left_pivot_names: ["flp", "blp"]
+    right_pivot_names: ["frp", "brp"]
+
+twist_controller:
   ros__parameters:
     left_drive_names: ["flw", "blw"]
     right_drive_names: ["frw", "brw"]
