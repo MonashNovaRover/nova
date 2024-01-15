@@ -1,6 +1,6 @@
 controller_manager:
   ros__parameters:
-    update_rate: 10 
+    update_rate: 50 
     use_sim_time: false
 
     wheel_velocity_controller:
@@ -34,7 +34,6 @@ pivot_position_controller:
     joints:
       - flp
 
-
 joint_broad:
   ros__parameters:
     joints:
@@ -54,6 +53,7 @@ pivot_drive_controller:
     right_drive_names: ["frw", "brw"]
     left_pivot_names: ["flp", "blp"]
     right_pivot_names: ["frp", "brp"]
+    enable_twist_cmd: true 
 
 twist_controller:
   ros__parameters:

@@ -116,6 +116,6 @@ def generate_launch_description():
         joint_broad,
         #wheel_velocity_controller,
         #pivot_joint_trajectory_controller,
-        #pivot_drive_controller,
-        twist_controller,
+        pivot_drive_controller,
+        #twist_controller,
     ])

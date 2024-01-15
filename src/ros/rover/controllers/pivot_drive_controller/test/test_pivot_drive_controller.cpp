@@ -120,11 +120,11 @@ protected:
 
     core::msg::DriveInputStamped drive_input_msg;
     drive_input_msg.header.stamp = pub_node->get_clock()->now();
-    drive_input_msg.speed = linear;
-    drive_input_msg.radius = angular;
-    drive_input_msg.mode = 0;
-    drive_input_msg.handbrake = false;
-    drive_input_msg.direction = 1;
+    drive_input_msg.drive_input.speed = linear;
+    drive_input_msg.drive_input.radius = angular;
+    drive_input_msg.drive_input.mode = 0;
+    drive_input_msg.drive_input.handbrake = false;
+    drive_input_msg.drive_input.direction = 1;
     drive_input_publisher->publish(drive_input_msg);
   }
 

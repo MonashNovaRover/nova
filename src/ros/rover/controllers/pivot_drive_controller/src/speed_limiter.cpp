@@ -24,9 +24,9 @@
 namespace pivot_drive_controller
 {
 SpeedLimiter::SpeedLimiter(
-  bool has_velocity_limits, bool has_acceleration_limits, bool has_jerk_limits, float min_velocity,
-  float max_velocity, float min_acceleration, float max_acceleration, float min_jerk,
-  float max_jerk)
+  bool has_velocity_limits, bool has_acceleration_limits, bool has_jerk_limits, double min_velocity,
+  double max_velocity, double min_acceleration, double max_acceleration, double min_jerk,
+  double max_jerk)
 : has_velocity_limits_(has_velocity_limits),
   has_acceleration_limits_(has_acceleration_limits),
   has_jerk_limits_(has_jerk_limits),
@@ -74,9 +74,9 @@ SpeedLimiter::SpeedLimiter(
   }
 }
 
-float SpeedLimiter::limit(float & v, float v0, float v1, float dt)
+double SpeedLimiter::limit(double & v, double v0, double v1, double dt)
 {
-  const float tmp = v;
+  const double tmp = v;
 
   limit_jerk(v, v0, v1, dt);
   limit_acceleration(v, v0, dt);
@@ -85,9 +85,9 @@ float SpeedLimiter::limit(float & v, float v0, float v1, float dt)
   return tmp != 0.0 ? v / tmp : 1.0;
 }
 
-float SpeedLimiter::limit_velocity(float & v)
+double SpeedLimiter::limit_velocity(double & v)
 {
-  const float tmp = v;
+  const double tmp = v;
 
   if (has_velocity_limits_)
   {
@@ -97,16 +97,16 @@ float SpeedLimiter::limit_velocity(float & v)
   return tmp != 0.0 ? v / tmp : 1.0;
 }
 
-float SpeedLimiter::limit_acceleration(float & v, float v0, float dt)
+double SpeedLimiter::limit_acceleration(double & v, double v0, double dt)
 {
-  const float tmp = v;
+  const double tmp = v;
 
   if (has_acceleration_limits_)
   {
-    const float dv_min = min_acceleration_ * dt;
-    const float dv_max = max_acceleration_ * dt;
+    const double dv_min = min_acceleration_ * dt;
+    const double dv_max = max_acceleration_ * dt;
 
-    const float dv = std::clamp(v - v0, dv_min, dv_max);
+    const double dv = std::clamp(v - v0, dv_min, dv_max);
 
     v = v0 + dv;
   }
@@ -114,21 +114,21 @@ float SpeedLimiter::limit_acceleration(float & v, float v0, float dt)
   return tmp != 0.0 ? v / tmp : 1.0;
 }
 
-float SpeedLimiter::limit_jerk(float & v, float v0, float v1, float dt)
+double SpeedLimiter::limit_jerk(double & v, double v0, double v1, double dt)
 {
-  const float tmp = v;
+  const double tmp = v;
 
   if (has_jerk_limits_)
   {
-    const float dv = v - v0;
-    const float dv0 = v0 - v1;
+    const double dv = v - v0;
+    const double dv0 = v0 - v1;
 
-    const float dt2 = 2. * dt * dt;
+    const double dt2 = 2. * dt * dt;
 
-    const float da_min = min_jerk_ * dt2;
-    const float da_max = max_jerk_ * dt2;
+    const double da_min = min_jerk_ * dt2;
+    const double da_max = max_jerk_ * dt2;
 
-    const float da = std::clamp(dv - dv0, da_min, da_max);
+    const double da = std::clamp(dv - dv0, da_min, da_max);
 
     v = v0 + dv0 + da;
   }
