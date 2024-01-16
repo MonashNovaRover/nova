@@ -15,8 +15,8 @@
 
 namespace
 {
-    constexpr auto DEFAULT_INPUT_TOPIC = "~/drive_input_cmd"; //no idea what to call this
-    constexpr auto DEFAULT_OUTPUT_TOPIC = "~/drive_input_cmd_out";
+    constexpr auto DEFAULT_INPUT_TOPIC = "~/cmd_vel"; //no idea what to call this
+    constexpr auto DEFAULT_OUTPUT_TOPIC = "~/cmd_vel_out";
     constexpr auto DEFAULT_ODOMETRY_TOPIC = "~/odom";
     constexpr auto DEFAULT_TRANSFORM_TOPIC = "~/tf";
 }
@@ -115,128 +115,152 @@ namespace pivot_drive_controller
             return controller_interface::return_type::OK;
         }
 
+        max_d_theta = params_.max_theta;// * period.seconds();
+
+        RCLCPP_INFO(logger, "max_d_theta: %f", max_d_theta);
+
+        std::shared_ptr<geometry_msgs::msg::TwistStamped> last_twist_command_msg;
         std::shared_ptr<core::msg::DriveInputStamped> last_command_msg;
-        received_drive_input_msg_ptr_.get(last_command_msg);
 
-       
-        /*
-        std::shared_ptr<geometry_msgs::msg::Twist> last_twist_command_msg;
-        received_twist_msg_ptr_.get(last_twist_command_msg);
+        double tmp1 = 0.0;
+        double tmp2 = 0.0;
+        double & linear_command = tmp1;
+        double & angular_command = tmp2;
 
+        core::msg::DriveInputStamped command;
 
-        if (last_twist_command_msg == nullptr)
-        {
-            RCLCPP_WARN(logger, "Twist message received was a nullptr.");
-            return controller_interface::return_type::ERROR;
-        }
-        */
-        
-        
-        if (last_command_msg == nullptr)
-        {
-            RCLCPP_WARN(logger, "DriveInputStamped message received was a nullptr.");
-            return controller_interface::return_type::ERROR;
-        }
+        //std::chrono::milliseconds age_of_last_command = 0;
 
-        //const auto age_of_last_command = time - last_command_msg->header.stamp;
-        const auto age_of_last_command = time - last_command_msg->header.stamp;
-        // Brake if drive_input_cmd has timeout, override the stored command
-        if (age_of_last_command > cmd_vel_timeout_)
-        {
-            last_command_msg->speed = 0.0;
-            last_command_msg->radius = 0.0;
-        } 
-
-        // command may be limited further by SpeedLimit,
-        // without affecting the stored DriveInputStamped command
-        core::msg::DriveInputStamped command = *last_command_msg;
-    
-        float & linear_command = command.speed;
-
-        previous_update_timestamp_ = time;
-
-        // Apply (possibly new) multipliers:
-        //const double wheel_separation = params_.wheel_separation_multiplier * params_.wheel_separation;
-        //const double left_wheel_radius = params_.left_wheel_radius_multiplier * params_.wheel_radius;
-        //const double right_wheel_radius = params_.right_wheel_radius_multiplier * params_.wheel_radius;
-
-        auto & last_command = previous_commands_.back();
-        auto & second_to_last_command = previous_commands_.front();
-
-        limiter_linear_.limit(
-            linear_command, last_command.speed, second_to_last_command.speed, period.seconds());
-       
-
-        /* autonomous mode
-        limiter_drive_.limit(
-            command.angular, last_command.angular, second_to_last_command.angular, period.seconds());
-            */
-
-        //previous_commands only ever contains x2 values
-        previous_commands_.pop();
-        previous_commands_.emplace(command);
-
-        //const core::msg::DriveInputStamped empty_drive_input;
-
-        
-        //    Publish limited velocity
-        /*
-        if (publish_limited_drive_pivot_ && realtime_limited_drive_pivot_publisher_->trylock())
-        {
-            auto & limited_drive_pivot_command = realtime_limited_drive_pivot_publisher_->msg_;
-            limited_drive_pivot_command.header.stamp = time;
-            limited_drive_pivot_command.speed = command.speed;
-            limited_drive_pivot_command.radius = command.radius;
-            realtime_limited_drive_pivot_publisher_->unlockAndPublish();
-        }
-        */
-        
         float target_radius, target_direction;
         angle_offset = atan(params_.steering_track / params_.wheel_base);
 
-        if(second_to_last_command.mode == core::msg::DriveInputStamped::STRAFE && command.mode == core::msg::DriveInputStamped::PIVOT){
-            RCLCPP_INFO(logger, "switching from strafe to pivot drive");
-            target_radius = INFINITY;
-            target_direction = 0;
+        //RCLCPP_INFO(logger, "======================================");
+        if (params_.enable_twist_cmd) {
+            //RCLCPP_INFO(logger, "twist_cmd");
+            received_twist_msg_ptr_.get(last_twist_command_msg);
 
-            //initialise all pivot angles
-            for (size_t index = 0; index < static_cast<size_t>(params_.wheels_per_side); ++index)
+            if (last_twist_command_msg == nullptr)
             {
-                registered_left_pivot_handles_.at(index).command.get().set_value(angle_offset);
-                registered_right_pivot_handles_.at(index).command.get().set_value(angle_offset);
-
-                /*
-                registered_left_pivot_handles_[index].command.get().set_value(angle_offset);
-                registered_right_pivot_handles_[index].command.get().set_value(angle_offset);
-                */
+                RCLCPP_WARN(logger, "Twist message received was a nullptr.");
+                return controller_interface::return_type::ERROR;
             }
-            
+
+            //RCLCPP_INFO(logger, "angular: %f", angular_command);
+            //RCLCPP_INFO(logger, "linear: %f", linear_command);
+
+            const auto age_of_last_command = time - last_twist_command_msg->header.stamp;
+            if (age_of_last_command > cmd_vel_timeout_)
+            {
+                last_twist_command_msg->twist.linear.x = 0.0;
+                last_twist_command_msg->twist.angular.z = 0.0;
+            } 
+
+            RCLCPP_INFO(logger, "twist: %f", last_twist_command_msg->twist.linear.x);
+
+            geometry_msgs::msg::TwistStamped twist_command = *last_twist_command_msg;
+            linear_command = twist_command.twist.linear.x;
+            angular_command = twist_command.twist.angular.z;
+
+            RCLCPP_INFO(logger, "linear_command: %f", linear_command);
+            RCLCPP_INFO(logger, "angular_command: %f", angular_command);
+
+            auto & last_command = previous_twist_commands_.back().twist;
+            auto & second_to_last_command = previous_twist_commands_.front().twist;
+
+            limiter_linear_.limit(
+                linear_command, last_command.linear.x, second_to_last_command.linear.x, period.seconds()
+            );
+
+            //TODO: angular limiter
+
+            RCLCPP_INFO(logger, "linear_command (after limiting): %f", linear_command);
+            RCLCPP_INFO(logger, "angular_command (after limiting): %f", angular_command);
+
+            //previous_twist_commands only ever contains x2 values
+            previous_twist_commands_.pop();
+            previous_twist_commands_.emplace(twist_command);
+
+            target_radius = angular_command == 0 ? 0 : linear_command / abs(angular_command);
+            target_direction = angular_command > 0 ? -1 : 1;
+
         } else {
-            target_radius = command.radius;
-            target_direction = command.direction;
+            RCLCPP_INFO(logger, "drive input");
+            received_drive_input_msg_ptr_.get(last_command_msg);
+
+            if (last_command_msg == nullptr)
+            {
+                RCLCPP_WARN(logger, "DriveInputStamped message received was a nullptr.");
+                return controller_interface::return_type::ERROR;
+            }
+
+            command = *last_command_msg;
+            linear_command = command.drive_input.speed;
+            const auto age_of_last_command = time - last_command_msg->header.stamp;
+
+            // Brake if drive_input_cmd has timeout, override the stored command
+            if (age_of_last_command > cmd_vel_timeout_)
+            {
+                last_command_msg->drive_input.speed = 0.0;
+                last_command_msg->drive_input.radius = 0.0;
+            } 
+
+            auto & last_command = previous_commands_.back().drive_input;
+            auto & second_to_last_command = previous_commands_.front().drive_input;
+
+            limiter_linear_.limit(
+                linear_command, last_command.speed, second_to_last_command.speed, period.seconds()
+            );
+            //TODO: position limiter? (for pivots)
+
+            //previous_commands only ever contains x2 values
+            previous_commands_.pop();
+            previous_commands_.emplace(command);
+
+            RCLCPP_INFO(logger, "linear: %f", linear_command);
+            RCLCPP_INFO(logger, "radius: %f", command.drive_input.radius);
+
+            if(second_to_last_command.mode == core::msg::DriveInput::STRAFE && command.drive_input.mode == core::msg::DriveInput::PIVOT){
+                RCLCPP_INFO(logger, "switching from strafe to pivot drive");
+                target_radius = INFINITY;
+                target_direction = 0;
+
+                //initialise all pivot angles
+                for (size_t index = 0; index < static_cast<size_t>(params_.wheels_per_side); ++index)
+                {
+                    registered_left_pivot_handles_.at(index).command.get().set_value(angle_offset);
+                    registered_right_pivot_handles_.at(index).command.get().set_value(angle_offset);
+                }
+                
+            } else {
+                target_radius = command.drive_input.radius;
+                target_direction = command.drive_input.direction;
+            }
         }
+
+        previous_update_timestamp_ = time;
+
+        // **********ODOMETRY UPDATE STUFF HERE *****************
 
         if (target_direction == 0) target_direction = 1;
 
-        RCLCPP_INFO(get_node()->get_logger(), "----------------------------------------------------------");
         RCLCPP_INFO(get_node()->get_logger(), "Target radius of %f and direction of %f", target_radius, target_direction);
 
         //don't need this if command.speed isn't a percentage
         //float target_velocity = params_.max_speed * command.speed; //command.speed is a value between 0--1 (or -1--1, not sure)
+
         float radius;
         int direction;
+
         std::tie(radius, direction) = get_best_effort_radius_direction(target_radius,target_direction);
-        RCLCPP_INFO(get_node()->get_logger(), "Best effort radius: %f; Best effort direction: %d", radius, direction);
+        //RCLCPP_INFO(get_node()->get_logger(), "Best effort radius: %f; Best effort direction: %d", radius, direction);
 
         double left_angle = get_pivot_angle_from_radius(radius, true, direction);
-        RCLCPP_INFO(get_node()->get_logger(), "left_angle: %f", left_angle);
         double right_angle = get_pivot_angle_from_radius(radius, false, direction);
-        RCLCPP_INFO(get_node()->get_logger(), "right_angle: %f", right_angle);
 
         //set pivot angles
         for (size_t index = 0; index < static_cast<size_t>(params_.wheels_per_side); ++index)
         {
-            RCLCPP_INFO(get_node()->get_logger(), "setting left and right angles to: %f, %f", left_angle, right_angle);
+            //RCLCPP_INFO(get_node()->get_logger(), "setting left and right angles to: %f, %f", left_angle, right_angle);
             //registered_left_pivot_handles_.at(index).command.get().set_value(left_angle);
             //registered_right_pivot_handles_.at(index).command.get().set_value(right_angle);
         }
@@ -355,25 +379,20 @@ namespace pivot_drive_controller
 
         max_ratio = std::max(abs(left_ratio), abs(right_ratio));
 
+        RCLCPP_INFO(logger, "linear_command (outside loop): %f", linear_command);
         for (size_t index = 0; index < static_cast<size_t>(params_.wheels_per_side); ++index)
         {
-            registered_left_drive_handles_.at(index).command.get().set_value(command.speed * left_ratio/max_ratio);
-            registered_right_drive_handles_.at(index).command.get().set_value(command.speed * right_ratio/max_ratio);
-
-            /*
-            registered_left_drive_handles_[index].command.get().set_value(command.speed * left_ratio/max_ratio);
-            registered_right_drive_handles_[index].command.get().set_value(command.speed * right_ratio/max_ratio);
-            */
+            registered_left_drive_handles_.at(index).command.get().set_value(linear_command * left_ratio/max_ratio);
+            registered_right_drive_handles_.at(index).command.get().set_value(linear_command * right_ratio/max_ratio);
         }
-
 
         return controller_interface::return_type::OK;
     }
 
     double PivotDriveController::get_pivot_angle_from_radius(float radius, bool left, int dir)
     {
-        RCLCPP_INFO(get_node()->get_logger(), "**get_pivot_angle_from_radius**");
-        RCLCPP_INFO(get_node()->get_logger(), "Left: %d, radius: %f, dir: %d\n-----", left, radius, dir);
+        //RCLCPP_INFO(get_node()->get_logger(), "**get_pivot_angle_from_radius**");
+        //RCLCPP_INFO(get_node()->get_logger(), "Left: %d, radius: %f, dir: %d\n-----", left, radius, dir);
 
         double angle;
         if(left){
@@ -406,7 +425,7 @@ namespace pivot_drive_controller
     // Gets the turning radius of the rover
     std::tuple<float,int> PivotDriveController::get_best_effort_radius_direction(float target_radius, float target_direction) 
     {
-        RCLCPP_INFO(get_node()->get_logger(),"**get_best_effort_radius_direction**");
+        //RCLCPP_INFO(get_node()->get_logger(),"**get_best_effort_radius_direction**");
 
         std::tuple<float,int,bool> best_efforts_left_right[2]; //array of {radius, direction, valid} for front left and front right pivots
         int drive_dir, best_dir, pivot_with_best_radius = 0;
@@ -418,7 +437,7 @@ namespace pivot_drive_controller
         {
            //calc angle for turning radius 
            double target_angle = get_pivot_angle_from_radius(target_radius, i == 0, target_direction);
-           RCLCPP_INFO(get_node()->get_logger(), "target angle: %f", target_angle);
+           //RCLCPP_INFO(get_node()->get_logger(), "target angle: %f", target_angle);
 
            float current_pivot_angle = i == 0 ? registered_left_pivot_handles_[0].state.get().get_value() : registered_right_pivot_handles_[0].state.get().get_value();
            
@@ -432,8 +451,8 @@ namespace pivot_drive_controller
            }
 
            //calculate max. angle of pivot
-           double best_effort_angle = current_pivot_angle + drive_dir * params_.max_d_theta;
-           if (abs(current_pivot_angle - target_angle) < params_.max_d_theta)
+           double best_effort_angle = current_pivot_angle + drive_dir * max_d_theta;
+           if (abs(current_pivot_angle - target_angle) < max_d_theta)
            {
                 best_effort_angle = target_angle;
            }
@@ -458,8 +477,8 @@ namespace pivot_drive_controller
            double left_angle = get_pivot_angle_from_radius(best_radius, true, best_dir);
            double right_angle = get_pivot_angle_from_radius(best_radius, false, best_dir);
            //bool valid = (abs(left_angle - curr_left) <= max_d_theta*1.01) && (abs(right_angle - curr_right) <= max_d_theta*1.01);
-           bool valid = (abs(left_angle - registered_left_pivot_handles_[0].state.get().get_value()) <= params_.max_d_theta*1.01) &&
-               (abs(right_angle - registered_right_pivot_handles_[0].state.get().get_value()) <= params_.max_d_theta * 1.01);
+           bool valid = (abs(left_angle - registered_left_pivot_handles_[0].state.get().get_value()) <= max_d_theta*1.01) &&
+               (abs(right_angle - registered_right_pivot_handles_[0].state.get().get_value()) <= max_d_theta * 1.01);
 
            best_efforts_left_right[i] = {best_radius, best_dir, valid};
         }
@@ -470,7 +489,7 @@ namespace pivot_drive_controller
         for (int i =0; i < 2; i++) {
             //RCLCPP_INFO(get_node()->get_logger(), "Wheel %d: Radius: %f, Dir: %f", i, std::get<0>(best_efforts_left_right[i]), std::get<1>(best_efforts_left_right[i]));
 
-            RCLCPP_INFO(get_node()->get_logger(), "best_effort_left_right[%d], dir: %f", i, std::get<1>(best_efforts_left_right[i]));
+            //RCLCPP_INFO(get_node()->get_logger(), "best_effort_left_right[%d], dir: %f", i, std::get<1>(best_efforts_left_right[i]));
 
             //if this configuration is invalid
             if (std::get<2>(best_efforts_left_right[i]) == 0) {
@@ -487,7 +506,7 @@ namespace pivot_drive_controller
             }
         }
 
-        RCLCPP_INFO(get_node()->get_logger(), "pivot_with_best_radius: %d, dir: %f", pivot_with_best_radius, std::get<1>(best_efforts_left_right[pivot_with_best_radius]));
+        //RCLCPP_INFO(get_node()->get_logger(), "pivot_with_best_radius: %d, dir: %f", pivot_with_best_radius, std::get<1>(best_efforts_left_right[pivot_with_best_radius]));
         return std::make_tuple(std::get<0>(best_efforts_left_right[pivot_with_best_radius]), std::get<1>(best_efforts_left_right[pivot_with_best_radius]));
     }
 
@@ -517,164 +536,77 @@ namespace pivot_drive_controller
             return controller_interface::CallbackReturn::ERROR;
         }
 
-        /*
-        const double wheel_separation = params_.wheel_separation_multiplier * params_.wheel_separation;
-        const double left_wheel_radius = params_.left_wheel_radius_multiplier * params_.wheel_radius;
-        const double right_wheel_radius = params_.right_wheel_radius_multiplier * params_.wheel_radius;
-        const double wheelbase = params_.wheelbase_multiplier * params_.wheelbase;
-        const double max_d_theta = params_.max_d_theta;
-        */
-
-        //const double angle_offset = std::atan2(params_.steering_track, params_.wheel_base);
-
-        /*
-        odometry_.setWheelParams(params_.steering_track, params_.wheel_radius, params_.wheel_base, params_.wheel_steering_y_offset);
-        odometry_.setVelocityRollingWindowSize(params_.velocity_rolling_window_size);
-        */
-
         cmd_vel_timeout_ = std::chrono::milliseconds{static_cast<int>(params_.cmd_vel_timeout * 1000.0)};
         
-        //publish_limited_drive_pivot_ = params_.publish_limited_drive_pivot;
-
         limiter_linear_ = SpeedLimiter(
             params_.has_velocity_limits, params_.has_acceleration_limits,
             params_.has_jerk_limits, params_.min_velocity, params_.max_velocity,
             params_.min_acceleration, params_.max_acceleration, params_.min_jerk,
             params_.max_jerk);
 
-        /*
-        //I'm assuming this would be some sort of PositionLimiter (if it exists)
-        limiter_pivot_ = SpeedLimiter(
-            params_.angular.z.has_velocity_limits, params_.angular.z.has_acceleration_limits,
-            params_.angular.z.has_jerk_limits, params_.angular.z.min_velocity,
-            params_.angular.z.max_velocity, params_.angular.z.min_acceleration,
-            params_.angular.z.max_acceleration, params_.angular.z.min_jerk, params_.angular.z.max_jerk);
-        */
-
         if (!reset())
         {
             return controller_interface::CallbackReturn::ERROR;
         }
 
-        // left and right sides are both equal at this point
-        //params_.wheels_per_side = params_.left_wheel_names.size();
-
-        /*
-        if (publish_limited_drive_pivot_)
-        {
-            limited_drive_pivot_publisher_ =
-              get_node()->create_publisher<core::msg::DriveInputStamped>(DEFAULT_COMMAND_OUT_TOPIC, rclcpp::SystemDefaultsQoS());
-            realtime_limited_drive_pivot_publisher_ =
-              std::make_shared<realtime_tools::RealtimePublisher<core::msg::DriveInputStamped>>(limited_drive_pivot_publisher_);
-        }
-        */
-
         const core::msg::DriveInputStamped empty_drive_input;
-        received_drive_input_msg_ptr_.set(std::make_shared<core::msg::DriveInputStamped>(empty_drive_input));
-
-        /*
-        const geometry_msgs::msg::Twist empty_twist;
-        received_twist_msg_ptr_.set(std::make_shared<geometry_msgs::msg::Twist>(empty_twist));
-        */
-
-        RCLCPP_INFO(get_node()->get_logger(), "drive_input_msg_ptr");
+        const geometry_msgs::msg::TwistStamped empty_twist;
 
         // Fill last two commands with default constructed commands
-        previous_commands_.emplace(empty_drive_input);
-        previous_commands_.emplace(empty_drive_input);
+        if (params_.enable_twist_cmd) {
+            RCLCPP_INFO(get_node()->get_logger(), "twist_cmd: initializing subscriber");
+            received_twist_msg_ptr_.set(std::make_shared<geometry_msgs::msg::TwistStamped>(empty_twist));
 
-        RCLCPP_INFO(get_node()->get_logger(), "about to initialize subscriber");
+            previous_twist_commands_.emplace(empty_twist);
+            previous_twist_commands_.emplace(empty_twist);
 
-        // initialize command subscriber
-        drive_input_subscriber_ = get_node()->create_subscription<core::msg::DriveInputStamped>(
-            DEFAULT_INPUT_TOPIC, rclcpp::SystemDefaultsQoS(),
-            [this](const std::shared_ptr<core::msg::DriveInputStamped> msg) -> void
-            {
-              if (!subscriber_is_active_)
-              {
-                RCLCPP_WARN(get_node()->get_logger(), "Can't accept new commands. subscriber is inactive");
-                return;
-              }
-              if ((msg->header.stamp.sec == 0) && (msg->header.stamp.nanosec == 0))
-              {
-                RCLCPP_WARN_ONCE(
-                  get_node()->get_logger(),
-                  "Received DriveInputStamped msg with zero timestamp, setting it to current "
-                  "time, this message will only be shown once");
-                msg->header.stamp = get_node()->get_clock()->now();
-              }
-              received_drive_input_msg_ptr_.set(std::move(msg));
-            });
+            // initialize command subscriber
+            twist_subscriber_ = get_node()->create_subscription<geometry_msgs::msg::TwistStamped>(
+                DEFAULT_INPUT_TOPIC, rclcpp::SystemDefaultsQoS(),
+                [this](const std::shared_ptr<geometry_msgs::msg::TwistStamped> msg) -> void
+                {
+                    if (!subscriber_is_active_)
+                    {
+                        RCLCPP_WARN(get_node()->get_logger(), "Can't accept new commands. subscriber is inactive");
+                        return;
+                    }
+                    if ((msg->header.stamp.sec == 0) && (msg->header.stamp.nanosec == 0))
+                    {
+                        RCLCPP_WARN_ONCE(
+                        get_node()->get_logger(),
+                        "Received TwistStamped msg with zero timestamp, setting it to current "
+                        "time, this message will only be shown once");
+                        msg->header.stamp = get_node()->get_clock()->now();
+                    }
+                    received_twist_msg_ptr_.set(std::move(msg));
+                });
+        } else {
+            received_drive_input_msg_ptr_.set(std::make_shared<core::msg::DriveInputStamped>(empty_drive_input));
 
-        RCLCPP_INFO(get_node()->get_logger(),"about to initiliase odometry publisher");
+            previous_commands_.emplace(empty_drive_input);
+            previous_commands_.emplace(empty_drive_input);
 
-        // initialize odometry publisher and messasge
-        /*
-        odometry_publisher_ = get_node()->create_publisher<nav_msgs::msg::Odometry>(
-            DEFAULT_ODOMETRY_TOPIC, rclcpp::SystemDefaultsQoS());
-        realtime_odometry_publisher_ =
-        std::make_shared<realtime_tools::RealtimePublisher<nav_msgs::msg::Odometry>>(
-          odometry_publisher_);
-
-        // Append the tf prefix if there is one
-        std::string tf_prefix = "";
-        if (params_.tf_frame_prefix_enable)
-        {
-            if (params_.tf_frame_prefix != "")
-            {
-              tf_prefix = params_.tf_frame_prefix;
-            }
-            else
-            {
-              tf_prefix = std::string(get_node()->get_namespace());
-            }
-
-            if (tf_prefix == "/")
-            {
-              tf_prefix = "";
-            }
-            else
-            {
-              tf_prefix = tf_prefix + "/";
-            }
+            // initialize command subscriber
+            drive_input_subscriber_ = get_node()->create_subscription<core::msg::DriveInputStamped>(
+                DEFAULT_INPUT_TOPIC, rclcpp::SystemDefaultsQoS(),
+                [this](const std::shared_ptr<core::msg::DriveInputStamped> msg) -> void
+                {
+                if (!subscriber_is_active_)
+                {
+                    RCLCPP_WARN(get_node()->get_logger(), "Can't accept new commands. subscriber is inactive");
+                    return;
+                }
+                if ((msg->header.stamp.sec == 0) && (msg->header.stamp.nanosec == 0))
+                {
+                    RCLCPP_WARN_ONCE(
+                    get_node()->get_logger(),
+                    "Received DriveInputStamped msg with zero timestamp, setting it to current "
+                    "time, this message will only be shown once");
+                    msg->header.stamp = get_node()->get_clock()->now();
+                }
+                received_drive_input_msg_ptr_.set(std::move(msg));
+                });
         }
-
-        const auto odom_frame_id = tf_prefix + params_.odom_frame_id;
-        const auto base_frame_id = tf_prefix + params_.base_frame_id;
-
-        auto & odometry_message = realtime_odometry_publisher_->msg_;
-        odometry_message.header.frame_id = odom_frame_id;
-        odometry_message.child_frame_id = base_frame_id;
-
-        // limit the publication on the topics /odom and /tf
-        publish_rate_ = params_.publish_rate;
-        publish_period_ = rclcpp::Duration::from_seconds(1.0 / publish_rate_);
-
-        // initialize odom values zeros
-        odometry_message.twist = geometry_msgs::msg::TwistWithCovariance(rosidl_runtime_cpp::MessageInitialization::ALL);
-
-        constexpr size_t NUM_DIMENSIONS = 6;
-        for (size_t index = 0; index < 6; ++index)
-        {
-            // 0, 7, 14, 21, 28, 35
-            const size_t diagonal_index = NUM_DIMENSIONS * index + index;
-            odometry_message.pose.covariance[diagonal_index] = params_.pose_covariance_diagonal[index];
-            odometry_message.twist.covariance[diagonal_index] = params_.twist_covariance_diagonal[index];
-        }
-
-        // initialize transform publisher and message
-        odometry_transform_publisher_ = get_node()->create_publisher<tf2_msgs::msg::TFMessage>(
-            DEFAULT_TRANSFORM_TOPIC, rclcpp::SystemDefaultsQoS());
-        realtime_odometry_transform_publisher_ =
-            std::make_shared<realtime_tools::RealtimePublisher<tf2_msgs::msg::TFMessage>>(
-              odometry_transform_publisher_);
-
-        // keeping track of odom and base_link transforms only
-        auto & odometry_transform_message = realtime_odometry_transform_publisher_->msg_;
-        odometry_transform_message.transforms.resize(1);
-        odometry_transform_message.transforms.front().header.frame_id = odom_frame_id;
-        odometry_transform_message.transforms.front().child_frame_id = base_frame_id;
-        */
 
         previous_update_timestamp_ = get_node()->get_clock()->now();
         return controller_interface::CallbackReturn::SUCCESS;

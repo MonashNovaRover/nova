@@ -120,13 +120,17 @@ namespace pivot_drive_controller
 
         bool subscriber_is_active_ = false;
         rclcpp::Subscription<core::msg::DriveInputStamped>::SharedPtr drive_input_subscriber_ = nullptr;
+        rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr twist_subscriber_ = nullptr;
+
 
         realtime_tools::RealtimeBox<std::shared_ptr<core::msg::DriveInputStamped>> received_drive_input_msg_ptr_{nullptr};
-        realtime_tools::RealtimeBox<std::shared_ptr<geometry_msgs::msg::Twist>> received_twist_msg_ptr_{nullptr};
+        realtime_tools::RealtimeBox<std::shared_ptr<geometry_msgs::msg::TwistStamped>> received_twist_msg_ptr_{nullptr};
 
 
 
         std::queue<core::msg::DriveInputStamped> previous_commands_;  // last two commands
+        std::queue<geometry_msgs::msg::TwistStamped> previous_twist_commands_;  // last two commands
+
 
         // speed limiters
         SpeedLimiter limiter_linear_;
@@ -138,6 +142,8 @@ namespace pivot_drive_controller
         std::shared_ptr<rclcpp::Publisher<CommandMsg>> limited_drive_pivot_publisher_ = nullptr;
         std::shared_ptr<realtime_tools::RealtimePublisher<CommandMsg>> realtime_limited_drive_pivot_publisher_ = nullptr;
         */
+
+        double max_d_theta;
         
         rclcpp::Time previous_update_timestamp_{0};
 

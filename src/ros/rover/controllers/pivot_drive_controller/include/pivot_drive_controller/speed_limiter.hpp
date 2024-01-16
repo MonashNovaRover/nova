@@ -40,9 +40,9 @@ public:
    */
   SpeedLimiter(
     bool has_velocity_limits = false, bool has_acceleration_limits = false,
-    bool has_jerk_limits = false, float min_velocity = NAN, float max_velocity = NAN,
-    float min_acceleration = NAN, float max_acceleration = NAN, float min_jerk = NAN,
-    float max_jerk = NAN);
+    bool has_jerk_limits = false, double min_velocity = NAN, double max_velocity = NAN,
+    double min_acceleration = NAN, double max_acceleration = NAN, double min_jerk = NAN,
+    double max_jerk = NAN);
 
   /**
    * \brief Limit the velocity and acceleration
@@ -52,14 +52,14 @@ public:
    * \param [in]      dt Time step [s]
    * \return Limiting factor (1.0 if none)
    */
-  float limit(float & v, float v0, float v1, float dt);
+  double limit(double & v, double v0, double v1, double dt);
 
   /**
    * \brief Limit the velocity
    * \param [in, out] v Velocity [m/s]
    * \return Limiting factor (1.0 if none)
    */
-  float limit_velocity(float & v);
+  double limit_velocity(double & v);
 
   /**
    * \brief Limit the acceleration
@@ -68,7 +68,7 @@ public:
    * \param [in]      dt Time step [s]
    * \return Limiting factor (1.0 if none)
    */
-  float limit_acceleration(float & v, float v0, float dt);
+  double limit_acceleration(double & v, double v0, double dt);
 
   /**
    * \brief Limit the jerk
@@ -79,7 +79,7 @@ public:
    * \return Limiting factor (1.0 if none)
    * \see http://en.wikipedia.org/wiki/Jerk_%28physics%29#Motion_control
    */
-  float limit_jerk(float & v, float v0, float v1, float dt);
+  double limit_jerk(double & v, double v0, double v1, double dt);
 
 private:
   // Enable/Disable velocity/acceleration/jerk limits:
@@ -88,16 +88,16 @@ private:
   bool has_jerk_limits_;
 
   // Velocity limits:
-  float min_velocity_;
-  float max_velocity_;
+  double min_velocity_;
+  double max_velocity_;
 
   // Acceleration limits:
-  float min_acceleration_;
-  float max_acceleration_;
+  double min_acceleration_;
+  double max_acceleration_;
 
   // Jerk limits:
-  float min_jerk_;
-  float max_jerk_;
+  double min_jerk_;
+  double max_jerk_;
 };
 
 }  // namespace diff_drive_controller
