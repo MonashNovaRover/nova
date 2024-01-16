@@ -151,7 +151,7 @@ namespace pivot_drive_controller
         // without affecting the stored DriveInputStamped command
         core::msg::DriveInputStamped command = *last_command_msg;
     
-        double & linear_command = command.speed;
+        float & linear_command = command.speed;
 
         previous_update_timestamp_ = time;
 
@@ -249,20 +249,20 @@ namespace pivot_drive_controller
         // Update Odometry
         if (params_.open_loop)
         {
-            double angular_command = (linear_command / radius) * direction * -1
+            float angular_command = (linear_command / radius) * direction * -1;
             odometry_.updateOpenLoop(linear_command, angular_command, time);
         }
         else
         {
-            const double front_right_wheel_value = registered_right_wheel_handles_.at(0).state.get().get_value();
-            const double back_right_wheel_value = registered_right_wheel_handles_.at(1).state.get().get_value();
-            const double front_left_wheel_value = registered_left_wheel_handles_.at(0).state.get().get_value();
-            const double back_left_wheel_value = registered_left_wheel_handles_.at(1).state.get().get_value();
+            const double front_right_wheel_value = registered_right_drive_handles_.at(0).state.get().get_value();
+            const double rear_right_wheel_value = registered_right_drive_handles_.at(1).state.get().get_value();
+            const double front_left_wheel_value = registered_left_drive_handles_.at(0).state.get().get_value();
+            const double rear_left_wheel_value = registered_left_drive_handles_.at(1).state.get().get_value();
 
-            const double front_right_pivot_value = registered_right_pivot_handles_.at(0).state.get().get_value();
-            const double back_right_pivot_value = registered_right_pivot_handles_.at(1).state.get().get_value();
-            const double front_left_pivot_value = registered_left_pivot_handles_.at(0).state.get().get_value();
-            const double back_left_pivot_value = registered_left_pivot_handles_.at(1).state.get().get_value();
+            const double front_right_steer_position = registered_right_pivot_handles_.at(0).state.get().get_value();
+            const double rear_right_steer_position = registered_right_pivot_handles_.at(1).state.get().get_value();
+            const double front_left_steer_position = registered_left_pivot_handles_.at(0).state.get().get_value();
+            const double rear_left_steer_position = registered_left_pivot_handles_.at(1).state.get().get_value();
 
             if (
                 !std::isnan(front_right_wheel_value) && !std::isnan(front_left_wheel_value) &&
@@ -285,9 +285,9 @@ namespace pivot_drive_controller
                                                    (tan(rear_right_steer_position) + tan(rear_left_steer_position)));
                     }
                     // Estimate linear and angular velocity using joint information
-                    odometry_.update_four_steering(
-                        front_right_wheel_value, front_left_wheel_value, rear_right_wheel_value,
-                        rear_left_wheel_value, front_steer_position, rear_steer_position, period.seconds());
+                    odometry_.update(
+                        front_left_wheel_value, front_right_wheel_value, rear_left_wheel_value, rear_right_wheel_value,
+                        front_steer_position, rear_steer_position, period.seconds());
                 }
             }
         }
