@@ -1364,3 +1364,7 @@ export interface IRosVisualizationMsgsUvCoordinate {
   u: number;
   v: number;
 }
+
+export interface CameraOperationMessage {
+  serials: string[];
+}

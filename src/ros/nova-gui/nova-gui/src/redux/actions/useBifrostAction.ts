@@ -4,10 +4,16 @@ import { bindActionCreators } from "@reduxjs/toolkit";
 import { RosTopics } from "../../ros/topics/rosTopics";
 import { useContext } from "react";
 import { RosContext } from "../context/RosContext";
+import { RosService } from "../../ros/services/rosServices";
 
-export const useBifrost = (topic: RosTopics) => {
+export interface BifrostProps {
+  topic?: RosTopics;
+  service?: RosService;
+}
+
+export const useBifrost = (props: BifrostProps) => {
   const ros = useContext(RosContext);
-  const bifrostActions = createBifrostAction(topic, ros);
+  const bifrostActions = createBifrostAction(props, ros);
   const dispatch = useDispatch();
 
   return bindActionCreators(bifrostActions, dispatch);

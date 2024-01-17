@@ -9,5 +9,6 @@ import { RosService } from "./rosServices";
  * "custom_msgs/demo_msgs" comes purely from ROS
  */
 export const rosServiceMessages = {
-  [RosService.START_STREAM]: "std_msgs/srv/SetBool", // Todo: Change This
+  [RosService.NULL_SERVICE]: "",
+  [RosService.START_STREAM]: "camera_msgs/CameraOperation",
 };

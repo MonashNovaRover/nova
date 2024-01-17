@@ -13,7 +13,7 @@ export const RosProvider = (props: { children: React.ReactNode }) => {
     (state: RootState) => state.bifrostStatus
   );
   const [ros, setRos] = useState<ROSLIB.Ros | undefined>();
-  const bifrostActions = useBifrost(RosTopics.NULL_TOPIC);
+  const bifrostActions = useBifrost({ topic: RosTopics.NULL_TOPIC });
 
   useEffect(() => {
     if (

@@ -1,7 +1,4 @@
-import {
-  IRosStdSrvsSetBoolRequest,
-  IRosStdSrvsSetBoolResponse,
-} from "../rosTypes";
+import { CameraOperationMessage } from "../rosTypes";
 import { RosService } from "./rosServices";
 
 interface RosServiceMessage<REQ, RES> {
@@ -10,8 +7,6 @@ interface RosServiceMessage<REQ, RES> {
 }
 
 export interface RosServiceInterface {
-  [RosService.START_STREAM]: RosServiceMessage<
-    IRosStdSrvsSetBoolRequest,
-    IRosStdSrvsSetBoolResponse
-  >;
+  [RosService.NULL_SERVICE]: RosServiceMessage<any, any>;
+  [RosService.START_STREAM]: RosServiceMessage<CameraOperationMessage, any>;
 }

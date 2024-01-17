@@ -10,7 +10,7 @@ export const PoseDataWidget: React.FC = () => {
   const poseStore = useSelector((state: RootState) => state.poseStore);
 
   useEffect(() => {
-    bifrost.syncWithRover();
+    bifrost.syncWithTopic();
   }, [bifrost]);
 
   return (

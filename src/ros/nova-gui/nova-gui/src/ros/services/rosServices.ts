@@ -7,5 +7,6 @@
  */
 
 export enum RosService {
-  START_STREAM = "camera_service/start", // Todo: Change This
+  NULL_SERVICE = "",
+  START_STREAM = "camera_streamer/stream/start",
 }
