@@ -112,11 +112,11 @@ namespace pivot_drive_controller
 
         std::shared_ptr<rclcpp::Publisher<nav_msgs::msg::Odometry>> odometry_publisher_ = nullptr;
         std::shared_ptr<realtime_tools::RealtimePublisher<nav_msgs::msg::Odometry>>
-        realtime_odometry_publisher_ = nullptr;
+            realtime_odometry_publisher_ = nullptr;
 
         std::shared_ptr<rclcpp::Publisher<tf2_msgs::msg::TFMessage>> odometry_transform_publisher_ = nullptr;
         std::shared_ptr<realtime_tools::RealtimePublisher<tf2_msgs::msg::TFMessage>>
-        realtime_odometry_transform_publisher_ = nullptr;
+            realtime_odometry_transform_publisher_ = nullptr;
 
         bool subscriber_is_active_ = false;
         rclcpp::Subscription<core::msg::DriveInputStamped>::SharedPtr drive_input_subscriber_ = nullptr;

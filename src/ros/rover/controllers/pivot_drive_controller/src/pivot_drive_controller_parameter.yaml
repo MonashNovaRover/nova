@@ -109,7 +109,7 @@ pivot_drive_controller:
 
   position_feedback: {
     type: bool,
-    default_value: false,
+    default_value: true,
   }
 
   tf_frame_prefix_enable: {

@@ -160,6 +160,7 @@ void Odometry::updateOpenLoop(double linear, double angular, const rclcpp::Time 
 
   /// Integrate odometry:
   const double dt = time.seconds() - timestamp_.seconds();
+  
   timestamp_ = time;
   integrateExact(linear * dt, angular * dt);
 }
@@ -194,6 +195,7 @@ void Odometry::integrateRungeKutta2(double linear, double angular)
   /// Runge-Kutta 2nd order integration:
   x_ += linear * cos(direction);
   y_ += linear * sin(direction);
+
   heading_ += angular;
 }
 
@@ -220,4 +222,4 @@ void Odometry::resetAccumulators()
   angular_accumulator_ = RollingMeanAccumulator(velocity_rolling_window_size_);
 }
 
-}  // namespace diff_drive_controller
+}  // namespace pivot_drive_controller

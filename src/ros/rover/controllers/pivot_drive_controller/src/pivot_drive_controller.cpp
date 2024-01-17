@@ -117,8 +117,6 @@ namespace pivot_drive_controller
 
         max_d_theta = params_.max_theta;// * period.seconds();
 
-        RCLCPP_INFO(logger, "max_d_theta: %f", max_d_theta);
-
         std::shared_ptr<geometry_msgs::msg::TwistStamped> last_twist_command_msg;
         std::shared_ptr<core::msg::DriveInputStamped> last_command_msg;
 
@@ -145,9 +143,6 @@ namespace pivot_drive_controller
                 return controller_interface::return_type::ERROR;
             }
 
-            //RCLCPP_INFO(logger, "angular: %f", angular_command);
-            //RCLCPP_INFO(logger, "linear: %f", linear_command);
-
             const auto age_of_last_command = time - last_twist_command_msg->header.stamp;
             if (age_of_last_command > cmd_vel_timeout_)
             {
@@ -155,14 +150,9 @@ namespace pivot_drive_controller
                 last_twist_command_msg->twist.angular.z = 0.0;
             } 
 
-            RCLCPP_INFO(logger, "twist: %f", last_twist_command_msg->twist.linear.x);
-
             geometry_msgs::msg::TwistStamped twist_command = *last_twist_command_msg;
             linear_command = twist_command.twist.linear.x;
             angular_command = twist_command.twist.angular.z;
-
-            RCLCPP_INFO(logger, "linear_command: %f", linear_command);
-            RCLCPP_INFO(logger, "angular_command: %f", angular_command);
 
             auto & last_command = previous_twist_commands_.back().twist;
             auto & second_to_last_command = previous_twist_commands_.front().twist;
@@ -173,9 +163,6 @@ namespace pivot_drive_controller
 
             //TODO: angular limiter
 
-            RCLCPP_INFO(logger, "linear_command (after limiting): %f", linear_command);
-            RCLCPP_INFO(logger, "angular_command (after limiting): %f", angular_command);
-
             //previous_twist_commands only ever contains x2 values
             previous_twist_commands_.pop();
             previous_twist_commands_.emplace(twist_command);
@@ -184,7 +171,6 @@ namespace pivot_drive_controller
             target_direction = angular_command > 0 ? -1 : 1;
 
         } else {
-            RCLCPP_INFO(logger, "drive input");
             received_drive_input_msg_ptr_.get(last_command_msg);
 
             if (last_command_msg == nullptr)
@@ -216,9 +202,6 @@ namespace pivot_drive_controller
             previous_commands_.pop();
             previous_commands_.emplace(command);
 
-            RCLCPP_INFO(logger, "linear: %f", linear_command);
-            RCLCPP_INFO(logger, "radius: %f", command.drive_input.radius);
-
             if(second_to_last_command.mode == core::msg::DriveInput::STRAFE && command.drive_input.mode == core::msg::DriveInput::PIVOT){
                 RCLCPP_INFO(logger, "switching from strafe to pivot drive");
                 target_radius = INFINITY;
@@ -239,8 +222,6 @@ namespace pivot_drive_controller
 
         previous_update_timestamp_ = time;
 
-        // **********ODOMETRY UPDATE STUFF HERE *****************
-
         if (target_direction == 0) target_direction = 1;
 
         RCLCPP_INFO(get_node()->get_logger(), "Target radius of %f and direction of %f", target_radius, target_direction);
@@ -252,18 +233,9 @@ namespace pivot_drive_controller
         int direction;
 
         std::tie(radius, direction) = get_best_effort_radius_direction(target_radius,target_direction);
-        //RCLCPP_INFO(get_node()->get_logger(), "Best effort radius: %f; Best effort direction: %d", radius, direction);
 
         double left_angle = get_pivot_angle_from_radius(radius, true, direction);
         double right_angle = get_pivot_angle_from_radius(radius, false, direction);
-
-        //set pivot angles
-        for (size_t index = 0; index < static_cast<size_t>(params_.wheels_per_side); ++index)
-        {
-            //RCLCPP_INFO(get_node()->get_logger(), "setting left and right angles to: %f, %f", left_angle, right_angle);
-            //registered_left_pivot_handles_.at(index).command.get().set_value(left_angle);
-            //registered_right_pivot_handles_.at(index).command.get().set_value(right_angle);
-        }
 
         registered_left_pivot_handles_.at(0).command.get().set_value(left_angle);
         registered_left_pivot_handles_.at(1).command.get().set_value(-left_angle);
@@ -274,6 +246,7 @@ namespace pivot_drive_controller
         if (params_.open_loop)
         {
             float angular_command = (linear_command / radius) * direction * -1;
+            RCLCPP_INFO(logger, "time: %f", time);
             odometry_.updateOpenLoop(linear_command, angular_command, time);
         }
         else
@@ -287,6 +260,10 @@ namespace pivot_drive_controller
             const double rear_right_steer_position = registered_right_pivot_handles_.at(1).state.get().get_value();
             const double front_left_steer_position = registered_left_pivot_handles_.at(0).state.get().get_value();
             const double rear_left_steer_position = registered_left_pivot_handles_.at(1).state.get().get_value();
+
+            RCLCPP_INFO(logger, "wheel values: %f, %f, %f, %f", front_right_wheel_value, rear_right_wheel_value, front_left_wheel_value, rear_left_wheel_value);
+            RCLCPP_INFO(logger, "steer values: %f, %f, %f, %f", front_right_steer_position, rear_right_steer_position, front_left_steer_position, rear_left_steer_position);
+
 
             if (
                 !std::isnan(front_right_wheel_value) && !std::isnan(front_left_wheel_value) &&
@@ -308,16 +285,19 @@ namespace pivot_drive_controller
                         rear_steer_position = atan(2 * tan(rear_right_steer_position) * tan(rear_left_steer_position) /
                                                    (tan(rear_right_steer_position) + tan(rear_left_steer_position)));
                     }
+
+                    RCLCPP_INFO(logger, "updating odometry with front_steer_position of %f and rear_steer_position of %f", front_steer_position, rear_steer_position);
                     // Estimate linear and angular velocity using joint information
                     odometry_.update(
                         front_left_wheel_value, front_right_wheel_value, rear_left_wheel_value, rear_right_wheel_value,
                         front_steer_position, rear_steer_position, period.seconds());
-                }
+                } 
             }
         }
 
         tf2::Quaternion orientation;
         orientation.setRPY(0.0, 0.0, odometry_.getHeading());
+        RCLCPP_INFO(logger, "heading: %f", odometry_.getHeading());
 
         bool should_publish = false;
         try
@@ -337,9 +317,11 @@ namespace pivot_drive_controller
 
         if (should_publish)
         {
+            RCLCPP_INFO(logger, "should_publish");
             if (realtime_odometry_publisher_->trylock())
             {
-                auto &odometry_message = realtime_odometry_publisher_->msg_;
+                RCLCPP_INFO(logger, "realtime_odometry_publisher");
+                auto & odometry_message = realtime_odometry_publisher_->msg_;
                 odometry_message.header.stamp = time;
                 odometry_message.pose.pose.position.x = odometry_.getX();
                 odometry_message.pose.pose.position.y = odometry_.getY();
@@ -379,7 +361,6 @@ namespace pivot_drive_controller
 
         max_ratio = std::max(abs(left_ratio), abs(right_ratio));
 
-        RCLCPP_INFO(logger, "linear_command (outside loop): %f", linear_command);
         for (size_t index = 0; index < static_cast<size_t>(params_.wheels_per_side); ++index)
         {
             registered_left_drive_handles_.at(index).command.get().set_value(linear_command * left_ratio/max_ratio);
@@ -607,6 +588,74 @@ namespace pivot_drive_controller
                 received_drive_input_msg_ptr_.set(std::move(msg));
                 });
         }
+
+        // initialize odometry publisher and messasge
+        odometry_publisher_ = get_node()->create_publisher<nav_msgs::msg::Odometry>(
+            DEFAULT_ODOMETRY_TOPIC, rclcpp::SystemDefaultsQoS());
+        realtime_odometry_publisher_ =
+            std::make_shared<realtime_tools::RealtimePublisher<nav_msgs::msg::Odometry>>(
+            odometry_publisher_);
+
+        // Append the tf prefix if there is one
+        std::string tf_prefix = "";
+        if (params_.tf_frame_prefix_enable)
+        {
+            if (params_.tf_frame_prefix != "")
+            {
+            tf_prefix = params_.tf_frame_prefix;
+            }
+            else
+            {
+            tf_prefix = std::string(get_node()->get_namespace());
+            }
+
+            if (tf_prefix == "/")
+            {
+            tf_prefix = "";
+            }
+            else
+            {
+            tf_prefix = tf_prefix + "/";
+            }
+        }
+
+        const auto odom_frame_id = tf_prefix + params_.odom_frame_id;
+        const auto base_frame_id = tf_prefix + params_.base_frame_id;
+
+        auto & odometry_message = realtime_odometry_publisher_->msg_;
+        odometry_message.header.frame_id = odom_frame_id;
+        odometry_message.child_frame_id = base_frame_id;
+
+        // limit the publication on the topics /odom and /tf
+        publish_rate_ = params_.publish_rate;
+        publish_period_ = rclcpp::Duration::from_seconds(1.0 / publish_rate_);
+
+        // initialize odom values zeros
+        odometry_message.twist =
+            geometry_msgs::msg::TwistWithCovariance(rosidl_runtime_cpp::MessageInitialization::ALL);
+
+        constexpr size_t NUM_DIMENSIONS = 6;
+        for (size_t index = 0; index < 6; ++index)
+        {
+            // 0, 7, 14, 21, 28, 35
+            const size_t diagonal_index = NUM_DIMENSIONS * index + index;
+            odometry_message.pose.covariance[diagonal_index] = params_.pose_covariance_diagonal[index];
+            odometry_message.twist.covariance[diagonal_index] = params_.twist_covariance_diagonal[index];
+        }
+
+        // initialize transform publisher and message
+        odometry_transform_publisher_ = get_node()->create_publisher<tf2_msgs::msg::TFMessage>(
+            DEFAULT_TRANSFORM_TOPIC, rclcpp::SystemDefaultsQoS());
+        realtime_odometry_transform_publisher_ =
+            std::make_shared<realtime_tools::RealtimePublisher<tf2_msgs::msg::TFMessage>>(
+            odometry_transform_publisher_);
+
+        // keeping track of odom and base_link transforms only
+        auto & odometry_transform_message = realtime_odometry_transform_publisher_->msg_;
+        odometry_transform_message.transforms.resize(1);
+        odometry_transform_message.transforms.front().header.frame_id = odom_frame_id;
+        odometry_transform_message.transforms.front().child_frame_id = base_frame_id;
+
 
         previous_update_timestamp_ = get_node()->get_clock()->now();
         return controller_interface::CallbackReturn::SUCCESS;
