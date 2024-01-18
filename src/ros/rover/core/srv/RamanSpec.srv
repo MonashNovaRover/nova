@@ -1,0 +1,11 @@
+int64 filter_select
+int64 laser_colour
+int64 stepper_angle
+int64 mirror_angle
+int64 pump_mode
+int64 SH_period
+int64 ICG_period
+int64 average
+bool collection_mode_single
+---
+float32[] spectra
