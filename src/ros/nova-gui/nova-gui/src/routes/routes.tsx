@@ -4,6 +4,7 @@ import ARCMappingAutonomousView from "../views/arc/ARCMappingAutonomous";
 import ARCPostLandingView from "../views/arc/ARCPostLandingView";
 import ARCSpaceResourcesView from "../views/arc/ARCSpaceResourcesView";
 import ARCBaseView from "../views/arc/ARCBaseView";
+
 import GeneralBaseView from "../views/general/GeneralBaseView";
 import URCBaseView from "../views/urc/URCBaseView";
 import URCAutonomousNavigationView from "../views/urc/URCAutonomousNavigationView";
@@ -11,7 +12,15 @@ import URCDeliveryView from "../views/urc/URCDeliveryView";
 import URCEquipmentServicingView from "../views/urc/URCEquipmentServicingView";
 import URCScienceView from "../views/urc/URCScienceView";
 import { Root } from "../root";
+import ControllerHelpView from "../views/controllerHelp/ControllerHelpView";
 
+
+export const controllerHelpRoutes: RouteObject[] = [
+  {
+    path: "/controllerhelp",
+    element: <ControllerHelpView />,
+  },
+];
 export const arcRoutes: RouteObject[] = [
   {
     path: "/arc",
@@ -79,6 +88,11 @@ export const routes: RouteObject[] = [
         path: "/general",
         element: <GeneralBaseView />,
         children: generalRoutes,
+      },
+      {
+        path: "/controllerhelp",
+        element: <ControllerHelpView />,
+        children: controllerHelpRoutes,
       },
     ],
   },

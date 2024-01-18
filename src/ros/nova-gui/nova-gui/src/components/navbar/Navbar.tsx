@@ -90,6 +90,12 @@ export const NovaNavbar: React.FC = () => {
               >
                 URC
               </DropdownItem>
+              <DropdownItem
+                description="Controller Help Section"
+                href="/controllerhelp"
+              >
+                Controller Help
+              </DropdownItem>
             </DropdownMenu>
           </Dropdown>
         </NavbarItem>
