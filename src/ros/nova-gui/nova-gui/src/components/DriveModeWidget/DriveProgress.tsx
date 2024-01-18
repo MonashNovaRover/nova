@@ -1,20 +1,20 @@
-import { Progress, ProgressProps, } from "@nextui-org/react"
+import { Progress, ProgressProps } from "@nextui-org/react"
 
 // Properties for the DriveModeButton component.
 export interface IDriveProgressProps extends ProgressProps {
 
 }
 
-// A button used for selecting a drive mode for the DriveWidget
+// A button used for selecting a drive mode for the DriveModeWidget
 export const DriveProgress: React.FC<IDriveProgressProps> = (props: IDriveProgressProps) =>
 {
+
   const progress = (
     <Progress {...props}
               className={`${props.className} DriveModeProgress`}
               label={undefined}
               valueLabel={undefined}>
       <p>hello</p>
-
     </Progress>
   )
 

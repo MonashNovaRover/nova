@@ -17,7 +17,7 @@ export interface IDriveModeButtonProps extends ButtonProps {
   wrapperClassName?: string,
 }
 
-// A button used for selecting a drive mode for the DriveWidget
+// A button used for selecting a drive mode for the DriveModeWidget
 export const DriveModeButton: React.FC<IDriveModeButtonProps> = 
   (props: IDriveModeButtonProps) => 
 {
