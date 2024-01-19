@@ -9,7 +9,7 @@ import math
 class DriveInputStampedPublisher(Node):
     def __init__(self):
         super().__init__('drive_input_stamped_publisher')
-        self.publisher = self.create_publisher(DriveInputStamped, '/pivot_drive_controller/cmd_vel', 50)
+        self.publisher = self.create_publisher(DriveInputStamped, '/drive_input', 50)
         self.timer = self.create_timer(0.02, self.publish_drive_input_stamped)
 
     def publish_drive_input_stamped(self):
@@ -18,7 +18,7 @@ class DriveInputStampedPublisher(Node):
         drive_input_stamped_msg.header.stamp = self.get_clock().now().to_msg()
         drive_input_stamped_msg.header.frame_id = 'base_link'
         drive_input_stamped_msg.drive_input.speed = 1.0
-        drive_input_stamped_msg.drive_input.radius = math.inf
+        drive_input_stamped_msg.drive_input.radius = 0.9 #math.inf
         drive_input_stamped_msg.drive_input.mode = bytes([0])
         drive_input_stamped_msg.drive_input.direction = -1
         drive_input_stamped_msg.drive_input.handbrake = False
