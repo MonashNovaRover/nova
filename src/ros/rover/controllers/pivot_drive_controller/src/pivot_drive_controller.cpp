@@ -534,44 +534,17 @@ namespace pivot_drive_controller
         const geometry_msgs::msg::TwistStamped empty_twist;
 
         // Fill last two commands with default constructed commands
-        if (params_.enable_twist_cmd) {
-            RCLCPP_INFO(get_node()->get_logger(), "twist_cmd: initializing subscriber");
-            received_twist_msg_ptr_.set(std::make_shared<geometry_msgs::msg::TwistStamped>(empty_twist));
+        RCLCPP_INFO(get_node()->get_logger(), "twist_cmd: initializing subscriber");
+        received_twist_msg_ptr_.set(std::make_shared<geometry_msgs::msg::TwistStamped>(empty_twist));
 
-            previous_twist_commands_.emplace(empty_twist);
-            previous_twist_commands_.emplace(empty_twist);
+        previous_twist_commands_.emplace(empty_twist);
+        previous_twist_commands_.emplace(empty_twist);
 
-            // initialize command subscriber
-            twist_subscriber_ = get_node()->create_subscription<geometry_msgs::msg::TwistStamped>(
-                DEFAULT_INPUT_TOPIC, rclcpp::SystemDefaultsQoS(),
-                [this](const std::shared_ptr<geometry_msgs::msg::TwistStamped> msg) -> void
-                {
-                    if (!subscriber_is_active_)
-                    {
-                        RCLCPP_WARN(get_node()->get_logger(), "Can't accept new commands. subscriber is inactive");
-                        return;
-                    }
-                    if ((msg->header.stamp.sec == 0) && (msg->header.stamp.nanosec == 0))
-                    {
-                        RCLCPP_WARN_ONCE(
-                        get_node()->get_logger(),
-                        "Received TwistStamped msg with zero timestamp, setting it to current "
-                        "time, this message will only be shown once");
-                        msg->header.stamp = get_node()->get_clock()->now();
-                    }
-                    received_twist_msg_ptr_.set(std::move(msg));
-                });
-        } else {
-            received_drive_input_msg_ptr_.set(std::make_shared<core::msg::DriveInputStamped>(empty_drive_input));
-
-            previous_commands_.emplace(empty_drive_input);
-            previous_commands_.emplace(empty_drive_input);
-
-            // initialize command subscriber
-            drive_input_subscriber_ = get_node()->create_subscription<core::msg::DriveInputStamped>(
-                DEFAULT_INPUT_TOPIC, rclcpp::SystemDefaultsQoS(),
-                [this](const std::shared_ptr<core::msg::DriveInputStamped> msg) -> void
-                {
+        // initialize command subscriber
+        twist_subscriber_ = get_node()->create_subscription<geometry_msgs::msg::TwistStamped>(
+            DEFAULT_INPUT_TOPIC, rclcpp::SystemDefaultsQoS(),
+            [this](const std::shared_ptr<geometry_msgs::msg::TwistStamped> msg) -> void
+            {
                 if (!subscriber_is_active_)
                 {
                     RCLCPP_WARN(get_node()->get_logger(), "Can't accept new commands. subscriber is inactive");
@@ -581,13 +554,37 @@ namespace pivot_drive_controller
                 {
                     RCLCPP_WARN_ONCE(
                     get_node()->get_logger(),
-                    "Received DriveInputStamped msg with zero timestamp, setting it to current "
+                    "Received TwistStamped msg with zero timestamp, setting it to current "
                     "time, this message will only be shown once");
                     msg->header.stamp = get_node()->get_clock()->now();
                 }
-                received_drive_input_msg_ptr_.set(std::move(msg));
-                });
-        }
+                received_twist_msg_ptr_.set(std::move(msg));
+            });
+        received_drive_input_msg_ptr_.set(std::make_shared<core::msg::DriveInputStamped>(empty_drive_input));
+
+        previous_commands_.emplace(empty_drive_input);
+        previous_commands_.emplace(empty_drive_input);
+
+        // initialize command subscriber
+        drive_input_subscriber_ = get_node()->create_subscription<core::msg::DriveInputStamped>(
+            DEFAULT_INPUT_TOPIC, rclcpp::SystemDefaultsQoS(),
+            [this](const std::shared_ptr<core::msg::DriveInputStamped> msg) -> void
+            {
+            if (!subscriber_is_active_)
+            {
+                RCLCPP_WARN(get_node()->get_logger(), "Can't accept new commands. subscriber is inactive");
+                return;
+            }
+            if ((msg->header.stamp.sec == 0) && (msg->header.stamp.nanosec == 0))
+            {
+                RCLCPP_WARN_ONCE(
+                get_node()->get_logger(),
+                "Received DriveInputStamped msg with zero timestamp, setting it to current "
+                "time, this message will only be shown once");
+                msg->header.stamp = get_node()->get_clock()->now();
+            }
+            received_drive_input_msg_ptr_.set(std::move(msg));
+            });
 
         // initialize odometry publisher and messasge
         odometry_publisher_ = get_node()->create_publisher<nav_msgs::msg::Odometry>(
