@@ -9,7 +9,7 @@
                     <plugin>blcmd_hardware/BLCMDHardware</plugin>
                     <param name="candevice">can0</param>
                     <param name="canid">1</param>
-                    <param name="resolver_reduction">1</param>
+                    <param name="resolver_reduction">1.33333333333</param>
                     <param name="clock_rate">100000000</param>
                     <param name="revolution_pulses">8192</param>
                     <param name="mock">true</param>
@@ -43,7 +43,7 @@
                     <plugin>blcmd_hardware/BLCMDHardware</plugin>
                     <param name="candevice">can0</param>
                     <param name="canid">2</param>
-                    <param name="resolver_reduction">1</param>
+                    <param name="resolver_reduction">1.33333333333</param>
                     <param name="clock_rate">100000000</param>
                     <param name="revolution_pulses">8192</param>
                     <param name="mock">true</param>
@@ -79,7 +79,7 @@
                     <plugin>blcmd_hardware/BLCMDHardware</plugin>
                     <param name="candevice">can0</param>
                     <param name="canid">3</param>
-                    <param name="resolver_reduction">1</param>
+                    <param name="resolver_reduction">1.33333333333</param>
                     <param name="clock_rate">100000000</param>
                     <param name="revolution_pulses">8192</param>
                     <param name="mock">true</param> 
@@ -115,7 +115,7 @@
                     <plugin>blcmd_hardware/BLCMDHardware</plugin>
                     <param name="candevice">can0</param>
                     <param name="canid">4</param>
-                    <param name="resolver_reduction">1</param>
+                    <param name="resolver_reduction">1.33333333333</param>
                     <param name="clock_rate">100000000</param>
                     <param name="revolution_pulses">8192</param>
                     <param name="mock">true</param>
@@ -151,7 +151,7 @@
                     <plugin>blcmd_hardware/BLCMDHardware</plugin>
                     <param name="candevice">can0</param>
                     <param name="canid">5</param>
-                    <param name="resolver_reduction">1</param>
+		    <param name="resolver_reduction">1.33333333333</param>
                     <param name="clock_rate">100000000</param>
                     <param name="revolution_pulses">8192</param>
                     <param name="mock">true</param>
@@ -192,7 +192,7 @@
                     <plugin>blcmd_hardware/BLCMDHardware</plugin>
                     <param name="candevice">can0</param>
                     <param name="canid">6</param>
-                    <param name="resolver_reduction">1</param>
+                    <param name="resolver_reduction">1.33333333333</param>
                     <param name="clock_rate">100000000</param>
                     <param name="revolution_pulses">8192</param>
                     <param name="mock">true</param>
@@ -235,7 +235,7 @@
                     <plugin>blcmd_hardware/BLCMDHardware</plugin>
                     <param name="candevice">can0</param>
                     <param name="canid">7</param>
-                    <param name="resolver_reduction">1</param>
+                    <param name="resolver_reduction">1.33333333333</param>
                     <param name="clock_rate">100000000</param>
                     <param name="revolution_pulses">8192</param>
                     <param name="mock">true</param>
@@ -277,7 +277,7 @@
                     <plugin>blcmd_hardware/BLCMDHardware</plugin>
                     <param name="candevice">can0</param>
                     <param name="canid">8</param>
-                    <param name="resolver_reduction">1</param>
+                    <param name="resolver_reduction">1.33333333333</param>
                     <param name="clock_rate">100000000</param>
                     <param name="revolution_pulses">8192</param>
                     <param name="mock">true</param>
