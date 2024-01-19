@@ -102,6 +102,12 @@ namespace pivot_drive_controller
     controller_interface::return_type PivotDriveController::update(
         const rclcpp::Time & time, const rclcpp::Duration & period)
     {
+//        RCLCPP_INFO(get_node()->get_logger(), "----------------------");
+//        RCLCPP_INFO_STREAM(get_node()->get_logger(), "FLP State: " << registered_left_pivot_handles_.at(0).state.get().get_value());
+//        RCLCPP_INFO_STREAM(get_node()->get_logger(), "FRP State: " << registered_right_pivot_handles_.at(0).state.get().get_value());
+//        RCLCPP_INFO_STREAM(get_node()->get_logger(), "BLP State: " << registered_left_pivot_handles_.at(1).state.get().get_value());
+//        RCLCPP_INFO_STREAM(get_node()->get_logger(), "BRP State: " << registered_right_pivot_handles_.at(1).state.get().get_value());
+
         auto logger = get_node()->get_logger();
         
         if (get_state().id() == State::PRIMARY_STATE_INACTIVE)
@@ -115,7 +121,10 @@ namespace pivot_drive_controller
             return controller_interface::return_type::OK;
         }
 
-        max_d_theta = params_.max_theta;// * period.seconds();
+        max_d_theta = params_.max_theta * period.seconds();
+
+//        RCLCPP_INFO_STREAM(logger, "period: " << period.seconds());
+//        RCLCPP_INFO_STREAM(logger, "max_d_theta: " << max_d_theta);
 
         std::shared_ptr<geometry_msgs::msg::TwistStamped> last_twist_command_msg;
         std::shared_ptr<core::msg::DriveInputStamped> last_command_msg;
@@ -224,7 +233,7 @@ namespace pivot_drive_controller
 
         if (target_direction == 0) target_direction = 1;
 
-        RCLCPP_INFO(get_node()->get_logger(), "Target radius of %f and direction of %f", target_radius, target_direction);
+        //RCLCPP_INFO(get_node()->get_logger(), "Target radius of %f and direction of %f", target_radius, target_direction);
 
         //don't need this if command.speed isn't a percentage
         //float target_velocity = params_.max_speed * command.speed; //command.speed is a value between 0--1 (or -1--1, not sure)
@@ -237,6 +246,9 @@ namespace pivot_drive_controller
         double left_angle = get_pivot_angle_from_radius(radius, true, direction);
         double right_angle = get_pivot_angle_from_radius(radius, false, direction);
 
+//        RCLCPP_INFO_STREAM(get_node()->get_logger(), "left_angle command: " << left_angle);
+//        RCLCPP_INFO_STREAM(get_node()->get_logger(), "right_angle command: " << right_angle);
+
         registered_left_pivot_handles_.at(0).command.get().set_value(left_angle);
         registered_left_pivot_handles_.at(1).command.get().set_value(-left_angle);
         registered_right_pivot_handles_.at(0).command.get().set_value(-right_angle);
@@ -246,7 +258,7 @@ namespace pivot_drive_controller
         if (params_.open_loop)
         {
             float angular_command = (linear_command / radius) * direction * -1;
-            RCLCPP_INFO(logger, "time: %f", time);
+            //RCLCPP_INFO(logger, "time: %f", time);
             odometry_.updateOpenLoop(linear_command, angular_command, time);
         }
         else
@@ -261,8 +273,8 @@ namespace pivot_drive_controller
             const double front_left_steer_position = registered_left_pivot_handles_.at(0).state.get().get_value();
             const double rear_left_steer_position = registered_left_pivot_handles_.at(1).state.get().get_value();
 
-            RCLCPP_INFO(logger, "wheel values: %f, %f, %f, %f", front_right_wheel_value, rear_right_wheel_value, front_left_wheel_value, rear_left_wheel_value);
-            RCLCPP_INFO(logger, "steer values: %f, %f, %f, %f", front_right_steer_position, rear_right_steer_position, front_left_steer_position, rear_left_steer_position);
+            //RCLCPP_INFO(logger, "wheel values: %f, %f, %f, %f", front_right_wheel_value, rear_right_wheel_value, front_left_wheel_value, rear_left_wheel_value);
+            //RCLCPP_INFO(logger, "steer values: %f, %f, %f, %f", front_right_steer_position, rear_right_steer_position, front_left_steer_position, rear_left_steer_position);
 
 
             if (
@@ -286,7 +298,7 @@ namespace pivot_drive_controller
                                                    (tan(rear_right_steer_position) + tan(rear_left_steer_position)));
                     }
 
-                    RCLCPP_INFO(logger, "updating odometry with front_steer_position of %f and rear_steer_position of %f", front_steer_position, rear_steer_position);
+                    //RCLCPP_INFO(logger, "updating odometry with front_steer_position of %f and rear_steer_position of %f", front_steer_position, rear_steer_position);
                     // Estimate linear and angular velocity using joint information
                     odometry_.update(
                         front_left_wheel_value, front_right_wheel_value, rear_left_wheel_value, rear_right_wheel_value,
@@ -297,7 +309,7 @@ namespace pivot_drive_controller
 
         tf2::Quaternion orientation;
         orientation.setRPY(0.0, 0.0, odometry_.getHeading());
-        RCLCPP_INFO(logger, "heading: %f", odometry_.getHeading());
+        //RCLCPP_INFO(logger, "heading: %f", odometry_.getHeading());
 
         bool should_publish = false;
         try
@@ -317,7 +329,7 @@ namespace pivot_drive_controller
 
         if (should_publish)
         {
-            RCLCPP_INFO(logger, "should_publish");
+//            RCLCPP_INFO(logger, "should_publish");
             if (realtime_odometry_publisher_->trylock())
             {
                 RCLCPP_INFO(logger, "realtime_odometry_publisher");
@@ -366,7 +378,7 @@ namespace pivot_drive_controller
             registered_left_drive_handles_.at(index).command.get().set_value(linear_command * left_ratio/max_ratio);
             registered_right_drive_handles_.at(index).command.get().set_value(linear_command * right_ratio/max_ratio);
         }
-
+        RCLCPP_INFO(get_node()->get_logger(), "----------------------");
         return controller_interface::return_type::OK;
     }
 
@@ -420,7 +432,7 @@ namespace pivot_drive_controller
            double target_angle = get_pivot_angle_from_radius(target_radius, i == 0, target_direction);
            //RCLCPP_INFO(get_node()->get_logger(), "target angle: %f", target_angle);
 
-           float current_pivot_angle = i == 0 ? registered_left_pivot_handles_[0].state.get().get_value() : registered_right_pivot_handles_[0].state.get().get_value();
+           float current_pivot_angle = i == 0 ? registered_left_pivot_handles_[0].state.get().get_value() : registered_right_pivot_handles_[1].state.get().get_value();
            
            //determine drive direction to reach target_angle
            if (current_pivot_angle < target_angle) {
@@ -432,13 +444,17 @@ namespace pivot_drive_controller
            }
 
            //calculate max. angle of pivot
+//           RCLCPP_INFO_STREAM(get_node()->get_logger(), "max_d_theta in get_best_effort_radius_direction: " << max_d_theta);
            double best_effort_angle = current_pivot_angle + drive_dir * max_d_theta;
+
            if (abs(current_pivot_angle - target_angle) < max_d_theta)
            {
                 best_effort_angle = target_angle;
            }
 
-           // RCLCPP_INFO(get_node()->get_logger(), "best_effort_angle for %d: %f", i, best_effort_angle);
+//            RCLCPP_INFO(get_node()->get_logger(), "best_effort_angle for %d: %f", i, best_effort_angle);
+//           RCLCPP_INFO(get_node()->get_logger(), "current_pivot_angle for %d: %f", i, current_pivot_angle);
+//              RCLCPP_INFO(get_node()->get_logger(), "target_angle for %d: %f", i, target_angle);
            //calculate direction
            if (current_pivot_angle == target_angle)
            {
@@ -456,8 +472,11 @@ namespace pivot_drive_controller
            //RCLCPP_INFO(get_node()->get_logger(), "best_radius for %d: %f", i, best_radius);
 
            double left_angle = get_pivot_angle_from_radius(best_radius, true, best_dir);
+//           RCLCPP_INFO_STREAM(get_node()->get_logger(), "best_left_angle: " << left_angle);
+//           RCLCPP_INFO_STREAM(get_node()->get_logger(), "curr_left_angle: " << registered_left_pivot_handles_[0].state.get().get_value());
            double right_angle = get_pivot_angle_from_radius(best_radius, false, best_dir);
-           //bool valid = (abs(left_angle - curr_left) <= max_d_theta*1.01) && (abs(right_angle - curr_right) <= max_d_theta*1.01);
+//            RCLCPP_INFO_STREAM(get_node()->get_logger(), "best_right_angle: " << left_angle);
+//            RCLCPP_INFO_STREAM(get_node()->get_logger(), "curr_right_angle: " << registered_right_pivot_handles_[0].state.get().get_value());
            bool valid = (abs(left_angle - registered_left_pivot_handles_[0].state.get().get_value()) <= max_d_theta*1.01) &&
                (abs(right_angle - registered_right_pivot_handles_[0].state.get().get_value()) <= max_d_theta * 1.01);
 
@@ -468,8 +487,6 @@ namespace pivot_drive_controller
         //calculate which radius is 'best' to use
         pivot_with_best_radius = 0; //0 = left, 1 = right
         for (int i =0; i < 2; i++) {
-            //RCLCPP_INFO(get_node()->get_logger(), "Wheel %d: Radius: %f, Dir: %f", i, std::get<0>(best_efforts_left_right[i]), std::get<1>(best_efforts_left_right[i]));
-
             //RCLCPP_INFO(get_node()->get_logger(), "best_effort_left_right[%d], dir: %f", i, std::get<1>(best_efforts_left_right[i]));
 
             //if this configuration is invalid
@@ -696,7 +713,6 @@ namespace pivot_drive_controller
 
         if (registered_left_pivot_handles_.empty() || registered_right_pivot_handles_.empty())
         {
-            RCLCPP_INFO(get_node()->get_logger(),"stuck here");
 
             RCLCPP_ERROR(
                 get_node()->get_logger(),
