@@ -10,3 +10,6 @@
 [submodule "controllers/ros2_controllers"]
 	path = controllers/ros2_controllers
 	url = git@github.com:MonashNovaRover/ros2_controllers.git
+[submodule "teleop_nova_joy"]
+	path = teleop_nova_joy
+	url = git@github.com:MonashNovaRover/teleop_nova_joy.git
