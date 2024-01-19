@@ -332,7 +332,6 @@ namespace pivot_drive_controller
 //            RCLCPP_INFO(logger, "should_publish");
             if (realtime_odometry_publisher_->trylock())
             {
-                RCLCPP_INFO(logger, "realtime_odometry_publisher");
                 auto & odometry_message = realtime_odometry_publisher_->msg_;
                 odometry_message.header.stamp = time;
                 odometry_message.pose.pose.position.x = odometry_.getX();
@@ -378,7 +377,6 @@ namespace pivot_drive_controller
             registered_left_drive_handles_.at(index).command.get().set_value(linear_command * left_ratio/max_ratio);
             registered_right_drive_handles_.at(index).command.get().set_value(linear_command * right_ratio/max_ratio);
         }
-        RCLCPP_INFO(get_node()->get_logger(), "----------------------");
         return controller_interface::return_type::OK;
     }
 
