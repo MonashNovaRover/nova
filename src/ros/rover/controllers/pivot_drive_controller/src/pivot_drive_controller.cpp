@@ -15,7 +15,8 @@
 
 namespace
 {
-    constexpr auto DEFAULT_INPUT_TOPIC = "~/cmd_vel"; //no idea what to call this
+    constexpr auto DEFAULT_INPUT_TOPIC = "/drive_input";
+    constexpr auto DEFAULT_INPUT_TOPIC_TWIST = "/cmd_vel";
     constexpr auto DEFAULT_OUTPUT_TOPIC = "~/cmd_vel_out";
     constexpr auto DEFAULT_ODOMETRY_TOPIC = "~/odom";
     constexpr auto DEFAULT_TRANSFORM_TOPIC = "~/tf";
@@ -534,7 +535,6 @@ namespace pivot_drive_controller
         const geometry_msgs::msg::TwistStamped empty_twist;
 
         // Fill last two commands with default constructed commands
-        RCLCPP_INFO(get_node()->get_logger(), "twist_cmd: initializing subscriber");
         received_twist_msg_ptr_.set(std::make_shared<geometry_msgs::msg::TwistStamped>(empty_twist));
 
         previous_twist_commands_.emplace(empty_twist);
@@ -542,7 +542,7 @@ namespace pivot_drive_controller
 
         // initialize command subscriber
         twist_subscriber_ = get_node()->create_subscription<geometry_msgs::msg::TwistStamped>(
-            DEFAULT_INPUT_TOPIC, rclcpp::SystemDefaultsQoS(),
+            DEFAULT_INPUT_TOPIC_TWIST, rclcpp::SystemDefaultsQoS(),
             [this](const std::shared_ptr<geometry_msgs::msg::TwistStamped> msg) -> void
             {
                 if (!subscriber_is_active_)
