@@ -30,7 +30,7 @@ export const useCameraStream = (
   videoRef: React.MutableRefObject<HTMLVideoElement | null>
 ) => {
   const { sendJsonMessage, lastJsonMessage } = useWebSocket<ServerMessage>(
-    "ws://192.168.64.7:8443",
+    "ws://192.168.0.4:8443",
     {
       onOpen: () => {
         sendSessionStartMessage();
@@ -52,6 +52,7 @@ export const useCameraStream = (
   const iceCandidateCallback = useCallback(
     (event: RTCPeerConnectionIceEvent) => {
       if (!event.candidate) return;
+      if (!sessionId) return;
       sendJsonMessage({
         type: "peer",
         sessionId: sessionId,
@@ -67,7 +68,7 @@ export const useCameraStream = (
         rtcPeerConnection.setRemoteDescription(message.sdp);
         const answer = await rtcPeerConnection.createAnswer();
         await rtcPeerConnection.setLocalDescription(answer);
-        if (!rtcPeerConnection.localDescription) return;
+        if (!rtcPeerConnection.localDescription || !sessionId) return;
         sendJsonMessage({
           type: "peer",
           sessionId: sessionId,
