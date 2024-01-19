@@ -15,6 +15,9 @@ controller_manager:
     pivot_drive_controller:
       type: pivot_drive_controller/PivotDriveController
 
+    strafe_controller:
+      type: strafe_controller/StrafeController
+
     diff_drive_controller:
       type: diff_drive_controller/DiffDriveController
 
@@ -53,8 +56,17 @@ pivot_drive_controller:
     enable_twist_cmd: false 
     open_loop: true
 
+strafe_controller:
+  ros__parameters:
+    left_drive_names: ["flw", "blw"]
+    right_drive_names: ["frw", "brw"]
+    left_pivot_names: ["flp", "blp"]
+    right_pivot_names: ["frp", "brp"]
+    enable_twist_cmd: false 
+    open_loop: true
+
 diff_drive_controller:
   ros__parameters:
     left_wheel_names: ["flw", "blw"]
     right_wheel_names: ["frw", "brw"]
-    position_feedback: false
+    position_feedback: true 

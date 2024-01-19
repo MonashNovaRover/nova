@@ -8,19 +8,24 @@
 , rclcpp
 , rclcpp-lifecycle
 , std-srvs
-, steering-controllers-library
 , generate-parameter-library
 , rcpputils
-, admittance-controller
+, backward-ros
+, nav-msgs
+, realtime-tools
+, tf2
+, tf2-msgs
+, geometry-msgs
+, nova-core
 }:
 
 buildRosPackage {
-  name = "four-wheel-steering-controller";
+  name = "strafe-controller";
   buildType = "ament_cmake";
 
   src = builtins.path rec {
-    name = "four_wheel_steering_controller-source";
-    path = ../../../../controllers/ros2_controllers/four_wheel_steering_controller;
+    name = "strafe_controller-source";
+    path = ../../../../controllers/strafe_controller;
     filter = lib.novaSourceFilter [ ] path;
   };
 
@@ -34,13 +39,13 @@ buildRosPackage {
     rclcpp
     rclcpp-lifecycle
     std-srvs
-    (steering-controllers-library.overrideAttrs {
-      src = builtins.path rec {
-        name = "steering_controllers_library-source";
-        path = ../../../../controllers/ros2_controllers/steering_controllers_library;
-        filter = lib.novaSourceFilter [ ] path;
-      };
-    })
     generate-parameter-library
+    backward-ros
+    nav-msgs
+    realtime-tools
+    tf2
+    tf2-msgs
+    geometry-msgs
+    nova-core
   ];
 }

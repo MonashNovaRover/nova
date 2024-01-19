@@ -128,12 +128,19 @@ def generate_launch_description():
         arguments=["pivot_drive_controller"]
     )
 
+    strafe_controller = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["strafe_controller"]
+    )
+
     nodes = [
         control_node,
         #wheel_velocity_controller,
         #pivot_position_controller,
-        joint_broad,
+        #joint_broad,
         pivot_drive_controller,
+        #strafe_controller,
     ]
 
     return LaunchDescription(declared_arguments + nodes)
