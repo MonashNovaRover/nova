@@ -4,114 +4,106 @@ pivot_drive_controller:
     default_value: [],
     description: "Link names of the left drive joints"
   }
-
   right_drive_names: {
     type: string_array,
     default_value: [],
     description: "Link names of the left drive joints"
   }
-
   left_pivot_names: {
     type: string_array,
     default_value: [],
     description: "Link names of the left drive joints"
   }
-
   right_pivot_names: {
     type: string_array,
     default_value: [],
     description: "Link names of the left drive joints"
   }
-
   wheels_per_side: {
     type: int,
     default_value: 2,
     description: "No. wheels per side of the vehicle"
   }
-
   wheel_steering_y_offset: {
     type: double,
     default_value: 0.0,
     description: "Offset from the center of the steering joint and the center of the wheel joint"
   }
-
   steering_track: {
     type: double,
     default_value: 0.7,
+    description: "Steering track: distance between center of left and right wheels",
   }
-
   wheel_base: {
     type: double,
     default_value: 0.84,
+    description: "Wheelbase: distance between center of front and rear wheels",
   }
-
   wheel_radius: {
     type: double,
-    default_value: 0.15
+    default_value: 0.15,
+    description: "Radius of wheels"
   }
-
   velocity_rolling_window_size: {
     type: int,
     default_value: 10,
     description: "Size of the rolling window for calculation of mean velocity use in odometry.",
   }
-
   cmd_vel_timeout: {
     type: double,
     default_value: 0.5, # Seconds
     description: "Timeout on cmd_vel command.",
   }  
-
   has_velocity_limits: {
     type: bool,
     default_value: false,
+    description: "Enable to limit velocities to a max velocity"
   }
-
   has_acceleration_limits: {
     type: bool,
     default_value: false,
+    description: "Enable to limit acceleration to a max velocity"
   }
   has_jerk_limits: {
     type: bool,
     default_value: false,
+    description: "Enable to limit acceleration to a max velocity"
   }
-
   # Not sure if we need these params since the command_interfaces have min/max?
   min_velocity: {
     type: double,
     default_value: 0.0,
   }
-
   max_velocity: {
     type: bool,
     default_value: 0.0,
   }
-
   min_acceleration: {
     type: double,
     default_value: 0.0,
   }
-
   max_acceleration: {
     type: double,
     default_value: 0.0,
   }
-
   min_jerk: {
     type: double,
     default_value: 0.0,
   }
-
   max_jerk: {
     type: double,
     default_value: 0.0,
   }
-
-  position_feedback: {
+  drive_position_feedback: {
+    type: bool,
+    default_value: false,
+    description: "Whether the drives have position or velocity feedback",
+  }
+  pivot_position_feedback: {
     type: bool,
     default_value: true,
+    description: "Whether the pivots have position or velocity feedback",
   }
-
   tf_frame_prefix_enable: {
     type: bool,
     default_value: true,
@@ -157,19 +149,16 @@ pivot_drive_controller:
     default_value: false,
     description: "Publish limited velocity value.",
   }
-  
   publish_rate: {
     type: double,
     default_value: 50.0, # Hz
     description: "Publishing rate (Hz) of the odometry and TF messages.",
   }
-
   max_theta: {
     type: double,
     default_value: 3.5342, #2*pi 
     description: "Max. theta displacement in one iteration",
   }
-
   enable_twist_cmd: {
     type: bool,
     default_value: false,

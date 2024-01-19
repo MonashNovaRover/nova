@@ -1,5 +1,5 @@
-#ifndef PIVOT_DRIVE_CONTROLLER__PIVOT_DRIVE_CONTROLLER_HPP_
-#define PIVOT_DRIVE_CONTROLLER__PIVOT_DRIVE_CONTROLLER_HPP_
+#ifndef STRAFE_CONTROLLER__STRAFE_CONTROLLER_HPP_
+#define STRAFE_CONTROLLER__STRAFE_CONTROLLER_HPP_
 
 #include <chrono>
 #include <cmath>
@@ -35,44 +35,44 @@ namespace strafe_controller
     {
 
     public:
-        PIVOT_DRIVE_CONTROLLER_PUBLIC
+        STRAFE_CONTROLLER_PUBLIC
         StrafeController();
 
-        PIVOT_DRIVE_CONTROLLER_PUBLIC
+        STRAFE_CONTROLLER_PUBLIC
         controller_interface::InterfaceConfiguration command_interface_configuration() const override;
 
-        PIVOT_DRIVE_CONTROLLER_PUBLIC
+        STRAFE_CONTROLLER_PUBLIC
         controller_interface::InterfaceConfiguration state_interface_configuration() const override;
 
-        PIVOT_DRIVE_CONTROLLER_PUBLIC
+        STRAFE_CONTROLLER_PUBLIC
         controller_interface::return_type update(
             const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
 
-        PIVOT_DRIVE_CONTROLLER_PUBLIC
+        STRAFE_CONTROLLER_PUBLIC
         controller_interface::CallbackReturn on_init() override;
 
-        PIVOT_DRIVE_CONTROLLER_PUBLIC
+        STRAFE_CONTROLLER_PUBLIC
         controller_interface::CallbackReturn on_configure(
             const rclcpp_lifecycle::State & previous_state) override;
 
-        PIVOT_DRIVE_CONTROLLER_PUBLIC
+        STRAFE_CONTROLLER_PUBLIC
         controller_interface::CallbackReturn on_activate(
             const rclcpp_lifecycle::State & previous_state) override;
 
-        PIVOT_DRIVE_CONTROLLER_PUBLIC
+        STRAFE_CONTROLLER_PUBLIC
         controller_interface::CallbackReturn on_deactivate(
             const rclcpp_lifecycle::State & previous_state) override;
 
-        PIVOT_DRIVE_CONTROLLER_PUBLIC
+        STRAFE_CONTROLLER_PUBLIC
         controller_interface::CallbackReturn on_cleanup(
             const rclcpp_lifecycle::State & previous_state) override;
 
-        PIVOT_DRIVE_CONTROLLER_PUBLIC
+        STRAFE_CONTROLLER_PUBLIC
         controller_interface::CallbackReturn on_error(
             const rclcpp_lifecycle::State & previous_state) override;
 
-        PIVOT_DRIVE_CONTROLLER_PUBLIC
+        STRAFE_CONTROLLER_PUBLIC
         controller_interface::CallbackReturn on_shutdown(
             const rclcpp_lifecycle::State & previous_state) override;
 
@@ -83,11 +83,12 @@ namespace strafe_controller
             std::reference_wrapper<hardware_interface::LoanedCommandInterface> command;
         };
 
-        const char * feedback_type() const;
+        const char * drive_feedback_type() const;
+        const char * pivot_feedback_type() const;
 
         controller_interface::CallbackReturn configure_drive_pivots(
             const bool drive, const std::vector<std::string> & wheel_names,
-            std::vector<WheelHandle> & registered_handles);
+            std::vector<WheelHandle> & registered_handles, const char * feedback_type);
 
         std::vector<WheelHandle> registered_left_drive_handles_;
         std::vector<WheelHandle> registered_right_drive_handles_;
@@ -144,6 +145,6 @@ namespace strafe_controller
         void halt();
     };
 } //namespace strafe_controller
-#endif // PIVOT_DRIVE_CONTROLLER__PIVOT_DRIVE_CONTROLLER_HPP_
+#endif // STRAFE_CONTROLLER__STRAFE_CONTROLLER_HPP_
 
 

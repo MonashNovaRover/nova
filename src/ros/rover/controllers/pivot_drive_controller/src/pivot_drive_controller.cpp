@@ -33,9 +33,14 @@ namespace pivot_drive_controller
 
     PivotDriveController::PivotDriveController() : controller_interface::ControllerInterface() {}
 
-    const char * PivotDriveController::feedback_type() const
+    const char * PivotDriveController::drive_feedback_type() const
     {
-      return params_.position_feedback ? HW_IF_POSITION : HW_IF_VELOCITY;
+      return params_.drive_position_feedback ? HW_IF_POSITION : HW_IF_VELOCITY;
+    }
+
+    const char * PivotDriveController::pivot_feedback_type() const
+    {
+      return params_.pivot_position_feedback ? HW_IF_POSITION : HW_IF_VELOCITY;
     }
 
     controller_interface::CallbackReturn PivotDriveController::on_init()
@@ -66,7 +71,6 @@ namespace pivot_drive_controller
         {
             conf_names.push_back(joint_name + "/" + HW_IF_VELOCITY);
         }
-
         for (const auto & joint_name : params_.left_pivot_names)
         {
             conf_names.push_back(joint_name + "/" + HW_IF_POSITION);
@@ -83,19 +87,19 @@ namespace pivot_drive_controller
         std::vector<std::string> conf_names;
         for (const auto & joint_name : params_.left_drive_names)
         {
-            conf_names.push_back(joint_name + "/" + feedback_type());
+            conf_names.push_back(joint_name + "/" + drive_feedback_type());
         }
         for (const auto & joint_name : params_.right_drive_names)
         {
-            conf_names.push_back(joint_name + "/" + feedback_type());
+            conf_names.push_back(joint_name + "/" + drive_feedback_type());
         }
         for (const auto & joint_name : params_.left_pivot_names)
         {
-            conf_names.push_back(joint_name + "/" + feedback_type());
+            conf_names.push_back(joint_name + "/" + pivot_feedback_type());
         }
         for (const auto & joint_name : params_.right_pivot_names)
         {
-            conf_names.push_back(joint_name + "/" + feedback_type());
+            conf_names.push_back(joint_name + "/" + pivot_feedback_type());
         }
         return {interface_configuration_type::INDIVIDUAL, conf_names};
     }
@@ -272,7 +276,7 @@ namespace pivot_drive_controller
                 !std::isnan(front_right_steer_position) && !std::isnan(front_left_steer_position) &&
                 !std::isnan(rear_right_steer_position) && !std::isnan(rear_left_steer_position))
             {
-                if (params_.position_feedback)
+                if (params_.pivot_position_feedback)
                 {
                     double front_steer_position = 0.0;
                     if (fabs(front_right_steer_position) > 0.001 || fabs(front_left_steer_position) > 0.001)
@@ -664,13 +668,13 @@ namespace pivot_drive_controller
 
         RCLCPP_INFO(get_node()->get_logger(),"on activate");
         const auto left_drives_result =
-            configure_drive_pivots(true, params_.left_drive_names, registered_left_drive_handles_);
+            configure_drive_pivots(true, params_.left_drive_names, registered_left_drive_handles_, drive_feedback_type());
         const auto right_drives_result =
-            configure_drive_pivots(true, params_.right_drive_names, registered_right_drive_handles_);
+            configure_drive_pivots(true, params_.right_drive_names, registered_right_drive_handles_, drive_feedback_type());
         const auto left_pivots_result =
-            configure_drive_pivots(false, params_.left_pivot_names, registered_left_pivot_handles_);
+            configure_drive_pivots(false, params_.left_pivot_names, registered_left_pivot_handles_, pivot_feedback_type());
         const auto right_pivots_result =
-            configure_drive_pivots(false, params_.right_pivot_names, registered_right_pivot_handles_);
+            configure_drive_pivots(false, params_.right_pivot_names, registered_right_pivot_handles_, pivot_feedback_type());
 
         if (              
 
@@ -792,7 +796,7 @@ namespace pivot_drive_controller
 
     controller_interface::CallbackReturn PivotDriveController::configure_drive_pivots(
         bool drive, const std::vector<std::string> & wheel_names,
-        std::vector<WheelHandle> & registered_handles)
+        std::vector<WheelHandle> & registered_handles, const char * feedback_type)
     {
         //drive -- true or false
         auto logger = get_node()->get_logger();
@@ -807,9 +811,9 @@ namespace pivot_drive_controller
         registered_handles.reserve(wheel_names.size());
         for (const auto & wheel_name : wheel_names)
         {
-            const auto interface_name = feedback_type();
+            const auto interface_name = feedback_type;
             const auto state_handle = std::find_if(
-                state_interfaces_.cbegin(), state_interfaces_.cend(), //state_interfaces_ is handled by controller_manager (all available state interfaces)
+                state_interfaces_.cbegin(), state_interfaces_.cend(), 
                 [&wheel_name, &interface_name](const auto & interface)
                 {
                 return interface.get_prefix_name() == wheel_name &&

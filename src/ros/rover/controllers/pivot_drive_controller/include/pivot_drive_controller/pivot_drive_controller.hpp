@@ -83,11 +83,12 @@ namespace pivot_drive_controller
             std::reference_wrapper<hardware_interface::LoanedCommandInterface> command;
         };
 
-        const char * feedback_type() const;
+        const char * drive_feedback_type() const;
+        const char * pivot_feedback_type() const;
 
         controller_interface::CallbackReturn configure_drive_pivots(
             const bool drive, const std::vector<std::string> & wheel_names,
-            std::vector<WheelHandle> & registered_handles);
+            std::vector<WheelHandle> & registered_handles, const char * feedback_type);
 
         double get_pivot_angle_from_radius(float radius, bool left, int dir);
 
