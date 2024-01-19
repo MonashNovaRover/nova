@@ -165,7 +165,7 @@
             </xacro:if>
             <joint name="flp">
                 <command_interface name="position">
-                    <param name="max">5.0</param>
+                    <param name="max">1.57079632679</param>
                 </command_interface>
 
                 <command_interface name="velocity">
@@ -181,7 +181,7 @@
 
                 <state_interface name="position">
                     <param name="inital_value">0.0</param>
-                    <param name="max">5.0</param>    
+                    <param name="max">1.57079632679</param>    
                 </state_interface>
             </joint>
         </ros2_control>
@@ -207,7 +207,7 @@
 
             <joint name="blp">
                 <command_interface name="position">
-                    <param name="max">5.0</param>
+                    <param name="max">1.57079632679</param>
                 </command_interface>
 
                 <command_interface name="velocity">
@@ -223,7 +223,7 @@
 
                 <state_interface name="position">
                     <param name="initial_value">0.0</param>
-                    <param name="max">5.0</param>
+                    <param name="max">1.57079632679</param>
                 </state_interface>
             </joint>
         </ros2_control>
@@ -250,7 +250,7 @@
 
             <joint name="brp">
                 <command_interface name="position">
-                    <param name="max">5.0</param>
+                    <param name="max">1.57079632679</param>
                 </command_interface>
 
                 <command_interface name="velocity">
@@ -266,7 +266,7 @@
 
                 <state_interface name="position">
                     <param name="initial_value">0.0</param>
-                    <param name="max">5.0</param>
+                    <param name="max">1.57079632679</param>
                 </state_interface>
             </joint>
         </ros2_control>
@@ -292,7 +292,7 @@
 
             <joint name="frp">
                 <command_interface name="position">
-                    <param name="max">5.0</param>
+                    <param name="max">1.57079632679</param>
                 </command_interface>
 
                 <command_interface name="velocity">
@@ -307,7 +307,7 @@
                 </state_interface>
 
                 <state_interface name="position">
-                    <param name="max">5.0</param>
+                    <param name="max">1.57079632679</param>
                     <param name="initial_value">0.0</param>
                 </state_interface>
             </joint>
