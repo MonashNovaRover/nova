@@ -20,6 +20,7 @@
 , robot-localization
 , nova-costmap-2d
 , navigation2
+, rtabmap-ros
 }:
 
 buildRosPackage {
@@ -50,6 +51,7 @@ buildRosPackage {
       robot-localization
       gazebo-ros-pkgs
       nova-costmap-2d
-      navigation2;
+      navigation2
+      rtabmap-ros;
   };
 }

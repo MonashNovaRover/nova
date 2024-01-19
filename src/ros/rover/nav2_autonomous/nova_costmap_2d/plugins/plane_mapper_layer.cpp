@@ -18,8 +18,6 @@ void PlaneMapperLayer::onInitialize()
   declareParameter("observation_sources", rclcpp::ParameterValue(std::string("")));
   declareParameter("max_safe_inc", rclcpp::ParameterValue(20.0));  // Approximately represents total height diff in a 10x10cm area
   declareParameter("resolution_ratio", rclcpp::ParameterValue(4));  // Ratio between resolution of mini-heightmaps and final costmap
-  declareParameter("height_map_mid_z", rclcpp::ParameterValue(64.0));  // Ratio between resolution of mini-heightmaps and final costmap
-  declareParameter("vertical_resolution", rclcpp::ParameterValue(0.02));  // Ratio between resolution of mini-heightmaps and final costmap
   declareParameter("min_plane_density", rclcpp::ParameterValue(0.3));  // Ratio between resolution of mini-heightmaps and final costmap
   declareParameter("plane_overlap", rclcpp::ParameterValue(2));  // Ratio between resolution of mini-heightmaps and final costmap
 
@@ -38,8 +36,6 @@ void PlaneMapperLayer::onInitialize()
   node->get_parameter(name_ + "." + "observation_sources", topics_string);
   node->get_parameter(name_ + "." + "max_safe_inc", max_safe_inc_);
   node->get_parameter(name_ + "." + "resolution_ratio", resolution_ratio_);
-  node->get_parameter(name_ + "." + "height_map_mid_z", map_mid_val_);
-  node->get_parameter(name_ + "." + "vertical_resolution", vertical_resolution_);
   node->get_parameter(name_ + "." + "min_plane_density", min_plane_density_);
   node->get_parameter(name_ + "." + "plane_overlap", plane_overlap_);
 
@@ -254,16 +250,14 @@ bool PlaneMapperLayer::worldToIntermediateMap(double wx, double wy, uint32_t & m
   return false;
 }
 
-bool PlaneMapperLayer::worldToIntermediateMap(double wz, uint8_t & mz) const
+bool PlaneMapperLayer::getIntermediateResolution(double & res) const
 {
-  mz = static_cast<float>(wz / vertical_resolution_ + map_mid_val_);
-  double max_z = (std::numeric_limits<float>::max() - map_mid_val_) * vertical_resolution_;
-  double min_z = (std::numeric_limits<float>::min() - map_mid_val_) * vertical_resolution_;
-  if (wz <= max_z && wz >= min_z)
-  {
-    return true;
+  if (resolution_ratio_ > 0) {
+      res = resolution_ / resolution_ratio_;
+      return true;
+  } else {
+    return false;
   }
-  return false;
 }
 
 void

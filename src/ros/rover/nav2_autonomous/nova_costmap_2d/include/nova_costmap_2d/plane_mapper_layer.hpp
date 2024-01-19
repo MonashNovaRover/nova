@@ -93,12 +93,10 @@ public:
   bool worldToIntermediateMap(double wx, double wy, uint32_t & mx, uint32_t & my) const;
 
   /**
-   * @brief  Convert from world coordinates to high-resolution HeightMap coordinates
-   * @param  wz The z world coordinate
-   * @param  mz Will be set to the associated height map z coordinate
-   * @return True if the conversion was successful (legal bounds) false otherwise
-   */
-  bool worldToIntermediateMap(double wz, uint8_t & mz) const;
+   * @brief Gets the side length of a single pixel of the intermediate (higher resolution) map
+   * @return Resolution in m
+  */
+  bool getIntermediateResolution(double & res) const;
 
   /**
    * @brief Update the bounds of the master costmap by this layer's update dimensions
@@ -123,16 +121,6 @@ private:
    * @brief maximum inclination (deg) that is safe to traverse
   */
   float max_safe_inc_;
-
-  /**
-   * @brief middle of the height map uchar value
-   */
-  float map_mid_val_;
-
-  /**
-    * @brief vertical resolution of height map (m)
-  */
-  float vertical_resolution_;
 
   /**
    * @brief minimum fraction of plane pixels that we must have information about

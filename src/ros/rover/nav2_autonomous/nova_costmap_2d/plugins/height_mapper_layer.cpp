@@ -18,9 +18,7 @@ void HeightMapperLayer::onInitialize()
   declareParameter("observation_sources", rclcpp::ParameterValue(std::string("")));
   declareParameter("max_safe_val", rclcpp::ParameterValue(16.0));  // Approximately represents total height diff in a 10x10cm area
   declareParameter("resolution_ratio", rclcpp::ParameterValue(4));  // Ratio between resolution of mini-heightmaps and final costmap
-  declareParameter("height_map_mid_z", rclcpp::ParameterValue(64.0));  // Approximately represents total height diff in a 10x10cm area
   declareParameter("min_plane_density", rclcpp::ParameterValue(0.3));  // Ratio between resolution of mini-heightmaps and final costmap
-  declareParameter("vertical_resolution", rclcpp::ParameterValue(0.05));  // Ratio between resolution of mini-heightmaps and final costmap
 
   auto node = node_.lock();
   if (!node) {
@@ -37,9 +35,7 @@ void HeightMapperLayer::onInitialize()
   node->get_parameter(name_ + "." + "observation_sources", topics_string);
   node->get_parameter(name_ + "." + "max_safe_val", max_safe_val_);
   node->get_parameter(name_ + "." + "resolution_ratio", resolution_ratio_);
-  node->get_parameter(name_ + "." + "height_map_mid_z", map_mid_val_);
   node->get_parameter(name_ + "." + "min_plane_density", min_plane_density_);
-  node->get_parameter(name_ + "." + "vertical_resolution", vertical_resolution_);
 
   dyn_params_handler_ = node->add_on_set_parameters_callback(
     std::bind(
@@ -253,16 +249,14 @@ bool HeightMapperLayer::worldToIntermediateMap(double wx, double wy, uint32_t & 
   return false;
 }
 
-bool HeightMapperLayer::worldToIntermediateMap(double wz, float & mz) const
+bool HeightMapperLayer::getIntermediateResolution(double & res) const
 {
-  mz = static_cast<float>(wz / vertical_resolution_ + map_mid_val_);
-  double max_z = (std::numeric_limits<float>::max() - map_mid_val_) * vertical_resolution_;
-  double min_z = (std::numeric_limits<float>::min() - map_mid_val_) * vertical_resolution_;
-  if (wz <= max_z && wz >= min_z)
-  {
-    return true;
+  if (resolution_ratio_ > 0) {
+      res = resolution_ / resolution_ratio_;
+      return true;
+  } else {
+    return false;
   }
-  return false;
 }
 
 void
@@ -287,6 +281,13 @@ HeightMapperLayer::updateBounds(
   // get the marking observations
   current = current && getMarkingObservations(observations);
   current_ = current;
+
+  double intermediate_resolution;
+
+  if (!getIntermediateResolution(intermediate_resolution)) {
+    RCLCPP_ERROR(logger_, "Failed to calculate intermediate resolution! Check resolution_ratio parameter > 0");
+    return;
+  }
 
   const uint32_t xs = getSizeInCellsX();
   const uint32_t ys = getSizeInCellsY();
@@ -362,10 +363,6 @@ HeightMapperLayer::updateBounds(
       has_data_map.at(seen_mx).at(seen_my) = true;
 
       float mz = static_cast<float>(pz);
-      // if (!worldToIntermediateMap(pz, mz)) {
-      //   RCLCPP_DEBUG(logger_, "Point out of height map z bounds");
-      //   continue;
-      // }
       
 			if (mz > top_height_map.at<float> (mx, my)) {
         top_height_map.at<float> (mx, my) = mz;
@@ -415,7 +412,7 @@ HeightMapperLayer::updateBounds(
 
       if (num_vals < min_plane_density_ * resolution_ratio_ * resolution_ratio_) continue;
       
-      val /= num_vals;
+      val /= (num_vals * intermediate_resolution);
 
       size_t index = getIndex(mx, my);
       if (val >= max_safe_val_){
