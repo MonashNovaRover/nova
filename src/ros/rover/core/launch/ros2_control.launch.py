@@ -142,12 +142,10 @@ def generate_launch_description():
 
     nodes = [
         control_node,
-        #wheel_velocity_controller,
-        #pivot_position_controller,
-        #joint_broad,
-        #pivot_drive_controller,
-        #strafe_controller,
-        nova_diff_drive_controller,
+        # wheel_velocity_controller,
+        # pivot_position_controller,
+        joint_broad,
+        pivot_drive_controller,
     ]
 
     return LaunchDescription(declared_arguments + nodes)
