@@ -107,12 +107,6 @@ namespace pivot_drive_controller
     controller_interface::return_type PivotDriveController::update(
         const rclcpp::Time & time, const rclcpp::Duration & period)
     {
-//        RCLCPP_INFO(get_node()->get_logger(), "----------------------");
-//        RCLCPP_INFO_STREAM(get_node()->get_logger(), "FLP State: " << registered_left_pivot_handles_.at(0).state.get().get_value());
-//        RCLCPP_INFO_STREAM(get_node()->get_logger(), "FRP State: " << registered_right_pivot_handles_.at(0).state.get().get_value());
-//        RCLCPP_INFO_STREAM(get_node()->get_logger(), "BLP State: " << registered_left_pivot_handles_.at(1).state.get().get_value());
-//        RCLCPP_INFO_STREAM(get_node()->get_logger(), "BRP State: " << registered_right_pivot_handles_.at(1).state.get().get_value());
-
         auto logger = get_node()->get_logger();
         
         if (get_state().id() == State::PRIMARY_STATE_INACTIVE)
@@ -128,9 +122,6 @@ namespace pivot_drive_controller
 
         max_d_theta = params_.max_theta * period.seconds();
 
-//        RCLCPP_INFO_STREAM(logger, "period: " << period.seconds());
-//        RCLCPP_INFO_STREAM(logger, "max_d_theta: " << max_d_theta);
-
         std::shared_ptr<geometry_msgs::msg::TwistStamped> last_twist_command_msg;
         std::shared_ptr<core::msg::DriveInputStamped> last_command_msg;
 
@@ -141,14 +132,10 @@ namespace pivot_drive_controller
 
         core::msg::DriveInputStamped command;
 
-        //std::chrono::milliseconds age_of_last_command = 0;
-
         float target_radius, target_direction;
         angle_offset = atan(params_.steering_track / params_.wheel_base);
 
-        //RCLCPP_INFO(logger, "======================================");
         if (params_.enable_twist_cmd) {
-            //RCLCPP_INFO(logger, "twist_cmd");
             received_twist_msg_ptr_.get(last_twist_command_msg);
 
             if (last_twist_command_msg == nullptr)
@@ -672,7 +659,6 @@ namespace pivot_drive_controller
         odometry_transform_message.transforms.front().header.frame_id = odom_frame_id;
         odometry_transform_message.transforms.front().child_frame_id = base_frame_id;
 
-
         previous_update_timestamp_ = get_node()->get_clock()->now();
         return controller_interface::CallbackReturn::SUCCESS;
     }
@@ -683,13 +669,13 @@ namespace pivot_drive_controller
 
         RCLCPP_INFO(get_node()->get_logger(),"on activate");
         const auto left_drives_result =
-            configure_drive_pivots(true, params_.left_drive_names, registered_left_drive_handles_, drive_feedback_type());
+            configure_drive_pivots(params_.left_drive_names, registered_left_drive_handles_, drive_feedback_type());
         const auto right_drives_result =
-            configure_drive_pivots(true, params_.right_drive_names, registered_right_drive_handles_, drive_feedback_type());
+            configure_drive_pivots(params_.right_drive_names, registered_right_drive_handles_, drive_feedback_type());
         const auto left_pivots_result =
-            configure_drive_pivots(false, params_.left_pivot_names, registered_left_pivot_handles_, pivot_feedback_type());
+            configure_drive_pivots(params_.left_pivot_names, registered_left_pivot_handles_, pivot_feedback_type());
         const auto right_pivots_result =
-            configure_drive_pivots(false, params_.right_pivot_names, registered_right_pivot_handles_, pivot_feedback_type());
+            configure_drive_pivots(params_.right_pivot_names, registered_right_pivot_handles_, pivot_feedback_type());
 
         if (              
 
@@ -753,6 +739,8 @@ namespace pivot_drive_controller
         }
 
         received_drive_input_msg_ptr_.set(std::make_shared<core::msg::DriveInputStamped>());
+        received_twist_msg_ptr_.set(std::make_shared<geometry_msgs::msg::TwistStamped>());
+
         return controller_interface::CallbackReturn::SUCCESS;
     }
 
@@ -771,7 +759,9 @@ namespace pivot_drive_controller
 
         // release the old queue
         std::queue<core::msg::DriveInputStamped> empty;
+        std::queue<geometry_msgs::msg::TwistStamped> empty_twist;
         std::swap(previous_commands_, empty);
+        std::swap(previous_twist_commands_, empty_twist);
 
         registered_left_drive_handles_.clear();
         registered_right_drive_handles_.clear();
@@ -780,10 +770,13 @@ namespace pivot_drive_controller
 
         subscriber_is_active_ = false;
         drive_input_subscriber_.reset();
+        twist_subscriber_.reset();
 
         RCLCPP_DEBUG(get_node()->get_logger(), "reset");
 
         received_drive_input_msg_ptr_.set(nullptr);
+        received_twist_msg_ptr_.set(nullptr);
+
         is_halted = false;
         return true;
     }
@@ -806,13 +799,14 @@ namespace pivot_drive_controller
 
         halt_wheels(registered_left_drive_handles_);
         halt_wheels(registered_right_drive_handles_);
+        halt_wheels(registered_left_pivot_handles_);
+        halt_wheels(registered_right_pivot_handles_);
     }
 
     controller_interface::CallbackReturn PivotDriveController::configure_drive_pivots(
-        bool drive, const std::vector<std::string> & wheel_names,
+        const std::vector<std::string> & wheel_names,
         std::vector<WheelHandle> & registered_handles, const char * feedback_type)
     {
-        //drive -- true or false
         auto logger = get_node()->get_logger();
 
         if (wheel_names.empty())
@@ -842,15 +836,10 @@ namespace pivot_drive_controller
 
             const auto command_handle = std::find_if(
                 command_interfaces_.begin(), command_interfaces_.end(),
-                [&wheel_name, drive](const auto & interface)
+                [&wheel_name, &interface_name](const auto & interface)
                 {
-                if (drive) {
-                    return interface.get_prefix_name() == wheel_name &&
-                            interface.get_interface_name() == HW_IF_VELOCITY;
-                } else {
-                    return interface.get_prefix_name() == wheel_name &&
-                            interface.get_interface_name() == HW_IF_POSITION;
-                }
+                return interface.get_prefix_name() == wheel_name &&
+                        interface.get_interface_name() == interface_name;
                 });
 
             if (command_handle == command_interfaces_.end())

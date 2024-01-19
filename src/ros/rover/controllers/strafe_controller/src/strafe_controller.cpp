@@ -512,13 +512,13 @@ namespace strafe_controller
 
         RCLCPP_INFO(get_node()->get_logger(),"on activate");
         const auto left_drives_result =
-            configure_drive_pivots(true, params_.left_drive_names, registered_left_drive_handles_, drive_feedback_type());
+            configure_drive_pivots(params_.left_drive_names, registered_left_drive_handles_, drive_feedback_type());
         const auto right_drives_result =
-            configure_drive_pivots(true, params_.right_drive_names, registered_right_drive_handles_, drive_feedback_type());
+            configure_drive_pivots(params_.right_drive_names, registered_right_drive_handles_, drive_feedback_type());
         const auto left_pivots_result =
-            configure_drive_pivots(false, params_.left_pivot_names, registered_left_pivot_handles_, pivot_feedback_type());
+            configure_drive_pivots(params_.left_pivot_names, registered_left_pivot_handles_, pivot_feedback_type());
         const auto right_pivots_result =
-            configure_drive_pivots(false, params_.right_pivot_names, registered_right_pivot_handles_, pivot_feedback_type());
+            configure_drive_pivots(params_.right_pivot_names, registered_right_pivot_handles_, pivot_feedback_type());
 
         if (              
 
@@ -583,6 +583,8 @@ namespace strafe_controller
         }
 
         received_drive_input_msg_ptr_.set(std::make_shared<core::msg::DriveInputStamped>());
+        received_twist_msg_ptr_.set(std::make_shared<geometry_msgs::msg::TwistStamped>());
+
         return controller_interface::CallbackReturn::SUCCESS;
     }
 
@@ -602,6 +604,8 @@ namespace strafe_controller
         // release the old queue
         std::queue<core::msg::DriveInputStamped> empty;
         std::swap(previous_commands_, empty);
+        std::queue<geometry_msgs::msg::TwistStamped> empty_twist;
+        std::swap(previous_twist_commands_, empty);
 
         registered_left_drive_handles_.clear();
         registered_right_drive_handles_.clear();
@@ -610,10 +614,11 @@ namespace strafe_controller
 
         subscriber_is_active_ = false;
         drive_input_subscriber_.reset();
-
-        RCLCPP_DEBUG(get_node()->get_logger(), "reset");
+        twist_subscriber_.reset();
 
         received_drive_input_msg_ptr_.set(nullptr);
+        received_twist_msg_ptr_.set(nullptr);
+
         is_halted = false;
         return true;
     }
@@ -636,10 +641,12 @@ namespace strafe_controller
 
         halt_wheels(registered_left_drive_handles_);
         halt_wheels(registered_right_drive_handles_);
+        halt_wheels(registered_left_pivot_handles_);
+        halt_wheels(registered_right_pivot_handles_);
     }
 
     controller_interface::CallbackReturn StrafeController::configure_drive_pivots(
-        bool drive, const std::vector<std::string> & wheel_names,
+        const std::vector<std::string> & wheel_names,
         std::vector<WheelHandle> & registered_handles, const char * feedback_type)
     {
         //drive -- true or false
@@ -672,15 +679,10 @@ namespace strafe_controller
 
             const auto command_handle = std::find_if(
                 command_interfaces_.begin(), command_interfaces_.end(),
-                [&wheel_name, drive](const auto & interface)
+                [&wheel_name, &interface_name](const auto & interface)
                 {
-                if (drive) {
-                    return interface.get_prefix_name() == wheel_name &&
-                            interface.get_interface_name() == HW_IF_VELOCITY;
-                } else {
-                    return interface.get_prefix_name() == wheel_name &&
-                            interface.get_interface_name() == HW_IF_POSITION;
-                }
+                return interface.get_prefix_name() == wheel_name &&
+                        interface.get_interface_name() == interface_name;
                 });
 
             if (command_handle == command_interfaces_.end())
