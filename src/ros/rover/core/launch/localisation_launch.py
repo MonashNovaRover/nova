@@ -71,22 +71,14 @@ def generate_launch_description():
         parameters=[(get_package_share_path("core") / 'params' / 'ukf.yaml').as_posix(), gazebo_odom_params],
     )
 
-    # TODO: Get normal odom working
-    # ukf_localisation_odom = Node(
-    #     condition=IfCondition(AndSubstitution(use_real_odometry)),
-    #     package='robot_localization',
-    #     executable='ukf_node',
-    #     name='ukf_filter_node',
-    #     output='screen',
-    #     parameters=[(get_package_share_path("core") / 'params' / 'ukf.yaml').as_posix(), {"use_sim_time": use_sim_time, "odom0": "/odom"}],
-    # )
     ukf_localisation_odom = Node(
         condition=IfCondition(use_real_odometry),
-        package='tf2_ros',
-        executable='static_transform_publisher',
-        arguments = ['--x', '0', '--y', '0', '--z', '0', '--yaw', '0', '--pitch', '0', '--roll', '0', '--frame-id', 'odom', '--child-frame-id', 'base_link']
+        package='robot_localization',
+        executable='ukf_node',
+        name='ukf_filter_node',
+        output='screen',
+        parameters=[(get_package_share_path("core") / 'params' / 'ukf.yaml').as_posix(), {"use_sim_time": use_sim_time}],
     )
-
     slam_cmd = IncludeLaunchDescription(
         PythonLaunchDescriptionSource((get_package_share_path("core") / 'launch' / 'rtabmap_launch.py').as_posix()),
         launch_arguments={
