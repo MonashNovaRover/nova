@@ -100,7 +100,7 @@ def generate_launch_description():
         package="controller_manager",
         executable="ros2_control_node",
         parameters=[robot_description, controllers], # Deprecated: passing the robot description parameter directly to the control_manager node is deprecated. Use robot_state_publisher instead.
-        arguments=['--ros-args', '--log-level','DEBUG'],
+        arguments=['--ros-args', '--log-level','INFO'],
         output="both" #added - not too sure what it does
     )
 
@@ -130,10 +130,10 @@ def generate_launch_description():
 
     nodes = [
         control_node,
-        #wheel_velocity_controller,
-        #pivot_position_controller,
+        wheel_velocity_controller,
+        pivot_position_controller,
         joint_broad,
-        pivot_drive_controller,
+        # pivot_drive_controller,
     ]
 
     return LaunchDescription(declared_arguments + nodes)
