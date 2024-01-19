@@ -50,17 +50,24 @@ def generate_launch_description():
           'frame_id':'base_link',
           'use_sim_time':use_sim_time,
           'subscribe_depth':True,
-          'use_action_for_goal':True,
           'publish_tf': True,
           'odom_frame_id': 'odom',
           'qos_image':qos,
-          'qos_imu':qos,
+    }
+
+    odom_parameters={
+          'frame_id':'base_link',
+          'use_sim_time':use_sim_time,
+          'subscribe_depth':True,
+          'publish_tf': False,
+          'qos_image':qos,
     }
 
     remappings=[
           ('rgb/image', '/camera/image_raw'),
           ('rgb/camera_info', '/camera/camera_info'),
-          ('depth/image', '/camera/depth/image_raw')]
+          ('depth/image', '/camera/depth/image_raw'),
+          ]
 
     return LaunchDescription([
 
@@ -98,8 +105,8 @@ def generate_launch_description():
 
         Node(
             package='rtabmap_odom', executable='rgbd_odometry', output='screen',
-            parameters=[parameters],
-            remappings=remappings),
+            parameters=[odom_parameters],
+            remappings=remappings + [('odom', 'odom/visual')]),
 
         Node(
             package='rtabmap_viz', executable='rtabmap_viz', output='screen',

@@ -34,6 +34,17 @@ def generate_launch_description():
     use_real_odometry = LaunchConfiguration('use_real_odometry')
     localization = LaunchConfiguration('localization')
 
+    gazebo_odom_params = {
+        "use_sim_time": use_sim_time, 
+        "odom0": "/odom/gazebo",
+        "odom0_relative": False,
+        "odom0_config": [True,  True,  True,  \
+                       True, True, True,      \
+                       True, False, False,      \
+                       False, False, False,      \
+                       False, False, False],
+    }
+
     use_sim_time_arg = DeclareLaunchArgument(
         'use_sim_time',
         default_value='true',
@@ -57,7 +68,7 @@ def generate_launch_description():
         executable='ukf_node',
         name='ukf_filter_node',
         output='screen',
-        parameters=[(get_package_share_path("core") / 'params' / 'ukf.yaml').as_posix(), {"use_sim_time": use_sim_time, "odom0": "/gazebo/odom"}],
+        parameters=[(get_package_share_path("core") / 'params' / 'ukf.yaml').as_posix(), gazebo_odom_params],
     )
 
     # TODO: Get normal odom working
