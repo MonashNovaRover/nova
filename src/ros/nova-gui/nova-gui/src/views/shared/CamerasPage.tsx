@@ -30,13 +30,15 @@ export const CameraPage = () => {
         variant="bordered"
       >
         <Tab title="Extreme Delivery">
-          {cameras.map((camera) => (
-            <CameraComponent
-              cameraName={humanizeString(camera.serial)}
-              camera={camera}
-              key={camera.serial}
-            />
-          ))}
+          <div className="grid grid-cols-3">
+            {cameras.map((camera) => (
+              <CameraComponent
+                cameraName={humanizeString(camera.serial)}
+                camera={camera}
+                key={camera.serial}
+              />
+            ))}
+          </div>
         </Tab>
         <Tab title="Autonomous"></Tab>
         <Tab title="Science"></Tab>

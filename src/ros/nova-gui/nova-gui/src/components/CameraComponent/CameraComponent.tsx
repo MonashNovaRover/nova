@@ -13,7 +13,8 @@ import { StreamingState, useCameraStream } from "./hooks/useCameraStream";
 import { CameraSettingsForm } from "./components/CameraSettingsForm";
 import { Camera } from "../../redux/models/CameraStreamState";
 import CameraVideo from "./components/CameraVideo";
-import { CameraVideo as CamIcon } from "react-bootstrap-icons";
+
+const ASPECT_RATIO = 4 / 3;
 
 export interface CameraComponentProps {
   cameraName: string;
@@ -53,7 +54,7 @@ export const CameraComponent = (props: CameraComponentProps) => {
   }, []);
 
   return (
-    <Card className="m-4 h-[25vh]" ref={cardRef}>
+    <Card className="m-4 h-[41vh] aspect-[4/3] " ref={cardRef}>
       <CameraInfoModal
         {...props}
         isModalOpen={isCameraInfoModalOpen}
