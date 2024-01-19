@@ -18,6 +18,8 @@
 , pluginlib
 , gazebo-ros-pkgs
 , robot-localization
+, nova-costmap-2d
+, navigation2
 }:
 
 buildRosPackage {
@@ -46,6 +48,8 @@ buildRosPackage {
       ros2-controllers
       pluginlib
       robot-localization
-      gazebo-ros-pkgs;
+      gazebo-ros-pkgs
+      nova-costmap-2d
+      navigation2;
   };
 }
