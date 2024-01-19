@@ -18,8 +18,8 @@ controller_manager:
     strafe_controller:
       type: strafe_controller/StrafeController
 
-    diff_drive_controller:
-      type: diff_drive_controller/DiffDriveController
+    nova_diff_drive_controller:
+      type: nova_diff_drive_controller/NovaDiffDriveController
 
     joint_broad:
       type: joint_state_broadcaster/JointStateBroadcaster
@@ -54,7 +54,7 @@ pivot_drive_controller:
     left_pivot_names: ["flp", "blp"]
     right_pivot_names: ["frp", "brp"]
     enable_twist_cmd: false 
-    open_loop: true
+    open_loop: false
 
 strafe_controller:
   ros__parameters:
@@ -65,8 +65,12 @@ strafe_controller:
     enable_twist_cmd: false 
     open_loop: true
 
-diff_drive_controller:
+nova_diff_drive_controller:
   ros__parameters:
-    left_wheel_names: ["flw", "blw"]
-    right_wheel_names: ["frw", "brw"]
-    position_feedback: true 
+    left_drive_names: ["flw", "blw"]
+    right_drive_names: ["frw", "brw"]
+    left_pivot_names: ["flp", "blp"]
+    right_pivot_names: ["frp", "brp"]
+    wheels_per_side: 2
+    wheel_separation: 0.7
+    wheel_radius: 0.15

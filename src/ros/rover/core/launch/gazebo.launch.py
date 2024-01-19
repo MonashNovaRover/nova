@@ -101,10 +101,10 @@ def generate_launch_description():
         arguments=["twist_controller"]
     )
 
-    diff_drive_controller = Node(
+    nova_diff_drive_controller = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["diff_drive_controller"]
+        arguments=["nova_diff_drive_controller"]
     )
 
     joint_broad = Node(
@@ -120,7 +120,7 @@ def generate_launch_description():
         gazebo,
         spawn_entity,
         joint_broad,
-        #pivot_drive_controller,
+        pivot_drive_controller,
         #strafe_controller,
-        diff_drive_controller,
+        #nova_diff_drive_controller,
     ])
