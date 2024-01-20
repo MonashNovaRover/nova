@@ -80,7 +80,7 @@ def generate_launch_description():
     urdf_launch_cmd = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([core_dir, '/launch/urdf_launch.py']),
         condition=IfCondition(launch_robot_desciption),
-        launch_arguments={"model": model}.items()
+        launch_arguments={"model": model, "gazebo": 'true'}.items()
     )
 
     start_gazebo_server_cmd = IncludeLaunchDescription(

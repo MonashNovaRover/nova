@@ -50,10 +50,16 @@ def generate_launch_description():
         arguments=["pivot_joint_trajectory_controller"]
     )
 
+    pivot_drive_controller = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["pivot_drive_controller"]
+    )
+
     urdf_launch_cmd = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([core_dir, '/launch/urdf_launch.py']),
         condition=UnlessCondition(gazebo),
-        launch_arguments={"model": model}.items()
+        launch_arguments={"model": model, "gazebo": 'false'}.items()
     )
 
     joint_broad = Node(
@@ -88,11 +94,9 @@ def generate_launch_description():
     return LaunchDescription([
         gazebo_arg,
         model_arg,
-        wheel_velocity_controller,
-        pivot_joint_trajectory_controller,
         urdf_launch_cmd,
+        pivot_drive_controller,
         joint_broad,
         inputs_processor,
-        driver,
         led_publisher
     ])
