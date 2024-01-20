@@ -39,6 +39,10 @@ For Developing Nova-GUI, the reccomended method of development is using `nova-sh
 
    ```sh
    nova-shell -A env.nova-gui
+
+   # or (currently working better)
+
+   nova-shell -A pkgs.ros.nova-gui
    ```
 
 2. Link in the generated message definitions
@@ -56,5 +60,5 @@ For Developing Nova-GUI, the reccomended method of development is using `nova-sh
    On ros2 terminal (seperate)
 
    ```sh
-   ros2 launch rosbridge_server rosbridge_websockets_launch.xml
+   ros2 launch rosbridge_server rosbridge_websocket_launch.xml
    ```
