@@ -41,6 +41,7 @@
 #include "realtime_tools/realtime_buffer.h"
 #include "realtime_tools/realtime_publisher.h"
 #include "tf2_msgs/msg/tf_message.hpp"
+#include "core/msg/drive_input_stamped.hpp"
 
 #include "nova_diff_drive_controller_parameters.hpp"
 
@@ -130,12 +131,14 @@ protected:
 
   bool subscriber_is_active_ = false;
   rclcpp::Subscription<Twist>::SharedPtr velocity_command_subscriber_ = nullptr;
-  rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr
-    velocity_command_unstamped_subscriber_ = nullptr;
+  rclcpp::Subscription<core::msg::DriveInputStamped>::SharedPtr
+    drive_input_subscriber_ = nullptr;
 
   realtime_tools::RealtimeBox<std::shared_ptr<Twist>> received_velocity_msg_ptr_{nullptr};
+  realtime_tools::RealtimeBox<std::shared_ptr<core::msg::DriveInputStamped>> received_drive_input_msg_ptr_{nullptr};
 
-  std::queue<Twist> previous_commands_;  // last two commands
+  std::queue<Twist> previous_twist_commands_;  // last two commands
+  std::queue<core::msg::DriveInputStamped> previous_commands_;  // last two commands
 
   float angle_offset;
   // speed limiters

@@ -78,3 +78,4 @@ nova_diff_drive_controller:
     steering_track: 0.7
     wheel_base: 0.84
     wheel_radius: 0.15
+    enable_twist_cmd: false
