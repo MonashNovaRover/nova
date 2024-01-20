@@ -5,10 +5,6 @@
 <robot
   name="rover"
   xmlns:xacro="http://www.ros.org/wiki/xacro">
-
-  <xacro:arg name="gazebo" default="false"/>
-  <xacro:arg name="use_mock_hardware" default="false"/>
-
   <!-- Manually added links-->
   <link name="base_link"></link>
   
@@ -16,7 +12,7 @@
     name="chassis">
     <inertial>
       <origin
-        xyz="-4.07696484222422E-05 0.022519682157935 0.208053859288305"
+        xyz="0 0 0"
         rpy="0 0 0" />
       <mass
         value="2.6545367242346" />
@@ -31,7 +27,7 @@
     <visual>
       <origin
         xyz="0 0 0"
-        rpy="0 0 0" />
+        rpy="0 0 ${-pi/2}" />
       <geometry>
         <mesh
           filename="file:///$(find core)/meshes/chassis.STL" />
@@ -44,11 +40,10 @@
     </visual>
     <collision>
       <origin
-        xyz="0 0 0"
+        xyz="-0.15 0 0"
         rpy="0 0 0" />
       <geometry>
-        <mesh
-          filename="file:///$(find core)/meshes/chassis.STL" />
+        <box size="0.4 0.5 0.1"/>
       </geometry>
     </collision>
   </link>
@@ -59,7 +54,7 @@
     <child link="chassis"/>
     <origin 
         xyz="0. -0. 0.38"
-        rpy="0. 0. ${-pi/2}"
+        rpy="0. 0. 0."
     />
   </joint>
 
@@ -81,11 +76,14 @@
     </inertial>
     <visual>
       <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
+        xyz="0.45934 0 0.042036"
+        rpy="-2.8999 -1.4752 ${-pi}" />
       <geometry>
         <mesh
           filename="file:///$(find core)/meshes/left_leg.STL" />
+        <!--cylinder
+          radius="0.05"
+          length="0.9"/-->
       </geometry>
       <material
         name="">
@@ -96,10 +94,13 @@
     <collision>
       <origin
         xyz="0 0 0"
-        rpy="0 0 0" />
+        rpy="0 ${pi/2} 0" />
       <geometry>
-        <mesh
-          filename="file:///$(find core)/meshes/left_leg.STL" />
+        <!--mesh
+          filename="file:///$(find core)/meshes/left_leg.STL" /-->
+        <cylinder
+          radius="0.03"
+          length="0.9"/>
       </geometry>
     </collision>
   </link>
@@ -107,14 +108,14 @@
     name="left_leg_to_chassis"
     type="fixed">
     <origin
-      xyz="-0.38386 0.45934 0.042036"
-      rpy="-2.8999 -1.4752 -1.5708" />
+      xyz="0 0.38386 0"
+      rpy="0 0 0" />
     <parent
       link="chassis" />
     <child
       link="left_leg" />
     <axis
-      xyz="0 0 0" />
+      xyz="0 1 0" />
   </joint>
   <link
     name="front_left_pivot">
@@ -161,7 +162,7 @@
     type="revolute">
     <origin
       xyz="-0.077405 -0.001432 0.024083"
-      rpy="0.087743 -39 1.5438" />
+      rpy="0.087743 -0.54404 1.5438" />
     <parent
       link="left_leg" />
     <child
@@ -273,7 +274,7 @@
     type="revolute">
     <origin
       xyz="-0.0093548 0.20893 0.87956"
-      rpy="0.10777 0.18 1.5292" />
+      rpy="0.10777 -0.54314 1.5292" />
     <parent
       link="left_leg" />
     <child
@@ -391,7 +392,7 @@
     <child
       link="right_leg" />
     <axis
-      xyz="0 0 0" />
+      xyz="0 1 0" />
   </joint>
   <link
     name="front_right_pivot">
@@ -438,7 +439,7 @@
     type="revolute">
     <origin
       xyz="-0.0090629 0.21252 0.87795"
-      rpy="0.087635 0.18 1.507" />
+      rpy="0.087635 -0.54127 1.507" />
     <parent
       link="right_leg" />
     <child
@@ -504,7 +505,7 @@
     <child
       link="front_right_wheel" />
     <axis
-      xyz="-1 0 0" />
+      xyz="1 0 0" />
   </joint>
   <link
     name="back_right_pivot">
@@ -551,7 +552,7 @@
     type="revolute">
     <origin
       xyz="-0.077405 0.0014344 0.024083"
-      rpy="0.087596 -39 1.507" />
+      rpy="0.087596 -0.54128 1.507" />
     <parent
       link="right_leg" />
     <child
@@ -616,18 +617,9 @@
     <child
       link="back_right_wheel" />
     <axis
-      xyz="-1 0 0" />
+      xyz="1 0 0" />
   </joint>
 
-  <xacro:if value="$(arg gazebo)">
-    <xacro:include filename="$(find core)/urdf/gazebo_ros2_control.xacro" />
-  </xacro:if>
-
-  <xacro:unless value="$(arg gazebo)">
-    <xacro:include filename="$(find core)/urdf/ros2_control.xacro" />
-    <xacro:rover_ros2_control use_mock_hardware="$(arg use_mock_hardware)"/>
-  </xacro:unless>
+  <xacro:include filename="ros2_control.xacro" />
   <xacro:include filename="depth_camera.xacro" />
-  <xacro:include filename="p3d.xacro" />
-  <xacro:include filename="imu.xacro" />
 </robot>

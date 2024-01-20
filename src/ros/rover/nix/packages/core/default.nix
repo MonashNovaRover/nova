@@ -16,6 +16,11 @@
 , gazebo-ros2-control
 , ros2-controllers
 , pluginlib
+, gazebo-ros-pkgs
+, robot-localization
+, nova-costmap-2d
+, navigation2
+, rtabmap-ros
 }:
 
 buildRosPackage {
@@ -25,7 +30,7 @@ buildRosPackage {
   src = builtins.path rec {
     name = "core-source";
     path = ../../../core;
-    filter = lib.novaSourceFilter [ ] path;
+    filter = lib.novaSourceFilter [ "!worlds/**" ] path;
   };
 
   nativeBuildInputs = [ ament-cmake rosidl-default-generators ];
@@ -42,6 +47,11 @@ buildRosPackage {
       gazebo-ros
       gazebo-ros2-control
       ros2-controllers
-      pluginlib;
+      pluginlib
+      robot-localization
+      gazebo-ros-pkgs
+      nova-costmap-2d
+      navigation2
+      rtabmap-ros;
   };
 }

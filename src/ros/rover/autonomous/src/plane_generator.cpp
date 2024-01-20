@@ -77,7 +77,7 @@ void save(cv::Mat& img, cv::Mat& img2) {
     cv::imwrite("../debug/cpp_heightmap2.png", img2);
 }
 
-void fit_planes(cv::Mat& heightMap, cv::Mat& incs, int& min_x) {
+void fit_planes(cv::Mat& heightMap, cv::Mat& incs, int min_x) {
     const std::size_t XS = heightMap.rows;
     const std::size_t YS = heightMap.cols;
 
@@ -111,7 +111,6 @@ void fit_planes(cv::Mat& heightMap, cv::Mat& incs, int& min_x) {
             int pixels_in_plane = these_pts.size();
 
             if (pixels_in_plane <= FRACTION_OF_PLANE * pixels_per_plane) continue;
-            min_x = ((int) plane_i < min_x) ? plane_i : min_x;
 
             Vec3 centroid = point_sum / pixels_in_plane;
 
