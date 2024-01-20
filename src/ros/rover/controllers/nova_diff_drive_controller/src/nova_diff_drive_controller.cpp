@@ -337,8 +337,8 @@ controller_interface::return_type NovaDiffDriveController::update(
   for (size_t index = 0; index < static_cast<size_t>(params_.wheels_per_side); ++index)
   {
     //pivots: specific to nova
-    registered_left_pivot_handles_[index].command.get().set_value(angle_offset);
-    registered_right_pivot_handles_[index].command.get().set_value(angle_offset);
+    registered_left_pivot_handles_[index].command.get().set_value(angle_offset * (index == 0 ? 1 : -1));
+    registered_right_pivot_handles_[index].command.get().set_value(angle_offset * (index == 0 ? -1 : 1));
     
     registered_left_drive_handles_[index].command.get().set_value(velocity_left);
     registered_right_drive_handles_[index].command.get().set_value(velocity_right);

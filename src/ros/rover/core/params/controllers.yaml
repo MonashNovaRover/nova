@@ -21,6 +21,9 @@ controller_manager:
     nova_diff_drive_controller:
       type: nova_diff_drive_controller/NovaDiffDriveController
 
+    diff_drive_controller:
+      type: diff_drive_controller/DiffDriveController
+
     joint_broad:
       type: joint_state_broadcaster/JointStateBroadcaster
 
@@ -72,5 +75,6 @@ nova_diff_drive_controller:
     left_pivot_names: ["flp", "blp"]
     right_pivot_names: ["frp", "brp"]
     wheels_per_side: 2
-    wheel_separation: 0.7
+    steering_track: 0.7
+    wheel_base: 0.84
     wheel_radius: 0.15
