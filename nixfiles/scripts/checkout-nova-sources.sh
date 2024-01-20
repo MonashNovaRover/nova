@@ -5,6 +5,7 @@ ROS_REPOS=(
     rover
     cameras2
     gui
+    nova-gui
 )
 
 OTHER_REPOS=(
