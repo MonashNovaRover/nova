@@ -75,7 +75,7 @@ pivot_drive_controller:
     default_value: 0.0,
   }
   max_velocity: {
-    type: bool,
+    type: double,
     default_value: 0.0,
   }
   min_acceleration: {
