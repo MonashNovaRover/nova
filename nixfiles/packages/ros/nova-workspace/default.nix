@@ -9,7 +9,7 @@
 
 , nova-core ? throw "core is needed, but not available!"
 , nova-control ? throw "control is needed, but not available!"
-, nova-autonomous ? throw "autonomous is needed, but not available!"
+# , nova-autonomous ? throw "autonomous is needed, but not available!"
 , nova-electronics ? throw "electronics is needed, but not available!"
 , nova-science ? throw "science is needed, but not available!"
 , nova-cameras2 ? throw "cameras2 is needed, but not available!"
@@ -19,8 +19,11 @@
 , nova-drive ? throw "drive is needed, but not available!"
 , nova-drive-msgs ? throw "drive-msgs is needed, but not available!"
 , nova-blcmd-interfaces ? throw "blcmd-interfaces is needed, but not available!"
+, nova-blcmd-utils ? throw "blcmd-utils is needed, but not available!"
 , nova-arm-interfaces ? throw "arm-interfaces is needed, but not available!"
 , nova-arm ? throw "arm is needed, but not available!"
+, nova-input-msgs ? throw "inputs-msgs is needed, but not available!"
+, nova-inputs ? throw "inputs is needed, but not available!"
 
   # Configuration options
   ## Include graphical applications in the workspace.
@@ -36,7 +39,7 @@
     inherit
       nova-core
       nova-control
-      nova-autonomous
+      # nova-autonomous
       nova-electronics
       nova-science
       nova-cameras2
@@ -45,8 +48,11 @@
       nova-drive
       nova-drive-msgs
       nova-blcmd-interfaces
+      nova-blcmd-utils
       nova-arm-interfaces
-      nova-arm;
+      nova-arm
+      nova-input-msgs
+      nova-inputs;
   }
 
   ## Extra packages to add to the workspace.
