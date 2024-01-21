@@ -16,6 +16,7 @@
 , nova-gui-backend ? throw "gui-backend is needed, but not available!"
 , nova-gui-frontend ? throw "gui-frontend is needed, but not available!"
 , nova-gui-frontend-server ? throw "gui-frontend-server is needed, but not available!"
+, nova-gui ? throw "gui is needed, but not available!"
 
   # Configuration options
   ## Include graphical applications in the workspace.
@@ -36,7 +37,8 @@
       nova-science
       nova-cameras2
       nova-gui-backend
-      nova-gui-frontend;
+      nova-gui-frontend
+      nova-gui;
   }
 
   ## Extra packages to add to the workspace.
