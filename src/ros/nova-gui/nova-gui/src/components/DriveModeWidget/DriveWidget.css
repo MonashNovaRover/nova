@@ -45,33 +45,6 @@
     justify-content: flex-start;
 }
 
-/* Progress bar */
-
-.DriveModeProgress {
-
-}
-
-.DriveModeProgressInnerText {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 1px;
-    top: 0;
-
-    mix-blend-mode: overlay;
-
-    text-shadow: black 0 1pt 5pt;
-
-    overflow: hidden;
-
-    border-radius: var(--nextui-line-height-small);
-    vertical-align: center;
-
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
 /* Drive Widget */
 .DriveWidgetTopGrid {
     display: grid;

@@ -7,7 +7,7 @@ import {
 import React, {ReactNode, useEffect} from "react";
 import '../DriveModeWidget/DriveWidget.css';
 import './WheelTelemetryWidget.css';
-import { DriveProgress } from "../DriveModeWidget/DriveProgress.tsx";
+import { DriveProgress } from "../DriveSpeedWidget/DriveProgress.tsx";
 import {useBifrost} from "../../redux/actions/useBifrostAction";
 import {RosTopics} from "../../ros/rosTopics";
 import {RootState} from "../../redux/RootState";

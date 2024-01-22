@@ -1,4 +1,5 @@
 import { Progress, ProgressProps } from "@nextui-org/react"
+import "./DriveProgress.css";
 
 // Properties for the DriveModeButton component.
 export interface IDriveProgressProps extends ProgressProps {
