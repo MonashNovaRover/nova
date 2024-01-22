@@ -124,6 +124,12 @@ nova_diff_drive_controller:
     default_value: true,
     description: "Subscribe to TwistStamped or DriveInputStamped",
   }
+  use_unstamped_msg: {
+    type: bool,
+    default_value: true,
+    description: "Subscribe to stamped or unstamped messages. Msg type depends on enable_twist_cmd parameter",
+  }
+
   publish_rate: {
     type: double,
     default_value: 50.0, # Hz

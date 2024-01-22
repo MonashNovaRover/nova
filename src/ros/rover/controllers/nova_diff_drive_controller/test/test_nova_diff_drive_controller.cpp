@@ -43,7 +43,7 @@ public:
   std::shared_ptr<geometry_msgs::msg::TwistStamped> getLastReceivedTwist()
   {
     std::shared_ptr<geometry_msgs::msg::TwistStamped> ret;
-    received_velocity_msg_ptr_.get(ret);
+    received_twist_msg_ptr_.get(ret);
     return ret;
   }
 
@@ -59,7 +59,7 @@ public:
     const std::chrono::milliseconds & timeout = std::chrono::milliseconds(500))
   {
     rclcpp::WaitSet wait_set;
-    wait_set.add_subscription(velocity_command_subscriber_);
+    wait_set.add_subscription(twist_subscriber_);
 
     if (wait_set.wait(timeout).kind() == rclcpp::WaitResultKind::Ready)
     {

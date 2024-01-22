@@ -30,8 +30,8 @@
 
 namespace
 {
-constexpr auto DEFAULT_COMMAND_TOPIC_TWIST = "/cmd_vel";
-constexpr auto DEFAULT_COMMAND_TOPIC = "/drive_input";
+constexpr auto DEFAULT_INPUT_TOPIC_TWIST = "/cmd_vel";
+constexpr auto DEFAULT_INPUT_TOPIC = "/drive_input";
 constexpr auto DEFAULT_COMMAND_OUT_TOPIC = "~/cmd_vel_out";
 constexpr auto DEFAULT_ODOMETRY_TOPIC = "~/odom";
 constexpr auto DEFAULT_TRANSFORM_TOPIC = "/tf";
@@ -133,7 +133,7 @@ controller_interface::return_type NovaDiffDriveController::update(
     return controller_interface::return_type::OK;
   }
 
-  std::shared_ptr<Twist> last_twist_command_msg;
+  std::shared_ptr<geometry_msgs::msg::TwistStamped> last_twist_command_msg;
   std::shared_ptr<core::msg::DriveInputStamped> last_command_msg;
 
   double tmp1 = 0.0;
@@ -142,7 +142,8 @@ controller_interface::return_type NovaDiffDriveController::update(
   double & angular_command = tmp2;
 
   if (params_.enable_twist_cmd) {
-    received_velocity_msg_ptr_.get(last_twist_command_msg);
+    RCLCPP_INFO_ONCE(logger, "***Twist control***");
+    received_twist_msg_ptr_.get(last_twist_command_msg);
 
     if (last_twist_command_msg == nullptr)
     {
@@ -160,7 +161,7 @@ controller_interface::return_type NovaDiffDriveController::update(
 
     // command may be limited further by SpeedLimit,
     // without affecting the stored twist command
-    Twist command = *last_twist_command_msg;
+    geometry_msgs::msg::TwistStamped command = *last_twist_command_msg;
     linear_command = command.twist.linear.x;
     angular_command = command.twist.angular.z;
 
@@ -176,16 +177,19 @@ controller_interface::return_type NovaDiffDriveController::update(
 
 
     // Publish limited velocity
-    if (publish_limited_velocity_ && realtime_limited_velocity_publisher_->trylock())
+    if (publish_limited_twist_ && realtime_limited_twist_publisher_->trylock())
     {
-      auto & limited_velocity_command = realtime_limited_velocity_publisher_->msg_;
+      auto & limited_velocity_command = realtime_limited_twist_publisher_->msg_;
       limited_velocity_command.header.stamp = time;
       limited_velocity_command.twist = command.twist;
-      realtime_limited_velocity_publisher_->unlockAndPublish();
+      realtime_limited_twist_publisher_->unlockAndPublish();
     }
 
-  } else
+  } 
+  else
   {
+    RCLCPP_INFO_ONCE(logger, "***DriveInput control***");
+
     received_drive_input_msg_ptr_.get(last_command_msg);
 
     if (last_command_msg == nullptr)
@@ -373,7 +377,7 @@ controller_interface::CallbackReturn NovaDiffDriveController::on_configure(
   odometry_.setVelocityRollingWindowSize(params_.velocity_rolling_window_size);
 
   cmd_vel_timeout_ = std::chrono::milliseconds{static_cast<int>(params_.cmd_vel_timeout * 1000.0)};
-  publish_limited_velocity_ = params_.publish_limited_velocity;
+  publish_limited_twist_ = params_.publish_limited_velocity;
   //use_stamped_vel_ = params_.use_stamped_vel;
 
   limiter_linear_ = SpeedLimiter(
@@ -396,16 +400,16 @@ controller_interface::CallbackReturn NovaDiffDriveController::on_configure(
   // left and right sides are both equal at this point
   params_.wheels_per_side = params_.left_drive_names.size();
 
-  if (publish_limited_velocity_)
+  if (publish_limited_twist_)
   {
-    limited_velocity_publisher_ =
-      get_node()->create_publisher<Twist>(DEFAULT_COMMAND_OUT_TOPIC, rclcpp::SystemDefaultsQoS());
-    realtime_limited_velocity_publisher_ =
-      std::make_shared<realtime_tools::RealtimePublisher<Twist>>(limited_velocity_publisher_);
+    limited_twist_publisher_ =
+      get_node()->create_publisher<geometry_msgs::msg::TwistStamped>(DEFAULT_COMMAND_OUT_TOPIC, rclcpp::SystemDefaultsQoS());
+    realtime_limited_twist_publisher_ =
+      std::make_shared<realtime_tools::RealtimePublisher<geometry_msgs::msg::TwistStamped>>(limited_twist_publisher_);
   }
 
-  const Twist empty_twist;
-  received_velocity_msg_ptr_.set(std::make_shared<Twist>(empty_twist));
+  const geometry_msgs::msg::TwistStamped empty_twist;
+  received_twist_msg_ptr_.set(std::make_shared<geometry_msgs::msg::TwistStamped>(empty_twist));
 
   const core::msg::DriveInputStamped empty_drive_input;
   received_drive_input_msg_ptr_.set(std::make_shared<core::msg::DriveInputStamped>(empty_drive_input));
@@ -414,52 +418,96 @@ controller_interface::CallbackReturn NovaDiffDriveController::on_configure(
   previous_twist_commands_.emplace(empty_twist);
   previous_twist_commands_.emplace(empty_twist);
 
-  velocity_command_subscriber_ = get_node()->create_subscription<Twist>(
-    DEFAULT_COMMAND_TOPIC_TWIST, rclcpp::SystemDefaultsQoS(),
-    [this](const std::shared_ptr<Twist> msg) -> void
-    {
-      if (!subscriber_is_active_)
-      {
-        RCLCPP_WARN(
-          get_node()->get_logger(), "Can't accept new commands. subscriber is inactive");
-        return;
-      }
-      if ((msg->header.stamp.sec == 0) && (msg->header.stamp.nanosec == 0))
-      {
-        RCLCPP_WARN_ONCE(
-          get_node()->get_logger(),
-          "Received TwistStamped with zero timestamp, setting it to current "
-          "time, this message will only be shown once");
-        msg->header.stamp = get_node()->get_clock()->now();
-      }
-      received_velocity_msg_ptr_.set(std::move(msg));
-    });
-
   // Fill last two commands with default constructed commands
   previous_commands_.emplace(empty_drive_input);
   previous_commands_.emplace(empty_drive_input);
 
-  drive_input_subscriber_ = get_node()->create_subscription<core::msg::DriveInputStamped>(
-    DEFAULT_COMMAND_TOPIC, rclcpp::SystemDefaultsQoS(),
-    [this](const std::shared_ptr<core::msg::DriveInputStamped> msg) -> void
-    {
-      if (!subscriber_is_active_)
-      {
-        RCLCPP_WARN(
-          get_node()->get_logger(), "Can't accept new commands. subscriber is inactive");
-        return;
-      }
-      if ((msg->header.stamp.sec == 0) && (msg->header.stamp.nanosec == 0))
-      {
-        RCLCPP_WARN_ONCE(
-          get_node()->get_logger(),
-          "Received TwistStamped with zero timestamp, setting it to current "
-          "time, this message will only be shown once");
-        msg->header.stamp = get_node()->get_clock()->now();
-      }
-      received_drive_input_msg_ptr_.set(std::move(msg));
-    });
+  if (params_.use_unstamped_msg)
+  {
+    RCLCPP_INFO_ONCE(get_node()->get_logger(), "***input: unstamped***");
 
+    twist_unstamped_subscriber_ = get_node()->create_subscription<geometry_msgs::msg::Twist>(
+      DEFAULT_INPUT_TOPIC_TWIST, rclcpp::SystemDefaultsQoS(),
+      [this](const std::shared_ptr<geometry_msgs::msg::Twist> msg) -> void
+      {
+        if (!subscriber_is_active_)
+        {
+          RCLCPP_WARN(
+            get_node()->get_logger(), "Can't accept new commands. subscriber is inactive");
+          return;
+        }
+
+        // Write fake header in the stored stamped command
+        std::shared_ptr<geometry_msgs::msg::TwistStamped> twist_stamped;
+        received_twist_msg_ptr_.get(twist_stamped);
+        twist_stamped->twist = *msg;
+        twist_stamped->header.stamp = get_node()->get_clock()->now();
+      });
+
+    drive_input_unstamped_subscriber_ = get_node()->create_subscription<core::msg::DriveInput>(
+      DEFAULT_INPUT_TOPIC, rclcpp::SystemDefaultsQoS(),
+      [this](const std::shared_ptr<core::msg::DriveInput> msg) -> void
+      {
+        if (!subscriber_is_active_)
+        {
+          RCLCPP_WARN(
+            get_node()->get_logger(), "Can't accept new commands. subscriber is inactive");
+          return;
+        }
+
+        // Write fake header in the stored stamped command
+        std::shared_ptr<core::msg::DriveInputStamped> drive_input_stamped;
+        received_drive_input_msg_ptr_.get(drive_input_stamped);
+        drive_input_stamped->drive_input = *msg;
+        drive_input_stamped->header.stamp = get_node()->get_clock()->now();
+      });
+  }
+  else
+  {
+    RCLCPP_INFO_ONCE(get_node()->get_logger(), "***input: stamped***");
+
+    twist_subscriber_ = get_node()->create_subscription<geometry_msgs::msg::TwistStamped>(
+      DEFAULT_INPUT_TOPIC_TWIST, rclcpp::SystemDefaultsQoS(),
+      [this](const std::shared_ptr<geometry_msgs::msg::TwistStamped> msg) -> void
+      {
+        if (!subscriber_is_active_)
+        {
+          RCLCPP_WARN(
+            get_node()->get_logger(), "Can't accept new commands. subscriber is inactive");
+          return;
+        }
+        if ((msg->header.stamp.sec == 0) && (msg->header.stamp.nanosec == 0))
+        {
+          RCLCPP_WARN_ONCE(
+            get_node()->get_logger(),
+            "Received TwistStamped with zero timestamp, setting it to current "
+            "time, this message will only be shown once");
+          msg->header.stamp = get_node()->get_clock()->now();
+        }
+        received_twist_msg_ptr_.set(std::move(msg));
+      });
+
+    drive_input_subscriber_ = get_node()->create_subscription<core::msg::DriveInputStamped>(
+      DEFAULT_INPUT_TOPIC, rclcpp::SystemDefaultsQoS(),
+      [this](const std::shared_ptr<core::msg::DriveInputStamped> msg) -> void
+      {
+        if (!subscriber_is_active_)
+        {
+          RCLCPP_WARN(
+            get_node()->get_logger(), "Can't accept new commands. subscriber is inactive");
+          return;
+        }
+        if ((msg->header.stamp.sec == 0) && (msg->header.stamp.nanosec == 0))
+        {
+          RCLCPP_WARN_ONCE(
+            get_node()->get_logger(),
+            "Received DriveInputStamped with zero timestamp, setting it to current "
+            "time, this message will only be shown once");
+          msg->header.stamp = get_node()->get_clock()->now();
+        }
+        received_drive_input_msg_ptr_.set(std::move(msg));
+      });
+  }
 
   // initialize odometry publisher and messasge
   odometry_publisher_ = get_node()->create_publisher<nav_msgs::msg::Odometry>(
@@ -600,7 +648,7 @@ controller_interface::CallbackReturn NovaDiffDriveController::on_cleanup(
     return controller_interface::CallbackReturn::ERROR;
   }
 
-  received_velocity_msg_ptr_.set(std::make_shared<Twist>());
+  received_twist_msg_ptr_.set(std::make_shared<geometry_msgs::msg::TwistStamped>());
   received_drive_input_msg_ptr_.set(std::make_shared<core::msg::DriveInputStamped>());
 
   return controller_interface::CallbackReturn::SUCCESS;
@@ -620,7 +668,7 @@ bool NovaDiffDriveController::reset()
   odometry_.resetOdometry();
 
   // release the old queue
-  std::queue<Twist> empty_twist;
+  std::queue<geometry_msgs::msg::TwistStamped> empty_twist;
   std::swap(previous_twist_commands_, empty_twist);
 
   std::queue<core::msg::DriveInputStamped> empty;
@@ -632,10 +680,10 @@ bool NovaDiffDriveController::reset()
   registered_right_pivot_handles_.clear();
 
   subscriber_is_active_ = false;
-  velocity_command_subscriber_.reset();
+  twist_subscriber_.reset();
   drive_input_subscriber_.reset();
 
-  received_velocity_msg_ptr_.set(nullptr);
+  received_twist_msg_ptr_.set(nullptr);
   received_drive_input_msg_ptr_.set(nullptr);
 
   is_halted = false;
