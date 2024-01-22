@@ -19,10 +19,10 @@ export interface IDriveWheelWidgetProps extends CardProps {
 }
 
 // Properties for the DriveWidgetWheelData component.
-export interface IWheelTelemetryWidgetCellProps {
+export interface IWheelTelemetryWidgetCellProps extends CardProps {
   wheelValue: number,
   pivotValue: number,
-  name: ReactNode
+  label: ReactNode
 }
 
 /**
@@ -47,12 +47,12 @@ const WheelTelemetryWidgetCell: React.FC<IWheelTelemetryWidgetCellProps> = (prop
     </DriveProgress>
   );
 
-  console.log(`${props.name} has ${props.pivotValue} and ${props.wheelValue}`);
+  console.log(`${props.label} has ${props.pivotValue} and ${props.wheelValue}`);
 
-  return <Card shadow="sm" className="bg-content2">
+  return <Card shadow="sm" className="bg-content2" {...props}>
     <CardBody className="grid grid-rows-1 grid-cols-4 content-center place-content-stretch">
       <div className="flex flex-col justify-center">
-        <span className="align-middle">{props.name}</span>
+        <span className="align-middle">{props.label}</span>
       </div>
       <div className="flex flex-col gap-2 col-span-3">
         {wheelProgress}
@@ -77,34 +77,47 @@ const WheelTelemetryWidget: React.FC<IDriveWheelWidgetProps> = (props: IDriveWhe
   // The max current of a motor in the wheel, considered 100% on the progress bar, in amps
   const currentMax = 0.45;
 
-  // Names to give to each cell
-  const cellNames = [
-    <>Front<br/>Left</>,
-    <>Front<br/>Right</>,
-    <>Back<br/>Left</>,
-    <>Back<br/>Right</>
-  ]
+  // Props to give to each cell. The order of names matches the order of SingleTelemetry entries in the Telemetry arrays
+  const cellProps : IWheelTelemetryWidgetCellProps[] = [
+    {
+      label: <>Front<br/>Left</>,
+      className: "row-start-1 col-start-1",
+    } as IWheelTelemetryWidgetCellProps,
+    {
+      label: <>Back<br/>Left</>,
+      className: "row-start-2 col-start-1",
+    } as IWheelTelemetryWidgetCellProps,
+    {
+      label: <>Back<br/>Right</>,
+      className: "row-start-2 col-start-2",
+    } as IWheelTelemetryWidgetCellProps,
+    {
+      label: <>Front<br/>Right</>,
+      className: "row-start-1 col-start-2",
+    } as IWheelTelemetryWidgetCellProps,
+  ];
 
-  // Bottom Section of the component for displaying wheel motor telemetry
+  // Bottom Section of the component for displaying wheel and pivot telemetry
   const wheelDataCardBody = (
     <CardBody className="flex flex-col gap-3">
       <div className="grid grid-rows-2 grid-cols-2 gap-2">
-        {cellNames.map((cellName, index) => (
+        {cellProps.map((cellProp, index) => (
           <WheelTelemetryWidgetCell
+            key={index}
             wheelValue={wheelCurrents[index] / currentMax}
             pivotValue={pivotCurrents[index] / currentMax}
-            name={cellName}
+            {...cellProp}
           />
         ))}
       </div>
     </CardBody>
   );
 
-  // Finally, put the two card bodies into a card
+  // Finally, put the body into a card
   return (
     <Card {...props} >
       <CardHeader className="text-h1">
-        Wheel Data
+        Wheel Telemetry
       </CardHeader>
       {wheelDataCardBody}
     </Card>
