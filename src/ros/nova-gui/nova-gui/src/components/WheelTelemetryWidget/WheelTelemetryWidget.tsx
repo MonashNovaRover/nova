@@ -47,12 +47,16 @@ const WheelTelemetryWidgetCell: React.FC<IWheelTelemetryWidgetCellProps> = (prop
     </DriveProgress>
   );
 
+  const label = (
+    <span className="text-sm uppercase tracking-widest text-center text-default-300 text-opacity-80">
+      {props.label}
+    </span>
+  )
+
   return <Card shadow="sm" className="bg-content2" {...props}>
-    <CardBody className="grid grid-rows-1 grid-cols-4 content-center place-content-stretch">
-      <div className="flex flex-col justify-center">
-        <span className="align-middle">{props.label}</span>
-      </div>
-      <div className="flex flex-col gap-2 col-span-3">
+    <CardBody className="pt-1 flex gap-1 font-semibold flex-col content-center">
+      {label}
+      <div className="flex flex-col gap-2 content-center">
         {wheelProgress}
         {pivotProgress}
       </div>
@@ -78,19 +82,19 @@ const WheelTelemetryWidget: React.FC<IDriveWheelWidgetProps> = (props: IDriveWhe
   // Props to give to each cell. The order of names matches the order of SingleTelemetry entries in the Telemetry arrays
   const cellProps : IWheelTelemetryWidgetCellProps[] = [
     {
-      label: <>Front<br/>Left</>,
+      label: <>Front Left</>,
       className: "row-start-1 col-start-1",
     } as IWheelTelemetryWidgetCellProps,
     {
-      label: <>Back<br/>Left</>,
+      label: <>Back Left</>,
       className: "row-start-2 col-start-1",
     } as IWheelTelemetryWidgetCellProps,
     {
-      label: <>Back<br/>Right</>,
+      label: <>Back Right</>,
       className: "row-start-2 col-start-2",
     } as IWheelTelemetryWidgetCellProps,
     {
-      label: <>Front<br/>Right</>,
+      label: <>Front Right</>,
       className: "row-start-1 col-start-2",
     } as IWheelTelemetryWidgetCellProps,
   ];
