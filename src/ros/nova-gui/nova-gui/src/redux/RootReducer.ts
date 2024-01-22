@@ -2,7 +2,7 @@ import BifrostStatusStore from "./store/BifrostStatusStore";
 import {createBifrostStore} from "./store/createBifrostStore";
 import {uiSlice} from "./slices/UIReducer";
 import {RosTopics} from "../ros/rosTopics";
-import {DriveMode} from "../ros/rosMessageTypes.ts";
+import {DriveMode, IRosTelemetry} from "../ros/rosMessageTypes.ts";
 
 export const rootReducer = {
   uiState: uiSlice.reducer,
@@ -19,4 +19,32 @@ export const rootReducer = {
     connected: false,
     handbrake: false
   }),
+  telemetryStore: createBifrostStore(RosTopics.TELEMETRTY, {
+    wheels: [0,0,0,0].map(() => ({
+      bus: "idk",
+      id: 0,
+      rotor_velocity: 0,
+      q_current: 0,
+      rotor_interval: 0,
+      d_current: 0,
+      resolver_position: 0,
+      resolver_velocity: 0,
+      power: 0,
+      voltage: 0,
+      temperature: 0
+    } as IRosTelemetry)),
+    pivots: [0,0,0,0].map(() => ({
+      bus: "idk",
+      id: 0,
+      rotor_velocity: 0,
+      q_current: 0,
+      rotor_interval: 0,
+      d_current: 0,
+      resolver_position: 0,
+      resolver_velocity: 0,
+      power: 0,
+      voltage: 0,
+      temperature: 0
+    } as IRosTelemetry)),
+  })
 };

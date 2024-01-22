@@ -4,10 +4,14 @@ import {
   CardBody,
   CardProps
 } from "@nextui-org/react";
-import React, { ReactNode } from "react";
+import React, {ReactNode, useEffect} from "react";
 import '../DriveModeWidget/DriveWidget.css';
-import './DriveWheelWidget.css';
+import './WheelTelemetryWidget.css';
 import { DriveProgress } from "../DriveModeWidget/DriveProgress.tsx";
+import {useBifrost} from "../../redux/actions/useBifrostAction";
+import {RosTopics} from "../../ros/rosTopics";
+import {RootState} from "../../redux/RootState";
+import {useSelector} from "react-redux";
 
 // Properties for the DriveModeWidget component.
 export interface IDriveWheelWidgetProps extends CardProps {
@@ -15,7 +19,7 @@ export interface IDriveWheelWidgetProps extends CardProps {
 }
 
 // Properties for the DriveWidgetWheelData component.
-export interface IDriveWheelWidgetCellProps {
+export interface IWheelTelemetryWidgetCellProps {
   wheelValue: number,
   pivotValue: number,
   name: ReactNode
@@ -24,7 +28,7 @@ export interface IDriveWheelWidgetCellProps {
 /**
  * A component for displaying the wheel data for the DriveModeWidget
  */
-const DriveWheelWidgetCell: React.FC<IDriveWheelWidgetCellProps> = (props: IDriveWheelWidgetCellProps) => {
+const WheelTelemetryWidgetCell: React.FC<IWheelTelemetryWidgetCellProps> = (props: IWheelTelemetryWidgetCellProps) => {
   const wheelProgress = (
     <DriveProgress size="lg" value={props.wheelValue} maxValue={1} aria-label="Wheel Amount">
       <div className="grid grid-flow-col gap-3 auto-cols-fr text-small">
@@ -43,6 +47,8 @@ const DriveWheelWidgetCell: React.FC<IDriveWheelWidgetCellProps> = (props: IDriv
     </DriveProgress>
   );
 
+  console.log(`${props.name} has ${props.pivotValue} and ${props.wheelValue}`);
+
   return <Card shadow="sm" className="bg-content2">
     <CardBody className="grid grid-rows-1 grid-cols-4 content-center place-content-stretch">
       <div className="flex flex-col justify-center">
@@ -59,18 +65,37 @@ const DriveWheelWidgetCell: React.FC<IDriveWheelWidgetCellProps> = (props: IDriv
 /**
  * A component that displays data for driving the rover.
  */
-const DriveWheelWidget: React.FC<IDriveWheelWidgetProps> = (props: IDriveWheelWidgetProps) => {
+const WheelTelemetryWidget: React.FC<IDriveWheelWidgetProps> = (props: IDriveWheelWidgetProps) => {
+  const bifrost = useBifrost(RosTopics.TELEMETRTY);
+  const pivotCurrents = useSelector((state: RootState) => state.telemetryStore.pivots.map(p => p.q_current));
+  const wheelCurrents = useSelector((state: RootState) => state.telemetryStore.wheels.map(w => w.q_current));
+
+  useEffect(() => {
+    bifrost.syncWithRover();
+  }, [bifrost]);
+
+  // The max current of a motor in the wheel, considered 100% on the progress bar, in amps
+  const currentMax = 0.45;
+
+  // Names to give to each cell
+  const cellNames = [
+    <>Front<br/>Left</>,
+    <>Front<br/>Right</>,
+    <>Back<br/>Left</>,
+    <>Back<br/>Right</>
+  ]
+
   // Bottom Section of the component for displaying wheel motor telemetry
   const wheelDataCardBody = (
     <CardBody className="flex flex-col gap-3">
       <div className="grid grid-rows-2 grid-cols-2 gap-2">
-        <DriveWheelWidgetCell wheelValue={0.2} pivotValue={0.5} name={<>Front<br/>Left</>}/>
-        <DriveWheelWidgetCell wheelValue={0.8} pivotValue={0.5} name={<>Front<br/>Right</>}/>
-
-
-
-        <DriveWheelWidgetCell wheelValue={0.2} pivotValue={0.7} name={<>Back<br/>Left</>}/>
-        <DriveWheelWidgetCell wheelValue={0.5} pivotValue={0.1} name={<>Back<br/>Right</>}/>
+        {cellNames.map((cellName, index) => (
+          <WheelTelemetryWidgetCell
+            wheelValue={wheelCurrents[index] / currentMax}
+            pivotValue={pivotCurrents[index] / currentMax}
+            name={cellName}
+          />
+        ))}
       </div>
     </CardBody>
   );
@@ -86,4 +111,4 @@ const DriveWheelWidget: React.FC<IDriveWheelWidgetProps> = (props: IDriveWheelWi
   )
 };
 
-export default DriveWheelWidget;
+export default WheelTelemetryWidget;

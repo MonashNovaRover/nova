@@ -42,3 +42,22 @@ export interface IRosDriveInfo {
   drive_mode: DriveMode,
   handbrake: boolean
 }
+
+export interface IRosSingleTelemetry {
+  bus: string;
+  id: number;
+  rotor_velocity: number;
+  q_current: number;
+  rotor_interval: number;
+  d_current: number;
+  resolver_position: number;
+  resolver_velocity: number;
+  power: number;
+  voltage: number;
+  temperature: number;
+}
+
+export interface IRosTelemetry {
+  wheels: IRosSingleTelemetry[];
+  pivots: IRosSingleTelemetry[];
+}

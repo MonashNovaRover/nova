@@ -1,7 +1,7 @@
 import { useState } from "react";
 import './DriveWidget.css';
 import DriveWidget from "./DriveWidget";
-import DriveWheelWidget from "../DriveWheelWidget/DriveWheelWidget.tsx";
+import WheelTelemetryWidget from "../WheelTelemetryWidget/WheelTelemetryWidget.tsx";
 import DriveModeWidget from "./DriveModeWidget.tsx";
 
 const DriveWidgetDemo: React.FC = () => {
@@ -25,7 +25,7 @@ const DriveWidgetDemo: React.FC = () => {
                    setDriveModeIndex={setDriveModeIndex}>
       </DriveWidget>
 
-      <DriveWheelWidget className="row-start-2 w-full col-span-2 row-span-1"></DriveWheelWidget>
+      <WheelTelemetryWidget className="row-start-2 w-full col-span-2 row-span-1"></WheelTelemetryWidget>
 
     </div>
 

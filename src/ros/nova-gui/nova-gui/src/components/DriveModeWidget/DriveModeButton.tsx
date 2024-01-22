@@ -27,8 +27,6 @@ export const DriveModeButton: React.FC<IDriveModeButtonProps> =
       `${props.driveModeData.icon.props.className} ${props.iconClassName}`}
     )
 
-
-
   // The inner button element containing the drive mode's icon
   const innerButton = (
     <Button  {...props} aria-label={`${props.driveModeData.name} Mode`}
@@ -57,6 +55,7 @@ export const DriveModeButton: React.FC<IDriveModeButtonProps> =
     </Tooltip>
   );
 
+  // Add a badge to the button for any keybind if not props.hideKeybind
   const badgedButton = (
       <Badge
         isInvisible={props.driveModeData.keybind === undefined || (props.hideKeybind ?? false)}
