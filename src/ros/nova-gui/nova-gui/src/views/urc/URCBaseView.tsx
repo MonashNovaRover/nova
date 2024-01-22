@@ -1,11 +1,5 @@
-import { PoseDataWidget } from "../../components/PoseDataWidget/PoseDataWidget";
-
 const URCBaseView: React.FC = () => {
-  return (
-    <>
-      <PoseDataWidget />
-    </>
-  );
+  return <></>;
 };
 
 export default URCBaseView;

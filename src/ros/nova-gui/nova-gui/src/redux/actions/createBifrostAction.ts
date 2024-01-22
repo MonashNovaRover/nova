@@ -39,12 +39,23 @@ export function createBifrostAction(props: BifrostProps, ros?: Ros) {
     props;
 
   return {
-    _update(
+    _getTopicAction(
       object: RosTopicInterfaces[typeof topic]
     ): () => BifrostActionType<RosTopicInterfaces[typeof topic]> {
       return () => ({
         type: BifrostActionTypes.UPDATE_DATA.toString() + topic.toString(),
         payload: { ...object } as RosTopicInterfaces[typeof topic],
+      });
+    },
+    _getServiceAction(
+      object: RosServiceInterface[typeof service]
+    ): () => BifrostActionType<RosServiceInterface[typeof service]> {
+      return () => ({
+        type:
+          BifrostActionTypes.UPDATE_SERVICE_DATA.toString() +
+          "/" +
+          service.toString(),
+        payload: { ...object } as RosServiceInterface[typeof service],
       });
     },
     _updateBifrostConnectionStatus(connectionStatus: BifrostConnectionStatus) {
@@ -59,21 +70,20 @@ export function createBifrostAction(props: BifrostProps, ros?: Ros) {
         payload: topic,
       });
     },
-    _updateState(object: RosTopicInterfaces[typeof topic]) {
+    _updateTopicState(object: RosTopicInterfaces[typeof topic]) {
       return (dispatch: CustomDispatch<RosTopicInterfaces[typeof topic]>) => {
-        dispatch(this._update(object as RosTopicInterfaces[typeof topic]));
+        dispatch(
+          this._getTopicAction(object as RosTopicInterfaces[typeof topic])
+        );
       };
     },
     _updateServiceState(object: RosServiceInterface[typeof service]) {
       return (
         dispatch: CustomDispatch<RosServiceInterface[typeof service]>
       ) => {
-        dispatch(() => ({
-          type:
-            BifrostActionTypes.UPDATE_SERVICE_DATA.toString +
-            service.toString(),
-          payload: { ...object } as RosServiceInterface[typeof service],
-        }));
+        dispatch(
+          this._getServiceAction(object as RosServiceInterface[typeof service])
+        );
       };
     },
     updateBifrostConnection(connectionStatus: BifrostConnectionStatus) {
@@ -104,7 +114,7 @@ export function createBifrostAction(props: BifrostProps, ros?: Ros) {
         });
 
         rosTopic.on("message", (message: RosTopicInterfaces[typeof topic]) => {
-          this._updateState(message);
+          this._updateTopicState(message);
         });
 
         dispatch(this._updateSubscribedTopics(topic));

@@ -6,6 +6,7 @@ export interface RootState {
   // Essential UI Management States
   uiState: UIState;
   bifrostStatus: BifrostStatus;
+  ipList: string[];
   // Bifrost States. Ros Stores go here
   poseStore: IRosGeometryMsgsPose;
   driveStore: IRosCoreDriveInfo;

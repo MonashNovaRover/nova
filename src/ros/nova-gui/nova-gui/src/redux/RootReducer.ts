@@ -1,11 +1,12 @@
 import BifrostStatusStore from "./store/BifrostStatusStore";
-import { createBifrostStore } from "./store/createBifrostStore";
 import { uiSlice } from "./slices/UIReducer";
-import { RosTopics } from "../ros/topics/rosTopics";
+import { createBifrostStore } from "./store/createBifrostStore";
+import { RosService } from "../ros/services/rosServices";
 
 export const rootReducer = {
   uiState: uiSlice.reducer,
   bifrostStatus: BifrostStatusStore(),
+  ipList: createBifrostStore({ service: RosService.GET_IP_LIST }, []),
   poseStore: createBifrostStore(RosTopics.POSE, {
     orientation: { x: 0, y: 0, z: 0, w: 0 },
     position: { x: 0, y: 0, z: 0 },

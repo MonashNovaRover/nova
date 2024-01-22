@@ -11,4 +11,5 @@ import { RosService } from "./rosServices";
 export const rosServiceMessages = {
   [RosService.NULL_SERVICE]: "",
   [RosService.START_STREAM]: "camera_msgs/CameraOperation",
+  [RosService.GET_IP_LIST]: "camera_msgs/srv/GetIPList",
 };

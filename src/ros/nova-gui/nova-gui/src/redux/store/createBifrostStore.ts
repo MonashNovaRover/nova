@@ -39,7 +39,7 @@ export const createBifrostStore = (props: BifrostProps, initialState: any) => {
   }
 
   if (service !== RosService.NULL_SERVICE) {
-    reducerFunctions[BifrostActionTypes.UPDATE_SERVICE_DATA + service] = (
+    reducerFunctions[BifrostActionTypes.UPDATE_SERVICE_DATA + "/" + service] = (
       _: RosServiceInterface[typeof service],
       action: BifrostActionType<RosServiceInterface[typeof service]>
     ) => {
