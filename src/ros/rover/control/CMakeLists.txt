@@ -133,6 +133,7 @@ install(PROGRAMS
         control/gimbal_cam.py
         control/drive_sim.py
         control/drive_input_stamped_publisher.py
+        control/drive_input_publisher.py
         DESTINATION lib/${PROJECT_NAME}
         )
 
