@@ -1,5 +1,4 @@
-import { CameraOperationMessage } from "../rosTypes";
-import { RosService } from "./rosServices";
+import { RosService } from "./rosService";
 
 interface RosServiceMessage<REQ, RES> {
   request: REQ;
@@ -8,6 +7,4 @@ interface RosServiceMessage<REQ, RES> {
 
 export interface RosServiceInterface {
   [RosService.NULL_SERVICE]: RosServiceMessage<any, any>;
-  [RosService.START_STREAM]: RosServiceMessage<CameraOperationMessage, any>;
-  [RosService.GET_IP_LIST]: RosServiceMessage<any, string[]>;
 }

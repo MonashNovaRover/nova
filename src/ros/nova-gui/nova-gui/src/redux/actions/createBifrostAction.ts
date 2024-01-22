@@ -2,17 +2,17 @@ import { Ros, Service, Topic } from "roslib";
 import { BifrostConnectionStatus } from "../models/BifrostTypes";
 import { RootState } from "../RootState";
 import { RosTopicInterfaces } from "../../ros/topics/rosTopicTypes";
-import { RosTopics } from "../../ros/topics/rosTopics";
+import { RosTopic } from "../../ros/topics/rosTopic";
 import { rosTopicMessages } from "../../ros/topics/rosTopicMessages";
 import { BifrostProps } from "./useBifrostAction";
-import { RosService } from "../../ros/services/rosServices";
+import { RosService } from "../../ros/services/rosService";
 import { rosServiceMessages } from "../../ros/services/rosServiceMessages";
 import { RosServiceInterface } from "../../ros/services/rosServiceTypes";
 import toast from "react-hot-toast";
 
 export enum BifrostActionTypes {
-  UPDATE_DATA = "UPDATE_DATA_",
-  UPDATE_SERVICE_DATA = "UPDATE_SERVICE_DATA",
+  UPDATE_TOPIC_STATE = "UPDATE_TOPIC_STATE",
+  UPDATE_SERVICE_STATE = "UPDATE_SERVICE_STATE",
   INITIATE_CONTACT = "INITIATE_CONTACT",
   CONNECTION_UPDATE = "CONNECTION_UPDATE",
   SUBSCRIBE_TOPIC = "SUBSCRIBE_TOPIC",
@@ -35,15 +35,17 @@ interface CallServiceOptions {
 }
 
 export function createBifrostAction(props: BifrostProps, ros?: Ros) {
-  const { topic = RosTopics.NULL_TOPIC, service = RosService.NULL_SERVICE } =
+  const { topic = RosTopic.NULL_TOPIC, service = RosService.NULL_SERVICE } =
     props;
 
   return {
+    // Private Methods Below. DO NOT USE. I know this isin't a class but helps to keep it private
     _getTopicAction(
       object: RosTopicInterfaces[typeof topic]
     ): () => BifrostActionType<RosTopicInterfaces[typeof topic]> {
       return () => ({
-        type: BifrostActionTypes.UPDATE_DATA.toString() + topic.toString(),
+        type:
+          BifrostActionTypes.UPDATE_TOPIC_STATE.toString() + topic.toString(),
         payload: { ...object } as RosTopicInterfaces[typeof topic],
       });
     },
@@ -52,7 +54,7 @@ export function createBifrostAction(props: BifrostProps, ros?: Ros) {
     ): () => BifrostActionType<RosServiceInterface[typeof service]> {
       return () => ({
         type:
-          BifrostActionTypes.UPDATE_SERVICE_DATA.toString() +
+          BifrostActionTypes.UPDATE_SERVICE_STATE.toString() +
           "/" +
           service.toString(),
         payload: { ...object } as RosServiceInterface[typeof service],
@@ -64,7 +66,7 @@ export function createBifrostAction(props: BifrostProps, ros?: Ros) {
         payload: connectionStatus,
       });
     },
-    _updateSubscribedTopics(topic: RosTopics) {
+    _updateSubscribedTopics(topic: RosTopic) {
       return () => ({
         type: BifrostActionTypes.SUBSCRIBE_TOPIC,
         payload: topic,
@@ -91,16 +93,20 @@ export function createBifrostAction(props: BifrostProps, ros?: Ros) {
         dispatch(this._updateBifrostConnectionStatus(connectionStatus));
       };
     },
+    // Public Methods
+    /**
+     * Synchronizes with a topic by subscribing to it and updating the topic state when a message is received.
+     */
     syncWithTopic() {
       return (
-        dispatch: CustomDispatch<RosTopics>,
+        dispatch: CustomDispatch<RosTopic>,
         getState: () => RootState
       ) => {
         const state = getState();
         if (
           state.bifrostStatus.subscribedTopics.includes(topic) ||
           !ros ||
-          topic === RosTopics.NULL_TOPIC
+          topic === RosTopic.NULL_TOPIC
         )
           return;
 
@@ -120,6 +126,12 @@ export function createBifrostAction(props: BifrostProps, ros?: Ros) {
         dispatch(this._updateSubscribedTopics(topic));
       };
     },
+    /**
+     * Calls a ROS service with the provided request and options.
+     * @param request The request object for the service call.
+     * @param options The options for the service call.
+     * @returns None
+     */
     callService(
       request: RosServiceInterface[typeof service]["request"],
       options: CallServiceOptions = {

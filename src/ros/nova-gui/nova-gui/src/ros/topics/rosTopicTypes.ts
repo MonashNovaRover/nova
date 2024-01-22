@@ -1,4 +1,4 @@
-import { RosTopics } from "./rosTopics";
+import { RosTopic } from "./rosTopic";
 import { IRosGeometryMsgsPose } from "../rosTypes";
 
 /**
@@ -9,6 +9,6 @@ import { IRosGeometryMsgsPose } from "../rosTypes";
  * An Example is Given below to link the Topic RosTopics.DEMO_TOPIC to IRosDemoMessage
  */
 export interface RosTopicInterfaces {
-  [RosTopics.NULL_TOPIC]: undefined;
-  [RosTopics.POSE]: IRosGeometryMsgsPose;
+  [RosTopic.NULL_TOPIC]: undefined;
+  [RosTopic.POSE]: IRosGeometryMsgsPose;
 }

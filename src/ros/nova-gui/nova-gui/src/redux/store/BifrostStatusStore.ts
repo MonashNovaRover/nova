@@ -1,4 +1,4 @@
-import { RosTopics } from "../../ros/topics/rosTopics";
+import { RosTopic } from "../../ros/topics/rosTopic";
 import {
   BifrostActionType,
   BifrostActionTypes,
@@ -23,7 +23,7 @@ export default function BifrostStatusStore() {
     },
     [BifrostActionTypes.SUBSCRIBE_TOPIC]: (
       state: BifrostStatus,
-      action: BifrostActionType<RosTopics>
+      action: BifrostActionType<RosTopic>
     ) => {
       return {
         ...state,

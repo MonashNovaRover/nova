@@ -1,4 +1,4 @@
-import { RosTopics } from "./rosTopics";
+import { RosTopic } from "./rosTopic";
 
 /**
  * This Object maps ROS Topics found in `rosTopics.ts` to Plain ROS Message types

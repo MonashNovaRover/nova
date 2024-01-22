@@ -1,13 +1,13 @@
 import { useDispatch } from "react-redux";
 import { createBifrostAction } from "./createBifrostAction";
 import { bindActionCreators } from "@reduxjs/toolkit";
-import { RosTopics } from "../../ros/topics/rosTopics";
+import { RosTopic } from "../../ros/topics/rosTopic";
 import { useContext } from "react";
 import { RosContext } from "../context/RosContext";
-import { RosService } from "../../ros/services/rosServices";
+import { RosService } from "../../ros/services/rosService";
 
 export interface BifrostProps {
-  topic?: RosTopics;
+  topic?: RosTopic;
   service?: RosService;
 }
 

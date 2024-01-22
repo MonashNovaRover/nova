@@ -6,7 +6,7 @@
  * An Example Topic: 'topics/demo' has been added here as DEMO_TOPIC and used throughout the examples
  */
 
-export enum RosTopics {
+export enum RosTopic {
   // NULL TOPIC to Test Rosbridge Connections
   NULL_TOPIC = "",
   // ROS Topics
