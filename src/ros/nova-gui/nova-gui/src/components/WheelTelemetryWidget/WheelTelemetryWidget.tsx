@@ -47,8 +47,6 @@ const WheelTelemetryWidgetCell: React.FC<IWheelTelemetryWidgetCellProps> = (prop
     </DriveProgress>
   );
 
-  console.log(`${props.label} has ${props.pivotValue} and ${props.wheelValue}`);
-
   return <Card shadow="sm" className="bg-content2" {...props}>
     <CardBody className="grid grid-rows-1 grid-cols-4 content-center place-content-stretch">
       <div className="flex flex-col justify-center">
