@@ -92,19 +92,13 @@ def generate_launch_description():
     strafe_controller = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["strafe_controller"]
-    )
-
-    twist_controller = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["twist_controller"]
+        arguments=["strafe_controller", "--inactive"]
     )
 
     nova_diff_drive_controller = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["nova_diff_drive_controller"]
+        arguments=["nova_diff_drive_controller", "--inactive"]
     )
 
     joint_broad = Node(
@@ -121,6 +115,6 @@ def generate_launch_description():
         spawn_entity,
         joint_broad,
         pivot_drive_controller,
-        #strafe_controller,
-        #nova_diff_drive_controller,
+        strafe_controller,
+        nova_diff_drive_controller,
     ])
