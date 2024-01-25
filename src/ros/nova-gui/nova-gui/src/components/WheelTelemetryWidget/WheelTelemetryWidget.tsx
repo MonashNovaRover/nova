@@ -2,7 +2,8 @@ import {
   Card,
   CardHeader,
   CardBody,
-  CardProps
+  CardProps,
+  Image
 } from "@nextui-org/react";
 import React, {ReactNode, useEffect} from "react";
 import '../DriveModeWidget/DriveWidget.css';
@@ -12,6 +13,8 @@ import {useBifrost} from "../../redux/actions/useBifrostAction";
 import {RosTopics} from "../../ros/rosTopics";
 import {RootState} from "../../redux/RootState";
 import {useSelector} from "react-redux";
+import RoverTopDownImage from "../../assets/rover-top-down.png";
+import {ChevronUp} from "react-feather";
 
 // Properties for the DriveModeWidget component.
 export interface IDriveWheelWidgetProps extends CardProps {
@@ -29,8 +32,14 @@ export interface IWheelTelemetryWidgetCellProps extends CardProps {
  * A component for displaying the wheel data for the DriveModeWidget
  */
 const WheelTelemetryWidgetCell: React.FC<IWheelTelemetryWidgetCellProps> = (props: IWheelTelemetryWidgetCellProps) => {
+
   const wheelProgress = (
-    <DriveProgress size="lg" value={props.wheelValue} maxValue={1} aria-label="Wheel Amount">
+    <DriveProgress size="lg"
+                   value={props.wheelValue}
+                   maxValue={1}
+                   aria-label="Wheel Amount"
+                   autoColor={true}
+                   disableAnimation={true}>
       <div className="grid grid-flow-col gap-3 auto-cols-fr text-small">
         <span>WHEEL</span>
         <span>{`${(props.wheelValue * 100).toFixed(0)}%`}</span>
@@ -39,7 +48,12 @@ const WheelTelemetryWidgetCell: React.FC<IWheelTelemetryWidgetCellProps> = (prop
   );
 
   const pivotProgress = (
-    <DriveProgress size="lg" value={props.pivotValue} maxValue={1} aria-label="Pivot Amount">
+    <DriveProgress size="lg"
+                   value={props.pivotValue}
+                   maxValue={1}
+                   aria-label="Pivot Amount"
+                   autoColor={true}
+                   disableAnimation={true}>
       <div className="grid grid-flow-col gap-3 auto-cols-fr text-small">
         <span>PIVOT</span>
         <span>{`${(props.pivotValue * 100).toFixed(0)}%`}</span>
@@ -69,8 +83,10 @@ const WheelTelemetryWidgetCell: React.FC<IWheelTelemetryWidgetCellProps> = (prop
  */
 const WheelTelemetryWidget: React.FC<IDriveWheelWidgetProps> = (props: IDriveWheelWidgetProps) => {
   const bifrost = useBifrost(RosTopics.TELEMETRTY);
-  const pivotCurrents = useSelector((state: RootState) => state.telemetryStore.pivots.map(p => p.q_current));
-  const wheelCurrents = useSelector((state: RootState) => state.telemetryStore.wheels.map(w => w.q_current));
+  const pivotCurrents = useSelector((state: RootState) => state.telemetryStore.pivots
+      .map(p => p.q_current));
+  const wheelCurrents = useSelector((state: RootState) => state.telemetryStore.wheels
+      .map(w => w.q_current));
 
   useEffect(() => {
     bifrost.syncWithRover();
@@ -91,25 +107,31 @@ const WheelTelemetryWidget: React.FC<IDriveWheelWidgetProps> = (props: IDriveWhe
     } as IWheelTelemetryWidgetCellProps,
     {
       label: <>Back Right</>,
-      className: "row-start-2 col-start-2",
+      className: "row-start-2 col-start-3",
     } as IWheelTelemetryWidgetCellProps,
     {
       label: <>Front Right</>,
-      className: "row-start-1 col-start-2",
+      className: "row-start-1 col-start-3",
     } as IWheelTelemetryWidgetCellProps,
   ];
 
   // Bottom Section of the component for displaying wheel and pivot telemetry
   const wheelDataCardBody = (
     <CardBody className="flex flex-col gap-3">
-      <div className="grid grid-rows-2 grid-cols-2 gap-2">
+      <div className="DriveWheelWidgetGrid gap-2">
+        <div className="DriveWheelWidgetGridImage row-end-3 row-start-1 flex justify-center flex-col align-middle">
+          <span className="text-default-300 text-opacity-80">
+            <ChevronUp size={20}></ChevronUp>
+          </span>
+          <Image className="" src={RoverTopDownImage}></Image>
+        </div>
         {cellProps.map((cellProp, index) => (
-          <WheelTelemetryWidgetCell
-            key={index}
-            wheelValue={wheelCurrents[index] / currentMax}
-            pivotValue={pivotCurrents[index] / currentMax}
-            {...cellProp}
-          />
+            <WheelTelemetryWidgetCell
+                key={index}
+                {...cellProp}
+                wheelValue={wheelCurrents[index] / currentMax}
+                pivotValue={pivotCurrents[index] / currentMax}
+            />
         ))}
       </div>
     </CardBody>
@@ -117,12 +139,12 @@ const WheelTelemetryWidget: React.FC<IDriveWheelWidgetProps> = (props: IDriveWhe
 
   // Finally, put the body into a card
   return (
-    <Card {...props} >
-      <CardHeader className="text-h1">
-        Wheel Telemetry
-      </CardHeader>
-      {wheelDataCardBody}
-    </Card>
+      <Card {...props} >
+        <CardHeader className="text-h1">
+          Wheel Telemetry
+        </CardHeader>
+        {wheelDataCardBody}
+      </Card>
   )
 };
 

@@ -3,15 +3,21 @@ import "./DriveProgress.css";
 
 // Properties for the DriveModeButton component.
 export interface IDriveProgressProps extends ProgressProps {
-
+    // Set to true when you want the color of the bar to change to red for values over 75%
+    autoColor?: boolean
 }
 
 // A button used for selecting a drive mode for the DriveModeWidget
 export const DriveProgress: React.FC<IDriveProgressProps> = (props: IDriveProgressProps) =>
 {
+  // Apply autoColor if applicable
+  const progressAmount = (props.value ?? 0) / (props.maxValue ?? 1);
+  const color = !props.autoColor ? props.color :
+    progressAmount < 0.5 ? (props.color ?? "primary") : progressAmount < 0.75 ? "warning" : "danger";
 
   const progress = (
-    <Progress {...props}
+    <Progress color={color}
+              {...props}
               className={`${props.className} DriveModeProgress`}
               label={undefined}
               valueLabel={undefined}>
@@ -24,6 +30,10 @@ export const DriveProgress: React.FC<IDriveProgressProps> = (props: IDriveProgre
     <div className="relative">
       {progress}
       <div className="DriveModeProgressInnerText">
+        {props.valueLabel}
+        {props.children}
+      </div>
+      <div className="DriveModeProgressInnerTextDoubleUp">
         {props.valueLabel}
         {props.children}
       </div>
