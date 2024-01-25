@@ -54,7 +54,7 @@ install(PROGRAMS
   science/kilns_data_publisher.py
   science/spectrometer_publisher.py
   science/actuator_limit_publisher.py
-  science/ramanspec_server.py
+  science/raman_spec_server.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

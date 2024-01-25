@@ -8,4 +8,5 @@ uint32 shperiod
 uint32 icgperiod
 uint8 average
 ---
+bool isvalid
 uint16[] spectra
