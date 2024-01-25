@@ -1,12 +1,11 @@
 string port
-uint8 filter_select
-uint8 laser_colour
-uint8 stepper_angle
-uint8 mirror_angle
-uint8 pump_mode
-uint32 SH_period
-uint32 ICG_period
+uint8 filterselect
+uint8 lasercolour
+uint8 stepperangle
+uint8 mirrorangle
+uint8 pumpmode
+uint32 shperiod
+uint32 icgperiod
 uint8 average
-bool collection_mode_single
 ---
 uint16[] spectra
