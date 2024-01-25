@@ -30,7 +30,7 @@ from time import sleep
 
 class RamanServer(Node):
     BAUDRATE = 115200
-    MASTERCLOCK = 2000000
+    MASTERCLOCK = 800000
     SPECTRA_SIZE = 3694
     OUTPUT_SIZE = 7388
 
@@ -57,18 +57,20 @@ class RamanServer(Node):
             input[0] = 69
             input[1] = 82
 
+            # min is 8, max is 65535
             input[2] = (request.shperiod >> 24) & 0xff
             input[3] = (request.shperiod >> 16) & 0xff
             input[4] = (request.shperiod >> 8) & 0xff
             input[5] = request.shperiod & 0xff
 
+            # min is 14776, max is 65535
             input[6] = (request.icgperiod >> 24) & 0xff
             input[7] = (request.icgperiod >> 16) & 0xff
             input[8] = (request.icgperiod >> 8) & 0xff
             input[9] = request.icgperiod & 0xff
 
             input[10] = 0  # single collection mode only to fit one request -> one response format
-            input[11] = request.average
+            input[11] = request.average  # min is 1, max is 15
 
             #transmit everything at once (the USB-firmware does not work if all bytes are not transmitted in one go)
             ser.write(input)
