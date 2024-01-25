@@ -35,19 +35,30 @@ Following are the Components that have been developed and can be used for compos
 
 For Developing Nova-GUI, the reccomended method of development is using `nova-shell`, which loads in essential dependencies such as `yarn` and `rosbridge_server`.
 
-```sh
-nova-shell -A env.nova-gui
-```
+1. Enter the shell environment
 
-Alternatively, GUI can be developed on it's own by installing `node` and `yarn` and connecting it to a rosbridge_server (can edit the url which rosbridge listens to on the interface)
+   ```sh
+   nova-shell -A env.nova-gui
 
-```sh
-cd ./nova-gui
-yarn dev
-```
+   # or (currently working better)
 
-On ros2 terminal (seperate)
+   nova-shell -A pkgs.ros.nova-gui
+   ```
 
-```sh
-ros2 launch rosbridge_server rosbridge_websockets_launch.xml
-```
+2. Link in the generated message definitions
+
+   > Run this whenever the included messages change. Nix will always use the
+   > latest version when building the package, which may lead to confusion if
+   > your copy is out of date.
+
+   ```sh
+   ln -sf "$ROS_TS_DEFINITIONS" nova-gui/src/ros/rosMessageTypes.ts
+   ```
+
+3. Start rosbridge
+
+   On ros2 terminal (seperate)
+
+   ```sh
+   ros2 launch rosbridge_server rosbridge_websocket_launch.xml
+   ```

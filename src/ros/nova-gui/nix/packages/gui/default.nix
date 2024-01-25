@@ -1,16 +1,40 @@
 { lib
+, symlinkJoin
+, buildEnv
 , mkYarnPackage
 , rosbridge-server
+, ros-typescript-definitions
+, ros-core
 }:
 
+let
+  # ROS packages for message generation
+  rosMessagePackages = [
+    ros-core
+  ];
+in
 mkYarnPackage {
   name = "gui";
-  
+
   src = builtins.path rec {
     name = "gui";
     path = ../../../nova-gui;
     filter = lib.novaSourceFilter [ ] path;
   };
+
+  ROS_TS_DEFINITIONS = (ros-typescript-definitions.override {
+    typePrefix = "IRos";
+    rosEnv = (buildEnv {
+      wrapPrograms = false;
+      paths = rosMessagePackages;
+    }).overrideAttrs {
+      name = "gui-ros-env";
+    };
+  }) + "/share/ros-typescript-definitions/messages.ts";
+
+  postUnpack = ''
+    ln -s "$ROS_TS_DEFINITIONS" "$sourceRoot/src/ros/rosMessageTypes.ts"
+  '';
 
   buildPhase = ''
     runHook preBuild
@@ -33,5 +57,4 @@ mkYarnPackage {
   passthru.workspacePackages = {
     inherit rosbridge-server;
   };
-
 }

@@ -1,4 +1,4 @@
-import {IRosDriveInfo, IRosPose, IRosTelemetry} from "../ros/rosMessageTypes";
+import { IRosDriveInfo, IRosGeometryMsgsPose, IRosTelemetry } from "../ros/rosMessageTypes";
 import { BifrostStatus } from "./models/BifrostTypes";
 import { UIState } from "./models/UIState";
 
@@ -7,7 +7,7 @@ export interface RootState {
   uiState: UIState;
   bifrostStatus: BifrostStatus;
   // Bifrost States. Ros Stores go here
-  poseStore: IRosPose;
+  poseStore: IRosGeometryMsgsPose;
   driveStore: IRosDriveInfo;
   telemetryStore: IRosTelemetry;
 }
