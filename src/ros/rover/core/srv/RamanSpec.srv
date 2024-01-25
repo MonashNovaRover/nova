@@ -1,9 +1,4 @@
 string port
-uint8 filterselect
-uint8 lasercolour
-uint8 stepperangle
-uint8 mirrorangle
-uint8 pumpmode
 uint32 shperiod
 uint32 icgperiod
 uint8 average
