@@ -11,11 +11,12 @@ import {
 } from "@nextui-org/react";
 import { ChevronDown, Settings } from "react-feather";
 import novaLogo from "../../assets/nova-logo.png";
-import React from "react";
+import React, { useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/RootState";
 import { useUIActions } from "../../redux/actions/useUIActions";
 import { BifrostConnectionStatus } from "../../redux/models/BifrostTypes";
+import ControllerHelpModal from "../../modal/ControllerHelpModal";
 
 const connectionStatusColor: {
   [key: string]: "success" | "warning" | "danger";
@@ -33,11 +34,14 @@ export const NovaNavbar: React.FC = () => {
     (state: RootState) => state.bifrostStatus.connectionStatus
   );
 
+  // State to control the visibility of the modal
+  const [isControllerHelpModalOpen, setControllerHelpModalOpen] = useState(false);
+
   return (
     <Navbar maxWidth="full" isBordered position="static">
       <NavbarContent justify="start">
         <NavbarBrand>
-          <img src={novaLogo} className="w-14"></img>
+          <img src={novaLogo} className="w-14" alt="Nova Logo" />
         </NavbarBrand>
       </NavbarContent>
       <NavbarContent as="div" className="items-center" justify="end">
@@ -90,14 +94,18 @@ export const NovaNavbar: React.FC = () => {
               >
                 URC
               </DropdownItem>
-              <DropdownItem
-                description="Controller Help Section"
-                href="/controllerhelp"
-              >
-                Controller Help
-              </DropdownItem>
             </DropdownMenu>
           </Dropdown>
+        </NavbarItem>
+        <NavbarItem>
+          {/* Separate button for Controller Help */}
+          <Button
+            radius="sm"
+            size="sm"
+            onClick={() => setControllerHelpModalOpen(true)}
+          >
+            Controller Help
+          </Button>
         </NavbarItem>
         <NavbarItem>
           <Button
@@ -110,6 +118,12 @@ export const NovaNavbar: React.FC = () => {
           </Button>
         </NavbarItem>
       </NavbarContent>
+
+      {/* Controller Help Modal */}
+      <ControllerHelpModal
+        isOpen={isControllerHelpModalOpen}
+        onClose={() => setControllerHelpModalOpen(false)}
+      />
     </Navbar>
   );
 };
