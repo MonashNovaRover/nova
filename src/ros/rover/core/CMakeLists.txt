@@ -78,6 +78,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/StringTrigger.srv"
   "srv/DisableBLCMD.srv"
   "srv/GpsOffset.srv"
+  "srv/RamanSpec.srv"
 
   # Action definitions
   DEPENDENCIES std_msgs geometry_msgs nav_msgs
