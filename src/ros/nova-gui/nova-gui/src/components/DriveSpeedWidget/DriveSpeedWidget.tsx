@@ -25,23 +25,20 @@ const DriveSpeedWidget: React.FC<IDriveWidgetProps> = (props: IDriveWidgetProps)
   const driveMultiplier = useSelector((state: RootState) => state.driveStore.multiplier);
 
   const bifrostTelemetry = useBifrost(RosTopics.TELEMETRTY);
-  const averageWheelAngularVelocity = useSelector((state: RootState) =>
+  const wheelsData = useSelector((state: RootState) =>
     state.telemetryStore.wheels
-      .map(w => w.rotor_velocity)
-      .reduce((v, acc) => v + acc, 0)
-    / 4
   );
+  const averageWheelAngularVelocity = wheelsData
+    .map((w) => w.rotor_velocity)
+    .reduce((v: number, acc: number) => v + acc, 0)
+  / 4
 
   // This is the value for 100% from the original wombatx GUI
   const maxAverageWheelAngularVelocity = 0.35;
 
   useEffect(() => {
     bifrostDrive.syncWithRover();
-  }, [bifrostDrive]);
-  useEffect(() => {
-    bifrostDrive.syncWithRover();
-  }, [bifrostDrive]);
-
+  }, [bifrostDrive, bifrostTelemetry]);
 
   // Helper function for creating labels in the driveInfoCardBody
   const createLabelCell = (content: ReactNode) => (
