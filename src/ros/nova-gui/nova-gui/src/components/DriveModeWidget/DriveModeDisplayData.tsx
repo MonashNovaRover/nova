@@ -24,19 +24,19 @@ export const driveModes : IDriveModeDisplayData[] = [
   { 
     name: "Tank", 
     icon: <Image src={Tank} className="w-5 h-5"/>,
-    keybind: "A",
+    keybind: "Y",
     driveMode: DriveMode.TANK
   } as IDriveModeDisplayData,
   { 
     name: "Strafe", 
     icon: <Maximize2 className="StrafeDriveModeIcon"/>, 
-    keybind: "RB",
+    keybind: "LB",
     driveMode: DriveMode.STRAFE
   } as IDriveModeDisplayData,
   { 
     name: "Pivot", 
     icon: <RefreshCw className="PivotDriveModeIcon"/>, 
-    keybind: "X",
+    keybind: "RB",
     driveMode: DriveMode.PIVOT
   } as IDriveModeDisplayData,
 ];
