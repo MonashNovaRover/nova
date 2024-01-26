@@ -26,6 +26,7 @@
 , nova-inputs ? throw "inputs is needed, but not available!"
 , nova-cmd-interfaces ? throw "cmd-interfaces is needed, but not available!"
 , nova-cmd-utils ? throw "cmd-utils is needed, but not available!"
+, nova-excavation-construction ? throw "excavation-construction is needed, but not available!"
 
   # Configuration options
   ## Include graphical applications in the workspace.
@@ -56,7 +57,8 @@
       nova-input-msgs
       nova-inputs
       nova-cmd-interfaces
-      nova-cmd-utils;
+      nova-cmd-utils
+      nova-excavation-construction;
   }
 
   ## Extra packages to add to the workspace.
