@@ -1,5 +1,7 @@
 import {DetailedReactHTMLElement} from "react";
-import {Maximize2, RefreshCw, Truck} from "react-feather";
+import {Maximize2, RefreshCw} from "react-feather";
+import {Image} from "@nextui-org/react";
+import Tank from "../../assets/tank-icon.svg";
 
 // Enum to assign meaning to IRosCoreDriveInfo.drive_mode values
 export enum DriveMode {
@@ -21,7 +23,7 @@ export interface IDriveModeDisplayData {
 export const driveModes : IDriveModeDisplayData[] = [
   { 
     name: "Tank", 
-    icon: <Truck className="w-2 h-2"/>, 
+    icon: <Image src={Tank} className="w-5 h-5"/>,
     keybind: "A",
     driveMode: DriveMode.TANK
   } as IDriveModeDisplayData,
