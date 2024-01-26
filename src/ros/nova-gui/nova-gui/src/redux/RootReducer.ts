@@ -18,7 +18,7 @@ export const rootReducer = {
     connected: false,
     handbrake: false
   }),
-  telemetryStore: createBifrostStore(RosTopics.TELEMETRTY, {
+  telemetryStore: createBifrostStore(RosTopics.TELEMETRY, {
     wheels: [0,0,0,0].map(() => ({
       bus: "idk",
       id: 0,

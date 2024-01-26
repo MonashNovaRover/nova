@@ -12,5 +12,5 @@ export interface RosTopicInterfaces {
   [RosTopics.NULL_TOPIC]: undefined;
   [RosTopics.POSE]: IRosGeometryMsgsPose;
   [RosTopics.DRIVE_INFO]: IRosCoreDriveInfo;
-  [RosTopics.TELEMETRTY]: IRosCoreTelemetry;
+  [RosTopics.TELEMETRY]: IRosCoreTelemetry;
 }

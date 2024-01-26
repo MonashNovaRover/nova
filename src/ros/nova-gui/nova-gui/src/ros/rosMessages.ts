@@ -12,5 +12,5 @@ export const rosMessages = {
   [RosTopics.NULL_TOPIC]: "",
   [RosTopics.POSE]: "geometry_msgs/msg/Pose",
   [RosTopics.DRIVE_INFO]: "core/msg/DriveInfo",
-  [RosTopics.TELEMETRTY]: "core/msg/Telemetry"
+  [RosTopics.TELEMETRY]: "core/msg/Telemetry"
 };

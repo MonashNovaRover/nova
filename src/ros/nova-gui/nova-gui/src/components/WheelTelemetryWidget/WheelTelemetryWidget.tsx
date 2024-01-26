@@ -25,7 +25,7 @@ export interface IDriveWheelWidgetProps extends CardProps {
  * A component that displays wheel telemetry.
  */
 const WheelTelemetryWidget: React.FC<IDriveWheelWidgetProps> = (props: IDriveWheelWidgetProps) => {
-  const bifrost = useBifrost(RosTopics.TELEMETRTY);
+  const bifrost = useBifrost(RosTopics.TELEMETRY);
 
   const pivots = useSelector((state: RootState) => state.telemetryStore.pivots)
   const pivotCurrents = pivots.map(p => p.q_current);

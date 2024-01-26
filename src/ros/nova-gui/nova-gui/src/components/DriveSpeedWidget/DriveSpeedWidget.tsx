@@ -24,7 +24,7 @@ const DriveSpeedWidget: React.FC<IDriveWidgetProps> = (props: IDriveWidgetProps)
   const bifrostDrive = useBifrost(RosTopics.DRIVE_INFO);
   const driveMultiplier = useSelector((state: RootState) => state.driveStore.multiplier);
 
-  const bifrostTelemetry = useBifrost(RosTopics.TELEMETRTY);
+  const bifrostTelemetry = useBifrost(RosTopics.TELEMETRY);
   const wheelsData = useSelector((state: RootState) =>
     state.telemetryStore.wheels
   );
