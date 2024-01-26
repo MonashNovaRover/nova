@@ -24,6 +24,8 @@
 , nova-arm ? throw "arm is needed, but not available!"
 , nova-input-msgs ? throw "inputs-msgs is needed, but not available!"
 , nova-inputs ? throw "inputs is needed, but not available!"
+, nova-cmd-interfaces ? throw "cmd-interfaces is needed, but not available!"
+, nova-cmd-utils ? throw "cmd-utils is needed, but not available!"
 
   # Configuration options
   ## Include graphical applications in the workspace.
@@ -52,7 +54,9 @@
       nova-arm-interfaces
       nova-arm
       nova-input-msgs
-      nova-inputs;
+      nova-inputs
+      nova-cmd-interfaces
+      nova-cmd-utils;
   }
 
   ## Extra packages to add to the workspace.
