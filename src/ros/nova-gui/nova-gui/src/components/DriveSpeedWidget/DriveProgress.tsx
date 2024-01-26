@@ -10,14 +10,16 @@ export interface IDriveProgressProps extends ProgressProps {
 // A button used for selecting a drive mode for the DriveModeWidget
 export const DriveProgress: React.FC<IDriveProgressProps> = (props: IDriveProgressProps) =>
 {
+  const {autoColor: autoColor, ...progressProps} = props;
+
   // Apply autoColor if applicable
   const progressAmount = (props.value ?? 0) / (props.maxValue ?? 1);
-  const color = !props.autoColor ? props.color :
+  const color = !autoColor ? props.color :
     progressAmount < 0.5 ? (props.color ?? "primary") : progressAmount < 0.75 ? "warning" : "danger";
 
   const progress = (
     <Progress color={color}
-              {...props}
+              {...progressProps}
               className={`${props.className} DriveModeProgress`}
               label={undefined}
               valueLabel={undefined}>
