@@ -5,12 +5,14 @@
 , rosbridge-server
 , ros-typescript-definitions
 , ros-core
+, nova-core
 }:
 
 let
   # ROS packages for message generation
   rosMessagePackages = [
     ros-core
+    nova-core
   ];
 in
 mkYarnPackage {
