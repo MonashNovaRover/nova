@@ -1,12 +1,11 @@
 import {Card, CardHeader, CardBody, Kbd, CardProps} from "@nextui-org/react";
 import './DriveWidget.css';
-import { driveModes } from "./DriveModeDisplayData";
+import {DriveMode, driveModes} from "./DriveModeDisplayData";
 import { DriveModeButton } from "./DriveModeButton";
 import {useBifrost} from "../../redux/actions/useBifrostAction.ts";
 import {RosTopics} from "../../ros/rosTopics.ts";
 import {useSelector} from "react-redux";
 import {RootState} from "../../redux/RootState.ts";
-import {DriveMode} from "../../ros/rosMessageTypes.ts";
 import {useEffect} from "react";
 
 // Properties for the DriveModeWidget component.
@@ -34,7 +33,7 @@ const DriveModeWidget: React.FC<IDriveModeWidgetProps> = (props: IDriveModeWidge
   // Finally, put the two card bodies into a card
   return (
     <Card {...props}>
-      <CardHeader>Drive Mode</CardHeader>
+      <CardHeader className="pb-0">Drive Mode</CardHeader>
       <CardBody className="flex justify-center flex-col content-center">
         <div>
           <div className="grid grid-flow-col gap-3 auto-cols-fr">

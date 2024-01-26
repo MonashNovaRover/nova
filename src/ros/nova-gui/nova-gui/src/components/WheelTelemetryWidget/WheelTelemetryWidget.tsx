@@ -85,7 +85,7 @@ const WheelTelemetryWidget: React.FC<IDriveWheelWidgetProps> = (props: IDriveWhe
   // Finally, put the body into a card
   return (
       <Card {...props} >
-        <CardHeader className="text-h1">
+        <CardHeader className="text-h1 pb-0">
           Wheel Telemetry
         </CardHeader>
         {wheelDataCardBody}

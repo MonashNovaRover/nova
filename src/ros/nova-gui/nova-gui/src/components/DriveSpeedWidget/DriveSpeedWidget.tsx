@@ -70,7 +70,7 @@ const DriveSpeedWidget: React.FC<IDriveWidgetProps> = (props: IDriveWidgetProps)
   // Finally, put the body into a card
   return (
     <Card {...props} >
-      <CardHeader className="text-h1">
+      <CardHeader className="text-h1 pb-0">
         Drive Speed
       </CardHeader>
       {driveInfoCardBody}
