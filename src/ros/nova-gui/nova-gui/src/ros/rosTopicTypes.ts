@@ -1,5 +1,5 @@
 import { RosTopics } from "./rosTopics";
-import { IRosGeometryMsgsPose, IRosDriveInfo, IRosTelemetry } from "./rosMessageTypes";
+import { IRosGeometryMsgsPose, IRosCoreDriveInfo, IRosCoreTelemetry } from "./rosMessageTypes";
 
 /**
  * This Interface exists to link Individual topics to The Messages.
@@ -11,6 +11,6 @@ import { IRosGeometryMsgsPose, IRosDriveInfo, IRosTelemetry } from "./rosMessage
 export interface RosTopicInterfaces {
   [RosTopics.NULL_TOPIC]: undefined;
   [RosTopics.POSE]: IRosGeometryMsgsPose;
-  [RosTopics.DRIVE_INFO]: IRosDriveInfo;
-  [RosTopics.TELEMETRTY]: IRosTelemetry;
+  [RosTopics.DRIVE_INFO]: IRosCoreDriveInfo;
+  [RosTopics.TELEMETRTY]: IRosCoreTelemetry;
 }

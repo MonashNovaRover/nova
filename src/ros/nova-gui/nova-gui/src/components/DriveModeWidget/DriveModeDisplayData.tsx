@@ -1,6 +1,12 @@
 import {DetailedReactHTMLElement} from "react";
 import {Maximize2, RefreshCw, Truck} from "react-feather";
-import {DriveMode} from "../../ros/rosMessageTypes.ts";
+
+// Enum to assign meaning to IRosCoreDriveInfo.drive_mode values
+export enum DriveMode {
+  PIVOT = 1,
+  STRAFE = 2,
+  TANK = 3
+}
 
 // Data required for displaying a drive mode in the GUI
 export interface IDriveModeDisplayData {
@@ -31,11 +37,5 @@ export const driveModes : IDriveModeDisplayData[] = [
     keybind: "X",
     driveMode: DriveMode.PIVOT
   } as IDriveModeDisplayData,
-  /*{
-    name: "Autonomous",
-    shortName: "Auto",
-    icon: <Meh className=""/>, 
-    keybind: "Y"
-  } as IDriveModeDisplayData,*/
 ];
 
