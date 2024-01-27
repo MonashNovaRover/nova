@@ -12,7 +12,6 @@
                     <param name="resolver_reduction">1.33333333333</param>
                     <param name="clock_rate">100000000</param>
                     <param name="revolution_pulses">8192</param>
-                    <param name="mock">true</param>
                 </hardware>
             </xacro:unless>
             <xacro:if value="${use_mock_hardware}">
@@ -48,7 +47,6 @@
                     <param name="resolver_reduction">1.33333333333</param>
                     <param name="clock_rate">100000000</param>
                     <param name="revolution_pulses">8192</param>
-                    <param name="mock">true</param>
                 </hardware>
             </xacro:unless>
             <xacro:if value="${use_mock_hardware}">
@@ -87,7 +85,6 @@
                     <param name="resolver_reduction">1.33333333333</param>
                     <param name="clock_rate">100000000</param>
                     <param name="revolution_pulses">8192</param>
-                    <param name="mock">true</param> 
                 </hardware>
             </xacro:unless>
             <xacro:if value="${use_mock_hardware}">
@@ -125,7 +122,6 @@
                     <param name="resolver_reduction">1.33333333333</param>
                     <param name="clock_rate">100000000</param>
                     <param name="revolution_pulses">8192</param>
-                    <param name="mock">true</param>
                 </hardware>
             </xacro:unless>
             <xacro:if value="${use_mock_hardware}">
@@ -163,7 +159,6 @@
 		    <param name="resolver_reduction">1.33333333333</param>
                     <param name="clock_rate">100000000</param>
                     <param name="revolution_pulses">8192</param>
-                    <param name="mock">true</param>
                 </hardware>
             </xacro:unless>
             <xacro:if value="${use_mock_hardware}">
@@ -204,7 +199,6 @@
                     <param name="resolver_reduction">1.33333333333</param>
                     <param name="clock_rate">100000000</param>
                     <param name="revolution_pulses">8192</param>
-                    <param name="mock">true</param>
                 </hardware>
             </xacro:unless>
             <xacro:if value="${use_mock_hardware}">
@@ -247,7 +241,7 @@
                     <param name="resolver_reduction">1.33333333333</param>
                     <param name="clock_rate">100000000</param>
                     <param name="revolution_pulses">8192</param>
-                    <param name="mock">true</param>
+                    <param name="reversed">true</param>
                 </hardware>
             </xacro:unless>
             <xacro:if value="${use_mock_hardware}">
@@ -289,7 +283,7 @@
                     <param name="resolver_reduction">1.33333333333</param>
                     <param name="clock_rate">100000000</param>
                     <param name="revolution_pulses">8192</param>
-                    <param name="mock">true</param>
+                    <param name="reversed">true</param>
                 </hardware>
             </xacro:unless>
             <xacro:if value="${use_mock_hardware}">
