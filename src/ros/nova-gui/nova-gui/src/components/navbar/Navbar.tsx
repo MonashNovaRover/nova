@@ -8,15 +8,20 @@ import {
   NavbarBrand,
   NavbarContent,
   NavbarItem,
+  Modal,
+  ModalBody,
+  ModalFooter,
+  ModalHeader,
+  ModalContent
 } from "@nextui-org/react";
 import { ChevronDown, Settings } from "react-feather";
 import novaLogo from "../../assets/nova-logo.png";
+import controls from "../../assets/controls.svg";
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/RootState";
 import { useUIActions } from "../../redux/actions/useUIActions";
 import { BifrostConnectionStatus } from "../../redux/models/BifrostTypes";
-import ControllerHelpModal from "../../modal/ControllerHelpModal";
 
 const connectionStatusColor: {
   [key: string]: "success" | "warning" | "danger";
@@ -34,8 +39,16 @@ export const NovaNavbar: React.FC = () => {
     (state: RootState) => state.bifrostStatus.connectionStatus
   );
 
-  // State to control the visibility of the modal
-  const [isControllerHelpModalOpen, setControllerHelpModalOpen] = useState(false);
+  // State to control the visibility of the image modal
+  const [isImageModalOpen, setImageModalOpen] = useState(false);
+
+  const openImageModal = () => {
+    setImageModalOpen(true);
+  };
+
+  const closeImageModal = () => {
+    setImageModalOpen(false);
+  };
 
   return (
     <Navbar maxWidth="full" isBordered position="static">
@@ -98,13 +111,9 @@ export const NovaNavbar: React.FC = () => {
           </Dropdown>
         </NavbarItem>
         <NavbarItem>
-          {/* Separate button for Controller Help */}
-          <Button
-            radius="sm"
-            size="sm"
-            onClick={() => setControllerHelpModalOpen(true)}
-          >
-            Controller Help
+          {/* Separate button for displaying an image in a modal */}
+          <Button radius="sm" size="sm" onClick={openImageModal}>
+            Display Image
           </Button>
         </NavbarItem>
         <NavbarItem>
@@ -119,11 +128,20 @@ export const NovaNavbar: React.FC = () => {
         </NavbarItem>
       </NavbarContent>
 
-      {/* Controller Help Modal */}
-      <ControllerHelpModal
-        isOpen={isControllerHelpModalOpen}
-        onClose={() => setControllerHelpModalOpen(false)}
-      />
+      {/* Image Modal */}
+      <Modal isOpen={isImageModalOpen} onOpenChange={closeImageModal}>
+        <ModalContent style={{ maxWidth: '60%', width: 'auto', maxHeight: '70%', height: 'auto' }}>
+          <ModalHeader>Controller Help</ModalHeader>
+          <ModalBody>
+            <img src={controls} alt="Image" />
+          </ModalBody>
+          <ModalFooter>
+            <Button color="primary" onClick={closeImageModal}>
+              Close
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </Navbar>
   );
 };
