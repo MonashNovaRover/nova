@@ -32,9 +32,9 @@
                 <state_interface name="velocity">
                     <param name="initial_value">0.0</param>
                 </state_interface>
-                <state_interface name="position"> 
+                <!-- <state_interface name="position"> 
                     <param name="initial_value">0.0</param>
-                </state_interface>
+                </state_interface> -->
             </joint>
         </ros2_control>
 
@@ -68,9 +68,9 @@
                     <param name="initial_value">0.0</param>
                 </state_interface>
 
-                <state_interface name="position"> 
+                <!-- <state_interface name="position"> 
                     <param name="initial_value">0.0</param>
-                </state_interface>
+                </state_interface> -->
 
 
             </joint>
@@ -106,9 +106,9 @@
                     <param name="initial_value">0.0</param>
                 </state_interface>
 
-                <state_interface name="position"> 
+                <!-- <state_interface name="position"> 
                     <param name="initial_value">0.0</param>
-                </state_interface>
+                </state_interface> -->
 
             </joint>
         </ros2_control>
@@ -143,9 +143,9 @@
                     <param name="initial_value">0.0</param>
                 </state_interface>
 
-                <state_interface name="position"> 
+                <!-- <state_interface name="position"> 
                     <param name="initial_value">0.0</param>
-                </state_interface>
+                </state_interface> -->
 
             </joint>
         </ros2_control>
