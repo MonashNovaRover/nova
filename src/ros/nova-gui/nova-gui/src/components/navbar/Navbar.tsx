@@ -129,7 +129,14 @@ export const NovaNavbar: React.FC = () => {
 
       {/* Image Modal */}
       <Modal isOpen={isImageModalOpen} onOpenChange={closeImageModal}>
-        <ModalContent style={{ maxWidth: '60%', width: 'auto', maxHeight: '72%', height: 'auto' }}>
+        <ModalContent style={{
+          maxWidth: '60%',
+          width: 'auto',
+          maxHeight: '72%',
+          height: 'auto',
+          background: 'dark',
+          padding: '20px'
+        }}>
           <ModalHeader>Controller Help</ModalHeader>
           <ModalBody>
             <img src={controls} alt="Image" />
