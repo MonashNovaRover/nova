@@ -10,11 +10,10 @@ import {
   NavbarItem,
   Modal,
   ModalBody,
-  ModalFooter,
   ModalHeader,
   ModalContent
 } from "@nextui-org/react";
-import { ChevronDown, Settings } from "react-feather";
+import { ChevronDown, Settings, HelpCircle } from "react-feather";
 import novaLogo from "../../assets/nova-logo.png";
 import controls from "../../assets/controls.svg";
 import React, { useState } from "react";
@@ -112,8 +111,8 @@ export const NovaNavbar: React.FC = () => {
         </NavbarItem>
         <NavbarItem>
           {/* Separate button for displaying an image in a modal */}
-          <Button radius="sm" size="sm" onClick={openImageModal}>
-            Display Image
+          <Button isIconOnly radius="sm" size="sm" onClick={openImageModal}>
+          <HelpCircle className="w-4 h-4 " />
           </Button>
         </NavbarItem>
         <NavbarItem>
@@ -130,16 +129,11 @@ export const NovaNavbar: React.FC = () => {
 
       {/* Image Modal */}
       <Modal isOpen={isImageModalOpen} onOpenChange={closeImageModal}>
-        <ModalContent style={{ maxWidth: '60%', width: 'auto', maxHeight: '70%', height: 'auto' }}>
+        <ModalContent style={{ maxWidth: '60%', width: 'auto', maxHeight: '72%', height: 'auto' }}>
           <ModalHeader>Controller Help</ModalHeader>
           <ModalBody>
             <img src={controls} alt="Image" />
           </ModalBody>
-          <ModalFooter>
-            <Button color="primary" onClick={closeImageModal}>
-              Close
-            </Button>
-          </ModalFooter>
         </ModalContent>
       </Modal>
     </Navbar>
