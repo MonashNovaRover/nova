@@ -21,9 +21,6 @@ controller_manager:
     nova_diff_drive_controller:
       type: nova_diff_drive_controller/NovaDiffDriveController
 
-    diff_drive_controller:
-      type: diff_drive_controller/DiffDriveController
-
     joint_broad:
       type: joint_state_broadcaster/JointStateBroadcaster
 
@@ -66,9 +63,10 @@ strafe_controller:
     right_drive_names: ["frw", "brw"]
     left_pivot_names: ["flp", "blp"]
     right_pivot_names: ["frp", "brp"]
-    enable_twist_cmd: true
+    enable_twist_cmd: false
     open_loop: true
-    use_unstamped_msg: true
+    use_unstamped_msg: false
+    max_acceleration: 5.0
 
 nova_diff_drive_controller:
   ros__parameters:
@@ -80,5 +78,8 @@ nova_diff_drive_controller:
     steering_track: 0.7
     wheel_base: 0.84
     wheel_radius: 0.15
-    enable_twist_cmd: true
-    use_unstamped_msg: true 
+    enable_twist_cmd: false
+    use_unstamped_msg: false
+    linear:
+      x:
+        max_acceleration: 5.0

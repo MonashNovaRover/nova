@@ -152,6 +152,10 @@ protected:
 
   rclcpp::Time previous_update_timestamp_{0};
 
+  float target_direction;
+  float max_d_vel;
+  float best_effort_velocity;
+
   // publish rate limiter
   double publish_rate_ = 50.0;
   rclcpp::Duration publish_period_ = rclcpp::Duration::from_nanoseconds(0);

@@ -141,6 +141,9 @@ controller_interface::return_type NovaDiffDriveController::update(
   double & linear_command = tmp1;
   double & angular_command = tmp2;
 
+  max_d_vel = params_.linear.x.max_acceleration * period.seconds();
+
+
   if (params_.enable_twist_cmd) {
     RCLCPP_INFO_ONCE(logger, "***Twist control***");
     received_twist_msg_ptr_.get(last_twist_command_msg);
@@ -220,6 +223,8 @@ controller_interface::return_type NovaDiffDriveController::update(
 
     previous_commands_.pop();
     previous_commands_.emplace(command);
+
+    target_direction = command.drive_input.direction;
   }
 
   previous_update_timestamp_ = time;
@@ -319,26 +324,80 @@ controller_interface::return_type NovaDiffDriveController::update(
     }
   }
 
-
-
-  // Compute wheels velocities:
-  const double velocity_left =
-    (linear_command - angular_command * wheel_separation / 2.0) / left_wheel_radius;
-  const double velocity_right =
-    (linear_command + angular_command * wheel_separation / 2.0) / right_wheel_radius;
+  //set_best_effort_velocity
+  float d_vel = linear_command - best_effort_velocity;
+  if (abs(d_vel) > max_d_vel) {
+    best_effort_velocity += max_d_vel * (d_vel > 0 ? 1 : -1);
+  } else {
+    best_effort_velocity = linear_command;
+  };
 
   angle_offset = atan(params_.steering_track / params_.wheel_base);
-  
-  // Set wheels velocities:
-  for (size_t index = 0; index < static_cast<size_t>(params_.wheels_per_side); ++index)
-  {
-    //pivots: specific to nova
-    registered_left_pivot_handles_[index].command.get().set_value(angle_offset * (index == 0 ? 1 : -1));
-    registered_right_pivot_handles_[index].command.get().set_value(angle_offset * (index == 0 ? -1 : 1));
-    
-    registered_left_drive_handles_[index].command.get().set_value(velocity_left);
-    registered_right_drive_handles_[index].command.get().set_value(velocity_right);
+
+  float radius = angular_command*target_direction;
+  if (radius == INFINITY || radius == -INFINITY || target_direction == 0) {
+      for (size_t index = 0; index < static_cast<size_t>(params_.wheels_per_side); ++index)
+      {
+        registered_left_drive_handles_[index].command.get().set_value(best_effort_velocity);
+        registered_right_drive_handles_[index].command.get().set_value(best_effort_velocity);
+      }
   }
+  else {
+      // Calculate distances from the wheel_base centre to each wheel, and the maximum distance
+      float left_wheel_distances[params_.wheels_per_side];
+      float right_wheel_distances[params_.wheels_per_side];
+      float wheel_x = params_.steering_track / 2;
+      float wheel_y;
+      
+      float max_dist = 0;
+      for (size_t index = 0; index < static_cast<size_t>(params_.wheels_per_side); ++index)
+      {
+        //position of wheel
+        wheel_y = params_.wheel_base / 2 * (index == 0 ? 1 : -1);
+
+        auto wheel_dist = [radius](float x, float y) -> float
+        {
+          return sqrt(pow(radius - x, 2) + pow(y, 2));
+        };
+
+        left_wheel_distances[index] = wheel_dist(-wheel_x, wheel_y);
+        right_wheel_distances[index] = wheel_dist(wheel_x, wheel_y);
+
+        max_dist = std::max({max_dist, left_wheel_distances[index], right_wheel_distances[index]});
+      }
+
+      for (size_t index = 0; index < static_cast<size_t>(params_.wheels_per_side); ++index)
+      {
+        registered_left_drive_handles_[index].command.get().set_value(best_effort_velocity * left_wheel_distances[index] / max_dist);
+        registered_right_drive_handles_[index].command.get().set_value(best_effort_velocity * right_wheel_distances[index] / max_dist);
+
+        registered_left_pivot_handles_[index].command.get().set_value(angle_offset * (index == 0 ? 1 : -1));
+        registered_right_pivot_handles_[index].command.get().set_value(angle_offset * (index == 0 ? -1 : 1));
+      }
+
+      // Modify wheel directions if the turning centre is under the rover wheel_base
+      // Ignore the edge case where the turning centre is exactly below the centre of a wheel.
+      // Does not affect the behaviour in practice
+      if (abs(radius) < wheel_x) {
+          // If the turning centre is...
+          if (radius > -wheel_x && radius <= 0 && target_direction < 0) {
+              // Under the left half of the chassis, reverse the left wheels
+              // Also include cases where we are pivoting left
+              for (size_t index = 0; index < static_cast<size_t>(params_.wheels_per_side); ++index)
+              {
+                registered_left_drive_handles_[index].command.get().set_value(registered_left_drive_handles_[index].state.get().get_value() * -1);
+              }
+          } else if (radius >= 0 && radius < wheel_x && target_direction > 0) {
+              // Under the right half of the chassis, reverse the right wheels
+              // Also include cases where we are pivoting right
+              for (size_t index = 0; index < static_cast<size_t>(params_.wheels_per_side); ++index)
+              {
+                registered_right_drive_handles_[index].command.get().set_value(registered_right_drive_handles_[index].state.get().get_value() * -1);
+              }
+          }
+      }
+  }
+
 
   return controller_interface::return_type::OK;
 }
