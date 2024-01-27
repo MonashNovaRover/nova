@@ -81,6 +81,11 @@ hardware_interface::CallbackReturn BLCMDHardware::on_init(
         mock_ = true;
     }
 
+    auto reversed_search = info_.hardware_parameters.find("reversed");
+    if (reversed_search != info_.hardware_parameters.end() && reversed_search->second == "true"){
+        reversed_multiplier_ = -1;
+    }
+
     revolution_pulses_ = std::stoul(revolution_pulses_search->second);
 
 
@@ -256,7 +261,7 @@ hardware_interface::return_type BLCMDHardware::write(
         case blcmd_hardware::ControlMode::Position:
             if (hw_position_.command.has_value()) {
                 send_scaled<int16_t>(make_can_id(BLCMDSendCommand::DRIVE_POSITION),
-                                     hw_position_.command.value(), hw_position_.max);
+                                     hw_position_.command.value() * reversed_multiplier_, hw_position_.max);
             } else {
                 RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName), "No position command");
                 return hardware_interface::return_type::ERROR;
@@ -265,7 +270,7 @@ hardware_interface::return_type BLCMDHardware::write(
         case blcmd_hardware::ControlMode::Velocity:
             if (hw_velocity_.command.has_value()) {
                 send_scaled<int16_t>(make_can_id(BLCMDSendCommand::DRIVE_VELOCITY),
-                                     hw_velocity_.command.value(), hw_velocity_.max);
+                                     hw_velocity_.command.value() * reversed_multiplier_, hw_velocity_.max);
             } else {
                 RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName), "No velocity command");
                 return hardware_interface::return_type::ERROR;
@@ -274,7 +279,7 @@ hardware_interface::return_type BLCMDHardware::write(
         case blcmd_hardware::ControlMode::Effort:
             if (hw_effort_.command.has_value()) {
                 send_scaled<int16_t>(make_can_id(BLCMDSendCommand::DRIVE_CURRENT),
-                                     hw_effort_.command.value(), hw_effort_.max);
+                                     hw_effort_.command.value() * reversed_multiplier_, hw_effort_.max);
             } else {
                 RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName), "No effort command");
                 return hardware_interface::return_type::ERROR;
@@ -458,16 +463,19 @@ bool BLCMDHardware::set_control_interface(
     }
 
     void BLCMDHardware::packet_1_callback(leigh::jcan::Frame frame) {
-    if(hw_velocity_.state.has_value()) {
-        hw_velocity_.state = convert_scaled<int16_t>(&frame.data[0], hw_velocity_.max)*hw_velocity_.max;
+        if(hw_velocity_.state.has_value()) {
 
-    }
-    if(hw_effort_.state.has_value()) hw_effort_.state = convert_scaled<int16_t>(&frame.data[2], hw_effort_.max);
+            hw_velocity_.state = convert_scaled<int16_t>(&frame.data[0], hw_velocity_.max) * hw_velocity_.max * reversed_multiplier_;
+
+        }
+        if(hw_effort_.state.has_value()) {
+            hw_effort_.state = convert_scaled<int16_t>(&frame.data[2], hw_effort_.max) * reversed_multiplier_;
+        }
     }
 
     void BLCMDHardware::packet_3_callback(leigh::jcan::Frame frame) {
-        if(hw_position_.state.has_value()) hw_position_.state = convert_scaled<int16_t>(&frame.data[0], hw_position_.max)*
-                hw_position_.resolver_reduction;
+        if(hw_position_.state.has_value()) hw_position_.state = convert_scaled<int16_t>(&frame.data[0], hw_position_.max) *
+                hw_position_.resolver_reduction * reversed_multiplier_;
     }
 
     template<typename T>
