@@ -14,7 +14,6 @@
                     <param name="revolution_pulses">8192</param>
                     <param name="min_interval">122</param>
                     <param name="gear_ratio">36.0</param>
-                    <param name="mock">true</param>
                 </hardware>
             </xacro:unless>
             <xacro:if value="${use_mock_hardware}">
@@ -25,8 +24,8 @@
             </xacro:if>
 
             <joint name="flw">
-                <command_interface name="velocity">
-                   <param name="max">1.0</param>
+		<command_interface name="velocity">
+                    <param name="max">1</param>
                 </command_interface>
 
                 <command_interface name="effort">
@@ -53,7 +52,6 @@
                     <param name="revolution_pulses">8192</param>
                     <param name="min_interval">122</param>
                     <param name="gear_ratio">36.0</param>
-                    <param name="mock">true</param>
                 </hardware>
             </xacro:unless>
             <xacro:if value="${use_mock_hardware}">
@@ -65,8 +63,9 @@
 
             <joint name="blw">
                 <command_interface name="velocity">
-                    <param name="max">1.0</param>
+                    <param name="max">1</param>
                 </command_interface>
+
 
                 <command_interface name="effort">
                     <param name="max">1</param>
@@ -95,7 +94,6 @@
                     <param name="revolution_pulses">8192</param>
                     <param name="min_interval">122</param>
                     <param name="gear_ratio">36.0</param>
-                    <param name="mock">true</param>
                 </hardware>
             </xacro:unless>
             <xacro:if value="${use_mock_hardware}">
@@ -107,7 +105,7 @@
 
             <joint name="brw">
                 <command_interface name="velocity">
-                    <param name="max">1.0</param>
+                    <param name="max">1</param>
                 </command_interface>
 
                 <command_interface name="effort">
@@ -136,7 +134,6 @@
                     <param name="revolution_pulses">8192</param>
                     <param name="min_interval">122</param>
                     <param name="gear_ratio">36.0</param>
-                    <param name="mock">true</param>
                 </hardware>
             </xacro:unless>
             <xacro:if value="${use_mock_hardware}">
@@ -148,7 +145,7 @@
 
             <joint name="frw">
                 <command_interface name="velocity">
-                    <param name="max">1.0</param>
+                    <param name="max">1</param>
                 </command_interface>
 
                 <command_interface name="effort">
@@ -177,7 +174,6 @@
                     <param name="revolution_pulses">8192</param>
                     <param name="min_interval">233</param>
                     <param name="gear_ratio">36.0</param>
-                    <param name="mock">true</param>
                 </hardware>
             </xacro:unless>
             <xacro:if value="${use_mock_hardware}">
@@ -221,7 +217,8 @@
                     <param name="revolution_pulses">8192</param>
                     <param name="min_interval">233</param>
                     <param name="gear_ratio">36.0</param>
-                    <param name="mock">true</param>
+		    <param name="revolution_pulses">8192</param>
+	            <param name="reversed">true</param>
                 </hardware>
             </xacro:unless>
             <xacro:if value="${use_mock_hardware}">
@@ -268,7 +265,6 @@
                     <param name="reversed">true</param>
                     <param name="min_interval">233</param>
                     <param name="gear_ratio">36.0</param>
-                    <param name="mock">true</param>
                 </hardware>
             </xacro:unless>
             <xacro:if value="${use_mock_hardware}">
@@ -314,7 +310,6 @@
                     <param name="reversed">true</param>
                     <param name="min_interval">233</param>
                     <param name="gear_ratio">36.0</param>
-                    <param name="mock">true</param>
                 </hardware>
             </xacro:unless>
             <xacro:if value="${use_mock_hardware}">

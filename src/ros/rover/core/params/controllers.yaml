@@ -1,6 +1,6 @@
 controller_manager:
   ros__parameters:
-    update_rate: 5 
+    update_rate: 20 
     use_sim_time: false
 
     wheel_velocity_controller:
@@ -62,6 +62,7 @@ pivot_drive_controller:
     enable_twist_cmd: false
     open_loop: false
     use_unstamped_msg: false
+    max_theta: 3.56
 
 strafe_controller:
   ros__parameters:
