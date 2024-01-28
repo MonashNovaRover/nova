@@ -9,9 +9,8 @@ import {
   NavbarContent,
   NavbarItem,
 } from "@nextui-org/react";
-import { ChevronDown, Settings } from "react-feather";
+import { ChevronDown, Settings, HelpCircle } from "react-feather";
 import novaLogo from "../../assets/nova-logo.png";
-import React from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/RootState";
 import { useUIActions } from "../../redux/actions/useUIActions";
@@ -27,17 +26,20 @@ const connectionStatusColor: {
 
 export const NovaNavbar: React.FC = () => {
   const uiActions = useUIActions();
-  // const rosUrl = useSelector((state: RootState) => state.uiState.rosUrl);
+
 
   const bifrostStatus = useSelector(
     (state: RootState) => state.bifrostStatus.connectionStatus
   );
 
+  // State to control the visibility of the image modal
+
+
   return (
     <Navbar maxWidth="full" isBordered position="static">
       <NavbarContent justify="start">
         <NavbarBrand>
-          <img src={novaLogo} className="w-14"></img>
+          <img src={novaLogo} className="w-14" alt="Nova Logo" />
         </NavbarBrand>
       </NavbarContent>
       <NavbarContent as="div" className="items-center" justify="end">
@@ -92,6 +94,17 @@ export const NovaNavbar: React.FC = () => {
               </DropdownItem>
             </DropdownMenu>
           </Dropdown>
+        </NavbarItem>
+        <NavbarItem>
+          {/*Controller Help Modal*/}
+          <Button 
+            isIconOnly 
+            radius="sm" 
+            size="sm"
+            variant="shadow"
+            onClick={() => uiActions.setControllerHelpModal(true)}>
+            <HelpCircle className="w-4 h-4 " />
+          </Button>
         </NavbarItem>
         <NavbarItem>
           <Button

@@ -6,12 +6,18 @@ export function useUIActions() {
 
   return {
     updateROSurl(rosUrl: string) {
-      dispatch({ type: UIActions.URL_UPDATE, payload: rosUrl });
+      dispatch({ type: UIActions.URL_UPDATE.toString(), payload: rosUrl });
     },
     setSettingsModal(settingsModalOpen: boolean) {
       dispatch({
-        type: UIActions.MODAL_UPDATE,
+        type: UIActions.SETTINGS_MODAL_UPDATE.toString(),
         payload: settingsModalOpen,
+      });
+    },
+    setControllerHelpModal(controllerHelpModalOpen: boolean) {
+      dispatch({
+        type: UIActions.CONTROLLER_HELP_MODAL_UPDATE.toString(),
+        payload: controllerHelpModalOpen,
       });
     },
   };

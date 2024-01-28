@@ -9,10 +9,19 @@ export const uiSlice = createSlice({
         rosUrl: action.payload,
       };
     },
-    MODAL_UPDATE: (state: UIState, action: PayloadAction<boolean>) => {
+    SETTINGS_MODAL_UPDATE: (state: UIState, action: PayloadAction<boolean>) => {
       return {
         ...state,
         settingsModalOpen: action.payload,
+      };
+    },
+    CONTROLLER_HELP_MODAL_UPDATE: (
+      state: UIState,
+      action: PayloadAction<boolean>
+    ) => {
+      return {
+        ...state,
+        controllerHelpModalOpen: action.payload,
       };
     },
   },
