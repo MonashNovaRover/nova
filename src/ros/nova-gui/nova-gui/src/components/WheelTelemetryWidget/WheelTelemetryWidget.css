@@ -20,7 +20,7 @@
 }
 
 .DriveWheelWidgetGridImage * {
-    aspect-ratio: 1;
+    /*aspect-ratio: 1;*/
 
     max-height: 150px;
 }
