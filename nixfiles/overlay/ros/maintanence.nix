@@ -84,7 +84,12 @@ self: super:
         rtabmap-slam = fixRtabmapDependent rosSuper.rtabmap-slam;
         rtabmap-sync = fixRtabmapDependent rosSuper.rtabmap-sync;
         rtabmap-util = fixRtabmapDependent rosSuper.rtabmap-util;
-        rtabmap-viz = fixRtabmapDependent rosSuper.rtabmap-viz;
+        rtabmap-viz = (fixRtabmapDependent rosSuper.rtabmap-viz).overrideAttrs ({ nativeBuildInputs ? [ ], postFixup ? "", ... }: {
+          nativeBuildInputs = nativeBuildInputs ++ [ self.qt5.wrapQtAppsHook ];
+          postFixup = postFixup + ''
+            wrapQtApp "$out/lib/rtabmap_viz/rtabmap_viz"
+          '';
+        });
       }
     ) // (
       let
