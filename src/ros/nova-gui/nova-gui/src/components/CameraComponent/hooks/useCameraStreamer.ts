@@ -17,7 +17,7 @@ export const useCameraStreamer = () => {
   );
 
   const { sendJsonMessage, lastJsonMessage } = useWebSocket<ServerMessage>(
-    "ws://192.168.0.4:8443",
+    "ws://192.168.1.204:8443",
     {
       onOpen: () => {
         sendPeerStatusMessage(CameraStreamerStatus.CONNECTED);

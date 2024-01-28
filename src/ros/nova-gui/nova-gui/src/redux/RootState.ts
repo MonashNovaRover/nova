@@ -1,3 +1,4 @@
+import { IRosGeometryMsgsPose } from "../ros/rosMessageTypes";
 import { BifrostStatus } from "./models/bifrost/BifrostTypes";
 import { CameraStreamerState } from "./models/CameraStreamState";
 import { UIState } from "./models/UIState";
