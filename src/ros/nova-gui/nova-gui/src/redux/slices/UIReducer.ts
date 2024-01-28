@@ -15,7 +15,10 @@ export const uiSlice = createSlice({
         settingsModalOpen: action.payload,
       };
     },
-    CONTROLLER_HELP_MODAL_UPDATE: (state: UIState, action: PayloadAction<boolean>) => {
+    CONTROLLER_HELP_MODAL_UPDATE: (
+      state: UIState,
+      action: PayloadAction<boolean>
+    ) => {
       return {
         ...state,
         controllerHelpModalOpen: action.payload,
