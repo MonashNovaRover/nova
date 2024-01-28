@@ -49,13 +49,13 @@ const WheelTelemetryWidgetCell: React.FC<IWheelTelemetryWidgetCellProps> = (prop
   );
 
   const label = (
-    <span className="text-sm uppercase tracking-widest text-center text-default-300 text-opacity-80">
+    <span className="text-sm uppercase tracking-widest text-center text-default-900 text-opacity-80">
       {props.label}
     </span>
   )
 
-  return <Card shadow="sm" className="bg-content2" {...props}>
-    <CardBody className="pt-1 flex gap-1 font-semibold flex-col content-center">
+  return <Card shadow="sm" {...props} >
+    <CardBody className="pt-1 flex gap-1 font-semibold flex-col content-center bg-content2">
       {label}
       <div className="flex flex-col gap-2 content-center">
         {wheelProgress}
