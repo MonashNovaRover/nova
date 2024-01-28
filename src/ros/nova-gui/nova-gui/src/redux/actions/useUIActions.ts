@@ -10,8 +10,14 @@ export function useUIActions() {
     },
     setSettingsModal(settingsModalOpen: boolean) {
       dispatch({
-        type: UIActions.MODAL_UPDATE,
+        type: UIActions.SETTINGS_MODAL_UPDATE,
         payload: settingsModalOpen,
+      });
+    },
+    setControllerHelpModal(controllerHelpModalOpen: boolean) {
+      dispatch({
+        type: UIActions.CONTROLLER_HELP_MODAL_UPDATE,
+        payload: controllerHelpModalOpen,
       });
     },
   };

@@ -8,15 +8,9 @@ import {
   NavbarBrand,
   NavbarContent,
   NavbarItem,
-  Modal,
-  ModalBody,
-  ModalHeader,
-  ModalContent
 } from "@nextui-org/react";
 import { ChevronDown, Settings, HelpCircle } from "react-feather";
 import novaLogo from "../../assets/nova-logo.png";
-import controls from "../../assets/controls.svg";
-import React, { useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/RootState";
 import { useUIActions } from "../../redux/actions/useUIActions";
@@ -32,22 +26,14 @@ const connectionStatusColor: {
 
 export const NovaNavbar: React.FC = () => {
   const uiActions = useUIActions();
-  // const rosUrl = useSelector((state: RootState) => state.uiState.rosUrl);
+
 
   const bifrostStatus = useSelector(
     (state: RootState) => state.bifrostStatus.connectionStatus
   );
 
   // State to control the visibility of the image modal
-  const [isImageModalOpen, setImageModalOpen] = useState(false);
 
-  const openImageModal = () => {
-    setImageModalOpen(true);
-  };
-
-  const closeImageModal = () => {
-    setImageModalOpen(false);
-  };
 
   return (
     <Navbar maxWidth="full" isBordered position="static">
@@ -110,9 +96,14 @@ export const NovaNavbar: React.FC = () => {
           </Dropdown>
         </NavbarItem>
         <NavbarItem>
-          {/* Separate button for displaying an image in a modal */}
-          <Button isIconOnly radius="sm" size="sm" onClick={openImageModal}>
-          <HelpCircle className="w-4 h-4 " />
+          {/*Controller Help Modal*/}
+          <Button 
+            isIconOnly 
+            radius="sm" 
+            size="sm"
+            variant="shadow"
+            onClick={() => uiActions.setControllerHelpModal(true)}>
+            <HelpCircle className="w-4 h-4 " />
           </Button>
         </NavbarItem>
         <NavbarItem>
@@ -126,23 +117,6 @@ export const NovaNavbar: React.FC = () => {
           </Button>
         </NavbarItem>
       </NavbarContent>
-
-      {/* Image Modal */}
-      <Modal isOpen={isImageModalOpen} onOpenChange={closeImageModal}>
-        <ModalContent style={{
-          maxWidth: '60%',
-          width: 'auto',
-          maxHeight: '72%',
-          height: 'auto',
-          background: 'dark',
-          padding: '20px'
-        }}>
-          <ModalHeader>Controller Help</ModalHeader>
-          <ModalBody>
-            <img src={controls} alt="Image" />
-          </ModalBody>
-        </ModalContent>
-      </Modal>
     </Navbar>
   );
 };
