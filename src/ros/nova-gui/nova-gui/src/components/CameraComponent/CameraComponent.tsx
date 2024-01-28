@@ -14,11 +14,12 @@ import { CameraSettingsForm } from "./components/CameraSettingsForm";
 import { Camera } from "../../redux/models/CameraStreamState";
 import CameraVideo from "./components/CameraVideo";
 
-const ASPECT_RATIO = 4 / 3;
+// const ASPECT_RATIO = 4 / 3;
 
 export interface CameraComponentProps {
   cameraName: string;
   camera: Camera;
+  src?: undefined; //TODO: remove this bs
 }
 
 export const CameraComponent = (props: CameraComponentProps) => {

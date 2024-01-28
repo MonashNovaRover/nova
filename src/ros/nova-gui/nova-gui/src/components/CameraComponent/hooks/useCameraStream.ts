@@ -30,7 +30,7 @@ export const useCameraStream = (
   videoRef: React.MutableRefObject<HTMLVideoElement | null>
 ) => {
   const { sendJsonMessage, lastJsonMessage } = useWebSocket<ServerMessage>(
-    "ws://192.168.0.4:8443",
+    "ws://192.168.1.204:8443",
     {
       onOpen: () => {
         sendSessionStartMessage();
