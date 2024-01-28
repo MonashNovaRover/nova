@@ -13,7 +13,7 @@ const ControllerHelpModal: React.FC = () => {
   return (
     <Modal
       size="5xl"
-      className="dark text-foreground"
+      className="dark text-foreground p-2"
       isOpen={uiState.controllerHelpModalOpen}
       onClose={closeModal}
     >
