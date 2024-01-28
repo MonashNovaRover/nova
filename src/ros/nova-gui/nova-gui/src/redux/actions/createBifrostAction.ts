@@ -66,7 +66,8 @@ export function createBifrostAction(topic: RosTopics, ros?: Ros) {
           messageType: rosMessages[topic],
         });
 
-        rosTopic.subscribe(() => {});
+        rosTopic.subscribe(() => {
+        });
 
         rosTopic.on("message", (message: RosTopicInterfaces[typeof topic]) => {
           this._updateState(message);

@@ -15,6 +15,7 @@ import {useSelector} from "react-redux";
 import RoverTopDownImage from "../../assets/rover-top-down.png";
 import {ChevronUp} from "react-feather";
 import WheelTelemetryWidgetCell, {IWheelTelemetryWidgetCellProps} from "./WheelTelemetryWidgetCell.tsx";
+import {PIVOT_CURRENT_MAX, WHEEL_CURRENT_MAX} from "../../constants";
 
 // Properties for the DriveModeWidget component.
 export interface IDriveWheelWidgetProps extends CardProps {
@@ -28,17 +29,15 @@ const WheelTelemetryWidget: React.FC<IDriveWheelWidgetProps> = (props: IDriveWhe
   const bifrost = useBifrost(RosTopics.TELEMETRY);
 
   const pivots = useSelector((state: RootState) => state.telemetryStore.pivots)
-  const pivotCurrents = pivots.map(p => p.q_current);
+  const pivotCurrents = pivots.map(p => Math.abs(p.q_current));
 
   const wheels = useSelector((state: RootState) => state.telemetryStore.wheels)
-  const wheelCurrents = wheels.map(w => w.q_current);
+  const wheelCurrents = wheels.map(w => Math.abs(w.q_current));
 
   useEffect(() => {
     bifrost.syncWithRover();
   }, [bifrost]);
 
-  // The max current of a motor in the wheel, considered 100% on the progress bar, in amps
-  const currentMax = 0.45;
 
   // Props to give to each cell. The order of names matches the order of SingleTelemetry entries in the Telemetry arrays
   const cellProps : IWheelTelemetryWidgetCellProps[] = [
@@ -74,8 +73,8 @@ const WheelTelemetryWidget: React.FC<IDriveWheelWidgetProps> = (props: IDriveWhe
             <WheelTelemetryWidgetCell
                 key={index}
                 {...cellProp}
-                wheelValue={wheelCurrents[index] / currentMax}
-                pivotValue={pivotCurrents[index] / currentMax}
+                wheelValue={wheelCurrents[index] / WHEEL_CURRENT_MAX}
+                pivotValue={pivotCurrents[index] / PIVOT_CURRENT_MAX}
             />
         ))}
       </div>

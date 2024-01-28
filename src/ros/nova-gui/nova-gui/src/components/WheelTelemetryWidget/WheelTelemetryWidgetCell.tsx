@@ -26,7 +26,7 @@ const WheelTelemetryWidgetCell: React.FC<IWheelTelemetryWidgetCellProps> = (prop
                    maxValue={1}
                    aria-label="Wheel Amount"
                    autoColor={true}
-                   disableAnimation={true}>
+                   disableAnimation={false}>
       <div className="grid grid-flow-col gap-3 auto-cols-fr text-small">
         <span>WHEEL</span>
         <span>{`${(props.wheelValue * 100).toFixed(0)}%`}</span>
@@ -40,7 +40,7 @@ const WheelTelemetryWidgetCell: React.FC<IWheelTelemetryWidgetCellProps> = (prop
                    maxValue={1}
                    aria-label="Pivot Amount"
                    autoColor={true}
-                   disableAnimation={true}>
+                   disableAnimation={false}>
       <div className="grid grid-flow-col gap-3 auto-cols-fr text-small">
         <span>PIVOT</span>
         <span>{`${(props.pivotValue * 100).toFixed(0)}%`}</span>

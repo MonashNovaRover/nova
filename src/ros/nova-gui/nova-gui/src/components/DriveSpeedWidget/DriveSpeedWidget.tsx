@@ -11,6 +11,7 @@ import {useBifrost} from "../../redux/actions/useBifrostAction";
 import {RosTopics} from "../../ros/rosTopics";
 import {RootState} from "../../redux/RootState";
 import {useSelector} from "react-redux";
+import { DRIVE_VEL_MAX } from "../../constants";
 
 // Properties for the DriveModeWidget component.
 export interface IDriveWidgetProps extends CardProps {
@@ -29,12 +30,9 @@ const DriveSpeedWidget: React.FC<IDriveWidgetProps> = (props: IDriveWidgetProps)
     state.telemetryStore.wheels
   );
   const averageWheelAngularVelocity = wheelsData
-    .map((w) => w.rotor_velocity)
+    .map((w) => Math.abs(w.rotor_velocity))
     .reduce((v: number, acc: number) => v + acc, 0)
   / 4
-
-  // This is the value for 100% from the original wombatx GUI
-  const maxAverageWheelAngularVelocity = 0.35;
 
   useEffect(() => {
     bifrostDrive.syncWithRover();
@@ -54,7 +52,7 @@ const DriveSpeedWidget: React.FC<IDriveWidgetProps> = (props: IDriveWidgetProps)
       <div>
         <DriveProgress size="lg" aria-label="Average Velocity"
                        value={Math.abs(averageWheelAngularVelocity)}
-                       maxValue={maxAverageWheelAngularVelocity}>
+                       maxValue={DRIVE_VEL_MAX}>
           {averageWheelAngularVelocity.toFixed(2)} rad/s
         </DriveProgress>
       </div>

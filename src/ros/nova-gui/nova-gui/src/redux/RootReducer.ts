@@ -20,7 +20,7 @@ export const rootReducer = {
   }),
   telemetryStore: createBifrostStore(RosTopics.TELEMETRY, {
     wheels: [0,0,0,0].map(() => ({
-      bus: "idk",
+      bus: "",
       id: 0,
       rotor_velocity: 0,
       q_current: 0,
@@ -33,7 +33,7 @@ export const rootReducer = {
       temperature: 0
     })),
     pivots: [0,0,0,0].map(() => ({
-      bus: "idk",
+      bus: "",
       id: 0,
       rotor_velocity: 0,
       q_current: 0,
