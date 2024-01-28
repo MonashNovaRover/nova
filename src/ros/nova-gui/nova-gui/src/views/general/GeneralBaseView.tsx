@@ -1,6 +1,6 @@
 
 const GeneralBaseView: React.FC = () => {
-  return <></>
+  return (<></>)
 };
 
 export default GeneralBaseView;

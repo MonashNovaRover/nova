@@ -1,0 +1,53 @@
+
+
+.StrafeDriveModeIcon {
+    transform: rotate(0.125turn);
+}
+
+.PivotDriveModeIcon {
+    transform: rotate(0.0turn);
+}
+
+.DriveModeKeybind {
+    min-width: calc(var(--nextui-line-height-small) + 4px);
+}
+
+.DriveModeButton {
+    padding-left: 0;
+}
+
+.DriveModeButtonIconContainer {
+    aspect-ratio: 1;
+
+    height: 100%;
+    width: auto;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    align-self: stretch;
+}
+
+
+.DriveModeButtonContainer {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
+
+    padding-left: 0;
+
+    display: flex;
+    flex-flow: row;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+/* Drive Widget */
+.DriveWidgetTopGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* 1fr for the first and third columns, auto for the second column */
+
+}

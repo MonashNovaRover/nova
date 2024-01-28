@@ -11,4 +11,6 @@ export enum RosTopics {
   NULL_TOPIC = "",
   // ROS Topics
   POSE = "/pose",
+  DRIVE_INFO = "/control/drive_info",
+  TELEMETRY = "/control/telemetry"
 }

@@ -11,4 +11,6 @@ import { RosTopics } from "./rosTopics";
 export const rosMessages = {
   [RosTopics.NULL_TOPIC]: "",
   [RosTopics.POSE]: "geometry_msgs/msg/Pose",
+  [RosTopics.DRIVE_INFO]: "core/msg/DriveInfo",
+  [RosTopics.TELEMETRY]: "core/msg/Telemetry"
 };
