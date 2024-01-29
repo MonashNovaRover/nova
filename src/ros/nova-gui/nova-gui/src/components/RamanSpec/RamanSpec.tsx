@@ -10,7 +10,7 @@ import RamanOutputComparison from "./RamanOutputComparison";
 
 const RamanSpec: React.FC = () => {
     return (
-        <div>
+        <div className="flex flex-col m-3 rounded-xl bg-zinc-800">
             <RamanMechanicalInputs />
             <RamanOutputComparison />
             <RamanCCDInputs />
