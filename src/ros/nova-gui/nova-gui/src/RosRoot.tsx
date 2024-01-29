@@ -4,6 +4,7 @@ import { SettingsModal } from "./components/settings/SettingsModal";
 import { NovaNavbar } from "./components/navbar/Navbar";
 import { RosProvider } from "./redux/context/RosProvider";
 import ControllerHelpModal from "./components/ControllerHelpModal/ControllerHelpModal";
+import RamanSpec from "./components/RamanSpec/RamanSpec";
 
 export const RosRoot: React.FC = () => {
   return (
@@ -13,6 +14,7 @@ export const RosRoot: React.FC = () => {
         <SettingsModal />
         <ControllerHelpModal/>
         <Outlet />
+        <RamanSpec />
       </div>
     </RosProvider>
   );
