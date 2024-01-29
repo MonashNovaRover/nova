@@ -71,7 +71,7 @@ class RamanServer(rclpy.node.Node):
             input[9] = request.icgperiod & 0xff
 
             input[10] = 0  # single collection mode only to fit one request -> one response format
-            input[11] = request.average  # min is 2, max is 15
+            input[11] = request.average  # min is 1, max is 15
 
             #transmit everything at once (the USB-firmware does not work if all bytes are not transmitted in one go)
             ser.write(input)
