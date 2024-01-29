@@ -6,6 +6,7 @@
     nova-electronics = callPackage ./nix/packages/electronics { };
     nova-science = callPackage ./nix/packages/science { };
     nova-blcmd-hardware = callPackage ./nix/packages/blcmd-hardware { };
+    nova-teleop-drive-joy = callPackage ./nix/packages/teleop-drive-joy { };
   } // import ./nix/packages/controllers { inherit pkgs; };
 
   pythonPackages = pythonPackages: with pythonPackages; {
