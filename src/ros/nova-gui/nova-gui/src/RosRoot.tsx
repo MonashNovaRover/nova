@@ -7,6 +7,7 @@ import { Toaster } from "react-hot-toast";
 import { NovaTopBar } from "./components/TopBar/TopBar";
 import { NeoSidebar } from "./components/NeoSidebar/NeoSidebar";
 import { BLCMDStatusModal } from "./components/BLCMDStatusModal/BLCMDStatusModal";
+import RamanSpec from "./components/RamanSpec/RamanSpec";
 
 export const RosRoot: React.FC = () => {
   return (
@@ -19,8 +20,8 @@ export const RosRoot: React.FC = () => {
         <SettingsModal />
         <ControllerHelpModal />
         <BLCMDStatusModal />
-
         <Toaster />
+        <RamanSpec />
       </div>
     </RosProvider>
   );
