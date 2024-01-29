@@ -55,7 +55,7 @@ void DriveInputs::publish_info()
     info_msg.locked = locked;
     info_msg.autonomous_mode = autonomous;
     info_msg.connected = connected;
-    info_msg.drive_mode = latest_drive_input.mode;
+    info_msg.mode = latest_drive_input.mode;
     info_msg.handbrake = latest_drive_input.handbrake;
     // Publish the info
     info_publisher->publish(info_msg);
@@ -165,9 +165,9 @@ void DriveInputs::input_callback(const core::msg::InputGamepad::SharedPtr msg)
             else if (msg->btn_dpad_r_state == 1)
                 adjust_multiplier(multiplier_speed, true, false);
             if (msg->btn_y_state != 0) {
-                if (latest_drive_input.mode != core::msg::DriveInput::TANK)
+                if (latest_drive_input.mode != core::msg::DriveInput::DIFF)
                     Print::print("Tank Mode", C_MODE);
-                latest_drive_input.mode = core::msg::DriveInput::TANK;
+                latest_drive_input.mode = core::msg::DriveInput::DIFF;
             } else if (msg->btn_shoulder_l_state != 0) {
                 if (latest_drive_input.mode != core::msg::DriveInput::STRAFE)
                     Print::print("Strafe Mode", C_MODE);
@@ -196,7 +196,7 @@ DriveInputs::DriveInputs() : Node("drive_inputs")
 {
     // Fill with default values on startup
     latest_drive_input.radius = INFINITY;
-    latest_drive_input.mode = core::msg::DriveInput::TANK;
+    latest_drive_input.mode = core::msg::DriveInput::DIFF;
     latest_drive_input.handbrake = false;
     latest_drive_input.speed = 0.0;
     latest_drive_input.direction = 0;

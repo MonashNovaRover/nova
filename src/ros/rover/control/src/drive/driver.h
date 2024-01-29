@@ -150,7 +150,7 @@ private:
     float best_effort_velocity = 0.0;
     int8_t target_direction = 0;
     int8_t best_effort_direction = 0;
-    unsigned char mode = core::msg::DriveInput::TANK;
+    unsigned char mode = core::msg::DriveInput::DIFF;
     bool handbrake;
 
     // An array of pointers to Wheel instances
