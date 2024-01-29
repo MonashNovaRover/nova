@@ -19,6 +19,9 @@ export default {
         //   navbkground: "#1A1A1A",
         // },
       },
+      spacing: {
+      '142': '35.5rem',
+      }
     },
   },
   darkMode: "class",
