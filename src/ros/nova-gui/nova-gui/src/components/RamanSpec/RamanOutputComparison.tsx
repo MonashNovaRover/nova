@@ -4,11 +4,16 @@
  * It accepts responses from the 'raman_spectra' ROS service.
  */
 
-import {Card} from "@nextui-org/react";
+import {Card, CardHeader, ScrollShadow} from "@nextui-org/react";
 
 const RamanOutputComparison: React.FC = () => {
     return (
-        <Card className="w-fit p-2 m-1">Output Comparison
+        <Card className="w-fit p-2 m-1 w-auto">
+            <CardHeader className="shrink-0 w-48 p-1">Comparison and Analysis</CardHeader>
+            <div className="flex flex-row">
+                <ScrollShadow hideScrollBar className="w-1/2 h-1/2">
+                </ScrollShadow>
+            </div>
         </Card>
     )
 }
