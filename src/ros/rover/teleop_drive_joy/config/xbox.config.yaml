@@ -1,4 +1,4 @@
-teleop_nova_joy:
+teleop_drive_joy:
   axis_linear:  # Left thumb stick vertical x: { type: int,
     x: {
       type: int,

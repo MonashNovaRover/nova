@@ -33,7 +33,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 #include <rcutils/logging_macros.h>
 #include <builtin_interfaces/msg/duration.hpp>
 
-#include "teleop_nova_joy/teleop_nova_joy.hpp"
+#include "teleop_drive_joy/teleop_drive_joy.hpp"
 
 
 #define ROS_INFO_NAMED RCUTILS_LOG_INFO_NAMED
@@ -50,24 +50,24 @@ namespace
 }
 
 using std::placeholders::_1;
-namespace teleop_nova_joy
+namespace teleop_drive_joy
 {
 
-  rclcpp::node_interfaces::NodeBaseInterface::SharedPtr TeleopNovaJoy::get_node_base_interface()
+  rclcpp::node_interfaces::NodeBaseInterface::SharedPtr TeleopDriveJoy::get_node_base_interface()
   {
     return node_->get_node_base_interface();
   }
 
   /**
-   * Constructs TeleopNovaJoy.
+   * Constructs TeleopDriveJoy.
    */
-  TeleopNovaJoy::TeleopNovaJoy(const rclcpp::NodeOptions& options) : node_{ std::make_shared<rclcpp::Node>("teleop_nova_joy_node_", options)}
+  TeleopDriveJoy::TeleopDriveJoy(const rclcpp::NodeOptions& options) : node_{ std::make_shared<rclcpp::Node>("teleop_drive_joy_node_", options)}
   {
     drive_input_pub = node_->create_publisher<core::msg::DriveInputStamped>(DEFAULT_OUTPUT_TOPIC, 50);
     cmd_vel_pub = node_->create_publisher<geometry_msgs::msg::TwistStamped>(DEFAULT_OUTPUT_TOPIC_TWIST, 50);
     drive_info_pub = node_->create_publisher<core::msg::DriveInfo>(DEFAULT_OUTPUT_TOPIC_INFO, 50);
     
-    joy_sub = node_->create_subscription<sensor_msgs::msg::Joy>(DEFAULT_INPUT_TOPIC, rclcpp::QoS(10), std::bind(&TeleopNovaJoy::joyCallback, this, _1));
+    joy_sub = node_->create_subscription<sensor_msgs::msg::Joy>(DEFAULT_INPUT_TOPIC, rclcpp::QoS(10), std::bind(&TeleopDriveJoy::joyCallback, this, _1));
 
     switch_controller_client = node_->create_client<controller_manager_msgs::srv::SwitchController>("/controller_manager/switch_controller");
 
@@ -81,7 +81,7 @@ namespace teleop_nova_joy
     parameters_client = node_->create_client<rcl_interfaces::srv::SetParameters>("/pivot_drive_controller/set_parameters");
   }
 
-  double TeleopNovaJoy::getVal(const sensor_msgs::msg::Joy::SharedPtr joy_msg, const std::map<std::string, int64_t>& axis_map,
+  double TeleopDriveJoy::getVal(const sensor_msgs::msg::Joy::SharedPtr joy_msg, const std::map<std::string, int64_t>& axis_map,
                 const std::map<std::string, double>& scale_map, const std::string& fieldname)
   {
     if (axis_map.find(fieldname) == axis_map.end() ||
@@ -95,7 +95,7 @@ namespace teleop_nova_joy
     return joy_msg->axes[axis_map.at(fieldname)] * scale_map.at(fieldname);
   }
 
-  void TeleopNovaJoy::sendCmdVelMsg(const sensor_msgs::msg::Joy::SharedPtr joy_msg,
+  void TeleopDriveJoy::sendCmdVelMsg(const sensor_msgs::msg::Joy::SharedPtr joy_msg,
                                            const std::string& which_map)
   {
     //RCLCPP_INFO(node_->get_logger(), "sending cmd_vel msg...");
@@ -205,7 +205,7 @@ namespace teleop_nova_joy
     drive_info_pub->publish(std::move(current_state));
   }
 
-  void TeleopNovaJoy::joyCallback(const sensor_msgs::msg::Joy::SharedPtr joy_msg)
+  void TeleopDriveJoy::joyCallback(const sensor_msgs::msg::Joy::SharedPtr joy_msg)
   {
     /*
     if (enable_turbo_button >= 0 &&
@@ -311,7 +311,7 @@ namespace teleop_nova_joy
     }
   }
 
-}  // namespace teleop_nova_joy
+}  // namespace teleop_drive_joy
 
 #include "rclcpp_components/register_node_macro.hpp"
-RCLCPP_COMPONENTS_REGISTER_NODE(teleop_nova_joy::TeleopNovaJoy)
+RCLCPP_COMPONENTS_REGISTER_NODE(teleop_drive_joy::TeleopDriveJoy)

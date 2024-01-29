@@ -33,14 +33,14 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 #include <controller_manager_msgs/srv/switch_controller.hpp>
 
 
-#include "teleop_nova_joy_parameters.hpp"
+#include "teleop_drive_joy_parameters.hpp"
 
-namespace teleop_nova_joy
+namespace teleop_drive_joy
 {
-  class TeleopNovaJoy
+  class TeleopDriveJoy
   {
   public:
-    explicit TeleopNovaJoy(const rclcpp::NodeOptions& options);
+    explicit TeleopDriveJoy(const rclcpp::NodeOptions& options);
 
     void joyCallback(const sensor_msgs::msg::Joy::SharedPtr joy_msg);
     void sendCmdVelMsg(const sensor_msgs::msg::Joy::SharedPtr joy_msg, const std::string& which_map);
@@ -52,8 +52,8 @@ namespace teleop_nova_joy
   private:
 
     const rclcpp::Node::SharedPtr node_;
-    std::shared_ptr<teleop_nova_joy::ParamListener> param_listener_;
-    teleop_nova_joy::Params params_;
+    std::shared_ptr<teleop_drive_joy::ParamListener> param_listener_;
+    teleop_drive_joy::Params params_;
 
     rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr cmd_vel_pub;
     rclcpp::Publisher<core::msg::DriveInputStamped>::SharedPtr drive_input_pub;
@@ -80,6 +80,6 @@ namespace teleop_nova_joy
     std::map<std::string, std::map<std::string, double>> scale_angular_map;
 
   };
-}  // namespace teleop_nova_joy
+}  // namespace teleop_drive_joy
 
 #endif  // TELEOP_NOVA_JOY_TELEOP_NOVA_JOY_H

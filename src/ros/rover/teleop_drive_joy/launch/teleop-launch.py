@@ -17,7 +17,7 @@ def generate_launch_description():
         launch.actions.DeclareLaunchArgument('joy_dev', default_value='/dev/input/js0'),
         launch.actions.DeclareLaunchArgument('config_filepath', default_value=[
             launch.substitutions.TextSubstitution(text=os.path.join(
-                get_package_share_directory('teleop_nova_joy'), 'config', '')),
+                get_package_share_directory('teleop_drive_joy'), 'config', '')),
             joy_config, launch.substitutions.TextSubstitution(text='.config.yaml')]),
 
         launch_ros.actions.Node(
@@ -28,8 +28,8 @@ def generate_launch_description():
                 'autorepeat_rate': 20.0,
             }]),
         launch_ros.actions.Node(
-            package='teleop_nova_joy', executable='teleop_nova_joy_node',
-            name='teleop_nova_joy_node',# parameters=[config_filepath],
+            package='teleop_drive_joy', executable='teleop_drive_joy_node',
+            name='teleop_drive_joy_node',# parameters=[config_filepath],
             remappings={('/cmd_vel', launch.substitutions.LaunchConfiguration('joy_vel'))},
             ),
     ])
