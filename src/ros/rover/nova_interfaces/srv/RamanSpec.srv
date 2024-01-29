@@ -4,4 +4,4 @@ uint32 icgperiod
 uint8 average
 ---
 bool isvalid
-uint16[] spectra
+uint16[3694] spectra
