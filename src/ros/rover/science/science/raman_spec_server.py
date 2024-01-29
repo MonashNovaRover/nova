@@ -20,7 +20,7 @@ MORE INFO:
  - https://www.notion.so/Raman-Spectra-0161f5611e934a779247f3733ca8a608
 """
 
-from rclpy.node import Node
+import rclpy
 from core.srv import RamanSpec
 from numpy import zeros, uint8, uint16
 from serial import Serial, SerialException
@@ -28,7 +28,8 @@ from time import sleep
 
 
 
-class RamanServer(Node):
+class RamanServer(rclpy.node.Node):
+    # Constants set by firmware/hardware of STM32F103
     BAUDRATE = 115200
     MASTERCLOCK = 800000
     SPECTRA_SIZE = 3694
@@ -100,3 +101,13 @@ class RamanServer(Node):
 
         except SerialException:
             return response
+
+def main():
+    rclpy.init()
+    server = RamanServer()
+    rclpy.spin(server)
+    server.destroy_node()
+    rclpy.shutdown()
+    
+if __name__ == "__main__":
+    main()
