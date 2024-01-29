@@ -4,9 +4,12 @@
  * It accepts responses from the 'raman_spectra' ROS service.
  */
 
+import {Card} from "@nextui-org/react";
+
 const RamanOutputComparison: React.FC = () => {
     return (
-        <div></div>
+        <Card className="w-fit p-2 m-1">Output Comparison
+        </Card>
     )
 }
 
