@@ -25,13 +25,13 @@ export interface BifrostActionType<P> {
 
 type CustomDispatch<P> = (action: () => BifrostActionType<P>) => void;
 
-interface CallServiceOptions {
+interface CallServiceOptions<T> {
   sendToRedux?: boolean;
   responseToast?: boolean;
   noErrorToast?: boolean;
   successToastMessage?: string;
   errorToastMessage?: string;
-  handleResponse?: (response: any) => void;
+  handleResponse?: (response: T) => void;
 }
 
 export function createBifrostAction(props: BifrostProps, ros?: Ros) {
@@ -79,9 +79,13 @@ export function createBifrostAction(props: BifrostProps, ros?: Ros) {
         );
       };
     },
-    _updateServiceState(object: RosServiceInterface[typeof service]) {
+    _updateServiceState(
+      object: RosServiceInterface[typeof service]["response"]
+    ) {
       return (
-        dispatch: CustomDispatch<RosServiceInterface[typeof service]>
+        dispatch: CustomDispatch<
+          RosServiceInterface[typeof service]["response"]
+        >
       ) => {
         dispatch(
           this._getServiceAction(object as RosServiceInterface[typeof service])
@@ -134,7 +138,9 @@ export function createBifrostAction(props: BifrostProps, ros?: Ros) {
      */
     callService(
       request: RosServiceInterface[typeof service]["request"],
-      options: CallServiceOptions = {
+      options: CallServiceOptions<
+        RosServiceInterface[typeof service]["response"]
+      > = {
         sendToRedux: false,
         noErrorToast: false,
         responseToast: true,
@@ -152,6 +158,7 @@ export function createBifrostAction(props: BifrostProps, ros?: Ros) {
         rosService.callService(
           request,
           (resp: RosServiceInterface[typeof service]["response"]) => {
+            if (!resp) return;
             if (options.handleResponse) options.handleResponse(resp);
             if (options.responseToast) {
               const toastMessage =
@@ -160,7 +167,9 @@ export function createBifrostAction(props: BifrostProps, ros?: Ros) {
             }
 
             if (options.sendToRedux) {
-              this._updateServiceState(resp);
+              this._updateServiceState(
+                resp as RosServiceInterface[typeof service]["response"]
+              );
             }
           },
           (error) => {

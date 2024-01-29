@@ -6,7 +6,8 @@ import { RosService } from "../ros/services/rosService";
 export const rootReducer = {
   uiState: uiSlice.reducer,
   bifrostStatus: BifrostStatusStore(),
-  ipList: createBifrostStore({ service: RosService.GET_IP_LIST }, []),
+
+  ipList: createBifrostStore({ service: RosService.GET_IP_LIST }, { ips: [] }),
   poseStore: createBifrostStore(RosTopics.POSE, {
     orientation: { x: 0, y: 0, z: 0, w: 0 },
     position: { x: 0, y: 0, z: 0 },

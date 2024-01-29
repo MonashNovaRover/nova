@@ -32,7 +32,7 @@ export default function BifrostStatusStore() {
     },
   };
 
-  return createCustomReducer<BifrostStatus>(
+  return createCustomReducer<BifrostStatus, typeof reducerFunctions>(
     initalBifrostState,
     reducerFunctions
   );
