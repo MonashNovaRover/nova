@@ -17,7 +17,7 @@ export const useCameraStreamer = () => {
   );
 
   const { sendJsonMessage, lastJsonMessage } = useWebSocket<ServerMessage>(
-    "ws://192.168.1.204:8443",
+    "ws://192.168.64.7:8443",
     {
       onOpen: () => {
         sendPeerStatusMessage(CameraStreamerStatus.CONNECTED);
@@ -33,6 +33,7 @@ export const useCameraStreamer = () => {
       cameraStreamerActions.updateStatus(cameraStreamerStatus);
       sendJsonMessage({ type: "setPeerStatus", roles: ["listener"] });
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [sendJsonMessage]
   );
 
@@ -50,7 +51,7 @@ export const useCameraStreamer = () => {
           }))
         );
         break;
-      case "peerStatusChanged":
+      case "peerStatusChanged": {
         let updatedCameras: Camera[];
         if (lastJsonMessage.roles.includes("producer")) {
           updatedCameras = cameras.map<Camera>((camera) => {
@@ -68,8 +69,11 @@ export const useCameraStreamer = () => {
         }
         cameraStreamerActions.updateCameras(updatedCameras);
         break;
+      }
+
       default:
         throw new Error(`Unknown Message ${lastJsonMessage}`);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastJsonMessage]);
 };

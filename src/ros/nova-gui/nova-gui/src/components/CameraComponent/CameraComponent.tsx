@@ -14,7 +14,7 @@ import { CameraSettingsForm } from "./components/CameraSettingsForm";
 import { Camera } from "../../redux/models/CameraStreamState";
 import CameraVideo from "./components/CameraVideo";
 
-// const ASPECT_RATIO = 4 / 3;
+const ASPECT_RATIO = 4 / 3;
 
 export interface CameraComponentProps {
   cameraName: string;
@@ -55,7 +55,7 @@ export const CameraComponent = (props: CameraComponentProps) => {
   }, []);
 
   return (
-    <Card className="m-4 h-[41vh] aspect-[4/3] " ref={cardRef}>
+    <Card className={`m-4 h-[41vh] aspect-[${ASPECT_RATIO}] `} ref={cardRef}>
       <CameraInfoModal
         {...props}
         isModalOpen={isCameraInfoModalOpen}

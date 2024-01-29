@@ -30,7 +30,7 @@ export const useCameraStream = (
   videoRef: React.MutableRefObject<HTMLVideoElement | null>
 ) => {
   const { sendJsonMessage, lastJsonMessage } = useWebSocket<ServerMessage>(
-    "ws://192.168.1.204:8443",
+    "ws://192.168.64.7:8443",
     {
       onOpen: () => {
         sendSessionStartMessage();
@@ -47,6 +47,7 @@ export const useCameraStream = (
 
   const sendSessionStartMessage = useCallback(() => {
     sendJsonMessage({ type: "startSession", peerId: camera.peerId });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sendJsonMessage]);
 
   const iceCandidateCallback = useCallback(
@@ -59,6 +60,7 @@ export const useCameraStream = (
         ice: event.candidate.toJSON(),
       });
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [sessionId]
   );
 
@@ -101,6 +103,7 @@ export const useCameraStream = (
       rtcRef.current = rtcConnection;
       return rtcRef.current;
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [videoRef]);
 
   useEffect(() => {
@@ -108,19 +111,23 @@ export const useCameraStream = (
     switch (lastJsonMessage.type) {
       case "welcome":
         break;
-      case "registered":
+      case "registered": {
         sendSessionStartMessage();
         break;
-      case "sessionStarted":
+      }
+      case "sessionStarted": {
         setSessionId(lastJsonMessage.sessionId);
         break;
-      case "peer":
+      }
+      case "peer": {
         const rtcPeerConnection = handOverRTCPeerConnection();
         handlePeerMessage(rtcPeerConnection, lastJsonMessage);
         break;
+      }
       default:
         throw new Error(`Unknown message ${lastJsonMessage}`);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastJsonMessage]);
 
   return { streamingState };
