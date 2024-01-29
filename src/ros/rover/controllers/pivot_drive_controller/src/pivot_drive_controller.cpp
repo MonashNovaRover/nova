@@ -483,7 +483,7 @@ namespace pivot_drive_controller
 //            RCLCPP_INFO_STREAM(get_node()->get_logger(), "best_right_angle: " << left_angle);
 //            RCLCPP_INFO_STREAM(get_node()->get_logger(), "curr_right_angle: " << registered_right_pivot_handles_[0].state.get().get_value());
            bool valid = (abs(left_angle - registered_left_pivot_handles_[0].state.get().get_value()) <= max_d_theta*1.01) &&
-               (abs(right_angle - registered_right_pivot_handles_[0].state.get().get_value()) <= max_d_theta * 1.01);
+               (abs(right_angle - registered_right_pivot_handles_[1].state.get().get_value()) <= max_d_theta * 1.01);
 
            best_efforts_left_right[i] = {best_radius, best_dir, valid};
         }
