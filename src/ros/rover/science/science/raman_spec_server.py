@@ -22,7 +22,7 @@ MORE INFO:
 
 import rclpy
 from core.srv import RamanSpec
-from numpy import zeros, uint8, uint16
+from numpy import zeros, uint8, uint16, uint32
 from serial import Serial, SerialException
 from time import sleep
 
@@ -58,20 +58,22 @@ class RamanServer(rclpy.node.Node):
             input[0] = 69
             input[1] = 82
 
-            # min is 8, max is 65535
-            input[2] = (request.shperiod >> 24) & 0xff
-            input[3] = (request.shperiod >> 16) & 0xff
-            input[4] = (request.shperiod >> 8) & 0xff
-            input[5] = request.shperiod & 0xff
+            # min is 20, max is 4294967295
+            shperiodconverted = uint32(request.shperiod)
+            input[2] = (shperiodconverted >> 24) & 0xff
+            input[3] = (shperiodconverted >> 16) & 0xff
+            input[4] = (shperiodconverted >> 8) & 0xff
+            input[5] = shperiodconverted & 0xff
 
-            # min is 14776, max is 65535
-            input[6] = (request.icgperiod >> 24) & 0xff
-            input[7] = (request.icgperiod >> 16) & 0xff
-            input[8] = (request.icgperiod >> 8) & 0xff
-            input[9] = request.icgperiod & 0xff
+            # min is 14776, max is 4294967295
+            icgperiodconverted = uint32(request.icgperiod)
+            input[6] = (icgperiodconverted >> 24) & 0xff
+            input[7] = (icgperiodconverted >> 16) & 0xff
+            input[8] = (icgperiodconverted >> 8) & 0xff
+            input[9] = icgperiodconverted & 0xff
 
             input[10] = 0  # single collection mode only to fit one request -> one response format
-            input[11] = request.average  # min is 1, max is 15
+            input[11] = uint8(request.average)  # min is 1, max is 15
 
             #transmit everything at once (the USB-firmware does not work if all bytes are not transmitted in one go)
             ser.write(input)
