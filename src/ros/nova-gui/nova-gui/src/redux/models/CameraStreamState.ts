@@ -10,8 +10,8 @@ export enum CameraStreamerStatus {
 }
 
 export interface CameraStreamerState {
-  cameras: Camera[];
   status: CameraStreamerStatus;
+  cameras: Camera[];
 }
 
 export const initialCameraStreamerState: CameraStreamerState = {

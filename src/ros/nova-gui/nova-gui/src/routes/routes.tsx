@@ -11,7 +11,7 @@ import URCEquipmentServicingView from "../views/urc/URCEquipmentServicingView";
 import URCScienceView from "../views/urc/URCScienceView";
 import { Root } from "../root";
 import TestDriveComponentsView from "../views/test/TestDriveComponentsView.tsx";
-import { CameraPage } from "../views/shared/CamerasPage";
+import { CameraPage } from "../views/shared/CamerasPage/CamerasPage.tsx";
 
 export const arcRoutes: RouteObject[] = [
   {

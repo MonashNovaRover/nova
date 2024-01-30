@@ -159,7 +159,7 @@ export function createBifrostAction(props: BifrostProps, ros?: Ros) {
           (resp: RosServiceInterface[typeof service]["response"]) => {
             if (!resp) return;
             if (options.handleResponse) options.handleResponse(resp);
-            if (options.responseToast) {
+            if (options.responseToast || options.successToastMessage) {
               const toastMessage =
                 options.successToastMessage ?? "Request Successful";
               toast.success(toastMessage);
@@ -172,7 +172,7 @@ export function createBifrostAction(props: BifrostProps, ros?: Ros) {
             }
           },
           (error) => {
-            if (!options.noErrorToast) {
+            if (!options.noErrorToast || options.errorToastMessage) {
               const errorToastMessage =
                 options.errorToastMessage ?? `Request Failed: ${error}`;
               toast.error(errorToastMessage);
