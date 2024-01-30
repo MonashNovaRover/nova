@@ -1,6 +1,5 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 import {
-  Camera,
   CameraStreamerState,
   CameraStreamerStatus,
   initialCameraStreamerState,
@@ -19,7 +18,7 @@ export const cameraStreamerSlice = createSlice({
     },
     UPDATE_CAMERAS: (
       state: CameraStreamerState,
-      action: PayloadAction<Camera[]>
+      action: PayloadAction<{ [serial: string]: string }>
     ) => {
       return {
         ...state,

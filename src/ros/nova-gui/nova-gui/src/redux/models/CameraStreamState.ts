@@ -1,8 +1,3 @@
-export interface Camera {
-  serial: string;
-  peerId: string;
-}
-
 export enum CameraStreamerStatus {
   DISCONNECTED = "Disconnected",
   CONNECTING = "Connecting",
@@ -11,10 +6,10 @@ export enum CameraStreamerStatus {
 
 export interface CameraStreamerState {
   status: CameraStreamerStatus;
-  cameras: Camera[];
+  cameras: { [serial: string]: string }; // {serial : peerId}
 }
 
 export const initialCameraStreamerState: CameraStreamerState = {
-  cameras: [],
+  cameras: {},
   status: CameraStreamerStatus.DISCONNECTED,
 };

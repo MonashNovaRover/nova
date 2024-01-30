@@ -3,7 +3,7 @@ export interface CameraSectionParams {
   cameraSerials: string[];
 }
 
-export const XTREME_DELIVERY_CAMS: string[] = [];
+export const XTREME_DELIVERY_CAMS: string[] = ["camera1"];
 
 export const AUTO_CAMS: string[] = [];
 

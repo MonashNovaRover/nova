@@ -1,13 +1,11 @@
 import { useSelector } from "react-redux";
 import { useCameraStreamerActions } from "../../../redux/actions/useCameraStreamerActions";
-import {
-  Camera,
-  CameraStreamerStatus,
-} from "../../../redux/models/CameraStreamState";
+import { CameraStreamerStatus } from "../../../redux/models/CameraStreamState";
 import { RootState } from "../../../redux/RootState";
 import { useCallback, useEffect } from "react";
 import { ServerMessage } from "./serverMessages";
 import useWebSocket from "react-use-websocket";
+import { cloneDeep } from "lodash";
 
 export const useCameraStreamer = () => {
   const cameraStreamerActions = useCameraStreamerActions();
@@ -43,30 +41,24 @@ export const useCameraStreamer = () => {
       case "welcome":
         sendJsonMessage({ type: "list" });
         break;
-      case "list":
-        cameraStreamerActions.updateCameras(
-          lastJsonMessage.producers.map<Camera>((producer) => ({
-            peerId: producer.id,
-            serial: producer.meta.serial,
-          }))
-        );
+      case "list": {
+        const cameras: { [serial: string]: string } = {};
+        lastJsonMessage.producers.forEach((producer) => {
+          cameras[producer.meta.serial] = producer.id;
+        });
+        cameraStreamerActions.updateCameras(cameras);
         break;
+      }
+
       case "peerStatusChanged": {
-        let updatedCameras: Camera[];
-        if (lastJsonMessage.roles.includes("producer")) {
-          updatedCameras = cameras.map<Camera>((camera) => {
-            if (camera.peerId === lastJsonMessage.peerId)
-              return {
-                peerId: lastJsonMessage.peerId,
-                serial: lastJsonMessage.meta!.serial,
-              };
-            else return camera;
-          });
-        } else {
-          updatedCameras = cameras.filter(
-            (camera) => camera.peerId !== lastJsonMessage.peerId
-          );
-        }
+        const updatedCameras = cloneDeep(cameras);
+        if (lastJsonMessage.meta)
+          if (lastJsonMessage.roles.includes("producer")) {
+            updatedCameras[lastJsonMessage.meta!.serial] =
+              lastJsonMessage.peerId;
+          } else {
+            delete updatedCameras[lastJsonMessage.meta!.serial];
+          }
         cameraStreamerActions.updateCameras(updatedCameras);
         break;
       }
