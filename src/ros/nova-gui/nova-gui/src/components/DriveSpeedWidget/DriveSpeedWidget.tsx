@@ -2,7 +2,7 @@ import { Card, CardHeader, CardBody, CardProps } from "@nextui-org/react";
 import { ReactNode, useEffect } from "react";
 import "../DriveModeWidget/DriveWidget.css";
 import { DriveProgress } from "./DriveProgress";
-import { useBifrost } from "../../redux/actions/useBifrostAction";
+import { useBifrost } from "../../redux/actions/bifrost/useBifrostAction";
 import { RootState } from "../../redux/RootState";
 import { useSelector } from "react-redux";
 import { DRIVE_VEL_MAX } from "../../constants";

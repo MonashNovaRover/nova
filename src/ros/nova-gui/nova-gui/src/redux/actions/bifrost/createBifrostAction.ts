@@ -1,13 +1,13 @@
 import { Ros, Service, Topic } from "roslib";
-import { BifrostConnectionStatus } from "../models/BifrostTypes";
-import { RootState } from "../RootState";
-import { RosTopicInterfaces } from "../../ros/topics/rosTopicTypes";
-import { RosTopic } from "../../ros/topics/rosTopic";
-import { rosTopicMessages } from "../../ros/topics/rosTopicMessages";
+import { BifrostConnectionStatus } from "../../models/bifrost/BifrostTypes";
+import { RootState } from "../../RootState";
+import { RosTopicInterfaces } from "../../../ros/topics/rosTopicTypes";
+import { RosTopic } from "../../../ros/topics/rosTopic";
+import { rosTopicMessages } from "../../../ros/topics/rosTopicMessages";
 import { BifrostProps } from "./useBifrostAction";
-import { RosService } from "../../ros/services/rosService";
-import { rosServiceMessages } from "../../ros/services/rosServiceMessages";
-import { RosServiceInterface } from "../../ros/services/rosServiceTypes";
+import { RosService } from "../../../ros/services/rosService";
+import { rosServiceMessages } from "../../../ros/services/rosServiceMessages";
+import { RosServiceInterface } from "../../../ros/services/rosServiceTypes";
 import toast from "react-hot-toast";
 
 export enum BifrostActionTypes {
@@ -120,8 +120,7 @@ export function createBifrostAction(props: BifrostProps, ros?: Ros) {
           messageType: rosTopicMessages[topic],
         });
 
-        rosTopic.subscribe(() => {
-        });
+        rosTopic.subscribe(() => {});
 
         rosTopic.on("message", (message: RosTopicInterfaces[typeof topic]) => {
           this._updateTopicState(message);

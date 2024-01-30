@@ -8,7 +8,7 @@ import {
 import React, { useEffect } from "react";
 import "../DriveModeWidget/DriveWidget.css";
 import "./WheelTelemetryWidget.css";
-import { useBifrost } from "../../redux/actions/useBifrostAction";
+import { useBifrost } from "../../redux/actions/bifrost/useBifrostAction.ts";
 import { RootState } from "../../redux/RootState";
 import { useSelector } from "react-redux";
 import RoverTopDownImage from "../../assets/rover-top-down.png";

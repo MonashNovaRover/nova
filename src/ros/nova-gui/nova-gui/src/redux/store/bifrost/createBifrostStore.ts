@@ -2,12 +2,12 @@ import { Reducer } from "@reduxjs/toolkit";
 import {
   BifrostActionType,
   BifrostActionTypes,
-} from "../actions/createBifrostAction";
-import { RosTopic } from "../../ros/topics/rosTopic";
-import { RosTopicInterfaces } from "../../ros/topics/rosTopicTypes";
-import { RosService } from "../../ros/services/rosService";
-import { RosServiceInterface } from "../../ros/services/rosServiceTypes";
-import { BifrostProps } from "../actions/useBifrostAction";
+} from "../../actions/bifrost/createBifrostAction";
+import { RosTopic } from "../../../ros/topics/rosTopic";
+import { RosTopicInterfaces } from "../../../ros/topics/rosTopicTypes";
+import { RosService } from "../../../ros/services/rosService";
+import { RosServiceInterface } from "../../../ros/services/rosServiceTypes";
+import { BifrostProps } from "../../actions/bifrost/useBifrostAction";
 
 export const createCustomReducer = <S, H extends object>(
   initialState: S,

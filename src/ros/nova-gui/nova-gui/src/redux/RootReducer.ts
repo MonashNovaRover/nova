@@ -1,6 +1,6 @@
-import BifrostStatusStore from "./store/BifrostStatusStore";
+import BifrostStatusStore from "./store/bifrost/BifrostStatusStore";
 import { uiSlice } from "./slices/UIReducer";
-import { createBifrostStore } from "./store/createBifrostStore";
+import { createBifrostStore } from "./store/bifrost/createBifrostStore";
 import { RosService } from "../ros/services/rosService";
 import { RosTopic } from "../ros/topics/rosTopic";
 

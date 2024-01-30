@@ -1,13 +1,13 @@
-import { RosTopic } from "../../ros/topics/rosTopic";
+import { RosTopic } from "../../../ros/topics/rosTopic";
 import {
   BifrostActionType,
   BifrostActionTypes,
-} from "../actions/createBifrostAction";
+} from "../../actions/bifrost/createBifrostAction";
 import {
   BifrostConnectionStatus,
   BifrostStatus,
   initalBifrostState,
-} from "../models/BifrostTypes";
+} from "../../models/bifrost/BifrostTypes";
 import { createCustomReducer } from "./createBifrostStore";
 
 export default function BifrostStatusStore() {

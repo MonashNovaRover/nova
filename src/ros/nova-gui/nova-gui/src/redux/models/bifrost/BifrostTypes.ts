@@ -1,4 +1,4 @@
-import { RosTopic } from "../../ros/topics/rosTopic";
+import { RosTopic } from "../../../ros/topics/rosTopic";
 
 export enum BifrostConnectionStatus {
   DISCONNECTED = "Disconnected",

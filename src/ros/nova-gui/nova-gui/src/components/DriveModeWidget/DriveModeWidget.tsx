@@ -2,7 +2,7 @@ import { Card, CardHeader, CardBody, Kbd, CardProps } from "@nextui-org/react";
 import "./DriveWidget.css";
 import { DriveMode, driveModes } from "./DriveModeDisplayData";
 import { DriveModeButton } from "./DriveModeButton";
-import { useBifrost } from "../../redux/actions/useBifrostAction.ts";
+import { useBifrost } from "../../redux/actions/bifrost/useBifrostAction.ts";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/RootState.ts";
 import { useEffect } from "react";

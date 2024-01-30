@@ -3,8 +3,8 @@ import { useSelector } from "react-redux";
 import { Ros } from "roslib";
 import { RosTopic } from "../../ros/topics/rosTopic";
 import { RootState } from "../RootState";
-import { useBifrost } from "../actions/useBifrostAction";
-import { BifrostConnectionStatus } from "../models/BifrostTypes";
+import { useBifrost } from "../actions/bifrost/useBifrostAction";
+import { BifrostConnectionStatus } from "../models/bifrost/BifrostTypes";
 import { RosContext } from "./RosContext";
 
 export const RosProvider = (props: { children: React.ReactNode }) => {

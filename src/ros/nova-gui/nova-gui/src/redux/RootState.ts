@@ -4,7 +4,7 @@ import {
   IRosCoreTelemetry,
   IRosGeometryMsgsPose,
 } from "../ros/rosTypes";
-import { BifrostStatus } from "./models/BifrostTypes";
+import { BifrostStatus } from "./models/bifrost/BifrostTypes";
 import { UIState } from "./models/UIState";
 
 export interface RootState {
