@@ -1,4 +1,4 @@
-import {Card, CardHeader, CardBody, Kbd, CardProps} from "@nextui-org/react";
+import {Card, CardHeader, CardBody, Kbd, CardProps, Spacer} from "@nextui-org/react";
 import './DriveWidget.css';
 import {DriveMode, driveModes} from "./DriveModeDisplayData";
 import { DriveModeButton } from "./DriveModeButton";
@@ -7,6 +7,7 @@ import {RosTopics} from "../../ros/rosTopics.ts";
 import {useSelector} from "react-redux";
 import {RootState} from "../../redux/RootState.ts";
 import {useEffect} from "react";
+import { Info, Lock } from "react-feather";
 
 // Properties for the DriveModeWidget component.
 export interface IDriveModeWidgetProps extends CardProps {
@@ -21,6 +22,9 @@ const DriveModeWidget: React.FC<IDriveModeWidgetProps> = (props: IDriveModeWidge
   const bifrost = useBifrost(RosTopics.DRIVE_INFO);
   const driveMode = useSelector((state: RootState) => state.driveStore.drive_mode);
 
+  const isLocked = useSelector((state: RootState) => state.driveStore.locked);
+  const isConnected = useSelector((state: RootState) => state.driveStore.connected);
+
   useEffect(() => {
     bifrost.syncWithRover();
   }, [bifrost]);
@@ -30,11 +34,35 @@ const DriveModeWidget: React.FC<IDriveModeWidgetProps> = (props: IDriveModeWidge
     console.log(`Set drive mode to ${newDriveMode}`);
   }
 
-  // Finally, put the two card bodies into a card
+  // Message to show when disconnected
+  const disconnectedMessage = (
+    <div className="flex flex-row justify-center gap-2">
+      <Info/> <span>Disconnected</span>
+    </div>
+  );
+
+  // Message to show when locked
+  const lockedMessage = (
+    <div className="flex flex-row justify-center gap-2">
+      <Lock/> <span>Controller is locked</span>
+    </div>
+  );
+
+  // Blur put over buttons when disconnected or locked
+  const blurOverlay = (
+    <div className="DriveModeWidgetOverlay flex flex-col justify-center content-center backdrop-blur-[1px] wrap-none"/>
+  );
+
+  // Finally, put everything into a card
   return (
     <Card {...props}>
-      <CardHeader className="pb-0">Drive Mode</CardHeader>
+      <CardHeader className="pb-0 flex flex-row content-center gap-5">
+        <span>Drive Mode</span>
+        <div className="grow"/>
+        {!isConnected ? disconnectedMessage : isLocked ? lockedMessage : <></> }
+      </CardHeader>
       <CardBody className="flex justify-center flex-col content-center">
+        
         <div>
           <div className="grid grid-flow-col gap-3 auto-cols-fr">
             {driveModes.map((mode, index) => (
@@ -57,6 +85,7 @@ const DriveModeWidget: React.FC<IDriveModeWidgetProps> = (props: IDriveModeWidge
             ))}
           </div>
         </div>
+        {!isConnected || isLocked ? blurOverlay : <></>}
       </CardBody>
     </Card>
   )
