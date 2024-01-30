@@ -3,13 +3,17 @@ import {memo, useEffect, useRef} from "react";
 //
 // Initialize a shader program, so WebGL knows how to draw our data
 //
-function initShaderProgram(gl, vsSource, fsSource) {
+function initShaderProgram(gl: WebGLRenderingContext, vsSource: string, fsSource: string) {
   const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
   const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsSource);
 
   // Create the shader program
 
   const shaderProgram = gl.createProgram();
+
+  if (shaderProgram === null || vertexShader === null || fragmentShader === null)
+    return shaderProgram;
+
   gl.attachShader(shaderProgram, vertexShader);
   gl.attachShader(shaderProgram, fragmentShader);
   gl.linkProgram(shaderProgram);
@@ -32,8 +36,12 @@ function initShaderProgram(gl, vsSource, fsSource) {
 // creates a shader of the given type, uploads the source and
 // compiles it.
 //
-function loadShader(gl, type, source) {
+function loadShader(gl: WebGLRenderingContext, type: number, source: string) {
   const shader = gl.createShader(type);
+  
+  // Exit early when null
+  if (shader === null) 
+    return shader;
 
   // Send the source to the shader object
 
@@ -76,7 +84,7 @@ const UnmemoedWebGLCanvas: React.FC<IWebGLCanvasProps> = ({
       return;
 
     // Compile shader program
-    const shaderProgram = initShaderProgram(gl, vert, frag);
+    // const shaderProgram = initShaderProgram(gl, vert, frag);
 
     // Set clear color to black, fully opaque
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -91,14 +99,13 @@ const UnmemoedWebGLCanvas: React.FC<IWebGLCanvasProps> = ({
 
   }, [uniformFloats]);
 
-
-  return isSupported ? canvas : (
+  return (<>{canvas.current}</>) /*: (
     <div>
       Unable to initialize WebGL. <br/>Your browser or machine may not support it.
     </div>
-  )
+  )*/
 
 }
 
-
-export default const WebGLCanvas = memo(UnmemoedWebGLCanvas);
+const WebGLCanvas = memo(UnmemoedWebGLCanvas);
+export default WebGLCanvas;
