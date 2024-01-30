@@ -9,8 +9,8 @@ import { RosTopic } from "./rosTopic";
  * "custom_msgs/demo_msgs" comes purely from ROS
  */
 export const rosTopicMessages = {
-  [RosTopics.NULL_TOPIC]: "",
-  [RosTopics.POSE]: "geometry_msgs/msg/Pose",
-  [RosTopics.DRIVE_INFO]: "core/msg/DriveInfo",
-  [RosTopics.TELEMETRY]: "core/msg/Telemetry"
+  [RosTopic.NULL_TOPIC]: "",
+  [RosTopic.POSE]: "geometry_msgs/msg/Pose",
+  [RosTopic.DRIVE_INFO]: "core/msg/DriveInfo",
+  [RosTopic.TELEMETRY]: "core/msg/Telemetry",
 };
