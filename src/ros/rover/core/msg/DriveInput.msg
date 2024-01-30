@@ -3,7 +3,7 @@
 #enum for the driving mode
 byte PIVOT = 1
 byte STRAFE = 2
-byte TANK = 3
+byte DIFF = 3
 
 # The speed value specifies the wheel speed (as a percentage)
 #   to drive at, between -1 and 1. This is equivalent to % RPM.

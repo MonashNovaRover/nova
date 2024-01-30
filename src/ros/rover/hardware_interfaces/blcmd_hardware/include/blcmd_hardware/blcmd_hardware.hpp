@@ -155,6 +155,8 @@ private:
 
     bool mock_ = false;
 
+    int reversed_multiplier_ = 1;
+
     bool check_resolver();
 
     bool set_control_interface(const hardware_interface::InterfaceInfo & interface_info, bool command);

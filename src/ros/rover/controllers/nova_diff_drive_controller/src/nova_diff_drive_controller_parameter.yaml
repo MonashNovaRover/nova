@@ -119,11 +119,17 @@ nova_diff_drive_controller:
     default_value: 10,
     description: "Size of the rolling window for calculation of mean velocity use in odometry.",
   }
-  use_stamped_vel: {
+  enable_twist_cmd: {
     type: bool,
     default_value: true,
-    description: "Use stamp from input velocity message to calculate how old the command actually is.",
+    description: "Subscribe to TwistStamped or DriveInputStamped",
   }
+  use_unstamped_msg: {
+    type: bool,
+    default_value: true,
+    description: "Subscribe to stamped or unstamped messages. Msg type depends on enable_twist_cmd parameter",
+  }
+
   publish_rate: {
     type: double,
     default_value: 50.0, # Hz

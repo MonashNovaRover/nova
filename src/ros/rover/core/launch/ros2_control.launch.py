@@ -61,22 +61,47 @@ def generate_launch_description():
         )
     )
 
-    model = LaunchConfiguration("model")
-    use_mock_hardware = LaunchConfiguration("use_mock_hardware")
-    gazebo = LaunchConfiguration("gazebo")
-    
-
-    robot_description_content = Command(
-        [
-            PathJoinSubstitution([FindExecutable(name='xacro')]),
-            " ",
-            PathJoinSubstitution(
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            name="urdf_path",
+            default_value=PathJoinSubstitution(
                 [
                     FindPackageShare("core"),
                     "urdf",
                     "rover.urdf.xacro"
                 ]
             ),
+            description="Path of the URDF file"
+        )
+    )
+
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            name="controllers",
+            default_value=PathJoinSubstitution(
+                [
+                    FindPackageShare("core"), 
+                    "params", 
+                    "controllers.yaml"
+                ]       
+            ),
+            description="Path of the controller params file"
+        )
+
+    )
+
+    model = LaunchConfiguration("model")
+    use_mock_hardware = LaunchConfiguration("use_mock_hardware")
+    gazebo = LaunchConfiguration("gazebo")
+    urdf_path = LaunchConfiguration("urdf_path")
+    controllers = LaunchConfiguration("controllers")
+    
+
+    robot_description_content = Command(
+        [
+            PathJoinSubstitution([FindExecutable(name='xacro')]),
+            " ",
+            urdf_path,
             " ",
             "gazebo:=",
             gazebo,
@@ -88,13 +113,6 @@ def generate_launch_description():
 
     robot_description = {'robot_description': ParameterValue(robot_description_content, value_type=str)}
 
-    controllers = PathJoinSubstitution(
-        [
-            FindPackageShare("core"), 
-            "params", 
-            "controllers.yaml"
-        ]
-    )
 
     control_node = Node(
         package="controller_manager",
@@ -142,8 +160,8 @@ def generate_launch_description():
 
     nodes = [
         control_node,
-        # wheel_velocity_controller,
-        # pivot_position_controller,
+        wheel_velocity_controller,
+        pivot_position_controller,
         joint_broad,
         pivot_drive_controller,
     ]

@@ -115,7 +115,8 @@ namespace strafe_controller
         bool subscriber_is_active_ = false;
         rclcpp::Subscription<core::msg::DriveInputStamped>::SharedPtr drive_input_subscriber_ = nullptr;
         rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr twist_subscriber_ = nullptr;
-
+        rclcpp::Subscription<core::msg::DriveInput>::SharedPtr drive_input_unstamped_subscriber_ = nullptr;
+        rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr twist_unstamped_subscriber_ = nullptr;
 
         realtime_tools::RealtimeBox<std::shared_ptr<core::msg::DriveInputStamped>> received_drive_input_msg_ptr_{nullptr};
         realtime_tools::RealtimeBox<std::shared_ptr<geometry_msgs::msg::TwistStamped>> received_twist_msg_ptr_{nullptr};

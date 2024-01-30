@@ -13,10 +13,10 @@ bool connected
 #enum for drive mode
 byte PIVOT = 1
 byte STRAFE = 2
-byte TANK = 3
+byte DIFF = 3
 
 #current drive mode of the rover
-byte drive_mode
+byte mode 
 
 #handbrake on or off
 bool handbrake

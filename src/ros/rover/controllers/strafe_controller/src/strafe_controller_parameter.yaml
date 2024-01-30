@@ -84,7 +84,7 @@ strafe_controller:
   }
   max_acceleration: {
     type: double,
-    default_value: 0.0,
+    default_value: 1.0,
   }
   min_jerk: {
     type: double,
@@ -163,4 +163,9 @@ strafe_controller:
     type: bool,
     default_value: false,
     description: "Enable the controller to subscribe to twist messages. By default, subscribe to DriveInputStamped.msg",
+  }
+  use_unstamped_msg: {
+    type: bool,
+    default_value: false,
+    description: "Subscribe to unstamped messages. Msg type depends on enable_twist_cmd parameter",
   }

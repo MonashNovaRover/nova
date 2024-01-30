@@ -156,11 +156,16 @@ pivot_drive_controller:
   }
   max_theta: {
     type: double,
-    default_value: 3.5342, #2*pi 
+    default_value: 3.5342, #2*pi*0.5625
     description: "Max. theta displacement in one iteration",
   }
   enable_twist_cmd: {
     type: bool,
     default_value: false,
     description: "Enable the controller to subscribe to twist messages. By default, subscribe to DriveInputStamped.msg",
+  }
+  use_unstamped_msg: {
+    type: bool,
+    default_value: false,
+    description: "Subscribe to unstamped messages. Msg type depends on enable_twist_cmd parameter",
   }

@@ -30,8 +30,8 @@
 
 namespace
 {
-constexpr auto DEFAULT_COMMAND_TOPIC = "~/cmd_vel";
-constexpr auto DEFAULT_COMMAND_UNSTAMPED_TOPIC = "~/cmd_vel_unstamped";
+constexpr auto DEFAULT_INPUT_TOPIC_TWIST = "/cmd_vel";
+constexpr auto DEFAULT_INPUT_TOPIC = "/drive_input";
 constexpr auto DEFAULT_COMMAND_OUT_TOPIC = "~/cmd_vel_out";
 constexpr auto DEFAULT_ODOMETRY_TOPIC = "~/odom";
 constexpr auto DEFAULT_TRANSFORM_TOPIC = "/tf";
@@ -133,28 +133,105 @@ controller_interface::return_type NovaDiffDriveController::update(
     return controller_interface::return_type::OK;
   }
 
-  std::shared_ptr<Twist> last_command_msg;
-  received_velocity_msg_ptr_.get(last_command_msg);
+  std::shared_ptr<geometry_msgs::msg::TwistStamped> last_twist_command_msg;
+  std::shared_ptr<core::msg::DriveInputStamped> last_command_msg;
 
-  if (last_command_msg == nullptr)
+  double tmp1 = 0.0;
+  double tmp2 = 0.0;
+  double & linear_command = tmp1;
+  double & angular_command = tmp2;
+
+  max_d_vel = params_.linear.x.max_acceleration * period.seconds();
+
+  // update parameters if they have changed
+  if (param_listener_->is_old(params_))
   {
-    RCLCPP_WARN(logger, "Velocity message received was a nullptr.");
-    return controller_interface::return_type::ERROR;
+    params_ = param_listener_->get_params();
+    RCLCPP_INFO(logger, "Parameters were updated");
   }
 
-  const auto age_of_last_command = time - last_command_msg->header.stamp;
-  // Brake if cmd_vel has timeout, override the stored command
-  if (age_of_last_command > cmd_vel_timeout_)
-  {
-    last_command_msg->twist.linear.x = 0.0;
-    last_command_msg->twist.angular.z = 0.0;
-  }
+  if (params_.enable_twist_cmd) {
+    RCLCPP_INFO_ONCE(logger, "***Twist control***");
+    received_twist_msg_ptr_.get(last_twist_command_msg);
 
-  // command may be limited further by SpeedLimit,
-  // without affecting the stored twist command
-  Twist command = *last_command_msg;
-  double & linear_command = command.twist.linear.x;
-  double & angular_command = command.twist.angular.z;
+    if (last_twist_command_msg == nullptr)
+    {
+      RCLCPP_WARN(logger, "Velocity message received was a nullptr.");
+      return controller_interface::return_type::ERROR;
+    }
+
+    const auto age_of_last_command = time - last_twist_command_msg->header.stamp;
+    // Brake if cmd_vel has timeout, override the stored command
+    if (age_of_last_command > cmd_vel_timeout_)
+    {
+      last_twist_command_msg->twist.linear.x = 0.0;
+      last_twist_command_msg->twist.angular.z = 0.0;
+    }
+
+    // command may be limited further by SpeedLimit,
+    // without affecting the stored twist command
+    geometry_msgs::msg::TwistStamped command = *last_twist_command_msg;
+    linear_command = command.twist.linear.x;
+    angular_command = command.twist.angular.z;
+
+    auto & last_command = previous_twist_commands_.back().twist;
+    auto & second_to_last_command = previous_twist_commands_.front().twist;
+    limiter_linear_.limit(
+      linear_command, last_command.linear.x, second_to_last_command.linear.x, period.seconds());
+    limiter_angular_.limit(
+      angular_command, last_command.angular.z, second_to_last_command.angular.z, period.seconds());
+
+    previous_twist_commands_.pop();
+    previous_twist_commands_.emplace(command);
+
+
+    // Publish limited velocity
+    if (publish_limited_twist_ && realtime_limited_twist_publisher_->trylock())
+    {
+      auto & limited_velocity_command = realtime_limited_twist_publisher_->msg_;
+      limited_velocity_command.header.stamp = time;
+      limited_velocity_command.twist = command.twist;
+      realtime_limited_twist_publisher_->unlockAndPublish();
+    }
+
+  } 
+  else
+  {
+    RCLCPP_INFO_ONCE(logger, "***DriveInput control***");
+
+    received_drive_input_msg_ptr_.get(last_command_msg);
+
+    if (last_command_msg == nullptr)
+    {
+      RCLCPP_WARN(logger, "DriveInputStamped message received was a nullptr.");
+      return controller_interface::return_type::ERROR;
+    }
+
+    core::msg::DriveInputStamped command = *last_command_msg;
+    linear_command = command.drive_input.speed;
+    angular_command = command.drive_input.radius;
+
+    const auto age_of_last_command = time - last_command_msg->header.stamp;
+
+    // Brake if cmd_vel has timeout, override the stored command
+    if (age_of_last_command > cmd_vel_timeout_)
+    {
+      last_command_msg->drive_input.speed = 0.0;
+      last_command_msg->drive_input.radius = 0.0;
+    }
+
+    auto & last_command = previous_commands_.back().drive_input;
+    auto & second_to_last_command = previous_commands_.front().drive_input;
+    limiter_linear_.limit(
+      linear_command, last_command.speed, second_to_last_command.speed, period.seconds());
+    limiter_angular_.limit(
+      angular_command, last_command.radius, second_to_last_command.radius, period.seconds());
+
+    previous_commands_.pop();
+    previous_commands_.emplace(command);
+
+    target_direction = command.drive_input.direction;
+  }
 
   previous_update_timestamp_ = time;
 
@@ -171,64 +248,12 @@ controller_interface::return_type NovaDiffDriveController::update(
   {
     double left_feedback_mean = 0.0;
     double right_feedback_mean = 0.0;
-    const double left_feedback = registered_left_drive_handles_.at(0).state.get().get_value();
-    if (std::isnan(left_feedback))
-    {
-      RCLCPP_ERROR(logger, "flw invalid"); 
-    }
-
-    const double right_feedback = registered_right_drive_handles_.at(0).state.get().get_value();
-    if (std::isnan(right_feedback))
-    {
-      RCLCPP_ERROR(logger, "frw invalid"); 
-    }
-
-    const double left_feedback_2 = registered_right_drive_handles_.at(1).state.get().get_value();
-    if (std::isnan(left_feedback_2))
-    {
-      RCLCPP_ERROR(logger, "blw invalid"); 
-    }
-
-    const double right_feedback_2 = registered_right_drive_handles_.at(1).state.get().get_value();
-    if (std::isnan(right_feedback_2))
-    { 
-      RCLCPP_ERROR(logger, "brw invalid"); 
-    }
-
-    const double left_feedback_p = registered_left_pivot_handles_.at(0).state.get().get_value();
-    if (std::isnan(left_feedback_p))
-    {
-      RCLCPP_ERROR(logger, "flp invalid"); 
-    }
-
-    const double right_feedback_p = registered_right_pivot_handles_.at(0).state.get().get_value();
-    if (std::isnan(right_feedback_p)) 
-    {
-      RCLCPP_ERROR(logger, "frp invalid"); 
-    }
-
-    const double left_feedback_2_p = registered_right_pivot_handles_.at(1).state.get().get_value();
-    if (std::isnan(left_feedback_2_p))
-    {
-      RCLCPP_ERROR(logger, "blp invalid"); 
-    }
-
-    const double right_feedback_2_p = registered_right_pivot_handles_.at(1).state.get().get_value();
-    if (std::isnan(right_feedback_2_p)) 
-    {
-      RCLCPP_ERROR(logger, "brp invalid"); 
-    }
-
 
     for (size_t index = 0; index < static_cast<size_t>(params_.wheels_per_side); ++index)
     {
-      //const double left_feedback = registered_left_drive_handles_.at(index).state.get().get_value();
-      //const double right_feedback = registered_right_drive_handles_.at(index).state.get().get_value();
+      const double left_feedback = registered_left_drive_handles_.at(index).state.get().get_value();
+      const double right_feedback = registered_right_drive_handles_.at(index).state.get().get_value();
       
-      //const double left_feedback = registered_left_pivot_handles_.at(index).state.get().get_value();
-      //const double right_feedback = registered_right_pivot_handles_.at(index).state.get().get_value();
-
-
       if (std::isnan(left_feedback) && std::isnan(right_feedback))
       {
         RCLCPP_ERROR(
@@ -305,44 +330,80 @@ controller_interface::return_type NovaDiffDriveController::update(
     }
   }
 
-  auto & last_command = previous_commands_.back().twist;
-  auto & second_to_last_command = previous_commands_.front().twist;
-  limiter_linear_.limit(
-    linear_command, last_command.linear.x, second_to_last_command.linear.x, period.seconds());
-  limiter_angular_.limit(
-    angular_command, last_command.angular.z, second_to_last_command.angular.z, period.seconds());
-
-  previous_commands_.pop();
-  previous_commands_.emplace(command);
-
-  //    Publish limited velocity
-  if (publish_limited_velocity_ && realtime_limited_velocity_publisher_->trylock())
-  {
-    auto & limited_velocity_command = realtime_limited_velocity_publisher_->msg_;
-    limited_velocity_command.header.stamp = time;
-    limited_velocity_command.twist = command.twist;
-    realtime_limited_velocity_publisher_->unlockAndPublish();
-  }
-
-  // Compute wheels velocities:
-  const double velocity_left =
-    (linear_command - angular_command * wheel_separation / 2.0) / left_wheel_radius;
-  const double velocity_right =
-    (linear_command + angular_command * wheel_separation / 2.0) / right_wheel_radius;
-
+  //set_best_effort_velocity
+  float d_vel = linear_command - best_effort_velocity;
+  if (abs(d_vel) > max_d_vel) {
+    best_effort_velocity += max_d_vel * (d_vel > 0 ? 1 : -1);
+  } else {
+    best_effort_velocity = linear_command;
+  };
 
   angle_offset = atan(params_.steering_track / params_.wheel_base);
-  
-  // Set wheels velocities:
-  for (size_t index = 0; index < static_cast<size_t>(params_.wheels_per_side); ++index)
-  {
-    //pivots: specific to nova
-    registered_left_pivot_handles_[index].command.get().set_value(angle_offset);
-    registered_right_pivot_handles_[index].command.get().set_value(angle_offset);
-    
-    registered_left_drive_handles_[index].command.get().set_value(velocity_left);
-    registered_right_drive_handles_[index].command.get().set_value(velocity_right);
+
+  float radius = angular_command*target_direction;
+  if (radius == INFINITY || radius == -INFINITY || target_direction == 0) {
+      for (size_t index = 0; index < static_cast<size_t>(params_.wheels_per_side); ++index)
+      {
+        registered_left_drive_handles_[index].command.get().set_value(best_effort_velocity);
+        registered_right_drive_handles_[index].command.get().set_value(best_effort_velocity);
+      }
   }
+  else {
+      // Calculate distances from the wheel_base centre to each wheel, and the maximum distance
+      float left_wheel_distances[params_.wheels_per_side];
+      float right_wheel_distances[params_.wheels_per_side];
+      float wheel_x = params_.steering_track / 2;
+      float wheel_y;
+      
+      float max_dist = 0;
+      for (size_t index = 0; index < static_cast<size_t>(params_.wheels_per_side); ++index)
+      {
+        //position of wheel
+        wheel_y = params_.wheel_base / 2 * (index == 0 ? 1 : -1);
+
+        auto wheel_dist = [radius](float x, float y) -> float
+        {
+          return sqrt(pow(radius - x, 2) + pow(y, 2));
+        };
+
+        left_wheel_distances[index] = wheel_dist(-wheel_x, wheel_y);
+        right_wheel_distances[index] = wheel_dist(wheel_x, wheel_y);
+
+        max_dist = std::max({max_dist, left_wheel_distances[index], right_wheel_distances[index]});
+      }
+
+      for (size_t index = 0; index < static_cast<size_t>(params_.wheels_per_side); ++index)
+      {
+        registered_left_drive_handles_[index].command.get().set_value(best_effort_velocity * left_wheel_distances[index] / max_dist);
+        registered_right_drive_handles_[index].command.get().set_value(best_effort_velocity * right_wheel_distances[index] / max_dist);
+
+        registered_left_pivot_handles_[index].command.get().set_value(angle_offset * (index == 0 ? 1 : -1));
+        registered_right_pivot_handles_[index].command.get().set_value(angle_offset * (index == 0 ? -1 : 1));
+      }
+
+      // Modify wheel directions if the turning centre is under the rover wheel_base
+      // Ignore the edge case where the turning centre is exactly below the centre of a wheel.
+      // Does not affect the behaviour in practice
+      if (abs(radius) < wheel_x) {
+          // If the turning centre is...
+          if (radius > -wheel_x && radius <= 0 && target_direction < 0) {
+              // Under the left half of the chassis, reverse the left wheels
+              // Also include cases where we are pivoting left
+              for (size_t index = 0; index < static_cast<size_t>(params_.wheels_per_side); ++index)
+              {
+                registered_left_drive_handles_[index].command.get().set_value(registered_left_drive_handles_[index].state.get().get_value() * -1);
+              }
+          } else if (radius >= 0 && radius < wheel_x && target_direction > 0) {
+              // Under the right half of the chassis, reverse the right wheels
+              // Also include cases where we are pivoting right
+              for (size_t index = 0; index < static_cast<size_t>(params_.wheels_per_side); ++index)
+              {
+                registered_right_drive_handles_[index].command.get().set_value(registered_right_drive_handles_[index].state.get().get_value() * -1);
+              }
+          }
+      }
+  }
+
 
   return controller_interface::return_type::OK;
 }
@@ -381,8 +442,8 @@ controller_interface::CallbackReturn NovaDiffDriveController::on_configure(
   odometry_.setVelocityRollingWindowSize(params_.velocity_rolling_window_size);
 
   cmd_vel_timeout_ = std::chrono::milliseconds{static_cast<int>(params_.cmd_vel_timeout * 1000.0)};
-  publish_limited_velocity_ = params_.publish_limited_velocity;
-  use_stamped_vel_ = params_.use_stamped_vel;
+  publish_limited_twist_ = params_.publish_limited_velocity;
+  //use_stamped_vel_ = params_.use_stamped_vel;
 
   limiter_linear_ = SpeedLimiter(
     params_.linear.x.has_velocity_limits, params_.linear.x.has_acceleration_limits,
@@ -404,27 +465,75 @@ controller_interface::CallbackReturn NovaDiffDriveController::on_configure(
   // left and right sides are both equal at this point
   params_.wheels_per_side = params_.left_drive_names.size();
 
-  if (publish_limited_velocity_)
+  if (publish_limited_twist_)
   {
-    limited_velocity_publisher_ =
-      get_node()->create_publisher<Twist>(DEFAULT_COMMAND_OUT_TOPIC, rclcpp::SystemDefaultsQoS());
-    realtime_limited_velocity_publisher_ =
-      std::make_shared<realtime_tools::RealtimePublisher<Twist>>(limited_velocity_publisher_);
+    limited_twist_publisher_ =
+      get_node()->create_publisher<geometry_msgs::msg::TwistStamped>(DEFAULT_COMMAND_OUT_TOPIC, rclcpp::SystemDefaultsQoS());
+    realtime_limited_twist_publisher_ =
+      std::make_shared<realtime_tools::RealtimePublisher<geometry_msgs::msg::TwistStamped>>(limited_twist_publisher_);
   }
 
-  const Twist empty_twist;
-  received_velocity_msg_ptr_.set(std::make_shared<Twist>(empty_twist));
+  const geometry_msgs::msg::TwistStamped empty_twist;
+  received_twist_msg_ptr_.set(std::make_shared<geometry_msgs::msg::TwistStamped>(empty_twist));
+
+  const core::msg::DriveInputStamped empty_drive_input;
+  received_drive_input_msg_ptr_.set(std::make_shared<core::msg::DriveInputStamped>(empty_drive_input));
 
   // Fill last two commands with default constructed commands
-  previous_commands_.emplace(empty_twist);
-  previous_commands_.emplace(empty_twist);
+  previous_twist_commands_.emplace(empty_twist);
+  previous_twist_commands_.emplace(empty_twist);
 
-  // initialize command subscriber
-  if (use_stamped_vel_)
+  // Fill last two commands with default constructed commands
+  previous_commands_.emplace(empty_drive_input);
+  previous_commands_.emplace(empty_drive_input);
+
+  if (params_.use_unstamped_msg)
   {
-    velocity_command_subscriber_ = get_node()->create_subscription<Twist>(
-      DEFAULT_COMMAND_TOPIC, rclcpp::SystemDefaultsQoS(),
-      [this](const std::shared_ptr<Twist> msg) -> void
+    RCLCPP_INFO_ONCE(get_node()->get_logger(), "***input: unstamped***");
+
+    twist_unstamped_subscriber_ = get_node()->create_subscription<geometry_msgs::msg::Twist>(
+      DEFAULT_INPUT_TOPIC_TWIST, rclcpp::SystemDefaultsQoS(),
+      [this](const std::shared_ptr<geometry_msgs::msg::Twist> msg) -> void
+      {
+        if (!subscriber_is_active_)
+        {
+          RCLCPP_WARN(
+            get_node()->get_logger(), "Can't accept new commands. subscriber is inactive");
+          return;
+        }
+
+        // Write fake header in the stored stamped command
+        std::shared_ptr<geometry_msgs::msg::TwistStamped> twist_stamped;
+        received_twist_msg_ptr_.get(twist_stamped);
+        twist_stamped->twist = *msg;
+        twist_stamped->header.stamp = get_node()->get_clock()->now();
+      });
+
+    drive_input_unstamped_subscriber_ = get_node()->create_subscription<core::msg::DriveInput>(
+      DEFAULT_INPUT_TOPIC, rclcpp::SystemDefaultsQoS(),
+      [this](const std::shared_ptr<core::msg::DriveInput> msg) -> void
+      {
+        if (!subscriber_is_active_)
+        {
+          RCLCPP_WARN(
+            get_node()->get_logger(), "Can't accept new commands. subscriber is inactive");
+          return;
+        }
+
+        // Write fake header in the stored stamped command
+        std::shared_ptr<core::msg::DriveInputStamped> drive_input_stamped;
+        received_drive_input_msg_ptr_.get(drive_input_stamped);
+        drive_input_stamped->drive_input = *msg;
+        drive_input_stamped->header.stamp = get_node()->get_clock()->now();
+      });
+  }
+  else
+  {
+    RCLCPP_INFO_ONCE(get_node()->get_logger(), "***input: stamped***");
+
+    twist_subscriber_ = get_node()->create_subscription<geometry_msgs::msg::TwistStamped>(
+      DEFAULT_INPUT_TOPIC_TWIST, rclcpp::SystemDefaultsQoS(),
+      [this](const std::shared_ptr<geometry_msgs::msg::TwistStamped> msg) -> void
       {
         if (!subscriber_is_active_)
         {
@@ -440,29 +549,29 @@ controller_interface::CallbackReturn NovaDiffDriveController::on_configure(
             "time, this message will only be shown once");
           msg->header.stamp = get_node()->get_clock()->now();
         }
-        received_velocity_msg_ptr_.set(std::move(msg));
+        received_twist_msg_ptr_.set(std::move(msg));
       });
-  }
-  else
-  {
-    velocity_command_unstamped_subscriber_ =
-      get_node()->create_subscription<geometry_msgs::msg::Twist>(
-        DEFAULT_COMMAND_UNSTAMPED_TOPIC, rclcpp::SystemDefaultsQoS(),
-        [this](const std::shared_ptr<geometry_msgs::msg::Twist> msg) -> void
-        {
-          if (!subscriber_is_active_)
-          {
-            RCLCPP_WARN(
-              get_node()->get_logger(), "Can't accept new commands. subscriber is inactive");
-            return;
-          }
 
-          // Write fake header in the stored stamped command
-          std::shared_ptr<Twist> twist_stamped;
-          received_velocity_msg_ptr_.get(twist_stamped);
-          twist_stamped->twist = *msg;
-          twist_stamped->header.stamp = get_node()->get_clock()->now();
-        });
+    drive_input_subscriber_ = get_node()->create_subscription<core::msg::DriveInputStamped>(
+      DEFAULT_INPUT_TOPIC, rclcpp::SystemDefaultsQoS(),
+      [this](const std::shared_ptr<core::msg::DriveInputStamped> msg) -> void
+      {
+        if (!subscriber_is_active_)
+        {
+          RCLCPP_WARN(
+            get_node()->get_logger(), "Can't accept new commands. subscriber is inactive");
+          return;
+        }
+        if ((msg->header.stamp.sec == 0) && (msg->header.stamp.nanosec == 0))
+        {
+          RCLCPP_WARN_ONCE(
+            get_node()->get_logger(),
+            "Received DriveInputStamped with zero timestamp, setting it to current "
+            "time, this message will only be shown once");
+          msg->header.stamp = get_node()->get_clock()->now();
+        }
+        received_drive_input_msg_ptr_.set(std::move(msg));
+      });
   }
 
   // initialize odometry publisher and messasge
@@ -604,7 +713,9 @@ controller_interface::CallbackReturn NovaDiffDriveController::on_cleanup(
     return controller_interface::CallbackReturn::ERROR;
   }
 
-  received_velocity_msg_ptr_.set(std::make_shared<Twist>());
+  received_twist_msg_ptr_.set(std::make_shared<geometry_msgs::msg::TwistStamped>());
+  received_drive_input_msg_ptr_.set(std::make_shared<core::msg::DriveInputStamped>());
+
   return controller_interface::CallbackReturn::SUCCESS;
 }
 
@@ -622,7 +733,10 @@ bool NovaDiffDriveController::reset()
   odometry_.resetOdometry();
 
   // release the old queue
-  std::queue<Twist> empty;
+  std::queue<geometry_msgs::msg::TwistStamped> empty_twist;
+  std::swap(previous_twist_commands_, empty_twist);
+
+  std::queue<core::msg::DriveInputStamped> empty;
   std::swap(previous_commands_, empty);
 
   registered_left_drive_handles_.clear();
@@ -631,10 +745,12 @@ bool NovaDiffDriveController::reset()
   registered_right_pivot_handles_.clear();
 
   subscriber_is_active_ = false;
-  velocity_command_subscriber_.reset();
-  velocity_command_unstamped_subscriber_.reset();
+  twist_subscriber_.reset();
+  drive_input_subscriber_.reset();
 
-  received_velocity_msg_ptr_.set(nullptr);
+  received_twist_msg_ptr_.set(nullptr);
+  received_drive_input_msg_ptr_.set(nullptr);
+
   is_halted = false;
   return true;
 }
