@@ -50,6 +50,18 @@ def generate_launch_description():
         arguments=["pivot_joint_trajectory_controller"]
     )
 
+    strafe_controller = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["strafe_controller", "--inactive"]
+    )
+
+    nova_diff_drive_controller = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["nova_diff_drive_controller", "--inactive"]
+    )
+
     pivot_drive_controller = Node(
         package="controller_manager",
         executable="spawner",
@@ -96,6 +108,8 @@ def generate_launch_description():
         model_arg,
         urdf_launch_cmd,
         pivot_drive_controller,
+        strafe_controller,
+        nova_diff_drive_controller,
         joint_broad,
         inputs_processor,
         led_publisher

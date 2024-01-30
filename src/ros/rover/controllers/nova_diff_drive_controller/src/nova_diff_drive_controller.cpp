@@ -31,7 +31,9 @@
 namespace
 {
 constexpr auto DEFAULT_INPUT_TOPIC_TWIST = "/cmd_vel";
+constexpr auto DEFAULT_INPUT_TOPIC_TWIST_STAMPED = "/cmd_vel_stamped";
 constexpr auto DEFAULT_INPUT_TOPIC = "/drive_input";
+constexpr auto DEFAULT_INPUT_TOPIC_STAMPED = "/drive_input_stamped";
 constexpr auto DEFAULT_COMMAND_OUT_TOPIC = "~/cmd_vel_out";
 constexpr auto DEFAULT_ODOMETRY_TOPIC = "~/odom";
 constexpr auto DEFAULT_TRANSFORM_TOPIC = "/tf";
@@ -532,7 +534,7 @@ controller_interface::CallbackReturn NovaDiffDriveController::on_configure(
     RCLCPP_INFO_ONCE(get_node()->get_logger(), "***input: stamped***");
 
     twist_subscriber_ = get_node()->create_subscription<geometry_msgs::msg::TwistStamped>(
-      DEFAULT_INPUT_TOPIC_TWIST, rclcpp::SystemDefaultsQoS(),
+      DEFAULT_INPUT_TOPIC_TWIST_STAMPED, rclcpp::SystemDefaultsQoS(),
       [this](const std::shared_ptr<geometry_msgs::msg::TwistStamped> msg) -> void
       {
         if (!subscriber_is_active_)
@@ -553,7 +555,7 @@ controller_interface::CallbackReturn NovaDiffDriveController::on_configure(
       });
 
     drive_input_subscriber_ = get_node()->create_subscription<core::msg::DriveInputStamped>(
-      DEFAULT_INPUT_TOPIC, rclcpp::SystemDefaultsQoS(),
+      DEFAULT_INPUT_TOPIC_STAMPED, rclcpp::SystemDefaultsQoS(),
       [this](const std::shared_ptr<core::msg::DriveInputStamped> msg) -> void
       {
         if (!subscriber_is_active_)
