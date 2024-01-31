@@ -16,6 +16,7 @@ TODO:
 
 from typing import Union, List
 from coms_utils.uart_interface import UARTTransceiver
+from pymodbus.client import ModbusSerialClient
 
 import rclpy
 import time
@@ -117,6 +118,48 @@ class HydraprobeTransceiver(UARTTransceiver):
         # decode returned values
         return self.handle(ret)
 
+class NewHydraprobeTransceiver():
+    reading_sets = {0: [{"base_reg": 0x0200, "num_regs": 6}], # get comms details
+                    1: [{"base_reg": 0x0005, "num_regs": 1},    # get EC and dielectric constant
+                        {"base_reg": 0x0002, "num_regs": 1}],
+                    2: [{"base_reg": 0x0000, "num_regs": 3}]}   # get temp, moisture, EC
+
+    def __init__(self, port, probe_address=1, baudrate=9600, bytesize=8, parity='N', stopbits=1, retries=1, broadcast_enable=True):
+        self.client = ModbusSerialClient(port, baudrate=baudrate, bytesize=bytesize, parity=parity, stopbits=stopbits, retries=retries, broadcast_enable=broadcast_enable)
+        self.addr = probe_address
+
+        assert self.client.connect()
+
+    def get_reading_set(self, set_number: int = 0):
+        read_set = self.reading_sets[set_number]
+        results = []
+
+        for item in read_set:
+            reply = self.read_registers(item["base_reg"], item["num_regs"])
+
+            try:
+                results += reply.registers
+            except:
+                return None
+        
+        return results
+
+    def write_registers(self, base_reg, values: list[int] | int):
+        self.client.write_registers(base_reg, values, self.addr)
+
+    def read_registers(self, base_reg, num_regs: int = 1):
+        reply = self.client.read_holding_registers(base_reg, num_regs, self.addr)
+        
+        try:
+            regs = reply.registers
+        except AttributeError:
+            regs = None
+
+        return regs
+    
+    def close(self):
+        self.client.close()
+
 
 class HydraprobePublisher(Node):
 
@@ -133,11 +176,17 @@ class HydraprobePublisher(Node):
         
         # Attempt to create the transceiver
         try:
-            self.hydraprobe_transceiver = HydraprobeTransceiver(
+            # self.hydraprobe_transceiver = HydraprobeTransceiver(
+            #     logger = self.get_logger(),
+            #     baudrate = 9600, # confirm this
+            #     port = self.port, # TODO: check this
+            #     probe_address = 0, # TODO: check this. /// is broadcast address for the probes so should be fine to use as long as we only have 1 connected.
+            #     )
+            self.hydraprobe_transceiver = NewHydraprobeTransceiver(
                 logger = self.get_logger(),
                 baudrate = 9600, # confirm this
                 port = self.port, # TODO: check this
-                probe_address = '000', # TODO: check this. /// is broadcast address for the probes so should be fine to use as long as we only have 1 connected.
+                probe_address = 0, # TODO: check this. /// is broadcast address for the probes so should be fine to use as long as we only have 1 connected.
                 )
         
         # Print error if missing device
@@ -148,16 +197,16 @@ class HydraprobePublisher(Node):
         # Create the timer
         self.publisher_timer = self.create_timer(3, self.publish_values)
 
-        # get firmware version
-        self.hydraprobe_transceiver.transmit("FV=?")
-        self.get_logger().debug(self.hydraprobe_transceiver.receive().decode('ascii'))
+        # get firmware version xx no longer applicable
+        # self.hydraprobe_transceiver.transmit("FV=?")
+        # self.get_logger().debug(self.hydraprobe_transceiver.receive().decode('ascii'))
 
 
     def publish_values(self):
-        # request reading set and wait till its ready
-        self.hydraprobe_transceiver.update_readings()
-        # pretty jank but we will roll with it
-        time.sleep(2)
+        # request reading set and wait till its ready  xx deprecated
+        # self.hydraprobe_transceiver.update_readings()     
+        # # pretty jank but we will roll with it
+        # time.sleep(2)
         #then read values
         msg = HydraprobeData()
         values = self.hydraprobe_transceiver.get_reading_set(set_number=2)
@@ -165,8 +214,8 @@ class HydraprobePublisher(Node):
             # write values into msg
             # see linked datasheet for reference on data ordering
             msg.temperature = values[0]
-            msg.moisture = values[2]
-            msg.conductivity = values[4]
+            msg.moisture = values[1]
+            msg.conductivity = values[2]
         else:
             # set error state with -1 for all values
             msg.temperature = msg.moisture = msg.conductivity = -1
