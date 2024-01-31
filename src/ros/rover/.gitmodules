@@ -1,15 +1,3 @@
 [submodule "autonomous/pybind11"]
 	path = autonomous/pybind11
 	url = git@github.com:pybind/pybind11.git
-[submodule "controllers/controllers/ros2_controllers/fixit_davide"]
-	path = controllers/controllers/ros2_controllers/fixit_davide
-	url = https://github.com/Fixit-Davide/ros2_controllers.git
-[submodule "controllers/ros2_controllers_fixit_davide"]
-	path = controllers/ros2_controllers_fixit_davide
-	url = https://github.com/Fixit-Davide/ros2_controllers.git
-[submodule "controllers/ros2_controllers"]
-	path = controllers/ros2_controllers
-	url = git@github.com:MonashNovaRover/ros2_controllers.git
-[submodule "teleop_nova_joy"]
-	path = teleop_nova_joy
-	url = git@github.com:MonashNovaRover/teleop_nova_joy.git

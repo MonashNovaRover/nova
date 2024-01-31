@@ -156,7 +156,7 @@ pivot_drive_controller:
   }
   max_theta: {
     type: double,
-    default_value: 3.5342, #2*pi 
+    default_value: 3.5342, #2*pi*0.5625
     description: "Max. theta displacement in one iteration",
   }
   enable_twist_cmd: {

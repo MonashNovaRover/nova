@@ -143,6 +143,12 @@ controller_interface::return_type NovaDiffDriveController::update(
 
   max_d_vel = params_.linear.x.max_acceleration * period.seconds();
 
+  // update parameters if they have changed
+  if (param_listener_->is_old(params_))
+  {
+    params_ = param_listener_->get_params();
+    RCLCPP_INFO(logger, "Parameters were updated");
+  }
 
   if (params_.enable_twist_cmd) {
     RCLCPP_INFO_ONCE(logger, "***Twist control***");

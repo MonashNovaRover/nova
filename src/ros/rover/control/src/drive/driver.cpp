@@ -69,7 +69,7 @@ void Driver::send_commands()
             break;
         }
 
-        case core::msg::DriveInput::TANK: {
+        case core::msg::DriveInput::DIFF: {
             fill_wheel_velocities_tank();
             data_msg.radius = target_radius;
             break;

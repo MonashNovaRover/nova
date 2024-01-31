@@ -137,6 +137,13 @@ namespace strafe_controller
         float target_radius, target_direction;
         angle_offset = atan(params_.steering_track / params_.wheel_base);
 
+        // update parameters if they have changed
+        if (param_listener_->is_old(params_))
+        {
+            params_ = param_listener_->get_params();
+            RCLCPP_INFO(logger, "Parameters were updated");
+        }
+
         if (params_.enable_twist_cmd) {
             RCLCPP_INFO_ONCE(logger, "***input: twist control***");
             received_twist_msg_ptr_.get(last_twist_command_msg);
