@@ -131,7 +131,7 @@ def generate_launch_description():
     pivot_position_controller = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["pivot_position_controller"]
+        arguments=["pivot_position_controller", "--inactive"]
     )
 
     joint_broad = Node(
@@ -143,19 +143,19 @@ def generate_launch_description():
     pivot_drive_controller = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["pivot_drive_controller"]
+        arguments=["pivot_drive_controller", "--inactive"]
     )
 
     strafe_controller = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["strafe_controller"]
+        arguments=["strafe_controller", "--inactive"]
     )
 
     nova_diff_drive_controller = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["nova_diff_drive_controller"]
+        arguments=["nova_diff_drive_controller", "--inactive"]
     )
 
     nodes = [

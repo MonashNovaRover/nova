@@ -149,15 +149,16 @@ private:
 
     uint16_t min_interval_;
 
-    uint16_t clock_rate_;
+    uint32_t clock_rate_;
 
     uint16_t revolution_pulses_;
+
+    double gear_ratio_;
 
     bool mock_ = false;
 
     int reversed_multiplier_ = 1;
 
-    bool check_resolver();
 
     bool set_control_interface(const hardware_interface::InterfaceInfo & interface_info, bool command);
 
@@ -176,17 +177,17 @@ private:
     /// @brief      Create the can ID for a given BLCMDSendCommand
     /// @param      command - The command to send
     /// @returns    The can ID
-    uint32_t make_can_id(BLCMDSendCommand command);
+    uint32_t make_can_id(BLCMDSendCommand command) const;
 
     /// @brief      Create the can ID for a given BLCMDReceiveCommand
     /// @param      command - The command to send
     /// @returns    The can ID
-    uint32_t make_can_id(BLCMDReceiveCommand command);
+    uint32_t make_can_id(BLCMDReceiveCommand command) const;
 
     /// @brief      Create the can ID for a given TelemetryPacket
     /// @param      command - The command to send
     /// @returns    The can ID
-    uint32_t make_can_id(TelemetryPacket packet);
+    uint32_t make_can_id(TelemetryPacket packet) const;
 
     void packet_1_callback(leigh::jcan::Frame);
 
