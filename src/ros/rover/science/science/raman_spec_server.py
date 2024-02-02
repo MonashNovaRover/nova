@@ -41,6 +41,63 @@ class RamanServer(rclpy.node.Node):
         self.srv = self.create_service(RamanSpec, '/science/raman_spec_srv', self.raman_response)
         self.continuous_mode = False
 
+    def get_continuous_mode(self):
+        return self.continuous_mode
+
+    def set_input(shperiod, icgperiod, singlecollectionmode, average):
+        result = zeros(12, uint8)
+
+        #Transmit key 'ER' (firmware specific)   
+        result[0] = 69
+        result[1] = 82
+
+        # min is 20, max is 4294967295
+        shperiodconverted = uint32(shperiod)
+        result[2] = (shperiodconverted >> 24) & 0xff
+        result[3] = (shperiodconverted >> 16) & 0xff
+        result[4] = (shperiodconverted >> 8) & 0xff
+        result[5] = shperiodconverted & 0xff
+
+        # min is 14776, max is 4294967295
+        icgperiodconverted = uint32(icgperiod)
+        result[6] = (icgperiodconverted >> 24) & 0xff
+        result[7] = (icgperiodconverted >> 16) & 0xff
+        result[8] = (icgperiodconverted >> 8) & 0xff
+        result[9] = icgperiodconverted & 0xff
+
+        if singlecollectionmode:
+            result[10] = 0
+        else: # continuous collection mode
+            result[10] = 1
+        
+        result[11] = uint8(average)  # min is 1, max is 15
+
+        return result
+
+    
+    def read_output_to_response(output):
+        response = zeros(RamanServer.SPECTRA_SIZE, uint16)
+
+        # combining 8 bit integer pairs into respective 16 bit integer values
+        for pixel in range(RamanServer.SPECTRA_SIZE):
+            response[pixel] = (output[2*pixel+1] << 8) + output[2*pixel]
+            
+        # register has two sides which produce systematically differing values, so to reduce noise, an offset is applied to equal the values
+        offset = 0
+        for pixel in range(RamanServer.SPECTRA_SIZE):
+            if pixel % 2 == 0:
+                offset += response[pixel]
+            else:
+                offset -= response[pixel]
+        offset = 2 * offset / RamanServer.SPECTRA_SIZE
+
+        for pixel in range(RamanServer.SPECTRA_SIZE / 2):
+            response[2*pixel] -= offset
+
+        return response
+
+
+
     def raman_response(self, request, response):
         response.isvalid = False
         response.spectra = zeros(RamanServer.SPECTRA_SIZE, uint16)
@@ -54,29 +111,8 @@ class RamanServer(rclpy.node.Node):
                     ser.reset_output_buffer()
                     sleep(0.01)
 
-                input = zeros(12, uint8)
+                input = RamanServer.set_input(request.shperiod, request.icgperiod, request.singlecollectionmode, request.average)
                 output = zeros(RamanServer.OUTPUT_SIZE, uint8)
-
-                #Transmit key 'ER' (firmware specific)   
-                input[0] = 69
-                input[1] = 82
-
-                # min is 20, max is 4294967295
-                shperiodconverted = uint32(request.shperiod)
-                input[2] = (shperiodconverted >> 24) & 0xff
-                input[3] = (shperiodconverted >> 16) & 0xff
-                input[4] = (shperiodconverted >> 8) & 0xff
-                input[5] = shperiodconverted & 0xff
-
-                # min is 14776, max is 4294967295
-                icgperiodconverted = uint32(request.icgperiod)
-                input[6] = (icgperiodconverted >> 24) & 0xff
-                input[7] = (icgperiodconverted >> 16) & 0xff
-                input[8] = (icgperiodconverted >> 8) & 0xff
-                input[9] = icgperiodconverted & 0xff
-
-                input[10] = 0  # single collection mode only to fit one request -> one response format
-                input[11] = uint8(request.average)  # min is 1, max is 15
 
                 #transmit everything at once (the USB-firmware does not work if all bytes are not transmitted in one go)
                 ser.write(input)
@@ -86,22 +122,9 @@ class RamanServer(rclpy.node.Node):
 
                 ser.close()
 
-                for pixel in range(RamanServer.SPECTRA_SIZE):
-                    response.spectra[pixel] = (output[2*pixel+1] << 8) + output[2*pixel]
-            
-                # register has two sides which produce systematically differing values, so to reduce noise, an offset is applied to equal the values
-                offset = 0
-                for pixel in range(RamanServer.SPECTRA_SIZE):
-                    if pixel % 2 == 0:
-                        offset += response.spectra[pixel]
-                    else:
-                        offset -= response.spectra[pixel]
-                offset = 2 * offset / RamanServer.SPECTRA_SIZE
-
-                for pixel in range(RamanServer.SPECTRA_SIZE / 2):
-                    response.spectra[2*pixel] -= offset 
-                
+                response.spectra = RamanServer.read_output_to_response(output)
                 response.isvalid = True
+                
                 return response
 
             except SerialException:
