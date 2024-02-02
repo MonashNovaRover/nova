@@ -55,7 +55,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/KilnTempData.msg"
   "msg/WheelOdometry.msg"
   "msg/RoverPose.msg"
-  "msg/RamanSpectrum.msg"
+  "msg/RamanSpectraStream.msg"
 
   "srv/CameraCommand.srv"
   "srv/KilnCommand.srv"
