@@ -65,6 +65,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/KilnTempData.msg"
   "msg/WheelOdometry.msg"
   "msg/RoverPose.msg"
+  "msg/RamanSpectraStream.msg"
 
   "srv/ArmConfigInfo.srv"
   "srv/CameraCommand.srv"
@@ -73,12 +74,12 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/PIDTune.srv"
   "srv/ScienceCommand.srv"
   "srv/LoadCellPoller.srv"
+  "srv/RamanSpec.srv"
   "srv/RFIDCommand.srv"
   "srv/PathPlanningRequest.srv"
   "srv/StringTrigger.srv"
   "srv/DisableBLCMD.srv"
   "srv/GpsOffset.srv"
-  "srv/RamanSpec.srv"
 
   # Action definitions
   DEPENDENCIES std_msgs geometry_msgs nav_msgs
