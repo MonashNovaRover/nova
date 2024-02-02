@@ -13,20 +13,20 @@ const NIRProbeLEDWidget: React.FC<INIRProbeLEDWidgetProps> = ({...cardProps}) =>
 
   const tabs = [
     <span>Off</span>,
-    <span>LED 1</span>,
-    <span>LED 2</span>
+    <span>Water</span>,
+    <span>Ilmenite</span>
   ]
 
   return (
     <Card {...cardProps}>
       <CardHeader className="pb-0">
-        NIR Probe LED
+        NIR Probe
       </CardHeader>
       <CardBody>
         <Tabs aria-label="LED Select" fullWidth={true}
               selectedKey={`${ledIndex}`}
               onSelectionChange={(key) => setLedIndex(+key)}
-              color={ledIndex > 0 ? "secondary" : "default"}>
+              color={ledIndex > 0 ? "primary" : "default"}>
           {tabs.map((tab, index) =>
             <Tab key={`${index}`} title={tab}/>
           )}
