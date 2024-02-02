@@ -67,7 +67,7 @@ const WheelTelemetryWidget: React.FC<IDriveWheelWidgetProps> = (props: IDriveWhe
           <span className="text-default-300 text-opacity-80">
             <ChevronUp size={20}></ChevronUp>
           </span>
-          <Image className="" radius="none" src={RoverTopDownImage}></Image>
+          <Image className="mx-2" radius="none" src={RoverTopDownImage}></Image>
         </div>
         {cellProps.map((cellProp, index) => (
             <WheelTelemetryWidgetCell
