@@ -101,53 +101,31 @@ class RamanServer(rclpy.node.Node):
     def raman_response(self, request, response):
         response.isvalid = False
         response.spectra = zeros(RamanServer.SPECTRA_SIZE, uint16)
-        if request.singlecollectionmode:
-            try:
-                ser = Serial(request.port, RamanServer.BAUDRATE)
+        try:
+            if request.continuousendsignal:
+                issinglecollection = True
+                self.continuous_mode = False
+            else:
+                issinglecollection = request.singlecollectionmode
 
-                #wait to clear the input and output buffers, if they're not empty data is corrupted
-                while (ser.in_waiting > 0):
-                    ser.reset_input_buffer()
-                    ser.reset_output_buffer()
-                    sleep(0.01)
+            ser = Serial(request.port, RamanServer.BAUDRATE)
 
-                input = RamanServer.set_input(request.shperiod, request.icgperiod, True, request.average)
-                output = zeros(RamanServer.OUTPUT_SIZE, uint8)
+            #wait to clear the input and output buffers, if they're not empty data is corrupted
+            while (ser.in_waiting > 0):
+                ser.reset_input_buffer()
+                ser.reset_output_buffer()
+                sleep(0.01)
 
-                #transmit everything at once (the USB-firmware does not work if all bytes are not transmitted in one go)
-                ser.write(input)
-                    
-                #wait for the firmware to return data
-                output = ser.read(RamanServer.OUTPUT_SIZE)
+            input = RamanServer.set_input(request.shperiod, request.icgperiod, issinglecollection, request.average)
+            output = zeros(RamanServer.OUTPUT_SIZE, uint8)
 
-                ser.close()
+            #transmit everything at once (the USB-firmware does not work if all bytes are not transmitted in one go)
+            ser.write(input)
 
-                response.spectra = RamanServer.read_output_to_response(output)
-                response.isvalid = True
+            if not issinglecollection:
+                self.continuous_mode = True
 
-                return response
-
-            except SerialException:
-                return response
-        elif request.continuousendsignal:
-            self.continuous_mode = False
-        else:
-            try:
-                ser = Serial(request.port, RamanServer.BAUDRATE)
-
-                #wait to clear the input and output buffers, if they're not empty data is corrupted
-                while (ser.in_waiting > 0):
-                    ser.reset_input_buffer()
-                    ser.reset_output_buffer()
-                    sleep(0.01)
-
-                input = RamanServer.set_input(request.shperiod, request.icgperiod, False, request.average)
-                output = zeros(RamanServer.OUTPUT_SIZE, uint8)
-
-                #transmit everything at once (the USB-firmware does not work if all bytes are not transmitted in one go)
-                ser.write(input)
-
-                #loop to acquire and plot data continuously
+                #loop to acquire and send data continuously
                 while self.is_in_continuous_mode():
                     output = ser.read(RamanServer.OUTPUT_SIZE)
                     
@@ -161,19 +139,19 @@ class RamanServer(rclpy.node.Node):
 
                 #transmit everything at once (the USB-firmware does not work if all bytes are not transmitted in one go)
                 ser.write(input)
-                    
-                #wait for the firmware to return data
-                output = ser.read(RamanServer.OUTPUT_SIZE)
+                
+            #wait for the firmware to return data
+            output = ser.read(RamanServer.OUTPUT_SIZE)
 
-                ser.close()
+            ser.close()
 
-                response.spectra = RamanServer.read_output_to_response(output)
-                response.isvalid = True
+            response.spectra = RamanServer.read_output_to_response(output)
+            response.isvalid = True
 
-                return response
+            return response
 
-            except SerialException:
-                return response
+        except SerialException:
+            return response
 
 def main():
     rclpy.init()
