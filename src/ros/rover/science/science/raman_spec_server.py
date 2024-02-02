@@ -41,7 +41,7 @@ class RamanServer(rclpy.node.Node):
         self.srv = self.create_service(RamanSpec, '/science/raman_spec_srv', self.raman_response)
         self.continuous_mode = False
 
-    def get_continuous_mode(self):
+    def is_in_continuous_mode(self):
         return self.continuous_mode
 
     def set_input(shperiod, icgperiod, singlecollectionmode, average):
@@ -111,7 +111,7 @@ class RamanServer(rclpy.node.Node):
                     ser.reset_output_buffer()
                     sleep(0.01)
 
-                input = RamanServer.set_input(request.shperiod, request.icgperiod, request.singlecollectionmode, request.average)
+                input = RamanServer.set_input(request.shperiod, request.icgperiod, True, request.average)
                 output = zeros(RamanServer.OUTPUT_SIZE, uint8)
 
                 #transmit everything at once (the USB-firmware does not work if all bytes are not transmitted in one go)
@@ -124,7 +124,7 @@ class RamanServer(rclpy.node.Node):
 
                 response.spectra = RamanServer.read_output_to_response(output)
                 response.isvalid = True
-                
+
                 return response
 
             except SerialException:
@@ -132,7 +132,48 @@ class RamanServer(rclpy.node.Node):
         elif request.continuousendsignal:
             self.continuous_mode = False
         else:
-            pass
+            try:
+                ser = Serial(request.port, RamanServer.BAUDRATE)
+
+                #wait to clear the input and output buffers, if they're not empty data is corrupted
+                while (ser.in_waiting > 0):
+                    ser.reset_input_buffer()
+                    ser.reset_output_buffer()
+                    sleep(0.01)
+
+                input = RamanServer.set_input(request.shperiod, request.icgperiod, False, request.average)
+                output = zeros(RamanServer.OUTPUT_SIZE, uint8)
+
+                #transmit everything at once (the USB-firmware does not work if all bytes are not transmitted in one go)
+                ser.write(input)
+
+                #loop to acquire and plot data continuously
+                while self.is_in_continuous_mode():
+                    output = ser.read(RamanServer.OUTPUT_SIZE)
+                    
+                    data = RamanServer.read_output_to_response(output)
+
+                    #publish to stream
+                    pass
+
+                #resend settings with continuous transmission disabled to avoid flooding of the serial port
+                input = RamanServer.set_input(request.shperiod, request.icgperiod, True, request.average)
+
+                #transmit everything at once (the USB-firmware does not work if all bytes are not transmitted in one go)
+                ser.write(input)
+                    
+                #wait for the firmware to return data
+                output = ser.read(RamanServer.OUTPUT_SIZE)
+
+                ser.close()
+
+                response.spectra = RamanServer.read_output_to_response(output)
+                response.isvalid = True
+
+                return response
+
+            except SerialException:
+                return response
 
 def main():
     rclpy.init()
