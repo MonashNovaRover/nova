@@ -8,7 +8,9 @@ uint8 average
 # Collection mode
 bool singlecollectionmode
 bool continuousendsignal
+
 ---
+
 # for Continuous mode
 bool continuousstartsignal
 bool continuousendsignal
