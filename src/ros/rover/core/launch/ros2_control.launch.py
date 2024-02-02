@@ -125,7 +125,7 @@ def generate_launch_description():
     wheel_velocity_controller = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["wheel_velocity_controller"]
+        arguments=["wheel_velocity_controller", "--inactive"]
     )
 
     pivot_position_controller = Node(
@@ -143,7 +143,7 @@ def generate_launch_description():
     pivot_drive_controller = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["pivot_drive_controller", "--inactive"]
+        arguments=["pivot_drive_controller"]
     )
 
     strafe_controller = Node(
