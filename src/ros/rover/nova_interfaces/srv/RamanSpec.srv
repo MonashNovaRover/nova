@@ -1,11 +1,18 @@
+# For CCD use in Raman spectra
+# CCD config
 string port
 uint32 shperiod
 uint32 icgperiod
 uint8 average
+
+# Collection mode
 bool singlecollectionmode
 bool continuousendsignal
 ---
-bool isvalid
+# for Continuous mode
 bool continuousstartsignal
 bool continuousendsignal
+
+# Results
+bool isvalid
 uint16[3694] spectra
