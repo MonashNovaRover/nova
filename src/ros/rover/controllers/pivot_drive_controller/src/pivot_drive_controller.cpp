@@ -209,6 +209,7 @@ namespace pivot_drive_controller
             } 
 
             auto & last_command = previous_commands_.back().drive_input;
+
             auto & second_to_last_command = previous_commands_.front().drive_input;
 
             limiter_linear_.limit(
@@ -437,7 +438,9 @@ namespace pivot_drive_controller
            double target_angle = get_pivot_angle_from_radius(target_radius, i == 0, target_direction);
            //RCLCPP_INFO(get_node()->get_logger(), "target angle: %f", target_angle);
 
-           float current_pivot_angle = i == 0 ? registered_left_pivot_handles_[0].state.get().get_value() : registered_right_pivot_handles_[1].state.get().get_value();
+           //float current_pivot_angle = i == 0 ? registered_left_pivot_handles_[0].state.get().get_value() : registered_right_pivot_handles_[1].state.get().get_value();
+           float current_pivot_angle = get_pivot_angle_from_radius(previous_commands_.back().drive_input.radius, i == 0, previous_commands_.back().drive_input.direction); 
+
            
            //determine drive direction to reach target_angle
            if (current_pivot_angle < target_angle) {
@@ -482,8 +485,14 @@ namespace pivot_drive_controller
            double right_angle = get_pivot_angle_from_radius(best_radius, false, best_dir);
 //            RCLCPP_INFO_STREAM(get_node()->get_logger(), "best_right_angle: " << left_angle);
 //            RCLCPP_INFO_STREAM(get_node()->get_logger(), "curr_right_angle: " << registered_right_pivot_handles_[0].state.get().get_value());
+          /*
            bool valid = (abs(left_angle - registered_left_pivot_handles_[0].state.get().get_value()) <= max_d_theta*1.01) &&
                (abs(right_angle - registered_right_pivot_handles_[1].state.get().get_value()) <= max_d_theta * 1.01);
+               */
+
+           bool valid = (abs(left_angle -  get_pivot_angle_from_radius(previous_commands_.back().drive_input.radius, true, previous_commands_.back().drive_input.direction)) <= max_d_theta * 1.01) &&
+             (abs(right_angle - get_pivot_angle_from_radius(previous_commands_.back().drive_input.radius, false, previous_commands_.back().drive_input.direction)) <= max_d_theta * 1.01);
+
 
            best_efforts_left_right[i] = {best_radius, best_dir, valid};
         }
