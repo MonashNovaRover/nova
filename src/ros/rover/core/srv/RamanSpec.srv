@@ -2,6 +2,10 @@ string port
 uint32 shperiod
 uint32 icgperiod
 uint8 average
+bool singlecollectionmode
+bool continuousendsignal
 ---
 bool isvalid
+bool continuousstartsignal
+bool continuousendsignal
 uint16[3694] spectra
