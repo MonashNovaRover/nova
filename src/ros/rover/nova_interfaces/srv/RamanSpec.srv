@@ -11,10 +11,6 @@ bool continuousendsignal
 
 ---
 
-# for Continuous mode
-bool continuousstartsignal
-bool continuousendsignal
-
 # Results
 bool isvalid
 uint16[3694] spectra
