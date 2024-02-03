@@ -76,7 +76,7 @@ export const NovaNavbar: React.FC = () => {
             <DropdownMenu>
               <DropdownItem
                 description="General Tab for Rover Operation"
-                href="/"
+                href="/general"
               >
                 General
               </DropdownItem>
