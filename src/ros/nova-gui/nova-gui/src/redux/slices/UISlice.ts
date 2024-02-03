@@ -3,12 +3,16 @@ import { UIState, initialUIState } from "../models/UIState";
 
 export const uiSlice = createSlice({
   reducers: {
-    URL_UPDATE: (state: UIState, action: PayloadAction<string>) => {
+    IP_UPDATE: (
+      state: UIState,
+      action: PayloadAction<{ roverIP: string; baseStationIP: string }>
+    ) => {
       return {
         ...state,
-        baseStationIP: action.payload,
+        ...action.payload,
       };
     },
+
     SETTINGS_MODAL_UPDATE: (state: UIState, action: PayloadAction<boolean>) => {
       return {
         ...state,

@@ -28,9 +28,10 @@ export const useCameraStream = (
   videoRef: React.MutableRefObject<HTMLVideoElement | null>
 ) => {
   const [isWsOpen, setWsOpen] = useState(false);
+  const roverIP = useSelector((state: RootState) => state.uiState.roverIP);
 
   const { sendJsonMessage, lastJsonMessage } = useWebSocket<ServerMessage>(
-    "ws://192.168.1.204:8443",
+    `ws://${roverIP}:8443`,
     {
       onOpen: () => {
         setWsOpen(true);

@@ -11,6 +11,8 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../redux/RootState";
 import { useUIActions } from "../../redux/actions/useUIActions";
 import { useState } from "react";
+import toast from "react-hot-toast";
+import { isIPAddress } from "../../utils/regexUtils";
 
 export function SettingsModal() {
   const uiActions = useUIActions();
@@ -20,14 +22,30 @@ export function SettingsModal() {
     uiState.baseStationIP
   );
 
+  const [roverIP, setRoverIP] = useState<string>(uiState.roverIP);
+
   const submit = () => {
-    uiActions.updateBaseStationIP(baseStationIP);
-    window.localStorage.setItem("baseIP", baseStationIP);
+    if (!isIPAddress(baseStationIP) || !isIPAddress(roverIP)) {
+      toast.error("Invalid IP address");
+      return;
+    }
+
+    uiActions.updateIP(baseStationIP, roverIP);
+    try {
+      window.localStorage.setItem("baseIP", baseStationIP);
+      window.localStorage.setItem("roverIP", roverIP);
+    } catch (e) {
+      console.log("Local Storage is disabled");
+    }
     closeModal();
   };
 
-  const onURLChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const onBaseIPChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setBaseStationIP(event.target.value);
+  };
+
+  const onRoverIPChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRoverIP(event.target.value);
   };
 
   const closeModal = () => uiActions.setSettingsModal(false);
@@ -44,23 +62,22 @@ export function SettingsModal() {
             fullWidth
             label="Base IP"
             value={baseStationIP}
-            type="url"
-            onChange={onURLChange}
+            type="text"
+            onChange={onBaseIPChange}
+            isInvalid={!isIPAddress(baseStationIP)}
           />
           <Input
             fullWidth
-            label="Base IP"
-            value={baseStationIP}
-            type="url"
-            onChange={onURLChange}
+            label="Rover IP"
+            value={roverIP}
+            type="text"
+            onChange={onRoverIPChange}
+            isInvalid={!isIPAddress(roverIP)}
           />
         </ModalBody>
         <ModalFooter>
           <Button size="sm" color="success" variant="flat" onClick={submit}>
             Submit
-          </Button>
-          <Button size="sm" color="danger" variant="flat" onClick={closeModal}>
-            Close
           </Button>
         </ModalFooter>
       </ModalContent>
