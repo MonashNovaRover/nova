@@ -10,13 +10,22 @@ import {
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/RootState";
 import { useUIActions } from "../../redux/actions/useUIActions";
+import { useState } from "react";
 
 export function SettingsModal() {
   const uiActions = useUIActions();
   const uiState = useSelector((state: RootState) => state.uiState);
 
+  const [rosUrl, setRosUrl] = useState<string>(uiState.rosUrl);
+
+  const submit = () => {
+    uiActions.updateROSurl(rosUrl);
+    window.localStorage.setItem("baseIP", rosUrl);
+    closeModal();
+  };
+
   const onURLChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    uiActions.updateROSurl("ws://" + event.target.value);
+    setRosUrl(event.target.value);
   };
 
   const closeModal = () => uiActions.setSettingsModal(false);
@@ -31,19 +40,24 @@ export function SettingsModal() {
         <ModalBody>
           <Input
             fullWidth
-            label="ROSBridge URL"
-            value={uiState.rosUrl.slice(5)}
+            label="Base IP"
+            value={rosUrl}
             type="url"
             onChange={onURLChange}
-            startContent={
-              <div className="pointer-events-none flex items-center">
-                <span className="text-default-400 text-small">ws://</span>
-              </div>
-            }
+          />
+          <Input
+            fullWidth
+            label="Base IP"
+            value={rosUrl}
+            type="url"
+            onChange={onURLChange}
           />
         </ModalBody>
         <ModalFooter>
-          <Button color="danger" variant="flat" onClick={closeModal}>
+          <Button size="sm" color="success" variant="flat" onClick={submit}>
+            Submit
+          </Button>
+          <Button size="sm" color="danger" variant="flat" onClick={closeModal}>
             Close
           </Button>
         </ModalFooter>

@@ -5,7 +5,7 @@ export interface UIState {
 }
 
 export const initialUIState: UIState = {
-  rosUrl: "ws://192.168.1.81:9090",
+  rosUrl: window.localStorage.getItem("baseIP") ?? "192.168.1.81",
   settingsModalOpen: false,
   controllerHelpModalOpen: false,
 };

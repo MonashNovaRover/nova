@@ -12,6 +12,7 @@
   "dependencies": {
     "@nextui-org/react": "^2.2.9",
     "@reduxjs/toolkit": "^1.9.7",
+    "@uidotdev/usehooks": "^2.4.1",
     "bootstrap-icons": "^1.11.2",
     "framer-motion": "^10.16.4",
     "humanize-string": "^3.0.0",

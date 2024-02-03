@@ -9,6 +9,7 @@ import { RosContext } from "./RosContext";
 
 export const RosProvider = (props: { children: React.ReactNode }) => {
   const uiStore = useSelector((state: RootState) => state.uiState);
+
   const bifrostStateStore = useSelector(
     (state: RootState) => state.bifrostStatus
   );
@@ -22,7 +23,7 @@ export const RosProvider = (props: { children: React.ReactNode }) => {
     )
       return;
     bifrostActions.updateBifrostConnection(BifrostConnectionStatus.CONNECTING);
-    const ros = new Ros({ url: uiStore.rosUrl });
+    const ros = new Ros({ url: "ws://" + uiStore.rosUrl + ":9090" });
 
     ros.on("connection", () => {
       bifrostActions.updateBifrostConnection(BifrostConnectionStatus.CONNECTED);
