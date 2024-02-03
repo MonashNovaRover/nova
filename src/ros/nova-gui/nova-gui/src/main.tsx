@@ -7,7 +7,7 @@ import { routes } from "./routes/routes";
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <App />
-  </React.StrictMode>,
+  </React.StrictMode>
 );
 
 function App() {

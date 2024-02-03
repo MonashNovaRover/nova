@@ -40,7 +40,7 @@ export const CameraInfoModal = (props: CameraModalProps) => {
             >
               <PropRenderer<CameraModalProps>
                 props={props}
-                ignoreProps={["isModalOpen", "setCameraModalOpen", "src"]}
+                ignoreProps={["isModalOpen", "setCameraModalOpen"]}
               />
             </AccordionItem>
             <AccordionItem

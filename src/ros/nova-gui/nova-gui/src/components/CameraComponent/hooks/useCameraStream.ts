@@ -30,13 +30,21 @@ export const useCameraStream = (
   const [isWsOpen, setWsOpen] = useState(false);
 
   const { sendJsonMessage, lastJsonMessage } = useWebSocket<ServerMessage>(
-    "ws://192.168.64.7:8443",
+    "ws://192.168.1.204:8443",
     {
       onOpen: () => {
         setWsOpen(true);
       },
     }
   );
+
+  const camerasFromRos = useSelector(
+    (state: RootState) => state.camerasStore.cameras
+  );
+
+  const isCameraOnline = camerasFromRos
+    .map((cam) => cam.serial)
+    .includes(cameraSerial);
 
   const [sessionId, setSessionId] = useState<string>();
   const rtcRef = useRef<RTCPeerConnection>();
@@ -138,5 +146,5 @@ export const useCameraStream = (
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastJsonMessage]);
 
-  return { streamingState, sendSessionStartMessage };
+  return { streamingState, sendSessionStartMessage, isCameraOnline };
 };

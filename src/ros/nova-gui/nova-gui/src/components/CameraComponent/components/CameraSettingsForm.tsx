@@ -5,10 +5,30 @@ import {
   CircleHalf,
 } from "react-bootstrap-icons";
 import { Droplet } from "react-feather";
+import { CameraFilters } from "../CameraComponent";
 
-export const CameraSettingsForm = () => {
+export const CameraSettingsForm = ({
+  cameraFilters,
+  setCameraFilters,
+}: {
+  cameraFilters: CameraFilters;
+  setCameraFilters: React.Dispatch<React.SetStateAction<CameraFilters>>;
+}) => {
   return (
     <div className="mt-2 flex flex-col gap-3 w-full">
+      <Switch
+        size="sm"
+        thumbIcon={<Droplet fill="white" />}
+        isSelected={cameraFilters.flipCamera}
+        onChange={(event) =>
+          setCameraFilters((oldFilters) => ({
+            ...oldFilters,
+            flipCamera: event.target.checked,
+          }))
+        }
+      >
+        Flip Camera
+      </Switch>
       <Switch size="sm" thumbIcon={<Droplet fill="white" />}>
         Invert Colors
       </Switch>

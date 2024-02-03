@@ -17,6 +17,9 @@ export const rootReducer = {
       position: { x: 0, y: 0, z: 0 },
     }
   ),
+
+  // Drive Reducers
+
   driveStore: createBifrostStore(
     { topic: RosTopic.DRIVE_INFO },
     {
@@ -58,6 +61,12 @@ export const rootReducer = {
         temperature: 0,
       })),
     }
+  ),
+
+  // Cameras2 Reducers
+  camerasStore: createBifrostStore(
+    { topic: RosTopic.CAMERAS },
+    { cameras: [] }
   ),
   ipList: createBifrostStore({ service: RosService.GET_IP_LIST }, { ips: [] }),
 

@@ -2,6 +2,7 @@ import {
   Button,
   Card,
   CardFooter,
+  Chip,
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -13,6 +14,7 @@ import { CameraInfoModal } from "./components/CameraInfoModal";
 import { StreamingState, useCameraStream } from "./hooks/useCameraStream";
 import { CameraSettingsForm } from "./components/CameraSettingsForm";
 import CameraVideo from "./components/CameraVideo";
+import { initialFilters } from "../../views/shared/CamerasPage/CameraPageConstants";
 
 const ASPECT_RATIO = 4 / 3;
 
@@ -21,17 +23,20 @@ export interface CameraComponentProps {
   cameraSerial: string;
 }
 
+export interface CameraFilters {
+  flipCamera: boolean;
+}
+
 export const CameraComponent = (props: CameraComponentProps) => {
   const { cameraName, cameraSerial } = props;
   const cardRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
   const [isCameraInfoModalOpen, setCameraInfoModalOpen] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const { streamingState, sendSessionStartMessage } = useCameraStream(
-    cameraSerial,
-    videoRef
-  );
+  const { streamingState, sendSessionStartMessage, isCameraOnline } =
+    useCameraStream(cameraSerial, videoRef);
   const [isSettingsOpen, setSettingsOpen] = useState(false);
+  const [filters, setFilters] = useState(initialFilters);
 
   useEffect(() => {
     const handleMouseEnter = () => {
@@ -63,18 +68,18 @@ export const CameraComponent = (props: CameraComponentProps) => {
         isModalOpen={isCameraInfoModalOpen}
         setCameraModalOpen={setCameraInfoModalOpen}
       />
-      <CameraVideo videoRef={videoRef} />
+      <CameraVideo videoRef={videoRef} filters={filters} />
+      {/* Overlay */}
       <div className="absolute top-0 right-0 w-full h-full flex flex-col justify-center items-center">
         {streamingState === StreamingState.STOPPED && (
-          <Button
-            size="sm"
-            color="primary"
-            className="w-min mx-auto"
-            onClick={() => sendSessionStartMessage()}
-          >
-            <Play size="15px" fill="white" />
-            Start
-          </Button>
+          <div className="flex flex-col gap-1 items-center">
+            <div className="font-bold text-xl">{cameraName}</div>
+            {isCameraOnline ? (
+              <Chip color="success">Online</Chip>
+            ) : (
+              <Chip>Offline</Chip>
+            )}
+          </div>
         )}
         {streamingState === StreamingState.LOADING && <Spinner />}
       </div>
@@ -116,7 +121,10 @@ export const CameraComponent = (props: CameraComponentProps) => {
                 </PopoverTrigger>
                 <PopoverContent className="w-[360px] dark text-foreground">
                   <div className="px-1 py-2 w-full">
-                    <CameraSettingsForm />
+                    <CameraSettingsForm
+                      cameraFilters={filters}
+                      setCameraFilters={setFilters}
+                    />
                   </div>
                 </PopoverContent>
               </Popover>
@@ -127,3 +135,15 @@ export const CameraComponent = (props: CameraComponentProps) => {
     </Card>
   );
 };
+
+{
+  /* <Button
+            size="sm"
+            color="primary"
+            className="w-min mx-auto"
+            onClick={() => sendSessionStartMessage()}
+          >
+            <Play size="15px" fill="white" />
+            Start
+          </Button> */
+}

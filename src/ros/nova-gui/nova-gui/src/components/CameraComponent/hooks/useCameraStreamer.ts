@@ -6,16 +6,25 @@ import { useCallback, useEffect } from "react";
 import { ServerMessage } from "./serverMessages";
 import useWebSocket from "react-use-websocket";
 import { cloneDeep } from "lodash";
+import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction";
+import { RosTopic } from "../../../ros/topics/rosTopic";
 
 export const useCameraStreamer = () => {
   const cameraStreamerActions = useCameraStreamerActions();
+
+  const bifrost = useBifrost({ topic: RosTopic.CAMERAS });
+
+  useEffect(() => {
+    bifrost.syncWithTopic();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bifrost]);
 
   const cameras = useSelector(
     (state: RootState) => state.cameraStreamerState.cameras
   );
 
   const { sendJsonMessage, lastJsonMessage } = useWebSocket<ServerMessage>(
-    "ws://192.168.64.7:8443",
+    "ws://192.168.1.204:8443",
     {
       onOpen: () => {
         sendPeerStatusMessage(CameraStreamerStatus.CONNECTED);
