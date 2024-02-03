@@ -63,7 +63,7 @@ export const CameraComponent = (props: CameraComponentProps) => {
   }, []);
 
   return (
-    <Card className={`m-4 h-[41vh] aspect-[${ASPECT_RATIO}] `} ref={cardRef}>
+    <Card className={`m-4  aspect-[${ASPECT_RATIO}] `} ref={cardRef}>
       <CameraInfoModal
         {...props}
         isModalOpen={isCameraInfoModalOpen}
