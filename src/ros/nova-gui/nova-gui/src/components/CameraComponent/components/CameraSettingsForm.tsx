@@ -7,6 +7,12 @@ import {
 import { Droplet } from "react-feather";
 import { CameraFilters } from "../CameraComponent";
 
+const snapTo90 = (value: number) : number => {
+  const remainder = value % 90;
+  const snap = value - remainder;
+  return Math.abs(remainder) > 45 ? value >= 0 ? snap + 90 : snap - 90 : snap;
+}
+
 export const CameraSettingsForm = ({
   cameraFilters,
   setCameraFilters,
@@ -58,7 +64,7 @@ export const CameraSettingsForm = ({
         getValue={(val) => `${val}°`}
         value={cameraFilters.rotation}
         onChange={(value) =>
-          setCameraFilters({ ...cameraFilters, rotation: value as number })
+          setCameraFilters({ ...cameraFilters, rotation: snapTo90(value as number)})
         }
       />
     </div>
