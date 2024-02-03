@@ -43,6 +43,7 @@ def generate_launch_description():
                        True, False, False,      \
                        False, False, False,      \
                        False, False, False],
+        "odom1_relative": True,
     }
 
     use_sim_time_arg = DeclareLaunchArgument(

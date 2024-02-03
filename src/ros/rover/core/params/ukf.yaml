@@ -133,7 +133,7 @@ ukf_filter_node:
                        false, false, false,
                        false, false, false]
         odom1_differential: false
-        odom1_relative: true
+        odom1_relative: false
         odom1_queue_size: 2
         odom1_pose_rejection_threshold: 2.0
         odom1_twist_rejection_threshold: 0.2
