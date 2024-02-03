@@ -1,4 +1,3 @@
-
 const GeneralBaseView: React.FC = () => {
   return (<></>)
 };

@@ -14,7 +14,7 @@ import novaLogo from "../../assets/nova-logo.png";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/RootState";
 import { useUIActions } from "../../redux/actions/useUIActions";
-import { BifrostConnectionStatus } from "../../redux/models/BifrostTypes";
+import { BifrostConnectionStatus } from "../../redux/models/bifrost/BifrostTypes";
 
 const connectionStatusColor: {
   [key: string]: "success" | "warning" | "danger";
@@ -27,13 +27,11 @@ const connectionStatusColor: {
 export const NovaNavbar: React.FC = () => {
   const uiActions = useUIActions();
 
-
   const bifrostStatus = useSelector(
     (state: RootState) => state.bifrostStatus.connectionStatus
   );
 
   // State to control the visibility of the image modal
-
 
   return (
     <Navbar maxWidth="full" isBordered position="static">
@@ -97,12 +95,13 @@ export const NovaNavbar: React.FC = () => {
         </NavbarItem>
         <NavbarItem>
           {/*Controller Help Modal*/}
-          <Button 
-            isIconOnly 
-            radius="sm" 
+          <Button
+            isIconOnly
+            radius="sm"
             size="sm"
             variant="shadow"
-            onClick={() => uiActions.setControllerHelpModal(true)}>
+            onClick={() => uiActions.setControllerHelpModal(true)}
+          >
             <HelpCircle className="w-4 h-4 " />
           </Button>
         </NavbarItem>

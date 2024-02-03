@@ -4,7 +4,14 @@ Nova-GUI is the Primary Means of Communication and Control of the Rover During O
 
 ### Tech Stack
 
-Nova-GUI is a React Powered Webapp connected to ROS using the [Rosbridge Suite](https://wiki.ros.org/rosbridge_suite). The Frontend Uses [ReactJS](https://react.dev/) with [NextUI](https://nextui.org/) for the User Interface and [Redux-Toolkit](https://redux-toolkit.js.org/) for Complex State Management. [Tailwind CSS](https://tailwindcss.com/) along with [styled-components](https://styled-components.com/) and [Boostrap Icons](https://icons.getbootstrap.com/) are used for general styling of the Page.
+Nova-GUI is a React Powered Webapp which uses the following
+
+- [Rosbridge Suite](https://wiki.ros.org/rosbridge_suite) for Connecting to ROS.
+- The Frontend Uses [ReactJS](https://react.dev/) with [NextUI](https://nextui.org/) for the User Interface.
+- [Redux-Toolkit](https://redux-toolkit.js.org/) for Complex State Management.
+- [Tailwind CSS](https://tailwindcss.com/) along with [styled-components](https://styled-components.com/)
+- [Boostrap Icons](https://icons.getbootstrap.com/) are used for general styling of the Page.
+- [React Hot Toasts](https://react-hot-toast.com/) for Toasting Users.
 
 <center>
 
@@ -16,12 +23,15 @@ graph LR;
     subgraph Bifrost
     B-...->|ws| D[Redux]
     end
-    D--> E[React]
+    D--> E[React DOM]
+    D --> F[Notifications]
 ```
 
-<i>Architecture of Nova-GUI</i></center>
+<i>Architecture of Nova-GUI</i>
 
-Rosbridge server and redux has been combined and abstracted away for simplicity and agility. The Implementation of Rosbridge combined with redux forms a solid bridge between React and ROS and is hence promptly named <i>[Bifrost](./docs/bifrost.md)</i>. It's worth giving a read on how to use Bifrost to stream information from ROS Topics. (ROS Services are still wip at the time of writing)
+</center>
+
+Rosbridge server and redux have been combined and abstracted away for simplicity and agility. The Implementation of Rosbridge combined with redux forms a solid bridge between React and ROS and is hence promptly named <i>[Bifrost](./docs/bifrost.md)</i>. It's worth giving a read on how to use Bifrost to stream information from ROS Topics and Request / Send Commands usiong ROS Services.
 
 ### Component Library
 
@@ -33,7 +43,7 @@ Following are the Components that have been developed and can be used for compos
 
 ### Dev Workflow
 
-For Developing Nova-GUI, the reccomended method of development is using `nova-shell`, which loads in essential dependencies such as `yarn` and `rosbridge_server`.
+For Developing Nova-GUI, the reccomended method of development is using `nova-shell`, which loads in essential dependencies such as `yarn` and `rosbridge_server` and other ROS Stuff that's essential for getting GUI up and running.
 
 1. Enter the shell environment
 
@@ -52,7 +62,7 @@ For Developing Nova-GUI, the reccomended method of development is using `nova-sh
    > your copy is out of date.
 
    ```sh
-   ln -sf "$ROS_TS_DEFINITIONS" nova-gui/src/ros/rosMessageTypes.ts
+   ln -sf "$ROS_TS_DEFINITIONS" nova-gui/src/ros/rosTypes.ts
    ```
 
 3. Start rosbridge
