@@ -1,9 +1,10 @@
 import React from "react";
+import { MicroscopeComponent } from "../../components/CameraComponent/MicroscopeComponent";
 
 const ARCBaseView: React.FC = () => {
   return (
     <div>
-      <h1>Hello!</h1>
+      <MicroscopeComponent cameraName="stuff" cameraSerial="9"/>
     </div>
   );
 };
