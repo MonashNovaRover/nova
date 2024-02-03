@@ -5,18 +5,16 @@ import {
   CardProps,
   Image,
 } from "@nextui-org/react";
-import React, { useEffect } from "react";
-import "../DriveModeWidget/DriveWidget.css";
-import "./WheelTelemetryWidget.css";
-import { useBifrost } from "../../redux/actions/bifrost/useBifrostAction.ts";
-import { RootState } from "../../redux/RootState";
-import { useSelector } from "react-redux";
-import RoverTopDownImage from "../../assets/rover-top-down.png";
-import { ChevronUp } from "react-feather";
-import WheelTelemetryWidgetCell, {
-  IWheelTelemetryWidgetCellProps,
-} from "./WheelTelemetryWidgetCell.tsx";
-import { PIVOT_CURRENT_MAX, WHEEL_CURRENT_MAX } from "../../constants";
+import React, {useEffect} from "react";
+import '../DriveModeWidget/DriveWidget.css';
+import './WheelTelemetryWidget.css';
+import {useBifrost} from "../../redux/actions/useBifrostAction";
+import {RootState} from "../../redux/RootState";
+import {useSelector} from "react-redux";
+import {ChevronUp} from "react-feather";
+import WheelTelemetryWidgetCell, {IWheelTelemetryWidgetCellProps} from "./WheelTelemetryWidgetCell.tsx";
+import {PIVOT_CURRENT_MAX, WHEEL_CURRENT_MAX} from "../../constants";
+import RoverTopDownImage from "../../assets/rover-top-down-dark.png";
 import { RosTopic } from "../../ros/topics/rosTopic.ts";
 
 // Properties for the DriveModeWidget component.
@@ -68,7 +66,7 @@ const WheelTelemetryWidget: React.FC<IDriveWheelWidgetProps> = (
           <span className="text-default-300 text-opacity-80">
             <ChevronUp size={20}></ChevronUp>
           </span>
-          <Image className="" radius="none" src={RoverTopDownImage}></Image>
+          <Image className="mx-2" radius="none" src={RoverTopDownImage}></Image>
         </div>
         {cellProps.map((cellProp, index) => (
           <WheelTelemetryWidgetCell
