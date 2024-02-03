@@ -25,6 +25,7 @@ export interface CameraComponentProps {
 
 export interface CameraFilters {
   flipCamera: boolean;
+  rotation: number; // between -180 to 180
 }
 
 export const CameraComponent = (props: CameraComponentProps) => {

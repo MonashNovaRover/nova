@@ -40,21 +40,26 @@ export const CameraSettingsForm = ({
         endContent={<CircleHalf />}
       />
       <Slider
-        showSteps
-        step={90}
+        step={10}
         label="Rotation"
         className="max-w-md"
         size="lg"
         startContent="0°"
-        maxValue={360}
-        minValue={0}
+        maxValue={180}
+        minValue={-180}
         endContent={<ArrowCounterclockwise />}
         marks={[
+          { label: "-180°", value: -180 },
+          { label: "-90°", value: -90 },
+          { label: "0°", value: 0 },
           { label: "90°", value: 90 },
           { label: "180°", value: 180 },
-          { label: "270°", value: 270 },
         ]}
         getValue={(val) => `${val}°`}
+        value={cameraFilters.rotation}
+        onChange={(value) =>
+          setCameraFilters({ ...cameraFilters, rotation: value as number })
+        }
       />
     </div>
   );

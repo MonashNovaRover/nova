@@ -51,4 +51,5 @@ export const allCams = [
 
 export const initialFilters: CameraFilters = {
   flipCamera: false,
+  rotation: 0,
 };

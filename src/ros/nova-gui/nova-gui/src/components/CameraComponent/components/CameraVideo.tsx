@@ -7,9 +7,13 @@ interface CameraVideoProps {
 }
 
 const CameraVideo: React.FC<CameraVideoProps> = ({ videoRef, filters }) => {
+  const scaling = filters.flipCamera ? "scaleX(-1)" : "scaleX(1)";
+  const rotation = `rotate(${filters.rotation}deg)`;
   return (
     <video
-      style={{ transform: filters.flipCamera ? "scaleX(-1)" : "scaleX(1)" }}
+      style={{
+        transform: `${scaling} ${rotation}`,
+      }}
       controls={false}
       autoPlay
       loop

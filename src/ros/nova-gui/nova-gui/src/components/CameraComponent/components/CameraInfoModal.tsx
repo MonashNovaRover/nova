@@ -11,7 +11,7 @@ import {
 import { CameraComponentProps } from "../CameraComponent";
 import { ExternalLink } from "react-feather";
 import { PropRenderer } from "../../shared/PropRenderer";
-import { CameraSettingsForm } from "./CameraSettingsForm";
+// import { CameraSettingsForm } from "./CameraSettingsForm";
 
 interface CameraModalProps extends CameraComponentProps {
   isModalOpen: boolean;
@@ -48,7 +48,7 @@ export const CameraInfoModal = (props: CameraModalProps) => {
               title="Camera Settings"
               subtitle={`Settings for ${cameraName}`}
             >
-              <CameraSettingsForm />
+              {/* <CameraSettingsForm /> */}
             </AccordionItem>
           </Accordion>
         </ModalBody>
