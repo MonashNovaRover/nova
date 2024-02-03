@@ -5,8 +5,11 @@ export function useUIActions() {
   const dispatch = useDispatch();
 
   return {
-    updateROSurl(rosUrl: string) {
-      dispatch({ type: UIActions.URL_UPDATE.toString(), payload: rosUrl });
+    updateBaseStationIP(baseStationIP: string) {
+      dispatch({
+        type: UIActions.URL_UPDATE.toString(),
+        payload: baseStationIP,
+      });
     },
     setSettingsModal(settingsModalOpen: boolean) {
       dispatch({

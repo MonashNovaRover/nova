@@ -16,16 +16,18 @@ export function SettingsModal() {
   const uiActions = useUIActions();
   const uiState = useSelector((state: RootState) => state.uiState);
 
-  const [rosUrl, setRosUrl] = useState<string>(uiState.rosUrl);
+  const [baseStationIP, setBaseStationIP] = useState<string>(
+    uiState.baseStationIP
+  );
 
   const submit = () => {
-    uiActions.updateROSurl(rosUrl);
-    window.localStorage.setItem("baseIP", rosUrl);
+    uiActions.updateBaseStationIP(baseStationIP);
+    window.localStorage.setItem("baseIP", baseStationIP);
     closeModal();
   };
 
   const onURLChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setRosUrl(event.target.value);
+    setBaseStationIP(event.target.value);
   };
 
   const closeModal = () => uiActions.setSettingsModal(false);
@@ -41,14 +43,14 @@ export function SettingsModal() {
           <Input
             fullWidth
             label="Base IP"
-            value={rosUrl}
+            value={baseStationIP}
             type="url"
             onChange={onURLChange}
           />
           <Input
             fullWidth
             label="Base IP"
-            value={rosUrl}
+            value={baseStationIP}
             type="url"
             onChange={onURLChange}
           />

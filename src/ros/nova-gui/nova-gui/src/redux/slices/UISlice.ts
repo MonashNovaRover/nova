@@ -6,7 +6,7 @@ export const uiSlice = createSlice({
     URL_UPDATE: (state: UIState, action: PayloadAction<string>) => {
       return {
         ...state,
-        rosUrl: action.payload,
+        baseStationIP: action.payload,
       };
     },
     SETTINGS_MODAL_UPDATE: (state: UIState, action: PayloadAction<boolean>) => {
