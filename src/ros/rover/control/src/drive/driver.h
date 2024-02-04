@@ -34,6 +34,10 @@ EDITED:		13/09/2022
 // Include standard ROS messages
 #include "std_msgs/msg/bool.hpp"
 #include "std_msgs/msg/byte.hpp"
+#include "trajectory_msgs/msg/joint_trajectory.hpp"
+#include "trajectory_msgs/msg/joint_trajectory_point.hpp"
+#include "std_msgs/msg/float64_multi_array.hpp"
+
 
 // Include custom ROS messages
 #include "core/msg/input_gamepad.hpp"
@@ -61,6 +65,8 @@ EDITED:		13/09/2022
 
 // The distance between front and rear wheels [m]
 #define CHASSIS_LENGTH 0.84
+
+#define WHEEL_VELOCITY_OUTPUT 50.0
 
 // Use the standard namespaces
 using namespace std;
@@ -126,6 +132,10 @@ private:
 
     // Publisher for pivot wheel data
     rclcpp::Publisher<core::msg::PivotWheelData>::SharedPtr pivot_wheel_pub;
+
+    //Gazebo publishers
+    rclcpp::Publisher<trajectory_msgs::msg::JointTrajectory>::SharedPtr pivot_joint_trajectory_pub;
+    rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr wheel_joint_velocity_pub;
 
     // blcmd disable service
     rclcpp::Service<core::srv::DisableBLCMD>::SharedPtr disable_blcmd_srv;

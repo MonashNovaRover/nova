@@ -23,6 +23,7 @@ find_package(ament_cmake REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(trajectory_msgs REQUIRED)
 
 # Find default generators
 find_package(rosidl_default_generators REQUIRED)
@@ -80,7 +81,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/GpsOffset.srv"
 
   # Action definitions
-  DEPENDENCIES std_msgs geometry_msgs nav_msgs
+  DEPENDENCIES std_msgs geometry_msgs nav_msgs trajectory_msgs
 )
 
 # Add all the installation directories
@@ -90,6 +91,7 @@ install(DIRECTORY
   rviz
   urdf
   meshes
+  worlds
   DESTINATION share/${PROJECT_NAME}
 )
 
