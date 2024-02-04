@@ -42,7 +42,7 @@ const RamanCCDInputs: React.FC = () => {
                         <p>Specify the port name. The default value should work.</p>
                         <p>SH (SHift gate) period's minimum value is 20, its maximum value is 4294967295 and must be an integer.</p>
                         <p>ICG (Integration Clear Gate) period's minimum value is 14776, its maximum value is 4294967295 and must be an integer. The value for the ICG period <em className="text-xl font-black not-italic">MUST</em> be an integer multiple of the SH period.</p>
-                        <p>Average determines the amount of samples taken and averaged by the firmware, its minimum value is 1 and its maximum value is 15 (must be an integer as well).</p>
+                        <p className="mb-2.5">Average determines the amount of samples taken and averaged by the firmware, its minimum value is 1 and its maximum value is 15 (must be an integer as well).</p>
                     </ModalBody>
                     </>
                 )}
