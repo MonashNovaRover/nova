@@ -406,8 +406,8 @@ namespace strafe_controller
             {
               if (!subscriber_is_active_)
               {
-                RCLCPP_WARN(
-                  get_node()->get_logger(), "Can't accept new commands. subscriber is inactive");
+                // RCLCPP_WARN(
+                //   get_node()->get_logger(), "Can't accept new commands. subscriber is inactive");
                 return;
               }
 
@@ -424,8 +424,8 @@ namespace strafe_controller
             {
               if (!subscriber_is_active_)
               {
-                RCLCPP_WARN(
-                  get_node()->get_logger(), "Can't accept new commands. subscriber is inactive");
+                // RCLCPP_WARN(
+                //   get_node()->get_logger(), "Can't accept new commands. subscriber is inactive");
                 return;
               }
 
@@ -446,8 +446,8 @@ namespace strafe_controller
             {
               if (!subscriber_is_active_)
               {
-                RCLCPP_WARN(
-                  get_node()->get_logger(), "Can't accept new commands. subscriber is inactive");
+                // RCLCPP_WARN(
+                //   get_node()->get_logger(), "Can't accept new commands. subscriber is inactive");
                 return;
               }
               if ((msg->header.stamp.sec == 0) && (msg->header.stamp.nanosec == 0))
@@ -467,8 +467,8 @@ namespace strafe_controller
             {
               if (!subscriber_is_active_)
               {
-                RCLCPP_WARN(
-                  get_node()->get_logger(), "Can't accept new commands. subscriber is inactive");
+                // RCLCPP_WARN(
+                //   get_node()->get_logger(), "Can't accept new commands. subscriber is inactive");
                 return;
               }
               if ((msg->header.stamp.sec == 0) && (msg->header.stamp.nanosec == 0))

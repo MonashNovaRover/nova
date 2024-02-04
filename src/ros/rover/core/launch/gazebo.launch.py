@@ -110,7 +110,6 @@ def generate_launch_description():
     return LaunchDescription([
         model_arg,
         robot_state_publisher_node,
-        #joint_state_publisher_node,
         gazebo,
         spawn_entity,
         joint_broad,
