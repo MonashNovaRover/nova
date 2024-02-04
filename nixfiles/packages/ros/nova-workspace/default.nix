@@ -17,7 +17,7 @@
 , nova-gui-frontend ? throw "gui-frontend is needed, but not available!"
 , nova-gui-frontend-server ? throw "gui-frontend-server is needed, but not available!"
 , nova-drive ? throw "drive is needed, but not available!"
-, nova-drive-msgs ? throw "drive-msgs is needed, but not available!"
+, nova-drive-interfaces ? throw "drive-interfaces is needed, but not available!"
 , nova-blcmd-interfaces ? throw "blcmd-interfaces is needed, but not available!"
 , nova-blcmd-utils ? throw "blcmd-utils is needed, but not available!"
 , nova-arm-interfaces ? throw "arm-interfaces is needed, but not available!"
@@ -50,7 +50,7 @@
       nova-gui-backend
       nova-gui-frontend
       nova-drive
-      nova-drive-msgs
+      nova-drive-interfaces
       nova-blcmd-interfaces
       nova-blcmd-utils
       nova-arm-interfaces
