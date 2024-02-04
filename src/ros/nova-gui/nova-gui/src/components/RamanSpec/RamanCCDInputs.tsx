@@ -6,9 +6,26 @@
 
 import { Button, Card, CardHeader, Input, Modal, ModalBody, ModalContent, ModalHeader, useDisclosure } from "@nextui-org/react";
 import { HelpCircle } from "react-feather";
+import { useState } from "react";
+
+function checkPeriods(shPeriod: number, icgPeriod: number) {
+    return ((20 <= shPeriod && shPeriod <= 4294967295 && shPeriod % 1 == 0) && 
+    (14776 <= icgPeriod && icgPeriod <= 4294967295 && icgPeriod % 1 == 0 ) &&
+    ((icgPeriod/shPeriod)%1 == 0))
+}
+
+function checkAverage(average: number) {
+    return (1 <= average && average <= 15 && average % 1 == 0)
+}
 
 const RamanCCDInputs: React.FC = () => {
     const {isOpen, onOpen, onOpenChange} = useDisclosure();
+    
+    const [port, setPort] = useState("/dev/ttyACM0");
+    const [shPeriod, setSHPeriod] = useState(200);
+    const [icgPeriod, setICGPeriod] = useState(100000);
+    const [average, setAverage] = useState(1);
+    const [singleCollectionMode, setSingleCollectionMode] = useState(true);
 
     return (
         <Card className="m-1 p-2 flex flex-row flex-1 space-x-2">
@@ -25,17 +42,28 @@ const RamanCCDInputs: React.FC = () => {
                         <p>Specify the port name. The default value should work.</p>
                         <p>SH (SHift gate) period's minimum value is 20, its maximum value is 4294967295 and must be an integer.</p>
                         <p>ICG (Integration Clear Gate) period's minimum value is 14776, its maximum value is 4294967295 and must be an integer. The value for the ICG period <em className="text-xl font-black not-italic">MUST</em> be an integer multiple of the SH period.</p>
-                        <p>Average determines the amount of samples taken and averaged by the firmware, its minimum value is 1 and its maximum value is 15.</p>
+                        <p>Average determines the amount of samples taken and averaged by the firmware, its minimum value is 1 and its maximum value is 15 (must be an integer as well).</p>
                     </ModalBody>
                     </>
                 )}
                 </ModalContent>
             </Modal>
-            <Input className="shrink-0 w-44 grow" type="port" label="Port" placeholder="Example: /dev/ttyACM0" defaultValue="/dev/ttyACM0" />
-            <Input className="shrink-0 w-36 grow" type="shperiod" label="SH Period" placeholder="[20, 4294967295]" defaultValue="200" />
-            <Input className="shrink-0 w-40 grow" type="icgperiod" label="ICG Period" placeholder="[14776, 4294967295]" defaultValue="100000" />
-            <Input className="shrink-0 w-20 grow" type="average" label="Average" placeholder="[1, 15]" defaultValue="1" />
-            <Button className="bg-pink-600 h-14 flex flex-row shrink-0 grow w-80" radius="lg">Collect</Button>
+            <Input onValueChange={(value: string) => setPort(value)} className="shrink-0 w-44 grow" type="port" label="Port" placeholder="Example: /dev/ttyACM0" defaultValue={port} />
+            <Input onValueChange={(value: string) => setSHPeriod(+value)} className="shrink-0 w-36 grow" type="shperiod" label="SH Period" placeholder="[20, 4294967295]" defaultValue={shPeriod.toString()} />
+            <Input onValueChange={(value: string) => setICGPeriod(+value)} className="shrink-0 w-40 grow" type="icgperiod" label="ICG Period" placeholder="[14776, 4294967295]" defaultValue={icgPeriod.toString()} />
+            <Input onValueChange={(value: string) => setAverage(+value)} className="shrink-0 w-16 grow" type="average" label="Average" placeholder="[1, 15]" defaultValue={average.toString()} />
+            <Button 
+            onPress={() => {setSingleCollectionMode(!singleCollectionMode)}}
+            color= {singleCollectionMode ? "primary" : "secondary"} className="h-14 shrink-0 w-52" radius="lg">
+                Collection Mode: {singleCollectionMode ? "Single" : "Continuous"}
+            </Button>
+            <Button onPress={() => {
+                if (checkPeriods(shPeriod, icgPeriod) && checkAverage(average)) {
+                    console.log("Sent");
+                } else {
+                    onOpen();
+                }
+            }} color="primary" className="h-14 flex flex-row shrink-0 grow w-32" radius="lg">Collect</Button>
         </Card>
     )
 }
