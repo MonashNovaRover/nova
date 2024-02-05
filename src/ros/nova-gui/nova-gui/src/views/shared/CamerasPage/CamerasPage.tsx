@@ -3,8 +3,6 @@ import { CameraComponent } from "../../../components/CameraComponent/CameraCompo
 import { Play, Square } from "react-feather";
 import { useCameraStreamer } from "../../../components/CameraComponent/hooks/useCameraStreamer";
 import humanizeString from "humanize-string";
-import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction";
-import { RosService } from "../../../ros/services/rosService";
 import { cameraSections } from "./CameraPageConstants";
 import { useState } from "react";
 import { CameraControlPanelModal } from "../../../components/CameraComponent/components/CamerasControlPanelModal";
@@ -14,11 +12,7 @@ export const CameraPage = () => {
 
   const closeControlPanel = () => setControlPanelOpen(false);
 
-  const bifrostStarter = useBifrost({ service: RosService.START_CAMS });
-
-  const bifrostStopper = useBifrost({ service: RosService.STOP_CAMS });
-
-  const { refreshAvailability } = useCameraStreamer();
+  const { refreshAvailabilities } = useCameraStreamer();
 
   return (
     <div>
@@ -27,32 +21,32 @@ export const CameraPage = () => {
           <Button
             size="sm"
             color="primary"
-            onClick={() =>
-              bifrostStarter.callService(
-                { serials: [] },
-                {
-                  responseToast: true,
-                  successToastMessage: "All Cameras Started Up!",
-                  handleResponse: () => refreshAvailability(),
-                }
-              )
-            }
+            // onClick={() =>
+            //   bifrostStarter.callService(
+            //     { serials: [] },
+            //     {
+            //       responseToast: true,
+            //       successToastMessage: "All Cameras Started Up!",
+            //       handleResponse: () => refreshAvailability(),
+            //     }
+            //   )
+            // }
           >
             <Play size="15px" fill="white" /> Start All
           </Button>
           <Button
             size="sm"
             color="danger"
-            onClick={() =>
-              bifrostStopper.callService(
-                { serials: [] },
-                {
-                  responseToast: true,
-                  successToastMessage: "All Cameras Stopped!",
-                  handleResponse: () => refreshAvailability(),
-                }
-              )
-            }
+            // onClick={() =>
+            //   bifrostStopper.callService(
+            //     { serials: [] },
+            //     {
+            //       responseToast: true,
+            //       successToastMessage: "All Cameras Stopped!",
+            //       handleResponse: () => refreshAvailability(),
+            //     }
+            //   )
+            // }
           >
             <Square size="15px" fill="white" /> Stop All
           </Button>
@@ -90,6 +84,7 @@ export const CameraPage = () => {
       <CameraControlPanelModal
         showModal={controlPanelOpen}
         closeModal={closeControlPanel}
+        refreshAvailabilies={refreshAvailabilities}
       />
     </div>
   );

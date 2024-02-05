@@ -22,7 +22,7 @@ export interface RosServiceInterface {
     IRosCameraMsgsCameraOperationRequest,
     IRosCameraMsgsCameraOperationResponse
   >;
-  [RosService.STOP_CAMS]: RosServiceMessage<
+  [RosService.PAUSE_CAMS]: RosServiceMessage<
     IRosCameraMsgsCameraOperationRequest,
     IRosCameraMsgsCameraOperationResponse
   >;

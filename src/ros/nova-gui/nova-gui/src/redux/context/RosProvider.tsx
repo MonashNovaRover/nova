@@ -22,8 +22,8 @@ export const RosProvider = (props: { children: React.ReactNode }) => {
       BifrostConnectionStatus.DISCONNECTED
     )
       return;
-    bifrostActions.updateBifrostConnection(BifrostConnectionStatus.CONNECTING);
     const ros = new Ros({ url: "ws://" + uiStore.baseStationIP + ":9090" });
+    bifrostActions.updateBifrostConnection(BifrostConnectionStatus.CONNECTING);
 
     ros.on("connection", () => {
       bifrostActions.updateBifrostConnection(BifrostConnectionStatus.CONNECTED);

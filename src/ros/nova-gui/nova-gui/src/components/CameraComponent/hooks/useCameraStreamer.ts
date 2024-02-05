@@ -79,11 +79,11 @@ export const useCameraStreamer = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastJsonMessage]);
 
-  const refreshAvailability = useCallback(() => {
+  const refreshAvailabilities = useCallback(() => {
     sendJsonMessage({ type: "list" });
   }, [sendJsonMessage]);
 
   return {
-    refreshAvailability,
+    refreshAvailabilities,
   };
 };

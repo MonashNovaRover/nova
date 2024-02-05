@@ -2,7 +2,6 @@ import {
   Button,
   Card,
   CardFooter,
-  Chip,
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -15,6 +14,7 @@ import { StreamingState, useCameraStream } from "./hooks/useCameraStream";
 import { CameraSettingsForm } from "./components/CameraSettingsForm";
 import CameraVideo from "./components/CameraVideo";
 import { initialFilters } from "../../views/shared/CamerasPage/CameraPageConstants";
+import { BooleanChip } from "./components/BooleanChip";
 
 const ASPECT_RATIO = 4 / 3;
 
@@ -75,11 +75,13 @@ export const CameraComponent = (props: CameraComponentProps) => {
         {streamingState === StreamingState.STOPPED && (
           <div className="flex flex-col gap-1 items-center">
             <div className="font-bold text-xl">{cameraName}</div>
-            {isCameraOnline ? (
-              <Chip color="success">Online</Chip>
-            ) : (
-              <Chip>Offline</Chip>
-            )}
+            <BooleanChip
+              boolean={isCameraOnline}
+              trueText="Online"
+              falseText="Offline"
+              variant="dot"
+              size="md"
+            />
           </div>
         )}
         {streamingState === StreamingState.LOADING && <Spinner />}
@@ -136,15 +138,3 @@ export const CameraComponent = (props: CameraComponentProps) => {
     </Card>
   );
 };
-
-{
-  /* <Button
-            size="sm"
-            color="primary"
-            className="w-min mx-auto"
-            onClick={() => sendSessionStartMessage()}
-          >
-            <Play size="15px" fill="white" />
-            Start
-          </Button> */
-}
