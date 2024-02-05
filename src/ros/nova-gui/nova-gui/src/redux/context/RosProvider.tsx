@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { Ros } from "roslib";
-import { RosTopics } from "../../ros/rosTopics";
+import { RosTopic } from "../../ros/topics/rosTopic";
 import { RootState } from "../RootState";
-import { useBifrost } from "../actions/useBifrostAction";
-import { BifrostConnectionStatus } from "../models/BifrostTypes";
+import { useBifrost } from "../actions/bifrost/useBifrostAction";
+import { BifrostConnectionStatus } from "../models/bifrost/BifrostTypes";
 import { RosContext } from "./RosContext";
 
 export const RosProvider = (props: { children: React.ReactNode }) => {
@@ -13,7 +13,7 @@ export const RosProvider = (props: { children: React.ReactNode }) => {
     (state: RootState) => state.bifrostStatus
   );
   const [ros, setRos] = useState<ROSLIB.Ros | undefined>();
-  const bifrostActions = useBifrost(RosTopics.NULL_TOPIC);
+  const bifrostActions = useBifrost({ topic: RosTopic.NULL_TOPIC });
 
   useEffect(() => {
     if (
