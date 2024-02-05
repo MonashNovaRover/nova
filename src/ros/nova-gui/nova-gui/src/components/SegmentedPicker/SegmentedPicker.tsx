@@ -36,9 +36,9 @@ const SegmentedPicker: React.FC<SegmentedPickerProps> = ({
 
   return (
     <Tabs {...props} onSelectionChange={onSelectionChange} selectedKey={selectedKey}>
-      {Children.map(children, (child, index) =>
-        <Tab key={index.toString()} title={child}/>
-      )}
+      {Children.toArray(children).map((child, index) => (
+        <Tab key={index} title={child}/>
+      ))}
     </Tabs>
   )
 }
