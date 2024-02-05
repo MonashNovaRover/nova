@@ -181,5 +181,16 @@ export function createBifrostAction(props: BifrostProps, ros?: Ros) {
         );
       };
     },
+    callServiceToRedux(
+      request: RosServiceInterface[typeof service]["request"],
+      options: CallServiceOptions<
+        RosServiceInterface[typeof service]["response"]
+      > = {
+        noErrorToast: false,
+        responseToast: true,
+      }
+    ) {
+      this.callService(request, { ...options, sendToRedux: true });
+    },
   };
 }
