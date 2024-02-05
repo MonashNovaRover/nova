@@ -1,6 +1,6 @@
-import {Card, CardBody, CardHeader, CardProps, Tab, Tabs} from "@nextui-org/react";
-import {useState} from "react";
-import SegmentedPicker from "../../SegmentedPicker/SegmentedPicker.tsx";
+import {Button, Card, CardBody, CardHeader, CardProps} from "@nextui-org/react";
+import React from "react";
+import CopyableOutput from "../../CopyableOutput/CopyableOutput.tsx";
 
 
 interface INIRProbeValueWidgetProps extends CardProps {
@@ -10,28 +10,19 @@ interface INIRProbeValueWidgetProps extends CardProps {
 
 const NIRProbeValueWidget: React.FC<INIRProbeValueWidgetProps> = ({...cardProps}) => {
 
-  const [ledIndex, setLedIndex] = useState(0);
-
-  const tabs = [
-    <span>Off</span>,
-    <span>Water</span>,
-    <span>Ilmenite</span>
-  ]
 
   return (
     <Card {...cardProps}>
       <CardHeader className="pb-0">
-        NIR Probe
+        NIR Probe Output
       </CardHeader>
-      <CardBody>
-        <SegmentedPicker
-          selectedIndex={ledIndex}
-          onIndexChange={setLedIndex}
-          fullWidth
-          color={ledIndex > 0 ? "primary" : "default"}
-        >
-          {tabs}
-        </SegmentedPicker>
+      <CardBody className="flex flex-col gap-3">
+        <CopyableOutput className="tracking-wide" classNames={{pre: "text-lg pt-1"}}>
+          1000
+        </CopyableOutput>
+        <Button color="primary">
+          Save
+        </Button>
       </CardBody>
     </Card>
   )

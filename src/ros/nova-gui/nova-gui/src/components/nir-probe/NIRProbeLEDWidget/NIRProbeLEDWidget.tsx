@@ -10,25 +10,24 @@ const NIRProbeLEDWidget: React.FC<INIRProbeLEDWidgetProps> = ({...cardProps}) =>
 
   const [ledIndex, setLedIndex] = useState(0);
 
-  const tabs = [
-    <span>Off</span>,
-    <span>Water</span>,
-    <span>Ilmenite</span>
-  ];
-
   return (
     <Card {...cardProps}>
       <CardHeader className="pb-0">
-        NIR Probe
+        NIR Probe LED
       </CardHeader>
       <CardBody>
         <SegmentedPicker
           selectedIndex={ledIndex}
-          onIndexChange={setLedIndex}
+          onIndexChange={v => {
+            setLedIndex(v);
+            console.log(`index changed to ${v}`);
+          }}
           fullWidth
           color={ledIndex > 0 ? "primary" : "default"}
         >
-          {tabs}
+          <span>Off</span>
+          <span>Water</span>
+          <span>Ilmenite</span>
         </SegmentedPicker>
       </CardBody>
     </Card>

@@ -32,15 +32,20 @@ const SegmentedPicker: React.FC<SegmentedPickerProps> = ({
 
   const onSelectionChange = !onIndexChange ? undefined
     : (key: Key) => onIndexChange!(keyToNumber(key))
-  const selectedKey = selectedIndex?.toString();
+  const selectedKey = selectedIndex !== undefined ? (selectedIndex)?.toString() : undefined;
+
+  const childrenArray = Children.toArray(children);
+
+  const tabs = childrenArray.map((child, index) => (
+    <Tab key={index.toString()} title={child}>{}</Tab>
+  ));
 
   return (
-    <Tabs {...props} onSelectionChange={onSelectionChange} selectedKey={selectedKey}>
-      {Children.toArray(children).map((child, index) => (
-        <Tab key={index} title={child}/>
-      ))}
+    <Tabs onSelectionChange={onSelectionChange} selectedKey={selectedKey} {...props}>
+      {tabs}
     </Tabs>
   )
 }
+// {...props} onSelectionChange={onSelectionChange} selectedKey={selectedKey}
 
 export default SegmentedPicker;
