@@ -1,11 +1,10 @@
-import {Card, CardBody, CardHeader, CardProps, Tab, Tabs} from "@nextui-org/react";
+import {Card, CardBody, CardHeader, CardProps} from "@nextui-org/react";
 import {useState} from "react";
-
+import SegmentedPicker from "../../SegmentedPicker/SegmentedPicker.tsx";
 
 interface INIRProbeLEDWidgetProps extends CardProps {
 
 }
-
 
 const NIRProbeLEDWidget: React.FC<INIRProbeLEDWidgetProps> = ({...cardProps}) => {
 
@@ -15,7 +14,7 @@ const NIRProbeLEDWidget: React.FC<INIRProbeLEDWidgetProps> = ({...cardProps}) =>
     <span>Off</span>,
     <span>Water</span>,
     <span>Ilmenite</span>
-  ]
+  ];
 
   return (
     <Card {...cardProps}>
@@ -23,14 +22,14 @@ const NIRProbeLEDWidget: React.FC<INIRProbeLEDWidgetProps> = ({...cardProps}) =>
         NIR Probe
       </CardHeader>
       <CardBody>
-        <Tabs aria-label="LED Select" fullWidth={true}
-              selectedKey={`${ledIndex}`}
-              onSelectionChange={(key) => setLedIndex(+key)}
-              color={ledIndex > 0 ? "primary" : "default"}>
-          {tabs.map((tab, index) =>
-            <Tab key={`${index}`} title={tab}/>
-          )}
-        </Tabs>
+        <SegmentedPicker
+          selectedIndex={ledIndex}
+          onIndexChange={setLedIndex}
+          fullWidth
+          color={ledIndex > 0 ? "primary" : "default"}
+        >
+          {tabs}
+        </SegmentedPicker>
       </CardBody>
     </Card>
   )
