@@ -4,7 +4,7 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Purpose: A template ROS node
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-NODE: excavation_construction
+NODE: tile_placer
 TOPICS:
   - subscriber: /control/input_joystick_l [InputJoystick]
   - subscriber: /control/input_joystick_r [InputJoystick]
@@ -26,21 +26,18 @@ import jcan, logging
 from core.msg import InputJoystick
 
 # an example of how to import a standard message type
-from std_msgs.msg import String
 from rclpy.qos import QoSReliabilityPolicy, QoSProfile
 from rclpy.subscription import SubscriptionEventCallbacks
 from rclpy.duration import Duration
 
 
-class ExcavationConstructionNode(Node):
+class TilePlacerNode(Node):
 
     def __init__(self):
-        super().__init__("excavation_construction")
+        super().__init__("tile_placer")
 
         self.get_logger().set_level(logging.WARN)
         self.param_can = self.declare_parameter("can_bus", "can0").value
-        self.param_scraper_arm_multiplier = self.declare_parameter("scraper_arm_multiplier", 200).value
-        self.param_scraper_scoop_multiplier = self.declare_parameter("scraper_scoop_multiplier", 255).value
         self.param_tile_placer_multiplier = self.declare_parameter("tile_placer_multiplier", 200).value
 
         self.tile_placer_activated = False
@@ -48,17 +45,9 @@ class ExcavationConstructionNode(Node):
         # set motor ids
         self.tile_placer_id_forwards = 0x2
         self.tile_placer_id_backwards = 0x1
-        self.scraper_arm_id_forwards = 0x4
-        self.scraper_arm_id_backwards = 0x3
-        self.scraper_scoop_id_forwards = 0x6
-        self.scraper_scoop_id_backwards = 0x5
 
         # Initially all motors spin backwards with 0 velocity
-        self.scraper_arm_direction = self.scraper_arm_id_backwards
-        self.scraper_scoop_direction = self.scraper_scoop_id_backwards
         self.tile_placer_direction = self.tile_placer_id_backwards
-        self.scraper_arm_velocity = 0
-        self.scraper_scoop_velocity = 0
         self.tile_placer_velocity = 0
 
         self.joystick_lock = True
@@ -78,22 +67,15 @@ class ExcavationConstructionNode(Node):
 
     def callback_send_can_commands(self):
         """Take current internal state and publish over CAN
-        Sends can commands for scraper scoop, scraper arm and tile placer together
+        Sends can commands for tile placer
         """
         # The list of values will be cast to uint8's by JCAN library - so be careful to double check the values!
         tile_placer_commands = self.get_tile_placer_can_commands()
-        scraper_arm_commands, scraper_scoop_commands = self.get_scraper_can_commands()
         tilePlacerFrame = jcan.Frame(0x0A0, tile_placer_commands)
-        scraperArmFrame = jcan.Frame(0x0A0, scraper_arm_commands)
-        scraperScoopFrame = jcan.Frame(0x0A0, scraper_scoop_commands)
 
-        self.get_logger().info(f"Sending {scraperArmFrame}")
-        self.get_logger().info(f"Sending {scraperScoopFrame}")
         self.get_logger().info(f"Sending {tilePlacerFrame}")
         try:
             self.bus.send(tilePlacerFrame)
-            self.bus.send(scraperArmFrame)
-            self.bus.send(scraperScoopFrame)
 
         except Exception as e:
             print(e)
@@ -102,10 +84,6 @@ class ExcavationConstructionNode(Node):
     def deadline_callback(self, info):
         # Set all speeds to 0
         self.get_logger().warning("200ms Callback deadline missed")
-        self.scraper_arm_velocity = 0
-        self.scraper_arm_direction = self.scraper_arm_id_forwards
-        self.scraper_scoop_velocity = 0
-        self.scraper_scoop_direction = self.scraper_scoop_id_forwards
         self.tile_placer_velocity = 0
         self.tile_placer_direction = self.tile_placer_id_forwards
 
@@ -128,24 +106,11 @@ class ExcavationConstructionNode(Node):
         if joystick_l.btn_bottom_l5_state >= 1 and self.joystick_lock:
             self.get_logger().info("Joysticks Unlocked")
             if self.tile_placer_activated:
-                self.get_logger().info("Tile Placer Mode")
+                self.get_logger().info("Tile Placer ON")
             else:
-                self.get_logger().info("Scraper Mode")
+                self.get_logger().info("Tile Placer OFF")
             self.joystick_lock = False
 
-        # Update the inputs
-        if not self.joystick_lock and not self.tile_placer_activated:
-            self.scraper_arm_velocity = abs(int (self.param_scraper_arm_multiplier * joystick_l.ax_stick_x) )
-            self.scraper_arm_direction = self.scraper_arm_id_forwards if joystick_l.ax_stick_x >= 0 else self.scraper_arm_id_backwards
-        elif not self.joystick_lock and self.tile_placer_activated:
-            # send 0 velocity
-            self.scraper_arm_velocity = 0
-            self.scraper_arm_direction = self.scraper_arm_id_forwards
-        elif self.joystick_lock:
-            # if joysticks locked
-            self.get_logger().info("joysticks locked!")
-            self.scraper_arm_velocity = 0
-            self.scraper_arm_direction = self.scraper_arm_id_forwards
 
     def joystick_r_callback(self, msg):
         """
@@ -157,15 +122,15 @@ class ExcavationConstructionNode(Node):
 
         joystick_r = msg
 
-        # Scraper mode is on
+        # Tile Placer mode is off
         if joystick_r.btn_bottom_r1_state >= 1 and self.tile_placer_activated:
-            self.get_logger().info("Scraper Mode")
+            self.get_logger().info("Tile Placer OFF")
             self.tile_placer_activated = False
 
         # tile placer is unlocked when bottom r4 button is pressed on the right joystick
         # Tile Placer mode is on
         if joystick_r.btn_bottom_r4_state >= 1 and not self.tile_placer_activated:
-            self.get_logger().info("Tile Placer Mode")
+            self.get_logger().info("Tile Placer ON")
             self.tile_placer_activated = True
 
         if not self.joystick_lock and self.tile_placer_activated:
@@ -173,15 +138,7 @@ class ExcavationConstructionNode(Node):
             self.tile_placer_velocity = abs( int( self.param_tile_placer_multiplier * joystick_r.ax_stick_x ) )
             self.tile_placer_direction = self.tile_placer_id_forwards if joystick_r.ax_stick_x >= 0 else self.tile_placer_id_backwards
 
-            # set scraper velocities to 0
-            self.scraper_scoop_velocity = 0
-            self.scraper_arm_velocity = 0
-            self.scraper_arm_direction = self.scraper_arm_id_forwards
-            self.scraper_scoop_direction = self.scraper_scoop_id_forwards
         elif not self.joystick_lock and not self.tile_placer_activated:
-            # Update the inputs
-            self.scraper_scoop_velocity = abs( int (self.param_scraper_scoop_multiplier * joystick_r.ax_stick_x) )
-            self.scraper_scoop_direction = self.scraper_scoop_id_forwards if joystick_r.ax_stick_x >= 0 else self.scraper_scoop_id_backwards
 
             # set tile placer velocities to 0
             self.tile_placer_velocity = 0
@@ -190,9 +147,6 @@ class ExcavationConstructionNode(Node):
             # if joysticks locked
             self.get_logger().info("joysticks locked!")
             self.tile_placer_activated = False
-            # set the scoop velocity to 0
-            self.scraper_scoop_velocity = 0
-            self.scraper_scoop_direction = self.scraper_scoop_id_forwards
 
             # set tile placer velocity to 0
             self.tile_placer_velocity = 0
@@ -206,22 +160,11 @@ class ExcavationConstructionNode(Node):
 
         return tile_placer_data
 
-    def get_scraper_can_commands(self):
-        scraper_arm_data = []
-        scraper_arm_data.append(self.scraper_arm_direction)       
-        scraper_arm_data.append(self.scraper_arm_velocity)
-
-        scraper_scoop_data = []
-        scraper_scoop_data.append(self.scraper_scoop_direction)        
-        scraper_scoop_data.append(self.scraper_scoop_velocity)
-
-        return scraper_arm_data, scraper_scoop_data
-
 
 def main():
     rclpy.init()
-    excavation_construction = ExcavationConstructionNode()
-    rclpy.spin(excavation_construction)
+    tile_placer = TilePlacerNode()
+    rclpy.spin(tile_placer)
     rclpy.shutdown()
 
 
