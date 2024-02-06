@@ -43,6 +43,7 @@ from serial import Serial, SerialException
 import time
 from typing import Tuple, List
 
+from sympy import reduced
 
 class RamanServer(Node):
     # Constants set by firmware/hardware of STM32F103

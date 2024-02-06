@@ -4,6 +4,7 @@ string port
 uint32 shperiod
 uint32 icgperiod
 uint8 average
+uint8 resolutionreductionfactor
 
 # Collection mode
 bool singlecollectionmode
