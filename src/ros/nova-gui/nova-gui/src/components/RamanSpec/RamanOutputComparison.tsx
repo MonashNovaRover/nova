@@ -31,9 +31,11 @@ const RamanOutputComparison: React.FC = () => {
                 console.log(i);
             }
         }
-        let result = outputChartSeries;
-        result.splice(index, 1);
-        setOutputChartSeries([...result]);
+        if (index >= 0) {
+            let result = outputChartSeries;
+            result.splice(index, 1);
+            setOutputChartSeries([...result]);
+        }
     }
 
     const elementData = [[{
@@ -52,6 +54,7 @@ const RamanOutputComparison: React.FC = () => {
             curve: "smooth"
         },
         chart: {
+            animations: {enabled: false},
           type: 'line',
           background: "000",
           toolbar: {
