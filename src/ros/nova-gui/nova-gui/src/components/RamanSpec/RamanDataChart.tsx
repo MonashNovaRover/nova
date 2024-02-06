@@ -21,6 +21,7 @@ const RamanDataChart: React.FC<IRamanDataChartProps> = (props: IRamanDataChartPr
             curve: "smooth"
         },
         chart: {
+            animations: {enabled: false},
           type: 'line',
           background: "000",
           toolbar: {
