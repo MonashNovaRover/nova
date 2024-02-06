@@ -21,12 +21,14 @@ MORE INFO:
  - https://www.notion.so/Raman-Spectra-0161f5611e934a779247f3733ca8a608
 """
 
+from math import ceil
 import rclpy
 from core.srv import RamanSpec
 from numpy import zeros, uint8, uint16, uint32
 from serial import Serial, SerialException
 from time import sleep
 
+from sympy import reduced
 
 
 class RamanServer(rclpy.node.Node):
@@ -73,6 +75,28 @@ class RamanServer(rclpy.node.Node):
         result[11] = uint8(average)  # min is 1, max is 15
 
         return result
+
+    def reduce_resolution_by_a_factor_of(factor, input):
+        if factor == 1:
+            return input
+        reduced_result = zeros(ceil(RamanServer.SPECTRA_SIZE // factor))
+        for reduced_index in range(len(reduced_result)):
+            sum = 0
+            count_at_final_index = None
+            for pixel in range(factor):
+                try:
+                    sum += input[reduced_index + pixel]
+                except IndexError:
+                    count_at_final_element = pixel
+                    break
+            if count_at_final_index:
+                reduced_result[reduced_index] = sum / count_at_final_element
+            else:
+                reduced_result[reduced_index] = sum / factor
+        return reduced_result
+            
+            
+
 
     
     def read_output_to_response(output):
@@ -129,8 +153,9 @@ class RamanServer(rclpy.node.Node):
                 while self.is_in_continuous_mode():
                     output = ser.read(RamanServer.OUTPUT_SIZE)
                     
-                    data = RamanServer.read_output_to_response(output)
+                    full_res_data = RamanServer.read_output_to_response(output)
 
+                    reduced_data = RamanServer.reduce_resolution_by_a_factor_of(response.resolutionreductionfactor)
                     #publish to stream
                     pass
 
@@ -145,7 +170,8 @@ class RamanServer(rclpy.node.Node):
 
             ser.close()
 
-            response.spectra = RamanServer.read_output_to_response(output)
+            full_res_result = RamanServer.read_output_to_response(output)
+            response.spectra = RamanServer.reduce_resolution_by_a_factor_of(response.resolutionreductionfactor)
             response.isvalid = True
 
             return response
