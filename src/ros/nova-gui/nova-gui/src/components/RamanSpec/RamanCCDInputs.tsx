@@ -18,6 +18,10 @@ function checkAverage(average: number) {
     return (1 <= average && average <= 15 && average % 1 == 0)
 }
 
+function checkResolution(resolution: number) {
+    return (1 <= resolution && resolution <= 255 && resolution % 1 == 0)
+}
+
 const RamanCCDInputs: React.FC = () => {
     const {isOpen, onOpen, onOpenChange} = useDisclosure();
     
@@ -26,6 +30,7 @@ const RamanCCDInputs: React.FC = () => {
     const [icgPeriod, setICGPeriod] = useState(100000);
     const [average, setAverage] = useState(1);
     const [singleCollectionMode, setSingleCollectionMode] = useState(true);
+    const [resolutionReductionFactor, setResolutionReductionFactor] = useState(1);
 
     return (
         <Card className="m-1 p-2 flex flex-row flex-1 space-x-2">
@@ -42,7 +47,8 @@ const RamanCCDInputs: React.FC = () => {
                         <p>Specify the port name. The default value should work.</p>
                         <p>SH (SHift gate) period's minimum value is 20, its maximum value is 4294967295 and must be an integer.</p>
                         <p>ICG (Integration Clear Gate) period's minimum value is 14776, its maximum value is 4294967295 and must be an integer. The value for the ICG period <em className="text-xl font-black not-italic">MUST</em> be an integer multiple of the SH period.</p>
-                        <p className="mb-2.5">Average determines the amount of samples taken and averaged by the firmware, its minimum value is 1 and its maximum value is 15 (must be an integer as well).</p>
+                        <p>Average determines the amount of samples taken and averaged by the firmware, its minimum value is 1 and its maximum value is 15 (must be an integer).</p>
+                        <p className="mb-2.5">Resolution Reduction Factor determines how detailed the output is. For example, if it is 100, then for every 100 points outputted by the CCD, 1 point (averaging those 100 points) is received. Its minimum value is 1 and its maximum value is 255 (must be an integer).</p>
                     </ModalBody>
                     </>
                 )}
@@ -52,13 +58,15 @@ const RamanCCDInputs: React.FC = () => {
             <Input onValueChange={(value: string) => setSHPeriod(+value)} className="shrink-0 w-36 grow" type="shperiod" label="SH Period" placeholder="[20, 4294967295]" defaultValue={shPeriod.toString()} />
             <Input onValueChange={(value: string) => setICGPeriod(+value)} className="shrink-0 w-40 grow" type="icgperiod" label="ICG Period" placeholder="[14776, 4294967295]" defaultValue={icgPeriod.toString()} />
             <Input onValueChange={(value: string) => setAverage(+value)} className="shrink-0 w-16 grow" type="average" label="Average" placeholder="[1, 15]" defaultValue={average.toString()} />
+            <Input onValueChange={(value: string) => setResolutionReductionFactor(+value)} className="shrink-0 w-24 grow" type="resolutionreductionfactor" label="Resolution Reduction Factor" placeholder="[1, 255]" defaultValue={resolutionReductionFactor.toString()} />
             <Button 
             onPress={() => {setSingleCollectionMode(!singleCollectionMode)}}
             color= {singleCollectionMode ? "primary" : "secondary"} className="h-14 shrink-0 w-52" radius="lg">
                 Collection Mode: {singleCollectionMode ? "Single" : "Continuous"}
             </Button>
             <Button onPress={() => {
-                if (checkPeriods(shPeriod, icgPeriod) && checkAverage(average)) {
+                if (checkPeriods(shPeriod, icgPeriod) && checkAverage(average) && checkResolution(resolutionReductionFactor)) {
+                    // Service request here
                     console.log("Sent");
                 } else {
                     onOpen();
