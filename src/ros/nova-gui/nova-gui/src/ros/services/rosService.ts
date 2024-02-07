@@ -21,6 +21,6 @@ export enum RosService {
   KILN_COMMAND = "/science/kiln_command",
   SET_NIR_PROBE_LED = "/science/set_nir_probe_led",
   MOVE_MICROSCOPE_SERVO = "/science/microscope_servo_service",
-  THETA_360_CAM_CAPTURE = "/science/theta360cam/capture"
-  CALL_RAMAN_SPEC = "/science/raman_spec_srv"
+  THETA_360_CAM_CAPTURE = "/science/theta360cam/capture",
+  CALL_RAMAN_SPEC = "/science/raman_spec_srv",
 }

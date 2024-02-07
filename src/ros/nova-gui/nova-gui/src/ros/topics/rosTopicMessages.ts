@@ -33,4 +33,5 @@ export const rosTopicMessages = {
   [RosTopic.MICROSCOPE_SERVO]: "nova_interfaces/msg/MicroscopeServoInfo",
   [RosTopic.THETA_360_CAM_IMAGE]: "sensor_msgs/msg/CompressedImage",
   [RosTopic.HYDRAPROBE_DATA]: "nova_interfaces/msg/HydraprobeData",
+  [RosTopic.RAMAN_SPEC_MSG]: "core/msg/RamanSpectrum"
 };

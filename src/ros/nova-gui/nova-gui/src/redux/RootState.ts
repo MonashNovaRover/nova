@@ -11,6 +11,7 @@ import {
   IRosBlcmdInterfacesTelemetry,
   IRosStdMsgsString,
   IRosCoreRamanSpecResponse,
+  IRosCoreRamanSpectrum,
   IRosCoreTelemetry,
   IRosGeometryMsgsPose,
   IRosSensorMsgsRange,
@@ -50,14 +51,14 @@ export interface RootState {
   kilnData: IRosNovaInterfacesKilnData;
   kilnCommand: IRosNovaInterfacesKilnCommandResponse;
   hydraprobeData: IRosNovaInterfacesHydraprobeData;
+  microscopeServoStore: IRosNovaInterfacesMicroscopeServoInfo;
+  microscopeServiceStore: IRosNovaInterfacesMoveMicroscopeServoResponse;
+  theta360CamStore: IRosSensorMsgsCompressedImage;
+  ramanSpecServiceStore: IRosCoreRamanSpecResponse;
+  ramanSpecMessageStore: IRosCoreRamanSpectrum;
 
   // Regular Stores
   uiState: UIState;
   cameraStreamerState: CameraStreamerState;
 
-  // Science Stores
-  microscopeServoStore: IRosNovaInterfacesMicroscopeServoInfo;
-  microscopeServiceStore: IRosNovaInterfacesMoveMicroscopeServoResponse;
-
-  theta360CamStore: IRosSensorMsgsCompressedImage;
 }
