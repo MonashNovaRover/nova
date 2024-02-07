@@ -30,5 +30,6 @@ export const rosTopicMessages = {
   [RosTopic.TOF]: "sensor_msgs/msg/Range",
   [RosTopic.KILN_DATA]: "nova_interfaces/msg/KilnData",
   [RosTopic.NIR_DATA]: "nova_interfaces/msg/NIRProbeData",
-  [RosTopic.MICROSCOPE_SERVO]: "nova_interfaces/msg/MicroscopeServoInfo"
+  [RosTopic.MICROSCOPE_SERVO]: "nova_interfaces/msg/MicroscopeServoInfo",
+  [RosTopic.RAMAN_SPEC_MSG]: "core/msg/RamanSpectrum",
 };

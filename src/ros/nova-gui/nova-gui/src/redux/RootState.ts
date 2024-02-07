@@ -11,6 +11,7 @@ import {
   IRosBlcmdInterfacesTelemetry,
   IRosStdMsgsString,
   IRosCoreRamanSpecResponse,
+  IRosCoreRamanSpectrum,
   IRosGeometryMsgsPose,
   IRosSensorMsgsRange,
   IRosCmdInterfacesCmDsFeedback 
@@ -55,4 +56,5 @@ export interface RootState {
   microscopeServoStore: IRosNovaInterfacesMicroscopeServoInfo;
   microscopeServiceStore: IRosNovaInterfacesMoveMicroscopeServoResponse;
   ramanSpecServiceStore: IRosCoreRamanSpecResponse;
+  ramanSpecMessageStore: IRosCoreRamanSpectrum;
 }

@@ -8,12 +8,27 @@ import { Card, CardHeader, ScrollShadow } from "@nextui-org/react";
 import ReactApexChart from "react-apexcharts";
 import { ApexOptions } from "apexcharts";
 import RamanDataChart from "./RamanDataChart";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { RootState } from "../../redux/RootState";
+import { useBifrost } from "../../redux/actions/bifrost/useBifrostAction";
+import { useSelector } from "react-redux";
+import { RosTopic } from "../../ros/topics/rosTopic";
 
 const RamanOutputComparison: React.FC = () => {
+    // Bifrost
+    const spectrumStore = useSelector(
+        (state: RootState) => state.ramanSpecMessageStore
+    );
+    
+    const bifrost = useBifrost({ topic: RosTopic.RAMAN_SPEC_MSG });
+    
+    useEffect(() => {
+        bifrost.syncWithTopic();
+    }, [bifrost]);
+
     const [outputChartSeries, setOutputChartSeries] = useState([{
         name: "CCD Output",
-        data: [5, 15, 30, 40, 23, 17, 10, 62, 52, 73, 49, 21]
+        data: spectrumStore.spectrum
     }]);
 
     const addToMainOverlay = (Cname: string, Cdata: number[]) => {
@@ -79,11 +94,20 @@ const RamanOutputComparison: React.FC = () => {
         colors: ["#992F7B", "#C4841D", "#66AAF9", "#F31260"]
     };
 
+    let ccdOutputChart;
+    if (spectrumStore.spectrum.length == 0) {
+        ccdOutputChart = <Card className="text-center w-1/2 self-center p-2 m-1">Use the CCD Input to request Output</Card>;
+    } else if (spectrumStore.isvalid) {
+        ccdOutputChart = <ReactApexChart className = "w-1/2 self-center" options={outputChartOptions} series={outputChartSeries} />;
+    } else {
+        ccdOutputChart = <Card className="text-center w-1/2 self-center p-2 m-1">Uh Oh</Card>;
+    }
+
     return (
         <Card className="w-fit p-2 m-1 w-auto">
             <CardHeader className="shrink-0 w-48 p-1">Comparison and Analysis</CardHeader>
             <div className="flex flex-row">
-                <ReactApexChart className = "w-1/2" options={outputChartOptions} series={outputChartSeries} />
+                {ccdOutputChart}
                 <ScrollShadow hideScrollBar className="w-1/2 h-154">
                     {elementData.map( element => (<RamanDataChart key={element[0].name} addToMainOverlay={addToMainOverlay} removeFromMainOverlay={removeFromMainOverlay} name={element[0].name} data={element[0].data} />))}
                 </ScrollShadow>
