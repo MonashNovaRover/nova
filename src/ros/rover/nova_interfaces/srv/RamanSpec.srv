@@ -13,7 +13,3 @@ bool continuousendsignal
 ---
 
 bool continuousendedsignal
-
-# Results
-bool isvalid
-uint16[] spectra
