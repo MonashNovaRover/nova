@@ -159,18 +159,17 @@ export const rootReducer = {
   ),
   ramanSpecServiceStore: createBifrostStore(
     { service: RosService.CALL_RAMAN_SPEC},
-    { continuousendedsignal: false,
-      isvalid: false,
-      spectra: [0]}
+    { continuousendedsignal: false }
   ),
-  poseStore: createBifrostStore(
-    { topic: RosTopic.POSE },
+  ramanSpecMessageStore: createBifrostStore(
+    { topic: RosTopic.RAMAN_SPEC_MSG },
     {
-      orientation: { x: 0, y: 0, z: 0, w: 0 },
-      position: { x: 0, y: 0, z: 0 },
+      isvalid: false,
+      spectrum: []
     }
   ),
-  
+
+
   // Regular Stores
   uiState: uiSlice.reducer,
   cameraStreamerState: cameraStreamerSlice.reducer,
