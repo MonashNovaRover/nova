@@ -147,6 +147,12 @@ export const rootReducer = {
     { service: RosService.MOVE_MICROSCOPE_SERVO },
     { success: true }
   ),
+  ramanSpecServiceStore: createBifrostStore(
+    { service: RosService.CALL_RAMAN_SPEC},
+    { continuousendedsignal: false,
+      isvalid: false,
+      spectra: [0]}
+  ),
 
   // Regular Stores
   uiState: uiSlice.reducer,
