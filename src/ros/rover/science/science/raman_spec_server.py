@@ -127,7 +127,7 @@ class RamanServer(rclpy.node.Node):
     def raman_response(self, request, response):
         msg = RamanSpectrum()
         msg.isvalid = False
-        msg.spectra = zeros(RamanServer.SPECTRA_SIZE, uint16)
+        msg.spectrum = zeros(RamanServer.SPECTRA_SIZE, uint16)
         response.continuousendedsignal = False
         try:
             if request.continuousendsignal:
@@ -160,7 +160,7 @@ class RamanServer(rclpy.node.Node):
                     full_res_data = RamanServer.read_output_to_response(output)
 
                     msg.isvalid = True
-                    msg.spectra = RamanServer.reduce_resolution_by_a_factor_of(response.resolutionreductionfactor, full_res_data)
+                    msg.spectrum = RamanServer.reduce_resolution_by_a_factor_of(response.resolutionreductionfactor, full_res_data)
                     self.publisher_.publish(msg)
                 
                 response.continuousendedsignal = True
@@ -178,7 +178,7 @@ class RamanServer(rclpy.node.Node):
 
             full_res_result = RamanServer.read_output_to_response(output)
             msg.isvalid = True
-            msg.spectra = RamanServer.reduce_resolution_by_a_factor_of(response.resolutionreductionfactor, full_res_result)
+            msg.spectrum = RamanServer.reduce_resolution_by_a_factor_of(response.resolutionreductionfactor, full_res_result)
             self.publisher_.publish(msg)
 
             return response
