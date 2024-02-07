@@ -8,7 +8,13 @@ export const rootReducer = {
   uiState: uiSlice.reducer,
   bifrostStatus: BifrostStatusStore(),
 
-  ipList: createBifrostStore({ service: RosService.GET_IP_LIST }, { ips: [] }),
+  /*ipList: createBifrostStore({ service: RosService.GET_IP_LIST }, { ips: [] }),*/
+  ramanSpecServiceStore: createBifrostStore(
+    { service: RosService.CALL_RAMAN_SPEC},
+    { continuousendedsignal: false,
+      isvalid: false,
+      spectra: [0]}
+  ),
   poseStore: createBifrostStore(
     { topic: RosTopic.POSE },
     {
