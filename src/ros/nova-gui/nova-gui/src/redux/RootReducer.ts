@@ -157,6 +157,20 @@ export const rootReducer = {
       dielectric: 0
     } as IRosNovaInterfacesHydraprobeData
   ),
+  ramanSpecServiceStore: createBifrostStore(
+    { service: RosService.CALL_RAMAN_SPEC},
+    { continuousendedsignal: false,
+      isvalid: false,
+      spectra: [0]}
+  ),
+  poseStore: createBifrostStore(
+    { topic: RosTopic.POSE },
+    {
+      orientation: { x: 0, y: 0, z: 0, w: 0 },
+      position: { x: 0, y: 0, z: 0 },
+    }
+  ),
+  
   // Regular Stores
   uiState: uiSlice.reducer,
   cameraStreamerState: cameraStreamerSlice.reducer,

@@ -10,6 +10,8 @@ import {
   IRosNovaInterfacesKilnData,
   IRosBlcmdInterfacesTelemetry,
   IRosStdMsgsString,
+  IRosCoreRamanSpecResponse,
+  IRosCoreTelemetry,
   IRosGeometryMsgsPose,
   IRosSensorMsgsRange,
   IRosNovaInterfacesHydraprobeData,

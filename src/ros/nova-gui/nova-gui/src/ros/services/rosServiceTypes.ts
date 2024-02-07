@@ -11,6 +11,8 @@ import {
   IRosNovaInterfacesKilnCommandResponse,
   IRosNovaInterfacesSetNirProbeLedRequest,
   IRosNovaInterfacesSetNirProbeLedResponse,
+  IRosCoreRamanSpecRequest, 
+  IRosCoreRamanSpecResponse,
 } from "../rosTypes";
 import { RosService } from "./rosService";
 
@@ -23,7 +25,7 @@ interface EmptyMessage {}
 
 export interface RosServiceInterface {
   [RosService.NULL_SERVICE]: RosServiceMessage<EmptyMessage, EmptyMessage>;
-  [RosService.GET_IP_LIST]: RosServiceMessage<
+  /*[RosService.GET_IP_LIST]: RosServiceMessage<
     EmptyMessage,
     IRosCameraMsgsGetIpListResponse
   >;
@@ -60,5 +62,8 @@ export interface RosServiceInterface {
   [RosService.MOVE_MICROSCOPE_SERVO]: RosServiceMessage<
     IRosNovaInterfacesMoveMicroscopeServoRequest,
     IRosNovaInterfacesMoveMicroscopeServoResponse
-  >;
+  >;*/
+  [RosService.CALL_RAMAN_SPEC]: RosServiceMessage<
+    IRosCoreRamanSpecRequest, 
+    IRosCoreRamanSpecResponse>;
 }

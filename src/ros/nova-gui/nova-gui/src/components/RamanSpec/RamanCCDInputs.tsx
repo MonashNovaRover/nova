@@ -7,6 +7,9 @@
 import { Button, Card, CardHeader, Input, Modal, ModalBody, ModalContent, ModalHeader, useDisclosure } from "@nextui-org/react";
 import { HelpCircle } from "react-feather";
 import { useState } from "react";
+import { useBifrost } from "../../redux/actions/bifrost/useBifrostAction";
+import { RosService } from "../../ros/services/rosService";
+import { IRosCoreRamanSpecRequest } from "../../ros/rosTypes";
 
 function checkPeriods(shPeriod: number, icgPeriod: number) {
     return ((20 <= shPeriod && shPeriod <= 4294967295 && shPeriod % 1 == 0) && 
@@ -25,6 +28,10 @@ function checkResolution(resolution: number) {
 const RamanCCDInputs: React.FC = () => {
     const {isOpen, onOpen, onOpenChange} = useDisclosure();
     
+    const bifrost = useBifrost({ service: RosService.CALL_RAMAN_SPEC });
+
+    const sendRamanRequest = (request: IRosCoreRamanSpecRequest) => bifrost.callServiceToRedux(request);
+
     const [port, setPort] = useState("/dev/ttyACM0");
     const [shPeriod, setSHPeriod] = useState(200);
     const [icgPeriod, setICGPeriod] = useState(100000);
@@ -66,8 +73,15 @@ const RamanCCDInputs: React.FC = () => {
             </Button>
             <Button onPress={() => {
                 if (checkPeriods(shPeriod, icgPeriod) && checkAverage(average) && checkResolution(resolutionReductionFactor)) {
-                    // Service request here
-                    console.log("Sent");
+                    sendRamanRequest({
+                        port: port,
+                        shperiod: shPeriod,
+                        icgperiod: icgPeriod,
+                        average: average,
+                        resolutionreductionfactor: resolutionReductionFactor,
+                        singlecollectionmode: singleCollectionMode,
+                        continuousendsignal: false
+                    })
                 } else {
                     onOpen();
                 }
