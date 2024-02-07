@@ -125,6 +125,7 @@ class RamanServer(rclpy.node.Node):
     def raman_response(self, request, response):
         response.isvalid = False
         response.spectra = zeros(RamanServer.SPECTRA_SIZE, uint16)
+        response.continuousendedsignal = False
         try:
             if request.continuousendsignal:
                 issinglecollection = True
@@ -158,6 +159,8 @@ class RamanServer(rclpy.node.Node):
                     reduced_data = RamanServer.reduce_resolution_by_a_factor_of(response.resolutionreductionfactor)
                     #publish to stream
                     pass
+                
+                response.continuousendedsignal = True
 
                 #resend settings with continuous transmission disabled to avoid flooding of the serial port
                 input = RamanServer.set_input(request.shperiod, request.icgperiod, True, request.average)
