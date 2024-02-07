@@ -163,6 +163,12 @@ export const rootReducer = {
       dielectric: 0
     } as IRosNovaInterfacesHydraprobeData
   ),
+  ramanSpecServiceStore: createBifrostStore(
+    { service: RosService.CALL_RAMAN_SPEC},
+    { continuousendedsignal: false,
+      isvalid: false,
+      spectra: [0]}
+  ),
   
   // Regular Stores
   uiState: uiSlice.reducer,
