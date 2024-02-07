@@ -1,5 +1,5 @@
 import { RosTopic } from "./rosTopic";
-import { IRosCoreTelemetry, IRosGeometryMsgsPose } from "../rosTypes";
+import { IRosCoreRamanSpectrum, IRosCoreTelemetry, IRosGeometryMsgsPose } from "../rosTypes";
 import { IRosCoreDriveInfo } from "../rosTypes";
 
 /**
@@ -14,4 +14,5 @@ export interface RosTopicInterfaces {
   [RosTopic.POSE]: IRosGeometryMsgsPose;
   [RosTopic.DRIVE_INFO]: IRosCoreDriveInfo;
   [RosTopic.TELEMETRY]: IRosCoreTelemetry;
+  [RosTopic.RAMAN_SPEC_MSG]: IRosCoreRamanSpectrum;
 }

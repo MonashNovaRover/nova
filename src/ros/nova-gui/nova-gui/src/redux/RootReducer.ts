@@ -11,10 +11,16 @@ export const rootReducer = {
   /*ipList: createBifrostStore({ service: RosService.GET_IP_LIST }, { ips: [] }),*/
   ramanSpecServiceStore: createBifrostStore(
     { service: RosService.CALL_RAMAN_SPEC},
-    { continuousendedsignal: false,
-      isvalid: false,
-      spectra: [0]}
+    { continuousendedsignal: false }
   ),
+  ramanSpecMessageStore: createBifrostStore(
+    { topic: RosTopic.RAMAN_SPEC_MSG },
+    {
+      isvalid: false,
+      spectrum: []
+    }
+  ),
+
   poseStore: createBifrostStore(
     { topic: RosTopic.POSE },
     {

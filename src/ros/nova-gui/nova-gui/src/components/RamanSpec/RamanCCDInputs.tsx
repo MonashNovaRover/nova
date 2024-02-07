@@ -6,10 +6,12 @@
 
 import { Button, Card, CardHeader, Input, Modal, ModalBody, ModalContent, ModalHeader, useDisclosure } from "@nextui-org/react";
 import { HelpCircle } from "react-feather";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useBifrost } from "../../redux/actions/bifrost/useBifrostAction";
 import { RosService } from "../../ros/services/rosService";
 import { IRosCoreRamanSpecRequest } from "../../ros/rosTypes";
+import { useSelector } from "react-redux";
+import { RootState } from "../../redux/RootState";
 
 function checkPeriods(shPeriod: number, icgPeriod: number) {
     return ((20 <= shPeriod && shPeriod <= 4294967295 && shPeriod % 1 == 0) && 
@@ -27,17 +29,26 @@ function checkResolution(resolution: number) {
 
 const RamanCCDInputs: React.FC = () => {
     const {isOpen, onOpen, onOpenChange} = useDisclosure();
-    
-    const bifrost = useBifrost({ service: RosService.CALL_RAMAN_SPEC });
-
-    const sendRamanRequest = (request: IRosCoreRamanSpecRequest) => bifrost.callServiceToRedux(request);
 
     const [port, setPort] = useState("/dev/ttyACM0");
     const [shPeriod, setSHPeriod] = useState(200);
     const [icgPeriod, setICGPeriod] = useState(100000);
     const [average, setAverage] = useState(1);
     const [singleCollectionMode, setSingleCollectionMode] = useState(true);
+    const [currentlyInContinuous, setCurrentlyInContinuous] = useState(false);
     const [resolutionReductionFactor, setResolutionReductionFactor] = useState(1);
+
+    const continuousendedsignalresponse = useSelector((state: RootState) => state.ramanSpecServiceStore);
+    
+    const bifrost = useBifrost({ service: RosService.CALL_RAMAN_SPEC });
+
+    const sendRamanRequest = (request: IRosCoreRamanSpecRequest) => bifrost.callServiceToRedux(request);
+
+    useEffect(() => {
+        if (continuousendedsignalresponse) {
+            setCurrentlyInContinuous(false);
+        }
+    }, [bifrost]);
 
     return (
         <Card className="m-1 p-2 flex flex-row flex-1 space-x-2">
@@ -80,12 +91,15 @@ const RamanCCDInputs: React.FC = () => {
                         average: average,
                         resolutionreductionfactor: resolutionReductionFactor,
                         singlecollectionmode: singleCollectionMode,
-                        continuousendsignal: false
+                        continuousendsignal: currentlyInContinuous
                     })
+                    if (!singleCollectionMode) {
+                        setCurrentlyInContinuous(true);
+                    }
                 } else {
                     onOpen();
                 }
-            }} color="primary" className="h-14 flex flex-row shrink-0 grow w-32" radius="lg">Collect</Button>
+            }} color={currentlyInContinuous ? "danger" : "primary"} className="h-14 flex flex-row shrink-0 grow w-32" radius="lg">{currentlyInContinuous ? "Stop" : "Collect"}</Button>
         </Card>
     )
 }

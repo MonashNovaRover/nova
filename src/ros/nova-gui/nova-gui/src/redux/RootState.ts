@@ -2,6 +2,7 @@ import {
   /*IRosCameraMsgsGetIpListResponse,*/
   IRosCoreDriveInfo,
   IRosCoreRamanSpecResponse,
+  IRosCoreRamanSpectrum,
   IRosCoreTelemetry,
   IRosGeometryMsgsPose,
 } from "../ros/rosTypes";
@@ -19,4 +20,5 @@ export interface RootState {
   telemetryStore: IRosCoreTelemetry;
   /*ipList: IRosCameraMsgsGetIpListResponse;*/
   ramanSpecServiceStore: IRosCoreRamanSpecResponse;
+  ramanSpecMessageStore: IRosCoreRamanSpectrum;
 }
