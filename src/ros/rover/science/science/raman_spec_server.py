@@ -6,7 +6,7 @@ Purpose: ROS Node for publishing responses to service requests from GUI data for
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: raman_spec_server
 TOPICS: 
-    - /science/raman_spec_stream [RamanSpectraStream] [Publisher]
+    - /science/raman_spec_msg [RamanSpectraStream] [Publisher]
 SERVICES: 
     - /science/raman_spec_srv [RamanSpec] [Server]
 ACTIONS: None
@@ -15,7 +15,7 @@ PACKAGE: science
 SOURCE AUTHOR:	Esben Rossel <esbenrossel@gmail.com>
 AUTHOR: Connor Macdougall
 CREATION:	18/01/2024
-EDITED:		25/01/2024
+EDITED:		07/02/2024
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 MORE INFO:
  - https://www.notion.so/Raman-Spectra-0161f5611e934a779247f3733ca8a608
@@ -24,6 +24,7 @@ MORE INFO:
 from math import ceil
 import rclpy
 from core.srv import RamanSpec
+from core.msg import RamanSpectrum
 from numpy import zeros, uint8, uint16, uint32
 from serial import Serial, SerialException
 from time import sleep
@@ -41,6 +42,7 @@ class RamanServer(rclpy.node.Node):
     def __init__(self):
         super().__init__('raman_spec_server')
         self.srv = self.create_service(RamanSpec, '/science/raman_spec_srv', self.raman_response)
+        self.publisher_ = self.create_publisher(RamanSpectrum, '/science/raman_spec_msg', 10)
         self.continuous_mode = False
 
     def is_in_continuous_mode(self):
@@ -123,8 +125,9 @@ class RamanServer(rclpy.node.Node):
 
 
     def raman_response(self, request, response):
-        response.isvalid = False
-        response.spectra = zeros(RamanServer.SPECTRA_SIZE, uint16)
+        msg = RamanSpectrum()
+        msg.isvalid = False
+        msg.spectra = zeros(RamanServer.SPECTRA_SIZE, uint16)
         response.continuousendedsignal = False
         try:
             if request.continuousendsignal:
@@ -156,9 +159,9 @@ class RamanServer(rclpy.node.Node):
                     
                     full_res_data = RamanServer.read_output_to_response(output)
 
-                    reduced_data = RamanServer.reduce_resolution_by_a_factor_of(response.resolutionreductionfactor)
-                    #publish to stream
-                    pass
+                    msg.isvalid = True
+                    msg.spectra = RamanServer.reduce_resolution_by_a_factor_of(response.resolutionreductionfactor, full_res_data)
+                    self.publisher_.publish(msg)
                 
                 response.continuousendedsignal = True
 
@@ -174,16 +177,18 @@ class RamanServer(rclpy.node.Node):
             ser.close()
 
             full_res_result = RamanServer.read_output_to_response(output)
-            response.spectra = RamanServer.reduce_resolution_by_a_factor_of(response.resolutionreductionfactor)
-            response.isvalid = True
+            msg.isvalid = True
+            msg.spectra = RamanServer.reduce_resolution_by_a_factor_of(response.resolutionreductionfactor, full_res_result)
+            self.publisher_.publish(msg)
 
             return response
 
         except SerialException:
+            self.publisher_.publish(msg)
             return response
 
-def main():
-    rclpy.init()
+def main(args=None):
+    rclpy.init(args=args)
     server = RamanServer()
     rclpy.spin(server)
     server.destroy_node()
