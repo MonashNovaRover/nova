@@ -3,44 +3,43 @@ import {
   CardHeader,
   CardBody,
   CardProps,
-  Image
+  Image,
 } from "@nextui-org/react";
 import React, {useEffect} from "react";
 import '../DriveModeWidget/DriveWidget.css';
 import './WheelTelemetryWidget.css';
 import {useBifrost} from "../../redux/actions/useBifrostAction";
-import {RosTopics} from "../../ros/rosTopics";
 import {RootState} from "../../redux/RootState";
 import {useSelector} from "react-redux";
-import RoverTopDownImage from "../../assets/rover-top-down.png";
 import {ChevronUp} from "react-feather";
 import WheelTelemetryWidgetCell, {IWheelTelemetryWidgetCellProps} from "./WheelTelemetryWidgetCell.tsx";
 import {PIVOT_CURRENT_MAX, WHEEL_CURRENT_MAX} from "../../constants";
+import RoverTopDownImage from "../../assets/rover-top-down-dark.png";
+import { RosTopic } from "../../ros/topics/rosTopic.ts";
 
 // Properties for the DriveModeWidget component.
-export interface IDriveWheelWidgetProps extends CardProps {
-
-}
+export interface IDriveWheelWidgetProps extends CardProps {}
 
 /**
  * A component that displays wheel telemetry.
  */
-const WheelTelemetryWidget: React.FC<IDriveWheelWidgetProps> = (props: IDriveWheelWidgetProps) => {
-  const bifrost = useBifrost(RosTopics.TELEMETRY);
+const WheelTelemetryWidget: React.FC<IDriveWheelWidgetProps> = (
+  props: IDriveWheelWidgetProps
+) => {
+  const bifrost = useBifrost({ topic: RosTopic.TELEMETRY });
 
-  const pivots = useSelector((state: RootState) => state.telemetryStore.pivots)
-  const pivotCurrents = pivots.map(p => Math.abs(p.q_current));
+  const pivots = useSelector((state: RootState) => state.telemetryStore.pivots);
+  const pivotCurrents = pivots.map((p) => Math.abs(p.q_current));
 
-  const wheels = useSelector((state: RootState) => state.telemetryStore.wheels)
-  const wheelCurrents = wheels.map(w => Math.abs(w.q_current));
+  const wheels = useSelector((state: RootState) => state.telemetryStore.wheels);
+  const wheelCurrents = wheels.map((w) => Math.abs(w.q_current));
 
   useEffect(() => {
-    bifrost.syncWithRover();
+    bifrost.syncWithTopic();
   }, [bifrost]);
 
-
   // Props to give to each cell. The order of names matches the order of SingleTelemetry entries in the Telemetry arrays
-  const cellProps : IWheelTelemetryWidgetCellProps[] = [
+  const cellProps: IWheelTelemetryWidgetCellProps[] = [
     {
       label: <>Front Left</>,
       className: "row-start-1 col-start-1",
@@ -67,15 +66,15 @@ const WheelTelemetryWidget: React.FC<IDriveWheelWidgetProps> = (props: IDriveWhe
           <span className="text-default-300 text-opacity-80">
             <ChevronUp size={20}></ChevronUp>
           </span>
-          <Image className="" radius="none" src={RoverTopDownImage}></Image>
+          <Image className="mx-2" radius="none" src={RoverTopDownImage}></Image>
         </div>
         {cellProps.map((cellProp, index) => (
-            <WheelTelemetryWidgetCell
-                key={index}
-                {...cellProp}
-                wheelValue={wheelCurrents[index] / WHEEL_CURRENT_MAX}
-                pivotValue={pivotCurrents[index] / PIVOT_CURRENT_MAX}
-            />
+          <WheelTelemetryWidgetCell
+            key={index}
+            {...cellProp}
+            wheelValue={wheelCurrents[index] / WHEEL_CURRENT_MAX}
+            pivotValue={pivotCurrents[index] / PIVOT_CURRENT_MAX}
+          />
         ))}
       </div>
     </CardBody>
@@ -83,13 +82,11 @@ const WheelTelemetryWidget: React.FC<IDriveWheelWidgetProps> = (props: IDriveWhe
 
   // Finally, put the body into a card
   return (
-      <Card {...props} >
-        <CardHeader className="text-h1 pb-0">
-          Wheel Telemetry
-        </CardHeader>
-        {wheelDataCardBody}
-      </Card>
-  )
+    <Card {...props}>
+      <CardHeader className="text-h1 pb-0">Wheel Telemetry</CardHeader>
+      {wheelDataCardBody}
+    </Card>
+  );
 };
 
 export default WheelTelemetryWidget;

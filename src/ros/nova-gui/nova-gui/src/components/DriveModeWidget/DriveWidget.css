@@ -51,3 +51,11 @@
     grid-template-columns: 1fr 1fr; /* 1fr for the first and third columns, auto for the second column */
 
 }
+
+.DriveModeWidgetOverlay {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
