@@ -48,7 +48,7 @@ class RamanServer(Node):
         return self.continuous_mode
 
     def set_input(shperiod, icgperiod, singlecollectionmode, average):
-        result = np.zeros(12, uint8)
+        result = np.zeros(12, np.uint8)
 
         #Transmit key 'ER' (firmware specific)   
         result[0] = 69
@@ -101,7 +101,7 @@ class RamanServer(Node):
 
     
     def read_output_to_response(output):
-        response = np.zeros(RamanServer.SPECTRA_SIZE, uint16)
+        response = np.zeros(RamanServer.SPECTRA_SIZE, np.uint16)
 
         # combining 8 bit integer pairs into respective 16 bit integer values
         for pixel in range(RamanServer.SPECTRA_SIZE):
@@ -182,9 +182,9 @@ class RamanServer(Node):
             return response
 	
         except SerialException:
-		msg.spectrum = [0] * RamanServer.OUTPUT_SIZE
-           	self.publisher_.publish(msg)
-            	return response
+            msg.spectrum = [0] * RamanServer.OUTPUT_SIZE
+            self.publisher_.publish(msg)
+            return response
 
 def main(args=None):
     rclpy.init(args=args)
