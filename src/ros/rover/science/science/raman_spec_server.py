@@ -92,9 +92,9 @@ class RamanServer(Node):
                     count_at_final_element = pixel
                     break
             if count_at_final_index:
-                reduced_result[reduced_index] = sum / count_at_final_element
+                reduced_result[reduced_index] = sum // count_at_final_element
             else:
-                reduced_result[reduced_index] = sum / factor
+                reduced_result[reduced_index] = sum // factor
         return reduced_result
             
             
@@ -121,7 +121,6 @@ class RamanServer(Node):
             response[2*pixel] -= offset
 	
         return response.tolist()
-
 
 
     def raman_response(self, request, response):
