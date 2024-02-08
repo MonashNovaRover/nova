@@ -158,7 +158,7 @@ class RamanServer(Node):
                     full_res_data = RamanServer.read_output_to_response(output)
 
                     msg.isvalid = True
-                    msg.spectrum = RamanServer.reduce_resolution_by_a_factor_of(response.resolutionreductionfactor, full_res_data)
+                    msg.spectrum = RamanServer.reduce_resolution_by_a_factor_of(request.resolutionreductionfactor, full_res_data)
                     self.publisher_.publish(msg)
                 
                 response.continuousendedsignal = True
@@ -176,7 +176,7 @@ class RamanServer(Node):
 
             full_res_result = RamanServer.read_output_to_response(output)
             msg.isvalid = True
-            msg.spectrum = RamanServer.reduce_resolution_by_a_factor_of(response.resolutionreductionfactor, full_res_result)
+            msg.spectrum = RamanServer.reduce_resolution_by_a_factor_of(request.resolutionreductionfactor, full_res_result)
             self.publisher_.publish(msg)
 
             return response
