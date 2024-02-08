@@ -182,8 +182,7 @@ class RamanServer(Node):
             return response
 	
         except SerialException:
-            msg.spectrum = [0, 12, 7, 9, 4, 3, 1]
-            msg.isvalid = True
+            msg.spectrum = []
             self.publisher_.publish(msg)
             return response
 
