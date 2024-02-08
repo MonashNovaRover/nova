@@ -50,9 +50,9 @@ class RamanServer(Node):
     def set_input(shperiod, icgperiod, singlecollectionmode, average):
         result = np.zeros(12, np.uint8)
 
-        #Transmit key 'ER' (firmware specific)   
+        #Transmit where in circular buffer to read from and to   
         result[0] = 69
-        result[1] = 82
+        result[1] = 78
 
         # min is 20, max is 4294967295
         shperiodconverted = np.uint32(shperiod)
