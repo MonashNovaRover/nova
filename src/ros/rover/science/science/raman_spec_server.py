@@ -77,7 +77,8 @@ class RamanServer(Node):
 
         return result
 
-    def reduce_resolution_by_a_factor_of(factor, input):
+    def reduce_resolution_by_a_factor_of(ufactor, input):
+        factor = int(ufactor)
         if factor == 1:
             return input
         reduced_result = [0]* (RamanServer.SPECTRA_SIZE // factor)
