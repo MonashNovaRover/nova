@@ -134,7 +134,11 @@ class RamanServer(Node):
             else:
                 issinglecollection = request.singlecollectionmode
 
+            msg.spectrum = [1]
+
             ser = Serial(request.port, RamanServer.BAUDRATE)
+
+            msg.spectrum = [2]
 
             #wait to clear the input and output buffers, if they're not empty data is corrupted
             while (ser.in_waiting > 0):
