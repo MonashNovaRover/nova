@@ -23,16 +23,15 @@ MORE INFO:
 
 from math import ceil
 import rclpy
+from rclpy.node import Node
 from core.srv import RamanSpec
 from core.msg import RamanSpectrum
-from numpy import zeros, uint8, uint16, uint32
+import numpy as np
 from serial import Serial, SerialException
 from time import sleep
 
-from sympy import reduced
 
-
-class RamanServer(rclpy.node.Node):
+class RamanServer(Node):
     # Constants set by firmware/hardware of STM32F103
     BAUDRATE = 115200
     MASTERCLOCK = 800000
@@ -49,39 +48,39 @@ class RamanServer(rclpy.node.Node):
         return self.continuous_mode
 
     def set_input(shperiod, icgperiod, singlecollectionmode, average):
-        result = zeros(12, uint8)
+        result = np.zeros(12, uint8)
 
         #Transmit key 'ER' (firmware specific)   
         result[0] = 69
         result[1] = 82
 
         # min is 20, max is 4294967295
-        shperiodconverted = uint32(shperiod)
+        shperiodconverted = np.uint32(shperiod)
         result[2] = (shperiodconverted >> 24) & 0xff
         result[3] = (shperiodconverted >> 16) & 0xff
         result[4] = (shperiodconverted >> 8) & 0xff
         result[5] = shperiodconverted & 0xff
 
         # min is 14776, max is 4294967295
-        icgperiodconverted = uint32(icgperiod)
+        icgperiodconverted = np.uint32(icgperiod)
         result[6] = (icgperiodconverted >> 24) & 0xff
         result[7] = (icgperiodconverted >> 16) & 0xff
         result[8] = (icgperiodconverted >> 8) & 0xff
         result[9] = icgperiodconverted & 0xff
 
         if singlecollectionmode:
-            result[10] = 0
+            result[10] = np.uint8(0)
         else: # continuous collection mode
-            result[10] = 1
+            result[10] = np.uint8(1)
         
-        result[11] = uint8(average)  # min is 1, max is 15
+        result[11] = np.uint8(average)  # min is 1, max is 15
 
         return result
 
     def reduce_resolution_by_a_factor_of(factor, input):
         if factor == 1:
             return input
-        reduced_result = zeros(ceil(RamanServer.SPECTRA_SIZE // factor))
+        reduced_result = [0]* (RamanServer.SPECTRA_SIZE // factor)
         for reduced_index in range(len(reduced_result)):
             sum = 0
             count_at_final_index = None
@@ -102,7 +101,7 @@ class RamanServer(rclpy.node.Node):
 
     
     def read_output_to_response(output):
-        response = zeros(RamanServer.SPECTRA_SIZE, uint16)
+        response = np.zeros(RamanServer.SPECTRA_SIZE, uint16)
 
         # combining 8 bit integer pairs into respective 16 bit integer values
         for pixel in range(RamanServer.SPECTRA_SIZE):
@@ -116,18 +115,17 @@ class RamanServer(rclpy.node.Node):
             else:
                 offset -= response[pixel]
         offset = 2 * offset / RamanServer.SPECTRA_SIZE
-
+	
         for pixel in range(RamanServer.SPECTRA_SIZE / 2):
             response[2*pixel] -= offset
-
-        return response
+	
+        return response.tolist()
 
 
 
     def raman_response(self, request, response):
         msg = RamanSpectrum()
         msg.isvalid = False
-        msg.spectrum = zeros(RamanServer.SPECTRA_SIZE, uint16)
         response.continuousendedsignal = False
         try:
             if request.continuousendsignal:
@@ -145,7 +143,7 @@ class RamanServer(rclpy.node.Node):
                 sleep(0.01)
 
             input = RamanServer.set_input(request.shperiod, request.icgperiod, issinglecollection, request.average)
-            output = zeros(RamanServer.OUTPUT_SIZE, uint8)
+            output = np.zeros(RamanServer.OUTPUT_SIZE, np.uint8)
 
             #transmit everything at once (the USB-firmware does not work if all bytes are not transmitted in one go)
             ser.write(input)
@@ -160,7 +158,7 @@ class RamanServer(rclpy.node.Node):
                     full_res_data = RamanServer.read_output_to_response(output)
 
                     msg.isvalid = True
-                    msg.spectrum = RamanServer.reduce_resolution_by_a_factor_of(response.resolutionreductionfactor, full_res_data)
+                    msg.spectrum = RamanServer.reduce_resolution_by_a_factor_of(response.resolutionreductionfactor, full_res_data).tolist()
                     self.publisher_.publish(msg)
                 
                 response.continuousendedsignal = True
@@ -178,14 +176,15 @@ class RamanServer(rclpy.node.Node):
 
             full_res_result = RamanServer.read_output_to_response(output)
             msg.isvalid = True
-            msg.spectrum = RamanServer.reduce_resolution_by_a_factor_of(response.resolutionreductionfactor, full_res_result)
+            msg.spectrum = RamanServer.reduce_resolution_by_a_factor_of(response.resolutionreductionfactor, full_res_result).tolist()
             self.publisher_.publish(msg)
 
             return response
-
+	
         except SerialException:
-            self.publisher_.publish(msg)
-            return response
+		msg.spectrum = [0] * RamanServer.OUTPUT_SIZE
+           	self.publisher_.publish(msg)
+            	return response
 
 def main(args=None):
     rclpy.init(args=args)
