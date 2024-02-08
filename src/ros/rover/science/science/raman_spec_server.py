@@ -126,6 +126,7 @@ class RamanServer(Node):
     def raman_response(self, request, response):
         msg = RamanSpectrum()
         msg.isvalid = False
+        msg.spectrum = [0]
         response.continuousendedsignal = False
         try:
             if request.continuousendsignal:
@@ -186,7 +187,6 @@ class RamanServer(Node):
             return response
 	
         except SerialException:
-            msg.spectrum = [0] * RamanServer.OUTPUT_SIZE
             self.publisher_.publish(msg)
             return response
 
