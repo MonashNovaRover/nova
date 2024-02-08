@@ -137,7 +137,7 @@ class RamanServer(Node):
 
             msg.spectrum = [1]
 
-            ser = Serial(request.port, RamanServer.BAUDRATE)
+            ser = Serial(port=str(request.port), baudrate=int(RamanServer.BAUDRATE))
 
             msg.spectrum = [2]
 
