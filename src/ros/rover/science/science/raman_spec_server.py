@@ -105,8 +105,8 @@ class RamanServer(Node):
         response = np.zeros(RamanServer.SPECTRA_SIZE, np.uint16)
 
         # combining 8 bit integer pairs into respective 16 bit integer values
-        # for pixel in range(RamanServer.SPECTRA_SIZE):
-        #     response[pixel] = (output[2*pixel+1] << 8) + output[2*pixel]
+        for pixel in range(RamanServer.SPECTRA_SIZE):
+            response[pixel] = (output[2*pixel+1] << 8) + output[2*pixel]
             
         # register has two sides which produce systematically differing values, so to reduce noise, an offset is applied to equal the values
         # offset = 0
