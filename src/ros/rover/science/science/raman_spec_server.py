@@ -116,7 +116,7 @@ class RamanServer(Node):
                 offset -= response[pixel]
         offset = 2 * offset / RamanServer.SPECTRA_SIZE
 	
-        for pixel in range(RamanServer.SPECTRA_SIZE / 2):
+        for pixel in range(RamanServer.SPECTRA_SIZE // 2):
             response[2*pixel] -= offset
 	
         return response.tolist()
