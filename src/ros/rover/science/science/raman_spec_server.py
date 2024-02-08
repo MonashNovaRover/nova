@@ -28,7 +28,7 @@ from core.srv import RamanSpec
 from core.msg import RamanSpectrum
 import numpy as np
 from serial import Serial, SerialException
-from time import sleep
+import time
 
 
 class RamanServer(Node):
@@ -134,13 +134,13 @@ class RamanServer(Node):
             else:
                 issinglecollection = request.singlecollectionmode
 
-            ser = Serial(port=str(request.port), baudrate=RamanServer.BAUDRATE, timeout=1)
+            ser = Serial(port=str(request.port), baudrate=RamanServer.BAUDRATE)
 
             #wait to clear the input and output buffers, if they're not empty data is corrupted
             while (ser.in_waiting > 0):
                 ser.reset_input_buffer()
                 ser.reset_output_buffer()
-                sleep(0.01)
+                time.sleep(0.01)
 
             input = RamanServer.set_input(request.shperiod, request.icgperiod, issinglecollection, request.average)
             output = np.zeros(RamanServer.OUTPUT_SIZE, np.uint8)
