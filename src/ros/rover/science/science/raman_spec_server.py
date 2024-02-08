@@ -126,7 +126,6 @@ class RamanServer(Node):
     def raman_response(self, request, response):
         msg = RamanSpectrum()
         msg.isvalid = False
-        msg.spectrum = [0]
         response.continuousendedsignal = False
         try:
             if request.continuousendsignal:
@@ -135,11 +134,7 @@ class RamanServer(Node):
             else:
                 issinglecollection = request.singlecollectionmode
 
-            msg.spectrum = [1]
-
             ser = Serial(port=str(request.port), baudrate=RamanServer.BAUDRATE, timeout=1)
-
-            msg.spectrum = [2]
 
             #wait to clear the input and output buffers, if they're not empty data is corrupted
             while (ser.in_waiting > 0):
@@ -187,6 +182,7 @@ class RamanServer(Node):
             return response
 	
         except SerialException:
+            msg.spectrum = [0, 12, 7, 9, 4, 3, 1]
             self.publisher_.publish(msg)
             return response
 
