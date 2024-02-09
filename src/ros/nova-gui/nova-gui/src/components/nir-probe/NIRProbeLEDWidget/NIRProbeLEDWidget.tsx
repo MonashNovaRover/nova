@@ -5,7 +5,6 @@ import {useBifrost} from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosTopic} from "../../../ros/topics/rosTopic.ts";
 import {useSelector} from "react-redux";
 import {RootState} from "../../../redux/RootState.ts";
-import {IRosCoreNirDataConst} from "../../../ros/rosTypes.ts";
 
 interface INIRProbeLEDWidgetProps extends CardProps {
 
@@ -20,7 +19,7 @@ const NIRProbeLEDWidget: React.FC<INIRProbeLEDWidgetProps> = ({...cardProps}) =>
   }, [bifrost]);
 
   // TODO: Replace with a service call
-  const setLed = (led: IRosCoreNirDataConst) => {
+  const setLed = (led: number) => {
     console.log(`Set led to ${led}`);
   }
 
