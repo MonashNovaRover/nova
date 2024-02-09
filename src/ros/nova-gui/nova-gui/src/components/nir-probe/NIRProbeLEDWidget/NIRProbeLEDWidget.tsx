@@ -5,30 +5,25 @@ import {useBifrost} from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosTopic} from "../../../ros/topics/rosTopic.ts";
 import {useSelector} from "react-redux";
 import {RootState} from "../../../redux/RootState.ts";
+import {RosService} from "../../../ros/services/rosService.ts";
 
 interface INIRProbeLEDWidgetProps extends CardProps {
 
 }
 
 const NIRProbeLEDWidget: React.FC<INIRProbeLEDWidgetProps> = ({...cardProps}) => {
-  const bifrost = useBifrost({ topic: RosTopic.NIR_DATA });
+  const bifrost = useBifrost({ topic: RosTopic.NIR_DATA, service: RosService.SET_NIR_PROBE_LED });
   const led = useSelector((state: RootState) => state.nirStore.led);
+  const setLed = (led: number) => bifrost.callService({led: led}, {});
 
   useEffect(() => {
     bifrost.syncWithTopic();
   }, [bifrost]);
 
-  // TODO: Replace with a service call
-  const setLed = (led: number) => {
-    console.log(`Set led to ${led}`);
-  }
-
   const picker = (
     <SegmentedPicker
       selectedIndex={led}
-      onIndexChange={v => {
-        setLed(v);
-      }}
+      onIndexChange={setLed}
       fullWidth
       color={led > 0 ? "primary" : "default"}
     >
