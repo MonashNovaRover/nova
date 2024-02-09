@@ -11,7 +11,6 @@ import URCDeliveryView from "../views/urc/URCDeliveryView";
 import URCEquipmentServicingView from "../views/urc/URCEquipmentServicingView";
 import URCScienceView from "../views/urc/URCScienceView";
 import { Root } from "../root";
-import TestDriveComponentsView from "../views/test/TestDriveComponentsView.tsx";
 import TestScienceView from "../views/test/TestScienceView.tsx";
 
 export const arcRoutes: RouteObject[] = [
@@ -63,10 +62,6 @@ export const urcRoutes: RouteObject[] = [
 export const generalRoutes: RouteObject[] = [];
 
 export const testRoutes: RouteObject[] = [
-  {
-    path: "/test/drive",
-    element: <TestDriveComponentsView />,
-  },
   {
     path: "/test/science",
     element: <TestScienceView />,
