@@ -13,5 +13,5 @@ export const rosTopicMessages = {
   [RosTopic.POSE]: "geometry_msgs/msg/Pose",
   [RosTopic.DRIVE_INFO]: "core/msg/DriveInfo",
   [RosTopic.TELEMETRY]: "core/msg/Telemetry",
-  [RosTopic.NIR_DATA]: "core/msg/NIRData"
+  [RosTopic.NIR_DATA]: "core/msg/NIRProbeData"
 };

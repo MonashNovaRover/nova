@@ -13,5 +13,5 @@ export enum RosTopic {
   POSE = "/pose",
   DRIVE_INFO = "/control/drive_info",
   TELEMETRY = "/control/telemetry",
-  NIR_DATA = "/science/nir_data"
+  NIR_DATA = "/science/nir_probe_data"
 }

@@ -3,7 +3,7 @@ import {uiSlice} from "./slices/UIReducer";
 import {createBifrostStore} from "./store/bifrost/createBifrostStore";
 import {RosService} from "../ros/services/rosService";
 import {RosTopic} from "../ros/topics/rosTopic";
-import {IRosCoreNirDataConst} from "../ros/rosTypes.ts";
+import {IRosCoreNirProbeDataConst} from "../ros/rosTypes.ts";
 
 export const rootReducer = {
   uiState: uiSlice.reducer,
@@ -63,7 +63,7 @@ export const rootReducer = {
     { topic: RosTopic.NIR_DATA },
     {
       data: 0,
-      led: IRosCoreNirDataConst.NONE
+      led: IRosCoreNirProbeDataConst.LED_OFF
     }
   )
 };
