@@ -1,6 +1,6 @@
 import {
   IRosCameraMsgsGetIpListResponse,
-  IRosCoreDriveInfo,
+  IRosCoreDriveInfo, IRosCoreNirData,
   IRosCoreTelemetry,
   IRosGeometryMsgsPose,
 } from "../ros/rosTypes";
@@ -17,4 +17,7 @@ export interface RootState {
   driveStore: IRosCoreDriveInfo;
   telemetryStore: IRosCoreTelemetry;
   ipList: IRosCameraMsgsGetIpListResponse;
+
+  // Science Bifrost states
+  nirStore: IRosCoreNirData;
 }

@@ -1,8 +1,9 @@
 import BifrostStatusStore from "./store/bifrost/BifrostStatusStore";
-import { uiSlice } from "./slices/UIReducer";
-import { createBifrostStore } from "./store/bifrost/createBifrostStore";
-import { RosService } from "../ros/services/rosService";
-import { RosTopic } from "../ros/topics/rosTopic";
+import {uiSlice} from "./slices/UIReducer";
+import {createBifrostStore} from "./store/bifrost/createBifrostStore";
+import {RosService} from "../ros/services/rosService";
+import {RosTopic} from "../ros/topics/rosTopic";
+import {IRosCoreNirDataConst} from "../ros/rosTypes.ts";
 
 export const rootReducer = {
   uiState: uiSlice.reducer,
@@ -58,4 +59,11 @@ export const rootReducer = {
       })),
     }
   ),
+  nirStore: createBifrostStore(
+    { topic: RosTopic.NIR_DATA },
+    {
+      data: 0,
+      led: IRosCoreNirDataConst.NONE
+    }
+  )
 };

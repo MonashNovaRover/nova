@@ -9,12 +9,14 @@ const SiteSelectWidget: React.FC<CardProps> = (props) => {
         Site Select
       </CardHeader>
       <CardBody>
+
         <SegmentedPicker fullWidth>
           <>Site 1</>
           <>Site 2</>
           <>Site 3</>
           <>Site 4</>
         </SegmentedPicker>
+
       </CardBody>
     </Card>
   );
