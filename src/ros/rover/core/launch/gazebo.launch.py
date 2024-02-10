@@ -68,7 +68,7 @@ def generate_launch_description():
     spawn_entity = Node(
         package='gazebo_ros',
         executable='spawn_entity.py',
-        arguments=["-topic", "robot_description", "-entity", "Waratah"]
+        arguments=["-topic", "robot_description", "-entity", "Waratah", "-z", "0.5"]
     )
 
     pivot_drive_controller = Node(

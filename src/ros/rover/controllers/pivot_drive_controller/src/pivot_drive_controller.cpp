@@ -58,7 +58,9 @@ namespace pivot_drive_controller
         }
 
         zero_radius_ = sqrt(params_.wheel_base*params_.wheel_base/4 + params_.steering_track*params_.steering_track/4);
+        RCLCPP_INFO_STREAM(get_node()->get_logger(), "zero_radius_: " << zero_radius_);
         angle_offset_ = atan(params_.steering_track / params_.wheel_base);
+        RCLCPP_INFO_STREAM(get_node()->get_logger(), "angle_offset_: " << angle_offset_);
 
         return controller_interface::CallbackReturn::SUCCESS;
     }
@@ -276,10 +278,10 @@ namespace pivot_drive_controller
         }
         else
         {
-            const double front_right_wheel_value = registered_right_drive_handles_.at(0).state.get().get_value();
-            const double rear_right_wheel_value = registered_right_drive_handles_.at(1).state.get().get_value();
-            const double front_left_wheel_value = registered_left_drive_handles_.at(0).state.get().get_value();
-            const double rear_left_wheel_value = registered_left_drive_handles_.at(1).state.get().get_value();
+            const double front_right_wheel_value = registered_right_drive_handles_.at(0).state.get().get_value()*params_.wheel_radius;
+            const double rear_right_wheel_value = registered_right_drive_handles_.at(1).state.get().get_value()*params_.wheel_radius;
+            const double front_left_wheel_value = registered_left_drive_handles_.at(0).state.get().get_value()*params_.wheel_radius;
+            const double rear_left_wheel_value = registered_left_drive_handles_.at(1).state.get().get_value()*params_.wheel_radius;
 
             const double front_right_steer_position = registered_right_pivot_handles_.at(0).state.get().get_value();
             const double rear_right_steer_position = registered_right_pivot_handles_.at(1).state.get().get_value();
@@ -333,9 +335,7 @@ namespace pivot_drive_controller
 
                     RCLCPP_INFO_STREAM(get_node()->get_logger(), "mean_radius: " << mean_radius);
 
-                    if (fabs(mean_radius) < 0.001) mean_radius = 0;
-
-
+                    if (fabs(mean_radius) < 0.1) mean_radius = 0;
 
                     double left_ratio =1;
                     double right_ratio = 1;
@@ -370,9 +370,9 @@ namespace pivot_drive_controller
                         if (mean_speed == 0 || mean_radius == INFINITY) {
                             angular = 0;
                         } else if ( mean_radius == 0) {
-                            angular = zero_radius_/mean_speed;
+                            angular = mean_speed/(M_2_PI* zero_radius_);
                         } else {
-                            angular = mean_radius/mean_speed;
+                            angular = mean_speed/(M_2_PI * mean_radius);
                         }
 
                         double linear = mean_radius == 0 ? 0 : mean_speed;
@@ -456,8 +456,8 @@ namespace pivot_drive_controller
 
         for (size_t index = 0; index < static_cast<size_t>(params_.wheels_per_side); ++index)
         {
-            registered_left_drive_handles_.at(index).command.get().set_value(target_speed * left_ratio/max_ratio);
-            registered_right_drive_handles_.at(index).command.get().set_value(target_speed * right_ratio/max_ratio);
+            registered_left_drive_handles_.at(index).command.get().set_value(target_speed * left_ratio/max_ratio/params_.wheel_radius);
+            registered_right_drive_handles_.at(index).command.get().set_value(target_speed * right_ratio/max_ratio/params_.wheel_radius);
         }
         return controller_interface::return_type::OK;
     }
@@ -641,7 +641,6 @@ namespace pivot_drive_controller
         empty_drive_input.drive_input.speed = 0;
 
         const geometry_msgs::msg::TwistStamped empty_twist;
-        RCLCPP_INFO_STREAM(get_node()->get_logger(), "Empty Twist Linear: " << empty_twist.twist.linear.x << ",angular: " << empty_twist.twist.angular.z);
 
         // Fill last two commands with default constructed commands
         received_twist_msg_ptr_.set(std::make_shared<geometry_msgs::msg::TwistStamped>(empty_twist));
@@ -662,7 +661,7 @@ namespace pivot_drive_controller
             {
               if (!subscriber_is_active_)
               {
-                RCLCPP_WARN(
+                RCLCPP_WARN_ONCE(
                   get_node()->get_logger(), "Can't accept new commands. subscriber is inactive");
                 return;
               }
@@ -681,7 +680,7 @@ namespace pivot_drive_controller
             {
               if (!subscriber_is_active_)
               {
-                RCLCPP_WARN(
+                RCLCPP_WARN_ONCE(
                   get_node()->get_logger(), "Can't accept new commands. subscriber is inactive");
                 return;
               }
@@ -701,7 +700,7 @@ namespace pivot_drive_controller
             {
               if (!subscriber_is_active_)
               {
-                RCLCPP_WARN(
+                RCLCPP_WARN_ONCE(
                   get_node()->get_logger(), "Can't accept new commands. subscriber is inactive");
                 return;
               }
@@ -723,7 +722,7 @@ namespace pivot_drive_controller
             {
               if (!subscriber_is_active_)
               {
-                RCLCPP_WARN(
+                RCLCPP_WARN_ONCE(
                   get_node()->get_logger(), "Can't accept new commands. subscriber is inactive");
                 return;
               }
