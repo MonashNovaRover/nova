@@ -59,7 +59,7 @@ bool Odometry::update_odometry(
   const double linear_velocity, const double angular, const double dt)
 {
   /// Integrate odometry:
-  Odometry::integrateExact(linear_velocity * dt, angular);
+  Odometry::integrateExact(linear_velocity * dt, angular*dt);
 
   /// We cannot estimate the speed with very small time intervals:
   if (dt < 0.0001)
@@ -69,10 +69,13 @@ bool Odometry::update_odometry(
 
   /// Estimate speeds using a rolling mean to filter them out:
   linear_accumulator_.accumulate(linear_velocity);
-  angular_accumulator_.accumulate(angular / dt);
+  angular_accumulator_.accumulate(angular);
 
   linear_ = linear_accumulator_.getRollingMean();
   angular_ = angular_accumulator_.getRollingMean();
+
+  RCLCPP_INFO_STREAM(rclcpp::get_logger("Odom"), "linear_: " << linear_);
+  RCLCPP_INFO_STREAM(rclcpp::get_logger("Odom"), "angular_: " << angular_);
 
   return true;
 }

@@ -57,6 +57,9 @@ namespace pivot_drive_controller
             return controller_interface::CallbackReturn::ERROR;
         }
 
+        zero_radius_ = sqrt(params_.wheel_base*params_.wheel_base/4 + params_.steering_track*params_.steering_track/4);
+        angle_offset_ = atan(params_.steering_track / params_.wheel_base);
+
         return controller_interface::CallbackReturn::SUCCESS;
     }
 
@@ -127,15 +130,10 @@ namespace pivot_drive_controller
         std::shared_ptr<geometry_msgs::msg::TwistStamped> last_twist_command_msg;
         std::shared_ptr<core::msg::DriveInputStamped> last_command_msg;
 
-        double tmp1 = 0.0;
-        double tmp2 = 0.0;
-        double & linear_command = tmp1;
-        double & angular_command = tmp2;
-
         core::msg::DriveInputStamped command;
 
-        float target_radius, target_direction;
-        angle_offset = atan(params_.steering_track / params_.wheel_base);
+        double target_radius, target_direction, target_speed;
+        
 
         double left_angle, right_angle;
 
@@ -162,8 +160,8 @@ namespace pivot_drive_controller
             } 
 
             geometry_msgs::msg::TwistStamped twist_command = *last_twist_command_msg;
-            linear_command = twist_command.twist.linear.x;
-            angular_command = twist_command.twist.angular.z;
+            double linear_command = twist_command.twist.linear.x;
+            double angular_command = twist_command.twist.angular.z;
 
             auto & last_command = previous_twist_commands_.back().twist;
             auto & second_to_last_command = previous_twist_commands_.front().twist;
@@ -181,6 +179,12 @@ namespace pivot_drive_controller
             target_radius = angular_command == 0 ? INFINITY : abs(linear_command / angular_command);
             RCLCPP_DEBUG(logger, "Target_radius: %f", target_radius);
 
+            target_speed = target_radius == 0 ? linear_command * zero_radius_ :
+                    (target_radius == INFINITY ? linear_command :
+                    linear_command + sqrt(params_.wheel_base*params_.wheel_base/4 +
+                    params_.steering_track*params_.steering_track/4 + target_radius*target_radius +
+                    target_radius*params_.steering_track));
+
             //target_radius = angular_command == 0 ? 0 : linear_command / abs(angular_command);
             target_direction = angular_command > 0 ? -1 : 1;
 
@@ -194,7 +198,7 @@ namespace pivot_drive_controller
             }
 
             command = *last_command_msg;
-            linear_command = command.drive_input.speed;
+            target_speed = command.drive_input.speed;
 
             const auto age_of_last_command = time - last_command_msg->header.stamp;
 
@@ -212,9 +216,11 @@ namespace pivot_drive_controller
             auto & second_to_last_command = previous_commands_.front().drive_input;
 
             limiter_linear_.limit(
-                linear_command, last_command.speed, second_to_last_command.speed, period.seconds()
+                target_speed, last_command.speed, second_to_last_command.speed, period.seconds()
             );
             //TODO: position limiter? (for pivots)
+
+
 
             //previous_commands only ever contains x2 values
             previous_commands_.pop();
@@ -228,10 +234,8 @@ namespace pivot_drive_controller
                 //initialise all pivot angles
                 for (size_t index = 0; index < static_cast<size_t>(params_.wheels_per_side); ++index)
                 {
-                    
-                    
-                    registered_left_pivot_handles_.at(index).command.get().set_value(angle_offset);
-                    registered_right_pivot_handles_.at(index).command.get().set_value(angle_offset);
+                    registered_left_pivot_handles_.at(index).command.get().set_value(angle_offset_);
+                    registered_right_pivot_handles_.at(index).command.get().set_value(angle_offset_);
                 }
                 
             } else {
@@ -266,9 +270,9 @@ namespace pivot_drive_controller
         // Update Odometry
         if (params_.open_loop)
         {
-            float angular_command = (linear_command / radius) * direction * -1;
+            float angular_command = (target_speed / radius) * direction * -1;
             //RCLCPP_INFO(logger, "time: %f", time);
-            odometry_.updateOpenLoop(linear_command, angular_command, time);
+            odometry_.updateOpenLoop(target_speed, angular_command, time);
         }
         else
         {
@@ -282,8 +286,6 @@ namespace pivot_drive_controller
             const double front_left_steer_position = registered_left_pivot_handles_.at(0).state.get().get_value();
             const double rear_left_steer_position = registered_left_pivot_handles_.at(1).state.get().get_value();
 
-            //RCLCPP_INFO(logger, "wheel values: %f, %f, %f, %f", front_right_wheel_value, rear_right_wheel_value, front_left_wheel_value, rear_left_wheel_value);
-            RCLCPP_DEBUG(logger, "steer values: %f, %f, %f, %f", front_right_steer_position, rear_right_steer_position, front_left_steer_position, rear_left_steer_position);
 
             if (
                 !std::isnan(front_right_wheel_value) && !std::isnan(front_left_wheel_value) &&
@@ -293,29 +295,47 @@ namespace pivot_drive_controller
             {
                 if (params_.pivot_position_feedback)
                 {
+                    RCLCPP_INFO_STREAM(get_node()->get_logger(), "frw: " << front_right_wheel_value <<
+                                                                 " flw: " << front_left_wheel_value <<
+                                                                 " rrw: " << rear_right_wheel_value <<
+                                                                 " rlw: " << rear_left_wheel_value);
+                    RCLCPP_INFO_STREAM(get_node()->get_logger(), "frp: " << front_right_steer_position <<
+                                                                         " flp: " << front_left_steer_position <<
+                                                                         " rrp: " << rear_right_steer_position <<
+                                                                         " rlp: " << rear_left_steer_position);
 
                     // #TODO: move to the update function in odometry class
-                    bool flp_left = front_left_steer_position < angle_offset;
-                    bool frp_left = front_right_steer_position > angle_offset;
-                    bool rlp_left = rear_left_steer_position < angle_offset;
-                    bool rrp_left = rear_right_steer_position > angle_offset;
+                    bool flp_left = front_left_steer_position < angle_offset_;
+                    bool frp_left = front_right_steer_position > angle_offset_;
+                    bool rlp_left = rear_left_steer_position < angle_offset_;
+                    bool rrp_left = rear_right_steer_position > angle_offset_;
 
                     double frp_radius = get_radius_from_angle(-front_right_steer_position, frp_left) * (flp_left ? -1 : 1);
+                    RCLCPP_INFO_STREAM(get_node()->get_logger(), "frp_radius: " << frp_radius);
                     double flp_radius = get_radius_from_angle(front_left_steer_position, flp_left) * (flp_left ? -1 : 1);
+                    RCLCPP_INFO_STREAM(get_node()->get_logger(), "flp_radius: " << flp_radius);
                     double rrp_radius = get_radius_from_angle(rear_right_steer_position, rrp_left) * (flp_left ? -1 : 1);
+                    RCLCPP_INFO_STREAM(get_node()->get_logger(), "rrp_radius: " << rrp_radius);
                     double rlp_radius = get_radius_from_angle(-rear_left_steer_position, rlp_left) * (flp_left ? -1 : 1);
+                    RCLCPP_INFO_STREAM(get_node()->get_logger(), "rlp_radius: " << rlp_radius);
                     double mean_radius = (frp_radius + flp_radius + rrp_radius + rlp_radius) / 4;
 
 
-                    if ((fabs(front_left_steer_position - angle_offset) < 0.001) |
-                        (fabs(front_right_steer_position + angle_offset) < 0.001) |
-                        (fabs(rear_left_steer_position + angle_offset) < 0.001) |
-                        (fabs(rear_right_steer_position - angle_offset) < 0.001))
+
+
+                    if ((fabs(front_left_steer_position - angle_offset_) < 0.001) |
+                        (fabs(front_right_steer_position + angle_offset_) < 0.001) |
+                        (fabs(rear_left_steer_position + angle_offset_) < 0.001) |
+                        (fabs(rear_right_steer_position - angle_offset_) < 0.001))
                     {
                         mean_radius = INFINITY;
                     }
 
+                    RCLCPP_INFO_STREAM(get_node()->get_logger(), "mean_radius: " << mean_radius);
+
                     if (fabs(mean_radius) < 0.001) mean_radius = 0;
+
+
 
                     double left_ratio =1;
                     double right_ratio = 1;
@@ -328,17 +348,42 @@ namespace pivot_drive_controller
                                            pow(radius*direction - (params_.wheel_base / 2), 2.0))/radius;
                     }
 
-                    max_ratio = std::max(abs(left_ratio), abs(right_ratio));
+                    // #TODO: More robust system for invalid radius detection
+                    if (!isnan(left_ratio) && !isnan(right_ratio)){
+                        RCLCPP_INFO_STREAM(get_node()->get_logger(), "left_ratio: " << left_ratio);
+                        RCLCPP_INFO_STREAM(get_node()->get_logger(), "right_ratio: " << right_ratio);
+                        RCLCPP_INFO_STREAM(get_node()->get_logger(), "max_ratio: " << max_ratio);
 
-                    double mean_speed = (front_right_wheel_value*max_ratio/right_ratio +
-                                    rear_right_wheel_value*max_ratio/right_ratio +
-                                    front_left_wheel_value*max_ratio/left_ratio +
-                                    rear_left_wheel_value*max_ratio/left_ratio) / 4;
+                        max_ratio = std::max(abs(left_ratio), abs(right_ratio));
 
+                        double mean_speed = (front_right_wheel_value*max_ratio/right_ratio +
+                                             rear_right_wheel_value*max_ratio/right_ratio +
+                                             front_left_wheel_value*max_ratio/left_ratio +
+                                             rear_left_wheel_value*max_ratio/left_ratio) / 4;
 
+                        if (fabs(mean_speed) < 0.01) mean_speed = 0;
 
-                    odometry_.update(mean_speed, mean_radius, time);
-                } 
+                        RCLCPP_INFO_STREAM(get_node()->get_logger(), "mean_speed: " << mean_speed);
+
+                        double angular;
+
+                        if (mean_speed == 0 || mean_radius == INFINITY) {
+                            angular = 0;
+                        } else if ( mean_radius == 0) {
+                            angular = zero_radius_/mean_speed;
+                        } else {
+                            angular = mean_radius/mean_speed;
+                        }
+
+                        double linear = mean_radius == 0 ? 0 : mean_speed;
+
+                        // RCLCPP_INFO_STREAM(get_node()->get_logger(), "linear: " << linear);
+                        // RCLCPP_INFO_STREAM(get_node()->get_logger(), "angular: " << angular);
+
+                        odometry_.update_odometry(linear, angular , period.seconds());
+                    }
+
+                }
             }
         }
 
@@ -405,14 +450,14 @@ namespace pivot_drive_controller
                     pow(radius*direction - (params_.wheel_base / 2), 2.0))/radius;
         }
 
-        RCLCPP_INFO(logger, "left_ratio: %f, right_ratio: %f", left_ratio, right_ratio);
+//        RCLCPP_INFO(logger, "left_ratio: %f, right_ratio: %f", left_ratio, right_ratio);
 
         max_ratio = std::max(abs(left_ratio), abs(right_ratio));
 
         for (size_t index = 0; index < static_cast<size_t>(params_.wheels_per_side); ++index)
         {
-            registered_left_drive_handles_.at(index).command.get().set_value(linear_command * left_ratio/max_ratio);
-            registered_right_drive_handles_.at(index).command.get().set_value(linear_command * right_ratio/max_ratio);
+            registered_left_drive_handles_.at(index).command.get().set_value(target_speed * left_ratio/max_ratio);
+            registered_right_drive_handles_.at(index).command.get().set_value(target_speed * right_ratio/max_ratio);
         }
         return controller_interface::return_type::OK;
     }
@@ -424,9 +469,9 @@ namespace pivot_drive_controller
 
         double angle;
         if(left){
-            angle = (radius == INFINITY ? 0 : -(atan((2*radius*dir + params_.steering_track)/params_.wheel_base) - dir * M_PI_2)) + angle_offset;
+            angle = (radius == INFINITY ? 0 : -(atan((2*radius*dir + params_.steering_track)/params_.wheel_base) - dir * M_PI_2)) + angle_offset_;
         } else {
-            angle = (radius == INFINITY ? 0 : atan((2*radius*dir - params_.steering_track)/params_.wheel_base) - dir * M_PI_2) + angle_offset;
+            angle = (radius == INFINITY ? 0 : atan((2*radius*dir - params_.steering_track)/params_.wheel_base) - dir * M_PI_2) + angle_offset_;
         }
         return angle;
     }
@@ -440,11 +485,11 @@ namespace pivot_drive_controller
 
         // inverse of the math in calc_wheel_angle
         if(left){
-            int dir = angle > angle_offset ? 1 : -1;
-            radius = (angle == angle_offset ? INFINITY : (tan(-angle + angle_offset + M_PI_2) * params_.wheel_base - params_.steering_track)/(2*dir));
+            int dir = angle > angle_offset_ ? 1 : -1;
+            radius = (angle == angle_offset_ ? INFINITY : (tan(-angle + angle_offset_ + M_PI_2) * params_.wheel_base - params_.steering_track)/(2*dir));
         } else {
-            int dir = angle > angle_offset ? -1 : 1;
-            radius = (angle == angle_offset ? INFINITY : (tan(angle - angle_offset + M_PI_2) * params_.wheel_base + params_.steering_track)/(2*dir));
+            int dir = angle > angle_offset_ ? -1 : 1;
+            radius = (angle == angle_offset_ ? INFINITY : (tan(angle - angle_offset_ + M_PI_2) * params_.wheel_base + params_.steering_track)/(2*dir));
         }
 
         return radius;
@@ -499,10 +544,10 @@ namespace pivot_drive_controller
 
            } else if (i == 0)
            {
-                best_dir = best_effort_angle > angle_offset ? 1 : -1;
+                best_dir = best_effort_angle > angle_offset_ ? 1 : -1;
            } else if (i == 1)
            {
-                best_dir = best_effort_angle > angle_offset ? -1 : 1;
+                best_dir = best_effort_angle > angle_offset_ ? -1 : 1;
            }
 
            float best_radius = abs(get_radius_from_angle(best_effort_angle, i == 0));
@@ -590,8 +635,13 @@ namespace pivot_drive_controller
             return controller_interface::CallbackReturn::ERROR;
         }
 
-        const core::msg::DriveInputStamped empty_drive_input;
+        core::msg::DriveInputStamped empty_drive_input;
+        empty_drive_input.drive_input.radius = INFINITY;
+        empty_drive_input.drive_input.direction = 0;
+        empty_drive_input.drive_input.speed = 0;
+
         const geometry_msgs::msg::TwistStamped empty_twist;
+        RCLCPP_INFO_STREAM(get_node()->get_logger(), "Empty Twist Linear: " << empty_twist.twist.linear.x << ",angular: " << empty_twist.twist.angular.z);
 
         // Fill last two commands with default constructed commands
         received_twist_msg_ptr_.set(std::make_shared<geometry_msgs::msg::TwistStamped>(empty_twist));

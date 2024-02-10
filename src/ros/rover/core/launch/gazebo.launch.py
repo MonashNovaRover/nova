@@ -71,22 +71,10 @@ def generate_launch_description():
         arguments=["-topic", "robot_description", "-entity", "Waratah"]
     )
 
-    wheel_velocity_controller = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["wheel_velocity_controller"]
-    )
-
-    pivot_joint_trajectory_controller = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["pivot_joint_trajectory_controller"]
-    )
-
     pivot_drive_controller = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["pivot_drive_controller"]
+        arguments=["pivot_drive_controller", "--inactive"]
     )
 
     strafe_controller = Node(
