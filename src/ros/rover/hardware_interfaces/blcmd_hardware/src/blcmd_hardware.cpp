@@ -15,6 +15,7 @@
 #include <limits>
 #include <vector>
 #include <chrono>
+#include <cmath>
 
 #include "blcmd_hardware/blcmd_hardware.hpp"
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
@@ -433,7 +434,7 @@ bool BLCMDHardware::set_control_interface(
         }
     } else if(interface_info.name == hardware_interface::HW_IF_VELOCITY){
         if(command) {
-            hw_velocity_.max = (clock_rate_)/(min_interval_*revolution_pulses_*gear_ratio_);
+            hw_velocity_.max = (clock_rate_)/(min_interval_*revolution_pulses_*gear_ratio_) * M_PI_2;
             RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName), 
             "Configured velocity interface with max velocity: " << hw_velocity_.max);
             hw_velocity_.command = 0.0;

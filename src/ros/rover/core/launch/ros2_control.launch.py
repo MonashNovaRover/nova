@@ -143,7 +143,7 @@ def generate_launch_description():
     pivot_drive_controller = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["pivot_drive_controller"]
+        arguments=["pivot_drive_controller", "--inactive"]
     )
 
     strafe_controller = Node(
