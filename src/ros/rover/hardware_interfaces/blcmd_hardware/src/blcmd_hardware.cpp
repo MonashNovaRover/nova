@@ -293,8 +293,8 @@ hardware_interface::return_type BLCMDHardware::write(
             break;
         case blcmd_hardware::ControlMode::Velocity:
             if (hw_velocity_.command.has_value()) {
-//                RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
-//                                   "Sending velocity command " << hw_velocity_.command.value());
+               RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                                  "Sending velocity command " << hw_velocity_.command.value() * reversed_multiplier_);
                 send_scaled<int16_t>(make_can_id(BLCMDSendCommand::DRIVE_VELOCITY),
                                      hw_velocity_.command.value() * reversed_multiplier_, hw_velocity_.max);
             } else {
@@ -481,7 +481,7 @@ bool BLCMDHardware::set_control_interface(
     uint32_t BLCMDHardware::make_can_id(BLCMDReceiveCommand command) const
     {
         return static_cast<uint32_t>(CanIdPrefix::RECEIVE) << 8 | can_id_ << 4 |
-               static_cast<uint32_t>(9);
+               static_cast<uint32_t>(command);
     }
 
     uint32_t BLCMDHardware::make_can_id(TelemetryPacket packet) const
@@ -522,7 +522,7 @@ bool BLCMDHardware::set_control_interface(
 
     template<typename T>
     void BLCMDHardware::send_scaled(uint32_t id, double value, double max) {
-        T data = static_cast<T>( (value > max ? 1.0 : value/max)* std::numeric_limits<T>::max());
+        T data = static_cast<T>( (abs(value) > max ? (value > 0 ? 1 : -1) : value/max)* std::numeric_limits<T>::max());
         send_raw(id, data);
     }
 

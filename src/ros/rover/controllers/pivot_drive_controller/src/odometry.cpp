@@ -74,8 +74,8 @@ bool Odometry::update_odometry(
   linear_ = linear_accumulator_.getRollingMean();
   angular_ = angular_accumulator_.getRollingMean();
 
-  RCLCPP_INFO_STREAM(rclcpp::get_logger("Odom"), "linear_: " << linear_);
-  RCLCPP_INFO_STREAM(rclcpp::get_logger("Odom"), "angular_: " << angular_);
+  // RCLCPP_INFO_STREAM(rclcpp::get_logger("Odom"), "linear_: " << linear_);
+  // RCLCPP_INFO_STREAM(rclcpp::get_logger("Odom"), "angular_: " << angular_);
 
   return true;
 }

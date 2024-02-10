@@ -13,9 +13,9 @@
                     <param name="clock_rate">100000000</param>
                     <param name="revolution_pulses">8192</param>
                     <param name="min_interval">122</param>
-		    <param name="gear_ratio">36.0</param>
-		    <param name="mock">true</param>
-	            <param name="reversed">true</param>
+                    <param name="gear_ratio">36.0</param>
+                    <param name="mock">true</param>
+                    <param name="reversed">true</param>
                 </hardware>
             </xacro:unless>
             <xacro:if value="${use_mock_hardware}">
@@ -54,8 +54,8 @@
                     <param name="revolution_pulses">8192</param>
                     <param name="min_interval">122</param>
                     <param name="gear_ratio">36.0</param>
-	            <param name="mock">true</param>
-	            <param name="reversed">true</param>
+                    <param name="mock">true</param>
+                    <param name="reversed">true</param>
                 </hardware>
             </xacro:unless>
             <xacro:if value="${use_mock_hardware}">

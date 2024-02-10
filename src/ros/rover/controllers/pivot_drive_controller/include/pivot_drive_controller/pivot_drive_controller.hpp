@@ -146,6 +146,9 @@ namespace pivot_drive_controller
         */
 
         double max_d_theta;
+
+        double prev_radius = INFINITY;
+        double prev_dir = 0;
         
         rclcpp::Time previous_update_timestamp_{0};
 
