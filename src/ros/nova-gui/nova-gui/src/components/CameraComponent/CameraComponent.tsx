@@ -25,7 +25,10 @@ export interface CameraComponentProps {
 
 export interface CameraFilters {
   flipCamera: boolean;
+  invertCamera: boolean;
   rotation: number; // between -180 to 180
+  contrast: number; // between 0 and 200
+  brightness: number; // between 0 and 200
 }
 
 export const CameraComponent = (props: CameraComponentProps) => {

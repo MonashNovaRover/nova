@@ -65,8 +65,13 @@ export const generalRoutes: RouteObject[] = [
   },
 ];
 
-export const testRoutes: RouteObject[] = [
+export const testRoutes: RouteObject[] = [];
 
+const cameraRoutes: RouteObject[] = [
+  {
+    path: "/cameras",
+    element: <CameraPage />,
+  },
 ];
 
 export const routes: RouteObject[] = [
@@ -86,12 +91,15 @@ export const routes: RouteObject[] = [
       },
       {
         path: "/general",
-        element: <CameraPage />,
         children: generalRoutes,
       },
       {
         path: "/test",
         children: testRoutes,
+      },
+      {
+        path: "/cameras",
+        children: cameraRoutes,
       },
     ],
   },

@@ -6,14 +6,15 @@ export interface CameraSectionParams {
 }
 
 export const XTREME_DELIVERY_CAMS: string[] = [
-  "mast_arm_stow", 
-  "mast_down", 
-  "mast_forward", 
-  "mast_backward", 
-  "arm_end_side", 
-  "arm_end_top", 
-  "arm_end_finger", 
-  "arm_end_forward"];
+  "mast_arm_stow",
+  "mast_down",
+  "mast_forward",
+  "mast_backward",
+  "arm_end_side",
+  "arm_end_top",
+  "arm_end_finger",
+  "arm_end_forward",
+];
 
 export const AUTO_CAMS: string[] = [
   "mast_arm_stow",
@@ -54,5 +55,8 @@ export const allCams = [
 
 export const initialFilters: CameraFilters = {
   flipCamera: false,
+  invertCamera: false,
   rotation: 0,
+  contrast: 100, // In %
+  brightness: 100, // in %
 };
