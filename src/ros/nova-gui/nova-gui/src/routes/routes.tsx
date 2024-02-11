@@ -10,7 +10,6 @@ import URCDeliveryView from "../views/urc/URCDeliveryView";
 import URCEquipmentServicingView from "../views/urc/URCEquipmentServicingView";
 import URCScienceView from "../views/urc/URCScienceView";
 import { Root } from "../root";
-import TestDriveComponentsView from "../views/test/TestDriveComponentsView.tsx";
 import { CameraPage } from "../views/shared/CamerasPage/CamerasPage.tsx";
 
 export const arcRoutes: RouteObject[] = [
@@ -67,10 +66,7 @@ export const generalRoutes: RouteObject[] = [
 ];
 
 export const testRoutes: RouteObject[] = [
-  {
-    path: "/test/drive",
-    element: <TestDriveComponentsView />,
-  },
+
 ];
 
 export const routes: RouteObject[] = [
