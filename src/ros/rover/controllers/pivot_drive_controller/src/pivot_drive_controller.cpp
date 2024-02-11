@@ -179,7 +179,7 @@ namespace pivot_drive_controller
             previous_twist_commands_.emplace(twist_command);
 
             target_radius = angular_command == 0 ? INFINITY : abs(linear_command / angular_command);
-            RCLCPP_INFO(logger, "Target_radius: %f", target_radius);
+            RCLCPP_DEBUG(logger, "Target_radius: %f", target_radius);
 
             target_speed = target_radius == 0 ? angular_command * zero_radius_ : linear_command;
 //                    (target_radius == INFINITY ? linear_command :
@@ -187,7 +187,7 @@ namespace pivot_drive_controller
 //                    params_.steering_track*params_.steering_track/4 + target_radius*target_radius +
 //                    target_radius*params_.steering_track));
 
-            RCLCPP_INFO(logger, "Target_speed: %f", target_speed);
+            RCLCPP_DEBUG(logger, "Target_speed: %f", target_speed);
 
             //target_radius = angular_command == 0 ? 0 : linear_command / abs(angular_command);
             target_direction = angular_command > 0 ? 1 : -1;
@@ -257,7 +257,7 @@ namespace pivot_drive_controller
         int direction;
 
         std::tie(radius, direction) = get_best_effort_radius_direction(target_radius,target_direction);
-        RCLCPP_INFO(get_node()->get_logger(), "best_effort radius of %f and direction of %f", radius, direction);
+        RCLCPP_DEBUG(get_node()->get_logger(), "best_effort radius of %f and direction of %f", radius, direction);
 
         left_angle = get_pivot_angle_from_radius(radius, true, direction);
         right_angle = get_pivot_angle_from_radius(radius, false, direction);
@@ -299,11 +299,11 @@ namespace pivot_drive_controller
             {
                 if (params_.pivot_position_feedback)
                 {
-                     RCLCPP_INFO_STREAM(get_node()->get_logger(), "frw: " << front_right_wheel_value <<
+                     RCLCPP_DEBUG_STREAM(get_node()->get_logger(), "frw: " << front_right_wheel_value <<
                                                                   " flw: " << front_left_wheel_value <<
                                                                   " rrw: " << rear_right_wheel_value <<
                                                                   " rlw: " << rear_left_wheel_value);
-                     RCLCPP_INFO_STREAM(get_node()->get_logger(), "frp: " << front_right_steer_position <<
+                     RCLCPP_DEBUG_STREAM(get_node()->get_logger(), "frp: " << front_right_steer_position <<
                                                                           " flp: " << front_left_steer_position <<
                                                                           " rrp: " << rear_right_steer_position <<
                                                                           " rlp: " << rear_left_steer_position);
@@ -315,13 +315,13 @@ namespace pivot_drive_controller
                     bool rrp_left = rear_right_steer_position > angle_offset_;
 
                     double frp_radius = get_radius_from_angle(-front_right_steer_position, frp_left) * (flp_left ? -1 : 1);
-                     RCLCPP_INFO_STREAM(get_node()->get_logger(), "frp_radius: " << frp_radius);
+                     RCLCPP_DEBUG_STREAM(get_node()->get_logger(), "frp_radius: " << frp_radius);
                     double flp_radius = get_radius_from_angle(front_left_steer_position, flp_left) * (flp_left ? -1 : 1);
-                     RCLCPP_INFO_STREAM(get_node()->get_logger(), "flp_radius: " << flp_radius);
+                     RCLCPP_DEBUG_STREAM(get_node()->get_logger(), "flp_radius: " << flp_radius);
                     double rrp_radius = get_radius_from_angle(rear_right_steer_position, rrp_left) * (flp_left ? -1 : 1);
-                     RCLCPP_INFO_STREAM(get_node()->get_logger(), "rrp_radius: " << rrp_radius);
+                     RCLCPP_DEBUG_STREAM(get_node()->get_logger(), "rrp_radius: " << rrp_radius);
                     double rlp_radius = get_radius_from_angle(-rear_left_steer_position, rlp_left) * (flp_left ? -1 : 1);
-                     RCLCPP_INFO_STREAM(get_node()->get_logger(), "rlp_radius: " << rlp_radius);
+                     RCLCPP_DEBUG_STREAM(get_node()->get_logger(), "rlp_radius: " << rlp_radius);
                     double mean_radius = (frp_radius + flp_radius + rrp_radius + rlp_radius) / 4;
 
 
@@ -335,7 +335,7 @@ namespace pivot_drive_controller
                         mean_radius = INFINITY;
                     }
 
-                     RCLCPP_INFO_STREAM(get_node()->get_logger(), "mean_radius: " << mean_radius);
+                     RCLCPP_DEBUG_STREAM(get_node()->get_logger(), "mean_radius: " << mean_radius);
 
                     if (fabs(mean_radius) < 0.1) mean_radius = 0;
 
@@ -352,9 +352,9 @@ namespace pivot_drive_controller
 
                     // #TODO: More robust system for invalid radius detection
                     if (!isnan(left_ratio) && !isnan(right_ratio)){
-                         RCLCPP_INFO_STREAM(get_node()->get_logger(), "left_ratio: " << left_ratio);
-                         RCLCPP_INFO_STREAM(get_node()->get_logger(), "right_ratio: " << right_ratio);
-                         RCLCPP_INFO_STREAM(get_node()->get_logger(), "max_ratio: " << max_ratio);
+                         RCLCPP_DEBUG_STREAM(get_node()->get_logger(), "left_ratio: " << left_ratio);
+                         RCLCPP_DEBUG_STREAM(get_node()->get_logger(), "right_ratio: " << right_ratio);
+                         RCLCPP_DEBUG_STREAM(get_node()->get_logger(), "max_ratio: " << max_ratio);
 
                         max_ratio = std::max(abs(left_ratio), abs(right_ratio));
 
@@ -365,7 +365,7 @@ namespace pivot_drive_controller
 
                         if (fabs(mean_speed) < 0.01) mean_speed = 0;
 
-                         RCLCPP_INFO_STREAM(get_node()->get_logger(), "mean_speed: " << mean_speed);
+                         RCLCPP_DEBUG_STREAM(get_node()->get_logger(), "mean_speed: " << mean_speed);
 
                         double angular;
 
@@ -379,8 +379,8 @@ namespace pivot_drive_controller
 
                         double linear = mean_radius == 0 ? 0 : mean_speed;
 
-                         RCLCPP_INFO_STREAM(get_node()->get_logger(), "linear: " << linear);
-                         RCLCPP_INFO_STREAM(get_node()->get_logger(), "angular: " << angular);
+                         RCLCPP_DEBUG_STREAM(get_node()->get_logger(), "linear: " << linear);
+                         RCLCPP_DEBUG_STREAM(get_node()->get_logger(), "angular: " << angular);
 
                         odometry_.update_odometry(linear, angular , period.seconds());
                     }
@@ -441,7 +441,7 @@ namespace pivot_drive_controller
             }
         }
 
-        float left_ratio =1, right_ratio = 1, max_ratio = 1;
+        float left_ratio =1, right_ratio = 1;
 
         if (radius != 0 && radius != INFINITY) {
             left_ratio = sqrt(pow(params_.wheel_base / 2, 2.0) +
@@ -450,17 +450,22 @@ namespace pivot_drive_controller
                     pow(radius*direction - (params_.wheel_base / 2), 2.0))/radius;
         }
 
-    //    RCLCPP_INFO(logger, "left_ratio: %f, right_ratio: %f", left_ratio, right_ratio);
+        double left_velocity = target_speed*left_ratio;
+        double right_velocity = target_speed*right_ratio;
+        double max_velocity = std::max(abs(left_velocity), abs(right_velocity));
 
-        max_ratio = std::max(abs(left_ratio), abs(right_ratio));
-
-        // RCLCPP_INFO_STREAM(get_node()->get_logger(), "left command: " << target_speed * left_ratio/max_ratio/params_.wheel_radius);
-        // RCLCPP_INFO_STREAM(get_node()->get_logger(), "right command: " << target_speed * right_ratio/max_ratio/params_.wheel_radius);
+        if (params_.has_velocity_limits && (abs(left_velocity) > params_.max_velocity || abs(right_velocity) > params_.max_velocity))
+        {
+            left_velocity = left_velocity/max_velocity * params_.max_velocity;
+            right_velocity = right_velocity/max_velocity * params_.max_velocity;
+            RCLCPP_WARN_STREAM(get_node()->get_logger(), "Velocity limit exceeded, scaling velocity down to "
+            << left_velocity/left_ratio << " and " << right_velocity/right_ratio);
+        }
 
         for (size_t index = 0; index < static_cast<size_t>(params_.wheels_per_side); ++index)
         {
-            registered_left_drive_handles_.at(index).command.get().set_value(target_speed * left_ratio/max_ratio/params_.wheel_radius);
-            registered_right_drive_handles_.at(index).command.get().set_value(target_speed * right_ratio/max_ratio/params_.wheel_radius);
+            registered_left_drive_handles_.at(index).command.get().set_value(left_velocity/params_.wheel_radius);
+            registered_right_drive_handles_.at(index).command.get().set_value(right_velocity/params_.wheel_radius);
         }
 
         prev_dir = target_direction;

@@ -62,6 +62,8 @@ pivot_drive_controller:
     enable_twist_cmd: true
     open_loop: false
     use_unstamped_msg: true
+    has_velocity_limits: true
+    max_velocity: 0.67
 
 strafe_controller:
   ros__parameters:
