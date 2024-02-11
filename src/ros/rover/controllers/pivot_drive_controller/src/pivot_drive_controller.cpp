@@ -358,10 +358,10 @@ namespace pivot_drive_controller
 
                         max_ratio = std::max(abs(left_ratio), abs(right_ratio));
 
-                        double mean_speed = (front_right_wheel_value/(right_ratio/max_ratio) +
-                                             rear_right_wheel_value/(right_ratio/max_ratio) +
-                                             front_left_wheel_value/(left_ratio/max_ratio) +
-                                             rear_left_wheel_value/(left_ratio/max_ratio)) / 4;
+                        double mean_speed = (front_right_wheel_value/(right_ratio) +
+                                             rear_right_wheel_value/(right_ratio) +
+                                             front_left_wheel_value/(left_ratio) +
+                                             rear_left_wheel_value/(left_ratio)) / 4;
 
                         if (fabs(mean_speed) < 0.01) mean_speed = 0;
 
