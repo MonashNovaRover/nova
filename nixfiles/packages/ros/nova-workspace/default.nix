@@ -21,6 +21,7 @@
 , nova-strafe-controller ? throw "nova-strafe-controller is needed, but not available!"
 , nova-diff-drive-controller ? throw "nova-diff-drive-controller is needed, but not available!"
 , nova-teleop-drive-joy ? throw "nova-teleop-drive-joy is needed, but not available!"
+, nova-gui ? throw "gui is needed, but not available!"
 
   # Configuration options
   ## Include graphical applications in the workspace.
@@ -47,6 +48,9 @@
       nova-strafe-controller
       nova-diff-drive-controller
       nova-teleop-drive-joy;
+      nova-gui-backend
+      nova-gui-frontend
+      nova-gui;
   }
 
   ## Extra packages to add to the workspace.
