@@ -15,6 +15,7 @@
 #include <limits>
 #include <vector>
 #include <chrono>
+#include <cmath>
 
 #include "blcmd_hardware/blcmd_hardware.hpp"
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
@@ -59,6 +60,7 @@ hardware_interface::CallbackReturn BLCMDHardware::on_init(
     }
 
     can_id_ = std::stoul(canid_search->second);
+    
     RCLCPP_INFO(rclcpp::get_logger(BLCMDHardwareLoggerName), "Using can id %d", can_id_);
 
     auto clock_rate_search = info_.hardware_parameters.find("clock_rate");
@@ -66,8 +68,9 @@ hardware_interface::CallbackReturn BLCMDHardware::on_init(
         RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName), "No clock rate provided");
         return CallbackReturn::ERROR;
     }
-
     clock_rate_ = std::stoul(clock_rate_search->second);
+    RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                       "Got clock rate: " << clock_rate_);
 
     auto revolution_pulses_search = info_.hardware_parameters.find("revolution_pulses");
 
@@ -76,6 +79,11 @@ hardware_interface::CallbackReturn BLCMDHardware::on_init(
         return CallbackReturn::ERROR;
     }
 
+    revolution_pulses_ = std::stoul(revolution_pulses_search->second);
+
+    RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                       "Resolver pulses: " << revolution_pulses_);
+
     auto mock_search = info_.hardware_parameters.find("mock");
     if (mock_search != info_.hardware_parameters.end() && mock_search->second == "true"){
         mock_ = true;
@@ -83,10 +91,24 @@ hardware_interface::CallbackReturn BLCMDHardware::on_init(
 
     auto reversed_search = info_.hardware_parameters.find("reversed");
     if (reversed_search != info_.hardware_parameters.end() && reversed_search->second == "true"){
+            RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                       "Interface is reversed");
         reversed_multiplier_ = -1;
     }
 
-    revolution_pulses_ = std::stoul(revolution_pulses_search->second);
+    auto min_interval_search = info_.hardware_parameters.find("min_interval");
+    if (min_interval_search != info_.hardware_parameters.end() && mock_){
+        min_interval_ = std::stol(min_interval_search->second);
+    }
+
+    auto gear_ratio_search = info_.hardware_parameters.find("gear_ratio");
+    if (gear_ratio_search == info_.hardware_parameters.end()){
+        RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName), "No gear ratio provided");
+        return CallbackReturn::ERROR;
+    }
+    gear_ratio_ = std::stod(gear_ratio_search->second);
+    RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                       "Got gear ratio: " << gear_ratio_);
 
 
     for (const auto& interface : info_.joints[0].command_interfaces){
@@ -124,22 +146,22 @@ hardware_interface::CallbackReturn BLCMDHardware::on_configure(
     }
 
 
-    if (!mock_) {
+        if (!mock_) {
         //get min_interval
-        if (hw_velocity_.state.has_value()) {
-            RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
-                               "Getting min interval on BLCMD " << can_id_);
-            auto min_interval = get_config<uint16_t>(BLCMDConfigCommand::MIN_INTERVAL);
-
-            if (min_interval.has_value()) {
-                min_interval_ = min_interval.value();
+            if (hw_velocity_.state.has_value()) {
                 RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
-                                   "Min interval on BLCMD " << can_id_ << " is " << min_interval_);
-            } else {
-                RCLCPP_FATAL_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
-                                    "Error getting min interval on BLCMD " << can_id_);
-                return CallbackReturn::ERROR;
-            }
+                                   "Getting min interval on BLCMD " << can_id_);
+                auto min_interval = get_config<uint16_t>(BLCMDConfigCommand::MIN_INTERVAL);
+
+                if (min_interval.has_value()) {
+                    min_interval_ = min_interval.value();
+                    RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                                       "Min interval on BLCMD " << can_id_ << " is " << min_interval_);
+                } else {
+                    RCLCPP_FATAL_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                                        "Error getting min interval on BLCMD " << can_id_);
+                    return CallbackReturn::ERROR;
+                }
         }
 
         // check for resolver if there is a position interface
@@ -260,6 +282,8 @@ hardware_interface::return_type BLCMDHardware::write(
             break;
         case blcmd_hardware::ControlMode::Position:
             if (hw_position_.command.has_value()) {
+//                RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+//                                   "Sending Position Command " << hw_position_.command.value());
                 send_scaled<int16_t>(make_can_id(BLCMDSendCommand::DRIVE_POSITION),
                                      hw_position_.command.value() * reversed_multiplier_, hw_position_.max);
             } else {
@@ -269,6 +293,8 @@ hardware_interface::return_type BLCMDHardware::write(
             break;
         case blcmd_hardware::ControlMode::Velocity:
             if (hw_velocity_.command.has_value()) {
+               RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                                  "Sending velocity command " << hw_velocity_.command.value() * reversed_multiplier_);
                 send_scaled<int16_t>(make_can_id(BLCMDSendCommand::DRIVE_VELOCITY),
                                      hw_velocity_.command.value() * reversed_multiplier_, hw_velocity_.max);
             } else {
@@ -408,7 +434,9 @@ bool BLCMDHardware::set_control_interface(
         }
     } else if(interface_info.name == hardware_interface::HW_IF_VELOCITY){
         if(command) {
-            hw_velocity_.max = static_cast<double>(clock_rate_)/(min_interval_*revolution_pulses_);
+            hw_velocity_.max = (clock_rate_)/(min_interval_*revolution_pulses_*gear_ratio_) * M_PI_2;
+            RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName), 
+            "Configured velocity interface with max velocity: " << hw_velocity_.max);
             hw_velocity_.command = 0.0;
         } else {
             hw_velocity_.state = 0.0;
@@ -444,19 +472,19 @@ bool BLCMDHardware::set_control_interface(
         bus_->set_callbacks_enabled(false);
    }
 
-    uint32_t BLCMDHardware::make_can_id(BLCMDSendCommand command)
+    uint32_t BLCMDHardware::make_can_id(BLCMDSendCommand command) const
     {
         return static_cast<uint32_t>(CanIdPrefix::SEND) << 8 | can_id_ << 4 |
                static_cast<uint32_t>(command);
     }
 
-    uint32_t BLCMDHardware::make_can_id(BLCMDReceiveCommand command)
+    uint32_t BLCMDHardware::make_can_id(BLCMDReceiveCommand command) const
     {
         return static_cast<uint32_t>(CanIdPrefix::RECEIVE) << 8 | can_id_ << 4 |
                static_cast<uint32_t>(command);
     }
 
-    uint32_t BLCMDHardware::make_can_id(TelemetryPacket packet)
+    uint32_t BLCMDHardware::make_can_id(TelemetryPacket packet) const
     {
         return static_cast<uint32_t>(CanIdPrefix::RECEIVE) << 8 | can_id_ << 4|
                static_cast<uint32_t>(packet);
@@ -465,17 +493,17 @@ bool BLCMDHardware::set_control_interface(
     void BLCMDHardware::packet_1_callback(leigh::jcan::Frame frame) {
         if(hw_velocity_.state.has_value()) {
 
-            hw_velocity_.state = convert_scaled<int16_t>(&frame.data[0], hw_velocity_.max) * hw_velocity_.max * reversed_multiplier_;
+            hw_velocity_.state = convert_scaled<int16_t>(&frame.data[0], hw_velocity_.max) * hw_velocity_.max;
 
         }
         if(hw_effort_.state.has_value()) {
-            hw_effort_.state = convert_scaled<int16_t>(&frame.data[2], hw_effort_.max) * reversed_multiplier_;
+            hw_effort_.state = convert_scaled<int16_t>(&frame.data[2], hw_effort_.max);
         }
     }
 
     void BLCMDHardware::packet_3_callback(leigh::jcan::Frame frame) {
         if(hw_position_.state.has_value()) hw_position_.state = convert_scaled<int16_t>(&frame.data[0], hw_position_.max) *
-                hw_position_.resolver_reduction * reversed_multiplier_;
+                hw_position_.resolver_reduction;
     }
 
     template<typename T>
@@ -494,7 +522,7 @@ bool BLCMDHardware::set_control_interface(
 
     template<typename T>
     void BLCMDHardware::send_scaled(uint32_t id, double value, double max) {
-        T data = static_cast<T>( (value > max ? 1.0 : value/max)* std::numeric_limits<T>::max());
+        T data = static_cast<T>( (abs(value) > max ? (value > 0 ? 1 : -1) : value/max)* std::numeric_limits<T>::max());
         send_raw(id, data);
     }
 

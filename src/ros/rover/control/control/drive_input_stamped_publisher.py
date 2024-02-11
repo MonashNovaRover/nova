@@ -10,7 +10,7 @@ import threading
 class DriveInputStampedPublisher(Node):
     def __init__(self):
         super().__init__('drive_input_stamped_publisher')
-        self.publisher = self.create_publisher(DriveInputStamped, '/drive_input', 50)
+        self.publisher = self.create_publisher(DriveInputStamped, '/pivot_drive_controller/drive_input', 50)
         self.inputs_thread = threading.Thread(target=self.publish_drive_input_stamped)
         self.inputs_thread.start()
         self.current_msg = self.create_drive_input_msg(0.0, float('inf'), 0)

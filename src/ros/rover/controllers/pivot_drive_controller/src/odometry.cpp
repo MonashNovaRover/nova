@@ -59,7 +59,7 @@ bool Odometry::update_odometry(
   const double linear_velocity, const double angular, const double dt)
 {
   /// Integrate odometry:
-  Odometry::integrateExact(linear_velocity * dt, angular);
+  Odometry::integrateExact(linear_velocity * dt, angular*dt);
 
   /// We cannot estimate the speed with very small time intervals:
   if (dt < 0.0001)
@@ -69,10 +69,13 @@ bool Odometry::update_odometry(
 
   /// Estimate speeds using a rolling mean to filter them out:
   linear_accumulator_.accumulate(linear_velocity);
-  angular_accumulator_.accumulate(angular / dt);
+  angular_accumulator_.accumulate(angular);
 
   linear_ = linear_accumulator_.getRollingMean();
   angular_ = angular_accumulator_.getRollingMean();
+
+  // RCLCPP_INFO_STREAM(rclcpp::get_logger("Odom"), "linear_: " << linear_);
+  // RCLCPP_INFO_STREAM(rclcpp::get_logger("Odom"), "angular_: " << angular_);
 
   return true;
 }
@@ -80,52 +83,8 @@ bool Odometry::update_odometry(
 bool Odometry::update(const double &fl_speed, const double &fr_speed, const double &rl_speed, const double &rr_speed,
   const double front_steering, const double rear_steering, const double &dt)
 {
-    const double front_tmp = cos(front_steering) * (tan(front_steering) - tan(rear_steering)) / wheel_base_;
-
-  const double front_left_tmp = front_tmp / sqrt(1 - steering_track_ * front_tmp * cos(front_steering)
-                                              +pow(steering_track_*front_tmp / 2, 2));
-  const double front_right_tmp = front_tmp / sqrt(1 + steering_track_ * front_tmp * cos(front_steering)
-                                              +pow(steering_track_*front_tmp / 2, 2));
-
-  const double fl_speed_tmp = fl_speed * (1 / (1 - wheel_steering_y_offset_ * front_left_tmp));
-  const double fr_speed_tmp = fr_speed * (1 / (1 - wheel_steering_y_offset_ * front_right_tmp));
-
-  const double front_linear_speed = wheel_radius_ * copysign(1.0, fl_speed_tmp + fr_speed_tmp) *
-      sqrt((pow(fl_speed, 2) + pow(fr_speed, 2)) / (2 + pow(steering_track_ * front_tmp, 2) / 2.0));
-
-  const double rear_tmp = cos(rear_steering) * (tan(front_steering) - tan(rear_steering)) / wheel_base_;
-
-  const double rear_left_tmp = rear_tmp / sqrt(1 - steering_track_ * rear_tmp * cos(rear_steering)
-                                              + pow(steering_track_ * rear_tmp/ 2, 2));
-  const double rear_right_tmp = rear_tmp / sqrt(1 + steering_track_ * rear_tmp * cos(rear_steering)
-                                              +pow(steering_track_ * rear_tmp/ 2, 2));
-
-  const double rl_speed_tmp = rl_speed * (1 / (1 - wheel_steering_y_offset_ * rear_left_tmp));
-  const double rr_speed_tmp = rr_speed * (1 / (1 - wheel_steering_y_offset_ * rear_right_tmp));
-
-  const double rear_linear_speed = wheel_radius_ * copysign(1.0, rl_speed_tmp + rr_speed_tmp)*
-      sqrt((pow(rl_speed_tmp, 2) + pow(rr_speed_tmp, 2)) / (2 + pow(steering_track_ * rear_tmp, 2) / 2.0));
-
-  angular_ = (front_linear_speed * front_tmp + rear_linear_speed * rear_tmp) / 2.0;
-
-  const double linear_x_ = (front_linear_speed * cos(front_steering) + rear_linear_speed * cos(rear_steering)) / 2.0;
-  const double linear_y_ = (front_linear_speed * sin(front_steering) - wheel_base_ * angular_ / 2.0
-              + rear_linear_speed * sin(rear_steering) + wheel_base_ * angular_ / 2.0) / 2.0;
-
-  const double linear_velocity =  copysign(1.0, rear_linear_speed)*sqrt(pow(linear_x_,2)+pow(linear_y_,2));
-
-  /// Integrate odometry:
-  // integrateXY(linear_x_*dt, linear_y_*dt, angular_*dt);
-
-  // linear_accel_acc_((linear_vel_prev_ - linear_velocity)/dt);
-  // linear_vel_prev_ = linear_velocity;
-  // linear_jerk_acc_((linear_accel_prev_ - bacc::rolling_mean(linear_accel_acc_))/dt);
-  // linear_accel_prev_ = bacc::rolling_mean(linear_accel_acc_);
-  // front_steer_vel_acc_((front_steer_vel_prev_ - front_steering)/dt);
-  // front_steer_vel_prev_ = front_steering;
-  // rear_steer_vel_acc_((rear_steer_vel_prev_ - rear_steering)/dt);
-  // rear_steer_vel_prev_ = rear_steering;
-  return update_odometry(linear_velocity, angular_, dt);
+    //#TODO: Move calculations in pivot_drive_controller.cpp to here
+  return false;
 }
 
 bool Odometry::updateFromVelocity(double left_vel, double right_vel, const rclcpp::Time & time)

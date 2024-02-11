@@ -1,6 +1,6 @@
 controller_manager:
   ros__parameters:
-    update_rate: 50 
+    update_rate: 5 
     use_sim_time: false
 
     wheel_velocity_controller:
@@ -28,11 +28,17 @@ wheel_velocity_controller:
   ros__parameters:
     joints:
       - flw
+      - blw
+      - brw
+      - frw
 
 pivot_position_controller:
   ros__parameters:
     joints:
       - flp
+      - blp
+      - brp
+      - frp
 
 joint_broad:
   ros__parameters:
@@ -53,9 +59,11 @@ pivot_drive_controller:
     right_drive_names: ["frw", "brw"]
     left_pivot_names: ["flp", "blp"]
     right_pivot_names: ["frp", "brp"]
-    enable_twist_cmd: false
+    enable_twist_cmd: true
     open_loop: false
-    use_unstamped_msg: false
+    use_unstamped_msg: true
+    has_velocity_limits: true
+    max_velocity: 0.67
 
 strafe_controller:
   ros__parameters:

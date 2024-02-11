@@ -118,20 +118,20 @@ def generate_launch_description():
         package="controller_manager",
         executable="ros2_control_node",
         parameters=[robot_description, controllers], # Deprecated: passing the robot description parameter directly to the control_manager node is deprecated. Use robot_state_publisher instead.
-        arguments=['--ros-args'],# '--log-level','DEBUG'],
+        arguments=['--ros-args', '--log-level','DEBUG']
         #output="both" #added - not too sure what it does
     )
 
     wheel_velocity_controller = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["wheel_velocity_controller"]
+        arguments=["wheel_velocity_controller", "--inactive"]
     )
 
     pivot_position_controller = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["pivot_position_controller"]
+        arguments=["pivot_position_controller", "--inactive"]
     )
 
     joint_broad = Node(
@@ -143,19 +143,19 @@ def generate_launch_description():
     pivot_drive_controller = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["pivot_drive_controller"]
+        arguments=["pivot_drive_controller", "--inactive"]
     )
 
     strafe_controller = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["strafe_controller"]
+        arguments=["strafe_controller", "--inactive"]
     )
 
     nova_diff_drive_controller = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["nova_diff_drive_controller"]
+        arguments=["nova_diff_drive_controller", "--inactive"]
     )
 
     nodes = [

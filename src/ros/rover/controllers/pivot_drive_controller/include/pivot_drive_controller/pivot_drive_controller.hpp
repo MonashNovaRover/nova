@@ -108,6 +108,8 @@ namespace pivot_drive_controller
 
         Odometry odometry_;
 
+        double zero_radius_;
+
         // Timeout to consider cmd_vel commands old
         std::chrono::milliseconds cmd_vel_timeout_{500};
 
@@ -135,7 +137,7 @@ namespace pivot_drive_controller
         // speed limiters
         SpeedLimiter limiter_linear_;
 
-        float angle_offset = params_.steering_track / params_.wheel_base; 
+        double angle_offset_ = params_.steering_track / params_.wheel_base;
 
         /*
         bool publish_limited_drive_pivot_ = false;
@@ -144,6 +146,9 @@ namespace pivot_drive_controller
         */
 
         double max_d_theta;
+
+        double prev_radius = INFINITY;
+        double prev_dir = 0;
         
         rclcpp::Time previous_update_timestamp_{0};
 

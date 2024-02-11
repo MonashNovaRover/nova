@@ -4,7 +4,11 @@
 #include <cmath>
 
 #include "rclcpp/time.hpp"
+#include "rclcpp/rclcpp.hpp"
+#include "rclcpp/macros.hpp"
 #include "rcppmath/rolling_mean_accumulator.hpp"
+#include "rclcpp/rclcpp.hpp"
+#include "rclcpp/logging.hpp"
 
 namespace pivot_drive_controller 
 {
