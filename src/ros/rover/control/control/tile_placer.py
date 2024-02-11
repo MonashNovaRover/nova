@@ -32,6 +32,9 @@ from rclpy.duration import Duration
 
 
 class TilePlacerNode(Node):
+    # set motor ids
+    TILE_PLACER_ID_FORWARDS = 0x2
+    TILE_PLACER_ID_BACKWARDS = 0x1
 
     def __init__(self):
         super().__init__("tile_placer")
@@ -42,12 +45,8 @@ class TilePlacerNode(Node):
 
         self.tile_placer_activated = False
 
-        # set motor ids
-        self.tile_placer_id_forwards = 0x2
-        self.tile_placer_id_backwards = 0x1
-
         # Initially all motors spin backwards with 0 velocity
-        self.tile_placer_direction = self.tile_placer_id_backwards
+        self.tile_placer_direction = self.TILE_PLACER_ID_BACKWARDS
         self.tile_placer_velocity = 0
 
         self.joystick_lock = True
@@ -81,11 +80,11 @@ class TilePlacerNode(Node):
             print(e)
 
     
-    def deadline_callback(self, info):
+    def deadline_callback(self, info: InputJoystick):
         # Set all speeds to 0
         self.get_logger().warning("200ms Callback deadline missed")
         self.tile_placer_velocity = 0
-        self.tile_placer_direction = self.tile_placer_id_forwards
+        self.tile_placer_direction = self.TILE_PLACER_ID_FORWARDS
 
 
     def joystick_l_callback(self, msg):
@@ -112,7 +111,7 @@ class TilePlacerNode(Node):
             self.joystick_lock = False
 
 
-    def joystick_r_callback(self, msg):
+    def joystick_r_callback(self, msg: InputJoystick):
         """
         Updates the classes internal msg state
         :param msg: core.msg.RoverPose message from the subscriber callback
@@ -136,13 +135,13 @@ class TilePlacerNode(Node):
         if not self.joystick_lock and self.tile_placer_activated:
             # Update the inputs
             self.tile_placer_velocity = abs( int( self.param_tile_placer_multiplier * joystick_r.ax_stick_x ) )
-            self.tile_placer_direction = self.tile_placer_id_forwards if joystick_r.ax_stick_x >= 0 else self.tile_placer_id_backwards
+            self.tile_placer_direction = self.TILE_PLACER_ID_FORWARDS if joystick_r.ax_stick_x >= 0 else self.TILE_PLACER_ID_BACKWARDS
 
         elif not self.joystick_lock and not self.tile_placer_activated:
 
             # set tile placer velocities to 0
             self.tile_placer_velocity = 0
-            self.tile_placer_direction = self.tile_placer_id_forwards
+            self.tile_placer_direction = self.TILE_PLACER_ID_FORWARDS
         else:
             # if joysticks locked
             self.get_logger().info("joysticks locked!")
@@ -150,7 +149,7 @@ class TilePlacerNode(Node):
 
             # set tile placer velocity to 0
             self.tile_placer_velocity = 0
-            self.tile_placer_direction = self.tile_placer_id_forwards
+            self.tile_placer_direction = self.TILE_PLACER_ID_FORWARDS
 
 
     def get_tile_placer_can_commands(self):
