@@ -15,11 +15,12 @@ import { CameraSettingsForm } from "./components/CameraSettingsForm";
 import CameraVideo from "./components/CameraVideo";
 import { initialFilters } from "../../views/shared/CamerasPage/CameraPageConstants";
 import { BooleanChip } from "./components/BooleanChip";
+import humanizeString from "humanize-string";
+import { ExternalLink } from "react-feather";
 
 const ASPECT_RATIO = 4 / 3;
 
 export interface CameraComponentProps {
-  cameraName: string;
   cameraSerial: string;
 }
 
@@ -32,7 +33,8 @@ export interface CameraFilters {
 }
 
 export const CameraComponent = (props: CameraComponentProps) => {
-  const { cameraName, cameraSerial } = props;
+  const { cameraSerial } = props;
+  const cameraName = humanizeString(cameraSerial);
   const cardRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
   const [isCameraInfoModalOpen, setCameraInfoModalOpen] = useState(false);
@@ -41,6 +43,12 @@ export const CameraComponent = (props: CameraComponentProps) => {
     useCameraStream(cameraSerial, videoRef);
   const [isSettingsOpen, setSettingsOpen] = useState(false);
   const [filters, setFilters] = useState(initialFilters);
+  const openCameraInTab = () =>
+    window.open(
+      `/cameras/${cameraSerial}`,
+      "_blank",
+      "rel=noopener noreferrer"
+    );
 
   useEffect(() => {
     const handleMouseEnter = () => {
@@ -69,6 +77,7 @@ export const CameraComponent = (props: CameraComponentProps) => {
     <Card className={`m-4  aspect-[${ASPECT_RATIO}] `} ref={cardRef}>
       <CameraInfoModal
         {...props}
+        cameraName={cameraName}
         isModalOpen={isCameraInfoModalOpen}
         setCameraModalOpen={setCameraInfoModalOpen}
       />
@@ -113,6 +122,9 @@ export const CameraComponent = (props: CameraComponentProps) => {
 
               <Button isIconOnly size="sm">
                 <CameraIcon size="15px" />
+              </Button>
+              <Button isIconOnly size="sm" onClick={openCameraInTab}>
+                <ExternalLink size="15px" />
               </Button>
               <Popover
                 placement="bottom"

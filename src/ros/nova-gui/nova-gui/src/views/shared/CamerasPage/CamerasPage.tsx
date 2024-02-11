@@ -2,12 +2,16 @@ import { Button, Tab, Tabs } from "@nextui-org/react";
 import { CameraComponent } from "../../../components/CameraComponent/CameraComponent";
 import { Play, Square } from "react-feather";
 import { useCameraStreamer } from "../../../components/CameraComponent/hooks/useCameraStreamer";
-import humanizeString from "humanize-string";
-import { cameraSections } from "./CameraPageConstants";
+import { CameraView } from "./CameraPageConstants";
 import { useState } from "react";
 import { CameraControlPanelModal } from "../../../components/CameraComponent/components/CamerasControlPanelModal";
 
-export const CameraPage = () => {
+export interface CameraPageProps {
+  views: CameraView[];
+}
+
+export const CameraPage = (props: CameraPageProps) => {
+  const { views } = props;
   const [controlPanelOpen, setControlPanelOpen] = useState(false);
 
   const closeControlPanel = () => setControlPanelOpen(false);
@@ -18,36 +22,10 @@ export const CameraPage = () => {
     <div>
       <div className="flex flex-row justify-between items-center m-6 gap-4">
         <div className="flex flex-row m-4 ml-0 gap-4 items-center">
-          <Button
-            size="sm"
-            color="primary"
-            // onClick={() =>
-            //   bifrostStarter.callService(
-            //     { serials: [] },
-            //     {
-            //       responseToast: true,
-            //       successToastMessage: "All Cameras Started Up!",
-            //       handleResponse: () => refreshAvailability(),
-            //     }
-            //   )
-            // }
-          >
+          <Button size="sm" color="primary">
             <Play size="15px" fill="white" /> Start All
           </Button>
-          <Button
-            size="sm"
-            color="danger"
-            // onClick={() =>
-            //   bifrostStopper.callService(
-            //     { serials: [] },
-            //     {
-            //       responseToast: true,
-            //       successToastMessage: "All Cameras Stopped!",
-            //       handleResponse: () => refreshAvailability(),
-            //     }
-            //   )
-            // }
-          >
+          <Button size="sm" color="danger">
             <Square size="15px" fill="white" /> Stop All
           </Button>
         </div>
@@ -67,15 +45,11 @@ export const CameraPage = () => {
         fullWidth
         variant="bordered"
       >
-        {cameraSections.map((section, i) => (
-          <Tab title={section.sectionTitle} key={i}>
+        {views.map((view, i) => (
+          <Tab title={view.viewTitle} key={i}>
             <div className="grid grid-cols-3">
-              {section.cameraSerials.map((serial, i) => (
-                <CameraComponent
-                  cameraName={humanizeString(serial)}
-                  cameraSerial={serial}
-                  key={i}
-                />
+              {view.cameraSerials.map((serial, i) => (
+                <CameraComponent cameraSerial={serial} key={i} />
               ))}
             </div>
           </Tab>

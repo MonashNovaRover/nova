@@ -14,6 +14,7 @@ import { PropRenderer } from "../../shared/PropRenderer";
 // import { CameraSettingsForm } from "./CameraSettingsForm";
 
 interface CameraModalProps extends CameraComponentProps {
+  cameraName: string;
   isModalOpen: boolean;
   setCameraModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }

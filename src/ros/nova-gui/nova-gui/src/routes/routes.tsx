@@ -11,6 +11,11 @@ import URCEquipmentServicingView from "../views/urc/URCEquipmentServicingView";
 import URCScienceView from "../views/urc/URCScienceView";
 import { Root } from "../root";
 import { CameraPage } from "../views/shared/CamerasPage/CamerasPage.tsx";
+import { SingleCameraPage } from "../views/shared/SingleCameraPage/SingleCameraPage.tsx";
+import {
+  ARCCompModes,
+  cameraSetup,
+} from "../views/shared/CamerasPage/CameraPageConstants.ts";
 
 export const arcRoutes: RouteObject[] = [
   {
@@ -61,7 +66,7 @@ export const urcRoutes: RouteObject[] = [
 export const generalRoutes: RouteObject[] = [
   {
     path: "/general/cameras",
-    element: <CameraPage />,
+    element: <CameraPage views={cameraSetup[ARCCompModes.POST_LANDING]} />,
   },
 ];
 
@@ -70,8 +75,13 @@ export const testRoutes: RouteObject[] = [];
 const cameraRoutes: RouteObject[] = [
   {
     path: "/cameras",
-    element: <CameraPage />,
+    element: <CameraPage views={cameraSetup[ARCCompModes.POST_LANDING]} />,
   },
+  ...Object.values(ARCCompModes).map<RouteObject>((comp) => ({
+    path: `/cameras/${comp}`,
+    element: <CameraPage views={cameraSetup[comp]} />,
+  })),
+  { path: "/cameras/:serial", element: <SingleCameraPage /> },
 ];
 
 export const routes: RouteObject[] = [
