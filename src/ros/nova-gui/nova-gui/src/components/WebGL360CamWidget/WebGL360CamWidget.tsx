@@ -8,8 +8,7 @@ import React, {memo, useEffect, useState} from "react";
 const WebGL360CamWidgetNonMemo: React.FC = () => {
 
   const [time, setTime] = useState(0);
-  const fps = 60;
-
+  const fps = 144;
 
   useEffect(() => {
     setTimeout(() => {
@@ -23,19 +22,19 @@ const WebGL360CamWidgetNonMemo: React.FC = () => {
       frag={Frag}
       width={800}
       height={600}
-      vertexCount={4}
+      clearColor={[0.0, 0.0, 0.0, 0.0]}
 
       vertexAttributes={{
-        a_color: {
-          numComponents: 4,
-          data: [time % 2.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0]
-        },
         a_position: {
           numComponents: 2,
-          data: [(time % 2.0) - 1.0, 1.0, -1.0, 1.0, 1.0, -1.0, -1.0, -1.0]
+          data: [[1.0, 1.0], [-1.0, 1.0], [1.0, -1.0], [-1.0, -1.0]].flat()
         }
       }}
-      clearColor={[0.0, 0.0, 0.0, 1.0]}
+      vertexCount={4}
+
+      uniforms={{
+        time: [time]
+      }}
     />
 
   );

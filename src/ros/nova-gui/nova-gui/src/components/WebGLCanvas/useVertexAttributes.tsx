@@ -5,12 +5,12 @@ export interface IVertexAttribute {
   data: number[]
 }
 
-const useVertexAttributes = (gl?: WebGLRenderingContext, program?: WebGLProgram, attributes?: {[key: string] : IVertexAttribute}, vertexCount?: number) => {
+const useVertexAttributes = (gl?: WebGLRenderingContext, program?: WebGLProgram, attributes?: {[key: string] : IVertexAttribute}) => {
 
   const [attributeBuffers, setAttributeBuffers] = useState<Record<string, WebGLBuffer | undefined>>({});
 
   useEffect(() => {
-    if (gl === undefined || attributes === undefined || program === undefined || vertexCount === undefined)
+    if (gl === undefined || attributes === undefined || program === undefined)
       return;
 
     const newBuffersArray = Object.entries(attributes).map(([key, attribute]) => {
@@ -52,15 +52,8 @@ const useVertexAttributes = (gl?: WebGLRenderingContext, program?: WebGLProgram,
       return [key, buffer];
     });
 
-    // Set clear color to black, fully opaque
-
-    // Clear the color buffer with specified clear color
-    gl.clear(gl.COLOR_BUFFER_BIT);
-
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, vertexCount);
-
     setAttributeBuffers(Object.fromEntries(newBuffersArray));
-  }, [gl, program, attributes, vertexCount]);
+  }, [gl, program, attributes]);
 
 }
 
