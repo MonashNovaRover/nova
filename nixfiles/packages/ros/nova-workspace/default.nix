@@ -41,13 +41,11 @@
       nova-electronics
       nova-science
       nova-cameras2
-      #nova-gui-backend
-      #nova-gui-frontend;
       nova-blcmd-hardware
       nova-pivot-drive-controller
       nova-strafe-controller
       nova-diff-drive-controller
-      nova-teleop-drive-joy;
+      nova-teleop-drive-joy
       nova-gui-backend
       nova-gui-frontend
       nova-gui;
