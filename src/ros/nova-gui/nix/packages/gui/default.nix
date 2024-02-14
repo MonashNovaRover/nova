@@ -6,6 +6,7 @@
 , ros-typescript-definitions
 , ros-core
 , nova-core
+, nova-cameras2
 }:
 
 let
@@ -13,6 +14,7 @@ let
   rosMessagePackages = [
     ros-core
     nova-core
+    nova-cameras2
   ];
 in
 mkYarnPackage {
