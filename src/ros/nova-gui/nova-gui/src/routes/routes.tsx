@@ -16,6 +16,7 @@ import {
   ARCCompModes,
   cameraSetup,
 } from "../views/shared/CamerasPage/CameraPageConstants.ts";
+import TestWebGLView from "../views/test/TestWebGLView.tsx";
 
 export const arcRoutes: RouteObject[] = [
   {
@@ -70,7 +71,12 @@ export const generalRoutes: RouteObject[] = [
   },
 ];
 
-export const testRoutes: RouteObject[] = [];
+export const testRoutes: RouteObject[] = [
+  {
+    path: "/test/webgl",
+    element: <TestWebGLView/>,
+  },
+];
 
 const cameraRoutes: RouteObject[] = [
   {

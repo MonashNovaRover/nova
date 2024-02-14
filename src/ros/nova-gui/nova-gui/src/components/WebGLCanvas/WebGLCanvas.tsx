@@ -1,86 +1,81 @@
-import {memo, useEffect, useRef} from "react";
+import React, {memo, useEffect, useRef, useState} from "react";
+import useGL from "./useGL.tsx";
+import {useProgram} from "./useProgram.tsx";
 
-//
-// Initialize a shader program, so WebGL knows how to draw our data
-//
-function initShaderProgram(gl: WebGLRenderingContext, vsSource: string, fsSource: string) {
-  const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
-  const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsSource);
 
-  // Create the shader program
 
-  const shaderProgram = gl.createProgram();
-
-  if (shaderProgram === null || vertexShader === null || fragmentShader === null)
-    return shaderProgram;
-
-  gl.attachShader(shaderProgram, vertexShader);
-  gl.attachShader(shaderProgram, fragmentShader);
-  gl.linkProgram(shaderProgram);
-
-  // If creating the shader program failed, alert
-
-  if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-    alert(
-      `Unable to initialize the shader program: ${gl.getProgramInfoLog(
-        shaderProgram,
-      )}`,
-    );
-    return null;
-  }
-
-  return shaderProgram;
-}
-
-//
-// creates a shader of the given type, uploads the source and
-// compiles it.
-//
-function loadShader(gl: WebGLRenderingContext, type: number, source: string) {
-  const shader = gl.createShader(type);
-  
-  // Exit early when null
-  if (shader === null) 
-    return shader;
-
-  // Send the source to the shader object
-
-  gl.shaderSource(shader, source);
-
-  // Compile the shader program
-
-  gl.compileShader(shader);
-
-  // See if it compiled successfully
-
-  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-    alert(
-      `An error occurred compiling the shaders: ${gl.getShaderInfoLog(shader)}`,
-    );
-    gl.deleteShader(shader);
-    return null;
-  }
-
-  return shader;
-}
-
+export type vec2 = [number, number];
+export type vec4 = [number, number, number, number];
 
 export interface IWebGLCanvasProps {
   vert: string,
   frag: string,
-  uniformFloats: {[Name: string]: number}
+  uniformFloats?: {[Name: string]: number},
+
+  // canvas props
+  className?: string,
+  width?: number,
+  height?: number,
+
+  vertexAttributes: {[key: string] : number[][]}
+
+  positions?: number[]
 }
 
-const UnmemoedWebGLCanvas: React.FC<IWebGLCanvasProps> = ({
-  vert, frag, uniformFloats
-}) => {
-  const canvas = useRef<HTMLCanvasElement>(null);
-  const gl = canvas.current?.getContext("webgl") ?? null;
 
-  const isSupported = gl !== null;
+
+const UnmemoedWebGLCanvas: React.FC<IWebGLCanvasProps> = ({
+  vert, frag, uniformFloats, positions, vertexAttributes, ...canvasProps
+}) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const gl = useGL(canvasRef);
+  const program = useProgram(gl, vert, frag);
 
   useEffect(() => {
-    if (!isSupported)
+    if (!gl || !positions || !program)
+      return;
+
+    // Create a buffer for the positions.
+    const positionBuffer = gl.createBuffer();
+
+    // Select the positionBuffer as the one to apply buffer operations to from here out.
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+
+    // Now pass the list of positions into WebGL to build the shape. We do this by creating a Float32Array from the
+    // JavaScript array, then use it to fill the current buffer.
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+
+    // setPositionAttribute
+    const numComponents = 2; // pull out 2 values per iteration
+    const type = gl.FLOAT; // the data in the buffer is 32bit floats
+    const normalize = false; // don't normalize
+    const stride = 0; // how many bytes to get from one set of values to the next
+    // 0 = use type and numComponents above
+    const offset = 0; // how many bytes inside the buffer to start from
+
+    const vertexAttributePosition = gl.getAttribLocation(program, "a_position");
+
+    gl.vertexAttribPointer(
+      vertexAttributePosition,
+      numComponents,
+      type,
+      normalize,
+      stride,
+      offset,
+    );
+    gl.enableVertexAttribArray(vertexAttributePosition);
+
+
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+    return () => {
+      gl.deleteBuffer(positionBuffer);
+    }
+
+  }, [gl, positions, program]);
+
+  useEffect(() => {
+    if (!gl)
       return;
 
     // Compile shader program
@@ -91,7 +86,10 @@ const UnmemoedWebGLCanvas: React.FC<IWebGLCanvasProps> = ({
     // Clear the color buffer with specified clear color
     gl.clear(gl.COLOR_BUFFER_BIT);
 
-  }, [vert, frag]);
+  }, [vert, frag, gl]);
+
+
+
 
   useEffect(() => {
     // Update program uniforms
@@ -99,12 +97,9 @@ const UnmemoedWebGLCanvas: React.FC<IWebGLCanvasProps> = ({
 
   }, [uniformFloats]);
 
-  return (<>{canvas.current}</>) /*: (
-    <div>
-      Unable to initialize WebGL. <br/>Your browser or machine may not support it.
-    </div>
-  )*/
-
+  return (
+    <canvas {...canvasProps} ref={canvasRef}></canvas>
+  );
 }
 
 const WebGLCanvas = memo(UnmemoedWebGLCanvas);
