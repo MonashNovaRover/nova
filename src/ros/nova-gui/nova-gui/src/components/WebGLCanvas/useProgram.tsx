@@ -26,12 +26,6 @@ export function useProgram( gl: WebGL2RenderingContext | undefined, vert: string
 
     gl.useProgram(program);
 
-
-    const offset = 0;
-    const vertexCount = 0;
-    gl.drawArrays(gl.TRIANGLE_STRIP, offset, vertexCount);
-
-
     console.log("Setting shader program...");
   }, [gl, program]);
 
