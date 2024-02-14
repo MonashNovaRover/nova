@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { Ros } from "roslib";
-import { RosTopics } from "../../ros/rosTopics";
+import { RosTopic } from "../../ros/topics/rosTopic";
 import { RootState } from "../RootState";
 import { useBifrost } from "../actions/bifrost/useBifrostAction";
 import { BifrostConnectionStatus } from "../models/bifrost/BifrostTypes";
@@ -9,11 +9,12 @@ import { RosContext } from "./RosContext";
 
 export const RosProvider = (props: { children: React.ReactNode }) => {
   const uiStore = useSelector((state: RootState) => state.uiState);
+
   const bifrostStateStore = useSelector(
     (state: RootState) => state.bifrostStatus
   );
   const [ros, setRos] = useState<ROSLIB.Ros | undefined>();
-  const bifrostActions = useBifrost(RosTopics.NULL_TOPIC);
+  const bifrostActions = useBifrost({ topic: RosTopic.NULL_TOPIC });
 
   useEffect(() => {
     if (
@@ -21,8 +22,8 @@ export const RosProvider = (props: { children: React.ReactNode }) => {
       BifrostConnectionStatus.DISCONNECTED
     )
       return;
+    const ros = new Ros({ url: "ws://" + uiStore.baseStationIP + ":9090" });
     bifrostActions.updateBifrostConnection(BifrostConnectionStatus.CONNECTING);
-    const ros = new Ros({ url: uiStore.rosUrl });
 
     ros.on("connection", () => {
       bifrostActions.updateBifrostConnection(BifrostConnectionStatus.CONNECTED);
@@ -42,7 +43,7 @@ export const RosProvider = (props: { children: React.ReactNode }) => {
 
     setRos(ros);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [uiStore.rosUrl]);
+  }, [uiStore.baseStationIP]);
 
   return (
     <RosContext.Provider value={ros}>{props.children}</RosContext.Provider>

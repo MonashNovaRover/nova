@@ -1,5 +1,5 @@
 import { useDispatch } from "react-redux";
-import { Camera, CameraStreamerStatus } from "../models/CameraStreamState";
+import { CameraStreamerStatus } from "../models/CameraStreamState";
 import { CameraStreamerAction } from "../slices/CameraStreamSlice";
 
 export const useCameraStreamerActions = () => {
@@ -12,7 +12,7 @@ export const useCameraStreamerActions = () => {
     });
   };
 
-  const updateCameras = (cameras: Camera[]) => {
+  const updateCameras = (cameras: { [serial: string]: string }) => {
     dispatch({
       type: CameraStreamerAction.UPDATE_CAMERAS.type,
       payload: cameras,

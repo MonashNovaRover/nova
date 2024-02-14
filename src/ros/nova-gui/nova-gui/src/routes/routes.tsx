@@ -4,14 +4,14 @@ import ARCMappingAutonomousView from "../views/arc/ARCMappingAutonomous";
 import ARCPostLandingView from "../views/arc/ARCPostLandingView";
 import ARCSpaceResourcesView from "../views/arc/ARCSpaceResourcesView";
 import ARCBaseView from "../views/arc/ARCBaseView";
-// import GeneralBaseView from "../views/general/GeneralBaseView";
 import URCBaseView from "../views/urc/URCBaseView";
 import URCAutonomousNavigationView from "../views/urc/URCAutonomousNavigationView";
 import URCDeliveryView from "../views/urc/URCDeliveryView";
 import URCEquipmentServicingView from "../views/urc/URCEquipmentServicingView";
 import URCScienceView from "../views/urc/URCScienceView";
 import { Root } from "../root";
-import { CameraPage } from "../views/shared/CamerasPage";
+import TestDriveComponentsView from "../views/test/TestDriveComponentsView.tsx";
+import { CameraPage } from "../views/shared/CamerasPage/CamerasPage.tsx";
 
 export const arcRoutes: RouteObject[] = [
   {
@@ -66,6 +66,13 @@ export const generalRoutes: RouteObject[] = [
   },
 ];
 
+export const testRoutes: RouteObject[] = [
+  {
+    path: "/test/drive",
+    element: <TestDriveComponentsView />,
+  },
+];
+
 export const routes: RouteObject[] = [
   {
     path: "/",
@@ -85,6 +92,10 @@ export const routes: RouteObject[] = [
         path: "/general",
         element: <CameraPage />,
         children: generalRoutes,
+      },
+      {
+        path: "/test",
+        children: testRoutes,
       },
     ],
   },

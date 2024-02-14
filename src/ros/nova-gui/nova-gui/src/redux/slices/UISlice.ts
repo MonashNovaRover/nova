@@ -3,16 +3,29 @@ import { UIState, initialUIState } from "../models/UIState";
 
 export const uiSlice = createSlice({
   reducers: {
-    URL_UPDATE: (state: UIState, action: PayloadAction<string>) => {
+    IP_UPDATE: (
+      state: UIState,
+      action: PayloadAction<{ roverIP: string; baseStationIP: string }>
+    ) => {
       return {
         ...state,
-        rosUrl: action.payload,
+        ...action.payload,
       };
     },
-    MODAL_UPDATE: (state: UIState, action: PayloadAction<boolean>) => {
+
+    SETTINGS_MODAL_UPDATE: (state: UIState, action: PayloadAction<boolean>) => {
       return {
         ...state,
         settingsModalOpen: action.payload,
+      };
+    },
+    CONTROLLER_HELP_MODAL_UPDATE: (
+      state: UIState,
+      action: PayloadAction<boolean>
+    ) => {
+      return {
+        ...state,
+        controllerHelpModalOpen: action.payload,
       };
     },
   },

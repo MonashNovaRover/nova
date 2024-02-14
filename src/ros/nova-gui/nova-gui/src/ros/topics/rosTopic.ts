@@ -6,9 +6,16 @@
  * An Example Topic: 'topics/demo' has been added here as DEMO_TOPIC and used throughout the examples
  */
 
-export enum RosTopics {
+export enum RosTopic {
   // NULL TOPIC to Test Rosbridge Connections
   NULL_TOPIC = "",
   // ROS Topics
   POSE = "/pose",
+
+  // Drive related topics
+  DRIVE_INFO = "/control/drive_info",
+  TELEMETRY = "/control/telemetry",
+
+  // Camera Related topics
+  CAMERAS = "/camera_directory/cameras",
 }

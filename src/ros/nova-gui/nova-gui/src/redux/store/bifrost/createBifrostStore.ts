@@ -3,13 +3,21 @@ import {
   BifrostActionType,
   BifrostActionTypes,
 } from "../../actions/bifrost/createBifrostAction";
-import { RosTopics } from "../../../ros/rosTopics";
-import { RosTopicInterfaces } from "../../../ros/rosTopicTypes";
+import { RosTopic } from "../../../ros/topics/rosTopic";
+import { RosTopicInterfaces } from "../../../ros/topics/rosTopicTypes";
+import { RosService } from "../../../ros/services/rosService";
+import { RosServiceInterface } from "../../../ros/services/rosServiceTypes";
+import { BifrostProps } from "../../actions/bifrost/useBifrostAction";
 
-export const createCustomReducer = <S>(initialState: S, handlers: any) => {
-  const reducer = (state: S = initialState, action: any): S => {
-    if (handlers.hasOwnProperty(action.type)) {
-      return handlers[action.type](state, action);
+export const createCustomReducer = <S, H extends object>(
+  initialState: S,
+  handlers: H
+) => {
+  const reducer = (state: S = initialState, action: { type: keyof H }): S => {
+    if (Object.prototype.hasOwnProperty.call(handlers, action.type)) {
+      return (
+        handlers[action.type] as (state: S, action: { type: keyof H }) => S
+      )(state, action);
     } else {
       return state;
     }
@@ -18,22 +26,36 @@ export const createCustomReducer = <S>(initialState: S, handlers: any) => {
 };
 
 export const createBifrostStore = (
-  topic: RosTopics,
-  initialState: RosTopicInterfaces[typeof topic]
+  props: BifrostProps,
+  initialState: object
 ) => {
+  const { service = RosService.NULL_SERVICE, topic = RosTopic.NULL_TOPIC } =
+    props;
+
+  type TopicType = RosTopicInterfaces[typeof topic];
+
+  type ServiceType = RosServiceInterface[typeof service];
+
   const reducerFunctions = {
-    [BifrostActionTypes.UPDATE_DATA + topic]: (
-      _: RosTopicInterfaces[typeof topic],
-      action: BifrostActionType<RosTopicInterfaces[typeof topic]>
+    [BifrostActionTypes.UPDATE_TOPIC_STATE + topic]: (
+      _: TopicType,
+      action: BifrostActionType<TopicType>
     ) => {
-      action;
+      return {
+        ...action.payload,
+      };
+    },
+    [BifrostActionTypes.UPDATE_SERVICE_STATE + "/" + service]: (
+      _: ServiceType,
+      action: BifrostActionType<ServiceType>
+    ) => {
       return {
         ...action.payload,
       };
     },
   };
 
-  return createCustomReducer<RosTopicInterfaces[typeof topic]>(
+  return createCustomReducer<object, typeof reducerFunctions>(
     initialState,
     reducerFunctions
   );

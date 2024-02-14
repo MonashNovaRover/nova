@@ -5,13 +5,25 @@ export function useUIActions() {
   const dispatch = useDispatch();
 
   return {
-    updateROSurl(rosUrl: string) {
-      dispatch({ type: UIActions.URL_UPDATE.type, payload: rosUrl });
+    updateIP(baseStationIP: string, roverIP: string) {
+      dispatch({
+        type: UIActions.IP_UPDATE.toString(),
+        payload: {
+          baseStationIP,
+          roverIP,
+        },
+      });
     },
     setSettingsModal(settingsModalOpen: boolean) {
       dispatch({
-        type: UIActions.MODAL_UPDATE.type,
+        type: UIActions.SETTINGS_MODAL_UPDATE.toString(),
         payload: settingsModalOpen,
+      });
+    },
+    setControllerHelpModal(controllerHelpModalOpen: boolean) {
+      dispatch({
+        type: UIActions.CONTROLLER_HELP_MODAL_UPDATE.toString(),
+        payload: controllerHelpModalOpen,
       });
     },
   };

@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Camera } from "../../../redux/models/CameraStreamState";
 import { PeerMessage, ServerMessage } from "./serverMessages";
 import useWebSocket from "react-use-websocket";
+import { useSelector } from "react-redux";
+import { RootState } from "../../../redux/RootState";
+import toast from "react-hot-toast";
 
 export enum StreamingState {
   STOPPED,
@@ -11,12 +13,8 @@ export enum StreamingState {
 
 const ICE_SERVERS = [
   {
-    // STUN should not be necessary, but Firefox does not play nicely
-    // with LAN connections without it.
-    // - https://groups.google.com/g/mozilla.dev.media/c/rQUhtfBNRgU
-    // - https://bugzilla.mozilla.org/show_bug.cgi?id=1659672
-    // A local server can be used, such as this one:
-    // https://github.com/jselbie/stunserver
+    //! This only works when the base station is connected to the internet !
+    //! Gotta Add the STUN Server spin up by cameras2. Or could be possibly fixed up by Novafox
     urls: [
       "stun:stun.l.google.com:19302",
       "stun:stun1.l.google.com:19302",
@@ -26,28 +24,48 @@ const ICE_SERVERS = [
 ];
 
 export const useCameraStream = (
-  camera: Camera,
+  cameraSerial: string,
   videoRef: React.MutableRefObject<HTMLVideoElement | null>
 ) => {
+  const [isWsOpen, setWsOpen] = useState(false);
+  const roverIP = useSelector((state: RootState) => state.uiState.roverIP);
+
   const { sendJsonMessage, lastJsonMessage } = useWebSocket<ServerMessage>(
-    "ws://192.168.1.204:8443",
+    `ws://${roverIP}:8443`,
     {
       onOpen: () => {
-        sendSessionStartMessage();
+        setWsOpen(true);
       },
     }
   );
 
+  const camerasFromRos = useSelector(
+    (state: RootState) => state.camerasStore.cameras
+  );
+
+  const isCameraOnline = camerasFromRos
+    .map((cam) => cam.serial)
+    .includes(cameraSerial);
+
   const [sessionId, setSessionId] = useState<string>();
   const rtcRef = useRef<RTCPeerConnection>();
+  const peerId = useSelector(
+    (state: RootState) => state.cameraStreamerState.cameras[cameraSerial]
+  );
 
   const [streamingState, setStreamingState] = useState<StreamingState>(
-    StreamingState.LOADING
+    StreamingState.STOPPED
   );
 
   const sendSessionStartMessage = useCallback(() => {
-    sendJsonMessage({ type: "startSession", peerId: camera.peerId });
-  }, [sendJsonMessage]);
+    if (!isWsOpen || !peerId) {
+      toast.error(`${cameraSerial} unable to start up`);
+      return;
+    }
+    setStreamingState(StreamingState.LOADING);
+    sendJsonMessage({ type: "startSession", peerId: peerId });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sendJsonMessage, peerId, isWsOpen]);
 
   const iceCandidateCallback = useCallback(
     (event: RTCPeerConnectionIceEvent) => {
@@ -59,6 +77,7 @@ export const useCameraStream = (
         ice: event.candidate.toJSON(),
       });
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [sessionId]
   );
 
@@ -101,6 +120,7 @@ export const useCameraStream = (
       rtcRef.current = rtcConnection;
       return rtcRef.current;
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [videoRef]);
 
   useEffect(() => {
@@ -108,20 +128,24 @@ export const useCameraStream = (
     switch (lastJsonMessage.type) {
       case "welcome":
         break;
-      case "registered":
+      case "registered": {
         sendSessionStartMessage();
         break;
-      case "sessionStarted":
+      }
+      case "sessionStarted": {
         setSessionId(lastJsonMessage.sessionId);
         break;
-      case "peer":
+      }
+      case "peer": {
         const rtcPeerConnection = handOverRTCPeerConnection();
         handlePeerMessage(rtcPeerConnection, lastJsonMessage);
         break;
+      }
       default:
         throw new Error(`Unknown message ${lastJsonMessage}`);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastJsonMessage]);
 
-  return { streamingState };
+  return { streamingState, sendSessionStartMessage, isCameraOnline };
 };

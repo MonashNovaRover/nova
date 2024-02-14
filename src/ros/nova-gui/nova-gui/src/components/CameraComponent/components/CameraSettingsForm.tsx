@@ -5,10 +5,36 @@ import {
   CircleHalf,
 } from "react-bootstrap-icons";
 import { Droplet } from "react-feather";
+import { CameraFilters } from "../CameraComponent";
 
-export const CameraSettingsForm = () => {
+const snapTo90 = (value: number) : number => {
+  const remainder = value % 90;
+  const snap = value - remainder;
+  return Math.abs(remainder) > 45 ? value >= 0 ? snap + 90 : snap - 90 : snap;
+}
+
+export const CameraSettingsForm = ({
+  cameraFilters,
+  setCameraFilters,
+}: {
+  cameraFilters: CameraFilters;
+  setCameraFilters: React.Dispatch<React.SetStateAction<CameraFilters>>;
+}) => {
   return (
     <div className="mt-2 flex flex-col gap-3 w-full">
+      <Switch
+        size="sm"
+        thumbIcon={<Droplet fill="white" />}
+        isSelected={cameraFilters.flipCamera}
+        onChange={(event) =>
+          setCameraFilters((oldFilters) => ({
+            ...oldFilters,
+            flipCamera: event.target.checked,
+          }))
+        }
+      >
+        Flip Camera
+      </Switch>
       <Switch size="sm" thumbIcon={<Droplet fill="white" />}>
         Invert Colors
       </Switch>
@@ -20,21 +46,26 @@ export const CameraSettingsForm = () => {
         endContent={<CircleHalf />}
       />
       <Slider
-        showSteps
-        step={90}
+        step={10}
         label="Rotation"
         className="max-w-md"
         size="lg"
         startContent="0°"
-        maxValue={360}
-        minValue={0}
+        maxValue={180}
+        minValue={-180}
         endContent={<ArrowCounterclockwise />}
         marks={[
+          { label: "-180°", value: -180 },
+          { label: "-90°", value: -90 },
+          { label: "0°", value: 0 },
           { label: "90°", value: 90 },
           { label: "180°", value: 180 },
-          { label: "270°", value: 270 },
         ]}
         getValue={(val) => `${val}°`}
+        value={cameraFilters.rotation}
+        onChange={(value) =>
+          setCameraFilters({ ...cameraFilters, rotation: snapTo90(value as number)})
+        }
       />
     </div>
   );

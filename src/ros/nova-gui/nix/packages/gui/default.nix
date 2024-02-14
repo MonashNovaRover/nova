@@ -5,12 +5,14 @@
 , rosbridge-server
 , ros-typescript-definitions
 , ros-core
+, nova-core
 }:
 
 let
   # ROS packages for message generation
   rosMessagePackages = [
     ros-core
+    nova-core
   ];
 in
 mkYarnPackage {
@@ -33,7 +35,7 @@ mkYarnPackage {
   }) + "/share/ros-typescript-definitions/messages.ts";
 
   postUnpack = ''
-    ln -s "$ROS_TS_DEFINITIONS" "$sourceRoot/src/ros/rosMessageTypes.ts"
+    ln -s "$ROS_TS_DEFINITIONS" "$sourceRoot/src/ros/rosTypes.ts"
   '';
 
   buildPhase = ''

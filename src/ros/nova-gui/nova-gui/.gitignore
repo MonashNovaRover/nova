@@ -28,7 +28,7 @@
 /yarn-error.log
 
 # Generated sources
-/src/ros/rosMessageTypes.ts
+/src/ros/rosTypes.ts
 
 # OS generated files
 /.DS_Store
