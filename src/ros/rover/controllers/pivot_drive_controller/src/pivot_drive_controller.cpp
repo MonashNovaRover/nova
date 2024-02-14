@@ -15,10 +15,8 @@
 
 namespace
 {
-    constexpr auto DEFAULT_INPUT_TOPIC = "/drive_input";
-    constexpr auto DEFAULT_INPUT_TOPIC_STAMPED = "/drive_input_stamped";
+    constexpr auto DEFAULT_INPUT_TOPIC = "~/drive_input";
     constexpr auto DEFAULT_INPUT_TOPIC_TWIST = "/cmd_vel";
-    constexpr auto DEFAULT_INPUT_TOPIC_TWIST_STAMPED = "/cmd_vel_stamped";
     constexpr auto DEFAULT_OUTPUT_TOPIC = "~/cmd_vel_out";
     constexpr auto DEFAULT_ODOMETRY_TOPIC = "~/odom";
     constexpr auto DEFAULT_TRANSFORM_TOPIC = "~/tf";
@@ -169,13 +167,11 @@ namespace pivot_drive_controller
 
             auto & last_command = previous_twist_commands_.back().twist;
             auto & second_to_last_command = previous_twist_commands_.front().twist;
+
             limiter_linear_.limit(
                 linear_command, last_command.linear.x, second_to_last_command.linear.x, period.seconds()
             );
 
-            target_radius = angular_command == 0 ? INFINITY : abs(linear_command / angular_command);
-
-            speed = linear_command + (linear_command >= 0 ? 1 : -1) * abs((params_.wheel_base / 2) * angular_command);
             //TODO: angular limiter
 
             //previous_twist_commands only ever contains x2 values
@@ -194,7 +190,7 @@ namespace pivot_drive_controller
             RCLCPP_DEBUG(logger, "Target_speed: %f", target_speed);
 
             //target_radius = angular_command == 0 ? 0 : linear_command / abs(angular_command);
-            target_direction = angular_command > 0 ? 1 : -1;
+            target_direction = angular_command > 0 ? -1 : 1;
 
         } else {
             received_drive_input_msg_ptr_.get(last_command_msg);
@@ -669,14 +665,11 @@ namespace pivot_drive_controller
         previous_commands_.emplace(empty_drive_input);
         previous_commands_.emplace(empty_drive_input);
 
-        twist_unstamped_subscriber_ = get_node()->create_subscription<geometry_msgs::msg::Twist>(
-          DEFAULT_INPUT_TOPIC_TWIST, rclcpp::SystemDefaultsQoS(),
-          [this](const std::shared_ptr<geometry_msgs::msg::Twist> msg) -> void
-          {
-            if (!params_.use_unstamped_msg) {
-              return;
-            }
-            if (!subscriber_is_active_)
+        if (params_.use_unstamped_msg)
+        {
+          twist_unstamped_subscriber_ = get_node()->create_subscription<geometry_msgs::msg::Twist>(
+            DEFAULT_INPUT_TOPIC_TWIST, rclcpp::SystemDefaultsQoS(),
+            [this](const std::shared_ptr<geometry_msgs::msg::Twist> msg) -> void
             {
               if (!subscriber_is_active_)
               {
@@ -685,22 +678,17 @@ namespace pivot_drive_controller
                 return;
               }
 
-            // Write fake header in the stored stamped command
-            std::shared_ptr<geometry_msgs::msg::TwistStamped> twist_stamped;
-            received_twist_msg_ptr_.get(twist_stamped);
-            twist_stamped->twist = *msg;
-            twist_stamped->header.stamp = get_node()->get_clock()->now();
-          });
+              // Write fake header in the stored stamped command
+              std::shared_ptr<geometry_msgs::msg::TwistStamped> twist_stamped;
+              received_twist_msg_ptr_.get(twist_stamped);
+              twist_stamped->twist = *msg;
+              twist_stamped->header.stamp = get_node()->get_clock()->now();
+            });
 
 
-        drive_input_unstamped_subscriber_ = get_node()->create_subscription<core::msg::DriveInput>(
-          DEFAULT_INPUT_TOPIC, rclcpp::SystemDefaultsQoS(),
-          [this](const std::shared_ptr<core::msg::DriveInput> msg) -> void
-          {
-            if (!params_.use_unstamped_msg) {
-              return;
-            }
-            if (!subscriber_is_active_)
+          drive_input_unstamped_subscriber_ = get_node()->create_subscription<core::msg::DriveInput>(
+            DEFAULT_INPUT_TOPIC, rclcpp::SystemDefaultsQoS(),
+            [this](const std::shared_ptr<core::msg::DriveInput> msg) -> void
             {
               if (!subscriber_is_active_)
               {
@@ -709,20 +697,18 @@ namespace pivot_drive_controller
                 return;
               }
 
-            // Write fake header in the stored stamped command
-            std::shared_ptr<core::msg::DriveInputStamped> drive_input_stamped;
-            received_drive_input_msg_ptr_.get(drive_input_stamped);
-            drive_input_stamped->drive_input = *msg;
-            drive_input_stamped->header.stamp = get_node()->get_clock()->now();
-          });
-        twist_subscriber_ = get_node()->create_subscription<geometry_msgs::msg::TwistStamped>(
-          DEFAULT_INPUT_TOPIC_TWIST_STAMPED, rclcpp::SystemDefaultsQoS(),
-          [this](const std::shared_ptr<geometry_msgs::msg::TwistStamped> msg) -> void
-          {
-            if (params_.use_unstamped_msg) {
-              return;
-            }
-            if (!subscriber_is_active_)
+              // Write fake header in the stored stamped command
+              std::shared_ptr<core::msg::DriveInputStamped> drive_input_stamped;
+              received_drive_input_msg_ptr_.get(drive_input_stamped);
+              drive_input_stamped->drive_input = *msg;
+              drive_input_stamped->header.stamp = get_node()->get_clock()->now();
+            });
+        }
+        else
+        {
+          twist_subscriber_ = get_node()->create_subscription<geometry_msgs::msg::TwistStamped>(
+            DEFAULT_INPUT_TOPIC_TWIST, rclcpp::SystemDefaultsQoS(),
+            [this](const std::shared_ptr<geometry_msgs::msg::TwistStamped> msg) -> void
             {
               if (!subscriber_is_active_)
               {
