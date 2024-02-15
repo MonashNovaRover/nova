@@ -11,6 +11,7 @@
 , nova-input-interfaces
 , nova-cmd-interfaces
 , nova-interfaces
+, nova-core
 , nova-cameras2
 }:
 
@@ -24,6 +25,7 @@ let
     nova-input-interfaces
     nova-cmd-interfaces
     nova-interfaces
+    nova-core
     nova-cameras2
   ];
 in
