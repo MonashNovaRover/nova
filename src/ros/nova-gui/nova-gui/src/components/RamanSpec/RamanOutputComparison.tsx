@@ -24,6 +24,7 @@ const RamanOutputComparison: React.FC = () => {
     
     useEffect(() => {
         bifrost.syncWithTopic();
+        setOutputChartSeries([...outputChartSeries]);
     }, [bifrost]);
 
     const [outputChartSeries, setOutputChartSeries] = useState([{
