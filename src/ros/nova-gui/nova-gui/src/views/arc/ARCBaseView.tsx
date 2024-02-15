@@ -1,9 +1,10 @@
 import React from "react";
+import Kiln from "../../components/Kiln/Kiln";
 
 const ARCBaseView: React.FC = () => {
   return (
     <div>
-      <h1>Hello!</h1>
+      <Kiln/>
     </div>
   );
 };
