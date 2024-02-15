@@ -6,6 +6,21 @@ This repository contains [Nix](https://nixos.org) files for:
 - Configuring NixOS for various devices
 - Setting up [Hydra](https://nixos.org/hydra) for CI/CD
 
+## Contributing
+
+### Code standards
+
+Before modifying any Nix code, be sure to follow the [IDE setup guide](./doc/ides.md#nix).
+
+### Adding a new repository
+
+To use a new Nova software repository:
+
+1. Ensure that the repository has a `default.nix` as described by [_Adding out-of-tree packages_](./doc/nix.md#adding-out-of-tree-packages).
+2. Add the repository to the [checkout script](./scripts/checkout-nova-sources.sh).
+3. Add the repository to [`nova-repos.nix`](./ci/nova-repos.nix).
+4. Add the PR JSON input to [`spec.json`](./ci/spec.json).
+
 ## Usage
 
 ### ROS workspace and software
