@@ -64,6 +64,7 @@ pivot_drive_controller:
     use_unstamped_msg: true
     has_velocity_limits: true
     max_velocity: 0.67
+    min_velocity: -0.67
 
 strafe_controller:
   ros__parameters:
@@ -85,7 +86,7 @@ nova_diff_drive_controller:
     wheels_per_side: 2
     steering_track: 0.7
     wheel_base: 0.84
-    wheel_radius: 0.15
+    wheel_radius: 0.125
     enable_twist_cmd: false
     use_unstamped_msg: false
     linear:

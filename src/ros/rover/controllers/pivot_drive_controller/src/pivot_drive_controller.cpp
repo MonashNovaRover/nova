@@ -182,10 +182,6 @@ namespace pivot_drive_controller
             RCLCPP_DEBUG(logger, "Target_radius: %f", target_radius);
 
             target_speed = target_radius == 0 ? angular_command * zero_radius_ : linear_command;
-//                    (target_radius == INFINITY ? linear_command :
-//                    linear_command + sqrt(params_.wheel_base*params_.wheel_base/4 +
-//                    params_.steering_track*params_.steering_track/4 + target_radius*target_radius +
-//                    target_radius*params_.steering_track));
 
             RCLCPP_DEBUG(logger, "Target_speed: %f", target_speed);
 
