@@ -1,11 +1,12 @@
-import {useEffect, useLayoutEffect, useRef, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 
 export default function useWebcam() {
-  const videoRef = useRef<HTMLVideoElement | undefined>(undefined);
+  // const videoRef = useRef<HTMLVideoElement | undefined>(undefined);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const [stream, setStream] = useState<MediaStream | undefined>(undefined) // useRef<MediaStream | undefined>(undefined);
 
-  useLayoutEffect(() => {
-    videoRef.current = document.createElement("video");
+  useEffect(() => {
+    //videoRef.current = document.createElement("video");
 
     if (videoRef.current === null)
       return;
@@ -14,7 +15,7 @@ export default function useWebcam() {
       .then((newStream) => {
         setStream(newStream);
       });
-  }, []);
+  }, [videoRef]);
 
   useEffect(() => {
     if (!videoRef.current || stream === undefined)
@@ -22,11 +23,11 @@ export default function useWebcam() {
 
     videoRef.current.srcObject = stream;
 
-    videoRef.current.play().catch((e) => {
+    videoRef.current.play().then(() => console.log("Played webcam stream")).catch((e) => {
       console.error("Failed to play webcam stream", e);
     });
   }, [stream, videoRef]);
 
 
-  return videoRef.current;
+  return videoRef;
 }
