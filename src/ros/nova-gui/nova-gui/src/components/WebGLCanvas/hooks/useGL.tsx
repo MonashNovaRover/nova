@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useLayoutEffect, useRef} from "react";
 
 /**
  * A custom hook allowing the WebGL2RenderingContext to be extracted from a canvas ref.
@@ -8,18 +8,15 @@ import React, {useState} from "react";
 const useGL = ( canvasRef: React.RefObject<HTMLCanvasElement>, webglAttributes?: WebGLContextAttributes )
   : WebGL2RenderingContext | undefined =>
 {
-  const [gl, setGL] = useState<WebGL2RenderingContext | undefined>();
+  const gl = useRef<WebGL2RenderingContext | undefined>(undefined);
 
-  React.useLayoutEffect(() => {
-    const canvas = canvasRef.current;
-    setGL(canvas?.getContext?.("webgl2", {
+  useLayoutEffect(() => {
+    gl.current = (canvasRef.current?.getContext?.("webgl2", {
       ...webglAttributes,
     }) ?? undefined);
+  }, [canvasRef, webglAttributes]);
 
-    console.log("A new WebGL 2 rendering context was created.");
-  }, []);
-
-  return gl;
+  return gl.current;
 }
 
 export default useGL;
