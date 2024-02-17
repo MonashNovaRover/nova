@@ -31,8 +31,6 @@ export default function loadTexture(gl: WebGL2RenderingContext, image: HTMLImage
     pixel,
   );
 
-
-
   //const image = new Image();
   const onload = () => {
     gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -59,14 +57,13 @@ export default function loadTexture(gl: WebGL2RenderingContext, image: HTMLImage
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     }
 
-    console.log("Image loaded");
+    // console.log("Image loaded");
   };
 
   if (image.complete)
     onload();
-  else image.onload = onload;
-
-
+  else
+    image.onload = onload;
   //image.src = url;
 
   // Turn off mips and set wrapping to clamp to edge so it
@@ -78,11 +75,32 @@ export default function loadTexture(gl: WebGL2RenderingContext, image: HTMLImage
   return texture ?? undefined;
 }
 
+export function updateImageTexture(gl: WebGL2RenderingContext, image: HTMLImageElement, texture?: WebGLTexture) {
+  if (!texture || gl === undefined || image === undefined)
+    return;
+
+  const level = 0;
+  const internalFormat = gl.RGBA;
+  const srcFormat = gl.RGBA;
+  const srcType = gl.UNSIGNED_BYTE;
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.texImage2D(
+    gl.TEXTURE_2D,
+    level,
+    internalFormat,
+    srcFormat,
+    srcType,
+    image,
+  );
+}
+
+
+
 export function loadImageFromURL(url: string) {
   const image = new Image();
   image.src = url;
 
-  console.log(`creating image for ${url}`);
+  // console.log(`creating image for ${url}`);
 
   return image;
 }

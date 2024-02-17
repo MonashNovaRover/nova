@@ -5,7 +5,9 @@ export interface IVertexAttribute {
   data: number[]
 }
 
-const useVertexAttributes = (gl?: WebGLRenderingContext, program?: WebGLProgram, attributes?: {[key: string] : IVertexAttribute}) => {
+export type GLAttributes = {[key: string] : IVertexAttribute};
+
+const useAttributes = (gl?: WebGLRenderingContext, program?: WebGLProgram, attributes?: GLAttributes) => {
 
   const [attributeBuffers, setAttributeBuffers] = useState<Record<string, WebGLBuffer | undefined>>({});
 
@@ -53,8 +55,8 @@ const useVertexAttributes = (gl?: WebGLRenderingContext, program?: WebGLProgram,
     });
 
     setAttributeBuffers(Object.fromEntries(newBuffersArray));
-  }, [gl, program, attributes]);
-
+    // console.log("Attributes updated");
+  }, [program, attributes]);
 }
 
-export default useVertexAttributes;
+export default useAttributes;

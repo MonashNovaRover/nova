@@ -7,7 +7,9 @@ export type vec4 = [number, number, number, number];
 
 export type vec = [number] | [number, number] | [number, number, number] | [number, number, number, number];
 
-const useUniforms = (gl?: WebGLRenderingContext, program?: WebGLProgram, uniforms?: {[key: string] : vec}) => {
+export type GLUniforms = {[key: string] : vec};
+
+const useUniforms = (gl?: WebGLRenderingContext, program?: WebGLProgram, uniforms?: GLUniforms) => {
   useEffect(() => {
     if (gl === undefined || uniforms === undefined || program === undefined)
       return;
@@ -20,6 +22,8 @@ const useUniforms = (gl?: WebGLRenderingContext, program?: WebGLProgram, uniform
       else if (uniform.length === 3) gl.uniform3f(location, ...uniform);
       else if (uniform.length === 4) gl.uniform4f(location, ...uniform);
     });
+
+    // console.log("Uniforms updated");
   }, [gl, program, uniforms]);
 }
 
