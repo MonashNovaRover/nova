@@ -1,4 +1,5 @@
 import {isPowerOf2} from "./loadTexture.ts";
+import "rvfc-polyfill"
 
 export default function loadVideoTexture(gl: WebGL2RenderingContext, video: HTMLVideoElement, callback?: () => void) {
   const texture = gl.createTexture();
@@ -66,7 +67,8 @@ export default function loadVideoTexture(gl: WebGL2RenderingContext, video: HTML
   // video.onplaying = onload;
   video.requestVideoFrameCallback(onload);
 
-  video.autoplay = true;
+
+  //video.autoplay = true;
   //video.ontimeupdate = update;
 
   // Turn off mips and set wrapping to clamp to edge so it

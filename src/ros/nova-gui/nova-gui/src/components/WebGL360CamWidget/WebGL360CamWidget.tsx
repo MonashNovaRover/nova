@@ -41,12 +41,13 @@ const WebGL360CamWidgetNonMemo: React.FC = () => {
   } as GLUniforms;
 
   const samplers = useDict<GLSampler>(() => ({
-    rover: logo,
-    webcam: webcam,
+    webcam: webcam.current,
   }), [rover, webcam, logo]);
 
   // Construct the canvas
-  return <><WebGLCanvas width={1200} height={800}
+  return <><WebGLCanvas
+    width={1200}
+    height={800}
 
     // Defines the vertex and fragment shaders. Shader programs are auto-compiled by the component on change.
     vert={Vert}   // Defines the vertex shader.
@@ -70,7 +71,7 @@ const WebGL360CamWidgetNonMemo: React.FC = () => {
     // `HTMLVideoElement`, which is automatically converted into a texture.
     samplers={samplers}
   />
-
+    <video ref={webcam}/>
   </>; //  <video ref={webcam}/>
 }
 
