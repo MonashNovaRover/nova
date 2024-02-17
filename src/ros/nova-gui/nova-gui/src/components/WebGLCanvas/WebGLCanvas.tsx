@@ -1,4 +1,4 @@
-import React, {memo, useEffect, useRef} from "react";
+import React, {memo, MouseEventHandler, useEffect, useRef} from "react";
 import useGL from "./hooks/useGL.tsx";
 import {useProgram} from "./hooks/useProgram.tsx";
 import useAttributes, {GLAttributes} from "./hooks/useAttributes.tsx";
@@ -13,6 +13,9 @@ export interface IWebGLCanvasProps {
   className?: string,
   width?: number,
   height?: number,
+  onMouseOver?: MouseEventHandler<HTMLCanvasElement>,
+  onMouseMove?: MouseEventHandler<HTMLCanvasElement>,
+  onClick?: () => void,
 
   // When true, changes the width and height of the canvas automatically to be the width and height on the screen.
   // TODO: implement

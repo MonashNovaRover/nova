@@ -3,7 +3,7 @@ import Vert from "./vert.ts" ;
 import Frag from "./frag.ts";
 import React, {memo, useState} from "react";
 import useDict from "../WebGLCanvas/hooks/useDict.tsx";
-import {GLUniforms} from "../WebGLCanvas/hooks/useUniforms.tsx";
+import {GLUniforms, vec2} from "../WebGLCanvas/hooks/useUniforms.tsx";
 import {GLSampler} from "../WebGLCanvas/hooks/useSamplers.tsx";
 
 import RoverImage from "../../assets/rover-top-down-dark.png";
@@ -31,13 +31,22 @@ const WebGL360CamWidgetNonMemo: React.FC = () => {
   const [time, setTime] = useState(0);
   useAnimationFrame(setTime);
 
+  const [mousePos, setMousePos] = useState<vec2>([0,0]);
+
   const webcam = useWebcam();
   const rover = useImageTexture(RoverImage);
   const logo = useImageTexture(NovaImage);
 
+  const onMouseMove = (event: MouseEvent) => {
+    if (event.buttons === 1)
+    setMousePos([mousePos[0] + event.movementX, mousePos[1] - event.movementY]);
+  }
+
+
   // We define uniforms that change with the time variable.
   const uniforms = {
-    time: [time]
+    time: [time],
+    mousePos: mousePos
   } as GLUniforms;
 
   const samplers = useDict<GLSampler>(() => ({
@@ -46,8 +55,8 @@ const WebGL360CamWidgetNonMemo: React.FC = () => {
 
   // Construct the canvas
   return <><WebGLCanvas
-    width={1200}
-    height={800}
+    width={1920}
+    height={1440}
 
     // Defines the vertex and fragment shaders. Shader programs are auto-compiled by the component on change.
     vert={Vert}   // Defines the vertex shader.
@@ -70,8 +79,10 @@ const WebGL360CamWidgetNonMemo: React.FC = () => {
     // Defines samplers for the fragment shader (textures). These are passed as a `HTMLImageElement` or
     // `HTMLVideoElement`, which is automatically converted into a texture.
     samplers={samplers}
+
+    onMouseMove={onMouseMove}
   />
-    <video ref={webcam}/>
+    <video width={1920} height={1440} ref={webcam}/>
   </>; //  <video ref={webcam}/>
 }
 

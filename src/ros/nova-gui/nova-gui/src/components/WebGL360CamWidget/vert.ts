@@ -14,8 +14,11 @@ out vec2 uv;
 void main() {
   //v_color = a_color;
   
+  
+  
   // transform the positions to make the frame spin in a circle
-  gl_Position = vec4(a_position.x * 0.5, a_position.y * 0.5, a_position.zw)+ vec4(cos(time) * 0.5,sin(time) * 0.5,0,0);
+  // gl_Position = vec4(a_position.x * 0.9, a_position.y * 0.9, a_position.zw) + vec4(cos(time) * 0.1,sin(time) * 0.1,0,0);
+  gl_Position = a_position;
   
   v_texCoord = a_texCoord;
   
