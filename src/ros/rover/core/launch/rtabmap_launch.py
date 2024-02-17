@@ -44,7 +44,7 @@ def generate_launch_description():
 
     use_sim_time = LaunchConfiguration('use_sim_time')
     qos = LaunchConfiguration('qos')
-    localization = LaunchConfiguration('localization')
+    load_map = LaunchConfiguration('load_map')
 
     parameters={
           'frame_id':'base_link',
@@ -81,22 +81,22 @@ def generate_launch_description():
             description='QoS used for input sensor topics'),
             
         DeclareLaunchArgument(
-            'localization', default_value='false',
-            description='Launch in localization mode.'),
+            'load_map', default_value='false',
+            description='Load and localize in map'),
 
         # Nodes to launch
         
         # SLAM mode:
         Node(
-            condition=UnlessCondition(localization),
+            condition=UnlessCondition(load_map),
             package='rtabmap_slam', executable='rtabmap', output='screen',
             parameters=[parameters],
             remappings=remappings,
             arguments=['-d']), # This will delete the previous database (~/.ros/rtabmap.db)
             
-        # Localization mode:
+        # load_map mode:
         Node(
-            condition=IfCondition(localization),
+            condition=IfCondition(load_map),
             package='rtabmap_slam', executable='rtabmap', output='screen',
             parameters=[parameters,
               {'Mem/IncrementalMemory':'False',

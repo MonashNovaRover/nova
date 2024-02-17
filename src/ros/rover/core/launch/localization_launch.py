@@ -32,7 +32,7 @@ def generate_launch_description():
     # Declare a launch configuration argument of the name "t265"
     use_sim_time = LaunchConfiguration('use_sim_time')
     use_real_odometry = LaunchConfiguration('use_real_odometry')
-    localization = LaunchConfiguration('localization')
+    load_map = LaunchConfiguration('load_map')
 
     gazebo_odom_params = {
         "use_sim_time": use_sim_time, 
@@ -57,8 +57,8 @@ def generate_launch_description():
         description='True to use robot_localisation odometry, False to use p3d gazebo plugin'
     )
 
-    localization_arg = DeclareLaunchArgument(
-        'localization',
+    load_map_arg = DeclareLaunchArgument(
+        'load_map',
         default_value='false',
         description='Localize the rover in a pre-existing map'
     )
@@ -84,14 +84,14 @@ def generate_launch_description():
         PythonLaunchDescriptionSource((get_package_share_path("core") / 'launch' / 'rtabmap_launch.py').as_posix()),
         launch_arguments={
             'use_sim_time': use_sim_time,
-            'localization': localization,
+            'load_map': load_map,
         }.items()
     )
     
     return LaunchDescription([
         use_sim_time_arg,
         use_real_odom_arg,
-        localization_arg,
+        load_map_arg,
         ukf_localisation_gazebo,
         ukf_localisation_odom,
         slam_cmd,

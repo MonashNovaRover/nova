@@ -18,7 +18,7 @@ from ament_index_python.packages import get_package_share_path, get_package_shar
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
-from launch.substitutions import Command, FindExecutable, PathJoinSubstitution, LaunchConfiguration
+from launch.substitutions import Command, FindExecutable, PathJoinSubstitution, LaunchConfiguration, AndSubstitution, NotSubstitution
 from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 
@@ -41,10 +41,12 @@ def generate_launch_description():
     use_respawn = LaunchConfiguration('use_respawn')
     use_real_odometry = LaunchConfiguration('use_real_odometry')
     localization = LaunchConfiguration('localization')
+    load_map = LaunchConfiguration('load_map')
     log_level = LaunchConfiguration('log_level')
     gazebo = LaunchConfiguration('gazebo')
     autonomous = LaunchConfiguration('autonomous')
     headless = LaunchConfiguration('headless')
+    wheel_odom_only = LaunchConfiguration('wheel_odom_only')
 
     # Launch Arguments
     namespace_arg = DeclareLaunchArgument(
@@ -86,13 +88,25 @@ def generate_launch_description():
     use_real_odom_arg = DeclareLaunchArgument(
         'use_real_odometry',
         default_value='true',
-        description='True to use robot_localisation odometry, False to use p3d gazebo plugin'
+        description='True to use robot_localization odometry, False to use p3d gazebo plugin'
     )
 
     localization_arg = DeclareLaunchArgument(
         'localization',
+        default_value='True',
+        description='Flag for running localisation'
+    )
+
+    wheel_odom_only_arg = DeclareLaunchArgument(
+        'wheel_odom_only',
         default_value='false',
-        description='Localize the rover in a pre-existing map'
+        description='Flag to launch with wheel odometry as the only localization method'
+    )
+
+    load_map_arg = DeclareLaunchArgument(
+        'load_map',
+        default_value='False',
+        description='Command for RTAB Map to load an existing map file and localize in it'
     )
 
     log_level_arg = DeclareLaunchArgument(
@@ -124,13 +138,22 @@ def generate_launch_description():
         }.items()
     )
 
-    localisation_cmd = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(os.path.join(core_dir, 'launch', 'localisation_launch.py')),
+    localization_cmd = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(os.path.join(core_dir, 'launch', 'localization_launch.py')),
         launch_arguments={
             'use_sim_time': gazebo,
             'use_real_odometry': use_real_odometry,
-            'localization': localization,
-        }.items()
+            'load_map': localization,
+        }.items(),
+        condition=IfCondition(AndSubstitution(localization, NotSubstitution(wheel_odom_only)))
+    )
+
+    wheel_odom_localization_cmd = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(os.path.join(core_dir, 'launch', 'wheel_odom_localization_launch.py')),
+        launch_arguments={
+            'use_sim_time': gazebo,
+        }.items(),
+        condition = IfCondition(AndSubstitution(localization, wheel_odom_only))
     )
 
     control_cmd = IncludeLaunchDescription(
@@ -170,12 +193,15 @@ def generate_launch_description():
         use_respawn_arg,
         use_real_odom_arg,
         localization_arg,
+        wheel_odom_only_arg,
+        load_map_arg,
         log_level_arg,
         gazebo_arg,
         autonomous_arg,
         headless_arg,
         gazebo_cmd,
-        localisation_cmd,
+        localization_cmd,
+        wheel_odom_localization_cmd,
         control_cmd,
         rviz_cmd,
         navigation_cmd,
