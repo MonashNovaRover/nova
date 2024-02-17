@@ -38,6 +38,14 @@ export const arcRoutes: RouteObject[] = [
     path: "/arc/mapping-autonomous",
     element: <ARCMappingAutonomousView />,
   },
+  {
+    path: "/arc/cameras",
+    element: <CameraPage views={cameraSetup[ARCCompModes.POST_LANDING]} />,
+  },
+  ...Object.values(ARCCompModes).map<RouteObject>((comp) => ({
+    path: `/arc/cameras/${comp}`,
+    element: <CameraPage views={cameraSetup[comp]} />,
+  })),
 ];
 
 export const urcRoutes: RouteObject[] = [
@@ -77,10 +85,6 @@ const cameraRoutes: RouteObject[] = [
     path: "/cameras",
     element: <CameraPage views={cameraSetup[ARCCompModes.POST_LANDING]} />,
   },
-  ...Object.values(ARCCompModes).map<RouteObject>((comp) => ({
-    path: `/cameras/${comp}`,
-    element: <CameraPage views={cameraSetup[comp]} />,
-  })),
   { path: "/cameras/:serial", element: <SingleCameraPage /> },
 ];
 
@@ -91,12 +95,10 @@ export const routes: RouteObject[] = [
     children: [
       {
         path: "/arc",
-        element: <ARCBaseView />,
         children: arcRoutes,
       },
       {
         path: "/urc",
-        element: <URCBaseView />,
         children: urcRoutes,
       },
       {
