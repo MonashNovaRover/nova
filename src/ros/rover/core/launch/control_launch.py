@@ -38,6 +38,12 @@ def generate_launch_description():
     model_arg = DeclareLaunchArgument(name='model', default_value=PathJoinSubstitution([core_dir, 'urdf', 'rover.urdf.xacro']),
             description='Absolute path to robot urdf file')
 
+    control_node = Node(
+        package="controller_manager",
+        executable="ros2_control_node",
+        condition = UnlessCondition(gazebo)
+    )
+
     wheel_velocity_controller = Node(
         package="controller_manager",
         executable="spawner",
@@ -84,6 +90,7 @@ def generate_launch_description():
         gazebo_arg,
         model_arg,
         urdf_launch_cmd,
+        control_node,
         pivot_drive_controller,
         strafe_controller,
         nova_diff_drive_controller,
