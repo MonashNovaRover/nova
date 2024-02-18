@@ -43,6 +43,7 @@ export const CameraComponent = (props: CameraComponentProps) => {
     useCameraStream(cameraSerial, videoRef);
   const [isSettingsOpen, setSettingsOpen] = useState(false);
   const [filters, setFilters] = useState(initialFilters);
+
   const openCameraInTab = () =>
     window.open(
       `/cameras/${cameraSerial}`,

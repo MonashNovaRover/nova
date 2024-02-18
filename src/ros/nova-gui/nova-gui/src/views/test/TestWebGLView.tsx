@@ -1,9 +1,9 @@
-import WebGL360CamWidget from "../../components/WebGL360CamWidget/WebGL360CamWidget.tsx";
+import Camera360Component from "../../components/WebGL360CamWidget/Camera360Component.tsx";
 
 const TestWebGLView: React.FC = () => {
   return (<>
     <div className="">
-      <WebGL360CamWidget className="row-start-1 w-full col-span-2"/>
+      <Camera360Component/>
     </div>
   </>)
 };

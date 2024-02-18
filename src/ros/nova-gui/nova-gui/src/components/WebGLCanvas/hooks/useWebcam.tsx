@@ -1,21 +1,45 @@
-import {useEffect, useRef, useState} from "react";
+import {useCallback, useEffect, useRef, useState} from "react";
+import {StreamingState, useCameraStream} from "../../CameraComponent/hooks/useCameraStream.ts";
+import toast from "react-hot-toast";
 
-export default function useWebcam() {
+export default function useWebcam(videoRef: React.MutableRefObject<HTMLVideoElement | null>) {
   // const videoRef = useRef<HTMLVideoElement | undefined>(undefined);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [stream, setStream] = useState<MediaStream | undefined>(undefined) // useRef<MediaStream | undefined>(undefined);
+  // const videoRef = useRef<HTMLVideoElement>(null);
+  const [stream, setStream] = useState<MediaStream | undefined>(undefined)
+  const [streamingState, setStreamingState] = useState<StreamingState>(
+    StreamingState.STOPPED
+  );
+
+  const [isCameraOnline, setIsCameraOnline] = useState<boolean>(true);
 
   useEffect(() => {
-    //videoRef.current = document.createElement("video");
-
     if (videoRef.current === null)
       return;
 
     navigator.mediaDevices.getUserMedia({ video: true })
       .then((newStream) => {
         setStream(newStream);
+      }).catch((e) => {
+        console.error(e);
+        toast.error(`webcam unable to start up: ${e}`);
+      setIsCameraOnline(false);
       });
   }, [videoRef]);
+
+  const sendSessionStartMessage = useCallback(() => {
+    if (videoRef.current === null)
+      return;
+
+    setStreamingState(StreamingState.LOADING);
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then((newStream) => {
+        setStream(newStream);
+      });
+  }, [videoRef.current]);
+
+  useEffect(() => {
+    sendSessionStartMessage();
+  }, [sendSessionStartMessage]);
 
   useEffect(() => {
     if (!videoRef.current || stream === undefined)
@@ -23,11 +47,18 @@ export default function useWebcam() {
 
     videoRef.current.srcObject = stream;
 
+    setStreamingState(StreamingState.LOADING);
     videoRef.current.play().then(() => console.log("Played webcam stream")).catch((e) => {
       console.error("Failed to play webcam stream", e);
+      setStreamingState(StreamingState.STREAMING);
     });
   }, [stream, videoRef]);
 
 
-  return videoRef;
+  // const { streamingState, sendSessionStartMessage, isCameraOnline } = useCameraStream(cameraSerial, videoRef);
+  return {
+    streamingState,
+    sendSessionStartMessage,
+    isCameraOnline
+  };
 }

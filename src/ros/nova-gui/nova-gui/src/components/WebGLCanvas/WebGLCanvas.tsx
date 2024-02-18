@@ -1,9 +1,10 @@
-import React, {memo, MouseEventHandler, useEffect, useRef} from "react";
+import React, {memo, MouseEventHandler, UIEventHandler, useEffect, useRef, WheelEventHandler} from "react";
 import useGL from "./hooks/useGL.tsx";
 import {useProgram} from "./hooks/useProgram.tsx";
 import useAttributes, {GLAttributes} from "./hooks/useAttributes.tsx";
 import useUniforms, {GLUniforms, vec4} from "./hooks/useUniforms.tsx";
 import useSamplers, {GLSamplers} from "./hooks/useSamplers.tsx";
+import useCanvasSize from "./hooks/useCanvasSize.tsx";
 
 /**
  * Properties for the WebGL canvas. Use these to configure shader programs
@@ -15,7 +16,11 @@ export interface IWebGLCanvasProps {
   height?: number,
   onMouseOver?: MouseEventHandler<HTMLCanvasElement>,
   onMouseMove?: MouseEventHandler<HTMLCanvasElement>,
+  onMouseEnter?: MouseEventHandler<HTMLCanvasElement>,
+  onMouseLeave?: MouseEventHandler<HTMLCanvasElement>,
+  onMouseDown?: MouseEventHandler<HTMLCanvasElement>,
   onClick?: () => void,
+  onWheel?: WheelEventHandler<HTMLCanvasElement>,
 
   // When true, changes the width and height of the canvas automatically to be the width and height on the screen.
   // TODO: implement
@@ -63,6 +68,9 @@ const UnmemoedWebGLCanvas: React.FC<IWebGLCanvasProps> = ({
   clearColor,
   uniforms,
   samplers,
+  width,
+  height,
+                                                            autoSize,
   ...canvasProps
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -83,6 +91,8 @@ const UnmemoedWebGLCanvas: React.FC<IWebGLCanvasProps> = ({
   // Applies samplers. Using frameID as a dependency allows for re-renders on video frame updates.
   const frameID = useSamplers(gl, program, samplers)
 
+  const autoSizeDimensions = useCanvasSize(gl, canvasRef);
+
   // Effect to redraw the canvas
   useEffect(() => {
     if (!gl || !program)
@@ -92,9 +102,9 @@ const UnmemoedWebGLCanvas: React.FC<IWebGLCanvasProps> = ({
     gl.clear(gl.COLOR_BUFFER_BIT);
     // TODO: allow the mode to be specified, rather than being hard coded as `gl.TRIANGLE_STRIP`
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, vertexCount ?? 4);
-  }, [gl, program, uniforms, attributes, samplers, vertexCount, frameID]);
+  }, [gl, program, uniforms, attributes, samplers, vertexCount, frameID, autoSizeDimensions]);
 
-  return <canvas {...canvasProps} ref={canvasRef}></canvas>;
+  return <canvas width={autoSize ? autoSizeDimensions.width : width} height={autoSize ? autoSizeDimensions.height : height} {...canvasProps} ref={canvasRef} ></canvas>;
 }
 
 /**
