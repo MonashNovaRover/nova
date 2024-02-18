@@ -88,6 +88,4 @@ def generate_launch_description():
         strafe_controller,
         nova_diff_drive_controller,
         joint_broad,
-        inputs_processor,
-        led_publisher
     ])
