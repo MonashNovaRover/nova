@@ -51,6 +51,11 @@ void KeyboardTranslate::set_key_mappings(){
     key_mappings.end_effector_actuation_decrease = SDL_SCANCODE_LEFT;
     key_mappings.linear_actuation_increase = SDL_SCANCODE_UP;
     key_mappings.linear_actuation_decrease = SDL_SCANCODE_DOWN;
+    // key_mappings.laser = ctrl(SDL_SCANCODE_RETURN);
+    // key_mappings.hex_key_increase = SDL_SCANCODE_;
+    // key_mappings.hex_key_decrease = SDL_SCANCODE_;
+    // key_mappings.finger_increase = SDL_SCANCODE_;
+    // key_mappings.finger_decrease = SDL_SCANCODE_;
 
     // Joint space control
     key_mappings.joint_1_increase = SDL_SCANCODE_Q;
@@ -81,7 +86,7 @@ void KeyboardTranslate::set_key_mappings(){
     key_mappings.yaw_decrease = SDL_SCANCODE_U;
 }
 
-CommonInputCollections::ControlSchemeInputs KeyboardTranslate::get_control_scheme_inputs() {
+void KeyboardTranslate::get_control_scheme_inputs(core::msg::ArmControlScheme& control_scheme_inputs) {
     if (!updated_controls){
         // Used here for determining whether printing is needed
         if (is_pressed(key_mappings.base_frame_offset_toggle)) {
@@ -156,34 +161,34 @@ CommonInputCollections::ControlSchemeInputs KeyboardTranslate::get_control_schem
             control_scheme_inputs.ik_angular = control_scheme_inputs.ik_linear;
         }
     }
-    
-    return control_scheme_inputs;
-
 }
 
-CommonInputCollections::EndEffectorInputs KeyboardTranslate::get_end_effector_inputs() {
+void KeyboardTranslate::get_end_effector_inputs(core::msg::ArmControlScheme& control_scheme_inputs, core::msg::EndEffectorInput& end_effector_inputs) {
     change_speed();
     if (!control_scheme_inputs.input_lock){
         // Set the values for linear actuator and end effector actuation
         end_effector_inputs.linear_actuation = (is_pressed_or_held(key_mappings.linear_actuation_increase)-is_pressed_or_held(key_mappings.linear_actuation_decrease));
         end_effector_inputs.end_effector_actuation = (is_pressed_or_held(key_mappings.end_effector_actuation_increase)-is_pressed_or_held(key_mappings.end_effector_actuation_decrease));
+    } else {
+        end_effector_inputs.linear_actuation = 0;
+        end_effector_inputs.end_effector_actuation = 0;
     }
-    return end_effector_inputs;
 }
 
-CommonInputCollections::JointVelocityInputs KeyboardTranslate::get_joint_velocity_inputs() {
+void KeyboardTranslate::get_joint_velocity_inputs(core::msg::ArmControlScheme& control_scheme_inputs, sensor_msgs::msg::JointState& joint_velocity_inputs) {
     change_speed();
+    joint_velocity_inputs.velocity.clear();
     if (!control_scheme_inputs.input_lock && !control_scheme_inputs.ik_linear) {
         // No speed scaling for lower joints;
-        joint_velocity_inputs.velocities[0] = speed * (is_pressed_or_held(key_mappings.joint_1_increase)-is_pressed_or_held(key_mappings.joint_1_decrease));
-        joint_velocity_inputs.velocities[1] = speed * (is_pressed_or_held(key_mappings.joint_2_increase)-is_pressed_or_held(key_mappings.joint_2_decrease));
-        joint_velocity_inputs.velocities[2] = speed * (is_pressed_or_held(key_mappings.joint_3_increase)-is_pressed_or_held(key_mappings.joint_3_decrease));
+        joint_velocity_inputs.velocity.push_back(speed * (is_pressed_or_held(key_mappings.joint_1_increase)-is_pressed_or_held(key_mappings.joint_1_decrease)));
+        joint_velocity_inputs.velocity.push_back(speed * (is_pressed_or_held(key_mappings.joint_2_increase)-is_pressed_or_held(key_mappings.joint_2_decrease)));
+        joint_velocity_inputs.velocity.push_back(speed * (is_pressed_or_held(key_mappings.joint_3_increase)-is_pressed_or_held(key_mappings.joint_3_decrease)));
     
     }
     else{
-        joint_velocity_inputs.velocities[0] = 0;
-        joint_velocity_inputs.velocities[1] = 0;
-        joint_velocity_inputs.velocities[2] = 0;
+        joint_velocity_inputs.velocity.push_back(0);
+        joint_velocity_inputs.velocity.push_back(0);
+        joint_velocity_inputs.velocity.push_back(0);
     }
 
     // If using wrist joint-space control
@@ -191,22 +196,19 @@ CommonInputCollections::JointVelocityInputs KeyboardTranslate::get_joint_velocit
         // Scale speed for wrist joints
         float speed_wrist_joints = speed * speed_multipliers.wrist_joints;
         
-        joint_velocity_inputs.velocities[3] = speed_wrist_joints * (is_pressed_or_held(key_mappings.joint_4_increase)-is_pressed_or_held(key_mappings.joint_4_decrease));
-        joint_velocity_inputs.velocities[4] = speed_wrist_joints * (is_pressed_or_held(key_mappings.joint_5_increase)-is_pressed_or_held(key_mappings.joint_5_decrease));
-        joint_velocity_inputs.velocities[5] = speed_wrist_joints * (is_pressed_or_held(key_mappings.joint_6_increase)-is_pressed_or_held(key_mappings.joint_6_decrease));
+        joint_velocity_inputs.velocity.push_back(speed_wrist_joints * (is_pressed_or_held(key_mappings.joint_4_increase)-is_pressed_or_held(key_mappings.joint_4_decrease)));
+        joint_velocity_inputs.velocity.push_back(speed_wrist_joints * (is_pressed_or_held(key_mappings.joint_5_increase)-is_pressed_or_held(key_mappings.joint_5_decrease)));
+        joint_velocity_inputs.velocity.push_back(speed_wrist_joints * (is_pressed_or_held(key_mappings.joint_6_increase)-is_pressed_or_held(key_mappings.joint_6_decrease)));
     }
     else{
-        joint_velocity_inputs.velocities[3] = 0;
-        joint_velocity_inputs.velocities[4] = 0;
-        joint_velocity_inputs.velocities[5] = 0;
+        joint_velocity_inputs.velocity.push_back(0);
+        joint_velocity_inputs.velocity.push_back(0);
+        joint_velocity_inputs.velocity.push_back(0);
     }
-
-    return joint_velocity_inputs;
-
 
 }
 
-CommonInputCollections::TwistInputs KeyboardTranslate::get_twist_inputs() {
+void KeyboardTranslate::get_twist_inputs(core::msg::ArmControlScheme& control_scheme_inputs, geometry_msgs::msg::TwistStamped& twist_inputs) {
     change_speed();
     // If using lower joints IK, set the values for linear velocity
     if (!control_scheme_inputs.input_lock && control_scheme_inputs.ik_linear) {
@@ -214,14 +216,14 @@ CommonInputCollections::TwistInputs KeyboardTranslate::get_twist_inputs() {
         float speed_ik_linear = speed * speed_multipliers.ik_linear;
 
         // Linear velocities map directly
-        twist_inputs.linear.x = speed_ik_linear * (is_pressed_or_held(key_mappings.x_increase)-is_pressed_or_held(key_mappings.x_decrease));
-        twist_inputs.linear.y = speed_ik_linear * (is_pressed_or_held(key_mappings.y_increase)-is_pressed_or_held(key_mappings.y_decrease));
-        twist_inputs.linear.z = speed_ik_linear * (is_pressed_or_held(key_mappings.z_increase)-is_pressed_or_held(key_mappings.z_decrease));
+        twist_inputs.twist.linear.x = speed_ik_linear * (is_pressed_or_held(key_mappings.x_increase)-is_pressed_or_held(key_mappings.x_decrease));
+        twist_inputs.twist.linear.y = speed_ik_linear * (is_pressed_or_held(key_mappings.y_increase)-is_pressed_or_held(key_mappings.y_decrease));
+        twist_inputs.twist.linear.z = speed_ik_linear * (is_pressed_or_held(key_mappings.z_increase)-is_pressed_or_held(key_mappings.z_decrease));
     }
     else {
-        twist_inputs.linear.x = 0;
-        twist_inputs.linear.y = 0;
-        twist_inputs.linear.z = 0;
+        twist_inputs.twist.linear.x = 0;
+        twist_inputs.twist.linear.y = 0;
+        twist_inputs.twist.linear.z = 0;
     }
     // If using wrist IK, set the values for angular velocity
     if (!control_scheme_inputs.input_lock && control_scheme_inputs.ik_angular) {
@@ -231,16 +233,15 @@ CommonInputCollections::TwistInputs KeyboardTranslate::get_twist_inputs() {
         // Adjust roll and pitch directions so control is more intuitive
         // Equivalent to a rotation of the input angular velocity vector by +pi/2 about z axis
         // roll pitch yaw
-        twist_inputs.angular.x = speed_ik_angular * (is_pressed_or_held(key_mappings.roll_increase)-is_pressed_or_held(key_mappings.roll_decrease));
-        twist_inputs.angular.y = speed_ik_angular * (is_pressed_or_held(key_mappings.pitch_increase)-is_pressed_or_held(key_mappings.pitch_decrease));
-        twist_inputs.angular.z = speed_ik_angular * (is_pressed_or_held(key_mappings.yaw_increase)-is_pressed_or_held(key_mappings.yaw_decrease));
+        twist_inputs.twist.angular.x = speed_ik_angular * (is_pressed_or_held(key_mappings.roll_increase)-is_pressed_or_held(key_mappings.roll_decrease));
+        twist_inputs.twist.angular.y = speed_ik_angular * (is_pressed_or_held(key_mappings.pitch_increase)-is_pressed_or_held(key_mappings.pitch_decrease));
+        twist_inputs.twist.angular.z = speed_ik_angular * (is_pressed_or_held(key_mappings.yaw_increase)-is_pressed_or_held(key_mappings.yaw_decrease));
     }
     else{
-        twist_inputs.angular.x = 0;
-        twist_inputs.angular.y = 0;
-        twist_inputs.angular.z = 0;
+        twist_inputs.twist.angular.x = 0;
+        twist_inputs.twist.angular.y = 0;
+        twist_inputs.twist.angular.z = 0;
     }
-    return twist_inputs;
 }
 
 void KeyboardTranslate::keyboard_callback(core::msg::InputKeyboard::SharedPtr msg) {
@@ -280,7 +281,7 @@ void KeyboardTranslate::toggle_control(std::string field_name, bool& value, uint
         value = !value;
         updated_controls = true;
         message = field_name + (value?": true":": false");
-        Print::print(message.c_str());
+        Print::print(message.c_str(), C_MODE);
     }
 }
 

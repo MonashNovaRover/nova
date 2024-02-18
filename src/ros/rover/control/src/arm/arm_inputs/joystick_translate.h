@@ -17,7 +17,6 @@ EDITED:		07/12/2023
 */
 
 #include "input_device.h"
-#include "common_input_collections.h"
 #include "core/msg/input_joystick.hpp"
 
 #include <memory>
@@ -28,12 +27,6 @@ class JoystickTranslate: public InputDevice {
     // store the messages
     core::msg::InputJoystick joystick_l;
     core::msg::InputJoystick joystick_r;
-
-    // store the inputs to be returned
-    CommonInputCollections::ControlSchemeInputs control_scheme_inputs;
-    CommonInputCollections::EndEffectorInputs end_effector_inputs;
-    CommonInputCollections::JointVelocityInputs joint_velocity_inputs;
-    CommonInputCollections::TwistInputs twist_inputs;
 
     typedef struct {
         // Multiplier for all inputs
@@ -58,14 +51,15 @@ class JoystickTranslate: public InputDevice {
     /// @brief      Constructor for the joystick translator
     JoystickTranslate();
 
+
     // See input_device.h for documentation
-    CommonInputCollections::ControlSchemeInputs get_control_scheme_inputs() override;
+    void get_control_scheme_inputs(core::msg::ArmControlScheme& control_scheme_inputs) override;
 
-    CommonInputCollections::EndEffectorInputs get_end_effector_inputs() override;
+    void get_end_effector_inputs(core::msg::ArmControlScheme& control_scheme_inputs, core::msg::EndEffectorInput& end_effector_inputs) override;
 
-    CommonInputCollections::JointVelocityInputs get_joint_velocity_inputs() override;
-
-    CommonInputCollections::TwistInputs get_twist_inputs() override;
+    void get_joint_velocity_inputs(core::msg::ArmControlScheme& control_scheme_inputs, sensor_msgs::msg::JointState& joint_velocity_inputs) override;
+    
+    void get_twist_inputs(core::msg::ArmControlScheme& control_scheme_inputs, geometry_msgs::msg::TwistStamped& twist_inputs) override;
 
     bool is_connected() override;
 

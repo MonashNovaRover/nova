@@ -15,24 +15,28 @@ EDITED:		07/12/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-#include "common_input_collections.h"
 #include <memory>
+
+#include "core/msg/end_effector_input.hpp"
+#include "core/msg/arm_control_scheme.hpp"
+#include "sensor_msgs/msg/joint_state.hpp"
+#include "geometry_msgs/msg/twist_stamped.hpp"
 
 class InputDevice {
     //------------------------------------------------------------//
     public:
 
     /// @brief returns the inputs for the control scheme
-    virtual CommonInputCollections::ControlSchemeInputs get_control_scheme_inputs() = 0;
+    virtual void get_control_scheme_inputs(core::msg::ArmControlScheme& control_scheme_inputs) = 0;
     
     /// @brief returns the inputs for the end effector
-    virtual CommonInputCollections::EndEffectorInputs get_end_effector_inputs() = 0;
+    virtual void get_end_effector_inputs(core::msg::ArmControlScheme& control_scheme_inputs, core::msg::EndEffectorInput& end_effector_inputs) = 0;
     
     /// @brief returns the inputs for the joint velocities
-    virtual CommonInputCollections::JointVelocityInputs get_joint_velocity_inputs() = 0;
+    virtual void get_joint_velocity_inputs(core::msg::ArmControlScheme& control_scheme_inputs, sensor_msgs::msg::JointState& joint_velocity_inputs) = 0;
     
     /// @brief returns the inputs for the twist
-    virtual CommonInputCollections::TwistInputs get_twist_inputs() = 0;
+    virtual void get_twist_inputs(core::msg::ArmControlScheme& control_scheme_inputs, geometry_msgs::msg::TwistStamped& twist_inputs) = 0;
 
     /// @brief returns whether the device is connected
     virtual bool is_connected() = 0;

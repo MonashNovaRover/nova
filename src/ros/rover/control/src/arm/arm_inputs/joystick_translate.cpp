@@ -13,7 +13,7 @@ AUTHOR(S):	Jess Hepworth, Jory Braun, Matthew Gu
 JoystickTranslate::JoystickTranslate() { }
 
 
-CommonInputCollections::ControlSchemeInputs JoystickTranslate::get_control_scheme_inputs()
+void JoystickTranslate::get_control_scheme_inputs(core::msg::ArmControlScheme& control_scheme_inputs)
 {
     // Set base reference frame offset
     int8_t base_frame_offset = 0;
@@ -28,12 +28,12 @@ CommonInputCollections::ControlSchemeInputs JoystickTranslate::get_control_schem
     // Arm lock
     if (joystick_l.btn_bottom_l2_state == 1) {
         if (!control_scheme_inputs.input_lock)
-            Print::print("Joysticks locked");
+            Print::print("Joysticks locked", C_MODE);
         control_scheme_inputs.input_lock = true;
     }
     if (joystick_l.btn_bottom_l5_state == 1){
         if (control_scheme_inputs.input_lock)
-            Print::print("Joysticks Unlocked");
+            Print::print("Joysticks Unlocked", C_MODE);
         control_scheme_inputs.input_lock = false;
     }
     // Joint limits
@@ -74,36 +74,41 @@ CommonInputCollections::ControlSchemeInputs JoystickTranslate::get_control_schem
         control_scheme_inputs.endpoint_frame_angular = control_scheme_inputs.endpoint_frame_linear;
         control_scheme_inputs.ik_angular = control_scheme_inputs.ik_linear;
     }
-    return control_scheme_inputs;
 }
 
-CommonInputCollections::EndEffectorInputs JoystickTranslate::get_end_effector_inputs()
+void JoystickTranslate::get_end_effector_inputs(core::msg::ArmControlScheme& control_scheme_inputs, core::msg::EndEffectorInput& end_effector_inputs)
 {
     if (!control_scheme_inputs.input_lock){
         // Set the values for linear actuator and end effector actuation
         end_effector_inputs.linear_actuation = joystick_l.ax_thumb_x;
         end_effector_inputs.end_effector_actuation = joystick_r.ax_thumb_x * 0.95;
+        // end_effector_inputs.laser = ;
+        // end_effector_inputs.hex_key = ;
+        // end_effector_inputs.finger_actuation = ;
+    } else {
+        end_effector_inputs.linear_actuation = 0;
+        end_effector_inputs.end_effector_actuation = 0;
     }
-    return end_effector_inputs;
+
 }
 
-CommonInputCollections::JointVelocityInputs JoystickTranslate::get_joint_velocity_inputs()
+void JoystickTranslate::get_joint_velocity_inputs(core::msg::ArmControlScheme& control_scheme_inputs, sensor_msgs::msg::JointState& joint_velocity_inputs)
 {
     float speed = scale_speed(joystick_r.ax_slider) * speed_multipliers.all_inputs;
     if (!control_scheme_inputs.input_lock && !control_scheme_inputs.ik_linear) {
         // No speed scaling for lower joints;
         
         // Base rotation is stick twist. CCW rotates arm CCW (from above)
-        joint_velocity_inputs.velocities[0] = speed * joystick_l.ax_stick_twist;
+        joint_velocity_inputs.velocity.push_back(speed * joystick_l.ax_stick_twist);
         // Shoulder is stick y (left-right). Left moves the arm towards the back of the rover
-        joint_velocity_inputs.velocities[1] = speed * joystick_l.ax_stick_y;
+        joint_velocity_inputs.velocity.push_back(speed * joystick_l.ax_stick_y);
         // Elbow is stick x (forward-backward). Forward pitches arm down
-        joint_velocity_inputs.velocities[2] = speed * -joystick_l.ax_stick_x;
+        joint_velocity_inputs.velocity.push_back(speed * -joystick_l.ax_stick_x);
     }
     else{
-        joint_velocity_inputs.velocities[0] = 0;
-        joint_velocity_inputs.velocities[1] = 0;
-        joint_velocity_inputs.velocities[2] = 0;
+        joint_velocity_inputs.velocity.push_back(0);
+        joint_velocity_inputs.velocity.push_back(0);
+        joint_velocity_inputs.velocity.push_back(0);
     }
 
     // If using wrist joint-space control
@@ -112,22 +117,20 @@ CommonInputCollections::JointVelocityInputs JoystickTranslate::get_joint_velocit
         float speed_wrist_joints = speed * speed_multipliers.wrist_joints;
         
         // J4 is stick x. Forward pitches arm down
-        joint_velocity_inputs.velocities[3] = speed_wrist_joints * -joystick_r.ax_stick_x;
+        joint_velocity_inputs.velocity.push_back(speed_wrist_joints * -joystick_r.ax_stick_x);
         // J5 is stick y. Left yaws arm left
-        joint_velocity_inputs.velocities[4] = speed_wrist_joints * joystick_r.ax_stick_y;
+        joint_velocity_inputs.velocity.push_back(speed_wrist_joints * joystick_r.ax_stick_y);
         // J6 is stick twist. CCW tilts end effector CCW (looking out from end effector)
-        joint_velocity_inputs.velocities[5] = speed_wrist_joints * -joystick_r.ax_stick_twist;
+        joint_velocity_inputs.velocity.push_back(speed_wrist_joints * -joystick_r.ax_stick_twist);
     }
     else{
-        joint_velocity_inputs.velocities[3] = 0;
-        joint_velocity_inputs.velocities[4] = 0;
-        joint_velocity_inputs.velocities[5] = 0;
+        joint_velocity_inputs.velocity.push_back(0);
+        joint_velocity_inputs.velocity.push_back(0);
+        joint_velocity_inputs.velocity.push_back(0);
     }
-
-    return joint_velocity_inputs;
 }
 
-CommonInputCollections::TwistInputs JoystickTranslate::get_twist_inputs()
+void JoystickTranslate::get_twist_inputs(core::msg::ArmControlScheme& control_scheme_inputs, geometry_msgs::msg::TwistStamped& twist_inputs)
 {
     float speed = scale_speed(joystick_r.ax_slider) * speed_multipliers.all_inputs;
     
@@ -137,14 +140,14 @@ CommonInputCollections::TwistInputs JoystickTranslate::get_twist_inputs()
         float speed_ik_linear = speed * speed_multipliers.ik_linear;
 
         // Linear velocities map directly from joystick. Directions are already in arm base coords
-        twist_inputs.linear.x = speed_ik_linear * joystick_l.ax_stick_x;
-        twist_inputs.linear.y = speed_ik_linear * joystick_l.ax_stick_y;
-        twist_inputs.linear.z = speed_ik_linear * joystick_l.ax_stick_twist;
+        twist_inputs.twist.linear.x = speed_ik_linear * joystick_l.ax_stick_x;
+        twist_inputs.twist.linear.y = speed_ik_linear * joystick_l.ax_stick_y;
+        twist_inputs.twist.linear.z = speed_ik_linear * joystick_l.ax_stick_twist;
     }
     else {
-        twist_inputs.linear.x = 0;
-        twist_inputs.linear.y = 0;
-        twist_inputs.linear.z = 0;
+        twist_inputs.twist.linear.x = 0;
+        twist_inputs.twist.linear.y = 0;
+        twist_inputs.twist.linear.z = 0;
     }
     // If using wrist IK, set the values for angular velocity
     if (!control_scheme_inputs.input_lock && control_scheme_inputs.ik_angular) {
@@ -154,18 +157,17 @@ CommonInputCollections::TwistInputs JoystickTranslate::get_twist_inputs()
         // Adjust roll and pitch directions so control is more intuitive
         // Equivalent to a rotation of the input angular velocity vector by +pi/2 about z axis
         // Roll is stick y (left-right)
-        twist_inputs.angular.x = speed_ik_angular * -joystick_r.ax_stick_y;
+        twist_inputs.twist.angular.x = speed_ik_angular * -joystick_r.ax_stick_y;
         // Pitch is stick x (forward-backward)
-        twist_inputs.angular.y = speed_ik_angular * joystick_r.ax_stick_x;
+        twist_inputs.twist.angular.y = speed_ik_angular * joystick_r.ax_stick_x;
         // Yaw is stick twist
-        twist_inputs.angular.z = speed_ik_angular * joystick_r.ax_stick_twist;
+        twist_inputs.twist.angular.z = speed_ik_angular * joystick_r.ax_stick_twist;
     }
     else{
-        twist_inputs.angular.x = 0;
-        twist_inputs.angular.y = 0;
-        twist_inputs.angular.z = 0;
+        twist_inputs.twist.angular.x = 0;
+        twist_inputs.twist.angular.y = 0;
+        twist_inputs.twist.angular.z = 0;
     }
-    return twist_inputs;
 }
 
 float JoystickTranslate::scale_speed (float value){

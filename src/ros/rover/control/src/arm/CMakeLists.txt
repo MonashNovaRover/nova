@@ -65,13 +65,13 @@ if(Eigen3_FOUND AND Orocos_kdl_FOUND)
   add_library(joystick_translate arm_inputs/joystick_translate.cpp)
   target_link_libraries(joystick_translate print)
   target_include_directories(joystick_translate PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/arm_inputs)
-  ament_target_dependencies(joystick_translate core)
+  ament_target_dependencies(joystick_translate core geometry_msgs sensor_msgs)
 
   # Keyboard Translate
   add_library(keyboard_translate arm_inputs/keyboard_translate.cpp)
   target_link_libraries(keyboard_translate print)
   target_include_directories(keyboard_translate PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/arm_inputs)
-  ament_target_dependencies(keyboard_translate core SDL2)
+  ament_target_dependencies(keyboard_translate core geometry_msgs sensor_msgs)
 
   ################################################
   # Add executables:

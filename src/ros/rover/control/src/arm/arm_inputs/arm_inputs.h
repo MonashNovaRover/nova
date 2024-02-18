@@ -77,6 +77,7 @@ class ArmInputs : public ArmConfigInfoClient
     rclcpp::Subscription<core::msg::InputKeyboard>::SharedPtr keyboard_sub;
 
     // Stores messages to be published
+    core::msg::EndEffectorInput end_effector_inputs;
     sensor_msgs::msg::JointState joint_velocities;
     geometry_msgs::msg::TwistStamped twist;
     core::msg::ArmControlScheme control_scheme;

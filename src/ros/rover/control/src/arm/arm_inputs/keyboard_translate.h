@@ -18,7 +18,6 @@ Ask operator for key mapping, specifically the frame controls
 */
 
 #include "input_device.h"
-#include "common_input_collections.h"
 #include "core/msg/input_keyboard.hpp"
 
 #include <memory>
@@ -109,6 +108,11 @@ class KeyboardTranslate: public InputDevice {
         uint32_t end_effector_actuation_decrease;
         uint32_t linear_actuation_increase;
         uint32_t linear_actuation_decrease;
+        // uint32_t laser;
+        // uint32_t hex_key_increase;
+        // uint32_t hex_key_decrease;
+        // uint32_t finger_increase;
+        // uint32_t finger_decrease;
 
         // Joint Space control
         uint32_t joint_1_increase;
@@ -139,18 +143,6 @@ class KeyboardTranslate: public InputDevice {
         uint32_t yaw_decrease;
     } KeyMappings;
     KeyMappings key_mappings;
-
-    /// @brief  Input collections for control scheme
-    CommonInputCollections::ControlSchemeInputs control_scheme_inputs;
-    
-    /// @brief  Input collections for end effector
-    CommonInputCollections::EndEffectorInputs end_effector_inputs;
-
-    /// @brief  Input collections for joint velocity (Joint space control)
-    CommonInputCollections::JointVelocityInputs joint_velocity_inputs;
-
-    /// @brief  Input collections for twist (Task space control)
-    CommonInputCollections::TwistInputs twist_inputs;
 
     /// @brief  Sets the key mappings
     void set_key_mappings();
@@ -202,14 +194,14 @@ class KeyboardTranslate: public InputDevice {
     /// @brief  Constructor that does nothing
     KeyboardTranslate();
 
-    // See documentation in input_device.h
-    CommonInputCollections::ControlSchemeInputs get_control_scheme_inputs() override;
+    // See input_device.h for documentation
+    void get_control_scheme_inputs(core::msg::ArmControlScheme& control_scheme_inputs) override;
 
-    CommonInputCollections::EndEffectorInputs get_end_effector_inputs() override;
+    void get_end_effector_inputs(core::msg::ArmControlScheme& control_scheme_inputs, core::msg::EndEffectorInput& end_effector_inputs) override;
 
-    CommonInputCollections::JointVelocityInputs get_joint_velocity_inputs() override;
-
-    CommonInputCollections::TwistInputs get_twist_inputs() override;
+    void get_joint_velocity_inputs(core::msg::ArmControlScheme& control_scheme_inputs, sensor_msgs::msg::JointState& joint_velocity_inputs) override;
+    
+    void get_twist_inputs(core::msg::ArmControlScheme& control_scheme_inputs, geometry_msgs::msg::TwistStamped& twist_inputs) override;
 
     /// @brief Callback for keyboard messages
     /// @param msg The keyboard message

@@ -73,27 +73,18 @@ void ArmInputs::keyboard_deadline_callback()
 // Publishes data on the arm input
 void ArmInputs::publish_endeffector_inputs ()
 {
-    // Create a new message
-    auto message = core::msg::EndEffectorInput();
-
     // Get output from device
-    CommonInputCollections::EndEffectorInputs end_effector_inputs = select_input_device()->get_end_effector_inputs();
+    select_input_device()->get_end_effector_inputs(control_scheme, end_effector_inputs);
 
-    message.linear_actuation = end_effector_inputs.linear_actuation;
-    message.end_effector_actuation = end_effector_inputs.end_effector_actuation;
-    
     // Publish the arm inputs
-    endeffector_pub->publish(message);
+    endeffector_pub->publish(end_effector_inputs);
 }
 
 // Publishes joint velocity data
 void ArmInputs::publish_joint_velocities ()
 {   
-    CommonInputCollections::JointVelocityInputs velocities = select_input_device()->get_joint_velocity_inputs();
-
-    for (long unsigned int i = 0; i < sizeof(velocities.velocities)/sizeof(velocities.velocities[0]); i++) {
-        joint_velocities.velocity[i] = velocities.velocities[i];
-    }
+    // Get output from device
+    select_input_device()->get_joint_velocity_inputs(control_scheme, joint_velocities);
 
     // Set the header
     joint_velocities.header.stamp = this->now();
@@ -104,15 +95,8 @@ void ArmInputs::publish_joint_velocities ()
 // Publishes task velocity data
 void ArmInputs::publish_twist ()
 {
-    CommonInputCollections::TwistInputs twist_inputs = select_input_device()->get_twist_inputs();
-
-    twist.twist.linear.x = twist_inputs.linear.x;
-    twist.twist.linear.y = twist_inputs.linear.y;
-    twist.twist.linear.z = twist_inputs.linear.z;
-
-    twist.twist.angular.x = twist_inputs.angular.x;
-    twist.twist.angular.y = twist_inputs.angular.y;
-    twist.twist.angular.z = twist_inputs.angular.z;
+    // Get output from device
+    select_input_device()->get_twist_inputs(control_scheme, twist);
 
     // Set the header
     twist.header.stamp = this->now();
@@ -130,32 +114,10 @@ void ArmInputs::publish_inputs()
 // Publishes control scheme data
 void ArmInputs::publish_control_scheme()
 {   
+    // Get output from device
+    select_input_device()->get_control_scheme_inputs(control_scheme);
 
-    CommonInputCollections::ControlSchemeInputs control_scheme_inputs = select_input_device()->get_control_scheme_inputs();
-
-    // Set button-based data here so we don't miss any button-press events
-    control_scheme.input_lock = control_scheme_inputs.input_lock;
-    control_scheme.joint_limits = control_scheme_inputs.joint_limits;
-#if POSITION_CONTROL_ENABLE
-    // Position control
-    control_scheme.position_control = control_scheme_inputs.position_control;
-#endif
-    control_scheme.base_frame_offset = control_scheme_inputs.base_frame_offset;
-    control_scheme.flat_frame_linear = control_scheme_inputs.flat_frame_linear;
-    control_scheme.flat_frame_angular = control_scheme_inputs.flat_frame_angular;
-    control_scheme.endpoint_frame_linear = control_scheme_inputs.endpoint_frame_linear;
-    control_scheme.endpoint_frame_angular = control_scheme_inputs.endpoint_frame_angular;
-    control_scheme.ik_linear = control_scheme_inputs.ik_linear;
-    control_scheme.ik_angular = control_scheme_inputs.ik_angular;
-    control_scheme.use_spm_roll = control_scheme_inputs.use_spm_roll;
-    control_scheme.zero_resolvers = control_scheme_inputs.zero_resolvers;
-
-    // Correction for position control - can't have independent linear and angular control
-    if (control_scheme.position_control) {
-        control_scheme.flat_frame_angular = control_scheme.flat_frame_linear;
-        control_scheme.endpoint_frame_angular = control_scheme.endpoint_frame_linear;
-        control_scheme.ik_angular = control_scheme.ik_linear;
-    }
+    // Publish the control scheme
     control_scheme.header.stamp = this->now();
     control_scheme_pub->publish(control_scheme);
 }
