@@ -80,29 +80,6 @@ def generate_launch_description():
         arguments=["joint_broad"]
     )
 
-    inputs_processor = Node(
-        package='control', 
-        executable='drive_inputs', 
-        emulate_tty=True,
-        parameters=[{'use_sim_time': gazebo}]
-    )
-    
-    driver = Node(
-        package='control', 
-        executable='driver', 
-        output='screen', 
-        emulate_tty=True,
-        parameters=[{'use_sim_time': gazebo, 'gazebo': gazebo}]
-    )
-
-    led_publisher = Node(
-        package='electronics', 
-        executable='LED_transmitter.py', 
-        output='screen', 
-        emulate_tty=True,
-        condition=UnlessCondition(gazebo)
-    )
-
     return LaunchDescription([
         gazebo_arg,
         model_arg,
