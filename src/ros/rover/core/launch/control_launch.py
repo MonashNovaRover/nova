@@ -22,6 +22,7 @@ from launch.conditions import UnlessCondition
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
+from launch_ros.substitutions import FindPackageShare
 
 
 # Generate the launch file with all inputs
@@ -29,6 +30,7 @@ def generate_launch_description():
     core_dir = get_package_share_directory('core')
     gazebo = LaunchConfiguration('gazebo', default=False)
     model = LaunchConfiguration('model')
+    controllers = LaunchConfiguration('controllers')
 
     gazebo_arg = DeclareLaunchArgument(
         'gazebo',
@@ -37,10 +39,24 @@ def generate_launch_description():
 
     model_arg = DeclareLaunchArgument(name='model', default_value=PathJoinSubstitution([core_dir, 'urdf', 'rover.urdf.xacro']),
             description='Absolute path to robot urdf file')
+    
+    controllers_arg = DeclareLaunchArgument(
+            name="controllers",
+            default_value=PathJoinSubstitution(
+                [
+                    FindPackageShare("core"), 
+                    "params", 
+                    "controllers.yaml"
+                ]       
+            ),
+            description="Path of the controller params file"
+        )
 
     control_node = Node(
         package="controller_manager",
         executable="ros2_control_node",
+        parameters=[controllers],
+        remappings=[('/controller_manager/robot_description', '/robot_description')],
         condition = UnlessCondition(gazebo)
     )
 
@@ -89,6 +105,7 @@ def generate_launch_description():
     return LaunchDescription([
         gazebo_arg,
         model_arg,
+        controllers_arg,
         urdf_launch_cmd,
         control_node,
         pivot_drive_controller,
