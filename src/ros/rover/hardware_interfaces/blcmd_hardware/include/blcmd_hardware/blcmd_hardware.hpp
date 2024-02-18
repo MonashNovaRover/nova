@@ -157,6 +157,8 @@ private:
 
     bool mock_ = false;
 
+    bool integrate_velocity_ = false;
+
     int reversed_multiplier_ = 1;
 
 
