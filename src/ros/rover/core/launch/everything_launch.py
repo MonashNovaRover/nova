@@ -47,6 +47,7 @@ def generate_launch_description():
     autonomous = LaunchConfiguration('autonomous')
     headless = LaunchConfiguration('headless')
     wheel_odom_only = LaunchConfiguration('wheel_odom_only')
+    rviz = LaunchConfiguration('launch_rviz')
 
     # Launch Arguments
     namespace_arg = DeclareLaunchArgument(
@@ -101,6 +102,12 @@ def generate_launch_description():
         'wheel_odom_only',
         default_value='false',
         description='Flag to launch with wheel odometry as the only localization method'
+    )
+    
+    rviz_arg = DeclareLaunchArgument(
+        'launch_rviz',
+        default_value='True',
+        description='Flag to launch rviz'
     )
 
     load_map_arg = DeclareLaunchArgument(
@@ -165,6 +172,7 @@ def generate_launch_description():
 
     rviz_cmd = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(os.path.join(core_dir, 'launch', 'rviz_launch.py')),
+        condition=IfCondition(rviz)
     )
 
     navigation_cmd = IncludeLaunchDescription(
@@ -199,6 +207,7 @@ def generate_launch_description():
         gazebo_arg,
         autonomous_arg,
         headless_arg,
+        rviz_arg,
         gazebo_cmd,
         localization_cmd,
         wheel_odom_localization_cmd,
