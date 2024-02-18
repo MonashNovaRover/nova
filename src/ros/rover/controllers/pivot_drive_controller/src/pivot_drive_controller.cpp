@@ -112,6 +112,9 @@ namespace pivot_drive_controller
     controller_interface::return_type PivotDriveController::update(
         const rclcpp::Time & time, const rclcpp::Duration & period)
     {
+        // #TODO: Our radius based commands take left as negative and right as positive. This
+        //        this is opposite to the correct angular commands in the frame of the rover
+        //        We should make right the negative direction to match
         auto logger = get_node()->get_logger();
         
         if (get_state().id() == State::PRIMARY_STATE_INACTIVE)
@@ -181,12 +184,12 @@ namespace pivot_drive_controller
             target_radius = angular_command == 0 ? INFINITY : abs(linear_command / angular_command);
             RCLCPP_DEBUG(logger, "Target_radius: %f", target_radius);
 
-            target_speed = target_radius == 0 ? angular_command * zero_radius_ : linear_command;
-
             RCLCPP_DEBUG(logger, "Target_speed: %f", target_speed);
 
             //target_radius = angular_command == 0 ? 0 : linear_command / abs(angular_command);
             target_direction = angular_command > 0 ? -1 : 1;
+
+            target_speed = target_radius == 0 ? abs(angular_command) * zero_radius_ : linear_command;
 
         } else {
             received_drive_input_msg_ptr_.get(last_command_msg);
@@ -270,12 +273,14 @@ namespace pivot_drive_controller
         // Update Odometry
         if (params_.open_loop)
         {
+            // #TODO: Fix open loop odom
             float angular_command = (target_speed / radius) * direction * -1;
             //RCLCPP_INFO(logger, "time: %f", time);
             odometry_.updateOpenLoop(target_speed, angular_command, time);
         }
         else
         {
+            // #TODO Make odometry fault tolerant (or at least recognise faults)
             const double front_right_wheel_value = registered_right_drive_handles_.at(0).state.get().get_value()*params_.wheel_radius;
             const double rear_right_wheel_value = registered_right_drive_handles_.at(1).state.get().get_value()*params_.wheel_radius;
             const double front_left_wheel_value = registered_left_drive_handles_.at(0).state.get().get_value()*params_.wheel_radius;
@@ -359,18 +364,20 @@ namespace pivot_drive_controller
                                              front_left_wheel_value/(left_ratio) +
                                              rear_left_wheel_value/(left_ratio)) / 4;
 
+                        // #TODO: Paramatize this
                         if (fabs(mean_speed) < 0.01) mean_speed = 0;
 
                          RCLCPP_DEBUG_STREAM(get_node()->get_logger(), "mean_speed: " << mean_speed);
 
                         double angular;
-
+                        
+                        // TODO: Fix this direction to be consistent with the frame.
                         if (mean_speed == 0 || mean_radius == INFINITY) {
                             angular = 0;
                         } else if ( mean_radius == 0) {
-                            angular = mean_speed/zero_radius_;
+                            angular = (mean_speed/zero_radius_) * (flp_left ? 1 : -1);
                         } else {
-                            angular = mean_speed/mean_radius;
+                            angular = mean_speed/-mean_radius;
                         }
 
                         double linear = mean_radius == 0 ? 0 : mean_speed;
@@ -449,6 +456,9 @@ namespace pivot_drive_controller
         double left_velocity = target_speed*left_ratio;
         double right_velocity = target_speed*right_ratio;
         double max_velocity = std::max(abs(left_velocity), abs(right_velocity));
+
+        RCLCPP_DEBUG_STREAM(get_node()->get_logger(), "Left Velocity: " << left_velocity);
+        RCLCPP_DEBUG_STREAM(get_node()->get_logger(), "Right Velocity: " <<right_velocity);
 
         if (params_.has_velocity_limits && (abs(left_velocity) > params_.max_velocity || abs(right_velocity) > params_.max_velocity))
         {
