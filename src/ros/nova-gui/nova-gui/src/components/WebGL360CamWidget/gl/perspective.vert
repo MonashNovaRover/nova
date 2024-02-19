@@ -6,6 +6,7 @@ in vec2 aTexCoord;
 
 uniform float fov;
 uniform vec2 mousePos;
+uniform vec2 resolution;
 
 out vec3 vViewDir;
 out vec2 vTexCoord;
@@ -26,27 +27,20 @@ mat3 eulerXZ(vec2 rot) {
 }
 
 void main() {
-    const vec2 aspect = vec2(1.0, 0.75);
-    const float mouseScale = 0.002;
-
-    vec2 aspectedPosition = aspect * aPosition.xy;
-
-    gl_Position = aPosition;
+    vec2 aspect = resolution / max(resolution.x, resolution.y);
 
     // These are euler angle for the (z, x) axes.
     vec2 rotator = -mousePos;
-    mat3 rotation = eulerXZ(rotator * mouseScale);
+    mat3 rotation = eulerXZ(rotator);
 
     const float PI = 3.141592653589793238462643383279502884197169399375105820;
     const float DEG_TO_RAD_TIMES_TWO = PI / 360.0;
-
-
 
     float offsetDistance = abs(tan(fov * DEG_TO_RAD_TIMES_TWO));
     vec2 viewDirScreenOffset = aspect * aPosition.xy * offsetDistance;
 
     vViewDir = rotation * vec3(viewDirScreenOffset.x, 1.0, viewDirScreenOffset.y);
-
-
     vTexCoord = vec2(0.5) + 0.5 * vec2(aPosition.x, -aPosition.y);
+
+    gl_Position = aPosition;
 }

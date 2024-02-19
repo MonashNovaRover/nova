@@ -25,9 +25,6 @@ vec2 equirectangular(vec3 dir) {
     );
 }
 
-
-
-
 void main() {
     // Get the view direction from the vertex shader
     vec3 viewDir = normalize(vViewDir);

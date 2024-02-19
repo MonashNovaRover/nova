@@ -5,6 +5,7 @@ in vec4 aPosition;
 
 uniform float fov;
 uniform vec2 mousePos;
+uniform vec2 resolution;
 
 out vec2 vRotator;
 out vec2 vTexCoord;
@@ -12,11 +13,10 @@ out vec2 vTexCoord;
 const float PI = 3.141592653589793238462643383279502884197169399375105820;
 
 void main() {
-    const vec2 aspect = vec2(1.0, 0.75);
-    const float mouseScale = 0.002;
+    vec2 aspect = resolution / max(resolution.x, resolution.y);
 
     vTexCoord = vec2(aPosition.x, -aPosition.y);
-    vRotator = (vTexCoord * aspect * fov * PI / 180.0) - (mousePos * mouseScale);
+    vRotator = (aPosition.xy * aspect * fov * PI / 360.0) - vec2(mousePos.x, -mousePos.y);
 
     gl_Position = aPosition;
 }

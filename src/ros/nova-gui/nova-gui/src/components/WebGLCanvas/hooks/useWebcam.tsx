@@ -1,5 +1,5 @@
-import {useCallback, useEffect, useRef, useState} from "react";
-import {StreamingState, useCameraStream} from "../../CameraComponent/hooks/useCameraStream.ts";
+import {useCallback, useEffect, useState} from "react";
+import {StreamingState} from "../../CameraComponent/hooks/useCameraStream.ts";
 import toast from "react-hot-toast";
 
 export default function useWebcam(videoRef: React.MutableRefObject<HTMLVideoElement | null>) {
@@ -48,7 +48,7 @@ export default function useWebcam(videoRef: React.MutableRefObject<HTMLVideoElem
     videoRef.current.srcObject = stream;
 
     setStreamingState(StreamingState.LOADING);
-    videoRef.current.play().then(() => console.log("Played webcam stream")).catch((e) => {
+    videoRef.current.play().catch((e) => {
       console.error("Failed to play webcam stream", e);
       setStreamingState(StreamingState.STREAMING);
     });

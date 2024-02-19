@@ -1,14 +1,19 @@
 import React, {useLayoutEffect, useRef} from "react";
 
+export interface CanvasWithGL {
+  canvasRef: React.RefObject<HTMLCanvasElement>,
+  gl?: WebGL2RenderingContext,
+}
+
 /**
  * A custom hook allowing the WebGL2RenderingContext to be extracted from a canvas ref.
- * @param canvasRef the canvas ref, a result of calling something like `useRef<HTMLCanvasElement>(null);`
  * @param webglAttributes any attributes to use when creating the canvas ref
  */
-const useGL = ( canvasRef: React.RefObject<HTMLCanvasElement>, webglAttributes?: WebGLContextAttributes )
-  : WebGL2RenderingContext | undefined =>
+const useGL = (webglAttributes?: WebGLContextAttributes )
+  : CanvasWithGL =>
 {
   const gl = useRef<WebGL2RenderingContext | undefined>(undefined);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useLayoutEffect(() => {
     gl.current = (canvasRef.current?.getContext?.("webgl2", {
@@ -16,7 +21,10 @@ const useGL = ( canvasRef: React.RefObject<HTMLCanvasElement>, webglAttributes?:
     }) ?? undefined);
   }, [canvasRef, webglAttributes]);
 
-  return gl.current;
+  return {
+    canvasRef: canvasRef,
+    gl: gl.current,
+  };
 }
 
 export default useGL;

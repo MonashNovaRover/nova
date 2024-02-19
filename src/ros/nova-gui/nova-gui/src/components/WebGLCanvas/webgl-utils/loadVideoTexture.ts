@@ -58,7 +58,7 @@ export default function loadVideoTexture(gl: WebGL2RenderingContext, video: HTML
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     }
 
-    console.log("Video loaded");
+    //console.log("Video loaded");
 
     update();
     callback?.();
@@ -73,7 +73,7 @@ export default function loadVideoTexture(gl: WebGL2RenderingContext, video: HTML
 
   // Turn off mips and set wrapping to clamp to edge so it
   // will work regardless of the dimensions of the video.
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.MIRRORED_REPEAT);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
 

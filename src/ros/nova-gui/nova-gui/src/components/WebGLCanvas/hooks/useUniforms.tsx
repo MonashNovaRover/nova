@@ -14,8 +14,14 @@ const useUniforms = (gl?: WebGLRenderingContext, program?: WebGLProgram, uniform
     if (gl === undefined || uniforms === undefined || program === undefined)
       return;
 
-    Object.entries(uniforms).forEach(([key, uniform]) => {
+    const entries = Object.entries(uniforms);
+    entries.push(["resolution", [gl.drawingBufferWidth, gl.drawingBufferHeight]]);
+
+    entries.forEach(([key, uniform]) => {
       const location = gl.getUniformLocation(program, key);
+
+      if (location === null)
+        return;
 
       if      (uniform.length === 1) gl.uniform1f(location, ...uniform);
       else if (uniform.length === 2) gl.uniform2f(location, ...uniform);

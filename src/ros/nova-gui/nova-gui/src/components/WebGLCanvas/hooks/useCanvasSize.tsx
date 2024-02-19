@@ -1,12 +1,11 @@
-import React, {useEffect, useState} from "react";
+import {useEffect, useLayoutEffect, useState} from "react";
+import {CanvasWithGL} from "./useGL.tsx";
 
-export default function useCanvasSize(gl: WebGL2RenderingContext | undefined, canvasRef: React.RefObject<HTMLCanvasElement>): { width: number, height: number } {
+export default function useCanvasSize({gl, canvasRef} : CanvasWithGL): [number, number] {
   const [width, setWidth] = useState(4);
   const [height, setHeight] = useState(3);
 
-
-
-  React.useLayoutEffect(() => {
+  useLayoutEffect(() => {
     const pixelRatio = window.devicePixelRatio
 
     const canvas = canvasRef.current;
@@ -27,13 +26,15 @@ export default function useCanvasSize(gl: WebGL2RenderingContext | undefined, ca
     if (!gl)
       return;
 
+    console.log("Resized canvas")
+
 
     gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
 
   }, [gl, width, height]);
 
-  return {
+  return [
     width,
     height,
-  };
+  ];
 }
