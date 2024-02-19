@@ -1,19 +1,26 @@
-import React, {memo, MouseEventHandler, UIEventHandler, useEffect, useRef, WheelEventHandler} from "react";
-import useGL from "./hooks/useGL.tsx";
+import React, {memo, MouseEventHandler, useEffect, WheelEventHandler} from "react";
+import {CanvasWithGL} from "./hooks/useGL.tsx";
 import {useProgram} from "./hooks/useProgram.tsx";
 import useAttributes, {GLAttributes} from "./hooks/useAttributes.tsx";
-import useUniforms, {GLUniforms, vec4} from "./hooks/useUniforms.tsx";
+import useUniforms, {GLUniforms, vec2, vec4} from "./hooks/useUniforms.tsx";
 import useSamplers, {GLSamplers} from "./hooks/useSamplers.tsx";
 import useCanvasSize from "./hooks/useCanvasSize.tsx";
+import useDict from "./hooks/useDict.tsx";
 
 /**
  * Properties for the WebGL canvas. Use these to configure shader programs
  */
 export interface IWebGLCanvasProps {
+  gl: CanvasWithGL
+
+
   // HTNLCanvasElement props
   className?: string,
+
   width?: number,
   height?: number,
+  resolution?: vec2,
+
   onMouseOver?: MouseEventHandler<HTMLCanvasElement>,
   onMouseMove?: MouseEventHandler<HTMLCanvasElement>,
   onMouseEnter?: MouseEventHandler<HTMLCanvasElement>,
@@ -24,7 +31,6 @@ export interface IWebGLCanvasProps {
 
   // When true, changes the width and height of the canvas automatically to be the width and height on the screen.
   // TODO: implement
-  autoSize?: boolean,
 
   // --- GL parameters --- //
 
@@ -62,7 +68,8 @@ export interface IWebGLCanvasProps {
  * @constructor
  */
 const UnmemoedWebGLCanvas: React.FC<IWebGLCanvasProps> = ({
-  vert, frag,
+                                                            gl,
+                                                            vert, frag,
   vertexCount,
   attributes,
   clearColor,
@@ -70,41 +77,46 @@ const UnmemoedWebGLCanvas: React.FC<IWebGLCanvasProps> = ({
   samplers,
   width,
   height,
-                                                            autoSize,
+  resolution,
   ...canvasProps
 }) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const gl = useGL(canvasRef);
-  const program = useProgram(gl, vert, frag);
+  //const canvasRef = useRef<HTMLCanvasElement>(null);
+  //const gl = useGL(canvasRef);
+
+  const program = useProgram(gl.gl, vert, frag);
 
   // Effect to update the clear color
   useEffect(() => {
-    gl?.clearColor(...(clearColor ?? [0, 0, 0, 0]));
-  }, [gl, clearColor]);
+    gl.gl?.clearColor(...(clearColor ?? [0, 0, 0, 0]));
+  }, [gl.gl, clearColor]);
+
 
   // Apply uniforms
-  useUniforms(gl, program, uniforms);
+  useUniforms(gl.gl, program, uniforms);
 
   // Apply vertex attributes. (might include a position buffer of some kind?)
-  useAttributes(gl, program, attributes);
+  useAttributes(gl.gl, program, attributes);
 
   // Applies samplers. Using frameID as a dependency allows for re-renders on video frame updates.
-  const frameID = useSamplers(gl, program, samplers)
-
-  const autoSizeDimensions = useCanvasSize(gl, canvasRef);
+  const frameID = useSamplers(gl.gl, program, samplers)
 
   // Effect to redraw the canvas
   useEffect(() => {
-    if (!gl || !program)
+    if (!gl.gl || !program)
       return;
 
     // Redraw
-    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.gl.clear(gl.gl.COLOR_BUFFER_BIT);
     // TODO: allow the mode to be specified, rather than being hard coded as `gl.TRIANGLE_STRIP`
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, vertexCount ?? 4);
-  }, [gl, program, uniforms, attributes, samplers, vertexCount, frameID, autoSizeDimensions]);
+    gl.gl.drawArrays(gl.gl.TRIANGLE_STRIP, 0, vertexCount ?? 4);
+  }, [gl.gl, program, uniforms, attributes, samplers, vertexCount, frameID]);
 
-  return <canvas width={autoSize ? autoSizeDimensions.width : width} height={autoSize ? autoSizeDimensions.height : height} {...canvasProps} ref={canvasRef} ></canvas>;
+  return <canvas
+    {...canvasProps}
+    width={resolution?.[0] ?? width}
+    height={resolution?.[1] ?? height}
+    ref={gl.canvasRef}
+  />;
 }
 
 /**

@@ -29,36 +29,21 @@ const useSamplers = (gl?: WebGL2RenderingContext, program?: WebGLProgram, sample
       if (sampler === undefined || sampler === null)
         return [key, undefined]; // Skip undefined samplers
 
-      const cachedTexture = textures[key];
+      let texture = textures[key];
 
-      if (sampler instanceof HTMLImageElement) {
+      const location = gl.getUniformLocation(program, key);
+
+      if (!location) {
+        // This sampler does not exist in the program
+        console.warn(`Sampler with name '${key}' does not exist in the shader program!`);
+        return [key, undefined];
+      }
+
+      if (!texture) {
         // The sampler is an image
-        if (cachedTexture) {
-          updateImageTexture(gl, sampler, cachedTexture);
-
-          const location = gl.getUniformLocation(program, key);
-
-          if (!location) {
-            // This sampler does not exist in the program
-            console.warn(`Sampler with name '${key}' does not exist in the shader program!`);
-            return [key, undefined];
-          }
-          console.log(`Sampler with name '${key}' exists in the shader program!`);
-
-          gl.uniform1i(location, index);
-
-          return [key, cachedTexture];
-        }
-
-        const location = gl.getUniformLocation(program, key);
-        if (!location) {
-          // This sampler does not exist in the program
-          console.warn(`Sampler '${key}' does not exist in the shader program!`);
-          return [key, undefined];
-        }
-        console.log(`Sampler with name '${key}' exists in the shader program!`);
-
-        const texture = loadTexture(gl, sampler);
+        texture = sampler instanceof HTMLVideoElement
+          ? loadVideoTexture(gl, sampler)
+          : loadTexture(gl, sampler);
 
         if (!texture)
           return [key, undefined]; // Failed to load into texture; continue to next sampler
@@ -68,63 +53,34 @@ const useSamplers = (gl?: WebGL2RenderingContext, program?: WebGLProgram, sample
         // Bind the texture to texture unit 0
         gl.bindTexture(gl.TEXTURE_2D, texture);
 
+        // Tell the shader we bound the texture to the given texture unit
+        gl.uniform1i(location, index);
+      }
+      else {
+        if (sampler instanceof HTMLVideoElement)
+          updateVideoTexture(gl, sampler, texture);
+        else
+          updateImageTexture(gl, sampler, texture);
+
         // Tell the shader we bound the texture to texture unit 0
         gl.uniform1i(location, index);
-
-        return [key, texture];
       }
-      else if (sampler instanceof HTMLVideoElement) {
-        // The sampler is a video
-        const video = sampler;
 
+      if (sampler instanceof HTMLVideoElement) {
         // Create a callback to run each time a frame is updated. The id of the requestVideoFrameCallback is stored in
         // frameIDs, so that it can be destroyed by the cleanup function.
         const callback = () => {
-          updateVideoTexture(gl, video, texture);
+          updateVideoTexture(gl, sampler, texture);
 
           const newSamplerFrameID = frameIDs.reduce((x,y) => x+y, 0)
           setSamplerFrameID(newSamplerFrameID);
-          frameIDs[index] = video.requestVideoFrameCallback(callback);
+          frameIDs[index] = sampler.requestVideoFrameCallback(callback);
         }
 
-        const startCallback = () => {
-          frameIDs[index] = video.requestVideoFrameCallback(callback);
-        }
-
-        let texture = cachedTexture;
-
-        if (!cachedTexture) {
-          const location = gl.getUniformLocation(program, key);
-
-          if (!location) {
-            // This sampler does not exist in the program
-            console.warn(`Sampler with name '${key}' does not exist in the shader program!`);
-            return [key, undefined];
-          }
-          console.log(`Sampler with name '${key}' exists in the shader program!`);
-
-          // The sampler is an image
-          texture = cachedTexture ?? loadVideoTexture(gl, video);
-
-          if (!texture)
-            return [key, undefined]; // Failed to load into texture; continue to next sampler
-
-          gl.activeTexture(gl.TEXTURE0 + index);
-
-          // Bind the texture to texture unit 0
-          gl.bindTexture(gl.TEXTURE_2D, texture);
-
-          // Tell the shader we bound the texture to the given texture unit
-          gl.uniform1i(location, index);
-
-
-        }
-
-
-        startCallback();
-        return [key, texture];
+        frameIDs[index] = sampler.requestVideoFrameCallback(callback);
       }
-      return [key, undefined];
+
+      return [key, texture];
     });
 
     setTextures(Object.fromEntries(newTex));

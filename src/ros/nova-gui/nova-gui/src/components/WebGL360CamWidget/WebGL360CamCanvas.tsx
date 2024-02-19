@@ -4,17 +4,19 @@ import frag from "./gl/perspective.frag";
 import panoramaFrag from "./gl/panorama.frag";
 import panoramaVert from "./gl/panorama.vert";
 
-import React, {memo, useCallback, useState} from "react";
+import React, {memo, useCallback, useEffect, useState} from "react";
 import useDict from "../WebGLCanvas/hooks/useDict.tsx";
-import {vec2} from "../WebGLCanvas/hooks/useUniforms.tsx";
+import {GLUniforms, vec, vec2} from "../WebGLCanvas/hooks/useUniforms.tsx";
 import {GLSampler} from "../WebGLCanvas/hooks/useSamplers.tsx";
 
 import EquirectangularTestImage from "../../assets/equirectangular.png";
 
 import useImageTexture from "../WebGLCanvas/hooks/useImageTexture.ts";
+import useGL from "../WebGLCanvas/hooks/useGL.tsx";
+import useCanvasSize from "../WebGLCanvas/hooks/useCanvasSize.tsx";
 
 
-
+const DEG_TO_RAD = 0.0174532925199;
 
 // The attributes needed to be defined outside of the function, otherwise the useEffect in useAttributes in WebGLCanvas
 // would be called whenever the uniforms changed. This implies that each time the function is called it generated a new
@@ -46,43 +48,55 @@ const preventDefault = (e: Event) => {
 
 
 export interface WebGL360CamCanvasProps {
-
   className?: string,
   videoRef?: React.MutableRefObject<HTMLVideoElement | null>
-
 }
 
 const WebGL360CamCanvasNonMemo = (props: WebGL360CamCanvasProps) => {
   const videoRef = props.videoRef;
   const equirectangularTest = useImageTexture(EquirectangularTestImage);
 
-  // Mouse position attribute
-  const [mousePos, setMousePos] = useState<vec2>([0, 0]);
-  const onMouseMove = useCallback((event: MouseEvent) => {
-    if (event.buttons === 1)
-      setMousePos([mousePos[0] + event.movementX, mousePos[1] + event.movementY]);
-  }, [mousePos]);
+  const gl = useGL();
+  const [width, height] = useCanvasSize(gl);
+  const resolution = [width, height];
 
   // Panorama mode switch
   const [usePanorama, setUsePanorama] = useState<boolean>(false);
-  const onMouseDown = useCallback((event: MouseEvent) => {
-    if (event.buttons === 2) {
-      setUsePanorama(!usePanorama);
-      console.log("Panorama: ", !usePanorama);
+  const [fov, setFov] = useState(90);
+
+  // Mouse position attribute
+  const [mousePos, setMousePos] = useState<vec2>([0, 0]);
+  const onMouseMove = useCallback((event: MouseEvent) => {
+    if (event.buttons === 1) {
+      const maxResolutionComp = Math.max(width, height);
+
+      setMousePos([
+        mousePos[0] + fov * DEG_TO_RAD * event.movementX / maxResolutionComp,
+        mousePos[1] + fov * DEG_TO_RAD * event.movementY / maxResolutionComp
+      ]);
     }
+
+  }, [mousePos, fov, width, height]);
+
+
+
+
+  const onMouseDown = useCallback((event: MouseEvent) => {
+    if (event.buttons === 2)
+      setUsePanorama(!usePanorama);
   }, [usePanorama]);
 
-  const [fov, setFov] = useState(90);
   const onWheel = useCallback((e: WheelEvent) => {
     const newFov = fov + e.deltaY / 50;
-    setFov(Math.max(Math.min(newFov, 179), 0.01));
-  }, [fov]);
+    setFov(Math.max(Math.min(newFov, usePanorama ? 360 : 179), 0.01));
+  }, [fov, usePanorama]);
 
   // We define uniforms that change with changes to the camera properties
-  const uniforms = useDict(() => ({
+  const uniforms = useDict<vec>(() => ({
     mousePos: mousePos,
-    fov: [fov]
-  }), [mousePos, fov]);
+    fov: [fov],
+    resolution: resolution,
+  }), [mousePos, fov, resolution]);
 
   const samplers = useDict<GLSampler>(() => ({
     camera: videoRef?.current ?? equirectangularTest
@@ -93,9 +107,11 @@ const WebGL360CamCanvasNonMemo = (props: WebGL360CamCanvasProps) => {
   // Construct the canvas
   return (
     <WebGLCanvas
+      gl={gl}
 
-      autoSize
       className={props.className}
+
+      resolution={resolution as vec2}
 
       // Defines the vertex and fragment shaders. Shader programs are auto-compiled by the component on change.
       vert={usePanorama ? panoramaVert : vert}   // Defines the vertex shader.
@@ -124,6 +140,7 @@ const WebGL360CamCanvasNonMemo = (props: WebGL360CamCanvasProps) => {
       onMouseEnter={disableScroll}
       onMouseLeave={enableScroll}
       onMouseDown={onMouseDown}
+
     />
   ); // <video ref={webcam}/> // <video width={1920} height={1440} ref={webcam}/>
 }
