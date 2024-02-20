@@ -22,9 +22,6 @@ EDITED:		02/12/2023
 #include <SDL2/SDL.h>
 #include "core/msg/input_keyboard.hpp"
 
-// Use the standard namespace
-using namespace std;
-
 class Keyboard {
     //------------------------------------------------------------//
     private:
@@ -56,15 +53,6 @@ class Keyboard {
     /// @brief The SDL initial window height
     const static int DEFAULT_WINDOW_HEIGHT = 480;
 
-    /// @brief The key mask for the control key
-    const static int CTRL_MASK = 1<<31;
-
-    /// @brief The key mask for the shift key
-    const static int SHIFT_MASK = 1<<30;
-
-    /// @brief The key mask for the alt key
-    const static int ALT_MASK = 1<<29;
-
     /// @brief      Opens the keyboard input device
     void open_keyboard_device();
 
@@ -83,6 +71,15 @@ class Keyboard {
 
     //------------------------------------------------------------//
 	public:
+
+    /// @brief The key mask for the control key
+    const static int CTRL_MASK = 1<<31;
+
+    /// @brief The key mask for the shift key
+    const static int SHIFT_MASK = 1<<30;
+
+    /// @brief The key mask for the alt key
+    const static int ALT_MASK = 1<<29;
 
     /// @brief      Constructor that finds and intialzes the device
     Keyboard();

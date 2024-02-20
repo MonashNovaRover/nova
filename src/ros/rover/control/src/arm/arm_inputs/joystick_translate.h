@@ -19,7 +19,6 @@ EDITED:		07/12/2023
 #include "input_device.h"
 #include "core/msg/input_joystick.hpp"
 
-#include <memory>
 
 class JoystickTranslate: public InputDevice {
     //------------------------------------------------------------//

@@ -69,9 +69,9 @@ if(Eigen3_FOUND AND Orocos_kdl_FOUND)
 
   # Keyboard Translate
   add_library(keyboard_translate arm_inputs/keyboard_translate.cpp)
-  target_link_libraries(keyboard_translate print)
+  target_link_libraries(keyboard_translate print keyboard)
   target_include_directories(keyboard_translate PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/arm_inputs)
-  ament_target_dependencies(keyboard_translate core geometry_msgs sensor_msgs)
+  ament_target_dependencies(keyboard_translate core geometry_msgs sensor_msgs SDL2)
 
   ################################################
   # Add executables:

@@ -77,6 +77,11 @@ if (NOT TARGET jcan)
   add_library(jcan ${JCAN_CPP})
   target_link_libraries(jcan ${JCAN_LIB} pthread dl rt)
 endif()
+if (NOT TARGET keyboard)
+  add_library(keyboard src/inputs/keyboard.cpp)
+  target_link_libraries(keyboard print)
+  ament_target_dependencies(keyboard SDL2 core)
+endif()
 # Other targets:
 # CMDs
 add_library(cmd src/cmd/cmd.cpp)
@@ -96,10 +101,9 @@ add_executable(inputs
   src/inputs/inputs_publisher.cpp
   src/inputs/joystick.cpp 
   src/inputs/joystick_gamepad.cpp 
-  src/inputs/joystick_thrustmaster.cpp 
-  src/inputs/keyboard.cpp
+  src/inputs/joystick_thrustmaster.cpp
 )
-target_link_libraries(inputs gamepad print)
+target_link_libraries(inputs gamepad print keyboard)
 ament_target_dependencies(inputs rclcpp core SDL2)
 
 # Drive Command script

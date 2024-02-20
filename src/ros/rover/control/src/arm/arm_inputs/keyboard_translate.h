@@ -20,29 +20,19 @@ Ask operator for key mapping, specifically the frame controls
 #include "input_device.h"
 #include "core/msg/input_keyboard.hpp"
 
-#include <memory>
 #include <string>
 #include <map>
+#include <unordered_set>
 
 class KeyboardTranslate: public InputDevice {
     //------------------------------------------------------------//
     private:
 
-    // below constants need to match the key from inputs/keyboard.h
-    /// @brief  The key mask for the control key
-    const static uint32_t CTRL_MASK = 1<<31;
-
-    /// @brief  The key mask for the shift key
-    const static uint32_t SHIFT_MASK = 1<<30;
-
-    /// @brief The key mask for the alt key
-    const static uint32_t ALT_MASK = 1<<29;
+    /// @brief  The keyboard message
+    core::msg::InputKeyboard keyboard;
 
     /// @brief Buffer for messages to print
     std::string message = "";
-
-    /// @brief  The keyboard message
-    core::msg::InputKeyboard keyboard;
 
     /// @brief  speeds increment each time it is increased or decreased. 
     ///         This is to allow for gradual speed changes. 
@@ -78,6 +68,12 @@ class KeyboardTranslate: public InputDevice {
         float ik_angular = 0.85;
     } SpeedMultipliers;
     SpeedMultipliers speed_multipliers;
+
+    /// @brief The key pressed map for the keyboard for pre-processing
+    std::unordered_set<uint32_t> key_pressed_set;
+
+    /// @brief The key held map for the keyboard for pre-processing
+    std::unordered_set<uint32_t> key_held_set;
 
     /// @brief The key mappings for the keyboard
     typedef struct {
@@ -146,6 +142,9 @@ class KeyboardTranslate: public InputDevice {
 
     /// @brief  Sets the key mappings
     void set_key_mappings();
+
+    /// @brief  Preprocesses the keys pressed or held
+    void read_keys();
 
     /// @brief  Searches for if a key is pressed
     /// @param  key SDL Scancode of the key, OR'd with masks

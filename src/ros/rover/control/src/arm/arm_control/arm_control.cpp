@@ -102,6 +102,7 @@ ArmControl::ArmControl() : Node("arm_control")
     resolver_zero_client = this->create_client<core::srv::StringTrigger>(
         "/electronics/resolver_zero_service"
     );
+    // wait for service is moved as zero service here requires arm_info_client
     
 
     // Initialise internal variables

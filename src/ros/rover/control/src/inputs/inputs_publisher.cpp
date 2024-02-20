@@ -25,7 +25,7 @@ InputsPublisher::InputsPublisher() : Node("input_pub")
     //  and then use VENDOR:PRODUCT
     GamepadInit("044F:B10A");
 
-    // // Creates all the joysticks (gamepads and thrustmasters)
+    // Creates all the joysticks (gamepads and thrustmasters)
     gamepad     = new JoystickGamepad(0.0);
     joystick_l  = new JoystickThrustmaster(true, 0.06445, 0.5);
     joystick_r  = new JoystickThrustmaster(false, 0.06445, 0.0);
@@ -63,7 +63,7 @@ void InputsPublisher::publish_input () {
     joystick_r->update();
     keyboard ->update();
 
-    // // Display information about connections (in case they change)
+    // Display information about connections (in case they change)
     if (gamepad->is_disconnected())
         Print::print("Device Disconnected: 'Gamepad'", C_FAIL);
     else if (gamepad->is_reconnected())

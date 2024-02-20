@@ -8,6 +8,8 @@ AUTHOR(S):	Matthew Gu
 */
 
 #include "keyboard_translate.h"
+#include "inputs/keyboard.h"
+
 #include <SDL2/SDL.h>
 #include "print/print.h"
 #include <string>
@@ -91,6 +93,7 @@ void KeyboardTranslate::get_control_scheme_inputs(core::msg::ArmControlScheme& c
         // Used here for determining whether printing is needed
         if (is_pressed(key_mappings.base_frame_offset_toggle)) {
             updated_controls = true;
+            // cycles through -1, 0, 1, indicating
             base_frame_offset++;
             if (base_frame_offset >= 2) {
                 base_frame_offset = -1;
@@ -246,13 +249,14 @@ void KeyboardTranslate::get_twist_inputs(core::msg::ArmControlScheme& control_sc
 
 void KeyboardTranslate::keyboard_callback(core::msg::InputKeyboard::SharedPtr msg) {
     keyboard = *msg;
-    updated_controls = false;
-    updated_speed = false;
+    read_keys();
 }
 
 void KeyboardTranslate::reset_message()
 {
     keyboard = core::msg::InputKeyboard();
+    read_keys();
+
 }
 
 bool KeyboardTranslate::is_connected()
@@ -260,14 +264,28 @@ bool KeyboardTranslate::is_connected()
     return keyboard.connected;
 }
 
+void KeyboardTranslate::read_keys()
+{
+    updated_controls = false;
+    updated_speed = false;
+    key_pressed_set.clear();
+    for (auto key : keyboard.keys_pressed){
+        key_pressed_set.insert(key);
+    }
+    key_held_set.clear();
+    for (auto key : keyboard.keys_repeated){
+        key_held_set.insert(key);
+    }
+}
+
 bool KeyboardTranslate::is_pressed(uint32_t key)
 {
-    return std::find(keyboard.keys_pressed.begin(), keyboard.keys_pressed.end(), key) != keyboard.keys_pressed.end();
+    return key_pressed_set.count(key);
 }
 
 bool KeyboardTranslate::is_held(uint32_t key)
 {
-    return std::find(keyboard.keys_repeated.begin(), keyboard.keys_repeated.end(), key) != keyboard.keys_repeated.end();
+    return key_held_set.count(key);
 }
 
 bool KeyboardTranslate::is_pressed_or_held(uint32_t key)
@@ -287,17 +305,17 @@ void KeyboardTranslate::toggle_control(std::string field_name, bool& value, uint
 
 uint32_t KeyboardTranslate::ctrl(uint32_t key)
 {
-    return key | CTRL_MASK;
+    return key | Keyboard::CTRL_MASK;
 }
 
 uint32_t KeyboardTranslate::shift(uint32_t key)
 {
-    return key | SHIFT_MASK;
+    return key | Keyboard::SHIFT_MASK;
 }
 
 uint32_t KeyboardTranslate::alt(uint32_t key)
 {
-    return key | ALT_MASK;
+    return key | Keyboard::ALT_MASK;
 }
 
 inline void KeyboardTranslate::change_speed(){

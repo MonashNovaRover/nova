@@ -113,7 +113,9 @@ class ArmControl : public rclcpp::Node
     ///         Updates the internal control scheme, which is used to determine how to solve IK
     void control_scheme_callback(const core::msg::ArmControlScheme::SharedPtr msg);
 
-    void zero_resolver_callback(rclcpp::Client<core::srv::StringTrigger>::SharedFuture future);
+    /// @brief  Callback for resolver zero service
+    /// @param  future the result of the service call
+    void zero_resolver_callback(const rclcpp::Client<core::srv::StringTrigger>::SharedFuture future);
     
     /// @brief  Callback for resolver subscription
     ///         Updates the internal joint state, which is later used to update the model
