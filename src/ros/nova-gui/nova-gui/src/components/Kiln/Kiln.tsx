@@ -6,10 +6,10 @@ import { RootState } from "../../redux/RootState";
 import { useBifrost } from "../../redux/actions/bifrost/useBifrostAction";
 import { RosTopic } from "../../ros/topics/rosTopic";
 
-// TO DO: add ROS
+// TO DO: add ROS for turning kiln off and on once it exists
 
 const Kiln: React.FC = () => {
-    const [time, setTime] = useState(0)
+    const [time, setTime] = useState(0);
     const [kilnStatus, setKilnStatus] = useState(false);
     const [toggleKiln, setToggleKiln] = useState(true);
     const [kilnID, setKilnID] = useState(0);
@@ -28,7 +28,7 @@ const Kiln: React.FC = () => {
     useEffect(() => {
         bifrost.syncWithTopic();
         if (kilnTempStore.id == kilnID) {
-            setTemp(kilnTempStore.resistance)
+            setTemp(kilnTempStore.resistance);
             if (temp > maxTemp) {
                 setMaxTemp(temp);
             }
