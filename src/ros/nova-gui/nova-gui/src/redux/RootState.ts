@@ -1,6 +1,7 @@
 import {
   IRosCameraMsgsGetIpListResponse,
   IRosCoreDriveInfo,
+  IRosCoreKilnTempData,
   IRosCoreTelemetry,
   IRosGeometryMsgsPose,
 } from "../ros/rosTypes";
@@ -17,4 +18,5 @@ export interface RootState {
   driveStore: IRosCoreDriveInfo;
   telemetryStore: IRosCoreTelemetry;
   ipList: IRosCameraMsgsGetIpListResponse;
+  kilnTempStore: IRosCoreKilnTempData;
 }

@@ -16,6 +16,13 @@ export const rootReducer = {
       position: { x: 0, y: 0, z: 0 },
     }
   ),
+  kilnTempStore: createBifrostStore(
+    { topic: RosTopic.KILN_TEMP },
+    {
+      id: 0, // Kiln IDs range: [0, 3] in current rover system (WIP)
+      resistance: 0, // [C]
+    }
+  ),
   driveStore: createBifrostStore(
     { topic: RosTopic.DRIVE_INFO },
     {
