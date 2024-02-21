@@ -3,94 +3,16 @@
      Commit Version: 1.6.0-4-g7f85cfe  Build Version: 1.6.7995.38578
      For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
 <robot
-  name="rover">
+  name="rover"
+  xmlns:xacro="http://www.ros.org/wiki/xacro">
   <!-- Manually added links-->
   <link name="base_link"></link>
-  <link name="gps_link"></link>
-  <joint name="base_to_gps" type="fixed">
-    <parent link="base_link"/>
-    <child link="gps_link"/>
-    <origin 
-        xyz="-0.33 0.23 0.38"
-        rpy="0. 0. 0."
-    />
-  </joint>
-
-  <link name="gps_secondary"></link>
-  <joint name="gps_link_to_gps_secondary" type="fixed">
-    <parent link="gps_link"/>
-    <child link="gps_secondary"/>
-    <origin 
-        xyz="0.33 -0.46 0."
-        rpy="0. 0. 0."
-    />
-  </joint>
-
-  <link name="imu_link"></link>
-  <joint name="base_to_imu" type="fixed">
-    <parent link="base_link"/>
-    <child link="imu_link"/>
-    <origin 
-        xyz="0. 0. 0.38"
-        rpy="0. 0. 0."
-    />
-  </joint>
-
-  <link name="t265_forward"></link>
-  <joint name="base_to_t265_forward" type="fixed">
-    <parent link="base_link"/>
-    <child link="t265_forward"/>
-    <origin
-        xyz="0.45 0. 0.49"
-        rpy="0. 0. 0."
-    />
-  </joint>
-
-  <link name="t265_footprint"></link>
-  <joint name="t265_forward_to_footprint" type="fixed">
-    <parent link="t265_forward"/>
-    <child link="t265_footprint"/>
-    <origin
-        xyz="0. 0. 0."
-        rpy="${pi / 2} 0. ${-pi / 2}"
-    />
-  </joint>
-
-  <link name="t265"></link>
-  <joint name="t265_forward_to_t265" type="fixed">
-    <parent link="t265_forward"/>
-    <child link="t265"/>
-    <origin
-        xyz="0. 0. 0."
-        rpy="${41 * pi / 90} 0. ${-pi / 2}"
-    />
-  </joint>
-
-  <link name="d435_1_forward"></link>
-  <joint name="base_to_depth_forward" type="fixed">
-    <parent link="base_link"/>
-    <child link="d435_1_forward"/>
-    <origin
-        xyz="0.46 0. 0.45"
-        rpy="0. 0. 0."
-    />
-  </joint>
-
-  <link name="d435_1"></link>
-  <joint name="depth_forward_to_depth" type="fixed">
-    <parent link="d435_1_forward"/>
-    <child link="d435_1"/>
-    <origin
-        xyz="0. 0. 0."
-        rpy="${-pi / 2} 0. ${-pi / 2}"
-    />
-  </joint>
-
+  
   <link
     name="chassis">
     <inertial>
       <origin
-        xyz="-4.07696484222422E-05 0.022519682157935 0.208053859288305"
+        xyz="0 0 0"
         rpy="0 0 0" />
       <mass
         value="2.6545367242346" />
@@ -105,10 +27,10 @@
     <visual>
       <origin
         xyz="0 0 0"
-        rpy="0 0 0" />
+        rpy="0 0 ${-pi/2}" />
       <geometry>
         <mesh
-          filename="package://core/meshes/chassis.STL" />
+          filename="file:///$(find core)/meshes/chassis.STL" />
       </geometry>
       <material
         name="">
@@ -118,11 +40,10 @@
     </visual>
     <collision>
       <origin
-        xyz="0 0 0"
+        xyz="-0.15 0 0"
         rpy="0 0 0" />
       <geometry>
-        <mesh
-          filename="package://core/meshes/chassis.STL" />
+        <box size="0.4 0.5 0.1"/>
       </geometry>
     </collision>
   </link>
@@ -133,7 +54,7 @@
     <child link="chassis"/>
     <origin 
         xyz="0. -0. 0.38"
-        rpy="0. 0. ${-pi/2}"
+        rpy="0. 0. 0."
     />
   </joint>
 
@@ -151,15 +72,18 @@
         ixz="-0.000555482097613206"
         iyy="0.00569188177881393"
         iyz="-0.00168373564898548"
-        izz="0.00170040442773973" />
+        izz="0.00170040442773973" /> sure we start by add
     </inertial>
     <visual>
       <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
+        xyz="0.45934 0 0.042036"
+        rpy="-2.8999 -1.4752 ${-pi}" />
       <geometry>
         <mesh
-          filename="package://core/meshes/left_leg.STL" />
+          filename="file:///$(find core)/meshes/left_leg.STL" />
+        <!--cylinder
+          radius="0.05"
+          length="0.9"/-->
       </geometry>
       <material
         name="">
@@ -170,10 +94,13 @@
     <collision>
       <origin
         xyz="0 0 0"
-        rpy="0 0 0" />
+        rpy="0 ${pi/2} 0" />
       <geometry>
-        <mesh
-          filename="package://core/meshes/left_leg.STL" />
+        <!--mesh
+          filename="file:///$(find core)/meshes/left_leg.STL" /-->
+        <cylinder
+          radius="0.03"
+          length="0.9"/>
       </geometry>
     </collision>
   </link>
@@ -181,14 +108,14 @@
     name="left_leg_to_chassis"
     type="fixed">
     <origin
-      xyz="-0.38386 0.45934 0.042036"
-      rpy="-2.8999 -1.4752 -1.5708" />
+      xyz="0 0.38386 0"
+      rpy="0 0 0" />
     <parent
       link="chassis" />
     <child
       link="left_leg" />
     <axis
-      xyz="0 0 0" />
+      xyz="0 1 0" />
   </joint>
   <link
     name="front_left_pivot">
@@ -212,7 +139,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://core/meshes/front_left_pivot.STL" />
+          filename="file:///$(find core)/meshes/front_left_pivot.STL" />
       </geometry>
       <material
         name="">
@@ -226,12 +153,12 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://core/meshes/front_left_pivot.STL" />
+          filename="file:///$(find core)/meshes/front_left_pivot.STL" />
       </geometry>
     </collision>
   </link>
   <joint
-    name="front_left_pivot_to_leg"
+    name="flp"
     type="revolute">
     <origin
       xyz="-0.077405 -0.001432 0.024083"
@@ -243,10 +170,11 @@
     <axis
       xyz="0 1 0" />
     <limit
-      lower="-1.570796327"
-      upper="1.570796327"
+      lower="-3.141592654"
+      upper="3.141592654"
       effort="1"
       velocity="1" />
+    <dynamics damping="10.0" friction="10.0"/>
   </joint>
   <link
     name="front_left_wheel">
@@ -270,7 +198,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://core/meshes/front_left_wheel.STL" />
+          filename="file:///$(find core)/meshes/front_left_wheel.STL" />
       </geometry>
       <material
         name="">
@@ -284,12 +212,12 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://core/meshes/front_left_wheel.STL" />
+          filename="file:///$(find core)/meshes/wheel_collision.stl" />
       </geometry>
     </collision>
   </link>
   <joint
-    name="front_left_wheel_to_pivot"
+    name="flw"
     type="continuous">
     <origin
       xyz="0 0.21 0"
@@ -323,7 +251,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://core/meshes/back_left_pivot.STL" />
+          filename="file:///$(find core)/meshes/back_left_pivot.STL" />
       </geometry>
       <material
         name="">
@@ -337,12 +265,12 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://core/meshes/back_left_pivot.STL" />
+          filename="file:///$(find core)/meshes/back_left_pivot.STL" />
       </geometry>
     </collision>
   </link>
   <joint
-    name="back_left_pivot_to_leg"
+    name="blp"
     type="revolute">
     <origin
       xyz="-0.0093548 0.20893 0.87956"
@@ -354,10 +282,11 @@
     <axis
       xyz="0 1 0" />
     <limit
-      lower="-1.570796327"
-      upper="1.570796327"
+      lower="-3.141592654"
+      upper="3.141592654"
       effort="1"
       velocity="1" />
+    <dynamics damping="10.0" friction="10.0"/>
   </joint>
   <link
     name="back_left_wheel">
@@ -381,7 +310,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://core/meshes/back_left_wheel.STL" />
+          filename="file:///$(find core)/meshes/back_left_wheel.STL" />
       </geometry>
       <material
         name="">
@@ -395,12 +324,12 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://core/meshes/back_left_wheel.STL" />
+          filename="file:///$(find core)/meshes/wheel_collision.stl" />
       </geometry>
     </collision>
   </link>
   <joint
-    name="back_left_wheel_to_pivot"
+    name="blw"
     type="continuous">
     <origin
       xyz="0 0.21 0"
@@ -434,7 +363,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://core/meshes/right_leg.STL" />
+          filename="file:///$(find core)/meshes/right_leg.STL" />
       </geometry>
       <material
         name="">
@@ -448,7 +377,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://core/meshes/right_leg.STL" />
+          filename="file:///$(find core)/meshes/right_leg.STL" />
       </geometry>
     </collision>
   </link>
@@ -463,7 +392,7 @@
     <child
       link="right_leg" />
     <axis
-      xyz="0 0 0" />
+      xyz="0 1 0" />
   </joint>
   <link
     name="front_right_pivot">
@@ -487,12 +416,12 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://core/meshes/front_right_pivot.STL" />
+          filename="file:///$(find core)/meshes/front_right_pivot.STL" />
       </geometry>
       <material
         name="">
         <color
-          rgba="0.533333333 0.545098039 0.552941176 1" /> />
+          rgba="0.533333333 0.545098039 0.552941176 1" />
       </material>
     </visual>
     <collision>
@@ -501,12 +430,12 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://core/meshes/front_right_pivot.STL" />
+          filename="file:///$(find core)/meshes/front_right_pivot.STL" />
       </geometry>
     </collision>
   </link>
   <joint
-    name="front_right_pivot_to_leg"
+    name="frp"
     type="revolute">
     <origin
       xyz="-0.0090629 0.21252 0.87795"
@@ -518,11 +447,13 @@
     <axis
       xyz="0 1 0" />
     <limit
-      lower="-1.570796327"
-      upper="1.570796327"
+      lower="-3.141592654"
+      upper="3.141592654"
       effort="1"
       velocity="1" />
+    <dynamics damping="10.0" friction="10.0"/>
   </joint>
+
   <link
     name="front_right_wheel">
     <inertial>
@@ -545,7 +476,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://core/meshes/front_right_wheel.STL" />
+          filename="file:///$(find core)/meshes/front_right_wheel.STL" />
       </geometry>
       <material
         name="">
@@ -559,12 +490,12 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://core/meshes/front_right_wheel.STL" />
+          filename="file:///$(find core)/meshes/wheel_collision.stl" />
       </geometry>
     </collision>
   </link>
   <joint
-    name="front_right_wheel_to_pivot"
+    name="frw"
     type="continuous">
     <origin
       xyz="0 0.21 0"
@@ -598,7 +529,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://core/meshes/back_right_pivot.STL" />
+          filename="file:///$(find core)/meshes/back_right_pivot.STL" />
       </geometry>
       <material
         name="">
@@ -612,12 +543,12 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://core/meshes/back_right_pivot.STL" />
+          filename="file:///$(find core)/meshes/back_right_pivot.STL" />
       </geometry>
     </collision>
   </link>
   <joint
-    name="back_right_pivot_to_leg"
+    name="brp"
     type="revolute">
     <origin
       xyz="-0.077405 0.0014344 0.024083"
@@ -629,10 +560,11 @@
     <axis
       xyz="0 1 0" />
     <limit
-      lower="-1.570796327"
-      upper="1.570796327"
+      lower="-3.141592654"
+      upper="3.141592654"
       effort="1"
       velocity="1" />
+    <dynamics damping="10.0" friction="10.0"/>
   </joint>
   <link
     name="back_right_wheel">
@@ -656,7 +588,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://core/meshes/back_right_wheel.STL" />
+          filename="file:///$(find core)/meshes/back_right_wheel.STL" />
       </geometry>
       <material
         name="">
@@ -670,12 +602,12 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://core/meshes/back_right_wheel.STL" />
+          filename="file:///$(find core)/meshes/wheel_collision.stl" />
       </geometry>
     </collision>
   </link>
   <joint
-    name="back_right_wheel_to_pivot"
+    name="brw"
     type="continuous">
     <origin
       xyz="0 0.21 0"
@@ -687,4 +619,7 @@
     <axis
       xyz="1 0 0" />
   </joint>
+
+  <xacro:include filename="ros2_control.xacro" />
+  <xacro:include filename="depth_camera.xacro" />
 </robot>

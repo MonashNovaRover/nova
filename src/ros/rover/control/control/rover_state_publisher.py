@@ -72,10 +72,7 @@ class RoverStatePublisher(Node):
 
         self.joint_state.header.stamp = now.to_msg()
 
-        self.joint_state.name = ['front_left_wheel_to_pivot', 'back_left_wheel_to_pivot',
-                                 'back_right_wheel_to_pivot', 'front_right_wheel_to_pivot',
-                                 'front_left_pivot_to_leg', 'back_left_pivot_to_leg',
-                                 'back_right_pivot_to_leg', 'front_right_pivot_to_leg']
+        self.joint_state.name = ['flw', 'blw', 'brw', 'frw', 'flp', 'blp', 'brp', 'frp']
 
 
         self.joint_state.position = [FRONT_LEFT_DIR * self.telemetry.wheels[0].resolver_position,

@@ -1,0 +1,43 @@
+# To run the /aruco_tracker node with these params, input 
+# "ros2 run aruco_opencv aruco_tracker_autostart --ros-args --params-file /home/nova/src/ros/rover/core/params/aruco_tracker.yaml"
+/aruco_tracker:
+  ros__parameters:
+    aruco:
+      adaptiveThreshConstant: 7.0
+      adaptiveThreshWinSizeMax: 23
+      adaptiveThreshWinSizeMin: 3
+      adaptiveThreshWinSizeStep: 10
+      cornerRefinementMaxIterations: 30
+      cornerRefinementMethod: 2
+      cornerRefinementMinAccuracy: 0.1
+      cornerRefinementWinSize: 5
+      errorCorrectionRate: 0.6
+      markerBorderBits: 1
+      maxErroneousBitsInBorderRate: 0.35
+      maxMarkerPerimeterRate: 4.0
+      minCornerDistanceRate: 0.05
+      minDistanceToBorder: 3
+      minMarkerDistanceRate: 0.05
+      minMarkerPerimeterRate: 0.03
+      minOtsuStdDev: 5.0
+      perspectiveRemoveIgnoredMarginPerCell: 0.13
+      perspectiveRemovePixelPerCell: 4
+      polygonalApproxAccuracyRate: 0.03
+    cam_base_topic: camera/image_raw
+    image_is_rectified: false
+    image_sub_qos:
+      depth: 1
+      durability: 2
+      reliability: 2
+    marker_dict: 4X4_50
+    marker_size: 0.0742
+    output_frame: ''
+    publish_tf: true
+    qos_overrides:
+      /tf:
+        publisher:
+          depth: 100
+          durability: volatile
+          history: keep_last
+          reliability: reliable
+    use_sim_time: false
