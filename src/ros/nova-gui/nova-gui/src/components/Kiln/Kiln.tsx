@@ -16,7 +16,7 @@ const Kiln: React.FC = () => {
     const [maxTemp, setMaxTemp] = useState(100);
     const [temp, setTemp] = useState(0);
 
-    let timer = setTimeout(() => {kilnStatus ? setTime(time + 1) : null}, 1000);
+    setTimeout(() => {kilnStatus ? setTime(time + 1) : null}, 1000);
     let toggleTimer;
 
     const kilnTempStore = useSelector(
