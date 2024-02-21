@@ -37,6 +37,7 @@ class RamanServer(Node):
     MASTERCLOCK = 800000
     SPECTRA_SIZE = 3694
     OUTPUT_SIZE = 7388
+    PHASE_SIGNAL = 3700
 
     def __init__(self):
         super().__init__('raman_spec_server')
@@ -52,7 +53,7 @@ class RamanServer(Node):
 
         #Transmit where in circular buffer to read from and to   
         result[0] = 69
-        result[1] = 78
+        result[1] = 82
 
         # min is 20, max is 4294967295
         shperiodconverted = np.uint32(shperiod)
@@ -69,11 +70,11 @@ class RamanServer(Node):
         result[9] = icgperiodconverted & 0xff
 
         if singlecollectionmode:
-            result[10] = np.uint8(0)
+            result[10] = 0
         else: # continuous collection mode
-            result[10] = np.uint8(1)
+            result[10] = 1
         
-        result[11] = np.uint8(average)  # min is 1, max is 15
+        result[11] = average  # min is 1, max is 15
 
         return result
 
@@ -98,11 +99,31 @@ class RamanServer(Node):
         return reduced_result
             
             
-
+    def find_phase(output):
+        step = 10
+        dict = {}
+        startfound = False
+        previous = 0
+        for element in range(0, len(output), step):
+            if startfound:
+                current = output[element]
+                if previous > RamanServer.PHASE_SIGNAL and current > RamanServer.PHASE_SIGNAL:
+                    dict["end"] = previous - step
+                    dict["found"] = True
+                    return dict
+            else:
+                current = output[element]
+                if previous > RamanServer.PHASE_SIGNAL and current > RamanServer.PHASE_SIGNAL:
+                    dict["start"] = current + step
+                    startfound = True
+                else:
+                    previous = current
+        dict["found"] = False
+        return dict
 
     
     def read_output_to_response(output):
-        response = np.zeros(RamanServer.SPECTRA_SIZE, np.uint16)
+        response = [0] * RamanServer.SPECTRA_SIZE
 
         # combining 8 bit integer pairs into respective 16 bit integer values
         for pixel in range(RamanServer.SPECTRA_SIZE):
@@ -120,7 +141,7 @@ class RamanServer(Node):
         # for pixel in range(RamanServer.SPECTRA_SIZE // 2):
         #     response[2*pixel] -= offset
 	
-        return response.tolist()
+        return response
 
 
     def raman_response(self, request, response):
@@ -153,11 +174,9 @@ class RamanServer(Node):
                 #loop to acquire and send data continuously
                 while self.is_in_continuous_mode():
                     output = ser.read(RamanServer.OUTPUT_SIZE)
-                    
-                    full_res_data = RamanServer.read_output_to_response(output)
 
                     msg.isvalid = True
-                    msg.spectrum = RamanServer.reduce_resolution_by_a_factor_of(request.resolutionreductionfactor, full_res_data)
+                    msg.spectrum = RamanServer.read_output_to_response(output)
                     self.publisher_.publish(msg)
                 
                 response.continuousendedsignal = True
@@ -169,13 +188,22 @@ class RamanServer(Node):
                 ser.write(input)
                 
             #wait for the firmware to return data
-            output = ser.read(RamanServer.OUTPUT_SIZE)
+            output = ser.read(2*RamanServer.OUTPUT_SIZE)
 
             ser.close()
 
-            full_res_result = RamanServer.read_output_to_response(output)
-            msg.isvalid = True
-            msg.spectrum = RamanServer.reduce_resolution_by_a_factor_of(request.resolutionreductionfactor, full_res_result)
+            find_phase = RamanServer.find_phase(output)
+
+            if find_phase["found"]:
+                final_output = []
+                for element_in_phase in range(find_phase["start"], find_phase["end"] + 1):
+                    final_output.append(output[element_in_phase])
+                msg.isvalid = True
+                msg.spectrum = final_output
+            else:
+                msg.isvalid = False
+                msg.spectrum = []
+            
             self.publisher_.publish(msg)
 
             return response
