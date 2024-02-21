@@ -40,8 +40,8 @@ const Kiln: React.FC = () => {
             <div className="flex flex-row justify-between">
                 <Input
                     placeholder="Kiln ID: [0, 3]"
-                    value={kilnID.toString()}
-                    labelPlacement="outside"
+                    defaultValue={kilnID.toString()}
+                    labelPlacement="outside-left"
                     onValueChange={(value: string) => setKilnID(+value)}
                     className="h-8 w-1/3"
                     classNames={{input: ["text-center", "placeholder:text-center"]}}
@@ -66,7 +66,7 @@ const Kiln: React.FC = () => {
             <DriveProgress size="lg" autoColor={true} aria-label="Temperature" maxValue={maxTemp} value={temp}>
                 Temperature: {temp} C
             </DriveProgress >
-            <div className="text-center bg-pink-500">
+            <div className="text-center bg-slate-900 pt-10 pb-10">
                 CAMERA HERE WHEN CONFIGURED
             </div>
         </div> // Add Camera component instead when configured
