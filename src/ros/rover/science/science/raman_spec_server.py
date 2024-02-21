@@ -15,13 +15,16 @@ PACKAGE: science
 SOURCE AUTHOR:	Esben Rossel <esbenrossel@gmail.com>
 AUTHOR: Connor Macdougall
 CREATION:	18/01/2024
-EDITED:		07/02/2024
+EDITED:		21/02/2024
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+TODO:
+ - Make single collection captures one phase
+ - Complete revision of continuous collection (may require the introduction of an executor class within Node)
+
 MORE INFO:
  - https://www.notion.so/Raman-Spectra-0161f5611e934a779247f3733ca8a608
 """
 
-from math import ceil
 import rclpy
 from rclpy.node import Node
 from core.srv import RamanSpec
