@@ -97,7 +97,7 @@ hardware_interface::CallbackReturn BLCMDHardware::on_init(
     }
 
     auto integrate_velocity_search = info_.hardware_parameters.find("integrate_velocity");
-    if (reversed_search != info_.hardware_parameters.end() && reversed_search->second == "true"){
+    if (integrate_velocity_search != info_.hardware_parameters.end() && integrate_velocity_search->second == "true"){
         RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
                            "Integrating velocity to provide position estimate");
         integrate_velocity_ = true;
