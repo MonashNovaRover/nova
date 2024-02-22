@@ -2,6 +2,7 @@ from pymodbus.client import ModbusSerialClient
 import csv
 import datetime
 from pathlib import Path
+import time
 
 # client = ModbusSerialClient('COM3', baudrate=9600, bytesize=8, parity='N',stopbits=1, retries=2, broadcast_enable=True)
 # client.connect()
@@ -68,12 +69,26 @@ def read_ec(client, slave=1):
     
     return val
 
+def read_epsilon(client, slave=1):
+    regs = client.read_holding_registers(0x0005, count=1, slave=1)
+    try:
+        val = regs.registers[0]/100
+    except AttributeError:
+        val = read_temp(client, slave)
+    
+    return val
+
 def read_all(client, slave=1):
     ec = read_ec(client, slave)
+    time.sleep(0.1)
     moisture = read_moisture(client, slave)
+    time.sleep(0.1)
     temp = read_temp(client, slave)
+    time.sleep(0.1)
+    eps = read_epsilon(client, slave)
 
-    return temp, moisture, ec
+    return temp, moisture, ec, eps
+
 
 def save_data(data, fpath):
     date ='{date:%Y-%m-%d_%H.%M.%S}'.format( date=datetime.datetime.now() )
@@ -124,9 +139,9 @@ def main():
         data = []  
 
     print('What measurements do you want?')
-    print('1. Temp\n2.Moisture\n3.EC\n4.All 3')
+    print('1. Temp\n2.Moisture\n3.EC\n4.Epsilon\n5.All 4')
     things = int(input(""))
-    assert things > 0 and things < 5
+    assert things > 0 and things < 6
 
     if things == 1:
         func = read_temp
@@ -134,6 +149,8 @@ def main():
         func = read_moisture
     elif things == 3:
         func = read_ec
+    elif things == 4:
+        func = read_epsilon
     else:
         func = read_all
 
@@ -155,6 +172,8 @@ def main():
         if fpath == "":
             fpath = 'C:/Users/shelb/Downloads/'
         save_data(data, fpath)
+
+    client.close()
 
 
 if __name__ == "__main__":
