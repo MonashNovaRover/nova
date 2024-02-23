@@ -513,7 +513,8 @@ bool BLCMDHardware::set_control_interface(
     void BLCMDHardware::packet_1_callback(leigh::jcan::Frame frame) {
         if(hw_velocity_.state.has_value()) {
 
-            hw_velocity_.state = convert_scaled<int16_t>(&frame.data[0], hw_velocity_.max) * hw_velocity_.max;
+            hw_velocity_.state = convert_scaled<int16_t>(&frame.data[0], hw_velocity_.max) * 
+            hw_velocity_.max * reversed_multiplier_;
 
         }
         if(hw_effort_.state.has_value()) {
@@ -524,7 +525,7 @@ bool BLCMDHardware::set_control_interface(
     void BLCMDHardware::packet_3_callback(leigh::jcan::Frame frame) {
         if(hw_position_.state.has_value()) {
             hw_position_.state = convert_scaled<int16_t>(&frame.data[0], hw_position_.max) *
-                                 hw_position_.resolver_reduction;
+                                 hw_position_.resolver_reduction * reversed_multiplier_;
         }
     }
 
