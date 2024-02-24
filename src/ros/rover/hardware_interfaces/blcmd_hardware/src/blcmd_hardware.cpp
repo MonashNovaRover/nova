@@ -448,8 +448,8 @@ bool BLCMDHardware::set_control_interface(
         }
     } else if(interface_info.name == hardware_interface::HW_IF_VELOCITY){
         if(command) {
-            hw_velocity_.max = (clock_rate_)/(min_interval_*revolution_pulses_*gear_ratio_) * M_PI_2;
-            RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName), 
+            hw_velocity_.max = (clock_rate_)/(min_interval_*revolution_pulses_*gear_ratio_) * 2 * M_PI;
+            RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
             "Configured velocity interface with max velocity: " << hw_velocity_.max);
             hw_velocity_.command = 0.0;
         } else {
@@ -514,7 +514,7 @@ bool BLCMDHardware::set_control_interface(
         if(hw_velocity_.state.has_value()) {
 
             hw_velocity_.state = convert_scaled<int16_t>(&frame.data[0], hw_velocity_.max) * 
-            hw_velocity_.max * reversed_multiplier_;
+            reversed_multiplier_;
 
         }
         if(hw_effort_.state.has_value()) {
