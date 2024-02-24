@@ -10,7 +10,7 @@ def generate_launch_description():
     
     return LaunchDescription([      
         launch_ros.actions.Node(
-            package='control', executable='scraper', output='screen', emulate_tty=True),
+            package='control', executable='scraper.py', output='screen', emulate_tty=True),
         launch_ros.actions.Node(
-            package='control', executable='tile_placer', output='screen', emulate_tty=True),
+            package='control', executable='tile_placer.py', output='screen', emulate_tty=True),
     ])

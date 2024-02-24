@@ -44,7 +44,8 @@ class ScraperNode(Node):
     def __init__(self):
         super().__init__("scraper")
 
-        self.get_logger().set_level(logging.WARN)
+        self.get_logger().set_level(logging.DEBUG)
+        self.get_logger().info("Scraper Node initialised")
         self.param_can = self.declare_parameter("can_bus", "can0").value
         self.param_scraper_arm_multiplier = self.declare_parameter("scraper_arm_multiplier", 200).value
         self.param_scraper_scoop_multiplier = self.declare_parameter("scraper_scoop_multiplier", 255).value
@@ -80,10 +81,10 @@ class ScraperNode(Node):
         Sends can commands for scraper scoop, scraper arm together
         """
         # The list of values will be cast to uint8's by JCAN library - so be careful to double check the values!
-        scraper_arm_commands, scraper_scoop_commands = self.get_scraper_can_commands()
+        scraper_arm_commands, scraper_scoop_commands, scraper_bucket_commands = self.get_scraper_can_commands()
         scraperArmFrame = jcan.Frame(0x0A0, scraper_arm_commands)
         scraperScoopFrame = jcan.Frame(0x0A0, scraper_scoop_commands)
-        scraperBucketFrame = jcan.Frame(0x0A0, self.scraper_bucket_commands)
+        scraperBucketFrame = jcan.Frame(0x0A0, scraper_bucket_commands)
 
         self.get_logger().info(f"Sending {scraperArmFrame}")
         self.get_logger().info(f"Sending {scraperScoopFrame}")
@@ -100,13 +101,15 @@ class ScraperNode(Node):
     def deadline_callback(self, info):
         # Set all speeds to 0
         self.get_logger().warning("200ms Callback deadline missed")
+        self.scraper_stop_state()
+
+    def scraper_stop_state(self):
         self.scraper_arm_velocity = 0
         self.scraper_arm_direction = self.SCRAPER_ARM_ID_FORWARDS
         self.scraper_scoop_velocity = 0
         self.scraper_scoop_direction = self.SCRAPER_SCOOP_ID_FORWARDS
         self.scraper_bucket_velocity = 0
         self.scraper_bucket_direction = self.SCRAPER_BUCKET_ID_OPEN
-
 
     def joystick_l_callback(self, msg: InputJoystick):
         """
@@ -126,17 +129,6 @@ class ScraperNode(Node):
         if joystick_l.btn_bottom_l5_state >= 1 and self.joystick_lock:
             self.get_logger().info("Joysticks Unlocked")
             self.joystick_lock = False
-
-
-        if joystick_l.btn_bottom_l1_state >= 1 and self.scraper_activated:
-            self.get_logger().info("Scraper OFF")
-            self.scraper_activated = False
-
-        # tile placer is unlocked when bottom r4 button is pressed on the right joystick
-        # Tile Placer mode is on
-        if joystick_l.btn_bottom_l4_state >= 1 and not self.scraper_activated:
-            self.get_logger().info("Scraper ON")
-            self.scraper_activated = True
             
 
         # Update the inputs
@@ -160,13 +152,11 @@ class ScraperNode(Node):
         elif not self.joystick_lock and not self.scraper_activated:
             # joystick unlocked but scraper deactivated
             self.get_logger().info("Scraper OFF")
-            self.scraper_arm_velocity = 0
-            self.scraper_arm_direction = self.SCRAPER_ARM_ID_FORWARDS
+            self.scraper_stop_state()
         else:
             # if joysticks locked
-            self.get_logger().info("joysticks locked!")
-            self.scraper_arm_velocity = 0
-            self.scraper_arm_direction = self.SCRAPER_ARM_ID_FORWARDS
+            self.get_logger().info("Joysticks LOCKED!")
+            self.scraper_stop_state()
 
     def joystick_r_callback(self, msg: InputJoystick):
         """
@@ -178,6 +168,17 @@ class ScraperNode(Node):
 
         joystick_r = msg
 
+        # Scraper mode is off
+        if joystick_r.btn_bottom_r4_state >= 1 and self.scraper_activated:
+            self.get_logger().info("Scraper OFF")
+            self.scraper_activated = False
+
+        # scraper is unlocked when bottom r1 button is pressed on the right joystick
+        # Scraper mode is on
+        if joystick_r.btn_bottom_r1_state >= 1 and not self.scraper_activated:
+            self.get_logger().info("Scraper ON")
+            self.scraper_activated = True
+
         if not self.joystick_lock and self.scraper_activated:
             # Update the inputs
             self.scraper_scoop_velocity = abs( int (self.param_scraper_scoop_multiplier * joystick_r.ax_stick_x) )
@@ -185,25 +186,28 @@ class ScraperNode(Node):
         elif not self.joystick_lock and not self.scraper_activated:
             # joystick unlocked but scraper deactivated
             self.get_logger().info("Scraper OFF")
-            self.scraper_scoop_velocity = 0
-            self.scraper_scoop_direction = self.SCRAPER_SCOOP_ID_FORWARDS
+            self.scraper_stop_state()
         else:
             # if joysticks locked
-            self.get_logger().info("joysticks locked!")
+            self.get_logger().info("Joysticks LOCKED!")
             # set the scoop velocity to 0
-            self.scraper_scoop_velocity = 0
-            self.scraper_scoop_direction = self.SCRAPER_SCOOP_ID_FORWARDS
+            self.scraper_stop_state
 
     def get_scraper_can_commands(self):
         scraper_arm_data = []
         scraper_arm_data.append(self.scraper_arm_direction)       
         scraper_arm_data.append(self.scraper_arm_velocity)
+    
 
         scraper_scoop_data = []
         scraper_scoop_data.append(self.scraper_scoop_direction)        
         scraper_scoop_data.append(self.scraper_scoop_velocity)
 
-        return scraper_arm_data, scraper_scoop_data
+        scraper_bucket_data = []
+        scraper_bucket_data.append(self.scraper_bucket_direction)
+        scraper_bucket_data.append(self.scraper_bucket_velocity)
+
+        return scraper_arm_data, scraper_scoop_data, scraper_bucket_data
 
 
 def main():
