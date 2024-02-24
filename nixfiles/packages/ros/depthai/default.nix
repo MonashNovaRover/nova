@@ -17,12 +17,12 @@ buildRosPackage rec {
     # http://packages.ros.org/ros2/ubuntu/pool/main/r/ros-${rosDistro}-depthai
     humble = {
       x86_64-linux = {
-        url = "http://packages.ros.org/ros2/ubuntu/pool/main/r/ros-humble-depthai/ros-humble-depthai_${version}-1jammy.20240125.201200_amd64.deb";
-        hash = "sha256-GAIF39GSRc6HP9zNF+aj9eqHV17GBJp8vLXbJWEg24A=";
+        url = "http://packages.ros.org/ros2/ubuntu/pool/main/r/ros-humble-depthai/ros-humble-depthai_${version}-1jammy.20240217.032335_amd64.deb";
+        hash = "sha256-1wO2PnimBDY/sJlNHIXSGGR5gaGbqkDElDaUy3rRvpM=";
       };
       aarch64-linux = {
-        url = "http://packages.ros.org/ros2/ubuntu/pool/main/r/ros-humble-depthai/ros-humble-depthai_${version}-1jammy.20240125.203547_arm64.deb";
-        hash = "sha256-D0dYecTZ2cLRsSoNm4CmaJQK/oO2RKn+GkGlYGeWKw0=";
+        url = "http://packages.ros.org/ros2/ubuntu/pool/main/r/ros-humble-depthai/ros-humble-depthai_${version}-1jammy.20240217.025930_arm64.deb";
+        hash = "sha256-+gdMfyIvzpR4B2O6jwDIUmCNX6TB2vznzmZTOyV1W5o=";
       };
     };
   }.${ros-environment.rosDistro}.${hostPlatform.system}
