@@ -109,16 +109,16 @@ class AugerNode(Node):
         self.get_logger().info(f"Received {frame}")
 
         if frame.id == self.CARD_ID_RECEIVE:
-            if frame.data[0] == self.AUGER_LIMIT_SWITCH_TOP_HIT:
+            if frame.data == self.AUGER_LIMIT_SWITCH_TOP_HIT:
                 self.get_logger().info("Top limit switch hit")
                 self.top_limit = True
-            elif frame.data[0] == self.AUGER_LIMIT_SWITCH_TOP_CLEAR:
+            elif frame.data == self.AUGER_LIMIT_SWITCH_TOP_CLEAR:
                 self.top_limit = False
 
-            if frame.data[0] == self.AUGER_LIMIT_SWITCH_BOTTOM_HIT:
+            if frame.data == self.AUGER_LIMIT_SWITCH_BOTTOM_HIT:
                 self.get_logger().info("Bottom limit switch hit")
                 self.bottom_limit = True
-            elif frame.data[0] == self.AUGER_LIMIT_SWITCH_BOTTOM_CLEAR:
+            elif frame.data == self.AUGER_LIMIT_SWITCH_BOTTOM_CLEAR:
                 self.bottom_limit = False
 
         else:
