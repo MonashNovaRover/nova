@@ -57,6 +57,20 @@ self: super:
         buildInputs = buildInputs ++ (with self; [ eigen ]);
       });
 
+      depthai-ros = rosSuper.depthai-ros.overrideAttrs ({ propagatedBuildInputs ? [ ], ... }: {
+        propagatedBuildInputs = rosSelf.lib.remove rosSelf.depthai-examples propagatedBuildInputs;
+      });
+
+      depthai-ros-driver = rosSuper.depthai-ros-driver.overrideAttrs ({ propagatedBuildInputs ? [ ], ... }: {
+        propagatedBuildInputs = rosSelf.lib.remove rosSelf.depthai-examples propagatedBuildInputs;
+      });
+
+      rosbridge-library = rosSuper.rosbridge-library.override {
+		    python3Packages=rosSuper.python3Packages.overrideScope (pySelf: pySuper: {
+			    bson = pySelf.pymongo;
+		  });
+	};
+
     } // (
       let
         fixRtabmapDependent = pkg: pkg.overrideAttrs ({ buildInputs ? [ ], ... }: {
