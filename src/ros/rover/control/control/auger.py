@@ -173,9 +173,15 @@ class AugerNode(Node):
 
         if not self.joystick_lock:
             # Update the inputs
-            self.tile_placer_velocity = abs( int( self.param_auger_velocity_multiplier * joystick_r.ax_stick_x ) )
             self.tile_placer_direction = self.AUGER_ID_UP if joystick_r.ax_stick_x >= 0 else self.AUGER_ID_DOWN
             
+            if self.tile_placer_direction == self.AUGER_ID_UP and self.top_limit:
+                self.tile_placer_velocity = 0
+            elif self.tile_placer_direction == self.AUGER_ID_DOWN and self.bottom_limit:
+                self.tile_placer_velocity = 0
+            else:
+                self.tile_placer_velocity = abs( int( self.param_auger_velocity_multiplier * joystick_r.ax_stick_x ) )
+
             if joystick_r.btn_thumb_r_state >= 1:
                 self.drill_direction = self.DRILL_CLOCKWISE
             elif joystick_r.btn_thumb_l_state >= 1:
