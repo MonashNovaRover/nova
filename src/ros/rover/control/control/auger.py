@@ -106,23 +106,24 @@ class AugerNode(Node):
     def callback_receive_can_feedback(self, frame: jcan.Frame):
         """Receive can feedback for auger limit switches
         """
-        self.get_logger().info(f"Received {frame}")
+        self.get_logger().info(f"Received {frame.id} {frame.data}")
 
-        if frame.id == self.CARD_ID_RECEIVE:
-            if frame.data == self.AUGER_LIMIT_SWITCH_TOP_HIT:
-                self.get_logger().info("Top limit switch hit")
-                self.top_limit = True
-            elif frame.data == self.AUGER_LIMIT_SWITCH_TOP_CLEAR:
-                self.top_limit = False
 
-            if frame.data == self.AUGER_LIMIT_SWITCH_BOTTOM_HIT:
-                self.get_logger().info("Bottom limit switch hit")
-                self.bottom_limit = True
-            elif frame.data == self.AUGER_LIMIT_SWITCH_BOTTOM_CLEAR:
-                self.bottom_limit = False
+        # if frame.id == self.CARD_ID_RECEIVE:
+        #     if frame.data == self.AUGER_LIMIT_SWITCH_TOP_HIT:
+        #         self.get_logger().info("Top limit switch hit")
+        #         self.top_limit = True
+        #     elif frame.data == self.AUGER_LIMIT_SWITCH_TOP_CLEAR:
+        #         self.top_limit = False
 
-        else:
-            self.get_logger().info(f"Received unknown frame {frame}")
+        #     if frame.data == self.AUGER_LIMIT_SWITCH_BOTTOM_HIT:
+        #         self.get_logger().info("Bottom limit switch hit")
+        #         self.bottom_limit = True
+        #     elif frame.data == self.AUGER_LIMIT_SWITCH_BOTTOM_CLEAR:
+        #         self.bottom_limit = False
+
+        # else:
+        #     self.get_logger().info(f"Received unknown frame {frame}")
         
 
 
