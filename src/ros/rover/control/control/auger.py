@@ -48,7 +48,7 @@ class AugerNode(Node):
 
 
     def __init__(self):
-        super().__init__("excavation_construction")
+        super().__init__("auger")
 
         self.get_logger().set_level(logging.WARN)
         self.param_can = self.declare_parameter("can_bus", "can0").value
