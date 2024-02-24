@@ -32,9 +32,11 @@ from rclpy.duration import Duration
 
 
 class AugerNode(Node):
+    # can bus
+    CAN_BUS = "can1"
     # card IDs
-    CARD_ID_SEND = 0x0C0
-    CARD_ID_RECEIVE = 0x4C0
+    CARD_ID_SEND = 0x0A0
+    CARD_ID_RECEIVE = 0x4A0
     # command data
     AUGER_ID_UP = 0x1
     AUGER_ID_DOWN = 0x2
@@ -51,9 +53,9 @@ class AugerNode(Node):
         super().__init__("auger")
 
         self.get_logger().set_level(logging.DEBUG)
-        self.param_can = self.declare_parameter("can_bus", "can0").value
-        self.param_auger_velocity_multiplier = self.declare_parameter("auger_velocity_multiplier", 255).value
-        self.param_drill_default_velocity = self.declare_parameter("drill_default_velocity", 255).value
+        self.param_can = self.declare_parameter("can_bus", self.CAN_BUS).value
+        self.param_auger_velocity_multiplier = self.declare_parameter("auger_velocity_multiplier", 127).value
+        self.param_drill_default_velocity = self.declare_parameter("drill_default_velocity", 127).value
 
         # Initially all motors spin backwards with 0 velocity
         self.auger_direction = self.AUGER_ID_UP
