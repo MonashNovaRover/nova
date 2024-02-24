@@ -50,10 +50,10 @@ class AugerNode(Node):
     def __init__(self):
         super().__init__("auger")
 
-        self.get_logger().set_level(logging.WARN)
+        self.get_logger().set_level(logging.DEBUG)
         self.param_can = self.declare_parameter("can_bus", "can0").value
-        self.param_auger_velocity_multiplier = self.declare_parameter("scraper_arm_multiplier", 255).value
-        self.param_drill_default_velocity = self.declare_parameter("scraper_scoop_multiplier", 255).value
+        self.param_auger_velocity_multiplier = self.declare_parameter("auger_velocity_multiplier", 255).value
+        self.param_drill_default_velocity = self.declare_parameter("drill_default_velocity", 255).value
 
         # Initially all motors spin backwards with 0 velocity
         self.auger_direction = self.AUGER_ID_UP
@@ -173,14 +173,14 @@ class AugerNode(Node):
 
         if not self.joystick_lock:
             # Update the inputs
-            self.tile_placer_direction = self.AUGER_ID_UP if joystick_r.ax_stick_x >= 0 else self.AUGER_ID_DOWN
-            
-            if self.tile_placer_direction == self.AUGER_ID_UP and self.top_limit:
-                self.tile_placer_velocity = 0
-            elif self.tile_placer_direction == self.AUGER_ID_DOWN and self.bottom_limit:
-                self.tile_placer_velocity = 0
+            self.auger_direction = self.AUGER_ID_UP if joystick_r.ax_stick_x >= 0 else self.AUGER_ID_DOWN
+
+            if self.auger_direction == self.AUGER_ID_UP and self.top_limit:
+                self.auger_velocity = 0
+            elif self.auger_direction == self.AUGER_ID_DOWN and self.bottom_limit:
+                self.auger_velocity = 0
             else:
-                self.tile_placer_velocity = abs( int( self.param_auger_velocity_multiplier * joystick_r.ax_stick_x ) )
+                self.auger_velocity = abs( int( self.param_auger_velocity_multiplier * joystick_r.ax_stick_x ) )
 
             if joystick_r.btn_thumb_r_state >= 1:
                 self.drill_direction = self.DRILL_CLOCKWISE
