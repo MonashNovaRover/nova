@@ -16,6 +16,7 @@ import {
   ARCCompModes,
   cameraSetup,
 } from "../views/shared/CamerasPage/CameraPageConstants.ts";
+import GeneralBaseView from "../views/general/GeneralBaseView.tsx";
 
 export const arcRoutes: RouteObject[] = [
   {
@@ -75,6 +76,10 @@ export const generalRoutes: RouteObject[] = [
   {
     path: "/general/cameras",
     element: <CameraPage views={cameraSetup[ARCCompModes.POST_LANDING]} />,
+  },
+  {
+    path: "/general/drive",
+    element: <GeneralBaseView />,
   },
 ];
 
