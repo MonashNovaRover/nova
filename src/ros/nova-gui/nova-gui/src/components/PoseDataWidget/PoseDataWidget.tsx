@@ -14,7 +14,7 @@ export const PoseDataWidget: React.FC = () => {
   }, [bifrost]);
 
   return (
-    <Card className="w-40 m-4">
+    <Card className="w-40 h-40 m-4">
       <CardHeader>Pose Data</CardHeader>
       <CardBody>
         <div className="">

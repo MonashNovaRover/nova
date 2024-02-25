@@ -39,7 +39,7 @@ export const NovaNavbar: React.FC = () => {
     <Navbar maxWidth="full" isBordered position="static">
       <NavbarContent justify="start">
         <NavbarBrand>
-          <img src={novaLogo} className="w-14" alt="Nova Logo" />
+          <img src={novaLogo} className="w-16" alt="Nova Logo" />
         </NavbarBrand>
       </NavbarContent>
       <NavbarContent as="div" className="items-center" justify="end">
