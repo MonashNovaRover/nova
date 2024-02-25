@@ -79,6 +79,7 @@ export const post_landing_views: CameraView[] = [
       "arm_end_top",
       "arm_end_finger",
       "arm_end_forward",
+      "arm_gimbal"
     ],
     viewTitle: "All Cameras",
   },
@@ -97,6 +98,7 @@ export const post_landing_views: CameraView[] = [
       "arm_end_top",
       "arm_end_finger",
       "arm_end_forward",
+      "arm_gimbal"
     ],
     viewTitle: "Arm",
   },
