@@ -1,5 +1,6 @@
 {
   imports = [
+    ./maintenance
     ./nixpkgs
     ./nova
   ];
