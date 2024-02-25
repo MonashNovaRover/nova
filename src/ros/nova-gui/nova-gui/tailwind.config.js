@@ -7,6 +7,7 @@ export default {
     extend: {
       colors: {
         '292929': '#292929',
+        // TODO: Fix issues with different modes
         // light: {
         //   primary: "#FFFFFF", 
         //   secondary: "#E5E7EB",
