@@ -58,4 +58,10 @@ export const rootReducer = {
       })),
     }
   ),
+  armTelemetryStore: createBifrostStore(
+    { topic: RosTopic.ARM },
+    {
+      // add stuff here
+    }
+  ),
 };

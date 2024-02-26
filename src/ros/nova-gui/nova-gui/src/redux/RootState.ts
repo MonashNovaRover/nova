@@ -16,5 +16,6 @@ export interface RootState {
   poseStore: IRosGeometryMsgsPose;
   driveStore: IRosCoreDriveInfo;
   telemetryStore: IRosCoreTelemetry;
+  armTelemetryStore: IRosCoreTelemetry;
   ipList: IRosCameraMsgsGetIpListResponse;
 }

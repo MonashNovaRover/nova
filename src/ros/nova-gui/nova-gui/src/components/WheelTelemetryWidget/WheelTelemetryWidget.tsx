@@ -29,10 +29,10 @@ const WheelTelemetryWidget: React.FC<IDriveWheelWidgetProps> = (
   const bifrost = useBifrost({ topic: RosTopic.TELEMETRY });
 
   const pivots = useSelector((state: RootState) => state.telemetryStore.pivots);
-  const pivotCurrents = pivots.map((p) => Math.abs(p.q_current));
+  const pivotCurrents = pivots.map((p: { q_current: number; }) => Math.abs(p.q_current));
 
   const wheels = useSelector((state: RootState) => state.telemetryStore.wheels);
-  const wheelCurrents = wheels.map((w) => Math.abs(w.q_current));
+  const wheelCurrents = wheels.map((w: { q_current: number; }) => Math.abs(w.q_current));
 
   useEffect(() => {
     bifrost.syncWithTopic();
