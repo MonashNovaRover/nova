@@ -4,9 +4,9 @@ import frag from "./gl/perspective.frag";
 import panoramaFrag from "./gl/panorama.frag";
 import panoramaVert from "./gl/panorama.vert";
 
-import React, {memo, useCallback, useEffect, useState} from "react";
+import React, {memo, MouseEventHandler, MouseEvent, WheelEvent, useCallback, useState} from "react";
 import useDict from "../WebGLCanvas/hooks/useDict.tsx";
-import {GLUniforms, vec, vec2} from "../WebGLCanvas/hooks/useUniforms.tsx";
+import { vec, vec2} from "../WebGLCanvas/hooks/useUniforms.tsx";
 import {GLSampler} from "../WebGLCanvas/hooks/useSamplers.tsx";
 
 import EquirectangularTestImage from "../../assets/equirectangular.png";
@@ -66,7 +66,7 @@ const WebGL360CamCanvasNonMemo = (props: WebGL360CamCanvasProps) => {
 
   // Mouse position attribute
   const [mousePos, setMousePos] = useState<vec2>([0, 0]);
-  const onMouseMove = useCallback((event: MouseEvent) => {
+  const onMouseMove = useCallback((event: MouseEvent<HTMLCanvasElement>) => {
     if (event.buttons === 1) {
       const maxResolutionComp = Math.max(width, height);
 
@@ -81,12 +81,12 @@ const WebGL360CamCanvasNonMemo = (props: WebGL360CamCanvasProps) => {
 
 
 
-  const onMouseDown = useCallback((event: MouseEvent) => {
+  const onMouseDown = useCallback((event: MouseEvent<HTMLCanvasElement>) => {
     if (event.buttons === 2)
       setUsePanorama(!usePanorama);
   }, [usePanorama]);
 
-  const onWheel = useCallback((e: WheelEvent) => {
+  const onWheel = useCallback((e: WheelEvent<HTMLCanvasElement>) => {
     const newFov = fov + e.deltaY / 50;
     setFov(Math.max(Math.min(newFov, usePanorama ? 360 : 179), 0.01));
   }, [fov, usePanorama]);
@@ -95,7 +95,7 @@ const WebGL360CamCanvasNonMemo = (props: WebGL360CamCanvasProps) => {
   const uniforms = useDict<vec>(() => ({
     mousePos: mousePos,
     fov: [fov],
-    resolution: resolution,
+    resolution: resolution as vec2,
   }), [mousePos, fov, resolution]);
 
   const samplers = useDict<GLSampler>(() => ({
@@ -139,7 +139,7 @@ const WebGL360CamCanvasNonMemo = (props: WebGL360CamCanvasProps) => {
       onWheel={onWheel}
       onMouseEnter={disableScroll}
       onMouseLeave={enableScroll}
-      onMouseDown={onMouseDown}
+      onMouseDown={onMouseDown as MouseEventHandler}
 
     />
   ); // <video ref={webcam}/> // <video width={1920} height={1440} ref={webcam}/>

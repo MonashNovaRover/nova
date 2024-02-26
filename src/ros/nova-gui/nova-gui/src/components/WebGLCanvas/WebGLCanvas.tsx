@@ -4,8 +4,6 @@ import {useProgram} from "./hooks/useProgram.tsx";
 import useAttributes, {GLAttributes} from "./hooks/useAttributes.tsx";
 import useUniforms, {GLUniforms, vec2, vec4} from "./hooks/useUniforms.tsx";
 import useSamplers, {GLSamplers} from "./hooks/useSamplers.tsx";
-import useCanvasSize from "./hooks/useCanvasSize.tsx";
-import useDict from "./hooks/useDict.tsx";
 
 /**
  * Properties for the WebGL canvas. Use these to configure shader programs
