@@ -10,8 +10,8 @@ import { Button } from "@nextui-org/react";
 
 export interface IRamanDataChartProps {
     name: string,
-    data: number[],
-    addToMainOverlay: (name: string, data: number[])=>void,
+    data: number[][],
+    addToMainOverlay: (name: string, data: number[][])=>void,
     removeFromMainOverlay: (name: string)=>void
 }
 
@@ -36,14 +36,52 @@ const RamanDataChart: React.FC<IRamanDataChartProps> = (props: IRamanDataChartPr
             }
         },
         xaxis: {
+            min: 0,
+            max: 2400,
+            title: {
+                text: 'Raman Shift (1/cm)',
+                style: {
+                    fontSize: '14px',
+                    color: '#fff'
+                }
+            },
             labels: {
-                show: false
+                show: true,
+            }
+        },
+        yaxis: {
+            min: 0,
+            max: 100,
+            title: {
+                text: 'Normalised intensity',
+                style: {
+                    fontSize: '14px',
+                    color: '#fff'
+                }
+            },
+            labels: {
+                show: false,
             }
         },
         grid: {
             show: false
         },
-        colors: ["#992F7B", "#C4841D"]
+        colors: ["#992F7B", "#C4841D"],
+        annotations: {
+            points: [{
+                x: 1350,
+                y: 70,
+                label: {
+                    text: '1350'
+                }
+            }, {
+                x: 1600,
+                y: 90,
+                label: {
+                    text: '1600'
+                }
+            }]
+        }
       };
 
     const [onMain, setOnMain] = useState(false);
@@ -62,7 +100,7 @@ const RamanDataChart: React.FC<IRamanDataChartProps> = (props: IRamanDataChartPr
                 setOnMain(!onMain);
             }}
             color= {onMain ? "secondary" : "primary"} radius="lg">
-                {props.name}: {onMain ? "Remove" : "Add"}
+                {props.name}{onMain ? "Remove" : ""}
             </Button>
         </div>
     )
