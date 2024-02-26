@@ -6,12 +6,13 @@
 
 import { Button, Card, CardHeader, Input, Modal, ModalBody, ModalContent, ModalHeader, useDisclosure } from "@nextui-org/react";
 import { HelpCircle } from "react-feather";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useBifrost } from "../../redux/actions/bifrost/useBifrostAction";
 import { RosService } from "../../ros/services/rosService";
 import { IRosCoreRamanSpecRequest } from "../../ros/rosTypes";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/RootState";
+import ROSLIB from "roslib";
 
 function checkPeriods(shPeriod: number, icgPeriod: number) {
     return ((20 <= shPeriod && shPeriod <= 4294967295 && shPeriod % 1 == 0) && 
@@ -43,12 +44,6 @@ const RamanCCDInputs: React.FC = () => {
     const bifrost = useBifrost({ service: RosService.CALL_RAMAN_SPEC });
 
     const sendRamanRequest = (request: IRosCoreRamanSpecRequest) => bifrost.callServiceToRedux(request);
-
-    useEffect(() => {
-        if (continuousendedsignalresponse) {
-            setCurrentlyInContinuous(false);
-        }
-    }, [bifrost]);
 
     return (
         <Card className="m-1 p-2 flex flex-row flex-1 space-x-2">
@@ -84,7 +79,7 @@ const RamanCCDInputs: React.FC = () => {
             </Button>
             <Button onPress={() => {
                 if (checkPeriods(shPeriod, icgPeriod) && checkAverage(average) && checkResolution(resolutionReductionFactor)) {
-                    sendRamanRequest({
+                    /* sendRamanRequest({
                         port: port,
                         shperiod: shPeriod,
                         icgperiod: icgPeriod,
@@ -92,9 +87,41 @@ const RamanCCDInputs: React.FC = () => {
                         resolutionreductionfactor: resolutionReductionFactor,
                         singlecollectionmode: singleCollectionMode,
                         continuousendsignal: currentlyInContinuous
-                    })
+                    }) */
                     if (!singleCollectionMode) {
                         setCurrentlyInContinuous(true);
+                    }
+                    if (!singleCollectionMode) {
+                        let ros = new ROSLIB.Ros({
+                            url: 'ws://localhost:9090'
+                        });
+
+                        ros.on('error', () => {console.log("error")});
+                        ros.on('connection', () => {console.log("connected")});
+                        ros.on('close', () => {console.log("closed")});
+
+                        let ramanSpectra = new ROSLIB.Topic({
+                            ros: ros,
+                            name: 'science/raman_spec_msg',
+                            messageType: "core/msg/RamanSpectrum"
+                        });
+
+                        let fakespectra = [10, 11, 9, 8, 9, 10, 12, 11, 9, 11, 10, 11, 10, 9, 11, 12, 13, 15, 17, 20, 23, 24, 28, 33, 39, 47, 58, 70, 66, 54, 50, 70, 90, 65, 40, 35, 34, 34, 35, 35, 34, 34, 33, 32, 31, 31, 30, 31, 32]
+
+                        for (let i = 0; i < 150; i++) {
+                            setTimeout(() => { 
+                                let result = fakespectra;
+
+                                result = result.map((element) => Math.round((Math.random()*0.06 + 0.97)*element));
+
+                                let spectra1 = new ROSLIB.Message({
+                                    isvalid: true,
+                                    spectrum: result
+                                });
+                                ramanSpectra.publish(spectra1);
+                                console.log("Entry " + i.toString() + " sent");
+                            }, i*100);
+                        }
                     }
                 } else {
                     onOpen();
