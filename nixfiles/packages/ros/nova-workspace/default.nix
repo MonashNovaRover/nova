@@ -28,6 +28,11 @@
 , nova-cmd-utils ? throw "cmd-utils is needed, but not available!"
 , nova-excavation-construction ? throw "excavation-construction is needed, but not available!"
 , nova-gimbal-cam ? throw "gimbal-cam is needed, but not available!"
+, nova-interfaces ? throw "nova-interfaces is needed, but not available!"
+, nova-bringup ? throw "nova-bringup is needed, but not available!"
+, nova-rover-description ? throw "rover-description is needed, but not available!"
+, nova-teleop-drive-joy ? throw "teleop-drive-joy is needed, but not available!"
+
 
   # Configuration options
   ## Include graphical applications in the workspace.
@@ -61,6 +66,10 @@
       nova-cmd-utils
       nova-excavation-construction
       nova-gimbal-cam;
+      nova-interfaces
+      nova-bringup
+      nova-rover-description
+      nova-teleop-drive-joy;
   }
 
   ## Extra packages to add to the workspace.
