@@ -95,6 +95,7 @@ void JoystickTranslate::get_end_effector_inputs(core::msg::ArmControlScheme& con
 void JoystickTranslate::get_joint_velocity_inputs(core::msg::ArmControlScheme& control_scheme_inputs, sensor_msgs::msg::JointState& joint_velocity_inputs)
 {
     float speed = scale_speed(joystick_r.ax_slider) * speed_multipliers.all_inputs;
+    joint_velocity_inputs.velocity.clear();
     if (!control_scheme_inputs.input_lock && !control_scheme_inputs.ik_linear) {
         // No speed scaling for lower joints;
         
