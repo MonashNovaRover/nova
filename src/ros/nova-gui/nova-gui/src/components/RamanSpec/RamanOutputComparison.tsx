@@ -24,19 +24,23 @@ const RamanOutputComparison: React.FC = () => {
     
     useEffect(() => {
         bifrost.syncWithTopic();
-        setOutputChartSeries([...outputChartSeries]);
     }, [bifrost]);
 
     const [outputChartSeries, setOutputChartSeries] = useState([{
         name: "CCD Output",
-        data: spectrumStore.spectrum
+        data: [1,2]
     }]);
 
-    const addToMainOverlay = (Cname: string, Cdata: number[]) => {
+    let fakeOutputChartSeries: ApexAxisChartSeries = [{
+        name: "CCD Output",
+        data: spectrumStore.spectrum.map((element, index) => [50*index, element])
+    }];
+
+    const addToMainOverlay = (Cname: string, Cdata: number[][]) => {
         let result = outputChartSeries;
         setOutputChartSeries(result.concat([{
             name: Cname,
-            data: Cdata
+            data: Cdata[0]
         }]));
     }
     const removeFromMainOverlay = (Cname: string) => {
@@ -44,7 +48,6 @@ const RamanOutputComparison: React.FC = () => {
         for (let i = 0; i < outputChartSeries.length; i++) {
             if (outputChartSeries[i].name == Cname) {
                 index = i;
-                console.log(i);
             }
         }
         if (index >= 0) {
@@ -54,18 +57,23 @@ const RamanOutputComparison: React.FC = () => {
         }
     }
 
+    const kerogendata = [10, 11, 9, 8, 9, 10, 12, 11, 9, 11, 10, 11, 10, 9, 11, 12, 13, 15, 17, 20, 23, 24, 28, 33, 39, 47, 58, 70, 66, 54, 50, 70, 90, 65, 40, 35, 34, 34, 35, 35, 34, 34, 33, 32, 31, 31, 30, 31, 32]
+
     const elementData = [[{
-        name: "Element 1",
-        data: [1, 3, 6, 65, 43, 32, 35, 24, 18, 15, 16, 8]
-    }], [{
-        name: "Element 2",
-        data: [1, 3, 6, 25, 43, 62, 71, 35, 18, 15, 16, 8]
-    }], [{
-        name: "Element 3",
-        data: [1, 3, 6, 13, 23, 32, 35, 24, 65, 24, 16, 8]
+        name: "Kerogen",
+        data: kerogendata.map((element, index) => [50*index, element])
     }]]
 
     const outputChartOptions: ApexOptions = {
+        title: {
+            text: 'CCD Output',
+            align: "center",
+            floating: true,
+            style: {
+                fontSize: '18px',
+                color: '#fff'
+            }
+        },
         stroke: {
             curve: "smooth"
         },
@@ -85,8 +93,31 @@ const RamanOutputComparison: React.FC = () => {
             }
         },
         xaxis: {
+            min: 0,
+            max: 2400,
+            title: {
+                text: 'Raman Shift (1/cm)',
+                style: {
+                    fontSize: '14px',
+                    color: '#fff'
+                }
+            },
             labels: {
-                show: false
+                show: true,
+            }
+        },
+        yaxis: {
+            min: 0,
+            max: 100,
+            title: {
+                text: 'Normalised intensity',
+                style: {
+                    fontSize: '14px',
+                    color: '#fff'
+                }
+            },
+            labels: {
+                show: false,
             }
         },
         grid: {
@@ -97,9 +128,9 @@ const RamanOutputComparison: React.FC = () => {
 
     let ccdOutputChart;
     if (spectrumStore.spectrum.length == 0) {
-        ccdOutputChart = <Card className="text-center w-1/2 self-center p-2 m-1">Use the CCD Input to request Output</Card>;
+        ccdOutputChart = <Card className="text-center w-1/2 self-center p-2 m-1">Use the CCD Inputs to request Output</Card>;
     } else if (spectrumStore.isvalid) {
-        ccdOutputChart = <ReactApexChart className = "w-1/2 self-center" options={outputChartOptions} series={outputChartSeries} />;
+        ccdOutputChart = <ReactApexChart className = "w-1/2 self-center" options={outputChartOptions} series={fakeOutputChartSeries} />;
     } else {
         ccdOutputChart = <Card className="text-center w-1/2 self-center p-2 m-1">Uh Oh</Card>;
     }
