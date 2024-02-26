@@ -26,6 +26,7 @@ mat3 eulerXZ(vec2 rot) {
     );
 }
 
+
 void main() {
     vec2 aspect = resolution / max(resolution.x, resolution.y);
 
@@ -40,7 +41,7 @@ void main() {
     vec2 viewDirScreenOffset = aspect * aPosition.xy * offsetDistance;
 
     vViewDir = rotation * vec3(viewDirScreenOffset.x, 1.0, viewDirScreenOffset.y);
-    vTexCoord = vec2(0.5) + 0.5 * vec2(aPosition.x, -aPosition.y);
+    vTexCoord = vec2(0.5) + 0.5 * vec2(aPosition.x, aPosition.y);
 
     gl_Position = aPosition;
 }
