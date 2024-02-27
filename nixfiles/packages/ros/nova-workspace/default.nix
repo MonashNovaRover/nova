@@ -65,7 +65,7 @@
       nova-cmd-interfaces
       nova-cmd-utils
       nova-excavation-construction
-      nova-gimbal-cam;
+      nova-gimbal-cam
       nova-interfaces
       nova-bringup
       nova-rover-description
