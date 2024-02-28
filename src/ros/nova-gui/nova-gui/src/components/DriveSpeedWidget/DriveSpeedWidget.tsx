@@ -1,7 +1,7 @@
 import { Card, CardHeader, CardBody, CardProps } from "@nextui-org/react";
 import { ReactNode, useEffect } from "react";
 import "../DriveModeWidget/DriveWidget.css";
-import { DriveProgress } from "./DriveProgress";
+import { OverlayedProgress } from "../OverlayedProgress/OverlayedProgress.tsx";
 import { useBifrost } from "../../redux/actions/bifrost/useBifrostAction";
 import { RootState } from "../../redux/RootState";
 import { useSelector } from "react-redux";
@@ -47,25 +47,25 @@ const DriveSpeedWidget: React.FC<IDriveWidgetProps> = (
       {createLabelCell(<>Speed Control</>)}
 
       <div>
-        <DriveProgress
+        <OverlayedProgress
           size="lg"
           aria-label="Average Velocity"
           value={Math.abs(averageWheelAngularVelocity)}
           maxValue={DRIVE_VEL_MAX}
         >
           {averageWheelAngularVelocity.toFixed(2)} rad/s
-        </DriveProgress>
+        </OverlayedProgress>
       </div>
 
       <div>
-        <DriveProgress
+        <OverlayedProgress
           size="lg"
           value={driveMultiplier}
           maxValue={1}
           aria-label="Speed Control"
         >
           {(driveMultiplier * 100).toFixed(0)} %
-        </DriveProgress>
+        </OverlayedProgress>
       </div>
     </CardBody>
   );
