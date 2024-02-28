@@ -6,7 +6,11 @@ in vec2 vRotator;
 
 uniform float fov;
 uniform vec2 mousePos;
+uniform vec2 resolution;
+
+
 uniform sampler2D camera;
+uniform sampler2D compass;
 
 out vec4 fragColor;
 
@@ -54,7 +58,11 @@ vec2 dir_to_spherical(vec3 dir) {
     return vec2(.5) + .5 * vec2(-(.5 + .5*dir.y) * sign(dir.x), dir.z);
 }
 
+const float compassAngle = 2.3;
+
 void main() {
+    vec2 aspect = resolution / max(resolution.x, resolution.y);
+
     // Just convert the angle directly to a sample point. No need to do any actual equirectangular projection.
     vec2 fastTexCoord = vec2(
         mod(0.5 + (vRotator.x / (2.0 * PI)), 1.0),
@@ -63,8 +71,24 @@ void main() {
 
     vec3 dir = eulerXZ(vRotator) * vec3(0., 1., 0.);
 
+    vec4 cameraCol = texture(camera, fastTexCoord, 0.0);
 
+    vec2 compassCoord = vec2(
+        mod((vRotator.x - compassAngle) / (2.*PI), 1.0),
+        1.0 - aspect.y * (1.0 - (vTexCoord.y)) - 0.5
+    );
+
+
+    vec4 compassCol = texture(compass, compassCoord, 0.0);
+    compassCol = vec4(compassCol.xyz * compassCol.w, compassCol.w);
+
+    vec4 inverted = vec4(1.0) - cameraCol;
 
     // Sample at the projected point
-    fragColor = texture(camera, fisheye(dir_to_spherical(0.98*dir)), 0.0);
+    fragColor = vec4((mix(cameraCol.xyz, inverted.xyz, compassCol.w)).xyz, 1.0);
+
+
+
+    // fragColor = texture(camera, fisheye(dir_to_spherical(0.98*dir)), 0.0);
+
 }

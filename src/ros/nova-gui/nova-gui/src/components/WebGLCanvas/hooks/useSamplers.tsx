@@ -3,7 +3,7 @@ import loadTexture, {updateImageTexture} from "../webgl-utils/loadTexture.ts";
 import loadVideoTexture, {updateVideoTexture} from "../webgl-utils/loadVideoTexture.ts";
 import "rvfc-polyfill"
 
-export type GLSampler = HTMLImageElement | HTMLVideoElement | null | undefined;
+export type GLSampler = [HTMLImageElement | HTMLVideoElement | null | undefined, number];
 export type GLSamplers = {[key: string] : GLSampler}; // Map<string, GLSampler>;
 
 
@@ -25,7 +25,7 @@ const useSamplers = (gl?: WebGL2RenderingContext, program?: WebGLProgram, sample
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 
     // Create a texture for every sampler
-    const newTex = Object.entries(samplers).map(([key, sampler], index) => {
+    const newTex = Object.entries(samplers).map(([key, [sampler, texIndex]], index) => {
       if (sampler === undefined || sampler === null)
         return [key, undefined]; // Skip undefined samplers
 
@@ -48,22 +48,28 @@ const useSamplers = (gl?: WebGL2RenderingContext, program?: WebGLProgram, sample
         if (!texture)
           return [key, undefined]; // Failed to load into texture; continue to next sampler
 
-        gl.activeTexture(gl.TEXTURE0 + index);
+        gl.activeTexture(gl.TEXTURE0 + texIndex);
 
         // Bind the texture to texture unit 0
         gl.bindTexture(gl.TEXTURE_2D, texture);
 
         // Tell the shader we bound the texture to the given texture unit
-        gl.uniform1i(location, index);
+        gl.uniform1i(location, texIndex);
       }
       else {
+        // Bind the texture to texture unit 0
+        gl.activeTexture(gl.TEXTURE0 + texIndex);
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+
+        // Tell the shader we bound the texture to texture unit 0
+        gl.uniform1i(location, texIndex);
+
         if (sampler instanceof HTMLVideoElement)
           updateVideoTexture(gl, sampler, texture);
         else
           updateImageTexture(gl, sampler, texture);
 
-        // Tell the shader we bound the texture to texture unit 0
-        gl.uniform1i(location, index);
+        //gl.activeTexture(gl.TEXTURE0 + index);
       }
 
       if (sampler instanceof HTMLVideoElement) {
@@ -79,6 +85,11 @@ const useSamplers = (gl?: WebGL2RenderingContext, program?: WebGLProgram, sample
 
         frameIDs[index] = sampler.requestVideoFrameCallback(callback);
       }
+      else {
+        updateImageTexture(gl, sampler, texture);
+      }
+
+
 
       return [key, texture];
     });
