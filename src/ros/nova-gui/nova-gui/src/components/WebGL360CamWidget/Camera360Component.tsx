@@ -1,18 +1,22 @@
 import WebGL360CamCanvas from "./WebGL360CamCanvas.tsx";
 import {useRef} from "react";
-import useWebcam from "../WebGLCanvas/hooks/useWebcam.tsx";
+import useVideoTexture from "../WebGLCanvas/hooks/useVideoTexture.tsx";
+import TestVideo from "../../assets/R0010224_st.mp4";
 
 const Camera360Component = () => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  useWebcam(videoRef);
+  // useWebcam(videoRef);
+  useVideoTexture(videoRef, TestVideo);
 
-  return (<div className="absolute top-16 left-0 right-0 bottom-0">
+  return (<div className="relative top-0 left-0 right-0 bottom-0">
     <video ref={videoRef} className="absolute top-0 left-0 max-h-full -z-50"/>
-    <WebGL360CamCanvas
 
-      videoRef={videoRef}
-      className="w-full h-full"
-    />
+    <div className="w-full h-50 min-h-unit-24 min-w-unit-24 resize-y overflow-hidden mb-5">
+      <WebGL360CamCanvas
+        videoRef={videoRef}
+        className="w-full h-full"
+      />
+    </div>
   </div>);
 }
 

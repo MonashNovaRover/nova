@@ -55,6 +55,8 @@ vec2 dir_to_spherical(vec3 dir) {
 }
 
 
+
+
 void main() {
     // Get the view direction from the vertex shader
     vec3 viewDir = normalize(vViewDir);
@@ -64,8 +66,8 @@ void main() {
 
 
     // Sample at the projected point
-    // vec4 webcamCol = texture(camera, equirectangular(viewDir), 0.0);
-    vec4 webcamCol = texture(camera, fisheye(dir_to_spherical(0.915*viewDir)), 0.0);
+    vec4 webcamCol = texture(camera, equirectangular(viewDir), 0.0);
+    // vec4 webcamCol = texture(camera, fisheye(dir_to_spherical(0.915*viewDir)), 0.0);
 
     // Output to screen
     fragColor = webcamCol;

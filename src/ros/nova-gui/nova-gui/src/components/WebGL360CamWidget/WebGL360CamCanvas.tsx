@@ -10,11 +10,11 @@ import { vec, vec2} from "../WebGLCanvas/hooks/useUniforms.tsx";
 import {GLSampler} from "../WebGLCanvas/hooks/useSamplers.tsx";
 
 import EquirectangularTestImage from "../../assets/equirectangular.png";
+import CompassImage from "../../assets/compass.png";
 
 import useImageTexture from "../WebGLCanvas/hooks/useImageTexture.ts";
 import useGL from "../WebGLCanvas/hooks/useGL.tsx";
 import useCanvasSize from "../WebGLCanvas/hooks/useCanvasSize.tsx";
-
 
 const DEG_TO_RAD = 0.0174532925199;
 
@@ -55,20 +55,21 @@ export interface WebGL360CamCanvasProps {
 const WebGL360CamCanvasNonMemo = (props: WebGL360CamCanvasProps) => {
   const videoRef = props.videoRef;
   const equirectangularTest = useImageTexture(EquirectangularTestImage);
+  const compass = useImageTexture(CompassImage);
 
   const gl = useGL();
   const [width, height] = useCanvasSize(gl);
   const resolution = [width, height];
 
   // Panorama mode switch
-  const [usePanorama, setUsePanorama] = useState<boolean>(false);
+  const [usePanorama, setUsePanorama] = useState<boolean>(true);
   const [fov, setFov] = useState(90);
 
   // Mouse position attribute
   const [mousePos, setMousePos] = useState<vec2>([0, 0]);
   const onMouseMove = useCallback((event: MouseEvent<HTMLCanvasElement>) => {
     if (event.buttons === 1) {
-      const maxResolutionComp = Math.max(width, height);
+      const maxResolutionComp = Math.max(width, height) / window.devicePixelRatio;
 
       setMousePos([
         mousePos[0] + fov * DEG_TO_RAD * event.movementX / maxResolutionComp,
@@ -77,9 +78,6 @@ const WebGL360CamCanvasNonMemo = (props: WebGL360CamCanvasProps) => {
     }
 
   }, [mousePos, fov, width, height]);
-
-
-
 
   const onMouseDown = useCallback((event: MouseEvent<HTMLCanvasElement>) => {
     if (event.buttons === 2)
@@ -99,8 +97,11 @@ const WebGL360CamCanvasNonMemo = (props: WebGL360CamCanvasProps) => {
   }), [mousePos, fov, resolution]);
 
   const samplers = useDict<GLSampler>(() => ({
-    camera: videoRef?.current ?? equirectangularTest
-  }), [videoRef?.current, equirectangularTest]);
+
+    compass: [compass, 1],
+    camera: [videoRef?.current ?? equirectangularTest, 0],
+
+  }), [videoRef?.current, equirectangularTest, compass]);
 
 
 
