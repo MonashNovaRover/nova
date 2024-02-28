@@ -1,10 +1,10 @@
 { config, pkgs, lib, ... }:
 
 let
-  cfg = config.peripherals.oakd;
+  cfg = config.peripherals.oak-d;
 in
 {
-  options.peripherals.oakd.enable = lib.mkEnableOption "configuration for Luxonis OAK-D peripherals";
+  options.peripherals.oak-d.enable = lib.mkEnableOption "configuration for Luxonis OAK-D peripherals";
 
   config = lib.mkIf cfg.enable {
     services.udev.packages = [

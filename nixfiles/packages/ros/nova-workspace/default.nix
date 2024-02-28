@@ -13,10 +13,10 @@
 , nova-electronics ? throw "electronics is needed, but not available!"
 , nova-science ? throw "science is needed, but not available!"
 , nova-cameras2 ? throw "cameras2 is needed, but not available!"
-, nova-gui-backend ? throw "gui-backend is needed, but not available!"
-, nova-gui-frontend ? throw "gui-frontend is needed, but not available!"
-, nova-gui-frontend-server ? throw "gui-frontend-server is needed, but not available!"
-, nova-gui ? throw "gui is needed, but not available!"
+#, nova-gui-backend ? throw "gui-backend is needed, but not available!"
+#, nova-gui-frontend ? throw "gui-frontend is needed, but not available!"
+#, nova-gui-frontend-server ? throw "gui-frontend-server is needed, but not available!"
+#, nova-gui ? throw "gui is needed, but not available!"
 
   # Configuration options
   ## Include graphical applications in the workspace.
@@ -35,18 +35,18 @@
       nova-autonomous
       nova-electronics
       nova-science
-      nova-cameras2
-      nova-gui-backend
-      nova-gui-frontend
-      nova-gui;
+      nova-cameras2;
+      #nova-gui-backend
+      #nova-gui-frontend
+      #nova-gui;
   }
 
   ## Extra packages to add to the workspace.
 , extraPackages ? {
-    inherit
+    #inherit
       # Some of our packages are simple constructions written in Nix and do not
       # need to be considered in the build environment.
-      nova-gui-frontend-server;
+      #nova-gui-frontend-server;
   }
 }:
 
