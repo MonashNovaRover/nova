@@ -1,12 +1,18 @@
 import { useDispatch } from "react-redux";
-import { UIActions } from "../slices/UIReducer";
+import { UIActions } from "../slices/UISlice";
 
 export function useUIActions() {
   const dispatch = useDispatch();
 
   return {
-    updateROSurl(rosUrl: string) {
-      dispatch({ type: UIActions.URL_UPDATE.toString(), payload: rosUrl });
+    updateIP(baseStationIP: string, roverIP: string) {
+      dispatch({
+        type: UIActions.IP_UPDATE.toString(),
+        payload: {
+          baseStationIP,
+          roverIP,
+        },
+      });
     },
     setSettingsModal(settingsModalOpen: boolean) {
       dispatch({

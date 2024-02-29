@@ -1,4 +1,8 @@
-import { IRosCameraMsgsGetIpListResponse } from "../rosTypes";
+import {
+  IRosCameraMsgsCameraOperationRequest,
+  IRosCameraMsgsCameraOperationResponse,
+  IRosCameraMsgsGetIpListResponse,
+} from "../rosTypes";
 import { RosService } from "./rosService";
 
 interface RosServiceMessage<REQ, RES> {
@@ -13,5 +17,13 @@ export interface RosServiceInterface {
   [RosService.GET_IP_LIST]: RosServiceMessage<
     EmptyMessage,
     IRosCameraMsgsGetIpListResponse
+  >;
+  [RosService.START_CAMS]: RosServiceMessage<
+    IRosCameraMsgsCameraOperationRequest,
+    IRosCameraMsgsCameraOperationResponse
+  >;
+  [RosService.PAUSE_CAMS]: RosServiceMessage<
+    IRosCameraMsgsCameraOperationRequest,
+    IRosCameraMsgsCameraOperationResponse
   >;
 }

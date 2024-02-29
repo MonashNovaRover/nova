@@ -1,5 +1,9 @@
 import { RosTopic } from "./rosTopic";
-import { IRosCoreTelemetry, IRosGeometryMsgsPose } from "../rosTypes";
+import {
+  IRosCameraMsgsCameras,
+  IRosCoreTelemetry,
+  IRosGeometryMsgsPose,
+} from "../rosTypes";
 import { IRosCoreDriveInfo } from "../rosTypes";
 
 /**
@@ -12,6 +16,11 @@ import { IRosCoreDriveInfo } from "../rosTypes";
 export interface RosTopicInterfaces {
   [RosTopic.NULL_TOPIC]: undefined;
   [RosTopic.POSE]: IRosGeometryMsgsPose;
+
+  // Drive Related
   [RosTopic.DRIVE_INFO]: IRosCoreDriveInfo;
   [RosTopic.TELEMETRY]: IRosCoreTelemetry;
+
+  // Cameras Related
+  [RosTopic.CAMERAS]: IRosCameraMsgsCameras;
 }
