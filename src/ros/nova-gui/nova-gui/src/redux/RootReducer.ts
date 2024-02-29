@@ -3,6 +3,7 @@ import { uiSlice } from "./slices/UIReducer";
 import { createBifrostStore } from "./store/bifrost/createBifrostStore";
 import { RosService } from "../ros/services/rosService";
 import { RosTopic } from "../ros/topics/rosTopic";
+import { IRosCoreCmDsFeedback } from "../rosTypes";
 
 export const rootReducer = {
   uiState: uiSlice.reducer,
@@ -61,7 +62,7 @@ export const rootReducer = {
   armTelemetryStore: createBifrostStore(
     { topic: RosTopic.ARM },
     {
-      // add stuff here
-    }
+      
+    } as IRosCoreCmDsFeedback
   ),
 };

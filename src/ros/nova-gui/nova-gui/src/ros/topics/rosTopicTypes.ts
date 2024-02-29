@@ -1,7 +1,7 @@
 import { RosTopic } from "./rosTopic";
 import { IRosCoreTelemetry, IRosGeometryMsgsPose } from "../rosTypes";
 import { IRosCoreDriveInfo } from "../rosTypes";
-import { CMDsFeedback } from "../rosTypes";
+import { IRosCoreCmDsFeedback } from "../rosTypes";
 
 /**
  * This Interface exists to link Individual topics to The Messages.
@@ -15,5 +15,6 @@ export interface RosTopicInterfaces {
   [RosTopic.POSE]: IRosGeometryMsgsPose;
   [RosTopic.DRIVE_INFO]: IRosCoreDriveInfo;
   [RosTopic.TELEMETRY]: IRosCoreTelemetry;
-  [RosTopic.ARM]: CMDsFeedback;
+  // [RosTopic.ARM]: CMDsFeedback;
+  [RosTopic.ARM]:IRosCoreCmDsFeedback
 }
