@@ -5,6 +5,7 @@ import { NovaNavbar } from "./components/navbar/Navbar";
 import Sidebar from "./components/navbar/Sidebar";
 import { RosProvider } from "./redux/context/RosProvider";
 import ControllerHelpModal from "./components/ControllerHelpModal/ControllerHelpModal";
+import { Toaster } from "react-hot-toast";
 
 export const RosRoot: React.FC = () => {
   return (
@@ -16,7 +17,8 @@ export const RosRoot: React.FC = () => {
           <Outlet />
         </div>
         <SettingsModal />
-        <ControllerHelpModal />
+        <ControllerHelpModal/>
+        <Toaster />
       </div>
     </RosProvider>
   );
