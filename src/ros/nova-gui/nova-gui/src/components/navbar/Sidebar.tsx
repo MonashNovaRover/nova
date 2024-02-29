@@ -1,7 +1,7 @@
 import React from "react";
 import { useLocation } from "react-router-dom";
 import SidebarButton from "./SidebarButton";
-import { Camera, House, Map, GraphUp, RocketTakeoff, BoxSeam, ConeStriped, Envelope, WrenchAdjustable } from "react-bootstrap-icons";
+import { House, Map, GraphUp, RocketTakeoff, BoxSeam, ConeStriped, Envelope, WrenchAdjustable } from "react-bootstrap-icons";
 
 const iconMap: Record<string, Record<string, JSX.Element>> = {
   arc: {
