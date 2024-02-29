@@ -41,7 +41,7 @@ class KilnServer(Node):
         self.bus = jcan.Bus()
 
         # Set filter IDs and callbacks.
-        self.bus.set_id_filter([0x4B3])
+        self.bus.set_id_filter([0x4B3, 0x0A0, 0x0B0])
         self.bus.add_callback(0x4B3, self.update_temp)
 
         #create timers
@@ -53,14 +53,39 @@ class KilnServer(Node):
 
         self.bus.open("can1")
 
-    def command_callback(self):
-        pass
+    def command_callback(self, request, response):
+        try:
+            if request.state:   # turn on kiln
+                for i in range(10,12):
+                    for j in range(8,12):
+                        kiln_frame = jcan.Frame( i << 4 , ( j << 8 | 255))
+                        self.bus.send(kiln_frame)
+                self.is_on = True
+            else:               # turn off kiln
+                for i in range(10,12):
+                    kiln_frame = jcan.Frame( i << 4 , ( 7 << 8 | 255))
+                    self.bus.send(kiln_frame)
+                self.is_on = False
+                response.success = True
+        except:
+            response.success = False
 
-    def update_temp(self):
-        pass
+        return response
+
+    def update_temp(self, frame):
+        sensor_id = frame.data >> 8
+        if 1 <= sensor_id <= 3:
+            reading = (frame.data) & 0xFF
+            if sensor_id == 3:
+                self.temp[sensor_id] = reading*0.02 - 273.15
+            else:
+                self.temp[sensor_id] = reading
 
     def publish_data(self):
-        pass
+        msg = KilnData()
+        msg.temp = self.temp
+        msg.state = self.is_on
+        self.publisher.publish(msg)
 
 
 def main():
