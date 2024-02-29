@@ -66,7 +66,7 @@ class KilnServer(Node):
                     kiln_frame = jcan.Frame( i << 4 , ( 7 << 8 | 255))
                     self.bus.send(kiln_frame)
                 self.is_on = False
-                response.success = True
+            response.success = True
         except:
             response.success = False
 
