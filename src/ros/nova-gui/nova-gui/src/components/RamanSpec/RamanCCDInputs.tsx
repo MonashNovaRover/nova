@@ -112,7 +112,7 @@ const RamanCCDInputs: React.FC = () => {
                             setTimeout(() => { 
                                 let result = fakespectra;
 
-                                result = result.map((element) => Math.round((Math.random()*0.06 + 0.97)*element));
+                                result = result.map((element) => Math.round((Math.random()*0.10 + 0.95)*element));
 
                                 let spectra1 = new ROSLIB.Message({
                                     isvalid: true,
