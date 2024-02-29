@@ -73,10 +73,10 @@ class KilnServer(Node):
         return response
 
     def update_temp(self, frame):
-        sensor_id = frame.data >> 8
-        if 1 <= sensor_id <= 3:
+        sensor_id = (frame.data >> 8) - 1
+        if 0 <= sensor_id <= 2:
             reading = (frame.data) & 0xFF
-            if sensor_id == 3:
+            if sensor_id == 2:
                 self.temp[sensor_id] = reading*0.02 - 273.15
             else:
                 self.temp[sensor_id] = reading
