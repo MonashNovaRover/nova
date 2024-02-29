@@ -1,5 +1,5 @@
 import { RosTopic } from "./rosTopic";
-import { IRosCoreKilnTempData, IRosCoreTelemetry, IRosGeometryMsgsPose } from "../rosTypes";
+import { IRosCoreKilnData, IRosCoreTelemetry, IRosGeometryMsgsPose } from "../rosTypes";
 import { IRosCoreDriveInfo } from "../rosTypes";
 
 /**
@@ -14,5 +14,5 @@ export interface RosTopicInterfaces {
   [RosTopic.POSE]: IRosGeometryMsgsPose;
   [RosTopic.DRIVE_INFO]: IRosCoreDriveInfo;
   [RosTopic.TELEMETRY]: IRosCoreTelemetry;
-  [RosTopic.KILN_TEMP]: IRosCoreKilnTempData;
+  [RosTopic.KILN_DATA]: IRosCoreKilnData;
 }

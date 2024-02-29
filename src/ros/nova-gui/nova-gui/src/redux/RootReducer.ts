@@ -9,18 +9,18 @@ export const rootReducer = {
   bifrostStatus: BifrostStatusStore(),
 
   ipList: createBifrostStore({ service: RosService.GET_IP_LIST }, { ips: [] }),
+  kilnData: createBifrostStore({ topic: RosTopic.KILN_DATA }, { 
+    temp: [0, 0, 0],
+    state: false
+   }),
+  kilnCommand: createBifrostStore({ service: RosService.KILN_COMMAND }, { 
+    success: true
+   }),
   poseStore: createBifrostStore(
     { topic: RosTopic.POSE },
     {
       orientation: { x: 0, y: 0, z: 0, w: 0 },
       position: { x: 0, y: 0, z: 0 },
-    }
-  ),
-  kilnTempStore: createBifrostStore(
-    { topic: RosTopic.KILN_TEMP },
-    {
-      id: 0, // Kiln IDs range: [0, 3] in current rover system (WIP)
-      resistance: 0, // [C]
     }
   ),
   driveStore: createBifrostStore(

@@ -1,70 +1,83 @@
 import { useState, useEffect } from "react";
 import { DriveProgress } from "../DriveSpeedWidget/DriveProgress";
-import { Button, Input } from "@nextui-org/react";
+import { Button, Badge } from "@nextui-org/react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/RootState";
 import { useBifrost } from "../../redux/actions/bifrost/useBifrostAction";
 import { RosTopic } from "../../ros/topics/rosTopic";
+import { RosService } from "../../ros/services/rosService";
 
 // TO DO: add ROS for turning kiln off and on once it exists
 
 const Kiln: React.FC = () => {
     const [time, setTime] = useState(0);
-    const [kilnStatus, setKilnStatus] = useState(false);
-    const [toggleKiln, setToggleKiln] = useState(true);
-    const [kilnID, setKilnID] = useState(0);
-    const [maxTemp, setMaxTemp] = useState(100);
-    const [temp, setTemp] = useState(0);
+    const [maxTemp, setMaxTemp] = useState([100, 100, 100]);
 
-    setTimeout(() => {kilnStatus ? setTime(time + 1) : null}, 1000);
-    let toggleTimer;
-
-    const kilnTempStore = useSelector(
-        (state: RootState) => state.kilnTempStore
+    const kilnData = useSelector(
+        (state: RootState) => state.kilnData
     );
 
-    const bifrost = useBifrost({ topic: RosTopic.KILN_TEMP });
+    const kilnServiceData = useSelector(
+        (state: RootState) => state.kilnCommand
+    );
+
+    const dataBifrost = useBifrost({ topic: RosTopic.KILN_DATA });
+    const serviceBifrost = useBifrost({ service: RosService.KILN_COMMAND});
+    const setKilnState = (state: boolean) => serviceBifrost.callServiceToRedux(state);
 
     useEffect(() => {
-        bifrost.syncWithTopic();
-        if (kilnTempStore.id == kilnID) {
-            setTemp(kilnTempStore.resistance);
-            if (temp > maxTemp) {
-                setMaxTemp(temp);
-            }
-        }
-    }, [bifrost]);
+        dataBifrost.syncWithTopic();
+        // update max temps if current temps exceed them
+        maxTemp.forEach((element, index) => { kilnData.temp[index] > element ? kilnData.temp[index] : element})
+    }, [dataBifrost]);
+
+    setTimeout(() => {kilnData.state ? setTime(time + 1) : null}, 1000);
     
+    let stateError;
+    if (kilnServiceData.success) {
+        stateError = <>
+            <Button className="w-1/4 text-lg h-8" color={ kilnData.state ? "success" : "warning" } onPress={()=>{
+                    if (!kilnData.state) {
+                        setTime(0);
+                    };
+                    setKilnState(!kilnData.state);
+                }}>
+                    { kilnData.state ? "On" : "Off" }
+            </Button>
+        </>
+    } else {
+        stateError = <>
+            <Badge content="error" color="danger" size="sm">
+            <Button className="w-1/4 text-lg h-8" color={ kilnData.state ? "success" : "warning" } onPress={()=>{
+                    if (!kilnData.state) {
+                        setTime(0);
+                    };
+                    setKilnState(!kilnData.state);
+                }}>
+                    { kilnData.state ? "On" : "Off" }
+                </Button>
+            </Badge>    
+        </>
+    }
+
     return (
         <div className="w-80 m-1 flex flex-col space-y-2">
             <div className="flex flex-row justify-between">
-                <Input
-                    placeholder="Kiln ID: [0, 3]"
-                    defaultValue={kilnID.toString()}
-                    labelPlacement="outside-left"
-                    onValueChange={(value: string) => setKilnID(+value)}
-                    className="h-8 w-1/3"
-                    classNames={{input: ["text-center", "placeholder:text-center"]}}
-                    size="sm"
-                />
-                <Button className="w-1/5 text-lg h-8" color={ kilnStatus ? "success" : "warning" } onPress={()=>{
-                    if (toggleKiln) {
-                        setToggleKiln(false);
-                        toggleTimer = setTimeout(() => setToggleKiln(true), 1000);
-                        if (!kilnStatus) {setTime(0);};
-                        setKilnStatus(!kilnStatus);
-                    }
-                }}>
-                    { kilnStatus ? "On" : "Off" }
-                </Button>
-                <Button className="w-1/4 text-lg h-8" color="primary" onPress={()=>{
-                    if (!kilnStatus) {setTime(0);};
+                {stateError}
+                <Button className="w-2/3 text-lg h-8" color="primary" onPress={()=>{
+                    if (!kilnData.state) {setTime(0);};
                 }}>
                     {~~(time/60)}:{time%60<10 ? "0" : null}{time%60}
                 </Button>
             </div>
-            <DriveProgress size="lg" autoColor={true} aria-label="Temperature" maxValue={maxTemp} value={temp}>
-                Temperature: {temp} C
+            <DriveProgress size="lg" autoColor={true} aria-label="temp1" maxValue={maxTemp[0]} value={kilnData.temp[0]}>
+                Sensor 1 Temperature: {kilnData.temp[0]} C
+            </DriveProgress >
+            <DriveProgress size="lg" autoColor={true} aria-label="temp2" maxValue={maxTemp[1]} value={kilnData.temp[1]}>
+                Sensor 2 Temperature: {kilnData.temp[1]} C
+            </DriveProgress >
+            <DriveProgress size="lg" autoColor={true} aria-label="temp3" maxValue={maxTemp[2]} value={kilnData.temp[2]}>
+                Sensor 3 Temperature: {kilnData.temp[2]} C
             </DriveProgress >
             <div className="text-center bg-slate-900 pt-10 pb-10">
                 CAMERA HERE WHEN CONFIGURED
