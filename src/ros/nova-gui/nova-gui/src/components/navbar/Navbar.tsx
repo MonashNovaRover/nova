@@ -50,7 +50,6 @@ export const NovaNavbar: React.FC = () => {
       <NavbarContent justify="start">
         <NavbarBrand>
           <img src={novaLogo} className="w-16" alt="Nova Logo" />
-          <img src={novaLogo} className="w-14" alt="Nova Logo" />
           {!!title && (
             <>
               <Divider orientation="vertical" className="h-10 w-[2px] mx-2" />
