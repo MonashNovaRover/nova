@@ -71,6 +71,8 @@ export const initialFilters: CameraFilters = {
 export const post_landing_views: CameraView[] = [
   {
     cameraSerials: [
+      "camera1",
+      "Microsoft_Microsoft®_LifeCam_HD-3000",
       "mast_arm_stow",
       "mast_down",
       "mast_forward",
@@ -84,6 +86,7 @@ export const post_landing_views: CameraView[] = [
   },
   {
     cameraSerials: [
+      "camera2",
       "mast_arm_stow",
       "mast_down",
       "mast_forward",

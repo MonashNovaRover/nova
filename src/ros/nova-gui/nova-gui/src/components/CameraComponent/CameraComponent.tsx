@@ -22,6 +22,8 @@ const ASPECT_RATIO = 4 / 3;
 
 export interface CameraComponentProps {
   cameraSerial: string;
+  // This is set to 0 by default, increase this from external to start cameras. Any Value > 0 will work
+  allCamerasStarted?: boolean;
 }
 
 export interface CameraFilters {
@@ -33,22 +35,50 @@ export interface CameraFilters {
 }
 
 export const CameraComponent = (props: CameraComponentProps) => {
-  const { cameraSerial } = props;
+  const { cameraSerial, allCamerasStarted } = props;
   const cameraName = humanizeString(cameraSerial);
   const cardRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
   const [isCameraInfoModalOpen, setCameraInfoModalOpen] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const { streamingState, sendSessionStartMessage, isCameraOnline } =
-    useCameraStream(cameraSerial, videoRef);
+  const {
+    streamingState,
+    sendSessionStartMessage,
+    isCameraOnline,
+    closeSession,
+  } = useCameraStream(cameraSerial, videoRef);
   const [isSettingsOpen, setSettingsOpen] = useState(false);
   const [filters, setFilters] = useState(initialFilters);
+  const [isCameraStarted, setCameraStarted] = useState(false);
+
   const openCameraInTab = () =>
     window.open(
       `/cameras/${cameraSerial}`,
       "_blank",
       "rel=noopener noreferrer"
     );
+
+  useEffect(() => {
+    // Explicitly Starting All Cameras
+    if (allCamerasStarted && isCameraOnline && !isCameraStarted) {
+      sendSessionStartMessage();
+      setCameraStarted(true);
+    }
+  }, [
+    allCamerasStarted,
+    isCameraStarted,
+    sendSessionStartMessage,
+    isCameraOnline,
+    closeSession,
+  ]);
+
+  useEffect(() => {
+    // Explicitly Stopping Cameras
+    if (isCameraStarted && !allCamerasStarted) {
+      setCameraStarted(false);
+      closeSession();
+    }
+  }, [allCamerasStarted, isCameraStarted, closeSession]);
 
   useEffect(() => {
     const handleMouseEnter = () => {
@@ -115,7 +145,12 @@ export const CameraComponent = (props: CameraComponentProps) => {
                   Start
                 </Button>
               ) : (
-                <Button size="sm" color="danger" className="w-min mx-auto">
+                <Button
+                  size="sm"
+                  color="danger"
+                  className="w-min mx-auto"
+                  onClick={() => closeSession()}
+                >
                   <Square size="15px" fill="white" /> Stop
                 </Button>
               )}
