@@ -14,4 +14,5 @@ export interface RosServiceInterface {
     EmptyMessage,
     IRosCameraMsgsGetIpListResponse
   >;
+  [RosService.READ_RFID]: RosServiceMessage<EmptyMessage, EmptyMessage>
 }

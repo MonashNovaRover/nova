@@ -2,7 +2,7 @@ import {
   IRosCameraMsgsGetIpListResponse,
   IRosCoreDriveInfo,
   IRosCoreTelemetry,
-  IRosGeometryMsgsPose,
+  IRosGeometryMsgsPose, IRosStdMsgsString,
 } from "../ros/rosTypes";
 import { BifrostStatus } from "./models/bifrost/BifrostTypes";
 import { UIState } from "./models/UIState";
@@ -17,4 +17,5 @@ export interface RootState {
   driveStore: IRosCoreDriveInfo;
   telemetryStore: IRosCoreTelemetry;
   ipList: IRosCameraMsgsGetIpListResponse;
+  rfidDataStore: IRosStdMsgsString;
 }

@@ -1,5 +1,5 @@
 import { RosTopic } from "./rosTopic";
-import { IRosCoreTelemetry, IRosGeometryMsgsPose } from "../rosTypes";
+import {IRosCoreTelemetry, IRosGeometryMsgsPose, IRosStdMsgsString} from "../rosTypes";
 import { IRosCoreDriveInfo } from "../rosTypes";
 
 /**
@@ -14,4 +14,6 @@ export interface RosTopicInterfaces {
   [RosTopic.POSE]: IRosGeometryMsgsPose;
   [RosTopic.DRIVE_INFO]: IRosCoreDriveInfo;
   [RosTopic.TELEMETRY]: IRosCoreTelemetry;
+  [RosTopic.RFID_DATA]: IRosStdMsgsString;
+
 }

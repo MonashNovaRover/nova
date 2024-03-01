@@ -1,8 +1,8 @@
 import BifrostStatusStore from "./store/bifrost/BifrostStatusStore";
-import { uiSlice } from "./slices/UIReducer";
-import { createBifrostStore } from "./store/bifrost/createBifrostStore";
-import { RosService } from "../ros/services/rosService";
-import { RosTopic } from "../ros/topics/rosTopic";
+import {uiSlice} from "./slices/UIReducer";
+import {createBifrostStore} from "./store/bifrost/createBifrostStore";
+import {RosService} from "../ros/services/rosService";
+import {RosTopic} from "../ros/topics/rosTopic";
 
 export const rootReducer = {
   uiState: uiSlice.reducer,
@@ -58,4 +58,10 @@ export const rootReducer = {
       })),
     }
   ),
+  rfidDataStore: createBifrostStore(
+    { topic: RosTopic.RFID_DATA },
+    {
+      data: ""
+    }
+  )
 };

@@ -12,5 +12,6 @@ export enum RosTopic {
   // ROS Topics
   POSE = "/pose",
   DRIVE_INFO = "/control/drive_info",
-  TELEMETRY = "/control/telemetry"
+  TELEMETRY = "/control/telemetry",
+  RFID_DATA = "/electronics/rfid/data",
 }

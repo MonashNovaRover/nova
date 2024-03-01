@@ -11,6 +11,7 @@ import URCDeliveryView from "../views/urc/URCDeliveryView";
 import URCEquipmentServicingView from "../views/urc/URCEquipmentServicingView";
 import URCScienceView from "../views/urc/URCScienceView";
 import { Root } from "../root";
+import TestRFIDView from "../views/test/TestRFIDView.tsx";
 
 export const arcRoutes: RouteObject[] = [
   {
@@ -61,7 +62,10 @@ export const urcRoutes: RouteObject[] = [
 export const generalRoutes: RouteObject[] = [];
 
 export const testRoutes: RouteObject[] = [
-
+  {
+    path: "/test/rfid",
+    element: <TestRFIDView />,
+  },
 ];
 
 export const routes: RouteObject[] = [
