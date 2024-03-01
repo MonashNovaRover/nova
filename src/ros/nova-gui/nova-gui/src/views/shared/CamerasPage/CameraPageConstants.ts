@@ -40,7 +40,6 @@ export const post_landing_views: CameraView[] = [
       "mast_down",
       "mast_forward",
       "mast_backward",
-      "arm_end_side",
       "arm_end_top",
       "arm_end_finger",
       "arm_end_forward",
@@ -59,7 +58,6 @@ export const post_landing_views: CameraView[] = [
   },
   {
     cameraSerials: [
-      "arm_end_side",
       "arm_end_top",
       "arm_end_finger",
       "arm_end_forward",
