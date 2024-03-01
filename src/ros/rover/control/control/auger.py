@@ -40,8 +40,8 @@ class AugerNode(Node):
     DRILL_ID = 0x053
     CARD_ID_RECEIVE = 0x4A2
     # command data
-    AUGER_UP = -1
-    AUGER_DOWN = 1
+    AUGER_UP = 1
+    AUGER_DOWN = -1
     DRILL_CLOCKWISE = 1
     DRILL_COUNTERCLOCKWISE = -1
     # limit switch id
