@@ -51,7 +51,7 @@ class KilnServer(Node):
         self.can_spin_timer = self.create_timer(0.05, self.bus.spin)
         self.publish_data_timer = self.create_timer(1, self.publish_data)
 
-        self.temp = [0, 0, 0]
+        self.temp = [0.0, 0.0, 0.0]
         self.is_on = False
 
         self.bus.open("can1")
