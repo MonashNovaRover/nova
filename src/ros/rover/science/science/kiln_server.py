@@ -19,6 +19,7 @@ EDITED:         30/02/2024
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
+import logging
 import rclpy
 from rclpy.node import Node
 import jcan
@@ -31,6 +32,8 @@ class KilnServer(Node):
 
     def __init__(self):
         super().__init__('kiln_server')
+        self.get_logger().set_level(logging.DEBUG)
+        self.get_logger().info("Kiln server starting")
 
         #subscriber to polling status
         self.service = self.create_service(KilnCommand, '/science/kiln_command', self.command_callback)
@@ -57,15 +60,16 @@ class KilnServer(Node):
         try:
             if request.state:   # turn on kiln
                 for i in range(10,12):
-                    for j in range(8,12):
-                        kiln_frame = jcan.Frame( i << 4 , ( j << 8 | 255))
-                        self.bus.send(kiln_frame)
-                self.is_on = True
-            else:               # turn off kiln
-                for i in range(10,12):
                     kiln_frame = jcan.Frame( i << 4 , ( 7 << 8 | 255))
                     self.bus.send(kiln_frame)
+                self.is_on = True
+                self.get_logger().info("Kiln On")
+            else:               # turn off kiln
+                for i in range(10,12):
+                    kiln_frame = jcan.Frame( i << 4 , ( 7 << 8 | 0))
+                    self.bus.send(kiln_frame)
                 self.is_on = False
+                self.get_logger().info("Kiln Off")
             response.success = True
         except:
             response.success = False
@@ -78,14 +82,17 @@ class KilnServer(Node):
             reading = (frame.data) & 0xFF
             if sensor_id == 2:
                 self.temp[sensor_id] = reading*0.02 - 273.15
+                self.get_logger().info("IR reading updated")
             else:
                 self.temp[sensor_id] = reading
+                self.get_logger().info("Thermistor reading updated")
 
     def publish_data(self):
         msg = KilnData()
         msg.temp = self.temp
         msg.state = self.is_on
         self.publisher.publish(msg)
+        self.get_logger().info("Temps and state published")
 
 
 def main():
