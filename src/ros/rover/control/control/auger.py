@@ -58,8 +58,8 @@ class AugerNode(Node):
 
         self.get_logger().set_level(logging.DEBUG)
         self.param_can = self.declare_parameter("can_bus", self.CAN_BUS).value
-        self.param_auger_velocity_multiplier = self.declare_parameter("auger_velocity_multiplier", 32767/2).value
-        self.param_drill_default_velocity = self.declare_parameter("drill_default_velocity", 32767/2).value
+        self.param_auger_velocity_multiplier = self.declare_parameter("auger_velocity_multiplier", 32767).value
+        self.param_drill_default_velocity = self.declare_parameter("drill_default_velocity", 32767).value
 
         # Initially all motors spin backwards with 0 velocity
         self.auger_direction = self.AUGER_UP
