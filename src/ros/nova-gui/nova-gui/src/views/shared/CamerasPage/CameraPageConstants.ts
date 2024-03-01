@@ -21,6 +21,18 @@ export const initialFilters: CameraFilters = {
   brightness: 100, // in %
 };
 
+export const allCams = [
+  "mast_arm_stow",
+  "mast_down",
+  "mast_forward",
+  "mast_backward",
+  "arm_end_side",
+  "arm_end_top",
+  "arm_end_finger",
+  "arm_end_forward",
+  "arm_gimbal"
+];
+
 export const post_landing_views: CameraView[] = [
   {
     cameraSerials: [
@@ -32,6 +44,7 @@ export const post_landing_views: CameraView[] = [
       "arm_end_top",
       "arm_end_finger",
       "arm_end_forward",
+      "arm_gimbal"
     ],
     viewTitle: "All Cameras",
   },
@@ -50,6 +63,7 @@ export const post_landing_views: CameraView[] = [
       "arm_end_top",
       "arm_end_finger",
       "arm_end_forward",
+      "arm_gimbal"
     ],
     viewTitle: "Arm",
   },
