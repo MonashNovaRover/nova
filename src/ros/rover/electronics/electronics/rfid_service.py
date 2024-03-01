@@ -27,7 +27,7 @@ import rclpy, time
 from rclpy.node import Node
 
 from std_msgs.msg import String
-from std_srvs.srv import Empty
+from std_srvs.srv import Trigger
 
 from urllib.parse import quote
 
@@ -54,7 +54,7 @@ class RFIDService(Node):
             
         self.srv = self.create_service(RFIDCommand, '/electronics/rfid_service', self.handle_rfid_request)
 
-        self.read_service = self.create_service(RFIDCommand, '/electronics/rfid/read', self.handle_read)
+        self.read_service = self.create_service(Trigger, '/electronics/rfid/read', self.handle_read)
 
         self.unprocessed = ""
 
@@ -94,8 +94,39 @@ class RFIDService(Node):
             pass
         return response
 
-    def handle_read(self, request: Empty, response):
+
+
+    def handle_read(self, request: Trigger, response):
         self.write_msg("read")
+
+        response.success = False
+        response.message = "No response"
+
+        data = self.get_non_debug_command_from_arduino()
+        while data is None:
+            data = self.get_non_debug_command_from_arduino()
+
+        [command, args] = data
+
+        if command != "data":
+            response.message = f"{command} {args}"
+            response.success = False
+
+            self.process_arduino_command(command, args)
+            return response
+
+        response.success = True
+        self.on_received_data(args)
+
+        # Try to get a response message, if any
+        secondary_data = self.get_non_debug_command_from_arduino()
+        if secondary_data is not None:
+            [secondary_command, secondary_args] = data
+            self.process_arduino_command(secondary_command, secondary_args)
+            response.message = f"{secondary_command} {secondary_args}"
+        else:
+            response.message = ""
+
         return response
     
     def read_data(self) -> str:
@@ -122,10 +153,8 @@ class RFIDService(Node):
             #self.get_logger().error(f'Raw data: {data}')
             return 'Service error: Failed to decode message'
 
-    def service_arduino(self):
-        """
-        Handles any data from the arduino
-        """
+
+    def get_command_from_arduino(self):
         if self.ser.in_waiting > 0:
             rawdata = self.ser.read(self.ser.in_waiting)
             try:
@@ -136,34 +165,53 @@ class RFIDService(Node):
 
 
         split_unprocessed_data = self.unprocessed.split('\n', 1)
-        while len(split_unprocessed_data) == 2:
-            line = split_unprocessed_data[0]
-            self.unprocessed = split_unprocessed_data[1]
+        if len(split_unprocessed_data) != 2:
+            return None
 
-            self.process_serial_input(line)
+        line = split_unprocessed_data[0]
+        self.unprocessed = split_unprocessed_data[1]
 
-            split_unprocessed_data = self.unprocessed.split('\n', 1)
-
-
-    def process_serial_input(self, data: str):
-        """
-        Using data sent over serial by the arduino, call an appropriate function to handle the message.
-        :param data: The line sent by the arduino
-        :return: None
-        """
-        if len(data.strip()) == 0:
-            return
+        if len(line.strip()) == 0:
+            return None
 
         command = ""
         args = ""
 
-        split_data = data.split(' ', 1)
+        split_data = line.split(' ', 1)
         if len(split_data) == 2:
             [command, args] = split_data
         elif len(split_data) == 1:
-            command = data
+            command = line
 
         command = command.lower().strip(':').strip()
+
+        return [command, args]
+
+    def get_non_debug_command_from_arduino(self):
+        data = self.get_command_from_arduino()
+
+        while data is not None and data[0] == "debug":
+            self.process_arduino_command(data[0], data[1])
+            data = self.get_command_from_arduino()
+
+        return data
+
+    def service_arduino(self):
+        """
+        Handles any data from the arduino
+        """
+        data = self.get_command_from_arduino()
+        while data is not None:
+            [command, args] = data
+            self.process_arduino_command(command, args)
+
+            data = self.get_command_from_arduino()
+
+    def process_arduino_command(self, command: str, args: str):
+        """
+        Using data sent over serial by the arduino, call an appropriate function to handle the message.
+        :return: None
+        """
 
         if command == "data":
             self.on_received_data(args)
@@ -201,6 +249,8 @@ class RFIDService(Node):
         msg.data = txt
 
         self.data_publisher.publish(msg)
+
+        return msg
 
     def write_msg(self, msg: str):
         '''
