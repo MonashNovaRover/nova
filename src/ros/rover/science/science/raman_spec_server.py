@@ -104,24 +104,30 @@ class RamanServer(Node):
             
     def find_phase(output):
         step = 10
-        dict = {}
+        dict = {
+            "found":False
+            }
         startfound = False
         previous = 0
-        for element in range(0, len(output), step):
+        element = 0
+        while element < len(output):
+            current = output[element]
             if startfound:
-                current = output[element]
                 if previous > RamanServer.PHASE_SIGNAL and current > RamanServer.PHASE_SIGNAL:
-                    dict["end"] = previous - step
+                    dict["end"] = element - 2*step
                     dict["found"] = True
                     return dict
             else:
                 current = output[element]
                 if previous > RamanServer.PHASE_SIGNAL and current > RamanServer.PHASE_SIGNAL:
-                    dict["start"] = current + step
+                    i = 1
+                    while output[element + i*step] > RamanServer.PHASE_SIGNAL:
+                        i += 1
+                    element += (i - 1) * step
+                    dict["start"] = element + step
                     startfound = True
-                else:
-                    previous = current
-        dict["found"] = False
+            previous = current
+            element += step
         return dict
 
     
@@ -133,16 +139,16 @@ class RamanServer(Node):
             response[pixel] = (output[2*pixel+1] << 8) + output[2*pixel]
             
         # register has two sides which produce systematically differing values, so to reduce noise, an offset is applied to equal the values
-        # offset = 0
-        # for pixel in range(RamanServer.SPECTRA_SIZE):
-        #     if pixel % 2 == 0:
-        #         offset += response[pixel]
-        #     else:
-        #         offset -= response[pixel]
-        # offset = 2 * offset / RamanServer.SPECTRA_SIZE
+        offset = 0
+        for pixel in range(RamanServer.SPECTRA_SIZE):
+            if pixel % 2 == 0:
+                offset += response[pixel]
+            else:
+                offset -= response[pixel]
+        offset = 2 * offset / RamanServer.SPECTRA_SIZE
 	
-        # for pixel in range(RamanServer.SPECTRA_SIZE // 2):
-        #     response[2*pixel] -= offset
+        for pixel in range(RamanServer.SPECTRA_SIZE // 2):
+            response[2*pixel] -= offset
 	
         return response
 
@@ -193,9 +199,11 @@ class RamanServer(Node):
             #wait for the firmware to return data
             output = ser.read(2*RamanServer.OUTPUT_SIZE)
 
+            read_output = RamanServer.read_output_to_response(output)
+
             ser.close()
 
-            find_phase = RamanServer.find_phase(output)
+            find_phase = RamanServer.find_phase(read_output)
 
             if find_phase["found"]:
                 final_output = []
