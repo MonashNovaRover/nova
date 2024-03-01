@@ -80,9 +80,9 @@ class KilnServer(Node):
 
     def update_temp(self, frame):
         self.get_logger().info("Kiln try update temp")
-        sensor_id = (frame.data >> 8) - 1
+        sensor_id = frame.data[0] - 1
         if 0 <= sensor_id <= 2:
-            reading = (frame.data) & 0xFF
+            reading = frame.data[1]
             if sensor_id == 2:
                 self.temp[sensor_id] = reading*0.02 - 273.15
                 self.get_logger().info("IR reading updated")
