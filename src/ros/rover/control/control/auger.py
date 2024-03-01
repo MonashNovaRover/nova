@@ -64,8 +64,8 @@ class AugerNode(Node):
         # Initially all motors spin backwards with 0 velocity
         self.auger_direction = self.AUGER_UP
         self.drill_direction = self.DRILL_CLOCKWISE
-        self.auger_velocity = self.param_auger_velocity_multiplier # TODO make zero again
-        self.drill_velocity = self.param_auger_velocity_multiplier # TODO make zero again
+        self.auger_velocity = 0
+        self.drill_velocity = 0
         
         self.top_limit = False
         self.bottom_limit = False
@@ -101,8 +101,9 @@ class AugerNode(Node):
         self.get_logger().info(f"Sending {augerFrame}")
         self.get_logger().info(f"Sending {drillFrame}")
         try:
-            self.bus.send(augerFrame)
-            self.bus.send(drillFrame)
+            # self.bus.send(augerFrame)
+            # self.bus.send(drillFrame)
+            print("sending")
 
         except Exception as e:
             print(e)
