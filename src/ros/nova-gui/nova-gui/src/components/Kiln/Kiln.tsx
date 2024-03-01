@@ -28,7 +28,11 @@ const Kiln: React.FC = () => {
     useEffect(() => {
         dataBifrost.syncWithTopic();
         // update max temps if current temps exceed them
-        maxTemp.forEach((element, index) => { kilnData.temp[index] > element ? kilnData.temp[index] : element})
+        maxTemp.forEach((element, index) => { if (kilnData.temp[index] > element) {
+            let result = maxTemp;
+            result[index] = kilnData.temp[index];
+            setMaxTemp(result);
+        }})
     }, [dataBifrost]);
 
     setTimeout(() => {kilnData.state ? setTime(time + 1) : null}, 1000);
