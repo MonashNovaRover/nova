@@ -46,10 +46,9 @@ export const CameraComponent = (props: CameraComponentProps) => {
     sendSessionStartMessage,
     isCameraOnline,
     closeSession,
-  } = useCameraStream(cameraSerial, videoRef);
+  } = useCameraStream(cameraSerial, videoRef, allCamerasStarted);
   const [isSettingsOpen, setSettingsOpen] = useState(false);
   const [filters, setFilters] = useState(initialFilters);
-  const [isCameraStarted, setCameraStarted] = useState(false);
 
   const openCameraInTab = () =>
     window.open(
@@ -57,28 +56,6 @@ export const CameraComponent = (props: CameraComponentProps) => {
       "_blank",
       "rel=noopener noreferrer"
     );
-
-  useEffect(() => {
-    // Explicitly Starting All Cameras
-    if (allCamerasStarted && isCameraOnline && !isCameraStarted) {
-      sendSessionStartMessage();
-      setCameraStarted(true);
-    }
-  }, [
-    allCamerasStarted,
-    isCameraStarted,
-    sendSessionStartMessage,
-    isCameraOnline,
-    closeSession,
-  ]);
-
-  useEffect(() => {
-    // Explicitly Stopping Cameras
-    if (isCameraStarted && !allCamerasStarted) {
-      setCameraStarted(false);
-      closeSession();
-    }
-  }, [allCamerasStarted, isCameraStarted, closeSession]);
 
   useEffect(() => {
     const handleMouseEnter = () => {

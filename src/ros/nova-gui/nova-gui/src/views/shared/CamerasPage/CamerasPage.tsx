@@ -50,10 +50,7 @@ export const CameraPage = (props: CameraPageProps) => {
         variant="bordered"
         selectedKey={selectedTab}
         onSelectionChange={(key) => {
-          const prevSetAllCamsOn = allCamsOn;
-          setAllCamsOn(false);
           setSelectedTab(key as number);
-          setAllCamsOn(prevSetAllCamsOn);
         }}
       >
         {views.map((view, i) => (

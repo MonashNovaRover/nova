@@ -86,6 +86,7 @@ export const post_landing_views: CameraView[] = [
   },
   {
     cameraSerials: [
+      "Sonix_Technology_Co.__Ltd._BisonCam_NB_Pro",
       "camera2",
       "mast_arm_stow",
       "mast_down",

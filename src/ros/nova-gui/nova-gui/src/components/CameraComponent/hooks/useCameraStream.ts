@@ -25,7 +25,8 @@ const ICE_SERVERS = [
 
 export const useCameraStream = (
   cameraSerial: string,
-  videoRef: React.MutableRefObject<HTMLVideoElement | null>
+  videoRef: React.MutableRefObject<HTMLVideoElement | null>,
+  autoStart?: boolean
 ) => {
   const [isWsOpen, setWsOpen] = useState(false);
   const roverIP = useSelector((state: RootState) => state.uiState.roverIP);
@@ -55,7 +56,8 @@ export const useCameraStream = (
   );
 
   const sendSessionStartMessage = useCallback(() => {
-    if (!isWsOpen || !peerId) {
+    if (!isWsOpen) return;
+    if (!peerId) {
       toast.error(`${cameraSerial} unable to start up`);
       return;
     }
@@ -69,7 +71,8 @@ export const useCameraStream = (
   );
 
   const closeSession = useCallback(() => {
-    if (!isWsOpen || !peerId) {
+    if (!isWsOpen) return;
+    if (!peerId) {
       toast.error(`${cameraSerial} unable to start up`);
       return;
     }
@@ -83,6 +86,31 @@ export const useCameraStream = (
 
     sendJsonMessage({ type: "endSession", sessionId });
   }, [cameraSerial, isWsOpen, peerId, sendJsonMessage, sessionId, videoRef]);
+
+  useEffect(() => {
+    if (autoStart && isWsOpen && isCameraOnline) {
+      sendSessionStartMessage();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isWsOpen, isCameraOnline]);
+
+  useEffect(() => {
+    if (streamingState === StreamingState.STOPPED && isCameraOnline) {
+      if (autoStart) {
+        sendSessionStartMessage();
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoStart]);
+
+  useEffect(() => {
+    if (streamingState === StreamingState.STREAMING) {
+      if (!autoStart) {
+        closeSession();
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoStart]);
 
   const iceCandidateCallback = useCallback(
     (event: RTCPeerConnectionIceEvent) => {
