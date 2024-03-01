@@ -84,10 +84,10 @@ class KilnServer(Node):
         if 0 <= sensor_id <= 2:
             reading = frame.data[1]
             if sensor_id == 2:
-                self.temp[sensor_id] = reading*0.02 - 273.15
+                self.temp[sensor_id] = float(reading*0.02 - 273.15)
                 self.get_logger().info("IR reading updated")
             else:
-                self.temp[sensor_id] = reading
+                self.temp[sensor_id] = float(reading)
                 self.get_logger().info("Thermistor reading updated")
 
     def publish_data(self):
