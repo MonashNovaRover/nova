@@ -26,7 +26,7 @@
       i_tf_custom_urdf_location: ''
       i_tf_custom_xacro_args: ''
       i_tf_imu_from_descr: 'false'
-      i_tf_parent_frame: oak-d-base-frame
+      i_tf_parent_frame: base_link #oak-d-base-frame
       i_usb_port_id: ''
       i_usb_speed: SUPER_PLUS
     diagnostic_updater:
