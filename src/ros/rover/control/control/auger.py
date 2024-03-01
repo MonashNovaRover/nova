@@ -179,7 +179,7 @@ class AugerNode(Node):
 
         if not self.joystick_lock:
             # Update the inputs
-            self.auger_direction = self.AUGER_UP if joystick_r.ax_stick_x >= 0 else self.AUGER_DOWN
+            self.auger_direction = self.AUGER_DOWN if joystick_r.ax_stick_x >= 0 else self.AUGER_UP 
 
             if self.auger_direction == self.AUGER_UP and self.top_limit:
                 self.auger_velocity = 0
