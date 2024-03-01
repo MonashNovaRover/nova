@@ -10,13 +10,42 @@ import {
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/RootState";
 import { useUIActions } from "../../redux/actions/useUIActions";
+import { useState } from "react";
+import toast from "react-hot-toast";
+import { isIPAddress } from "../../utils/regexUtils";
 
 export function SettingsModal() {
   const uiActions = useUIActions();
   const uiState = useSelector((state: RootState) => state.uiState);
 
-  const onURLChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    uiActions.updateROSurl("ws://" + event.target.value);
+  const [baseStationIP, setBaseStationIP] = useState<string>(
+    uiState.baseStationIP,
+  );
+
+  const [roverIP, setRoverIP] = useState<string>(uiState.roverIP);
+
+  const submit = () => {
+    if (!isIPAddress(baseStationIP) || !isIPAddress(roverIP)) {
+      toast.error("Invalid IP address");
+      return;
+    }
+
+    uiActions.updateIP(baseStationIP, roverIP);
+    try {
+      window.localStorage.setItem("baseIP", baseStationIP);
+      window.localStorage.setItem("roverIP", roverIP);
+    } catch (e) {
+      console.log("Local Storage is disabled");
+    }
+    closeModal();
+  };
+
+  const onBaseIPChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setBaseStationIP(event.target.value);
+  };
+
+  const onRoverIPChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRoverIP(event.target.value);
   };
 
   const closeModal = () => uiActions.setSettingsModal(false);
@@ -31,20 +60,24 @@ export function SettingsModal() {
         <ModalBody>
           <Input
             fullWidth
-            label="ROSBridge URL"
-            value={uiState.rosUrl.slice(5)}
-            type="url"
-            onChange={onURLChange}
-            startContent={
-              <div className="pointer-events-none flex items-center">
-                <span className="text-default-400 text-small">ws://</span>
-              </div>
-            }
+            label="Base IP"
+            value={baseStationIP}
+            type="text"
+            onChange={onBaseIPChange}
+            isInvalid={!isIPAddress(baseStationIP)}
+          />
+          <Input
+            fullWidth
+            label="Rover IP"
+            value={roverIP}
+            type="text"
+            onChange={onRoverIPChange}
+            isInvalid={!isIPAddress(roverIP)}
           />
         </ModalBody>
         <ModalFooter>
-          <Button color="danger" variant="flat" onClick={closeModal}>
-            Close
+          <Button size="sm" color="success" variant="flat" onClick={submit}>
+            Submit
           </Button>
         </ModalFooter>
       </ModalContent>
