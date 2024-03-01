@@ -18,6 +18,7 @@ EDITED:		24/02/2024
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 """
+from struct import pack
 import rclpy
 from rclpy.node import Node
 import jcan, logging
@@ -35,18 +36,21 @@ class AugerNode(Node):
     # can bus
     CAN_BUS = "can1"
     # card IDs
-    CARD_ID_SEND = 0x0A0
-    CARD_ID_RECEIVE = 0x4A0
+    AUGER_ID = 0x063
+    DRILL_ID = 0x053
+    CARD_ID_RECEIVE = 0x4A2
     # command data
-    AUGER_ID_UP = 0x1
-    AUGER_ID_DOWN = 0x2
-    DRILL_CLOCKWISE = 0x3
-    DRILL_COUNTERCLOCKWISE = 0x4
-    # limit switch data
-    AUGER_LIMIT_SWITCH_TOP_CLEAR = 0x0100
-    AUGER_LIMIT_SWITCH_TOP_HIT = 0x0101
-    AUGER_LIMIT_SWITCH_BOTTOM_CLEAR = 0x0200
-    AUGER_LIMIT_SWITCH_BOTTOM_HIT = 0x0201
+    AUGER_UP = -1
+    AUGER_DOWN = 1
+    DRILL_CLOCKWISE = 1
+    DRILL_COUNTERCLOCKWISE = -1
+    # limit switch id
+    AUGER_LIMIT_SWITCH_TOP = 0x01
+    AUGER_LIMIT_SWITCH_BOTTOM = 0x02
+    # limit switch status / data
+    AUGER_LIMIT_SWITCH_CLEAR = 0x00
+    AUGER_LIMIT_SWITCH_HIT = 0x01
+
 
 
     def __init__(self):
@@ -54,14 +58,14 @@ class AugerNode(Node):
 
         self.get_logger().set_level(logging.DEBUG)
         self.param_can = self.declare_parameter("can_bus", self.CAN_BUS).value
-        self.param_auger_velocity_multiplier = self.declare_parameter("auger_velocity_multiplier", 127).value
-        self.param_drill_default_velocity = self.declare_parameter("drill_default_velocity", 127).value
+        self.param_auger_velocity_multiplier = self.declare_parameter("auger_velocity_multiplier", 32767).value
+        self.param_drill_default_velocity = self.declare_parameter("drill_default_velocity", 32767).value
 
         # Initially all motors spin backwards with 0 velocity
-        self.auger_direction = self.AUGER_ID_UP
+        self.auger_direction = self.AUGER_UP
         self.drill_direction = self.DRILL_CLOCKWISE
-        self.auger_velocity = 0
-        self.drill_velocity = 0
+        self.auger_velocity = self.param_auger_velocity_multiplier # TODO make zero again
+        self.drill_velocity = self.param_auger_velocity_multiplier # TODO make zero again
         
         self.top_limit = False
         self.bottom_limit = False
@@ -91,8 +95,8 @@ class AugerNode(Node):
         """
         # The list of values will be cast to uint8's by JCAN library - so be careful to double check the values!
         auger_commands, drill_commands = self.get_auger_commands()
-        augerFrame = jcan.Frame(self.CARD_ID_SEND, auger_commands)
-        drillFrame = jcan.Frame(self.CARD_ID_SEND, drill_commands)
+        augerFrame = jcan.Frame(self.AUGER_ID, auger_commands)
+        drillFrame = jcan.Frame(self.DRILL_ID, drill_commands)
 
         self.get_logger().info(f"Sending {augerFrame}")
         self.get_logger().info(f"Sending {drillFrame}")
@@ -106,30 +110,29 @@ class AugerNode(Node):
     def callback_receive_can_feedback(self, frame: jcan.Frame):
         """Receive can feedback for auger limit switches
         """
-        self.get_logger().info(f"Received {frame.id} {frame.data}")
-
-
-        # if frame.id == self.CARD_ID_RECEIVE:
-        #     if frame.data == self.AUGER_LIMIT_SWITCH_TOP_HIT:
-        #         self.get_logger().info("Top limit switch hit")
-        #         self.top_limit = True
-        #     elif frame.data == self.AUGER_LIMIT_SWITCH_TOP_CLEAR:
-        #         self.top_limit = False
-
-        #     if frame.data == self.AUGER_LIMIT_SWITCH_BOTTOM_HIT:
-        #         self.get_logger().info("Bottom limit switch hit")
-        #         self.bottom_limit = True
-        #     elif frame.data == self.AUGER_LIMIT_SWITCH_BOTTOM_CLEAR:
-        #         self.bottom_limit = False
-
-        # else:
-        #     self.get_logger().info(f"Received unknown frame {frame}")
+        self.get_logger().info(f"Received {hex(frame.id)} {frame.data}")
+ 
+        if frame.id == self.CARD_ID_RECEIVE:
+            if frame.data[0] == self.AUGER_LIMIT_SWITCH_TOP:
+                if frame.data[1] == self.AUGER_LIMIT_SWITCH_HIT:
+                    self.get_logger().info("Top limit switch hit")
+                    self.top_limit = True
+                else:
+                    self.top_limit = False
+            elif frame.data[0] == self.AUGER_LIMIT_SWITCH_BOTTOM:
+                if frame.data[1] == self.AUGER_LIMIT_SWITCH_HIT:
+                    self.get_logger().info("Bottom limit switch hit")
+                    self.bottom_limit = True
+                else:
+                    self.bottom_limit = False
+        else:
+            self.get_logger().info(f"Received unknown frame {frame}")
         
 
 
     def auger_stop_state(self):
         self.auger_velocity = 0
-        self.auger_direction = self.AUGER_ID_UP
+        self.auger_direction = self.AUGER_UP
 
     def drill_stop_state(self):
         self.drill_velocity = 0
@@ -176,11 +179,11 @@ class AugerNode(Node):
 
         if not self.joystick_lock:
             # Update the inputs
-            self.auger_direction = self.AUGER_ID_UP if joystick_r.ax_stick_x >= 0 else self.AUGER_ID_DOWN
+            self.auger_direction = self.AUGER_UP if joystick_r.ax_stick_x >= 0 else self.AUGER_DOWN
 
-            if self.auger_direction == self.AUGER_ID_UP and self.top_limit:
+            if self.auger_direction == self.AUGER_UP and self.top_limit:
                 self.auger_velocity = 0
-            elif self.auger_direction == self.AUGER_ID_DOWN and self.bottom_limit:
+            elif self.auger_direction == self.AUGER_DOWN and self.bottom_limit:
                 self.auger_velocity = 0
             else:
                 self.auger_velocity = abs( int( self.param_auger_velocity_multiplier * joystick_r.ax_stick_x ) )
@@ -203,8 +206,11 @@ class AugerNode(Node):
 
 
     def get_auger_commands(self):
-        auger_data = [self.auger_direction, self.auger_velocity]
-        drill_data = [self.drill_direction, self.drill_velocity]
+        auger_value = self.auger_direction * self.auger_velocity
+        drill_value = self.drill_direction * self.drill_velocity
+        self.get_logger().info(f"Auger: {auger_value}, Drill: {drill_value}")
+        auger_data = list(pack('>h', int(auger_value)))
+        drill_data = list(pack('>h', int(drill_value)))
 
         return auger_data, drill_data
 
