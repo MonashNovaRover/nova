@@ -101,9 +101,8 @@ class AugerNode(Node):
         self.get_logger().info(f"Sending {augerFrame}")
         self.get_logger().info(f"Sending {drillFrame}")
         try:
-            # self.bus.send(augerFrame)
-            # self.bus.send(drillFrame)
-            print("sending")
+            self.bus.send(augerFrame)
+            self.bus.send(drillFrame)
 
         except Exception as e:
             print(e)
