@@ -7,7 +7,7 @@ import {
   PopoverTrigger,
   Spinner,
 } from "@nextui-org/react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Camera as CameraIcon, Info, Play, Square } from "react-feather";
 import { CameraInfoModal } from "./components/CameraInfoModal";
 import { StreamingState, useCameraStream } from "./hooks/useCameraStream";
@@ -17,13 +17,13 @@ import { initialFilters } from "../../views/shared/CamerasPage/CameraPageConstan
 import { BooleanChip } from "./components/BooleanChip";
 import humanizeString from "humanize-string";
 import { ExternalLink } from "react-feather";
+import toast from "react-hot-toast";
 
 const ASPECT_RATIO = 4 / 3;
 
 export interface CameraComponentProps {
   cameraSerial: string;
-  // This is set to 0 by default, increase this from external to start cameras. Any Value > 0 will work
-  allCamerasStarted?: boolean;
+  autostart?: boolean;
 }
 
 export interface CameraFilters {
@@ -35,7 +35,7 @@ export interface CameraFilters {
 }
 
 export const CameraComponent = (props: CameraComponentProps) => {
-  const { cameraSerial, allCamerasStarted } = props;
+  const { cameraSerial, autostart: allCamerasStarted } = props;
   const cameraName = humanizeString(cameraSerial);
   const cardRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
@@ -56,6 +56,31 @@ export const CameraComponent = (props: CameraComponentProps) => {
       "_blank",
       "rel=noopener noreferrer"
     );
+
+  const takeScreenshot = useCallback(async () => {
+    if (videoRef.current && window) {
+      const video = videoRef.current;
+      const canvas = document.createElement("canvas");
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const context = canvas.getContext("2d");
+      if (context) {
+        context.drawImage(video, 0, 0);
+        const blob = await new Promise<Blob | null>((resolve) => {
+          canvas.toBlob((blob) => resolve(blob));
+        });
+        if (blob) {
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = `${cameraSerial}-${Date.now()}.png`;
+          link.click();
+        }
+      }
+    } else {
+      toast("Unable to Take a Screenshot");
+    }
+  }, [videoRef, cameraSerial]);
 
   useEffect(() => {
     const handleMouseEnter = () => {
@@ -133,7 +158,7 @@ export const CameraComponent = (props: CameraComponentProps) => {
               )}
 
               <Button isIconOnly size="sm">
-                <CameraIcon size="15px" />
+                <CameraIcon size="15px" onClick={takeScreenshot} />
               </Button>
               <Button isIconOnly size="sm" onClick={openCameraInTab}>
                 <ExternalLink size="15px" />

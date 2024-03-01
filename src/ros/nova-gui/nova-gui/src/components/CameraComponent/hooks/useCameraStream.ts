@@ -23,6 +23,13 @@ const ICE_SERVERS = [
   },
 ];
 
+/**
+ * Custom hook for managing camera streaming.
+ *
+ * @param cameraSerial - The serial number of the camera.
+ * @param videoRef - A mutable ref object for the HTML video element.
+ * @param autoStart - Optional boolean flag indicating whether to automatically start the camera stream. Default is `false`.
+ */
 export const useCameraStream = (
   cameraSerial: string,
   videoRef: React.MutableRefObject<HTMLVideoElement | null>,
@@ -182,6 +189,9 @@ export const useCameraStream = (
         break;
       }
       case "peer": {
+        if (lastJsonMessage.sessionId !== sessionId) {
+          setSessionId(lastJsonMessage.sessionId); // This kinda has to be done everytime to ensure that this points to the latest
+        }
         const rtcPeerConnection = handOverRTCPeerConnection();
         handlePeerMessage(rtcPeerConnection, lastJsonMessage);
         break;

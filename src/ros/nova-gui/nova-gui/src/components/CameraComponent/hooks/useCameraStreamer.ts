@@ -9,6 +9,13 @@ import { cloneDeep } from "lodash";
 import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction";
 import { RosTopic } from "../../../ros/topics/rosTopic";
 
+/**
+ * Custom React hook for managing camera streaming functionality.
+ * This hook handles communication with the server, synchronization with the ROS topic,
+ * and updating the camera state based on received messages. Acts as an Orchestrator
+ * handling addition and removal of cameras from cameras2.
+ * @returns An object containing the `refreshAvailabilities` function.
+ */
 export const useCameraStreamer = () => {
   const cameraStreamerActions = useCameraStreamerActions();
 

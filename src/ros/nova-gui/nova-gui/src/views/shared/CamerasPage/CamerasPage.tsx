@@ -26,12 +26,23 @@ export const CameraPage = (props: CameraPageProps) => {
     <div>
       <div className="flex flex-row justify-between items-center m-6 gap-4">
         <div className="flex flex-row m-4 ml-0 gap-4 items-center">
-          <Button size="sm" color="primary" onClick={() => setAllCamsOn(true)}>
-            <Play size="15px" fill="white" /> Start All
-          </Button>
-          <Button size="sm" color="danger" onClick={() => setAllCamsOn(false)}>
-            <Square size="15px" fill="white" /> Stop All
-          </Button>
+          {!allCamsOn ? (
+            <Button
+              size="sm"
+              color="primary"
+              onClick={() => setAllCamsOn(true)}
+            >
+              <Play size="15px" fill="white" /> Start All
+            </Button>
+          ) : (
+            <Button
+              size="sm"
+              color="danger"
+              onClick={() => setAllCamsOn(false)}
+            >
+              <Square size="15px" fill="white" /> Stop All
+            </Button>
+          )}
         </div>
         <Button
           className="m-4 mr-0"
@@ -60,7 +71,7 @@ export const CameraPage = (props: CameraPageProps) => {
                 <CameraComponent
                   cameraSerial={serial}
                   key={i}
-                  allCamerasStarted={allCamsOn}
+                  autostart={allCamsOn}
                 />
               ))}
             </div>
