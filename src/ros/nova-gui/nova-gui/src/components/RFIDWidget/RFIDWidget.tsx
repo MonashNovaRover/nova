@@ -5,7 +5,8 @@ import {RosTopic} from "../../ros/topics/rosTopic.ts";
 import {useSelector} from "react-redux";
 import {RootState} from "../../redux/RootState.ts";
 import {RosService} from "../../ros/services/rosService.ts";
-
+import {IRosStdSrvsTriggerResponse} from "../../ros/rosTypes.ts";
+import toast from "react-hot-toast";
 
 const RFIDWidget: React.FC<CardProps> = (props) => {
   const bifrost = useBifrost({ topic: RosTopic.RFID_DATA, service: RosService.READ_RFID });
@@ -18,8 +19,17 @@ const RFIDWidget: React.FC<CardProps> = (props) => {
   }, [bifrost]);
 
   const read = () => {
-    bifrost.callService({}, );
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    bifrost.callService({}, {handleResponse : (response: IRosStdSrvsTriggerResponse) => {
+      if (response.success)
+        toast.success(response.message.length > 0 ? response.message : "RFID request succeeded!");
+      else
+        toast.error(response.message.length > 0 ? response.message : "RFID request failed!");
+    }});
   }
+
+
 
   return (
     <Card {...props}>
