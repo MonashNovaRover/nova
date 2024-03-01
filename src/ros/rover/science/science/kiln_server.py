@@ -59,14 +59,16 @@ class KilnServer(Node):
     def command_callback(self, request, response):
         try:
             if request.state:   # turn on kiln
+                self.get_logger().info("Kiln try On")
                 for i in range(10,12):
-                    kiln_frame = jcan.Frame( i << 4 , ( 7 << 8 | 255))
+                    kiln_frame = jcan.Frame( i << 4 , [7, 255])
                     self.bus.send(kiln_frame)
                 self.is_on = True
                 self.get_logger().info("Kiln On")
             else:               # turn off kiln
+                self.get_logger().info("Kiln try Off")
                 for i in range(10,12):
-                    kiln_frame = jcan.Frame( i << 4 , ( 7 << 8 | 0))
+                    kiln_frame = jcan.Frame( i << 4 , [7, 0])
                     self.bus.send(kiln_frame)
                 self.is_on = False
                 self.get_logger().info("Kiln Off")
@@ -77,6 +79,7 @@ class KilnServer(Node):
         return response
 
     def update_temp(self, frame):
+        self.get_logger().info("Kiln try update temp")
         sensor_id = (frame.data >> 8) - 1
         if 0 <= sensor_id <= 2:
             reading = (frame.data) & 0xFF
