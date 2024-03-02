@@ -22,7 +22,7 @@ TODO:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
-import rclpy
+import rclpy, jcan
 from rclpy.node import Node
 import random
 
@@ -30,34 +30,86 @@ import random
 from core.msg import NIRProbeData
 from core.srv import SetNIRProbeLED
 
+
+
 class NIRProbePublisher(Node):
+    CAN_BUS = "can1"
+    # Card IDs
+    NIR_PROBE_ID = 0x070
+    CARD_ID_RECEIVE = 0x4F1
+    # Command data
+    NIR_PROBE_LED_ON = 0x01
+    NIR_PROBE_LED_OFF = 0x02
+    NIR_PROBE_READ = 0x03
+
     def __init__(self):
         super().__init__('nir_probe_publisher')
 
+        self.declare_parameter("can_bus", self.CAN_BUS)
+
         # TODO: remove state from publisher, and use data from CAN
         self.led = (0).to_bytes(1)
+        self.value = 0
         random.seed(None)
 
         self.publisher_ = self.create_publisher(NIRProbeData, '/science/nir_probe_data', 10)
 
         # TODO: replace callback with function that interfaces with CAN
-        self.timer = self.create_timer(0.1, self.test_timer_callback)
+        self.timer = self.create_timer(0.1, self.send_read_command_callback)
 
         self.led_service = self.create_service(SetNIRProbeLED, '/science/set_nir_probe_led', self.led_service_callback)
 
-    def test_timer_callback(self):
-        msg = NIRProbeData()
+        self.bus = jcan.Bus()
+        self.bus.set_id_filter_mask(self.CARD_ID_RECEIVE, 0xFFF)
 
-        msg.data = random.randrange(0, 1024)
+        self.bus.add_callback(self.CARD_ID_RECEIVE, self.read_data_callback)
+
+        self.bus.open(self.param_can)
+
+
+    def send_read_command_callback(self):
+        frame = jcan.Frame(self.NIR_PROBE_ID, [self.NIR_PROBE_READ])
+        
+        try:
+            self.bus.send(frame)
+        except Exception as e:
+            print(e)
+            self.get_logger().error("Failed to send read command over CAN")
+
+
+    def read_data_callback(self, frame: jcan.Frame):
+        if frame.id != self.CARD_ID_RECEIVE:
+            self.get_logger().info(f"Received unknown frame {frame}")
+            return
+
+        self.value = int.from_bytes(frame.data)
+
+        msg = NIRProbeData()
+        msg.data = self.value
+
         msg.led = self.led
 
         self.publisher_.publish(msg)
-        self.get_logger().info('Publishing: "%s"' % msg.data)
+
+            
 
     def led_service_callback(self, request, response):
-        self.led = request.led
+        self.led = 1 if request.led > 0 else 0
 
-        response.success = True
+        frame
+        if self.led == 1:
+            frame = jcan.Frame(self.NIR_PROBE_ID, [self.NIR_PROBE_LED_ON])
+        else:
+            frame = jcan.Frame(self.NIR_PROBE_ID, [self.NIR_PROBE_LED_OFF])
+
+        try:
+            self.bus.send(frame)
+            response.success = True
+        except Exception as e:
+            print(e)
+            self.get_logger().error("Failed to send led command over CAN")
+            response.success = False
+
         return response
 
 
