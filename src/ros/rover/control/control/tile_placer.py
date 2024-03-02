@@ -2,7 +2,7 @@
 
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Purpose: A template ROS node
+Purpose: Control Tile Placer using Joysticks
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: tile_placer
 TOPICS:
@@ -11,27 +11,51 @@ TOPICS:
 SERVICES: None
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-PACKAGE:
-AUTHOR(S):	Manika Goyal, Max Tory, Taaj Street
-CREATION:	08/03/2023
-EDITED:		18/03/2023
+PACKAGE: control
+COMMAND: ros2 run control tile_placer.py
+RUN ON: Rover
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+AUTHOR(S):	Tristan Clark
+CREATION:	02/02/2024
+EDITED:		02/02/2024
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 """
-import rclpy
+import rclpy, jcan, logging
+from struct import pack
 from rclpy.node import Node
-import jcan, logging
-
-# example of how to import a custom message type
-from core.msg import InputJoystick
-
-# an example of how to import a standard message type
 from rclpy.qos import QoSReliabilityPolicy, QoSProfile
 from rclpy.subscription import SubscriptionEventCallbacks
 from rclpy.duration import Duration
 
+# import the joystick ROS message we are listening to
+from core.msg import InputJoystick
 
 class TilePlacerNode(Node):
+    # can bus
+    CAN_BUS = "can0"
+    # card IDs
+    TILE_PLACER_ID = 0x063
+    SCRAPER_SCOOP_ID = 0x053
+    # command data
+    SCRAPER_ARM_FORWARDS = 1
+    SCRAPER_ARM_BACKWARDS = -1
+    SCRAPER_SCOOP_FORWARDS = 1
+    SCRAPER_SCOOP_BACKWARDS = -1
+    # max_velocity
+    MAX_VELOCITY = 32767 * (4/5) # 4/5 of max possible value sent to motor
+
+    # TODO: scraper bucket does not exist yet
+    # check these when implemented
+    SCRAPER_BUCKET_ID = 0x073 
+    SCRAPER_BUCKET_OPEN = 1
+    SCRAPER_BUCKET_CLOSE = -1
+    # ROS param names
+    CAN_BUS_PARAM = "can_bus"
+    SCRAPER_ARM_MAX_VEL_PARAM = "scraper_arm_max_vel"
+    SCRAPER_SCOOP_MAX_VEL_PARAM = "scraper_scoop_max_vel"
+    SCRAPER_BUCKET_MAX_VEL_PARAM = "scraper_bucket_max_vel"
+    
     # set motor ids
     TILE_PLACER_ID_UP = 0x2
     TILE_PLACER_ID_DOWN = 0x1
