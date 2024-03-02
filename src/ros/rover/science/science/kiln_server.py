@@ -32,6 +32,7 @@ class KilnServer(Node):
 
     def __init__(self):
         super().__init__('kiln_server')
+        
         self.get_logger().set_level(logging.DEBUG)
         self.get_logger().info("Kiln server starting")
 
@@ -64,38 +65,38 @@ class KilnServer(Node):
                     kiln_frame = jcan.Frame( i << 4 , [7, 255])
                     self.bus.send(kiln_frame)
                 self.is_on = True
-                self.get_logger().info("Kiln On")
             else:               # turn off kiln
                 self.get_logger().info("Kiln try Off")
                 for i in range(10,12):
                     kiln_frame = jcan.Frame( i << 4 , [7, 0])
                     self.bus.send(kiln_frame)
                 self.is_on = False
-                self.get_logger().info("Kiln Off")
+            self.get_logger().info(f"Kiln On = {self.is_on}")
             response.success = True
-        except:
+        except Exception as e:
+            self.get_logger().info(str(e))
             response.success = False
 
         return response
 
     def update_temp(self, frame):
         self.get_logger().info("Kiln try update temp")
-        sensor_id = frame.data[0] - 1
+        sensor_id = frame.data[0] - 1 
         if 0 <= sensor_id <= 2:
-            reading = frame.data[1]
+            reading = frame.data[1] * 2**8 + frame.data[2]
             if sensor_id == 2:
-                self.temp[sensor_id] = float(reading*0.02 - 273.15)
-                self.get_logger().info("IR reading updated")
+                self.temp[sensor_id] = reading*0.02 - 273.15
+                self.get_logger().info(f"IR reading updated to {reading}")
             else:
-                self.temp[sensor_id] = float(reading)
-                self.get_logger().info("Thermistor reading updated")
+                self.temp[sensor_id] = reading*1.0
+                self.get_logger().info(f"Thermistor {sensor_id} reading updated to {reading}")
 
     def publish_data(self):
         msg = KilnData()
         msg.temp = self.temp
         msg.state = self.is_on
         self.publisher.publish(msg)
-        self.get_logger().info("Temps and state published")
+        self.get_logger().info(f"Temps [{self.temp[0]}, {self.temp[1]} , {self.temp[2]}] and state {self.is_on} published")
 
 
 def main():
