@@ -3,9 +3,9 @@
 <package format="3">
   <name>nova_behavior_tree</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
+  <description>Behavior tree plugins and xml declarations for Monash Nova Rover</description>
   <maintainer email="novaroverteam@monash.edu">nova</maintainer>
-  <license>TODO: License declaration</license>
+  <license>BSD-3-Clause</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 

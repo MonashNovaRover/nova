@@ -19,6 +19,7 @@
 , gazebo-ros-pkgs
 , robot-localization
 , nova-costmap-2d
+, image-view
 , navigation2
 , rtabmap-ros
 }:
@@ -48,6 +49,7 @@ buildRosPackage {
       gazebo-ros2-control
       ros2-controllers
       pluginlib
+      image-view
       robot-localization
       gazebo-ros-pkgs
       nova-costmap-2d
