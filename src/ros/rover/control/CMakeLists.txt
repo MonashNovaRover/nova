@@ -134,6 +134,7 @@ install(PROGRAMS
         control/scraper.py
         control/gimbal_cam.py
         control/drive_sim.py
+        control/auger.py
         DESTINATION lib/${PROJECT_NAME}
         )
 
