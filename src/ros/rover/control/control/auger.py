@@ -2,7 +2,7 @@
 
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Purpose: A template ROS node
+Purpose: Control Auger Height and Drill Spin using Joysticks
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: auger
 TOPICS:
@@ -18,18 +18,15 @@ EDITED:		24/02/2024
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 """
+import rclpy, jcan, logging
 from struct import pack
-import rclpy
 from rclpy.node import Node
-import jcan, logging
-
-# example of how to import a custom message type
-from core.msg import InputJoystick
-
-# an example of how to import a standard message type
 from rclpy.qos import QoSReliabilityPolicy, QoSProfile
 from rclpy.subscription import SubscriptionEventCallbacks
 from rclpy.duration import Duration
+
+# import the joystick ROS message we are listening to
+from core.msg import InputJoystick
 
 
 class AugerNode(Node):
@@ -50,16 +47,16 @@ class AugerNode(Node):
     # limit switch status / data
     AUGER_LIMIT_SWITCH_CLEAR = 0x00
     AUGER_LIMIT_SWITCH_HIT = 0x01
-
-
+    # max_velocity
+    MAX_VELOCITY = 32767 * (3/4) # 3/4 of max possible value sent to motor
 
     def __init__(self):
         super().__init__("auger")
 
         self.get_logger().set_level(logging.DEBUG)
-        self.param_can = self.declare_parameter("can_bus", self.CAN_BUS).value
-        self.param_auger_velocity_multiplier = self.declare_parameter("auger_velocity_multiplier", 32767*(3/4)).value
-        self.param_drill_default_velocity = self.declare_parameter("drill_default_velocity", 32767*(3/4)).value
+        self.declare_parameter("can_bus", self.CAN_BUS)
+        self.declare_parameter("auger_max_vel", self.MAX_VELOCITY)
+        self.declare_parameter("drill_max_vel", self.MAX_VELOCITY)
 
         # Initially all motors spin backwards with 0 velocity
         self.auger_direction = self.AUGER_UP
@@ -94,7 +91,7 @@ class AugerNode(Node):
         Sends can commands for auger and drill together
         """
         # The list of values will be cast to uint8's by JCAN library - so be careful to double check the values!
-        auger_commands, drill_commands = self.get_auger_commands()
+        auger_commands, drill_commands = self.get_commands()
         augerFrame = jcan.Frame(self.AUGER_ID, auger_commands)
         drillFrame = jcan.Frame(self.DRILL_ID, drill_commands)
 
@@ -177,40 +174,50 @@ class AugerNode(Node):
 
         joystick_r = msg
 
-        if not self.joystick_lock:
-            # Update the inputs
-            self.auger_direction = self.AUGER_DOWN if joystick_r.ax_stick_x >= 0 else self.AUGER_UP 
-
-            if self.auger_direction == self.AUGER_UP and self.top_limit:
-                self.auger_velocity = 0
-            elif self.auger_direction == self.AUGER_DOWN and self.bottom_limit:
-                self.auger_velocity = 0
-            else:
-                self.auger_velocity = abs( int( self.param_auger_velocity_multiplier * joystick_r.ax_stick_x ) )
-
-            if joystick_r.btn_thumb_r_state >= 1:
-                self.drill_direction = self.DRILL_CLOCKWISE
-            elif joystick_r.btn_thumb_l_state >= 1:
-                self.drill_direction = self.DRILL_COUNTERCLOCKWISE
-            
-            if joystick_r.btn_thumb_u_state >= 1:
-                self.drill_velocity = self.param_drill_default_velocity
-            else:
-                self.drill_velocity = 0          
-        else:
-            # if joysticks locked
-            self.get_logger().info("joysticks locked!")
+        # If joysticks are locked, stop all motors
+        if self.joystick_lock:
+            self.get_logger().info("Joysticks locked!")
             self.auger_stop_state()
             self.drill_stop_state()
+            return
+
+        # Update the inputs
+
+        # Auger height direction is determined by the right joystick's x-axis direction
+        self.auger_direction = self.AUGER_DOWN if joystick_r.ax_stick_x >= 0 else self.AUGER_UP 
+
+        # Auger velocity is determined by the right joystick's x-axis magnitude
+        # If the auger is at the top or bottom limit, the velocity is set to 0
+        if ((self.auger_direction == self.AUGER_UP and self.top_limit) or 
+            (self.auger_direction == self.AUGER_DOWN and self.bottom_limit)):
+            self.auger_velocity = 0
+        else:
+            self.auger_velocity = abs(int(self.get_parameter("auger_max_vel") * joystick_r.ax_stick_x))
+
+        # Drill spin direction is determined by the right joystick thumb buttons
+        # Thumb right = clockwise, Thumb left = counterclockwise
+        if joystick_r.btn_thumb_r_state >= 1:
+            self.drill_direction = self.DRILL_CLOCKWISE
+        elif joystick_r.btn_thumb_l_state >= 1:
+            self.drill_direction = self.DRILL_COUNTERCLOCKWISE
+        
+        # Drill spin velocity is determined by the right joystick trigger
+        if joystick_r.btn_thumb_u_state >= 1:
+            self.drill_velocity = self.get_parameter("drill_max_vel")
+        else:
+            self.drill_velocity = 0          
 
 
+    # construct the can commands for the auger and drill
+    def get_commands(self):
+        auger_data_value = self.auger_direction * self.auger_velocity
+        drill_data_value = self.drill_direction * self.drill_velocity
+        self.get_logger().info(f"Auger: {auger_data_value}, Drill: {drill_data_value}")
 
-    def get_auger_commands(self):
-        auger_value = self.auger_direction * self.auger_velocity
-        drill_value = self.drill_direction * self.drill_velocity
-        self.get_logger().info(f"Auger: {auger_value}, Drill: {drill_value}")
-        auger_data = list(pack('>h', int(auger_value)))
-        drill_data = list(pack('>h', int(drill_value)))
+        # pack the values into a list of bytes
+        # packing int into 2 bytes big endian
+        auger_data = list(pack('>h', int(auger_data_value)))
+        drill_data = list(pack('>h', int(drill_data_value)))
 
         return auger_data, drill_data
 
