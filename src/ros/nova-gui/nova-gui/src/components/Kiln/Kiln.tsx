@@ -23,7 +23,7 @@ const Kiln: React.FC = () => {
 
     const dataBifrost = useBifrost({ topic: RosTopic.KILN_DATA });
     const serviceBifrost = useBifrost({ service: RosService.KILN_COMMAND});
-    const setKilnState = (state: boolean) => serviceBifrost.callServiceToRedux(state);
+    const toggleKilnState = () => serviceBifrost.callServiceToRedux(!kilnData.state);
 
     useEffect(() => {
         dataBifrost.syncWithTopic();
@@ -40,7 +40,7 @@ const Kiln: React.FC = () => {
                             if (!kilnData.state) {
                                 setTime(0);
                             };
-                            setKilnState(!kilnData.state);
+                            toggleKilnState();
                         }}>
                         { kilnData.state ? "Turn Off" : "Turn On" }
                     </Button>
