@@ -71,7 +71,7 @@ class KilnServer(Node):
                     kiln_frame = jcan.Frame( i << 4 , [7, 0])
                     self.bus.send(kiln_frame)
                 self.is_on = False
-            self.get_logger().info(f"Kiln On = {self.is_on}")
+            self.get_logger().info(f"Kiln Status = {self.is_on}")
             response.success = True
         except Exception as e:
             self.get_logger().info(str(e))
@@ -86,10 +86,10 @@ class KilnServer(Node):
             reading = frame.data[1] * 2**8 + frame.data[2]
             if sensor_id == 2:
                 self.temp[sensor_id] = reading*0.02 - 273.15
-                self.get_logger().info(f"IR reading updated to {reading}")
+                self.get_logger().info(f"IR reading updated to {self.temp[sensor_id]} using {reading}")
             else:
                 self.temp[sensor_id] = reading*1.0
-                self.get_logger().info(f"Thermistor {sensor_id} reading updated to {reading}")
+                self.get_logger().info(f"Thermistor {sensor_id} reading updated to {self.temp[sensor_id]} using {reading}")
 
     def publish_data(self):
         msg = KilnData()
