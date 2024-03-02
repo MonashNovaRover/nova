@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { DriveProgress } from "../DriveSpeedWidget/DriveProgress";
-import { Button, Badge } from "@nextui-org/react";
+import { Avatar, Button, Badge } from "@nextui-org/react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/RootState";
 import { useBifrost } from "../../redux/actions/bifrost/useBifrostAction";
@@ -36,39 +36,30 @@ const Kiln: React.FC = () => {
     }, [dataBifrost]);
 
     setTimeout(() => {kilnData.state ? setTime(time + 1) : null}, 1000);
-    
+    let toggleKiln = <Button className="w-1/4 text-lg h-8" color="primary" onPress={()=>{
+                            if (!kilnData.state) {
+                                setTime(0);
+                            };
+                            setKilnState(!kilnData.state);
+                        }}>
+                        { kilnData.state ? "Turn Off" : "Turn On" }
+                    </Button>
+
     let stateError;
     if (kilnServiceData.success) {
-        stateError = <>
-            <Button className="w-1/4 text-lg h-8" color={ kilnData.state ? "success" : "warning" } onPress={()=>{
-                    if (!kilnData.state) {
-                        setTime(0);
-                    };
-                    setKilnState(!kilnData.state);
-                }}>
-                    { kilnData.state ? "On" : "Off" }
-            </Button>
-        </>
+        stateError = toggleKiln
     } else {
-        stateError = <>
-            <Badge content="error" color="danger" size="sm">
-            <Button className="w-1/4 text-lg h-8" color={ kilnData.state ? "success" : "warning" } onPress={()=>{
-                    if (!kilnData.state) {
-                        setTime(0);
-                    };
-                    setKilnState(!kilnData.state);
-                }}>
-                    { kilnData.state ? "On" : "Off" }
-                </Button>
-            </Badge>    
-        </>
+        stateError = <Badge content="error" color="danger" size="sm">
+                        {toggleKiln}
+                    </Badge>
     }
 
     return (
         <div className="w-80 m-1 flex flex-col space-y-2">
             <div className="flex flex-row justify-between">
                 {stateError}
-                <Button className="w-2/3 text-lg h-8" color="primary" onPress={()=>{
+                <Avatar size="sm" color={kilnData.state ? "success" : "warning"} name={kilnData.state ? "On" : "Off"} />
+                <Button className="w-1/2 text-lg h-8" color="primary" onPress={()=>{
                     if (!kilnData.state) {setTime(0);};
                 }}>
                     {~~(time/60)}:{time%60<10 ? "0" : null}{time%60}
