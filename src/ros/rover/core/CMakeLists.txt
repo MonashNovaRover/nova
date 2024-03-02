@@ -93,6 +93,7 @@ install(DIRECTORY
   urdf
   meshes
   worlds
+  behavior_tree
   DESTINATION share/${PROJECT_NAME}
 )
 

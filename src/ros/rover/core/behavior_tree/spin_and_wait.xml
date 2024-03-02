@@ -1,0 +1,17 @@
+<!--
+  This Behavior Tree drives in a square for odometry calibration experiments
+-->
+
+<root main_tree_to_execute="MainTree">
+  <BehaviorTree ID="MainTree">
+    <Repeat num_cycles="5">
+      <Sequence name="Wait and spin then final wait">
+        <Sequence name="Wait then spin">
+          <Wait wait_duration="1"/>
+          <Spin spin_dist="1.046"/>
+        </Sequence>
+        <Wait wait_duration="1"/>
+      </Sequence>
+    </Repeat>
+  </BehaviorTree>
+</root>
