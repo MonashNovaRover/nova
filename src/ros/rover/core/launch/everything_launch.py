@@ -94,8 +94,8 @@ def generate_launch_description():
 
     localization_arg = DeclareLaunchArgument(
         'localization',
-        default_value='True',
-        description='Flag for running localisation'
+        default_value='False',
+        description='Flag for running localisation in a saved  RTAB-map database'
     )
 
     wheel_odom_only_arg = DeclareLaunchArgument(
@@ -152,7 +152,7 @@ def generate_launch_description():
             'use_real_odometry': use_real_odometry,
             'load_map': localization,
         }.items(),
-        condition=IfCondition(AndSubstitution(localization, NotSubstitution(wheel_odom_only)))
+        condition=UnlessCondition(wheel_odom_only)
     )
 
     wheel_odom_localization_cmd = IncludeLaunchDescription(
@@ -160,7 +160,7 @@ def generate_launch_description():
         launch_arguments={
             'use_sim_time': gazebo,
         }.items(),
-        condition = IfCondition(AndSubstitution(localization, wheel_odom_only))
+        condition = IfCondition(wheel_odom_only)
     )
 
     control_cmd = IncludeLaunchDescription(

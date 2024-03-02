@@ -80,6 +80,7 @@ def generate_launch_description():
         output='screen',
         parameters=[(get_package_share_path("core") / 'params' / 'ukf.yaml').as_posix(), {"use_sim_time": use_sim_time}],
     )
+
     slam_cmd = IncludeLaunchDescription(
         PythonLaunchDescriptionSource((get_package_share_path("core") / 'launch' / 'rtabmap_launch.py').as_posix()),
         launch_arguments={
