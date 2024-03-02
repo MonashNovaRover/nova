@@ -20,9 +20,9 @@
           <FollowPath path="{path}" controller_id="FollowPath"/>
           <ClearEntireCostmap name="ClearLocalCostmap-Context" service_name="local_costmap/clear_entirely_local_costmap"/>
         </RecoveryNode>
-        <Sequence name="Image and spin then final image">
+        <Sequence name="Wait and spin then final wait">
           <Repeat num_cycles="5">
-            <Sequence name="Image then spin">
+            <Sequence name="Wait then spin">
               <Wait wait_duration="0.5"/>
               <SaveImage service_name="/save"/>
               <Spin spin_dist="1.046"/>
