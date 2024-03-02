@@ -2,6 +2,7 @@
 , buildRosPackage
 , ament-cmake
 , rclcpp
+, groot
 , nav2-behavior-tree
 , pluginlib
 , rosidl-default-generators
@@ -23,5 +24,5 @@ buildRosPackage {
 
   nativeBuildInputs = [ ament-cmake rosidl-default-generators ];
   buildInputs = [ pluginlib std-srvs rclcpp nav2-behavior-tree behaviortree-cpp ];
-  propagatedBuildInputs = [ launch launch-ros ];
+  propagatedBuildInputs = [ launch launch-ros groot];
 }

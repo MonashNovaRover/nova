@@ -45,12 +45,21 @@ add_library(${lib_name} SHARED
   plugins/save_image_service.cpp
 )
 
+ament_target_dependencies(${lib_name} 
+  ${dep_pkgs}
+)
+
 # === Installation ===
 
 install(TARGETS ${lib_name})
 
 install(DIRECTORY
   behavior_tree
+  DESTINATION share/${PROJECT_NAME}
+)
+
+install(FILES
+  nova_bt_nodes.xml
   DESTINATION share/${PROJECT_NAME}
 )
 
@@ -66,5 +75,12 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
-ament_target_dependencies(${lib_name} ${dep_pkgs})
+ament_export_libraries(
+  ${lib_name}
+)
+
+ament_export_dependencies(
+  ${dep_pkgs}
+)
+
 ament_package()
