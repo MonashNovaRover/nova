@@ -7,10 +7,12 @@
     <Repeat num_cycles="5">
       <Sequence name="Wait and spin then final wait">
         <Sequence name="Wait then spin">
-          <Wait wait_duration="1"/>
+          <Wait wait_duration="0.5"/>
+          <SaveImage service_name="/save"/>
           <Spin spin_dist="1.046"/>
         </Sequence>
-        <Wait wait_duration="1"/>
+        <Wait wait_duration="0.5"/>
+        <SaveImage service_name="/save"/>
       </Sequence>
     </Repeat>
   </BehaviorTree>

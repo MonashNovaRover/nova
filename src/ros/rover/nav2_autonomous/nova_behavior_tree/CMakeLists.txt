@@ -1,15 +1,58 @@
 cmake_minimum_required(VERSION 3.8)
 project(nova_behavior_tree)
 
+set(lib_name nova_save_image_service_bt_node)
+
+# === Environment ===
+
+# Default to C99
+if(NOT CMAKE_C_STANDARD)
+  set(CMAKE_C_STANDARD 99)
+endif()
+
+# Default to C++14
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 14)
+endif()
+
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-# find dependencies
+# === Dependencies ===
 find_package(ament_cmake REQUIRED)
-# uncomment the following section in order to fill in
-# further dependencies manually.
-# find_package(<dependency> REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(std_srvs REQUIRED)
+find_package(pluginlib REQUIRED)
+find_package(nav2_behavior_tree REQUIRED)
+find_package(behaviortree_cpp REQUIRED)
+
+set(dep_pkgs
+  rclcpp
+  std_srvs
+  pluginlib
+  nav2_behavior_tree
+  behaviortree_cpp
+)
+
+# === Build ===
+
+include_directories(
+  include
+)
+
+add_library(${lib_name} SHARED 
+  plugins/save_image_service.cpp
+)
+
+# === Installation ===
+
+install(TARGETS ${lib_name})
+
+install(DIRECTORY
+  behavior_tree
+  DESTINATION share/${PROJECT_NAME}
+)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
@@ -23,4 +66,5 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
+ament_target_dependencies(${lib_name} ${dep_pkgs})
 ament_package()

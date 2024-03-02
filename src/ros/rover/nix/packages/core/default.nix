@@ -18,6 +18,7 @@
 , pluginlib
 , gazebo-ros-pkgs
 , robot-localization
+, nova-behavior-tree
 , nova-costmap-2d
 , image-view
 , navigation2
@@ -52,6 +53,7 @@ buildRosPackage {
       image-view
       robot-localization
       gazebo-ros-pkgs
+      nova-behavior-tree
       nova-costmap-2d
       navigation2
       rtabmap-ros;

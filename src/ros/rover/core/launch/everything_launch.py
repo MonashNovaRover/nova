@@ -55,11 +55,6 @@ def generate_launch_description():
         default_value='',
         description='Top-level namespace')
 
-    namespace_arg = DeclareLaunchArgument(
-        'namespace',
-        default_value='',
-        description='Top-level namespace')
-
     world_arg = DeclareLaunchArgument(
         'world',
         # TODO(orduno) Switch back once ROS argument passing has been fixed upstream

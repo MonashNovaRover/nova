@@ -18,7 +18,7 @@ from ament_index_python.packages import get_package_share_directory
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, GroupAction, SetEnvironmentVariable
-from launch.conditions import IfCondition
+from launch.conditions import IfCondition, UnlessCondition
 from launch.substitutions import LaunchConfiguration, PythonExpression
 from launch_ros.actions import LoadComposableNodes
 from launch_ros.actions import Node
@@ -190,6 +190,30 @@ def generate_launch_description():
                 parameters=[{'use_sim_time': use_sim_time},
                             {'autostart': autostart},
                             {'node_names': lifecycle_nodes}]),
+            Node(
+                condition=IfCondition(use_sim_time),
+                package='image_view',
+                executable='image_saver',
+                name='image_saver',
+                output='screen',
+                respawn=use_respawn,
+                respawn_delay=2.0,
+                parameters=[{"save_all_image": False}],
+                arguments=['--ros-args', '--log-level', log_level],
+                remappings=remappings +
+                        [('image', 'camera/image_raw')]),
+            Node(
+                condition=UnlessCondition(use_sim_time),
+                package='image_view',
+                executable='image_saver',
+                name='image_saver',
+                output='screen',
+                respawn=use_respawn,
+                respawn_delay=2.0,
+                parameters=[{"save_all_image": False}],
+                arguments=['--ros-args', '--log-level', log_level],
+                remappings=remappings +
+                        [('image', 'oak/rgb/image_raw')]),
         ]
     )
 
