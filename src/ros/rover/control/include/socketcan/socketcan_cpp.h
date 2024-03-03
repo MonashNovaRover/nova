@@ -3,6 +3,7 @@
 // FOUND FROM:
 // github.com/siposcsaba89/socketcan-can
 
+#include <cstdint>
 #include <string>
 #include "socketcan_cpp_export.h"
 
