@@ -53,8 +53,6 @@ buildRosPackage {
       image-view
       robot-localization
       gazebo-ros-pkgs
-      nova-behavior-tree
-      nova-costmap-2d
       navigation2
       rtabmap-ros;
   };

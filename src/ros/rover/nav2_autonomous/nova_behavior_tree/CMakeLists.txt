@@ -23,16 +23,14 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_srvs REQUIRED)
-find_package(pluginlib REQUIRED)
 find_package(nav2_behavior_tree REQUIRED)
-find_package(behaviortree_cpp REQUIRED)
+find_package(behaviortree_cpp_v3 REQUIRED)
 
 set(dep_pkgs
   rclcpp
   std_srvs
-  pluginlib
   nav2_behavior_tree
-  behaviortree_cpp
+  behaviortree_cpp_v3
 )
 
 # === Build ===
@@ -49,13 +47,23 @@ ament_target_dependencies(${lib_name}
   ${dep_pkgs}
 )
 
+target_compile_definitions(${lib_name} PRIVATE BT_PLUGIN_EXPORT)
+
 # === Installation ===
 
-install(TARGETS ${lib_name})
+install(TARGETS ${lib_name}
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+)
 
 install(DIRECTORY
   behavior_tree
   DESTINATION share/${PROJECT_NAME}
+)
+
+install(DIRECTORY include/
+  DESTINATION include/
 )
 
 install(FILES
@@ -74,6 +82,10 @@ if(BUILD_TESTING)
   set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
 endif()
+
+ament_export_include_directories(
+  include
+)
 
 ament_export_libraries(
   ${lib_name}
