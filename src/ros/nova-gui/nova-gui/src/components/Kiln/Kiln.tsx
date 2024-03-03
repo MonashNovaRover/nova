@@ -23,7 +23,7 @@ const Kiln: React.FC = () => {
 
     const dataBifrost = useBifrost({ topic: RosTopic.KILN_DATA });
     const serviceBifrost = useBifrost({ service: RosService.KILN_COMMAND});
-    const toggleKilnState = () => serviceBifrost.callServiceToRedux(!kilnData.state);
+    const toggleKilnState = () => serviceBifrost.callServiceToRedux({state: !kilnData.state});
 
     useEffect(() => {
         dataBifrost.syncWithTopic();
@@ -66,13 +66,13 @@ const Kiln: React.FC = () => {
                 </Button>
             </div>
             <DriveProgress size="lg" autoColor={true} aria-label="temp1" maxValue={maxTemp[0]} value={kilnData.temp[0]}>
-                Sensor 1 Temperature: {kilnData.temp[0]} C
+                Sensor 1 Temperature: {Math.round(kilnData.temp[0])} C
             </DriveProgress >
             <DriveProgress size="lg" autoColor={true} aria-label="temp2" maxValue={maxTemp[1]} value={kilnData.temp[1]}>
-                Sensor 2 Temperature: {kilnData.temp[1]} C
+                Sensor 2 Temperature: {Math.round(kilnData.temp[1])} C
             </DriveProgress >
             <DriveProgress size="lg" autoColor={true} aria-label="temp3" maxValue={maxTemp[2]} value={kilnData.temp[2]}>
-                Sensor 3 Temperature: {kilnData.temp[2]} C
+                Sensor 3 Temperature: {Math.round(kilnData.temp[2])} C
             </DriveProgress >
             <div className="text-center bg-slate-900 pt-10 pb-10">
                 CAMERA HERE WHEN CONFIGURED
