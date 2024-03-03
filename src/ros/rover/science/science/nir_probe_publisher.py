@@ -48,7 +48,7 @@ class NIRProbePublisher(Node):
         self.declare_parameter("can_bus", self.CAN_BUS)
 
         # TODO: remove state from publisher, and use data from CAN
-        self.led = (0).to_bytes(1)
+        self.led = (0).to_bytes(1, "big")
         self.value = 0
         random.seed(None)
 
@@ -94,10 +94,10 @@ class NIRProbePublisher(Node):
             
 
     def led_service_callback(self, request, response):
-        self.led = 1 if request.led > 0 else 0
+        self.led = (1).tobytes(1, "big") if request.led > 0 else (0).tobytes(1, "big")
 
         frame
-        if self.led == 1:
+        if request.led > 0:
             frame = jcan.Frame(self.NIR_PROBE_ID, [self.NIR_PROBE_LED_ON])
         else:
             frame = jcan.Frame(self.NIR_PROBE_ID, [self.NIR_PROBE_LED_OFF])
