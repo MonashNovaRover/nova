@@ -27,76 +27,90 @@ const ArmWidget: React.FC<IArmWidgetProps> = (
 ) => {
     const bifrostArm = useBifrost({ topic: RosTopic.ARM });
 
-
     useEffect(() => {
         bifrostArm.syncWithTopic();
     }, [bifrostArm]);
 
-
     const armDataCardBody = (
-        <CardBody className="flex flex-row gap-3">
-            <div className="flex flex-col items-center justify-center">
-                <div>
+        <CardBody className="grid auto-cols-fr grid-flow-col gap-3">
+            <div className="flex flex-col justify-center gap-3">
+                <div className="bg">
                     <OverlayedProgress
                         size="lg"
-                        label="J1"
                         value={0.5}
                         maxValue={1}
-                    ></OverlayedProgress>
+                        autoColor
+                        aria-label="J1 Current"
+                    >
+                        J1
+                    </OverlayedProgress>
                 </div>
                 <div>
                     <OverlayedProgress
                         size="lg"
-                        label="J2"
                         value={0.5}
                         maxValue={1}
-                    ></OverlayedProgress>
+                        autoColor
+                        aria-label="J2 Current"
+                    >
+                        J2
+                    </OverlayedProgress>
                 </div>
                 <div>
                     <OverlayedProgress
                         size="lg"
-                        label="J3"
                         value={0.5}
                         maxValue={1}
-                    ></OverlayedProgress>
+                        autoColor
+                        aria-label="J3 Current"
+                    >
+                        J3
+                    </OverlayedProgress>
                 </div>
-
             </div>
 
             <div className="flex justify-center">
                 <Image src={ARMImage} alt="Arm Image" width={200} height={200} />
             </div>
 
-            <div className="flex flex-col items-center justify-center">
+            <div className="flex flex-col justify-center gap-3">
                 <div>
                     <OverlayedProgress
-                        size="lg"
-                        label="J4"
-                        value={0.5}
-                        maxValue={1}
-                    ></OverlayedProgress>
+                      size="lg"
+                      value={0.5}
+                      maxValue={1}
+                      autoColor
+                      aria-label="J4 Current"
+                    >
+                        J4
+                    </OverlayedProgress>
                 </div>
                 <div>
                     <OverlayedProgress
-                        size="lg"
-                        label="J5"
-                        value={0.5}
-                        maxValue={1}
-                    ></OverlayedProgress>
+                      size="lg"
+                      value={0.5}
+                      maxValue={1}
+                      autoColor
+                      aria-label="J5 Current"
+                    >
+                        J5
+                    </OverlayedProgress>
                 </div>
                 <div>
                     <OverlayedProgress
-                        size="lg"
-                        label="J6"
-                        value={0.5}
-                        maxValue={1}
-                    ></OverlayedProgress>
+                      size="lg"
+                      value={0.5}
+                      maxValue={1}
+                      autoColor
+                      aria-label="J6 Current"
+                    >
+                        J6
+                    </OverlayedProgress>
                 </div>
 
             </div>
         </CardBody>
     );
-
 
     return (
         <Card {...props}>
