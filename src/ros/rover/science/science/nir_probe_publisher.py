@@ -56,10 +56,6 @@ class NIRProbePublisher(Node):
 
         self.publisher_ = self.create_publisher(NIRProbeData, '/science/nir_probe_data', 10)
 
-        # TODO: replace callback with function that interfaces with CAN
-        self.timer = self.create_timer(0.1, self.send_read_command_callback)
-        self.timer_jcan_spin = self.create_timer(0.01, self.bus.spin)
-
         self.led_service = self.create_service(SetNIRProbeLED, '/science/set_nir_probe_led', self.led_service_callback)
 
         self.bus = jcan.Bus()
@@ -67,6 +63,11 @@ class NIRProbePublisher(Node):
         self.bus.add_callback(self.CARD_ID_RECEIVE, self.read_data_callback)
 
         self.bus.open(self.get_parameter(self.CAN_BUS_PARAM).value)
+
+        # TODO: replace callback with function that interfaces with CAN
+        self.timer = self.create_timer(0.1, self.send_read_command_callback)
+        self.timer_jcan_spin = self.create_timer(0.01, self.bus.spin)
+
 
 
     def send_read_command_callback(self):
