@@ -35,17 +35,19 @@ from core.srv import SetNIRProbeLED
 class NIRProbePublisher(Node):
     CAN_BUS = "can1"
     # Card IDs
-    NIR_PROBE_ID = 0x070
+    NIR_PROBE_ID = 0x0F0
     CARD_ID_RECEIVE = 0x4F1
     # Command data
     NIR_PROBE_LED_ON = 0x01
     NIR_PROBE_LED_OFF = 0x02
     NIR_PROBE_READ = 0x03
 
+    CAN_BUS_PARAM = "can_bus"
+
     def __init__(self):
         super().__init__('nir_probe_publisher')
 
-        self.declare_parameter("can_bus", self.CAN_BUS)
+        self.declare_parameter(self.CAN_BUS_PARAM, self.CAN_BUS)
 
         # TODO: remove state from publisher, and use data from CAN
         self.led = (0).to_bytes(1, "big")
@@ -56,15 +58,15 @@ class NIRProbePublisher(Node):
 
         # TODO: replace callback with function that interfaces with CAN
         self.timer = self.create_timer(0.1, self.send_read_command_callback)
+        self.timer_jcan_spin = self.create_timer(0.01, self.bus.spin)
 
         self.led_service = self.create_service(SetNIRProbeLED, '/science/set_nir_probe_led', self.led_service_callback)
 
         self.bus = jcan.Bus()
         self.bus.set_id_filter_mask(self.CARD_ID_RECEIVE, 0xFFF)
-
         self.bus.add_callback(self.CARD_ID_RECEIVE, self.read_data_callback)
 
-        self.bus.open(self.param_can)
+        self.bus.open(self.get_parameter(self.CAN_BUS_PARAM).value)
 
 
     def send_read_command_callback(self):
