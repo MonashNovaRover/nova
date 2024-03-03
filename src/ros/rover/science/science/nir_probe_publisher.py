@@ -99,7 +99,6 @@ class NIRProbePublisher(Node):
     def led_service_callback(self, request, response):
         self.led = (1).to_bytes(1, "big") if request.led != (0).to_bytes(1, "big") else (0).to_bytes(1, "big")
 
-        frame
         if request.led > 0:
             frame = jcan.Frame(self.NIR_PROBE_ID, [self.NIR_PROBE_LED_ON])
         else:
