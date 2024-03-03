@@ -104,7 +104,7 @@ controller_server:
       debug_trajectory_details: True
       min_vel_x: 0.0
       min_vel_y: 0.0
-      max_vel_x: 0.4
+      max_vel_x: 0.8
       max_vel_y: 0.0
       max_vel_theta: 0.8
       min_speed_xy: 0.0
@@ -153,7 +153,8 @@ local_costmap:
       width: 5
       height: 5
       resolution: 0.1
-      robot_radius: 0.52
+      footprint: "[[0.4, 0.3], [0.4, -0.3], [-0.4, -0.3], [-0.4, 0.3]]"
+      footprint_padding: 0.1
       track_unknown_space: False
       plugins: ["plane_mapper_layer", "height_mapper_layer", "inflation_layer"]
       inflation_layer:
@@ -236,7 +237,8 @@ global_costmap:
       height: 100
       use_sim_time: True
       rolling_window: True
-      robot_radius: 0.22
+      footprint: "[[0.4, 0.3], [0.4, -0.3], [-0.4, -0.3], [-0.4, 0.3]]"
+      footprint_padding: 0.1
       resolution: 0.4
       track_unknown_space: False
       plugins: ["height_mapper_layer", "inflation_layer"]

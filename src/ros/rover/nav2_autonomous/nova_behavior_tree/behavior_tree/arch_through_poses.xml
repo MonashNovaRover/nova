@@ -5,23 +5,39 @@
 -->
 <root main_tree_to_execute="MainTree">
   <BehaviorTree ID="MainTree">
-    <PipelineSequence name="NavigateThroughPlacardsAndImage">
+    <Sequence name="NavigateThroughPlacardsAndImage">
+      <ForceSuccess>
+        <SingleTrigger>
+          <Spin spin_dist="6.283184" is_recovery="false"/>
+        </SingleTrigger>
+      </ForceSuccess>
       <RecoveryNode number_of_retries="6" name="NavigateRecovery">
-        <PipelineSequence name="NavigateWithReplanning">
-          <RateController hz="0.333">
-            <RecoveryNode number_of_retries="1" name="ComputePathThroughPoses">
-              <ReactiveSequence>
-                <RemovePassedGoals input_goals="{goals}" output_goals="{goals}" radius="0.7"/>
+        <ReactiveSequence name="NavigateToPlacardAndImage">
+          <PipelineSequence name="NavigateWithReplanning">
+            <RateController hz="0.333">
+              <RecoveryNode number_of_retries="1" name="ComputePathThroughPoses">
                 <ComputePathToPose goal="{goals[0]}" path="{path}" planner_id="GridBased"/>
-              </ReactiveSequence>
-              <ClearEntireCostmap name="ClearGlobalCostmap-Context" service_name="global_costmap/clear_entirely_global_costmap"/>
+                <ClearEntireCostmap name="ClearGlobalCostmap-Context" service_name="global_costmap/clear_entirely_global_costmap"/>
+              </RecoveryNode>
+            </RateController>
+            <RecoveryNode number_of_retries="1" name="FollowPath">
+              <FollowPath path="{path}" controller_id="FollowPath"/>
+              <ClearEntireCostmap name="ClearLocalCostmap-Context" service_name="local_costmap/clear_entirely_local_costmap"/>
             </RecoveryNode>
-          </RateController>
-          <RecoveryNode number_of_retries="1" name="FollowPath">
-            <FollowPath path="{path}" controller_id="FollowPath"/>
-            <ClearEntireCostmap name="ClearLocalCostmap-Context" service_name="local_costmap/clear_entirely_local_costmap"/>
-          </RecoveryNode>
-        </PipelineSequence>
+          </PipelineSequence>
+          <RemovePassedGoals input_goals="{goals}" output_goals="{goals}" radius="0.7"/>
+          <Sequence name="Wait and spin then final wait">
+            <Repeat num_cycles="5">
+              <Sequence name="Wait then spin">
+                <Wait wait_duration="1"/>
+                <SaveImage service_name="/save"/>
+                <Spin spin_dist="1.046"/>
+              </Sequence>
+            </Repeat>
+            <Wait wait_duration="1"/>
+            <SaveImage service_name="/save"/>
+          </Sequence>
+        </ReactiveSequence>
         <ReactiveFallback name="RecoveryFallback">
           <GoalUpdated/>
           <RoundRobin name="RecoveryActions">
@@ -35,17 +51,6 @@
           </RoundRobin>
         </ReactiveFallback>
       </RecoveryNode>
-      <Sequence name="Wait and spin then final wait">
-        <Repeat num_cycles="5">
-          <Sequence name="Wait then spin">
-            <Wait wait_duration="1"/>
-            <SaveImage service_name="/save"/>
-            <Spin spin_dist="1.046"/>
-          </Sequence>
-        </Repeat>
-        <Wait wait_duration="1"/>
-        <SaveImage service_name="/save"/>
-      </Sequence>
-    </PipelineSequence>
+    </Sequence>
   </BehaviorTree>
 </root>

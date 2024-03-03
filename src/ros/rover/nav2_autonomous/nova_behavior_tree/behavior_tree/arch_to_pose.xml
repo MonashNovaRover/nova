@@ -5,7 +5,12 @@
 -->
 <root main_tree_to_execute="MainTree">
   <BehaviorTree ID="MainTree">
-    <PipelineSequence name="NavigateToPlacardAndImage">
+    <Sequence name="NavigateToPlacardAndImage">
+      <ForceSuccess>
+        <SingleTrigger>
+          <Spin spin_dist="6.283184" is_recovery="false"/>
+        </SingleTrigger>
+      </ForceSuccess>
       <RecoveryNode number_of_retries="6" name="NavigateRecovery">
         <PipelineSequence name="NavigateWithReplanning">
           <RateController hz="1.0">
@@ -18,17 +23,6 @@
             <FollowPath path="{path}" controller_id="FollowPath"/>
             <ClearEntireCostmap name="ClearLocalCostmap-Context" service_name="local_costmap/clear_entirely_local_costmap"/>
           </RecoveryNode>
-          <Sequence name="Wait and spin then final wait">
-            <Repeat num_cycles="5">
-              <Sequence name="Wait then spin">
-                <Wait wait_duration="1"/>
-                <SaveImage service_name="/save"/>
-                <Spin spin_dist="1.046"/>
-              </Sequence>
-            </Repeat>
-            <Wait wait_duration="1"/>
-            <SaveImage service_name="/save"/>
-          </Sequence>
         </PipelineSequence>
         <ReactiveFallback name="RecoveryFallback">
           <GoalUpdated/>
@@ -43,6 +37,17 @@
           </RoundRobin>
         </ReactiveFallback>
       </RecoveryNode>
-    </PipelineSequence>
+      <Sequence name="Wait and spin then final wait">
+        <Repeat num_cycles="5">
+          <Sequence name="Wait then spin">
+            <Wait wait_duration="1"/>
+            <SaveImage service_name="/save"/>
+            <Spin spin_dist="1.046"/>
+          </Sequence>
+        </Repeat>
+        <Wait wait_duration="1"/>
+        <SaveImage service_name="/save"/>
+      </Sequence>
+    </Sequence>
   </BehaviorTree>
 </root>
