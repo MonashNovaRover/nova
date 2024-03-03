@@ -85,7 +85,7 @@ class NIRProbePublisher(Node):
             self.get_logger().info(f"Received unknown frame {frame}")
             return
 
-        self.value = int.from_bytes(frame.data)
+        self.value = int.from_bytes(frame.data, "big")
 
         msg = NIRProbeData()
         msg.data = self.value
