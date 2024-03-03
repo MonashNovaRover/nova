@@ -97,7 +97,7 @@ class NIRProbePublisher(Node):
             
 
     def led_service_callback(self, request, response):
-        self.led = (1).tobytes(1, "big") if request.led != (0).tobytes(1, "big") else (0).tobytes(1, "big")
+        self.led = (1).to_bytes(1, "big") if request.led != (0).to_bytes(1, "big") else (0).to_bytes(1, "big")
 
         frame
         if request.led > 0:
