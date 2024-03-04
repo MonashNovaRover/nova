@@ -51,6 +51,9 @@ list(APPEND plugin_libs nova_save_image_service_bt_node)
 add_library(nova_first_goal_reached_condition_bt_node SHARED plugins/first_goal_reached_condition.cpp)
 list(APPEND plugin_libs nova_first_goal_reached_condition_bt_node)
 
+add_library(nova_goals_empty_condition_bt_node SHARED plugins/goals_empty_condition.cpp)
+list(APPEND plugin_libs nova_goals_empty_condition_bt_node)
+
 foreach(bt_plugin ${plugin_libs})
   ament_target_dependencies(${bt_plugin} ${dep_pkgs})
   target_compile_definitions(${bt_plugin} PRIVATE BT_PLUGIN_EXPORT)

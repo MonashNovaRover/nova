@@ -235,6 +235,10 @@
       <input_port name="goals">Navigation goal</input_port>
     </Condition>
 
+    <Condition ID="GoalsEmpty">
+      <input_port name="goals">Waypoints</input_port>
+    </Condition>
+
     <Condition ID="GlobalUpdatedGoal">
       <input_port name="goal">Vector of navigation goals</input_port>
       <input_port name="goals">Navigation goal</input_port>
