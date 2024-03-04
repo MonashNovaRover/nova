@@ -217,6 +217,12 @@
         <input_port name="robot_base_frame">Robot base frame</input_port>
     </Condition>
 
+    <Condition ID="FirstGoalReached">
+        <input_port name="goals">Waypoints</input_port>
+        <input_port name="global_frame">Reference frame</input_port>
+        <input_port name="robot_base_frame">Robot base frame</input_port>
+    </Condition>
+
     <Condition ID="IsStuck"/>
 
     <Condition ID="TransformAvailable">

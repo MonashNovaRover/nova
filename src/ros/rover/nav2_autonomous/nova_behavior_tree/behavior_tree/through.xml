@@ -5,15 +5,12 @@
 -->
 <root main_tree_to_execute="MainTree">
   <BehaviorTree ID="MainTree">
-    <Sequence name="NavigateThroughPlacardsAndImage">
-      <ForceSuccess>
-        <SingleTrigger>
-          <Spin spin_dist="6.283184" is_recovery="false"/>
-        </SingleTrigger>
-      </ForceSuccess>
+    <Sequence>
+      <Spin spin_dist="6.283184" is_recovery="false"/>
       <RecoveryNode number_of_retries="6" name="NavigateRecovery">
-        <ReactiveFallback name="NavigateToPlacardAndImage">
-          <GoalReached goal="{goals[0]}">
+        <ReactiveFallback>
+          <ReactiveSequence>
+            <FirstGoalReached goals="{goals}" global_frame="map" robot_base_frame="base_link"/>
             <Sequence name="Wait and spin then final wait">
               <Repeat num_cycles="5">
                 <Sequence name="Wait then spin">
@@ -24,13 +21,18 @@
               </Repeat>
               <Wait wait_duration="1"/>
               <SaveImage service_name="/save"/>
-              <RemovePassedGoals input_goals="{goals}" output_goals="{goals}" radius="1.5"/>
+              <ForceFailure>
+                <RemovePassedGoals input_goals="{goals}" output_goals="{goals}" radius="2.5"/>
+              </ForceFailure>
             </Sequence>
-          </GoalReached>
+          </ReactiveSequence>
           <PipelineSequence name="NavigateWithReplanning">
             <RateController hz="0.333">
               <RecoveryNode number_of_retries="1" name="ComputePathThroughPoses">
-                <ComputePathThroughPoses goals="{goals}" path="{path}" planner_id="GridBased"/>
+                <ReactiveSequence>
+                  <RemovePassedGoals input_goals="{goals}" output_goals="{goals}" radius="0.7"/>
+                  <ComputePathThroughPoses goals="{goals}" path="{path}" planner_id="GridBased"/>
+                </ReactiveSequence>
                 <ClearEntireCostmap name="ClearGlobalCostmap-Context" service_name="global_costmap/clear_entirely_global_costmap"/>
               </RecoveryNode>
             </RateController>

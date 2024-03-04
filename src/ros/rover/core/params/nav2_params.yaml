@@ -6,11 +6,12 @@ bt_navigator:
     odom_topic: /pivot_drive_controller/odom
     bt_loop_duration: 10
     default_server_timeout: 20
+    goal_reached_tol: 0.75
     # 'default_nav_through_poses_bt_xml' and 'default_nav_to_pose_bt_xml' are use defaults:
     # nav2_bt_navigator/navigate_to_pose_w_replanning_and_recovery.xml
     # nav2_bt_navigator/navigate_through_poses_w_replanning_and_recovery.xml
     # They can be set here or via a RewrittenYaml remap from a parent launch file to Nav2.
-    default_nav_through_poses_bt_xml: $(find-pkg-share nova_behavior_tree)/behavior_tree/arch_through_poses.xml
+    default_nav_through_poses_bt_xml: $(find-pkg-share nova_behavior_tree)/behavior_tree/through.xml
     default_nav_to_pose_bt_xml: $(find-pkg-share nova_behavior_tree)/behavior_tree/arch_to_pose.xml
     plugin_lib_names:
       - nav2_compute_path_to_pose_action_bt_node
@@ -61,6 +62,7 @@ bt_navigator:
       - nav2_drive_on_heading_cancel_bt_node
       - nav2_is_battery_charging_condition_bt_node
       - nova_save_image_service_bt_node
+      - nova_first_goal_reached_condition_bt_node
 
 bt_navigator_navigate_through_poses_rclcpp_node:
   ros__parameters:
@@ -77,6 +79,7 @@ controller_server:
     min_x_velocity_threshold: 0.001
     min_y_velocity_threshold: 0.5
     min_theta_velocity_threshold: 0.001
+    forward_proune_distance: 0.5
     failure_tolerance: 0.3
     progress_checker_plugin: "progress_checker"
     goal_checker_plugins: ["general_goal_checker"] # "precise_goal_checker"
@@ -97,7 +100,7 @@ controller_server:
       stateful: True
       plugin: "nav2_controller::SimpleGoalChecker"
       xy_goal_tolerance: 0.25
-      yaw_goal_tolerance: 0.25
+      yaw_goal_tolerance: 1.25
     # DWB parameters
     FollowPath:
       plugin: "dwb_core::DWBLocalPlanner"
@@ -133,10 +136,10 @@ controller_server:
       BaseObstacle.scale: 0.02
       PathAlign.scale: 32.0
       PathAlign.forward_point_distance: 0.5
-      GoalAlign.scale: 24.0
+      GoalAlign.scale: 1.0
       GoalAlign.forward_point_distance: 0.5
       PathDist.scale: 32.0
-      GoalDist.scale: 24.0
+      GoalDist.scale: 1.0
       RotateToGoal.scale: 32.0
       RotateToGoal.slowing_factor: 5.0
       RotateToGoal.lookahead_time: -1.0

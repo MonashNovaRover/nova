@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.8)
 project(nova_behavior_tree)
 
-set(lib_name nova_save_image_service_bt_node)
+set(lib_name ${PROJECT_NAME})
 
 # === Environment ===
 
@@ -23,12 +23,18 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_srvs REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(tf2_ros REQUIRED)
+find_package(nav2_util REQUIRED)
 find_package(nav2_behavior_tree REQUIRED)
 find_package(behaviortree_cpp_v3 REQUIRED)
 
 set(dep_pkgs
   rclcpp
   std_srvs
+  geometry_msgs
+  tf2_ros
+  nav2_util
   nav2_behavior_tree
   behaviortree_cpp_v3
 )
@@ -39,19 +45,21 @@ include_directories(
   include
 )
 
-add_library(${lib_name} SHARED 
-  plugins/save_image_service.cpp
-)
+add_library(nova_save_image_service_bt_node SHARED plugins/save_image_service.cpp)
+list(APPEND plugin_libs nova_save_image_service_bt_node)
 
-ament_target_dependencies(${lib_name} 
-  ${dep_pkgs}
-)
+add_library(nova_first_goal_reached_condition_bt_node SHARED plugins/first_goal_reached_condition.cpp)
+list(APPEND plugin_libs nova_first_goal_reached_condition_bt_node)
 
-target_compile_definitions(${lib_name} PRIVATE BT_PLUGIN_EXPORT)
+foreach(bt_plugin ${plugin_libs})
+  ament_target_dependencies(${bt_plugin} ${dep_pkgs})
+  target_compile_definitions(${bt_plugin} PRIVATE BT_PLUGIN_EXPORT)
+endforeach()
+
 
 # === Installation ===
 
-install(TARGETS ${lib_name}
+install(TARGETS ${plugin_libs}
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin
@@ -88,7 +96,7 @@ ament_export_include_directories(
 )
 
 ament_export_libraries(
-  ${lib_name}
+  ${plugin_libs}
 )
 
 ament_export_dependencies(
