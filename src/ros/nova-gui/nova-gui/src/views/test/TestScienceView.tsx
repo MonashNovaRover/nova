@@ -7,7 +7,7 @@ const TestScienceView: React.FC = () => {
     <div className="grid w-full gap-3 p-3 auto-cols-fr s:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-6">
       <SiteSelectWidget className="col-span-2"/>
       <NIRProbeLEDWidget className="row-start-2"/>
-      <NIRProbeValueWidget className="row-start-3"/>
+      <NIRProbeValueWidget className="row-start-3 col-span-2"/>
 
     </div>
   )

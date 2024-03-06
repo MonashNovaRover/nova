@@ -1,5 +1,15 @@
-import {Button, Card, CardBody, CardHeader, CardProps} from "@nextui-org/react";
-import React, {useEffect} from "react";
+import {
+  Button,
+  Card,
+  CardBody,
+  CardHeader,
+  CardProps, Divider, Input,
+  Table,
+  TableBody, TableCell,
+  TableColumn,
+  TableHeader, TableRow,
+} from "@nextui-org/react";
+import React, {useCallback, useEffect, useState} from "react";
 import CopyableOutput from "../../CopyableOutput/CopyableOutput.tsx";
 import {useBifrost} from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosTopic} from "../../../ros/topics/rosTopic.ts";
@@ -12,13 +22,96 @@ interface INIRProbeValueWidgetProps extends CardProps {
 }
 
 
+interface ISpaceResourcesEntry {
+  lightBlank?: number,
+  difference: number,
+  concentration?: number
+}
+
+interface ISpaceResourcesFile {
+  entries: ISpaceResourcesEntry[]
+}
+
+const LOCAL_STORAGE_KEY = "space-resources-test";
+
+
 const NIRProbeValueWidget: React.FC<INIRProbeValueWidgetProps> = ({...cardProps}) => {
   const bifrost = useBifrost({ topic: RosTopic.NIR_DATA });
   const nirData = useSelector((state: RootState) => state.nirStore.data);
+  //const led = useSelector((state: RootState) => state.nirStore.led);
+
+  const [file, setFile] = useState<ISpaceResourcesFile>({entries: []})
+  const [lightBlank, setLightBlank] = useState<number | undefined>();
+  const [concentration, setConcentration] = useState<number | undefined>();
+  const [manualReading, setManualReading] = useState<number | undefined>();
 
   useEffect(() => {
     bifrost.syncWithTopic();
   }, [bifrost]);
+
+  useEffect(() => {
+    const storedFile = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (storedFile === null)
+      return;
+
+    setFile(JSON.parse(storedFile));
+  }, []);
+
+  const updateLightBlank = useCallback(() => {
+    setLightBlank(nirData);
+  }, [nirData]);
+
+  const updateDifference = useCallback(() => {
+    const newEntry = {
+      lightBlank: lightBlank,
+      difference: (manualReading ?? nirData) - (lightBlank ?? 0)
+    };
+    const newFile = { entries: [...file.entries, newEntry] };
+
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newFile));
+    setFile(newFile);
+
+  }, [file, nirData, manualReading, lightBlank]);
+
+  const deleteEntry = useCallback((index: number) => {
+    const newFile = {
+      entries: file.entries.filter((_, i) => i !== index)
+    };
+
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newFile));
+    setFile(newFile);
+  }, [file]);
+
+  /*const onSave = useCallback(() => {
+    if (led === 0) {
+      updateLightBlank();
+      return;
+    }
+
+    updateDifference();
+  }, [led, updateLightBlank, updateDifference]);*/
+
+  const onConcentrationChanged = (userInput: string) => {
+    let input = userInput.length > 0 ? parseFloat(userInput) : undefined;
+    if (isNaN(input ?? 0))
+      input = undefined;
+
+    setConcentration(input);
+  }
+
+  const onManualReadingChanged = (userInput: string) => {
+    let input = userInput.length > 0 ? parseFloat(userInput) : undefined;
+    if (isNaN(input ?? 0))
+      input = undefined;
+
+    setManualReading(input);
+  }
+
+  /*
+  <Button color="primary" onClick={onSave}>
+      Save
+  </Button>
+   */
 
   return (
     <Card {...cardProps}>
@@ -29,12 +122,67 @@ const NIRProbeValueWidget: React.FC<INIRProbeValueWidgetProps> = ({...cardProps}
         <CopyableOutput className="tracking-wide" classNames={{pre: "text-lg pt-1"}}>
           {nirData}
         </CopyableOutput>
-        <Button color="primary">
-          Save
-        </Button>
+        <div className="grid auto-cols-fr grid-cols-2 gap-3">
+          <Button color="default" onClick={updateLightBlank}>
+            Set Light Blank
+          </Button>
+          <Button color="primary" onClick={updateDifference}>
+            Save
+          </Button>
+        </div>
+
       </CardBody>
+
+      <Divider/>
+
+      <CardBody className="flex flex-row gap-3">
+        <Input onValueChange={onConcentrationChanged} value={concentration?.toString() ?? ""} size="sm"
+               labelPlacement="outside" label="Concentration">
+        </Input>
+        <Input onValueChange={onManualReadingChanged} value={manualReading?.toString() ?? ""} size="sm"
+               labelPlacement="outside" label="Manual Reading Entry">
+        </Input>
+      </CardBody>
+
+      <Divider/>
+
+      <CardBody className="flex flex-col gap-3">
+        <Table aria-label="Example table with dynamic content">
+          <TableHeader>
+            <TableColumn key="lightBlank">Light Blank</TableColumn>
+            <TableColumn key="difference">Difference</TableColumn>
+            <TableColumn key="concentration">Concentration</TableColumn>
+            <TableColumn>Difference</TableColumn>
+          </TableHeader>
+          <TableBody>
+            {file.entries.map(({lightBlank, difference, concentration}, index) =>
+              <TableRow key={index}>
+                <TableCell>
+                  { lightBlank ?
+                    <span className="text-gray-500">{lightBlank}</span> :
+                    <span className="text-gray-800">{lightBlank ?? "None"}</span>
+                  }
+                </TableCell>
+                <TableCell>{difference}</TableCell>
+                <TableCell>
+                  { concentration !== undefined ?
+                    <span className="text-gray-500">{concentration}</span> :
+                    <span className="text-gray-800">None</span>
+                  }
+                </TableCell>
+                <TableCell>
+                  <Button onClick={() => deleteEntry(index)} size="sm" color="danger">
+                    Delete
+                  </Button>
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </CardBody>
+
     </Card>
-  )
+  );
 }
 
 export default NIRProbeValueWidget;
