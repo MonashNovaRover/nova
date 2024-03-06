@@ -16,11 +16,13 @@ def launch_setup(context, *args, **kwargs):
     params_file= LaunchConfiguration("params_file")
     parameters = [
         {
-            "frame_id": name,
+            "frame_id": 'base_link',
             "subscribe_rgb": True,
             "subscribe_depth": True,
             "subscribe_odom_info": True,
             "approx_sync": True,
+            "odom_frame_id": True,
+            "publish_tf": False,
             "Rtabmap/DetectionRate": "3.5",
         }
     ]
@@ -36,6 +38,7 @@ def launch_setup(context, *args, **kwargs):
             PythonLaunchDescriptionSource(
                 os.path.join(depthai_prefix, 'launch', 'camera.launch.py')),
             launch_arguments={"name": name,
+                              "parent_frame": "camera_link",
                               "params_file": params_file}.items()),
 
         LoadComposableNodes(

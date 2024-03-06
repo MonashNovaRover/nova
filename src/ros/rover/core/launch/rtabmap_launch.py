@@ -49,6 +49,7 @@ def generate_launch_description():
     parameters={
           'frame_id':'base_link',
           'use_sim_time':use_sim_time,
+          'subscribe_rgb': True
           'subscribe_depth':True,
           'publish_tf': True,
           'odom_frame_id': 'odom',
