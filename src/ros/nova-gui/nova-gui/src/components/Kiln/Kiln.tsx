@@ -30,7 +30,7 @@ const Kiln: React.FC = () => {
         // update max temps if current temps exceed them
         maxTemp.forEach((element, index) => { if (kilnData.temp[index] > element) {
             let result = maxTemp;
-            result[index] = kilnData.temp[index];
+            result[index] = 1.1*kilnData.temp[index];
             setMaxTemp(result);
         }})
     }, [dataBifrost]);
