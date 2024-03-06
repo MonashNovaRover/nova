@@ -14,7 +14,7 @@ interface INIRProbeLEDWidgetProps extends CardProps {
 const NIRProbeLEDWidget: React.FC<INIRProbeLEDWidgetProps> = ({...cardProps}) => {
   const bifrost = useBifrost({ topic: RosTopic.NIR_DATA, service: RosService.SET_NIR_PROBE_LED });
   const led = useSelector((state: RootState) => state.nirStore.led);
-  const setLed = (led: number) => bifrost.callService({led: led}, {});
+  const setLed = (newLed: number) => bifrost.callService({led: newLed}, {});
 
   useEffect(() => {
     bifrost.syncWithTopic();
@@ -28,8 +28,7 @@ const NIRProbeLEDWidget: React.FC<INIRProbeLEDWidgetProps> = ({...cardProps}) =>
       color={led > 0 ? "primary" : "default"}
     >
       <>Off</>
-      <>Water</>
-      <>Ilmenite</>
+      <>On</>
     </SegmentedPicker>
   );
 
