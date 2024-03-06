@@ -38,6 +38,7 @@ class KilnServer(Node):
 
         #subscriber to polling status
         self.service = self.create_service(KilnCommand, '/science/kiln_command', self.command_callback)
+        self.get_logger().info("Kiln service created")
         #publisher to publish the data from the kilns.
         self.publisher = self.create_publisher(KilnData, "/science/kiln_data", 1)
 
@@ -50,6 +51,7 @@ class KilnServer(Node):
 
         #create timers
         self.can_spin_timer = self.create_timer(0.05, self.bus.spin)
+        self.send_can_timer = self.create_timer(0.2, self.send_can_command)
         self.publish_data_timer = self.create_timer(1, self.publish_data)
 
         self.temp = [0.0, 0.0, 0.0]
@@ -78,6 +80,21 @@ class KilnServer(Node):
             response.success = False
 
         return response
+
+    def send_can_command(self):
+        try:
+            if self.is_on:
+                self.get_logger().info("Kiln continuous On")
+                for i in range(10,12):
+                    kiln_frame = jcan.Frame( i << 4 , [7, 255])
+                    self.bus.send(kiln_frame)
+            else:               # turn off kiln
+                self.get_logger().info("Kiln continuous Off")
+                for i in range(10,12):
+                    kiln_frame = jcan.Frame( i << 4 , [7, 0])
+                    self.bus.send(kiln_frame)
+        except Exception as e:
+            self.get_logger().info(str(e))
 
     def update_temp(self, frame):
         self.get_logger().info("Kiln try update temp")
