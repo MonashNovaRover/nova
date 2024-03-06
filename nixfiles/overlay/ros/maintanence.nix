@@ -82,6 +82,8 @@ self: super:
         });
       in
       {
+        inherit (self) rtabmap;
+
         rtabmap-ros = rosSuper.rtabmap-ros.overrideAttrs ({ propagatedBuildInputs ? [ ], ... }: {
           propagatedBuildInputs = self.lib.remove rosSelf.rtabmap-demos propagatedBuildInputs;
         });
