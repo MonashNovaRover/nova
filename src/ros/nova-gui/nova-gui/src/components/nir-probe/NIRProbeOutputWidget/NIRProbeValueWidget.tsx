@@ -60,13 +60,13 @@ const NIRProbeValueWidget: React.FC<INIRProbeValueWidgetProps> = ({...cardProps}
   }, []);
 
   const updateLightBlank = useCallback(() => {
-    setLightBlank(nirData);
-  }, [nirData]);
+    setLightBlank(manualReading ?? nirData);
+  }, [nirData, manualReading]);
 
   const updateDifference = useCallback(() => {
     const newEntry = {
       lightBlank: lightBlank,
-      difference: (nirData) - (lightBlank ?? 0),
+      difference: (manualReading ?? nirData) - (lightBlank ?? 0),
       concentration: concentration,
       label: sampleLabel
     };
@@ -147,7 +147,7 @@ const NIRProbeValueWidget: React.FC<INIRProbeValueWidgetProps> = ({...cardProps}
                labelPlacement="outside" label="Concentration">
         </Input>
         <Input onValueChange={onManualReadingChanged} value={manualReading?.toString() ?? ""} size="sm"
-               labelPlacement="outside" label="Manual Reading Entry">
+               labelPlacement="outside" label="Manual Reading Entry" color={manualReading === undefined ? "default" : "danger"}>
         </Input>
         <Input onValueChange={setSampleLabel} value={sampleLabel} size="sm"
                labelPlacement="outside" label="Sample Label">
@@ -166,7 +166,7 @@ const NIRProbeValueWidget: React.FC<INIRProbeValueWidgetProps> = ({...cardProps}
             <TableColumn>Difference</TableColumn>
           </TableHeader>
           <TableBody>
-            {file.entries.map(({lightBlank, difference, concentration, label}, index) =>
+            {reversedEntries.map(({lightBlank, difference, concentration, label}, index) =>
               <TableRow key={index}>
                 <TableCell>
                   { lightBlank ?
@@ -187,7 +187,7 @@ const NIRProbeValueWidget: React.FC<INIRProbeValueWidgetProps> = ({...cardProps}
                   }
                 </TableCell>
                 <TableCell>
-                  <Button onClick={() => deleteEntry(index)} size="sm" color="danger">
+                  <Button onClick={() => deleteEntry(reversedEntries.length - index - 1)} size="sm" color="danger">
                     Delete
                   </Button>
                 </TableCell>
