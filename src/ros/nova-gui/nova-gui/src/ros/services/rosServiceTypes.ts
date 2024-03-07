@@ -28,6 +28,8 @@ export interface RosServiceInterface {
     IRosCameraMsgsCameraOperationRequest,
     IRosCameraMsgsCameraOperationResponse
   >;
+
+  // Science Related
   [RosService.KILN_COMMAND]: RosServiceMessage<
     IRosCoreKilnCommandRequest,
     IRosCoreKilnCommandResponse

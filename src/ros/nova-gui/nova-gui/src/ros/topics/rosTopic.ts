@@ -18,5 +18,7 @@ export enum RosTopic {
 
   // Camera Related topics
   CAMERAS = "/camera_directory/cameras",
+
+  // Science Related
   KILN_DATA = "/science/kiln_data",
 }

@@ -10,13 +10,15 @@ export const rootReducer = {
   // Bifrost Stores
   bifrostStatus: BifrostStatusStore(),
 
+  // Kiln Stores
   kilnData: createBifrostStore({ topic: RosTopic.KILN_DATA }, { 
-    temp: [0, 0, 0],
-    state: false
+    temp: [0, 0, 0],  // current converted temp readings [C]
+    state: false      // current status of Kiln: True if On
    }),
   kilnCommand: createBifrostStore({ service: RosService.KILN_COMMAND }, { 
-    success: true
+    success: true     // whether the last service request succeeded or not: False will show error on Toggle Kiln Button
    }),
+
   poseStore: createBifrostStore(
     { topic: RosTopic.POSE },
     {

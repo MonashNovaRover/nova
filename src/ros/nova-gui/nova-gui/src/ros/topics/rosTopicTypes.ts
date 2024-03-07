@@ -24,5 +24,7 @@ export interface RosTopicInterfaces {
 
   // Cameras Related
   [RosTopic.CAMERAS]: IRosCameraMsgsCameras;
+
+  // Science Related
   [RosTopic.KILN_DATA]: IRosCoreKilnData;
 }
