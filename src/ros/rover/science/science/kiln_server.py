@@ -30,6 +30,18 @@ from core.srv import KilnCommand
 
 class KilnServer(Node):
 
+    KILN_CARD_SEND_IDS = [0x0A0, 0x0B0]
+    KILN_POWER_COMMAND = 0x07
+    KILN_OFF = 0x00 
+    KILN_ON = 0xFF
+    KILN_TEMP_FEEDBACK_ID = 0x4B3
+
+    def convert_from_thermistor_(reading):
+        return 1.0*reading
+
+    def convert_from_IR_(reading):
+        return reading*0.02 - 273.15
+
     def __init__(self):
         super().__init__('kiln_server')
         
@@ -40,14 +52,14 @@ class KilnServer(Node):
         self.service = self.create_service(KilnCommand, '/science/kiln_command', self.command_callback)
         self.get_logger().info("Kiln service created")
         #publisher to publish the data from the kilns.
-        self.publisher = self.create_publisher(KilnData, "/science/kiln_data", 1)
+        self.publisher = self.create_publisher(KilnData, "/science/kiln_data", 10)
 
         #initialise the can bus
         self.bus = jcan.Bus()
 
         # Set filter IDs and callbacks.
-        self.bus.set_id_filter([0x4B3, 0x0A0, 0x0B0])
-        self.bus.add_callback(0x4B3, self.update_temp)
+        self.bus.set_id_filter(KilnServer.KILN_CARD_SEND_IDS + [KilnServer.KILN_TEMP_FEEDBACK_ID])
+        self.bus.add_callback(KilnServer.KILN_TEMP_FEEDBACK_ID, self.update_temp)
 
         #create timers
         self.can_spin_timer = self.create_timer(0.05, self.bus.spin)
@@ -63,14 +75,14 @@ class KilnServer(Node):
         try:
             if request.state:   # turn on kiln
                 self.get_logger().info("Kiln try On")
-                for i in range(10,12):
-                    kiln_frame = jcan.Frame( i << 4 , [7, 255])
+                for id in KilnServer.KILN_CARD_SEND_IDS:
+                    kiln_frame = jcan.Frame(id , [KilnServer.KILN_POWER_COMMAND, KilnServer.KILN_ON])
                     self.bus.send(kiln_frame)
                 self.is_on = True
             else:               # turn off kiln
                 self.get_logger().info("Kiln try Off")
-                for i in range(10,12):
-                    kiln_frame = jcan.Frame( i << 4 , [7, 0])
+                for id in KilnServer.KILN_CARD_SEND_IDS:
+                    kiln_frame = jcan.Frame(id , [KilnServer.KILN_POWER_COMMAND, KilnServer.KILN_OFF])
                     self.bus.send(kiln_frame)
                 self.is_on = False
             self.get_logger().info(f"Kiln Status = {self.is_on}")
@@ -84,14 +96,12 @@ class KilnServer(Node):
     def send_can_command(self):
         try:
             if self.is_on:
-                self.get_logger().info("Kiln continuous On")
-                for i in range(10,12):
-                    kiln_frame = jcan.Frame( i << 4 , [7, 255])
+                for id in KilnServer.KILN_CARD_SEND_IDS:
+                    kiln_frame = jcan.Frame(id , [KilnServer.KILN_POWER_COMMAND, KilnServer.KILN_ON])
                     self.bus.send(kiln_frame)
-            else:               # turn off kiln
-                self.get_logger().info("Kiln continuous Off")
-                for i in range(10,12):
-                    kiln_frame = jcan.Frame( i << 4 , [7, 0])
+            else:
+                for id in KilnServer.KILN_CARD_SEND_IDS:
+                    kiln_frame = jcan.Frame(id , [KilnServer.KILN_POWER_COMMAND, KilnServer.KILN_OFF])
                     self.bus.send(kiln_frame)
         except Exception as e:
             self.get_logger().info(str(e))
@@ -100,12 +110,12 @@ class KilnServer(Node):
         self.get_logger().info("Kiln try update temp")
         sensor_id = frame.data[0] - 1 
         if 0 <= sensor_id <= 2:
-            reading = frame.data[1] * 2**8 + frame.data[2]
+            reading = frame.data[1] * 2**8 + frame.data[2]  # as reading is return as two bytes (8 bit integer)
             if sensor_id == 2:
-                self.temp[sensor_id] = reading*0.02 - 273.15
+                self.temp[sensor_id] = KilnServer.convert_from_IR_(reading)
                 self.get_logger().info(f"IR reading updated to {self.temp[sensor_id]} using {reading}")
             else:
-                self.temp[sensor_id] = reading*1.0
+                self.temp[sensor_id] = KilnServer.convert_from_thermistor_(reading)
                 self.get_logger().info(f"Thermistor {sensor_id} reading updated to {self.temp[sensor_id]} using {reading}")
 
     def publish_data(self):
