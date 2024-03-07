@@ -11,7 +11,12 @@ export enum RosTopic {
   NULL_TOPIC = "",
   // ROS Topics
   POSE = "/pose",
+
+  // Drive related topics
   DRIVE_INFO = "/control/drive_info",
   TELEMETRY = "/control/telemetry",
-  ARM ="/electronics/cmd_feedback"
+  ARM ="/electronics/cmd_feedback",
+
+  // Camera Related topics
+  CAMERAS = "/camera_directory/cameras",
 }
