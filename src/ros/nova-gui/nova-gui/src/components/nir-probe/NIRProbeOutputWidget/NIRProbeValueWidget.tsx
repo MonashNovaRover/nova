@@ -25,14 +25,15 @@ interface INIRProbeValueWidgetProps extends CardProps {
 interface ISpaceResourcesEntry {
   lightBlank?: number,
   difference: number,
-  concentration?: number
+  concentration?: number,
+  label: string
 }
 
 interface ISpaceResourcesFile {
   entries: ISpaceResourcesEntry[]
 }
 
-const LOCAL_STORAGE_KEY = "space-resources-test";
+const LOCAL_STORAGE_KEY = "space-resources-test2";
 
 
 const NIRProbeValueWidget: React.FC<INIRProbeValueWidgetProps> = ({...cardProps}) => {
@@ -44,6 +45,7 @@ const NIRProbeValueWidget: React.FC<INIRProbeValueWidgetProps> = ({...cardProps}
   const [lightBlank, setLightBlank] = useState<number | undefined>();
   const [concentration, setConcentration] = useState<number | undefined>();
   const [manualReading, setManualReading] = useState<number | undefined>();
+  const [sampleLabel, setSampleLabel] = useState<string>("");
 
   useEffect(() => {
     bifrost.syncWithTopic();
@@ -64,14 +66,16 @@ const NIRProbeValueWidget: React.FC<INIRProbeValueWidgetProps> = ({...cardProps}
   const updateDifference = useCallback(() => {
     const newEntry = {
       lightBlank: lightBlank,
-      difference: (manualReading ?? nirData) - (lightBlank ?? 0)
+      difference: (nirData) - (lightBlank ?? 0),
+      concentration: concentration,
+      label: sampleLabel
     };
     const newFile = { entries: [...file.entries, newEntry] };
 
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newFile));
     setFile(newFile);
 
-  }, [file, nirData, manualReading, lightBlank]);
+  }, [file, nirData, manualReading, lightBlank, concentration, sampleLabel]);
 
   const deleteEntry = useCallback((index: number) => {
     const newFile = {
@@ -108,10 +112,13 @@ const NIRProbeValueWidget: React.FC<INIRProbeValueWidgetProps> = ({...cardProps}
   }
 
   /*
-  <Button color="primary" onClick={onSave}>
-      Save
+  <Button color={led === 0 ? "default" : "primary"} onClick={onSave}>
+    {led === 0 ? "Set Light Blank" : "Save Reading"}
   </Button>
    */
+
+  let reversedEntries = [...file.entries];
+  reversedEntries.reverse();
 
   return (
     <Card {...cardProps}>
@@ -142,6 +149,9 @@ const NIRProbeValueWidget: React.FC<INIRProbeValueWidgetProps> = ({...cardProps}
         <Input onValueChange={onManualReadingChanged} value={manualReading?.toString() ?? ""} size="sm"
                labelPlacement="outside" label="Manual Reading Entry">
         </Input>
+        <Input onValueChange={setSampleLabel} value={sampleLabel} size="sm"
+               labelPlacement="outside" label="Sample Label">
+        </Input>
       </CardBody>
 
       <Divider/>
@@ -152,10 +162,11 @@ const NIRProbeValueWidget: React.FC<INIRProbeValueWidgetProps> = ({...cardProps}
             <TableColumn key="lightBlank">Light Blank</TableColumn>
             <TableColumn key="difference">Difference</TableColumn>
             <TableColumn key="concentration">Concentration</TableColumn>
+            <TableColumn key="label">Label</TableColumn>
             <TableColumn>Difference</TableColumn>
           </TableHeader>
           <TableBody>
-            {file.entries.map(({lightBlank, difference, concentration}, index) =>
+            {file.entries.map(({lightBlank, difference, concentration, label}, index) =>
               <TableRow key={index}>
                 <TableCell>
                   { lightBlank ?
@@ -171,6 +182,11 @@ const NIRProbeValueWidget: React.FC<INIRProbeValueWidgetProps> = ({...cardProps}
                   }
                 </TableCell>
                 <TableCell>
+                  { 
+                    label 
+                  }
+                </TableCell>
+                <TableCell>
                   <Button onClick={() => deleteEntry(index)} size="sm" color="danger">
                     Delete
                   </Button>
@@ -181,8 +197,18 @@ const NIRProbeValueWidget: React.FC<INIRProbeValueWidgetProps> = ({...cardProps}
         </Table>
       </CardBody>
 
+      <Divider></Divider>
+
+      <CardBody>
+        {file.entries.map(({lightBlank, difference, concentration, label}, index) => 
+          <>{`${lightBlank},${difference},${concentration},${label}\n`}<br/></>
+        )}
+
+      </CardBody>
+
     </Card>
   );
 }
 
 export default NIRProbeValueWidget;
+
