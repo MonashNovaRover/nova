@@ -122,7 +122,10 @@ class NewHydraprobeTransceiver():
     reading_sets = {0: [{"base_reg": 0x0200, "num_regs": 6}], # get comms details
                     1: [{"base_reg": 0x0005, "num_regs": 1},    # get EC and dielectric constant
                         {"base_reg": 0x0002, "num_regs": 1}],
-                    2: [{"base_reg": 0x0000, "num_regs": 3}]}   # get temp, moisture, EC
+                    2: [{"base_reg": 0x0000, "num_regs": 3}],
+                    3: [{"base_reg": 0x0000, "num_regs": 3},
+                        {"base_reg": 0x0005, "num_regs": 1}]}   # get temp, moisture, EC
+
 
     def __init__(self, port, probe_address=1, baudrate=9600, bytesize=8, parity='N', stopbits=1, retries=1, broadcast_enable=True):
         self.client = ModbusSerialClient(port, baudrate=baudrate, bytesize=bytesize, parity=parity, stopbits=stopbits, retries=retries, broadcast_enable=broadcast_enable)
@@ -185,8 +188,8 @@ class HydraprobePublisher(Node):
             self.hydraprobe_transceiver = NewHydraprobeTransceiver(
                 logger = self.get_logger(),
                 baudrate = 9600, # confirm this
-                port = self.port, # TODO: check this
-                probe_address = 0, # TODO: check this. /// is broadcast address for the probes so should be fine to use as long as we only have 1 connected.
+                port = self.port, 
+                probe_address = 0,
                 )
         
         # Print error if missing device
@@ -209,16 +212,17 @@ class HydraprobePublisher(Node):
         # time.sleep(2)
         #then read values
         msg = HydraprobeData()
-        values = self.hydraprobe_transceiver.get_reading_set(set_number=2)
+        values = self.hydraprobe_transceiver.get_reading_set(set_number=3)
         if values is not None:
             # write values into msg
             # see linked datasheet for reference on data ordering
             msg.temperature = values[0]
             msg.moisture = values[1]
             msg.conductivity = values[2]
+            msg.dielectric = values[3]
         else:
             # set error state with -1 for all values
-            msg.temperature = msg.moisture = msg.conductivity = -1
+            msg.temperature = msg.moisture = msg.conductivity = msg.delectric = -1
 
         self.publisher_.publish(msg)
 
