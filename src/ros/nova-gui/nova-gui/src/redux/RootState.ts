@@ -18,7 +18,7 @@ export interface RootState {
 
   // Drive Stores
   driveStore: IRosCoreDriveInfo;
-  telemetryStore: IRosCoreTelemetry;
+  driveTelemetryStore: IRosCoreTelemetry;
   armTelemetryStore: IRosCoreTelemetry;
 
   // Camera Stores

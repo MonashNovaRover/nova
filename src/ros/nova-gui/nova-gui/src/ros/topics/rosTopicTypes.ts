@@ -20,8 +20,8 @@ export interface RosTopicInterfaces {
 
   // Drive Related
   [RosTopic.DRIVE_INFO]: IRosCoreDriveInfo;
-  [RosTopic.TELEMETRY]: IRosCoreTelemetry;
-  [RosTopic.ARM]: IRosCoreCmDsFeedback;
+  [RosTopic.DRIVE_TELEMETRY]: IRosCoreTelemetry;
+  [RosTopic.ARM_TELEMETRY]: IRosCoreCmDsFeedback;
 
   // Cameras Related
   [RosTopic.CAMERAS]: IRosCameraMsgsCameras;

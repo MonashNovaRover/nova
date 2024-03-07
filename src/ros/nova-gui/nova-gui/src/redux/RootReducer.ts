@@ -32,8 +32,8 @@ export const rootReducer = {
       handbrake: false,
     }
   ),
-  telemetryStore: createBifrostStore(
-    { topic: RosTopic.TELEMETRY },
+  driveTelemetryStore: createBifrostStore(
+    { topic: RosTopic.DRIVE_TELEMETRY },
     {
       wheels: [0, 0, 0, 0].map(() => ({
         bus: "",
@@ -64,7 +64,7 @@ export const rootReducer = {
     }
   ),
   armTelemetryStore: createBifrostStore(
-    { topic: RosTopic.ARM },
+    { topic: RosTopic.ARM_TELEMETRY },
     {} as IRosCoreCmDsFeedback
   ),
 

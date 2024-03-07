@@ -5,20 +5,20 @@ import {
   CardProps,
   Image,
 } from "@nextui-org/react";
-import React, {useEffect} from "react";
+import React, { useEffect } from "react";
 import '../DriveModeWidget/DriveWidget.css';
 import './WheelTelemetryWidget.css';
-import {useBifrost} from "../../redux/actions/bifrost/useBifrostAction";
-import {RootState} from "../../redux/RootState";
-import {useSelector} from "react-redux";
-import {ChevronUp} from "react-feather";
-import WheelTelemetryWidgetCell, {IWheelTelemetryWidgetCellProps} from "./WheelTelemetryWidgetCell.tsx";
-import {PIVOT_CURRENT_MAX, WHEEL_CURRENT_MAX} from "../../constants";
+import { useBifrost } from "../../redux/actions/bifrost/useBifrostAction";
+import { RootState } from "../../redux/RootState";
+import { useSelector } from "react-redux";
+import { ChevronUp } from "react-feather";
+import WheelTelemetryWidgetCell, { IWheelTelemetryWidgetCellProps } from "./WheelTelemetryWidgetCell.tsx";
+import { PIVOT_CURRENT_MAX, WHEEL_CURRENT_MAX } from "../../constants";
 import RoverTopDownImage from "../../assets/rover-top-down-dark.png";
 import { RosTopic } from "../../ros/topics/rosTopic.ts";
 
 // Properties for the DriveModeWidget component.
-export interface IDriveWheelWidgetProps extends CardProps {}
+export interface IDriveWheelWidgetProps extends CardProps { }
 
 /**
  * A component that displays wheel telemetry.
@@ -26,12 +26,12 @@ export interface IDriveWheelWidgetProps extends CardProps {}
 const WheelTelemetryWidget: React.FC<IDriveWheelWidgetProps> = (
   props: IDriveWheelWidgetProps
 ) => {
-  const bifrost = useBifrost({ topic: RosTopic.TELEMETRY });
+  const bifrost = useBifrost({ topic: RosTopic.DRIVE_TELEMETRY });
 
-  const pivots = useSelector((state: RootState) => state.telemetryStore.pivots);
+  const pivots = useSelector((state: RootState) => state.driveTelemetryStore.pivots);
   const pivotCurrents = pivots.map((p: { q_current: number; }) => Math.abs(p.q_current));
 
-  const wheels = useSelector((state: RootState) => state.telemetryStore.wheels);
+  const wheels = useSelector((state: RootState) => state.driveTelemetryStore.wheels);
   const wheelCurrents = wheels.map((w: { q_current: number; }) => Math.abs(w.q_current));
 
   useEffect(() => {

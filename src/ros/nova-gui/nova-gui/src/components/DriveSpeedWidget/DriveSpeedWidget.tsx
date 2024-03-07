@@ -22,9 +22,9 @@ const DriveSpeedWidget: React.FC<IDriveWidgetProps> = (
     (state: RootState) => state.driveStore.multiplier
   );
 
-  const bifrostTelemetry = useBifrost({ topic: RosTopic.TELEMETRY });
+  const bifrostTelemetry = useBifrost({ topic: RosTopic.DRIVE_TELEMETRY });
   const wheelsData = useSelector(
-    (state: RootState) => state.telemetryStore.wheels
+    (state: RootState) => state.driveTelemetryStore.wheels
   );
   const averageWheelAngularVelocity =
     wheelsData

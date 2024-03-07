@@ -25,7 +25,7 @@ export interface IArmWidgetProps extends CardProps { }
 const ArmWidget: React.FC<IArmWidgetProps> = (
     props: IArmWidgetProps
 ) => {
-    const bifrostArm = useBifrost({ topic: RosTopic.ARM });
+    const bifrostArm = useBifrost({ topic: RosTopic.ARM_TELEMETRY });
 
     useEffect(() => {
         bifrostArm.syncWithTopic();
@@ -76,33 +76,33 @@ const ArmWidget: React.FC<IArmWidgetProps> = (
             <div className="flex flex-col justify-center gap-3">
                 <div>
                     <OverlayedProgress
-                      size="lg"
-                      value={0.5}
-                      maxValue={1}
-                      autoColor
-                      aria-label="J4 Current"
+                        size="lg"
+                        value={0.5}
+                        maxValue={1}
+                        autoColor
+                        aria-label="J4 Current"
                     >
                         J4
                     </OverlayedProgress>
                 </div>
                 <div>
                     <OverlayedProgress
-                      size="lg"
-                      value={0.5}
-                      maxValue={1}
-                      autoColor
-                      aria-label="J5 Current"
+                        size="lg"
+                        value={0.5}
+                        maxValue={1}
+                        autoColor
+                        aria-label="J5 Current"
                     >
                         J5
                     </OverlayedProgress>
                 </div>
                 <div>
                     <OverlayedProgress
-                      size="lg"
-                      value={0.5}
-                      maxValue={1}
-                      autoColor
-                      aria-label="J6 Current"
+                        size="lg"
+                        value={0.5}
+                        maxValue={1}
+                        autoColor
+                        aria-label="J6 Current"
                     >
                         J6
                     </OverlayedProgress>
