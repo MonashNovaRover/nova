@@ -150,7 +150,7 @@ class JonoCardController(CardInterface):
             command = self.neg_command
         
         # Set the data based on the velocity, max value, and max percent
-        data = int(self.control.get_direction() * self.get_max_value() * self.control.get_max_percent())
+        data = int(self.control.get_direction().value * self.get_max_value() * self.control.get_max_percent())
 
         # Check if the data is greater than the max value
         # If it is, set the data to the max value
@@ -175,7 +175,7 @@ class CMDCardController(CardInterface):
         """Get the frame to send over the CAN bus"""
 
         # Set the data based on the direction, velocity, max value, and max percent
-        data = int(self.control.get_direction() * self.control.get_velocity() * self.get_max_value() * self.control.get_max_percent())
+        data = int(self.control.get_direction().value * self.control.get_velocity() * self.get_max_value() * self.control.get_max_percent())
 
         # Check if the data is greater than the max value
         # If it is, set the data to the max value
