@@ -18,4 +18,7 @@ export const rosTopicMessages = {
 
   // Cameras Related
   [RosTopic.CAMERAS]: "camera_msgs/msg/Cameras",
+
+  // Errors Related
+  [RosTopic.BLCMD_ERRORS]: "core/msg/BlcmdStatusArray",
 };

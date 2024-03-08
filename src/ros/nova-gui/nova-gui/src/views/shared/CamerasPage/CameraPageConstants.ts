@@ -12,7 +12,6 @@ export enum ARCCompModes {
   AUTONOMOUS = "autonomous",
 }
 
-
 export const initialFilters: CameraFilters = {
   flipCamera: false,
   invertCamera: false,
@@ -30,7 +29,7 @@ export const allCams = [
   "arm_end_top",
   "arm_end_finger",
   "arm_end_forward",
-  "arm_gimbal"
+  "arm_gimbal",
 ];
 
 export const post_landing_views: CameraView[] = [
@@ -43,7 +42,7 @@ export const post_landing_views: CameraView[] = [
       "arm_end_top",
       "arm_end_finger",
       "arm_end_forward",
-      "arm_gimbal"
+      "arm_gimbal",
     ],
     viewTitle: "All Cameras",
   },
@@ -61,7 +60,7 @@ export const post_landing_views: CameraView[] = [
       "arm_end_top",
       "arm_end_finger",
       "arm_end_forward",
-      "arm_gimbal"
+      "arm_gimbal",
     ],
     viewTitle: "Arm",
   },

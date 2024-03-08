@@ -1,6 +1,7 @@
 import { RosTopic } from "./rosTopic";
 import {
   IRosCameraMsgsCameras,
+  IRosCoreBlcmdStatusArray,
   IRosCoreTelemetry,
   IRosGeometryMsgsPose,
 } from "../rosTypes";
@@ -23,4 +24,7 @@ export interface RosTopicInterfaces {
 
   // Cameras Related
   [RosTopic.CAMERAS]: IRosCameraMsgsCameras;
+
+  // Errors Related
+  [RosTopic.BLCMD_ERRORS]: IRosCoreBlcmdStatusArray;
 }

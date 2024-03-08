@@ -1,6 +1,7 @@
 import {
   IRosCameraMsgsCameras,
   IRosCameraMsgsGetIpListResponse,
+  IRosCoreBlcmdStatusArray,
   IRosCoreDriveInfo,
   IRosCoreTelemetry,
   IRosGeometryMsgsPose,
@@ -23,6 +24,9 @@ export interface RootState {
   // Camera Stores
   camerasStore: IRosCameraMsgsCameras;
   ipList: IRosCameraMsgsGetIpListResponse;
+
+  // Error Related Stores
+  blcmdStatusStore: IRosCoreBlcmdStatusArray;
 
   // Regular Stores
   uiState: UIState;

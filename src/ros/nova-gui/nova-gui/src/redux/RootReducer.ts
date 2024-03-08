@@ -70,6 +70,13 @@ export const rootReducer = {
   ),
   ipList: createBifrostStore({ service: RosService.GET_IP_LIST }, { ips: [] }),
 
+  blcmdStatusStore: createBifrostStore(
+    { topic: RosTopic.BLCMD_ERRORS },
+    {
+      blcmds: [],
+    }
+  ),
+
   // Regular Stores
   uiState: uiSlice.reducer,
   cameraStreamerState: cameraStreamerSlice.reducer,
