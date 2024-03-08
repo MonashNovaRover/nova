@@ -1,4 +1,5 @@
 import {
+  Button,
   Modal,
   ModalBody,
   ModalContent,
@@ -9,6 +10,7 @@ import {
   TableColumn,
   TableHeader,
   TableRow,
+  Tooltip,
 } from "@nextui-org/react";
 import { useBifrost } from "../../redux/actions/bifrost/useBifrostAction";
 import { RosTopic } from "../../ros/topics/rosTopic";
@@ -18,9 +20,14 @@ import { RootState } from "../../redux/RootState";
 import { useUIActions } from "../../redux/actions/useUIActions";
 import { BLCMD_INDEX } from "../../constants";
 import { ComplainingChips } from "./ComplainingChips";
+import { ArrowCounterclockwise } from "react-bootstrap-icons";
+import { RosService } from "../../ros/services/rosService";
+import { IRosCoreBlcmdResetConst } from "../../ros/rosTypes";
 
 export const BLCMDStatusModal = () => {
   const bifrost = useBifrost({ topic: RosTopic.BLCMD_ERRORS });
+
+  const bifrostReset = useBifrost({ service: RosService.BLCMD_RESET });
 
   const uiActions = useUIActions();
 
@@ -60,7 +67,7 @@ export const BLCMDStatusModal = () => {
                 <TableColumn>Motor</TableColumn>
                 <TableColumn>Status</TableColumn>
                 <TableColumn align="end">
-                  <div className="flex flex-row justify-end">Actions</div>
+                  <div className="flex flex-row justify-end">Reset</div>
                 </TableColumn>
               </TableHeader>
             </TableHeader>
@@ -72,7 +79,62 @@ export const BLCMDStatusModal = () => {
                     <ComplainingChips {...blcmd} />
                   </TableCell>
                   <TableCell>
-                    <div className="flex flex-row gap-2 justify-end">Bro</div>
+                    <div className="flex flex-row gap-2 justify-end">
+                      <Tooltip
+                        className="dark text-foreground"
+                        content="Reset BLCMD"
+                        color="danger"
+                      >
+                        <Button
+                          isIconOnly
+                          size="sm"
+                          variant="flat"
+                          color="danger"
+                          onClick={() =>
+                            bifrostReset.callService(
+                              {
+                                type: IRosCoreBlcmdResetConst.BLCMD,
+                                id: blcmd.id,
+                              },
+                              {
+                                successToastMessage: `${
+                                  BLCMD_INDEX[blcmd.id]
+                                }'s BLCMD was Reset`,
+                              }
+                            )
+                          }
+                        >
+                          <ArrowCounterclockwise />
+                        </Button>
+                      </Tooltip>
+                      <Tooltip
+                        className="dark text-foreground"
+                        content="Zero Resolver"
+                        color="danger"
+                      >
+                        <Button
+                          isIconOnly
+                          size="sm"
+                          variant="flat"
+                          color="danger"
+                          onClick={() =>
+                            bifrostReset.callService(
+                              {
+                                type: IRosCoreBlcmdResetConst.RESOLVER,
+                                id: blcmd.id,
+                              },
+                              {
+                                successToastMessage: `${
+                                  BLCMD_INDEX[blcmd.id]
+                                }'s Resolver was Zero'd`,
+                              }
+                            )
+                          }
+                        >
+                          123
+                        </Button>
+                      </Tooltip>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}

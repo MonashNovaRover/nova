@@ -2,6 +2,8 @@ import {
   IRosCameraMsgsCameraOperationRequest,
   IRosCameraMsgsCameraOperationResponse,
   IRosCameraMsgsGetIpListResponse,
+  IRosCoreBlcmdResetRequest,
+  IRosCoreBlcmdResetResponse,
 } from "../rosTypes";
 import { RosService } from "./rosService";
 
@@ -25,5 +27,10 @@ export interface RosServiceInterface {
   [RosService.PAUSE_CAMS]: RosServiceMessage<
     IRosCameraMsgsCameraOperationRequest,
     IRosCameraMsgsCameraOperationResponse
+  >;
+
+  [RosService.BLCMD_RESET]: RosServiceMessage<
+    IRosCoreBlcmdResetRequest,
+    IRosCoreBlcmdResetResponse
   >;
 }
