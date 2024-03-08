@@ -92,15 +92,15 @@ const Kiln: React.FC = () => {
                 TEMPERATURE
                 <DriveProgress
                     size="lg" autoColor={true} aria-label="temp1" maxValue={maxTemp[0]} value={kilnData.temp[0]}>
-                    SENSOR ONE: {Math.round(kilnData.temp[0])}&deg;C
+                    SENSOR ONE: {kilnData.temp[0]}&deg;C
                 </DriveProgress >
                 <DriveProgress
                     size="lg" autoColor={true} aria-label="temp2" maxValue={maxTemp[1]} value={kilnData.temp[1]}>
-                    SENSOR TWO: {Math.round(kilnData.temp[1])}&deg;C
+                    SENSOR TWO: {kilnData.temp[1]}&deg;C
                 </DriveProgress >
                 <DriveProgress
                     size="lg" autoColor={true} aria-label="temp3" maxValue={maxTemp[2]} value={kilnData.temp[2]}>
-                    SENSOR THREE: {Math.round(kilnData.temp[2])}&deg;C
+                    SENSOR THREE: {kilnData.temp[2]}&deg;C
                 </DriveProgress >
             </Card>
             <div className="text-center bg-slate-900 pt-10 pb-10">
