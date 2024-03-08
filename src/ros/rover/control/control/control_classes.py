@@ -35,6 +35,48 @@ class OneAxisControl:
         else:
             raise ValueError("Invalid max_percent")
 
+    def get_velocity(self):
+        return self.velocity
+    
+    def get_direction(self):
+        return self.direction
+    
+    def get_max_percent(self):
+        return self.max_percent
+        
+    def stop(self):
+        self.velocity = 0.0
+        
+class OneAxisControlLimits(OneAxisControl):
+    def __init__(self, direction: Direction = Direction.POSITIVE, velocity: float = 0.0, max_percent: float = 1.0, limit_pos: bool = False, limit_neg: bool = False):
+        super().__init__(direction, velocity, max_percent)
+        self.limit_pos = limit_pos
+        self.limit_neg = limit_neg
+
+    def update_limit_pos(self, limit_pos: bool):
+        self.limit_pos = limit_pos
+
+    def update_limit_neg(self, limit_neg: bool):
+        self.limit_neg = limit_neg
+    
+    def check_limits_hit(self):
+        if ((self.direction == Direction.POSITIVE and self.limit_pos) or 
+            (self.direction == Direction.NEGATIVE and self.limit_neg)):
+            self.stop()
+            return True
+        else:
+            return False
+
+    def update_velocity(self, velocity: float):
+        if not self.check_limits_hit():
+            super().update_velocity(velocity)
+
+    def get_velocity(self):
+        if self.check_limits_hit():
+            return 0.0
+        else:
+            return self.velocity
+
 
 class CardInterface():
     def __init__(self, card: Card, max_value: int, card_id: hex, control: OneAxisControl):
@@ -111,6 +153,8 @@ class CMDCardController(CardInterface):
         frame = jcan.Frame(id=self.card_id, data=packed_data)
 
         return frame
+    
+
             
             
         

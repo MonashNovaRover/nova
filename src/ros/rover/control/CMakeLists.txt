@@ -134,6 +134,7 @@ install(PROGRAMS
         control/gimbal_cam.py
         control/drive_sim.py
         control/auger.py
+        control/analysis_platform.py
         DESTINATION lib/${PROJECT_NAME}
         )
 
