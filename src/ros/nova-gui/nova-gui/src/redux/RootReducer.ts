@@ -73,7 +73,64 @@ export const rootReducer = {
   blcmdStatusStore: createBifrostStore(
     { topic: RosTopic.BLCMD_ERRORS },
     {
-      blcmds: [],
+      blcmds: [
+        {
+          gate_fault: false,
+          stall_fault: false,
+          resolver_fault: false,
+          overspeed_fault: false,
+          id: 1,
+        },
+        {
+          gate_fault: false,
+          stall_fault: false,
+          resolver_fault: false,
+          overspeed_fault: false,
+          id: 2,
+        },
+        {
+          gate_fault: false,
+          stall_fault: false,
+          resolver_fault: false,
+          overspeed_fault: false,
+          id: 3,
+        },
+        {
+          gate_fault: false,
+          stall_fault: false,
+          resolver_fault: false,
+          overspeed_fault: false,
+          id: 4,
+        },
+        {
+          gate_fault: false,
+          stall_fault: false,
+          resolver_fault: false,
+          overspeed_fault: false,
+          id: 5,
+        },
+        {
+          gate_fault: false,
+          stall_fault: false,
+          resolver_fault: false,
+          overspeed_fault: false,
+          id: 6,
+        },
+        {
+          gate_fault: false,
+          stall_fault: false,
+          resolver_fault: false,
+          overspeed_fault: false,
+          id: 7,
+        },
+        {
+          gate_fault: false,
+          stall_fault: false,
+          resolver_fault: false,
+          overspeed_fault: false,
+          id: 8,
+        },
+      ],
     }
   ),
 

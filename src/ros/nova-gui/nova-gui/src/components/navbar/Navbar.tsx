@@ -20,6 +20,8 @@ import { useLocation } from "react-router-dom";
 import humanizeString from "humanize-string";
 import "./Navbar.css";
 
+import { ExclamationCircleFill } from "react-bootstrap-icons";
+
 const connectionStatusColor: {
   [key: string]: "success" | "warning" | "danger";
 } = {
@@ -43,8 +45,6 @@ export const NovaNavbar: React.FC = () => {
 
   const title = parsedLocation.reverse()[0];
 
-  // State to control the visibility of the image modal
-
   return (
     <Navbar maxWidth="full" isBordered position="static">
       <NavbarContent justify="start">
@@ -61,6 +61,18 @@ export const NovaNavbar: React.FC = () => {
         </NavbarBrand>
       </NavbarContent>
       <NavbarContent as="div" className="items-center" justify="end">
+        <NavbarItem>
+          <Button
+            size="sm"
+            variant="solid"
+            color="danger"
+            className="px-40"
+            onClick={() => uiActions.setBlcmdStatusModalOpen(true)}
+          >
+            <ExclamationCircleFill className="w-4 h-4" />
+            TRISTAN WANTS THIS BIG
+          </Button>
+        </NavbarItem>
         <NavbarItem>
           <Dropdown placement="bottom-end">
             <DropdownTrigger>
