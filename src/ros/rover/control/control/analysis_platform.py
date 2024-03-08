@@ -213,7 +213,7 @@ class AnalysisPlatformNode(Node):
         # allows operators to lower the platform even 
         # if the time of flight sensor is reading the 0 / reached bottom
         if joystick_l.btn_thumb_d_state >= 1:
-            self.platform.update_velocity(velocity=0.1, ignore_limits=True)
+            self.platform.update_velocity(velocity=0.2, ignore_limits=True)
             self.platform.update_direction(self.PLATFORM_DOWN)
         
        
