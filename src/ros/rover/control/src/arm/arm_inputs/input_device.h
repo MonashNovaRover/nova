@@ -25,7 +25,8 @@ class InputDevice {
     public:
 
     /// @brief returns the inputs for the control scheme
-    virtual void get_control_scheme_inputs(core::msg::ArmControlScheme& control_scheme_inputs) = 0;
+    /// @returns 1 if toggling the input method, 0 if not
+    virtual bool get_control_scheme_inputs(core::msg::ArmControlScheme& control_scheme_inputs) = 0;
     
     /// @brief returns the inputs for the end effector
     virtual void get_end_effector_inputs(core::msg::ArmControlScheme& control_scheme_inputs, core::msg::EndEffectorInput& end_effector_inputs) = 0;

@@ -13,7 +13,7 @@ AUTHOR(S):	Jess Hepworth, Jory Braun, Matthew Gu
 JoystickTranslate::JoystickTranslate() { }
 
 
-void JoystickTranslate::get_control_scheme_inputs(core::msg::ArmControlScheme& control_scheme_inputs)
+bool JoystickTranslate::get_control_scheme_inputs(core::msg::ArmControlScheme& control_scheme_inputs)
 {
     // Set base reference frame offset
     int8_t base_frame_offset = 0;
@@ -74,6 +74,8 @@ void JoystickTranslate::get_control_scheme_inputs(core::msg::ArmControlScheme& c
         control_scheme_inputs.endpoint_frame_angular = control_scheme_inputs.endpoint_frame_linear;
         control_scheme_inputs.ik_angular = control_scheme_inputs.ik_linear;
     }
+
+    return (joystick_l.btn_bottom_r6_state==1);
 }
 
 void JoystickTranslate::get_end_effector_inputs(core::msg::ArmControlScheme& control_scheme_inputs, core::msg::EndEffectorInput& end_effector_inputs)

@@ -32,6 +32,8 @@ void KeyboardTranslate::set_key_mappings(){
     key_mappings.position_control = ctrl(SDL_SCANCODE_8); // not implemented
     key_mappings.all_joint_space = ctrl(SDL_SCANCODE_SPACE);
     key_mappings.all_task_space = ctrl(SDL_SCANCODE_9); // not implemented
+    key_mappings.toggle_input = ctrl(SDL_SCANCODE_0);
+    
     key_mappings.zero_resolvers = alt(SDL_SCANCODE_J);
     key_mappings.resolver_to_key = {
         {1, alt(SDL_SCANCODE_1)}, // key for resolver J1, J2 etc
@@ -88,7 +90,7 @@ void KeyboardTranslate::set_key_mappings(){
     key_mappings.yaw_decrease = SDL_SCANCODE_U;
 }
 
-void KeyboardTranslate::get_control_scheme_inputs(core::msg::ArmControlScheme& control_scheme_inputs) {
+bool KeyboardTranslate::get_control_scheme_inputs(core::msg::ArmControlScheme& control_scheme_inputs) {
     if (!updated_controls){
         // Used here for determining whether printing is needed
         if (is_pressed(key_mappings.base_frame_offset_toggle)) {
@@ -163,6 +165,8 @@ void KeyboardTranslate::get_control_scheme_inputs(core::msg::ArmControlScheme& c
             control_scheme_inputs.endpoint_frame_angular = control_scheme_inputs.endpoint_frame_linear;
             control_scheme_inputs.ik_angular = control_scheme_inputs.ik_linear;
         }
+
+        return is_pressed(key_mappings.toggle_input);
     }
 }
 

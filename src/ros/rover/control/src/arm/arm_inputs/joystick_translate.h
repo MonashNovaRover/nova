@@ -52,7 +52,7 @@ class JoystickTranslate: public InputDevice {
 
 
     // See input_device.h for documentation
-    void get_control_scheme_inputs(core::msg::ArmControlScheme& control_scheme_inputs) override;
+    bool get_control_scheme_inputs(core::msg::ArmControlScheme& control_scheme_inputs) override;
 
     void get_end_effector_inputs(core::msg::ArmControlScheme& control_scheme_inputs, core::msg::EndEffectorInput& end_effector_inputs) override;
 

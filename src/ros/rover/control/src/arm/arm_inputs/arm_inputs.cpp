@@ -115,7 +115,9 @@ void ArmInputs::publish_inputs()
 void ArmInputs::publish_control_scheme()
 {   
     // Get output from device
-    select_input_device()->get_control_scheme_inputs(control_scheme);
+    if(select_input_device()->get_control_scheme_inputs(control_scheme)) {
+        joystick_override = !joystick_override;
+    }
 
     // Publish the control scheme
     control_scheme.header.stamp = this->now();

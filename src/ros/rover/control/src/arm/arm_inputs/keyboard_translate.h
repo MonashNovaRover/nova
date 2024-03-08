@@ -40,7 +40,7 @@ class KeyboardTranslate: public InputDevice {
     const float speed_increment = 0.1f;
 
     /// @brief  The actual current speed for joints
-    float speed;
+    float speed = 0.3f;
 
     /// @brief  The speed to display in 0 to 1 scale
     float display_speed;
@@ -194,7 +194,7 @@ class KeyboardTranslate: public InputDevice {
     KeyboardTranslate();
 
     // See input_device.h for documentation
-    void get_control_scheme_inputs(core::msg::ArmControlScheme& control_scheme_inputs) override;
+    bool get_control_scheme_inputs(core::msg::ArmControlScheme& control_scheme_inputs) override;
 
     void get_end_effector_inputs(core::msg::ArmControlScheme& control_scheme_inputs, core::msg::EndEffectorInput& end_effector_inputs) override;
 
