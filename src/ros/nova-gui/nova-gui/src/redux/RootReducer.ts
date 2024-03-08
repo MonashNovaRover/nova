@@ -1,15 +1,15 @@
 import BifrostStatusStore from "./store/bifrost/BifrostStatusStore";
-import {uiSlice} from "./slices/UIReducer";
-import {createBifrostStore} from "./store/bifrost/createBifrostStore";
-import {RosService} from "../ros/services/rosService";
-import {RosTopic} from "../ros/topics/rosTopic";
-import {IRosCoreNirProbeDataConst} from "../ros/rosTypes.ts";
+import { createBifrostStore } from "./store/bifrost/createBifrostStore";
+import { RosService } from "../ros/services/rosService";
+import { RosTopic } from "../ros/topics/rosTopic";
+import { IRosCoreNirProbeDataConst } from "../ros/rosTypes.ts";
+import { uiSlice } from "./slices/UISlice";
+import { cameraStreamerSlice } from "./slices/CameraStreamSlice";
 
 export const rootReducer = {
-  uiState: uiSlice.reducer,
+  // Bifrost Stores
   bifrostStatus: BifrostStatusStore(),
 
-  ipList: createBifrostStore({ service: RosService.GET_IP_LIST }, { ips: [] }),
   poseStore: createBifrostStore(
     { topic: RosTopic.POSE },
     {
@@ -17,6 +17,9 @@ export const rootReducer = {
       position: { x: 0, y: 0, z: 0 },
     }
   ),
+
+  // Drive Reducers
+
   driveStore: createBifrostStore(
     { topic: RosTopic.DRIVE_INFO },
     {
@@ -65,5 +68,16 @@ export const rootReducer = {
       data: 0,
       led: IRosCoreNirProbeDataConst.LED_OFF
     }
-  )
+  ),
+
+  // Cameras2 Reducers
+  camerasStore: createBifrostStore(
+    { topic: RosTopic.CAMERAS },
+    { cameras: [] }
+  ),
+  ipList: createBifrostStore({ service: RosService.GET_IP_LIST }, { ips: [] }),
+
+  // Regular Stores
+  uiState: uiSlice.reducer,
+  cameraStreamerState: cameraStreamerSlice.reducer,
 };

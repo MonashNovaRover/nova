@@ -11,7 +11,12 @@ import { RosTopic } from "./rosTopic";
 export const rosTopicMessages = {
   [RosTopic.NULL_TOPIC]: "",
   [RosTopic.POSE]: "geometry_msgs/msg/Pose",
+
+  // Drive Related
   [RosTopic.DRIVE_INFO]: "core/msg/DriveInfo",
   [RosTopic.TELEMETRY]: "core/msg/Telemetry",
-  [RosTopic.NIR_DATA]: "core/msg/NIRProbeData"
+  [RosTopic.NIR_DATA]: "core/msg/NIRProbeData",
+
+  // Cameras Related
+  [RosTopic.CAMERAS]: "camera_msgs/msg/Cameras",
 };

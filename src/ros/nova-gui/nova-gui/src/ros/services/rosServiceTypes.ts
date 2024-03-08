@@ -1,7 +1,9 @@
 import {
-  IRosCameraMsgsGetIpListResponse,
   IRosCoreSetNirProbeLedRequest,
-  IRosCoreSetNirProbeLedResponse
+  IRosCoreSetNirProbeLedResponse,
+  IRosCameraMsgsCameraOperationRequest,
+  IRosCameraMsgsCameraOperationResponse,
+  IRosCameraMsgsGetIpListResponse,
 } from "../rosTypes";
 import { RosService } from "./rosService";
 
@@ -21,5 +23,13 @@ export interface RosServiceInterface {
   [RosService.SET_NIR_PROBE_LED]: RosServiceMessage<
     IRosCoreSetNirProbeLedRequest,
     IRosCoreSetNirProbeLedResponse
+  >;
+  [RosService.START_CAMS]: RosServiceMessage<
+    IRosCameraMsgsCameraOperationRequest,
+    IRosCameraMsgsCameraOperationResponse
+  >;
+  [RosService.PAUSE_CAMS]: RosServiceMessage<
+    IRosCameraMsgsCameraOperationRequest,
+    IRosCameraMsgsCameraOperationResponse
   >;
 }

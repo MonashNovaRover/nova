@@ -1,24 +1,33 @@
 import {
+  IRosCameraMsgsCameras,
   IRosCameraMsgsGetIpListResponse,
   IRosCoreDriveInfo,
   IRosCoreNirProbeData,
   IRosCoreTelemetry,
   IRosGeometryMsgsPose,
 } from "../ros/rosTypes";
+
 import { BifrostStatus } from "./models/bifrost/BifrostTypes";
+import { CameraStreamerState } from "./models/CameraStreamState";
+
 import { UIState } from "./models/UIState";
 
 export interface RootState {
-  // Essential UI Management States
-  uiState: UIState;
+  // Bifrost Stores
   bifrostStatus: BifrostStatus;
-
-  // Bifrost States. Ros Stores go here
   poseStore: IRosGeometryMsgsPose;
+
+  // Drive Stores
   driveStore: IRosCoreDriveInfo;
   telemetryStore: IRosCoreTelemetry;
+
+  // Camera Stores
+  camerasStore: IRosCameraMsgsCameras;
   ipList: IRosCameraMsgsGetIpListResponse;
 
   // Science Bifrost states
   nirStore: IRosCoreNirProbeData;
+  // Regular Stores
+  uiState: UIState;
+  cameraStreamerState: CameraStreamerState;
 }
