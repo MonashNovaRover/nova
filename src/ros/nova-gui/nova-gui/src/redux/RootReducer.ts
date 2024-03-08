@@ -12,7 +12,7 @@ export const rootReducer = {
 
   // Kiln Stores
   kilnData: createBifrostStore({ topic: RosTopic.KILN_DATA }, { 
-    temp: [40, 70, 80],  // current converted temp readings [C]
+    temp: [0, 0, 0],  // current converted temp readings [C]
     state: false      // current status of Kiln: True if On
    }),
   kilnCommand: createBifrostStore({ service: RosService.KILN_COMMAND }, { 
