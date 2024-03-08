@@ -1,13 +1,12 @@
 import { useState, useEffect } from "react";
 import { DriveProgress } from "../DriveSpeedWidget/DriveProgress";
-import { Avatar, Button, Badge, Card, CardHeader } from "@nextui-org/react";
+import { Button, Card, CardHeader, CardBody } from "@nextui-org/react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/RootState";
 import { useBifrost } from "../../redux/actions/bifrost/useBifrostAction";
 import { RosTopic } from "../../ros/topics/rosTopic";
 import { RosService } from "../../ros/services/rosService";
 
-// TO DO: add ROS for turning kiln off and on once it exists
 
 const Kiln: React.FC = () => {
     const [time, setTime] = useState(0);
@@ -37,48 +36,42 @@ const Kiln: React.FC = () => {
 
     setTimeout(() => {kilnData.state ? setTime(time + 1) : null}, 1000);
 
-    const toggleKiln = <>
-                        <Button className="w-1/2 text-lg h-10" color="primary" onPress={()=>{
+    const toggleKiln = <div className="flex flex-row justify-around">
+                        <Card className={kilnData.state ? "w-1/2 bg-green-600" : "w-1/2 bg-zinc-800"}>
+                            <CardBody className="text-center">
+                                {kilnData.state ? "POWERED ON" : "POWERED OFF"}
+                            </CardBody>
+                        </Card>
+                        <Button className="w-1/3 text-lg h-12" color="primary" onPress={()=>{
                                 if (!kilnData.state) {
                                     setTime(0);
                                 };
                                 toggleKilnState();
                             }}>
-                            { kilnData.state ? "TURN OFF" : "TURN ON" }
+                            { kilnData.state ? "STOP KILN" : "START KILN" }
                         </Button>
-                        <Avatar className="w-1/3 text-lg h-10" size="sm" color={kilnData.state ? "success" : "warning"} name={kilnData.state ? "ON" : "OFF"} />
-                    </>
+                    </div>
 
-    const stateError = () => {
-        if (kilnServiceData.success) {
-            return toggleKiln
-        } else {
-            return <Badge content="error" color="danger" size="sm">
-                        {toggleKiln}
-                    </Badge>
-        }
-    }
+    const sensorNameList = ["ONE", "TWO", "THREE"]
 
     return (
-        <Card className="w-[28rem] m-1 flex flex-col space-y-2 p-1">
-            <CardHeader className="ml-2 p-0 text-2xl">Kiln</CardHeader>
-            <div className="flex flex-row justify-between">
-                {stateError()}
-            </div>
-            <Card className="h-32 justify-around flex flex-col px-2 bg-slate-900">
-                TEMPERATURE
-                <DriveProgress
-                    size="lg" autoColor={true} aria-label="temp1" maxValue={maxTemp[0]} value={kilnData.temp[0]}>
-                    SENSOR ONE: {kilnData.temp[0]}&deg;C
-                </DriveProgress >
-                <DriveProgress
-                    size="lg" autoColor={true} aria-label="temp2" maxValue={maxTemp[1]} value={kilnData.temp[1]}>
-                    SENSOR TWO: {kilnData.temp[1]}&deg;C
-                </DriveProgress >
-                <DriveProgress
-                    size="lg" autoColor={true} aria-label="temp3" maxValue={maxTemp[2]} value={kilnData.temp[2]}>
-                    SENSOR THREE: {kilnData.temp[2]}&deg;C
-                </DriveProgress >
+        <Card className="w-[28rem] m-3 flex flex-col space-y-3 p-3 bg-zinc-900">
+            <CardHeader className="p-0 text-2xl">Kiln</CardHeader>
+            <Card className="flex flex-col justify-around h-28 bg-zinc-700">
+                <CardHeader className={kilnServiceData.success ? "mx-3 p-0 text-xl" : "mx-3 p-0 text-xl text-rose-600"}>STATUS{kilnServiceData.success ? "" : ": NODE RESPONSE ERROR"}</CardHeader>
+                {toggleKiln}
+            </Card>
+            <Card className="h-40 justify-between flex flex-col p-3 pb-4 bg-zinc-700">
+                <CardHeader className="mb-3 p-0 text-xl">TEMPERATURE</CardHeader>
+                {sensorNameList.map((element, index) => 
+                    <DriveProgress
+                        classNames={{
+                            track: "bg-zinc-500"
+                        }}
+                        size="lg" autoColor={true} aria-label="temp1" maxValue={maxTemp[index]} value={kilnData.temp[index]}>
+                        SENSOR {element}: {kilnData.temp[index]}&deg;C
+                    </DriveProgress >
+                )}
             </Card>
         </Card>
     );
