@@ -80,10 +80,7 @@ const Kiln: React.FC = () => {
                     SENSOR THREE: {kilnData.temp[2]}&deg;C
                 </DriveProgress >
             </Card>
-            <div className="text-center bg-slate-900 pt-10 pb-10">
-                CAMERA HERE WHEN CONFIGURED
-            </div>
-        </Card> // Add Camera component instead when configured
+        </Card>
     );
 };
 
