@@ -16,12 +16,12 @@
               <Repeat num_cycles="5">
                 <Sequence name="Wait then spin">
                   <Wait wait_duration="1"/>
-                  <SaveImage service_name="/save"/>
+                  <SaveImage service_name="/image_capture/republish"/>
                   <Spin spin_dist="1.046"/>
                 </Sequence>
               </Repeat>
               <Wait wait_duration="1"/>
-              <SaveImage service_name="/save"/>
+              <SaveImage service_name="/image_capture/republish"/>
               <ForceFailure>
                 <RemovePassedGoals input_goals="{goals}" output_goals="{goals}" radius="2.5"/>
               </ForceFailure>

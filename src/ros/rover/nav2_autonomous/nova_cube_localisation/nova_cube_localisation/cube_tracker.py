@@ -571,8 +571,8 @@ class GoalManager(Node):
 
 
 
-def main():
-    rclpy.init()
+def main(args=None):
+    rclpy.init(args=args)
     node = GoalManager()
     rclpy.spin(node)
     node.destroy_node()

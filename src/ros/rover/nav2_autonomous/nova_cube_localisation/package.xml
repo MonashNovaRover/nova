@@ -3,9 +3,18 @@
 <package format="3">
   <name>nova_cube_localisation</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
+  <description>Nodes to track cube Marker locations and capture images of placards</description>
   <maintainer email="novaroverteam@monash.edu">nova</maintainer>
-  <license>TODO: License declaration</license>
+  <license>BSD-3-Clause</license>
+
+  <!-- <depend>std_srvs</std_srvs>
+  <depend>sensor_msgs</std_srvs>
+  <depend>rclpy</std_srvs>
+  <depend>tf2_ros</std_srvs>
+  <depend>visualization_msgs</std_srvs>
+  <depend>vision_msgs</std_srvs>
+  <depend>geometry_msgs</std_srvs>
+  <depend>std_msgs</std_srvs> -->
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>
