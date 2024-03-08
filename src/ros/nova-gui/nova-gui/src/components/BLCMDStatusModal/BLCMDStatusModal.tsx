@@ -16,6 +16,8 @@ import { useEffect } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/RootState";
 import { useUIActions } from "../../redux/actions/useUIActions";
+import { BLCMD_INDEX } from "../../constants";
+import { ComplainingChips } from "./ComplainingChips";
 
 export const BLCMDStatusModal = () => {
   const bifrost = useBifrost({ topic: RosTopic.BLCMD_ERRORS });
@@ -65,8 +67,10 @@ export const BLCMDStatusModal = () => {
             <TableBody>
               {blcmdStatuses.map((blcmd) => (
                 <TableRow key={blcmd.id}>
-                  <TableCell>{blcmd.id}</TableCell>
-                  <TableCell>Alright</TableCell>
+                  <TableCell>{BLCMD_INDEX[blcmd.id]}</TableCell>
+                  <TableCell>
+                    <ComplainingChips {...blcmd} />
+                  </TableCell>
                   <TableCell>
                     <div className="flex flex-row gap-2 justify-end">Bro</div>
                   </TableCell>
