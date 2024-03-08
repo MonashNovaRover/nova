@@ -58,7 +58,7 @@ class AnalysisPlatformNode(Node):
     TIME_OF_FLIGHT_BOTTOM_PARAM = "time_of_flight_bottom"
 
     def __init__(self):
-        super().__init__("auger")
+        super().__init__("analysis_platform")
 
         self.get_logger().set_level(logging.DEBUG)
         self.declare_parameter(self.CAN_BUS_PARAM, self.CAN_BUS)
@@ -175,6 +175,12 @@ class AnalysisPlatformNode(Node):
         # Auger height direction is determined by the right joystick's x-axis direction
         self.platform.update_direction(self.PLATFORM_DOWN if joystick_l.ax_stick_x >= 0 else self.PLATFORM_UP)
         self.platform.update_velocity(abs(int(joystick_l.ax_stick_x)))
+
+        # button override time of flight
+        if joystick_l.btn_thumb_d_state >= 1:
+            self.platform.update_velocity(velocity=0.1, ignore_limits=True)
+            self.platform.update_direction(self.PLATFORM_DOWN)
+        
        
     def joystick_l_callback(self, msg: InputJoystick):
         """

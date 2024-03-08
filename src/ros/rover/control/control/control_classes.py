@@ -69,8 +69,8 @@ class OneAxisControlLimits(OneAxisControl):
         else:
             return False
 
-    def update_velocity(self, velocity: float):
-        if not self.check_limits_hit():
+    def update_velocity(self, velocity: float, ignore_limits: bool = False):
+        if ignore_limits or not self.check_limits_hit():
             super().update_velocity(velocity)
 
     def get_velocity(self):
