@@ -239,7 +239,7 @@ class AnalysisPlatformNode(Node):
         msg.header.frame_id = "analysis_platform"
         msg.min_range = 0.0
         msg.max_range = 100.0
-        msg.range = height
+        msg.range = float(height)
         self.publisher.publish(msg)
 
 def main():
