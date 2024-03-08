@@ -13,12 +13,9 @@ SERVICES:
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:
-AUTHOR(S):	Taaj Street
+AUTHOR(S):	Taaj Street, Kabilan
 CREATION:	09/03/2023
-EDITED:		15/03/2023
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-TODO:
-
+EDITED:		09/03/2024
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 import rclpy
@@ -28,16 +25,18 @@ from rclpy.duration import Duration
 import jcan
 
 # import custom messages
-from core.msg import BLCMDReset, BLCMDStatus, BLCMDStatusArray
+from core.msg import BLCMDStatus, BLCMDStatusArray
+from core.srv import BLCMDReset
+
 
 class BLCMDStatusMonitor(Node):
 
     def __init__(self):
         super().__init__("blcmd_status_monitor")
-        #subscriber to reset the blcmd
-        self.subscriber = self.create_subscription(BLCMDReset, "/control/blcmd_reset", self.reset, 10)
         #publisher to publish the status of the blcmd
         self.publisher = self.create_publisher(BLCMDStatusArray, "/control/blcmd_status", 10)
+        #service to reset the blcmd
+        self.reset_service = self.create_service(BLCMDReset, "/control/blcmd_reset", self.reset)
 
         #declare parameters
         self.declare_parameter("num_blcmds", 8)
@@ -75,22 +74,27 @@ class BLCMDStatusMonitor(Node):
         #open the can bus
         self.bus.open(self.get_parameter("canbus").value)
 
-    def reset(self, msg):
+    def reset(self, msg: BLCMDReset.Request):
         """
         Updates the classes internal msg state
         :param msg: core.msg.BLCMDReset message from the subscriber callback
         :return: None
         """
-        if msg.type == BLCMDReset.BLCMD:
-            frame = jcan.Frame(0x00B | msg.id << 4, [0])
-        elif msg.type == BLCMDReset.RESOLVER:
-            frame = jcan.Frame(0x00C | msg.id << 4, [0])
+        try:
+            if msg.type == BLCMDReset.Request.BLCMD:
+                frame = jcan.Frame(0x00B | msg.id << 4, [0])
+            elif msg.type == BLCMDReset.Request.RESOLVER:
+                frame = jcan.Frame(0x00C | msg.id << 4, [0])
 
-        self.bus.send(frame)
-        if msg.type == BLCMDReset.BLCMD:
-            self.get_logger().info(f'Reset BLCMD {msg.id}')
-        elif msg.type == BLCMDReset.RESOLVER:
-            self.get_logger().info(f'Reset resolver on BLCMD {msg.id}')
+            self.bus.send(frame)
+            if msg.type == BLCMDReset.Request.BLCMD:
+                self.get_logger().info(f'Reset BLCMD {msg.id}')
+            elif msg.type == BLCMDReset.Request.RESOLVER:
+                self.get_logger().info(f'Reset resolver on BLCMD {msg.id}')
+            return BLCMDReset.Response(success=True)
+        except :
+            self.get_logger.error('BLCMD Reset or Resolver Reset Failed');
+            return BLCMDReset.Response(success=False)
 
     def get_callback(self, blcmd: int):
         """
