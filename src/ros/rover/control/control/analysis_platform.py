@@ -23,6 +23,7 @@ from rclpy.node import Node
 from rclpy.qos import QoSReliabilityPolicy, QoSProfile
 from rclpy.subscription import SubscriptionEventCallbacks
 from rclpy.duration import Duration
+from sensor_msgs.msg import Range
 
 # import the joystick ROS message we are listening to
 from core.msg import InputJoystick
@@ -89,6 +90,9 @@ class AnalysisPlatformNode(Node):
         # Create the joystick subscribers
         self.joystick_l_sub = self.create_subscription(InputJoystick, "/control/input_joystick_l", self.joystick_l_callback, self.qos, event_callbacks=events)
 
+        # Create the time of flight publisher
+        self.publisher = self.create_publisher(Range, "/control/analysis_platform", 10)
+
         self.bus = jcan.Bus()
         self.bus.set_id_filter([self.JONO_ID_TIME_OF_FLIGHT, self.JONO_ID_LIMIT_SWITCH])
 
@@ -147,6 +151,8 @@ class AnalysisPlatformNode(Node):
                 self.platform.update_limit_neg(True)
             else:
                 self.platform.update_limit_neg(False)
+
+            self.publish_time_of_flight(height)
         else:
             self.get_logger().info(f"Received unknown frame {frame}")
 
@@ -224,6 +230,17 @@ class AnalysisPlatformNode(Node):
         
         self.update_platform_height(joystick_l)
 
+    def publish_time_of_flight(self, height: int):
+        """
+        Publishes the height of the platform
+        """
+        msg = Range()
+        msg.header.stamp = self.get_clock().now().to_msg()
+        msg.header.frame_id = "analysis_platform"
+        msg.min_range = 0.0
+        msg.max_range = 100.0
+        msg.range = height
+        self.publisher.publish(msg)
 
 def main():
     rclpy.init()
