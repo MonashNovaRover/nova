@@ -1,4 +1,4 @@
-# for sending kiln data (unconverted temperatures) and status
+# for sending kiln data (converted temperatures) and kiln status
 
-float32[3] temp
+int16[3] temp
 bool state

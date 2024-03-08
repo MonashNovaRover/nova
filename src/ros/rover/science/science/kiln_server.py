@@ -36,17 +36,17 @@ class KilnServer(Node):
     KILN_ON = 0xFF
     KILN_TEMP_FEEDBACK_ID = 0x4B3
 
-    def convert_from_thermistor_(reading):
-        return 1.0*reading
-
-    def convert_from_IR_(reading):
-        return reading*0.02 - 273.15
+    def convert_(self, reading):
+        if self.conversion_required:
+            return int(reading*0.02 - 273.15)
+        return reading
 
     def __init__(self):
         super().__init__('kiln_server')
         
         self.get_logger().set_level(logging.DEBUG)
         self.get_logger().info("Kiln server starting")
+        self.conversion_required = self.declare_parameter("science_temp_conversion", False).value
 
         #subscriber to polling status
         self.service = self.create_service(KilnCommand, '/science/kiln_command', self.command_callback)
@@ -66,7 +66,7 @@ class KilnServer(Node):
         self.send_can_timer = self.create_timer(0.2, self.send_can_command)
         self.publish_data_timer = self.create_timer(1, self.publish_data)
 
-        self.temp = [0.0, 0.0, 0.0]
+        self.temp = [0, 0, 0]
         self.is_on = False
 
         self.bus.open("can1")
@@ -110,13 +110,9 @@ class KilnServer(Node):
         self.get_logger().info("Kiln try update temp")
         sensor_id = frame.data[0] - 1 
         if 0 <= sensor_id <= 2:
-            reading = frame.data[1] * 2**8 + frame.data[2]  # as reading is return as two bytes (8 bit integer)
-            if sensor_id == 2:
-                self.temp[sensor_id] = KilnServer.convert_from_IR_(reading)
-                self.get_logger().info(f"IR reading updated to {self.temp[sensor_id]} using {reading}")
-            else:
-                self.temp[sensor_id] = KilnServer.convert_from_thermistor_(reading)
-                self.get_logger().info(f"Thermistor {sensor_id} reading updated to {self.temp[sensor_id]} using {reading}")
+            reading = frame.data[1] * 2**8 + frame.data[2]  # as reading is returned as two bytes (16 bit integer)
+            self.temp[sensor_id] = KilnServer.convert_(reading)
+            self.get_logger().info(f"Sensor {sensor_id + 1} reading updated to {self.temp[sensor_id]} using {reading}")
 
     def publish_data(self):
         msg = KilnData()
