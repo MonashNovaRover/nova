@@ -44,7 +44,7 @@ class AnalysisPlatformNode(Node):
     PLATFORM_UP = Direction.POSITIVE
     PLATFORM_DOWN = Direction.NEGATIVE
     # max_velocity
-    MAX_VELOCITY_PERCENT = 0.75
+    MAX_VELOCITY_PERCENT = 0.5
     # time of flight
     TIME_OF_FLIGHT_OFFSET = 10
     TIME_OF_FLIGHT_BOTTOM = 20
@@ -207,7 +207,7 @@ class AnalysisPlatformNode(Node):
     def update_platform_height(self, joystick_l: InputJoystick):
         # analysis platform height direction is determined by the right joystick's x-axis direction
         self.platform.update_direction(self.PLATFORM_DOWN if joystick_l.ax_stick_x >= 0 else self.PLATFORM_UP)
-        self.platform.update_velocity(abs(int(joystick_l.ax_stick_x)))
+        self.platform.update_velocity(velocity=abs(joystick_l.ax_stick_x))
 
         # button override time of flight
         # allows operators to lower the platform even 
