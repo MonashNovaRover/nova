@@ -143,6 +143,9 @@ class AnalysisPlatformNode(Node):
         self.get_logger().info(f"Received {hex(frame.id)} {frame.data}")
  
         if frame.id == self.JONO_ID_TIME_OF_FLIGHT:
+            if len(frame.data) != 2:
+                self.get_logger().info(f"Time of flight error")
+                return
             raw_height = int(frame.data[1] + (frame.data[0] << 8))
             height = self.convert_time_of_flight(raw_height)
             self.get_logger().info(f"Raw height: {raw_height}, Converted height: {height}")
