@@ -37,8 +37,8 @@ const Kiln: React.FC = () => {
 
     setTimeout(() => {kilnData.state ? setTime(time + 1) : null}, 1000);
 
-    let toggleKiln = <>
-                        <Button className={kilnData.state ? "w-1/4 text-xl h-10" : "w-1/2 text-lg h-10"} color="primary" onPress={()=>{
+    const toggleKiln = <>
+                        <Button className="w-1/2 text-lg h-10" color="primary" onPress={()=>{
                                 if (!kilnData.state) {
                                     setTime(0);
                                 };
@@ -46,7 +46,7 @@ const Kiln: React.FC = () => {
                             }}>
                             { kilnData.state ? "TURN OFF" : "TURN ON" }
                         </Button>
-                        <Avatar className={kilnData.state ? "w-1/6 text-xl h-10" : "w-1/3 text-lg h-10"} size="sm" color={kilnData.state ? "success" : "warning"} name={kilnData.state ? "ON" : "OFF"} />
+                        <Avatar className="w-1/3 text-lg h-10" size="sm" color={kilnData.state ? "success" : "warning"} name={kilnData.state ? "ON" : "OFF"} />
                     </>
 
     const stateError = () => {
@@ -59,34 +59,11 @@ const Kiln: React.FC = () => {
         }
     }
 
-    const timer = () => {
-        if (kilnData.state) {
-            let timeInMinutes = ~~(time/60);
-            let timeInMinutesString = timeInMinutes.toString();
-            let timeInSecondsString;
-            if (time%60 < 10) {
-                let timeInSeconds = time%60
-                timeInSecondsString = "0" + timeInSeconds.toString()
-            } else {
-                let timeInSeconds = time%60
-                timeInSecondsString = timeInSeconds.toString()
-            }
-            return <>
-                <Button className="w-1/3 text-xl h-10" color="primary" onPress={()=>{
-                    if (!kilnData.state) {setTime(0);};
-                }}> RESET TIMER
-                </Button>
-                <Avatar className="w-1/6 text-xl h-10" size="sm" color={kilnData.state ? "success" : "warning"} name={timeInMinutesString + ":" + timeInSecondsString} />
-            </>;
-        }
-    }
-
     return (
         <Card className="w-[28rem] m-1 flex flex-col space-y-2 p-1">
             <CardHeader className="ml-2 p-0 text-2xl">Kiln</CardHeader>
             <div className="flex flex-row justify-between">
                 {stateError()}
-                {timer()}
             </div>
             <Card className="h-32 justify-around flex flex-col px-2 bg-slate-900">
                 TEMPERATURE
