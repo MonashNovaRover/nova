@@ -67,7 +67,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/RoverPose.msg"
 
   "srv/ArmConfigInfo.srv"
-  "msg/BLCMDReset.srv"
+  "srv/BLCMDReset.srv"
   "srv/CameraCommand.srv"
   "srv/CMDCommand.srv"
   "srv/GimbalCommand.srv"
