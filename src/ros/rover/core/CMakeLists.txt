@@ -58,7 +58,6 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/Telemetry.msg"
   "msg/BLCMDStatus.msg"
   "msg/BLCMDStatusArray.msg"
-  "msg/BLCMDReset.msg"
   "msg/ActuatorLimit.msg"
 
   "msg/Heartbeat.msg"
@@ -68,6 +67,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/RoverPose.msg"
 
   "srv/ArmConfigInfo.srv"
+  "msg/BLCMDReset.srv"
   "srv/CameraCommand.srv"
   "srv/CMDCommand.srv"
   "srv/GimbalCommand.srv"
