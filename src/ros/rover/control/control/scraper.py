@@ -23,8 +23,6 @@ EDITED:		02/02/2024
 """
 from control.control_classes import Card, Direction, JonoCardController, OneAxisControl, OneAxisControlLimits
 import rclpy, jcan, logging
-from enum import Enum
-from struct import pack
 from rclpy.node import Node
 from rclpy.qos import QoSReliabilityPolicy, QoSProfile
 from rclpy.subscription import SubscriptionEventCallbacks
@@ -65,7 +63,7 @@ class ScraperNode(Node):
     BUCKET_OPEN = Direction.NEGATIVE
   
 
-    # max_velocity
+    # max_velocity percent
     ARM_MAX_VELOCITY_PERCENT = 0.8
     SCOOP_MAX_VELOCITY_PERCENT = 0.8
     BUCKET_MAX_VELOCITY_PERCENT = 0.2
