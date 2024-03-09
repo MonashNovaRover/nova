@@ -38,7 +38,7 @@ class TilePlacerNode(Node):
     CAN_BUS = "can0"
     # card IDs
     # only used when card = CMD
-    CMD_ID_TILE_PLACER = 0x063
+    CMD_ID_TILE_PLACER = 0x063 # TODO: get the correct id
     # only used when card = JONO
     JONO_ID_TILE_PLACER = 0x0A0
     # jono commands
