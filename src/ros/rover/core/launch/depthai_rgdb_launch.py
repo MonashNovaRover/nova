@@ -50,7 +50,7 @@ def launch_setup(context, *args, **kwargs):
                                     ('image_rect/theora', name+'/rgb/image_rect/theora')]
                     )
             ]),
-        '''
+        
         LoadComposableNodes(
             condition=IfCondition(LaunchConfiguration("color_pointcloud")),
             target_container=name+"_container",
@@ -65,7 +65,7 @@ def launch_setup(context, *args, **kwargs):
                                 ('points', name+'/points')]
                     ),
             ],),
-        '''
+        
         LoadComposableNodes(
             condition=UnlessCondition(LaunchConfiguration("color_pointcloud")),
             target_container=name+"_container",
