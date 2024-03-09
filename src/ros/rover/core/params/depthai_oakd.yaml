@@ -77,7 +77,7 @@
     nn:
       i_board_socket_id: 0
       i_disable_resize: true
-      i_enable_passthrough: false
+      i_enable_passthrough: true #false
       i_enable_passthrough_depth: false
       i_get_base_device_timestamp: false
       i_num_inference_threads: 2
@@ -213,3 +213,6 @@
       i_update_ros_base_time_on_ros_msg: false
       i_width: 1280
     use_sim_time: false
+/spatial_bb_node:
+  ros__parameters:
+    desqueeze: true

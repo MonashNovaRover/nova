@@ -20,12 +20,12 @@
     },
     "mappings": {
         "labels": [
-            "Class_0",
-            "Class_1",
-            "Class_2",
-            "Class_3",
-            "Class_4",
-            "Class_5"
+            "blue",
+            "cube",
+            "green",
+            "red",
+            "white",
+            "yellow"
         ]
     },
     "version": 1
