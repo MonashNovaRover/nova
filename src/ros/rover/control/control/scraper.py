@@ -165,13 +165,20 @@ class ScraperNode(Node):
         """
         Callback for when the limit switch is hit
         """
-        if frame.id == self.JONO_ID_LIMIT_SWITCH:
-            if frame.data[0] == self.BUCKET_LIMIT_SWITCH_CLOSED:
+        try:
+            self.get_logger().info(f"Received {frame.id} {frame.data}")
+
+            if frame.id == self.JONO_ID_LIMIT_SWITCH and frame.data[0] == self.BUCKET_LIMIT_SWITCH_CLOSED:
                 if frame.data[1] == self.LIMIT_SWITCH_HIT:
                     self.get_logger().info("Limit switch hit")
                     self.bucket.update_limit_pos(True)
                 else:
                     self.bucket.update_limit_pos(False)
+            else:
+                self.get_logger().warn("Received unknown frame")
+
+        except Exception as e:
+            self.get_logger().error(f"Error receiving CAN message: {e}")
                    
 
 
