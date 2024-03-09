@@ -47,7 +47,7 @@ class ScraperNode(Node):
     JONO_ID_ARM = 0x0A0
     JONO_ID_SCOOP = 0x0A0
     JONO_ID_BUCKET = 0x0A0
-    JONO_ID_LIMIT_SWITCH_BUCKET = 0x4A2 # TODO: get correct card id
+    JONO_ID_LIMIT_SWITCH = 0x4A2 # TODO: get correct card id
     # jono commands
     JONO_ARM_FORWARDS = 0x04
     JONO_ARM_BACKWARDS = 0x03
@@ -61,8 +61,9 @@ class ScraperNode(Node):
     ARM_BACKWARDS = Direction.NEGATIVE
     SCOOP_FORWARDS = Direction.POSITIVE
     SCOOP_BACKWARDS = Direction.NEGATIVE
-    BUCKET_OPEN = Direction.POSITIVE
-    BUCKET_CLOSE = Direction.NEGATIVE
+    BUCKET_CLOSE = Direction.POSITIVE
+    BUCKET_OPEN = Direction.NEGATIVE
+  
 
     # max_velocity
     ARM_MAX_VELOCITY_PERCENT = 0.8
@@ -151,12 +152,27 @@ class ScraperNode(Node):
 
         # Create the CAN bus
         self.bus = jcan.Bus()
-        self.bus.set_id_filter([self.JONO_LIMIT_SWITCH_BUCKET])
+        self.bus.set_id_filter([self.JONO_ID_LIMIT_SWITCH])
+
+        self.bus.add_callback(self.JONO_ID_LIMIT_SWITCH, self.callback_receive_can_limit_switch)
 
         self.bus.open(self.get_parameter(self.CAN_BUS_PARAM).value)
         self.timer_jcan = self.create_timer(0.05, self.callback_send_can_commands)
 
         self.get_logger().info("Scraper Node Initialised")
+
+    def callback_receive_can_limit_switch(self, frame: jcan.Frame):
+        """
+        Callback for when the limit switch is hit
+        """
+        if frame.id == self.JONO_ID_LIMIT_SWITCH:
+            if frame.data[0] == self.BUCKET_LIMIT_SWITCH_CLOSED:
+                if frame.data[1] == self.LIMIT_SWITCH_HIT:
+                    self.get_logger().info("Limit switch hit")
+                    self.bucket.update_limit_pos(True)
+                else:
+                    self.bucket.update_limit_pos(False)
+                   
 
 
     def callback_send_can_commands(self):
