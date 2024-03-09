@@ -17,12 +17,12 @@ RUN ON: Rover
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 AUTHOR(S):	Tristan Clark
 CREATION:	02/02/2024
-EDITED:		02/02/2024
+EDITED:		09/03/2024
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 """
+from control.control_classes import CMDCardController, Card, Direction, OneAxisControl
 import rclpy, jcan, logging
-from struct import pack
 from rclpy.node import Node
 from rclpy.qos import QoSReliabilityPolicy, QoSProfile
 from rclpy.subscription import SubscriptionEventCallbacks
@@ -31,50 +31,49 @@ from rclpy.duration import Duration
 # import the joystick ROS message we are listening to
 from core.msg import InputJoystick
 
+CARD = Card.CMD
+
 class TilePlacerNode(Node):
     # can bus
     CAN_BUS = "can0"
     # card IDs
-    TILE_PLACER_ID = 0x063
-    SCRAPER_SCOOP_ID = 0x053
-    # command data
-    SCRAPER_ARM_FORWARDS = 1
-    SCRAPER_ARM_BACKWARDS = -1
-    SCRAPER_SCOOP_FORWARDS = 1
-    SCRAPER_SCOOP_BACKWARDS = -1
-    # max_velocity
-    MAX_VELOCITY = 32767 * (4/5) # 4/5 of max possible value sent to motor
+    # only used when card = CMD
+    CMD_ID_TILE_PLACER = 0x063
+    # only used when card = JONO
+    JONO_ID_TILE_PLACER = 0x0A0
+    # jono commands
+    TILE_PLACER_ID_UP = 0x02
+    TILE_PLACER_ID_DOWN = 0x01
 
-    # TODO: scraper bucket does not exist yet
-    # check these when implemented
-    SCRAPER_BUCKET_ID = 0x073 
-    SCRAPER_BUCKET_OPEN = 1
-    SCRAPER_BUCKET_CLOSE = -1
+    # directions
+    TILE_PLACER_UP = Direction.POSITIVE
+    TILE_PLACER_DOWN = Direction.NEGATIVE
+
+    # max_velocity percent
+    TILE_PLACER_MAX_VELOCITY = 0.8
+
     # ROS param names
     CAN_BUS_PARAM = "can_bus"
-    SCRAPER_ARM_MAX_VEL_PARAM = "scraper_arm_max_vel"
-    SCRAPER_SCOOP_MAX_VEL_PARAM = "scraper_scoop_max_vel"
-    SCRAPER_BUCKET_MAX_VEL_PARAM = "scraper_bucket_max_vel"
-    
-    # set motor ids
-    TILE_PLACER_ID_UP = 0x2
-    TILE_PLACER_ID_DOWN = 0x1
+    TILE_PLACER_MAX_VEL_PERCENT_PARAM = "tile_placer_max_vel_percent"
 
     def __init__(self):
         super().__init__("tile_placer")
 
         self.get_logger().set_level(logging.DEBUG)
-        self.param_can = self.declare_parameter("can_bus", "can0").value
-        self.param_tile_placer_default_velocity = self.declare_parameter("tile_placer_default_velocity", 200).value
+        self.declare_parameter("can_bus", "can0").value
+        self.declare_parameter(self.TILE_PLACER_MAX_VEL_PERCENT_PARAM, self.TILE_PLACER_MAX_VELOCITY)
 
-        self.tile_placer_activated = False
+        self.tile_placer = OneAxisControl(
+            max_percent=self.get_parameter(self.TILE_PLACER_MAX_VEL_PERCENT_PARAM)
+        )
 
-        # Initially all motors spin backwards with 0 velocity
-        self.tile_placer_direction = self.TILE_PLACER_ID_DOWN
-        self.tile_placer_velocity = 0
+        self.tile_placer_controller = CMDCardController(
+            card_id=self.CMD_ID_TILE_PLACER,
+            control=self.tile_placer,
+        )
 
+        self.tile_placer_lock = True
         self.joystick_lock = True
-
 
         deadline = Duration(nanoseconds=2e8)        
         events = SubscriptionEventCallbacks(deadline=self.deadline_callback)
@@ -93,8 +92,7 @@ class TilePlacerNode(Node):
         Sends can commands for tile placer
         """
         # The list of values will be cast to uint8's by JCAN library - so be careful to double check the values!
-        tile_placer_commands = self.get_tile_placer_can_commands()
-        tilePlacerFrame = jcan.Frame(0x0A0, tile_placer_commands)
+        tilePlacerFrame = self.tile_placer_controller.get_frame()
 
         self.get_logger().info(f"Sending {tilePlacerFrame}")
         try:
@@ -107,11 +105,79 @@ class TilePlacerNode(Node):
     def deadline_callback(self, info: InputJoystick):
         # Set all speeds to 0
         self.get_logger().warning("200ms Callback deadline missed")
-        self.tile_placer_stop_state()
+        self.tile_placer_stop()
 
-    def tile_placer_stop_state(self):
-        self.tile_placer_velocity = 0
-        self.tile_placer_direction = self.TILE_PLACER_ID_UP
+    def tile_placer_stop(self):
+        self.tile_placer.stop()
+
+    def check_joystick_lock(self):
+        """
+        Checks if the joysticks are locked
+        Stops all scraper motors if locked
+        :return: True if locked, False otherwise
+        """
+        if self.joystick_lock:
+            self.get_logger().info("Joysticks LOCKED!")
+            self.tile_placer_stop()
+            return True
+        return False
+    
+    def check_tile_placer_lock(self):
+        """
+        Checks if the scraper is locked
+        Stops all scraper motors if locked
+        :return: True if locked, False otherwise
+        """
+        if self.tile_placer_lock:
+            self.get_logger().info("Scraper LOCKED!")
+            self.tile_placer_stop()
+            return True
+        return False
+    
+    def update_joystick_lock(self, joystick_l: InputJoystick):
+        """
+        Updates the joystick lock state
+            L2 button = LOCK
+            L5 button = UNLOCK
+        """
+        # Joysticks lock if botton L2 button is pressed on the left joystick
+        if joystick_l.btn_bottom_l2_state >= 1 and not self.joystick_lock:
+            self.get_logger().info("Joysticks Locked")
+            self.joystick_lock = True
+
+        # joysticks unlocked if bottom L5 button is pressed on the left joystick
+        if joystick_l.btn_bottom_l5_state >= 1 and self.joystick_lock:
+            self.get_logger().info("Joysticks Unlocked")
+            self.joystick_lock = False
+
+    def update_tile_placer_lock(self, joystick_r: InputJoystick):
+        """
+        Updates the tile placer lock state
+            R1 button = LOCK
+            R4 button = UNLOCK
+        """
+        # tile placer is unlocked when bottom r4 button is pressed on the right joystick
+        if joystick_r.btn_bottom_r4_state >= 1 and self.tile_placer_lock:
+            self.get_logger().info("Tile Placer ON")
+            self.scraper_lock = False
+
+        # tile placer is locked when bottom r1 button is pressed on the right joystick
+        if joystick_r.btn_bottom_r1_state >= 1 and not self.tile_placer_lock:
+            self.get_logger().info("Tile Placer OFF")
+            self.scraper_lock = True
+
+
+    def update_tile_placer(self, joystick_r: InputJoystick):
+        if joystick_r._btn_thumb_l_state >= 1:
+            self.get_logger().info("Tile Placer UP")
+            self.tile_placer.update_direction(self.TILE_PLACER_UP)
+            self.tile_placer.update_velocity(1.0)
+        elif joystick_r._btn_thumb_r_state >= 1:
+            self.get_logger().info("Tile Placer DOWN")
+            self.tile_placer.update_direction(self.TILE_PLACER_DOWN)
+            self.tile_placer.update_velocity(1.0)
+        else:
+            self.tile_placer_stop()
 
 
     def joystick_l_callback(self, msg: InputJoystick):
@@ -123,19 +189,10 @@ class TilePlacerNode(Node):
 
         joystick_l = msg
 
-        # Joysticks lock if botton L2 button is pressed on the left joystick
-        if joystick_l.btn_bottom_l2_state >= 1 and not self.joystick_lock:
-            self.get_logger().info("Joysticks Locked")
-            self.joystick_lock = True
+        self.update_joystick_lock(joystick_l)
 
-        # joysticks are only unlocked when bottom l5 button is pressed on the left joystick
-        if joystick_l.btn_bottom_l5_state >= 1 and self.joystick_lock:
-            self.get_logger().info("Joysticks Unlocked")
-            if self.tile_placer_activated:
-                self.get_logger().info("Tile Placer ON")
-            else:
-                self.get_logger().info("Tile Placer OFF")
-            self.joystick_lock = False
+        if self.check_joystick_lock() or self.check_tile_placer_lock():
+            return
 
 
     def joystick_r_callback(self, msg: InputJoystick):
@@ -148,48 +205,19 @@ class TilePlacerNode(Node):
 
         joystick_r = msg
 
-        # Tile Placer mode is off
-        if joystick_r.btn_bottom_r1_state >= 1 and self.tile_placer_activated:
-            self.get_logger().info("Tile Placer OFF")
-            self.tile_placer_activated = False
+        if self.check_joystick_lock():
+            return
+        
+        self.update_tile_placer_lock(joystick_r)
 
-        # tile placer is unlocked when bottom r4 button is pressed on the right joystick
-        # Tile Placer mode is on
-        if joystick_r.btn_bottom_r4_state >= 1 and not self.tile_placer_activated:
-            self.get_logger().info("Tile Placer ON")
-            self.tile_placer_activated = True
+        if self.check_tile_placer_lock():
+            return
+        
+        # Update inputs
+        self.update_tile_placer(joystick_r)
 
-        if not self.joystick_lock and self.tile_placer_activated:
-            self.get_logger().info("Tile Placer ON")
-            # Update the inputs
-            if joystick_r._btn_thumb_l_state >= 1:
-                self.get_logger().info("Tile Placer UP")
-                self.tile_placer_direction = self.TILE_PLACER_ID_UP
-                self.scraper_bucket_velocity = self.param_tile_placer_default_velocity
-            elif joystick_r._btn_thumb_r_state >= 1:
-                self.get_logger().info("Tile Placer DOWN")
-                self.scraper_bucket_direction = self.TILE_PLACER_ID_DOWN
-                self.scraper_bucket_velocity = self.param_tile_placer_default_velocity
-            else:
-                self.tile_placer_stop_state()
-         
-
-        elif not self.joystick_lock and not self.tile_placer_activated:
-            self.get_logger().info("Tile Placer OFF")
-            self.tile_placer_stop_state()
-        else:
-            # if joysticks locked
-            self.get_logger().info("Joysticks locked!")
-            self.tile_placer_activated = False
-            self.tile_placer_stop_state()
-
-
-    def get_tile_placer_can_commands(self):
-        tile_placer_data = []
-        tile_placer_data.append(self.tile_placer_direction)        
-        tile_placer_data.append(self.tile_placer_velocity)
-
-        return tile_placer_data
+       
+        
 
 
 def main():
