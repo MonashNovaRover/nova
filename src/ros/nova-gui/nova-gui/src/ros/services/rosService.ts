@@ -9,4 +9,6 @@ export enum RosService {
   NULL_SERVICE = "",
   GET_IP_LIST = "/camera_streamer/get_host_ip",
   READ_RFID = "/electronics/rfid/read",
+  START_CAMS = "/camera_streamer/stream/start",
+  PAUSE_CAMS = "/camera_streamer/stream/pause",
 }

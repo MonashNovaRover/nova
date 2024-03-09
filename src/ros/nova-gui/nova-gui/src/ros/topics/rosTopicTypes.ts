@@ -1,6 +1,11 @@
 import { RosTopic } from "./rosTopic";
-import {IRosCoreTelemetry, IRosGeometryMsgsPose, IRosStdMsgsString} from "../rosTypes";
-import { IRosCoreDriveInfo } from "../rosTypes";
+import {
+  IRosCameraMsgsCameras,
+  IRosCoreTelemetry,
+  IRosGeometryMsgsPose,
+  IRosStdMsgsString,
+  IRosCoreDriveInfo 
+} from "../rosTypes";
 
 /**
  * This Interface exists to link Individual topics to The Messages.
@@ -12,8 +17,13 @@ import { IRosCoreDriveInfo } from "../rosTypes";
 export interface RosTopicInterfaces {
   [RosTopic.NULL_TOPIC]: undefined;
   [RosTopic.POSE]: IRosGeometryMsgsPose;
+
+  // Drive Related
   [RosTopic.DRIVE_INFO]: IRosCoreDriveInfo;
   [RosTopic.TELEMETRY]: IRosCoreTelemetry;
   [RosTopic.RFID_DATA]: IRosStdMsgsString;
 
+
+  // Cameras Related
+  [RosTopic.CAMERAS]: IRosCameraMsgsCameras;
 }
