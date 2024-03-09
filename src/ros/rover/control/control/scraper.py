@@ -21,6 +21,7 @@ EDITED:		02/02/2024
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 """
+from control.control_classes import Card, Direction, JonoCardController, OneAxisControl, OneAxisControlLimits
 import rclpy, jcan, logging
 from enum import Enum
 from struct import pack
@@ -32,51 +33,53 @@ from rclpy.duration import Duration
 # import the joystick ROS message we are listening to
 from core.msg import InputJoystick
 
-class Controller(Enum):
-    CMD = "CMD"
-    JONO_CARD = "JONO_CARD"
-
-class Direction(Enum):
-    ONE = 1
-    TWO = -1
-
-CARD = Controller.CMD
+CARD = Card.JONO
 
 class ScraperNode(Node):
     # can bus
     CAN_BUS = "can0"
-
     # card IDs
-    # only used when CARD = CMD
-    CMD_SCRAPER_ARM_ID = 0x063
-    CMD_SCRAPER_SCOOP_ID = 0x053
-    # only used when CARD = JONO_CARD
-    JONO_CARD_ID = 0x0A0
+    # only used when card = CMD
+    CMD_ID_ARM = 0x063
+    CMD_ID_SCOOP = 0x053
+    CMD_ID_BUCKET = 0x073 
+    # only used when card = JONO
+    JONO_ID_ARM = 0x0A0
+    JONO_ID_SCOOP = 0x0A0
+    JONO_ID_BUCKET = 0x0A0
+    JONO_ID_LIMIT_SWITCH_BUCKET = 0x4A2 # TODO: get correct card id
+    # jono commands
+    JONO_ARM_FORWARDS = 0x04
+    JONO_ARM_BACKWARDS = 0x03
+    JONO_SCOOP_FORWARDS = 0x06
+    JONO_SCOOP_BACKWARDS = 0x05
+    JONO_BUCKET_OPEN = 0x08
+    JONO_BUCKET_CLOSE = 0x07
 
-    # command data
-    SCRAPER_ARM_FORWARDS = Direction.ONE
-    SCRAPER_ARM_BACKWARDS = Direction.TWO
-    SCRAPER_SCOOP_FORWARDS = Direction.ONE
-    SCRAPER_SCOOP_BACKWARDS = Direction.TWO
+    # directions
+    ARM_FORWARDS = Direction.POSITIVE
+    ARM_BACKWARDS = Direction.NEGATIVE
+    SCOOP_FORWARDS = Direction.POSITIVE
+    SCOOP_BACKWARDS = Direction.NEGATIVE
+    BUCKET_OPEN = Direction.POSITIVE
+    BUCKET_CLOSE = Direction.NEGATIVE
 
     # max_velocity
-    CMD_MAX_VELOCITY = int(32767 * (4/5)) # 4/5 of max possible value sent to motor
-    JONO_CARD_MAX_VELOCITY = 255
-    
+    ARM_MAX_VELOCITY_PERCENT = 0.8
+    SCOOP_MAX_VELOCITY_PERCENT = 0.8
+    BUCKET_MAX_VELOCITY_PERCENT = 0.2
+
+    # limit switch
+    BUCKET_LIMIT_SWITCH_CLOSED = 0x01 # TODO: get correct command
+    LIMIT_SWITCH_CLEAR = 0x00
+    LIMIT_SWITCH_HIT = 0x01
+
     # ROS param names
     CAN_BUS_PARAM = "can_bus"
     CARD_TYPE_PARAM = "card_type"
-    SCRAPER_ARM_MAX_VEL_PARAM = "scraper_arm_max_vel"
-    SCRAPER_SCOOP_MAX_VEL_PARAM = "scraper_scoop_max_vel"
-    SCRAPER_BUCKET_MAX_VEL_PARAM = "scraper_bucket_max_vel"
-
-
-    # TODO: scraper bucket does not exist yet
-    # check these when implemented
-    SCRAPER_BUCKET_CMD_ID = 0x073 
-    SCRAPER_BUCKET_OPEN = Direction.ONE
-    SCRAPER_BUCKET_CLOSE = Direction.TWO
-
+    ARM_MAX_VEL_PERCENT_PARAM = "arm_max_vel_percent"
+    SCOOP_MAX_VEL_PERCENT_PARAM = "scoop_max_vel_percent"
+    BUCKET_MAX_VEL_PERCENT_PARAM = "bucket_max_vel_percent"
     
 
     def __init__(self):
@@ -88,33 +91,68 @@ class ScraperNode(Node):
         # Setting ROS parameters
         # This is done so that the parameters can be changed during runtime if desired
         self.declare_parameter(self.CAN_BUS_PARAM, self.CAN_BUS)
-        self.declare_parameter(self.CARD_TYPE_PARAM, CARD.value)
+        self.declare_parameter(self.CARD_TYPE_PARAM, CARD)
 
-        max_vel = self.CMD_MAX_VELOCITY if (self.get_parameter(self.CARD_TYPE_PARAM).value == Controller.CMD) else self.JONO_CARD_MAX_VELOCITY
-        self.declare_parameter(self.SCRAPER_ARM_MAX_VEL_PARAM, max_vel)
-        self.declare_parameter(self.SCRAPER_SCOOP_MAX_VEL_PARAM, max_vel)
-        self.declare_parameter(self.SCRAPER_BUCKET_MAX_VEL_PARAM, max_vel)
+        self.declare_parameter(self.ARM_MAX_VEL_PERCENT_PARAM, self.ARM_MAX_VELOCITY_PERCENT)
+        self.declare_parameter(self.SCOOP_MAX_VEL_PERCENT_PARAM, self.SCOOP_MAX_VELOCITY_PERCENT)
+        self.declare_parameter(self.BUCKET_MAX_VEL_PERCENT_PARAM, self.BUCKET_MAX_VELOCITY_PERCENT)
 
-        # Initially all motors spin backwards with 0 velocity
-        self.scraper_arm_direction = self.SCRAPER_ARM_BACKWARDS
-        self.scraper_scoop_direction = self.SCRAPER_SCOOP_BACKWARDS
-        self.scraper_bucket_direction = self.SCRAPER_BUCKET_OPEN
-        self.scraper_arm_velocity = 0
-        self.scraper_scoop_velocity = 0
-        self.scraper_bucket_velocity = 0
 
+        # Create the custom control classes
+        # Arm control
+        self.arm = OneAxisControl(
+            max_percent=self.get_parameter(self.ARM_MAX_VEL_PERCENT_PARAM).value
+        )
+        # Scoop control
+        self.scoop = OneAxisControl(
+            max_percent=self.get_parameter(self.SCOOP_MAX_VEL_PERCENT_PARAM).value
+        )
+        # Bucket control
+        self.bucket = OneAxisControlLimits(
+            max_percent=self.get_parameter(self.BUCKET_MAX_VEL_PERCENT_PARAM).value
+        )
+
+        # Scraper card controllers for Jono Card
+        # Arm controller
+        self.arm_controller = JonoCardController(
+            card_id=self.JONO_ID_ARM, 
+            pos_command=self.JONO_ARM_FORWARDS, 
+            neg_command=self.JONO_ARM_BACKWARDS, 
+            control=self.arm
+        )
+        # Scoop controller
+        self.scoop_controller = JonoCardController(
+            card_id=self.JONO_ID_SCOOP, 
+            pos_command=self.JONO_SCOOP_FORWARDS, 
+            neg_command=self.JONO_SCOOP_BACKWARDS, 
+            control=self.scoop
+        )
+        # Bucket controller
+        self.bucket_controller = JonoCardController(
+            card_id=self.JONO_ID_BUCKET, 
+            pos_command=self.JONO_BUCKET_OPEN, 
+            neg_command=self.JONO_BUCKET_CLOSE, 
+            control=self.bucket
+        )
+
+        # Locks
         self.scraper_lock = True
         self.joystick_lock = True
 
-
+        # Set up the QoS profile and deadline callback
         deadline = Duration(nanoseconds=2e8)        
         events = SubscriptionEventCallbacks(deadline=self.deadline_callback)
         self.qos = QoSProfile(reliability=QoSReliabilityPolicy.BEST_EFFORT, depth=1, deadline=deadline)
 
+        # Create the joystick subscribers
         self.joystick_l_sub = self.create_subscription(InputJoystick, "/control/input_joystick_l", self.joystick_l_callback, self.qos, event_callbacks=events)
         self.joystick_r_sub = self.create_subscription(InputJoystick, "/control/input_joystick_r", self.joystick_r_callback, self.qos, event_callbacks=events)
+        
 
+        # Create the CAN bus
         self.bus = jcan.Bus()
+        self.bus.set_id_filter([self.JONO_LIMIT_SWITCH_BUCKET])
+
         self.bus.open(self.get_parameter(self.CAN_BUS_PARAM).value)
         self.timer_jcan = self.create_timer(0.05, self.callback_send_can_commands)
 
@@ -127,18 +165,17 @@ class ScraperNode(Node):
         Sends can commands for scraper scoop, scraper arm together
         """
         # The list of values will be cast to uint8's by JCAN library - so be careful to double check the values!
-        scraper_arm_commands, scraper_scoop_commands, scraper_bucket_commands = self.get_can_commands()
-        scraperArmFrame = jcan.Frame(self.CMD_SCRAPER_ARM_ID, scraper_arm_commands)
-        scraperScoopFrame = jcan.Frame(self.CMD_SCRAPER_SCOOP_ID, scraper_scoop_commands)
-        scraperBucketFrame = jcan.Frame(self.SCRAPER_BUCKET_CMD_ID, scraper_bucket_commands)
+        armFrame = self.arm_controller.get_frame()
+        scoopFrame = self.scoop_controller.get_frame()
+        bucketFrame = self.bucket_controller.get_frame()
 
-        self.get_logger().info(f"Sending {scraperArmFrame}")
-        self.get_logger().info(f"Sending {scraperScoopFrame}")
-        self.get_logger().info(f"Sending {scraperBucketFrame}")
+        self.get_logger().info(f"Sending {armFrame}")
+        self.get_logger().info(f"Sending {scoopFrame}")
+        self.get_logger().info(f"Sending {bucketFrame}")
         try:
-            self.bus.send(scraperArmFrame)
-            self.bus.send(scraperScoopFrame)
-            # self.bus.send(scraperBucketFrame)
+            self.bus.send(armFrame)
+            self.bus.send(scoopFrame)
+            self.bus.send(bucketFrame)
 
         except Exception as e:
             print(e)
@@ -147,36 +184,15 @@ class ScraperNode(Node):
     def deadline_callback(self, _info):
         # Set all speeds to 0
         self.get_logger().warning("200ms Callback deadline missed")
-        self.scraper_stop_state()
+        self.scraper_stop()
 
-    def arm_stop_state(self):
-        """
-        Stops the scraper arm motor
-        """
-        self.scraper_arm_velocity = 0
-        self.scraper_arm_direction = self.SCRAPER_ARM_FORWARDS
-
-    def scoop_stop_state(self):
-        """
-        Stops the scraper scoop motor
-        """
-        self.scraper_scoop_velocity = 0
-        self.scraper_scoop_direction = self.SCRAPER_SCOOP_FORWARDS
-
-    def bucket_stop_state(self):
-        """
-        Stops the scraper bucket motor
-        """
-        self.scraper_bucket_velocity = 0
-        self.scraper_bucket_direction = self.SCRAPER_BUCKET_OPEN
-
-    def scraper_stop_state(self):
+    def scraper_stop(self):
         """
         Stops all scraper motors
         """
-        self.arm_stop_state()
-        self.scoop_stop_state()
-        self.bucket_stop_state()
+        self.arm.stop()
+        self.scoop.stop()
+        self.bucket.stop()
 
     def check_joystick_lock(self):
         """
@@ -186,7 +202,7 @@ class ScraperNode(Node):
         """
         if self.joystick_lock:
             self.get_logger().info("Joysticks LOCKED!")
-            self.scraper_stop_state()
+            self.scraper_stop()
             return True
         return False
     
@@ -198,7 +214,7 @@ class ScraperNode(Node):
         """
         if self.scraper_lock:
             self.get_logger().info("Scraper LOCKED!")
-            self.scraper_stop_state()
+            self.scraper_stop()
             return True
         return False
     
@@ -239,33 +255,24 @@ class ScraperNode(Node):
         Updates the scraper arm motor
             Left Joystick stick x-axis = direction / velocity
         """
-        self.scraper_arm_velocity = abs(int(self.get_parameter(self.SCRAPER_ARM_MAX_VEL_PARAM).value * joystick_l.ax_stick_x))
-        self.scraper_arm_direction = self.SCRAPER_ARM_FORWARDS if joystick_l.ax_stick_x >= 0 else self.SCRAPER_ARM_BACKWARDS
+        self.arm.update_velocity(abs(joystick_l.ax_stick_x) * abs(joystick_l.ax_slider))
+        self.arm.update_direction(self.ARM_FORWARDS if joystick_l.ax_stick_x >= 0 else self.ARM_BACKWARDS)
 
     def update_scoop(self, joystick_r: InputJoystick):
         """
         Updates the scraper scoop motor
             Right Joystick stick x-axis = direction / velocity
         """
-        self.scraper_scoop_velocity = abs(int(self.get_parameter(self.SCRAPER_SCOOP_MAX_VEL_PARAM).value * joystick_r.ax_stick_x))
-        self.scraper_scoop_direction = self.SCRAPER_SCOOP_FORWARDS if joystick_r.ax_stick_x >= 0 else self.SCRAPER_SCOOP_BACKWARDS
+        self.scoop.update_velocity(abs(joystick_r.ax_stick_x) * abs(joystick_r.ax_slider))
+        self.scoop.update_direction(self.SCOOP_FORWARDS if joystick_r.ax_stick_x >= 0 else self.SCOOP_BACKWARDS)
 
-    def update_bucket(self, joystick_l: InputJoystick):
+    def update_bucket(self, joystick_r: InputJoystick):
         """
         Updates the scraper bucket motor
-            Thumb L button = OPEN
-            Thumb R button = CLOSE
+            Left Joystick thumb stick x-axis = direction / velocity
         """
-        if joystick_l._btn_thumb_l_state >= 1:
-            self.get_logger().info("Bucket OPEN")
-            self.scraper_bucket_direction = self.SCRAPER_BUCKET_OPEN
-            self.scraper_bucket_velocity = self.get_parameter(self.SCRAPER_SCOOP_MAX_VEL_PARAM).value
-        elif joystick_l._btn_thumb_r_state >= 1:
-            self.get_logger().info("Bucket CLOSE")
-            self.scraper_bucket_direction = self.SCRAPER_BUCKET_CLOSE
-            self.scraper_bucket_velocity = self.get_parameter(self.SCRAPER_SCOOP_MAX_VEL_PARAM).value
-        else:
-            self.bucket_stop_state()
+        self.bucket.update_velocity(abs(joystick_r.ax_thumb_x))
+        self.bucket.update_direction(self.BUCKET_OPEN if joystick_r.ax_thumb_x >= 0 else self.BUCKET_CLOSE)
 
 
     def joystick_l_callback(self, msg: InputJoystick):
@@ -284,7 +291,6 @@ class ScraperNode(Node):
         
         # Update the inputs
         self.update_arm(joystick_l)
-        self.update_bucket(joystick_l)
 
 
     def joystick_r_callback(self, msg: InputJoystick):
@@ -307,33 +313,8 @@ class ScraperNode(Node):
         
         # Update the inputs
         self.update_scoop(joystick_r)
+        self.update_bucket(joystick_r)
     
-        
-    def get_can_commands(self):
-        """
-        Construct the can commands for the scraper
-        """
-        card = self.get_parameter(self.CARD_TYPE_PARAM).value
-        if card == Controller.CMD.value:
-            scraper_arm_data_value = self.scraper_arm_direction * self.scraper_arm_velocity
-            scraper_scoop_data_value = self.scraper_scoop_direction * self.scraper_scoop_velocity
-            scraper_bucket_data_value = self.scraper_bucket_direction * self.scraper_bucket_velocity
-
-            # pack the values into a list of bytes
-            # packing int into 2 bytes big endian
-            scraper_arm_data = list(pack('>h', int(scraper_arm_data_value)))
-            scraper_scoop_data = list(pack('>h', int(scraper_scoop_data_value)))
-            scraper_bucket_data = list(pack('>h', int(scraper_bucket_data_value)))
-        else:
-            scraper_arm_data = [self.scraper_arm_direction, self.scraper_arm_velocity]
-            scraper_scoop_data = [self.scraper_scoop_direction, self.scraper_scoop_velocity]
-            scraper_bucket_data = [self.scraper_bucket_direction, self.scraper_bucket_velocity]
-
-
-        
-
-        return scraper_arm_data, scraper_scoop_data, scraper_bucket_data
-
 
 def main():
     rclpy.init()
