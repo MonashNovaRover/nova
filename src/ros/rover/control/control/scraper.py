@@ -92,7 +92,7 @@ class ScraperNode(Node):
         # Setting ROS parameters
         # This is done so that the parameters can be changed during runtime if desired
         self.declare_parameter(self.CAN_BUS_PARAM, self.CAN_BUS)
-        self.declare_parameter(self.CARD_TYPE_PARAM, CARD)
+        self.declare_parameter(self.CARD_TYPE_PARAM, CARD.value)
 
         self.declare_parameter(self.ARM_MAX_VEL_PERCENT_PARAM, self.ARM_MAX_VELOCITY_PERCENT)
         self.declare_parameter(self.SCOOP_MAX_VEL_PERCENT_PARAM, self.SCOOP_MAX_VELOCITY_PERCENT)
