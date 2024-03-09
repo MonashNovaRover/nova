@@ -1,14 +1,18 @@
 import { useState, useEffect } from "react";
 import { DriveProgress } from "../DriveSpeedWidget/DriveProgress";
-import { Button, Card, CardHeader, CardBody } from "@nextui-org/react";
+import { Button, Card, CardHeader, CardBody, CardProps } from "@nextui-org/react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/RootState";
 import { useBifrost } from "../../redux/actions/bifrost/useBifrostAction";
 import { RosTopic } from "../../ros/topics/rosTopic";
 import { RosService } from "../../ros/services/rosService";
 
+interface KilnWidgetProps extends CardProps {
 
-const Kiln: React.FC = () => {
+}
+
+
+const KilnWidget: React.FC<KilnWidgetProps> = (props) => {
     const [time, setTime] = useState(0);
     const [maxTemp, setMaxTemp] = useState([100, 100, 100]);
 
@@ -55,7 +59,7 @@ const Kiln: React.FC = () => {
     const sensorNameList = ["ONE", "TWO", "THREE"]
 
     return (
-        <Card className="w-[28rem] m-3 flex flex-col space-y-3 p-3 bg-zinc-900">
+        <Card {...props} className="w-[28rem] m-3 flex flex-col space-y-3 p-3 bg-zinc-900">
             <CardHeader className="p-0 text-2xl">Kiln</CardHeader>
             <Card className="flex flex-col justify-around h-28 bg-zinc-700">
                 <CardHeader className={kilnServiceData.success ? "mx-3 p-0 text-xl" : "mx-3 p-0 text-xl text-rose-600"}>STATUS{kilnServiceData.success ? "" : ": NODE RESPONSE ERROR"}</CardHeader>
@@ -65,6 +69,7 @@ const Kiln: React.FC = () => {
                 <CardHeader className="mb-3 p-0 text-xl">TEMPERATURE</CardHeader>
                 {sensorNameList.map((element, index) => 
                     <DriveProgress
+                        key={index}
                         classNames={{
                             track: "bg-zinc-500"
                         }}
@@ -77,4 +82,4 @@ const Kiln: React.FC = () => {
     );
 };
 
-export default Kiln;
+export default KilnWidget;
