@@ -36,7 +36,7 @@ class KilnServer(Node):
     KILN_ON = 0xFF
     KILN_TEMP_FEEDBACK_ID = 0x4B3
 
-    def convert_(self, reading):
+    def convert(self, reading):
         if self.conversion_required:
             return int(reading*0.02 - 273.15)
         return reading
@@ -111,7 +111,7 @@ class KilnServer(Node):
         sensor_id = frame.data[0] - 1 
         if 0 <= sensor_id <= 2:
             reading = frame.data[1] * 2**8 + frame.data[2]  # as reading is returned as two bytes (16 bit integer)
-            self.temp[sensor_id] = KilnServer.convert_(reading)
+            self.temp[sensor_id] = self.convert(reading)
             self.get_logger().info(f"Sensor {sensor_id + 1} reading updated to {self.temp[sensor_id]} using {reading}")
 
     def publish_data(self):
