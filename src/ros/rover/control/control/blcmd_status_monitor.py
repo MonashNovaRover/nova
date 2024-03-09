@@ -74,27 +74,28 @@ class BLCMDStatusMonitor(Node):
         #open the can bus
         self.bus.open(self.get_parameter("canbus").value)
 
-    def reset(self, msg: BLCMDReset.Request):
+    def reset(self,req,res):
         """
         Updates the classes internal msg state
         :param msg: core.msg.BLCMDReset message from the subscriber callback
         :return: None
         """
         try:
-            if msg.type == BLCMDReset.Request.BLCMD:
-                frame = jcan.Frame(0x00B | msg.id << 4, [0])
-            elif msg.type == BLCMDReset.Request.RESOLVER:
-                frame = jcan.Frame(0x00C | msg.id << 4, [0])
+            if req.type == BLCMDReset.Request.BLCMD:
+                frame = jcan.Frame(0x00B | req.id << 4, [0])
+            elif req.type == BLCMDReset.Request.RESOLVER:
+                frame = jcan.Frame(0x00C | req.id << 4, [0])
 
             self.bus.send(frame)
-            if msg.type == BLCMDReset.Request.BLCMD:
-                self.get_logger().info(f'Reset BLCMD {msg.id}')
-            elif msg.type == BLCMDReset.Request.RESOLVER:
-                self.get_logger().info(f'Reset resolver on BLCMD {msg.id}')
-            return BLCMDReset.Response(success=True)
+            if req.type == BLCMDReset.Request.BLCMD:
+                self.get_logger().info(f'Reset BLCMD {req.id}')
+            elif req.type == BLCMDReset.Request.RESOLVER:
+                self.get_logger().info(f'Reset resolver on BLCMD {req.id}')
+            res.success = True
         except :
             self.get_logger.error('BLCMD Reset or Resolver Reset Failed');
-            return BLCMDReset.Response(success=False)
+            res.success = False
+        return res
 
     def get_callback(self, blcmd: int):
         """
