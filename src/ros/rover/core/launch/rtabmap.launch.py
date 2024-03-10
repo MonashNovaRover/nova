@@ -21,7 +21,7 @@ def launch_setup(context, *args, **kwargs):
             "subscribe_depth": True,
             "subscribe_odom_info": True,
             "approx_sync": True,
-            "odom_frame_id": True,
+            "odom_frame_id": 'odom',
             "publish_tf": False,
             "Rtabmap/DetectionRate": "3.5",
         }
