@@ -76,13 +76,14 @@
       r_set_man_exposure: false
     nn:
       i_board_socket_id: 0
-      i_disable_resize: false
-      i_enable_passthrough: false
+      i_disable_resize: true
+      i_enable_passthrough: true #false
       i_enable_passthrough_depth: false
       i_get_base_device_timestamp: false
       i_num_inference_threads: 2
       i_num_pool_frames: 4
       i_update_ros_base_time_on_ros_msg: false
+      i_nn_config_path: /home/dylan/src/ros/rover/core/resources/ARC_V1.json
     rgb:
       i_add_exposure_offset: false
       i_board_socket_id: 0
@@ -106,9 +107,9 @@
       i_low_bandwidth_quality: 50
       i_max_q_size: 30
       i_output_isp: true
-      i_preview_height: 300
+      i_preview_height: 640 #300
       i_preview_size: 300
-      i_preview_width: 300
+      i_preview_width: 640 #300
       i_publish_topic: true
       i_resolution: 1080P
       i_reverse_stereo_socket_order: false
@@ -212,3 +213,6 @@
       i_update_ros_base_time_on_ros_msg: false
       i_width: 1280
     use_sim_time: false
+/spatial_bb_node:
+  ros__parameters:
+    desqueeze: true
