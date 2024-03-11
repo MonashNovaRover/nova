@@ -10,12 +10,10 @@ const Camera360Component = () => {
   return (<div className="relative top-0 left-0 right-0 bottom-0">
     <video ref={videoRef} className="absolute top-0 left-0 max-h-full -z-50"/>
 
-    <div className="w-full h-50 min-h-unit-24 min-w-unit-24 resize-y overflow-hidden mb-5">
-      <WebGL360CamCanvas
-        videoRef={videoRef}
-        className="w-full h-full"
-      />
-    </div>
+    <WebGL360CamCanvas
+      videoRef={videoRef}
+      className="w-full h-full"
+    />
   </div>);
 }
 
