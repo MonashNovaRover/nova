@@ -108,7 +108,7 @@ class KilnServer(Node):
             self.get_logger().info(f"Kiln Status = {self.is_on}")
             response.success = True
         except Exception as e:
-            self.get_logger().info(str(e))
+            self.get_logger().error(f"Failed to process Kiln service request: {str(e)}")
             response.success = False
 
         return response
@@ -120,7 +120,7 @@ class KilnServer(Node):
             else:
                 self.send_kiln_off()
         except Exception as e:
-            self.get_logger().info(str(e))
+            self.get_logger().error(f"Failed to send kiln CAN command: {str(e)}")
 
     def update_temp(self, frame):
         try: 
