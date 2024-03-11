@@ -91,8 +91,8 @@
       i_disable_node: false
       i_enable_feature_tracker: false
       i_enable_lazy_publisher: true
-      i_enable_nn: false
-      i_enable_preview: false
+      i_enable_nn: true
+      i_enable_preview: true
       i_exposure_offset: 0
       i_fps: 5.0
       i_fsync_continuous: false
@@ -108,7 +108,7 @@
       i_max_q_size: 30
       i_output_isp: true
       i_preview_height: 640 #300
-      i_preview_size: 300
+      i_preview_size: 640
       i_preview_width: 640 #300
       i_publish_topic: true
       i_resolution: 1080P
@@ -172,7 +172,7 @@
       i_enable_distortion_correction: false
       i_enable_lazy_publisher: true
       i_enable_spatial_filter: false
-      i_enable_spatial_nn: false
+      i_enable_spatial_nn: true
       i_enable_speckle_filter: false
       i_enable_temporal_filter: false
       i_enable_threshold_filter: false
@@ -216,3 +216,12 @@
 /spatial_bb_node:
   ros__parameters:
     desqueeze: true
+/detection_overlay:
+  ros__parameters:
+    label_map:
+      - 'blue'
+      - 'cube'
+      - 'green'
+      - 'red'
+      - 'white'
+      - 'yellow'
