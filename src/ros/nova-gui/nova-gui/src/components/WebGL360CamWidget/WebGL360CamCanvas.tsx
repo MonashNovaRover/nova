@@ -1,8 +1,7 @@
 import WebGLCanvas from "../WebGLCanvas/WebGLCanvas"
-import vert from "./gl/perspective.vert";
-import frag from "./gl/perspective.frag";
-import panoramaFrag from "./gl/panorama.frag";
-import panoramaVert from "./gl/panorama.vert";
+
+import thresholdFrag from "./gl/threshold.frag";
+import thresholdVert from "./gl/threshold.vert";
 
 import React, {memo, MouseEventHandler, MouseEvent, WheelEvent, useCallback, useState} from "react";
 import useDict from "../WebGLCanvas/hooks/useDict.tsx";
@@ -94,16 +93,12 @@ const WebGL360CamCanvasNonMemo = (props: WebGL360CamCanvasProps) => {
     mousePos: mousePos,
     fov: [fov],
     resolution: resolution as vec2,
+    threshold: [fov/360]
   }), [mousePos, fov, resolution]);
 
   const samplers = useDict<GLSampler>(() => ({
-
-    compass: [compass, 1],
     camera: [videoRef?.current ?? equirectangularTest, 0],
-
   }), [videoRef?.current, equirectangularTest, compass]);
-
-
 
   // Construct the canvas
   return (
@@ -115,8 +110,8 @@ const WebGL360CamCanvasNonMemo = (props: WebGL360CamCanvasProps) => {
       resolution={resolution as vec2}
 
       // Defines the vertex and fragment shaders. Shader programs are auto-compiled by the component on change.
-      vert={usePanorama ? panoramaVert : vert}   // Defines the vertex shader.
-      frag={usePanorama ? panoramaFrag : frag}   // Defines the fragment shader.
+      vert={thresholdVert}   // Defines the vertex shader.
+      frag={thresholdFrag}   // Defines the fragment shader.
 
       // Defines the background color drawn first on each render, before `gl.drawArrays`
       clearColor={[0.0, 0.0, 0.0, 0.0]}
