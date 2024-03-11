@@ -52,6 +52,9 @@ class KilnServer(Node):
         
         self.get_logger().set_level(logging.INFO)
         self.get_logger().info("Kiln server starting")
+
+        # The calculations are currently performed on the arduino side to this is set to false
+        # If the calculations are to be performed on the ROS side, this should be set to true
         self.declare_parameter(KilnServer.KILN_TEMP_CONVERSION_PARAM, False)
 
         #subscriber to polling status
@@ -77,13 +80,20 @@ class KilnServer(Node):
 
         self.bus.open(self.get_parameter(KilnServer.CAN_BUS_PARAM).value)
     
-    def convert(self, reading):
+    def convert(self, reading: int):
+        """
+        Converts the reading from the kiln to the correct temperature
+        IS PERFORMED ONLY IF THE PARAMETER IS SET TO TRUE
+        """
         if self.get_parameter(KilnServer.KILN_TEMP_CONVERSION_PARAM).value:
             return int(reading*0.02 - 273.15)
         return reading
 
 
     def send_kiln_on(self):
+        """
+        Sends the kiln ON CAN commands to the kiln
+        """
         self.get_logger().info("Send Kiln ON")
         for id in KilnServer.KILN_CARD_SEND_IDS:
             kiln_frame = jcan.Frame(id , [KilnServer.KILN_POWER_COMMAND, KilnServer.KILN_ON])
@@ -91,6 +101,9 @@ class KilnServer(Node):
         
 
     def send_kiln_off(self):
+        """
+        Sends the kiln OFF CAN commands to the kiln
+        """
         self.get_logger().info("Send Kiln OFF")
         for id in KilnServer.KILN_CARD_SEND_IDS:
             kiln_frame = jcan.Frame(id , [KilnServer.KILN_POWER_COMMAND, KilnServer.KILN_OFF])
@@ -98,11 +111,17 @@ class KilnServer(Node):
 
 
     def command_callback(self, request, response):
+        """
+        Callback for the kiln command service
+        """
         try:
-            if request.state:   # turn on kiln
+            self.get_logger().info(f"Kiln service request received: {request}")
+            if request.state:
+                # Turn on the kiln
                 self.send_kiln_on()
                 self.is_on = True
-            else:               # turn off kiln
+            else:
+                # Turn off the kiln
                 self.send_kiln_off()
                 self.is_on = False
             self.get_logger().info(f"Kiln Status = {self.is_on}")
@@ -114,6 +133,10 @@ class KilnServer(Node):
         return response
 
     def send_can_command(self):
+        """
+        Sends the commanded state of the kiln to the kiln via CAN
+        Performs this continuously otherwise the kiln will turn off
+        """
         try:
             if self.is_on:
                 self.send_kiln_on()
@@ -122,9 +145,13 @@ class KilnServer(Node):
         except Exception as e:
             self.get_logger().error(f"Failed to send kiln CAN command: {str(e)}")
 
-    def update_temp(self, frame):
+    def update_temp(self, frame: jcan.Frame):
+        """
+        Updates the temperature of the kiln
+        """
         try: 
-            self.get_logger().info("Kiln try update temp")
+            self.get_logger().info("Kiln temp feedback received")
+            self.get_logger().debug(f"Frame: {frame}")
             sensor_id = frame.data[0]
             sensor_index = sensor_id - 1
             if sensor_id in KilnServer.KILN_SENSOR_IDS:
@@ -138,6 +165,9 @@ class KilnServer(Node):
 
     
     def publish_data(self):
+        """
+        Publishes the current temperature and state of the kiln
+        """
         try: 
             msg = KilnData()
             msg.temp = self.temp
