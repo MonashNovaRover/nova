@@ -29,30 +29,36 @@ from core.srv import KilnCommand
 
 
 class KilnServer(Node):
-
+    # Jono Card IDs
     KILN_CARD_SEND_IDS = [0x0A0, 0x0B0]
+    KILN_TEMP_FEEDBACK_ID = 0x4B3
+    # Kiln Command
     KILN_POWER_COMMAND = 0x07
+    # Kiln Power States
     KILN_OFF = 0x00 
     KILN_ON = 0xFF
-    KILN_TEMP_FEEDBACK_ID = 0x4B3
-
-    def convert(self, reading):
-        if self.conversion_required:
-            return int(reading*0.02 - 273.15)
-        return reading
+    # Kiln Sensor IDs
+    KILN_SENSOR_IDS = [0x01, 0x02, 0x03]
+    # ROS Params
+    CAN_BUS_PARAM = "can_bus"
+    KILN_TEMP_CONVERSION_PARAM = "science_temp_conversion"
+    # ROS Topics
+    KILN_DATA_TOPIC = "/science/kiln_data"
+    # ROS Services
+    KILN_COMMAND_SERVICE = "/science/kiln_command"
 
     def __init__(self):
         super().__init__('kiln_server')
         
-        self.get_logger().set_level(logging.DEBUG)
+        self.get_logger().set_level(logging.INFO)
         self.get_logger().info("Kiln server starting")
-        self.conversion_required = self.declare_parameter("science_temp_conversion", False).value
+        self.declare_parameter(KilnServer.KILN_TEMP_CONVERSION_PARAM, False)
 
         #subscriber to polling status
-        self.service = self.create_service(KilnCommand, '/science/kiln_command', self.command_callback)
+        self.service = self.create_service(KilnCommand, KilnServer.KILN_DATA_TOPIC, KilnServer.command_callback)
         self.get_logger().info("Kiln service created")
         #publisher to publish the data from the kilns.
-        self.publisher = self.create_publisher(KilnData, "/science/kiln_data", 10)
+        self.publisher = self.create_publisher(KilnData, KilnServer.KILN_COMMAND_SERVICE, 10)
 
         #initialise the can bus
         self.bus = jcan.Bus()
@@ -69,21 +75,35 @@ class KilnServer(Node):
         self.temp = [0, 0, 0]
         self.is_on = False
 
-        self.bus.open("can1")
+        self.bus.open(self.get_parameter(KilnServer.CAN_BUS_PARAM).value)
+    
+    def convert(self, reading):
+        if self.get_parameter(KilnServer.KILN_TEMP_CONVERSION_PARAM).value:
+            return int(reading*0.02 - 273.15)
+        return reading
+
+
+    def send_kiln_on(self):
+        self.get_logger().info("Send Kiln ON")
+        for id in KilnServer.KILN_CARD_SEND_IDS:
+            kiln_frame = jcan.Frame(id , [KilnServer.KILN_POWER_COMMAND, KilnServer.KILN_ON])
+            self.bus.send(kiln_frame)
+        
+
+    def send_kiln_off(self):
+        self.get_logger().info("Send Kiln OFF")
+        for id in KilnServer.KILN_CARD_SEND_IDS:
+            kiln_frame = jcan.Frame(id , [KilnServer.KILN_POWER_COMMAND, KilnServer.KILN_OFF])
+            self.bus.send(kiln_frame)
+            
 
     def command_callback(self, request, response):
         try:
             if request.state:   # turn on kiln
-                self.get_logger().info("Kiln try On")
-                for id in KilnServer.KILN_CARD_SEND_IDS:
-                    kiln_frame = jcan.Frame(id , [KilnServer.KILN_POWER_COMMAND, KilnServer.KILN_ON])
-                    self.bus.send(kiln_frame)
+                self.send_kiln_on()
                 self.is_on = True
             else:               # turn off kiln
-                self.get_logger().info("Kiln try Off")
-                for id in KilnServer.KILN_CARD_SEND_IDS:
-                    kiln_frame = jcan.Frame(id , [KilnServer.KILN_POWER_COMMAND, KilnServer.KILN_OFF])
-                    self.bus.send(kiln_frame)
+                self.send_kiln_off()
                 self.is_on = False
             self.get_logger().info(f"Kiln Status = {self.is_on}")
             response.success = True
@@ -96,30 +116,29 @@ class KilnServer(Node):
     def send_can_command(self):
         try:
             if self.is_on:
-                for id in KilnServer.KILN_CARD_SEND_IDS:
-                    kiln_frame = jcan.Frame(id , [KilnServer.KILN_POWER_COMMAND, KilnServer.KILN_ON])
-                    self.bus.send(kiln_frame)
+                self.send_kiln_on()
             else:
-                for id in KilnServer.KILN_CARD_SEND_IDS:
-                    kiln_frame = jcan.Frame(id , [KilnServer.KILN_POWER_COMMAND, KilnServer.KILN_OFF])
-                    self.bus.send(kiln_frame)
+                self.send_kiln_off()
         except Exception as e:
             self.get_logger().info(str(e))
 
     def update_temp(self, frame):
         self.get_logger().info("Kiln try update temp")
-        sensor_id = frame.data[0] - 1 
-        if 0 <= sensor_id <= 2:
+        sensor_id = frame.data[0]
+        sensor_index = sensor_id - 1
+        if sensor_id in KilnServer.KILN_SENSOR_IDS:
             reading = frame.data[1] * 2**8 + frame.data[2]  # as reading is returned as two bytes (16 bit integer)
-            self.temp[sensor_id] = self.convert(reading)
-            self.get_logger().info(f"Sensor {sensor_id + 1} reading updated to {self.temp[sensor_id]} using {reading}")
+            self.temp[sensor_index] = self.convert(reading)
+            self.get_logger().info(f"Sensor {sensor_id} reading updated to {self.temp[sensor_index]} using {reading}")
+        else:
+            self.get_logger().info(f"Sensor {sensor_id} not in list of sensors")
 
     def publish_data(self):
         msg = KilnData()
         msg.temp = self.temp
         msg.state = self.is_on
         self.publisher.publish(msg)
-        self.get_logger().info(f"Temps [{self.temp[0]}, {self.temp[1]} , {self.temp[2]}] and state {self.is_on} published")
+        self.get_logger().info(f"Temps [{str(self.temp)}] and state {self.is_on} published")
 
 
 def main():
