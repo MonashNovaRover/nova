@@ -2,7 +2,7 @@ import React, {useLayoutEffect, useRef} from "react";
 
 export interface CanvasWithGL {
   canvasRef: React.RefObject<HTMLCanvasElement>,
-  gl?: WebGL2RenderingContext,
+  gl?: WebGL2RenderingContext
 }
 
 /**

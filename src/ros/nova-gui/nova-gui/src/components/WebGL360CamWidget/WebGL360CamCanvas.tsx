@@ -13,7 +13,8 @@ import CompassImage from "../../assets/compass.png";
 
 import useImageTexture from "../WebGLCanvas/hooks/useImageTexture.ts";
 import useGL from "../WebGLCanvas/hooks/useGL.tsx";
-import useCanvasSize from "../WebGLCanvas/hooks/useCanvasSize.tsx";
+// import useCanvasSize from "../WebGLCanvas/hooks/useCanvasSize.tsx";
+import {Button} from "@nextui-org/react";
 
 const DEG_TO_RAD = 0.0174532925199;
 
@@ -57,7 +58,8 @@ const WebGL360CamCanvasNonMemo = (props: WebGL360CamCanvasProps) => {
   const compass = useImageTexture(CompassImage);
 
   const gl = useGL();
-  const [width, height] = useCanvasSize(gl);
+  // const [width, height] = useCanvasSize(gl);
+  const [width, height] = [1200, 700];
   const resolution = [width, height];
 
   // Panorama mode switch
@@ -93,7 +95,7 @@ const WebGL360CamCanvasNonMemo = (props: WebGL360CamCanvasProps) => {
     mousePos: mousePos,
     fov: [fov],
     resolution: resolution as vec2,
-    threshold: [fov/360]
+    threshold: [fov/180]
   }), [mousePos, fov, resolution]);
 
   const samplers = useDict<GLSampler>(() => ({
@@ -101,8 +103,30 @@ const WebGL360CamCanvasNonMemo = (props: WebGL360CamCanvasProps) => {
   }), [videoRef?.current, equirectangularTest, compass]);
 
   // Construct the canvas
-  return (
-    <WebGLCanvas
+  return (<div className="w-full h-50 min-h-unit-24 min-w-unit-24 resize-y overflow-hidden mb-5">
+      <Button onClick={() => {
+        const numElements = width * height;
+
+        if (!gl.gl)
+          return;
+
+        // Redraw
+        gl.gl.clear(gl.gl.COLOR_BUFFER_BIT);
+        // TODO: allow the mode to be specified, rather than being hard coded as `gl.TRIANGLE_STRIP`
+        gl.gl.drawArrays(gl.gl.TRIANGLE_STRIP, 0, 4);
+
+        const output = new Uint8Array(numElements * 4);
+        gl.gl?.readPixels(0, 0, width, height, gl.gl.RGBA, gl.gl.UNSIGNED_BYTE, output);
+
+        const average = output.reduce((acc, value, index) => (index % 4) === 3 ? acc : acc + (value/(numElements * 3)), 0) / 255;
+
+        console.log(output);
+        console.log(`${(100 * (1 - average)).toFixed(4)}%`);
+      }}>
+        biuggiugersubegrsub
+      </Button>
+
+      <WebGLCanvas
       gl={gl}
 
       className={props.className}
@@ -138,6 +162,9 @@ const WebGL360CamCanvasNonMemo = (props: WebGL360CamCanvasProps) => {
       onMouseDown={onMouseDown as MouseEventHandler}
 
     />
+
+    </div>
+
   ); // <video ref={webcam}/> // <video width={1920} height={1440} ref={webcam}/>
 }
 
