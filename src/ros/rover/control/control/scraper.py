@@ -47,12 +47,12 @@ class ScraperNode(Node):
     JONO_ID_BUCKET = 0x0A0
     JONO_ID_LIMIT_SWITCH = 0x4A2 # TODO: get correct card id
     # jono commands
-    JONO_ARM_FORWARDS = 0x02
-    JONO_ARM_BACKWARDS = 0x01
-    JONO_SCOOP_FORWARDS = 0x04
-    JONO_SCOOP_BACKWARDS = 0x03
-    JONO_BUCKET_OPEN = 0x06
-    JONO_BUCKET_CLOSE = 0x05
+    JONO_ARM_FORWARDS = 0x04
+    JONO_ARM_BACKWARDS = 0x03
+    JONO_SCOOP_FORWARDS = 0x06
+    JONO_SCOOP_BACKWARDS = 0x05
+    JONO_BUCKET_OPEN = 0x01
+    JONO_BUCKET_CLOSE = 0x02
 
     # directions
     ARM_FORWARDS = Direction.POSITIVE
@@ -84,7 +84,7 @@ class ScraperNode(Node):
     def __init__(self):
         super().__init__("scraper")
 
-        self.get_logger().set_level(logging.DEBUG)
+        self.get_logger().set_level(logging.INFO)
         self.get_logger().info("Initialising Scraper Node...")
 
         # Setting ROS parameters
@@ -190,9 +190,9 @@ class ScraperNode(Node):
         scoopFrame = self.scoop_controller.get_frame()
         bucketFrame = self.bucket_controller.get_frame()
 
-        self.get_logger().info(f"Sending {armFrame}")
-        self.get_logger().info(f"Sending {scoopFrame}")
-        self.get_logger().info(f"Sending {bucketFrame}")
+        self.get_logger().debug(f"Sending {armFrame}")
+        self.get_logger().debug(f"Sending {scoopFrame}")
+        self.get_logger().debug(f"Sending {bucketFrame}")
         try:
             self.bus.send(armFrame)
             self.bus.send(scoopFrame)

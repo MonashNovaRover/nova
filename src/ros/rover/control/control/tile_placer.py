@@ -38,7 +38,7 @@ class TilePlacerNode(Node):
     CAN_BUS = "can0"
     # card IDs
     # only used when card = CMD
-    CMD_ID_TILE_PLACER = 0x063 # TODO: get the correct id
+    CMD_ID_TILE_PLACER = 0x0E3 # TODO: get the correct id
     # only used when card = JONO
     JONO_ID_TILE_PLACER = 0x0A0
     # jono commands
@@ -50,7 +50,7 @@ class TilePlacerNode(Node):
     TILE_PLACER_DOWN = Direction.NEGATIVE
 
     # max_velocity percent
-    TILE_PLACER_MAX_VELOCITY = 0.8
+    TILE_PLACER_MAX_VELOCITY = 0.60
 
     # ROS param names
     CAN_BUS_PARAM = "can_bus"
@@ -59,12 +59,12 @@ class TilePlacerNode(Node):
     def __init__(self):
         super().__init__("tile_placer")
 
-        self.get_logger().set_level(logging.DEBUG)
-        self.declare_parameter("can_bus", "can0").value
+        self.get_logger().set_level(logging.INFO)
+        self.declare_parameter(self.CAN_BUS_PARAM, self.CAN_BUS)
         self.declare_parameter(self.TILE_PLACER_MAX_VEL_PERCENT_PARAM, self.TILE_PLACER_MAX_VELOCITY)
 
         self.tile_placer = OneAxisControl(
-            max_percent=self.get_parameter(self.TILE_PLACER_MAX_VEL_PERCENT_PARAM)
+            max_percent=self.get_parameter(self.TILE_PLACER_MAX_VEL_PERCENT_PARAM).value
         )
 
         self.tile_placer_controller = CMDCardController(
@@ -83,7 +83,7 @@ class TilePlacerNode(Node):
         self.joystick_r_sub = self.create_subscription(InputJoystick, "/control/input_joystick_r", self.joystick_r_callback, self.qos, event_callbacks=events)
 
         self.bus = jcan.Bus()
-        self.bus.open(self.param_can)
+        self.bus.open(self.get_parameter(self.CAN_BUS_PARAM).value)
         self.timer_jcan = self.create_timer(0.05, self.callback_send_can_commands)
 
 
@@ -94,7 +94,7 @@ class TilePlacerNode(Node):
         # The list of values will be cast to uint8's by JCAN library - so be careful to double check the values!
         tilePlacerFrame = self.tile_placer_controller.get_frame()
 
-        self.get_logger().info(f"Sending {tilePlacerFrame}")
+        self.get_logger().debug(f"Sending {tilePlacerFrame}")
         try:
             self.bus.send(tilePlacerFrame)
 
@@ -129,7 +129,7 @@ class TilePlacerNode(Node):
         :return: True if locked, False otherwise
         """
         if self.tile_placer_lock:
-            self.get_logger().info("Scraper LOCKED!")
+            self.get_logger().info("Tile Placer LOCKED!")
             self.tile_placer_stop()
             return True
         return False
@@ -159,12 +159,12 @@ class TilePlacerNode(Node):
         # tile placer is unlocked when bottom r4 button is pressed on the right joystick
         if joystick_r.btn_bottom_r4_state >= 1 and self.tile_placer_lock:
             self.get_logger().info("Tile Placer ON")
-            self.scraper_lock = False
+            self.tile_placer_lock = False
 
         # tile placer is locked when bottom r1 button is pressed on the right joystick
         if joystick_r.btn_bottom_r1_state >= 1 and not self.tile_placer_lock:
             self.get_logger().info("Tile Placer OFF")
-            self.scraper_lock = True
+            self.tile_placer_lock = True
 
 
     def update_tile_placer(self, joystick_r: InputJoystick):
