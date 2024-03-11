@@ -6,6 +6,8 @@ import { RootState } from "../../redux/RootState";
 import { useBifrost } from "../../redux/actions/bifrost/useBifrostAction";
 import { RosTopic } from "../../ros/topics/rosTopic";
 import { RosService } from "../../ros/services/rosService";
+import { SubCardLabel } from "../shared/Labels";
+import { Square, Power } from "react-feather";
 
 interface KilnWidgetProps extends CardProps {
 
@@ -40,44 +42,44 @@ const KilnWidget: React.FC<KilnWidgetProps> = (props) => {
 
     setTimeout(() => {kilnData.state ? setTime(time + 1) : null}, 1000);
 
-    const toggleKiln = <div className="flex flex-row justify-around">
-                        <Card className={kilnData.state ? "w-1/2 bg-green-600" : "w-1/2 bg-zinc-800"}>
-                            <CardBody className="text-center">
+    const toggleKiln = <div className="flex flex-row justify-between">
+                        <Card className={kilnData.state ? "bg-success" : "bg-content2"}>
+                            <CardBody className="pl-5 pr-5">
                                 {kilnData.state ? "POWERED ON" : "POWERED OFF"}
                             </CardBody>
                         </Card>
-                        <Button className="w-1/3 text-lg h-12" color="primary" onPress={()=>{
+                        <Button className="text-h1 h-12" color="primary" onPress={()=>{
                                 if (!kilnData.state) {
                                     setTime(0);
                                 };
                                 toggleKilnState();
                             }}>
                             { kilnData.state ? "STOP KILN" : "START KILN" }
+                            { kilnData.state ? <Square size="15" fill="white" />: <Power size="15"/>}
                         </Button>
                     </div>
 
-    const sensorNameList = ["ONE", "TWO", "THREE"]
+    const sensorNameList = ["INFRARED"]
 
     return (
-        <Card {...props} className="w-[28rem] m-3 flex flex-col space-y-3 p-3 bg-zinc-900">
-            <CardHeader className="p-0 text-2xl">Kiln</CardHeader>
-            <Card className="flex flex-col justify-around h-28 bg-zinc-700">
-                <CardHeader className={kilnServiceData.success ? "mx-3 p-0 text-xl" : "mx-3 p-0 text-xl text-rose-600"}>STATUS{kilnServiceData.success ? "" : ": NODE RESPONSE ERROR"}</CardHeader>
+        <Card {...props} className="space-y-3 p-3">
+            <CardHeader className="text-h1 p-0">Kiln</CardHeader>
                 {toggleKiln}
-            </Card>
-            <Card className="h-40 justify-between flex flex-col p-3 pb-4 bg-zinc-700">
-                <CardHeader className="mb-3 p-0 text-xl">TEMPERATURE</CardHeader>
+            <SubCardLabel>TEMPERATURE</SubCardLabel>
                 {sensorNameList.map((element, index) => 
                     <DriveProgress
                         key={index}
-                        classNames={{
-                            track: "bg-zinc-500"
-                        }}
-                        size="lg" autoColor={true} aria-label="temp1" maxValue={maxTemp[index]} value={kilnData.temp[index]}>
+                        size="lg"
+                        value={kilnData.temp[index]}
+                        maxValue={maxTemp[index]} 
+                        aria-label="Temperature Sensor Reading" 
+                        autoColor={true} 
+                        disableAnimation={false}
+                    >
                         SENSOR {element}: {kilnData.temp[index]}&deg;C
-                    </DriveProgress >
+                    </DriveProgress>
                 )}
-            </Card>
+
         </Card>
     );
 };
