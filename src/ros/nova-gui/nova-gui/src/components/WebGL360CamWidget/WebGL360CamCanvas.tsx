@@ -1,7 +1,7 @@
 import WebGLCanvas from "../WebGLCanvas/WebGLCanvas"
 
-import thresholdFrag from "./gl/threshold.frag";
-import thresholdVert from "./gl/threshold.vert";
+import thresholdFrag from "../MicroscopeThresholdWidget/gl/threshold.frag";
+import thresholdVert from "../MicroscopeThresholdWidget/gl/threshold.vert";
 
 import React, {memo, MouseEventHandler, MouseEvent, WheelEvent, useCallback, useState} from "react";
 import useDict from "../WebGLCanvas/hooks/useDict.tsx";
