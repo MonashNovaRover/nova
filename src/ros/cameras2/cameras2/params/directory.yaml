@@ -5,6 +5,10 @@ camera_directory:
       # This is incompatible with the design of the camera_directory node.
       - Intel_R__RealSense_TM__Depth_Camera_455_Intel_R__RealSense_TM__Depth_Camera_455_210523060485
       - Intel_R__RealSense_TM__Depth_Camera_455_Intel_R__RealSense_TM__Depth_Camera_455 # Jetson TX2 does not see the serial number??
+    serial_remaps:
+      # The camera configuration system is not yet equipped to handle periods in
+      # serial numbers. Rename offending serials as a workaround.
+      'GenesysLogic_Technology_Co.__Ltd._USB2.0_UVC_PC_Camera': science_microscope
     serial_overrides:
       paths:
         mast:
@@ -15,7 +19,6 @@ camera_directory:
         science:
           '1:1.0': science_spectrometer_top
           '2:1.0': science_spectrometer_side
-          '4.1:1.0': science_microscope
           '4.2:1.0': science_backward
           '4.3:1.0': science_shotglass
           '4.4:1.0': science_rock_flipper

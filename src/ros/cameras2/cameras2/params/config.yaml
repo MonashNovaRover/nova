@@ -32,6 +32,8 @@ camera_streamer:
 
       # Science
       science_microscope:
+        width: 640
+        framerate: 25
         meta:
           uiProps:
             name: Science - Microscope
