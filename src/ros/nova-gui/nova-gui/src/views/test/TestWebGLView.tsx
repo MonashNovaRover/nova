@@ -1,4 +1,4 @@
-import Camera360Component from "../../components/WebGL360CamWidget/Camera360Component.tsx";
+
 import MicroscopeThresholdWidget from "../../components/MicroscopeThresholdWidget/MicroscopeThresholdWidget.tsx";
 
 const TestWebGLView: React.FC = () => {
