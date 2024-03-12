@@ -2,7 +2,7 @@ import useGL from "../WebGLCanvas/hooks/useGL.tsx";
 import {useProgram} from "../WebGLCanvas/hooks/useProgram.tsx";
 import vert from "./gl/threshold.vert";
 import frag from "./gl/threshold.frag";
-import React, {useCallback, useEffect, useRef, useState} from "react";
+import {useCallback, useEffect, useRef, useState} from "react";
 import {Button, Card, CardBody, CardHeader, Slider} from "@nextui-org/react";
 import useSamplers, {GLSampler} from "../WebGLCanvas/hooks/useSamplers.tsx";
 import useDict from "../WebGLCanvas/hooks/useDict.tsx";
