@@ -1,9 +1,10 @@
 import Camera360Component from "../../components/WebGL360CamWidget/Camera360Component.tsx";
+import MicroscopeThresholdWidget from "../../components/MicroscopeThresholdWidget/MicroscopeThresholdWidget.tsx";
 
 const TestWebGLView: React.FC = () => {
   return (<>
-    <div className="">
-      <Camera360Component/>
+    <div className="grid w-full gap-3 p-3 auto-cols-fr s:grid-cols-1 md:grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3">
+      <MicroscopeThresholdWidget/>
     </div>
   </>)
 };

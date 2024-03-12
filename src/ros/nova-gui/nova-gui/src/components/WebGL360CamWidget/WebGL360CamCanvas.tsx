@@ -99,7 +99,7 @@ const WebGL360CamCanvasNonMemo = (props: WebGL360CamCanvasProps) => {
   }), [mousePos, fov, resolution]);
 
   const samplers = useDict<GLSampler>(() => ({
-    camera: [videoRef?.current ?? equirectangularTest, 0],
+    image: [videoRef?.current ?? equirectangularTest, 0],
   }), [videoRef?.current, equirectangularTest, compass]);
 
   // Construct the canvas
