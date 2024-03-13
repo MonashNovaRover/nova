@@ -8,8 +8,8 @@ import {
 import React, { useEffect } from "react";
 
 import { useBifrost } from "../../redux/actions/bifrost/useBifrostAction";
-// import { RootState } from "../../redux/RootState";
-// import { useSelector } from "react-redux";
+import { RootState } from "../../redux/RootState";
+import { useSelector } from "react-redux";
 import ARMImage from "../../assets/arm-image.png";
 import { RosTopic } from "../../ros/topics/rosTopic.ts";
 import ArmWidgetCell, { IArmWidgetCellProps } from "./ArmWidgetCell.tsx";
@@ -24,6 +24,9 @@ const ArmWidget: React.FC<IArmWidgetProps> = (
     props: IArmWidgetProps
 ) => {
     const bifrostArm = useBifrost({ topic: RosTopic.ARM_TELEMETRY });
+
+    // const jointValues = useSelector((state: RootState) => state.armTelemetryStore.arm_motors);
+    // const jointValuesCurrents = jointValues.map((j: { current: number; }) => Math.round(j.current));
 
     useEffect(() => {
         bifrostArm.syncWithTopic();
@@ -76,12 +79,4 @@ const ArmWidget: React.FC<IArmWidgetProps> = (
 }
 
 export default ArmWidget;
-
-
-
-
-
-
-
-
 
