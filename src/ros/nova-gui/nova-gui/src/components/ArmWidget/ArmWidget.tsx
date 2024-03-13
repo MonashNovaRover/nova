@@ -29,33 +29,6 @@ const ArmWidget: React.FC<IArmWidgetProps> = (
         bifrostArm.syncWithTopic();
     }, [bifrostArm]);
 
-    const cellProps: IArmWidgetCellProps[] = [
-        {
-            label: <>J1</>,
-            className: "row-start-1 col-start-1",
-        } as IArmWidgetCellProps,
-        {
-            label: <>J2</>,
-            className: "row-start-2 col-start-1",
-        } as IArmWidgetCellProps,
-        {
-            label: <>J3</>,
-            className: "row-start-2 col-start-3",
-        } as IArmWidgetCellProps,
-        {
-            label: <>J4</>,
-            className: "row-start-1 col-start-3",
-        } as IArmWidgetCellProps,
-        {
-            label: <>J5</>,
-            className: "row-start-1 col-start-2",
-        } as IArmWidgetCellProps,
-        {
-            label: <>J6</>,
-            className: "row-start-2 col-start-2",
-        } as IArmWidgetCellProps,
-    ];
-
     const armDataCardBody = (
         <CardBody className="grid auto-cols-fr grid-flow-col gap-3">
             <div className="flex flex-col justify-center gap-3">
