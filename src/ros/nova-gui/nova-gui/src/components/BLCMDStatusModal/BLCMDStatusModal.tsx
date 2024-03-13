@@ -50,8 +50,8 @@ export const BLCMDStatusModal = () => {
     <Modal
       isOpen={modalOpen}
       className="dark text-foreground"
-      size="5xl"
       onClose={onClose}
+      size="3xl"
     >
       <ModalContent>
         <ModalHeader className="flex flex-col gap-1">Motor Status</ModalHeader>

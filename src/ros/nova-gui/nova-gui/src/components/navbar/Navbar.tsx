@@ -18,9 +18,8 @@ import { useUIActions } from "../../redux/actions/useUIActions";
 import { BifrostConnectionStatus } from "../../redux/models/bifrost/BifrostTypes";
 import { useLocation } from "react-router-dom";
 import humanizeString from "humanize-string";
+import { BLCMDStatusButton } from "../BLCMDStatusModal/BLCMDStatusButton";
 import "./Navbar.css";
-
-import { ExclamationCircleFill } from "react-bootstrap-icons";
 
 const connectionStatusColor: {
   [key: string]: "success" | "warning" | "danger";
@@ -62,16 +61,7 @@ export const NovaNavbar: React.FC = () => {
       </NavbarContent>
       <NavbarContent as="div" className="items-center" justify="end">
         <NavbarItem>
-          <Button
-            size="sm"
-            variant="solid"
-            color="danger"
-            className="px-40"
-            onClick={() => uiActions.setBlcmdStatusModalOpen(true)}
-          >
-            <ExclamationCircleFill className="w-4 h-4" />
-            TRISTAN WANTS THIS BIG
-          </Button>
+          <BLCMDStatusButton />
         </NavbarItem>
         <NavbarItem>
           <Dropdown placement="bottom-end">
