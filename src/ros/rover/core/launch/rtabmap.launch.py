@@ -14,16 +14,19 @@ def launch_setup(context, *args, **kwargs):
     depthai_prefix = get_package_share_directory("depthai_ros_driver")
 
     params_file= LaunchConfiguration("params_file")
+    
+    use_sim_time = LaunchConfiguration('use_sim_time')
+
+    qos = LaunchConfiguration("qos")
 
     parameters={
           'frame_id':'base_link',
           'use_sim_time':use_sim_time,
-          'subscribe_rgb': True
+          'subscribe_rgb': True,
           'subscribe_depth':True,
           'publish_tf': True,
           'approx_sync':True,
           'odom_frame_id': 'odom',
-          'qos_image':qos,
           "Rtabmap/DetectionRate": "3.5",
     }
 
@@ -32,7 +35,6 @@ def launch_setup(context, *args, **kwargs):
           'use_sim_time':use_sim_time,
           'subscribe_depth':True,
           'publish_tf': False,
-          'qos_image':qos,
     }
 
     remappings = [
@@ -76,7 +78,7 @@ def launch_setup(context, *args, **kwargs):
                     parameters=[odom_parameters],
                     remappings=remappings,
                 ),
-            ],
+          ],
         ),
 
         LoadComposableNodes(
@@ -86,7 +88,9 @@ def launch_setup(context, *args, **kwargs):
                     package='rtabmap_slam',
                     plugin='rtabmap_slam::CoreWrapper',
                     name='rtabmap',
-                    parameters=[parameters],
+                    parameters=[parameters,
+                                {'Mem/IncrementalMemory':'False',
+                                 'Mem/InitWMWithAllNodes':'True'}],
                     remappings=remappings,
                 ),
             ],
@@ -97,9 +101,21 @@ def launch_setup(context, *args, **kwargs):
             condition=IfCondition(LaunchConfiguration("rtabmap_viz")),
             executable="rtabmap_viz",
             output="screen",
-            parameters=parameters,
+            parameters=[parameters],
             remappings=remappings,
         ),
+
+        Node(
+        package='rtabmap_util',
+        executable='point_cloud_xyz',
+        condition=IfCondition(LaunchConfiguration('rtabmap_pointcloud')),
+        name='rtabmap_point_cloud_xyz',
+        remappings=[('/depth/image', name+'/stereo/image_raw'),
+                    ('/depth/camera_info', name+'/stereo/camera_info'),
+                    ('/cloud', name+'/rtabmap/points'),
+                    ],
+        ),
+
     ]
 
 
@@ -112,6 +128,8 @@ def generate_launch_description():
         DeclareLaunchArgument("params_file", default_value=os.path.join(core_prefix, 'params', 'depthai_oakd_rgbd.yaml')),
         DeclareLaunchArgument("rectify_rgb", default_value="True"),
         DeclareLaunchArgument("rtabmap_viz", default_value="False"),
+        DeclareLaunchArgument('use_sim_time', default_value='True'),
+        DeclareLaunchArgument('rtabmap_pointcloud', default_value='True')
     ]
 
     return LaunchDescription(
