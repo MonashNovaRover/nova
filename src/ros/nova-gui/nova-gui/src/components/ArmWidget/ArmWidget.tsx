@@ -6,15 +6,13 @@ import {
     Image,
 } from "@nextui-org/react";
 import React, { useEffect } from "react";
-// import './ArmWidget.css';
+
 import { useBifrost } from "../../redux/actions/bifrost/useBifrostAction";
 // import { RootState } from "../../redux/RootState";
 // import { useSelector } from "react-redux";
-// import ArmWidgetCell, { IArmWidgetCellProps } from "./ArmWidgetCell.tsx";
-import { OverlayedProgress } from "../OverlayedProgress/OverlayedProgress.tsx";
 import ARMImage from "../../assets/arm-image.png";
 import { RosTopic } from "../../ros/topics/rosTopic.ts";
-
+import ArmWidgetCell, { IArmWidgetCellProps } from "./ArmWidgetCell.tsx";
 
 export interface IArmWidgetProps extends CardProps { }
 
@@ -31,42 +29,48 @@ const ArmWidget: React.FC<IArmWidgetProps> = (
         bifrostArm.syncWithTopic();
     }, [bifrostArm]);
 
+    const cellProps: IArmWidgetCellProps[] = [
+        {
+            label: <>J1</>,
+            className: "row-start-1 col-start-1",
+        } as IArmWidgetCellProps,
+        {
+            label: <>J2</>,
+            className: "row-start-2 col-start-1",
+        } as IArmWidgetCellProps,
+        {
+            label: <>J3</>,
+            className: "row-start-2 col-start-3",
+        } as IArmWidgetCellProps,
+        {
+            label: <>J4</>,
+            className: "row-start-1 col-start-3",
+        } as IArmWidgetCellProps,
+        {
+            label: <>J5</>,
+            className: "row-start-1 col-start-2",
+        } as IArmWidgetCellProps,
+        {
+            label: <>J6</>,
+            className: "row-start-2 col-start-2",
+        } as IArmWidgetCellProps,
+    ];
+
     const armDataCardBody = (
         <CardBody className="grid auto-cols-fr grid-flow-col gap-3">
             <div className="flex flex-col justify-center gap-3">
-                <div className="bg">
-                    <OverlayedProgress
-                        size="lg"
-                        value={0.5}
-                        maxValue={1}
-                        autoColor
-                        aria-label="J1 Current"
-                    >
-                        J1
-                    </OverlayedProgress>
-                </div>
-                <div>
-                    <OverlayedProgress
-                        size="lg"
-                        value={0.5}
-                        maxValue={1}
-                        autoColor
-                        aria-label="J2 Current"
-                    >
-                        J2
-                    </OverlayedProgress>
-                </div>
-                <div>
-                    <OverlayedProgress
-                        size="lg"
-                        value={0.5}
-                        maxValue={1}
-                        autoColor
-                        aria-label="J3 Current"
-                    >
-                        J3
-                    </OverlayedProgress>
-                </div>
+                <ArmWidgetCell
+                    jointValue={0.5}
+                    label={<>J1</>}
+                />
+                <ArmWidgetCell
+                    jointValue={0.5}
+                    label={<>J2</>}
+                />
+                <ArmWidgetCell
+                    jointValue={0.5}
+                    label={<>J3</>}
+                />
             </div>
 
             <div className="flex justify-center">
@@ -74,40 +78,18 @@ const ArmWidget: React.FC<IArmWidgetProps> = (
             </div>
 
             <div className="flex flex-col justify-center gap-3">
-                <div>
-                    <OverlayedProgress
-                        size="lg"
-                        value={0.5}
-                        maxValue={1}
-                        autoColor
-                        aria-label="J4 Current"
-                    >
-                        J4
-                    </OverlayedProgress>
-                </div>
-                <div>
-                    <OverlayedProgress
-                        size="lg"
-                        value={0.5}
-                        maxValue={1}
-                        autoColor
-                        aria-label="J5 Current"
-                    >
-                        J5
-                    </OverlayedProgress>
-                </div>
-                <div>
-                    <OverlayedProgress
-                        size="lg"
-                        value={0.5}
-                        maxValue={1}
-                        autoColor
-                        aria-label="J6 Current"
-                    >
-                        J6
-                    </OverlayedProgress>
-                </div>
-
+                <ArmWidgetCell
+                    jointValue={0.5}
+                    label={<>J4</>}
+                />
+                <ArmWidgetCell
+                    jointValue={0.5}
+                    label={<>J5</>}
+                />
+                <ArmWidgetCell
+                    jointValue={0.5}
+                    label={<>J6</>}
+                />
             </div>
         </CardBody>
     );
