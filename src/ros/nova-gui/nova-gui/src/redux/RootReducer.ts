@@ -70,7 +70,22 @@ export const rootReducer = {
   ),
   ipList: createBifrostStore({ service: RosService.GET_IP_LIST }, { ips: [] }),
 
-  // Regular Stores
+  // Science Reducers
+  tofStore: createBifrostStore(
+    { topic: RosTopic.TOF },
+    {
+      header: {
+        stamp: { sec: 0, nanosec: 0 },
+        frame_id: ""
+      },
+      radiation_type: 0,
+      field_of_view: 0,
+      min_range: 0.0,
+      max_range: 100.0,
+      range: -5.0
+    }),
+
+  // Regular Reducers
   uiState: uiSlice.reducer,
   cameraStreamerState: cameraStreamerSlice.reducer,
 };

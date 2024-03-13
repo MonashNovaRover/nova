@@ -18,4 +18,7 @@ export const rosTopicMessages = {
 
   // Cameras Related
   [RosTopic.CAMERAS]: "camera_msgs/msg/Cameras",
+
+  // Science Related
+  [RosTopic.TOF]: "sensor_msgs/msg/Range"
 };

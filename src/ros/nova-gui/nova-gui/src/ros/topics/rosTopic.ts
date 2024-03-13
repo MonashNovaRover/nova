@@ -18,4 +18,7 @@ export enum RosTopic {
 
   // Camera Related topics
   CAMERAS = "/camera_directory/cameras",
+
+  // Science Related
+  TOF = "/control/analysis_platform",
 }

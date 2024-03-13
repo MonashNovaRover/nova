@@ -1,9 +1,10 @@
 import React from "react";
+import AnalysisPlatformHeight from "../../components/AnalysisPlatformHeight/AnalysisPlatformHeight";
 
 const ARCBaseView: React.FC = () => {
   return (
     <div>
-      <h1>Hello!</h1>
+      <AnalysisPlatformHeight />
     </div>
   );
 };

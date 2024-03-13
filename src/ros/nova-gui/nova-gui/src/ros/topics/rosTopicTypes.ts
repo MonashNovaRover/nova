@@ -3,6 +3,7 @@ import {
   IRosCameraMsgsCameras,
   IRosCoreTelemetry,
   IRosGeometryMsgsPose,
+  IRosSensorMsgsRange,
 } from "../rosTypes";
 import { IRosCoreDriveInfo } from "../rosTypes";
 
@@ -23,4 +24,7 @@ export interface RosTopicInterfaces {
 
   // Cameras Related
   [RosTopic.CAMERAS]: IRosCameraMsgsCameras;
+
+  // Science Related
+  [RosTopic.TOF]: IRosSensorMsgsRange;
 }
