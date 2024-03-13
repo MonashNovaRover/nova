@@ -14,18 +14,26 @@ def launch_setup(context, *args, **kwargs):
     depthai_prefix = get_package_share_directory("depthai_ros_driver")
 
     params_file= LaunchConfiguration("params_file")
-    parameters = [
-        {
-            "frame_id": 'base_link',
-            "subscribe_rgb": True,
-            "subscribe_depth": True,
-            "subscribe_odom_info": True,
-            "approx_sync": True,
-            "odom_frame_id": 'odom',
-            "publish_tf": False,
-            "Rtabmap/DetectionRate": "3.5",
-        }
-    ]
+
+    parameters={
+          'frame_id':'base_link',
+          'use_sim_time':use_sim_time,
+          'subscribe_rgb': True
+          'subscribe_depth':True,
+          'publish_tf': True,
+          'approx_sync':True,
+          'odom_frame_id': 'odom',
+          'qos_image':qos,
+          "Rtabmap/DetectionRate": "3.5",
+    }
+
+    odom_parameters={
+          'frame_id':'base_link',
+          'use_sim_time':use_sim_time,
+          'subscribe_depth':True,
+          'publish_tf': False,
+          'qos_image':qos,
+    }
 
     remappings = [
         ("rgb/image", name+"/rgb/image_rect"),
@@ -65,7 +73,7 @@ def launch_setup(context, *args, **kwargs):
                     package='rtabmap_odom',
                     plugin='rtabmap_odom::RGBDOdometry',
                     name='rgbd_odometry',
-                    parameters=parameters,
+                    parameters=[odom_parameters],
                     remappings=remappings,
                 ),
             ],
@@ -78,7 +86,7 @@ def launch_setup(context, *args, **kwargs):
                     package='rtabmap_slam',
                     plugin='rtabmap_slam::CoreWrapper',
                     name='rtabmap',
-                    parameters=parameters,
+                    parameters=[parameters],
                     remappings=remappings,
                 ),
             ],

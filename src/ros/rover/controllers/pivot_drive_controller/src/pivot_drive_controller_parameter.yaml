@@ -31,12 +31,12 @@ pivot_drive_controller:
   }
   steering_track: {
     type: double,
-    default_value: 0.7,
+    default_value: 0.76,
     description: "Steering track: distance between center of left and right wheels",
   }
   wheel_base: {
     type: double,
-    default_value: 0.84,
+    default_value: 0.875,
     description: "Wheelbase: distance between center of front and rear wheels",
   }
   wheel_radius: {
