@@ -81,6 +81,9 @@ strafe_controller:
     open_loop: true
     use_unstamped_msg: false
     max_acceleration: 5.0
+    wheel_radius: 0.16
+    wheel_base: 0.875
+    steering_track: 0.76
 
 nova_diff_drive_controller:
   ros__parameters:
