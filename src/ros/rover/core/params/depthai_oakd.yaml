@@ -43,6 +43,7 @@
       i_max_batch_reports: 10
       i_message_type: IMU
       i_rot_cov: -1.0
+      i_rotation_vector_type: GAME_ROTATION_VECTOR
       i_sync_method: LINEAR_INTERPOLATE_ACCEL
       i_update_ros_base_time_on_ros_msg: false
     left:
