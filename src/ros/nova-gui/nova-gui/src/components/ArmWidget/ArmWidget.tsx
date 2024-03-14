@@ -22,10 +22,11 @@ export interface IArmWidgetProps extends CardProps { }
 const ArmWidget: React.FC<IArmWidgetProps> = (
     props: IArmWidgetProps
 ) => {
+    const CURRENT_FACTOR = 10
     const bifrostArm = useBifrost({ topic: RosTopic.ARM_TELEMETRY });
 
     const jointValues = useSelector((state: RootState) => state.armTelemetryStore.arm_motors);
-    const jointValuesCurrents = jointValues.map((j) => Math.round(j.current));
+    const jointValuesCurrents = jointValues.map((j) => Math.abs(j.current/CURRENT_FACTOR));
 
     useEffect(() => {
         bifrostArm.syncWithTopic();
