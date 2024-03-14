@@ -108,6 +108,7 @@ export const routes: RouteObject[] = [
       },
       {
         path: "/general",
+        element: <GeneralBaseView/>,
         children: generalRoutes,
       },
       {
