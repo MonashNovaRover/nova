@@ -1,5 +1,9 @@
-import {Card, CardBody, CardHeader, CardProps} from "@nextui-org/react";
+import {Card, CardBody, CardHeader, CardProps, Select, SelectItem} from "@nextui-org/react";
 import SegmentedPicker from "../SegmentedPicker/SegmentedPicker.tsx";
+import React from "react";
+import {Circle, Droplet} from "react-feather";
+import SpaceResourceSiteType from "../nir-probe/SpaceResourcesSiteType.tsx";
+import SpaceResourcesSiteType from "../nir-probe/SpaceResourcesSiteType.tsx";
 
 export const siteFilenames = [
   "site1",
@@ -9,26 +13,58 @@ export const siteFilenames = [
 ]
 
 export interface SiteSelectWidgetProps extends CardProps {
-  onValueChanged: (value: string) => void
+  onValueChanged?: (value: string) => void,
+  onSiteTypeChanged?: (newType: SpaceResourceSiteType) => void,
+  currentSiteType: SpaceResourceSiteType,
 }
 
-const SiteSelectWidget: React.FC<SiteSelectWidgetProps> = ({onValueChanged, ...cardProps}) => {
+const siteTypeSelectOptions = [
+  {
+    type: SpaceResourceSiteType.WATER,
+    name: "Water",
+    icon: (<Droplet/>)
+  },
+  {
+    type: SpaceResourceSiteType.ILMENITE,
+    name: "Ilmenite",
+    icon: (<Circle/>)
+  }
+]
 
-
+const SiteSelectWidget: React.FC<SiteSelectWidgetProps> = ({
+  onValueChanged, currentSiteType, onSiteTypeChanged, ...cardProps
+}) => {
 
   return (
     <Card {...cardProps}>
       <CardHeader className="pb-0">
         Site Select
       </CardHeader>
-      <CardBody>
+      <CardBody className="flex flex-row gap-3">
 
-        <SegmentedPicker fullWidth onIndexChange={(i) => onValueChanged?.(siteFilenames[i])}>
+        <SegmentedPicker fullWidth
+                         className="grow"
+                         onIndexChange={(i) => onValueChanged?.(siteFilenames[i])}>
           <>Site 1</>
           <>Site 2</>
           <>Site 3</>
           <>Site 4</>
         </SegmentedPicker>
+
+        <Select
+          selectedKeys={[`${currentSiteType}`]}
+          className="w-32"
+          size="md"
+          labelPlacement="outside-left"
+          onChange={e => onSiteTypeChanged?.(+e.target.value as SpaceResourcesSiteType)}
+          aria-label="Site Type"
+        >
+          {siteTypeSelectOptions.map(({type, name, icon}) => (
+            <SelectItem key={`${type}`} value={type} startContent={icon}>
+              {name}
+            </SelectItem>
+          ))}
+        </Select>
 
       </CardBody>
     </Card>
