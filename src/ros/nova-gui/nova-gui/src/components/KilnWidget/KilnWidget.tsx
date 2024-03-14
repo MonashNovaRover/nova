@@ -42,13 +42,13 @@ const KilnWidget: React.FC<KilnWidgetProps> = (props) => {
 
     setTimeout(() => {kilnData.state ? setTime(time + 1) : null}, 1000);
 
-    const toggleKiln = <div className="flex flex-row justify-between">
-                        <Card className={kilnData.state ? "bg-success" : "bg-content2"}>
-                            <CardBody className="pl-5 pr-5">
-                                {kilnData.state ? "POWERED ON" : "POWERED OFF"}
+    const toggleKiln = <div className="flex flex-row justify-between gap-5">
+                        <Card className={`w-2/3 ${kilnServiceData.success ? kilnData.state ? "bg-success" : "bg-content3" : "bg-danger"}`}>
+                            <CardBody className="pl-5 pr-5 text-center">
+                                {kilnServiceData.success ? kilnData.state ? "POWERED ON" : "POWERED OFF": "ERROR POWERING KILN"}
                             </CardBody>
                         </Card>
-                        <Button className="text-h1 h-12" color="primary" onPress={()=>{
+                        <Button className="w-1/3 text-h1 h-12" color="primary" onPress={()=>{
                                 if (!kilnData.state) {
                                     setTime(0);
                                 };
@@ -59,14 +59,30 @@ const KilnWidget: React.FC<KilnWidgetProps> = (props) => {
                         </Button>
                     </div>
 
-    const sensorNameList = ["INFRARED"]
+    const sensors = [
+        {   
+            name: "THERMISTOR 1",
+            enabled: false
+        },
+        {
+            name: "THERMISTOR 2",
+            enabled: false
+        },
+        {
+            name: "INFRARED",
+            enabled: true
+        }
+    ]
+
 
     return (
         <Card {...props} className="space-y-3 p-3">
             <CardHeader className="text-h1 p-0">Kiln</CardHeader>
                 {toggleKiln}
+            <Card className="space-y-3 p-3 bg-content2" shadow="sm">
             <SubCardLabel>TEMPERATURE</SubCardLabel>
-                {sensorNameList.map((element, index) => 
+                {sensors.map((element, index) => 
+                    (element.enabled) && 
                     <DriveProgress
                         key={index}
                         size="lg"
@@ -76,9 +92,13 @@ const KilnWidget: React.FC<KilnWidgetProps> = (props) => {
                         autoColor={true} 
                         disableAnimation={false}
                     >
-                        SENSOR {element}: {kilnData.temp[index]}&deg;C
+                        <div className="grid grid-flow-col gap-3 text-small">
+                            <span>{element.name}</span>
+                            <span> {kilnData.temp[index]}&deg;C</span>
+                        </div>
                     </DriveProgress>
                 )}
+            </Card>
 
         </Card>
     );
