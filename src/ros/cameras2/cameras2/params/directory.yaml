@@ -26,3 +26,8 @@ camera_directory:
           '2.2:1.0': arm_end_top
           '2.3:1.0': arm_end_finger
           '2.4:1.0': arm_end_forward
+        ce:
+          '1:1.0': scraper
+          '2:1.0': forklift_down
+          '3:1.0': forklift_forward
+          '4:1.0': scraper_leg
