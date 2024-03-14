@@ -28,6 +28,16 @@ export const uiSlice = createSlice({
         controllerHelpModalOpen: action.payload,
       };
     },
+
+    SIDEBAR_UPDATE: (
+      state: UIState,
+      action: PayloadAction<boolean>
+    ) => {
+      return {
+        ...state,
+        sidebarIsVisible: action.payload,
+      };
+    },
   },
   initialState: initialUIState,
   name: "UIReducer",

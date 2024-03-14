@@ -1,59 +1,141 @@
-import React from "react";
+import React, { useState } from "react";
 import { useLocation } from "react-router-dom";
-import SidebarButton from "./SidebarButton";
-import { House, Map, GraphUp, RocketTakeoff, BoxSeam, ConeStriped, Envelope, WrenchAdjustable } from "react-bootstrap-icons";
+import { Map, RocketTakeoff, BoxSeam, ConeStriped } from "react-bootstrap-icons";
+import "./Sidebar.css";
+import { RootState } from "../../redux/RootState";
+// import { useUIActions } from "../../redux/actions/useUIActions";
+import { useSelector } from "react-redux";
 
-const iconMap: Record<string, Record<string, JSX.Element>> = {
-  arc: {
-    "/arc": <House />,
-    "/arc/post-landing": <RocketTakeoff />,
-    "/arc/space-resources": <BoxSeam />,
-    "/arc/excavation-construction": <ConeStriped />,
-    "/arc/mapping-autonomous": <Map />,
-  },
-  urc: {
-    "/urc": <House />,
-    "/urc/science": <GraphUp />,
-    "/urc/delivery": <Envelope />,
-    "/urc/equipment-servicing": <WrenchAdjustable />,
-    "/urc/autonomous-navigation": <Map />,
-  },
+const sidebarData = {
+  arc: [
+    {
+      title: "Post Landing",
+      link: "arc/post_landing",
+      icon: <RocketTakeoff />,
+      children: [
+        {
+          title: "Cameras",
+          link: "/cameras",
+        },
+        {
+          title: "Status Monitor",
+          link: "/status-monitor",
+        },
+      ],
+    },
+    {
+      title: "Space Resources",
+      link: "arc/space_resources",
+      icon: <BoxSeam />,
+      children: [
+        {
+          title: "Cameras",
+          link: "/cameras",
+        },
+        {
+          title: "Status Monitor",
+          link: "/status-monitor",
+        },
+        {
+          title: "Microscope",
+          link: "/microscope",
+        },
+      ],
+    },
+    {
+      title: "Construction Excavation",
+      link: "arc/construction_excavation",
+      icon: <ConeStriped />,
+      children: [
+        {
+          title: "Cameras",
+          link: "/cameras",
+        },
+        {
+          title: "Status Monitor",
+          link: "/status-monitor",
+        },
+      ],
+    },
+    {
+      title: "Autonomous",
+      link: "/arc/autonomous",
+      icon: <Map />,
+      children: [
+        {
+          title: "Cameras",
+          link: "/cameras",
+        },
+        {
+          title: "Status Monitor",
+          link: "/status-monitor",
+        },
+      ],
+    },
+  ],
+  // arc: {
+  //   "/arc": <House />,
+  //   "/arc/post-landing": <RocketTakeoff />,
+  //   "/arc/space-resources": <BoxSeam />,
+  //   "/arc/excavation-construction": <ConeStriped />,
+  //   "/arc/mapping-autonomous": <Map />,
+  // },
+  // urc: {
+  //   "/urc": <House />,
+  //   "/urc/science": <GraphUp />,
+  //   "/urc/delivery": <Envelope />,
+  //   "/urc/equipment-servicing": <WrenchAdjustable />,
+  //   "/urc/autonomous-navigation": <Map />,
+  // },
 };
 
 const Sidebar: React.FC = () => {
   const location = useLocation();
   const currentPath = location.pathname;
-  const routePrefix = currentPath.split("/")[1]; 
+  const routePrefix = currentPath.split("/")[1];
 
-  // Get the icon map based on the current route prefix
-  const routeIcons = iconMap[routePrefix];
+  const uiState = useSelector((state: RootState) => state.uiState);
 
-  const displayAllButtons = !routeIcons;
+  const [expandedItems, setExpandedItems] = useState<string[]>([]);
+
+  const handleItemClick = (link: string) => {
+    if (expandedItems.includes(link)) {
+      setExpandedItems(expandedItems.filter(item => item !== link));
+    } else {
+      setExpandedItems([...expandedItems, link]);
+    }
+  };
 
   return (
-    <div className="bg-[#1A1A1A] h-full w-16 p-4">
-      {displayAllButtons &&
-        Object.values(iconMap).flatMap(routeIcons =>
-          Object.entries(routeIcons).map(([path, icon], index) => (
-            <SidebarButton
-              key={index}
-              icon={icon}
-              text={path}
-              to={path}
-              isActive={currentPath === path}
-            />
-          ))
-        )}
-      {!displayAllButtons && 
-        Object.entries(routeIcons).map(([path, icon], index) => (
-          <SidebarButton
-            key={index}
-            icon={icon}
-            text={path}
-            to={path}
-            isActive={currentPath === path}
-          />
-        ))}
+    <div className={`sidebar ${uiState.sidebarIsVisible ? 'visible' : 'hidden'}`}>
+      <ul className="sidebar-items">
+        {sidebarData.arc.map((val, key) => {
+          const isExpanded = expandedItems.includes(val.link);
+          return (
+            <li
+              key={key}
+              className={`sidebar-item ${routePrefix === val.link ? "active" : ""} ${isExpanded ? "clicked" : ""}`}
+              id={routePrefix === val.link ? "active" : ""}
+              onClick={() => handleItemClick(val.link)}
+            >
+              <div className="sidebar-item-content">
+                <div className="icon">{val.icon}</div>
+                <div>{val.title}</div>
+              </div>
+
+              {isExpanded && (
+                <ul className="sidebar-children">
+                  {val.children.map((child, index) => (
+                    <li key={index}>
+                      <div>{child.title}</div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 };

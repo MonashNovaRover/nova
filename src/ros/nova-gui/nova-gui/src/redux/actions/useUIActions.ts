@@ -26,5 +26,11 @@ export function useUIActions() {
         payload: controllerHelpModalOpen,
       });
     },
+    setSideBarVisibility(sidebarIsVisible: boolean) {
+      dispatch({
+        type: UIActions.SIDEBAR_UPDATE.toString(),
+        payload: sidebarIsVisible
+      })
+    }
   };
 }
