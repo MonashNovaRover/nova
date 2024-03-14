@@ -4,6 +4,7 @@ import { Map, RocketTakeoff, BoxSeam, ConeStriped } from "react-bootstrap-icons"
 import "./Sidebar.css";
 import { RootState } from "../../redux/RootState";
 import { useSelector } from "react-redux";
+import { Link } from "react-router-dom";
 
 const sidebarData = {
   arc: [
@@ -72,7 +73,7 @@ const sidebarData = {
       ],
     },
   ],
-  urc : []
+  urc: [],
 };
 
 const Sidebar: React.FC = () => {
@@ -92,15 +93,15 @@ const Sidebar: React.FC = () => {
     }
   };
 
-// Set routeData based on routePrefix
-let routeData: any[] = [];
-if (routePrefix === "arc") {
-  routeData = sidebarData.arc;
-} else if (routePrefix === "urc") {
-  routeData = sidebarData.urc;
-} else {
-  routeData = [];
-}
+  // Set routeData based on routePrefix
+  let routeData: any[] = [];
+  if (routePrefix === "arc") {
+    routeData = sidebarData.arc;
+  } else if (routePrefix === "urc") {
+    routeData = sidebarData.urc;
+  } else {
+    routeData = [];
+  }
 
   return (
     <div className={`sidebar ${uiState.sidebarIsVisible ? "visible" : "hidden"}`}>
@@ -122,7 +123,9 @@ if (routePrefix === "arc") {
                 <ul className="sidebar-children">
                   {val.children.map((child: any, index: any) => (
                     <li className="sidebar-child" key={index}>
-                      <div>{child.title}</div>
+                      <Link to={child.link}>
+                        <div>{child.title}</div>
+                      </Link>
                     </li>
                   ))}
                 </ul>
