@@ -88,6 +88,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
 # Add all the installation directories
 install(DIRECTORY
   launch
+  maps
   params
   rviz
   urdf
