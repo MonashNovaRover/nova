@@ -1,16 +1,29 @@
 import {Card, CardBody, CardHeader, CardProps} from "@nextui-org/react";
 import SegmentedPicker from "../SegmentedPicker/SegmentedPicker.tsx";
 
-const SiteSelectWidget: React.FC<CardProps> = (props) => {
+export const siteFilenames = [
+  "site1",
+  "site2",
+  "site3",
+  "site4"
+]
+
+export interface SiteSelectWidgetProps extends CardProps {
+  onValueChanged: (value: string) => void
+}
+
+const SiteSelectWidget: React.FC<SiteSelectWidgetProps> = ({onValueChanged, ...cardProps}) => {
+
+
 
   return (
-    <Card {...props}>
+    <Card {...cardProps}>
       <CardHeader className="pb-0">
         Site Select
       </CardHeader>
       <CardBody>
 
-        <SegmentedPicker fullWidth>
+        <SegmentedPicker fullWidth onIndexChange={(i) => onValueChanged?.(siteFilenames[i])}>
           <>Site 1</>
           <>Site 2</>
           <>Site 3</>
