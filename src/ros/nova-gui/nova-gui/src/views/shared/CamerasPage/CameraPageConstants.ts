@@ -75,18 +75,23 @@ const armCams = [
   CameraSerials.ARM_GIMBAL,
 ];
 
-const ceCams = [
+const ecCams = [
   CameraSerials.EC_SCRAPER,
   CameraSerials.EC_FORKLIFT_DOWN,
   CameraSerials.EC_FORKLIFT_FORWARD,
   CameraSerials.EC_SCRAPER_LEG,
 ];
 
+const scienceCams = [
+  CameraSerials.SCIENCE_KILN,
+  CameraSerials.SCIENCE_AUGER_BOTTOM,
+];
+
 
 export const post_landing_views: CameraView[] = [
   {
     cameraSerials: [...mastCams, ...armCams],
-    viewTitle: "All PL Cams",
+    viewTitle: "All Cams",
   },
   {
     cameraSerials: mastCams,
@@ -100,71 +105,42 @@ export const post_landing_views: CameraView[] = [
 
 export const excavation_and_construction_views: CameraView[] = [
   {
-    cameraSerials: [...mastCams, ...ceCams],
-    viewTitle: "All EC Cams",
+    cameraSerials: [...mastCams, ...ecCams],
+    viewTitle: "All Cams",
   },
   {
-    cameraSerials: [
-      CameraSerials.MAST_ARM_STOW,
-      CameraSerials.MAST_DOWN,
-      CameraSerials.MAST_FORWARD,
-      CameraSerials.MAST_BACKWARD,
-    ],
+    cameraSerials: mastCams,
     viewTitle: "Mast Cams",
   },
   {
-    cameraSerials: [
-      CameraSerials.EC_FORKLIFT_DOWN,
-      CameraSerials.EC_FORKLIFT_FORWARD,
-      CameraSerials.EC_SCRAPER,
-      CameraSerials.EC_SCRAPER_LEG,
-    ],
-    viewTitle: "CE Cams",
+    cameraSerials: ecCams,
+    viewTitle: "EC Cams",
   },
 ];
 
 export const space_resources_views: CameraView[] = [
   {
-    cameraSerials: [
-      
-    ],
-    viewTitle: "All Cameras",
+    cameraSerials: [...mastCams, ...scienceCams],
+    viewTitle: "All Cams",
   },
   {
-    cameraSerials: [
-      CameraSerials.MAST_ARM_STOW,
-      CameraSerials.MAST_DOWN,
-      CameraSerials.MAST_FORWARD,
-      CameraSerials.MAST_BACKWARD,
-    ],
-    viewTitle: "Mast",
+    cameraSerials: mastCams,
+    viewTitle: "Mast Cams",
   },
   {
-    cameraSerials: [
-  
-    ],
-    viewTitle: "Arm",
+    cameraSerials: scienceCams,
+    viewTitle: "Science Cams",
   },
 ];
 
 export const autonomous_views: CameraView[] = [
   {
-    cameraSerials: [
-      CameraSerials.MAST_ARM_STOW,
-      CameraSerials.MAST_DOWN,
-      CameraSerials.MAST_FORWARD,
-      CameraSerials.MAST_BACKWARD,
-    ],
-    viewTitle: "All Auto Cams",
+    cameraSerials: [...mastCams],
+    viewTitle: "All Cams",
   },
   {
-    cameraSerials: [
-      CameraSerials.MAST_ARM_STOW,
-      CameraSerials.MAST_DOWN,
-      CameraSerials.MAST_FORWARD,
-      CameraSerials.MAST_BACKWARD,
-    ],
-    viewTitle: "Mast",
+    cameraSerials: mastCams,
+    viewTitle: "Mast Cams",
   },
 ];
 
