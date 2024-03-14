@@ -40,6 +40,8 @@ export enum CameraSerials {
 
   SCIENCE_KILN = "science_kiln",
   SCIENCE_AUGER_BOTTOM = "science_auger_bottom",
+  SCIENCE_ANALYSIS_ARM = "science_analysis_arm",
+  SCIENCE_MICROSCOPE = "science_microscope",
 }
 
 export const defaultCamFilters : {[key: string] : CameraFilters} = {
@@ -85,6 +87,8 @@ const ecCams = [
 const scienceCams = [
   CameraSerials.SCIENCE_KILN,
   CameraSerials.SCIENCE_AUGER_BOTTOM,
+  CameraSerials.SCIENCE_ANALYSIS_ARM,
+  CameraSerials.SCIENCE_MICROSCOPE,
 ];
 
 
