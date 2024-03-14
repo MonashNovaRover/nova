@@ -121,7 +121,7 @@ if (routePrefix === "arc") {
               {isExpanded && (
                 <ul className="sidebar-children">
                   {val.children.map((child: any, index: any) => (
-                    <li key={index}>
+                    <li className="sidebar-child" key={index}>
                       <div>{child.title}</div>
                     </li>
                   ))}

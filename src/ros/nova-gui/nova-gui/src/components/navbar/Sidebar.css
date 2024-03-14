@@ -51,6 +51,16 @@
 }
 
 
-.sidebar-item .sidebar-children {
+.sidebar-children {
   margin-left: 40px;
+
+}
+
+.sidebar-child {
+  margin-bottom: 8px;
+  font-weight: 200;
+}
+
+.sidebar-child:hover {
+  font-weight: 300;
 }
