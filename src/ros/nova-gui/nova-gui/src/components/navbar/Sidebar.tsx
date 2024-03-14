@@ -9,50 +9,50 @@ const sidebarData = {
   arc: [
     {
       title: "Post Landing",
-      link: "arc/post_landing",
+      link: "arc/post-landing",
       icon: <RocketTakeoff />,
       children: [
         {
           title: "Cameras",
-          link: "/cameras",
+          link: "arc/cameras/post-landing",
         },
         {
           title: "Status Monitor",
-          link: "/status-monitor",
+          link: "arc/post-landing/status-monitor",
         },
       ],
     },
     {
       title: "Space Resources",
-      link: "arc/space_resources",
+      link: "arc/space-resources",
       icon: <BoxSeam />,
       children: [
         {
           title: "Cameras",
-          link: "/cameras",
+          link: "arc/cameras/space-resources",
         },
         {
           title: "Status Monitor",
-          link: "/status-monitor",
+          link: "arc/space-resources/status-monitor",
         },
         {
           title: "Microscope",
-          link: "/microscope",
+          link: "arc/space-resources/microscope",
         },
       ],
     },
     {
       title: "Construction Excavation",
-      link: "arc/construction_excavation",
+      link: "arc/construction-excavation",
       icon: <ConeStriped />,
       children: [
         {
           title: "Cameras",
-          link: "/cameras",
+          link: "arc/cameras/construction-excavation",
         },
         {
           title: "Status Monitor",
-          link: "/status-monitor",
+          link: "arc/construction-excavation/status-monitor",
         },
       ],
     },
@@ -63,11 +63,11 @@ const sidebarData = {
       children: [
         {
           title: "Cameras",
-          link: "/cameras",
+          link: "arc/cameras/autonomous",
         },
         {
           title: "Status Monitor",
-          link: "/status-monitor",
+          link: "/arc/autonomous/status-monitor",
         },
       ],
     },
