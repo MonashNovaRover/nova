@@ -13,7 +13,7 @@ export enum ARCCompModes {
 }
 
 
-export const initialFilters: CameraFilters = {
+export const initialisedFilters: CameraFilters = {
   flipCamera: false,
   invertCamera: false,
   rotation: 0,
@@ -21,115 +21,127 @@ export const initialFilters: CameraFilters = {
   brightness: 100, // in %
 };
 
-export const allCams = [
-  "mast_arm_stow",
-  "mast_down",
-  "mast_forward",
-  "mast_backward",
-  "arm_end_side",
-  "arm_end_top",
-  "arm_end_finger",
-  "arm_end_forward",
-  "arm_gimbal"
+export enum CameraSerials {
+  MAST_ARM_STOW = "mast_arm_stow",
+  MAST_DOWN = "mast_down",
+  MAST_FORWARD = "mast_forward",
+  MAST_BACKWARD = "mast_backward",
+
+  ARM_END_SIDE = "arm_end_side",
+  ARM_END_TOP = "arm_end_top",
+  ARM_END_FINGER = "arm_end_finger",
+  ARM_END_FORWARD = "arm_end_forward",
+  ARM_GIMBAL = "arm_gimbal",
+
+  EC_SCRAPER = "ce_scraper",
+  EC_FORKLIFT_DOWN = "ce_forklift_down",
+  EC_FORKLIFT_FORWARD = "ce_forklift_forward",
+  EC_SCRAPER_LEG = "ce_scraper_leg",
+
+  SCIENCE_KILN = "science_kiln",
+  SCIENCE_AUGER_BOTTOM = "science_auger_bottom",
+}
+
+export const defaultCamFilters : {[key: string] : CameraFilters} = {
+  "arm_end_forward": {
+    flipCamera: true,
+    invertCamera: false,
+    rotation: 0,
+    contrast: 100,
+    brightness: 100,
+  },
+  "arm_gimbal": {
+    flipCamera: false,
+    invertCamera: false,
+    rotation: 90,
+    contrast: 100,
+    brightness: 100,
+  },
+}
+
+export const allCams = [];
+
+const mastCams = [
+  CameraSerials.MAST_ARM_STOW,
+  CameraSerials.MAST_DOWN,
+  CameraSerials.MAST_FORWARD,
+  CameraSerials.MAST_BACKWARD,
 ];
+
+const armCams = [
+  CameraSerials.ARM_END_TOP,
+  CameraSerials.ARM_END_FINGER,
+  CameraSerials.ARM_END_FORWARD,
+  CameraSerials.ARM_GIMBAL,
+];
+
+const ceCams = [
+  CameraSerials.EC_SCRAPER,
+  CameraSerials.EC_FORKLIFT_DOWN,
+  CameraSerials.EC_FORKLIFT_FORWARD,
+  CameraSerials.EC_SCRAPER_LEG,
+];
+
 
 export const post_landing_views: CameraView[] = [
   {
-    cameraSerials: [
-      "mast_arm_stow",
-      "mast_down",
-      "mast_forward",
-      "mast_backward",
-      "arm_end_top",
-      "arm_end_finger",
-      "arm_end_forward",
-      "arm_gimbal"
-    ],
-    viewTitle: "All Cameras",
+    cameraSerials: [...mastCams, ...armCams],
+    viewTitle: "All PL Cams",
   },
   {
-    cameraSerials: [
-      "mast_arm_stow",
-      "mast_down",
-      "mast_forward",
-      "mast_backward",
-    ],
-    viewTitle: "Mast",
+    cameraSerials: mastCams,
+    viewTitle: "Mast Cams",
   },
   {
-    cameraSerials: [
-      "arm_end_top",
-      "arm_end_finger",
-      "arm_end_forward",
-      "arm_gimbal"
-    ],
-    viewTitle: "Arm",
+    cameraSerials: armCams,
+    viewTitle: "Arm Cams",
   },
 ];
 
 export const excavation_and_construction_views: CameraView[] = [
   {
-    cameraSerials: [
-      "mast_arm_stow",
-      "mast_down",
-      "mast_forward",
-      "mast_backward",
-      "arm_end_side",
-      "arm_end_top",
-      "arm_end_finger",
-      "arm_end_forward",
-    ],
-    viewTitle: "All Cameras",
+    cameraSerials: [...mastCams, ...ceCams],
+    viewTitle: "All EC Cams",
   },
   {
     cameraSerials: [
-      "mast_arm_stow",
-      "mast_down",
-      "mast_forward",
-      "mast_backward",
+      CameraSerials.MAST_ARM_STOW,
+      CameraSerials.MAST_DOWN,
+      CameraSerials.MAST_FORWARD,
+      CameraSerials.MAST_BACKWARD,
     ],
-    viewTitle: "Mast",
+    viewTitle: "Mast Cams",
   },
   {
     cameraSerials: [
-      "arm_end_side",
-      "arm_end_top",
-      "arm_end_finger",
-      "arm_end_forward",
+      CameraSerials.EC_FORKLIFT_DOWN,
+      CameraSerials.EC_FORKLIFT_FORWARD,
+      CameraSerials.EC_SCRAPER,
+      CameraSerials.EC_SCRAPER_LEG,
     ],
-    viewTitle: "Arm",
+    viewTitle: "CE Cams",
   },
 ];
 
 export const space_resources_views: CameraView[] = [
   {
     cameraSerials: [
-      "mast_arm_stow",
-      "mast_down",
-      "mast_forward",
-      "mast_backward",
-      "arm_end_side",
-      "arm_end_top",
-      "arm_end_finger",
-      "arm_end_forward",
+      
     ],
     viewTitle: "All Cameras",
   },
   {
     cameraSerials: [
-      "mast_arm_stow",
-      "mast_down",
-      "mast_forward",
-      "mast_backward",
+      CameraSerials.MAST_ARM_STOW,
+      CameraSerials.MAST_DOWN,
+      CameraSerials.MAST_FORWARD,
+      CameraSerials.MAST_BACKWARD,
     ],
     viewTitle: "Mast",
   },
   {
     cameraSerials: [
-      "arm_end_side",
-      "arm_end_top",
-      "arm_end_finger",
-      "arm_end_forward",
+  
     ],
     viewTitle: "Arm",
   },
@@ -138,34 +150,21 @@ export const space_resources_views: CameraView[] = [
 export const autonomous_views: CameraView[] = [
   {
     cameraSerials: [
-      "mast_arm_stow",
-      "mast_down",
-      "mast_forward",
-      "mast_backward",
-      "arm_end_side",
-      "arm_end_top",
-      "arm_end_finger",
-      "arm_end_forward",
+      CameraSerials.MAST_ARM_STOW,
+      CameraSerials.MAST_DOWN,
+      CameraSerials.MAST_FORWARD,
+      CameraSerials.MAST_BACKWARD,
     ],
-    viewTitle: "All Cameras",
+    viewTitle: "All Auto Cams",
   },
   {
     cameraSerials: [
-      "mast_arm_stow",
-      "mast_down",
-      "mast_forward",
-      "mast_backward",
+      CameraSerials.MAST_ARM_STOW,
+      CameraSerials.MAST_DOWN,
+      CameraSerials.MAST_FORWARD,
+      CameraSerials.MAST_BACKWARD,
     ],
     viewTitle: "Mast",
-  },
-  {
-    cameraSerials: [
-      "arm_end_side",
-      "arm_end_top",
-      "arm_end_finger",
-      "arm_end_forward",
-    ],
-    viewTitle: "Arm",
   },
 ];
 
