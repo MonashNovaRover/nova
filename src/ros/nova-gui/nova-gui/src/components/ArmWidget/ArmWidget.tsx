@@ -6,13 +6,12 @@ import {
     Image,
 } from "@nextui-org/react";
 import React, { useEffect } from "react";
-
 import { useBifrost } from "../../redux/actions/bifrost/useBifrostAction";
 import { RootState } from "../../redux/RootState";
 import { useSelector } from "react-redux";
 import ARMImage from "../../assets/arm-image.png";
 import { RosTopic } from "../../ros/topics/rosTopic.ts";
-import ArmWidgetCell, { IArmWidgetCellProps } from "./ArmWidgetCell.tsx";
+import ArmWidgetCell from "./ArmWidgetCell.tsx";
 
 export interface IArmWidgetProps extends CardProps { }
 
@@ -25,8 +24,8 @@ const ArmWidget: React.FC<IArmWidgetProps> = (
 ) => {
     const bifrostArm = useBifrost({ topic: RosTopic.ARM_TELEMETRY });
 
-    // const jointValues = useSelector((state: RootState) => state.armTelemetryStore.arm_motors);
-    // const jointValuesCurrents = jointValues.map((j: { current: number; }) => Math.round(j.current));
+    const jointValues = useSelector((state: RootState) => state.armTelemetryStore.arm_motors);
+    const jointValuesCurrents = jointValues.map((j) => Math.round(j.current));
 
     useEffect(() => {
         bifrostArm.syncWithTopic();
@@ -36,15 +35,15 @@ const ArmWidget: React.FC<IArmWidgetProps> = (
         <CardBody className="grid auto-cols-fr grid-flow-col gap-3">
             <div className="flex flex-col justify-center gap-3">
                 <ArmWidgetCell
-                    jointValue={0.5}
+                    jointValue={jointValuesCurrents[0]}
                     label={<>J1</>}
                 />
                 <ArmWidgetCell
-                    jointValue={0.5}
+                    jointValue={jointValuesCurrents[1]}
                     label={<>J2</>}
                 />
                 <ArmWidgetCell
-                    jointValue={0.5}
+                    jointValue={jointValuesCurrents[2]}
                     label={<>J3</>}
                 />
             </div>
@@ -55,15 +54,15 @@ const ArmWidget: React.FC<IArmWidgetProps> = (
 
             <div className="flex flex-col justify-center gap-3">
                 <ArmWidgetCell
-                    jointValue={0.5}
+                    jointValue={jointValuesCurrents[3]}
                     label={<>J4</>}
                 />
                 <ArmWidgetCell
-                    jointValue={0.5}
+                    jointValue={jointValuesCurrents[4]}
                     label={<>J5</>}
                 />
                 <ArmWidgetCell
-                    jointValue={0.5}
+                    jointValue={jointValuesCurrents[5]}
                     label={<>J6</>}
                 />
             </div>
