@@ -1,14 +1,13 @@
 import { Progress, ProgressProps } from "@nextui-org/react"
-import "./DriveProgress.css";
+import "./OverlayedProgress.css";
 
 // Properties for the DriveModeButton component.
-export interface IDriveProgressProps extends ProgressProps {
+export interface IDriveOverlayedProps extends ProgressProps {
     // Set to true when you want the color of the bar to change to red for values over 75%
     autoColor?: boolean
 }
 
-// A button used for selecting a drive mode for the DriveModeWidget
-export const DriveProgress: React.FC<IDriveProgressProps> = (props: IDriveProgressProps) =>
+export const OverlayedProgress: React.FC<IDriveOverlayedProps> = (props: IDriveOverlayedProps) =>
 {
   const {autoColor: autoColor, ...progressProps} = props;
 
