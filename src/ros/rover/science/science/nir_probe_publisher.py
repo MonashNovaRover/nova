@@ -14,23 +14,16 @@ TOPICS:
 PACKAGE:     science
 AUTHOR(S):   Bailey Chessum
 CREATION:    4/02/2024
-EDITED:      9/02/2024
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-TODO:
-  - Implement CAN communication with the NIR
-    probe to produce real data
+EDITED:      15/02/2024
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
 import rclpy, jcan
 from rclpy.node import Node
-import random
 
 # import custom messages
 from core.msg import NIRProbeData
 from core.srv import SetNIRProbeLED
-
-
 
 class NIRProbePublisher(Node):
     CAN_BUS = "can1"
@@ -69,6 +62,9 @@ class NIRProbePublisher(Node):
         self.timer_jcan_spin = self.create_timer(0.01, self.bus.spin)
 
     def send_read_command_callback(self):
+        """
+        Sends the read command to the NIR probe
+        """
         frame = jcan.Frame(self.NIR_PROBE_ID, [self.NIR_PROBE_READ])
         
         try:
@@ -78,6 +74,9 @@ class NIRProbePublisher(Node):
             self.get_logger().error("Failed to send read command over CAN")
 
     def read_data_callback(self, frame: jcan.Frame):
+        """
+        Callback for when data is received from the NIR probe
+        """
         if frame.id != self.CARD_ID_RECEIVE:
             self.get_logger().info(f"Received unknown frame {frame}")
             return
@@ -90,6 +89,9 @@ class NIRProbePublisher(Node):
         self.publisher.publish(msg)
 
     def led_service_callback(self, request, response):
+        """
+        Callback to turn the NIR probe LED on or off
+        """
         frame = None
         if request.led == self.LED_BYTES_OFF:
             self.led = self.LED_BYTES_OFF
