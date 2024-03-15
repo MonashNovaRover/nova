@@ -4,6 +4,10 @@ import {
   IRosCameraMsgsGetIpListResponse,
   IRosCoreBlcmdResetRequest,
   IRosCoreBlcmdResetResponse,
+  IRosCoreKilnCommandRequest,
+  IRosCoreKilnCommandResponse,
+  IRosCoreSetNirProbeLedRequest,
+  IRosCoreSetNirProbeLedResponse,
 } from "../rosTypes";
 import { RosService } from "./rosService";
 
@@ -20,6 +24,8 @@ export interface RosServiceInterface {
     EmptyMessage,
     IRosCameraMsgsGetIpListResponse
   >;
+
+  // Camera Related
   [RosService.START_CAMS]: RosServiceMessage<
     IRosCameraMsgsCameraOperationRequest,
     IRosCameraMsgsCameraOperationResponse
@@ -29,8 +35,19 @@ export interface RosServiceInterface {
     IRosCameraMsgsCameraOperationResponse
   >;
 
+  // Error Related
   [RosService.BLCMD_RESET]: RosServiceMessage<
     IRosCoreBlcmdResetRequest,
     IRosCoreBlcmdResetResponse
+  >;
+
+  // Science Related
+  [RosService.KILN_COMMAND]: RosServiceMessage<
+    IRosCoreKilnCommandRequest,
+    IRosCoreKilnCommandResponse
+  >;
+  [RosService.SET_NIR_PROBE_LED]: RosServiceMessage<
+    IRosCoreSetNirProbeLedRequest,
+    IRosCoreSetNirProbeLedResponse
   >;
 }
