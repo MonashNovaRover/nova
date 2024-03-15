@@ -40,6 +40,13 @@ const EMPTY_CALIBRATION_DATA: NIRCalibrationData = {
   chemBlankDifference: 0
 }
 
+const SITE_GRAPH_COLOURS = [
+  "#f43f5e",
+  "#f59e0b",
+  "#0ea5e9",
+  "#8b5cf6",
+]
+
 
 const NIRCalibrationCurveWidget: React.FC<NIRCalibrationCurveWidgetProps> = ({files, type}) => {
 
@@ -90,7 +97,8 @@ const NIRCalibrationCurveWidget: React.FC<NIRCalibrationCurveWidgetProps> = ({fi
     },
     markers: {
       size: [0, 3, ...Object.entries(files).map(() => 5)],
-      strokeColors: "#18181b"
+      strokeColors: "#18181b",
+
     },
     grid: {
       borderColor: "#3f3f46"
@@ -99,15 +107,14 @@ const NIRCalibrationCurveWidget: React.FC<NIRCalibrationCurveWidgetProps> = ({fi
   };
 
   const relevantSiteFiles = Object.entries(files)
-    .filter(([,file]) => file.type === type)
+    .map(([filename, file], i) =>
+      [filename, file, SITE_GRAPH_COLOURS[i]] as [string, ISpaceResourcesFile, string])
+    .filter(([,file,]) => file.type === type)
 
   // This function maps differences to predicted concentrations
   const calibrationFunction = useCallback((rawValue: number) => {
     return (rawValue - calibrationData.yIntercept) / calibrationData.gradient ;
   }, [calibrationData.gradient, calibrationData.yIntercept])
-
-
-
 
   const maxCalibrationDifference = calibrationData.points.map(v => v.difference).reduce((a, b) => Math.max(a,b), 0);
 
@@ -117,13 +124,25 @@ const NIRCalibrationCurveWidget: React.FC<NIRCalibrationCurveWidgetProps> = ({fi
   }, [calibrationData])
 
   const fileSeries = relevantSiteFiles
-    .map(([filename, file] : [string, ISpaceResourcesFile]) => ({
+    .map(([filename, file, color] : [string, ISpaceResourcesFile, string]) => ({
       name: filename,
       data: file.entries.map(
         ({difference, concentration}) =>
           [concentration ?? calibrationFunction(absorbance(difference)), absorbance(difference)]
       ),
-      type: "scatter"
+      type: "scatter",
+      color: color
+    }))
+
+  const fileAverageSeries = relevantSiteFiles
+    .map(([filename, file, color] : [string, ISpaceResourcesFile, string]) => ({
+      name: `${filename}-average`,
+      data: [[
+        file.entries.map(v => v.concentration ?? calibrationFunction(absorbance(v.difference))).reduce((a,b) => a+b, 0) / file.entries.length,
+        file.entries.map(v => absorbance(v.difference)).reduce((a,b) => a+b, 0) / file.entries.length,
+      ]],
+      type: "scatter",
+      color: color,
     }))
 
   const calibrationPoints = calibrationData.points.map(({difference, concentration}) => [concentration, absorbance(difference)]);
@@ -136,7 +155,7 @@ const NIRCalibrationCurveWidget: React.FC<NIRCalibrationCurveWidgetProps> = ({fi
 
   const series : ApexAxisChartSeries | ApexNonAxisChartSeries = [
     {
-      name: "Fit",
+      name: "",
       data: [[0, calibrationData.yIntercept], [xMax, calibrationData.gradient*xMax + calibrationData.yIntercept]],
       color: "#10b98188",
       type: "line"
@@ -147,13 +166,14 @@ const NIRCalibrationCurveWidget: React.FC<NIRCalibrationCurveWidgetProps> = ({fi
       color: "#10b981",
       type: "scatter"
     },
-    ...fileSeries
+    ...fileSeries,
+    ...fileAverageSeries
   ];
 
   return (
     <Card>
       <CardHeader className="pb-0 flex flex-row justify-center">
-        <div className="grow">{typeName} Calibration Curve</div>
+        <div className="grow">NIR {typeName} Calibration Curve</div>
         <Button
           variant={"light"}
           isIconOnly

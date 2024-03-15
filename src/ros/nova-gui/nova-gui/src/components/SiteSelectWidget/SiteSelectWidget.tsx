@@ -60,10 +60,10 @@ const SiteSelectWidget: React.FC<SiteSelectWidgetProps> = ({
         <SegmentedPicker fullWidth
                          className="grow"
                          onIndexChange={(i) => onValueChanged?.(siteFilenames[i])}>
-          <>Site 1</>
-          <>Site 2</>
-          <>Site 3</>
-          <>Site 4</>
+          <div className="text-rose-300">Site 1</div>
+          <div className="text-amber-200">Site 2</div>
+          <div className="text-sky-300">Site 3</div>
+          <div className="text-violet-300">Site 4</div>
         </SegmentedPicker>
 
       </CardBody>

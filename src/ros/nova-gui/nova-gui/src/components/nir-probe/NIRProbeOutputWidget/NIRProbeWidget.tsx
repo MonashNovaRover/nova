@@ -37,7 +37,7 @@ const NIRProbeWidget: React.FC<INIRProbeWidgetProps> = () => {
   const [files, setFiles] = useState<{[key: string] : ISpaceResourcesFile}>({});
 
   const [filename, setFilename] = useState<string | undefined>();
-  const [showAdvanced, setShowAdvanced] = useState<boolean>(true);
+  const [showAdvanced, setShowAdvanced] = useState<boolean>(false);
 
   const setFileAndSave = useCallback((newFile: ISpaceResourcesFile) => {
     if (!filename)
