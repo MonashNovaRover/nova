@@ -39,8 +39,9 @@ class MicroscopeNode(Node):
     MICROSCOPE_SERVO_ID = 0x0B0
     # command data
     MOVE_SERVO_COMMAND = 0x10
-    # angle range
+    # angle
     MIN_ANGLE = 0
+    INITIAL_ANGLE = 45
     MAX_ANGLE = 90
 
     def __init__(self):
@@ -52,7 +53,7 @@ class MicroscopeNode(Node):
         self.service = self.create_service(MicroscopeNode.SERVICE_TYPE, MicroscopeNode.SERVICE_NAME, self.request_servo)
         self.publisher = self.create_publisher(MicroscopeNode.TOPIC_TYPE, MicroscopeNode.TOPIC_NAME, 10)
 
-        self.current_angle = 0
+        self.current_angle = MicroscopeNode.INITIAL_ANGLE
 
         self.bus = jcan.Bus()
         
@@ -73,7 +74,7 @@ class MicroscopeNode(Node):
             if MicroscopeNode.MIN_ANGLE <= request.angle <= MicroscopeNode.MAX_ANGLE:
                 self.current_angle = request.angle
                 self.move_servo(self.current_angle)
-                self.get_logger().error(f"Microscope angle updated to {request.angle}")
+                self.get_logger().info(f"Microscope angle updated to {request.angle}")
                 response.success = True
             else:
                 self.get_logger().error(f"Invalid angle of {request.angle} sent. Angle must be between {MicroscopeNode.MIN_ANGLE} and {MicroscopeNode.MAX_ANGLE} (inclusive).")
@@ -94,7 +95,7 @@ class MicroscopeNode(Node):
             msg = MicroscopeServoInfo()
             msg.angle = self.current_angle
             self.publisher.publish(msg)
-            self.get_logger().info(f"Microscope servo angle{str(self.current_angle)} published")
+            self.get_logger().info(f"Microscope servo angle {str(self.current_angle)} published")
         except Exception as e:
             self.get_logger().error(f"Failed to publish microscope servo data: {str(e)}")
 
