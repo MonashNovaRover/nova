@@ -3,6 +3,7 @@ import BifrostStatusStore from "./store/bifrost/BifrostStatusStore";
 import { createBifrostStore } from "./store/bifrost/createBifrostStore";
 import { RosService } from "../ros/services/rosService";
 import { RosTopic } from "../ros/topics/rosTopic";
+import { IRosCoreCmDsFeedback, IRosCoreCmdFeedback } from "../ros/rosTypes";
 import { uiSlice } from "./slices/UISlice";
 import { cameraStreamerSlice } from "./slices/CameraStreamSlice";
 
@@ -40,8 +41,8 @@ export const rootReducer = {
       handbrake: false,
     }
   ),
-  telemetryStore: createBifrostStore(
-    { topic: RosTopic.TELEMETRY },
+  driveTelemetryStore: createBifrostStore(
+    { topic: RosTopic.DRIVE_TELEMETRY },
     {
       wheels: [0, 0, 0, 0].map(() => ({
         bus: "",
@@ -70,6 +71,15 @@ export const rootReducer = {
         temperature: 0,
       })),
     }
+  ),
+  armTelemetryStore: createBifrostStore(
+    { topic: RosTopic.ARM_TELEMETRY },
+    {
+      arm_motors: [0, 0, 0, 0, 0, 0].map(() => ({
+        current: 0,
+      } as IRosCoreCmdFeedback)),
+        
+    } as IRosCoreCmDsFeedback
   ),
 
   // Cameras2 Reducers
