@@ -2,6 +2,7 @@ import {
   IRosCameraMsgsCameraOperationRequest,
   IRosCameraMsgsCameraOperationResponse,
   IRosCameraMsgsGetIpListResponse,
+  IRosStdSrvsTriggerResponse,
   IRosCoreKilnCommandRequest,
   IRosCoreKilnCommandResponse,
   IRosCoreSetNirProbeLedRequest,
@@ -22,6 +23,7 @@ export interface RosServiceInterface {
     EmptyMessage,
     IRosCameraMsgsGetIpListResponse
   >;
+  [RosService.READ_RFID]: RosServiceMessage<EmptyMessage, IRosStdSrvsTriggerResponse>
 
   // Camera Related
   [RosService.START_CAMS]: RosServiceMessage<

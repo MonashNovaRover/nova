@@ -87,6 +87,12 @@ export const rootReducer = {
         
     } as IRosCoreCmDsFeedback
   ),
+  rfidDataStore: createBifrostStore(
+    { topic: RosTopic.RFID_DATA },
+    {
+      data: ""
+    }
+  ),
 
   // Cameras2 Reducers
   camerasStore: createBifrostStore(
