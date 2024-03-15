@@ -60,6 +60,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/BLCMDStatus.msg"
   "msg/BLCMDStatusArray.msg"
   "msg/ActuatorLimit.msg"
+  "msg/NIRProbeData.msg"
 
   "msg/Heartbeat.msg"
   "msg/KilnMassData.msg"
@@ -81,8 +82,9 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/StringTrigger.srv"
   "srv/DisableBLCMD.srv"
   "srv/GpsOffset.srv"
+  "srv/SetNIRProbeLED.srv"
 
-  # Action definitions
+        # Action definitions
   DEPENDENCIES std_msgs geometry_msgs nav_msgs trajectory_msgs
 )
 
