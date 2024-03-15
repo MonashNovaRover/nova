@@ -46,7 +46,7 @@ class AugerNode(Node):
     AUGER_LIMIT_SWITCH_BOTTOM = 0x02
     # limit switch status / data
     AUGER_LIMIT_SWITCH_CLEAR = 0x00
-    AUGER_LIMIT_SWITCH_HIT = 0x01
+    AUGER_LIMIT_SWITCH_HIT = 0xFF
     # max_velocity
     MAX_VELOCITY = 32767 * (3/4) # 3/4 of max possible value sent to motor
     # ROS parameter names
@@ -115,17 +115,18 @@ class AugerNode(Node):
  
         if frame.id == self.CARD_ID_RECEIVE:
             if frame.data[0] == self.AUGER_LIMIT_SWITCH_TOP:
-                if frame.data[1] == self.AUGER_LIMIT_SWITCH_HIT:
+                if frame.data[1] == self.AUGER_LIMIT_SWITCH_CLEAR:
+                    self.top_limit = False
+                else:
                     self.get_logger().info("Top limit switch hit")
                     self.top_limit = True
-                else:
-                    self.top_limit = False
+               
             elif frame.data[0] == self.AUGER_LIMIT_SWITCH_BOTTOM:
-                if frame.data[1] == self.AUGER_LIMIT_SWITCH_HIT:
+                if frame.data[1] == self.AUGER_LIMIT_SWITCH_CLEAR:
+                    self.bottom_limit = False
+                else:
                     self.get_logger().info("Bottom limit switch hit")
                     self.bottom_limit = True
-                else:
-                    self.bottom_limit = False
         else:
             self.get_logger().info(f"Received unknown frame {frame}")
         
