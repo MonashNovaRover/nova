@@ -2,7 +2,11 @@ import {
   IRosCameraMsgsCameraOperationRequest,
   IRosCameraMsgsCameraOperationResponse,
   IRosCameraMsgsGetIpListResponse,
-  IRosStdSrvsTriggerResponse
+  IRosStdSrvsTriggerResponse,
+  IRosCoreKilnCommandRequest,
+  IRosCoreKilnCommandResponse,
+  IRosCoreSetNirProbeLedRequest,
+  IRosCoreSetNirProbeLedResponse,
 } from "../rosTypes";
 import { RosService } from "./rosService";
 
@@ -20,6 +24,8 @@ export interface RosServiceInterface {
     IRosCameraMsgsGetIpListResponse
   >;
   [RosService.READ_RFID]: RosServiceMessage<EmptyMessage, IRosStdSrvsTriggerResponse>
+
+  // Camera Related
   [RosService.START_CAMS]: RosServiceMessage<
     IRosCameraMsgsCameraOperationRequest,
     IRosCameraMsgsCameraOperationResponse
@@ -27,5 +33,15 @@ export interface RosServiceInterface {
   [RosService.PAUSE_CAMS]: RosServiceMessage<
     IRosCameraMsgsCameraOperationRequest,
     IRosCameraMsgsCameraOperationResponse
+  >;
+
+  // Science Related
+  [RosService.KILN_COMMAND]: RosServiceMessage<
+    IRosCoreKilnCommandRequest,
+    IRosCoreKilnCommandResponse
+  >;
+  [RosService.SET_NIR_PROBE_LED]: RosServiceMessage<
+    IRosCoreSetNirProbeLedRequest,
+    IRosCoreSetNirProbeLedResponse
   >;
 }
