@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { DriveProgress } from "../DriveSpeedWidget/DriveProgress";
 import { Button, Card, CardHeader, CardBody, CardProps } from "@nextui-org/react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/RootState";
@@ -8,6 +7,7 @@ import { RosTopic } from "../../ros/topics/rosTopic";
 import { RosService } from "../../ros/services/rosService";
 import { SubCardLabel } from "../shared/Labels";
 import { Square, Power } from "react-feather";
+import { OverlayedProgress } from "../OverlayedProgress/OverlayedProgress";
 
 interface KilnWidgetProps extends CardProps {
 
@@ -83,7 +83,7 @@ const KilnWidget: React.FC<KilnWidgetProps> = (props) => {
             <SubCardLabel>TEMPERATURE</SubCardLabel>
                 {sensors.map((element, index) => 
                     (element.enabled) && 
-                    <DriveProgress
+                    <OverlayedProgress
                         key={index}
                         size="lg"
                         value={kilnData.temp[index]}
@@ -96,7 +96,7 @@ const KilnWidget: React.FC<KilnWidgetProps> = (props) => {
                             <span>{element.name}</span>
                             <span> {kilnData.temp[index]}&deg;C</span>
                         </div>
-                    </DriveProgress>
+                    </OverlayedProgress>
                 )}
             </Card>
 
