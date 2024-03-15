@@ -2,6 +2,8 @@ import {
   IRosCameraMsgsCameras,
   IRosCameraMsgsGetIpListResponse,
   IRosCoreDriveInfo,
+  IRosCoreKilnCommandResponse,
+  IRosCoreKilnData,
   IRosCoreTelemetry,
   IRosGeometryMsgsPose,
   IRosCoreCmDsFeedback 
@@ -25,6 +27,8 @@ export interface RootState {
   // Camera Stores
   camerasStore: IRosCameraMsgsCameras;
   ipList: IRosCameraMsgsGetIpListResponse;
+  kilnData: IRosCoreKilnData;
+  kilnCommand: IRosCoreKilnCommandResponse;
 
   // Regular Stores
   uiState: UIState;

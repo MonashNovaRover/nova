@@ -19,4 +19,7 @@ export const rosTopicMessages = {
 
   // Cameras Related
   [RosTopic.CAMERAS]: "camera_msgs/msg/Cameras",
+
+  // Science Related
+  [RosTopic.KILN_DATA]: "core/msg/KilnData",
 };

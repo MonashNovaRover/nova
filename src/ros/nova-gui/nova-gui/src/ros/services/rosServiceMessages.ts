@@ -5,4 +5,7 @@ export const rosServiceMessages = {
   [RosService.GET_IP_LIST]: "camera_msgs/srv/GetIPList",
   [RosService.START_CAMS]: "camera_msgs/srv/CameraOperation",
   [RosService.PAUSE_CAMS]: "camera_msgs/srv/CameraOperation",
+
+  // Science Related 
+  [RosService.KILN_COMMAND]: "core/srv/KilnCommand",
 };
