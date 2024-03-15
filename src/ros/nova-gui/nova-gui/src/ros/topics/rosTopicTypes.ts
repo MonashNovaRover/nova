@@ -3,6 +3,7 @@ import {
   IRosCameraMsgsCameras,
   IRosCoreTelemetry,
   IRosGeometryMsgsPose,
+  IRosCoreNirProbeData,
   IRosCoreKilnData
 } from "../rosTypes";
 import { IRosCoreDriveInfo } from "../rosTypes";
@@ -29,4 +30,5 @@ export interface RosTopicInterfaces {
 
   // Science Related
   [RosTopic.KILN_DATA]: IRosCoreKilnData;
+  [RosTopic.NIR_DATA]: IRosCoreNirProbeData;
 }

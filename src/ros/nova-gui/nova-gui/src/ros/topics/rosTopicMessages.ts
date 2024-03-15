@@ -22,4 +22,5 @@ export const rosTopicMessages = {
 
   // Science Related
   [RosTopic.KILN_DATA]: "core/msg/KilnData",
+  [RosTopic.NIR_DATA]: "core/msg/NIRProbeData",
 };

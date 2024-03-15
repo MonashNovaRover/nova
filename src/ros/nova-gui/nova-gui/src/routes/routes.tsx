@@ -10,6 +10,7 @@ import URCDeliveryView from "../views/urc/URCDeliveryView";
 import URCEquipmentServicingView from "../views/urc/URCEquipmentServicingView";
 import URCScienceView from "../views/urc/URCScienceView";
 import { Root } from "../root";
+import TestScienceView from "../views/test/TestScienceView.tsx";
 import { CameraPage } from "../views/shared/CamerasPage/CamerasPage.tsx";
 import { SingleCameraPage } from "../views/shared/SingleCameraPage/SingleCameraPage.tsx";
 import {
@@ -79,7 +80,12 @@ export const generalRoutes: RouteObject[] = [
   },
 ];
 
-export const testRoutes: RouteObject[] = [];
+export const testRoutes: RouteObject[] = [
+  {
+    path: "/test/science",
+    element: <TestScienceView />,
+  },
+];
 
 const cameraRoutes: RouteObject[] = [
   {
