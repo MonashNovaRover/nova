@@ -10,9 +10,9 @@ import { Toaster } from "react-hot-toast";
 export const RosRoot: React.FC = () => {
   return (
     <RosProvider>
-      <div className="dark text-foreground w-screen h-screen [background:#131313]">
+      <div className="dark text-foreground w-screen h-full min-h-screen [background:#131313]">
         <NovaNavbar />
-        <div className="flex h-full">
+        <div className="flex h-full w-full">
           <Sidebar />
           <Outlet />
         </div>
