@@ -7,7 +7,7 @@ transmitted to the controlling arduino as appropriate, with the text response be
 returned to the calling client for use as required
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:     electronics
-AUTHOR(S):    Josh Cherubino
+AUTHOR(S):    Josh Cherubino, Bailey Chessum
 CREATION:    not sure lol
 EDITED:      9/3/2022 by Josh Cherubino
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -19,20 +19,16 @@ TODO:
     - Add more sophisticated write error handling
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
-from core.srv import RFIDCommand
 
 import argparse
-
 import rclpy, time
 from rclpy.node import Node
-
-from std_msgs.msg import String
-from std_srvs.srv import Trigger
-
 from urllib.parse import quote
-
 from serial import Serial
 
+from core.srv import RFIDCommand
+from std_msgs.msg import String
+from std_srvs.srv import Trigger
 
 class RFIDService(Node):
 
