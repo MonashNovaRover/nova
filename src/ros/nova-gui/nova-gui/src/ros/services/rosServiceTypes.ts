@@ -2,6 +2,8 @@ import {
   IRosCameraMsgsCameraOperationRequest,
   IRosCameraMsgsCameraOperationResponse,
   IRosCameraMsgsGetIpListResponse,
+  IRosCoreKilnCommandRequest,
+  IRosCoreKilnCommandResponse
 } from "../rosTypes";
 import { RosService } from "./rosService";
 
@@ -25,5 +27,11 @@ export interface RosServiceInterface {
   [RosService.PAUSE_CAMS]: RosServiceMessage<
     IRosCameraMsgsCameraOperationRequest,
     IRosCameraMsgsCameraOperationResponse
+  >;
+
+  // Science Related
+  [RosService.KILN_COMMAND]: RosServiceMessage<
+    IRosCoreKilnCommandRequest,
+    IRosCoreKilnCommandResponse
   >;
 }

@@ -14,8 +14,12 @@ export enum RosTopic {
 
   // Drive related topics
   DRIVE_INFO = "/control/drive_info",
-  TELEMETRY = "/control/telemetry",
+  DRIVE_TELEMETRY = "/control/telemetry",
+  ARM_TELEMETRY = "/electronics/cmd_feedback",
 
   // Camera Related topics
   CAMERAS = "/camera_directory/cameras",
+
+  // Science Related
+  KILN_DATA = "/science/kiln_data",
 }

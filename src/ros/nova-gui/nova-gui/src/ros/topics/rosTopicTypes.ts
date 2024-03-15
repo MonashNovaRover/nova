@@ -3,8 +3,10 @@ import {
   IRosCameraMsgsCameras,
   IRosCoreTelemetry,
   IRosGeometryMsgsPose,
+  IRosCoreKilnData
 } from "../rosTypes";
 import { IRosCoreDriveInfo } from "../rosTypes";
+import { IRosCoreCmDsFeedback } from "../rosTypes";
 
 /**
  * This Interface exists to link Individual topics to The Messages.
@@ -19,8 +21,12 @@ export interface RosTopicInterfaces {
 
   // Drive Related
   [RosTopic.DRIVE_INFO]: IRosCoreDriveInfo;
-  [RosTopic.TELEMETRY]: IRosCoreTelemetry;
+  [RosTopic.DRIVE_TELEMETRY]: IRosCoreTelemetry;
+  [RosTopic.ARM_TELEMETRY]: IRosCoreCmDsFeedback;
 
   // Cameras Related
   [RosTopic.CAMERAS]: IRosCameraMsgsCameras;
+
+  // Science Related
+  [RosTopic.KILN_DATA]: IRosCoreKilnData;
 }
