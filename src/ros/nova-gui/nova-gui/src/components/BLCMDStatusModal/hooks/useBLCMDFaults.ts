@@ -23,7 +23,13 @@ export const useBLCMDFaults = () => {
   );
 
   useEffect(() => {
-    if (newStatus !== currentStatus) {
+    // The Conditional statement checks if the newStatus is different from the currentStatus. Since it's a list of status
+    // objects, we can't compare them directly. We have to convert them to strings and compare the strings.
+
+    if (
+      JSON.stringify(newStatus.sort((a, b) => a.id - b.id)) !==
+      JSON.stringify(currentStatus?.sort((a, b) => a.id - b.id))
+    ) {
       const errors = newStatus.filter(
         (status) =>
           status.gate_fault ||

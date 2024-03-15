@@ -16,11 +16,10 @@ export const BLCMDStatusButton = () => {
         size="sm"
         variant="solid"
         color={fault ? "danger" : "default"}
-        className="px-40"
+        className={fault ? "px-40" : ""}
         onClick={() => uiActions.setBlcmdStatusModalOpen(true)}
       >
-        <ExclamationCircleFill className="w-4 h-4" />
-        {fault}
+        {fault ? fault : <ExclamationCircleFill className="w-4 h-4" />}
       </Button>
       <BLCMDStatusModal></BLCMDStatusModal>
     </div>
