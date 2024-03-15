@@ -20,7 +20,6 @@ import { useLocation } from "react-router-dom";
 import humanizeString from "humanize-string";
 import "./Navbar.css";
 import { List } from "react-bootstrap-icons";
-import { UIActions } from "../../redux/slices/UISlice";
 
 const connectionStatusColor: {
   [key: string]: "success" | "warning" | "danger";
@@ -81,7 +80,7 @@ export const NovaNavbar: React.FC = () => {
                 General
               </Button>
             </DropdownTrigger>
-            <DropdownMenu>
+            <DropdownMenu aria-label="Operation Mode">
               <DropdownItem description="General Tab for Rover Operation" href="/general">
                 General
               </DropdownItem>
