@@ -2,9 +2,9 @@
   ros__parameters:
     camera:
       i_nn_type: none
-    imu:
-      i_message_type: IMU
-      i_rotation_vector_type: GAME_ROTATION_VECTOR
+    # imu:
+    #   i_message_type: IMU
+    #   i_rotation_vector_type: GAME_ROTATION_VECTOR
     rgb:
       i_fps: 5.0
     left:

@@ -15,28 +15,22 @@ def launch_setup(context, *args, **kwargs):
     qos = LaunchConfiguration("qos")
     core_prefix = get_package_share_directory('core')
     parameters={
-          'frame_id':'base_link',
+          'frame_id':'oak',
           'use_sim_time':use_sim_time,
           'subscribe_rgb': True,
           'subscribe_depth':True,
-          'publish_tf': True,
+          'subscribe_odom_info': True,
           'approx_sync':True,
           'odom_frame_id': 'odom',
           "Rtabmap/DetectionRate": "3.5",
-    }
-
-    odom_parameters={
-          'frame_id':'base_link',
-          'use_sim_time':use_sim_time,
-          'subscribe_depth':True,
-          'publish_tf': False,
     }
 
     remappings = [
         ("rgb/image", name+"/rgb/image_rect"),
         ("rgb/camera_info", name+"/rgb/camera_info"),
         ("depth/image", name+"/stereo/image_raw"),
-        ("imu", name+"/imu/data")
+        # ("imu", name+"/imu/data"),
+        # ("odom", "odom/visual"),
     ]
 
     return [
@@ -47,13 +41,13 @@ def launch_setup(context, *args, **kwargs):
         ),
 
         LoadComposableNodes(
-            target_container="rtabmap_container",
+            target_container=name + "_container",
             composable_node_descriptions=[
                 ComposableNode(
                     package='rtabmap_odom',
                     plugin='rtabmap_odom::RGBDOdometry',
                     name='rgbd_odometry',
-                    parameters=[odom_parameters],
+                    parameters=[odom_parameters, {"publish_tf": True}],
                     remappings=remappings +
                                [('/odom', '/odom/visual')]
                     ,
@@ -62,15 +56,14 @@ def launch_setup(context, *args, **kwargs):
         ),
 
         LoadComposableNodes(
-            target_container="rtabmap_container",
+            target_container=name + "_container",
             composable_node_descriptions=[
                 ComposableNode(
                     package='rtabmap_slam',
                     plugin='rtabmap_slam::CoreWrapper',
                     name='rtabmap',
                     parameters=[parameters,
-                                {'Mem/IncrementalMemory':'False',
-                                 'Mem/InitWMWithAllNodes':'True'}],
+                                {'publish_tf':True}],
                     remappings=remappings,
                 ),
             ],

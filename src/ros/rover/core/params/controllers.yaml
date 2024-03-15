@@ -94,9 +94,11 @@ nova_diff_drive_controller:
     wheels_per_side: 2
     steering_track: 0.7
     wheel_base: 0.84
-    wheel_radius: 0.125
+    wheel_radius: 0.1488
     enable_twist_cmd: false
     use_unstamped_msg: false
     linear:
       x:
         max_acceleration: 5.0
+    twist_covariance_diagonal: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+
