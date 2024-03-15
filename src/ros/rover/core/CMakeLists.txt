@@ -45,6 +45,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/DriveInput.msg"
   "msg/HydraprobeData.msg"
   "msg/EMCData.msg"
+  "msg/KilnData.msg"
   "msg/InputGamepad.msg"
   "msg/InputJoystick.msg"
   "msg/Point2D.msg"
@@ -58,7 +59,6 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/Telemetry.msg"
   "msg/BLCMDStatus.msg"
   "msg/BLCMDStatusArray.msg"
-  "msg/BLCMDReset.msg"
   "msg/ActuatorLimit.msg"
   "msg/NIRProbeData.msg"
 
@@ -69,8 +69,10 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/RoverPose.msg"
 
   "srv/ArmConfigInfo.srv"
+  "srv/BLCMDReset.srv"
   "srv/CameraCommand.srv"
   "srv/CMDCommand.srv"
+  "srv/KilnCommand.srv"
   "srv/GimbalCommand.srv"
   "srv/PIDTune.srv"
   "srv/ScienceCommand.srv"
