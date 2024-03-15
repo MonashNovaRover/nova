@@ -22,8 +22,8 @@ export const RosProvider = (props: { children: React.ReactNode }) => {
       BifrostConnectionStatus.DISCONNECTED
     )
       return;
+    const ros = new Ros({ url: "ws://" + uiStore.baseStationIP + ":9090" });
     bifrostActions.updateBifrostConnection(BifrostConnectionStatus.CONNECTING);
-    const ros = new Ros({ url: "ws://" + uiStore.rosUrl + ":9090" });
 
     ros.on("connection", () => {
       bifrostActions.updateBifrostConnection(BifrostConnectionStatus.CONNECTED);
@@ -43,7 +43,7 @@ export const RosProvider = (props: { children: React.ReactNode }) => {
 
     setRos(ros);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [uiStore.rosUrl]);
+  }, [uiStore.baseStationIP]);
 
   return (
     <RosContext.Provider value={ros}>{props.children}</RosContext.Provider>

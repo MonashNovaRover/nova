@@ -2,42 +2,85 @@ import {
   Button,
   Card,
   CardFooter,
-  Chip,
   Popover,
   PopoverContent,
   PopoverTrigger,
   Spinner,
 } from "@nextui-org/react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Camera as CameraIcon, Info, Play, Square } from "react-feather";
 import { CameraInfoModal } from "./components/CameraInfoModal";
 import { StreamingState, useCameraStream } from "./hooks/useCameraStream";
 import { CameraSettingsForm } from "./components/CameraSettingsForm";
 import CameraVideo from "./components/CameraVideo";
 import { initialFilters } from "../../views/shared/CamerasPage/CameraPageConstants";
+import { BooleanChip } from "./components/BooleanChip";
+import humanizeString from "humanize-string";
+import { ExternalLink } from "react-feather";
+import toast from "react-hot-toast";
 
 const ASPECT_RATIO = 4 / 3;
 
 export interface CameraComponentProps {
-  cameraName: string;
   cameraSerial: string;
+  autostart?: boolean;
 }
 
 export interface CameraFilters {
   flipCamera: boolean;
+  invertCamera: boolean;
   rotation: number; // between -180 to 180
+  contrast: number; // between 0 and 200
+  brightness: number; // between 0 and 200
 }
 
 export const CameraComponent = (props: CameraComponentProps) => {
-  const { cameraName, cameraSerial } = props;
+  const { cameraSerial, autostart: allCamerasStarted } = props;
+  const cameraName = humanizeString(cameraSerial);
   const cardRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
   const [isCameraInfoModalOpen, setCameraInfoModalOpen] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const { streamingState, sendSessionStartMessage, isCameraOnline } =
-    useCameraStream(cameraSerial, videoRef);
+  const {
+    streamingState,
+    sendSessionStartMessage,
+    isCameraOnline,
+    closeSession,
+  } = useCameraStream(cameraSerial, videoRef, allCamerasStarted);
   const [isSettingsOpen, setSettingsOpen] = useState(false);
   const [filters, setFilters] = useState(initialFilters);
+
+  const openCameraInTab = () =>
+    window.open(
+      `/cameras/${cameraSerial}`,
+      "_blank",
+      "rel=noopener noreferrer"
+    );
+
+  const takeScreenshot = useCallback(async () => {
+    if (videoRef.current && window) {
+      const video = videoRef.current;
+      const canvas = document.createElement("canvas");
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const context = canvas.getContext("2d");
+      if (context) {
+        context.drawImage(video, 0, 0);
+        const blob = await new Promise<Blob | null>((resolve) => {
+          canvas.toBlob((blob) => resolve(blob));
+        });
+        if (blob) {
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = `${cameraSerial}-${Date.now()}.png`;
+          link.click();
+        }
+      }
+    } else {
+      toast("Unable to Take a Screenshot");
+    }
+  }, [videoRef, cameraSerial]);
 
   useEffect(() => {
     const handleMouseEnter = () => {
@@ -63,9 +106,10 @@ export const CameraComponent = (props: CameraComponentProps) => {
   }, []);
 
   return (
-    <Card className={`m-4 h-[41vh] aspect-[${ASPECT_RATIO}] `} ref={cardRef}>
+    <Card className={`m-4  aspect-[${ASPECT_RATIO}] `} ref={cardRef}>
       <CameraInfoModal
         {...props}
+        cameraName={cameraName}
         isModalOpen={isCameraInfoModalOpen}
         setCameraModalOpen={setCameraInfoModalOpen}
       />
@@ -75,11 +119,13 @@ export const CameraComponent = (props: CameraComponentProps) => {
         {streamingState === StreamingState.STOPPED && (
           <div className="flex flex-col gap-1 items-center">
             <div className="font-bold text-xl">{cameraName}</div>
-            {isCameraOnline ? (
-              <Chip color="success">Online</Chip>
-            ) : (
-              <Chip>Offline</Chip>
-            )}
+            <BooleanChip
+              boolean={isCameraOnline}
+              trueText="Online"
+              falseText="Offline"
+              variant="dot"
+              size="md"
+            />
           </div>
         )}
         {streamingState === StreamingState.LOADING && <Spinner />}
@@ -101,13 +147,21 @@ export const CameraComponent = (props: CameraComponentProps) => {
                   Start
                 </Button>
               ) : (
-                <Button size="sm" color="danger" className="w-min mx-auto">
+                <Button
+                  size="sm"
+                  color="danger"
+                  className="w-min mx-auto"
+                  onClick={() => closeSession()}
+                >
                   <Square size="15px" fill="white" /> Stop
                 </Button>
               )}
 
               <Button isIconOnly size="sm">
-                <CameraIcon size="15px" />
+                <CameraIcon size="15px" onClick={takeScreenshot} />
+              </Button>
+              <Button isIconOnly size="sm" onClick={openCameraInTab}>
+                <ExternalLink size="15px" />
               </Button>
               <Popover
                 placement="bottom"
@@ -136,15 +190,3 @@ export const CameraComponent = (props: CameraComponentProps) => {
     </Card>
   );
 };
-
-{
-  /* <Button
-            size="sm"
-            color="primary"
-            className="w-min mx-auto"
-            onClick={() => sendSessionStartMessage()}
-          >
-            <Play size="15px" fill="white" />
-            Start
-          </Button> */
-}

@@ -106,6 +106,7 @@ const servoSuccess = useSelector((state: Rootstate) => state.servoSuccessStore);
 const bifrost = useBifrost({ service: RosService.SET_SERVO });
 
 const setServo = (position: number) => bifrost.callService(position);
+const setServo = (position: number) => bifrost.callServiceToRedux(position); // Use This to set sendToRedux to true by default
 ```
 
 `callService` has 2 arguments
@@ -120,6 +121,8 @@ const setServo = (position: number) => bifrost.callService(position);
 - `successToastMessage: string`: Custom string to be used instead of "Request Successful" when `responseToast` is set to true.
 - `errorToastMessage: string`: By Default, the error messages from toasts are directly from `rosbridge_server`. This can be overrided using this custom string message.
 - `handleResponse: (response)=>void`: This is a callback function when the response is recieved from the server and can be used to do some stuff that can't be done using any of the other params on `CallServiceOption`.
+
+An Alias function `callServiceToRedux` calls `callService` with the `sendToRedux` flag enabled by default, and is recommended for use cases with Redux.
 
 The `callServiceOption` param is set to this default object
 

@@ -1,11 +1,13 @@
 export interface UIState {
-  rosUrl: string;
+  baseStationIP: string;
+  roverIP: string;
   settingsModalOpen: boolean;
   controllerHelpModalOpen: boolean;
 }
 
 export const initialUIState: UIState = {
-  rosUrl: window.localStorage.getItem("baseIP") ?? "192.168.1.81",
+  baseStationIP: window.localStorage.getItem("baseIP") ?? "10.0.0.101",
+  roverIP: window.localStorage.getItem("roverIP") ?? "10.0.0.10",
   settingsModalOpen: false,
   controllerHelpModalOpen: false,
 };

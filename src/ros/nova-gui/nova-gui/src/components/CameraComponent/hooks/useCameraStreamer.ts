@@ -9,6 +9,13 @@ import { cloneDeep } from "lodash";
 import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction";
 import { RosTopic } from "../../../ros/topics/rosTopic";
 
+/**
+ * Custom React hook for managing camera streaming functionality.
+ * This hook handles communication with the server, synchronization with the ROS topic,
+ * and updating the camera state based on received messages. Acts as an Orchestrator
+ * handling addition and removal of cameras from cameras2.
+ * @returns An object containing the `refreshAvailabilities` function.
+ */
 export const useCameraStreamer = () => {
   const cameraStreamerActions = useCameraStreamerActions();
 
@@ -22,9 +29,10 @@ export const useCameraStreamer = () => {
   const cameras = useSelector(
     (state: RootState) => state.cameraStreamerState.cameras
   );
+  const roverIP = useSelector((state: RootState) => state.uiState.roverIP);
 
   const { sendJsonMessage, lastJsonMessage } = useWebSocket<ServerMessage>(
-    "ws://192.168.1.204:8443",
+    `ws://${roverIP}:8443`,
     {
       onOpen: () => {
         sendPeerStatusMessage(CameraStreamerStatus.CONNECTED);
@@ -78,11 +86,11 @@ export const useCameraStreamer = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastJsonMessage]);
 
-  const refreshAvailability = useCallback(() => {
+  const refreshAvailabilities = useCallback(() => {
     sendJsonMessage({ type: "list" });
   }, [sendJsonMessage]);
 
   return {
-    refreshAvailability,
+    refreshAvailabilities,
   };
 };
