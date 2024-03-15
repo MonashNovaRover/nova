@@ -1,6 +1,7 @@
 import { RosTopic } from "./rosTopic";
 import {
   IRosCameraMsgsCameras,
+  IRosCoreMicroscopeServoInfo,
   IRosCoreTelemetry,
   IRosGeometryMsgsPose,
 } from "../rosTypes";
@@ -23,4 +24,7 @@ export interface RosTopicInterfaces {
 
   // Cameras Related
   [RosTopic.CAMERAS]: IRosCameraMsgsCameras;
+
+  // Science Related
+  [RosTopic.MICROSCOPE_SERVO]: IRosCoreMicroscopeServoInfo;
 }

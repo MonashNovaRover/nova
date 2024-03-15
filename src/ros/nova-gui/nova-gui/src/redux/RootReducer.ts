@@ -70,6 +70,16 @@ export const rootReducer = {
   ),
   ipList: createBifrostStore({ service: RosService.GET_IP_LIST }, { ips: [] }),
 
+  // Science Reducers
+  microscopeServoStore: createBifrostStore(
+    { topic: RosTopic.MICROSCOPE_SERVO },
+    { angle: 45 }
+  ),
+  microscopeServiceStore: createBifrostStore(
+    { service: RosService.MOVE_MICROSCOPE_SERVO },
+    { success: true }
+  ),
+
   // Regular Stores
   uiState: uiSlice.reducer,
   cameraStreamerState: cameraStreamerSlice.reducer,

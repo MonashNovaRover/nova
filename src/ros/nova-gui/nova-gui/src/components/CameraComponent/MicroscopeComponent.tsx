@@ -1,10 +1,34 @@
 import { Card, Slider } from "@nextui-org/react";
 import { CameraComponent } from "./CameraComponent";
-import { useState } from "react";
 import { useCameraStreamer } from "./hooks/useCameraStreamer";
+import { RootState } from "../../redux/RootState";
+import { useSelector } from "react-redux";
+import { RosTopic } from "../../ros/topics/rosTopic";
+import { useBifrost } from "../../redux/actions/bifrost/useBifrostAction";
+import { useEffect } from "react";
+import { RosService } from "../../ros/services/rosService";
 
 export const MicroscopeComponent = () => {
-  const [zoomFocus, setZoomFocus] = useState<number>(0);
+  const microscopeServoState = useSelector(
+    (state: RootState) => state.microscopeServoState
+  );
+  
+  // Invoking Bifrost and pointing it towards TEMP_SENSOR
+  const topicBifrost = useBifrost({ topic: RosTopic.MICROSCOPE_SERVO });
+  
+  // Wrap with useEffect hook to only run it once
+  useEffect(() => {
+    // call bifrost.syncWithTopic() to initiate Realtime Updates
+    topicBifrost.syncWithTopic();
+  }, [topicBifrost]);
+
+  // Accessing the Store using useSelector hook
+const microscopeServoService = useSelector((state: RootState) => state.microscopeServoService);
+
+// Invoking Bifrost and pointing it towards SET_SERVO
+const serviceBifrost = useBifrost({ service: RosService.MOVE_MICROSCOPE_SERVO });
+
+const setZoomFocus = (angle: number) => serviceBifrost.callServiceToRedux(angle);
 
   useCameraStreamer();
 
@@ -17,9 +41,10 @@ export const MicroscopeComponent = () => {
         label="Zoom/Focus"
         startContent="1x"
         endContent="100x"
-        value={zoomFocus}
+        value={microscopeServoState.angle}
         onChange={(value) => setZoomFocus(value as number)}
       />
+      { microscopeServoService.success ? <div>ERROR executing microscope servo request on rover</div> : null}
     </Card>
   );
 };

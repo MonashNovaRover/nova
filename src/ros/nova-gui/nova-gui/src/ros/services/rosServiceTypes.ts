@@ -2,6 +2,8 @@ import {
   IRosCameraMsgsCameraOperationRequest,
   IRosCameraMsgsCameraOperationResponse,
   IRosCameraMsgsGetIpListResponse,
+  IRosCoreMoveMicroscopeServoRequest,
+  IRosCoreMoveMicroscopeServoResponse,
 } from "../rosTypes";
 import { RosService } from "./rosService";
 
@@ -25,5 +27,9 @@ export interface RosServiceInterface {
   [RosService.PAUSE_CAMS]: RosServiceMessage<
     IRosCameraMsgsCameraOperationRequest,
     IRosCameraMsgsCameraOperationResponse
+  >;
+  [RosService.MOVE_MICROSCOPE_SERVO]: RosServiceMessage<
+    IRosCoreMoveMicroscopeServoRequest,
+    IRosCoreMoveMicroscopeServoResponse
   >;
 }

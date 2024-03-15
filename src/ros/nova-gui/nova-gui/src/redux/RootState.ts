@@ -2,6 +2,8 @@ import {
   IRosCameraMsgsCameras,
   IRosCameraMsgsGetIpListResponse,
   IRosCoreDriveInfo,
+  IRosCoreMicroscopeServoInfo,
+  IRosCoreMoveMicroscopeServoResponse,
   IRosCoreTelemetry,
   IRosGeometryMsgsPose,
 } from "../ros/rosTypes";
@@ -27,4 +29,8 @@ export interface RootState {
   // Regular Stores
   uiState: UIState;
   cameraStreamerState: CameraStreamerState;
+
+  // Science Stores
+  microscopeServoState: IRosCoreMicroscopeServoInfo;
+  microscopeServoService: IRosCoreMoveMicroscopeServoResponse;
 }
