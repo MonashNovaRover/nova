@@ -13,7 +13,7 @@ import { CameraInfoModal } from "./components/CameraInfoModal";
 import { StreamingState, useCameraStream } from "./hooks/useCameraStream";
 import { CameraSettingsForm } from "./components/CameraSettingsForm";
 import CameraVideo from "./components/CameraVideo";
-import { initialFilters } from "../../views/shared/CamerasPage/CameraPageConstants";
+import { defaultCamFilters, initialisedFilters } from "../../views/shared/CamerasPage/CameraPageConstants";
 import { BooleanChip } from "./components/BooleanChip";
 import humanizeString from "humanize-string";
 import { ExternalLink } from "react-feather";
@@ -34,6 +34,10 @@ export interface CameraFilters {
   brightness: number; // between 0 and 200
 }
 
+const getInitialFilters = (cameraSerial: string): CameraFilters => {
+  return defaultCamFilters[cameraSerial] || initialisedFilters;
+}
+
 export const CameraComponent = (props: CameraComponentProps) => {
   const { cameraSerial, autostart: allCamerasStarted } = props;
   const cameraName = humanizeString(cameraSerial);
@@ -48,7 +52,8 @@ export const CameraComponent = (props: CameraComponentProps) => {
     closeSession,
   } = useCameraStream(cameraSerial, videoRef, allCamerasStarted);
   const [isSettingsOpen, setSettingsOpen] = useState(false);
-  const [filters, setFilters] = useState(initialFilters);
+  const [filters, setFilters] = useState(getInitialFilters(cameraSerial));
+
 
   const openCameraInTab = () =>
     window.open(
