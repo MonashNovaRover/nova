@@ -45,7 +45,7 @@ class ScraperNode(Node):
     JONO_ID_ARM = 0x0A0
     JONO_ID_SCOOP = 0x0A0
     JONO_ID_BUCKET = 0x0A0
-    JONO_ID_LIMIT_SWITCH = 0x4A2 # TODO: get correct card id
+    JONO_ID_LIMIT_SWITCH = 0x4A2
     # jono commands
     JONO_ARM_FORWARDS = 0x04
     JONO_ARM_BACKWARDS = 0x03
@@ -69,9 +69,9 @@ class ScraperNode(Node):
     BUCKET_MAX_VELOCITY_PERCENT = 0.1
 
     # limit switch
-    BUCKET_LIMIT_SWITCH_CLOSED = 0x01 # TODO: get correct command
+    BUCKET_LIMIT_SWITCH_CLOSED = 0x01
     LIMIT_SWITCH_CLEAR = 0x00
-    LIMIT_SWITCH_HIT = 0x01
+    LIMIT_SWITCH_HIT = 0xFF # used to be 0x01
 
     # ROS param names
     CAN_BUS_PARAM = "can_bus"
@@ -167,11 +167,11 @@ class ScraperNode(Node):
             self.get_logger().info(f"Received {frame.id} {frame.data}")
 
             if frame.id == self.JONO_ID_LIMIT_SWITCH and frame.data[0] == self.BUCKET_LIMIT_SWITCH_CLOSED:
-                if frame.data[1] == self.LIMIT_SWITCH_HIT:
+                if frame.data[1] == self.LIMIT_SWITCH_CLEAR:
+                    self.bucket.update_limit_pos(False)
+                else:
                     self.get_logger().info("Limit switch hit")
                     self.bucket.update_limit_pos(True)
-                else:
-                    self.bucket.update_limit_pos(False)
             else:
                 self.get_logger().warn("Received unknown frame")
 
