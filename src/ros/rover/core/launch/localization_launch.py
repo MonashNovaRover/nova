@@ -48,7 +48,7 @@ def generate_launch_description():
 
     use_sim_time_arg = DeclareLaunchArgument(
         'use_sim_time',
-        default_value='true',
+        default_value='False',
         description='Use simulation (Gazebo) clock if true')
 
     use_real_odom_arg = DeclareLaunchArgument(

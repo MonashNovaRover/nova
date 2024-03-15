@@ -10,15 +10,10 @@ from launch_ros.actions import LoadComposableNodes, Node
 from launch_ros.descriptions import ComposableNode
 
 def launch_setup(context, *args, **kwargs):
-    name = LaunchConfiguration('name').perform(context)
-    depthai_prefix = get_package_share_directory("depthai_ros_driver")
-
-    params_file= LaunchConfiguration("params_file")
-    
     use_sim_time = LaunchConfiguration('use_sim_time')
-
+    name = LaunchConfiguration('name').perform(context)
     qos = LaunchConfiguration("qos")
-
+    core_prefix = get_package_share_directory('core')
     parameters={
           'frame_id':'base_link',
           'use_sim_time':use_sim_time,
@@ -41,48 +36,33 @@ def launch_setup(context, *args, **kwargs):
         ("rgb/image", name+"/rgb/image_rect"),
         ("rgb/camera_info", name+"/rgb/camera_info"),
         ("depth/image", name+"/stereo/image_raw"),
+        ("imu", name+"/imu/data")
     ]
 
     return [
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
-                os.path.join(depthai_prefix, 'launch', 'camera.launch.py')),
-            launch_arguments={"name": name,
-                              "parent_frame": "camera_link",
-                              "params_file": params_file}.items()),
+                os.path.join(core_prefix, 'launch', 'camera.launch.py')),
+            condition = IfCondition(LaunchConfiguration('launch_camera')),
+        ),
 
         LoadComposableNodes(
-            condition=IfCondition(LaunchConfiguration("rectify_rgb")),
-            target_container=name+"_container",
-            composable_node_descriptions=[
-                ComposableNode(
-                    package="image_proc",
-                    plugin="image_proc::RectifyNode",
-                    name="rectify_color_node",
-                    remappings=[('image', name+'/rgb/image_raw'),
-                                ('camera_info', name+'/rgb/camera_info'),
-                                ('image_rect', name+'/rgb/image_rect'),
-                                ('image_rect/compressed', name+'/rgb/image_rect/compressed'),
-                                ('image_rect/compressedDepth', name+'/rgb/image_rect/compressedDepth'),
-                                ('image_rect/theora', name+'/rgb/image_rect/theora')]
-                )
-            ]),
-        
-        LoadComposableNodes(
-            target_container=name+"_container",
+            target_container="rtabmap_container",
             composable_node_descriptions=[
                 ComposableNode(
                     package='rtabmap_odom',
                     plugin='rtabmap_odom::RGBDOdometry',
                     name='rgbd_odometry',
                     parameters=[odom_parameters],
-                    remappings=remappings,
+                    remappings=remappings +
+                               [('/odom', '/odom/visual')]
+                    ,
                 ),
           ],
         ),
 
         LoadComposableNodes(
-            target_container=name+"_container",
+            target_container="rtabmap_container",
             composable_node_descriptions=[
                 ComposableNode(
                     package='rtabmap_slam',
@@ -117,7 +97,7 @@ def launch_setup(context, *args, **kwargs):
         ),
 
     ]
-
+ 
 
 def generate_launch_description():
     depthai_prefix = get_package_share_directory("depthai_ros_driver")
@@ -128,8 +108,9 @@ def generate_launch_description():
         DeclareLaunchArgument("params_file", default_value=os.path.join(core_prefix, 'params', 'depthai_oakd_rgbd.yaml')),
         DeclareLaunchArgument("rectify_rgb", default_value="True"),
         DeclareLaunchArgument("rtabmap_viz", default_value="False"),
-        DeclareLaunchArgument('use_sim_time', default_value='True'),
-        DeclareLaunchArgument('rtabmap_pointcloud', default_value='True')
+        DeclareLaunchArgument('use_sim_time', default_value='False'),
+        DeclareLaunchArgument('rtabmap_pointcloud', default_value='True'),
+        DeclareLaunchArgument('launch_camera', default_value='False'),
     ]
 
     return LaunchDescription(
