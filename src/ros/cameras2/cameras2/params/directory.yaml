@@ -12,10 +12,10 @@ camera_directory:
     serial_overrides:
       paths:
         mast:
-          '1:1.0': mast_arm_stow
-          '2:1.0': mast_down
+          '1:1.0': mast_backward
+          '2:1.0': mast_fisheye
           '3:1.0': mast_forward
-          '4:1.0': mast_backward
+          '4:1.0': mast_down
         science:
           '1:1.0': science_spectrometer_top
           '2:1.0': science_spectrometer_side
@@ -25,12 +25,12 @@ camera_directory:
           '3:1.0': science_gantry
         arm:
           '1:1.0': arm_gimbal
-          '2.1:1.0': arm_end_side
+          '2.1:1.0': arm_end_finger
           '2.2:1.0': arm_end_top
-          '2.3:1.0': arm_end_finger
+          '2.3:1.0': arm_end_side
           '2.4:1.0': arm_end_forward
-        ce:
-          '1:1.0': scraper
-          '2:1.0': forklift_down
-          '3:1.0': forklift_forward
-          '4:1.0': scraper_leg
+        ec:
+          '1:1.0': ec_scraper
+          '2:1.0': ec_forklift_down
+          '3:1.0': ec_forklift_forward
+          '4:1.0': ec_scraper_leg
