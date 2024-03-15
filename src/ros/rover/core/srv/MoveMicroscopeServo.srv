@@ -1,0 +1,7 @@
+# The target angle to move microscope_servo to
+int8 angle
+
+---
+
+# The result of the request (a True, success or False fail)
+bool success
