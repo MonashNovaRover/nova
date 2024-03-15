@@ -7,6 +7,8 @@ import {RootState} from "../../redux/RootState.ts";
 import {RosService} from "../../ros/services/rosService.ts";
 import {IRosStdSrvsTriggerResponse} from "../../ros/rosTypes.ts";
 import toast from "react-hot-toast";
+import DownloadButton from "../shared/Download.tsx";
+import { Download } from "react-feather";
 
 const RFIDWidget: React.FC<CardProps> = (props) => {
   const bifrost = useBifrost({ topic: RosTopic.RFID_DATA, service: RosService.READ_RFID });
@@ -45,10 +47,14 @@ const RFIDWidget: React.FC<CardProps> = (props) => {
           fullWidth
         />
 
-        <div className="flex flex-row justify-end">
+        <div className="flex flex-row justify-end gap-2">
           <Button className="grow" onClick={read}>
             Read
           </Button>
+          <DownloadButton className="w-1/4" content={rfidData} filename="rfid_data.txt">
+            <Download/>
+            Save
+          </DownloadButton>
         </div>
       </CardBody>
     </Card>
