@@ -22,7 +22,7 @@ export const initialisedFilters: CameraFilters = {
 };
 
 export enum CameraSerials {
-  MAST_ARM_STOW = "mast_arm_stow",
+  MAST_FISHEYE = "mast_fisheye",
   MAST_DOWN = "mast_down",
   MAST_FORWARD = "mast_forward",
   MAST_BACKWARD = "mast_backward",
@@ -33,10 +33,10 @@ export enum CameraSerials {
   ARM_END_FORWARD = "arm_end_forward",
   ARM_GIMBAL = "arm_gimbal",
 
-  EC_SCRAPER = "ce_scraper",
-  EC_FORKLIFT_DOWN = "ce_forklift_down",
-  EC_FORKLIFT_FORWARD = "ce_forklift_forward",
-  EC_SCRAPER_LEG = "ce_scraper_leg",
+  EC_SCRAPER = "ec_scraper",
+  EC_FORKLIFT_DOWN = "ec_forklift_down",
+  EC_FORKLIFT_FORWARD = "ec_forklift_forward",
+  EC_SCRAPER_LEG = "ec_scraper_leg",
 
   SCIENCE_KILN = "science_kiln",
   SCIENCE_AUGER_BOTTOM = "science_auger_bottom",
@@ -64,7 +64,7 @@ export const defaultCamFilters : {[key: string] : CameraFilters} = {
 export const allCams = [];
 
 const mastCams = [
-  CameraSerials.MAST_ARM_STOW,
+  CameraSerials.MAST_FISHEYE,
   CameraSerials.MAST_DOWN,
   CameraSerials.MAST_FORWARD,
   CameraSerials.MAST_BACKWARD,
