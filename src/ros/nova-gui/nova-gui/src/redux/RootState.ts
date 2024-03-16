@@ -4,8 +4,13 @@ import {
   IRosCoreDriveInfo,
   IRosCoreMicroscopeServoInfo,
   IRosCoreMoveMicroscopeServoResponse,
+  IRosCoreNirProbeData,
+  IRosCoreKilnCommandResponse,
+  IRosCoreKilnData,
   IRosCoreTelemetry,
+  IRosStdMsgsString,
   IRosGeometryMsgsPose,
+  IRosCoreCmDsFeedback 
 } from "../ros/rosTypes";
 
 import { BifrostStatus } from "./models/bifrost/BifrostTypes";
@@ -20,11 +25,20 @@ export interface RootState {
 
   // Drive Stores
   driveStore: IRosCoreDriveInfo;
-  telemetryStore: IRosCoreTelemetry;
+  driveTelemetryStore: IRosCoreTelemetry;
+
+  // Arm Stores
+  armTelemetryStore: IRosCoreCmDsFeedback;
+  rfidDataStore: IRosStdMsgsString;
 
   // Camera Stores
   camerasStore: IRosCameraMsgsCameras;
   ipList: IRosCameraMsgsGetIpListResponse;
+
+  // Science Bifrost states
+  nirStore: IRosCoreNirProbeData;
+  kilnData: IRosCoreKilnData;
+  kilnCommand: IRosCoreKilnCommandResponse;
 
   // Regular Stores
   uiState: UIState;
