@@ -15,7 +15,7 @@ def launch_setup(context, *args, **kwargs):
     qos = LaunchConfiguration("qos")
     core_prefix = get_package_share_directory('core')
     parameters={
-          'frame_id':'base_link',
+          'frame_id':'oak',
           'use_sim_time':use_sim_time,
           'subscribe_rgb': True,
           'subscribe_depth':True,
@@ -30,7 +30,7 @@ def launch_setup(context, *args, **kwargs):
         ("rgb/camera_info", name+"/rgb/camera_info"),
         ("depth/image", name+"/stereo/image_raw"),
         ("imu", name+"/imu/data"),
-        ("odom", "odom/visual"),
+        # ("odom", "odom/visual"),
     ]
 
     return [
@@ -47,7 +47,7 @@ def launch_setup(context, *args, **kwargs):
                     package='rtabmap_odom',
                     plugin='rtabmap_odom::RGBDOdometry',
                     name='rgbd_odometry',
-                    parameters=[odom_parameters, {"publish_tf": False}],
+                    parameters=[parameters, {"publish_tf": True}],
                     remappings=remappings
                     ,
                 ),
