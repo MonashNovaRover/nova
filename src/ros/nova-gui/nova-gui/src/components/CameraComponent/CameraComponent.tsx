@@ -8,7 +8,7 @@ import {
   Spinner,
 } from "@nextui-org/react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Camera as CameraIcon, Info, Play, Square } from "react-feather";
+import { Camera as CameraIcon, Info } from "react-feather";
 import { CameraInfoModal } from "./components/CameraInfoModal";
 import { StreamingState, useCameraStream } from "./hooks/useCameraStream";
 import { CameraSettingsForm } from "./components/CameraSettingsForm";
@@ -18,6 +18,7 @@ import { BooleanChip } from "./components/BooleanChip";
 import humanizeString from "humanize-string";
 import { ExternalLink } from "react-feather";
 import toast from "react-hot-toast";
+import CameraSessionStartStopButton from "./components/CameraSessionStartStopButton.tsx";
 
 const ASPECT_RATIO = 4 / 3;
 
@@ -141,27 +142,9 @@ export const CameraComponent = (props: CameraComponentProps) => {
           <div className="text-lg font-semibold py-1">{cameraName}</div>
           {(isHovered || isSettingsOpen) && (
             <div className="flex flex-ow gap-2">
-              {streamingState === StreamingState.STOPPED ? (
-                <Button
-                  size="sm"
-                  color="primary"
-                  className="w-min mx-auto"
-                  onClick={() => sendSessionStartMessage()}
-                >
-                  <Play size="15px" fill="white" />
-                  Start
-                </Button>
-              ) : (
-                <Button
-                  size="sm"
-                  color="danger"
-                  className="w-min mx-auto"
-                  onClick={() => closeSession()}
-                >
-                  <Square size="15px" fill="white" /> Stop
-                </Button>
-              )}
-
+              <CameraSessionStartStopButton streamingState={streamingState}
+                                            sendSessionStartMessage={sendSessionStartMessage}
+                                            closeSession={closeSession}/>
               <Button isIconOnly size="sm">
                 <CameraIcon size="15px" onClick={takeScreenshot} />
               </Button>

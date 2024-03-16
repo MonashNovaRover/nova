@@ -6,11 +6,14 @@ import React, {useCallback, useEffect, useRef, useState} from "react";
 import {Button, Card, CardBody, Checkbox, Input, Slider} from "@nextui-org/react";
 import useSamplers, {GLSampler} from "../WebGLCanvas/hooks/useSamplers.tsx";
 import useDict from "../WebGLCanvas/hooks/useDict.tsx";
-import useWebcam from "../WebGLCanvas/hooks/useWebcam.tsx";
+// import useWebcam from "../WebGLCanvas/hooks/useWebcam.tsx";
 import useAttributes from "../WebGLCanvas/hooks/useAttributes.tsx";
 import useCanvasSize from "../WebGLCanvas/hooks/useCanvasSize.tsx";
 import useUniforms, {vec} from "../WebGLCanvas/hooks/useUniforms.tsx";
 import CopyableInput from "../CopyableInput/CopyableInput.tsx";
+import {useCameraStream} from "../CameraComponent/hooks/useCameraStream.ts";
+import {CameraComponentProps} from "../CameraComponent/CameraComponent.tsx";
+import CameraSessionStartStopButton from "../CameraComponent/components/CameraSessionStartStopButton.tsx";
 
 const attributes = {
   aPosition: {
@@ -24,7 +27,9 @@ const onFloatChanged = (mutator: (x: string) => void) => (userInput: string) => 
     mutator(userInput);
 }
 
-const MicroscopeThresholdWidget: React.FC = () => {
+const MicroscopeThresholdWidget: React.FC<CameraComponentProps> = (props) => {
+  const { cameraSerial, autostart: allCamerasStarted } = props;
+
   const [threshold, setThreshold] = useState<number>(0.5);
   const [brightness, setBrightness] = useState<number | undefined>();
   const [showThreshold, setShowThreshold] = useState<boolean>(true);
@@ -35,7 +40,12 @@ const MicroscopeThresholdWidget: React.FC = () => {
   const finalThreshold = isManualThresholdValid ? (parsedManualThreshold / 100) : threshold;
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  useWebcam(videoRef);
+  // useWebcam(videoRef);
+  const {
+    streamingState,
+    sendSessionStartMessage,
+    closeSession,
+  } = useCameraStream(cameraSerial, videoRef, allCamerasStarted);
 
   const gl = useGL();
   const program = useProgram(gl.gl, vert, frag);
@@ -100,13 +110,17 @@ const MicroscopeThresholdWidget: React.FC = () => {
 
   return (
     <Card>
-      <CardBody className="flex flex-col gap-3">
-        <div className="grid grid-cols-[1fr_auto] gap-3 items-center justify-items-center">
-          <div className="grow justify-self-stretch text-left">Microscope Thresholding</div>
-          <div className="mr-[-8px]">
-            <Checkbox isSelected={showThreshold} onValueChange={setShowThreshold}/>
-          </div>
-          <div className="flex flex-col gap-3 grow relative overflow-hidden rounded-lg"
+      <CardBody className="flex flex-col gap-3 overflow-hidden">
+        <div className="flex flex-row">
+          <div className="grow justify-self-stretch text-left col-span-3">Microscope Thresholding</div>
+          <CameraSessionStartStopButton streamingState={streamingState}
+                                        sendSessionStartMessage={sendSessionStartMessage}
+                                        closeSession={closeSession}/>
+        </div>
+        <div className="grid grid-cols-[auto_1fr_1fr_auto] gap-3 items-center justify-items-center">
+
+
+          <div className="flex flex-col gap-3 grow relative overflow-hidden rounded-lg col-span-3"
                onMouseDown={toggleShowThreshold}>
             <video ref={videoRef} className={showThreshold ? "-z-10" : "z-20"}/>
             <canvas className="absolute max-w-full max-h-full right-0 left-0 z-10 rounded-lg" ref={gl.canvasRef} width={width} height={height}/>
@@ -127,10 +141,7 @@ const MicroscopeThresholdWidget: React.FC = () => {
                 setThreshold(Array.isArray(v) ? v[0] : v);
             }}
           />
-        </div>
-
-        <div className="flex flex-row justify-center gap-3 items-end">
-          <Button className="" onClick={getBrightness}>
+          <Button className="place-self-end" onClick={getBrightness}>
             Read
           </Button>
           <CopyableInput className="grow basis-1"
@@ -156,7 +167,9 @@ const MicroscopeThresholdWidget: React.FC = () => {
                  endContent={<span className="font-mono">%</span>}>
           </Input>
 
-
+          <div className="mr-[-8px] pr-[-8px] place-self-start justify-self-center">
+            <Checkbox isSelected={showThreshold} onValueChange={setShowThreshold}/>
+          </div>
         </div>
       </CardBody>
     </Card>
