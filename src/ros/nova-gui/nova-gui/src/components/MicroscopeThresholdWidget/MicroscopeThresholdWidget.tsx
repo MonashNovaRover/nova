@@ -2,15 +2,15 @@ import useGL from "../WebGLCanvas/hooks/useGL.tsx";
 import {useProgram} from "../WebGLCanvas/hooks/useProgram.tsx";
 import vert from "./gl/threshold.vert";
 import frag from "./gl/threshold.frag";
-import {useCallback, useEffect, useRef, useState} from "react";
-import {Button, Card, CardBody, CardHeader, Slider} from "@nextui-org/react";
+import React, {useCallback, useEffect, useRef, useState} from "react";
+import {Button, Card, CardBody, Checkbox, Input, Slider} from "@nextui-org/react";
 import useSamplers, {GLSampler} from "../WebGLCanvas/hooks/useSamplers.tsx";
 import useDict from "../WebGLCanvas/hooks/useDict.tsx";
 import useWebcam from "../WebGLCanvas/hooks/useWebcam.tsx";
 import useAttributes from "../WebGLCanvas/hooks/useAttributes.tsx";
 import useCanvasSize from "../WebGLCanvas/hooks/useCanvasSize.tsx";
 import useUniforms, {vec} from "../WebGLCanvas/hooks/useUniforms.tsx";
-import CopyableOutput from "../CopyableOutput/CopyableOutput.tsx";
+import CopyableInput from "../CopyableInput/CopyableInput.tsx";
 
 const attributes = {
   aPosition: {
@@ -19,9 +19,20 @@ const attributes = {
   }
 };
 
-const MicroscopeThresholdWidget = () => {
+const onFloatChanged = (mutator: (x: string) => void) => (userInput: string) => {
+  if (userInput.match(/((([1-9]([0-9]*))|0)((.([0-9]*))?))|(^$)/))
+    mutator(userInput);
+}
+
+const MicroscopeThresholdWidget: React.FC = () => {
   const [threshold, setThreshold] = useState<number>(0.5);
   const [brightness, setBrightness] = useState<number | undefined>();
+  const [showThreshold, setShowThreshold] = useState<boolean>(true);
+
+  const [manualThreshold, setManualThreshold] = useState<string>("");
+  const parsedManualThreshold = parseFloat(manualThreshold);
+  const isManualThresholdValid = !isNaN(parsedManualThreshold);
+  const finalThreshold = isManualThresholdValid ? (parsedManualThreshold / 100) : threshold;
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   useWebcam(videoRef);
@@ -39,8 +50,8 @@ const MicroscopeThresholdWidget = () => {
   useAttributes(gl.gl, program, attributes);
 
   const uniforms = useDict<vec>(() => ({
-    threshold: [1-threshold]
-  }), [threshold])
+    threshold: [finalThreshold]
+  }), [threshold, manualThreshold])
   useUniforms(gl.gl, program, uniforms);
 
   // Render the canvas whenever anything relevant changes
@@ -75,37 +86,77 @@ const MicroscopeThresholdWidget = () => {
     setBrightness(1 - average);
   }, [gl, width, height])
 
+  const toggleShowThreshold = useCallback(() => {
+    setShowThreshold(!showThreshold);
+  }, [showThreshold, setShowThreshold])
+
+  /*
+  <CardHeader className="pb-0 flex flex-row">
+        <div className="grow">Microscope Thresholding</div>
+        <Checkbox className="px-2" isSelected={showThreshold} onValueChange={setShowThreshold}></Checkbox>
+      </CardHeader>
+   */
+  // className="flex flex-row gap-1.5"
+
   return (
     <Card>
-      <CardHeader className="pb-0">Microscope Thresholding</CardHeader>
       <CardBody className="flex flex-col gap-3">
-        <div className="flex flex-row gap-1.5">
-          <div className="flex flex-col gap-3 grow relative overflow-hidden rounded-lg">
-            <video ref={videoRef} className="-z-10"/>
+        <div className="grid grid-cols-[1fr_auto] gap-3 items-center justify-items-center">
+          <div className="grow justify-self-stretch text-left">Microscope Thresholding</div>
+          <div className="mr-[-8px]">
+            <Checkbox isSelected={showThreshold} onValueChange={setShowThreshold}/>
+          </div>
+          <div className="flex flex-col gap-3 grow relative overflow-hidden rounded-lg"
+               onMouseDown={toggleShowThreshold}>
+            <video ref={videoRef} className={showThreshold ? "-z-10" : "z-20"}/>
             <canvas className="absolute max-w-full max-h-full right-0 left-0 z-10 rounded-lg" ref={gl.canvasRef} width={width} height={height}/>
           </div>
-          <div>
-            <Slider
-              size="lg"
-              step={1 / 255}
-              maxValue={(256 / 255)}
-              minValue={0}
-              orientation="vertical"
-              aria-label="Threshold"
-              defaultValue={0.6}
-              value={threshold}
-              onChange={(v) => setThreshold(Array.isArray(v) ? v[0] : v)}
-            />
-          </div>
+          <Slider
+            size="lg"
+            step={1 / 255}
+            maxValue={(256 / 255)}
+            minValue={0}
+            orientation="vertical"
+            aria-label="Threshold"
+            defaultValue={0.5}
+            isDisabled={isManualThresholdValid}
+            value={finalThreshold}
+            classNames={{"track": "mx-0"}}
+            onChange={(v) => {
+              if (manualThreshold.length === 0)
+                setThreshold(Array.isArray(v) ? v[0] : v);
+            }}
+          />
         </div>
 
-        <div className="flex flex-row justify-center items-center gap-3">
+        <div className="flex flex-row justify-center gap-3 items-end">
           <Button className="" onClick={getBrightness}>
             Read
           </Button>
-          <CopyableOutput className="grow">
-            {brightness === undefined ? "" : `${brightness.toFixed(4)}%`}
-          </CopyableOutput>
+          <CopyableInput className="grow basis-1"
+                         size="md" labelPlacement="outside"
+                         label={"Average Brightness"}
+                         value={brightness === undefined ? "" : `${(100 * brightness).toFixed(4)} %`}
+                         copyValue={brightness === undefined ? "" : (100 * brightness).toFixed(4)}
+                         classNames={{
+                           input: "font-mono",
+                           inputWrapper: "data-[hover=true]:bg-default-100"
+                         }}
+                         placeholder={"##.#### %"}>
+          </CopyableInput>
+          <Input className="grow basis-1"
+                 size="md"
+                 labelPlacement="outside"
+                 label={isManualThresholdValid ? "Threshold (manual)" : "Threshold"}
+                 value={manualThreshold} onValueChange={onFloatChanged(setManualThreshold)}
+                 classNames={{
+                   input: "font-mono",
+                 }}
+                 placeholder={`${Math.min(threshold * 100, 100).toFixed(4)}`}
+                 endContent={<span className="font-mono">%</span>}>
+          </Input>
+
+
         </div>
       </CardBody>
     </Card>
