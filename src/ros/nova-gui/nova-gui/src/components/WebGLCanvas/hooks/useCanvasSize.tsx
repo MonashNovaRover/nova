@@ -18,10 +18,10 @@ export default function useCanvasSize({gl, canvasRef} : CanvasWithGL, sizeTarget
       return;
 
     const pixelRatio = window.devicePixelRatio
-    const absoluteSizeTarget = sizeTarget ?? canvas;
+    const absoluteSizeTarget = sizeTarget ?? canvas.parentElement ?? canvas;
 
     const resize = () => {
-      const rect = canvas.parentElement?.getBoundingClientRect() ?? canvas.getBoundingClientRect();
+      const rect = absoluteSizeTarget.getBoundingClientRect();
       setWidth(pixelRatio * rect.width);
       setHeight(pixelRatio * rect.height);
     };
@@ -30,6 +30,11 @@ export default function useCanvasSize({gl, canvasRef} : CanvasWithGL, sizeTarget
     resizeObserver.observe(absoluteSizeTarget);
     const observer = new MutationObserver(resize);
     observer.observe(absoluteSizeTarget, {attributes: true, attributeFilter: ["style"]});
+
+    return () => {
+      resizeObserver.disconnect();
+      observer.disconnect();
+    };
   }, [canvasRef, sizeTarget]);
 
   useEffect(() => {
