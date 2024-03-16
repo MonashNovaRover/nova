@@ -7,14 +7,15 @@ import { RosTopic } from "../../ros/topics/rosTopic";
 import { useBifrost } from "../../redux/actions/bifrost/useBifrostAction";
 import { useEffect } from "react";
 import { RosService } from "../../ros/services/rosService";
+import { CameraSerials } from "../../views/shared/CamerasPage/CameraPageConstants";
 
-export const MicroscopeComponent = () => {
+const MicroscopeComponent: React.FC = () => {
+  // Invoking Bifrost and pointing it towards TEMP_SENSOR
+  const topicBifrost = useBifrost({ topic: RosTopic.MICROSCOPE_SERVO });
+
   const microscopeServoState = useSelector(
     (state: RootState) => state.microscopeServoState
   );
-  
-  // Invoking Bifrost and pointing it towards TEMP_SENSOR
-  const topicBifrost = useBifrost({ topic: RosTopic.MICROSCOPE_SERVO });
   
   // Wrap with useEffect hook to only run it once
   useEffect(() => {
@@ -23,18 +24,18 @@ export const MicroscopeComponent = () => {
   }, [topicBifrost]);
 
   // Accessing the Store using useSelector hook
-const microscopeServoService = useSelector((state: RootState) => state.microscopeServoService);
+  const microscopeServoService = useSelector((state: RootState) => state.microscopeServoService);
 
-// Invoking Bifrost and pointing it towards SET_SERVO
-const serviceBifrost = useBifrost({ service: RosService.MOVE_MICROSCOPE_SERVO });
+  // Invoking Bifrost and pointing it towards SET_SERVO
+  const serviceBifrost = useBifrost({ service: RosService.MOVE_MICROSCOPE_SERVO });
 
-const setZoomFocus = (angle: number) => serviceBifrost.callServiceToRedux(angle);
+  const setZoomFocus = (angle: number) => serviceBifrost.callServiceToRedux(angle);
 
   useCameraStreamer();
 
   return (
     <Card className={`m-4`}>
-      <CameraComponent cameraSerial={"microscope_camera"} />
+      <CameraComponent cameraSerial={CameraSerials.SCIENCE_MICROSCOPE} />
       <Slider
         className="max-w-full pt-2 pb-6 pl-8 pr-8"
         size="lg"
@@ -48,3 +49,4 @@ const setZoomFocus = (angle: number) => serviceBifrost.callServiceToRedux(angle)
     </Card>
   );
 };
+export default MicroscopeComponent;
