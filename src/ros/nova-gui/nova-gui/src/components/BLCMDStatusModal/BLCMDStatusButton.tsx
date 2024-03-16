@@ -19,10 +19,10 @@ export const BLCMDStatusButton = () => {
         className={"w-80 flex flex-row justify-center space-x-2"}
         onClick={() => uiActions.setBlcmdStatusModalOpen(true)}
       >
-        <p>{fault ? fault :<p>No Errors</p>}</p>
+        {fault ? fault :<p>No Errors</p>}
         <ExclamationCircleFill className="w-4 h-4"/>
       </Button>
-      <BLCMDStatusModal></BLCMDStatusModal>
+      <BLCMDStatusModal/>
     </div>
   );
 };
