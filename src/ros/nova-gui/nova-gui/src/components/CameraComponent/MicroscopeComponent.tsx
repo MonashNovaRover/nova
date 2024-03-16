@@ -5,7 +5,7 @@ import { RootState } from "../../redux/RootState";
 import { useSelector } from "react-redux";
 import { RosTopic } from "../../ros/topics/rosTopic";
 import { useBifrost } from "../../redux/actions/bifrost/useBifrostAction";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { RosService } from "../../ros/services/rosService";
 import { CameraSerials } from "../../views/shared/CamerasPage/CameraPageConstants";
 
@@ -17,21 +17,32 @@ const MicroscopeComponent: React.FC = () => {
     (state: RootState) => state.microscopeServoStore
   );
 
+  // Accessing the Store using useSelector hook
+  const microscopeServoService = useSelector((state: RootState) => 
+    state.microscopeServiceStore
+  );
+
+  // Invoking Bifrost and pointing it towards SET_SERVO
+  const serviceBifrost = useBifrost({ service: RosService.MOVE_MICROSCOPE_SERVO });
+
+  const setZoomFocus = (angle: number) => serviceBifrost.callService({ angle: angle });
+
+  useCameraStreamer();
+
+  const [zoom, setZoom] = useState(45);
+
+
   // Wrap with useEffect hook to only run it once
   useEffect(() => {
     // call bifrost.syncWithTopic() to initiate Realtime Updates
     topicBifrost.syncWithTopic();
   }, [topicBifrost]);
 
-  // Accessing the Store using useSelector hook
-  const microscopeServoService = useSelector((state: RootState) => state.microscopeServiceStore);
-
-  // Invoking Bifrost and pointing it towards SET_SERVO
-  const serviceBifrost = useBifrost({ service: RosService.MOVE_MICROSCOPE_SERVO });
-
-  const setZoomFocus = (angle: number) => serviceBifrost.callServiceToRedux(angle);
-
-  useCameraStreamer();
+  useEffect(() => {
+    if (microscopeServoState.angle !== zoom) {
+      setZoomFocus(zoom);
+    }
+  }, [zoom]);
 
   return (
     <Card className={`m-4`}>
@@ -40,12 +51,12 @@ const MicroscopeComponent: React.FC = () => {
         className="max-w-full pt-2 pb-6 pl-8 pr-8"
         size="lg"
         label="Zoom/Focus"
-        startContent="1x"
-        endContent="100x"
-        value={microscopeServoState.angle}
-        onChange={(value) => setZoomFocus(value as number)}
+        startContent="0%"
+        endContent="100%"
+        value={zoom}
+        onChange={(value) => setZoom(value as number)}
       />
-      { microscopeServoService.success ? <div>ERROR executing microscope servo request on rover</div> : null}
+      { !microscopeServoService.success && <div>ERROR executing microscope servo request on rover</div>}
     </Card>
   );
 };
