@@ -32,6 +32,9 @@ def generate_launch_description():
             package='control', executable='driver', output='screen', emulate_tty=True,
             parameters=[{'use_sim_time': gazebo, 'gazebo': gazebo}]),
         Node(
-            package='electronics', executable='LED_transmitter.py', output='screen', emulate_tty=True,
-            condition=UnlessCondition(gazebo)),
+            package='control', executable='blcmd_status_monitor.py', output='screen', emulate_tty=True,
+        ),
+        # Node(
+        #     package='electronics', executable='LED_transmitter.py', output='screen', emulate_tty=True,
+        #     condition=UnlessCondition(gazebo)),
     ])

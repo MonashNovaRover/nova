@@ -52,9 +52,11 @@ install(PROGRAMS
   science/distance_publisher.py
   science/EMC_publisher.py
   science/kilns_data_publisher.py
+  science/kiln_server.py
   science/spectrometer_publisher.py
   science/actuator_limit_publisher.py
   science/microscope_servo.py
+  science/nir_probe_publisher.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

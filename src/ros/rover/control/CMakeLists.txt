@@ -130,10 +130,12 @@ install(PROGRAMS
         control/cmd_plotter.py
         control/rover_state_publisher.py
         control/blcmd_status_monitor.py
-        control/excavation_construction.py
+        control/tile_placer.py
+        control/scraper.py
         control/gimbal_cam.py
         control/drive_sim.py
         control/auger.py
+        control/analysis_platform.py
         DESTINATION lib/${PROJECT_NAME}
         )
 
