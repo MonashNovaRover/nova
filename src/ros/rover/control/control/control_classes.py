@@ -61,18 +61,18 @@ class OneAxisControl:
         else:
             raise ValueError("Invalid max_percent")
         
-    @property
-    def velocity(self):
+
+    def get_velocity(self):
         """Get the velocity of the motor"""
         return self.velocity
     
-    @property
-    def direction(self):
+
+    def get_direction(self):
         """Get the direction of the motor"""
         return self.direction
     
-    @property
-    def max_percent(self):
+
+    def get_max_percent(self):
         """Get the max percent of the motor"""
         return self.max_percent
         
@@ -123,13 +123,11 @@ class CardInterface():
         self.card_id = card_id # type: hex
         self.control = control # type: OneAxisControl
 
-    @property
-    def card(self):
+    def get_card(self):
         """Get the card type"""
         return self.card
-    
-    @property
-    def max_value(self):
+
+    def get_max_value(self):
         """Get the max value of the card"""
         return self.max_value
     
@@ -151,18 +149,18 @@ class JonoCardController(CardInterface):
 
         # Set the command based on the direction
         command: hex
-        if self.control.direction() == Direction.POSITIVE:
+        if self.control.get_direction() == Direction.POSITIVE:
             command = self.pos_command
         else:
             command = self.neg_command
         
         # Set the data based on the velocity, max value, and max percent
-        data = int(self.control.velocity() * self.max_value() * self.control.max_percent())
+        data = int(self.control.get_velocity() * self.get_max_value() * self.control.get_max_percent())
 
         # Check if the data is greater than the max value
         # If it is, set the data to the max value
-        if data > self.max_value():
-            data = self.max_value()
+        if data > self.get_max_value():
+            data = self.get_max_value()
 
         # Pack the data into a list
         packed_data = [command, data]
@@ -182,12 +180,12 @@ class CMDCardController(CardInterface):
         """Get the frame to send over the CAN bus"""
 
         # Set the data based on the direction, velocity, max value, and max percent
-        data = int(self.control.direction().value * self.control.velocity() * self.max_value() * self.control.max_percent())
+        data = int(self.control.get_direction().value * self.control.get_velocity() * self.get_max_value() * self.control.get_max_percent())
 
         # Check if the data is greater than the max value
         # If it is, set the data to the max value
-        if data > self.max_value:
-            data = self.max_value()
+        if data > self.get_max_value:
+            data = self.get_max_value()
 
         # Pack the data into a list
         packed_data = list(pack('>h', int(data)))
