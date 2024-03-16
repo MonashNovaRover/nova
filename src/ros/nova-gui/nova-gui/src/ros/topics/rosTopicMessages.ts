@@ -27,6 +27,7 @@ export const rosTopicMessages = {
   [RosTopic.BLCMD_ERRORS]: "core/msg/BLCMDStatusArray",
   
   // Science Related
+  [RosTopic.TOF]: "sensor_msgs/msg/Range",
   [RosTopic.KILN_DATA]: "core/msg/KilnData",
   [RosTopic.NIR_DATA]: "core/msg/NIRProbeData",
   [RosTopic.MICROSCOPE_SERVO]: "core/msg/MicroscopeServoInfo"

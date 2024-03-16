@@ -11,6 +11,7 @@ import {
   IRosCoreTelemetry,
   IRosStdMsgsString,
   IRosGeometryMsgsPose,
+  IRosSensorMsgsRange,
   IRosCoreCmDsFeedback 
 } from "../ros/rosTypes";
 
@@ -39,7 +40,8 @@ export interface RootState {
   // Error Related Stores
   blcmdStatusStore: IRosCoreBlcmdStatusArray;
   
-  // Science Bifrost states
+  // Science Stores
+  tofStore: IRosSensorMsgsRange;
   nirStore: IRosCoreNirProbeData;
   kilnData: IRosCoreKilnData;
   kilnCommand: IRosCoreKilnCommandResponse;
