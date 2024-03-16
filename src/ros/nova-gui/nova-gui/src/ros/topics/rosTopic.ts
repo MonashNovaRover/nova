@@ -26,5 +26,5 @@ export enum RosTopic {
   // Science Related topics
   KILN_DATA = "/science/kiln_data",
   NIR_DATA = "/science/nir_probe_data",
-  MICROSCOPE_SERVO = "/science/MicroscopeServoInfo"
+  MICROSCOPE_SERVO = "/science/microscope_servo_info",
 }
