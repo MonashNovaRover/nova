@@ -38,11 +38,14 @@ class MicroscopeNode(Node):
     # card IDs
     MICROSCOPE_SERVO_ID = 0x0B0
     # command data
-    MOVE_SERVO_COMMAND = 0x10
+    MOVE_SERVO_COMMAND = 0x0C
     # angle
     MIN_ANGLE = 0
-    INITIAL_ANGLE = 45
+    INITIAL_ANGLE = 0
     MAX_ANGLE = 90
+
+    MAX_VALUE = 0xFF
+    MIN_VALUE = 0x00
 
     def __init__(self):
         super().__init__("Microscope")
@@ -59,12 +62,12 @@ class MicroscopeNode(Node):
         
         self.bus.open(MicroscopeNode.CAN_BUS)
         self.timer_can_commands = self.create_timer(0.2, self.send_can_commands)
-        self.timer_publish_info = self.create_timer(1, self.publish_info)
+        self.timer_publish_info = self.create_timer(0.1, self.publish_info)
 
 
     def move_servo(self, target_angle):
         try:
-            servo_frame = jcan.Frame(MicroscopeNode.MICROSCOPE_SERVO_ID , [MicroscopeNode.MOVE_SERVO_COMMAND, target_angle])
+            servo_frame = jcan.Frame(MicroscopeNode.MICROSCOPE_SERVO_ID , [MicroscopeNode.MOVE_SERVO_COMMAND, int(target_angle / self.MAX_ANGLE * self.MAX_VALUE)])
             self.bus.send(servo_frame)
         except Exception as e:
             self.get_logger().error(f"Failed to send microscope servo (angle: {target_angle}) CAN command: {str(e)}")
