@@ -1,5 +1,4 @@
 import {
-  Button,
   Modal,
   ModalBody,
   ModalContent,
@@ -10,7 +9,6 @@ import {
   TableColumn,
   TableHeader,
   TableRow,
-  Tooltip,
 } from "@nextui-org/react";
 import { useBifrost } from "../../redux/actions/bifrost/useBifrostAction";
 import { RosTopic } from "../../ros/topics/rosTopic";
@@ -23,6 +21,7 @@ import { ComplainingChips } from "./ComplainingChips";
 import { ArrowCounterclockwise } from "react-bootstrap-icons";
 import { RosService } from "../../ros/services/rosService";
 import { IRosCoreBlcmdResetRequestConst } from "../../ros/rosTypes";
+import { ToolTipButton } from "../shared/TooltipButton";
 
 export const BLCMDStatusModal = () => {
   const bifrost = useBifrost({ topic: RosTopic.BLCMD_ERRORS });
@@ -46,12 +45,34 @@ export const BLCMDStatusModal = () => {
 
   const onClose = () => uiActions.setBlcmdStatusModalOpen(false);
 
+  const resetBLCMD = (id: number) =>
+    bifrostReset.callService(
+      {
+        type: IRosCoreBlcmdResetRequestConst.BLCMD,
+        id: id,
+      },
+      {
+        successToastMessage: `${BLCMD_INDEX[id]}'s BLCMD was Reset`,
+      }
+    );
+
+  const zeroResolver = (id: number) =>
+    bifrostReset.callService(
+      {
+        type: IRosCoreBlcmdResetRequestConst.RESOLVER,
+        id: id,
+      },
+      {
+        successToastMessage: `${BLCMD_INDEX[id]}'s Resolver was Zero'd`,
+      }
+    );
+
   return (
     <Modal
       isOpen={modalOpen}
       className="dark text-foreground"
       onClose={onClose}
-      size="3xl"
+      size="5xl"
     >
       <ModalContent>
         <ModalHeader className="flex flex-col gap-1">Motor Status</ModalHeader>
@@ -80,60 +101,27 @@ export const BLCMDStatusModal = () => {
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-row gap-2 justify-end">
-                      <Tooltip
-                        className="dark text-foreground"
-                        content="Reset BLCMD"
+                      <ToolTipButton
+                        tooltipContent="Reset BLCMD"
+                        isIconOnly
+                        size="sm"
+                        variant="flat"
                         color="danger"
+                        onClick={() => resetBLCMD(blcmd.id)}
                       >
-                        <Button
-                          isIconOnly
-                          size="sm"
-                          variant="flat"
-                          color="danger"
-                          onClick={() =>
-                            bifrostReset.callService(
-                              {
-                                type: IRosCoreBlcmdResetRequestConst.BLCMD,
-                                id: blcmd.id,
-                              },
-                              {
-                                successToastMessage: `${
-                                  BLCMD_INDEX[blcmd.id]
-                                }'s BLCMD was Reset`,
-                              }
-                            )
-                          }
-                        >
-                          <ArrowCounterclockwise />
-                        </Button>
-                      </Tooltip>
-                      <Tooltip
-                        className="dark text-foreground"
-                        content="Zero Resolver"
+                        <ArrowCounterclockwise />
+                      </ToolTipButton>
+
+                      <ToolTipButton
+                        tooltipContent="Zero Resolver"
+                        isIconOnly
+                        size="sm"
+                        variant="flat"
                         color="danger"
+                        onClick={() => zeroResolver(blcmd.id)}
                       >
-                        <Button
-                          isIconOnly
-                          size="sm"
-                          variant="flat"
-                          color="danger"
-                          onClick={() =>
-                            bifrostReset.callService(
-                              {
-                                type: IRosCoreBlcmdResetRequestConst.RESOLVER,
-                                id: blcmd.id,
-                              },
-                              {
-                                successToastMessage: `${
-                                  BLCMD_INDEX[blcmd.id]
-                                }'s Resolver was Zero'd`,
-                              }
-                            )
-                          }
-                        >
-                          123
-                        </Button>
-                      </Tooltip>
+                        123
+                      </ToolTipButton>
                     </div>
                   </TableCell>
                 </TableRow>
