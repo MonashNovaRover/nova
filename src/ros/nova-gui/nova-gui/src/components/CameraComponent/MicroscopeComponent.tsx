@@ -10,13 +10,13 @@ import { RosService } from "../../ros/services/rosService";
 import { CameraSerials } from "../../views/shared/CamerasPage/CameraPageConstants";
 
 const MicroscopeComponent: React.FC = () => {
-  // Invoking Bifrost and pointing it towards TEMP_SENSOR
+  // Invoking Bifrost and pointing it towards MICROSCOPE_SERVO
   const topicBifrost = useBifrost({ topic: RosTopic.MICROSCOPE_SERVO });
 
   const microscopeServoState = useSelector(
-    (state: RootState) => state.microscopeServoState
+    (state: RootState) => state.microscopeServoStore
   );
-  
+
   // Wrap with useEffect hook to only run it once
   useEffect(() => {
     // call bifrost.syncWithTopic() to initiate Realtime Updates
@@ -24,7 +24,7 @@ const MicroscopeComponent: React.FC = () => {
   }, [topicBifrost]);
 
   // Accessing the Store using useSelector hook
-  const microscopeServoService = useSelector((state: RootState) => state.microscopeServoService);
+  const microscopeServoService = useSelector((state: RootState) => state.microscopeServiceStore);
 
   // Invoking Bifrost and pointing it towards SET_SERVO
   const serviceBifrost = useBifrost({ service: RosService.MOVE_MICROSCOPE_SERVO });

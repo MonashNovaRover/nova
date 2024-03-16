@@ -45,6 +45,6 @@ export interface RootState {
   cameraStreamerState: CameraStreamerState;
 
   // Science Stores
-  microscopeServoState: IRosCoreMicroscopeServoInfo;
-  microscopeServoService: IRosCoreMoveMicroscopeServoResponse;
+  microscopeServoStore: IRosCoreMicroscopeServoInfo;
+  microscopeServiceStore: IRosCoreMoveMicroscopeServoResponse;
 }
