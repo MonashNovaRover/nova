@@ -18,6 +18,7 @@ import {
   ARCCompModes,
   cameraSetup,
 } from "../views/shared/CamerasPage/CameraPageConstants.ts";
+import TestWebGLView from "../views/test/TestWebGLView.tsx";
 import GeneralBaseView from "../views/general/GeneralBaseView.tsx";
 
 export const arcRoutes: RouteObject[] = [
@@ -85,6 +86,10 @@ export const testRoutes: RouteObject[] = [
   {
     path: "/test/rfid",
     element: <TestRFIDView />,
+  },
+  {
+    path: "/test/webgl",
+    element: <TestWebGLView/>,
   },
   {
     path: "/test/science",

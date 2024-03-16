@@ -19,7 +19,12 @@
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+
+    /* Add glsl file type declaration */
+    "types": [
+      "vite-plugin-glsl/ext",
+    ],
   },
   "include": ["src"],
   "references": [{ "path": "./tsconfig.node.json" }]

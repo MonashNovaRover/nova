@@ -40,4 +40,7 @@ export interface RosTopicInterfaces {
   // Science Related
   [RosTopic.KILN_DATA]: IRosCoreKilnData;
   [RosTopic.NIR_DATA]: IRosCoreNirProbeData;
+
+  // Cameras Related
+  [RosTopic.CAMERAS]: IRosCameraMsgsCameras;
 }
