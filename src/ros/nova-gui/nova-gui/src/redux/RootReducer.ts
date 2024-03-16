@@ -1,10 +1,10 @@
 import BifrostStatusStore from "./store/bifrost/BifrostStatusStore";
-
 import { createBifrostStore } from "./store/bifrost/createBifrostStore";
 import { RosService } from "../ros/services/rosService";
 import { RosTopic } from "../ros/topics/rosTopic";
 import { uiSlice } from "./slices/UISlice";
 import { cameraStreamerSlice } from "./slices/CameraStreamSlice";
+import { IRosSensorMsgsRange } from "../ros/rosTypes";
 
 export const rootReducer = {
   // Bifrost Stores
@@ -75,15 +75,12 @@ export const rootReducer = {
     { topic: RosTopic.TOF },
     {
       header: {
-        stamp: { sec: 0, nanosec: 0 },
         frame_id: ""
-      },
-      radiation_type: 0,
-      field_of_view: 0,
+      } as IRosSensorMsgsRange["header"],
       min_range: 0.0,
-      max_range: 100.0,
-      range: -5.0
-    }),
+      max_range: 150.0,
+      range: 0.0
+    } as IRosSensorMsgsRange),
 
   // Regular Reducers
   uiState: uiSlice.reducer,
