@@ -74,6 +74,10 @@ in
             stop = ''echo 'The stop alias is no longer relevant. Use "systemctl stop <service>" instead.' #'';
             restart = ''echo 'The restart alias is no longer relevant. Use "systemctl restart <service>" instead.' #'';
             wifi = ''echo 'The wifi alias is no longer relevant. Use "nmtui" or "nmcli" instead.' #'';
+
+            # Nano v Vim
+            set_vim = "export EDITOR=vim";
+            set_nano = "export EDITOR=nano";
           }
         ];
 
