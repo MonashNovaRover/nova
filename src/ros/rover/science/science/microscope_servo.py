@@ -44,7 +44,7 @@ class MicroscopeNode(Node):
     INITIAL_ANGLE = 0
     MAX_ANGLE = 90
 
-    MAX_VALUE = 0xFF
+    MAX_VALUE = 0x9B
     MIN_VALUE = 0x00
 
     def __init__(self):
