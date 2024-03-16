@@ -11,22 +11,6 @@ export const rootReducer = {
   // Bifrost Stores
   bifrostStatus: BifrostStatusStore(),
 
-  // Science Reduceers
-  kilnData: createBifrostStore({ topic: RosTopic.KILN_DATA }, { 
-    temp: [0, 0, 0],  // current converted temp readings [C]
-    state: false      // current status of Kiln: True if On
-  }),
-  kilnCommand: createBifrostStore({ service: RosService.KILN_COMMAND }, { 
-    success: true     // whether the last service request succeeded or not: False will show error on Toggle Kiln Button
-  }),
-  nirStore: createBifrostStore(
-    { topic: RosTopic.NIR_DATA },
-    {
-      data: 0,
-      led: IRosCoreNirProbeDataConst.LED_OFF
-    }
-  ),
-
   // Drive Reducers
   driveStore: createBifrostStore(
     { topic: RosTopic.DRIVE_INFO },
@@ -100,7 +84,10 @@ export const rootReducer = {
     { topic: RosTopic.CAMERAS },
     { cameras: [] }
   ),
-  ipList: createBifrostStore({ service: RosService.GET_IP_LIST }, { ips: [] }),
+  ipList: createBifrostStore(
+    { service: RosService.GET_IP_LIST }, 
+    { ips: [] }
+  ),
 
   // Science Reducers
   tofStore: createBifrostStore(
@@ -112,7 +99,22 @@ export const rootReducer = {
       min_range: 0.0,
       max_range: 150.0,
       range: 0.0
-    } as IRosSensorMsgsRange),
+    } as IRosSensorMsgsRange
+  ),
+  kilnData: createBifrostStore({ topic: RosTopic.KILN_DATA }, { 
+    temp: [0, 0, 0],  // current converted temp readings [C]
+    state: false      // current status of Kiln: True if On
+  }),
+  kilnCommand: createBifrostStore({ service: RosService.KILN_COMMAND }, { 
+    success: true     // whether the last service request succeeded or not: False will show error on Toggle Kiln Button
+  }),
+  nirStore: createBifrostStore(
+    { topic: RosTopic.NIR_DATA },
+    {
+      data: 0,
+      led: IRosCoreNirProbeDataConst.LED_OFF
+    }
+  ),
 
   // Regular Reducers
   uiState: uiSlice.reducer,
