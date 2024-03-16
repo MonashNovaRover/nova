@@ -245,7 +245,8 @@ global_costmap:
       footprint_padding: 0.1
       resolution: 0.4
       track_unknown_space: False
-      plugins: ["height_mapper_layer", "inflation_layer"]
+      use_maximum: True
+      plugins: ["height_mapper_layer", "inflation_layer", "static_layer"]
       obstacle_layer:
         plugin: "nav2_costmap_2d::ObstacleLayer"
         enabled: True
@@ -306,6 +307,7 @@ global_costmap:
         plugin: "nav2_costmap_2d::StaticLayer"
         map_subscribe_transient_local: True
         subscribe_to_updates: False
+        map_topic: /static_map
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 3.0
@@ -325,7 +327,6 @@ map_saver:
     save_map_timeout: 5.0
     free_thresh_default: 0.25
     occupied_thresh_default: 0.65
-    map_subscribe_transient_local: True
 
 amcl:
   ros__parameters:

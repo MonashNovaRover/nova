@@ -76,7 +76,7 @@ COLOR_IDS = {
 
 
 # TODO: Change this to only track cubes, not AR tags, and not worry about search plan
-class GoalManager(Node):
+class CubeTracker(Node):
     """
     Manages the search of the map for blocks. Each newly detected block will initially be stored as "unsure", 
     and will only be localised once its location has been repeatedly confirmed. Once a block 
@@ -86,7 +86,7 @@ class GoalManager(Node):
     MAX_STD_DEV=0.2
 
     def __init__(self):
-        super().__init__("goal_manager")
+        super().__init__("cube_tracker")
         self.get_logger().set_level(logging.DEBUG)
         # ROS Subscribers
         self.sub_blocks = self.create_subscription(MarkerArray, "/object_detector/markers", self.cb_cube, 10)
@@ -125,7 +125,12 @@ class GoalManager(Node):
         timer_period = 0.1  # run the timer 10 times per second
         rover_pose_period = 1 / 30
         self.create_timer(timer_period, self.handle_targets)
-        self.create_timer(rover_pose_period, self.callback_rover_pose)
+        # This is for TESTING, i.e. DELETE LATER and uncomment the callback to rover pose.
+        self.state_rover_pose.x = 0.0
+        self.state_rover_pose.y = 0.0
+        self.state_rover_pose.theta = 0.0
+
+        # self.create_timer(rover_pose_period, self.callback_rover_pose)
 
     def get_map_edges_from_boundary_points(self):
         """
@@ -174,22 +179,22 @@ class GoalManager(Node):
         to be considered a confirmed block.
         """
         target_pos = self.unsure_blocks[color]
-        if len(target_pos) >= GoalManager.MIN_SAMPLES:
+        if len(target_pos) >= CubeTracker.MIN_SAMPLES:
             consistent_pos = self.remove_outlier_pos(target_pos)
         else:
             self.get_logger().debug(f"{len(target_pos)} samples is not enough to confirm target {color}")
             return
 
-        if len(consistent_pos) >= GoalManager.MIN_SAMPLES:
+        if len(consistent_pos) >= CubeTracker.MIN_SAMPLES:
             self.get_logger().debug(f"Validating consistency of target {color}: {consistent_pos}")
-            target_pos_vals = consistent_pos[-GoalManager.MIN_SAMPLES:]
+            target_pos_vals = consistent_pos[-CubeTracker.MIN_SAMPLES:]
             # We have enough samples to be confident in this block's position
             # Calculate the average position of the block
             avg_pos = np.mean(target_pos_vals, axis=0)
             # Calculate the standard deviation of the block's position
             std_dev = np.std(target_pos_vals, axis=0)
             # Check that the standard deviation is small enough to be considered a confirmed block
-            if np.all(std_dev < GoalManager.MAX_STD_DEV):
+            if np.all(std_dev < CubeTracker.MAX_STD_DEV):
                 self.get_logger().debug(f"Confirmed target {color} consistent pos at {avg_pos}")
                 # We have a confirmed block
                 if color is not None:
@@ -314,7 +319,7 @@ class GoalManager(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    node = GoalManager()
+    node = CubeTracker()
     rclpy.spin(node)
     node.destroy_node()
     rclpy.shutdown()

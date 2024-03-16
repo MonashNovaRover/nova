@@ -1,20 +1,20 @@
 { lib
 , buildRosPackage
-, ament-cmake
-, rclcpp
-, nav2-behavior-tree
-, pluginlib
-, rosidl-default-generators
-, behaviortree-cpp-v3
-, geometry-msgs
-, tf2-ros
-, nav2-util
+, pythonPackages
 , std-srvs
+, sensor-msgs
+, rclpy
+, tf2-ros
+, visualization-msgs
+, vision-msgs
+, geometry-msgs
+, std-msgs
 , launch
 , launch-ros
 }:
 
-buildRosPackage {
+buildRosPackage
+{
   name = "cube-localisation";
   buildType = "ament_python";
 
@@ -24,7 +24,16 @@ buildRosPackage {
     filter = lib.novaSourceFilter [ ] path;
   };
 
-  nativeBuildInputs = [ ament-cmake rosidl-default-generators ];
-  buildInputs = [ pluginlib std-srvs rclcpp nav2-behavior-tree behaviortree-cpp-v3 nav2-util tf2-ros geometry-msgs ];
-  propagatedBuildInputs = [ launch launch-ros ];
+  propagatedBuildInputs = [
+    std-srvs
+    sensor-msgs
+    rclpy
+    tf2-ros
+    visualization-msgs
+    vision-msgs
+    geometry-msgs
+    std-msgs
+    launch
+    launch-ros
+  ];
 }
