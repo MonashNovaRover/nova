@@ -39,7 +39,7 @@ export default function useWebcam(videoRef: React.MutableRefObject<HTMLVideoElem
       .then((newStream) => {
         setStream(newStream);
       });
-  }, [videoRef.current]);
+  }, [videoRef]);
 
   useEffect(() => {
     sendSessionStartMessage();
@@ -54,15 +54,23 @@ export default function useWebcam(videoRef: React.MutableRefObject<HTMLVideoElem
     setStreamingState(StreamingState.LOADING);
     videoRef.current.play().catch((e) => {
       console.error("Failed to play webcam stream", e);
+    }).then(() => {
       setStreamingState(StreamingState.STREAMING);
     });
   }, [stream, videoRef]);
 
+  const closeSession = useCallback(() => {
+    if (videoRef.current === null)
+      return;
 
-  // const { streamingState, sendSessionStartMessage, isCameraOnline } = useCameraStream(cameraSerial, videoRef);
+    videoRef.current?.pause();
+    setStreamingState(StreamingState.STOPPED);
+  }, [videoRef]);
+
   return {
     streamingState,
     sendSessionStartMessage,
-    isCameraOnline
+    isCameraOnline,
+    closeSession
   };
 }

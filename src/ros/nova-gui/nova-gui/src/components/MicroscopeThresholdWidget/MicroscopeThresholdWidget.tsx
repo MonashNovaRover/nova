@@ -6,7 +6,6 @@ import React, {useCallback, useEffect, useRef, useState} from "react";
 import {Button, Card, CardBody, Checkbox, Input, Slider} from "@nextui-org/react";
 import useSamplers, {GLSampler} from "../WebGLCanvas/hooks/useSamplers.tsx";
 import useDict from "../WebGLCanvas/hooks/useDict.tsx";
-// import useWebcam from "../WebGLCanvas/hooks/useWebcam.tsx";
 import useAttributes from "../WebGLCanvas/hooks/useAttributes.tsx";
 import useCanvasSize from "../WebGLCanvas/hooks/useCanvasSize.tsx";
 import useUniforms, {vec} from "../WebGLCanvas/hooks/useUniforms.tsx";
@@ -14,6 +13,7 @@ import CopyableInput from "../CopyableInput/CopyableInput.tsx";
 import {useCameraStream} from "../CameraComponent/hooks/useCameraStream.ts";
 import {CameraComponentProps} from "../CameraComponent/CameraComponent.tsx";
 import CameraSessionStartStopButton from "../CameraComponent/components/CameraSessionStartStopButton.tsx";
+// import useWebcam from "../WebGLCanvas/hooks/useWebcam.tsx";
 
 const attributes = {
   aPosition: {
@@ -40,12 +40,11 @@ const MicroscopeThresholdWidget: React.FC<CameraComponentProps> = (props) => {
   const finalThreshold = isManualThresholdValid ? (parsedManualThreshold / 100) : threshold;
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  // useWebcam(videoRef);
   const {
     streamingState,
     sendSessionStartMessage,
     closeSession,
-  } = useCameraStream(cameraSerial, videoRef, allCamerasStarted);
+  } = useCameraStream(cameraSerial, videoRef, allCamerasStarted); // useWebcam(videoRef);
 
   const gl = useGL();
   const program = useProgram(gl.gl, vert, frag);
@@ -72,7 +71,7 @@ const MicroscopeThresholdWidget: React.FC<CameraComponentProps> = (props) => {
     // Redraw
     gl.gl.clear(gl.gl.COLOR_BUFFER_BIT);
     gl.gl.drawArrays(gl.gl.TRIANGLE_STRIP, 0, 4);
-  }, [gl.gl, program, videoRef.current?.width, videoRef.current?.height, attributes, samplers, uniforms, threshold, frameID]);
+  }, [gl.gl, program, videoRef.current?.width, videoRef.current?.height, samplers, uniforms, threshold, frameID]);
 
   const getBrightness = useCallback(() => {
     const numElements = width * height;
@@ -94,19 +93,11 @@ const MicroscopeThresholdWidget: React.FC<CameraComponentProps> = (props) => {
     console.log(`${(100 * (1 - average)).toFixed(4)}%`);
 
     setBrightness(1 - average);
-  }, [gl, width, height])
+  }, [gl, width, height]);
 
   const toggleShowThreshold = useCallback(() => {
     setShowThreshold(!showThreshold);
-  }, [showThreshold, setShowThreshold])
-
-  /*
-  <CardHeader className="pb-0 flex flex-row">
-        <div className="grow">Microscope Thresholding</div>
-        <Checkbox className="px-2" isSelected={showThreshold} onValueChange={setShowThreshold}></Checkbox>
-      </CardHeader>
-   */
-  // className="flex flex-row gap-1.5"
+  }, [showThreshold, setShowThreshold]);
 
   return (
     <Card>
