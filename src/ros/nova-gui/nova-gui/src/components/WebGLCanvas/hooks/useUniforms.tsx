@@ -9,6 +9,13 @@ export type vec = [number] | [number, number] | [number, number, number] | [numb
 
 export type GLUniforms = {[key: string] : vec};
 
+/**
+ * Applies uniform vector or float values to a given program. Names of the uniforms should match those of the uniforms
+ * defined in the program.
+ * @param gl The rendering context used
+ * @param program The program to apply uniforms to
+ * @param uniforms The uniform float and vector values.
+ */
 const useUniforms = (gl?: WebGLRenderingContext, program?: WebGLProgram, uniforms?: GLUniforms) => {
   useEffect(() => {
     if (gl === undefined || uniforms === undefined || program === undefined)

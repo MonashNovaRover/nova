@@ -1,5 +1,10 @@
 import {useCallback, useEffect} from "react";
 
+/**
+ * A hook, which plays a given video file url on a given video ref
+ * @param videoRef The video ref to play the webcam feed on
+ * @param url The url of the video to play
+ */
 export default function useVideoTexture(videoRef: React.MutableRefObject<HTMLVideoElement | null>, url: string) {
 
   const play = useCallback(() => {

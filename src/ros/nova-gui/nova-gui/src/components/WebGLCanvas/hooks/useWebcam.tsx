@@ -2,6 +2,10 @@ import {useCallback, useEffect, useState} from "react";
 import {StreamingState} from "../../CameraComponent/hooks/useCameraStream.ts";
 import toast from "react-hot-toast";
 
+/**
+ * A hook, which plays the webcam on a given video ref
+ * @param videoRef The video ref to play the webcam feed on
+ */
 export default function useWebcam(videoRef: React.MutableRefObject<HTMLVideoElement | null>) {
   // const videoRef = useRef<HTMLVideoElement | undefined>(undefined);
   // const videoRef = useRef<HTMLVideoElement>(null);

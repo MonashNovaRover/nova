@@ -6,12 +6,15 @@ import "rvfc-polyfill"
 export type GLSampler = [HTMLImageElement | HTMLVideoElement | null | undefined, number];
 export type GLSamplers = {[key: string] : GLSampler}; // Map<string, GLSampler>;
 
-
-
+/**
+ * Applies video and image elements as samplers for a webgl program.
+ * This is currently broken when using more than 1 sampler.
+ * TODO: fix for cases with more than one sampler.
+ * @param gl The rendering context to use
+ * @param program The program to apply samplers to.
+ * @param samplers The samplers to use.
+ */
 const useSamplers = (gl?: WebGL2RenderingContext, program?: WebGLProgram, samplers?: GLSamplers) => {
-
-
-
   const [textures, setTextures] = useState<{[key: string] : WebGLTexture | undefined}>({});
   const [samplerFrameID, setSamplerFrameID] = useState<number>(0);
 
