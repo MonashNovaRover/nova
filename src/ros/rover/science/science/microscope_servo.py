@@ -6,9 +6,9 @@ Purpose: Control microscope zoom with respective servo
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: MicroscopeNode
 TOPICS:
-    - publisher: /science/MicroscopeServoInfo [MicroscopeServoInfo]
+    - publisher: /science/microscope_servo_info [MicroscopeServoInfo]
 SERVICES: 
-    - server: /science/MicroscopeServoService [MoveMicroscopeServo]
+    - server: /science/microscope_servo_service [MoveMicroscopeServo]
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:
@@ -28,9 +28,9 @@ from core.msg import MicroscopeServoInfo
 class MicroscopeNode(Node):
 
     SERVICE_TYPE = MoveMicroscopeServo
-    SERVICE_NAME = 'science/MicroscopeServoService'
+    SERVICE_NAME = '/science/microscope_servo_service'
     TOPIC_TYPE = MicroscopeServoInfo
-    TOPIC_NAME = 'science/MicroscopeServoInfo'
+    TOPIC_NAME = '/science/microscope_servo_info'
 
 
     # can bus
@@ -45,7 +45,7 @@ class MicroscopeNode(Node):
     MAX_ANGLE = 90
 
     def __init__(self):
-        super().__init__("auger")
+        super().__init__("Microscope")
 
         self.get_logger().set_level(logging.DEBUG)
         self.get_logger().info("Microscope Servo Node Starting")
@@ -68,7 +68,7 @@ class MicroscopeNode(Node):
             self.bus.send(servo_frame)
         except Exception as e:
             self.get_logger().error(f"Failed to send microscope servo (angle: {target_angle}) CAN command: {str(e)}")
-
+                        
     def request_servo(self, request, response):
         try:
             if MicroscopeNode.MIN_ANGLE <= request.angle <= MicroscopeNode.MAX_ANGLE:
