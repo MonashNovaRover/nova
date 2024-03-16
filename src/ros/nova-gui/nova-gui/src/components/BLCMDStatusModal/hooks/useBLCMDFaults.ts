@@ -64,10 +64,10 @@ const generateErrorMessageForFault = (
 ) => {
   const motorName = BLCMD_INDEX[error.id];
   if (short) {
-    return `${motorName} errored out`;
+    return `${motorName} Faulted`;
   }
 
-  let errorMessage = `${motorName} Errored out due to `;
+  let errorMessage = `${motorName} Faulted due to `;
   if (error.gate_fault) {
     errorMessage += "Gate Fault, ";
   }
@@ -75,10 +75,10 @@ const generateErrorMessageForFault = (
     errorMessage += "Overspeed Fault, ";
   }
   if (error.resolver_fault) {
-    errorMessage += "Resolver fault, ";
+    errorMessage += "Resolver Fault, ";
   }
   if (error.stall_fault) {
-    errorMessage += "Stall fault, ";
+    errorMessage += "Stall Fault, ";
   }
   errorMessage = errorMessage.slice(0, -2); // Remove the trailing comma and space
   return errorMessage;
