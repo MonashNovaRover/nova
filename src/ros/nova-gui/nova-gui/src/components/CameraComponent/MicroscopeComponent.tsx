@@ -53,6 +53,9 @@ const MicroscopeComponent: React.FC = () => {
         label="Zoom/Focus"
         startContent="0%"
         endContent="100%"
+        minValue={0}
+        maxValue={90}
+        step={1}
         value={zoom}
         onChange={(value) => setZoom(value as number)}
       />
