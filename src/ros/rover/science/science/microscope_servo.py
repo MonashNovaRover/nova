@@ -38,7 +38,7 @@ class MicroscopeNode(Node):
     # card IDs
     MICROSCOPE_SERVO_ID = 0x0B0
     # command data
-    MOVE_SERVO_COMMAND = 0x0C
+    MOVE_SERVO_COMMAND = 0x0D
     # angle
     MIN_ANGLE = 0
     INITIAL_ANGLE = 0
