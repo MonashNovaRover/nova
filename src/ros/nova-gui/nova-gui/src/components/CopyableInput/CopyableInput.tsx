@@ -1,7 +1,6 @@
-import {Button, Divider, Input, InputProps, Tooltip} from "@nextui-org/react";
+import {Button, Input, InputProps, Tooltip} from "@nextui-org/react";
 import React, {useCallback} from "react";
 import {Copy} from "react-feather";
-import CopyableOutput from "./CopyableInput.tsx";
 
 export interface CopyableInputProps extends InputProps {
   // The value to copy to the clipboard when the copy button is pressed. Otherwise uses value by default
