@@ -1,5 +1,6 @@
 import { 
   IRosCameraMsgsCameras, 
+  IRosCoreBlcmdStatusArray, 
   IRosCoreCmDsFeedback, 
   IRosCoreDriveInfo, 
   IRosCoreKilnData, 
@@ -33,6 +34,9 @@ export interface RosTopicInterfaces {
   // Cameras Related
   [RosTopic.CAMERAS]: IRosCameraMsgsCameras;
 
+  // Errors Related
+  [RosTopic.BLCMD_ERRORS]: IRosCoreBlcmdStatusArray;
+  
   // Science Related
   [RosTopic.KILN_DATA]: IRosCoreKilnData;
   [RosTopic.NIR_DATA]: IRosCoreNirProbeData;

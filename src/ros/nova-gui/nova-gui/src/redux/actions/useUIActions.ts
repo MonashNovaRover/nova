@@ -26,5 +26,11 @@ export function useUIActions() {
         payload: controllerHelpModalOpen,
       });
     },
+    setBlcmdStatusModalOpen(blcmdStatusModalOpen: boolean) {
+      dispatch({
+        type: UIActions.BLCMD_STATUS_MODAL_UPDATE.toString(),
+        payload: blcmdStatusModalOpen,
+      });
+    },
   };
 }

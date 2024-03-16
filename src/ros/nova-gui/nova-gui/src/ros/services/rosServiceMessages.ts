@@ -11,7 +11,10 @@ export const rosServiceMessages = {
   [RosService.START_CAMS]: "camera_msgs/srv/CameraOperation",
   [RosService.PAUSE_CAMS]: "camera_msgs/srv/CameraOperation",
 
-  // Science Related 
+  // Error Related
+  [RosService.BLCMD_RESET]: "core/srv/BLCMDReset",
+
+  // Science Related
   [RosService.KILN_COMMAND]: "core/srv/KilnCommand",
   [RosService.SET_NIR_PROBE_LED]: "core/srv/SetNIRProbeLED",
 };

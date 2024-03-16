@@ -18,6 +18,7 @@ import { useUIActions } from "../../redux/actions/useUIActions";
 import { BifrostConnectionStatus } from "../../redux/models/bifrost/BifrostTypes";
 import { useLocation } from "react-router-dom";
 import humanizeString from "humanize-string";
+import { BLCMDStatusButton } from "../BLCMDStatusModal/BLCMDStatusButton";
 import "./Navbar.css";
 
 const connectionStatusColor: {
@@ -43,8 +44,6 @@ export const NovaNavbar: React.FC = () => {
 
   const title = parsedLocation.reverse()[0];
 
-  // State to control the visibility of the image modal
-
   return (
     <Navbar maxWidth="full" isBordered position="static">
       <NavbarContent justify="start">
@@ -61,6 +60,9 @@ export const NovaNavbar: React.FC = () => {
         </NavbarBrand>
       </NavbarContent>
       <NavbarContent as="div" className="items-center" justify="end">
+        <NavbarItem>
+          <BLCMDStatusButton />
+        </NavbarItem>
         <NavbarItem>
           <Dropdown placement="bottom-end">
             <DropdownTrigger>

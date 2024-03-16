@@ -1,6 +1,7 @@
 import {
   IRosCameraMsgsCameras,
   IRosCameraMsgsGetIpListResponse,
+  IRosCoreBlcmdStatusArray,
   IRosCoreDriveInfo,
   IRosCoreNirProbeData,
   IRosCoreKilnCommandResponse,
@@ -33,6 +34,9 @@ export interface RootState {
   camerasStore: IRosCameraMsgsCameras;
   ipList: IRosCameraMsgsGetIpListResponse;
 
+  // Error Related Stores
+  blcmdStatusStore: IRosCoreBlcmdStatusArray;
+  
   // Science Bifrost states
   nirStore: IRosCoreNirProbeData;
   kilnData: IRosCoreKilnData;
