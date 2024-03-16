@@ -1,6 +1,16 @@
+import { 
+  IRosCameraMsgsCameras, 
+  IRosCoreBlcmdStatusArray, 
+  IRosCoreCmDsFeedback, 
+  IRosCoreDriveInfo, 
+  IRosCoreKilnData, 
+  IRosCoreNirProbeData, 
+  IRosCoreTelemetry, 
+  IRosGeometryMsgsPose, 
+  IRosStdMsgsString 
+} from "../rosTypes";
 import { RosTopic } from "./rosTopic";
-import {IRosCoreNirProbeData, IRosCoreTelemetry, IRosGeometryMsgsPose} from "../rosTypes";
-import { IRosCoreDriveInfo } from "../rosTypes";
+
 
 /**
  * This Interface exists to link Individual topics to The Messages.
@@ -12,7 +22,22 @@ import { IRosCoreDriveInfo } from "../rosTypes";
 export interface RosTopicInterfaces {
   [RosTopic.NULL_TOPIC]: undefined;
   [RosTopic.POSE]: IRosGeometryMsgsPose;
+
+  // Drive Related
   [RosTopic.DRIVE_INFO]: IRosCoreDriveInfo;
-  [RosTopic.TELEMETRY]: IRosCoreTelemetry;
+  [RosTopic.DRIVE_TELEMETRY]: IRosCoreTelemetry;
+
+  // Arm Related
+  [RosTopic.ARM_TELEMETRY]: IRosCoreCmDsFeedback;
+  [RosTopic.RFID_DATA]: IRosStdMsgsString;
+
+  // Cameras Related
+  [RosTopic.CAMERAS]: IRosCameraMsgsCameras;
+
+  // Errors Related
+  [RosTopic.BLCMD_ERRORS]: IRosCoreBlcmdStatusArray;
+  
+  // Science Related
+  [RosTopic.KILN_DATA]: IRosCoreKilnData;
   [RosTopic.NIR_DATA]: IRosCoreNirProbeData;
 }

@@ -11,7 +11,22 @@ import { RosTopic } from "./rosTopic";
 export const rosTopicMessages = {
   [RosTopic.NULL_TOPIC]: "",
   [RosTopic.POSE]: "geometry_msgs/msg/Pose",
+
+  // Drive Related
   [RosTopic.DRIVE_INFO]: "core/msg/DriveInfo",
-  [RosTopic.TELEMETRY]: "core/msg/Telemetry",
-  [RosTopic.NIR_DATA]: "core/msg/NIRProbeData"
+  [RosTopic.DRIVE_TELEMETRY]: "core/msg/Telemetry",
+
+  // Arm Related
+  [RosTopic.ARM_TELEMETRY]: "core/msg/CMDsFeedback",
+  [RosTopic.RFID_DATA]: "std_msgs/msg/String",
+
+  // Cameras Related
+  [RosTopic.CAMERAS]: "camera_msgs/msg/Cameras",
+
+  // Errors Related
+  [RosTopic.BLCMD_ERRORS]: "core/msg/BLCMDStatusArray",
+  
+  // Science Related
+  [RosTopic.KILN_DATA]: "core/msg/KilnData",
+  [RosTopic.NIR_DATA]: "core/msg/NIRProbeData",
 };

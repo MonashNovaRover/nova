@@ -1,22 +1,43 @@
 import BifrostStatusStore from "./store/bifrost/BifrostStatusStore";
-import {uiSlice} from "./slices/UIReducer";
-import {createBifrostStore} from "./store/bifrost/createBifrostStore";
-import {RosService} from "../ros/services/rosService";
-import {RosTopic} from "../ros/topics/rosTopic";
-import {IRosCoreNirProbeDataConst} from "../ros/rosTypes.ts";
+import { createBifrostStore } from "./store/bifrost/createBifrostStore";
+import { RosService } from "../ros/services/rosService";
+import { RosTopic } from "../ros/topics/rosTopic";
+import {
+  IRosCoreCmDsFeedback,
+  IRosCoreCmdFeedback,
+  IRosCoreNirProbeDataConst,
+} from "../ros/rosTypes";
+import { uiSlice } from "./slices/UISlice";
+import { cameraStreamerSlice } from "./slices/CameraStreamSlice";
+import { BLCMD_INDEX } from "../constants";
 
 export const rootReducer = {
-  uiState: uiSlice.reducer,
+  // Bifrost Stores
   bifrostStatus: BifrostStatusStore(),
 
-  ipList: createBifrostStore({ service: RosService.GET_IP_LIST }, { ips: [] }),
-  poseStore: createBifrostStore(
-    { topic: RosTopic.POSE },
+  // Science Reduceers
+  kilnData: createBifrostStore(
+    { topic: RosTopic.KILN_DATA },
     {
-      orientation: { x: 0, y: 0, z: 0, w: 0 },
-      position: { x: 0, y: 0, z: 0 },
+      temp: [0, 0, 0], // current converted temp readings [C]
+      state: false, // current status of Kiln: True if On
     }
   ),
+  kilnCommand: createBifrostStore(
+    { service: RosService.KILN_COMMAND },
+    {
+      success: true, // whether the last service request succeeded or not: False will show error on Toggle Kiln Button
+    }
+  ),
+  nirStore: createBifrostStore(
+    { topic: RosTopic.NIR_DATA },
+    {
+      data: 0,
+      led: IRosCoreNirProbeDataConst.LED_OFF,
+    }
+  ),
+
+  // Drive Reducers
   driveStore: createBifrostStore(
     { topic: RosTopic.DRIVE_INFO },
     {
@@ -28,8 +49,8 @@ export const rootReducer = {
       handbrake: false,
     }
   ),
-  telemetryStore: createBifrostStore(
-    { topic: RosTopic.TELEMETRY },
+  driveTelemetryStore: createBifrostStore(
+    { topic: RosTopic.DRIVE_TELEMETRY },
     {
       wheels: [0, 0, 0, 0].map(() => ({
         bus: "",
@@ -59,11 +80,51 @@ export const rootReducer = {
       })),
     }
   ),
-  nirStore: createBifrostStore(
-    { topic: RosTopic.NIR_DATA },
+  poseStore: createBifrostStore(
+    { topic: RosTopic.POSE },
     {
-      data: 0,
-      led: IRosCoreNirProbeDataConst.LED_OFF
+      orientation: { x: 0, y: 0, z: 0, w: 0 },
+      position: { x: 0, y: 0, z: 0 },
     }
-  )
+  ),
+
+  // Arm Reducers
+  armTelemetryStore: createBifrostStore({ topic: RosTopic.ARM_TELEMETRY }, {
+    arm_motors: [0, 0, 0, 0, 0, 0].map(
+      () =>
+        ({
+          current: 0,
+        }) as IRosCoreCmdFeedback
+    ),
+  } as IRosCoreCmDsFeedback),
+  rfidDataStore: createBifrostStore(
+    { topic: RosTopic.RFID_DATA },
+    {
+      data: "",
+    }
+  ),
+
+  // Cameras2 Reducers
+  camerasStore: createBifrostStore(
+    { topic: RosTopic.CAMERAS },
+    { cameras: [] }
+  ),
+  ipList: createBifrostStore({ service: RosService.GET_IP_LIST }, { ips: [] }),
+
+  blcmdStatusStore: createBifrostStore(
+    { topic: RosTopic.BLCMD_ERRORS },
+    {
+      blcmds: Object.keys(BLCMD_INDEX).map((id) => ({
+        id,
+        gate_fault: false,
+        stall_fault: false,
+        resolver_fault: false,
+        overspeed_fault: false,
+      })),
+    }
+  ),
+
+  // Regular Stores
+  uiState: uiSlice.reducer,
+  cameraStreamerState: cameraStreamerSlice.reducer,
 };
