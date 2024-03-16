@@ -10,75 +10,59 @@ from launch_ros.actions import LoadComposableNodes, Node
 from launch_ros.descriptions import ComposableNode
 
 def launch_setup(context, *args, **kwargs):
+    use_sim_time = LaunchConfiguration('use_sim_time')
     name = LaunchConfiguration('name').perform(context)
-    depthai_prefix = get_package_share_directory("depthai_ros_driver")
-
-    params_file= LaunchConfiguration("params_file")
-    parameters = [
-        {
-            "frame_id": 'base_link',
-            "subscribe_rgb": True,
-            "subscribe_depth": True,
-            "subscribe_odom_info": True,
-            "approx_sync": True,
-            "odom_frame_id": 'odom',
-            "publish_tf": False,
-            "Rtabmap/DetectionRate": "3.5",
-        }
-    ]
+    qos = LaunchConfiguration("qos")
+    core_prefix = get_package_share_directory('core')
+    parameters={
+          'frame_id':'base_link',
+          'use_sim_time':use_sim_time,
+          'subscribe_rgb': True,
+          'subscribe_depth':True,
+          'subscribe_odom_info': True,
+          'approx_sync':True,
+          'odom_frame_id': 'odom',
+          "Rtabmap/DetectionRate": "3.5",
+    }
 
     remappings = [
         ("rgb/image", name+"/rgb/image_rect"),
         ("rgb/camera_info", name+"/rgb/camera_info"),
         ("depth/image", name+"/stereo/image_raw"),
+        ("imu", name+"/imu/data"),
+        ("odom", "odom/visual"),
     ]
 
     return [
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
-                os.path.join(depthai_prefix, 'launch', 'camera.launch.py')),
-            launch_arguments={"name": name,
-                              "parent_frame": "camera_link",
-                              "params_file": params_file}.items()),
+                os.path.join(core_prefix, 'launch', 'camera.launch.py')),
+            condition = IfCondition(LaunchConfiguration('launch_camera')),
+        ),
 
         LoadComposableNodes(
-            condition=IfCondition(LaunchConfiguration("rectify_rgb")),
-            target_container=name+"_container",
-            composable_node_descriptions=[
-                ComposableNode(
-                    package="image_proc",
-                    plugin="image_proc::RectifyNode",
-                    name="rectify_color_node",
-                    remappings=[('image', name+'/rgb/image_raw'),
-                                ('camera_info', name+'/rgb/camera_info'),
-                                ('image_rect', name+'/rgb/image_rect'),
-                                ('image_rect/compressed', name+'/rgb/image_rect/compressed'),
-                                ('image_rect/compressedDepth', name+'/rgb/image_rect/compressedDepth'),
-                                ('image_rect/theora', name+'/rgb/image_rect/theora')]
-                )
-            ]),
-        
-        LoadComposableNodes(
-            target_container=name+"_container",
+            target_container=name + "_container",
             composable_node_descriptions=[
                 ComposableNode(
                     package='rtabmap_odom',
                     plugin='rtabmap_odom::RGBDOdometry',
                     name='rgbd_odometry',
-                    parameters=parameters,
-                    remappings=remappings,
+                    parameters=[odom_parameters, {"publish_tf": False}],
+                    remappings=remappings
+                    ,
                 ),
-            ],
+          ],
         ),
 
         LoadComposableNodes(
-            target_container=name+"_container",
+            target_container=name + "_container",
             composable_node_descriptions=[
                 ComposableNode(
                     package='rtabmap_slam',
                     plugin='rtabmap_slam::CoreWrapper',
                     name='rtabmap',
-                    parameters=parameters,
+                    parameters=[parameters,
+                                {'publish_tf':True}],
                     remappings=remappings,
                 ),
             ],
@@ -89,11 +73,23 @@ def launch_setup(context, *args, **kwargs):
             condition=IfCondition(LaunchConfiguration("rtabmap_viz")),
             executable="rtabmap_viz",
             output="screen",
-            parameters=parameters,
+            parameters=[parameters],
             remappings=remappings,
         ),
-    ]
 
+        Node(
+        package='rtabmap_util',
+        executable='point_cloud_xyz',
+        condition=IfCondition(LaunchConfiguration('rtabmap_pointcloud')),
+        name='rtabmap_point_cloud_xyz',
+        remappings=[('/depth/image', name+'/stereo/image_raw'),
+                    ('/depth/camera_info', name+'/stereo/camera_info'),
+                    ('/cloud', name+'/rtabmap/points'),
+                    ],
+        ),
+
+    ]
+ 
 
 def generate_launch_description():
     depthai_prefix = get_package_share_directory("depthai_ros_driver")
@@ -104,6 +100,9 @@ def generate_launch_description():
         DeclareLaunchArgument("params_file", default_value=os.path.join(core_prefix, 'params', 'depthai_oakd_rgbd.yaml')),
         DeclareLaunchArgument("rectify_rgb", default_value="True"),
         DeclareLaunchArgument("rtabmap_viz", default_value="False"),
+        DeclareLaunchArgument('use_sim_time', default_value='False'),
+        DeclareLaunchArgument('rtabmap_pointcloud', default_value='True'),
+        DeclareLaunchArgument('launch_camera', default_value='False'),
     ]
 
     return LaunchDescription(
