@@ -45,7 +45,7 @@ export const useBLCMDFaults = () => {
         if (errors.length === 1) {
           setFaultMessage(generateErrorMessageForFault(errors[0], true));
         } else {
-          setFaultMessage("One or More Motors Errored out");
+          setFaultMessage("Multiple Motor Faults Receieved");
         }
       } else {
         setFaultMessage(undefined);
