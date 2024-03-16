@@ -94,35 +94,35 @@ const NIRProbeFileTableWidget: React.FC<NIRProbeFileTableWidgetProps> = ({
     showAdvanced ?
       <TableRow className="relative h-6">
         {headerCell}
-        <TableCell>{}</TableCell>
-        <TableCell>{}</TableCell>
-        <TableCell>{}</TableCell>
-        <TableCell>{}</TableCell>
+        <TableCell>{""}</TableCell>
+        <TableCell>{""}</TableCell>
+        <TableCell>{""}</TableCell>
+        <TableCell>{""}</TableCell>
       </TableRow>
       :
       <TableRow className="relative h-6">
         {headerCell}
-        <TableCell>{}</TableCell>
+        <TableCell>{""}</TableCell>
       </TableRow>
   )
 
   const averageRow = (
     showAdvanced ?
       <TableRow key="average">
-        <TableCell>{}</TableCell>
+        <TableCell>{""}</TableCell>
         <TableCell>{
           file.entries.map(entry => entry.difference).reduce((a,b) => a+b, 0) / Math.max(file.entries.length,0)
         }</TableCell>
-        <TableCell>{}</TableCell>
-        <TableCell>{}</TableCell>
-        <TableCell>{}</TableCell>
+        <TableCell>{""}</TableCell>
+        <TableCell>{""}</TableCell>
+        <TableCell>{""}</TableCell>
       </TableRow>
       :
       <TableRow key="average">
         <TableCell>{
           file.entries.map(entry => entry.difference).reduce((a,b) => a+b, 0) / Math.max(file.entries.length,0)
         }</TableCell>
-        <TableCell>{}</TableCell>
+        <TableCell>{""}</TableCell>
       </TableRow>
   )
 
