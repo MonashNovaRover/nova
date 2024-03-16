@@ -184,7 +184,7 @@ class CMDCardController(CardInterface):
 
         # Check if the data is greater than the max value
         # If it is, set the data to the max value
-        if data > self.get_max_value:
+        if data > self.get_max_value():
             data = self.get_max_value()
 
         # Pack the data into a list
