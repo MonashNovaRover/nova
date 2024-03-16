@@ -15,27 +15,7 @@ export const rootReducer = {
   // Bifrost Stores
   bifrostStatus: BifrostStatusStore(),
 
-  // Science Reduceers
-  kilnData: createBifrostStore(
-    { topic: RosTopic.KILN_DATA },
-    {
-      temp: [0, 0, 0], // current converted temp readings [C]
-      state: false, // current status of Kiln: True if On
-    }
-  ),
-  kilnCommand: createBifrostStore(
-    { service: RosService.KILN_COMMAND },
-    {
-      success: true, // whether the last service request succeeded or not: False will show error on Toggle Kiln Button
-    }
-  ),
-  nirStore: createBifrostStore(
-    { topic: RosTopic.NIR_DATA },
-    {
-      data: 0,
-      led: IRosCoreNirProbeDataConst.LED_OFF,
-    }
-  ),
+  
 
   // Drive Reducers
   driveStore: createBifrostStore(
@@ -122,6 +102,36 @@ export const rootReducer = {
         overspeed_fault: false,
       })),
     }
+  ),
+  
+  // Science Reduceers
+  kilnData: createBifrostStore(
+    { topic: RosTopic.KILN_DATA },
+    {
+      temp: [0, 0, 0], // current converted temp readings [C]
+      state: false, // current status of Kiln: True if On
+    }
+  ),
+  kilnCommand: createBifrostStore(
+    { service: RosService.KILN_COMMAND },
+    {
+      success: true, // whether the last service request succeeded or not: False will show error on Toggle Kiln Button
+    }
+  ),
+  nirStore: createBifrostStore(
+    { topic: RosTopic.NIR_DATA },
+    {
+      data: 0,
+      led: IRosCoreNirProbeDataConst.LED_OFF,
+    }
+  ),
+  microscopeServoStore: createBifrostStore(
+    { topic: RosTopic.MICROSCOPE_SERVO },
+    { angle: 45 }
+  ),
+  microscopeServiceStore: createBifrostStore(
+    { service: RosService.MOVE_MICROSCOPE_SERVO },
+    { success: true }
   ),
 
   // Regular Stores

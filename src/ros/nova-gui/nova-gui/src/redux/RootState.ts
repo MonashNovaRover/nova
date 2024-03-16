@@ -3,6 +3,8 @@ import {
   IRosCameraMsgsGetIpListResponse,
   IRosCoreBlcmdStatusArray,
   IRosCoreDriveInfo,
+  IRosCoreMicroscopeServoInfo,
+  IRosCoreMoveMicroscopeServoResponse,
   IRosCoreNirProbeData,
   IRosCoreKilnCommandResponse,
   IRosCoreKilnData,
@@ -45,4 +47,8 @@ export interface RootState {
   // Regular Stores
   uiState: UIState;
   cameraStreamerState: CameraStreamerState;
+
+  // Science Stores
+  microscopeServoStore: IRosCoreMicroscopeServoInfo;
+  microscopeServiceStore: IRosCoreMoveMicroscopeServoResponse;
 }

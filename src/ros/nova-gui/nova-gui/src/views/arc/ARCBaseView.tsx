@@ -1,10 +1,10 @@
 import React from "react";
-import KilnWidget from "../../components/KilnWidget/KilnWidget";
+import MicroscopeComponent from "../../components/CameraComponent/MicroscopeComponent";
 
 const ARCBaseView: React.FC = () => {
   return (
     <div>
-      <KilnWidget/>
+      <MicroscopeComponent/>
     </div>
   );
 };

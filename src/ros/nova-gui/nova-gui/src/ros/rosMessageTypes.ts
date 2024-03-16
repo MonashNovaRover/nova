@@ -1,0 +1,1 @@
+/nix/store/zdp005h81mnpyfhjfhas3qzq2r4b2l42-ros-gui-ros-env-typescript-definitions/share/ros-typescript-definitions/messages.ts
