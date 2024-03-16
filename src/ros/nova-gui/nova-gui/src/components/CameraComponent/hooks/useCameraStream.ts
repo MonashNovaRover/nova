@@ -23,17 +23,9 @@ const ICE_SERVERS = [
   },
 ];
 
-/**
- * Custom hook for managing camera streaming.
- *
- * @param cameraSerial - The serial number of the camera.
- * @param videoRef - A mutable ref object for the HTML video element.
- * @param autoStart - Optional boolean flag indicating whether to automatically start the camera stream. Default is `false`.
- */
 export const useCameraStream = (
   cameraSerial: string,
-  videoRef: React.MutableRefObject<HTMLVideoElement | null>,
-  autoStart?: boolean
+  videoRef: React.MutableRefObject<HTMLVideoElement | null>
 ) => {
   const [isWsOpen, setWsOpen] = useState(false);
   const roverIP = useSelector((state: RootState) => state.uiState.roverIP);
@@ -56,68 +48,24 @@ export const useCameraStream = (
     .includes(cameraSerial);
 
   const [sessionId, setSessionId] = useState<string>();
-  const [erroredOut, setErroredOut] = useState(false);
   const rtcRef = useRef<RTCPeerConnection>();
   const peerId = useSelector(
     (state: RootState) => state.cameraStreamerState.cameras[cameraSerial]
   );
 
-  const sendSessionStartMessage = useCallback(() => {
-    if (!isWsOpen) return;
-    if (!peerId) {
-      toast.error(`${cameraSerial} unable to start up`);
-      return;
-    }
-    setStreamingState(StreamingState.LOADING);
-    sendJsonMessage({ type: "startSession", peerId });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sendJsonMessage, peerId, isWsOpen]);
-
   const [streamingState, setStreamingState] = useState<StreamingState>(
     StreamingState.STOPPED
   );
 
-  const closeSession = useCallback(() => {
-    if (!isWsOpen) return;
-    if (!peerId) {
+  const sendSessionStartMessage = useCallback(() => {
+    if (!isWsOpen || !peerId) {
       toast.error(`${cameraSerial} unable to start up`);
       return;
     }
-    setStreamingState(StreamingState.STOPPED);
-
-    if (rtcRef.current) {
-      rtcRef.current.close();
-    }
-
-    if (videoRef.current) videoRef.current.srcObject = null;
-
-    sendJsonMessage({ type: "endSession", sessionId });
-  }, [cameraSerial, isWsOpen, peerId, sendJsonMessage, sessionId, videoRef]);
-
-  useEffect(() => {
-    if (autoStart && isWsOpen && isCameraOnline) {
-      sendSessionStartMessage();
-    }
+    setStreamingState(StreamingState.LOADING);
+    sendJsonMessage({ type: "startSession", peerId: peerId });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isWsOpen, isCameraOnline]);
-
-  useEffect(() => {
-    if (streamingState === StreamingState.STOPPED && isCameraOnline) {
-      if (autoStart) {
-        sendSessionStartMessage();
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoStart]);
-
-  useEffect(() => {
-    if (streamingState === StreamingState.STREAMING) {
-      if (!autoStart) {
-        closeSession();
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoStart]);
+  }, [sendJsonMessage, peerId, isWsOpen]);
 
   const iceCandidateCallback = useCallback(
     (event: RTCPeerConnectionIceEvent) => {
@@ -149,7 +97,7 @@ export const useCameraStream = (
         const candidate = new RTCIceCandidate(message.ice);
         await rtcPeerConnection.addIceCandidate(candidate);
       } else {
-        throw new Error(`Unknown peer message: ${message.type}`);
+        throw new Error(`Unknown peer message: ${message}`);
       }
     },
     [sendJsonMessage, sessionId]
@@ -189,27 +137,15 @@ export const useCameraStream = (
         break;
       }
       case "peer": {
-        if (lastJsonMessage.sessionId !== sessionId) {
-          setSessionId(lastJsonMessage.sessionId); // This kinda has to be done everytime to ensure that this points to the latest
-        }
         const rtcPeerConnection = handOverRTCPeerConnection();
         handlePeerMessage(rtcPeerConnection, lastJsonMessage);
         break;
       }
-      default: {
-        if (!erroredOut) {
-          toast.error("Cameras2 Errored Out. Please check Cameras2");
-          setErroredOut(true);
-        }
-      }
+      default:
+        throw new Error(`Unknown message ${lastJsonMessage}`);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastJsonMessage]);
 
-  return {
-    streamingState,
-    sendSessionStartMessage,
-    isCameraOnline,
-    closeSession,
-  };
+  return { streamingState, sendSessionStartMessage, isCameraOnline };
 };

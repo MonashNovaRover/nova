@@ -10,7 +10,6 @@ import URCDeliveryView from "../views/urc/URCDeliveryView";
 import URCEquipmentServicingView from "../views/urc/URCEquipmentServicingView";
 import URCScienceView from "../views/urc/URCScienceView";
 import { Root } from "../root";
-import TestScienceView from "../views/test/TestScienceView.tsx";
 import { CameraPage } from "../views/shared/CamerasPage/CamerasPage.tsx";
 import { SingleCameraPage } from "../views/shared/SingleCameraPage/SingleCameraPage.tsx";
 import {
@@ -18,7 +17,6 @@ import {
   cameraSetup,
 } from "../views/shared/CamerasPage/CameraPageConstants.ts";
 import TestWebGLView from "../views/test/TestWebGLView.tsx";
-import GeneralBaseView from "../views/general/GeneralBaseView.tsx";
 
 export const arcRoutes: RouteObject[] = [
   {
@@ -41,14 +39,6 @@ export const arcRoutes: RouteObject[] = [
     path: "/arc/mapping-autonomous",
     element: <ARCMappingAutonomousView />,
   },
-  {
-    path: "/arc/cameras",
-    element: <CameraPage views={cameraSetup[ARCCompModes.POST_LANDING]} />,
-  },
-  ...Object.values(ARCCompModes).map<RouteObject>((comp) => ({
-    path: `/arc/cameras/${comp}`,
-    element: <CameraPage views={cameraSetup[comp]} />,
-  })),
 ];
 
 export const urcRoutes: RouteObject[] = [
@@ -86,10 +76,6 @@ export const testRoutes: RouteObject[] = [
     path: "/test/webgl",
     element: <TestWebGLView/>,
   },
-  {
-    path: "/test/science",
-    element: <TestScienceView />,
-  },
 ];
 
 const cameraRoutes: RouteObject[] = [
@@ -97,6 +83,10 @@ const cameraRoutes: RouteObject[] = [
     path: "/cameras",
     element: <CameraPage views={cameraSetup[ARCCompModes.POST_LANDING]} />,
   },
+  ...Object.values(ARCCompModes).map<RouteObject>((comp) => ({
+    path: `/cameras/${comp}`,
+    element: <CameraPage views={cameraSetup[comp]} />,
+  })),
   { path: "/cameras/:serial", element: <SingleCameraPage /> },
 ];
 
@@ -107,15 +97,16 @@ export const routes: RouteObject[] = [
     children: [
       {
         path: "/arc",
+        element: <ARCBaseView />,
         children: arcRoutes,
       },
       {
         path: "/urc",
+        element: <URCBaseView />,
         children: urcRoutes,
       },
       {
         path: "/general",
-        element: <GeneralBaseView/>,
         children: generalRoutes,
       },
       {

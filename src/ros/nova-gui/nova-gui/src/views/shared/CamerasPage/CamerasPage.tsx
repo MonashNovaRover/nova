@@ -18,31 +18,16 @@ export const CameraPage = (props: CameraPageProps) => {
 
   const { refreshAvailabilities } = useCameraStreamer();
 
-  const [allCamsOn, setAllCamsOn] = useState(false);
-
-  const [selectedTab, setSelectedTab] = useState(0);
-
   return (
     <div>
       <div className="flex flex-row justify-between items-center m-6 gap-4">
         <div className="flex flex-row m-4 ml-0 gap-4 items-center">
-          {!allCamsOn ? (
-            <Button
-              size="sm"
-              color="primary"
-              onClick={() => setAllCamsOn(true)}
-            >
-              <Play size="15px" fill="white" /> Start All
-            </Button>
-          ) : (
-            <Button
-              size="sm"
-              color="danger"
-              onClick={() => setAllCamsOn(false)}
-            >
-              <Square size="15px" fill="white" /> Stop All
-            </Button>
-          )}
+          <Button size="sm" color="primary">
+            <Play size="15px" fill="white" /> Start All
+          </Button>
+          <Button size="sm" color="danger">
+            <Square size="15px" fill="white" /> Stop All
+          </Button>
         </div>
         <Button
           className="m-4 mr-0"
@@ -59,20 +44,12 @@ export const CameraPage = (props: CameraPageProps) => {
         className=" p-4"
         fullWidth
         variant="bordered"
-        selectedKey={selectedTab}
-        onSelectionChange={(key) => {
-          setSelectedTab(key as number);
-        }}
       >
         {views.map((view, i) => (
           <Tab title={view.viewTitle} key={i}>
             <div className="grid grid-cols-3">
               {view.cameraSerials.map((serial, i) => (
-                <CameraComponent
-                  cameraSerial={serial}
-                  key={i}
-                  autostart={allCamsOn}
-                />
+                <CameraComponent cameraSerial={serial} key={i} />
               ))}
             </div>
           </Tab>

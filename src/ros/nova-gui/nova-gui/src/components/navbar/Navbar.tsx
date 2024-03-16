@@ -1,6 +1,5 @@
 import {
   Button,
-  Divider,
   Dropdown,
   DropdownItem,
   DropdownMenu,
@@ -16,9 +15,6 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../redux/RootState";
 import { useUIActions } from "../../redux/actions/useUIActions";
 import { BifrostConnectionStatus } from "../../redux/models/bifrost/BifrostTypes";
-import { useLocation } from "react-router-dom";
-import humanizeString from "humanize-string";
-import "./Navbar.css";
 
 const connectionStatusColor: {
   [key: string]: "success" | "warning" | "danger";
@@ -35,14 +31,6 @@ export const NovaNavbar: React.FC = () => {
     (state: RootState) => state.bifrostStatus.connectionStatus
   );
 
-  const location = useLocation();
-
-  const parsedLocation = location.pathname
-    .split("/")
-    .filter((val) => !["/", ""].includes(val));
-
-  const title = parsedLocation.reverse()[0];
-
   // State to control the visibility of the image modal
 
   return (
@@ -50,14 +38,6 @@ export const NovaNavbar: React.FC = () => {
       <NavbarContent justify="start">
         <NavbarBrand>
           <img src={novaLogo} className="w-14" alt="Nova Logo" />
-          {!!title && (
-            <>
-              <Divider orientation="vertical" className="h-10 w-[2px] mx-2" />
-              <p className="title hidden sm:block text-2xl ">
-                {humanizeString(title)}
-              </p>
-            </>
-          )}
         </NavbarBrand>
       </NavbarContent>
       <NavbarContent as="div" className="items-center" justify="end">
