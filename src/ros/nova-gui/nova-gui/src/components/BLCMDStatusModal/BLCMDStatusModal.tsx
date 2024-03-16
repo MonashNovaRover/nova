@@ -22,7 +22,7 @@ import { BLCMD_INDEX } from "../../constants";
 import { ComplainingChips } from "./ComplainingChips";
 import { ArrowCounterclockwise } from "react-bootstrap-icons";
 import { RosService } from "../../ros/services/rosService";
-import { IRosCoreBlcmdResetConst } from "../../ros/rosTypes";
+import { IRosCoreBlcmdResetRequestConst } from "../../ros/rosTypes";
 
 export const BLCMDStatusModal = () => {
   const bifrost = useBifrost({ topic: RosTopic.BLCMD_ERRORS });
@@ -93,7 +93,7 @@ export const BLCMDStatusModal = () => {
                           onClick={() =>
                             bifrostReset.callService(
                               {
-                                type: IRosCoreBlcmdResetConst.BLCMD,
+                                type: IRosCoreBlcmdResetRequestConst.BLCMD,
                                 id: blcmd.id,
                               },
                               {
@@ -120,7 +120,7 @@ export const BLCMDStatusModal = () => {
                           onClick={() =>
                             bifrostReset.callService(
                               {
-                                type: IRosCoreBlcmdResetConst.RESOLVER,
+                                type: IRosCoreBlcmdResetRequestConst.RESOLVER,
                                 id: blcmd.id,
                               },
                               {
