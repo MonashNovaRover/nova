@@ -14,11 +14,17 @@ export const rosTopicMessages = {
 
   // Drive Related
   [RosTopic.DRIVE_INFO]: "core/msg/DriveInfo",
-  [RosTopic.TELEMETRY]: "core/msg/Telemetry",
+  [RosTopic.DRIVE_TELEMETRY]: "core/msg/Telemetry",
+
+  // Arm Related
+  [RosTopic.ARM_TELEMETRY]: "core/msg/CMDsFeedback",
+  [RosTopic.RFID_DATA]: "std_msgs/msg/String",
 
   // Cameras Related
   [RosTopic.CAMERAS]: "camera_msgs/msg/Cameras",
 
   // Science Related
-  [RosTopic.TOF]: "sensor_msgs/msg/Range"
+  [RosTopic.TOF]: "sensor_msgs/msg/Range",
+  [RosTopic.KILN_DATA]: "core/msg/KilnData",
+  [RosTopic.NIR_DATA]: "core/msg/NIRProbeData",
 };

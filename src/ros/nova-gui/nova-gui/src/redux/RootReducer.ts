@@ -2,6 +2,7 @@ import BifrostStatusStore from "./store/bifrost/BifrostStatusStore";
 import { createBifrostStore } from "./store/bifrost/createBifrostStore";
 import { RosService } from "../ros/services/rosService";
 import { RosTopic } from "../ros/topics/rosTopic";
+import { IRosCoreCmDsFeedback, IRosCoreCmdFeedback, IRosCoreNirProbeDataConst } from "../ros/rosTypes";
 import { uiSlice } from "./slices/UISlice";
 import { cameraStreamerSlice } from "./slices/CameraStreamSlice";
 import { IRosSensorMsgsRange } from "../ros/rosTypes";
@@ -10,16 +11,23 @@ export const rootReducer = {
   // Bifrost Stores
   bifrostStatus: BifrostStatusStore(),
 
-  poseStore: createBifrostStore(
-    { topic: RosTopic.POSE },
+  // Science Reduceers
+  kilnData: createBifrostStore({ topic: RosTopic.KILN_DATA }, { 
+    temp: [0, 0, 0],  // current converted temp readings [C]
+    state: false      // current status of Kiln: True if On
+  }),
+  kilnCommand: createBifrostStore({ service: RosService.KILN_COMMAND }, { 
+    success: true     // whether the last service request succeeded or not: False will show error on Toggle Kiln Button
+  }),
+  nirStore: createBifrostStore(
+    { topic: RosTopic.NIR_DATA },
     {
-      orientation: { x: 0, y: 0, z: 0, w: 0 },
-      position: { x: 0, y: 0, z: 0 },
+      data: 0,
+      led: IRosCoreNirProbeDataConst.LED_OFF
     }
   ),
 
   // Drive Reducers
-
   driveStore: createBifrostStore(
     { topic: RosTopic.DRIVE_INFO },
     {
@@ -31,8 +39,8 @@ export const rootReducer = {
       handbrake: false,
     }
   ),
-  telemetryStore: createBifrostStore(
-    { topic: RosTopic.TELEMETRY },
+  driveTelemetryStore: createBifrostStore(
+    { topic: RosTopic.DRIVE_TELEMETRY },
     {
       wheels: [0, 0, 0, 0].map(() => ({
         bus: "",
@@ -60,6 +68,30 @@ export const rootReducer = {
         voltage: 0,
         temperature: 0,
       })),
+    }
+  ),
+  poseStore: createBifrostStore(
+    { topic: RosTopic.POSE },
+    {
+      orientation: { x: 0, y: 0, z: 0, w: 0 },
+      position: { x: 0, y: 0, z: 0 },
+    }
+  ),
+
+  // Arm Reducers
+  armTelemetryStore: createBifrostStore(
+    { topic: RosTopic.ARM_TELEMETRY },
+    {
+      arm_motors: [0, 0, 0, 0, 0, 0].map(() => ({
+        current: 0,
+      } as IRosCoreCmdFeedback)),
+        
+    } as IRosCoreCmDsFeedback
+  ),
+  rfidDataStore: createBifrostStore(
+    { topic: RosTopic.RFID_DATA },
+    {
+      data: ""
     }
   ),
 
