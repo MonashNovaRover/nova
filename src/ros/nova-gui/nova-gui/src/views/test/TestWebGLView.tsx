@@ -3,7 +3,7 @@ import { useCameraStreamer } from "../../components/CameraComponent/hooks/useCam
 import MicroscopeThresholdWidget from "../../components/MicroscopeThresholdWidget/MicroscopeThresholdWidget.tsx";
 
 const TestWebGLView: React.FC = () => {
-  const { refreshAvailabilities } = useCameraStreamer();
+  useCameraStreamer();
 
 
   return (<>
