@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from "react";
+import React, {useState} from "react";
 import Chart from "react-apexcharts";
 import {
   Button,
@@ -12,13 +12,16 @@ import {
 } from "@nextui-org/react";
 import {ISpaceResourcesFile} from "./NIRProbeWidget.tsx";
 import SpaceResourceSiteType from "../SpaceResourcesSiteType.tsx";
-import {useLocalStorage} from "../hooks/useLocalStorage.ts";
 import NIRCalibrationSettingsTable from "./NIRCalibrationSettingsTable.tsx";
 import {MoreHorizontal} from "react-feather";
 
 export interface NIRCalibrationCurveWidgetProps {
   files: {[key: string] : ISpaceResourcesFile},
-  type: SpaceResourceSiteType
+  type: SpaceResourceSiteType,
+  absorbance: (v: number) => number,
+  calibrationFunction: (v: number) => number,
+  calibrationData: NIRCalibrationData,
+  setCalibrationData: (newValue: NIRCalibrationData) => void,
 }
 
 export interface NIRCalibrationPoint {
@@ -31,16 +34,18 @@ export interface NIRCalibrationData {
   yIntercept: number,
   gradient: number,
   chemBlankDifference: number,
+
+
 }
 
-const EMPTY_CALIBRATION_DATA: NIRCalibrationData = {
+export const EMPTY_CALIBRATION_DATA: NIRCalibrationData = {
   points: [],
   yIntercept: 0,
   gradient: 0,
   chemBlankDifference: 0
 }
 
-const SITE_GRAPH_COLOURS = [
+export const SITE_GRAPH_COLOURS = [
   "#f43f5e",
   "#f59e0b",
   "#0ea5e9",
@@ -48,14 +53,9 @@ const SITE_GRAPH_COLOURS = [
 ]
 
 
-const NIRCalibrationCurveWidget: React.FC<NIRCalibrationCurveWidgetProps> = ({files, type}) => {
-
-  const [calibrationData, setCalibrationData] = useLocalStorage<NIRCalibrationData>(
-    type === SpaceResourceSiteType.WATER ? "nir-calibration-water" : "nir-calibration-ilmenite",
-    EMPTY_CALIBRATION_DATA,
-    [type]
-  );
-
+const NIRCalibrationCurveWidget: React.FC<NIRCalibrationCurveWidgetProps> = ({
+  files, type, calibrationFunction, absorbance, calibrationData, setCalibrationData
+}) => {
   const [calibrationModalIsOpen, setCalibrationModalIsOpen] = useState<boolean>(false)
 
   const typeName = type === SpaceResourceSiteType.WATER ? "Water" : "Ilmenite"
@@ -110,18 +110,6 @@ const NIRCalibrationCurveWidget: React.FC<NIRCalibrationCurveWidgetProps> = ({fi
     .map(([filename, file], i) =>
       [filename, file, SITE_GRAPH_COLOURS[i]] as [string, ISpaceResourcesFile, string])
     .filter(([,file,]) => file.type === type)
-
-  // This function maps differences to predicted concentrations
-  const calibrationFunction = useCallback((rawValue: number) => {
-    return (rawValue - calibrationData.yIntercept) / calibrationData.gradient ;
-  }, [calibrationData.gradient, calibrationData.yIntercept])
-
-  const maxCalibrationDifference = calibrationData.points.map(v => v.difference).reduce((a, b) => Math.max(a,b), 0);
-
-
-  const absorbance = useCallback((rawDifference: number) => {
-    return Math.log10(maxCalibrationDifference / rawDifference);
-  }, [calibrationData])
 
   const fileSeries = relevantSiteFiles
     .map(([filename, file, color] : [string, ISpaceResourcesFile, string]) => ({
