@@ -6,15 +6,14 @@ Execute this code on the rover to start all
    science scripts.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODES:
-  - science/science_transmitter.py      [science_transmitter]
-  - science/distance_publisher.py       [distance_data]
-  - science/spectrometer_publisher.py   [spectrometer_data]
-  - science/EMC_publisher.py            [emc_data]
-  - science/kiln_data_publisher.py      [kiln_mass_data, kiln_temp_data]
-  - control/auger.py                    [auger_data, drill_data]
+  - science/nir_probe_publisher.py      [nir_probe_publisher]
+  - science/microscope_servo.py         [microscope_servo]
+  - science/kiln_server.py'             [kiln_server]
+  - control/auger.py                    [auger]
+  - control/analysis_platform.py        [analysis_platform]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	core
-CREATION:	17/12/2021
+CREATION:	17/03/2024
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
@@ -22,23 +21,21 @@ CREATION:	17/12/2021
 from launch import LaunchDescription
 import launch_ros.actions
 
-# Generate the launch file with all inputs
+
 def generate_launch_description():
     return LaunchDescription([
         launch_ros.actions.Node(
-            package='science', executable='transmitter.py', output='screen', emulate_tty=True),
-        # launch_ros.actions.Node(
-        #     package='science', executable='distance_publisher.py', output='screen', emulate_tty=True),
+            package='science', executable='nir_probe_publisher.py', output='screen', emulate_tty=True),
+
         launch_ros.actions.Node(
-            package='science', executable='spectrometer_publisher.py', output='screen', emulate_tty=True),
-        launch_ros.actions.Node(
-            package='science', executable='EMC_publisher.py', output='screen', emulate_tty=True),
+            package='science', executable='microscope_servo.py', output='screen', emulate_tty=True),
+
         launch_ros.actions.Node(
             package='science', executable='kiln_server.py', output='screen', emulate_tty=True),
-        #launch_ros.actions.Node(
-        #    package='science', executable='kilns_data_publisher.py', output='screen', emulate_tty=True),
-        #launch_ros.actions.Node(
-        #    package='science', executable='actuator_limit_publisher.py', output='screen', emulate_tty=True),
+
         launch_ros.actions.Node(
             package='control', executable='auger.py', output='screen', emulate_tty=True),
+
+        launch_ros.actions.Node(
+            package='control', executable='analysis_platform.py', output='screen', emulate_tty=True),
     ])
