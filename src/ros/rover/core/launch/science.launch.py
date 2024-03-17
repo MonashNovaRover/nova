@@ -19,23 +19,23 @@ CREATION:	17/03/2024
 
 # Include the required launch parameters
 from launch import LaunchDescription
-import launch_ros.actions
+from launch_ros.actions import Node
 
 
 def generate_launch_description():
     return LaunchDescription([
-        launch_ros.actions.Node(
+        Node(
             package='science', executable='nir_probe_publisher.py', output='screen', emulate_tty=True),
 
-        launch_ros.actions.Node(
+        Node(
             package='science', executable='microscope_servo.py', output='screen', emulate_tty=True),
 
-        launch_ros.actions.Node(
+        Node(
             package='science', executable='kiln_server.py', output='screen', emulate_tty=True),
 
-        launch_ros.actions.Node(
+        Node(
             package='control', executable='auger.py', output='screen', emulate_tty=True),
 
-        launch_ros.actions.Node(
+        Node(
             package='control', executable='analysis_platform.py', output='screen', emulate_tty=True),
     ])
