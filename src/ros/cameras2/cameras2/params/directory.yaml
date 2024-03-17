@@ -17,18 +17,15 @@ camera_directory:
           '3:1.0': mast_forward
           '4:1.0': mast_down
         science:
-          '1:1.0': science_spectrometer_top
-          '2:1.0': science_spectrometer_side
-          '4.2:1.0': science_backward
-          '4.3:1.0': science_shotglass
-          '4.4:1.0': science_rock_flipper
-          '3:1.0': science_gantry
+          '2:1.0': science_kiln
+          '3:1.0': science_analysis_bottom
+          '4.1:1.0': science_auger_bottom
+          '4.4:1.0': science_analysis_top
         arm:
-          '1:1.0': arm_gimbal
-          '2.1:1.0': arm_end_finger
-          '2.2:1.0': arm_end_top
-          '2.3:1.0': arm_end_side
-          '2.4:1.0': arm_end_forward
+          '2:1.0': arm_gimbal
+          '1.1:1.0': arm_end_finger
+          '1.2:1.0': arm_end_top
+          '1.4:1.0': arm_end_forward
         ec:
           '1:1.0': ec_scraper
           '2:1.0': ec_forklift_down
