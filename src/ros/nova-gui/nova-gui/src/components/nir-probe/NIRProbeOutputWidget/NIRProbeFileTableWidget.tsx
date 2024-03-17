@@ -18,10 +18,12 @@ export interface NIRProbeFileTableWidgetProps extends CardProps {
   file: ISpaceResourcesFile,
   setFile: (newFile: ISpaceResourcesFile) => void,
   showAdvanced : boolean,
+  absorbance: (v: number) => number,
+  calibrationFunction: (v: number) => number,
 }
 
 const NIRProbeFileTableWidget: React.FC<NIRProbeFileTableWidgetProps> = ({
-  file, setFile, showAdvanced, ...cardProps
+  file, setFile, showAdvanced, absorbance, calibrationFunction, ...cardProps
 }) => {
 
   const deleteEntry = useCallback((index: number) => {
@@ -49,6 +51,8 @@ const NIRProbeFileTableWidget: React.FC<NIRProbeFileTableWidgetProps> = ({
       :
       <TableHeader>
         <TableColumn key="difference">Difference</TableColumn>
+        <TableColumn key="difference">Concentration</TableColumn>
+        <TableColumn key="difference">Absorbance</TableColumn>
         <TableColumn>Action</TableColumn>
       </TableHeader>
   )
@@ -80,6 +84,8 @@ const NIRProbeFileTableWidget: React.FC<NIRProbeFileTableWidgetProps> = ({
       :
       <TableRow key={index}>
         <TableCell>{difference}</TableCell>
+        <TableCell>{calibrationFunction(difference)}</TableCell>
+        <TableCell>{absorbance(calibrationFunction(difference))}</TableCell>
         <TableCell>
           <Button onClick={() => deleteEntry(reversedFileEntries.length - index - 1)}
                   size="sm" color="danger">
@@ -106,23 +112,30 @@ const NIRProbeFileTableWidget: React.FC<NIRProbeFileTableWidgetProps> = ({
       </TableRow>
   )
 
+  const averageDifference = file.entries.map(entry => entry.difference).reduce((a,b) => a+b, 0) / Math.max(file.entries.length,1);
   const averageRow = (
     showAdvanced ?
       <TableRow key="average">
         <TableCell>{""}</TableCell>
-        <TableCell>{
-          file.entries.map(entry => entry.difference).reduce((a,b) => a+b, 0) / Math.max(file.entries.length,0)
-        }</TableCell>
-        <TableCell>{""}</TableCell>
+        <TableCell>
+          {averageDifference}
+        </TableCell>
+        <TableCell>
+          {absorbance?.(averageDifference)}
+        </TableCell>
         <TableCell>{""}</TableCell>
         <TableCell>{""}</TableCell>
       </TableRow>
       :
       <TableRow key="average">
-        <TableCell>{
-          file.entries.map(entry => entry.difference).reduce((a,b) => a+b, 0) / Math.max(file.entries.length,0)
-        }</TableCell>
-        <TableCell>{""}</TableCell>
+        <TableCell>
+          {averageDifference}
+        </TableCell>
+        <TableCell>{calibrationFunction(averageDifference)}</TableCell>
+        <TableCell>{absorbance(calibrationFunction(averageDifference))}</TableCell>
+        <TableCell>
+          {""}
+        </TableCell>
       </TableRow>
   )
 
