@@ -13,6 +13,7 @@ import CopyableInput from "../CopyableInput/CopyableInput.tsx";
 import {useCameraStream} from "../CameraComponent/hooks/useCameraStream.ts";
 import {CameraComponentProps} from "../CameraComponent/CameraComponent.tsx";
 import CameraSessionStartStopButton from "../CameraComponent/components/CameraSessionStartStopButton.tsx";
+import { useCameraStreamer } from "../CameraComponent/hooks/useCameraStreamer.ts";
 // import useWebcam from "../WebGLCanvas/hooks/useWebcam.tsx";
 
 const attributes = {
@@ -40,6 +41,7 @@ const MicroscopeThresholdWidget: React.FC<CameraComponentProps> = (props) => {
   const finalThreshold = isManualThresholdValid ? (parsedManualThreshold / 100) : threshold;
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
+
   const {
     streamingState,
     sendSessionStartMessage,
@@ -113,7 +115,14 @@ const MicroscopeThresholdWidget: React.FC<CameraComponentProps> = (props) => {
 
           <div className="flex flex-col gap-3 grow relative overflow-hidden rounded-lg col-span-3"
                onMouseDown={toggleShowThreshold}>
-            <video ref={videoRef} className={showThreshold ? "-z-10" : "z-20"}/>
+            <video 
+            controls={false}
+            autoPlay
+            loop
+            muted
+            playsInline
+            ref={videoRef} 
+            className={showThreshold ? "-z-10" : "z-20"}/>
             <canvas className="absolute max-w-full max-h-full right-0 left-0 z-10 rounded-lg" ref={gl.canvasRef} width={width} height={height}/>
           </div>
           <Slider
