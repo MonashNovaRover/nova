@@ -40,7 +40,7 @@ export enum CameraSerials {
 
   SCIENCE_KILN = "science_kiln",
   SCIENCE_AUGER_BOTTOM = "science_auger_bottom",
-  SCIENCE_ANALYSIS_ARM = "science_analysis_arm",
+  SCIENCE_ANALYSIS_BOTTOM = "science_analysis_bottom",
   SCIENCE_MICROSCOPE = "science_microscope",
 }
 
@@ -59,6 +59,13 @@ export const defaultCamFilters : {[key: string] : CameraFilters} = {
     contrast: 100,
     brightness: 100,
   },
+  "science_kiln": {
+    flipCamera: false,
+    invertCamera: false,
+    rotation: 180,
+    contrast: 100,
+    brightness: 100,
+  }
 }
 
 export const allCams = [];
@@ -87,7 +94,7 @@ const ecCams = [
 const scienceCams = [
   CameraSerials.SCIENCE_KILN,
   CameraSerials.SCIENCE_AUGER_BOTTOM,
-  CameraSerials.SCIENCE_ANALYSIS_ARM,
+  CameraSerials.SCIENCE_ANALYSIS_BOTTOM,
   CameraSerials.SCIENCE_MICROSCOPE,
 ];
 

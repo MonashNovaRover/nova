@@ -25,7 +25,7 @@ const AnalysisPlatformHeight: React.FC = () => {
     const rangeMin = tofStore.min_range;
     const rangeMax = tofStore.max_range;
 
-    const outOfRange = range > rangeMax || range < rangeMin;
+    const outOfRange = range < rangeMin;
     const dangerRange = range < 5;
     const warningRange = range < 15;
    
