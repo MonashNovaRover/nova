@@ -111,10 +111,6 @@ const NIRCalibrationCurveWidget: React.FC<NIRCalibrationCurveWidgetProps> = ({
       [filename, file, SITE_GRAPH_COLOURS[i]] as [string, ISpaceResourcesFile, string])
     .filter(([,file,]) => file.type === type)
 
-
-
-
-
   const fileSeries = relevantSiteFiles
     .map(([filename, file, color] : [string, ISpaceResourcesFile, string]) => ({
       name: filename,

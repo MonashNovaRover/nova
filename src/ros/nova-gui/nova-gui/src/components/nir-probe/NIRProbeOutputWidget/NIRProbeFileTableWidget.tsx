@@ -51,8 +51,8 @@ const NIRProbeFileTableWidget: React.FC<NIRProbeFileTableWidgetProps> = ({
       :
       <TableHeader>
         <TableColumn key="difference">Difference</TableColumn>
-        <TableColumn key="difference">Concentration</TableColumn>
-        <TableColumn key="difference">Absorbance</TableColumn>
+        <TableColumn key="concentration">Concentration</TableColumn>
+        <TableColumn key="absorbance">Absorbance</TableColumn>
         <TableColumn>Action</TableColumn>
       </TableHeader>
   )
@@ -84,8 +84,8 @@ const NIRProbeFileTableWidget: React.FC<NIRProbeFileTableWidgetProps> = ({
       :
       <TableRow key={index}>
         <TableCell>{difference}</TableCell>
-        <TableCell>{calibrationFunction(difference)}</TableCell>
-        <TableCell>{absorbance(calibrationFunction(difference))}</TableCell>
+        <TableCell>{calibrationFunction(absorbance(difference)).toFixed(4)}</TableCell>
+        <TableCell>{absorbance(difference).toFixed(4)}</TableCell>
         <TableCell>
           <Button onClick={() => deleteEntry(reversedFileEntries.length - index - 1)}
                   size="sm" color="danger">
@@ -109,6 +109,8 @@ const NIRProbeFileTableWidget: React.FC<NIRProbeFileTableWidgetProps> = ({
       <TableRow className="relative h-6">
         {headerCell}
         <TableCell>{""}</TableCell>
+        <TableCell>{""}</TableCell>
+        <TableCell>{""}</TableCell>
       </TableRow>
   )
 
@@ -131,8 +133,8 @@ const NIRProbeFileTableWidget: React.FC<NIRProbeFileTableWidgetProps> = ({
         <TableCell>
           {averageDifference}
         </TableCell>
-        <TableCell>{calibrationFunction(averageDifference)}</TableCell>
-        <TableCell>{absorbance(calibrationFunction(averageDifference))}</TableCell>
+        <TableCell>{calibrationFunction(absorbance(averageDifference)).toFixed(4)}</TableCell>
+        <TableCell>{absorbance(averageDifference).toFixed(4)}</TableCell>
         <TableCell>
           {""}
         </TableCell>
