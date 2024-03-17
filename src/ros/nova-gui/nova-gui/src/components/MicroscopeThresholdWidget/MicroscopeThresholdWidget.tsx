@@ -13,8 +13,6 @@ import CopyableInput from "../CopyableInput/CopyableInput.tsx";
 import {useCameraStream} from "../CameraComponent/hooks/useCameraStream.ts";
 import {CameraComponentProps} from "../CameraComponent/CameraComponent.tsx";
 import CameraSessionStartStopButton from "../CameraComponent/components/CameraSessionStartStopButton.tsx";
-import { useCameraStreamer } from "../CameraComponent/hooks/useCameraStreamer.ts";
-// import useWebcam from "../WebGLCanvas/hooks/useWebcam.tsx";
 
 const attributes = {
   aPosition: {
