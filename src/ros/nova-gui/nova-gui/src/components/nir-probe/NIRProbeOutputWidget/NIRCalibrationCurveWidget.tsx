@@ -53,10 +53,9 @@ export const SITE_GRAPH_COLOURS = [
 ]
 
 
-const NIRCalibrationCurveWidget: React.FC<NIRCalibrationCurveWidgetProps> = ({files, type, calibrationFunction, absorbance}) => {
-
-
-
+const NIRCalibrationCurveWidget: React.FC<NIRCalibrationCurveWidgetProps> = ({
+  files, type, calibrationFunction, absorbance, calibrationData, setCalibrationData
+}) => {
   const [calibrationModalIsOpen, setCalibrationModalIsOpen] = useState<boolean>(false)
 
   const typeName = type === SpaceResourceSiteType.WATER ? "Water" : "Ilmenite"
