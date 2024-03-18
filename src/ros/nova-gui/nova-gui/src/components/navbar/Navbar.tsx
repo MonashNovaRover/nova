@@ -18,6 +18,7 @@ import { useUIActions } from "../../redux/actions/useUIActions";
 import { BifrostConnectionStatus } from "../../redux/models/bifrost/BifrostTypes";
 import { useLocation } from "react-router-dom";
 import humanizeString from "humanize-string";
+import { BLCMDStatusButton } from "../BLCMDStatusModal/BLCMDStatusButton";
 import "./Navbar.css";
 import { LayoutSidebar } from "react-bootstrap-icons";
 
@@ -72,6 +73,9 @@ export const NovaNavbar: React.FC = () => {
         </NavbarBrand>
       </NavbarContent>
       <NavbarContent as="div" className="items-center" justify="end">
+        <NavbarItem>
+          <BLCMDStatusButton />
+        </NavbarItem>
         <NavbarItem>
           <Dropdown placement="bottom-end">
             <DropdownTrigger>

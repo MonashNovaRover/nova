@@ -6,6 +6,7 @@ import ControllerHelpModal from "./components/ControllerHelpModal/ControllerHelp
 import { Toaster } from "react-hot-toast";
 import { NovaNavbar } from "./components/navbar/Navbar";
 import { NeoSidebar } from "./components/NeoSidebar/NeoSidebar";
+import { BLCMDStatusModal } from "./components/BLCMDStatusModal/BLCMDStatusModal";
 
 export const RosRoot: React.FC = () => {
   return (
@@ -16,8 +17,12 @@ export const RosRoot: React.FC = () => {
 
         {/* <Sidebar /> */}
         <Outlet />
+        {/* All (ahh Most) Modals Here */}
         <SettingsModal />
         <ControllerHelpModal />
+        <BLCMDStatusModal />
+
+        <Outlet />
         <Toaster />
       </div>
     </RosProvider>

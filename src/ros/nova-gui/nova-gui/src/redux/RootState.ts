@@ -1,10 +1,13 @@
 import {
   IRosCameraMsgsCameras,
   IRosCameraMsgsGetIpListResponse,
+  IRosCoreBlcmdStatusArray,
   IRosCoreDriveInfo,
+  IRosCoreNirProbeData,
   IRosCoreKilnCommandResponse,
   IRosCoreKilnData,
   IRosCoreTelemetry,
+  IRosStdMsgsString,
   IRosGeometryMsgsPose,
   IRosCoreCmDsFeedback 
 } from "../ros/rosTypes";
@@ -22,11 +25,20 @@ export interface RootState {
   // Drive Stores
   driveStore: IRosCoreDriveInfo;
   driveTelemetryStore: IRosCoreTelemetry;
-  armTelemetryStore: IRosCoreCmDsFeedback ;
+
+  // Arm Stores
+  armTelemetryStore: IRosCoreCmDsFeedback;
+  rfidDataStore: IRosStdMsgsString;
 
   // Camera Stores
   camerasStore: IRosCameraMsgsCameras;
   ipList: IRosCameraMsgsGetIpListResponse;
+
+  // Error Related Stores
+  blcmdStatusStore: IRosCoreBlcmdStatusArray;
+  
+  // Science Bifrost states
+  nirStore: IRosCoreNirProbeData;
   kilnData: IRosCoreKilnData;
   kilnCommand: IRosCoreKilnCommandResponse;
 

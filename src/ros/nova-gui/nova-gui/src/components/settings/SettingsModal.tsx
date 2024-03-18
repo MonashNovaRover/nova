@@ -19,7 +19,7 @@ export function SettingsModal() {
   const uiState = useSelector((state: RootState) => state.uiState);
 
   const [baseStationIP, setBaseStationIP] = useState<string>(
-    uiState.baseStationIP,
+    uiState.baseStationIP
   );
 
   const [roverIP, setRoverIP] = useState<string>(uiState.roverIP);
