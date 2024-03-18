@@ -19,7 +19,7 @@ import { BifrostConnectionStatus } from "../../redux/models/bifrost/BifrostTypes
 import { useLocation } from "react-router-dom";
 import humanizeString from "humanize-string";
 import "./Navbar.css";
-import { List } from "react-bootstrap-icons";
+import { LayoutSidebar } from "react-bootstrap-icons";
 
 const connectionStatusColor: {
   [key: string]: "success" | "warning" | "danger";
@@ -34,26 +34,39 @@ export const NovaNavbar: React.FC = () => {
 
   const uiState = useSelector((state: RootState) => state.uiState);
 
-  const bifrostStatus = useSelector((state: RootState) => state.bifrostStatus.connectionStatus);
+  const bifrostStatus = useSelector(
+    (state: RootState) => state.bifrostStatus.connectionStatus
+  );
 
   const location = useLocation();
 
-  const parsedLocation = location.pathname.split("/").filter((val) => !["/", ""].includes(val));
+  const parsedLocation = location.pathname
+    .split("/")
+    .filter((val) => !["/", ""].includes(val));
 
   const title = parsedLocation.reverse()[0];
 
-  // State to control the visibility of the image modal
-
   return (
     <Navbar maxWidth="full" isBordered position="static">
-      <NavbarContent justify="start">
-        <List onClick={() => uiActions.setSideBarVisibility(!uiState.sidebarIsVisible)} />
+      <Button
+        variant="light"
+        isIconOnly
+        onClick={() =>
+          uiActions.setSideBarVisibility(!uiState.sidebarIsVisible)
+        }
+        className="absolute left-2"
+      >
+        <LayoutSidebar />
+      </Button>
+      <NavbarContent justify="start" className="ml-7">
         <NavbarBrand>
           <img src={novaLogo} className="w-16" alt="Nova Logo" />
           {!!title && (
             <>
               <Divider orientation="vertical" className="h-10 w-[2px] mx-2" />
-              <p className="title hidden sm:block text-2xl ">{humanizeString(title)}</p>
+              <p className="title hidden sm:block text-2xl ">
+                {humanizeString(title)}
+              </p>
             </>
           )}
         </NavbarBrand>
@@ -62,7 +75,12 @@ export const NovaNavbar: React.FC = () => {
         <NavbarItem>
           <Dropdown placement="bottom-end">
             <DropdownTrigger>
-              <Button radius="sm" color={connectionStatusColor[bifrostStatus]} size="sm" variant="shadow">
+              <Button
+                radius="sm"
+                color={connectionStatusColor[bifrostStatus]}
+                size="sm"
+                variant="shadow"
+              >
                 {bifrostStatus.toString()}
               </Button>
             </DropdownTrigger>
@@ -76,18 +94,31 @@ export const NovaNavbar: React.FC = () => {
         <NavbarItem>
           <Dropdown placement="bottom-end" backdrop="blur">
             <DropdownTrigger>
-              <Button radius="sm" size="sm" endContent={<ChevronDown className="w-4 h-4" />}>
+              <Button
+                radius="sm"
+                size="sm"
+                endContent={<ChevronDown className="w-4 h-4" />}
+              >
                 General
               </Button>
             </DropdownTrigger>
             <DropdownMenu aria-label="Operation Mode">
-              <DropdownItem description="General Tab for Rover Operation" href="/general">
+              <DropdownItem
+                description="General Tab for Rover Operation"
+                href="/general"
+              >
                 General
               </DropdownItem>
-              <DropdownItem description="Australian Rover Challenge" href="/arc">
+              <DropdownItem
+                description="Australian Rover Challenge"
+                href="/arc"
+              >
                 ARC
               </DropdownItem>
-              <DropdownItem description="University Rover Challenge" href="/urc">
+              <DropdownItem
+                description="University Rover Challenge"
+                href="/urc"
+              >
                 URC
               </DropdownItem>
             </DropdownMenu>
@@ -106,7 +137,12 @@ export const NovaNavbar: React.FC = () => {
           </Button>
         </NavbarItem>
         <NavbarItem>
-          <Button isIconOnly size="sm" variant="shadow" onClick={() => uiActions.setSettingsModal(true)}>
+          <Button
+            isIconOnly
+            size="sm"
+            variant="shadow"
+            onClick={() => uiActions.setSettingsModal(true)}
+          >
             <Settings className="w-4 h-4" />
           </Button>
         </NavbarItem>
