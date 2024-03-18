@@ -9,7 +9,7 @@
       i_ip: ''
       i_laser_dot_brightness: 800
       i_mx_id: ''
-      i_nn_type: spatial
+      i_nn_type: none
       i_pipeline_dump: false
       i_pipeline_type: RGBD
       i_publish_tf_from_calibration: false
@@ -35,7 +35,7 @@
       i_acc_cov: 0.0
       i_acc_freq: 400
       i_batch_report_threshold: 5
-      i_enable_rotation: false
+      i_enable_rotation: true
       i_get_base_device_timestamp: false
       i_gyro_cov: 0.0
       i_gyro_freq: 400

@@ -18,7 +18,7 @@ from ament_index_python.packages import get_package_share_path
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
-from launch.substitutions import LaunchConfiguration, PythonExpression, OrSubstitution, AndSubstitution
+from launch.substitutions import LaunchConfiguration, PythonExpression, OrSubstitution, AndSubstitution, NotSubstitution
 from launch.conditions import IfCondition, UnlessCondition
 from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -33,6 +33,8 @@ def generate_launch_description():
     use_sim_time = LaunchConfiguration('use_sim_time')
     use_real_odometry = LaunchConfiguration('use_real_odometry')
     load_map = LaunchConfiguration('load_map')
+    ekf = LaunchConfiguration('ekf')
+    use_filter = LaunchConfiguration('use_filter')
 
     gazebo_odom_params = {
         "use_sim_time": use_sim_time, 
@@ -63,6 +65,18 @@ def generate_launch_description():
         description='Localize the rover in a pre-existing map'
     )
 
+    ekf_arg = DeclareLaunchArgument(
+        'ekf',
+        default_value='true',
+        description='Use EKF (true) or UKF (false)'
+    )
+
+    use_filter_arg = DeclareLaunchArgument(
+        'use_filter',
+        default_value='true',
+        description='Use a Kalman Filter?'
+    )
+
     ukf_localisation_gazebo = Node(
         condition=UnlessCondition(use_real_odometry),
         package='robot_localization',
@@ -73,13 +87,23 @@ def generate_launch_description():
     )
 
     ukf_localisation_odom = Node(
-        condition=IfCondition(use_real_odometry),
+        condition=IfCondition(AndSubstitution(use_real_odometry, NotSubstitution(ekf))),
         package='robot_localization',
         executable='ukf_node',
         name='ukf_filter_node',
         output='screen',
         parameters=[(get_package_share_path("core") / 'params' / 'ukf.yaml').as_posix(), {"use_sim_time": use_sim_time}],
     )
+
+    ekf_localisation_odom = Node(
+        condition=IfCondition(AndSubstitution(use_real_odometry, ekf)),
+        package='robot_localization',
+        executable='ekf_node',
+        name='ekf_filter_node',
+        output='screen',
+        parameters=[(get_package_share_path("core") / 'params' / 'ekf.yaml').as_posix(), {"use_sim_time": use_sim_time}],
+    )
+
     slam_cmd = IncludeLaunchDescription(
         PythonLaunchDescriptionSource((get_package_share_path("core") / 'launch' / 'rtabmap.launch.py').as_posix()),
         launch_arguments={
@@ -89,10 +113,13 @@ def generate_launch_description():
     )
     
     return LaunchDescription([
+        ekf_arg,
+        use_filter_arg,
         use_sim_time_arg,
         use_real_odom_arg,
         load_map_arg,
         ukf_localisation_gazebo,
         ukf_localisation_odom,
+        ekf_localisation_odom,
         slam_cmd,
     ])

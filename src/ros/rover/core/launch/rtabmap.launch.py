@@ -15,7 +15,7 @@ def launch_setup(context, *args, **kwargs):
     qos = LaunchConfiguration("qos")
     core_prefix = get_package_share_directory('core')
     parameters={
-          'frame_id':'oak',
+          'frame_id':'base_link',
           'use_sim_time':use_sim_time,
           'subscribe_rgb': True,
           'subscribe_depth':True,
