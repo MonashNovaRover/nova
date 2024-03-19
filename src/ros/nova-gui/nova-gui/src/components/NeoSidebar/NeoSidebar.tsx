@@ -11,7 +11,7 @@ import { useSelector } from "react-redux";
 import { useUIActions } from "../../redux/actions/useUIActions";
 
 import novaLogo from "../../assets/nova-logo.png";
-import { Camera } from "react-feather";
+import { Aperture, Camera, Home, Image } from "react-feather";
 import { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -28,22 +28,42 @@ interface SidebarInterface {
 const sidebarData: SidebarInterface = {
   ["Post Landing"]: [
     {
+      title: "Dashboard",
+      route: "/arc/post-landing",
+      icon: <Home />,
+    },
+    {
       title: "Cameras",
-      route: "/arc/cameras/post_landing",
+      route: "/arc/cameras/post-landing",
       icon: <Camera />,
     },
   ],
   ["Space Resources"]: [
     {
+      title: " NIR Spectroscopy",
+      route: "/arc/cameras/space-resources",
+      icon: <Aperture />,
+    },
+    {
+      title: "Microscope Gallery",
+      route: "/arc/post-landing",
+      icon: <Image />,
+    },
+    {
       title: "Cameras",
-      route: "/arc/cameras/space_resources",
+      route: "/arc/cameras/space-resources",
       icon: <Camera />,
     },
   ],
   ["Excavation and Construction"]: [
     {
+      title: "Dashboard",
+      route: "/arc/excavation-construction",
+      icon: <Home />,
+    },
+    {
       title: "Cameras",
-      route: "/arc/cameras/excavation_construction",
+      route: "/arc/cameras/excavation-construction",
       icon: <Camera />,
     },
   ],

@@ -35,7 +35,7 @@ export const SidebarWrapper = (props: SidebarProps) => {
           "sm:[--scale-enter:100%]",
           "sm:[--scale-exit:100%]",
           "justify-start",
-          "w-[20vw]",
+          "w-[300px]",
         ],
         base: [
           "h-full max-h-full",

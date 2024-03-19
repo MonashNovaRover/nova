@@ -29,9 +29,9 @@ export function useUIActions() {
     setSideBarVisibility(sidebarIsVisible: boolean) {
       dispatch({
         type: UIActions.SIDEBAR_UPDATE.toString(),
-        payload: sidebarIsVisible
-      })
-    }
+        payload: sidebarIsVisible,
+      });
+    },
     setBlcmdStatusModalOpen(blcmdStatusModalOpen: boolean) {
       dispatch({
         type: UIActions.BLCMD_STATUS_MODAL_UPDATE.toString(),

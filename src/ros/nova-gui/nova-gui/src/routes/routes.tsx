@@ -38,7 +38,7 @@ export const arcRoutes: RouteObject[] = [
     element: <ARCExcavationConstructionView />,
   },
   {
-    path: "/arc/mapping-autonomous",
+    path: "/arc/autonomous",
     element: <ARCMappingAutonomousView />,
   },
   {
@@ -119,7 +119,7 @@ export const routes: RouteObject[] = [
       },
       {
         path: "/general",
-        element: <GeneralBaseView/>,
+        element: <GeneralBaseView />,
         children: generalRoutes,
       },
       {

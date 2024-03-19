@@ -6,12 +6,11 @@ export interface CameraView {
 }
 
 export enum ARCCompModes {
-  POST_LANDING = "post_landing",
-  EXCAVATION_AND_CONSTRUCTION = "excavation_and_construction",
-  SPACE_RESOURCES = "space_resources",
+  POST_LANDING = "post-landing",
+  EXCAVATION_AND_CONSTRUCTION = "excavation-and-construction",
+  SPACE_RESOURCES = "space-resources",
   AUTONOMOUS = "autonomous",
 }
-
 
 export const initialisedFilters: CameraFilters = {
   flipCamera: false,
@@ -44,22 +43,22 @@ export enum CameraSerials {
   SCIENCE_MICROSCOPE = "science_microscope",
 }
 
-export const defaultCamFilters : {[key: string] : CameraFilters} = {
-  "arm_end_forward": {
+export const defaultCamFilters: { [key: string]: CameraFilters } = {
+  arm_end_forward: {
     flipCamera: true,
     invertCamera: false,
     rotation: 0,
     contrast: 100,
     brightness: 100,
   },
-  "arm_gimbal": {
+  arm_gimbal: {
     flipCamera: false,
     invertCamera: false,
     rotation: 90,
     contrast: 100,
     brightness: 100,
   },
-}
+};
 
 export const allCams = [];
 
@@ -90,7 +89,6 @@ const scienceCams = [
   CameraSerials.SCIENCE_ANALYSIS_ARM,
   CameraSerials.SCIENCE_MICROSCOPE,
 ];
-
 
 export const post_landing_views: CameraView[] = [
   {
