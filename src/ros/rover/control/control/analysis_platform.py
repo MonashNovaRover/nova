@@ -60,7 +60,8 @@ class AnalysisPlatformNode(Node):
     def __init__(self):
         super().__init__("analysis_platform")
 
-        self.get_logger().set_level(logging.DEBUG)
+        self.get_logger().set_level(logging.INFO)
+        self.get_logger().info("Analysis Platform starting")
 
         # ROS parameters: used so that they can be changed without recompiling or rerunning the node
         self.declare_parameter(self.CAN_BUS_PARAM, self.CAN_BUS)
@@ -108,6 +109,10 @@ class AnalysisPlatformNode(Node):
         self.timer_jcan_commands = self.create_timer(0.05, self.callback_send_can_commands)
         self.timer_jcan_spin = self.create_timer(0.01, self.bus.spin)
 
+        self.get_logger().info(f"Analysis Platform started on {self.get_parameter(self.CAN_BUS_PARAM).value}")
+        self.get_logger().info("Joysticks Locked")
+
+
 
     def callback_send_can_commands(self):
         """
@@ -117,7 +122,7 @@ class AnalysisPlatformNode(Node):
         # The list of values will be cast to uint8's by JCAN library - so be careful to double check the values!
         platformFrame = self.platform_controller.get_frame()
 
-        self.get_logger().info(f"Sending {platformFrame}")
+        self.get_logger().debug(f"Sending {platformFrame}")
 
         try:
             self.bus.send(platformFrame)
@@ -140,40 +145,40 @@ class AnalysisPlatformNode(Node):
     def callback_receive_can_time_of_flight(self, frame: jcan.Frame):
         """Receive can feedback for auger limit switches
         """
-        self.get_logger().info(f"Received {hex(frame.id)} {frame.data}")
+        self.get_logger().debug(f"Received {hex(frame.id)} {frame.data}")
  
         if frame.id == self.JONO_ID_TIME_OF_FLIGHT:
             if len(frame.data) != 2:
-                self.get_logger().info(f"Time of flight error")
+                self.get_logger().error(f"Time of flight error")
                 return
             raw_height = int(frame.data[1] + (frame.data[0] << 8))
             height = self.convert_time_of_flight(raw_height)
-            self.get_logger().info(f"Raw height: {raw_height}, Converted height: {height}")
+            self.get_logger().debug(f"Raw height: {raw_height}, Converted height: {height}")
             if height == 0:
-                self.get_logger().info("Time of flight hit bottom")
+                self.get_logger().debug("Time of flight hit bottom")
                 self.platform.update_limit_neg(True)
             else:
                 self.platform.update_limit_neg(False)
 
             self.publish_time_of_flight(height)
         else:
-            self.get_logger().info(f"Received unknown frame {frame}")
+            self.get_logger().warn(f"Received unknown frame {frame}")
 
 
     def callback_receive_can_limit_switch(self, frame: jcan.Frame):
         """Receive can feedback for auger limit switches
         """
-        self.get_logger().info(f"Received {hex(frame.id)} {frame.data}")
+        self.get_logger().debug(f"Received {hex(frame.id)} {frame.data}")
  
         if frame.id == self.JONO_ID_LIMIT_SWITCH:
             if frame.data[0] == self.PLATFORM_LIMIT_SWITCH_TOP:
                 if frame.data[1] == self.LIMIT_SWITCH_HIT:
-                    self.get_logger().info("Top limit switch hit")
+                    self.get_logger().debug("Top limit switch hit")
                     self.platform.update_limit_pos(True)
                 else:
                     self.platform.update_limit_pos(False)
         else:
-            self.get_logger().info(f"Received unknown frame {frame}")
+            self.get_logger().warn(f"Received unknown frame {frame}")
         
     def deadline_callback(self, _info):
         """
@@ -188,7 +193,6 @@ class AnalysisPlatformNode(Node):
         Checks if the joysticks are locked
         """
         if self.joystick_lock:
-            self.get_logger().info("Joysticks locked!")
             self.platform.stop()
             return True
         return False
@@ -222,7 +226,7 @@ class AnalysisPlatformNode(Node):
         Updates the classes internal msg state
         :return: None
         """
-        self.get_logger().info("called l")
+        self.get_logger().debug("called l")
 
         joystick_l = msg
 
@@ -241,7 +245,7 @@ class AnalysisPlatformNode(Node):
         msg.header.stamp = self.get_clock().now().to_msg()
         msg.header.frame_id = "analysis_platform"
         msg.min_range = 0.0
-        msg.max_range = 100.0
+        msg.max_range = 150.0
         msg.range = float(height)
         self.publisher.publish(msg)
 

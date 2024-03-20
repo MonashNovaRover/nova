@@ -26,7 +26,8 @@
     launch_viz = "ros2 launch core viz.launch.py";
     launch_vis = "ros2 launch core viz.launch.py";
     rosbridge = "ros2 launch rosbridge_server rosbridge_websocket_launch.xml";
-    excav_construct = "ros2 launch core excav_construct_launch.py";
+    ec_jetson = "ros2 launch core ec_jetson_launch.py";
+    ec_base = "ros2 launch core base.launch.py";
 
     # Service aliases
     arm_config_info = "ros2 service call control/arm_config_info core/srv/ArmConfigInfo";

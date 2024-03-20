@@ -18,6 +18,7 @@ EDITED:      15/02/2024
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
+import logging
 import rclpy, jcan
 from rclpy.node import Node
 
@@ -43,6 +44,9 @@ class NIRProbePublisher(Node):
     def __init__(self):
         super().__init__('nir_probe_publisher')
 
+        self.get_logger().set_level(logging.INFO)
+        self.get_logger().info("NIR Probe Publisher starting")
+
         self.declare_parameter(self.CAN_BUS_PARAM, self.CAN_BUS)
 
         self.led = self.LED_BYTES_OFF
@@ -61,6 +65,8 @@ class NIRProbePublisher(Node):
         self.timer = self.create_timer(0.1, self.send_read_command_callback)
         self.timer_jcan_spin = self.create_timer(0.01, self.bus.spin)
 
+        self.get_logger().info(f"NIR Probe Publisher started on {self.get_parameter(self.CAN_BUS_PARAM).value}")
+
     def send_read_command_callback(self):
         """
         Sends the read command to the NIR probe
@@ -77,8 +83,10 @@ class NIRProbePublisher(Node):
         """
         Callback for when data is received from the NIR probe
         """
+        self.get_logger().debug(f"Received {hex(frame.id)} {frame.data}")
+
         if frame.id != self.CARD_ID_RECEIVE:
-            self.get_logger().info(f"Received unknown frame {frame}")
+            self.get_logger().warn(f"Received unknown frame {frame}")
             return
 
         self.value = int.from_bytes(frame.data, "big")
@@ -86,6 +94,7 @@ class NIRProbePublisher(Node):
         msg = NIRProbeData()
         msg.data = self.value
         msg.led = self.led
+        self.get_logger().debug(f"Publishing {msg}")
         self.publisher.publish(msg)
 
     def led_service_callback(self, request, response):
@@ -94,13 +103,16 @@ class NIRProbePublisher(Node):
         """
         frame = None
         if request.led == self.LED_BYTES_OFF:
+            self.get_logger().info("Turning NIR probe LED OFF")
             self.led = self.LED_BYTES_OFF
             frame = jcan.Frame(self.NIR_PROBE_ID, [self.NIR_PROBE_LED_OFF])
         else:
+            self.get_logger().info("Turning NIR probe LED ON")
             self.led = self.LED_BYTES_ON
             frame = jcan.Frame(self.NIR_PROBE_ID, [self.NIR_PROBE_LED_ON])
 
         try:
+            self.get_logger().debug(f"Sending {frame}")
             self.bus.send(frame)
             response.success = True
         except Exception as e:

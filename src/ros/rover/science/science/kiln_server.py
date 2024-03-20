@@ -51,7 +51,7 @@ class KilnServer(Node):
         super().__init__('kiln_server')
         
         self.get_logger().set_level(logging.INFO)
-        self.get_logger().info("Kiln server starting")
+        self.get_logger().info("Kiln Server starting")
 
         # The calculations are currently performed on the arduino side to this is set to false
         # If the calculations are to be performed on the ROS side, this should be set to true
@@ -60,7 +60,7 @@ class KilnServer(Node):
 
         #subscriber to polling status
         self.service = self.create_service(KilnCommand, KilnServer.KILN_COMMAND_SERVICE, self.command_callback)
-        self.get_logger().info("Kiln service created")
+        
         #publisher to publish the data from the kilns.
         self.publisher = self.create_publisher(KilnData, KilnServer.KILN_DATA_TOPIC, 10)
 
@@ -80,6 +80,8 @@ class KilnServer(Node):
         self.is_on = False
 
         self.bus.open(self.get_parameter(self.CAN_BUS_PARAM).value)
+
+        self.get_logger().info(f"Kiln Server started on {self.get_parameter(self.CAN_BUS_PARAM).value}")
     
     def convert(self, reading: int):
         """
@@ -95,7 +97,7 @@ class KilnServer(Node):
         """
         Sends the kiln ON CAN commands to the kiln
         """
-        self.get_logger().info("Send Kiln ON")
+        self.get_logger().debug("Send Kiln ON")
         for id in KilnServer.KILN_CARD_SEND_IDS:
             kiln_frame = jcan.Frame(id , [KilnServer.KILN_POWER_COMMAND, KilnServer.KILN_ON])
             self.bus.send(kiln_frame)
@@ -105,7 +107,7 @@ class KilnServer(Node):
         """
         Sends the kiln OFF CAN commands to the kiln
         """
-        self.get_logger().info("Send Kiln OFF")
+        self.get_logger().debug("Send Kiln OFF")
         for id in KilnServer.KILN_CARD_SEND_IDS:
             kiln_frame = jcan.Frame(id , [KilnServer.KILN_POWER_COMMAND, KilnServer.KILN_OFF])
             self.bus.send(kiln_frame)
@@ -151,16 +153,16 @@ class KilnServer(Node):
         Updates the temperature of the kiln
         """
         try: 
-            self.get_logger().info("Kiln temp feedback received")
+            self.get_logger().debug("Kiln temp feedback received")
             self.get_logger().debug(f"Frame: {frame}")
             sensor_id = frame.data[0]
             sensor_index = sensor_id - 1
             if sensor_id in KilnServer.KILN_SENSOR_IDS:
                 reading = frame.data[1] * 2**8 + frame.data[2]  # as reading is returned as two bytes (16 bit integer)
                 self.temp[sensor_index] = self.convert(reading)
-                self.get_logger().info(f"Sensor {sensor_id} reading updated to {self.temp[sensor_index]} using {reading}")
+                self.get_logger().debug(f"Sensor {sensor_id} reading updated to {self.temp[sensor_index]} using {reading}")
             else:
-                self.get_logger().info(f"Sensor {sensor_id} not in list of sensors")
+                self.get_logger().debug(f"Sensor {sensor_id} not in list of sensors")
         except Exception as e:
             self.get_logger().error(f"Failed to update temp: {str(e)}")
 
@@ -174,7 +176,7 @@ class KilnServer(Node):
             msg.temp = self.temp
             msg.state = self.is_on
             self.publisher.publish(msg)
-            self.get_logger().info(f"Temps [{str(self.temp)}] and state {self.is_on} published")
+            self.get_logger().debug(f"Temps [{str(self.temp)}] and state {self.is_on} published")
         except Exception as e:
             self.get_logger().error(f"Failed to publish data: {str(e)}")
 
