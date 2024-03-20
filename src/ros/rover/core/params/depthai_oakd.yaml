@@ -9,7 +9,7 @@
       i_ip: ''
       i_laser_dot_brightness: 800
       i_mx_id: ''
-      i_nn_type: none
+      i_nn_type: spatial
       i_pipeline_dump: false
       i_pipeline_type: RGBD
       i_publish_tf_from_calibration: false
@@ -84,7 +84,7 @@
       i_num_inference_threads: 2
       i_num_pool_frames: 4
       i_update_ros_base_time_on_ros_msg: false
-      i_nn_config_path: /home/nova/src/ros/rover/core/resources/ARC_V1.json
+      i_nn_config_path: /home/nova/src/ros/rover/core/resources/yolov8/ARC_V1.json
     rgb:
       i_add_exposure_offset: false
       i_board_socket_id: 0

@@ -89,10 +89,10 @@ class CubeTracker(Node):
         super().__init__("cube_tracker")
         self.get_logger().set_level(logging.DEBUG)
         # ROS Subscribers
-        self.sub_blocks = self.create_subscription(MarkerArray, "/object_detector/markers", self.cb_cube, 10)
+        self.sub_blocks = self.create_subscription(MarkerArray, "/oak/nn/spatial_detections_markers", self.cb_cube, 10)
 
         # ROS publishers
-        self.pub_confirmed_targets = self.create_publisher(MarkerArray, "~/confirmed_targets", 10)
+        self.pub_confirmed_targets = self.create_publisher(MarkerArray, "~/confirmed_cubes", 10)
 
         # ROS Parameters
         # (to remove) self.param_desired_blocks = self.declare_parameter("tracked_block_colors", []).value
@@ -125,12 +125,7 @@ class CubeTracker(Node):
         timer_period = 0.1  # run the timer 10 times per second
         rover_pose_period = 1 / 30
         self.create_timer(timer_period, self.handle_targets)
-        # This is for TESTING, i.e. DELETE LATER and uncomment the callback to rover pose.
-        self.state_rover_pose.x = 0.0
-        self.state_rover_pose.y = 0.0
-        self.state_rover_pose.theta = 0.0
-
-        # self.create_timer(rover_pose_period, self.callback_rover_pose)
+        self.create_timer(rover_pose_period, self.callback_rover_pose)
 
     def get_map_edges_from_boundary_points(self):
         """
@@ -156,8 +151,13 @@ class CubeTracker(Node):
         Converts a PoseStamped from the camera frame to the local map frame.
         """
         try: 
-            local_map_transform = self.tf_buffer.lookup_transform("map", msg.header.frame_id, Time.from_msg(msg.header.stamp), Duration(nanoseconds=1e8)).transform
-            local_map_pose = transform.transform_pose(msg.pose, local_map_transform)
+            # local_map_transform = self.tf_buffer.lookup_transform("map", msg.header.frame_id, Time.from_msg(msg.header.stamp), Duration(nanoseconds=1e8)).transform
+            # local_map_pose = transform.transform_pose(msg.pose, local_map_transform)
+
+            msg_pose_stamped = PoseStamped()
+            msg_pose_stamped.header = msg.header
+            msg_pose_stamped.pose = msg.pose
+            local_map_pose = self.tf_buffer.transform(msg_pose_stamped, 'map')
             return local_map_pose
         except Exception as e:
             self.get_logger().warn(f"Error translating pose to local map frame: {e}")
