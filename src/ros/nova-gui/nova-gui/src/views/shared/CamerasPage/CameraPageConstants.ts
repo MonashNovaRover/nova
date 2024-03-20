@@ -51,10 +51,10 @@ export const defaultCamFilters: { [key: string]: CameraFilters } = {
     contrast: 100,
     brightness: 100,
   },
-  arm_gimbal: {
+  arm_end_finger: {
     flipCamera: false,
     invertCamera: false,
-    rotation: 90,
+    rotation: -90,
     contrast: 100,
     brightness: 100,
   },
