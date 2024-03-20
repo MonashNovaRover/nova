@@ -3,16 +3,29 @@ import {useProgram} from "../WebGLCanvas/hooks/useProgram.tsx";
 import vert from "./gl/threshold.vert";
 import frag from "./gl/threshold.frag";
 import React, {useCallback, useEffect, useRef, useState} from "react";
-import {Button, Card, CardBody, Checkbox, Input, Slider} from "@nextui-org/react";
+import {
+  Button,
+  Card,
+  CardBody,
+  Checkbox,
+  Input,
+  Slider,
+  Table, TableBody, TableCell,
+  TableColumn,
+  TableHeader,
+  TableRow
+} from "@nextui-org/react";
 import useSamplers, {GLSampler} from "../WebGLCanvas/hooks/useSamplers.tsx";
 import useDict from "../WebGLCanvas/hooks/useDict.tsx";
 import useAttributes from "../WebGLCanvas/hooks/useAttributes.tsx";
 import useCanvasSize from "../WebGLCanvas/hooks/useCanvasSize.tsx";
 import useUniforms, {vec} from "../WebGLCanvas/hooks/useUniforms.tsx";
 import CopyableInput from "../CopyableInput/CopyableInput.tsx";
-import {useCameraStream} from "../CameraComponent/hooks/useCameraStream.ts";
 import {CameraComponentProps} from "../CameraComponent/CameraComponent.tsx";
 import CameraSessionStartStopButton from "../CameraComponent/components/CameraSessionStartStopButton.tsx";
+import {useLocalStorage} from "../nir-probe/hooks/useLocalStorage.ts";
+import SiteSelectWidget from "../SiteSelectWidget/SiteSelectWidget.tsx";
+import {useCameraStream} from "../CameraComponent/hooks/useCameraStream.ts";
 
 const attributes = {
   aPosition: {
@@ -20,6 +33,18 @@ const attributes = {
     data: [1.0, 1.0, -1.0, 1.0, 1.0, -1.0, -1.0, -1.0]
   }
 };
+
+export interface ThresholdingFileEntry {
+  threshold: number,
+  brightness: number
+}
+
+export interface ThresholdingFile {
+  entries: ThresholdingFileEntry[]
+}
+const EMPTY_THRESHOLDING_FILE = {
+  entries: []
+} as ThresholdingFile;
 
 const onFloatChanged = (mutator: (x: string) => void) => (userInput: string) => {
   if (userInput.match(/((([1-9]([0-9]*))|0)((.([0-9]*))?))|(^$)/))
@@ -73,6 +98,42 @@ const MicroscopeThresholdWidget: React.FC<CameraComponentProps> = (props) => {
     gl.gl.drawArrays(gl.gl.TRIANGLE_STRIP, 0, 4);
   }, [gl.gl, program, videoRef.current?.width, videoRef.current?.height, samplers, uniforms, threshold, frameID]);
 
+  const toggleShowThreshold = useCallback(() => {
+    setShowThreshold(!showThreshold);
+  }, [showThreshold, setShowThreshold]);
+
+  // Calibration things
+
+
+  const concentrationFunction = useCallback((brightness: number) => {
+    const densityRatio = 4.45 / 1.4;
+    return (densityRatio * brightness) / (brightness * (densityRatio - 1) + 1);
+  }, []);
+
+  const [filename, setFilename] = useState<string>("");
+
+  const [file, setFile] = useLocalStorage<ThresholdingFile>(`thresholding-${filename}`,
+    EMPTY_THRESHOLDING_FILE, [filename]);
+
+  // Prepends a row to the file
+  const prependFileEntry = useCallback((newEntry : ThresholdingFileEntry) => {
+    const newFile = {
+      entries: [newEntry, ...file.entries]
+    };
+
+    setFile(newFile);
+  }, [file, setFile]);
+
+  // Deletes an entry from the file
+  const deleteFileEntry = useCallback((index: number) => {
+    const newFile = {
+      entries: file.entries.filter((_, i) => i !== index)
+    }
+
+    setFile(newFile);
+  }, [file, setFile]);
+
+
   const getBrightness = useCallback(() => {
     const numElements = width * height;
 
@@ -93,84 +154,150 @@ const MicroscopeThresholdWidget: React.FC<CameraComponentProps> = (props) => {
     console.log(`${(100 * (1 - average)).toFixed(4)}%`);
 
     setBrightness(1 - average);
-  }, [gl, width, height]);
 
-  const toggleShowThreshold = useCallback(() => {
-    setShowThreshold(!showThreshold);
-  }, [showThreshold, setShowThreshold]);
+    const fileEntry: ThresholdingFileEntry = {
+      threshold: threshold,
+      brightness: 1 - average
+    };
+    prependFileEntry(fileEntry);
+  }, [gl, width, height, prependFileEntry, threshold]);
+
+  const tableRows = file.entries.map(({threshold, brightness}, index) => (
+    <TableRow>
+      <TableCell className="font-mono">{(100 * threshold).toFixed(4)} %</TableCell>
+      <TableCell className="font-mono">{(100 * brightness).toFixed(4)} %</TableCell>
+      <TableCell className="font-mono">{(100 * concentrationFunction(brightness)).toFixed(4)} %</TableCell>
+      <TableCell>
+        <Button variant="light" fullWidth color="danger" onClick={() => deleteFileEntry(index)}>
+          Delete
+        </Button>
+      </TableCell>
+    </TableRow>
+  ));
+
+  const averageHeaderRow = (
+    <TableRow className="relative h-6">
+      <TableCell className="absolute text-small uppercase tracking-wider text-nowrap left-0 right-64 w-full top-0 h-1 text-foreground-400">
+        Site Average
+      </TableCell>
+      <TableCell>{""}</TableCell>
+      <TableCell>{""}</TableCell>
+      <TableCell>{""}</TableCell>
+    </TableRow>
+  )
+
+  const averageThreshold = file.entries
+    .reduce((acc, v) => v.threshold + acc, 0) / Math.max(1, file.entries.length);
+  const averageBrightness = file.entries
+    .reduce((acc, v) => v.brightness + acc, 0) / Math.max(1, file.entries.length);
+
+  const averageRow = (
+    <TableRow>
+      <TableCell className="font-mono">{(100 * averageThreshold).toFixed(4)} %</TableCell>
+      <TableCell className="font-mono">{(100 * averageBrightness).toFixed(4)} %</TableCell>
+      <TableCell className="font-mono">{(100 * concentrationFunction(averageBrightness)).toFixed(4)} %</TableCell>
+      <TableCell>{""}</TableCell>
+    </TableRow>
+  );
+
+  if (file.entries.length > 0) {
+    tableRows.push(averageHeaderRow);
+    tableRows.push(averageRow);
+  }
+
+
 
   return (
-    <Card>
-      <CardBody className="flex flex-col gap-3 overflow-hidden">
-        <div className="flex flex-row">
-          <div className="grow justify-self-stretch text-left col-span-3">Microscope Thresholding</div>
-          <CameraSessionStartStopButton streamingState={streamingState}
-                                        sendSessionStartMessage={sendSessionStartMessage}
-                                        closeSession={closeSession}/>
-        </div>
-        <div className="grid grid-cols-[auto_1fr_1fr_auto] gap-3 items-center justify-items-center">
-
-
-          <div className="flex flex-col gap-3 grow relative overflow-hidden rounded-lg col-span-3"
-               onMouseDown={toggleShowThreshold}>
-            <video 
-            controls={false}
-            autoPlay
-            loop
-            muted
-            playsInline
-            ref={videoRef} 
-            className={showThreshold ? "-z-10" : "z-20"}/>
-            <canvas className="absolute max-w-full max-h-full right-0 left-0 z-10 rounded-lg" ref={gl.canvasRef} width={width} height={height}/>
+    <div className="flex flex-col gap-1.5">
+      <Card>
+        <CardBody className="flex flex-col gap-3 overflow-hidden">
+          <div className="flex flex-row">
+            <div className="grow justify-self-stretch text-left col-span-3">Microscope Thresholding</div>
+            <CameraSessionStartStopButton streamingState={streamingState}
+                                          sendSessionStartMessage={sendSessionStartMessage}
+                                          closeSession={closeSession}/>
           </div>
-          <Slider
-            size="lg"
-            step={1 / 255}
-            maxValue={(256 / 255)}
-            minValue={0}
-            orientation="vertical"
-            aria-label="Threshold"
-            defaultValue={0.5}
-            isDisabled={isManualThresholdValid}
-            value={finalThreshold}
-            classNames={{"track": "mx-0"}}
-            onChange={(v) => {
-              if (manualThreshold.length === 0)
-                setThreshold(Array.isArray(v) ? v[0] : v);
-            }}
-          />
-          <Button className="place-self-end" onClick={getBrightness}>
-            Read
-          </Button>
-          <CopyableInput className="grow basis-1"
-                         size="md" labelPlacement="outside"
-                         label={"Average Brightness"}
-                         value={brightness === undefined ? "" : `${(100 * brightness).toFixed(4)} %`}
-                         copyValue={brightness === undefined ? "" : (100 * brightness).toFixed(4)}
-                         classNames={{
-                           input: "font-mono",
-                           inputWrapper: "data-[hover=true]:bg-default-100"
-                         }}
-                         placeholder={"##.#### %"}>
-          </CopyableInput>
-          <Input className="grow basis-1"
-                 size="md"
-                 labelPlacement="outside"
-                 label={isManualThresholdValid ? "Threshold (manual)" : "Threshold"}
-                 value={manualThreshold} onValueChange={onFloatChanged(setManualThreshold)}
-                 classNames={{
-                   input: "font-mono",
-                 }}
-                 placeholder={`${Math.min(threshold * 100, 100).toFixed(4)}`}
-                 endContent={<span className="font-mono">%</span>}>
-          </Input>
+          <div className="grid grid-cols-[auto_1fr_1fr_auto] gap-3 items-center justify-items-center">
 
-          <div className="mr-[-8px] pr-[-8px] place-self-start justify-self-center">
-            <Checkbox isSelected={showThreshold} onValueChange={setShowThreshold}/>
+
+            <div className="flex flex-col gap-3 grow relative overflow-hidden rounded-lg col-span-3"
+                 onMouseDown={toggleShowThreshold}>
+              <video
+              controls={false}
+              autoPlay
+              loop
+              muted
+              playsInline
+              ref={videoRef}
+              className={showThreshold ? "-z-10" : "z-20"}/>
+              <canvas className="absolute max-w-full max-h-full right-0 left-0 z-10 rounded-lg" ref={gl.canvasRef} width={width} height={height}/>
+            </div>
+            <Slider
+              size="lg"
+              step={1 / 255}
+              maxValue={(256 / 255)}
+              minValue={0}
+              orientation="vertical"
+              aria-label="Threshold"
+              defaultValue={0.5}
+              isDisabled={isManualThresholdValid}
+              value={finalThreshold}
+              classNames={{"track": "mx-0"}}
+              onChange={(v) => {
+                if (manualThreshold.length === 0)
+                  setThreshold(Array.isArray(v) ? v[0] : v);
+              }}
+            />
+            <Button className="place-self-end" onClick={getBrightness}>
+              Read
+            </Button>
+            <CopyableInput className="grow basis-1"
+                           size="md" labelPlacement="outside"
+                           label={"Average Brightness"}
+                           value={brightness === undefined ? "" : `${(100 * brightness).toFixed(4)} %`}
+                           copyValue={brightness === undefined ? "" : (100 * brightness).toFixed(4)}
+                           classNames={{
+                             input: "font-mono",
+                             inputWrapper: "data-[hover=true]:bg-default-100"
+                           }}
+                           placeholder={"##.#### %"}>
+            </CopyableInput>
+            <Input className="grow basis-1"
+                   size="md"
+                   labelPlacement="outside"
+                   label={isManualThresholdValid ? "Threshold (manual)" : "Threshold"}
+                   value={manualThreshold} onValueChange={onFloatChanged(setManualThreshold)}
+                   classNames={{
+                     input: "font-mono",
+                   }}
+                   placeholder={`${Math.min(threshold * 100, 100).toFixed(4)}`}
+                   endContent={<span className="font-mono">%</span>}>
+            </Input>
+            <div className="mr-[-8px] pr-[-8px] place-self-start justify-self-center">
+              <Checkbox isSelected={showThreshold} onValueChange={setShowThreshold}/>
+            </div>
           </div>
-        </div>
-      </CardBody>
-    </Card>
+        </CardBody>
+      </Card>
+
+      <div className="flex flex-col bg-default-100 rounded-xl overflow-hidden">
+        <SiteSelectWidget onValueChanged={setFilename} hideCard/>
+        <Table className={"shadow-lg z-10"} classNames={{
+          wrapper: "rounded-t-none "
+        }}>
+          <TableHeader>
+            <TableColumn key="action" className="text-center">Threshold</TableColumn>
+            <TableColumn key="brightness">Average Brightness</TableColumn>
+            <TableColumn key="concentration">Concentration</TableColumn>
+            <TableColumn key="action" className="text-center">Action</TableColumn>
+          </TableHeader>
+          <TableBody>
+            {...tableRows}
+          </TableBody>
+
+        </Table>
+      </div>
+    </div>
   );
 }
 

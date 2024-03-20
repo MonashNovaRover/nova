@@ -1,10 +1,19 @@
 import {Tab, Tabs, TabsProps} from "@nextui-org/react";
 import React, {Children, Key, ReactNode} from "react";
 
-interface SegmentedPickerProps extends TabsProps {
+export interface SegmentedPickerProps extends TabsProps {
   selectedIndex?: number,
   onIndexChange?: ((index: number) => void),
   children: ReactNode
+}
+
+// Converts Key to number. We eliminate bigint, as no SegmentedPicker should have enough items to justify it.
+const keyToNumber: (key: Key) => number = (key) => {
+  const value = key.valueOf();
+
+  if (typeof value === "bigint")
+    return Number(value);
+  return +value;
 }
 
 /**
@@ -20,16 +29,6 @@ const SegmentedPicker: React.FC<SegmentedPickerProps> = ({
   selectedIndex: selectedIndex,
   ...props
 }) => {
-
-  // Converts Key to number. We eliminate bigint, as no SegmentedPicker should have enough items to justify it.
-  const keyToNumber: (key: Key) => number = (key) => {
-    const value = key.valueOf();
-
-    if (typeof value === "bigint")
-      return Number(value);
-    return +value;
-  }
-
   const onSelectionChange = !onIndexChange ? undefined
     : (key: Key) => onIndexChange!(keyToNumber(key))
   const selectedKey = selectedIndex !== undefined ? (selectedIndex)?.toString() : undefined;
