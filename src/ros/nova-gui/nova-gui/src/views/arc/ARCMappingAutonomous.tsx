@@ -1,6 +1,6 @@
 import React from "react";
 
-const ARCMappingAutonomousView: React.FC = () => {
+const ARCAutonomousView: React.FC = () => {
   return (
     <div>
       <h1>Hello!</h1>
@@ -8,4 +8,4 @@ const ARCMappingAutonomousView: React.FC = () => {
   );
 };
 
-export default ARCMappingAutonomousView;
+export default ARCAutonomousView;

@@ -1,6 +1,6 @@
 import { RouteObject } from "react-router-dom";
 import ARCExcavationConstructionView from "../views/arc/ARCEscavationConstructionView";
-import ARCMappingAutonomousView from "../views/arc/ARCMappingAutonomous";
+import ARCAutonomousView from "../views/arc/ARCMappingAutonomous";
 import ARCPostLandingView from "../views/arc/ARCPostLandingView";
 import ARCSpaceResourcesView from "../views/arc/ARCSpaceResourcesView";
 import ARCBaseView from "../views/arc/ARCBaseView";
@@ -19,6 +19,8 @@ import {
   cameraSetup,
 } from "../views/shared/CamerasPage/CameraPageConstants.ts";
 import GeneralBaseView from "../views/general/GeneralBaseView.tsx";
+import { ARCNIRProbeView } from "../views/arc/ARCNIRProbeView.tsx";
+import { ARCMicroscopeView } from "../views/arc/ARCMicroscopeView.tsx";
 
 export const arcRoutes: RouteObject[] = [
   {
@@ -34,12 +36,20 @@ export const arcRoutes: RouteObject[] = [
     element: <ARCSpaceResourcesView />,
   },
   {
+    path: "/arc/space-resources/nir-spectroscopy",
+    element: <ARCNIRProbeView />,
+  },
+  {
+    path: "/arc/space-resources/microscope",
+    element: <ARCMicroscopeView />,
+  },
+  {
     path: "/arc/excavation-construction",
     element: <ARCExcavationConstructionView />,
   },
   {
-    path: "/arc/mapping-autonomous",
-    element: <ARCMappingAutonomousView />,
+    path: "/arc/autonomous",
+    element: <ARCAutonomousView />,
   },
   {
     path: "/arc/cameras",
@@ -79,6 +89,10 @@ export const generalRoutes: RouteObject[] = [
     path: "/general/cameras",
     element: <CameraPage views={cameraSetup[ARCCompModes.POST_LANDING]} />,
   },
+  {
+    path: "/general/drive",
+    element: <GeneralBaseView />,
+  },
 ];
 
 export const testRoutes: RouteObject[] = [
@@ -115,7 +129,6 @@ export const routes: RouteObject[] = [
       },
       {
         path: "/general",
-        element: <GeneralBaseView/>,
         children: generalRoutes,
       },
       {

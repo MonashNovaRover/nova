@@ -19,7 +19,8 @@ import { BifrostConnectionStatus } from "../../redux/models/bifrost/BifrostTypes
 import { useLocation } from "react-router-dom";
 import humanizeString from "humanize-string";
 import { BLCMDStatusButton } from "../BLCMDStatusModal/BLCMDStatusButton";
-import "./Navbar.css";
+import "./TopBar.css";
+import { List } from "react-bootstrap-icons";
 
 const connectionStatusColor: {
   [key: string]: "success" | "warning" | "danger";
@@ -29,8 +30,10 @@ const connectionStatusColor: {
   [BifrostConnectionStatus.DISCONNECTED]: "danger",
 };
 
-export const NovaNavbar: React.FC = () => {
+export const NovaTopBar: React.FC = () => {
   const uiActions = useUIActions();
+
+  const uiState = useSelector((state: RootState) => state.uiState);
 
   const bifrostStatus = useSelector(
     (state: RootState) => state.bifrostStatus.connectionStatus
@@ -46,9 +49,19 @@ export const NovaNavbar: React.FC = () => {
 
   return (
     <Navbar maxWidth="full" isBordered position="static">
-      <NavbarContent justify="start">
+      <Button
+        variant="light"
+        isIconOnly
+        onClick={() =>
+          uiActions.setSideBarVisibility(!uiState.sidebarIsVisible)
+        }
+        className="absolute left-2"
+      >
+        <List size="24px" />
+      </Button>
+      <NavbarContent justify="start" className="ml-7">
         <NavbarBrand>
-          <img src={novaLogo} className="w-14" alt="Nova Logo" />
+          <img src={novaLogo} className="w-16" alt="Nova Logo" />
           {!!title && (
             <>
               <Divider orientation="vertical" className="h-10 w-[2px] mx-2" />
@@ -93,7 +106,7 @@ export const NovaNavbar: React.FC = () => {
                 General
               </Button>
             </DropdownTrigger>
-            <DropdownMenu>
+            <DropdownMenu aria-label="Operation Mode">
               <DropdownItem
                 description="General Tab for Rover Operation"
                 href="/general"

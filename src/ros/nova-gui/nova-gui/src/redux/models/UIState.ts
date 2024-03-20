@@ -3,6 +3,7 @@ export interface UIState {
   roverIP: string;
   settingsModalOpen: boolean;
   controllerHelpModalOpen: boolean;
+  sidebarIsVisible: boolean;
   blcmdStatusModalOpen: boolean;
 }
 
@@ -11,5 +12,6 @@ export const initialUIState: UIState = {
   roverIP: window.localStorage.getItem("roverIP") ?? "10.0.0.10",
   settingsModalOpen: false,
   controllerHelpModalOpen: false,
+  sidebarIsVisible: false,
   blcmdStatusModalOpen: false,
 };
