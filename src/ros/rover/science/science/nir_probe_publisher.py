@@ -83,6 +83,8 @@ class NIRProbePublisher(Node):
         """
         Callback for when data is received from the NIR probe
         """
+        self.get_logger().debug(f"Received {hex(frame.id)} {frame.data}")
+
         if frame.id != self.CARD_ID_RECEIVE:
             self.get_logger().warn(f"Received unknown frame {frame}")
             return
@@ -92,6 +94,7 @@ class NIRProbePublisher(Node):
         msg = NIRProbeData()
         msg.data = self.value
         msg.led = self.led
+        self.get_logger().debug(f"Publishing {msg}")
         self.publisher.publish(msg)
 
     def led_service_callback(self, request, response):
@@ -100,13 +103,16 @@ class NIRProbePublisher(Node):
         """
         frame = None
         if request.led == self.LED_BYTES_OFF:
+            self.get_logger().info("Turning NIR probe LED OFF")
             self.led = self.LED_BYTES_OFF
             frame = jcan.Frame(self.NIR_PROBE_ID, [self.NIR_PROBE_LED_OFF])
         else:
+            self.get_logger().info("Turning NIR probe LED ON")
             self.led = self.LED_BYTES_ON
             frame = jcan.Frame(self.NIR_PROBE_ID, [self.NIR_PROBE_LED_ON])
 
         try:
+            self.get_logger().debug(f"Sending {frame}")
             self.bus.send(frame)
             response.success = True
         except Exception as e:
