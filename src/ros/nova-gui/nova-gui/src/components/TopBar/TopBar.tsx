@@ -19,7 +19,7 @@ import { BifrostConnectionStatus } from "../../redux/models/bifrost/BifrostTypes
 import { useLocation } from "react-router-dom";
 import humanizeString from "humanize-string";
 import { BLCMDStatusButton } from "../BLCMDStatusModal/BLCMDStatusButton";
-import "./Navbar.css";
+import "./TopBar.css";
 import { List } from "react-bootstrap-icons";
 
 const connectionStatusColor: {
@@ -30,7 +30,7 @@ const connectionStatusColor: {
   [BifrostConnectionStatus.DISCONNECTED]: "danger",
 };
 
-export const NovaNavbar: React.FC = () => {
+export const NovaTopBar: React.FC = () => {
   const uiActions = useUIActions();
 
   const uiState = useSelector((state: RootState) => state.uiState);
