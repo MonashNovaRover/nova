@@ -85,7 +85,7 @@ class ScraperNode(Node):
         super().__init__("scraper")
 
         self.get_logger().set_level(logging.INFO)
-        self.get_logger().info("Initialising Scraper Node...")
+        self.get_logger().info("Scraper starting")
 
         # Setting ROS parameters
         # This is done so that the parameters can be changed during runtime if desired
@@ -134,8 +134,7 @@ class ScraperNode(Node):
             control=self.bucket
         )
 
-        # Locks
-        self.scraper_lock = True
+        # Locks the joysticks
         self.joystick_lock = True
 
         # Set up the QoS profile and deadline callback
@@ -157,20 +156,21 @@ class ScraperNode(Node):
         self.bus.open(self.get_parameter(self.CAN_BUS_PARAM).value)
         self.timer_jcan = self.create_timer(0.05, self.callback_send_can_commands)
 
-        self.get_logger().info("Scraper Node Initialised")
+        self.get_logger().info(f"Scraper started on {self.get_parameter(self.CAN_BUS_PARAM).value}")
+        self.get_logger().info("Joysticks Locked")
 
     def callback_receive_can_limit_switch(self, frame: jcan.Frame):
         """
         Callback for when the limit switch is hit
         """
         try:
-            self.get_logger().info(f"Received {frame.id} {frame.data}")
+            self.get_logger().debug(f"Received {frame.id} {frame.data}")
 
             if frame.id == self.JONO_ID_LIMIT_SWITCH and frame.data[0] == self.BUCKET_LIMIT_SWITCH_CLOSED:
                 if frame.data[1] == self.LIMIT_SWITCH_CLEAR:
                     self.bucket.update_limit_pos(False)
                 else:
-                    self.get_logger().info("Limit switch hit")
+                    self.get_logger().debug("Limit switch hit")
                     self.bucket.update_limit_pos(True)
             else:
                 self.get_logger().warn("Received unknown frame")
@@ -222,22 +222,10 @@ class ScraperNode(Node):
         :return: True if locked, False otherwise
         """
         if self.joystick_lock:
-            self.get_logger().info("Joysticks LOCKED!")
             self.scraper_stop()
             return True
         return False
     
-    def check_scraper_lock(self):
-        """
-        Checks if the scraper is locked
-        Stops all scraper motors if locked
-        :return: True if locked, False otherwise
-        """
-        if self.scraper_lock:
-            self.get_logger().info("Scraper LOCKED!")
-            self.scraper_stop()
-            return True
-        return False
     
     def update_joystick_lock(self, joystick_l: InputJoystick):
         """
@@ -255,21 +243,6 @@ class ScraperNode(Node):
             self.get_logger().info("Joysticks Unlocked")
             self.joystick_lock = False
 
-    def update_scraper_lock(self, joystick_r: InputJoystick):
-        """
-        Updates the scraper lock state
-            R4 button = LOCK
-            R1 button = UNLOCK
-        """
-        # scraper is locked when bottom r4 button is pressed on the right joystick
-        if joystick_r.btn_bottom_r4_state >= 1 and not self.scraper_lock:
-            self.get_logger().info("Scraper OFF")
-            self.scraper_lock = True
-
-        # scraper is unlocked when bottom r1 button is pressed on the right joystick
-        if joystick_r.btn_bottom_r1_state >= 1 and self.scraper_lock:
-            self.get_logger().info("Scraper ON")
-            self.scraper_lock = False
 
     def update_arm(self, joystick_l: InputJoystick):
         """
@@ -301,13 +274,13 @@ class ScraperNode(Node):
         Updates the classes internal msg state
         :return: None
         """
-        self.get_logger().info("called l")
+        self.get_logger().debug("called l")
 
         joystick_l = msg
     
         self.update_joystick_lock(joystick_l)
 
-        if self.check_joystick_lock() or self.check_scraper_lock():
+        if self.check_joystick_lock():
             return
         
         # Update the inputs
@@ -320,16 +293,11 @@ class ScraperNode(Node):
         :param msg: core.msg.InputJoystick message from the subscriber callback
         :return: None
         """
-        self.get_logger().info("called r")
+        self.get_logger().debug("called r")
 
         joystick_r = msg
 
         if self.check_joystick_lock():
-            return
-
-        self.update_scraper_lock(joystick_r)
-
-        if self.check_scraper_lock():
             return
         
         # Update the inputs
