@@ -55,13 +55,14 @@ class KilnServer(Node):
 
         # The calculations are currently performed on the arduino side to this is set to false
         # If the calculations are to be performed on the ROS side, this should be set to true
+        self.declare_parameter(KilnServer.CAN_BUS_PARAM, "can1")
         self.declare_parameter(KilnServer.KILN_TEMP_CONVERSION_PARAM, False)
 
         #subscriber to polling status
-        self.service = self.create_service(KilnCommand, KilnServer.KILN_DATA_TOPIC, KilnServer.command_callback)
+        self.service = self.create_service(KilnCommand, KilnServer.KILN_COMMAND_SERVICE, self.command_callback)
         self.get_logger().info("Kiln service created")
         #publisher to publish the data from the kilns.
-        self.publisher = self.create_publisher(KilnData, KilnServer.KILN_COMMAND_SERVICE, 10)
+        self.publisher = self.create_publisher(KilnData, KilnServer.KILN_DATA_TOPIC, 10)
 
         #initialise the can bus
         self.bus = jcan.Bus()
@@ -78,7 +79,7 @@ class KilnServer(Node):
         self.temp = [0, 0, 0]
         self.is_on = False
 
-        self.bus.open(self.get_parameter(KilnServer.CAN_BUS_PARAM).value)
+        self.bus.open(self.get_parameter(self.CAN_BUS_PARAM).value)
     
     def convert(self, reading: int):
         """
