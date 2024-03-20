@@ -32,7 +32,6 @@ class MicroscopeNode(Node):
     TOPIC_TYPE = MicroscopeServoInfo
     TOPIC_NAME = '/science/microscope_servo_info'
 
-
     # can bus
     CAN_BUS = "can1"
     # card IDs
@@ -47,11 +46,15 @@ class MicroscopeNode(Node):
     MAX_VALUE = 0x9B
     MIN_VALUE = 0x00
 
+    CAN_BUS_PARAM = "can_bus"
+
     def __init__(self):
         super().__init__("Microscope")
 
-        self.get_logger().set_level(logging.DEBUG)
-        self.get_logger().info("Microscope Servo Node Starting")
+        self.get_logger().set_level(logging.INFO)
+        self.get_logger().info("Microscope Servo starting")
+
+        self.declare_parameter(self.CAN_BUS_PARAM, self.CAN_BUS)
 
         self.service = self.create_service(MicroscopeNode.SERVICE_TYPE, MicroscopeNode.SERVICE_NAME, self.request_servo)
         self.publisher = self.create_publisher(MicroscopeNode.TOPIC_TYPE, MicroscopeNode.TOPIC_NAME, 10)
@@ -60,9 +63,11 @@ class MicroscopeNode(Node):
 
         self.bus = jcan.Bus()
         
-        self.bus.open(MicroscopeNode.CAN_BUS)
+        self.bus.open(self.CAN_BUS)
         self.timer_can_commands = self.create_timer(0.2, self.send_can_commands)
         self.timer_publish_info = self.create_timer(0.1, self.publish_info)
+
+        self.get_logger().info(f"Microscope Servo started on {self.get_parameter(self.CAN_BUS_PARAM).value}")
 
 
     def move_servo(self, target_angle):
@@ -77,7 +82,7 @@ class MicroscopeNode(Node):
             if MicroscopeNode.MIN_ANGLE <= request.angle <= MicroscopeNode.MAX_ANGLE:
                 self.current_angle = request.angle
                 self.move_servo(self.current_angle)
-                self.get_logger().info(f"Microscope angle updated to {request.angle}")
+                self.get_logger().debug(f"Microscope angle updated to {request.angle}")
                 response.success = True
             else:
                 self.get_logger().error(f"Invalid angle of {request.angle} sent. Angle must be between {MicroscopeNode.MIN_ANGLE} and {MicroscopeNode.MAX_ANGLE} (inclusive).")
@@ -98,7 +103,7 @@ class MicroscopeNode(Node):
             msg = MicroscopeServoInfo()
             msg.angle = self.current_angle
             self.publisher.publish(msg)
-            self.get_logger().info(f"Microscope servo angle {str(self.current_angle)} published")
+            self.get_logger().debug(f"Microscope servo angle {str(self.current_angle)} published")
         except Exception as e:
             self.get_logger().error(f"Failed to publish microscope servo data: {str(e)}")
 
