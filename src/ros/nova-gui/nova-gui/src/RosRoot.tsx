@@ -11,18 +11,15 @@ import { BLCMDStatusModal } from "./components/BLCMDStatusModal/BLCMDStatusModal
 export const RosRoot: React.FC = () => {
   return (
     <RosProvider>
-      <div className="dark text-foreground w-screen h-full min-h-screen [background:#131313]">
+      <div className="dark text-foreground w-screen h-full min-h-screen [background:radial-gradient(125%_125%_at_50%_10%,#000_40%,#63e_100%)]">
         <NovaNavbar />
         <NeoSidebar />
-
-        {/* <Sidebar /> */}
         <Outlet />
         {/* All (ahh Most) Modals Here */}
         <SettingsModal />
         <ControllerHelpModal />
         <BLCMDStatusModal />
 
-        <Outlet />
         <Toaster />
       </div>
     </RosProvider>

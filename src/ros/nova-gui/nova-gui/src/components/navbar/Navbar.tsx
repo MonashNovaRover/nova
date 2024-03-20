@@ -20,7 +20,7 @@ import { useLocation } from "react-router-dom";
 import humanizeString from "humanize-string";
 import { BLCMDStatusButton } from "../BLCMDStatusModal/BLCMDStatusButton";
 import "./Navbar.css";
-import { LayoutSidebar } from "react-bootstrap-icons";
+import { List } from "react-bootstrap-icons";
 
 const connectionStatusColor: {
   [key: string]: "success" | "warning" | "danger";
@@ -57,7 +57,7 @@ export const NovaNavbar: React.FC = () => {
         }
         className="absolute left-2"
       >
-        <LayoutSidebar />
+        <List size="24px" />
       </Button>
       <NavbarContent justify="start" className="ml-7">
         <NavbarBrand>

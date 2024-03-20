@@ -7,7 +7,7 @@ export interface CameraView {
 
 export enum ARCCompModes {
   POST_LANDING = "post-landing",
-  EXCAVATION_AND_CONSTRUCTION = "excavation-and-construction",
+  EXCAVATION_AND_CONSTRUCTION = "excavation-construction",
   SPACE_RESOURCES = "space-resources",
   AUTONOMOUS = "autonomous",
 }

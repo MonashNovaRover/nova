@@ -9,13 +9,13 @@ interface SidebarProps {
 export const SidebarWrapper = (props: SidebarProps) => {
   return (
     <Modal
-      hideCloseButton
       radius="lg"
       size="md"
-      backdrop="transparent"
+      backdrop="opaque"
       isOpen={props.isOpen}
       onClose={props.onClose}
       scrollBehavior="inside"
+      shadow="lg"
       classNames={{
         wrapper: [
           "fixed",
