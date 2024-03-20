@@ -17,7 +17,7 @@ CREATION:	15/12/2021
 # Include the required launch parameters
 from launch import LaunchDescription
 from launch.substitutions import LaunchConfiguration
-from launch.actions import IncludeLaunchDescription
+from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import PathJoinSubstitution, TextSubstitution
 
@@ -27,9 +27,9 @@ from launch_ros.actions import Node
 
 # Generate the launch file with all inputs
 def generate_launch_description():
-    gazebo = LaunchConfiguration('gazebo', default=False)
 
     return LaunchDescription([
+       DeclareLaunchArgument('rfid_port', default_value='/dev/ttyUSB0'),
        IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution([
@@ -52,6 +52,7 @@ def generate_launch_description():
             package='electronics',
             executable='rfid_service.py',
             name='rfid_node',
+            parameters=[{'port': LaunchConfiguration('rfid_port')}]
         )
         
     ])
