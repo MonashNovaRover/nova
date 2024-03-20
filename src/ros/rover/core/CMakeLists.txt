@@ -94,6 +94,7 @@ install(DIRECTORY
   urdf
   meshes
   worlds
+  resources
   DESTINATION share/${PROJECT_NAME}
 )
 

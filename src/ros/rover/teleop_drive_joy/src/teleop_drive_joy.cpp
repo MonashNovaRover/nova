@@ -127,7 +127,7 @@ namespace teleop_drive_joy
 
       request->parameters.push_back(parameter);
 
-      while (!parameters_client->wait_for_service(1s)) {
+      if (!parameters_client->wait_for_service(1s)) {
         if (!rclcpp::ok()) {
           RCLCPP_ERROR(node_->get_logger(), "Interrupted while waiting for the parameter service. Exiting.");
           rclcpp::shutdown();
@@ -222,37 +222,37 @@ namespace teleop_drive_joy
     }
     */
 
-    if (joy_msg->buttons[params_.button_unlock])
+    if (joy_msg->buttons[params_.button_unlock] && current_state.locked)
     {
       current_state.locked = false;
       RCLCPP_INFO(node_->get_logger(), "BUTTON: unlock");
     } 
-    else if (joy_msg->buttons[params_.button_lock])
+    else if (joy_msg->buttons[params_.button_lock] && !current_state.locked)
     {
       current_state.locked = true;
       RCLCPP_INFO(node_->get_logger(), "BUTTON: lock");
     }
-    if (joy_msg->buttons[params_.button_autonomous_control])
+    if (joy_msg->buttons[params_.button_autonomous_control] && !current_state.autonomous_mode)
     {
       current_state.autonomous_mode = true;
       RCLCPP_INFO(node_->get_logger(), "BUTTON: autonomous_control");
     }
-    else if (joy_msg->buttons[params_.button_manual_control])
+    else if (joy_msg->buttons[params_.button_manual_control] && current_state.autonomous_mode)
     {
       current_state.autonomous_mode = false;
       RCLCPP_INFO(node_->get_logger(), "BUTTON: manual_control");
     }
-    if (joy_msg->buttons[params_.button_strafe_mode])
+    if (joy_msg->buttons[params_.button_strafe_mode] && current_state.mode != core::msg::DriveInput::STRAFE)
     {
       current_state.mode = core::msg::DriveInput::STRAFE;
       RCLCPP_INFO(node_->get_logger(), "BUTTON: strafe_mode");
     }
-    else if (joy_msg->buttons[params_.button_diff_drive_mode])
+    else if (joy_msg->buttons[params_.button_diff_drive_mode] && current_state.mode != core::msg::DriveInput::DIFF)
     {
       current_state.mode = core::msg::DriveInput::DIFF;
       RCLCPP_INFO(node_->get_logger(), "BUTTON: diff_drive_mode");
     }
-    else if (joy_msg->buttons[params_.button_pivot_drive_mode])
+    else if (joy_msg->buttons[params_.button_pivot_drive_mode] && current_state.mode != core::msg::DriveInput::PIVOT)
     {
       current_state.mode = core::msg::DriveInput::PIVOT;
       RCLCPP_INFO(node_->get_logger(), "BUTTON: pivot_drive_mode");
