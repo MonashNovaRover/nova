@@ -49,7 +49,7 @@ class MicroscopeNode(Node):
     CAN_BUS_PARAM = "can_bus"
 
     def __init__(self):
-        super().__init__("Microscope")
+        super().__init__("microscope_servo")
 
         self.get_logger().set_level(logging.INFO)
         self.get_logger().info("Microscope Servo starting")
