@@ -1,0 +1,32 @@
+{
+    "model": {
+        "xml": "/home/dylan/src/ros/rover/core/resources/ARC_V1.xml",
+        "bin": "/home/dylan/src/ros/rover/core/resources/ARC_V1.bin",
+        "model_name": "/home/dylan/src/ros/rover/core/resources/ARC_V1_openvino_2022.1_6shave.blob",
+        "zoo": "path"
+    },
+    "nn_config": {
+        "output_format": "detection",
+        "NN_family": "YOLO",
+        "input_size": "640x640",
+        "NN_specific_metadata": {
+            "classes": 6,
+            "coordinates": 4,
+            "anchors": [],
+            "anchor_masks": {},
+            "iou_threshold": 0.5,
+            "confidence_threshold": 0.5
+        }
+    },
+    "mappings": {
+        "labels": [
+            "blue",
+            "cube",
+            "green",
+            "red",
+            "white",
+            "yellow"
+        ]
+    },
+    "version": 1
+}

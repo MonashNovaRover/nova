@@ -22,10 +22,11 @@
 , nova-costmap-2d
 , image-view
 , navigation2
+, depthai-ros
 , rtabmap-ros
 }:
 
-buildRosPackage {
+buildRosPackage rec {
   name = "core";
   buildType = "ament_cmake";
 
@@ -33,6 +34,11 @@ buildRosPackage {
     name = "core-source";
     path = ../../../core;
     filter = lib.novaSourceFilter [ "!worlds/**" ] path;
+  };
+  
+  meshes = builtins.path {
+    name = "nova-core-meshes";
+    path = src + "/meshes";
   };
 
   nativeBuildInputs = [ ament-cmake rosidl-default-generators ];
@@ -54,6 +60,12 @@ buildRosPackage {
       robot-localization
       gazebo-ros-pkgs
       navigation2
+      depthai-ros
       rtabmap-ros;
   };
+
+  postPatch = ''
+    substituteInPlace  urdf/rover.urdf.xacro \
+      --replace 'STREQUAL "file:///$(find core)"' 'STREQUAL "${meshes}"'
+  '';
 }

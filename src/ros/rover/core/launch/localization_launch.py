@@ -48,7 +48,7 @@ def generate_launch_description():
 
     use_sim_time_arg = DeclareLaunchArgument(
         'use_sim_time',
-        default_value='true',
+        default_value='False',
         description='Use simulation (Gazebo) clock if true')
 
     use_real_odom_arg = DeclareLaunchArgument(
@@ -82,7 +82,7 @@ def generate_launch_description():
     )
 
     slam_cmd = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource((get_package_share_path("core") / 'launch' / 'rtabmap_launch.py').as_posix()),
+        PythonLaunchDescriptionSource((get_package_share_path("core") / 'launch' / 'rtabmap.launch.py').as_posix()),
         launch_arguments={
             'use_sim_time': use_sim_time,
             'load_map': load_map,

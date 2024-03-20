@@ -7,6 +7,7 @@
 , sensor-msgs
 , nav-msgs
 , trajectory-msgs
+, vision-msgs
 , pythonPackages
 , nova-core
 }:
@@ -30,6 +31,7 @@ buildRosPackage {
     sensor-msgs
     nav-msgs
     trajectory-msgs
+    vision-msgs
     pythonPackages.pyrealsense2
     pythonPackages.opencv4
     pythonPackages.ultralytics
