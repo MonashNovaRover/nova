@@ -57,7 +57,9 @@ class AugerNode(Node):
     def __init__(self):
         super().__init__("auger")
 
-        self.get_logger().set_level(logging.DEBUG)
+        self.get_logger().set_level(logging.INFO)
+        self.get_logger().info("Auger starting")
+
         self.declare_parameter(self.CAN_BUS_PARAM, self.CAN_BUS)
         self.declare_parameter(self.AUGER_MAX_VELOCITY_PARAM, self.MAX_VELOCITY)
         self.declare_parameter(self.DRILL_MAX_VELOCITY_PARAM, self.MAX_VELOCITY)
@@ -89,6 +91,10 @@ class AugerNode(Node):
         self.timer_jcan_commands = self.create_timer(0.05, self.callback_send_can_commands)
         self.timer_jcan_spin = self.create_timer(0.01, self.bus.spin)
 
+        self.get_logger().info(f"Auger started on {self.get_parameter(self.CAN_BUS_PARAM).value}")
+        self.get_logger().info("Joysticks Locked")
+
+
 
     def callback_send_can_commands(self):
         """Take current internal state and publish over CAN
@@ -99,8 +105,8 @@ class AugerNode(Node):
         augerFrame = jcan.Frame(self.AUGER_ID, auger_commands)
         drillFrame = jcan.Frame(self.DRILL_ID, drill_commands)
 
-        self.get_logger().info(f"Sending {augerFrame}")
-        self.get_logger().info(f"Sending {drillFrame}")
+        self.get_logger().debug(f"Sending {augerFrame}")
+        self.get_logger().debug(f"Sending {drillFrame}")
         try:
             self.bus.send(augerFrame)
             self.bus.send(drillFrame)
@@ -111,24 +117,24 @@ class AugerNode(Node):
     def callback_receive_can_feedback(self, frame: jcan.Frame):
         """Receive can feedback for auger limit switches
         """
-        self.get_logger().info(f"Received {hex(frame.id)} {frame.data}")
+        self.get_logger().debug(f"Received {hex(frame.id)} {frame.data}")
  
         if frame.id == self.CARD_ID_RECEIVE:
             if frame.data[0] == self.AUGER_LIMIT_SWITCH_TOP:
                 if frame.data[1] == self.AUGER_LIMIT_SWITCH_CLEAR:
                     self.top_limit = False
                 else:
-                    self.get_logger().info("Top limit switch hit")
+                    self.get_logger().debug("Top limit switch hit")
                     self.top_limit = True
                
             elif frame.data[0] == self.AUGER_LIMIT_SWITCH_BOTTOM:
                 if frame.data[1] == self.AUGER_LIMIT_SWITCH_CLEAR:
                     self.bottom_limit = False
                 else:
-                    self.get_logger().info("Bottom limit switch hit")
+                    self.get_logger().debug("Bottom limit switch hit")
                     self.bottom_limit = True
         else:
-            self.get_logger().info(f"Received unknown frame {frame}")
+            self.get_logger().warn(f"Received unknown frame {frame}")
         
 
 
@@ -149,7 +155,6 @@ class AugerNode(Node):
 
     def check_joystick_lock(self):
         if self.joystick_lock:
-            self.get_logger().info("Joysticks locked!")
             self.auger_stop_state()
             self.drill_stop_state()
             return True
@@ -197,7 +202,7 @@ class AugerNode(Node):
         Updates the classes internal msg state
         :return: None
         """
-        self.get_logger().info("called l")
+        self.get_logger().debug("called l")
 
         joystick_l = msg
 
@@ -213,7 +218,7 @@ class AugerNode(Node):
         :param msg: core.msg.RoverPose message from the subscriber callback
         :return: None
         """
-        self.get_logger().info("called r")
+        self.get_logger().debug("called r")
 
         joystick_r = msg
 
@@ -232,7 +237,7 @@ class AugerNode(Node):
     def get_can_commands(self):
         auger_data_value = self.auger_direction * self.auger_velocity
         drill_data_value = self.drill_direction * self.drill_velocity
-        self.get_logger().info(f"Auger: {auger_data_value}, Drill: {drill_data_value}")
+        self.get_logger().debug(f"Auger: {auger_data_value}, Drill: {drill_data_value}")
 
         # pack the values into a list of bytes
         # packing int into 2 bytes big endian
