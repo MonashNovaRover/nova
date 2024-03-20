@@ -125,6 +125,11 @@ install(TARGETS
         DESTINATION lib/${PROJECT_NAME}
         )
 
+install(DIRECTORY
+        rviz
+        DESTINATION share/${PROJECT_NAME}
+      )
+
 # Add all Python executables to this list
 install(PROGRAMS
         control/cmd_plotter.py

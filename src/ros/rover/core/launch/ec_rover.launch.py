@@ -16,5 +16,5 @@ def generate_launch_description():
         Node(
             package='control', executable='tile_placer.py', output='screen', emulate_tty=True),
         IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(os.path.join(core_dir, 'launch/old_launch', 'drive.launch.py'))),
+            PythonLaunchDescriptionSource(os.path.join(core_dir, 'launch', 'drive.launch.py'))),
     ])
