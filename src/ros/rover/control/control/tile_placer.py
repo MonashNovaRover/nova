@@ -60,6 +60,8 @@ class TilePlacerNode(Node):
         super().__init__("tile_placer")
 
         self.get_logger().set_level(logging.INFO)
+        self.get_logger().info("Tile Placer starting")
+
         self.declare_parameter(self.CAN_BUS_PARAM, self.CAN_BUS)
         self.declare_parameter(self.TILE_PLACER_MAX_VEL_PERCENT_PARAM, self.TILE_PLACER_MAX_VELOCITY)
 
@@ -72,7 +74,6 @@ class TilePlacerNode(Node):
             control=self.tile_placer,
         )
 
-        self.tile_placer_lock = True
         self.joystick_lock = True
 
         deadline = Duration(nanoseconds=2e8)        
@@ -85,6 +86,9 @@ class TilePlacerNode(Node):
         self.bus = jcan.Bus()
         self.bus.open(self.get_parameter(self.CAN_BUS_PARAM).value)
         self.timer_jcan = self.create_timer(0.05, self.callback_send_can_commands)
+
+        self.get_logger().info(f"Tile Placer started on {self.get_parameter(self.CAN_BUS_PARAM).value}")
+        self.get_logger().info("Joysticks Locked")
 
 
     def callback_send_can_commands(self):
@@ -117,22 +121,10 @@ class TilePlacerNode(Node):
         :return: True if locked, False otherwise
         """
         if self.joystick_lock:
-            self.get_logger().info("Joysticks LOCKED!")
             self.tile_placer_stop()
             return True
         return False
     
-    def check_tile_placer_lock(self):
-        """
-        Checks if the scraper is locked
-        Stops all scraper motors if locked
-        :return: True if locked, False otherwise
-        """
-        if self.tile_placer_lock:
-            self.get_logger().info("Tile Placer LOCKED!")
-            self.tile_placer_stop()
-            return True
-        return False
     
     def update_joystick_lock(self, joystick_l: InputJoystick):
         """
@@ -150,30 +142,14 @@ class TilePlacerNode(Node):
             self.get_logger().info("Joysticks Unlocked")
             self.joystick_lock = False
 
-    def update_tile_placer_lock(self, joystick_r: InputJoystick):
-        """
-        Updates the tile placer lock state
-            R1 button = LOCK
-            R4 button = UNLOCK
-        """
-        # tile placer is unlocked when bottom r4 button is pressed on the right joystick
-        if joystick_r.btn_bottom_r4_state >= 1 and self.tile_placer_lock:
-            self.get_logger().info("Tile Placer ON")
-            self.tile_placer_lock = False
-
-        # tile placer is locked when bottom r1 button is pressed on the right joystick
-        if joystick_r.btn_bottom_r1_state >= 1 and not self.tile_placer_lock:
-            self.get_logger().info("Tile Placer OFF")
-            self.tile_placer_lock = True
-
 
     def update_tile_placer(self, joystick_r: InputJoystick):
         if joystick_r._btn_thumb_l_state >= 1:
-            self.get_logger().info("Tile Placer UP")
+            self.get_logger().debug("Tile Placer UP")
             self.tile_placer.update_direction(self.TILE_PLACER_UP)
             self.tile_placer.update_velocity(1.0)
         elif joystick_r._btn_thumb_r_state >= 1:
-            self.get_logger().info("Tile Placer DOWN")
+            self.get_logger().debug("Tile Placer DOWN")
             self.tile_placer.update_direction(self.TILE_PLACER_DOWN)
             self.tile_placer.update_velocity(1.0)
         else:
@@ -185,13 +161,13 @@ class TilePlacerNode(Node):
         Updates the classes internal msg state
         :return: None
         """
-        self.get_logger().info("called l")
+        self.get_logger().debug("called l")
 
         joystick_l = msg
 
         self.update_joystick_lock(joystick_l)
 
-        if self.check_joystick_lock() or self.check_tile_placer_lock():
+        if self.check_joystick_lock():
             return
 
 
@@ -201,23 +177,15 @@ class TilePlacerNode(Node):
         :param msg: core.msg.RoverPose message from the subscriber callback
         :return: None
         """
-        self.get_logger().info("called r")
+        self.get_logger().debug("called r")
 
         joystick_r = msg
 
         if self.check_joystick_lock():
             return
         
-        self.update_tile_placer_lock(joystick_r)
-
-        if self.check_tile_placer_lock():
-            return
-        
         # Update inputs
-        self.update_tile_placer(joystick_r)
-
-       
-        
+        self.update_tile_placer(joystick_r)  
 
 
 def main():
