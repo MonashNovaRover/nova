@@ -32,18 +32,16 @@ from std_srvs.srv import Trigger
 
 class RFIDService(Node):
 
-    def __init__(self, port: str):
+    def __init__(self):
         super().__init__('rfid_service')
-
-        if port is None:
-            port = "/dev/ttyELBAUMRFID69420"
-
+        
+        self.declare_parameter('port', '/dev/USB0')
         self.get_logger().info("Waiting for RFID scanner to be plugged in.")
 
         # Loop until the RFID is plugged in
         while True:
             try:
-                self.ser = Serial(baudrate = 115200, port = port) # TODO: Check port
+                self.ser = Serial(baudrate = 115200, port = self.get_parameter('port').value) # TODO: Check port
                 break
             except:
                 time.sleep(0.1)
@@ -281,9 +279,9 @@ def cli_parser():
 def main(args=None):
     rclpy.init(args=args)
 
-    args2 = cli_parser()
+    # args2 = cli_parser()
 
-    rfid_service = RFIDService(args2.port)
+    rfid_service = RFIDService()
 
     rclpy.spin(rfid_service)
 
