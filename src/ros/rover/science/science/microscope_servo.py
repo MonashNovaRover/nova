@@ -82,7 +82,7 @@ class MicroscopeNode(Node):
             if MicroscopeNode.MIN_ANGLE <= request.angle <= MicroscopeNode.MAX_ANGLE:
                 self.current_angle = request.angle
                 self.move_servo(self.current_angle)
-                self.get_logger().debug(f"Microscope angle updated to {request.angle}")
+                self.get_logger().info(f"Microscope angle updated to {request.angle}")
                 response.success = True
             else:
                 self.get_logger().error(f"Invalid angle of {request.angle} sent. Angle must be between {MicroscopeNode.MIN_ANGLE} and {MicroscopeNode.MAX_ANGLE} (inclusive).")
