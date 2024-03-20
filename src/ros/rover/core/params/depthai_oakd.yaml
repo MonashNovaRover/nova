@@ -1,33 +1,14 @@
 /oak:
   ros__parameters:
     camera:
-      i_calibration_dump: false
       i_enable_imu: true
       i_enable_ir: true
-      i_external_calibration_path: ''
-      i_floodlight_brightness: 0
-      i_ip: ''
-      i_laser_dot_brightness: 800
-      i_mx_id: ''
-      i_nn_type: none
-      i_pipeline_dump: false
+      i_nn_type: spatial
       i_pipeline_type: RGBD
-      i_publish_tf_from_calibration: false
       i_restart_on_diagnostics_error: false
       i_tf_base_frame: oak
-      i_tf_cam_pitch: '0.0'
-      i_tf_cam_pos_x: '0.0'
-      i_tf_cam_pos_y: '0.0'
-      i_tf_cam_pos_z: '0.0'
-      i_tf_cam_roll: '0.0'
-      i_tf_cam_yaw: '0.0'
-      i_tf_camera_model: ''
       i_tf_camera_name: oak
-      i_tf_custom_urdf_location: ''
-      i_tf_custom_xacro_args: ''
-      i_tf_imu_from_descr: 'false'
       i_tf_parent_frame: base_link #oak-d-base-frame
-      i_usb_port_id: ''
       i_usb_speed: SUPER_PLUS
     diagnostic_updater:
       period: 1.0
@@ -39,129 +20,38 @@
       i_get_base_device_timestamp: false
       i_gyro_cov: 0.0
       i_gyro_freq: 400
-      i_mag_cov: 0.0
       i_max_batch_reports: 10
       i_message_type: IMU
       i_rot_cov: -1.0
       i_rotation_vector_type: GAME_ROTATION_VECTOR
       i_sync_method: LINEAR_INTERPOLATE_ACCEL
-      i_update_ros_base_time_on_ros_msg: false
     left:
-      i_add_exposure_offset: false
-      i_board_socket_id: 1
-      i_calibration_file: ''
-      i_disable_node: false
-      i_enable_feature_tracker: false
-      i_enable_lazy_publisher: true
-      i_enable_nn: false
-      i_exposure_offset: 0
-      i_fps: 5.0
-      i_fsync_continuous: false
-      i_fsync_trigger: false
-      i_get_base_device_timestamp: false
       i_height: 720
-      i_low_bandwidth: false
-      i_low_bandwidth_quality: 50
       i_max_q_size: 30
-      i_publish_topic: false
-      i_resolution: 720P
-      i_reverse_stereo_socket_order: false
-      i_sensor_img_orientation: AUTO
-      i_set_isp3a_fps: false
-      i_simulate_from_topic: false
-      i_simulated_topic_name: ''
-      i_update_ros_base_time_on_ros_msg: false
+      i_publish_topic: true
       i_width: 1280
-      r_exposure: 1000
-      r_iso: 800
-      r_set_man_exposure: false
     nn:
-      i_board_socket_id: 0
       i_disable_resize: true
-      i_enable_passthrough: true #false
-      i_enable_passthrough_depth: false
-      i_get_base_device_timestamp: false
       i_num_inference_threads: 2
       i_num_pool_frames: 4
-      i_update_ros_base_time_on_ros_msg: false
-      i_nn_config_path: /home/nova/src/ros/rover/core/resources/ARC_V1.json
+      i_nn_config_path: /home/dylan/src/ros/rover/core/resources/yolov8/ARC_V1.json
     rgb:
-      i_add_exposure_offset: false
-      i_board_socket_id: 0
-      i_calibration_file: ''
-      i_disable_node: false
-      i_enable_feature_tracker: false
-      i_enable_lazy_publisher: true
       i_enable_nn: false
       i_enable_preview: true
-      i_exposure_offset: 0
       i_fps: 5.0
-      i_fsync_continuous: false
-      i_fsync_trigger: false
-      i_get_base_device_timestamp: false
-      i_height: 720
-      i_interleaved: false
-      i_isp_den: 3
-      i_isp_num: 2
-      i_keep_preview_aspect_ratio: true
-      i_low_bandwidth: false
-      i_low_bandwidth_quality: 50
-      i_max_q_size: 30
-      i_output_isp: true
       i_preview_height: 640 #300
       i_preview_size: 300
       i_preview_width: 640 #300
       i_publish_topic: true
-      i_resolution: 1080P
-      i_reverse_stereo_socket_order: false
-      i_sensor_img_orientation: AUTO
-      i_set_isp3a_fps: false
-      i_set_isp_scale: true
-      i_simulate_from_topic: false
-      i_simulated_topic_name: ''
-      i_update_ros_base_time_on_ros_msg: false
       i_width: 1280
-      r_exposure: 20000
-      r_focus: 1
-      r_iso: 800
-      r_set_man_exposure: false
-      r_set_man_focus: false
-      r_set_man_whitebalance: false
-      r_whitebalance: 3300
     right:
-      i_add_exposure_offset: false
-      i_board_socket_id: 2
-      i_calibration_file: ''
-      i_disable_node: false
-      i_enable_feature_tracker: false
-      i_enable_lazy_publisher: true
       i_enable_nn: false
-      i_exposure_offset: 0
-      i_fps: 5.0
-      i_fsync_continuous: false
-      i_fsync_trigger: false
-      i_get_base_device_timestamp: false
-      i_height: 720
-      i_low_bandwidth: false
-      i_low_bandwidth_quality: 50
-      i_max_q_size: 30
       i_publish_topic: false
-      i_resolution: 720P
       i_reverse_stereo_socket_order: false
-      i_sensor_img_orientation: AUTO
-      i_set_isp3a_fps: false
-      i_simulate_from_topic: false
-      i_simulated_topic_name: ''
-      i_update_ros_base_time_on_ros_msg: false
+      i_height: 720
       i_width: 1280
-      r_exposure: 1000
-      r_iso: 800
-      r_set_man_exposure: false
     stereo:
-      i_add_exposure_offset: false
       i_align_depth: true
-      i_bilateral_sigma: 0
-      i_board_socket_id: 0
       i_depth_filter_size: 5
       i_depth_preset: HIGH_ACCURACY
       i_disparity_width: DISPARITY_96
@@ -173,45 +63,17 @@
       i_enable_distortion_correction: false
       i_enable_lazy_publisher: true
       i_enable_spatial_filter: false
-      i_enable_spatial_nn: false
+      i_enable_spatial_nn: true
       i_enable_speckle_filter: false
       i_enable_temporal_filter: false
       i_enable_threshold_filter: false
-      i_exposure_offset: 0
       i_extended_disp: false
-      i_get_base_device_timestamp: false
-      i_height: 720
-      i_left_rect_add_exposure_offset: false
-      i_left_rect_enable_feature_tracker: false
-      i_left_rect_exposure_offset: 0
-      i_left_rect_low_bandwidth: false
-      i_left_rect_low_bandwidth_quality: 50
-      i_left_socket_id: 1
-      i_low_bandwidth: false
-      i_low_bandwidth_quality: 50
-      i_lr_check: true
-      i_lrc_threshold: 10
-      i_max_q_size: 30
-      i_output_disparity: false
+      i_output_disparity: true
       i_publish_left_rect: false
       i_publish_right_rect: false
       i_publish_synced_rect_pair: false
       i_publish_topic: true
       i_rectify_edge_fill_color: 0
-      i_reverse_stereo_socket_order: false
-      i_right_rect_add_exposure_offset: false
-      i_right_rect_enable_feature_tracker: false
-      i_right_rect_exposure_offset: 0
-      i_right_rect_low_bandwidth: false
-      i_right_rect_low_bandwidth_quality: 50
-      i_right_socket_id: 2
-      i_set_disparity_to_depth_use_spec_translation: false
-      i_set_input_size: false
-      i_socket_name: rgb
-      i_spatial_nn_source: right
-      i_stereo_conf_threshold: 240
-      i_subpixel: false
-      i_update_ros_base_time_on_ros_msg: false
       i_width: 1280
     use_sim_time: false
 /spatial_bb_node:
