@@ -63,7 +63,7 @@ class MicroscopeNode(Node):
 
         self.bus = jcan.Bus()
         
-        self.bus.open(self.CAN_BUS)
+        self.bus.open(self.get_parameter(self.CAN_BUS_PARAM).value)
         self.timer_can_commands = self.create_timer(0.2, self.send_can_commands)
         self.timer_publish_info = self.create_timer(0.1, self.publish_info)
 
