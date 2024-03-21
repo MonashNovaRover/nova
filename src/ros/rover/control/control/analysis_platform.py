@@ -216,12 +216,22 @@ class AnalysisPlatformNode(Node):
         self.platform.update_direction(self.PLATFORM_DOWN if joystick_l.ax_stick_x >= 0 else self.PLATFORM_UP)
         self.platform.update_velocity(velocity=abs(joystick_l.ax_stick_x))
 
+        # guard case if twitch is already being performed
+        if not self.twitch_enable:
+            return
+
         # button override time of flight
         # allows operators to lower the platform even 
         # if the time of flight sensor is reading the 0 / reached bottom
-        if joystick_l.btn_thumb_d_state >= 1 and self.twitch_enable:
-            self.platform.update_velocity(velocity=0.6, ignore_limits=True)
+        if joystick_l.btn_thumb_l_state >= 1:
             self.platform.update_direction(self.PLATFORM_DOWN)
+            self.platform.update_velocity(velocity=0.6, ignore_limits=True)
+            self.twitch_enable = False
+            time.sleep(self.TWITCH_SLEEP_TIME)
+            self.twitch_enable = True
+        elif joystick_l.btn_thumb_r_state >= 1:
+            self.platform.update_direction(self.PLATFORM_UP)
+            self.platform.update_velocity(velocity=0.6, ignore_limits=True)
             self.twitch_enable = False
             time.sleep(self.TWITCH_SLEEP_TIME)
             self.twitch_enable = True
