@@ -74,6 +74,8 @@ class TilePlacerNode(Node):
             control=self.tile_placer,
         )
 
+        self.velocity_multiplier = 0.0
+
         self.joystick_lock = True
 
         deadline = Duration(nanoseconds=2e8)        
@@ -144,14 +146,14 @@ class TilePlacerNode(Node):
 
 
     def update_tile_placer(self, joystick_r: InputJoystick):
-        if joystick_r._btn_thumb_l_state >= 1:
+        if joystick_r.btn_thumb_l_state >= 1:
             self.get_logger().debug("Tile Placer UP")
             self.tile_placer.update_direction(self.TILE_PLACER_UP)
-            self.tile_placer.update_velocity(1.0)
-        elif joystick_r._btn_thumb_r_state >= 1:
+            self.tile_placer.update_velocity(self.velocity_multiplier)
+        elif joystick_r.btn_thumb_r_state >= 1:
             self.get_logger().debug("Tile Placer DOWN")
             self.tile_placer.update_direction(self.TILE_PLACER_DOWN)
-            self.tile_placer.update_velocity(1.0)
+            self.tile_placer.update_velocity(self.velocity_multiplier)
         else:
             self.tile_placer_stop()
 
@@ -168,7 +170,9 @@ class TilePlacerNode(Node):
         self.update_joystick_lock(joystick_l)
 
         if self.check_joystick_lock():
-            return
+            return      
+            
+        self.velocity_multiplier = abs(joystick_l.ax_slider)
 
 
     def joystick_r_callback(self, msg: InputJoystick):
