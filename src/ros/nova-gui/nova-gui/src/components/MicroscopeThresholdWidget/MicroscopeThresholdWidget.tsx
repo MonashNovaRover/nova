@@ -25,7 +25,13 @@ import {CameraComponentProps} from "../CameraComponent/CameraComponent.tsx";
 import CameraSessionStartStopButton from "../CameraComponent/components/CameraSessionStartStopButton.tsx";
 import {useLocalStorage} from "../nir-probe/hooks/useLocalStorage.ts";
 import SiteSelectWidget from "../SiteSelectWidget/SiteSelectWidget.tsx";
+import {useBifrost} from "../../redux/actions/bifrost/useBifrostAction.ts";
+import {RosTopic} from "../../ros/topics/rosTopic.ts";
+import {useSelector} from "react-redux";
+import {RootState} from "../../redux/RootState.ts";
+import {RosService} from "../../ros/services/rosService.ts";
 import {useCameraStream} from "../CameraComponent/hooks/useCameraStream.ts";
+import {useCameraStreamer} from "../CameraComponent/hooks/useCameraStreamer.ts";
 
 const attributes = {
   aPosition: {
@@ -64,6 +70,7 @@ const MicroscopeThresholdWidget: React.FC<CameraComponentProps> = (props) => {
   const finalThreshold = isManualThresholdValid ? (parsedManualThreshold / 100) : threshold;
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  useCameraStreamer();
 
   const {
     streamingState,
@@ -162,6 +169,36 @@ const MicroscopeThresholdWidget: React.FC<CameraComponentProps> = (props) => {
     prependFileEntry(fileEntry);
   }, [gl, width, height, prependFileEntry, threshold]);
 
+  // Microscope servo controls
+  const topicBifrost = useBifrost({ topic: RosTopic.MICROSCOPE_SERVO });
+
+  const microscopeServoState = useSelector(
+    (state: RootState) => state.microscopeServoStore
+  );
+
+  // Accessing the Store using useSelector hook
+  const microscopeServoService = useSelector((state: RootState) =>
+    state.microscopeServiceStore
+  );
+
+  // Invoking Bifrost and pointing it towards SET_SERVO
+  const serviceBifrost = useBifrost({ service: RosService.MOVE_MICROSCOPE_SERVO });
+
+  const setZoomFocus = (angle: number) => serviceBifrost.callService({ angle: angle });
+  const [zoom, setZoom] = useState(45);
+
+  // Wrap with useEffect hook to only run it once
+  useEffect(() => {
+    // call bifrost.syncWithTopic() to initiate Realtime Updates
+    topicBifrost.syncWithTopic();
+  }, [topicBifrost]);
+
+  useEffect(() => {
+    if (microscopeServoState.angle !== zoom) {
+      setZoomFocus(zoom);
+    }
+  }, [zoom]);
+
   const tableRows = file.entries.map(({threshold, brightness}, index) => (
     <TableRow>
       <TableCell className="font-mono">{(100 * threshold).toFixed(4)} %</TableCell>
@@ -248,6 +285,22 @@ const MicroscopeThresholdWidget: React.FC<CameraComponentProps> = (props) => {
                   setThreshold(Array.isArray(v) ? v[0] : v);
               }}
             />
+            <Slider
+              className="max-w-full col-span-3"
+              size="lg"
+              label="Zoom/Focus"
+              startContent="0º"
+              endContent="90º"
+              minValue={0}
+              maxValue={90}
+              step={1}
+              value={zoom}
+              onChange={(value) => setZoom(value as number)}
+            />
+            { !microscopeServoService.success ?
+              <div>ERROR executing microscope servo request on rover</div> :
+              <div></div>
+            }
             <Button className="place-self-end" onClick={getBrightness}>
               Read
             </Button>
