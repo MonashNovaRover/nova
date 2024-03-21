@@ -212,6 +212,18 @@ const MicroscopeThresholdWidget: React.FC<CameraComponentProps> = (props) => {
     </TableRow>
   ));
 
+  const averageThreshold = file.entries
+    .reduce((acc, v) => v.threshold + acc, 0) / Math.max(1, file.entries.length);
+  const averageBrightness = file.entries
+    .reduce((acc, v) => v.brightness + acc, 0) / Math.max(1, file.entries.length);
+  const standardDeviation = Math.sqrt(file.entries.reduce((acc, v) => {
+    const diff = v.brightness - averageBrightness;
+    return acc + (diff * diff);
+  }, 0) / Math.max(1, file.entries.length));
+
+  const t_up = averageBrightness + 2.131 * (standardDeviation / Math.sqrt(file.entries.length));
+  const t_down = averageBrightness - 2.131 * (standardDeviation / Math.sqrt(file.entries.length));
+
   const averageHeaderRow = (
     <TableRow className="relative h-6">
       <TableCell className="absolute text-small uppercase tracking-wider text-nowrap left-0 right-64 w-full top-0 h-1 text-foreground-400">
@@ -233,11 +245,6 @@ const MicroscopeThresholdWidget: React.FC<CameraComponentProps> = (props) => {
       <TableCell>{""}</TableCell>
     </TableRow>
   );
-
-  const averageThreshold = file.entries
-    .reduce((acc, v) => v.threshold + acc, 0) / Math.max(1, file.entries.length);
-  const averageBrightness = file.entries
-    .reduce((acc, v) => v.brightness + acc, 0) / Math.max(1, file.entries.length);
 
   const averageRow = (
     <TableRow>
