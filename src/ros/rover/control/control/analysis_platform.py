@@ -24,6 +24,7 @@ from rclpy.qos import QoSReliabilityPolicy, QoSProfile
 from rclpy.subscription import SubscriptionEventCallbacks
 from rclpy.duration import Duration
 from sensor_msgs.msg import Range
+import time
 
 # import the joystick ROS message we are listening to
 from core.msg import InputJoystick
@@ -57,6 +58,9 @@ class AnalysisPlatformNode(Node):
     PLATFORM_MAX_VEL_PERCENT_PARAM = "platform_max_vel_percent"
     TIME_OF_FLIGHT_BOTTOM_PARAM = "time_of_flight_bottom"
 
+    # Twitching
+    TWITCH_SLEEP_TIME = 0.02
+
     def __init__(self):
         super().__init__("analysis_platform")
 
@@ -82,6 +86,8 @@ class AnalysisPlatformNode(Node):
         )
 
         self.joystick_lock = True
+        self.twitch_enable = True
+        self.twitch_button_released = True
 
         # Set up the QoS profile and deadline callback
         deadline = Duration(nanoseconds=2e8)        
@@ -111,8 +117,6 @@ class AnalysisPlatformNode(Node):
 
         self.get_logger().info(f"Analysis Platform started on {self.get_parameter(self.CAN_BUS_PARAM).value}")
         self.get_logger().info("Joysticks Locked")
-
-
 
     def callback_send_can_commands(self):
         """
@@ -213,13 +217,32 @@ class AnalysisPlatformNode(Node):
         self.platform.update_direction(self.PLATFORM_DOWN if joystick_l.ax_stick_x >= 0 else self.PLATFORM_UP)
         self.platform.update_velocity(velocity=abs(joystick_l.ax_stick_x))
 
+        # guard case if twitch is already being performed
+        if not self.twitch_enable:
+            return
+        elif not self.twitch_button_released:
+            # check if the joystick has been released
+            if joystick_l.btn_thumb_l_state < 1 and joystick_l.btn_thumb_r_state < 1:
+                self.twitch_button_released = True
+            return
+
         # button override time of flight
         # allows operators to lower the platform even 
         # if the time of flight sensor is reading the 0 / reached bottom
-        if joystick_l.btn_thumb_d_state >= 1:
-            self.platform.update_velocity(velocity=0.6, ignore_limits=True)
+        if joystick_l.btn_thumb_l_state >= 1:
             self.platform.update_direction(self.PLATFORM_DOWN)
-        
+            self.platform.update_velocity(velocity=0.6, ignore_limits=True)
+            self.twitch_enable = False
+            self.twitch_button_released = False
+            time.sleep(self.TWITCH_SLEEP_TIME)
+            self.twitch_enable = True
+        elif joystick_l.btn_thumb_r_state >= 1:
+            self.platform.update_direction(self.PLATFORM_UP)
+            self.platform.update_velocity(velocity=0.6, ignore_limits=True)
+            self.twitch_enable = False
+            self.twitch_button_released = False
+            time.sleep(self.TWITCH_SLEEP_TIME)
+            self.twitch_enable = True
        
     def joystick_l_callback(self, msg: InputJoystick):
         """
@@ -248,6 +271,7 @@ class AnalysisPlatformNode(Node):
         msg.max_range = 150.0
         msg.range = float(height)
         self.publisher.publish(msg)
+
 
 def main():
     rclpy.init()
