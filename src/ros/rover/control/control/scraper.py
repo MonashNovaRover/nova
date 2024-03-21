@@ -66,8 +66,8 @@ class ScraperNode(Node):
 
     # max_velocity percent
     ARM_MAX_VELOCITY_PERCENT = 0.8
-    SCOOP_MAX_VELOCITY_PERCENT = 0.8
-    BUCKET_MAX_VELOCITY_PERCENT = 0.1
+    SCOOP_MAX_VELOCITY_PERCENT = 1.0
+    BUCKET_MAX_VELOCITY_PERCENT = 0.6
 
     # limit switch
     BUCKET_LIMIT_SWITCH_CLOSED = 0x01

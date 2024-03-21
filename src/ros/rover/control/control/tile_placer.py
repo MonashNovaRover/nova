@@ -50,7 +50,7 @@ class TilePlacerNode(Node):
     TILE_PLACER_DOWN = Direction.NEGATIVE
 
     # max_velocity percent
-    TILE_PLACER_MAX_VELOCITY = 0.60
+    TILE_PLACER_MAX_VELOCITY = 0.70
 
     # ROS param names
     CAN_BUS_PARAM = "can_bus"
