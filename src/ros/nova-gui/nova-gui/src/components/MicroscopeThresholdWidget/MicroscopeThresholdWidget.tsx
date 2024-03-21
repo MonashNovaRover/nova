@@ -163,11 +163,11 @@ const MicroscopeThresholdWidget: React.FC<CameraComponentProps> = (props) => {
     setBrightness(1 - average);
 
     const fileEntry: ThresholdingFileEntry = {
-      threshold: threshold,
+      threshold: finalThreshold,
       brightness: 1 - average
     };
     prependFileEntry(fileEntry);
-  }, [gl, width, height, prependFileEntry, threshold]);
+  }, [gl, width, height, prependFileEntry, finalThreshold]);
 
   // Microscope servo controls
   const topicBifrost = useBifrost({ topic: RosTopic.MICROSCOPE_SERVO });
