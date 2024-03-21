@@ -1,3 +1,7 @@
+import NIRProbeWidget from "../../components/nir-probe/NIRProbeOutputWidget/NIRProbeWidget.tsx";
+
 export const ARCNIRProbeView = () => {
-  return <>NIR Probe</>;
+  return <div className="p-3">
+    <NIRProbeWidget/>
+  </div>;
 };

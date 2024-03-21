@@ -61,7 +61,7 @@ const NIRProbeWidget: React.FC<INIRProbeWidgetProps> = () => {
 
     const newFile = {...files[filename], type: newType};
     setFileAndSave(newFile);
-  }, [filename]);
+  }, [filename, files, setFileAndSave]);
 
   useEffect(() => {
     // Load every site's file from local storage
@@ -103,7 +103,7 @@ const NIRProbeWidget: React.FC<INIRProbeWidgetProps> = () => {
   const maxCalibrationDifference = calibrationData.points.map(v => v.difference).reduce((a, b) => Math.max(a,b), 0);
   const absorbance = useCallback((rawDifference: number) => {
     return Math.log10(maxCalibrationDifference / rawDifference);
-  }, [calibrationData])
+  }, [maxCalibrationDifference])
 
   return (
     <div className="grid grid-flow-col auto-cols-fr gap-3">
@@ -113,11 +113,12 @@ const NIRProbeWidget: React.FC<INIRProbeWidgetProps> = () => {
         <NIRCalibrationCurveWidget files={files} type={file.type} absorbance={absorbance} calibrationFunction={calibrationFunction}
                                    calibrationData={calibrationData} setCalibrationData={setCalibrationData}/>
       </div>
-      <div className="flex flex-col gap-3 col-span-2">
+      <div className="flex flex-col gap-3 col-span-3">
+        <AnalysisPlatformHeight></AnalysisPlatformHeight>
+
         <SiteSelectWidget onValueChanged={setFilename}
                           onSiteTypeChanged={onSiteTypeChanged}
                           currentSiteType={file.type}/>
-        <AnalysisPlatformHeight></AnalysisPlatformHeight>
         <NIRProbeFileTableWidget file={file} setFile={setFileAndSave} showAdvanced={showAdvanced} absorbance={absorbance} calibrationFunction={calibrationFunction}></NIRProbeFileTableWidget>
       </div>
     </div>
