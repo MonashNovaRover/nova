@@ -38,7 +38,7 @@ class AnalysisPlatformNode(Node):
     JONO_ID_HYDRAPROBE = 0x0A0
     JONO_ID_TIME_OF_FLIGHT = 0x4A1
     JONO_ID_LIMIT_SWITCH = 0x4A2
-    CMD_ID = 0x030
+    CMD_ID = 0x033
     # command directions
     PLATFORM_UP_COMMAND = 0x01
     PLATFORM_DOWN_COMMAND = 0x02
