@@ -113,6 +113,44 @@ const NIRProbeFileTableWidget: React.FC<NIRProbeFileTableWidgetProps> = ({
       </TableRow>
   );
 
+  const readingHeaderCell = <TableCell className="absolute text-small uppercase tracking-wider text-nowrap left-0 right-64 w-full top-0 h-1 text-foreground-400">Site Readings</TableCell>;
+  const readingHeaderRow = (
+    showAdvanced ?
+      <TableRow className="relative h-6">
+        {readingHeaderCell}
+        <TableCell>{""}</TableCell>
+        <TableCell>{""}</TableCell>
+        <TableCell>{""}</TableCell>
+        <TableCell>{""}</TableCell>
+      </TableRow>
+      :
+      <TableRow className="relative h-6">
+        {readingHeaderCell}
+        <TableCell>{""}</TableCell>
+        <TableCell>{""}</TableCell>
+        <TableCell>{""}</TableCell>
+      </TableRow>
+  );
+
+  const noReadingHeaderCell = <TableCell className="absolute text-small tracking-wider text-nowrap left-0 right-64 w-full top-0 h-1 text-foreground-400">No readings recorded</TableCell>;
+  const noReadingHeaderRow = (
+    showAdvanced ?
+      <TableRow className="relative h-6">
+        {noReadingHeaderCell}
+        <TableCell>{""}</TableCell>
+        <TableCell>{""}</TableCell>
+        <TableCell>{""}</TableCell>
+        <TableCell>{""}</TableCell>
+      </TableRow>
+      :
+      <TableRow className="relative h-6">
+        {noReadingHeaderCell}
+        <TableCell>{""}</TableCell>
+        <TableCell>{""}</TableCell>
+        <TableCell>{""}</TableCell>
+      </TableRow>
+  );
+
   const averageDifference = file.entries.map(entry => entry.difference).reduce((a,b) => a+b, 0) / Math.max(file.entries.length,1);
   const averageRow = (
     showAdvanced ?
@@ -140,10 +178,9 @@ const NIRProbeFileTableWidget: React.FC<NIRProbeFileTableWidgetProps> = ({
       </TableRow>
   )
 
-  if (file.entries.length > 0) {
-    entryRows.push(averageHeaderRow)
-    entryRows.push(averageRow);
-  }
+  const tableRows = file.entries.length > 0 ?
+    [averageHeaderRow, averageRow, readingHeaderRow, ...entryRows] :
+    [noReadingHeaderRow];
 
   return (
     <Card {...cardProps}>
@@ -154,7 +191,7 @@ const NIRProbeFileTableWidget: React.FC<NIRProbeFileTableWidgetProps> = ({
         <Table aria-label="NIR probe readings table">
           {tableHeader}
           <TableBody>
-            {entryRows}
+            {tableRows}
           </TableBody>
         </Table>
       </CardBody>
