@@ -21,7 +21,7 @@ EDITED:		09/03/2024
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 """
-from control.control_classes import Card, Direction, JonoCardController, OneAxisControl, OneAxisControlLimits
+from control.control_classes import Card, Direction, JonoCardController, OneAxisControl, OneAxisControlLimits, CMDCardController
 import rclpy, jcan, logging
 from rclpy.node import Node
 from rclpy.qos import QoSReliabilityPolicy, QoSProfile
@@ -31,16 +31,17 @@ from rclpy.duration import Duration
 # import the joystick ROS message we are listening to
 from core.msg import InputJoystick
 
-CARD = Card.JONO
+
 
 class ScraperNode(Node):
     # can bus
     CAN_BUS = "can0"
     # card IDs
+    CARD = Card.CMD
     # only used when card = CMD
-    CMD_ID_ARM = 0x063
-    CMD_ID_SCOOP = 0x053
-    CMD_ID_BUCKET = 0x073 
+    CMD_ID_ARM = 0x113
+    CMD_ID_SCOOP = 0x123
+    CMD_ID_BUCKET = 0x133
     # only used when card = JONO
     JONO_ID_ARM = 0x0A0
     JONO_ID_SCOOP = 0x0A0
@@ -90,7 +91,7 @@ class ScraperNode(Node):
         # Setting ROS parameters
         # This is done so that the parameters can be changed during runtime if desired
         self.declare_parameter(self.CAN_BUS_PARAM, self.CAN_BUS)
-        self.declare_parameter(self.CARD_TYPE_PARAM, CARD.value)
+        self.declare_parameter(self.CARD_TYPE_PARAM, self.CARD.value)
 
         self.declare_parameter(self.ARM_MAX_VEL_PERCENT_PARAM, self.ARM_MAX_VELOCITY_PERCENT)
         self.declare_parameter(self.SCOOP_MAX_VEL_PERCENT_PARAM, self.SCOOP_MAX_VELOCITY_PERCENT)
@@ -111,28 +112,14 @@ class ScraperNode(Node):
             max_percent=self.get_parameter(self.BUCKET_MAX_VEL_PERCENT_PARAM).value
         )
 
-        # Scraper card controllers for Jono Card
-        # Arm controller
-        self.arm_controller = JonoCardController(
-            card_id=self.JONO_ID_ARM, 
-            pos_command=self.JONO_ARM_FORWARDS, 
-            neg_command=self.JONO_ARM_BACKWARDS, 
-            control=self.arm
-        )
-        # Scoop controller
-        self.scoop_controller = JonoCardController(
-            card_id=self.JONO_ID_SCOOP, 
-            pos_command=self.JONO_SCOOP_FORWARDS, 
-            neg_command=self.JONO_SCOOP_BACKWARDS, 
-            control=self.scoop
-        )
-        # Bucket controller
-        self.bucket_controller = JonoCardController(
-            card_id=self.JONO_ID_BUCKET, 
-            pos_command=self.JONO_BUCKET_OPEN, 
-            neg_command=self.JONO_BUCKET_CLOSE, 
-            control=self.bucket
-        )
+        self.velocity_multiplier = 0.0
+
+        if self.get_parameter(self.CARD_TYPE_PARAM).value == Card.JONO.value:
+            self.setup_jono_controllers()
+        elif self.get_parameter(self.CARD_TYPE_PARAM).value == Card.CMD.value:
+            self.setup_cmd_controllers()
+        else:
+            raise ValueError(f"Unknown card type: {self.get_parameter(self.CARD_TYPE_PARAM).value}")
 
         # Locks the joysticks
         self.joystick_lock = True
@@ -156,8 +143,51 @@ class ScraperNode(Node):
         self.bus.open(self.get_parameter(self.CAN_BUS_PARAM).value)
         self.timer_jcan = self.create_timer(0.05, self.callback_send_can_commands)
 
-        self.get_logger().info(f"Scraper started on {self.get_parameter(self.CAN_BUS_PARAM).value}")
+        self.get_logger().info(f"Scraper started on {self.get_parameter(self.CAN_BUS_PARAM).value} using {self.get_parameter(self.CARD_TYPE_PARAM).value} card type")
         self.get_logger().info("Joysticks Locked")
+
+    def setup_jono_controllers(self):
+        # Scraper card controllers for Jono Card
+        # Arm controller
+        self.arm_controller = JonoCardController(
+            card_id=self.JONO_ID_ARM, 
+            pos_command=self.JONO_ARM_FORWARDS, 
+            neg_command=self.JONO_ARM_BACKWARDS, 
+            control=self.arm
+        )
+        # Scoop controller
+        self.scoop_controller = JonoCardController(
+            card_id=self.JONO_ID_SCOOP, 
+            pos_command=self.JONO_SCOOP_FORWARDS, 
+            neg_command=self.JONO_SCOOP_BACKWARDS, 
+            control=self.scoop
+        )
+        # Bucket controller
+        self.bucket_controller = JonoCardController(
+            card_id=self.JONO_ID_BUCKET, 
+            pos_command=self.JONO_BUCKET_OPEN, 
+            neg_command=self.JONO_BUCKET_CLOSE, 
+            control=self.bucket
+        )
+    
+    def setup_cmd_controllers(self):
+        # Scraper card controllers for CMD Card
+        # Arm controller
+        self.arm_controller = CMDCardController(
+            card_id=self.CMD_ID_ARM, 
+            control=self.arm
+        )
+        # Scoop controller
+        self.scoop_controller = CMDCardController(
+            card_id=self.CMD_ID_SCOOP, 
+            control=self.scoop
+        )
+        # Bucket controller
+        self.bucket_controller = CMDCardController(
+            card_id=self.CMD_ID_BUCKET, 
+            control=self.bucket
+        )
+
 
     def callback_receive_can_limit_switch(self, frame: jcan.Frame):
         """
@@ -249,7 +279,7 @@ class ScraperNode(Node):
         Updates the scraper arm motor
             Left Joystick stick x-axis = direction / velocity
         """
-        self.arm.update_velocity(abs(joystick_l.ax_stick_x) * abs(joystick_l.ax_slider))
+        self.arm.update_velocity(abs(joystick_l.ax_stick_x) * self.velocity_multiplier)
         self.arm.update_direction(self.ARM_FORWARDS if joystick_l.ax_stick_x >= 0 else self.ARM_BACKWARDS)
 
     def update_scoop(self, joystick_r: InputJoystick):
@@ -257,7 +287,7 @@ class ScraperNode(Node):
         Updates the scraper scoop motor
             Right Joystick stick x-axis = direction / velocity
         """
-        self.scoop.update_velocity(abs(joystick_r.ax_stick_x) * abs(joystick_r.ax_slider))
+        self.scoop.update_velocity(abs(joystick_r.ax_stick_x) * self.velocity_multiplier)
         self.scoop.update_direction(self.SCOOP_FORWARDS if joystick_r.ax_stick_x >= 0 else self.SCOOP_BACKWARDS)
 
     def update_bucket(self, joystick_r: InputJoystick):
@@ -301,6 +331,8 @@ class ScraperNode(Node):
             return
         
         # Update the inputs
+        self.velocity_multiplier = abs(joystick_r.ax_slider)
+
         self.update_scoop(joystick_r)
         self.update_bucket(joystick_r)
     
