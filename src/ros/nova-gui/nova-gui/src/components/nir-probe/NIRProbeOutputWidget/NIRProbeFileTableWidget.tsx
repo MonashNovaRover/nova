@@ -76,7 +76,7 @@ const NIRProbeFileTableWidget: React.FC<NIRProbeFileTableWidgetProps> = ({
         <TableCell>{label}</TableCell>
         <TableCell>
           <Button onClick={() => deleteEntry(reversedFileEntries.length - index - 1)}
-                  size="sm" color="danger">
+                  size="sm" color="danger" variant="light" className="block w-full">
             Delete
           </Button>
         </TableCell>
@@ -88,7 +88,7 @@ const NIRProbeFileTableWidget: React.FC<NIRProbeFileTableWidgetProps> = ({
         <TableCell>{absorbance(difference).toFixed(4)}</TableCell>
         <TableCell>
           <Button onClick={() => deleteEntry(reversedFileEntries.length - index - 1)}
-                  size="sm" color="danger">
+                  size="sm" color="danger" variant="light" className="block w-full">
             Delete
           </Button>
         </TableCell>
