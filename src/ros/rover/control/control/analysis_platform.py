@@ -237,7 +237,7 @@ class AnalysisPlatformNode(Node):
         if joystick_l.btn_thumb_l_state >= 1:
             self.get_logger().info("Twitch down begin")
             self.platform.update_direction(self.PLATFORM_DOWN)
-            self.platform.update_velocity(velocity=0.7, ignore_limits=True)
+            self.platform.update_velocity(velocity=0.8, ignore_limits=True)
             self.twitch_enable = False
             self.twitch_button_released = False
             time.sleep(self.TWITCH_SLEEP_TIME)
@@ -246,7 +246,7 @@ class AnalysisPlatformNode(Node):
         elif joystick_l.btn_thumb_r_state >= 1:
             self.get_logger().info("Twitch up begin")
             self.platform.update_direction(self.PLATFORM_UP)
-            self.platform.update_velocity(velocity=0.7, ignore_limits=True)
+            self.platform.update_velocity(velocity=0.8, ignore_limits=True)
             self.twitch_enable = False
             self.twitch_button_released = False
             time.sleep(self.TWITCH_SLEEP_TIME)
