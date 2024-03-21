@@ -66,7 +66,7 @@ export const CameraPage = (props: CameraPageProps) => {
       >
         {views.map((view, i) => (
           <Tab title={view.viewTitle} key={i}>
-            <div className="grid grid-cols-3">
+            <div className="grid grid-cols-4">
               {view.cameraSerials.map((serial, i) => (
                 <CameraComponent
                   cameraSerial={serial}

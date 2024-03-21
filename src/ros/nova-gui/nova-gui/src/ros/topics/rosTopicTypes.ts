@@ -1,13 +1,15 @@
 import { 
-  IRosCameraMsgsCameras, 
   IRosCoreBlcmdStatusArray, 
+  IRosCameraMsgsCameras,
+  IRosCoreTelemetry,
+  IRosGeometryMsgsPose,
+  IRosSensorMsgsRange,
   IRosCoreCmDsFeedback, 
   IRosCoreDriveInfo, 
   IRosCoreKilnData, 
   IRosCoreNirProbeData, 
-  IRosCoreTelemetry, 
-  IRosGeometryMsgsPose, 
-  IRosStdMsgsString 
+  IRosCoreMicroscopeServoInfo,
+  IRosStdMsgsString,
 } from "../rosTypes";
 import { RosTopic } from "./rosTopic";
 
@@ -38,6 +40,12 @@ export interface RosTopicInterfaces {
   [RosTopic.BLCMD_ERRORS]: IRosCoreBlcmdStatusArray;
   
   // Science Related
+  [RosTopic.TOF]: IRosSensorMsgsRange;
   [RosTopic.KILN_DATA]: IRosCoreKilnData;
   [RosTopic.NIR_DATA]: IRosCoreNirProbeData;
+  [RosTopic.MICROSCOPE_SERVO]: IRosCoreMicroscopeServoInfo;
+
+  // Cameras Related
+  [RosTopic.CAMERAS]: IRosCameraMsgsCameras;
+
 }

@@ -3,12 +3,15 @@ import {
   IRosCameraMsgsGetIpListResponse,
   IRosCoreBlcmdStatusArray,
   IRosCoreDriveInfo,
+  IRosCoreMicroscopeServoInfo,
+  IRosCoreMoveMicroscopeServoResponse,
   IRosCoreNirProbeData,
   IRosCoreKilnCommandResponse,
   IRosCoreKilnData,
   IRosCoreTelemetry,
   IRosStdMsgsString,
   IRosGeometryMsgsPose,
+  IRosSensorMsgsRange,
   IRosCoreCmDsFeedback 
 } from "../ros/rosTypes";
 
@@ -37,7 +40,8 @@ export interface RootState {
   // Error Related Stores
   blcmdStatusStore: IRosCoreBlcmdStatusArray;
   
-  // Science Bifrost states
+  // Science Stores
+  tofStore: IRosSensorMsgsRange;
   nirStore: IRosCoreNirProbeData;
   kilnData: IRosCoreKilnData;
   kilnCommand: IRosCoreKilnCommandResponse;
@@ -45,4 +49,8 @@ export interface RootState {
   // Regular Stores
   uiState: UIState;
   cameraStreamerState: CameraStreamerState;
+
+  // Science Stores
+  microscopeServoStore: IRosCoreMicroscopeServoInfo;
+  microscopeServiceStore: IRosCoreMoveMicroscopeServoResponse;
 }

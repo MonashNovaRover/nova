@@ -1,13 +1,9 @@
-import NIRProbeLEDWidget from "../../components/nir-probe/NIRProbeLEDWidget/NIRProbeLEDWidget.tsx";
-import NIRProbeValueWidget from "../../components/nir-probe/NIRProbeOutputWidget/NIRProbeValueWidget.tsx";
-import SiteSelectWidget from "../../components/SiteSelectWidget/SiteSelectWidget.tsx";
+import NIRProbeWidget from "../../components/nir-probe/NIRProbeOutputWidget/NIRProbeWidget.tsx";
 
 const TestScienceView: React.FC = () => {
   return (
-    <div className="grid w-full gap-3 p-3 auto-cols-fr s:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-6">
-      <SiteSelectWidget className="col-span-2"/>
-      <NIRProbeLEDWidget className="row-start-2"/>
-      <NIRProbeValueWidget className="row-start-3"/>
+    <div className="grid w-full gap-3 p-3 auto-cols-fr grid-cols-1">
+      <NIRProbeWidget/>
 
     </div>
   )

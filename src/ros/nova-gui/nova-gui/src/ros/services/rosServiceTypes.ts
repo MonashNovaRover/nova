@@ -4,6 +4,8 @@ import {
   IRosCameraMsgsGetIpListResponse,
   IRosCoreBlcmdResetRequest,
   IRosCoreBlcmdResetResponse,
+  IRosCoreMoveMicroscopeServoRequest,
+  IRosCoreMoveMicroscopeServoResponse,
   IRosStdSrvsTriggerResponse,
   IRosCoreKilnCommandRequest,
   IRosCoreKilnCommandResponse,
@@ -51,5 +53,9 @@ export interface RosServiceInterface {
   [RosService.SET_NIR_PROBE_LED]: RosServiceMessage<
     IRosCoreSetNirProbeLedRequest,
     IRosCoreSetNirProbeLedResponse
+  >;
+  [RosService.MOVE_MICROSCOPE_SERVO]: RosServiceMessage<
+    IRosCoreMoveMicroscopeServoRequest,
+    IRosCoreMoveMicroscopeServoResponse
   >;
 }

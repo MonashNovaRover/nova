@@ -17,4 +17,5 @@ export const rosServiceMessages = {
   // Science Related
   [RosService.KILN_COMMAND]: "core/srv/KilnCommand",
   [RosService.SET_NIR_PROBE_LED]: "core/srv/SetNIRProbeLED",
+  [RosService.MOVE_MICROSCOPE_SERVO]: "core/srv/MoveMicroscopeServo",
 };
