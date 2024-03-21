@@ -10,7 +10,6 @@ import {
   TableHeader, TableRow
 } from "@nextui-org/react";
 import React, {useCallback} from "react";
-
 import {ISpaceResourcesFile} from "./NIRProbeWidget.tsx";
 
 
@@ -33,7 +32,7 @@ const NIRProbeFileTableWidget: React.FC<NIRProbeFileTableWidgetProps> = ({
     };
 
     setFile(newFile);
-  }, [file]);
+  }, [file, setFile]);
 
   // Get a reversed list of entries, so the most recent values can be displayed first
   const reversedFileEntries = [...file.entries];
@@ -95,11 +94,11 @@ const NIRProbeFileTableWidget: React.FC<NIRProbeFileTableWidgetProps> = ({
       </TableRow>
   );
 
-  const headerCell = <TableCell className="absolute text-small uppercase tracking-wider text-nowrap left-0 right-64 w-full top-0 h-1 text-foreground-400">Site Average</TableCell>;
-  const headerRow = (
+  const averageHeaderCell = <TableCell className="absolute text-small uppercase tracking-wider text-nowrap left-0 right-64 w-full top-0 h-1 text-foreground-400">Site Average</TableCell>;
+  const averageHeaderRow = (
     showAdvanced ?
       <TableRow className="relative h-6">
-        {headerCell}
+        {averageHeaderCell}
         <TableCell>{""}</TableCell>
         <TableCell>{""}</TableCell>
         <TableCell>{""}</TableCell>
@@ -107,12 +106,12 @@ const NIRProbeFileTableWidget: React.FC<NIRProbeFileTableWidgetProps> = ({
       </TableRow>
       :
       <TableRow className="relative h-6">
-        {headerCell}
+        {averageHeaderCell}
         <TableCell>{""}</TableCell>
         <TableCell>{""}</TableCell>
         <TableCell>{""}</TableCell>
       </TableRow>
-  )
+  );
 
   const averageDifference = file.entries.map(entry => entry.difference).reduce((a,b) => a+b, 0) / Math.max(file.entries.length,1);
   const averageRow = (
@@ -142,7 +141,7 @@ const NIRProbeFileTableWidget: React.FC<NIRProbeFileTableWidgetProps> = ({
   )
 
   if (file.entries.length > 0) {
-    entryRows.push(headerRow)
+    entryRows.push(averageHeaderRow)
     entryRows.push(averageRow);
   }
 

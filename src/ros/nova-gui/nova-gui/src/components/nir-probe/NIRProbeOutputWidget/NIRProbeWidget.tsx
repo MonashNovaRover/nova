@@ -114,7 +114,7 @@ const NIRProbeWidget: React.FC<INIRProbeWidgetProps> = () => {
                                    calibrationData={calibrationData} setCalibrationData={setCalibrationData}/>
       </div>
       <div className="flex flex-col gap-3 col-span-3">
-        <AnalysisPlatformHeight></AnalysisPlatformHeight>
+        <AnalysisPlatformHeight/>
 
         <SiteSelectWidget onValueChanged={setFilename}
                           onSiteTypeChanged={onSiteTypeChanged}
