@@ -144,13 +144,13 @@ class AnalysisPlatformNode(Node):
         if height < 0:
             height = 0
         return height
-    
+
 
     def callback_receive_can_time_of_flight(self, frame: jcan.Frame):
         """Receive can feedback for auger limit switches
         """
         self.get_logger().debug(f"Received {hex(frame.id)} {frame.data}")
- 
+
         if frame.id == self.JONO_ID_TIME_OF_FLIGHT:
             if len(frame.data) != 2:
                 self.get_logger().error(f"Time of flight error")
@@ -173,7 +173,7 @@ class AnalysisPlatformNode(Node):
         """Receive can feedback for auger limit switches
         """
         self.get_logger().debug(f"Received {hex(frame.id)} {frame.data}")
- 
+
         if frame.id == self.JONO_ID_LIMIT_SWITCH:
             if frame.data[0] == self.PLATFORM_LIMIT_SWITCH_TOP:
                 if frame.data[1] == self.LIMIT_SWITCH_HIT:
@@ -183,7 +183,7 @@ class AnalysisPlatformNode(Node):
                     self.platform.update_limit_pos(False)
         else:
             self.get_logger().warn(f"Received unknown frame {frame}")
-        
+
     def deadline_callback(self, _info):
         """
         Callback for when the deadline is missed
@@ -223,6 +223,7 @@ class AnalysisPlatformNode(Node):
         elif not self.twitch_button_released:
             # check if the joystick has been released
             if joystick_l.btn_thumb_l_state < 1 and joystick_l.btn_thumb_r_state < 1:
+                self.get_logger().info("Released twitch button")
                 self.twitch_button_released = True
             return
 
@@ -230,19 +231,23 @@ class AnalysisPlatformNode(Node):
         # allows operators to lower the platform even 
         # if the time of flight sensor is reading the 0 / reached bottom
         if joystick_l.btn_thumb_l_state >= 1:
+            self.get_logger().info("Twitch down begin")
             self.platform.update_direction(self.PLATFORM_DOWN)
             self.platform.update_velocity(velocity=0.6, ignore_limits=True)
             self.twitch_enable = False
             self.twitch_button_released = False
             time.sleep(self.TWITCH_SLEEP_TIME)
             self.twitch_enable = True
+            self.get_logger().info("Twitch down end")
         elif joystick_l.btn_thumb_r_state >= 1:
+            self.get_logger().info("Twitch up begin")
             self.platform.update_direction(self.PLATFORM_UP)
             self.platform.update_velocity(velocity=0.6, ignore_limits=True)
             self.twitch_enable = False
             self.twitch_button_released = False
             time.sleep(self.TWITCH_SLEEP_TIME)
             self.twitch_enable = True
+            self.get_logger().info("Twitch up end")
        
     def joystick_l_callback(self, msg: InputJoystick):
         """
