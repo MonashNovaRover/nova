@@ -38,7 +38,7 @@ class AnalysisPlatformNode(Node):
     JONO_ID_HYDRAPROBE = 0x0A0
     JONO_ID_TIME_OF_FLIGHT = 0x4A1
     JONO_ID_LIMIT_SWITCH = 0x4A2
-    CMD_ID = 0x030
+    CMD_ID = 0x033
     # command directions
     PLATFORM_UP_COMMAND = 0x01
     PLATFORM_DOWN_COMMAND = 0x02
@@ -46,7 +46,7 @@ class AnalysisPlatformNode(Node):
     PLATFORM_UP = Direction.POSITIVE
     PLATFORM_DOWN = Direction.NEGATIVE
     # max_velocity
-    MAX_VELOCITY_PERCENT = 0.5
+    MAX_VELOCITY_PERCENT = 0.8
     # time of flight
     TIME_OF_FLIGHT_OFFSET = 20
     TIME_OF_FLIGHT_BOTTOM = 30
@@ -237,7 +237,7 @@ class AnalysisPlatformNode(Node):
         if joystick_l.btn_thumb_l_state >= 1:
             self.get_logger().info("Twitch down begin")
             self.platform.update_direction(self.PLATFORM_DOWN)
-            self.platform.update_velocity(velocity=0.6, ignore_limits=True)
+            self.platform.update_velocity(velocity=0.7, ignore_limits=True)
             self.twitch_enable = False
             self.twitch_button_released = False
             time.sleep(self.TWITCH_SLEEP_TIME)
@@ -246,7 +246,7 @@ class AnalysisPlatformNode(Node):
         elif joystick_l.btn_thumb_r_state >= 1:
             self.get_logger().info("Twitch up begin")
             self.platform.update_direction(self.PLATFORM_UP)
-            self.platform.update_velocity(velocity=0.6, ignore_limits=True)
+            self.platform.update_velocity(velocity=0.7, ignore_limits=True)
             self.twitch_enable = False
             self.twitch_button_released = False
             time.sleep(self.TWITCH_SLEEP_TIME)
