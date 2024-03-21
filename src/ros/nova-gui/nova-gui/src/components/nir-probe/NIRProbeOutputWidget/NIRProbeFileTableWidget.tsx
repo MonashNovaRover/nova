@@ -116,7 +116,7 @@ const NIRProbeFileTableWidget: React.FC<NIRProbeFileTableWidgetProps> = ({
   const readingHeaderCell = <TableCell className="absolute text-small uppercase tracking-wider text-nowrap left-0 right-64 w-full top-0 h-1 text-foreground-400">Site Readings</TableCell>;
   const readingHeaderRow = (
     showAdvanced ?
-      <TableRow className="relative h-6">
+      <TableRow className="relative h-5">
         {readingHeaderCell}
         <TableCell>{""}</TableCell>
         <TableCell>{""}</TableCell>
@@ -124,7 +124,7 @@ const NIRProbeFileTableWidget: React.FC<NIRProbeFileTableWidgetProps> = ({
         <TableCell>{""}</TableCell>
       </TableRow>
       :
-      <TableRow className="relative h-6">
+      <TableRow className="relative h-5">
         {readingHeaderCell}
         <TableCell>{""}</TableCell>
         <TableCell>{""}</TableCell>
