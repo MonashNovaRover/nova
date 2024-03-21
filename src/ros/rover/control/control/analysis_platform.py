@@ -17,7 +17,7 @@ EDITED:		08/03/2024
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 """
-from control.control_classes import Direction, JonoCardController, OneAxisControlLimits
+from control.control_classes import Direction, JonoCardController, OneAxisControlLimits, CMDCardController
 import rclpy, jcan, logging
 from rclpy.node import Node
 from rclpy.qos import QoSReliabilityPolicy, QoSProfile
@@ -38,6 +38,7 @@ class AnalysisPlatformNode(Node):
     JONO_ID_HYDRAPROBE = 0x0A0
     JONO_ID_TIME_OF_FLIGHT = 0x4A1
     JONO_ID_LIMIT_SWITCH = 0x4A2
+    CMD_ID = 0x030
     # command directions
     PLATFORM_UP_COMMAND = 0x01
     PLATFORM_DOWN_COMMAND = 0x02
@@ -78,13 +79,16 @@ class AnalysisPlatformNode(Node):
             max_percent=self.get_parameter(self.PLATFORM_MAX_VEL_PERCENT_PARAM).value
         )
         # Platform card controller for Jono Card
-        self.platform_controller = JonoCardController(
-            card_id=self.JONO_ID_PLATFORM, 
-            pos_command=self.PLATFORM_UP_COMMAND, 
-            neg_command=self.PLATFORM_DOWN_COMMAND, 
+        # self.platform_controller = JonoCardController(
+        #     card_id=self.JONO_ID_PLATFORM, 
+        #     pos_command=self.PLATFORM_UP_COMMAND, 
+        #     neg_command=self.PLATFORM_DOWN_COMMAND, 
+        #     control=self.platform
+        # )
+        self.platform_controller = CMDCardController(
+            card_id=self.CMD_ID,
             control=self.platform
         )
-
         self.joystick_lock = True
         self.twitch_enable = True
         self.twitch_button_released = True
