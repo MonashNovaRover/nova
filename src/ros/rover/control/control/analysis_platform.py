@@ -87,6 +87,7 @@ class AnalysisPlatformNode(Node):
 
         self.joystick_lock = True
         self.twitch_enable = True
+        self.twitch_button_released = True
 
         # Set up the QoS profile and deadline callback
         deadline = Duration(nanoseconds=2e8)        
@@ -219,6 +220,11 @@ class AnalysisPlatformNode(Node):
         # guard case if twitch is already being performed
         if not self.twitch_enable:
             return
+        elif not self.twitch_button_released:
+            # check if the joystick has been released
+            if joystick_l.btn_thumb_l_state < 1 and joystick_l.btn_thumb_r_state < 1:
+                self.twitch_button_released = True
+            return
 
         # button override time of flight
         # allows operators to lower the platform even 
@@ -227,12 +233,14 @@ class AnalysisPlatformNode(Node):
             self.platform.update_direction(self.PLATFORM_DOWN)
             self.platform.update_velocity(velocity=0.6, ignore_limits=True)
             self.twitch_enable = False
+            self.twitch_button_released = False
             time.sleep(self.TWITCH_SLEEP_TIME)
             self.twitch_enable = True
         elif joystick_l.btn_thumb_r_state >= 1:
             self.platform.update_direction(self.PLATFORM_UP)
             self.platform.update_velocity(velocity=0.6, ignore_limits=True)
             self.twitch_enable = False
+            self.twitch_button_released = False
             time.sleep(self.TWITCH_SLEEP_TIME)
             self.twitch_enable = True
        
