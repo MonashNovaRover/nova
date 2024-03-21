@@ -58,14 +58,14 @@ export const defaultCamFilters: { [key: string]: CameraFilters } = {
     contrast: 100,
     brightness: 100,
   },
-  science_kiln: {
+  "science_kiln": {
     flipCamera: false,
     invertCamera: false,
     rotation: 180,
     contrast: 100,
     brightness: 100,
   }
-};
+}
 
 export const allCams = [];
 
