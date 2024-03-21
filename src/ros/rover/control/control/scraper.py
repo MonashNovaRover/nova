@@ -39,9 +39,9 @@ class ScraperNode(Node):
     # card IDs
     CARD = Card.CMD
     # only used when card = CMD
-    CMD_ID_ARM = 0x113
-    CMD_ID_SCOOP = 0x123
-    CMD_ID_BUCKET = 0x133
+    CMD_ID_ARM = 0x0B3
+    CMD_ID_SCOOP = 0x0C3
+    CMD_ID_BUCKET = 0x0D3
     # only used when card = JONO
     JONO_ID_ARM = 0x0A0
     JONO_ID_SCOOP = 0x0A0
