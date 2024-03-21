@@ -41,5 +41,6 @@ in
 
     peripherals.webcams.enable = true;
     peripherals.realsense.enable = true;
+    peripherals.oak-d.enable = true;
   };
 }
