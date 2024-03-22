@@ -51,6 +51,7 @@ def launch_setup(context, *args, **kwargs):
                         ('/depth/camera_info', name+'/stereo/camera_info'),
                         ('/cloud', name+'/rtabmap/points'),
                         ],
+            parameters=[{'min_depth': 1.4, 'filter_nans':True }] 
         ),
     ]
 

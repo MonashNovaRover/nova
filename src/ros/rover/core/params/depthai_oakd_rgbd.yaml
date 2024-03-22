@@ -2,14 +2,16 @@
   ros__parameters:
     camera:
       i_nn_type: none
-    # imu:
-    #   i_message_type: IMU
-    #   i_rotation_vector_type: GAME_ROTATION_VECTOR
+    imu:
+      i_message_type: IMU
+      i_rotation_vector_type: GAME_ROTATION_VECTOR
     rgb:
       i_fps: 5.0
     left:
       i_set_isp_scale: true
       i_fps: 5.0
+      #WLS filter
+      #i_publish_topic: true
     right:
       i_fps: 5.0
     stereo:
@@ -18,6 +20,8 @@
       i_enable_decimation_filter: true
       i_decimation_filter_decimation_factor: 2
       i_decimation_filter_decimation_mode: NON_ZERO_MEDIAN
-      i_subpixel: true
+      i_subpixel: false
       i_fps: 5.0
       i_enable_threshold_filter: true
+      #WLS filter
+      #i_output_disparity: true
