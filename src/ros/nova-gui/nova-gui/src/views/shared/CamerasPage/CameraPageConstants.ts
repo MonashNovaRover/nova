@@ -133,14 +133,14 @@ export const space_resources_views: CameraView[] = [
       CameraSerials.MAST_FISHEYE,
       CameraSerials.MAST_FORWARD,
 
+      CameraSerials.SCIENCE_AUGER_BOTTOM,
       CameraSerials.SCIENCE_KILN,
-      CameraSerials.SCIENCE_MICROSCOPE,
 
       CameraSerials.MAST_DOWN,
       CameraSerials.MAST_BACKWARD,
 
       CameraSerials.SCIENCE_ANALYSIS_BOTTOM,
-      CameraSerials.SCIENCE_AUGER_BOTTOM,
+      
     ],
     viewTitle: "All Cams",
   },
