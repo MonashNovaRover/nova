@@ -23,12 +23,12 @@ export const CameraPage = (props: CameraPageProps) => {
   const [selectedTab, setSelectedTab] = useState(0);
 
   return (
-    <div>
-      <div className="flex flex-row justify-between items-center m-6 gap-4">
-        <div className="flex flex-row m-4 ml-0 gap-4 items-center">
+    <div className="p-3 flex flex-col gap-0">
+      <div className="flex flex-row justify-between items-center gap-3 pl-1 mb-3">
+        <div className="flex flex-row gap-3 items-center">
           {!allCamsOn ? (
             <Button
-              size="sm"
+              size="md"
               color="primary"
               onClick={() => setAllCamsOn(true)}
             >
@@ -36,7 +36,7 @@ export const CameraPage = (props: CameraPageProps) => {
             </Button>
           ) : (
             <Button
-              size="sm"
+              size="md"
               color="danger"
               onClick={() => setAllCamsOn(false)}
             >
@@ -45,9 +45,9 @@ export const CameraPage = (props: CameraPageProps) => {
           )}
         </div>
         <Button
-          className="m-4 mr-0"
-          size="sm"
+          size="md"
           color="primary"
+          variant="ghost"
           onClick={() => setControlPanelOpen(true)}
         >
           Control Panel
@@ -56,7 +56,7 @@ export const CameraPage = (props: CameraPageProps) => {
       <Tabs
         size="lg"
         color="primary"
-        className=" p-4"
+        className="pb-0"
         fullWidth
         variant="bordered"
         selectedKey={selectedTab}
@@ -66,7 +66,7 @@ export const CameraPage = (props: CameraPageProps) => {
       >
         {views.map((view, i) => (
           <Tab title={view.viewTitle} key={i}>
-            <div className="grid grid-cols-4">
+            <div className="grid grid-cols-4 gap-3">
               {view.cameraSerials.map((serial, i) => (
                 <CameraComponent
                   cameraSerial={serial}

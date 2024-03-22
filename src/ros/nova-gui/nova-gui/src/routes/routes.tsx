@@ -10,15 +10,12 @@ import URCDeliveryView from "../views/urc/URCDeliveryView";
 import URCEquipmentServicingView from "../views/urc/URCEquipmentServicingView";
 import URCScienceView from "../views/urc/URCScienceView";
 import { Root } from "../root";
-import TestRFIDView from "../views/test/TestRFIDView.tsx";
-import TestScienceView from "../views/test/TestScienceView.tsx";
 import { CameraPage } from "../views/shared/CamerasPage/CamerasPage.tsx";
 import { SingleCameraPage } from "../views/shared/SingleCameraPage/SingleCameraPage.tsx";
 import {
   ARCCompModes,
   cameraSetup,
 } from "../views/shared/CamerasPage/CameraPageConstants.ts";
-import TestWebGLView from "../views/test/TestWebGLView.tsx";
 import GeneralBaseView from "../views/general/GeneralBaseView.tsx";
 import { ARCNIRProbeView } from "../views/arc/ARCNIRProbeView.tsx";
 import { ARCMicroscopeView } from "../views/arc/ARCMicroscopeView.tsx";
@@ -97,18 +94,7 @@ export const generalRoutes: RouteObject[] = [
 ];
 
 export const testRoutes: RouteObject[] = [
-  {
-    path: "/test/rfid",
-    element: <TestRFIDView />,
-  },
-  {
-    path: "/test/webgl",
-    element: <TestWebGLView/>,
-  },
-  {
-    path: "/test/science",
-    element: <TestScienceView />,
-  },
+
 ];
 
 const cameraRoutes: RouteObject[] = [

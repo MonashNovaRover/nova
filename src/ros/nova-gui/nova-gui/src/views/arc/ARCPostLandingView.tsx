@@ -7,12 +7,12 @@ import ArmWidget from "../../components/ArmWidget/ArmWidget";
 
 const ARCPostLandingView: React.FC = () => {
   return (
-    <div className="grid w-full gap-3 p-3 auto-cols-fr s:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-6">
-      <DriveModeWidget className="row-start-1 w-full col-span-2"/>
-      <WheelTelemetryWidget className="row-start-2 w-full col-span-2 row-span-1"/>
-      <DriveSpeedWidget className="row-start-3 w-full col-span-2"/>
-      <ArmWidget className="row-start-2 w-full col-span-2"/>
-      <RFIDWidget className="row-start-3 w-full col-span-2"/>
+    <div className="w-full grid grid-cols-1 gap-3 p-3 md:grid-cols-2">
+      <WheelTelemetryWidget className="row-span-2 w-full" />
+      <DriveModeWidget className="w-full" />
+      <DriveSpeedWidget className="w-full" />
+      <ArmWidget className="row-span-2 w-full" />
+      <RFIDWidget className="w-full h-full row-span-2" />
     </div>
   );
 };

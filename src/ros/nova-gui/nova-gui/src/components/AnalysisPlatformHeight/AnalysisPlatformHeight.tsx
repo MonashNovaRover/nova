@@ -79,7 +79,7 @@ const AnalysisPlatformHeight: React.FC = () => {
         )
     }
 
-    return <Card className="w-full m-4">
+    return <Card>
         <CardHeader className="text-h1 h-12 p-3 m-0 justify-between">
             Analysis Platform Height
             {outOfRange && infoButton()}

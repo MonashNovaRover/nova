@@ -1,20 +1,28 @@
-import {Button, Card, CardBody, CardHeader, CardProps, Textarea} from "@nextui-org/react";
-import React, {useEffect} from "react";
-import {useBifrost} from "../../redux/actions/bifrost/useBifrostAction.ts";
-import {RosTopic} from "../../ros/topics/rosTopic.ts";
-import {useSelector} from "react-redux";
-import {RootState} from "../../redux/RootState.ts";
-import {RosService} from "../../ros/services/rosService.ts";
-import {IRosStdSrvsTriggerResponse} from "../../ros/rosTypes.ts";
+import {
+  Button,
+  Card,
+  CardBody,
+  CardHeader,
+  CardProps,
+  Textarea,
+} from "@nextui-org/react";
+import React, { useEffect } from "react";
+import { useBifrost } from "../../redux/actions/bifrost/useBifrostAction.ts";
+import { RosTopic } from "../../ros/topics/rosTopic.ts";
+import { useSelector } from "react-redux";
+import { RootState } from "../../redux/RootState.ts";
+import { RosService } from "../../ros/services/rosService.ts";
+import { IRosStdSrvsTriggerResponse } from "../../ros/rosTypes.ts";
 import toast from "react-hot-toast";
 import DownloadButton from "../shared/Download.tsx";
 import { Download } from "react-feather";
 
 const RFIDWidget: React.FC<CardProps> = (props) => {
-  const bifrost = useBifrost({ topic: RosTopic.RFID_DATA, service: RosService.READ_RFID });
-  const rfidData = useSelector(
-    (state: RootState) => state.rfidDataStore.data
-  );
+  const bifrost = useBifrost({
+    topic: RosTopic.RFID_DATA,
+    service: RosService.READ_RFID,
+  });
+  const rfidData = useSelector((state: RootState) => state.rfidDataStore.data);
 
   useEffect(() => {
     bifrost.syncWithTopic();
@@ -23,15 +31,26 @@ const RFIDWidget: React.FC<CardProps> = (props) => {
   const read = () => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    bifrost.callService({}, {handleResponse : (response: IRosStdSrvsTriggerResponse) => {
-      if (response.success)
-        toast.success(response.message.length > 0 ? response.message : "RFID request succeeded!");
-      else
-        toast.error(response.message.length > 0 ? response.message : "RFID request failed!");
-    }});
-  }
-
-
+    bifrost.callService(
+      {},
+      {
+        handleResponse: (response: IRosStdSrvsTriggerResponse) => {
+          if (response.success)
+            toast.success(
+              response.message.length > 0
+                ? response.message
+                : "RFID request succeeded!"
+            );
+          else
+            toast.error(
+              response.message.length > 0
+                ? response.message
+                : "RFID request failed!"
+            );
+        },
+      }
+    );
+  };
 
   return (
     <Card {...props}>
@@ -43,7 +62,7 @@ const RFIDWidget: React.FC<CardProps> = (props) => {
           labelPlacement="outside"
           placeholder="Output from the RFID scanner goes here"
           value={rfidData}
-          className="font-mono w-full"
+          className="font-mono w-full flex-grow"
           fullWidth
         />
 
@@ -51,8 +70,12 @@ const RFIDWidget: React.FC<CardProps> = (props) => {
           <Button className="grow" onClick={read}>
             Read
           </Button>
-          <DownloadButton className="w-1/4" content={rfidData} filename="rfid_data.txt">
-            <Download/>
+          <DownloadButton
+            className="w-1/4"
+            content={rfidData}
+            filename="rfid_data.txt"
+          >
+            <Download />
             Save
           </DownloadButton>
         </div>
@@ -61,7 +84,4 @@ const RFIDWidget: React.FC<CardProps> = (props) => {
   );
 };
 
-
 export default RFIDWidget;
-
-

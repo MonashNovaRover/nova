@@ -10,7 +10,6 @@ import {
   TableHeader, TableRow
 } from "@nextui-org/react";
 import React, {useCallback} from "react";
-
 import {ISpaceResourcesFile} from "./NIRProbeWidget.tsx";
 
 
@@ -33,7 +32,7 @@ const NIRProbeFileTableWidget: React.FC<NIRProbeFileTableWidgetProps> = ({
     };
 
     setFile(newFile);
-  }, [file]);
+  }, [file, setFile]);
 
   // Get a reversed list of entries, so the most recent values can be displayed first
   const reversedFileEntries = [...file.entries];
@@ -76,7 +75,7 @@ const NIRProbeFileTableWidget: React.FC<NIRProbeFileTableWidgetProps> = ({
         <TableCell>{label}</TableCell>
         <TableCell>
           <Button onClick={() => deleteEntry(reversedFileEntries.length - index - 1)}
-                  size="sm" color="danger">
+                  size="sm" color="danger" variant="light" className="block w-full">
             Delete
           </Button>
         </TableCell>
@@ -88,18 +87,18 @@ const NIRProbeFileTableWidget: React.FC<NIRProbeFileTableWidgetProps> = ({
         <TableCell>{absorbance(difference).toFixed(4)}</TableCell>
         <TableCell>
           <Button onClick={() => deleteEntry(reversedFileEntries.length - index - 1)}
-                  size="sm" color="danger">
+                  size="sm" color="danger" variant="light" className="block w-full">
             Delete
           </Button>
         </TableCell>
       </TableRow>
   );
 
-  const headerCell = <TableCell className="absolute text-small uppercase tracking-wider text-nowrap left-0 right-64 w-full top-0 h-1 text-foreground-400">Site Average</TableCell>;
-  const headerRow = (
+  const averageHeaderCell = <TableCell className="absolute text-small uppercase tracking-wider text-nowrap left-0 right-64 w-full top-0 h-1 text-foreground-400">Site Average</TableCell>;
+  const averageHeaderRow = (
     showAdvanced ?
       <TableRow className="relative h-6">
-        {headerCell}
+        {averageHeaderCell}
         <TableCell>{""}</TableCell>
         <TableCell>{""}</TableCell>
         <TableCell>{""}</TableCell>
@@ -107,12 +106,50 @@ const NIRProbeFileTableWidget: React.FC<NIRProbeFileTableWidgetProps> = ({
       </TableRow>
       :
       <TableRow className="relative h-6">
-        {headerCell}
+        {averageHeaderCell}
         <TableCell>{""}</TableCell>
         <TableCell>{""}</TableCell>
         <TableCell>{""}</TableCell>
       </TableRow>
-  )
+  );
+
+  const readingHeaderCell = <TableCell className="absolute text-small uppercase tracking-wider text-nowrap left-0 right-64 w-full top-0 h-1 text-foreground-400">Site Readings</TableCell>;
+  const readingHeaderRow = (
+    showAdvanced ?
+      <TableRow className="relative h-5">
+        {readingHeaderCell}
+        <TableCell>{""}</TableCell>
+        <TableCell>{""}</TableCell>
+        <TableCell>{""}</TableCell>
+        <TableCell>{""}</TableCell>
+      </TableRow>
+      :
+      <TableRow className="relative h-5">
+        {readingHeaderCell}
+        <TableCell>{""}</TableCell>
+        <TableCell>{""}</TableCell>
+        <TableCell>{""}</TableCell>
+      </TableRow>
+  );
+
+  const noReadingHeaderCell = <TableCell className="absolute text-small tracking-wider text-nowrap left-0 right-64 w-full top-0 h-1 text-foreground-400">No readings recorded</TableCell>;
+  const noReadingHeaderRow = (
+    showAdvanced ?
+      <TableRow className="relative h-6">
+        {noReadingHeaderCell}
+        <TableCell>{""}</TableCell>
+        <TableCell>{""}</TableCell>
+        <TableCell>{""}</TableCell>
+        <TableCell>{""}</TableCell>
+      </TableRow>
+      :
+      <TableRow className="relative h-6">
+        {noReadingHeaderCell}
+        <TableCell>{""}</TableCell>
+        <TableCell>{""}</TableCell>
+        <TableCell>{""}</TableCell>
+      </TableRow>
+  );
 
   const averageDifference = file.entries.map(entry => entry.difference).reduce((a,b) => a+b, 0) / Math.max(file.entries.length,1);
   const averageRow = (
@@ -141,10 +178,9 @@ const NIRProbeFileTableWidget: React.FC<NIRProbeFileTableWidgetProps> = ({
       </TableRow>
   )
 
-  if (file.entries.length > 0) {
-    entryRows.push(headerRow)
-    entryRows.push(averageRow);
-  }
+  const tableRows = file.entries.length > 0 ?
+    [averageHeaderRow, averageRow, readingHeaderRow, ...entryRows] :
+    [noReadingHeaderRow];
 
   return (
     <Card {...cardProps}>
@@ -155,7 +191,7 @@ const NIRProbeFileTableWidget: React.FC<NIRProbeFileTableWidgetProps> = ({
         <Table aria-label="NIR probe readings table">
           {tableHeader}
           <TableBody>
-            {entryRows}
+            {tableRows}
           </TableBody>
         </Table>
       </CardBody>
