@@ -41,7 +41,7 @@ def generate_launch_description():
         executable='ekf_node',
         name='ekf_filter_node',
         output='screen',
-        parameters=[PathJoinSubstitution([FindPackageShare('core'), 'params', 'ekf.yaml']), {'use_sim_time': LaunchConfiguration('use_sim_time')}]
+        parameters=[PathJoinSubstitution([FindPackageShare('core'), 'params', 'wheel_odom_ekf.yaml']), {'use_sim_time': LaunchConfiguration('use_sim_time')}]
     )
 
     static_transform = Node(

@@ -152,7 +152,7 @@ local_costmap:
       resolution: 0.1
       robot_radius: 0.52
       track_unknown_space: False
-      plugins: ["voxel_layer", "inflation_layer"]
+      plugins: ["height_mapper_layer", "plane_mapper_layer", "inflation_layer"]
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 3.0
@@ -174,10 +174,6 @@ local_costmap:
           clearing: False
           marking: True
           data_type: "PointCloud2"
-          raytrace_max_range: 3.0
-          raytrace_min_range: 0.0
-          obstacle_max_range: 5.5
-          obstacle_min_range: 0.0
       plane_mapper_layer:
         plugin: "nova_costmap_2d/PlaneMapperLayer"
         enabled: False
@@ -195,10 +191,6 @@ local_costmap:
           clearing: False
           marking: True
           data_type: "PointCloud2"
-          raytrace_max_range: 3.0
-          raytrace_min_range: 0.0
-          obstacle_max_range: 5.5
-          obstacle_min_range: 0.0
       voxel_layer:
         plugin: "nav2_costmap_2d::VoxelLayer"
         enabled: True
@@ -215,10 +207,6 @@ local_costmap:
           clearing: True
           marking: True
           data_type: "PointCloud2"
-          raytrace_max_range: 3.0
-          raytrace_min_range: 0.0
-          obstacle_max_range: 5.5
-          obstacle_min_range: 0.0
       static_layer:
         plugin: "nav2_costmap_2d::StaticLayer"
         map_subscribe_transient_local: True
@@ -238,7 +226,7 @@ global_costmap:
       robot_radius: 0.22
       resolution: 0.4
       track_unknown_space: False
-      plugins: ["voxel_layer", "inflation_layer"]
+      plugins: ["height_mapper_layer", "inflation_layer"]
       obstacle_layer:
         plugin: "nav2_costmap_2d::ObstacleLayer"
         enabled: True
@@ -249,15 +237,11 @@ global_costmap:
           clearing: True
           marking: True
           data_type: "LaserScan"
-          raytrace_max_range: 3.0
-          raytrace_min_range: 0.0
-          obstacle_max_range: 5.5
-          obstacle_min_range: 0.0
       height_mapper_layer:
         plugin: "nova_costmap_2d/HeightMapperLayer"
         enabled: False
-        min_obstacle_height: -10.0
-        max_obstacle_height: 20.0
+        min_obstacle_height: 0.0
+        max_obstacle_height: 3.0
         observation_sources: depth_camera
         vertical_resolution: 0.025
         max_safe_val: 1.6
@@ -266,20 +250,16 @@ global_costmap:
         depth_camera:
           #topic: /local_grid_obstacle
           topic: /oak/rtabmap/points
-          min_obstacle_height: -10.0
-          max_obstacle_height: 20.0
+          min_obstacle_height: 0.0
+          max_obstacle_height: 3.0
           clearing: False
           marking: True
           data_type: "PointCloud2"
-          raytrace_max_range: 3.0
-          raytrace_min_range: 0.0
-          obstacle_max_range: 5.5
-          obstacle_min_range: 0.0
       plane_mapper_layer:
         plugin: "nova_costmap_2d/PlaneMapperLayer"
         enabled: False
-        min_obstacle_height: -10.0
-        max_obstacle_height: 20.0
+        min_obstacle_height: 0.0
+        max_obstacle_height: 3.0
         resolution_ratio: 16
         max_safe_inc: 25.0
         observation_sources: depth_camera
@@ -288,15 +268,11 @@ global_costmap:
         depth_camera:
           #topic: /local_grid_obstacle
           topic: /oak/rtabmap/points
-          min_obstacle_height: -10.0
-          max_obstacle_height: 20.0
+          min_obstacle_height: 0.0
+          max_obstacle_height: 3.0
           clearing: False
           marking: True
           data_type: "PointCloud2"
-          raytrace_max_range: 3.0
-          raytrace_min_range: 0.0
-          obstacle_max_range: 5.5
-          obstacle_min_range: 0.0
       voxel_layer:
         plugin: "nav2_costmap_2d::VoxelLayer"
         enabled: True
@@ -324,7 +300,7 @@ global_costmap:
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 3.0
-        inflation_radius: 0.55
+        inflation_radius: 0.25
       always_send_full_costmap: True
 
 map_server:
