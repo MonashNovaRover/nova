@@ -1,8 +1,8 @@
 {
     "model": {
-        "xml": "/home/dylan/src/ros/rover/core/resources/yolov6/YoloV6ARChModel.xml",
-        "bin": "/home/dylan/src/ros/rover/core/resources/yolov6/YoloV6ARChModel.bin",
-        "model_name": "/home/dylan/src/ros/rover/core/resources/yolov6/YoloV6ARChModel_openvino_2022.1_6shave.blob",
+        "xml": "src/ros/rover/core/resources/yolov6/YoloV6ARChModel.xml",
+        "bin": "src/ros/rover/core/resources/yolov6/YoloV6ARChModel.bin",
+        "model_name": "src/ros/rover/core/resources/yolov6/YoloV6ARChModel_openvino_2022.1_6shave.blob",
         "zoo": "path"
 
     },
