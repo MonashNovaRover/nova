@@ -61,7 +61,21 @@ export const defaultCamFilters: { [key: string]: CameraFilters } = {
   "science_kiln": {
     flipCamera: false,
     invertCamera: false,
-    rotation: 180,
+    rotation: 0,
+    contrast: 100,
+    brightness: 100,
+  },
+  mast_down: {
+    flipCamera: false,
+    invertCamera: false,
+    rotation: 90,
+    contrast: 100,
+    brightness: 100,
+  },
+  science_analysis_bottom: {
+    flipCamera: false,
+    invertCamera: false,
+    rotation: -90,
     contrast: 100,
     brightness: 100,
   }

@@ -283,7 +283,7 @@ const MicroscopeThresholdWidget: React.FC<CameraComponentProps> = (props) => {
           <div className="grid grid-cols-[auto_1fr_1fr_auto] gap-3 items-center justify-items-center">
 
 
-            <div className="flex flex-col gap-3 grow relative overflow-hidden rounded-lg col-span-3"
+            <div className="flex flex-col gap-3 grow relative overflow-hidden rounded-lg col-span-3 w-full"
                  onMouseDown={toggleShowThreshold}>
               <video
               controls={false}
@@ -311,22 +311,7 @@ const MicroscopeThresholdWidget: React.FC<CameraComponentProps> = (props) => {
                   setThreshold(Array.isArray(v) ? v[0] : v);
               }}
             />
-            <Slider
-              className="max-w-full col-span-3"
-              size="lg"
-              label="Zoom/Focus"
-              startContent="0º"
-              endContent="90º"
-              minValue={0}
-              maxValue={90}
-              step={1}
-              value={zoom}
-              onChange={(value) => setZoom(value as number)}
-            />
-            { !microscopeServoService.success ?
-              <div>ERROR executing microscope servo request on rover</div> :
-              <div></div>
-            }
+            
             <Button className="place-self-end" onClick={getBrightness}>
               Read
             </Button>
