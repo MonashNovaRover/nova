@@ -108,19 +108,18 @@ const NIRProbeWidget: React.FC<INIRProbeWidgetProps> = () => {
   return (
     <div className="grid grid-flow-col auto-cols-fr gap-3">
       <div className="flex flex-col gap-3 col-span-3">
+        <NIRProbeLEDWidget/>
+        <NIRProbeOutputSaveWidget file={file} setFile={setFileAndSave} showAdvanced={showAdvanced} setShowAdvanced={setShowAdvanced}/>
+        <NIRCalibrationCurveWidget files={files} type={file.type} absorbance={absorbance} calibrationFunction={calibrationFunction}
+                                   calibrationData={calibrationData} setCalibrationData={setCalibrationData}/>
+      </div>
+      <div className="flex flex-col gap-3 col-span-3">
         <AnalysisPlatformHeight/>
         <SiteSelectWidget onValueChanged={setFilename}
                           onSiteTypeChanged={onSiteTypeChanged}
                           currentSiteType={file.type}/>
         <NIRProbeFileTableWidget file={file} setFile={setFileAndSave} showAdvanced={showAdvanced} absorbance={absorbance} calibrationFunction={calibrationFunction}></NIRProbeFileTableWidget>
       </div>
-      <div className="flex flex-col gap-3 col-span-3">
-        <NIRProbeLEDWidget/>
-        <NIRProbeOutputSaveWidget file={file} setFile={setFileAndSave} showAdvanced={showAdvanced} setShowAdvanced={setShowAdvanced}/>
-        <NIRCalibrationCurveWidget files={files} type={file.type} absorbance={absorbance} calibrationFunction={calibrationFunction}
-                                   calibrationData={calibrationData} setCalibrationData={setCalibrationData}/>
-      </div>
-
     </div>
   );
 }
