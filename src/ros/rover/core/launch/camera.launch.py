@@ -41,6 +41,17 @@ def launch_setup(context, *args, **kwargs):
                                 ('image_rect/theora', name+'/rgb/image_rect/theora')]
                 )
             ]),
+        
+        Node(
+            package='rtabmap_util',
+            executable='point_cloud_xyz',
+            condition=IfCondition(LaunchConfiguration('rtabmap_pointcloud')),
+            name='rtabmap_point_cloud_xyz',
+            remappings=[('/depth/image', name+'/stereo/image_raw'),
+                        ('/depth/camera_info', name+'/stereo/camera_info'),
+                        ('/cloud', name+'/rtabmap/points'),
+                        ],
+        ),
     ]
 
 
@@ -52,6 +63,7 @@ def generate_launch_description():
         DeclareLaunchArgument("params_file", default_value=os.path.join(core_prefix, 'params', 'depthai_oakd_rgbd.yaml')),
         DeclareLaunchArgument("rectify_rgb", default_value="True"),
         DeclareLaunchArgument('use_sim_time', default_value='False'),
+        DeclareLaunchArgument('rtabmap_pointcloud', default_value='True'),
     ]
 
     return LaunchDescription(

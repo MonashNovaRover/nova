@@ -76,18 +76,6 @@ def launch_setup(context, *args, **kwargs):
             parameters=[parameters],
             remappings=remappings,
         ),
-
-        Node(
-        package='rtabmap_util',
-        executable='point_cloud_xyz',
-        condition=IfCondition(LaunchConfiguration('rtabmap_pointcloud')),
-        name='rtabmap_point_cloud_xyz',
-        remappings=[('/depth/image', name+'/stereo/image_raw'),
-                    ('/depth/camera_info', name+'/stereo/camera_info'),
-                    ('/cloud', name+'/rtabmap/points'),
-                    ],
-        ),
-
     ]
  
 
@@ -101,7 +89,6 @@ def generate_launch_description():
         DeclareLaunchArgument("rectify_rgb", default_value="True"),
         DeclareLaunchArgument("rtabmap_viz", default_value="False"),
         DeclareLaunchArgument('use_sim_time', default_value='False'),
-        DeclareLaunchArgument('rtabmap_pointcloud', default_value='True'),
         DeclareLaunchArgument('launch_camera', default_value='False'),
     ]
 
