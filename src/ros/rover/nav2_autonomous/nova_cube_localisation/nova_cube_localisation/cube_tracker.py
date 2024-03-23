@@ -44,7 +44,7 @@ from geometry_msgs.msg import PoseStamped, Pose, Transform, Pose2D
 from std_msgs.msg import String, Empty, ColorRGBA
 
 # nova imports
-import autonomous.math_utils.transform as transform
+
 
 # standard python imports
 from typing import Dict, List
@@ -268,7 +268,11 @@ class CubeTracker(Node):
         else:
             self.state_rover_pose.x = base_link_tf.translation.x
             self.state_rover_pose.y = base_link_tf.translation.y
-            self.state_rover_pose.theta = transform.quat_to_euler(base_link_tf.rotation)[2]
+            q = base_link.rotation
+            t3 = 2 * (q.w*q.z + q.x*q.y)
+            t4 = 1 - 2 * (q.y*q.y + q.z*q.z)
+            yaw = np.arctan2(t3, t4)
+            self.state_rover_pose.theta = yaw
 
     def publish_found(self):
         """
