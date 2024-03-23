@@ -24,7 +24,6 @@ import copy
 from geometry_msgs.msg import Quaternion, Transform, Pose
 from quaternions import Quaternion as MathQuaternion
 
-
 def camera_extrinsics():
     """
     A camera extrinsics matrix is useful for when the cameras are offset by significant distances. 
@@ -154,7 +153,7 @@ def quaternion_multiply(quat0: Quaternion, quat1: Quaternion) -> Quaternion:
     q1 = MathQuaternion(quat1.w, quat1.x, quat1.y, quat1.z)
     q = q0 * q1
     ret_q = Quaternion()
-    ret_q.w, ret_q.x, ret_q.y, ret_q.z = q.real, q.i, q.j, q.k
+    ret_q.w, ret_q.x, ret_q.y, ret_q.z = q.w, q.x, q.y, q.z
     return ret_q
 
 def quaternion_right_divide(quat0: Quaternion, quat1: Quaternion) -> Quaternion:

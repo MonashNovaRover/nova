@@ -55,18 +55,13 @@ def generate_launch_description():
         default_value='',
         description='Top-level namespace')
 
-    namespace_arg = DeclareLaunchArgument(
-        'namespace',
-        default_value='',
-        description='Top-level namespace')
-
     world_arg = DeclareLaunchArgument(
         'world',
         # TODO(orduno) Switch back once ROS argument passing has been fixed upstream
         #              https://github.com/ROBOTIS-GIT/turtlebot3_simulations/issues/91
         # default_value=os.path.join(get_package_share_directory('turtlebot3_gazebo'),
         # worlds/turtlebot3_worlds/waffle.model')
-        default_value=PathJoinSubstitution([core_dir, "worlds", 'urc_er.model']),
+        default_value=PathJoinSubstitution([core_dir, "worlds", 'flat.model']),
         description='Full path to world model file to load')
 
     params_file_arg = DeclareLaunchArgument(
@@ -94,8 +89,8 @@ def generate_launch_description():
 
     localization_arg = DeclareLaunchArgument(
         'localization',
-        default_value='True',
-        description='Flag for running localisation'
+        default_value='False',
+        description='Flag for running localisation in a saved  RTAB-map database'
     )
 
     wheel_odom_only_arg = DeclareLaunchArgument(
@@ -152,7 +147,7 @@ def generate_launch_description():
             'use_real_odometry': use_real_odometry,
             'load_map': localization,
         }.items(),
-        condition=IfCondition(AndSubstitution(localization, NotSubstitution(wheel_odom_only)))
+        condition=UnlessCondition(wheel_odom_only)
     )
 
     wheel_odom_localization_cmd = IncludeLaunchDescription(
@@ -160,7 +155,7 @@ def generate_launch_description():
         launch_arguments={
             'use_sim_time': gazebo,
         }.items(),
-        condition = IfCondition(AndSubstitution(localization, wheel_odom_only))
+        condition = IfCondition(wheel_odom_only)
     )
 
     control_cmd = IncludeLaunchDescription(

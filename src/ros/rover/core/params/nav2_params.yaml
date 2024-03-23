@@ -6,10 +6,13 @@ bt_navigator:
     odom_topic: /pivot_drive_controller/odom
     bt_loop_duration: 10
     default_server_timeout: 20
+    goal_reached_tol: 0.75
     # 'default_nav_through_poses_bt_xml' and 'default_nav_to_pose_bt_xml' are use defaults:
     # nav2_bt_navigator/navigate_to_pose_w_replanning_and_recovery.xml
     # nav2_bt_navigator/navigate_through_poses_w_replanning_and_recovery.xml
     # They can be set here or via a RewrittenYaml remap from a parent launch file to Nav2.
+    default_nav_through_poses_bt_xml: $(find-pkg-share nova_behavior_tree)/behavior_tree/arch_through_poses.xml
+    default_nav_to_pose_bt_xml: $(find-pkg-share nova_behavior_tree)/behavior_tree/arch_to_pose.xml
     plugin_lib_names:
       - nav2_compute_path_to_pose_action_bt_node
       - nav2_compute_path_through_poses_action_bt_node
@@ -58,6 +61,9 @@ bt_navigator:
       - nav2_assisted_teleop_cancel_bt_node
       - nav2_drive_on_heading_cancel_bt_node
       - nav2_is_battery_charging_condition_bt_node
+      - nova_save_image_service_bt_node
+      - nova_first_goal_reached_condition_bt_node
+      - nova_goals_empty_condition_bt_node
 
 bt_navigator_navigate_through_poses_rclcpp_node:
   ros__parameters:
@@ -74,6 +80,7 @@ controller_server:
     min_x_velocity_threshold: 0.001
     min_y_velocity_threshold: 0.5
     min_theta_velocity_threshold: 0.001
+    forward_proune_distance: 0.5
     failure_tolerance: 0.3
     progress_checker_plugin: "progress_checker"
     goal_checker_plugins: ["general_goal_checker"] # "precise_goal_checker"
@@ -94,14 +101,14 @@ controller_server:
       stateful: True
       plugin: "nav2_controller::SimpleGoalChecker"
       xy_goal_tolerance: 0.25
-      yaw_goal_tolerance: 0.25
+      yaw_goal_tolerance: 1.25
     # DWB parameters
     FollowPath:
       plugin: "dwb_core::DWBLocalPlanner"
       debug_trajectory_details: True
       min_vel_x: 0.0
       min_vel_y: 0.0
-      max_vel_x: 0.4
+      max_vel_x: 0.8
       max_vel_y: 0.0
       max_vel_theta: 0.4
       min_speed_xy: 0.0
@@ -150,7 +157,8 @@ local_costmap:
       width: 5
       height: 5
       resolution: 0.1
-      robot_radius: 0.52
+      footprint: "[[0.4, 0.3], [0.4, -0.3], [-0.4, -0.3], [-0.4, 0.3]]"
+      footprint_padding: 0.1
       track_unknown_space: False
       plugins: ["plane_mapper_layer", "height_mapper_layer", "inflation_layer"]
       inflation_layer:
@@ -238,7 +246,7 @@ global_costmap:
       robot_radius: 0.22
       resolution: 0.4
       track_unknown_space: False
-      plugins: ["height_mapper_layer", "plane_mapper_layer", "inflation_layer"]
+      plugins: ["plane_mapper_layer", "static_layer" "inflation_layer"]
       height_mapper_layer:
         plugin: "nova_costmap_2d/HeightMapperLayer"
         enabled: True
@@ -285,18 +293,19 @@ global_costmap:
         plugin: "nav2_costmap_2d::StaticLayer"
         map_subscribe_transient_local: True
         subscribe_to_updates: False
+        map_topic: /static_map
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 3.0
         inflation_radius: 0.25
       always_send_full_costmap: True
 
-map_server:
-  ros__parameters:
-    use_sim_time: True
-    # Overridden in launch by the "map" launch configuration or provided default value.
-    # To use in yaml, remove the default "map" value in the tb3_simulation_launch.py file & provide full path to map below.
-    yaml_filename: ""
+# map_server:
+#   ros__parameters:
+#     use_sim_time: True
+#     # Overridden in launch by the "map" launch configuration or provided default value.
+#     # To use in yaml, remove the default "map" value in the tb3_simulation_launch.py file & provide full path to map below.
+#     yaml_filename: ""
 
 map_saver:
   ros__parameters:
@@ -304,7 +313,6 @@ map_saver:
     save_map_timeout: 5.0
     free_thresh_default: 0.25
     occupied_thresh_default: 0.65
-    map_subscribe_transient_local: True
 
 planner_server:
   ros__parameters:

@@ -7,7 +7,10 @@
     nova-science = callPackage ./nix/packages/science { };
     nova-blcmd-hardware = callPackage ./nix/packages/blcmd-hardware { };
     nova-costmap-2d = callPackage ./nix/packages/nova-costmap-2d { };
+    nova-behavior-tree = callPackage ./nix/packages/nova-behavior-tree { };
+    nova-cube-localisation = callPackage ./nix/packages/nova-cube-localisation { };
     nova-teleop-drive-joy = callPackage ./nix/packages/teleop-drive-joy { };
+    # diff drive, pivot drive, strafe, 
   } // import ./nix/packages/controllers { inherit pkgs; };
 
   pythonPackages = pythonPackages: with pythonPackages; {

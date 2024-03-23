@@ -18,7 +18,9 @@
 , pluginlib
 , gazebo-ros-pkgs
 , robot-localization
+, nova-behavior-tree
 , nova-costmap-2d
+, image-view
 , navigation2
 , depthai-ros
 , rtabmap-ros
@@ -54,9 +56,9 @@ buildRosPackage rec {
       gazebo-ros2-control
       ros2-controllers
       pluginlib
+      image-view
       robot-localization
       gazebo-ros-pkgs
-      nova-costmap-2d
       navigation2
       depthai-ros
       rtabmap-ros;

@@ -14,7 +14,7 @@ def generate_launch_description():
             namespace='',
             executable='rviz2',
             name='rviz2',
-            arguments=['-d', [PathJoinSubstitution([FindPackageShare('core'), 'rviz', 'rover.rviz'])]]
+            arguments=['-d', [PathJoinSubstitution([FindPackageShare('core'), 'rviz', 'navigation.rviz'])]]
         )
 
     return LaunchDescription([
