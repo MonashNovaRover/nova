@@ -34,8 +34,8 @@
       i_disable_resize: true
       i_num_inference_threads: 2
       i_num_pool_frames: 4
-      i_nn_config_path: src/ros/rover/core/resources/ARC_oakd_v8/ARC_oakd_v8.json
-        #i_nn_config_path: src/ros/rover/core/resources/yolov8/ARC_V1.json
+        #i_nn_config_path: src/ros/rover/core/resources/ARC_oakd_v8/ARC_oakd_v8.json
+      i_nn_config_path: src/ros/rover/core/resources/yolov8_new/best.json
     rgb:
       i_enable_nn: false
       i_enable_preview: true
@@ -59,15 +59,17 @@
       i_enable_alpha_scaling: false
       i_enable_brightness_filter: false
       i_enable_companding: false
-      i_enable_decimation_filter: false
+      i_enable_decimation_filter: true
+      i_decimation_filter_decimation_mode: NON_ZERO_MEDIAN
+      i_decimation_filter_decimation_factor: 2
       i_enable_disparity_shift: false
       i_enable_distortion_correction: false
       i_enable_lazy_publisher: true
       i_enable_spatial_filter: false
       i_enable_spatial_nn: true
-      i_enable_speckle_filter: false
+      i_enable_speckle_filter: true
       i_enable_temporal_filter: false
-      i_enable_threshold_filter: false
+      i_enable_threshold_filter: true
       i_extended_disp: false
       i_output_disparity: true
       i_publish_left_rect: false
