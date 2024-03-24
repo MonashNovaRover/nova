@@ -47,7 +47,7 @@ def launch_setup(context, *args, **kwargs):
                     package='rtabmap_odom',
                     plugin='rtabmap_odom::RGBDOdometry',
                     name='rgbd_odometry',
-                    parameters=[parameters, {"publish_tf": True}],
+                    parameters=[parameters, {"publish_tf": False, "publish_null_when_lost": False}],
                     remappings=remappings
                     ,
                 ),
