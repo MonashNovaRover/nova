@@ -38,3 +38,9 @@ ekf_filter_node:
                        true, false, false,  # X', Y', Z'
                        false, false, true,   # roll', pitch', yaw'
                        false, false, false]  # X'', Y'', Z''
+
+        initial_state: [1.2,  -1.5,  0.0,
+                        0.0,  0.0,  0.0,
+                        0.1,  0.0,  0.0,
+                        0.0,  0.0,  0.0,
+                        0.0,  0.0,  0.0]

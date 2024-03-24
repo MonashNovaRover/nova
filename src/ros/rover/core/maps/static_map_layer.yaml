@@ -1,6 +1,6 @@
-image: static_map_layer.pgm
+image: comp_map.png
 resolution: 0.400000
-origin: [-76.800000, -76.800000, 0.000000]
+origin: [-10.0, -28.0, 0.0]
 negate: 0
 occupied_thresh: 0.65
 free_thresh: 0.196

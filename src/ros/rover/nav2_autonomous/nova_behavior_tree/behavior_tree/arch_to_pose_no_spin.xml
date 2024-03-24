@@ -1,99 +1,47 @@
-<?xml version="1.0"?>
+<!--
+  This Behavior Tree replans the global path periodically at 1 Hz and it also has
+  recovery actions specific to planning / control as well as general system issues.
+  This will be continuous if a kinematically valid planner is selected.
+-->
 <root main_tree_to_execute="MainTree">
-    <!-- ////////// -->
-    <BehaviorTree ID="MainTree">
-        <Sequence name="NavigateToPlacardAndImage">
-            <ForceSuccess>
-                <Decorator ID="SingleTrigger">
-                    <Action ID="Spin" error_code_id="" server_name="" server_timeout="" spin_dist="6.283184" time_allowance=""/>
-                </Decorator>
-            </ForceSuccess>
-            <Control ID="RecoveryNode" name="NavigateRecovery" number_of_retries="6">
-                <Control ID="PipelineSequence" name="NavigateWithReplanning">
-                    <Decorator ID="RateController" hz="1.0">
-                        <Control ID="RecoveryNode" name="ComputePathToPose" number_of_retries="1">
-                            <Action ID="ComputePathToPose" error_code_id="" goal="{goal}" path="{path}" planner_id="GridBased" server_name="" server_timeout="" start=""/>
-                            <Action ID="ClearEntireCostmap" name="ClearGlobalCostmap-Context" server_timeout="" service_name="global_costmap/clear_entirely_global_costmap"/>
-                        </Control>
-                    </Decorator>
-                    <Control ID="RecoveryNode" name="FollowPath" number_of_retries="1">
-                        <Action ID="FollowPath" controller_id="FollowPath" error_code_id="" goal_checker_id="" path="{path}" progress_checker_id="" server_timeout="" service_name=""/>
-                        <Action ID="ClearEntireCostmap" name="ClearLocalCostmap-Context" server_timeout="" service_name="local_costmap/clear_entirely_local_costmap"/>
-                    </Control>
-                </Control>
-                <ReactiveFallback name="RecoveryFallback">
-                    <Condition ID="GoalUpdated" goal="" goals=""/>
-                    <Control ID="RoundRobin" name="RecoveryActions">
-                        <Sequence name="ClearingActions">
-                            <Action ID="ClearEntireCostmap" name="ClearLocalCostmap-Subtree" server_timeout="" service_name="local_costmap/clear_entirely_local_costmap"/>
-                            <Action ID="ClearEntireCostmap" name="ClearGlobalCostmap-Subtree" server_timeout="" service_name="global_costmap/clear_entirely_global_costmap"/>
-                        </Sequence>
-                        <Action ID="Spin" error_code_id="" server_name="" server_timeout="" spin_dist="1.57" time_allowance=""/>
-                        <Action ID="Wait" server_name="" server_timeout="" wait_duration="5"/>
-                        <Action ID="BackUp" backup_dist="0.30" backup_speed="0.05" error_code_id="" server_name="" server_timeout="" time_allowance=""/>
-                    </Control>
-                </ReactiveFallback>
-            </Control>
-            <Sequence name="Wait then image">
-                <Action ID="Wait" server_name="" server_timeout="" wait_duration="1"/>
-                <Action ID="SaveImage" server_timeout="" service_name="/image_capture/republish"/>
-                <Action ID="Wait" name="" server_name="" server_timeout="" wait_duration="1"/>
+  <BehaviorTree ID="MainTree">
+    <Sequence name="NavigateToPlacardAndImage">
+      <ForceSuccess>
+        <SingleTrigger>
+          <Spin spin_dist="6.283184" is_recovery="false"/>
+        </SingleTrigger>
+      </ForceSuccess>
+      <RecoveryNode number_of_retries="6" name="NavigateRecovery">
+        <PipelineSequence name="NavigateWithReplanning">
+          <RateController hz="1.0">
+            <RecoveryNode number_of_retries="1" name="ComputePathToPose">
+              <ComputePathToPose goal="{goal}" path="{path}" planner_id="GridBased"/>
+              <ClearEntireCostmap name="ClearGlobalCostmap-Context" service_name="global_costmap/clear_entirely_global_costmap"/>
+            </RecoveryNode>
+          </RateController>
+          <RecoveryNode number_of_retries="1" name="FollowPath">
+            <FollowPath path="{path}" controller_id="FollowPath"/>
+            <ClearEntireCostmap name="ClearLocalCostmap-Context" service_name="local_costmap/clear_entirely_local_costmap"/>
+          </RecoveryNode>
+        </PipelineSequence>
+        <ReactiveFallback name="RecoveryFallback">
+          <GoalUpdated/>
+          <RoundRobin name="RecoveryActions">
+            <Sequence name="ClearingActions">
+              <ClearEntireCostmap name="ClearLocalCostmap-Subtree" service_name="local_costmap/clear_entirely_local_costmap"/>
+              <ClearEntireCostmap name="ClearGlobalCostmap-Subtree" service_name="global_costmap/clear_entirely_global_costmap"/>
             </Sequence>
-        </Sequence>
-    </BehaviorTree>
-    <!-- ////////// -->
-    <TreeNodesModel>
-        <Action ID="BackUp">
-            <input_port name="backup_dist">Distance to backup</input_port>
-            <input_port name="backup_speed">Speed at which to backup</input_port>
-            <input_port name="server_name">Server name</input_port>
-            <input_port name="server_timeout">Server timeout</input_port>
-            <input_port name="time_allowance">Allowed time for reversing</input_port>
-        </Action>
-        <Action ID="ClearEntireCostmap">
-            <input_port name="server_timeout">Server timeout</input_port>
-            <input_port name="service_name">Service name</input_port>
-        </Action>
-        <Action ID="ComputePathToPose">
-            <input_port name="goal">Destination to plan to</input_port>
-            <output_port name="path">Path created by ComputePathToPose node</output_port>
-            <input_port name="planner_id">Mapped name to the planner plugin type to use</input_port>
-            <input_port name="server_name">Server name</input_port>
-            <input_port name="server_timeout">Server timeout</input_port>
-            <input_port name="start">Start pose of the path if overriding current robot pose</input_port>
-        </Action>
-        <Action ID="FollowPath">
-            <input_port default="FollowPath" name="controller_id"/>
-            <input_port name="goal_checker_id">Goal checker</input_port>
-            <input_port name="path">Path to follow</input_port>
-            <input_port name="server_name">Server name</input_port>
-            <input_port name="server_timeout">Server timeout</input_port>
-        </Action>
-        <Condition ID="GoalUpdated"/>
-        <Control ID="PipelineSequence"/>
-        <Decorator ID="RateController">
-            <input_port name="hz">Rate</input_port>
-        </Decorator>
-        <Control ID="RecoveryNode">
-            <input_port name="number_of_retries">Number of retries</input_port>
-        </Control>
-        <Control ID="RoundRobin"/>
-        <Action ID="SaveImage">
-            <input_port name="server_timeout">Server timeout</input_port>
-            <input_port name="service_name">Service name</input_port>
-        </Action>
-        <Decorator ID="SingleTrigger"/>
-        <Action ID="Spin">
-            <input_port name="server_name">Server name</input_port>
-            <input_port name="server_timeout">Server timeout</input_port>
-            <input_port name="spin_dist">Spin distance</input_port>
-            <input_port name="time_allowance">Allowed time for spinning</input_port>
-        </Action>
-        <Action ID="Wait">
-            <input_port name="server_name">Server name</input_port>
-            <input_port name="server_timeout">Server timeout</input_port>
-            <input_port name="wait_duration">Wait time</input_port>
-        </Action>
-    </TreeNodesModel>
-    <!-- ////////// -->
+            <Spin spin_dist="1.57"/>
+            <Wait wait_duration="5"/>
+            <BackUp backup_dist="0.30" backup_speed="0.05"/>
+          </RoundRobin>
+        </ReactiveFallback>
+      </RecoveryNode>
+          <Sequence name="Wait then spin">
+            <Wait wait_duration="1"/>
+            <SaveImage service_name="/image_capture/republish"/>
+            <Wait wait_duration="1"/>
+          </Sequence>
+    </Sequence>
+  </BehaviorTree>
 </root>

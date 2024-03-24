@@ -14,6 +14,14 @@ def launch_setup(context, *args, **kwargs):
     name = LaunchConfiguration('name').perform(context)
     qos = LaunchConfiguration("qos")
     core_prefix = get_package_share_directory('core')
+    x = LaunchConfiguration('x').perform(context)
+    y = LaunchConfiguration('y').perform(context)
+    z = LaunchConfiguration('z').perform(context)
+    roll = LaunchConfiguration('roll').perform(context)
+    pitch = LaunchConfiguration('pitch').perform(context)
+    yaw = LaunchConfiguration('yaw').perform(context)
+
+
     parameters={
           'frame_id':'base_link',
           'use_sim_time':use_sim_time,
@@ -47,7 +55,7 @@ def launch_setup(context, *args, **kwargs):
                     package='rtabmap_odom',
                     plugin='rtabmap_odom::RGBDOdometry',
                     name='rgbd_odometry',
-                    parameters=[parameters, {"publish_tf": True}],
+                    parameters=[parameters, {"publish_tf": False, "initial_pose": f'{x} {y} {z} {roll} {pitch} {yaw}'}],
                     remappings=remappings
                     ,
                 ),
@@ -62,7 +70,7 @@ def launch_setup(context, *args, **kwargs):
                     plugin='rtabmap_slam::CoreWrapper',
                     name='rtabmap',
                     parameters=[parameters,
-                                {'publish_tf':True}],
+                                {'publish_tf':True, 'rtabmap_args':'--delete_db_on_start'}],
                     remappings=remappings,
                 ),
             ],
@@ -90,6 +98,12 @@ def generate_launch_description():
         DeclareLaunchArgument("rtabmap_viz", default_value="False"),
         DeclareLaunchArgument('use_sim_time', default_value='False'),
         DeclareLaunchArgument('launch_camera', default_value='False'),
+        DeclareLaunchArgument('x', default_value='0.0'),
+        DeclareLaunchArgument('y', default_value='0.0'),
+        DeclareLaunchArgument('z', default_value='0.0'),
+        DeclareLaunchArgument('roll', default_value='0.0'),
+        DeclareLaunchArgument('pitch', default_value='0.0'),
+        DeclareLaunchArgument('yaw', default_value='0.0'),
     ]
 
     return LaunchDescription(

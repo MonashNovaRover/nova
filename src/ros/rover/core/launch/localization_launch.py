@@ -13,69 +13,42 @@ PACKAGE: 	core
 CREATION:	27/04/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
+import os
 
 from ament_index_python.packages import get_package_share_path
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument
+from launch.actions import DeclareLaunchArgument, OpaqueFunction
 from launch.substitutions import LaunchConfiguration, PythonExpression, OrSubstitution, AndSubstitution, NotSubstitution
 from launch.conditions import IfCondition, UnlessCondition
 from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 
-from launch_ros.actions import Node
-
 # Generate the launch file with all inputs
 # TODO: Add IMU, GPS, and any other localisation nodes
-def generate_launch_description():
+def launch_setup(context, *args, **kwargs):
     # Declare a launch configuration argument of the name "t265"
     use_sim_time = LaunchConfiguration('use_sim_time')
     use_real_odometry = LaunchConfiguration('use_real_odometry')
     load_map = LaunchConfiguration('load_map')
     ekf = LaunchConfiguration('ekf')
     use_filter = LaunchConfiguration('use_filter')
+    ekf_params = LaunchConfiguration('ekf_params')
+
+
 
     gazebo_odom_params = {
         "use_sim_time": use_sim_time, 
         "odom0": "/odom/gazebo",
         "odom0_relative": False,
         "odom0_config": [True,  True,  True,  \
-                       True, True, True,      \
-                       True, False, False,      \
-                       False, False, False,      \
+                         True, True, True,      \
+                         True, False, False,      \
+                        False, False, False,      \
                        False, False, False],
         "odom1_relative": True,
     }
-
-    use_sim_time_arg = DeclareLaunchArgument(
-        'use_sim_time',
-        default_value='False',
-        description='Use simulation (Gazebo) clock if true')
-
-    use_real_odom_arg = DeclareLaunchArgument(
-        'use_real_odometry',
-        default_value='true',
-        description='True to use robot_localisation odometry, False to use p3d gazebo plugin'
-    )
-
-    load_map_arg = DeclareLaunchArgument(
-        'load_map',
-        default_value='false',
-        description='Localize the rover in a pre-existing map'
-    )
-
-    ekf_arg = DeclareLaunchArgument(
-        'ekf',
-        default_value='true',
-        description='Use EKF (true) or UKF (false)'
-    )
-
-    use_filter_arg = DeclareLaunchArgument(
-        'use_filter',
-        default_value='true',
-        description='Use a Kalman Filter?'
-    )
 
     ukf_localisation_gazebo = Node(
         condition=UnlessCondition(use_real_odometry),
@@ -101,7 +74,7 @@ def generate_launch_description():
         executable='ekf_node',
         name='ekf_filter_node',
         output='screen',
-        parameters=[(get_package_share_path("core") / 'params' / 'ekf.yaml').as_posix(), {"use_sim_time": use_sim_time}],
+        parameters=[(LaunchConfiguration('ekf_params_file').perform(context)), {"use_sim_time": use_sim_time}],
     )
 
     slam_cmd = IncludeLaunchDescription(
@@ -112,14 +85,57 @@ def generate_launch_description():
         }.items()
     )
     
-    return LaunchDescription([
-        ekf_arg,
-        use_filter_arg,
-        use_sim_time_arg,
-        use_real_odom_arg,
-        load_map_arg,
+    return [
         ukf_localisation_gazebo,
         ukf_localisation_odom,
         ekf_localisation_odom,
         slam_cmd,
-    ])
+    ]
+    
+def generate_launch_description():
+    use_sim_time_arg = DeclareLaunchArgument(
+        'use_sim_time',
+        default_value='False',
+        description='Use simulation (Gazebo) clock if true')
+
+    use_real_odom_arg = DeclareLaunchArgument(
+        'use_real_odometry',
+        default_value='true',
+        description='True to use robot_localisation odometry, False to use p3d gazebo plugin'
+    )
+
+    load_map_arg = DeclareLaunchArgument(
+        'load_map',
+        default_value='false',
+        description='Localize the rover in a pre-existing map'
+    )
+
+    ekf_arg = DeclareLaunchArgument(
+        'ekf',
+        default_value='true',
+        description='Use EKF (true) or UKF (false)'
+    )
+
+    ekf_param_arg = DeclareLaunchArgument(
+        'ekf_params_file',
+        default_value=os.path.join(get_package_share_path("core"),'params','ekf.yaml')
+    )
+
+    use_filter_arg = DeclareLaunchArgument(
+        'use_filter',
+        default_value='true',
+        description='Use a Kalman Filter?'
+    )
+
+    declared_arguments = [
+        ekf_arg,
+        use_filter_arg,
+        use_sim_time_arg,
+        use_real_odom_arg,
+        ekf_param_arg,
+        load_map_arg,
+    ]
+
+    return LaunchDescription(
+        declared_arguments + [OpaqueFunction(function=launch_setup)]
+    )

@@ -48,7 +48,7 @@ def generate_launch_description():
                        'waypoint_follower',
                        'velocity_smoother',
                        'map_server',
-                       'amcl',
+                    #    'amcl',
                        'bt_navigator',
                        ]
 
@@ -224,18 +224,18 @@ def generate_launch_description():
                 arguments=['--ros-args', '--log-level', log_level],
                 remappings=remappings +
                         [('map', 'static_map')]),
-            Node(
-                # condition=LaunchConfigurationNotEquals(LaunchConfiguration('map'), ''),
-                package='nav2_amcl',
-                executable='amcl',
-                name='amcl',
-                output='screen',
-                respawn=use_respawn,
-                respawn_delay=2.0,
-                parameters=[configured_params],
-                arguments=['--ros-args', '--log-level', log_level],
-                remappings=remappings +
-                        [('map', 'static_map')]),
+            # Node(
+            #     # condition=LaunchConfigurationNotEquals(LaunchConfiguration('map'), ''),
+            #     package='nav2_amcl',
+            #     executable='amcl',
+            #     name='amcl',
+            #     output='screen',
+            #     respawn=use_respawn,
+            #     respawn_delay=2.0,
+            #     parameters=[configured_params],
+            #     arguments=['--ros-args', '--log-level', log_level],
+            #     remappings=remappings +
+            #             [('map', 'static_map')]),
             Node(
                 package='nav2_bt_navigator',
                 executable='bt_navigator',

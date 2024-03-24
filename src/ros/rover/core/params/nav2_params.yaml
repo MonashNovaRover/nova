@@ -237,16 +237,16 @@ global_costmap:
       publish_frequency: 1.0
       global_frame: map
       robot_base_frame: base_link
-      width: 20
-      height: 20
+      width: 50
+      height: 50
       origin_x: -10.0
-      origin_y: -10.0
+      origin_y: -28.0
       use_sim_time: True
       rolling_window: False
       robot_radius: 0.22
       resolution: 0.4
       track_unknown_space: False
-      plugins: ["plane_mapper_layer", "static_layer" "inflation_layer"]
+      plugins: ["plane_mapper_layer", "static_layer", "inflation_layer"]
       height_mapper_layer:
         plugin: "nova_costmap_2d/HeightMapperLayer"
         enabled: True
