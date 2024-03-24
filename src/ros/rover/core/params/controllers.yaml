@@ -70,6 +70,8 @@ pivot_drive_controller:
     has_velocity_limits: true
     max_velocity: 0.67
     min_velocity: -0.67
+    twist_covariance_diagonal: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+
 
 strafe_controller:
   ros__parameters:
