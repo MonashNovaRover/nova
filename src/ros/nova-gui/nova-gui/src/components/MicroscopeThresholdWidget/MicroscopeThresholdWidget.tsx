@@ -350,7 +350,7 @@ const MicroscopeThresholdWidget: React.FC<CameraComponentProps> = (props) => {
           wrapper: "rounded-t-none "
         }}>
           <TableHeader>
-            <TableColumn key="action" className="text-center">Threshold</TableColumn>
+            <TableColumn key="threshold" className="text-center">Threshold</TableColumn>
             <TableColumn key="brightness">Average Brightness</TableColumn>
             <TableColumn key="concentration">Concentration</TableColumn>
             <TableColumn key="action" className="text-center">Action</TableColumn>
