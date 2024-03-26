@@ -85,6 +85,7 @@ const NIRProbeFileTableWidget: React.FC<NIRProbeFileTableWidgetProps> = ({
             <span className="text-gray-800">None</span>)
           }
         </TableCell>
+
         <TableCell key="label">{label}</TableCell>
         <TableCell key="action">
           <Button onPress={() => deleteEntry(reversedFileEntries.length - index - 1)}
