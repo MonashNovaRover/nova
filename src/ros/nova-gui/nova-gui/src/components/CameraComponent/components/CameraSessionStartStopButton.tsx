@@ -27,7 +27,7 @@ const CameraSessionStartStopButton: React.FC<CameraSessionStartStopButtonProps> 
         size="sm"
         color="primary"
         className="w-min mx-auto"
-        onClick={sendSessionStartMessage}
+        onPress={sendSessionStartMessage}
       >
         <Play size="15px" fill="white" />
         Start
@@ -37,7 +37,7 @@ const CameraSessionStartStopButton: React.FC<CameraSessionStartStopButtonProps> 
         size="sm"
         color="danger"
         className="w-min mx-auto"
-        onClick={closeSession}
+        onPress={closeSession}
       >
         <Square size="15px" fill="white" /> Stop
       </Button>

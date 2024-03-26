@@ -145,10 +145,10 @@ export const CameraComponent = (props: CameraComponentProps) => {
               <CameraSessionStartStopButton streamingState={streamingState}
                                             sendSessionStartMessage={sendSessionStartMessage}
                                             closeSession={closeSession}/>
-              <Button isIconOnly size="sm">
-                <CameraIcon size="15px" onClick={takeScreenshot} />
+              <Button isIconOnly size="sm" onPress={takeScreenshot}>
+                <CameraIcon size="15px"/>
               </Button>
-              <Button isIconOnly size="sm" onClick={openCameraInTab}>
+              <Button isIconOnly size="sm" onPress={openCameraInTab}>
                 <ExternalLink size="15px" />
               </Button>
               <Popover

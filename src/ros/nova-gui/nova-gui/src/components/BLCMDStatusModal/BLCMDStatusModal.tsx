@@ -108,7 +108,7 @@ export const BLCMDStatusModal = () => {
                         size="sm"
                         variant="flat"
                         color="danger"
-                        onClick={() => resetBLCMD(blcmd.id)}
+                        onPress={() => resetBLCMD(blcmd.id)}
                       >
                         <ArrowCounterclockwise />
                       </ToolTipButton>
@@ -119,7 +119,7 @@ export const BLCMDStatusModal = () => {
                         size="sm"
                         variant="flat"
                         color="danger"
-                        onClick={() => zeroResolver(blcmd.id)}
+                        onPress={() => zeroResolver(blcmd.id)}
                       >
                         123
                       </ToolTipButton>

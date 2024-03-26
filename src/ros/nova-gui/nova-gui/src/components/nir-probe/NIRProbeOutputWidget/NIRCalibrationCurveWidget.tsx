@@ -165,7 +165,7 @@ const NIRCalibrationCurveWidget: React.FC<NIRCalibrationCurveWidgetProps> = ({
         <Button
           variant={"light"}
           isIconOnly
-          onClick={() => setCalibrationModalIsOpen(true)}
+          onPress={() => setCalibrationModalIsOpen(true)}
         >
           <MoreHorizontal/>
         </Button>

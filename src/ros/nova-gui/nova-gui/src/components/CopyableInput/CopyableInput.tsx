@@ -25,7 +25,7 @@ const CopyableInput: React.FC<CopyableInputProps> = ({
 
   const copyButton = (
     <Tooltip content={"Copy to Clipboard"} placement="bottom" showArrow>
-      <Button isIconOnly size="sm" variant="light" onClick={copyValueToClipboard}>
+      <Button isIconOnly size="sm" variant="light" onPress={copyValueToClipboard}>
         <Copy size="16"/>
       </Button>
     </Tooltip>

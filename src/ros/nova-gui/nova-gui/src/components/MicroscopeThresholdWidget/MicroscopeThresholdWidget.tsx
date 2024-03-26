@@ -178,7 +178,7 @@ const MicroscopeThresholdWidget: React.FC<CameraComponentProps> = (props) => {
       <TableCell className="font-mono">{(100 * brightness).toFixed(4)} %</TableCell>
       <TableCell className="font-mono">{(100 * concentrationFunction(brightness)).toFixed(4)} %</TableCell>
       <TableCell>
-        <Button variant="light" fullWidth color="danger" onClick={() => deleteFileEntry(index)}>
+        <Button variant="light" fullWidth color="danger" onPress={() => deleteFileEntry(index)}>
           Delete
         </Button>
       </TableCell>

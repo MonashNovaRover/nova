@@ -74,10 +74,10 @@ export const CameraControlPanelModal = (props: {
         <ModalBody>
           <div className="flex flex-row m-4 ml-0 gap-4 items-center justify-between">
             <div className="flex flex-row gap-4">
-              <Button size="sm" color="primary" onClick={startStreaming}>
+              <Button size="sm" color="primary" onPress={startStreaming}>
                 <Play size="15px" fill="white" /> Start Streaming
               </Button>
-              <Button size="sm" color="danger" onClick={pauseStreaming}>
+              <Button size="sm" color="danger" onPress={pauseStreaming}>
                 <Pause size="15px" fill="white" /> Pause Streaming
               </Button>
             </div>
@@ -199,7 +199,7 @@ const CamerasTable = (props: { refreshAvailabilies: () => void }) => {
                   size="sm"
                   color="primary"
                   disabled={!onlineCameraSerials.includes(serial)}
-                  onClick={() => startStreaming(serial)}
+                  onPress={() => startStreaming(serial)}
                 >
                   <Play size="15px" fill="white" />
                 </Button>
@@ -208,7 +208,7 @@ const CamerasTable = (props: { refreshAvailabilies: () => void }) => {
                   size="sm"
                   color="danger"
                   disabled={!onlineCameraSerials.includes(serial)}
-                  onClick={() => pauseStreaming(serial)}
+                  onPress={() => pauseStreaming(serial)}
                 >
                   <Pause size="15px" fill="white" />
                 </Button>
