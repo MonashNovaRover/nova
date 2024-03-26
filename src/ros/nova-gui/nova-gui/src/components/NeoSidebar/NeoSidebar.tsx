@@ -108,7 +108,7 @@ export const NeoSidebar = () => {
           <ScrollShadow>
             {Object.keys(sidebarData).map((item) => {
               return (
-                <div className="flex flex-col pb-5">
+                <div key={item} className="flex flex-col pb-5">
                   <div className="text-sm font-light">{item}</div>
                   <div className="flex flex-col gap-2 mt-2">
                     {sidebarData[item].map((mode) => {
