@@ -149,16 +149,13 @@ const MicroscopeThresholdWidget: React.FC<CameraComponentProps> = (props) => {
 
     // Redraw
     gl.gl.clear(gl.gl.COLOR_BUFFER_BIT);
-    // TODO: allow the mode to be specified, rather than being hard coded as `gl.TRIANGLE_STRIP`
     gl.gl.drawArrays(gl.gl.TRIANGLE_STRIP, 0, 4);
 
     const output = new Uint8Array(numElements * 4);
     gl.gl?.readPixels(0, 0, width, height, gl.gl.RGBA, gl.gl.UNSIGNED_BYTE, output);
 
-    const average = output.reduce((acc, value, index) => (index % 4) === 3 ? acc : acc + (value/(numElements * 3)), 0) / 255;
-
-    console.log(output);
-    console.log(`${(100 * (1 - average)).toFixed(4)}%`);
+    const average = output.reduce((acc, value, index) =>
+      (index % 4) === 3 ? acc : acc + (value/(numElements * 3)), 0) / 255;
 
     setBrightness(1 - average);
 
@@ -281,19 +278,22 @@ const MicroscopeThresholdWidget: React.FC<CameraComponentProps> = (props) => {
                                           closeSession={closeSession}/>
           </div>
           <div className="grid grid-cols-[auto_1fr_1fr_auto] gap-3 items-center justify-items-center">
-
-
-            <div className="flex flex-col gap-3 grow relative overflow-hidden rounded-lg col-span-3 w-full"
+            <div className=
+                   "flex flex-col gap-3 grow relative overflow-hidden rounded-lg col-span-3 w-full cursor-pointer"
                  onMouseDown={toggleShowThreshold}>
-              <video
-              controls={false}
-              autoPlay
-              loop
-              muted
-              playsInline
-              ref={videoRef}
-              className={showThreshold ? "-z-10" : "z-20"}/>
-              <canvas className="absolute max-w-full max-h-full right-0 left-0 z-10 rounded-lg" ref={gl.canvasRef} width={width} height={height}/>
+              <video controls={false}
+                     aria-label="threshold input video"
+                     autoPlay
+                     loop
+                     muted
+                     playsInline
+                     ref={videoRef}
+                     className={showThreshold ? "-z-10" : "z-20"}/>
+              <canvas className="absolute max-w-full max-h-full right-0 left-0 z-10 rounded-lg"
+                      aria-label="thresheld output"
+                      ref={gl.canvasRef}
+                      width={width}
+                      height={height}/>
             </div>
             <Slider
               size="lg"
@@ -312,7 +312,7 @@ const MicroscopeThresholdWidget: React.FC<CameraComponentProps> = (props) => {
               }}
             />
             
-            <Button className="place-self-end" onClick={getBrightness}>
+            <Button className="place-self-end" onPress={getBrightness}>
               Read
             </Button>
             <CopyableInput className="grow basis-1"
@@ -338,15 +338,16 @@ const MicroscopeThresholdWidget: React.FC<CameraComponentProps> = (props) => {
                    endContent={<span className="font-mono">%</span>}>
             </Input>
             <div className="mr-[-8px] pr-[-8px] place-self-start justify-self-center">
-              <Checkbox isSelected={showThreshold} onValueChange={setShowThreshold}/>
+              <Checkbox isSelected={showThreshold} onValueChange={setShowThreshold} aria-label="thresholding enabled"/>
             </div>
           </div>
         </CardBody>
       </Card>
 
-      <div className="flex flex-col bg-default-100 rounded-xl overflow-hidden">
+      <div className="flex flex-col bg-default-100 rounded-xl rounded-b-2xl overflow-hidden">
         <SiteSelectWidget onValueChanged={setFilename} hideCard/>
-        <Table className={"shadow-lg z-10"} classNames={{
+        <Table aria-label="Thresholding readings"
+               className={"shadow-lg z-10"} classNames={{
           wrapper: "rounded-t-none "
         }}>
           <TableHeader>
