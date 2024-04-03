@@ -1,5 +1,6 @@
 import {
   Button,
+  Divider,
   Dropdown,
   DropdownItem,
   DropdownMenu,
@@ -15,6 +16,11 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../redux/RootState";
 import { useUIActions } from "../../redux/actions/useUIActions";
 import { BifrostConnectionStatus } from "../../redux/models/bifrost/BifrostTypes";
+import { useLocation } from "react-router-dom";
+import humanizeString from "humanize-string";
+import { BLCMDStatusButton } from "../BLCMDStatusModal/BLCMDStatusButton";
+import "./TopBar.css";
+import { List } from "react-bootstrap-icons";
 
 const connectionStatusColor: {
   [key: string]: "success" | "warning" | "danger";
@@ -24,23 +30,52 @@ const connectionStatusColor: {
   [BifrostConnectionStatus.DISCONNECTED]: "danger",
 };
 
-export const NovaNavbar: React.FC = () => {
+export const NovaTopBar: React.FC = () => {
   const uiActions = useUIActions();
+
+  const uiState = useSelector((state: RootState) => state.uiState);
 
   const bifrostStatus = useSelector(
     (state: RootState) => state.bifrostStatus.connectionStatus
   );
 
-  // State to control the visibility of the image modal
+  const location = useLocation();
+
+  const parsedLocation = location.pathname
+    .split("/")
+    .filter((val) => !["/", ""].includes(val));
+
+  const title = parsedLocation.reverse()[0];
 
   return (
     <Navbar maxWidth="full" isBordered position="static">
-      <NavbarContent justify="start">
+      <Button
+        variant="light"
+        isIconOnly
+        onClick={() =>
+          uiActions.setSideBarVisibility(!uiState.sidebarIsVisible)
+        }
+        className="absolute left-2"
+      >
+        <List size="24px" />
+      </Button>
+      <NavbarContent justify="start" className="ml-7">
         <NavbarBrand>
-          <img src={novaLogo} className="w-14" alt="Nova Logo" />
+          <img src={novaLogo} className="w-16" alt="Nova Logo" />
+          {!!title && (
+            <>
+              <Divider orientation="vertical" className="h-10 w-[2px] mx-2" />
+              <p className="title hidden sm:block text-2xl ">
+                {humanizeString(title)}
+              </p>
+            </>
+          )}
         </NavbarBrand>
       </NavbarContent>
       <NavbarContent as="div" className="items-center" justify="end">
+        <NavbarItem>
+          <BLCMDStatusButton />
+        </NavbarItem>
         <NavbarItem>
           <Dropdown placement="bottom-end">
             <DropdownTrigger>
@@ -71,7 +106,7 @@ export const NovaNavbar: React.FC = () => {
                 General
               </Button>
             </DropdownTrigger>
-            <DropdownMenu>
+            <DropdownMenu aria-label="Operation Mode">
               <DropdownItem
                 description="General Tab for Rover Operation"
                 href="/general"

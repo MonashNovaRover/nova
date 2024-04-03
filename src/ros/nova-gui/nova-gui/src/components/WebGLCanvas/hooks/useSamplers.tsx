@@ -1,0 +1,118 @@
+import {useEffect, useState} from "react";
+import loadTexture, {updateImageTexture} from "../webgl-utils/loadTexture.ts";
+import loadVideoTexture, {updateVideoTexture} from "../webgl-utils/loadVideoTexture.ts";
+import "rvfc-polyfill"
+
+export type GLSampler = [HTMLImageElement | HTMLVideoElement | null | undefined, number];
+export type GLSamplers = {[key: string] : GLSampler}; // Map<string, GLSampler>;
+
+/**
+ * Applies video and image elements as samplers for a webgl program.
+ * This is currently broken when using more than 1 sampler.
+ * TODO: fix for cases with more than one sampler.
+ * @param gl The rendering context to use
+ * @param program The program to apply samplers to.
+ * @param samplers The samplers to use.
+ */
+const useSamplers = (gl?: WebGL2RenderingContext, program?: WebGLProgram, samplers?: GLSamplers) => {
+  const [textures, setTextures] = useState<{[key: string] : WebGLTexture | undefined}>({});
+  const [samplerFrameID, setSamplerFrameID] = useState<number>(0);
+
+  useEffect(() => {
+    if (gl === undefined || samplers === undefined || program === undefined)
+      return;
+
+    const frameIDs = new Array(samplers.length).map(() => 0);
+
+    // Flip image pixels into the bottom-to-top order that WebGL expects.
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+
+    // Create a texture for every sampler
+    const newTex = Object.entries(samplers).map(([key, [sampler, texIndex]], index) => {
+      if (sampler === undefined || sampler === null)
+        return [key, undefined]; // Skip undefined samplers
+
+      let texture = textures[key];
+
+      const location = gl.getUniformLocation(program, key);
+
+      if (!location) {
+        // This sampler does not exist in the program
+        console.warn(`Sampler with name '${key}' does not exist in the shader program!`);
+        return [key, undefined];
+      }
+
+      if (!texture) {
+        // The sampler is an image
+        texture = sampler instanceof HTMLVideoElement
+          ? loadVideoTexture(gl, sampler)
+          : loadTexture(gl, sampler);
+
+        if (!texture)
+          return [key, undefined]; // Failed to load into texture; continue to next sampler
+
+        gl.activeTexture(gl.TEXTURE0 + texIndex);
+
+        // Bind the texture to texture unit 0
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+
+        // Tell the shader we bound the texture to the given texture unit
+        gl.uniform1i(location, texIndex);
+      }
+      else {
+        // Bind the texture to texture unit 0
+        gl.activeTexture(gl.TEXTURE0 + texIndex);
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+
+        // Tell the shader we bound the texture to texture unit 0
+        gl.uniform1i(location, texIndex);
+
+        if (sampler instanceof HTMLVideoElement)
+          updateVideoTexture(gl, sampler, texture);
+        else
+          updateImageTexture(gl, sampler, texture);
+
+        //gl.activeTexture(gl.TEXTURE0 + index);
+      }
+
+      if (sampler instanceof HTMLVideoElement) {
+        // Create a callback to run each time a frame is updated. The id of the requestVideoFrameCallback is stored in
+        // frameIDs, so that it can be destroyed by the cleanup function.
+        const callback = () => {
+          updateVideoTexture(gl, sampler, texture);
+
+          const newSamplerFrameID = frameIDs.reduce((x,y) => x+y, 0)
+          setSamplerFrameID(newSamplerFrameID);
+          frameIDs[index] = sampler.requestVideoFrameCallback(callback);
+        }
+
+        frameIDs[index] = sampler.requestVideoFrameCallback(callback);
+      }
+      else {
+        updateImageTexture(gl, sampler, texture);
+      }
+
+
+
+      return [key, texture];
+    });
+
+    setTextures(Object.fromEntries(newTex));
+
+    return () => {
+      Object.entries(samplers).forEach(([, sampler], index) => {
+        if (gl === undefined || samplers === undefined || program === undefined)
+          return;
+
+        // Cancel all video frame callbacks
+        if (sampler instanceof HTMLVideoElement)
+          sampler.cancelVideoFrameCallback(frameIDs[index]);
+      });
+    }
+  }, [program, samplers]);
+
+
+  return samplerFrameID;
+}
+
+export default useSamplers;
