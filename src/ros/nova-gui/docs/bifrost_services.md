@@ -78,7 +78,7 @@ export interface RootState {
 
 Remember, this is just the structure. Creating the store is described below.
 
-##### [`RootReducer.ts`](../nova-gui/src/redux/RootState.ts)
+##### [`RootReducer.ts`](../nova-gui/src/redux/RootReducer.ts)
 
 This file contains the Reducers for the stores and resembles states on `RootState`. For creating a store for `servoSuccessStore`, we use the function `createBifrostStore(<BifrostProps>,<Initial State>)`
 

@@ -11,7 +11,25 @@ export enum RosTopic {
   NULL_TOPIC = "",
   // ROS Topics
   POSE = "/pose",
+
+  // Drive related topics
   DRIVE_INFO = "/control/drive_info",
-  TELEMETRY = "/control/telemetry",
-  RAMAN_SPEC_MSG = "/science/raman_spec_msg"
+  DRIVE_TELEMETRY = "/control/telemetry",
+
+  // Arm related topics
+  ARM_TELEMETRY = "/electronics/cmd_feedback",
+  RFID_DATA = "/electronics/rfid/data",
+
+  // Camera Related topics
+  CAMERAS = "/camera_directory/cameras",
+
+  // Error Related Topics
+  BLCMD_ERRORS = "/control/blcmd_status",
+  
+  // Science Related topics
+  TOF = "/control/analysis_platform",
+  KILN_DATA = "/science/kiln_data",
+  NIR_DATA = "/science/nir_probe_data",
+  MICROSCOPE_SERVO = "/science/microscope_servo_info",
+  RAMAN_SPEC_MSG = "/science/raman_spec_msg",
 }
