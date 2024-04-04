@@ -25,10 +25,13 @@ MORE INFO:
  - https://www.notion.so/Raman-Spectra-0161f5611e934a779247f3733ca8a608
 """
 
+import logging
 import rclpy
 from rclpy.node import Node
+
 from core.srv import RamanSpec
 from core.msg import RamanSpectrum
+
 import numpy as np
 from serial import Serial, SerialException
 import time
@@ -44,12 +47,22 @@ class RamanServer(Node):
 
     def __init__(self):
         super().__init__('raman_spec_server')
+        self.get_logger().set_level(logging.INFO)
+        self.get_logger().info("Raman Spec Server starting")
+
         self.srv = self.create_service(RamanSpec, '/science/raman_spec_srv', self.raman_response)
         self.publisher_ = self.create_publisher(RamanSpectrum, '/science/raman_spec_msg', 10)
-        self.continuous_mode = False
 
-    def is_in_continuous_mode(self):
-        return self.continuous_mode
+        self.is_continuous = False
+
+        self.continuous_settings = None, None, None, None   # A tuple of 4 values (port, shperiod, icgperiod and average, in that order)
+
+        self.continuous_mode = self.create_timer(0.2, self.continuous_callback)
+
+    def continuous_callback(self):
+        if self.is_continuous:
+            msg_isvalid, msg_spectrum = RamanServer.get_spectrum(self.continuous_settings)
+            self.publish_spectrum(msg_isvalid, msg_spectrum)
 
     def set_input(shperiod, icgperiod, singlecollectionmode, average):
         result = np.zeros(12, np.uint8)
@@ -81,54 +94,18 @@ class RamanServer(Node):
 
         return result
 
-    def reduce_resolution_by_a_factor_of(ufactor, input):
-        factor = int(ufactor)
-        if factor == 1:
-            return input
-        reduced_result = [0]* (RamanServer.SPECTRA_SIZE // factor)
-        for reduced_index in range(len(reduced_result)):
-            sum = 0
-            count_at_final_index = None
-            for pixel in range(factor):
-                try:
-                    sum += input[reduced_index + pixel]
-                except IndexError:
-                    count_at_final_element = pixel
-                    break
-            if count_at_final_index:
-                reduced_result[reduced_index] = sum // count_at_final_element
-            else:
-                reduced_result[reduced_index] = sum // factor
-        return reduced_result
             
+    def find_phase_end(output):
+        """
+        Finds the first occurrence of a phase signal (a flat peak in the spectrum that exceeds the PHASE_SIGNAL amount) in a given array
+        """
+        for element_index in range(len(output)):
+            if output[element_index] > RamanServer.PHASE_SIGNAL:
+                return True, output[element_index]
+        
+        return False, None
             
-    def find_phase(output):
-        step = 10
-        dict = {
-            "found":False
-            }
-        startfound = False
-        previous = 0
-        element = 0
-        while element < len(output):
-            current = output[element]
-            if startfound:
-                if previous > RamanServer.PHASE_SIGNAL and current > RamanServer.PHASE_SIGNAL:
-                    dict["end"] = element - 2*step
-                    dict["found"] = True
-                    return dict
-            else:
-                current = output[element]
-                if previous > RamanServer.PHASE_SIGNAL and current > RamanServer.PHASE_SIGNAL:
-                    i = 1
-                    while output[element + i*step] > RamanServer.PHASE_SIGNAL:
-                        i += 1
-                    element += (i - 1) * step
-                    dict["start"] = element + step
-                    startfound = True
-            previous = current
-            element += step
-        return dict
+        
 
     
     def read_output_to_response(output):
@@ -154,16 +131,25 @@ class RamanServer(Node):
 
 
     def raman_response(self, request, response):
-        msg = RamanSpectrum()
+        if request.continuousendsignal:
+            self.is_continuous = False
+            response.continuousendedsignal = True
+            return response
+        
         response.continuousendedsignal = False
-        try:
-            if request.continuousendsignal:
-                issinglecollection = True
-                self.continuous_mode = False
-            else:
-                issinglecollection = request.singlecollectionmode
 
-            ser = Serial(port=str(request.port), baudrate=RamanServer.BAUDRATE)
+        if not request.singlecollectionmode:
+            self.continuous_settings = request.port, request.shperiod, request.icgperiod, request.average
+            return response
+        
+        msg_isvalid, msg_spectrum = RamanServer.get_spectrum(request.port, request.shperiod, request.icgperiod, request.average)
+        self.publish_spectrum(msg_isvalid, msg_spectrum)
+
+        return response
+
+    def get_spectrum(serialport, shperiod, icgperiod, average):
+        try:
+            ser = Serial(port=serialport, baudrate=RamanServer.BAUDRATE)
 
             #wait to clear the input and output buffers, if they're not empty data is corrupted
             while (ser.in_waiting > 0):
@@ -171,59 +157,36 @@ class RamanServer(Node):
                 ser.reset_output_buffer()
                 time.sleep(0.01)
 
-            input = RamanServer.set_input(request.shperiod, request.icgperiod, issinglecollection, request.average)
+            input = RamanServer.set_input(shperiod, icgperiod, True, average)
             output = np.zeros(RamanServer.OUTPUT_SIZE, np.uint8)
 
             #transmit everything at once (the USB-firmware does not work if all bytes are not transmitted in one go)
             ser.write(input)
-
-            if not issinglecollection:
-                self.continuous_mode = True
-
-                #loop to acquire and send data continuously
-                while self.is_in_continuous_mode():
-                    output = ser.read(RamanServer.OUTPUT_SIZE)
-
-                    msg.isvalid = True
-                    msg.spectrum = RamanServer.read_output_to_response(output)
-                    self.publisher_.publish(msg)
-                
-                response.continuousendedsignal = True
-
-                #resend settings with continuous transmission disabled to avoid flooding of the serial port
-                input = RamanServer.set_input(request.shperiod, request.icgperiod, True, request.average)
-
-                #transmit everything at once (the USB-firmware does not work if all bytes are not transmitted in one go)
-                ser.write(input)
                 
             #wait for the firmware to return data
-            output = ser.read(2*RamanServer.OUTPUT_SIZE)
-
-            read_output = RamanServer.read_output_to_response(output)
+            output = ser.read(RamanServer.OUTPUT_SIZE)
 
             ser.close()
 
-            find_phase = RamanServer.find_phase(read_output)
+            balanced_output = RamanServer.read_output_to_response(output)
 
-            if find_phase["found"]:
-                final_output = []
-                for element_in_phase in range(find_phase["start"], find_phase["end"] + 1):
-                    final_output.append(output[element_in_phase])
-                msg.isvalid = True
-                msg.spectrum = final_output
-            else:
-                msg.isvalid = False
-                msg.spectrum = []
-            
-            self.publisher_.publish(msg)
+            phase_end_found, phase_end_index = RamanServer.find_phase_end(balanced_output)
 
-            return response
-	
+            if phase_end_found:
+                final_output = balanced_output[0:phase_end_index]
+                return True, final_output
+               
         except SerialException:
-            msg.isvalid = False
-            msg.spectrum = []
-            self.publisher_.publish(msg)
-            return response
+            pass
+
+        return False, []
+
+    def publish_spectrum(self, msg_isvalid, msg_spectrum):
+        msg = RamanSpectrum()
+        msg.isvalid = msg_isvalid
+        msg.spectrum = msg_spectrum
+        self.publisher_.publish(msg)
+
 
 def main(args=None):
     rclpy.init(args=args)
