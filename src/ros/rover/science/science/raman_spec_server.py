@@ -11,14 +11,16 @@ SERVICES:
     - /science/raman_spec_srv [RamanSpec] [Server]
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-PACKAGE: science
+PACKAGE:        science
 SOURCE AUTHOR:	Esben Rossel <esbenrossel@gmail.com>
-AUTHOR: Connor Macdougall
-CREATION:	18/01/2024
-EDITED:		21/02/2024
+AUTHOR:         Connor Macdougall
+CREATION:	    18/01/2024
+EDITED:		    21/02/2024
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
- - Test
+ - Test in person
+ - Determine whether wrong model of STM may be affecting outputs (Check CCD help of original code for more information)
+ - Remove dummy pixels?
 
 MORE INFO:
  - https://www.notion.so/Raman-Spectra-0161f5611e934a779247f3733ca8a608
@@ -43,7 +45,7 @@ class RamanServer(Node):
     MASTERCLOCK = 800000
     SPECTRA_SIZE = 3694
     OUTPUT_SIZE = 7388
-    PHASE_SIGNAL = 3700
+    PHASE_SIGNAL = 3655
 
     def __init__(self):
         super().__init__('raman_spec_server')
