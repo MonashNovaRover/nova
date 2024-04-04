@@ -2,6 +2,8 @@
  * Author: Connor Macdougall
  * This component outputs responses from the CCD, and also has graphs to compare output data against.
  * It accepts responses from the 'raman_spectra' ROS service.
+ * TODO:
+ *  - Overhaul how graphs are overlayed to a manner that can fit single collection mode (continuous mode could just remove all overlayed graphs)
  */
 
 import { Card, CardHeader, ScrollShadow } from "@nextui-org/react";
