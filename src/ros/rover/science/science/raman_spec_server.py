@@ -6,7 +6,7 @@ Purpose: ROS Node for publishing responses to service requests from GUI data for
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: raman_spec_server
 TOPICS: 
-    - /science/raman_spec_msg [RamanSpectraStream] [Publisher]
+    - /science/raman_spec_msg [RamanSpectrum] [Publisher]
 SERVICES: 
     - /science/raman_spec_srv [RamanSpec] [Server]
 ACTIONS: None
@@ -35,6 +35,7 @@ from core.msg import RamanSpectrum
 import numpy as np
 from serial import Serial, SerialException
 import time
+from typing import Tuple, List
 
 
 class RamanServer(Node):
@@ -50,12 +51,12 @@ class RamanServer(Node):
         self.get_logger().set_level(logging.INFO)
         self.get_logger().info("Raman Spec Server starting")
 
+        # initialising node values
+        self.is_continuous = False
+        self.continuous_settings = None, None, None, None   # A tuple of 4 values (port, shperiod, icgperiod and average, in that order)
+
         self.srv = self.create_service(RamanSpec, '/science/raman_spec_srv', self.raman_response)
         self.publisher_ = self.create_publisher(RamanSpectrum, '/science/raman_spec_msg', 10)
-
-        self.is_continuous = False
-
-        self.continuous_settings = None, None, None, None   # A tuple of 4 values (port, shperiod, icgperiod and average, in that order)
 
         self.continuous_mode = self.create_timer(0.2, self.continuous_callback)
 
@@ -64,7 +65,7 @@ class RamanServer(Node):
             msg_isvalid, msg_spectrum = RamanServer.get_spectrum(self.continuous_settings)
             self.publish_spectrum(msg_isvalid, msg_spectrum)
 
-    def set_input(shperiod, icgperiod, singlecollectionmode, average):
+    def set_input(shperiod: int, icgperiod: int, singlecollectionmode: bool, average: int) -> List[int]:
         result = np.zeros(12, np.uint8)
 
         #Transmit where in circular buffer to read from and to   
@@ -93,9 +94,8 @@ class RamanServer(Node):
         result[11] = average  # min is 1, max is 15
 
         return result
-
-            
-    def find_phase_end(output):
+    
+    def find_phase_end(output: List[int]) -> Tuple[bool, int]:
         """
         Finds the first occurrence of a phase signal (a flat peak in the spectrum that exceeds the PHASE_SIGNAL amount) in a given array
         """
@@ -105,10 +105,10 @@ class RamanServer(Node):
         
         return False, None
             
-        
-
-    
-    def read_output_to_response(output):
+    def read_output_to_response(output: List[int]) -> List[int]:
+        """
+        Converts 8 bit integers read to 16 bit integers and balances the output (due to left and right sides of shift registers returning different values)
+        """
         response = [0] * RamanServer.SPECTRA_SIZE
 
         # combining 8 bit integer pairs into respective 16 bit integer values
@@ -131,23 +131,33 @@ class RamanServer(Node):
 
 
     def raman_response(self, request, response):
+        """
+        Callback for a service request
+        """
         if request.continuousendsignal:
             self.is_continuous = False
+            self.get_logger().info("Continuous mode deactivated")
             response.continuousendedsignal = True
             return response
         
         response.continuousendedsignal = False
 
         if not request.singlecollectionmode:
+            self.is_continuous = True
+            self.get_logger().info("Continuous mode activated")
             self.continuous_settings = request.port, request.shperiod, request.icgperiod, request.average
             return response
         
-        msg_isvalid, msg_spectrum = RamanServer.get_spectrum(request.port, request.shperiod, request.icgperiod, request.average)
+        msg_isvalid, msg_spectrum = self.get_spectrum(request.port, request.shperiod, request.icgperiod, request.average)
+        self.get_logger().info(f"Spectrum length is {len(msg_spectrum)}")
         self.publish_spectrum(msg_isvalid, msg_spectrum)
 
         return response
 
-    def get_spectrum(serialport, shperiod, icgperiod, average):
+    def get_spectrum(self, serialport: str, shperiod: int, icgperiod: int, average: int) -> Tuple[bool, List[int]]:
+        """
+        Gets a single spectrum, returning a tuple of whether the spectrum is valid or not and the spectrum itself
+        """
         try:
             ser = Serial(port=serialport, baudrate=RamanServer.BAUDRATE)
 
@@ -176,12 +186,12 @@ class RamanServer(Node):
                 final_output = balanced_output[0:phase_end_index]
                 return True, final_output
                
-        except SerialException:
-            pass
+        except SerialException as e:
+            self.get_logger().error(f"Failed to process Raman service request: {str(e)}")
 
         return False, []
 
-    def publish_spectrum(self, msg_isvalid, msg_spectrum):
+    def publish_spectrum(self, msg_isvalid: bool, msg_spectrum: List[int]) -> None:
         msg = RamanSpectrum()
         msg.isvalid = msg_isvalid
         msg.spectrum = msg_spectrum
