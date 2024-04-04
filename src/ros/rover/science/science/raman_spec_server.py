@@ -18,8 +18,7 @@ CREATION:	18/01/2024
 EDITED:		21/02/2024
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
- - Make single collection captures one phase
- - Complete revision of continuous collection (may require the introduction of an executor class within Node)
+ - Test
 
 MORE INFO:
  - https://www.notion.so/Raman-Spectra-0161f5611e934a779247f3733ca8a608
@@ -61,11 +60,17 @@ class RamanServer(Node):
         self.continuous_mode = self.create_timer(0.2, self.continuous_callback)
 
     def continuous_callback(self):
+        """
+        Calls a single spectrum to be published
+        """
         if self.is_continuous:
             msg_isvalid, msg_spectrum = RamanServer.get_spectrum(self.continuous_settings)
             self.publish_spectrum(msg_isvalid, msg_spectrum)
 
     def set_input(shperiod: int, icgperiod: int, singlecollectionmode: bool, average: int) -> List[int]:
+        """
+        Creates the array used for configuration to be sent to firmware.
+        """
         result = np.zeros(12, np.uint8)
 
         #Transmit where in circular buffer to read from and to   
@@ -192,6 +197,9 @@ class RamanServer(Node):
         return False, []
 
     def publish_spectrum(self, msg_isvalid: bool, msg_spectrum: List[int]) -> None:
+        """
+        Publishes RamanSpectrum message with inputted data
+        """
         msg = RamanSpectrum()
         msg.isvalid = msg_isvalid
         msg.spectrum = msg_spectrum
