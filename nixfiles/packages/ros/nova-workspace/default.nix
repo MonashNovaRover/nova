@@ -31,7 +31,7 @@
 , nova-interfaces ? throw "nova-interfaces is needed, but not available!"
 , nova-bringup ? throw "nova-bringup is needed, but not available!"
 , nova-rover-description ? throw "rover-description is needed, but not available!"
-, nova-teleop-drive-joy ? throw "teleop-drive-joy is needed, but not available!"
+# , nova-teleop-drive-joy ? throw "teleop-drive-joy is needed, but not available!"
 
 
   # Configuration options
@@ -68,8 +68,8 @@
       nova-gimbal-cam
       nova-interfaces
       nova-bringup
-      nova-rover-description
-      nova-teleop-drive-joy;
+      nova-rover-description;
+      # nova-teleop-drive-joy;
   }
 
   ## Extra packages to add to the workspace.
