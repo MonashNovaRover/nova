@@ -90,7 +90,7 @@ const MicroscopeThresholdWidget: React.FC<CameraComponentProps> = (props) => {
   const uniforms = useDict<vec>(() => ({
     threshold: [finalThreshold]
   }), [threshold, manualThreshold])
-  useUniforms(gl?.gl, program, uniforms);
+  useUniforms(gl, program, uniforms);
 
   // Render the canvas whenever anything relevant changes
   useEffect(() => {
@@ -136,7 +136,6 @@ const MicroscopeThresholdWidget: React.FC<CameraComponentProps> = (props) => {
 
     setFile(newFile);
   }, [file, setFile]);
-
 
   const getBrightness = useCallback(() => {
     const numElements = width * height;

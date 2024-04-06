@@ -90,7 +90,7 @@ const UnmemoedWebGLCanvas: React.FC<IWebGLCanvasProps> = ({
 
 
   // Apply uniforms
-  useUniforms(gl.gl, program, uniforms);
+  useUniforms(gl, program, uniforms);
 
   // Apply vertex attributes. (might include a position buffer of some kind?)
   useAttributes(gl.gl, program, attributes);
