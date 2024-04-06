@@ -16,6 +16,9 @@ const useGL = (webglAttributes?: WebGLContextAttributes )
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useLayoutEffect(() => {
+    if (gl.current !== undefined && gl.current !== null)
+      console.warn("A WebGL2RenderingContext was regenerated in useGL.");
+
     gl.current = canvasRef.current?.getContext?.("webgl2", {
       ...webglAttributes,
     }) ?? undefined;
@@ -27,7 +30,7 @@ const useGL = (webglAttributes?: WebGLContextAttributes )
       canvasRef: canvasRef,
       gl: gl.current,
     } as CanvasWithGL;
-  }, [gl, canvasRef]);
+  }, [gl, canvasRef, canvasRef.current]) ?? false;
 }
 
 export default useGL;

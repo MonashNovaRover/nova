@@ -15,7 +15,6 @@ import {
   TableHeader,
   TableRow
 } from "@nextui-org/react";
-import useSamplers, {GLSampler} from "../WebGLCanvas/hooks/useSamplers.tsx";
 import useDict from "../WebGLCanvas/hooks/useDict.tsx";
 import useAttributes from "../WebGLCanvas/hooks/useAttributes.tsx";
 import useCanvasSize from "../WebGLCanvas/hooks/useCanvasSize.tsx";
@@ -29,6 +28,7 @@ import {useBifrost} from "../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosTopic} from "../../ros/topics/rosTopic.ts";
 import {useCameraStream} from "../CameraComponent/hooks/useCameraStream.ts";
 import {useCameraStreamer} from "../CameraComponent/hooks/useCameraStreamer.ts";
+import useSampler from "../WebGLCanvas/hooks/useSampler.ts";
 
 const attributes = {
   aPosition: {
@@ -80,35 +80,36 @@ const MicroscopeThresholdWidget: React.FC<CameraComponentProps> = (props) => {
 
   const [width, height] = useCanvasSize(gl, videoRef.current ?? undefined);
 
-  const samplers = useDict<GLSampler>(() => ({
+  /*const samplers = useDict<GLSampler>(() => ({
     image: [videoRef.current, 0]
   }), [videoRef.current])
   const frameID = useSamplers(gl?.gl, program, samplers);
+   */
+  const frameID = useSampler(program, videoRef.current, 0, "image");
 
-  useAttributes(gl?.gl, program, attributes);
+  useAttributes(gl.gl, program?.program, attributes);
 
   const uniforms = useDict<vec>(() => ({
     threshold: [finalThreshold]
   }), [threshold, manualThreshold])
-  useUniforms(gl, program, uniforms);
+  useUniforms(gl, program?.program, uniforms);
 
   // Render the canvas whenever anything relevant changes
   useEffect(() => {
     if (!gl?.gl || !program)
       return;
 
-    // Redraw
-    gl?.gl.clear(gl?.gl.COLOR_BUFFER_BIT);
-    gl?.gl.drawArrays(gl?.gl.TRIANGLE_STRIP, 0, 4);
-  }, [gl?.gl, program, videoRef.current?.width, videoRef.current?.height, samplers, uniforms, threshold, frameID]);
+    // Redraweeeeee
+    gl.gl.clear(gl.gl.COLOR_BUFFER_BIT);
+    gl.gl.useProgram(program.program);
+    gl.gl.drawArrays(gl.gl.TRIANGLE_STRIP, 0, 4);
+  }, [gl.gl, program, videoRef.current?.width, videoRef.current?.height, uniforms, threshold, frameID, videoRef]);
 
   const toggleShowThreshold = useCallback(() => {
     setShowThreshold(!showThreshold);
   }, [showThreshold, setShowThreshold]);
 
   // Calibration things
-
-
   const concentrationFunction = useCallback((brightness: number) => {
     const densityRatio = 4.45 / 1.4;
     return (densityRatio * brightness) / (brightness * (densityRatio - 1) + 1);
@@ -256,8 +257,8 @@ const MicroscopeThresholdWidget: React.FC<CameraComponentProps> = (props) => {
                      muted
                      playsInline
                      ref={videoRef}
-                     className={showThreshold ? "-z-10" : "z-20"}/>
-              <canvas className="absolute max-w-full max-h-full right-0 left-0 z-10 rounded-lg"
+                     className={showThreshold ? "z-10" : "z-30"}/>
+              <canvas className="absolute max-w-full max-h-full right-0 left-0 z-20 rounded-lg"
                       aria-label="thresheld output"
                       ref={gl.canvasRef}
                       width={width}

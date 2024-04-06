@@ -1,6 +1,11 @@
-import {useLayoutEffect, useState} from "react";
+import {useEffect, useMemo, useState} from "react";
 import initShaderProgram from "../webgl-utils/initShaderProgram.ts";
 import {CanvasWithGL} from "./useGL.tsx";
+
+export interface ProgramWithGL {
+  program: WebGLProgram,
+  gl: WebGL2RenderingContext
+}
 
 /**
  * Compiles and uses a webgl program given the vertex and fragment shader source code.
@@ -11,7 +16,7 @@ import {CanvasWithGL} from "./useGL.tsx";
 export function useProgram(gl: CanvasWithGL, vert: string, frag: string) {
   const [program, setProgram] = useState<WebGLProgram | undefined>();
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (!gl.gl)
       return;
 
@@ -27,5 +32,13 @@ export function useProgram(gl: CanvasWithGL, vert: string, frag: string) {
     setProgram(newProgram);
   }, [gl, vert, frag]);
 
-  return program;
+  return useMemo(() => {
+    if (!gl.gl || !program)
+      return;
+
+    return {
+      program: program,
+      gl: gl.gl
+    } as ProgramWithGL
+  }, [gl.gl, program]);
 }
