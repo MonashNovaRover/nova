@@ -5,7 +5,10 @@
 //
 // Initialize a shader program, so WebGL knows how to draw our data
 //
-export default function initShaderProgram(gl: WebGLRenderingContext, vsSource: string, fsSource: string) {
+export default function initShaderProgram(gl: WebGLRenderingContext | undefined, vsSource: string, fsSource: string) {
+  if (gl === undefined)
+    return;
+
   const vertexShader = loadVertexShader(gl, vsSource);
   const fragmentShader = loadFragmentShader(gl, fsSource);
 

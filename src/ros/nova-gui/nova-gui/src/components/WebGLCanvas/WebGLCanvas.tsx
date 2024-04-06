@@ -81,7 +81,7 @@ const UnmemoedWebGLCanvas: React.FC<IWebGLCanvasProps> = ({
   //const canvasRef = useRef<HTMLCanvasElement>(null);
   //const gl = useGL(canvasRef);
 
-  const program = useProgram(gl.gl, vert, frag);
+  const program = useProgram(gl, vert, frag);
 
   // Effect to update the clear color
   useEffect(() => {

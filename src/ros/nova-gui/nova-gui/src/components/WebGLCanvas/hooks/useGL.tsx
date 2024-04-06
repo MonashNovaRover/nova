@@ -1,4 +1,4 @@
-import React, {useLayoutEffect, useRef} from "react";
+import React, {useLayoutEffect, useMemo, useRef} from "react";
 
 export interface CanvasWithGL {
   canvasRef: React.RefObject<HTMLCanvasElement>,
@@ -16,15 +16,18 @@ const useGL = (webglAttributes?: WebGLContextAttributes )
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useLayoutEffect(() => {
-    gl.current = (canvasRef.current?.getContext?.("webgl2", {
+    gl.current = canvasRef.current?.getContext?.("webgl2", {
       ...webglAttributes,
-    }) ?? undefined);
+    }) ?? undefined;
   }, [canvasRef, webglAttributes]);
 
-  return {
-    canvasRef: canvasRef,
-    gl: gl.current,
-  };
+  // The returned object will only exist if the WebGL2RenderingContext has already been created.
+  return useMemo(() => {
+    return {
+      canvasRef: canvasRef,
+      gl: gl.current,
+    } as CanvasWithGL;
+  }, [gl, canvasRef]);
 }
 
 export default useGL;

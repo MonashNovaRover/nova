@@ -76,31 +76,31 @@ const MicroscopeThresholdWidget: React.FC<CameraComponentProps> = (props) => {
   } = useCameraStream(cameraSerial, videoRef, allCamerasStarted); // useWebcam(videoRef);
 
   const gl = useGL();
-  const program = useProgram(gl.gl, vert, frag);
+  const program = useProgram(gl, vert, frag);
 
   const [width, height] = useCanvasSize(gl, videoRef.current ?? undefined);
 
   const samplers = useDict<GLSampler>(() => ({
     image: [videoRef.current, 0]
   }), [videoRef.current])
-  const frameID = useSamplers(gl.gl, program, samplers);
+  const frameID = useSamplers(gl?.gl, program, samplers);
 
-  useAttributes(gl.gl, program, attributes);
+  useAttributes(gl?.gl, program, attributes);
 
   const uniforms = useDict<vec>(() => ({
     threshold: [finalThreshold]
   }), [threshold, manualThreshold])
-  useUniforms(gl.gl, program, uniforms);
+  useUniforms(gl?.gl, program, uniforms);
 
   // Render the canvas whenever anything relevant changes
   useEffect(() => {
-    if (!gl.gl || !program)
+    if (!gl?.gl || !program)
       return;
 
     // Redraw
-    gl.gl.clear(gl.gl.COLOR_BUFFER_BIT);
-    gl.gl.drawArrays(gl.gl.TRIANGLE_STRIP, 0, 4);
-  }, [gl.gl, program, videoRef.current?.width, videoRef.current?.height, samplers, uniforms, threshold, frameID]);
+    gl?.gl.clear(gl?.gl.COLOR_BUFFER_BIT);
+    gl?.gl.drawArrays(gl?.gl.TRIANGLE_STRIP, 0, 4);
+  }, [gl?.gl, program, videoRef.current?.width, videoRef.current?.height, samplers, uniforms, threshold, frameID]);
 
   const toggleShowThreshold = useCallback(() => {
     setShowThreshold(!showThreshold);
@@ -145,11 +145,11 @@ const MicroscopeThresholdWidget: React.FC<CameraComponentProps> = (props) => {
       return;
 
     // Redraw
-    gl.gl.clear(gl.gl.COLOR_BUFFER_BIT);
-    gl.gl.drawArrays(gl.gl.TRIANGLE_STRIP, 0, 4);
+    gl?.gl.clear(gl?.gl.COLOR_BUFFER_BIT);
+    gl?.gl.drawArrays(gl?.gl.TRIANGLE_STRIP, 0, 4);
 
     const output = new Uint8Array(numElements * 4);
-    gl.gl?.readPixels(0, 0, width, height, gl.gl.RGBA, gl.gl.UNSIGNED_BYTE, output);
+    gl?.gl.readPixels(0, 0, width, height, gl?.gl.RGBA, gl?.gl.UNSIGNED_BYTE, output);
 
     const average = output.reduce((acc, value, index) =>
       (index % 4) === 3 ? acc : acc + (value/(numElements * 3)), 0) / 255;
