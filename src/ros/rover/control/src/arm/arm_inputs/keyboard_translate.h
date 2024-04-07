@@ -92,6 +92,7 @@ class KeyboardTranslate: public InputDevice {
         uint32_t all_joint_space;
         uint32_t all_task_space;
         uint32_t zero_resolvers;
+        uint32_t toggle_input;
         std::map<int, uint32_t> resolver_to_key;
         
         // Shift based
