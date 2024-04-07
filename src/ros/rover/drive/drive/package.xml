@@ -15,7 +15,7 @@
   <depend>rclcpp</depend>
   <depend>blcmd_interfaces</depend>
   <depend>drive_interfaces</depend>
-  <depend>input_msgs</depend>
+  <depend>input_interfaces</depend>
 
   <export>
     <build_type>ament_cmake</build_type>
