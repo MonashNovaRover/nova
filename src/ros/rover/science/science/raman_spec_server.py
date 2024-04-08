@@ -154,10 +154,15 @@ class RamanServer(Node):
             self.get_logger().info("Continuous mode activated")
             self.continuous_settings = request.port, request.shperiod, request.icgperiod, request.average
             return response
+
+        time_start = time.time()
         
         msg_isvalid, msg_spectrum = self.get_spectrum(request.port, request.shperiod, request.icgperiod, request.average)
         self.get_logger().info(f"Spectrum length is {len(msg_spectrum)}")
         self.publish_spectrum(msg_isvalid, msg_spectrum)
+
+        time_taken = time.time() - time_start
+        self.get_logger().info(f"Spectrum collection took {str(round(time_taken, 7))} seconds")
 
         return response
 
