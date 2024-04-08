@@ -16,7 +16,7 @@ byte STRAFE = 2
 byte TANK = 3
 
 #current drive mode of the rover
-byte mode 
+byte drive_mode 
 
 #handbrake on or off
 bool handbrake

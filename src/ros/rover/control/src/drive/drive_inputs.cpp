@@ -55,7 +55,7 @@ void DriveInputs::publish_info()
     info_msg.locked = locked;
     info_msg.autonomous_mode = autonomous;
     info_msg.connected = connected;
-    info_msg.mode = latest_drive_input.mode;
+    info_msg.drive_mode = latest_drive_input.mode;
     info_msg.handbrake = latest_drive_input.handbrake;
     // Publish the info
     info_publisher->publish(info_msg);

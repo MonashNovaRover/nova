@@ -139,11 +139,11 @@ namespace teleop_drive_joy
       rclcpp::Parameter enable_twist_cmd_param = rclcpp::Parameter("enable_twist_cmd", enable_twist_cmd);
     };
 
-    if (current_state.mode != previous_state.mode)
+    if (current_state.drive_mode != previous_state.drive_mode)
     {
-      RCLCPP_INFO(node_->get_logger(), "Changing from %s to %s", modeToController(previous_state.mode).c_str(), modeToController(current_state.mode).c_str());
-      std::string activate_controller = modeToController(current_state.mode);
-      std::string deactivate_controller = modeToController(previous_state.mode);
+      RCLCPP_INFO(node_->get_logger(), "Changing from %s to %s", modeToController(previous_state.drive_mode).c_str(), modeToController(current_state.drive_mode).c_str());
+      std::string activate_controller = modeToController(current_state.drive_mode);
+      std::string deactivate_controller = modeToController(previous_state.drive_mode);
 
       request->activate_controllers.emplace_back(activate_controller);
       request->deactivate_controllers.emplace_back(deactivate_controller);
@@ -194,7 +194,7 @@ namespace teleop_drive_joy
       drive_input_msg->drive_input.radius = angular == 0 ? INFINITY : (1.0 / pow(abs(angular), 2)) - 1;
       drive_input_msg->drive_input.direction = angular > 0 ? -1 : angular < 0 ? 1 : 0;
       drive_input_msg->drive_input.speed = linear;
-      drive_input_msg->drive_input.mode = previous_state.mode;
+      drive_input_msg->drive_input.mode = previous_state.drive_mode;
       drive_input_msg->header.stamp = node_->now();
 
       drive_input_pub->publish(std::move(drive_input_msg));
@@ -242,19 +242,19 @@ namespace teleop_drive_joy
       current_state.autonomous_mode = false;
       RCLCPP_INFO(node_->get_logger(), "BUTTON: manual_control");
     }
-    if (joy_msg->buttons[params_.button_strafe_mode] && current_state.mode != core::msg::DriveInput::STRAFE)
+    if (joy_msg->buttons[params_.button_strafe_mode] && current_state.drive_mode != core::msg::DriveInput::STRAFE)
     {
-      current_state.mode = core::msg::DriveInput::STRAFE;
+      current_state.drive_mode = core::msg::DriveInput::STRAFE;
       RCLCPP_INFO(node_->get_logger(), "BUTTON: strafe_mode");
     }
-    else if (joy_msg->buttons[params_.button_diff_drive_mode] && current_state.mode != core::msg::DriveInput::TANK)
+    else if (joy_msg->buttons[params_.button_diff_drive_mode] && current_state.drive_mode != core::msg::DriveInput::TANK)
     {
-      current_state.mode = core::msg::DriveInput::TANK;
+      current_state.drive_mode = core::msg::DriveInput::TANK;
       RCLCPP_INFO(node_->get_logger(), "BUTTON: diff_drive_mode");
     }
-    else if (joy_msg->buttons[params_.button_pivot_drive_mode] && current_state.mode != core::msg::DriveInput::PIVOT)
+    else if (joy_msg->buttons[params_.button_pivot_drive_mode] && current_state.drive_mode != core::msg::DriveInput::PIVOT)
     {
-      current_state.mode = core::msg::DriveInput::PIVOT;
+      current_state.drive_mode = core::msg::DriveInput::PIVOT;
       RCLCPP_INFO(node_->get_logger(), "BUTTON: pivot_drive_mode");
     }
     else if (joy_msg->axes[params_.axis_speed_change_coarse] && !speed_change_button_pressed)
