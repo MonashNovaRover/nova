@@ -14,7 +14,7 @@ let
   # nix-ros and b) has newer changes we need.
   # Using the nix-ros branch with specific patches added is preferred because
   # it allows use of the https://ros.cachix.org binary cache.
-  nixpkgs = pkgs.applyPatches {
+  nixpkgs = pkgs.lib.maybeEnv "NIXPKGS_PATH" (pkgs.applyPatches {
     src = pkgs.fetchFromGitHub {
       owner = "NixOS";
       repo = "nixpkgs";
@@ -22,9 +22,9 @@ let
     };
     patches = [
     ];
-  };
+  });
 
-  nix-ros-overlay = pkgs.applyPatches {
+  nix-ros-overlay = pkgs.lib.maybeEnv "NRO_PATH" (pkgs.applyPatches {
     src = pkgs.fetchFromGitHub {
       owner = "lopsided98";
       repo = "nix-ros-overlay";
@@ -32,13 +32,13 @@ let
     };
     patches = [
     ];
-  };
+  });
 
-  nix-ros-workspace = pkgs.fetchFromGitHub {
+  nix-ros-workspace = pkgs.lib.maybeEnv "NRWS_PATH" (pkgs.fetchFromGitHub {
     owner = "hacker1024";
     repo = "nix-ros-workspace";
     inherit (revisions.nix-ros-workspace) rev hash;
-  };
+  });
 
   inherit (pkgs.lib.evalModules {
     modules = [

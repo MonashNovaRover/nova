@@ -1,12 +1,7 @@
 import yaml
 
 rover.wait_for_unit("default.target")
-
-with subtest("Set up the fake cameras"):
-    base_pipeline = "videotestsrc pattern=ball foreground-color=0xF67216 ! video/x-raw,width=1280,height=720,framerate=30/1 ! tee name=t"
-    split_pipeline = " ".join(f"t. ! queue ! textoverlay valignment=center halignment=center font-desc='Sans, 48' text='Test stream {i}' ! v4l2sink device=/dev/video{i}" for i in range(1, camera_count + 1))
-    gst_pipeline = f"{base_pipeline} {split_pipeline}"
-    rover.succeed(f"gst-launch-1.0 --no-position {gst_pipeline} >&2 &")
+rover.wait_for_unit("nova-mock-cameras.service")
 
 with subtest("Launch the camera services"):
     rover.succeed("ros2 launch --noninteractive cameras2 camera_server_launch.py param-dir:=\"$(mktemp -d)\" >&2 &")

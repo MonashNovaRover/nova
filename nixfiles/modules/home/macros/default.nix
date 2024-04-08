@@ -61,9 +61,16 @@ in
             coms = "${nova}/other/coms_utils";
 
             # Networking aliases
-            jetson = "ssh -Y nvidia@192.168.1.204";
+            jetson = "ssh -Y nvidia@10.0.0.10";
             jetson_wifi = "ssh -Y nvidia@tegra-ubuntu";
             orin-devkit-1 = "ssh -Y nova@orin-devkit-1";
+            N1 = "ssh -Y nvidia@10.0.2.11";
+            N2 = "ssh -Y nvidia@10.0.2.12";
+            N3 = "ssh -Y nvidia@10.0.2.13";
+            N4 = "ssh -Y nvidia@10.0.2.14";
+            J1 = "ssh -Y nvidia@10.0.2.21";
+            J2 = "ssh -Y nvidia@10.0.2.22";
+            J3 = "ssh -Y nvidia@10.0.2.23";
 
             # Application aliases
             code = "codium";
