@@ -110,7 +110,7 @@ namespace teleop_drive_joy
           return "strafe_controller";
         case core::msg::DriveInput::PIVOT:
           return "pivot_drive_controller";
-        case core::msg::DriveInput::DIFF:
+        case core::msg::DriveInput::TANK:
           return "nova_diff_drive_controller";
       }
     };
@@ -247,9 +247,9 @@ namespace teleop_drive_joy
       current_state.mode = core::msg::DriveInput::STRAFE;
       RCLCPP_INFO(node_->get_logger(), "BUTTON: strafe_mode");
     }
-    else if (joy_msg->buttons[params_.button_diff_drive_mode] && current_state.mode != core::msg::DriveInput::DIFF)
+    else if (joy_msg->buttons[params_.button_diff_drive_mode] && current_state.mode != core::msg::DriveInput::TANK)
     {
-      current_state.mode = core::msg::DriveInput::DIFF;
+      current_state.mode = core::msg::DriveInput::TANK;
       RCLCPP_INFO(node_->get_logger(), "BUTTON: diff_drive_mode");
     }
     else if (joy_msg->buttons[params_.button_pivot_drive_mode] && current_state.mode != core::msg::DriveInput::PIVOT)
