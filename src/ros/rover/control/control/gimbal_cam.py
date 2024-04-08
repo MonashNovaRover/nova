@@ -4,7 +4,7 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Purpose: ROS Node for controlling the gimbal cam
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-NODE: excavation_construction
+NODE: gimbal_cam
 TOPICS:
   - subscriber: /control/input_joystick_l [InputJoystick]
 SERVICES: None

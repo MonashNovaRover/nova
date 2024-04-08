@@ -124,16 +124,24 @@ install(TARGETS
         DESTINATION lib/${PROJECT_NAME}
         )
 
+install(DIRECTORY
+        rviz
+        DESTINATION share/${PROJECT_NAME}
+      )
+
 # Add all Python executables to this list
 install(PROGRAMS
         control/cmd_plotter.py
         control/rover_state_publisher.py
         control/blcmd_status_monitor.py
-        control/excavation_construction.py
+        control/tile_placer.py
+        control/scraper.py
         control/gimbal_cam.py
         control/drive_sim.py
         control/drive_input_stamped_publisher.py
         control/drive_input_publisher.py
+        control/auger.py
+        control/analysis_platform.py
         DESTINATION lib/${PROJECT_NAME}
         )
 
