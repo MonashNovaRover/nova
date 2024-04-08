@@ -138,6 +138,12 @@ ekf_filter_node:
         odom0_pose_rejection_threshold: 2.0
         odom0_twist_rejection_threshold: 0.2
         odom0_nodelay: false
+          
+        initial_state: [0.9083,  0.7568,  0.0,
+              0.0,  0.0,  0.0,
+              0.1,  0.0,  0.0,
+              0.0,  0.0,  0.0,
+              0.0,  0.0,  0.0]
 
 
           #odom1: /pivot_drive_controller/odom

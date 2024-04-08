@@ -71,7 +71,7 @@
       i_enable_temporal_filter: false
       i_enable_threshold_filter: true
       i_extended_disp: false
-      i_output_disparity: true
+      i_output_disparity: false
       i_publish_left_rect: false
       i_publish_right_rect: false
       i_publish_synced_rect_pair: false
