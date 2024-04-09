@@ -1,8 +1,9 @@
-import React, {useEffect, useLayoutEffect, useRef} from "react";
+import React, {useLayoutEffect, useRef} from "react";
 import useEffectQueue from "../effect-queue/useEffectQueue.ts";
 import EffectQueue from "../effect-queue/EffectQueue.ts";
 import useRenderQueue from "../render-queue/useRenderQueue.ts";
 import RenderQueue from "../render-queue/RenderQueue.ts";
+import useAnimationFrame from "./useAnimationFrame.ts";
 
 export interface GLState {
   canvasRef: React.RefObject<HTMLCanvasElement>,
@@ -74,19 +75,7 @@ const useGL = (webContextAttributes?: WebGLContextAttributes )
     }
   }, [gl, webContextAttributes]);
 
-  // This performs rendering
-  useEffect(() => {
-    let frameID = 0;
-
-    // Make a loop using requestAnimationFrame
-    const callback = () => {
-      gl.render();
-      frameID = requestAnimationFrame(callback);
-    }
-    callback();
-
-    return () => cancelAnimationFrame(frameID);
-  }, [gl]);
+  useAnimationFrame(() => gl.render())
 
   // The returned object will only exist if the WebGL2RenderingContext has already been created.
   return gl;
