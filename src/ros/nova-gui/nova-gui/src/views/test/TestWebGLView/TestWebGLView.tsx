@@ -8,7 +8,7 @@ import Vert from "./test.vert";
 import Frag from "./test.frag";
 import useSampler from "../../../components/WebGLCanvas/hooks/program/sampler/useSampler.ts";
 import useAttribute from "../../../components/WebGLCanvas/hooks/program/attribute/useAttribute.ts";
-import useWebcam from "../../../components/WebGLCanvas/hooks/useWebcam.tsx";
+import useWebcam from "../../../components/WebGLCanvas/hooks/program/sampler/useWebcam.ts";
 
 const aPositionAttribute = {
   numComponents: 2,

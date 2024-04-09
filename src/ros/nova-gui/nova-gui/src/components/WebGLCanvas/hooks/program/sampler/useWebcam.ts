@@ -1,5 +1,5 @@
 import {useCallback, useEffect, useState} from "react";
-import {StreamingState} from "../../CameraComponent/hooks/useCameraStream.ts";
+import {StreamingState} from "../../../../CameraComponent/hooks/useCameraStream.ts";
 import toast from "react-hot-toast";
 
 /**
