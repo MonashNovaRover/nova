@@ -41,8 +41,7 @@ def generate_launch_description():
     log_level = LaunchConfiguration('log_level')
     map_yaml_file = LaunchConfiguration('map')
 
-    lifecycle_nodes = ['controller_server',
-                       'smoother_server',
+    lifecycle_nodes = ['smoother_server',
                        'planner_server',
                        'behavior_server',
                        'waypoint_follower',
@@ -50,6 +49,7 @@ def generate_launch_description():
                        'map_server',
                     #    'amcl',
                        'bt_navigator',
+                       'controller_server',
                        ]
 
     # Map fully qualified names to relative ones so the node's namespace can be prepended.

@@ -44,7 +44,7 @@ from geometry_msgs.msg import PoseStamped, Pose, Transform, Pose2D
 from std_msgs.msg import String, Empty, ColorRGBA
 
 # nova imports
-import autonomous.math_utils.transform as transform
+# import autonomous.math_utils.transform as transform
 
 # standard python imports
 from typing import Dict, List
@@ -107,10 +107,6 @@ class CubeTracker(Node):
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(buffer=self.tf_buffer, node=self, spin_thread=True)
         
-        # I don't think we need these anymore; waiting on validation from testing to remove.
-        # self.goals = []
-        # self.active_goal = None
-        # self.init_goals()
         self.map_xys_3d, self.map_edges = self.get_map_edges_from_boundary_points()
         self.state_rover_pose = Pose2D()
 
@@ -125,7 +121,11 @@ class CubeTracker(Node):
         timer_period = 0.1  # run the timer 10 times per second
         rover_pose_period = 1 / 30
         self.create_timer(timer_period, self.handle_targets)
-        self.create_timer(rover_pose_period, self.callback_rover_pose)
+
+        # (to keep) self.create_timer(rover_pose_period, self.callback_rover_pose)
+        self.state_rover_pose.x = 0. # (to remove)
+        self.state_rover_pose.y = 0. # (to remove)
+        self.state_rover_pose.theta = 0. # (to remove)
 
     def get_map_edges_from_boundary_points(self):
         """
@@ -157,7 +157,8 @@ class CubeTracker(Node):
             msg_pose_stamped = PoseStamped()
             msg_pose_stamped.header = msg.header
             msg_pose_stamped.pose = msg.pose
-            local_map_pose = self.tf_buffer.transform(msg_pose_stamped, 'map')
+            # (to keep) local_map_pose = self.tf_buffer.transform(msg_pose_stamped, 'map')
+            local_map_pose = msg.pose # (to remove)
             return local_map_pose
         except Exception as e:
             self.get_logger().warn(f"Error translating pose to local map frame: {e}")
@@ -268,7 +269,12 @@ class CubeTracker(Node):
         else:
             self.state_rover_pose.x = base_link_tf.translation.x
             self.state_rover_pose.y = base_link_tf.translation.y
-            self.state_rover_pose.theta = transform.quat_to_euler(base_link_tf.rotation)[2]
+            # self.state_rover_pose.theta = transform.quat_to_euler(base_link_tf.rotation)[2]
+            q = base_link_tf.rotation
+            t3 = 2 * (q.w*q.z + q.x*q.y)
+            t4 = 1 - 2 * (q.y*q.y + q.z*q.z)
+            yaw = np.arctan2(t3, t4)
+            self.state_rover_pose.theta = yaw
 
     def publish_found(self):
         """
@@ -306,7 +312,7 @@ class CubeTracker(Node):
         msg.header.stamp = self.get_clock().now().to_msg()
         # Namespace - raw messages can be separated from confirmed cubes
         msg.ns = "completed"
-        msg.id = COLOR_IDS(color_name)
+        msg.id = COLOR_IDS[color_name]
      
         return msg
 
