@@ -2,7 +2,7 @@ import useGL from "../WebGLCanvas/hooks/gl/useGL.ts";
 import {useProgram} from "../WebGLCanvas/hooks/program/useProgram.ts";
 import vert from "./gl/threshold.vert";
 import frag from "./gl/threshold.frag";
-import React, {useCallback, useEffect, useRef, useState} from "react";
+import React, {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {
   Button,
   Card,
@@ -29,6 +29,8 @@ import {RosTopic} from "../../ros/topics/rosTopic.ts";
 import {useCameraStream} from "../CameraComponent/hooks/useCameraStream.ts";
 import {useCameraStreamer} from "../CameraComponent/hooks/useCameraStreamer.ts";
 import useSampler from "../WebGLCanvas/hooks/program/sampler/useSampler.ts";
+import useWebcam from "../WebGLCanvas/hooks/program/sampler/useWebcam.ts";
+import useUniform from "../WebGLCanvas/hooks/program/uniform/useUniform.ts";
 
 const attributes = {
   aPosition: {
@@ -73,7 +75,7 @@ const MicroscopeThresholdWidget: React.FC<CameraComponentProps> = (props) => {
     streamingState,
     sendSessionStartMessage,
     closeSession,
-  } = useCameraStream(cameraSerial, videoRef, allCamerasStarted); // useWebcam(videoRef);
+  } = useWebcam(videoRef);
 
   const gl = useGL();
   const program = useProgram(gl, vert, frag);
@@ -89,10 +91,12 @@ const MicroscopeThresholdWidget: React.FC<CameraComponentProps> = (props) => {
 
   useAttributes(program, attributes);
 
-  const uniforms = useDict<vec>(() => ({
+  /*const uniforms = useDict<vec>(() => ({
     threshold: [finalThreshold]
-  }), [threshold, manualThreshold])
-  useUniforms(program, uniforms);
+  }), [threshold, manualThreshold])*/
+  //useUniforms(program, uniforms);
+
+  useUniform(program, "threshold", () => [finalThreshold], [finalThreshold]);
 
   const toggleShowThreshold = useCallback(() => {
     setShowThreshold(!showThreshold);

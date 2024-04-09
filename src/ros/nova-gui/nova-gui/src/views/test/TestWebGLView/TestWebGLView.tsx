@@ -53,7 +53,6 @@ export default function TestWebGLView() {
   useWebcam(videoRef);
   useSampler(program, 0, "image", videoRef.current);
 
-
   const aTexCoord = useMemo(() => ({
     numComponents: 2,
     data: [1.0 + count/10, 1.0, count/10, 1.0, 1.0 + count/10, 0.0, count/10, 0.0]
