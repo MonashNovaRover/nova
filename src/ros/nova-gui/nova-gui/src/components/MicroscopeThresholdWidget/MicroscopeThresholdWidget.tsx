@@ -15,9 +15,9 @@ import {
   TableHeader,
   TableRow
 } from "@nextui-org/react";
-import useDict from "../WebGLCanvas/hooks/useDict.tsx";
+import useDict from "../WebGLCanvas/hooks/misc/useDict.ts";
 import useAttributes from "../WebGLCanvas/hooks/program/attribute/useAttributes.ts";
-import useCanvasSize from "../WebGLCanvas/hooks/useCanvasSize.ts";
+import useCanvasSize from "../WebGLCanvas/hooks/gl/useCanvasSize.ts";
 import useUniforms, {vec} from "../WebGLCanvas/hooks/program/uniform/useUniforms.ts";
 import CopyableInput from "../CopyableInput/CopyableInput.tsx";
 import {CameraComponentProps} from "../CameraComponent/CameraComponent.tsx";
