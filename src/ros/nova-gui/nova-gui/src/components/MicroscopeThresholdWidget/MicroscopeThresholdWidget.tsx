@@ -27,9 +27,6 @@ import {useLocalStorage} from "../nir-probe/hooks/useLocalStorage.ts";
 import SiteSelectWidget from "../SiteSelectWidget/SiteSelectWidget.tsx";
 import {useBifrost} from "../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosTopic} from "../../ros/topics/rosTopic.ts";
-import {useSelector} from "react-redux";
-import {RootState} from "../../redux/RootState.ts";
-import {RosService} from "../../ros/services/rosService.ts";
 import {useCameraStream} from "../CameraComponent/hooks/useCameraStream.ts";
 import {useCameraStreamer} from "../CameraComponent/hooks/useCameraStreamer.ts";
 
@@ -172,32 +169,11 @@ const MicroscopeThresholdWidget: React.FC<CameraComponentProps> = (props) => {
   // Microscope servo controls
   const topicBifrost = useBifrost({ topic: RosTopic.MICROSCOPE_SERVO });
 
-  const microscopeServoState = useSelector(
-    (state: RootState) => state.microscopeServoStore
-  );
-
-  // Accessing the Store using useSelector hook
-  const microscopeServoService = useSelector((state: RootState) =>
-    state.microscopeServiceStore
-  );
-
-  // Invoking Bifrost and pointing it towards SET_SERVO
-  const serviceBifrost = useBifrost({ service: RosService.MOVE_MICROSCOPE_SERVO });
-
-  const setZoomFocus = (angle: number) => serviceBifrost.callService({ angle: angle });
-  const [zoom, setZoom] = useState(45);
-
   // Wrap with useEffect hook to only run it once
   useEffect(() => {
     // call bifrost.syncWithTopic() to initiate Realtime Updates
     topicBifrost.syncWithTopic();
   }, [topicBifrost]);
-
-  useEffect(() => {
-    if (microscopeServoState.angle !== zoom) {
-      setZoomFocus(zoom);
-    }
-  }, [zoom]);
 
   const readingRows = file.entries.map(({threshold, brightness}, index) => (
     <TableRow>
@@ -216,13 +192,6 @@ const MicroscopeThresholdWidget: React.FC<CameraComponentProps> = (props) => {
     .reduce((acc, v) => v.threshold + acc, 0) / Math.max(1, file.entries.length);
   const averageBrightness = file.entries
     .reduce((acc, v) => v.brightness + acc, 0) / Math.max(1, file.entries.length);
-  const standardDeviation = Math.sqrt(file.entries.reduce((acc, v) => {
-    const diff = v.brightness - averageBrightness;
-    return acc + (diff * diff);
-  }, 0) / Math.max(1, file.entries.length));
-
-  const t_up = averageBrightness + 2.131 * (standardDeviation / Math.sqrt(file.entries.length));
-  const t_down = averageBrightness - 2.131 * (standardDeviation / Math.sqrt(file.entries.length));
 
   const averageHeaderRow = (
     <TableRow className="relative h-6">
