@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useRef, useState} from "react";
+import {useCallback, useRef, useState} from "react";
 import {Button} from "@nextui-org/react";
 import Vert from "./test.vert";
 import Frag from "./test.frag";
@@ -8,55 +8,35 @@ import {useProgram} from "../../../hooks/webgl/program/useProgram.ts";
 import useWebcam from "../../../hooks/webgl/program/sampler/useWebcam.ts";
 import useSampler from "../../../hooks/webgl/program/sampler/useSampler.ts";
 import useAttribute from "../../../hooks/webgl/program/attribute/useAttribute.ts";
+import useUniform from "../../../hooks/webgl/program/uniform/useUniform.ts";
 
 export default function TestWebGLView() {
-  const fluentHooks = {
-    usePrint: (...data: unknown[]) => {
-      useEffect(() => {
-        console.log(...data);
-      }, [data]);
-
-      return {
-        usePrint: () => {
-          useEffect(() => {
-            console.log(...data);
-          }, []);
-        }
-      }
-    },
-    useCounter: () : [number, ()=>void] => {
-      const [count, setCount] = useState<number>(0);
-
-      return [count, useCallback(() => setCount(i => i + 1), [setCount])];
-    }
-  }
-
-  const [count, increment] = fluentHooks.useCounter();
-
-  // fluentHooks.usePrint("current count:", count).usePrint();
-
-  const button = <Button onPress={increment}>Increment Count</Button>;
+  const [count, setCount] = useState<number>(0)
+  const increment = useCallback(() => {
+    setCount(i => i + 1);
+  }, [setCount]);
 
   const gl = useGL();
   const resolution = useCanvasSize(gl);
 
   const program = useProgram(gl, Vert, Frag);
 
-  //const image = useImageTexture(ImageSRC);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   useWebcam(videoRef);
   useSampler(program, 0, "image", videoRef.current);
 
-
-  useAttribute(program, "aTexCoord", () => [
+  useAttribute(program, "aTexCoord", [
     [1, 1], [0, 1], [1, 0], [0, 0]
+  ]);
+
+  useAttribute(program, "aPosition", [
+    [1, 1], [-1, 1], [1, -1], [-1, -1]
+  ]);
+
+  useUniform(program, "offset", () => [
+    count / 10,
+    0
   ], [count]);
-
-  useAttribute(program, "aPosition", [[1, 1], [-1, 1], [1, -1], [-1, -1]]);
-
-
-
-  // useUniform(program, "offset", useMemo(() => [count / 10, 0], [count]));
 
   return (
     <>
@@ -69,8 +49,7 @@ export default function TestWebGLView() {
           </div>
         </div>
         <video ref={videoRef}></video>
-        {button}
-
+        <Button onPress={increment}>Increment Count</Button>
       </div>
     </>
   )
