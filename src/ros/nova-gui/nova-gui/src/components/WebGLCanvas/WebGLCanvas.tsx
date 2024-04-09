@@ -1,7 +1,7 @@
 import React, {memo, MouseEventHandler, useEffect, WheelEventHandler} from "react";
 import {CanvasWithGL} from "./hooks/gl/useGL.tsx";
-import {useProgram} from "./hooks/program/useProgram.tsx";
-import useAttributes, {GLAttributes} from "./hooks/useAttributes.tsx";
+import {useProgram} from "./hooks/program/useProgram.ts";
+import useAttributes, {GLAttributes} from "./hooks/program/attribute/useAttributes.ts";
 import useUniforms, {GLUniforms, vec2, vec4} from "./hooks/useUniforms.tsx";
 import useSamplers, {GLSamplers} from "./hooks/useSamplers.tsx";
 

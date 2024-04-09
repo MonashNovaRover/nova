@@ -1,5 +1,5 @@
 import useGL from "../WebGLCanvas/hooks/gl/useGL.tsx";
-import {useProgram} from "../WebGLCanvas/hooks/program/useProgram.tsx";
+import {useProgram} from "../WebGLCanvas/hooks/program/useProgram.ts";
 import vert from "./gl/threshold.vert";
 import frag from "./gl/threshold.frag";
 import React, {useCallback, useEffect, useRef, useState} from "react";
@@ -16,7 +16,7 @@ import {
   TableRow
 } from "@nextui-org/react";
 import useDict from "../WebGLCanvas/hooks/useDict.tsx";
-import useAttributes from "../WebGLCanvas/hooks/useAttributes.tsx";
+import useAttributes from "../WebGLCanvas/hooks/program/attribute/useAttributes.ts";
 import useCanvasSize from "../WebGLCanvas/hooks/useCanvasSize.tsx";
 import useUniforms, {vec} from "../WebGLCanvas/hooks/useUniforms.tsx";
 import CopyableInput from "../CopyableInput/CopyableInput.tsx";

@@ -1,7 +1,7 @@
-import GLProgramState from "./GLProgramState.ts";
-import {IVertexAttribute} from "../useAttributes.tsx";
+import GLProgramState from "../GLProgramState.ts";
+import {IVertexAttribute} from "./useAttributes.ts";
 import {useRef} from "react";
-import useProgramEffect from "./useProgramEffect.ts";
+import useProgramEffect from "../useProgramEffect.ts";
 
 export default function useAttribute(program: GLProgramState, name: string, attribute: IVertexAttribute) {
 

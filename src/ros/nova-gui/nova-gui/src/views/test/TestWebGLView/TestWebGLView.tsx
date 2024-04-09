@@ -2,25 +2,13 @@ import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {Button} from "@nextui-org/react";
 import useGL from "../../../components/WebGLCanvas/hooks/gl/useGL.tsx";
 import useCanvasSize from "../../../components/WebGLCanvas/hooks/useCanvasSize.tsx";
-import {useProgram} from "../../../components/WebGLCanvas/hooks/program/useProgram.tsx";
-import useAttributes, {IVertexAttribute} from "../../../components/WebGLCanvas/hooks/useAttributes.tsx";
+import {useProgram} from "../../../components/WebGLCanvas/hooks/program/useProgram.ts";
+import {IVertexAttribute} from "../../../components/WebGLCanvas/hooks/program/attribute/useAttributes.ts";
 import Vert from "./test.vert";
 import Frag from "./test.frag";
-import useImageTexture from "../../../components/WebGLCanvas/hooks/useImageTexture.ts";
-import ImageSRC from "../../../assets/nova-logo.png";
 import useSampler from "../../../components/WebGLCanvas/hooks/useSampler.ts";
-import useEffectQueue from "../../../components/WebGLCanvas/hooks/effectQueue/useEffectQueue.ts";
-import useEffectQueueEffect from "../../../components/WebGLCanvas/hooks/effectQueue/useEffectQueueEffect.ts";
-import {vec2} from "../../../components/WebGLCanvas/hooks/useUniforms.tsx";
-import useAttribute from "../../../components/WebGLCanvas/hooks/program/useAttribute.ts";
+import useAttribute from "../../../components/WebGLCanvas/hooks/program/attribute/useAttribute.ts";
 import useWebcam from "../../../components/WebGLCanvas/hooks/useWebcam.tsx";
-
-const attributes = {
-  aPosition: {
-    numComponents: 2,
-    data: [1.0, 1.0, -1.0, 1.0, 1.0, -1.0, -1.0, -1.0]
-  }
-}
 
 const aPositionAttribute = {
   numComponents: 2,
@@ -62,7 +50,7 @@ export default function TestWebGLView() {
 
   //const image = useImageTexture(ImageSRC);
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const webcam = useWebcam(videoRef);
+  useWebcam(videoRef);
   useSampler(program, 0, "image", videoRef.current);
 
 

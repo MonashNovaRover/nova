@@ -1,28 +1,24 @@
-import {useEffect, useState} from "react";
-import {ProgramWithGL} from "./program/useProgram.tsx";
+import {useRef} from "react";
+import GLProgramState from "../GLProgramState.ts";
+import useProgramEffect from "../useProgramEffect.ts";
 
 export interface IVertexAttribute {
-  numComponents: number
+  numComponents: number,
   data: number[]
 }
 
 export type GLAttributes = {[key: string] : IVertexAttribute};
 
-const useAttributes = (programWithGL?: ProgramWithGL, attributes?: GLAttributes) => {
+const useAttributes = (program: GLProgramState, attributes?: GLAttributes) => {
+  const buffersRef = useRef<Record<string, WebGLBuffer | undefined>>({});
 
-  const [attributeBuffers, setAttributeBuffers] = useState<Record<string, WebGLBuffer | undefined>>({});
-
-  useEffect(() => {
-    if (programWithGL === undefined || attributes === undefined)
+  useProgramEffect(program, (gl, program) => {
+    if (attributes === undefined)
       return;
 
-    const gl = programWithGL?.gl;
-    const program = programWithGL?.program;
-
     const newBuffersArray = Object.entries(attributes).map(([key, attribute]) => {
-
       // Create a buffer for the positions.
-      const buffer = attributeBuffers[key] ?? gl.createBuffer() ?? undefined;
+      const buffer = buffersRef.current[key] ?? gl.createBuffer() ?? undefined;
 
       if (!buffer)
         return [key, undefined];
@@ -35,7 +31,6 @@ const useAttributes = (programWithGL?: ProgramWithGL, attributes?: GLAttributes)
       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(attribute.data), gl.STATIC_DRAW);
 
       // setPositionAttribute
-      const numComponents = 2; // pull out 2 values per iteration
       const type = gl.FLOAT; // the data in the buffer is 32bit floats
       const normalize = false; // don't normalize
       const stride = 0; // how many bytes to get from one set of values to the next
@@ -47,7 +42,7 @@ const useAttributes = (programWithGL?: ProgramWithGL, attributes?: GLAttributes)
 
       gl.vertexAttribPointer(
         attributePosition,
-        numComponents,
+        attribute.numComponents,
         type,
         normalize,
         stride,
@@ -58,9 +53,9 @@ const useAttributes = (programWithGL?: ProgramWithGL, attributes?: GLAttributes)
       return [key, buffer];
     });
 
-    setAttributeBuffers(Object.fromEntries(newBuffersArray));
+    buffersRef.current = Object.fromEntries(newBuffersArray);
     // console.log("Attributes updated");
-  }, [programWithGL, attributes]);
+  }, [attributes]);
 }
 
 export default useAttributes;
