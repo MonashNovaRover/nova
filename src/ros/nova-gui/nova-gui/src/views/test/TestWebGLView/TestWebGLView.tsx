@@ -82,7 +82,7 @@ export default function TestWebGLView() {
     }
   }, [gl, program]);
 
-  useUniform(program, "offset", useMemo(() => [count / 10, 0], [count]));
+  // useUniform(program, "offset", useMemo(() => [count / 10, 0], [count]));
 
   return (
     <>
