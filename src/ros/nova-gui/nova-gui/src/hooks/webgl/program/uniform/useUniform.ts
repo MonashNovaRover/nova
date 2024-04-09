@@ -1,7 +1,13 @@
-import {vec} from "./useUniforms.ts";
 import GLProgramState from "../GLProgramState.ts";
 import useProgramEffect from "../useProgramEffect.ts";
 import React from "react";
+
+export type vec1 = [number];
+export type vec2 = [number, number];
+export type vec3 = [number, number, number];
+export type vec4 = [number, number, number, number];
+
+export type vec = [number] | [number, number] | [number, number, number] | [number, number, number, number];
 
 /**
  * Applies uniform vector or float values to a given program. Names of the uniforms should match those of the uniforms
