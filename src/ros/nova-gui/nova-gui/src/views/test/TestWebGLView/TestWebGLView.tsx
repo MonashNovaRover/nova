@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useMemo, useState} from "react";
+import {useCallback, useEffect, useState} from "react";
 import {Button} from "@nextui-org/react";
 import useGL from "../../../components/WebGLCanvas/hooks/useGL.tsx";
 import useCanvasSize from "../../../components/WebGLCanvas/hooks/useCanvasSize.tsx";
@@ -9,10 +9,9 @@ import Frag from "./test.frag";
 import useImageTexture from "../../../components/WebGLCanvas/hooks/useImageTexture.ts";
 import ImageSRC from "../../../assets/nova-logo.png";
 import useSampler from "../../../components/WebGLCanvas/hooks/useSampler.ts";
-import useEffectQueue from "../../../components/WebGLCanvas/hooks/useEffectQueue.ts";
+import useEffectQueue from "../../../components/WebGLCanvas/hooks/effectQueue/useEffectQueue.ts";
 import useEffectQueueEffect from "../../../components/WebGLCanvas/hooks/useEffectQueueEffect.ts";
 import {vec2} from "../../../components/WebGLCanvas/hooks/useUniforms.tsx";
-import useUniform from "../../../components/WebGLCanvas/hooks/program/useUniform.ts";
 
 const attributes = {
   aPosition: {
@@ -108,7 +107,7 @@ export default function TestWebGLView() {
         program.gl.drawArrays(program.gl.TRIANGLE_STRIP, 0, 4);
         console.log("yeah")
       }
-      else {
+      else if (program === undefined) {
         console.log("nah")
       }
 

@@ -1,7 +1,7 @@
 import {useEffect, useMemo, useRef} from "react";
 import initShaderProgram from "../../webgl-utils/initShaderProgram.ts";
 import {CanvasWithGL} from "../useGL.tsx";
-import useEffectQueue, {EffectQueue} from "../useEffectQueue.ts";
+import useEffectQueue, {EffectQueue} from "../effectQueue/useEffectQueue.ts";
 
 export interface ProgramWithGL {
   program: WebGLProgram,

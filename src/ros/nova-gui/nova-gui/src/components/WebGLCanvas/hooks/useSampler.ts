@@ -1,7 +1,7 @@
 import {useEffect, useState} from "react";
-import {ProgramWithGL} from "./program/useProgram.tsx";
 import loadVideoTexture, {updateVideoTexture} from "../webgl-utils/loadVideoTexture.ts";
 import loadTexture, {updateImageTexture} from "../webgl-utils/loadTexture.ts";
+import {ProgramWithGL} from "./program/useProgram.tsx";
 
 /**
  * Applies a video or an image element as a sampler for a webgl program.
