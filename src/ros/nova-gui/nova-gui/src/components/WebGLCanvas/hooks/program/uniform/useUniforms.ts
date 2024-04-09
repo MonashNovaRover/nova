@@ -1,5 +1,5 @@
-import {useEffect} from "react";
-import {CanvasWithGL} from "./gl/useGL.ts";
+import GLProgramState from "../GLProgramState.ts";
+import useProgramEffect from "../useProgramEffect.ts";
 
 export type vec1 = [number];
 export type vec2 = [number, number];
@@ -13,15 +13,11 @@ export type GLUniforms = {[key: string] : vec};
 /**
  * Applies uniform vector or float values to a given program. Names of the uniforms should match those of the uniforms
  * defined in the program.
- * @param canvasWithGL The object containing the rendering context used
  * @param program The program to apply uniforms to
  * @param uniforms The uniform float and vector values.
  */
-const useUniforms = (canvasWithGL: CanvasWithGL, program?: WebGLProgram, uniforms?: GLUniforms) => {
-
-  useEffect(() => {
-    const gl = canvasWithGL.gl;
-
+const useUniforms = (program: GLProgramState, uniforms?: GLUniforms) => {
+  useProgramEffect(program, (gl, program) => {
     if (gl === undefined || uniforms === undefined || program === undefined)
       return;
 
@@ -39,7 +35,7 @@ const useUniforms = (canvasWithGL: CanvasWithGL, program?: WebGLProgram, uniform
       else if (uniform.length === 3) gl.uniform3f(location, ...uniform);
       else if (uniform.length === 4) gl.uniform4f(location, ...uniform);
     });
-  }, [canvasWithGL, program, uniforms]);
+  }, [uniforms]);
 }
 
 export default useUniforms;

@@ -18,7 +18,7 @@ import {
 import useDict from "../WebGLCanvas/hooks/useDict.tsx";
 import useAttributes from "../WebGLCanvas/hooks/program/attribute/useAttributes.ts";
 import useCanvasSize from "../WebGLCanvas/hooks/useCanvasSize.ts";
-import useUniforms, {vec} from "../WebGLCanvas/hooks/useUniforms.tsx";
+import useUniforms, {vec} from "../WebGLCanvas/hooks/program/uniform/useUniforms.ts";
 import CopyableInput from "../CopyableInput/CopyableInput.tsx";
 import {CameraComponentProps} from "../CameraComponent/CameraComponent.tsx";
 import CameraSessionStartStopButton from "../CameraComponent/components/CameraSessionStartStopButton.tsx";

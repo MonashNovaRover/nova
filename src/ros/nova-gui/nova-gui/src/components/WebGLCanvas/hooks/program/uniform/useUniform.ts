@@ -1,6 +1,6 @@
-import {vec} from "../useUniforms.tsx";
-import useEffectQueueEffect from "../effectQueue/useEffectQueueEffect.ts";
-import {ProgramWithGL} from "./useProgram.ts";
+import {vec} from "./useUniforms.ts";
+import useEffectQueueEffect from "../../effectQueue/useEffectQueueEffect.ts";
+import {ProgramWithGL} from "../useProgram.ts";
 
 /**
 * Applies uniform vector or float values to a given program. Names of the uniforms should match those of the uniforms
