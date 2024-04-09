@@ -38,7 +38,7 @@ def launch_setup(context, *args, **kwargs):
         ("rgb/camera_info", name+"/rgb/camera_info"),
         ("depth/image", name+"/stereo/image_raw"),
         ("imu", name+"/imu/data"),
-        # ("odom", "odom/visual"),
+        ("odom", "odom/visual"),
     ]
 
     return [

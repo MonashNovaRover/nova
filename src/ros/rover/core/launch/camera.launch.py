@@ -47,7 +47,7 @@ def launch_setup(context, *args, **kwargs):
             executable='point_cloud_xyz',
             condition=IfCondition(LaunchConfiguration('rtabmap_pointcloud')),
             name='rtabmap_point_cloud_xyz',
-            remappings=[('/depth/image', name+'/stereo/image_raw'),
+            remappings=[('/depth/image', name+'/stereo/image_filtered'),
                         ('/depth/camera_info', name+'/stereo/camera_info'),
                         ('/cloud', name+'/rtabmap/points'),
                         ],
