@@ -1,5 +1,5 @@
 import {useEffect, useState} from "react";
-import {ProgramWithGL} from "./useProgram.tsx";
+import {ProgramWithGL} from "./program/useProgram.tsx";
 import loadVideoTexture, {updateVideoTexture} from "../webgl-utils/loadVideoTexture.ts";
 import loadTexture, {updateImageTexture} from "../webgl-utils/loadTexture.ts";
 

@@ -1,4 +1,5 @@
 import {useEffect, useState} from "react";
+import {ProgramWithGL} from "./program/useProgram.tsx";
 
 export interface IVertexAttribute {
   numComponents: number
@@ -7,13 +8,16 @@ export interface IVertexAttribute {
 
 export type GLAttributes = {[key: string] : IVertexAttribute};
 
-const useAttributes = (gl?: WebGLRenderingContext, program?: WebGLProgram, attributes?: GLAttributes) => {
+const useAttributes = (programWithGL?: ProgramWithGL, attributes?: GLAttributes) => {
 
   const [attributeBuffers, setAttributeBuffers] = useState<Record<string, WebGLBuffer | undefined>>({});
 
   useEffect(() => {
-    if (gl === undefined || attributes === undefined || program === undefined)
+    if (programWithGL === undefined || attributes === undefined)
       return;
+
+    const gl = programWithGL?.gl;
+    const program = programWithGL?.program;
 
     const newBuffersArray = Object.entries(attributes).map(([key, attribute]) => {
 
@@ -56,7 +60,7 @@ const useAttributes = (gl?: WebGLRenderingContext, program?: WebGLProgram, attri
 
     setAttributeBuffers(Object.fromEntries(newBuffersArray));
     // console.log("Attributes updated");
-  }, [program, attributes]);
+  }, [programWithGL, attributes]);
 }
 
 export default useAttributes;

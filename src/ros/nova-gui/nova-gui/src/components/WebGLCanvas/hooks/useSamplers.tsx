@@ -71,8 +71,6 @@ const useSamplers = (gl?: WebGL2RenderingContext, program?: WebGLProgram, sample
           updateVideoTexture(gl, sampler, texture);
         else
           updateImageTexture(gl, sampler, texture);
-
-        //gl.activeTexture(gl.TEXTURE0 + index);
       }
 
       if (sampler instanceof HTMLVideoElement) {

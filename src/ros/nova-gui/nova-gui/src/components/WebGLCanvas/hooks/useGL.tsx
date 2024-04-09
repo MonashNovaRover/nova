@@ -1,8 +1,10 @@
 import React, {useLayoutEffect, useMemo, useRef} from "react";
+import useEffectQueue, {EffectQueue} from "./useEffectQueue.ts";
 
 export interface CanvasWithGL {
   canvasRef: React.RefObject<HTMLCanvasElement>,
-  gl?: WebGL2RenderingContext
+  gl?: WebGL2RenderingContext,
+  queue: EffectQueue,
 }
 
 /**
@@ -24,13 +26,16 @@ const useGL = (webglAttributes?: WebGLContextAttributes )
     }) ?? undefined;
   }, [canvasRef, webglAttributes]);
 
+  const queue = useEffectQueue();
+
   // The returned object will only exist if the WebGL2RenderingContext has already been created.
   return useMemo(() => {
     return {
       canvasRef: canvasRef,
       gl: gl.current,
+      queue: queue,
     } as CanvasWithGL;
-  }, [gl, canvasRef, canvasRef.current]) ?? false;
+  }, [queue]) ?? false;
 }
 
 export default useGL;

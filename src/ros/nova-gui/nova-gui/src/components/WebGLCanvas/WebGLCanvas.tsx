@@ -1,6 +1,6 @@
 import React, {memo, MouseEventHandler, useEffect, WheelEventHandler} from "react";
 import {CanvasWithGL} from "./hooks/useGL.tsx";
-import {useProgram} from "./hooks/useProgram.tsx";
+import {useProgram} from "./hooks/program/useProgram.tsx";
 import useAttributes, {GLAttributes} from "./hooks/useAttributes.tsx";
 import useUniforms, {GLUniforms, vec2, vec4} from "./hooks/useUniforms.tsx";
 import useSamplers, {GLSamplers} from "./hooks/useSamplers.tsx";
@@ -93,7 +93,7 @@ const UnmemoedWebGLCanvas: React.FC<IWebGLCanvasProps> = ({
   useUniforms(gl, program, uniforms);
 
   // Apply vertex attributes. (might include a position buffer of some kind?)
-  useAttributes(gl.gl, program, attributes);
+  useAttributes(program, attributes);
 
   // Applies samplers. Using frameID as a dependency allows for re-renders on video frame updates.
   const frameID = useSamplers(gl.gl, program, samplers)

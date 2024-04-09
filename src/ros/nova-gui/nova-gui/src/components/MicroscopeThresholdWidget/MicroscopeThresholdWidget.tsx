@@ -1,5 +1,5 @@
 import useGL from "../WebGLCanvas/hooks/useGL.tsx";
-import {useProgram} from "../WebGLCanvas/hooks/useProgram.tsx";
+import {useProgram} from "../WebGLCanvas/hooks/program/useProgram.tsx";
 import vert from "./gl/threshold.vert";
 import frag from "./gl/threshold.frag";
 import React, {useCallback, useEffect, useRef, useState} from "react";
