@@ -1,4 +1,4 @@
-import EffectQueue from "../effectQueue/EffectQueue.ts";
+import EffectQueue from "../effect-queue/EffectQueue.ts";
 
 export default class ProgramEffectQueue extends EffectQueue<[WebGL2RenderingContext, WebGLProgram]> {
 

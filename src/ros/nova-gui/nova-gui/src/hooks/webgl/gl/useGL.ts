@@ -1,6 +1,6 @@
 import React, {useEffect, useLayoutEffect, useRef} from "react";
-import useEffectQueue from "../effectQueue/useEffectQueue.ts";
-import EffectQueue from "../effectQueue/EffectQueue.ts";
+import useEffectQueue from "../effect-queue/useEffectQueue.ts";
+import EffectQueue from "../effect-queue/EffectQueue.ts";
 import useRenderQueue from "./useRenderQueue.ts";
 import RenderQueue from "./RenderQueue.ts";
 
