@@ -8,8 +8,8 @@ This won't go super in depth as to how to do GL code.
 ## How to use
 
 Let's make a simple program with a single shader program, consisting of:
-- a vertex shader `shader.vert`,
-- a fragment shader `shader.frag`
+- a vertex shader `example.vert`,
+- a fragment shader `example.frag`
 
 you should put your shader code into `.glsl`, `.vert`, or `.frag` files. You can get IDE plugins to make these files 
 look pretty :)
@@ -55,8 +55,8 @@ void main() {
 
 Once you have your files, you can import them like any other file in typescript:
 ```ts
-import Vert from "./gl/program.vert";
-import Frag from "./gl/program.frag";
+import Vert from "./gl/example.vert";
+import Frag from "./gl/example.frag";
 ```
 The name of the variable doesn't matter here. I've chosen `Vert` and `Frag` arbitrarily.
 These will be strings containing your shader source code, which we will pass to the `useProgram` hook, which compiles 
@@ -182,7 +182,7 @@ import imagePath from "... assets/image.png";
 
 Here's an example using a video as a sampler:
 ```tsx
-import useWebcam from "... useWebcam.ts";
+import useWebcam from "... ";
 
 // ...
 
