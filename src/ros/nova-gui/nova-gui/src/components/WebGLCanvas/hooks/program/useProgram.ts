@@ -1,5 +1,5 @@
 import {useEffect, useRef} from "react";
-import {CanvasWithGL} from "../gl/useGL.tsx";
+import {CanvasWithGL} from "../gl/useGL.ts";
 import GLProgramState from "./GLProgramState.ts";
 
 

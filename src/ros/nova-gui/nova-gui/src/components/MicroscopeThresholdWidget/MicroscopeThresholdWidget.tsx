@@ -1,4 +1,4 @@
-import useGL from "../WebGLCanvas/hooks/gl/useGL.tsx";
+import useGL from "../WebGLCanvas/hooks/gl/useGL.ts";
 import {useProgram} from "../WebGLCanvas/hooks/program/useProgram.ts";
 import vert from "./gl/threshold.vert";
 import frag from "./gl/threshold.frag";

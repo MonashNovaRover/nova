@@ -1,6 +1,6 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {Button} from "@nextui-org/react";
-import useGL from "../../../components/WebGLCanvas/hooks/gl/useGL.tsx";
+import useGL from "../../../components/WebGLCanvas/hooks/gl/useGL.ts";
 import useCanvasSize from "../../../components/WebGLCanvas/hooks/useCanvasSize.tsx";
 import {useProgram} from "../../../components/WebGLCanvas/hooks/program/useProgram.ts";
 import {IVertexAttribute} from "../../../components/WebGLCanvas/hooks/program/attribute/useAttributes.ts";
