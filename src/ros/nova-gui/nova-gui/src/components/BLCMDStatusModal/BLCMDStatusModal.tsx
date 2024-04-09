@@ -82,6 +82,7 @@ export const BLCMDStatusModal = () => {
             isCompact
             className="overflow-scroll h-[45vh] overflow-x-hidden hide-scrollbar"
             isHeaderSticky
+            aria-label="BLCMD Status Table"
           >
             <TableHeader>
               <TableHeader>
