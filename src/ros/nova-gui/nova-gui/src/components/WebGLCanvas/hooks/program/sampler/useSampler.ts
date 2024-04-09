@@ -6,16 +6,16 @@ import GLProgramState from "../GLProgramState.ts";
 
 /**
  * Applies a video or an image element as a sampler for a webgl program.
- * @param program The object returned from the useProgram hook.
+ * @param programState The object returned from the useProgram hook.
  * @param sampler The video or image to use as the source for the texture.
  * @param textureUnit the index of the texture unit to use. Must be unique.
  * @param name A string specifying the name of the uniform variable whose location is to be returned
  */
-export default function useSampler(program: GLProgramState, textureUnit: number, name: string, sampler: HTMLImageElement | HTMLVideoElement | null | undefined) {
+export default function useSampler(programState: GLProgramState, textureUnit: number, name: string, sampler: HTMLImageElement | HTMLVideoElement | null | undefined) {
   const [texture, setTexture] = useState<WebGLTexture | null>(null)
   const [samplerFrameID, setSamplerFrameID] = useState<number>(0);
 
-  useProgramEffect(program, (gl, program) => {
+  useProgramEffect(programState, (gl, program) => {
     if (sampler === null || sampler === undefined)
       return;
 
@@ -56,6 +56,8 @@ export default function useSampler(program: GLProgramState, textureUnit: number,
       // frameIDs, so that it can be destroyed by the cleanup function.
       const callback = () => {
         updateVideoTexture(gl, sampler, currentTexture);
+        programState.queue.push();
+
         setSamplerFrameID(sampler.requestVideoFrameCallback(callback));
       }
       setSamplerFrameID(sampler.requestVideoFrameCallback(callback));

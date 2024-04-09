@@ -19,7 +19,10 @@ export default class EffectQueue<T extends unknown[]> {
    * @returns an integer that identifies the effect, which can be passed to this.cancel to prevent the effect function
    * from running if it has not already been run
    */
-  public push(effect: (...args: T) => void): number {
+  public push(effect?: (...args: T) => void): number {
+    if (!effect)
+      return -1;
+
     const frameID = this.nextFrameID;
     this.nextFrameID += 1;
 
