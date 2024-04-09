@@ -1,7 +1,7 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {Button} from "@nextui-org/react";
 import useGL from "../../../components/WebGLCanvas/hooks/gl/useGL.ts";
-import useCanvasSize from "../../../components/WebGLCanvas/hooks/useCanvasSize.tsx";
+import useCanvasSize from "../../../components/WebGLCanvas/hooks/useCanvasSize.ts";
 import {useProgram} from "../../../components/WebGLCanvas/hooks/program/useProgram.ts";
 import {IVertexAttribute} from "../../../components/WebGLCanvas/hooks/program/attribute/useAttributes.ts";
 import Vert from "./test.vert";

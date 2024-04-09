@@ -17,7 +17,7 @@ import {
 } from "@nextui-org/react";
 import useDict from "../WebGLCanvas/hooks/useDict.tsx";
 import useAttributes from "../WebGLCanvas/hooks/program/attribute/useAttributes.ts";
-import useCanvasSize from "../WebGLCanvas/hooks/useCanvasSize.tsx";
+import useCanvasSize from "../WebGLCanvas/hooks/useCanvasSize.ts";
 import useUniforms, {vec} from "../WebGLCanvas/hooks/useUniforms.tsx";
 import CopyableInput from "../CopyableInput/CopyableInput.tsx";
 import {CameraComponentProps} from "../CameraComponent/CameraComponent.tsx";
