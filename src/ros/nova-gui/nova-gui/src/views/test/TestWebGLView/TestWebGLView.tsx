@@ -9,7 +9,6 @@ import Frag from "./test.frag";
 import useSampler from "../../../components/WebGLCanvas/hooks/program/sampler/useSampler.ts";
 import useAttribute from "../../../components/WebGLCanvas/hooks/program/attribute/useAttribute.ts";
 import useWebcam from "../../../components/WebGLCanvas/hooks/program/sampler/useWebcam.ts";
-import useUniform from "../../../components/WebGLCanvas/hooks/program/uniform/useUniform.ts";
 
 const aPositionAttribute = {
   numComponents: 2,
@@ -63,24 +62,7 @@ export default function TestWebGLView() {
 
   useAttribute(program, "aPosition", aPositionAttribute);
 
-  useEffect(() => {
-    let frameID = 0;
 
-    const callback = () => {
-
-      if (gl.context && !gl.queue.clear(gl.context)) {
-        gl.renderQueue.render(gl.context);
-      }
-
-
-      frameID = requestAnimationFrame(callback);
-    }
-    callback();
-
-    return () => {
-      cancelAnimationFrame(frameID)
-    }
-  }, [gl, program]);
 
   // useUniform(program, "offset", useMemo(() => [count / 10, 0], [count]));
 

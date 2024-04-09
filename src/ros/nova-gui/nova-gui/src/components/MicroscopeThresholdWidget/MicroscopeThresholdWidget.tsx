@@ -130,15 +130,14 @@ const MicroscopeThresholdWidget: React.FC<CameraComponentProps> = (props) => {
   const getBrightness = useCallback(() => {
     const numElements = width * height;
 
-    if (!gl.gl)
+    if (!gl.context)
       return;
 
     // Redraw
-    gl?.gl.clear(gl?.gl.COLOR_BUFFER_BIT);
-    gl?.gl.drawArrays(gl?.gl.TRIANGLE_STRIP, 0, 4);
+    gl.render(true);
 
     const output = new Uint8Array(numElements * 4);
-    gl?.gl.readPixels(0, 0, width, height, gl?.gl.RGBA, gl?.gl.UNSIGNED_BYTE, output);
+    gl.context?.readPixels(0, 0, width, height, gl.context.RGBA, gl.context.UNSIGNED_BYTE, output);
 
     const average = output.reduce((acc, value, index) =>
       (index % 4) === 3 ? acc : acc + (value/(numElements * 3)), 0) / 255;

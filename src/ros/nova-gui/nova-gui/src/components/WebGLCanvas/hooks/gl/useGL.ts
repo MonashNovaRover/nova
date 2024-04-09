@@ -1,4 +1,4 @@
-import React, {useLayoutEffect, useRef} from "react";
+import React, {useEffect, useLayoutEffect, useRef} from "react";
 import useEffectQueue from "../effectQueue/useEffectQueue.ts";
 import EffectQueue from "../effectQueue/EffectQueue.ts";
 import useRenderQueue from "./useRenderQueue.ts";
@@ -9,6 +9,13 @@ export interface CanvasWithGL {
   context?: WebGL2RenderingContext,
   queue: EffectQueue<[WebGL2RenderingContext]>,
   renderQueue: RenderQueue,
+
+  /**
+   * Re-renders all programs if there are any changes to inputs of the programs,
+   * unless otherwise specified with force = true
+   * @param force Set to true if you want to force everything to be drawn, even if there are no changes to the inputs.
+   */
+  render: (force?: boolean) => void,
 }
 
 const useGL_aux = (): CanvasWithGL => {
@@ -23,6 +30,7 @@ const useGL_aux = (): CanvasWithGL => {
       context: undefined,
       queue: queue,
       renderQueue: renderQueue,
+      render: () => {},
     } as CanvasWithGL);
   }
 
@@ -50,11 +58,35 @@ const useGL = (webContextAttributes?: WebGLContextAttributes )
       ...webContextAttributes,
     }) ?? undefined;
 
-    if (gl.context !== undefined)
-      gl.renderQueue.setup(gl.context);
-    else
+    if (gl.context === undefined) {
       console.warn("Failed to set up a rendering context in useGL!");
+      return;
+    }
+
+    gl.renderQueue.setup(gl.context);
+    gl.render = (force?: boolean) => {
+      if (!gl.context)
+        return;
+
+      if (!gl.queue.clear(gl.context) || force) {
+        gl.renderQueue.render(gl.context);
+      }
+    }
   }, [gl, webContextAttributes]);
+
+  // This performs rendering
+  useEffect(() => {
+    let frameID = 0;
+
+    // Make a loop using requestAnimationFrame
+    const callback = () => {
+      gl.render();
+      frameID = requestAnimationFrame(callback);
+    }
+    callback();
+
+    return () => cancelAnimationFrame(frameID);
+  }, [gl]);
 
   // The returned object will only exist if the WebGL2RenderingContext has already been created.
   return gl;
