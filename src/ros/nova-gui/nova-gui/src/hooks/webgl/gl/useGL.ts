@@ -1,8 +1,8 @@
 import React, {useEffect, useLayoutEffect, useRef} from "react";
 import useEffectQueue from "../effect-queue/useEffectQueue.ts";
 import EffectQueue from "../effect-queue/EffectQueue.ts";
-import useRenderQueue from "./useRenderQueue.ts";
-import RenderQueue from "./RenderQueue.ts";
+import useRenderQueue from "../render-queue/useRenderQueue.ts";
+import RenderQueue from "../render-queue/RenderQueue.ts";
 
 export interface CanvasWithGL {
   canvasRef: React.RefObject<HTMLCanvasElement>,

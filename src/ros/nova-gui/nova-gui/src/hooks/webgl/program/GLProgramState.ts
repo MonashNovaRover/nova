@@ -1,4 +1,4 @@
-import {RenderQueueItem} from "../gl/RenderQueue.ts";
+import {RenderQueueItem} from "../render-queue/RenderQueue.ts";
 import initShaderProgram from "../../webgl-utils/initShaderProgram.ts";
 import {CanvasWithGL} from "../gl/useGL.ts";
 import ProgramEffectQueue from "./ProgramEffectQueue.ts";
