@@ -32,8 +32,6 @@ export default class ProgramEffectQueue extends EffectQueue<[WebGL2RenderingCont
       if (this._program !== undefined)
         this.clear(gl, this._program)
     });
-
-    console.log("hello")
   }
 
   /**
