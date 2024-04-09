@@ -1,0 +1,193 @@
+# WebGL Hooks
+Written by Bailey! Please reach to me if you need help with this topic. It can be very dense.
+
+I have written a suite of hooks to help you do shader programming in react!
+
+This won't go super in depth as to how to do GL code.
+
+## How to use
+
+Let's make a simple program with a single shader program, consisting of:
+- a vertex shader `shader.vert`,
+- a fragment shader `shader.frag`
+
+you should put your shader code into `.glsl`, `.vert`, or `.frag` files. You can get IDE plugins to make these files look pretty :)
+
+`example.vert`
+```glsl
+#version 300 es
+
+precision mediump float;
+in vec4 aPosition;
+in vec2 aTexCoord;
+
+out vec2 vTexCoord;
+
+void main() {
+    gl_Position = aPosition;
+    vTexCoord = aTexCoord; // vec2(0.5) + 0.5*aPosition.xy;
+}
+```
+
+`example.frag`
+```glsl
+#version 300 es
+
+precision mediump float;
+in vec2 vTexCoord;
+
+uniform sampler2D image;
+uniform vec2 offset;
+
+out vec4 fragColor;
+
+void main() {
+    vec2 samplePoint = vTexCoord;
+    samplePoint = vec2(mod(samplePoint.x, 1.0), mod(samplePoint.y, 1.0));
+
+    vec4 texCol = texture(image, samplePoint);
+    fragColor = texCol;
+}
+```
+
+#### Importing source code
+
+Once you have your files, you can import them like any other file in typescript:
+```ts
+import Vert from "./gl/program.vert";
+import Frag from "./gl/program.frag";
+```
+The name of the variable doesn't matter here. I've chosen `Vert` and `Frag` arbitrarily.
+These will be strings containing your shader source code, which we will pass to the `useProgram` hook, which compiles 
+our shaders.
+
+### `useGL`
+
+This is the main hook used to setup the rendering context (`WebGL2RenderingContext`) we use to make draw calls. 
+
+Unless you know what you're doing, you probably shouldn't mess with it directly. You can pass it to the other custom 
+hooks I've documented below:
+
+Inside your function component, this should be your first WebGL hook:
+```tsx
+const gl = useGL();
+```
+Whenever you use this hook, you ***must*** define a `<canvas/>` element for it to use to generate the rendering context, 
+and display your shaders on. You need to pass it the `gl.canvasRef` given by `useGL`:
+
+```tsx
+return (
+  // ...
+    <canvas ref={gl.canvasRef}/>
+  // ...
+);
+```
+
+Note: If you want to implement your own hooks, the `gl` object is secretly a ref, so it doesn't need to be passed in 
+dependency arrays for effects.
+
+### `useProgram`
+
+Now, you can use a hook to compile your shader into a program!
+
+```tsx
+const program = useProgram(gl, Vert, Frag);
+```
+
+There is an additional suite of hooks just to set up the variables defined by your program.
+
+### `useAttribute`
+
+If you recall, we had some vertex attributes in `example.vert`:
+```glsl
+in vec4 aPosition;
+in vec2 aTexCoord;
+```
+
+You can set your vertex attribute with the `useAttribute` hook, making sure you pass: 
+- the program, 
+- the name of your attribute, and
+- either:
+  1. A constant vector array 
+  2. A factory function to generate the vector array, along with a dependency array
+
+#### Constant Attributes
+
+For attributes that never vary, you can simply pass in an array of vectors as the third argument:
+
+```tsx
+useAttribute(program, "aPosition", [
+  [1, 1], [-1, 1], [1, -1], [-1, -1]
+]);
+```
+
+Note: this is the vertex array that you would use if you simply wanted to draw a quad that fills the `<canvas/>`. This 
+is extremely useful, and I use it in basically every program.
+
+#### Variable Attributes
+
+You can also have attributes that vary with your component `props`, values from `useState`, or even values from 
+[bifrost](./bifrost.md)!
+
+In this example, a variable attribute is set, which depends on some variable `offset`:
+
+```tsx
+useAttribute(program, "aTexCoord", () => [
+  [1 + offset, 1], [offset, 1], [1 + offset, 0], [offset, 0]
+], [offset]);
+```
+
+Whenever anything in the dependencies array changes, the program is scheduled to be re-rendered.
+
+Note: This currently only supports `float`, `vec2`, `vec3`, and `vec4` values, with each type differentiated by the length of 
+the inner arrays of the attribute value.
+
+### `useUniform`
+
+If you recall, we had a uniform vec2 in `example.frag`:
+```glsl
+uniform vec2 offset;
+```
+
+The `useUniform` hook has the same syntax as `useAttribute`
+
+### `useSampler`
+
+We can use `<img>` and `<video>` elements as sampler values for our programs. Videos will automatically re-render the 
+program whenever a new frame is played too!
+ 
+The second argument in the hook is the texture unit (which is an `int` starting from 0). This ***must*** be unique. You cannot have two `useSampler` hooks 
+that have the same texture unit.
+
+Here's an example using an image as a sampler:
+```tsx
+import useImageTexture from " ... ";
+import imagePath from "... assets/image.png";
+
+// ...
+
+  const image = useImageTexture(imagePath)
+  
+  useSampler(program, 0, "image", image);
+```
+
+Here's an example using a video as a sampler:
+```tsx
+import useWebcam from "... useWebcam.ts";
+
+// ...
+
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  useWebcam(videoRef);
+
+  useSampler(program, 0, "image", videoRef.current);
+  
+  return (
+    // ...
+      <video ref={videoRef} autoPlay={true}/>
+    // ...
+  )
+```
+Note: video samplers only work if they are added to the DOM.
+
+
