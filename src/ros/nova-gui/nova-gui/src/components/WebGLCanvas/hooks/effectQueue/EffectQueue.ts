@@ -9,6 +9,10 @@ export default class EffectQueue<T extends unknown[]> {
     this.nextFrameID = 0;
   }
 
+  protected get length() {
+    return this.queue.length;
+  }
+
   /**
    * Adds an effect callback function to the queue
    * @param effect The function to run when the queue is cleared
@@ -60,10 +64,4 @@ export default class EffectQueue<T extends unknown[]> {
 
     return false;
   }
-
-
-
 }
-
-
-

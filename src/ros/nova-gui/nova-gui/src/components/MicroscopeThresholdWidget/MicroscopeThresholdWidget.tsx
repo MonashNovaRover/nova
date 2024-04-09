@@ -85,25 +85,14 @@ const MicroscopeThresholdWidget: React.FC<CameraComponentProps> = (props) => {
   }), [videoRef.current])
   const frameID = useSamplers(gl?.gl, program, samplers);
    */
-  const frameID = useSampler(program, videoRef.current, 0, "image");
+  useSampler(program, 0, "image", videoRef.current);
 
-  useAttributes(gl.gl, program?.program, attributes);
+  useAttributes(program, attributes);
 
   const uniforms = useDict<vec>(() => ({
     threshold: [finalThreshold]
   }), [threshold, manualThreshold])
-  useUniforms(gl, program?.program, uniforms);
-
-  // Render the canvas whenever anything relevant changes
-  useEffect(() => {
-    if (!gl?.gl || !program)
-      return;
-
-    // Redraweeeeee
-    gl.gl.clear(gl.gl.COLOR_BUFFER_BIT);
-    gl.gl.useProgram(program.program);
-    gl.gl.drawArrays(gl.gl.TRIANGLE_STRIP, 0, 4);
-  }, [gl.gl, program, videoRef.current?.width, videoRef.current?.height, uniforms, threshold, frameID, videoRef]);
+  useUniforms(program, uniforms);
 
   const toggleShowThreshold = useCallback(() => {
     setShowThreshold(!showThreshold);

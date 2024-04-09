@@ -1,7 +1,7 @@
 import {RenderQueueItem} from "../gl/RenderQueue.ts";
-import EffectQueue from "../effectQueue/EffectQueue.ts";
 import initShaderProgram from "../../webgl-utils/initShaderProgram.ts";
 import {CanvasWithGL} from "../gl/useGL.ts";
+import ProgramEffectQueue from "./ProgramEffectQueue.ts";
 
 export default class GLProgramState implements RenderQueueItem {
   // The actual WebGL program. This should not be exposed to the user of the hooks, so they must go through the effect
@@ -9,7 +9,7 @@ export default class GLProgramState implements RenderQueueItem {
   private program?: WebGLProgram;
 
   // The effect queue allowing the user to run code that depends on the WebGLProgram in sync with the render loop
-  public readonly queue: EffectQueue<[WebGL2RenderingContext, WebGLProgram]>;
+  public readonly queue: ProgramEffectQueue;
 
   // The vertex shader source code
   private vert: string;
@@ -26,7 +26,7 @@ export default class GLProgramState implements RenderQueueItem {
     this.frag = frag;
     this.numberOfVertices = numberOfVertices;
 
-    this.queue = new EffectQueue<[WebGL2RenderingContext, WebGLProgram]>();
+    this.queue = new ProgramEffectQueue(gl.queue);
 
     this.renderQueueID = gl.renderQueue.push(this);
   }
@@ -68,5 +68,6 @@ export default class GLProgramState implements RenderQueueItem {
    */
   public setup(context: WebGL2RenderingContext): void {
     this.program = initShaderProgram(context, this.vert, this.frag);
+    this.queue.program = this.program;
   }
 }

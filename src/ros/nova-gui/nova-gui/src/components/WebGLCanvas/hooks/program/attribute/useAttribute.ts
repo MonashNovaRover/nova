@@ -43,10 +43,5 @@ export default function useAttribute(program: GLProgramState, name: string, attr
       offset,
     );
     context.enableVertexAttribArray(attributeLocation);
-
-    console.log("done!");
   }, [attribute, name])
-
-
-
 }
