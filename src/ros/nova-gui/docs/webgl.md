@@ -1,5 +1,5 @@
 # WebGL Hooks
-Written by Bailey! Please reach to me if you need help with this topic. It can be very dense.
+Written by Bailey! Please reach out to me if you need help with this topic. It can be very dense.
 
 I have written a suite of hooks to help you do shader programming in react!
 
@@ -11,7 +11,8 @@ Let's make a simple program with a single shader program, consisting of:
 - a vertex shader `shader.vert`,
 - a fragment shader `shader.frag`
 
-you should put your shader code into `.glsl`, `.vert`, or `.frag` files. You can get IDE plugins to make these files look pretty :)
+you should put your shader code into `.glsl`, `.vert`, or `.frag` files. You can get IDE plugins to make these files 
+look pretty :)
 
 `example.vert`
 ```glsl
@@ -66,7 +67,7 @@ our shaders.
 This is the main hook used to setup the rendering context (`WebGL2RenderingContext`) we use to make draw calls. 
 
 Unless you know what you're doing, you probably shouldn't mess with it directly. You can pass it to the other custom 
-hooks I've documented below:
+hooks I've documented below.
 
 Inside your function component, this should be your first WebGL hook:
 ```tsx
@@ -93,6 +94,9 @@ Now, you can use a hook to compile your shader into a program!
 ```tsx
 const program = useProgram(gl, Vert, Frag);
 ```
+
+If have more than one `useProgram` hook, the programs will be rendered on top of each other, with the last hook 
+definition being rendered last.
 
 There is an additional suite of hooks just to set up the variables defined by your program.
 
@@ -139,8 +143,8 @@ useAttribute(program, "aTexCoord", () => [
 
 Whenever anything in the dependencies array changes, the program is scheduled to be re-rendered.
 
-Note: This currently only supports `float`, `vec2`, `vec3`, and `vec4` values, with each type differentiated by the length of 
-the inner arrays of the attribute value.
+Note: This currently only supports `float`, `vec2`, `vec3`, and `vec4` values, with each type differentiated by the 
+length of the inner arrays of the attribute value.
 
 ### `useUniform`
 
@@ -153,11 +157,16 @@ The `useUniform` hook has the same syntax as `useAttribute`
 
 ### `useSampler`
 
+If you recall, we had a uniform sampler in `example.frag`:
+```glsl
+uniform sampler2D image;
+```
+
 We can use `<img>` and `<video>` elements as sampler values for our programs. Videos will automatically re-render the 
 program whenever a new frame is played too!
  
-The second argument in the hook is the texture unit (which is an `int` starting from 0). This ***must*** be unique. You cannot have two `useSampler` hooks 
-that have the same texture unit.
+The second argument in the hook is the texture unit (which is an `int` starting from 0). This ***must*** be unique. You 
+cannot have two `useSampler` hooks that have the same texture unit.
 
 Here's an example using an image as a sampler:
 ```tsx
@@ -190,4 +199,43 @@ import useWebcam from "... useWebcam.ts";
 ```
 Note: video samplers only work if they are added to the DOM.
 
+### `useResolutionUniform`
+
+Sets a uniform of the form:
+
+```glsl
+uniform vec2 resolution;
+```
+to be the width and height of the canvas render target, in pixels, and is updated whenever the canvas is resized.
+This is useful if you need to maintain aspect ratios in your shaders. 
+
+You can use it like this:
+
+```ts
+useResolutionUniform(gl, program);
+```
+
+### `useProgramEffect`
+
+This is how most of the program hooks (`useAttribute`, `useUniform`, `useSampler`) were defined. 
+
+Whenever an item in the dependencies list changes, this will run your code synchronously before the next re-render of 
+the program, and schedules the program to be re-rendered.
+
+```ts
+useProgramEffect(program, (context: WebGL2RenderingContext, program: WebGLProgram) => {
+  // make webgl calls using the given context and program.
+}, [/* dependencies go here */])
+```
+
+You can use this to make webgl hooks that relate to the program.
+
+Note: The decision to use the same name for the `useProgram` return value, and the argument in the callback for 
+`useCallbackEffect` is intentional. You should ***never*** interact with the `useProgram` return value directly inside 
+of the `useProgramEffect` callback, as it could cause infinite loops and unexpected behaviour. By hiding the 
+`useProgram` return value inside of the callback, I hope to discourage users from making this mistake.
+
+### `useCanvasSize`
+
+Tries to automatically size your canvas element. This is really dodgy and I don't know how to document it properly.
 
