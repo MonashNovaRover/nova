@@ -1,5 +1,3 @@
-import useGL from "../WebGLCanvas/hooks/gl/useGL.ts";
-import {useProgram} from "../WebGLCanvas/hooks/program/useProgram.ts";
 import vert from "./gl/threshold.vert";
 import frag from "./gl/threshold.frag";
 import React, {useCallback, useEffect, useRef, useState} from "react";
@@ -15,8 +13,6 @@ import {
   TableHeader,
   TableRow
 } from "@nextui-org/react";
-import useAttributes from "../WebGLCanvas/hooks/program/attribute/useAttributes.ts";
-import useCanvasSize from "../WebGLCanvas/hooks/gl/useCanvasSize.ts";
 import CopyableInput from "../CopyableInput/CopyableInput.tsx";
 import {CameraComponentProps} from "../CameraComponent/CameraComponent.tsx";
 import CameraSessionStartStopButton from "../CameraComponent/components/CameraSessionStartStopButton.tsx";
@@ -26,9 +22,13 @@ import {useBifrost} from "../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosTopic} from "../../ros/topics/rosTopic.ts";
 import {useCameraStream} from "../CameraComponent/hooks/useCameraStream.ts";
 import {useCameraStreamer} from "../CameraComponent/hooks/useCameraStreamer.ts";
-import useSampler from "../WebGLCanvas/hooks/program/sampler/useSampler.ts";
-import useUniform from "../WebGLCanvas/hooks/program/uniform/useUniform.ts";
-import useResolutionUniform from "../WebGLCanvas/hooks/program/uniform/useResolutionUniform.ts";
+import useGL from "../../hooks/webgl/gl/useGL.ts";
+import {useProgram} from "../../hooks/webgl/program/useProgram.ts";
+import useCanvasSize from "../../hooks/webgl/gl/useCanvasSize.ts";
+import useSampler from "../../hooks/webgl/program/sampler/useSampler.ts";
+import useAttributes from "../../hooks/webgl/program/attribute/useAttributes.ts";
+import useUniform from "../../hooks/webgl/program/uniform/useUniform.ts";
+import useResolutionUniform from "../../hooks/webgl/program/uniform/useResolutionUniform.ts";
 
 const attributes = {
   aPosition: {

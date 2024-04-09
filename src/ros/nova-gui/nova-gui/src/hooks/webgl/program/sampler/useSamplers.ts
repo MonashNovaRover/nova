@@ -1,9 +1,9 @@
 import {useState} from "react";
-import loadTexture, {updateImageTexture} from "../../../webgl-utils/loadTexture.ts";
-import loadVideoTexture, {updateVideoTexture} from "../../../webgl-utils/loadVideoTexture.ts";
 import "rvfc-polyfill"
 import GLProgramState from "../GLProgramState.ts";
 import useProgramEffect from "../useProgramEffect.ts";
+import loadVideoTexture, {updateVideoTexture} from "../../../../utils/webgl/loadVideoTexture.ts";
+import loadTexture, {updateImageTexture} from "../../../../utils/webgl/loadTexture.ts";
 
 export type GLSampler = [HTMLImageElement | HTMLVideoElement | null | undefined, number];
 export type GLSamplers = {[key: string] : GLSampler}; // Map<string, GLSampler>;

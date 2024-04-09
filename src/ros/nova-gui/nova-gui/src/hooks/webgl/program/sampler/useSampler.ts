@@ -1,8 +1,8 @@
 import {useState} from "react";
-import loadVideoTexture, {updateVideoTexture} from "../../../webgl-utils/loadVideoTexture.ts";
-import loadTexture, {updateImageTexture} from "../../../webgl-utils/loadTexture.ts";
 import useProgramEffect from "../useProgramEffect.ts";
 import GLProgramState from "../GLProgramState.ts";
+import loadVideoTexture, {updateVideoTexture} from "../../../../utils/webgl/loadVideoTexture.ts";
+import loadTexture, {updateImageTexture} from "../../../../utils/webgl/loadTexture.ts";
 
 /**
  * Applies a video or an image element as a sampler for a webgl program.

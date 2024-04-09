@@ -1,6 +1,6 @@
 import {useCallback, useEffect, useState} from "react";
-import {StreamingState} from "../../../../CameraComponent/hooks/useCameraStream.ts";
 import toast from "react-hot-toast";
+import {StreamingState} from "../../../../components/CameraComponent/hooks/useCameraStream.ts";
 
 /**
  * A hook, which plays the webcam on a given video ref

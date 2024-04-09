@@ -1,5 +1,5 @@
 import {useLayoutEffect, useRef} from "react";
-import {loadImageFromURL} from "../../../webgl-utils/loadTexture.ts";
+import {loadImageFromURL} from "../../../../utils/webgl/loadTexture.ts";
 
 /**
  * A hook, that creates a ref to an image at the given url, and returns the image

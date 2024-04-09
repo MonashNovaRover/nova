@@ -1,13 +1,13 @@
 import {useCallback, useEffect, useRef, useState} from "react";
 import {Button} from "@nextui-org/react";
-import useGL from "../../../components/WebGLCanvas/hooks/gl/useGL.ts";
-import useCanvasSize from "../../../components/WebGLCanvas/hooks/gl/useCanvasSize.ts";
-import {useProgram} from "../../../components/WebGLCanvas/hooks/program/useProgram.ts";
 import Vert from "./test.vert";
 import Frag from "./test.frag";
-import useSampler from "../../../components/WebGLCanvas/hooks/program/sampler/useSampler.ts";
-import useAttribute from "../../../components/WebGLCanvas/hooks/program/attribute/useAttribute.ts";
-import useWebcam from "../../../components/WebGLCanvas/hooks/program/sampler/useWebcam.ts";
+import useGL from "../../../hooks/webgl/gl/useGL.ts";
+import useCanvasSize from "../../../hooks/webgl/gl/useCanvasSize.ts";
+import {useProgram} from "../../../hooks/webgl/program/useProgram.ts";
+import useWebcam from "../../../hooks/webgl/program/sampler/useWebcam.ts";
+import useSampler from "../../../hooks/webgl/program/sampler/useSampler.ts";
+import useAttribute from "../../../hooks/webgl/program/attribute/useAttribute.ts";
 
 export default function TestWebGLView() {
   const fluentHooks = {
