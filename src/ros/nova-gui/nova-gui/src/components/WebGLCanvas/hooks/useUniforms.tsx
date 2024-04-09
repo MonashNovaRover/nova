@@ -1,5 +1,5 @@
 import {useEffect} from "react";
-import {CanvasWithGL} from "./useGL.tsx";
+import {CanvasWithGL} from "./gl/useGL.tsx";
 
 export type vec1 = [number];
 export type vec2 = [number, number];

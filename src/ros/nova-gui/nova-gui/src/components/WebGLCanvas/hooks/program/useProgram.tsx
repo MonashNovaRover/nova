@@ -1,12 +1,15 @@
-import {useEffect, useMemo, useRef} from "react";
-import initShaderProgram from "../../webgl-utils/initShaderProgram.ts";
-import {CanvasWithGL} from "../useGL.tsx";
-import useEffectQueue, {EffectQueue} from "../effectQueue/useEffectQueue.ts";
+import {useEffect, useRef} from "react";
+import {CanvasWithGL} from "../gl/useGL.tsx";
+import GLProgramState from "./GLProgramState.ts";
 
-export interface ProgramWithGL {
-  program: WebGLProgram,
-  gl: WebGL2RenderingContext,
-  queue: EffectQueue,
+
+function useProgram_aux(gl: CanvasWithGL, vert: string, frag: string, numberOfVertices: number): GLProgramState {
+  const programRef = useRef<GLProgramState>();
+
+  if (programRef.current === undefined)
+    programRef.current = new GLProgramState(gl, vert, frag, numberOfVertices);
+
+  return programRef.current;
 }
 
 /**
@@ -14,37 +17,18 @@ export interface ProgramWithGL {
  * @param gl The rendering context to use
  * @param vert The vertex shader source code
  * @param frag The fragment shader source code
+ * @param numberOfVertices The number of vertices to render when calling draw arrays
  */
-export function useProgram(gl: CanvasWithGL, vert: string, frag: string) {
-  // const [program, setProgram] = useState<WebGLProgram | undefined>();
-  const programRef = useRef<WebGLProgram | undefined>();
+export function useProgram(gl: CanvasWithGL, vert: string, frag: string, numberOfVertices: number = 4) {
+  const program = useProgram_aux(gl, vert, frag, numberOfVertices);
 
   useEffect(() => {
-    if (!gl.gl)
-      return;
+    program.numberOfVertices = numberOfVertices;
+  }, [numberOfVertices, program]);
 
-    const newProgram = initShaderProgram(gl.gl, vert, frag);
+  useEffect(() => {
+    program.setShaders(gl, vert, frag);
+  }, [vert, frag, program, gl]);
 
-    if (!newProgram)
-      return;
-
-    if (programRef.current !== undefined)
-      console.log("Recompiled shader program.");
-
-    gl.gl.useProgram(newProgram);
-    programRef.current = newProgram;
-  }, [gl, vert, frag]);
-
-  const queue = useEffectQueue();
-
-  return useMemo(() => {
-    if (!gl.gl || !programRef.current)
-      return;
-
-    return {
-      program: programRef.current,
-      gl: gl.gl,
-      queue: queue,
-    } as ProgramWithGL
-  }, [gl.gl, queue]);
+  return program;
 }

@@ -1,5 +1,5 @@
 import {useEffect, useLayoutEffect, useState} from "react";
-import {CanvasWithGL} from "./useGL.tsx";
+import {CanvasWithGL} from "./gl/useGL.tsx";
 
 /**
  * Automatically calculates the size of a canvas used for webgl to match the size, in screen pixels, of some element
@@ -12,7 +12,7 @@ export default function useCanvasSize(canvasWithGL : CanvasWithGL, sizeTarget?: 
   const [height, setHeight] = useState(3);
 
   const canvasRef = canvasWithGL.canvasRef;
-  const gl = canvasWithGL.gl;
+  const gl = canvasWithGL.context;
 
   useLayoutEffect(() => {
     const canvas = canvasRef.current;

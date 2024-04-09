@@ -1,5 +1,5 @@
 import {vec} from "../useUniforms.tsx";
-import useEffectQueueEffect from "../useEffectQueueEffect.ts";
+import useEffectQueueEffect from "../effectQueue/useEffectQueueEffect.ts";
 import {ProgramWithGL} from "./useProgram.tsx";
 
 /**
@@ -24,7 +24,7 @@ const useUniform = (programWithGL: ProgramWithGL | undefined, name: string, unif
     else if (uniform.length === 3) programWithGL.gl.uniform3f(location, ...uniform);
     else if (uniform.length === 4) programWithGL.gl.uniform4f(location, ...uniform);
 
-  }, [uniform, name], programWithGL?.queue.push ?? (() => {}));
+  }, [uniform, name], programWithGL?.queue);
 }
 
 export default useUniform;

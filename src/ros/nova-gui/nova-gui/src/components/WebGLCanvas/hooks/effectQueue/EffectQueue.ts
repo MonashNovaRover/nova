@@ -1,7 +1,3 @@
-
-
-
-
 export default class EffectQueue<T extends unknown[]> {
   private queue: (((...args: T) => void) | undefined)[];
 
@@ -13,6 +9,12 @@ export default class EffectQueue<T extends unknown[]> {
     this.nextFrameID = 0;
   }
 
+  /**
+   * Adds an effect callback function to the queue
+   * @param effect The function to run when the queue is cleared
+   * @returns an integer that identifies the effect, which can be passed to this.cancel to prevent the effect function
+   * from running if it has not already been run
+   */
   public push(effect: (...args: T) => void): number {
     const frameID = this.nextFrameID;
     this.nextFrameID += 1;
@@ -22,6 +24,11 @@ export default class EffectQueue<T extends unknown[]> {
     return frameID;
   }
 
+  /**
+   * Given some value returned from a call of this.push, prevents the given effect from running if it has not already
+   * been executed.
+   * @param frameID the returned value for some call of this.push
+   */
   public cancel(frameID: number): void {
     const index = this.queue.length + frameID - this.nextFrameID;
 
@@ -36,6 +43,10 @@ export default class EffectQueue<T extends unknown[]> {
     this.queue[index] = undefined;
   }
 
+  /**
+   * Runs all functions currently present in the queue, passing along the arguments given to the functions in the queue.
+   * @param args the arguments to pass to the functions in the queue when executing them
+   */
   public clear(...args: T): boolean {
     if (this.queue.length === 0)
       return true;
@@ -44,7 +55,7 @@ export default class EffectQueue<T extends unknown[]> {
     for (let i = 0; i < this.queue.length; i++)
       this.queue[i]?.(...args);
 
-    // Reset the queue
+    // Clear the queue
     this.queue = [];
 
     return false;
