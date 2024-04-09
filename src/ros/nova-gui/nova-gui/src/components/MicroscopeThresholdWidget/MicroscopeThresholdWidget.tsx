@@ -26,16 +26,9 @@ import useGL from "../../hooks/webgl/gl/useGL.ts";
 import {useProgram} from "../../hooks/webgl/program/useProgram.ts";
 import useCanvasSize from "../../hooks/webgl/gl/useCanvasSize.ts";
 import useSampler from "../../hooks/webgl/program/sampler/useSampler.ts";
-import useAttributes from "../../hooks/webgl/program/attribute/useAttributes.ts";
 import useUniform from "../../hooks/webgl/program/uniform/useUniform.ts";
 import useResolutionUniform from "../../hooks/webgl/program/uniform/useResolutionUniform.ts";
-
-const attributes = {
-  aPosition: {
-    numComponents: 2,
-    data: [1.0, 1.0, -1.0, 1.0, 1.0, -1.0, -1.0, -1.0]
-  }
-};
+import useAttribute from "../../hooks/webgl/program/attribute/useAttribute.ts";
 
 export interface ThresholdingFileEntry {
   threshold: number,
@@ -80,6 +73,10 @@ const MicroscopeThresholdWidget: React.FC<CameraComponentProps> = (props) => {
 
   const [width, height] = useCanvasSize(gl, videoRef.current ?? undefined);
 
+  useAttribute(program, "aPosition", [
+    [1, 1], [-1, 1], [1, -1], [-1, -1]
+  ]);
+
   /*const samplers = useDict<GLSampler>(() => ({
     image: [videoRef.current, 0]
   }), [videoRef.current])
@@ -87,7 +84,6 @@ const MicroscopeThresholdWidget: React.FC<CameraComponentProps> = (props) => {
    */
   useSampler(program, 0, "image", videoRef.current);
 
-  useAttributes(program, attributes);
 
   /*const uniforms = useDict<vec>(() => ({
     threshold: [finalThreshold]
