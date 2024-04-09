@@ -3,7 +3,7 @@ import {CanvasWithGL} from "./hooks/gl/useGL.ts";
 import {useProgram} from "./hooks/program/useProgram.ts";
 import useAttributes, {GLAttributes} from "./hooks/program/attribute/useAttributes.ts";
 import useUniforms, {GLUniforms, vec2, vec4} from "./hooks/useUniforms.tsx";
-import useSamplers, {GLSamplers} from "./hooks/useSamplers.tsx";
+import useSamplers, {GLSamplers} from "./hooks/program/sampler/useSamplers.ts";
 
 /**
  * Properties for the WebGL canvas. Use these to configure shader programs

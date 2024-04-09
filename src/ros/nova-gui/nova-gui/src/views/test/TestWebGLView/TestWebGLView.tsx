@@ -6,7 +6,7 @@ import {useProgram} from "../../../components/WebGLCanvas/hooks/program/useProgr
 import {IVertexAttribute} from "../../../components/WebGLCanvas/hooks/program/attribute/useAttributes.ts";
 import Vert from "./test.vert";
 import Frag from "./test.frag";
-import useSampler from "../../../components/WebGLCanvas/hooks/useSampler.ts";
+import useSampler from "../../../components/WebGLCanvas/hooks/program/sampler/useSampler.ts";
 import useAttribute from "../../../components/WebGLCanvas/hooks/program/attribute/useAttribute.ts";
 import useWebcam from "../../../components/WebGLCanvas/hooks/useWebcam.tsx";
 

@@ -28,7 +28,7 @@ import {useBifrost} from "../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosTopic} from "../../ros/topics/rosTopic.ts";
 import {useCameraStream} from "../CameraComponent/hooks/useCameraStream.ts";
 import {useCameraStreamer} from "../CameraComponent/hooks/useCameraStreamer.ts";
-import useSampler from "../WebGLCanvas/hooks/useSampler.ts";
+import useSampler from "../WebGLCanvas/hooks/program/sampler/useSampler.ts";
 
 const attributes = {
   aPosition: {

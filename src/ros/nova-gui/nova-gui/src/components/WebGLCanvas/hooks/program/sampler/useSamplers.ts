@@ -1,7 +1,9 @@
-import {useEffect, useState} from "react";
-import loadTexture, {updateImageTexture} from "../webgl-utils/loadTexture.ts";
-import loadVideoTexture, {updateVideoTexture} from "../webgl-utils/loadVideoTexture.ts";
+import {useState} from "react";
+import loadTexture, {updateImageTexture} from "../../../webgl-utils/loadTexture.ts";
+import loadVideoTexture, {updateVideoTexture} from "../../../webgl-utils/loadVideoTexture.ts";
 import "rvfc-polyfill"
+import GLProgramState from "../GLProgramState.ts";
+import useProgramEffect from "../useProgramEffect.ts";
 
 export type GLSampler = [HTMLImageElement | HTMLVideoElement | null | undefined, number];
 export type GLSamplers = {[key: string] : GLSampler}; // Map<string, GLSampler>;
@@ -10,16 +12,15 @@ export type GLSamplers = {[key: string] : GLSampler}; // Map<string, GLSampler>;
  * Applies video and image elements as samplers for a webgl program.
  * This is currently broken when using more than 1 sampler.
  * TODO: fix for cases with more than one sampler.
- * @param gl The rendering context to use
  * @param program The program to apply samplers to.
  * @param samplers The samplers to use.
  */
-const useSamplers = (gl?: WebGL2RenderingContext, program?: WebGLProgram, samplers?: GLSamplers) => {
+const useSamplers = (program: GLProgramState, samplers?: GLSamplers) => {
   const [textures, setTextures] = useState<{[key: string] : WebGLTexture | undefined}>({});
   const [samplerFrameID, setSamplerFrameID] = useState<number>(0);
 
-  useEffect(() => {
-    if (gl === undefined || samplers === undefined || program === undefined)
+  useProgramEffect(program, (gl, program) => {
+    if (samplers === undefined)
       return;
 
     const frameIDs = new Array(samplers.length).map(() => 0);
@@ -90,8 +91,6 @@ const useSamplers = (gl?: WebGL2RenderingContext, program?: WebGLProgram, sample
         updateImageTexture(gl, sampler, texture);
       }
 
-
-
       return [key, texture];
     });
 
@@ -99,7 +98,7 @@ const useSamplers = (gl?: WebGL2RenderingContext, program?: WebGLProgram, sample
 
     return () => {
       Object.entries(samplers).forEach(([, sampler], index) => {
-        if (gl === undefined || samplers === undefined || program === undefined)
+        if (samplers === undefined)
           return;
 
         // Cancel all video frame callbacks
@@ -107,7 +106,7 @@ const useSamplers = (gl?: WebGL2RenderingContext, program?: WebGLProgram, sample
           sampler.cancelVideoFrameCallback(frameIDs[index]);
       });
     }
-  }, [program, samplers]);
+  }, [samplers]);
 
 
   return samplerFrameID;
