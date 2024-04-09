@@ -1,6 +1,6 @@
 import {RenderQueueItem} from "../render-queue/RenderQueue.ts";
 import initShaderProgram from "../../../utils/webgl/initShaderProgram.ts";
-import {CanvasWithGL} from "../gl/useGL.ts";
+import {GLState} from "../gl/useGL.ts";
 import ProgramEffectQueue from "./ProgramEffectQueue.ts";
 
 export default class GLProgramState implements RenderQueueItem {
@@ -21,7 +21,7 @@ export default class GLProgramState implements RenderQueueItem {
   // The value from gl.renderQueue.push, allowing us to perform setup() again
   private readonly renderQueueID: number;
 
-  constructor(gl: CanvasWithGL, vert: string, frag: string, numberOfVertices: number) {
+  constructor(gl: GLState, vert: string, frag: string, numberOfVertices: number) {
     this.vert = vert;
     this.frag = frag;
     this.numberOfVertices = numberOfVertices;
@@ -37,7 +37,7 @@ export default class GLProgramState implements RenderQueueItem {
    * @param vert The new vertex shader source code
    * @param frag The new fragment shader source code
    */
-  public setShaders(gl: CanvasWithGL, vert: string, frag: string): void {
+  public setShaders(gl: GLState, vert: string, frag: string): void {
     // This condition is to prevent the program from being immediately recompiled by the use effect in useProgram.
     if (this.vert === vert && this.frag === frag)
       return;

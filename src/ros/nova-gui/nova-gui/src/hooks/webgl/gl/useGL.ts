@@ -4,7 +4,7 @@ import EffectQueue from "../effect-queue/EffectQueue.ts";
 import useRenderQueue from "../render-queue/useRenderQueue.ts";
 import RenderQueue from "../render-queue/RenderQueue.ts";
 
-export interface CanvasWithGL {
+export interface GLState {
   canvasRef: React.RefObject<HTMLCanvasElement>,
   context?: WebGL2RenderingContext,
   queue: EffectQueue<[WebGL2RenderingContext]>,
@@ -18,12 +18,12 @@ export interface CanvasWithGL {
   render: (force?: boolean) => void,
 }
 
-const useGL_aux = (): CanvasWithGL => {
+const useGL_aux = (): GLState => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const renderQueue = useRenderQueue();
   const queue = useEffectQueue<[WebGL2RenderingContext]>();
 
-  const gl = useRef<CanvasWithGL>();
+  const gl = useRef<GLState>();
   if (gl.current === undefined) {
     gl.current = ({
       canvasRef: canvasRef,
@@ -31,7 +31,7 @@ const useGL_aux = (): CanvasWithGL => {
       queue: queue,
       renderQueue: renderQueue,
       render: () => {},
-    } as CanvasWithGL);
+    } as GLState);
   }
 
   return gl.current;
@@ -42,7 +42,7 @@ const useGL_aux = (): CanvasWithGL => {
  * @param webContextAttributes any attributes to use when creating the canvas ref
  */
 const useGL = (webContextAttributes?: WebGLContextAttributes )
-  : CanvasWithGL =>
+  : GLState =>
 {
   const gl = useGL_aux();
 

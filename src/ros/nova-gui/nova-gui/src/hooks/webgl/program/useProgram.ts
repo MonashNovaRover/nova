@@ -1,9 +1,9 @@
 import {useEffect, useRef} from "react";
-import {CanvasWithGL} from "../gl/useGL.ts";
+import {GLState} from "../gl/useGL.ts";
 import GLProgramState from "./GLProgramState.ts";
 
 
-function useProgram_aux(gl: CanvasWithGL, vert: string, frag: string, numberOfVertices: number): GLProgramState {
+function useProgram_aux(gl: GLState, vert: string, frag: string, numberOfVertices: number): GLProgramState {
   const programRef = useRef<GLProgramState>();
 
   if (programRef.current === undefined)
@@ -19,7 +19,7 @@ function useProgram_aux(gl: CanvasWithGL, vert: string, frag: string, numberOfVe
  * @param frag The fragment shader source code
  * @param numberOfVertices The number of vertices to render when calling draw arrays
  */
-export function useProgram(gl: CanvasWithGL, vert: string, frag: string, numberOfVertices: number = 4) {
+export function useProgram(gl: GLState, vert: string, frag: string, numberOfVertices: number = 4) {
   const program = useProgram_aux(gl, vert, frag, numberOfVertices);
 
   useEffect(() => {

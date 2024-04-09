@@ -1,11 +1,11 @@
 import GLProgramState from "../GLProgramState.ts";
-import {CanvasWithGL} from "../../gl/useGL.ts";
+import {GLState} from "../../gl/useGL.ts";
 import {useLayoutEffect} from "react";
 
 /**
  * Sets a vec2 which is equal to the size of the webgl canvas in pixels, under the name "resolution"
  */
-export default function useResolutionUniform(gl: CanvasWithGL, program: GLProgramState) {
+export default function useResolutionUniform(gl: GLState, program: GLProgramState) {
 
   useLayoutEffect(() => {
     if (!gl.canvasRef.current)
