@@ -5,7 +5,7 @@ I have written a suite of hooks to help you do shader programming in react!
 
 This won't go super in depth as to how to do GL code.
 
-## How to use
+## Basic Usage 
 
 Let's make a simple program with a single shader program, consisting of:
 - a vertex shader `example.vert`,
@@ -175,7 +175,7 @@ import imagePath from "... assets/image.png";
 
 // ...
 
-  const image = useImageTexture(imagePath)
+  const image = useImageTexture(imagePath);
   
   useSampler(program, 0, "image", image);
 ```
@@ -198,6 +198,8 @@ import useWebcam from "... ";
   )
 ```
 Note: video samplers only work if they are added to the DOM.
+
+## More hooks
 
 ### `useResolutionUniform`
 
@@ -239,3 +241,47 @@ of the `useProgramEffect` callback, as it could cause infinite loops and unexpec
 
 Tries to automatically size your canvas element. This is really dodgy and I don't know how to document it properly.
 
+If used incorrectly, the canvas can rapidly expand to a rediculous size, and freeze up the browser tab. Have fun!
+
+```ts
+useCanvasSize(gl);
+```
+
+This hook should probably be fixed at some point.
+
+### `useAnimationFrame`
+
+Takes the given callback function, and puts it into a loop formed by recursively calling 
+[`requestAnimationFrame`](https://developer.mozilla.org/en-US/docs/Web/API/window/requestAnimationFrame).
+
+This is used to form the default render loop in the `useGL()` hook.
+
+### `useImageTexture`
+
+Gets an image from a path, which you can use as an input to `useSampler`.
+
+```ts
+const image = useImageTexture(imagePath);
+```
+
+### `useVideoTexture`
+
+Same as `useVideoTexture`, but for video files instead.
+
+```ts
+const videoRef = useRef<HTMLVideoElement | null>(null);
+useVideoTexture(videoRef, videoPath);
+```
+
+Note: The video ref must be used in the DOM by a `<video ref={videoRef}/>` for this to work.
+
+### `useWebcam`
+
+Makes the given video ref display the webcam feed
+
+```ts
+const videoRef = useRef<HTMLVideoElement | null>(null);
+useWebcam(videoRef);
+```
+
+Note: The video ref must be used in the DOM by a `<video ref={videoRef}/>` for this to work.
