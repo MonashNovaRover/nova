@@ -67,15 +67,10 @@ export default function TestWebGLView() {
 
     const callback = () => {
 
-      /*if (gl.context && !gl.queue.clear(gl.context)) {
+      if (gl.context && !gl.queue.clear(gl.context)) {
         gl.renderQueue.render(gl.context);
-      }*/
-      if (gl.context) {
-
-        gl.queue.clear(gl.context);
-        gl.renderQueue.render(gl.context);
-
       }
+
 
       frameID = requestAnimationFrame(callback);
     }
@@ -84,7 +79,7 @@ export default function TestWebGLView() {
     return () => {
       cancelAnimationFrame(frameID)
     }
-  }, [program]);
+  }, [gl, program]);
 
   // useUniform(program, "offset", useMemo(() => [count / 10, 0], [count]));
 
