@@ -95,7 +95,7 @@ Now, you can use a hook to compile your shader into a program!
 const program = useProgram(gl, Vert, Frag);
 ```
 
-If have more than one `useProgram` hook, the programs will be rendered on top of each other, with the last hook 
+If you have more than one `useProgram` hook, the programs will be rendered on top of each other, with the last hook 
 definition being rendered last.
 
 There is an additional suite of hooks just to set up the variables defined by your program.
