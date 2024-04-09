@@ -17,8 +17,9 @@ export default class ProgramEffectQueue extends EffectQueue<[WebGL2RenderingCont
     this._program = value;
 
     // If there have been items added to this queue before the program was initialised, we haven't pushed to queue yet.
-    if (this.length > 0)
+    if (this.length > 0) {
       this.pushToGLQueue();
+    }
   }
 
   /**
@@ -31,14 +32,17 @@ export default class ProgramEffectQueue extends EffectQueue<[WebGL2RenderingCont
       if (this._program !== undefined)
         this.clear(gl, this._program)
     });
+
+    console.log("hello")
   }
 
   override push(effect: (context: WebGL2RenderingContext, program: WebGLProgram) => void): number {
     const frameID = super.push(effect);
 
     // Try update the gl queue so a rerender is performed
-    if (this.length === 0 && this.program !== undefined)
+    if (this.length === 1) {
       this.pushToGLQueue();
+    }
 
     return frameID;
   }

@@ -56,8 +56,6 @@ export default class GLProgramState implements RenderQueueItem {
     if (this.program === undefined)
       throw Error("RenderQueue tried to render GLProgramState without a program. Did you call RenderQueueItem.setup?");
 
-    this.queue.clear(context, this.program);
-
     context.useProgram(this.program);
     context.drawArrays(context.TRIANGLE_STRIP, 0, this.numberOfVertices);
   }

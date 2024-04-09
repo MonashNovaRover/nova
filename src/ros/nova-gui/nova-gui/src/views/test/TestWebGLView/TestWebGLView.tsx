@@ -67,8 +67,15 @@ export default function TestWebGLView() {
 
     const callback = () => {
 
-      if (gl.context)
+      /*if (gl.context && !gl.queue.clear(gl.context)) {
         gl.renderQueue.render(gl.context);
+      }*/
+      if (gl.context) {
+
+        gl.queue.clear(gl.context);
+        gl.renderQueue.render(gl.context);
+
+      }
 
       frameID = requestAnimationFrame(callback);
     }
