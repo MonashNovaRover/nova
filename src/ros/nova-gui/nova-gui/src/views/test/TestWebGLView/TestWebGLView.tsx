@@ -1,19 +1,13 @@
-import {useCallback, useEffect, useMemo, useRef, useState} from "react";
+import {useCallback, useEffect, useRef, useState} from "react";
 import {Button} from "@nextui-org/react";
 import useGL from "../../../components/WebGLCanvas/hooks/gl/useGL.ts";
 import useCanvasSize from "../../../components/WebGLCanvas/hooks/gl/useCanvasSize.ts";
 import {useProgram} from "../../../components/WebGLCanvas/hooks/program/useProgram.ts";
-import {IVertexAttribute} from "../../../components/WebGLCanvas/hooks/program/attribute/useAttributes.ts";
 import Vert from "./test.vert";
 import Frag from "./test.frag";
 import useSampler from "../../../components/WebGLCanvas/hooks/program/sampler/useSampler.ts";
 import useAttribute from "../../../components/WebGLCanvas/hooks/program/attribute/useAttribute.ts";
 import useWebcam from "../../../components/WebGLCanvas/hooks/program/sampler/useWebcam.ts";
-
-const aPositionAttribute = {
-  numComponents: 2,
-  data: [1.0, 1.0, -1.0, 1.0, 1.0, -1.0, -1.0, -1.0]
-} as IVertexAttribute
 
 export default function TestWebGLView() {
   const fluentHooks = {
@@ -26,7 +20,7 @@ export default function TestWebGLView() {
         usePrint: () => {
           useEffect(() => {
             console.log(...data);
-          }, [data]);
+          }, []);
         }
       }
     },
@@ -53,13 +47,12 @@ export default function TestWebGLView() {
   useWebcam(videoRef);
   useSampler(program, 0, "image", videoRef.current);
 
-  const aTexCoord = useMemo(() => ({
-    numComponents: 2,
-    data: [1.0 + count/10, 1.0, count/10, 1.0, 1.0 + count/10, 0.0, count/10, 0.0]
-  }), [count])
-  useAttribute(program, "aTexCoord", aTexCoord);
 
-  useAttribute(program, "aPosition", aPositionAttribute);
+  useAttribute(program, "aTexCoord", () => [
+    [1, 1], [0, 1], [1, 0], [0, 0]
+  ], [count]);
+
+  useAttribute(program, "aPosition", [[1, 1], [-1, 1], [1, -1], [-1, -1]]);
 
 
 

@@ -2,7 +2,7 @@ import useGL from "../WebGLCanvas/hooks/gl/useGL.ts";
 import {useProgram} from "../WebGLCanvas/hooks/program/useProgram.ts";
 import vert from "./gl/threshold.vert";
 import frag from "./gl/threshold.frag";
-import React, {useCallback, useEffect, useMemo, useRef, useState} from "react";
+import React, {useCallback, useEffect, useRef, useState} from "react";
 import {
   Button,
   Card,
@@ -15,10 +15,8 @@ import {
   TableHeader,
   TableRow
 } from "@nextui-org/react";
-import useDict from "../WebGLCanvas/hooks/misc/useDict.ts";
 import useAttributes from "../WebGLCanvas/hooks/program/attribute/useAttributes.ts";
 import useCanvasSize from "../WebGLCanvas/hooks/gl/useCanvasSize.ts";
-import useUniforms, {vec} from "../WebGLCanvas/hooks/program/uniform/useUniforms.ts";
 import CopyableInput from "../CopyableInput/CopyableInput.tsx";
 import {CameraComponentProps} from "../CameraComponent/CameraComponent.tsx";
 import CameraSessionStartStopButton from "../CameraComponent/components/CameraSessionStartStopButton.tsx";
@@ -29,8 +27,8 @@ import {RosTopic} from "../../ros/topics/rosTopic.ts";
 import {useCameraStream} from "../CameraComponent/hooks/useCameraStream.ts";
 import {useCameraStreamer} from "../CameraComponent/hooks/useCameraStreamer.ts";
 import useSampler from "../WebGLCanvas/hooks/program/sampler/useSampler.ts";
-import useWebcam from "../WebGLCanvas/hooks/program/sampler/useWebcam.ts";
 import useUniform from "../WebGLCanvas/hooks/program/uniform/useUniform.ts";
+import useResolutionUniform from "../WebGLCanvas/hooks/program/uniform/useResolutionUniform.ts";
 
 const attributes = {
   aPosition: {
@@ -57,7 +55,7 @@ const onFloatChanged = (mutator: (x: string) => void) => (userInput: string) => 
 }
 
 const MicroscopeThresholdWidget: React.FC<CameraComponentProps> = (props) => {
-  const { cameraSerial, autostart: allCamerasStarted } = props;
+  const { cameraSerial, autostart  } = props;
 
   const [threshold, setThreshold] = useState<number>(0.5);
   const [brightness, setBrightness] = useState<number | undefined>();
@@ -75,7 +73,7 @@ const MicroscopeThresholdWidget: React.FC<CameraComponentProps> = (props) => {
     streamingState,
     sendSessionStartMessage,
     closeSession,
-  } = useWebcam(videoRef);
+  } = useCameraStream(cameraSerial, videoRef, autostart);
 
   const gl = useGL();
   const program = useProgram(gl, vert, frag);
@@ -97,6 +95,7 @@ const MicroscopeThresholdWidget: React.FC<CameraComponentProps> = (props) => {
   //useUniforms(program, uniforms);
 
   useUniform(program, "threshold", () => [finalThreshold], [finalThreshold]);
+  useResolutionUniform(gl, program);
 
   const toggleShowThreshold = useCallback(() => {
     setShowThreshold(!showThreshold);

@@ -1,10 +1,13 @@
 import GLProgramState from "../GLProgramState.ts";
-import {IVertexAttribute} from "./useAttributes.ts";
-import {useRef} from "react";
+import {DependencyList, useRef} from "react";
 import useProgramEffect from "../useProgramEffect.ts";
 
-export default function useAttribute(program: GLProgramState, name: string, attribute: IVertexAttribute) {
+export type vecArray = [number][] | [number, number][] | [number, number, number][] | [number, number, number, number][];
 
+export default function useAttribute(program: GLProgramState, name: string, constantAttribute: vecArray): void;
+export default function useAttribute(program: GLProgramState, name: string, factory: () => vecArray, deps: DependencyList): void;
+export default function useAttribute(program: GLProgramState, name: string,
+                                     factoryOrAttribute: (() => vecArray) | vecArray, deps: DependencyList = []) {
   const buffer = useRef<WebGLBuffer>();
 
   useProgramEffect(program, (context, program) => {
@@ -17,12 +20,22 @@ export default function useAttribute(program: GLProgramState, name: string, attr
         return;
     }
 
+    const attribute = Array.isArray(factoryOrAttribute) ? factoryOrAttribute : factoryOrAttribute();
+
+    if (attribute.length === 0)
+      return;
+
+    const numComponents = attribute[0].length;
+
+    const attributeData= new Float32Array(attribute.flatMap(v => v));
+
     // Select buffer as the buffer to apply buffer operations to from here out.
     context.bindBuffer(context.ARRAY_BUFFER, buffer.current);
 
+
     // Now pass the list of positions into WebGL to build the shape. We do this by creating a Float32Array from the
     // JavaScript array, then use it to fill the current buffer.
-    context.bufferData(context.ARRAY_BUFFER, new Float32Array(attribute.data), context.STATIC_DRAW);
+    context.bufferData(context.ARRAY_BUFFER, attributeData, context.STATIC_DRAW);
 
     // setPositionAttribute
     const type = context.FLOAT; // the data in the buffer is 32bit floats
@@ -36,12 +49,12 @@ export default function useAttribute(program: GLProgramState, name: string, attr
 
     context.vertexAttribPointer(
       attributeLocation,
-      attribute.numComponents,
+      numComponents,
       type,
       normalize,
       stride,
       offset,
     );
     context.enableVertexAttribArray(attributeLocation);
-  }, [attribute, name])
+  }, [name, ...deps])
 }
