@@ -91,83 +91,80 @@ void KeyboardTranslate::set_key_mappings(){
 }
 
 bool KeyboardTranslate::get_control_scheme_inputs(core::msg::ArmControlScheme& control_scheme_inputs) {
-    if (!updated_controls){
         // Used here for determining whether printing is needed
-        if (is_pressed(key_mappings.base_frame_offset_toggle)) {
-            updated_controls = true;
-            // cycles through -1, 0, 1, indicating
-            base_frame_offset++;
-            if (base_frame_offset >= 2) {
-                base_frame_offset = -1;
-            }
-            message = "Base frame offset: " + std::to_string(base_frame_offset);
-            Print::print(message.c_str());
+    if (is_pressed(key_mappings.base_frame_offset_toggle) && !updated_controls) {
+        updated_controls = true;
+        // cycles through -1, 0, 1, indicating
+        base_frame_offset++;
+        if (base_frame_offset >= 2) {
+            base_frame_offset = -1;
         }
-        control_scheme_inputs.base_frame_offset = base_frame_offset;
-        // turn off zeroing as it should be a temporary signal
-        control_scheme_inputs.zero_resolvers = 0;
-        // Zeroing the resolver
-        if (is_pressed_or_held(key_mappings.zero_resolvers)){
-            // zero each of the 6 resolvers with 1~6
-            for (int i = 1; i <= 6; i++){
-                if (is_pressed_or_held(key_mappings.resolver_to_key[i])){
-                    control_scheme_inputs.zero_resolvers = i;
-                    updated_controls = true;
-                    message = "Zeroing resolver: " + std::to_string(i);
-                    Print::print(message.c_str());
-                }
-            }
-        }
-        
-        // Arm lock
-        toggle_control("Keyboard lock", control_scheme_inputs.input_lock, key_mappings.input_lock);
-        // Joint limits
-        toggle_control("Joint Limits", control_scheme_inputs.joint_limits, key_mappings.joint_limits);
-
-        // Control schemes
-        // Flat frame control
-        toggle_control("Flat frame linear", control_scheme_inputs.flat_frame_linear, key_mappings.flat_frame_linear);
-        toggle_control("Flat frame angular", control_scheme_inputs.flat_frame_angular, key_mappings.flat_frame_angular);
-
-        // Endpoint frame control. Hold trigger
-        // Also set if flat frame control is used
-        toggle_control("Endpoint frame linear", control_scheme_inputs.endpoint_frame_linear, key_mappings.endpoint_frame_linear);
-        control_scheme_inputs.endpoint_frame_linear = control_scheme_inputs.endpoint_frame_linear || control_scheme_inputs.flat_frame_linear;
-        toggle_control("Endpoint frame angular", control_scheme_inputs.endpoint_frame_angular, key_mappings.endpoint_frame_angular);
-        control_scheme_inputs.endpoint_frame_angular = control_scheme_inputs.endpoint_frame_angular || control_scheme_inputs.flat_frame_angular;
-
-        // IK. Hold inside thumb button.
-        // Also set if endpoint frame control is used.
-        toggle_control("IK linear", control_scheme_inputs.ik_linear, key_mappings.ik_linear);
-        control_scheme_inputs.ik_linear = control_scheme_inputs.ik_linear || control_scheme_inputs.endpoint_frame_linear;
-        toggle_control("IK angular", control_scheme_inputs.ik_angular, key_mappings.ik_angular);
-        control_scheme_inputs.ik_angular = control_scheme_inputs.ik_angular || control_scheme_inputs.endpoint_frame_angular;
-
-        // Set SPM roll handling. Hold back thumb button on right stick
-        toggle_control("Use SPM roll", control_scheme_inputs.use_spm_roll, key_mappings.use_spm_roll);
-
-        // All Joint space
-        if (is_pressed(key_mappings.all_joint_space) && !updated_controls) {
-            updated_controls = true;
-            control_scheme_inputs.ik_linear = false;
-            control_scheme_inputs.ik_angular = false;
-            control_scheme_inputs.flat_frame_linear = false;
-            control_scheme_inputs.flat_frame_angular = false;
-            control_scheme_inputs.endpoint_frame_linear = false;
-            control_scheme_inputs.endpoint_frame_angular = false;
-            Print::print("Joint Space: On");
-        }
-
-        // Correction for position control - can't have independent linear and angular control
-        // Not yet implemented
-        if (control_scheme_inputs.position_control) {
-            control_scheme_inputs.flat_frame_angular = control_scheme_inputs.flat_frame_linear;
-            control_scheme_inputs.endpoint_frame_angular = control_scheme_inputs.endpoint_frame_linear;
-            control_scheme_inputs.ik_angular = control_scheme_inputs.ik_linear;
-        }
-
-        return is_pressed(key_mappings.toggle_input);
+        message = "Base frame offset: " + std::to_string(base_frame_offset);
+        Print::print(message.c_str());
     }
+    control_scheme_inputs.base_frame_offset = base_frame_offset;
+    // turn off zeroing as it should be a temporary signal
+    control_scheme_inputs.zero_resolvers = 0;
+    // Zeroing the resolver
+    if (is_pressed_or_held(key_mappings.zero_resolvers) && !updated_controls){
+        // zero each of the 6 resolvers with 1~6
+        for (int i = 1; i <= 6; i++){
+            if (is_pressed_or_held(key_mappings.resolver_to_key[i])){
+                control_scheme_inputs.zero_resolvers = i;
+                updated_controls = true;
+                message = "Zeroing resolver: " + std::to_string(i);
+                Print::print(message.c_str());
+            }
+        }
+    }
+    
+    // Arm lock
+    toggle_control("Keyboard lock", control_scheme_inputs.input_lock, key_mappings.input_lock);
+    // Joint limits
+    toggle_control("Joint Limits", control_scheme_inputs.joint_limits, key_mappings.joint_limits);
+
+    // Control schemes
+    // Flat frame control
+    toggle_control("Flat frame linear", control_scheme_inputs.flat_frame_linear, key_mappings.flat_frame_linear);
+    toggle_control("Flat frame angular", control_scheme_inputs.flat_frame_angular, key_mappings.flat_frame_angular);
+
+    // Endpoint frame control. Hold trigger
+    // Also set if flat frame control is used
+    toggle_control("Endpoint frame linear", control_scheme_inputs.endpoint_frame_linear, key_mappings.endpoint_frame_linear);
+    control_scheme_inputs.endpoint_frame_linear = control_scheme_inputs.endpoint_frame_linear || control_scheme_inputs.flat_frame_linear;
+    toggle_control("Endpoint frame angular", control_scheme_inputs.endpoint_frame_angular, key_mappings.endpoint_frame_angular);
+    control_scheme_inputs.endpoint_frame_angular = control_scheme_inputs.endpoint_frame_angular || control_scheme_inputs.flat_frame_angular;
+
+    // IK. Hold inside thumb button.
+    // Also set if endpoint frame control is used.
+    toggle_control("IK linear", control_scheme_inputs.ik_linear, key_mappings.ik_linear);
+    control_scheme_inputs.ik_linear = control_scheme_inputs.ik_linear || control_scheme_inputs.endpoint_frame_linear;
+    toggle_control("IK angular", control_scheme_inputs.ik_angular, key_mappings.ik_angular);
+    control_scheme_inputs.ik_angular = control_scheme_inputs.ik_angular || control_scheme_inputs.endpoint_frame_angular;
+
+    // Set SPM roll handling. Hold back thumb button on right stick
+    toggle_control("Use SPM roll", control_scheme_inputs.use_spm_roll, key_mappings.use_spm_roll);
+
+    // All Joint space
+    if (is_pressed(key_mappings.all_joint_space) && !updated_controls) {
+        updated_controls = true;
+        control_scheme_inputs.ik_linear = false;
+        control_scheme_inputs.ik_angular = false;
+        control_scheme_inputs.flat_frame_linear = false;
+        control_scheme_inputs.flat_frame_angular = false;
+        control_scheme_inputs.endpoint_frame_linear = false;
+        control_scheme_inputs.endpoint_frame_angular = false;
+        Print::print("Joint Space: On");
+    }
+
+    // Correction for position control - can't have independent linear and angular control
+    // Not yet implemented
+    if (control_scheme_inputs.position_control && !updated_controls) {
+        control_scheme_inputs.flat_frame_angular = control_scheme_inputs.flat_frame_linear;
+        control_scheme_inputs.endpoint_frame_angular = control_scheme_inputs.endpoint_frame_linear;
+        control_scheme_inputs.ik_angular = control_scheme_inputs.ik_linear;
+    }
+    return is_pressed(key_mappings.toggle_input);
 }
 
 void KeyboardTranslate::get_end_effector_inputs(core::msg::ArmControlScheme& control_scheme_inputs, core::msg::EndEffectorInput& end_effector_inputs) {
@@ -299,7 +296,7 @@ bool KeyboardTranslate::is_pressed_or_held(uint32_t key)
 
 void KeyboardTranslate::toggle_control(std::string field_name, bool& value, uint32_t key)
 {   
-    if (is_pressed(key)){
+    if (is_pressed(key) && !updated_controls){
         value = !value;
         updated_controls = true;
         message = field_name + (value?": true":": false");
