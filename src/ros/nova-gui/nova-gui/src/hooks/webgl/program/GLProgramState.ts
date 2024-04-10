@@ -1,7 +1,13 @@
 import {RenderQueueItem} from "../render-queue/RenderQueue.ts";
 import initShaderProgram from "../../../utils/webgl/initShaderProgram.ts";
-import {GLState} from "../gl/useGL.ts";
 import ProgramEffectQueue from "./ProgramEffectQueue.ts";
+import GLProgramDrawMode, {mapDrawMode} from "./GLProgramDrawMode.ts";
+import GLState from "../gl/GLState.ts";
+
+export interface GLProgramStateOptions {
+  numberOfVertices: number,
+  mode: GLProgramDrawMode,
+}
 
 export default class GLProgramState implements RenderQueueItem {
   // The actual WebGL program. This should not be exposed to the user of the hooks, so they must go through the effect
@@ -18,17 +24,27 @@ export default class GLProgramState implements RenderQueueItem {
 
   public numberOfVertices: number;
 
+  private _drawMode: GLProgramDrawMode;
+  private _mappedDrawMode?: GLint;
+
   // The value from gl.renderQueue.push, allowing us to perform setup() again
   private readonly renderQueueID: number;
 
-  constructor(gl: GLState, vert: string, frag: string, numberOfVertices: number) {
+  constructor(gl: GLState, vert: string, frag: string, options: GLProgramStateOptions) {
     this.vert = vert;
     this.frag = frag;
-    this.numberOfVertices = numberOfVertices;
+
+    this.numberOfVertices = options.numberOfVertices;
+    this._drawMode = options.mode;
 
     this.queue = new ProgramEffectQueue(gl.queue);
 
     this.renderQueueID = gl.renderQueue.push(this);
+  }
+
+  public set drawMode(value: GLProgramDrawMode) {
+    this._drawMode = value;
+    this._mappedDrawMode = undefined;
   }
 
   /**
@@ -56,8 +72,11 @@ export default class GLProgramState implements RenderQueueItem {
     if (this.program === undefined)
       throw Error("RenderQueue tried to render GLProgramState without a program. Did you call RenderQueueItem.setup?");
 
+    if (this._mappedDrawMode === undefined)
+      this._mappedDrawMode = mapDrawMode(context, this._drawMode);
+
     context.useProgram(this.program);
-    context.drawArrays(context.TRIANGLE_STRIP, 0, this.numberOfVertices);
+    context.drawArrays(this._mappedDrawMode, 0, this.numberOfVertices);
   }
 
   /**
@@ -67,5 +86,7 @@ export default class GLProgramState implements RenderQueueItem {
   public setup(context: WebGL2RenderingContext): void {
     this.program = initShaderProgram(context, this.vert, this.frag);
     this.queue.program = this.program;
+
+    this._mappedDrawMode = mapDrawMode(context, this._drawMode);
   }
 }

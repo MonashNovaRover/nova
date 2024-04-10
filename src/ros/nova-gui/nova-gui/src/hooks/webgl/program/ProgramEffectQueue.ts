@@ -29,8 +29,10 @@ export default class ProgramEffectQueue extends EffectQueue<[WebGL2RenderingCont
   private pushToGLQueue() {
     this.glQueue.cancel(this.glQueuePushFrameID);
     this.glQueuePushFrameID = this.glQueue.push((gl) => {
-      if (this._program !== undefined)
+      if (this._program !== undefined) {
+        gl.useProgram(this._program);
         this.clear(gl, this._program)
+      }
     });
   }
 

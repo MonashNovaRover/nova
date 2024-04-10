@@ -1,13 +1,15 @@
 import {useEffect, useRef} from "react";
-import {GLState} from "../gl/useGL.ts";
-import GLProgramState from "./GLProgramState.ts";
+import GLProgramState, {GLProgramStateOptions} from "./GLProgramState.ts";
+import GLProgramDrawMode from "./GLProgramDrawMode.ts";
+import GLState from "../gl/GLState.ts";
 
 
-function useProgram_aux(gl: GLState, vert: string, frag: string, numberOfVertices: number): GLProgramState {
+
+function useProgram_aux(gl: GLState, vert: string, frag: string, options: GLProgramStateOptions): GLProgramState {
   const programRef = useRef<GLProgramState>();
 
   if (programRef.current === undefined)
-    programRef.current = new GLProgramState(gl, vert, frag, numberOfVertices);
+    programRef.current = new GLProgramState(gl, vert, frag, options);
 
   return programRef.current;
 }
@@ -17,14 +19,20 @@ function useProgram_aux(gl: GLState, vert: string, frag: string, numberOfVertice
  * @param gl The rendering context to use
  * @param vert The vertex shader source code
  * @param frag The fragment shader source code
- * @param numberOfVertices The number of vertices to render when calling draw arrays
+ * @param options Additional settings for the draw mode
  */
-export function useProgram(gl: GLState, vert: string, frag: string, numberOfVertices: number = 4) {
-  const program = useProgram_aux(gl, vert, frag, numberOfVertices);
+export function useProgram(gl: GLState, vert: string, frag: string, options?: Partial<GLProgramStateOptions>) {
+  const filledOptions = {
+    numberOfVertices: 4,
+    mode: GLProgramDrawMode.TRIANGLE_STRIP,
+    ...options,
+  }
+
+  const program = useProgram_aux(gl, vert, frag, filledOptions);
 
   useEffect(() => {
-    program.numberOfVertices = numberOfVertices;
-  }, [numberOfVertices, program]);
+    program.numberOfVertices = filledOptions.numberOfVertices;
+  }, [filledOptions.numberOfVertices, program]);
 
   useEffect(() => {
     program.setShaders(gl, vert, frag);

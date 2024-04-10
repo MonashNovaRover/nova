@@ -3,12 +3,11 @@ import {Button} from "@nextui-org/react";
 import Vert from "./test.vert";
 import Frag from "./test.frag";
 import useGL from "../../../hooks/webgl/gl/useGL.ts";
-import useCanvasSize from "../../../hooks/webgl/gl/useCanvasSize.ts";
 import {useProgram} from "../../../hooks/webgl/program/useProgram.ts";
-import useWebcam from "../../../hooks/webgl/program/sampler/useWebcam.ts";
 import useSampler from "../../../hooks/webgl/program/sampler/useSampler.ts";
 import useAttribute from "../../../hooks/webgl/program/attribute/useAttribute.ts";
 import useUniform from "../../../hooks/webgl/program/uniform/useUniform.ts";
+import useWebcam from "../../../hooks/webgl/program/sampler/useWebcam.ts";
 
 export default function TestWebGLView() {
   const [count, setCount] = useState<number>(0)
@@ -17,12 +16,14 @@ export default function TestWebGLView() {
   }, [setCount]);
 
   const gl = useGL();
-  const resolution = useCanvasSize(gl);
+
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  useWebcam(videoRef)
+
+  //const resolution = useCanvasSize(gl, videoRef.current ?? undefined);
 
   const program = useProgram(gl, Vert, Frag);
 
-  const videoRef = useRef<HTMLVideoElement | null>(null);
-  useWebcam(videoRef);
   useSampler(program, 0, "image", videoRef.current);
 
   useAttribute(program, "aTexCoord", [
@@ -45,7 +46,7 @@ export default function TestWebGLView() {
         <p>{count}</p>
         <div className="relative">
           <div className="absolute top-0 left-0 right-0 bottom-0">
-            <canvas width={resolution[0]} height={resolution[1]} ref={gl.canvasRef}></canvas>
+            <canvas width={600} height={350} ref={gl.canvasRef}></canvas>
           </div>
         </div>
         <video ref={videoRef}></video>

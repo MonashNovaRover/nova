@@ -1,6 +1,6 @@
 import GLProgramState from "../GLProgramState.ts";
-import {GLState} from "../../gl/useGL.ts";
 import {useLayoutEffect} from "react";
+import GLState from "../../gl/GLState.ts";
 
 /**
  * Sets a vec2 which is equal to the size of the webgl canvas in pixels, under the name "resolution"
