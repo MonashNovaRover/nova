@@ -24,6 +24,9 @@ find_package(rclpy REQUIRED)
 find_package(core REQUIRED)
 # Needed for jcan
 find_package (Threads REQUIRED)
+# Needed for Keyboard Input
+find_package(SDL2 REQUIRED)
+
 
 # Find system architecture to build with correct jcan version
 EXECUTE_PROCESS( COMMAND uname -m COMMAND tr -d '\n' OUTPUT_VARIABLE ARCHITECTURE )
@@ -36,6 +39,7 @@ if( ${ARCHITECTURE} STREQUAL "x86_64" )
         ${CMAKE_CURRENT_SOURCE_DIR}/include
         ${CMAKE_CURRENT_SOURCE_DIR}/include/jcan_x86_64
         ${CMAKE_CURRENT_SOURCE_DIR}/src
+        ${SDL2_INCLUDE_DIRS}
     )
 else()
     set(JCAN_CPP ${CMAKE_SOURCE_DIR}/include/jcan_jetson/jcan.cc)
@@ -45,6 +49,7 @@ else()
         ${CMAKE_CURRENT_SOURCE_DIR}/include
         ${CMAKE_CURRENT_SOURCE_DIR}/include/jcan_jetson
         ${CMAKE_CURRENT_SOURCE_DIR}/src
+        ${SDL2_INCLUDE_DIRS}
     )
 endif()
 ################################################
@@ -72,6 +77,11 @@ if (NOT TARGET jcan)
   add_library(jcan ${JCAN_CPP})
   target_link_libraries(jcan ${JCAN_LIB} pthread dl rt)
 endif()
+if (NOT TARGET keyboard)
+  add_library(keyboard src/inputs/keyboard.cpp)
+  target_link_libraries(keyboard print)
+  ament_target_dependencies(keyboard SDL2 core)
+endif()
 # Other targets:
 # CMDs
 add_library(cmd src/cmd/cmd.cpp)
@@ -91,10 +101,10 @@ add_executable(inputs
   src/inputs/inputs_publisher.cpp
   src/inputs/joystick.cpp 
   src/inputs/joystick_gamepad.cpp 
-  src/inputs/joystick_thrustmaster.cpp 
+  src/inputs/joystick_thrustmaster.cpp
 )
-target_link_libraries(inputs gamepad print)
-ament_target_dependencies(inputs rclcpp core)
+target_link_libraries(inputs gamepad print keyboard)
+ament_target_dependencies(inputs rclcpp core SDL2)
 
 # Drive Command script
 add_executable(drive_inputs src/drive/drive_inputs.cpp)

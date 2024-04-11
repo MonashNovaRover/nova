@@ -11,11 +11,14 @@ if(Eigen3_FOUND AND Orocos_kdl_FOUND)
   find_package(geometry_msgs REQUIRED)
   find_package(nav_msgs REQUIRED)
   find_package(std_srvs REQUIRED)
+  # Needed for keyboard input
+  find_package(SDL2 REQUIRED)
 
   # Additional includes for Eigen adn KDL
   include_directories(
     ${EIGEN3_INCLUDE_DIRS}
     include
+    ${SDL2_INCLUDE_DIRS}
   )
 
 
@@ -58,6 +61,17 @@ if(Eigen3_FOUND AND Orocos_kdl_FOUND)
   add_library(pi_controller arm_control/pi_controller.cpp)
   target_include_directories(pi_controller INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/arm_control)
 
+  # Joystick Translate
+  add_library(joystick_translate arm_inputs/joystick_translate.cpp)
+  target_link_libraries(joystick_translate print)
+  target_include_directories(joystick_translate PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/arm_inputs)
+  ament_target_dependencies(joystick_translate core geometry_msgs sensor_msgs)
+
+  # Keyboard Translate
+  add_library(keyboard_translate arm_inputs/keyboard_translate.cpp)
+  target_link_libraries(keyboard_translate print keyboard)
+  target_include_directories(keyboard_translate PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/arm_inputs)
+  ament_target_dependencies(keyboard_translate core geometry_msgs sensor_msgs SDL2)
 
   ################################################
   # Add executables:
@@ -65,7 +79,7 @@ if(Eigen3_FOUND AND Orocos_kdl_FOUND)
 
   # Arm Inputs script
   add_executable(arm_inputs arm_inputs/arm_inputs.cpp)
-  target_link_libraries(arm_inputs arm_messages arm_config_info_client print)
+  target_link_libraries(arm_inputs arm_messages arm_config_info_client print keyboard_translate joystick_translate)
   target_include_directories(arm_inputs INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/arm_inputs)
   ament_target_dependencies(arm_inputs rclcpp core geometry_msgs sensor_msgs)
 
