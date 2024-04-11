@@ -13,15 +13,15 @@
 , nova-electronics ? throw "electronics is needed, but not available!"
 , nova-science ? throw "science is needed, but not available!"
 , nova-cameras2 ? throw "cameras2 is needed, but not available!"
-#, nova-gui-backend ? throw "gui-backend is needed, but not available!"
-#, nova-gui-frontend ? throw "gui-frontend is needed, but not available!"
-#, nova-gui-frontend-server ? throw "gui-frontend-server is needed, but not available!"
-, nova-blcmd-hardware ? throw "nova-rover_hardware is needed, but not available!"
+, nova-gui-backend ? throw "gui-backend is needed, but not available!"
+, nova-gui-frontend ? throw "gui-frontend is needed, but not available!"
+, nova-gui-frontend-server ? throw "gui-frontend-server is needed, but not available!"
+, nova-gui ? throw "gui is needed, but not available!"
+, nova-blcmd-hardware ? throw "nova-blcmd-hardware is needed, but not available!"
 , nova-pivot-drive-controller ? throw "nova-pivot-drive-controller is needed, but not available!"
 , nova-strafe-controller ? throw "nova-strafe-controller is needed, but not available!"
 , nova-diff-drive-controller ? throw "nova-diff-drive-controller is needed, but not available!"
 , nova-teleop-drive-joy ? throw "nova-teleop-drive-joy is needed, but not available!"
-#, nova-gui ? throw "gui is needed, but not available!"
 
   # Configuration options
   ## Include graphical applications in the workspace.
@@ -45,18 +45,18 @@
       nova-pivot-drive-controller
       nova-strafe-controller
       nova-diff-drive-controller
-      nova-teleop-drive-joy;
-      #nova-gui-backend
-      #nova-gui-frontend
-      #nova-gui;
+      nova-teleop-drive-joy
+      nova-gui-backend
+      nova-gui-frontend
+      nova-gui;
   }
 
   ## Extra packages to add to the workspace.
 , extraPackages ? {
-    #inherit
+    inherit
       # Some of our packages are simple constructions written in Nix and do not
       # need to be considered in the build environment.
-      #nova-gui-frontend-server;
+      nova-gui-frontend-server;
   }
 }:
 
