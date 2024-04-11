@@ -160,8 +160,8 @@ local_costmap:
       footprint: "[[0.4, 0.3], [0.4, -0.3], [-0.4, -0.3], [-0.4, 0.3]]"
       footprint_padding: 0.1
       track_unknown_space: False
-      plugins: ["plane_mapper_layer", "height_mapper_layer", "denoise_layer", "inflation_layer"]
-      #plugins: ["plane_mapper_layer", "height_mapper_layer", "inflation_layer"]
+      #plugins: ["plane_mapper_layer", "height_mapper_layer", "denoise_layer", "inflation_layer"]
+      plugins: ["plane_mapper_layer", "height_mapper_layer", "inflation_layer"]
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 3.0
@@ -226,12 +226,9 @@ local_costmap:
           raytrace_min_range: 0.0
           obstacle_max_range: 5.5
           obstacle_min_range: 0.0
-      static_layer:
-        plugin: "nav2_costmap_2d::StaticLayer"
-        map_subscribe_transient_local: True
       denoise_layer:
         plugin: "nav2_costmap_2d::DenoiseLayer"
-        enabled: true
+        enabled: false
         minimal_group_size: 2
         group_connectivity_type: 8
       always_send_full_costmap: True
@@ -252,7 +249,7 @@ global_costmap:
       robot_radius: 0.22
       resolution: 0.4
       track_unknown_space: False
-      plugins: ["plane_mapper_layer", "static_layer", "inflation_layer"]
+      plugins: ["plane_mapper_layer", "inflation_layer"]
       height_mapper_layer:
         plugin: "nova_costmap_2d/HeightMapperLayer"
         enabled: False
@@ -295,11 +292,6 @@ global_costmap:
           raytrace_min_range: 0.0
           obstacle_max_range: 12.0
           obstacle_min_range: 0.0
-      static_layer:
-        plugin: "nav2_costmap_2d::StaticLayer"
-        map_subscribe_transient_local: True
-        subscribe_to_updates: False
-        map_topic: /static_map
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 3.0

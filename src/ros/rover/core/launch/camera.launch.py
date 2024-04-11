@@ -47,11 +47,20 @@ def launch_setup(context, *args, **kwargs):
             executable='point_cloud_xyz',
             condition=IfCondition(LaunchConfiguration('rtabmap_pointcloud')),
             name='rtabmap_point_cloud_xyz',
-            remappings=[('/depth/image', name+'/stereo/image_raw'),
+            remappings=[('/depth/image', name+'/stereo/image_filtered'),
                         ('/depth/camera_info', name+'/stereo/camera_info'),
                         ('/cloud', name+'/rtabmap/points'),
                         ],
             parameters=[{'min_depth': 1.4, 'filter_nans':True }] 
+        ),
+        Node(
+            package='nova_pointcloud_filter',
+            executable='depth_filter',
+            name='depth_filter',
+            remappings=[('/depth/image', name+'/stereo/image_raw'),
+                        ('/depth/image_filtered', name+'/stereo/image_filtered'),
+                        ],
+            parameters=[{'t_filter': 0, 'r_filter': 0, 'b_filter': 0, 'l_filter': 0, }] 
         ),
     ]
 

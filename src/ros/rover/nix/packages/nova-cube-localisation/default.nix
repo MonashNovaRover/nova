@@ -9,6 +9,8 @@
 , vision-msgs
 , geometry-msgs
 , std-msgs
+, vision-opencv
+, image-geometry
 , launch
 , launch-ros
 }:
@@ -33,6 +35,8 @@ buildRosPackage
     vision-msgs
     geometry-msgs
     std-msgs
+    vision-opencv
+    image-geometry
     launch
     launch-ros
   ];
