@@ -41,21 +41,26 @@ class DepthFilter(Node):
   Filters pointcloud by changing the depth image via republishing .../stereo/image_raw with a filtered depth image.
   """
   def __init__(self):
-    super().__init__("depth_filter")
+    super().__init__('depth_filter')
     self.get_logger().set_level(logging.DEBUG)
 
     # Custom internal variables
     self.logged_values: bool = False
 
     # ROS Subscribers
-    self.sub = self.create_subscription(Image, "/oak/stereo/image_raw", self.cb_sub, 10)
-    time.sleep(0.11) # Gives node time to save the subscription topic before it tries to access it
+    self.sub = self.create_subscription(Image, '/depth/image', self.cb_sub, 10)
 
     # ROS publishers
-    self.pub = self.create_publisher(Image, "/oak/stereo/image_filtered", 10)
+    self.pub = self.create_publisher(Image, '/depth/image_filtered', 10)
+
+    self.declare_parameter('t_filter', 0)
+    self.declare_parameter('r_filter', 0)
+    self.declare_parameter('b_filter', 0)
+    self.declare_parameter('l_filter', 0)
 
     timer_period = 0.1  # run the timer 10 times per second
     self.create_timer(timer_period, self.publisher)
+    self.get_logger().info("Loaded node '/depth_filter' in container '/nova_pointcloud_filter'")
 
   def cb_sub(self, msg: Image) -> None:
     """
@@ -70,16 +75,26 @@ class DepthFilter(Node):
     # Define necessary values from Image msg
     height = self.msg.height
     width = self.msg.step
-    top_rows_to_remove: int = int(0 * height)
-    bot_rows_to_remove: int = int(0.175 * height)
+    t_filter: int = self.get_parameter('t_filter').get_parameter_value().integer_value
+    r_filter: int = self.get_parameter('r_filter').get_parameter_value().integer_value
+    b_filter: int = self.get_parameter('b_filter').get_parameter_value().integer_value
+    l_filter: int = self.get_parameter('l_filter').get_parameter_value().integer_value
     try:
       # Overwrite depth values for image in the top rows with null depth values
-      for row in range(0, top_rows_to_remove):
+      for row in range(0, t_filter):
         for col in range(width):
           self.msg.data[(row*width)+col] = 0
+      # Overwrite depth values for image in the right columns with null depth values
+      for row in range(0, height):
+        for col in range(width-r_filter, width):
+          self.msg.data[(row*width)+col] = 0
       # Overwrite depth values for image in the bottom rows with null depth values
-      for row in range(height-bot_rows_to_remove, height):
+      for row in range(height-b_filter, height):
         for col in range(width):
+          self.msg.data[(row*width)+col] = 0
+      # Overwrite depth values for image in the left columns with null depth values
+      for row in range(0, height):
+        for col in range(0, l_filter):
           self.msg.data[(row*width)+col] = 0
     except:
       self.get_logger().debug(f"row: {row}, col: {col}, i: {(row*width)+col}, height: {height}, width: {width}")
@@ -114,8 +129,11 @@ class DepthFilter(Node):
     """
     Publishes the filtered depth image.
     """
-    self.filter_depth()
-    self.pub.publish(self.msg)
+    try:
+      self.filter_depth()
+      self.pub.publish(self.msg)
+    except:
+      pass
 
 
 def main(args=None):
