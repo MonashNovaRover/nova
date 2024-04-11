@@ -3,7 +3,10 @@
 Monash Nova Rover Team
 
 PACKAGE: 	control
-AUTHOR(S):	Harrison Verrios
+AUTHOR(S):	Harrison Verrios, Matthew Gu
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+TODO: refactor all input devices into an interface
+of some sort, so that they can be used interchangably
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
@@ -26,12 +29,14 @@ InputsPublisher::InputsPublisher() : Node("input_pub")
     gamepad     = new JoystickGamepad(0.0);
     joystick_l  = new JoystickThrustmaster(true, 0.06445, 0.5);
     joystick_r  = new JoystickThrustmaster(false, 0.06445, 0.0);
+    keyboard    = new Keyboard();
 
     // Creates the publishers
     // gamepad_publisher       = this->create_publisher<core::msg::InputGamepad>("/control/input_gamepad", qos, publisher_options);
     gamepad_publisher       = this->create_publisher<core::msg::InputGamepad>("/control/input_gamepad", rclcpp::QoS(1).best_effort().deadline(ROSTimers::drive_deadline));
     joystick_l_publisher    = this->create_publisher<core::msg::InputJoystick>("/control/input_joystick_l", rclcpp::QoS(1).best_effort().deadline(ROSTimers::drive_deadline));
     joystick_r_publisher    = this->create_publisher<core::msg::InputJoystick>("/control/input_joystick_r", rclcpp::QoS(1).best_effort().deadline(ROSTimers::drive_deadline));
+    keyboard_publisher      = this->create_publisher<core::msg::InputKeyboard>("/control/input_keyboard", rclcpp::QoS(1).best_effort().deadline(ROSTimers::drive_deadline));
 
     // Creates a timer function that runs a function on loop
     timer = this->create_wall_timer(ROSTimers::drive_control, std::bind(&InputsPublisher::publish_input, this));
@@ -42,6 +47,7 @@ InputsPublisher::InputsPublisher() : Node("input_pub")
     Print::print("/control/input_gamepad      [InputGamepad]", 1);
     Print::print("/control/input_joystick_l   [InputJoystick]", 1);
     Print::print("/control/input_joystick_r   [InputJoystick]", 1);
+    Print::print("/control/input_keyboard     [InputKeyboard]", 1);
     Print::print("", true);
 }
 
@@ -55,6 +61,7 @@ void InputsPublisher::publish_input () {
     gamepad->update();
     joystick_l->update();
     joystick_r->update();
+    keyboard ->update();
 
     // Display information about connections (in case they change)
     if (gamepad->is_disconnected())
@@ -75,11 +82,17 @@ void InputsPublisher::publish_input () {
     }
     else if (joystick_r->is_reconnected())
         Print::print("Device Connected:    'Right Joystick'", C_SUCCESS);
+
+    if (keyboard->is_disconnected())
+        Print::print("Device Disconnected: 'Keyboard'", C_FAIL);
+    else if (keyboard->is_reconnected())
+        Print::print("Device Connected:    'Keyboard'", C_SUCCESS);
         
     // Publish each of the data streams
     gamepad_publisher->publish(gamepad->get_message());
     joystick_l_publisher->publish(joystick_l->get_message());
     joystick_r_publisher->publish(joystick_r->get_message());
+    keyboard_publisher->publish(keyboard->get_message());
 }
 
 

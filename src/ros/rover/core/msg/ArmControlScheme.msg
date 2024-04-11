@@ -3,8 +3,8 @@
 
 std_msgs/Header header
 
-# Joystick control lock
-bool joystick_lock 1
+# Input control lock
+bool input_lock 1
 
 # Joint limits toggle
 bool joint_limits 1
@@ -27,6 +27,9 @@ int8 base_frame_offset 0
 
 # SPM roll vs end rotation
 bool use_spm_roll 0
+
+# Zeroing resolvers
+uint8 zero_resolvers 0
 
 # Position control
 bool position_control 0
