@@ -22,6 +22,7 @@ find_package(rclcpp REQUIRED)
 find_package(rclpy REQUIRED)
 # Find and include message types dependencies
 find_package(core REQUIRED)
+<<<<<<< HEAD
 ################################################
 # Add non-executable targets:
 ################################################
@@ -78,6 +79,8 @@ install(TARGETS
         pid_tuner
         DESTINATION lib/${PROJECT_NAME}
         )
+=======
+>>>>>>> 64caf6f6 (seperate inputs into seperate inputs package)
 
 install(DIRECTORY
         rviz
@@ -102,13 +105,6 @@ install(PROGRAMS
 
 # Install Python modules
 ament_python_install_package(${PROJECT_NAME})
-
-################################################
-# Add Subdirectories
-################################################
-
-# Arm
-add_subdirectory(src/arm)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
