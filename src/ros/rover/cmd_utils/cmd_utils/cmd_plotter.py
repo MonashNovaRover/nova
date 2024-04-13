@@ -28,7 +28,7 @@ import rclpy
 from rclpy.node import Node
 
 # Import the required message
-from core.msg import CMDFeedback
+from cmd_interfaces.msg import CMDFeedback
 
 # Import plotting tools
 from matplotlib import pyplot as plt

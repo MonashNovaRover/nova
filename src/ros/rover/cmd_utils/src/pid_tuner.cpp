@@ -6,21 +6,21 @@ PACKAGE: 	control
 AUTHOR(S):	Harrison Verrios
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
+#include <chrono>
 
 // Include the header file
 #include "pid_tuner.h"
-#include "print/print.h"
-#include "config/rosconfig.h"
 
 // Use the standard namespaces for services
 using std::placeholders::_1;
 using std::placeholders::_2;
+using namespace std::chrono_literals;
 
 
 // Selects the device
 void PIDTuner::select_device (
-    const core::srv::PIDTune::Request::SharedPtr request,
-        core::srv::PIDTune::Response::SharedPtr response) 
+    const cmd_interfaces::srv::PIDTune::Request::SharedPtr request,
+        cmd_interfaces::srv::PIDTune::Response::SharedPtr response) 
 {
 
     // Check for invalid bus
@@ -115,7 +115,7 @@ void PIDTuner::publish_velocity () {
     if (!valid) return;
 
     // Construct the feedback message
-    auto message = core::msg::CMDFeedback();
+    auto message = cmd_interfaces::msg::CMDFeedback();
 
     // Update the IDs
     message.bus = this->bus;
@@ -142,25 +142,23 @@ PIDTuner::PIDTuner () : Node("pid_tuner")
 {
 
     // Create the service and bind to the function
-    service = this->create_service<core::srv::PIDTune>(
+    service = this->create_service<cmd_interfaces::srv::PIDTune>(
         "/control/pid_tune", std::bind(&PIDTuner::select_device, this, _1, _2)
     );
 
     // Creates the publisher
-    publisher = this->create_publisher<core::msg::CMDFeedback>("/control/cmd_feedback", 10);
+    publisher = this->create_publisher<cmd_interfaces::msg::CMDFeedback>("/control/cmd_feedback", 10);
 
     // Create timers
-    velocity_timer = this->create_wall_timer(ROSTimers::pid_tuner_control, std::bind(&PIDTuner::send_velocity, this));
-    feedback_timer = this->create_wall_timer(ROSTimers::pid_tuenr_feedback, std::bind(&PIDTuner::publish_velocity, this));
+    velocity_timer = this->create_wall_timer(100ms, std::bind(&PIDTuner::send_velocity, this));
+    feedback_timer = this->create_wall_timer(50ms, std::bind(&PIDTuner::publish_velocity, this));
 
     // Output set-up messages
-    Print::title("PID TUNER");
-    Print::print("Valid Topics:");
-    Print::print("/control/cmd_feedback         [CMDFeedback]", 1);
-    Print::print("", true);
-    Print::print("Valid Services:");
-    Print::print("/control/pid_tune             [PIDTune]", 1);
-    Print::print("", true);
+    RCLCPP_INFO(this->get_logger(), "PID TUNER");
+    RCLCPP_INFO(this->get_logger(), "Valid Topics:");
+    RCLCPP_INFO(this->get_logger(), "/control/cmd_feedback         [CMDFeedback]");
+    RCLCPP_INFO(this->get_logger(), "Valid Services:");
+    RCLCPP_INFO(this->get_logger(), "/control/pid_tune             [PIDTune]");
 
     // Construct the array of wheels
     for (int i = 0; i < NUM_WHEELS; i++) {

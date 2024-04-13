@@ -20,6 +20,7 @@
     nova-input-msgs = callPackage ./nix/packages/input-msgs { };
     nova-inputs = callPackage ./nix/packages/inputs { };
     nova-cmd-interfaces = callPackage ./nix/packages/cmd-interfaces { };
+    nova-cmd-utils = callPackage ./nix/packages/cmd-utils { };
     # diff drive, pivot drive, strafe, 
   } // import ./nix/packages/controllers { inherit pkgs; };
 

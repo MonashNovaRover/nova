@@ -24,11 +24,14 @@ EDITED:		06/01/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
+
+#include <memory>
+
 // Include required ROS packages
 #include "rclcpp/rclcpp.hpp"
-#include "core/msg/cmd_feedback.hpp"
-#include "core/srv/pid_tune.hpp"
-#include <memory>
+
+#include "cmd_interfaces/msg/cmd_feedback.hpp"
+#include "cmd_interfaces/srv/pid_tune.hpp"
 
 // Include CMD class
 #include "cmd.h"
@@ -54,10 +57,10 @@ class PIDTuner : public rclcpp::Node {
     rclcpp::TimerBase::SharedPtr feedback_timer;
 
     // Stores the publisher for the CMD feedbcak
-    rclcpp::Publisher<core::msg::CMDFeedback>::SharedPtr publisher;
+    rclcpp::Publisher<cmd_interfaces::msg::CMDFeedback>::SharedPtr publisher;
 
     // Stores the service for the PID commands
-    rclcpp::Service<core::srv::PIDTune>::SharedPtr service;
+    rclcpp::Service<cmd_interfaces::srv::PIDTune>::SharedPtr service;
 
     // Stores the arrays of CMDs for each bus
     CMD* bus_0 [NUM_WHEELS];
@@ -87,8 +90,8 @@ class PIDTuner : public rclcpp::Node {
     /// @param      request - A reference to the request portion of the message
     /// @param      response - A reference to the response portion of the message
     void select_device (
-        const core::srv::PIDTune::Request::SharedPtr request,
-        core::srv::PIDTune::Response::SharedPtr response);
+        const cmd_interfaces::srv::PIDTune::Request::SharedPtr request,
+        cmd_interfaces::srv::PIDTune::Response::SharedPtr response);
 
     /// @brief      Updates the constants of the selected device
     /// @param      kP - The Proportionality constant
