@@ -11,9 +11,8 @@ of some sort, so that they can be used interchangably
 */
 
 // Include the header file
-#include "inputs_publisher.h"
+#include "inputs/inputs_publisher.h"
 #include "print/print.h"
-#include "config/rosconfig.h"
 
 
 // Main consrtuctor sets up the node and the publishers
@@ -33,13 +32,13 @@ InputsPublisher::InputsPublisher() : Node("input_pub")
 
     // Creates the publishers
     // gamepad_publisher       = this->create_publisher<core::msg::InputGamepad>("/control/input_gamepad", qos, publisher_options);
-    gamepad_publisher       = this->create_publisher<core::msg::InputGamepad>("/control/input_gamepad", rclcpp::QoS(1).best_effort().deadline(ROSTimers::drive_deadline));
-    joystick_l_publisher    = this->create_publisher<core::msg::InputJoystick>("/control/input_joystick_l", rclcpp::QoS(1).best_effort().deadline(ROSTimers::drive_deadline));
-    joystick_r_publisher    = this->create_publisher<core::msg::InputJoystick>("/control/input_joystick_r", rclcpp::QoS(1).best_effort().deadline(ROSTimers::drive_deadline));
-    keyboard_publisher      = this->create_publisher<core::msg::InputKeyboard>("/control/input_keyboard", rclcpp::QoS(1).best_effort().deadline(ROSTimers::drive_deadline));
+    gamepad_publisher       = this->create_publisher<input_msgs::msg::InputGamepad>("/control/input_gamepad", rclcpp::QoS(1).best_effort().deadline(ROSTimers::drive_deadline));
+    joystick_l_publisher    = this->create_publisher<input_msgs::msg::InputJoystick>("/control/input_joystick_l", rclcpp::QoS(1).best_effort().deadline(ROSTimers::drive_deadline));
+    joystick_r_publisher    = this->create_publisher<input_msgs::msg::InputJoystick>("/control/input_joystick_r", rclcpp::QoS(1).best_effort().deadline(ROSTimers::drive_deadline));
+    keyboard_publisher      = this->create_publisher<input_msgs::msg::InputKeyboard>("/control/input_keyboard", rclcpp::QoS(1).best_effort().deadline(ROSTimers::drive_deadline));
 
     // Creates a timer function that runs a function on loop
-    timer = this->create_wall_timer(ROSTimers::drive_control, std::bind(&InputsPublisher::publish_input, this));
+    timer = this->create_wall_timer(ROSTimers::inputs_publish, std::bind(&InputsPublisher::publish_input, this));
 
     // Output set-up messages
     Print::title("INPUTS PUBLISHER");

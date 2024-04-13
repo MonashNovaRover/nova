@@ -8,7 +8,7 @@ AUTHOR(S):	Marcel Masque, Harrison Verrios
 */
 
 // Include the header file
-#include "joystick.h"
+#include "inputs/joystick.h"
 
 
 // Base constructor that takes in some input and an offset

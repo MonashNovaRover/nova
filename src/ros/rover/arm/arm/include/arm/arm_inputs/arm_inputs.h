@@ -72,9 +72,9 @@ class ArmInputs : public ArmConfigInfoClient
     rclcpp::Publisher<arm_interfaces::msg::ArmControlScheme>::SharedPtr control_scheme_pub;
 
     // Stores the subscribers to the joystick inputs
-    rclcpp::Subscription<core::msg::InputJoystick>::SharedPtr joystick_l_sub;
-    rclcpp::Subscription<core::msg::InputJoystick>::SharedPtr joystick_r_sub;
-    rclcpp::Subscription<core::msg::InputKeyboard>::SharedPtr keyboard_sub;
+    rclcpp::Subscription<inputs_msgs::msg::InputJoystick>::SharedPtr joystick_l_sub;
+    rclcpp::Subscription<inputs_msgs::msg::InputJoystick>::SharedPtr joystick_r_sub;
+    rclcpp::Subscription<inputs_msgs::msg::InputKeyboard>::SharedPtr keyboard_sub;
 
     // Stores messages to be published
     core::msg::EndEffectorInput end_effector_inputs;
@@ -98,15 +98,15 @@ class ArmInputs : public ArmConfigInfoClient
 
     /// @brief      Callback function when input messages are received.
     /// @param      msg - A pointer to the input message
-    void joystick_l_callback (const core::msg::InputJoystick::SharedPtr msg);
+    void joystick_l_callback (const input_msgs::msg::InputJoystick::SharedPtr msg);
 
     /// @brief      Callback function when input messages are received.
     /// @param      msg - A pointer to the input message
-    void joystick_r_callback (const core::msg::InputJoystick::SharedPtr msg);
+    void joystick_r_callback (const input_msgs::msg::InputJoystick::SharedPtr msg);
 
     /// @brief      Callback function when input messages are received.
     /// @param      msg - A pointer to the input message
-    void keyboard_callback (const core::msg::InputKeyboard::SharedPtr msg);
+    void keyboard_callback (const input_msgs::msg::InputKeyboard::SharedPtr msg);
     
     /// @brief      Deadline callback for joystick subscriptions
     ///             Resets internal input states

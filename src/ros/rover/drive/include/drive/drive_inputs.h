@@ -28,7 +28,7 @@ EDITED:		31/05/2022
 
 // Include ROS packages
 #include "rclcpp/rclcpp.hpp"
-#include "core/msg/input_gamepad.hpp"
+#include "input_msgs/msg/input_gamepad.hpp"
 #include "drive_msgs/msg/drive_input.hpp"
 #include "drive_msgs/msg/drive_info.hpp"
 
@@ -76,7 +76,7 @@ private:
     rclcpp::Publisher<drive_msgs::msg::DriveInfo>::SharedPtr info_publisher;
 
     // Stores the subscriber to the gamepad inputs
-    rclcpp::Subscription<core::msg::InputGamepad>::SharedPtr gamepad_input_subscription;
+    rclcpp::Subscription<input_msgs::msg::InputGamepad>::SharedPtr gamepad_input_subscription;
     rclcpp::Subscription<drive_msgs::msg::DriveInput>::SharedPtr autonomous_commands_subscription;
 
     // A flag for whether the controller is connected
@@ -117,7 +117,7 @@ private:
 
     /// @brief      Callback function when input messages are received.
     /// @param      msg - A pointer to the input message
-    void input_callback (const core::msg::InputGamepad::SharedPtr msg);
+    void input_callback (const input_msgs::msg::InputGamepad::SharedPtr msg);
 
     /// @brief      Callback function when autonomous messages are received.
     /// @param      msg - A pointer to the autonomous message

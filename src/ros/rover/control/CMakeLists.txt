@@ -22,65 +22,6 @@ find_package(rclcpp REQUIRED)
 find_package(rclpy REQUIRED)
 # Find and include message types dependencies
 find_package(core REQUIRED)
-<<<<<<< HEAD
-################################################
-# Add non-executable targets:
-################################################
-
-# Libraries:
-# Gamepad
-if (NOT TARGET gamepad)
-  add_library(gamepad include/gamepad/gamepad.c)
-  target_link_libraries(gamepad udev)
-endif()
-
-# CAN (socketcan)
-if (NOT TARGET socketcan)
-  add_library(socketcan include/socketcan/socketcan_cpp.cpp)
-endif()
-
-# Print functions
-if (NOT TARGET print)
-  add_library(print include/print/print.cpp)
-endif()
-# Other targets:
-# CMDs
-add_library(cmd src/cmd/cmd.cpp)
-target_link_libraries(cmd socketcan print)
-
-################################################
-# Add executables:
-################################################
-
-# Inputs script
-add_executable(inputs
-  src/inputs/inputs_publisher.cpp
-  src/inputs/joystick.cpp 
-  src/inputs/joystick_gamepad.cpp 
-  src/inputs/joystick_thrustmaster.cpp
-)
-target_link_libraries(inputs gamepad print keyboard)
-ament_target_dependencies(inputs rclcpp core SDL2)
-
-
-# PID Tuner script
-add_executable(pid_tuner src/cmd/pid_tuner.cpp)
-target_link_libraries(pid_tuner cmd print)
-ament_target_dependencies(pid_tuner rclcpp core)
-
-################################################
-# Add Installations
-################################################
-
-# Add all the installation targets
-install(TARGETS
-        inputs
-        drive_inputs
-        pid_tuner
-        DESTINATION lib/${PROJECT_NAME}
-        )
-=======
->>>>>>> 64caf6f6 (seperate inputs into seperate inputs package)
 
 install(DIRECTORY
         rviz

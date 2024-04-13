@@ -2,21 +2,17 @@
 , buildRosPackage
 , ament-cmake
 , rclcpp
-, nova-blcmd-interfaces
-, nova-drive-msgs
-, nova-core
-, nova-inputs
 , nova-input-msgs
-, libblcmd
+, systemd
 }:
 
 buildRosPackage {
-  name = "drive";
+  name = "inputs";
   buildType = "ament_cmake";
 
   src = builtins.path rec {
-    name = "drive-source";
-    path = ../../../drive;
+    name = "inputs-source";
+    path = ../../../inputs;
     filter = lib.novaSourceFilter [ ]
       path;
   };
@@ -25,11 +21,7 @@ buildRosPackage {
 
   buildInputs = [
     rclcpp
-    nova-blcmd-interfaces
-    nova-drive-msgs
-    nova-core
-    nova-inputs
     nova-input-msgs
-    libblcmd
+    systemd
   ];
 }

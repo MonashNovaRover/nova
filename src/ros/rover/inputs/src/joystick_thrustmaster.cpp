@@ -8,7 +8,7 @@ AUTHOR(S):	Harrison Verrios
 */
 
 // Include the header file
-#include "joystick_thrustmaster.h"
+#include "inputs/joystick_thrustmaster.h"
 #include <iostream>
 
 
@@ -106,7 +106,7 @@ void JoystickThrustmaster::set_message_values() {
     // If the input is not connected, lock the inputs and reset the message
     else
     {
-        msg = core::msg::InputJoystick();
+        msg = input_msgs::msg::InputJoystick();
         twist_lock = true;
         hat_lock = true;
     }
@@ -114,7 +114,7 @@ void JoystickThrustmaster::set_message_values() {
 
 
 // Returns the input joystick message object
-core::msg::InputJoystick JoystickThrustmaster::get_message() {
+input_msgs::msg::InputJoystick JoystickThrustmaster::get_message() {
     return msg;
 }
 

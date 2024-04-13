@@ -14,7 +14,8 @@ rosidl_generate_interfaces(${PROJECT_NAME}
 
   "msg/InputGamepad.msg"
   "msg/InputJoystick.msg"
-  
+  "msg/InputKeyboard.msg"
+
   DEPENDENCIES std_msgs
 )
 

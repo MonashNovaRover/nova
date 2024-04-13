@@ -8,7 +8,7 @@ AUTHOR(S):  Harrison Verrios
 */
 
 // Include the printing code
-#include "print.h"
+#include "print/print.h"
 #include <stdlib.h>
 #include <iostream>
 

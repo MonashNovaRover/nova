@@ -17,8 +17,8 @@ EDITED:		11/03/2022
 */
 
 // Include the joystick and message type
-#include "joystick.h"
-#include "core/msg/input_joystick.hpp"
+#include "inputs/joystick.h"
+#include "input_msgs/msg/input_joystick.hpp"
 
 
 // Thrustmaster class
@@ -28,7 +28,7 @@ class JoystickThrustmaster : public Joystick {
     protected:
 
     /// @brief      Stores the message data from the joystick
-    core::msg::InputJoystick msg;
+    input_msgs::msg::InputJoystick msg;
 
     /// @brief      Flags for whether or not certain values have changed
     bool valid_ax_stick_twist = false;
@@ -60,7 +60,7 @@ class JoystickThrustmaster : public Joystick {
 
     /// @brief      Gets the message object from the instance
     /// @returns    The Input Joystick message object with data
-    core::msg::InputJoystick get_message();
+    input_msgs::msg::InputJoystick get_message();
 
     /// @brief       Resets the invalid inputs back to zero
     void reset_inputs ();

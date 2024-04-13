@@ -91,7 +91,7 @@ void DriveInputs::autonomous_callback(const drive_msgs::msg::DriveInput::SharedP
 }
 
 // Receives input from the gamepad
-void DriveInputs::input_callback(const core::msg::InputGamepad::SharedPtr msg)
+void DriveInputs::input_callback(const input_msgs::msg::InputGamepad::SharedPtr msg)
 {
     if (!autonomous)
         prev_msg_received = true;
@@ -219,7 +219,7 @@ DriveInputs::DriveInputs() : Node("drive_inputs")
     };
 
     // Creates the input subscription
-    gamepad_input_subscription = this->create_subscription<core::msg::InputGamepad>(
+    gamepad_input_subscription = this->create_subscription<input_msgs::msg::InputGamepad>(
         "/control/input_gamepad", qos, std::bind(&DriveInputs::input_callback, this, _1), input_subscriber_options);
     autonomous_commands_subscription = this->create_subscription<drive_msgs::msg::DriveInput>(
         "/control/autonomous_commands", qos, std::bind(&DriveInputs::autonomous_callback, this, _1), auto_subscriber_options);

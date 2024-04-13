@@ -16,8 +16,8 @@ EDITED:		19/11/2021
 */
 
 // Include the joystick and message type
-#include "joystick.h"
-#include "core/msg/input_gamepad.hpp"
+#include "inputs/joystick.h"
+#include "input_msgs/msg/input_gamepad.hpp"
 
 
 // Gamepad class
@@ -27,7 +27,7 @@ class JoystickGamepad : public Joystick {
     protected:
 
     /// @brief      Stores the message data from the gamepad
-    core::msg::InputGamepad msg;
+    input_msgs::msg::InputGamepad msg;
     
 
     //------------------------------------------------------------//
@@ -46,5 +46,5 @@ class JoystickGamepad : public Joystick {
 
     /// @brief      Gets the message object from the instance
     /// @returns    The Input Gamepad message object with data
-    core::msg::InputGamepad get_message();
+    input_msgs::msg::InputGamepad get_message();
 };

@@ -10,26 +10,35 @@ find_package(ament_cmake REQUIRED)
 find_package(input_msgs REQUIRED)
 find_package(rclcpp REQUIRED)
 
+include_directories(
+  include
+)
+
 # Libraries:
 # Gamepad
 if (NOT TARGET gamepad)
-  add_library(gamepad gamepad.c)
+  add_library(gamepad src/gamepad.c)
   target_link_libraries(gamepad udev)
 endif()
 
 if (NOT TARGET print)
-  add_library(print print.cpp)
+  add_library(print src/print.cpp)
 endif()
 
-add_executable(inputs
-  inputs_publisher.cpp
-  joystick.cpp 
-  joystick_gamepad.cpp 
-  joystick_thrustmaster.cpp 
+add_executable(inputs_publisher
+  src/inputs_publisher.cpp
+  src/joystick.cpp 
+  src/joystick_gamepad.cpp 
+  src/joystick_thrustmaster.cpp 
 )
 
-target_link_libraries(inputs gamepad print)
-ament_target_dependencies(inputs rclcpp core SDL2)
+target_link_libraries(inputs_publisher gamepad print keyboard)
+ament_target_dependencies(inputs_publisher input_msgs rclcpp SDL2)
+
+install(TARGETS
+  inputs_publisher
+  DESTINATION lib/${PROJECT_NAME}
+)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

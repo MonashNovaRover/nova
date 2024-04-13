@@ -8,7 +8,7 @@ AUTHOR(S):	Harrison Verrios
 */
 
 // Include the header file
-#include "joystick_gamepad.h"
+#include "inputs/joystick_gamepad.h"
 
 
 // Constructor for the gamepad
@@ -102,7 +102,7 @@ void JoystickGamepad::set_message_values() {
     // If the input is not connected, lock the inputs and reset the message
     else
     {
-        msg = core::msg::InputGamepad();
+        msg = input_msgs::msg::InputGamepad();
         twist_lock = true;
         hat_lock = true;
     }
@@ -110,6 +110,6 @@ void JoystickGamepad::set_message_values() {
 
 
 // Returns the input gamepad message object
-core::msg::InputGamepad JoystickGamepad::get_message() {
+input_msgs::msg::InputGamepad JoystickGamepad::get_message() {
     return msg;
 }

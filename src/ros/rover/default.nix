@@ -14,8 +14,10 @@
     nova-drive= callPackage ./nix/packages/drive { };
     nova-drive-msgs = callPackage ./nix/packages/drive-msgs { };
     nova-blcmd-interfaces = callPackage ./nix/packages/blcmd-interfaces { };
-        nova-arm-interfaces = callPackage ./nix/packages/arm-interfaces { };
+    nova-arm-interfaces = callPackage ./nix/packages/arm-interfaces { };
     nova-arm = callPackage ./nix/packages/arm { };
+    nova-input-msgs = callPackage ./nix/packages/input-msgs { };
+    nova-inputs = callPackage ./nix/packages/inputs { };  
     # diff drive, pivot drive, strafe, 
   } // import ./nix/packages/controllers { inherit pkgs; };
 

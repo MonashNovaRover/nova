@@ -11,7 +11,7 @@
 #include <malloc.h>
 
 #define GAMEPAD_EXPORT 1
-#include "include/gamepad/gamepad.h"
+#include "gamepad/gamepad.h"
 
 /* Platform-specific includes */
 #if defined(_WIN32)

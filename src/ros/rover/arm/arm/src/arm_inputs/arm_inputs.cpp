@@ -37,7 +37,7 @@ InputDevice* ArmInputs::select_input_device(){
 }
 
 // Receives input from left joystick
-void ArmInputs::joystick_l_callback (const core::msg::InputJoystick::SharedPtr msg)
+void ArmInputs::joystick_l_callback (const input_msgs::msg::InputJoystick::SharedPtr msg)
 {
     // Save data for later, only deal with it when we publish
     // More efficient, works if we only care about the most up-to-date message
@@ -45,14 +45,14 @@ void ArmInputs::joystick_l_callback (const core::msg::InputJoystick::SharedPtr m
 }
 
 // Receives input from right joystick
-void ArmInputs::joystick_r_callback (const core::msg::InputJoystick::SharedPtr msg)
+void ArmInputs::joystick_r_callback (const input_msgs::msg::InputJoystick::SharedPtr msg)
 {
     // Save data for later, only deal with it when we publish
     // More efficient, works if we only care about the most up-to-date message    
     joystick_translate.joystick_r_callback(msg);
 }
 
-void ArmInputs::keyboard_callback(const core::msg::InputKeyboard::SharedPtr msg)
+void ArmInputs::keyboard_callback(const input_msgs::msg::InputKeyboard::SharedPtr msg)
 {
     keyboard_translate.keyboard_callback(msg);   
 }
@@ -142,7 +142,7 @@ void ArmInputs::start_node()
     rclcpp::QoS arm_input_qos = rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline);
 
     // Creates the input subscription for the left joystick (with QoS options)
-    joystick_l_sub = this->create_subscription<core::msg::InputJoystick>(
+    joystick_l_sub = this->create_subscription<input_msgs::msg::InputJoystick>(
         "/control/input_joystick_l",
         arm_input_qos,
         std::bind(&ArmInputs::joystick_l_callback, this, _1),
@@ -150,7 +150,7 @@ void ArmInputs::start_node()
     );
 
     // Creates the input subscription for the right joystick (with QoS options)
-    joystick_r_sub = this->create_subscription<core::msg::InputJoystick>(
+    joystick_r_sub = this->create_subscription<input_msgs::msg::InputJoystick>(
         "/control/input_joystick_r",
         arm_input_qos,
         std::bind(&ArmInputs::joystick_r_callback, this, _1),
@@ -158,7 +158,7 @@ void ArmInputs::start_node()
     );
 
     // Creates the input subscription for the keyboard (with QoS options)
-    keyboard_sub = this->create_subscription<core::msg::InputKeyboard>(
+    keyboard_sub = this->create_subscription<input_msgs::msg::InputKeyboard>(
         "/control/input_keyboard",
         arm_input_qos,
         std::bind(&ArmInputs::keyboard_callback, this, _1),
