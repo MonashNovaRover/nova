@@ -40,8 +40,8 @@ EDITED:		13/09/2022
 
 
 // Include custom ROS messages
-#include "drive_msgs/msg/drive_input.hpp"
-#include "drive_msgs/msg/pivot_wheel_data.hpp"
+#include "drive_interfaces/msg/drive_input.hpp"
+#include "drive_interfaces/msg/pivot_wheel_data.hpp"
 
 #include "blcmd_interfaces/msg/telemetry.hpp"
 #include "blcmd_interfaces/msg/single_telemetry.hpp"
@@ -121,7 +121,7 @@ class Driver : public rclcpp::Node
     const float angle_offset = atan((CHASSIS_WIDTH)/CHASSIS_LENGTH);
 private:
     // Stores the subscriber for the drive commands (manual)
-    rclcpp::Subscription<drive_msgs::msg::DriveInput>::SharedPtr subscription_cmds;
+    rclcpp::Subscription<drive_interfaces::msg::DriveInput>::SharedPtr subscription_cmds;
 
     rclcpp::TimerBase::SharedPtr telemetry_timer;
     rclcpp::TimerBase::SharedPtr blcmd_spin_timer;
@@ -131,7 +131,7 @@ private:
     rclcpp::Publisher<blcmd_interfaces::msg::Telemetry>::SharedPtr telemetry_pub;
 
     // Publisher for pivot wheel data
-    rclcpp::Publisher<drive_msgs::msg::PivotWheelData>::SharedPtr pivot_wheel_pub;
+    rclcpp::Publisher<drive_interfaces::msg::PivotWheelData>::SharedPtr pivot_wheel_pub;
 
     //Gazebo publishers
     rclcpp::Publisher<trajectory_msgs::msg::JointTrajectory>::SharedPtr pivot_joint_trajectory_pub;
@@ -150,7 +150,7 @@ private:
     float best_effort_velocity = 0.0;
     int8_t target_direction = 0;
     int8_t best_effort_direction = 0;
-    unsigned char mode = drive_msgs::msg::DriveInput::TANK;
+    unsigned char mode = drive_interfaces::msg::DriveInput::TANK;
     bool handbrake;
 
     // An array of pointers to Wheel instances
@@ -161,7 +161,7 @@ private:
 
     /// @brief      Callback function when drive messages are received
     /// @param      msg - A pointer to the drive message
-    void drive_callback(const drive_msgs::msg::DriveInput::SharedPtr msg);
+    void drive_callback(const drive_interfaces::msg::DriveInput::SharedPtr msg);
 
     /// @brief      Disable BLCMD service callback
     void disable_blcmd_callback(const std::shared_ptr<blcmd_interfaces::srv::DisableBLCMD::Request> request,

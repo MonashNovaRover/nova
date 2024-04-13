@@ -14,7 +14,7 @@
 
   <depend>rclcpp</depend>
   <depend>blcmd_interfaces</depend>
-  <depend>drive_msgs</depend>
+  <depend>drive_interfaces</depend>
   <depend>input_msgs</depend>
 
   <export>

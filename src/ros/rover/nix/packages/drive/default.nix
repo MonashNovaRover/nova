@@ -3,7 +3,7 @@
 , ament-cmake
 , rclcpp
 , nova-blcmd-interfaces
-, nova-drive-msgs
+, nova-drive-interfaces
 , nova-inputs
 , nova-input-msgs
 , libblcmd
@@ -25,7 +25,7 @@ buildRosPackage {
   buildInputs = [
     rclcpp
     nova-blcmd-interfaces
-    nova-drive-msgs
+    nova-drive-interfaces
     nova-inputs
     nova-input-msgs
     libblcmd

@@ -49,7 +49,7 @@ void DriveInputs::publish_cmds()
 void DriveInputs::publish_info()
 {
     // Create the info message
-    auto info_msg = drive_msgs::msg::DriveInfo();
+    auto info_msg = drive_interfaces::msg::DriveInfo();
     info_msg.multiplier = multiplier_speed;
     info_msg.locked = locked;
     info_msg.autonomous_mode = autonomous;
@@ -79,7 +79,7 @@ void DriveInputs::auto_deadline_exceeded() {
     }
 }
 
-void DriveInputs::autonomous_callback(const drive_msgs::msg::DriveInput::SharedPtr msg) {
+void DriveInputs::autonomous_callback(const drive_interfaces::msg::DriveInput::SharedPtr msg) {
     if (autonomous){
         latest_drive_input.mode = msg->mode;
         latest_drive_input.speed = msg->speed;
@@ -163,20 +163,20 @@ void DriveInputs::input_callback(const input_msgs::msg::InputGamepad::SharedPtr 
             else if (msg->btn_dpad_r_state == 1)
                 adjust_multiplier(multiplier_speed, true, false);
             if (msg->btn_y_state != 0) {
-                if (latest_drive_input.mode != drive_msgs::msg::DriveInput::TANK)
+                if (latest_drive_input.mode != drive_interfaces::msg::DriveInput::TANK)
                     RCLCPP_INFO_STREAM(this->get_logger(), C_MODE << "Tank Mode" << C_END);                    
-                latest_drive_input.mode = drive_msgs::msg::DriveInput::TANK;
+                latest_drive_input.mode = drive_interfaces::msg::DriveInput::TANK;
             } else if (msg->btn_shoulder_l_state != 0) {
-                if (latest_drive_input.mode != drive_msgs::msg::DriveInput::STRAFE)
+                if (latest_drive_input.mode != drive_interfaces::msg::DriveInput::STRAFE)
                     RCLCPP_INFO_STREAM(this->get_logger(), C_MODE << "Strafe Mode" << C_END);
-                latest_drive_input.mode = drive_msgs::msg::DriveInput::STRAFE;
+                latest_drive_input.mode = drive_interfaces::msg::DriveInput::STRAFE;
             } else if (msg->btn_shoulder_r_state != 0) {
-                if (latest_drive_input.mode != drive_msgs::msg::DriveInput::PIVOT)
+                if (latest_drive_input.mode != drive_interfaces::msg::DriveInput::PIVOT)
                     RCLCPP_INFO_STREAM(this->get_logger(), C_MODE << "Pivot Mode" << C_END);
-                latest_drive_input.mode = drive_msgs::msg::DriveInput::PIVOT;
+                latest_drive_input.mode = drive_interfaces::msg::DriveInput::PIVOT;
             }
             trigger_speed = 1.0 - (msg->trg_r_val * (1 - MIN_TRIGGER_MULTIPLIER));
-            if (latest_drive_input.mode == drive_msgs::msg::DriveInput::STRAFE) {
+            if (latest_drive_input.mode == drive_interfaces::msg::DriveInput::STRAFE) {
                 latest_drive_input.speed = -msg->ax_stick_l_x * multiplier_speed * trigger_speed;
 
             } else {
@@ -194,7 +194,7 @@ DriveInputs::DriveInputs() : Node("drive_inputs")
 {
     // Fill with default values on startup
     latest_drive_input.radius = INFINITY;
-    latest_drive_input.mode = drive_msgs::msg::DriveInput::TANK;
+    latest_drive_input.mode = drive_interfaces::msg::DriveInput::TANK;
     latest_drive_input.handbrake = false;
     latest_drive_input.speed = 0.0;
     latest_drive_input.direction = 0;
@@ -206,8 +206,8 @@ DriveInputs::DriveInputs() : Node("drive_inputs")
     rclcpp::SubscriptionOptions auto_subscriber_options;
 
     // Create the publisher with a best effort QoS policy
-    drive_publisher = this->create_publisher<drive_msgs::msg::DriveInput>("/drive/drive_inputs", qos);
-    info_publisher = this->create_publisher<drive_msgs::msg::DriveInfo>("/drive/drive_info",10);
+    drive_publisher = this->create_publisher<drive_interfaces::msg::DriveInput>("/drive/drive_inputs", qos);
+    info_publisher = this->create_publisher<drive_interfaces::msg::DriveInfo>("/drive/drive_info",10);
     //Sets subscriber options before subscription is made
     input_subscriber_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void {
         input_deadline_exceeded();
@@ -221,7 +221,7 @@ DriveInputs::DriveInputs() : Node("drive_inputs")
     // Creates the input subscription
     gamepad_input_subscription = this->create_subscription<input_msgs::msg::InputGamepad>(
         "/input/input_gamepad", qos, std::bind(&DriveInputs::input_callback, this, _1), input_subscriber_options);
-    autonomous_commands_subscription = this->create_subscription<drive_msgs::msg::DriveInput>(
+    autonomous_commands_subscription = this->create_subscription<drive_interfaces::msg::DriveInput>(
         "/input/autonomous_commands", qos, std::bind(&DriveInputs::autonomous_callback, this, _1), auto_subscriber_options);
     // Creates a timer function that runs a function on loop every 0.05 seconds
     drive_timer = this->create_wall_timer(DriveTimers::drive_control, std::bind(&DriveInputs::publish_cmds, this));

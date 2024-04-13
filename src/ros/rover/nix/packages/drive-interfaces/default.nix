@@ -7,12 +7,12 @@
 }:
 
 buildRosPackage {
-  name = "drive-msgs";
+  name = "drive-interfaces";
   buildType = "ament_cmake";
 
   src = builtins.path rec {
-    name = "drive-msgs-source";
-    path = ../../../drive_msgs;
+    name = "drive-interfaces-source";
+    path = ../../../drive_interfaces;
     filter = lib.novaSourceFilter [ ] path;
   };
 

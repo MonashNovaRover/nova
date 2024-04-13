@@ -12,7 +12,7 @@
     nova-teleop-drive-joy = callPackage ./nix/packages/teleop-drive-joy { };
     nova-pointcloud-filter = callPackage ./nix/packages/nova-pointcloud-filter { };
     nova-drive= callPackage ./nix/packages/drive { };
-    nova-drive-msgs = callPackage ./nix/packages/drive-msgs { };
+    nova-drive-interfaces = callPackage ./nix/packages/drive-interfaces { };
     nova-blcmd-interfaces = callPackage ./nix/packages/blcmd-interfaces { };
     nova-blcmd-utils = callPackage ./nix/packages/blcmd-utils { };
     nova-arm-interfaces = callPackage ./nix/packages/arm-interfaces { };

@@ -29,8 +29,8 @@ EDITED:		31/05/2022
 // Include ROS packages
 #include "rclcpp/rclcpp.hpp"
 #include "input_msgs/msg/input_gamepad.hpp"
-#include "drive_msgs/msg/drive_input.hpp"
-#include "drive_msgs/msg/drive_info.hpp"
+#include "drive_interfaces/msg/drive_input.hpp"
+#include "drive_interfaces/msg/drive_info.hpp"
 
 #include <math.h>
 // The minimum and maximum multipliers
@@ -72,12 +72,12 @@ private:
     rclcpp::TimerBase::SharedPtr info_timer;
 
     // Stores the publisher for the drive commands
-    rclcpp::Publisher<drive_msgs::msg::DriveInput>::SharedPtr drive_publisher;
-    rclcpp::Publisher<drive_msgs::msg::DriveInfo>::SharedPtr info_publisher;
+    rclcpp::Publisher<drive_interfaces::msg::DriveInput>::SharedPtr drive_publisher;
+    rclcpp::Publisher<drive_interfaces::msg::DriveInfo>::SharedPtr info_publisher;
 
     // Stores the subscriber to the gamepad inputs
     rclcpp::Subscription<input_msgs::msg::InputGamepad>::SharedPtr gamepad_input_subscription;
-    rclcpp::Subscription<drive_msgs::msg::DriveInput>::SharedPtr autonomous_commands_subscription;
+    rclcpp::Subscription<drive_interfaces::msg::DriveInput>::SharedPtr autonomous_commands_subscription;
 
     // A flag for whether the controller is connected
     bool connected = false;
@@ -92,7 +92,7 @@ private:
     bool autonomous = false;
 
     // Message to store our drive inputs
-    drive_msgs::msg::DriveInput latest_drive_input = drive_msgs::msg::DriveInput(); 
+    drive_interfaces::msg::DriveInput latest_drive_input = drive_interfaces::msg::DriveInput(); 
 
     // Stores the current state of the trigger multiplier
     float trigger_speed = 1.0;
@@ -121,7 +121,7 @@ private:
 
     /// @brief      Callback function when autonomous messages are received.
     /// @param      msg - A pointer to the autonomous message
-    void autonomous_callback (const drive_msgs::msg::DriveInput::SharedPtr msg);
+    void autonomous_callback (const drive_interfaces::msg::DriveInput::SharedPtr msg);
 
     /// @brief      Callback function when deadline for input subscription is exceeded
     void input_deadline_exceeded();

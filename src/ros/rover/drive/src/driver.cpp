@@ -42,10 +42,10 @@ void PivotModule::drive_wheel() {
 // Sends commands to the wheels
 void Driver::send_commands()
 {
-    drive_msgs::msg::PivotWheelData data_msg;
+    drive_interfaces::msg::PivotWheelData data_msg;
     set_best_effort_velocity();
     switch (mode) {
-        case drive_msgs::msg::DriveInput::PIVOT: {
+        case drive_interfaces::msg::DriveInput::PIVOT: {
             // Find the turning radius form the 'steer' command
             // This will find the valid radius that the wheels can turn to based on max speed of pivots
             RCLCPP_DEBUG(this->get_logger(), "target radius: %f", target_radius);
@@ -62,14 +62,14 @@ void Driver::send_commands()
             data_msg.direction = best_effort_direction;
             break;
         }
-        case drive_msgs::msg::DriveInput::STRAFE: {
+        case drive_interfaces::msg::DriveInput::STRAFE: {
             fill_wheel_angles_strafe();
             fill_wheel_velocities_strafe();
             data_msg.radius = 0;
             break;
         }
 
-        case drive_msgs::msg::DriveInput::TANK: {
+        case drive_interfaces::msg::DriveInput::TANK: {
             fill_wheel_velocities_tank();
             data_msg.radius = target_radius;
             break;
@@ -84,7 +84,7 @@ void Driver::send_commands()
                                  -pivots[2]->velocity*WHEEL_VELOCITY_OUTPUT,
                                  -pivots[3]->velocity*WHEEL_VELOCITY_OUTPUT};
         wheel_joint_velocity_pub->publish(wheel_velocities);
-        if (mode == drive_msgs::msg::DriveInput::PIVOT || mode == drive_msgs::msg::DriveInput::STRAFE) {
+        if (mode == drive_interfaces::msg::DriveInput::PIVOT || mode == drive_interfaces::msg::DriveInput::STRAFE) {
             trajectory_msgs::msg::JointTrajectory pivot_trajectories;
             trajectory_msgs::msg::JointTrajectoryPoint points;
             points.positions = {pivots[0]->angle - angle_offset,
@@ -99,7 +99,7 @@ void Driver::send_commands()
         for (size_t i = 0; i < NUM_WHEELS; i++) {
             PivotModule *pivot = pivots[i];
             pivot->drive_wheel();
-            if (mode == drive_msgs::msg::DriveInput::PIVOT || mode == drive_msgs::msg::DriveInput::STRAFE) {
+            if (mode == drive_interfaces::msg::DriveInput::PIVOT || mode == drive_interfaces::msg::DriveInput::STRAFE) {
                 pivot->drive_pivot();
             }
             data_msg.angles[i] = pivot->angle;
@@ -111,9 +111,9 @@ void Driver::send_commands()
 }
 
 // Receives drive commands
-void Driver::drive_callback(const drive_msgs::msg::DriveInput::SharedPtr msg)
+void Driver::drive_callback(const drive_interfaces::msg::DriveInput::SharedPtr msg)
 {
-    if(mode == drive_msgs::msg::DriveInput::STRAFE && msg->mode == drive_msgs::msg::DriveInput::PIVOT){
+    if(mode == drive_interfaces::msg::DriveInput::STRAFE && msg->mode == drive_interfaces::msg::DriveInput::PIVOT){
         target_radius = INFINITY;
         target_direction = 0;
         for (PivotModule *pivot: pivots){
@@ -480,7 +480,7 @@ Driver::Driver() : Node("driver")
     subscriber_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void
     { drive_inputs_deadline_exceeded(); };
 
-    subscription_cmds = this->create_subscription<drive_msgs::msg::DriveInput>(
+    subscription_cmds = this->create_subscription<drive_interfaces::msg::DriveInput>(
         "/drive/drive_inputs", qos, std::bind(&Driver::drive_callback, this, _1), subscriber_options);
 
     // Create send commands timer
@@ -496,7 +496,7 @@ Driver::Driver() : Node("driver")
     telemetry_pub = this->create_publisher<blcmd_interfaces::msg::Telemetry>("/drive/telemetry", 10);
 
     // Create pivot wheel data publisher
-    pivot_wheel_pub = this->create_publisher<drive_msgs::msg::PivotWheelData>("/drive/pivot_wheel", 10);
+    pivot_wheel_pub = this->create_publisher<drive_interfaces::msg::PivotWheelData>("/drive/pivot_wheel", 10);
 
     //create gazebo publishers
     pivot_joint_trajectory_pub = this->create_publisher<trajectory_msgs::msg::JointTrajectory>(

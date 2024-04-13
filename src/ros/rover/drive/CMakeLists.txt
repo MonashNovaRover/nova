@@ -10,7 +10,7 @@ include_directories(include)
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(drive_msgs REQUIRED)
+find_package(drive_interfaces REQUIRED)
 find_package(blcmd_interfaces REQUIRED)
 find_package(input_msgs REQUIRED)
 
@@ -21,10 +21,10 @@ add_executable(driver src/driver.cpp)
 target_link_libraries(driver PUBLIC libblcmd)
 target_include_directories(driver PUBLIC 
       ${libblcmd_INCLUDE_DIRS})
-ament_target_dependencies(driver PUBLIC rclcpp drive_msgs blcmd_interfaces)
+ament_target_dependencies(driver PUBLIC rclcpp drive_interfaces blcmd_interfaces)
 
 add_executable(drive_inputs src/drive_inputs.cpp)
-ament_target_dependencies(drive_inputs rclcpp input_msgs drive_msgs)
+ament_target_dependencies(drive_inputs rclcpp input_msgs drive_interfaces)
 
 install(TARGETS
         driver
