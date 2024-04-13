@@ -41,14 +41,15 @@ EDITED:		13/09/2022
 
 // Include custom ROS messages
 #include "drive_msgs/msg/drive_input.hpp"
-#include "core/msg/telemetry.hpp"
-#include "core/msg/single_telemetry.hpp"
-#include "core/msg/pivot_wheel_data.hpp"
-#include "core/msg/blcmd_status_array.hpp"
-#include "core/msg/blcmd_status.hpp"
+#include "drive_msgs/msg/pivot_wheel_data.hpp"
+
+#include "blcmd_interfaces/msg/telemetry.hpp"
+#include "blcmd_interfaces/msg/single_telemetry.hpp"
+#include "blcmd_interfaces/msg/blcmd_status_array.hpp"
+#include "blcmd_interfaces/msg/blcmd_status.hpp"
 
 // Include custom ROS services
-#include "core/srv/disable_blcmd.hpp"
+#include "blcmd_interfaces/srv/disable_blcmd.hpp"
 
 // Include other headers
 #include<cmath>
@@ -143,17 +144,17 @@ private:
     rclcpp::TimerBase::SharedPtr send_commands_timer;
 
     rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr mode_pub;
-    rclcpp::Publisher<core::msg::Telemetry>::SharedPtr telemetry_pub;
+    rclcpp::Publisher<blcmd_interfaces::msg::Telemetry>::SharedPtr telemetry_pub;
 
     // Publisher for pivot wheel data
-    rclcpp::Publisher<core::msg::PivotWheelData>::SharedPtr pivot_wheel_pub;
+    rclcpp::Publisher<drive_msgs::msg::PivotWheelData>::SharedPtr pivot_wheel_pub;
 
     //Gazebo publishers
     rclcpp::Publisher<trajectory_msgs::msg::JointTrajectory>::SharedPtr pivot_joint_trajectory_pub;
     rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr wheel_joint_velocity_pub;
 
     // blcmd disable service
-    rclcpp::Service<core::srv::DisableBLCMD>::SharedPtr disable_blcmd_srv;
+    rclcpp::Service<blcmd_interfaces::srv::DisableBLCMD>::SharedPtr disable_blcmd_srv;
 
     double max_d_theta;
     double max_d_vel;
@@ -179,8 +180,8 @@ private:
     void drive_callback(const drive_msgs::msg::DriveInput::SharedPtr msg);
 
     /// @brief      Disable BLCMD service callback
-    void disable_blcmd_callback(const std::shared_ptr<core::srv::DisableBLCMD::Request> request,
-                                std::shared_ptr<core::srv::DisableBLCMD::Response> response);
+    void disable_blcmd_callback(const std::shared_ptr<blcmd_interfaces::srv::DisableBLCMD::Request> request,
+                                std::shared_ptr<blcmd_interfaces::srv::DisableBLCMD::Response> response);
 
     /// @brief      function that spins all blcmds
     void blcmd_spinner();

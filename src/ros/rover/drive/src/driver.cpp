@@ -40,7 +40,7 @@ void PivotModule::drive_wheel() {
 // Sends commands to the wheels
 void Driver::send_commands()
 {
-    core::msg::PivotWheelData data_msg;
+    drive_msgs::msg::PivotWheelData data_msg;
     set_best_effort_velocity();
     switch (mode) {
         case drive_msgs::msg::DriveInput::PIVOT: {
@@ -75,7 +75,6 @@ void Driver::send_commands()
     }
 
     // Send velocities to the wheels
-<<<<<<< HEAD
     if(this->get_parameter("gazebo").get_parameter_value().get<bool>()){
         std_msgs::msg::Float64MultiArray wheel_velocities;
         wheel_velocities.data = {pivots[0]->velocity*WHEEL_VELOCITY_OUTPUT,
@@ -83,7 +82,7 @@ void Driver::send_commands()
                                  -pivots[2]->velocity*WHEEL_VELOCITY_OUTPUT,
                                  -pivots[3]->velocity*WHEEL_VELOCITY_OUTPUT};
         wheel_joint_velocity_pub->publish(wheel_velocities);
-        if (mode == core::msg::DriveInput::PIVOT || mode == core::msg::DriveInput::STRAFE) {
+        if (mode == drive_msgs::msg::DriveInput::PIVOT || mode == drive_msgs::msg::DriveInput::STRAFE) {
             trajectory_msgs::msg::JointTrajectory pivot_trajectories;
             trajectory_msgs::msg::JointTrajectoryPoint points;
             points.positions = {pivots[0]->angle - angle_offset,
@@ -98,19 +97,11 @@ void Driver::send_commands()
         for (size_t i = 0; i < NUM_WHEELS; i++) {
             PivotModule *pivot = pivots[i];
             pivot->drive_wheel();
-            if (mode == core::msg::DriveInput::PIVOT || mode == core::msg::DriveInput::STRAFE) {
+            if (mode == drive_msgs::msg::DriveInput::PIVOT || mode == drive_msgs::msg::DriveInput::STRAFE) {
                 pivot->drive_pivot();
             }
             data_msg.angles[i] = pivot->angle;
             data_msg.velocities[i] = pivot->velocity;
-=======
-    for (size_t i = 0; i < NUM_WHEELS; i++)
-    {
-        PivotModule *pivot = pivots[i];
-        pivot->drive_wheel();
-        if (mode == drive_msgs::msg::DriveInput::PIVOT || mode == drive_msgs::msg::DriveInput::STRAFE) {
-            pivot->drive_pivot();
->>>>>>> 1c3684e0 (drive: corrected usages of DriveInput to use drive_msgs instead of core)
         }
     }
 
@@ -148,8 +139,8 @@ void Driver::drive_callback(const drive_msgs::msg::DriveInput::SharedPtr msg)
     target_velocity = this->get_parameter("max_speed").get_parameter_value().get<double>()*msg->speed;
 }
 
-void Driver::disable_blcmd_callback(const std::shared_ptr<core::srv::DisableBLCMD::Request> request,
-                           std::shared_ptr<core::srv::DisableBLCMD::Response> response) {
+void Driver::disable_blcmd_callback(const std::shared_ptr<blcmd_interfaces::srv::DisableBLCMD::Request> request,
+                           std::shared_ptr<blcmd_interfaces::srv::DisableBLCMD::Response> response) {
     if (!request->id || request->id > 8) {
         response->success = false;
         return;
@@ -405,12 +396,12 @@ float Driver::get_wheel_distance (Vector2 pos, float radius) {
 void Driver::pub_telemetry() {
 
     // Construct a message from our current is_autonomous boolean
-    core::msg::Telemetry msg;
+    blcmd_interfaces::msg::Telemetry msg;
 
     for(PivotModule *pivot : pivots) {
 
-        core::msg::SingleTelemetry wheel_msg;
-        core::msg::SingleTelemetry pivot_msg;
+        blcmd_interfaces::msg::SingleTelemetry wheel_msg;
+        blcmd_interfaces::msg::SingleTelemetry pivot_msg;
 
         // Get the telemetry from the wheel and pivot
         BLCMDTelemetry wheel_tel = pivot->cmdWheel->get_telemetry();
@@ -505,10 +496,10 @@ Driver::Driver() : Node("driver")
     blcmd_spin_timer = this->create_wall_timer(ROSTimers::blcmd_spin, std::bind(&Driver::blcmd_spinner, this));
 
     // Create telemetry publisher
-    telemetry_pub = this->create_publisher<core::msg::Telemetry>("/control/telemetry", 10);
+    telemetry_pub = this->create_publisher<blcmd_interfaces::msg::Telemetry>("/control/telemetry", 10);
 
     // Create pivot wheel data publisher
-    pivot_wheel_pub = this->create_publisher<core::msg::PivotWheelData>("/control/pivot_wheel", 10);
+    pivot_wheel_pub = this->create_publisher<drive_msgs::msg::PivotWheelData>("/control/pivot_wheel", 10);
 
     //create gazebo publishers
     pivot_joint_trajectory_pub = this->create_publisher<trajectory_msgs::msg::JointTrajectory>(
@@ -516,7 +507,7 @@ Driver::Driver() : Node("driver")
     wheel_joint_velocity_pub = this->create_publisher<std_msgs::msg::Float64MultiArray>(
             "/wheel_velocity_controller/commands", 10);
 
-    disable_blcmd_srv = this->create_service<core::srv::DisableBLCMD>("/control/disable_blcmd",
+    disable_blcmd_srv = this->create_service<blcmd_interfaces::srv::DisableBLCMD>("/control/disable_blcmd",
         std::bind(&Driver::disable_blcmd_callback, this, _1, _2));
 
     RCLCPP_DEBUG(this->get_logger(), "R = 0, D = -1, side = left, angle = %f", calc_wheel_angle(0, true, -1));
