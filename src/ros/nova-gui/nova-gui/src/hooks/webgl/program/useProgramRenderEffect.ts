@@ -4,7 +4,7 @@ import {RenderQueueItem} from "../render-queue/RenderQueue.ts";
 
 export default function useProgramRenderEffect(program: GLProgramState,
                                          effect: (context: WebGL2RenderingContext, program: WebGLProgram) => void,
-                                         deps: React.DependencyList)
+                                         deps: React.DependencyList = [])
 {
   const renderQueueItem = useRef<RenderQueueItem<[WebGL2RenderingContext, WebGLProgram]>>();
   const itemID = useRef<number>();
@@ -21,5 +21,6 @@ export default function useProgramRenderEffect(program: GLProgramState,
       itemID.current = program.renderQueue.push(renderQueueItem.current!);
 
     renderQueueItem.current!.render = effect;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [...deps])
 }

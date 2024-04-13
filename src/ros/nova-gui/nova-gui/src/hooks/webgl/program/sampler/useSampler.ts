@@ -1,8 +1,30 @@
-import {useState} from "react";
-import useProgramEffect from "../useProgramEffect.ts";
+import {useEffect, useRef} from "react";
 import GLProgramState from "../GLProgramState.ts";
-import loadVideoTexture, {updateVideoTexture} from "../../../../utils/webgl/loadVideoTexture.ts";
-import loadTexture, {updateImageTexture} from "../../../../utils/webgl/loadTexture.ts";
+import GLSamplerState, {GLSamplerStateOptions} from "./GLSamplerState.ts";
+import GLTexture2DTargetType from "./GLTexture2DTargetType.ts";
+import HTMLTextureFormat from "./HTMLTextureFormat.ts";
+import GLTextureWrapMode from "./GLTextureWrapMode.ts";
+import {useMappedGLint} from "../MappedGLint.ts";
+
+function useSampler_aux(programState: GLProgramState, textureUnit: number, name: string,
+                        sampler: HTMLImageElement | HTMLVideoElement | null | undefined,
+                        options?: Partial<GLSamplerStateOptions>): GLSamplerState {
+  const samplerRef = useRef<GLSamplerState>();
+
+  if (samplerRef.current === undefined) {
+    const filledOptions = {
+      target: GLTexture2DTargetType.TEXTURE_2D,
+      format: HTMLTextureFormat.RGBA,
+      wrapT: GLTextureWrapMode.REPEAT,
+      wrapS: GLTextureWrapMode.REPEAT,
+      ...options
+    }
+
+    samplerRef.current = new GLSamplerState(programState, textureUnit, name, sampler, filledOptions);
+  }
+
+  return samplerRef.current;
+}
 
 /**
  * Applies a video or an image element as a sampler for a webgl program.
@@ -10,76 +32,25 @@ import loadTexture, {updateImageTexture} from "../../../../utils/webgl/loadTextu
  * @param sampler The video or image to use as the source for the texture.
  * @param textureUnit the index of the texture unit to use. Must be unique.
  * @param name A string specifying the name of the uniform variable whose location is to be returned
+ * @param options Additional options object allowing other aspects of the sampler, such as wrap behaviour, to be
+ * specified
  */
-export default function useSampler(programState: GLProgramState, textureUnit: number, name: string, sampler: HTMLImageElement | HTMLVideoElement | null | undefined) {
-  const [texture, setTexture] = useState<WebGLTexture | null>(null)
-  const [samplerFrameID, setSamplerFrameID] = useState<number>(0);
+export default function useSampler(programState: GLProgramState, textureUnit: number, name: string,
+                              sampler: HTMLImageElement | HTMLVideoElement | null | undefined,
+                              options?: Partial<GLSamplerStateOptions>) {
+  const samplerState = useSampler_aux(programState, textureUnit, name, sampler, options)
 
-  useProgramEffect(programState, (gl, program) => {
-    if (sampler === null || sampler === undefined)
-      return;
+  useEffect(() => {
+    samplerState.sampler = sampler;
+  }, [sampler, samplerState]);
 
-    // Flip image pixels into the bottom-to-top order that WebGL expects.
-    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+  useMappedGLint(samplerState.wrapS, options?.wrapS);
+  useMappedGLint(samplerState.wrapT, options?.wrapT);
+  useMappedGLint(samplerState.format, options?.format);
+  useMappedGLint(samplerState.target, options?.target);
 
-    const location = gl.getUniformLocation(program, name)
-
-    const currentTexture = texture ?? (sampler instanceof HTMLVideoElement
-      ? loadVideoTexture(gl, sampler)
-      : loadTexture(gl, sampler));
-
-    // Return if we failed to create the texture for the given sampler.
-    if (!currentTexture)
-      return;
-
-    // Bind the texture to texture unit 0
-    gl.activeTexture(gl.TEXTURE0 + textureUnit);
-    gl.bindTexture(gl.TEXTURE_2D, currentTexture);
-
-    // Tell the shader we bound the texture to texture unit 0
-    gl.uniform1i(location, textureUnit);
-
-    if (texture) {
-      // If the texture already existed, and wasn't created this iteration, update the texture.
-      if (sampler instanceof HTMLVideoElement)
-        updateVideoTexture(gl, sampler, texture);
-      else
-        updateImageTexture(gl, sampler, texture);
-    }
-    else {
-      // Otherwise, persist the newly generated texture
-      setTexture(currentTexture);
-    }
-
-    if (sampler instanceof HTMLVideoElement) {
-      // Create a callback to run each time a frame is updated. The id of the requestVideoFrameCallback is stored in
-      // frameIDs, so that it can be destroyed by the cleanup function.
-      const callback = () => {
-        updateVideoTexture(gl, sampler, currentTexture);
-        programState.queue.push();
-
-        setSamplerFrameID(sampler.requestVideoFrameCallback(callback));
-      }
-      setSamplerFrameID(sampler.requestVideoFrameCallback(callback));
-    }
-    else {
-      updateImageTexture(gl, sampler, currentTexture);
-    }
-
-    return () => {
-      if (gl === undefined || sampler === undefined)
-        return;
-
-      // Cancel all video frame callbacks
-      if (sampler instanceof HTMLVideoElement)
-        sampler.cancelVideoFrameCallback(samplerFrameID);
-    }
-  }, [sampler, name, textureUnit])
-
-  return samplerFrameID;
+  return samplerState;
 }
-
-
 
 
 

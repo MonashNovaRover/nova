@@ -5,7 +5,7 @@ import GLState from "../../gl/GLState.ts";
 /**
  * Sets a vec2 which is equal to the size of the webgl canvas in pixels, under the name "resolution"
  */
-export default function useResolutionUniform(gl: GLState, program: GLProgramState) {
+export default function useResolutionUniform(gl: GLState, program: GLProgramState, name: string = "resolution", sampler?: HTMLImageElement | HTMLVideoElement | null) {
 
   useLayoutEffect(() => {
     if (!gl.canvasRef.current)
@@ -17,12 +17,20 @@ export default function useResolutionUniform(gl: GLState, program: GLProgramStat
       program.queue.cancel(frameID);
 
       frameID = program.queue.push((context, program) => {
-        const location = context.getUniformLocation(program, "resolution");
+        const location = context.getUniformLocation(program, name);
 
         if (location === null)
           return;
 
-        context.uniform2f(location, context.drawingBufferWidth, context.drawingBufferHeight);
+        if (!sampler) {
+          context.uniform2f(location, context.drawingBufferWidth, context.drawingBufferHeight);
+        }
+        else if (sampler instanceof HTMLVideoElement) {
+          context.uniform2f(location, sampler.videoWidth, sampler.videoHeight);
+        }
+        else {
+          context.uniform2f(location, sampler.naturalWidth, sampler.naturalHeight);
+        }
       });
     }
 
@@ -37,6 +45,6 @@ export default function useResolutionUniform(gl: GLState, program: GLProgramStat
 
       program.queue.cancel(frameID);
     };
-  }, [gl, program]);
+  }, [gl, program, name, sampler]);
   
 }

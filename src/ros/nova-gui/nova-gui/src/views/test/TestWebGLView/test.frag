@@ -3,7 +3,7 @@
 precision mediump float;
 in vec2 vTexCoord;
 
-uniform sampler2D image;
+uniform sampler2D spec;
 //uniform vec2 offset;
 
 uniform vec2 resolution;
@@ -16,12 +16,17 @@ void main() {
 
     // Sample at the projected point
     // vec4 texCol = (texture(image, vTexCoord) + vec4(1.0)) * 0.5;
-    vec4 col = texture(image, samplePoint);
+    vec4 col = texture(spec, samplePoint);
 
     float brightness = sqrt(col.x * col.x + col.y * col.y + col.z * col.z) / 1.73;
 
     if (brightness > vTexCoord.y) {
-        fragColor = vec4(1., 1., 1., 1.);
+        if (mod(floor(vTexCoord.x * resolution.x) + floor(vTexCoord.y * resolution.y), 2.0) > 0.0) {
+            fragColor = vec4(1.);
+        }
+        else {
+            fragColor = texture(spec, vTexCoord * vec2(1., 1.) + vec2(0., 0.5));
+        }
     }
     else {
         //fragColor = col;

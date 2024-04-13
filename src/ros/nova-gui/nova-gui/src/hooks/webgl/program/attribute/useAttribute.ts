@@ -25,6 +25,7 @@ export default function useAttribute(program: GLProgramState, name: string, fact
  * @param name The name of the uniform in the program
  * @param factoryOrAttribute The uniform float or vector value, or a function to generate it when a dependency changes.
  * @param deps The dependency array, that should cause the uniform to be reset when changed.
+ * @param options Additional options to configure the attribute
  */
 export default function useAttribute(program: GLProgramState, name: string,
                                      factoryOrAttribute: (() => vecArray) | vecArray, deps: DependencyList = [],
@@ -37,6 +38,8 @@ export default function useAttribute(program: GLProgramState, name: string,
     offset: 0,
     ...options
   }
+
+  const numComponentsRef = useRef<number>();
 
   useProgramEffect(program, (context, program) => {
     context.useProgram(program);
@@ -56,6 +59,7 @@ export default function useAttribute(program: GLProgramState, name: string,
       return;
 
     const numComponents = attribute[0].length;
+    numComponentsRef.current = numComponents;
 
     const attributeLocation = context.getAttribLocation(program, name);
     //context.disableVertexAttribArray(attributeLocation);
@@ -81,8 +85,6 @@ export default function useAttribute(program: GLProgramState, name: string,
     );
 
     context.enableVertexAttribArray(attributeLocation);
-
-
   }, [name, ...deps])
 
   useProgramRenderEffect(program, (context, program) => {
@@ -93,10 +95,11 @@ export default function useAttribute(program: GLProgramState, name: string,
     const attributeLocation = context.getAttribLocation(program, name);
     context.vertexAttribPointer(
       attributeLocation,
-      2,
+      numComponentsRef.current ?? 2,
       context.FLOAT,
       filledOptions.normalize,
       filledOptions.stride,
       filledOptions.offset,
-    );  }, [])
+    );
+  }, [])
 }

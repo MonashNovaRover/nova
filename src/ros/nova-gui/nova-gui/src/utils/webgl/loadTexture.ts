@@ -56,8 +56,6 @@ export default function loadTexture(gl: WebGL2RenderingContext, image: HTMLImage
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     }
-
-    // console.log("Image loaded");
   };
 
   if (image.complete)
@@ -68,27 +66,28 @@ export default function loadTexture(gl: WebGL2RenderingContext, image: HTMLImage
 
   // Turn off mips and set wrapping to clamp to edge so it
   // will work regardless of the dimensions of the video.
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
 
   return texture ?? undefined;
 }
 
-export function updateImageTexture(gl: WebGL2RenderingContext, image: HTMLImageElement, texture?: WebGLTexture) {
+export function updateImageTexture(gl: WebGL2RenderingContext, image: HTMLImageElement,
+                                   texture: WebGLTexture | undefined, format: GLint, ) {
   if (!texture || gl === undefined || image === undefined)
     return;
 
   const level = 0;
-  const internalFormat = gl.RGBA;
-  const srcFormat = gl.RGBA;
+  // const internalFormat = gl.RGBA;
+  // const srcFormat = gl.RGBA;
   const srcType = gl.UNSIGNED_BYTE;
   gl.bindTexture(gl.TEXTURE_2D, texture);
   gl.texImage2D(
     gl.TEXTURE_2D,
     level,
-    internalFormat,
-    srcFormat,
+    format,
+    format,
     srcType,
     image,
   );

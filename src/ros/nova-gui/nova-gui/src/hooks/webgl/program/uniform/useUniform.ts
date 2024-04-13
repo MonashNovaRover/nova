@@ -25,6 +25,8 @@ export default function useUniform(program: GLProgramState, name: string, defaul
 export default function useUniform(program: GLProgramState, name: string, factoryOrConstant: (() => vec) | vec,
                     deps: React.DependencyList = []) {
   useProgramEffect(program, (gl, program) => {
+    gl.useProgram(program)
+
     const uniform = Array.isArray(factoryOrConstant) ? factoryOrConstant : factoryOrConstant();
 
     const location = gl.getUniformLocation(program, name);
@@ -37,4 +39,6 @@ export default function useUniform(program: GLProgramState, name: string, factor
     else if (uniform.length === 3) gl.uniform3f(location, ...uniform);
     else if (uniform.length === 4) gl.uniform4f(location, ...uniform);
   }, [name, ...deps]);
+
+
 }
