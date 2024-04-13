@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(input_msgs)
+project(inputs)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
@@ -7,16 +7,37 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
-find_package(std_msgs REQUIRED)
-find_package(rosidl_default_generators REQUIRED)
+find_package(input_interfaces REQUIRED)
+find_package(rclcpp REQUIRED)
 
-rosidl_generate_interfaces(${PROJECT_NAME}
+include_directories(
+  include
+)
 
-  "msg/InputGamepad.msg"
-  "msg/InputJoystick.msg"
-  "msg/InputKeyboard.msg"
+# Libraries:
+# Gamepad
+if (NOT TARGET gamepad)
+  add_library(gamepad src/gamepad.c)
+  target_link_libraries(gamepad udev)
+endif()
 
-  DEPENDENCIES std_msgs
+if (NOT TARGET print)
+  add_library(print src/print.cpp)
+endif()
+
+add_executable(inputs_publisher
+  src/inputs_publisher.cpp
+  src/joystick.cpp 
+  src/joystick_gamepad.cpp 
+  src/joystick_thrustmaster.cpp 
+)
+
+target_link_libraries(inputs_publisher gamepad print keyboard)
+ament_target_dependencies(inputs_publisher input_interfaces rclcpp SDL2)
+
+install(TARGETS
+  inputs_publisher
+  DESTINATION lib/${PROJECT_NAME}
 )
 
 if(BUILD_TESTING)

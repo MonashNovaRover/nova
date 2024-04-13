@@ -10,8 +10,8 @@ This class reads data from the raw joystick inputs
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: arm_inputs
 TOPICS:
-  - /inputs/input_joystick_l            [input_msgs/InputJoystick]          [Subscribed]
-  - /inputs/input_joystick_r            [input_msgs/InputJoystick]          [Subscribed]
+  - /inputs/input_joystick_l            [input_interfaces/InputJoystick]          [Subscribed]
+  - /inputs/input_joystick_r            [input_interfaces/InputJoystick]          [Subscribed]
   - /inputs/input_keyboard              [core/InputKeyboard]          [Subscribed]
   - /arm/endeffector_input           [arm_interfaces/EndEffectorInput]       [Published]
   - /arm/joystick_joint_velocities   [sensor_msgs/JointState]      [Published]
@@ -35,8 +35,8 @@ of which ones are connected
 #include "rclcpp/rclcpp.hpp"
 
 // Include messages types
-#include "input_msgs/msg/input_joystick.hpp"
-#include "input_msgs/msg/input_keyboard.hpp"
+#include "input_interfaces/msg/input_joystick.hpp"
+#include "input_interfaces/msg/input_keyboard.hpp"
 #include "arm_interfaces/msg/end_effector_input.hpp"
 #include "arm_interfaces/msg/arm_control_scheme.hpp"
 #include "sensor_msgs/msg/joint_state.hpp"
@@ -98,15 +98,15 @@ class ArmInputs : public ArmConfigInfoClient
 
     /// @brief      Callback function when input messages are received.
     /// @param      msg - A pointer to the input message
-    void joystick_l_callback (const input_msgs::msg::InputJoystick::SharedPtr msg);
+    void joystick_l_callback (const input_interfaces::msg::InputJoystick::SharedPtr msg);
 
     /// @brief      Callback function when input messages are received.
     /// @param      msg - A pointer to the input message
-    void joystick_r_callback (const input_msgs::msg::InputJoystick::SharedPtr msg);
+    void joystick_r_callback (const input_interfaces::msg::InputJoystick::SharedPtr msg);
 
     /// @brief      Callback function when input messages are received.
     /// @param      msg - A pointer to the input message
-    void keyboard_callback (const input_msgs::msg::InputKeyboard::SharedPtr msg);
+    void keyboard_callback (const input_interfaces::msg::InputKeyboard::SharedPtr msg);
     
     /// @brief      Deadline callback for joystick subscriptions
     ///             Resets internal input states

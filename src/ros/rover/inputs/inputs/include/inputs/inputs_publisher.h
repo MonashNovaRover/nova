@@ -30,9 +30,9 @@ EDITED:		  24/11/2021
 
 // Include ROS packages
 #include "rclcpp/rclcpp.hpp"
-#include "input_msgs/msg/input_gamepad.hpp"
-#include "input_msgs/msg/input_joystick.hpp"
-#include "input_msgs/msg/input_keyboard.hpp"
+#include "input_interfaces/msg/input_gamepad.hpp"
+#include "input_interfaces/msg/input_joystick.hpp"
+#include "input_interfaces/msg/input_keyboard.hpp"
 
 #include <chrono>
 namespace ROSTimers
@@ -53,10 +53,10 @@ class InputsPublisher : public rclcpp::Node {
     rclcpp::TimerBase::SharedPtr timer;
 
     // Stores the publishers for each of the controllers
-    rclcpp::Publisher<input_msgs::msg::InputGamepad>::SharedPtr gamepad_publisher;
-    rclcpp::Publisher<input_msgs::msg::InputJoystick>::SharedPtr joystick_l_publisher;
-    rclcpp::Publisher<input_msgs::msg::InputJoystick>::SharedPtr joystick_r_publisher;
-    rclcpp::Publisher<input_msgs::msg::InputKeyboard>::SharedPtr keyboard_publisher;
+    rclcpp::Publisher<input_interfaces::msg::InputGamepad>::SharedPtr gamepad_publisher;
+    rclcpp::Publisher<input_interfaces::msg::InputJoystick>::SharedPtr joystick_l_publisher;
+    rclcpp::Publisher<input_interfaces::msg::InputJoystick>::SharedPtr joystick_r_publisher;
+    rclcpp::Publisher<input_interfaces::msg::InputKeyboard>::SharedPtr keyboard_publisher;
 
     // A pointer to the joystick object stored (for the gamepad)
     JoystickGamepad* gamepad;

@@ -20,7 +20,7 @@ EDITED:		02/12/2023
 */
 
 #include <SDL2/SDL.h>
-#include "input_msgs/msg/input_keyboard.hpp"
+#include "input_interfaces/msg/input_keyboard.hpp"
 
 class Keyboard {
     //------------------------------------------------------------//
@@ -104,5 +104,5 @@ class Keyboard {
 
     /// @brief      Gets the message object from the instance
     /// @returns    The Input Joystick message object with data
-    input_msgs::msg::InputKeyboard get_message();
+    input_interfaces::msg::InputKeyboard get_message();
 };

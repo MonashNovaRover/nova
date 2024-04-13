@@ -102,7 +102,7 @@ void JoystickGamepad::set_message_values() {
     // If the input is not connected, lock the inputs and reset the message
     else
     {
-        msg = input_msgs::msg::InputGamepad();
+        msg = input_interfaces::msg::InputGamepad();
         twist_lock = true;
         hat_lock = true;
     }
@@ -110,6 +110,6 @@ void JoystickGamepad::set_message_values() {
 
 
 // Returns the input gamepad message object
-input_msgs::msg::InputGamepad JoystickGamepad::get_message() {
+input_interfaces::msg::InputGamepad JoystickGamepad::get_message() {
     return msg;
 }

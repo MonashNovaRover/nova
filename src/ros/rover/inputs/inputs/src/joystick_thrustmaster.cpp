@@ -106,7 +106,7 @@ void JoystickThrustmaster::set_message_values() {
     // If the input is not connected, lock the inputs and reset the message
     else
     {
-        msg = input_msgs::msg::InputJoystick();
+        msg = input_interfaces::msg::InputJoystick();
         twist_lock = true;
         hat_lock = true;
     }
@@ -114,7 +114,7 @@ void JoystickThrustmaster::set_message_values() {
 
 
 // Returns the input joystick message object
-input_msgs::msg::InputJoystick JoystickThrustmaster::get_message() {
+input_interfaces::msg::InputJoystick JoystickThrustmaster::get_message() {
     return msg;
 }
 

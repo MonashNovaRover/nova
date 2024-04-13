@@ -6,8 +6,8 @@ Purpose: Control Auger Height and Drill Spin using Joysticks
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: auger
 TOPICS:
-  - subscriber: /control/input_joystick_l [InputJoystick]
-  - subscriber: /control/input_joystick_r [InputJoystick]
+  - subscriber: /inputs/input_joystick_l [InputJoystick]
+  - subscriber: /inputs/input_joystick_r [InputJoystick]
 SERVICES: None
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -79,8 +79,8 @@ class AugerNode(Node):
         events = SubscriptionEventCallbacks(deadline=self.deadline_callback)
         self.qos = QoSProfile(reliability=QoSReliabilityPolicy.BEST_EFFORT, depth=1, deadline=deadline)
 
-        self.joystick_l_sub = self.create_subscription(InputJoystick, "/control/input_joystick_l", self.joystick_l_callback, self.qos, event_callbacks=events)
-        self.joystick_r_sub = self.create_subscription(InputJoystick, "/control/input_joystick_r", self.joystick_r_callback, self.qos, event_callbacks=events)
+        self.joystick_l_sub = self.create_subscription(InputJoystick, "/inputs/input_joystick_l", self.joystick_l_callback, self.qos, event_callbacks=events)
+        self.joystick_r_sub = self.create_subscription(InputJoystick, "/inputs/input_joystick_r", self.joystick_r_callback, self.qos, event_callbacks=events)
 
         self.bus = jcan.Bus()
         self.bus.set_id_filter_mask(self.CARD_ID_RECEIVE, 0xFFF)

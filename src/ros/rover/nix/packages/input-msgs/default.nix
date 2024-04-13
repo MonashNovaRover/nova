@@ -11,7 +11,7 @@ buildRosPackage {
 
   src = builtins.path rec {
     name = "input-msgs-source";
-    path = ../../../input_msgs;
+    path = ../../../input_interfaces;
     filter = lib.novaSourceFilter [ ] path;
   };
 

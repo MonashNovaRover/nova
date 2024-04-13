@@ -6,7 +6,7 @@ Purpose: Control Analysis Arm Platform using Joysticks
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: analysis_platform
 TOPICS:
-  - subscriber: /control/input_joystick_l [InputJoystick]
+  - subscriber: /inputs/input_joystick_l [InputJoystick]
 SERVICES: None
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -99,7 +99,7 @@ class AnalysisPlatformNode(Node):
         self.qos = QoSProfile(reliability=QoSReliabilityPolicy.BEST_EFFORT, depth=1, deadline=deadline)
 
         # Create the joystick subscribers
-        self.joystick_l_sub = self.create_subscription(InputJoystick, "/control/input_joystick_l", self.joystick_l_callback, self.qos, event_callbacks=events)
+        self.joystick_l_sub = self.create_subscription(InputJoystick, "/inputs/input_joystick_l", self.joystick_l_callback, self.qos, event_callbacks=events)
 
         # Create the time of flight publisher
         self.publisher = self.create_publisher(Range, "/control/analysis_platform", 10)

@@ -23,7 +23,7 @@ import jcan, logging
 from struct import pack
 
 # example of how to import a custom message type
-from input_msgs.msg import InputJoystick
+from input_interfaces.msg import InputJoystick
 
 # an example of how to import a standard message type
 from std_msgs.msg import String
@@ -56,7 +56,7 @@ class GimbalCam(Node):
         events = SubscriptionEventCallbacks(deadline=self.deadline_callback)
         self.qos = QoSProfile(reliability=QoSReliabilityPolicy.BEST_EFFORT, depth=1, deadline=deadline)
 
-        self.joystick_l_sub = self.create_subscription(InputJoystick, "/control/input_joystick_l",
+        self.joystick_l_sub = self.create_subscription(InputJoystick, "/inputs/input_joystick_l",
                                                        self.joystick_l_callback, self.qos, event_callbacks=events)
 
         self.bus = jcan.Bus()

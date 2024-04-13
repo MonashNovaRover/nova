@@ -18,7 +18,7 @@
   <depend>sensor_msgs</depend>
   <depend>nav_msgs</depend>
   <depend>arm_interfaces</depend>
-  <depend>input_msgs</depend>
+  <depend>input_interfaces</depend>
 
   <export>
     <build_type>ament_cmake</build_type>

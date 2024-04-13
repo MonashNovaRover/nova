@@ -21,7 +21,7 @@ find_package(nav_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
 
 find_package(arm_interfaces REQUIRED)
-find_package(input_msgs REQUIRED)
+find_package(input_interfaces REQUIRED)
 
 find_package(libcanmd REQUIRED)
 
@@ -79,7 +79,7 @@ target_include_directories(pi_controller INTERFACE arm_control)
 add_executable(arm_inputs src/arm_inputs/arm_inputs.cpp)
 target_link_libraries(arm_inputs arm_messages arm_config_info_client)
 target_include_directories(arm_inputs INTERFACE arm_inputs)
-ament_target_dependencies(arm_inputs rclcpp geometry_msgs sensor_msgs input_msgs)
+ament_target_dependencies(arm_inputs rclcpp geometry_msgs sensor_msgs input_interfaces)
 
 # Arm Twist Mapper script
 add_executable(arm_twistmapper src/arm_control/arm_twistmapper.cpp)
