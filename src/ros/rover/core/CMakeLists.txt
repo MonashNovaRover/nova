@@ -35,8 +35,6 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   # Message definitions
   "msg/AlvarMarker.msg"
   "msg/AlvarMarkers.msg"
-  "msg/ArmControlScheme.msg"
-  "msg/EndEffectorInput.msg"
   "msg/CamsConnected.msg"
   "msg/CMDFeedback.msg"
   "msg/CMDsFeedback.msg"
@@ -63,8 +61,6 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/WheelOdometry.msg"
   "msg/RoverPose.msg"
 
-  "srv/ArmConfigInfo.srv"
-  "srv/BLCMDReset.srv"
   "srv/CameraCommand.srv"
   "srv/CMDCommand.srv"
   "srv/KilnCommand.srv"

@@ -41,7 +41,7 @@ if(Eigen3_FOUND AND Orocos_kdl_FOUND)
   add_library(arm_config_info_client arm_core/arm_config_info_client.cpp)
   target_link_libraries(arm_config_info_client print)
   target_include_directories(arm_config_info_client INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/arm_core)
-  ament_target_dependencies(arm_config_info_client rclcpp core)
+  ament_target_dependencies(arm_config_info_client rclcpp core arm_interfaces)
 
   # Arm Model
   add_library(arm_model model/arm_model.cpp)
@@ -55,7 +55,7 @@ if(Eigen3_FOUND AND Orocos_kdl_FOUND)
   )
   target_link_libraries(arm_kinematics orocos-kdl arm_messages arm_model print)
   target_include_directories(arm_kinematics INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/kinematics)
-  ament_target_dependencies(arm_kinematics rclcpp core geometry_msgs sensor_msgs)
+  ament_target_dependencies(arm_kinematics rclcpp core arm_interfaces geometry_msgs sensor_msgs)
 
   # PI Controller
   add_library(pi_controller arm_control/pi_controller.cpp)
@@ -87,25 +87,25 @@ if(Eigen3_FOUND AND Orocos_kdl_FOUND)
   add_executable(arm_twistmapper arm_control/arm_twistmapper.cpp)
   target_link_libraries(arm_twistmapper orocos-kdl arm_messages arm_type_translation arm_model arm_kinematics print)
   target_include_directories(arm_twistmapper INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/arm_control)
-  ament_target_dependencies(arm_twistmapper rclcpp core geometry_msgs std_srvs)
+  ament_target_dependencies(arm_twistmapper rclcpp core arm_interfaces geometry_msgs std_srvs)
 
   # Arm Control script
   add_executable(arm_control arm_control/arm_control.cpp)
   target_link_libraries(arm_control orocos-kdl arm_messages arm_type_translation arm_model arm_kinematics pi_controller print)
   target_include_directories(arm_control INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/arm_control)
-  ament_target_dependencies(arm_control rclcpp core geometry_msgs sensor_msgs std_srvs)
+  ament_target_dependencies(arm_control rclcpp core arm_interfaces geometry_msgs sensor_msgs std_srvs)
 
   # Arm Driver script
   add_executable(arm_driver arm_driver/arm_driver.cpp)
   target_link_libraries(arm_driver arm_messages arm_config_info_client arm_model print)
   target_include_directories(arm_inputs INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/arm_driver)
-  ament_target_dependencies(arm_driver rclcpp core sensor_msgs)
+  ament_target_dependencies(arm_driver rclcpp core arm_interfaces sensor_msgs)
 
   # Arm rviz publisher
   add_executable(arm_rviz_publisher arm_rviz_publisher/arm_rviz_publisher.cpp)
   target_link_libraries(arm_rviz_publisher print)
   target_include_directories(arm_rviz_publisher INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/arm_rviz_publisher)
-  ament_target_dependencies(arm_rviz_publisher rclcpp core sensor_msgs nav_msgs)
+  ament_target_dependencies(arm_rviz_publisher rclcpp core arm_interfaces sensor_msgs nav_msgs)
 
   # Resolver Spoofer script
   add_executable(resolver_spoofer resolver_spoofer/resolver_spoofer.cpp)

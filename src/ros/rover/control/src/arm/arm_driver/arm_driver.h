@@ -28,7 +28,7 @@ TODO:
 // Include ROS client library
 #include "rclcpp/rclcpp.hpp"
 // Include message types
-#include "core/msg/end_effector_input.hpp"
+#include "arm_interfaces/msg/end_effector_input.hpp"
 #include "sensor_msgs/msg/joint_state.hpp"
 
 // Include libraries

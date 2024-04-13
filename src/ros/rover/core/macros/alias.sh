@@ -78,7 +78,7 @@ alias urdf='ros2 launch core urdf.launch.py'
 alias launch_viz='ros2 launch core viz.launch.py' 
 alias launch_vis='ros2 launch core viz.launch.py'
 # Service Aliases
-alias arm_config_info='ros2 service call control/arm_config_info core/srv/ArmConfigInfo'
+alias arm_config_info='ros2 service call control/arm_config_info arm_interfaces/srv/ArmConfigInfo'
 alias arm_reset_control_pose='ros2 service call control/arm_reset_control_pose std_srvs/srv/Trigger'
 alias zero_resolver='~/nova_ws/src/rover/electronics/electronics/zero_resolver_client_terminal.py'
 alias zero_resolver_sector='~/nova_ws/src/rover/electronics/electronics/zero_resolver_sector_client_terminal.py'

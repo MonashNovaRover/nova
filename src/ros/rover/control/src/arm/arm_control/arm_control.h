@@ -38,13 +38,13 @@ TODO:
 // Include ROS client library
 #include "rclcpp/rclcpp.hpp"
 // Include message types
-#include "core/msg/arm_control_scheme.hpp"
+#include "arm_interfaces/msg/arm_control_scheme.hpp"
 #include "sensor_msgs/msg/joint_state.hpp"
 #include "geometry_msgs/msg/twist_stamped.hpp"
 #include "geometry_msgs/msg/transform_stamped.hpp"
 #include "sensor_msgs/msg/multi_dof_joint_state.hpp"
 // Include service types
-#include "core/srv/arm_config_info.hpp"
+#include "arm_interfaces/srv/arm_config_info.hpp"
 #include "std_srvs/srv/trigger.hpp"
 #include "core/srv/string_trigger.hpp"
 

@@ -39,7 +39,7 @@
     ec_base = "ros2 launch core base.launch.py";
 
     # Service aliases
-    arm_config_info = "ros2 service call control/arm_config_info core/srv/ArmConfigInfo";
+    arm_config_info = "ros2 service call control/arm_config_info arm_interfaces/srv/ArmConfigInfo";
     arm_reset_control_pose = "ros2 service call control/arm_reset_control_pose std_srvs/srv/Trigger";
 
     # Autonomous aliases

@@ -34,7 +34,7 @@ TODO:
 #include "rclcpp/rclcpp.hpp"
 
 // Include message types
-#include "core/msg/arm_control_scheme.hpp"
+#include "arm_interfaces/msg/arm_control_scheme.hpp"
 #include "sensor_msgs/msg/joint_state.hpp"
 #include "geometry_msgs/msg/twist_stamped.hpp"
 #include "geometry_msgs/msg/transform_stamped.hpp"

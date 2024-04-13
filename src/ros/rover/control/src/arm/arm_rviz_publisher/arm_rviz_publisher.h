@@ -32,7 +32,7 @@ TODO:
 #include "rclcpp/rclcpp.hpp"
 // Include message types
 #include "sensor_msgs/msg/multi_dof_joint_state.hpp"
-#include "core/msg/arm_control_scheme.hpp"
+#include "arm_interfaces/msg/arm_control_scheme.hpp"
 #include "geometry_msgs/msg/transform_stamped.hpp"
 #include "geometry_msgs/msg/pose_array.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"

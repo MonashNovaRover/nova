@@ -37,8 +37,8 @@ of which ones are connected
 // Include messages types
 #include "core/msg/input_joystick.hpp"
 #include "core/msg/input_keyboard.hpp"
-#include "core/msg/end_effector_input.hpp"
-#include "core/msg/arm_control_scheme.hpp"
+#include "arm_interfaces/msg/end_effector_input.hpp"
+#include "arm_interfaces/msg/arm_control_scheme.hpp"
 #include "sensor_msgs/msg/joint_state.hpp"
 #include "geometry_msgs/msg/twist_stamped.hpp"
 

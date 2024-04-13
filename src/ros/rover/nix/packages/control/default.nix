@@ -15,6 +15,7 @@
 , pythonPackages
 , nova-core
 , SDL2
+, nova-arm-interfaces
 }:
 
 buildRosPackage {
@@ -46,6 +47,7 @@ buildRosPackage {
     nova-core
     SDL2
     SDL2.dev
+    nova-arm-interfaces
   ];
 
   propagatedBuildInputs = with pythonPackages; [

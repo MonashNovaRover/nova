@@ -27,7 +27,7 @@ TODO:
 // Include ROS client library
 #include "rclcpp/rclcpp.hpp"
 // Include service types
-#include "core/srv/arm_config_info.hpp"
+#include "arm_interfaces/srv/arm_config_info.hpp"
 
 // Include other libraries
 #include <string>
