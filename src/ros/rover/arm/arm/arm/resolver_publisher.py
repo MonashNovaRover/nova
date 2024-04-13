@@ -8,9 +8,9 @@ NODE: resolver_publisher
 TOPICS:
   - /electronics/resolvers                       [sensor_msgs/JointState]    [Published]
 SERVICES:
-  - /control/arm_config_info                     [core/ArmConfigInfo]        [Client]
-  - /electronics/resolver_zero_service           [core/StringTrigger]        [Server]
-  - /electronics/resolver_sector_zero_service    [core/StringTrigger]        [Server]
+  - /arm/arm_config_info                     [core/ArmConfigInfo]        [Client]
+  - /arm/resolver_zero_service               [core/StringTrigger]        [Server]
+  - /arm/resolver_sector_zero_service        [core/StringTrigger]        [Server]
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:     electronics
@@ -28,7 +28,8 @@ import rclpy
 from rclpy.node import Node
 from rclpy.impl.rcutils_logger import RcutilsLogger
 from sensor_msgs.msg import JointState
-from core.srv import ArmConfigInfo, StringTrigger
+from nova_interfaces.srv import StringTrigger
+from arm_interfaces.srv import ArmConfigInfo
 
 from coms_utils.can_interface import CANTransceiver
 from math import pi
@@ -295,7 +296,7 @@ class ResolverTransceiver(CANTransceiver):
 class ResolverPublisher(Node):
     def __init__(self):
         """
-        Start the node and make a service request to /control/arm_config_info
+        Start the node and make a service request to /arm/arm_config_info
         """
         super().__init__('resolver_publisher')
 
@@ -304,11 +305,11 @@ class ResolverPublisher(Node):
         use_arm_data = self.declare_parameter("use_arm_data", False).value
 
         if use_arm_data:
-            # Create the client for /control/arm_config_info
-            self.client = self.create_client(ArmConfigInfo, "/control/arm_config_info")
+            # Create the client for /arm/arm_config_info
+            self.client = self.create_client(ArmConfigInfo, "/arm/arm_config_info")
             # Wait for the service to become available
             while not self.client.wait_for_service(timeout_sec=1.0):
-                self.get_logger().info("Service /control/arm_config_info not available, waiting again...")
+                self.get_logger().info("Service /arm/arm_config_info not available, waiting again...")
             # Make the service request
             request = ArmConfigInfo.Request()
             self.future = self.client.call_async(request)
@@ -321,16 +322,16 @@ class ResolverPublisher(Node):
 
     def client_check_callback(self):
         """
-        Check if /control/arm_config_info has responded. If so, save the data and set up the node
+        Check if /arm/arm_config_info has responded. If so, save the data and set up the node
         """
         if self.future.done():
             # Got a response!
-            self.get_logger().info("Got a response from /control/arm_config_info. Starting the node.")
+            self.get_logger().info("Got a response from /arm/arm_config_info. Starting the node.")
             self.client_check_timer.cancel()
             self.arm_config_info = self.future.result()
             self.start_node()
         else:
-            self.get_logger().info("Failed to get response from /control/arm_config_info, waiting again...")
+            self.get_logger().info("Failed to get response from /arm/arm_config_info, waiting again...")
 
     def start_node(self):
         """
@@ -393,7 +394,7 @@ class ResolverPublisher(Node):
         self.publisher = self.create_publisher(JointState, '/electronics/resolvers', 10)
         self.resolver_pub_timer = self.create_timer(resolver_pub_timer_period, self.publish)
         # Construct the service to zero resolvers
-        self.zero_service = self.create_service(StringTrigger, "/electronics/resolver_zero_service", self.zero_callback)
+        self.zero_service = self.create_service(StringTrigger, "/arm/resolver_zero_service", self.zero_callback)
         # Construct the service to zero resolver sector
         self.sector_zero_service = self.create_service(StringTrigger, "electronics/resolver_sector_zero_service", self.sector_zero_callback)
 

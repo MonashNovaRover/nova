@@ -72,9 +72,9 @@ class ArmInputs : public ArmConfigInfoClient
     rclcpp::Publisher<arm_interfaces::msg::ArmControlScheme>::SharedPtr control_scheme_pub;
 
     // Stores the subscribers to the joystick inputs
-    rclcpp::Subscription<inputs_msgs::msg::InputJoystick>::SharedPtr joystick_l_sub;
-    rclcpp::Subscription<inputs_msgs::msg::InputJoystick>::SharedPtr joystick_r_sub;
-    rclcpp::Subscription<inputs_msgs::msg::InputKeyboard>::SharedPtr keyboard_sub;
+    rclcpp::Subscription<input_interfaces::msg::InputJoystick>::SharedPtr joystick_l_sub;
+    rclcpp::Subscription<input_interfaces::msg::InputJoystick>::SharedPtr joystick_r_sub;
+    rclcpp::Subscription<input_interfaces::msg::InputKeyboard>::SharedPtr keyboard_sub;
 
     // Stores messages to be published
     core::msg::EndEffectorInput end_effector_inputs;

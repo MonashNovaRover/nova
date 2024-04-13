@@ -2,24 +2,24 @@
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team
-This file contains a command-line interface to call the zero_resolver service
+This file contains a command-line interface to call the zero_resolver_sector service
 and print out the response
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-NODE: zero_resolver_client_terminal
+NODE: zero_resolver_sector_client_terminal
 TOPICS: None
 SERVICES:
-  - /electronics/resolver_zero_service    [core/StringTrigger]        [Client]
+  - /arm/resolver_sector_zero_service    [core/StringTrigger]        [Client]
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:     electronics
-AUTHOR(S):   Jory Braun, Josh Cherubino
-CREATION:    09/03/2022
-EDITED:      29/04/2023
+AUTHOR(S):   Jory Braun
+CREATION:    08/05/2023
+EDITED:      08/05/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
-from core.srv import StringTrigger
+from nova_interfaces.srv import StringTrigger
 import rclpy
 from rclpy.node import Node
 
@@ -37,11 +37,11 @@ class DefaultHelpParser(argparse.ArgumentParser):
         sys.exit(2)
 
 
-class ZeroResolverClient(Node):
+class ZeroResolverSectorClient(Node):
 
     def __init__(self):
-        super().__init__('zero_resolver_client_terminal')
-        self.cli = self.create_client(StringTrigger, '/electronics/resolver_zero_service')
+        super().__init__('zero_resolver_sector_client_terminal')
+        self.cli = self.create_client(StringTrigger, '/arm/resolver_sector_zero_service')
         while not self.cli.wait_for_service(timeout_sec=1.0):
             print('Service not available')
         self.future = None
@@ -53,33 +53,14 @@ class ZeroResolverClient(Node):
         self.future = self.cli.call_async(req)
 
 def cli_parser():
+    # Include only geared resolvers 
     resolver_choices = [
-        'base-rotation',
-        'shoulder',
-        'elbow',
-        'j1',
-        'j2',
-        'j3',
-        'j4',
-        'j5',
         'j6',
-        'spmx',
-        'spmy',
-        'spmz',
-        'end-rotation'
     ]
     resolver_choices_string = "{" + ",".join(resolver_choices) + "}"
-    parser = DefaultHelpParser(description="Zero a resolver", usage=f"zero_resolver [-h] {resolver_choices_string}")
+    parser = DefaultHelpParser(description="Reset the current sector to 0 for a geared resolver", usage=f"zero_resolver_sector [-h] {resolver_choices_string}")
     parser.add_argument("joint", type=str, choices=resolver_choices, help="the joint to zero")
     args = parser.parse_args()
-    
-    # Remap input to match requires joint names in resolver_publisher.py
-    if args.joint == 'j1':
-        args.joint = 'base-rotation'
-    elif args.joint == 'j2':
-        args.joint = 'shoulder'
-    elif args.joint == 'j3':
-        args.joint = 'elbow'
 
     return args
 
@@ -89,20 +70,20 @@ def main():
 
     args = cli_parser()
 
-    zero_resolver_client = ZeroResolverClient()
-    zero_resolver_client.send_request(args)
+    zero_resolver_sector_client = ZeroResolverSectorClient()
+    zero_resolver_sector_client.send_request(args)
 
-    rclpy.spin_until_future_complete(zero_resolver_client, zero_resolver_client.future)
+    rclpy.spin_until_future_complete(zero_resolver_sector_client, zero_resolver_sector_client.future)
     
     try:
         # get and print text data to user
-        response = zero_resolver_client.future.result()
+        response = zero_resolver_sector_client.future.result()
         print("Success" if response.success else "Fail")
         print(response.message)
     except Exception as e:
         print('[Error]: Service call failed')
 
-    zero_resolver_client.destroy_node()
+    zero_resolver_sector_client.destroy_node()
     rclpy.shutdown()
 
 

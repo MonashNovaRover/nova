@@ -19,6 +19,7 @@
   <depend>nav_msgs</depend>
   <depend>arm_interfaces</depend>
   <depend>input_interfaces</depend>
+  <depend>nova_interfaces</depend>
 
   <export>
     <build_type>ament_cmake</build_type>

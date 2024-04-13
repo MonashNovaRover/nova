@@ -7,6 +7,7 @@ endif()
 
 
 find_package(ament_cmake REQUIRED)
+find_package(ament_cmake_python)
 find_package(rclcpp REQUIRED)
 
 
@@ -22,6 +23,7 @@ find_package(std_srvs REQUIRED)
 
 find_package(arm_interfaces REQUIRED)
 find_package(input_interfaces REQUIRED)
+find_package(nova_interfaces REQUIRED)
 
 find_package(libcanmd REQUIRED)
 
@@ -126,6 +128,17 @@ install(TARGETS
   resolver_spoofer
   DESTINATION lib/${PROJECT_NAME}
 )
+
+# Add all Python executables to this list
+install(PROGRAMS
+        arm/resolver_publisher.py
+        arm/zero_resolver_client_terminal.py
+        arm/zero_resolver_sector_client_terminal.py
+        DESTINATION lib/${PROJECT_NAME}
+        )
+
+# Install Python modules
+ament_python_install_package(${PROJECT_NAME})
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
