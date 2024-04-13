@@ -11,7 +11,7 @@ buildRosPackage {
 
   src = builtins.path rec {
     name = "blcmd-interfaces-source";
-    path = ../../../blcmd_interfaces;
+    path = ../../../blcmds/blcmd_interfaces;
     filter = lib.novaSourceFilter [ ] path;
   };
 
