@@ -19,9 +19,7 @@ generalised to all CMDs by Max Tory
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: CMD_publisher.py
 TOPICS:
-  - /electronics/cmd_feedback  [CMDsFeedback]   [Published]
-  - /control/drive_inputs    [DriveInput]  [Subscribed]
-  - /autonomous/drive_inputs [DriveInput]  [Subscribed]
+  - /cmds/cmd_feedback  [CMDsFeedback]   [Published]
 TODO:
   - Set different VELOCITY_FACTOR for each CMD type
 TO IMPROVE:
@@ -42,7 +40,7 @@ from rclpy.node import Node
 from std_msgs.msg import Header
 
 # Import the wheel message type
-from core.msg import CMDFeedback, CMDsFeedback, DriveInput
+from cmd_interfaces.msg import CMDFeedback, CMDsFeedback
 
 # Import the CAN library
 from coms_utils.can_interface import CANReceiver

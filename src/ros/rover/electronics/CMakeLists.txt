@@ -47,8 +47,6 @@ ament_python_install_package(${PROJECT_NAME})
 
 # Add all Python executables to this list
 install(PROGRAMS
-  electronics/CMD_service.py 
-  electronics/CMD_publisher.py 
   electronics/gimbal_service.py
   electronics/radio_monitor.py
   electronics/resolver_publisher.py

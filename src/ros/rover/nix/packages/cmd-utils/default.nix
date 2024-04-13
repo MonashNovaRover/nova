@@ -15,7 +15,7 @@ buildRosPackage {
 
   src = builtins.path rec {
     name = "cmd-utils-source";
-    path = ../../../cmd_utils;
+    path = ../../../cmds/cmd_utils;
     filter = lib.novaSourceFilter [ ] path;
   };
 

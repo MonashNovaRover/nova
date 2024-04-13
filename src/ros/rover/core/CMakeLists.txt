@@ -57,7 +57,6 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/RoverPose.msg"
 
   "srv/CameraCommand.srv"
-  "srv/CMDCommand.srv"
   "srv/KilnCommand.srv"
   "srv/GimbalCommand.srv"
   "srv/ScienceCommand.srv"

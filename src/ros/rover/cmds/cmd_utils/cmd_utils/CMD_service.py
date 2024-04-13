@@ -17,7 +17,7 @@ Available services:
 """
 
 # Import the relevant ROS nodes
-from core.srv import CMDCommand
+from cmd_interfaces.srv import CMDCommand
 import rclpy, time
 from rclpy.node import Node
 
