@@ -13,7 +13,7 @@ This code requires the message types from the core
     repository.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-PACKAGE: 	control
+PACKAGE: 	inputs
 AUTHOR(S):	Marcel Masque, Harrison Verrios
 CREATION:	29/01/2020
 EDITED:		24/11/2021

@@ -112,7 +112,7 @@ uint32_t Keyboard::key_mask(uint8_t key, uint16_t mod) {
 }
 
 // return the message object
-core::msg::InputKeyboard Keyboard::get_message() {
+input_msgs::msg::InputKeyboard Keyboard::get_message() {
     return msg;
 }
 

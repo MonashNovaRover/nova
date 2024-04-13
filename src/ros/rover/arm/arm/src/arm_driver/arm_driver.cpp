@@ -29,7 +29,7 @@ void ArmDriver::joint_velocities_callback (const sensor_msgs::msg::JointState::S
 // Reset the internal velocities
 void ArmDriver::joint_velocities_deadline_callback()
 {
-    RCLCPP_WARN(this->get_logger(), "control/joint_velocities subscription deadline missed");
+    RCLCPP_WARN(this->get_logger(), "arm/joint_velocities subscription deadline missed");
     for (uint16_t i = 0; i < arm_model->num_joints; i++) {
         arm_model->drivers[i]->drive(0);
     }
@@ -55,7 +55,7 @@ void ArmDriver::endeffector_input_callback (const arm_interfaces::msg::EndEffect
 // Reset the internal state
 void ArmDriver::endeffector_input_deadline_callback()
 {
-    RCLCPP_WARN(this->get_logger(), "control/endeffector_input subscription deadline missed");
+    RCLCPP_WARN(this->get_logger(), "arm/endeffector_input subscription deadline missed");
     // End effector
     end_effector->drive(0);
     // Linear actuator
@@ -70,7 +70,7 @@ ArmDriver::ArmDriver() : Node("arm_driver")
         this->joint_velocities_deadline_callback();
     };
     joint_velocities_subscription = this->create_subscription<sensor_msgs::msg::JointState>(
-        "/control/joint_velocities",
+        "/arm/joint_velocities",
         rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline),
         std::bind(&ArmDriver::joint_velocities_callback, this, _1),
         joint_velocities_options
@@ -82,7 +82,7 @@ ArmDriver::ArmDriver() : Node("arm_driver")
         this->endeffector_input_deadline_callback();
     };
     endeffector_input_subscription = this->create_subscription<arm_interfaces::msg::EndEffectorInput>(
-        "/control/endeffector_input",
+        "/arm/endeffector_input",
         rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline),
         std::bind(&ArmDriver::endeffector_input_callback, this, _1),
         endeffector_input_options
@@ -100,8 +100,8 @@ ArmDriver::ArmDriver() : Node("arm_driver")
     // Output set-up messages
     std::cout << C_TITLE "ARM DRIVER" << C_END << "\n";
     std::cout << "Subscribed Topics:\n";
-    std::cout << "/control/endeffector_input  [core/EndeffectorInput]\n";
-    std::cout << "/control/joint_velocities   [sensor_msgs/JointState]\n";
+    std::cout << "/arm/endeffector_input  [arm_interfaces/EndeffectorInput]\n";
+    std::cout << "/arm/joint_velocities   [sensor_msgs/JointState]\n";
     std::cout << "Published Topics:\n" << std::endl;
 }
 

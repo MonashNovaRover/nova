@@ -14,15 +14,15 @@ The wheels are indexed with 0, 1, 2 on the left and
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: drive_sub
 TOPICS:
-  - /control/input_gamepad  [InputGamepad]  [Subscribed]
-  - /control/drive_cmds     [DriveCmd]      [Subscribed]
+  - /inputs/input_gamepad  [InputGamepad]  [Subscribed]
+  - /drive/drive_cmds     [DriveCmd]      [Subscribed]
   - /autonomous/drive_cmds  [DriveCmd]      [Subscribed]
 SERVICES: None
 ACTIONS:  None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-PACKAGE: 	control
-AUTHOR(S):  Taaj Street, Harrison Verrios, Josh Cherubino,
-            Will de la Rue, Jory Braun
+PACKAGE: 	drive
+AUTHOR(S):  Harrison Verrios, Josh Cherubino,
+            Will de la Rue, Jory Braun, Taaj
 CREATION:	21/11/2021
 EDITED:		13/09/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

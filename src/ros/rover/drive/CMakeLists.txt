@@ -12,7 +12,7 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(drive_msgs REQUIRED)
 find_package(blcmd_interfaces REQUIRED)
-find_package(core REQUIRED)
+find_package(input_msgs REQUIRED)
 
 #find libblcmd
 find_package(libblcmd REQUIRED)
@@ -24,7 +24,7 @@ target_include_directories(driver PUBLIC
 ament_target_dependencies(driver PUBLIC rclcpp drive_msgs blcmd_interfaces)
 
 add_executable(drive_inputs src/drive_inputs.cpp)
-ament_target_dependencies(drive_inputs rclcpp core drive_msgs)
+ament_target_dependencies(drive_inputs rclcpp input_msgs drive_msgs)
 
 install(TARGETS
         driver

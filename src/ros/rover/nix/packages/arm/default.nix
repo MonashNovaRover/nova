@@ -12,8 +12,8 @@
 , systemd
 , pythonPackages
 , libcanmd
-, nova-core
 , nova-arm-interfaces
+, nova-input-msgs
 }:
 
 buildRosPackage {
@@ -40,7 +40,7 @@ buildRosPackage {
     orocos-kdl
     systemd
     libcanmd
-    nova-core
     nova-arm-interfaces
+    nova-input-msgs
   ];
 }

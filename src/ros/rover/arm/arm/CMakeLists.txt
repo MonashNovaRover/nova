@@ -20,8 +20,8 @@ find_package(geometry_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
 
-find_package(core REQUIRED)
 find_package(arm_interfaces REQUIRED)
+find_package(input_msgs REQUIRED)
 
 find_package(libcanmd REQUIRED)
 
@@ -50,7 +50,7 @@ ament_target_dependencies(arm_type_translation sensor_msgs geometry_msgs)
 # Arm Config Info Client
 add_library(arm_config_info_client src/arm_core/arm_config_info_client.cpp)
 target_include_directories(arm_config_info_client INTERFACE arm_core)
-ament_target_dependencies(arm_config_info_client rclcpp core arm_interfaces)
+ament_target_dependencies(arm_config_info_client rclcpp arm_interfaces)
 
 # Arm Model
 add_library(arm_model src/model/arm_model.cpp)
@@ -64,7 +64,7 @@ add_library(arm_kinematics
 )
 target_link_libraries(arm_kinematics orocos-kdl arm_messages arm_model)
 target_include_directories(arm_kinematics INTERFACE kinematics)
-ament_target_dependencies(arm_kinematics rclcpp core arm_interfaces geometry_msgs sensor_msgs)
+ament_target_dependencies(arm_kinematics rclcpp arm_interfaces geometry_msgs sensor_msgs)
 
 # PI Controller
 add_library(pi_controller src/arm_control/pi_controller.cpp)
@@ -79,31 +79,31 @@ target_include_directories(pi_controller INTERFACE arm_control)
 add_executable(arm_inputs src/arm_inputs/arm_inputs.cpp)
 target_link_libraries(arm_inputs arm_messages arm_config_info_client)
 target_include_directories(arm_inputs INTERFACE arm_inputs)
-ament_target_dependencies(arm_inputs rclcpp core geometry_msgs sensor_msgs)
+ament_target_dependencies(arm_inputs rclcpp geometry_msgs sensor_msgs input_msgs)
 
 # Arm Twist Mapper script
 add_executable(arm_twistmapper src/arm_control/arm_twistmapper.cpp)
 target_link_libraries(arm_twistmapper orocos-kdl arm_messages arm_type_translation arm_model arm_kinematics)
 target_include_directories(arm_twistmapper INTERFACE arm_control)
-ament_target_dependencies(arm_twistmapper rclcpp core arm_interfaces geometry_msgs std_srvs)
+ament_target_dependencies(arm_twistmapper rclcpp arm_interfaces geometry_msgs std_srvs)
 
 # Arm Control script
 add_executable(arm_control src/arm_control/arm_control.cpp)
 target_link_libraries(arm_control orocos-kdl arm_messages arm_type_translation arm_model arm_kinematics pi_controller)
 target_include_directories(arm_control INTERFACE arm_control)
-ament_target_dependencies(arm_control rclcpp core arm_interfaces geometry_msgs sensor_msgs std_srvs)
+ament_target_dependencies(arm_control rclcpp arm_interfaces geometry_msgs sensor_msgs std_srvs)
 
 # Arm Driver script
 add_executable(arm_driver src/arm_driver/arm_driver.cpp)
 target_link_libraries(arm_driver arm_messages arm_config_info_client arm_model libcanmd)
 target_include_directories(arm_inputs INTERFACE arm_driver ${libcanmd_INCLUDE_DIRS})
-ament_target_dependencies(arm_driver rclcpp core arm_interfaces sensor_msgs)
+ament_target_dependencies(arm_driver rclcpp arm_interfaces sensor_msgs)
 
 # Arm rviz publisher
 add_executable(arm_rviz_publisher src/arm_rviz_publisher/arm_rviz_publisher.cpp)
 target_link_libraries(arm_rviz_publisher)
 target_include_directories(arm_rviz_publisher INTERFACE arm_rviz_publisher)
-ament_target_dependencies(arm_rviz_publisher rclcpp core arm_interfaces sensor_msgs nav_msgs)
+ament_target_dependencies(arm_rviz_publisher rclcpp arm_interfaces sensor_msgs nav_msgs)
 
 # Resolver Spoofer script
 add_executable(resolver_spoofer src/resolver_spoofer/resolver_spoofer.cpp)

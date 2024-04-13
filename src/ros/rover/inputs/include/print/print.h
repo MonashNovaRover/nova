@@ -7,7 +7,7 @@ Monash Nova Rover Team
 Public static functions for printing with colors.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-PACKAGE: 	control
+PACKAGE: 	inputs
 AUTHOR(S):  Harrison Verrios
 CREATION:	15/12/2021
 EDITED:		17/12/2021

@@ -10,12 +10,12 @@ It is able to publish information from the gamepad and both
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: input_pub
 TOPICS:
-  - /control/input_gamepad [InputGamepad]
+  - /inputs/input_gamepad [InputGamepad]
 SERVICES: None
 ACTIONS:  None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-PACKAGE: 	  control
-AUTHOR(S):	Harrison Verrios, Matthew Gu
+PACKAGE: 	  inputs
+AUTHOR(S):	Harrison Verrios
 CREATION:	  13/11/2021
 EDITED:		  24/11/2021
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

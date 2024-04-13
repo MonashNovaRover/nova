@@ -10,8 +10,8 @@ This class reads data from the arm control script and
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: arm_driver
 TOPICS:
-  - /control/endeffector_input   [core/EndEffectorInput]     [Subscribed]
-  - /control/cmd_ouputs          [sensor_msgs/JointState]    [Subscribed]
+  - /arm/endeffector_input   [arm_interfaces/EndEffectorInput]     [Subscribed]
+  - /arm/cmd_ouputs          [sensor_msgs/JointState]    [Subscribed]
 SERVICES: None
 ACTIONS:  None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

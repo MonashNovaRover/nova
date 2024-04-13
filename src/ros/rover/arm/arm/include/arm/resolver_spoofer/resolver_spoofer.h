@@ -10,7 +10,7 @@ It can be used in place of the arm_driver for when no physical
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: resolver_spoofer
 TOPICS:
-  - /control/joint_velocities  [sensor_msgs/JointState]    [Subscribed]
+  - /arm/joint_velocities  [sensor_msgs/JointState]    [Subscribed]
   - /electronics/resolvers     [sensor_msgs/JointState]    [Published]
 SERVICES: None
 ACTIONS: None

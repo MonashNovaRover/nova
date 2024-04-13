@@ -42,8 +42,6 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/HydraprobeData.msg"
   "msg/EMCData.msg"
   "msg/KilnData.msg"
-  "msg/InputGamepad.msg"
-  "msg/InputJoystick.msg"
   "msg/Point2D.msg"
   "msg/RadioStatus.msg"
   "msg/RoverPoseGPS.msg"

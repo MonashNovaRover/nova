@@ -10,13 +10,13 @@ This class reads data from the raw joystick inputs
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: arm_inputs
 TOPICS:
-  - /control/input_joystick_l            [core/InputJoystick]          [Subscribed]
-  - /control/input_joystick_r            [core/InputJoystick]          [Subscribed]
-  - /control/input_keyboard              [core/InputKeyboard]          [Subscribed]
-  - /control/endeffector_input           [core/EndEffectorInput]       [Published]
-  - /control/joystick_joint_velocities   [sensor_msgs/JointState]      [Published]
-  - /control/joystick_twist              [geometry_msgs/TwistStamped]  [Published]
-  - /control/arm_control_scheme          [core/ArmControlScheme]       [Published]
+  - /inputs/input_joystick_l            [input_msgs/InputJoystick]          [Subscribed]
+  - /inputs/input_joystick_r            [input_msgs/InputJoystick]          [Subscribed]
+  - /inputs/input_keyboard              [core/InputKeyboard]          [Subscribed]
+  - /arm/endeffector_input           [arm_interfaces/EndEffectorInput]       [Published]
+  - /arm/joystick_joint_velocities   [sensor_msgs/JointState]      [Published]
+  - /arm/joystick_twist              [geometry_msgs/TwistStamped]  [Published]
+  - /arm/arm_control_scheme          [arm_interfaces/ArmControlScheme]       [Published]
 SERVICES: None
 ACTIONS:  None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -35,8 +35,8 @@ of which ones are connected
 #include "rclcpp/rclcpp.hpp"
 
 // Include messages types
-#include "core/msg/input_joystick.hpp"
-#include "core/msg/input_keyboard.hpp"
+#include "input_msgs/msg/input_joystick.hpp"
+#include "input_msgs/msg/input_keyboard.hpp"
 #include "arm_interfaces/msg/end_effector_input.hpp"
 #include "arm_interfaces/msg/arm_control_scheme.hpp"
 #include "sensor_msgs/msg/joint_state.hpp"

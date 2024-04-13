@@ -4,14 +4,14 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team
 
-This class implements a client for /control/arm_config_info
+This class implements a client for /arm/arm_config_info
   and saves the relevant config information
 Other nodes can inherit this class to have access to this info
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: None
 TOPICS: None
 SERVICES:
-  - /control/arm_config_info     [core/ArmConfigInfo]        [Client]
+  - /arm/arm_config_info     [arm_interfaces/ArmConfigInfo]        [Client]
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	 control
@@ -33,7 +33,7 @@ TODO:
 #include <string>
 
 /*
-Class which gets arm configuration information from the /control/arm_config_info service
+Class which gets arm configuration information from the /arm/arm_config_info service
 */
 class ArmConfigInfoClient : public rclcpp::Node
 {
@@ -43,7 +43,7 @@ class ArmConfigInfoClient : public rclcpp::Node
     // Timer to check for responses from the service
     rclcpp::TimerBase::SharedPtr check_receive_timer;
     
-    // Service client for /control/arm_config_info and the associated future to check later
+    // Service client for /arm/arm_config_info and the associated future to check later
     rclcpp::Client<arm_interfaces::srv::ArmConfigInfo>::SharedPtr client;
     std::shared_future<arm_interfaces::srv::ArmConfigInfo::Response::SharedPtr> future;
 
@@ -54,7 +54,7 @@ class ArmConfigInfoClient : public rclcpp::Node
     //------------------------------------------------------------//
     protected:
 
-    // Store response from /control/arm_config_info
+    // Store response from /arm/arm_config_info
     // Make it protected so child classes can access
     arm_interfaces::srv::ArmConfigInfo::Response arm_config_info;
 

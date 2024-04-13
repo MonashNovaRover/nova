@@ -14,13 +14,13 @@ The drive commands will be a RPM (desired) and a steer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: drive_pub
 TOPICS:
-  - /control/input_gamepad  [InputGamepad]  [Subscribed]
-  - /control/drive_cmds     [DriveInput]    [Published]
-SERVICES: None
+  - /inputs/input_gamepad  [InputGamepad]  [Subscribed]
+  - /drive/drive_cmds     [DriveInput]    [Published]
+SERVICES: None1
 ACTIONS:  None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-PACKAGE: 	control
-AUTHOR(S):  Harrison Verrios, Liam Whittle
+PACKAGE: 	drive
+AUTHOR(S):  Harrison Verrios, Liam Whittle, Taaj Street
 CREATION:	14/11/2021
 EDITED:		31/05/2022
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

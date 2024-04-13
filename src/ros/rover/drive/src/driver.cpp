@@ -2,7 +2,7 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team
 
-PACKAGE: 	control
+PACKAGE: 	drive
 AUTHOR(S):	Taaj Street, Harrison Verrios, Josh Cherubino, Will de la Rue, Jory Braun, Tristan Clark, Abigail Lithwick
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
@@ -481,7 +481,7 @@ Driver::Driver() : Node("driver")
     { drive_inputs_deadline_exceeded(); };
 
     subscription_cmds = this->create_subscription<drive_msgs::msg::DriveInput>(
-        "/control/drive_inputs", qos, std::bind(&Driver::drive_callback, this, _1), subscriber_options);
+        "/drive/drive_inputs", qos, std::bind(&Driver::drive_callback, this, _1), subscriber_options);
 
     // Create send commands timer
     send_commands_timer = this->create_wall_timer(DriveTimers::drive_control, std::bind(&Driver::send_commands, this));
@@ -493,10 +493,10 @@ Driver::Driver() : Node("driver")
     blcmd_spin_timer = this->create_wall_timer(DriveTimers::blcmd_spin, std::bind(&Driver::blcmd_spinner, this));
 
     // Create telemetry publisher
-    telemetry_pub = this->create_publisher<blcmd_interfaces::msg::Telemetry>("/control/telemetry", 10);
+    telemetry_pub = this->create_publisher<blcmd_interfaces::msg::Telemetry>("/drive/telemetry", 10);
 
     // Create pivot wheel data publisher
-    pivot_wheel_pub = this->create_publisher<drive_msgs::msg::PivotWheelData>("/control/pivot_wheel", 10);
+    pivot_wheel_pub = this->create_publisher<drive_msgs::msg::PivotWheelData>("/drive/pivot_wheel", 10);
 
     //create gazebo publishers
     pivot_joint_trajectory_pub = this->create_publisher<trajectory_msgs::msg::JointTrajectory>(
@@ -504,7 +504,7 @@ Driver::Driver() : Node("driver")
     wheel_joint_velocity_pub = this->create_publisher<std_msgs::msg::Float64MultiArray>(
             "/wheel_velocity_controller/commands", 10);
 
-    disable_blcmd_srv = this->create_service<blcmd_interfaces::srv::DisableBLCMD>("/control/disable_blcmd",
+    disable_blcmd_srv = this->create_service<blcmd_interfaces::srv::DisableBLCMD>("/drive/disable_blcmd",
         std::bind(&Driver::disable_blcmd_callback, this, _1, _2));
 
     RCLCPP_DEBUG(this->get_logger(), "R = 0, D = -1, side = left, angle = %f", calc_wheel_angle(0, true, -1));

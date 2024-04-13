@@ -9,12 +9,12 @@ This class gets the arm coordinate info and re-publishes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: arm_rviz_publisher
 TOPICS:
-  - /control/arm_coord_frames           [sensor_msgs/MultiDOFJointState]    [Subscribed]
-  - /control/arm_control_scheme         [core/ArmControlScheme]             [Subscribed]
-  - /control/control_pose               [geometry_msgs/TransformStamped]    [Subscribed]
-  - /control/arm_poses                  [geometry_msgs/PoseArray]           [Published]
-  - /control/arm_poses_path             [nav_msgs/Path]                     [Published]
-  - /control/arm_control_pose           [geometry_msgs/PoseStamped]         [Published]
+  - /arm/arm_coord_frames           [sensor_msgs/MultiDOFJointState]    [Subscribed]
+  - /arm/arm_control_scheme         [arm_interfaces/ArmControlScheme]             [Subscribed]
+  - /arm/control_pose               [geometry_msgs/TransformStamped]    [Subscribed]
+  - /arm/arm_poses                  [geometry_msgs/PoseArray]           [Published]
+  - /arm/arm_poses_path             [nav_msgs/Path]                     [Published]
+  - /arm/arm_control_pose           [geometry_msgs/PoseStamped]         [Published]
 SERVICES: None
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

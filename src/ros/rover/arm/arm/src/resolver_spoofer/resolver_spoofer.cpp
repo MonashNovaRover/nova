@@ -38,7 +38,7 @@ void ResolverSpoofer::start_node()
     
     // Create the subscription
     outputs_subscription = this->create_subscription<sensor_msgs::msg::JointState>(
-        "/control/joint_velocities",
+        "/arm/joint_velocities",
         rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline),
         std::bind(&ResolverSpoofer::subscriber_callback, this, _1)
     );
@@ -56,7 +56,7 @@ void ResolverSpoofer::start_node()
     // Output set-up messages
     std::cout << C_TITLE << "RESOLVER SPOOFER" <<C_END << "\n";
     std::cout << "Subscribed Topics:\n";
-    std::cout << "/control/joint_velocities   [sensor_msgs/JointState]\n";
+    std::cout << "/arm/joint_velocities   [sensor_msgs/JointState]\n";
     std::cout << "Published Topics:\n";
     std::cout << "/electronics/resolvers      [sensor_msgs/JointState]\n" << std::endl;
 }

@@ -4,7 +4,6 @@
 , rclcpp
 , nova-blcmd-interfaces
 , nova-drive-msgs
-, nova-core
 , nova-inputs
 , nova-input-msgs
 , libblcmd
@@ -27,7 +26,6 @@ buildRosPackage {
     rclcpp
     nova-blcmd-interfaces
     nova-drive-msgs
-    nova-core
     nova-inputs
     nova-input-msgs
     libblcmd

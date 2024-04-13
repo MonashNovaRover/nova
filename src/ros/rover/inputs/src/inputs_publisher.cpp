@@ -2,11 +2,8 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team
 
-PACKAGE: 	control
-AUTHOR(S):	Harrison Verrios, Matthew Gu
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-TODO: refactor all input devices into an interface
-of some sort, so that they can be used interchangably
+PACKAGE: 	inputs
+AUTHOR(S):	Harrison Verrios
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
@@ -35,7 +32,7 @@ InputsPublisher::InputsPublisher() : Node("input_pub")
     gamepad_publisher       = this->create_publisher<input_msgs::msg::InputGamepad>("/control/input_gamepad", rclcpp::QoS(1).best_effort().deadline(ROSTimers::drive_deadline));
     joystick_l_publisher    = this->create_publisher<input_msgs::msg::InputJoystick>("/control/input_joystick_l", rclcpp::QoS(1).best_effort().deadline(ROSTimers::drive_deadline));
     joystick_r_publisher    = this->create_publisher<input_msgs::msg::InputJoystick>("/control/input_joystick_r", rclcpp::QoS(1).best_effort().deadline(ROSTimers::drive_deadline));
-    keyboard_publisher      = this->create_publisher<input_msgs::msg::InputKeyboard>("/control/input_keyboard", rclcpp::QoS(1).best_effort().deadline(ROSTimers::drive_deadline));
+    keyboard_publisher      = this->create_publisher<input_msgs::msg::InputKeyboard>("/inputs/input_keyboard", rclcpp::QoS(1).best_effort().deadline(ROSTimers::drive_deadline));
 
     // Creates a timer function that runs a function on loop
     timer = this->create_wall_timer(ROSTimers::inputs_publish, std::bind(&InputsPublisher::publish_input, this));
@@ -43,10 +40,10 @@ InputsPublisher::InputsPublisher() : Node("input_pub")
     // Output set-up messages
     Print::title("INPUTS PUBLISHER");
     Print::print("Valid Topics:");
-    Print::print("/control/input_gamepad      [InputGamepad]", 1);
-    Print::print("/control/input_joystick_l   [InputJoystick]", 1);
-    Print::print("/control/input_joystick_r   [InputJoystick]", 1);
-    Print::print("/control/input_keyboard     [InputKeyboard]", 1);
+    Print::print("/inputs/input_gamepad      [InputGamepad]", 1);
+    Print::print("/inputs/input_joystick_l   [InputJoystick]", 1);
+    Print::print("/inputs/input_joystick_r   [InputJoystick]", 1);
+    Print::print("/inputs/input_keyboard     [InputKeyboard]", 1);
     Print::print("", true);
 }
 

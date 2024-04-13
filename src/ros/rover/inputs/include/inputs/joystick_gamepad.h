@@ -8,7 +8,7 @@ This class inherits from the base Joystick code and
     is able to send messages for the Xbox controller.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-PACKAGE: 	control
+PACKAGE: 	inputs
 AUTHOR(S):	Harrison Verrios
 CREATION:	19/11/2021
 EDITED:		19/11/2021

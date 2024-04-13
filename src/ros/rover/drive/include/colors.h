@@ -5,7 +5,6 @@ Monash Nova Rover Team
 Stores information about all of the colors
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-PACKAGE: 	control
 AUTHOR(S):  Harrison Verrios
 CREATION:	15/12/2021
 EDITED:		17/12/2021

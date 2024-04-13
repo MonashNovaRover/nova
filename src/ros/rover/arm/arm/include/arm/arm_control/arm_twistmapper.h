@@ -9,15 +9,15 @@ This class transforms the task-space twist from the
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: arm_twistmapper
 TOPICS:
-  - /control/arm_control_scheme        [core/ArmControlScheme]           [Subscribed]
+  - /arm/arm_control_scheme        [arm_interfaces/ArmControlScheme]           [Subscribed]
   - /electronics/resolvers             [sensor_msgs/JointState]          [Subscribed]
-  - /control/joystick_joint_velocities [sensor_msgs/JointState]          [Subscribed]
-  - /control/joystick_twist            [geometry_msgs/TwistStamped]      [Subscribed]
-  - /control/control_joints            [sensor_msgs/JointState]          [Published]
-  - /control/control_twist             [geometry_msgs/TwistStamped]      [Published]
-  - /control/control_pose              [geometry_msgs/TransformStamped]  [Published]
+  - /arm/joystick_joint_velocities [sensor_msgs/JointState]          [Subscribed]
+  - /arm/joystick_twist            [geometry_msgs/TwistStamped]      [Subscribed]
+  - /arm/control_joints            [sensor_msgs/JointState]          [Published]
+  - /arm/control_twist             [geometry_msgs/TwistStamped]      [Published]
+  - /arm/control_pose              [geometry_msgs/TransformStamped]  [Published]
 SERVICES:
-  - /control/arm_reset_control_pose    [std_srvs/Trigger]                [Server]
+  - /arm/arm_reset_control_pose    [std_srvs/Trigger]                [Server]
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	   control

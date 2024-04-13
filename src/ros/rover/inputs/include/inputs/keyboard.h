@@ -12,7 +12,7 @@ Previous version uses Linux Input for synchronous sampling,
     and was replaced as that required sudo permission. 
 Requires InputKeyboard message type from core. 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-PACKAGE: 	control
+PACKAGE: 	inputs
 AUTHOR(S):	Matthew Gu
 CREATION:	23/09/2023
 EDITED:		02/12/2023
@@ -20,7 +20,7 @@ EDITED:		02/12/2023
 */
 
 #include <SDL2/SDL.h>
-#include "core/msg/input_keyboard.hpp"
+#include "input_msgs/msg/input_keyboard.hpp"
 
 class Keyboard {
     //------------------------------------------------------------//
@@ -104,5 +104,5 @@ class Keyboard {
 
     /// @brief      Gets the message object from the instance
     /// @returns    The Input Joystick message object with data
-    core::msg::InputKeyboard get_message();
+    input_msgs::msg::InputKeyboard get_message();
 };

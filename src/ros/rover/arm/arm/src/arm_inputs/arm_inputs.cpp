@@ -143,23 +143,23 @@ void ArmInputs::start_node()
 
     // Creates the input subscription for the left joystick (with QoS options)
     joystick_l_sub = this->create_subscription<input_msgs::msg::InputJoystick>(
-        "/control/input_joystick_l",
-        arm_input_qos,
+        "/inputs/input_joystick_l",
+        joystick_qos,
         std::bind(&ArmInputs::joystick_l_callback, this, _1),
         joystick_options
     );
 
     // Creates the input subscription for the right joystick (with QoS options)
     joystick_r_sub = this->create_subscription<input_msgs::msg::InputJoystick>(
-        "/control/input_joystick_r",
-        arm_input_qos,
+        "/inputs/input_joystick_r",
+        joystick_qos,
         std::bind(&ArmInputs::joystick_r_callback, this, _1),
         joystick_options
     );
 
     // Creates the input subscription for the keyboard (with QoS options)
     keyboard_sub = this->create_subscription<input_msgs::msg::InputKeyboard>(
-        "/control/input_keyboard",
+        "/inputs/input_keyboard",
         arm_input_qos,
         std::bind(&ArmInputs::keyboard_callback, this, _1),
         keyboard_options
@@ -170,7 +170,7 @@ void ArmInputs::start_node()
         ROSTimers::arm_control, std::bind(&ArmInputs::publish_endeffector_inputs, this)
     );
     endeffector_pub = this->create_publisher<arm_interfaces::msg::EndEffectorInput>(
-        "/control/endeffector_input", rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline)
+        "/arm/endeffector_input", rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline)
     );
 
     // Create timer and publisher for joystick_joint_velocities and joystick_twist
@@ -178,10 +178,10 @@ void ArmInputs::start_node()
         ROSTimers::arm_control, std::bind(&ArmInputs::publish_inputs, this)
     );
     joint_velocities_pub = this->create_publisher<sensor_msgs::msg::JointState>(
-        "/control/joystick_joint_velocities", rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline)
+        "/arm/joystick_joint_velocities", rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline)
     );
     twist_pub = this->create_publisher<geometry_msgs::msg::TwistStamped>(
-        "/control/joystick_twist", rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline)
+        "/arm/joystick_twist", rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline)
     );
 
     // Create timer and publisher for control_scheme
@@ -189,7 +189,7 @@ void ArmInputs::start_node()
         ROSTimers::arm_control, std::bind(&ArmInputs::publish_control_scheme, this)
     );    
     control_scheme_pub = this->create_publisher<arm_interfaces::msg::ArmControlScheme>(
-        "/control/arm_control_scheme", 10
+        "/arm/arm_control_scheme", 10
     );
 
     // Initialise arrays in internal data structures
@@ -202,13 +202,13 @@ void ArmInputs::start_node()
     // Output set-up messages
     std::cout << C_TITLE << "ARM INPUTS" << C_END << "\n";
     std::cout << "Subscribed Topics:\n";
-    std::cout << "/control/input_joystick_l            [core/InputJoystick]\n";
-    std::cout << "/control/input_joystick_r            [core/InputJoystick]\n";
+    std::cout << "/inputs/input_joystick_l            [input_msgs/InputJoystick]\n";
+    std::cout << "/inputs/input_joystick_r            [input_msgs/InputJoystick]\n";
     std::cout << "Published Topics:\n";
-    std::cout << "/control/endeffector_input           [core/EndEffectorInput]\n";
-    std::cout << "/control/joystick_joint_velocities   [sensor_msgs/JointState]\n";
-    std::cout << "/control/joystick_twist              [sensor_msgs/TwistStamped]\n";
-    std::cout << "/control/arm_control_scheme          [core/ArmControlScheme]\n" << std::endl;
+    std::cout << "/arm/endeffector_input           [arm_interfaces/EndEffectorInput]\n";
+    std::cout << "/arm/joystick_joint_velocities   [sensor_msgs/JointState]\n";
+    std::cout << "/arm/joystick_twist              [sensor_msgs/TwistStamped]\n";
+    std::cout << "/arm/arm_control_scheme          [arm_interfaces/ArmControlScheme]\n" << std::endl;
 }
 
 

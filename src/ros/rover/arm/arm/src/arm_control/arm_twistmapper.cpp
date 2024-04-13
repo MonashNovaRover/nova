@@ -34,7 +34,7 @@ ArmTwistMapper::ArmTwistMapper() :
 {    
     // Create subscription to arm control scheme
     control_scheme_sub = this->create_subscription<arm_interfaces::msg::ArmControlScheme>(
-        "/control/arm_control_scheme", 10, std::bind(&ArmTwistMapper::control_scheme_callback, this, _1)
+        "/arm/arm_control_scheme", 10, std::bind(&ArmTwistMapper::control_scheme_callback, this, _1)
     );
 
     // Create subscription to resolvers
@@ -48,7 +48,7 @@ ArmTwistMapper::ArmTwistMapper() :
         this->joystick_joint_velocities_deadline_callback();
     };
     joystick_joint_velocities_sub = this->create_subscription<sensor_msgs::msg::JointState>(
-        "/control/joystick_joint_velocities",
+        "/arm/joystick_joint_velocities",
         rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline),
         std::bind(&ArmTwistMapper::joystick_joint_velocities_callback, this, _1),
         joystick_joint_velocities_options
@@ -60,7 +60,7 @@ ArmTwistMapper::ArmTwistMapper() :
         this->joystick_twist_deadline_callback();
     };
     joystick_twist_sub = this->create_subscription<geometry_msgs::msg::TwistStamped>(
-        "/control/joystick_twist",
+        "/arm/joystick_twist",
         rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline),
         std::bind(&ArmTwistMapper::joystick_twist_callback, this, _1),
         joystick_twist_options
@@ -72,19 +72,19 @@ ArmTwistMapper::ArmTwistMapper() :
         ROSTimers::arm_control, std::bind(&ArmTwistMapper::publish_control_inputs, this)
     );
     control_joints_pub = this->create_publisher<sensor_msgs::msg::JointState>(
-        "/control/control_joints", rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline)
+        "/arm/control_joints", rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline)
     );
     control_twist_pub = this->create_publisher<geometry_msgs::msg::TwistStamped>(
-        "/control/control_twist", rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline)
+        "/arm/control_twist", rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline)
     );
     control_pose_pub = this->create_publisher<geometry_msgs::msg::TransformStamped>(
-        "/control/control_pose", rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline)
+        "/arm/control_pose", rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline)
     );
 
 
     // Create service for arm_reset_control_pose
     arm_reset_control_pose_service = this->create_service<std_srvs::srv::Trigger>(
-        "/control/arm_reset_control_pose", std::bind(&ArmTwistMapper::arm_reset_control_pose_callback, this, _1, _2)
+        "/arm/arm_reset_control_pose", std::bind(&ArmTwistMapper::arm_reset_control_pose_callback, this, _1, _2)
     );
 
 
@@ -124,16 +124,16 @@ ArmTwistMapper::ArmTwistMapper() :
     std::cout << module_names_upper[2] << "\n";
     std::cout << "ARM TWIST MAPPER\n";
     std::cout << "Subscribed Topics:\n";
-    std::cout << "/control/arm_control_scheme           [core/ArmControlScheme]\n";
+    std::cout << "/arm/arm_control_scheme           [arm_interfaces/ArmControlScheme]\n";
     std::cout << "/electronics/resolvers                [sensor_msgs/JointState]\n";
-    std::cout << "/control/joystick_joint_velocities    [sensor_msgs/JointState]\n";
-    std::cout << "/control/joystick_twist               [geometry_msgs/TwistStamped]\n";
+    std::cout << "/arm/joystick_joint_velocities    [sensor_msgs/JointState]\n";
+    std::cout << "/arm/joystick_twist               [geometry_msgs/TwistStamped]\n";
     std::cout << "Published Topics:\n";
-    std::cout << "/control/control_joints               [sensor_msgs/JointState]\n";
-    std::cout << "/control/control_twist                [geometry_msgs/TwistStamped]\n";
-    std::cout << "/control/control_pose                 [geometry_msgs/TransformStamped]\n";
+    std::cout << "/arm/control_joints               [sensor_msgs/JointState]\n";
+    std::cout << "/arm/control_twist                [geometry_msgs/TwistStamped]\n";
+    std::cout << "/arm/control_pose                 [geometry_msgs/TransformStamped]\n";
     std::cout << "Services:\n";
-    std::cout << "/control/arm_reset_control_pose       [std_srvs/Trigger]\n" << std::endl;
+    std::cout << "/arm/arm_reset_control_pose       [std_srvs/Trigger]\n" << std::endl;
 }
 
 
@@ -165,7 +165,7 @@ void ArmTwistMapper::joystick_joint_velocities_callback(const sensor_msgs::msg::
 // Reset the internal velocity
 void ArmTwistMapper::joystick_joint_velocities_deadline_callback()
 {
-    RCLCPP_WARN(this->get_logger(), "control/joystick_joint_velocities subscription deadline missed");
+    RCLCPP_WARN(this->get_logger(), "arm/joystick_joint_velocities subscription deadline missed");
     control_joints_msg.velocity = std::vector<double> (6);
 }
 
@@ -178,7 +178,7 @@ void ArmTwistMapper::joystick_twist_callback(const geometry_msgs::msg::TwistStam
 // Reset the internal velocity
 void ArmTwistMapper::joystick_twist_deadline_callback()
 {
-    RCLCPP_WARN(this->get_logger(), "control/joystick_twist subscription deadline missed");
+    RCLCPP_WARN(this->get_logger(), "arm/joystick_twist subscription deadline missed");
     joystick_twist = geometry_msgs::msg::TwistStamped();
 }
 

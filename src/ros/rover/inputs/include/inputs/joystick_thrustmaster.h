@@ -9,7 +9,7 @@ This class inherits from the base Joystick code and
     joysticks.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-PACKAGE: 	control
+PACKAGE: 	inputs
 AUTHOR(S):	Harrison Verrios
 CREATION:	19/11/2021
 EDITED:		11/03/2022

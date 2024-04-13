@@ -11,7 +11,7 @@ It also publishes data from the wheels based on the
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: pid_tuner
-TOPICS:
+TOPICS:1
   - /control/cmd_feedback   [CMDFeedback]   [Published]
 SERVICES:
   - /control/pid_tune       [PIDTune]       [Service]

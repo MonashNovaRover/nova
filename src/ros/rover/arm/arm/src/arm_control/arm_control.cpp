@@ -25,7 +25,7 @@ ArmControl::ArmControl() : Node("arm_control")
 {
     // Create subscription to arm control scheme
     control_scheme_sub = this->create_subscription<arm_interfaces::msg::ArmControlScheme>(
-        "/control/arm_control_scheme", 10, std::bind(&ArmControl::control_scheme_callback, this, _1)
+        "/arm/arm_control_scheme", 10, std::bind(&ArmControl::control_scheme_callback, this, _1)
     );
     
     // Create subscription to resolvers
@@ -39,7 +39,7 @@ ArmControl::ArmControl() : Node("arm_control")
         this->control_joints_deadline_callback();
     };
     control_joints_sub = this->create_subscription<sensor_msgs::msg::JointState>(
-        "/control/control_joints",
+        "/arm/control_joints",
         rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline),
         std::bind(&ArmControl::control_joints_callback, this, _1),
         control_joints_options
@@ -51,7 +51,7 @@ ArmControl::ArmControl() : Node("arm_control")
         this->control_twist_deadline_callback();
     };
     control_twist_sub = this->create_subscription<geometry_msgs::msg::TwistStamped>(
-        "/control/control_twist",
+        "/arm/control_twist",
         rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline),
         std::bind(&ArmControl::control_twist_callback, this, _1),
         control_twist_options
@@ -63,7 +63,7 @@ ArmControl::ArmControl() : Node("arm_control")
         this->control_pose_deadline_callback();
     };
     control_pose_sub = this->create_subscription<geometry_msgs::msg::TransformStamped>(
-        "/control/control_pose",
+        "/arm/control_pose",
         rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline),
         std::bind(&ArmControl::control_pose_callback, this, _1),
         control_pose_options
@@ -74,7 +74,7 @@ ArmControl::ArmControl() : Node("arm_control")
         ROSTimers::arm_visualisation, std::bind(&ArmControl::publish_coord_frames, this)
     );
     coord_frames_pub = this->create_publisher<sensor_msgs::msg::MultiDOFJointState>(
-        "/control/arm_coord_frames", 10
+        "/arm/arm_coord_frames", 10
     );
 
     // Create timer and publisher for joint_velocities
@@ -82,21 +82,21 @@ ArmControl::ArmControl() : Node("arm_control")
         ROSTimers::arm_control, std::bind(&ArmControl::publish_joint_velocities, this)
     );
     joint_velocities_pub = this->create_publisher<sensor_msgs::msg::JointState>(
-        "/control/joint_velocities", rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline)
+        "/arm/joint_velocities", rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline)
     );
 
 
     // Create service for arm_config_info
     arm_config_info_service = this->create_service<arm_interfaces::srv::ArmConfigInfo>(
-        "/control/arm_config_info", std::bind(&ArmControl::arm_config_info_callback, this, _1, _2)
+        "/arm/arm_config_info", std::bind(&ArmControl::arm_config_info_callback, this, _1, _2)
     );
 
-    // Create service client for /control/arm_reset_control_pose, wait for it to become available
+    // Create service client for /arm/arm_reset_control_pose, wait for it to become available
     arm_reset_control_pose_client = this->create_client<std_srvs::srv::Trigger>(
-        "/control/arm_reset_control_pose"
+        "/arm/arm_reset_control_pose"
     );
     while (!arm_reset_control_pose_client->wait_for_service(1s)){
-        RCLCPP_INFO(this->get_logger(), "Service /control/arm_reset_control_pose not available, waiting again...");
+        RCLCPP_INFO(this->get_logger(), "Service /arm/arm_reset_control_pose not available, waiting again...");
     }
 
     resolver_zero_client = this->create_client<core::srv::StringTrigger>(
@@ -142,16 +142,16 @@ ArmControl::ArmControl() : Node("arm_control")
     std::cout << module_names_upper[2].c_str() << "\n";
     std::cout << "ARM CONTROL\n";
     std::cout << "Subscribed Topics:\n";
-    std::cout << "/control/arm_control_scheme           [core/ArmControlScheme]\n";
+    std::cout << "/arm/arm_control_scheme           [arm_interfaces/ArmControlScheme]\n";
     std::cout << "/electronics/resolvers                [sensor_msgs/JointState]\n";
-    std::cout << "/control/control_joints               [sensor_msgs/JointState]\n";
-    std::cout << "/control/control_twist                [geometry_msgs/TwistStamped]\n";
-    std::cout << "/control/control_pose                 [geometry_msgs/TransformStamped]\n";
+    std::cout << "/arm/control_joints               [sensor_msgs/JointState]\n";
+    std::cout << "/arm/control_twist                [geometry_msgs/TwistStamped]\n";
+    std::cout << "/arm/control_pose                 [geometry_msgs/TransformStamped]\n";
     std::cout << "Published Topics:\n";
-    std::cout << "/control/arm_coord_frames             [sensor_msgs/MultiDOFJointState]\n";
-    std::cout << "/control/joint_velocities             [sensor_msgs/JointState]\n";
+    std::cout << "/arm/arm_coord_frames             [sensor_msgs/MultiDOFJointState]\n";
+    std::cout << "/arm/joint_velocities             [sensor_msgs/JointState]\n";
     std::cout << "Services:\n";
-    std::cout << "/control/arm_config_info              [core/ArmConfigInfo]\n" << std::endl;
+    std::cout << "/arm/arm_config_info              [arm_interfaces/ArmConfigInfo]\n" << std::endl;
 }
 
 // Update the internal control scheme
@@ -192,7 +192,7 @@ void ArmControl::control_joints_callback(const sensor_msgs::msg::JointState::Sha
 // Reset the internal velocities
 void ArmControl::control_joints_deadline_callback()
 {
-    RCLCPP_WARN(this->get_logger(), "control/control_joints subscription deadline missed");
+    RCLCPP_WARN(this->get_logger(), "arm/control_joints subscription deadline missed");
     control_joints = ArmMessages::get_empty_joint_state(arm_model->JOINT_NAMES_6DOF);
 }
 
@@ -204,7 +204,7 @@ void ArmControl::control_twist_callback(const geometry_msgs::msg::TwistStamped::
 // Reset the internal velocity
 void ArmControl::control_twist_deadline_callback()
 {
-    RCLCPP_WARN(this->get_logger(), "control/control_twist subscription deadline missed");
+    RCLCPP_WARN(this->get_logger(), "arm/control_twist subscription deadline missed");
     control_twist_msg = geometry_msgs::msg::TwistStamped();
 }
 
@@ -216,7 +216,7 @@ void ArmControl::control_pose_callback(const geometry_msgs::msg::TransformStampe
 // Reset the internal position
 void ArmControl::control_pose_deadline_callback()
 {
-    RCLCPP_WARN(this->get_logger(), "control/control_pose subscription deadline missed");
+    RCLCPP_WARN(this->get_logger(), "arm/control_pose subscription deadline missed");
     control_pose_msg = geometry_msgs::msg::TransformStamped();
 }
 

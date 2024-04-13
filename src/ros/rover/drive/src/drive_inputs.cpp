@@ -2,7 +2,7 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team
 
-PACKAGE: 	control
+PACKAGE: 	drive
 AUTHOR(S):	Harrison Verrios, Liam Whittle, Taaj Street
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
@@ -206,8 +206,8 @@ DriveInputs::DriveInputs() : Node("drive_inputs")
     rclcpp::SubscriptionOptions auto_subscriber_options;
 
     // Create the publisher with a best effort QoS policy
-    drive_publisher = this->create_publisher<drive_msgs::msg::DriveInput>("/control/drive_inputs", qos);
-    info_publisher = this->create_publisher<drive_msgs::msg::DriveInfo>("/control/drive_info",10);
+    drive_publisher = this->create_publisher<drive_msgs::msg::DriveInput>("/drive/drive_inputs", qos);
+    info_publisher = this->create_publisher<drive_msgs::msg::DriveInfo>("/drive/drive_info",10);
     //Sets subscriber options before subscription is made
     input_subscriber_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void {
         input_deadline_exceeded();
@@ -220,9 +220,9 @@ DriveInputs::DriveInputs() : Node("drive_inputs")
 
     // Creates the input subscription
     gamepad_input_subscription = this->create_subscription<input_msgs::msg::InputGamepad>(
-        "/control/input_gamepad", qos, std::bind(&DriveInputs::input_callback, this, _1), input_subscriber_options);
+        "/input/input_gamepad", qos, std::bind(&DriveInputs::input_callback, this, _1), input_subscriber_options);
     autonomous_commands_subscription = this->create_subscription<drive_msgs::msg::DriveInput>(
-        "/control/autonomous_commands", qos, std::bind(&DriveInputs::autonomous_callback, this, _1), auto_subscriber_options);
+        "/input/autonomous_commands", qos, std::bind(&DriveInputs::autonomous_callback, this, _1), auto_subscriber_options);
     // Creates a timer function that runs a function on loop every 0.05 seconds
     drive_timer = this->create_wall_timer(DriveTimers::drive_control, std::bind(&DriveInputs::publish_cmds, this));
     info_timer = this->create_wall_timer(DriveTimers::drive_info, std::bind(&DriveInputs::publish_info, this));

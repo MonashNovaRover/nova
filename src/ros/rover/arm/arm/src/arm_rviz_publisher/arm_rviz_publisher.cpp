@@ -21,46 +21,46 @@ ArmVizPublisher::ArmVizPublisher() : Node("arm_rviz_publisher")
 
     // Create subscription to arm_coord_frames
     coord_frames_sub = this->create_subscription<sensor_msgs::msg::MultiDOFJointState>(
-        "/control/arm_coord_frames", 10, std::bind(&ArmVizPublisher::coord_frames_callback, this, _1)
+        "/arm/arm_coord_frames", 10, std::bind(&ArmVizPublisher::coord_frames_callback, this, _1)
     );
 
     // Create subscription to arm control scheme
     control_scheme_sub = this->create_subscription<arm_interfaces::msg::ArmControlScheme>(
-        "/control/arm_control_scheme", 10, std::bind(&ArmVizPublisher::control_scheme_callback, this, _1)
+        "/arm/arm_control_scheme", 10, std::bind(&ArmVizPublisher::control_scheme_callback, this, _1)
     );
 
     // Create subscription to control_pose
     control_pose_sub = this->create_subscription<geometry_msgs::msg::TransformStamped>(
-        "/control/control_pose",
+        "/arm/control_pose",
         rclcpp::QoS(1).best_effort().deadline(ROSTimers::arm_deadline),
         std::bind(&ArmVizPublisher::control_pose_callback, this, _1)
     );
 
     // Create publisher for arm_poses
     arm_poses_pub = this->create_publisher<geometry_msgs::msg::PoseArray>(
-        "/control/arm_poses", 10
+        "/arm/arm_poses", 10
     );
 
     // Create publisher for arm_poses_path
     arm_path_pub = this->create_publisher<nav_msgs::msg::Path>(
-        "/control/arm_poses_path", 10
+        "/arm/arm_poses_path", 10
     );
 
     // Create publisher for arm_control_pose
     arm_control_pose_pub = this->create_publisher<geometry_msgs::msg::PoseStamped>(
-        "/control/arm_control_pose", 10
+        "/arm/arm_control_pose", 10
     );
 
     // Output set-up messages
     std::cout << C_TITLE << "ARM RVIZ PUBLISHER" << C_END << "\n";
     std::cout << "Subscribed Topics:\n";
-    std::cout << "/control/arm_coord_frames        [sensor_msgs/MultiDOFJointState]\n";
-    std::cout << "/control/arm_control_scheme      [core/ArmControlScheme]\n";
-    std::cout << "/control/control_pose            [geometry_msgs/TransformStamped]\n";
+    std::cout << "/arm/arm_coord_frames        [sensor_msgs/MultiDOFJointState]\n";
+    std::cout << "/arm/arm_control_scheme      [arm_interfaces/ArmControlScheme]\n";
+    std::cout << "/arm/control_pose            [geometry_msgs/TransformStamped]\n";
     std::cout << "Published Topics:\n";
-    std::cout << "/control/arm_poses               [geometry_msgs/PoseArray]\n";
-    std::cout << "/control/arm_poses_path          [nav_msgs/Path]\n";
-    std::cout << "/control/arm_control_pose        [geometry_msgs/PoseStamped]\n" << std::endl;
+    std::cout << "/arm/arm_poses               [geometry_msgs/PoseArray]\n";
+    std::cout << "/arm/arm_poses_path          [nav_msgs/Path]\n";
+    std::cout << "/arm/arm_control_pose        [geometry_msgs/PoseStamped]\n" << std::endl;
 
 }
 
