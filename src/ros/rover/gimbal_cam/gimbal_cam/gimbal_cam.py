@@ -6,7 +6,7 @@ Purpose: ROS Node for controlling the gimbal cam
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: gimbal_cam
 TOPICS:
-  - subscriber: /control/input_joystick_l [InputJoystick]
+  - subscriber: /inputs/input_joystick_l [InputJoystick]
 SERVICES: None
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -23,7 +23,7 @@ import jcan, logging
 from struct import pack
 
 # example of how to import a custom message type
-from core.msg import InputJoystick
+from input_msgs.msg import InputJoystick
 
 # an example of how to import a standard message type
 from std_msgs.msg import String

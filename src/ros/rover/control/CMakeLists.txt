@@ -31,7 +31,8 @@ install(DIRECTORY
 # Add all Python executables to this list
 install(PROGRAMS
         control/rover_state_publisher.py
-        control/excavation_construction.py
+        control/scraper.py
+        control/tile_placer.py
         control/gimbal_cam.py
         control/drive_sim.py
         control/drive_input_stamped_publisher.py

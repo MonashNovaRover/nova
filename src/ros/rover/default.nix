@@ -21,6 +21,7 @@
     nova-inputs = callPackage ./nix/packages/inputs { };
     nova-cmd-interfaces = callPackage ./nix/packages/cmd-interfaces { };
     nova-cmd-utils = callPackage ./nix/packages/cmd-utils { };
+    nova-gimbal-cam = callPackage ./nix/packages/gimbal-cam { };
     # diff drive, pivot drive, strafe, 
   } // import ./nix/packages/controllers { inherit pkgs; };
 
