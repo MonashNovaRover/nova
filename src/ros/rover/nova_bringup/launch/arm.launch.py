@@ -25,7 +25,7 @@ from ament_index_python.packages import get_package_share_path
 # Generate the launch file with all inputs
 def generate_launch_description():
     # Get the path to the parameters file in core/params
-    core_params_path = get_package_share_path('core') / "params"
+    params_path = get_package_share_path('nova_bringup') / "params"
     
     return LaunchDescription([      
         Node(

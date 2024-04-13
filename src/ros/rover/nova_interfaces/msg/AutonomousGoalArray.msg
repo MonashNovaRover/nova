@@ -5,4 +5,4 @@
 
 std_msgs/Header header
 
-core/AutonomousGoal[] goals
+nova_interfaces/AutonomousGoal[] goals

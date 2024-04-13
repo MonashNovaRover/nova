@@ -26,7 +26,8 @@ from launch_ros.parameter_descriptions import ParameterValue
 
 # Generate the launch file with all inputs
 def generate_launch_description():
-    core_dir = get_package_share_directory('core')
+    rover_description_path = get_package_share_path('rover_description')
+    default_model_path = rover_description_path/ 'urdf/rover.urdf'
 
     gazebo = LaunchConfiguration('gazebo')
 
