@@ -3,8 +3,6 @@ import GLProgramState, {GLProgramStateOptions} from "./GLProgramState.ts";
 import GLProgramDrawMode from "./GLProgramDrawMode.ts";
 import GLState from "../gl/GLState.ts";
 
-
-
 function useProgram_aux(gl: GLState, vert: string, frag: string, options: GLProgramStateOptions): GLProgramState {
   const programRef = useRef<GLProgramState>();
 
@@ -33,6 +31,10 @@ export function useProgram(gl: GLState, vert: string, frag: string, options?: Pa
   useEffect(() => {
     program.numberOfVertices = filledOptions.numberOfVertices;
   }, [filledOptions.numberOfVertices, program]);
+
+  useEffect(() => {
+    program.drawMode = filledOptions.drawMode;
+  }, [filledOptions.drawMode, program]);
 
   useEffect(() => {
     program.setShaders(gl, vert, frag);

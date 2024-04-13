@@ -1,12 +1,22 @@
 import GLProgramState from "../GLProgramState.ts";
 import {DependencyList, useRef} from "react";
 import useProgramEffect from "../useProgramEffect.ts";
+import useProgramRenderEffect from "../useProgramRenderEffect.ts";
 
 export type vecArray = [number][] | [number, number][] | [number, number, number][] | [number, number, number, number][];
 
+export interface UseAttributeOptions {
+  normalize: boolean
+  // how many bytes to get from one set of values to the next
+  stride: number,
+  // how many bytes inside the buffer to start from
+  offset: number,
+}
+
+
 export default function useAttribute(program: GLProgramState, name: string, constantAttribute: vecArray): void;
 export default function useAttribute(program: GLProgramState, name: string, factory: () => vecArray,
-                                     deps: DependencyList): void;
+                                     deps: DependencyList, options?: Partial<UseAttributeOptions>): void;
 
 /**
  * Applies float vector or float vertex attribute values to a given program. The given name of the attribute should match
@@ -17,10 +27,20 @@ export default function useAttribute(program: GLProgramState, name: string, fact
  * @param deps The dependency array, that should cause the uniform to be reset when changed.
  */
 export default function useAttribute(program: GLProgramState, name: string,
-                                     factoryOrAttribute: (() => vecArray) | vecArray, deps: DependencyList = []) {
+                                     factoryOrAttribute: (() => vecArray) | vecArray, deps: DependencyList = [],
+                                     options?: Partial<UseAttributeOptions>) {
   const buffer = useRef<WebGLBuffer>();
 
+  const filledOptions = {
+    normalize: false,
+    stride: 0,
+    offset: 0,
+    ...options
+  }
+
   useProgramEffect(program, (context, program) => {
+    context.useProgram(program);
+
     // Create the buffer if necessary
     if (buffer.current === undefined) {
       buffer.current = context.createBuffer() ?? undefined;
@@ -37,9 +57,9 @@ export default function useAttribute(program: GLProgramState, name: string,
 
     const numComponents = attribute[0].length;
 
+    const attributeLocation = context.getAttribLocation(program, name);
+    //context.disableVertexAttribArray(attributeLocation);
     const attributeData= new Float32Array(attribute.flatMap(v => v));
-
-    context.useProgram(program);
 
     // Select buffer as the buffer to apply buffer operations to from here out.
     context.bindBuffer(context.ARRAY_BUFFER, buffer.current);
@@ -50,24 +70,33 @@ export default function useAttribute(program: GLProgramState, name: string,
 
     // setPositionAttribute
     const type = context.FLOAT; // the data in the buffer is 32bit floats
-    const normalize = false; // don't normalize
-    const stride = 0; // how many bytes to get from one set of values to the next
-    // 0 = use type and numComponents above
-    const offset = 0; // how many bytes inside the buffer to start from
-
-    context.bindBuffer(context.ARRAY_BUFFER, buffer.current);
-    const attributeLocation = context.getAttribLocation(program, name);
 
     context.vertexAttribPointer(
       attributeLocation,
       numComponents,
       type,
-      normalize,
-      stride,
-      offset,
+      filledOptions.normalize,
+      filledOptions.stride,
+      filledOptions.offset,
     );
 
-
     context.enableVertexAttribArray(attributeLocation);
+
+
   }, [name, ...deps])
+
+  useProgramRenderEffect(program, (context, program) => {
+    if (!buffer.current)
+      return;
+
+    context.bindBuffer(context.ARRAY_BUFFER, buffer.current);
+    const attributeLocation = context.getAttribLocation(program, name);
+    context.vertexAttribPointer(
+      attributeLocation,
+      2,
+      context.FLOAT,
+      filledOptions.normalize,
+      filledOptions.stride,
+      filledOptions.offset,
+    );  }, [])
 }

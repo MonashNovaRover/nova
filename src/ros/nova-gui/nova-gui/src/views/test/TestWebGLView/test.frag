@@ -4,7 +4,7 @@ precision mediump float;
 in vec2 vTexCoord;
 
 uniform sampler2D image;
-uniform vec2 offset;
+//uniform vec2 offset;
 
 uniform vec2 resolution;
 

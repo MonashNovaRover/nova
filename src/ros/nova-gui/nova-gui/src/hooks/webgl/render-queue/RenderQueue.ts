@@ -1,11 +1,11 @@
-export interface RenderQueueItem {
-  setup: (context: WebGL2RenderingContext) => void,
-  render: (context: WebGL2RenderingContext) => void
+export interface RenderQueueItem<T extends unknown[]> {
+  setup: (...args: T) => void,
+  render: (...args: T) => void
 }
 
-export default class RenderQueue implements RenderQueueItem {
-  private queue: RenderQueueItem[];
-  private context?: WebGL2RenderingContext;
+export default class RenderQueue<T extends unknown[]> implements RenderQueueItem<T> {
+  private queue: RenderQueueItem<T>[];
+  private context?: T;
 
   constructor() {
     this.queue = [];
@@ -17,9 +17,9 @@ export default class RenderQueue implements RenderQueueItem {
    * Adds a RenderQueueItem to the queue, and sets it up if there already exists a rendering context.
    * @param item The item to add to the queue.
    */
-  public push(item: RenderQueueItem): number {
+  public push(item: RenderQueueItem<T>): number {
     if (this.context !== undefined)
-      item.setup(this.context);
+      item.setup(...this.context);
 
     return this.queue.push(item) - 1;
   }
@@ -28,9 +28,9 @@ export default class RenderQueue implements RenderQueueItem {
    * Requests all items in the render queue to perform all functionality to render.
    * @param context
    */
-  public render(context: WebGL2RenderingContext): void {
+  public render(...context: T): void {
     for (let i = 0; i < this.queue.length; i++) {
-      this.queue[i].render(context);
+      this.queue[i].render(...context);
     }
   }
 
@@ -38,11 +38,11 @@ export default class RenderQueue implements RenderQueueItem {
    * Provides all items in the queue the context so that they can be set up for rendering
    * @param context The newly created rendering context
    */
-  public setup(context: WebGL2RenderingContext): void {
+  public setup(...context: T): void {
     this.context = context;
 
     for (let i = 0; i < this.queue.length; i++) {
-      this.queue[i].setup(context);
+      this.queue[i].setup(...context);
     }
   }
 
@@ -57,6 +57,6 @@ export default class RenderQueue implements RenderQueueItem {
     if (index > this.queue.length || index < 0)
       return;
 
-    this.queue[index].setup(this.context);
+    this.queue[index].setup(...this.context);
   }
 }

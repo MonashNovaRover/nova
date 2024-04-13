@@ -6,12 +6,12 @@ export default class GLState {
   public readonly canvasRef: RefObject<HTMLCanvasElement>;
   public _context?: WebGL2RenderingContext;
   public readonly queue: EffectQueue<[WebGL2RenderingContext]>;
-  public readonly renderQueue: RenderQueue;
+  public readonly renderQueue: RenderQueue<[WebGL2RenderingContext]>;
 
   constructor(canvasRef : RefObject<HTMLCanvasElement>) {
     this.canvasRef = canvasRef;
 
-    this.renderQueue = new RenderQueue();
+    this.renderQueue = new RenderQueue<[WebGL2RenderingContext]>();
     this.queue = new EffectQueue<[WebGL2RenderingContext]>();
   }
 
@@ -37,8 +37,9 @@ export default class GLState {
     if (this._context === undefined)
       return;
 
-    if (!this.queue.clear(this._context) || force) {
-      this.renderQueue.render(this._context);
-    }
+    if (this.queue.clear(this._context) && !force)
+      return;
+
+    this.renderQueue.render(this._context);
   }
 }

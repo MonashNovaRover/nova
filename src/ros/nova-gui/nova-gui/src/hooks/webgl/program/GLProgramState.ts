@@ -1,4 +1,4 @@
-import {RenderQueueItem} from "../render-queue/RenderQueue.ts";
+import RenderQueue, {RenderQueueItem} from "../render-queue/RenderQueue.ts";
 import initShaderProgram from "../../../utils/webgl/initShaderProgram.ts";
 import ProgramEffectQueue from "./ProgramEffectQueue.ts";
 import GLProgramDrawMode, {mapDrawMode} from "./GLProgramDrawMode.ts";
@@ -9,13 +9,15 @@ export interface GLProgramStateOptions {
   drawMode: GLProgramDrawMode,
 }
 
-export default class GLProgramState implements RenderQueueItem {
+export default class GLProgramState implements RenderQueueItem<[WebGL2RenderingContext]> {
   // The actual WebGL program. This should not be exposed to the user of the hooks, so they must go through the effect
   // queues when they want to modify webgl stuff.
   private program?: WebGLProgram;
 
   // The effect queue allowing the user to run code that depends on the WebGLProgram in sync with the render loop
   public readonly queue: ProgramEffectQueue;
+
+  public readonly renderQueue: RenderQueue<[WebGL2RenderingContext, WebGLProgram]>;
 
   // The vertex shader source code
   private vert: string;
@@ -40,6 +42,7 @@ export default class GLProgramState implements RenderQueueItem {
     this._drawMode = options.drawMode;
 
     this.queue = new ProgramEffectQueue(gl.queue);
+    this.renderQueue = new RenderQueue<[WebGL2RenderingContext, WebGLProgram]>();
 
     this.renderQueueID = gl.renderQueue.push(this);
   }
@@ -83,6 +86,9 @@ export default class GLProgramState implements RenderQueueItem {
       this._mappedDrawMode = mapDrawMode(context, this._drawMode);
 
     context.useProgram(this.program);
+
+    this.renderQueue.render(context, this.program);
+
     context.drawArrays(this._mappedDrawMode, 0, this.numberOfVertices);
   }
 
@@ -93,5 +99,8 @@ export default class GLProgramState implements RenderQueueItem {
   public setup(context: WebGL2RenderingContext): void {
     this.program = initShaderProgram(context, this.vert, this.frag);
     this.queue.program = this.program;
+
+    if (this.program)
+      this.renderQueue.setup(context, this.program);
   }
 }

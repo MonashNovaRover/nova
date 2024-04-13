@@ -22,6 +22,11 @@ export default class ProgramEffectQueue extends EffectQueue<[WebGL2RenderingCont
     }
   }
 
+  override clear(context: WebGL2RenderingContext, program: WebGLProgram): boolean {
+    context.useProgram(program);
+    return super.clear(context, program);
+  }
+
   /**
    * Pushes to the gl queue to try and initiate a re-render of the entire webgl context
    * @private
@@ -31,7 +36,7 @@ export default class ProgramEffectQueue extends EffectQueue<[WebGL2RenderingCont
     this.glQueuePushFrameID = this.glQueue.push((gl) => {
       if (this._program !== undefined) {
         gl.useProgram(this._program);
-        this.clear(gl, this._program)
+        this.clear(gl, this._program);
       }
     });
   }

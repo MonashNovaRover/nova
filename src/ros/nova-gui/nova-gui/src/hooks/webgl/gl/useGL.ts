@@ -42,7 +42,9 @@ const useGL = (webContextAttributes?: WebGLContextAttributes )
 
   }, [gl, webContextAttributes]);
 
-  useAnimationFrame(() => gl.render());
+  useAnimationFrame(() => {
+    gl.render();
+  });
 
   // The returned object will only exist if the WebGL2RenderingContext has already been created.
   return gl;
