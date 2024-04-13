@@ -6,7 +6,7 @@ import GLState from "../gl/GLState.ts";
 
 export interface GLProgramStateOptions {
   numberOfVertices: number,
-  mode: GLProgramDrawMode,
+  drawMode: GLProgramDrawMode,
 }
 
 export default class GLProgramState implements RenderQueueItem {
@@ -24,7 +24,9 @@ export default class GLProgramState implements RenderQueueItem {
 
   public numberOfVertices: number;
 
+  // Used to determine which value to set _mappedDrawMode to.
   private _drawMode: GLProgramDrawMode;
+  // The actual value used by context.drawArrays
   private _mappedDrawMode?: GLint;
 
   // The value from gl.renderQueue.push, allowing us to perform setup() again
@@ -35,13 +37,17 @@ export default class GLProgramState implements RenderQueueItem {
     this.frag = frag;
 
     this.numberOfVertices = options.numberOfVertices;
-    this._drawMode = options.mode;
+    this._drawMode = options.drawMode;
 
     this.queue = new ProgramEffectQueue(gl.queue);
 
     this.renderQueueID = gl.renderQueue.push(this);
   }
 
+  /**
+   * Mutator for the draw mode.
+   * @param value The new draw mode
+   */
   public set drawMode(value: GLProgramDrawMode) {
     this._drawMode = value;
     this._mappedDrawMode = undefined;
@@ -66,12 +72,13 @@ export default class GLProgramState implements RenderQueueItem {
 
   /**
    * The code ran when rendering a new frame.
-   * @param context The rendering context to make calls to
+   * @param context The rendering context to make calls to.
    */
   public render(context: WebGL2RenderingContext): void {
     if (this.program === undefined)
       throw Error("RenderQueue tried to render GLProgramState without a program. Did you call RenderQueueItem.setup?");
 
+    // Sets up the draw mode if not already defined
     if (this._mappedDrawMode === undefined)
       this._mappedDrawMode = mapDrawMode(context, this._drawMode);
 
@@ -86,7 +93,5 @@ export default class GLProgramState implements RenderQueueItem {
   public setup(context: WebGL2RenderingContext): void {
     this.program = initShaderProgram(context, this.vert, this.frag);
     this.queue.program = this.program;
-
-    this._mappedDrawMode = mapDrawMode(context, this._drawMode);
   }
 }

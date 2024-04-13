@@ -6,6 +6,8 @@ in vec2 vTexCoord;
 uniform sampler2D image;
 uniform vec2 offset;
 
+uniform vec2 resolution;
+
 out vec4 fragColor;
 
 void main() {
@@ -16,14 +18,20 @@ void main() {
     // vec4 texCol = (texture(image, vTexCoord) + vec4(1.0)) * 0.5;
     vec4 col = texture(image, samplePoint);
 
-    float brightness = sqrt(col.x * col.x + col.y * col.y + col.z * col.z) / 5.0;
+    float brightness = sqrt(col.x * col.x + col.y * col.y + col.z * col.z) / 1.73;
 
     if (brightness > vTexCoord.y) {
         fragColor = vec4(1., 1., 1., 1.);
     }
     else {
-        fragColor = vec4(0.0, 0.0, 0.0, 1.0);
         //fragColor = col;
+
+        if (mod(floor(vTexCoord.x * resolution.x) + floor(vTexCoord.y * resolution.y), 2.0) > 0.0) {
+            fragColor = vec4(0.8, 0.5, 0.55, 1.0);
+        }
+        else {
+            fragColor = vec4(0.2, 0.0, 0.8, 1.0);
+        }
     }
 
 }

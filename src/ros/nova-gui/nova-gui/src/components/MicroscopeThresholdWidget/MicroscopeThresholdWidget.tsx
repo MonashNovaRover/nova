@@ -24,11 +24,10 @@ import {useCameraStream} from "../CameraComponent/hooks/useCameraStream.ts";
 import {useCameraStreamer} from "../CameraComponent/hooks/useCameraStreamer.ts";
 import useGL from "../../hooks/webgl/gl/useGL.ts";
 import {useProgram} from "../../hooks/webgl/program/useProgram.ts";
-import useCanvasSize from "../../hooks/webgl/gl/useCanvasSize.ts";
 import useSampler from "../../hooks/webgl/program/sampler/useSampler.ts";
 import useUniform from "../../hooks/webgl/program/uniform/useUniform.ts";
-import useResolutionUniform from "../../hooks/webgl/program/uniform/useResolutionUniform.ts";
 import useAttribute from "../../hooks/webgl/program/attribute/useAttribute.ts";
+import AutosizedGLCanvas from "../AutosizedGLCanvas/AutosizedGLCanvas.tsx";
 
 export interface ThresholdingFileEntry {
   threshold: number,
@@ -71,27 +70,11 @@ const MicroscopeThresholdWidget: React.FC<CameraComponentProps> = (props) => {
   const gl = useGL();
   const program = useProgram(gl, vert, frag);
 
-  const [width, height] = useCanvasSize(gl, videoRef.current ?? undefined);
-
   useAttribute(program, "aPosition", [
     [1, 1], [-1, 1], [1, -1], [-1, -1]
   ]);
-
-  /*const samplers = useDict<GLSampler>(() => ({
-    image: [videoRef.current, 0]
-  }), [videoRef.current])
-  const frameID = useSamplers(gl?.gl, program, samplers);
-   */
   useSampler(program, 0, "image", videoRef.current);
-
-
-  /*const uniforms = useDict<vec>(() => ({
-    threshold: [finalThreshold]
-  }), [threshold, manualThreshold])*/
-  //useUniforms(program, uniforms);
-
   useUniform(program, "threshold", () => [finalThreshold], [finalThreshold]);
-  useResolutionUniform(gl, program);
 
   const toggleShowThreshold = useCallback(() => {
     setShowThreshold(!showThreshold);
@@ -127,6 +110,12 @@ const MicroscopeThresholdWidget: React.FC<CameraComponentProps> = (props) => {
   }, [file, setFile]);
 
   const getBrightness = useCallback(() => {
+    if (!gl.canvasRef.current)
+      return;
+
+    const width = gl.canvasRef.current.width;
+    const height = gl.canvasRef.current.height;
+
     const numElements = width * height;
 
     if (!gl.context)
@@ -148,7 +137,7 @@ const MicroscopeThresholdWidget: React.FC<CameraComponentProps> = (props) => {
       brightness: 1 - average
     };
     prependFileEntry(fileEntry);
-  }, [gl, width, height, prependFileEntry, finalThreshold]);
+  }, [gl, prependFileEntry, finalThreshold]);
 
   // Microscope servo controls
   const topicBifrost = useBifrost({ topic: RosTopic.MICROSCOPE_SERVO });
@@ -225,7 +214,7 @@ const MicroscopeThresholdWidget: React.FC<CameraComponentProps> = (props) => {
 
   return (
     <div className="flex flex-col gap-1.5">
-      <Card>
+      <Card className="z-0">
         <CardBody className="flex flex-col gap-3 overflow-hidden">
           <div className="flex flex-row">
             <div className="grow justify-self-stretch text-left col-span-3">Microscope Thresholding</div>
@@ -237,19 +226,16 @@ const MicroscopeThresholdWidget: React.FC<CameraComponentProps> = (props) => {
             <div className=
                    "flex flex-col gap-3 grow relative overflow-hidden rounded-lg col-span-3 w-full cursor-pointer"
                  onMouseDown={toggleShowThreshold}>
-              <video controls={false}
-                     aria-label="threshold input video"
-                     autoPlay
-                     loop
-                     muted
-                     playsInline
-                     ref={videoRef}
-                     className={showThreshold ? "z-10" : "z-30"}/>
-              <canvas className="absolute max-w-full max-h-full right-0 left-0 z-20 rounded-lg"
-                      aria-label="thresheld output"
-                      ref={gl.canvasRef}
-                      width={width}
-                      height={height}/>
+
+              <AutosizedGLCanvas gl={gl} sizeTarget={videoRef.current} drawChildrenBelow={showThreshold}>
+                <video controls={false}
+                       aria-label="threshold input video"
+                       autoPlay
+                       loop
+                       muted
+                       playsInline
+                       ref={videoRef}/>
+              </AutosizedGLCanvas>
             </div>
             <Slider
               size="lg"

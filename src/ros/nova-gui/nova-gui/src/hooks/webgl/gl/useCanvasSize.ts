@@ -7,7 +7,7 @@ import GLState from "./GLState.ts";
  * @param gl The object contain the reference to the canvas, and the rendering context for the canvas.
  * @param sizeTarget The element to try match the pixel size of. Uses canvasRef when not specified.
  */
-export default function useCanvasSize(gl : GLState, sizeTarget?: Element): [number, number] {
+export default function useCanvasSize(gl : GLState, sizeTarget?: Element | null): [number, number] {
   const [width, setWidth] = useState(4);
   const [height, setHeight] = useState(3);
 
@@ -16,28 +16,33 @@ export default function useCanvasSize(gl : GLState, sizeTarget?: Element): [numb
     if (canvas === null)
       return;
 
-    const pixelRatio = window.devicePixelRatio
     const absoluteSizeTarget = sizeTarget ?? canvas.parentElement ?? canvas;
 
-    const resize = () => {
-      const rect = absoluteSizeTarget.getBoundingClientRect();
-      const newWidth = Math.ceil(pixelRatio * rect.width);
-      const newHeight = Math.ceil(pixelRatio * rect.height);
+    const boxObserver = new ResizeObserver((entries) => {
+      const entry = entries.find((entry) => entry.target === absoluteSizeTarget);
 
-      setWidth(newWidth);
-      setHeight(newHeight);
+      if (!entry)
+        return;
 
-      gl.context?.viewport(0,0, newWidth, newHeight);
-    };
+      setWidth(entry.devicePixelContentBoxSize[0].inlineSize);
+      setHeight(entry.devicePixelContentBoxSize[0].blockSize);
 
-    const resizeObserver = new ResizeObserver(resize);
-    resizeObserver.observe(absoluteSizeTarget);
-    const observer = new MutationObserver(resize);
-    observer.observe(absoluteSizeTarget, {attributes: true, attributeFilter: ["style"]});
+      gl.context?.viewport(0,0,
+        entry.devicePixelContentBoxSize[0].inlineSize,
+        entry.devicePixelContentBoxSize[0].blockSize);
+
+      const newWidth = entry.devicePixelContentBoxSize[0].inlineSize / window.devicePixelRatio;
+      const newHeight = entry.devicePixelContentBoxSize[0].blockSize / window.devicePixelRatio;
+      gl.canvasRef.current?.style.setProperty("block-size", newHeight.toString() + "px");
+      gl.canvasRef.current?.style.setProperty("inline-size", newWidth.toString() + "px");
+
+      /* … render to canvas … */
+      gl.queue.push();
+    });
+    boxObserver.observe(absoluteSizeTarget, { box: "device-pixel-content-box" });
 
     return () => {
-      resizeObserver.disconnect();
-      observer.disconnect();
+      boxObserver.disconnect();
     };
   }, [gl, sizeTarget]);
 

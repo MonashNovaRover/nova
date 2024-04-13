@@ -24,7 +24,7 @@ function useProgram_aux(gl: GLState, vert: string, frag: string, options: GLProg
 export function useProgram(gl: GLState, vert: string, frag: string, options?: Partial<GLProgramStateOptions>) {
   const filledOptions = {
     numberOfVertices: 4,
-    mode: GLProgramDrawMode.TRIANGLE_STRIP,
+    drawMode: GLProgramDrawMode.TRIANGLE_STRIP,
     ...options,
   }
 
