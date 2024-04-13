@@ -14,6 +14,7 @@
 , libcanmd
 , nova-arm-interfaces
 , nova-input-msgs
+, nova-interfaces
 }:
 
 buildRosPackage {
@@ -42,5 +43,6 @@ buildRosPackage {
     libcanmd
     nova-arm-interfaces
     nova-input-msgs
+    nova-interfaces
   ];
 }

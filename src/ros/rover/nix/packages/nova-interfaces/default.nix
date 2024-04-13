@@ -5,8 +5,6 @@
 , std-msgs
 , geometry-msgs
 , nav-msgs
-, launch
-, launch-ros
 }:
 
 buildRosPackage {

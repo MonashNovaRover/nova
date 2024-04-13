@@ -15,7 +15,7 @@ buildRosPackage {
 
   src = builtins.path rec {
     name = "drive-source";
-    path = ../../../drive;
+    path = ../../../drive/drive;
     filter = lib.novaSourceFilter [ ]
       path;
   };

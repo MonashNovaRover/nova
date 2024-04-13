@@ -12,7 +12,7 @@ buildRosPackage {
 
   src = builtins.path rec {
     name = "drive-interfaces-source";
-    path = ../../../drive_interfaces;
+    path = ../../../drive/drive_interfaces;
     filter = lib.novaSourceFilter [ ] path;
   };
 
