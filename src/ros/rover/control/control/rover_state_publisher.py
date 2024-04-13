@@ -6,7 +6,7 @@ from rclpy.node import Node
 from rclpy.qos import QoSProfile
 from geometry_msgs.msg import Quaternion
 from sensor_msgs.msg import JointState
-from core.msg import Telemetry, SingleTelemetry
+from nova_interfaces.msg import Telemetry, SingleTelemetry
 from tf2_ros import TransformBroadcaster, TransformStamped
 
 FRONT_LEFT_DIR = 1

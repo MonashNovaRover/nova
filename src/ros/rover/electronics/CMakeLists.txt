@@ -22,8 +22,8 @@ find_package(ament_cmake_python REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclpy REQUIRED)
 
-# Include the core package
-find_package(core REQUIRED)
+# Include the nova_interfaces package
+find_package(nova_interfaces REQUIRED)
 
 # Include the include directory
 include_directories(
@@ -47,11 +47,10 @@ ament_python_install_package(${PROJECT_NAME})
 
 # Add all Python executables to this list
 install(PROGRAMS
-  electronics/gimbal_service.py
-  electronics/radio_monitor.py
-  electronics/resolver_publisher.py
   electronics/rfid_client_terminal.py
   electronics/rfid_service.py
+  electronics/gimbal_service.py
+  electronics/radio_monitor.py
   electronics/tests/test_EMC.py
   electronics/tests/test_GPS.py
   electronics/tests/test_radio.py

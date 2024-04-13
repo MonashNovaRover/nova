@@ -77,7 +77,7 @@ class BLCMDStatusMonitor(Node):
     def reset(self,req,res):
         """
         Updates the classes internal msg state
-        :param msg: core.msg.BLCMDReset message from the subscriber callback
+        :param msg: nova_interfaces.msg.BLCMDReset message from the subscriber callback
         :return: None
         """
         try:

@@ -23,7 +23,7 @@ from rclpy.node import Node
 import time, math, random, sys
 
 # Get the message type
-from core.msg import WheelData
+from nova_interfaces.msg import WheelData
 
 # This class handles all movement and testing of the GPS
 class WheelTest (Node):

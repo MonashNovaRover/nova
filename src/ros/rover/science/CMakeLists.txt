@@ -23,7 +23,7 @@ find_package(rclcpp REQUIRED)
 find_package(rclpy REQUIRED)
 
 # Include the core package
-find_package(core REQUIRED)
+find_package(nova_interfaces REQUIRED)
 
 # Include the include directory
 include_directories(

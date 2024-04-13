@@ -26,7 +26,7 @@ from rclpy.node import Node
 import time, math, random, sys
 
 # Get the RoverPose message type
-from core.msg import RoverPoseGPS
+from nova_interfaces.msg import RoverPoseGPS
 
 # This class handles all movement and testing of the GPS
 class GPS_Test (Node):

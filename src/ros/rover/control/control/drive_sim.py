@@ -35,7 +35,7 @@ from rclpy.qos import QoSReliabilityPolicy, QoSProfile
 from tf2_ros import TransformBroadcaster, StaticTransformBroadcaster
 
 # msg imports
-from core.msg import DriveInput, PivotWheelData
+from nova_interfaces.msg import DriveInput, PivotWheelData
 from geometry_msgs.msg import Transform, TransformStamped
 
 # nova import

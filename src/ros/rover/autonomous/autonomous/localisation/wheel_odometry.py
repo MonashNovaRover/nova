@@ -29,7 +29,7 @@ import rclpy
 from rclpy.node import Node
 
 # example of how to import a custom message type
-from core.msg import Telemetry, SingleTelemetry, WheelOdometry
+from nova_interfaces.msg import Telemetry, SingleTelemetry, WheelOdometry
 
 import math
 import logging
@@ -77,7 +77,7 @@ class TemplateNode(Node):
     def telem_callback(self, msg: Telemetry):
         """
         Updates the classes internal msg state
-        :param msg: core.msg.RoverPose message from the subscriber callback
+        :param msg: nova_interfaces.msg.RoverPose message from the subscriber callback
         :return: None
         """
         self.latest_telemetry = msg

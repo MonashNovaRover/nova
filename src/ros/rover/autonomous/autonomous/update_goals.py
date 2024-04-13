@@ -4,7 +4,7 @@ __package__ = "autonomous"
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Empty
-from core.msg import AutonomousGoal, AutonomousGoalArray, Point2D
+from nova_interfaces.msg import AutonomousGoal, AutonomousGoalArray, Point2D
 from autonomous.config.ros_config import auto_goal_topic, auto_goal_gps
 
 

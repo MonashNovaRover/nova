@@ -15,7 +15,7 @@ import rclpy
 from rclpy.node import Node
 from std_srvs.srv import Trigger
 from std_msgs.msg import Bool
-from core.msg import RadioStatus, DriveInfo
+from drive_interfaces.msg import DriveInfo
 from coms_utils.can_interface import CANTransmitter
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy
 import time
@@ -97,9 +97,6 @@ class LEDUpdateNode(Node):
 
         # Subscriber to handle control state
         self.drive_info_subscriber = self.create_subscription(DriveInfo, "/control/drive_info", self.callback_drive_info, 10)
-        
-        # Subscriber to handle connection state
-        # self.radio_subscriber = self.create_subscription(RadioStatus, "/electronics/radio_status", self.callback_connection, 10)
 
         # Services to handle autonomous state
         self.success_service = self.create_service(Trigger, 'autonomous/success', self.callback_auto_success)
