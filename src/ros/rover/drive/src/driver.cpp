@@ -43,7 +43,7 @@ void Driver::send_commands()
     core::msg::PivotWheelData data_msg;
     set_best_effort_velocity();
     switch (mode) {
-        case core::msg::DriveInput::PIVOT: {
+        case drive_msgs::msg::DriveInput::PIVOT: {
             // Find the turning radius form the 'steer' command
             // This will find the valid radius that the wheels can turn to based on max speed of pivots
             RCLCPP_DEBUG(this->get_logger(), "target radius: %f", target_radius);
@@ -60,14 +60,14 @@ void Driver::send_commands()
             data_msg.direction = best_effort_direction;
             break;
         }
-        case core::msg::DriveInput::STRAFE: {
+        case drive_msgs::msg::DriveInput::STRAFE: {
             fill_wheel_angles_strafe();
             fill_wheel_velocities_strafe();
             data_msg.radius = 0;
             break;
         }
 
-        case core::msg::DriveInput::TANK: {
+        case drive_msgs::msg::DriveInput::TANK: {
             fill_wheel_velocities_tank();
             data_msg.radius = target_radius;
             break;
@@ -75,6 +75,7 @@ void Driver::send_commands()
     }
 
     // Send velocities to the wheels
+<<<<<<< HEAD
     if(this->get_parameter("gazebo").get_parameter_value().get<bool>()){
         std_msgs::msg::Float64MultiArray wheel_velocities;
         wheel_velocities.data = {pivots[0]->velocity*WHEEL_VELOCITY_OUTPUT,
@@ -102,6 +103,14 @@ void Driver::send_commands()
             }
             data_msg.angles[i] = pivot->angle;
             data_msg.velocities[i] = pivot->velocity;
+=======
+    for (size_t i = 0; i < NUM_WHEELS; i++)
+    {
+        PivotModule *pivot = pivots[i];
+        pivot->drive_wheel();
+        if (mode == drive_msgs::msg::DriveInput::PIVOT || mode == drive_msgs::msg::DriveInput::STRAFE) {
+            pivot->drive_pivot();
+>>>>>>> 1c3684e0 (drive: corrected usages of DriveInput to use drive_msgs instead of core)
         }
     }
 
@@ -109,9 +118,9 @@ void Driver::send_commands()
 }
 
 // Receives drive commands
-void Driver::drive_callback(const core::msg::DriveInput::SharedPtr msg)
+void Driver::drive_callback(const drive_msgs::msg::DriveInput::SharedPtr msg)
 {
-    if(mode == core::msg::DriveInput::STRAFE && msg->mode == core::msg::DriveInput::PIVOT){
+    if(mode == drive_msgs::msg::DriveInput::STRAFE && msg->mode == drive_msgs::msg::DriveInput::PIVOT){
         target_radius = INFINITY;
         target_direction = 0;
         for (PivotModule *pivot: pivots){
@@ -483,7 +492,7 @@ Driver::Driver() : Node("driver")
     subscriber_options.event_callbacks.deadline_callback = [this](rclcpp::QOSDeadlineRequestedInfo) -> void
     { drive_inputs_deadline_exceeded(); };
 
-    subscription_cmds = this->create_subscription<core::msg::DriveInput>(
+    subscription_cmds = this->create_subscription<drive_msgs::msg::DriveInput>(
         "/control/drive_inputs", qos, std::bind(&Driver::drive_callback, this, _1), subscriber_options);
 
     // Create send commands timer

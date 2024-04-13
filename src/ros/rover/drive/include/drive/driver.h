@@ -136,7 +136,7 @@ class Driver : public rclcpp::Node
     const float angle_offset = atan((CHASSIS_WIDTH)/CHASSIS_LENGTH);
 private:
     // Stores the subscriber for the drive commands (manual)
-    rclcpp::Subscription<core::msg::DriveInput>::SharedPtr subscription_cmds;
+    rclcpp::Subscription<drive_msgs::msg::DriveInput>::SharedPtr subscription_cmds;
 
     rclcpp::TimerBase::SharedPtr telemetry_timer;
     rclcpp::TimerBase::SharedPtr blcmd_spin_timer;
@@ -165,7 +165,7 @@ private:
     float best_effort_velocity = 0.0;
     int8_t target_direction = 0;
     int8_t best_effort_direction = 0;
-    unsigned char mode = core::msg::DriveInput::TANK;
+    unsigned char mode = drive_msgs::msg::DriveInput::TANK;
     bool handbrake;
 
     // An array of pointers to Wheel instances
@@ -176,7 +176,7 @@ private:
 
     /// @brief      Callback function when drive messages are received
     /// @param      msg - A pointer to the drive message
-    void drive_callback(const core::msg::DriveInput::SharedPtr msg);
+    void drive_callback(const drive_msgs::msg::DriveInput::SharedPtr msg);
 
     /// @brief      Disable BLCMD service callback
     void disable_blcmd_callback(const std::shared_ptr<core::srv::DisableBLCMD::Request> request,
