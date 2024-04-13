@@ -22,39 +22,6 @@ find_package(rclcpp REQUIRED)
 find_package(rclpy REQUIRED)
 # Find and include message types dependencies
 find_package(core REQUIRED)
-<<<<<<< HEAD
-# Needed for jcan
-find_package (Threads REQUIRED)
-# Needed for Keyboard Input
-find_package(SDL2 REQUIRED)
-
-
-# Find system architecture to build with correct jcan version
-EXECUTE_PROCESS( COMMAND uname -m COMMAND tr -d '\n' OUTPUT_VARIABLE ARCHITECTURE )
-
-if( ${ARCHITECTURE} STREQUAL "x86_64" )
-    set(JCAN_CPP ${CMAKE_SOURCE_DIR}/include/jcan_x86_64/jcan.cc)
-    set(JCAN_LIB ${CMAKE_SOURCE_DIR}/include/jcan_x86_64/${CMAKE_STATIC_LIBRARY_PREFIX}jcan${CMAKE_STATIC_LIBRARY_SUFFIX})
-    # Add include directories for all targets
-    include_directories(
-        ${CMAKE_CURRENT_SOURCE_DIR}/include
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/jcan_x86_64
-        ${CMAKE_CURRENT_SOURCE_DIR}/src
-        ${SDL2_INCLUDE_DIRS}
-    )
-else()
-    set(JCAN_CPP ${CMAKE_SOURCE_DIR}/include/jcan_jetson/jcan.cc)
-    set(JCAN_LIB ${CMAKE_SOURCE_DIR}/include/jcan_jetson/${CMAKE_STATIC_LIBRARY_PREFIX}jcan${CMAKE_STATIC_LIBRARY_SUFFIX})
-    # Add include directories for all targets
-    include_directories(
-        ${CMAKE_CURRENT_SOURCE_DIR}/include
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/jcan_jetson
-        ${CMAKE_CURRENT_SOURCE_DIR}/src
-        ${SDL2_INCLUDE_DIRS}
-    )
-endif()
-=======
->>>>>>> b0c7b871 (seperate drive and control)
 ################################################
 # Add non-executable targets:
 ################################################
@@ -74,16 +41,6 @@ endif()
 # Print functions
 if (NOT TARGET print)
   add_library(print include/print/print.cpp)
-endif()
-# CAN (jcan)
-if (NOT TARGET jcan)
-  add_library(jcan ${JCAN_CPP})
-  target_link_libraries(jcan ${JCAN_LIB} pthread dl rt)
-endif()
-if (NOT TARGET keyboard)
-  add_library(keyboard src/inputs/keyboard.cpp)
-  target_link_libraries(keyboard print)
-  ament_target_dependencies(keyboard SDL2 core)
 endif()
 # Other targets:
 # CMDs
@@ -109,11 +66,6 @@ add_executable(drive_inputs src/drive/drive_inputs.cpp)
 target_link_libraries(drive_inputs print)
 ament_target_dependencies(drive_inputs rclcpp core)
 
-# Drive Receiver script
-add_executable(driver src/drive/driver.cpp)
-target_link_libraries(driver blcmd print)
-ament_target_dependencies(driver rclcpp core)
-
 # PID Tuner script
 add_executable(pid_tuner src/cmd/pid_tuner.cpp)
 target_link_libraries(pid_tuner cmd print)
@@ -127,7 +79,6 @@ ament_target_dependencies(pid_tuner rclcpp core)
 install(TARGETS
         inputs
         drive_inputs
-        driver
         pid_tuner
         DESTINATION lib/${PROJECT_NAME}
         )

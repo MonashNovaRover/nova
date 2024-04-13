@@ -58,7 +58,10 @@ EDITED:		13/09/2022
 #include<tuple>
 
 // Include CMD class
-#include "cmd/blcmd.h"
+#include "blcmd.h"
+
+#define C_TITLE     "\033[1;34m"
+#define C_END       "\033[0m"
 
 // The distance between left and right wheels [m]
 #define CHASSIS_WIDTH 0.7
@@ -72,6 +75,19 @@ EDITED:		13/09/2022
 using namespace std;
 using namespace std::chrono_literals;
 using std::placeholders::_1;
+
+namespace ROSTimers
+{
+    // Publisher timer periods
+    const std::chrono::milliseconds auto_mode        = 200ms;
+    const std::chrono::milliseconds drive_control    = 50ms;
+    const std::chrono::milliseconds drive_info       = 200ms;
+    const std::chrono::milliseconds blcmds_telemetry = 50ms;
+    const std::chrono::milliseconds blcmd_spin       = 10ms;
+    // Other timer periods
+    const std::chrono::milliseconds drive_deadline   = 200ms;
+}
+
 
 struct Vector2 {
 

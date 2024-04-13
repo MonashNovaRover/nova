@@ -27,13 +27,8 @@ namespace ROSTimers
     // Publisher timer periods
     const millis arm_visualisation = 10ms;
     const millis arm_resolvers = 10ms;
-    const millis auto_mode = 200ms;
     const millis arm_startup_timer = 100ms;
     const millis arm_control = 10ms;
-    const millis drive_control = 50ms;
-    const millis drive_info = 200ms;
-    const millis blcmds_telemetry = 50ms;
-    const millis blcmd_spin = 10ms;
     
     // Timers for legacy nodes
     const millis pid_tuner_control = 100ms;
@@ -41,5 +36,4 @@ namespace ROSTimers
 
     // Other timer periods
     const millis arm_deadline = 200ms;
-    const millis drive_deadline = 200ms;
 }

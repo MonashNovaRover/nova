@@ -9,7 +9,6 @@ AUTHOR(S):	Taaj Street, Harrison Verrios, Josh Cherubino, Will de la Rue, Jory B
 
 // Include the header file
 #include "driver.h"
-#include "print/print.h"
 #include "config/rosconfig.h"
 
 // Use the standard namespaces for subscribers
@@ -458,9 +457,11 @@ Driver::Driver() : Node("driver")
     max_d_vel = this->get_parameter("max_acceleration").get_parameter_value().get<double>()*
             ROSTimers::drive_control.count()/1000;
     this->declare_parameter("max_speed", 0.9);
+    
     // Output set-up messages
-    Print::title("DRIVER");
-    Print::print("", true);
+    cout << "--------------------" << endl;
+    cout << C_TITLE << "DRIVER" << C_END << endl;
+    cout << "--------------------\n" << endl;
 
     // Initialise the wheels in the correct direction
     for (size_t i = 0; i < NUM_WHEELS; i++)

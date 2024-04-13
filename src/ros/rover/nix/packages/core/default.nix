@@ -3,6 +3,7 @@
 , ament-cmake
 , rosidl-default-generators
 , std-msgs
+, geometry-msgs
 , nav-msgs
 , trajectory-msgs
 , launch

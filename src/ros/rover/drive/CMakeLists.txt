@@ -7,9 +7,22 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
-# uncomment the following section in order to fill in
-# further dependencies manually.
-# find_package(<dependency> REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(core REQUIRED)
+
+#find libcanmd
+find_package(PkgConfig)
+pkg_check_modules(LIB_CANMD REQUIRED libcanmd)
+
+add_executable(driver src/driver.cpp)
+target_link_libraries(drive PRIVATE ${LIB_CANMD_LIBRARIES})
+target_include_directories(drive PRIVATE ${JCAN_INCLUDE_DIRS})
+ament_target_dependencies(driver rclcpp core)
+
+install(TARGETS
+        driver
+        DESTINATION lib/${PROJECT_NAME}
+)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
