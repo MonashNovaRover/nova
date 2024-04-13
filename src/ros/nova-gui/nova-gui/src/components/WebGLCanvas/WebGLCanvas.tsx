@@ -12,7 +12,7 @@ export interface IWebGLCanvasProps {
   gl: CanvasWithGL
 
 
-  // HTNLCanvasElement props
+  // HTMLCanvasElement props
   className?: string,
 
   width?: number,
