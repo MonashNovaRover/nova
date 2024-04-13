@@ -11,7 +11,7 @@ buildRosPackage {
 
   src = builtins.path rec {
     name = "arm-interfaces-source";
-    path = ../../../arm_interfaces;
+    path = ../../../arm/arm_interfaces;
     filter = lib.novaSourceFilter [ ] path;
   };
 
