@@ -40,8 +40,7 @@ EDITED:		13/09/2022
 
 
 // Include custom ROS messages
-#include "core/msg/input_gamepad.hpp"
-#include "core/msg/drive_input.hpp"
+#include "drive_msgs/msg/drive_input.hpp"
 #include "core/msg/telemetry.hpp"
 #include "core/msg/single_telemetry.hpp"
 #include "core/msg/pivot_wheel_data.hpp"

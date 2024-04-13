@@ -12,6 +12,7 @@
     nova-teleop-drive-joy = callPackage ./nix/packages/teleop-drive-joy { };
     nova-pointcloud-filter = callPackage ./nix/packages/nova-pointcloud-filter { };
     nova-drive= callPackage ./nix/packages/drive { };
+    nova-drive-msgs = callPackage ./nix/packages/drive-msgs { };
     # diff drive, pivot drive, strafe, 
   } // import ./nix/packages/controllers { inherit pkgs; };
 

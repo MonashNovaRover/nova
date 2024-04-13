@@ -1,30 +1,23 @@
 cmake_minimum_required(VERSION 3.8)
-project(drive)
+project(drive_msgs)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-include_directories(include)
-
 # find dependencies
 find_package(ament_cmake REQUIRED)
-find_package(rclcpp REQUIRED)
-find_package(drive_msgs REQUIRED)
-find_package(core REQUIRED)
+# uncomment the following section in order to fill in
+# further dependencies manually.
 
-#find libcanmd
-find_package(libcanmd REQUIRED)
+# Find default generators
+find_package(rosidl_default_generators REQUIRED)
+find_package(std_msgs REQUIRED)
 
-add_executable(driver src/driver.cpp)
-target_link_libraries(driver PUBLIC libcanmd)
-target_include_directories(driver PUBLIC 
-      ${libcanmd_INCLUDE_DIRS})
-ament_target_dependencies(driver PUBLIC rclcpp drive_msgs core)
-
-install(TARGETS
-        driver
-        DESTINATION lib/${PROJECT_NAME}
+rosidl_generate_interfaces(${PROJECT_NAME}
+  "msg/DriveInfo.msg"
+  "msg/DriveInput.msg"
+  DEPENDENCIES std_msgs
 )
 
 if(BUILD_TESTING)

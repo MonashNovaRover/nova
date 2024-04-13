@@ -2,6 +2,7 @@
 , buildRosPackage
 , ament-cmake
 , rclcpp
+, nova-drive-msgs
 , nova-core
 , libcanmd
 , jcan
@@ -23,6 +24,7 @@ buildRosPackage {
 
   buildInputs = [
     rclcpp
+    nova-drive-msgs
     nova-core
     libcanmd
     jcan
