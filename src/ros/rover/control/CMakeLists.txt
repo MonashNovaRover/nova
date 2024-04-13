@@ -22,6 +22,7 @@ find_package(rclcpp REQUIRED)
 find_package(rclpy REQUIRED)
 # Find and include message types dependencies
 find_package(core REQUIRED)
+<<<<<<< HEAD
 # Needed for jcan
 find_package (Threads REQUIRED)
 # Needed for Keyboard Input
@@ -52,6 +53,8 @@ else()
         ${SDL2_INCLUDE_DIRS}
     )
 endif()
+=======
+>>>>>>> b0c7b871 (seperate drive and control)
 ################################################
 # Add non-executable targets:
 ################################################
@@ -86,11 +89,6 @@ endif()
 # CMDs
 add_library(cmd src/cmd/cmd.cpp)
 target_link_libraries(cmd socketcan print)
-# BLCMDs
-add_library(blcmd src/cmd/blcmd.cpp)
-target_link_libraries(blcmd print jcan)
-
-
 
 ################################################
 # Add executables:
