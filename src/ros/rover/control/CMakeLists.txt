@@ -32,9 +32,7 @@ install(DIRECTORY
 install(PROGRAMS
         control/cmd_plotter.py
         control/rover_state_publisher.py
-        control/blcmd_status_monitor.py
-        control/tile_placer.py
-        control/scraper.py
+        control/excavation_construction.py
         control/gimbal_cam.py
         control/drive_sim.py
         control/drive_input_stamped_publisher.py

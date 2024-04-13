@@ -7,8 +7,8 @@ Purpose: ROS node to monitor the status of the blcmds
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: blcmd_status_monitor
 TOPICS:
-  - subscriber: /control/blcmd_reset [BLCMDReset]
-  - publisher: /control/blcmd_status [BLCMDStatusArray]
+  - subscriber: /blcmds/reset [BLCMDReset]
+  - publisher: /blcmds/status [BLCMDStatusArray]
 SERVICES:
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -25,8 +25,8 @@ from rclpy.duration import Duration
 import jcan
 
 # import custom messages
-from core.msg import BLCMDStatus, BLCMDStatusArray
-from core.srv import BLCMDReset
+from blcmd_interfaces.msg import BLCMDStatus, BLCMDStatusArray
+from blcmd_interfaces.srv import BLCMDReset
 
 
 class BLCMDStatusMonitor(Node):
@@ -34,9 +34,9 @@ class BLCMDStatusMonitor(Node):
     def __init__(self):
         super().__init__("blcmd_status_monitor")
         #publisher to publish the status of the blcmd
-        self.publisher = self.create_publisher(BLCMDStatusArray, "/control/blcmd_status", 10)
+        self.publisher = self.create_publisher(BLCMDStatusArray, "/blcmds/blcmd_status", 10)
         #service to reset the blcmd
-        self.reset_service = self.create_service(BLCMDReset, "/control/blcmd_reset", self.reset)
+        self.reset_service = self.create_service(BLCMDReset, "/blcmds/blcmd_reset", self.reset)
 
         #declare parameters
         self.declare_parameter("num_blcmds", 8)

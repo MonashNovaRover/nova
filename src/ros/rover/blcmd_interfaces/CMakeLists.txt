@@ -19,6 +19,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/BLCMDStatusArray.msg"
   "msg/BLCMDReset.msg"
 
+  "srv/BLCMDReset.srv"
   "srv/DisableBLCMD.srv"
   
   DEPENDENCIES std_msgs

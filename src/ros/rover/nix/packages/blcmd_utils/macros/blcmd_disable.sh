@@ -30,4 +30,4 @@ if ! is_integer_between_1_and_8 "$id_input"; then
 fi
 
 # Call the ros2 service with the specified arguments
-ros2 service call /control/disable_blcmd blcmd_interfaces/srv/DisableBLCMD "{disable: $disable_input, id: $id_input}"
+ros2 service call /blcmds/disable_blcmd blcmd_interfaces/srv/DisableBLCMD "{disable: $disable_input, id: $id_input}"
