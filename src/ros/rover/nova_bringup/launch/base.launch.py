@@ -27,8 +27,8 @@ def generate_launch_description():
 
     return LaunchDescription([
         Node(
-            package='control',
-            executable='inputs',
+            package='inputs',
+            executable='inputs_publisher',
             output='screen',
             emulate_tty=True,
             parameters=[{'use_sim_time': gazebo}]
