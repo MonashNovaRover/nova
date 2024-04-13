@@ -76,7 +76,7 @@ export function SettingsModal() {
           />
         </ModalBody>
         <ModalFooter>
-          <Button size="sm" color="success" variant="flat" onClick={submit}>
+          <Button size="sm" color="success" variant="flat" onPress={submit}>
             Submit
           </Button>
         </ModalFooter>

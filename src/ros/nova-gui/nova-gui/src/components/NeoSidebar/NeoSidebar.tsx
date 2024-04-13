@@ -115,7 +115,7 @@ export const NeoSidebar = () => {
                       const isCurrentSelected = currentPath === mode.route;
                       return (
                         <Button
-                          onClick={() => navigate(mode.route)}
+                          onPress={() => navigate(mode.route)}
                           size="md"
                           variant={isCurrentSelected ? "solid" : "light"}
                           color={isCurrentSelected ? "primary" : "default"}

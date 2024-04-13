@@ -52,7 +52,7 @@ export const NovaTopBar: React.FC = () => {
       <Button
         variant="light"
         isIconOnly
-        onClick={() =>
+        onPress={() =>
           uiActions.setSideBarVisibility(!uiState.sidebarIsVisible)
         }
         className="absolute left-2"
@@ -135,7 +135,7 @@ export const NovaTopBar: React.FC = () => {
             radius="sm"
             size="sm"
             variant="shadow"
-            onClick={() => uiActions.setControllerHelpModal(true)}
+            onPress={() => uiActions.setControllerHelpModal(true)}
           >
             <HelpCircle className="w-4 h-4 " />
           </Button>
@@ -145,7 +145,7 @@ export const NovaTopBar: React.FC = () => {
             isIconOnly
             size="sm"
             variant="shadow"
-            onClick={() => uiActions.setSettingsModal(true)}
+            onPress={() => uiActions.setSettingsModal(true)}
           >
             <Settings className="w-4 h-4" />
           </Button>

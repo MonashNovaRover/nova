@@ -15,7 +15,7 @@ const DownloadButton : React.FC<DownloadProps>= (props) => {
   };
 
   return (
-    <Button {...props} onClick={handleDownload}>
+    <Button {...props} onPress={handleDownload}>
       {props.children}
     </Button>
   );

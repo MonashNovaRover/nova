@@ -68,7 +68,7 @@ const RFIDWidget: React.FC<CardProps> = (props) => {
         />
 
         <div className="flex flex-row justify-end gap-2">
-          <Button className="grow" onClick={read}>
+          <Button className="grow" onPress={read}>
             Read
           </Button>
           <DownloadButton
