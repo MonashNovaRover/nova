@@ -18,7 +18,8 @@
     nova-arm-interfaces = callPackage ./nix/packages/arm-interfaces { };
     nova-arm = callPackage ./nix/packages/arm { };
     nova-input-msgs = callPackage ./nix/packages/input-msgs { };
-    nova-inputs = callPackage ./nix/packages/inputs { };  
+    nova-inputs = callPackage ./nix/packages/inputs { };
+    nova-cmd-interfaces = callPackage ./nix/packages/cmd-interfaces { };
     # diff drive, pivot drive, strafe, 
   } // import ./nix/packages/controllers { inherit pkgs; };
 
