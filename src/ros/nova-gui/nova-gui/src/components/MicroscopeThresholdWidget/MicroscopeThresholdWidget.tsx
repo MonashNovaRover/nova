@@ -23,7 +23,7 @@ import {RosTopic} from "../../ros/topics/rosTopic.ts";
 import {useCameraStream} from "../CameraComponent/hooks/useCameraStream.ts";
 import {useCameraStreamer} from "../CameraComponent/hooks/useCameraStreamer.ts";
 import useGL from "../../hooks/webgl/gl/useGL.ts";
-import {useProgram} from "../../hooks/webgl/program/useProgram.ts";
+import useProgram from "../../hooks/webgl/program/useProgram.ts";
 import useSampler from "../../hooks/webgl/program/sampler/useSampler.ts";
 import useUniform from "../../hooks/webgl/program/uniform/useUniform.ts";
 import useAttribute from "../../hooks/webgl/program/attribute/useAttribute.ts";

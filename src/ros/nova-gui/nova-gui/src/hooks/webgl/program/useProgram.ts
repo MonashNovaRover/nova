@@ -19,7 +19,7 @@ function useProgram_aux(gl: GLState, vert: string, frag: string, options: GLProg
  * @param frag The fragment shader source code
  * @param options Additional settings for the draw mode
  */
-export function useProgram(gl: GLState, vert: string, frag: string, options?: Partial<GLProgramStateOptions>) {
+export default function useProgram(gl: GLState, vert: string, frag: string, options?: Partial<GLProgramStateOptions>) {
   const filledOptions = {
     numberOfVertices: 4,
     drawMode: GLProgramDrawMode.TRIANGLE_STRIP,

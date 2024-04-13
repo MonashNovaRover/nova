@@ -11,7 +11,7 @@ import BezVert from "./bez.vert";
 import IdentityVert from "./identity.vert";
 import IdentityFrag from "./identity.frag";
 import useGL from "../../../hooks/webgl/gl/useGL.ts";
-import {useProgram} from "../../../hooks/webgl/program/useProgram.ts";
+import useProgram from "../../../hooks/webgl/program/useProgram.ts";
 import useSampler from "../../../hooks/webgl/program/sampler/useSampler.ts";
 import useAttribute from "../../../hooks/webgl/program/attribute/useAttribute.ts";
 import useWebcam from "../../../hooks/webgl/program/sampler/useWebcam.ts";
