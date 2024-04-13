@@ -6,8 +6,8 @@ Purpose: Control Auger Height and Drill Spin using Joysticks
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: auger
 TOPICS:
-  - subscriber: /inputs/input_joystick_l [InputJoystick]
-  - subscriber: /inputs/input_joystick_r [InputJoystick]
+  - subscriber: /control/input_joystick_l [InputJoystick]
+  - subscriber: /control/input_joystick_r [InputJoystick]
 SERVICES: None
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -18,6 +18,7 @@ EDITED:		24/02/2024
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 """
+from control.control_classes import CardInterface
 import rclpy, jcan, logging
 from struct import pack
 from rclpy.node import Node
@@ -26,93 +27,122 @@ from rclpy.subscription import SubscriptionEventCallbacks
 from rclpy.duration import Duration
 
 # import the joystick ROS message we are listening to
-from input_interfaces.msg import InputJoystick
+from core.msg import InputJoystick
 
 
-class AugerNode(Node):
-    # can bus
-    CAN_BUS = "can1"
-    # card IDs
-    AUGER_ID = 0x063
-    DRILL_ID = 0x053
-    CARD_ID_RECEIVE = 0x4A2
-    # command data
-    AUGER_UP = 1
-    AUGER_DOWN = -1
-    DRILL_CLOCKWISE = 1
-    DRILL_COUNTERCLOCKWISE = -1
-    # limit switch id
-    AUGER_LIMIT_SWITCH_TOP = 0x01
-    AUGER_LIMIT_SWITCH_BOTTOM = 0x02
-    # limit switch status / data
-    AUGER_LIMIT_SWITCH_CLEAR = 0x00
-    AUGER_LIMIT_SWITCH_HIT = 0xFF
-    # max_velocity
-    MAX_VELOCITY = 32767 * (3/4) # 3/4 of max possible value sent to motor
+class ControllerNode(Node):
     # ROS parameter names
     CAN_BUS_PARAM = "can_bus"
-    AUGER_MAX_VELOCITY_PARAM = "auger_max_vel"
-    DRILL_MAX_VELOCITY_PARAM = "drill_max_vel"
 
-    def __init__(self):
-        super().__init__("auger")
 
-        self.get_logger().set_level(logging.INFO)
-        self.get_logger().info("Auger starting")
+    def __init__(self, can_bus: str, logging_level: int = logging.INFO, name: str = "Controller",):
+        super().__init__(name)
 
-        self.declare_parameter(self.CAN_BUS_PARAM, self.CAN_BUS)
-        self.declare_parameter(self.AUGER_MAX_VELOCITY_PARAM, self.MAX_VELOCITY)
-        self.declare_parameter(self.DRILL_MAX_VELOCITY_PARAM, self.MAX_VELOCITY)
+        self.get_logger().set_level(logging_level)
+        self.get_logger().info(f"{name} starting")
 
-        # Initially all motors spin backwards with 0 velocity
-        self.auger_direction = self.AUGER_UP
-        self.drill_direction = self.DRILL_CLOCKWISE
-        self.auger_velocity = 0
-        self.drill_velocity = 0
-        
-        self.top_limit = False
-        self.bottom_limit = False
+        self.declare_parameter(self.CAN_BUS_PARAM, can_bus)
+
         self.joystick_lock = True
 
+        self.controllers : dict[str, CardInterface] = {}
 
-        deadline = Duration(nanoseconds=2e8)        
+        deadline = Duration(nanoseconds=2e8)
         events = SubscriptionEventCallbacks(deadline=self.deadline_callback)
         self.qos = QoSProfile(reliability=QoSReliabilityPolicy.BEST_EFFORT, depth=1, deadline=deadline)
 
-        self.joystick_l_sub = self.create_subscription(InputJoystick, "/inputs/input_joystick_l", self.joystick_l_callback, self.qos, event_callbacks=events)
-        self.joystick_r_sub = self.create_subscription(InputJoystick, "/inputs/input_joystick_r", self.joystick_r_callback, self.qos, event_callbacks=events)
+        self.joystick_l_sub = self.create_subscription(InputJoystick, "/control/input_joystick_l", self.joystick_l_callback, self.qos, event_callbacks=events)
+        self.joystick_r_sub = self.create_subscription(InputJoystick, "/control/input_joystick_r", self.joystick_r_callback, self.qos, event_callbacks=events)
 
         self.bus = jcan.Bus()
-        self.bus.set_id_filter_mask(self.CARD_ID_RECEIVE, 0xFFF)
 
-        self.bus.add_callback(self.CARD_ID_RECEIVE, self.callback_receive_can_feedback)
 
+    def add_controller(self, controller_name: str, controller: CardInterface):
+        self.controllers[controller_name] = controller
+        if controller.control.limit_pos is not None:
+            limit_pos = controller.control.limit_pos
+            self.add_receive_can_callback(limit_pos.frame_id, limit_pos.update_limit_hit)
+        if controller.control.limit_neg is not None:
+            limit_neg = controller.control.limit_neg
+            self.add_receive_can_callback(limit_neg.frame_id, limit_neg.update_limit_hit)
+
+    
+    def add_receive_can_callback(self, frame_id: int, callback: callable):
+        def callback_receive_can(frame: jcan.Frame):
+            try:
+                self.get_logger().debug(f"Received {hex(frame.id)} {frame.data}")
+                if frame.id == frame_id:
+                    callback(frame)
+                else:
+                    self.get_logger().warn(f"Received unknown frame {frame}")
+            except Exception as e:
+                self.get_logger().error(e)
+
+        self.bus.add_listener(frame_id, callback_receive_can)
+
+
+
+    def start(self):
         self.bus.open(self.get_parameter(self.CAN_BUS_PARAM).value)
-        self.create_timer(0.05, self.callback_send_can_commands)
-        self.create_timer(0.01, self.bus.spin)
-
-        self.get_logger().info(f"Auger started on {self.get_parameter(self.CAN_BUS_PARAM).value}")
+        self.timer_jcan_commands = self.create_timer(0.05, self.callback_send_commands)
+        self.timer_jcan_spin = self.create_timer(0.01, self.bus.spin)
+        self.get_logger().info(f"{self.get_name()} started on {self.get_parameter(self.CAN_BUS_PARAM).value} using {self.get_parameter(self.CARD_TYPE_PARAM).value} card type")
         self.get_logger().info("Joysticks Locked")
 
 
-
-    def callback_send_can_commands(self):
+    def callback_send_commands(self):
         """Take current internal state and publish over CAN
         Sends can commands for auger and drill together
         """
-        # The list of values will be cast to uint8's by JCAN library - so be careful to double check the values!
-        auger_commands, drill_commands = self.get_can_commands()
-        augerFrame = jcan.Frame(self.AUGER_ID, auger_commands)
-        drillFrame = jcan.Frame(self.DRILL_ID, drill_commands)
-
-        self.get_logger().debug(f"Sending {augerFrame}")
-        self.get_logger().debug(f"Sending {drillFrame}")
         try:
-            self.bus.send(augerFrame)
-            self.bus.send(drillFrame)
+            for controller in self.controllers.values():
+                frame = controller.get_frame()
+                self.get_logger().debug(f"Sending {frame}")
+                self.bus.send(frame)
 
         except Exception as e:
             print(e)
+
+    def deadline_callback(self, _info):
+        # Set all speeds to 0
+        self.get_logger().warning("200ms Callback deadline missed")
+        self.stop_state()
+
+    def stop_state(self):
+        """
+        Stop all motors
+        """
+        for controller in self.controllers:
+            controller.control.stop()
+
+    def callback_receive_can_time_of_flight(self, frame: jcan.Frame):
+        """Receive can feedback for auger limit switches
+        """
+        self.get_logger().debug(f"Received {hex(frame.id)} {frame.data}")
+        for controller in self.controllers:
+            if frame.id == :
+                controller.update_time_of_flight(frame)
+                return
+
+        if len(frame.data) != 2:
+            self.get_logger().error(f"Time of flight error")
+            return
+
+        if frame.id == self.JONO_ID_TIME_OF_FLIGHT:
+       
+            raw_height = int(frame.data[1] + (frame.data[0] << 8))
+            height = self.convert_time_of_flight(raw_height)
+            self.get_logger().debug(f"Raw height: {raw_height}, Converted height: {height}")
+            if height == 0:
+                self.get_logger().debug("Time of flight hit bottom")
+                self.platform.update_limit_neg(True)
+            else:
+                self.platform.update_limit_neg(False)
+
+            self.publish_time_of_flight(height)
+        else:
+            self.get_logger().warn(f"Received unknown frame {frame}")
+
 
     def callback_receive_can_feedback(self, frame: jcan.Frame):
         """Receive can feedback for auger limit switches
