@@ -6,14 +6,14 @@ This a suite of hooks enabling the easy use of WebGL in React.
 This can be a very dense topic. Please reach out to Bailey if you need help diciphering it.
 
 I am assuming some understanding of shader programming in writing this. If you arent familiar, I'd suggest first playing
-around with something like [ShaderToy](https://www.shadertoy.com/) to get an understanding of shaders. You essentially 
-write fragment shaders in When, with the context of rasterization, look into how vertex and fragment shaders interact to 
-form a program. Heres a short [YouTube video](https://www.youtube.com/watch?v=C1ZUeHLb0YU) that talk about this (ignore 
-the part about a z-buffer). Here is [another excerpt on YouTube](https://youtu.be/5W7JLgFCkwI?si=P1ojd2L9wfrElflQ&t=345)
-from a larger series that goes into more detail.
+around with something like [ShaderToy](https://www.shadertoy.com/) to get an understanding of shaders. ShaderToy 
+essentially allows you to write a fragment shader. With the context of rasterization, look into how vertex and fragment 
+shaders interact to form a program. Heres a short [YouTube video](https://www.youtube.com/watch?v=C1ZUeHLb0YU) that \
+talks about this (ignore the part about a z-buffer). Here is 
+[another excerpt of a YouTube video](https://youtu.be/5W7JLgFCkwI?si=P1ojd2L9wfrElflQ&t=345) from a larger series that 
+goes into more detail.
 
-
-# Basic Usage 
+## Basic Usage 
 
 Let's make a simple program with a single shader program, consisting of:
 - a vertex shader `example.vert`,
@@ -71,6 +71,42 @@ The name of the variable doesn't matter here. I've chosen `Vert` and `Frag` arbi
 These will be strings containing your shader source code, which we will pass to the `useProgram` hook, which compiles 
 our shaders.
 
+### Example Component
+
+```tsx
+function ExampleComponent() {
+  // Some state that is passed into uniforms/attributes
+  const [count, setCount] = useState<number>(0);
+  
+  // Creating the context
+  const gl = useGL();
+  // Creating the program from the imported shader source code
+  const program = useProgram(gl, Vert, Frag);
+
+  // Configuring the data sent to the program...
+  
+  useScreenQuadAttribute(program, "aPosition");
+
+  useAttribute(program, "aTexCoord", () => [
+    [1 + count / 10, 1], [count / 10, 1], [1 + count / 10, 0], [count / 10, 0]
+  ], [count]);
+
+  const image = useImageTexture(imagePath);
+  useSampler(program, 0, "image", image);
+
+  useUniform(program, "count", () => [count], [count]);
+  
+  // Returning the output of the component, remembering to make sure the gl.canvasRef is included somewhere
+  return (
+    <div>
+      <AutosizedGLCanvas gl={gl} className="min-h-6 min-w-6"/>
+      <Button>Increment Count</Button>
+    </div>
+  );
+}
+
+```
+
 ## `useGL`
 
 This is the main hook used to setup the rendering context (`WebGL2RenderingContext`) we use to make draw calls. 
@@ -125,6 +161,16 @@ definition being rendered last.
 
 There is an additional suite of hooks just to set up the variables defined by your program.
 
+By default, the program will render 4 vertices with TRIANGLE_STRIP. You can configure this by passing an additional 
+options object:
+
+```ts
+const program = useProgram(gl, Vert, Frag, {
+  drawMode: GLProgramDrawMode.TRIANGLES,
+  vertexCount: 3
+})
+```
+
 ## `useAttribute`
 
 If you recall, we had some vertex attributes in `example.vert`:
@@ -175,7 +221,7 @@ In this example, a variable attribute is set, which depends on some variable `of
 
 ```tsx
 useAttribute(program, "aTexCoord", () => [
-  [1 + offset, 1], [offset, 1], [1 + offset, 0], [offset, 0]
+  [1 + count, 1], [offset, 1], [1 + offset, 0], [offset, 0]
 ], [offset]);
 ```
 
@@ -286,6 +332,16 @@ return (
 )
 ```
 Note: video samplers only work if they are added to the DOM.
+
+You can also specify additional options for how to treat the sampler:
+
+```ts
+useSampler(program, 0, "image", image, {
+  wrapS: GLWrapMode.MIRRORED_REPEAT,        // How should the image wrap horizontally?
+  wrapT: GLWrapMode.CLAMP_TO_EDGE,          // How should the image wrap vertically?
+  format: HTMLTextureFormat.LUMINANCE_ALPHA // How should colours from the image be uploaded?
+});
+```
 
 ## More hooks
 
