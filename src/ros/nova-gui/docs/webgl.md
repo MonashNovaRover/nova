@@ -3,7 +3,7 @@
 
 This a suite of hooks enabling the easy use of WebGL in React.
 
-This can be a very dense topic. Please reach out to Bailey if you need help diciphering it.
+This can be a very dense topic. Please reach out to Bailey if you need help deciphering it.
 
 I am assuming some understanding of shader programming in writing this. If you arent familiar, I'd suggest first playing
 around with something like [ShaderToy](https://www.shadertoy.com/) to get an understanding of shaders. ShaderToy 
