@@ -3,14 +3,23 @@ export interface RenderQueueItem<T extends unknown[]> {
   render: (...args: T) => void
 }
 
+/**
+ * This is the data structure used to set up and sequence rendering.
+ *
+ * Each item is called in the order that they pushed to the queue when rendering, allowing for the order of useProgram
+ * hooks (or other future implementations) to be the order that they are rendered in.
+ *
+ * To set up programs, we need a WebGL2RenderingContext. To get a context, we need a canvas in the dom. UseGL gets this
+ * from a useRef, which is null on first render. So, we cannot guarantee that it exists. Queue items include a setup
+ * function, which allows them to be constructed without the WebGL2RenderingContext, and be registered to run some setup
+ * using the rendering context when it becomes available.
+ */
 export default class RenderQueue<T extends unknown[]> implements RenderQueueItem<T> {
   private queue: RenderQueueItem<T>[];
   private context?: T;
 
   constructor() {
     this.queue = [];
-
-
   }
 
   /**
@@ -35,7 +44,7 @@ export default class RenderQueue<T extends unknown[]> implements RenderQueueItem
   }
 
   /**
-   * Provides all items in the queue the context so that they can be set up for rendering
+   * Provides all items in the queue the context so that they can be set up for rendering.
    * @param context The newly created rendering context
    */
   public setup(...context: T): void {
