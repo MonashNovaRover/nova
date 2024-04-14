@@ -13,17 +13,25 @@ export default function useResolutionUniform(gl: GLState, program: GLProgramStat
 
     let frameID = -1;
 
-    const onResize = () => {
-      program.queue.cancel(frameID);
+    const absoluteSizeTarget = sampler ?? gl.canvasRef.current.parentElement ?? gl.canvasRef.current;
 
-      frameID = program.queue.push((context, program) => {
+    const boxObserver = new ResizeObserver((entries) => {
+      const entry = entries.find((entry) => entry.target === absoluteSizeTarget);
+
+      if (!entry)
+        return;
+
+      const width = entry.devicePixelContentBoxSize[0].inlineSize;
+      const height = entry.devicePixelContentBoxSize[0].blockSize;
+
+      frameID = program.queue.update(frameID, (context, program) => {
         const location = context.getUniformLocation(program, name);
 
         if (location === null)
           return;
 
         if (!sampler) {
-          context.uniform2f(location, context.drawingBufferWidth, context.drawingBufferHeight);
+          context.uniform2f(location, width, height);
         }
         else if (sampler instanceof HTMLVideoElement) {
           context.uniform2f(location, sampler.videoWidth, sampler.videoHeight);
@@ -32,16 +40,11 @@ export default function useResolutionUniform(gl: GLState, program: GLProgramStat
           context.uniform2f(location, sampler.naturalWidth, sampler.naturalHeight);
         }
       });
-    }
-
-    const resizeObserver = new ResizeObserver(onResize);
-    resizeObserver.observe(gl.canvasRef.current);
-    const observer = new MutationObserver(onResize);
-    observer.observe(gl.canvasRef.current, {attributes: true, attributeFilter: ["style", "width", "height"]});
+    });
+    boxObserver.observe(absoluteSizeTarget, { box: "device-pixel-content-box" });
 
     return () => {
-      resizeObserver.disconnect();
-      observer.disconnect();
+      boxObserver.disconnect();
 
       program.queue.cancel(frameID);
     };
