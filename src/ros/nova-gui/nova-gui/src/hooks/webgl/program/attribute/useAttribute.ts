@@ -13,11 +13,6 @@ export interface UseAttributeOptions {
   offset: number,
 }
 
-
-export default function useAttribute(program: GLProgramState, name: string, constantAttribute: vecArray): void;
-export default function useAttribute(program: GLProgramState, name: string, factory: () => vecArray,
-                                     deps: DependencyList, options?: Partial<UseAttributeOptions>): void;
-
 /**
  * Applies float vector or float vertex attribute values to a given program. The given name of the attribute should match
  * those of the attribute defined in the program.
@@ -27,9 +22,9 @@ export default function useAttribute(program: GLProgramState, name: string, fact
  * @param deps The dependency array, that should cause the uniform to be reset when changed.
  * @param options Additional options to configure the attribute
  */
-export default function useAttribute(program: GLProgramState, name: string,
-                                     factoryOrAttribute: (() => vecArray) | vecArray, deps: DependencyList = [],
-                                     options?: Partial<UseAttributeOptions>) {
+export default function useAttributed(program: GLProgramState, name: string,
+                                      factoryOrAttribute: (() => vecArray) | vecArray, deps: DependencyList = [],
+                                      options?: Partial<UseAttributeOptions>) {
   const buffer = useRef<WebGLBuffer>();
 
   const filledOptions = {
@@ -70,15 +65,15 @@ export default function useAttribute(program: GLProgramState, name: string,
 
     // Now pass the list of positions into WebGL to build the shape. We do this by creating a Float32Array from the
     // JavaScript array, then use it to fill the current buffer.
-    context.bufferData(context.ARRAY_BUFFER, attributeData, deps.length === 0 ? context.STATIC_DRAW : context.DYNAMIC_DRAW);
-
-    // setPositionAttribute
-    const type = context.FLOAT; // the data in the buffer is 32bit floats
+    // If this has any dependencies in the dependency array, then it can vary. Otherwise, it never changes. So, we can
+    // set STATIC_DRAW if it never changes, and DYNAMIC_DRAW if it does.
+    context.bufferData(context.ARRAY_BUFFER, attributeData,
+      deps.length === 0 ? context.STATIC_DRAW : context.DYNAMIC_DRAW);
 
     context.vertexAttribPointer(
       attributeLocation,
       numComponents,
-      type,
+      context.FLOAT,
       filledOptions.normalize,
       filledOptions.stride,
       filledOptions.offset,

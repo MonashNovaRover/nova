@@ -96,7 +96,8 @@ export default function TestWebGLView() {
     vertexCount: 4
   });
   useAttribute(lineProgram, "aLinePosition", () => [
-    [-Math.cos(time), -Math.sin(time)], [-0.5, Math.sin(0.5 * time -3.14159/4)], [0.5, Math.sin(0.5 * time + 3.14159/4)], [Math.cos(1.87654321 * time), Math.sin(1.87654321 * time)],
+    [-Math.cos(time), -Math.sin(time)], [-0.5, Math.sin(0.5 * time -3.14159/4)],
+    [0.5, Math.sin(0.5 * time + 3.14159/4)], [Math.cos(1.87654321 * time), Math.sin(1.87654321 * time)],
   ], [time]);
   useProgramRenderEffect(lineProgram, (context) => {
     // This only works on chromium!
