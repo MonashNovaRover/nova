@@ -25,14 +25,20 @@ export default function useCanvasSize(gl : GLState, sizeTarget?: Element | null)
 
       /* … render to canvas … */
       frameID.current = gl.queue.update(frameID.current, () => {
-        if (gl.canvasRef.current) {
-          gl.canvasRef.current.width = entry.devicePixelContentBoxSize[0].inlineSize;
-          gl.canvasRef.current.height = entry.devicePixelContentBoxSize[0].blockSize;
-        }
+
 
         gl.context?.viewport(0,0,
           entry.devicePixelContentBoxSize[0].inlineSize,
           entry.devicePixelContentBoxSize[0].blockSize);
+        if (!gl.canvasRef.current)
+          return;
+
+        gl.canvasRef.current?.style.setProperty("inline-size",
+          `${entry.devicePixelContentBoxSize[0].inlineSize / window.devicePixelRatio}px`);
+        gl.canvasRef.current?.style.setProperty("block-size",
+          `${entry.devicePixelContentBoxSize[0].blockSize  / window.devicePixelRatio}px`);
+        gl.canvasRef.current.width = entry.devicePixelContentBoxSize[0].inlineSize;
+        gl.canvasRef.current.height = entry.devicePixelContentBoxSize[0].blockSize;
       });
     });
     boxObserver.observe(absoluteSizeTarget, { box: "device-pixel-content-box" });

@@ -148,7 +148,7 @@ export default function TestWebGLView() {
       </AutosizedGLCanvas>
 
       <AutosizedGLCanvas gl={gl} drawChildrenBelow={false}
-                         className="overflow-hidden col-span-2 resize max-w-full min-h-6 min-w-24">
+                         className="col-span-2 resize max-w-full min-h-6 min-w-24 rounded">
         <div className={`relative block h-full`} style={{
           left: `${(50 - 50 * Math.cos(5))}%`,
         }}><p>Count: {count}</p></div>
