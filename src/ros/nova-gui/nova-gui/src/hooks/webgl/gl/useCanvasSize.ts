@@ -1,4 +1,4 @@
-import {useLayoutEffect, useRef} from "react";
+import {useLayoutEffect} from "react";
 import GLState from "./GLState.ts";
 
 /**
@@ -8,14 +8,14 @@ import GLState from "./GLState.ts";
  * @param sizeTarget The element to try match the pixel size of. Uses canvasRef when not specified.
  */
 export default function useCanvasSize(gl : GLState, sizeTarget?: Element | null): void {
-  const frameID = useRef<number>(-1)
-
   useLayoutEffect(() => {
     const canvas = gl.canvasRef.current;
     if (canvas === null)
       return;
 
     const absoluteSizeTarget = sizeTarget ?? canvas.parentElement ?? canvas;
+
+    let frameID = -1;
 
     const boxObserver = new ResizeObserver((entries) => {
       const entry = entries.find((entry) => entry.target === absoluteSizeTarget);
@@ -24,15 +24,16 @@ export default function useCanvasSize(gl : GLState, sizeTarget?: Element | null)
         return;
 
       /* … render to canvas … */
-      frameID.current = gl.queue.update(frameID.current, () => {
-
-
+      frameID = gl.queue.update(frameID, () => {
+        // Resize the drawing buffer
         gl.context?.viewport(0,0,
           entry.devicePixelContentBoxSize[0].inlineSize,
           entry.devicePixelContentBoxSize[0].blockSize);
+
         if (!gl.canvasRef.current)
           return;
 
+        // Update canvas element styles to make it align pixel perfect with the previously set drawing buffer size
         gl.canvasRef.current?.style.setProperty("inline-size",
           `${entry.devicePixelContentBoxSize[0].inlineSize / window.devicePixelRatio}px`);
         gl.canvasRef.current?.style.setProperty("block-size",
@@ -45,6 +46,8 @@ export default function useCanvasSize(gl : GLState, sizeTarget?: Element | null)
 
     return () => {
       boxObserver.disconnect();
+
+      gl.queue.cancel(frameID);
     };
   }, [gl, sizeTarget]);
 }

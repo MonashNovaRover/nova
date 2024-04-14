@@ -136,25 +136,13 @@ export default function TestWebGLView() {
   useScreenQuadAttribute(imageProgram);
   useUniform(imageProgram, "count", [10])
 
-  return (
-    <div
-      className="grid w-full gap-3 p-3 auto-cols-fr grid-cols-3 overflow-clip pb-48">
+  return (<div className="h-screen">
+    <div className="grid w-full gap-3 p-3 auto-cols-fr max-h-full grid-cols-3 overflow-clip pb-48">
+      <video ref={videoRef} className="rounded w-full"></video>
 
-
-      <video ref={videoRef}></video>
-
-      <AutosizedGLCanvas gl={secondGL} sizeTarget={videoRef.current}>
+      <AutosizedGLCanvas gl={secondGL} sizeTarget={videoRef.current} className="rounded">
         <i>Mirrored with WebGL hooks!</i>
       </AutosizedGLCanvas>
-
-      <AutosizedGLCanvas gl={gl} drawChildrenBelow={false}
-                         className="col-span-2 resize max-w-full min-h-6 min-w-24 rounded">
-        <div className={`relative block h-full`} style={{
-          left: `${(50 - 50 * Math.cos(5))}%`,
-        }}><p>Count: {count}</p></div>
-      </AutosizedGLCanvas>
-
-      <AutosizedGLCanvas gl={imageGL} className="min-h-64"></AutosizedGLCanvas>
 
       <div className="flex flex-col gap-3 align-middle justify-center items-center p-3">
         <p>{count}</p>
@@ -162,6 +150,15 @@ export default function TestWebGLView() {
           Increment Count
         </Button>
       </div>
+
+      <AutosizedGLCanvas gl={gl} drawChildrenBelow={false}
+                         className="col-span-2 resize max-h-full max-w-full min-h-6 min-w-24 rounded">
+        <div className={`relative block h-full`} style={{
+          left: `${(50 - 50 * Math.cos(5))}%`,
+        }}><p>Count: {count}</p></div>
+      </AutosizedGLCanvas>
+
+      <AutosizedGLCanvas gl={imageGL} className="min-h-64 rounded"></AutosizedGLCanvas>
     </div>
-  )
+  </div>)
 }
