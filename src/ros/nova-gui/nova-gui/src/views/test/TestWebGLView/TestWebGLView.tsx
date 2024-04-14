@@ -20,6 +20,7 @@ import AutosizedGLCanvas from "../../../components/AutosizedGLCanvas/AutosizedGL
 import GLProgramDrawMode from "../../../hooks/webgl/program/GLProgramDrawMode.ts";
 import useImageTexture from "../../../hooks/webgl/program/sampler/useImageTexture.ts";
 import ImageSRC from "../../../assets/arm-image.png";
+import SecondImageSRC from "../../../assets/rover-top-down-dark.png";
 import useAnimationFrame from "../../../hooks/webgl/gl/useAnimationFrame.ts";
 import useProgramRenderEffect from "../../../hooks/webgl/program/useProgramRenderEffect.ts";
 import useUniform from "../../../hooks/webgl/program/uniform/useUniform.ts";
@@ -41,6 +42,7 @@ export default function TestWebGLView() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   useWebcam(videoRef)
   const image = useImageTexture(ImageSRC);
+  const secondImage = useImageTexture(SecondImageSRC);
 
   // Main Program
   const program = useProgram(gl, Vert, Frag);
@@ -56,14 +58,14 @@ export default function TestWebGLView() {
   // Bezier
   const bezLineProgram = useProgram(gl, Vert, LineFrag, {
     drawMode: GLProgramDrawMode.LINE_STRIP,
-    numberOfVertices: 3,
+    vertexCount: 3,
   })
   useAttribute(bezLineProgram, "aPosition", () => [
     [0.2, 0.2], [0.8, 0.5], [0.4, 0.8]
   ], []);
   const bezProgram = useProgram(gl, BezVert, BezFrag, {
     drawMode: GLProgramDrawMode.TRIANGLES,
-    numberOfVertices: 3
+    vertexCount: 3
   });
   useAttribute(bezProgram, "aPosition", () => [
     [0.2, 0.2], [0.8, 0.5], [0.4, 0.8]
@@ -74,23 +76,24 @@ export default function TestWebGLView() {
   ], []);
 
   // Overlay an image
+  const overlayImage = count % 2 === 0 ? image : secondImage;
   const overlayProgram = useProgram(gl, OverlayVert, OverlayFrag);
   // useSampler(overlayProgram, 1, "image", image);
-  useSampler(overlayProgram, 0, "image", image, {
+  useSampler(overlayProgram, 0, "image", overlayImage, {
     wrapT: GLTextureWrapMode.MIRRORED_REPEAT,
     wrapS: GLTextureWrapMode.MIRRORED_REPEAT
   });
   useAttribute(overlayProgram, "aPosition", () => [
     [1, 1], [-1, 1], [1, -1], [-1, -1]
   ], []);
-  useResolutionUniform(gl, overlayProgram, "imageResolution", image) //e
+  useResolutionUniform(gl, overlayProgram, "imageResolution", overlayImage)
   useResolutionUniform(gl, overlayProgram, "resolution");
   useUniform(overlayProgram, "time", () => [time], [time])
 
   // Draw lines on top of everything
   const lineProgram = useProgram(gl, LineVert, LineFrag, {
     drawMode: GLProgramDrawMode.LINE_LOOP,
-    numberOfVertices: 4
+    vertexCount: 4
   });
   useAttribute(lineProgram, "aLinePosition", () => [
     [-Math.cos(time), -Math.sin(time)], [-0.5, Math.sin(0.5 * time -3.14159/4)], [0.5, Math.sin(0.5 * time + 3.14159/4)], [Math.cos(1.87654321 * time), Math.sin(1.87654321 * time)],
@@ -100,10 +103,10 @@ export default function TestWebGLView() {
     context.lineWidth(2.5);
   }, [])
 
-
   const secondVideoRef = useRef<HTMLVideoElement | null>(null);
   useWebcam(secondVideoRef)
 
+  // Add the "mirrored" webcam with another GL!
   const secondGL = useGL();
   const mirrorWebcamProgram = useProgram(secondGL, IdentityVert, IdentityFrag);
   useSampler(mirrorWebcamProgram, 0, "image", videoRef.current, {

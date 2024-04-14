@@ -5,8 +5,12 @@ import GLProgramDrawMode, {mapDrawMode} from "./GLProgramDrawMode.ts";
 import GLState from "../gl/GLState.ts";
 
 export interface GLProgramStateOptions {
-  numberOfVertices: number,
   drawMode: GLProgramDrawMode,
+
+  // A GLsizei specifying the number of indices to be rendered when calling drawArrays
+  vertexCount: number,
+  // A GLint specifying the starting index in the array of vector points.
+  vertexFirst: number
 }
 
 export default class GLProgramState implements RenderQueueItem<[WebGL2RenderingContext]> {
@@ -24,7 +28,10 @@ export default class GLProgramState implements RenderQueueItem<[WebGL2RenderingC
   // The fragment shader source code
   private frag: string;
 
-  public numberOfVertices: number;
+  // A GLsizei specifying the number of indices to be rendered when calling drawArrays
+  public vertexCount: number;
+  // A GLint specifying the starting index in the array of vector points.
+  public vertexFirst: number;
 
   // Used to determine which value to set _mappedDrawMode to.
   private _drawMode: GLProgramDrawMode;
@@ -38,7 +45,8 @@ export default class GLProgramState implements RenderQueueItem<[WebGL2RenderingC
     this.vert = vert;
     this.frag = frag;
 
-    this.numberOfVertices = options.numberOfVertices;
+    this.vertexCount = options.vertexCount;
+    this.vertexFirst = options.vertexFirst;
     this._drawMode = options.drawMode;
 
     this.queue = new ProgramEffectQueue(gl.queue);
@@ -89,7 +97,7 @@ export default class GLProgramState implements RenderQueueItem<[WebGL2RenderingC
 
     this.renderQueue.render(context, this.program);
 
-    context.drawArrays(this._mappedDrawMode, 0, this.numberOfVertices);
+    context.drawArrays(this._mappedDrawMode, this.vertexFirst, this.vertexCount);
   }
 
   /**

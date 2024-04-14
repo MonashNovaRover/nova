@@ -21,16 +21,23 @@ function useProgram_aux(gl: GLState, vert: string, frag: string, options: GLProg
  */
 export default function useProgram(gl: GLState, vert: string, frag: string, options?: Partial<GLProgramStateOptions>) {
   const filledOptions = {
-    numberOfVertices: 4,
     drawMode: GLProgramDrawMode.TRIANGLE_STRIP,
+    vertexFirst: 0,
+    vertexCount: 4,
     ...options,
   }
 
   const program = useProgram_aux(gl, vert, frag, filledOptions);
 
   useEffect(() => {
-    program.numberOfVertices = filledOptions.numberOfVertices;
-  }, [filledOptions.numberOfVertices, program]);
+    program.vertexCount = filledOptions.vertexCount;
+    program.queue.push(); // Trigger a re-render
+  }, [filledOptions.vertexCount, program]);
+
+  useEffect(() => {
+    program.vertexFirst = filledOptions.vertexFirst;
+    program.queue.push(); // Trigger a re-render
+  }, [filledOptions.vertexFirst, program]);
 
   useEffect(() => {
     program.drawMode = filledOptions.drawMode;
