@@ -20,8 +20,12 @@ export default class EffectQueue<T extends unknown[]> {
    * from running if it has not already been run
    */
   public push(effect?: (...args: T) => void): number {
-    if (!effect)
+    if (!effect) {
+      // Allow pushing nothing to trigger this.clear
+      if (this.queue.length === 0)
+        this.queue.push(undefined);
       return -1;
+    }
 
     const frameID = this.nextFrameID;
     this.nextFrameID += 1;

@@ -1,15 +1,15 @@
 import {useCallback, useRef, useState} from "react";
 import {Button} from "@nextui-org/react";
-import Vert from "./test.vert";
-import Frag from "./test.frag";
-import LineVert from "./line.vert";
-import LineFrag from "./line.frag";
-import OverlayVert from "./overlay.vert";
-import OverlayFrag from "./overlay.frag";
-import BezFrag from "./bez.frag";
-import BezVert from "./bez.vert";
-import IdentityVert from "./identity.vert";
-import IdentityFrag from "./identity.frag";
+import Vert from "./gl/test.vert";
+import Frag from "./gl/test.frag";
+import LineVert from "./gl/line.vert";
+import LineFrag from "./gl/line.frag";
+import OverlayVert from "./gl/overlay.vert";
+import OverlayFrag from "./gl/overlay.frag";
+import BezFrag from "./gl/bez.frag";
+import BezVert from "./gl/bez.vert";
+import IdentityVert from "./gl/identity.vert";
+import IdentityFrag from "./gl/identity.frag";
 import useGL from "../../../hooks/webgl/gl/useGL.ts";
 import useProgram from "../../../hooks/webgl/program/useProgram.ts";
 import useSampler from "../../../hooks/webgl/program/sampler/useSampler.ts";
@@ -21,10 +21,12 @@ import GLProgramDrawMode from "../../../hooks/webgl/program/GLProgramDrawMode.ts
 import useImageTexture from "../../../hooks/webgl/program/sampler/useImageTexture.ts";
 import ImageSRC from "../../../assets/arm-image.png";
 import SecondImageSRC from "../../../assets/rover-top-down-dark.png";
+import MonkeysImageSRC from "../../../assets/equirectangular.png";
+import NovaImageSRC from "../../../assets/nova-logo.png";
 import useAnimationFrame from "../../../hooks/webgl/gl/useAnimationFrame.ts";
 import useProgramRenderEffect from "../../../hooks/webgl/program/useProgramRenderEffect.ts";
 import useUniform from "../../../hooks/webgl/program/uniform/useUniform.ts";
-import GLTextureWrapMode from "../../../hooks/webgl/program/sampler/GLTextureWrapMode.ts";
+import GLWrapMode from "../../../hooks/webgl/program/sampler/GLWrapMode.ts";
 import HTMLTextureFormat from "../../../hooks/webgl/program/sampler/HTMLTextureFormat.ts";
 import useScreenQuadAttribute from "../../../hooks/webgl/program/attribute/useScreenQuadAttribute.ts";
 
@@ -53,8 +55,8 @@ export default function TestWebGLView() {
   const program = useProgram(gl, Vert, Frag);
   useResolutionUniform(gl, program);
   useSampler(program, 0, "spec", videoRef.current, {
-    wrapS: GLTextureWrapMode.REPEAT,
-    wrapT: GLTextureWrapMode.CLAMP_TO_EDGE
+    wrapS: GLWrapMode.REPEAT,
+    wrapT: GLWrapMode.CLAMP_TO_EDGE
   });
   useAttribute(program, "aPosition", () => [
     [1, 1], [-1, 1], [1, -1], [-1, -1]
@@ -85,8 +87,8 @@ export default function TestWebGLView() {
   const overlayProgram = useProgram(gl, OverlayVert, OverlayFrag);
   // useSampler(overlayProgram, 1, "image", image);
   useSampler(overlayProgram, 0, "image", overlayImage, {
-    wrapT: GLTextureWrapMode.MIRRORED_REPEAT,
-    wrapS: GLTextureWrapMode.MIRRORED_REPEAT
+    wrapT: GLWrapMode.MIRRORED_REPEAT,
+    wrapS: GLWrapMode.MIRRORED_REPEAT
   });
   useAttribute(overlayProgram, "aPosition", () => [
     [1, 1], [-1, 1], [1, -1], [-1, -1]
@@ -116,37 +118,31 @@ export default function TestWebGLView() {
   const secondGL = useGL();
   const mirrorWebcamProgram = useProgram(secondGL, IdentityVert, IdentityFrag);
   useSampler(mirrorWebcamProgram, 0, "image", videoRef.current, {
-    wrapS: GLTextureWrapMode.MIRRORED_REPEAT,
-    wrapT: GLTextureWrapMode.CLAMP_TO_EDGE,
+    wrapS: GLWrapMode.MIRRORED_REPEAT,
+    wrapT: GLWrapMode.CLAMP_TO_EDGE,
     format: count % 2 === 0 ? HTMLTextureFormat.RGB : HTMLTextureFormat.LUMINANCE,
   })
   useScreenQuadAttribute(mirrorWebcamProgram);
   useUniform(mirrorWebcamProgram, "count", () => [count], [count])
 
   // Static image test
-  const imageGL = useGL();
+  const monkeysImage = useImageTexture(MonkeysImageSRC);
+  const novaImage = useImageTexture(NovaImageSRC);
+  const imageGLImage = [monkeysImage, novaImage, secondImage, image][count % 4];
 
+  const imageGL = useGL();
   const imageProgram = useProgram(imageGL, IdentityVert, IdentityFrag);
-  useSampler(imageProgram, 0, "image", overlayImage, {
-    wrapS: GLTextureWrapMode.MIRRORED_REPEAT,
-    format: count % 4 < 2 ? HTMLTextureFormat.RGBA : HTMLTextureFormat.LUMINANCE_ALPHA
+  useSampler(imageProgram, 0, "image", imageGLImage, {
+    wrapS: GLWrapMode.MIRRORED_REPEAT,
+    format: count % 8 < 4 ? HTMLTextureFormat.RGBA : HTMLTextureFormat.LUMINANCE_ALPHA
   });
   useScreenQuadAttribute(imageProgram);
-  // useUniform(imageProgram, "count", [0], []);
+  useUniform(imageProgram, "count", [10])
 
   return (
     <div
-      className="grid w-full gap-3 p-3 auto-cols-fr s:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 overflow-clip max-h-screen">
-      <div>
-        <p>{count}</p>
-        <Button onPress={increment} color={count % 2 === 0 ? "primary" : "default"}>Increment Count</Button>
-      </div>
+      className="grid w-full gap-3 p-3 auto-cols-fr grid-cols-3 overflow-clip pb-48">
 
-      <AutosizedGLCanvas gl={gl} drawChildrenBelow={false} className="overflow-hidden resize">
-        <div className={`relative block h-full`} style={{
-          left: `${(50 - 50*Math.cos(time))}%`,
-        }}><p>Count: {count}</p></div>
-      </AutosizedGLCanvas>
 
       <video ref={videoRef}></video>
 
@@ -156,7 +152,21 @@ export default function TestWebGLView() {
 
       <video ref={secondVideoRef}></video>
 
-      <AutosizedGLCanvas gl={imageGL} className="min-h-64">hi</AutosizedGLCanvas>
+      <AutosizedGLCanvas gl={gl} drawChildrenBelow={false}
+                         className="overflow-hidden col-span-2 resize max-w-full min-h-6 min-w-24">
+        <div className={`relative block h-full`} style={{
+          left: `${(50 - 50 * Math.cos(time))}%`,
+        }}><p>Count: {count}</p></div>
+      </AutosizedGLCanvas>
+
+      <AutosizedGLCanvas gl={imageGL} className="min-h-64"></AutosizedGLCanvas>
+
+      <div className="flex flex-col gap-3 align-middle justify-center items-center p-3">
+        <p>{count}</p>
+        <Button onPress={increment} color={count % 2 === 0 ? "primary" : "default"} size="lg">
+          Increment Count
+        </Button>
+      </div>
     </div>
   )
 }

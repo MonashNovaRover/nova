@@ -1,17 +1,17 @@
 import RenderQueue, {RenderQueueItem} from "../../render-queue/RenderQueue.ts";
 import GLProgramState from "../GLProgramState.ts";
-import GLTexture2DTargetType, {mapTexture2DTargetType} from "./GLTexture2DTargetType.ts";
+import GLTexture2DTarget, {mapTexture2DTarget} from "./GLTexture2DTarget.ts";
 import HTMLTextureFormat, {mapInternalFormat} from "./HTMLTextureFormat.ts";
-import GLTextureWrapMode, {mapTextureWrapMode} from "./GLTextureWrapMode.ts";
+import GLWrapMode, {mapWrapMode} from "./GLWrapMode.ts";
 import MappedGLint from "../MappedGLint.ts";
 import ProgramEffectQueue from "../ProgramEffectQueue.ts";
 import "rvfc-polyfill";
 
 export interface GLSamplerStateOptions {
-  target: GLTexture2DTargetType;
+  target: GLTexture2DTarget;
   format: HTMLTextureFormat;
-  wrapT: GLTextureWrapMode;
-  wrapS: GLTextureWrapMode;
+  wrapT: GLWrapMode;
+  wrapS: GLWrapMode;
 }
 
 export type HTMLSamplerSource = HTMLVideoElement | HTMLImageElement | null;
@@ -23,10 +23,10 @@ export default class GLSamplerState implements RenderQueueItem<[WebGL2RenderingC
   private _sampler?: HTMLImageElement | HTMLVideoElement;
   private texture?: WebGLTexture;
 
-  public readonly target: MappedGLint<GLTexture2DTargetType>;
+  public readonly target: MappedGLint<GLTexture2DTarget>;
   public readonly format: MappedGLint<HTMLTextureFormat>;
-  public readonly wrapT: MappedGLint<GLTextureWrapMode>;
-  public readonly wrapS: MappedGLint<GLTextureWrapMode>;
+  public readonly wrapT: MappedGLint<GLWrapMode>;
+  public readonly wrapS: MappedGLint<GLWrapMode>;
 
   private readonly textureUnit: number;
 
@@ -43,10 +43,10 @@ export default class GLSamplerState implements RenderQueueItem<[WebGL2RenderingC
     this.name = name;
     this._sampler = sampler ?? undefined;
 
-    this.target = new MappedGLint(mapTexture2DTargetType, options.target);
+    this.target = new MappedGLint(mapTexture2DTarget, options.target);
     this.format = new MappedGLint(mapInternalFormat, options.format);
-    this.wrapT = new MappedGLint(mapTextureWrapMode, options.wrapT);
-    this.wrapS = new MappedGLint(mapTextureWrapMode, options.wrapS);
+    this.wrapT = new MappedGLint(mapWrapMode, options.wrapT);
+    this.wrapS = new MappedGLint(mapWrapMode, options.wrapS);
 
     this.programEffectQueue = program.queue;
     this.programRenderEffectQueue = program.renderQueue;

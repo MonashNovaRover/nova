@@ -5,6 +5,7 @@ import GLProgramDrawMode, {mapDrawMode} from "./GLProgramDrawMode.ts";
 import GLState from "../gl/GLState.ts";
 
 export interface GLProgramStateOptions {
+  // Specifies the type primitive to render.
   drawMode: GLProgramDrawMode,
 
   // A GLsizei specifying the number of indices to be rendered when calling drawArrays
@@ -13,6 +14,9 @@ export interface GLProgramStateOptions {
   vertexFirst: number
 }
 
+/**
+ * The class that manages state for a call of useProgram.
+ */
 export default class GLProgramState implements RenderQueueItem<[WebGL2RenderingContext]> {
   // The actual WebGL program. This should not be exposed to the user of the hooks, so they must go through the effect
   // queues when they want to modify webgl stuff.

@@ -1,9 +1,9 @@
 import {useEffect, useRef} from "react";
 import GLProgramState from "../GLProgramState.ts";
 import GLSamplerState, {GLSamplerStateOptions} from "./GLSamplerState.ts";
-import GLTexture2DTargetType from "./GLTexture2DTargetType.ts";
+import GLTexture2DTarget from "./GLTexture2DTarget.ts";
 import HTMLTextureFormat from "./HTMLTextureFormat.ts";
-import GLTextureWrapMode from "./GLTextureWrapMode.ts";
+import GLWrapMode from "./GLWrapMode.ts";
 import {useMappedGLint} from "../MappedGLint.ts";
 
 function useSampler_aux(programState: GLProgramState, textureUnit: number, name: string,
@@ -13,10 +13,10 @@ function useSampler_aux(programState: GLProgramState, textureUnit: number, name:
 
   if (samplerRef.current === undefined) {
     const filledOptions = {
-      target: GLTexture2DTargetType.TEXTURE_2D,
+      target: GLTexture2DTarget.TEXTURE_2D,
       format: HTMLTextureFormat.RGBA,
-      wrapT: GLTextureWrapMode.REPEAT,
-      wrapS: GLTextureWrapMode.REPEAT,
+      wrapT: GLWrapMode.REPEAT,
+      wrapS: GLWrapMode.REPEAT,
       ...options
     }
 

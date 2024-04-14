@@ -1,3 +1,6 @@
+/**
+ * The set of texture formats that webgl will accept when using a HTML DOM element as a source for a texture
+ */
 enum HTMLTextureFormat {
   ALPHA = 6406,
   RGB = 6407,
