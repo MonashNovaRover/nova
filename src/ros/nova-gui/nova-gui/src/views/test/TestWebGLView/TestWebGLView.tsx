@@ -41,9 +41,6 @@ export default function TestWebGLView() {
     setCount(i => i + 1);
   }, [setCount]);
 
-
-
-
   const gl = useGL();
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -85,7 +82,6 @@ export default function TestWebGLView() {
   // Overlay an image
   const overlayImage = count % 2 === 0 ? image : secondImage;
   const overlayProgram = useProgram(gl, OverlayVert, OverlayFrag);
-  // useSampler(overlayProgram, 1, "image", image);
   useSampler(overlayProgram, 0, "image", overlayImage, {
     wrapT: GLWrapMode.MIRRORED_REPEAT,
     wrapS: GLWrapMode.MIRRORED_REPEAT
@@ -95,18 +91,13 @@ export default function TestWebGLView() {
   ], []);
   useResolutionUniform(gl, overlayProgram, "imageResolution", overlayImage)
   useResolutionUniform(gl, overlayProgram, "resolution");
-  //useUniform(overlayProgram, "time", () => [time], [time])
-  useTimeUniform(overlayProgram, "time");
+  useTimeUniform(overlayProgram);
 
   // Draw lines on top of everything
   const lineProgram = useProgram(gl, LineVert, LineFrag, {
     drawMode: GLProgramDrawMode.LINE_LOOP,
     vertexCount: 4
   });
-  /*useAttribute(lineProgram, "aLinePosition", () => [
-    [-Math.cos(time), -Math.sin(time)], [-0.5, Math.sin(0.5 * time -3.14159/4)],
-    [0.5, Math.sin(0.5 * time + 3.14159/4)], [Math.cos(1.87654321 * time), Math.sin(1.87654321 * time)],
-  ], [time]);*/
   useTimeAttribute(lineProgram, "aLinePosition", (milliseconds) => {
     const time = milliseconds / 1000;
     return [
