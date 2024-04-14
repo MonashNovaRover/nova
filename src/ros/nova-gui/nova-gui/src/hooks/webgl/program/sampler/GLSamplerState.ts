@@ -18,7 +18,7 @@ export type HTMLSamplerSource = HTMLVideoElement | HTMLImageElement | null;
 
 export default class GLSamplerState implements RenderQueueItem<[WebGL2RenderingContext, WebGLProgram]> {
   private readonly programEffectQueue: ProgramEffectQueue;
-  private readonly programRenderEffectQueue: RenderQueue<[WebGL2RenderingContext, WebGLProgram]>;
+  private readonly programRenderEffectQueue: RenderQueue<[WebGL2RenderingContext, WebGLProgram, ]>;
 
   private _sampler?: HTMLImageElement | HTMLVideoElement;
   private texture?: WebGLTexture;
