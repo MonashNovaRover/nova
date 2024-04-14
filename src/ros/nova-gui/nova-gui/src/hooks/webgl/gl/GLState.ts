@@ -2,10 +2,30 @@ import {RefObject} from "react";
 import EffectQueue from "../effect-queue/EffectQueue.ts";
 import RenderQueue from "../render-queue/RenderQueue.ts";
 
+/**
+ * The class that manages state for a call of useGL.
+ */
 export default class GLState {
+  /**
+   * The canvas element that this renders to.
+   */
   public readonly canvasRef: RefObject<HTMLCanvasElement>;
-  public _context?: WebGL2RenderingContext;
+
+  /**
+   * The rendering context used by the GLState. This is retrieved from the canvasRef, which is made using a useRef hook,
+   * and is thus initially null on the first render. So, we cannot guarantee that the context exists.
+   */
+  private _context?: WebGL2RenderingContext;
+
+  /**
+   * The effect queue used to trigger re-renders
+   */
   public readonly queue: EffectQueue<[WebGL2RenderingContext]>;
+
+  /**
+   * The render queue, used to run a sequence of functions (usually one for each program) that do something for each
+   * render (such as rendering some program to the canvas).
+   */
   public readonly renderQueue: RenderQueue<[WebGL2RenderingContext]>;
 
   constructor(canvasRef : RefObject<HTMLCanvasElement>) {
@@ -15,10 +35,18 @@ export default class GLState {
     this.queue = new EffectQueue<[WebGL2RenderingContext]>();
   }
 
+  /**
+   * Allows the context to be retrieved, while still having side effects for mutating the context.
+   */
   public get context() {
     return this._context;
   }
 
+
+  /**
+   * Mutator for the rendering context, which has the side effect of setting up everything in the renderQueue.
+   * @param newContext
+   */
   public set context(newContext: WebGL2RenderingContext | undefined) {
     this._context = newContext;
 
