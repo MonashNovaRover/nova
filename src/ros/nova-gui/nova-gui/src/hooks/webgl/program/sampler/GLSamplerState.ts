@@ -6,6 +6,7 @@ import GLWrapMode, {mapWrapMode} from "./GLWrapMode.ts";
 import MappedGLint from "../MappedGLint.ts";
 import ProgramEffectQueue from "../ProgramEffectQueue.ts";
 import "rvfc-polyfill";
+import GLStateRenderInfo from "../../gl/GLStateRenderInfo.ts";
 
 export interface GLSamplerStateOptions {
   target: GLTexture2DTarget;
@@ -18,7 +19,7 @@ export type HTMLSamplerSource = HTMLVideoElement | HTMLImageElement | null;
 
 export default class GLSamplerState implements RenderQueueItem<[WebGL2RenderingContext, WebGLProgram]> {
   private readonly programEffectQueue: ProgramEffectQueue;
-  private readonly programRenderEffectQueue: RenderQueue<[WebGL2RenderingContext, WebGLProgram, ]>;
+  private readonly programRenderEffectQueue: RenderQueue<[WebGL2RenderingContext, WebGLProgram, GLStateRenderInfo]>;
 
   private _sampler?: HTMLImageElement | HTMLVideoElement;
   private texture?: WebGLTexture;
@@ -71,9 +72,9 @@ export default class GLSamplerState implements RenderQueueItem<[WebGL2RenderingC
     if (!this.texture)
       return;
 
-    this.ensureValuesAreMapped(context);
+    this.target.validate(context);
 
-    context.activeTexture(context.TEXTURE0 + this.textureUnit);
+    //context.activeTexture(context.TEXTURE0 + this.textureUnit);
     context.bindTexture(this.target.value, this.texture);
   }
 
@@ -87,15 +88,21 @@ export default class GLSamplerState implements RenderQueueItem<[WebGL2RenderingC
     if (!this.texture)
       return;
 
+    context.useProgram(program);
+
     // Set up element for respective elements
     if (this._sampler instanceof HTMLVideoElement)
-      this.setupVideo();
+      this.setupVideo(context, program);
     else if (this._sampler instanceof HTMLImageElement)
       this.setupImage();
 
     this.ensureValuesAreMapped(context);
 
     const location = context.getUniformLocation(program, this.name);
+
+    if (location === null) {
+      console.warn(`Sampler2D "${this.name}" does not exist on the current program. Did you spell it wrong?`);
+    }
 
     // Bind the texture to the texture unit
     context.activeTexture(context.TEXTURE0 + this.textureUnit);
@@ -104,14 +111,16 @@ export default class GLSamplerState implements RenderQueueItem<[WebGL2RenderingC
     // Tell the shader we bound the texture to the texture unit
     context.uniform1i(location, this.textureUnit);
 
+    context.texParameteri(this.target.value, context.TEXTURE_MIN_FILTER, context.LINEAR);
+    context.texParameteri(this.target.value, context.TEXTURE_MAG_FILTER, context.LINEAR);
     // console.log(`Set up TEXTURE${this.textureUnit} ${this.name}`)
   }
 
-  private setupVideo() {
+  private setupVideo(context: WebGL2RenderingContext, program: WebGLProgram) {
     if (!this._sampler || !(this._sampler instanceof HTMLVideoElement))
       return;
 
-    this.startVideoFrameLoop();
+    this.startVideoFrameLoop(context, program);
   }
 
   private setupImage() {
@@ -128,12 +137,13 @@ export default class GLSamplerState implements RenderQueueItem<[WebGL2RenderingC
    * Starts the requestVideoFrameCallback loop that renders each new frame from a video
    * @private
    */
-  private startVideoFrameLoop() {
+  private startVideoFrameLoop(context: WebGL2RenderingContext, program: WebGLProgram) {
     // Cancel any existing loop
     if (this.frameID !== undefined) {
       if (this._sampler instanceof HTMLVideoElement)
         this._sampler.cancelVideoFrameCallback(this.frameID);
       this.frameID = undefined;
+      console.log("Needed to cancel existing loop")
     }
 
     if (!(this._sampler instanceof HTMLVideoElement))
@@ -143,7 +153,11 @@ export default class GLSamplerState implements RenderQueueItem<[WebGL2RenderingC
       if (!(this._sampler instanceof HTMLVideoElement))
         return;
 
-      this.programEffectQueue.push((context, program) => this.updateTextureContents(context, program));
+      context.useProgram(program);
+      this.updateTextureContents(context, program);
+      //this.programEffectQueue.push((context, program) => this.updateTextureContents(context, program));
+      this.programEffectQueue.push();
+      // this.programEffectQueue.push();
 
       this.frameID = this._sampler.requestVideoFrameCallback(callback);
     }
@@ -159,7 +173,11 @@ export default class GLSamplerState implements RenderQueueItem<[WebGL2RenderingC
 
     this.ensureValuesAreMapped(gl);
 
-    const location = gl.getUniformLocation(program, this.name)
+    const location = gl.getUniformLocation(program, this.name);
+
+    if (location === null) {
+      console.warn(`Sampler2D "${this.name}" does not exist on the current program. Did you spell it wrong?`);
+    }
 
     gl.activeTexture(gl.TEXTURE0 + this.textureUnit);
     gl.bindTexture(this.target.value, this.texture);
@@ -177,8 +195,7 @@ export default class GLSamplerState implements RenderQueueItem<[WebGL2RenderingC
 
     gl.texParameteri(this.target.value, gl.TEXTURE_WRAP_S, this.wrapS.value);
     gl.texParameteri(this.target.value, gl.TEXTURE_WRAP_T, this.wrapT.value);
-    gl.texParameteri(this.target.value, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    gl.texParameteri(this.target.value, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
   }
 
   /**
@@ -192,6 +209,8 @@ export default class GLSamplerState implements RenderQueueItem<[WebGL2RenderingC
       return false;
 
     this.target.validate(context);
+
+    context.bindTexture(this.target.value, this.texture);
 
     context.texImage2D(
       this.target.value,

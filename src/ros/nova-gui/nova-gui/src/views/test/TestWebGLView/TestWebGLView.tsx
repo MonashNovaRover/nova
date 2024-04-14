@@ -111,9 +111,6 @@ export default function TestWebGLView() {
     context.lineWidth(2.5);
   }, [])
 
-  const secondVideoRef = useRef<HTMLVideoElement | null>(null);
-  useWebcam(secondVideoRef)
-
   // Add the "mirrored" webcam with another GL!
   const secondGL = useGL();
   const mirrorWebcamProgram = useProgram(secondGL, IdentityVert, IdentityFrag);
@@ -149,8 +146,6 @@ export default function TestWebGLView() {
       <AutosizedGLCanvas gl={secondGL} sizeTarget={videoRef.current}>
         <i>Mirrored with WebGL hooks!</i>
       </AutosizedGLCanvas>
-
-      <video ref={secondVideoRef}></video>
 
       <AutosizedGLCanvas gl={gl} drawChildrenBelow={false}
                          className="overflow-hidden col-span-2 resize max-w-full min-h-6 min-w-24">

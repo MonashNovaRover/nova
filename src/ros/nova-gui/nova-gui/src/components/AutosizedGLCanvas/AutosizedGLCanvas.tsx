@@ -28,7 +28,7 @@ const RawAutosizedGLCanvas: React.FC<AutosizedGLCanvasPros> = (props) => {
     drawChildrenBelow: drawChildrenBelow,
     ...canvasProps
   } = props;
-  const [width, height] = useCanvasSize(gl, sizeTarget);
+  useCanvasSize(gl, sizeTarget);
 
   const childrenContainer = children && (
     <div className="relative">
@@ -37,16 +37,15 @@ const RawAutosizedGLCanvas: React.FC<AutosizedGLCanvasPros> = (props) => {
   );
 
   const canvasContainer = (
-    <div className={"absolute top-0 left-0 right-0 bottom-0 " + (drawChildrenBelow ? "z-10" : "")}>
+    <div className={"absolute top-0 left-0 right-0 bottom-0 overflow-hidden " + (drawChildrenBelow ? "z-10" : "")}>
       <canvas ref={gl.canvasRef} {...canvasProps}
-              className={sizeTarget ? canvasClassName + " absolute" : canvasClassName}
-              width={width}
-              height={height}/>
+              className={sizeTarget ? canvasClassName + " absolute left-0 top-0" : canvasClassName}
+              />
     </div>
   );
 
   return (
-    <div className={"relative " + className + (drawChildrenBelow ? "flex flex-col-reverse" : "" )}>
+    <div className={"relative overflow-hidden " + className + (drawChildrenBelow ? "flex flex-col-reverse" : "" )}>
       {canvasContainer}
       {childrenContainer}
     </div>

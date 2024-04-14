@@ -30,8 +30,11 @@ export default function useUniform(program: GLProgramState, name: string,
 export function applyUniform(context: WebGL2RenderingContext, program: WebGLProgram, name: string, uniform: vec) {
   const location = context.getUniformLocation(program, name);
 
-  if (location === null)
+  if (location === null) {
+    console.warn(`Uniform "${name}" does not exist on the current program`);
     return;
+  }
+
 
   if      (uniform.length === 1) context.uniform1f(location, ...uniform);
   else if (uniform.length === 2) context.uniform2f(location, ...uniform);

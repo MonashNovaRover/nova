@@ -115,7 +115,9 @@ export default class GLProgramState implements RenderQueueItem<[WebGL2RenderingC
     this.program = initShaderProgram(context, this.vert, this.frag);
     this.queue.program = this.program;
 
-    if (this.program)
+    if (this.program) {
+      context.useProgram(this.program);
       this.renderQueue.setup(context, this.program, info);
+    }
   }
 }

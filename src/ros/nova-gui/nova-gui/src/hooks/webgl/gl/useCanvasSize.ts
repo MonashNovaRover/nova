@@ -1,4 +1,4 @@
-import {useLayoutEffect, useState} from "react";
+import {useLayoutEffect, useRef} from "react";
 import GLState from "./GLState.ts";
 
 /**
@@ -7,9 +7,8 @@ import GLState from "./GLState.ts";
  * @param gl The object contain the reference to the canvas, and the rendering context for the canvas.
  * @param sizeTarget The element to try match the pixel size of. Uses canvasRef when not specified.
  */
-export default function useCanvasSize(gl : GLState, sizeTarget?: Element | null): [number, number] {
-  const [width, setWidth] = useState(4);
-  const [height, setHeight] = useState(3);
+export default function useCanvasSize(gl : GLState, sizeTarget?: Element | null): void {
+  const frameID = useRef<number>(-1)
 
   useLayoutEffect(() => {
     const canvas = gl.canvasRef.current;
@@ -24,20 +23,17 @@ export default function useCanvasSize(gl : GLState, sizeTarget?: Element | null)
       if (!entry)
         return;
 
-      setWidth(entry.devicePixelContentBoxSize[0].inlineSize);
-      setHeight(entry.devicePixelContentBoxSize[0].blockSize);
-
-      gl.context?.viewport(0,0,
-        entry.devicePixelContentBoxSize[0].inlineSize,
-        entry.devicePixelContentBoxSize[0].blockSize);
-
-      const newWidth = entry.devicePixelContentBoxSize[0].inlineSize / window.devicePixelRatio;
-      const newHeight = entry.devicePixelContentBoxSize[0].blockSize / window.devicePixelRatio;
-      gl.canvasRef.current?.style.setProperty("block-size", newHeight.toString() + "px");
-      gl.canvasRef.current?.style.setProperty("inline-size", newWidth.toString() + "px");
-
       /* … render to canvas … */
-      gl.queue.push();
+      frameID.current = gl.queue.update(frameID.current, () => {
+        if (gl.canvasRef.current) {
+          gl.canvasRef.current.width = entry.devicePixelContentBoxSize[0].inlineSize;
+          gl.canvasRef.current.height = entry.devicePixelContentBoxSize[0].blockSize;
+        }
+
+        gl.context?.viewport(0,0,
+          entry.devicePixelContentBoxSize[0].inlineSize,
+          entry.devicePixelContentBoxSize[0].blockSize);
+      });
     });
     boxObserver.observe(absoluteSizeTarget, { box: "device-pixel-content-box" });
 
@@ -45,9 +41,4 @@ export default function useCanvasSize(gl : GLState, sizeTarget?: Element | null)
       boxObserver.disconnect();
     };
   }, [gl, sizeTarget]);
-
-  return [
-    width,
-    height,
-  ];
 }
