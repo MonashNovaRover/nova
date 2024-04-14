@@ -1,12 +1,15 @@
 import React, {useEffect, useRef} from "react";
 import GLProgramState from "./GLProgramState.ts";
 import {RenderQueueItem} from "../render-queue/RenderQueue.ts";
+import GLStateRenderInfo from "../gl/GLStateRenderInfo.ts";
 
 export default function useProgramRenderEffect(program: GLProgramState,
-                                         effect: (context: WebGL2RenderingContext, program: WebGLProgram) => void,
-                                         deps: React.DependencyList = [])
+                                               effect: (context: WebGL2RenderingContext, program: WebGLProgram,
+                                                        info: GLStateRenderInfo) => void,
+                                               deps: React.DependencyList = [])
 {
-  const renderQueueItem = useRef<RenderQueueItem<[WebGL2RenderingContext, WebGLProgram]>>();
+  const renderQueueItem =
+    useRef<RenderQueueItem<[WebGL2RenderingContext, WebGLProgram, GLStateRenderInfo]>>();
   const itemID = useRef<number>();
 
   if (renderQueueItem.current === undefined) {

@@ -23,17 +23,18 @@ export default function useUniform(program: GLProgramState, name: string,
     gl.useProgram(program)
 
     const uniform = Array.isArray(factoryOrConstant) ? factoryOrConstant : factoryOrConstant();
-
-    const location = gl.getUniformLocation(program, name);
-
-    if (location === null)
-      return;
-
-    if      (uniform.length === 1) gl.uniform1f(location, ...uniform);
-    else if (uniform.length === 2) gl.uniform2f(location, ...uniform);
-    else if (uniform.length === 3) gl.uniform3f(location, ...uniform);
-    else if (uniform.length === 4) gl.uniform4f(location, ...uniform);
+    applyUniform(gl, program, name, uniform);
   }, [name, ...deps]);
+}
 
+export function applyUniform(context: WebGL2RenderingContext, program: WebGLProgram, name: string, uniform: vec) {
+  const location = context.getUniformLocation(program, name);
 
+  if (location === null)
+    return;
+
+  if      (uniform.length === 1) context.uniform1f(location, ...uniform);
+  else if (uniform.length === 2) context.uniform2f(location, ...uniform);
+  else if (uniform.length === 3) context.uniform3f(location, ...uniform);
+  else if (uniform.length === 4) context.uniform4f(location, ...uniform);
 }

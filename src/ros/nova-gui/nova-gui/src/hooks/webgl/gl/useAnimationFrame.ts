@@ -1,14 +1,20 @@
 import {useCallback, useEffect, useRef} from "react";
 
-export default function useAnimationFrame(callback: (time: number, deltaTime: number) => void): void {
+/**
+ * Runs a loop with requestAnimationFrame on the callback provided
+ * @param callback A callback which can take the time and deltaTime in milliseconds as arguments
+ */
+export default function useAnimationFrame(
+  callback: (milliseconds: DOMHighResTimeStamp, deltaMilliseconds: number) => void): void {
+
   // Use useRef for mutable variables that we want to persist
   // without triggering a re-render on their change
   const requestRef = useRef(-1);
   const previousTimeRef = useRef(0);
 
-  const animationCallback = useCallback((time: number) => {
+  const animationCallback = useCallback((time: DOMHighResTimeStamp) => {
     const deltaTime = time - (previousTimeRef.current ?? time);
-    callback(time * 0.001, deltaTime * 0.001);
+    callback(time, deltaTime);
 
     previousTimeRef.current = time;
     requestRef.current = requestAnimationFrame(animationCallback);

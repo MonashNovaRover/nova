@@ -1,6 +1,7 @@
-import {useLayoutEffect, useRef} from "react";
+import {useCallback, useLayoutEffect, useRef} from "react";
 import useAnimationFrame from "./useAnimationFrame.ts";
 import GLState from "./GLState.ts";
+import GLStateRenderInfo from "./GLStateRenderInfo.ts";
 
 const useGL_aux = (): GLState => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -42,9 +43,15 @@ const useGL = (webContextAttributes?: WebGLContextAttributes )
 
   }, [gl, webContextAttributes]);
 
-  useAnimationFrame(() => {
-    gl.render();
-  });
+  const renderCallback = useCallback((milliseconds: DOMHighResTimeStamp, deltaMilliseconds: number) => {
+    const renderInfo: GLStateRenderInfo = {
+      milliseconds: milliseconds,
+      deltaMilliseconds: deltaMilliseconds
+    };
+
+    gl.render(false, renderInfo);
+  }, [gl]);
+  useAnimationFrame(renderCallback);
 
   // The returned object will only exist if the WebGL2RenderingContext has already been created.
   return gl;

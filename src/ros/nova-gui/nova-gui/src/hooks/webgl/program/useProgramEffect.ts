@@ -8,5 +8,6 @@ export default function useProgramEffect(program: GLProgramState,
   useEffect(() => {
     const frameID = program.queue.push(effect);
     return () => program.queue.cancel(frameID);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [...deps]);
 }

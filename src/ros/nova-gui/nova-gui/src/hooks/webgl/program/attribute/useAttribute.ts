@@ -13,6 +13,12 @@ export interface UseAttributeOptions {
   offset: number,
 }
 
+export const defaultUseAttributeOptions = {
+  normalize: false,
+  stride: 0,
+  offset: 0,
+} as UseAttributeOptions;
+
 /**
  * Applies float vector or float vertex attribute values to a given program. The given name of the attribute should match
  * those of the attribute defined in the program.
@@ -27,18 +33,14 @@ export default function useAttribute(program: GLProgramState, name: string,
                                       options?: Partial<UseAttributeOptions>) {
   const buffer = useRef<WebGLBuffer>();
 
-  const filledOptions = {
-    normalize: false,
-    stride: 0,
-    offset: 0,
+  const filledOptions: UseAttributeOptions = {
+    ...defaultUseAttributeOptions,
     ...options
-  }
+  };
 
   const numComponentsRef = useRef<number>();
 
   useProgramEffect(program, (context, program) => {
-    context.useProgram(program);
-
     // Create the buffer if necessary
     if (buffer.current === undefined) {
       buffer.current = context.createBuffer() ?? undefined;
@@ -50,36 +52,11 @@ export default function useAttribute(program: GLProgramState, name: string,
 
     const attribute = Array.isArray(factoryOrAttribute) ? factoryOrAttribute : factoryOrAttribute();
 
-    if (attribute.length === 0)
-      return;
+    if (attribute.length > 0)
+      numComponentsRef.current = attribute[0].length;
 
-    const numComponents = attribute[0].length;
-    numComponentsRef.current = numComponents;
+    applyAttribute(context, program, name, attribute, buffer.current, filledOptions, deps.length === 0);
 
-    const attributeLocation = context.getAttribLocation(program, name);
-    //context.disableVertexAttribArray(attributeLocation);
-    const attributeData= new Float32Array(attribute.flatMap(v => v));
-
-    // Select buffer as the buffer to apply buffer operations to from here out.
-    context.bindBuffer(context.ARRAY_BUFFER, buffer.current);
-
-    // Now pass the list of positions into WebGL to build the shape. We do this by creating a Float32Array from the
-    // JavaScript array, then use it to fill the current buffer.
-    // If this has any dependencies in the dependency array, then it can vary. Otherwise, it never changes. So, we can
-    // set STATIC_DRAW if it never changes, and DYNAMIC_DRAW if it does.
-    context.bufferData(context.ARRAY_BUFFER, attributeData,
-      deps.length === 0 ? context.STATIC_DRAW : context.DYNAMIC_DRAW);
-
-    context.vertexAttribPointer(
-      attributeLocation,
-      numComponents,
-      context.FLOAT,
-      filledOptions.normalize,
-      filledOptions.stride,
-      filledOptions.offset,
-    );
-
-    context.enableVertexAttribArray(attributeLocation);
   }, [name, ...deps])
 
   useProgramRenderEffect(program, (context, program) => {
@@ -97,4 +74,38 @@ export default function useAttribute(program: GLProgramState, name: string,
       filledOptions.offset,
     );
   }, [])
+}
+
+export function applyAttribute(context: WebGL2RenderingContext, program: WebGLProgram, name: string,
+                               attribute: vecArray, buffer: WebGLBuffer, options: UseAttributeOptions,
+                               drawStatic: boolean) {
+  if (attribute.length === 0)
+    return;
+
+  const numComponents = attribute[0].length;
+
+  const attributeLocation = context.getAttribLocation(program, name);
+  //context.disableVertexAttribArray(attributeLocation);
+  const attributeData= new Float32Array(attribute.flatMap(v => v));
+
+  // Select buffer as the buffer to apply buffer operations to from here out.
+  context.bindBuffer(context.ARRAY_BUFFER, buffer);
+
+  // Now pass the list of positions into WebGL to build the shape. We do this by creating a Float32Array from the
+  // JavaScript array, then use it to fill the current buffer.
+  // If this has any dependencies in the dependency array, then it can vary. Otherwise, it never changes. So, we can
+  // set STATIC_DRAW if it never changes, and DYNAMIC_DRAW if it does.
+  context.bufferData(context.ARRAY_BUFFER, attributeData,
+    drawStatic ? context.STATIC_DRAW : context.DYNAMIC_DRAW);
+
+  context.vertexAttribPointer(
+    attributeLocation,
+    numComponents,
+    context.FLOAT,
+    options.normalize,
+    options.stride,
+    options.offset,
+  );
+
+  context.enableVertexAttribArray(attributeLocation);
 }

@@ -1,6 +1,7 @@
 import {RefObject} from "react";
 import EffectQueue from "../effect-queue/EffectQueue.ts";
 import RenderQueue from "../render-queue/RenderQueue.ts";
+import GLStateRenderInfo, {defaultGLStateRenderInfo} from "./GLStateRenderInfo.ts";
 
 /**
  * The class that manages state for a call of useGL.
@@ -26,12 +27,12 @@ export default class GLState {
    * The render queue, used to run a sequence of functions (usually one for each program) that do something for each
    * render (such as rendering some program to the canvas).
    */
-  public readonly renderQueue: RenderQueue<[WebGL2RenderingContext]>;
+  public readonly renderQueue: RenderQueue<[WebGL2RenderingContext, GLStateRenderInfo]>;
 
   constructor(canvasRef : RefObject<HTMLCanvasElement>) {
     this.canvasRef = canvasRef;
 
-    this.renderQueue = new RenderQueue<[WebGL2RenderingContext]>();
+    this.renderQueue = new RenderQueue<[WebGL2RenderingContext, GLStateRenderInfo]>();
     this.queue = new EffectQueue<[WebGL2RenderingContext]>();
   }
 
@@ -53,21 +54,24 @@ export default class GLState {
     if (this._context === undefined)
       return;
 
-    this.renderQueue.setup(this._context);
+    this.renderQueue.setup(this._context, defaultGLStateRenderInfo);
   }
 
   /**
    * Re-renders all programs if there are any changes to inputs of the programs,
    * unless otherwise specified with force = true
    * @param force Set to true if you want to force everything to be drawn, even if there are no changes to the inputs.
+   * @param renderInfo Info about the render, including time information
    */
-  render(force?: boolean): void {
+  render(force?: boolean, renderInfo?: GLStateRenderInfo): void {
     if (this._context === undefined)
       return;
+
+    const filledRenderInfo = renderInfo ?? defaultGLStateRenderInfo;
 
     if (this.queue.clear(this._context) && !force)
       return;
 
-    this.renderQueue.render(this._context);
+    this.renderQueue.render(this._context, filledRenderInfo);
   }
 }

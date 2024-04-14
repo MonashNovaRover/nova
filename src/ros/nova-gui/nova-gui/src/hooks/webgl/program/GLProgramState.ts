@@ -3,6 +3,7 @@ import initShaderProgram from "../../../utils/webgl/initShaderProgram.ts";
 import ProgramEffectQueue from "./ProgramEffectQueue.ts";
 import GLProgramDrawMode, {mapDrawMode} from "./GLProgramDrawMode.ts";
 import GLState from "../gl/GLState.ts";
+import GLStateRenderInfo from "../gl/GLStateRenderInfo.ts";
 
 export interface GLProgramStateOptions {
   // Specifies the type primitive to render.
@@ -17,7 +18,7 @@ export interface GLProgramStateOptions {
 /**
  * The class that manages state for a call of useProgram.
  */
-export default class GLProgramState implements RenderQueueItem<[WebGL2RenderingContext]> {
+export default class GLProgramState implements RenderQueueItem<[WebGL2RenderingContext, GLStateRenderInfo]> {
   // The actual WebGL program. This should not be exposed to the user of the hooks, so they must go through the effect
   // queues when they want to modify webgl stuff.
   private program?: WebGLProgram;
@@ -25,7 +26,7 @@ export default class GLProgramState implements RenderQueueItem<[WebGL2RenderingC
   // The effect queue allowing the user to run code that depends on the WebGLProgram in sync with the render loop
   public readonly queue: ProgramEffectQueue;
 
-  public readonly renderQueue: RenderQueue<[WebGL2RenderingContext, WebGLProgram]>;
+  public readonly renderQueue: RenderQueue<[WebGL2RenderingContext, WebGLProgram, GLStateRenderInfo]>;
 
   // The vertex shader source code
   private vert: string;
@@ -54,7 +55,7 @@ export default class GLProgramState implements RenderQueueItem<[WebGL2RenderingC
     this._drawMode = options.drawMode;
 
     this.queue = new ProgramEffectQueue(gl.queue);
-    this.renderQueue = new RenderQueue<[WebGL2RenderingContext, WebGLProgram]>();
+    this.renderQueue = new RenderQueue<[WebGL2RenderingContext, WebGLProgram, GLStateRenderInfo]>();
 
     this.renderQueueID = gl.renderQueue.push(this);
   }
@@ -88,8 +89,9 @@ export default class GLProgramState implements RenderQueueItem<[WebGL2RenderingC
   /**
    * The code ran when rendering a new frame.
    * @param context The rendering context to make calls to.
+   * @param info Info about the render
    */
-  public render(context: WebGL2RenderingContext): void {
+  public render(context: WebGL2RenderingContext, info: GLStateRenderInfo): void {
     if (this.program === undefined)
       throw Error("RenderQueue tried to render GLProgramState without a program. Did you call RenderQueueItem.setup?");
 
@@ -99,7 +101,7 @@ export default class GLProgramState implements RenderQueueItem<[WebGL2RenderingC
 
     context.useProgram(this.program);
 
-    this.renderQueue.render(context, this.program);
+    this.renderQueue.render(context, this.program, info);
 
     context.drawArrays(this._mappedDrawMode, this.vertexFirst, this.vertexCount);
   }
@@ -107,12 +109,13 @@ export default class GLProgramState implements RenderQueueItem<[WebGL2RenderingC
   /**
    * Initializes the program when the context becomes ready to use
    * @param context The rendering context used by the program
+   * @param info Info about the render
    */
-  public setup(context: WebGL2RenderingContext): void {
+  public setup(context: WebGL2RenderingContext, info: GLStateRenderInfo): void {
     this.program = initShaderProgram(context, this.vert, this.frag);
     this.queue.program = this.program;
 
     if (this.program)
-      this.renderQueue.setup(context, this.program);
+      this.renderQueue.setup(context, this.program, info);
   }
 }

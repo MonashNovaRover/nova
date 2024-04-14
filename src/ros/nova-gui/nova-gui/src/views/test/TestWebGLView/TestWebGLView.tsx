@@ -23,12 +23,13 @@ import ImageSRC from "../../../assets/arm-image.png";
 import SecondImageSRC from "../../../assets/rover-top-down-dark.png";
 import MonkeysImageSRC from "../../../assets/equirectangular.png";
 import NovaImageSRC from "../../../assets/nova-logo.png";
-import useAnimationFrame from "../../../hooks/webgl/gl/useAnimationFrame.ts";
 import useProgramRenderEffect from "../../../hooks/webgl/program/useProgramRenderEffect.ts";
 import useUniform from "../../../hooks/webgl/program/uniform/useUniform.ts";
 import GLWrapMode from "../../../hooks/webgl/program/sampler/GLWrapMode.ts";
 import HTMLTextureFormat from "../../../hooks/webgl/program/sampler/HTMLTextureFormat.ts";
 import useScreenQuadAttribute from "../../../hooks/webgl/program/attribute/useScreenQuadAttribute.ts";
+import useTimeUniform from "../../../hooks/webgl/program/uniform/useTimeUniform.ts";
+import useTimeAttribute from "../../../hooks/webgl/program/attribute/useTimeAttribute.ts";
 
 /**
  * A webgl hooks stress test, that ensures that some everything is working smoothly.
@@ -41,8 +42,7 @@ export default function TestWebGLView() {
   }, [setCount]);
 
 
-  const [time, setTime] = useState<number>(0);
-  useAnimationFrame(setTime);
+
 
   const gl = useGL();
 
@@ -95,17 +95,26 @@ export default function TestWebGLView() {
   ], []);
   useResolutionUniform(gl, overlayProgram, "imageResolution", overlayImage)
   useResolutionUniform(gl, overlayProgram, "resolution");
-  useUniform(overlayProgram, "time", () => [time], [time])
+  //useUniform(overlayProgram, "time", () => [time], [time])
+  useTimeUniform(overlayProgram, "time");
 
   // Draw lines on top of everything
   const lineProgram = useProgram(gl, LineVert, LineFrag, {
     drawMode: GLProgramDrawMode.LINE_LOOP,
     vertexCount: 4
   });
-  useAttribute(lineProgram, "aLinePosition", () => [
+  /*useAttribute(lineProgram, "aLinePosition", () => [
     [-Math.cos(time), -Math.sin(time)], [-0.5, Math.sin(0.5 * time -3.14159/4)],
     [0.5, Math.sin(0.5 * time + 3.14159/4)], [Math.cos(1.87654321 * time), Math.sin(1.87654321 * time)],
-  ], [time]);
+  ], [time]);*/
+  useTimeAttribute(lineProgram, "aLinePosition", (milliseconds) => {
+    const time = milliseconds / 1000;
+    return [
+      [-Math.cos(time), -Math.sin(time)], [-0.5, Math.sin(0.5 * time -3.14159/4)],
+      [0.5, Math.sin(0.5 * time + 3.14159/4)], [Math.cos(1.87654321 * time), Math.sin(1.87654321 * time)],
+    ];
+  });
+
   useProgramRenderEffect(lineProgram, (context) => {
     // This only works on chromium!
     context.lineWidth(2.5);
@@ -155,7 +164,7 @@ export default function TestWebGLView() {
       <AutosizedGLCanvas gl={gl} drawChildrenBelow={false}
                          className="overflow-hidden col-span-2 resize max-w-full min-h-6 min-w-24">
         <div className={`relative block h-full`} style={{
-          left: `${(50 - 50 * Math.cos(time))}%`,
+          left: `${(50 - 50 * Math.cos(5))}%`,
         }}><p>Count: {count}</p></div>
       </AutosizedGLCanvas>
 
