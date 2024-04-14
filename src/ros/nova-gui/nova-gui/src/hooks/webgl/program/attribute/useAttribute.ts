@@ -22,7 +22,7 @@ export interface UseAttributeOptions {
  * @param deps The dependency array, that should cause the uniform to be reset when changed.
  * @param options Additional options to configure the attribute
  */
-export default function useAttributed(program: GLProgramState, name: string,
+export default function useAttribute(program: GLProgramState, name: string,
                                       factoryOrAttribute: (() => vecArray) | vecArray, deps: DependencyList = [],
                                       options?: Partial<UseAttributeOptions>) {
   const buffer = useRef<WebGLBuffer>();

@@ -26,7 +26,12 @@ import useProgramRenderEffect from "../../../hooks/webgl/program/useProgramRende
 import useUniform from "../../../hooks/webgl/program/uniform/useUniform.ts";
 import GLTextureWrapMode from "../../../hooks/webgl/program/sampler/GLTextureWrapMode.ts";
 import HTMLTextureFormat from "../../../hooks/webgl/program/sampler/HTMLTextureFormat.ts";
+import useScreenQuadAttribute from "../../../hooks/webgl/program/attribute/useScreenQuadAttribute.ts";
 
+/**
+ * A webgl hooks stress test, that ensures that some everything is working smoothly.
+ * @constructor
+ */
 export default function TestWebGLView() {
   const [count, setCount] = useState<number>(0)
   const increment = useCallback(() => {
@@ -111,30 +116,47 @@ export default function TestWebGLView() {
   const secondGL = useGL();
   const mirrorWebcamProgram = useProgram(secondGL, IdentityVert, IdentityFrag);
   useSampler(mirrorWebcamProgram, 0, "image", videoRef.current, {
-    wrapT: GLTextureWrapMode.CLAMP_TO_EDGE,
     wrapS: GLTextureWrapMode.MIRRORED_REPEAT,
+    wrapT: GLTextureWrapMode.CLAMP_TO_EDGE,
     format: count % 2 === 0 ? HTMLTextureFormat.RGB : HTMLTextureFormat.LUMINANCE,
   })
-  useAttribute(mirrorWebcamProgram, "aPosition", () => [
-    [1, 1], [-1, 1], [1, -1], [-1, -1]
-  ], []);
+  useScreenQuadAttribute(mirrorWebcamProgram);
   useUniform(mirrorWebcamProgram, "count", () => [count], [count])
+
+  // Static image test
+  const imageGL = useGL();
+
+  const imageProgram = useProgram(imageGL, IdentityVert, IdentityFrag);
+  useSampler(imageProgram, 0, "image", overlayImage, {
+    wrapS: GLTextureWrapMode.MIRRORED_REPEAT,
+    format: count % 4 < 2 ? HTMLTextureFormat.RGBA : HTMLTextureFormat.LUMINANCE_ALPHA
+  });
+  useScreenQuadAttribute(imageProgram);
+  // useUniform(imageProgram, "count", [0], []);
 
   return (
     <div
       className="grid w-full gap-3 p-3 auto-cols-fr s:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 overflow-clip max-h-screen">
-      <p>{count}</p>
+      <div>
+        <p>{count}</p>
+        <Button onPress={increment} color={count % 2 === 0 ? "primary" : "default"}>Increment Count</Button>
+      </div>
+
       <AutosizedGLCanvas gl={gl} drawChildrenBelow={false} className="overflow-hidden resize">
         <div className={`relative block h-full`} style={{
           left: `${(50 - 50*Math.cos(time))}%`,
         }}><p>Count: {count}</p></div>
       </AutosizedGLCanvas>
+
       <video ref={videoRef}></video>
+
       <AutosizedGLCanvas gl={secondGL} sizeTarget={videoRef.current}>
         <i>Mirrored with WebGL hooks!</i>
       </AutosizedGLCanvas>
+
       <video ref={secondVideoRef}></video>
-      <Button onPress={increment}>Increment Count</Button>
+
+      <AutosizedGLCanvas gl={imageGL} className="min-h-64">hi</AutosizedGLCanvas>
     </div>
   )
 }
