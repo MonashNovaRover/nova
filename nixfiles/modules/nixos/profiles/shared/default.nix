@@ -11,6 +11,8 @@ in
       "kernel.dmesg_restrict" = false;
     };
 
+    environment.variables.EDITOR = "vim";
+
     security.polkit.extraConfig = ''
       polkit.addRule(function(action, subject) {
         // Lookup properties for manage-units are defined here:
@@ -39,5 +41,6 @@ in
 
     peripherals.webcams.enable = true;
     peripherals.realsense.enable = true;
+    peripherals.oak-d.enable = true;
   };
 }

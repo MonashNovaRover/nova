@@ -3,6 +3,7 @@
     ./branding
     ./ci
     ./desktop
+    ./mocking
     ./networking
     ./peripherals
     ./substituters

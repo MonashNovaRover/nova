@@ -5,13 +5,13 @@
 
 mkYarnPackage rec {
   pname = "ros-typescript-generator";
-  version = "1.6.4";
+  version = "1.7.0";
 
   src = fetchFromGitHub {
     owner = "Greenroom-Robotics";
     repo = pname;
     rev = "v${version}";
-    hash = "sha256-GeBZ04sWZtL7RyrZ/RPnvi3aODhNcsTwlakt6dpTI68=";
+    hash = "sha256-cw14FDLHIxfjKnYN1WWNCXHIPsgdSBh+NyxFzQVhPlw=";
   };
 
   buildPhase = ''

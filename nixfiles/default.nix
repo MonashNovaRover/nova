@@ -14,22 +14,17 @@ let
   # nix-ros and b) has newer changes we need.
   # Using the nix-ros branch with specific patches added is preferred because
   # it allows use of the https://ros.cachix.org binary cache.
-  nixpkgs = pkgs.applyPatches {
+  nixpkgs = pkgs.lib.maybeEnv "NIXPKGS_PATH" (pkgs.applyPatches {
     src = pkgs.fetchFromGitHub {
       owner = "NixOS";
       repo = "nixpkgs";
       inherit (revisions.nixpkgs) rev hash;
     };
     patches = [
-      # xtensor, xsimd: Update, fix compilation on AArch64
-      (pkgs.fetchpatch {
-        url = "https://github.com/SomeoneSerge/nixpkgs/compare/2ece2a0701055e8093b3ab9f904e86b4c396e712..e7ae0498eb9f65b16f18fb39e4cb5fd699ef6687.patch";
-        hash = "sha256-rDedxvq2utnm86loRbJokSRLdunEfgvG58XE25nb9hM=";
-      })
     ];
-  };
+  });
 
-  nix-ros-overlay = pkgs.applyPatches {
+  nix-ros-overlay = pkgs.lib.maybeEnv "NRO_PATH" (pkgs.applyPatches {
     src = pkgs.fetchFromGitHub {
       owner = "lopsided98";
       repo = "nix-ros-overlay";
@@ -37,13 +32,13 @@ let
     };
     patches = [
     ];
-  };
+  });
 
-  nix-ros-workspace = pkgs.fetchFromGitHub {
+  nix-ros-workspace = pkgs.lib.maybeEnv "NRWS_PATH" (pkgs.fetchFromGitHub {
     owner = "hacker1024";
     repo = "nix-ros-workspace";
     inherit (revisions.nix-ros-workspace) rev hash;
-  };
+  });
 
   inherit (pkgs.lib.evalModules {
     modules = [
@@ -119,6 +114,11 @@ let
     };
 
     pkgs = novaPkgs;
+
+    tests = import ./tests {
+      hostPkgs = pkgs;
+      inherit novaPkgs;
+    };
 
     # Make an alias to the nova-workspace environment for convenience.
     inherit (result.pkgs.ros.nova-workspace) env;

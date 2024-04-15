@@ -6,6 +6,7 @@
     rover = "testing";
     cameras2 = null;
     gui = "testing";
+    nova-gui = "testing";
   };
   other = {
     coms_utils = "feature/nix";
