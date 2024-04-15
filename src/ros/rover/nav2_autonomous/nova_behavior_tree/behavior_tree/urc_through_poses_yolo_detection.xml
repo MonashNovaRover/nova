@@ -29,7 +29,7 @@
             </PipelineSequence>
 
             <!-- Compute search points -->
-            <ComputeObjectSearchGoals approximate_goal="{final_goal}" search_goals="{search_goals}">
+            <ComputeObjectSearchGoals approximate_goal="{final_goal}" search_goals="{search_goals}"/>
             
             <!-- Navigate through search points, spinning each time-->
             <ReactiveFallback>
