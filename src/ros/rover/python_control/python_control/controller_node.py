@@ -18,7 +18,9 @@ EDITED:		24/02/2024
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 """
-from control.control_classes import CardInterface
+from python_control.classes.cards.CardController import CardController
+from python_control.classes.limits.Limit import Limit
+from python_control.classes.sensors.Sensor import Sensor
 import rclpy, jcan, logging
 from struct import pack
 from rclpy.node import Node
@@ -45,7 +47,8 @@ class ControllerNode(Node):
 
         self.joystick_lock = True
 
-        self.controllers : dict[str, CardInterface] = {}
+        self.controllers : dict[str, CardController] = {}
+        self.sensors : dict[str, Sensor] = {}
 
         deadline = Duration(nanoseconds=2e8)
         events = SubscriptionEventCallbacks(deadline=self.deadline_callback)
@@ -57,15 +60,20 @@ class ControllerNode(Node):
         self.bus = jcan.Bus()
 
 
-    def add_controller(self, controller_name: str, controller: CardInterface):
+    def add_controller(self, controller_name: str, controller: CardController):
         self.controllers[controller_name] = controller
-        if controller.control.limit_pos is not None:
-            limit_pos = controller.control.limit_pos
-            self.add_receive_can_callback(limit_pos.frame_id, limit_pos.update_limit_hit)
-        if controller.control.limit_neg is not None:
-            limit_neg = controller.control.limit_neg
-            self.add_receive_can_callback(limit_neg.frame_id, limit_neg.update_limit_hit)
+        if controller.control.pos_limit is not None:
+            pos_limit : Limit = controller.control.pos_limit
+            self.add_receive_can_callback(pos_limit.get_frame_id(), pos_limit.frame_callback)
+        if controller.control.neg_limit is not None:
+            neg_limit : Limit = controller.control.neg_limit
+            self.add_receive_can_callback(neg_limit.get_frame_id(), neg_limit.frame_callback)
 
+    def add_sensor(self, sensor_name: str, sensor: Sensor):
+        self.sensors[sensor_name] = sensor
+        self.add_receive_can_callback(sensor.get_frame_id(), sensor.frame_callback)
+
+        
     
     def add_receive_can_callback(self, frame_id: int, callback: callable):
         def callback_receive_can(frame: jcan.Frame):
@@ -78,7 +86,7 @@ class ControllerNode(Node):
             except Exception as e:
                 self.get_logger().error(e)
 
-        self.bus.add_listener(frame_id, callback_receive_can)
+        self.bus.add_callback(frame_id, callback_receive_can)
 
 
 
@@ -115,33 +123,33 @@ class ControllerNode(Node):
         for controller in self.controllers:
             controller.control.stop()
 
-    def callback_receive_can_time_of_flight(self, frame: jcan.Frame):
-        """Receive can feedback for auger limit switches
-        """
-        self.get_logger().debug(f"Received {hex(frame.id)} {frame.data}")
-        for controller in self.controllers:
-            if frame.id == :
-                controller.update_time_of_flight(frame)
-                return
+    # def callback_receive_can_time_of_flight(self, frame: jcan.Frame):
+    #     """Receive can feedback for auger limit switches
+    #     """
+    #     self.get_logger().debug(f"Received {hex(frame.id)} {frame.data}")
+    #     for controller in self.controllers:
+    #         if frame.id == frame_id:
+    #             controller.update_time_of_flight(frame)
+    #             return
 
-        if len(frame.data) != 2:
-            self.get_logger().error(f"Time of flight error")
-            return
+    #     if len(frame.data) != 2:
+    #         self.get_logger().error(f"Time of flight error")
+    #         return
 
-        if frame.id == self.JONO_ID_TIME_OF_FLIGHT:
+    #     if frame.id == self.JONO_ID_TIME_OF_FLIGHT:
        
-            raw_height = int(frame.data[1] + (frame.data[0] << 8))
-            height = self.convert_time_of_flight(raw_height)
-            self.get_logger().debug(f"Raw height: {raw_height}, Converted height: {height}")
-            if height == 0:
-                self.get_logger().debug("Time of flight hit bottom")
-                self.platform.update_limit_neg(True)
-            else:
-                self.platform.update_limit_neg(False)
+    #         raw_height = int(frame.data[1] + (frame.data[0] << 8))
+    #         height = self.convert_time_of_flight(raw_height)
+    #         self.get_logger().debug(f"Raw height: {raw_height}, Converted height: {height}")
+    #         if height == 0:
+    #             self.get_logger().debug("Time of flight hit bottom")
+    #             self.platform.update_limit_neg(True)
+    #         else:
+    #             self.platform.update_limit_neg(False)
 
-            self.publish_time_of_flight(height)
-        else:
-            self.get_logger().warn(f"Received unknown frame {frame}")
+    #         self.publish_time_of_flight(height)
+    #     else:
+    #         self.get_logger().warn(f"Received unknown frame {frame}")
 
 
     def callback_receive_can_feedback(self, frame: jcan.Frame):
@@ -277,12 +285,4 @@ class ControllerNode(Node):
         return auger_data, drill_data
 
 
-def main():
-    rclpy.init()
-    auger = AugerNode()
-    rclpy.spin(auger)
-    rclpy.shutdown()
 
-
-if __name__ == "__main__":
-    main()
