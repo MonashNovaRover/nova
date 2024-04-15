@@ -30,7 +30,7 @@
             </PipelineSequence>
 
             <!-- Compute search points -->
-            <ComputeARSearchGoals approximate_goal="{final_goal}" search_goals="{search_goals}">
+            <ComputeARSearchGoals approximate_goal="{final_goal}" search_goals="{search_goals}"/>
             
             <!-- Navigate through search points, spinning each time-->
             <ReactiveFallback>
