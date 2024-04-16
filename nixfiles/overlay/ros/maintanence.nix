@@ -231,18 +231,11 @@ self: super:
           version = "0.2.3";
         });
       in {
-        ublox-dgnss = ((replaceUbloxSrc rosSuper.ublox-dgnss).override {
-          ublox-dgnss-node = rosSelf.ublox-dgnss-node;
-          ublox-ubx-interfaces = rosSelf.ublox-ubx-interfaces;
-          ublox-ubx-msgs = rosSelf.ublox-ubx-msgs;
-        }).overrideAttrs({ ... }: {
+        ublox-dgnss = (replaceUbloxSrc rosSuper.ublox-dgnss).overrideAttrs({ ... }: {
           sourceRoot = "source/ublox_dgnss";
         });
 
-        ublox-dgnss-node = ((replaceUbloxSrc rosSuper.ublox-dgnss-node).override {
-          ublox-ubx-interfaces = rosSelf.ublox-ubx-interfaces;
-          ublox-ubx-msgs = rosSelf.ublox-ubx-msgs;
-        }).overrideAttrs({ propagatedBuildInputs ? [ ], ... }: {
+        ublox-dgnss-node = (replaceUbloxSrc rosSuper.ublox-dgnss-node).overrideAttrs({ propagatedBuildInputs ? [ ], ... }: {
           sourceRoot = "source/ublox_dgnss_node";
 
           propagatedBuildInputs = propagatedBuildInputs ++ (with rosSuper; [
