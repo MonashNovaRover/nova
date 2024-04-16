@@ -35,8 +35,7 @@ def launch_setup(context, *args, **kwargs):
     ekf = LaunchConfiguration('ekf')
     use_filter = LaunchConfiguration('use_filter')
     ekf_params = LaunchConfiguration('ekf_params')
-
-
+    gps = LaunchConfiguration('gps')
 
     gazebo_odom_params = {
         "use_sim_time": use_sim_time, 
@@ -125,6 +124,12 @@ def generate_launch_description():
         'use_filter',
         default_value='true',
         description='Use a Kalman Filter?'
+    )
+    
+    gps_arg = DeclareLaunchArgument(
+        'gps',
+        default_value='false',
+        description='Fuse GPS?'
     )
 
     declared_arguments = [
