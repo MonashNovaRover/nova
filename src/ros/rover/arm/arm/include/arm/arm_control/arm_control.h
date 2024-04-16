@@ -46,7 +46,7 @@ TODO:
 // Include service types
 #include "arm_interfaces/srv/arm_config_info.hpp"
 #include "std_srvs/srv/trigger.hpp"
-#include "core/srv/string_trigger.hpp"
+#include "arm_interfaces/srv/string_trigger.hpp"
 
 // Include libraries
 #include "model/arm_model.h"
@@ -81,7 +81,7 @@ class ArmControl : public rclcpp::Node
     rclcpp::Service<arm_interfaces::srv::ArmConfigInfo>::SharedPtr arm_config_info_service;
     // Services (clients)
     rclcpp::Client<std_srvs::srv::Trigger>::SharedPtr arm_reset_control_pose_client;
-    rclcpp::Client<core::srv::StringTrigger>::SharedPtr resolver_zero_client;
+    rclcpp::Client<arm_interfaces::srv::StringTrigger>::SharedPtr resolver_zero_client;
 
     // Store state of last-received messages
     arm_interfaces::msg::ArmControlScheme control_scheme;
@@ -115,7 +115,7 @@ class ArmControl : public rclcpp::Node
 
     /// @brief  Callback for resolver zero service
     /// @param  future the result of the service call
-    void zero_resolver_callback(const rclcpp::Client<core::srv::StringTrigger>::SharedFuture future);
+    void zero_resolver_callback(const rclcpp::Client<arm_interfaces::srv::StringTrigger>::SharedFuture future);
     
     /// @brief  Callback for resolver subscription
     ///         Updates the internal joint state, which is later used to update the model

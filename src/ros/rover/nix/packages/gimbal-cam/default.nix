@@ -3,7 +3,7 @@
 , buildRosPackage
 , rclpy
 , pythonPackages
-, nova-input-msgs
+, nova-input-interfaces
 }:
 
 buildRosPackage {
@@ -18,7 +18,7 @@ buildRosPackage {
 
   propagatedBuildInputs = [
     rclpy
-    nova-input-msgs
+    nova-input-interfaces
     pythonPackages.jcan
   ];
 }

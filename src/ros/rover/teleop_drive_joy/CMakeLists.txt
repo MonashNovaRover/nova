@@ -6,7 +6,8 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   geometry_msgs
   sensor_msgs
   controller_manager_msgs
-  core
+  drive_interfaces
+  input_interfaces
   pluginlib
   rclcpp
   rclcpp_components

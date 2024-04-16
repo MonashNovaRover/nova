@@ -2,4 +2,4 @@
 
 std_msgs/Header header
 
-core/DriveInput drive_input
+drive_interfaces/DriveInput drive_input

@@ -17,8 +17,8 @@ Ask operator for key mapping, specifically the frame controls
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-#include "input_device.h"
-#include "core/msg/input_keyboard.hpp"
+#include "arm_inputs/input_device.h"
+#include "input_interfaces/msg/input_keyboard.hpp"
 
 #include <string>
 #include <map>
@@ -29,7 +29,7 @@ class KeyboardTranslate: public InputDevice {
     private:
 
     /// @brief  The keyboard message
-    core::msg::InputKeyboard keyboard;
+    input_interfaces::msg::InputKeyboard keyboard;
 
     /// @brief Buffer for messages to print
     std::string message = "";
@@ -195,17 +195,17 @@ class KeyboardTranslate: public InputDevice {
     KeyboardTranslate();
 
     // See input_device.h for documentation
-    bool get_control_scheme_inputs(core::msg::ArmControlScheme& control_scheme_inputs) override;
+    bool get_control_scheme_inputs(arm_interfaces::msg::ArmControlScheme& control_scheme_inputs) override;
 
-    void get_end_effector_inputs(core::msg::ArmControlScheme& control_scheme_inputs, core::msg::EndEffectorInput& end_effector_inputs) override;
+    void get_end_effector_inputs(arm_interfaces::msg::ArmControlScheme& control_scheme_inputs, arm_interfaces::msg::EndEffectorInput& end_effector_inputs) override;
 
-    void get_joint_velocity_inputs(core::msg::ArmControlScheme& control_scheme_inputs, sensor_msgs::msg::JointState& joint_velocity_inputs) override;
+    void get_joint_velocity_inputs(arm_interfaces::msg::ArmControlScheme& control_scheme_inputs, sensor_msgs::msg::JointState& joint_velocity_inputs) override;
     
-    void get_twist_inputs(core::msg::ArmControlScheme& control_scheme_inputs, geometry_msgs::msg::TwistStamped& twist_inputs) override;
+    void get_twist_inputs(arm_interfaces::msg::ArmControlScheme& control_scheme_inputs, geometry_msgs::msg::TwistStamped& twist_inputs) override;
 
     /// @brief Callback for keyboard messages
     /// @param msg The keyboard message
-    void keyboard_callback(core::msg::InputKeyboard::SharedPtr msg);
+    void keyboard_callback(input_interfaces::msg::InputKeyboard::SharedPtr msg);
 
     void reset_message() override;
 

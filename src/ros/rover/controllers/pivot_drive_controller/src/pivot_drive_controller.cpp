@@ -133,9 +133,9 @@ namespace pivot_drive_controller
         //RCLCPP_INFO(logger, "period: %f", period.seconds());
 
         std::shared_ptr<geometry_msgs::msg::TwistStamped> last_twist_command_msg;
-        std::shared_ptr<core::msg::DriveInputStamped> last_command_msg;
+        std::shared_ptr<drive_interfaces::msg::DriveInputStamped> last_command_msg;
 
-        core::msg::DriveInputStamped command;
+        drive_interfaces::msg::DriveInputStamped command;
 
         double target_radius, target_direction, target_speed;
         
@@ -228,7 +228,7 @@ namespace pivot_drive_controller
             previous_commands_.emplace(command);
 
 
-            if(second_to_last_command.mode == core::msg::DriveInput::STRAFE && command.drive_input.mode == core::msg::DriveInput::PIVOT){
+            if(second_to_last_command.mode == drive_interfaces::msg::DriveInput::STRAFE && command.drive_input.mode == drive_interfaces::msg::DriveInput::PIVOT){
                 RCLCPP_INFO(logger, "switching from strafe to pivot drive");
                 target_radius = INFINITY;
                 target_direction = 0;
@@ -653,7 +653,7 @@ namespace pivot_drive_controller
             return controller_interface::CallbackReturn::ERROR;
         }
 
-        core::msg::DriveInputStamped empty_drive_input;
+        drive_interfaces::msg::DriveInputStamped empty_drive_input;
         empty_drive_input.drive_input.radius = INFINITY;
         empty_drive_input.drive_input.direction = 0;
         empty_drive_input.drive_input.speed = 0;
@@ -662,7 +662,7 @@ namespace pivot_drive_controller
 
         // Fill last two commands with default constructed commands
         received_twist_msg_ptr_.set(std::make_shared<geometry_msgs::msg::TwistStamped>(empty_twist));
-        received_drive_input_msg_ptr_.set(std::make_shared<core::msg::DriveInputStamped>(empty_drive_input));
+        received_drive_input_msg_ptr_.set(std::make_shared<drive_interfaces::msg::DriveInputStamped>(empty_drive_input));
 
         previous_twist_commands_.emplace(empty_twist);
         previous_twist_commands_.emplace(empty_twist);
@@ -692,9 +692,9 @@ namespace pivot_drive_controller
             });
 
 
-          drive_input_unstamped_subscriber_ = get_node()->create_subscription<core::msg::DriveInput>(
+          drive_input_unstamped_subscriber_ = get_node()->create_subscription<drive_interfaces::msg::DriveInput>(
             DEFAULT_INPUT_TOPIC, rclcpp::SystemDefaultsQoS(),
-            [this](const std::shared_ptr<core::msg::DriveInput> msg) -> void
+            [this](const std::shared_ptr<drive_interfaces::msg::DriveInput> msg) -> void
             {
               if (!subscriber_is_active_)
               {
@@ -704,7 +704,7 @@ namespace pivot_drive_controller
               }
 
               // Write fake header in the stored stamped command
-              std::shared_ptr<core::msg::DriveInputStamped> drive_input_stamped;
+              std::shared_ptr<drive_interfaces::msg::DriveInputStamped> drive_input_stamped;
               received_drive_input_msg_ptr_.get(drive_input_stamped);
               drive_input_stamped->drive_input = *msg;
               drive_input_stamped->header.stamp = get_node()->get_clock()->now();
@@ -734,9 +734,9 @@ namespace pivot_drive_controller
             });
 
 
-          drive_input_subscriber_ = get_node()->create_subscription<core::msg::DriveInputStamped>(
+          drive_input_subscriber_ = get_node()->create_subscription<drive_interfaces::msg::DriveInputStamped>(
             DEFAULT_INPUT_TOPIC, rclcpp::SystemDefaultsQoS(),
-            [this](const std::shared_ptr<core::msg::DriveInputStamped> msg) -> void
+            [this](const std::shared_ptr<drive_interfaces::msg::DriveInputStamped> msg) -> void
             {
               if (!subscriber_is_active_)
               {
@@ -900,7 +900,7 @@ namespace pivot_drive_controller
             return controller_interface::CallbackReturn::ERROR;
         }
 
-        received_drive_input_msg_ptr_.set(std::make_shared<core::msg::DriveInputStamped>());
+        received_drive_input_msg_ptr_.set(std::make_shared<drive_interfaces::msg::DriveInputStamped>());
         received_twist_msg_ptr_.set(std::make_shared<geometry_msgs::msg::TwistStamped>());
 
         return controller_interface::CallbackReturn::SUCCESS;
@@ -920,7 +920,7 @@ namespace pivot_drive_controller
         odometry_.resetOdometry();
 
         // release the old queue
-        std::queue<core::msg::DriveInputStamped> empty;
+        std::queue<drive_interfaces::msg::DriveInputStamped> empty;
         std::queue<geometry_msgs::msg::TwistStamped> empty_twist;
         std::swap(previous_commands_, empty);
         std::swap(previous_twist_commands_, empty_twist);

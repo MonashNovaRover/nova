@@ -7,12 +7,13 @@ AUTHOR(S):	Matthew Gu
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-#include "keyboard_translate.h"
+#include "arm_inputs/keyboard_translate.h"
 #include "inputs/keyboard.h"
 
 #include <SDL2/SDL.h>
-#include "print/print.h"
+#include "colors.h"
 #include <string>
+#include <iostream>
 
 KeyboardTranslate::KeyboardTranslate(): speed(0) {
     set_key_mappings();
@@ -90,7 +91,7 @@ void KeyboardTranslate::set_key_mappings(){
     key_mappings.yaw_decrease = SDL_SCANCODE_U;
 }
 
-bool KeyboardTranslate::get_control_scheme_inputs(core::msg::ArmControlScheme& control_scheme_inputs) {
+bool KeyboardTranslate::get_control_scheme_inputs(arm_interfaces::msg::ArmControlScheme& control_scheme_inputs) {
         // Used here for determining whether printing is needed
     if (is_pressed(key_mappings.base_frame_offset_toggle) && !updated_controls) {
         updated_controls = true;
@@ -100,7 +101,7 @@ bool KeyboardTranslate::get_control_scheme_inputs(core::msg::ArmControlScheme& c
             base_frame_offset = -1;
         }
         message = "Base frame offset: " + std::to_string(base_frame_offset);
-        Print::print(message.c_str());
+        std::cout <<  message << "\n"; 
     }
     control_scheme_inputs.base_frame_offset = base_frame_offset;
     // turn off zeroing as it should be a temporary signal
@@ -113,7 +114,7 @@ bool KeyboardTranslate::get_control_scheme_inputs(core::msg::ArmControlScheme& c
                 control_scheme_inputs.zero_resolvers = i;
                 updated_controls = true;
                 message = "Zeroing resolver: " + std::to_string(i);
-                Print::print(message.c_str());
+                std::cout << message << "\n";
             }
         }
     }
@@ -154,7 +155,7 @@ bool KeyboardTranslate::get_control_scheme_inputs(core::msg::ArmControlScheme& c
         control_scheme_inputs.flat_frame_angular = false;
         control_scheme_inputs.endpoint_frame_linear = false;
         control_scheme_inputs.endpoint_frame_angular = false;
-        Print::print("Joint Space: On");
+        std::cout << "Joint Space: On" << "\n";
     }
 
     // Correction for position control - can't have independent linear and angular control
@@ -167,7 +168,7 @@ bool KeyboardTranslate::get_control_scheme_inputs(core::msg::ArmControlScheme& c
     return is_pressed(key_mappings.toggle_input);
 }
 
-void KeyboardTranslate::get_end_effector_inputs(core::msg::ArmControlScheme& control_scheme_inputs, core::msg::EndEffectorInput& end_effector_inputs) {
+void KeyboardTranslate::get_end_effector_inputs(arm_interfaces::msg::ArmControlScheme& control_scheme_inputs, arm_interfaces::msg::EndEffectorInput& end_effector_inputs) {
     change_speed();
     if (!control_scheme_inputs.input_lock){
         // Set the values for linear actuator and end effector actuation
@@ -179,7 +180,7 @@ void KeyboardTranslate::get_end_effector_inputs(core::msg::ArmControlScheme& con
     }
 }
 
-void KeyboardTranslate::get_joint_velocity_inputs(core::msg::ArmControlScheme& control_scheme_inputs, sensor_msgs::msg::JointState& joint_velocity_inputs) {
+void KeyboardTranslate::get_joint_velocity_inputs(arm_interfaces::msg::ArmControlScheme& control_scheme_inputs, sensor_msgs::msg::JointState& joint_velocity_inputs) {
     change_speed();
     joint_velocity_inputs.velocity.clear();
     if (!control_scheme_inputs.input_lock && !control_scheme_inputs.ik_linear) {
@@ -212,7 +213,7 @@ void KeyboardTranslate::get_joint_velocity_inputs(core::msg::ArmControlScheme& c
 
 }
 
-void KeyboardTranslate::get_twist_inputs(core::msg::ArmControlScheme& control_scheme_inputs, geometry_msgs::msg::TwistStamped& twist_inputs) {
+void KeyboardTranslate::get_twist_inputs(arm_interfaces::msg::ArmControlScheme& control_scheme_inputs, geometry_msgs::msg::TwistStamped& twist_inputs) {
     change_speed();
     // If using lower joints IK, set the values for linear velocity
     if (!control_scheme_inputs.input_lock && control_scheme_inputs.ik_linear) {
@@ -248,14 +249,14 @@ void KeyboardTranslate::get_twist_inputs(core::msg::ArmControlScheme& control_sc
     }
 }
 
-void KeyboardTranslate::keyboard_callback(core::msg::InputKeyboard::SharedPtr msg) {
+void KeyboardTranslate::keyboard_callback(input_interfaces::msg::InputKeyboard::SharedPtr msg) {
     keyboard = *msg;
     read_keys();
 }
 
 void KeyboardTranslate::reset_message()
 {
-    keyboard = core::msg::InputKeyboard();
+    keyboard = input_interfaces::msg::InputKeyboard();
     read_keys();
 
 }
@@ -300,7 +301,7 @@ void KeyboardTranslate::toggle_control(std::string field_name, bool& value, uint
         value = !value;
         updated_controls = true;
         message = field_name + (value?": true":": false");
-        Print::print(message.c_str(), C_MODE);
+        std::cout << C_MODE << message.c_str() << C_END << "\n";
     }
 }
 
@@ -325,11 +326,11 @@ inline void KeyboardTranslate::change_speed(){
         if (is_pressed(key_mappings.speed_increase)) {
             display_speed = std::min(display_speed + speed_increment, 1.0f);
             message = "Speed: " + std::to_string(display_speed);
-            Print::print(message.c_str());
+            std::cout << message.c_str() << "\n";
         } else if (is_pressed(key_mappings.speed_decrease)) {
             display_speed = std::max(display_speed - speed_increment, 0.0f);
             message = "Speed: " + std::to_string(display_speed);
-            Print::print(message.c_str());
+            std::cout << message.c_str() << "\n";
         }
         speed = display_speed * speed_multipliers.all_inputs;
     }

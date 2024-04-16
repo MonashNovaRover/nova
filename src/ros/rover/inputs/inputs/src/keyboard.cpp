@@ -7,7 +7,7 @@ AUTHOR(S):	Matthew Gu
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-#include "keyboard.h"
+#include "inputs/keyboard.h"
 #include "print/print.h"
 #include <SDL2/SDL.h>
 

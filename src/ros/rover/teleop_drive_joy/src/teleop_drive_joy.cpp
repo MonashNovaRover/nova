@@ -63,9 +63,9 @@ namespace teleop_drive_joy
    */
   TeleopDriveJoy::TeleopDriveJoy(const rclcpp::NodeOptions& options) : node_{ std::make_shared<rclcpp::Node>("teleop_drive_joy_node_", options)}
   {
-    drive_input_pub = node_->create_publisher<core::msg::DriveInputStamped>(DEFAULT_OUTPUT_TOPIC, 50);
+    drive_input_pub = node_->create_publisher<drive_interfaces::msg::DriveInputStamped>(DEFAULT_OUTPUT_TOPIC, 50);
     cmd_vel_pub = node_->create_publisher<geometry_msgs::msg::TwistStamped>(DEFAULT_OUTPUT_TOPIC_TWIST, 50);
-    drive_info_pub = node_->create_publisher<core::msg::DriveInfo>(DEFAULT_OUTPUT_TOPIC_INFO, 50);
+    drive_info_pub = node_->create_publisher<drive_interfaces::msg::DriveInfo>(DEFAULT_OUTPUT_TOPIC_INFO, 50);
     
     joy_sub = node_->create_subscription<sensor_msgs::msg::Joy>(DEFAULT_INPUT_TOPIC, rclcpp::QoS(10), std::bind(&TeleopDriveJoy::joyCallback, this, _1));
 
@@ -106,11 +106,11 @@ namespace teleop_drive_joy
 
     auto modeToController = [](const unsigned char mode) -> std::string {
       switch (mode) {
-        case core::msg::DriveInput::STRAFE:
+        case drive_interfaces::msg::DriveInput::STRAFE:
           return "strafe_controller";
-        case core::msg::DriveInput::PIVOT:
+        case drive_interfaces::msg::DriveInput::PIVOT:
           return "pivot_drive_controller";
-        case core::msg::DriveInput::TANK:
+        case drive_interfaces::msg::DriveInput::TANK:
           return "nova_diff_drive_controller";
       }
     };
@@ -176,7 +176,7 @@ namespace teleop_drive_joy
 
     if (current_state.autonomous_mode)
     {
-      if (!previous_state.autonomous_mode) setControllerControlType(core::msg::DriveInput::PIVOT, true);
+      if (!previous_state.autonomous_mode) setControllerControlType(drive_interfaces::msg::DriveInput::PIVOT, true);
      
       auto cmd_vel_msg = std::make_unique<geometry_msgs::msg::TwistStamped>();
       cmd_vel_msg->twist.angular.z = angular;
@@ -187,9 +187,9 @@ namespace teleop_drive_joy
     }
     else
     {
-      if (previous_state.autonomous_mode) setControllerControlType(core::msg::DriveInput::PIVOT, false);
+      if (previous_state.autonomous_mode) setControllerControlType(drive_interfaces::msg::DriveInput::PIVOT, false);
 
-      auto drive_input_msg = std::make_unique<core::msg::DriveInputStamped>();
+      auto drive_input_msg = std::make_unique<drive_interfaces::msg::DriveInputStamped>();
 
       drive_input_msg->drive_input.radius = angular == 0 ? INFINITY : (1.0 / pow(abs(angular), 2)) - 1;
       drive_input_msg->drive_input.direction = angular > 0 ? -1 : angular < 0 ? 1 : 0;
@@ -242,19 +242,19 @@ namespace teleop_drive_joy
       current_state.autonomous_mode = false;
       RCLCPP_INFO(node_->get_logger(), "BUTTON: manual_control");
     }
-    if (joy_msg->buttons[params_.button_strafe_mode] && current_state.drive_mode != core::msg::DriveInput::STRAFE)
+    if (joy_msg->buttons[params_.button_strafe_mode] && current_state.drive_mode != drive_interfaces::msg::DriveInput::STRAFE)
     {
-      current_state.drive_mode = core::msg::DriveInput::STRAFE;
+      current_state.drive_mode = drive_interfaces::msg::DriveInput::STRAFE;
       RCLCPP_INFO(node_->get_logger(), "BUTTON: strafe_mode");
     }
-    else if (joy_msg->buttons[params_.button_diff_drive_mode] && current_state.drive_mode != core::msg::DriveInput::TANK)
+    else if (joy_msg->buttons[params_.button_diff_drive_mode] && current_state.drive_mode != drive_interfaces::msg::DriveInput::TANK)
     {
-      current_state.drive_mode = core::msg::DriveInput::TANK;
+      current_state.drive_mode = drive_interfaces::msg::DriveInput::TANK;
       RCLCPP_INFO(node_->get_logger(), "BUTTON: diff_drive_mode");
     }
-    else if (joy_msg->buttons[params_.button_pivot_drive_mode] && current_state.drive_mode != core::msg::DriveInput::PIVOT)
+    else if (joy_msg->buttons[params_.button_pivot_drive_mode] && current_state.drive_mode != drive_interfaces::msg::DriveInput::PIVOT)
     {
-      current_state.drive_mode = core::msg::DriveInput::PIVOT;
+      current_state.drive_mode = drive_interfaces::msg::DriveInput::PIVOT;
       RCLCPP_INFO(node_->get_logger(), "BUTTON: pivot_drive_mode");
     }
     else if (joy_msg->axes[params_.axis_speed_change_coarse] && !speed_change_button_pressed)
@@ -294,7 +294,7 @@ namespace teleop_drive_joy
         if (!sent_lock_msg)
         {
           // Initializes with zeros by default.
-          auto drive_input_msg = std::make_unique<core::msg::DriveInputStamped>();
+          auto drive_input_msg = std::make_unique<drive_interfaces::msg::DriveInputStamped>();
           drive_input_pub->publish(std::move(drive_input_msg));
 
           sent_lock_msg = true;

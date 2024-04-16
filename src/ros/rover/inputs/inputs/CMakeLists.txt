@@ -9,13 +9,12 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(input_interfaces REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(SDL2 REQUIRED)
 
 include_directories(
   include
 )
 
-# Libraries:
-# Gamepad
 if (NOT TARGET gamepad)
   add_library(gamepad src/gamepad.c)
   target_link_libraries(gamepad udev)
@@ -23,6 +22,12 @@ endif()
 
 if (NOT TARGET print)
   add_library(print src/print.cpp)
+endif()
+
+if (NOT TARGET keyboard)
+  add_library(keyboard src/keyboard.cpp)
+  target_link_libraries(keyboard print)
+  ament_target_dependencies(keyboard SDL2 input_interfaces)
 endif()
 
 add_executable(inputs_publisher
@@ -35,8 +40,13 @@ add_executable(inputs_publisher
 target_link_libraries(inputs_publisher gamepad print keyboard)
 ament_target_dependencies(inputs_publisher input_interfaces rclcpp SDL2)
 
+install(FILES 
+        include/inputs/keyboard.h
+        DESTINATION include/inputs)
+
 install(TARGETS
   inputs_publisher
+  keyboard
   DESTINATION lib/${PROJECT_NAME}
 )
 

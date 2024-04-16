@@ -7,13 +7,14 @@ AUTHOR(S):	Jess Hepworth, Jory Braun, Matthew Gu
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-#include "joystick_translate.h"
-#include "print/print.h"
+#include "arm_inputs/joystick_translate.h"
+#include "colors.h"
+#include <iostream>
 
 JoystickTranslate::JoystickTranslate() { }
 
 
-bool JoystickTranslate::get_control_scheme_inputs(core::msg::ArmControlScheme& control_scheme_inputs)
+bool JoystickTranslate::get_control_scheme_inputs(arm_interfaces::msg::ArmControlScheme& control_scheme_inputs)
 {
     // Set base reference frame offset
     int8_t base_frame_offset = 0;
@@ -28,12 +29,12 @@ bool JoystickTranslate::get_control_scheme_inputs(core::msg::ArmControlScheme& c
     // Arm lock
     if (joystick_l.btn_bottom_l2_state == 1) {
         if (!control_scheme_inputs.input_lock)
-            Print::print("Joysticks locked", C_MODE);
+            std::cout << C_MODE << "Joysticks locked" << C_END << "\n";
         control_scheme_inputs.input_lock = true;
     }
     if (joystick_l.btn_bottom_l5_state == 1){
         if (control_scheme_inputs.input_lock)
-            Print::print("Joysticks Unlocked", C_MODE);
+            std::cout << "Joysticks Unlocked" << C_END << "\n";
         control_scheme_inputs.input_lock = false;
     }
     // Joint limits
@@ -78,7 +79,7 @@ bool JoystickTranslate::get_control_scheme_inputs(core::msg::ArmControlScheme& c
     return (joystick_l.btn_bottom_r6_state==1);
 }
 
-void JoystickTranslate::get_end_effector_inputs(core::msg::ArmControlScheme& control_scheme_inputs, core::msg::EndEffectorInput& end_effector_inputs)
+void JoystickTranslate::get_end_effector_inputs(arm_interfaces::msg::ArmControlScheme& control_scheme_inputs, arm_interfaces::msg::EndEffectorInput& end_effector_inputs)
 {
     if (!control_scheme_inputs.input_lock){
         // Set the values for linear actuator and end effector actuation
@@ -94,7 +95,7 @@ void JoystickTranslate::get_end_effector_inputs(core::msg::ArmControlScheme& con
 
 }
 
-void JoystickTranslate::get_joint_velocity_inputs(core::msg::ArmControlScheme& control_scheme_inputs, sensor_msgs::msg::JointState& joint_velocity_inputs)
+void JoystickTranslate::get_joint_velocity_inputs(arm_interfaces::msg::ArmControlScheme& control_scheme_inputs, sensor_msgs::msg::JointState& joint_velocity_inputs)
 {
     float speed = scale_speed(joystick_r.ax_slider) * speed_multipliers.all_inputs;
     joint_velocity_inputs.velocity.clear();
@@ -133,7 +134,7 @@ void JoystickTranslate::get_joint_velocity_inputs(core::msg::ArmControlScheme& c
     }
 }
 
-void JoystickTranslate::get_twist_inputs(core::msg::ArmControlScheme& control_scheme_inputs, geometry_msgs::msg::TwistStamped& twist_inputs)
+void JoystickTranslate::get_twist_inputs(arm_interfaces::msg::ArmControlScheme& control_scheme_inputs, geometry_msgs::msg::TwistStamped& twist_inputs)
 {
     float speed = scale_speed(joystick_r.ax_slider) * speed_multipliers.all_inputs;
     
@@ -184,16 +185,16 @@ bool JoystickTranslate::is_connected()
 }
 
 
-void JoystickTranslate::joystick_l_callback(core::msg::InputJoystick::SharedPtr msg){
+void JoystickTranslate::joystick_l_callback(input_interfaces::msg::InputJoystick::SharedPtr msg){
     joystick_l = *msg;
 }
 
-void JoystickTranslate::joystick_r_callback(core::msg::InputJoystick::SharedPtr msg){
+void JoystickTranslate::joystick_r_callback(input_interfaces::msg::InputJoystick::SharedPtr msg){
     joystick_r = *msg;
 }
 
 void JoystickTranslate::reset_message()
 {
-    joystick_l = core::msg::InputJoystick();
-    joystick_r = core::msg::InputJoystick();
+    joystick_l = input_interfaces::msg::InputJoystick();
+    joystick_r = input_interfaces::msg::InputJoystick();
 }

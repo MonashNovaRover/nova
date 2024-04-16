@@ -136,7 +136,7 @@ controller_interface::return_type NovaDiffDriveController::update(
   }
 
   std::shared_ptr<geometry_msgs::msg::TwistStamped> last_twist_command_msg;
-  std::shared_ptr<core::msg::DriveInputStamped> last_command_msg;
+  std::shared_ptr<drive_interfaces::msg::DriveInputStamped> last_command_msg;
 
   double tmp1 = 0.0;
   double tmp2 = 0.0;
@@ -209,7 +209,7 @@ controller_interface::return_type NovaDiffDriveController::update(
       return controller_interface::return_type::ERROR;
     }
 
-    core::msg::DriveInputStamped command = *last_command_msg;
+    drive_interfaces::msg::DriveInputStamped command = *last_command_msg;
     linear_command = command.drive_input.speed;
     angular_command = command.drive_input.radius;
 
@@ -478,8 +478,8 @@ controller_interface::CallbackReturn NovaDiffDriveController::on_configure(
   const geometry_msgs::msg::TwistStamped empty_twist;
   received_twist_msg_ptr_.set(std::make_shared<geometry_msgs::msg::TwistStamped>(empty_twist));
 
-  const core::msg::DriveInputStamped empty_drive_input;
-  received_drive_input_msg_ptr_.set(std::make_shared<core::msg::DriveInputStamped>(empty_drive_input));
+  const drive_interfaces::msg::DriveInputStamped empty_drive_input;
+  received_drive_input_msg_ptr_.set(std::make_shared<drive_interfaces::msg::DriveInputStamped>(empty_drive_input));
 
   // Fill last two commands with default constructed commands
   previous_twist_commands_.emplace(empty_twist);
@@ -511,9 +511,9 @@ controller_interface::CallbackReturn NovaDiffDriveController::on_configure(
         twist_stamped->header.stamp = get_node()->get_clock()->now();
       });
 
-    drive_input_unstamped_subscriber_ = get_node()->create_subscription<core::msg::DriveInput>(
+    drive_input_unstamped_subscriber_ = get_node()->create_subscription<drive_interfaces::msg::DriveInput>(
       DEFAULT_INPUT_TOPIC, rclcpp::SystemDefaultsQoS(),
-      [this](const std::shared_ptr<core::msg::DriveInput> msg) -> void
+      [this](const std::shared_ptr<drive_interfaces::msg::DriveInput> msg) -> void
       {
         if (!subscriber_is_active_)
         {
@@ -523,7 +523,7 @@ controller_interface::CallbackReturn NovaDiffDriveController::on_configure(
         }
 
         // Write fake header in the stored stamped command
-        std::shared_ptr<core::msg::DriveInputStamped> drive_input_stamped;
+        std::shared_ptr<drive_interfaces::msg::DriveInputStamped> drive_input_stamped;
         received_drive_input_msg_ptr_.get(drive_input_stamped);
         drive_input_stamped->drive_input = *msg;
         drive_input_stamped->header.stamp = get_node()->get_clock()->now();
@@ -554,9 +554,9 @@ controller_interface::CallbackReturn NovaDiffDriveController::on_configure(
         received_twist_msg_ptr_.set(std::move(msg));
       });
 
-    drive_input_subscriber_ = get_node()->create_subscription<core::msg::DriveInputStamped>(
+    drive_input_subscriber_ = get_node()->create_subscription<drive_interfaces::msg::DriveInputStamped>(
       DEFAULT_INPUT_TOPIC_STAMPED, rclcpp::SystemDefaultsQoS(),
-      [this](const std::shared_ptr<core::msg::DriveInputStamped> msg) -> void
+      [this](const std::shared_ptr<drive_interfaces::msg::DriveInputStamped> msg) -> void
       {
         if (!subscriber_is_active_)
         {
@@ -716,7 +716,7 @@ controller_interface::CallbackReturn NovaDiffDriveController::on_cleanup(
   }
 
   received_twist_msg_ptr_.set(std::make_shared<geometry_msgs::msg::TwistStamped>());
-  received_drive_input_msg_ptr_.set(std::make_shared<core::msg::DriveInputStamped>());
+  received_drive_input_msg_ptr_.set(std::make_shared<drive_interfaces::msg::DriveInputStamped>());
 
   return controller_interface::CallbackReturn::SUCCESS;
 }
@@ -738,7 +738,7 @@ bool NovaDiffDriveController::reset()
   std::queue<geometry_msgs::msg::TwistStamped> empty_twist;
   std::swap(previous_twist_commands_, empty_twist);
 
-  std::queue<core::msg::DriveInputStamped> empty;
+  std::queue<drive_interfaces::msg::DriveInputStamped> empty;
   std::swap(previous_commands_, empty);
 
   registered_left_drive_handles_.clear();

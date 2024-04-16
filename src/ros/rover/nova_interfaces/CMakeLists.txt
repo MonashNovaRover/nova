@@ -57,7 +57,6 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/LoadCellPoller.srv"
   "srv/RFIDCommand.srv"
   "srv/PathPlanningRequest.srv"
-  "srv/StringTrigger.srv"
   "srv/GpsOffset.srv"
 
   # Action definitions

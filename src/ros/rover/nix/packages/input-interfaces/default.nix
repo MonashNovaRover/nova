@@ -6,11 +6,11 @@
 }:
 
 buildRosPackage {
-  name = "input-msgs";
+  name = "input-interfaces";
   buildType = "ament_cmake";
 
   src = builtins.path rec {
-    name = "input-msgs-source";
+    name = "input-interfaces-source";
     path = ../../../inputs/input_interfaces;
     filter = lib.novaSourceFilter [ ] path;
   };

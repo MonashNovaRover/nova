@@ -21,18 +21,18 @@ InputsPublisher::InputsPublisher() : Node("input_pub")
     //  and then use VENDOR:PRODUCT
     GamepadInit("044F:B10A");
 
-    // Creates all the joysticks (gamepads and thrustmasters)
+    // Creates all the joysticks (gamepads and thrustmasters) 
     gamepad     = new JoystickGamepad(0.0);
     joystick_l  = new JoystickThrustmaster(true, 0.06445, 0.5);
     joystick_r  = new JoystickThrustmaster(false, 0.06445, 0.0);
     keyboard    = new Keyboard();
 
     // Creates the publishers
-    // gamepad_publisher       = this->create_publisher<core::msg::InputGamepad>("/inputs/input_gamepad", qos, publisher_options);
-    gamepad_publisher       = this->create_publisher<input_interfaces::msg::InputGamepad>("/inputs/input_gamepad", rclcpp::QoS(1).best_effort().deadline(ROSTimers::drive_deadline));
-    joystick_l_publisher    = this->create_publisher<input_interfaces::msg::InputJoystick>("/inputs/input_joystick_l", rclcpp::QoS(1).best_effort().deadline(ROSTimers::drive_deadline));
-    joystick_r_publisher    = this->create_publisher<input_interfaces::msg::InputJoystick>("/inputs/input_joystick_r", rclcpp::QoS(1).best_effort().deadline(ROSTimers::drive_deadline));
-    keyboard_publisher      = this->create_publisher<input_interfaces::msg::InputKeyboard>("/inputs/input_keyboard", rclcpp::QoS(1).best_effort().deadline(ROSTimers::drive_deadline));
+    // gamepad_publisher       = this->create_publisher<input_interfaces::msg::InputGamepad>("/inputs/input_gamepad", qos, publisher_options);
+    gamepad_publisher       = this->create_publisher<input_interfaces::msg::InputGamepad>("/inputs/input_gamepad", rclcpp::QoS(1).best_effort().deadline(ROSTimers::inputs_deadline));
+    joystick_l_publisher    = this->create_publisher<input_interfaces::msg::InputJoystick>("/inputs/input_joystick_l", rclcpp::QoS(1).best_effort().deadline(ROSTimers::inputs_deadline));
+    joystick_r_publisher    = this->create_publisher<input_interfaces::msg::InputJoystick>("/inputs/input_joystick_r", rclcpp::QoS(1).best_effort().deadline(ROSTimers::inputs_deadline));
+    keyboard_publisher      = this->create_publisher<input_interfaces::msg::InputKeyboard>("/inputs/input_keyboard", rclcpp::QoS(1).best_effort().deadline(ROSTimers::inputs_deadline));
 
     // Creates a timer function that runs a function on loop
     timer = this->create_wall_timer(ROSTimers::inputs_publish, std::bind(&InputsPublisher::publish_input, this));

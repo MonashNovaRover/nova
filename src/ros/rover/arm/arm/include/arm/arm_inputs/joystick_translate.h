@@ -17,15 +17,15 @@ EDITED:		07/12/2023
 */
 
 #include "input_device.h"
-#include "core/msg/input_joystick.hpp"
+#include "input_interfaces/msg/input_joystick.hpp"
 
 
 class JoystickTranslate: public InputDevice {
     //------------------------------------------------------------//
     private:
     // store the messages
-    core::msg::InputJoystick joystick_l;
-    core::msg::InputJoystick joystick_r;
+    input_interfaces::msg::InputJoystick joystick_l;
+    input_interfaces::msg::InputJoystick joystick_r;
 
     typedef struct {
         // Multiplier for all inputs
@@ -52,23 +52,23 @@ class JoystickTranslate: public InputDevice {
 
 
     // See input_device.h for documentation
-    bool get_control_scheme_inputs(core::msg::ArmControlScheme& control_scheme_inputs) override;
+    bool get_control_scheme_inputs(arm_interfaces::msg::ArmControlScheme& control_scheme_inputs) override;
 
-    void get_end_effector_inputs(core::msg::ArmControlScheme& control_scheme_inputs, core::msg::EndEffectorInput& end_effector_inputs) override;
+    void get_end_effector_inputs(arm_interfaces::msg::ArmControlScheme& control_scheme_inputs, arm_interfaces::msg::EndEffectorInput& end_effector_inputs) override;
 
-    void get_joint_velocity_inputs(core::msg::ArmControlScheme& control_scheme_inputs, sensor_msgs::msg::JointState& joint_velocity_inputs) override;
+    void get_joint_velocity_inputs(arm_interfaces::msg::ArmControlScheme& control_scheme_inputs, sensor_msgs::msg::JointState& joint_velocity_inputs) override;
     
-    void get_twist_inputs(core::msg::ArmControlScheme& control_scheme_inputs, geometry_msgs::msg::TwistStamped& twist_inputs) override;
+    void get_twist_inputs(arm_interfaces::msg::ArmControlScheme& control_scheme_inputs, geometry_msgs::msg::TwistStamped& twist_inputs) override;
 
     bool is_connected() override;
 
     /// @brief  Callback for the left joystick message
     /// @param msg - the joystick message 
-    void joystick_l_callback(core::msg::InputJoystick::SharedPtr msg);
+    void joystick_l_callback(input_interfaces::msg::InputJoystick::SharedPtr msg);
 
     /// @brief  Callback for the right joystick message
     /// @param msg - the joystick message
-    void joystick_r_callback(core::msg::InputJoystick::SharedPtr msg);
+    void joystick_r_callback(input_interfaces::msg::InputJoystick::SharedPtr msg);
     
     void reset_message() override;
 };

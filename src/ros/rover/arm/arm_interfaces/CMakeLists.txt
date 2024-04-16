@@ -18,6 +18,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/EndEffectorInput.msg"
 
   "srv/ArmConfigInfo.srv"
+  "srv/StringTrigger.srv"
   
   DEPENDENCIES std_msgs
 )
