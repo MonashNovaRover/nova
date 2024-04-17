@@ -9,7 +9,7 @@ NODES:
   - robot_state_publisher
   - rover_state_publisher
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-PACKAGE: 	core
+PACKAGE: 	auto_bringup
 CREATION:	27/04/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
@@ -23,15 +23,16 @@ from launch.conditions import IfCondition, UnlessCondition
 
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
+from launch_ros.substitutions import FindPackageShare
 
 # Generate the launch file with all inputs
 def generate_launch_description():
-    rover_description_path = get_package_share_path('rover_description')
-    default_model_path = rover_description_path/ 'urdf/rover.urdf'
+    rover_description_dir = FindPackageShare('rover_description')
+    default_model_path = PathJoinSubstitution([rover_description_dir, 'urdf', 'rover.urdf'])
 
     gazebo = LaunchConfiguration('gazebo')
 
-    model_arg = DeclareLaunchArgument(name='model', default_value=PathJoinSubstitution([core_dir, 'urdf', 'rover.urdf.xacro']),
+    model_arg = DeclareLaunchArgument(name='model', default_value=PathJoinSubstitution([rover_description_dir, 'urdf', 'rover.urdf.xacro']),
             description='Absolute path to robot urdf file')
 
     gazebo_arg = DeclareLaunchArgument(

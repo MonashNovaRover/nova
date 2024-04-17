@@ -23,28 +23,31 @@ from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
+from launch_ros.descriptions import ParameterValue
 
 
 # Generate the launch file with all inputs
 def generate_launch_description():
-    core_dir = get_package_share_directory('core')
+    auto_bringup_dir = FindPackageShare('auto_bringup')
+    rover_description_dir = FindPackageShare('rover_description')
     gazebo = LaunchConfiguration('gazebo', default=False)
     model = LaunchConfiguration('model')
     controllers = LaunchConfiguration('controllers')
 
     gazebo_arg = DeclareLaunchArgument(
         'gazebo',
-        default_value='true',
+        default_value='False',
         description='Use simulation (Gazebo) clock if true')
 
-    model_arg = DeclareLaunchArgument(name='model', default_value=PathJoinSubstitution([core_dir, 'urdf', 'rover.urdf.xacro']),
+    model_arg = DeclareLaunchArgument(name='model', 
+            default_value=PathJoinSubstitution([rover_description_dir, 'urdf', 'rover.urdf.xacro']),
             description='Absolute path to robot urdf file')
     
     controllers_arg = DeclareLaunchArgument(
             name="controllers",
             default_value=PathJoinSubstitution(
                 [
-                    FindPackageShare("core"), 
+                    auto_bringup_dir, 
                     "params", 
                     "controllers.yaml"
                 ]       
@@ -91,7 +94,7 @@ def generate_launch_description():
     )
 
     urdf_launch_cmd = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([core_dir, '/launch/urdf_launch.py']),
+        PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'urdf.launch.py'])),
         condition=UnlessCondition(gazebo),
         launch_arguments={"model": model, "gazebo": 'false'}.items()
     )
