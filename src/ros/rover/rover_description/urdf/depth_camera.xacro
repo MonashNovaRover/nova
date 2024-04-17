@@ -15,7 +15,7 @@ which is how it gets added to the gazebo sim. Author/s: Victor Bartlinski-->
       <origin xyz="0 0 0" rpy="${pi/2} 0 ${pi/2}" />
       <geometry>
         <mesh
-          filename="file:///$(find core)/meshes/d455.STL" 
+          filename="file:///$(find rover_description)/meshes/d455.STL" 
           scale="0.001 0.001 0.001" />
       </geometry>
     </visual>
