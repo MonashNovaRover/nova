@@ -50,7 +50,7 @@ void ResolverSpoofer::start_node()
 
     // Create the publisher
     resolver_publisher = this->create_publisher<sensor_msgs::msg::JointState>(
-        "/electronics/resolvers", 10
+        "/arm/resolvers", 10
     );
 
     // Output set-up messages
@@ -58,7 +58,7 @@ void ResolverSpoofer::start_node()
     std::cout << "Subscribed Topics:\n";
     std::cout << "/arm/joint_velocities   [sensor_msgs/JointState]\n";
     std::cout << "Published Topics:\n";
-    std::cout << "/electronics/resolvers      [sensor_msgs/JointState]\n" << std::endl;
+    std::cout << "/arm/resolvers      [sensor_msgs/JointState]\n" << std::endl;
 }
 
 // Convert a Real angle into the equivalent angle in [0, 2pi)

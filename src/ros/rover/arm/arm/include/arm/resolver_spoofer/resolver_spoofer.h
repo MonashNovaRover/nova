@@ -11,7 +11,7 @@ It can be used in place of the arm_driver for when no physical
 NODE: resolver_spoofer
 TOPICS:
   - /arm/joint_velocities  [sensor_msgs/JointState]    [Subscribed]
-  - /electronics/resolvers     [sensor_msgs/JointState]    [Published]
+  - /arm/resolvers     [sensor_msgs/JointState]    [Published]
 SERVICES: None
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -52,7 +52,7 @@ class ResolverSpoofer : public ArmConfigInfoClient
 
     // Subscriber to listen for output joint velocity commands
     rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr outputs_subscription;
-    // Timer for publishing to /electronics/resolvers
+    // Timer for publishing to /arm/resolvers
     rclcpp::TimerBase::SharedPtr publisher_timer;
     // Publisher to resolvers
     rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr resolver_publisher;

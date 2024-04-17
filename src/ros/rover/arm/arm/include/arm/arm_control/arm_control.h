@@ -14,7 +14,7 @@ It reads the desired task position, task velocity and joint
 NODE: arm_control
 TOPICS:
   - /arm/arm_control_scheme           [arm_interfaces/ArmControlScheme]           [Subscribed]
-  - /electronics/resolvers                [sensor_msgs/JointState]          [Subscribed]
+  - /arm/resolvers                [sensor_msgs/JointState]          [Subscribed]
   - /arm/control_joints               [sensor_msgs/JointState]          [Subscribed]
   - /arm/control_twist                [geometry_msgs/TwistStamped]      [Subscribed]
   - /arm/control_pose                 [geometry_msgs/TransformStamped]  [Subscribed]
@@ -22,7 +22,7 @@ TOPICS:
   - /arm/joint_velocities             [sensor_msgs/JointState]          [Published]
 SERVICES:
   - /control/arm_config_info              [core/ArmConfigInfo]              [Server]
-  - /electronics/resolver_zero_service    [core/StringTrigger]              [Client]
+  - /arm/resolver_zero_service    [core/StringTrigger]              [Client]
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	   control

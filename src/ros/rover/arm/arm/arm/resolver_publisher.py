@@ -6,7 +6,7 @@ This file contains the ROS2 publisher code for the motor resolvers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: resolver_publisher
 TOPICS:
-  - /electronics/resolvers                       [sensor_msgs/JointState]    [Published]
+  - /arm/resolvers                       [sensor_msgs/JointState]    [Published]
 SERVICES:
   - /arm/arm_config_info                     [core/ArmConfigInfo]        [Client]
   - /arm/resolver_zero_service               [core/StringTrigger]        [Server]
@@ -391,12 +391,12 @@ class ResolverPublisher(Node):
             joint.discontinuity_angle = self.wrap_to_2pi((joint_limit_lower + joint_limit_upper) / 2 + pi)
         
         # Construct and start the resolver publisher
-        self.publisher = self.create_publisher(JointState, '/electronics/resolvers', 10)
+        self.publisher = self.create_publisher(JointState, '/arm/resolvers', 10)
         self.resolver_pub_timer = self.create_timer(resolver_pub_timer_period, self.publish)
         # Construct the service to zero resolvers
         self.zero_service = self.create_service(StringTrigger, "/arm/resolver_zero_service", self.zero_callback)
         # Construct the service to zero resolver sector
-        self.sector_zero_service = self.create_service(StringTrigger, "electronics/resolver_sector_zero_service", self.sector_zero_callback)
+        self.sector_zero_service = self.create_service(StringTrigger, "arm/resolver_sector_zero_service", self.sector_zero_callback)
 
     def zero_callback(self, request: StringTrigger.Request, response: StringTrigger.Response):
         """

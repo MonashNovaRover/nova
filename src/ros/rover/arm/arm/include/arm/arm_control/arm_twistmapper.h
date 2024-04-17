@@ -10,7 +10,7 @@ This class transforms the task-space twist from the
 NODE: arm_twistmapper
 TOPICS:
   - /arm/arm_control_scheme        [arm_interfaces/ArmControlScheme]           [Subscribed]
-  - /electronics/resolvers             [sensor_msgs/JointState]          [Subscribed]
+  - /arm/resolvers             [sensor_msgs/JointState]          [Subscribed]
   - /arm/joystick_joint_velocities [sensor_msgs/JointState]          [Subscribed]
   - /arm/joystick_twist            [geometry_msgs/TwistStamped]      [Subscribed]
   - /arm/control_joints            [sensor_msgs/JointState]          [Published]
