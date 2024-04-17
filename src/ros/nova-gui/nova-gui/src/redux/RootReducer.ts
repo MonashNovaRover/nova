@@ -164,8 +164,8 @@ export const rootReducer = {
   ramanSpecMessageStore: createBifrostStore(
     { topic: RosTopic.RAMAN_SPEC_MSG },
     {
-      isvalid: false,
-      spectrum: []
+      isvalid: true,
+      spectrum: [1]
     }
   ),
 
