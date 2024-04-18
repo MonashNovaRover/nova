@@ -21,6 +21,7 @@ interface IOutputComparisonProps {
 const OutputComparison: React.FC<IOutputComparisonProps> = (props: IOutputComparisonProps) => {
     const chartOptions: ApexOptions = ChartOptions(props.style);
 
+
     return (
         <Card className="w-fit p-2 m-1">
             <CardHeader className="shrink-0 w-48 p-1">{props.title}</CardHeader>
