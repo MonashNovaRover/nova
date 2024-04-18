@@ -11,6 +11,7 @@ import ReactApexChart from "react-apexcharts";
 import { ApexOptions } from "apexcharts";
 import DatasetChart from "./DatasetChart";
 import { ChartOptions, ChartStyle } from "./ChartOptions";
+import { defaultPeakFinder } from "./ChartAnalysis";
 
 type ApexDataset = {
     name: string,
@@ -22,12 +23,19 @@ interface IOutputComparisonProps {
     elementData: ApexDataset[],
     outputStyle: ChartStyle,
     datasetStyle: ChartStyle,
-    peakFinder: (data: number[][]) => number[][]
+    peakFinder?: (data: number[][]) => number[][] | undefined
 }
 
 const OutputComparison: React.FC<IOutputComparisonProps> = (props: IOutputComparisonProps) => {
     const outputChartOptions: ApexOptions = ChartOptions(props.outputStyle);
     const dataChartOptions: ApexOptions = ChartOptions(props.datasetStyle);
+
+    let peakFinder: (data: number[][]) => number[][] | undefined;
+    if (props.peakFinder == undefined) {
+        peakFinder = defaultPeakFinder
+    } else {
+        peakFinder = props.peakFinder
+    }
 
     return (
         <Card className="w-fit p-2 m-1 w-auto">
@@ -35,7 +43,7 @@ const OutputComparison: React.FC<IOutputComparisonProps> = (props: IOutputCompar
             <div className="flex flex-row">
                 <ReactApexChart className = "w-1/2 self-center" options={outputChartOptions} series={props.outputData} />
                 <ScrollShadow hideScrollBar className="w-1/2 h-154">
-                        {props.elementData.map( element => (<DatasetChart key={element[0].name} name={element[0].name} data={element[0].data} chartOptions={dataChartOptions} peaks={props.peakFinder(element[0].data)} />))}
+                        {props.elementData.map( element => (<DatasetChart key={element[0].name} name={element[0].name} data={element[0].data} chartOptions={dataChartOptions} peaks={peakFinder(element[0].data)} />))}
                 </ScrollShadow>
             </div>
         </Card>
