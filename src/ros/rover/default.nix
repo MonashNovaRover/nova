@@ -26,6 +26,7 @@
     nova-auto-bringup = callPackage ./nix/packages/auto-bringup { };
     nova-interfaces = callPackage ./nix/packages/nova-interfaces{ };
     nova-rover-description = callPackage ./nix/packages/rover-description { };
+    nova-gazebo = callPackage ./nix/packages/nova-gazebo { };
     # diff drive, pivot drive, strafe, 
   } // import ./nix/packages/controllers { inherit pkgs; };
 
