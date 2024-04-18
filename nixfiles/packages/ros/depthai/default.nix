@@ -10,19 +10,19 @@
 
 buildRosPackage rec {
   pname = "depthai";
-  version = "2.23.0";
+  version = "2.24.0";
   buildType = "prebuilt";
 
   src = fetchurl {
     # http://packages.ros.org/ros2/ubuntu/pool/main/r/ros-${rosDistro}-depthai
     humble = {
       x86_64-linux = {
-        url = "http://packages.ros.org/ros2/ubuntu/pool/main/r/ros-humble-depthai/ros-humble-depthai_${version}-1jammy.20240217.032335_amd64.deb";
-        hash = "sha256-1wO2PnimBDY/sJlNHIXSGGR5gaGbqkDElDaUy3rRvpM=";
+        url = "http://packages.ros.org/ros2/ubuntu/pool/main/r/ros-humble-depthai/ros-humble-depthai_${version}-1jammy.20240308.165504_amd64.deb";
+        hash = "sha256-P5jsDRwQk08QqZfLp/HDbzedXm5sD9lRp9Qx0zsE+zQ=";
       };
       aarch64-linux = {
-        url = "http://packages.ros.org/ros2/ubuntu/pool/main/r/ros-humble-depthai/ros-humble-depthai_${version}-1jammy.20240217.025930_arm64.deb";
-        hash = "sha256-+gdMfyIvzpR4B2O6jwDIUmCNX6TB2vznzmZTOyV1W5o=";
+        url = "http://packages.ros.org/ros2/ubuntu/pool/main/r/ros-humble-depthai/ros-humble-depthai_${version}-1jammy.20240308.165854_arm64.deb";
+        hash = "sha256-BCkGVO4ldSkJZMUKF9ScH2wnZ0NgFFIO/J2miqBu+F8=";
       };
     };
   }.${ros-environment.rosDistro}.${hostPlatform.system}
