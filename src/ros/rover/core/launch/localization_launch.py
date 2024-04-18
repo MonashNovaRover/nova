@@ -71,9 +71,30 @@ def launch_setup(context, *args, **kwargs):
         condition=IfCondition(AndSubstitution(use_real_odometry, ekf)),
         package='robot_localization',
         executable='ekf_node',
-        name='ekf_filter_node',
+        name='ekf_filter_node_odom',
         output='screen',
-        parameters=[(LaunchConfiguration('ekf_params_file').perform(context)), {"use_sim_time": use_sim_time}],
+        parameters=[(LaunchConfiguration('rl_params_file').perform(context)), {"use_sim_time": use_sim_time}],
+        remappings=[("odometry/filtered", "odometry/local")]
+    )
+
+    ekf_localisation_map = Node(
+        condition=IfCondition(AndSubstitution(use_real_odometry, gps)),
+        package='robot_localization',
+        executable='ekf_node',
+        name='ekf_filter_node_map',
+        output='screen',
+        parameters=[(LaunchConfiguration('rl_params_file').perform(context)), {"use_sim_time": use_sim_time}],
+        remappings=[("odometry/filtered", "odometry/global")]
+    )
+
+    navsat_transform_node = Node(
+        condition=IfCondition(AndSubstitution(use_real_odometry, gps)),
+        package='robot_localization',
+        executable='ekf_node',
+        name='ekf_filter_node_map',
+        output='screen',
+        parameters=[(LaunchConfiguration('rl_params_file').perform(context)), {"use_sim_time": use_sim_time}],
+        remappings=[("odometry/filtered", "odometry/global")]
     )
 
     slam_cmd = IncludeLaunchDescription(
@@ -115,9 +136,9 @@ def generate_launch_description():
         description='Use EKF (true) or UKF (false)'
     )
 
-    ekf_param_arg = DeclareLaunchArgument(
+    rl_param_arg = DeclareLaunchArgument(
         'ekf_params_file',
-        default_value=os.path.join(get_package_share_path("core"),'params','ekf.yaml')
+        default_value=os.path.join(get_package_share_path("core"),'params','rl.yaml')
     )
 
     use_filter_arg = DeclareLaunchArgument(
@@ -137,8 +158,9 @@ def generate_launch_description():
         use_filter_arg,
         use_sim_time_arg,
         use_real_odom_arg,
-        ekf_param_arg,
+        rl_param_arg,
         load_map_arg,
+        gps_arg
     ]
 
     return LaunchDescription(
