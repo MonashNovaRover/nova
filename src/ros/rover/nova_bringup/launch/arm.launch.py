@@ -38,7 +38,7 @@ def generate_launch_description():
         Node(package='arm', executable='arm_inputs', output='screen', emulate_tty=True),
         Node(package='arm', executable='arm_twistmapper', output='screen', emulate_tty=True),
         Node(package='arm', executable='arm_control', output='screen', emulate_tty=True),
-        Node(package='arm', executable='arm_driver', output='screen', emulate_tty=True),
+        Node(package='arm', executable='arm_driver', output='screen', emulate_tty=True, condition=UnlessCondition(sim)),
         Node(package='arm', executable='resolver_publisher.py', condition=UnlessCondition(sim), parameters=[params_path / 'arm_params.yaml'], output='screen', emulate_tty=True),
         Node(package='arm', executable='arm_rviz_publisher', output='screen', emulate_tty=True),
         Node(package='cmd_utils', executable='CMD_publisher.py', condition=UnlessCondition(sim), output='screen', emulate_tty=True),
