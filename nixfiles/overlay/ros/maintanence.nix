@@ -218,7 +218,44 @@ self: super:
           }))
         ];
       });
-    })
+    } // (
+      let
+        replaceUbloxSrc = pkg: pkg.overrideAttrs ({ src, version, ... }: {
+          src = self.fetchFromGitHub {
+            owner = "leighleighleigh";
+            repo = "ublox_dgnss";
+            rev = "a64e313ddbb01234c91b757c76280a5780bfd0e3";
+            hash = "sha256-/R/RDaKDmMjAy1oTERqi0FtV/Zs32oFcB8ZYe1EdZmE=";
+          };
+
+          version = "0.2.3";
+        });
+      in
+      {
+        ublox-dgnss = (replaceUbloxSrc rosSuper.ublox-dgnss).overrideAttrs ({ ... }: {
+          sourceRoot = "source/ublox_dgnss";
+        });
+
+        ublox-dgnss-node = (replaceUbloxSrc rosSuper.ublox-dgnss-node).overrideAttrs ({ propagatedBuildInputs ? [ ], ... }: {
+          sourceRoot = "source/ublox_dgnss_node";
+
+          propagatedBuildInputs = propagatedBuildInputs ++ (with rosSuper; [
+            sensor-msgs
+            geometry-msgs
+          ]);
+        });
+
+        ublox-ubx-interfaces = (replaceUbloxSrc rosSuper.ublox-ubx-interfaces).overrideAttrs ({ ... }: {
+          sourceRoot = "source/ublox_ubx_interfaces";
+        });
+
+        ublox-ubx-msgs = (replaceUbloxSrc rosSuper.ublox-ubx-msgs).overrideAttrs ({ ... }: {
+          sourceRoot = "source/ublox_ubx_msgs";
+        });
+      }
+    )
+    )
+
     # Overlays for individual ROS distros.
     (super.rosPackages // {
       foxy = super.rosPackages.foxy.overrideScope (rosSelf: rosSuper:
