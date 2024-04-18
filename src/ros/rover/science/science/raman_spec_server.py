@@ -108,7 +108,7 @@ class RamanServer(Node):
         """
         for element_index in range(len(output)):
             if output[element_index] > RamanServer.PHASE_SIGNAL:
-                return True, output[element_index]
+                return True, element_index
         
         return False, None
             
@@ -132,7 +132,10 @@ class RamanServer(Node):
         offset = 2 * offset / RamanServer.SPECTRA_SIZE
 	
         for pixel in range(RamanServer.SPECTRA_SIZE // 2):
-            response[2*pixel] -= offset
+            if response[2*pixel] > offset:
+                response[2*pixel] -= offset
+            else:
+                response[2*pixel] = 0
 	
         return response
 
