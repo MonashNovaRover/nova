@@ -5,6 +5,10 @@
 <robot
   name="rover"
   xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:arg name="gazebo" default="false"/>
+  <xacro:arg name="use_mock_hardware" default="false"/>
+
   <!-- Manually added links-->
   <link name="base_link"></link>
   
@@ -269,7 +273,7 @@
     type="revolute">
     <origin
       xyz="-0.0093548 0.20893 0.87956"
-      rpy="0.10777 0 1.5292" />
+      rpy="0.10777 0.18 1.5292" />
     <parent
       link="left_leg" />
     <child
@@ -434,7 +438,7 @@
     type="revolute">
     <origin
       xyz="-0.0090629 0.21252 0.87795"
-      rpy="0.087635 0 1.507" />
+      rpy="0.087635 0.18 1.507" />
     <parent
       link="right_leg" />
     <child
@@ -500,7 +504,7 @@
     <child
       link="front_right_wheel" />
     <axis
-      xyz="1 0 0" />
+      xyz="-1 0 0" />
   </joint>
   <link
     name="back_right_pivot">
@@ -612,10 +616,17 @@
     <child
       link="back_right_wheel" />
     <axis
-      xyz="1 0 0" />
+      xyz="-1 0 0" />
   </joint>
 
-  <xacro:include filename="ros2_control.xacro" />
+  <xacro:if value="$(arg gazebo)">
+    <xacro:include filename="$(find core)/urdf/gazebo_ros2_control.xacro" />
+  </xacro:if>
+
+  <xacro:unless value="$(arg gazebo)">
+    <xacro:include filename="$(find core)/urdf/ros2_control.xacro" />
+    <xacro:rover_ros2_control use_mock_hardware="$(arg use_mock_hardware)"/>
+  </xacro:unless>
   <xacro:include filename="depth_camera.xacro" />
   <xacro:include filename="p3d.xacro" />
   <xacro:include filename="imu.xacro" />

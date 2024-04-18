@@ -121,7 +121,6 @@ add_executable(pid_tuner src/cmd/pid_tuner.cpp)
 target_link_libraries(pid_tuner cmd print)
 ament_target_dependencies(pid_tuner rclcpp core)
 
-
 ################################################
 # Add Installations
 ################################################
@@ -149,6 +148,8 @@ install(PROGRAMS
         control/scraper.py
         control/gimbal_cam.py
         control/drive_sim.py
+        control/drive_input_stamped_publisher.py
+        control/drive_input_publisher.py
         control/auger.py
         control/analysis_platform.py
         DESTINATION lib/${PROJECT_NAME}

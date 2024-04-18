@@ -28,10 +28,28 @@ from launch_ros.parameter_descriptions import ParameterValue
 def generate_launch_description():
     core_dir = get_package_share_directory('core')
 
+    gazebo = LaunchConfiguration('gazebo')
+
     model_arg = DeclareLaunchArgument(name='model', default_value=PathJoinSubstitution([core_dir, 'urdf', 'rover.urdf.xacro']),
             description='Absolute path to robot urdf file')
-    robot_description = ParameterValue(Command(['xacro ', LaunchConfiguration('model')]),
-                                       value_type=str)
+
+    gazebo_arg = DeclareLaunchArgument(
+        'gazebo', 
+        default_value='true',
+        description='Launch with gazebo or not')
+
+    robot_description = ParameterValue(
+        Command(
+            [
+                'xacro ', 
+                LaunchConfiguration('model'),
+                " ",
+                "gazebo:=",
+                gazebo
+            ]
+        ),
+        value_type=str
+    )
 
     robot_state_publisher_node = Node(
         package='robot_state_publisher',
@@ -41,5 +59,6 @@ def generate_launch_description():
 
     return LaunchDescription([
         model_arg,
+        gazebo_arg,
         robot_state_publisher_node,
     ])

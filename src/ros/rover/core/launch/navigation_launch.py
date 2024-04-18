@@ -18,7 +18,7 @@ from ament_index_python.packages import get_package_share_directory
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, GroupAction, SetEnvironmentVariable
-from launch.conditions import IfCondition
+from launch.conditions import IfCondition, UnlessCondition, LaunchConfigurationNotEquals
 from launch.substitutions import LaunchConfiguration, PythonExpression
 from launch_ros.actions import LoadComposableNodes
 from launch_ros.actions import Node
@@ -39,14 +39,18 @@ def generate_launch_description():
     container_name_full = (namespace, '/', container_name)
     use_respawn = LaunchConfiguration('use_respawn')
     log_level = LaunchConfiguration('log_level')
+    map_yaml_file = LaunchConfiguration('map')
 
-    lifecycle_nodes = ['controller_server',
-                       'smoother_server',
+    lifecycle_nodes = ['smoother_server',
                        'planner_server',
                        'behavior_server',
-                       'bt_navigator',
                        'waypoint_follower',
-                       'velocity_smoother']
+                       'velocity_smoother',
+                       'map_server',
+                    #    'amcl',
+                       'bt_navigator',
+                       'controller_server',
+                       ]
 
     # Map fully qualified names to relative ones so the node's namespace can be prepended.
     # In case of the transforms (tf), currently, there doesn't seem to be a better alternative
@@ -108,6 +112,12 @@ def generate_launch_description():
         'log_level', default_value='info',
         description='log level')
 
+    declare_map_yaml_cmd = DeclareLaunchArgument(
+        'map',
+        default_value=os.path.join(core_dir, 'maps', 'static_map_layer.yaml'),
+        description='Full path to map file to load',
+    )
+
     load_nodes = GroupAction(
         condition=IfCondition(PythonExpression(['not ', use_composition])),
         actions=[
@@ -151,16 +161,6 @@ def generate_launch_description():
                 arguments=['--ros-args', '--log-level', log_level],
                 remappings=remappings),
             Node(
-                package='nav2_bt_navigator',
-                executable='bt_navigator',
-                name='bt_navigator',
-                output='screen',
-                respawn=use_respawn,
-                respawn_delay=2.0,
-                parameters=[configured_params],
-                arguments=['--ros-args', '--log-level', log_level],
-                remappings=remappings),
-            Node(
                 package='nav2_waypoint_follower',
                 executable='waypoint_follower',
                 name='waypoint_follower',
@@ -190,65 +190,154 @@ def generate_launch_description():
                 parameters=[{'use_sim_time': use_sim_time},
                             {'autostart': autostart},
                             {'node_names': lifecycle_nodes}]),
+            Node(
+                condition=IfCondition(use_sim_time),
+                package='nova_cube_localisation',
+                executable='image_capture',
+                name='image_capture',
+                output='screen',
+                respawn=use_respawn,
+                respawn_delay=2.0,
+                arguments=['--ros-args', '--log-level', log_level],
+                remappings=remappings +
+                        [('image', 'camera/image_raw')]),
+            Node(
+                condition=UnlessCondition(use_sim_time),
+                package='nova_cube_localisation',
+                executable='image_capture',
+                name='image_capture',
+                output='screen',
+                respawn=use_respawn,
+                respawn_delay=2.0,
+                arguments=['--ros-args', '--log-level', log_level],
+                remappings=remappings +
+                        [('image', 'oak/rgb/image_raw')]),
+            Node(
+                # condition=LaunchConfigurationNotEquals(LaunchConfiguration('map'), ''),
+                package='nav2_map_server',
+                executable='map_server',
+                name='map_server',
+                output='screen',
+                respawn=use_respawn,
+                respawn_delay=2.0,
+                parameters=[configured_params, {'yaml_filename': map_yaml_file}],
+                arguments=['--ros-args', '--log-level', log_level],
+                remappings=remappings +
+                        [('map', 'static_map')]),
+            # Node(
+            #     # condition=LaunchConfigurationNotEquals(LaunchConfiguration('map'), ''),
+            #     package='nav2_amcl',
+            #     executable='amcl',
+            #     name='amcl',
+            #     output='screen',
+            #     respawn=use_respawn,
+            #     respawn_delay=2.0,
+            #     parameters=[configured_params],
+            #     arguments=['--ros-args', '--log-level', log_level],
+            #     remappings=remappings +
+            #             [('map', 'static_map')]),
+            Node(
+                package='nav2_bt_navigator',
+                executable='bt_navigator',
+                name='bt_navigator',
+                output='screen',
+                respawn=use_respawn,
+                respawn_delay=2.0,
+                parameters=[configured_params],
+                arguments=['--ros-args', '--log-level', log_level],
+                remappings=remappings),
         ]
     )
 
-    load_composable_nodes = LoadComposableNodes(
+    load_composable_nodes = GroupAction(
         condition=IfCondition(use_composition),
-        target_container=container_name_full,
-        composable_node_descriptions=[
-            ComposableNode(
-                package='nav2_controller',
-                plugin='nav2_controller::ControllerServer',
-                name='controller_server',
-                parameters=[configured_params],
-                remappings=remappings + [('cmd_vel', 'cmd_vel_nav')]),
-            ComposableNode(
-                package='nav2_smoother',
-                plugin='nav2_smoother::SmootherServer',
-                name='smoother_server',
-                parameters=[configured_params],
-                remappings=remappings),
-            ComposableNode(
-                package='nav2_planner',
-                plugin='nav2_planner::PlannerServer',
-                name='planner_server',
-                parameters=[configured_params],
-                remappings=remappings),
-            ComposableNode(
-                package='nav2_behaviors',
-                plugin='behavior_server::BehaviorServer',
-                name='behavior_server',
-                parameters=[configured_params],
-                remappings=remappings),
-            ComposableNode(
-                package='nav2_bt_navigator',
-                plugin='nav2_bt_navigator::BtNavigator',
-                name='bt_navigator',
-                parameters=[configured_params],
-                remappings=remappings),
-            ComposableNode(
-                package='nav2_waypoint_follower',
-                plugin='nav2_waypoint_follower::WaypointFollower',
-                name='waypoint_follower',
-                parameters=[configured_params],
-                remappings=remappings),
-            ComposableNode(
-                package='nav2_velocity_smoother',
-                plugin='nav2_velocity_smoother::VelocitySmoother',
-                name='velocity_smoother',
-                parameters=[configured_params],
-                remappings=remappings +
-                           [('cmd_vel', 'cmd_vel_nav'), ('cmd_vel_smoothed', 'cmd_vel')]),
-            ComposableNode(
-                package='nav2_lifecycle_manager',
-                plugin='nav2_lifecycle_manager::LifecycleManager',
-                name='lifecycle_manager_navigation',
-                parameters=[{'use_sim_time': use_sim_time,
-                             'autostart': autostart,
-                             'node_names': lifecycle_nodes}]),
-        ],
-    )
+        actions = [
+            LoadComposableNodes(
+            target_container=container_name_full,
+            composable_node_descriptions=[
+                ComposableNode(
+                    package='nav2_controller',
+                    plugin='nav2_controller::ControllerServer',
+                    name='controller_server',
+                    parameters=[configured_params],
+                    remappings=remappings + [('cmd_vel', 'cmd_vel_nav')]),
+                ComposableNode(
+                    package='nav2_smoother',
+                    plugin='nav2_smoother::SmootherServer',
+                    name='smoother_server',
+                    parameters=[configured_params],
+                    remappings=remappings),
+                ComposableNode(
+                    package='nav2_planner',
+                    plugin='nav2_planner::PlannerServer',
+                    name='planner_server',
+                    parameters=[configured_params],
+                    remappings=remappings),
+                ComposableNode(
+                    package='nav2_behaviors',
+                    plugin='behavior_server::BehaviorServer',
+                    name='behavior_server',
+                    parameters=[configured_params],
+                    remappings=remappings),
+                ComposableNode(
+                    package='nav2_waypoint_follower',
+                    plugin='nav2_waypoint_follower::WaypointFollower',
+                    name='waypoint_follower',
+                    parameters=[configured_params],
+                    remappings=remappings),
+                ComposableNode(
+                    package='nav2_velocity_smoother',
+                    plugin='nav2_velocity_smoother::VelocitySmoother',
+                    name='velocity_smoother',
+                    parameters=[configured_params],
+                    remappings=remappings +
+                            [('cmd_vel', 'cmd_vel_nav'), ('cmd_vel_smoothed', 'cmd_vel')]),
+                ComposableNode(
+                    package='nav2_map_server',
+                    plugin='nav2_map_server::MapServer',
+                    name='map_server',
+                    parameters=[configured_params, {'yaml_filename': map_yaml_file}],
+                    remappings=remappings +
+                        [('map', 'static_map')]),
+                ComposableNode(
+                    package='nav2_amcl',
+                    plugin='nav2_amcl::AmclNode',
+                    name='amcl',
+                    parameters=[configured_params],
+                    remappings=remappings +
+                        [('map', 'static_map')]),
+                ComposableNode(
+                    package='nav2_bt_navigator',
+                    plugin='nav2_bt_navigator::BtNavigator',
+                    name='bt_navigator',
+                    parameters=[configured_params],
+                    remappings=remappings),
+                ComposableNode(
+                    package='nav2_lifecycle_manager',
+                    plugin='nav2_lifecycle_manager::LifecycleManager',
+                    name='lifecycle_manager_navigation',
+                    parameters=[{'use_sim_time': use_sim_time,
+                                'autostart': autostart,
+                                'node_names': lifecycle_nodes}]),
+            ]),
+            # LoadComposableNodes(
+            # # condition=LaunchConfigurationNotEquals(LaunchConfiguration('map'), ''),
+            # target_container=container_name_full,
+            # composable_node_descriptions=[
+            #     ComposableNode(
+            #         package='nav2_map_server',
+            #         plugin='nav2_map_server::MapServer',
+            #         name='map_server',
+            #         parameters=[configured_params, {'yaml_filename': map_yaml_file}],
+            #         remappings=remappings),
+            #     ComposableNode(
+            #         package='nav2_amcl',
+            #         plugin='nav2_amcl::AmclNode',
+            #         name='amcl',
+            #         parameters=[configured_params],
+            #         remappings=remappings)
+            # ]),
+    ])
 
     # Create the launch description and populate
     ld = LaunchDescription()
@@ -265,6 +354,7 @@ def generate_launch_description():
     ld.add_action(declare_container_name_cmd)
     ld.add_action(declare_use_respawn_cmd)
     ld.add_action(declare_log_level_cmd)
+    ld.add_action(declare_map_yaml_cmd)
     # Add the actions to launch all of the navigation nodes
     ld.add_action(load_nodes)
     ld.add_action(load_composable_nodes)

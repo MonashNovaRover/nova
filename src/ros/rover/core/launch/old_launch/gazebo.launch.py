@@ -33,14 +33,30 @@ def generate_launch_description():
 
     model_arg = DeclareLaunchArgument(name='model', default_value=str(default_model_path),
             description='Absolute path to robot urdf file')
-    robot_description = ParameterValue(Command(['xacro ', LaunchConfiguration('model')]),
-                                       value_type=str)
+    robot_description = ParameterValue(
+        Command(
+            [
+                'xacro ', 
+                LaunchConfiguration('model'),
+                " ",
+                "gazebo:=",
+                "true"
+            ]
+        ),
+        value_type=str
+    )
 
     robot_state_publisher_node = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
-        parameters=[{'robot_description': robot_description}]
+        parameters=[{'use_sim_time': True, 'robot_description': robot_description}]
     )
+
+    #joint_state_publisher_node = Node(
+    #    package="joint_state_publisher",
+    #    executable="joint_state_publisher",
+    #    parameters=[{'robot_description': robot_description}]
+    #)
 
     gazebo = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -52,40 +68,31 @@ def generate_launch_description():
     spawn_entity = Node(
         package='gazebo_ros',
         executable='spawn_entity.py',
-        arguments=["-topic", "robot_description", "-entity", "Waratah"]
+        arguments=["-topic", "robot_description", "-entity", "Waratah", "-z", "5.0"]
     )
 
-    wheel_velocity_controller = Node(
+    pivot_drive_controller = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["wheel_velocity_controller"]
+        arguments=["pivot_drive_controller"]
     )
 
-    pivot_joint_trajectory_controller = Node(
+    strafe_controller = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["pivot_joint_trajectory_controller"]
+        arguments=["strafe_controller", "--inactive"]
+    )
+
+    nova_diff_drive_controller = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["nova_diff_drive_controller", "--inactive"]
     )
 
     joint_broad = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["joint_broad"]
-    )
-
-    ukf_localisation = Node(
-        package='robot_localization',
-        executable='ukf_node',
-        name='ukf_filter_node',
-        output='screen',
-        parameters=[(get_package_share_path("core") / 'params' / 'ukf.yaml').as_posix()],
-    )
-
-    # TODO: Implement real SLAM rather than publishing a static transform. This is currently necessary for things to be visible in the RVIZ 'map' frame
-    slam = Node(
-        package='tf2_ros',
-        executable='static_transform_publisher',
-        arguments = ['--x', '0', '--y', '0', '--z', '0', '--yaw', '0', '--pitch', '0', '--roll', '0', '--frame-id', 'map', '--child-frame-id', 'odom']
+        arguments=["joint_broad"],
     )
 
     return LaunchDescription([
@@ -93,10 +100,8 @@ def generate_launch_description():
         robot_state_publisher_node,
         gazebo,
         spawn_entity,
-        wheel_velocity_controller,
-        ukf_localisation,
-        slam,
-        # pivot_position_controller,
-        pivot_joint_trajectory_controller,
         joint_broad,
+        pivot_drive_controller,
+        strafe_controller,
+        nova_diff_drive_controller,
     ])

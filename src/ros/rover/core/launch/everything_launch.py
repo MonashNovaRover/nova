@@ -18,7 +18,7 @@ from ament_index_python.packages import get_package_share_path, get_package_shar
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
-from launch.substitutions import Command, FindExecutable, PathJoinSubstitution, LaunchConfiguration
+from launch.substitutions import Command, FindExecutable, PathJoinSubstitution, LaunchConfiguration, AndSubstitution, NotSubstitution
 from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 
@@ -41,17 +41,15 @@ def generate_launch_description():
     use_respawn = LaunchConfiguration('use_respawn')
     use_real_odometry = LaunchConfiguration('use_real_odometry')
     localization = LaunchConfiguration('localization')
+    load_map = LaunchConfiguration('load_map')
     log_level = LaunchConfiguration('log_level')
     gazebo = LaunchConfiguration('gazebo')
     autonomous = LaunchConfiguration('autonomous')
     headless = LaunchConfiguration('headless')
+    wheel_odom_only = LaunchConfiguration('wheel_odom_only')
+    rviz = LaunchConfiguration('launch_rviz')
 
     # Launch Arguments
-    namespace_arg = DeclareLaunchArgument(
-        'namespace',
-        default_value='',
-        description='Top-level namespace')
-
     namespace_arg = DeclareLaunchArgument(
         'namespace',
         default_value='',
@@ -63,7 +61,7 @@ def generate_launch_description():
         #              https://github.com/ROBOTIS-GIT/turtlebot3_simulations/issues/91
         # default_value=os.path.join(get_package_share_directory('turtlebot3_gazebo'),
         # worlds/turtlebot3_worlds/waffle.model')
-        default_value=PathJoinSubstitution([core_dir, "worlds", 'urc_er.model']),
+        default_value=PathJoinSubstitution([core_dir, "worlds", 'flat.model']),
         description='Full path to world model file to load')
 
     params_file_arg = DeclareLaunchArgument(
@@ -86,13 +84,31 @@ def generate_launch_description():
     use_real_odom_arg = DeclareLaunchArgument(
         'use_real_odometry',
         default_value='true',
-        description='True to use robot_localisation odometry, False to use p3d gazebo plugin'
+        description='True to use robot_localization odometry, False to use p3d gazebo plugin'
     )
 
     localization_arg = DeclareLaunchArgument(
         'localization',
+        default_value='False',
+        description='Flag for running localisation in a saved  RTAB-map database'
+    )
+
+    wheel_odom_only_arg = DeclareLaunchArgument(
+        'wheel_odom_only',
         default_value='false',
-        description='Localize the rover in a pre-existing map'
+        description='Flag to launch with wheel odometry as the only localization method'
+    )
+    
+    rviz_arg = DeclareLaunchArgument(
+        'launch_rviz',
+        default_value='True',
+        description='Flag to launch rviz'
+    )
+
+    load_map_arg = DeclareLaunchArgument(
+        'load_map',
+        default_value='False',
+        description='Command for RTAB Map to load an existing map file and localize in it'
     )
 
     log_level_arg = DeclareLaunchArgument(
@@ -124,13 +140,22 @@ def generate_launch_description():
         }.items()
     )
 
-    localisation_cmd = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(os.path.join(core_dir, 'launch', 'localisation_launch.py')),
+    localization_cmd = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(os.path.join(core_dir, 'launch', 'localization_launch.py')),
         launch_arguments={
             'use_sim_time': gazebo,
             'use_real_odometry': use_real_odometry,
-            'localization': localization,
-        }.items()
+            'load_map': localization,
+        }.items(),
+        condition=UnlessCondition(wheel_odom_only)
+    )
+
+    wheel_odom_localization_cmd = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(os.path.join(core_dir, 'launch', 'wheel_odom_localization_launch.py')),
+        launch_arguments={
+            'use_sim_time': gazebo,
+        }.items(),
+        condition = IfCondition(wheel_odom_only)
     )
 
     control_cmd = IncludeLaunchDescription(
@@ -142,6 +167,7 @@ def generate_launch_description():
 
     rviz_cmd = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(os.path.join(core_dir, 'launch', 'rviz_launch.py')),
+        condition=IfCondition(rviz)
     )
 
     navigation_cmd = IncludeLaunchDescription(
@@ -170,12 +196,16 @@ def generate_launch_description():
         use_respawn_arg,
         use_real_odom_arg,
         localization_arg,
+        wheel_odom_only_arg,
+        load_map_arg,
         log_level_arg,
         gazebo_arg,
         autonomous_arg,
         headless_arg,
+        rviz_arg,
         gazebo_cmd,
-        localisation_cmd,
+        localization_cmd,
+        wheel_odom_localization_cmd,
         control_cmd,
         rviz_cmd,
         navigation_cmd,

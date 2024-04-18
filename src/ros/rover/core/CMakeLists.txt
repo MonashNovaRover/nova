@@ -43,6 +43,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/DistanceData.msg"
   "msg/DriveInfo.msg"
   "msg/DriveInput.msg"
+  "msg/DriveInputStamped.msg"
   "msg/HydraprobeData.msg"
   "msg/EMCData.msg"
   "msg/KilnData.msg"
@@ -94,11 +95,13 @@ rosidl_generate_interfaces(${PROJECT_NAME}
 # Add all the installation directories
 install(DIRECTORY
   launch
+  maps
   params
   rviz
   urdf
   meshes
   worlds
+  resources
   DESTINATION share/${PROJECT_NAME}
 )
 

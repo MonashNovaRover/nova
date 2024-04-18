@@ -12,7 +12,7 @@ which is how it gets added to the gazebo sim. Author/s: Victor Bartlinski-->
       <body_name>base_link</body_name>
       <frame_name>odom</frame_name>
       <update_rate>30</update_rate>
-      <gaussian_noise>0.05</gaussian_noise>
+      <!-- <gaussian_noise>0.05</gaussian_noise> -->
     </plugin>
   </gazebo>
 
