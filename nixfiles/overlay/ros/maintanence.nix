@@ -219,7 +219,7 @@ self: super:
         ];
       });
     } // (
-      let 
+      let
         replaceUbloxSrc = pkg: pkg.overrideAttrs ({ src, version, ... }: {
           src = self.fetchFromGitHub {
             owner = "leighleighleigh";
@@ -230,12 +230,13 @@ self: super:
 
           version = "0.2.3";
         });
-      in {
-        ublox-dgnss = (replaceUbloxSrc rosSuper.ublox-dgnss).overrideAttrs({ ... }: {
+      in
+      {
+        ublox-dgnss = (replaceUbloxSrc rosSuper.ublox-dgnss).overrideAttrs ({ ... }: {
           sourceRoot = "source/ublox_dgnss";
         });
 
-        ublox-dgnss-node = (replaceUbloxSrc rosSuper.ublox-dgnss-node).overrideAttrs({ propagatedBuildInputs ? [ ], ... }: {
+        ublox-dgnss-node = (replaceUbloxSrc rosSuper.ublox-dgnss-node).overrideAttrs ({ propagatedBuildInputs ? [ ], ... }: {
           sourceRoot = "source/ublox_dgnss_node";
 
           propagatedBuildInputs = propagatedBuildInputs ++ (with rosSuper; [
@@ -244,14 +245,15 @@ self: super:
           ]);
         });
 
-        ublox-ubx-interfaces = (replaceUbloxSrc rosSuper.ublox-ubx-interfaces).overrideAttrs({ ... }: {
+        ublox-ubx-interfaces = (replaceUbloxSrc rosSuper.ublox-ubx-interfaces).overrideAttrs ({ ... }: {
           sourceRoot = "source/ublox_ubx_interfaces";
         });
 
-        ublox-ubx-msgs = (replaceUbloxSrc rosSuper.ublox-ubx-msgs).overrideAttrs({ ... }: {
+        ublox-ubx-msgs = (replaceUbloxSrc rosSuper.ublox-ubx-msgs).overrideAttrs ({ ... }: {
           sourceRoot = "source/ublox_ubx_msgs";
         });
-      })
+      }
+    )
     )
 
     # Overlays for individual ROS distros.
