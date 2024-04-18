@@ -28,11 +28,13 @@ from launch_ros.substitutions import FindPackageShare
 
 # Generate the launch file with all inputs
 def generate_launch_description():
-    core_dir = get_package_share_directory('core')
-    gazebo_dir = get_package_share_directory('gazebo_ros')
+    auto_bringup_dir = FindPackageShare('auto_bringup')
+    rover_description_dir = FindPackageShare('rover_description')
+    gazebo_dir = FindPackageShare('gazebo_ros')
+    nova_gazebo_dir = FindPackageShare('nova_gazebo')
 
-    pose = {'x': LaunchConfiguration('x_pose', default='-2.00'),
-            'y': LaunchConfiguration('y_pose', default='-0.50'),
+    pose = {'x': LaunchConfiguration('x_pose', default='0.00'),
+            'y': LaunchConfiguration('y_pose', default='0.00'),
             'z': LaunchConfiguration('z_pose', default='0.05'),
             'R': LaunchConfiguration('roll', default='0.00'),
             'P': LaunchConfiguration('pitch', default='0.00'),
@@ -44,7 +46,7 @@ def generate_launch_description():
     model = LaunchConfiguration('model')
     launch_robot_desciption = LaunchConfiguration('launch_robot_description')
 
-    model_arg = DeclareLaunchArgument(name='model', default_value=PathJoinSubstitution([core_dir, 'urdf', 'rover.urdf.xacro']),
+    model_arg = DeclareLaunchArgument(name='model', default_value=PathJoinSubstitution([rover_description_dir, 'urdf', 'rover.urdf.xacro']),
             description='Absolute path to robot urdf file')
 
     namespace_arg = DeclareLaunchArgument(
@@ -54,7 +56,7 @@ def generate_launch_description():
 
     headless_arg = DeclareLaunchArgument(
         'headless',
-        default_value='True',
+        default_value='False',
         description='Whether to execute gzclient)')
 
     robot_name_arg = DeclareLaunchArgument(
@@ -68,7 +70,7 @@ def generate_launch_description():
         #              https://github.com/ROBOTIS-GIT/turtlebot3_simulations/issues/91
         # default_value=os.path.join(get_package_share_directory('turtlebot3_gazebo'),
         # worlds/turtlebot3_worlds/waffle.model')
-        default_value=PathJoinSubstitution([core_dir, "worlds", 'flat.model']),
+        default_value=PathJoinSubstitution([nova_gazebo_dir, "worlds", 'flat.model']),
         description='Full path to world model file to load')
 
     robot_description_arg = DeclareLaunchArgument(
@@ -78,18 +80,18 @@ def generate_launch_description():
     )
 
     urdf_launch_cmd = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([core_dir, '/launch/urdf_launch.py']),
+        PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'urdf.launch.py'])),
         condition=IfCondition(launch_robot_desciption),
         launch_arguments={"model": model, "gazebo": 'true'}.items()
     )
 
     start_gazebo_server_cmd = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([gazebo_dir, '/launch/gzserver.launch.py']),
+        PythonLaunchDescriptionSource(PathJoinSubstitution([gazebo_dir, 'launch', 'gzserver.launch.py'])),
         launch_arguments={"world": world}.items()
     )
 
     start_gazebo_client_cmd = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([gazebo_dir, '/launch/gzclient.launch.py']),
+        PythonLaunchDescriptionSource(PathJoinSubstitution([gazebo_dir, 'launch', 'gzclient.launch.py'])),
         condition=UnlessCondition(headless),
     )
 
