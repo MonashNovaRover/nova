@@ -58,10 +58,19 @@ self: super:
       });
 
       rosbridge-library = rosSuper.rosbridge-library.override {
-		    python3Packages=rosSuper.python3Packages.overrideScope (pySelf: pySuper: {
-			    bson = pySelf.pymongo;
-		  });
-	};
+        python3Packages = rosSuper.python3Packages.overrideScope (pySelf: pySuper: {
+          bson = pySelf.pymongo;
+        });
+      };
+
+      pynmeagps = rosSuper.pynmeagps.overrideAttrs ({ ... }: {
+        src = self.fetchFromGitHub {
+          owner = "MonashNovaRover";
+          repo = "pynmeagps";
+          rev = "50e93bddeae0a2957363e18ee44a032307881675";
+          sha256 = "";
+        };
+      });
 
     } // (
       let

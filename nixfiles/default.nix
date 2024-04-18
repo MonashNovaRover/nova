@@ -21,6 +21,11 @@ let
       inherit (revisions.nixpkgs) rev hash;
     };
     patches = [
+      #pynmeagps
+      (pkgs.fetchpatch {
+        url = "https://github.com/NixOS/nixpkgs/commit/f7f2acd9c224e3ed80063f107c997bbf35d3909e.patch";
+        hash = "sha256-TXlKrwQ5anwSXntVUEE6XzLFGc22lhPq6XAU2wowIzs=";
+      })
     ];
   });
 
