@@ -31,12 +31,14 @@
 , nova-gimbal-cam ? throw "gimbal-cam is needed, but not available!"
 , nova-interfaces ? throw "nova-interfaces is needed, but not available!"
 , nova-bringup ? throw "nova-bringup is needed, but not available!"
+, nova-auto-bringup ? throw "auto-bringup is needed, but not available!"
 , nova-rover-description ? throw "rover-description is needed, but not available!"
 , nova-blcmd-hardware ? throw "nova-blcmd-hardware is needed, but not available!"
 , nova-pivot-drive-controller ? throw "nova-pivot-drive-controller is needed, but not available!"
 , nova-strafe-controller ? throw "nova-strafe-controller is needed, but not available!"
 , nova-diff-drive-controller ? throw "nova-diff-drive-controller is needed, but not available!"
 , nova-teleop-drive-joy ? throw "nova-teleop-drive-joy is needed, but not available!"
+, nova-gazebo ? throw "nova-gazebo is needed, but not available!"
 
   # Configuration options
   ## Include graphical applications in the workspace.
@@ -78,7 +80,9 @@
       nova-gimbal-cam
       nova-interfaces
       nova-bringup
-      nova-rover-description;    
+      nova-auto-bringup
+      nova-rover-description
+      nova-gazebo;    
   }
 
   ## Extra packages to add to the workspace.
