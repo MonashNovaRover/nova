@@ -34,7 +34,6 @@ def launch_setup(context, *args, **kwargs):
     use_sim_time = LaunchConfiguration('use_sim_time')
     
     #Simulation Configurations
-    gazebo = LaunchConfiguration('gazebo').perform(context).lower() == "true"
     use_true_odometry = LaunchConfiguration('use_true_odometry').perform(context).lower() == "true"
 
     use_ekf = LaunchConfiguration('use_ekf')
@@ -42,15 +41,15 @@ def launch_setup(context, *args, **kwargs):
     use_vo = LaunchConfiguration('use_vo')
 
     #Params File Configurations
-    ekf_params = LaunchConfiguration('ekf_params')
-    ukf_params = LaunchConfiguration('ukf_params')
+    ekf_params = LaunchConfiguration('ekf_params_file')
+    ukf_params = LaunchConfiguration('ukf_params_file')
 
     auto_bringup_path = get_package_share_path('auto_bringup')
 
-    if LaunchConfiguration("use_ukf").perfom(context).lower() == "true":
+    if LaunchConfiguration("use_ukf").perform(context).lower() == "true":
         filter_type = 'ukf'
         params_file = ukf_params.perform(context)
-    elif LaunchConfiguration("use_ukf").perfom(context).lower() == "false":
+    elif LaunchConfiguration("use_ukf").perform(context).lower() == "false":
         filter_type = 'ekf'
         params_file = ekf_params.perform(context)
     else:
@@ -74,7 +73,7 @@ def launch_setup(context, *args, **kwargs):
         output='screen',
         parameters=[(params_file), 
                     {"use_sim_time": use_sim_time},
-                    true_odom_params if use_true_odometry and gazebo else {}],
+                    true_odom_params if use_true_odometry else {}],
     )
 
     slam_cmd = IncludeLaunchDescription(
@@ -85,10 +84,10 @@ def launch_setup(context, *args, **kwargs):
         }.items()
     )
 
-    static_transform = Node(
+    static_transform_node = Node(
         package='tf2_ros',
         executable='static_transform_publisher',
-        condition=UnlessCondition(use_sim_time),
+        condition=UnlessCondition(use_slam),
         name='static_transform_publisher',
         output='screen',
         arguments=['0', '0', '0', '0', '0', '0', 'map', 'odom'],
@@ -96,6 +95,7 @@ def launch_setup(context, *args, **kwargs):
     
     return [
         robot_localisation_node,
+        static_transform_node,
         slam_cmd,
     ]
     
@@ -105,7 +105,7 @@ def generate_launch_description():
         default_value='False',
         description='Use simulation clock if true')
 
-    use_real_odom_arg = DeclareLaunchArgument(
+    use_true_odom_arg = DeclareLaunchArgument(
         'use_true_odometry',
         default_value='False',
         description='Use the ground truth odometry from gazebo'
@@ -119,19 +119,31 @@ def generate_launch_description():
 
     ekf_param_arg = DeclareLaunchArgument(
         'ekf_params_file',
-        default_value=PathJoinSubstitution(FindPackageShare("auto_bringup"),'params','ekf.yaml')
+        default_value=PathJoinSubstitution([FindPackageShare("auto_bringup"),'params','ekf.yaml']),
+        description='Params file for ekf filter node'
     )
 
     ukf_param_arg = DeclareLaunchArgument(
         'ukf_params_file',
-        default_value=PathJoinSubstitution(FindPackageShare("auto_bringup"),'params','ukf.yaml')
+        default_value=PathJoinSubstitution([FindPackageShare("auto_bringup"),'params','ukf.yaml']),
+        description='Params file for ukf filter node'
+    )
+
+    use_slam = DeclareLaunchArgument(
+        'use_slam',
+        default_value='False',
+        description='use slam for map->odom transform'
+
     )
 
     declared_arguments = [
         use_ukf_arg,
         use_sim_time_arg,
-        use_real_odom_arg,
+        use_true_odom_arg,
+        use_ukf_arg,
         ekf_param_arg,
+        ukf_param_arg,
+        use_slam,
     ]
 
     return LaunchDescription(
