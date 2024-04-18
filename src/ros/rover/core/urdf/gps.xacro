@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--This is a file for the gps plugin for the rover in gazebo. This file is referenced at the bottom of rover.urdf.xacro, 
+which is how it gets added to the gazebo sim. Author/s: Dylan Gonzalez-->
+
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" >
+  <link name="gps_link">
+    <!-- https://github.com/ros-planning/navigation2_tutorials/blob/1c8ac68680422ca8b0e09f4cc4b445aeaf7e4f15/nav2_gps_waypoint_follower_demo/models/turtlebot_waffle_gps/model.sdf#L106-L118 -->
+    <inertial>
+      <pose>-0.052 0 0.111 0 0 0</pose>
+      <inertia>
+        <mass>0.001</mass>
+        <ixx>0.001</ixx>
+        <ixy>0.000</ixy>
+        <ixz>0.000</ixz>
+        <iyy>0.001</iyy>
+        <iyz>0.000</iyz>
+        <izz>0.001</izz>
+      </inertia>
+      <mass>0.125</mass>
+    </inertial>
+  </link>
+
+  <joint name="gps_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="gps_link"/>
+    <origin xyz="0.04 0.26 0.445"/> <!-- copied from imu.xacro -->
+  </joint>
+
+  <gazebo reference="gps_link">
+    <sensor name="skytraq_gps" type="gps">
+
+    <plugin filename="libgazebo_ros_gps_sensor.so" name="gps_plugin">
+      <ros>
+        <remapping>~/out:=~/gps/fix</remapping>
+      </ros>
+    </plugin>
+
+    <always_on>true</always_on>
+    <update_rate>1</update_rate>
+    <pose>0 0 0 0 0 0</pose>
+    <gps>
+      <position_sensing>
+        <horizontal>
+          <noise type="gaussian">
+            <mean>0.0</mean>
+            <stddev>0.01</stddev>
+          </noise>
+        </horizontal>
+        <vertical>
+          <noise type="gaussian">
+            <mean>0.0</mean>
+            <stddev>0.01</stddev>
+          </noise>
+        </vertical>
+      </position_sensing>
+    </gps>
+  </sensor>
+</robot>
