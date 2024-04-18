@@ -17,6 +17,11 @@
 , nova-gui-frontend ? throw "gui-frontend is needed, but not available!"
 , nova-gui-frontend-server ? throw "gui-frontend-server is needed, but not available!"
 , nova-gui ? throw "gui is needed, but not available!"
+, nova-blcmd-hardware ? throw "nova-blcmd-hardware is needed, but not available!"
+, nova-pivot-drive-controller ? throw "nova-pivot-drive-controller is needed, but not available!"
+, nova-strafe-controller ? throw "nova-strafe-controller is needed, but not available!"
+, nova-diff-drive-controller ? throw "nova-diff-drive-controller is needed, but not available!"
+, nova-teleop-drive-joy ? throw "nova-teleop-drive-joy is needed, but not available!"
 
   # Configuration options
   ## Include graphical applications in the workspace.
@@ -36,6 +41,11 @@
       nova-electronics
       nova-science
       nova-cameras2
+      nova-blcmd-hardware
+      nova-pivot-drive-controller
+      nova-strafe-controller
+      nova-diff-drive-controller
+      nova-teleop-drive-joy
       nova-gui-backend
       nova-gui-frontend
       nova-gui;
