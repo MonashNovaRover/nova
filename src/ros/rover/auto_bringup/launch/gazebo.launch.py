@@ -95,6 +95,13 @@ def generate_launch_description():
         condition=UnlessCondition(headless),
     )
 
+    control_cmd = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'control.launch.py'])),
+        launch_arguments={
+            'gazebo': 'true',
+        }.items()
+    )
+
     spawn_rover_cmd = Node(
         package='gazebo_ros',
         executable='spawn_entity.py',
@@ -117,4 +124,5 @@ def generate_launch_description():
         start_gazebo_server_cmd,
         start_gazebo_client_cmd,
         spawn_rover_cmd,
+        control_cmd,
     ])
