@@ -12,23 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-
-from ament_index_python.packages import get_package_share_directory
-
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, GroupAction, SetEnvironmentVariable
 from launch.conditions import IfCondition, UnlessCondition, LaunchConfigurationNotEquals
-from launch.substitutions import LaunchConfiguration, PythonExpression
+from launch.substitutions import LaunchConfiguration, PythonExpression, PathJoinSubstitution
 from launch_ros.actions import LoadComposableNodes
 from launch_ros.actions import Node
 from launch_ros.descriptions import ComposableNode, ParameterFile
+from launch_ros.substitutions import FindPackageShare
 from nav2_common.launch import RewrittenYaml
 
 
 def generate_launch_description():
     # Get the launch directory
-    core_dir = get_package_share_directory('core')
+    auto_bringup_dir = FindPackageShare('auto_bringup')
 
     namespace = LaunchConfiguration('namespace')
     use_sim_time = LaunchConfiguration('use_sim_time')
@@ -46,8 +43,6 @@ def generate_launch_description():
                        'behavior_server',
                        'waypoint_follower',
                        'velocity_smoother',
-                       'map_server',
-                    #    'amcl',
                        'bt_navigator',
                        'controller_server',
                        ]
@@ -89,7 +84,7 @@ def generate_launch_description():
 
     declare_params_file_cmd = DeclareLaunchArgument(
         'params_file',
-        default_value=os.path.join(core_dir, 'params', 'nav2_params.yaml'),
+        default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2_params.yaml']),
         description='Full path to the ROS2 parameters file to use for all launched nodes')
 
     declare_autostart_cmd = DeclareLaunchArgument(
@@ -111,12 +106,6 @@ def generate_launch_description():
     declare_log_level_cmd = DeclareLaunchArgument(
         'log_level', default_value='info',
         description='log level')
-
-    declare_map_yaml_cmd = DeclareLaunchArgument(
-        'map',
-        default_value=os.path.join(core_dir, 'maps', 'static_map_layer.yaml'),
-        description='Full path to map file to load',
-    )
 
     load_nodes = GroupAction(
         condition=IfCondition(PythonExpression(['not ', use_composition])),
@@ -191,52 +180,6 @@ def generate_launch_description():
                             {'autostart': autostart},
                             {'node_names': lifecycle_nodes}]),
             Node(
-                condition=IfCondition(use_sim_time),
-                package='nova_cube_localisation',
-                executable='image_capture',
-                name='image_capture',
-                output='screen',
-                respawn=use_respawn,
-                respawn_delay=2.0,
-                arguments=['--ros-args', '--log-level', log_level],
-                remappings=remappings +
-                        [('image', 'camera/image_raw')]),
-            Node(
-                condition=UnlessCondition(use_sim_time),
-                package='nova_cube_localisation',
-                executable='image_capture',
-                name='image_capture',
-                output='screen',
-                respawn=use_respawn,
-                respawn_delay=2.0,
-                arguments=['--ros-args', '--log-level', log_level],
-                remappings=remappings +
-                        [('image', 'oak/rgb/image_raw')]),
-            Node(
-                # condition=LaunchConfigurationNotEquals(LaunchConfiguration('map'), ''),
-                package='nav2_map_server',
-                executable='map_server',
-                name='map_server',
-                output='screen',
-                respawn=use_respawn,
-                respawn_delay=2.0,
-                parameters=[configured_params, {'yaml_filename': map_yaml_file}],
-                arguments=['--ros-args', '--log-level', log_level],
-                remappings=remappings +
-                        [('map', 'static_map')]),
-            # Node(
-            #     # condition=LaunchConfigurationNotEquals(LaunchConfiguration('map'), ''),
-            #     package='nav2_amcl',
-            #     executable='amcl',
-            #     name='amcl',
-            #     output='screen',
-            #     respawn=use_respawn,
-            #     respawn_delay=2.0,
-            #     parameters=[configured_params],
-            #     arguments=['--ros-args', '--log-level', log_level],
-            #     remappings=remappings +
-            #             [('map', 'static_map')]),
-            Node(
                 package='nav2_bt_navigator',
                 executable='bt_navigator',
                 name='bt_navigator',
@@ -300,13 +243,6 @@ def generate_launch_description():
                     remappings=remappings +
                         [('map', 'static_map')]),
                 ComposableNode(
-                    package='nav2_amcl',
-                    plugin='nav2_amcl::AmclNode',
-                    name='amcl',
-                    parameters=[configured_params],
-                    remappings=remappings +
-                        [('map', 'static_map')]),
-                ComposableNode(
                     package='nav2_bt_navigator',
                     plugin='nav2_bt_navigator::BtNavigator',
                     name='bt_navigator',
@@ -320,23 +256,6 @@ def generate_launch_description():
                                 'autostart': autostart,
                                 'node_names': lifecycle_nodes}]),
             ]),
-            # LoadComposableNodes(
-            # # condition=LaunchConfigurationNotEquals(LaunchConfiguration('map'), ''),
-            # target_container=container_name_full,
-            # composable_node_descriptions=[
-            #     ComposableNode(
-            #         package='nav2_map_server',
-            #         plugin='nav2_map_server::MapServer',
-            #         name='map_server',
-            #         parameters=[configured_params, {'yaml_filename': map_yaml_file}],
-            #         remappings=remappings),
-            #     ComposableNode(
-            #         package='nav2_amcl',
-            #         plugin='nav2_amcl::AmclNode',
-            #         name='amcl',
-            #         parameters=[configured_params],
-            #         remappings=remappings)
-            # ]),
     ])
 
     # Create the launch description and populate
@@ -354,7 +273,6 @@ def generate_launch_description():
     ld.add_action(declare_container_name_cmd)
     ld.add_action(declare_use_respawn_cmd)
     ld.add_action(declare_log_level_cmd)
-    ld.add_action(declare_map_yaml_cmd)
     # Add the actions to launch all of the navigation nodes
     ld.add_action(load_nodes)
     ld.add_action(load_composable_nodes)

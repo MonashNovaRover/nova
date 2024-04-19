@@ -11,8 +11,8 @@ bt_navigator:
     # nav2_bt_navigator/navigate_to_pose_w_replanning_and_recovery.xml
     # nav2_bt_navigator/navigate_through_poses_w_replanning_and_recovery.xml
     # They can be set here or via a RewrittenYaml remap from a parent launch file to Nav2.
-    default_nav_through_poses_bt_xml: $(find-pkg-share nova_behavior_tree)/behavior_tree/arch_through_poses.xml
-    default_nav_to_pose_bt_xml: $(find-pkg-share nova_behavior_tree)/behavior_tree/arch_to_pose.xml
+    # default_nav_through_poses_bt_xml: $(find-pkg-share nova_behavior_tree)/behavior_tree/arch_through_poses.xml
+    # default_nav_to_pose_bt_xml: $(find-pkg-share nova_behavior_tree)/behavior_tree/arch_to_pose.xml
     plugin_lib_names:
       - nav2_compute_path_to_pose_action_bt_node
       - nav2_compute_path_through_poses_action_bt_node
@@ -61,9 +61,6 @@ bt_navigator:
       - nav2_assisted_teleop_cancel_bt_node
       - nav2_drive_on_heading_cancel_bt_node
       - nav2_is_battery_charging_condition_bt_node
-      - nova_save_image_service_bt_node
-      - nova_first_goal_reached_condition_bt_node
-      - nova_goals_empty_condition_bt_node
 
 bt_navigator_navigate_through_poses_rclcpp_node:
   ros__parameters:
@@ -156,11 +153,12 @@ local_costmap:
       rolling_window: true
       width: 5
       height: 5
+      origin_x: -2.5
+      origin_y: -2.5
       resolution: 0.1
-      footprint: "[[0.4, 0.3], [0.4, -0.3], [-0.4, -0.3], [-0.4, 0.3]]"
+      footprint: "[[0.57, 0.45], [0.57, -0.45], [-0.57, -0.45], [-0.57, 0.45]]"
       footprint_padding: 0.1
       track_unknown_space: False
-      #plugins: ["plane_mapper_layer", "height_mapper_layer", "denoise_layer", "inflation_layer"]
       plugins: ["plane_mapper_layer", "height_mapper_layer", "inflation_layer"]
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
@@ -176,7 +174,7 @@ local_costmap:
         max_safe_val: 1.6
         min_plane_density: 0.2
         depth_camera:
-          topic: /oak/rtabmap/points
+          topic: /oak/points
           min_obstacle_height: 0.0
           max_obstacle_height: 1.5
           clearing: False
@@ -196,7 +194,7 @@ local_costmap:
         vertical_resolution: 0.025
         min_plane_density: 0.2
         depth_camera:
-          topic: /oak/rtabmap/points
+          topic: /oak/points
           min_obstacle_height: 0.0
           max_obstacle_height: 1.5
           clearing: False
@@ -206,32 +204,12 @@ local_costmap:
           raytrace_min_range: 0.0
           obstacle_max_range: 5.5
           obstacle_min_range: 0.0
-      voxel_layer:
-        plugin: "nav2_costmap_2d::VoxelLayer"
-        enabled: True
-        publish_voxel_map: True
-        origin_z: 0.0
-        z_resolution: 0.05
-        z_voxels: 16
-        max_obstacle_height: 2.0
-        mark_threshold: 0
-        observation_sources: scan
-        scan:
-          topic: /scan
-          max_obstacle_height: 2.0
-          clearing: True
-          marking: True
-          data_type: "LaserScan"
-          raytrace_max_range: 3.0
-          raytrace_min_range: 0.0
-          obstacle_max_range: 5.5
-          obstacle_min_range: 0.0
       denoise_layer:
         plugin: "nav2_costmap_2d::DenoiseLayer"
         enabled: false
         minimal_group_size: 2
         group_connectivity_type: 8
-      always_send_full_costmap: True
+      always_send_full_costmap: False
 
 global_costmap:
   global_costmap:
@@ -242,11 +220,11 @@ global_costmap:
       robot_base_frame: base_link
       width: 50
       height: 50
-      origin_x: -10.0
-      origin_y: -28.0
+      origin_x: -25.0
+      origin_y: -25.0
       use_sim_time: False
       rolling_window: False
-      robot_radius: 0.22
+      footprint: "[[0.57, 0.45], [0.57, -0.45], [-0.57, -0.45], [-0.57, 0.45]]"
       resolution: 0.4
       track_unknown_space: False
       plugins: ["plane_mapper_layer", "inflation_layer"]
@@ -261,7 +239,7 @@ global_costmap:
         min_plane_density: 0.2
         resolution_ratio: 16
         depth_camera:
-          topic: /oak/rtabmap/points
+          topic: /oak/points
           min_obstacle_height: -0.1
           max_obstacle_height: 1.5
           clearing: False
@@ -282,7 +260,7 @@ global_costmap:
         vertical_resolution: 0.025
         min_plane_density: 0.2
         depth_camera:
-          topic: /oak/rtabmap/points
+          topic: /oak/points
           min_obstacle_height: 0.0
           max_obstacle_height: 1.5
           clearing: False
@@ -296,21 +274,7 @@ global_costmap:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 3.0
         inflation_radius: 0.25
-      always_send_full_costmap: True
-
-# map_server:
-#   ros__parameters:
-#     use_sim_time: True
-#     # Overridden in launch by the "map" launch configuration or provided default value.
-#     # To use in yaml, remove the default "map" value in the tb3_simulation_launch.py file & provide full path to map below.
-#     yaml_filename: ""
-
-map_saver:
-  ros__parameters:
-    use_sim_time: False
-    save_map_timeout: 5.0
-    free_thresh_default: 0.25
-    occupied_thresh_default: 0.65
+      always_send_full_costmap: False
 
 planner_server:
   ros__parameters:
@@ -357,10 +321,6 @@ behavior_server:
     max_rotational_vel: 0.2
     min_rotational_vel: 0.05
     rotational_acc_lim: 3.2
-
-robot_state_publisher:
-  ros__parameters:
-    use_sim_time: False
 
 waypoint_follower:
   ros__parameters:
