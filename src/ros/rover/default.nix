@@ -11,6 +11,7 @@
     nova-cube-localisation = callPackage ./nix/packages/nova-cube-localisation { };
     nova-teleop-drive-joy = callPackage ./nix/packages/teleop-drive-joy { };
     nova-pointcloud-filter = callPackage ./nix/packages/nova-pointcloud-filter { };
+    nova-ar-tag = callPackage ./nix/packages/nova-ar-tag { };
     # diff drive, pivot drive, strafe, 
   } // import ./nix/packages/controllers { inherit pkgs; };
 

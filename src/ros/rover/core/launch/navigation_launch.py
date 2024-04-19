@@ -46,8 +46,6 @@ def generate_launch_description():
                        'behavior_server',
                        'waypoint_follower',
                        'velocity_smoother',
-                       'map_server',
-                    #    'amcl',
                        'bt_navigator',
                        'controller_server',
                        ]
@@ -224,18 +222,6 @@ def generate_launch_description():
                 arguments=['--ros-args', '--log-level', log_level],
                 remappings=remappings +
                         [('map', 'static_map')]),
-            # Node(
-            #     # condition=LaunchConfigurationNotEquals(LaunchConfiguration('map'), ''),
-            #     package='nav2_amcl',
-            #     executable='amcl',
-            #     name='amcl',
-            #     output='screen',
-            #     respawn=use_respawn,
-            #     respawn_delay=2.0,
-            #     parameters=[configured_params],
-            #     arguments=['--ros-args', '--log-level', log_level],
-            #     remappings=remappings +
-            #             [('map', 'static_map')]),
             Node(
                 package='nav2_bt_navigator',
                 executable='bt_navigator',
@@ -300,13 +286,6 @@ def generate_launch_description():
                     remappings=remappings +
                         [('map', 'static_map')]),
                 ComposableNode(
-                    package='nav2_amcl',
-                    plugin='nav2_amcl::AmclNode',
-                    name='amcl',
-                    parameters=[configured_params],
-                    remappings=remappings +
-                        [('map', 'static_map')]),
-                ComposableNode(
                     package='nav2_bt_navigator',
                     plugin='nav2_bt_navigator::BtNavigator',
                     name='bt_navigator',
@@ -320,23 +299,6 @@ def generate_launch_description():
                                 'autostart': autostart,
                                 'node_names': lifecycle_nodes}]),
             ]),
-            # LoadComposableNodes(
-            # # condition=LaunchConfigurationNotEquals(LaunchConfiguration('map'), ''),
-            # target_container=container_name_full,
-            # composable_node_descriptions=[
-            #     ComposableNode(
-            #         package='nav2_map_server',
-            #         plugin='nav2_map_server::MapServer',
-            #         name='map_server',
-            #         parameters=[configured_params, {'yaml_filename': map_yaml_file}],
-            #         remappings=remappings),
-            #     ComposableNode(
-            #         package='nav2_amcl',
-            #         plugin='nav2_amcl::AmclNode',
-            #         name='amcl',
-            #         parameters=[configured_params],
-            #         remappings=remappings)
-            # ]),
     ])
 
     # Create the launch description and populate
