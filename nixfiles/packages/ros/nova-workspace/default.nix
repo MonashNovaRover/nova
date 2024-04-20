@@ -39,6 +39,7 @@
 , nova-diff-drive-controller ? throw "nova-diff-drive-controller is needed, but not available!"
 , nova-teleop-drive-joy ? throw "nova-teleop-drive-joy is needed, but not available!"
 , nova-gazebo ? throw "nova-gazebo is needed, but not available!"
+, nova-python-control ? throw "nova-python-control is needed, but not available!"
 
   # Configuration options
   ## Include graphical applications in the workspace.
@@ -82,7 +83,8 @@
       nova-bringup
       nova-auto-bringup
       nova-rover-description
-      nova-gazebo;    
+      nova-gazebo
+      nova-python-control;    
   }
 
   ## Extra packages to add to the workspace.
