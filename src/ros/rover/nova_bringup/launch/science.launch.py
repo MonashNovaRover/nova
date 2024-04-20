@@ -34,8 +34,8 @@ def generate_launch_description():
             package='science', executable='kiln_server.py', output='screen', emulate_tty=True),
 
         Node(
-            package='control', executable='auger.py', output='screen', emulate_tty=True),
+            package='science', executable='auger.py', output='screen', emulate_tty=True),
 
         Node(
-            package='control', executable='analysis_platform.py', output='screen', emulate_tty=True),
+            package='science', executable='analysis_platform.py', output='screen', emulate_tty=True),
     ])

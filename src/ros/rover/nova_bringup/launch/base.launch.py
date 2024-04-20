@@ -33,10 +33,4 @@ def generate_launch_description():
             emulate_tty=True,
             parameters=[{'use_sim_time': gazebo}]
         ),
-        # Node(
-        #     package='electronics',
-        #     executable='radio_monitor.py',
-        #     output='screen',
-        #     emulate_tty=True
-        # ),
     ])

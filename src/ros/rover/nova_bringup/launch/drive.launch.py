@@ -32,7 +32,7 @@ def generate_launch_description():
             package='drive', executable='driver', output='screen', emulate_tty=True,
             parameters=[{'use_sim_time': gazebo, 'gazebo': gazebo}]),
         Node(
-            package='blcmd_utils', executable='blcmd_status_monitor.py', output='screen', emulate_tty=True,
+            package='blcmd_utils', executable='status_monitor', output='screen', emulate_tty=True,
         ),
         # Node(
         #     package='electronics', executable='LED_transmitter.py', output='screen', emulate_tty=True,
