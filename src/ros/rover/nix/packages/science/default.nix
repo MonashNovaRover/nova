@@ -8,6 +8,8 @@
 , nav-msgs
 , trajectory-msgs
 , nova-interfaces
+, nova-input-interfaces
+, nova-python-control
 }:
 
 buildRosPackage {
@@ -27,5 +29,8 @@ buildRosPackage {
   propagatedBuildInputs = with pythonPackages; [
     jcan
     nova-coms-utils
+  ] ++ 
+  [ nova-python-control 
+    nova-input-interfaces
   ];
 }

@@ -26,7 +26,7 @@ from rclpy.subscription import SubscriptionEventCallbacks
 from rclpy.duration import Duration
 
 # import the joystick ROS message we are listening to
-from core.msg import InputJoystick
+from input_interfaces.msg import InputJoystick
 
 
 class AugerNode(Node):

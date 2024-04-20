@@ -23,8 +23,8 @@ import rclpy, jcan
 from rclpy.node import Node
 
 # import custom messages
-from core.msg import NIRProbeData
-from core.srv import SetNIRProbeLED
+from nova_interfaces.msg import NIRProbeData
+from nova_interfaces.srv import SetNIRProbeLED
 
 class NIRProbePublisher(Node):
     CAN_BUS = "can1"

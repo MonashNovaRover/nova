@@ -17,7 +17,7 @@ EDITED:		08/03/2024
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 """
-from control.control_classes import Direction, JonoCardController, OneAxisControlLimits, CMDCardController
+from python_control.control_classes import Direction, JonoCardController, OneAxisControlLimits, CMDCardController
 import rclpy, jcan, logging
 from rclpy.node import Node
 from rclpy.qos import QoSReliabilityPolicy, QoSProfile
@@ -27,7 +27,7 @@ from sensor_msgs.msg import Range
 import time
 
 # import the joystick ROS message we are listening to
-from core.msg import InputJoystick
+from input_interfaces.msg import InputJoystick
 
 
 class AnalysisPlatformNode(Node):
