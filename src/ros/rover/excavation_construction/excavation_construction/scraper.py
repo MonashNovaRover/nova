@@ -21,7 +21,7 @@ EDITED:		09/03/2024
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 """
-from control.control_classes import Card, Direction, JonoCardController, OneAxisControl, OneAxisControlLimits, CMDCardController
+from python_control.control_classes import Card, Direction, JonoCardController, OneAxisControl, OneAxisControlLimits, CMDCardController
 import rclpy, jcan, logging
 from rclpy.node import Node
 from rclpy.qos import QoSReliabilityPolicy, QoSProfile
@@ -29,7 +29,7 @@ from rclpy.subscription import SubscriptionEventCallbacks
 from rclpy.duration import Duration
 
 # import the joystick ROS message we are listening to
-from core.msg import InputJoystick
+from input_interfaces.msg import InputJoystick
 
 
 
@@ -320,7 +320,7 @@ class ScraperNode(Node):
     def joystick_r_callback(self, msg: InputJoystick):
         """
         Updates the classes internal msg state
-        :param msg: core.msg.InputJoystick message from the subscriber callback
+        :param msg: input_interfaces.msg.InputJoystick message from the subscriber callback
         :return: None
         """
         self.get_logger().debug("called r")

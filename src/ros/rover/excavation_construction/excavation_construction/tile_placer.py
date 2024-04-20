@@ -21,7 +21,7 @@ EDITED:		09/03/2024
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 """
-from control.control_classes import CMDCardController, Card, Direction, OneAxisControl
+from python_control.control_classes import CMDCardController, Card, Direction, OneAxisControl
 import rclpy, jcan, logging
 from rclpy.node import Node
 from rclpy.qos import QoSReliabilityPolicy, QoSProfile
@@ -29,7 +29,7 @@ from rclpy.subscription import SubscriptionEventCallbacks
 from rclpy.duration import Duration
 
 # import the joystick ROS message we are listening to
-from core.msg import InputJoystick
+from input_interfaces.msg import InputJoystick
 
 CARD = Card.CMD
 
@@ -178,7 +178,7 @@ class TilePlacerNode(Node):
     def joystick_r_callback(self, msg: InputJoystick):
         """
         Updates the classes internal msg state
-        :param msg: core.msg.RoverPose message from the subscriber callback
+        :param msg: input_interfaces.msg.RoverPose message from the subscriber callback
         :return: None
         """
         self.get_logger().debug("called r")

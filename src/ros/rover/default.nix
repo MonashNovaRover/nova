@@ -28,6 +28,7 @@
     nova-rover-description = callPackage ./nix/packages/rover-description { };
     nova-gazebo = callPackage ./nix/packages/nova-gazebo { };
     nova-python-control = callPackage ./nix/packages/python-control { };
+    nova-excavation-construction = callPackage ./nix/packages/excavation-construction { };
     # diff drive, pivot drive, strafe, 
   } // import ./nix/packages/controllers { inherit pkgs; };
 
