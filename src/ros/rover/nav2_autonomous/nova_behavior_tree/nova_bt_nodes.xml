@@ -373,5 +373,18 @@
       <input_port name="goals">Navigation goal</input_port>
     </Decorator>
 
+    <SubTree ID="NavThroughPosesWithReplanningAndRecovery">
+      <input_port default="true" name="__shared_blackboard">If false (default), the Subtree has an isolated blackboard and needs port remapping</input_port>
+      <input_port default="{goals}" name="goals"/>
+    </SubTree>
+
+    <SubTree ID="NavToPoseWithReplanningAndRecovery">
+      <input_port default="true" name="__shared_blackboard">If false (default), the Subtree has an isolated blackboard and needs port remapping</input_port>
+      <input_port default="{goal}" name="goal"/>
+    </SubTree>
+
+    <SubTree ID="Recovery">
+      <input_port default="false" name="__shared_blackboard">If false (default), the Subtree has an isolated blackboard and needs port remapping</input_port>
+    </SubTree>
   </TreeNodesModel>
 </root>

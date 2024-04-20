@@ -8,7 +8,7 @@
       <ReactiveSequence name="FindAndApproachObject">
         <ReactiveFallback name="NavThroughPosesAndSearchForObject"> 
           <!-- Exit the fallback when the object is found-->
-          <FoundARObject object_id="{object_id}"/>
+          <FoundObject object_id="{object_id}"/>
           
           <Sequence>
             <!-- Nav through poses -->
