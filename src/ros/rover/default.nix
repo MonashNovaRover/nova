@@ -27,6 +27,7 @@
     nova-interfaces = callPackage ./nix/packages/nova-interfaces{ };
     nova-rover-description = callPackage ./nix/packages/rover-description { };
     nova-gazebo = callPackage ./nix/packages/nova-gazebo { };
+    nova-python-control = callPackage ./nix/packages/python-control { };
     # diff drive, pivot drive, strafe, 
   } // import ./nix/packages/controllers { inherit pkgs; };
 
