@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <cstdlib>
 #include <functional>
 #include <geometry_msgs/msg/detail/pose_stamped__struct.hpp>
 #include <string>
@@ -92,8 +93,9 @@ namespace nova_behavior_tree
         std::string detection_type;
         getInput("detection_type", detection_type);
         if (detection_type == "tag") {
-            int _id;
-            getInput("id", _id);
+            std::string str_id;
+            getInput("id", str_id);
+            int _id = atoi(str_id.c_str());
             if (tag_poses_.count(_id)) {
                 setOutput("position", tag_poses_[_id]);
             } else {

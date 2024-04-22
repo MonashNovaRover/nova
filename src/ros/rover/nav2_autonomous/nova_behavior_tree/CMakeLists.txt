@@ -61,6 +61,9 @@ list(APPEND plugin_libs nova_goals_empty_condition_bt_node)
 add_library(nova_query_position_condition_bt_node SHARED plugins/query_position_condition.cpp)
 list(APPEND plugin_libs nova_query_position_condition_bt_node)
 
+add_library(nova_compute_search_goals_condition_bt_node SHARED plugins/compute_search_goals_condition.cpp)
+list(APPEND plugin_libs nova_compute_search_goals_condition_bt_node)
+
 foreach(bt_plugin ${plugin_libs})
   ament_target_dependencies(${bt_plugin} ${dep_pkgs})
   target_compile_definitions(${bt_plugin} PRIVATE BT_PLUGIN_EXPORT)
