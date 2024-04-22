@@ -15,13 +15,10 @@
 #include <functional>
 #include <geometry_msgs/msg/detail/pose_stamped__struct.hpp>
 #include <string>
-#include <memory>
-#include <visualization_msgs/msg/detail/marker__struct.hpp>
-#include <visualization_msgs/msg/detail/marker_array__struct.hpp>
 
-#include "nav2_util/robot_utils.hpp"
-#include "geometry_msgs/msg/pose_stamped.hpp"
-#include "nav2_util/node_utils.hpp"
+#include <aruco_opencv_msgs/msg/detail/aruco_detection__struct.hpp>
+#include <aruco_opencv_msgs/msg/detail/marker_pose__struct.hpp>
+#include <vision_msgs/msg/detail/detection3_d_array__struct.hpp>
 
 #include "nova_behavior_tree/query_position_condition.hpp"
 
@@ -47,24 +44,32 @@ namespace nova_behavior_tree
 
         initialized_ = true;
 
-        sub_objects_ = node_->create_subscription<visualization_msgs::msg::MarkerArray>("/oak/nn/spatial_detections_markers", 10, std::bind(&QueryPositionCondition::callback_object_detection, this, _1));
+        sub_objects_ = node_->create_subscription<vision_msgs::msg::Detection3DArray>("/oak/nn/spatial_detections", 10, std::bind(&QueryPositionCondition::callback_object_detection, this, _1));
 
-        sub_ar_tags_ = node_->create_subscription<visualization_msgs::msg::MarkerArray>("/oak/nn/spatial_detections_markers", 10, std::bind(&QueryPositionCondition::callback_ar_tag, this, _1));
+        sub_ar_tags_ = node_->create_subscription<aruco_opencv_msgs::msg::ArucoDetection>("/aruco_detections", 10, std::bind(&QueryPositionCondition::callback_ar_tag, this, _1));
     }
 
-    void QueryPositionCondition::callback_ar_tag(const visualization_msgs::msg::MarkerArray::SharedPtr msg)
+    void QueryPositionCondition::callback_ar_tag(const aruco_opencv_msgs::msg::ArucoDetection::SharedPtr msg)
     {
-        for (visualization_msgs::msg::Marker marker : msg->markers) {
-            const int _id = marker.id;
-            tag_markers_[_id] = marker;
+        // Save latest PoseStamped by ar tag id
+        for (aruco_opencv_msgs::msg::MarkerPose marker : msg->markers) {
+            const int _id = marker.marker_id;
+            geometry_msgs::msg::PoseStamped pose_stamped;
+            pose_stamped.header = msg->header;
+            pose_stamped.pose = marker.pose;
+            tag_poses_[_id] = pose_stamped;
         }
     }
 
-    void QueryPositionCondition::callback_object_detection(const visualization_msgs::msg::MarkerArray::SharedPtr msg)
+    void QueryPositionCondition::callback_object_detection(const vision_msgs::msg::Detection3DArray::SharedPtr msg)
     {
-        for (const visualization_msgs::msg::Marker &marker : msg->markers) {
-            const int _id = marker.id;
-            object_markers_[_id] = marker;
+        // Save latest PoseStamped by object id
+        for (const vision_msgs::msg::Detection3D &detection : msg->detections) {
+            const std::string _id = detection.id;
+            geometry_msgs::msg::PoseStamped pose_stamped;
+            pose_stamped.header = detection.header;
+            pose_stamped.pose = detection.bbox.center;
+            object_poses_[_id] = pose_stamped;
         }
     }
 
@@ -84,29 +89,21 @@ namespace nova_behavior_tree
 
     bool QueryPositionCondition::queryPose()
     {
-        int _id;
         std::string detection_type;
-        getInput("id", _id);
         getInput("detection_type", detection_type);
         if (detection_type == "tag") {
-            if (tag_markers_.count(_id)) {
-                visualization_msgs::msg::Marker chosen_tag = tag_markers_[_id];
-                geometry_msgs::msg::PoseStamped pose_stamped;
-                pose_stamped.header = chosen_tag.header;
-                pose_stamped.pose = chosen_tag.pose;
-                
-                setOutput("position", pose_stamped);
+            int _id;
+            getInput("id", _id);
+            if (tag_poses_.count(_id)) {
+                setOutput("position", tag_poses_[_id]);
             } else {
                 return false;
             }
         } else if (detection_type == "object") {
-            if (object_markers_.count(_id)) {
-                visualization_msgs::msg::Marker chosen_object = object_markers_[_id];
-                geometry_msgs::msg::PoseStamped pose_stamped;
-                pose_stamped.header = chosen_object.header;
-                pose_stamped.pose = chosen_object.pose;
-                
-                setOutput("position", pose_stamped);
+            std::string _id;
+            getInput("id", _id);
+            if (object_poses_.count(_id)) {
+                setOutput("position", object_poses_[_id]);
             } else {
                 return false;
             }

@@ -15,6 +15,7 @@
 #ifndef NAV2_BEHAVIOR_TREE__PLUGINS__CONDITION__QUERY_POSITION_CONDITION_HPP_
 #define NAV2_BEHAVIOR_TREE__PLUGINS__CONDITION__QUERY_POSITION_CONDITION_HPP_
 
+#include <aruco_opencv_msgs/msg/detail/aruco_detection__struct.hpp>
 #include <behaviortree_cpp_v3/basic_types.h>
 #include <rclcpp/subscription.hpp>
 #include <string>
@@ -22,8 +23,8 @@
 
 #include <rclcpp/rclcpp.hpp>
 #include <geometry_msgs/msg/detail/pose_stamped__struct.hpp>
-#include <visualization_msgs/msg/detail/marker_array__struct.hpp>
-#include <visualization_msgs/msg/detail/marker__struct.hpp>
+#include <vision_msgs/msg/detail/detection3_d_array__struct.hpp>
+#include <vision_msgs/msg/detail/detection3_d__struct.hpp>
 
 #include "behaviortree_cpp_v3/condition_node.h"
 
@@ -70,12 +71,12 @@ namespace nova_behavior_tree
         /**
          * @brief Callback to handle AR tag detections
          */
-        void callback_ar_tag(const visualization_msgs::msg::MarkerArray::SharedPtr msg);
+        void callback_ar_tag(const aruco_opencv_msgs::msg::ArucoDetection::SharedPtr msg);
 
         /**
          * @brief Callback to handle object detections
          */
-        void callback_object_detection(const visualization_msgs::msg::MarkerArray::SharedPtr msg);
+        void callback_object_detection(const vision_msgs::msg::Detection3DArray::SharedPtr msg);
     
         /**
          * @brief Looks for a detected object/tag in the relevant map and sets the output port to its position
@@ -109,11 +110,11 @@ namespace nova_behavior_tree
 
         bool initialized_;
 
-        std::map<int, visualization_msgs::msg::Marker> tag_markers_;
-        std::map<int, visualization_msgs::msg::Marker> object_markers_;
+        std::map<int, geometry_msgs::msg::PoseStamped> tag_poses_;
+        std::map<std::string, geometry_msgs::msg::PoseStamped> object_poses_;
 
-        rclcpp::Subscription<visualization_msgs::msg::MarkerArray>::SharedPtr sub_ar_tags_;
-        rclcpp::Subscription<visualization_msgs::msg::MarkerArray>::SharedPtr sub_objects_;
+        rclcpp::Subscription<aruco_opencv_msgs::msg::ArucoDetection>::SharedPtr sub_ar_tags_;
+        rclcpp::Subscription<vision_msgs::msg::Detection3DArray>::SharedPtr sub_objects_;
     };
 
 } // namespace nova_behavior_tree

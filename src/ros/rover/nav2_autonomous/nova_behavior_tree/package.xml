@@ -13,7 +13,7 @@
   <depend>nav2_behavior_tree</depend>
   <depend>std_srvs</depend>
   <depend>geometry_msgs</depend>
-  <depend>visualization_msgs</depend>
+  <depend>vision_msgs</depend>
   <depend>aruco_opencv_msgs</depend>
   <depend>tf2_ros</depend>
   <depend>nav2_util</depend>
