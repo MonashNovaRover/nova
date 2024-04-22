@@ -24,6 +24,7 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_srvs REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(visualization_msgs REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(nav2_util REQUIRED)
 find_package(nav2_behavior_tree REQUIRED)
@@ -33,6 +34,7 @@ set(dep_pkgs
   rclcpp
   std_srvs
   geometry_msgs
+  visualization_msgs
   tf2_ros
   nav2_util
   nav2_behavior_tree
@@ -53,6 +55,9 @@ list(APPEND plugin_libs nova_first_goal_reached_condition_bt_node)
 
 add_library(nova_goals_empty_condition_bt_node SHARED plugins/goals_empty_condition.cpp)
 list(APPEND plugin_libs nova_goals_empty_condition_bt_node)
+
+add_library(nova_query_position_condition_bt_node SHARED plugins/query_position_condition.cpp)
+list(APPEND plugin_libs nova_query_position_condition_bt_node)
 
 foreach(bt_plugin ${plugin_libs})
   ament_target_dependencies(${bt_plugin} ${dep_pkgs})
