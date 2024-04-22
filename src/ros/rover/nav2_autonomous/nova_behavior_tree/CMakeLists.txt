@@ -25,6 +25,7 @@ find_package(rclcpp REQUIRED)
 find_package(std_srvs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
+find_package(aruco_opencv_msgs REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(nav2_util REQUIRED)
 find_package(nav2_behavior_tree REQUIRED)
@@ -35,6 +36,7 @@ set(dep_pkgs
   std_srvs
   geometry_msgs
   visualization_msgs
+  aruco_opencv_msgs
   tf2_ros
   nav2_util
   nav2_behavior_tree

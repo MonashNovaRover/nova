@@ -49,7 +49,6 @@ namespace nova_behavior_tree
             node_, "goal_reached_tol",
             rclcpp::ParameterValue(0.25));
         node_->get_parameter_or<double>("goal_reached_tol", goal_reached_tol_, 0.25);
-        node_->create_subscription()<>
         tf_ = config().blackboard->get<std::shared_ptr<tf2_ros::Buffer>>("tf_buffer");
 
         node_->get_parameter("transform_tolerance", transform_tolerance_);
