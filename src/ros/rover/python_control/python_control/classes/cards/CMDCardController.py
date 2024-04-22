@@ -8,8 +8,8 @@ from python_control.classes.controls.OneAxisControl import OneAxisControl
 
 class CMDCardController(CardController):
     """Class to control the CMD card on the CAN bus"""
-    def __init__(self, card_id: hex, control: OneAxisControl):
-        super().__init__(card=Card.CMD, max_value=32767, card_id=card_id, control=control)
+    def __init__(self, can_bus: str, card_id: hex, control: OneAxisControl):
+        super().__init__(card=Card.CMD, max_value=32767, can_bus=can_bus, card_id=card_id, control=control)
 
     def get_frame(self) -> jcan.Frame:
         """Get the frame to send over the CAN bus"""

@@ -12,6 +12,15 @@ class Limit():
     def __init__(self, sensor: Sensor[T] = None):
         self.limit_hit = False # type: bool
         self.sensor = sensor # type: Sensor[T]
+        self.bus = jcan.Bus() # type: jcan.Bus
+        self.setup_can_bus()
+
+    def setup_can_bus(self):
+        """Setup the CAN bus"""
+        self.bus.set_id_filter_mask(self.sensor.get_frame_id(), 0xFFF)
+        self.bus.add_callback(self.sensor.get_frame_id(), self.frame_callback)
+        self.bus.open(self.sensor.get_can_bus())
+        self.create_timer(0.01, self.bus.spin)
 
     def update_limit_hit(self, limit_hit: bool):
         """Update the limit hit"""
@@ -20,10 +29,6 @@ class Limit():
     def get_limit_hit(self):
         """Get the limit hit"""
         return self.limit_hit
-    
-    def get_frame_id(self):
-        """Get the frame id"""
-        return self.sensor.frame_id
     
     @abc.abstractmethod
     def frame_callback(self, frame: jcan.Frame):

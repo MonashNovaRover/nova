@@ -5,8 +5,8 @@ from python_control.classes.sensors.Sensor import Sensor
 
 class TOFSensor(Sensor[int]):
     """Class to represent a time of flight sensor"""
-    def __init__(self, frame_id: hex):
-        super().__init__(frame_id=frame_id)
+    def __init__(self, can_bus: str, frame_id: hex):
+        super().__init__(can_bus=can_bus, frame_id=frame_id)
     
     def frame_callback(self, frame: jcan.Frame):
         """Update the sensor value based on the frame"""

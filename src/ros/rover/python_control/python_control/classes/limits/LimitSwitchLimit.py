@@ -4,7 +4,7 @@ import jcan
 from python_control.classes.limits.Limit import Limit
 from python_control.classes.sensors.LimitSwitchSensor import LimitSwitchSensor
 
-class LimitSwitch(Limit):
+class LimitSwitchLimit(Limit):
     """Class to represent a limit switch"""
     def __init__(self, limit_switch: LimitSwitchSensor):
         super().__init__(limit_switch)
