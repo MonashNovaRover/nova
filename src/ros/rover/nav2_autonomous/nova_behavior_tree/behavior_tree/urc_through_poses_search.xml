@@ -19,7 +19,8 @@ continuously
             server_timeout="{server_timeout}" />
 
           <!-- Compute search points -->
-          <ComputeObjectSearchGoals approximate_goal="{final_goal}" search_goals="{search_goals}" />
+          <ComputeSearchGoals search_origin="{search_origin}" search_radius="7" num_points="8"
+            search_goals="{search_goals}" />
 
           <!-- Navigate through search points, spinning each time-->
           <ReactiveFallback>
@@ -39,7 +40,7 @@ continuously
         </Sequence>
       </ReactiveFallback>
       <!-- Object has been found - get it's latest position in the map frame -->
-      <QueryPosition id="{id}" position="{position}" />
+      <QueryPosition detection_type="{detection_type}" id="{id}" position="{position}" />
       <!-- Navigate to object position -->
       <SubTree ID="NavToPoseWithReplanningAndRecovery" goal="{position}" />
     </ReactiveSequence>

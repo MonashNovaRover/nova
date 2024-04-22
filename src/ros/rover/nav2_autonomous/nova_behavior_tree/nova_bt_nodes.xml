@@ -227,18 +227,18 @@
       <input_port name="robot_base_frame">Robot base frame</input_port>
     </Condition>
 
-    <Action ID="QueryPosition">
+    <Condition ID="QueryPosition">
       <input_port name="id">ID of tag or object</input_port>
       <input_port name="detection_type">'tag' or 'object'</input_port>
       <output_port name="position">PoseStamped</output_port>
-    </Action>
+    </Condition>
 
-    <Action ID="ComputeSearchGoals">
+    <Condition ID="ComputeSearchGoals">
       <input_port name="search_origin">The center of the search region</input_port>
       <input_port name="search_radius">The radius (m) to search around the center</input_port>
       <input_port name="num_points">Num points in search circle</input_port>
       <output_port name="search_goals">Search Goals</output_port>
-    </Action>
+    </Condition>
 
     <Condition ID="FoundARTag">
       <input_port name="tag_id">Tag ID</input_port>
