@@ -2,8 +2,6 @@
  * Author: Connor Macdougall
  * This component outputs responses from the CCD, and also has graphs to compare output data against.
  * It accepts responses from the 'raman_spectra' ROS service.
- * TODO:
- *  - Overhaul how graphs are overlayed to a manner that can fit single collection mode (continuous mode could just remove all overlayed graphs)
  */
 
 import { useEffect } from "react";
@@ -13,6 +11,7 @@ import { useSelector } from "react-redux";
 import { RosTopic } from "../../ros/topics/rosTopic";
 import { ChartStyle } from "../SpectraDisplay/ChartOptions";
 import OutputComparison from "../SpectraDisplay/OutputComparison";
+import { defaultPeakFinder } from "../SpectraDisplay/ChartAnalysis";
 
 const RamanOutputComparison: React.FC = () => {
     // Bifrost
@@ -35,17 +34,14 @@ const RamanOutputComparison: React.FC = () => {
         data: kerogendata.map((element, index) => [50*index, element])
     }]]
 
-    const peakFinder = (data: number[][]): number[][] => {
-        return [[1350,70], [1600,90]]
-    }
-
     return (
-        <OutputComparison 
+        <OutputComparison
+            title="Comparison and Analysis" 
             outputData={outputChartSeries}
             elementData={elementData}
-            outputStyle={ChartStyle.RamanMain}
-            datasetStyle={ChartStyle.RamanData}
-            peakFinder={peakFinder}
+            outputStyle={ChartStyle.DefaultMain}
+            datasetStyle={ChartStyle.DefaultData}
+            peakFinder={defaultPeakFinder}
         />
     ) 
 }
