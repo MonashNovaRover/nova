@@ -20,57 +20,9 @@ find_package(ament_cmake REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
-find_package(std_msgs REQUIRED)
-find_package(nav_msgs REQUIRED)
-find_package(geometry_msgs REQUIRED)
-find_package(trajectory_msgs REQUIRED)
 
 # Find default generators
 find_package(rosidl_default_generators REQUIRED)
-find_package(std_msgs REQUIRED)
-
-# Include all interfaces
-rosidl_generate_interfaces(${PROJECT_NAME}
-
-  # Message definitions
-  "msg/AlvarMarker.msg"
-  "msg/AlvarMarkers.msg"
-  "msg/CamsConnected.msg"
-  "msg/DistanceData.msg"
-  "msg/HydraprobeData.msg"
-  "msg/EMCData.msg"
-  "msg/KilnData.msg"
-  "msg/Point2D.msg"
-  "msg/RadioStatus.msg"
-  "msg/RoverPoseGPS.msg"
-  "msg/SpectrometerData.msg"
-  "msg/AutonomousGoal.msg"
-  "msg/AutonomousGoalArray.msg"
-  "msg/ActuatorLimit.msg"
-  "msg/MicroscopeServoInfo.msg"
-  "msg/NIRProbeData.msg"
-
-  "msg/Heartbeat.msg"
-  "msg/KilnMassData.msg"
-  "msg/KilnTempData.msg"
-  "msg/WheelOdometry.msg"
-  "msg/RoverPose.msg"
-
-  "srv/CameraCommand.srv"
-  "srv/KilnCommand.srv"
-  "srv/GimbalCommand.srv"
-  "srv/ScienceCommand.srv"
-  "srv/LoadCellPoller.srv"
-  "srv/RFIDCommand.srv"
-  "srv/PathPlanningRequest.srv"
-  "srv/StringTrigger.srv"
-  "srv/GpsOffset.srv"
-  "srv/MoveMicroscopeServo.srv"
-  "srv/SetNIRProbeLED.srv"
-
-        # Action definitions
-  DEPENDENCIES std_msgs geometry_msgs nav_msgs trajectory_msgs
-)
 
 # Add all the installation directories
 install(DIRECTORY
