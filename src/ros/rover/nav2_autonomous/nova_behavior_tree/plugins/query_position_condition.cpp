@@ -12,10 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <cstdlib>
 #include <functional>
 #include <geometry_msgs/msg/detail/pose_stamped__struct.hpp>
-#include <string>
 
 #include <aruco_opencv_msgs/msg/detail/aruco_detection__struct.hpp>
 #include <aruco_opencv_msgs/msg/detail/marker_pose__struct.hpp>
@@ -121,5 +119,5 @@ namespace nova_behavior_tree
 #include "behaviortree_cpp_v3/bt_factory.h"
 BT_REGISTER_NODES(factory)
 {
-    factory.registerNodeType<nova_behavior_tree::QueryPositionCondition>("GoalsEmpty");
+    factory.registerNodeType<nova_behavior_tree::QueryPositionCondition>("QueryPosition");
 }

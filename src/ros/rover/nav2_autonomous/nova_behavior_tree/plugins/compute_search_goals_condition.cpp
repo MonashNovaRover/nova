@@ -82,5 +82,5 @@ namespace nova_behavior_tree
 #include "behaviortree_cpp_v3/bt_factory.h"
 BT_REGISTER_NODES(factory)
 {
-    factory.registerNodeType<nova_behavior_tree::ComputeSearchGoalsCondition>("GoalsEmpty");
+    factory.registerNodeType<nova_behavior_tree::ComputeSearchGoalsCondition>("ComputeSearchGoals");
 }
