@@ -147,25 +147,37 @@ ekf_filter_node_map:
     base_link_frame: base_link 
     world_frame: map
 
-    odom0: /pivot_drive_controller/odom
-    odom0_config: [false, false, false,
-                  false, false, false,
-                  true,  true,  true,
-                  false, false, true,
-                  false, false, false]
+
+    odom0: /odometry/gps
+    odom0_config: [true,  true,  false,
+                 false, false, false,
+                 false, false, false,
+                 false, false, false,
+                 false, false, false]
     odom0_queue_size: 10
     odom0_differential: false
     odom0_relative: false
 
-    odom1: odometry/gps
-    odom1_config: [true,  true,  false,
+    odom1: /pivot_drive_controller/odom
+    odom1_config: [false, false, false,
                   false, false, false,
-                  false, false, false,
-                  false, false, false,
+                  true,  true,  true,
+                  false, false, true,
                   false, false, false]
     odom1_queue_size: 10
     odom1_differential: false
     odom1_relative: false
+
+		#imu0: /oak/imu/data
+    #imu0_config: [false, false, false,
+    #              false,  false,  true,
+    #              false, false, false,
+    #              false,  false,  false,
+    #              false,  false,  false]
+    #imu0_differential: false  # If using a real robot you might want to set this to true, since usually absolute measurements from real imu's are not very accurate
+    #imu0_relative: false
+    #imu0_queue_size: 10
+    #imu0_remove_gravitational_acceleration: true
 
     use_control: false
 
@@ -189,8 +201,8 @@ navsat_transform:
   ros__parameters:
     frequency: 30.0
     delay: 3.0
-    magnetic_declination_radians: 0
-    yaw_offset: 0
+    magnetic_declination_radians: 0.0
+    yaw_offset: 0.0
     zero_altitude: true
     broadcast_utm_transform: true
     publish_filtered_gps: true

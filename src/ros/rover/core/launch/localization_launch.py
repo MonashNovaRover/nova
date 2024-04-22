@@ -90,26 +90,32 @@ def launch_setup(context, *args, **kwargs):
     navsat_transform_node = Node(
         condition=IfCondition(AndSubstitution(use_real_odometry, gps)),
         package='robot_localization',
-        executable='ekf_node',
-        name='ekf_filter_node_map',
+        executable='navsat_transform_node',
+        name='navsat_transform',
         output='screen',
         parameters=[(LaunchConfiguration('rl_params_file').perform(context)), {"use_sim_time": use_sim_time}],
-        remappings=[("odometry/filtered", "odometry/global")]
+        remappings=[
+								("odometry/filtered", "odometry/global"),
+								("gps/fix", "fix"),
+								("imu", "oak/imu/data"),
+				]
     )
 
-    slam_cmd = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource((get_package_share_path("core") / 'launch' / 'rtabmap.launch.py').as_posix()),
-        launch_arguments={
-            'use_sim_time': use_sim_time,
-            'load_map': load_map,
-        }.items()
-    )
+    #slam_cmd = IncludeLaunchDescription(
+    #    PythonLaunchDescriptionSource((get_package_share_path("core") / 'launch' / 'rtabmap.launch.py').as_posix()),
+    #    launch_arguments={
+    #        'use_sim_time': use_sim_time,
+    #        'load_map': load_map,
+    #    }.items()
+    #)
     
     return [
         ukf_localisation_gazebo,
         ukf_localisation_odom,
-        ekf_localisation_odom,
-        slam_cmd,
+        #ekf_localisation_odom,
+				ekf_localisation_map,
+				navsat_transform_node,
+        #slam_cmd,
     ]
     
 def generate_launch_description():
@@ -137,7 +143,7 @@ def generate_launch_description():
     )
 
     rl_param_arg = DeclareLaunchArgument(
-        'ekf_params_file',
+        'rl_params_file',
         default_value=os.path.join(get_package_share_path("core"),'params','rl.yaml')
     )
 
