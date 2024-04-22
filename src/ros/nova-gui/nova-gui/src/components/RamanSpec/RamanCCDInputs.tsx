@@ -107,8 +107,13 @@ const RamanCCDInputs: React.FC = () => {
                         isvalid: true,	                                    
                         spectrum: fakespectra	                                    
                     });	                            
-                    ramanSpectra.publish(spectra1);	                             
-                    console.log("Entry sent");
+                    ramanSpectra.publish(spectra1);
+                    setTimeout(() => {fakespectra = [15, 11, 9, 8, 9, 15, 12, 11, 9, 11, 10, 11, 10, 9, 11, 12, 13, 15, 17, 20, 23, 24, 28, 33, 39, 65, 58, 70, 66, 54, 50, 70, 90, 65, 40, 35, 34, 34, 35, 35, 34, 34, 33, 32, 31, 31, 30, 31, 32]	                       
+                        let spectra2 = new ROSLIB.Message({	                                
+                            isvalid: true,	                                    
+                            spectrum: fakespectra	                                    
+                        });	                            
+                        ramanSpectra.publish(spectra2);}, 1000);
                 } else {
                     onOpen();
                 }
