@@ -227,6 +227,26 @@
       <output_port name="search_goals">Search Goals</output_port>
     </Action>
 
+    <Action ID="QueryTagPosition">
+      <input_port name="tag_id">Tag ID</input_port>
+      <output_port name="tag_position">Tag Position</output_port>
+    </Action>
+
+    <Action ID="QueryObjectPosition">
+      <input_port name="object_id">Object ID</input_port>
+      <output_port name="object_position">Object Position</output_port>
+    </Action>
+
+    <Action ID="ComputeARSearchGoals">
+      <input_port name="approximate_goal">Approximate Goal</input_port>
+      <output_port name="search_goals">Search Goals</output_port>
+    </Action>
+
+    <Action ID="ComputeObjectSearchGoals">
+      <input_port name="approximate_goal">Approximate Goal</input_port>
+      <output_port name="search_goals">Search Goals</output_port>
+    </Action>
+
     <Action ID="AssistedTeleop">
       <input_port name="time_allowance">Allowed time for spinning</input_port>
       <input_port name="is_recovery">If true recovery count will be incremented</input_port>
@@ -240,6 +260,14 @@
       <input_port name="goal">Destination</input_port>
       <input_port name="global_frame">Reference frame</input_port>
       <input_port name="robot_base_frame">Robot base frame</input_port>
+    </Condition>
+
+    <Condition ID="FoundARTag">
+      <input_port name="tag_id">Tag ID</input_port>
+    </Condition>
+
+    <Condition ID="FoundObject">
+      <input_port name="object_id">Object ID</input_port>
     </Condition>
 
     <Condition ID="FoundARTag">
