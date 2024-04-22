@@ -12,9 +12,10 @@ import { ApexDataset } from "./DataChart";
 interface IOutputComparisonProps {
     title: string,                                              // Component title
     outputData: ApexDataset,                                    // Data to be displayed in the left hand side of component ('focus'/ main screen)
+    peaksOnMain?: boolean,                                      // Can omit peaks on main if it is too much of a slowdown/distraction
     elementData: ApexDataset[],                                 // Data to be displayed in the right hand side of component ('dataset'/ scrollable window for comparison)
     style: ChartStyle,                                          // Style of charts
-    peakFinder: (data: number[][]) => number[][] | undefined    // Function to return peaks found in a set of data
+    peakFinder?: (data: number[][]) => number[][] | undefined   // Function to return peaks found in a set of data (use getDefaultPeakFinder(resolution, peak_percentage_diff) if desired))
 }
 
 const OutputComparison: React.FC<IOutputComparisonProps> = (props: IOutputComparisonProps) => {
@@ -24,9 +25,13 @@ const OutputComparison: React.FC<IOutputComparisonProps> = (props: IOutputCompar
         <Card className="w-fit p-2 m-1 w-auto">
             <CardHeader className="shrink-0 w-48 p-1">{props.title}</CardHeader>
             <div className="flex flex-row">
-                <DatasetChart dataset={props.outputData} chartOptions={chartOptions} peaks={props.peakFinder(props.outputData[0].data)} />
+                <div className="w-1/2 self-center">
+                    <DatasetChart dataset={props.outputData} chartOptions={chartOptions} peaks={props.peakFinder && props.peaksOnMain ? props.peakFinder(props.outputData[0].data) : undefined } />
+                </div>
                 <ScrollShadow hideScrollBar className="w-1/2 h-154">
-                        {props.elementData.map( element => (<DatasetChart dataset={element} chartOptions={chartOptions} peaks={props.peakFinder(element[0].data)} />))}
+                        {props.elementData.map( element => (<div className="my-6">
+                            <DatasetChart dataset={element} chartOptions={chartOptions} peaks={props.peakFinder ? props.peakFinder(element[0].data) : undefined } />
+                        </div>))}
                 </ScrollShadow>
             </div>
         </Card>

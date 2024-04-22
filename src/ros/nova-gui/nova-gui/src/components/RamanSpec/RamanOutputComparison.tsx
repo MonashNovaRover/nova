@@ -11,7 +11,7 @@ import { useSelector } from "react-redux";
 import { RosTopic } from "../../ros/topics/rosTopic";
 import { ChartStyle } from "../SpectraDisplay/ChartOptions";
 import OutputComparison from "../SpectraDisplay/OutputComparison";
-import { defaultPeakFinder } from "../SpectraDisplay/ChartAnalysis";
+import { getDefaultPeakFinder } from "../SpectraDisplay/ChartAnalysis";
 
 const RamanOutputComparison: React.FC = () => {
     // Bifrost
@@ -29,19 +29,23 @@ const RamanOutputComparison: React.FC = () => {
     }]
 
     const kerogendata = [10, 11, 9, 8, 9, 10, 12, 11, 9, 11, 10, 11, 10, 9, 11, 12, 13, 15, 17, 20, 23, 24, 28, 33, 39, 47, 58, 70, 66, 54, 50, 70, 90, 65, 40, 35, 34, 34, 35, 35, 34, 34, 33, 32, 31, 31, 30, 31, 32]
+    const kerogen2data = [10, 11, 9, 8, 9, 10, 12, 13, 12, 9, 10, 11, 10, 9, 11, 12, 13, 15, 17, 20, 23, 24, 28, 33, 39, 47, 58, 70, 66, 54, 50, 70, 90, 65, 40, 35, 34, 34, 35, 35, 34, 34, 33, 32, 31, 31, 30, 31, 32]
     const elementData = [[{
         name: "Kerogen",
         data: kerogendata.map((element, index) => [50*index, element])
+    }],[{
+        name: "Kerogen 2",
+        data: kerogen2data.map((element, index) => [50*index, element])
     }]]
 
     return (
         <OutputComparison
-            title="Comparison and Analysis" 
+            title="Comparison and Analysis"
+            peaksOnMain
             outputData={outputChartSeries}
             elementData={elementData}
-            outputStyle={ChartStyle.DefaultMain}
-            datasetStyle={ChartStyle.DefaultData}
-            peakFinder={defaultPeakFinder}
+            style={ChartStyle.Default}
+            peakFinder={getDefaultPeakFinder(2, 20)}
         />
     ) 
 }
