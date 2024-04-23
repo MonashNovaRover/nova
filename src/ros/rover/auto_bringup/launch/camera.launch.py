@@ -19,25 +19,38 @@ def launch_setup(context, *args, **kwargs):
     return [
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
-                FindPackageShare([depthai_prefix, 'launch', 'camera.launch.py'])),
+                PathJoinSubstitution([depthai_prefix, 'launch', 'camera.launch.py'])),
             launch_arguments={"name": name,
                               "parent_frame": "camera_link",
-                              "params_file": params_file}.items()),
+                              "params_file": params_file,
+                              "camera_model": "OAK-D-LR"}.items()),
 
-        LoadComposableNodes(
-            condition=IfCondition(LaunchConfiguration("rectify_rgb")),
-            target_container=name+"_container",
-            composable_node_descriptions=[
-                ComposableNode(
-                    package='depth_image_proc',
-                    plugin='depth_image_proc::PointCloudXyziNode',
-                    name='point_cloud_xyzi',
-                    remappings=[('depth/image_rect', name+'/stereo/image_raw'),
-                                ('intensity/image_rect', name+'/right/image_rect'),
-                                ('intensity/camera_info', name+'/stereo/camera_info'),
-                                ('points', name+'/points')
-                                ]),
-            ]),
+        # LoadComposableNodes(
+        #     condition=IfCondition(LaunchConfiguration("rectify_rgb")),
+        #     target_container=name+"_container",
+        #     composable_node_descriptions=[
+        #         ComposableNode(
+        #             package='depth_image_proc',
+        #             plugin='depth_image_proc::PointCloudXyziNode',
+        #             name='point_cloud_xyzi',
+        #             remappings=[('depth/image_rect', name+'/stereo/image_raw'),
+        #                         ('intensity/image_rect', name+'/right/image_rect'),
+        #                         ('intensity/camera_info', name+'/stereo/camera_info'),
+        #                         ('points', name+'/points')
+        #                         ]),
+        #     ]),
+
+        Node(
+            package='rtabmap_util',
+            executable='point_cloud_xyz',
+            condition=IfCondition(LaunchConfiguration('rtabmap_pointcloud')),
+            name='rtabmap_point_cloud_xyz',
+            remappings=[('/depth/image', name+'/stereo/image_filtered'),
+                        ('/depth/camera_info', name+'/stereo/camera_info'),
+                        ('/cloud', name+'/points'),
+                        ],
+            parameters=[{'filter_nans':True }] 
+        ),
 
         Node(
             package='nova_pointcloud_filter',
