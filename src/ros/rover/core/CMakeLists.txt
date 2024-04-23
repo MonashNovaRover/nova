@@ -26,13 +26,7 @@ find_package(rosidl_default_generators REQUIRED)
 
 # Add all the installation directories
 install(DIRECTORY
-  launch
   maps
-  params
-  rviz
-  urdf
-  meshes
-  worlds
   resources
   DESTINATION share/${PROJECT_NAME}
 )
