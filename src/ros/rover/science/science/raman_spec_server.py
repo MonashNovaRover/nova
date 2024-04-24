@@ -46,6 +46,11 @@ class RamanServer(Node):
     SPECTRA_SIZE = 3694
     OUTPUT_SIZE = 7388
     PHASE_SIGNAL = 3655
+    RESOLUTION_REDUCING_FACTOR = 10
+    CIRCULAR_BUFFER_START = 69
+    CIRCULAR_BUFFER_END = 82
+    SINGLE_COLLECTION_MODE = 0
+    CONTINUOUS_COLLECTION_MODE = 1
 
     def __init__(self):
         super().__init__('raman_spec_server')
@@ -59,7 +64,7 @@ class RamanServer(Node):
         self.srv = self.create_service(RamanSpec, '/science/raman_spec_srv', self.raman_response)
         self.publisher_ = self.create_publisher(RamanSpectrum, '/science/raman_spec_msg', 10)
 
-        self.continuous_mode = self.create_timer(0.2, self.continuous_callback)
+        self.continuous_mode = self.create_timer(1, self.continuous_callback)
 
     def continuous_callback(self):
         """
@@ -76,8 +81,8 @@ class RamanServer(Node):
         result = np.zeros(12, np.uint8)
 
         #Transmit where in circular buffer to read from and to   
-        result[0] = 69
-        result[1] = 82
+        result[0] = RamanServer.CIRCULAR_BUFFER_START
+        result[1] = RamanServer.CIRCULAR_BUFFER_END
 
         # min is 20, max is 4294967295
         shperiodconverted = np.uint32(shperiod)
@@ -94,9 +99,9 @@ class RamanServer(Node):
         result[9] = icgperiodconverted & 0xff
 
         if singlecollectionmode:
-            result[10] = 0
+            result[10] = RamanServer.SINGLE_COLLECTION_MODE
         else: # continuous collection mode
-            result[10] = 1
+            result[10] = RamanServer.CONTINUOUS_COLLECTION_MODE
         
         result[11] = average  # min is 1, max is 15
 
@@ -198,7 +203,7 @@ class RamanServer(Node):
             phase_end_found, phase_end_index = RamanServer.find_phase_end(balanced_output)
 
             if phase_end_found:
-                final_output = balanced_output[0:phase_end_index]
+                final_output = balanced_output[0:phase_end_index:RamanServer.RESOLUTION_REDUCING_FACTOR]
                 return True, final_output
                
         except SerialException as e:
