@@ -14,6 +14,17 @@ import OutputComparison from "../SpectraDisplay/OutputComparison";
 import { getDefaultPeakFinder } from "../SpectraDisplay/ChartAnalysis";
 
 const RamanOutputComparison: React.FC = () => {
+    // units are nm
+    const LASER_GREEN_START = 416
+    const LASER_GREEN_END = 642
+    const LASER_GREEN_RANGE = LASER_GREEN_END - LASER_GREEN_START
+    const LASER_RED_START = 700
+    const LASER_RED_END = 928
+    const LASER_RED_RANGE = LASER_RED_END - LASER_RED_START
+
+    const RAMAN_PEAK_VALUE = 3700  // approx
+    const NORMALISED_SCALE_MAX = 100
+
     // Bifrost
     const spectrumStore = useSelector(
         (state: RootState) => state.ramanSpecMessageStore
@@ -23,9 +34,14 @@ const RamanOutputComparison: React.FC = () => {
         bifrost.syncWithTopic();
     }, [bifrost]);
 
-    let outputChartSeries = [{
+    let greenLaserOutput = [{
         name: "CCD Output",
-        data: spectrumStore.spectrum.map((element, index) => [50*index, element])
+        data: spectrumStore.spectrum.map((element, index) => [Math.round(100*(LASER_GREEN_START + LASER_GREEN_RANGE*index/spectrumStore.spectrum.length)) / 100.0, Math.round(100*NORMALISED_SCALE_MAX*element/RAMAN_PEAK_VALUE)/100.0])
+    }]
+
+    let redLaserOutput = [{
+        name: "CCD Output",
+        data: spectrumStore.spectrum.map((element, index) => [Math.round(100*(LASER_RED_START + LASER_RED_RANGE*index/spectrumStore.spectrum.length)) / 100.0, Math.round(100*NORMALISED_SCALE_MAX*element/RAMAN_PEAK_VALUE)/100.0])
     }]
 
     const kerogendata = [10, 11, 9, 8, 9, 10, 12, 11, 9, 11, 10, 11, 10, 9, 11, 12, 13, 15, 17, 20, 23, 24, 28, 33, 39, 47, 58, 70, 66, 54, 50, 70, 90, 65, 40, 35, 34, 34, 35, 35, 34, 34, 33, 32, 31, 31, 30, 31, 32]
@@ -42,7 +58,7 @@ const RamanOutputComparison: React.FC = () => {
         <OutputComparison
             title="Comparison and Analysis"
             peaksOnMain
-            outputData={outputChartSeries}
+            outputData={redLaserOutput}
             elementData={elementData}
             style={ChartStyle.Default}
             peakFinder={getDefaultPeakFinder(2, 20)}
