@@ -13,7 +13,7 @@
 , nova-electronics ? throw "electronics is needed, but not available!"
 , nova-science ? throw "science is needed, but not available!"
 , nova-cameras2 ? throw "cameras2 is needed, but not available!"
-# , nova-gui ? throw "gui is needed, but not available!"
+, nova-gui ? throw "gui is needed, but not available!"
 # , nova-gui-backend ? throw "gui-backend is needed, but not available!"
 # , nova-gui-frontend ? throw "gui-frontend is needed, but not available!"
 # , nova-gui-frontend-server ? throw "gui-frontend-server is needed, but not available!"
@@ -27,7 +27,6 @@
 , nova-inputs ? throw "inputs is needed, but not available!"
 , nova-cmd-interfaces ? throw "cmd-interfaces is needed, but not available!"
 , nova-cmd-utils ? throw "cmd-utils is needed, but not available!"
-# , nova-excavation-construction ? throw "excavation-construction is needed, but not available!"
 , nova-gimbal-cam ? throw "gimbal-cam is needed, but not available!"
 , nova-interfaces ? throw "nova-interfaces is needed, but not available!"
 , nova-bringup ? throw "nova-bringup is needed, but not available!"
@@ -65,7 +64,7 @@
       nova-strafe-controller
       nova-diff-drive-controller
       nova-teleop-drive-joy
-      # nova-gui
+      nova-gui
       # nova-gui-backend
       # nova-gui-frontend
       nova-drive
@@ -78,7 +77,6 @@
       nova-inputs
       nova-cmd-interfaces
       nova-cmd-utils
-      # nova-excavation-construction
       nova-gimbal-cam
       nova-interfaces
       nova-bringup
