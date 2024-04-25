@@ -33,8 +33,8 @@ def generate_launch_description():
     gazebo_dir = FindPackageShare('gazebo_ros')
     nova_gazebo_dir = FindPackageShare('nova_gazebo')
 
-    pose = {'x': LaunchConfiguration('x_pose', default='0.00'),
-            'y': LaunchConfiguration('y_pose', default='0.00'),
+    pose = {'x': LaunchConfiguration('x_pose', default='-2.0'),
+            'y': LaunchConfiguration('y_pose', default='-2.0'),
             'z': LaunchConfiguration('z_pose', default='0.05'),
             'R': LaunchConfiguration('roll', default='0.00'),
             'P': LaunchConfiguration('pitch', default='0.00'),
@@ -70,7 +70,7 @@ def generate_launch_description():
         #              https://github.com/ROBOTIS-GIT/turtlebot3_simulations/issues/91
         # default_value=os.path.join(get_package_share_directory('turtlebot3_gazebo'),
         # worlds/turtlebot3_worlds/waffle.model')
-        default_value=PathJoinSubstitution([nova_gazebo_dir, "worlds", 'flat.model']),
+        default_value=PathJoinSubstitution([nova_gazebo_dir, "worlds", 'urc_er.model']),
         description='Full path to world model file to load')
 
     robot_description_arg = DeclareLaunchArgument(

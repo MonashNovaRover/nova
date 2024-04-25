@@ -5,7 +5,7 @@
 , launch-ros
 }:
 
-buildRosPackage {
+buildRosPackage rec {
   name = "nova-gazebo";
   buildType = "ament_cmake";
 
@@ -15,6 +15,16 @@ buildRosPackage {
     filter = lib.novaSourceFilter [ "!worlds/**" ] path;
   };
 
+  terrain = builtins.path {
+    name = "nova-terrain";
+    path = src + "/nova_terrain";
+  };
+
   nativeBuildInputs = [ ament-cmake ];
   propagatedBuildInputs = [ launch launch-ros ];
+
+  postPatch = ''
+    substituteInPlace  worlds/urc_er.model \
+      --replace 'STREQUAL "nova_terrain_directory"' 'STREQUAL "${terrain}"'
+  '';
 }

@@ -2,7 +2,7 @@
 <sdf version="1.6">
   <world name="urc_er">
     <include>
-      <uri>model://urc_er_terrain</uri>
+      <uri>file:///nova_terrain_directory/urc_er_terrain</uri>
     </include>
 
     <include>
@@ -15,7 +15,7 @@
 
     <gui fullscreen='0'>
       <camera name='user_camera'>
-        <pose frame=''>0 0 35 0 1.570796 0</pose>
+        <pose frame=''>0 0 34 0 1.570796 0</pose>
         <view_controller>orbit</view_controller>
         <projection_type>perspective</projection_type>
       </camera>
