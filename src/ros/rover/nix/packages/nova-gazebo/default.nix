@@ -1,7 +1,6 @@
 { lib
 , buildRosPackage
 , ament-cmake
-
 , launch
 , launch-ros
 }:
@@ -13,7 +12,7 @@ buildRosPackage {
   src = builtins.path rec {
     name = "nova-gazebo-source";
     path = ../../../nova_gazebo;
-    filter = lib.novaSourceFilter [ ] path;
+    filter = lib.novaSourceFilter [ "!worlds/**" ] path;
   };
 
   nativeBuildInputs = [ ament-cmake ];
