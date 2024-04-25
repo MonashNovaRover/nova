@@ -3,6 +3,7 @@
 , pythonPackages
 , rclpy
 , aruco-opencv-msgs
+, aruco-opencv
 , visualization-msgs
 , geometry-msgs
 , std-msgs
@@ -24,6 +25,7 @@ buildRosPackage
   propagatedBuildInputs = [
     rclpy
     aruco-opencv-msgs
+    aruco-opencv
     visualization-msgs
     geometry-msgs
     std-msgs
