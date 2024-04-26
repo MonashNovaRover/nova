@@ -26,7 +26,7 @@ class Keyboard {
     //------------------------------------------------------------//
     private:
     /// @brief      Stores the message data from the joystick
-    core::msg::InputKeyboard msg;
+    input_interfaces::msg::InputKeyboard msg;
 
     /// @brief      A flag for whether the keyboard is connected
     bool connected;

@@ -2,8 +2,9 @@
 , buildRosPackage
 , ament-cmake
 , rclcpp
-, nova-input-msgs
+, nova-input-interfaces
 , systemd
+, SDL2
 }:
 
 buildRosPackage {
@@ -12,7 +13,7 @@ buildRosPackage {
 
   src = builtins.path rec {
     name = "inputs-source";
-    path = ../../../inputs;
+    path = ../../../inputs/inputs;
     filter = lib.novaSourceFilter [ ]
       path;
   };
@@ -21,7 +22,9 @@ buildRosPackage {
 
   buildInputs = [
     rclcpp
-    nova-input-msgs
+    nova-input-interfaces
     systemd
+    SDL2
+    SDL2.dev
   ];
 }

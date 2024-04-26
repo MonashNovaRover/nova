@@ -31,34 +31,27 @@ find_package(rosidl_default_generators REQUIRED)
 rosidl_generate_interfaces(${PROJECT_NAME}
 
   # Message definitions
-  "msg/AlvarMarker.msg"
-  "msg/AlvarMarkers.msg"
-  "msg/CamsConnected.msg"
-  "msg/DistanceData.msg"
-  "msg/HydraprobeData.msg"
-  "msg/EMCData.msg"
-  "msg/Point2D.msg"
-  "msg/RadioStatus.msg"
-  "msg/RoverPoseGPS.msg"
-  "msg/SpectrometerData.msg"
-  "msg/AutonomousGoal.msg"
-  "msg/AutonomousGoalArray.msg"
   "msg/ActuatorLimit.msg"
-
+  "msg/DistanceData.msg"
+  "msg/EMCData.msg"
   "msg/Heartbeat.msg"
+  "msg/HydraprobeData.msg"
+  "msg/KilnData.msg"
   "msg/KilnMassData.msg"
   "msg/KilnTempData.msg"
-  "msg/WheelOdometry.msg"
-  "msg/RoverPose.msg"
-
-  "srv/CameraCommand.srv"
-  "srv/GimbalCommand.srv"
-  "srv/ScienceCommand.srv"
-  "srv/LoadCellPoller.srv"
-  "srv/RFIDCommand.srv"
-  "srv/PathPlanningRequest.srv"
-  "srv/StringTrigger.srv"
+  "msg/MicroscopeServoInfo.msg"
+  "msg/NIRProbeData.msg"
+  "msg/RoverPoseGPS.msg"
+  "msg/SpectrometerData.msg"
+  
+  # Service definitions
   "srv/GpsOffset.srv"
+  "srv/KilnCommand.srv"
+  "srv/LoadCellPoller.srv"
+  "srv/MoveMicroscopeServo.srv"
+  "srv/RFIDCommand.srv"
+  "srv/ScienceCommand.srv"
+  "srv/SetNIRProbeLED.srv"
 
   # Action definitions
   DEPENDENCIES std_msgs geometry_msgs nav_msgs

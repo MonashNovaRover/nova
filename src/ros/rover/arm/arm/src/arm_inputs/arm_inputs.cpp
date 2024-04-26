@@ -144,7 +144,7 @@ void ArmInputs::start_node()
     // Creates the input subscription for the left joystick (with QoS options)
     joystick_l_sub = this->create_subscription<input_interfaces::msg::InputJoystick>(
         "/inputs/input_joystick_l",
-        joystick_qos,
+        arm_input_qos,
         std::bind(&ArmInputs::joystick_l_callback, this, _1),
         joystick_options
     );
@@ -152,7 +152,7 @@ void ArmInputs::start_node()
     // Creates the input subscription for the right joystick (with QoS options)
     joystick_r_sub = this->create_subscription<input_interfaces::msg::InputJoystick>(
         "/inputs/input_joystick_r",
-        joystick_qos,
+        arm_input_qos,
         std::bind(&ArmInputs::joystick_r_callback, this, _1),
         joystick_options
     );

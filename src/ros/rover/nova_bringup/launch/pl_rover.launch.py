@@ -33,7 +33,7 @@ def generate_launch_description():
        IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution([
-                FindPackageShare('core'),
+                FindPackageShare('nova_bringup'),
                 'launch',
                 'drive.launch.py',
             ]
@@ -42,7 +42,7 @@ def generate_launch_description():
        IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution([
-                FindPackageShare('core'),
+                FindPackageShare('nova_bringup'),
                 'launch',
                 'arm.launch.py'
             ]

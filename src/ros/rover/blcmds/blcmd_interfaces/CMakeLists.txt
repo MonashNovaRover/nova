@@ -18,7 +18,6 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/Telemetry.msg"
   "msg/BLCMDStatus.msg"
   "msg/BLCMDStatusArray.msg"
-  "msg/BLCMDReset.msg"
 
   "srv/BLCMDReset.srv"
   "srv/DisableBLCMD.srv"

@@ -30,7 +30,7 @@ ArmControl::ArmControl() : Node("arm_control")
     
     // Create subscription to resolvers
     resolver_sub = this->create_subscription<sensor_msgs::msg::JointState>(
-        "/electronics/resolvers", 10, std::bind(&ArmControl::resolver_callback, this, _1)
+        "/arm/resolvers", 10, std::bind(&ArmControl::resolver_callback, this, _1)
     );
 
     // Create subscription to input joint velocities
@@ -99,8 +99,8 @@ ArmControl::ArmControl() : Node("arm_control")
         RCLCPP_INFO(this->get_logger(), "Service /arm/arm_reset_control_pose not available, waiting again...");
     }
 
-    resolver_zero_client = this->create_client<core::srv::StringTrigger>(
-        "/electronics/resolver_zero_service"
+    resolver_zero_client = this->create_client<arm_interfaces::srv::StringTrigger>(
+        "/arm/resolver_zero_service"
     );
     // wait for service is moved as zero service here requires arm_info_client
     
@@ -143,7 +143,7 @@ ArmControl::ArmControl() : Node("arm_control")
     std::cout << "ARM CONTROL\n";
     std::cout << "Subscribed Topics:\n";
     std::cout << "/arm/arm_control_scheme           [arm_interfaces/ArmControlScheme]\n";
-    std::cout << "/electronics/resolvers                [sensor_msgs/JointState]\n";
+    std::cout << "/arm/resolvers                [sensor_msgs/JointState]\n";
     std::cout << "/arm/control_joints               [sensor_msgs/JointState]\n";
     std::cout << "/arm/control_twist                [geometry_msgs/TwistStamped]\n";
     std::cout << "/arm/control_pose                 [geometry_msgs/TransformStamped]\n";
@@ -160,15 +160,15 @@ void ArmControl::control_scheme_callback(const arm_interfaces::msg::ArmControlSc
     control_scheme = *msg;
     if (control_scheme.zero_resolvers != 0){
         while (!resolver_zero_client->wait_for_service(1s)){
-            RCLCPP_INFO(this->get_logger(), "Service /electronics/resolver_zero_service not available, waiting again...");
+            RCLCPP_INFO(this->get_logger(), "Service /arm/resolver_zero_service not available, waiting again...");
         }
-        auto request = std::make_shared<core::srv::StringTrigger::Request>();
+        auto request = std::make_shared<arm_interfaces::srv::StringTrigger::Request>();
         request->value = arm_model->joint_names[control_scheme.zero_resolvers-1];
         resolver_zero_client->async_send_request(request, std::bind(&ArmControl::zero_resolver_callback, this, _1));
     }
 }
 
-void ArmControl::zero_resolver_callback(rclcpp::Client<core::srv::StringTrigger>::SharedFuture future){
+void ArmControl::zero_resolver_callback(rclcpp::Client<arm_interfaces::srv::StringTrigger>::SharedFuture future){
     auto response = future.get();
     if (response->success){
         RCLCPP_INFO(this->get_logger(), "Zeroed resolver %s", response->message.c_str());

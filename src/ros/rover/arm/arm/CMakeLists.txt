@@ -25,7 +25,12 @@ find_package(arm_interfaces REQUIRED)
 find_package(input_interfaces REQUIRED)
 find_package(nova_interfaces REQUIRED)
 
+#For Keyboard Translate, Ideally we remove this as a dependency and only Inputs depends on SDL2
+find_package(SDL2 REQUIRED)
+
 find_package(libcanmd REQUIRED)
+
+find_package(inputs REQUIRED)
 
 include_directories(
   ${EIGEN3_INCLUDE_DIRS}
@@ -72,6 +77,16 @@ ament_target_dependencies(arm_kinematics rclcpp arm_interfaces geometry_msgs sen
 add_library(pi_controller src/arm_control/pi_controller.cpp)
 target_include_directories(pi_controller INTERFACE arm_control)
 
+# Joystick Translate
+add_library(joystick_translate src/arm_inputs/joystick_translate.cpp)
+target_include_directories(joystick_translate PUBLIC arm_inputs)
+ament_target_dependencies(joystick_translate input_interfaces arm_interfaces geometry_msgs sensor_msgs)
+
+# Keyboard Translate
+add_library(keyboard_translate src/arm_inputs/keyboard_translate.cpp)
+target_include_directories(keyboard_translate PUBLIC arm_inputs)
+ament_target_dependencies(keyboard_translate input_interfaces arm_interfaces geometry_msgs sensor_msgs SDL2 inputs)
+
 
 ################################################
 # Add executables:
@@ -79,7 +94,7 @@ target_include_directories(pi_controller INTERFACE arm_control)
 
 # Arm Inputs script
 add_executable(arm_inputs src/arm_inputs/arm_inputs.cpp)
-target_link_libraries(arm_inputs arm_messages arm_config_info_client)
+target_link_libraries(arm_inputs arm_messages arm_config_info_client keyboard_translate joystick_translate)
 target_include_directories(arm_inputs INTERFACE arm_inputs)
 ament_target_dependencies(arm_inputs rclcpp geometry_msgs sensor_msgs input_interfaces)
 

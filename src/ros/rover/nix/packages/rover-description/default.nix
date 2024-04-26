@@ -1,7 +1,6 @@
 { lib
 , buildRosPackage
 , ament-cmake
-, rosidl-default-generators
 , std-msgs
 , geometry-msgs
 , nav-msgs
@@ -19,6 +18,6 @@ buildRosPackage {
     filter = lib.novaSourceFilter [ ] path;
   };
 
-  nativeBuildInputs = [ ament-cmake rosidl-default-generators ];
+  nativeBuildInputs = [ ament-cmake ];
   #propagatedBuildInputs = [std-msgs nav-msgs geometry-msgs launch launch-ros ];
 }

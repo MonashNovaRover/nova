@@ -5,8 +5,9 @@
 , nova-blcmd-interfaces
 , nova-drive-interfaces
 , nova-inputs
-, nova-input-msgs
+, nova-input-interfaces
 , libblcmd
+, trajectory-msgs
 }:
 
 buildRosPackage {
@@ -27,7 +28,8 @@ buildRosPackage {
     nova-blcmd-interfaces
     nova-drive-interfaces
     nova-inputs
-    nova-input-msgs
+    nova-input-interfaces
+    trajectory-msgs
     libblcmd
   ];
 }

@@ -22,8 +22,8 @@ find_package(ament_cmake_python REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclpy REQUIRED)
 
-# Include the core package
 find_package(nova_interfaces REQUIRED)
+find_package(input_interfaces REQUIRED)
 
 # Include the include directory
 include_directories(
@@ -57,6 +57,8 @@ install(PROGRAMS
   science/actuator_limit_publisher.py
   science/microscope_servo.py
   science/nir_probe_publisher.py
+  science/auger.py
+  science/analysis_platform.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

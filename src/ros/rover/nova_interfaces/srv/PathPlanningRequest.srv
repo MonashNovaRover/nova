@@ -1,8 +1,0 @@
-# Autonomous path planning service - takes as input a target coordinate, returns a list of waypoints
-
-Point2D target
-
----
-
-int32 response_code
-nav_msgs/Path path

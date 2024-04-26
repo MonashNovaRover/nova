@@ -24,7 +24,7 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
     realtime_tools
     tf2
     tf2_msgs
-    core
+    drive_interfaces
 )
 
 find_package(ament_cmake REQUIRED)
@@ -76,7 +76,7 @@ if(BUILD_TESTING)
     realtime_tools
     tf2
     tf2_msgs
-    core
+    drive_interfaces
   )
 
   ament_add_gmock(test_load_strafe_controller

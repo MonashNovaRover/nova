@@ -21,8 +21,8 @@ EDITED:		15/03/2024
 import rclpy, jcan, logging
 from rclpy.node import Node
 
-from core.srv import MoveMicroscopeServo
-from core.msg import MicroscopeServoInfo
+from nova_interfaces.srv import MoveMicroscopeServo
+from nova_interfaces.msg import MicroscopeServoInfo
 
 
 class MicroscopeNode(Node):

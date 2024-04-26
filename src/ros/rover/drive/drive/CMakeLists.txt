@@ -13,6 +13,7 @@ find_package(rclcpp REQUIRED)
 find_package(drive_interfaces REQUIRED)
 find_package(blcmd_interfaces REQUIRED)
 find_package(input_interfaces REQUIRED)
+find_package(trajectory_msgs REQUIRED)
 
 #find libblcmd
 find_package(libblcmd REQUIRED)
@@ -21,7 +22,7 @@ add_executable(driver src/driver.cpp)
 target_link_libraries(driver PUBLIC libblcmd)
 target_include_directories(driver PUBLIC 
       ${libblcmd_INCLUDE_DIRS})
-ament_target_dependencies(driver PUBLIC rclcpp drive_interfaces blcmd_interfaces)
+ament_target_dependencies(driver PUBLIC rclcpp drive_interfaces blcmd_interfaces trajectory_msgs)
 
 add_executable(drive_inputs src/drive_inputs.cpp)
 ament_target_dependencies(drive_inputs rclcpp input_interfaces drive_interfaces)

@@ -30,7 +30,7 @@
         rpy="0 0 ${-pi/2}" />
       <geometry>
         <mesh
-          filename="file:///$(find core)/meshes/chassis.STL" />
+          filename="file:///$(find rover_description)/meshes/chassis.STL" />
       </geometry>
       <material
         name="">
@@ -80,7 +80,7 @@
         rpy="-2.8999 -1.4752 ${-pi}" />
       <geometry>
         <mesh
-          filename="file:///$(find core)/meshes/left_leg.STL" />
+          filename="file:///$(find rover_description)/meshes/left_leg.STL" />
         <!--cylinder
           radius="0.05"
           length="0.9"/-->
@@ -97,7 +97,7 @@
         rpy="0 ${pi/2} 0" />
       <geometry>
         <!--mesh
-          filename="file:///$(find core)/meshes/left_leg.STL" /-->
+          filename="file:///$(find rover_description)/meshes/left_leg.STL" /-->
         <cylinder
           radius="0.03"
           length="0.9"/>
@@ -139,7 +139,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find core)/meshes/front_left_pivot.STL" />
+          filename="file:///$(find rover_description)/meshes/front_left_pivot.STL" />
       </geometry>
       <material
         name="">
@@ -153,7 +153,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find core)/meshes/front_left_pivot.STL" />
+          filename="file:///$(find rover_description)/meshes/front_left_pivot.STL" />
       </geometry>
     </collision>
   </link>
@@ -198,7 +198,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find core)/meshes/front_left_wheel.STL" />
+          filename="file:///$(find rover_description)/meshes/front_left_wheel.STL" />
       </geometry>
       <material
         name="">
@@ -212,7 +212,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find core)/meshes/wheel_collision.stl" />
+          filename="file:///$(find rover_description)/meshes/wheel_collision.stl" />
       </geometry>
     </collision>
   </link>
@@ -251,7 +251,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find core)/meshes/back_left_pivot.STL" />
+          filename="file:///$(find rover_description)/meshes/back_left_pivot.STL" />
       </geometry>
       <material
         name="">
@@ -265,7 +265,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find core)/meshes/back_left_pivot.STL" />
+          filename="file:///$(find rover_description)/meshes/back_left_pivot.STL" />
       </geometry>
     </collision>
   </link>
@@ -310,7 +310,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find core)/meshes/back_left_wheel.STL" />
+          filename="file:///$(find rover_description)/meshes/back_left_wheel.STL" />
       </geometry>
       <material
         name="">
@@ -324,7 +324,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find core)/meshes/wheel_collision.stl" />
+          filename="file:///$(find rover_description)/meshes/wheel_collision.stl" />
       </geometry>
     </collision>
   </link>
@@ -363,7 +363,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find core)/meshes/right_leg.STL" />
+          filename="file:///$(find rover_description)/meshes/right_leg.STL" />
       </geometry>
       <material
         name="">
@@ -377,7 +377,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find core)/meshes/right_leg.STL" />
+          filename="file:///$(find rover_description)/meshes/right_leg.STL" />
       </geometry>
     </collision>
   </link>
@@ -416,7 +416,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find core)/meshes/front_right_pivot.STL" />
+          filename="file:///$(find rover_description)/meshes/front_right_pivot.STL" />
       </geometry>
       <material
         name="">
@@ -430,7 +430,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find core)/meshes/front_right_pivot.STL" />
+          filename="file:///$(find rover_description)/meshes/front_right_pivot.STL" />
       </geometry>
     </collision>
   </link>
@@ -476,7 +476,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find core)/meshes/front_right_wheel.STL" />
+          filename="file:///$(find rover_description)/meshes/front_right_wheel.STL" />
       </geometry>
       <material
         name="">
@@ -490,7 +490,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find core)/meshes/wheel_collision.stl" />
+          filename="file:///$(find rover_description)/meshes/wheel_collision.stl" />
       </geometry>
     </collision>
   </link>
@@ -529,7 +529,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find core)/meshes/back_right_pivot.STL" />
+          filename="file:///$(find rover_description)/meshes/back_right_pivot.STL" />
       </geometry>
       <material
         name="">
@@ -543,7 +543,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find core)/meshes/back_right_pivot.STL" />
+          filename="file:///$(find rover_description)/meshes/back_right_pivot.STL" />
       </geometry>
     </collision>
   </link>
@@ -588,7 +588,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find core)/meshes/back_right_wheel.STL" />
+          filename="file:///$(find rover_description)/meshes/back_right_wheel.STL" />
       </geometry>
       <material
         name="">
@@ -602,7 +602,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find core)/meshes/wheel_collision.stl" />
+          filename="file:///$(find rover_description)/meshes/wheel_collision.stl" />
       </geometry>
     </collision>
   </link>

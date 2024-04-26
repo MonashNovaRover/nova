@@ -27,13 +27,12 @@ from launch_ros.actions import Node
 
 # Generate the launch file with all inputs
 def generate_launch_description():
-    gazebo = LaunchConfiguration('gazebo', default=False)
 
     return LaunchDescription([
        IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution([
-                FindPackageShare('core'),
+                FindPackageShare('nova_bringup'),
                 'launch',
                 'base.launch.py'
             ]
@@ -44,7 +43,7 @@ def generate_launch_description():
             namespace='',
             executable='rviz2',
             name='rviz2',
-            arguments=['-d', [PathJoinSubstitution([FindPackageShare('control'), 'rviz', 'arm_viz_current.rviz'])]]
+            arguments=['-d', [PathJoinSubstitution([FindPackageShare('nova_bringup'), 'rviz', 'arm.rviz'])]]
         ) 
         
     ])

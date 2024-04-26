@@ -13,8 +13,10 @@
 , pythonPackages
 , libcanmd
 , nova-arm-interfaces
-, nova-input-msgs
+, nova-input-interfaces
+, nova-inputs
 , nova-interfaces
+, SDL2
 }:
 
 buildRosPackage {
@@ -42,7 +44,10 @@ buildRosPackage {
     systemd
     libcanmd
     nova-arm-interfaces
-    nova-input-msgs
+    nova-input-interfaces
+    nova-inputs
     nova-interfaces
+    SDL2
+    SDL2.dev
   ];
 }

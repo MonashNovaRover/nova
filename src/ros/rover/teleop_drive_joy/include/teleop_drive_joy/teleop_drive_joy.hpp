@@ -28,8 +28,8 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/joy.hpp>
 #include <geometry_msgs/msg/twist_stamped.hpp>
-#include <core/msg/drive_input_stamped.hpp>
-#include <core/msg/drive_info.hpp>
+#include <drive_interfaces/msg/drive_input_stamped.hpp>
+#include <drive_interfaces/msg/drive_info.hpp>
 #include <controller_manager_msgs/srv/switch_controller.hpp>
 
 
@@ -56,15 +56,15 @@ namespace teleop_drive_joy
     teleop_drive_joy::Params params_;
 
     rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr cmd_vel_pub;
-    rclcpp::Publisher<core::msg::DriveInputStamped>::SharedPtr drive_input_pub;
-    rclcpp::Publisher<core::msg::DriveInfo>::SharedPtr drive_info_pub;
+    rclcpp::Publisher<drive_interfaces::msg::DriveInputStamped>::SharedPtr drive_input_pub;
+    rclcpp::Publisher<drive_interfaces::msg::DriveInfo>::SharedPtr drive_info_pub;
     rclcpp::Client<controller_manager_msgs::srv::SwitchController>::SharedPtr switch_controller_client;
     rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr joy_sub;
     rclcpp::Client<rcl_interfaces::srv::SetParameters>::SharedPtr parameters_client;
 
     bool sent_lock_msg;
-    core::msg::DriveInfo current_state;
-    core::msg::DriveInfo previous_state;
+    drive_interfaces::msg::DriveInfo current_state;
+    drive_interfaces::msg::DriveInfo previous_state;
 
     bool speed_change_button_pressed; 
 

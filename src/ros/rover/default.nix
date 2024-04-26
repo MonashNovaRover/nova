@@ -11,20 +11,24 @@
     nova-cube-localisation = callPackage ./nix/packages/nova-cube-localisation { };
     nova-teleop-drive-joy = callPackage ./nix/packages/teleop-drive-joy { };
     nova-pointcloud-filter = callPackage ./nix/packages/nova-pointcloud-filter { };
-    nova-drive= callPackage ./nix/packages/drive { };
+    nova-drive = callPackage ./nix/packages/drive { };
     nova-drive-interfaces = callPackage ./nix/packages/drive-interfaces { };
     nova-blcmd-interfaces = callPackage ./nix/packages/blcmd-interfaces { };
     nova-blcmd-utils = callPackage ./nix/packages/blcmd-utils { };
     nova-arm-interfaces = callPackage ./nix/packages/arm-interfaces { };
     nova-arm = callPackage ./nix/packages/arm { };
-    nova-input-msgs = callPackage ./nix/packages/input-msgs { };
+    nova-input-interfaces = callPackage ./nix/packages/input-interfaces { };
     nova-inputs = callPackage ./nix/packages/inputs { };
     nova-cmd-interfaces = callPackage ./nix/packages/cmd-interfaces { };
     nova-cmd-utils = callPackage ./nix/packages/cmd-utils { };
     nova-gimbal-cam = callPackage ./nix/packages/gimbal-cam { };
     nova-bringup = callPackage ./nix/packages/nova-bringup { };
-    nova-interfaces = callPackage ./nix/packages/nova-interfaces{ };
+    nova-auto-bringup = callPackage ./nix/packages/auto-bringup { };
+    nova-interfaces = callPackage ./nix/packages/nova-interfaces { };
     nova-rover-description = callPackage ./nix/packages/rover-description { };
+    nova-gazebo = callPackage ./nix/packages/nova-gazebo { };
+    nova-python-control = callPackage ./nix/packages/python-control { };
+    nova-excavation-construction = callPackage ./nix/packages/excavation-construction { };
     # diff drive, pivot drive, strafe, 
   } // import ./nix/packages/controllers { inherit pkgs; };
 

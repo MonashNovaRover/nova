@@ -26,7 +26,7 @@
 #include "hardware_interface/loaned_state_interface.hpp"
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 #include "lifecycle_msgs/msg/state.hpp"
-#include "core/msg/drive_input_stamped.hpp"
+#include "drive_interfaces/msg/drive_input_stamped.hpp"
 #include "rclcpp/rclcpp.hpp"
 
 using CallbackReturn = controller_interface::CallbackReturn;
@@ -41,9 +41,9 @@ class TestablePivotDriveController : public pivot_drive_controller::PivotDriveCo
 {
 public:
   using PivotDriveController::PivotDriveController;
-  std::shared_ptr<core::msg::DriveInputStamped> getLastReceivedDriveInput()
+  std::shared_ptr<drive_interfaces::msg::DriveInputStamped> getLastReceivedDriveInput()
   {
-    std::shared_ptr<core::msg::DriveInputStamped> ret;
+    std::shared_ptr<drive_interfaces::msg::DriveInputStamped> ret;
     received_drive_input_msg_ptr_.get(ret);
     return ret;
   }
@@ -92,7 +92,7 @@ protected:
     controller_ = std::make_unique<TestablePivotDriveController>();
 
     pub_node = std::make_shared<rclcpp::Node>("drive_input_publisher");
-    drive_input_publisher = pub_node->create_publisher<core::msg::DriveInputStamped>(
+    drive_input_publisher = pub_node->create_publisher<drive_interfaces::msg::DriveInputStamped>(
       controller_name + "/drive_input_cmd", rclcpp::SystemDefaultsQoS());
   }
 
@@ -118,7 +118,7 @@ protected:
       ++wait_count;
     }
 
-    core::msg::DriveInputStamped drive_input_msg;
+    drive_interfaces::msg::DriveInputStamped drive_input_msg;
     drive_input_msg.header.stamp = pub_node->get_clock()->now();
     drive_input_msg.drive_input.speed = linear;
     drive_input_msg.drive_input.radius = angular;
@@ -246,7 +246,7 @@ protected:
     right_pivot_names[1], HW_IF_POSITION, &position_values_[3]};
 
   rclcpp::Node::SharedPtr pub_node;
-  rclcpp::Publisher<core::msg::DriveInputStamped>::SharedPtr drive_input_publisher;
+  rclcpp::Publisher<drive_interfaces::msg::DriveInputStamped>::SharedPtr drive_input_publisher;
 
   const std::string urdf_ = "";
 };

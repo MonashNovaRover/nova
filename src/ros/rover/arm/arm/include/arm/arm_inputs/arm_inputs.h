@@ -45,8 +45,8 @@ of which ones are connected
 // Include libraries
 #include "arm_core/arm_config_info_client.h"
 
-#include "joystick_translate.h"
-#include "keyboard_translate.h"
+#include "arm_inputs/joystick_translate.h"
+#include "arm_inputs/keyboard_translate.h"
 
 // Position control enable override
 #define POSITION_CONTROL_ENABLE 0
@@ -77,7 +77,7 @@ class ArmInputs : public ArmConfigInfoClient
     rclcpp::Subscription<input_interfaces::msg::InputKeyboard>::SharedPtr keyboard_sub;
 
     // Stores messages to be published
-    core::msg::EndEffectorInput end_effector_inputs;
+    arm_interfaces::msg::EndEffectorInput end_effector_inputs;
     sensor_msgs::msg::JointState joint_velocities;
     geometry_msgs::msg::TwistStamped twist;
     arm_interfaces::msg::ArmControlScheme control_scheme;

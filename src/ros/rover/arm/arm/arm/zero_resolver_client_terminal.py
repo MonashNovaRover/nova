@@ -8,7 +8,7 @@ and print out the response
 NODE: zero_resolver_client_terminal
 TOPICS: None
 SERVICES:
-  - /electronics/resolver_zero_service    [core/StringTrigger]        [Client]
+  - /arm/resolver_zero_service    [core/StringTrigger]        [Client]
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:     electronics
@@ -41,7 +41,7 @@ class ZeroResolverClient(Node):
 
     def __init__(self):
         super().__init__('zero_resolver_client_terminal')
-        self.cli = self.create_client(StringTrigger, '/electronics/resolver_zero_service')
+        self.cli = self.create_client(StringTrigger, '/arm/resolver_zero_service')
         while not self.cli.wait_for_service(timeout_sec=1.0):
             print('Service not available')
         self.future = None
