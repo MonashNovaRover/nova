@@ -17,7 +17,7 @@ export const rosTopicMessages = {
   [RosTopic.DRIVE_TELEMETRY]: "blcmd_interfaces/msg/Telemetry",
 
   // Arm Related
-  [RosTopic.ARM_TELEMETRY]: "core/msg/CMDsFeedback",
+  [RosTopic.ARM_TELEMETRY]: "cmd_interfaces/msg/CMDsFeedback",
   [RosTopic.RFID_DATA]: "std_msgs/msg/String",
 
   // Cameras Related
