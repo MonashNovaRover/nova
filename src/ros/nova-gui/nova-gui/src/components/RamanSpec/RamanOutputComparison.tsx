@@ -55,14 +55,15 @@ const RamanOutputComparison: React.FC = () => {
     }]]
 
     return (
-        <OutputComparison
+        /* <OutputComparison
             title="Comparison and Analysis"
             peaksOnMain
             outputData={redLaserOutput}
             elementData={elementData}
             style={ChartStyle.Default}
             peakFinder={getDefaultPeakFinder(2, 20)}
-        />
+        /> */
+        <div>{spectrumStore.spectrum.toString()}</div>
     ) 
 }
 
