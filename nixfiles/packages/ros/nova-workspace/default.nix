@@ -7,16 +7,10 @@
 , rqt-common-plugins
 , gdb
 
-# , nova-core ? throw "core is needed, but not available!"
-# , nova-control ? throw "control is needed, but not available!"
-# , nova-autonomous ? throw "autonomous is needed, but not available!"
 , nova-electronics ? throw "electronics is needed, but not available!"
 , nova-science ? throw "science is needed, but not available!"
 , nova-cameras2 ? throw "cameras2 is needed, but not available!"
 , nova-gui ? throw "gui is needed, but not available!"
-# , nova-gui-backend ? throw "gui-backend is needed, but not available!"
-# , nova-gui-frontend ? throw "gui-frontend is needed, but not available!"
-# , nova-gui-frontend-server ? throw "gui-frontend-server is needed, but not available!"
 , nova-drive ? throw "drive is needed, but not available!"
 , nova-drive-interfaces ? throw "drive-interfaces is needed, but not available!"
 , nova-blcmd-interfaces ? throw "blcmd-interfaces is needed, but not available!"
@@ -53,9 +47,6 @@
   ## implicitly included.
 , novaPackages ? {
     inherit
-      # nova-core
-      # nova-control
-      # nova-autonomous
       nova-electronics
       nova-science
       nova-cameras2
@@ -65,8 +56,6 @@
       nova-diff-drive-controller
       nova-teleop-drive-joy
       nova-gui
-      # nova-gui-backend
-      # nova-gui-frontend
       nova-drive
       nova-drive-interfaces
       nova-blcmd-interfaces
@@ -92,7 +81,6 @@
     # inherit
       # Some of our packages are simple constructions written in Nix and do not
       # need to be considered in the build environment.
-      # nova-gui-frontend-server;
   }
 }:
 
