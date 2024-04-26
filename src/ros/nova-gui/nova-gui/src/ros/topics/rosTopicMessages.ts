@@ -13,8 +13,8 @@ export const rosTopicMessages = {
   [RosTopic.POSE]: "geometry_msgs/msg/Pose",
 
   // Drive Related
-  [RosTopic.DRIVE_INFO]: "core/msg/DriveInfo",
-  [RosTopic.DRIVE_TELEMETRY]: "core/msg/Telemetry",
+  [RosTopic.DRIVE_INFO]: "drive_interfaces/msg/DriveInfo",
+  [RosTopic.DRIVE_TELEMETRY]: "blcmd_interfaces/msg/Telemetry",
 
   // Arm Related
   [RosTopic.ARM_TELEMETRY]: "core/msg/CMDsFeedback",
@@ -24,7 +24,7 @@ export const rosTopicMessages = {
   [RosTopic.CAMERAS]: "camera_msgs/msg/Cameras",
 
   // Errors Related
-  [RosTopic.BLCMD_ERRORS]: "core/msg/BLCMDStatusArray",
+  [RosTopic.BLCMD_ERRORS]: "blcmd_interfaces/msg/BLCMDStatusArray",
   
   // Science Related
   [RosTopic.TOF]: "sensor_msgs/msg/Range",

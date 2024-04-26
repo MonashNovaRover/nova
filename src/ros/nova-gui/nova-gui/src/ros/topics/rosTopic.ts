@@ -13,8 +13,8 @@ export enum RosTopic {
   POSE = "/pose",
 
   // Drive related topics
-  DRIVE_INFO = "/control/drive_info",
-  DRIVE_TELEMETRY = "/control/telemetry",
+  DRIVE_INFO = "/drive/drive_info",
+  DRIVE_TELEMETRY = "/drive/telemetry",
 
   // Arm related topics
   ARM_TELEMETRY = "/electronics/cmd_feedback",
@@ -24,7 +24,7 @@ export enum RosTopic {
   CAMERAS = "/camera_directory/cameras",
 
   // Error Related Topics
-  BLCMD_ERRORS = "/control/blcmd_status",
+  BLCMD_ERRORS = "/blcmds/blcmd_status",
   
   // Science Related topics
   TOF = "/control/analysis_platform",
