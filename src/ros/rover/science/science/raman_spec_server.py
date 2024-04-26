@@ -45,8 +45,8 @@ class RamanServer(Node):
     MASTERCLOCK = 800000
     SPECTRA_SIZE = 3694
     OUTPUT_SIZE = 7388
-    PHASE_SIGNAL = 3655
-    RESOLUTION_REDUCING_FACTOR = 10
+    PHASE_SIGNAL = 3730
+    RESOLUTION_REDUCING_FACTOR = 1
     CIRCULAR_BUFFER_START = 69
     CIRCULAR_BUFFER_END = 82
     SINGLE_COLLECTION_MODE = 0
@@ -111,11 +111,11 @@ class RamanServer(Node):
         """
         Finds the first occurrence of a phase signal (a flat peak in the spectrum that exceeds the PHASE_SIGNAL amount) in a given array
         """
-        for element_index in range(len(output)):
+        for element_index in range(0, len(output), 2):
             if output[element_index] > RamanServer.PHASE_SIGNAL:
-                return True, element_index
+                return True, len(output) - 1
         
-        return False, None
+        return True, len(output) - 1
             
     def read_output_to_response(output: List[int]) -> List[int]:
         """
@@ -134,7 +134,7 @@ class RamanServer(Node):
                 offset += response[pixel]
             else:
                 offset -= response[pixel]
-        offset = 2 * offset / RamanServer.SPECTRA_SIZE
+        offset = 2 * offset // RamanServer.SPECTRA_SIZE
 	
         for pixel in range(RamanServer.SPECTRA_SIZE // 2):
             if response[2*pixel] > offset:
