@@ -80,7 +80,7 @@ const RamanCCDInputs: React.FC = () => {
             </Button>
             <Button onPress={() => {
                 if (checkPeriods(shPeriod, icgPeriod) && checkAverage(average)) {
-                    /* sendRamanRequest({
+                    sendRamanRequest({
                         port: port,
                         shperiod: shPeriod,
                         icgperiod: icgPeriod,
@@ -90,7 +90,7 @@ const RamanCCDInputs: React.FC = () => {
                     });
                     if (!singleCollectionMode) {
                         setCurrentlyInContinuous(true);
-                    } */
+                    } /*
                     let ros = new ROSLIB.Ros({
                         url: 'ws://localhost:9090'	                            
                     });
@@ -114,6 +114,7 @@ const RamanCCDInputs: React.FC = () => {
                             spectrum: fakespectra	                                    
                         });	                            
                         ramanSpectra.publish(spectra2);}, 1000);
+                    */
                 } else {
                     onOpen();
                 }
