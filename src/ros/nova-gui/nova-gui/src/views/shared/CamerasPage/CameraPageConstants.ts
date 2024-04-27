@@ -25,6 +25,7 @@ export enum CameraSerials {
   MAST_DOWN = "mast_down",
   MAST_FORWARD = "mast_forward",
   MAST_BACKWARD = "mast_backward",
+  MAST_ARM_STOW = "mast_arm_stow",
 
   ARM_END_SIDE = "arm_end_side",
   ARM_END_TOP = "arm_end_top",
@@ -88,6 +89,8 @@ const mastCams = [
   CameraSerials.MAST_DOWN,
   CameraSerials.MAST_FORWARD,
   CameraSerials.MAST_BACKWARD,
+  CameraSerials.MAST_ARM_STOW,
+
 ];
 
 const armCams = [
@@ -95,6 +98,8 @@ const armCams = [
   CameraSerials.ARM_END_FINGER,
   CameraSerials.ARM_END_FORWARD,
   CameraSerials.ARM_GIMBAL,
+  CameraSerials.ARM_END_SIDE,
+
 ];
 
 const ecCams = [
