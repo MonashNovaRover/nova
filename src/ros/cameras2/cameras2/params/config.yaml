@@ -32,8 +32,6 @@ camera_streamer:
 
       # Science
       science_microscope:
-        width: 640
-        framerate: 25
         meta:
           uiProps:
             name: Science - Microscope
@@ -71,7 +69,6 @@ camera_streamer:
         meta:
           uiProps:
             name: Arm - Gimbal
-            rotation: 135
       arm_end_forward:
         meta:
           uiProps:
