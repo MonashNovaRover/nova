@@ -30,7 +30,7 @@ def generate_launch_description():
 
     gazebo = LaunchConfiguration('gazebo')
 
-    model_arg = DeclareLaunchArgument(name='model', default_value=PathJoinSubstitution([description_dir, 'urdf', 'arm_rover.urdf']),
+    model_arg = DeclareLaunchArgument(name='model', default_value=PathJoinSubstitution([description_dir, 'urdf', 'arm_rover.urdf.xacro']),
             description='Absolute path to robot urdf file')
 
     gazebo_arg = DeclareLaunchArgument(
@@ -41,7 +41,7 @@ def generate_launch_description():
     robot_description = ParameterValue(
         Command(
             [
-                'urdf ', 
+                'xacro ', 
                 LaunchConfiguration('model'),
                 " ",
                 "gazebo:=",
