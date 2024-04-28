@@ -67,10 +67,10 @@ self: super:
 
       depthai-descriptions = rosSuper.depthai-descriptions.overrideAttrs ({ ... }: {
         src = self.fetchFromGitHub {
-            owner = "luxonis";
+            owner = "MonashNovaRover";
             repo = "depthai-ros";
-            rev = "0ef4b38b6ecc624da260c589ee4a837f8353746e";
-            hash = "sha256-2KM1pydDBRfckpBXVSR5J0kle843bT7sY3T5vXrjV1E=";
+            rev = "411b9c18b98330fca419438b9b4461dc53c1ca12";
+            hash = "sha256-flODuk9/ivCQ8qlfHx+ttRew5VjxYgkAqUu72+GPmpk=";
           };
         version = "2.9.0-r1";
         sourceRoot = "source/depthai_descriptions";
