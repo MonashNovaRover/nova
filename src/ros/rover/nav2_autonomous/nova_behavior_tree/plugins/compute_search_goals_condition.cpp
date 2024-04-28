@@ -13,7 +13,7 @@
 // limitations under the License.
 
 #include <algorithm>
-#include <geometry_msgs/msg/detail/pose_stamped__struct.hpp>
+#include <geometry_msgs/msg/pose_stamped.hpp>
 #include <rclcpp/logging.hpp>
 
 #include "nova_behavior_tree/compute_search_goals_condition.hpp"

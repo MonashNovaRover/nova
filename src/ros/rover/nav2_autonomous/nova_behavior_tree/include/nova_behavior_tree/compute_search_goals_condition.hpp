@@ -22,7 +22,7 @@
 #include <map>
 
 #include <rclcpp/rclcpp.hpp>
-#include <geometry_msgs/msg/detail/pose_stamped__struct.hpp>
+#include <geometry_msgs/msg/pose_stamped.hpp>
 #include "behaviortree_cpp_v3/condition_node.h"
 
 using std::placeholders::_1;

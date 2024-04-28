@@ -13,14 +13,14 @@
 // limitations under the License.
 
 #include <functional>
-#include <geometry_msgs/msg/detail/pose_stamped__struct.hpp>
+#include <geometry_msgs/msg/pose_stamped.hpp>
 
-#include <aruco_opencv_msgs/msg/detail/aruco_detection__struct.hpp>
-#include <aruco_opencv_msgs/msg/detail/marker_pose__struct.hpp>
+#include <aruco_opencv_msgs/msg/aruco_detection.hpp>
+#include <aruco_opencv_msgs/msg/marker_pose.hpp>
 #include <rclcpp/callback_group.hpp>
 #include <rclcpp/qos.hpp>
 #include <rclcpp/subscription_options.hpp>
-#include <vision_msgs/msg/detail/detection3_d_array__struct.hpp>
+#include <vision_msgs/msg/detection3_d_array.hpp>
 
 #include "nova_behavior_tree/check_detected_condition.hpp"
 

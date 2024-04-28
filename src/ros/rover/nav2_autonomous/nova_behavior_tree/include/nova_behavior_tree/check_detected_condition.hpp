@@ -15,7 +15,7 @@
 #ifndef NAV2_BEHAVIOR_TREE__PLUGINS__CONDITION__CHECK_DETECTED_CONDITION_HPP_
 #define NAV2_BEHAVIOR_TREE__PLUGINS__CONDITION__CHECK_DETECTED_CONDITION_HPP_
 
-#include <aruco_opencv_msgs/msg/detail/aruco_detection__struct.hpp>
+#include <aruco_opencv_msgs/msg/aruco_detection.hpp>
 #include <behaviortree_cpp_v3/basic_types.h>
 #include <functional>
 #include <rclcpp/callback_group.hpp>
@@ -26,7 +26,7 @@
 
 #include <rclcpp/rclcpp.hpp>
 #include <unordered_set>
-#include <vision_msgs/msg/detail/detection3_d_array__struct.hpp>
+#include <vision_msgs/msg/detection3_d_array.hpp>
 
 #include "behaviortree_cpp_v3/condition_node.h"
 

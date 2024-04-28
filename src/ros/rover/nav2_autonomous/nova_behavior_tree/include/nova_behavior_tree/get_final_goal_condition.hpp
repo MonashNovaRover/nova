@@ -16,7 +16,7 @@
 #define NAV2_BEHAVIOR_TREE__PLUGINS__CONDITION__GET_FINAL_GOAL_CONDITION_HPP_
 
 #include <behaviortree_cpp_v3/basic_types.h>
-#include <geometry_msgs/msg/detail/pose_stamped__struct.hpp>
+#include <geometry_msgs/msg/pose_stamped.hpp>
 #include <vector>
 #include <string>
 #include <memory>
