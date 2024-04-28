@@ -85,7 +85,7 @@
     </collision>
   </link>
   <joint
-    name="J1"
+    name="base-rotation"
     type="revolute">
     <origin
       xyz="0.1249 -0.106 0.15434"
@@ -143,7 +143,7 @@
     </collision>
   </link>
   <joint
-    name="J2"
+    name="shoulder"
     type="revolute">
     <origin
       xyz="0.096952 0.00025571 -0.043073"
@@ -201,7 +201,7 @@
     </collision>
   </link>
   <joint
-    name="J3"
+    name="elbow"
     type="revolute">
     <origin
       xyz="-6.0514E-05 -0.41827 -0.24551"
@@ -259,7 +259,7 @@
     </collision>
   </link>
   <joint
-    name="J4"
+    name="j4"
     type="fixed">
     <origin
       xyz="0.026329 -0.96807 0.20169"
@@ -312,7 +312,7 @@
     </collision>
   </link>
   <joint
-    name="J4-5"
+    name="j5"
     type="revolute">
     <origin
       xyz="-0.074526 -0.021852 0.55468"
@@ -370,7 +370,7 @@
     </collision>
   </link>
   <joint
-    name="J5-6"
+    name="j6"
     type="revolute">
     <origin
       xyz="-0.039566 0.045795 0.095768"
@@ -428,7 +428,7 @@
     </collision>
   </link>
   <joint
-    name="J6-EE"
+    name="end-rotation"
     type="revolute">
     <origin
       xyz="0 0 0"
