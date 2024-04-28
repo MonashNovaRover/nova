@@ -17,6 +17,8 @@
 
 #include <aruco_opencv_msgs/msg/detail/aruco_detection__struct.hpp>
 #include <behaviortree_cpp_v3/basic_types.h>
+#include <rclcpp/callback_group.hpp>
+#include <rclcpp/executors/multi_threaded_executor.hpp>
 #include <rclcpp/subscription.hpp>
 #include <string>
 #include <cstdlib>
@@ -114,6 +116,8 @@ namespace nova_behavior_tree
         std::map<int, geometry_msgs::msg::PoseStamped> tag_poses_;
         std::map<std::string, geometry_msgs::msg::PoseStamped> object_poses_;
 
+        rclcpp::CallbackGroup::SharedPtr callback_group_;
+        rclcpp::executors::MultiThreadedExecutor callback_group_executor_;
         rclcpp::Subscription<aruco_opencv_msgs::msg::ArucoDetection>::SharedPtr sub_ar_tags_;
         rclcpp::Subscription<vision_msgs::msg::Detection3DArray>::SharedPtr sub_objects_;
     };

@@ -10,7 +10,7 @@ continuously
     <ReactiveSequence name="FindAndApproachObject">
       <ReactiveFallback name="NavThroughPosesAndSearchForObject">
         <!-- Exit the fallback when the object is found-->
-        <CheckDetected id="{id}" />
+        <CheckDetected id="1" detection_type="tag" />
 
         <Sequence>
           <GetFinalGoal goals="{goals}" final_goal="{search_origin}" />
@@ -30,7 +30,7 @@ continuously
             <Sequence>
               <FirstGoalReached goals="{search_goals}" global_frame="map"
                 robot_base_frame="base_link" />
-              <Spin spin_dist="6.28" />
+              <Spin spin_dist="6.28" time_allowance="10" />
             </Sequence>
             <!-- Navigate through search goal poses -->
             <SubTreePlus ID="NavThroughPosesWithReplanningAndRecovery" goals="{search_goals}"

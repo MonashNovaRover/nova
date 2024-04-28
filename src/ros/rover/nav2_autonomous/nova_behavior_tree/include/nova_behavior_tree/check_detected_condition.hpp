@@ -18,6 +18,8 @@
 #include <aruco_opencv_msgs/msg/detail/aruco_detection__struct.hpp>
 #include <behaviortree_cpp_v3/basic_types.h>
 #include <functional>
+#include <rclcpp/callback_group.hpp>
+#include <rclcpp/executors/multi_threaded_executor.hpp>
 #include <rclcpp/subscription.hpp>
 #include <string>
 #include <cstdlib>
@@ -27,8 +29,6 @@
 #include <vision_msgs/msg/detail/detection3_d_array__struct.hpp>
 
 #include "behaviortree_cpp_v3/condition_node.h"
-
-using std::placeholders::_1;
 
 
 namespace nova_behavior_tree
@@ -42,7 +42,7 @@ namespace nova_behavior_tree
     {
     public:
         /**
-         * @brief A constructor for nova_behavior_tree::GoalsEmptyCondition
+         * @brief A constructor for nova_behavior_tree::CheckDetectedCondition
          * @param condition_name Name for the XML tag for this node
          * @param conf BT node configuration
          */
@@ -51,11 +51,6 @@ namespace nova_behavior_tree
             const BT::NodeConfiguration &conf);
 
         CheckDetectedCondition() = delete;
-
-        /**
-         * @brief A destructor for nav2_behavior_tree::GoalsEmptyCondition
-         */
-        ~CheckDetectedCondition() override;
 
         /**
          * @brief The main override required by a BT action
@@ -69,22 +64,6 @@ namespace nova_behavior_tree
         void initialize();
 
         /**
-         * @brief Callback to handle AR tag detections
-         */
-        void callback_ar_tag(const aruco_opencv_msgs::msg::ArucoDetection::SharedPtr msg);
-
-        /**
-         * @brief Callback to handle object detections
-         */
-        void callback_object_detection(const vision_msgs::msg::Detection3DArray::SharedPtr msg);
-    
-        /**
-         * @brief Looks for a detected object/tag in the relevant map and sets the output port to its position
-         * @return bool true when the object/tag exists in the map, else false
-         */
-        bool detected();
-
-        /**
          * @brief Creates list of BT ports
          * @return BT::PortsList Containing node-specific ports
          */
@@ -96,15 +75,23 @@ namespace nova_behavior_tree
             };
         }
 
-    protected:
-        /**
-         * @brief Cleanup function
-         */
-        void cleanup()
-        {
-        }
-
     private:
+        /**
+         * @brief Callback to handle AR tag detections
+         */
+        void callback_ar_tag(const aruco_opencv_msgs::msg::ArucoDetection::SharedPtr msg);
+
+        /**
+         * @brief Callback to handle object detections
+         */
+        void callback_object_detection(const vision_msgs::msg::Detection3DArray::SharedPtr msg);
+
+        /**
+         * @brief Looks for a detected object/tag in the relevant map and sets the output port to its position
+         * @return bool true when the object/tag exists in the map, else false
+         */
+        bool detected();
+
         rclcpp::Node::SharedPtr node_;
 
         bool initialized_;
@@ -112,6 +99,8 @@ namespace nova_behavior_tree
         std::unordered_set<int> tags_;
         std::unordered_set<std::string> objects_;
 
+        rclcpp::CallbackGroup::SharedPtr callback_group_;
+        rclcpp::executors::MultiThreadedExecutor callback_group_executor_;
         rclcpp::Subscription<aruco_opencv_msgs::msg::ArucoDetection>::SharedPtr sub_ar_tags_;
         rclcpp::Subscription<vision_msgs::msg::Detection3DArray>::SharedPtr sub_objects_;
     };

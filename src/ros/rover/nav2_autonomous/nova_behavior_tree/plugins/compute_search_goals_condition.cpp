@@ -14,6 +14,7 @@
 
 #include <algorithm>
 #include <geometry_msgs/msg/detail/pose_stamped__struct.hpp>
+#include <rclcpp/logging.hpp>
 
 #include "nova_behavior_tree/compute_search_goals_condition.hpp"
 
@@ -61,7 +62,6 @@ namespace nova_behavior_tree
         getInput("search_origin", search_origin);
         getInput("search_radius", radius);
         getInput("num_points", n);
-        std::cout << "Header: " << search_origin.header.frame_id << ", " << search_origin.header.stamp.sec << "." << search_origin.header.stamp.nanosec << std::endl;
 
         std::vector<geometry_msgs::msg::PoseStamped> search_goals = {search_origin};
         double d_theta = 2 * M_PI / n;
@@ -69,8 +69,8 @@ namespace nova_behavior_tree
         for (int i = 0; i < n; i++) {
             geometry_msgs::msg::PoseStamped new_point;
             new_point.header = search_origin.header;
-            new_point.pose.position.x = radius * std::cos(d_theta * i);
-            new_point.pose.position.y = radius * std::sin(d_theta * i);
+            new_point.pose.position.x = search_origin.pose.position.x + radius * std::cos(d_theta * i);
+            new_point.pose.position.y = search_origin.pose.position.y + radius * std::sin(d_theta * i);
             search_goals.push_back(new_point);
         }
 

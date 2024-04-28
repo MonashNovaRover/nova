@@ -17,6 +17,7 @@
 
 #include <aruco_opencv_msgs/msg/detail/aruco_detection__struct.hpp>
 #include <aruco_opencv_msgs/msg/detail/marker_pose__struct.hpp>
+#include <rclcpp/logging.hpp>
 #include <vision_msgs/msg/detail/detection3_d_array__struct.hpp>
 
 #include "nova_behavior_tree/query_position_condition.hpp"
@@ -40,12 +41,30 @@ namespace nova_behavior_tree
     void QueryPositionCondition::initialize()
     {
         node_ = config().blackboard->get<rclcpp::Node::SharedPtr>("node");
+        callback_group_ = node_->create_callback_group(
+            rclcpp::CallbackGroupType::MutuallyExclusive, 
+            false);
+        callback_group_executor_.add_callback_group(callback_group_, node_->get_node_base_interface());
+
+        rclcpp::SubscriptionOptions sub_option;
+        sub_option.callback_group = callback_group_;
+
+        sub_objects_ = node_->create_subscription<vision_msgs::msg::Detection3DArray>(
+            "/oak/nn/spatial_detections", 
+            rclcpp::SystemDefaultsQoS(), 
+            std::bind(&QueryPositionCondition::callback_object_detection, this, std::placeholders::_1), 
+            sub_option
+        );
+
+        sub_ar_tags_ = node_->create_subscription<aruco_opencv_msgs::msg::ArucoDetection>(
+            "/aruco_detections", 
+            rclcpp::SystemDefaultsQoS(), 
+            std::bind(&QueryPositionCondition::callback_ar_tag, this, std::placeholders::_1), 
+            sub_option
+        );
+
 
         initialized_ = true;
-
-        sub_objects_ = node_->create_subscription<vision_msgs::msg::Detection3DArray>("/oak/nn/spatial_detections", 10, std::bind(&QueryPositionCondition::callback_object_detection, this, _1));
-
-        sub_ar_tags_ = node_->create_subscription<aruco_opencv_msgs::msg::ArucoDetection>("/aruco_detections", 10, std::bind(&QueryPositionCondition::callback_ar_tag, this, _1));
     }
 
     void QueryPositionCondition::callback_ar_tag(const aruco_opencv_msgs::msg::ArucoDetection::SharedPtr msg)
@@ -78,6 +97,8 @@ namespace nova_behavior_tree
         {
             initialize();
         }
+
+        callback_group_executor_.spin_some();
 
         if (queryPose())
         {
