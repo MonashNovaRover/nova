@@ -19,7 +19,7 @@
             service_name="local_costmap/clear_entirely_local_costmap" />
         </RecoveryNode>
       </PipelineSequence>
-      <Subtree ID="Recovery" />
+      <SubTreePlus ID="Recovery" __autoremap="true" />
     </RecoveryNode>
   </BehaviorTree>
 </root>

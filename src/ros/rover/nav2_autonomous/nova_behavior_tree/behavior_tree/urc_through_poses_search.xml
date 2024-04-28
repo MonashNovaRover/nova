@@ -10,13 +10,13 @@ continuously
     <ReactiveSequence name="FindAndApproachObject">
       <ReactiveFallback name="NavThroughPosesAndSearchForObject">
         <!-- Exit the fallback when the object is found-->
-        <FoundObject object_id="{id}" />
+        <CheckDetected id="{id}" />
 
         <Sequence>
+          <GetFinalGoal goals="{goals}" final_goal="{search_origin}" />
           <!-- Nav through poses -->
-          <Subtree ID="NavThroughPosesWithReplanningAndRecovery" goals="{goals}" node="{node}"
-            tf_buffer="{tf_buffer}" bt_loop_duration="{bt_loop_duration}"
-            server_timeout="{server_timeout}" />
+          <SubTreePlus ID="NavThroughPosesWithReplanningAndRecovery"
+            __autoremap="true" />
 
           <!-- Compute search points -->
           <ComputeSearchGoals search_origin="{search_origin}" search_radius="7" num_points="8"
@@ -33,16 +33,16 @@ continuously
               <Spin spin_dist="6.28" />
             </Sequence>
             <!-- Navigate through search goal poses -->
-            <Subtree ID="NavThroughPosesWithReplanningAndRecovery" goals="search_goals"
-              node="{node}" tf_buffer="{tf_buffer}" bt_loop_duration="{bt_loop_duration}"
-              server_timeout="{server_timeout}" />
+            <SubTreePlus ID="NavThroughPosesWithReplanningAndRecovery" goals="{search_goals}"
+              __autoremap="true" />
           </ReactiveFallback>
         </Sequence>
       </ReactiveFallback>
       <!-- Object has been found - get it's latest position in the map frame -->
       <QueryPosition detection_type="{detection_type}" id="{id}" position="{position}" />
       <!-- Navigate to object position -->
-      <SubTree ID="NavToPoseWithReplanningAndRecovery" goal="{position}" />
+      <SubTreePlus ID="NavToPoseWithReplanningAndRecovery" goal="{position}"
+        __autoremap="true" />
     </ReactiveSequence>
   </BehaviorTree>
 </root>
