@@ -259,7 +259,7 @@
     </collision>
   </link>
   <joint
-    name="j4"
+    name=J4"
     type="fixed">
     <origin
       xyz="0.026329 -0.96807 0.20169"
@@ -312,7 +312,7 @@
     </collision>
   </link>
   <joint
-    name="j5"
+    name="j4"
     type="revolute">
     <origin
       xyz="-0.074526 -0.021852 0.55468"
@@ -370,7 +370,7 @@
     </collision>
   </link>
   <joint
-    name="j6"
+    name="j5"
     type="revolute">
     <origin
       xyz="-0.039566 0.045795 0.095768"
@@ -428,7 +428,7 @@
     </collision>
   </link>
   <joint
-    name="end-rotation"
+    name="j6"
     type="revolute">
     <origin
       xyz="0 0 0"
