@@ -39,6 +39,7 @@ def launch_setup(context, *args, **kwargs):
     use_ekf = LaunchConfiguration('use_ekf')
     use_slam = LaunchConfiguration('use_slam')
     use_vo = LaunchConfiguration('use_vo')
+    gps = LaunchConfiguration('gps')
 
     #Params File Configurations
     ekf_params = LaunchConfiguration('ekf_params_file')
@@ -67,6 +68,7 @@ def launch_setup(context, *args, **kwargs):
     }
 
     robot_localisation_node = Node(
+        condition=UnlessCondition(gps),
         package='robot_localization',
         executable= filter_type + '_node',
         name= filter_type + '_filter_node',
@@ -74,6 +76,41 @@ def launch_setup(context, *args, **kwargs):
         parameters=[(params_file), 
                     {"use_sim_time": use_sim_time},
                     true_odom_params if use_true_odometry else {}],
+    )
+
+    gps_localisation_odom = Node(
+        condition=IfCondition(gps),
+        package='robot_localization',
+        executable='ekf_node',
+        name='ekf_filter_node_odom',
+        output='screen',
+        parameters=[(LaunchConfiguration('rl_params_file').perform(context)), 
+                    {"use_sim_time": use_sim_time}],
+        remappings=[("odometry/filtered", "odometry/local")]
+    )
+
+    gps_localisation_map = Node(
+        condition=IfCondition(gps),
+        package='robot_localization',
+        executable='ekf_node',
+        name='ekf_filter_node_map',
+        output='screen',
+        parameters=[(LaunchConfiguration('rl_params_file').perform(context)), {"use_sim_time": use_sim_time}],
+        remappings=[("odometry/filtered", "odometry/global")]
+    )
+
+    navsat_transform_node = Node(
+        condition=IfCondition(gps),
+        package='robot_localization',
+        executable='navsat_transform_node',
+        name='navsat_transform',
+        output='screen',
+        parameters=[(LaunchConfiguration('rl_params_file').perform(context)), {"use_sim_time": use_sim_time}],
+        remappings=[
+								("odometry/filtered", "odometry/global"),
+								("gps/fix", "fix"),
+								("imu", "oak/imu/data"),
+				]
     )
 
     slam_cmd = IncludeLaunchDescription(
@@ -87,7 +124,7 @@ def launch_setup(context, *args, **kwargs):
     static_transform_node = Node(
         package='tf2_ros',
         executable='static_transform_publisher',
-        condition=UnlessCondition(use_slam),
+        condition=UnlessCondition(OrSubstitution(use_slam, gps)),
         name='static_transform_publisher',
         output='screen',
         arguments=['0', '0', '0', '0', '0', '0', 'map', 'odom'],
@@ -95,6 +132,9 @@ def launch_setup(context, *args, **kwargs):
     
     return [
         robot_localisation_node,
+        gps_localisation_odom,
+        gps_localisation_map,
+        navsat_transform_node,
         static_transform_node,
         slam_cmd,
     ]
@@ -136,6 +176,17 @@ def generate_launch_description():
 
     )
 
+    rl_param_arg = DeclareLaunchArgument(
+        'rl_params_file',
+        default_value=PathJoinSubstitution([FindPackageShare("auto_bringup"),'params','rl.yaml'])
+    )
+    
+    gps_arg = DeclareLaunchArgument(
+        'gps',
+        default_value='True',
+        description='Fuse GPS?'
+    )
+
     declared_arguments = [
         use_ukf_arg,
         use_sim_time_arg,
@@ -144,6 +195,8 @@ def generate_launch_description():
         ekf_param_arg,
         ukf_param_arg,
         use_slam,
+        rl_param_arg,
+        gps_arg
     ]
 
     return LaunchDescription(
