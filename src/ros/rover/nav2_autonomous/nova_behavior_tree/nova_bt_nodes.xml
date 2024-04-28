@@ -227,6 +227,21 @@
       <input_port name="robot_base_frame">Robot base frame</input_port>
     </Condition>
 
+    <Condition ID="GetFirstGoal">
+      <input_port name="goals">List of goals</input_port>
+      <output_port name="goal">First Goal</output_port>
+    </Condition>
+
+    <Condition ID="CheckDetected">
+      <input_port name="id">id as string</input_port>
+      <input_port name="detection_type">tag or object</input_port>
+    </Condition>
+
+    <Condition ID="GetFinalGoal">
+      <input_port name="goals">List of goals</input_port>
+      <output_port name="goal">Final Goal</output_port>
+    </Condition>
+
     <Condition ID="QueryPosition">
       <input_port name="id">ID of tag or object</input_port>
       <input_port name="detection_type">'tag' or 'object'</input_port>
@@ -238,22 +253,6 @@
       <input_port name="search_radius">The radius (m) to search around the center</input_port>
       <input_port name="num_points">Num points in search circle</input_port>
       <output_port name="search_goals">Search Goals</output_port>
-    </Condition>
-
-    <Condition ID="FoundARTag">
-      <input_port name="tag_id">Tag ID</input_port>
-    </Condition>
-
-    <Condition ID="FoundObject">
-      <input_port name="object_id">Object ID</input_port>
-    </Condition>
-
-    <Condition ID="FoundARTag">
-      <input_port name="tag_id">Tag ID</input_port>
-    </Condition>
-
-    <Condition ID="FoundObject">
-      <input_port name="object_id">Object ID</input_port>
     </Condition>
 
     <Condition ID="FirstGoalReached">
