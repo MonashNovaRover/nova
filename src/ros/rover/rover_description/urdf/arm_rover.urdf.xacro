@@ -259,7 +259,7 @@
     </collision>
   </link>
   <joint
-    name=J4"
+    name="J4"
     type="fixed">
     <origin
       xyz="0.026329 -0.96807 0.20169"
@@ -388,7 +388,7 @@
       velocity="0" />
   </joint>
   <link
-    name="EE">
+    name="j6">
     <inertial>
       <origin
         xyz="-0.040752 -0.15136 0.092346"
@@ -428,7 +428,7 @@
     </collision>
   </link>
   <joint
-    name="j6"
+    name="end-rotation"
     type="revolute">
     <origin
       xyz="0 0 0"
