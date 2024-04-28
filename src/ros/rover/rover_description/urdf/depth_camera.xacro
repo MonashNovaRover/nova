@@ -36,7 +36,7 @@ which is how it gets added to the gazebo sim. Author/s: Victor Bartlinski-->
         </clip>
       </camera>
       <plugin name="camera_controller" filename="libgazebo_ros_camera.so">
-        <frame_name>oak_rgb_camera_frame</frame_name>
+        <frame_name>oak_rgb_camera_optical_frame</frame_name>
             <ros>
               <remapping>/oak/image_raw:=/oak/rgb/image_raw</remapping>
               <remapping>/oak/image_raw/compressed:=/oak/rgb/image_raw/compressed</remapping>
