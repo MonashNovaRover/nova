@@ -58,6 +58,9 @@ list(APPEND plugin_libs nova_first_goal_reached_condition_bt_node)
 add_library(nova_goals_empty_condition_bt_node SHARED plugins/goals_empty_condition.cpp)
 list(APPEND plugin_libs nova_goals_empty_condition_bt_node)
 
+add_library(nova_get_final_goal_condition_bt_node SHARED plugins/get_final_goal_condition.cpp)
+list(APPEND plugin_libs nova_get_final_goal_condition_bt_node)
+
 add_library(nova_query_position_condition_bt_node SHARED plugins/query_position_condition.cpp)
 list(APPEND plugin_libs nova_query_position_condition_bt_node)
 
