@@ -37,11 +37,6 @@ buildRosPackage rec {
     filter = lib.novaSourceFilter [ "!worlds/**" ] path;
   };
   
-  meshes = builtins.path {
-    name = "nova-core-meshes";
-    path = src + "/meshes";
-  };
-
   nativeBuildInputs = [ ament-cmake rosidl-default-generators ];
   buildInputs = [ std-msgs nav-msgs trajectory-msgs ];
   propagatedBuildInputs = [ launch launch-ros ];
@@ -65,8 +60,4 @@ buildRosPackage rec {
       rtabmap-ros;
   };
 
-  postPatch = ''
-    substituteInPlace  urdf/rover.urdf.xacro \
-      --replace 'STREQUAL "file:///$(find core)"' 'STREQUAL "${meshes}"'
-  '';
 }

@@ -30,7 +30,8 @@ import os
 # Generate the launch file with all inputs
 def generate_launch_description():
     # Useful paths
-    core_dir = get_package_share_directory('core')
+    auto_bringup_dir = get_package_share_directory('auto_bringup')
+    gazebo_dir = get_package_share_directory('nova_gazebo')
 
     # Launch Configurations
     namespace = LaunchConfiguration('namespace')
@@ -61,12 +62,12 @@ def generate_launch_description():
         #              https://github.com/ROBOTIS-GIT/turtlebot3_simulations/issues/91
         # default_value=os.path.join(get_package_share_directory('turtlebot3_gazebo'),
         # worlds/turtlebot3_worlds/waffle.model')
-        default_value=PathJoinSubstitution([core_dir, "worlds", 'flat.model']),
+        default_value=PathJoinSubstitution([gazebo_dir, "worlds", 'flat.model']),
         description='Full path to world model file to load')
 
     params_file_arg = DeclareLaunchArgument(
         'params_file',
-        default_value=os.path.join(core_dir, 'params', 'nav2_params.yaml'),
+        default_value=os.path.join(auto_bringup_dir, 'params', 'nav2_params.yaml'),
         description='Full path to the ROS2 parameters file to use for all launched nodes')
 
     autostart_arg = DeclareLaunchArgument(
@@ -130,7 +131,7 @@ def generate_launch_description():
 
     # Include other launch files
     gazebo_cmd = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(os.path.join(core_dir, 'launch', 'gazebo_launch.py')),
+        PythonLaunchDescriptionSource(os.path.join(auto_bringup_dir, 'launch', 'gazebo.launch.py')),
         condition=IfCondition(gazebo),
         launch_arguments={
             'namespace': namespace,
@@ -141,7 +142,7 @@ def generate_launch_description():
     )
 
     localization_cmd = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(os.path.join(core_dir, 'launch', 'localization_launch.py')),
+        PythonLaunchDescriptionSource(os.path.join(auto_bringup_dir, 'launch', 'localization.launch.py')),
         launch_arguments={
             'use_sim_time': gazebo,
             'use_real_odometry': use_real_odometry,
@@ -151,7 +152,7 @@ def generate_launch_description():
     )
 
     wheel_odom_localization_cmd = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(os.path.join(core_dir, 'launch', 'wheel_odom_localization_launch.py')),
+        PythonLaunchDescriptionSource(os.path.join(auto_bringup_dir, 'launch', 'wheel_odom_localization_launch.py')),
         launch_arguments={
             'use_sim_time': gazebo,
         }.items(),
@@ -159,19 +160,19 @@ def generate_launch_description():
     )
 
     control_cmd = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(os.path.join(core_dir, 'launch', 'control_launch.py')),
+        PythonLaunchDescriptionSource(os.path.join(auto_bringup_dir, 'launch', 'control.launch.py')),
         launch_arguments={
             'gazebo': gazebo,
         }.items()
     )
 
     rviz_cmd = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(os.path.join(core_dir, 'launch', 'rviz_launch.py')),
+        PythonLaunchDescriptionSource(os.path.join(auto_bringup_dir, 'launch', 'rviz.launch.py')),
         condition=IfCondition(rviz)
     )
 
     navigation_cmd = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(os.path.join(core_dir, 'launch', 'navigation_launch.py')),
+        PythonLaunchDescriptionSource(os.path.join(auto_bringup_dir, 'launch', 'navigation.launch.py')),
         condition=IfCondition(autonomous),
         launch_arguments={
             'namespace': namespace,
