@@ -30,7 +30,7 @@ ArmControl::ArmControl() : Node("arm_control")
     
     // Create subscription to resolvers
     resolver_sub = this->create_subscription<sensor_msgs::msg::JointState>(
-        "/arm/resolvers", 10, std::bind(&ArmControl::resolver_callback, this, _1)
+        "joint_states", 10, std::bind(&ArmControl::resolver_callback, this, _1)
     );
 
     // Create subscription to input joint velocities

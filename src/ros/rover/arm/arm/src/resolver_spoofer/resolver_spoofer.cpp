@@ -53,6 +53,11 @@ void ResolverSpoofer::start_node()
         "/arm/resolvers", 10
     );
 
+    joint_states_publisher = this->create_publisher<sensor_msgs::msg::JointState>(
+        "joint_states", 10
+    );
+
+
     // Output set-up messages
     std::cout << C_TITLE << "RESOLVER SPOOFER" <<C_END << "\n";
     std::cout << "Subscribed Topics:\n";
@@ -111,6 +116,7 @@ void ResolverSpoofer::publisher_callback()
     joints.header.stamp = this->now();
     // Publish the current state of the joints
     resolver_publisher->publish(joints);
+    joint_states_publisher->publish(joints);
 }
 
 
