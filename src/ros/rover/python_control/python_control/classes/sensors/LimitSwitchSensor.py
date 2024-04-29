@@ -21,3 +21,6 @@ class LimitSwitchSensor(Sensor[bool]):
             raise ValueError("Invalid frame id")
         
         self.set_sensor_value(frame.data[1] == LimitSwitchValue.HIT.value)
+    
+    def publish_sensor(self):
+        pass

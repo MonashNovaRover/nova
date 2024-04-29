@@ -9,7 +9,7 @@ T = TypeVar('T')
 
 class Limit(abc.ABC):
     """Class to represent a limit"""
-    def __init__(self, bus: jcan.Bus, sensor: Sensor[T] = None):
+    def __init__(self, bus: jcan.Bus, sensor: Sensor = None):
         self.limit_hit = False # type: bool
         self.sensor = sensor # type: Sensor[T]
         self.bus = bus

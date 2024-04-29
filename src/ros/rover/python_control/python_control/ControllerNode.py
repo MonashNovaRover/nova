@@ -36,14 +36,16 @@ from core.msg import InputJoystick
 class ControllerNode(abc.ABC, Node):
     # ROS parameter names
     CAN_BUS_PARAM = "can_bus"
+    LOGGING_LEVEL_PARAM = "logging_level"
 
-    def __init__(self,  name: str, can_bus: str, logging_level: int = logging.INFO):
+    def __init__(self,  name: str, can_bus: str, log_level: str = "INFO"):
         super().__init__(name)
 
-        self.get_logger().set_level(logging_level)
-        self.get_logger().info(f"{name} starting")
-
         self.declare_parameter(self.CAN_BUS_PARAM, can_bus)
+        self.declare_parameter(self.LOGGING_LEVEL_PARAM, log_level)
+
+        self.set_logging_level(self.get_parameter(self.LOGGING_LEVEL_PARAM).value)
+        self.get_logger().info(f"{name} starting")
 
         self.bus = jcan.Bus()
 
@@ -63,8 +65,23 @@ class ControllerNode(abc.ABC, Node):
         self.timer_send_commands = self.create_timer(0.05, self.callback_send_commands)
         self.timer_jcan_spin = self.create_timer(0.01, self.bus.spin)
 
-        self.get_logger().info(f"{self.get_name()} started using {self.get_parameter(self.CARD_TYPE_PARAM).value} card type")
+        self.get_logger().info(f"{self.get_name()} started")
         self.get_logger().info("Joysticks Locked")
+
+    def set_logging_level(self, level: str):
+        if level == "DEBUG":
+            self.get_logger().set_level(logging.DEBUG)
+        elif level == "INFO":
+            self.get_logger().set_level(logging.INFO)
+        elif level == "WARNING" or level == "WARN":
+            self.get_logger().set_level(logging.WARNING)
+        elif level == "ERROR":
+            self.get_logger().set_level(logging.ERROR)
+        elif level == "CRITICAL":
+            self.get_logger().set_level(logging.CRITICAL)
+        else:
+            self.get_logger().set_level(logging.INFO)
+            self.get_logger().warning(f"Invalid log level {level}, setting to INFO")
 
     def start_can(self):
         """Setup the CAN bus"""

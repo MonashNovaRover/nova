@@ -16,3 +16,6 @@ class IntegerSensor(Sensor[int]):
             raise ValueError("Invalid frame data")
         
         self.set_sensor_value(int(frame.data[1] + (frame.data[0] << 8)))
+
+    def publish_sensor(self):
+        pass
