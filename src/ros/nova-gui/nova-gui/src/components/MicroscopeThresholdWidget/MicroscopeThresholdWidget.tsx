@@ -1,5 +1,3 @@
-import useGL from "../WebGLCanvas/hooks/useGL.tsx";
-import {useProgram} from "../WebGLCanvas/hooks/useProgram.tsx";
 import vert from "./gl/threshold.vert";
 import frag from "./gl/threshold.frag";
 import React, {useCallback, useEffect, useRef, useState} from "react";
@@ -15,11 +13,6 @@ import {
   TableHeader,
   TableRow
 } from "@nextui-org/react";
-import useSamplers, {GLSampler} from "../WebGLCanvas/hooks/useSamplers.tsx";
-import useDict from "../WebGLCanvas/hooks/useDict.tsx";
-import useAttributes from "../WebGLCanvas/hooks/useAttributes.tsx";
-import useCanvasSize from "../WebGLCanvas/hooks/useCanvasSize.tsx";
-import useUniforms, {vec} from "../WebGLCanvas/hooks/useUniforms.tsx";
 import CopyableInput from "../CopyableInput/CopyableInput.tsx";
 import {CameraComponentProps} from "../CameraComponent/CameraComponent.tsx";
 import CameraSessionStartStopButton from "../CameraComponent/components/CameraSessionStartStopButton.tsx";
@@ -29,13 +22,12 @@ import {useBifrost} from "../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosTopic} from "../../ros/topics/rosTopic.ts";
 import {useCameraStream} from "../CameraComponent/hooks/useCameraStream.ts";
 import {useCameraStreamer} from "../CameraComponent/hooks/useCameraStreamer.ts";
-
-const attributes = {
-  aPosition: {
-    numComponents: 2,
-    data: [1.0, 1.0, -1.0, 1.0, 1.0, -1.0, -1.0, -1.0]
-  }
-};
+import useGL from "../../hooks/webgl/gl/useGL.ts";
+import useProgram from "../../hooks/webgl/program/useProgram.ts";
+import useSampler from "../../hooks/webgl/program/sampler/useSampler.ts";
+import useUniform from "../../hooks/webgl/program/uniform/useUniform.ts";
+import useAttribute from "../../hooks/webgl/program/attribute/useAttribute.ts";
+import AutosizedGLCanvas from "../AutosizedGLCanvas/AutosizedGLCanvas.tsx";
 
 export interface ThresholdingFileEntry {
   threshold: number,
@@ -55,7 +47,7 @@ const onFloatChanged = (mutator: (x: string) => void) => (userInput: string) => 
 }
 
 const MicroscopeThresholdWidget: React.FC<CameraComponentProps> = (props) => {
-  const { cameraSerial, autostart: allCamerasStarted } = props;
+  const { cameraSerial, autostart  } = props;
 
   const [threshold, setThreshold] = useState<number>(0.5);
   const [brightness, setBrightness] = useState<number | undefined>();
@@ -73,42 +65,22 @@ const MicroscopeThresholdWidget: React.FC<CameraComponentProps> = (props) => {
     streamingState,
     sendSessionStartMessage,
     closeSession,
-  } = useCameraStream(cameraSerial, videoRef, allCamerasStarted); // useWebcam(videoRef);
+  } = useCameraStream(cameraSerial, videoRef, autostart);
 
   const gl = useGL();
-  const program = useProgram(gl.gl, vert, frag);
+  const program = useProgram(gl, vert, frag);
 
-  const [width, height] = useCanvasSize(gl, videoRef.current ?? undefined);
-
-  const samplers = useDict<GLSampler>(() => ({
-    image: [videoRef.current, 0]
-  }), [videoRef.current])
-  const frameID = useSamplers(gl.gl, program, samplers);
-
-  useAttributes(gl.gl, program, attributes);
-
-  const uniforms = useDict<vec>(() => ({
-    threshold: [finalThreshold]
-  }), [threshold, manualThreshold])
-  useUniforms(gl.gl, program, uniforms);
-
-  // Render the canvas whenever anything relevant changes
-  useEffect(() => {
-    if (!gl.gl || !program)
-      return;
-
-    // Redraw
-    gl.gl.clear(gl.gl.COLOR_BUFFER_BIT);
-    gl.gl.drawArrays(gl.gl.TRIANGLE_STRIP, 0, 4);
-  }, [gl.gl, program, videoRef.current?.width, videoRef.current?.height, samplers, uniforms, threshold, frameID]);
+  useAttribute(program, "aPosition", [
+    [1, 1], [-1, 1], [1, -1], [-1, -1]
+  ]);
+  useSampler(program, 0, "image", videoRef.current);
+  useUniform(program, "threshold", () => [finalThreshold], [finalThreshold]);
 
   const toggleShowThreshold = useCallback(() => {
     setShowThreshold(!showThreshold);
   }, [showThreshold, setShowThreshold]);
 
   // Calibration things
-
-
   const concentrationFunction = useCallback((brightness: number) => {
     const densityRatio = 4.45 / 1.4;
     return (densityRatio * brightness) / (brightness * (densityRatio - 1) + 1);
@@ -137,19 +109,23 @@ const MicroscopeThresholdWidget: React.FC<CameraComponentProps> = (props) => {
     setFile(newFile);
   }, [file, setFile]);
 
-
   const getBrightness = useCallback(() => {
+    if (!gl.canvasRef.current)
+      return;
+
+    const width = gl.canvasRef.current.width;
+    const height = gl.canvasRef.current.height;
+
     const numElements = width * height;
 
-    if (!gl.gl)
+    if (!gl.context)
       return;
 
     // Redraw
-    gl.gl.clear(gl.gl.COLOR_BUFFER_BIT);
-    gl.gl.drawArrays(gl.gl.TRIANGLE_STRIP, 0, 4);
+    gl.render(true);
 
     const output = new Uint8Array(numElements * 4);
-    gl.gl?.readPixels(0, 0, width, height, gl.gl.RGBA, gl.gl.UNSIGNED_BYTE, output);
+    gl.context?.readPixels(0, 0, width, height, gl.context.RGBA, gl.context.UNSIGNED_BYTE, output);
 
     const average = output.reduce((acc, value, index) =>
       (index % 4) === 3 ? acc : acc + (value/(numElements * 3)), 0) / 255;
@@ -161,7 +137,7 @@ const MicroscopeThresholdWidget: React.FC<CameraComponentProps> = (props) => {
       brightness: 1 - average
     };
     prependFileEntry(fileEntry);
-  }, [gl, width, height, prependFileEntry, finalThreshold]);
+  }, [gl, prependFileEntry, finalThreshold]);
 
   // Microscope servo controls
   const topicBifrost = useBifrost({ topic: RosTopic.MICROSCOPE_SERVO });
@@ -238,7 +214,7 @@ const MicroscopeThresholdWidget: React.FC<CameraComponentProps> = (props) => {
 
   return (
     <div className="flex flex-col gap-1.5">
-      <Card>
+      <Card className="z-0">
         <CardBody className="flex flex-col gap-3 overflow-hidden">
           <div className="flex flex-row">
             <div className="grow justify-self-stretch text-left col-span-3">Microscope Thresholding</div>
@@ -250,19 +226,16 @@ const MicroscopeThresholdWidget: React.FC<CameraComponentProps> = (props) => {
             <div className=
                    "flex flex-col gap-3 grow relative overflow-hidden rounded-lg col-span-3 w-full cursor-pointer"
                  onMouseDown={toggleShowThreshold}>
-              <video controls={false}
-                     aria-label="threshold input video"
-                     autoPlay
-                     loop
-                     muted
-                     playsInline
-                     ref={videoRef}
-                     className={showThreshold ? "-z-10" : "z-20"}/>
-              <canvas className="absolute max-w-full max-h-full right-0 left-0 z-10 rounded-lg"
-                      aria-label="thresheld output"
-                      ref={gl.canvasRef}
-                      width={width}
-                      height={height}/>
+
+              <AutosizedGLCanvas gl={gl} sizeTarget={videoRef.current} drawChildrenBelow={showThreshold}>
+                <video controls={false}
+                       aria-label="threshold input video"
+                       autoPlay
+                       loop
+                       muted
+                       playsInline
+                       ref={videoRef}/>
+              </AutosizedGLCanvas>
             </div>
             <Slider
               size="lg"
