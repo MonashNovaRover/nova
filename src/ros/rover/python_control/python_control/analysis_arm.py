@@ -59,7 +59,7 @@ class AnalysisArm(ControllerNode):
         )
 
         ## Create controls
-        platform = OneAxisControl(
+        self.platform = OneAxisControl(
             max_percent=self.PLATFORM_MAX_PERCENT,
             pos_limit=platform_bottom_limit,
             neg_limit=platform_top_limit,
@@ -69,7 +69,7 @@ class AnalysisArm(ControllerNode):
         self.platform_controller = CMDCardController(
             bus=self.bus,
             card_id=self.CMD_ID,
-            control=platform,
+            control=self.platform,
         )
 
         ## Add the controllers to the node's of controllers
