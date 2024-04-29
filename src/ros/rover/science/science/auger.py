@@ -88,8 +88,8 @@ class AugerNode(Node):
         self.bus.add_callback(self.CARD_ID_RECEIVE, self.callback_receive_can_feedback)
 
         self.bus.open(self.get_parameter(self.CAN_BUS_PARAM).value)
-        self.create_timer(0.05, self.callback_send_can_commands)
-        self.create_timer(0.01, self.bus.spin)
+        self.timer_jcan_commands = self.create_timer(0.05, self.callback_send_can_commands)
+        self.timer_jcan_spin = self.create_timer(0.01, self.bus.spin)
 
         self.get_logger().info(f"Auger started on {self.get_parameter(self.CAN_BUS_PARAM).value}")
         self.get_logger().info("Joysticks Locked")
