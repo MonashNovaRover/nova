@@ -3,27 +3,6 @@
 which is how it gets added to the gazebo sim. Author/s: Max Tory -->
 
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" >
-
-  <link name="imu_link">
-    <visual>
-      <geometry>
-        <box size="0.065 0.08 0.04"/>
-      </geometry>
-    </visual>
-
-    <collision>
-      <geometry>
-        <box size="0.1 0.1 0.1"/>
-      </geometry>
-    </collision>
-  </link>
-
-  <joint name="imu_joint" type="fixed">
-    <parent link="base_link"/>
-    <child link="imu_link"/>
-    <origin xyz="0.04 0.26 0.445"/>
-  </joint>
-
   <gazebo reference="imu_link">
     <sensor name="imu_sensor" type="imu">
     <plugin filename="libgazebo_ros_imu_sensor.so" name="imu_plugin">
