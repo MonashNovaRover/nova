@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import abc
+from logging import Logger
 import jcan
 from python_control.classes.sensors import Sensor
 from typing import TypeVar
@@ -9,11 +10,15 @@ T = TypeVar('T')
 
 class Limit(abc.ABC):
     """Class to represent a limit"""
-    def __init__(self, bus: jcan.Bus, sensor: Sensor = None):
+    def __init__(self, bus: jcan.Bus, logger: Logger, sensor: Sensor = None):
         self.limit_hit = False # type: bool
         self.sensor = sensor # type: Sensor[T]
         self.bus = bus
+        self.logger = logger
         self.setup_can_bus()
+
+    def get_logger(self):
+        return self.logger
 
     def setup_can_bus(self):
         """Setup the CAN bus"""
@@ -22,6 +27,8 @@ class Limit(abc.ABC):
 
     def update_limit_hit(self, limit_hit: bool):
         """Update the limit hit"""
+        if self.limit_hit:
+            self.get_logger().debug("Limit hit")
         self.limit_hit = limit_hit
     
     def get_limit_hit(self):

@@ -3,17 +3,22 @@
 import abc
 import jcan
 from typing import TypeVar, Generic
+from logging import Logger
 
 T = TypeVar('T')
 
 class Sensor(abc.ABC, Generic[T]):
     """Class to represent a sensor"""
-    def __init__(self, bus: jcan.Bus, frame_id: hex, initial_value: T = None, run_can: bool = True):
+    def __init__(self, bus: jcan.Bus, logger: Logger, frame_id: hex, initial_value: T = None, run_can: bool = True):
         self.frame_id = frame_id # type: hex
         self.sensor_value = initial_value # type: T
         self.bus = bus
+        self.logger = logger
         if run_can:
             self.setup_can_bus()
+
+    def get_logger(self):
+        return self.logger
 
     def setup_can_bus(self):
         """Setup the CAN bus"""

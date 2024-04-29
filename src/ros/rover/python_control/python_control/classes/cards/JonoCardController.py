@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from logging import Logger
 import jcan
 from python_control.classes.cards.Card import Card
 from python_control.classes.cards.CardController import CardController
@@ -8,8 +9,8 @@ from python_control.classes.controls.OneAxisControl import Direction
 
 class JonoCardController(CardController):
     """Class to control the JONO card on the CAN bus"""
-    def __init__(self, card_id: hex, pos_command: hex, neg_command: hex, control: OneAxisControl, bus: jcan.Bus):
-        super().__init__(card=Card.JONO, max_value=255, card_id=card_id, control=control, bus=bus)
+    def __init__(self, card_id: hex, pos_command: hex, neg_command: hex, control: OneAxisControl, bus: jcan.Bus, logger: Logger):
+        super().__init__(card=Card.JONO, max_value=255, card_id=card_id, control=control, bus=bus, logger=logger)
         self.pos_command = pos_command # type: hex
         self.neg_command = neg_command # type: hex
 

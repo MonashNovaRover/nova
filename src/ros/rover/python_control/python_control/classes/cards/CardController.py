@@ -1,17 +1,19 @@
 #!/usr/bin/env python3
 import abc
+from logging import Logger
 import jcan
 from python_control.classes.cards.Card import Card
 from python_control.classes.controls.OneAxisControl import OneAxisControl
 
 class CardController(abc.ABC):
     """Class to interface with the cards on the CAN bus"""
-    def __init__(self, card: Card, max_value: int, card_id: hex, control: OneAxisControl, bus: jcan.Bus):
+    def __init__(self, card: Card, max_value: int, card_id: hex, control: OneAxisControl, bus: jcan.Bus, logger: Logger):
         self.card = card # type: Card
         self.max_value = max_value # type: int
         self.card_id = card_id # type: hex
         self.control = control # type: OneAxisControl
         self.bus = bus # type: jcan.Bus
+        self.logger = logger
 
     def get_card(self):
         """Get the card type"""

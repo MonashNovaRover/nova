@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from logging import Logger
 from struct import pack
 import jcan
 from python_control.classes.cards.Card import Card
@@ -8,8 +9,8 @@ from python_control.classes.controls.OneAxisControl import OneAxisControl
 
 class CMDCardController(CardController):
     """Class to control the CMD card on the CAN bus"""
-    def __init__(self, bus: jcan.Bus, card_id: hex, control: OneAxisControl):
-        super().__init__(card=Card.CMD, max_value=32767, card_id=card_id, control=control, bus=bus)
+    def __init__(self, bus: jcan.Bus, logger: Logger, card_id: hex, control: OneAxisControl):
+        super().__init__(card=Card.CMD, max_value=32767, card_id=card_id, control=control, bus=bus, logger=logger)
 
     def get_frame(self) -> jcan.Frame:
         """Get the frame to send over the CAN bus"""
