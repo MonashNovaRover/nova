@@ -136,8 +136,8 @@ controller_server:
       decel_lim_y: 0.0
       decel_lim_theta: -3.2
       vx_samples: 20
-      vy_samples: 5
-      vtheta_samples: 20
+      vy_samples: 1
+      vtheta_samples: 30
       sim_time: 1.7
       linear_granularity: 0.05
       angular_granularity: 0.025
@@ -147,13 +147,16 @@ controller_server:
       short_circuit_trajectory_evaluation: True
       stateful: True
       critics: ["RotateToGoal", "Oscillation", "BaseObstacle", "GoalAlign", "PathAlign", "PathDist", "GoalDist"]
-      BaseObstacle.scale: 40.0
+      BaseObstacle.scale: 0.02
+      ObstacleFootprint.scale: 0.02
       PathAlign.scale: 32.0
       PathAlign.forward_point_distance: 0.1
       GoalAlign.scale: 24.0
       GoalAlign.forward_point_distance: 0.1
       PathDist.scale: 32.0
       GoalDist.scale: 24.0
+      PreferForward.scale: 20.0
+      PreferForward.theta_scale: 24.0
       RotateToGoal.scale: 32.0
       RotateToGoal.slowing_factor: 5.0
       RotateToGoal.lookahead_time: -1.0
@@ -167,10 +170,10 @@ local_costmap:
       robot_base_frame: base_link
       use_sim_time: False
       rolling_window: true
-      width: 5
-      height: 5
-      origin_x: -2.5
-      origin_y: -2.5
+      width: 10
+      height: 10
+      origin_x: -5.0
+      origin_y: -5.0
       resolution: 0.1
       footprint: "[[0.67, 0.55], [0.67, -0.55], [-0.67, -0.55], [-0.67, 0.55]]"
       track_unknown_space: False
@@ -182,16 +185,16 @@ local_costmap:
       height_mapper_layer:
         plugin: "nova_costmap_2d/HeightMapperLayer"
         enabled: True
-        min_obstacle_height: 0.0
-        max_obstacle_height: 1.5
+        min_obstacle_height: -1.0
+        max_obstacle_height: 3.0
         observation_sources: depth_camera
         vertical_resolution: 0.025
         max_safe_val: 1.6
         min_plane_density: 0.2
         depth_camera:
           topic: /oak/points
-          min_obstacle_height: 0.0
-          max_obstacle_height: 1.5
+          min_obstacle_height: -1.0
+          max_obstacle_height: 3.0
           clearing: False
           marking: True
           data_type: "PointCloud2"
@@ -202,16 +205,16 @@ local_costmap:
       plane_mapper_layer:
         plugin: "nova_costmap_2d/PlaneMapperLayer"
         enabled: True
-        min_obstacle_height: 0.0
-        max_obstacle_height: 1.5
+        min_obstacle_height: -1.0
+        max_obstacle_height: 3.0
         max_safe_inc: 25.0
         observation_sources: depth_camera
         vertical_resolution: 0.025
         min_plane_density: 0.2
         depth_camera:
           topic: /oak/points
-          min_obstacle_height: 0.0
-          max_obstacle_height: 1.5
+          min_obstacle_height: -1.0
+          max_obstacle_height: 3.0
           clearing: False
           marking: True
           data_type: "PointCloud2"
@@ -246,8 +249,8 @@ global_costmap:
       height_mapper_layer:
         plugin: "nova_costmap_2d/HeightMapperLayer"
         enabled: True
-        min_obstacle_height: -0.1
-        max_obstacle_height: 1.5
+        min_obstacle_height: -1.0
+        max_obstacle_height: 3.0
         observation_sources: depth_camera
         vertical_resolution: 0.025
         max_safe_val: 1.6
@@ -255,8 +258,8 @@ global_costmap:
         resolution_ratio: 16
         depth_camera:
           topic: /oak/points
-          min_obstacle_height: -0.1
-          max_obstacle_height: 1.5
+          min_obstacle_height: -1.0
+          max_obstacle_height: 3.0
           clearing: False
           marking: False
           data_type: "PointCloud2"
@@ -267,8 +270,8 @@ global_costmap:
       plane_mapper_layer:
         plugin: "nova_costmap_2d/PlaneMapperLayer"
         enabled: True
-        min_obstacle_height: 0.0
-        max_obstacle_height: 1.5
+        min_obstacle_height: -1.0
+        max_obstacle_height: 3.0
         resolution_ratio: 16
         max_safe_inc: 25.0
         observation_sources: depth_camera
@@ -276,8 +279,8 @@ global_costmap:
         min_plane_density: 0.1
         depth_camera:
           topic: /oak/points
-          min_obstacle_height: 0.0
-          max_obstacle_height: 1.5
+          min_obstacle_height: -1.0
+          max_obstacle_height: 3.0
           clearing: False
           marking: True
           data_type: "PointCloud2"
@@ -382,7 +385,7 @@ collision_monitor:
     polygons: ["PolygonStop", "PolygonSlow", "FootprintApproach"]
     PolygonStop:
       type: "polygon"
-      points: [0.97, 0.65, 0.97, -0.65, -0.2, -0.65, -0.2, 0.65]
+      points: [0.67, 0.55, 0.67, -0.55, -0.2, -0.55, -0.2, 0.55]
       action_type: "stop"
       max_points: 3
       visualize: True
@@ -402,8 +405,8 @@ collision_monitor:
       time_before_collision: 2.0
       simulation_time_step: 0.1
       max_points: 5
-      visualize: False
-    observation_sources: ["scan"]
+      visualize: True
+    observation_sources: ["pointcloud"]
     pointcloud:
       type: "pointcloud"
       topic: "/oak/points"
