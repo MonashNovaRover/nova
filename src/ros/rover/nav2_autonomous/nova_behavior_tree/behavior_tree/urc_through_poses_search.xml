@@ -17,18 +17,14 @@ continuously
           <!-- Nav through poses -->
           <RetryUntilSuccessful num_attempts="9">
             <ReactiveFallback>
-              <GoalsEmpty goals="{search_goals}" />
               <!-- Conduct a spin on reaching a goal-->
-              <ForceFailure>
-                <Sequence>
-                  <FirstGoalReached goals="{search_goals}" global_frame="map"
-                    robot_base_frame="base_link" />
-                  <RemovePassedGoals input_goals="{search_goals}" output_goals="{search_goals}"
-                    radius="0.5" />
-                  <Spin spin_dist="6.28" time_allowance="25" />
-                  <GetFirstGoal goals="{search_goals}" first_goal="{goal}" />
-                </Sequence>
-              </ForceFailure>
+              <Sequence>
+                <GetFirstGoal goals="{goals}" first_goal="{goal}" />
+                <GoalReached goal="{goal}" robot_base_frame="base_link" />
+                <RemovePassedGoals input_goals="{goals}" output_goals="{goals}"
+                  radius="0.5" />
+                <GoalReached goal="{search_origin}" robot_base_frame="base_link" />
+              </Sequence>
               <ForceFailure>
                 <SubTreePlus ID="NavToPoseWithReplanningAndRecovery" goal="{goal}"
                   __autoremap="true" />
@@ -48,16 +44,17 @@ continuously
             <ReactiveFallback>
               <GoalsEmpty goals="{search_goals}" />
               <!-- Conduct a spin on reaching a goal-->
-              <ForceFailure>
-                <Sequence>
-                  <FirstGoalReached goals="{search_goals}" global_frame="map"
-                    robot_base_frame="base_link" />
-                  <RemovePassedGoals input_goals="{search_goals}" output_goals="{search_goals}"
-                    radius="0.5" />
-                  <Spin spin_dist="6.28" time_allowance="25" />
-                  <GetFirstGoal goals="{search_goals}" first_goal="{goal}" />
-                </Sequence>
-              </ForceFailure>
+              <Sequence>
+                <GetFirstGoal goals="{search_goals}" first_goal="{goal}" />
+                <GoalReached
+                  goal="{goal}" robot_base_frame="base_link" />
+                <RemovePassedGoals
+                  input_goals="{search_goals}" output_goals="{search_goals}"
+                  radius="0.5" />
+                <Spin spin_dist="6.28" time_allowance="25" />
+                <GoalsEmpty
+                  goals="{search_goals}" />
+              </Sequence>
               <ForceFailure>
                 <SubTreePlus ID="NavToPoseWithReplanningAndRecovery" goal="{goal}"
                   __autoremap="true" />
