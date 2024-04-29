@@ -11,7 +11,7 @@ import { useSelector } from "react-redux";
 import { useUIActions } from "../../redux/actions/useUIActions";
 
 import novaLogo from "../../assets/nova-logo.png";
-import { Aperture, Camera, Home, Image } from "react-feather";
+import { Aperture, Camera, Home, Image, Map } from "react-feather";
 import { ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -82,6 +82,11 @@ const sidebarData: SidebarInterface = {
       title: "Cameras",
       route: "/arc/cameras/autonomous",
       icon: <Camera />,
+    },
+    {
+      title: "Cartographer",
+      route: "/arc/autonomous/cartographer",
+      icon: <Map />,
     },
   ],
 };

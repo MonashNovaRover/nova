@@ -20,6 +20,7 @@ import GeneralBaseView from "../views/general/GeneralBaseView.tsx";
 import { ARCNIRProbeView } from "../views/arc/ARCNIRProbeView.tsx";
 import { ARCMicroscopeView } from "../views/arc/ARCMicroscopeView.tsx";
 import TestWebGLView from "../views/test/TestWebGLView/TestWebGLView.tsx";
+import { URCCartographerView } from "../views/urc/URCCartographerView.tsx";
 
 export const arcRoutes: RouteObject[] = [
   {
@@ -45,6 +46,10 @@ export const arcRoutes: RouteObject[] = [
   {
     path: "/arc/excavation-construction",
     element: <ARCExcavationConstructionView />,
+  },
+  {
+    path: "/arc/autonomous/cartographer",
+    element: <URCCartographerView />,
   },
   {
     path: "/arc/autonomous",
