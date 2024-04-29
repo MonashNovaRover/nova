@@ -43,6 +43,7 @@ def generate_launch_description():
                        'behavior_server',
                        'waypoint_follower',
                        'velocity_smoother',
+                       'collision_manager',
                        'bt_navigator',
                        'controller_server',
                        ]
@@ -171,6 +172,12 @@ def generate_launch_description():
                 remappings=remappings +
                         [('cmd_vel', 'cmd_vel_nav')]),
             Node(
+                package='nav2_collision_monitor',
+                executable='collision_monitor',
+                output='screen',
+                emulate_tty=True,  # https://github.com/ros2/launch/issues/188
+                parameters=[configured_params]),
+            Node(
                 package='nav2_lifecycle_manager',
                 executable='lifecycle_manager',
                 name='lifecycle_manager_navigation',
@@ -194,69 +201,76 @@ def generate_launch_description():
 
     load_composable_nodes = GroupAction(
         condition=IfCondition(use_composition),
-        actions = [
+        actions=[
             LoadComposableNodes(
-            target_container=container_name_full,
-            composable_node_descriptions=[
-                ComposableNode(
-                    package='nav2_controller',
-                    plugin='nav2_controller::ControllerServer',
-                    name='controller_server',
-                    parameters=[configured_params],
-                    remappings=remappings + [('cmd_vel', 'cmd_vel_nav')]),
-                ComposableNode(
-                    package='nav2_smoother',
-                    plugin='nav2_smoother::SmootherServer',
-                    name='smoother_server',
-                    parameters=[configured_params],
-                    remappings=remappings),
-                ComposableNode(
-                    package='nav2_planner',
-                    plugin='nav2_planner::PlannerServer',
-                    name='planner_server',
-                    parameters=[configured_params],
-                    remappings=remappings),
-                ComposableNode(
-                    package='nav2_behaviors',
-                    plugin='behavior_server::BehaviorServer',
-                    name='behavior_server',
-                    parameters=[configured_params],
-                    remappings=remappings),
-                ComposableNode(
-                    package='nav2_waypoint_follower',
-                    plugin='nav2_waypoint_follower::WaypointFollower',
-                    name='waypoint_follower',
-                    parameters=[configured_params],
-                    remappings=remappings),
-                ComposableNode(
-                    package='nav2_velocity_smoother',
-                    plugin='nav2_velocity_smoother::VelocitySmoother',
-                    name='velocity_smoother',
-                    parameters=[configured_params],
-                    remappings=remappings +
-                            [('cmd_vel', 'cmd_vel_nav')]),
-                ComposableNode(
-                    package='nav2_map_server',
-                    plugin='nav2_map_server::MapServer',
-                    name='map_server',
-                    parameters=[configured_params, {'yaml_filename': map_yaml_file}],
-                    remappings=remappings +
+                target_container=container_name_full,
+                composable_node_descriptions=[
+                    ComposableNode(
+                        package='nav2_controller',
+                        plugin='nav2_controller::ControllerServer',
+                        name='controller_server',
+                        parameters=[configured_params],
+                        remappings=remappings + [('cmd_vel', 'cmd_vel_nav')]),
+                    ComposableNode(
+                        package='nav2_smoother',
+                        plugin='nav2_smoother::SmootherServer',
+                        name='smoother_server',
+                        parameters=[configured_params],
+                        remappings=remappings),
+                    ComposableNode(
+                        package='nav2_planner',
+                        plugin='nav2_planner::PlannerServer',
+                        name='planner_server',
+                        parameters=[configured_params],
+                        remappings=remappings),
+                    ComposableNode(
+                        package='nav2_behaviors',
+                        plugin='behavior_server::BehaviorServer',
+                        name='behavior_server',
+                        parameters=[configured_params],
+                        remappings=remappings),
+                    ComposableNode(
+                        package='nav2_waypoint_follower',
+                        plugin='nav2_waypoint_follower::WaypointFollower',
+                        name='waypoint_follower',
+                        parameters=[configured_params],
+                        remappings=remappings),
+                    ComposableNode(
+                        package='nav2_velocity_smoother',
+                        plugin='nav2_velocity_smoother::VelocitySmoother',
+                        name='velocity_smoother',
+                        parameters=[configured_params],
+                        remappings=remappings +
+                        [('cmd_vel', 'cmd_vel_nav')]),
+                    ComposableNode(
+                        package='nav2_collision_monitor',
+                        plugin='nav2_collision_monitor::CollisionMonitor',
+                        name='collision_monitor',
+                        parameters=[configured_params],
+                        remappings=remappings +
+                        [('cmd_vel', 'cmd_vel_nav')]),
+                    ComposableNode(
+                        package='nav2_map_server',
+                        plugin='nav2_map_server::MapServer',
+                        name='map_server',
+                        parameters=[configured_params, {'yaml_filename': map_yaml_file}],
+                        remappings=remappings +
                         [('map', 'static_map')]),
-                ComposableNode(
-                    package='nav2_bt_navigator',
-                    plugin='nav2_bt_navigator::BtNavigator',
-                    name='bt_navigator',
-                    parameters=[configured_params],
-                    remappings=remappings),
-                ComposableNode(
-                    package='nav2_lifecycle_manager',
-                    plugin='nav2_lifecycle_manager::LifecycleManager',
-                    name='lifecycle_manager_navigation',
-                    parameters=[{'use_sim_time': use_sim_time,
-                                'autostart': autostart,
-                                'node_names': lifecycle_nodes}]),
-            ]),
-    ])
+                    ComposableNode(
+                        package='nav2_bt_navigator',
+                        plugin='nav2_bt_navigator::BtNavigator',
+                        name='bt_navigator',
+                        parameters=[configured_params],
+                        remappings=remappings),
+                    ComposableNode(
+                        package='nav2_lifecycle_manager',
+                        plugin='nav2_lifecycle_manager::LifecycleManager',
+                        name='lifecycle_manager_navigation',
+                        parameters=[{'use_sim_time': use_sim_time,
+                                     'autostart': autostart,
+                                     'node_names': lifecycle_nodes}]),
+                ]),
+        ])
 
     # Create the launch description and populate
     ld = LaunchDescription()
