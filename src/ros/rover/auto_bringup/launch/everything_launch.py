@@ -28,6 +28,8 @@ from launch_ros.substitutions import FindPackageShare
 import os
 
 # Generate the launch file with all inputs
+
+
 def generate_launch_description():
     # Useful paths
     auto_bringup_dir = get_package_share_directory('auto_bringup')
@@ -99,7 +101,7 @@ def generate_launch_description():
         default_value='false',
         description='Flag to launch with wheel odometry as the only localization method'
     )
-    
+
     rviz_arg = DeclareLaunchArgument(
         'launch_rviz',
         default_value='True',
@@ -156,7 +158,7 @@ def generate_launch_description():
         launch_arguments={
             'use_sim_time': gazebo,
         }.items(),
-        condition = IfCondition(wheel_odom_only)
+        condition=IfCondition(wheel_odom_only)
     )
 
     control_cmd = IncludeLaunchDescription(
@@ -183,18 +185,6 @@ def generate_launch_description():
             'use_respawn': use_respawn,
             'container_name': 'nav2_container',
             'log_level': log_level,
-        }.items()
-    )
-    collision_cmd = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(os.path.join(auto_bringup_dir, 'launch', 'collision_monitor_node.launch.py')),
-        condition=IfCondition(autonomous),
-        launch_arguments={
-            'namespace': namespace,
-            'use_sim_time': gazebo,
-            'params_file': params_file,
-            'use_composition': use_composition,
-            'use_respawn': use_respawn,
-            'container_name': 'collision_container',
         }.items()
     )
 

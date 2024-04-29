@@ -43,7 +43,7 @@ def generate_launch_description():
                        'behavior_server',
                        'waypoint_follower',
                        'velocity_smoother',
-                       'collision_manager',
+                       'collision_monitor',
                        'bt_navigator',
                        'controller_server',
                        ]
@@ -174,6 +174,7 @@ def generate_launch_description():
             Node(
                 package='nav2_collision_monitor',
                 executable='collision_monitor',
+                name='collision_monitor',
                 output='screen',
                 emulate_tty=True,  # https://github.com/ros2/launch/issues/188
                 parameters=[configured_params]),
