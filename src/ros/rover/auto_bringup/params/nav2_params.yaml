@@ -172,14 +172,13 @@ local_costmap:
       origin_x: -2.5
       origin_y: -2.5
       resolution: 0.1
-      footprint: "[[0.57, 0.45], [0.57, -0.45], [-0.57, -0.45], [-0.57, 0.45]]"
-      footprint_padding: 0.1
+      footprint: "[[0.67, 0.55], [0.67, -0.55], [-0.67, -0.55], [-0.67, 0.55]]"
       track_unknown_space: False
       plugins: ["height_mapper_layer", "inflation_layer"]
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
-        cost_scaling_factor: 3.0
-        inflation_radius: 0.55
+        cost_scaling_factor: 2.0
+        inflation_radius: 2.55
       height_mapper_layer:
         plugin: "nova_costmap_2d/HeightMapperLayer"
         enabled: True
@@ -240,7 +239,7 @@ global_costmap:
       origin_y: -25.0
       use_sim_time: False
       rolling_window: False
-      footprint: "[[0.57, 0.45], [0.57, -0.45], [-0.57, -0.45], [-0.57, 0.45]]"
+      footprint: "[[0.67, 0.55], [0.67, -0.55], [-0.67, -0.55], [-0.67, 0.55]]"
       resolution: 0.4
       track_unknown_space: False
       plugins: ["height_mapper_layer", "plane_mapper_layer", "inflation_layer"]
@@ -288,8 +287,8 @@ global_costmap:
           obstacle_min_range: 0.0
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
-        cost_scaling_factor: 3.0
-        inflation_radius: 0.25
+        cost_scaling_factor: 2.0
+        inflation_radius: 2.55
       always_send_full_costmap: False
 
 planner_server:
@@ -367,9 +366,9 @@ velocity_smoother:
 collision_monitor:
   ros__parameters:
     use_sim_time: True
-    base_frame_id: "base_footprint"
+    base_frame_id: "base_link"
     odom_frame_id: "odom"
-    cmd_vel_in_topic: "cmd_vel_raw"
+    cmd_vel_in_topic: "cmd_vel_smoothed"
     cmd_vel_out_topic: "cmd_vel"
     transform_tolerance: 0.5
     source_timeout: 5.0
@@ -380,17 +379,17 @@ collision_monitor:
     # Footprint could be "polygon" type with dynamically set footprint from footprint_topic
     # or "circle" type with static footprint set by radius. "footprint_topic" parameter
     # to be ignored in circular case.
-    polygons: ["PolygonStop"]
+    polygons: ["PolygonStop", "PolygonSlow", "FootprintApproach"]
     PolygonStop:
       type: "polygon"
-      points: [0.3, 0.3, 0.3, -0.3, 0.0, -0.3, 0.0, 0.3]
+      points: [0.97, 0.65, 0.97, -0.65, -0.2, -0.65, -0.2, 0.65]
       action_type: "stop"
       max_points: 3
       visualize: True
       polygon_pub_topic: "polygon_stop"
     PolygonSlow:
       type: "polygon"
-      points: [0.4, 0.4, 0.4, -0.4, -0.4, -0.4, -0.4, 0.4]
+      points: [1.5, 0.95, 1.5, -0.95, -0.4, -0.95, -0.4, 0.95]
       action_type: "slowdown"
       max_points: 3
       slowdown_ratio: 0.3
@@ -405,11 +404,8 @@ collision_monitor:
       max_points: 5
       visualize: False
     observation_sources: ["scan"]
-    scan:
-      type: "scan"
-      topic: "/scan"
     pointcloud:
       type: "pointcloud"
-      topic: "/intel_realsense_r200_depth/points"
-      min_height: 0.1
+      topic: "/oak/points"
+      min_height: 0.2
       max_height: 0.5

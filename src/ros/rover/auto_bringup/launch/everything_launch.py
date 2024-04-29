@@ -43,6 +43,8 @@ def generate_launch_description():
     use_composition = LaunchConfiguration('use_composition')
     use_respawn = LaunchConfiguration('use_respawn')
     use_real_odometry = LaunchConfiguration('use_real_odometry')
+    use_ukf = LaunchConfiguration('use_ukf')
+    use_slam = LaunchConfiguration('use_slam')
     localization = LaunchConfiguration('localization')
     load_map = LaunchConfiguration('load_map')
     log_level = LaunchConfiguration('log_level')
@@ -64,7 +66,7 @@ def generate_launch_description():
         #              https://github.com/ROBOTIS-GIT/turtlebot3_simulations/issues/91
         # default_value=os.path.join(get_package_share_directory('turtlebot3_gazebo'),
         # worlds/turtlebot3_worlds/waffle.model')
-        default_value=PathJoinSubstitution([gazebo_dir, "worlds", 'flat.model']),
+        default_value=PathJoinSubstitution([gazebo_dir, "worlds", 'urc_er.model']),
         description='Full path to world model file to load')
 
     params_file_arg = DeclareLaunchArgument(
@@ -90,6 +92,18 @@ def generate_launch_description():
         description='True to use robot_localization odometry, False to use p3d gazebo plugin'
     )
 
+    use_ukf_arg = DeclareLaunchArgument(
+        'use_ukf',
+        default_value='false',
+        description='True to use robot_localization odometry, False to use p3d gazebo plugin'
+    )
+
+    use_slam_arg = DeclareLaunchArgument(
+        'use_slam',
+        default_value='false',
+        description='True to use robot_localization odometry, False to use p3d gazebo plugin'
+    )
+
     localization_arg = DeclareLaunchArgument(
         'localization',
         default_value='False',
@@ -98,7 +112,7 @@ def generate_launch_description():
 
     wheel_odom_only_arg = DeclareLaunchArgument(
         'wheel_odom_only',
-        default_value='false',
+        default_value='False',
         description='Flag to launch with wheel odometry as the only localization method'
     )
 
@@ -148,6 +162,8 @@ def generate_launch_description():
         launch_arguments={
             'use_sim_time': gazebo,
             'use_real_odometry': use_real_odometry,
+            'use_ukf': use_ukf,
+            'use_slam': use_slam,
             'load_map': localization,
         }.items(),
         condition=UnlessCondition(wheel_odom_only)
@@ -198,6 +214,8 @@ def generate_launch_description():
         use_composition_arg,
         use_respawn_arg,
         use_real_odom_arg,
+        use_ukf_arg,
+        use_slam_arg,
         localization_arg,
         wheel_odom_only_arg,
         load_map_arg,
