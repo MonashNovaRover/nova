@@ -185,6 +185,18 @@ def generate_launch_description():
             'log_level': log_level,
         }.items()
     )
+    collision_cmd = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(os.path.join(auto_bringup_dir, 'launch', 'collision_monitor_node.launch.py')),
+        condition=IfCondition(autonomous),
+        launch_arguments={
+            'namespace': namespace,
+            'use_sim_time': gazebo,
+            'params_file': params_file,
+            'use_composition': use_composition,
+            'use_respawn': use_respawn,
+            'container_name': 'collision_container',
+        }.items()
+    )
 
     return LaunchDescription([
         namespace_arg,

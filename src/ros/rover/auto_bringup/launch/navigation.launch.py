@@ -169,7 +169,7 @@ def generate_launch_description():
                 parameters=[configured_params],
                 arguments=['--ros-args', '--log-level', log_level],
                 remappings=remappings +
-                        [('cmd_vel', 'cmd_vel_nav'), ('cmd_vel_smoothed', 'cmd_vel')]),
+                        [('cmd_vel', 'cmd_vel_nav')]),
             Node(
                 package='nav2_lifecycle_manager',
                 executable='lifecycle_manager',
@@ -234,7 +234,7 @@ def generate_launch_description():
                     name='velocity_smoother',
                     parameters=[configured_params],
                     remappings=remappings +
-                            [('cmd_vel', 'cmd_vel_nav'), ('cmd_vel_smoothed', 'cmd_vel')]),
+                            [('cmd_vel', 'cmd_vel_nav')]),
                 ComposableNode(
                     package='nav2_map_server',
                     plugin='nav2_map_server::MapServer',

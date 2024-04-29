@@ -147,7 +147,7 @@ controller_server:
       short_circuit_trajectory_evaluation: True
       stateful: True
       critics: ["RotateToGoal", "Oscillation", "BaseObstacle", "GoalAlign", "PathAlign", "PathDist", "GoalDist"]
-      BaseObstacle.scale: 0.02
+      BaseObstacle.scale: 40.0
       PathAlign.scale: 32.0
       PathAlign.forward_point_distance: 0.1
       GoalAlign.scale: 24.0
@@ -161,8 +161,8 @@ controller_server:
 local_costmap:
   local_costmap:
     ros__parameters:
-      update_frequency: 5.0
-      publish_frequency: 2.0
+      update_frequency: 3.0
+      publish_frequency: 3.0
       global_frame: map
       robot_base_frame: base_link
       use_sim_time: False
@@ -175,11 +175,11 @@ local_costmap:
       footprint: "[[0.57, 0.45], [0.57, -0.45], [-0.57, -0.45], [-0.57, 0.45]]"
       footprint_padding: 0.1
       track_unknown_space: False
-      plugins: ["plane_mapper_layer", "height_mapper_layer", "inflation_layer"]
+      plugins: ["height_mapper_layer", "inflation_layer"]
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 3.0
-        inflation_radius: 0.25
+        inflation_radius: 0.55
       height_mapper_layer:
         plugin: "nova_costmap_2d/HeightMapperLayer"
         enabled: True
@@ -243,10 +243,10 @@ global_costmap:
       footprint: "[[0.57, 0.45], [0.57, -0.45], [-0.57, -0.45], [-0.57, 0.45]]"
       resolution: 0.4
       track_unknown_space: False
-      plugins: ["plane_mapper_layer", "inflation_layer"]
+      plugins: ["height_mapper_layer", "plane_mapper_layer", "inflation_layer"]
       height_mapper_layer:
         plugin: "nova_costmap_2d/HeightMapperLayer"
-        enabled: False
+        enabled: True
         min_obstacle_height: -0.1
         max_obstacle_height: 1.5
         observation_sources: depth_camera
@@ -363,3 +363,72 @@ velocity_smoother:
     odom_duration: 0.1
     deadband_velocity: [0.0, 0.0, 0.0]
     velocity_timeout: 1.0
+
+collision_monitor:
+  ros__parameters:
+    use_sim_time: False
+    base_frame_id: "base_link"
+    odom_frame_id: "odom"
+    cmd_vel_in_topic: "cmd_vel_smoothed"
+    cmd_vel_out_topic: "cmd_vel"
+    transform_tolerance: 0.5
+    source_timeout: 5.0
+    stop_pub_timeout: 2.0
+    enable_stamped_cmd_vel: False
+    polygons: ["VelocityPolygonStop", "VelocityPolygonSlow"]
+    VelocityPolygonStop:
+      type: "velocity_polygon"
+      action_type: "stop"
+      min_points: 4
+      visualize: True
+      enabled: True
+      polygon_pub_topic: "velocity_polygon_stop"
+      velocity_polygons: ["translation_forward", "stopped"]
+      holonomic: false
+      translation_forward:
+        points: "[[0.87, 0.45], [0.87, -0.45], [-0.27, -0.45], [-0.27, 0.45]]"
+        linear_min: 0.01
+        linear_max: 1.0
+        theta_min: -1.0
+        theta_max: 1.0
+      # This is the last polygon to be checked, it should cover the entire range of robot's velocities
+      # It is used as the stopped polygon when the robot is not moving and as a fallback if the velocity
+      # is not covered by any of the other sub-polygons
+      stopped:
+        points: "[[0.57, 0.45], [0.57, -0.45], [-0.57, -0.45], [-0.57, 0.45]]"
+        linear_min: -1.0
+        linear_max: 1.0
+        theta_min: -1.0
+        theta_max: 1.0
+    VelocityPolygonSlow:
+      type: "velocity_polygon"
+      action_type: "slowdown"
+      min_points: 4  # max_points: 3 for Humble
+      visualize: True
+      enabled: True
+      polygon_pub_topic: "velocity_polygon_slowdown"
+      velocity_polygons: ["translation_forward", "stopped"]
+      slowdown_ratio: 0.3
+      holonomic: false
+      translation_forward:
+        points: "[[1.37, 0.65], [1.37, -0.65], [-0.27, -0.65], [-0.27, 0.65]]"
+        linear_min: 0.01
+        linear_max: 1.0
+        theta_min: -1.0
+        theta_max: 1.0
+      # This is the last polygon to be checked, it should cover the entire range of robot's velocities
+      # It is used as the stopped polygon when the robot is not moving and as a fallback if the velocity
+      # is not covered by any of the other sub-polygons
+      stopped:
+        points: "[[0.57, 0.45], [0.57, -0.45], [-0.57, -0.45], [-0.57, 0.45]]"
+        linear_min: -1.0
+        linear_max: 1.0
+        theta_min: -1.0
+        theta_max: 1.0
+    observation_sources: ["pointcloud"]
+    pointcloud:
+      type: "pointcloud"
+      topic: /oak/points
+      min_height: 0.1
+      max_height: 0.5
+      enabled: True
