@@ -1,10 +1,10 @@
-import {Button, Input, InputProps, Tooltip} from "@nextui-org/react";
-import React, {useCallback} from "react";
-import {Copy} from "react-feather";
+import { Button, Input, InputProps, Tooltip } from "@nextui-org/react";
+import React, { useCallback } from "react";
+import { Copy } from "react-feather";
 
 export interface CopyableInputProps extends InputProps {
   // The value to copy to the clipboard when the copy button is pressed. Otherwise uses value by default
-  copyValue?: string
+  copyValue?: string;
 }
 
 /**
@@ -19,17 +19,25 @@ const CopyableInput: React.FC<CopyableInputProps> = ({
   ...inputProps
 }) => {
   const copyValueToClipboard = useCallback(() => {
-    navigator.clipboard.writeText(copyValue ?? (value?.toString() ?? ""));
-  }, [value, copyValue])
-
+    navigator.clipboard.writeText(copyValue ?? value?.toString() ?? "");
+  }, [value, copyValue]);
 
   const copyButton = (
-    <Tooltip content={"Copy to Clipboard"} placement="bottom" showArrow>
-      <Button isIconOnly size="sm" variant="light" onPress={copyValueToClipboard}>
-        <Copy size="16"/>
+    <Tooltip
+      content={"Copy to Clipboard"}
+      placement="bottom"
+      showArrow
+      className="dark text-foreground"
+    >
+      <Button
+        isIconOnly
+        size="sm"
+        variant="light"
+        onPress={copyValueToClipboard}
+      >
+        <Copy size="16" />
       </Button>
     </Tooltip>
-
   );
 
   const newEndContent = (
@@ -44,6 +52,6 @@ const CopyableInput: React.FC<CopyableInputProps> = ({
       {children}
     </Input>
   );
-}
+};
 
 export default CopyableInput;

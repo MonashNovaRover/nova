@@ -1,4 +1,5 @@
 import humanizeString from "humanize-string";
+import CopyableInput from "../CopyableInput/CopyableInput";
 
 interface PropRendererProps<T> {
   props: T;
@@ -16,12 +17,19 @@ export const PropRenderer = <T extends object>(props: PropRendererProps<T>) => {
     <div className="w-full">
       {Object.keys(props.props)
         .filter((prop) => !props.ignoreProps.includes(prop as keyof T))
-        .map((prop) => (
-          <div className="flex flex-row justify-between">
-            <div className="font-semibold ">{humanizeString(prop)}</div>
-            <div>{String(props.props[prop as keyof T])}</div>
-          </div>
-        ))}
+        .map((prop, i) => {
+          return (
+            <div className="flex flex-row justify-between gap-1" key={i}>
+              <CopyableInput
+                readOnly
+                variant="faded"
+                label={humanizeString(prop)}
+                value={String(props.props[prop as keyof T])}
+                className="w-full my-1"
+              ></CopyableInput>
+            </div>
+          );
+        })}
     </div>
   );
 };
