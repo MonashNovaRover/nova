@@ -4,22 +4,14 @@ import jcan
 from python_control.classes.cards.Card import Card
 from python_control.classes.controls.OneAxisControl import OneAxisControl
 
-class CardController():
+class CardController(abc.ABC):
     """Class to interface with the cards on the CAN bus"""
-    def __init__(self, card: Card, max_value: int, can_bus: str, card_id: hex, control: OneAxisControl):
+    def __init__(self, card: Card, max_value: int, card_id: hex, control: OneAxisControl, bus: jcan.Bus):
         self.card = card # type: Card
         self.max_value = max_value # type: int
-        self.can_bus = can_bus # type: str
         self.card_id = card_id # type: hex
         self.control = control # type: OneAxisControl
- 
-        self.bus = jcan.Bus() # type: jcan.Bus
-        self.start_can()
-
-    def start_can(self):
-        self.bus.open(self.can_bus)
-        self.create_timer(0.01, self.bus.spin)
-        self.create_timer(0.05, self.control_send_callback)
+        self.bus = bus # type: jcan.Bus
 
     def get_card(self):
         """Get the card type"""

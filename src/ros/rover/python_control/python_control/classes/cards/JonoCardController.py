@@ -8,8 +8,8 @@ from python_control.classes.controls.OneAxisControl import Direction
 
 class JonoCardController(CardController):
     """Class to control the JONO card on the CAN bus"""
-    def __init__(self, can_bus: str, card_id: hex, pos_command: hex, neg_command: hex, control: OneAxisControl):
-        super().__init__(card=Card.JONO, max_value=255, can_bus=can_bus, card_id=card_id, control=control)
+    def __init__(self, card_id: hex, pos_command: hex, neg_command: hex, control: OneAxisControl, bus: jcan.Bus):
+        super().__init__(card=Card.JONO, max_value=255, card_id=card_id, control=control, bus=bus)
         self.pos_command = pos_command # type: hex
         self.neg_command = neg_command # type: hex
 

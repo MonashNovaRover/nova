@@ -7,20 +7,18 @@ from typing import TypeVar
 
 T = TypeVar('T')
 
-class Limit():
+class Limit(abc.ABC):
     """Class to represent a limit"""
-    def __init__(self, sensor: Sensor[T] = None):
+    def __init__(self, bus: jcan.Bus, sensor: Sensor[T] = None):
         self.limit_hit = False # type: bool
         self.sensor = sensor # type: Sensor[T]
-        self.bus = jcan.Bus() # type: jcan.Bus
+        self.bus = bus
         self.setup_can_bus()
 
     def setup_can_bus(self):
         """Setup the CAN bus"""
-        self.bus.set_id_filter_mask(self.sensor.get_frame_id(), 0xFFF)
         self.bus.add_callback(self.sensor.get_frame_id(), self.frame_callback)
-        self.bus.open(self.sensor.get_can_bus())
-        self.create_timer(0.01, self.bus.spin)
+
 
     def update_limit_hit(self, limit_hit: bool):
         """Update the limit hit"""
