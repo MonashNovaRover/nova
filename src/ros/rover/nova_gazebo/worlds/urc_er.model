@@ -2,7 +2,7 @@
 <sdf version="1.6">
   <world name="urc_er">
     <include>
-      <uri>model://urc_er_terrain</uri>
+      <uri>file:///nova_terrain_directory/urc_er_terrain</uri>
     </include>
 
     <include>
