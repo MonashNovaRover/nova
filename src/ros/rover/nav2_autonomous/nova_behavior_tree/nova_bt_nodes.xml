@@ -229,7 +229,7 @@
 
     <Condition ID="GetFirstGoal">
       <input_port name="goals">List of goals</input_port>
-      <output_port name="goal">First Goal</output_port>
+      <output_port name="first_goal">First Goal</output_port>
     </Condition>
 
     <Condition ID="CheckDetected">
@@ -239,7 +239,7 @@
 
     <Condition ID="GetFinalGoal">
       <input_port name="goals">List of goals</input_port>
-      <output_port name="goal">Final Goal</output_port>
+      <output_port name="final_goal">Final Goal</output_port>
     </Condition>
 
     <Condition ID="QueryPosition">

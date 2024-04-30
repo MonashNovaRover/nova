@@ -15,15 +15,15 @@ continuously
         <Sequence>
           <GetFinalGoal goals="{goals}" final_goal="{search_origin}" />
           <!-- Nav through poses -->
-          <RetryUntilSuccessful num_attempts="9">
+          <RetryUntilSuccessful num_attempts="1">
             <ReactiveFallback>
               <!-- Conduct a spin on reaching a goal-->
+              <GoalReached goal="{search_origin}" robot_base_frame="base_link" />
               <Sequence>
-                <GetFirstGoal goals="{goals}" first_goal="{goal}" />
-                <GoalReached goal="{goal}" robot_base_frame="base_link" />
                 <RemovePassedGoals input_goals="{goals}" output_goals="{goals}"
                   radius="0.5" />
-                <GoalReached goal="{search_origin}" robot_base_frame="base_link" />
+                <GetFirstGoal goals="{goals}" first_goal="{goal}" />
+                <GoalReached goal="{goal}" robot_base_frame="base_link" />
               </Sequence>
               <ForceFailure>
                 <SubTreePlus ID="NavToPoseWithReplanningAndRecovery" goal="{goal}"
@@ -36,24 +36,27 @@ continuously
           <!-- Compute search points -->
           <ComputeSearchGoals search_origin="{search_origin}" search_radius="7" num_points="8"
             search_goals="{search_goals}" />
+          <GetFinalGoal goals="{search_goals}" final_goal="{final_goal}" />
 
           <!-- Navigate through search points, spinning each time-->
           <!-- Keep going until we've exhausted all search goals -->
           <!-- NOTE: This value should be {n_search_goals + 1}-->
-          <RetryUntilSuccessful num_attempts="9">
+          <RetryUntilSuccessful num_attempts="1">
             <ReactiveFallback>
-              <GoalsEmpty goals="{search_goals}" />
               <!-- Conduct a spin on reaching a goal-->
+              <GoalReached
+                goal="{final_goal}" robot_base_frame="base_link" />
               <Sequence>
                 <GetFirstGoal goals="{search_goals}" first_goal="{goal}" />
                 <GoalReached
                   goal="{goal}" robot_base_frame="base_link" />
+                <Spin spin_dist="6.28" time_allowance="25" />
                 <RemovePassedGoals
                   input_goals="{search_goals}" output_goals="{search_goals}"
                   radius="0.5" />
-                <Spin spin_dist="6.28" time_allowance="25" />
-                <GoalsEmpty
-                  goals="{search_goals}" />
+                <GetFirstGoal goals="{search_goals}" first_goal="{goal}" />
+                <GoalReached
+                  goal="{goal}" robot_base_frame="base_link" />
               </Sequence>
               <ForceFailure>
                 <SubTreePlus ID="NavToPoseWithReplanningAndRecovery" goal="{goal}"
