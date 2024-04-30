@@ -60,8 +60,6 @@ namespace nova_behavior_tree
             sub_option
         );
 
-        RCLCPP_INFO(node_->get_logger(), "SUBSCRIBED");
-
         initialized_ = true;
     }
 
