@@ -10,6 +10,7 @@ import {
   IRosCoreNirProbeData, 
   IRosCoreMicroscopeServoInfo,
   IRosStdMsgsString,
+  IRosCoreHydraprobeData,
 } from "../rosTypes";
 import { RosTopic } from "./rosTopic";
 
@@ -44,7 +45,8 @@ export interface RosTopicInterfaces {
   [RosTopic.KILN_DATA]: IRosCoreKilnData;
   [RosTopic.NIR_DATA]: IRosCoreNirProbeData;
   [RosTopic.MICROSCOPE_SERVO]: IRosCoreMicroscopeServoInfo;
-
+  [RosTopic.HYDRAPROBE_DATA]: IRosCoreHydraprobeData;
+  
   // Cameras Related
   [RosTopic.CAMERAS]: IRosCameraMsgsCameras;
 

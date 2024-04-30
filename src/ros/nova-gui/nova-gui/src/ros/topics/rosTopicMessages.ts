@@ -30,5 +30,6 @@ export const rosTopicMessages = {
   [RosTopic.TOF]: "sensor_msgs/msg/Range",
   [RosTopic.KILN_DATA]: "core/msg/KilnData",
   [RosTopic.NIR_DATA]: "core/msg/NIRProbeData",
-  [RosTopic.MICROSCOPE_SERVO]: "core/msg/MicroscopeServoInfo"
+  [RosTopic.MICROSCOPE_SERVO]: "core/msg/MicroscopeServoInfo",
+  [RosTopic.HYDRAPROBE_DATA]: "core/msg/HydraprobeData",
 };
