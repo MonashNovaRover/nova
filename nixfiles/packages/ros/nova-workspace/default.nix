@@ -78,9 +78,6 @@
 
   ## Extra packages to add to the workspace.
 , extraPackages ? {
-    # inherit
-      # Some of our packages are simple constructions written in Nix and do not
-      # need to be considered in the build environment.
   }
 }:
 
