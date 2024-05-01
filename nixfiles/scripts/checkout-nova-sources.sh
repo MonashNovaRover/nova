@@ -10,6 +10,8 @@ ROS_REPOS=(
 
 OTHER_REPOS=(
     coms_utils
+    libblcmd
+    libcanmd
 )
 
 SRCDIR="$(git rev-parse --show-toplevel)/external/src"

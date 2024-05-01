@@ -10,5 +10,7 @@
   };
   other = {
     coms_utils = "feature/nix";
+    libblcmd = null;
+    libcanmd = null;
   };
 }
