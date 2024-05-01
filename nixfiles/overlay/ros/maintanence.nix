@@ -65,6 +65,17 @@ self: super:
         propagatedBuildInputs = rosSelf.lib.remove rosSelf.depthai-examples propagatedBuildInputs;
       });
 
+      depthai-descriptions = rosSuper.depthai-descriptions.overrideAttrs ({ ... }: {
+        src = self.fetchFromGitHub {
+            owner = "MonashNovaRover";
+            repo = "depthai-ros";
+            rev = "e79be16eacad4f1892fe4035e2108bdd42293379"; 
+            hash = "sha256-QCAEeewkXYDYbE7drU2l8bmqr+sPNy7KnRwADg7zFws=";
+        };
+        version = "2.9.0-r1";
+        sourceRoot = "source/depthai_descriptions";
+      });
+
       rosbridge-library = rosSuper.rosbridge-library.override {
 		    python3Packages=rosSuper.python3Packages.overrideScope (pySelf: pySuper: {
 			    bson = pySelf.pymongo;
