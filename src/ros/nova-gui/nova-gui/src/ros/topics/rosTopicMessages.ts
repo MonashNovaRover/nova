@@ -13,22 +13,22 @@ export const rosTopicMessages = {
   [RosTopic.POSE]: "geometry_msgs/msg/Pose",
 
   // Drive Related
-  [RosTopic.DRIVE_INFO]: "core/msg/DriveInfo",
-  [RosTopic.DRIVE_TELEMETRY]: "core/msg/Telemetry",
+  [RosTopic.DRIVE_INFO]: "drive_interfaces/msg/DriveInfo",
+  [RosTopic.DRIVE_TELEMETRY]: "blcmd_interfaces/msg/Telemetry",
 
   // Arm Related
-  [RosTopic.ARM_TELEMETRY]: "core/msg/CMDsFeedback",
+  [RosTopic.ARM_TELEMETRY]: "cmd_interfaces/msg/CMDsFeedback",
   [RosTopic.RFID_DATA]: "std_msgs/msg/String",
 
   // Cameras Related
   [RosTopic.CAMERAS]: "camera_msgs/msg/Cameras",
 
   // Errors Related
-  [RosTopic.BLCMD_ERRORS]: "core/msg/BLCMDStatusArray",
+  [RosTopic.BLCMD_ERRORS]: "blcmd_interfaces/msg/BLCMDStatusArray",
   
   // Science Related
   [RosTopic.TOF]: "sensor_msgs/msg/Range",
-  [RosTopic.KILN_DATA]: "core/msg/KilnData",
-  [RosTopic.NIR_DATA]: "core/msg/NIRProbeData",
-  [RosTopic.MICROSCOPE_SERVO]: "core/msg/MicroscopeServoInfo"
+  [RosTopic.KILN_DATA]: "nova_interfaces/msg/KilnData",
+  [RosTopic.NIR_DATA]: "nova_interfaces/msg/NIRProbeData",
+  [RosTopic.MICROSCOPE_SERVO]: "nova_interfaces/msg/MicroscopeServoInfo"
 };

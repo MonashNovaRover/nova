@@ -20,7 +20,7 @@ import { BLCMD_INDEX } from "../../constants";
 import { ComplainingChips } from "./ComplainingChips";
 import { ArrowCounterclockwise } from "react-bootstrap-icons";
 import { RosService } from "../../ros/services/rosService";
-import { IRosCoreBlcmdResetRequestConst } from "../../ros/rosTypes";
+import { IRosBlcmdInterfacesBlcmdResetRequestConst } from "../../ros/rosTypes";
 import { ToolTipButton } from "../shared/TooltipButton";
 
 export const BLCMDStatusModal = () => {
@@ -48,7 +48,7 @@ export const BLCMDStatusModal = () => {
   const resetBLCMD = (id: number) =>
     bifrostReset.callService(
       {
-        type: IRosCoreBlcmdResetRequestConst.BLCMD,
+        type: IRosBlcmdInterfacesBlcmdResetRequestConst.BLCMD,
         id: id,
       },
       {
@@ -59,7 +59,7 @@ export const BLCMDStatusModal = () => {
   const zeroResolver = (id: number) =>
     bifrostReset.callService(
       {
-        type: IRosCoreBlcmdResetRequestConst.RESOLVER,
+        type: IRosBlcmdInterfacesBlcmdResetRequestConst.RESOLVER,
         id: id,
       },
       {

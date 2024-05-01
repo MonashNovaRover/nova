@@ -3,7 +3,7 @@ import {Maximize2, RefreshCw} from "react-feather";
 import {Image} from "@nextui-org/react";
 import Tank from "../../assets/tank-icon.svg";
 
-// Enum to assign meaning to IRosCoreDriveInfo.drive_mode values
+// Enum to assign meaning to IRosDriveInterfacesDriveInfo.drive_mode values
 export enum DriveMode {
   PIVOT = 1,
   STRAFE = 2,
