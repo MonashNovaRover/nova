@@ -29,7 +29,7 @@ from rclpy.time import Time
 from tf2_ros import TransformListener, Buffer
 
 # msg imports
-from core.msg import AlvarMarkers, AlvarMarker
+from nova_interfaces.msg import AlvarMarkers, AlvarMarker
 from geometry_msgs.msg import TransformStamped, Pose, Point, Quaternion
 
 # nova import

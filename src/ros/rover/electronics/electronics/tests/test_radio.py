@@ -24,7 +24,7 @@ from rclpy.node import Node
 import time, math, random, sys
 
 # Get the RoverPose message type
-from core.msg import RadioStatus
+from nova_interfaces.msg import RadioStatus
 
 # This class handles all movement and testing of the GPS
 class RadioTest (Node):

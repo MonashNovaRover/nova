@@ -32,7 +32,7 @@ from rclpy.node import Node
 import time
 
 # Import the wheel message type
-from core.msg import WheelData, DriveInput
+from nova_interfaces.msg import WheelData, DriveInput
 
 # Import the CAN library
 from coms_utils.can_interface import CANReceiver

@@ -35,8 +35,7 @@ def launch_setup(context, *args, **kwargs):
     ekf = LaunchConfiguration('ekf')
     use_filter = LaunchConfiguration('use_filter')
     ekf_params = LaunchConfiguration('ekf_params')
-
-
+    gps = LaunchConfiguration('gps')
 
     gazebo_odom_params = {
         "use_sim_time": use_sim_time, 
@@ -72,24 +71,51 @@ def launch_setup(context, *args, **kwargs):
         condition=IfCondition(AndSubstitution(use_real_odometry, ekf)),
         package='robot_localization',
         executable='ekf_node',
-        name='ekf_filter_node',
+        name='ekf_filter_node_odom',
         output='screen',
-        parameters=[(LaunchConfiguration('ekf_params_file').perform(context)), {"use_sim_time": use_sim_time}],
+        parameters=[(LaunchConfiguration('rl_params_file').perform(context)), {"use_sim_time": use_sim_time}],
+        remappings=[("odometry/filtered", "odometry/local")]
     )
 
-    slam_cmd = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource((get_package_share_path("core") / 'launch' / 'rtabmap.launch.py').as_posix()),
-        launch_arguments={
-            'use_sim_time': use_sim_time,
-            'load_map': load_map,
-        }.items()
+    ekf_localisation_map = Node(
+        condition=IfCondition(AndSubstitution(use_real_odometry, gps)),
+        package='robot_localization',
+        executable='ekf_node',
+        name='ekf_filter_node_map',
+        output='screen',
+        parameters=[(LaunchConfiguration('rl_params_file').perform(context)), {"use_sim_time": use_sim_time}],
+        remappings=[("odometry/filtered", "odometry/global")]
     )
+
+    navsat_transform_node = Node(
+        condition=IfCondition(AndSubstitution(use_real_odometry, gps)),
+        package='robot_localization',
+        executable='navsat_transform_node',
+        name='navsat_transform',
+        output='screen',
+        parameters=[(LaunchConfiguration('rl_params_file').perform(context)), {"use_sim_time": use_sim_time}],
+        remappings=[
+								("odometry/filtered", "odometry/global"),
+								("gps/fix", "fix"),
+								("imu", "oak/imu/data"),
+				]
+    )
+
+    #slam_cmd = IncludeLaunchDescription(
+    #    PythonLaunchDescriptionSource((get_package_share_path("core") / 'launch' / 'rtabmap.launch.py').as_posix()),
+    #    launch_arguments={
+    #        'use_sim_time': use_sim_time,
+    #        'load_map': load_map,
+    #    }.items()
+    #)
     
     return [
         ukf_localisation_gazebo,
         ukf_localisation_odom,
-        ekf_localisation_odom,
-        slam_cmd,
+        #ekf_localisation_odom,
+				ekf_localisation_map,
+				navsat_transform_node,
+        #slam_cmd,
     ]
     
 def generate_launch_description():
@@ -116,9 +142,9 @@ def generate_launch_description():
         description='Use EKF (true) or UKF (false)'
     )
 
-    ekf_param_arg = DeclareLaunchArgument(
-        'ekf_params_file',
-        default_value=os.path.join(get_package_share_path("core"),'params','ekf.yaml')
+    rl_param_arg = DeclareLaunchArgument(
+        'rl_params_file',
+        default_value=os.path.join(get_package_share_path("core"),'params','rl.yaml')
     )
 
     use_filter_arg = DeclareLaunchArgument(
@@ -126,14 +152,21 @@ def generate_launch_description():
         default_value='true',
         description='Use a Kalman Filter?'
     )
+    
+    gps_arg = DeclareLaunchArgument(
+        'gps',
+        default_value='false',
+        description='Fuse GPS?'
+    )
 
     declared_arguments = [
         ekf_arg,
         use_filter_arg,
         use_sim_time_arg,
         use_real_odom_arg,
-        ekf_param_arg,
+        rl_param_arg,
         load_map_arg,
+        gps_arg
     ]
 
     return LaunchDescription(

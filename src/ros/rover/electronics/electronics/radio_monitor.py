@@ -28,7 +28,7 @@ If you have issues connecting to the radio device
 import rclpy
 from rclpy.node import Node
 from rclpy.timer import Rate
-from core.msg import RadioStatus
+from nova_interfaces.msg import RadioStatus
 from fabric import Connection
 import re, time, psutil, subprocess, sys
 

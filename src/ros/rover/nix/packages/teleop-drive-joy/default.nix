@@ -4,7 +4,8 @@
 , ament-cmake
 , rclcpp
 , joy
-, nova-core
+, nova-drive-interfaces
+, nova-input-interfaces
 , geometry-msgs
 , sensor-msgs
 , generate-parameter-library
@@ -37,7 +38,8 @@ buildRosPackage {
     generate-parameter-library
     realtime-tools
     geometry-msgs
-    nova-core
+    nova-drive-interfaces
+    nova-input-interfaces
     sensor-msgs
     pluginlib
     rclcpp-components

@@ -23,7 +23,7 @@ from geometry_msgs.msg import TransformStamped, Pose
 from visualization_msgs.msg import Marker, MarkerArray
 
 # our imports
-from core.msg import AlvarMarkers, AutonomousGoal, AlvarMarker, AutonomousGoalArray, AutonomousGoal
+from nova_interfaces.msg import AlvarMarkers, AutonomousGoal, AlvarMarker, AutonomousGoalArray, AutonomousGoal
 #from autonomous.config.runtime_params import *
 from autonomous.config.ros_config import auto_goal_topic
 from autonomous.math_utils import transform

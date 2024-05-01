@@ -15,6 +15,7 @@
 , pythonPackages
 , nova-core
 , SDL2
+, nova-arm-interfaces
 }:
 
 buildRosPackage {
@@ -46,17 +47,10 @@ buildRosPackage {
     nova-core
     SDL2
     SDL2.dev
+    nova-arm-interfaces
   ];
 
   propagatedBuildInputs = with pythonPackages; [
     jcan
   ];
-
-  postInstall = ''
-    mkdir -p "$out/bin"
-    ln -s ${writeShellApplication {
-      name = "blcmd_disable";
-      text = builtins.readFile ./macros/blcmd_disable.sh;
-    }}/bin/* "$out/bin"
-  '';
 }

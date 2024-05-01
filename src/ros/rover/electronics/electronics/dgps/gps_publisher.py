@@ -25,7 +25,7 @@ from pynmeagps import NMEAReader, NMEAMessage
 import rclpy
 from rclpy.node import Node
 
-from core.msg import RoverPoseGPS
+from nova_interfaces.msg import RoverPoseGPS
 import logging
 
 class SkytraqNode (Node):

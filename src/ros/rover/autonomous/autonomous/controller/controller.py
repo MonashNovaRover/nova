@@ -40,7 +40,7 @@ from rclpy.qos import QoSReliabilityPolicy, QoSProfile
 from tf2_ros import Buffer, TransformListener
 
 # message imports
-from core.msg import DriveInput, PivotWheelData
+from nova_interfaces.msg import DriveInput, PivotWheelData
 from geometry_msgs.msg import Transform, Pose2D
 from nav_msgs.msg import Path
 from std_msgs.msg import Empty, Bool, Float64

@@ -26,7 +26,7 @@ import rclpy
 from rclpy.node import Node
 from rclpy.duration import Duration
 
-from core.msg import AutonomousGoal, AutonomousGoalArray, AlvarMarkers, AlvarMarker
+from nova_interfaces.msg import AutonomousGoal, AutonomousGoalArray, AlvarMarkers, AlvarMarker
 from visualization_msgs.msg import MarkerArray, Marker
 from geometry_msgs.msg import PoseStamped
 

@@ -42,8 +42,8 @@ from rclpy.duration import Duration
 
 from tf2_ros import TransformBroadcaster, StaticTransformBroadcaster, Buffer, TransformListener
 
-from core.msg import RoverPoseGPS, AutonomousGoal, AutonomousGoalArray
-from core.srv import GpsOffset
+from nova_interfaces.msg import RoverPoseGPS, AutonomousGoal, AutonomousGoalArray
+from nova_interfaces.srv import GpsOffset
 
 from geometry_msgs.msg import TransformStamped, Transform, Vector3Stamped
 from sensor_msgs.msg import Imu

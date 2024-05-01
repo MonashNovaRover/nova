@@ -41,7 +41,7 @@
 #include "realtime_tools/realtime_buffer.h"
 #include "realtime_tools/realtime_publisher.h"
 #include "tf2_msgs/msg/tf_message.hpp"
-#include "core/msg/drive_input_stamped.hpp"
+#include "drive_interfaces/msg/drive_input_stamped.hpp"
 
 #include "nova_diff_drive_controller_parameters.hpp"
 
@@ -131,14 +131,14 @@ protected:
   rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr twist_subscriber_ = nullptr;
   rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr twist_unstamped_subscriber_ = nullptr;
 
-  rclcpp::Subscription<core::msg::DriveInputStamped>::SharedPtr drive_input_subscriber_ = nullptr;
-  rclcpp::Subscription<core::msg::DriveInput>::SharedPtr drive_input_unstamped_subscriber_ = nullptr;
+  rclcpp::Subscription<drive_interfaces::msg::DriveInputStamped>::SharedPtr drive_input_subscriber_ = nullptr;
+  rclcpp::Subscription<drive_interfaces::msg::DriveInput>::SharedPtr drive_input_unstamped_subscriber_ = nullptr;
 
   realtime_tools::RealtimeBox<std::shared_ptr<geometry_msgs::msg::TwistStamped>> received_twist_msg_ptr_{nullptr};
-  realtime_tools::RealtimeBox<std::shared_ptr<core::msg::DriveInputStamped>> received_drive_input_msg_ptr_{nullptr};
+  realtime_tools::RealtimeBox<std::shared_ptr<drive_interfaces::msg::DriveInputStamped>> received_drive_input_msg_ptr_{nullptr};
 
   std::queue<geometry_msgs::msg::TwistStamped> previous_twist_commands_;  // last two commands
-  std::queue<core::msg::DriveInputStamped> previous_commands_;  // last two commands
+  std::queue<drive_interfaces::msg::DriveInputStamped> previous_commands_;  // last two commands
 
   float angle_offset;
   // speed limiters

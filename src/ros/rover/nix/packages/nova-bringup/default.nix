@@ -1,0 +1,21 @@
+{ lib
+, buildRosPackage
+, ament-cmake
+, rosidl-default-generators
+, launch
+, launch-ros
+}:
+
+buildRosPackage {
+  name = "nova-bringup";
+  buildType = "ament_cmake";
+
+  src = builtins.path rec {
+    name = "nova-bringup-source";
+    path = ../../../nova_bringup;
+    filter = lib.novaSourceFilter [ ] path;
+  };
+
+  nativeBuildInputs = [ ament-cmake rosidl-default-generators ];
+  propagatedBuildInputs = [launch launch-ros ];
+}
