@@ -64,6 +64,7 @@ install(PROGRAMS
   science/urc_sample_tray.py
   science/urc_pumps.py
   science/urc_carousel.py
+  science/uv_vis_spec.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

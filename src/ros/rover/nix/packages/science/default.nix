@@ -30,6 +30,7 @@ buildRosPackage {
     jcan
     nova-coms-utils
     pymodbus
+    opencv4
   ] ++
   [
     nova-python-control
