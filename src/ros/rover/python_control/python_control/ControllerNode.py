@@ -2,22 +2,22 @@
 
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Purpose: Control Auger Height and Drill Spin using Joysticks
+Purpose: Control Node Abstract Class
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-NODE: auger
+NODE: ControllerNode
 TOPICS:
   - subscriber: /control/input_joystick_l [InputJoystick]
   - subscriber: /control/input_joystick_r [InputJoystick]
 SERVICES: None
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-PACKAGE:
+PACKAGE:    python_control
 AUTHOR(S):	Tristan Clark
-CREATION:	24/02/2024
-EDITED:		24/02/2024
+CREATION:	03/05/2024
+EDITED:		03/05/2024
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 """
+
 import abc
 from python_control.cards.CardController import CardController
 from python_control.limits.Limit import Limit
@@ -108,7 +108,7 @@ class ControllerNode(abc.ABC, Node):
         except Exception as e:
             print(e)
 
-    def deadline_callback(self, _info):
+    def deadline_callback(self, info):
         # Set all speeds to 0
         self.get_logger().warning("200ms Callback deadline missed")
         self.stop_state()

@@ -13,8 +13,8 @@ class Limit(abc.ABC):
     def __init__(self, bus: jcan.Bus, logger: Logger, sensor: Sensor = None):
         self.limit_hit = False # type: bool
         self.sensor = sensor # type: Sensor[T]
-        self.bus = bus
-        self.logger = logger
+        self.bus = bus # type: jcan.Bus
+        self.logger = logger # type: Logger
         self.setup_can_bus()
 
     def get_logger(self):

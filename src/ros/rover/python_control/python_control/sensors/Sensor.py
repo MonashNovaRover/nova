@@ -12,8 +12,8 @@ class Sensor(abc.ABC, Generic[T]):
     def __init__(self, bus: jcan.Bus, logger: Logger, frame_id: hex, initial_value: T = None, run_can: bool = True):
         self.frame_id = frame_id # type: hex
         self.sensor_value = initial_value # type: T
-        self.bus = bus
-        self.logger = logger
+        self.bus = bus # type: jcan.Bus
+        self.logger = logger # type: Logger
         if run_can:
             self.setup_can_bus()
 
