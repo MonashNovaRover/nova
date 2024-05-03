@@ -1,7 +1,7 @@
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction
-from launch.conditions import IfCondition
+from launch.conditions import IfCondition, LaunchConfigurationNotEquals
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import LoadComposableNodes, Node
@@ -10,7 +10,8 @@ from launch_ros.substitutions import FindPackageShare
 
 def launch_setup(context, *args, **kwargs):
     name = LaunchConfiguration('name').perform(context)
-    depthai_prefix = FindPackageShare("depthai_ros_driver")
+    depthai_prefix = get_package_share_directory("depthai_ros_driver")
+    bringup_dir = get_package_share_directory('auto_bringup')
 
     params_file= LaunchConfiguration("params_file")
     
@@ -48,6 +49,18 @@ def launch_setup(context, *args, **kwargs):
                         ],
             parameters=[{'t_filter': 0, 'r_filter': 0, 'b_filter': 0, 'l_filter': 0, }] 
         ),
+        Node(
+            condition=IfCondition(LaunchConfiguration('ar_tag')),
+            package='aruco_opencv',
+            executable='aruco_tracker_autostart',
+            arguments=['--ros-args', '--params-file', os.path.join(bringup_dir, 'params', 'aruco_tracker.yaml')],
+        ),
+        Node(
+            condition=IfCondition(LaunchConfiguration('ar_tag')),
+            package='nova_ar_tag',
+            executable='aruco_marker',
+            name='aruco_marker',
+        ),
     ]
 
 
@@ -59,6 +72,7 @@ def generate_launch_description():
         DeclareLaunchArgument("rectify_rgb", default_value="True"),
         DeclareLaunchArgument('use_sim_time', default_value='False'),
         DeclareLaunchArgument('rtabmap_pointcloud', default_value='True'),
+        DeclareLaunchArgument('ar_tag', default_value='False'),
     ]
 
     return LaunchDescription(  
