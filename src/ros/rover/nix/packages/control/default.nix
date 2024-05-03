@@ -13,7 +13,6 @@
 , orocos-kdl
 , systemd
 , pythonPackages
-, nova-core
 , SDL2
 , nova-arm-interfaces
 }:
@@ -44,7 +43,6 @@ buildRosPackage {
     eigen
     orocos-kdl
     systemd
-    nova-core
     SDL2
     SDL2.dev
     nova-arm-interfaces
