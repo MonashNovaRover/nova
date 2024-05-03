@@ -1,3 +1,4 @@
+import os
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction
@@ -10,38 +11,57 @@ from launch_ros.substitutions import FindPackageShare
 
 def launch_setup(context, *args, **kwargs):
     name = LaunchConfiguration('name').perform(context)
-    depthai_prefix = get_package_share_directory("depthai_ros_driver")
+    depthai_prefix = get_package_share_directory('depthai_ros_driver')
     bringup_dir = get_package_share_directory('auto_bringup')
 
-    params_file= LaunchConfiguration("params_file")
+    params_file= LaunchConfiguration('params_file')
     
     use_sim_time = LaunchConfiguration('use_sim_time')
+    use_camera = LaunchConfiguration('use_camera')
 
     return [
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
                 PathJoinSubstitution([depthai_prefix, 'launch', 'camera.launch.py'])
             ),
-            launch_arguments={"name": name,
-                              "parent_frame": "camera_link",
-                              "params_file": params_file}.items()),
+            condition=IfCondition(use_camera),
+            launch_arguments={'name': name,
+                              'parent_frame': 'camera_link',
+                              'params_file': params_file}.items()),
 
+        # LoadComposableNodes(
+        #     condition=IfCondition(LaunchConfiguration('rectify_rgb')),
+        #     target_container=name+'_container',
+        #     composable_node_descriptions=[
+        #         ComposableNode(
+        #             package='depth_image_proc',
+        #             plugin='depth_image_proc::PointCloudXyziNode',
+        #             name='point_cloud_xyzi',
+        #             remappings=[('depth/image_rect', name+'/stereo/image_raw'),
+        #                         ('intensity/image_rect', name+'/right/image_rect'),
+        #                         ('intensity/camera_info', name+'/stereo/camera_info'),
+        #                         ('points', name+'/points')
+        #                         ]),
+        #     ]),
         LoadComposableNodes(
-            condition=IfCondition(LaunchConfiguration("rectify_rgb")),
-            target_container=name+"_container",
+            condition=IfCondition(LaunchConfiguration('rectify_rgb')),
+            target_container=name+'_container',
             composable_node_descriptions=[
                 ComposableNode(
-                    package='depth_image_proc',
-                    plugin='depth_image_proc::PointCloudXyziNode',
-                    name='point_cloud_xyzi',
-                    remappings=[('depth/image_rect', name+'/stereo/image_raw'),
-                                ('intensity/image_rect', name+'/right/image_rect'),
-                                ('intensity/camera_info', name+'/stereo/camera_info'),
-                                ('points', name+'/points')
-                                ]),
+                    package='image_proc',
+                    plugin='image_proc::RectifyNode',
+                    name='rectify_color_node',
+                    remappings=[('image', name+'/rgb/image_raw'),
+                                ('camera_info', name+'/rgb/camera_info'),
+                                ('image_rect', name+'/rgb/image_rect'),
+                                ('image_rect/compressed', name+'/rgb/image_rect/compressed'),
+                                ('image_rect/compressedDepth', name+'/rgb/image_rect/compressedDepth'),
+                                ('image_rect/theora', name+'/rgb/image_rect/theora')]
+                )
             ]),
 
         Node(
+            condition=IfCondition(LaunchConfiguration('use_camera')),
             package='nova_pointcloud_filter',
             executable='depth_filter',
             name='depth_filter',
@@ -56,18 +76,25 @@ def launch_setup(context, *args, **kwargs):
             executable='aruco_tracker_autostart',
             arguments=['--ros-args', '--params-file', PathJoinSubstitution([bringup_dir, 'params', 'aruco_tracker.yaml'])],
         ),
+        Node(
+            condition=IfCondition(LaunchConfiguration('ar_tag')),
+            package='nova_ar_tag',
+            executable='aruco_marker',
+            name='aruco_marker',
+        ),
     ]
 
 
 def generate_launch_description():
     auto_bringup_prefix = FindPackageShare('auto_bringup')
     declared_arguments = [
-        DeclareLaunchArgument("name", default_value="oak"),
-        DeclareLaunchArgument("params_file", default_value=PathJoinSubstitution([auto_bringup_prefix, 'params', 'depthai_oakd_rgbd.yaml'])),
-        DeclareLaunchArgument("rectify_rgb", default_value="True"),
+        DeclareLaunchArgument('name', default_value='oak'),
+        DeclareLaunchArgument('params_file', default_value=PathJoinSubstitution([auto_bringup_prefix, 'params', 'depthai_oakd_rgbd.yaml'])),
+        DeclareLaunchArgument('rectify_rgb', default_value='True'),
         DeclareLaunchArgument('use_sim_time', default_value='False'),
         DeclareLaunchArgument('rtabmap_pointcloud', default_value='True'),
-        DeclareLaunchArgument('ar_tag', default_value='True'),
+        DeclareLaunchArgument('ar_tag', default_value='False'),
+        DeclareLaunchArgument('use_camera', default_value='True'),
     ]
 
     return LaunchDescription(  

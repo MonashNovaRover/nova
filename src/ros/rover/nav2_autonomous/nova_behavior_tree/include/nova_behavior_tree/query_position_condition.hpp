@@ -110,6 +110,7 @@ namespace nova_behavior_tree
 
     private:
         rclcpp::Node::SharedPtr node_;
+        
 
         bool initialized_;
 
