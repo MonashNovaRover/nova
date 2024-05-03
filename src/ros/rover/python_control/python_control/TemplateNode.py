@@ -1,6 +1,24 @@
 #!/usr/bin/env python3
 
-import rclpy, time
+"""
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Purpose: TemplateNode for creating new control nodes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+NODE: TemplateNode
+TOPICS:
+  - subscriber: /inputs/input_joystick_l [InputJoystick]
+  - subscriber: /inputs/input_joystick_r [InputJoystick]
+SERVICES: None
+ACTIONS: None
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PACKAGE:    pyton_control
+AUTHOR(S):	Tristan Clark
+CREATION:	03/05/2024
+EDITED:		03/05/2024
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+"""
+
+import rclpy
 from python_control.ControllerNode import ControllerNode
 from python_control.cards.CMDCardController import CMDCardController
 from python_control.controls.OneAxisControl import Direction, OneAxisControl
@@ -98,7 +116,7 @@ class TemplateNode(ControllerNode):
             logger=logger,
             bus=self.bus,
             card_id=self.CMD_ID,
-            control=self.platform,
+            control=self.control_name,
         )
 
         ## Add the CONTROLLERS to the node's controllers
