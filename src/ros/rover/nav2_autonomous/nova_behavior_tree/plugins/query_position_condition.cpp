@@ -75,6 +75,7 @@ namespace nova_behavior_tree
             geometry_msgs::msg::PoseStamped pose_stamped;
             pose_stamped.header = msg->header;
             pose_stamped.pose = marker.pose;
+            pose_stamped.pose.position.z = 0.0;
             tag_poses_[_id] = pose_stamped;
         }
     }
@@ -87,6 +88,7 @@ namespace nova_behavior_tree
             geometry_msgs::msg::PoseStamped pose_stamped;
             pose_stamped.header = detection.header;
             pose_stamped.pose = detection.bbox.center;
+            pose_stamped.pose.position.z = 0.0;
             object_poses_[_id] = pose_stamped;
         }
     }

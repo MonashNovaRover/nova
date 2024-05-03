@@ -10,7 +10,7 @@ continuously
     <ReactiveSequence name="FindAndApproachObject">
       <ReactiveFallback name="NavThroughPosesAndSearchForObject">
         <!-- Exit the fallback when the object is found-->
-        <CheckDetected id="1" detection_type="tag" />
+        <CheckDetected id="0" detection_type="tag" />
 
         <Sequence>
           <GetFinalGoal goals="{goals}" final_goal="{search_origin}" />
@@ -61,7 +61,7 @@ continuously
         </Sequence>
       </ReactiveFallback>
       <!-- Object has been found - get it's latest position in the map frame -->
-      <QueryPosition detection_type="{detection_type}" id="{id}" position="{position}" />
+      <QueryPosition detection_type="tag" id="0" position="{position}" />
       <!-- Navigate to object position -->
       <SubTreePlus ID="NavToPoseWithReplanningAndRecovery" goal="{position}"
         __autoremap="true" />

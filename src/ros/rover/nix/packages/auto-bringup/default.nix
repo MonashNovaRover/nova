@@ -4,6 +4,8 @@
 , launch
 , launch-ros
 , xacro
+, aruco-opencv
+, aruco-opencv-msgs
 , robot-state-publisher
 , controller-manager
 , ros2-control
@@ -45,6 +47,8 @@ buildRosPackage rec {
       gazebo-ros2-control
       gazebo-ros-pkgs
       ros2-controllers
+      aruco-opencv
+      aruco-opencv-msgs
       pluginlib
       robot-localization
       image-view

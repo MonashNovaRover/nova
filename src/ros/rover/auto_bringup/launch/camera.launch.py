@@ -20,7 +20,8 @@ def launch_setup(context, *args, **kwargs):
     return [
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
-                FindPackageShare([depthai_prefix, 'launch', 'camera.launch.py'])),
+                PathJoinSubstitution([depthai_prefix, 'launch', 'camera.launch.py'])
+            ),
             launch_arguments={"name": name,
                               "parent_frame": "camera_link",
                               "params_file": params_file}.items()),
@@ -53,13 +54,7 @@ def launch_setup(context, *args, **kwargs):
             condition=IfCondition(LaunchConfiguration('ar_tag')),
             package='aruco_opencv',
             executable='aruco_tracker_autostart',
-            arguments=['--ros-args', '--params-file', os.path.join(bringup_dir, 'params', 'aruco_tracker.yaml')],
-        ),
-        Node(
-            condition=IfCondition(LaunchConfiguration('ar_tag')),
-            package='nova_ar_tag',
-            executable='aruco_marker',
-            name='aruco_marker',
+            arguments=['--ros-args', '--params-file', PathJoinSubstitution([bringup_dir, 'params', 'aruco_tracker.yaml'])],
         ),
     ]
 
@@ -72,7 +67,7 @@ def generate_launch_description():
         DeclareLaunchArgument("rectify_rgb", default_value="True"),
         DeclareLaunchArgument('use_sim_time', default_value='False'),
         DeclareLaunchArgument('rtabmap_pointcloud', default_value='True'),
-        DeclareLaunchArgument('ar_tag', default_value='False'),
+        DeclareLaunchArgument('ar_tag', default_value='True'),
     ]
 
     return LaunchDescription(  
