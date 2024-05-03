@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from python_control.classes.sensors.Sensor import Sensor
+from python_control.sensors.Sensor import Sensor
 from logging import Logger
 import jcan
 from enum import Enum

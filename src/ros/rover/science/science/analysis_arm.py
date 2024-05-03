@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 
 import rclpy, time
-from control.ControllerNode import ControllerNode
-from control.classes.cards.CMDCardController import CMDCardController
-from control.classes.controls.OneAxisControl import Direction, OneAxisControl
-from control.classes.sensors.IntegerSensor import IntegerSensor
-from control.classes.limits.IntegerLimit import IntegerLimit
-from control.classes.limits.LimitSwitchLimit import LimitSwitchLimit
-from control.classes.sensors.LimitSwitchSensor import LimitSwitchSensor
-from core.msg import InputJoystick
+from python_control.ControllerNode import ControllerNode
+from python_control.cards.CMDCardController import CMDCardController
+from python_control.controls.OneAxisControl import Direction, OneAxisControl
+from python_control.sensors.IntegerSensor import IntegerSensor
+from python_control.limits.IntegerLimit import IntegerLimit
+from python_control.limits.LimitSwitchLimit import LimitSwitchLimit
+from python_control.sensors.LimitSwitchSensor import LimitSwitchSensor
+from input_interfaces.msg import InputJoystick
 
 
 class AnalysisArm(ControllerNode):

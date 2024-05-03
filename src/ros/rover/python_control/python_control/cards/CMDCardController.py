@@ -2,9 +2,9 @@
 from logging import Logger
 from struct import pack
 import jcan
-from python_control.classes.cards.Card import Card
-from python_control.classes.cards.CardController import CardController
-from python_control.classes.controls.OneAxisControl import OneAxisControl
+from python_control.cards.Card import Card
+from python_control.cards.CardController import CardController
+from python_control.controls.OneAxisControl import OneAxisControl
 
 
 class CMDCardController(CardController):

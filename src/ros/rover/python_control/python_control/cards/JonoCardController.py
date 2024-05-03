@@ -2,10 +2,10 @@
 
 from logging import Logger
 import jcan
-from python_control.classes.cards.Card import Card
-from python_control.classes.cards.CardController import CardController
-from python_control.classes.controls.OneAxisControl import OneAxisControl
-from python_control.classes.controls.OneAxisControl import Direction
+from python_control.cards.Card import Card
+from python_control.cards.CardController import CardController
+from python_control.controls.OneAxisControl import OneAxisControl
+from python_control.controls.OneAxisControl import Direction
 
 class JonoCardController(CardController):
     """Class to control the JONO card on the CAN bus"""

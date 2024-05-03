@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from enum import Enum
-from python_control.classes.limits.Limit import Limit
+from python_control.limits.Limit import Limit
 
 class Direction(Enum):
     """Enum for the different directions of the motors"""

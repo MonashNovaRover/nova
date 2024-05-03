@@ -2,7 +2,7 @@
 
 from logging import Logger
 import jcan
-from python_control.classes.sensors.Sensor import Sensor
+from python_control.sensors.Sensor import Sensor
 
 class IntegerSensor(Sensor[int]):
     """Class to represent a time of flight sensor"""

@@ -2,8 +2,8 @@
 import abc
 from logging import Logger
 import jcan
-from python_control.classes.cards.Card import Card
-from python_control.classes.controls.OneAxisControl import OneAxisControl
+from python_control.cards.Card import Card
+from python_control.controls.OneAxisControl import OneAxisControl
 
 class CardController(abc.ABC):
     """Class to interface with the cards on the CAN bus"""

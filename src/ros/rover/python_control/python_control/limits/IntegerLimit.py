@@ -2,9 +2,9 @@
 from logging import Logger
 import jcan
 
-from python_control.classes.limits.Limit import Limit
-from python_control.classes.limits.Limit import Limit
-from python_control.classes.sensors.IntegerSensor import IntegerSensor
+from python_control.limits.Limit import Limit
+from python_control.limits.Limit import Limit
+from python_control.sensors.IntegerSensor import IntegerSensor
 
 class IntegerLimit(Limit):
     """Class to represent a time of flight sensor"""

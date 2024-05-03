@@ -59,6 +59,7 @@ install(PROGRAMS
   science/nir_probe_publisher.py
   science/auger.py
   science/analysis_platform.py
+  science/analysis_arm.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

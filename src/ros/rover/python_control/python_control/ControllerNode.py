@@ -19,18 +19,17 @@ EDITED:		24/02/2024
 
 """
 import abc
-from python_control.classes.cards.CardController import CardController
-from python_control.classes.limits.Limit import Limit
-from python_control.classes.sensors.Sensor import Sensor
-import rclpy, jcan, logging
-from struct import pack
+from python_control.cards.CardController import CardController
+from python_control.limits.Limit import Limit
+from python_control.sensors.Sensor import Sensor
+import jcan, logging
 from rclpy.node import Node
 from rclpy.qos import QoSReliabilityPolicy, QoSProfile
 from rclpy.subscription import SubscriptionEventCallbacks
 from rclpy.duration import Duration
 
 # import the joystick ROS message we are listening to
-from core.msg import InputJoystick
+from input_interfaces.msg import InputJoystick
 
 
 class ControllerNode(abc.ABC, Node):

@@ -3,7 +3,7 @@
 import abc
 from logging import Logger
 import jcan
-from python_control.classes.sensors import Sensor
+from python_control.sensors import Sensor
 from typing import TypeVar
 
 T = TypeVar('T')

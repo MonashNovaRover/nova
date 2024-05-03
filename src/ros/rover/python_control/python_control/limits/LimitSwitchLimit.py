@@ -2,8 +2,8 @@
 
 from logging import Logger
 import jcan
-from python_control.classes.limits.Limit import Limit
-from python_control.classes.sensors.LimitSwitchSensor import LimitSwitchSensor
+from python_control.limits.Limit import Limit
+from python_control.sensors.LimitSwitchSensor import LimitSwitchSensor
 
 class LimitSwitchLimit(Limit):
     """Class to represent a limit switch"""
