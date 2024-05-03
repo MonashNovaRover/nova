@@ -14,19 +14,41 @@ from sensor_msgs.msg import Range
 
 class AnalysisArm(ControllerNode):
 
+    # CAN BUS NAME
+    # The name of the CAN bus to use
     CAN_BUS = "can1"
-    CMD_ID = 0x10
-    PLATFORM_MAX_PERCENT = 1.0
 
-    TOF_FRAME_ID = 0x4A1
+    # SENDING CARD IDS
+    # Add any CONTROL FRAME / CARD IDS here
+    CMD_ID = 0x033
+
+    # RECEIVING CARD IDS
+    # Add any SENSOR FRAME / CARD IDS here
+    TOF_FRAME_ID = 0x4A1 
     LIMIT_SWITCH_FRAME_ID = 0x4A2
+
+    # CONTROL NAMES
+    # Add any CONTROL names here
+    PLATFORM_CONTROL_NAME = "platform"
+
+    # CONTROL PARAMETERS
+    # Max Speed as a Percentage (0.0 to 1.0)
+    PLATFORM_MAX_PERCENT = 0.5
+
+    # SENDING COMMAND IDS
+    # Add any CONTROL command ids here
+
+    # RECEIVING COMMAND IDS
+    # Add any SENSOR command ids here
     LIMIT_SWITCH_COMMAND_ID = 0x01
 
-    PLATFORM_DOWN = Direction.POSITIVE
-    PLATFORM_UP = Direction.NEGATIVE
+    # CONTROL DIRECTIONS
+    # Add any CONTROL DIRECTIONS here
+    CONTROL_NAME_UP = Direction.NEGATIVE
+    CONTROL_NAME_DOWN = Direction.POSITIVE
 
-    TWITCH_SLEEP_TIME = 0.2
-
+    # LIMIT PARAMETERS
+    # Add any LIMIT parameters here
     TIME_OF_FLIGHT_OFFSET = 20
     TIME_OF_FLIGHT_MIN = 30
     TIME_OF_FLIGHT_MAX = 165
@@ -34,6 +56,9 @@ class AnalysisArm(ControllerNode):
 
     def __init__(self):
         super(AnalysisArm, self).__init__(name="AnalysisArm", can_bus=self.CAN_BUS)
+        logger = self.get_logger()
+
+        ## Add Flags as required
         self.twitch_enable = True
         self.twitch_button_released = True
 
@@ -45,7 +70,7 @@ class AnalysisArm(ControllerNode):
 
         ## Create sensors
         tof_sensor = RangeSensor(
-            logger=self.get_logger(),
+            logger=logger,
             bus=self.bus,
             frame_id=self.TOF_FRAME_ID,
             maximum=self.TIME_OF_FLIGHT_MAX,
@@ -56,7 +81,7 @@ class AnalysisArm(ControllerNode):
         )
 
         limit_switch_top = LimitSwitchSensor(
-            logger=self.get_logger(),
+            logger=logger,
             bus=self.bus,
             frame_id=self.LIMIT_SWITCH_FRAME_ID,
             command_id=self.LIMIT_SWITCH_COMMAND_ID,
@@ -65,7 +90,7 @@ class AnalysisArm(ControllerNode):
 
         # Create limits
         platform_bottom_limit = IntegerLimit(
-            logger=self.get_logger(),
+            logger=logger,
             bus=self.bus,
             is_maximum=False,
             limit_value=self.TIME_OF_FLIGHT_MIN,
@@ -73,13 +98,14 @@ class AnalysisArm(ControllerNode):
         )
 
         platform_top_limit = LimitSwitchLimit(
-            logger=self.get_logger(),
+            logger=logger,
             bus=self.bus,
             limit_switch=limit_switch_top
         )
 
         ## Create controls
         self.platform = OneAxisControl(
+            logger=logger,
             max_percent=self.PLATFORM_MAX_PERCENT,
             pos_limit=platform_bottom_limit,
             neg_limit=platform_top_limit,
@@ -87,14 +113,14 @@ class AnalysisArm(ControllerNode):
 
         ## Create controllers
         self.platform_controller = CMDCardController(
-            logger=self.get_logger(),
+            logger=logger,
             bus=self.bus,
             card_id=self.CMD_ID,
             control=self.platform,
         )
 
         ## Add the controllers to the node's of controllers
-        self.add_controller("platform", self.platform_controller)
+        self.add_controller(self.PLATFORM_CONTROL_NAME, self.platform_controller)
 
         ## Start the CAN bus
         self.start_can()

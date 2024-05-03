@@ -2,6 +2,7 @@
 
 from enum import Enum
 from python_control.limits.Limit import Limit
+from logging import Logger
 
 class Direction(Enum):
     """Enum for the different directions of the motors"""
@@ -11,7 +12,8 @@ class Direction(Enum):
 class OneAxisControl:
     """Class to control a single axis motor"""
 
-    def __init__(self, direction: Direction = Direction.POSITIVE, velocity: float = 0.0, max_percent: float = 1.0, pos_limit: Limit = None, neg_limit: Limit = None):
+    def __init__(self, logger: Logger, direction: Direction = Direction.POSITIVE, velocity: float = 0.0, max_percent: float = 1.0, pos_limit: Limit = None, neg_limit: Limit = None):
+        self.logger = logger # type: Logger
         self.direction = direction # type: Direction
         self.velocity = velocity # type: float [0.0, 1.0]
         self.max_percent = max_percent # type: float [0.0, 1.0]

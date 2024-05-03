@@ -16,6 +16,14 @@ AUTHOR(S):	Tristan Clark
 CREATION:	03/05/2024
 EDITED:		03/05/2024
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+INSTRUCTIONS:
+- This is a template for creating new control nodes
+- Replace all instances of "TemplateNode" with the name of the new node
+- Replace all instances of "CONTROL_NAME" with the name of the new control
+- Remove any uneeded classes (Sensor, Limit, Control, Controller, etc.)
+- Add any new classes as needed (Sensor, Limit, Control, Controller, etc.)
+- Remove any unused imports
+- Remove helper comments and replace with useful information
 """
 
 import rclpy
@@ -79,6 +87,10 @@ class TemplateNode(ControllerNode):
         super().__init__(name="TemplateNode", can_bus=self.CAN_BUS)
         logger = self.get_logger()
 
+        ## Add FLAGS as required
+        # To be used in the joystick callback functions
+        self.control_enable = True
+
         ## Add RECIEVE CAN IDS to the bus filter
         self.bus.set_id_filter([self.TOF_FRAME_ID, self.LIMIT_SWITCH_FRAME_ID])
 
@@ -93,7 +105,8 @@ class TemplateNode(ControllerNode):
             maximum=self.TIME_OF_FLIGHT_MAX,
             minimum=self.TIME_OF_FLIGHT_MIN,
             offset=self.TIME_OF_FLIGHT_OFFSET,
-            publisher=self.tof_publisher
+            publisher=self.tof_publisher,
+            run_can=False, # Set to False when using Sensor as in a Limit
         )
 
         limit_switch_top = LimitSwitchSensor(
@@ -101,6 +114,7 @@ class TemplateNode(ControllerNode):
             bus=self.bus,
             frame_id=self.LIMIT_SWITCH_FRAME_ID,
             command_id=self.LIMIT_SWITCH_COMMAND_ID,
+            run_can=False, # Set to False when using Sensor as in a Limit
         )
 
         ## Create LIMITS
@@ -108,18 +122,19 @@ class TemplateNode(ControllerNode):
             logger=logger,
             bus=self.bus,
             maximum=False,
-            limit_value=10,
-            integer_sensor=tof_sensor
+            limit_value=self.TIME_OF_FLIGHT_MIN,
+            integer_sensor=tof_sensor,
         )
 
         platform_top_limit = LimitSwitchLimit(
             logger=logger,
             bus=self.bus,
-            limit_switch=limit_switch_top
+            limit_switch=limit_switch_top,
         )
 
         ## Create CONTROLS
         self.control_name = OneAxisControl(
+            logger=logger,
             max_percent=self.CONTROL_NAME_MAX_PERCENT,
             pos_limit=platform_bottom_limit, # pos limit is optional
             neg_limit=platform_top_limit, # neg limit is optional
