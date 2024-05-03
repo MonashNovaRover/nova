@@ -4,11 +4,12 @@ import rclpy, time
 from python_control.ControllerNode import ControllerNode
 from python_control.cards.CMDCardController import CMDCardController
 from python_control.controls.OneAxisControl import Direction, OneAxisControl
-from python_control.sensors.IntegerSensor import IntegerSensor
+from python_control.sensors.RangeSensor import RangeSensor
 from python_control.limits.IntegerLimit import IntegerLimit
 from python_control.limits.LimitSwitchLimit import LimitSwitchLimit
 from python_control.sensors.LimitSwitchSensor import LimitSwitchSensor
 from input_interfaces.msg import InputJoystick
+from sensor_msgs.msg import Range
 
 
 class AnalysisArm(ControllerNode):
@@ -26,6 +27,10 @@ class AnalysisArm(ControllerNode):
 
     TWITCH_SLEEP_TIME = 0.2
 
+    TIME_OF_FLIGHT_OFFSET = 20
+    TIME_OF_FLIGHT_MIN = 30
+    TIME_OF_FLIGHT_MAX = 165
+
 
     def __init__(self):
         super(AnalysisArm, self).__init__(name="AnalysisArm", can_bus=self.CAN_BUS)
@@ -35,11 +40,19 @@ class AnalysisArm(ControllerNode):
         ## Add CAN ID Filters
         self.bus.set_id_filter([self.TOF_FRAME_ID, self.LIMIT_SWITCH_FRAME_ID])
 
+        ## Add Publishers
+        self.tof_publisher = self.create_publisher(Range, "/science/analysis_arm", 10)
+
         ## Create sensors
-        tof_sensor = IntegerSensor(
+        tof_sensor = RangeSensor(
             logger=self.get_logger(),
             bus=self.bus,
             frame_id=self.TOF_FRAME_ID,
+            maximum=self.TIME_OF_FLIGHT_MAX,
+            minimum=self.TIME_OF_FLIGHT_MIN,
+            offset=self.TIME_OF_FLIGHT_OFFSET,
+            publisher=self.tof_publisher,
+            run_can=False
         )
 
         limit_switch_top = LimitSwitchSensor(
@@ -47,14 +60,15 @@ class AnalysisArm(ControllerNode):
             bus=self.bus,
             frame_id=self.LIMIT_SWITCH_FRAME_ID,
             command_id=self.LIMIT_SWITCH_COMMAND_ID,
+            run_can=False
         )
 
         # Create limits
         platform_bottom_limit = IntegerLimit(
             logger=self.get_logger(),
             bus=self.bus,
-            maximum=False,
-            limit_value=10,
+            is_maximum=False,
+            limit_value=self.TIME_OF_FLIGHT_MIN,
             integer_sensor=tof_sensor
         )
 

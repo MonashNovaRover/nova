@@ -27,9 +27,9 @@ class Limit(abc.ABC):
 
     def update_limit_hit(self, limit_hit: bool):
         """Update the limit hit"""
+        self.limit_hit = limit_hit
         if self.limit_hit:
             self.get_logger().debug("Limit hit")
-        self.limit_hit = limit_hit
     
     def get_limit_hit(self):
         """Get the limit hit"""

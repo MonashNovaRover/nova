@@ -12,14 +12,28 @@ class LimitSwitchValue(Enum):
 
 class LimitSwitchSensor(Sensor[bool]):
     """Class to represent a limit switch sensor"""
-    def __init__(self, bus: jcan.Bus, logger: Logger, frame_id: hex, command_id: hex):
-        super().__init__(bus=bus, logger=logger, frame_id=frame_id)
+    def __init__(
+            self, 
+            bus: jcan.Bus, 
+            logger: Logger, 
+            frame_id: hex, 
+            command_id: hex, 
+            initial_value: bool = False,
+            run_can: bool = True
+        ):
+        super().__init__(
+            bus=bus, 
+            logger=logger, 
+            frame_id=frame_id, 
+            initial_value=initial_value,
+            run_can=run_can
+        )
         self.command_id = command_id # type: hex
 
-    def frame_callback(self, frame: jcan.Frame):
+    def callback_function(self, frame: jcan.Frame):
         """Update the sensor value based on the frame"""
-        if frame.id != self.frame_id or frame.data[0] != self.command_id:
-            raise ValueError("Invalid frame id")
+        if frame.data[0] != self.command_id:
+            raise ValueError("Invalid command id")
         
         self.set_sensor_value(frame.data[1] == LimitSwitchValue.HIT.value)
     

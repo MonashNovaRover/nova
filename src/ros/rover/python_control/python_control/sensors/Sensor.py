@@ -2,6 +2,7 @@
 
 import abc
 import jcan
+from rclpy.publisher import Publisher
 from typing import TypeVar, Generic
 from logging import Logger
 
@@ -9,11 +10,20 @@ T = TypeVar('T')
 
 class Sensor(abc.ABC, Generic[T]):
     """Class to represent a sensor"""
-    def __init__(self, bus: jcan.Bus, logger: Logger, frame_id: hex, initial_value: T = None, run_can: bool = True):
+    def __init__(
+            self, 
+            bus: jcan.Bus, 
+            logger: Logger, 
+            frame_id: hex, 
+            publisher: Publisher = None, 
+            initial_value: T = None, 
+            run_can: bool = True
+        ):
         self.frame_id = frame_id # type: hex
         self.sensor_value = initial_value # type: T
         self.bus = bus # type: jcan.Bus
         self.logger = logger # type: Logger
+        self.publisher = publisher # type: Publisher
         if run_can:
             self.setup_can_bus()
 
@@ -35,10 +45,22 @@ class Sensor(abc.ABC, Generic[T]):
     def get_frame_id(self) -> hex:
         return self.frame_id
     
+    def frame_callback(self, frame: jcan.Frame):
+        """Update the sensor value based on the frame"""
+        self.get_logger().info(f"Received frame: {frame}")
+        if frame.id != self.frame_id:
+            self.logger.warn(f"Invalid frame id: {frame.id} != {self.frame_id}")
+            return
+        
+        self.callback_function(frame)
+        
+        if self.publisher != None:
+            self.publish_sensor()
+    
     @abc.abstractmethod
     def publish_sensor(self):
         pass
 
     @abc.abstractmethod
-    def frame_callback(self, frame: jcan.Frame):
+    def callback_function(self, frame: jcan.Frame):
         pass

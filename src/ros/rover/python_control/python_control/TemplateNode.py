@@ -22,11 +22,12 @@ import rclpy
 from python_control.ControllerNode import ControllerNode
 from python_control.cards.CMDCardController import CMDCardController
 from python_control.controls.OneAxisControl import Direction, OneAxisControl
-from python_control.sensors.IntegerSensor import IntegerSensor
+from python_control.sensors.RangeSensor import RangeSensor
 from python_control.limits.IntegerLimit import IntegerLimit
 from python_control.limits.LimitSwitchLimit import LimitSwitchLimit
 from python_control.sensors.LimitSwitchSensor import LimitSwitchSensor
 from input_interfaces.msg import InputJoystick
+from sensor_msgs.msg import Range
 
 
 class TemplateNode(ControllerNode):
@@ -63,6 +64,12 @@ class TemplateNode(ControllerNode):
     CONTROL_NAME_UP = Direction.NEGATIVE
     CONTROL_NAME_DOWN = Direction.POSITIVE
 
+    # LIMIT PARAMETERS
+    # Add any LIMIT parameters here
+    TIME_OF_FLIGHT_OFFSET = 20
+    TIME_OF_FLIGHT_MIN = 30
+    TIME_OF_FLIGHT_MAX = 165
+
 
     def __init__(self):
         """
@@ -75,11 +82,18 @@ class TemplateNode(ControllerNode):
         ## Add RECIEVE CAN IDS to the bus filter
         self.bus.set_id_filter([self.TOF_FRAME_ID, self.LIMIT_SWITCH_FRAME_ID])
 
+        ## Add PUBLISHERS to the node
+        self.tof_publisher = self.create_publisher(Range, "/example/tof", 10)
+
         ## Create SENSORS
-        tof_sensor = IntegerSensor(
+        tof_sensor = RangeSensor(
             logger=logger,
             bus=self.bus,
             frame_id=self.TOF_FRAME_ID,
+            maximum=self.TIME_OF_FLIGHT_MAX,
+            minimum=self.TIME_OF_FLIGHT_MIN,
+            offset=self.TIME_OF_FLIGHT_OFFSET,
+            publisher=self.tof_publisher
         )
 
         limit_switch_top = LimitSwitchSensor(
