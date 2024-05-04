@@ -10,6 +10,7 @@
 , launch
 , launch-ros
 , std-srvs
+, tf2-ros
 }:
 
 buildRosPackage
@@ -34,5 +35,6 @@ buildRosPackage
     launch-ros
     std-srvs
     nova-coms-utils
+    tf2-ros
   ];
 }

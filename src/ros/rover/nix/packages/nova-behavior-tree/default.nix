@@ -27,6 +27,6 @@ buildRosPackage {
   };
 
   nativeBuildInputs = [ ament-cmake rosidl-default-generators ];
-  buildInputs = [ pluginlib std-srvs rclcpp nav2-behavior-tree behaviortree-cpp-v3 nav2-util tf2-ros geometry-msgs vision-msgs aruco-opencv-msgs];
-  propagatedBuildInputs = [ launch launch-ros];
+  buildInputs = [ pluginlib std-srvs rclcpp nav2-behavior-tree behaviortree-cpp-v3 nav2-util tf2-ros geometry-msgs vision-msgs aruco-opencv-msgs ];
+  propagatedBuildInputs = [ launch launch-ros ];
 }

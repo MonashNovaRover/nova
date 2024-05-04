@@ -74,7 +74,7 @@ class UpdateLED(Node):
   Then, a callback function will get executed periodically as the topic is published to. 
   """
   def __init__(self):
-    super().__init__('LED_status_update_node')
+    super().__init__('update_LED')
     self.can_communicator = CanLEDCommunicator()
 
     self.control_state = ControlState.AUTONOMOUS

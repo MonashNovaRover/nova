@@ -70,6 +70,7 @@ bt_navigator:
       - nova_check_detected_condition_bt_node
       - nova_get_final_goal_condition_bt_node
       - nova_get_first_goal_condition_bt_node
+      - nova_led_service_bt_node
 
 
 bt_navigator_navigate_through_poses_rclcpp_node:
