@@ -9,6 +9,7 @@
 , std-msgs
 , launch
 , launch-ros
+, std-srvs
 }:
 
 buildRosPackage
@@ -22,7 +23,7 @@ buildRosPackage
     filter = lib.novaSourceFilter [ ] path;
   };
 
-  propagatedBuildInputs = [
+  propagatedBuildInputs = with pythonPackages; [
     rclpy
     aruco-opencv-msgs
     aruco-opencv
@@ -31,5 +32,7 @@ buildRosPackage
     std-msgs
     launch
     launch-ros
+    std-srvs
+    nova-coms-utils
   ];
 }

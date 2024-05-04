@@ -19,7 +19,8 @@ setup(
     license='BSD-3-Clause',
     entry_points={
         'console_scripts': [
-            'aruco_marker = nova_ar_tag.aruco_marker:main'
+            'aruco_marker = nova_ar_tag.aruco_marker:main',
+            'LED = nova_ar_tag.LED:main'
         ],
     },
 )
