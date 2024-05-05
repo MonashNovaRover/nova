@@ -26,7 +26,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://URDF_PART_ASSEMBLY/meshes/ArmBase.STL" />
+          filename="file:///$(find rover_description)/meshes/ArmBase.STL" />
       </geometry>
       <material
         name="">
@@ -40,7 +40,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://URDF_PART_ASSEMBLY/meshes/ArmBase.STL" />
+          filename="file:///$(find rover_description)/meshes/ArmBase.STL" />
       </geometry>
     </collision>
   </link>
@@ -66,7 +66,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://URDF_PART_ASSEMBLY/meshes/BaseToJ1.STL" />
+          filename="file:///$(find rover_description)/meshes/BaseToJ1.STL" />
       </geometry>
       <material
         name="">
@@ -80,7 +80,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://URDF_PART_ASSEMBLY/meshes/BaseToJ1.STL" />
+          filename="file:///$(find rover_description)/meshes/BaseToJ1.STL" />
       </geometry>
     </collision>
   </link>
@@ -124,7 +124,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://URDF_PART_ASSEMBLY/meshes/J2ToLink1.STL" />
+          filename="file:///$(find rover_description)/meshes/J2ToLink1.STL" />
       </geometry>
       <material
         name="">
@@ -138,7 +138,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://URDF_PART_ASSEMBLY/meshes/J2ToLink1.STL" />
+          filename="file:///$(find rover_description)/meshes/J2ToLink1.STL" />
       </geometry>
     </collision>
   </link>
@@ -182,7 +182,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://URDF_PART_ASSEMBLY/meshes/J3ToLink2.STL" />
+          filename="file:///$(find rover_description)/meshes/J3ToLink2.STL" />
       </geometry>
       <material
         name="">
@@ -196,7 +196,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://URDF_PART_ASSEMBLY/meshes/J3ToLink2.STL" />
+          filename="file:///$(find rover_description)/meshes/J3ToLink2.STL" />
       </geometry>
     </collision>
   </link>
@@ -240,7 +240,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://URDF_PART_ASSEMBLY/meshes/Link2toFixedJ4.STL" />
+          filename="file:///$(find rover_description)/meshes/Link2toFixedJ4.STL" />
       </geometry>
       <material
         name="">
@@ -254,7 +254,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://URDF_PART_ASSEMBLY/meshes/Link2toFixedJ4.STL" />
+          filename="file:///$(find rover_description)/meshes/Link2toFixedJ4.STL" />
       </geometry>
     </collision>
   </link>
@@ -293,7 +293,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://URDF_PART_ASSEMBLY/meshes/J4ToJ5.STL" />
+          filename="file:///$(find rover_description)/meshes/J4ToJ5.STL" />
       </geometry>
       <material
         name="">
@@ -307,7 +307,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://URDF_PART_ASSEMBLY/meshes/J4ToJ5.STL" />
+          filename="file:///$(find rover_description)/meshes/J4ToJ5.STL" />
       </geometry>
     </collision>
   </link>
@@ -351,7 +351,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://URDF_PART_ASSEMBLY/meshes/J5ToJ6.STL" />
+          filename="file:///$(find rover_description)/meshes/J5ToJ6.STL" />
       </geometry>
       <material
         name="">
@@ -365,7 +365,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://URDF_PART_ASSEMBLY/meshes/J5ToJ6.STL" />
+          filename="file:///$(find rover_description)/meshes/J5ToJ6.STL" />
       </geometry>
     </collision>
   </link>
@@ -409,7 +409,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://URDF_PART_ASSEMBLY/meshes/J6ToEE.STL" />
+          filename="file:///$(find rover_description)/meshes/J6ToEE.STL" />
       </geometry>
       <material
         name="">
@@ -423,7 +423,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://URDF_PART_ASSEMBLY/meshes/J6ToEE.STL" />
+          filename="file:///$(find rover_description)/meshes/J6ToEE.STL" />
       </geometry>
     </collision>
   </link>
