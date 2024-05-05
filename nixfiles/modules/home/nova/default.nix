@@ -61,6 +61,10 @@ in
 				defaultEditor = true;
 			};
 
+      tmux = {
+        enable = true;
+      };
+
     };
 
     home = {
