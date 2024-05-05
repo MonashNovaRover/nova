@@ -3,22 +3,22 @@
      Commit Version: 1.6.0-4-g7f85cfe  Build Version: 1.6.7995.38578
      For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
 <robot
-  name="URDF_PART_FILES">
+  name="URDF_PART_ASSEMBLY">
   <link
-    name="base_link">
+    name="ArmBase">
     <inertial>
       <origin
-        xyz="0.124895291114619 0.105803300474521 0.151689368311352"
+        xyz="0.0463984559338307 -0.000244629347594962 0.105803300473719"
         rpy="0 0 0" />
       <mass
-        value="0.964885521720054" />
+        value="0.964885521729071" />
       <inertia
-        ixx="0.00737801555834588"
-        ixy="3.46523316685227E-08"
-        ixz="4.42994703749863E-08"
-        iyy="0.0112664844620674"
-        iyz="-0.000899960613165917"
-        izz="0.00586330404662385" />
+        ixx="0.00586330404665839"
+        ixy="4.42994692639774E-08"
+        ixz="-0.00089996061315548"
+        iyy="0.00737801555838317"
+        iyz="3.46523353363795E-08"
+        izz="0.0112664844620711" />
     </inertial>
     <visual>
       <origin
@@ -26,7 +26,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find rover_description)/meshes/base_link.STL" />
+          filename="package://URDF_PART_ASSEMBLY/meshes/ArmBase.STL" />
       </geometry>
       <material
         name="">
@@ -40,25 +40,25 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find rover_description)/meshes/base_link.STL" />
+          filename="package://URDF_PART_ASSEMBLY/meshes/ArmBase.STL" />
       </geometry>
     </collision>
   </link>
   <link
-    name="link1">
+    name="BaseToJ1">
     <inertial>
       <origin
-        xyz="0.114459650115267 0.000894475466029554 4.63193089098174E-05"
+        xyz="-0.00115949735646111 0.0892985869596572 -0.000828732075412772"
         rpy="0 0 0" />
       <mass
-        value="1.06782992821244" />
+        value="1.06782865454781" />
       <inertia
-        ixx="0.00110450364652873"
-        ixy="-1.13558642402736E-06"
-        ixz="0.000123600017443695"
-        iyy="0.0010668360523279"
-        iyz="-7.98361132115831E-07"
-        izz="0.00136059075592228" />
+        ixx="0.00136349514209711"
+        ixy="-0.000120523153646633"
+        ixz="-4.27584675271316E-07"
+        iyy="0.00110158912271039"
+        iyz="8.73000906376952E-07"
+        izz="0.00106684454111778" />
     </inertial>
     <visual>
       <origin
@@ -66,7 +66,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find rover_description)/meshes/link1.STL" />
+          filename="package://URDF_PART_ASSEMBLY/meshes/BaseToJ1.STL" />
       </geometry>
       <material
         name="">
@@ -80,22 +80,22 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find rover_description)/meshes/link1.STL" />
+          filename="package://URDF_PART_ASSEMBLY/meshes/BaseToJ1.STL" />
       </geometry>
     </collision>
   </link>
   <joint
-    name="base-rotation"
+    name="J1"
     type="revolute">
     <origin
-      xyz="0.1249 -0.106 0.15434"
-      rpy="2.6199 -1.5571 0.6857" />
+      xyz="0 0 0.1795"
+      rpy="1.5708 0 -1.5708" />
     <parent
-      link="base_link" />
+      link="ArmBase" />
     <child
-      link="link1" />
+      link="BaseToJ1" />
     <axis
-      xyz="0.99991 0.0068196 -0.011865" />
+      xyz="0 1 0" />
     <limit
       lower="0"
       upper="0"
@@ -103,20 +103,20 @@
       velocity="0" />
   </joint>
   <link
-    name="link2">
+    name="J2ToLink1">
     <inertial>
       <origin
-        xyz="-0.0727312955042903 -0.261084601636969 -0.152093536327788"
+        xyz="0.302150544196856 -0.00272064453324986 0.0215545407301324"
         rpy="0 0 0" />
       <mass
-        value="0.692669362097279" />
+        value="0.692670468382813" />
       <inertia
-        ixx="0.00581162431890537"
-        ixy="3.66152054222498E-06"
-        ixz="-7.38995480405447E-06"
-        iyy="0.00189230548123107"
-        iyz="-0.00194817270298663"
-        izz="0.00406780326105112" />
+        ixx="0.000749127415490433"
+        ixy="3.9226287616403E-05"
+        ixz="1.68457558241152E-07"
+        iyy="0.00521089609335111"
+        iyz="-1.840147885579E-06"
+        izz="0.00581175230962762" />
     </inertial>
     <visual>
       <origin
@@ -124,7 +124,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find rover_description)/meshes/link2.STL" />
+          filename="package://URDF_PART_ASSEMBLY/meshes/J2ToLink1.STL" />
       </geometry>
       <material
         name="">
@@ -138,22 +138,22 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find rover_description)/meshes/link2.STL" />
+          filename="package://URDF_PART_ASSEMBLY/meshes/J2ToLink1.STL" />
       </geometry>
     </collision>
   </link>
   <joint
-    name="shoulder"
+    name="J2"
     type="revolute">
     <origin
-      xyz="0.096952 0.00025571 -0.043073"
-      rpy="1.3139 -1.5629 -1.7961" />
+      xyz="0.0933 0.0723 -0.00028711"
+      rpy="1.5708 0 1.5708" />
     <parent
-      link="link1" />
+      link="BaseToJ1" />
     <child
-      link="link2" />
+      link="J2ToLink1" />
     <axis
-      xyz="0.99991 0.0068196 -0.011865" />
+      xyz="0 0 -1" />
     <limit
       lower="-1.75"
       upper="1.55"
@@ -161,20 +161,20 @@
       velocity="0" />
   </joint>
   <link
-    name="link3">
+    name="J3ToLink2">
     <inertial>
       <origin
-        xyz="0.0366028999656508 -0.0895330260674386 0.118561290612098"
+        xyz="0.129966189328165 0.0732399519417659 -0.0854948314562504"
         rpy="0 0 0" />
       <mass
-        value="1.15373119624722" />
+        value="1.1537312044344" />
       <inertia
-        ixx="0.00391492060968911"
-        ixy="-6.46459234827351E-05"
-        ixz="-0.00017879907270972"
-        iyy="0.00149074655925531"
-        iyz="0.000919585901244272"
-        izz="0.00339029817500588" />
+        ixx="0.00112066300003786"
+        ixy="7.23793330716904E-05"
+        ixz="-1.74454352298505E-05"
+        iyy="0.00375619318284082"
+        iyz="0.00018874261573622"
+        izz="0.00391910919823574" />
     </inertial>
     <visual>
       <origin
@@ -182,7 +182,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find rover_description)/meshes/link3.STL" />
+          filename="package://URDF_PART_ASSEMBLY/meshes/J3ToLink2.STL" />
       </geometry>
       <material
         name="">
@@ -196,22 +196,22 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find rover_description)/meshes/link3.STL" />
+          filename="package://URDF_PART_ASSEMBLY/meshes/J3ToLink2.STL" />
       </geometry>
     </collision>
   </link>
   <joint
-    name="elbow"
+    name="J3"
     type="revolute">
     <origin
-      xyz="-6.0514E-05 -0.41827 -0.24551"
-      rpy="-2.764 0.020381 0.017534" />
+      xyz="0.48498 -0.0042617 -1.3115E-05"
+      rpy="0 0 0" />
     <parent
-      link="link2" />
+      link="J2ToLink1" />
     <child
-      link="link3" />
+      link="J3ToLink2" />
     <axis
-      xyz="0.99991 0.0068196 -0.011865" />
+      xyz="0 0 -1" />
     <limit
       lower="-2.85"
       upper="2.5"
@@ -219,20 +219,20 @@
       velocity="0" />
   </joint>
   <link
-    name="link4">
+    name="Link2toFixedJ4">
     <inertial>
       <origin
-        xyz="-0.0554159926220432 -0.0144686246475618 0.551721377853367"
+        xyz="-0.000854379754759105 -0.00771635785912597 -0.0386037875911855"
         rpy="0 0 0" />
       <mass
-        value="0.154860900976226" />
+        value="0.154860932901363" />
       <inertia
-        ixx="0.000103495914727815"
-        ixy="1.35472398196803E-06"
-        ixz="-5.2744188577288E-07"
-        iyy="0.000100899782063784"
-        iyz="2.75058112925981E-06"
-        izz="0.000106374165596846" />
+        ixx="0.000107515397522057"
+        ixy="-1.35212786806063E-07"
+        ixz="2.57896496508744E-08"
+        iyy="9.97191040148142E-05"
+        iyz="1.40048478553512E-06"
+        izz="0.000103535419768887" />
     </inertial>
     <visual>
       <origin
@@ -240,7 +240,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find rover_description)/meshes/link4.STL" />
+          filename="package://URDF_PART_ASSEMBLY/meshes/Link2toFixedJ4.STL" />
       </geometry>
       <material
         name="">
@@ -254,75 +254,75 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find rover_description)/meshes/link4.STL" />
+          filename="package://URDF_PART_ASSEMBLY/meshes/Link2toFixedJ4.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="J4_Fixed"
+    type="fixed">
+    <origin
+      xyz="0.46967 0.038251 0.032284"
+      rpy="0 0 0" />
+    <parent
+      link="J3ToLink2" />
+    <child
+      link="Link2toFixedJ4" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+  <link
+    name="J4ToJ5">
+    <inertial>
+      <origin
+        xyz="-0.000364137980536139 0.0341611309238566 0.0243774183852719"
+        rpy="0 0 0" />
+      <mass
+        value="0.198378721031921" />
+      <inertia
+        ixx="0.000132808935473041"
+        ixy="-1.6412565053747E-07"
+        ixz="-8.70461792617816E-08"
+        iyy="0.000109691860796545"
+        iyz="-1.48854544793139E-06"
+        izz="0.0001341658859767" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://URDF_PART_ASSEMBLY/meshes/J4ToJ5.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://URDF_PART_ASSEMBLY/meshes/J4ToJ5.STL" />
       </geometry>
     </collision>
   </link>
   <joint
     name="J4"
-    type="fixed">
-    <origin
-      xyz="0.026329 -0.96807 0.20169"
-      rpy="-1.5707 0.0050441 0.018685" />
-    <parent
-      link="link3" />
-    <child
-      link="link4" />
-    <axis
-      xyz="0 0 0" />
-  </joint>
-  <link
-    name="link5">
-    <inertial>
-      <origin
-        xyz="-0.0433912048891215 0.014770306606402 0.0313640863541808"
-        rpy="0 0 0" />
-      <mass
-        value="0.198378759375795" />
-      <inertia
-        ixx="0.000134196720597321"
-        ixy="4.77514343719461E-07"
-        ixz="1.12912549007836E-06"
-        iyy="0.000128445544255741"
-        iyz="-9.0529141025446E-06"
-        izz="0.000114024382208925" />
-    </inertial>
-    <visual>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
-      <geometry>
-        <mesh
-          filename="file:///$(find rover_description)/meshes/link5.STL" />
-      </geometry>
-      <material
-        name="">
-        <color
-          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
-      </material>
-    </visual>
-    <collision>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
-      <geometry>
-        <mesh
-          filename="file:///$(find rover_description)/meshes/link5.STL" />
-      </geometry>
-    </collision>
-  </link>
-  <joint
-    name="j4"
     type="revolute">
     <origin
-      xyz="-0.074526 -0.021852 0.55468"
-      rpy="1.5615 0.018575 -0.0051088" />
+      xyz="0 0 0"
+      rpy="0 0 0" />
     <parent
-      link="link4" />
+      link="Link2toFixedJ4" />
     <child
-      link="link5" />
+      link="J4ToJ5" />
     <axis
-      xyz="0.99991 0.0068196 -0.011865" />
+      xyz="0 0 -1" />
     <limit
       lower="-2.85"
       upper="0.75"
@@ -330,20 +330,20 @@
       velocity="0" />
   </joint>
   <link
-    name="link6">
+    name="J5ToJ6">
     <inertial>
       <origin
-        xyz="-0.00156568688680547 -0.0220990304307618 0.0033870355749327"
+        xyz="0.000187662498820879 -0.0176175749877335 0.0215384550975011"
         rpy="0 0 0" />
       <mass
-        value="0.171054908788993" />
+        value="0.171055632724638" />
       <inertia
-        ixx="0.000112139723073371"
-        ixy="-7.95733014065484E-07"
-        ixz="2.10001517744292E-07"
-        iyy="0.000103191289088596"
-        iyz="9.00419260489293E-06"
-        izz="0.000117436874559029" />
+        ixx="0.000112193318899533"
+        ixy="-2.61131401507365E-07"
+        ixz="-5.05759999511541E-09"
+        iyy="0.000121789710790359"
+        iyz="-1.61568500189792E-07"
+        izz="9.87854347259817E-05" />
     </inertial>
     <visual>
       <origin
@@ -351,7 +351,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find rover_description)/meshes/link6.STL" />
+          filename="package://URDF_PART_ASSEMBLY/meshes/J5ToJ6.STL" />
       </geometry>
       <material
         name="">
@@ -365,22 +365,22 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find rover_description)/meshes/link6.STL" />
+          filename="package://URDF_PART_ASSEMBLY/meshes/J5ToJ6.STL" />
       </geometry>
     </collision>
   </link>
   <joint
-    name="j5"
+    name="J5"
     type="revolute">
     <origin
-      xyz="-0.039566 0.045795 0.095768"
-      rpy="-4.8633E-05 -0.013706 -0.028345" />
+      xyz="8.5143E-05 0.081342 0.02135"
+      rpy="0 -1.5708 0" />
     <parent
-      link="link5" />
+      link="J4ToJ5" />
     <child
-      link="link6" />
+      link="J5ToJ6" />
     <axis
-      xyz="0.0077139 0.43526 0.90027" />
+      xyz="0 -1 0" />
     <limit
       lower="-1.88"
       upper="2.45"
@@ -388,20 +388,20 @@
       velocity="0" />
   </joint>
   <link
-    name="EE">
+    name="J6ToEE">
     <inertial>
       <origin
-        xyz="-0.040752 -0.15136 0.092346"
+        xyz="0.0313403405257765 -0.0154054918446249 0.0972054188783789"
         rpy="0 0 0" />
       <mass
-        value="0.55463" />
+        value="0.55463240302887" />
       <inertia
-        ixx="0.00037806"
-        ixy="1.5871E-05"
-        ixz="2.0731E-05"
-        iyy="0.00049841"
-        iyz="8.0833E-05"
-        izz="0.00059879" />
+        ixx="0.000376073601133984"
+        ixy="-1.35551673721987E-05"
+        ixz="-9.98929456115085E-07"
+        iyy="0.000644904140085136"
+        iyz="1.10813236344385E-05"
+        izz="0.000454272721609693" />
     </inertial>
     <visual>
       <origin
@@ -409,12 +409,12 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find rover_description)/meshes/EE.STL" />
+          filename="package://URDF_PART_ASSEMBLY/meshes/J6ToEE.STL" />
       </geometry>
       <material
         name="">
         <color
-          rgba="0.79216 0.81961 0.93333 1" />
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
       </material>
     </visual>
     <collision>
@@ -423,22 +423,22 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find rover_description)/meshes/EE.STL" />
+          filename="package://URDF_PART_ASSEMBLY/meshes/J6ToEE.STL" />
       </geometry>
     </collision>
   </link>
   <joint
-    name="j6"
+    name="J6"
     type="revolute">
     <origin
-      xyz="0 0 0"
-      rpy="-0.046378 -0.30702 0.15843" />
+      xyz="0.00018845 -0.020463 0.081623"
+      rpy="0 0 0" />
     <parent
-      link="link6" />
+      link="J5ToJ6" />
     <child
-      link="EE" />
+      link="J6ToEE" />
     <axis
-      xyz="0.0626 0.89832 -0.43486" />
+      xyz="0 0 1" />
     <limit
       lower="0"
       upper="0"
