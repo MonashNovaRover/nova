@@ -19,7 +19,7 @@ EDITED:		03/05/2024
 """
 
 import abc
-from python_control.cards.CardController import CardController
+from python_control.controllers.Controller import Controller
 from python_control.limits.Limit import Limit
 from python_control.sensors.Sensor import Sensor
 import jcan, logging
@@ -50,7 +50,7 @@ class ControllerNode(abc.ABC, Node):
 
         self.joystick_lock = True
 
-        self.controllers : dict[str, CardController] = {}
+        self.controllers : dict[str, Controller] = {}
         self.limits : dict[str, Limit] = {}
         self.sensors : dict[str, Sensor] = {}
 
@@ -89,7 +89,7 @@ class ControllerNode(abc.ABC, Node):
     def get_can_bus(self):
         return self.get_parameter(self.CAN_BUS_PARAM).value
 
-    def add_controller(self, controller_name: str, controller: CardController):
+    def add_controller(self, controller_name: str, controller: Controller):
         self.controllers[controller_name] = controller
 
     def add_sensor(self, sensor_name: str, sensor: Sensor):
@@ -97,13 +97,11 @@ class ControllerNode(abc.ABC, Node):
 
     def callback_send_commands(self):
         """Take current internal state and publish over CAN
-        Sends can commands for auger and drill together
+        Sends can commands to the controllers
         """
         try:
             for controller in self.controllers.values():
-                frame = controller.get_frame()
-                self.get_logger().debug(f"Sending {frame}")
-                self.bus.send(frame)
+                controller.control_send_callback()
 
         except Exception as e:
             print(e)

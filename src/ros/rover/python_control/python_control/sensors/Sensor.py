@@ -19,6 +19,7 @@ class Sensor(abc.ABC, Generic[T]):
             initial_value: T = None, 
             run_can: bool = True
         ):
+        # Frame ID = 12 bits, (0x000 - 0xFFF)
         self.frame_id = frame_id # type: hex
         self.sensor_value = initial_value # type: T
         self.bus = bus # type: jcan.Bus

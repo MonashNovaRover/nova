@@ -2,30 +2,32 @@
 
 from logging import Logger
 import jcan
-from python_control.cards.Card import Card
-from python_control.cards.CardController import CardController
-from python_control.controls.OneAxisControl import OneAxisControl
-from python_control.controls.OneAxisControl import Direction
+from python_control.controllers.Card import Card
+from python_control.controllers.Controller import Controller
+from python_control.controls.OneAxisVelocityControl import OneAxisVelocityControl
+from python_control.controls.Direction import Direction
 
-class JonoCardController(CardController):
+class JonoVelocityController(Controller):
     """Class to control the JONO card on the CAN bus"""
-    def __init__(self, card_id: hex, pos_command: hex, neg_command: hex, control: OneAxisControl, bus: jcan.Bus, logger: Logger):
+    def __init__(self, card_id: hex, pos_command: hex, neg_command: hex, control: OneAxisVelocityControl, bus: jcan.Bus, logger: Logger):
         super().__init__(card=Card.JONO, max_value=255, card_id=card_id, control=control, bus=bus, logger=logger)
+        # Command Ids = 1 Byte, (0x00 - 0xFF)
         self.pos_command = pos_command # type: hex
         self.neg_command = neg_command # type: hex
 
     def get_frame(self) -> jcan.Frame:
         """Get the frame to send over the CAN bus"""
+        control: OneAxisVelocityControl = self.get_control()
 
         # Set the command based on the direction
         command: hex
-        if self.control.get_direction() == Direction.POSITIVE:
+        if control.get_direction() == Direction.POSITIVE:
             command = self.pos_command
         else:
             command = self.neg_command
         
         # Set the data based on the velocity, max value, and max percent
-        data = int(self.control.get_velocity() * self.get_max_value() * self.control.get_max_percent())
+        data = int(control.get_velocity() * self.get_max_value() * control.get_max_percent())
 
         # Check if the data is greater than the max value
         # If it is, set the data to the max value

@@ -2,8 +2,9 @@
 
 import rclpy, time
 from python_control.ControllerNode import ControllerNode
-from python_control.cards.CMDCardController import CMDCardController
-from python_control.controls.OneAxisControl import Direction, OneAxisControl
+from python_control.controllers.CMDVelocityController import CMDVelocityController
+from python_control.controls.OneAxisVelocityControl import OneAxisVelocityControl
+from python_control.controls.Direction import Direction
 from python_control.sensors.RangeSensor import RangeSensor
 from python_control.limits.IntegerLimit import IntegerLimit
 from python_control.limits.LimitSwitchLimit import LimitSwitchLimit
@@ -104,7 +105,7 @@ class AnalysisArm(ControllerNode):
         )
 
         ## Create controls
-        self.platform = OneAxisControl(
+        self.platform = OneAxisVelocityControl(
             logger=logger,
             max_percent=self.PLATFORM_MAX_PERCENT,
             pos_limit=platform_bottom_limit,
@@ -112,7 +113,7 @@ class AnalysisArm(ControllerNode):
         )
 
         ## Create controllers
-        self.platform_controller = CMDCardController(
+        self.platform_controller = CMDVelocityController(
             logger=logger,
             bus=self.bus,
             card_id=self.CMD_ID,

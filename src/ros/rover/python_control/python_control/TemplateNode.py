@@ -28,8 +28,9 @@ INSTRUCTIONS:
 
 import rclpy
 from python_control.ControllerNode import ControllerNode
-from python_control.cards.CMDCardController import CMDCardController
-from python_control.controls.OneAxisControl import Direction, OneAxisControl
+from python_control.controllers.CMDVelocityController import CMDVelocityController
+from python_control.controls.OneAxisVelocityControl import OneAxisVelocityControl
+from python_control.controls.Direction import Direction
 from python_control.sensors.RangeSensor import RangeSensor
 from python_control.limits.IntegerLimit import IntegerLimit
 from python_control.limits.LimitSwitchLimit import LimitSwitchLimit
@@ -133,7 +134,7 @@ class TemplateNode(ControllerNode):
         )
 
         ## Create CONTROLS
-        self.control_name = OneAxisControl(
+        self.control_name = OneAxisVelocityControl(
             logger=logger,
             max_percent=self.CONTROL_NAME_MAX_PERCENT,
             pos_limit=platform_bottom_limit, # pos limit is optional
@@ -141,7 +142,7 @@ class TemplateNode(ControllerNode):
         )
 
         ## Create CONTROLLERS
-        self.control_name_controller = CMDCardController(
+        self.control_name_controller = CMDVelocityController(
             logger=logger,
             bus=self.bus,
             card_id=self.CMD_ID,

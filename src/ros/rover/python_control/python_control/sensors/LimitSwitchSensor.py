@@ -28,6 +28,7 @@ class LimitSwitchSensor(Sensor[bool]):
             initial_value=initial_value,
             run_can=run_can
         )
+        # Command ID = 1 Byte, (0x00 - 0xFF)
         self.command_id = command_id # type: hex
 
     def callback_function(self, frame: jcan.Frame):

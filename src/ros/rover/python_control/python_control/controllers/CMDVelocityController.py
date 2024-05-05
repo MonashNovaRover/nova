@@ -2,25 +2,26 @@
 from logging import Logger
 from struct import pack
 import jcan
-from python_control.cards.Card import Card
-from python_control.cards.CardController import CardController
-from python_control.controls.OneAxisControl import OneAxisControl
+from python_control.controllers.Card import Card
+from python_control.controllers.Controller import Controller
+from python_control.controls.OneAxisVelocityControl import OneAxisVelocityControl
 
 
-class CMDCardController(CardController):
+class CMDVelocityController(Controller):
     """Class to control the CMD card on the CAN bus"""
-    def __init__(self, bus: jcan.Bus, logger: Logger, card_id: hex, control: OneAxisControl):
+    def __init__(self, bus: jcan.Bus, logger: Logger, card_id: hex, control: OneAxisVelocityControl):
         super().__init__(card=Card.CMD, max_value=32767, card_id=card_id, control=control, bus=bus, logger=logger)
 
     def get_frame(self) -> jcan.Frame:
         """Get the frame to send over the CAN bus"""
+        control: OneAxisVelocityControl = self.get_control()
 
         # Set the data based on the direction, velocity, max value, and max percent
-        data = int(self.control.get_direction().value * self.control.get_velocity() * self.get_max_value() * self.control.get_max_percent())
+        data = int(control.get_direction().value * control.get_velocity() * self.get_max_value() * control.get_max_percent())
 
         # Check if the data is greater than the max value
         # If it is, set the data to the max value
-        if data > self.get_max_value():
+        if data > self.get_max_value() or data < -self.get_max_value():
             data = self.get_max_value()
 
         # Pack the data into a list
