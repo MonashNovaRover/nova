@@ -18,7 +18,7 @@
 , image-view
 , navigation2
 , depthai-ros
-, rtabmap-ros
+# , rtabmap-ros
 , nova-behavior-tree
 , nova-costmap-2d
 , nova-pointcloud-filter
@@ -55,7 +55,7 @@ buildRosPackage rec {
       image-view
       navigation2
       depthai-ros
-      rtabmap-ros
+      # rtabmap-ros
       nova-behavior-tree
       nova-costmap-2d
       nova-pointcloud-filter
