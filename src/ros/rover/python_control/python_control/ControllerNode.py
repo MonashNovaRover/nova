@@ -58,8 +58,8 @@ class ControllerNode(abc.ABC, Node):
         events = SubscriptionEventCallbacks(deadline=self.deadline_callback)
         self.qos = QoSProfile(reliability=QoSReliabilityPolicy.BEST_EFFORT, depth=1, deadline=deadline)
 
-        self.joystick_l_sub = self.create_subscription(InputJoystick, "/control/input_joystick_l", self.joystick_l_callback, self.qos, event_callbacks=events)
-        self.joystick_r_sub = self.create_subscription(InputJoystick, "/control/input_joystick_r", self.joystick_r_callback, self.qos, event_callbacks=events)
+        self.joystick_l_sub = self.create_subscription(InputJoystick, "/inputs/input_joystick_l", self.joystick_l_callback, self.qos, event_callbacks=events)
+        self.joystick_r_sub = self.create_subscription(InputJoystick, "/inputs/input_joystick_r", self.joystick_r_callback, self.qos, event_callbacks=events)
 
         self.timer_send_commands = self.create_timer(0.05, self.callback_send_commands)
         self.timer_jcan_spin = self.create_timer(0.01, self.bus.spin)
@@ -116,7 +116,7 @@ class ControllerNode(abc.ABC, Node):
         Stop all motors
         """
         for controller in self.controllers.values():
-            controller.control.stop()
+            controller.stop()
 
     def check_joystick_lock(self):
         if self.joystick_lock:

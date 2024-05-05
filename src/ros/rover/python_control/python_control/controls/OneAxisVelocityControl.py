@@ -57,7 +57,6 @@ class OneAxisVelocityControl(Control):
     def stop(self):
         """Stop the motor"""
         self.velocity = 0.0
-        self.direction = Direction.POSITIVE
 
     def update_limit_pos(self, limit_pos: bool):
         """Update the positive limit of the motor"""

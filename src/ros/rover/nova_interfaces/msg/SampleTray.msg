@@ -1,0 +1,2 @@
+int16 position
+string position_name

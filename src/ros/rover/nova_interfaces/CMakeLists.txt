@@ -54,7 +54,8 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/SetNIRProbeLED.srv"
 
   # Action definitions
-  DEPENDENCIES std_msgs geometry_msgs nav_msgs
+  "action/Stepper.action"
+  DEPENDENCIES std_msgs geometry_msgs nav_msgs action_msgs
 )
 
 # Run build testing package nodes

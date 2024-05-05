@@ -9,8 +9,8 @@ from python_control.controls.Direction import Direction
 
 class JonoVelocityController(Controller):
     """Class to control the JONO card on the CAN bus"""
-    def __init__(self, card_id: hex, pos_command: hex, neg_command: hex, control: OneAxisVelocityControl, bus: jcan.Bus, logger: Logger):
-        super().__init__(card=Card.JONO, max_value=255, card_id=card_id, control=control, bus=bus, logger=logger)
+    def __init__(self, frame_id: hex, pos_command: hex, neg_command: hex, control: OneAxisVelocityControl, bus: jcan.Bus, logger: Logger):
+        super().__init__(card=Card.JONO, max_value=255, frame_id=frame_id, control=control, bus=bus, logger=logger)
         # Command Ids = 1 Byte, (0x00 - 0xFF)
         self.pos_command = pos_command # type: hex
         self.neg_command = neg_command # type: hex
@@ -38,6 +38,6 @@ class JonoVelocityController(Controller):
         packed_data = [command, data]
 
         # Create and return the frame
-        frame = jcan.Frame(id=self.card_id, data=packed_data)
+        frame = jcan.Frame(id=self.frame_id, data=packed_data)
 
         return frame

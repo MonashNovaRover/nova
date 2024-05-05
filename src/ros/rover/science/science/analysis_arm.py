@@ -116,7 +116,7 @@ class AnalysisArm(ControllerNode):
         self.platform_controller = CMDVelocityController(
             logger=logger,
             bus=self.bus,
-            card_id=self.CMD_ID,
+            frame_id=self.CMD_ID,
             control=self.platform,
         )
 

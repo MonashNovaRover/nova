@@ -9,8 +9,8 @@ from python_control.controls.OneAxisVelocityControl import OneAxisVelocityContro
 
 class CMDVelocityController(Controller):
     """Class to control the CMD card on the CAN bus"""
-    def __init__(self, bus: jcan.Bus, logger: Logger, card_id: hex, control: OneAxisVelocityControl):
-        super().__init__(card=Card.CMD, max_value=32767, card_id=card_id, control=control, bus=bus, logger=logger)
+    def __init__(self, bus: jcan.Bus, logger: Logger, frame_id: hex, control: OneAxisVelocityControl):
+        super().__init__(card=Card.CMD, max_value=32767, frame_id=frame_id, control=control, bus=bus, logger=logger)
 
     def get_frame(self) -> jcan.Frame:
         """Get the frame to send over the CAN bus"""
@@ -28,6 +28,6 @@ class CMDVelocityController(Controller):
         packed_data = list(pack('>h', int(data)))
 
         # Create and return the frame
-        frame = jcan.Frame(id=self.card_id, data=packed_data)
+        frame = jcan.Frame(id=self.frame_id, data=packed_data)
 
         return frame

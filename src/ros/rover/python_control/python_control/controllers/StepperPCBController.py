@@ -8,10 +8,11 @@ from python_control.controls.OneAxisPositionControl import OneAxisPositionContro
 
 class StepperPCBPositionController(Controller):
     """Class to control the CMD card on the CAN bus"""
-    def __init__(self, bus: jcan.Bus, logger: Logger, card_id: hex, command_id: hex, control: OneAxisPositionControl):
-        super().__init__(card=Card.STEPPER_PCB, max_value=32767, card_id=card_id, control=control, bus=bus, logger=logger)
+    def __init__(self, bus: jcan.Bus, logger: Logger, frame_id: hex, command_id: hex, control: OneAxisPositionControl):
+        super().__init__(card=Card.STEPPER_PCB, max_value=32767, frame_id=frame_id, control=control, bus=bus, logger=logger)
         # Command Id = 1 Byte, (0x00 - 0xFF)
         self.command_id = command_id # type: hex
+        self.stopped = False
 
     def get_frame(self) -> jcan.Frame:
         """Get the frame to send over the CAN bus"""
@@ -29,12 +30,21 @@ class StepperPCBPositionController(Controller):
         packed_data = [int(self.command_id)] + list(pack('>h', int(data)))
 
         # Create and return the frame
-        frame = jcan.Frame(id=self.card_id, data=packed_data)
+        frame = jcan.Frame(id=self.frame_id, data=packed_data)
 
         return frame
+    
+    def stop(self):
+        """Stop the controller"""
+        super().stop()
+        self.stopped = True
 
+    def start(self):
+        """Start the controller"""
+        self.stopped = False
+        
     def control_send_callback(self):
-        if not self.is_stopped():
+        if not self.stopped:
             super().control_send_callback()
         else:
             self.get_logger().debug("Controller is stopped, not sending frame")

@@ -1,0 +1,11 @@
+# Request
+# Where to move the motor to
+string command
+---
+# Result
+# Whether the motor was able to move to the requested position
+bool success
+---
+# Feedback
+# How many steps are left to reach the requested position
+int16 steps_left

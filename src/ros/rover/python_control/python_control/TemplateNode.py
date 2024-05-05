@@ -145,7 +145,7 @@ class TemplateNode(ControllerNode):
         self.control_name_controller = CMDVelocityController(
             logger=logger,
             bus=self.bus,
-            card_id=self.CMD_ID,
+            frame_id=self.CMD_ID,
             control=self.control_name,
         )
 
