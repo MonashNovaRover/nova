@@ -7,9 +7,6 @@ Panels:
         - /Global Options1
         - /TF1/Frames1
         - /TF1/Tree1
-        - /Global Planner1
-        - /Controller1
-        - /Image1
       Splitter Ratio: 0.5833333134651184
     Tree Height: 152
   - Class: rviz_common/Selection
@@ -118,17 +115,20 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        imu_link:
+        gps_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-          Value: true
         left_leg:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
         oak-d_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        oak_imu_frame:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -200,7 +200,7 @@ Visualization Manager:
           Value: true
         front_right_wheel:
           Value: true
-        imu_link:
+        gps_link:
           Value: true
         left_leg:
           Value: true
@@ -263,7 +263,7 @@ Visualization Manager:
                   front_right_pivot:
                     front_right_wheel:
                       {}
-              imu_link:
+              gps_link:
                 {}
       Update Interval: 0
       Value: true
@@ -613,7 +613,7 @@ Visualization Manager:
 Window Geometry:
   Displays:
     collapsed: false
-  Height: 932
+  Height: 2076
   Hide Left Dock: false
   Hide Right Dock: false
   Image:

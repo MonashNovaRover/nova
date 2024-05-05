@@ -2,7 +2,7 @@
 <sdf version="1.6">
   <world name="urc_er">
     <include>
-      <uri>model://urc_er_terrain</uri>
+      <uri>file:///nova_terrain_directory/urc_er_terrain</uri>
     </include>
 
     <include>
@@ -13,9 +13,21 @@
       <shadows>false</shadows>
     </scene>
 
+        <spherical_coordinates>
+      <!-- currently gazebo has a bug: instead of outputting lat, long, altitude in ENU
+      (x = East, y = North and z = Up) as the default configurations, it's outputting (-E)(-N)U,
+      therefore we rotate the default frame 180 so that it would go back to ENU
+      see: https://github.com/osrf/gazebo/issues/2022 -->
+      <surface_model>EARTH_WGS84</surface_model>
+      <latitude_deg>38.408456516</latitude_deg>
+      <longitude_deg>-110.790323052</longitude_deg>
+      <elevation>1370.0</elevation>
+      <heading_deg>180</heading_deg>
+    </spherical_coordinates>
+
     <gui fullscreen='0'>
       <camera name='user_camera'>
-        <pose frame=''>0 0 35 0 1.570796 0</pose>
+        <pose frame=''>0 0 34 0 1.570796 0</pose>
         <view_controller>orbit</view_controller>
         <projection_type>perspective</projection_type>
       </camera>

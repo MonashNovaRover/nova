@@ -23,6 +23,7 @@
 , nova-costmap-2d
 , nova-pointcloud-filter
 , nova-rover-description
+, nova-gazebo
 }:
 
 buildRosPackage rec {
@@ -58,6 +59,7 @@ buildRosPackage rec {
       nova-behavior-tree
       nova-costmap-2d
       nova-pointcloud-filter
-      nova-rover-description;
+      nova-rover-description
+      nova-gazebo;
   };
 }

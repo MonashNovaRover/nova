@@ -28,7 +28,7 @@ import rclpy
 from rclpy.node import Node
 from rclpy.impl.rcutils_logger import RcutilsLogger
 from sensor_msgs.msg import JointState
-from nova_interfaces.srv import StringTrigger
+from arm_interfaces.srv import StringTrigger
 from arm_interfaces.srv import ArmConfigInfo
 
 from coms_utils.can_interface import CANTransceiver

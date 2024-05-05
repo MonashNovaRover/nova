@@ -1,3 +1,6 @@
 [submodule "autonomous/pybind11"]
 	path = autonomous/pybind11
 	url = git@github.com:pybind/pybind11.git
+[submodule "nova_gazebo/nova_terrain"]
+	path = nova_gazebo/nova_terrain
+	url = git@github.com:MonashNovaRover/nova_terrain.git

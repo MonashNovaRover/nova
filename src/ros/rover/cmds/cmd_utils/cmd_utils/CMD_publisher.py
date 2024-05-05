@@ -138,7 +138,7 @@ class CMDPublisher (Node):
                                  bitrate=200000) 
                      for i in range(NUM_SCIENCE_MOTORS)]
 
-        self.publisher = self.create_publisher(CMDsFeedback, "/electronics/cmd_feedback", 10)
+        self.publisher = self.create_publisher(CMDsFeedback, "/cmds/cmd_feedback", 10)
         self.get_logger().debug(f"Initialised the CMD Publisher class with:"\
                                 f"- {NUM_ARM_MOTORS} arm CMDs\n"\
                                 f"- {NUM_SCIENCE_MOTORS} science CMDs"
