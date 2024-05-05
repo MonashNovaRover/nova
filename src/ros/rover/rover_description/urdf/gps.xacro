@@ -3,6 +3,7 @@
 which is how it gets added to the gazebo sim. Author/s: Dylan Gonzalez-->
 
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" >
+<<<<<<< Updated upstream
   <link name="gps_link" />
 
   <joint name="gps_joint" type="fixed">
@@ -12,6 +13,17 @@ which is how it gets added to the gazebo sim. Author/s: Dylan Gonzalez-->
   </joint>
 
   <gazebo reference="gps_link">
+=======
+  <link name="gps" />
+
+  <joint name="gps_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="gps"/>
+    <origin xyz="0.04 -0.26 0.614"/> <!-- copied from imu.xacro -->
+  </joint>
+
+  <gazebo reference="gps">
+>>>>>>> Stashed changes
     <sensor name="skytraq_gps" type="gps">
       <plugin filename="libgazebo_ros_gps_sensor.so" name="gps_plugin">
         <ros>
