@@ -85,7 +85,7 @@
     </collision>
   </link>
   <joint
-    name="J1"
+    name="base-rotation"
     type="revolute">
     <origin
       xyz="0 0 0.1795"
@@ -143,7 +143,7 @@
     </collision>
   </link>
   <joint
-    name="J2"
+    name="shoulder"
     type="revolute">
     <origin
       xyz="0.0932995582406649 0.0723000000000009 -0.000287109904390681"
@@ -153,7 +153,7 @@
     <child
       link="J2ToLink1" />
     <axis
-      xyz="0 0.00307727657437369 -0.999995265173233" />
+      xyz="0 0 1" />
     <limit
       lower="-1.75"
       upper="1.55"
@@ -201,7 +201,7 @@
     </collision>
   </link>
   <joint
-    name="J3"
+    name="elbow"
     type="revolute">
     <origin
       xyz="0.48498 -0.0042617 -1.3115E-05"
@@ -211,7 +211,7 @@
     <child
       link="J3ToLink2" />
     <axis
-      xyz="0 0.0030773 -1" />
+      xyz="0 0 1" />
     <limit
       lower="-2.85"
       upper="2.5"
@@ -312,7 +312,7 @@
     </collision>
   </link>
   <joint
-    name="J4"
+    name="j4"
     type="revolute">
     <origin
       xyz="0 0 0"
@@ -322,7 +322,7 @@
     <child
       link="J4ToJ5" />
     <axis
-      xyz="0 0.0030773 -1" />
+      xyz="0 0 1" />
     <limit
       lower="-2.85"
       upper="0.75"
@@ -370,17 +370,17 @@
     </collision>
   </link>
   <joint
-    name="J5"
+    name="j5"
     type="revolute">
     <origin
       xyz="0.00022562 0.10236 0.020578"
-      rpy="0 -1.5708 0" />
+      rpy="0 1.5708 0" />
     <parent
       link="J4ToJ5" />
     <child
       link="J5ToJ6" />
     <axis
-      xyz="0.0030772 -0.99997 0.0065737" />
+      xyz="0 1 0" />
     <limit
       lower="-1.88"
       upper="2.45"
@@ -428,17 +428,17 @@
     </collision>
   </link>
   <joint
-    name="J6"
+    name="j6"
     type="revolute">
     <origin
       xyz="0.00096086 0.00055601 0.081482"
-      rpy="0 0 0" />
+      rpy="0 0 3.14159" />
     <parent
       link="J5ToJ6" />
     <child
       link="J6ToEE" />
     <axis
-      xyz="0.0027468 0.0065821 0.99997" />
+      xyz="0 0 1" />
     <limit
       lower="0"
       upper="0"
