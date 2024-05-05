@@ -32,7 +32,7 @@ from tf2_ros import Buffer, TransformListener
 
 # msg types
 from aruco_opencv_msgs.msg import ArucoDetection, MarkerPose
-from geometry_msgs.msg import Pose, Pose2D
+from geometry_msgs.msg import Pose2D
 from std_msgs.msg import Float64
 
 # standard python imports
@@ -47,12 +47,16 @@ class MarkerDistance(Node):
 
     # ROS subscribers
     self.sub = self.create_subscription(ArucoDetection, '/aruco_detections', self.cb_sub, 10)
+    self.marker_pose:Pose2D = Pose2D()
+    self.marker_pose.x:float = float('inf')
+    self.marker_pose.y:float = float('inf')
 
     # ROS publishers
     self.pub = self.create_publisher(Float64, '/marker_distance/distance', 10)
 
     # ROS params
     self.declare_parameter('tag', 0)
+    self.tag:int = self.get_parameter('tag').get_parameter_value().integer_value
 
     # ROS Tf2 stuff
     self.tf_buffer = Buffer()
@@ -84,15 +88,21 @@ class MarkerDistance(Node):
   def calculate_distance(self) -> Float64:
     """
     """
-    tag:int = self.get_parameter('tag').get_parameter_value().integer_value
+    if self.tag != self.get_parameter('tag').get_parameter_value().integer_value:
+      self.get_logger().info("Resetting AR marker id and distance")
+      self.tag = self.get_parameter('tag').get_parameter_value().integer_value
+      self.marker_pose.x = float('inf')
+      self.marker_pose.y = float('inf')
     distance:Float64 = Float64()
-    distance.data = float('inf')
     for marker in self.msg.markers:
-      if marker.marker_id == tag:
-        x:float = marker.pose.position.x - self.rover_pose.x
-        y:float = marker.pose.position.y - self.rover_pose.y
-        distance.data = (x**2 + y**2)**0.5
-        return distance
+      if marker.marker_id == self.tag:
+        self.marker_pose.x = marker.pose.position.x
+        self.marker_pose.y = marker.pose.position.y
+        break
+    x:float = self.marker_pose.x - self.rover_pose.x
+    y:float = self.marker_pose.y - self.rover_pose.y
+    distance.data = (x**2 + y**2)**0.5
+    return distance
 
   def publisher(self):
     """

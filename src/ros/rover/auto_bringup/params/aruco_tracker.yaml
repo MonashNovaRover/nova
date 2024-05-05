@@ -30,7 +30,7 @@
       reliability: 2
     marker_dict: 4X4_50
     marker_size: 0.1500 # marker_size refers to the sidelength of the marker (in m), which for URC 2024, will be 150 mm.
-    output_frame: 'base_link' # Frame which AR marker position is published relative to.
+    output_frame: 'map' # Frame which AR marker position is published relative to.
     publish_tf: true
     qos_overrides:
       /tf:

@@ -106,23 +106,17 @@ namespace nova_behavior_tree
         {
             return BT::NodeStatus::SUCCESS;
         }
-        return BT::NodeStatus::FAILURE;
+        return BT::NodeStatus::RUNNING;
     }
 
     bool QueryPositionCondition::queryPose()
     {
-        // RCLCPP_INFO(
-        //     node_->get_logger(), "Checking for AR tag %i",
-        //     0);
         std::string detection_type;
         getInput("detection_type", detection_type);
         if (detection_type == "tag") {
             std::string str_id;
             getInput("id", str_id);
             int _id = atoi(str_id.c_str());
-            // RCLCPP_INFO(
-            //     node_->get_logger(), "Found AR tag %i at (%.2f, %.2f)",
-            //     _id, tag_poses_[_id].pose.position.x, tag_poses_[_id].pose.position.y);
             if (tag_poses_.count(_id)) {
                 setOutput("position", tag_poses_[_id]);
             } else {
