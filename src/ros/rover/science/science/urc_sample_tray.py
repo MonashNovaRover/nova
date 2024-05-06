@@ -4,8 +4,7 @@ import time
 from python_control.controls.OneAxisPositionControl import OneAxisPositionControl
 from python_control.controllers.StepperPCBController import StepperPCBPositionController
 from python_control.sensors.IntegerSensor import IntegerSensor
-from python_control.sensors.LimitSwitchSensor import LimitSwitchSensor
-from python_control.limits.LimitSwitchLimit import LimitSwitchLimit
+from python_control.sensors.CommandSensor import CommandSensor
 import rclpy
 from python_control.ControllerNode import ControllerNode
 from input_interfaces.msg import InputJoystick
@@ -26,7 +25,7 @@ class SampleTray(ControllerNode):
 
     # RECEIVING CARD IDS
     # Add any SENSOR FRAME / CARD IDS here
-    STEPPER_PCB_RECV = 0x007
+    STEPPER_PCB_RECV = 0x456
     LIMIT_SWITCH_FRAME_ID = 0x4A2
 
 
@@ -41,6 +40,7 @@ class SampleTray(ControllerNode):
     CACHE_POS = 30
     CLEAN_POS = 40
     # Position Names
+    ZERO = "zero"
     SAMPLE_ONE_NAME = "sample_one"
     SAMPLE_TWO_NAME = "sample_two"
     CACHE_NAME = "cache"
@@ -48,25 +48,17 @@ class SampleTray(ControllerNode):
 
     # SENDING COMMAND IDS
     # Add any CONTROL command ids here
-    STEPPER_SEND_COMMAND_ID = 0x01
+    STEPPER_SEND_POS_COMMAND_ID = 0x01
+    STEPPER_SEND_ZERO_COMMAND_ID = 0x03
 
     # RECEIVING COMMAND IDS
     # Add any SENSOR command ids here
-    STEPPER_RECV_COMMAND_ID = 0x00 # Replace with correct value
-    LIMIT_SWITCH_ZERO_COMMAND_ID = 0x01
-    LIMIT_SWITCH_MAX_COMMAND_ID = 0x02
-
-
-    # CONTROL DIRECTIONS
-    # Add any CONTROL DIRECTIONS here
-
-
-    # LIMIT PARAMETERS
-    # Add any LIMIT parameters here
+    STEPPER_RECV_POS_COMMAND_ID = 0x01
+    STEPPER_RECV_ZERO_COMMAND_ID = 0x03
 
 
     def __init__(self):
-        super(SampleTray, self).__init__(name="AnalysisArm", can_bus=self.CAN_BUS)
+        super(SampleTray, self).__init__(name="SampleTray", can_bus=self.CAN_BUS)
         logger = self.get_logger()
 
         ## Add Flags as required
@@ -82,45 +74,25 @@ class SampleTray(ControllerNode):
         self.go_to_action = ActionServer(self, Stepper, "/science/go_to_position", self.go_to_position_callback)
 
         ## Create sensors
-        self.sample_tray_sensor = IntegerSensor(
+        self.sample_tray_pos_sensor = IntegerSensor(
             bus=self.bus,
             logger=logger,
             frame_id=self.STEPPER_PCB_RECV,
+            command_id=self.STEPPER_RECV_POS_COMMAND_ID,
             publisher=self.tof_publisher,
             initial_value=0,
-            run_can=True
         )
 
-        self.zero_limit_sensor = LimitSwitchSensor(
-            logger=logger,
+        self.sample_tray_zero_sensor = CommandSensor(
             bus=self.bus,
-            frame_id=self.LIMIT_SWITCH_FRAME_ID,
-            command_id=self.LIMIT_SWITCH_ZERO_COMMAND_ID,
-            run_can=False
-        )
-        self.max_limit_sensor = LimitSwitchSensor(
             logger=logger,
-            bus=self.bus,
-            frame_id=self.LIMIT_SWITCH_FRAME_ID,
-            command_id=self.LIMIT_SWITCH_MAX_COMMAND_ID,
-            run_can=False
-        )
-
-        # Create limits
-        self.sample_tray_zero_limit = LimitSwitchLimit(
-            logger=logger,
-            bus=self.bus,
-            limit_switch=self.zero_limit_sensor
-        )
-        self.sample_tray_max_limit = LimitSwitchLimit(
-            logger=logger,
-            bus=self.bus,
-            limit_switch=self.max_limit_sensor
-        )
- 
+            frame_id=self.STEPPER_PCB_RECV,
+            command_id=self.STEPPER_RECV_ZERO_COMMAND_ID,
+        )    
 
         ## Create controls
-        positions = {
+        POSITIONS = {
+            self.ZERO: 0,
             self.SAMPLE_ONE_NAME: self.SAMPLE_ONE_POS,
             self.SAMPLE_TWO_NAME: self.SAMPLE_TWO_POS,
             self.CACHE_NAME: self.CACHE_POS,
@@ -129,8 +101,8 @@ class SampleTray(ControllerNode):
 
         self.sample_tray_control = OneAxisPositionControl(
             logger=logger,
-            position=0,
-            positions=positions
+            positions=POSITIONS,
+            position_sensor=self.sample_tray_pos_sensor,
         )
 
         ## Create controllers
@@ -138,8 +110,10 @@ class SampleTray(ControllerNode):
             logger=logger,
             bus=self.bus,
             frame_id=self.STEPPER_PCB_SEND,
-            command_id=self.STEPPER_SEND_COMMAND_ID,
+            pos_command_id=self.STEPPER_SEND_POS_COMMAND_ID,
+            zero_command_id=self.STEPPER_SEND_ZERO_COMMAND_ID,
             control=self.sample_tray_control,
+            zero_sensor=self.sample_tray_zero_sensor,
         )
 
         ## Add the controllers to the node's of controllers
@@ -148,20 +122,18 @@ class SampleTray(ControllerNode):
         ## Start the CAN bus
         self.start_can()
 
-    def steps_left(self, position_name: str):
-        return self.sample_tray_control.get_positions()[position_name] - self.sample_tray_sensor.get_position()
 
     def go_to_position_callback(self, goal_handle):
         self.get_logger().info('Executing Stepper Go To: {0}'.format(goal_handle.request.command))
         command = goal_handle.request.command
 
         feedback_msg = Stepper.Feedback()
-        feedback_msg.steps_left = self.steps_left(command)
+        feedback_msg.steps_left = self.sample_tray_control.distance_to_position()
 
         TIMEOUT = 60
         i = 0
         while abs(self.steps_left(command)) > 0 and not i < TIMEOUT:
-            feedback_msg.steps_left = self.steps_left(command)
+            feedback_msg.steps_left = self.sample_tray_control.distance_to_position()
             self.get_logger().info('Feedback: steps_left {0}'.format(feedback_msg.steps_left))
             goal_handle.publish_feedback(feedback_msg)
             i += 1
@@ -173,6 +145,10 @@ class SampleTray(ControllerNode):
         result = Stepper.Result()
         result.success = self.steps_left(command) > 0
         return result
+    
+    def zero_callback(self, goal_handle):
+        # Implement pls
+        pass
     
 
     def joystick_l(self, joystick_l: InputJoystick):
