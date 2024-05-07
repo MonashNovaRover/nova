@@ -13,7 +13,7 @@ from rclpy.action import ActionServer
 from nova_interfaces.action import Stepper
 
 
-class SampleTray(ControllerNode):
+class URCSampleTray(ControllerNode):
 
     # CAN BUS NAME
     # The name of the CAN bus to use
@@ -58,7 +58,7 @@ class SampleTray(ControllerNode):
 
 
     def __init__(self):
-        super(SampleTray, self).__init__(name="SampleTray", can_bus=self.CAN_BUS)
+        super().__init__(name="URCSampleTray", can_bus=self.CAN_BUS)
         logger = self.get_logger()
 
         ## Add Flags as required
@@ -159,7 +159,7 @@ class SampleTray(ControllerNode):
 
 def main():
     rclpy.init()
-    node = SampleTray()
+    node = URCSampleTray()
     rclpy.spin(node)
     rclpy.shutdown()
 
