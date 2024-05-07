@@ -16,6 +16,7 @@ class StepperPCBPositionController(Controller):
         self.zero_command_id = zero_command_id # type: hex
         self.stopped = False
         self.zeroing = False
+        self.zero_sensor = zero_sensor
 
 
     def get_frame(self) -> jcan.Frame:
@@ -23,7 +24,7 @@ class StepperPCBPositionController(Controller):
         control: OneAxisPositionControl = self.get_control()
 
         # Set the data based on the position
-        data = int(control.get_active_position())
+        data = int(control.get_goal_position())
 
         # Check if the data is greater than the max value
         # If it is, set the data to the max value
@@ -51,9 +52,17 @@ class StepperPCBPositionController(Controller):
         self.stop()
         self.zeroing = True
         self.get_logger().info("Start zeroing")
+        self.control.zero()
         frame = jcan.Frame(id=self.frame_id, data=[int(self.zero_command_id)])
         self.get_logger().debug(f"Sending frame: {frame}")
         self.bus.send(frame)
+
+    def go_to_position(self, name: str):
+        self.start()
+        self.control.go_to_position(name)
+
+    def is_zeroing(self):
+        return self.zeroing
         
     def control_send_callback(self):
         if self.zeroing:

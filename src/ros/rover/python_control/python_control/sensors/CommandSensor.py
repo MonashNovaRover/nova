@@ -3,7 +3,6 @@
 from python_control.sensors.Sensor import Sensor
 from logging import Logger
 import jcan
-from enum import Enum
 
 class CommandSensor(Sensor[bool]):
     """Class to represent a limit switch sensor"""

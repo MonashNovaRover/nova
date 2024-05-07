@@ -10,6 +10,9 @@ class Control(abc.ABC):
     def __init__(self, logger: Logger):
         self.logger = logger # type: Logger
 
+    def get_logger(self) -> Logger:
+        return self.logger
+
     @abc.abstractmethod
     def stop(self):
         pass

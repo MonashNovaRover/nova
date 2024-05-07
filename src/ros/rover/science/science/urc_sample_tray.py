@@ -26,7 +26,6 @@ class URCSampleTray(ControllerNode):
     # RECEIVING CARD IDS
     # Add any SENSOR FRAME / CARD IDS here
     STEPPER_PCB_RECV = 0x456
-    LIMIT_SWITCH_FRAME_ID = 0x4A2
 
 
     # CONTROL NAMES
@@ -35,12 +34,12 @@ class URCSampleTray(ControllerNode):
 
     # CONTROL PARAMETERS
     # Positions
-    SAMPLE_ONE_POS = 10
+    SAMPLE_ONE_POS = 0
     SAMPLE_TWO_POS = 20
     CACHE_POS = 30
     CLEAN_POS = 40
     # Position Names
-    ZERO = "zero"
+    ZERO = OneAxisPositionControl.ZERO
     SAMPLE_ONE_NAME = "sample_one"
     SAMPLE_TWO_NAME = "sample_two"
     CACHE_NAME = "cache"
@@ -56,22 +55,18 @@ class URCSampleTray(ControllerNode):
     STEPPER_RECV_POS_COMMAND_ID = 0x01
     STEPPER_RECV_ZERO_COMMAND_ID = 0x03
 
+    # TIMEOUT
+    TIMEOUT = 10
 
     def __init__(self):
         super().__init__(name="URCSampleTray", can_bus=self.CAN_BUS)
         logger = self.get_logger()
 
-        ## Add Flags as required
-
-
         ## Add CAN ID Filters
-        # self.bus.set_id_filter([])
-
-        ## Add Publishers
-        self.tof_publisher = self.create_publisher(Range, "/science/sample_tray", 10)
+        self.bus.set_id_filter([self.STEPPER_PCB_RECV])
 
         # Add Actions
-        self.go_to_action = ActionServer(self, Stepper, "/science/go_to_position", self.go_to_position_callback)
+        self.go_to_action = ActionServer(self, Stepper, "/science/sample_tray_action", self.stepper_action_callback)
 
         ## Create sensors
         self.sample_tray_pos_sensor = IntegerSensor(
@@ -79,7 +74,6 @@ class URCSampleTray(ControllerNode):
             logger=logger,
             frame_id=self.STEPPER_PCB_RECV,
             command_id=self.STEPPER_RECV_POS_COMMAND_ID,
-            publisher=self.tof_publisher,
             initial_value=0,
         )
 
@@ -99,11 +93,15 @@ class URCSampleTray(ControllerNode):
             self.CLEAN_NAME: self.CLEAN_POS,
         }
 
+        logger.info('Positions: {0}'.format(POSITIONS))
+
         self.sample_tray_control = OneAxisPositionControl(
             logger=logger,
             positions=POSITIONS,
             position_sensor=self.sample_tray_pos_sensor,
         )
+
+        logger.info('Positions Retrieved: {0}'.format(self.sample_tray_control.get_positions()))
 
         ## Create controllers
         self.sample_tray_controller = StepperPCBPositionController(
@@ -123,32 +121,71 @@ class URCSampleTray(ControllerNode):
         self.start_can()
 
 
-    def go_to_position_callback(self, goal_handle):
-        self.get_logger().info('Executing Stepper Go To: {0}'.format(goal_handle.request.command))
-        command = goal_handle.request.command
-
+    def feedback(self):
         feedback_msg = Stepper.Feedback()
-        feedback_msg.steps_left = self.sample_tray_control.distance_to_position()
+        feedback_msg.current_position = self.sample_tray_control.get_current_position()
+        feedback_msg.goal_position = self.sample_tray_control.get_goal_position()
+        self.get_logger().debug('Feedback: {0}'.format(feedback_msg))
+        return feedback_msg
 
-        TIMEOUT = 60
+    def zeroing(self, goal_handle):
+        self.get_logger().info('Zeroing Stepper')
+        self.sample_tray_controller.zero()
         i = 0
-        while abs(self.steps_left(command)) > 0 and not i < TIMEOUT:
-            feedback_msg.steps_left = self.sample_tray_control.distance_to_position()
-            self.get_logger().info('Feedback: steps_left {0}'.format(feedback_msg.steps_left))
+        while self.sample_tray_controller.is_zeroing() and i < self.TIMEOUT:
+            feedback_msg = self.feedback()
             goal_handle.publish_feedback(feedback_msg)
-            i += 1
             time.sleep(1)
-    
+            i += 1
 
-        goal_handle.succeed()
+        if self.sample_tray_controller.is_zeroing():
+            self.get_logger().error('Failed to zero Stepper')
+            return False
+        
+        return True
+
+    def go_to_position(self, goal_handle, goal_name):
+        self.get_logger().info('Going to position: {0}'.format(goal_name))
+        self.sample_tray_controller.go_to_position(goal_name)
+        i = 0
+        while not self.sample_tray_control.is_at_position() and i < self.TIMEOUT:
+            feedback_msg = self.feedback()
+            goal_handle.publish_feedback(feedback_msg)
+            time.sleep(1)
+            i += 1
+        
+        if not self.sample_tray_control.is_at_position():
+            self.get_logger().error('Failed to reach position: {0}'.format(goal_name))
+            return False
+        
+        return True
+
+
+    def stepper_action_callback(self, goal_handle):
+        goal_name = goal_handle.request.goal
+        self.get_logger().info('Executing Stepper Goal: {0}'.format(goal_name))
+
+        if not self.sample_tray_control.valid_goal(goal_name):
+            self.get_logger().error('Invalid command: {0}'.format(goal_name))
+            goal_handle.abort()
+            result = Stepper.Result()
+            result.success = False
+            return result
+
+        success: bool
+        if goal_name == self.ZERO:
+            success = self.zeroing(goal_handle)
+        else:
+            success = self.go_to_position(goal_handle, goal_name)
+
+        if success:
+            goal_handle.succeed()
+        else:
+            goal_handle.abort()
 
         result = Stepper.Result()
-        result.success = self.steps_left(command) > 0
+        result.success = success
         return result
-    
-    def zero_callback(self, goal_handle):
-        # Implement pls
-        pass
     
 
     def joystick_l(self, joystick_l: InputJoystick):

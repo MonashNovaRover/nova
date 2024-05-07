@@ -13,7 +13,7 @@ class OneAxisPositionControl(Control):
         self.positions = positions
         self.position_sensor = position_sensor
 
-    def get_active_position(self):
+    def get_goal_position(self):
         """Get the position to move the motor to"""
         if self.position_name is None:
             return self.position_sensor.get_sensor_value()
@@ -41,7 +41,11 @@ class OneAxisPositionControl(Control):
 
     def go_to_position(self, name: str):
         """Go to a specific position"""
-        self.position = self.positions[name]
+        self.position_name = name
+    
+    def valid_goal(self, name: str):
+        """Check if the motor is at the goal position"""
+        return name in self.positions.keys()
     
     def zero(self):
         """Move the motor to the zero position"""
@@ -53,6 +57,7 @@ class OneAxisPositionControl(Control):
 
     def is_at_position(self) -> bool:
         """Check if the motor is at the specific position"""
+        self.get_logger().info('Sensor Value: {0}, Goal Value: {1}, Goal Name: {2}'.format(self.position_sensor.get_sensor_value(), self.positions[self.position_name], self.position_name))
         return self.position_sensor.get_sensor_value() == self.positions[self.position_name]
 
     def stop(self):

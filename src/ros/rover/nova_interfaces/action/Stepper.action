@@ -1,6 +1,6 @@
 # Request
 # Where to move the motor to
-string command
+string goal
 ---
 # Result
 # Whether the motor was able to move to the requested position
@@ -8,4 +8,5 @@ bool success
 ---
 # Feedback
 # How many steps are left to reach the requested position
-int16 steps_left
+int16 current_position
+int16 goal_position
