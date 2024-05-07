@@ -13,11 +13,11 @@ let
       src = fetchFromGitHub {
         owner = "leighleighleigh";
         repo = "JCAN";
-        rev = "ef47dcf9ccb59524bd3b2ab424205bb2cbb5bf0c";
-        hash = "sha256-on/IZH3l7rbGU8QAPB+SRqJMcoCQtqCdcjf2Zebkezo=";
+        rev = "316faeeef0b9e75cbcb2fe63d4c575302a631554";
+        hash = "sha256-qLjzSBTZLnVOtBtinSc2KGZYh5R2Im4VF0xc6EiANvQ=";
       };
 
-      cargoHash = "sha256-XWC/HhAvzq173whD/t3grhYvNQp4FVk04sjhVvu7QM0=";
+      cargoHash = "sha256-F0xYQoI05+YzkBIq/7do1Hw3Svw9xlM6InHkI97VhzA=";
 
       buildAndTestSubdir = "jcan";
 
