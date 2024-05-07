@@ -29,6 +29,7 @@ class IntegerSensor(Sensor[int]):
     
     def callback_function(self, frame: jcan.Frame):
         """Update the sensor value based on the frame"""
+        self.logger.info("we are here")
 
         # Check if the frame data is the correct length
         if self.command_id is None and len(frame.data) != 2:
@@ -49,10 +50,6 @@ class IntegerSensor(Sensor[int]):
         else:
             # Set the sensor value
             self.set_sensor_value(int(frame.data[1] + (frame.data[0] << 8)))
-
-    def get_sensor_value(self) -> int:
-        """Get the sensor value"""
-        return super().get_sensor_value()
 
     def publish_sensor(self):
         pass

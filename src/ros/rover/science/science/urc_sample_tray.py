@@ -28,9 +28,12 @@ class URCSampleTray(ControllerNode):
     STEPPER_PCB_RECV = 0x456
 
 
-    # CONTROL NAMES
+    # NAMES
     # Add any CONTROL names here
-    SAMPLE_TRAY_NAME = "sample_tray"
+    SAMPLE_TRAY_CONTROL = "sample_tray"
+    SAMPLE_TRAY_POS = "sample_tray_pos"
+    SAMPLE_TRAY_ZERO = "sample_tray_zero"
+
 
     # CONTROL PARAMETERS
     # Positions
@@ -56,7 +59,7 @@ class URCSampleTray(ControllerNode):
     STEPPER_RECV_ZERO_COMMAND_ID = 0x03
 
     # TIMEOUT
-    TIMEOUT = 10
+    TIMEOUT = 100
 
     def __init__(self):
         super().__init__(name="URCSampleTray", can_bus=self.CAN_BUS)
@@ -82,7 +85,12 @@ class URCSampleTray(ControllerNode):
             logger=logger,
             frame_id=self.STEPPER_PCB_RECV,
             command_id=self.STEPPER_RECV_ZERO_COMMAND_ID,
+            run_can=False,
         )    
+
+        ## Add sensors to the node
+        self.add_sensor(self.SAMPLE_TRAY_POS, self.sample_tray_pos_sensor)
+        self.add_sensor(self.SAMPLE_TRAY_ZERO, self.sample_tray_zero_sensor)
 
         ## Create controls
         POSITIONS = {
@@ -115,7 +123,7 @@ class URCSampleTray(ControllerNode):
         )
 
         ## Add the controllers to the node's of controllers
-        self.add_controller(self.SAMPLE_TRAY_NAME, self.sample_tray_controller)
+        self.add_controller(self.SAMPLE_TRAY_CONTROL, self.sample_tray_controller)
 
         ## Start the CAN bus
         self.start_can()
@@ -149,9 +157,13 @@ class URCSampleTray(ControllerNode):
         self.sample_tray_controller.go_to_position(goal_name)
         i = 0
         while not self.sample_tray_control.is_at_position() and i < self.TIMEOUT:
+            self.sample_tray_controller.go_to_position(goal_name)
             feedback_msg = self.feedback()
             goal_handle.publish_feedback(feedback_msg)
-            time.sleep(1)
+            frame = self.bus.receive_with_timeout(100)
+            if frame is not None:
+                self.sample_tray_pos_sensor.frame_callback(frame)
+            time.sleep(0.05)
             i += 1
         
         if not self.sample_tray_control.is_at_position():

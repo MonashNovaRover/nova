@@ -37,6 +37,7 @@ class Sensor(abc.ABC, Generic[T]):
 
     def set_sensor_value(self, sensor_value: T):
         """Set the sensor value"""
+        self.get_logger().debug(f"Setting sensor value: {sensor_value}")
         self.sensor_value = sensor_value
 
     def get_sensor_value(self) -> T:
@@ -53,7 +54,9 @@ class Sensor(abc.ABC, Generic[T]):
             self.logger.warn(f"Invalid frame id: {frame.id} != {self.frame_id}")
             return
         
+        self.get_logger().info(f"Aboute to call callback_function with frame: {frame}")
         self.callback_function(frame)
+        self.get_logger().info(f"Just called it")
         
         if self.publisher != None:
             self.publish_sensor()
