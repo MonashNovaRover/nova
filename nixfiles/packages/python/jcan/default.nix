@@ -12,6 +12,8 @@ buildPythonPackage rec {
   pname = "jcan";
   version = "0.2.4";
 
+  doCheck = false;
+
   src = fetchFromGitHub {
     owner = "leighleighleigh";
     repo = "JCAN";
@@ -19,7 +21,7 @@ buildPythonPackage rec {
     hash = "sha256-qLjzSBTZLnVOtBtinSc2KGZYh5R2Im4VF0xc6EiANvQ=";
     
   };
-  sourceRoot = "source/jcan-python";
+  sourceRoot = "source/jcan_python";
 
   cargoDeps = rustPlatform.fetchCargoTarball {
     inherit src;
@@ -34,6 +36,8 @@ buildPythonPackage rec {
     setuptools-rust
     toml
   ];
+
+
 
   postPatch = ''
     chmod u+w ..

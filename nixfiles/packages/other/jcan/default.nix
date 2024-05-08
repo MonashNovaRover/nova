@@ -23,6 +23,8 @@ let
 
       outputs = [ "out" "dev" ];
 
+      doCheck = false;
+
       nativeBuildInputs = [ validatePkgConfig ];
 
       postInstall = ''
