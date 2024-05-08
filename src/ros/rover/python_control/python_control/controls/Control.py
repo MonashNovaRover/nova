@@ -1,8 +1,7 @@
+#!/usr/bin/env python3
+
 import abc
 from logging import Logger
-
-from python_control.controls.Direction import Direction
-
 
 class Control(abc.ABC):
     """Class to control a single axis motor"""

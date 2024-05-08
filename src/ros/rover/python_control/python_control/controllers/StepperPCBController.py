@@ -2,22 +2,32 @@
 from logging import Logger
 from struct import pack
 import jcan
+from python_control.controllers.StepperPositionController import StepperPositionController
 from python_control.controllers.Card import Card
-from python_control.controllers.Controller import Controller
 from python_control.controls.OneAxisPositionControl import OneAxisPositionControl
-from python_control.sensors.CommandSensor import CommandSensor
 
-class StepperPCBPositionController(Controller):
+class StepperPCBPositionController(StepperPositionController):
     """Class to control the CMD card on the CAN bus"""
-    def __init__(self, bus: jcan.Bus, logger: Logger, frame_id: hex, pos_command_id: hex, zero_command_id: hex, control: OneAxisPositionControl, zero_sensor: CommandSensor):
-        super().__init__(card=Card.STEPPER_PCB, max_value=32767, frame_id=frame_id, control=control, bus=bus, logger=logger)
+    def __init__(
+            self,
+            bus: jcan.Bus, 
+            logger: Logger, 
+            frame_id: hex, 
+            pos_command_id: hex, 
+            zero_command_id: hex, 
+            control: OneAxisPositionControl,
+        ):
+        super().__init__(
+            card=Card.STEPPER_PCB, 
+            max_value=32767, 
+            frame_id=frame_id, 
+            control=control, 
+            bus=bus, 
+            logger=logger,
+        )
         # Command Id = 1 Byte, (0x00 - 0xFF)
         self.pos_command_id = pos_command_id # type: hex
         self.zero_command_id = zero_command_id # type: hex
-        self.stopped = False
-        self.zeroing = False
-        self.zero_sensor = zero_sensor
-
 
     def get_frame(self) -> jcan.Frame:
         """Get the frame to send over the CAN bus"""
@@ -46,41 +56,14 @@ class StepperPCBPositionController(Controller):
         frame = jcan.Frame(id=self.frame_id, data=packed_data)
 
         return frame
-    
-    def stop(self):
-        """Stop the controller"""
-        super().stop()
-        self.zeroing = False
-        self.stopped = True
-        self.zero_sensor.reset()
-
-    def start(self):
-        """Start the controller"""
-        self.stopped = False
-
-    def zero(self):
-        self.stop()
-        self.zeroing = True
-        self.control.zero()
-        self.get_logger().info("Start zeroing")
-
-    def go_to_position(self, name: str):
-        self.start()
-        self.control.go_to_position(name)
-
-    def is_zeroing(self):
-        return self.zeroing
         
     def control_send_callback(self):
-        if self.zeroing:
-            if self.zero_sensor.get_sensor_value():
-                self.stop()
-                self.get_logger().info("Zeroing complete")
-            else:
-                super().control_send_callback()
-        elif not self.stopped:
+        """Send the control frame over the CAN bus"""
+        if self.is_zeroing() or self.is_going_to_position():
             super().control_send_callback()
         else:
             self.get_logger().debug("Controller is stopped, not sending frame")
+
+ 
         
         

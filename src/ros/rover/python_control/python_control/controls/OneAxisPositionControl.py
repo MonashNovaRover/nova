@@ -1,22 +1,29 @@
+#!/usr/bin/env python3
+
 from logging import Logger
 from python_control.controls.Control import Control
 from python_control.sensors import IntegerSensor
+from python_control.sensors.CommandSensor import CommandSensor
 
 class OneAxisPositionControl(Control):
     """Class to control a single axis motor"""
     ZERO = "zero"
 
-    def __init__(self, logger: Logger, positions: dict[str, int] = {}, position_sensor: IntegerSensor = None):
+    def __init__(self, logger: Logger, positions: dict[str, int] = {}, position_sensor: IntegerSensor = None, zero_sensor: CommandSensor = None):
         super().__init__(logger=logger)
         positions[self.ZERO] = 0
-        self.position_name = self.ZERO
-        self.positions = positions
-        self.position_sensor = position_sensor
+        self.position_name = self.ZERO # type: str
+        self.positions = positions # type: dict[str, int]
+        self.position_sensor = position_sensor # type: IntegerSensor
+        self.zero_sensor = zero_sensor # type: CommandSensor
+
+
+    def get_current_position(self):
+        """Get the current position of the motor"""
+        return self.position_sensor.get_sensor_value()
 
     def get_goal_position(self):
         """Get the position to move the motor to"""
-        if self.position_name is None:
-            return self.position_sensor.get_sensor_value()
         return self.positions[self.position_name]
     
     def get_position_name(self):
@@ -26,10 +33,6 @@ class OneAxisPositionControl(Control):
     def get_positions(self):
         """Get the set of available positions of the motor"""
         return self.positions
-    
-    def get_current_position(self):
-        """Get the current position of the motor"""
-        return self.position_sensor.get_sensor_value()
 
     def add_position(self, name: str, position: int):
         """Add a position to the set of available positions"""
@@ -42,27 +45,35 @@ class OneAxisPositionControl(Control):
     def go_to_position(self, name: str):
         """Go to a specific position"""
         self.position_name = name
+
+    def zero(self):
+        """Zero the motor"""
+        self.position_name = self.ZERO
     
-    def valid_goal(self, name: str):
+    def valid_position(self, name: str):
         """Check if the motor is at the goal position"""
         return name in self.positions.keys()
-    
-    def zero(self):
-        """Move the motor to the zero position"""
-        self.position_name = self.ZERO
 
     def distance_to_position(self) -> int:
         """Get the distance to the set position"""
         return abs(self.positions[self.position_name] - self.position_sensor.get_sensor_value())
+    
+    def is_zeroed(self) -> bool:
+        """Check if the motor is at the zero position"""
+        return self.zero_sensor.get_sensor_value()
 
     def is_at_position(self) -> bool:
         """Check if the motor is at the specific position"""
         return self.position_sensor.get_sensor_value() == self.positions[self.position_name]
+    
+    def sensor_callbacks(self, frame):
+        """Update the sensor values based on the frame"""
+        self.position_sensor.frame_callback(frame)
+        self.zero_sensor.frame_callback(frame)
 
     def stop(self):
         """Stop the motor"""
-        pass
-
+        self.zero_sensor.reset()
 
 
 
