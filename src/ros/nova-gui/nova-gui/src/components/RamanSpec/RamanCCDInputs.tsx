@@ -12,7 +12,6 @@ import { RosService } from "../../ros/services/rosService";
 import { IRosCoreRamanSpecRequest } from "../../ros/rosTypes";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/RootState";
-import ROSLIB from "roslib";
 
 
 function checkPeriods(shPeriod: number, icgPeriod: number) {
@@ -63,7 +62,7 @@ const RamanCCDInputs: React.FC = () => {
                         <p>Specify the port name. The default value should work.</p>
                         <p>SH (SHift gate) period's minimum value is 20, its maximum value is 4294967295 and must be an integer.</p>
                         <p>ICG (Integration Clear Gate) period's minimum value is 14776, its maximum value is 4294967295 and must be an integer. The value for the ICG period <em className="text-xl font-black not-italic">MUST</em> be an integer multiple of the SH period.</p>
-                        <p>Average determines the amount of samples taken and averaged by the firmware, its minimum value is 1 and its maximum value is 15 (must be an integer).</p>
+                        <p className="mb-3">Average determines the amount of samples taken and averaged by the firmware, its minimum value is 1 and its maximum value is 15 (must be an integer).</p>
                     </ModalBody>
                     </>
                 )}

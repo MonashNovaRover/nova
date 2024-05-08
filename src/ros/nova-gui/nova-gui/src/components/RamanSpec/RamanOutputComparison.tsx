@@ -22,7 +22,7 @@ const RamanOutputComparison: React.FC = () => {
     const LASER_RED_END = 928
     const LASER_RED_RANGE = LASER_RED_END - LASER_RED_START
 
-    const RAMAN_PEAK_VALUE = 3700  // approx
+    const RAMAN_PEAK_VALUE = 3600  // approx
     const NORMALISED_SCALE_MAX = 100
 
     // Bifrost
@@ -55,15 +55,14 @@ const RamanOutputComparison: React.FC = () => {
     }]]
 
     return (
-        /* <OutputComparison
+        <OutputComparison
             title="Comparison and Analysis"
             peaksOnMain
             outputData={redLaserOutput}
             elementData={elementData}
             style={ChartStyle.Default}
             peakFinder={getDefaultPeakFinder(2, 20)}
-        /> */
-        <div>{spectrumStore.spectrum.toString()}</div>
+        />
     ) 
 }
 
