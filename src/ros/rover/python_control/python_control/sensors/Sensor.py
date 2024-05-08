@@ -11,7 +11,7 @@ T = TypeVar('T')
 class Sensor(abc.ABC, Generic[T]):
     """Class to represent a sensor"""
     def __init__(
-            self, 
+            self,
             bus: jcan.Bus, 
             logger: Logger, 
             frame_id: hex, 
@@ -49,14 +49,12 @@ class Sensor(abc.ABC, Generic[T]):
     
     def frame_callback(self, frame: jcan.Frame):
         """Update the sensor value based on the frame"""
-        self.get_logger().info(f"Received frame: {frame}")
+        self.get_logger().debug(f"Received frame: {frame}")
         if frame.id != self.frame_id:
             self.logger.warn(f"Invalid frame id: {frame.id} != {self.frame_id}")
             return
         
-        self.get_logger().info(f"Aboute to call callback_function with frame: {frame}")
         self.callback_function(frame)
-        self.get_logger().info(f"Just called it")
         
         if self.publisher != None:
             self.publish_sensor()

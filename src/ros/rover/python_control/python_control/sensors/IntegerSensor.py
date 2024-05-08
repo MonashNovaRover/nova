@@ -29,21 +29,16 @@ class IntegerSensor(Sensor[int]):
     
     def callback_function(self, frame: jcan.Frame):
         """Update the sensor value based on the frame"""
-        self.logger.info("we are here")
 
         # Check if the frame data is the correct length
-        if self.command_id is None and len(frame.data) != 2:
-            self.logger.error("Invalid frame data")
-            return
-        elif self.command_id is not None and len(frame.data) != 3:
-            self.logger.error("Invalid frame data")
+        if (self.command_id is None and len(frame.data) != 2) or \
+            (self.command_id is not None and len(frame.data) != 3):
             return
         
         # Check if the command id is specified
         if self.command_id is not None:
             # Check if the command id is correct
             if frame.data[0] != self.command_id:
-                self.logger.error("Invalid command id")
                 return
             # Set the sensor value
             self.set_sensor_value(int(frame.data[2] + (frame.data[1] << 8)))

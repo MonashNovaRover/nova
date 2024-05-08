@@ -27,7 +27,6 @@ class CommandSensor(Sensor[bool]):
 
     def callback_function(self, frame: jcan.Frame):
         """Update the sensor value based on the frame"""
-        self.get_logger().info("we are here = CommandSensor")
         if frame.data[0] == self.command_id:
             self.set_sensor_value(True)
 

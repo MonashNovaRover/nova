@@ -59,7 +59,7 @@ class URCSampleTray(ControllerNode):
     STEPPER_RECV_ZERO_COMMAND_ID = 0x03
 
     # TIMEOUT
-    TIMEOUT = 100
+    TIMEOUT = 1000
 
     def __init__(self):
         super().__init__(name="URCSampleTray", can_bus=self.CAN_BUS)
@@ -122,11 +122,12 @@ class URCSampleTray(ControllerNode):
             zero_sensor=self.sample_tray_zero_sensor,
         )
 
-        ## Add the controllers to the node's of controllers
-        self.add_controller(self.SAMPLE_TRAY_CONTROL, self.sample_tray_controller)
-
         ## Start the CAN bus
         self.start_can()
+
+    def log_status(self):
+        control = self.sample_tray_control
+        self.get_logger().info('Sensor Value: {0}, Goal Value: {1}, Goal Name: {2}'.format(control.get_current_position(), control.get_goal_position(), control.get_position_name()))
 
 
     def feedback(self):
@@ -135,41 +136,55 @@ class URCSampleTray(ControllerNode):
         feedback_msg.goal_position = self.sample_tray_control.get_goal_position()
         self.get_logger().debug('Feedback: {0}'.format(feedback_msg))
         return feedback_msg
+    
+    def feedback_loop(self, goal_handle):
+        self.log_status()
+        self.sample_tray_controller.control_send_callback()
+
+        try:
+            frame = self.bus.receive_with_timeout(200)
+            self.sample_tray_pos_sensor.frame_callback(frame)
+            self.sample_tray_zero_sensor.frame_callback(frame)
+        except OSError as _:
+            pass
+        feedback_msg = self.feedback()
+        goal_handle.publish_feedback(feedback_msg)
 
     def zeroing(self, goal_handle):
         self.get_logger().info('Zeroing Stepper')
         self.sample_tray_controller.zero()
+
         i = 0
         while self.sample_tray_controller.is_zeroing() and i < self.TIMEOUT:
-            feedback_msg = self.feedback()
-            goal_handle.publish_feedback(feedback_msg)
-            time.sleep(1)
+            self.feedback_loop(goal_handle)
             i += 1
 
+        self.log_status()
         if self.sample_tray_controller.is_zeroing():
             self.get_logger().error('Failed to zero Stepper')
+            self.sample_tray_controller.stop()
             return False
         
+        self.get_logger().info('Zeroed Stepper')
         return True
 
     def go_to_position(self, goal_handle, goal_name):
         self.get_logger().info('Going to position: {0}'.format(goal_name))
         self.sample_tray_controller.go_to_position(goal_name)
+        
         i = 0
         while not self.sample_tray_control.is_at_position() and i < self.TIMEOUT:
-            self.sample_tray_controller.go_to_position(goal_name)
-            feedback_msg = self.feedback()
-            goal_handle.publish_feedback(feedback_msg)
-            frame = self.bus.receive_with_timeout(100)
-            if frame is not None:
-                self.sample_tray_pos_sensor.frame_callback(frame)
-            time.sleep(0.05)
+            self.feedback_loop(goal_handle)
             i += 1
-        
+
+        self.log_status()
+
         if not self.sample_tray_control.is_at_position():
             self.get_logger().error('Failed to reach position: {0}'.format(goal_name))
+            self.sample_tray_controller.stop()
             return False
         
+        self.get_logger().info('Reached position: {0}'.format(goal_name))
         return True
 
 

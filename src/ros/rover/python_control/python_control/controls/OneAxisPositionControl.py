@@ -57,7 +57,6 @@ class OneAxisPositionControl(Control):
 
     def is_at_position(self) -> bool:
         """Check if the motor is at the specific position"""
-        self.get_logger().info('Sensor Value: {0}, Goal Value: {1}, Goal Name: {2}'.format(self.position_sensor.get_sensor_value(), self.positions[self.position_name], self.position_name))
         return self.position_sensor.get_sensor_value() == self.positions[self.position_name]
 
     def stop(self):

@@ -22,17 +22,25 @@ class StepperPCBPositionController(Controller):
     def get_frame(self) -> jcan.Frame:
         """Get the frame to send over the CAN bus"""
         control: OneAxisPositionControl = self.get_control()
+        extra_data = []
 
-        # Set the data based on the position
-        data = int(control.get_goal_position())
+        if self.is_zeroing():
+            command = self.zero_command_id
+        else:
+            command = self.pos_command_id
 
-        # Check if the data is greater than the max value
-        # If it is, set the data to the max value
-        if data > self.get_max_value() or data < -self.get_max_value():
-            data = self.get_max_value()
+            # Set the data based on the position
+            data = int(control.get_goal_position())
+
+            # Check if the data is greater than the max value
+            # If it is, set the data to the max value
+            if data > self.get_max_value() or data < -self.get_max_value():
+                data = self.get_max_value()
+
+            extra_data = list(pack('>h', int(data)))
 
         # Pack the data into a list
-        packed_data = [int(self.pos_command_id)] + list(pack('>h', int(data)))
+        packed_data = [int(command)] + extra_data
 
         # Create and return the frame
         frame = jcan.Frame(id=self.frame_id, data=packed_data)
@@ -42,7 +50,9 @@ class StepperPCBPositionController(Controller):
     def stop(self):
         """Stop the controller"""
         super().stop()
+        self.zeroing = False
         self.stopped = True
+        self.zero_sensor.reset()
 
     def start(self):
         """Start the controller"""
@@ -51,11 +61,8 @@ class StepperPCBPositionController(Controller):
     def zero(self):
         self.stop()
         self.zeroing = True
-        self.get_logger().info("Start zeroing")
         self.control.zero()
-        frame = jcan.Frame(id=self.frame_id, data=[int(self.zero_command_id)])
-        self.get_logger().debug(f"Sending frame: {frame}")
-        self.bus.send(frame)
+        self.get_logger().info("Start zeroing")
 
     def go_to_position(self, name: str):
         self.start()
@@ -67,12 +74,10 @@ class StepperPCBPositionController(Controller):
     def control_send_callback(self):
         if self.zeroing:
             if self.zero_sensor.get_sensor_value():
-                self.zeroing = False
-                self.start()
-                self.zero_sensor.reset()
-                self.get_logger().debug("Zeroed")
+                self.stop()
+                self.get_logger().info("Zeroing complete")
             else:
-                self.get_logger().debug("Zeroing")
+                super().control_send_callback()
         elif not self.stopped:
             super().control_send_callback()
         else:
