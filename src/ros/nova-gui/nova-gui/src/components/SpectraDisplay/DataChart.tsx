@@ -36,7 +36,7 @@ const DataChart: React.FC<IDataChartProps> = (props: IDataChartProps) => {
     }
 
     return (
-        <ReactApexChart options={dataChartOptions} series={[{name: props.dataset[0].name, data: props.dataset[0].data}]} />
+        <ReactApexChart key={props.dataset[0].name} options={dataChartOptions} series={[{name: props.dataset[0].name, data: props.dataset[0].data}]} />
     )
 }
 
