@@ -57,12 +57,7 @@ class StepperPCBPositionController(StepperPositionController):
 
         return frame
         
-    def control_send_callback(self):
-        """Send the control frame over the CAN bus"""
-        if self.is_zeroing() or self.is_going_to_position():
-            super().control_send_callback()
-        else:
-            self.get_logger().debug("Controller is stopped, not sending frame")
+  
 
  
         
