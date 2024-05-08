@@ -31,7 +31,7 @@ const OutputComparison: React.FC<IOutputComparisonProps> = (props: IOutputCompar
                 </div>
                 <ScrollShadow hideScrollBar className="w-1/2 h-154">
                         {props.elementData.map( element => (<div className="my-6">
-                            <DatasetChart dataset={element} chartOptions={chartOptions} peaks={props.peakFinder ? props.peakFinder(element[0].data) : undefined } />
+                            <DatasetChart key={element[0].name} dataset={element} chartOptions={chartOptions} peaks={props.peakFinder ? props.peakFinder(element[0].data) : undefined } />
                         </div>))}
                 </ScrollShadow>
             </div>
