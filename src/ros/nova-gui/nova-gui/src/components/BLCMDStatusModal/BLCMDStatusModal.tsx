@@ -20,7 +20,7 @@ import { BLCMD_INDEX } from "../../constants";
 import { ComplainingChips } from "./ComplainingChips";
 import { ArrowCounterclockwise } from "react-bootstrap-icons";
 import { RosService } from "../../ros/services/rosService";
-import { IRosCoreBlcmdResetRequestConst } from "../../ros/rosTypes";
+import { IRosBlcmdInterfacesBlcmdResetRequestConst } from "../../ros/rosTypes";
 import { ToolTipButton } from "../shared/TooltipButton";
 
 export const BLCMDStatusModal = () => {
@@ -48,7 +48,7 @@ export const BLCMDStatusModal = () => {
   const resetBLCMD = (id: number) =>
     bifrostReset.callService(
       {
-        type: IRosCoreBlcmdResetRequestConst.BLCMD,
+        type: IRosBlcmdInterfacesBlcmdResetRequestConst.BLCMD,
         id: id,
       },
       {
@@ -59,7 +59,7 @@ export const BLCMDStatusModal = () => {
   const zeroResolver = (id: number) =>
     bifrostReset.callService(
       {
-        type: IRosCoreBlcmdResetRequestConst.RESOLVER,
+        type: IRosBlcmdInterfacesBlcmdResetRequestConst.RESOLVER,
         id: id,
       },
       {
@@ -82,6 +82,7 @@ export const BLCMDStatusModal = () => {
             isCompact
             className="overflow-scroll h-[45vh] overflow-x-hidden hide-scrollbar"
             isHeaderSticky
+            aria-label="BLCMD Status Table"
           >
             <TableHeader>
               <TableHeader>
@@ -107,7 +108,7 @@ export const BLCMDStatusModal = () => {
                         size="sm"
                         variant="flat"
                         color="danger"
-                        onClick={() => resetBLCMD(blcmd.id)}
+                        onPress={() => resetBLCMD(blcmd.id)}
                       >
                         <ArrowCounterclockwise />
                       </ToolTipButton>
@@ -118,7 +119,7 @@ export const BLCMDStatusModal = () => {
                         size="sm"
                         variant="flat"
                         color="danger"
-                        onClick={() => zeroResolver(blcmd.id)}
+                        onPress={() => zeroResolver(blcmd.id)}
                       >
                         123
                       </ToolTipButton>

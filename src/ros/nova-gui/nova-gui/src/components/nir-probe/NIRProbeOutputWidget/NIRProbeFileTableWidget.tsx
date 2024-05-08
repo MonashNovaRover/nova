@@ -9,7 +9,7 @@ import {
   TableColumn,
   TableHeader, TableRow
 } from "@nextui-org/react";
-import React, {useCallback} from "react";
+import React, {ReactElement, useCallback} from "react";
 import {ISpaceResourcesFile} from "./NIRProbeWidget.tsx";
 
 
@@ -19,6 +19,19 @@ export interface NIRProbeFileTableWidgetProps extends CardProps {
   showAdvanced : boolean,
   absorbance: (v: number) => number,
   calibrationFunction: (v: number) => number,
+}
+
+const RowFromHeader = (tableHeader: ReactElement, numRows: number, key?: string) => {
+  return (
+    <TableRow className="relative h-6" key={key}>
+      {[
+        tableHeader,
+        ...Array.from({length: numRows-1}, (_, i) => (
+          <TableCell key={i+1}>{""}</TableCell>
+        ))
+      ]}
+    </TableRow>
+  )
 }
 
 const NIRProbeFileTableWidget: React.FC<NIRProbeFileTableWidgetProps> = ({
@@ -59,22 +72,23 @@ const NIRProbeFileTableWidget: React.FC<NIRProbeFileTableWidgetProps> = ({
   const entryRows = reversedFileEntries.map(({lightBlank, difference, concentration, label}, index) =>
     showAdvanced ?
       <TableRow key={index}>
-        <TableCell>
+        <TableCell key="lightBlank">
           { (lightBlank ?
             <span className="text-gray-500">{lightBlank}</span> :
             <span className="text-gray-800">{lightBlank ?? "None"}</span>)
           }
         </TableCell>
-        <TableCell>{difference}</TableCell>
-        <TableCell>
+        <TableCell key="difference">{difference}</TableCell>
+        <TableCell key="concentration">
           { showAdvanced && (concentration !== undefined ?
             <span className="text-gray-500">{concentration}</span> :
             <span className="text-gray-800">None</span>)
           }
         </TableCell>
-        <TableCell>{label}</TableCell>
-        <TableCell>
-          <Button onClick={() => deleteEntry(reversedFileEntries.length - index - 1)}
+
+        <TableCell key="label">{label}</TableCell>
+        <TableCell key="action">
+          <Button onPress={() => deleteEntry(reversedFileEntries.length - index - 1)}
                   size="sm" color="danger" variant="light" className="block w-full">
             Delete
           </Button>
@@ -82,11 +96,11 @@ const NIRProbeFileTableWidget: React.FC<NIRProbeFileTableWidgetProps> = ({
       </TableRow>
       :
       <TableRow key={index}>
-        <TableCell>{difference}</TableCell>
-        <TableCell>{calibrationFunction(absorbance(difference)).toFixed(4)}</TableCell>
-        <TableCell>{absorbance(difference).toFixed(4)}</TableCell>
-        <TableCell>
-          <Button onClick={() => deleteEntry(reversedFileEntries.length - index - 1)}
+        <TableCell key="difference">{difference}</TableCell>
+        <TableCell key="concentration">{calibrationFunction(absorbance(difference)).toFixed(4)}</TableCell>
+        <TableCell key="absorbance">{absorbance(difference).toFixed(4)}</TableCell>
+        <TableCell key="action">
+          <Button onPress={() => deleteEntry(reversedFileEntries.length - index - 1)}
                   size="sm" color="danger" variant="light" className="block w-full">
             Delete
           </Button>
@@ -94,87 +108,37 @@ const NIRProbeFileTableWidget: React.FC<NIRProbeFileTableWidgetProps> = ({
       </TableRow>
   );
 
-  const averageHeaderCell = <TableCell className="absolute text-small uppercase tracking-wider text-nowrap left-0 right-64 w-full top-0 h-1 text-foreground-400">Site Average</TableCell>;
-  const averageHeaderRow = (
-    showAdvanced ?
-      <TableRow className="relative h-6">
-        {averageHeaderCell}
-        <TableCell>{""}</TableCell>
-        <TableCell>{""}</TableCell>
-        <TableCell>{""}</TableCell>
-        <TableCell>{""}</TableCell>
-      </TableRow>
-      :
-      <TableRow className="relative h-6">
-        {averageHeaderCell}
-        <TableCell>{""}</TableCell>
-        <TableCell>{""}</TableCell>
-        <TableCell>{""}</TableCell>
-      </TableRow>
-  );
+  const averageHeaderCell = <TableCell className="absolute text-small uppercase tracking-wider text-nowrap left-0 right-64 w-full top-0 h-1 text-foreground-400" key={0}>Site Average</TableCell>;
+  const averageHeaderRow = RowFromHeader(averageHeaderCell, showAdvanced ? 5 : 4, "averageHeader");
 
-  const readingHeaderCell = <TableCell className="absolute text-small uppercase tracking-wider text-nowrap left-0 right-64 w-full top-0 h-1 text-foreground-400">Site Readings</TableCell>;
-  const readingHeaderRow = (
-    showAdvanced ?
-      <TableRow className="relative h-5">
-        {readingHeaderCell}
-        <TableCell>{""}</TableCell>
-        <TableCell>{""}</TableCell>
-        <TableCell>{""}</TableCell>
-        <TableCell>{""}</TableCell>
-      </TableRow>
-      :
-      <TableRow className="relative h-5">
-        {readingHeaderCell}
-        <TableCell>{""}</TableCell>
-        <TableCell>{""}</TableCell>
-        <TableCell>{""}</TableCell>
-      </TableRow>
-  );
+  const readingHeaderCell = <TableCell className="absolute text-small uppercase tracking-wider text-nowrap left-0 right-64 w-full top-0 h-1 text-foreground-400" key={0}>Site Readings</TableCell>;
+  const readingHeaderRow = RowFromHeader(readingHeaderCell, showAdvanced ? 5 : 4, "reading");
 
-  const noReadingHeaderCell = <TableCell className="absolute text-small tracking-wider text-nowrap left-0 right-64 w-full top-0 h-1 text-foreground-400">No readings recorded</TableCell>;
-  const noReadingHeaderRow = (
-    showAdvanced ?
-      <TableRow className="relative h-6">
-        {noReadingHeaderCell}
-        <TableCell>{""}</TableCell>
-        <TableCell>{""}</TableCell>
-        <TableCell>{""}</TableCell>
-        <TableCell>{""}</TableCell>
-      </TableRow>
-      :
-      <TableRow className="relative h-6">
-        {noReadingHeaderCell}
-        <TableCell>{""}</TableCell>
-        <TableCell>{""}</TableCell>
-        <TableCell>{""}</TableCell>
-      </TableRow>
-  );
+  const noReadingHeaderCell = <TableCell className="absolute text-small tracking-wider text-nowrap left-0 right-64 w-full top-0 h-1 text-foreground-400" key={0}>No readings recorded</TableCell>;
+  const noReadingHeaderRow = RowFromHeader(noReadingHeaderCell, showAdvanced ? 5 : 4, "noReading");
 
   const averageDifference = file.entries.map(entry => entry.difference).reduce((a,b) => a+b, 0) / Math.max(file.entries.length,1);
   const averageRow = (
     showAdvanced ?
       <TableRow key="average">
-        <TableCell>{""}</TableCell>
-        <TableCell>
+        <TableCell key={0}>{""}</TableCell>
+        <TableCell key={1}>
           {averageDifference}
         </TableCell>
-        <TableCell>
+        <TableCell key={2}>
           {absorbance?.(averageDifference)}
         </TableCell>
-        <TableCell>{""}</TableCell>
-        <TableCell>{""}</TableCell>
+        <TableCell key={3}>{""}</TableCell>
+        <TableCell key={4}>{""}</TableCell>
       </TableRow>
       :
       <TableRow key="average">
-        <TableCell>
+        <TableCell key={1}>
           {averageDifference}
         </TableCell>
-        <TableCell>{calibrationFunction(absorbance(averageDifference)).toFixed(4)}</TableCell>
-        <TableCell>{absorbance(averageDifference).toFixed(4)}</TableCell>
-        <TableCell>
-          {""}
-        </TableCell>
+        <TableCell key={2}>{calibrationFunction(absorbance(averageDifference)).toFixed(4)}</TableCell>
+        <TableCell key={3}>{absorbance(averageDifference).toFixed(4)}</TableCell>
+        <TableCell key={4}>{""}</TableCell>
       </TableRow>
   )
 

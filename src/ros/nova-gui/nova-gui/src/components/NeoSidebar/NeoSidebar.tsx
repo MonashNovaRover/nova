@@ -108,14 +108,14 @@ export const NeoSidebar = () => {
           <ScrollShadow>
             {Object.keys(sidebarData).map((item) => {
               return (
-                <div className="flex flex-col pb-5">
+                <div key={item} className="flex flex-col pb-5">
                   <div className="text-sm font-light">{item}</div>
                   <div className="flex flex-col gap-2 mt-2">
                     {sidebarData[item].map((mode) => {
                       const isCurrentSelected = currentPath === mode.route;
                       return (
                         <Button
-                          onClick={() => navigate(mode.route)}
+                          onPress={() => navigate(mode.route)}
                           size="md"
                           variant={isCurrentSelected ? "solid" : "light"}
                           color={isCurrentSelected ? "primary" : "default"}

@@ -88,7 +88,7 @@ const NIRCalibrationSettingsTable : React.FC<NIRCalibrationSettingsTableProps> =
       </TableCell>
 
       <TableCell>
-        <Button onClick={addNewPoint}
+        <Button onPress={addNewPoint}
                 size="sm"
                 color="primary"
                 fullWidth
@@ -120,7 +120,7 @@ const NIRCalibrationSettingsTable : React.FC<NIRCalibrationSettingsTableProps> =
               <TableCell>{concentration}</TableCell>
 
               <TableCell>
-                <Button onClick={() => deletePoint(index)}
+                <Button onPress={() => deletePoint(index)}
                         size="sm" color="danger" variant="light" className="block w-full">
                   Delete
                 </Button>

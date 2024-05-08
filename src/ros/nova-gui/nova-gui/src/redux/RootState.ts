@@ -1,20 +1,20 @@
 import {
   IRosCameraMsgsCameras,
   IRosCameraMsgsGetIpListResponse,
-  IRosCoreBlcmdStatusArray,
-  IRosCoreDriveInfo,
-  IRosCoreMicroscopeServoInfo,
-  IRosCoreMoveMicroscopeServoResponse,
-  IRosCoreNirProbeData,
-  IRosCoreKilnCommandResponse,
-  IRosCoreKilnData,
+  IRosBlcmdInterfacesBlcmdStatusArray,
+  IRosDriveInterfacesDriveInfo,
+  IRosNovaInterfacesMicroscopeServoInfo,
+  IRosNovaInterfacesMoveMicroscopeServoResponse,
+  IRosNovaInterfacesNirProbeData,
+  IRosNovaInterfacesKilnCommandResponse,
+  IRosNovaInterfacesKilnData,
   IRosCoreRamanSpecResponse,
   IRosCoreRamanSpectrum,
-  IRosCoreTelemetry,
+  IRosBlcmdInterfacesTelemetry,
   IRosStdMsgsString,
   IRosGeometryMsgsPose,
   IRosSensorMsgsRange,
-  IRosCoreCmDsFeedback 
+  IRosCmdInterfacesCmDsFeedback 
 } from "../ros/rosTypes";
 
 import { BifrostStatus } from "./models/bifrost/BifrostTypes";
@@ -28,11 +28,11 @@ export interface RootState {
   poseStore: IRosGeometryMsgsPose;
 
   // Drive Stores
-  driveStore: IRosCoreDriveInfo;
-  driveTelemetryStore: IRosCoreTelemetry;
+  driveStore: IRosDriveInterfacesDriveInfo;
+  driveTelemetryStore: IRosBlcmdInterfacesTelemetry;
 
   // Arm Stores
-  armTelemetryStore: IRosCoreCmDsFeedback;
+  armTelemetryStore: IRosCmdInterfacesCmDsFeedback;
   rfidDataStore: IRosStdMsgsString;
 
   // Camera Stores
@@ -42,19 +42,19 @@ export interface RootState {
   ramanSpecMessageStore: IRosCoreRamanSpectrum;
 
   // Error Related Stores
-  blcmdStatusStore: IRosCoreBlcmdStatusArray;
+  blcmdStatusStore: IRosBlcmdInterfacesBlcmdStatusArray;
   
   // Science Stores
   tofStore: IRosSensorMsgsRange;
-  nirStore: IRosCoreNirProbeData;
-  kilnData: IRosCoreKilnData;
-  kilnCommand: IRosCoreKilnCommandResponse;
+  nirStore: IRosNovaInterfacesNirProbeData;
+  kilnData: IRosNovaInterfacesKilnData;
+  kilnCommand: IRosNovaInterfacesKilnCommandResponse;
 
   // Regular Stores
   uiState: UIState;
   cameraStreamerState: CameraStreamerState;
 
   // Science Stores
-  microscopeServoStore: IRosCoreMicroscopeServoInfo;
-  microscopeServiceStore: IRosCoreMoveMicroscopeServoResponse;
+  microscopeServoStore: IRosNovaInterfacesMicroscopeServoInfo;
+  microscopeServiceStore: IRosNovaInterfacesMoveMicroscopeServoResponse;
 }

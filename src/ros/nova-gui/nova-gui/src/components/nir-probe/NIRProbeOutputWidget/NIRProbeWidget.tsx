@@ -82,7 +82,6 @@ const NIRProbeWidget: React.FC<INIRProbeWidgetProps> = () => {
         })
     );
 
-    console.log(newFiles);
     setFiles(newFiles);
   }, []);
 

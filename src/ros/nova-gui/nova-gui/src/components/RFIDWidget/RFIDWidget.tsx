@@ -29,11 +29,12 @@ const RFIDWidget: React.FC<CardProps> = (props) => {
   }, [bifrost]);
 
   const read = () => {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
     bifrost.callService(
       {},
       {
+        // TODO: Fix typing for the handle response function
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         handleResponse: (response: IRosStdSrvsTriggerResponse) => {
           if (response.success)
             toast.success(
@@ -67,7 +68,7 @@ const RFIDWidget: React.FC<CardProps> = (props) => {
         />
 
         <div className="flex flex-row justify-end gap-2">
-          <Button className="grow" onClick={read}>
+          <Button className="grow" onPress={read}>
             Read
           </Button>
           <DownloadButton

@@ -17,7 +17,7 @@ export const BLCMDStatusButton = () => {
         variant="solid"
         color={fault ? "danger" : "default"}
         className={"w-80 flex flex-row justify-center space-x-2"}
-        onClick={() => uiActions.setBlcmdStatusModalOpen(true)}
+        onPress={() => uiActions.setBlcmdStatusModalOpen(true)}
       >
         {fault ? fault :<p>No Errors</p>}
         <ExclamationCircleFill className="w-4 h-4"/>

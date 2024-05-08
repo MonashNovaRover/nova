@@ -5,7 +5,12 @@
 , rosbridge-server
 , ros-typescript-definitions
 , ros-core
-, nova-core
+, nova-drive-interfaces
+, nova-blcmd-interfaces
+, nova-arm-interfaces
+, nova-input-interfaces
+, nova-cmd-interfaces
+, nova-interfaces
 , nova-cameras2
 }:
 
@@ -13,7 +18,12 @@ let
   # ROS packages for message generation
   rosMessagePackages = [
     ros-core
-    nova-core
+    nova-drive-interfaces
+    nova-blcmd-interfaces
+    nova-arm-interfaces
+    nova-input-interfaces
+    nova-cmd-interfaces
+    nova-interfaces
     nova-cameras2
   ];
 in

@@ -4,13 +4,13 @@ import { RosTopic } from "../../../ros/topics/rosTopic";
 
 import { RootState } from "../../../redux/RootState";
 import { useSelector } from "react-redux";
-import { IRosCoreBlcmdStatus } from "../../../ros/rosTypes";
+import { IRosBlcmdInterfacesBlcmdStatus } from "../../../ros/rosTypes";
 import toast from "react-hot-toast";
 import { BLCMD_INDEX } from "../../../constants";
 
 export const useBLCMDFaults = () => {
   const bifrost = useBifrost({ topic: RosTopic.BLCMD_ERRORS });
-  const [currentStatus, setCurrentStatus] = useState<IRosCoreBlcmdStatus[]>();
+  const [currentStatus, setCurrentStatus] = useState<IRosBlcmdInterfacesBlcmdStatus[]>();
   const [faultMessage, setFaultMessage] = useState<string>();
 
   useEffect(() => {
@@ -59,7 +59,7 @@ export const useBLCMDFaults = () => {
 };
 
 const generateErrorMessageForFault = (
-  error: IRosCoreBlcmdStatus,
+  error: IRosBlcmdInterfacesBlcmdStatus,
   short: boolean = false
 ) => {
   const motorName = BLCMD_INDEX[error.id];

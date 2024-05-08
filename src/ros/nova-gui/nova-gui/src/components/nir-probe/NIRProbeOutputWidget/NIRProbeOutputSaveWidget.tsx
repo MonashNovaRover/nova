@@ -83,7 +83,7 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
           </DropdownTrigger>
           <DropdownMenu aria-label="Static Actions">
             <DropdownItem key="advanced" startContent={showAdvanced ? <Check/> : <></>}
-                          onClick={() => setShowAdvanced(!showAdvanced)}>
+                          onPress={() => setShowAdvanced(!showAdvanced)}>
               Show Advanced
             </DropdownItem>
           </DropdownMenu>
@@ -97,15 +97,15 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
           {
             showAdvanced ? (
               <>
-                <Button color="default" onClick={updateLightBlank}>
+                <Button color="default" onPress={updateLightBlank}>
                   Set Light Blank
                 </Button>
-                <Button color="primary" onClick={updateDifference}>
+                <Button color="primary" onPress={updateDifference}>
                   Save Reading
                 </Button>
               </>
             ) : (
-              <Button color={led === 0 ? "default" : "primary"} onClick={onSave}>
+              <Button color={led === 0 ? "default" : "primary"} onPress={onSave}>
                 {led === 0 ? "Set Light Blank" : "Save Reading"}
               </Button>
             )
