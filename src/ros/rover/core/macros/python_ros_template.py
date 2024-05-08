@@ -24,7 +24,7 @@ import rclpy
 from rclpy.node import Node
 
 # example of how to import a custom message type
-from core.msg import RoverPose
+from nova_interfaces.msg import RoverPose
 
 # an example of how to import a standard message type
 from std_msgs.msg import String
@@ -46,7 +46,7 @@ class TemplateNode(Node):
     def subscriber_callback(self, msg):
         """
         Updates the classes internal msg state
-        :param msg: core.msg.RoverPose message from the subscriber callback
+        :param msg: nova_interfaces.msg.RoverPose message from the subscriber callback
         :return: None
         """
         self.msg = msg

@@ -19,6 +19,7 @@ TODO:
     - Add more sophisticated write error handling
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
+from nova_interfaces.srv import RFIDCommand
 
 import argparse
 import rclpy, time

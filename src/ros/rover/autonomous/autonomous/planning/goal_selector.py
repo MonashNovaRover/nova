@@ -36,7 +36,7 @@ from rclpy.task import Future
 from tf2_ros import Buffer, TransformListener
 
 # custom message imports
-from core.msg import AutonomousGoal, AutonomousGoalArray, AlvarMarkers
+from nova_interfaces.msg import AutonomousGoal, AutonomousGoalArray, AlvarMarkers
 from geometry_msgs.msg import Transform, PoseStamped
 from std_msgs.msg import Empty, Float64, String
 from std_srvs.srv import Trigger

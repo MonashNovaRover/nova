@@ -9,7 +9,7 @@ except Exception:
     from pyrealsense2.pyrealsense2 import intrinsics as Intrinsics
 
 from geometry_msgs.msg import PoseStamped, TransformStamped
-from core.msg import AlvarMarker, AlvarMarkers
+from nova_interfaces.msg import AlvarMarker, AlvarMarkers
 from tf2_ros import TransformBroadcaster
 import numpy as np
 import logging

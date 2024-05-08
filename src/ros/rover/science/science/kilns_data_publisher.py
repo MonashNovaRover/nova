@@ -15,8 +15,8 @@ from rclpy.duration import Duration
 import jcan
 
 # import custom messages
-from core.msg import KilnMassData, KilnTempData
-from core.srv import LoadCellPoller
+from nova_interfaces.msg import KilnMassData, KilnTempData
+from nova_interfaces.srv import LoadCellPoller
 
 
 def convert_to_grams(data):

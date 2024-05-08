@@ -35,30 +35,17 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   # Message definitions
   "msg/AlvarMarker.msg"
   "msg/AlvarMarkers.msg"
-  "msg/ArmControlScheme.msg"
-  "msg/EndEffectorInput.msg"
   "msg/CamsConnected.msg"
-  "msg/CMDFeedback.msg"
-  "msg/CMDsFeedback.msg"
   "msg/DistanceData.msg"
-  "msg/DriveInfo.msg"
-  "msg/DriveInput.msg"
   "msg/HydraprobeData.msg"
   "msg/EMCData.msg"
   "msg/KilnData.msg"
-  "msg/InputGamepad.msg"
-  "msg/InputJoystick.msg"
   "msg/Point2D.msg"
   "msg/RadioStatus.msg"
   "msg/RoverPoseGPS.msg"
   "msg/SpectrometerData.msg"
   "msg/AutonomousGoal.msg"
   "msg/AutonomousGoalArray.msg"
-  "msg/PivotWheelData.msg"
-  "msg/SingleTelemetry.msg"
-  "msg/Telemetry.msg"
-  "msg/BLCMDStatus.msg"
-  "msg/BLCMDStatusArray.msg"
   "msg/ActuatorLimit.msg"
   "msg/MicroscopeServoInfo.msg"
   "msg/NIRProbeData.msg"
@@ -70,20 +57,15 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/RoverPose.msg"
   "msg/RamanSpectrum.msg"
 
-  "srv/ArmConfigInfo.srv"
-  "srv/BLCMDReset.srv"
   "srv/CameraCommand.srv"
-  "srv/CMDCommand.srv"
   "srv/KilnCommand.srv"
   "srv/GimbalCommand.srv"
-  "srv/PIDTune.srv"
   "srv/ScienceCommand.srv"
   "srv/LoadCellPoller.srv"
   "srv/RamanSpec.srv"
   "srv/RFIDCommand.srv"
   "srv/PathPlanningRequest.srv"
   "srv/StringTrigger.srv"
-  "srv/DisableBLCMD.srv"
   "srv/GpsOffset.srv"
   "srv/MoveMicroscopeServo.srv"
   "srv/SetNIRProbeLED.srv"
@@ -95,11 +77,13 @@ rosidl_generate_interfaces(${PROJECT_NAME}
 # Add all the installation directories
 install(DIRECTORY
   launch
+  maps
   params
   rviz
   urdf
   meshes
   worlds
+  resources
   DESTINATION share/${PROJECT_NAME}
 )
 

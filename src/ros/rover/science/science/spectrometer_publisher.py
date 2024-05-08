@@ -28,7 +28,7 @@ from rclpy.node import Node
 from pathlib import Path
 from datetime import datetime
 
-from core.msg import SpectrometerData 
+from nova_interfaces.msg import SpectrometerData 
     
 # The ID for the CAN frame for BCA
 BCA_CAN_ID = 0x008

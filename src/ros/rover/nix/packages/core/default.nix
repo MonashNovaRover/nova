@@ -3,6 +3,7 @@
 , ament-cmake
 , rosidl-default-generators
 , std-msgs
+, geometry-msgs
 , nav-msgs
 , trajectory-msgs
 , launch
@@ -18,12 +19,15 @@
 , pluginlib
 , gazebo-ros-pkgs
 , robot-localization
+, nova-behavior-tree
 , nova-costmap-2d
+, image-view
 , navigation2
+, depthai-ros
 , rtabmap-ros
 }:
 
-buildRosPackage {
+buildRosPackage rec {
   name = "core";
   buildType = "ament_cmake";
 
@@ -31,6 +35,11 @@ buildRosPackage {
     name = "core-source";
     path = ../../../core;
     filter = lib.novaSourceFilter [ "!worlds/**" ] path;
+  };
+  
+  meshes = builtins.path {
+    name = "nova-core-meshes";
+    path = src + "/meshes";
   };
 
   nativeBuildInputs = [ ament-cmake rosidl-default-generators ];
@@ -48,10 +57,16 @@ buildRosPackage {
       gazebo-ros2-control
       ros2-controllers
       pluginlib
+      image-view
       robot-localization
       gazebo-ros-pkgs
-      nova-costmap-2d
       navigation2
+      depthai-ros
       rtabmap-ros;
   };
+
+  postPatch = ''
+    substituteInPlace  urdf/rover.urdf.xacro \
+      --replace 'STREQUAL "file:///$(find core)"' 'STREQUAL "${meshes}"'
+  '';
 }

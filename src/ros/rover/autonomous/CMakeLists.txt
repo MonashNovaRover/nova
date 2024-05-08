@@ -117,6 +117,9 @@ install(PROGRAMS
   autonomous/update_goals.py
   autonomous/vis/stamp_converter.py
   autonomous/vis/marker_vis.py
+  autonomous/vis/nn_3d_to_marker.py
+  autonomous/vis/detection_overlay.py
+
 
   DESTINATION lib/${PROJECT_NAME}
 )

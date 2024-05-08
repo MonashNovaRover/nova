@@ -19,7 +19,7 @@ EDITED:      29/04/2023
 TODO:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
-from core.srv import RFIDCommand
+from nova_interfaces.srv import RFIDCommand
 import rclpy
 from rclpy.node import Node
 

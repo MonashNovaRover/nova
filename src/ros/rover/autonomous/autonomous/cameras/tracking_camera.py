@@ -7,7 +7,7 @@ from autonomous.config.runtime_params import t265_serial
 from geometry_msgs.msg import Pose, PoseStamped
 import logging
 
-from core.msg import WheelOdometry
+from nova_interfaces.msg import WheelOdometry
 from geometry_msgs.msg import Vector3
 
 # different systems seem to install the pyrealsense wrapper differently

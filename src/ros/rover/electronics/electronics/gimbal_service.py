@@ -23,7 +23,7 @@ import rclpy
 from rclpy.node import Node
 
 # Import the gimbal service
-from core.srv import GimbalCommand
+from nova_interfaces.srv import GimbalCommand
 
 # Import the CAN library
 from coms_utils.can_interface import CANTransmitter
