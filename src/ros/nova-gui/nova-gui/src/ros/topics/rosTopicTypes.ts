@@ -9,10 +9,10 @@ import {
   IRosNovaInterfacesKilnData,
   IRosNovaInterfacesNirProbeData,
   IRosNovaInterfacesMicroscopeServoInfo,
+  IRosNovaInterfacesRamanSpectrum,
   IRosStdMsgsString,
   IRosNovaInterfacesHydraprobeData,
   IRosSensorMsgsCompressedImage,
-  IRosCoreRamanSpectrum,
 } from "../rosTypes";
 import { RosTopic } from "./rosTopic";
 
@@ -47,7 +47,7 @@ export interface RosTopicInterfaces {
   [RosTopic.NIR_DATA]: IRosNovaInterfacesNirProbeData;
   [RosTopic.MICROSCOPE_SERVO]: IRosNovaInterfacesMicroscopeServoInfo;
   [RosTopic.HYDRAPROBE_DATA]: IRosNovaInterfacesHydraprobeData;
-  [RosTopic.RAMAN_SPEC_MSG]: IRosCoreRamanSpectrum;
+  [RosTopic.RAMAN_SPEC_MSG]: IRosNovaInterfacesRamanSpectrum;
 
   // Cameras Related
   [RosTopic.CAMERAS]: IRosCameraMsgsCameras;
