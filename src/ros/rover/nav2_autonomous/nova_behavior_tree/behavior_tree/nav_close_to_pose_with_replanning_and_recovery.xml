@@ -10,7 +10,7 @@
               service_name="global_costmap/clear_entirely_global_costmap" />
           </RecoveryNode>
         </RateController>
-        <TruncatePath distance="1.0" input_path="{path}" output_path="{path}"/> 
+        <TruncatePath distance="1.0" input_path="{path}" output_path="{path}" />
         <RecoveryNode number_of_retries="1" name="FollowPath">
           <FollowPath path="{path}" controller_id="FollowPath" />
           <ClearEntireCostmap name="ClearLocalCostmap-Context"

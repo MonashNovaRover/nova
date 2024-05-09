@@ -137,6 +137,11 @@ def generate_launch_description():
         condition=IfCondition(rviz)
     )
 
+    led_cmd = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'led.launch.py'])),
+        condition=IfCondition(gazebo),
+    )
+
     navigation_cmd = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'navigation.launch.py'])),
         condition=IfCondition(navigation),
@@ -170,5 +175,6 @@ def generate_launch_description():
         localization_cmd,
         control_cmd,
         rviz_cmd,
+        led_cmd,
         navigation_cmd,
     ])

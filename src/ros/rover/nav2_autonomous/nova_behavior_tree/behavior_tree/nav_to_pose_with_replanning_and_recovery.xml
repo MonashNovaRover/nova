@@ -1,5 +1,6 @@
 <root>
-  <include path="./recovery.xml" />
+  <include
+    path="./recovery.xml" />
   <BehaviorTree ID="NavToPoseWithReplanningAndRecovery">
     <RecoveryNode number_of_retries="6" name="NavigateRecovery">
       <PipelineSequence name="NavigateToPoseWithReplanning">

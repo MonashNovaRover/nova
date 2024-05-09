@@ -4,67 +4,77 @@ continuously
    and it also has recovery actions specific to planning / control as well as general system issues.
 -->
 <root BTCPP_format="4" main_tree_to_execute="MainTree">
-  <include path="./nav_to_pose_with_replanning_and_recovery.xml" />
-  <include path="./nav_through_poses_with_replanning_and_recovery.xml" />
+  <include
+    path="./nav_to_pose_with_replanning_and_recovery.xml" />
+  <include
+    path="./nav_through_poses_with_replanning_and_recovery.xml" />
   <BehaviorTree ID="MainTree">
-    <ReactiveSequence name="FindAndApproachObject">
-      <ReactiveFallback name="NavThroughPosesAndSearchForObject">
-        <!-- Exit the fallback when the object is found-->
-        <CheckDetected id="0" detection_type="tag" />
+    <Sequence>
+      <LED name="Start" service_name="autonomous/start" />
+      <ReactiveSequence name="FindAndApproachObject">
+        <ReactiveFallback name="NavThroughPosesAndSearchForObject">
+          <!-- Exit the fallback when the object is found-->
+          <CheckDetected id="0" detection_type="tag" />
 
-        <Sequence>
-          <GetFinalGoal goals="{goals}" final_goal="{search_origin}" />
-          <!-- Nav through poses -->
-          <ReactiveFallback>
-            <!-- Conduct a spin on reaching a goal-->
-            <GoalReached goal="{search_origin}" robot_base_frame="base_link" />
-            <KeepRunningUntilFailure>
+          <Sequence>
+            <GetFinalGoal goals="{goals}" final_goal="{search_origin}" />
+            <!-- Nav through poses -->
+            <ReactiveFallback>
+              <!-- Conduct a spin on reaching a goal-->
+              <GoalReached goal="{search_origin}" robot_base_frame="base_link" />
+              <KeepRunningUntilFailure>
+                <Sequence>
+                  <GetFirstGoal goals="{goals}" first_goal="{goal}" />
+                  <SubTreePlus ID="NavToPoseWithReplanningAndRecovery" goal="{goal}"
+                    __autoremap="true" />
+                  <RemovePassedGoals input_goals="{goals}" output_goals="{goals}"
+                    radius="0.5" />
+                </Sequence>
+              </KeepRunningUntilFailure>
+              <!-- Navigate through search goal poses -->
+            </ReactiveFallback>
+
+            <!-- Compute search points -->
+            <ComputeSearchGoals search_origin="{search_origin}" search_radius="2" num_points="6"
+              search_goals="{search_goals}" />
+            <GetFinalGoal goals="{search_goals}" final_goal="{final_goal}" />
+
+            <!-- Navigate through search points, spinning each time-->
+            <!-- Keep going until we've exhausted all search goals -->
+            <!-- NOTE: This value should be {n_search_goals + 1}-->
+            <ReactiveFallback>
+              <!-- Conduct a spin on reaching a goal-->
               <Sequence>
-                <GetFirstGoal goals="{goals}" first_goal="{goal}" />
-                <SubTreePlus ID="NavToPoseWithReplanningAndRecovery" goal="{goal}"
-                  __autoremap="true" />
-                <RemovePassedGoals input_goals="{goals}" output_goals="{goals}"
-                  radius="0.5" />
+                <GoalReached
+                  goal="{final_goal}" robot_base_frame="base_link" />
+                <ForceSuccess>
+                  <Spin spin_dist="6.28" time_allowance="25" />
+                </ForceSuccess>
               </Sequence>
-            </KeepRunningUntilFailure>
-            <!-- Navigate through search goal poses -->
-          </ReactiveFallback>
-
-          <!-- Compute search points -->
-          <ComputeSearchGoals search_origin="{search_origin}" search_radius="2" num_points="6"
-            search_goals="{search_goals}" />
-          <GetFinalGoal goals="{search_goals}" final_goal="{final_goal}" />
-
-          <!-- Navigate through search points, spinning each time-->
-          <!-- Keep going until we've exhausted all search goals -->
-          <!-- NOTE: This value should be {n_search_goals + 1}-->
-          <ReactiveFallback>
-            <!-- Conduct a spin on reaching a goal-->
-            <Sequence>
-              <GoalReached
-                goal="{final_goal}" robot_base_frame="base_link" />
-              <Spin spin_dist="6.28" time_allowance="25" />
-            </Sequence>
-            <KeepRunningUntilFailure>
-              <Sequence>
-                <GetFirstGoal goals="{search_goals}" first_goal="{goal}" />
-                <SubTreePlus ID="NavToPoseWithReplanningAndRecovery" goal="{goal}"
-                  __autoremap="true" />
-                <Spin spin_dist="6.28" time_allowance="25" />
-                <RemovePassedGoals
-                  input_goals="{search_goals}" output_goals="{search_goals}"
-                  radius="0.5" />
-              </Sequence>
-            </KeepRunningUntilFailure>
-            <!-- Navigate through search goal poses -->
-          </ReactiveFallback>
-        </Sequence>
-      </ReactiveFallback>
-      <!-- Object has been found - get it's latest position in the map frame -->
-      <QueryPosition detection_type="tag" id="0" position="{position}" />
-      <!-- Navigate to object position -->
-      <SubTreePlus ID="NavToPoseWithReplanningAndRecovery" goal="{position}"
-        __autoremap="true" />
-    </ReactiveSequence>
+              <KeepRunningUntilFailure>
+                <Sequence>
+                  <GetFirstGoal goals="{search_goals}" first_goal="{goal}" />
+                  <SubTreePlus ID="NavToPoseWithReplanningAndRecovery" goal="{goal}"
+                    __autoremap="true" />
+                  <ForceSuccess>
+                    <Spin spin_dist="6.28" time_allowance="25" />
+                  </ForceSuccess>
+                  <RemovePassedGoals
+                    input_goals="{search_goals}" output_goals="{search_goals}"
+                    radius="0.5" />
+                </Sequence>
+              </KeepRunningUntilFailure>
+              <!-- Navigate through search goal poses -->
+            </ReactiveFallback>
+          </Sequence>
+        </ReactiveFallback>
+        <!-- Object has been found - get it's latest position in the map frame -->
+        <QueryPosition detection_type="tag" id="0" position="{position}" />
+        <!-- Navigate to object position -->
+        <SubTreePlus ID="NavToPoseWithReplanningAndRecovery" goal="{position}"
+          __autoremap="true" />
+      </ReactiveSequence>
+      <LED name="Success" service_name="autonomous/success" />
+    </Sequence>
   </BehaviorTree>
 </root>

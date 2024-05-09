@@ -55,6 +55,7 @@ class CanLEDCommunicator:
     """
     Handles communication with LED
     """
+
     def __init__(self):
         self.transmitter = CANTransmitter(
             channel='can0',  # Can channel to transmit on
@@ -87,6 +88,7 @@ class LEDUpdateNode(Node):
     in a topic with the other state types, and then this should be a subscriber to that topic.
     Then, a callback function will get executed periodically as the topic is published to. 
     """
+
     def __init__(self):
         super().__init__('LED_status_update_node')
         self.can_communicator = CanLEDCommunicator()
@@ -111,7 +113,7 @@ class LEDUpdateNode(Node):
         self.most_recent_update = time.perf_counter()
 
         self.display()
-        
+
     def do_flash(self):
         """
         Returns true if the LEDs should flash in the current state, otherwise false
@@ -219,7 +221,7 @@ class LEDUpdateNode(Node):
             self.can_communicator.turn_off()
         else:
             self.display()
-        
+
         self.flash_counter = (self.flash_counter + 1) % 2
 
     def display(self):
