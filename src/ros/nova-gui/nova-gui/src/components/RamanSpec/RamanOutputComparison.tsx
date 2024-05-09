@@ -25,6 +25,15 @@ const RamanOutputComparison: React.FC = () => {
     const RAMAN_PEAK_VALUE = 3600  // approx
     const NORMALISED_SCALE_MAX = 100
 
+    const ramanMechState = {
+        greenLaserOn: false,
+        redLaserOn: false,
+        pumpOn: false,
+        filterSelection: 0,
+        stepperValue: 0,
+        mirrorServo: 0
+    } // change this to bifrost store when linked
+
     // Bifrost
     const spectrumStore = useSelector(
         (state: RootState) => state.ramanSpecMessageStore
@@ -44,6 +53,16 @@ const RamanOutputComparison: React.FC = () => {
         data: spectrumStore.spectrum.map((element, index) => [Math.round(100*(LASER_RED_START + LASER_RED_RANGE*index/spectrumStore.spectrum.length)) / 100.0, Math.round(100*NORMALISED_SCALE_MAX*element/RAMAN_PEAK_VALUE)/100.0])
     }]
 
+
+    const determineOutput = () => {
+        if (ramanMechState.greenLaserOn) {
+            return greenLaserOutput
+        } else {
+            return redLaserOutput
+        }
+    }
+    
+
     const kerogendata = [10, 11, 9, 8, 9, 10, 12, 11, 9, 11, 10, 11, 10, 9, 11, 12, 13, 15, 17, 20, 23, 24, 28, 33, 39, 47, 58, 70, 66, 54, 50, 70, 90, 65, 40, 35, 34, 34, 35, 35, 34, 34, 33, 32, 31, 31, 30, 31, 32]
     const kerogen2data = [10, 11, 9, 8, 9, 10, 12, 13, 12, 9, 10, 11, 10, 9, 11, 12, 13, 15, 17, 20, 23, 24, 28, 33, 39, 47, 58, 70, 66, 54, 50, 70, 90, 65, 40, 35, 34, 34, 35, 35, 34, 34, 33, 32, 31, 31, 30, 31, 32]
     const elementData = [[{
@@ -58,7 +77,7 @@ const RamanOutputComparison: React.FC = () => {
         <OutputComparison
             title="Comparison and Analysis"
             peaksOnMain
-            outputData={redLaserOutput}
+            outputData={determineOutput()}
             elementData={elementData}
             style={ChartStyle.Default}
             peakFinder={getDefaultPeakFinder(2, 20)}
