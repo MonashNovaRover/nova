@@ -31,7 +31,7 @@ const RamanMechanicalInputs: React.FC = () => {
     const ramanMechState = {
         greenLaserOn: false,
         redLaserOn: false,
-        pumpOn: false,
+        pumpOn: true,
         filterSelection: 0,
         stepperValue: 0,
         mirrorServo: 0
@@ -62,8 +62,8 @@ const RamanMechanicalInputs: React.FC = () => {
 
 
     return (
-        <Card className="m-1 p-2 flex flex-row flex-1 space-x-2">
-            <CardHeader className="shrink-0 w-24 p-1">Mechanical Inputs</CardHeader>
+        <Card className="m-1 p-2 flex flex-row flex-1 space-x-2 justify-between">
+            <CardHeader className="shrink-0 w-40 p-1">Mechanical Inputs</CardHeader>
             <Button isIconOnly className="w-8 h-8 m-3" radius="md" onPress={onOpen}>
                 <HelpCircle className="w-6 h-6" />
             </Button>
@@ -80,7 +80,7 @@ const RamanMechanicalInputs: React.FC = () => {
                 </ModalContent>
             </Modal>
             <div className="mx-1 w-60 flex flex-row">
-                <Avatar size="lg" name={"Off"}></Avatar>
+                <Avatar size="lg" name={ramanMechState.greenLaserOn ? "On" : ramanMechState.redLaserOn ? "On" : "Off"} className={ramanMechState.greenLaserOn ? "bg-green-600" : ramanMechState.redLaserOn ? "bg-red-600" : ""}></Avatar>
                 <Tabs className="mt-1" size="lg"
                     selectedKey={currentLaserKey}
                     onSelectionChange={(key) => {
@@ -100,7 +100,7 @@ const RamanMechanicalInputs: React.FC = () => {
                 </Tabs>
             </div>
             <div className="mx-1 flex flex-row">
-                <Avatar size="lg" name={"Off"}></Avatar>
+                <Avatar size="lg" name={ramanMechState.pumpOn ? "On" : "Off"} className={ramanMechState.pumpOn ? "bg-blue-600" : ""}></Avatar>
                 <Tabs className="mt-1" size="lg"
                     selectedKey={currentPumpKey}
                     onSelectionChange={(key) => {
@@ -116,27 +116,27 @@ const RamanMechanicalInputs: React.FC = () => {
                     <Tab key="off" title="Pump Off"/>
                 </Tabs>
             </div>
-            <div className="mx-1 flex w-40 flex-row">
-                <Avatar size="lg" name={"Off"}></Avatar>
+            <div className="mx-1 flex w-44 flex-row">
+                <Avatar size="lg" name={ramanMechState.filterSelection.toString()}></Avatar>
                 <Input onValueChange={(value: string) => { if (checkFilterSelection(+value)) {
                     setRamanMechInputs({...ramanMechInputs, filterSelection: +value})
                 }}} className="shrink-0 w-20 grow" type="filterselection" label="Filter Selection" placeholder="[min, max]" defaultValue={ramanMechState.filterSelection.toString()} />
             </div>
-            <div className="mx-1 flex flex-row">
-                <Avatar size="lg" name={"Off"}></Avatar>
+            <div className="mx-1 flex w-44 flex-row">
+                <Avatar size="lg" name={ramanMechState.stepperValue.toString()}></Avatar>
                 <Input onValueChange={(value: string) => { if (checkStepperValue(+value)) {
                     setRamanMechInputs({...ramanMechInputs, stepperValue: +value});
                 }}} className="shrink-0 w-20 grow" type="steppervalue" label="Stepper Value" placeholder="[min, max]" defaultValue={ramanMechState.stepperValue.toString()} />
             </div>
-            <div className="mx-1 flex flex-row">
-                <Avatar size="lg" name={"Off"}></Avatar>
+            <div className="mx-1 flex w-44 flex-row">
+                <Avatar size="lg" name={ramanMechState.mirrorServo.toString()}></Avatar>
                 <Input onValueChange={(value: string) => { if (checkMirrorServo(+value)) {
                     setRamanMechInputs({...ramanMechInputs, mirrorServo: +value});
                 }}} className="shrink-0 w-20 grow" type="mirrorservo" label="Mirror Servo" placeholder="[min, max]" defaultValue={ramanMechState.mirrorServo.toString()} />
             </div>
             <Button onPress={() => {
                 sendRamanMechRequest();
-            }} color="primary" className="h-14 flex flex-row shrink-0 grow w-20" radius="lg">Update</Button>
+            }} color="primary" className="h-14 flex flex-row shrink-0 w-60" radius="lg">Refresh</Button>
         </Card>
     )
 }
