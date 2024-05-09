@@ -26,7 +26,10 @@ continuously
       <PipelineSequence name="NavigateToPoseWithReplanning">
         <RateController hz="1.0">
           <RecoveryNode number_of_retries="1" name="ComputePathToPose">
-            <ComputePathToPose goal="{goal}" path="{path}" planner_id="GridBased" />
+            <Sequence name="PlanAndSmoothPath">
+              <ComputePathToPose goal="{goal}" path="{path}" planner_id="GridBased" />
+              <SmoothPath unsmoothed_path="{path}" smoothed_path="{path}" />
+            </Sequence>
             <ClearEntireCostmap name="ClearGlobalCostmap-Context"
               service_name="global_costmap/clear_entirely_global_costmap" />
           </RecoveryNode>
