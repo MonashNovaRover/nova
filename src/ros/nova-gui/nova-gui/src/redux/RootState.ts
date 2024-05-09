@@ -8,8 +8,8 @@ import {
   IRosNovaInterfacesNirProbeData,
   IRosNovaInterfacesKilnCommandResponse,
   IRosNovaInterfacesKilnData,
-  IRosCoreRamanSpecResponse,
-  IRosCoreRamanSpectrum,
+  IRosNovaInterfacesRamanSpecResponse,
+  IRosNovaInterfacesRamanSpectrum,
   IRosBlcmdInterfacesTelemetry,
   IRosStdMsgsString,
   IRosGeometryMsgsPose,
@@ -38,8 +38,8 @@ export interface RootState {
   // Camera Stores
   camerasStore: IRosCameraMsgsCameras;
   ipList: IRosCameraMsgsGetIpListResponse;
-  ramanSpecServiceStore: IRosCoreRamanSpecResponse;
-  ramanSpecMessageStore: IRosCoreRamanSpectrum;
+  ramanSpecServiceStore: IRosNovaInterfacesRamanSpecResponse;
+  ramanSpecMessageStore: IRosNovaInterfacesRamanSpectrum;
 
   // Error Related Stores
   blcmdStatusStore: IRosBlcmdInterfacesBlcmdStatusArray;

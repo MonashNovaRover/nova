@@ -2,8 +2,8 @@ import {
   IRosCameraMsgsCameraOperationRequest,
   IRosCameraMsgsCameraOperationResponse,
   IRosCameraMsgsGetIpListResponse,
-  IRosCoreRamanSpecRequest, 
-  IRosCoreRamanSpecResponse,
+  IRosNovaInterfacesRamanSpecRequest,
+  IRosNovaInterfacesRamanSpecResponse,
   IRosBlcmdInterfacesBlcmdResetRequest,
   IRosBlcmdInterfacesBlcmdResetResponse,
   IRosNovaInterfacesMoveMicroscopeServoRequest,
@@ -61,7 +61,7 @@ export interface RosServiceInterface {
     IRosNovaInterfacesMoveMicroscopeServoResponse
   >;
   [RosService.CALL_RAMAN_SPEC]: RosServiceMessage<
-    IRosCoreRamanSpecRequest, 
-    IRosCoreRamanSpecResponse
+    IRosNovaInterfacesRamanSpecRequest,
+    IRosNovaInterfacesRamanSpecResponse
   >;
 }
