@@ -9,7 +9,7 @@ import { HelpCircle } from "react-feather";
 import { useState, useEffect } from "react";
 import { useBifrost } from "../../redux/actions/bifrost/useBifrostAction";
 import { RosService } from "../../ros/services/rosService";
-import { IRosCoreRamanSpecRequest } from "../../ros/rosTypes";
+import { IRosNovaInterfacesRamanSpecRequest } from "../../ros/rosTypes";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/RootState";
 
@@ -38,7 +38,7 @@ const RamanCCDInputs: React.FC = () => {
     
     const bifrost = useBifrost({ service: RosService.CALL_RAMAN_SPEC });
 
-    const sendRamanRequest = (request: IRosCoreRamanSpecRequest) => bifrost.callServiceToRedux(request);
+    const sendRamanRequest = (request: IRosNovaInterfacesRamanSpecRequest) => bifrost.callServiceToRedux(request);
 
     useEffect(() => {
         bifrost.syncWithTopic();

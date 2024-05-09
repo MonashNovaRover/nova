@@ -1,16 +1,17 @@
-import { 
-  IRosBlcmdInterfacesBlcmdStatusArray, 
+import {
+  IRosBlcmdInterfacesBlcmdStatusArray,
   IRosCameraMsgsCameras,
   IRosBlcmdInterfacesTelemetry,
   IRosGeometryMsgsPose,
   IRosSensorMsgsRange,
-  IRosCmdInterfacesCmDsFeedback, 
-  IRosDriveInterfacesDriveInfo, 
-  IRosNovaInterfacesKilnData, 
-  IRosNovaInterfacesNirProbeData, 
+  IRosCmdInterfacesCmDsFeedback,
+  IRosDriveInterfacesDriveInfo,
+  IRosNovaInterfacesKilnData,
+  IRosNovaInterfacesNirProbeData,
   IRosNovaInterfacesMicroscopeServoInfo,
   IRosStdMsgsString,
   IRosNovaInterfacesRamanSpectrum,
+  IRosNovaInterfacesUvVisSpecData,
 } from "../rosTypes";
 import { RosTopic } from "./rosTopic";
 
@@ -45,6 +46,7 @@ export interface RosTopicInterfaces {
   [RosTopic.NIR_DATA]: IRosNovaInterfacesNirProbeData;
   [RosTopic.MICROSCOPE_SERVO]: IRosNovaInterfacesMicroscopeServoInfo;
   [RosTopic.RAMAN_SPEC_MSG]: IRosNovaInterfacesRamanSpectrum;
+  [RosTopic.UV_VIS_SPEC]: IRosNovaInterfacesUvVisSpecData;
 
   // Cameras Related
   [RosTopic.CAMERAS]: IRosCameraMsgsCameras;

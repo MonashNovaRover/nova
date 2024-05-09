@@ -15,9 +15,9 @@ import { getDefaultPeakFinder } from "../SpectraDisplay/ChartAnalysis";
 
 const RamanOutputComparison: React.FC = () => {
     // units are nm
-    const LASER_GREEN_START = 416
-    const LASER_GREEN_END = 642
-    const LASER_GREEN_RANGE = LASER_GREEN_END - LASER_GREEN_START
+    //const LASER_GREEN_START = 416
+    //const LASER_GREEN_END = 642
+    //const LASER_GREEN_RANGE = LASER_GREEN_END - LASER_GREEN_START
     const LASER_RED_START = 700
     const LASER_RED_END = 928
     const LASER_RED_RANGE = LASER_RED_END - LASER_RED_START
@@ -34,12 +34,12 @@ const RamanOutputComparison: React.FC = () => {
         bifrost.syncWithTopic();
     }, [bifrost]);
 
-    let greenLaserOutput = [{
+    /*const greenLaserOutput = [{
         name: "CCD Output",
         data: spectrumStore.spectrum.map((element, index) => [Math.round(100*(LASER_GREEN_START + LASER_GREEN_RANGE*index/spectrumStore.spectrum.length)) / 100.0, Math.round(100*NORMALISED_SCALE_MAX*element/RAMAN_PEAK_VALUE)/100.0])
-    }]
+    }]*/
 
-    let redLaserOutput = [{
+    const redLaserOutput = [{
         name: "CCD Output",
         data: spectrumStore.spectrum.map((element, index) => [Math.round(100*(LASER_RED_START + LASER_RED_RANGE*index/spectrumStore.spectrum.length)) / 100.0, Math.round(100*NORMALISED_SCALE_MAX*element/RAMAN_PEAK_VALUE)/100.0])
     }]

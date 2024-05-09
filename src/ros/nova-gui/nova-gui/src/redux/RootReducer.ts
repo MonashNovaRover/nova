@@ -1,16 +1,16 @@
 import BifrostStatusStore from "./store/bifrost/BifrostStatusStore";
-import { createBifrostStore } from "./store/bifrost/createBifrostStore";
-import { RosService } from "../ros/services/rosService";
-import { RosTopic } from "../ros/topics/rosTopic";
+import {createBifrostStore} from "./store/bifrost/createBifrostStore";
+import {RosService} from "../ros/services/rosService";
+import {RosTopic} from "../ros/topics/rosTopic";
 import {
-  IRosCmdInterfacesCmDsFeedback,
   IRosCmdInterfacesCmdFeedback,
+  IRosCmdInterfacesCmDsFeedback,
   IRosNovaInterfacesNirProbeDataConst,
   IRosSensorMsgsRange,
 } from "../ros/rosTypes";
-import { uiSlice } from "./slices/UISlice";
-import { cameraStreamerSlice } from "./slices/CameraStreamSlice";
-import { BLCMD_INDEX } from "../constants";
+import {uiSlice} from "./slices/UISlice";
+import {cameraStreamerSlice} from "./slices/CameraStreamSlice";
+import {BLCMD_INDEX} from "../constants";
 
 
 export const rootReducer = {
@@ -157,6 +157,10 @@ export const rootReducer = {
       isvalid: true,
       spectrum: [1]
     }
+  ),
+  uvVisSpecStore: createBifrostStore(
+    { topic: RosTopic.UV_VIS_SPEC },
+    { luminance: [0,0,0] }
   ),
 
   // Regular Stores

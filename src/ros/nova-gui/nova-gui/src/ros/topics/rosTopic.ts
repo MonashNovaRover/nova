@@ -31,5 +31,6 @@ export enum RosTopic {
   KILN_DATA = "/science/kiln_data",
   NIR_DATA = "/science/nir_probe_data",
   MICROSCOPE_SERVO = "/science/microscope_servo_info",
-  RAMAN_SPEC_MSG = "/science/raman_spec_msg"
+  RAMAN_SPEC_MSG = "/science/raman_spec_msg",
+  UV_VIS_SPEC = "/science/uv_vis_spec_data",
 }
