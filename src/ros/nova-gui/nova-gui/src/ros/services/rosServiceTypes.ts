@@ -11,8 +11,8 @@ import {
   IRosNovaInterfacesKilnCommandResponse,
   IRosNovaInterfacesSetNirProbeLedRequest,
   IRosNovaInterfacesSetNirProbeLedResponse,
-  IRosCoreRamanSpecRequest,
-  IRosCoreRamanSpecResponse,
+  IRosNovaInterfacesRamanSpecRequest,
+  IRosNovaInterfacesRamanSpecResponse,
 } from "../rosTypes";
 import { RosService } from "./rosService";
 
@@ -65,6 +65,7 @@ export interface RosServiceInterface {
   >;
   >;*/
   [RosService.CALL_RAMAN_SPEC]: RosServiceMessage<
-    IRosCoreRamanSpecRequest, 
-    IRosCoreRamanSpecResponse>;
+    IRosNovaInterfacesRamanSpecRequest,
+    IRosNovaInterfacesRamanSpecResponse
+  >;
 }
