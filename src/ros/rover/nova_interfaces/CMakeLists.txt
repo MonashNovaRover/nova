@@ -44,7 +44,8 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/RoverPoseGPS.msg"
   "msg/SpectrometerData.msg"
   "msg/UVVisSpecData.msg"
-  
+  "msg/RamanSpectrum.msg"
+
   # Service definitions
   "srv/GpsOffset.srv"
   "srv/KilnCommand.srv"
@@ -53,6 +54,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/RFIDCommand.srv"
   "srv/ScienceCommand.srv"
   "srv/SetNIRProbeLED.srv"
+  "srv/RamanSpec.srv"
 
   # Action definitions
   "action/Stepper.action"
