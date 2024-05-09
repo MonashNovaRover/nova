@@ -1,0 +1,70 @@
+
+<!--
+  This Behavior Tree replans the global path periodically at 1 Hz through an array of poses
+continuously
+   and it also has recovery actions specific to planning / control as well as general system issues.
+-->
+<root main_tree_to_execute="MainTree">
+  <BehaviorTree ID="Recovery">
+    <ReactiveFallback name="RecoveryFallback">
+      <GoalUpdated />
+      <RoundRobin name="RecoveryActions">
+        <Sequence name="ClearingActions">
+          <ClearEntireCostmap name="ClearLocalCostmap-Subtree"
+            service_name="local_costmap/clear_entirely_local_costmap" />
+          <ClearEntireCostmap name="ClearGlobalCostmap-Subtree"
+            service_name="global_costmap/clear_entirely_global_costmap" />
+        </Sequence>
+        <Spin spin_dist="1.57" />
+        <Wait wait_duration="5" />
+        <BackUp backup_dist="0.30" backup_speed="0.05" />
+      </RoundRobin>
+    </ReactiveFallback>
+  </BehaviorTree>
+
+  <BehaviorTree ID="NavToPoseWithReplanningAndRecovery">
+    <RecoveryNode number_of_retries="6" name="NavigateRecovery">
+      <PipelineSequence name="NavigateToPoseWithReplanning">
+        <RateController hz="1.0">
+          <RecoveryNode number_of_retries="1" name="ComputePathToPose">
+            <Sequence name="PlanAndSmoothPath">
+              <ComputePathToPose goal="{goal}" path="{path}" planner_id="GridBased" />
+              <SmoothPath unsmoothed_path="{path}" smoothed_path="{path}" />
+            </Sequence>
+            <ClearEntireCostmap name="ClearGlobalCostmap-Context"
+              service_name="global_costmap/clear_entirely_global_costmap" />
+          </RecoveryNode>
+        </RateController>
+        <RecoveryNode number_of_retries="1" name="FollowPath">
+          <FollowPath path="{path}" controller_id="FollowPath" />
+          <ClearEntireCostmap name="ClearLocalCostmap-Context"
+            service_name="local_costmap/clear_entirely_local_costmap" />
+        </RecoveryNode>
+      </PipelineSequence>
+      <SubTreePlus ID="Recovery" __autoremap="true" />
+    </RecoveryNode>
+  </BehaviorTree>
+
+  <BehaviorTree ID="MainTree">
+    <Sequence>
+      <LED name="Start" service_name="autonomous/start" />
+      <GetFinalGoal goals="{goals}" final_goal="{final_goal}" />
+      <!-- Nav through poses -->
+      <ReactiveFallback>
+        <!-- Conduct a spin on reaching a goal-->
+        <GoalReached goal="{final_goal}" robot_base_frame="base_link" />
+        <KeepRunningUntilFailure>
+          <Sequence>
+            <GetFirstGoal goals="{goals}" first_goal="{goal}" />
+            <SubTreePlus ID="NavToPoseWithReplanningAndRecovery" goal="{goal}"
+              __autoremap="true" />
+            <RemovePassedGoals input_goals="{goals}" output_goals="{goals}"
+              radius="0.5" />
+          </Sequence>
+        </KeepRunningUntilFailure>
+        <!-- Navigate through search goal poses -->
+      </ReactiveFallback>
+      <LED name="Success" service_name="autonomous/success" />
+    </Sequence>
+  </BehaviorTree>
+</root>
