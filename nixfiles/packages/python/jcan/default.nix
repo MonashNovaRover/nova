@@ -19,7 +19,6 @@ buildPythonPackage rec {
     repo = "JCAN";
     rev = "316faeeef0b9e75cbcb2fe63d4c575302a631554";
     hash = "sha256-qLjzSBTZLnVOtBtinSc2KGZYh5R2Im4VF0xc6EiANvQ=";
-    
   };
   sourceRoot = "source/jcan_python";
 
@@ -36,8 +35,6 @@ buildPythonPackage rec {
     setuptools-rust
     toml
   ];
-
-
 
   postPatch = ''
     chmod u+w ..
