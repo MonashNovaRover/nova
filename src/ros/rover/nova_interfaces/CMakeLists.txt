@@ -45,7 +45,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/SpectrometerData.msg"
   "msg/UVVisSpecData.msg"
   "msg/RamanSpectrum.msg"
-  "msg/RamanMechState.msg"
+  "msg/RamanState.msg"
 
   # Service definitions
   "srv/GpsOffset.srv"
@@ -56,7 +56,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/ScienceCommand.srv"
   "srv/SetNIRProbeLED.srv"
   "srv/RamanSpec.srv"
-  "srv/RamanMechInputs.srv"
+  "srv/RamanMech.srv"
 
   # Action definitions
   "action/Stepper.action"
