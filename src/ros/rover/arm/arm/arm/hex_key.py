@@ -64,23 +64,23 @@ class HexKey(ControllerNode):
     def update_hex_key(self, joystick_r: InputJoystick):
         control = self.hex_key_control
 
-        if joystick_r.ax_thumb_y == 0:
+        if joystick_r.ax_thumb_x == 0:
             self.thumb_stick_x_pressed = False
 
-        if joystick_r.ax_thumb_y == 1 and not self.thumb_stick_x_pressed:
+        if joystick_r.ax_thumb_x == 1 and not self.thumb_stick_x_pressed:
             control.update_max_percent(round(control.get_max_percent() + 0.1, 1))
             self.thumb_stick_x_pressed = True
             self.get_logger().info(f"Max Percent Increased: {control.get_max_percent()}")
-        elif joystick_r.ax_thumb_y == -1 and not self.thumb_stick_x_pressed:
+        elif joystick_r.ax_thumb_x == -1 and not self.thumb_stick_x_pressed:
             control.update_max_percent(round(control.get_max_percent() - 0.1, 1))
             self.thumb_stick_x_pressed = True
             self.get_logger().info(f"Max Percent Decreased: {control.get_max_percent()}")
         
 
-        if joystick_r.ax_thumb_x == 1:
+        if joystick_r.ax_thumb_y == 1:
             control.update_direction(self.HEX_KEY_CLOCKWISE)
             control.update_velocity(control.get_max_percent())
-        elif joystick_r.ax_thumb_x == -1:
+        elif joystick_r.ax_thumb_y == -1:
             control.update_direction(self.HEX_KEY_COUNTERCLOCKWISE)
             control.update_velocity(control.get_max_percent())
         else:
