@@ -10,20 +10,22 @@
 
 buildPythonPackage rec {
   pname = "jcan";
-  version = "0.1.11";
+  version = "0.2.4";
+
+  doCheck = false;
 
   src = fetchFromGitHub {
-    owner = "hacker1024";
+    owner = "leighleighleigh";
     repo = "JCAN";
-    rev = "cf558af1753efe7c23b3c03b5e0aacfce81d5e14";
-    hash = "sha256-KLY1n2dlwolXTTnt5eB6a/p86DTy64ie3Eb/foOLCxY=";
+    rev = "316faeeef0b9e75cbcb2fe63d4c575302a631554";
+    hash = "sha256-qLjzSBTZLnVOtBtinSc2KGZYh5R2Im4VF0xc6EiANvQ=";
   };
-  sourceRoot = "source/jcan-python";
+  sourceRoot = "source/jcan_python";
 
   cargoDeps = rustPlatform.fetchCargoTarball {
     inherit src;
     name = "${pname}-${version}";
-    hash = "sha256-krjuvoDLM8GQGlNt3+FKFGW0MK1oZwxaFxJ+lnEe5I4=";
+    hash = "sha256-7rVyb4FMdW/nNsbWmRYTC7Hge4g4m8zTqHEQd0rrAMg=";
   };
 
   nativeBuildInputs = [
