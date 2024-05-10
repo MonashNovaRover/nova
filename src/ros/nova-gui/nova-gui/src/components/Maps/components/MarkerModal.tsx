@@ -4,9 +4,11 @@ import { PropRenderer } from "../../shared/PropRenderer";
 export interface MarkerInfoModalProps {
   isOpen: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  title: string;
+  data: object;
 }
 
-export const WaratahInfoModal = (props: MarkerInfoModalProps) => {
+export const MarkerModal = (props: MarkerInfoModalProps) => {
   return (
     <Modal
       isOpen={props.isOpen}
@@ -14,16 +16,9 @@ export const WaratahInfoModal = (props: MarkerInfoModalProps) => {
       onClose={() => props.setOpen(false)}
     >
       <ModalContent>
-        <ModalHeader>Waratah</ModalHeader>
+        <ModalHeader>{props.title}</ModalHeader>
         <ModalBody>
-          <PropRenderer
-            props={{
-              distance: "350m",
-              latitude: -37.28819,
-              longitude: 3,
-            }}
-            ignoreProps={[]}
-          />
+          <PropRenderer props={props.data} ignoreProps={[]} />
         </ModalBody>
       </ModalContent>
     </Modal>

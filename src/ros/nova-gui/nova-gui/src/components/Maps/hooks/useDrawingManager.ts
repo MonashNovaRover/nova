@@ -16,40 +16,22 @@ export function useDrawingManager(
     // https://developers.google.com/maps/documentation/javascript/reference/drawing
     const newDrawingManager = new drawing.DrawingManager({
       map,
-      drawingMode: google.maps.drawing.OverlayType.CIRCLE,
-      drawingControl: true,
+      drawingMode: null,
+      drawingControl: false,
       drawingControlOptions: {
-        position: google.maps.ControlPosition.TOP_CENTER,
-        drawingModes: [
-          google.maps.drawing.OverlayType.MARKER,
-          google.maps.drawing.OverlayType.CIRCLE,
-          google.maps.drawing.OverlayType.POLYGON,
-          google.maps.drawing.OverlayType.POLYLINE,
-          google.maps.drawing.OverlayType.RECTANGLE,
-        ],
+        drawingModes: [google.maps.drawing.OverlayType.MARKER],
       },
-      markerOptions: {
-        draggable: true,
-      },
-      circleOptions: {
-        editable: true,
-      },
-      polygonOptions: {
-        editable: true,
-        draggable: true,
-      },
-      rectangleOptions: {
-        editable: true,
-        draggable: true,
-      },
-      polylineOptions: {
-        editable: true,
-        draggable: true,
-      },
+      markerOptions: {},
+    });
+
+    // newDrawingManager.addListener("circlecomplete", (event) =>
+    //   console.log(event)
+    // );
+    newDrawingManager.addListener("markercomplete", (event: any) => {
+      console.log("New marker added:", event.position.lat);
     });
 
     setDrawingManager(newDrawingManager);
-
     return () => {
       newDrawingManager.setMap(null);
     };
