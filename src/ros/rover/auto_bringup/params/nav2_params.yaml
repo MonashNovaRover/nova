@@ -11,7 +11,7 @@ bt_navigator:
     # nav2_bt_navigator/navigate_to_pose_w_replanning_and_recovery.xml
     # nav2_bt_navigator/navigate_through_poses_w_replanning_and_recovery.xml
     # They can be set here or via a RewrittenYaml remap from a parent launch file to Nav2.
-    default_nav_through_poses_bt_xml: $(find-pkg-share nova_behavior_tree)/behavior_tree/urc/urc_through_poses.xml
+    default_nav_through_poses_bt_xml: $(find-pkg-share nova_behavior_tree)/behavior_tree/urc/urc_through_poses_search.xml
     default_nav_through_poses_with_search_bt_xml: $(find-pkg-share nova_behavior_tree)/behavior_tree/urc/urc_through_poses_search.xml
     plugin_lib_names:
       - nav2_compute_path_to_pose_action_bt_node
@@ -301,7 +301,7 @@ planner_server:
     planner_plugins: ["GridBased"]
     GridBased:
       plugin: "nav2_navfn_planner/NavfnPlanner"
-      tolerance: 0.5
+      tolerance: 1.0
       use_astar: true
       allow_unknown: true
 

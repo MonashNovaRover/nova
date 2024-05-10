@@ -44,6 +44,30 @@ continuously
     </RecoveryNode>
   </BehaviorTree>
 
+  <BehaviorTree ID="NavCloseToPoseWithReplanningAndRecovery">
+    <RecoveryNode number_of_retries="6" name="NavigateRecovery">
+      <PipelineSequence name="NavigateToPoseWithReplanning">
+        <RateController hz="1.0">
+          <RecoveryNode number_of_retries="1" name="ComputePathToPose">
+            <Sequence name="PlanAndSmoothPath">
+              <ComputePathToPose goal="{goal}" path="{path}" planner_id="GridBased" />
+              <TruncatePath distance="1.5" input_path="{path}" output_path="{path}" />
+              <SmoothPath unsmoothed_path="{path}" smoothed_path="{path}" />
+            </Sequence>
+            <ClearEntireCostmap name="ClearGlobalCostmap-Context"
+              service_name="global_costmap/clear_entirely_global_costmap" />
+          </RecoveryNode>
+        </RateController>
+        <RecoveryNode number_of_retries="1" name="FollowPath">
+          <FollowPath path="{path}" controller_id="FollowPath" />
+          <ClearEntireCostmap name="ClearLocalCostmap-Context"
+            service_name="local_costmap/clear_entirely_local_costmap" />
+        </RecoveryNode>
+      </PipelineSequence>
+      <SubTreePlus ID="Recovery" __autoremap="true" />
+    </RecoveryNode>
+  </BehaviorTree>
+
   <BehaviorTree ID="MainTree">
     <Sequence>
       <LED name="Start" service_name="autonomous/start" />
@@ -107,7 +131,7 @@ continuously
         <!-- Object has been found - get it's latest position in the map frame -->
         <QueryPosition detection_type="tag" id="0" position="{position}" />
         <!-- Navigate to object position -->
-        <SubTreePlus ID="NavToPoseWithReplanningAndRecovery" goal="{position}"
+        <SubTreePlus ID="NavCloseToPoseWithReplanningAndRecovery" goal="{position}"
           __autoremap="true" />
       </ReactiveSequence>
       <LED name="Success" service_name="autonomous/success" />
