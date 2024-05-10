@@ -22,4 +22,5 @@ export enum RosService {
   SET_NIR_PROBE_LED = "/science/set_nir_probe_led",
   MOVE_MICROSCOPE_SERVO = "/science/microscope_servo_service",
   CALL_RAMAN_SPEC = "/science/raman_spec_srv",
+  CALL_RAMAN_MECH = "/science/raman_mech_srv",
 }

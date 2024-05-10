@@ -14,7 +14,9 @@ import {
   IRosStdMsgsString,
   IRosGeometryMsgsPose,
   IRosSensorMsgsRange,
-  IRosCmdInterfacesCmDsFeedback 
+  IRosCmdInterfacesCmDsFeedback, 
+  IRosNovaInterfacesRamanState,
+  IRosNovaInterfacesRamanMechResponse
 } from "../ros/rosTypes";
 
 import { BifrostStatus } from "./models/bifrost/BifrostTypes";
@@ -38,8 +40,6 @@ export interface RootState {
   // Camera Stores
   camerasStore: IRosCameraMsgsCameras;
   ipList: IRosCameraMsgsGetIpListResponse;
-  ramanSpecServiceStore: IRosNovaInterfacesRamanSpecResponse;
-  ramanSpecMessageStore: IRosNovaInterfacesRamanSpectrum;
 
   // Error Related Stores
   blcmdStatusStore: IRosBlcmdInterfacesBlcmdStatusArray;
@@ -49,12 +49,14 @@ export interface RootState {
   nirStore: IRosNovaInterfacesNirProbeData;
   kilnData: IRosNovaInterfacesKilnData;
   kilnCommand: IRosNovaInterfacesKilnCommandResponse;
+  microscopeServoStore: IRosNovaInterfacesMicroscopeServoInfo;
+  microscopeServiceStore: IRosNovaInterfacesMoveMicroscopeServoResponse;
+  ramanSpecServiceStore: IRosNovaInterfacesRamanSpecResponse;
+  ramanSpecMessageStore: IRosNovaInterfacesRamanSpectrum;
+  ramanMechMessageStore: IRosNovaInterfacesRamanState;
+  ramanMechServiceStore: IRosNovaInterfacesRamanMechResponse;
 
   // Regular Stores
   uiState: UIState;
   cameraStreamerState: CameraStreamerState;
-
-  // Science Stores
-  microscopeServoStore: IRosNovaInterfacesMicroscopeServoInfo;
-  microscopeServiceStore: IRosNovaInterfacesMoveMicroscopeServoResponse;
 }

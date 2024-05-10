@@ -17,18 +17,6 @@ export const rootReducer = {
   // Bifrost Stores
   bifrostStatus: BifrostStatusStore(),
 
-  ramanSpecServiceStore: createBifrostStore(
-    { service: RosService.CALL_RAMAN_SPEC},
-    { continuousendedsignal: false }
-  ),
-  ramanSpecMessageStore: createBifrostStore(
-    { topic: RosTopic.RAMAN_SPEC_MSG },
-    {
-      isvalid: true,
-      spectrum: [1]
-    }
-  ),
-
   driveStore: createBifrostStore(
     { topic: RosTopic.DRIVE_INFO },
     {
@@ -157,6 +145,34 @@ export const rootReducer = {
   microscopeServiceStore: createBifrostStore(
     { service: RosService.MOVE_MICROSCOPE_SERVO },
     { success: true }
+  ),
+  ramanSpecServiceStore: createBifrostStore(
+    { service: RosService.CALL_RAMAN_SPEC},
+    { continuousendedsignal: false }
+  ),
+  ramanSpecMessageStore: createBifrostStore(
+    { topic: RosTopic.RAMAN_SPEC_MSG },
+    {
+      isvalid: true,
+      spectrum: [1]
+    }
+  ),
+  ramanMechServiceStore: createBifrostStore(
+    { service: RosService.CALL_RAMAN_MECH },
+    {
+      success: true
+    }
+  ),
+  ramanMechMessageStore: createBifrostStore(
+    { topic: RosTopic.RAMAN_MECH_MSG },
+    {
+      green_laser_on: false,
+      red_laser_on: false,
+      pump_on: false,
+      filter_selection: 0,
+      stepper_value: 0,
+      mirror_servo: 0
+    }
   ),
 
   // Regular Stores

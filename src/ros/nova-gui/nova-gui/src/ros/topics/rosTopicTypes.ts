@@ -11,6 +11,7 @@ import {
   IRosNovaInterfacesMicroscopeServoInfo,
   IRosNovaInterfacesRamanSpectrum,
   IRosStdMsgsString,
+  IRosNovaInterfacesRamanState,
 } from "../rosTypes";
 import { RosTopic } from "./rosTopic";
 
@@ -45,6 +46,7 @@ export interface RosTopicInterfaces {
   [RosTopic.NIR_DATA]: IRosNovaInterfacesNirProbeData;
   [RosTopic.MICROSCOPE_SERVO]: IRosNovaInterfacesMicroscopeServoInfo;
   [RosTopic.RAMAN_SPEC_MSG]: IRosNovaInterfacesRamanSpectrum;
+  [RosTopic.RAMAN_MECH_MSG]: IRosNovaInterfacesRamanState;
 
   // Cameras Related
   [RosTopic.CAMERAS]: IRosCameraMsgsCameras;
