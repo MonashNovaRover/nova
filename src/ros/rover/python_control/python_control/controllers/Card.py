@@ -6,3 +6,4 @@ class Card(Enum):
     CMD = "CMD"
     JONO = "JONO"
     STEPPER_PCB = "STEPPER_PCB"
+    TOGGLE = "TOGGLE"
