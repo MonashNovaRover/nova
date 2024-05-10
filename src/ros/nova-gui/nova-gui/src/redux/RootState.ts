@@ -16,7 +16,9 @@ import {
   IRosSensorMsgsRange,
   IRosSensorMsgsCompressedImage,
   IRosNovaInterfacesHydraprobeData,
-  IRosCmdInterfacesCmDsFeedback
+  IRosCmdInterfacesCmDsFeedback, 
+  IRosNovaInterfacesRamanState,
+  IRosNovaInterfacesRamanMechResponse
 } from "../ros/rosTypes";
 
 import { BifrostStatus } from "./models/bifrost/BifrostTypes";
@@ -59,5 +61,6 @@ export interface RootState {
   theta360CamStore: IRosSensorMsgsCompressedImage;
   ramanSpecServiceStore: IRosNovaInterfacesRamanSpecResponse;
   ramanSpecMessageStore: IRosNovaInterfacesRamanSpectrum;
-  
+  ramanMechMessageStore: IRosNovaInterfacesRamanState;
+  ramanMechServiceStore: IRosNovaInterfacesRamanMechResponse;
 }

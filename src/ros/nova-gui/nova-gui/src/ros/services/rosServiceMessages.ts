@@ -19,5 +19,6 @@ export const rosServiceMessages = {
   [RosService.SET_NIR_PROBE_LED]: "nova_interfaces/srv/SetNIRProbeLED",
   [RosService.MOVE_MICROSCOPE_SERVO]: "nova_interfaces/srv/MoveMicroscopeServo",
   [RosService.THETA_360_CAM_CAPTURE]: "std_srvs/srv/Trigger",
-  [RosService.CALL_RAMAN_SPEC]: "core/srv/RamanSpec"
+  [RosService.CALL_RAMAN_SPEC]: "nova_interfaces/srv/RamanSpec",
+  [RosService.CALL_RAMAN_MECH]: "nova_interfaces/srv/RamanMech",
 };
