@@ -1,8 +1,8 @@
 # For raman mechanical state
 
-bool greenlaseron
-bool redlaseron
-bool pumpon
-float32 filterselection
-float32 steppervalue
-float32 mirrorservo
+bool green_laser_on
+bool red_laser_on
+bool pump_on
+float32 filter_selection
+float32 stepper_value
+float32 mirror_servo

@@ -191,7 +191,7 @@ class RamanServer(Node):
         """
         Updates the mechanical state that the node will send can commands based on
         """
-        self.mech_state = request.greenlaseron, request.redlaseron, request.pumpon, request.filterselection, request.steppervalue, request.mirrorservo
+        self.mech_state = request.green_laser_on, request.red_laser_on, request.pump_on, request.filter_selection, request.stepper_value, request.mirror_servo
         response.success = True
         return response
 
@@ -201,7 +201,7 @@ class RamanServer(Node):
         Publishes raman mechanical state
         """
         msg = RamanState()
-        msg.greenlaseron, msg.redlaseron, msg.pumpon, msg.filterselection, msg.steppervalue, msg.mirrorservo = self.mech_state
+        msg.green_laser_on, msg.red_laser_on, msg.pump_on, msg.filter_selection, msg.stepper_value, msg.mirror_servo = self.mech_state
         self.mech_publisher_.publish(msg)
 
 
