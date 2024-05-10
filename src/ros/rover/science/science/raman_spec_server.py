@@ -2,13 +2,17 @@
 
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Purpose: ROS Node for publishing responses to service requests from GUI data for CCD data for Raman Spectra
+Purpose: ROS Node for publishing responses to service
+requests from GUI data for CCD data for Raman Spectra
+and maintaining/updating Raman mechanical state
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: raman_spec_server
 TOPICS: 
     - /science/raman_spec_msg [RamanSpectrum] [Publisher]
+    - /science/raman_mech_msg [RamanState] [Publisher]
 SERVICES: 
     - /science/raman_spec_srv [RamanSpec] [Server]
+    - /science/raman_mech_srv [RamanMech] [Server]
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:        science
@@ -30,8 +34,8 @@ import logging
 import rclpy
 from rclpy.node import Node
 
-from core.srv import RamanSpec
-from core.msg import RamanSpectrum
+from nova_interfaces.msg import RamanSpectrum, RamanState
+from nova_interfaces.srv import RamanMech, RamanSpec
 
 import numpy as np
 from serial import Serial, SerialException
@@ -60,13 +64,21 @@ class RamanServer(Node):
         # initialising node values
         self.is_continuous = False
         self.continuous_settings = None, None, None, None   # A tuple of 4 values (port, shperiod, icgperiod and average, in that order)
+        self.mech_state = False, False, False, 0, 0, 0      # A tuple of 6 values (greenlaseron, redlaseron, pumpon, filterselection, steppervalue and mirrorservo, in that order)
+        
+        # for spectrum
+        self.spec_srv = self.create_service(RamanSpec, '/science/raman_spec_srv', self.raman_spec_response)
+        self.spec_publisher_ = self.create_publisher(RamanSpectrum, '/science/raman_spec_msg', 10)
+        self.timer_continuous_mode = self.create_timer(1, self.continuous_spec_callback)
 
-        self.srv = self.create_service(RamanSpec, '/science/raman_spec_srv', self.raman_response)
-        self.publisher_ = self.create_publisher(RamanSpectrum, '/science/raman_spec_msg', 10)
+        # for mechanical
+        self.mech_srv = self.create_service(RamanMech, '/science/raman_mech_srv', self.raman_mech_response)
+        self.mech_publisher_ = self.create_publisher(RamanState, '/science/raman_mech_msg', 10)
+        self.timer_publish_state = self.create_timer(1, self.publish_state)
+        self.timer_send_can_commands = self.create_timer(0.2, self.send_can_commands)
 
-        self.continuous_mode = self.create_timer(1, self.continuous_callback)
 
-    def continuous_callback(self):
+    def continuous_spec_callback(self):
         """
         Calls a single spectrum to be published
         """
@@ -74,7 +86,35 @@ class RamanServer(Node):
             msg_isvalid, msg_spectrum = RamanServer.get_spectrum(self.continuous_settings)
             self.publish_spectrum(msg_isvalid, msg_spectrum)
 
-    def set_input(shperiod: int, icgperiod: int, singlecollectionmode: bool, average: int) -> List[int]:
+
+    def send_can_commands(self):
+        """
+        Sends all can commands to update mechanical state to what is current 
+        """
+        self.send_laser_command()
+        self.send_pump_command()
+        self.send_filter_command()
+        self.send_stepper_command()
+        self.send_mirror_command()
+
+    
+    def send_laser_command(self):
+        pass
+
+    def send_pump_command(self):
+        pass
+
+    def send_filter_command(self):
+        pass
+
+    def send_stepper_command(self):
+        pass
+
+    def send_mirror_command(self):
+        pass 
+
+
+    def set_spec_input(shperiod: int, icgperiod: int, singlecollectionmode: bool, average: int) -> List[int]:
         """
         Creates the array used for configuration to be sent to firmware.
         """
@@ -106,7 +146,8 @@ class RamanServer(Node):
         result[11] = average  # min is 1, max is 15
 
         return result
-    
+
+
     def find_phase_end(output: List[int]) -> Tuple[bool, int]:
         """
         Finds the first occurrence of a phase signal (a flat peak in the spectrum that exceeds the PHASE_SIGNAL amount) in a given array
@@ -116,7 +157,8 @@ class RamanServer(Node):
                 return True, len(output) - 1
         
         return True, len(output) - 1
-            
+
+
     def read_output_to_response(output: List[int]) -> List[int]:
         """
         Converts 8 bit integers read to 16 bit integers and balances the output (due to left and right sides of shift registers returning different values)
@@ -145,7 +187,25 @@ class RamanServer(Node):
         return response
 
 
-    def raman_response(self, request, response):
+    def raman_mech_response(self, request, response):
+        """
+        Updates the mechanical state that the node will send can commands based on
+        """
+        self.mech_state = request.greenlaseron, request.redlaseron, request.pumpon, request.filterselection, request.steppervalue, request.mirrorservo
+        response.success = True
+        return response
+
+
+    def publish_state(self):
+        """
+        Publishes raman mechanical state
+        """
+        msg = RamanState()
+        msg.greenlaseron, msg.redlaseron, msg.pumpon, msg.filterselection, msg.steppervalue, msg.mirrorservo = self.mech_state
+        self.mech_publisher_.publish(msg)
+
+
+    def raman_spec_response(self, request, response):
         """
         Callback for a service request
         """
@@ -174,6 +234,7 @@ class RamanServer(Node):
 
         return response
 
+
     def get_spectrum(self, serialport: str, shperiod: int, icgperiod: int, average: int) -> Tuple[bool, List[int]]:
         """
         Gets a single spectrum, returning a tuple of whether the spectrum is valid or not and the spectrum itself
@@ -187,7 +248,7 @@ class RamanServer(Node):
                 ser.reset_output_buffer()
                 time.sleep(0.01)
 
-            input = RamanServer.set_input(shperiod, icgperiod, True, average)
+            input = RamanServer.set_spec_input(shperiod, icgperiod, True, average)
             output = np.zeros(RamanServer.OUTPUT_SIZE, np.uint8)
 
             #transmit everything at once (the USB-firmware does not work if all bytes are not transmitted in one go)
@@ -211,6 +272,7 @@ class RamanServer(Node):
 
         return False, []
 
+
     def publish_spectrum(self, msg_isvalid: bool, msg_spectrum: List[int]) -> None:
         """
         Publishes RamanSpectrum message with inputted data
@@ -218,7 +280,7 @@ class RamanServer(Node):
         msg = RamanSpectrum()
         msg.isvalid = msg_isvalid
         msg.spectrum = msg_spectrum
-        self.publisher_.publish(msg)
+        self.spec_publisher_.publish(msg)
 
 
 def main(args=None):
