@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import logging
 from python_control.ControllerNode import ControllerNode
 from python_control.controls.Direction import Direction
 from python_control.controllers.ToggleController import ToggleController
@@ -7,7 +8,7 @@ from python_control.controls.ToggleControl import ToggleControl
 import rclpy
 from input_interfaces.msg import InputJoystick
 
-class HexKey(ControllerNode):
+class Lazers(ControllerNode):
 
     # CAN BUS NAME
     # The name of the CAN bus to use
@@ -15,7 +16,7 @@ class HexKey(ControllerNode):
 
     # SENDING CARD IDS
     # Add any CONTROL FRAME / CARD IDS here
-    LAZERS_SEND_FRAME = 0x0E1
+    LAZERS_SEND_FRAME = 0x0E3
 
     # NAMES
     # Add any CONTROL names here
@@ -27,12 +28,13 @@ class HexKey(ControllerNode):
 
 
     def __init__(self):
-        super().__init__(name="URCSampleTray", can_bus=self.CAN_BUS)
+        super().__init__(name="Lazers", can_bus=self.CAN_BUS)
         logger = self.get_logger()
 
         ## Create controls
         self.lazers_control = ToggleControl(
-            logger=logger
+            logger=logger,
+            on=False,
         )
 
         ## Create controllers
@@ -53,18 +55,18 @@ class HexKey(ControllerNode):
     def update_lazers(self, joystick_l: InputJoystick):
         if joystick_l.btn_thumb_d_state == 1:
             self.lazers_control.toggle()
-            self.logger.info("Lazers {0}".format("ON" if self.lazers_control.is_on() else "OFF"))
+            self.get_logger().info("Lazers {0}".format("ON" if self.lazers_control.is_on() else "OFF"))
           
 
     def joystick_l(self, joystick_l: InputJoystick):
-        pass
+        self.update_lazers(joystick_l)
 
     def joystick_r(self, joystick_r: InputJoystick):
-        self.update_hex_key(joystick_r)
+        pass
 
 def main():
     rclpy.init()
-    node = HexKey()
+    node = Lazers()
     rclpy.spin(node)
     rclpy.shutdown()
 

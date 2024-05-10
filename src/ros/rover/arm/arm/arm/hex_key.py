@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import logging
 from python_control.controls.OneAxisVelocityControl import OneAxisVelocityControl
 from python_control.ControllerNode import ControllerNode
 from python_control.controls.Direction import Direction
@@ -32,12 +33,16 @@ class HexKey(ControllerNode):
     HEX_KEY_SEND_COUNTERCLOCKWISE = 0x01
 
     def __init__(self):
-        super().__init__(name="URCSampleTray", can_bus=self.CAN_BUS)
+        super().__init__(name="HexKey", can_bus=self.CAN_BUS)
         logger = self.get_logger()
+
+        # Flags
+        self.thumb_stick_x_pressed = False
 
         ## Create controls
         self.hex_key_control = OneAxisVelocityControl(
-            logger=logger
+            logger=logger,
+            max_percent=0.5,
         )
 
         ## Create controllers
@@ -45,14 +50,13 @@ class HexKey(ControllerNode):
             logger=logger,
             bus=self.bus,
             frame_id=self.HEX_KEY_SEND,
-            pos_command_id=self.HEX_KEY_SEND_CLOCKWISE,
-            zero_command_id=self.HEX_KEY_SEND_COUNTERCLOCKWISE,
+            pos_command=self.HEX_KEY_SEND_CLOCKWISE,
+            neg_command=self.HEX_KEY_SEND_COUNTERCLOCKWISE,
             control=self.hex_key_control,
         )
 
         ## Add controllers
         self.add_controller(self.HEX_KEY_CONTROL, self.sample_tray_controller)
-
 
         ## Start the CAN bus
         self.start_can()
@@ -60,17 +64,27 @@ class HexKey(ControllerNode):
     def update_hex_key(self, joystick_r: InputJoystick):
         control = self.hex_key_control
 
-        if joystick_r.btn_bottom_r1_state == 1:
-            control.update_max_percent(control.get_max_percent() + 0.1)
-        elif joystick_r.btn_bottom_r3_state == 1:
-            control.update_max_percent(control.get_max_percent() - 0.1)
+        if joystick_r.ax_thumb_y == 0:
+            self.thumb_stick_x_pressed = False
 
-        if joystick_r.btn_bottom_r2_state > 0:
+        if joystick_r.ax_thumb_y == 1 and not self.thumb_stick_x_pressed:
+            control.update_max_percent(round(control.get_max_percent() + 0.1, 1))
+            self.thumb_stick_x_pressed = True
+            self.get_logger().info(f"Max Percent Increased: {control.get_max_percent()}")
+        elif joystick_r.ax_thumb_y == -1 and not self.thumb_stick_x_pressed:
+            control.update_max_percent(round(control.get_max_percent() - 0.1, 1))
+            self.thumb_stick_x_pressed = True
+            self.get_logger().info(f"Max Percent Decreased: {control.get_max_percent()}")
+        
+
+        if joystick_r.ax_thumb_x == 1:
             control.update_direction(self.HEX_KEY_CLOCKWISE)
             control.update_velocity(control.get_max_percent())
-        elif joystick_r.btn_bottom_r5_state > 0:
+        elif joystick_r.ax_thumb_x == -1:
             control.update_direction(self.HEX_KEY_COUNTERCLOCKWISE)
             control.update_velocity(control.get_max_percent())
+        else:
+            control.stop()
 
 
     def joystick_l(self, joystick_l: InputJoystick):

@@ -2,13 +2,11 @@
 
 from logging import Logger
 from python_control.controls.Control import Control
-from python_control.sensors import IntegerSensor
-from python_control.sensors.CommandSensor import CommandSensor
 
 class ToggleControl(Control):
     """Class to control a toggle control"""
 
-    def __init__(self, logger: Logger, on: bool):
+    def __init__(self, logger: Logger, on: bool = False):
         super().__init__(logger=logger)
         self.on = on # type: bool
 

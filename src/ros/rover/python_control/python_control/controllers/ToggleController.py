@@ -22,7 +22,7 @@ class ToggleController(Controller):
         control: ToggleControl = self.get_control()
 
         # Set the command based on the direction
-        command: hex
+        command: hex = None
         if not control.is_on() and self.toggle_command_off is not None:
             command = self.toggle_command_off
         elif control.is_on() and self.toggle_command_on is not None:
