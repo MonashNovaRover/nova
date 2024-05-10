@@ -391,8 +391,8 @@ class ResolverPublisher(Node):
             joint.discontinuity_angle = self.wrap_to_2pi((joint_limit_lower + joint_limit_upper) / 2 + pi)
         
         # Construct and start the resolver publisher
-        self.publisher = self.create_publisher(JointState, '/arm/resolvers', 10)
-        self.joint_states_publisher = self.create_publisher(JointState, 'joint_state', 10)
+        #self.publisher = self.create_publisher(JointState, '/arm/resolvers', 10)
+        self.joint_states_publisher = self.create_publisher(JointState, '/arm/joint_states', 10)
         self.resolver_pub_timer = self.create_timer(resolver_pub_timer_period, self.publish)
         # Construct the service to zero resolvers
         self.zero_service = self.create_service(StringTrigger, "/arm/resolver_zero_service", self.zero_callback)
@@ -475,7 +475,7 @@ class ResolverPublisher(Node):
             time.sleep(self.receive_deadtime)
 
         self.resolver_state.header.stamp = self.get_clock().now().to_msg()
-        self.publisher.publish(self.resolver_state)
+        #self.publisher.publish(self.resolver_state)
         self.joint_states_publisher.publish(self.resolver_state)
 
     def destroy_node(self):
