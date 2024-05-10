@@ -15,8 +15,9 @@ export const rosServiceMessages = {
   [RosService.BLCMD_RESET]: "blcmd_interfaces/srv/BLCMDReset",
 
   // Science Related
-  [RosService.KILN_COMMAND]: "core/srv/KilnCommand",
-  [RosService.SET_NIR_PROBE_LED]: "core/srv/SetNIRProbeLED",
-  [RosService.MOVE_MICROSCOPE_SERVO]: "core/srv/MoveMicroscopeServo",
-  [RosService.CALL_RAMAN_SPEC]: "core/srv/RamanSpec"
+  [RosService.KILN_COMMAND]: "nova_interfaces/srv/KilnCommand",
+  [RosService.SET_NIR_PROBE_LED]: "nova_interfaces/srv/SetNIRProbeLED",
+  [RosService.MOVE_MICROSCOPE_SERVO]: "nova_interfaces/srv/MoveMicroscopeServo",
+  [RosService.CALL_RAMAN_SPEC]: "nova_interfaces/srv/RamanSpec",
+  [RosService.CALL_RAMAN_MECH]: "nova_interfaces/srv/RamanMech",
 };

@@ -5,8 +5,14 @@
  */
 
 import { Button, Card, CardHeader, Input, Modal, ModalBody, ModalContent, ModalHeader, useDisclosure, Tabs, Tab, Avatar } from "@nextui-org/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { HelpCircle } from "react-feather";
+import { IRosNovaInterfacesRamanMechRequest } from "../../ros/rosTypes";
+import { useSelector } from "react-redux";
+import { RootState } from "../../redux/RootState";
+import { RosService } from "../../ros/services/rosService";
+import { useBifrost } from "../../redux/actions/bifrost/useBifrostAction";
+import { RosTopic } from "../../ros/topics/rosTopic";
 
 const RamanMechanicalInputs: React.FC = () => {
     const RED_LASER_KEY = "red-laser";
@@ -16,28 +22,28 @@ const RamanMechanicalInputs: React.FC = () => {
     const OFF_PUMP_KEY = "off";
 
 
+    // service bifrost
+    const ramanMechRequest = useSelector((state: RootState) => state.ramanMechServiceStore);
+    const inputBifrost = useBifrost({ service: RosService.CALL_RAMAN_MECH });
+    const sendRamanMechRequest = (request: IRosNovaInterfacesRamanMechRequest) => inputBifrost.callServiceToRedux(request);
+
+    // topic bifrost
+    const ramanMechState = useSelector((state: RootState) => state.ramanMechMessageStore);
+    const bifrost = useBifrost({ topic: RosTopic.RAMAN_MECH_MSG });
+    useEffect(() => { bifrost.syncWithTopic(); }, [bifrost]);
+
+
     const {isOpen, onOpen, onOpenChange} = useDisclosure();
     const [currentLaserKey, setCurrentLaserKey] = useState(OFF_LASER_KEY);
     const [currentPumpKey, setCurrentPumpKey] = useState(OFF_PUMP_KEY);
     const [ramanMechInputs, setRamanMechInputs] = useState({
-        greenLaserOn: false,
-        redLaserOn: false,
-        pumpOn: false,
-        filterSelection: 0,
-        stepperValue: 0,
-        mirrorServo: 0
+        green_laser_on: false,
+        red_laser_on: false,
+        pump_on: false,
+        filter_selection: 0,
+        stepper_value: 0,
+        mirror_servo: 0
     });
-
-    const ramanMechState = {
-        greenLaserOn: false,
-        redLaserOn: false,
-        pumpOn: true,
-        filterSelection: 0,
-        stepperValue: 0,
-        mirrorServo: 0
-    } // change this to bifrost store when linked
-
-    const sendRamanMechRequest = () => {console.log(ramanMechInputs)}
 
     const checkFilterSelection = (filterValue: number) => {
         if (!(filterValue == undefined)) {
@@ -80,17 +86,20 @@ const RamanMechanicalInputs: React.FC = () => {
                 </ModalContent>
             </Modal>
             <div className="mx-1 w-60 flex flex-row">
-                <Avatar size="lg" name={ramanMechState.greenLaserOn ? "On" : ramanMechState.redLaserOn ? "On" : "Off"} className={ramanMechState.greenLaserOn ? "bg-green-600" : ramanMechState.redLaserOn ? "bg-red-600" : ""}></Avatar>
+                <Avatar size="lg" name={ramanMechState.green_laser_on ? "On" : ramanMechState.red_laser_on ? "On" : "Off"} className={ramanMechState.green_laser_on ? "bg-green-600" : ramanMechState.red_laser_on ? "bg-red-600" : ""}></Avatar>
                 <Tabs className="mt-1" size="lg"
                     selectedKey={currentLaserKey}
                     onSelectionChange={(key) => {
-                        setCurrentLaserKey(key.toString())
+                        setCurrentLaserKey(key.toString());
                         if (key == GREEN_LASER_KEY) {
-                            setRamanMechInputs({...ramanMechInputs, greenLaserOn: true, redLaserOn: false})
+                            setRamanMechInputs({...ramanMechInputs, green_laser_on: true, red_laser_on: false});
+                            sendRamanMechRequest({...ramanMechInputs, green_laser_on: true, red_laser_on: false});
                         } else if (key == RED_LASER_KEY) {
-                            setRamanMechInputs({...ramanMechInputs, greenLaserOn: false, redLaserOn: true})
+                            setRamanMechInputs({...ramanMechInputs, green_laser_on: false, red_laser_on: true});
+                            sendRamanMechRequest({...ramanMechInputs, green_laser_on: false, red_laser_on: true});
                         } else {
-                            setRamanMechInputs({...ramanMechInputs, greenLaserOn: false, redLaserOn: false})
+                            setRamanMechInputs({...ramanMechInputs, green_laser_on: false, red_laser_on: false});
+                            sendRamanMechRequest({...ramanMechInputs, green_laser_on: false, red_laser_on: false});
                         }
                     }}
                 >
@@ -100,15 +109,17 @@ const RamanMechanicalInputs: React.FC = () => {
                 </Tabs>
             </div>
             <div className="mx-1 flex flex-row">
-                <Avatar size="lg" name={ramanMechState.pumpOn ? "On" : "Off"} className={ramanMechState.pumpOn ? "bg-blue-600" : ""}></Avatar>
+                <Avatar size="lg" name={ramanMechState.pump_on ? "On" : "Off"} className={ramanMechState.pump_on ? "bg-blue-600" : ""}></Avatar>
                 <Tabs className="mt-1" size="lg"
                     selectedKey={currentPumpKey}
                     onSelectionChange={(key) => {
                         setCurrentPumpKey(key.toString())
                         if (key == ON_PUMP_KEY) {
-                            setRamanMechInputs({...ramanMechInputs, pumpOn: true})
+                            setRamanMechInputs({...ramanMechInputs, pump_on: true});
+                            sendRamanMechRequest({...ramanMechInputs, pump_on: true});
                         } else {
-                            setRamanMechInputs({...ramanMechInputs, pumpOn: false})
+                            setRamanMechInputs({...ramanMechInputs, pump_on: false});
+                            sendRamanMechRequest({...ramanMechInputs, pump_on: false});
                         }
                     }}
                 >
@@ -117,26 +128,26 @@ const RamanMechanicalInputs: React.FC = () => {
                 </Tabs>
             </div>
             <div className="mx-1 flex w-44 flex-row">
-                <Avatar size="lg" name={ramanMechState.filterSelection.toString()}></Avatar>
-                <Input onValueChange={(value: string) => { if (checkFilterSelection(+value)) {
-                    setRamanMechInputs({...ramanMechInputs, filterSelection: +value})
-                }}} className="shrink-0 w-20 grow" type="filterselection" label="Filter Selection" placeholder="[min, max]" defaultValue={ramanMechState.filterSelection.toString()} />
+                <Avatar size="lg" name={ramanMechState.filter_selection.toString()}></Avatar>
+                <Input onValueChange={(value: string) => { if (value != "" && checkFilterSelection(+value)) {
+                    setRamanMechInputs({...ramanMechInputs, filter_selection: +value});
+                }}} className="shrink-0 w-20 grow" type="filterselection" label="Filter Selection" placeholder="[min, max]" defaultValue={ramanMechState.filter_selection.toString()} />
             </div>
             <div className="mx-1 flex w-44 flex-row">
-                <Avatar size="lg" name={ramanMechState.stepperValue.toString()}></Avatar>
-                <Input onValueChange={(value: string) => { if (checkStepperValue(+value)) {
-                    setRamanMechInputs({...ramanMechInputs, stepperValue: +value});
-                }}} className="shrink-0 w-20 grow" type="steppervalue" label="Stepper Value" placeholder="[min, max]" defaultValue={ramanMechState.stepperValue.toString()} />
+                <Avatar size="lg" name={ramanMechState.stepper_value.toString()}></Avatar>
+                <Input onValueChange={(value: string) => { if (value != "" && checkStepperValue(+value)) {
+                    setRamanMechInputs({...ramanMechInputs, stepper_value: +value});
+                }}} className="shrink-0 w-20 grow" type="steppervalue" label="Stepper Value" placeholder="[min, max]" defaultValue={ramanMechState.stepper_value.toString()} />
             </div>
             <div className="mx-1 flex w-44 flex-row">
-                <Avatar size="lg" name={ramanMechState.mirrorServo.toString()}></Avatar>
-                <Input onValueChange={(value: string) => { if (checkMirrorServo(+value)) {
-                    setRamanMechInputs({...ramanMechInputs, mirrorServo: +value});
-                }}} className="shrink-0 w-20 grow" type="mirrorservo" label="Mirror Servo" placeholder="[min, max]" defaultValue={ramanMechState.mirrorServo.toString()} />
+                <Avatar size="lg" name={ramanMechState.mirror_servo.toString()}></Avatar>
+                <Input onValueChange={(value: string) => { if (value != "" && checkMirrorServo(+value)) {
+                    setRamanMechInputs({...ramanMechInputs, mirror_servo: +value});
+                }}} className="shrink-0 w-20 grow" type="mirrorservo" label="Mirror Servo" placeholder="[min, max]" defaultValue={ramanMechState.mirror_servo.toString()} />
             </div>
             <Button onPress={() => {
-                sendRamanMechRequest();
-            }} color="primary" className="h-14 flex flex-row shrink-0 w-60" radius="lg">Refresh</Button>
+                sendRamanMechRequest(ramanMechInputs);
+            }} color={ramanMechRequest.success ? "primary" : "danger"} className="h-14 flex flex-row shrink-0 w-60" radius="lg">{ramanMechRequest.success ? "Refresh" : "Error: Refresh"}</Button>
         </Card>
     )
 }

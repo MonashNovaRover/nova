@@ -32,5 +32,6 @@ export enum RosTopic {
   NIR_DATA = "/science/nir_probe_data",
   MICROSCOPE_SERVO = "/science/microscope_servo_info",
   HYDRAPROBE_DATA = "/science/hydraprobe_data",
-  RAMAN_SPEC_MSG = "/science/raman_spec_msg"
+  RAMAN_SPEC_MSG = "/science/raman_spec_msg",
+  RAMAN_MECH_MSG = "/science/raman_mech_msg",
 }

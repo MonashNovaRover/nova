@@ -168,7 +168,23 @@ export const rootReducer = {
       spectrum: [1]
     }
   ),
-
+  ramanMechServiceStore: createBifrostStore(
+    { service: RosService.CALL_RAMAN_MECH },
+    {
+      success: true
+    }
+  ),
+  ramanMechMessageStore: createBifrostStore(
+    { topic: RosTopic.RAMAN_MECH_MSG },
+    {
+      green_laser_on: false,
+      red_laser_on: false,
+      pump_on: false,
+      filter_selection: 0,
+      stepper_value: 0,
+      mirror_servo: 0
+    }
+  ),
 
   // Regular Stores
   uiState: uiSlice.reducer,

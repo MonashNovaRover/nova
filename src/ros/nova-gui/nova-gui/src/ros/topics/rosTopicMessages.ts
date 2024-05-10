@@ -32,5 +32,6 @@ export const rosTopicMessages = {
   [RosTopic.NIR_DATA]: "nova_interfaces/msg/NIRProbeData",
   [RosTopic.MICROSCOPE_SERVO]: "nova_interfaces/msg/MicroscopeServoInfo",
   [RosTopic.HYDRAPROBE_DATA]: "nova_interfaces/msg/HydraprobeData",
-  [RosTopic.RAMAN_SPEC_MSG]: "nova_interfaces/msg/RamanSpectrum"
+  [RosTopic.RAMAN_SPEC_MSG]: "nova_interfaces/msg/RamanSpectrum",
+  [RosTopic.RAMAN_MECH_MSG]: "nova_interfaces/msg/RamanState",
 };
