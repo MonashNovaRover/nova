@@ -44,7 +44,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/RoverPoseGPS.msg"
   "msg/SpectrometerData.msg"
   "msg/RamanSpectrum.msg"
-  "msg/RamanMechState.msg"
+  "msg/RamanState.msg"
 
   # Service definitions
   "srv/GpsOffset.srv"
