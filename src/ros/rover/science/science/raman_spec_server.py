@@ -33,6 +33,7 @@ MORE INFO:
 import logging
 import rclpy
 from rclpy.node import Node
+import jcan
 
 from nova_interfaces.msg import RamanSpectrum, RamanState
 from nova_interfaces.srv import RamanMech, RamanSpec
@@ -56,26 +57,60 @@ class RamanServer(Node):
     SINGLE_COLLECTION_MODE = 0
     CONTINUOUS_COLLECTION_MODE = 1
 
+    # CAN commands
+    CARD_ID = 0x0A0
+    DISABLE_CARD = 0x00
+    GREEN_LASER_ID = 0x01
+    RED_LASER_ID = 0x02
+    MIRROR_SERVO_ID = 0x03
+    FILTER_SERVO_ID = 0x04
+    STEPPER_ID = 0x05
+    CAN_COMMAND_TURN_ON = 0x01
+    CAN_COMMAND_TURN_OFF = 0x00
+
+    # ROS params
+    CAN_BUS_PARAM = "can_bus"
+
+    # ROS spec channels
+    SPEC_SERVICE = '/science/raman_spec_srv'
+    SPEC_TOPIC = '/science/raman_spec_msg'
+
+    # ROS mech channels
+    MECH_STATE_SERVICE = '/science/raman_mech_srv'
+    MECH_STATE_TOPIC = '/science/raman_mech_msg'
+
+    # initial state values
+    DEFAULT_MECH = False, False, False, 0, 0, 0             # A tuple of 6 values (greenlaseron, redlaseron, pumpon, filterselection, steppervalue and mirrorservo, in that order)
+    DEFAULT_CONTINUOUS_SETTINGS = None, None, None, None    # A tuple of 4 values (port, shperiod, icgperiod and average, in that order)
+
+
     def __init__(self):
         super().__init__('raman_spec_server')
         self.get_logger().set_level(logging.INFO)
         self.get_logger().info("Raman Spec Server starting")
 
+        self.declare_parameter(RamanServer.CAN_BUS_PARAM, "can1")
+
         # initialising node values
         self.is_continuous = False
-        self.continuous_settings = None, None, None, None   # A tuple of 4 values (port, shperiod, icgperiod and average, in that order)
-        self.mech_state = False, False, False, 0, 0, 0      # A tuple of 6 values (greenlaseron, redlaseron, pumpon, filterselection, steppervalue and mirrorservo, in that order)
+        self.continuous_settings = RamanServer.DEFAULT_CONTINUOUS_SETTINGS  
+        self.mech_state = RamanServer.DEFAULT_MECH
         
         # for spectrum
-        self.spec_srv = self.create_service(RamanSpec, '/science/raman_spec_srv', self.raman_spec_response)
-        self.spec_publisher_ = self.create_publisher(RamanSpectrum, '/science/raman_spec_msg', 10)
+        self.spec_srv = self.create_service(RamanSpec, RamanServer.SPEC_SERVICE, self.raman_spec_response)
+        self.spec_publisher_ = self.create_publisher(RamanSpectrum, RamanServer.SPEC_TOPIC, 10)
         self.timer_continuous_mode = self.create_timer(1, self.continuous_spec_callback)
 
         # for mechanical
-        self.mech_srv = self.create_service(RamanMech, '/science/raman_mech_srv', self.raman_mech_response)
-        self.mech_publisher_ = self.create_publisher(RamanState, '/science/raman_mech_msg', 10)
+        self.mech_srv = self.create_service(RamanMech, RamanServer.MECH_STATE_SERVICE, self.raman_mech_response)
+        self.mech_publisher_ = self.create_publisher(RamanState, RamanServer.MECH_STATE_TOPIC, 10)
+        self.timer_spin_can = self.create_timer(0.05, self.bus.spin)
         self.timer_publish_state = self.create_timer(1, self.publish_state)
         self.timer_send_can_commands = self.create_timer(0.2, self.send_can_commands)
+
+        self.bus = jcan.Bus()
+
+        self.bus.open(self.get_parameter(self.CAN_BUS_PARAM).value)
 
 
     def continuous_spec_callback(self):
