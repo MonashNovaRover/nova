@@ -32,9 +32,7 @@ def generate_launch_description():
     led_node = Node(
         package='electronics',
         executable='LED_transmitter.py',
-        name='LED_transmitter',
-        output='screen',
-        emulate_tty=True,
+        name='LED',
     )
 
     return LaunchDescription([

@@ -12,8 +12,6 @@
   <depend>std_msgs</depend>
   <depend>geometry_msgs</depend>
   <depend>aruco_opencv_msgs</depend>
-  <depend>std_srvs</depend>
-  <depend>coms_utils</depend>
   <depend>tf2_ros</depend>
 
   <export>
