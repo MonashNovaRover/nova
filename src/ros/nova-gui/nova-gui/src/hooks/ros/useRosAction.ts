@@ -41,7 +41,7 @@ export const useRosAction = (action: RosAction) => {
    * @param goal - The goal message to send.
    */
   const sendGoal = useCallback(
-    (goal: RosActionInterface[typeof action]) => {
+    (goal: RosActionInterface[typeof action]['goal']) => {
       if (!actionClient)
         toast.error(`Unable to Send Goal to Action: ${action}`);
 
