@@ -6,4 +6,16 @@ export interface RosActionInterface {
     goalResponse: undefined;
     feedback: undefined;
   };
+  [RosAction.SCIENCE_SAMPLE_TRAY]: {
+    goal: {
+      goal: string;
+    };
+    goalResponse: {
+      success: boolean;
+    };
+    feedback: {
+      current_position: number;
+      goal_position: number;
+    };
+  };
 }
