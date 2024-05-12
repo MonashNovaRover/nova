@@ -57,14 +57,17 @@ class URCSampleTray(ControllerNode):
 
     # CONTROL PARAMETERS
     # Positions
-    SAMPLE_ONE_POS =  meters_to_steps(1 * GAP, TICKS_PER_REV, THREAD_PITCH_M)
-    SAMPLE_TWO_POS = meters_to_steps(2 * GAP, TICKS_PER_REV, THREAD_PITCH_M)
-    CACHE_POS = meters_to_steps(3 * GAP, TICKS_PER_REV, THREAD_PITCH_M)
-    CLEAN_POS = meters_to_steps(4 * GAP, TICKS_PER_REV, THREAD_PITCH_M)
+    SAMPLE_TWO_POS = meters_to_steps(0 * GAP, TICKS_PER_REV, THREAD_PITCH_M)
+    CLEAN_POS = meters_to_steps(1 * GAP, TICKS_PER_REV, THREAD_PITCH_M)
+    AUGER_POS = meters_to_steps(2 * GAP, TICKS_PER_REV, THREAD_PITCH_M)
+    SAMPLE_ONE_POS =  meters_to_steps(3 * GAP, TICKS_PER_REV, THREAD_PITCH_M)
+    CACHE_POS = meters_to_steps(4 * GAP, TICKS_PER_REV, THREAD_PITCH_M)
+
     # Position Names
     ZERO = OneAxisPositionControl.ZERO
     SAMPLE_ONE_NAME = "sample_one"
     SAMPLE_TWO_NAME = "sample_two"
+    AUGER_NAME = "auger"
     CACHE_NAME = "cache"
     CLEAN_NAME = "clean"
 
@@ -113,6 +116,7 @@ class URCSampleTray(ControllerNode):
             self.SAMPLE_TWO_NAME: self.SAMPLE_TWO_POS,
             self.CACHE_NAME: self.CACHE_POS,
             self.CLEAN_NAME: self.CLEAN_POS,
+            self.AUGER_NAME: self.AUGER_POS,
         }
 
         self.sample_tray_control = OneAxisPositionControl(
