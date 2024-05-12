@@ -1,15 +1,18 @@
 import { AdvancedMarker, Map } from "@vis.gl/react-google-maps";
 import novaLogo from "../../assets/nova-logo.png";
 import rover from "../../assets/rover-top-down-dark.png";
-import { Button, Card, CardBody, CardHeader } from "@nextui-org/react";
+import { Card, CardBody } from "@nextui-org/react";
 import { useState } from "react";
 import { MarkerModal } from "./components/MarkerModal";
 import { MapPin } from "react-feather";
-import { MapInteractionMode, useMapManager } from "./hooks/useMapManager";
 import { ToolTipButton } from "../shared/TooltipButton";
 import { PropRenderer } from "../shared/PropRenderer";
 import { NewMarkerModal } from "./components/NewMarkerModal";
 import { BottomOverlay } from "./components/BottomOverlay";
+import { useSelector } from "react-redux";
+import { RootState } from "../../redux/RootState";
+import { useCartographerActions } from "../../redux/actions/useCartographerActions";
+import { MapInteractionMode } from "../../redux/models/CartographerState";
 
 export const MapCanvas = () => {
   const [roverInfoOpen, setRoverInfoOpen] = useState(false);
@@ -19,8 +22,11 @@ export const MapCanvas = () => {
   const [mouseCoordinates, setMouseCoordinates] =
     useState<google.maps.LatLngLiteral>();
 
-  const { mapInteractionMode, setMapInteractionMode, points, addPoint } =
-    useMapManager();
+  const { points, mapInteractionMode } = useSelector(
+    (state: RootState) => state.cartographerState
+  );
+
+  const { addPoint, toggleMapInteractionMode } = useCartographerActions();
 
   return (
     <>
@@ -113,13 +119,7 @@ export const MapCanvas = () => {
                     ? "default"
                     : "success"
                 }
-                onClick={() => {
-                  if (mapInteractionMode === MapInteractionMode.PAN) {
-                    setMapInteractionMode(MapInteractionMode.SELECT);
-                  } else {
-                    setMapInteractionMode(MapInteractionMode.PAN);
-                  }
-                }}
+                onClick={toggleMapInteractionMode}
               >
                 <MapPin size={20} />
               </ToolTipButton>

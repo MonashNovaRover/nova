@@ -12,11 +12,12 @@ import {
   IRosStdMsgsString,
   IRosGeometryMsgsPose,
   IRosSensorMsgsRange,
-  IRosCmdInterfacesCmDsFeedback 
+  IRosCmdInterfacesCmDsFeedback,
 } from "../ros/rosTypes";
 
 import { BifrostStatus } from "./models/bifrost/BifrostTypes";
 import { CameraStreamerState } from "./models/CameraStreamState";
+import { CartographerState } from "./models/CartographerState";
 
 import { UIState } from "./models/UIState";
 
@@ -39,7 +40,7 @@ export interface RootState {
 
   // Error Related Stores
   blcmdStatusStore: IRosBlcmdInterfacesBlcmdStatusArray;
-  
+
   // Science Stores
   tofStore: IRosSensorMsgsRange;
   nirStore: IRosNovaInterfacesNirProbeData;
@@ -49,6 +50,7 @@ export interface RootState {
   // Regular Stores
   uiState: UIState;
   cameraStreamerState: CameraStreamerState;
+  cartographerState: CartographerState;
 
   // Science Stores
   microscopeServoStore: IRosNovaInterfacesMicroscopeServoInfo;
