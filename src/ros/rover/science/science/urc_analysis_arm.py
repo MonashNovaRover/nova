@@ -12,6 +12,23 @@ from python_control.sensors.LimitSwitchSensor import LimitSwitchSensor
 from input_interfaces.msg import InputJoystick
 from sensor_msgs.msg import Range
 
+"""
+Analysis Arm will use stepper motor
+
+Distance range of stepper = [0mm, 255mm]
+
+Time of Flight Sensor (TOF)
+Used as a limit
+Publish its height to ROS topic => /science/analysis_arm
+
+Controlled using joystick buttons
+Left joystick x-axis => Move platform up/down (send max/min position) => heartbeat should handle stopping
+When let go of joystick, send current position as goal position??
+
+Left thumb up => Move platform up (small increment)
+Right thumb button => Move platform down (small increment) + ignore TOF sensor
+"""
+
 
 class AnalysisArm(ControllerNode):
 
