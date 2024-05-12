@@ -50,12 +50,16 @@ class RamanServer(Node):
     MASTERCLOCK = 800000
     SPECTRA_SIZE = 3694
     OUTPUT_SIZE = 7388
-    PHASE_SIGNAL = 3730
-    RESOLUTION_REDUCING_FACTOR = 1
     CIRCULAR_BUFFER_START = 69
     CIRCULAR_BUFFER_END = 82
     SINGLE_COLLECTION_MODE = 0
     CONTINUOUS_COLLECTION_MODE = 1
+
+    # Factors for spectrum collection
+    PHASE_SIGNAL = 3690
+    RESOLUTION_REDUCING_FACTOR = 1
+    MINIMUM_PHASE_LENGTH = 1500
+    SPECTRUM_CROP = 30  # the number of pixels after phase signal ends to ignore
 
     # CAN commands
     CARD_ID = 0x0A0
@@ -118,8 +122,14 @@ class RamanServer(Node):
         Calls a single spectrum to be published
         """
         if self.is_continuous:
-            msg_isvalid, msg_spectrum = RamanServer.get_spectrum(self.continuous_settings)
-            self.publish_spectrum(msg_isvalid, msg_spectrum)
+            spectrum_start = None
+            spectrum_end = None
+            while not spectrum_end: 
+                spectrum = self.get_spectrum(self.continuous_settings)
+                spectrum_start, spectrum_end = RamanServer.find_full_phase(spectrum)
+                self.get_logger().info(f"Spectrum length is {len(spectrum)}")
+            
+            self.publish_spectrum(spectrum[spectrum_start:spectrum_end:RamanServer.RESOLUTION_REDUCING_FACTOR])
 
 
     def send_can_commands(self):
@@ -196,15 +206,29 @@ class RamanServer(Node):
         return result
 
 
-    def find_phase_end(output: List[int]) -> Tuple[bool, int]:
-        """
-        Finds the first occurrence of a phase signal (a flat peak in the spectrum that exceeds the PHASE_SIGNAL amount) in a given array
-        """
-        for element_index in range(0, len(output), 2):
-            if output[element_index] > RamanServer.PHASE_SIGNAL:
-                return True, len(output) - 1
+    def find_full_phase(spectrum: List[int]) -> Tuple[int, int]:
+        spectrum_start = None
+        spectrum_end = None
+
+        if len(spectrum) == 0:
+            return spectrum_start, spectrum_end
+
+        for start_of_first_phase_signal in range(len(spectrum)):
+            if spectrum[start_of_first_phase_signal] > RamanServer.PHASE_SIGNAL:
+                break
+
+        for end_of_first_phase_signal in range(start_of_first_phase_signal, len(spectrum)):
+            if spectrum[end_of_first_phase_signal] < RamanServer.PHASE_SIGNAL:
+                spectrum_start = end_of_first_phase_signal + RamanServer.SPECTRUM_CROP
+                break
         
-        return True, len(output) - 1
+        if end_of_first_phase_signal + RamanServer.MINIMUM_PHASE_LENGTH < len(spectrum):
+            for start_of_second_phase_signal in range(end_of_first_phase_signal + RamanServer.MINIMUM_PHASE_LENGTH, len(spectrum)):
+                if spectrum[start_of_second_phase_signal] > RamanServer.PHASE_SIGNAL:
+                    spectrum_end = start_of_second_phase_signal - RamanServer.SPECTRUM_CROP
+                    break
+
+        return spectrum_start, spectrum_end
 
 
     def read_output_to_response(output: List[int]) -> List[int]:
@@ -273,9 +297,14 @@ class RamanServer(Node):
 
         time_start = time.time()
         
-        msg_isvalid, msg_spectrum = self.get_spectrum(request.port, request.shperiod, request.icgperiod, request.average)
-        self.get_logger().info(f"Spectrum length is {len(msg_spectrum)}")
-        self.publish_spectrum(msg_isvalid, msg_spectrum)
+        spectrum_start = None
+        spectrum_end = None
+        while not spectrum_end: 
+            spectrum = self.get_spectrum(request.port, request.shperiod, request.icgperiod, request.average)
+            spectrum_start, spectrum_end = RamanServer.find_full_phase(spectrum)
+            self.get_logger().info(f"Spectrum length is {len(spectrum)}")
+        
+        self.publish_spectrum(spectrum[spectrum_start:spectrum_end:RamanServer.RESOLUTION_REDUCING_FACTOR])
 
         time_taken = time.time() - time_start
         self.get_logger().info(f"Spectrum collection took {str(round(time_taken, 7))} seconds")
@@ -283,9 +312,9 @@ class RamanServer(Node):
         return response
 
 
-    def get_spectrum(self, serialport: str, shperiod: int, icgperiod: int, average: int) -> Tuple[bool, List[int]]:
+    def get_spectrum(self, serialport: str, shperiod: int, icgperiod: int, average: int) -> List[int]:
         """
-        Gets a single spectrum, returning a tuple of whether the spectrum is valid or not and the spectrum itself
+        Gets a single spectrum, returning the spectrum itself
         """
         try:
             ser = Serial(port=serialport, baudrate=RamanServer.BAUDRATE)
@@ -307,26 +336,19 @@ class RamanServer(Node):
 
             ser.close()
 
-            balanced_output = RamanServer.read_output_to_response(output)
-
-            phase_end_found, phase_end_index = RamanServer.find_phase_end(balanced_output)
-
-            if phase_end_found:
-                final_output = balanced_output[0:phase_end_index:RamanServer.RESOLUTION_REDUCING_FACTOR]
-                return True, final_output
+            return RamanServer.read_output_to_response(output)
                
         except SerialException as e:
             self.get_logger().error(f"Failed to process Raman service request: {str(e)}")
+            return []
 
-        return False, []
 
-
-    def publish_spectrum(self, msg_isvalid: bool, msg_spectrum: List[int]) -> None:
+    def publish_spectrum(self, msg_spectrum: List[int]) -> None:
         """
         Publishes RamanSpectrum message with inputted data
         """
         msg = RamanSpectrum()
-        msg.isvalid = msg_isvalid
+        msg.isvalid = True
         msg.spectrum = msg_spectrum
         self.spec_publisher_.publish(msg)
 
