@@ -41,7 +41,8 @@ class URCSampleTray(ControllerNode):
 
     # RECEIVING CARD IDS
     # Add any SENSOR FRAME / CARD IDS here
-    STEPPER_PCB_RECV = 0x456
+    STEPPER_PCB_RECV_POS = 0x456
+    STEPPER_PCB_RECV_ZERO = 0x406
 
 
     # NAMES
@@ -86,13 +87,13 @@ class URCSampleTray(ControllerNode):
         logger = self.get_logger()
 
         ## Add CAN ID Filters
-        self.bus.set_id_filter([self.STEPPER_PCB_RECV])
+        self.bus.set_id_filter([self.STEPPER_PCB_RECV_POS, self.STEPPER_PCB_RECV_ZERO])
 
         ## Create sensors
         self.sample_tray_pos_sensor = IntegerSensor(
             bus=self.bus,
             logger=logger,
-            frame_id=self.STEPPER_PCB_RECV,
+            frame_id=self.STEPPER_PCB_RECV_POS,
             command_id=self.STEPPER_RECV_POS_COMMAND_ID,
             initial_value=0,
         )
@@ -100,7 +101,7 @@ class URCSampleTray(ControllerNode):
         self.sample_tray_zero_sensor = CommandSensor(
             bus=self.bus,
             logger=logger,
-            frame_id=self.STEPPER_PCB_RECV,
+            frame_id=self.STEPPER_PCB_RECV_ZERO,
             command_id=self.STEPPER_RECV_ZERO_COMMAND_ID,
             run_can=False,
         )    
