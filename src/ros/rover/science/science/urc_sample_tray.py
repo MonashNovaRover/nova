@@ -19,7 +19,7 @@ def meters_to_steps(distance_m, ticks_per_rev, lead_screw_thread_pitch_m):
     :param lead_screw_thread_pitch: The pitch of the lead screw in meters
     :return: The number of steps required to move the distance
     """
-    return distance_m * ticks_per_rev / lead_screw_thread_pitch_m
+    return int(distance_m * ticks_per_rev / lead_screw_thread_pitch_m)
 
 THREAD_PITCH_M = 0.008
 TICKS_PER_REV = 200
