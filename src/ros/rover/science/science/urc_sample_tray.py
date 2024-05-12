@@ -31,6 +31,10 @@ class URCSampleTray(ControllerNode):
     # The name of the CAN bus to use
     CAN_BUS = "can1"
 
+    # ROS ACTION
+    # The name of the ROS action to use
+    SAMPLE_TRAY_ACTION = "/science/sample_tray_action"
+
     # SENDING CARD IDS
     # Add any CONTROL FRAME / CARD IDS here
     STEPPER_PCB_SEND = 0x006
@@ -131,7 +135,7 @@ class URCSampleTray(ControllerNode):
         )
 
         # Add Actions
-        self.go_to_action = ActionServer(self, Stepper, "/science/sample_tray_action", self.sample_tray_controller.stepper_action_callback)
+        self.go_to_action = ActionServer(self, Stepper, self.SAMPLE_TRAY_ACTION, self.sample_tray_controller.stepper_action_callback)
 
         ## Start the CAN bus
         self.start_can()
