@@ -47,7 +47,7 @@ continuously
 
   <BehaviorTree ID="MainTree">
     <Sequence>
-      <LED name="Start" service_name="autonomous/start" />
+      <LED name="Start" service_name="LED/auto_active" />
       <GetFinalGoal goals="{goals}" final_goal="{final_goal}" />
       <!-- Nav through poses -->
       <ReactiveFallback>
@@ -64,7 +64,7 @@ continuously
         </KeepRunningUntilFailure>
         <!-- Navigate through search goal poses -->
       </ReactiveFallback>
-      <LED name="Success" service_name="autonomous/success" />
+      <LED name="Success" service_name="LED/auto_success" />
     </Sequence>
   </BehaviorTree>
 </root>

@@ -4,7 +4,7 @@
 NOVA ROVER TEAM
 This script is a ros service that handles communicating commands to the LED Lights.
 Authors: Max Tory and Marcel Masque
-Last Modified: 04/05/2024 By Victor Bartlinski
+Last Modified: 12/05/2024 By Victor Bartlinski
 """
 
 import rclpy
