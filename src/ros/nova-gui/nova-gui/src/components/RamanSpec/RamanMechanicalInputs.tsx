@@ -46,21 +46,21 @@ const RamanMechanicalInputs: React.FC = () => {
     });
 
     const checkFilterSelection = (filterValue: number) => {
-        if (!(filterValue == undefined)) {
+        if (0 <= filterValue && filterValue % 40 == 0 && filterValue <= 160) {
             return true;
         }
         return false;
     }
 
     const checkStepperValue = (stepperValue: number) => {
-        if (!(stepperValue == undefined)) {
+        if (0 <= stepperValue && stepperValue % 1 == 0 && stepperValue <= 4) {
             return true;
         }
         return false;
     }
 
     const checkMirrorServo = (mirrorServoValue: number) => {
-        if (!(mirrorServoValue == undefined)) {
+        if (mirrorServoValue == 0 || mirrorServoValue == 90) {
             return true;
         }
         return false;
@@ -127,23 +127,23 @@ const RamanMechanicalInputs: React.FC = () => {
                     <Tab key="off" title="Pump Off"/>
                 </Tabs>
             </div>
-            <div className="mx-1 flex w-44 flex-row">
+            <div className="mx-1 flex w-52 flex-row">
                 <Avatar size="lg" name={ramanMechState.filter_selection.toString()}></Avatar>
                 <Input onValueChange={(value: string) => { if (value != "" && checkFilterSelection(+value)) {
                     setRamanMechInputs({...ramanMechInputs, filter_selection: +value});
-                }}} className="shrink-0 w-20 grow" type="filterselection" label="Filter Selection" placeholder="[min, max]" defaultValue={ramanMechState.filter_selection.toString()} />
+                }}} className="shrink-0 w-20 grow" type="filterselection" label="Filter Selection" placeholder="{0, 40, 80, 120, 160}" defaultValue={ramanMechState.filter_selection.toString()} />
             </div>
             <div className="mx-1 flex w-44 flex-row">
                 <Avatar size="lg" name={ramanMechState.stepper_value.toString()}></Avatar>
                 <Input onValueChange={(value: string) => { if (value != "" && checkStepperValue(+value)) {
                     setRamanMechInputs({...ramanMechInputs, stepper_value: +value});
-                }}} className="shrink-0 w-20 grow" type="steppervalue" label="Stepper Value" placeholder="[min, max]" defaultValue={ramanMechState.stepper_value.toString()} />
+                }}} className="shrink-0 w-20 grow" type="steppervalue" label="Stepper Value" placeholder="{0, 1, 2, 3, 4}" defaultValue={ramanMechState.stepper_value.toString()} />
             </div>
-            <div className="mx-1 flex w-44 flex-row">
+            <div className="mx-1 flex w-40 flex-row">
                 <Avatar size="lg" name={ramanMechState.mirror_servo.toString()}></Avatar>
                 <Input onValueChange={(value: string) => { if (value != "" && checkMirrorServo(+value)) {
                     setRamanMechInputs({...ramanMechInputs, mirror_servo: +value});
-                }}} className="shrink-0 w-20 grow" type="mirrorservo" label="Mirror Servo" placeholder="[min, max]" defaultValue={ramanMechState.mirror_servo.toString()} />
+                }}} className="shrink-0 w-20 grow" type="mirrorservo" label="Mirror Servo" placeholder="{0, 90}" defaultValue={ramanMechState.mirror_servo.toString()} />
             </div>
             <Button onPress={() => {
                 sendRamanMechRequest(ramanMechInputs);
