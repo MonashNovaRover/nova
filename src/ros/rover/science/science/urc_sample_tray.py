@@ -11,6 +11,20 @@ from rclpy.action import ActionServer
 from nova_interfaces.action import Stepper
 
 
+def meters_to_steps(distance_m, ticks_per_rev, lead_screw_thread_pitch_m):
+    """
+    Convert a distance to steps
+    :param distance: The distance to convert in meters
+    :param ticks_per_rev: The number of ticks per revolution of the stepper motor
+    :param lead_screw_thread_pitch: The pitch of the lead screw in meters
+    :return: The number of steps required to move the distance
+    """
+    return distance_m * ticks_per_rev / lead_screw_thread_pitch_m
+
+THREAD_PITCH_M = 0.008
+TICKS_PER_REV = 200
+GAP = 0.084
+
 class URCSampleTray(ControllerNode):
 
     # CAN BUS NAME
@@ -32,13 +46,17 @@ class URCSampleTray(ControllerNode):
     SAMPLE_TRAY_POS = "sample_tray_pos"
     SAMPLE_TRAY_ZERO = "sample_tray_zero"
 
+    # 84mm Apart
+    # Distance (meters) to Steps (ticks) Conversion
+    # n_ticks = desired_d * ticks_per_rev / lead_screw_thread_pitch (keep all in SI units)
+    # ticks_per_rev = 200 For out lead screws, the thread pitch is 8mm. (0.008 meters)
 
     # CONTROL PARAMETERS
     # Positions
-    SAMPLE_ONE_POS = 0
-    SAMPLE_TWO_POS = 20
-    CACHE_POS = 30
-    CLEAN_POS = 40
+    SAMPLE_ONE_POS =  meters_to_steps(1 * GAP, TICKS_PER_REV, THREAD_PITCH_M)
+    SAMPLE_TWO_POS = meters_to_steps(2 * GAP, TICKS_PER_REV, THREAD_PITCH_M)
+    CACHE_POS = meters_to_steps(3 * GAP, TICKS_PER_REV, THREAD_PITCH_M)
+    CLEAN_POS = meters_to_steps(4 * GAP, TICKS_PER_REV, THREAD_PITCH_M)
     # Position Names
     ZERO = OneAxisPositionControl.ZERO
     SAMPLE_ONE_NAME = "sample_one"
