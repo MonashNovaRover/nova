@@ -20,6 +20,7 @@ import GeneralBaseView from "../views/general/GeneralBaseView.tsx";
 import { ARCNIRProbeView } from "../views/arc/ARCNIRProbeView.tsx";
 import { ARCMicroscopeView } from "../views/arc/ARCMicroscopeView.tsx";
 import TestWebGLView from "../views/test/TestWebGLView/TestWebGLView.tsx";
+import TestCarouselView from "../views/test/TestCarouselView/TestCarouselView.tsx";
 
 export const arcRoutes: RouteObject[] = [
   {
@@ -98,6 +99,10 @@ export const testRoutes: RouteObject[] = [
   {
     path: "/test/webgl",
     element: <TestWebGLView/>
+  },
+  {
+    path: "/test/carousel",
+    element: <TestCarouselView/>
   }
 ];
 
