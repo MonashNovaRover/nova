@@ -9,8 +9,10 @@ import {
   ModalHeader,
 } from "@nextui-org/react";
 import { PropRenderer } from "../../shared/PropRenderer";
+import { useSelector } from "react-redux";
+import { RootState } from "../../../redux/RootState";
+import { MapPoint } from "../../../redux/models/CartographerState";
 import { useState } from "react";
-import { MapPoint } from "../hooks/useMapManager";
 
 interface NewMarkerModalProps {
   isOpen: boolean;
@@ -21,11 +23,19 @@ interface NewMarkerModalProps {
 }
 
 export const NewMarkerModal = (props: NewMarkerModalProps) => {
-  const [name, setName] = useState<string>("");
+  const [name, setName] = useState<string>();
+  const points = useSelector(
+    (state: RootState) => state.cartographerState.points
+  );
 
   const handleDropPin = () => {
     if (!props.latitude || !props.longitude) return;
-    props.addPoint({ lat: props.latitude, long: props.longitude, name: name });
+    props.addPoint({
+      lat: props.latitude,
+      long: props.longitude,
+      name: !name || name === "" ? `Point ${points.length + 1}` : name,
+    });
+    setName(undefined);
     props.setOpen(false);
   };
 
@@ -42,7 +52,7 @@ export const NewMarkerModal = (props: NewMarkerModalProps) => {
             autoFocus
             value={name}
             onChange={(event) => setName(event.target.value as string)}
-            placeholder="Point 1"
+            placeholder={`Point ${points.length + 1}`}
             label="Name"
             onKeyDown={(event) => {
               if (event.key === "Enter") {

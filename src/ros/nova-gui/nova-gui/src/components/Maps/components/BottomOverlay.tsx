@@ -13,9 +13,15 @@ import {
 import { useState } from "react";
 import { ChevronDoubleDown, ChevronDoubleUp } from "react-bootstrap-icons";
 import { motion } from "framer-motion";
+import { useSelector } from "react-redux";
+import { RootState } from "../../../redux/RootState";
 
 export const BottomOverlay = () => {
   const [overlayOpen, setOverlayOpen] = useState(false);
+  const points = useSelector(
+    (state: RootState) => state.cartographerState.points
+  );
+
   return (
     <motion.div
       animate={{
@@ -45,13 +51,15 @@ export const BottomOverlay = () => {
                       <div className="flex flex-row justify-end">Actions</div>
                     </TableColumn>
                   </TableHeader>
-                  <TableBody>
-                    <TableRow>
-                      <TableCell>Point 1</TableCell>
-                      <TableCell>Point 2</TableCell>
-                      <TableCell>Point 3</TableCell>
-                      <TableCell>Point 4</TableCell>
-                    </TableRow>
+                  <TableBody emptyContent="Add Points on the Map to Display here">
+                    {points.map((point) => (
+                      <TableRow>
+                        <TableCell>{point.name}</TableCell>
+                        <TableCell>{point.lat}</TableCell>
+                        <TableCell>{point.long}</TableCell>
+                        <TableCell>Bro</TableCell>
+                      </TableRow>
+                    ))}
                   </TableBody>
                 </Table>
               </div>
