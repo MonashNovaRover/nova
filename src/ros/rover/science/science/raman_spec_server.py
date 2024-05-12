@@ -65,8 +65,8 @@ class RamanServer(Node):
     MIRROR_SERVO_ID = 0x03
     FILTER_SERVO_ID = 0x04
     STEPPER_ID = 0x05
-    CAN_COMMAND_TURN_ON = 0x01
-    CAN_COMMAND_TURN_OFF = 0x00
+    CAN_COMMAND_ON = 0x01
+    CAN_COMMAND_OFF = 0x00
 
     # ROS params
     CAN_BUS_PARAM = "can_bus"
@@ -104,12 +104,12 @@ class RamanServer(Node):
         # for mechanical
         self.mech_srv = self.create_service(RamanMech, RamanServer.MECH_STATE_SERVICE, self.raman_mech_response)
         self.mech_publisher_ = self.create_publisher(RamanState, RamanServer.MECH_STATE_TOPIC, 10)
-        self.timer_spin_can = self.create_timer(0.05, self.bus.spin)
         self.timer_publish_state = self.create_timer(1, self.publish_state)
         self.timer_send_can_commands = self.create_timer(0.2, self.send_can_commands)
 
+        # for CAN commands
+        self.timer_spin_can = self.create_timer(0.05, self.bus.spin)
         self.bus = jcan.Bus()
-
         self.bus.open(self.get_parameter(self.CAN_BUS_PARAM).value)
 
 
@@ -132,21 +132,34 @@ class RamanServer(Node):
         self.send_stepper_command()
         self.send_mirror_command()
 
-    
+    def send_can_command(self, commands):
+        for command in commands:
+            mech_frame = jcan.Frame(RamanServer.CARD_ID, command)
+            self.bus.send(mech_frame)
+
+
     def send_laser_command(self):
-        pass
+        if self.mech_state[0]:
+            self.send_can_command([[RamanServer.GREEN_LASER_ID, RamanServer.CAN_COMMAND_ON], [RamanServer.RED_LASER_ID, RamanServer.CAN_COMMAND_OFF]])
+        elif self.mech_state[1]:
+            self.send_can_command([[RamanServer.GREEN_LASER_ID, RamanServer.CAN_COMMAND_OFF], [RamanServer.RED_LASER_ID, RamanServer.CAN_COMMAND_ON]])
+        else:
+            self.send_can_command([[RamanServer.GREEN_LASER_ID, RamanServer.CAN_COMMAND_OFF], [RamanServer.RED_LASER_ID, RamanServer.CAN_COMMAND_OFF]])
 
     def send_pump_command(self):
+        """
+        This was present in the old GUI but was not connected to any CAN command, it is not needed in a fiber optic implementation of sample collection
+        """
         pass
 
     def send_filter_command(self):
-        pass
+        self.send_can_command([[RamanServer.FILTER_SERVO_ID, self.mech_state[3]]])
 
     def send_stepper_command(self):
-        pass
+        self.send_can_command([[RamanServer.STEPPER_ID, self.mech_state[4]]])
 
     def send_mirror_command(self):
-        pass 
+        self.send_can_command([[RamanServer.MIRROR_SERVO_ID, self.mech_state[5]]]) 
 
 
     def set_spec_input(shperiod: int, icgperiod: int, singlecollectionmode: bool, average: int) -> List[int]:
