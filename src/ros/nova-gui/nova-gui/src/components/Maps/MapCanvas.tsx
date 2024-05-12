@@ -2,7 +2,7 @@ import { AdvancedMarker, Map } from "@vis.gl/react-google-maps";
 import novaLogo from "../../assets/nova-logo.png";
 import rover from "../../assets/rover-top-down-dark.png";
 import { Card, CardBody } from "@nextui-org/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { MarkerModal } from "./components/MarkerModal";
 import { MapPin } from "react-feather";
 import { ToolTipButton } from "../shared/TooltipButton";
@@ -13,17 +13,43 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../redux/RootState";
 import { useCartographerActions } from "../../redux/actions/useCartographerActions";
 import { MapInteractionMode } from "../../redux/models/CartographerState";
+import { useBifrost } from "../../redux/actions/bifrost/useBifrostAction";
+import { RosTopic } from "../../ros/topics/rosTopic";
 
 export const MapCanvas = () => {
   const [roverInfoOpen, setRoverInfoOpen] = useState(false);
   const [baseStationModal, setBaseStationModal] = useState(false);
   const [newMarkerModal, setNewMarkerModal] = useState(false);
 
+  const roverLocationBifrost = useBifrost({
+    topic: RosTopic.AUTO_ROVER_LOCATION,
+  });
+
+  const baseLocationBifrost = useBifrost({
+    topic: RosTopic.BASE_LOCATION,
+  });
+
   const [mouseCoordinates, setMouseCoordinates] =
     useState<google.maps.LatLngLiteral>();
 
   const { points, mapInteractionMode } = useSelector(
     (state: RootState) => state.cartographerState
+  );
+
+  useEffect(() => {
+    roverLocationBifrost.syncWithTopic();
+  }, [roverLocationBifrost]);
+
+  useEffect(() => {
+    baseLocationBifrost.syncWithTopic();
+  }, [baseLocationBifrost]);
+
+  const autoRoverLocation = useSelector(
+    (state: RootState) => state.autoRoverLocationStore
+  );
+
+  const baseLocationStore = useSelector(
+    (state: RootState) => state.baseLocationStore
   );
 
   const { addPoint, toggleMapInteractionMode } = useCartographerActions();
@@ -68,7 +94,10 @@ export const MapCanvas = () => {
         }}
       >
         <AdvancedMarker
-          position={{ lat: -37.9106066, lng: 145.1350033 }}
+          position={{
+            lat: baseLocationStore.latitude,
+            lng: baseLocationStore.longitude,
+          }}
           title={"Base Station"}
           onClick={() => setBaseStationModal(true)}
         >
@@ -79,7 +108,10 @@ export const MapCanvas = () => {
           </Card>
         </AdvancedMarker>
         <AdvancedMarker
-          position={{ lat: -37.9106996, lng: 145.1359248 }}
+          position={{
+            lat: autoRoverLocation.latitude,
+            lng: autoRoverLocation.longitude,
+          }}
           title={"Waratah"}
           onClick={() => setRoverInfoOpen(true)}
         >

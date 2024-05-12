@@ -1,18 +1,18 @@
-import { 
-  IRosBlcmdInterfacesBlcmdStatusArray, 
+import {
+  IRosBlcmdInterfacesBlcmdStatusArray,
   IRosCameraMsgsCameras,
   IRosBlcmdInterfacesTelemetry,
   IRosGeometryMsgsPose,
   IRosSensorMsgsRange,
-  IRosCmdInterfacesCmDsFeedback, 
-  IRosDriveInterfacesDriveInfo, 
-  IRosNovaInterfacesKilnData, 
-  IRosNovaInterfacesNirProbeData, 
+  IRosCmdInterfacesCmDsFeedback,
+  IRosDriveInterfacesDriveInfo,
+  IRosNovaInterfacesKilnData,
+  IRosNovaInterfacesNirProbeData,
   IRosNovaInterfacesMicroscopeServoInfo,
   IRosStdMsgsString,
+  IRosSensorMsgsNavSatFix,
 } from "../rosTypes";
 import { RosTopic } from "./rosTopic";
-
 
 /**
  * This Interface exists to link Individual topics to The Messages.
@@ -38,7 +38,7 @@ export interface RosTopicInterfaces {
 
   // Errors Related
   [RosTopic.BLCMD_ERRORS]: IRosBlcmdInterfacesBlcmdStatusArray;
-  
+
   // Science Related
   [RosTopic.TOF]: IRosSensorMsgsRange;
   [RosTopic.KILN_DATA]: IRosNovaInterfacesKilnData;
@@ -48,4 +48,7 @@ export interface RosTopicInterfaces {
   // Cameras Related
   [RosTopic.CAMERAS]: IRosCameraMsgsCameras;
 
+  // Maps Related
+  [RosTopic.AUTO_ROVER_LOCATION]: IRosSensorMsgsNavSatFix;
+  [RosTopic.BASE_LOCATION]: IRosSensorMsgsNavSatFix;
 }

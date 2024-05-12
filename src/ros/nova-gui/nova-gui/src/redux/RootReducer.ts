@@ -12,6 +12,7 @@ import { uiSlice } from "./slices/UISlice";
 import { cameraStreamerSlice } from "./slices/CameraStreamSlice";
 import { BLCMD_INDEX } from "../constants";
 import { cartographerSlice } from "./slices/CartographerSlice";
+import { initialNavSatMessage } from "./models/CartographerState";
 
 export const rootReducer = {
   // Bifrost Stores
@@ -145,5 +146,17 @@ export const rootReducer = {
   // Regular Stores
   uiState: uiSlice.reducer,
   cameraStreamerState: cameraStreamerSlice.reducer,
+
+  // Maps Stores
+  autoRoverLocationStore: createBifrostStore(
+    {
+      topic: RosTopic.AUTO_ROVER_LOCATION,
+    },
+    initialNavSatMessage
+  ),
+  baseLocationStore: createBifrostStore(
+    { topic: RosTopic.BASE_LOCATION },
+    initialNavSatMessage
+  ),
   cartographerState: cartographerSlice.reducer,
 };

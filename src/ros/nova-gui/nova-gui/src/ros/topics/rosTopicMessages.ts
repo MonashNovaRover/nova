@@ -31,4 +31,8 @@ export const rosTopicMessages = {
   [RosTopic.KILN_DATA]: "nova_interfaces/msg/KilnData",
   [RosTopic.NIR_DATA]: "nova_interfaces/msg/NIRProbeData",
   [RosTopic.MICROSCOPE_SERVO]: "nova_interfaces/msg/MicroscopeServoInfo",
+
+  // Maps Related
+  [RosTopic.AUTO_ROVER_LOCATION]: "sensor_msgs/msg/NavSatFix",
+  [RosTopic.BASE_LOCATION]: "sensor_msgs/msg/NavSatFix",
 };

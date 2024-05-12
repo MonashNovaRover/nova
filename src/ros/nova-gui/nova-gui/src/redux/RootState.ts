@@ -13,6 +13,7 @@ import {
   IRosGeometryMsgsPose,
   IRosSensorMsgsRange,
   IRosCmdInterfacesCmDsFeedback,
+  IRosSensorMsgsNavSatFix,
 } from "../ros/rosTypes";
 
 import { BifrostStatus } from "./models/bifrost/BifrostTypes";
@@ -50,9 +51,13 @@ export interface RootState {
   // Regular Stores
   uiState: UIState;
   cameraStreamerState: CameraStreamerState;
-  cartographerState: CartographerState;
 
   // Science Stores
   microscopeServoStore: IRosNovaInterfacesMicroscopeServoInfo;
   microscopeServiceStore: IRosNovaInterfacesMoveMicroscopeServoResponse;
+
+  // Maps Related Stores
+  autoRoverLocationStore: IRosSensorMsgsNavSatFix;
+  baseLocationStore: IRosSensorMsgsNavSatFix;
+  cartographerState: CartographerState;
 }

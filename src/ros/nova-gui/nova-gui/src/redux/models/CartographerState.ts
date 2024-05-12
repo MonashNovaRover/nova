@@ -1,3 +1,5 @@
+import { IRosSensorMsgsNavSatFix } from "../../ros/rosTypes";
+
 export interface MapPoint {
   lat: number;
   long: number;
@@ -13,3 +15,22 @@ export interface CartographerState {
   points: MapPoint[];
   mapInteractionMode: MapInteractionMode;
 }
+
+export const initialNavSatMessage = <IRosSensorMsgsNavSatFix>{
+  header: {
+    stamp: {
+      sec: 0,
+      nanosec: 0,
+    },
+    frame_id: "",
+  },
+  status: {
+    status: 0,
+    service: 0,
+  },
+  latitude: -37.9106996,
+  longitude: 145.1359248,
+  altitude: 0,
+  position_covariance: [],
+  position_covariance_type: 0,
+};
