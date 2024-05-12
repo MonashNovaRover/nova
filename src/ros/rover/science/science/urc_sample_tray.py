@@ -80,7 +80,7 @@ class URCSampleTray(ControllerNode):
     # RECEIVING COMMAND IDS
     # Add any SENSOR command ids here
     STEPPER_RECV_POS_COMMAND_ID = 0x01
-    STEPPER_RECV_ZERO_COMMAND_ID = 0x03
+    STEPPER_RECV_ZERO_COMMAND_ID = 0x01
 
     def __init__(self):
         super().__init__(name="URCSampleTray", can_bus=self.CAN_BUS)

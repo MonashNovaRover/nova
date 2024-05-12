@@ -36,12 +36,14 @@ class ControllerNode(abc.ABC, Node):
     # ROS parameter names
     CAN_BUS_PARAM = "can_bus"
     LOGGING_LEVEL_PARAM = "logging_level"
+    COMMAND_PERIOD_PARAM = "command_period"
 
-    def __init__(self,  name: str, can_bus: str, log_level: str = "INFO"):
+    def __init__(self,  name: str, can_bus: str, log_level: str = "INFO", command_period: float = 0.5):
         super().__init__(name)
 
         self.declare_parameter(self.CAN_BUS_PARAM, can_bus)
         self.declare_parameter(self.LOGGING_LEVEL_PARAM, log_level)
+        self.declare_parameter(self.COMMAND_PERIOD_PARAM, command_period)
 
         self.set_logging_level(self.get_parameter(self.LOGGING_LEVEL_PARAM).value)
         self.get_logger().info(f"{name} starting")
@@ -61,7 +63,7 @@ class ControllerNode(abc.ABC, Node):
         self.joystick_l_sub = self.create_subscription(InputJoystick, "/inputs/input_joystick_l", self.joystick_l_callback, self.qos, event_callbacks=events)
         self.joystick_r_sub = self.create_subscription(InputJoystick, "/inputs/input_joystick_r", self.joystick_r_callback, self.qos, event_callbacks=events)
 
-        self.timer_send_commands = self.create_timer(0.05, self.callback_send_commands)
+        self.timer_send_commands = self.create_timer(self.get_parameter(self.COMMAND_PERIOD_PARAM).value, self.callback_send_commands)
         self.timer_jcan_spin = self.create_timer(0.01, self.bus.spin)
 
         self.get_logger().info(f"{self.get_name()} started")
