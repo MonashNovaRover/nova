@@ -77,11 +77,20 @@ self: super:
       });
 
       rosbridge-library = rosSuper.rosbridge-library.override {
-		    python3Packages=rosSuper.python3Packages.overrideScope (pySelf: pySuper: {
-			    bson = pySelf.pymongo;
-		  });
-	};
+        python3Packages = rosSuper.python3Packages.overrideScope (pySelf: pySuper: {
+          bson = pySelf.pymongo;
+        });
+      };
 
+      rosbridge-server = rosSuper.rosbridge-server.overrideAttrs ({ ... }: {
+        src = self.fetchFromGitHub {
+          owner = "RobotWebTools";
+          repo = "rosbridge_suite";
+          rev = "7d78af16d30d0ffe232abcc65d0928ce90bd61f7";
+          hash = "sha256-geWbNboZRm6Sr4+aWVTVjPThi8eUYNDZ+MbrHdbWuIo=";
+        };
+        sourceRoot = "source/rosbridge_server";
+      });
     } // (
       let
         fixRtabmapDependent = pkg: pkg.overrideAttrs ({ buildInputs ? [ ], ... }: {
