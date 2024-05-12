@@ -1,7 +1,7 @@
 import { AdvancedMarker, Map } from "@vis.gl/react-google-maps";
 import novaLogo from "../../assets/nova-logo.png";
 import rover from "../../assets/rover-top-down-dark.png";
-import { Card, CardBody } from "@nextui-org/react";
+import { Button, Card, CardBody, CardHeader } from "@nextui-org/react";
 import { useState } from "react";
 import { MarkerModal } from "./components/MarkerModal";
 import { MapPin } from "react-feather";
@@ -9,11 +9,13 @@ import { MapInteractionMode, useMapManager } from "./hooks/useMapManager";
 import { ToolTipButton } from "../shared/TooltipButton";
 import { PropRenderer } from "../shared/PropRenderer";
 import { NewMarkerModal } from "./components/NewMarkerModal";
+import { BottomOverlay } from "./components/BottomOverlay";
 
 export const MapCanvas = () => {
   const [roverInfoOpen, setRoverInfoOpen] = useState(false);
   const [baseStationModal, setBaseStationModal] = useState(false);
   const [newMarkerModal, setNewMarkerModal] = useState(false);
+
   const [mouseCoordinates, setMouseCoordinates] =
     useState<google.maps.LatLngLiteral>();
 
@@ -86,41 +88,44 @@ export const MapCanvas = () => {
             title={point.name}
           />
         ))}
-        <div className="w-full flex align-middle justify-end p-4">
-          <div className="flex flex-row gap-1">
-            {mapInteractionMode === MapInteractionMode.SELECT &&
-              mouseCoordinates && (
-                <PropRenderer
-                  props={mouseCoordinates}
-                  ignoreProps={[]}
-                  row
-                  size="sm"
-                />
-              )}
+        <div className="w-full h-full flex flex-col justify-between">
+          <div className="w-full h-full flex align-middle justify-end p-4">
+            <div className="flex flex-row gap-1">
+              {mapInteractionMode === MapInteractionMode.SELECT &&
+                mouseCoordinates && (
+                  <PropRenderer
+                    props={mouseCoordinates}
+                    ignoreProps={[]}
+                    row
+                    size="sm"
+                  />
+                )}
 
-            <ToolTipButton
-              placement="left"
-              tooltipContent={"Drop Pins"}
-              className="bottom-0 right-0"
-              variant="shadow"
-              isIconOnly
-              size="lg"
-              color={
-                mapInteractionMode === MapInteractionMode.PAN
-                  ? "default"
-                  : "success"
-              }
-              onClick={() => {
-                if (mapInteractionMode === MapInteractionMode.PAN) {
-                  setMapInteractionMode(MapInteractionMode.SELECT);
-                } else {
-                  setMapInteractionMode(MapInteractionMode.PAN);
+              <ToolTipButton
+                placement="left"
+                tooltipContent={"Drop Pins"}
+                className="bottom-0 right-0"
+                variant="shadow"
+                isIconOnly
+                size="lg"
+                color={
+                  mapInteractionMode === MapInteractionMode.PAN
+                    ? "default"
+                    : "success"
                 }
-              }}
-            >
-              <MapPin size={20} />
-            </ToolTipButton>
+                onClick={() => {
+                  if (mapInteractionMode === MapInteractionMode.PAN) {
+                    setMapInteractionMode(MapInteractionMode.SELECT);
+                  } else {
+                    setMapInteractionMode(MapInteractionMode.PAN);
+                  }
+                }}
+              >
+                <MapPin size={20} />
+              </ToolTipButton>
+            </div>
           </div>
+          <BottomOverlay />
         </div>
       </Map>
     </>

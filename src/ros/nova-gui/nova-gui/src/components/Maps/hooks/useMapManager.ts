@@ -12,9 +12,7 @@ export enum MapInteractionMode {
 }
 
 export const useMapManager = () => {
-  const [points, setPoints] = useState<MapPoint[]>([
-    { lat: -37.9106996, long: 145.1359248, name: "Point 1" },
-  ]);
+  const [points, setPoints] = useState<MapPoint[]>([]);
   const [mapInteractionMode, setMapInteractionMode] = useState(
     MapInteractionMode.PAN
   );

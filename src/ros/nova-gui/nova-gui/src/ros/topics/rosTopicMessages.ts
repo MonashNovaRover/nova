@@ -25,10 +25,10 @@ export const rosTopicMessages = {
 
   // Errors Related
   [RosTopic.BLCMD_ERRORS]: "blcmd_interfaces/msg/BLCMDStatusArray",
-  
+
   // Science Related
   [RosTopic.TOF]: "sensor_msgs/msg/Range",
   [RosTopic.KILN_DATA]: "nova_interfaces/msg/KilnData",
   [RosTopic.NIR_DATA]: "nova_interfaces/msg/NIRProbeData",
-  [RosTopic.MICROSCOPE_SERVO]: "nova_interfaces/msg/MicroscopeServoInfo"
+  [RosTopic.MICROSCOPE_SERVO]: "nova_interfaces/msg/MicroscopeServoInfo",
 };

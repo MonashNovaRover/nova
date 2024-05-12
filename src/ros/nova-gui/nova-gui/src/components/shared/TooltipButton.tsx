@@ -2,7 +2,7 @@ import { Button, ButtonProps, Tooltip, TooltipProps } from "@nextui-org/react";
 
 interface TooltipButtonProps extends ButtonProps {
   tooltipContent: string;
-  placement: TooltipProps["placement"];
+  placement?: TooltipProps["placement"];
 }
 
 export const ToolTipButton = (props: TooltipButtonProps) => {

@@ -25,10 +25,21 @@ export enum RosTopic {
 
   // Error Related Topics
   BLCMD_ERRORS = "/blcmds/blcmd_status",
-  
+
   // Science Related topics
   TOF = "/control/analysis_platform",
   KILN_DATA = "/science/kiln_data",
   NIR_DATA = "/science/nir_probe_data",
   MICROSCOPE_SERVO = "/science/microscope_servo_info",
+
+  // Mapping Related Topics
+
+  // These Topics are for ED and Science
+  ROVER_LOCATION = "/fix",
+
+  // These Topics are for Autonomous
+  AUTO_ROVER_LOCATION = "/gps/filtered",
+  AUTO_ROVER_HEADING = "/auto/odometry/filtered/global",
+
+  BASE_LOCATION = "/base/location",
 }

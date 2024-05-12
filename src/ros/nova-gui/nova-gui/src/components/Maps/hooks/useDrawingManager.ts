@@ -23,14 +23,6 @@ export function useDrawingManager(
       },
       markerOptions: {},
     });
-
-    // newDrawingManager.addListener("circlecomplete", (event) =>
-    //   console.log(event)
-    // );
-    newDrawingManager.addListener("markercomplete", (event: any) => {
-      console.log("New marker added:", event.position.lat);
-    });
-
     setDrawingManager(newDrawingManager);
     return () => {
       newDrawingManager.setMap(null);
