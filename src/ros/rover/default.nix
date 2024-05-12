@@ -28,6 +28,7 @@
     nova-python-control = callPackage ./nix/packages/python-control { };
     nova-excavation-construction = callPackage ./nix/packages/excavation-construction { };
     nova-ar-tag = callPackage ./nix/packages/nova-ar-tag { };
+    nova-detection-overlay = callPackage ./nix/packages/nova-detection-overlay { };
     # diff drive, pivot drive, strafe, 
   } // import ./nix/packages/controllers { inherit pkgs; };
 

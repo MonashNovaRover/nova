@@ -34,8 +34,7 @@
       i_disable_resize: true
       i_num_inference_threads: 2
       i_num_pool_frames: 4
-        #i_nn_config_path: src/ros/rover/core/resources/ARC_oakd_v8/ARC_oakd_v8.json
-      i_nn_config_path: src/ros/rover/core/resources/yolov8_new/best.json
+      i_nn_config_path: src/ros/rover/auto_bringup/resources/URC_V3/URC_V3.json
     rgb:
       i_enable_nn: false
       i_enable_preview: true
