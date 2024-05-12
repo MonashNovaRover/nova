@@ -29,6 +29,7 @@
     nova-excavation-construction = callPackage ./nix/packages/excavation-construction { };
     nova-ar-tag = callPackage ./nix/packages/nova-ar-tag { };
     nova-detection-overlay = callPackage ./nix/packages/nova-detection-overlay { };
+    nova-bt-navigators = callPackage ./nix/packages/nova-bt-navigators { };
     # diff drive, pivot drive, strafe, 
   } // import ./nix/packages/controllers { inherit pkgs; };
 

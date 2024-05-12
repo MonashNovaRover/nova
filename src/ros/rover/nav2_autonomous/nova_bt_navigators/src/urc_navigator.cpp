@@ -17,7 +17,7 @@
 #include <set>
 #include <memory>
 #include <limits>
-#include "nova_bt_navigator/include/urc_navigator.hpp"
+#include "nova_bt_navigators/urc_navigator.hpp"
 
 namespace nav2_bt_navigator
 {
