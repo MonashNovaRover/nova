@@ -74,6 +74,17 @@ ekf_filter_node_map:
     odom0_differential: false
     odom0_relative: false
 
+    odom1: /pivot_drive_controller/odom
+    odom1_config: [false, false, false,
+                  false, false, false,
+                  true,  true,  true,
+                  false, false, true,
+                  false, false, false]
+    odom1_queue_size: 10
+    odom1_differential: false
+    odom1_relative: false
+
+
     imu0: /oak/imu/data
     imu0_config: [false, false, false,
                   true,  true,  true,
@@ -87,9 +98,9 @@ ekf_filter_node_map:
 
     use_control: false
 
-    #process_noise_covariance: [1.0, 1.0, 1e-3, 0.3, 0.3, 0.01, 0.5, 0.5, 0.1, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3]
+      #process_noise_covariance: [1.0, 1.0, 1e-3, 0.3, 0.3, 0.01, 0.5, 0.5, 0.1, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3]
 
-    #initial_estimate_covariance: [1.0, 1.0, 1e-9, 1.0, 1.0, 1e-9, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+      #initial_estimate_covariance: [1.0, 1.0, 1e-9, 1.0, 1.0, 1e-9, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
 
 navsat_transform:
   ros__parameters:
