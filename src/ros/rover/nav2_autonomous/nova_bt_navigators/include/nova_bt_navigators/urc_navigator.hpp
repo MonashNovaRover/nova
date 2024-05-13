@@ -40,7 +40,7 @@ class URCNavigator
   : public nav2_core::BehaviorTreeNavigator<nova_auto_interfaces::action::NavigateURC>
 {
 public:
-  using ActionT = nav2_msgs::action::NavigateURC;
+  using ActionT = nova_auto_interfaces::action::NavigateURC;
   typedef std::vector<geometry_msgs::msg::PoseStamped> Goals;
   typedef std::vector<geometry_msgs::msg::PoseStamped> SearchGoals;
 

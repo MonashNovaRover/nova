@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(nova_interfaces)
+project(nova_auto_interfaces)
 
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
@@ -30,34 +30,12 @@ find_package(rosidl_default_generators REQUIRED)
 # Include all interfaces
 rosidl_generate_interfaces(${PROJECT_NAME}
 
-  # Message definitions
-  "msg/ActuatorLimit.msg"
-  "msg/DistanceData.msg"
-  "msg/EMCData.msg"
-  "msg/Heartbeat.msg"
-  "msg/HydraprobeData.msg"
-  "msg/KilnData.msg"
-  "msg/KilnMassData.msg"
-  "msg/KilnTempData.msg"
-  "msg/MicroscopeServoInfo.msg"
-  "msg/NIRProbeData.msg"
-  "msg/RoverPoseGPS.msg"
-  "msg/SpectrometerData.msg"
-  
-  # Service definitions
-  "srv/GpsOffset.srv"
-  "srv/KilnCommand.srv"
-  "srv/LoadCellPoller.srv"
-  "srv/MoveMicroscopeServo.srv"
-  "srv/RFIDCommand.srv"
-  "srv/ScienceCommand.srv"
-  "srv/SetNIRProbeLED.srv"
-
   # Action definitions
+  "action/NavigateURC.action"
+
   DEPENDENCIES std_msgs geometry_msgs nav_msgs
 )
 
-# Run build testing package nodes
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   # the following line skips the linter which checks for copyrights

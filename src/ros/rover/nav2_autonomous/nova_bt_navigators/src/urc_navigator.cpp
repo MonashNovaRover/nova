@@ -19,7 +19,7 @@
 #include <limits>
 #include "nova_bt_navigators/urc_navigator.hpp"
 
-namespace nav2_bt_navigator
+namespace nova_bt_navigators
 {
 
 bool
@@ -81,7 +81,7 @@ URCNavigator::goalReceived(ActionT::Goal::ConstSharedPtr goal)
     return false;
   }
 
-  initializeGoalPoses(goal);
+  initializeGoalPose(goal);
 
   return true;
 }
@@ -136,7 +136,7 @@ URCNavigator::onPreempt(ActionT::Goal::ConstSharedPtr goal)
     // if pending goal requests the same BT as the current goal, accept the pending goal
     // if pending goal has an empty behavior_tree field, it requests the default BT file
     // accept the pending goal if the current goal is running the default BT file
-    initializeGoalPoses(bt_action_server_->acceptPendingGoal());
+    initializeGoalPose(bt_action_server_->acceptPendingGoal());
   } else {
     RCLCPP_WARN(
       logger_,
@@ -150,7 +150,7 @@ URCNavigator::onPreempt(ActionT::Goal::ConstSharedPtr goal)
 }
 
 void
-URCNavigator::initializeGoalPoses(ActionT::Goal::ConstSharedPtr goal)
+URCNavigator::initializeGoalPose(ActionT::Goal::ConstSharedPtr goal)
 {
   if (goal->poses.size() > 0) {
     RCLCPP_INFO(

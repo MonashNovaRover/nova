@@ -17,6 +17,7 @@
 , nav2-common
 , tf2-ros
 , pluginlib
+, nova-auto-interfaces
 }:
 
 buildRosPackage {
@@ -45,5 +46,6 @@ buildRosPackage {
     nav2-core
     tf2-ros
     pluginlib
+    nova-auto-interfaces
   ];
 }
