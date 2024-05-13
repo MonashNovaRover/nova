@@ -56,8 +56,8 @@ class RamanServer(Node):
     CONTINUOUS_COLLECTION_MODE = 1
 
     # Factors for spectrum collection
-    PHASE_SIGNAL = 3690
-    RESOLUTION_REDUCING_FACTOR = 1
+    PHASE_SIGNAL = 3675
+    RESOLUTION_REDUCING_FACTOR = 10
     MINIMUM_PHASE_LENGTH = 1500
     SPECTRUM_CROP = 30  # the number of pixels after phase signal ends to ignore
 
@@ -84,7 +84,7 @@ class RamanServer(Node):
     MECH_STATE_TOPIC = '/science/raman_mech_msg'
 
     # initial state values
-    DEFAULT_MECH = False, False, False, 0, 0, 0             # A tuple of 6 values (greenlaseron, redlaseron, pumpon, filterselection, steppervalue and mirrorservo, in that order)
+    DEFAULT_MECH = False, False, False, 0.0, 0.0, 0.0             # A tuple of 6 values (greenlaseron, redlaseron, pumpon, filterselection, steppervalue and mirrorservo, in that order)
     DEFAULT_CONTINUOUS_SETTINGS = None, None, None, None    # A tuple of 4 values (port, shperiod, icgperiod and average, in that order)
 
 
@@ -218,7 +218,7 @@ class RamanServer(Node):
                 break
 
         for end_of_first_phase_signal in range(start_of_first_phase_signal, len(spectrum)):
-            if spectrum[end_of_first_phase_signal] < RamanServer.PHASE_SIGNAL:
+            if spectrum[end_of_first_phase_signal] < RamanServer.PHASE_SIGNAL and spectrum[end_of_first_phase_signal + 5] < RamanServer.PHASE_SIGNAL:
                 spectrum_start = end_of_first_phase_signal + RamanServer.SPECTRUM_CROP
                 break
         
@@ -302,7 +302,7 @@ class RamanServer(Node):
         while not spectrum_end: 
             spectrum = self.get_spectrum(request.port, request.shperiod, request.icgperiod, request.average)
             spectrum_start, spectrum_end = RamanServer.find_full_phase(spectrum)
-            self.get_logger().info(f"Spectrum length is {len(spectrum)}")
+            self.get_logger().info(f"Spectrum length is {len(spectrum[spectrum_start:spectrum_end])} and with reduction is {len(spectrum[spectrum_start:spectrum_end:RamanServer.RESOLUTION_REDUCING_FACTOR])}")
         
         self.publish_spectrum(spectrum[spectrum_start:spectrum_end:RamanServer.RESOLUTION_REDUCING_FACTOR])
 
