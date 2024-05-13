@@ -3,9 +3,13 @@
      Commit Version: 1.6.0-4-g7f85cfe  Build Version: 1.6.7995.38578
      For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
 <robot
-  name="URDF_PART_ASSEMBLY_URDFONLY">
+  name="URDF_PART_ASSEMBLY_URDFONLY"
+  xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+	<xacro:arg name="prefix" default="arm" />
+
   <link
-    name="ArmBase">
+    name="$(arg prefix)_link">
     <inertial>
       <origin
         xyz="0.0463984559338307 -0.000244629347594955 0.105803300473719"
@@ -26,7 +30,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find rover_description)/meshes/ArmBase.STL" />
+          filename="file://$(find rover_description)/meshes/ArmBase.STL" />
       </geometry>
       <material
         name="">
@@ -40,12 +44,12 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find rover_description)/meshes/ArmBase.STL" />
+          filename="file://$(find rover_description)/meshes/ArmBase.STL" />
       </geometry>
     </collision>
   </link>
   <link
-    name="BaseToJ1">
+    name="$(arg prefix)_base_to_j1">
     <inertial>
       <origin
         xyz="-0.0011594973564611 0.0892985869596572 -0.000828732075412786"
@@ -66,7 +70,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find rover_description)/meshes/BaseToJ1.STL" />
+          filename="file://$(find rover_description)/meshes/BaseToJ1.STL" />
       </geometry>
       <material
         name="">
@@ -80,20 +84,20 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find rover_description)/meshes/BaseToJ1.STL" />
+          filename="file://$(find rover_description)/meshes/BaseToJ1.STL" />
       </geometry>
     </collision>
   </link>
   <joint
-    name="base-rotation"
+    name="$(arg prefix)_j1"
     type="revolute">
     <origin
       xyz="0 0 0.1795"
       rpy="1.5707963267949 0 -1.57079632679489" />
     <parent
-      link="ArmBase" />
+      link="$(arg prefix)_link" />
     <child
-      link="BaseToJ1" />
+      link="$(arg prefix)_base_to_j1" />
     <axis
       xyz="0 1 0" />
     <limit
@@ -103,7 +107,7 @@
       velocity="0" />
   </joint>
   <link
-    name="J2ToLink1">
+    name="$(arg prefix)_j2_to_j3">
     <inertial>
       <origin
         xyz="0.302150544196856 -0.00272064453324986 0.0215545407301324"
@@ -124,7 +128,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find rover_description)/meshes/J2ToLink1.STL" />
+          filename="file://$(find rover_description)/meshes/J2ToLink1.STL" />
       </geometry>
       <material
         name="">
@@ -138,20 +142,20 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find rover_description)/meshes/J2ToLink1.STL" />
+          filename="file://$(find rover_description)/meshes/J2ToLink1.STL" />
       </geometry>
     </collision>
   </link>
   <joint
-    name="shoulder"
+    name="$(arg prefix)_j2"
     type="revolute">
     <origin
       xyz="0.0932995582406649 0.0723000000000009 -0.000287109904390681"
       rpy="1.5707963267949 0 1.5707963267949" />
     <parent
-      link="BaseToJ1" />
+      link="$(arg prefix)_base_to_j1" />
     <child
-      link="J2ToLink1" />
+      link="$(arg prefix)_j2_to_j3" />
     <axis
       xyz="0 0 1" />
     <limit
@@ -161,7 +165,7 @@
       velocity="0" />
   </joint>
   <link
-    name="J3ToLink2">
+    name="$(arg prefix)_j3_to_j4">
     <inertial>
       <origin
         xyz="0.129966189327722 0.0732399519418239 -0.0854948314565011"
@@ -182,7 +186,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find rover_description)/meshes/J3ToLink2.STL" />
+          filename="file://$(find rover_description)/meshes/J3ToLink2.STL" />
       </geometry>
       <material
         name="">
@@ -196,20 +200,20 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find rover_description)/meshes/J3ToLink2.STL" />
+          filename="file://$(find rover_description)/meshes/J3ToLink2.STL" />
       </geometry>
     </collision>
   </link>
   <joint
-    name="elbow"
+    name="$(arg prefix)_j3"
     type="revolute">
     <origin
       xyz="0.48498 -0.0042617 -1.3115E-05"
       rpy="0 0 0" />
     <parent
-      link="J2ToLink1" />
+      link="$(arg prefix)_j2_to_j3" />
     <child
-      link="J3ToLink2" />
+      link="$(arg prefix)_j3_to_j4" />
     <axis
       xyz="0 0 1" />
     <limit
@@ -219,7 +223,7 @@
       velocity="0" />
   </joint>
   <link
-    name="Link2toFixedJ4">
+    name="$(arg prefix)_j4_to_j4_base">
     <inertial>
       <origin
         xyz="-0.000854379754758439 -0.00771635785912593 -0.0386037875911855"
@@ -240,7 +244,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find rover_description)/meshes/Link2toFixedJ4.STL" />
+          filename="file://$(find rover_description)/meshes/Link2toFixedJ4.STL" />
       </geometry>
       <material
         name="">
@@ -254,25 +258,25 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find rover_description)/meshes/Link2toFixedJ4.STL" />
+          filename="file://$(find rover_description)/meshes/Link2toFixedJ4.STL" />
       </geometry>
     </collision>
   </link>
   <joint
-    name="J4_Fixed"
+    name="$(arg prefix)_j4_base"
     type="fixed">
     <origin
       xyz="0.46967 0.038251 0.032284"
       rpy="0 0 0" />
     <parent
-      link="J3ToLink2" />
+      link="$(arg prefix)_j3_to_j4" />
     <child
-      link="Link2toFixedJ4" />
+      link="$(arg prefix)_j4_to_j4_base" />
     <axis
       xyz="0 0 0" />
   </joint>
   <link
-    name="J4ToJ5">
+    name="$(arg prefix)_j4_to_j5">
     <inertial>
       <origin
         xyz="-0.000364137980536805 0.0341611309238566 0.0243774183852719"
@@ -293,7 +297,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find rover_description)/meshes/J4ToJ5.STL" />
+          filename="file://$(find rover_description)/meshes/J4ToJ5.STL" />
       </geometry>
       <material
         name="">
@@ -307,20 +311,20 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find rover_description)/meshes/J4ToJ5.STL" />
+          filename="file://$(find rover_description)/meshes/J4ToJ5.STL" />
       </geometry>
     </collision>
   </link>
   <joint
-    name="j4"
+    name="$(arg prefix)_j4"
     type="revolute">
     <origin
       xyz="0 0 0"
       rpy="0 0 0" />
     <parent
-      link="Link2toFixedJ4" />
+      link="$(arg prefix)_j4_to_j4_base" />
     <child
-      link="J4ToJ5" />
+      link="$(arg prefix)_j4_to_j5" />
     <axis
       xyz="0 0 1" />
     <limit
@@ -330,7 +334,7 @@
       velocity="0" />
   </joint>
   <link
-    name="J5ToJ6">
+    name="$(arg prefix)_j5_to_j6">
     <inertial>
       <origin
         xyz="0.000960068820124615 0.0034018297209792 0.0213979775114195"
@@ -351,7 +355,7 @@
         rpy="0 0 3.14" />
       <geometry>
         <mesh
-          filename="file:///$(find rover_description)/meshes/J5ToJ6.STL" />
+          filename="file://$(find rover_description)/meshes/J5ToJ6.STL" />
       </geometry>
       <material
         name="">
@@ -365,20 +369,20 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find rover_description)/meshes/J5ToJ6.STL" />
+          filename="file://$(find rover_description)/meshes/J5ToJ6.STL" />
       </geometry>
     </collision>
   </link>
   <joint
-    name="j5"
+    name="$(arg prefix)_j5"
     type="revolute">
     <origin
       xyz="0.00022562 0.10236 0.020578"
       rpy="0 1.5708 0" />
     <parent
-      link="J4ToJ5" />
+      link="$(arg prefix)_j4_to_j5" />
     <child
-      link="J5ToJ6" />
+      link="$(arg prefix)_j5_to_j6" />
     <axis
       xyz="0 1 0" />
     <limit
@@ -388,7 +392,7 @@
       velocity="0" />
   </joint>
   <link
-    name="J6ToEE">
+    name="$(arg prefix)_j6_to_ee">
     <inertial>
       <origin
         xyz="0.0313403405158062 -0.0154054918426727 0.0972054188871159"
@@ -409,7 +413,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find rover_description)/meshes/J6ToEE.STL" />
+          filename="file://$(find rover_description)/meshes/J6ToEE.STL" />
       </geometry>
       <material
         name="">
@@ -423,20 +427,20 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find rover_description)/meshes/J6ToEE.STL" />
+          filename="file://$(find rover_description)/meshes/J6ToEE.STL" />
       </geometry>
     </collision>
   </link>
   <joint
-    name="j6"
+    name="$(arg prefix)_j6"
     type="revolute">
     <origin
       xyz="0.00096086 0.00055601 0.081482"
       rpy="0 0 3.14159" />
     <parent
-      link="J5ToJ6" />
+      link="$(arg prefix)_j5_to_j6" />
     <child
-      link="J6ToEE" />
+      link="$(arg prefix)_j6_to_ee" />
     <axis
       xyz="0 0 1" />
     <limit

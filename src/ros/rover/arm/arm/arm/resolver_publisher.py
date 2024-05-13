@@ -86,16 +86,26 @@ class ResolverTransceiver(CANTransceiver):
         # update in the managing ROS node using info from the arm model
         # Keys must match the joint names in the arm model
         self.joint_map =  {
-            "base-rotation":    Joint("base-rotation", 0x04, True),
-            "shoulder":         Joint("shoulder",      0x08, True),
-            "elbow":            Joint("elbow",         0x0C, False),
-            "j4":               Joint("j4",            0x10, False),
-            "j5":               Joint("j5",            0x14, False),
-            "j6":               Joint("j6",            0x18, False, gear_ratio=4),
-            "spmx":             Joint("spmx",          0x20, True),
-            "spmy":             Joint("spmy",          0x24, True),
-            "spmz":             Joint("spmz",          0x28, True),
-            "end-rotation":     Joint("end-rotation",  0x1C, False)
+            "arm_j1":    
+                Joint("arm_j1", 0x04, True),
+            "arm_j2":    
+                Joint("arm_j2", 0x08, True),
+            "arm_j3":    
+                Joint("arm_j3", 0x0C, False),
+            "arm_j4":    
+                Joint("arm_j4", 0x10, False),
+            "arm_j5":    
+                Joint("arm_j5", 0x14, False),
+            "arm_j6":    
+                Joint("arm_j6", 0x18, False, gear_ratio=4),
+            "spmx": 
+                Joint("spmx", 0x20, True),
+            "spmy":      
+                Joint("spmy", 0x24, True),
+            "spmz":      
+                Joint("spmz", 0x28, True),
+            "end-rotation": 
+                Joint("end-rotation", 0x1C, False)
         }
 
         # Define an additonal transmitter for zeroing
