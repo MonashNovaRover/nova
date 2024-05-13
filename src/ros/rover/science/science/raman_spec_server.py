@@ -112,9 +112,9 @@ class RamanServer(Node):
         self.timer_send_can_commands = self.create_timer(0.2, self.send_can_commands)
 
         # for CAN commands
-        self.timer_spin_can = self.create_timer(0.05, self.bus.spin)
         self.bus = jcan.Bus()
         self.bus.open(self.get_parameter(self.CAN_BUS_PARAM).value)
+        self.timer_spin_can = self.create_timer(0.05, self.bus.spin)
 
 
     def continuous_spec_callback(self):
