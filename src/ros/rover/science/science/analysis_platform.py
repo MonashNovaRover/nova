@@ -50,6 +50,7 @@ class AnalysisPlatformNode(Node):
     # time of flight
     TIME_OF_FLIGHT_OFFSET = 20
     TIME_OF_FLIGHT_BOTTOM = 30
+    TIME_OF_FLIGHT_TOP=165
     # limit switch
     PLATFORM_LIMIT_SWITCH_TOP = 0x03
     LIMIT_SWITCH_CLEAR = 0x00
