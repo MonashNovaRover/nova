@@ -53,10 +53,10 @@ which is how it gets added to the gazebo sim. Author/s: Victor Bartlinski-->
     </sensor>
   </gazebo>
 
-  <gazebo reference="base_link">
+  <gazebo reference="oak_imu_frame">
     <sensor name="imu_sensor" type="imu">
     <plugin filename="libgazebo_ros_imu_sensor.so" name="imu_plugin">
-    <frame_name>base_link</frame_name>
+    <frame_name>oak_imu_frame</frame_name>
         <ros>
           <remapping>~/out:=/oak/imu/data</remapping>
         </ros>
