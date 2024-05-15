@@ -179,7 +179,6 @@ export const rootReducer = {
     {
       green_laser_on: false,
       red_laser_on: false,
-      pump_on: false,
       filter_selection: 0,
       stepper_value: 0,
       mirror_servo: 0
