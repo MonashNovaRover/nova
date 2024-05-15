@@ -4,8 +4,9 @@
       i_nn_type: none
       i_enable_imu: true
     imu:
+      i_enable_rotation: true
       i_message_type: IMU
-      #i_rotation_vector_type: GAME_ROTATION_VECTOR
+        #i_rotation_vector_type: ROTATION_VECTOR
     rgb:
       i_fps: 5.0
     left:
