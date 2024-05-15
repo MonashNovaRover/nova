@@ -50,6 +50,10 @@ class UVVisSpecPublisher(Node):
         # The period at which the camera is sampled
         self.declare_parameter("period", 0.05)
 
+        # Defines the range of columns to use
+        self.__col_start = self.declare_parameter("col_start", 0.05)
+        self.__col_end = self.declare_parameter("col_end", 0.95)
+
         # Try get the camera
         self.camera = cv2.VideoCapture(self.get_parameter("port").value)
 
@@ -87,12 +91,14 @@ class UVVisSpecPublisher(Node):
 
         # Sample a row from the image if it was valid
         row_length = len(video_frame[top_row_index])
+        col_start_index = max(min(math.floor(self.__col_start.value * row_length), row_length - 1), 0)
+        col_end_index = max(min(math.ceil(self.__col_end.value * row_length), row_length), col_start_index)
 
         # Sample and average rows
         reading = [
             sum(
                 (rgb_to_luminance(video_frame[r][c]) for r in range(top_row_index, bottom_row_index))
-            ) / row_count for c in range(row_length)
+            ) / row_count for c in range(col_start_index, col_end_index)
         ]
 
         # Publish it
