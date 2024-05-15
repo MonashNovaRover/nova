@@ -89,6 +89,7 @@ self: super:
           rev = "7d78af16d30d0ffe232abcc65d0928ce90bd61f7";
           hash = "sha256-geWbNboZRm6Sr4+aWVTVjPThi8eUYNDZ+MbrHdbWuIo=";
         };
+        version = "1.3.2-unstable-2024-02-12";
         sourceRoot = "source/rosbridge_server";
       });
     } // (
