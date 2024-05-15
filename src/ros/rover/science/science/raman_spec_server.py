@@ -60,6 +60,7 @@ class RamanServer(Node):
     RESOLUTION_REDUCING_FACTOR = 10
     MINIMUM_PHASE_LENGTH = 1500
     SPECTRUM_CROP = 30  # the number of pixels after phase signal ends to ignore
+    LOOPS_FOR_SINGLE_COLLECTION = 5
 
     # CAN commands
     CARD_ID = 0x0A0
@@ -84,7 +85,7 @@ class RamanServer(Node):
     MECH_STATE_TOPIC = '/science/raman_mech_msg'
 
     # initial state values
-    DEFAULT_MECH = False, False, False, 0.0, 0.0, 0.0             # A tuple of 6 values (greenlaseron, redlaseron, pumpon, filterselection, steppervalue and mirrorservo, in that order)
+    DEFAULT_MECH = False, False, 0.0, 0.0, 0.0             # A tuple of 5 values (greenlaseron, redlaseron, filterselection, steppervalue and mirrorservo, in that order)
     DEFAULT_CONTINUOUS_SETTINGS = None, None, None, None    # A tuple of 4 values (port, shperiod, icgperiod and average, in that order)
 
 
@@ -124,10 +125,12 @@ class RamanServer(Node):
         if self.is_continuous:
             spectrum_start = None
             spectrum_end = None
-            while not spectrum_end: 
+            loop_count = 0
+            while loop_count < RamanServer.LOOPS_FOR_SINGLE_COLLECTION and not spectrum_end: 
                 spectrum = self.get_spectrum(self.continuous_settings)
                 spectrum_start, spectrum_end = RamanServer.find_full_phase(spectrum)
                 self.get_logger().info(f"Spectrum length is {len(spectrum)}")
+                loop_count += 1
             
             self.publish_spectrum(spectrum[spectrum_start:spectrum_end:RamanServer.RESOLUTION_REDUCING_FACTOR])
 
@@ -137,7 +140,6 @@ class RamanServer(Node):
         Sends all can commands to update mechanical state to what is current 
         """
         self.send_laser_command()
-        self.send_pump_command()
         self.send_filter_command()
         self.send_stepper_command()
         self.send_mirror_command()
@@ -155,12 +157,6 @@ class RamanServer(Node):
             self.send_can_command([[RamanServer.GREEN_LASER_ID, RamanServer.CAN_COMMAND_OFF], [RamanServer.RED_LASER_ID, RamanServer.CAN_COMMAND_ON]])
         else:
             self.send_can_command([[RamanServer.GREEN_LASER_ID, RamanServer.CAN_COMMAND_OFF], [RamanServer.RED_LASER_ID, RamanServer.CAN_COMMAND_OFF]])
-
-    def send_pump_command(self):
-        """
-        This was present in the old GUI but was not connected to any CAN command, it is not needed in a fiber optic implementation of sample collection
-        """
-        pass
 
     def send_filter_command(self):
         self.send_can_command([[RamanServer.FILTER_SERVO_ID, self.mech_state[3]]])
@@ -263,7 +259,7 @@ class RamanServer(Node):
         """
         Updates the mechanical state that the node will send can commands based on
         """
-        self.mech_state = request.green_laser_on, request.red_laser_on, request.pump_on, request.filter_selection, request.stepper_value, request.mirror_servo
+        self.mech_state = request.green_laser_on, request.red_laser_on, request.filter_selection, request.stepper_value, request.mirror_servo
         response.success = True
         return response
 
@@ -273,7 +269,7 @@ class RamanServer(Node):
         Publishes raman mechanical state
         """
         msg = RamanState()
-        msg.green_laser_on, msg.red_laser_on, msg.pump_on, msg.filter_selection, msg.stepper_value, msg.mirror_servo = self.mech_state
+        msg.green_laser_on, msg.red_laser_on, msg.filter_selection, msg.stepper_value, msg.mirror_servo = self.mech_state
         self.mech_publisher_.publish(msg)
 
 
@@ -300,10 +296,12 @@ class RamanServer(Node):
         
         spectrum_start = None
         spectrum_end = None
-        while not spectrum_end: 
+        loop_count = 0
+        while loop_count < RamanServer.LOOPS_FOR_SINGLE_COLLECTION and not spectrum_end: 
             spectrum = self.get_spectrum(request.port, request.shperiod, request.icgperiod, request.average)
             spectrum_start, spectrum_end = RamanServer.find_full_phase(spectrum)
             self.get_logger().info(f"Spectrum length is {len(spectrum[spectrum_start:spectrum_end])} and with reduction is {len(spectrum[spectrum_start:spectrum_end:RamanServer.RESOLUTION_REDUCING_FACTOR])}")
+            loop_count += 1
         
         self.publish_spectrum(spectrum[spectrum_start:spectrum_end:RamanServer.RESOLUTION_REDUCING_FACTOR])
 
