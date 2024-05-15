@@ -36,9 +36,11 @@ const SampleTray: React.FC<SampleTrayProps> = () => {
     const {sendGoal, feedback} = useRosAction(RosAction.SCIENCE_SAMPLE_TRAY);
 
     const onApply = () => {
+        console.log("Applying Sample Tray Position")
         const action = {
             goal: SAMPLE_TRAY_POSITIONS[sampleTrayPosition].value,
         }
+        console.log(action)
         sendGoal(action);
     }
 
