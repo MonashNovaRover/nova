@@ -6,6 +6,7 @@
 , rqt
 , rqt-common-plugins
 , gdb
+, turtlesim
 
 , nova-electronics ? throw "electronics is needed, but not available!"
 , nova-science ? throw "science is needed, but not available!"
@@ -80,6 +81,8 @@
 
   ## Extra packages to add to the workspace.
 , extraPackages ? {
+    inherit
+      turtlesim;
   }
 }:
 

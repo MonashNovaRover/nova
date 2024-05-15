@@ -66,21 +66,39 @@ self: super:
       });
 
       depthai-descriptions = rosSuper.depthai-descriptions.overrideAttrs ({ ... }: {
+        version = "2.9.0-r1";
         src = self.fetchFromGitHub {
             owner = "MonashNovaRover";
             repo = "depthai-ros";
             rev = "03995b0efd295480bb5d8442f6105492a25376f5";
             hash = "sha256-D5UNe5V75mySf0eJ88vCKBx3ip7lwHdbj8wzIQgO13k=";
         };
-        version = "2.9.0-r1";
         sourceRoot = "source/depthai_descriptions";
       });
 
-      rosbridge-library = rosSuper.rosbridge-library.override {
+      rosbridge-library = (rosSuper.rosbridge-library.override {
         python3Packages = rosSuper.python3Packages.overrideScope (pySelf: pySuper: {
           bson = pySelf.pymongo;
         });
-      };
+      }).overrideAttrs ({ ... }: {
+        src = self.fetchFromGitHub {
+          owner = "RobotWebTools";
+          repo = "rosbridge_suite";
+          rev = "7d78af16d30d0ffe232abcc65d0928ce90bd61f7";
+          hash = "sha256-geWbNboZRm6Sr4+aWVTVjPThi8eUYNDZ+MbrHdbWuIo=";
+        };
+        sourceRoot = "source/rosbridge_library";
+      });
+
+      rosbridge-msgs = rosSuper.rosbridge-msgs.overrideAttrs ({ ... }: {
+        src = self.fetchFromGitHub {
+          owner = "RobotWebTools";
+          repo = "rosbridge_suite";
+          rev = "7d78af16d30d0ffe232abcc65d0928ce90bd61f7";
+          hash = "sha256-geWbNboZRm6Sr4+aWVTVjPThi8eUYNDZ+MbrHdbWuIo=";
+        };
+        sourceRoot = "source/rosbridge_msgs";
+      });
 
       rosbridge-server = rosSuper.rosbridge-server.overrideAttrs ({ ... }: {
         src = self.fetchFromGitHub {
@@ -92,6 +110,7 @@ self: super:
         version = "1.3.2-unstable-2024-02-12";
         sourceRoot = "source/rosbridge_server";
       });
+
     } // (
       let
         fixRtabmapDependent = pkg: pkg.overrideAttrs ({ buildInputs ? [ ], ... }: {
