@@ -15,9 +15,8 @@ from rclpy.node import Node
 import cv2
 import math
 from typing import List
-
-# https://answers.ros.org/question/325559/how-can-we-actually-use-float32multiarray-to-publish-2d-array-using-python/
 from nova_interfaces.msg import UVVisSpecData
+from camera_msgs.msg._cameras import Cameras
 
 
 def rgb_to_luminance(rgb: [int, int, int]) -> float:
@@ -42,12 +41,23 @@ class UVVisSpecPublisher(Node):
         self.publisher = self.create_publisher(UVVisSpecData, "/science/uv_vis_spec_data", 1)
 
         # declare parameters
-        self.declare_parameter("camera_port", 0)
+        # The port to use to access the spectroscope webcam
+        self.declare_parameter("port", 0)
+        # The row to use when sampling the image, from 0 to 1
+        self.__row = self.declare_parameter("row", 0.55)
+        # Specifies the size of the range of pixels to vertically average to get a reading
+        self.__range = self.declare_parameter("range", 0.05)
+        # The period at which the camera is sampled
+        self.declare_parameter("period", 0.05)
 
-        self.camera = cv2.VideoCapture(self.get_parameter("camera_port").value)
-        self.camera.set(cv2.CAP_PROP_BUFFERSIZE, 1)     # Only consider 1 frame at a time
+        # Try get the camera
+        self.camera = cv2.VideoCapture(self.get_parameter("port").value)
 
-        self.create_timer(0.02, self.__get_image)
+        # Only consider 1 frame at a time, as we likely sample the camera slower than it reads pixels
+        self.camera.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+
+        # Start listening for camera frames
+        self.create_timer(self.get_parameter("period").value, self.__get_image)
 
     def __get_image(self):
         self.camera.grab()
@@ -58,12 +68,35 @@ class UVVisSpecPublisher(Node):
             self.get_logger().warn("UV Vis Spec failed to get frame from camera.")
             return
 
+        # Sample the row at self.__row.value, where 0 corresponds to the top row and 1 corresponds to the bottom row.
+        top_row_percent = self.__row.value - 0.5 * self.__range.value
+        top_row_index = max(min(math.floor(top_row_percent * len(video_frame)), len(video_frame) - 1), 0)
+
+        bottom_row_percent = self.__row.value + 0.5 * self.__range.value
+        bottom_row_index = max(min(math.ceil(bottom_row_percent * len(video_frame)), len(video_frame) - 1), 0)
+
+        if bottom_row_index <= top_row_index:
+            bottom_row_index = top_row_index + 1
+            # prevent index errors
+            if bottom_row_index > len(video_frame):
+                bottom_row_index = len(video_frame)
+                top_row_index = max(bottom_row_index - 1, 0)
+
+        # Average rows in range
+        row_count = min(bottom_row_index - top_row_index, 1)
+
         # Sample a row from the image if it was valid
-        middle_row_index = len(video_frame) // 2
-        middle_row = video_frame[middle_row_index]
+        row_length = len(video_frame[top_row_index])
+
+        # Sample and average rows
+        reading = [
+            sum(
+                (rgb_to_luminance(video_frame[r][c]) for r in range(top_row_index, bottom_row_index))
+            ) / row_count for c in range(row_length)
+        ]
 
         # Publish it
-        self.publish_reading([rgb_to_luminance(x) for x in middle_row])
+        self.publish_reading(reading)
 
     def publish_reading(self, row: List[float]) -> None:
         # Construct a message containing the row
