@@ -42,7 +42,7 @@ class OneAxisPositionControl(Control):
         """Remove a position from the set of available positions"""
         del self.positions[name]
 
-    def go_to_position(self, name: str):
+    def update_position(self, name: str):
         """Go to a specific position"""
         self.position_name = name
 

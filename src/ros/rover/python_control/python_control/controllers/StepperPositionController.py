@@ -30,6 +30,7 @@ class StepperPositionController(Controller):
         
         self.zeroing = False
         self.go_to = False
+        self.setting = False
 
     def log_status(self):
         control = self.get_control()
@@ -42,6 +43,7 @@ class StepperPositionController(Controller):
         """Stop the controller"""
         self.zeroing = False
         self.go_to = False
+        self.setting = False
         self.get_control().stop()
 
     def zero(self):
@@ -53,7 +55,12 @@ class StepperPositionController(Controller):
     def go_to_position(self, name: str):
         self.stop()
         self.go_to = True
-        self.get_control().go_to_position(name)
+        self.get_control().update_position(name)
+
+    def set_position(self, name: str):
+        self.stop()
+        self.setting = True
+        self.get_control().update_position(name)
 
 
     def is_zeroing(self):
@@ -61,6 +68,9 @@ class StepperPositionController(Controller):
     
     def is_going_to_position(self):
         return self.go_to
+    
+    def is_setting(self):
+        return self.setting
     
     
     def feedback(self):
@@ -122,6 +132,27 @@ class StepperPositionController(Controller):
             
         else:
             self.get_logger().error('Failed to reach position: {0}'.format(goal_name))
+
+        return success
+    
+    def setting_position_action(self, goal_handle, goal_name):
+        self.get_logger().info('Setting position: {0}'.format(goal_name))
+        self.set_position(goal_name)
+        
+        i = 0
+        while not self.get_control().is_at_position() and i < self.TIMEOUT:
+            self.feedback_loop(goal_handle)
+            i += 1
+
+        self.log_status()
+
+        success = self.get_control().is_at_position()
+
+        if success:
+            self.get_logger().info('Successfully set position: {0}'.format(goal_name))
+            
+        else:
+            self.get_logger().error('Failed to set position: {0}'.format(goal_name))
 
         return success
 
