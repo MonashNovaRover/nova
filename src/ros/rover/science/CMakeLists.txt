@@ -60,6 +60,9 @@ install(PROGRAMS
   science/auger.py
   science/analysis_platform.py
   science/raman_spec_server.py
+  science/urc_analysis_arm.py
+  science/urc_auger.py
+  science/urc_sample_tray.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
