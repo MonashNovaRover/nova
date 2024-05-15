@@ -18,8 +18,6 @@ const RamanMechanicalInputs: React.FC = () => {
     const RED_LASER_KEY = "red-laser";
     const GREEN_LASER_KEY = "green-laser";
     const OFF_LASER_KEY = "off";
-    const ON_PUMP_KEY = "on";
-    const OFF_PUMP_KEY = "off";
 
 
     // service bifrost
@@ -35,11 +33,9 @@ const RamanMechanicalInputs: React.FC = () => {
 
     const {isOpen, onOpen, onOpenChange} = useDisclosure();
     const [currentLaserKey, setCurrentLaserKey] = useState(OFF_LASER_KEY);
-    const [currentPumpKey, setCurrentPumpKey] = useState(OFF_PUMP_KEY);
     const [ramanMechInputs, setRamanMechInputs] = useState({
         green_laser_on: false,
         red_laser_on: false,
-        pump_on: false,
         filter_selection: 0,
         stepper_value: 0,
         mirror_servo: 0
@@ -106,25 +102,6 @@ const RamanMechanicalInputs: React.FC = () => {
                     <Tab key="green-laser" className="text-green-400" title="Green" />
                     <Tab key="red-laser" title="Red" />
                     <Tab key="off" title="Off" />
-                </Tabs>
-            </div>
-            <div className="mx-1 flex flex-row">
-                <Avatar size="lg" name={ramanMechState.pump_on ? "On" : "Off"} className={ramanMechState.pump_on ? "bg-blue-600" : ""}></Avatar>
-                <Tabs className="mt-1" size="lg"
-                    selectedKey={currentPumpKey}
-                    onSelectionChange={(key) => {
-                        setCurrentPumpKey(key.toString())
-                        if (key == ON_PUMP_KEY) {
-                            setRamanMechInputs({...ramanMechInputs, pump_on: true});
-                            sendRamanMechRequest({...ramanMechInputs, pump_on: true});
-                        } else {
-                            setRamanMechInputs({...ramanMechInputs, pump_on: false});
-                            sendRamanMechRequest({...ramanMechInputs, pump_on: false});
-                        }
-                    }}
-                >
-                    <Tab key="on" title="Pump On"/>
-                    <Tab key="off" title="Pump Off"/>
                 </Tabs>
             </div>
             <div className="mx-1 flex w-52 flex-row">
