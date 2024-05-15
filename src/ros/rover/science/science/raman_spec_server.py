@@ -103,7 +103,7 @@ class RamanServer(Node):
         # for spectrum
         self.spec_srv = self.create_service(RamanSpec, RamanServer.SPEC_SERVICE, self.raman_spec_response)
         self.spec_publisher_ = self.create_publisher(RamanSpectrum, RamanServer.SPEC_TOPIC, 10)
-        self.timer_continuous_mode = self.create_timer(1, self.continuous_spec_callback)
+        self.timer_continuous_mode = self.create_timer(0.5, self.continuous_spec_callback)
 
         # for mechanical
         self.mech_srv = self.create_service(RamanMech, RamanServer.MECH_STATE_SERVICE, self.raman_mech_response)
@@ -281,6 +281,7 @@ class RamanServer(Node):
         """
         Callback for a service request
         """
+        self.get_logger().info("Request received")
         if request.continuousendsignal:
             self.is_continuous = False
             self.get_logger().info("Continuous mode deactivated")
