@@ -57,7 +57,7 @@ class UVVisSpecPublisher(Node):
         self.camera.set(cv2.CAP_PROP_BUFFERSIZE, 1)
 
         # Start listening for camera frames
-        self.create_timer(self.get_parameter("period").value, self.__get_image)
+        self.create_timer(float(self.get_parameter("period").value), self.__get_image)
 
     def __get_image(self):
         self.camera.grab()
@@ -83,7 +83,7 @@ class UVVisSpecPublisher(Node):
                 top_row_index = max(bottom_row_index - 1, 0)
 
         # Average rows in range
-        row_count = min(bottom_row_index - top_row_index, 1)
+        row_count = max(bottom_row_index - top_row_index, 1)
 
         # Sample a row from the image if it was valid
         row_length = len(video_frame[top_row_index])
