@@ -1,5 +1,6 @@
 import UVVisSpecGLGraph from "./UVVisSpecGLGraph.tsx";
 import React from "react";
+import {max} from "lodash";
 
 export interface UVVisSpecGraphProps {
   // The data points to plot
@@ -16,6 +17,7 @@ export interface UVVisSpecGraphProps {
 
 const UVVisSpecGraph: React.FC<UVVisSpecGraphProps> = (props) => {
   const luminance = props.luminance;
+  const maxLuminance = (max(luminance) ?? 100) / 4.4167295593
 
   const xLabels = Array.from({ length: props.wavelengthLabelCount }, (_, i) => (
     `${props.startWavelength + (props.endWavelength - props.startWavelength) * (i / (props.wavelengthLabelCount - 1))}`
@@ -46,12 +48,12 @@ const UVVisSpecGraph: React.FC<UVVisSpecGraphProps> = (props) => {
   )
 
   const yLabels = Array.from({ length: 5 }, (_, i) => (
-    `${(100 * (i / (props.wavelengthLabelCount - 1))).toFixed(0)}%`
-  ));
+    `${(maxLuminance * ((i + 1) / (props.wavelengthLabelCount))).toFixed(0)}%`
+  )).reverse();
 
   // Put the labels into a JSX
   const yLabelsElement = (
-    <div className="grid auto-rows-fr grid-flow-row grid-cols-1 content-around pr-2 min-w-10">
+    <div className="grid auto-rows-fr grid-flow-row grid-cols-1 content-around pr-2 w-12 text-nowrap">
       <div className="text-right h-fit translate-y-[-50%] text-small">
           {yLabels[0]}
       </div>
