@@ -159,13 +159,13 @@ class RamanServer(Node):
             self.send_can_command([[RamanServer.GREEN_LASER_ID, RamanServer.CAN_COMMAND_OFF], [RamanServer.RED_LASER_ID, RamanServer.CAN_COMMAND_OFF]])
 
     def send_filter_command(self):
-        self.send_can_command([[RamanServer.FILTER_SERVO_ID, self.mech_state[3]]])
+        self.send_can_command([[RamanServer.FILTER_SERVO_ID, self.mech_state[2]]])
 
     def send_stepper_command(self):
-        self.send_can_command([[RamanServer.STEPPER_ID, self.mech_state[4]]])
+        self.send_can_command([[RamanServer.STEPPER_ID, self.mech_state[3]]])
 
     def send_mirror_command(self):
-        self.send_can_command([[RamanServer.MIRROR_SERVO_ID, self.mech_state[5]]]) 
+        self.send_can_command([[RamanServer.MIRROR_SERVO_ID, self.mech_state[4]]]) 
 
 
     def set_spec_input(shperiod: int, icgperiod: int, singlecollectionmode: bool, average: int) -> List[int]:
