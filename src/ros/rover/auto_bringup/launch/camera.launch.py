@@ -61,6 +61,16 @@ def launch_setup(context, *args, **kwargs):
                         ],
             parameters=[{'t_filter': 0, 'r_filter': 0, 'b_filter': 0, 'l_filter': 0, }] 
         ),
+
+        Node(
+            package='imu_transformer',
+            executable='imu_transformer_node',
+            name='imu_transformer',
+            remappings=[('/imu_in', '/oak/imu/data'),
+                        ('/imu_out', '/oak/imu/transformed')
+                       ],
+            parameters=[{'target_frame':'oak'}]
+        ),
     ]
 
 

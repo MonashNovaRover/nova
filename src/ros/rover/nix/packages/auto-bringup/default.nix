@@ -23,6 +23,7 @@
 , nova-rover-description
 , nova-gazebo
 , rviz-imu-plugin
+, imu-transformer
 }:
 
 buildRosPackage rec {
@@ -58,6 +59,7 @@ buildRosPackage rec {
       nova-pointcloud-filter
       nova-rover-description
       nova-gazebo
-      rviz-imu-plugin;
+      rviz-imu-plugin
+      imu-transformer;
   };
 }
