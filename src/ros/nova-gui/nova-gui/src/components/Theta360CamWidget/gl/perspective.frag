@@ -19,6 +19,9 @@ vec2 equirectangular(vec3 dir) {
 
     vec2 flattenedDir = normalize(vec2(dir.x, dir.y));
     float lateralAngle = acos(flattenedDir.y) * sign(dir.x);
+    if (flattenedDir.y >= 1.) {
+        lateralAngle = 0.;  // Fix seam at flattenedDir.y == 1
+    }
 
     return vec2(
         0.5 + lateralAngle / (2.0 * PI),

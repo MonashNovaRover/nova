@@ -4,7 +4,7 @@ import {useBifrost} from "../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosTopic} from "../../ros/topics/rosTopic.ts";
 import {useSelector} from "react-redux";
 import {RootState} from "../../redux/RootState.ts";
-import WebGL360Cam from "./WebGL360Cam.tsx";
+import Perspective360CamCanvas from "./Perspective360CamCanvas.tsx";
 import {RosService} from "../../ros/services/rosService.ts";
 
 
@@ -31,7 +31,7 @@ const Theta360CamWidget: React.FC = () => {
 
   // When called, will capture a new image
   const capture = useCallback(() => {
-    bifrost.callService(undefined, {});
+    bifrost.callService(undefined, { successToastMessage: "360 Camera image captured", responseToast: true });
   }, [bifrost])
 
 
@@ -42,9 +42,9 @@ const Theta360CamWidget: React.FC = () => {
         360 Camera
       </CardHeader>
       <CardBody className="">
-        <WebGL360Cam image={imageRef.current}>
+        <Perspective360CamCanvas image={imageRef.current}>
           <Button onPress={capture}>Capture</Button>
-        </WebGL360Cam>
+        </Perspective360CamCanvas>
       </CardBody>
     </Card>
   )
