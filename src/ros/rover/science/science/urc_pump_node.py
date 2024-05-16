@@ -52,7 +52,7 @@ class URCPump(ControllerNode):
     AUGER_DRILL_COUNTERCLOCKWISE = Direction.NEGATIVE    
 
     def __init__(self):
-        super(URCAuger, self).__init__(name="URCAuger", can_bus=self.CAN_BUS)
+        super(URCPump, self).__init__(name="URCAuger", can_bus=self.CAN_BUS)
         logger = self.get_logger()
 
         ## Add Flags as required
