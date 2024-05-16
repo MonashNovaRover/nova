@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-from python_control.limits.Limit import Limit
 from logging import Logger
 
 from python_control.controls.Direction import Direction
@@ -12,7 +11,7 @@ class TimedOneAxisVelocityControl(OneAxisVelocityControl):
 
     def __init__(self, logger: Logger, direction: Direction = Direction.POSITIVE, velocity: float = 0.0, max_percent: float = 1.0, time: float = 0.0):
         super().__init__(logger=logger, direction=direction, velocity=velocity, max_percent=max_percent)
-        self.time = 0.0 # type: float
+        self.time = time # type: float
   
     def get_time(self) -> float:
         """Get the time to run the motor"""

@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 
-from python_control.sensors.LimitSwitchSensor import LimitSwitchSensor
-from python_control.limits.LimitSwitchLimit import LimitSwitchLimit
+
 from python_control.controls.Direction import Direction
-from python_control.controls.OneAxisVelocityControl import OneAxisVelocityControl
-from python_control.controllers.CMDVelocityController import CMDVelocityController
+from python_control.controllers.TimedCMDVelocityController import TimedCMDVelocityController
+from python_control.controls.TimedOneAxisVelocityControl import TimedOneAxisVelocityControl
 import rclpy
+from rclpy.action import ActionServer
 from python_control.ControllerNode import ControllerNode
 from input_interfaces.msg import InputJoystick
 
 
-class URCPump(ControllerNode):
+class URCPumps(ControllerNode):
 
     # CAN BUS NAME
     # The name of the CAN bus to use
@@ -18,145 +18,81 @@ class URCPump(ControllerNode):
 
     # SENDING CARD IDS
     # Add any CONTROL FRAME / CARD IDS here
-    AUGER_ACTUATION_SEND_FRAME_ID = 0x022
-    AUGER_DRILL_SEND_FRAME_ID = 0x021
-    
-    # RECEIVING CARD IDS
-    # Add any SENSOR FRAME / CARD IDS here
-    AUGER_LIMIT_RECV_ID = 0x4A2
+    PUMP_1_RUN_SEND_FRAME_ID = 0x022 # TODO: REPLACE value
+    PUMP_2_RUN_SEND_FRAME_ID = 0x021 # TODO: REPLACE value
 
     # CONTROL NAMES
     # Add any CONTROL names here
-    AUGER_ACTUATION_NAME = "auger_actuation"
-    AUGER_DRILL_NAME = "auger_drill"
+    PUMP_1_NAME = "pump_1"
+    PUMP_2_NAME = "pump_2"
 
     # CONTROL PARAMETERS
     # Max Speed as a Percentage (0.0 to 1.0)
-    AUGER_ACTUATION_MAX_PERCENT = 0.75
-    AUGER_DRILL_MAX_PERCENT = 0.75
-
-    # SENDING COMMAND IDS
-    # Add any CONTROL command ids here
-    STEPPER_SEND_COMMAND_ID = 0x01
-
-    # RECEIVING COMMAND IDS
-    # Add any SENSOR command ids here
-    AUGER_RECV_LIMIT_TOP_COMMAND_ID = 0x01
-    AUGER_RECV_LIMIT_BOTTOM_COMMAND_ID = 0x02
+    PUMP_MAX_PERCENT = 0.75
     
     # CONTROL DIRECTIONS
     # Add any CONTROL DIRECTIONS here
-    AUGER_ACTUATION_UP = Direction.POSITIVE
-    AUGER_ACTUATION_DOWN = Direction.NEGATIVE
-    AUGER_DRILL_CLOCKWISE = Direction.POSITIVE
-    AUGER_DRILL_COUNTERCLOCKWISE = Direction.NEGATIVE    
+    PUMP_FORWARDS = Direction.POSITIVE
+    PUMP_BACKWARDS = Direction.NEGATIVE
+
 
     def __init__(self):
-        super(URCPump, self).__init__(name="URCAuger", can_bus=self.CAN_BUS)
+        super(URCPumps, self).__init__(name="URCAuger", can_bus=self.CAN_BUS)
         logger = self.get_logger()
 
-        ## Add Flags as required
-
-
-        ## Add CAN ID Filters
-        self.bus.set_id_filter([self.AUGER_LIMIT_RECV_ID])
-
-        ## Create sensors
-        self.bottom_limit_sensor = LimitSwitchSensor(
-            logger=logger,
-            bus=self.bus,
-            frame_id=self.AUGER_LIMIT_RECV_ID,
-            command_id=self.AUGER_RECV_LIMIT_BOTTOM_COMMAND_ID,
-            run_can=False
-        )
-        self.top_limit_sensor = LimitSwitchSensor(
-            logger=logger,
-            bus=self.bus,
-            frame_id=self.AUGER_LIMIT_RECV_ID,
-            command_id=self.AUGER_RECV_LIMIT_TOP_COMMAND_ID,
-            run_can=False
-        )
-
-        # Create limits
-        self.auger_bottom_limit = LimitSwitchLimit(
-            logger=logger,
-            bus=self.bus,
-            limit_switch=self.bottom_limit_sensor
-        )
-        self.auger_top_limit = LimitSwitchLimit(
-            logger=logger,
-            bus=self.bus,
-            limit_switch=self.top_limit_sensor
-        )
- 
 
         ## Create controls
-        self.auger_actuation = OneAxisVelocityControl(
+        self.pump_1 = TimedOneAxisVelocityControl(
             logger=logger,
-            max_percent=self.AUGER_ACTUATION_MAX_PERCENT,
-            direction=self.AUGER_ACTUATION_UP,
-            pos_limit=self.auger_top_limit,
-            neg_limit=self.auger_bottom_limit,
+            max_percent=self.PUMP_MAX_PERCENT,
+            direction=self.PUMP_FORWARDS,
         )
-        self.auger_drill = OneAxisVelocityControl(
+
+        self.pump_2 = TimedOneAxisVelocityControl(
             logger=logger,
-            max_percent=self.AUGER_DRILL_MAX_PERCENT,
-            direction=self.AUGER_DRILL_CLOCKWISE,
+            max_percent=self.PUMP_MAX_PERCENT,
+            direction=self.PUMP_FORWARDS,
         )
 
 
         ## Create controllers
-        self.auger_actuation_controller = CMDVelocityController(
+        self.pump_1_controller = TimedCMDVelocityController(
             logger=logger,
             bus=self.bus,
-            frame_id=self.AUGER_ACTUATION_SEND_FRAME_ID,
-            control=self.auger_actuation
+            frame_id=self.PUMP_1_RUN_SEND_FRAME_ID,
+            control=self.pump_1,
         )
-        self.auger_drill_controller = CMDVelocityController(
+
+        self.pump_2_controller = TimedCMDVelocityController(
             logger=logger,
             bus=self.bus,
-            frame_id=self.AUGER_DRILL_SEND_FRAME_ID,
-            control=self.auger_drill
+            frame_id=self.PUMP_2_RUN_SEND_FRAME_ID,
+            control=self.pump_2,
         )
+
 
         ## Add the controllers to the node's of controllers
-        self.add_controller(self.AUGER_ACTUATION_NAME, self.auger_actuation_controller)
-        self.add_controller(self.AUGER_DRILL_NAME, self.auger_drill_controller)
+        self.add_controller(self.PUMP_1_NAME, self.pump_1_controller)
+        self.add_controller(self.PUMP_2_NAME, self.pump_2_controller)
 
+        # self.pump_action = ActionServer(self, Pump, self.SAMPLE_TRAY_ACTION, self.sample_tray_controller.stepper_action_callback)
+  
         ## Start the CAN bus
         self.start_can()
 
-    def update_auger_actuation(self, joystick_r: InputJoystick):
-        # Auger height direction is determined by the right joystick's x-axis direction
-        self.auger_actuation.update_direction(self.AUGER_ACTUATION_UP if joystick_r.ax_stick_x >= 0 else self.AUGER_ACTUATION_DOWN)
 
-        # Auger velocity is determined by the right joystick's x-axis magnitude
-        self.auger_actuation.update_velocity(abs(joystick_r.ax_stick_x))
 
-    def update_auger_drill(self, joystick_r: InputJoystick):
-        # Drill spin direction is determined by the right joystick thumb buttons
-        # Thumb right = clockwise, Thumb left = counterclockwise
-        if joystick_r.btn_thumb_r_state >= 1:
-            self.auger_drill.update_direction(self.AUGER_DRILL_CLOCKWISE)
-        elif joystick_r.btn_thumb_l_state >= 1:
-            self.auger_drill.update_direction(self.AUGER_DRILL_COUNTERCLOCKWISE)
-        
-        # Drill spin velocity is determined by the right joystick trigger
-        if joystick_r.btn_thumb_u_state >= 1:
-            self.auger_drill.update_velocity(1.0)
-        else:
-            self.auger_drill.update_velocity(0)
+
 
     def joystick_l(self, joystick_l: InputJoystick):
         pass
 
     def joystick_r(self, joystick_r: InputJoystick):
-        self.update_auger_actuation(joystick_r)
-        self.update_auger_drill(joystick_r)
+        pass
 
 def main():
     rclpy.init()
-    node = URCAuger()
+    node = URCPumps()
     rclpy.spin(node)
     rclpy.shutdown()
 
