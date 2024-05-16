@@ -51,7 +51,7 @@ const PlatformWidget: React.FC<PlatformWidgetProps> = () => {
         <div className="grid grid-cols-[auto_1fr]">
           <div className="font-bold pr-3">Current Location:</div>
           <div className="">Sample Tray 2</div>
-          <div className="font-bold pr-3">Current Location:</div>
+          <div className="font-bold pr-3">Target Location:</div>
           <div className="">{locationNames[targetLocationIndex]}</div>
         </div>
         {pickerRow}
