@@ -43,7 +43,7 @@ class URCCarousel(ControllerNode):
 
     # RECEIVING CARD IDS
     # Add any SENSOR FRAME / CARD IDS here
-    STEPPER_PCB_RECV_POS = 0x000 # TODO: REPLACE CARD ID
+    STEPPER_PCB_RECV_POS = 0x455
 
     # NAMES
     # Add any CONTROL names here
@@ -61,11 +61,11 @@ class URCCarousel(ControllerNode):
     # SENDING COMMAND IDS
     # Add any CONTROL command ids here
     STEPPER_SEND_POS_COMMAND_ID = 0x01
-    STEPPER_SEND_SET_COMMAND_ID = 0x00 # TODO: REPLACE COMMAND 
+    STEPPER_SEND_SET_COMMAND_ID = 0x03
 
     # RECEIVING COMMAND IDS
     # Add any SENSOR command ids here
-    STEPPER_RECV_POS_COMMAND_ID = 0x01 # TODO: REPLACE COMMAND
+    STEPPER_RECV_POS_COMMAND_ID = 0x01
 
     def __init__(self):
         super().__init__(name="URCCarousel", can_bus=self.CAN_BUS)
