@@ -30,7 +30,7 @@
     "react-router-dom": "^6.16.0",
     "react-timer-hook": "^3.0.7",
     "react-use-websocket": "^4.5.0",
-    "roslib": "https://github.com/RobotWebTools/roslibjs.git#67ce301bbd50c1279e1ab9b83f078a6b19564280",
+    "roslib": "https://github.com/RobotWebTools/roslibjs.git",
     "rvfc-polyfill": "^1.0.7",
     "tailwind-variants": "0.1.13",
     "uuid": "^9.0.1",

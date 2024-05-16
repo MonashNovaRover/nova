@@ -3166,6 +3166,11 @@ eventemitter2@^6.4.0:
   resolved "https://registry.yarnpkg.com/eventemitter2/-/eventemitter2-6.4.9.tgz#41f2750781b4230ed58827bc119d293471ecb125"
   integrity sha512-JEPTiaOt9f04oa6NOkc4aH+nVp5I3wEjpHbIPqfgCdD5v5bUzy7xQqwcVO2aDQgOWhI28da57HksMrzK9HlRxg==
 
+eventemitter3@^5.0.1:
+  version "5.0.1"
+  resolved "https://registry.yarnpkg.com/eventemitter3/-/eventemitter3-5.0.1.tgz#53f5ffd0a492ac800721bb42c66b841de96423c4"
+  integrity sha512-GWkBvjiSZK87ELrYOSESUYeVIc9mvLLf/nXalMOS5dYrgZq9o5OVkbZAVM06CVxYsCwH9BDZFPlQTlPA1j4ahA==
+
 fast-deep-equal@^3.1.1, fast-deep-equal@^3.1.3:
   version "3.1.3"
   resolved "https://registry.yarnpkg.com/fast-deep-equal/-/fast-deep-equal-3.1.3.tgz#3a7d56b559d6cbc3eb512325244e619a65c6c525"
@@ -4138,19 +4143,14 @@ rollup@^3.27.1:
   optionalDependencies:
     fsevents "~2.3.2"
 
-roslib@^1.3.0:
+"roslib@https://github.com/RobotWebTools/roslibjs.git":
   version "1.4.1"
-  resolved "https://registry.yarnpkg.com/roslib/-/roslib-1.4.1.tgz#ddf7c61e60d8e563d46ba8e2ea9ad90f9a1e5aa3"
-  integrity sha512-l3BOHqG99RHb73XROykj8o2rRaUqqYwN0E6C1EkH+R1GIfDjMaUGPaCNEoKKmsXT0Vu0EOyL1BudQtdVlMsgjA==
+  resolved "https://github.com/RobotWebTools/roslibjs.git#f8a4d60869006476167683beaa485483d782c283"
   dependencies:
     "@xmldom/xmldom" "^0.8.0"
     cbor-js "^0.1.0"
-    eventemitter2 "^6.4.0"
-    object-assign "^4.0.0"
+    eventemitter3 "^5.0.1"
     pngparse "^2.0.0"
-    socket.io "^4.0.0"
-    webworkify "^1.5.0"
-    webworkify-webpack "^2.1.5"
     ws "^8.0.0"
 
 "roslib@https://github.com/RobotWebTools/roslibjs.git#67ce301bbd50c1279e1ab9b83f078a6b19564280":
