@@ -9,9 +9,11 @@ class QuaternionToEuler(Node):
     def __init__(self):
         super().__init__('quaternion_to_euler')
 
+        self.declare_parameter('imu_topic', '/oak/imu/data')
+
         self.subscription = self.create_subscription(
             Imu,
-            '/oak/imu/data',
+            self.get_parameter('imu_topic').get_parameter_value().string_value,
             self.quaternion_callback,
             10
         )
