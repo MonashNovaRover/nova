@@ -3,17 +3,18 @@
  * Author: Bailey Chessum
  * Date Created: 12/5/2024
  */
-import React from "react";
+import React, {useCallback} from "react";
 import {
   Autocomplete,
   AutocompleteItem,
   Button,
   Card,
   CardBody,
-  CardHeader,
+  CardHeader, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger,
   Select,
   SelectItem
 } from "@nextui-org/react";
+import {MoreHorizontal} from "react-feather";
 
 /**
  * Props for CarouselWidget
@@ -36,14 +37,18 @@ export interface CarouselWidgetProps {
 const CarouselWidget: React.FC<CarouselWidgetProps> = (props) => {
   // What values should be sent to the ROS node as positions to go to?
   const instruments = props.instruments ?? new Map<string, number>([
-    ["Pumps", 0],
-    ["UV Vis Spec", 5],
-    ["Camera", 10],
+    ["UV Vis Spec", 16],
+    ["Camera", 1],
   ]);
 
   // Definitions for cuvette ids from props, using defaults if not specified
   const cuvetteCount = props.cuvettes?.length ?? props.cuvetteCount ?? 20;
-  const cuvettes = props.cuvettes ?? Array.from({ length: cuvetteCount }, (_, i) => i);
+  const cuvettes = props.cuvettes ?? Array.from({ length: cuvetteCount }, (_, i) => i + 1);
+
+  // Function that zeroes the carousel when called
+  const zeroCarouselFunc = useCallback(() => {
+    console.log("Zero the carousel! To be implemented...");
+  }, []);
 
   // Picker for the cuvette
   const cuvettePicker = (
@@ -78,11 +83,32 @@ const CarouselWidget: React.FC<CarouselWidgetProps> = (props) => {
     </div>
   );
 
+  // The triple dots at the top right corner of the widget
+  const cardHeaderDropdown = (
+    <Dropdown className="m-0">
+      <DropdownTrigger>
+        <Button
+          variant={"light"}
+          isIconOnly
+          className="m-0"
+        >
+          <MoreHorizontal></MoreHorizontal>
+        </Button>
+      </DropdownTrigger>
+      <DropdownMenu aria-label="Static Actions">
+        <DropdownItem key="advanced" onPress={zeroCarouselFunc}>
+          Zero Carousel
+        </DropdownItem>
+      </DropdownMenu>
+    </Dropdown>
+  );
+
   // Construct the widget
   return (
     <Card>
-      <CardHeader>
-        Carousel
+      <CardHeader className="pb-0 flex flex-row">
+        <div className="flex-grow">Carousel</div>
+        {cardHeaderDropdown}
       </CardHeader>
       <CardBody>
         {pickerRow}
