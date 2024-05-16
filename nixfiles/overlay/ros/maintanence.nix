@@ -69,8 +69,8 @@ self: super:
         src = self.fetchFromGitHub {
             owner = "MonashNovaRover";
             repo = "depthai-ros";
-            rev = "e79be16eacad4f1892fe4035e2108bdd42293379"; 
-            hash = "sha256-QCAEeewkXYDYbE7drU2l8bmqr+sPNy7KnRwADg7zFws=";
+            rev = "643cc5139b4eed4a7002245f7beb3cad17f25482";
+            hash = "sha256-5+ViyoNt3gw/Y7/1lwMPCm0szSG7IqB2HMMAhhrEiTM=";
         };
         version = "2.9.0-r1";
         sourceRoot = "source/depthai_descriptions";
