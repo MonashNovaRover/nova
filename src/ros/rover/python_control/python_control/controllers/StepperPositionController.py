@@ -9,7 +9,7 @@ from nova_interfaces.action import Stepper
 
 
 class StepperPositionController(Controller):
-    TIMEOUT = 1000
+    TIMEOUT = 200
 
     """Class to control the CMD card on the CAN bus"""
     def __init__(
@@ -159,6 +159,7 @@ class StepperPositionController(Controller):
 
     def stepper_action_callback(self, goal_handle):
         goal_name = goal_handle.request.goal
+        action = goal_handle.request.action
         self.get_logger().info('Executing Stepper Goal: {0}'.format(goal_name))
 
         if not self.get_control().valid_position(goal_name):
@@ -169,10 +170,15 @@ class StepperPositionController(Controller):
             return result
 
         success: bool
-        if goal_name == self.get_control().ZERO:
+        if action == goal_handle.request.ZERO:
             success = self.zeroing_action(goal_handle)
-        else:
+        elif action == goal_handle.request.GO_TO:
             success = self.go_to_position_action(goal_handle, goal_name)
+        elif action == goal_handle.request.SET:
+            success = self.setting_position_action(goal_handle, goal_name)
+        else:
+            success = False
+            self.get_logger().error('Invalid action: {0}'.format(action))
 
         self.stop()
 
@@ -187,7 +193,7 @@ class StepperPositionController(Controller):
     
     def control_send_callback(self):
         """Send the control frame over the CAN bus"""
-        if self.is_zeroing() or self.is_going_to_position():
+        if self.is_zeroing() or self.is_going_to_position() or self.is_setting():
             super().control_send_callback()
         else:
             self.get_logger().debug("Controller is stopped, not sending frame")

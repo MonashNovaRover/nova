@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import functools
 from python_control.controls.OneAxisPositionControl import OneAxisPositionControl
 from python_control.controllers.StepperPCBController import StepperPCBPositionController
 from python_control.sensors.IntegerSensor import IntegerSensor
@@ -40,19 +39,17 @@ class URCCarousel(ControllerNode):
 
     # SENDING CARD IDS
     # Add any CONTROL FRAME / CARD IDS here
-    STEPPER_PCB_SEND = 0x006
+    STEPPER_PCB_SEND = 0x000 # TODO: REPLACE CARD ID
 
     # RECEIVING CARD IDS
     # Add any SENSOR FRAME / CARD IDS here
-    STEPPER_PCB_RECV_POS = 0x456
-    STEPPER_PCB_RECV_ZERO = 0x406
-
+    STEPPER_PCB_RECV_POS = 0x001 # TODO: REPLACE CARD ID
 
     # NAMES
     # Add any CONTROL names here
     CAROUSEL_CONTROL = "carousel"
+    # Add any SENSOR names here
     CAROUSEL_POS = "carousel_pos"
-    CAROUSEL_ZERO = "carousel_zero"
 
     # CONTROL PARAMETERS
     # Positions
@@ -75,7 +72,7 @@ class URCCarousel(ControllerNode):
         logger = self.get_logger()
 
         ## Add CAN ID Filters
-        self.bus.set_id_filter([self.STEPPER_PCB_RECV_POS, self.STEPPER_PCB_RECV_ZERO])
+        self.bus.set_id_filter([self.STEPPER_PCB_RECV_POS])
 
         ## Create sensors
         self.carousel_pos_sensor = IntegerSensor(
@@ -95,7 +92,7 @@ class URCCarousel(ControllerNode):
             self.ZERO: 0
         }
 
-        for pos in range(1, self.NUM_CUVETTES):
+        for pos in range(1, self.NUM_CUVETTES + 1):
             POSITIONS[str(pos)] = (pos - 1) * GAP_STEPS
 
 

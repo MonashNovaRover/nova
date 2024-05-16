@@ -73,7 +73,8 @@ class OneAxisPositionControl(Control):
 
     def stop(self):
         """Stop the motor"""
-        self.zero_sensor.reset()
+        if self.zero_sensor is not None:
+            self.zero_sensor.reset()
 
 
 
