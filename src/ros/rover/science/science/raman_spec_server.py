@@ -123,16 +123,7 @@ class RamanServer(Node):
         Calls a single spectrum to be published
         """
         if self.is_continuous:
-            spectrum_start = None
-            spectrum_end = None
-            loop_count = 0
-            while loop_count < RamanServer.LOOPS_FOR_SINGLE_COLLECTION and not spectrum_end: 
-                spectrum = self.get_spectrum(self.continuous_settings)
-                spectrum_start, spectrum_end = RamanServer.find_full_phase(spectrum)
-                self.get_logger().info(f"Spectrum length is {len(spectrum)}")
-                loop_count += 1
-            
-            self.publish_spectrum(spectrum[spectrum_start:spectrum_end:RamanServer.RESOLUTION_REDUCING_FACTOR])
+            self.publish_spectrum(self.get_valid_spectrum(self.continuous_settings))
 
 
     def send_can_commands(self):
@@ -272,6 +263,25 @@ class RamanServer(Node):
         msg.green_laser_on, msg.red_laser_on, msg.filter_selection, msg.stepper_value, msg.mirror_servo = self.mech_state
         self.mech_publisher_.publish(msg)
 
+    
+    def get_valid_spectrum(self, port, shperiod, icgperiod, average):
+        """
+        Returns a Tuple of True, and single spectrum that has a full phase, or False, and an empty list if a single spectrum that has a full phase is not found
+        """
+        spectrum_start = None
+        spectrum_end = None
+        loop_count = 0
+        while loop_count < RamanServer.LOOPS_FOR_SINGLE_COLLECTION and not spectrum_end: 
+            spectrum = self.get_spectrum(port, shperiod, icgperiod, average)
+            spectrum_start, spectrum_end = RamanServer.find_full_phase(spectrum)
+            self.get_logger().info(f"Spectrum length is {len(spectrum[spectrum_start:spectrum_end])} and with reduction is {len(spectrum[spectrum_start:spectrum_end:RamanServer.RESOLUTION_REDUCING_FACTOR])}")
+            loop_count += 1
+        
+        if spectrum_end:
+            return True, spectrum[spectrum_start:spectrum_end:RamanServer.RESOLUTION_REDUCING_FACTOR]
+        else:
+            return False, []
+
 
     def raman_spec_response(self, request, response):
         """
@@ -294,16 +304,7 @@ class RamanServer(Node):
 
         time_start = time.time()
         
-        spectrum_start = None
-        spectrum_end = None
-        loop_count = 0
-        while loop_count < RamanServer.LOOPS_FOR_SINGLE_COLLECTION and not spectrum_end: 
-            spectrum = self.get_spectrum(request.port, request.shperiod, request.icgperiod, request.average)
-            spectrum_start, spectrum_end = RamanServer.find_full_phase(spectrum)
-            self.get_logger().info(f"Spectrum length is {len(spectrum[spectrum_start:spectrum_end])} and with reduction is {len(spectrum[spectrum_start:spectrum_end:RamanServer.RESOLUTION_REDUCING_FACTOR])}")
-            loop_count += 1
-        
-        self.publish_spectrum(spectrum[spectrum_start:spectrum_end:RamanServer.RESOLUTION_REDUCING_FACTOR])
+        self.publish_spectrum(self.get_valid_spectrum(request.port, request.shperiod, request.icgperiod, request.average))
 
         time_taken = time.time() - time_start
         self.get_logger().info(f"Spectrum collection took {str(round(time_taken, 7))} seconds")
