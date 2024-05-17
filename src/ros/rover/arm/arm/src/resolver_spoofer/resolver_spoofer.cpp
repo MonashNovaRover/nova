@@ -54,7 +54,7 @@ void ResolverSpoofer::start_node()
     );
 
     joint_states_publisher = this->create_publisher<sensor_msgs::msg::JointState>(
-        "joint_states", 10
+        "/arm/joint_states", 10
     );
 
 
