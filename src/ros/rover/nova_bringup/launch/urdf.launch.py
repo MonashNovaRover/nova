@@ -66,9 +66,18 @@ def launch_setup(context, *args, **kwargs):
         }]
     )
 
+    rviz_node = Node(
+        package='rviz2',
+        namespace='',
+        executable='rviz2',
+        name='rviz2',
+        arguments=['-d', [PathJoinSubstitution([FindPackageShare('nova_bringup'), 'rviz', 'default.rviz'])]]
+    )
+
     return [
         robot_state_publisher_node,
         joint_state_publisher_node,
+        rviz_node
     ]
 
 # Generate the launch file with all inputs
@@ -96,6 +105,12 @@ def generate_launch_description():
             default_value='True',
             description='Include rover URDF in robot_description'
         ),
+        DeclareLaunchArgument(
+            name='rviz', 
+            default_value='True',
+            description='Launch rviz?'
+        ),
+
     ]
 
     return LaunchDescription(
