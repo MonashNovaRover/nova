@@ -64,7 +64,7 @@ const RamanMechanicalInputs: React.FC = () => {
 
 
     return (
-        <Card className="m-1 p-2 flex flex-row flex-1 space-x-2 justify-between">
+        <Card className="m-1 p-5 flex flex-row flex-wrap flex-1 space-x-10 justify-around h-60">
             <CardHeader className="shrink-0 w-40 p-1">Mechanical Inputs</CardHeader>
             <Button isIconOnly className="w-8 h-8 m-3" radius="md" onPress={onOpen}>
                 <HelpCircle className="w-6 h-6" />

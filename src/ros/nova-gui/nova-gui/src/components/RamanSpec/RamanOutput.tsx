@@ -4,16 +4,17 @@
  * It accepts responses from the 'raman_spectra' ROS service.
  */
 
+import { Card } from "@nextui-org/react";
 import { useEffect } from "react";
 import { RootState } from "../../redux/RootState";
 import { useBifrost } from "../../redux/actions/bifrost/useBifrostAction";
 import { useSelector } from "react-redux";
 import { RosTopic } from "../../ros/topics/rosTopic";
-import { ChartStyle } from "../SpectraDisplay/ChartOptions";
-import OutputComparison from "../SpectraDisplay/OutputComparison";
+import { ChartOptions, ChartStyle } from "../SpectraDisplay/ChartOptions";
+import DataChart from "../SpectraDisplay/DataChart";
 import { getDefaultPeakFinder } from "../SpectraDisplay/ChartAnalysis";
 
-const RamanOutputComparison: React.FC = () => {
+const RamanOutput: React.FC = () => {
     // units are nm
     const LASER_GREEN_START = 416
     const LASER_GREEN_END = 642
@@ -25,14 +26,9 @@ const RamanOutputComparison: React.FC = () => {
     const RAMAN_PEAK_VALUE = 3600  // approx
     const NORMALISED_SCALE_MAX = 100
 
-    const ramanMechState = {
-        greenLaserOn: false,
-        redLaserOn: false,
-        pumpOn: false,
-        filterSelection: 0,
-        stepperValue: 0,
-        mirrorServo: 0
-    } // change this to bifrost store when linked
+    const ramanMechState = useSelector(
+        (state: RootState) => state.ramanMechMessageStore
+    );
 
     // Bifrost
     const spectrumStore = useSelector(
@@ -53,36 +49,21 @@ const RamanOutputComparison: React.FC = () => {
         data: spectrumStore.spectrum.map((element, index) => [Math.round(100*(LASER_RED_START + LASER_RED_RANGE*index/spectrumStore.spectrum.length)) / 100.0, Math.round(100*NORMALISED_SCALE_MAX*element/RAMAN_PEAK_VALUE)/100.0])
     }]
 
-
     const determineOutput = () => {
-        if (ramanMechState.greenLaserOn) {
+        if (ramanMechState.green_laser_on) {
             return greenLaserOutput
         } else {
             return redLaserOutput
         }
     }
     
-
-    const kerogendata = [10, 11, 9, 8, 9, 10, 12, 11, 9, 11, 10, 11, 10, 9, 11, 12, 13, 15, 17, 20, 23, 24, 28, 33, 39, 47, 58, 70, 66, 54, 50, 70, 90, 65, 40, 35, 34, 34, 35, 35, 34, 34, 33, 32, 31, 31, 30, 31, 32]
-    const kerogen2data = [10, 11, 9, 8, 9, 10, 12, 13, 12, 9, 10, 11, 10, 9, 11, 12, 13, 15, 17, 20, 23, 24, 28, 33, 39, 47, 58, 70, 66, 54, 50, 70, 90, 65, 40, 35, 34, 34, 35, 35, 34, 34, 33, 32, 31, 31, 30, 31, 32]
-    const elementData = [[{
-        name: "Kerogen",
-        data: kerogendata.map((element, index) => [50*index, element])
-    }],[{
-        name: "Kerogen 2",
-        data: kerogen2data.map((element, index) => [50*index, element])
-    }]]
+    const peakFinder = getDefaultPeakFinder(3, 20);
 
     return (
-        <OutputComparison
-            title="Comparison and Analysis"
-            peaksOnMain
-            outputData={determineOutput()}
-            elementData={elementData}
-            style={ChartStyle.Default}
-            peakFinder={getDefaultPeakFinder(2, 20)}
-        />
+        <Card className="m-2 p-2">
+            <DataChart dataset={determineOutput()} chartOptions={ChartOptions(ChartStyle.Default)} peaks={peakFinder(determineOutput()[0].data)} />
+        </Card>
     ) 
 }
 
-export default RamanOutputComparison;
+export default RamanOutput;

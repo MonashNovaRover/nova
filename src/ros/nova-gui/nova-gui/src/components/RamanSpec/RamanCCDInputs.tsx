@@ -48,7 +48,7 @@ const RamanCCDInputs: React.FC = () => {
       }, [bifrost]);
 
     return (
-        <Card className="m-1 p-2 flex flex-row flex-1 space-x-2">
+        <Card className="h-40 m-1 p-5 flex flex-row flex-wrap flex-1 space-x-10">
             <CardHeader className="shrink-0 w-24 p-1">CCD Inputs</CardHeader>
             <Button isIconOnly className="w-8 h-8 m-3" radius="md" onPress={onOpen}>
                 <HelpCircle className="w-6 h-6" />
