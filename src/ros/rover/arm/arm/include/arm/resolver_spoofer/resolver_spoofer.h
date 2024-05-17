@@ -12,6 +12,7 @@ NODE: resolver_spoofer
 TOPICS:
   - /arm/joint_velocities  [sensor_msgs/JointState]    [Subscribed]
   - /arm/resolvers     [sensor_msgs/JointState]    [Published]
+  - /joint_states      [sensor_msgs/JointState]    [Published]
 SERVICES: None
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -56,6 +57,8 @@ class ResolverSpoofer : public ArmConfigInfoClient
     rclcpp::TimerBase::SharedPtr publisher_timer;
     // Publisher to resolvers
     rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr resolver_publisher;
+    // joint states publisher
+    rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr joint_states_publisher;
 
     /// Converts a Real angle into the equivalent angle in [0, 2pi)
     double wrap_to_2pi(double angle);

@@ -8,9 +8,24 @@
 
   <xacro:arg name="gazebo" default="false"/>
   <xacro:arg name="use_mock_hardware" default="false"/>
+  <xacro:arg name="arm" default="false"/>
+  <xacro:arg name="depth_camera" default="true"/>
+
 
   <!-- Manually added links-->
-  <link name="base_link"></link>
+  <link name="base_link" />
+
+  <link name="mast_link" >
+    <visual>
+      <origin xyz="0.23 -0.35 0.475" rpy="0 0 0" />
+      <geometry>
+        <cylinder radius="0.01" length="1" />
+      </geometry>
+      <material name="Green">
+        <color rgba="0 1 0 1.0"/>
+      </material>
+    </visual>
+  </link>
   
   <link
     name="chassis">
@@ -34,7 +49,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find rover_description)/meshes/chassis.STL" />
+          filename="file://$(find rover_description)/meshes/chassis.STL" />
       </geometry>
       <material
         name="">
@@ -48,7 +63,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find rover_description)/meshes/chassis.STL" />
+          filename="file://$(find rover_description)/meshes/chassis.STL" />
       </geometry>
     </collision>
   </link>
@@ -60,6 +75,15 @@
     <origin 
         xyz="0. -0. 0.38"
         rpy="0. 0. ${-pi/2}"
+    />
+  </joint>
+
+  <joint name="mast_to_chassis" type="fixed">
+    <parent link="chassis" />
+    <child link="mast_link" />
+    <origin
+        xyz="0 0 0"
+        rpy="0 0 0"
     />
   </joint>
 
@@ -85,7 +109,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find rover_description)/meshes/left_leg.STL" />
+          filename="file://$(find rover_description)/meshes/left_leg.STL" />
       </geometry>
       <material
         name="">
@@ -99,7 +123,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find rover_description)/meshes/left_leg.STL" />
+          filename="file://$(find rover_description)/meshes/left_leg.STL" />
       </geometry>
     </collision>
   </link>
@@ -138,7 +162,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find rover_description)/meshes/front_left_pivot.STL" />
+          filename="file://$(find rover_description)/meshes/front_left_pivot.STL" />
       </geometry>
       <material
         name="">
@@ -152,7 +176,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find rover_description)/meshes/front_left_pivot.STL" />
+          filename="file://$(find rover_description)/meshes/front_left_pivot.STL" />
       </geometry>
     </collision>
   </link>
@@ -197,7 +221,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find rover_description)/meshes/front_left_wheel.STL" />
+          filename="file://$(find rover_description)/meshes/front_left_wheel.STL" />
       </geometry>
       <material
         name="">
@@ -211,7 +235,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find rover_description)/meshes/wheel_collision.stl" />
+          filename="file://$(find rover_description)/meshes/wheel_collision.stl" />
       </geometry>
     </collision>
   </link>
@@ -250,7 +274,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find rover_description)/meshes/back_left_pivot.STL" />
+          filename="file://$(find rover_description)/meshes/back_left_pivot.STL" />
       </geometry>
       <material
         name="">
@@ -264,7 +288,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find rover_description)/meshes/back_left_pivot.STL" />
+          filename="file://$(find rover_description)/meshes/back_left_pivot.STL" />
       </geometry>
     </collision>
   </link>
@@ -309,7 +333,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find rover_description)/meshes/back_left_wheel.STL" />
+          filename="file://$(find rover_description)/meshes/back_left_wheel.STL" />
       </geometry>
       <material
         name="">
@@ -323,7 +347,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find rover_description)/meshes/wheel_collision.stl" />
+          filename="file://$(find rover_description)/meshes/wheel_collision.stl" />
       </geometry>
     </collision>
   </link>
@@ -362,7 +386,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find rover_description)/meshes/right_leg.STL" />
+          filename="file://$(find rover_description)/meshes/right_leg.STL" />
       </geometry>
       <material
         name="">
@@ -376,7 +400,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find rover_description)/meshes/right_leg.STL" />
+          filename="file://$(find rover_description)/meshes/right_leg.STL" />
       </geometry>
     </collision>
   </link>
@@ -415,7 +439,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find rover_description)/meshes/front_right_pivot.STL" />
+          filename="file://$(find rover_description)/meshes/front_right_pivot.STL" />
       </geometry>
       <material
         name="">
@@ -429,7 +453,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find rover_description)/meshes/front_right_pivot.STL" />
+          filename="file://$(find rover_description)/meshes/front_right_pivot.STL" />
       </geometry>
     </collision>
   </link>
@@ -475,7 +499,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find rover_description)/meshes/front_right_wheel.STL" />
+          filename="file://$(find rover_description)/meshes/front_right_wheel.STL" />
       </geometry>
       <material
         name="">
@@ -489,7 +513,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find rover_description)/meshes/wheel_collision.stl" />
+          filename="file://$(find rover_description)/meshes/wheel_collision.stl" />
       </geometry>
     </collision>
   </link>
@@ -528,7 +552,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find rover_description)/meshes/back_right_pivot.STL" />
+          filename="file://$(find rover_description)/meshes/back_right_pivot.STL" />
       </geometry>
       <material
         name="">
@@ -542,7 +566,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find rover_description)/meshes/back_right_pivot.STL" />
+          filename="file://$(find rover_description)/meshes/back_right_pivot.STL" />
       </geometry>
     </collision>
   </link>
@@ -587,7 +611,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find rover_description)/meshes/back_right_wheel.STL" />
+          filename="file://$(find rover_description)/meshes/back_right_wheel.STL" />
       </geometry>
       <material
         name="">
@@ -601,7 +625,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///$(find rover_description)/meshes/wheel_collision.stl" />
+          filename="file://$(find rover_description)/meshes/wheel_collision.stl" />
       </geometry>
     </collision>
   </link>
@@ -623,11 +647,30 @@
     <xacro:include filename="$(find rover_description)/urdf/gazebo_ros2_control.xacro" />
   </xacro:if>
 
+  <xacro:if value="$(arg arm)">
+    <xacro:include filename="$(find rover_description)/urdf/arm.urdf.xacro" />
+
+    <joint 
+      name="chassis_to_arm_base"
+      type="fixed">
+      <origin
+        xyz="0 0.15 -0.06"
+        rpy="0 0 1.57"/>
+      <parent
+        link="chassis" />
+      <child
+        link="arm_link" /> <!-- should use a prefix arg instead of hardcoding 'arm' -->
+    </joint>
+  </xacro:if>
+
   <xacro:unless value="$(arg gazebo)">
     <xacro:include filename="$(find rover_description)/urdf/ros2_control.xacro" />
     <xacro:rover_ros2_control use_mock_hardware="$(arg use_mock_hardware)"/>
   </xacro:unless>
-  <xacro:include filename="depth_camera.xacro" />
+
+  <xacro:if value="$(arg depth_camera)">
+    <xacro:include filename="depth_camera.xacro" />
+  </xacro:if>
   <xacro:include filename="p3d.xacro" />
   <xacro:include filename="gps.xacro" />
 </robot>
