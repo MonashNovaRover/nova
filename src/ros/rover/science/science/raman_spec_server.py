@@ -57,7 +57,6 @@ class RamanServer(Node):
 
     # Factors for spectrum collection
     PHASE_SIGNAL = 3675
-    RESOLUTION_REDUCING_FACTOR = 10
     MINIMUM_PHASE_LENGTH = 1500
     SPECTRUM_CROP = 30  # the number of pixels after phase signal ends to ignore
     LOOPS_FOR_SINGLE_COLLECTION = 5
@@ -104,7 +103,7 @@ class RamanServer(Node):
         # for spectrum
         self.spec_srv = self.create_service(RamanSpec, RamanServer.SPEC_SERVICE, self.raman_spec_response)
         self.spec_publisher_ = self.create_publisher(RamanSpectrum, RamanServer.SPEC_TOPIC, 10)
-        self.timer_continuous_mode = self.create_timer(0.5, self.continuous_spec_callback)
+        self.timer_continuous_mode = self.create_timer(2, self.continuous_spec_callback)
 
         # for mechanical
         self.mech_srv = self.create_service(RamanMech, RamanServer.MECH_STATE_SERVICE, self.raman_mech_response)
@@ -273,11 +272,11 @@ class RamanServer(Node):
         loop_count = 0
         while loop_count < RamanServer.LOOPS_FOR_SINGLE_COLLECTION and not spectrum_end: 
             spectrum = self.get_spectrum(port, shperiod, icgperiod, average)
+            time.sleep(0.1)
             spectrum_start, spectrum_end = RamanServer.find_full_phase(spectrum)
-            self.get_logger().info(f"Spectrum length is {len(spectrum[spectrum_start:spectrum_end])} and with reduction is {len(spectrum[spectrum_start:spectrum_end:RamanServer.RESOLUTION_REDUCING_FACTOR])}")
             loop_count += 1
         
-        return spectrum_end is not None, spectrum[spectrum_start:spectrum_end:RamanServer.RESOLUTION_REDUCING_FACTOR]
+        return spectrum_end is not None, spectrum[spectrum_start:spectrum_end]
 
 
     def raman_spec_response(self, request, response):
@@ -302,7 +301,6 @@ class RamanServer(Node):
         time_start = time.time()
         
         isvalid, spectrum = self.get_valid_spectrum(request.port, request.shperiod, request.icgperiod, request.average)
-        self.get_logger().info(f"{len(spectrum)}")
         self.publish_spectrum(isvalid, spectrum)
 
         time_taken = time.time() - time_start
