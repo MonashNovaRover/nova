@@ -129,6 +129,7 @@ class RamanServer(Node):
         """
         Sends all can commands to update mechanical state to what is current 
         """
+		self.get_logger().info("sending CAN commands")
         self.send_laser_command()
         self.send_filter_command()
         self.send_stepper_command()
@@ -340,12 +341,12 @@ class RamanServer(Node):
             return []
 
 
-    def publish_spectrum(self, msg_spectrum: List[int]) -> None:
+    def publish_spectrum(self, msg_isvalid, msg_spectrum: List[int]) -> None:
         """
         Publishes RamanSpectrum message with inputted data
         """
         msg = RamanSpectrum()
-        msg.isvalid = True
+        msg.isvalid = msg_isvalid
         msg.spectrum = msg_spectrum
         self.spec_publisher_.publish(msg)
 
