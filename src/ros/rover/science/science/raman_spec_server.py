@@ -301,7 +301,9 @@ class RamanServer(Node):
 
         time_start = time.time()
         
-        self.publish_spectrum(self.get_valid_spectrum(request.port, request.shperiod, request.icgperiod, request.average))
+        isvalid, spectrum = self.get_valid_spectrum(request.port, request.shperiod, request.icgperiod, request.average)
+        self.get_logger().info(f"{len(spectrum)}")
+        self.publish_spectrum(isvalid, spectrum)
 
         time_taken = time.time() - time_start
         self.get_logger().info(f"Spectrum collection took {str(round(time_taken, 7))} seconds")
