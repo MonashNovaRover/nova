@@ -277,10 +277,11 @@ class RamanServer(Node):
             self.get_logger().info(f"Spectrum length is {len(spectrum[spectrum_start:spectrum_end])} and with reduction is {len(spectrum[spectrum_start:spectrum_end:RamanServer.RESOLUTION_REDUCING_FACTOR])}")
             loop_count += 1
         
+	return spectrum_end is not None, spectrum[spectrum_start:spectrum_end:RamanServer.RESOLUTION_REDUCING_FACTOR]
         if spectrum_end:
             return True, spectrum[spectrum_start:spectrum_end:RamanServer.RESOLUTION_REDUCING_FACTOR]
         else:
-            return False, []
+            return False, spectrum[spectrum_start:spectrum_end:RamanServer.RESOLUTION_REDUCING_FACTOR]
 
 
     def raman_spec_response(self, request, response):
