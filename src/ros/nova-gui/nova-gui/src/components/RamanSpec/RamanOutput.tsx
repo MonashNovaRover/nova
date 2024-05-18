@@ -12,7 +12,6 @@ import { useSelector } from "react-redux";
 import { RosTopic } from "../../ros/topics/rosTopic";
 import { ChartOptions, ChartStyle } from "../SpectraDisplay/ChartOptions";
 import DataChart from "../SpectraDisplay/DataChart";
-import { getDefaultPeakFinder } from "../SpectraDisplay/ChartAnalysis";
 
 const RamanOutput: React.FC = () => {
     // units are nm
@@ -22,8 +21,9 @@ const RamanOutput: React.FC = () => {
     const LASER_RED_START = 700
     const LASER_RED_END = 928
     const LASER_RED_RANGE = LASER_RED_END - LASER_RED_START
+    const STEP_VALUE = 20
 
-    const RAMAN_PEAK_VALUE = 3600  // approx
+    const RAMAN_PEAK_VALUE = 3730  // approx
     const NORMALISED_SCALE_MAX = 100
 
     const ramanMechState = useSelector(
@@ -41,12 +41,12 @@ const RamanOutput: React.FC = () => {
 
     let greenLaserOutput = [{
         name: "CCD Output",
-        data: spectrumStore.spectrum.map((element, index) => [Math.round(100*(LASER_GREEN_START + LASER_GREEN_RANGE*index/spectrumStore.spectrum.length)) / 100.0, Math.round(100*NORMALISED_SCALE_MAX*element/RAMAN_PEAK_VALUE)/100.0])
+        data: spectrumStore.spectrum.map((element, index) => { if (index % STEP_VALUE == 0) {return [Math.round(100*(LASER_GREEN_START + LASER_GREEN_RANGE*index/spectrumStore.spectrum.length)) / 100.0, Math.round(100*NORMALISED_SCALE_MAX*element/RAMAN_PEAK_VALUE)/100.0]}})
     }]
 
     let redLaserOutput = [{
         name: "CCD Output",
-        data: spectrumStore.spectrum.map((element, index) => [Math.round(100*(LASER_RED_START + LASER_RED_RANGE*index/spectrumStore.spectrum.length)) / 100.0, Math.round(100*NORMALISED_SCALE_MAX*element/RAMAN_PEAK_VALUE)/100.0])
+        data: spectrumStore.spectrum.map((element, index) => { if (index % STEP_VALUE == 0) {return [Math.round(100*(LASER_RED_START + LASER_RED_RANGE*index/spectrumStore.spectrum.length)) / 100.0, Math.round(100*NORMALISED_SCALE_MAX*element/RAMAN_PEAK_VALUE)/100.0]}})
     }]
 
     const determineOutput = () => {
@@ -56,12 +56,10 @@ const RamanOutput: React.FC = () => {
             return redLaserOutput
         }
     }
-    
-    const peakFinder = getDefaultPeakFinder(3, 20);
 
     return (
-        <Card className="m-2 p-2">
-            <DataChart dataset={determineOutput()} chartOptions={ChartOptions(ChartStyle.Default)} peaks={peakFinder(determineOutput()[0].data)} />
+        <Card className={spectrumStore.isvalid ? "m-2 p-2" : "m-2 p-2 bg-rose-900"}>
+            <DataChart dataset={determineOutput()} chartOptions={ChartOptions(ChartStyle.Default)} />
         </Card>
     ) 
 }
