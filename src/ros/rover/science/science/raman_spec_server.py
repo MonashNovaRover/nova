@@ -129,7 +129,7 @@ class RamanServer(Node):
         """
         Sends all can commands to update mechanical state to what is current 
         """
-		self.get_logger().info("sending CAN commands")
+        self.get_logger().info("sending CAN commands")
         self.send_laser_command()
         self.send_filter_command()
         self.send_stepper_command()
