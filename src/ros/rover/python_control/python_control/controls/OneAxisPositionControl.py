@@ -68,8 +68,10 @@ class OneAxisPositionControl(Control):
     
     def sensor_callbacks(self, frame):
         """Update the sensor values based on the frame"""
-        self.position_sensor.frame_callback(frame)
-        self.zero_sensor.frame_callback(frame)
+        if self.position_sensor is not None:
+            self.position_sensor.frame_callback(frame)
+        if self.zero_sensor is not None:
+            self.zero_sensor.frame_callback(frame)
 
     def stop(self):
         """Stop the motor"""
