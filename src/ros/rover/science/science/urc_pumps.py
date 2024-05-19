@@ -6,10 +6,10 @@ from python_control.controls.Direction import Direction
 from python_control.controllers.TimedCMDVelocityController import TimedCMDVelocityController
 from python_control.controls.TimedOneAxisVelocityControl import TimedOneAxisVelocityControl
 import rclpy
-from rclpy.action import ActionServer, ActionClient
+from rclpy.action import ActionServer
 from python_control.ControllerNode import ControllerNode
 from input_interfaces.msg import InputJoystick
-from nova_interfaces.action import Pumps, Stepper
+from nova_interfaces.action import Pumps
 
 
 class URCPumps(ControllerNode):
@@ -120,8 +120,7 @@ class URCPumps(ControllerNode):
         # self.add_controller(self.SHOT_TO_CAROUSEL_PUMP_NAME, self.shot_to_carousel_pump_controller)
 
         self.pumps_action = ActionServer(self, Pumps, self.PUMPS_ACTION, self.pumps_goal_callback)
-        self.carousel_action = ActionClient(self, Stepper, self.CAROUSEL_ACTION)
-  
+
         ## Start the CAN bus
         self.start_can()
 
