@@ -10,22 +10,7 @@ from input_interfaces.msg import InputJoystick
 from rclpy.action import ActionServer
 from nova_interfaces.action import Stepper
 
-
-def meters_to_steps(distance_m, ticks_per_rev, lead_screw_thread_pitch_m):
-    """
-    Convert a distance to steps
-    :param distance: The distance to convert in meters
-    :param ticks_per_rev: The number of ticks per revolution of the stepper motor
-    :param lead_screw_thread_pitch: The pitch of the lead screw in meters
-    :return: The number of steps required to move the distance
-    """
-    return int(distance_m * ticks_per_rev / lead_screw_thread_pitch_m)
-
-THREAD_PITCH_M = 0.008
-TICKS_PER_REV = 200
-GAP = 0.084
-
-GAP_STEPS = meters_to_steps(GAP, TICKS_PER_REV, THREAD_PITCH_M)
+GAP_STEPS = 10
 
 class URCCarousel(ControllerNode):
 
@@ -39,7 +24,7 @@ class URCCarousel(ControllerNode):
 
     # SENDING CARD IDS
     # Add any CONTROL FRAME / CARD IDS here
-    STEPPER_PCB_SEND = 0x005
+    STEPPER_PCB_SEND = 0x050
 
     # RECEIVING CARD IDS
     # Add any SENSOR FRAME / CARD IDS here
@@ -53,7 +38,7 @@ class URCCarousel(ControllerNode):
 
     # CONTROL PARAMETERS
     # Positions
-    NUM_CUVETTES = 14
+    NUM_CUVETTES = 20
 
     # Position Names
     ZERO = OneAxisPositionControl.ZERO
@@ -61,7 +46,7 @@ class URCCarousel(ControllerNode):
     # SENDING COMMAND IDS
     # Add any CONTROL command ids here
     STEPPER_SEND_POS_COMMAND_ID = 0x01
-    STEPPER_SEND_SET_COMMAND_ID = 0x03
+    STEPPER_SEND_SET_COMMAND_ID = 0x02
 
     # RECEIVING COMMAND IDS
     # Add any SENSOR command ids here
