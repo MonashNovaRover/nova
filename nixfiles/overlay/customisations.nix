@@ -12,6 +12,9 @@ self: super:
             hash = "sha256-SGTC/W7wv/we8Lo07geEA8h/PcsmG7BIzGHfgL3h4ZA=";
           };
         });
+        gphoto2 = pySuper.gphoto2.override {
+          libgphoto2 = self.libgphoto2-theta;
+        };
       }
     )
   ];
