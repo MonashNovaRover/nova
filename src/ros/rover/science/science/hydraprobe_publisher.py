@@ -23,6 +23,12 @@ import time
 from rclpy.node import Node
 
 from nova_interfaces.msg import HydraprobeData 
+import logging
+import logging.handlers as Handlers
+
+pymodbuslog = logging.getLogger('pymodbus')
+pymodbuslog.setLevel(logging.ERROR)
+
 
 class HydraprobeTransceiver(UARTTransceiver): 
     '''
@@ -127,9 +133,11 @@ class NewHydraprobeTransceiver():
                         {"base_reg": 0x0005, "num_regs": 1}]}   # get temp, moisture, EC
 
 
-    def __init__(self, port, probe_address=1, baudrate=9600, bytesize=8, parity='N', stopbits=1, retries=1, broadcast_enable=True):
+    def __init__(self, port, logger, probe_address=1, baudrate=9600, bytesize=8, parity='N', stopbits=1, retries=1, broadcast_enable=True):
+
         self.client = ModbusSerialClient(port, baudrate=baudrate, bytesize=bytesize, parity=parity, stopbits=stopbits, retries=retries, broadcast_enable=broadcast_enable)
         self.addr = probe_address
+        self.logger = logger
 
         assert self.client.connect()
 
@@ -142,7 +150,9 @@ class NewHydraprobeTransceiver():
 
             try:
                 results += reply.registers
-            except:
+            except Exception as e:
+                self.logger.error(f"The results varaible is {results}")
+                self.logger.error(str(e))
                 return None
         
         return results
@@ -155,7 +165,8 @@ class NewHydraprobeTransceiver():
         
         try:
             regs = reply.registers
-        except AttributeError:
+        except AttributeError as e:
+            self.logger.error(f"failed with regs {reply}: {str(e)}")
             regs = None
 
         return regs
@@ -174,8 +185,12 @@ class HydraprobePublisher(Node):
 
         super().__init__('hydraprobe_publisher')
 
+        pymodbuslog.addHandler(Handlers.RotatingFileHandler("hydraprobe-logfile.txt", maxBytes=1024*1024))
+
         # TODO: Update to use actual QoS profile
         self.publisher_ = self.create_publisher(HydraprobeData, '/science/hydraprobe_data', 10)
+       
+        self.__port = self.declare_parameter("port", "/dev/ttyUSB0")
         
         # Attempt to create the transceiver
         try:
@@ -193,12 +208,13 @@ class HydraprobePublisher(Node):
                 )
         
         # Print error if missing device
-        except:
-            self.get_logger().error("\033[1;91m\nERROR: Unable to find device on '%s'.\033[0m" % self.port)
-            exit()
+        except Exception as e:
+            self.get_logger().error("\033[1;91m\nERROR: Unable to find device on '%s'.\033[0m" % self.__port.value)
+            raise e
         
         # Create the timer
-        self.publisher_timer = self.create_timer(3, self.publish_values)
+        self.publisher_timer = self.create_timer(0.5, self.publish_values)
+        self.get_logger().info("Hydraprobe started")
 
         # get firmware version xx no longer applicable
         # self.hydraprobe_transceiver.transmit("FV=?")
@@ -211,6 +227,8 @@ class HydraprobePublisher(Node):
         # # pretty jank but we will roll with it
         # time.sleep(2)
         #then read values
+        self.get_logger().info("Hydraprobe attempting to create message")
+
         msg = HydraprobeData()
         values = self.hydraprobe_transceiver.get_reading_set(set_number=3)
         if values is not None:
@@ -222,8 +240,9 @@ class HydraprobePublisher(Node):
             msg.dielectric = values[3]
         else:
             # set error state with -1 for all values
-            msg.temperature = msg.moisture = msg.conductivity = msg.delectric = -1
+            msg.temperature = msg.moisture = msg.conductivity = msg.dielectric = float(-1)
 
+        self.get_logger().info(f"Publishing {msg.temperature}, {msg.moisture}, {msg.conductivity}, {msg.dielectric}")
         self.publisher_.publish(msg)
 
     def destroy_node(self):
@@ -234,6 +253,7 @@ class HydraprobePublisher(Node):
         return super().destroy_node()
 
 def main(args=None):
+    
     rclpy.init(args=args)
 
     pub = HydraprobePublisher()
