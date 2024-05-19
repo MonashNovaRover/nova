@@ -18,8 +18,8 @@ class URCAuger(ControllerNode):
 
     # SENDING CARD IDS
     # Add any CONTROL FRAME / CARD IDS here
-    AUGER_ACTUATION_SEND_FRAME_ID = 0x022
-    AUGER_DRILL_SEND_FRAME_ID = 0x021
+    AUGER_ACTUATION_SEND_FRAME_ID = 0x011
+    AUGER_DRILL_SEND_FRAME_ID = 0x012
     
     # RECEIVING CARD IDS
     # Add any SENSOR FRAME / CARD IDS here
@@ -54,8 +54,6 @@ class URCAuger(ControllerNode):
     def __init__(self):
         super(URCAuger, self).__init__(name="URCAuger", can_bus=self.CAN_BUS)
         logger = self.get_logger()
-
-        ## Add Flags as required
 
 
         ## Add CAN ID Filters
