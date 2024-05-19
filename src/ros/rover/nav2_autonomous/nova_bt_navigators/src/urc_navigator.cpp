@@ -109,12 +109,12 @@ URCNavigator::onLoop()
 
   feedback_msg->waypoints_remaining = goal_poses.size();
 
-  SearchGoals search_goals;
-  if (blackboard->get<SearchGoals>(search_goals_id_, search_goals)) {
-    feedback_msg->phase = feedback_msg->SEARCH;
-  } else {
-    feedback_msg->phase = feedback_msg->NAVIGATION;
-  }
+  // SearchGoals search_goals;
+  // if (blackboard->get<SearchGoals>(search_goals_id_, search_goals)) {
+  //   feedback_msg->phase = feedback_msg->SEARCH;
+  // } else {
+  //   feedback_msg->phase = feedback_msg->NAVIGATION;
+  // }
 
   int recovery_count = 0;
   blackboard->get<int>("number_recoveries", recovery_count);
@@ -165,11 +165,15 @@ URCNavigator::initializeGoalPose(ActionT::Goal::ConstSharedPtr goal)
 
   // Update the goal pose on the blackboard
   blackboard->set<Goals>(goals_blackboard_id_, goal->poses);
+
+  //update detection type and id
+  blackboard->set<std::string>("detection_type", goal->detection_type);
+  blackboard->set<std::string>("detection_id", goal->detection_id);
 }
 
-}  // namespace nav2_bt_navigator
+}  // namespace nova_bt_navigators
 
 #include "pluginlib/class_list_macros.hpp"
 PLUGINLIB_EXPORT_CLASS(
-  nav2_bt_navigator::URCNavigator,
+  nova_bt_navigators::URCNavigator,
   nav2_core::NavigatorBase)

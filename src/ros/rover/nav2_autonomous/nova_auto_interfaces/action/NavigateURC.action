@@ -2,8 +2,11 @@
 # Note: The expected priority order of the errors should match the message order
 uint16 NONE=0
 
+# Phase Enums
 uint8 NAVIGATION=0
 uint8 SEARCH=1
+
+#
 
 #goal definition
 geometry_msgs/PoseStamped[] poses
@@ -17,6 +20,7 @@ uint16 error_code
 ---
 #feedback definition
 geometry_msgs/PoseStamped current_pose
+builtin_interfaces/Duration navigation_time
 uint8 waypoints_remaining
 uint8 phase
 int16 number_of_recoveries

@@ -1,5 +1,5 @@
 <class_libraries>
-	<library path="nova_urc_navigator">
+	<library path="nova_bt_navigators">
 	  <class
 	  	name="nova_bt_navigators/URCNavigator"
 	  	type="nova_bt_navigators::URCNavigator"

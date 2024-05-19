@@ -45,6 +45,6 @@
 
   <export>
     <build_type>ament_cmake</build_type>
-    <nav2_core prefix="$(prefix)/navigator_plugins.xml"/>
+    <nav2_core prefix="$(prefix)/nova_navigators.xml"/>
   </export>
 </package>

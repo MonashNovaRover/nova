@@ -24,6 +24,8 @@ include_directories(
   include
 )
 
+set(lib_name ${PROJECT_NAME})
+
 set(dependencies
   rclcpp
   rclcpp_action
@@ -43,19 +45,15 @@ set(dependencies
   nova_auto_interfaces
 )
 
-add_library(nova_urc_navigator SHARED src/urc_navigator.cpp)
-ament_target_dependencies(nova_urc_navigator ${dependencies})
+add_library(${lib_name} SHARED 
+  src/urc_navigator.cpp
+)
 
-pluginlib_export_plugin_description_file(nav2_core navigator_plugins.xml)
 
-install(TARGETS nova_urc_navigator
+install(TARGETS ${lib_name}
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin
-)
-
-install(DIRECTORY include/
-  DESTINATION include/
 )
 
 if(BUILD_TESTING)
@@ -63,7 +61,7 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
-ament_export_include_directories(include)
-ament_export_libraries(${library_name} nova_urc_navigator)
+ament_target_dependencies(${lib_name} ${dependencies})
+pluginlib_export_plugin_description_file(nav2_core nova_navigators.xml)
 ament_export_dependencies(${dependencies})
 ament_package()

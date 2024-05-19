@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef NOVA_BT_NAVIGATORS__URC_NAVIGATOR
-#define NOVA_BT_NAVIGATORS__URC_NAVIGATOR
+#ifndef NOVA_BT_NAVIGATORS__URC_NAVIGATOR_HPP_
+#define NOVA_BT_NAVIGATORS__URC_NAVIGATOR_HPP_
 
 #include <string>
 #include <vector>
@@ -58,11 +58,6 @@ public:
   bool configure(
     rclcpp_lifecycle::LifecycleNode::WeakPtr node,
     std::shared_ptr<nav2_util::OdomSmoother> odom_smoother) override;
-
-  /**
-   * @brief A cleanup state transition to remove memory allocated
-   */
-  bool cleanup() override;
 
   /**
    * @brief Get action name for this navigator
@@ -112,13 +107,11 @@ protected:
   /**
    * @brief Goal pose initialization on the blackboard
    * @param goal Action template's goal message to process
-   * @return bool if goal was initialized successfully to be processed
    */
-  bool initializeGoalPose(ActionT::Goal::ConstSharedPtr goal);
+  void initializeGoalPose(ActionT::Goal::ConstSharedPtr goal);
 
   rclcpp::Time start_time_;
 
-  rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr goal_sub_;
   rclcpp_action::Client<ActionT>::SharedPtr self_client_;
 
   std::string goals_blackboard_id_;
@@ -130,4 +123,4 @@ protected:
 
 }  // namespace nova_bt_navigators
 
-#endif  // NOVA_BT_NAVIGATORS__URC_NAVIGATOR
+#endif  // NOVA_BT_NAVIGATORS__URC_NAVIGATOR_HPP_
