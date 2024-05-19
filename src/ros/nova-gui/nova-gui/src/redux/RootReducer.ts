@@ -7,7 +7,7 @@ import {
   IRosCmdInterfacesCmdFeedback,
   IRosNovaInterfacesNirProbeDataConst,
   IRosSensorMsgsRange,
-  IRosCoreHydraprobeData
+  IRosNovaInterfacesHydraprobeData
 } from "../ros/rosTypes";
 import { uiSlice } from "./slices/UISlice";
 import { cameraStreamerSlice } from "./slices/CameraStreamSlice";
@@ -154,7 +154,7 @@ export const rootReducer = {
       conductivity: 0,
       moisture: 0,
       temperature: 0,
-    } as IRosCoreHydraprobeData
+    } as IRosNovaInterfacesHydraprobeData
   ),
   // Regular Stores
   uiState: uiSlice.reducer,
