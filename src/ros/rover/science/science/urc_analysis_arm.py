@@ -38,7 +38,7 @@ class AnalysisArm(ControllerNode):
 
     # SENDING CARD IDS
     # Add any CONTROL FRAME / CARD IDS here
-    CMD_ID = 0x033
+    CMD_ID = 0x041
 
     # RECEIVING CARD IDS
     # Add any SENSOR FRAME / CARD IDS here
@@ -62,14 +62,16 @@ class AnalysisArm(ControllerNode):
 
     # CONTROL DIRECTIONS
     # Add any CONTROL DIRECTIONS here
-    CONTROL_NAME_UP = Direction.NEGATIVE
-    CONTROL_NAME_DOWN = Direction.POSITIVE
+    PLATFORM_UP = Direction.NEGATIVE
+    PLATFORM_DOWN = Direction.POSITIVE
 
     # LIMIT PARAMETERS
     # Add any LIMIT parameters here
     TIME_OF_FLIGHT_OFFSET = 20
     TIME_OF_FLIGHT_MIN = 30
     TIME_OF_FLIGHT_MAX = 165
+
+    TWITCH_SLEEP_TIME = 0.5
 
 
     def __init__(self):
