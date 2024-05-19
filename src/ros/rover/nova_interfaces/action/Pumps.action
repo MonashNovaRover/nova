@@ -10,3 +10,4 @@ bool success
 # Feedback
 # How many steps are left to reach the requested position
 float32 time_running
+float32 tim_to_run

@@ -133,9 +133,10 @@ class URCPumps(ControllerNode):
     def log_status(self, pump, time, running_time):
         self.get_logger().info('Pump: {0}, Time: {1}, Running Time: {2}'.format(pump, time, running_time))
         
-    def feedback(self, time_running):
+    def feedback(self, time_running, time_to_run):
         feedback_msg = Pumps.Feedback()
         feedback_msg.time_running = float(time_running)
+        feedback_msg.time_to_run = float(time_to_run)
         return feedback_msg
     
 
@@ -158,7 +159,7 @@ class URCPumps(ControllerNode):
         while control.get_time() and i < self.TIMEOUT:
             running_time = self.elapsed_time(start_time)
             controller.control_send_callback()
-            feedback_msg = self.feedback(running_time)
+            feedback_msg = self.feedback(running_time, control.get_time())
             goal_handle.publish_feedback(feedback_msg)
             self.log_status(goal_name, control.get_time(), running_time)
             time.sleep(0.1)
