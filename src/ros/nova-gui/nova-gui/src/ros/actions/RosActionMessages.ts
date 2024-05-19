@@ -7,9 +7,7 @@ export interface RosActionInterface {
     feedback: undefined;
   };
   [RosAction.SCIENCE_SAMPLE_TRAY]: {
-    goal: {
-      goal: string;
-    };
+    goal: string;
     goalResponse: {
       success: boolean;
     };
