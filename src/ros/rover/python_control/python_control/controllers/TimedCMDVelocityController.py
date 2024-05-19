@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 from logging import Logger
-from struct import pack
 import jcan
-from python_control.controllers.Card import Card
 from python_control.controls.OneAxisVelocityControl import OneAxisVelocityControl
-from python_control.controllers import CMDVelocityController
+from python_control.controllers.CMDVelocityController import CMDVelocityController
 from python_control.controls.TimedOneAxisVelocityControl import TimedOneAxisVelocityControl
 import time
 
@@ -20,10 +18,12 @@ class TimedCMDVelocityController(CMDVelocityController):
         self.start_time = 0.0
         super().stop()
 
-  
+    def get_start_time(self) -> float:
+        return self.start_time
+    
     def run_timed(self, run_time: float):
         control: TimedOneAxisVelocityControl = self.get_control()
-        control.update_velocity(control.get_max_percent())
+        control.update_velocity(1.0)
         control.set_time(run_time)
         self.start_time = time.time()
 
