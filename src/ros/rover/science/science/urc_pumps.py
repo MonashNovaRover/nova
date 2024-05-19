@@ -41,7 +41,7 @@ class URCPumps(ControllerNode):
 
     # Pump ACTION
     PUMPS_ACTION = "/science/pumps_action"
-    CAROUSEL_ACTION = "/science/carousel_action"
+
 
     # Goals
     CLEAN_SHEATH = "clean_sheath"
@@ -205,38 +205,7 @@ class URCPumps(ControllerNode):
 
         return self.run_pump(goal_handle, controller)
         
-
-        
-    # def send_carousel_goal(self, order):
-    #     goal_msg = Stepper.Goal()
-    #     goal_msg.goal = order
-        
-    #     self.carousel_action.wait_for_server()
-
-    #     self._send_goal_future = self.carousel_action.send_goal_async(goal_msg)
-
-    #     self._send_goal_future.add_done_callback(self.goal_response_callback)
-
-    # def goal_response_callback(self, future):
-    #     goal_handle = future.result()
-    #     if not goal_handle.accepted:
-    #         self.get_logger().info('Carousel goal rejected :(')
-    #         return
-
-    #     self.get_logger().info('Carousel goal accepted :)')
-
-    #     self._get_result_future = goal_handle.get_result_async()
-    #     self._get_result_future.add_done_callback(self.get_result_callback)
-
-    # def get_result_callback(self, future):
-    #     result = future.result().result
-    #     self.get_logger().info('Result: {0}'.format(result.sequence))
-    #     rclpy.shutdown()
-
-    # def feedback_callback(self, feedback_msg):
-    #     feedback = feedback_msg.feedback
-    #     self.get_logger().info('Received feedback: Current Position {0}, Goal Position {1}'.format(feedback.current_position, feedback.goal_position))
-
+    
     def pumps_goal_callback(self, goal_handle):
         pump_action = goal_handle.request.pump
         self.get_logger().info('Executing Pump Action: {0}'.format(pump_action))
