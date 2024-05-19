@@ -134,12 +134,12 @@ class NewHydraprobeTransceiver():
 
 
     def __init__(self, port, logger, probe_address=1, baudrate=9600, bytesize=8, parity='N', stopbits=1, retries=1, broadcast_enable=True):
-
         self.client = ModbusSerialClient(port, baudrate=baudrate, bytesize=bytesize, parity=parity, stopbits=stopbits, retries=retries, broadcast_enable=broadcast_enable)
         self.addr = probe_address
         self.logger = logger
 
-        assert self.client.connect()
+        if not self.client.connect():
+            raise RuntimeError("Failed to run self.client.connect()")
 
     def get_reading_set(self, set_number: int = 0):
         read_set = self.reading_sets[set_number]
@@ -178,7 +178,7 @@ class NewHydraprobeTransceiver():
 class HydraprobePublisher(Node):
 
     # Stores the port of the hydraprobe
-    port: str = '/dev/ttyUSB0'
+    # port: str = '/dev/ttyUSB0'
 
     # Main constructor
     def __init__(self):
@@ -189,7 +189,6 @@ class HydraprobePublisher(Node):
 
         # TODO: Update to use actual QoS profile
         self.publisher_ = self.create_publisher(HydraprobeData, '/science/hydraprobe_data', 10)
-       
         self.__port = self.declare_parameter("port", "/dev/ttyUSB0")
         
         # Attempt to create the transceiver
@@ -203,7 +202,7 @@ class HydraprobePublisher(Node):
             self.hydraprobe_transceiver = NewHydraprobeTransceiver(
                 logger = self.get_logger(),
                 baudrate = 9600, # confirm this
-                port = self.port, 
+                port = self.__port.value, 
                 probe_address = 0,
                 )
         
@@ -211,6 +210,8 @@ class HydraprobePublisher(Node):
         except Exception as e:
             self.get_logger().error("\033[1;91m\nERROR: Unable to find device on '%s'.\033[0m" % self.__port.value)
             raise e
+            # exit()
+            return
         
         # Create the timer
         self.publisher_timer = self.create_timer(0.5, self.publish_values)

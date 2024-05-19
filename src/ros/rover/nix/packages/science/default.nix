@@ -29,8 +29,10 @@ buildRosPackage {
   propagatedBuildInputs = with pythonPackages; [
     jcan
     nova-coms-utils
-  ] ++ 
-  [ nova-python-control 
+    pymodbus
+  ] ++
+  [
+    nova-python-control
     nova-input-interfaces
   ];
 }
