@@ -12,6 +12,8 @@ import {max} from "lodash";
 export interface UVVisSpecGLGraphProps {
   // The data points to plot
   luminance: number[],
+  wavelengthLineCount: number,
+  percentageLineCount: number,
 }
 
 
@@ -31,12 +33,10 @@ const UVVisSpecGLGraph: React.FC<UVVisSpecGLGraphProps> = (props) => {
 
       return [x, y]
     })
-  ), [luminance])
+  ), [luminance, maxLuminance])
 
-  const bgHorizontalCount= 4
-  const bgVerticalCount = 3
-
-
+  const bgHorizontalCount = props.percentageLineCount - 1;
+  const bgVerticalCount = props.wavelengthLineCount -2;
 
   // Draw a filled in polygon below data line
   const fillProgram = useProgram(gl, Vert, Frag, {
@@ -54,9 +54,9 @@ const UVVisSpecGLGraph: React.FC<UVVisSpecGLGraphProps> = (props) => {
     vertexCount: bgVerticalCount * 2,
   });
   useAttribute(bgVerticalProgram, "aPosition", () => (
-    Array.from({ length: bgHorizontalCount }, (_, i) => 2 * (i+1) / (bgVerticalCount+1) - 1)
+    Array.from({ length: bgVerticalCount }, (_, i) => 2 * (i+1) / (bgVerticalCount+1) - 1)
       .flatMap((x) => [[x, -1], [x, 1]])
-  ), [bgHorizontalCount]);
+  ), [bgVerticalCount]);
   useUniform(bgVerticalProgram, "uColor", () => [0.247, 0.247, 0.274, 1], []);
 
 
@@ -80,12 +80,10 @@ const UVVisSpecGLGraph: React.FC<UVVisSpecGLGraphProps> = (props) => {
   useUniform(lineProgram, "uColor", () => [1., 1., 1., 1.], []);
 
   // Put those together into a chart
-  const chart = (
+  return (
     <AutosizedGLCanvas gl={gl} className="aspect-[4/3] rounded border-content3 border-1">
     </AutosizedGLCanvas>
-  )
-
-  return chart;
+  );
 }
 
 export default UVVisSpecGLGraph;

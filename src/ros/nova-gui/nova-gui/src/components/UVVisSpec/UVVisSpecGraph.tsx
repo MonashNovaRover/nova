@@ -12,6 +12,7 @@ export interface UVVisSpecGraphProps {
   endWavelength: number,
 
   wavelengthLabelCount: number,
+  percentageLabelCount: number,
 }
 
 
@@ -20,7 +21,7 @@ const UVVisSpecGraph: React.FC<UVVisSpecGraphProps> = (props) => {
   const maxLuminance = (max(luminance) ?? 100) / 4.4167295593
 
   const xLabels = Array.from({ length: props.wavelengthLabelCount }, (_, i) => (
-    `${props.startWavelength + (props.endWavelength - props.startWavelength) * (i / (props.wavelengthLabelCount - 1))}`
+    `${(props.startWavelength + (props.endWavelength - props.startWavelength) * (i / (props.wavelengthLabelCount - 1))).toFixed(0)}`
   ));
 
   // Put the labels into a JSX
@@ -47,8 +48,8 @@ const UVVisSpecGraph: React.FC<UVVisSpecGraphProps> = (props) => {
     </div>
   )
 
-  const yLabels = Array.from({ length: 5 }, (_, i) => (
-    `${(maxLuminance * ((i + 1) / (props.wavelengthLabelCount))).toFixed(0)}%`
+  const yLabels = Array.from({ length: props.percentageLabelCount }, (_, i) => (
+    `${(maxLuminance * ((i + 1) / (props.percentageLabelCount))).toFixed(0)}%`
   )).reverse();
 
   // Put the labels into a JSX
@@ -74,18 +75,18 @@ const UVVisSpecGraph: React.FC<UVVisSpecGraphProps> = (props) => {
   )
 
   // Put those together into a chart
-  const chart = (
+  return (
     <div className="grid grid-cols-[auto_1fr] grid-rows-[1fr_auto]">
       {yLabelsElement}
-      <UVVisSpecGLGraph luminance={luminance}></UVVisSpecGLGraph>
+      <UVVisSpecGLGraph luminance={luminance}
+                        wavelengthLineCount={props.wavelengthLabelCount}
+                        percentageLineCount={props.percentageLabelCount}></UVVisSpecGLGraph>
       <div></div>
       {xLabelsElement}
       <div></div>
       {xAxisHeading}
     </div>
-  )
-
-  return chart;
+  );
 }
 
 export default UVVisSpecGraph;
