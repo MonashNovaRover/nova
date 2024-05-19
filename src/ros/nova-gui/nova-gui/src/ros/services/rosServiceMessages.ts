@@ -12,7 +12,7 @@ export const rosServiceMessages = {
   [RosService.PAUSE_CAMS]: "camera_msgs/srv/CameraOperation",
 
   // Error Related
-  [RosService.BLCMD_RESET]: "core/srv/BLCMDReset",
+  [RosService.BLCMD_RESET]: "blcmd_interfaces/srv/BLCMDReset",
 
   // Science Related
   [RosService.KILN_COMMAND]: "core/srv/KilnCommand",

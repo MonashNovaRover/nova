@@ -15,7 +15,7 @@ export enum RosService {
   // Cameras Related
   START_CAMS = "/camera_streamer/stream/start",
   PAUSE_CAMS = "/camera_streamer/stream/pause",
-  BLCMD_RESET = "/control/blcmd_reset",
+  BLCMD_RESET = "/blcmds/blcmd_reset",
   
   // Science Related
   KILN_COMMAND = "/science/kiln_command",

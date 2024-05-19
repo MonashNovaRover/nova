@@ -30,7 +30,7 @@ export enum CameraSerials {
   ARM_END_SIDE = "arm_end_side",
   ARM_END_TOP = "arm_end_top",
   ARM_END_FINGER = "arm_end_finger",
-  ARM_END_FORWARD = "arm_end_forward",
+  ARM_END_PERISCOPE = "arm_end_periscope",
   ARM_GIMBAL = "arm_gimbal",
 
   EC_SCRAPER = "ec_scraper",
@@ -96,7 +96,7 @@ const mastCams = [
 const armCams = [
   CameraSerials.ARM_END_TOP,
   CameraSerials.ARM_END_FINGER,
-  CameraSerials.ARM_END_FORWARD,
+  CameraSerials.ARM_END_PERISCOPE,
   CameraSerials.ARM_GIMBAL,
   CameraSerials.ARM_END_SIDE,
 

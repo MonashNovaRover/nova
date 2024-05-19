@@ -3,9 +3,9 @@ import { createBifrostStore } from "./store/bifrost/createBifrostStore";
 import { RosService } from "../ros/services/rosService";
 import { RosTopic } from "../ros/topics/rosTopic";
 import {
-  IRosCoreCmDsFeedback,
-  IRosCoreCmdFeedback,
-  IRosCoreNirProbeDataConst,
+  IRosCmdInterfacesCmDsFeedback,
+  IRosCmdInterfacesCmdFeedback,
+  IRosNovaInterfacesNirProbeDataConst,
   IRosSensorMsgsRange,
   IRosCoreHydraprobeData
 } from "../ros/rosTypes";
@@ -75,9 +75,9 @@ export const rootReducer = {
       () =>
         ({
           current: 0,
-        }) as IRosCoreCmdFeedback
+        }) as IRosCmdInterfacesCmdFeedback
     ),
-  } as IRosCoreCmDsFeedback),
+  } as IRosCmdInterfacesCmDsFeedback),
   rfidDataStore: createBifrostStore(
     { topic: RosTopic.RFID_DATA },
     {
@@ -137,7 +137,7 @@ export const rootReducer = {
     { topic: RosTopic.NIR_DATA },
     {
       data: 0,
-      led: IRosCoreNirProbeDataConst.LED_OFF,
+      led: IRosNovaInterfacesNirProbeDataConst.LED_OFF,
     }
   ),
   microscopeServoStore: createBifrostStore(

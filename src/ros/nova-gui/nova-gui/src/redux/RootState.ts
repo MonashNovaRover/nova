@@ -1,19 +1,19 @@
 import {
   IRosCameraMsgsCameras,
   IRosCameraMsgsGetIpListResponse,
-  IRosCoreBlcmdStatusArray,
-  IRosCoreDriveInfo,
-  IRosCoreMicroscopeServoInfo,
-  IRosCoreMoveMicroscopeServoResponse,
-  IRosCoreNirProbeData,
-  IRosCoreKilnCommandResponse,
-  IRosCoreKilnData,
-  IRosCoreTelemetry,
+  IRosBlcmdInterfacesBlcmdStatusArray,
+  IRosDriveInterfacesDriveInfo,
+  IRosNovaInterfacesMicroscopeServoInfo,
+  IRosNovaInterfacesMoveMicroscopeServoResponse,
+  IRosNovaInterfacesNirProbeData,
+  IRosNovaInterfacesKilnCommandResponse,
+  IRosNovaInterfacesKilnData,
+  IRosBlcmdInterfacesTelemetry,
   IRosStdMsgsString,
   IRosGeometryMsgsPose,
   IRosSensorMsgsRange,
-  IRosCoreCmDsFeedback,
-  IRosCoreHydraprobeData, 
+  IRosNovaInterfacesHydraprobeData,
+  IRosCmdInterfacesCmDsFeedback
 } from "../ros/rosTypes";
 
 import { BifrostStatus } from "./models/bifrost/BifrostTypes";
@@ -27,11 +27,11 @@ export interface RootState {
   poseStore: IRosGeometryMsgsPose;
 
   // Drive Stores
-  driveStore: IRosCoreDriveInfo;
-  driveTelemetryStore: IRosCoreTelemetry;
+  driveStore: IRosDriveInterfacesDriveInfo;
+  driveTelemetryStore: IRosBlcmdInterfacesTelemetry;
 
   // Arm Stores
-  armTelemetryStore: IRosCoreCmDsFeedback;
+  armTelemetryStore: IRosCmdInterfacesCmDsFeedback;
   rfidDataStore: IRosStdMsgsString;
 
   // Camera Stores
@@ -39,20 +39,20 @@ export interface RootState {
   ipList: IRosCameraMsgsGetIpListResponse;
 
   // Error Related Stores
-  blcmdStatusStore: IRosCoreBlcmdStatusArray;
+  blcmdStatusStore: IRosBlcmdInterfacesBlcmdStatusArray;
   
   // Science Stores
   tofStore: IRosSensorMsgsRange;
-  nirStore: IRosCoreNirProbeData;
-  kilnData: IRosCoreKilnData;
-  kilnCommand: IRosCoreKilnCommandResponse;
-  hydraprobeData: IRosCoreHydraprobeData;
+  nirStore: IRosNovaInterfacesNirProbeData;
+  kilnData: IRosNovaInterfacesKilnData;
+  kilnCommand: IRosNovaInterfacesKilnCommandResponse;
+  hydraprobeData: IRosNovaInterfacesHydraprobeData;
 
   // Regular Stores
   uiState: UIState;
   cameraStreamerState: CameraStreamerState;
 
   // Science Stores
-  microscopeServoStore: IRosCoreMicroscopeServoInfo;
-  microscopeServiceStore: IRosCoreMoveMicroscopeServoResponse;
+  microscopeServoStore: IRosNovaInterfacesMicroscopeServoInfo;
+  microscopeServiceStore: IRosNovaInterfacesMoveMicroscopeServoResponse;
 }

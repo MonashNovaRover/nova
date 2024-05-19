@@ -1,7 +1,7 @@
 import { Chip } from "@nextui-org/react";
-import { IRosCoreBlcmdStatus } from "../../ros/rosTypes";
+import { IRosBlcmdInterfacesBlcmdStatus } from "../../ros/rosTypes";
 
-export const ComplainingChips = (props: IRosCoreBlcmdStatus) => {
+export const ComplainingChips = (props: IRosBlcmdInterfacesBlcmdStatus) => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { id, ...allComplaints } = props; // I'm just extracting everything except id
 

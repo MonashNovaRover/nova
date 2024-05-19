@@ -2,15 +2,15 @@ import {
   IRosCameraMsgsCameraOperationRequest,
   IRosCameraMsgsCameraOperationResponse,
   IRosCameraMsgsGetIpListResponse,
-  IRosCoreBlcmdResetRequest,
-  IRosCoreBlcmdResetResponse,
-  IRosCoreMoveMicroscopeServoRequest,
-  IRosCoreMoveMicroscopeServoResponse,
+  IRosBlcmdInterfacesBlcmdResetRequest,
+  IRosBlcmdInterfacesBlcmdResetResponse,
+  IRosNovaInterfacesMoveMicroscopeServoRequest,
+  IRosNovaInterfacesMoveMicroscopeServoResponse,
   IRosStdSrvsTriggerResponse,
-  IRosCoreKilnCommandRequest,
-  IRosCoreKilnCommandResponse,
-  IRosCoreSetNirProbeLedRequest,
-  IRosCoreSetNirProbeLedResponse,
+  IRosNovaInterfacesKilnCommandRequest,
+  IRosNovaInterfacesKilnCommandResponse,
+  IRosNovaInterfacesSetNirProbeLedRequest,
+  IRosNovaInterfacesSetNirProbeLedResponse,
 } from "../rosTypes";
 import { RosService } from "./rosService";
 
@@ -41,21 +41,21 @@ export interface RosServiceInterface {
 
   // Error Related
   [RosService.BLCMD_RESET]: RosServiceMessage<
-    IRosCoreBlcmdResetRequest,
-    IRosCoreBlcmdResetResponse
+    IRosBlcmdInterfacesBlcmdResetRequest,
+    IRosBlcmdInterfacesBlcmdResetResponse
   >;
 
   // Science Related
   [RosService.KILN_COMMAND]: RosServiceMessage<
-    IRosCoreKilnCommandRequest,
-    IRosCoreKilnCommandResponse
+    IRosNovaInterfacesKilnCommandRequest,
+    IRosNovaInterfacesKilnCommandResponse
   >;
   [RosService.SET_NIR_PROBE_LED]: RosServiceMessage<
-    IRosCoreSetNirProbeLedRequest,
-    IRosCoreSetNirProbeLedResponse
+    IRosNovaInterfacesSetNirProbeLedRequest,
+    IRosNovaInterfacesSetNirProbeLedResponse
   >;
   [RosService.MOVE_MICROSCOPE_SERVO]: RosServiceMessage<
-    IRosCoreMoveMicroscopeServoRequest,
-    IRosCoreMoveMicroscopeServoResponse
+    IRosNovaInterfacesMoveMicroscopeServoRequest,
+    IRosNovaInterfacesMoveMicroscopeServoResponse
   >;
 }
