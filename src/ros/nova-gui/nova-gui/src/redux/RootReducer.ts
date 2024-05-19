@@ -153,7 +153,7 @@ export const rootReducer = {
     {
       conductivity: 0,
       moisture: 0,
-      temperature: 0,
+      temperature: 0
     } as IRosNovaInterfacesHydraprobeData
   ),
   // Regular Stores

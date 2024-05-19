@@ -18,6 +18,7 @@ const HydroprobeWidget: React.FC<IHydroprobeProps> = (
 
     useEffect(() => {
         bifrost.syncWithTopic();
+        console.log(temperature);
     }, [bifrost]);
 
     const HydroprobeCardBody = (
