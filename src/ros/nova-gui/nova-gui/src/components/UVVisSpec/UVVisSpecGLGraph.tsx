@@ -1,5 +1,5 @@
 import useGL from "../../hooks/webgl/gl/useGL.ts";
-import React, {useMemo} from "react";
+import React, {MouseEventHandler, useMemo} from "react";
 import useProgram from "../../hooks/webgl/program/useProgram.ts";
 import Vert from "./gl/test.vert";
 import Frag from "./gl/test.frag";
@@ -8,17 +8,21 @@ import useAttribute, {vecArray} from "../../hooks/webgl/program/attribute/useAtt
 import useUniform from "../../hooks/webgl/program/uniform/useUniform.ts";
 import AutosizedGLCanvas from "../AutosizedGLCanvas/AutosizedGLCanvas.tsx";
 import {max} from "lodash";
+import GLState from "../../hooks/webgl/gl/GLState.ts";
 
 export interface UVVisSpecGLGraphProps {
   // The data points to plot
   luminance: number[],
   wavelengthLineCount: number,
   percentageLineCount: number,
+  
+  onMouseMove: (event: React.MouseEvent<HTMLCanvasElement, MouseEvent>) => void,
+  gl: GLState,
 }
 
 
 const UVVisSpecGLGraph: React.FC<UVVisSpecGLGraphProps> = (props) => {
-  const gl = useGL();
+  const gl = props.gl;
 
   const luminance = props.luminance;
   const maxLuminance = Math.max(max(luminance) ?? 441.67295593, 10);
@@ -81,7 +85,7 @@ const UVVisSpecGLGraph: React.FC<UVVisSpecGLGraphProps> = (props) => {
 
   // Put those together into a chart
   return (
-    <AutosizedGLCanvas gl={gl} className="aspect-[4/3] rounded border-content3 border-1">
+    <AutosizedGLCanvas gl={props.gl} className="aspect-[4/3] rounded border-content3 border-1 cursor-cell" onMouseMove={props.onMouseMove}>
     </AutosizedGLCanvas>
   );
 }

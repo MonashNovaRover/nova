@@ -1,6 +1,7 @@
 import UVVisSpecGLGraph from "./UVVisSpecGLGraph.tsx";
-import React from "react";
+import React, { MouseEventHandler } from "react";
 import {max} from "lodash";
+import GLState from "../../hooks/webgl/gl/GLState.ts";
 
 export interface UVVisSpecGraphProps {
   // The data points to plot
@@ -13,6 +14,9 @@ export interface UVVisSpecGraphProps {
 
   wavelengthLabelCount: number,
   percentageLabelCount: number,
+
+  onMouseMove: (event: React.MouseEvent<HTMLCanvasElement, MouseEvent>) => void,
+  gl: GLState,
 }
 
 
@@ -79,8 +83,9 @@ const UVVisSpecGraph: React.FC<UVVisSpecGraphProps> = (props) => {
     <div className="grid grid-cols-[auto_1fr] grid-rows-[1fr_auto]">
       {yLabelsElement}
       <UVVisSpecGLGraph luminance={luminance}
-                        wavelengthLineCount={props.wavelengthLabelCount}
-                        percentageLineCount={props.percentageLabelCount}></UVVisSpecGLGraph>
+      wavelengthLineCount={props.wavelengthLabelCount}
+      percentageLineCount={props.percentageLabelCount}
+      onMouseMove={props.onMouseMove} gl={props.gl}></UVVisSpecGLGraph>
       <div></div>
       {xLabelsElement}
       <div></div>

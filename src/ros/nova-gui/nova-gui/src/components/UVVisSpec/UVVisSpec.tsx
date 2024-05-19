@@ -2,7 +2,7 @@
  * UV Vis Spectrometer component
  * Author: Bailey Chessum
  */
-import React, {useEffect} from "react";
+import React, {useCallback, useEffect, useState} from "react";
 import {
   Button,
   Card,
@@ -21,25 +21,46 @@ import {RootState} from "../../redux/RootState.ts";
 import UVVisSpecGraph from "./UVVisSpecGraph.tsx";
 import {MoreHorizontal} from "react-feather";
 import useNumberField from "./useNumberField.ts";
+import useGL from "../../hooks/webgl/gl/useGL.ts";
 
 
 const UVVisSpec: React.FC = () => {
   const bifrost = useBifrost({ topic: RosTopic.UV_VIS_SPEC });
   const luminance = useSelector((state: RootState) => state.uvVisSpecStore.luminance);
 
-  const [startWavelength, startWavelengthString, setStartWavelength] = useNumberField("UVVisSpec-startWavelength", 600);
-  const [startColumn, startColumnString, setStartColumn] = useNumberField("UVVisSpec-startWavelength", 0.25);
+  const [startWavelength, startWavelengthString, setStartWavelength] = useNumberField("UVVisSpec-startWavelength", 546.5);
+  const [startColumn, startColumnString, setStartColumn] = useNumberField("UVVisSpec-startCol", 0.213);
 
-  const [endWavelength, endWavelengthString, setEndWavelength] = useNumberField("UVVisSpec-startWavelength", 1500);
-  const [endColumn, endColumnString, setEndColumn] = useNumberField("UVVisSpec-endColumn", 0.75);
+  const [endWavelength, endWavelengthString, setEndWavelength] = useNumberField("UVVisSpec-endWavelength", 611.6);
+  const [endColumn, endColumnString, setEndColumn] = useNumberField("UVVisSpec-endColumn", 0.343);
+
+  const [mousePoint, setMousePoint] = useState<[number, number]>([0, 0]);
 
   const gradient = (endWavelength - startWavelength) / (endColumn - startColumn);
   const viewportStartWavelength = startWavelength - gradient * startColumn;
   const viewportEndWavelength = viewportStartWavelength + gradient;
 
+  const gl = useGL();
+
   useEffect(() => {
     bifrost.syncWithTopic();
   }, [bifrost]);
+
+  const onMouseMove = useCallback((event: React.MouseEvent<HTMLCanvasElement, MouseEvent>) => {
+    if (!gl.canvasRef.current)
+      return;
+
+    const bounds = gl.canvasRef.current.getBoundingClientRect();
+    const pixelsX = event.clientX - bounds.left;
+    const pixelsY = event.clientY - bounds.top;
+
+    const x = pixelsX / bounds.width;
+    const y = pixelsY / bounds.height;
+
+    setMousePoint([x, y]);
+  }, [])
+
+  const colToWavelength = useCallback((v) => gradient * v + viewportStartWavelength, [gradient, viewportStartWavelength]);
 
   const {isOpen: isSettingsOpen, onOpen: onSettingsOpen, onOpenChange: onSettingsOpenChange} = useDisclosure();
 
@@ -96,11 +117,13 @@ const UVVisSpec: React.FC = () => {
       luminance={luminance}
       colEndPercent={0.95}
       colStartPercent={0.05}
-      wavelengthLabelCount={20}
+      wavelengthLabelCount={11}
       percentageLabelCount={10}
 
       startWavelength={viewportStartWavelength}
       endWavelength={viewportEndWavelength}
+      onMouseMove={onMouseMove}
+      gl={gl}
     >
 
     </UVVisSpecGraph>
@@ -110,6 +133,9 @@ const UVVisSpec: React.FC = () => {
     <Card>
       <CardHeader className="flex flex-rowo">
         <div className="grow">UV Vis Spec</div>
+        <div className="font-mono">
+          ({mousePoint[0].toFixed(3)}, {mousePoint[1].toFixed(3)}) -{'>'} {colToWavelength(mousePoint[0].toFixed(2))} nm 
+        </div>
         {settingsDropdown}
       </CardHeader>
       <CardBody>
