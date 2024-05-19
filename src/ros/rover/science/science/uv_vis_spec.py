@@ -40,6 +40,8 @@ class UVVisSpecPublisher(Node):
         # publisher to publish the data from the kilns.
         self.publisher = self.create_publisher(UVVisSpecData, "/science/uv_vis_spec_data", 1)
 
+        # ./result/bin/ros2 run science uv_vis_spec.py --ros-args -p period:=0.0166666666 -p col_start:=0.425 -p col_end:=0.7 -p row:=0.45 -p range:=0.1 -p port:=
+
         # declare parameters
         # The port to use to access the spectroscope webcam
         self.declare_parameter("port", 0)
