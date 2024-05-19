@@ -1,82 +1,108 @@
-import { useCallback, useContext, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { RosAction } from "../../ros/actions/RosAction";
-import { RosContext } from "../../redux/context/RosContext";
-import * as RosLib from "roslib";
 import { rosActionMessages } from "../../ros/actions/RosActionTypes";
 import toast from "react-hot-toast";
 import { RosActionInterface } from "../../ros/actions/RosActionMessages";
+import useWebSocket, { ReadyState } from "react-use-websocket";
+import { useSelector } from "react-redux";
+import { RootState } from "../../redux/RootState";
+import { v4 as uuidv4 } from "uuid";
+import { WsActionMessage } from "./wsActionMessages";
 
 /**
  * ! This Hook is just a very rudimentary attempt at getting a Ros Action Client Working
  * ! As of Now this exists as a standalone hook and doesn't update anything on Redux. Possibility of Backfiring is high in this case.
+ * ! Multiple Ws Connections could become a problem (not a comms level problem, but a relatively serious one)
  * ! This should become a Part of Bifrost at some point, but due to time constraints wasn't done
- * ! Kabi is Sorry : (
+ * ! Kabi Had 2 x 10% Assignments due that Night. Kabi is Sorry : (
  */
 
 /**
  * Custom hook for using ROS action.
  * @param action - The ROS action to use.
- * @returns the sendGoal function, cancelGoal function, and feedback state
+ * @returns the sendGoal function, goalResponse, cancelGoal function, and feedback state
  */
 export const useRosAction = (action: RosAction) => {
-  const ros = useContext(RosContext);
+  const baseStationIP = useSelector(
+    (state: RootState) => state.uiState.baseStationIP
+  );
 
-  const [actionClient, setActionClient] = useState<RosLib.ActionClient>();
+  const { sendJsonMessage, lastJsonMessage, readyState } =
+    useWebSocket<WsActionMessage>("ws://" + baseStationIP + ":9090");
+
   const [feedback, setFeedback] =
     useState<RosActionInterface[typeof action]["feedback"]>();
 
-  useEffect(() => {
-    if (ros) {
-      const actionClient = new RosLib.ActionClient({
-        ros: ros,
-        actionName: rosActionMessages[action],
-        serverName: action as string,
-      });
-      setActionClient(actionClient);
-    }
-  }, [setActionClient, action, ros]);
+  const [goalResponse, setGoalResponse] =
+    useState<RosActionInterface[typeof action]["goalResponse"]>();
+
+  const [currentGoalId, setCurrentGoalId] = useState<string>();
 
   /**
    * Sends a goal to the ROS action.
    * @param goal - The goal message to send.
    */
   const sendGoal = useCallback(
-    (goal: RosActionInterface[typeof action]['goal']) => {
-      if (!actionClient)
-        toast.error(`Unable to Send Goal to Action: ${action}`);
+    (goal: RosActionInterface[typeof action]["goal"]) => {
+      if (readyState !== ReadyState.OPEN)
+        toast.error(`Unable to Send Goal on Action: ${action}`);
 
-      const actionGoal = new RosLib.Goal({
-        actionClient: actionClient!,
-        goalMessage: goal,
+      const goalId = uuidv4();
+      sendJsonMessage({
+        op: "send_action_goal",
+        id: goalId,
+        action: action.toString(),
+        action_type: rosActionMessages[action],
+        args: [goal],
+        feedback: true,
       });
-
-      actionGoal.send();
-      actionGoal.on("feedback", (feedback) => setFeedback(feedback));
-      actionGoal.on("status", (status) =>
-        console.log(`Status of Action :${status}`)
-      );
-      actionGoal.on("result", (event) => console.log(event));
+      setCurrentGoalId(goalId);
     },
-    [action, actionClient]
+    [action, readyState, sendJsonMessage]
   );
 
   /**
    * Cancels all goals on the action server.
    */
-  const cancelGoal = useCallback(
-    (goal: RosActionInterface[typeof action]["goal"]) => {
-      if (!actionClient)
-        toast.error(`Unable to Cancel Goal to Action: ${action}`);
+  const cancelGoal = useCallback(() => {
+    if (readyState !== ReadyState.OPEN || !currentGoalId)
+      toast.error(`Unable to Cancel Goal on Action: ${action}`);
+    sendJsonMessage({
+      op: "cancel_action_goal",
+      action: action.toString(),
+      id: currentGoalId,
+    });
+    setCurrentGoalId(undefined);
+    setFeedback(undefined);
+    setGoalResponse(undefined);
+  }, [action, currentGoalId, readyState, sendJsonMessage]);
 
-      const actionGoal = new RosLib.Goal({
-        actionClient: actionClient!,
-        goalMessage: goal,
-      });
+  /**
+   * Handles All Messages from rosbridge_server according to the Rosbridge Protocol[https://github.com/RobotWebTools/rosbridge_suite/blob/ros2/ROSBRIDGE_PROTOCOL.md]
+   */
+  useEffect(() => {
+    if (!lastJsonMessage) return;
+    switch (lastJsonMessage.op) {
+      case "action_feedback": {
+        if (lastJsonMessage.id === currentGoalId)
+          setFeedback(
+            lastJsonMessage.values as unknown as RosActionInterface[typeof action]["feedback"]
+          );
+        break;
+      }
+      case "action_result": {
+        if (lastJsonMessage.id === currentGoalId) {
+          setGoalResponse(
+            lastJsonMessage.values as unknown as RosActionInterface[typeof action]["goalResponse"]
+          );
+        }
+        break;
+      }
+      default:
+        break;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lastJsonMessage]);
 
-      actionGoal.send();
-    },
-    [action, actionClient]
-  );
-
-  return { sendGoal, cancelGoal, feedback };
+  return { sendGoal, goalResponse, cancelGoal, feedback };
 };
