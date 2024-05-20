@@ -272,7 +272,8 @@ class RamanServer(Node):
         spectrum_end = None
         loop_count = 0
         while loop_count < RamanServer.LOOPS_FOR_SINGLE_COLLECTION and not spectrum_end: 
-            while spectrum := self.get_spectrum(port, shperiod, icgperiod, average) and not spectrum:
+            spectrum = self.get_spectrum(port, shperiod, icgperiod, average)
+            while not spectrum:
                 pass
             spectrum_start, spectrum_end = RamanServer.find_full_phase(spectrum)
             loop_count += 1
