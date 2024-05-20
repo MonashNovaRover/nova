@@ -56,9 +56,9 @@ class RamanServer(Node):
     CONTINUOUS_COLLECTION_MODE = 1
 
     # Factors for spectrum collection
-    PHASE_SIGNAL = 3675
+    PHASE_SIGNAL = 3730
     MINIMUM_PHASE_LENGTH = 1500
-    SPECTRUM_CROP = 30  # the number of pixels after phase signal ends to ignore
+    SPECTRUM_CROP = 32  # the number of pixels after phase signal ends to ignore
     LOOPS_FOR_SINGLE_COLLECTION = 5
 
     # CAN commands
@@ -204,7 +204,7 @@ class RamanServer(Node):
                 break
 
         for end_of_first_phase_signal in range(start_of_first_phase_signal, len(spectrum)):
-            if spectrum[end_of_first_phase_signal] < RamanServer.PHASE_SIGNAL and spectrum[end_of_first_phase_signal + 5] < RamanServer.PHASE_SIGNAL:
+            if spectrum[end_of_first_phase_signal] < RamanServer.PHASE_SIGNAL and (end_of_first_phase_signal + 5 < len(spectrum) or spectrum[end_of_first_phase_signal + 5] < RamanServer.PHASE_SIGNAL):
                 spectrum_start = end_of_first_phase_signal + RamanServer.SPECTRUM_CROP
                 break
         
@@ -272,8 +272,8 @@ class RamanServer(Node):
         spectrum_end = None
         loop_count = 0
         while loop_count < RamanServer.LOOPS_FOR_SINGLE_COLLECTION and not spectrum_end: 
-            spectrum = self.get_spectrum(port, shperiod, icgperiod, average)
-            time.sleep(0.1)
+            while spectrum := self.get_spectrum(port, shperiod, icgperiod, average) and not spectrum:
+                pass
             spectrum_start, spectrum_end = RamanServer.find_full_phase(spectrum)
             loop_count += 1
         
