@@ -276,7 +276,7 @@ class RamanServer(Node):
             while not spectrum:
                 pass
             spectrum_start, spectrum_end = RamanServer.find_full_phase(spectrum)
-            self._logger().info(f"Spectrum start is {spectrum_start}")
+            self.get_logger().info(f"Spectrum start is {spectrum_start}")
             loop_count += 1
         
         self.get_logger().info(f"length of {spectrum_start - spectrum_end}")
