@@ -39,7 +39,7 @@ ArmTwistMapper::ArmTwistMapper() :
 
     // Create subscription to resolvers
     resolver_sub = this->create_subscription<sensor_msgs::msg::JointState>(
-        "/arm/resolvers", 10, std::bind(&ArmTwistMapper::resolver_callback, this, _1)
+        "/arm/joint_states", 10, std::bind(&ArmTwistMapper::resolver_callback, this, _1)
     );
     
     // Create subscription to joystick_joint_velocities

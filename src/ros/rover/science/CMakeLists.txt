@@ -63,6 +63,7 @@ install(PROGRAMS
   science/urc_analysis_arm.py
   science/urc_auger.py
   science/urc_sample_tray.py
+  science/urc_pumps.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

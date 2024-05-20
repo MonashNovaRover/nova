@@ -27,8 +27,6 @@ find_package(sensor_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(realsense2 REQUIRED)
-find_package(core REQUIRED)
-
 
 pybind11_add_module(a_star src/a_star.cpp)
 pybind11_add_module(height_mapper src/height_mapper.cpp)
@@ -117,9 +115,6 @@ install(PROGRAMS
   autonomous/update_goals.py
   autonomous/vis/stamp_converter.py
   autonomous/vis/marker_vis.py
-  autonomous/vis/nn_3d_to_marker.py
-  autonomous/vis/detection_overlay.py
-
 
   DESTINATION lib/${PROJECT_NAME}
 )

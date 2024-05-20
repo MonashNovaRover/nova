@@ -9,7 +9,6 @@
 , trajectory-msgs
 , vision-msgs
 , pythonPackages
-, nova-core
 }:
 
 buildRosPackage {
@@ -35,7 +34,6 @@ buildRosPackage {
     pythonPackages.pyrealsense2
     pythonPackages.opencv4
     pythonPackages.ultralytics
-    nova-core
   ];
 
   postInstall = ''

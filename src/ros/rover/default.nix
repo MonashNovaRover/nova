@@ -29,6 +29,7 @@
     nova-gazebo = callPackage ./nix/packages/nova-gazebo { };
     nova-python-control = callPackage ./nix/packages/python-control { };
     nova-excavation-construction = callPackage ./nix/packages/excavation-construction { };
+    nova-utils = callPackage ./nix/packages/nova-utils { };
     # diff drive, pivot drive, strafe, 
   } // import ./nix/packages/controllers { inherit pkgs; };
 

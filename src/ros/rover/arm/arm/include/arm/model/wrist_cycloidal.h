@@ -48,7 +48,7 @@ class WristCycloidalModel : public ArmSubModule
     {
         // Initialise public members
         module_name = "wrist_cycloidal";
-        joint_names = std::vector<std::string> {"j4", "j5", "j6"};
+        joint_names = std::vector<std::string> {"arm_j4", "arm_j5", "arm_j6"};
         endpoint_names = std::vector<std::string> {"j4-hook", "squooshy"};
         output_name = "sj6";
         zero_angles = std::vector<double> {0, -M_PI / 2, 0};
