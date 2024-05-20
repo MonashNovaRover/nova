@@ -8,16 +8,13 @@ them on ROS.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 AUTHOR(S):   Bailey Chessum
 CREATION:    17/05/2024
-EDITED:      17/05/2024
+EDITED:      20/05/2024
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
-
 import cv2
 from cv_bridge import CvBridge
 import locale
 import logging
-import subprocess
-import sys
 import os
 import gphoto2 as gp
 import rclpy
@@ -27,11 +24,18 @@ from std_srvs.srv import Empty
 
 
 class Theta360CamPublisher(Node):
+    """ Node to capture images from the 360 cam using MTP (through the gphoto2 library) and publish them as
+    compressed images over ROS.
+
+    ! This assumes there are no other MTP devices connected to the rover! Otherwise, you'll need to add more logic to
+    specify the correct port.
+    """
 
     def __init__(self):
         super().__init__('theta360cam')
 
         # This allows us to actually see errors from the libgphotos2 c library, rather than just arbitrary int errors
+        # TODO: use ROS logging somehow
         locale.setlocale(locale.LC_ALL, '')
         logging.basicConfig(
             format='%(levelname)s: %(name)s: %(message)s', level=logging.WARNING)
@@ -47,10 +51,11 @@ class Theta360CamPublisher(Node):
 
         self.__bridge = CvBridge()
 
-        self.get_logger().info("360 cam node has been set up")
-
+        self.get_logger().info("theta360cam >>> 360 cam node has been set up")
 
     def capture(self, request: Empty.Request, response: Empty.Response) -> Empty.Response:
+        """ Called with the /science/theta360cam/capture service. Expects everything to be synchronous, where the camera
+        as a resource isn't under contention. """
         self.get_logger().info("Capturing image...")
 
         # Take the image
@@ -60,20 +65,20 @@ class Theta360CamPublisher(Node):
         # Get a path to store the image at
         target = os.path.join('/tmp', file_path.name)
 
-        self.get_logger().info(f"Retrieving to {target}")
+        self.get_logger().info(f"Downloading and saving the image to \"{target}\"")
         # Get the image from the camera to the above path
         camera_file = self.__camera.file_get(file_path.folder, file_path.name, gp.GP_FILE_TYPE_NORMAL)
         # The API allows for this to be saved to a file
         camera_file.save(target)
 
-        self.get_logger().info(f"Reading with OpenCV and publishing...")
+        self.get_logger().info(f"Reading the image with OpenCV and publishing...")
         # Read the data with opencv
         image = cv2.imread(target, cv2.IMREAD_COLOR)
         image_msg = self.__bridge.cv2_to_compressed_imgmsg(image)
 
         # Publish the image
         self.__image_publisher.publish(image_msg)
-        self.get_logger().info(f"Finished publishing {file_path.name}!")
+        self.get_logger().info(f"Finished publishing {file_path.name}!\n")
 
         # We can now share the target
         return response
