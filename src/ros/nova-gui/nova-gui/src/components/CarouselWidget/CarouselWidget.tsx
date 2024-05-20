@@ -3,7 +3,7 @@
  * Author: Bailey Chessum
  * Date Created: 12/5/2024
  */
-import React, {useCallback} from "react";
+import React, {Key, useCallback, useState} from "react";
 import {
   Autocomplete,
   AutocompleteItem,
@@ -15,6 +15,9 @@ import {
   SelectItem
 } from "@nextui-org/react";
 import {MoreHorizontal} from "react-feather";
+import { useRosAction } from "../../hooks/ros/useRosAction";
+import { RosAction } from "../../ros/actions/RosAction";
+import { IRosNovaInterfacesStepperActionGoal, IRosNovaInterfacesStepperActionGoalConst } from "../../ros/rosTypes";
 
 /**
  * Props for CarouselWidget
@@ -35,6 +38,8 @@ export interface CarouselWidgetProps {
  * @constructor
  */
 const CarouselWidget: React.FC<CarouselWidgetProps> = (props) => {
+  const [ selectedCuvette, setSelectedCuvette ] = useState<Key>(0);
+
   // What values should be sent to the ROS node as positions to go to?
   const instruments = props.instruments ?? new Map<string, number>([
     ["UV Vis Spec", 16],
@@ -45,16 +50,34 @@ const CarouselWidget: React.FC<CarouselWidgetProps> = (props) => {
   const cuvetteCount = props.cuvettes?.length ?? props.cuvetteCount ?? 20;
   const cuvettes = props.cuvettes ?? Array.from({ length: cuvetteCount }, (_, i) => i + 1);
 
-  // Function that zeroes the carousel when called
-  const zeroCarouselFunc = useCallback(() => {
-    console.log("Zero the carousel! To be implemented...");
+  const { sendGoal } = useRosAction(RosAction.CAROUSEL_ACTION);
+
+  const onApply = useCallback(() => {
+    const action: IRosNovaInterfacesStepperActionGoal = { 
+      goal: selectedCuvette?.toString(),
+      action: IRosNovaInterfacesStepperActionGoalConst.GO_TO
+    };
+
+    console.log(action);
+
+    sendGoal(action);
+  }, [sendGoal, selectedCuvette]);
+
+  // Function that sets the carousel position when called
+  const setCarouselFunc = useCallback(() => {
+    const action: IRosNovaInterfacesStepperActionGoal = { 
+      goal: "10",
+      action: IRosNovaInterfacesStepperActionGoalConst.SET
+    };
+
+    sendGoal(action);
   }, []);
 
   // Picker for the cuvette
   const cuvettePicker = (
-    <Autocomplete placeholder="#" label="Cuvette ID" allowsCustomValue className="col-span-2">
+    <Autocomplete placeholder="#" label="Cuvette ID" allowsCustomValue className="col-span-2" selectedKey={selectedCuvette?.toString()} onSelectionChange={setSelectedCuvette} onInputChange={setSelectedCuvette}>
       {cuvettes.map((cuvette) => (
-        <AutocompleteItem key={cuvette} value={cuvette}>
+        <AutocompleteItem key={`${cuvette}`} value={cuvette}>
           {cuvette.toString()}
         </AutocompleteItem>
       ))}
@@ -65,7 +88,7 @@ const CarouselWidget: React.FC<CarouselWidgetProps> = (props) => {
   const instrumentPicker = (
     <Select label="Instrument" placeholder="Select an instrument" className="col-span-2">
       {Array.from(instruments.entries()).map(([instrument, id], index) => (
-        <SelectItem key={`instrument-${index}`} endContent={
+        <SelectItem key={index} endContent={
           <span className="text-foreground-500">({id.toFixed(0)})</span>
         }>
           {instrument}
@@ -79,7 +102,7 @@ const CarouselWidget: React.FC<CarouselWidgetProps> = (props) => {
     <div className="grid auto-cols-fr gap-3 grid-cols-5 content-around">
       {instrumentPicker}
       {cuvettePicker}
-      <Button color="primary" className="h-full">Go</Button>
+      <Button color="primary" className="h-full" onPress={onApply}>Go</Button>
     </div>
   );
 
@@ -96,8 +119,8 @@ const CarouselWidget: React.FC<CarouselWidgetProps> = (props) => {
         </Button>
       </DropdownTrigger>
       <DropdownMenu aria-label="Static Actions">
-        <DropdownItem key="advanced" onPress={zeroCarouselFunc}>
-          Zero Carousel
+        <DropdownItem key="set" onPress={setCarouselFunc}>
+          Set Carousel Position
         </DropdownItem>
       </DropdownMenu>
     </Dropdown>

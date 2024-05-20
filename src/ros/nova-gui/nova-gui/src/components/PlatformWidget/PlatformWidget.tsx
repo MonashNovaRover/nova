@@ -38,7 +38,7 @@ const PlatformWidget: React.FC<PlatformWidgetProps> = (props) => {
   const [targetLocationIndex, setTargetLocationIndex] = useState<number>(0);
   const [targetPosition, setTargetPosition] = useState<number | null>(null);
   const [actionSent, setActionSent] = useState<boolean>(false);
-  const { sendGoal, feedback, goalResponse, cancelGoal} = useRosAction(RosAction.SCIENCE_SAMPLE_TRAY);
+  const { sendGoal, feedback, goalResponse, cancelGoal} = useRosAction(RosAction.SAMPLE_TRAY);
 
   const stepperFeedback = feedback as IRosNovaInterfacesStepperActionFeedback;
   const stepperGoalResponse = goalResponse as IRosNovaInterfacesStepperActionResult;
