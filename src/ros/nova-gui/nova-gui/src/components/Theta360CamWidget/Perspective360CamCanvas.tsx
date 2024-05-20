@@ -122,7 +122,7 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
         <Tooltip content="Take WebGL Screenshot">
           <ExtendedDownloadButton
             fileContent={getCanvasScreenshot}
-            filename={`360cam-image.png`}
+            filename={`360cam-perspective.png`}
             fileType={`image/png`}
             isIconOnly
           >
