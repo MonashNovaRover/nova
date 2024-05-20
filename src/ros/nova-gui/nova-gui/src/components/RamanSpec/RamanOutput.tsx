@@ -23,7 +23,6 @@ const RamanOutput: React.FC = () => {
     const LASER_RED_RANGE = LASER_RED_END - LASER_RED_START
     const STEP_VALUE = 20
 
-    const RAMAN_PEAK_VALUE = 3730  // approx
     const NORMALISED_SCALE_MAX = 100
 
     const ramanMechState = useSelector(
@@ -39,22 +38,20 @@ const RamanOutput: React.FC = () => {
         bifrost.syncWithTopic();
     }, [bifrost]);
 
-    let greenLaserOutput = [{
-        name: "CCD Output",
-        data: spectrumStore.spectrum.map((element, index) => { if (index % STEP_VALUE == 0) {return [Math.round(100*(LASER_GREEN_START + LASER_GREEN_RANGE*index/spectrumStore.spectrum.length)) / 100.0, Math.round(100*NORMALISED_SCALE_MAX*element/RAMAN_PEAK_VALUE)/100.0]}})
-    }]
-
-    let redLaserOutput = [{
-        name: "CCD Output",
-        data: spectrumStore.spectrum.map((element, index) => { if (index % STEP_VALUE == 0) {return [Math.round(100*(LASER_RED_START + LASER_RED_RANGE*index/spectrumStore.spectrum.length)) / 100.0, Math.round(100*NORMALISED_SCALE_MAX*element/RAMAN_PEAK_VALUE)/100.0]}})
-    }]
+    let maxOutputValue = Math.max(...spectrumStore.spectrum)
+    let greenLaserOutput = spectrumStore.spectrum.map((element, index) => [Math.round(100*(LASER_GREEN_START + LASER_GREEN_RANGE*index/spectrumStore.spectrum.length)) / 100.0, Math.round(100*NORMALISED_SCALE_MAX*element/maxOutputValue)/100.0])
+    let redLaserOutput = spectrumStore.spectrum.map((element, index) => [Math.round(100*(LASER_RED_START + LASER_RED_RANGE*index/spectrumStore.spectrum.length)) / 100.0, Math.round(100*NORMALISED_SCALE_MAX*element/maxOutputValue)/100.0])
 
     const determineOutput = () => {
+        let output = redLaserOutput;
         if (ramanMechState.green_laser_on) {
-            return greenLaserOutput
-        } else {
-            return redLaserOutput
+            output = greenLaserOutput;
         }
+        output = output.filter((value, index) => index % STEP_VALUE == 0)
+        return [{
+            name: "CCD Output",
+            data: output
+        }]
     }
 
     return (
