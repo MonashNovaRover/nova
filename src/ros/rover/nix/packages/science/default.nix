@@ -30,6 +30,7 @@ buildRosPackage {
     jcan
     nova-coms-utils
     pymodbus
+    gphoto2
     opencv4
   ] ++
   [
