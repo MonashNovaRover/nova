@@ -151,7 +151,7 @@ export const rootReducer = {
 
   theta360CamStore: createBifrostStore(
     { topic: RosTopic.THETA_360_CAM_IMAGE },
-    { data: [] }
+    { data: [], format: "" }
   ),
 
   hydraprobeData: createBifrostStore(

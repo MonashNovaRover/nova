@@ -10,6 +10,9 @@ import HTMLTextureFormat from "../../hooks/webgl/program/sampler/HTMLTextureForm
 import useResolutionUniform from "../../hooks/webgl/program/uniform/useResolutionUniform.ts";
 import useUniform, {vec} from "../../hooks/webgl/program/uniform/useUniform.ts";
 import GLWrapMode from "../../hooks/webgl/program/sampler/GLWrapMode.ts";
+import {Image} from "react-feather";
+import ExtendedDownloadButton from "../shared/ExtendedDownload.tsx";
+import {Tooltip} from "@nextui-org/react";
 
 const DEG_TO_RAD = 0.0174532925199;
 export interface WebGL360CamProps {
@@ -34,6 +37,27 @@ const preventDefault = (e: Event) => {
   }
   e.returnValue = false
 }
+
+// https://stackoverflow.com/questions/64891555/convert-base64-image-to-jpeg
+function convertToBlob(base64image: string): [ArrayBuffer] {
+  if (base64image.length === 0)
+    return [new ArrayBuffer(0)];
+
+  // convert base64 to raw binary data held in a string
+  const byteString = atob(base64image.split(',')[1]);
+
+  // write the bytes of the string to an ArrayBuffer
+  const ab = new ArrayBuffer(byteString.length);
+  const dw = new DataView(ab);
+
+  for (let i = 0; i < byteString.length; i++) {
+    dw.setUint8(i, byteString.charCodeAt(i));
+  }
+
+  // write the ArrayBuffer to a blob, and you're done
+  return [ab]
+}
+
 
 const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
   const gl = useGL();
@@ -71,6 +95,19 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
   useUniform(program, "fov", () => [fov], [fov]);
   useUniform(program, "mousePos", () => mousePos as vec, [mousePos]);
 
+
+  // Called for the screenshot button, to fetch data to put in the file to save
+  const getCanvasScreenshot = useCallback(() => {
+    if (!gl.canvasRef.current)
+      return [];
+
+    const canvas = gl.canvasRef.current;
+    gl.render(true);
+    const dataURL = canvas.toDataURL("image/png");
+
+    return convertToBlob(dataURL);
+  }, [gl])
+
   return (
     <AutosizedGLCanvas
       gl={gl}
@@ -80,7 +117,20 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
       onMouseEnter={disableScroll}
       onMouseLeave={enableScroll}
     >
-      {props.children}
+      <div className="flex flex-row gap-3">
+        {props.children}
+        <Tooltip content="Take WebGL Screenshot">
+          <ExtendedDownloadButton
+            fileContent={getCanvasScreenshot}
+            filename={`360cam-image.png`}
+            fileType={`image/png`}
+            isIconOnly
+          >
+            <Image></Image>
+          </ExtendedDownloadButton>
+        </Tooltip>
+      </div>
+
     </AutosizedGLCanvas>
   )
 }
