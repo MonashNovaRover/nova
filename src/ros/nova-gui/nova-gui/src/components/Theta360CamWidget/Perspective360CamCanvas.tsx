@@ -9,7 +9,6 @@ import useSampler from "../../hooks/webgl/program/sampler/useSampler.ts";
 import HTMLTextureFormat from "../../hooks/webgl/program/sampler/HTMLTextureFormat.ts";
 import useResolutionUniform from "../../hooks/webgl/program/uniform/useResolutionUniform.ts";
 import useUniform, {vec} from "../../hooks/webgl/program/uniform/useUniform.ts";
-import useResolution from "./useResolution.ts";
 import GLWrapMode from "../../hooks/webgl/program/sampler/GLWrapMode.ts";
 
 const DEG_TO_RAD = 0.0174532925199;
@@ -41,20 +40,19 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
   const [mousePos, setMousePos] = useState([0, 0]);
   const [fov, setFov] = useState(90);
 
-  const resolution = useResolution(gl.canvasRef.current);
-
   // Allow for panning with the mouse
   const onMouseMove = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
     if (event.buttons !== 1)
       return;
 
-    const maxResolutionComp = Math.max(...resolution);
+    const bounds = gl.canvasRef.current?.getBoundingClientRect() ?? {width: 1, height: 1};
+    const maxResolutionComp = Math.max(bounds.width, bounds.height);
 
     setMousePos(([x, y]) => [
       x + fov * DEG_TO_RAD * event.movementX / maxResolutionComp,
       y + fov * DEG_TO_RAD * event.movementY / maxResolutionComp
     ]);
-  }, [fov, resolution]);
+  }, [fov, gl.canvasRef]);
 
   // Listen to scrolling to change FOV
   const onWheel = useCallback((e: React.WheelEvent<HTMLCanvasElement>) => {

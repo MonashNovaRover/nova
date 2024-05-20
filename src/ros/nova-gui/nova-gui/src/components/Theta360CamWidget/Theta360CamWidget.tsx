@@ -31,7 +31,7 @@ const Theta360CamWidget: React.FC = () => {
 
   // When called, will capture a new image
   const capture = useCallback(() => {
-    bifrost.callService(undefined, { successToastMessage: "360 Camera image captured", responseToast: true });
+    bifrost.callService({}, { successToastMessage: "360 Camera image captured", responseToast: true });
   }, [bifrost])
 
 

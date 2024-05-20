@@ -62,5 +62,5 @@ export interface RosServiceInterface {
     IRosNovaInterfacesMoveMicroscopeServoResponse
   >;
 
-  [RosService.THETA_360_CAM_CAPTURE]: EmptyMessage;
+  [RosService.THETA_360_CAM_CAPTURE]: RosServiceMessage<EmptyMessage, IRosStdSrvsTriggerResponse>;
 }
