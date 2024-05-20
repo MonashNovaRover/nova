@@ -129,7 +129,6 @@ class RamanServer(Node):
         """
         Sends all can commands to update mechanical state to what is current 
         """
-        self.get_logger().info("sending CAN commands")
         self.send_laser_command()
         self.send_filter_command()
         self.send_stepper_command()
@@ -252,6 +251,7 @@ class RamanServer(Node):
         """
         self.mech_state = request.green_laser_on, request.red_laser_on, request.filter_selection, request.stepper_value, request.mirror_servo
         response.success = True
+        self.get_logger().info(f"Raman Mechanical State updated")
         return response
 
 
