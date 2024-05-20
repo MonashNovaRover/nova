@@ -20,7 +20,7 @@ import gphoto2 as gp
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import CompressedImage
-from std_srvs.srv import Empty
+from std_srvs.srv import Trigger
 
 
 class Theta360CamPublisher(Node):
@@ -42,43 +42,60 @@ class Theta360CamPublisher(Node):
         callback_obj = gp.check_result(gp.use_python_logging())
 
         # Create camera object
+        # ! If you get the [-105] unknown model, it means it can't find the camera. Make sure it's turned on.
         self.__camera = gp.Camera()
         self.__camera.init()
 
         # Create service and publisher for images
-        self.create_service(Empty, "/science/theta360cam/capture", self.capture)
+        self.create_service(Trigger, "/science/theta360cam/capture", self.capture)
         self.__image_publisher = self.create_publisher(CompressedImage, '/science/theta360cam/image', 10)
 
         self.__bridge = CvBridge()
 
         self.get_logger().info("theta360cam >>> 360 cam node has been set up")
 
-    def capture(self, request: Empty.Request, response: Empty.Response) -> Empty.Response:
+    def capture(self, request: Trigger.Request, response: Trigger.Response) -> Trigger.Response:
         """ Called with the /science/theta360cam/capture service. Expects everything to be synchronous, where the camera
         as a resource isn't under contention. """
         self.get_logger().info("Capturing image...")
 
-        # Take the image
-        file_path = self.__camera.capture(gp.GP_CAPTURE_IMAGE)
+        # forward declaration because I don't trust python
+        file_path = None
 
-        self.get_logger().info(f"Captured \"{file_path.name}\"")
-        # Get a path to store the image at
-        target = os.path.join('/tmp', file_path.name)
+        try:
+            # Take the image
+            file_path = self.__camera.capture(gp.GP_CAPTURE_IMAGE)
 
-        self.get_logger().info(f"Downloading and saving the image to \"{target}\"")
-        # Get the image from the camera to the above path
-        camera_file = self.__camera.file_get(file_path.folder, file_path.name, gp.GP_FILE_TYPE_NORMAL)
-        # The API allows for this to be saved to a file
-        camera_file.save(target)
+            self.get_logger().info(f"Captured \"{file_path.name}\"")
+            # Get a path to store the image at
+            target = os.path.join('/tmp', file_path.name)
 
-        self.get_logger().info(f"Reading the image with OpenCV and publishing...")
-        # Read the data with opencv
-        image = cv2.imread(target, cv2.IMREAD_COLOR)
-        image_msg = self.__bridge.cv2_to_compressed_imgmsg(image)
+            self.get_logger().info(f"Downloading and saving the image to \"{target}\"")
+            # Get the image from the camera to the above path
+            camera_file = self.__camera.file_get(file_path.folder, file_path.name, gp.GP_FILE_TYPE_NORMAL)
+            # The API allows for this to be saved to a file
+            camera_file.save(target)
 
-        # Publish the image
-        self.__image_publisher.publish(image_msg)
-        self.get_logger().info(f"Finished publishing {file_path.name}!\n")
+            self.get_logger().info(f"Reading the image with OpenCV and publishing...")
+            # Read the data with opencv
+            image = cv2.imread(target, cv2.IMREAD_COLOR)
+            image_msg = self.__bridge.cv2_to_compressed_imgmsg(image)
+
+            # Publish the image
+            self.__image_publisher.publish(image_msg)
+            self.get_logger().info(f"Finished publishing {file_path.name}!\n")
+        except Exception as e:
+            self.get_logger().error("An exception occurred while attempting to capture an image.")
+            self.get_logger().error(str(e))
+
+            # This try-except is just so feedback is displayed properly in GUI, and we fail loudly
+            response.success = False
+            response.message = str(e)
+            return response
+
+        # otherwise, report success
+        response.success = True
+        response.message = f"Captured {file_path.name}"
 
         # We can now share the target
         return response
