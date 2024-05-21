@@ -41,7 +41,7 @@ const HydroprobeWidget: React.FC<IHydroprobeProps> = (
             </div>
             <div className="text-center">
                 <OverlayedProgress size="lg" label="Dielectric" value={dielectric}>
-                    {dielectric.toFixed(0)}
+                    {dielectric.toFixed(2)}
                 </OverlayedProgress>
             </div>
         </CardBody>
