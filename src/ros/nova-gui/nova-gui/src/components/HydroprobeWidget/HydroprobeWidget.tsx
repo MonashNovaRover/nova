@@ -15,6 +15,7 @@ const HydroprobeWidget: React.FC<IHydroprobeProps> = (
     const temperature = useSelector((state: RootState) => state.hydraprobeData.temperature);
     const moisture = useSelector((state: RootState) => state.hydraprobeData.moisture);
     const conductivity = useSelector((state: RootState) => state.hydraprobeData.conductivity);
+    const dielectric = useSelector((state: RootState) => state.hydraprobeData.dielectric);
 
     useEffect(() => {
         bifrost.syncWithTopic();
@@ -22,7 +23,7 @@ const HydroprobeWidget: React.FC<IHydroprobeProps> = (
     }, [bifrost]);
 
     const HydroprobeCardBody = (
-        <CardBody className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <CardBody className="grid grid-cols-1 sm:grid-cols-4 gap-4">
             <div className="text-center">
                 <OverlayedProgress size="lg" label="Temperature" value={temperature}>
                     {temperature.toFixed(2)} °C
@@ -36,6 +37,11 @@ const HydroprobeWidget: React.FC<IHydroprobeProps> = (
             <div className="text-center">
                 <OverlayedProgress size="lg" label="Conductivity" value={conductivity}>
                     {conductivity.toFixed(2)} mS/cm
+                </OverlayedProgress>
+            </div>
+            <div className="text-center">
+                <OverlayedProgress size="lg" label="Dielectric" value={dielectric}>
+                    {dielectric.toFixed(0)}
                 </OverlayedProgress>
             </div>
         </CardBody>
