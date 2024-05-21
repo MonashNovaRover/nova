@@ -210,8 +210,6 @@ class HydraprobePublisher(Node):
         except Exception as e:
             self.get_logger().error("\033[1;91m\nERROR: Unable to find device on '%s'.\033[0m" % self.__port.value)
             raise e
-            # exit()
-            return
         
         # Create the timer
         self.publisher_timer = self.create_timer(0.5, self.publish_values)
