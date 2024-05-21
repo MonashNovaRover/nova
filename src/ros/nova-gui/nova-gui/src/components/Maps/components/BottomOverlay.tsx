@@ -23,9 +23,13 @@ export const BottomOverlay = () => {
   );
 
   return (
-    <motion.div
-      animate={{
-        height: overlayOpen ? "400px" : "unset",
+    <div
+      style={{
+        height: overlayOpen ? "400px" : "300px",
+        position: "absolute",
+        bottom: "0",
+        left: "0",
+        right: "0",
       }}
     >
       <Card fullWidth className="h-full">
@@ -68,6 +72,6 @@ export const BottomOverlay = () => {
           </CardBody>
         )}
       </Card>
-    </motion.div>
+    </div>
   );
 };

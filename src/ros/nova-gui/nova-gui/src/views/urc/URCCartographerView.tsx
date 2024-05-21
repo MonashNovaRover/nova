@@ -1,13 +1,19 @@
-import { APIProvider } from "@vis.gl/react-google-maps";
-import { MapCanvas } from "../../components/Maps/MapCanvas";
+import { Cartographer } from "../../components/Maps/Cartographer";
 
 export const URCCartographerView = () => {
   return (
-    <>
-      <APIProvider apiKey={"AIzaSyAHBHVjWPwibfLTFqf6PZQVdj_5mbQGwyA"}>
-        <MapCanvas />
-      </APIProvider>
-      {/* <MapOverlay /> */}
-    </>
+    <div className="w-full h-85vh">
+      <Cartographer />
+    </div>
   );
 };
+
+// {
+//   /* <APIProvider apiKey={"AIzaSyAHBHVjWPwibfLTFqf6PZQVdj_5mbQGwyA"}> */
+// }
+// {
+//   /* </APIProvider> */
+// }
+// {
+//   /* <MapOverlay /> */
+// }
