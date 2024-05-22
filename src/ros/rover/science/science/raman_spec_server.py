@@ -44,7 +44,7 @@ class RamanSpecServer(Node):
     BAUDRATE = 115200
     MASTERCLOCK = 800000
     SPECTRA_SIZE = 3694
-    OUTPUT_SIZE = 7388
+    OUTPUT_SIZE = 2 * SPECTRA_SIZE
     CIRCULAR_BUFFER_START = ord('E')
     CIRCULAR_BUFFER_END = ord('R')
     SINGLE_COLLECTION_MODE = 0
@@ -183,8 +183,6 @@ class RamanSpecServer(Node):
         loop_count = 0
         while loop_count < RamanSpecServer.LOOPS_FOR_SINGLE_COLLECTION and not spectrum_end: 
             spectrum = self.get_spectrum(port, shperiod, icgperiod, average)
-            while not spectrum:
-                pass
             spectrum_start, spectrum_end = RamanSpecServer.find_full_phase(spectrum)
             self.get_logger().info(f"Spectrum start is {spectrum_start}")
             loop_count += 1
@@ -231,7 +229,7 @@ class RamanSpecServer(Node):
             ser = Serial(port=serialport, baudrate=RamanSpecServer.BAUDRATE)
 
             #wait to clear the input and output buffers, if they're not empty data is corrupted
-            while (ser.in_waiting > 0):
+            while (ser.in_waiting > 0 or ser.out_waiting > 0):
                 ser.reset_input_buffer()
                 ser.reset_output_buffer()
                 time.sleep(0.01)
