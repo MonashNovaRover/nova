@@ -42,8 +42,8 @@ class RamanSpecServer(Node):
     # Constants set by firmware/hardware of STM32F103
     BAUDRATE = 115200
     MASTERCLOCK = 800000
-    SPECTRA_SIZE = 3694
-    OUTPUT_SIZE = 2 * SPECTRA_SIZE
+    INITIAL_SPECTRA_SIZE = 3694                         # Make this a ROS param then decrease it during testing until you only get one phase perfectly?
+    OUTPUT_SIZE = 2 * INITIAL_SPECTRA_SIZE
     CIRCULAR_BUFFER_START = ord('E')
     CIRCULAR_BUFFER_END = ord('R')
     SINGLE_COLLECTION_MODE = 0
@@ -53,7 +53,7 @@ class RamanSpecServer(Node):
     PHASE_SIGNAL = 3730
     MINIMUM_PHASE_LENGTH = 1500
     SPECTRUM_CROP = 32  # the number of pixels after phase signal ends to ignore
-    LOOPS_FOR_SINGLE_COLLECTION = 5
+    LOOPS_FOR_SINGLE_COLLECTION = 1
 
     # ROS spec channels
     SPEC_SERVICE = '/science/raman_spec_srv'
@@ -76,6 +76,8 @@ class RamanSpecServer(Node):
         self.spec_srv = self.create_service(RamanSpec, RamanSpecServer.SPEC_SERVICE, self.raman_spec_response)
         self.spec_publisher_ = self.create_publisher(RamanSpectrum, RamanSpecServer.SPEC_TOPIC, 10)
         self.timer_continuous_mode = self.create_timer(2, self.continuous_spec_callback)
+
+        self.declare_parameter('raman_spectrum_length', RamanSpecServer.INITIAL_SPECTRA_SIZE)
 
 
     def continuous_spec_callback(self):
@@ -121,6 +123,9 @@ class RamanSpecServer(Node):
 
 
     def find_full_phase(spectrum: List[int]) -> Tuple[int, int]:
+        """
+        For finding peaks through analysis
+        """
         spectrum_start = None
         spectrum_end = None
 
@@ -145,26 +150,27 @@ class RamanSpecServer(Node):
         return spectrum_start, spectrum_end
 
 
-    def read_output_to_response(output: List[int]) -> List[int]:
+    def read_output_to_response(self, output: List[int]) -> List[int]:
         """
         Converts 8 bit integers read to 16 bit integers and balances the output (due to left and right sides of shift registers returning different values)
         """
-        response = [0] * RamanSpecServer.SPECTRA_SIZE
+        current_spectra_size = self.get_parameter('raman_spectrum_length')
+        response = [0] * current_spectra_size
 
         # combining 8 bit integer pairs into respective 16 bit integer values
-        for pixel in range(RamanSpecServer.SPECTRA_SIZE):
+        for pixel in range(current_spectra_size):
             response[pixel] = (output[2*pixel+1] << 8) + output[2*pixel]
             
         # register has two sides which produce systematically differing values, so to reduce noise, an offset is applied to equal the values
         offset = 0
-        for pixel in range(RamanSpecServer.SPECTRA_SIZE):
+        for pixel in range(current_spectra_size):
             if pixel % 2 == 0:
                 offset += response[pixel]
             else:
                 offset -= response[pixel]
-        offset = 2 * offset // RamanSpecServer.SPECTRA_SIZE
+        offset = 2 * offset // current_spectra_size
 	
-        for pixel in range(RamanSpecServer.SPECTRA_SIZE // 2):
+        for pixel in range(current_spectra_size // 2):
             if response[2*pixel] > offset:
                 response[2*pixel] -= offset
             else:
@@ -180,9 +186,9 @@ class RamanSpecServer(Node):
         spectrum_start = None
         spectrum_end = None
         loop_count = 0
-        while loop_count < RamanSpecServer.LOOPS_FOR_SINGLE_COLLECTION and not spectrum_end: 
+        while loop_count < RamanSpecServer.LOOPS_FOR_SINGLE_COLLECTION: # and not spectrum_end: 
             spectrum = self.get_spectrum(port, shperiod, icgperiod, average)
-            spectrum_start, spectrum_end = RamanSpecServer.find_full_phase(spectrum)
+            # spectrum_start, spectrum_end = RamanSpecServer.find_full_phase(spectrum)
             self.get_logger().info(f"Spectrum start is {spectrum_start}")
             loop_count += 1
         
@@ -227,6 +233,8 @@ class RamanSpecServer(Node):
         try:
             ser = Serial(port=serialport, baudrate=RamanSpecServer.BAUDRATE)
 
+            current_spectra_size = self.get_parameter('raman_spectrum_length')
+
             #wait to clear the input and output buffers, if they're not empty data is corrupted
             while (ser.in_waiting > 0 or ser.out_waiting > 0):
                 ser.reset_input_buffer()
@@ -234,17 +242,17 @@ class RamanSpecServer(Node):
                 time.sleep(0.01)
 
             input = RamanSpecServer.set_spec_input(shperiod, icgperiod, True, average)
-            output = np.zeros(RamanSpecServer.OUTPUT_SIZE, np.uint8)
+            output = np.zeros(current_spectra_size, np.uint8)
 
             #transmit everything at once (the USB-firmware does not work if all bytes are not transmitted in one go)
             ser.write(input)
                 
             #wait for the firmware to return data
-            output = ser.read(RamanSpecServer.OUTPUT_SIZE)
+            output = ser.read(current_spectra_size)
 
             ser.close()
 
-            return RamanSpecServer.read_output_to_response(output)
+            return self.read_output_to_response(output)
                
         except SerialException as e:
             self.get_logger().error(f"Failed to process Raman service request: {str(e)}")
