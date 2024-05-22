@@ -54,7 +54,7 @@ const Theta360CamWidget: React.FC = () => {
     if (!image || imageMessage.data.length == 0)
       return;
 
-    image.src = `data:image/${imageMessage.format};base64,` + imageMessage.data
+    image.src = `data:image/${imageMessage.format};base64,` + imageMessage.data;
   }, [image, imageMessage]);
 
   // When called, will capture a new image

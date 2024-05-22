@@ -8,7 +8,6 @@ uniform float fov;
 uniform vec2 mousePos;
 uniform vec2 resolution;
 
-
 uniform sampler2D camera;
 uniform sampler2D compass;
 
@@ -77,7 +76,6 @@ void main() {
         mod((vRotator.x - compassAngle) / (2.*PI), 1.0),
         1.0 - aspect.y * (1.0 - (vTexCoord.y)) - 0.5
     );
-
 
     vec4 compassCol = texture(compass, compassCoord, 0.0);
     compassCol = vec4(compassCol.xyz * compassCol.w, compassCol.w);

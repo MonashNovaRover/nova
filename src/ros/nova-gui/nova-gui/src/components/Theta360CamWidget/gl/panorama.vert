@@ -3,7 +3,7 @@
 precision mediump float;
 in vec4 aPosition;
 
-uniform float fov;
+// uniform float fov;
 uniform vec2 mousePos;
 uniform vec2 resolution;
 
@@ -16,7 +16,7 @@ void main() {
     vec2 aspect = resolution / max(resolution.x, resolution.y);
 
     vTexCoord = vec2(.5) + .5 * vec2(aPosition.x, aPosition.y);
-    vRotator = (aPosition.xy * aspect * fov * PI / 360.0) - vec2(mousePos.x, -mousePos.y);
+    vRotator = (aPosition.xy * aspect * PI) - vec2(mousePos.x, -mousePos.y);
 
     gl_Position = aPosition;
 }
