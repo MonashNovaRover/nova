@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef} from "react";
+import React, {useCallback, useEffect, useState} from "react";
 import {Button, Card, CardBody, CardHeader, Tooltip} from "@nextui-org/react";
 import {useBifrost} from "../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosTopic} from "../../ros/topics/rosTopic.ts";
@@ -8,6 +8,10 @@ import Perspective360CamCanvas from "./Perspective360CamCanvas.tsx";
 import {RosService} from "../../ros/services/rosService.ts";
 import {Save} from "react-feather";
 import ExtendedDownloadButton from "../shared/ExtendedDownload.tsx";
+import SegmentedPicker from "../SegmentedPicker/SegmentedPicker.tsx";
+import useImageTexture from "../../hooks/webgl/program/sampler/useImageTexture.ts";
+import monkey from "../../assets/equirectangular.png";
+import Panorama360CamCanvas from "./Panorama360CamCanvas.tsx";
 
 function numsToBlobContent(data: number[]) {
   const byteString = atob("" + data);
@@ -29,46 +33,77 @@ const Theta360CamWidget: React.FC = () => {
     topic: RosTopic.THETA_360_CAM_IMAGE,
     service: RosService.THETA_360_CAM_CAPTURE,
   });
+
   const imageMessage = useSelector((state: RootState) => state.theta360CamStore);
-  const imageRef = useRef<HTMLImageElement>(new Image(5376, 2388));
+  //const imageRef = useRef<HTMLImageElement>(new Image(5376, 2388));
+  //const imageRef = useRef<HTMLVideoElement>(null);
+  //useWebcam(imageRef);
+  // const imageRef = useImageTexture(monkey);
+  const image = useImageTexture(monkey);
+
+  // Used to select between perspective and panoramic canvases
+  const [canvasIndex, setCanvasIndex] = useState<number>(0);
 
   useEffect(() => {
     bifrost.syncWithTopic();
   }, [bifrost]);
 
   // Update the image to contain the data from imageData whenever it changes
+  // TODO: Test this, and performance test to ensure no unecessary re-renders
   useEffect(() => {
-    if (!imageRef.current)
+    if (!image || imageMessage.data.length == 0)
       return;
 
-    imageRef.current.src = `data:image/${imageMessage.format};base64,` + imageMessage.data
-  }, [imageMessage, imageRef]);
+    image.src = `data:image/${imageMessage.format};base64,` + imageMessage.data
+  }, [image, imageMessage]);
 
   // When called, will capture a new image
   const capture = useCallback(() => {
     bifrost.callService({}, { successToastMessage: "360 Camera image captured", responseToast: true });
   }, [bifrost]);
 
+  // Used to construct HUD elements shared between the two canvas types
+  const canvasChildren = (
+    <>
+      <Button onPress={capture} color="primary">Capture</Button>
+      <Tooltip content="Download source image">
+        <ExtendedDownloadButton
+          fileContent={() => numsToBlobContent(imageMessage.data)}
+          filename={`360cam-image.${imageMessage.format}`}
+          fileType={`image/${imageMessage.format}`}
+          isIconOnly
+          isDisabled={imageMessage.format.length === 0}
+        >
+          <Save></Save>
+        </ExtendedDownloadButton>
+      </Tooltip>
+    </>
+  );
+
+  // The webgl canvas for perspective projection. Used for stratigraphic profiles
+  const perspective = (
+    <Perspective360CamCanvas image={image}>
+      {canvasChildren}
+    </Perspective360CamCanvas>
+  );
+
+  const panorama = (
+    <Panorama360CamCanvas image={image}>
+      {canvasChildren}
+    </Panorama360CamCanvas>
+  );
+
   return (
     <Card>
-      <CardHeader className="pb-0">
-        360 Camera
+      <CardHeader className="pb-0 flex flex-row gap-3">
+        <div className="flex-grow">360 Camera</div>
+        <SegmentedPicker selectedIndex={canvasIndex} onIndexChange={setCanvasIndex}>
+          <>Perspective</>
+          <>Panorama</>
+        </SegmentedPicker>
       </CardHeader>
       <CardBody className="">
-        <Perspective360CamCanvas image={imageRef.current}>
-          <Button onPress={capture} color="primary">Capture</Button>
-          <Tooltip content="Download source image">
-            <ExtendedDownloadButton
-              fileContent={() => numsToBlobContent(imageMessage.data)}
-              filename={`360cam-image.${imageMessage.format}`}
-              fileType={`image/${imageMessage.format}`}
-              isIconOnly
-              isDisabled={imageMessage.format.length === 0}
-            >
-              <Save></Save>
-            </ExtendedDownloadButton>
-          </Tooltip>
-        </Perspective360CamCanvas>
+        { canvasIndex === 0 ? perspective : panorama }
       </CardBody>
     </Card>
   )
