@@ -43,7 +43,7 @@ class RamanSpecServer(Node):
     # Constants set by firmware/hardware of STM32F103
     BAUDRATE = 115200
     MASTERCLOCK = 800000
-    INITIAL_SPECTRA_SIZE = 3694                         # Make this a ROS param then decrease it during testing until you only get one phase perfectly?
+    INITIAL_SPECTRA_SIZE = 3694                         # This a ROS param then decrease it during testing until you only get one phase perfectly (if phase length does not change)
     OUTPUT_SIZE = 2 * INITIAL_SPECTRA_SIZE
     CIRCULAR_BUFFER_START = ord('E')
     CIRCULAR_BUFFER_END = ord('R')
@@ -193,8 +193,7 @@ class RamanSpecServer(Node):
             self.get_logger().info(f"Spectrum start is {spectrum_start}")
             loop_count += 1
         
-        self.get_logger().info(f"length of {spectrum_start - spectrum_end}")
-        return spectrum_end is not None, spectrum[spectrum_start:spectrum_end]
+        return True, spectrum
 
 
     def raman_spec_response(self, request, response):
@@ -243,13 +242,13 @@ class RamanSpecServer(Node):
                 time.sleep(0.01)
 
             input = RamanSpecServer.set_spec_input(shperiod, icgperiod, True, average)
-            output = np.zeros(current_spectra_size, np.uint8)
+            output = np.zeros(2*current_spectra_size, np.uint8)
 
             #transmit everything at once (the USB-firmware does not work if all bytes are not transmitted in one go)
             ser.write(input)
                 
             #wait for the firmware to return data
-            output = ser.read(current_spectra_size)
+            output = ser.read(2*current_spectra_size)
 
             ser.close()
 
