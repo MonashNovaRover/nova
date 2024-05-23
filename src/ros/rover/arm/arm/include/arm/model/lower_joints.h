@@ -49,7 +49,7 @@ class LowerJointsModel : public ArmSubModule
     {
         // Initialise public members
         module_name = "lower_joints";
-        joint_names = std::vector<std::string> {"base-rotation", "shoulder", "elbow"};
+        joint_names = std::vector<std::string> {"arm_j1", "arm_j2", "arm_j3"};
         // No endpoints
         output_name = "sj3r";
         zero_angles = std::vector<double> {0, M_PI / 2, 0};

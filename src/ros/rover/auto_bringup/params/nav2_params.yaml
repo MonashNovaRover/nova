@@ -9,11 +9,13 @@ bt_navigator:
     wait_for_service_timeout: 1000
     action_service_result_timeout: 900.0
     goal_reached_tol: 0.25
-    navigators: ["navigate_to_pose", "navigate_through_poses"]
-    navigate_to_pose:
-      plugin: "nav2_bt_navigator/NavigateToPoseNavigator"
-    navigate_through_poses:
-      plugin: "nav2_bt_navigator/NavigateThroughPosesNavigator"
+    navigators: ["urc_navigator"] #["navigate_to_pose", "navigate_through_poses"]
+    # navigate_to_pose:
+    #   plugin: "nav2_bt_navigator/NavigateToPoseNavigator"
+    # navigate_through_poses:
+    #   plugin: "nav2_bt_navigator/NavigateThroughPosesNavigator"
+    urc_navigator:
+      plugin: "nova_bt_navigators/URCNavigator"
     plugin_lib_names:
       - nav2_compute_path_to_pose_action_bt_node
       - nav2_compute_path_through_poses_action_bt_node
@@ -129,7 +131,7 @@ controller_server:
       max_angular_accel: 3.2
       simulate_ahead_time: 1.0
     # DWB parameters
-      debug_trajectory_details: True
+      debug_trajectory_details: False
       min_vel_x: 0.0
       min_vel_y: 0.0
       max_vel_x: 0.5

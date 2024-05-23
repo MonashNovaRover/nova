@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(nova_interfaces)
+project(nova_utils)
 
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
@@ -20,43 +20,20 @@ find_package(ament_cmake REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
-find_package(std_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(vision_msgs REQUIRED)
+find_package(visualization_msgs REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
 
-# Find default generators
-find_package(rosidl_default_generators REQUIRED)
 
-# Include all interfaces
-rosidl_generate_interfaces(${PROJECT_NAME}
+install(PROGRAMS
+  nova_utils/quaternion_to_euler.py
+  nova_utils/nn_3d_to_marker.py
+  nova_utils/detection_overlay.py
 
-  # Message definitions
-  "msg/ActuatorLimit.msg"
-  "msg/DistanceData.msg"
-  "msg/EMCData.msg"
-  "msg/Heartbeat.msg"
-  "msg/HydraprobeData.msg"
-  "msg/KilnData.msg"
-  "msg/KilnMassData.msg"
-  "msg/KilnTempData.msg"
-  "msg/MicroscopeServoInfo.msg"
-  "msg/NIRProbeData.msg"
-  "msg/RoverPoseGPS.msg"
-  "msg/SpectrometerData.msg"
-  
-  # Service definitions
-  "srv/GpsOffset.srv"
-  "srv/KilnCommand.srv"
-  "srv/LoadCellPoller.srv"
-  "srv/MoveMicroscopeServo.srv"
-  "srv/RFIDCommand.srv"
-  "srv/ScienceCommand.srv"
-  "srv/SetNIRProbeLED.srv"
-
-  # Action definitions
-  "action/Stepper.action"
-  "action/Pumps.action"
-  DEPENDENCIES std_msgs geometry_msgs nav_msgs action_msgs
+  DESTINATION lib/${PROJECT_NAME}
 )
 
 # Run build testing package nodes

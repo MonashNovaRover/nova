@@ -4,6 +4,7 @@
 , rosidl-default-generators
 , launch
 , launch-ros
+, joint-state-publisher
 }:
 
 buildRosPackage {
@@ -17,5 +18,5 @@ buildRosPackage {
   };
 
   nativeBuildInputs = [ ament-cmake rosidl-default-generators ];
-  propagatedBuildInputs = [launch launch-ros ];
+  propagatedBuildInputs = [ launch launch-ros joint-state-publisher ];
 }

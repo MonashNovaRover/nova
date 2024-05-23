@@ -68,10 +68,11 @@ pivot_drive_controller:
     open_loop: false
     use_unstamped_msg: true
     has_velocity_limits: true
-    max_velocity: 0.67
-    min_velocity: -0.67
+    max_velocity: 2.794144
+    min_velocity: -2.794144 
+    max_acceleration: 1.0 
+    min_acceleration: -1.0 
     twist_covariance_diagonal: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
-
 
 strafe_controller:
   ros__parameters:
@@ -81,7 +82,7 @@ strafe_controller:
     right_pivot_names: ["frp", "brp"]
     enable_twist_cmd: false
     open_loop: true
-    use_unstamped_msg: false
+    use_unstamped_msg: true
     max_acceleration: 5.0
     wheel_radius: 0.16
     wheel_base: 0.875
@@ -98,7 +99,7 @@ nova_diff_drive_controller:
     wheel_base: 0.84
     wheel_radius: 0.1488
     enable_twist_cmd: false
-    use_unstamped_msg: false
+    use_unstamped_msg: true
     linear:
       x:
         max_acceleration: 5.0

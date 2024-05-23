@@ -13,6 +13,7 @@ AUTHOR(S):	Jess Hepworth, Jory Braun, Matthew Gu
 #include "arm_core/arm_messages.h"
 #include "colors.h"
 #include "rosconfig.h"
+#include <iostream>
 
 // Use the standard namespaces
 using std::placeholders::_1;
@@ -117,6 +118,12 @@ void ArmInputs::publish_control_scheme()
     // Get output from device
     if(select_input_device()->get_control_scheme_inputs(control_scheme)) {
         joystick_override = !joystick_override;
+        std::cout << C_MODE << "Input device swicthed: " << (joystick_override ? "Joystick" : "Keyboard") << C_END << std::endl;
+        if (joystick_override){
+            std::cout << C_MODE << "Press 'Bottom right button on right side of left joystick' to switch back" << C_END << std::endl;
+        } else {
+            std::cout << C_MODE << "Press 'ctrl + 0' to switch back" << C_END << std::endl;
+        }
     }
 
     // Publish the control scheme

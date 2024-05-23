@@ -61,7 +61,7 @@ URCNavigator::getDefaultBTFilepath(
     node->declare_parameter<std::string>(
       "default_urc_navigator_bt_xml",
       pkg_share_dir +
-      "/behavior_tree/urc_through_poses_search.xml");
+      "/behavior_tree/urc/urc_through_poses.xml");
   }
 
   node->get_parameter("default_urc_navigator_bt_xml", default_bt_xml_filename);

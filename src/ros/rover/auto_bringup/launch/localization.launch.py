@@ -110,7 +110,7 @@ def launch_setup(context, *args, **kwargs):
         remappings=[
 								("odometry/filtered", "odometry/global"),
 								("gps/fix", "fix"),
-								("imu", "oak/imu/data"),
+								("imu", "oak/imu/transformed"),
 				]
     )
 

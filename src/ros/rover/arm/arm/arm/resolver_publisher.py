@@ -86,16 +86,26 @@ class ResolverTransceiver(CANTransceiver):
         # update in the managing ROS node using info from the arm model
         # Keys must match the joint names in the arm model
         self.joint_map =  {
-            "base-rotation":    Joint("base-rotation", 0x04, True),
-            "shoulder":         Joint("shoulder",      0x08, True),
-            "elbow":            Joint("elbow",         0x0C, False),
-            "j4":               Joint("j4",            0x10, False),
-            "j5":               Joint("j5",            0x14, False),
-            "j6":               Joint("j6",            0x18, False, gear_ratio=4),
-            "spmx":             Joint("spmx",          0x20, True),
-            "spmy":             Joint("spmy",          0x24, True),
-            "spmz":             Joint("spmz",          0x28, True),
-            "end-rotation":     Joint("end-rotation",  0x1C, False)
+            "arm_j1":    
+                Joint("arm_j1", 0x04, True),
+            "arm_j2":    
+                Joint("arm_j2", 0x08, True),
+            "arm_j3":    
+                Joint("arm_j3", 0x0C, False),
+            "arm_j4":    
+                Joint("arm_j4", 0x10, False),
+            "arm_j5":    
+                Joint("arm_j5", 0x14, False),
+            "arm_j6":    
+                Joint("arm_j6", 0x18, False, gear_ratio=4),
+            "spmx": 
+                Joint("spmx", 0x20, True),
+            "spmy":      
+                Joint("spmy", 0x24, True),
+            "spmz":      
+                Joint("spmz", 0x28, True),
+            "end-rotation": 
+                Joint("end-rotation", 0x1C, False)
         }
 
         # Define an additonal transmitter for zeroing
@@ -391,7 +401,8 @@ class ResolverPublisher(Node):
             joint.discontinuity_angle = self.wrap_to_2pi((joint_limit_lower + joint_limit_upper) / 2 + pi)
         
         # Construct and start the resolver publisher
-        self.publisher = self.create_publisher(JointState, '/arm/resolvers', 10)
+        #self.publisher = self.create_publisher(JointState, '/arm/resolvers', 10)
+        self.joint_states_publisher = self.create_publisher(JointState, '/arm/joint_states', 10)
         self.resolver_pub_timer = self.create_timer(resolver_pub_timer_period, self.publish)
         # Construct the service to zero resolvers
         self.zero_service = self.create_service(StringTrigger, "/arm/resolver_zero_service", self.zero_callback)
@@ -474,7 +485,8 @@ class ResolverPublisher(Node):
             time.sleep(self.receive_deadtime)
 
         self.resolver_state.header.stamp = self.get_clock().now().to_msg()
-        self.publisher.publish(self.resolver_state)
+        #self.publisher.publish(self.resolver_state)
+        self.joint_states_publisher.publish(self.resolver_state)
 
     def destroy_node(self):
         """

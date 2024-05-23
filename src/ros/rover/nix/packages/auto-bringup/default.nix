@@ -26,6 +26,8 @@
 , nova-gazebo
 , nova-auto-interfaces
 , nova-bt-navigators
+, rviz-imu-plugin
+, imu-transformer
 }:
 
 buildRosPackage rec {
@@ -64,6 +66,8 @@ buildRosPackage rec {
       nova-rover-description
       nova-gazebo
       nova-auto-interfaces
-      nova-bt-navigators;
+      nova-bt-navigators
+      rviz-imu-plugin
+      imu-transformer;
   };
 }

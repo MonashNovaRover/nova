@@ -58,10 +58,10 @@
       <PipelineSequence name="NavigateToPoseWithReplanning">
         <RateController hz="1.0">
           <RecoveryNode number_of_retries="1" name="ComputePathToPose">
-            <Sequence name="PlanAndSmoothPath">
-              <ComputePathToPose goal="{goal}" path="{path}" planner_id="GridBased" />
+            <!-- <Sequence name="PlanAndSmoothPath">
               <SmoothPath unsmoothed_path="{path}" smoothed_path="{path}" />
-            </Sequence>
+            </Sequence> -->
+            <ComputePathToPose goal="{goal}" path="{path}" planner_id="GridBased" />
             <ClearEntireCostmap name="ClearGlobalCostmap-Context"
               service_name="global_costmap/clear_entirely_global_costmap" />
           </RecoveryNode>
@@ -81,10 +81,10 @@
       <PipelineSequence name="NavigateToPoseWithReplanning">
         <RateController hz="1.0">
           <RecoveryNode number_of_retries="1" name="ComputePathToPose">
-            <Sequence name="PlanAndSmoothPath">
+            <Sequence name="PlanAndTruncatePath">
               <ComputePathToPose goal="{goal}" path="{path}" planner_id="GridBased" />
               <TruncatePath distance="1.1" input_path="{path}" output_path="{path}" />
-              <SmoothPath unsmoothed_path="{path}" smoothed_path="{path}" />
+              <!-- <SmoothPath unsmoothed_path="{path}" smoothed_path="{path}" /> -->
             </Sequence>
             <ClearEntireCostmap name="ClearGlobalCostmap-Context"
               service_name="global_costmap/clear_entirely_global_costmap" />

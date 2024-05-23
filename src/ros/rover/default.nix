@@ -31,6 +31,7 @@
     nova-detection-overlay = callPackage ./nix/packages/nova-detection-overlay { };
     nova-bt-navigators = callPackage ./nix/packages/nova-bt-navigators { };
     nova-auto-interfaces = callPackage ./nix/packages/nova-auto-interfaces { };
+    nova-utils = callPackage ./nix/packages/nova-utils { };
     # diff drive, pivot drive, strafe, 
   } // import ./nix/packages/controllers { inherit pkgs; };
 

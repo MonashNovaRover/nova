@@ -15,7 +15,7 @@ AUTHOR(S):	Matthew Gu
 #include <string>
 #include <iostream>
 
-KeyboardTranslate::KeyboardTranslate(): speed(0) {
+KeyboardTranslate::KeyboardTranslate(): speed(0.5) {
     set_key_mappings();
 }
 
@@ -100,7 +100,7 @@ bool KeyboardTranslate::get_control_scheme_inputs(arm_interfaces::msg::ArmContro
         if (base_frame_offset >= 2) {
             base_frame_offset = -1;
         }
-        message = "Base frame offset: " + std::to_string(base_frame_offset);
+        message = "Base frame offset: " + std::to_string(90*base_frame_offset);
         std::cout <<  message << "\n"; 
     }
     control_scheme_inputs.base_frame_offset = base_frame_offset;

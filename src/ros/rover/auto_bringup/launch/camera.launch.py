@@ -78,6 +78,15 @@ def launch_setup(context, *args, **kwargs):
             executable='aruco_marker',
             name='aruco_marker',
         ),
+        Node(
+            package='imu_transformer',
+            executable='imu_transformer_node',
+            name='imu_transformer',
+            remappings=[('/imu_in', '/oak/imu/data'),
+                        ('/imu_out', '/oak/imu/transformed')
+                       ],
+            parameters=[{'target_frame':'oak'}]
+        ),
     ]
 
 
