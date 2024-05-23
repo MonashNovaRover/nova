@@ -46,17 +46,27 @@ export const useRosAction = (action: RosAction) => {
     (goal: RosActionInterface[typeof action]["goal"]) => {
       if (readyState !== ReadyState.OPEN)
         toast.error(`Unable to Send Goal on Action: ${action}`);
+      if (!goal) {
+        toast.error(`Goal is Undefined on Action: ${action}`);
+        return;
+      }
 
       const goalId = uuidv4();
-      sendJsonMessage({
+      const goalArray = Object.values(goal);
+      
+      const jsonMessage = {
         op: "send_action_goal",
         id: goalId,
         action: action.toString(),
         action_type: rosActionMessages[action],
-        args: [goal],
+        args: goalArray,
         feedback: true,
-      });
+      };
+      console.log(jsonMessage)
+
+      sendJsonMessage(jsonMessage);
       setCurrentGoalId(goalId);
+
     },
     [action, readyState, sendJsonMessage]
   );
