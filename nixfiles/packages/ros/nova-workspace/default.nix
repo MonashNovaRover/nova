@@ -6,7 +6,6 @@
 , rqt
 , rqt-common-plugins
 , gdb
-, turtlesim
 
 , nova-electronics ? throw "electronics is needed, but not available!"
 , nova-science ? throw "science is needed, but not available!"
@@ -75,15 +74,12 @@
       nova-rover-description
       nova-gazebo
       nova-python-control
-      nova-excavation-construction    
+      nova-excavation-construction
       nova-utils;
   }
 
   ## Extra packages to add to the workspace.
-, extraPackages ? {
-    inherit
-      turtlesim;
-  }
+, extraPackages ? { }
 }:
 
 let
