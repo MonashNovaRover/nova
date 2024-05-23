@@ -7,7 +7,6 @@ import {
   IRosCmdInterfacesCmdFeedback,
   IRosNovaInterfacesNirProbeDataConst,
   IRosSensorMsgsRange,
-  IRosNovaInterfacesHydraprobeData
 } from "../ros/rosTypes";
 import { uiSlice } from "./slices/UISlice";
 import { cameraStreamerSlice } from "./slices/CameraStreamSlice";
@@ -148,15 +147,7 @@ export const rootReducer = {
     { service: RosService.MOVE_MICROSCOPE_SERVO },
     { success: true }
   ),
-  hydraprobeData: createBifrostStore(
-    { topic: RosTopic.HYDRAPROBE_DATA },
-    {
-      conductivity: 0,
-      moisture: 0,
-      temperature: 0,
-      dielectric: 0
-    } as IRosNovaInterfacesHydraprobeData
-  ),
+
   // Regular Stores
   uiState: uiSlice.reducer,
   cameraStreamerState: cameraStreamerSlice.reducer,
