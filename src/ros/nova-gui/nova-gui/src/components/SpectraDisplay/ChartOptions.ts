@@ -55,7 +55,7 @@ export const ChartOptions = (style: ChartStyle): ApexOptions => {
             },
             yaxis: {
                 min: 0,
-                max: 100,
+                max: 1,
                 title: {
                     text: 'Normalised intensity',
                     style: {
