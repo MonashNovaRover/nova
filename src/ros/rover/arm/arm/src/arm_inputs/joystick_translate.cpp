@@ -76,7 +76,7 @@ bool JoystickTranslate::get_control_scheme_inputs(arm_interfaces::msg::ArmContro
         control_scheme_inputs.ik_angular = control_scheme_inputs.ik_linear;
     }
 
-    return (joystick_l.btn_bottom_r6_state==1);
+    return (joystick_r.btn_bottom_r6_state==1);
 }
 
 void JoystickTranslate::get_end_effector_inputs(arm_interfaces::msg::ArmControlScheme& control_scheme_inputs, arm_interfaces::msg::EndEffectorInput& end_effector_inputs)
