@@ -27,5 +27,5 @@ export interface RosActionInterface {
     goal: IRosNovaInterfacesStepperActionGoal;
     goalResponse: IRosNovaInterfacesStepperActionResult;
     feedback: IRosNovaInterfacesStepperActionFeedback;
-  }
+  };
 }

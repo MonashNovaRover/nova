@@ -52,9 +52,13 @@ const CarouselWidget: React.FC<CarouselWidgetProps> = (props) => {
 
   const { sendGoal } = useRosAction(RosAction.CAROUSEL_ACTION);
 
-  const onApply = useCallback(() => {
+  const onGo = useCallback(() => {
+    if (!selectedCuvette) {
+      return;
+    }
+
     const action: IRosNovaInterfacesStepperActionGoal = { 
-      goal: selectedCuvette?.toString(),
+      goal: selectedCuvette.toString(),
       action: IRosNovaInterfacesStepperActionGoalConst.GO_TO
     };
 
@@ -99,10 +103,12 @@ const CarouselWidget: React.FC<CarouselWidgetProps> = (props) => {
 
   // Layout the pickers horizontally with even spacing
   const pickerRow = (
-    <div className="grid auto-cols-fr gap-3 grid-cols-5 content-around">
+    <div className="grid auto-cols-fr gap-3 grid-cols-6 grid-rows-2 content-around">
       {instrumentPicker}
       {cuvettePicker}
-      <Button color="primary" className="h-full" onPress={onApply}>Go</Button>
+      <Button color="primary" className="h-full" onPress={onGo}>Go</Button>
+      <Button color="primary" className="h-full" onPress={onGo}>Set</Button>
+      <Button color="primary" className="h-full" onPress={onGo}>Cancel</Button>
     </div>
   );
 
