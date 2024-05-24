@@ -6,6 +6,7 @@ from python_control.controls.OneAxisPositionControl import OneAxisPositionContro
 from python_control.controllers.Controller import Controller
 from python_control.controllers.Card import Card
 from nova_interfaces.action import Stepper
+from rclpy.action import CancelResponse
 
 
 class StepperPositionController(Controller):
@@ -99,6 +100,9 @@ class StepperPositionController(Controller):
 
         i = 0
         while not self.get_control().is_zeroed() and i < self.TIMEOUT:
+            if goal_handle.is_cancel_requested:
+                self.get_logger().info('Canceling Stepper Goal')
+                return False
             self.feedback_loop(goal_handle)
             i += 1
 
@@ -120,6 +124,9 @@ class StepperPositionController(Controller):
         
         i = 0
         while not self.get_control().is_at_position() and i < self.TIMEOUT:
+            if goal_handle.is_cancel_requested:
+                self.get_logger().info('Canceling Stepper Goal')
+                return False
             self.feedback_loop(goal_handle)
             i += 1
 
@@ -141,6 +148,9 @@ class StepperPositionController(Controller):
         
         i = 0
         while not self.get_control().is_at_position() and i < self.TIMEOUT:
+            if goal_handle.is_cancel_requested:
+                self.get_logger().info('Canceling Stepper Goal')
+                return False
             self.feedback_loop(goal_handle)
             i += 1
 
@@ -156,6 +166,9 @@ class StepperPositionController(Controller):
 
         return success
 
+    def stepper_cancel_callback(self, goal_handle):
+        self.get_logger().info('Canceling Stepper Goal')
+        return CancelResponse.ACCEPT
 
     def stepper_action_callback(self, goal_handle):
         goal_name = goal_handle.request.goal
@@ -182,10 +195,11 @@ class StepperPositionController(Controller):
 
         self.stop()
 
-        if success:
-            goal_handle.succeed()
-        else:
-            goal_handle.abort()
+        if not goal_handle.is_cancel_requested:
+            if success:
+                goal_handle.succeed()
+            else:
+                goal_handle.abort()
 
         result = Stepper.Result()
         result.success = success
