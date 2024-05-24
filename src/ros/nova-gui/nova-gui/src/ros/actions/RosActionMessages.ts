@@ -1,3 +1,4 @@
+import { IRosNovaInterfacesStepperActionFeedback, IRosNovaInterfacesStepperActionGoal, IRosNovaInterfacesStepperActionResult } from "../rosTypes";
 import { RosAction } from "./RosAction";
 
 export interface RosActionInterface {
@@ -7,13 +8,8 @@ export interface RosActionInterface {
     feedback: undefined;
   };
   [RosAction.SCIENCE_SAMPLE_TRAY]: {
-    goal: string;
-    goalResponse: {
-      success: boolean;
-    };
-    feedback: {
-      current_position: number;
-      goal_position: number;
-    };
+    goal: IRosNovaInterfacesStepperActionGoal;
+    goalResponse: IRosNovaInterfacesStepperActionResult;
+    feedback: IRosNovaInterfacesStepperActionFeedback;
   };
 }

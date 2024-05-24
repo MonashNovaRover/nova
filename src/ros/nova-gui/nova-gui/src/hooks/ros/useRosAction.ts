@@ -44,7 +44,7 @@ export const useRosAction = (action: RosAction) => {
    */
   const sendGoal = useCallback(
     (goal: RosActionInterface[typeof action]["goal"]) => {
-      if (readyState !== ReadyState.OPEN || !goal)
+      if (readyState !== ReadyState.OPEN)
         toast.error(`Unable to Send Goal on Action: ${action}`);
       if (!goal) {
         toast.error(`Goal is Undefined on Action: ${action}`);
