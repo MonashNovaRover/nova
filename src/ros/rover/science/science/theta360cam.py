@@ -41,10 +41,8 @@ class Theta360CamPublisher(Node):
             format='%(levelname)s: %(name)s: %(message)s', level=logging.WARNING)
         callback_obj = gp.check_result(gp.use_python_logging())
 
-        # Create camera object
-        # ! If you get the [-105] unknown model, it means it can't find the camera. Make sure it's turned on.
-        self.__camera = gp.Camera()
-        self.__camera.init()
+        self.__camera = None
+        self.init_camera()
 
         # Create service and publisher for images
         self.create_service(Trigger, "/science/theta360cam/capture", self.capture)
@@ -53,6 +51,17 @@ class Theta360CamPublisher(Node):
         self.__bridge = CvBridge()
 
         self.get_logger().info("theta360cam >>> 360 cam node has been set up")
+
+    def init_camera(self):
+        # If the camera was previously opened, close it.
+        if self.__camera is not None:
+            self.__camera.exit()
+            self.__camera = None
+
+        # Create camera object
+        # ! If you get the [-105] unknown model, it means it can't find the camera. Make sure it's turned on.
+        self.__camera = gp.Camera()
+        self.__camera.init()
 
     def capture(self, request: Trigger.Request, response: Trigger.Response) -> Trigger.Response:
         """ Called with the /science/theta360cam/capture service. Expects everything to be synchronous, where the camera
@@ -88,10 +97,18 @@ class Theta360CamPublisher(Node):
             self.get_logger().error("An exception occurred while attempting to capture an image.")
             self.get_logger().error(str(e))
 
-            # This try-except is just so feedback is displayed properly in GUI, and we fail loudly
-            response.success = False
-            response.message = str(e)
-            return response
+            # Try to re-initialise the camera
+            try:
+                self.init_camera()
+                return self.capture(request, response)
+            except gp.GPhoto2Error as e:
+                self.get_logger().error("Failed to re-initialise the camera.")
+                self.get_logger().error(str(e))
+
+                # This try-except is just so feedback is displayed properly in GUI, and we fail loudly
+                response.success = False
+                response.message = str(e)
+                return response
 
         # otherwise, report success
         response.success = True
