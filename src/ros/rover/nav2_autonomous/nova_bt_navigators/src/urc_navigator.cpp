@@ -28,7 +28,8 @@ URCNavigator::configure(
   std::shared_ptr<nav2_util::OdomSmoother> odom_smoother)
 {
   start_time_ = rclcpp::Time(0);
-  auto node = parent_node.lock();
+  std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node = parent_node.lock();
+
 
   if (!node->has_parameter("goals_blackboard_id")) {
     node->declare_parameter("goals_blackboard_id", std::string("goals"));
@@ -42,9 +43,28 @@ URCNavigator::configure(
 
   path_blackboard_id_ = node->get_parameter("path_blackboard_id").as_string();
 
+  if (!node->has_parameter("global_frame_id")) {
+      node->declare_parameter("global_frame_id", std::string("map"));
+  }
+
+  global_frame_id_ = node->get_parameter("global_frame_id").as_string();
+
+  from_ll_to_map_client_ = std::make_unique<
+    nav2_util::ServiceClient<robot_localization::srv::FromLL,
+    std::shared_ptr<rclcpp_lifecycle::LifecycleNode>>>(
+    "/fromLL",
+    node);
+
   // Odometry smoother object for getting current speed
   odom_smoother_ = odom_smoother;
 
+  return true;
+}
+
+bool
+URCNavigator::cleanup()
+{
+  from_ll_to_map_client_.reset();
   return true;
 }
 
@@ -81,7 +101,20 @@ URCNavigator::goalReceived(ActionT::Goal::ConstSharedPtr goal)
     return false;
   }
 
-  initializeGoalPose(goal);
+  // #TODO: move initializeGoalPose logic into here as we don't support pre-emption.
+
+  auto map_poses = convertGPSPosesToMapPoses(goal->gps_poses);
+
+  if (!map_poses.has_value()){
+    RCLCPP_ERROR(
+      logger_, "Conversion of gps to map goals was unsuscessful. Navigation canceled."
+    );
+    return false;
+  }
+
+  //#TODO Check that distance between goals is less than size of global costmap / 2
+
+  initializeGoalPose(goal, map_poses.value());
 
   return true;
 }
@@ -127,35 +160,21 @@ URCNavigator::onLoop()
 void
 URCNavigator::onPreempt(ActionT::Goal::ConstSharedPtr goal)
 {
-  RCLCPP_INFO(logger_, "Received goal preemption request");
-
-  if (goal->behavior_tree == bt_action_server_->getCurrentBTFilename() ||
-    (goal->behavior_tree.empty() &&
-    bt_action_server_->getCurrentBTFilename() == bt_action_server_->getDefaultBTFilename()))
-  {
-    // if pending goal requests the same BT as the current goal, accept the pending goal
-    // if pending goal has an empty behavior_tree field, it requests the default BT file
-    // accept the pending goal if the current goal is running the default BT file
-    initializeGoalPose(bt_action_server_->acceptPendingGoal());
-  } else {
+    // #TODO: look into preemption to see if we can/should support it.
     RCLCPP_WARN(
       logger_,
-      "Preemption request was rejected since the requested BT XML file is not the same "
-      "as the one that the current goal is executing. Preemption with a new BT is invalid "
-      "since it would require cancellation of the previous goal instead of true preemption."
-      "\nCancel the current goal and send a new action request if you want to use a "
-      "different BT XML file. For now, continuing to track the last goal until completion.");
+      "Preemption is unsupported. Cancel goal and send a new one");
     bt_action_server_->terminatePendingGoal();
-  }
 }
 
 void
-URCNavigator::initializeGoalPose(ActionT::Goal::ConstSharedPtr goal)
+URCNavigator::initializeGoalPose(ActionT::Goal::ConstSharedPtr goal,
+                                 const std::vector<geometry_msgs::msg::PoseStamped> & map_poses)
 {
-  if (goal->poses.size() > 0) {
+  if (goal->gps_poses.size() > 0) {
     RCLCPP_INFO(
-      logger_, "Begin navigating from current location through %zu poses to (%.2f, %.2f)",
-      goal->poses.size(), goal->poses.back().pose.position.x, goal->poses.back().pose.position.y);
+      logger_, "Begin navigating from current location through %zu poses to (latitude: %.2f, longitude %.2f)",
+      goal->gps_poses.size(), goal->gps_poses.back().position.latitude, goal->gps_poses.back().position.longitude);
   }
 
   // Reset state for new action feedback
@@ -164,11 +183,61 @@ URCNavigator::initializeGoalPose(ActionT::Goal::ConstSharedPtr goal)
   blackboard->set<int>("number_recoveries", 0);  // NOLINT
 
   // Update the goal pose on the blackboard
-  blackboard->set<Goals>(goals_blackboard_id_, goal->poses);
+  blackboard->set<Goals>(goals_blackboard_id_, map_poses);
 
   //update detection type and id
   blackboard->set<std::string>("detection_type", goal->detection_type);
   blackboard->set<std::string>("detection_id", goal->detection_id);
+}
+
+std::optional<std::vector<geometry_msgs::msg::PoseStamped>>
+URCNavigator::convertGPSPosesToMapPoses(
+  const std::vector<geographic_msgs::msg::GeoPose> & gps_poses)
+{
+  RCLCPP_INFO(
+    logger_, "Converting GPS goals to %s Frame..",
+    global_frame_id_.c_str());
+
+  std::vector<geometry_msgs::msg::PoseStamped> poses_in_map_frame_vector;
+  int goal_index = 0;
+  for (auto && curr_geopose : gps_poses) {
+    auto request = std::make_shared<robot_localization::srv::FromLL::Request>();
+    auto response = std::make_shared<robot_localization::srv::FromLL::Response>();
+    request->ll_point.latitude = curr_geopose.position.latitude;
+    request->ll_point.longitude = curr_geopose.position.longitude;
+    request->ll_point.altitude = curr_geopose.position.altitude;
+
+    from_ll_to_map_client_->wait_for_service((std::chrono::seconds(1)));
+    if (!from_ll_to_map_client_->invoke(request, response)) {
+        RCLCPP_ERROR(
+          logger_,
+          "Conversion of %i th GPS goal to"
+          "%s frame failed",
+          goal_index, global_frame_id_.c_str());
+        return std::nullopt;
+    } else {
+        RCLCPP_INFO_STREAM(
+                logger_,
+                "GPS Goal" << goal_index <<
+                "with latitude: " << curr_geopose.position.latitude <<
+                ", longitude: " << curr_geopose.position.longitude <<
+                "was converted to map coordinates of x: " << response->map_point.x <<
+                ", y: " << response->map_point.y;
+        );
+        geometry_msgs::msg::PoseStamped curr_pose_map_frame;
+        curr_pose_map_frame.header.frame_id = global_frame_id_;
+        curr_pose_map_frame.header.stamp = clock_->now();
+        curr_pose_map_frame.pose.position = response->map_point;
+        curr_pose_map_frame.pose.orientation = curr_geopose.orientation;
+        poses_in_map_frame_vector.push_back(curr_pose_map_frame);
+    }
+    goal_index++;
+  }
+  RCLCPP_INFO(
+    logger_,
+    "Converted all %i GPS goals to %s frame",
+    static_cast<int>(poses_in_map_frame_vector.size()), global_frame_id_.c_str());
+  return poses_in_map_frame_vector;
 }
 
 }  // namespace nova_bt_navigators

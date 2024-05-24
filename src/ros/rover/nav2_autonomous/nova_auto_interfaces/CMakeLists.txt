@@ -23,6 +23,7 @@ find_package(ament_cmake REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(geographic_msgs REQUIRED)
 
 # Find default generators
 find_package(rosidl_default_generators REQUIRED)
@@ -33,7 +34,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   # Action definitions
   "action/NavigateURC.action"
 
-  DEPENDENCIES std_msgs geometry_msgs nav_msgs
+  DEPENDENCIES std_msgs geometry_msgs nav_msgs geographic_msgs
 )
 
 if(BUILD_TESTING)

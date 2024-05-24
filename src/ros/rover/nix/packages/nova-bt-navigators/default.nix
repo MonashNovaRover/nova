@@ -18,6 +18,8 @@
 , tf2-ros
 , pluginlib
 , nova-auto-interfaces
+, robot-localization
+, geographic-msgs
 }:
 
 buildRosPackage {
@@ -47,5 +49,7 @@ buildRosPackage {
     tf2-ros
     pluginlib
     nova-auto-interfaces
+    robot-localization
+    geographic-msgs
   ];
 }

@@ -18,6 +18,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <optional>
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_action/rclcpp_action.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
@@ -26,8 +27,10 @@
 #include "nav2_util/robot_utils.hpp"
 #include "nav_msgs/msg/path.hpp"
 #include "nav2_util/odometry_utils.hpp"
+#include "nav2_util/service_client.hpp"
+#include "robot_localization/srv/from_ll.hpp"
 #include "nova_auto_interfaces/action/navigate_urc.hpp"
-
+#include "geographic_msgs/msg/geo_pose.h"
 
 namespace nova_bt_navigators
 {
@@ -58,6 +61,11 @@ public:
   bool configure(
     rclcpp_lifecycle::LifecycleNode::WeakPtr node,
     std::shared_ptr<nav2_util::OdomSmoother> odom_smoother) override;
+
+  /**
+   * @brief A cleanup state transition to remove memory allocated
+   */
+  bool cleanup() override;
 
   /**
    * @brief Get action name for this navigator
@@ -108,14 +116,29 @@ protected:
    * @brief Goal pose initialization on the blackboard
    * @param goal Action template's goal message to process
    */
-  void initializeGoalPose(ActionT::Goal::ConstSharedPtr goal);
+  void initializeGoalPose(ActionT::Goal::ConstSharedPtr goal,
+                          const std::vector<geometry_msgs::msg::PoseStamped> & map_poses);
+
+    /**
+   * @brief given some gps_poses, converts them to map frame using robot_localization's service `fromLL`.
+   *        Constructs a vector of stamped poses in map frame and returns them.
+   *
+   * @param gps_poses, from the action server
+   * @return std::optional<std::vector<geometry_msgs::msg::PoseStamped>>
+   */
+  std::optional<std::vector<geometry_msgs::msg::PoseStamped>> convertGPSPosesToMapPoses(
+    const std::vector<geographic_msgs::msg::GeoPose> & gps_poses);
 
   rclcpp::Time start_time_;
 
   rclcpp_action::Client<ActionT>::SharedPtr self_client_;
 
+  std::unique_ptr<nav2_util::ServiceClient<robot_localization::srv::FromLL,
+    std::shared_ptr<rclcpp_lifecycle::LifecycleNode>>> from_ll_to_map_client_;
+
   std::string goals_blackboard_id_;
   std::string path_blackboard_id_;
+  std::string global_frame_id_;
 
   // Odometry smoother object
   std::shared_ptr<nav2_util::OdomSmoother> odom_smoother_;

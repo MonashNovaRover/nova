@@ -5,6 +5,7 @@
 , std-msgs
 , geometry-msgs
 , nav-msgs
+, geographic-msgs
 }:
 
 buildRosPackage {
@@ -22,5 +23,6 @@ buildRosPackage {
     std-msgs
     nav-msgs
     geometry-msgs
+    geographic-msgs
   ];
 }
