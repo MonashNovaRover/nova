@@ -204,8 +204,7 @@ class NewHydraprobeTransceiver():
             case 'organic':
                 soil = 3
             case _:
-                print(f'soil type {soil} is invalid')
-                print(f"please select one of {['sand', 'mineral', 'clay', 'organic']}")
+                raise ValueError(f"Soil type {soil} is invalid: please select one of {['sand', 'mineral', 'clay', 'organic']}")
 
         client.write_register(0x0020, soil, count=1, slave=slave)
     
