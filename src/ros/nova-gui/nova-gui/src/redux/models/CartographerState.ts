@@ -28,8 +28,8 @@ export const initialNavSatMessage = <IRosSensorMsgsNavSatFix>{
     status: 0,
     service: 0,
   },
-  latitude: -37.9106996,
-  longitude: 145.1359248,
+  latitude: 38.4062649, // Location: MDRS Hanksville
+  longitude: -110.7917894,
   altitude: 0,
   position_covariance: [],
   position_covariance_type: 0,

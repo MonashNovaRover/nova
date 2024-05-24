@@ -1,29 +1,30 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import * as maptilersdk from "@maptiler/sdk";
 import "@maptiler/sdk/dist/maptiler-sdk.css";
+import { useCartographerActions } from "../../../redux/actions/useCartographerActions";
+import { useCartographerMarkers } from "../hooks/useCartographerMarkers";
 
 export const MapTilerMap = (props: { overlay: React.ReactNode }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<maptilersdk.Map>();
+  const [map, setMap] = useState<maptilersdk.Map>();
 
+  useCartographerMarkers(map);
   useEffect(() => {
-    if (map.current || !mapContainer.current) return; // stops map from intializing more than once
+    if (map || !mapContainer.current) return; // stops map from intializing more than once
 
     maptilersdk.config.apiKey = "PLZ ADD MEMES TO PR'S PLEASE"; // This Comment is to ensure that No API Key is Needed
-    map.current = new maptilersdk.Map({
+    const newMap = new maptilersdk.Map({
       navigationControl: false,
       maptilerLogo: false,
       geolocateControl: false,
       container: mapContainer.current,
-      bounds: [-110.809, 38.3917, -110.765, 38.4177],
-      fitBoundsOptions: {},
-      zoom: 1,
+      maxBounds: [-110.809, 38.3917, -110.765, 38.4177],
       style: {
         version: 8,
         name: "Cartographer",
         sources: {
           tiles: {
-            tiles: ["http://localhost:8080/data/MDRS_Hi_Res/{z}/{x}/{y}.png"],
+            tiles: ["http://localhost:8080/data/MDRS_Hi_Res/{z}/{x}/{y}.png"], // Todo: Replace with Rover IP
             type: "raster",
             bounds: [-110.809, 38.3917, -110.765, 38.4177],
           },
@@ -35,9 +36,9 @@ export const MapTilerMap = (props: { overlay: React.ReactNode }) => {
             type: "raster",
           },
         ],
-        center: [-110.787, 38.404700000000005, 10],
       },
     });
+    setMap(newMap);
   }, [mapContainer, map]);
 
   return (

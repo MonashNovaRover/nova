@@ -86,10 +86,7 @@ export const rootReducer = {
   ),
 
   // Cameras2 Reducers
-  camerasStore: createBifrostStore(
-    { topic: RosTopic.CAMERAS },
-    { cameras: [] }
-  ),
+  camerasStore: createBifrostStore({ topic: RosTopic.CAMERAS }, { cameras: [] }),
   ipList: createBifrostStore({ service: RosService.GET_IP_LIST }, { ips: [] }),
 
   blcmdStatusStore: createBifrostStore(
@@ -134,14 +131,8 @@ export const rootReducer = {
       led: IRosNovaInterfacesNirProbeDataConst.LED_OFF,
     }
   ),
-  microscopeServoStore: createBifrostStore(
-    { topic: RosTopic.MICROSCOPE_SERVO },
-    { angle: 45 }
-  ),
-  microscopeServiceStore: createBifrostStore(
-    { service: RosService.MOVE_MICROSCOPE_SERVO },
-    { success: true }
-  ),
+  microscopeServoStore: createBifrostStore({ topic: RosTopic.MICROSCOPE_SERVO }, { angle: 45 }),
+  microscopeServiceStore: createBifrostStore({ service: RosService.MOVE_MICROSCOPE_SERVO }, { success: true }),
 
   // Regular Stores
   uiState: uiSlice.reducer,
@@ -154,9 +145,6 @@ export const rootReducer = {
     },
     initialNavSatMessage
   ),
-  baseLocationStore: createBifrostStore(
-    { topic: RosTopic.BASE_LOCATION },
-    initialNavSatMessage
-  ),
+  baseLocationStore: createBifrostStore({ topic: RosTopic.BASE_LOCATION }, initialNavSatMessage),
   cartographerState: cartographerSlice.reducer,
 };

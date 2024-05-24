@@ -1,7 +1,7 @@
 import React from "react";
 import { Outlet } from "react-router-dom";
 import { SettingsModal } from "./components/settings/SettingsModal";
-import { RosProvider } from "./redux/context/RosProvider";
+import { RosProvider } from "./redux/context/ros/RosProvider";
 import ControllerHelpModal from "./components/ControllerHelpModal/ControllerHelpModal";
 import { Toaster } from "react-hot-toast";
 import { NovaTopBar } from "./components/TopBar/TopBar";

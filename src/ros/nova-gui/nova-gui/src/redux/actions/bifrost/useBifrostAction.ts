@@ -3,7 +3,7 @@ import { createBifrostAction } from "./createBifrostAction";
 import { bindActionCreators } from "@reduxjs/toolkit";
 import { RosTopic } from "../../../ros/topics/rosTopic";
 import { useContext } from "react";
-import { RosContext } from "../../context/RosContext";
+import { RosContext } from "../../context/ros/RosContext";
 import { RosService } from "../../../ros/services/rosService";
 
 export interface BifrostProps {
