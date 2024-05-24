@@ -16,12 +16,21 @@ TODO:
 
 from typing import Union, List
 from coms_utils.uart_interface import UARTTransceiver
+from pymodbus.client import ModbusSerialClient
 
 import rclpy
 import time
+import datetime
+import csv
 from rclpy.node import Node
 
 from nova_interfaces.msg import HydraprobeData 
+import logging
+import logging.handlers as Handlers
+
+pymodbuslog = logging.getLogger('pymodbus')
+pymodbuslog.setLevel(logging.ERROR)
+
 
 class HydraprobeTransceiver(UARTTransceiver): 
     '''
@@ -117,60 +126,179 @@ class HydraprobeTransceiver(UARTTransceiver):
         # decode returned values
         return self.handle(ret)
 
+class NewHydraprobeTransceiver():
+    # reading_sets = {0: [{"base_reg": 0x0200, "num_regs": 6}], # get comms details
+    #                 1: [{"base_reg": 0x0005, "num_regs": 1},    # get EC and dielectric constant
+    #                     {"base_reg": 0x0002, "num_regs": 1}],
+    #                 2: [{"base_reg": 0x0000, "num_regs": 3}],
+    #                 3: [{"base_reg": 0x0000, "num_regs": 3},
+    #                     {"base_reg": 0x0005, "num_regs": 1}]}   # get temp, moisture, EC
+
+    def __init__(self, port, logger, baudrate=9600, bytesize=8, parity='N', stopbits=1, retries=1, broadcast_enable=True):
+        self.client = ModbusSerialClient(port, baudrate=baudrate, bytesize=bytesize, parity=parity, stopbits=stopbits, retries=retries, broadcast_enable=broadcast_enable)
+        self.logger = logger
+        if not self.client.connect():
+            raise RuntimeError("Failed to run self.client.connect()")
+
+    def read_moisture(self, slave=1):
+        client = self.client
+        regs = client.read_holding_registers(0x0001, count=1, slave=1)
+        try:
+            val = regs.registers[0]/100
+        except AttributeError:
+            val = self.read_moisture(slave)
+        
+        return val
+
+    def read_temp(self, slave=1):
+        client = self.client
+        regs = client.read_holding_registers(0x0000, count=1, slave=1)
+        try:
+            val = regs.registers[0]/100
+        except AttributeError:
+            val = self.read_temp(slave)
+        
+        return val
+
+    def read_ec(self, slave=1):
+        client = self.client
+        regs = client.read_holding_registers(0x0002, count=1, slave=1)
+        try:
+            val = regs.registers[0]
+        except AttributeError:
+            val = self.read_ec(slave)
+        
+        return val
+
+    def read_epsilon(self, slave=1):
+        client = self.client
+        regs = client.read_holding_registers(0x0005, count=1, slave=1)
+        try:
+            val = regs.registers[0]/100
+        except AttributeError:
+            val = self.read_temp(slave)
+        
+        return val
+
+    def read_all(self, slave=1):
+        client = self.client
+        ec = self.read_ec(slave)
+        time.sleep(0.1)
+        moisture = self.read_moisture(slave)
+        time.sleep(0.1)
+        temp = self.read_temp(slave)
+        time.sleep(0.1)
+        eps = self.read_epsilon(slave)
+
+        return [temp, moisture, ec, eps]
+
+    def set_soil_type(self, soil, slave=1):
+        client = self.client
+        match soil.lower():
+            case 'mineral':
+                soil = 0
+            case 'sand':
+                soil = 1
+            case 'clay':
+                soil = 2
+            case 'organic':
+                soil = 3
+            case _:
+                raise ValueError(f"Soil type {soil} is invalid: please select one of {['sand', 'mineral', 'clay', 'organic']}")
+
+        client.write_register(0x0020, soil, count=1, slave=slave)
+    
+    def close(self):
+        self.client.close()
+
 
 class HydraprobePublisher(Node):
 
     # Stores the port of the hydraprobe
-    port: str = '/dev/ttyUSB0'
+    # port: str = '/dev/ttyUSB0'
 
     # Main constructor
     def __init__(self):
-
         super().__init__('hydraprobe_publisher')
+
+        pymodbuslog.addHandler(Handlers.RotatingFileHandler("hydraprobe-logfile.txt", maxBytes=1024*1024))
 
         # TODO: Update to use actual QoS profile
         self.publisher_ = self.create_publisher(HydraprobeData, '/science/hydraprobe_data', 10)
-        
+        self.__port = self.declare_parameter("port", "/dev/ttyUSB0")
+        self.__soil = self.declare_parameter("soil", "sand")
+        self.__filepath = self.declare_parameter("filepath", "")
+        self.data = []
+        # To change the port value, enter "ros2 run science hydraprobe_publisher.py --ros-args -p port:='<port_value>'"
+        # To change the soil value, enter "ros2 run science hydraprobe_publisher.py --ros-args -p soil:='<soil_value>'"
+        # Note you can stack multiple param values, e.g. "--ros-args -p port:='<port_value>' soil:='<soil_value>' ..."
         # Attempt to create the transceiver
         try:
-            self.hydraprobe_transceiver = HydraprobeTransceiver(
-                logger = self.get_logger(),
+            self.hydraprobe_transceiver = NewHydraprobeTransceiver(
+                port = self.__port.value, 
                 baudrate = 9600, # confirm this
-                port = self.port, # TODO: check this
-                probe_address = '000', # TODO: check this. /// is broadcast address for the probes so should be fine to use as long as we only have 1 connected.
+                logger = self.get_logger(),
                 )
         
         # Print error if missing device
-        except:
-            self.get_logger().error("\033[1;91m\nERROR: Unable to find device on '%s'.\033[0m" % self.port)
-            exit()
+        except Exception as e:
+            self.get_logger().error("\033[1;91m\nERROR: Unable to find device on '%s'.\033[0m" % self.__port.value)
+            raise e 
         
+        # Set soil type
+        self.hydraprobe_transceiver.set_soil_type(self.__soil.value) 
+
         # Create the timer
-        self.publisher_timer = self.create_timer(3, self.publish_values)
+        self.publisher_timer = self.create_timer(0.5, self.publish_values)
+        self.get_logger().info("Hydraprobe started")
 
-        # get firmware version
-        self.hydraprobe_transceiver.transmit("FV=?")
-        self.get_logger().debug(self.hydraprobe_transceiver.receive().decode('ascii'))
+        # get firmware version xx no longer applicable
+        # self.hydraprobe_transceiver.transmit("FV=?")
+        # self.get_logger().debug(self.hydraprobe_transceiver.receive().decode('ascii'))
 
+    def read_all_test(self):
+        """
+        This is purely to test/bugfix the code without access to 
+        the physical hydraprobe (requires commenting out the "raise 
+        e" when connecting to the probe).
+        """
+        time.sleep(0.1)
+        time.sleep(0.1)
+        time.sleep(0.1)
+
+        return [1, 2, 3, 4]
 
     def publish_values(self):
-        # request reading set and wait till its ready
-        self.hydraprobe_transceiver.update_readings()
-        # pretty jank but we will roll with it
-        time.sleep(2)
+        """
+        Note that to save values, you must enter this command in
+        another terminal:
+        "ros2 topic echo /science/hydraprobe_data > <filepath/filename>"
+        For example, the command:
+        "ros2 topic echo /science/hydraprobe_data > ~/Downloads/data.yaml"
+        Will save the data as a .yaml file (note it will still do 
+        this if you omit the .yaml) at that location
+        """
+        # request reading set and wait till its ready  xx deprecated
+        # self.hydraprobe_transceiver.update_readings()     
+        # # pretty jank but we will roll with it
+        # time.sleep(2)
         #then read values
         msg = HydraprobeData()
-        values = self.hydraprobe_transceiver.get_reading_set(set_number=2)
+        values = self.hydraprobe_transceiver.read_all()
+        # values = self.read_all_test()
         if values is not None:
+            self.data.append(values)
             # write values into msg
             # see linked datasheet for reference on data ordering
-            msg.temperature = values[0]
-            msg.moisture = values[2]
-            msg.conductivity = values[4]
+            msg.temperature = float(values[0])
+            msg.moisture = float(values[1])
+            msg.conductivity = float(values[2])
+            msg.dielectric = float(values[3])
         else:
             # set error state with -1 for all values
-            msg.temperature = msg.moisture = msg.conductivity = -1
+            msg.temperature = msg.moisture = msg.conductivity = msg.dielectric = float(-1)
 
+        self.get_logger().info(f"Publishing {msg.temperature}, {msg.moisture}, {msg.conductivity}, {msg.dielectric}")
         self.publisher_.publish(msg)
 
     def destroy_node(self):
@@ -178,17 +306,15 @@ class HydraprobePublisher(Node):
         Override for default node destruction
         '''
         self.hydraprobe_transceiver.close()
+        self.save_data()
         return super().destroy_node()
 
 def main(args=None):
     rclpy.init(args=args)
-
-    pub = HydraprobePublisher()
-
-    rclpy.spin(pub)
-
+    node = HydraprobePublisher()
+    rclpy.spin(node)
     # Destroy the node explicitly
-    pub.destroy_node()
+    node.destroy_node()
     rclpy.shutdown()
 
 if __name__ == '__main__':
