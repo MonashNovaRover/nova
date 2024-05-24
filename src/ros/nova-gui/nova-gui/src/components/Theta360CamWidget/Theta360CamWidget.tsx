@@ -49,7 +49,7 @@ const Theta360CamWidget: React.FC = () => {
   }, [bifrost]);
 
   // Update the image to contain the data from imageData whenever it changes
-  // TODO: Test this, and performance test to ensure no unecessary re-renders
+  // TODO: Test this, and performance test to ensure no unnecessary re-renders
   useEffect(() => {
     if (!image || imageMessage.data.length == 0)
       return;
@@ -95,7 +95,7 @@ const Theta360CamWidget: React.FC = () => {
 
   return (
     <Card>
-      <CardHeader className="pb-0 flex flex-row gap-3">
+      <CardHeader className="pb-0 flex flex-row gap-3 max-h-screen">
         <div className="flex-grow">360 Camera</div>
         <SegmentedPicker selectedIndex={canvasIndex} onIndexChange={setCanvasIndex}>
           <>Perspective</>

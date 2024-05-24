@@ -4,6 +4,8 @@ import useGL from "../../hooks/webgl/gl/useGL.ts";
 import useProgram from "../../hooks/webgl/program/useProgram.ts";
 import Vert from "./gl/panorama.vert";
 import Frag from "./gl/panorama.frag";
+import CompassVert from "./gl/compass.vert";
+import CompassFrag from "./gl/compass.frag";
 import useScreenQuadAttribute from "../../hooks/webgl/program/attribute/useScreenQuadAttribute.ts";
 import useSampler from "../../hooks/webgl/program/sampler/useSampler.ts";
 import HTMLTextureFormat from "../../hooks/webgl/program/sampler/HTMLTextureFormat.ts";
@@ -12,7 +14,11 @@ import useUniform, {vec} from "../../hooks/webgl/program/uniform/useUniform.ts";
 import GLWrapMode from "../../hooks/webgl/program/sampler/GLWrapMode.ts";
 import {Image} from "react-feather";
 import ExtendedDownloadButton from "../shared/ExtendedDownload.tsx";
-import {Tooltip} from "@nextui-org/react";
+import {Slider, Tooltip} from "@nextui-org/react";
+import useImageTexture from "../../hooks/webgl/program/sampler/useImageTexture.ts";
+import Compass from "../../assets/compass.png";
+import {isArray} from "lodash";
+
 
 export interface WebGL360CamProps {
   image?: HTMLImageElement,
@@ -61,6 +67,9 @@ function convertToBlob(base64image: string): [ArrayBuffer] {
 const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
   const gl = useGL();
   const [mousePos, setMousePos] = useState([0, 0]);
+  const [compassAngle, setCompassAngle] = useState<number | number[]>(Math.PI);
+
+  const compassImage = useImageTexture(Compass);
 
   // Allow for panning with the mouse
   const onMouseMove = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
@@ -71,8 +80,8 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
     const maxResolutionComp = Math.max(bounds.width, bounds.height);
 
     setMousePos(([x, y]) => [
-      x + event.movementX / maxResolutionComp,
-      y + event.movementY / maxResolutionComp
+      x + 2 * Math.PI * event.movementX / maxResolutionComp,
+      y + 2 * Math.PI * event.movementY / maxResolutionComp
     ]);
   }, [gl.canvasRef]);
 
@@ -85,7 +94,19 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
     wrapS: GLWrapMode.MIRRORED_REPEAT,
     wrapT: GLWrapMode.MIRRORED_REPEAT
   });
+
   useUniform(program, "mousePos", () => mousePos as vec, [mousePos]);
+
+  // Create program to project and render image
+  const compassProgram = useProgram(gl, CompassVert, CompassFrag);
+  useSampler(compassProgram, 1, "compass", compassImage, {
+    format: HTMLTextureFormat.ALPHA
+  });
+  useResolutionUniform(gl, compassProgram);
+  useUniform(compassProgram, "mousePos", () => mousePos as vec, [mousePos]);
+  useUniform(compassProgram, "compassAngle", () => (
+    (isArray(compassAngle) ? compassAngle : [compassAngle]) as vec
+  ), [compassAngle]);
 
   // Called for the screenshot button, to fetch data to put in the file to save
   const getCanvasScreenshot = useCallback(() => {
@@ -97,13 +118,13 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
     const dataURL = canvas.toDataURL("image/png");
 
     return convertToBlob(dataURL);
-  }, [gl])
+  }, [gl]);
 
   return (
     <div className="flex flex-col gap-3">
       <AutosizedGLCanvas
         gl={gl}
-        className="aspect-[16/9] rounded p-3"
+        className="aspect-[2/1] rounded p-3"
         onMouseMove={onMouseMove}
         onMouseEnter={disableScroll}
         onMouseLeave={enableScroll}
@@ -123,8 +144,10 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
         </div>
 
       </AutosizedGLCanvas>
+      <Slider value={compassAngle} onChange={setCompassAngle} maxValue={2 * Math.PI} minValue={0} step={0.01}></Slider>
+      {compassAngle}
     </div>
-  )
+  );
 }
 
 export default Perspective360CamCanvas;
