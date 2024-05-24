@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import * as maptilersdk from "@maptiler/sdk";
 import "@maptiler/sdk/dist/maptiler-sdk.css";
-import { useCartographerActions } from "../../../redux/actions/useCartographerActions";
 import { useCartographerMarkers } from "../hooks/useCartographerMarkers";
 
 export const MapTilerMap = (props: { overlay: React.ReactNode }) => {
