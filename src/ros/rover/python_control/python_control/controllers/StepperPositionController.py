@@ -92,7 +92,8 @@ class StepperPositionController(Controller):
         except OSError as _:
             pass
         feedback_msg = self.feedback()
-        goal_handle.publish_feedback(feedback_msg)
+        if not goal_handle.is_cancel_requested:
+            goal_handle.publish_feedback(feedback_msg)
 
     def zeroing_action(self, goal_handle):
         self.get_logger().info('Zeroing Stepper')
@@ -200,6 +201,8 @@ class StepperPositionController(Controller):
                 goal_handle.succeed()
             else:
                 goal_handle.abort()
+        else:
+            goal_handle.canceled()
 
         result = Stepper.Result()
         result.success = success
