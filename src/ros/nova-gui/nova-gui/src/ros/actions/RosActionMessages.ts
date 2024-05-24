@@ -7,6 +7,17 @@ export interface RosActionInterface {
     goalResponse: undefined;
     feedback: undefined;
   };
+  [RosAction.FIBONACCI]: {
+    goal: {
+      order: number;
+    };
+    goalResponse: {
+      sequence: number[];
+    };
+    feedback: {
+      sequence: number[];
+    };
+  };
   [RosAction.SCIENCE_SAMPLE_TRAY]: {
     goal: IRosNovaInterfacesStepperActionGoal;
     goalResponse: IRosNovaInterfacesStepperActionResult;

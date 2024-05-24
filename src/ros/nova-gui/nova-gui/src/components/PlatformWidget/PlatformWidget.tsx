@@ -1,7 +1,7 @@
 import {Button, Card, CardBody, CardHeader, Switch} from "@nextui-org/react";
 import {useEffect, useState} from "react";
 import SegmentedPicker from "../SegmentedPicker/SegmentedPicker.tsx";
-import { IRosNovaInterfacesStepperActionGoal, IRosNovaInterfacesStepperActionGoalConst } from "../../ros/rosTypes.ts";
+import { IRosNovaInterfacesStepperActionFeedback, IRosNovaInterfacesStepperActionGoal, IRosNovaInterfacesStepperActionGoalConst, IRosNovaInterfacesStepperActionResult } from "../../ros/rosTypes.ts";
 import { useRosAction } from "../../hooks/ros/useRosAction.ts";
 import { RosAction } from "../../ros/actions/RosAction.ts";
 import toast from "react-hot-toast";
@@ -34,14 +34,6 @@ const SAMPLE_TRAY_LOCATIONS = [
   },
 ];
 
-// const SAMPLE_TRAY_POSITIONS = {
-//   "Auger": "auger",
-//   "Sample One": "sample_one",
-//   "Sample Two": "sample_two",
-//   "Cache": "cache",
-//   "Cleaning Sheath": "clean",
-// };
-
 
 const PlatformWidget: React.FC<PlatformWidgetProps> = () => {
   const [currentLocationIndex, setCurrentLocationIndex] = useState<number | null>(null);
@@ -50,7 +42,10 @@ const PlatformWidget: React.FC<PlatformWidgetProps> = () => {
   const [actionSent, setActionSent] = useState<boolean>(false);
   const { sendGoal, feedback, goalResponse, cancelGoal} = useRosAction(RosAction.SCIENCE_SAMPLE_TRAY);
 
+  const stepperFeedback = feedback as IRosNovaInterfacesStepperActionFeedback;
+  const stepperGoalResponse = goalResponse as IRosNovaInterfacesStepperActionResult;
 
+  
   const goTo = () => {
     console.log("Applying Sample Tray Position");
     const goal : IRosNovaInterfacesStepperActionGoal = {
@@ -84,8 +79,6 @@ const PlatformWidget: React.FC<PlatformWidgetProps> = () => {
     setActionSent(false);
     setTargetPosition(null);
   }
-
-  
   
   
   const pickerRow = (
@@ -107,7 +100,7 @@ const PlatformWidget: React.FC<PlatformWidgetProps> = () => {
   const buttonRow = (
     <div className="flex flex-row mt-3 gap-5 justify-center">
       <Button color="warning" onPress={() => zero()}>Zero Stepper</Button>
-      <Button color="danger" onPress={() => cancel()}>Cancel Action</Button>
+      <Button color="danger" isDisabled={true} onPress={() => cancel()}>Cancel Action</Button>
     </div>
   );
 
@@ -122,12 +115,12 @@ const PlatformWidget: React.FC<PlatformWidgetProps> = () => {
     if (!actionSent){
       return;
     }
-    if (feedback) {
-      setTargetPosition(feedback.goal_position);
-    }
+    console.log(`Goal Response: ${goalResponse}`);
+    console.log(`Action Sent: ${actionSent}`)
     if (goalResponse) {
-      if (goalResponse.success === true) {
+      if (stepperGoalResponse.success) {
         setCurrentLocationIndex(targetLocationIndex);
+        
         
         toast.success(`Successfully moved to ${SAMPLE_TRAY_LOCATIONS[targetLocationIndex].display}`);
       }
@@ -139,7 +132,17 @@ const PlatformWidget: React.FC<PlatformWidgetProps> = () => {
       }
       setActionSent(false);
     }
-  },[goalResponse]);
+
+  },[actionSent, goalResponse]);
+
+  useEffect(() => {
+    if (!actionSent){
+      return;
+    }
+    if (targetPosition === null && feedback) {
+      setTargetPosition(stepperFeedback.goal_position);
+    }
+  },[feedback]);
 
 
   return (
@@ -149,10 +152,10 @@ const PlatformWidget: React.FC<PlatformWidgetProps> = () => {
       </CardHeader>
       <CardBody>
         <div className="grid grid-cols-3">
-          <div className="font-bold pr-3">Current Location:</div>
-          <div className="">{currentLocationIndex ? SAMPLE_TRAY_LOCATIONS[targetLocationIndex].display : "Unknown (Please Zero)"}</div>
-          <div className="">{feedback ? feedback.current_position: "-"}</div>
-          <div className="font-bold pr-3">Target Location:</div>
+          <div className="font-bold">Current Location:</div>
+          <div className="">{currentLocationIndex ? SAMPLE_TRAY_LOCATIONS[currentLocationIndex].display : "Unknown (Please Zero)"}</div>
+          <div className="">{feedback ? stepperFeedback.current_position: "-"}</div>
+          <div className="font-bold">Target Location:</div>
           <div className="">{SAMPLE_TRAY_LOCATIONS[targetLocationIndex].display}</div>
           <div className="">{targetPosition ? targetPosition : "-"}</div>
         </div>
