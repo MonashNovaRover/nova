@@ -162,10 +162,10 @@ class GimbalCam(Node):
                 self.cam_select = self.CAMERA1
                 self.get_logger().info("Camera 1 Selected")
             #set the velocity factor
-            if GimbalCam.ctrl(SDL_SCANCODE_UP) in msg.keys_pressed or GimbalCam.ctrl(SDL_SCANCODE_UP) in msg.keys_repeated:
+            if GimbalCam.ctrl(SDL_SCANCODE_DOWN) in msg.keys_pressed:
                 self.velocity = max(self.velocity - self.velocity_increment, 0)
                 self.get_logger().info(f"Velocity decreased to {self.velocity}")
-            elif GimbalCam.ctrl(SDL_SCANCODE_DOWN) in msg.keys_pressed or GimbalCam.ctrl(SDL_SCANCODE_DOWN) in msg.keys_repeated:
+            elif GimbalCam.ctrl(SDL_SCANCODE_UP) in msg.keys_pressed:
                 self.velocity = min(self.velocity + self.velocity_increment, 1)
                 self.get_logger().info(f"Velocity increased to {self.velocity}")
 
@@ -192,6 +192,15 @@ class GimbalCam(Node):
     @staticmethod
     def ctrl(num):
         return num | (1<<31)
+        
+    @staticmethod
+    def shift(num):
+        return num | (1<<30)
+    
+    @staticmethod
+    def alt(num):
+        return num | (1<<29)
+
 
     def get_velocity_cmd(self):
         return self.velocity*(self.max_velocity_cmd - self.min_velocity_cmd) + self.min_velocity_cmd
