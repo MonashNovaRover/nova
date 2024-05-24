@@ -36,7 +36,8 @@ from rclpy.duration import Duration
 class GimbalCam(Node):
     CAMERA0 = 0
     CAMERA1 = 1
-
+    JOYSTICK = 0
+    KEYBOARD = 1
     def __init__(self):
         super().__init__("gimbal_cam")
 
@@ -52,8 +53,7 @@ class GimbalCam(Node):
         self.velocity = 0.5
         self.x_velocity = 0
         self.y_velocity = 0
-        self.joystick_lock = True
-        self.keyboard_lock = True # we can also just use share the joystick lock
+        self.device_choice = self.KEYBOARD
 
         deadline = Duration(nanoseconds=2e8)
         events = SubscriptionEventCallbacks(deadline=self.deadline_callback)
@@ -98,19 +98,19 @@ class GimbalCam(Node):
         """
         joystick_l = msg
         # Joysticks lock if botton L2 button is pressed on the left joystick
-        if joystick_l.btn_bottom_l2_state >= 1 and not self.joystick_lock:
-            self.get_logger().info("Joysticks Locked")
-            self.joystick_lock = True
-        if joystick_l.btn_bottom_l5_state >= 1 and self.joystick_lock:
-            self.get_logger().info("Joysticks Unlocked")
-            self.joystick_lock = False
+        if self.device_choice != self.KEYBOARD and joystick_l.btn_bottom_l2_state >= 1:
+            self.get_logger().info("Swapped to Keyboard Control")
+            self.device_choice = self.KEYBOARD
+        # if joystick_l.btn_bottom_l5_state >= 1 and self.joystick_lock:
+        #     self.get_logger().info("Joysticks Unlocked")
+        #     self.joystick_lock = False
 
-        if not self.joystick_lock:
+        if self.device_choice == self.JOYSTICK:
             # This key is also used for enable joint limits
-            if msg.btn_bottom_l3_state == 1:
+            if joystick_l.btn_bottom_l3_state == 1:
                 self.cam_select = self.CAMERA0
                 self.get_logger().info("Camera 0 Selected")
-            elif msg.btn_bottom_l6_state == 1:
+            elif joystick_l.btn_bottom_l6_state == 1:
                 self.cam_select = self.CAMERA1
                 self.get_logger().info("Camera 1 Selected")
             #set the velocity factor
@@ -142,21 +142,18 @@ class GimbalCam(Node):
             self.y_velocity = 0
 
     def keyboard_callback(self, msg):
-        SDL_SCANCODE_L = 15
         SDL_SCANCODE_RIGHT = 79
         SDL_SCANCODE_LEFT = 80
         SDL_SCANCODE_DOWN = 81
         SDL_SCANCODE_UP = 82
         SDL_SCANCODE_1 = 30
         SDL_SCANCODE_0 = 39
-        if not self.keyboard_lock:
-            # toggle the lock with ctrl(L)
-            if GimbalCam.ctrl(SDL_SCANCODE_L) in msg.keys_pressed:
-                self.keyboard_lock = not self.keyboard_lock
-                if self.keyboard_lock:
-                    self.get_logger().info("Keyboard Locked")
-                else:
-                    self.get_logger().info("Keyboard Unlocked")
+        # toggle the lock with ctrl(L)
+        if GimbalCam.ctrl(SDL_SCANCODE_0) in msg.keys_pressed:
+            if self.device_choice == self.KEYBOARD:
+                self.get_logger().info("Swapped to Joystick Control")
+                self.device_choice = self.JOYSTICK
+        if self.device_choice == self.KEYBOARD:
             # Change between the cameras using alt(0) and alt(1)
             if GimbalCam.alt(SDL_SCANCODE_0) in msg.keys_pressed:
                 self.cam_select = self.CAMERA0
