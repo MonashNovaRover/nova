@@ -51,9 +51,11 @@ export const useRosAction = (action: RosAction) => {
         return;
       }
 
+      setGoalResponse(undefined);
+
       const goalId = uuidv4();
       const goalArray = Object.values(goal);
-      
+
       const jsonMessage = {
         op: "send_action_goal",
         id: goalId,
@@ -62,7 +64,6 @@ export const useRosAction = (action: RosAction) => {
         args: goalArray,
         feedback: true,
       };
-      console.log(jsonMessage)
 
       sendJsonMessage(jsonMessage);
       setCurrentGoalId(goalId);
@@ -77,11 +78,15 @@ export const useRosAction = (action: RosAction) => {
   const cancelGoal = useCallback(() => {
     if (readyState !== ReadyState.OPEN || !currentGoalId)
       toast.error(`Unable to Cancel Goal on Action: ${action}`);
-    sendJsonMessage({
+  
+    const jsonMessage = {
       op: "cancel_action_goal",
-      action: action.toString(),
       id: currentGoalId,
-    });
+      action: action.toString(),
+    };
+
+    sendJsonMessage(jsonMessage);
+
     setCurrentGoalId(undefined);
     setFeedback(undefined);
     setGoalResponse(undefined);
@@ -90,6 +95,11 @@ export const useRosAction = (action: RosAction) => {
   /**
    * Handles All Messages from rosbridge_server according to the Rosbridge Protocol[https://github.com/RobotWebTools/rosbridge_suite/blob/ros2/ROSBRIDGE_PROTOCOL.md]
    */
+  type ActionResponse = {
+    status: number;
+    result: unknown; 
+  };
+
   useEffect(() => {
     if (!lastJsonMessage) return;
     switch (lastJsonMessage.op) {
@@ -103,7 +113,7 @@ export const useRosAction = (action: RosAction) => {
       case "action_result": {
         if (lastJsonMessage.id === currentGoalId) {
           setGoalResponse(
-            lastJsonMessage.values as unknown as RosActionInterface[typeof action]["goalResponse"]
+            (lastJsonMessage.values as ActionResponse).result as RosActionInterface[typeof action]["goalResponse"]
           );
         }
         break;
