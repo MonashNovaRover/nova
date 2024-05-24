@@ -182,7 +182,7 @@ class NewHydraprobeTransceiver():
 
     def read_all(self, slave=1):
         client = self.client
-        ec = self.read_ec(client, slave)
+        ec = self.read_ec(slave)
         time.sleep(0.1)
         moisture = self.read_moisture(slave)
         time.sleep(0.1)
