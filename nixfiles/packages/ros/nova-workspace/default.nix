@@ -74,13 +74,12 @@
       nova-rover-description
       nova-gazebo
       nova-python-control
-      nova-excavation-construction    
+      nova-excavation-construction
       nova-utils;
   }
 
   ## Extra packages to add to the workspace.
-, extraPackages ? {
-  }
+, extraPackages ? { }
 }:
 
 let
