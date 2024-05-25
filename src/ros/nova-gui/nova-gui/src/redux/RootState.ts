@@ -14,7 +14,9 @@ import {
   IRosStdMsgsString,
   IRosGeometryMsgsPose,
   IRosSensorMsgsRange,
-  IRosCmdInterfacesCmDsFeedback, 
+  IRosCmdInterfacesCmDsFeedback,
+  IRosNovaInterfacesRamanState,
+  IRosNovaInterfacesRamanMechResponse,
   IRosNovaInterfacesUvVisSpecData,
 } from "../ros/rosTypes";
 
@@ -39,7 +41,7 @@ export interface RootState {
   // Camera Stores
   camerasStore: IRosCameraMsgsCameras;
   ipList: IRosCameraMsgsGetIpListResponse;
-  
+
   // Error Related Stores
   blcmdStatusStore: IRosBlcmdInterfacesBlcmdStatusArray;
   
@@ -49,15 +51,14 @@ export interface RootState {
   kilnData: IRosNovaInterfacesKilnData;
   kilnCommand: IRosNovaInterfacesKilnCommandResponse;
   uvVisSpecStore: IRosNovaInterfacesUvVisSpecData;
-
-  // Regular Stores
-  uiState: UIState;
-  cameraStreamerState: CameraStreamerState;
-
-  // Science Stores
   microscopeServoStore: IRosNovaInterfacesMicroscopeServoInfo;
   microscopeServiceStore: IRosNovaInterfacesMoveMicroscopeServoResponse;
   ramanSpecServiceStore: IRosNovaInterfacesRamanSpecResponse;
   ramanSpecMessageStore: IRosNovaInterfacesRamanSpectrum;
+  ramanMechMessageStore: IRosNovaInterfacesRamanState;
+  ramanMechServiceStore: IRosNovaInterfacesRamanMechResponse;
 
+  // Regular Stores
+  uiState: UIState;
+  cameraStreamerState: CameraStreamerState;
 }

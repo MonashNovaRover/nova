@@ -5,6 +5,9 @@ export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}", "./node_modules/@nextui-org/theme/dist/**/*.{js,ts,jsx,tsx}"],
   theme: {
     extend: {
+      spacing: {
+      '154': '38.5rem',
+      },    
       colors: {
         '292929': '#292929',
         // TODO: Fix issues with different modes

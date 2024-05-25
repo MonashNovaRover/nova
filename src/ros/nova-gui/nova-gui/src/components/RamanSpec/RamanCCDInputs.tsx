@@ -9,9 +9,9 @@ import { HelpCircle } from "react-feather";
 import { useState, useEffect } from "react";
 import { useBifrost } from "../../redux/actions/bifrost/useBifrostAction";
 import { RosService } from "../../ros/services/rosService";
-import { IRosNovaInterfacesRamanSpecRequest } from "../../ros/rosTypes";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/RootState";
+import { IRosNovaInterfacesRamanSpecRequest } from "../../ros/rosTypes";
 
 
 function checkPeriods(shPeriod: number, icgPeriod: number) {
@@ -48,7 +48,7 @@ const RamanCCDInputs: React.FC = () => {
       }, [bifrost]);
 
     return (
-        <Card className="m-1 p-2 flex flex-row flex-1 space-x-2">
+        <Card className="h-40 m-1 p-5 flex flex-row flex-wrap flex-1 space-x-10">
             <CardHeader className="shrink-0 w-24 p-1">CCD Inputs</CardHeader>
             <Button isIconOnly className="w-8 h-8 m-3" radius="md" onPress={onOpen}>
                 <HelpCircle className="w-6 h-6" />
@@ -89,31 +89,7 @@ const RamanCCDInputs: React.FC = () => {
                     });
                     if (!singleCollectionMode) {
                         setCurrentlyInContinuous(true);
-                    } /*
-                    let ros = new ROSLIB.Ros({
-                        url: 'ws://localhost:9090'	                            
-                    });
-                    ros.on('error', () => {console.log("error")});	                        
-                    ros.on('connection', () => {console.log("connected")});	                        
-                    ros.on('close', () => {console.log("closed")});	                        
-                    let ramanSpectra = new ROSLIB.Topic({	             
-                        ros: ros,	             
-                        name: 'science/raman_spec_msg',	               
-                        messageType: "core/msg/RamanSpectrum"	      
-                    });	              
-                    let fakespectra = [average, 11, 9, 8, 9, 10, 12, 11, 9, 11, 10, 11, 10, 9, 11, 12, 13, 15, 17, 20, 23, 24, 28, 33, 39, 47, 58, 70, 66, 54, 50, 70, 90, 65, 40, 35, 34, 34, 35, 35, 34, 34, 33, 32, 31, 31, 30, 31, 32]	                       
-                    let spectra1 = new ROSLIB.Message({	                                
-                        isvalid: true,	                                    
-                        spectrum: fakespectra	                                    
-                    });	                            
-                    ramanSpectra.publish(spectra1);
-                    setTimeout(() => {fakespectra = [15, 11, 9, 8, 9, 15, 12, 11, 9, 11, 10, 11, 10, 9, 11, 12, 13, 15, 17, 20, 23, 24, 28, 33, 39, 65, 58, 70, 66, 54, 50, 70, 90, 65, 40, 35, 34, 34, 35, 35, 34, 34, 33, 32, 31, 31, 30, 31, 32]	                       
-                        let spectra2 = new ROSLIB.Message({	                                
-                            isvalid: true,	                                    
-                            spectrum: fakespectra	                                    
-                        });	                            
-                        ramanSpectra.publish(spectra2);}, 1000);
-                    */
+                    }
                 } else {
                     onOpen();
                 }

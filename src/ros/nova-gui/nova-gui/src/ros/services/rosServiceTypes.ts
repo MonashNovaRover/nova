@@ -2,6 +2,8 @@ import {
   IRosCameraMsgsCameraOperationRequest,
   IRosCameraMsgsCameraOperationResponse,
   IRosCameraMsgsGetIpListResponse,
+  IRosNovaInterfacesRamanSpecRequest,
+  IRosNovaInterfacesRamanSpecResponse,
   IRosBlcmdInterfacesBlcmdResetRequest,
   IRosBlcmdInterfacesBlcmdResetResponse,
   IRosNovaInterfacesMoveMicroscopeServoRequest,
@@ -11,8 +13,8 @@ import {
   IRosNovaInterfacesKilnCommandResponse,
   IRosNovaInterfacesSetNirProbeLedRequest,
   IRosNovaInterfacesSetNirProbeLedResponse,
-  IRosNovaInterfacesRamanSpecRequest,
-  IRosNovaInterfacesRamanSpecResponse,
+  IRosNovaInterfacesRamanMechRequest,
+  IRosNovaInterfacesRamanMechResponse,
 } from "../rosTypes";
 import { RosService } from "./rosService";
 
@@ -25,14 +27,11 @@ interface EmptyMessage {}
 
 export interface RosServiceInterface {
   [RosService.NULL_SERVICE]: RosServiceMessage<EmptyMessage, EmptyMessage>;
-  /*[RosService.GET_IP_LIST]: RosServiceMessage<
+  [RosService.GET_IP_LIST]: RosServiceMessage<
     EmptyMessage,
     IRosCameraMsgsGetIpListResponse
   >;
-  [RosService.READ_RFID]: RosServiceMessage<
-    EmptyMessage,
-    IRosStdSrvsTriggerResponse
-  >;
+  [RosService.READ_RFID]: RosServiceMessage<EmptyMessage, IRosStdSrvsTriggerResponse>;
 
   // Camera Related
   [RosService.START_CAMS]: RosServiceMessage<
@@ -63,9 +62,12 @@ export interface RosServiceInterface {
     IRosNovaInterfacesMoveMicroscopeServoRequest,
     IRosNovaInterfacesMoveMicroscopeServoResponse
   >;
-  >;*/
   [RosService.CALL_RAMAN_SPEC]: RosServiceMessage<
     IRosNovaInterfacesRamanSpecRequest,
     IRosNovaInterfacesRamanSpecResponse
+  >;
+  [RosService.CALL_RAMAN_MECH]: RosServiceMessage<
+    IRosNovaInterfacesRamanMechRequest,
+    IRosNovaInterfacesRamanMechResponse
   >;
 }
