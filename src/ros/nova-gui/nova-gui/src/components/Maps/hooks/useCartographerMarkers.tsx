@@ -7,7 +7,7 @@ import roverIcon from "../../../assets/rover-top-down-dark.png";
 import novaLogo from "../../../assets/nova-logo.png";
 
 import { useEffect, useState } from "react";
-import { MapPoint } from "../../../redux/models/CartographerState";
+
 export const useCartographerMarkers = (map?: Map) => {
   const [roverMarker, setRoverMarker] = useState<Marker>();
   const [baseMarker, setBaseMarker] = useState<Marker>();
@@ -81,6 +81,7 @@ export const useCartographerMarkers = (map?: Map) => {
     }
   }, [map, roverLocation.latitude, roverLocation.longitude, roverMarker]);
 
+  // Syncs Markers
   useEffect(() => {
     if (!map) return;
 
@@ -90,6 +91,15 @@ export const useCartographerMarkers = (map?: Map) => {
         return lngLat.lat !== point.lat && lngLat.lng !== point.long;
       })
     );
+
+    const removedPointMarkers = pointMarkers.filter((marker) => {
+      const latlng = marker.getLngLat();
+      return points.every(
+        (point) => point.lat !== latlng.lat && point.long !== latlng.lng
+      );
+    });
+
+    removedPointMarkers.forEach((marker) => marker.remove());
 
     const newMarkers = newPoints.map((point) => {
       const marker = new Marker();
@@ -106,7 +116,11 @@ export const useCartographerMarkers = (map?: Map) => {
       return marker;
     });
 
-    setPointMarkers([...pointMarkers, ...newMarkers]);
+    const finalPointMarkers = pointMarkers.filter((pointMarker) => {
+      return !removedPointMarkers.includes(pointMarker);
+    });
+
+    setPointMarkers([...finalPointMarkers, ...newMarkers]);
   }, [
     map,
     pointMarkers,

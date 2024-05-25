@@ -9,9 +9,9 @@ import { MapTilerMap } from "./maptiler/MapTilerMap";
 import { ToolTipButton } from "../shared/TooltipButton";
 import { PropRenderer } from "../shared/PropRenderer";
 import { MapInteractionMode } from "../../redux/models/CartographerState";
-import { BottomOverlay } from "./components/BottomOverlay";
 import { MapPin } from "react-feather";
 import { NewMarkerModal } from "./components/NewMarkerModal";
+import { BottomOverlay } from "./components/BottomOverlay";
 
 export const Cartographer = () => {
   const [roverInfoOpen, setRoverInfoOpen] = useState(false);
@@ -61,44 +61,48 @@ export const Cartographer = () => {
         latitude={newMarkerModal.coordinate?.lat}
         longitude={newMarkerModal.coordinate?.long}
       />
-      <MapTilerMap
-        overlay={
-          <>
-            <div className="flex flex-row gap-1 absolute top-2 right-2">
-              {mapInteractionMode === MapInteractionMode.SELECT &&
-                mousePosition && (
-                  <PropRenderer
-                    props={{
-                      latitude: mousePosition.lat,
-                      longitude: mousePosition.long,
-                    }}
-                    ignoreProps={[]}
-                    row
-                    size="sm"
-                  />
-                )}
+      <div className="flex h-[95vh]">
+        <MapTilerMap
+          overlay={
+            <>
+              <div className="flex flex-row gap-1 absolute top-2 right-2">
+                {mapInteractionMode === MapInteractionMode.SELECT &&
+                  mousePosition && (
+                    <PropRenderer
+                      props={{
+                        latitude: mousePosition.lat,
+                        longitude: mousePosition.long,
+                      }}
+                      ignoreProps={[]}
+                      row
+                      size="sm"
+                    />
+                  )}
 
-              <ToolTipButton
-                placement="left"
-                tooltipContent={"Drop Pins"}
-                className="bottom-0 right-0"
-                variant="shadow"
-                isIconOnly
-                size="lg"
-                color={
-                  mapInteractionMode === MapInteractionMode.PAN
-                    ? "default"
-                    : "success"
-                }
-                onClick={toggleMapInteractionMode}
-              >
-                <MapPin size={20} />
-              </ToolTipButton>
-            </div>
-            <BottomOverlay />
-          </>
-        }
-      />
+                <ToolTipButton
+                  placement="left"
+                  tooltipContent={"Drop Pins"}
+                  className="bottom-0 right-0"
+                  variant="shadow"
+                  isIconOnly
+                  size="lg"
+                  color={
+                    mapInteractionMode === MapInteractionMode.PAN
+                      ? "default"
+                      : "success"
+                  }
+                  onClick={toggleMapInteractionMode}
+                >
+                  <MapPin size={20} />
+                </ToolTipButton>
+              </div>
+            </>
+          }
+        />
+        <div className="fixed bottom-0 w-full">
+          <BottomOverlay />
+        </div>
+      </div>
     </div>
   );
 };

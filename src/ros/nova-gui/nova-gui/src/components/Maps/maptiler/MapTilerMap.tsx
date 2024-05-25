@@ -73,10 +73,9 @@ export const MapTilerMap = (props: { overlay: React.ReactNode }) => {
   ]);
 
   return (
-    <div className="map-wrap">
-      <div className="w-full h-[95vh]" ref={mapContainer}>
-        <div className="z-10 relative">{props.overlay}</div>
-      </div>
+    <div className="w-full h-full" ref={mapContainer}>
+      <div className="map-wrap"></div>
+      <div className="z-10 relative">{props.overlay}</div>
     </div>
   );
 };

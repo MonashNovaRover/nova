@@ -11,6 +11,13 @@ export const useCartographerActions = () => {
       payload: point,
     });
 
+  const deletePoint = (point: MapPoint) => {
+    dispatch({
+      type: CartographerAction.REMOVE_POINT,
+      payload: point,
+    });
+  };
+
   const toggleMapInteractionMode = () =>
     dispatch({
       type: CartographerAction.TOGGLE_INTERACTION_MODE.type,
@@ -34,6 +41,7 @@ export const useCartographerActions = () => {
 
   return {
     addPoint,
+    deletePoint,
     toggleMapInteractionMode,
     updateMousePosition,
     handleMapClickEvent,

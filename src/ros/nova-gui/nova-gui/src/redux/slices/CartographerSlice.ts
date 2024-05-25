@@ -17,6 +17,20 @@ export const cartographerSlice = createSlice({
         },
       };
     },
+    REMOVE_POINT: (
+      state: CartographerState,
+      action: PayloadAction<MapPoint>
+    ) => {
+      return {
+        ...state,
+        points: state.points.filter(
+          (point) => point.lat !== action.payload.lat && action.payload.long
+        ),
+        newMarkerModal: {
+          open: false,
+        },
+      };
+    },
     TOGGLE_INTERACTION_MODE: (state: CartographerState) => {
       return {
         ...state,
