@@ -100,7 +100,7 @@ const PlatformWidget: React.FC<PlatformWidgetProps> = () => {
   const buttonRow = (
     <div className="flex flex-row mt-3 gap-5 justify-center">
       <Button color="warning" onPress={() => zero()}>Zero Stepper</Button>
-      <Button color="danger" isDisabled={true} onPress={() => cancel()}>Cancel Action</Button>
+      <Button color="danger" onPress={() => cancel()}>Cancel Action</Button>
     </div>
   );
 
