@@ -17,7 +17,7 @@ import { PIVOT_CURRENT_MAX, WHEEL_CURRENT_MAX } from "../../constants";
 import RoverTopDownImage from "../../assets/rover-top-down-dark.png";
 import { RosTopic } from "../../ros/topics/rosTopic.ts";
 
-// Properties for the DriveModeWidget component.
+// Properties for the WheelTelemetryWidget component.
 export interface IDriveWheelWidgetProps extends CardProps { }
 
 /**

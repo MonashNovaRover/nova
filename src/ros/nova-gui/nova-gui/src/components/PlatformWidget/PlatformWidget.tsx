@@ -1,4 +1,4 @@
-import {Button, Card, CardBody, CardHeader, Switch} from "@nextui-org/react";
+import {Button, Card, CardBody, CardHeader, CardProps, Switch} from "@nextui-org/react";
 import {useEffect, useState} from "react";
 import SegmentedPicker from "../SegmentedPicker/SegmentedPicker.tsx";
 import { IRosNovaInterfacesStepperActionFeedback, IRosNovaInterfacesStepperActionGoal, IRosNovaInterfacesStepperActionGoalConst, IRosNovaInterfacesStepperActionResult } from "../../ros/rosTypes.ts";
@@ -7,9 +7,7 @@ import { RosAction } from "../../ros/actions/RosAction.ts";
 import toast from "react-hot-toast";
 
 
-export interface PlatformWidgetProps {
-
-}
+export interface PlatformWidgetProps extends CardProps {}
 
 const SAMPLE_TRAY_LOCATIONS = [
   {
@@ -35,7 +33,7 @@ const SAMPLE_TRAY_LOCATIONS = [
 ];
 
 
-const PlatformWidget: React.FC<PlatformWidgetProps> = () => {
+const PlatformWidget: React.FC<PlatformWidgetProps> = (props) => {
   const [currentLocationIndex, setCurrentLocationIndex] = useState<number | null>(null);
   const [targetLocationIndex, setTargetLocationIndex] = useState<number>(0);
   const [targetPosition, setTargetPosition] = useState<number | null>(null);
@@ -84,7 +82,7 @@ const PlatformWidget: React.FC<PlatformWidgetProps> = () => {
   const pickerRow = (
     <div className="mt-3">
       <div className="font-bold">Select catcher to extend to</div>
-      <div className="flex flex-row mt-1.5 gap-3">
+      <div className="flex flex-row mt-1.5 gap-3 justify-center">
         <SegmentedPicker onIndexChange={setTargetLocationIndex} selectedIndex={targetLocationIndex} isDisabled={actionSent}>
           {SAMPLE_TRAY_LOCATIONS.map((location, index) => (
             <div key={index}>{location.display}</div>
@@ -146,7 +144,7 @@ const PlatformWidget: React.FC<PlatformWidgetProps> = () => {
 
 
   return (
-    <Card>
+    <Card {...props}>
       <CardHeader className="pb-0">
       Platform
       </CardHeader>

@@ -12,7 +12,8 @@ import {
   IRosStdMsgsString,
   IRosGeometryMsgsPose,
   IRosSensorMsgsRange,
-  IRosCmdInterfacesCmDsFeedback 
+  IRosNovaInterfacesHydraprobeData,
+  IRosCmdInterfacesCmDsFeedback
 } from "../ros/rosTypes";
 
 import { BifrostStatus } from "./models/bifrost/BifrostTypes";
@@ -45,6 +46,7 @@ export interface RootState {
   nirStore: IRosNovaInterfacesNirProbeData;
   kilnData: IRosNovaInterfacesKilnData;
   kilnCommand: IRosNovaInterfacesKilnCommandResponse;
+  hydraprobeData: IRosNovaInterfacesHydraprobeData;
 
   // Regular Stores
   uiState: UIState;
