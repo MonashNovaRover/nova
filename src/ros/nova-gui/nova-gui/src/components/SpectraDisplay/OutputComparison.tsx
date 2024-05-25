@@ -22,7 +22,7 @@ const OutputComparison: React.FC<IOutputComparisonProps> = (props: IOutputCompar
     const chartOptions: ApexOptions = ChartOptions(props.style);
 
     return (
-        <Card className="w-fit p-2 m-1 w-auto">
+        <Card className="w-fit p-2 m-1">
             <CardHeader className="shrink-0 w-48 p-1">{props.title}</CardHeader>
             <div className="flex flex-row">
                 <div className="w-1/2 self-center">

@@ -1,6 +1,6 @@
 import UVVisSpecGLGraph from "./UVVisSpecGLGraph.tsx";
-import React, { MouseEventHandler } from "react";
-import {max} from "lodash";
+import React from "react";
+import { max } from "lodash";
 import GLState from "../../hooks/webgl/gl/GLState.ts";
 
 export interface UVVisSpecGraphProps {

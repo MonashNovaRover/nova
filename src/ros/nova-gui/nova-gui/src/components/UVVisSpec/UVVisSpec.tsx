@@ -60,7 +60,7 @@ const UVVisSpec: React.FC = () => {
     setMousePoint([x, y]);
   }, [])
 
-  const colToWavelength = useCallback((v) => gradient * v + viewportStartWavelength, [gradient, viewportStartWavelength]);
+  const colToWavelength = useCallback((v: number) => gradient * v + viewportStartWavelength, [gradient, viewportStartWavelength]);
 
   const {isOpen: isSettingsOpen, onOpen: onSettingsOpen, onOpenChange: onSettingsOpenChange} = useDisclosure();
 
@@ -134,7 +134,7 @@ const UVVisSpec: React.FC = () => {
       <CardHeader className="flex flex-rowo">
         <div className="grow">UV Vis Spec</div>
         <div className="font-mono">
-          ({mousePoint[0].toFixed(3)}, {mousePoint[1].toFixed(3)}) -{'>'} {colToWavelength(mousePoint[0].toFixed(2))} nm 
+          ({mousePoint[0].toFixed(3)}, {mousePoint[1].toFixed(3)}) -{'>'} {colToWavelength(mousePoint[0]).toFixed(2)} nm 
         </div>
         {settingsDropdown}
       </CardHeader>
