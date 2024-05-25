@@ -1,3 +1,4 @@
+import { IRosNovaInterfacesStepperActionFeedback, IRosNovaInterfacesStepperActionGoal, IRosNovaInterfacesStepperActionResult } from "../rosTypes";
 import { RosAction } from "./RosAction";
 
 export interface RosActionInterface {
@@ -5,5 +6,21 @@ export interface RosActionInterface {
     goal: undefined;
     goalResponse: undefined;
     feedback: undefined;
+  };
+  [RosAction.FIBONACCI]: {
+    goal: {
+      order: number;
+    };
+    goalResponse: {
+      sequence: number[];
+    };
+    feedback: {
+      sequence: number[];
+    };
+  };
+  [RosAction.SCIENCE_SAMPLE_TRAY]: {
+    goal: IRosNovaInterfacesStepperActionGoal;
+    goalResponse: IRosNovaInterfacesStepperActionResult;
+    feedback: IRosNovaInterfacesStepperActionFeedback;
   };
 }
