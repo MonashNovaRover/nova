@@ -1,5 +1,4 @@
-import useGL from "../../hooks/webgl/gl/useGL.ts";
-import React, {MouseEventHandler, useMemo} from "react";
+import React, {useMemo} from "react";
 import useProgram from "../../hooks/webgl/program/useProgram.ts";
 import Vert from "./gl/test.vert";
 import Frag from "./gl/test.frag";
@@ -19,7 +18,6 @@ export interface UVVisSpecGLGraphProps {
   onMouseMove: (event: React.MouseEvent<HTMLCanvasElement, MouseEvent>) => void,
   gl: GLState,
 }
-
 
 const UVVisSpecGLGraph: React.FC<UVVisSpecGLGraphProps> = (props) => {
   const gl = props.gl;
@@ -85,7 +83,7 @@ const UVVisSpecGLGraph: React.FC<UVVisSpecGLGraphProps> = (props) => {
 
   // Put those together into a chart
   return (
-    <AutosizedGLCanvas gl={props.gl} className="aspect-[4/3] rounded border-content3 border-1 cursor-cell" onMouseMove={props.onMouseMove}>
+    <AutosizedGLCanvas gl={props.gl} className="rounded border-content3 border-1 cursor-cell" onMouseMove={props.onMouseMove}>
     </AutosizedGLCanvas>
   );
 }

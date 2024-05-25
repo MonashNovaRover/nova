@@ -31,13 +31,14 @@ const UVVisSpecGraph: React.FC<UVVisSpecGraphProps> = (props) => {
   // Put the labels into a JSX
   const xLabelsElement = (
     <div className="grid auto-cols-fr grid-flow-col">
-      <div className="text-center transform-gpu translate-x-[-50%] text-small">
+      <div className="text-center text-nowrap transform-gpu translate-x-[-50%] text-small">
         {xLabels[0]}
       </div>
       {xLabels.slice(1).map((label, index) => (
         <div
           key={index}
-          className={index < xLabels.length - 2 ? "text-center col-span-2 text-small" : "text-right text-small"}
+          className={index < xLabels.length - 2 ? "text-nowrap text-center col-span-2 text-small"
+            : "text-right text-small text-nowrap"}
         >
           {label}
         </div>

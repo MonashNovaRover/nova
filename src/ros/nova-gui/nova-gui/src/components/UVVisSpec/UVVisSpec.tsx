@@ -25,9 +25,10 @@ import UVVisSpecGraph from "./UVVisSpecGraph.tsx";
 import {Settings} from "react-feather";
 import useNumberField from "./useNumberField.ts";
 import useGL from "../../hooks/webgl/gl/useGL.ts";
+import {max} from "lodash";
 
 export interface UVVisSpecProps {
-  onSave?: (x: number[], y: number[]) => void,
+  onSave?: (points: number[][], name: string) => void,
 }
 
 
@@ -43,26 +44,36 @@ const UVVisSpec: React.FC<UVVisSpecProps> = (props) => {
 
   const [mousePoint, setMousePoint] = useState<[number, number]>([0, 0]);
 
+  const [graphName, setGraphName] = useState<string>("")
+
   const gradient = (endWavelength - startWavelength) / (endColumn - startColumn);
   const viewportStartWavelength = startWavelength - gradient * startColumn;
   const viewportEndWavelength = viewportStartWavelength + gradient;
+
+  // Function that converts col values from 0 to 1 into a wavelength using calibration data
+  const colToWavelength = useCallback((v: number) => gradient * v + viewportStartWavelength, [gradient, viewportStartWavelength]);
 
   // Called whenever the user presses the save button
   const onSave = useCallback(() => {
     if (!props.onSave)
       return;
 
-    // Call the callback function with appropriate data
-    const x = Array.from({ length: luminance.length }, (_, i) => (i) / (luminance.length-1))
-    props.onSave(x, luminance);
-  }, [luminance, props])
 
-  const gl = useGL();
+    const maxLuminance = Math.max(max(luminance) ?? 441.67295593, 10);
+
+    // [x, y] points to return
+    const points = luminance.map((lum, i) => (
+      [colToWavelength((i) / (luminance.length-1)), lum / maxLuminance]
+    ))
+
+    props.onSave(points, graphName);
+  }, [colToWavelength, graphName, luminance, props])
 
   useEffect(() => {
     bifrost.syncWithTopic();
   }, [bifrost]);
 
+  const gl = useGL();
   const onMouseMove = useCallback((event: React.MouseEvent<HTMLCanvasElement, MouseEvent>) => {
     if (!gl.canvasRef.current)
       return;
@@ -77,7 +88,6 @@ const UVVisSpec: React.FC<UVVisSpecProps> = (props) => {
     setMousePoint([x, y]);
   }, [gl.canvasRef])
 
-  const colToWavelength = useCallback((v: number) => gradient * v + viewportStartWavelength, [gradient, viewportStartWavelength]);
 
   const {isOpen: isSettingsOpen, onOpen: onSettingsOpen, onOpenChange: onSettingsOpenChange} = useDisclosure();
 
@@ -147,10 +157,20 @@ const UVVisSpec: React.FC<UVVisSpecProps> = (props) => {
           ({mousePoint[0].toFixed(3)}, {mousePoint[1].toFixed(3)}) -{'>'} {colToWavelength(mousePoint[0]).toFixed(2)} nm 
         </div>
         {settingsDropdown}
-        <Button color="success" onPress={onSave} size="sm">Save</Button>
       </CardHeader>
       <CardBody>
         {chart}
+        <div className="flex flex-row gap-3 my-3 mb-0">
+          <Input size="sm" placeholder="Graph name" onValueChange={setGraphName}></Input>
+          <Button
+            color={graphName.length > 0 ? "success" : "default"}
+            isDisabled={graphName.length === 0}
+            onPress={onSave}
+            size="sm"
+          >
+            Save
+          </Button>
+        </div>
       </CardBody>
       {modal}
     </Card>
