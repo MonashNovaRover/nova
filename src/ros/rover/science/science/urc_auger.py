@@ -5,6 +5,7 @@ from python_control.limits.LimitSwitchLimit import LimitSwitchLimit
 from python_control.controls.Direction import Direction
 from python_control.controls.OneAxisVelocityControl import OneAxisVelocityControl
 from python_control.controllers.CMDVelocityController import CMDVelocityController
+from python_control.sensors.CommandSensor import CommandSensor
 import rclpy
 from python_control.ControllerNode import ControllerNode
 from input_interfaces.msg import InputJoystick
@@ -23,7 +24,7 @@ class URCAuger(ControllerNode):
     
     # RECEIVING CARD IDS
     # Add any SENSOR FRAME / CARD IDS here
-    AUGER_LIMIT_RECV_ID = 0x4A2
+    AUGER_LIMIT_RECV_ID = 0x452
 
     # CONTROL NAMES
     # Add any CONTROL names here
@@ -41,8 +42,7 @@ class URCAuger(ControllerNode):
 
     # RECEIVING COMMAND IDS
     # Add any SENSOR command ids here
-    AUGER_RECV_LIMIT_TOP_COMMAND_ID = 0x01
-    AUGER_RECV_LIMIT_BOTTOM_COMMAND_ID = 0x02
+    AUGER_RECV_LIMIT_BOTTOM_COMMAND_ID = 0x01
     
     # CONTROL DIRECTIONS
     # Add any CONTROL DIRECTIONS here
@@ -60,18 +60,11 @@ class URCAuger(ControllerNode):
         self.bus.set_id_filter([self.AUGER_LIMIT_RECV_ID])
 
         ## Create sensors
-        self.bottom_limit_sensor = LimitSwitchSensor(
+        self.bottom_limit_sensor = CommandSensor(
             logger=logger,
             bus=self.bus,
             frame_id=self.AUGER_LIMIT_RECV_ID,
             command_id=self.AUGER_RECV_LIMIT_BOTTOM_COMMAND_ID,
-            run_can=False
-        )
-        self.top_limit_sensor = LimitSwitchSensor(
-            logger=logger,
-            bus=self.bus,
-            frame_id=self.AUGER_LIMIT_RECV_ID,
-            command_id=self.AUGER_RECV_LIMIT_TOP_COMMAND_ID,
             run_can=False
         )
 
@@ -81,19 +74,12 @@ class URCAuger(ControllerNode):
             bus=self.bus,
             limit_switch=self.bottom_limit_sensor
         )
-        self.auger_top_limit = LimitSwitchLimit(
-            logger=logger,
-            bus=self.bus,
-            limit_switch=self.top_limit_sensor
-        )
- 
 
         ## Create controls
         self.auger_actuation = OneAxisVelocityControl(
             logger=logger,
             max_percent=self.AUGER_ACTUATION_MAX_PERCENT,
             direction=self.AUGER_ACTUATION_UP,
-            pos_limit=self.auger_top_limit,
             neg_limit=self.auger_bottom_limit,
         )
         self.auger_drill = OneAxisVelocityControl(
@@ -129,7 +115,7 @@ class URCAuger(ControllerNode):
         self.auger_actuation.update_direction(self.AUGER_ACTUATION_UP if joystick_r.ax_stick_x >= 0 else self.AUGER_ACTUATION_DOWN)
 
         # Auger velocity is determined by the right joystick's x-axis magnitude
-        self.auger_actuation.update_velocity(abs(joystick_r.ax_stick_x))
+        self.auger_actuation.update_velocity(velocity=abs(joystick_r.ax_stick_x), ignore_limits=(joystick_r.btn_thumb_d_state >= 1))
 
     def update_auger_drill(self, joystick_r: InputJoystick):
         # Drill spin direction is determined by the right joystick thumb buttons
