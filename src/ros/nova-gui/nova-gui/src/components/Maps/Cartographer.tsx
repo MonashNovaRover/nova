@@ -13,10 +13,11 @@ import { NewMarkerModal } from "./components/NewMarkerModal";
 import { BottomOverlay } from "./components/BottomOverlay";
 import { Rulers } from "react-bootstrap-icons";
 import { getDistance } from "./utils/geojson";
+import { ROVER_LOCATION_TOPIC } from "./config";
 
 export const Cartographer = () => {
   const roverLocationBifrost = useBifrost({
-    topic: RosTopic.AUTO_ROVER_LOCATION,
+    topic: ROVER_LOCATION_TOPIC,
   });
 
   const baseLocationBifrost = useBifrost({

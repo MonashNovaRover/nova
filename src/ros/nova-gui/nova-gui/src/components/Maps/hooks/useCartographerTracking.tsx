@@ -1,13 +1,13 @@
 import { GeoJSONSource, Map } from "@maptiler/sdk";
 import { useEffect, useState } from "react";
-import { useLocalStorage } from "../../nir-probe/hooks/useLocalStorage";
+// import { useLocalStorage } from "../../nir-probe/hooks/useLocalStorage";
 import { MapCoordinate } from "../../../redux/models/CartographerState";
 import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction";
-import { RosTopic } from "../../../ros/topics/rosTopic";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/RootState";
 import { useDebounce } from "@uidotdev/usehooks";
 import { getLineGeoJSONData } from "../utils/geojson";
+import { ROVER_LOCATION_TOPIC } from "../config";
 
 export const useCartographerTracking = (map?: Map) => {
   //   const [trace, setTrace] = useLocalStorage<MapCoordinate[]>("roverTrace", []);
@@ -22,7 +22,7 @@ export const useCartographerTracking = (map?: Map) => {
   };
 
   const roverLocationBifrost = useBifrost({
-    topic: RosTopic.AUTO_ROVER_LOCATION,
+    topic: ROVER_LOCATION_TOPIC,
   });
 
   useEffect(() => {

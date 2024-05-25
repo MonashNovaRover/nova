@@ -34,5 +34,6 @@ export const rosTopicMessages = {
 
   // Maps Related
   [RosTopic.AUTO_ROVER_LOCATION]: "sensor_msgs/msg/NavSatFix",
+  [RosTopic.ROVER_LOCATION]: "sensor_msgs/msg/NavSatFix",
   [RosTopic.BASE_LOCATION]: "sensor_msgs/msg/NavSatFix",
 };

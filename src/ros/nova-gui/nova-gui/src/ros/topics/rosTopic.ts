@@ -40,5 +40,5 @@ export enum RosTopic {
 
   // These Topics are for Autonomous
   AUTO_ROVER_LOCATION = "/gps/filtered",
-  AUTO_ROVER_HEADING = "/auto/odometry/filtered/global",
+  // AUTO_ROVER_HEADING = "/auto/odometry/filtered/global",
 }

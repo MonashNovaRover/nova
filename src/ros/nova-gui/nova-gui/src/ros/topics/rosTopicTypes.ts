@@ -50,5 +50,6 @@ export interface RosTopicInterfaces {
 
   // Maps Related
   [RosTopic.AUTO_ROVER_LOCATION]: IRosSensorMsgsNavSatFix;
+  [RosTopic.ROVER_LOCATION]: IRosSensorMsgsNavSatFix;
   [RosTopic.BASE_LOCATION]: IRosSensorMsgsNavSatFix;
 }
