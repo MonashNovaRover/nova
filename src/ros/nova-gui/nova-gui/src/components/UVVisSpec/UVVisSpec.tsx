@@ -71,10 +71,10 @@ const UVVisSpec: React.FC = () => {
           <>
             <ModalHeader className="flex flex-col gap-1">Modal Title</ModalHeader>
             <ModalBody>
-              <Input value={startColumnString} onValueChange={setStartColumn}/>
-              <Input value={endColumnString} onValueChange={setEndColumn}/>
-              <Input value={startWavelengthString} onValueChange={setStartWavelength}/>
-              <Input value={endWavelengthString} onValueChange={setEndWavelength}/>
+              <Input value={startColumnString} onValueChange={setStartColumn} label={"Start Column"}/>
+              <Input value={endColumnString} onValueChange={setEndColumn} label={"End Column"}/>
+              <Input value={startWavelengthString} onValueChange={setStartWavelength} label={"Start Wavelength"}/>
+              <Input value={endWavelengthString} onValueChange={setEndWavelength} label={"End Wavelength"}/>
             </ModalBody>
             <ModalFooter>
               <Button color="danger" variant="light" onPress={onClose}>
