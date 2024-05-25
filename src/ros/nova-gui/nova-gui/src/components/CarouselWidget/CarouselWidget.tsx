@@ -10,7 +10,7 @@ import {
   Button,
   Card,
   CardBody,
-  CardHeader, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger,
+  CardHeader, CardProps, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger,
   Select,
   SelectItem
 } from "@nextui-org/react";
@@ -22,7 +22,7 @@ import { IRosNovaInterfacesStepperActionGoal, IRosNovaInterfacesStepperActionGoa
 /**
  * Props for CarouselWidget
  */
-export interface CarouselWidgetProps {
+export interface CarouselWidgetProps extends CardProps {
   // What values should be sent to the ROS node as positions to go to?
   instruments?: Map<string, number>;
   // The number of cuvette ids.
@@ -50,9 +50,13 @@ const CarouselWidget: React.FC<CarouselWidgetProps> = (props) => {
   const cuvetteCount = props.cuvettes?.length ?? props.cuvetteCount ?? 20;
   const cuvettes = props.cuvettes ?? Array.from({ length: cuvetteCount }, (_, i) => i + 1);
 
-  const { sendGoal } = useRosAction(RosAction.CAROUSEL_ACTION);
+  const { sendGoal, cancelGoal } = useRosAction(RosAction.CAROUSEL_ACTION);
 
-  const onGo = useCallback(() => {
+  const cancel = useCallback(() => {
+    cancelGoal();
+  }, [cancelGoal]);
+
+  const goToCarousel = useCallback(() => {
     if (!selectedCuvette) {
       return;
     }
@@ -68,18 +72,22 @@ const CarouselWidget: React.FC<CarouselWidgetProps> = (props) => {
   }, [sendGoal, selectedCuvette]);
 
   // Function that sets the carousel position when called
-  const setCarouselFunc = useCallback(() => {
+  const setCarousel = useCallback(() => {
+    if (!selectedCuvette) {
+      return;
+    }
+
     const action: IRosNovaInterfacesStepperActionGoal = { 
-      goal: "10",
+      goal: selectedCuvette.toString(),
       action: IRosNovaInterfacesStepperActionGoalConst.SET
     };
 
     sendGoal(action);
-  }, []);
+  }, [sendGoal, selectedCuvette]);
 
   // Picker for the cuvette
   const cuvettePicker = (
-    <Autocomplete placeholder="#" label="Cuvette ID" allowsCustomValue className="col-span-2" selectedKey={selectedCuvette?.toString()} onSelectionChange={setSelectedCuvette} onInputChange={setSelectedCuvette}>
+    <Autocomplete placeholder="#" label="Cuvette ID" allowsCustomValue className="col-span-2" selectedKey={selectedCuvette?.toString()} onSelectionChange={(value) => setSelectedCuvette(value ?? 0)} onInputChange={setSelectedCuvette}>
       {cuvettes.map((cuvette) => (
         <AutocompleteItem key={`${cuvette}`} value={cuvette}>
           {cuvette.toString()}
@@ -106,9 +114,7 @@ const CarouselWidget: React.FC<CarouselWidgetProps> = (props) => {
     <div className="grid auto-cols-fr gap-3 grid-cols-6 grid-rows-2 content-around">
       {instrumentPicker}
       {cuvettePicker}
-      <Button color="primary" className="h-full" onPress={onGo}>Go</Button>
-      <Button color="primary" className="h-full" onPress={onGo}>Set</Button>
-      <Button color="primary" className="h-full" onPress={onGo}>Cancel</Button>
+      <Button color="primary" className="h-full" onPress={goToCarousel}>Go To</Button>
     </div>
   );
 
@@ -125,7 +131,7 @@ const CarouselWidget: React.FC<CarouselWidgetProps> = (props) => {
         </Button>
       </DropdownTrigger>
       <DropdownMenu aria-label="Static Actions">
-        <DropdownItem key="set" onPress={setCarouselFunc}>
+        <DropdownItem key="set" onPress={setCarousel}>
           Set Carousel Position
         </DropdownItem>
       </DropdownMenu>
@@ -134,13 +140,17 @@ const CarouselWidget: React.FC<CarouselWidgetProps> = (props) => {
 
   // Construct the widget
   return (
-    <Card>
+    <Card {...props}>
       <CardHeader className="pb-0 flex flex-row">
         <div className="flex-grow">Carousel</div>
         {cardHeaderDropdown}
       </CardHeader>
       <CardBody>
         {pickerRow}
+        <div className="flex flex-row mt-3 gap-5 justify-center">
+          <Button color="warning" onPress={() => setCarousel()}>Set Stepper</Button>
+          <Button color="danger" onPress={() => cancel()}>Cancel Action</Button>
+        </div>
       </CardBody>
     </Card>
   )
