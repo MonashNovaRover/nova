@@ -1,19 +1,27 @@
 import { IRosSensorMsgsNavSatFix } from "../../ros/rosTypes";
 
-export interface MapPoint {
+export interface MapCoordinate {
   lat: number;
   long: number;
+}
+
+export interface MapPoint extends MapCoordinate {
   name: string;
 }
 
 export enum MapInteractionMode {
-  PAN,
-  SELECT,
+  PAN = "PAN",
+  SELECT = "SELECT",
 }
 
 export interface CartographerState {
   points: MapPoint[];
   mapInteractionMode: MapInteractionMode;
+  mousePosition?: MapCoordinate;
+  newMarkerModal: {
+    open: boolean;
+    coordinate?: MapCoordinate;
+  };
 }
 
 export const initialNavSatMessage = <IRosSensorMsgsNavSatFix>{
@@ -28,7 +36,7 @@ export const initialNavSatMessage = <IRosSensorMsgsNavSatFix>{
     status: 0,
     service: 0,
   },
-  latitude: 38.4062649, // Location: MDRS Hanksville
+  latitude: 38.4062649, // Location: 1.7 Metres Away from MDRS Hanksville
   longitude: -110.7917894,
   altitude: 0,
   position_covariance: [],

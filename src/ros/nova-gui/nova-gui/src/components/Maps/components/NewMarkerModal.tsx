@@ -16,7 +16,7 @@ import { useState } from "react";
 
 interface NewMarkerModalProps {
   isOpen: boolean;
-  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  closeModal: () => void;
   addPoint: (point: MapPoint) => void;
   latitude?: number;
   longitude?: number;
@@ -36,14 +36,14 @@ export const NewMarkerModal = (props: NewMarkerModalProps) => {
       name: !name || name === "" ? `Point ${points.length + 1}` : name,
     });
     setName(undefined);
-    props.setOpen(false);
+    props.closeModal();
   };
 
   return (
     <Modal
       isOpen={props.isOpen}
       className="dark text-foreground"
-      onClose={() => props.setOpen(false)}
+      onClose={() => props.closeModal()}
     >
       <ModalContent>
         <ModalHeader>{"Drop Pin"}</ModalHeader>
@@ -62,7 +62,7 @@ export const NewMarkerModal = (props: NewMarkerModalProps) => {
           />
           <PropRenderer
             props={props}
-            ignoreProps={["isOpen", "setOpen", "addPoint"]}
+            ignoreProps={["isOpen", "closeModal", "addPoint"]}
           />
         </ModalBody>
         <ModalFooter>

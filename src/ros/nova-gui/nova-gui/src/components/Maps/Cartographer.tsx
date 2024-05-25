@@ -5,18 +5,17 @@ import { useCartographerActions } from "../../redux/actions/useCartographerActio
 import { RootState } from "../../redux/RootState";
 import { RosTopic } from "../../ros/topics/rosTopic";
 import { MarkerModal } from "./components/MarkerModal";
-import { NewMarkerModal } from "./components/NewMarkerModal";
 import { MapTilerMap } from "./maptiler/MapTilerMap";
 import { ToolTipButton } from "../shared/TooltipButton";
 import { PropRenderer } from "../shared/PropRenderer";
 import { MapInteractionMode } from "../../redux/models/CartographerState";
 import { BottomOverlay } from "./components/BottomOverlay";
 import { MapPin } from "react-feather";
+import { NewMarkerModal } from "./components/NewMarkerModal";
 
 export const Cartographer = () => {
   const [roverInfoOpen, setRoverInfoOpen] = useState(false);
   const [baseStationModal, setBaseStationModal] = useState(false);
-  const [newMarkerModal, setNewMarkerModal] = useState(false);
 
   const roverLocationBifrost = useBifrost({
     topic: RosTopic.AUTO_ROVER_LOCATION,
@@ -26,10 +25,7 @@ export const Cartographer = () => {
     topic: RosTopic.BASE_LOCATION,
   });
 
-  const [mouseCoordinates, setMouseCoordinates] =
-    useState<google.maps.LatLngLiteral>();
-
-  const { points, mapInteractionMode } = useSelector(
+  const { mapInteractionMode, mousePosition, newMarkerModal } = useSelector(
     (state: RootState) => state.cartographerState
   );
 
@@ -41,15 +37,8 @@ export const Cartographer = () => {
     baseLocationBifrost.syncWithTopic();
   }, [baseLocationBifrost]);
 
-  const autoRoverLocation = useSelector(
-    (state: RootState) => state.autoRoverLocationStore
-  );
-
-  const baseLocationStore = useSelector(
-    (state: RootState) => state.baseLocationStore
-  );
-
-  const { addPoint, toggleMapInteractionMode } = useCartographerActions();
+  const { addPoint, toggleMapInteractionMode, closeNewModal } =
+    useCartographerActions();
 
   return (
     <div className="w-full ">
@@ -66,20 +55,23 @@ export const Cartographer = () => {
         title="Base Station"
       />
       <NewMarkerModal
-        isOpen={newMarkerModal}
-        setOpen={setNewMarkerModal}
-        latitude={mouseCoordinates?.lat}
-        longitude={mouseCoordinates?.lng}
+        isOpen={newMarkerModal.open}
         addPoint={addPoint}
+        closeModal={closeNewModal}
+        latitude={newMarkerModal.coordinate?.lat}
+        longitude={newMarkerModal.coordinate?.long}
       />
       <MapTilerMap
         overlay={
           <>
             <div className="flex flex-row gap-1 absolute top-2 right-2">
               {mapInteractionMode === MapInteractionMode.SELECT &&
-                mouseCoordinates && (
+                mousePosition && (
                   <PropRenderer
-                    props={mouseCoordinates}
+                    props={{
+                      latitude: mousePosition.lat,
+                      longitude: mousePosition.long,
+                    }}
                     ignoreProps={[]}
                     row
                     size="sm"

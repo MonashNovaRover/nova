@@ -4,6 +4,7 @@ import "@maptiler/sdk/dist/maptiler-sdk.css";
 import { useCartographerMarkers } from "../hooks/useCartographerMarkers";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/RootState";
+import { useCartographerActions } from "../../../redux/actions/useCartographerActions";
 
 export const MapTilerMap = (props: { overlay: React.ReactNode }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
@@ -14,6 +15,7 @@ export const MapTilerMap = (props: { overlay: React.ReactNode }) => {
   );
 
   useCartographerMarkers(map);
+  const { updateMousePosition, handleMapClickEvent } = useCartographerActions();
   useEffect(() => {
     if (map || !mapContainer.current) return; // stops map from intializing more than once
 
@@ -45,8 +47,30 @@ export const MapTilerMap = (props: { overlay: React.ReactNode }) => {
         ],
       },
     });
+
+    // Add Event Listeners
+    newMap.on("mousemove", (event) => {
+      updateMousePosition({
+        lat: event.lngLat.lat,
+        long: event.lngLat.lng,
+      });
+    });
+
+    newMap.on("click", (event) => {
+      handleMapClickEvent({
+        lat: event.lngLat.lat,
+        long: event.lngLat.lng,
+      });
+    });
+
     setMap(newMap);
-  }, [mapContainer, map]);
+  }, [
+    mapContainer,
+    map,
+    baseStationIp,
+    updateMousePosition,
+    handleMapClickEvent,
+  ]);
 
   return (
     <div className="map-wrap">
