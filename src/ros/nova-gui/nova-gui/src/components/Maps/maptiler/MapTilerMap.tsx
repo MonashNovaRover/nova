@@ -5,6 +5,7 @@ import { useCartographerMarkers } from "../hooks/useCartographerMarkers";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/RootState";
 import { useCartographerActions } from "../../../redux/actions/useCartographerActions";
+import { useCartographerTracking } from "../hooks/useCartographerTracking";
 
 export const MapTilerMap = (props: { overlay: React.ReactNode }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
@@ -15,6 +16,8 @@ export const MapTilerMap = (props: { overlay: React.ReactNode }) => {
   );
 
   useCartographerMarkers(map);
+  useCartographerTracking(map);
+
   const { updateMousePosition, handleMapClickEvent } = useCartographerActions();
   useEffect(() => {
     if (map || !mapContainer.current) return; // stops map from intializing more than once
@@ -48,6 +51,35 @@ export const MapTilerMap = (props: { overlay: React.ReactNode }) => {
       },
     });
 
+    newMap.on("load", () => {
+      newMap.addSource("trace", {
+        type: "geojson",
+        data: {
+          type: "FeatureCollection",
+          features: [
+            {
+              type: "Feature",
+              properties: {},
+              geometry: {
+                coordinates: [],
+                type: "LineString",
+              },
+            },
+          ],
+        },
+      });
+
+      newMap.addLayer({
+        id: "trace",
+        type: "line",
+        source: "trace",
+        paint: {
+          "line-color": "red",
+          "line-opacity": 0.75,
+          "line-width": 5,
+        },
+      });
+    });
     // Add Event Listeners
     newMap.on("mousemove", (event) => {
       updateMousePosition({
@@ -55,7 +87,6 @@ export const MapTilerMap = (props: { overlay: React.ReactNode }) => {
         long: event.lngLat.lng,
       });
     });
-
     newMap.on("click", (event) => {
       handleMapClickEvent({
         lat: event.lngLat.lat,

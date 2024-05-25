@@ -121,13 +121,8 @@ export const useCartographerMarkers = (map?: Map) => {
     });
 
     setPointMarkers([...finalPointMarkers, ...newMarkers]);
-  }, [
-    map,
-    pointMarkers,
-    points,
-    roverLocation.latitude,
-    roverLocation.longitude,
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [map, points]);
 };
 
 const createRoverIcon = () => {
