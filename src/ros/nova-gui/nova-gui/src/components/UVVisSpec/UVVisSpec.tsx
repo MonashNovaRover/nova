@@ -8,10 +8,13 @@ import {
   Card,
   CardBody,
   CardHeader,
-  Dropdown,
-  DropdownItem,
-  DropdownMenu,
-  DropdownTrigger, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, useDisclosure
+  Input,
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  useDisclosure
 } from "@nextui-org/react";
 // import {getDefaultPeakFinder} from "../SpectraDisplay/ChartAnalysis.ts";
 import {useBifrost} from "../../redux/actions/bifrost/useBifrostAction.ts";
@@ -19,12 +22,16 @@ import {RosTopic} from "../../ros/topics/rosTopic.ts";
 import {useSelector} from "react-redux";
 import {RootState} from "../../redux/RootState.ts";
 import UVVisSpecGraph from "./UVVisSpecGraph.tsx";
-import {MoreHorizontal} from "react-feather";
+import {Settings} from "react-feather";
 import useNumberField from "./useNumberField.ts";
 import useGL from "../../hooks/webgl/gl/useGL.ts";
 
+export interface UVVisSpecProps {
+  onSave?: (x: number[], y: number[]) => void,
+}
 
-const UVVisSpec: React.FC = () => {
+
+const UVVisSpec: React.FC<UVVisSpecProps> = (props) => {
   const bifrost = useBifrost({ topic: RosTopic.UV_VIS_SPEC });
   const luminance = useSelector((state: RootState) => state.uvVisSpecStore.luminance);
 
@@ -39,6 +46,16 @@ const UVVisSpec: React.FC = () => {
   const gradient = (endWavelength - startWavelength) / (endColumn - startColumn);
   const viewportStartWavelength = startWavelength - gradient * startColumn;
   const viewportEndWavelength = viewportStartWavelength + gradient;
+
+  // Called whenever the user presses the save button
+  const onSave = useCallback(() => {
+    if (!props.onSave)
+      return;
+
+    // Call the callback function with appropriate data
+    const x = Array.from({ length: luminance.length }, (_, i) => (i) / (luminance.length-1))
+    props.onSave(x, luminance);
+  }, [luminance, props])
 
   const gl = useGL();
 
@@ -58,7 +75,7 @@ const UVVisSpec: React.FC = () => {
     const y = pixelsY / bounds.height;
 
     setMousePoint([x, y]);
-  }, [])
+  }, [gl.canvasRef])
 
   const colToWavelength = useCallback((v: number) => gradient * v + viewportStartWavelength, [gradient, viewportStartWavelength]);
 
@@ -94,22 +111,15 @@ const UVVisSpec: React.FC = () => {
   }];*/
 
   const settingsDropdown = (
-    <Dropdown className="m-0">
-      <DropdownTrigger>
-        <Button
-          variant={"light"}
-          isIconOnly
-          className="m-0"
-        >
-          <MoreHorizontal></MoreHorizontal>
-        </Button>
-      </DropdownTrigger>
-      <DropdownMenu aria-label="Static Actions">
-        <DropdownItem key="advanced" onPress={onSettingsOpen}>
-          Settings
-        </DropdownItem>
-      </DropdownMenu>
-    </Dropdown>
+    <Button
+      variant={"light"}
+      isIconOnly
+      className="m-0"
+      onPress={onSettingsOpen}
+      size="sm"
+    >
+      <Settings></Settings>
+    </Button>
   )
 
   const chart = (
@@ -131,12 +141,13 @@ const UVVisSpec: React.FC = () => {
 
   return (
     <Card>
-      <CardHeader className="flex flex-rowo">
+      <CardHeader className="flex flex-row gap-2">
         <div className="grow">UV Vis Spec</div>
-        <div className="font-mono">
+        <div className="font-mono px-3 opacity-75">
           ({mousePoint[0].toFixed(3)}, {mousePoint[1].toFixed(3)}) -{'>'} {colToWavelength(mousePoint[0]).toFixed(2)} nm 
         </div>
         {settingsDropdown}
+        <Button color="success" onPress={onSave} size="sm">Save</Button>
       </CardHeader>
       <CardBody>
         {chart}
