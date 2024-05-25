@@ -28,6 +28,8 @@ export interface CartographerState {
     to?: MapCoordinate;
     measuring: boolean;
   };
+  centerOnRover: boolean;
+  trackRover: boolean;
 }
 
 export const initialNavSatMessage = <IRosSensorMsgsNavSatFix>{

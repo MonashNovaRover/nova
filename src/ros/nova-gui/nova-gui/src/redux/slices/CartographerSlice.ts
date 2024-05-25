@@ -114,6 +114,14 @@ export const cartographerSlice = createSlice({
         open: false,
       },
     }),
+    TOGGLE_ROVER_CENTER: (state: CartographerState) => ({
+      ...state,
+      centerOnRover: !state.centerOnRover,
+    }),
+    TOGGLE_TRACK_ROVER: (state: CartographerState) => ({
+      ...state,
+      trackRover: !state.trackRover,
+    }),
   },
   initialState: <CartographerState>{
     points: [],
@@ -125,6 +133,8 @@ export const cartographerSlice = createSlice({
     measure: {
       measuring: false,
     },
+    centerOnRover: false,
+    trackRover: false,
   },
   name: "CartographerReducer",
 });

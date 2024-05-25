@@ -13,8 +13,8 @@ export const useCartographerTracking = (map?: Map) => {
   //   const [trace, setTrace] = useLocalStorage<MapCoordinate[]>("roverTrace", []);
   const [trace, setTrace] = useState<MapCoordinate[]>([]);
 
-  const measure = useSelector(
-    (state: RootState) => state.cartographerState.measure
+  const { measure, centerOnRover, trackRover } = useSelector(
+    (state: RootState) => state.cartographerState
   );
 
   const addPoint = (point: MapCoordinate) => {
@@ -36,12 +36,23 @@ export const useCartographerTracking = (map?: Map) => {
   const deBouncedRoverLocation = useDebounce(roverLocation, 100);
 
   useEffect(() => {
-    addPoint({
-      lat: deBouncedRoverLocation.latitude,
-      long: deBouncedRoverLocation.longitude,
-    });
+    if (trackRover) {
+      addPoint({
+        lat: deBouncedRoverLocation.latitude,
+        long: deBouncedRoverLocation.longitude,
+      });
+    }
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deBouncedRoverLocation.latitude, deBouncedRoverLocation.longitude]);
+
+  useEffect(() => {
+    if (!map || trackRover) return;
+    const source = map.getSource("trace") as GeoJSONSource;
+    if (!source) return;
+
+    source.setData(getLineGeoJSONData([]));
+  }, [trackRover, map]);
 
   useEffect(() => {
     if (!map) return;
@@ -51,7 +62,7 @@ export const useCartographerTracking = (map?: Map) => {
     source.setData(getLineGeoJSONData(trace));
   }, [trace, map]);
 
-  // Measure Augmentation
+  // Measure Line Augmentation
   useEffect(() => {
     if (!map) return;
     const source = map.getSource("measureLine") as GeoJSONSource;
@@ -62,4 +73,15 @@ export const useCartographerTracking = (map?: Map) => {
       source.setData(getLineGeoJSONData([]));
     }
   }, [measure, map]);
+
+  // Rover Centering
+  useEffect(() => {
+    if (!map) return;
+    if (centerOnRover) {
+      map.setCenter([
+        deBouncedRoverLocation.longitude,
+        deBouncedRoverLocation.latitude,
+      ]);
+    }
+  }, [centerOnRover, deBouncedRoverLocation, map]);
 };

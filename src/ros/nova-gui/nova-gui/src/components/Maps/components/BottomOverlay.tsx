@@ -15,17 +15,18 @@ import { ChevronDoubleDown, ChevronDoubleUp } from "react-bootstrap-icons";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/RootState";
 import { AnimatePresence, motion } from "framer-motion";
-import { Trash } from "react-feather";
+import { Navigation, Trash } from "react-feather";
 import { ToolTipButton } from "../../shared/TooltipButton";
 import { useCartographerActions } from "../../../redux/actions/useCartographerActions";
 
 export const BottomOverlay = () => {
   const [overlayOpen, setOverlayOpen] = useState(false);
-  const points = useSelector(
-    (state: RootState) => state.cartographerState.points
+  const { points, centerOnRover, trackRover } = useSelector(
+    (state: RootState) => state.cartographerState
   );
 
-  const { deletePoint } = useCartographerActions();
+  const { deletePoint, toggleRoverCentering, toggleRoverTracking } =
+    useCartographerActions();
 
   return (
     <motion.div
@@ -36,9 +37,26 @@ export const BottomOverlay = () => {
     >
       <Card fullWidth className="h-full">
         <CardHeader className="w-full flex flex-row justify-between ">
-          <div className="">Rover</div>
-          <div className="">
+          <div className=""></div>
+          <div className="flex flex-row align-middle gap-2">
             <Button
+              variant="shadow"
+              color={trackRover ? "primary" : "default"}
+              onClick={toggleRoverTracking}
+            >
+              Track Rovey
+            </Button>
+            <ToolTipButton
+              tooltipContent="Center Rover"
+              isIconOnly
+              variant="shadow"
+              color={centerOnRover ? "primary" : "default"}
+              onClick={toggleRoverCentering}
+            >
+              <Navigation className="w-5" />
+            </ToolTipButton>
+            <Button
+              variant="shadow"
               isIconOnly
               fullWidth
               onClick={() => setOverlayOpen(!overlayOpen)}

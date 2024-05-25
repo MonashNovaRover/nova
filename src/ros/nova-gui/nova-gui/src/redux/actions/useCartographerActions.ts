@@ -47,6 +47,12 @@ export const useCartographerActions = () => {
   const clearMeasurements = () =>
     dispatch({ type: CartographerAction.CLEAR_MEASURE.type });
 
+  const toggleRoverCentering = () =>
+    dispatch({ type: CartographerAction.TOGGLE_ROVER_CENTER.type });
+
+  const toggleRoverTracking = () =>
+    dispatch({ type: CartographerAction.TOGGLE_TRACK_ROVER.type });
+
   return {
     addPoint,
     deletePoint,
@@ -55,5 +61,7 @@ export const useCartographerActions = () => {
     handleMapClickEvent,
     closeNewModal,
     clearMeasurements,
+    toggleRoverCentering,
+    toggleRoverTracking,
   };
 };
