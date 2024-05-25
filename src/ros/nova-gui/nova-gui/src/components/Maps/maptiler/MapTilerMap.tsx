@@ -6,6 +6,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/RootState";
 import { useCartographerActions } from "../../../redux/actions/useCartographerActions";
 import { useCartographerTracking } from "../hooks/useCartographerTracking";
+import { getLineGeoJSONSource } from "../utils/geojson";
 
 export const MapTilerMap = (props: { overlay: React.ReactNode }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
@@ -52,22 +53,9 @@ export const MapTilerMap = (props: { overlay: React.ReactNode }) => {
     });
 
     newMap.on("load", () => {
-      newMap.addSource("trace", {
-        type: "geojson",
-        data: {
-          type: "FeatureCollection",
-          features: [
-            {
-              type: "Feature",
-              properties: {},
-              geometry: {
-                coordinates: [],
-                type: "LineString",
-              },
-            },
-          ],
-        },
-      });
+      newMap.addSource("trace", getLineGeoJSONSource([]));
+
+      newMap.addSource("measureLine", getLineGeoJSONSource([]));
 
       newMap.addLayer({
         id: "trace",
@@ -76,10 +64,36 @@ export const MapTilerMap = (props: { overlay: React.ReactNode }) => {
         paint: {
           "line-color": "red",
           "line-opacity": 0.75,
-          "line-width": 5,
+          "line-width": 3,
         },
       });
+
+      newMap.addLayer({
+        id: "measure-points",
+        type: "circle",
+        source: "measureLine",
+        paint: {
+          "circle-radius": 5,
+          "circle-color": "#000",
+        },
+        filter: ["in", "$type", "Point"],
+      });
+      newMap.addLayer({
+        id: "measure-lines",
+        type: "line",
+        source: "measureLine",
+        layout: {
+          "line-cap": "round",
+          "line-join": "round",
+        },
+        paint: {
+          "line-color": "#000",
+          "line-width": 2.5,
+        },
+        filter: ["in", "$type", "LineString"],
+      });
     });
+
     // Add Event Listeners
     newMap.on("mousemove", (event) => {
       updateMousePosition({

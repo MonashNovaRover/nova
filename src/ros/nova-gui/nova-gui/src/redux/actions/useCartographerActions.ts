@@ -1,5 +1,9 @@
 import { useDispatch } from "react-redux";
-import { MapCoordinate, MapPoint } from "../models/CartographerState";
+import {
+  MapCoordinate,
+  MapInteractionMode,
+  MapPoint,
+} from "../models/CartographerState";
 import { CartographerAction } from "../slices/CartographerSlice";
 
 export const useCartographerActions = () => {
@@ -18,9 +22,10 @@ export const useCartographerActions = () => {
     });
   };
 
-  const toggleMapInteractionMode = () =>
+  const setInteractionMode = (mode: MapInteractionMode) =>
     dispatch({
-      type: CartographerAction.TOGGLE_INTERACTION_MODE.type,
+      type: CartographerAction.SET_INTERACTION_MODE.type,
+      payload: mode,
     });
 
   const updateMousePosition = (coordinates?: { lat: number; long: number }) =>
@@ -39,12 +44,16 @@ export const useCartographerActions = () => {
   const closeNewModal = () =>
     dispatch({ type: CartographerAction.CLOSE_ADD_MODAL.type });
 
+  const clearMeasurements = () =>
+    dispatch({ type: CartographerAction.CLEAR_MEASURE.type });
+
   return {
     addPoint,
     deletePoint,
-    toggleMapInteractionMode,
+    setInteractionMode,
     updateMousePosition,
     handleMapClickEvent,
     closeNewModal,
+    clearMeasurements,
   };
 };

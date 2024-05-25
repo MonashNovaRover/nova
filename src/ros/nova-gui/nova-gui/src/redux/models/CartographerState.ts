@@ -12,6 +12,7 @@ export interface MapPoint extends MapCoordinate {
 export enum MapInteractionMode {
   PAN = "PAN",
   SELECT = "SELECT",
+  MEASURE = "MEASURE",
 }
 
 export interface CartographerState {
@@ -21,6 +22,11 @@ export interface CartographerState {
   newMarkerModal: {
     open: boolean;
     coordinate?: MapCoordinate;
+  };
+  measure: {
+    from?: MapCoordinate;
+    to?: MapCoordinate;
+    measuring: boolean;
   };
 }
 

@@ -7,10 +7,15 @@ import { RosTopic } from "../../../ros/topics/rosTopic";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/RootState";
 import { useDebounce } from "@uidotdev/usehooks";
+import { getLineGeoJSONData } from "../utils/geojson";
 
 export const useCartographerTracking = (map?: Map) => {
   //   const [trace, setTrace] = useLocalStorage<MapCoordinate[]>("roverTrace", []);
   const [trace, setTrace] = useState<MapCoordinate[]>([]);
+
+  const measure = useSelector(
+    (state: RootState) => state.cartographerState.measure
+  );
 
   const addPoint = (point: MapCoordinate) => {
     setTrace([...trace, point]);
@@ -43,20 +48,18 @@ export const useCartographerTracking = (map?: Map) => {
     const source = map.getSource("trace") as GeoJSONSource;
     if (!source) return;
 
-    const newGeoJSONData: GeoJSON.GeoJSON = {
-      type: "FeatureCollection",
-      features: [
-        {
-          type: "Feature",
-          properties: {},
-          geometry: {
-            coordinates: trace.map((point) => [point.long, point.lat]),
-            type: "LineString",
-          },
-        },
-      ],
-    };
-
-    source.setData(newGeoJSONData);
+    source.setData(getLineGeoJSONData(trace));
   }, [trace, map]);
+
+  // Measure Augmentation
+  useEffect(() => {
+    if (!map) return;
+    const source = map.getSource("measureLine") as GeoJSONSource;
+    if (!source) return;
+    if (measure.from && measure.to) {
+      source.setData(getLineGeoJSONData([measure.from, measure.to]));
+    } else {
+      source.setData(getLineGeoJSONData([]));
+    }
+  }, [measure, map]);
 };

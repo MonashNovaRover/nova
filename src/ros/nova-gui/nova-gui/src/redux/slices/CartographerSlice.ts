@@ -31,23 +31,34 @@ export const cartographerSlice = createSlice({
         },
       };
     },
-    TOGGLE_INTERACTION_MODE: (state: CartographerState) => {
+    SET_INTERACTION_MODE: (
+      state: CartographerState,
+      action: PayloadAction<MapInteractionMode>
+    ) => {
       return {
         ...state,
-        mapInteractionMode:
-          state.mapInteractionMode == MapInteractionMode.PAN
-            ? MapInteractionMode.SELECT
-            : MapInteractionMode.PAN,
+        mapInteractionMode: action.payload,
       };
     },
     UPDATE_MOUSE_POSITION: (
       state: CartographerState,
       action: PayloadAction<MapCoordinate | undefined>
     ) => {
-      return {
-        ...state,
-        mousePosition: action.payload,
-      };
+      if (state.measure.measuring) {
+        return {
+          ...state,
+          mousePosition: action.payload,
+          measure: {
+            ...state.measure,
+            to: action.payload,
+          },
+        };
+      } else {
+        return {
+          ...state,
+          mousePosition: action.payload,
+        };
+      }
     },
     HANDLE_MAP_CLICK: (
       state: CartographerState,
@@ -65,10 +76,38 @@ export const cartographerSlice = createSlice({
           };
         }
 
+        // Measuring Mode
+        case MapInteractionMode.MEASURE: {
+          if (state.measure.measuring) {
+            return {
+              ...state,
+              measure: {
+                ...state.measure,
+                to: action.payload,
+                measuring: false,
+              },
+            };
+          } else {
+            return {
+              ...state,
+              measure: {
+                from: action.payload,
+                measuring: true,
+              },
+            };
+          }
+        }
+
         default:
           state;
       }
     },
+    CLEAR_MEASURE: (state: CartographerState) => ({
+      ...state,
+      measure: {
+        measuring: false,
+      },
+    }),
     CLOSE_ADD_MODAL: (state: CartographerState) => ({
       ...state,
       newMarkerModal: {
@@ -82,6 +121,9 @@ export const cartographerSlice = createSlice({
     newMarkerModal: {
       open: false,
       coordinate: undefined,
+    },
+    measure: {
+      measuring: false,
     },
   },
   name: "CartographerReducer",

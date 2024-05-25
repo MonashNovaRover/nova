@@ -7,6 +7,7 @@ import roverIcon from "../../../assets/rover-top-down-dark.png";
 import novaLogo from "../../../assets/nova-logo.png";
 
 import { useEffect, useState } from "react";
+import { MapInteractionMode } from "../../../redux/models/CartographerState";
 
 export const useCartographerMarkers = (map?: Map) => {
   const [roverMarker, setRoverMarker] = useState<Marker>();
@@ -14,7 +15,9 @@ export const useCartographerMarkers = (map?: Map) => {
 
   const [pointMarkers, setPointMarkers] = useState<Marker[]>([]);
 
-  const { points } = useSelector((state: RootState) => state.cartographerState);
+  const { points, mapInteractionMode } = useSelector(
+    (state: RootState) => state.cartographerState
+  );
 
   const roverLocationBifrost = useBifrost({
     topic: RosTopic.AUTO_ROVER_LOCATION,
@@ -123,6 +126,23 @@ export const useCartographerMarkers = (map?: Map) => {
     setPointMarkers([...finalPointMarkers, ...newMarkers]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map, points]);
+
+  useEffect(() => {
+    if (!map) return;
+    const canvas = map.getCanvas();
+    switch (mapInteractionMode) {
+      case MapInteractionMode.PAN:
+        canvas.style.cursor = "pointer";
+        break;
+      case MapInteractionMode.SELECT:
+      case MapInteractionMode.MEASURE:
+        canvas.style.cursor = "crosshair";
+        break;
+
+      default:
+        break;
+    }
+  }, [map, mapInteractionMode]);
 };
 
 const createRoverIcon = () => {
