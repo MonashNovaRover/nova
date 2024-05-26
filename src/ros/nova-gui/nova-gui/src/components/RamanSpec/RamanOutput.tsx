@@ -4,8 +4,8 @@
  * It accepts responses from the 'raman_spectra' ROS service.
  */
 
-import {Button, Card, CardFooter} from "@nextui-org/react";
-import React, { useEffect } from "react";
+import {Button, Card, CardFooter, Input} from "@nextui-org/react";
+import React, {useEffect, useState} from "react";
 import { RootState } from "../../redux/RootState";
 import { useBifrost } from "../../redux/actions/bifrost/useBifrostAction";
 import { useSelector } from "react-redux";
@@ -19,6 +19,9 @@ export interface RamanOutputProps {
 
 
 const RamanOutput: React.FC<RamanOutputProps> = (props) => {
+
+    const [graphName, setGraphName] = useState<string>("CCD Output")
+
     // units are nm
     const LASER_GREEN_START = 416
     const LASER_GREEN_END = 642
@@ -66,15 +69,25 @@ const RamanOutput: React.FC<RamanOutputProps> = (props) => {
         <Card className={spectrumStore.isvalid ? "m-2 p-2" : "m-2 p-2 bg-rose-900"}>
             <DataChart dataset={determineOutput()} chartOptions={ChartOptions(ChartStyle.Default)} />
             <CardFooter>
-                <Button onPress={() => {
-                    // ! I just take the first element of the array. I don't know if this is correct
-                    // TODO: Verify correctness
-                    const output = determineOutput()[0];
-                    props.onSave?.(output.data, output.name);
-                }}>Save</Button>
+                <div className="flex flex-row gap-3 my-3 mb-0">
+                    <Input size="sm" placeholder="Graph name" onValueChange={setGraphName} value={graphName}></Input>
+                    <Button
+                        color={graphName.length > 0 ? "success" : "default"}
+                        isDisabled={graphName.length === 0}
+                        onPress={() => {
+                            // ! I just take the first element of the array. I don't know if this is correct
+                            // TODO: Verify correctness
+                            const output = determineOutput()[0];
+                            props.onSave?.(output.data, graphName);
+                        }}
+                        size="sm"
+                    >
+                        Save
+                    </Button>
+                </div>
             </CardFooter>
         </Card>
-    ) 
+    )
 }
 
 export default RamanOutput;
