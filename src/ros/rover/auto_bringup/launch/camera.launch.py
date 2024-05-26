@@ -29,32 +29,19 @@ def launch_setup(context, *args, **kwargs):
                               "params_file": params_file,
                               "camera_model": "OAK-D-LR"}.items()),
 
-        # LoadComposableNodes(
-        #     condition=IfCondition(LaunchConfiguration("rectify_rgb")),
-        #     target_container=name+"_container",
-        #     composable_node_descriptions=[
-        #         ComposableNode(
-        #             package='depth_image_proc',
-        #             plugin='depth_image_proc::PointCloudXyziNode',
-        #             name='point_cloud_xyzi',
-        #             remappings=[('depth/image_rect', name+'/stereo/image_raw'),
-        #                         ('intensity/image_rect', name+'/right/image_rect'),
-        #                         ('intensity/camera_info', name+'/stereo/camera_info'),
-        #                         ('points', name+'/points')
-        #                         ]),
-        #     ]),
-
-        Node(
-            package='rtabmap_util',
-            executable='point_cloud_xyz',
-            condition=IfCondition(LaunchConfiguration('rtabmap_pointcloud')),
-            name='rtabmap_point_cloud_xyz',
-            remappings=[('/depth/image', name+'/stereo/image_filtered'),
-                        ('/depth/camera_info', name+'/stereo/camera_info'),
-                        ('/cloud', name+'/points'),
-                        ],
-            parameters=[{'filter_nans':True }] 
-        ),
+        LoadComposableNodes(
+            condition=IfCondition(LaunchConfiguration("rectify_rgb")),
+            target_container=name+"_container",
+            composable_node_descriptions=[
+                ComposableNode(
+                    package='depth_image_proc',
+                    plugin='depth_image_proc::PointCloudXyzNode',
+                    name='point_cloud_xyz',
+                    remappings=[('image_rect', name+'/stereo/image_filtered'),
+                                ('camera_info', name+'/stereo/camera_info'),
+                                ('points', name+'/points')
+                                ]),
+            ]),
 
         Node(
             condition=IfCondition(LaunchConfiguration('use_camera')),
