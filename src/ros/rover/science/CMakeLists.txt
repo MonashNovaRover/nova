@@ -66,6 +66,7 @@ install(PROGRAMS
   science/urc_carousel.py
   science/uv_vis_spec.py
   science/raman_spec_server.py
+  science/theta360cam.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
