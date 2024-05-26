@@ -27,11 +27,10 @@ export enum RosTopic {
   BLCMD_ERRORS = "/blcmds/blcmd_status",
   
   // Science Related topics
-  TOF = "/control/analysis_platform",
+  TOF = "/control/analysis_arm",
   KILN_DATA = "/science/kiln_data",
   NIR_DATA = "/science/nir_probe_data",
   MICROSCOPE_SERVO = "/science/microscope_servo_info",
-
   THETA_360_CAM_IMAGE = "/science/theta360cam/image",
   HYDRAPROBE_DATA = "/science/hydraprobe_data",
 }

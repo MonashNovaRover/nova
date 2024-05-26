@@ -31,8 +31,6 @@ export const rosTopicMessages = {
   [RosTopic.KILN_DATA]: "nova_interfaces/msg/KilnData",
   [RosTopic.NIR_DATA]: "nova_interfaces/msg/NIRProbeData",
   [RosTopic.MICROSCOPE_SERVO]: "nova_interfaces/msg/MicroscopeServoInfo",
-
   [RosTopic.THETA_360_CAM_IMAGE]: "sensor_msgs/msg/CompressedImage",
-
   [RosTopic.HYDRAPROBE_DATA]: "nova_interfaces/msg/HydraprobeData",
 };
