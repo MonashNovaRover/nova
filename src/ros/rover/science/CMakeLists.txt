@@ -67,6 +67,7 @@ install(PROGRAMS
   science/uv_vis_spec.py
   science/raman_spec_server.py
   science/theta360cam.py
+  science/raman_mech_server.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
