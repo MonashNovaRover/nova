@@ -95,7 +95,7 @@ const CarouselWidget: React.FC<CarouselWidgetProps> = (props) => {
 
 
   useEffect(() => {
-    if (!selectedCuvetteIndex || !offset) {
+    if (!selectedCuvette || !offset) {
       return;
     }
     if (Number(selectedCuvette) >= 0 && Number(selectedCuvette) <= cuvetteCount) {
