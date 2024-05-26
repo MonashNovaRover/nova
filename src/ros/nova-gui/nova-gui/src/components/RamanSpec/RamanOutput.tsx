@@ -4,8 +4,8 @@
  * It accepts responses from the 'raman_spectra' ROS service.
  */
 
-import { Card } from "@nextui-org/react";
-import { useEffect } from "react";
+import {Button, Card, CardFooter} from "@nextui-org/react";
+import React, { useEffect } from "react";
 import { RootState } from "../../redux/RootState";
 import { useBifrost } from "../../redux/actions/bifrost/useBifrostAction";
 import { useSelector } from "react-redux";
@@ -13,7 +13,12 @@ import { RosTopic } from "../../ros/topics/rosTopic";
 import { ChartOptions, ChartStyle } from "../SpectraDisplay/ChartOptions";
 import DataChart from "../SpectraDisplay/DataChart";
 
-const RamanOutput: React.FC = () => {
+export interface RamanOutputProps {
+    onSave?: (data: number[][], name: string) => void,
+}
+
+
+const RamanOutput: React.FC<RamanOutputProps> = (props) => {
     // units are nm
     const LASER_GREEN_START = 416
     const LASER_GREEN_END = 642
@@ -34,16 +39,16 @@ const RamanOutput: React.FC = () => {
     const spectrumStore = useSelector(
         (state: RootState) => state.ramanSpecMessageStore
     );
-    let STEP_VALUE = Math.floor(spectrumStore.spectrum.length / POINTS_ON_GRAPH)
+    const STEP_VALUE = Math.floor(spectrumStore.spectrum.length / POINTS_ON_GRAPH)
 
     const bifrost = useBifrost({ topic: RosTopic.RAMAN_SPEC_MSG });
     useEffect(() => {
         bifrost.syncWithTopic();
     }, [bifrost]);
 
-    let maxOutputValue = Math.max(...spectrumStore.spectrum)
-    let greenLaserOutput = spectrumStore.spectrum.map((element, index) => [Math.round((10**DECIMAL_PLACE_ROUNDING_FROM_MAX)*(LASER_GREEN_START + LASER_GREEN_RANGE*index/spectrumStore.spectrum.length)) / ((10**DECIMAL_PLACE_ROUNDING_FROM_MAX)* 1.0), Math.round((10**DECIMAL_PLACE_ROUNDING_FROM_MAX)*NORMALISED_SCALE_MAX*(1 - (element/maxOutputValue)))/((10**DECIMAL_PLACE_ROUNDING_FROM_MAX) * 1.0)])
-    let redLaserOutput = spectrumStore.spectrum.map((element, index) => [Math.round((10**DECIMAL_PLACE_ROUNDING_FROM_MAX)*(LASER_RED_START + LASER_RED_RANGE*index/spectrumStore.spectrum.length)) / ((10**DECIMAL_PLACE_ROUNDING_FROM_MAX) * 1.0), Math.round((10**DECIMAL_PLACE_ROUNDING_FROM_MAX)*NORMALISED_SCALE_MAX*(1 - (element/maxOutputValue)))/((10**DECIMAL_PLACE_ROUNDING_FROM_MAX) * 1.0)])
+    const maxOutputValue = Math.max(...spectrumStore.spectrum)
+    const greenLaserOutput = spectrumStore.spectrum.map((element, index) => [Math.round((10**DECIMAL_PLACE_ROUNDING_FROM_MAX)*(LASER_GREEN_START + LASER_GREEN_RANGE*index/spectrumStore.spectrum.length)) / ((10**DECIMAL_PLACE_ROUNDING_FROM_MAX)* 1.0), Math.round((10**DECIMAL_PLACE_ROUNDING_FROM_MAX)*NORMALISED_SCALE_MAX*(1 - (element/maxOutputValue)))/((10**DECIMAL_PLACE_ROUNDING_FROM_MAX) * 1.0)])
+    const redLaserOutput = spectrumStore.spectrum.map((element, index) => [Math.round((10**DECIMAL_PLACE_ROUNDING_FROM_MAX)*(LASER_RED_START + LASER_RED_RANGE*index/spectrumStore.spectrum.length)) / ((10**DECIMAL_PLACE_ROUNDING_FROM_MAX) * 1.0), Math.round((10**DECIMAL_PLACE_ROUNDING_FROM_MAX)*NORMALISED_SCALE_MAX*(1 - (element/maxOutputValue)))/((10**DECIMAL_PLACE_ROUNDING_FROM_MAX) * 1.0)])
 
     const determineOutput = () => {
         let output = redLaserOutput;
@@ -60,6 +65,14 @@ const RamanOutput: React.FC = () => {
     return (
         <Card className={spectrumStore.isvalid ? "m-2 p-2" : "m-2 p-2 bg-rose-900"}>
             <DataChart dataset={determineOutput()} chartOptions={ChartOptions(ChartStyle.Default)} />
+            <CardFooter>
+                <Button onPress={() => {
+                    // ! I just take the first element of the array. I don't know if this is correct
+                    // TODO: Verify correctness
+                    const output = determineOutput()[0];
+                    props.onSave?.(output.data, output.name);
+                }}>Save</Button>
+            </CardFooter>
         </Card>
     ) 
 }
