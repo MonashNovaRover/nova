@@ -10,13 +10,18 @@ export interface PlatformWidgetProps extends CardProps {}
 
 const SAMPLE_TRAY_LOCATIONS = [
   {
-    display: "Auger",
-    value: "auger",
-  },
-  {
     display: "Sample One",
     value: "sample_one",
   },
+  {
+    display: "Cleaning Sheath",
+    value: "clean",
+  },
+  {
+    display: "Auger",
+    value: "auger",
+  },
+
   {
     display: "Sample Two",
     value: "sample_two",
@@ -24,10 +29,6 @@ const SAMPLE_TRAY_LOCATIONS = [
   {
     display: "Cache",
     value: "cache",
-  },
-  {
-    display: "Cleaning Sheath",
-    value: "clean",
   },
 ];
 
