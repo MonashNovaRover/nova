@@ -7,7 +7,7 @@ import NIRProbeFileTableWidget from "./NIRProbeFileTableWidget.tsx";
 import NIRCalibrationCurveWidget, {EMPTY_CALIBRATION_DATA, NIRCalibrationData} from "./NIRCalibrationCurveWidget.tsx";
 import SpaceResourceSiteType from "../SpaceResourcesSiteType.tsx";
 import {useLocalStorage} from "../hooks/useLocalStorage.ts";
-import AnalysisPlatformHeight from "../../AnalysisPlatformHeight/AnalysisPlatformHeight.tsx";
+import TOFHeight from "../../AnalysisPlatformHeight/AnalysisPlatformHeight.tsx";
 
 
 
@@ -113,7 +113,7 @@ const NIRProbeWidget: React.FC<INIRProbeWidgetProps> = () => {
                                    calibrationData={calibrationData} setCalibrationData={setCalibrationData}/>
       </div>
       <div className="flex flex-col gap-3 col-span-3">
-        <AnalysisPlatformHeight/>
+        <TOFHeight/>
         <SiteSelectWidget onValueChanged={setFilename}
                           onSiteTypeChanged={onSiteTypeChanged}
                           currentSiteType={file.type}/>

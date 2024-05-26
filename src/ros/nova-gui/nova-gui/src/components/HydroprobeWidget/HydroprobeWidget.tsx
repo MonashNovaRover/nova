@@ -23,7 +23,7 @@ const HydroprobeWidget: React.FC<IHydroprobeProps> = (
     }, [bifrost]);
 
     const HydroprobeCardBody = (
-        <CardBody className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+        <CardBody className="grid grid-cols-2 grid-rows-2 gap-4">
             <div className="text-center">
                 <OverlayedProgress size="lg" label="Temperature" value={temperature}>
                     {temperature.toFixed(2)} °C
