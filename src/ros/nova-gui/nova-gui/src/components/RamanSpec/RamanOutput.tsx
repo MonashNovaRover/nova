@@ -4,14 +4,15 @@
  * It accepts responses from the 'raman_spectra' ROS service.
  */
 
-import {Button, Card, CardFooter, Input} from "@nextui-org/react";
-import React, {memo, useCallback, useEffect, useMemo, useState} from "react";
+import {Card, CardFooter} from "@nextui-org/react";
+import React, {memo, useCallback, useEffect, useMemo} from "react";
 import { RootState } from "../../redux/RootState";
 import { useBifrost } from "../../redux/actions/bifrost/useBifrostAction";
 import { useSelector } from "react-redux";
 import { RosTopic } from "../../ros/topics/rosTopic";
 import { ChartOptions, ChartStyle } from "../SpectraDisplay/ChartOptions";
 import DataChart from "../SpectraDisplay/DataChart";
+import RamanLocalStorageSaveButton from "./RamanLocalStorageSaveButton.tsx";
 
 export interface RamanOutputProps {
     onSave?: (data: number[][], name: string) => void,
@@ -19,9 +20,6 @@ export interface RamanOutputProps {
 
 
 const RamanOutputUnmemoed: React.FC<RamanOutputProps> = (props) => {
-
-    const [graphName, setGraphName] = useState<string>("CCD Output")
-
     // units are nm
     const LASER_GREEN_START = 416
     const LASER_GREEN_END = 642
@@ -72,28 +70,18 @@ const RamanOutputUnmemoed: React.FC<RamanOutputProps> = (props) => {
     }, [STEP_VALUE, greenLaserOutput, ramanMechState.green_laser_on, redLaserOutput]);
 
     // A function called whenever the save button is pressed
-    const onSave = useCallback(() => {
+    const onSave = useCallback((graphName: string) => {
         // ! I just take the first element of the array. I don't know if this is correct
         // TODO: Verify correctness
         const output = determinedOutput[0];
         props.onSave?.(output.data, graphName);
-    }, [determinedOutput, graphName, props])
+    }, [determinedOutput, props])
 
     return (
         <Card className={spectrumStore.isvalid ? "m-2 p-2" : "m-2 p-2 bg-rose-900"}>
             <DataChart dataset={determinedOutput} chartOptions={ChartOptions(ChartStyle.Default)} />
             <CardFooter>
-                <div className="flex flex-row gap-3 my-3 mb-0">
-                    <Input size="sm" placeholder="Graph name" onValueChange={setGraphName} value={graphName}></Input>
-                    <Button
-                        color={graphName.length > 0 ? "success" : "default"}
-                        isDisabled={graphName.length === 0}
-                        onPress={onSave}
-                        size="sm"
-                    >
-                        Save
-                    </Button>
-                </div>
+                <RamanLocalStorageSaveButton onSave={onSave}/>
             </CardFooter>
         </Card>
     )

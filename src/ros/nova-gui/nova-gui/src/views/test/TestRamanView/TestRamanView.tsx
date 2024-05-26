@@ -20,7 +20,7 @@ const TestRamanView: React.FC = () => {
 
     setGraphs([...graphs, graph]);
     setSelectedGraphs(new Set([...selectedGraphs.values(), uniqueName]))
-  }, [graphs, setGraphs]);
+  }, [graphs, selectedGraphs, setGraphs]);
 
   return <div className="grid grid-flow-col auto-cols-fr grid-cols-1 m-3">
     <div className="flex flex-col">
