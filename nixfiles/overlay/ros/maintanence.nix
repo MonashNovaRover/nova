@@ -76,6 +76,32 @@ self: super:
         sourceRoot = "source/depthai_descriptions";
       });
 
+      rmw-fastrtps-cpp = rosSuper.rmw-fastrtps-cpp.overrideAttrs ({ patches ? [ ], ... }: {
+        patches = patches ++ [
+          # Capture std::bad_alloc on deserializeROSmessage.
+          # https://github.com/ros2/rmw_fastrtps/pull/665
+          (self.fetchpatch {
+            url = "https://github.com/ros2/rmw_fastrtps/commit/4d0be32e6c455edbf708003dffb67b11d512c5a6.patch";
+            stripLen = 1;
+            includes = [ "src/type_support_common.cpp" ];
+            hash = "sha256-SMZHYRdhT7Oww+LIhsq0sDVe9CgwGaS69u2ScHJIcIk=";
+          })
+        ];
+      });
+
+      rmw-fastrtps-dynamic-cpp = rosSuper.rmw-fastrtps-dynamic-cpp.overrideAttrs ({ patches ? [ ], ... }: {
+        patches = patches ++ [
+          # Capture std::bad_alloc on deserializeROSmessage.
+          # https://github.com/ros2/rmw_fastrtps/pull/665
+          (self.fetchpatch {
+            url = "https://github.com/ros2/rmw_fastrtps/commit/4d0be32e6c455edbf708003dffb67b11d512c5a6.patch";
+            stripLen = 1;
+            includes = [ "include/rmw_fastrtps_dynamic_cpp/TypeSupport_impl.hpp" ];
+            hash = "sha256-ZqARJBzAMPbG7Q3oHFvqp5SooGJkhHRB8rTLxTcYXRk=";
+          })
+        ];
+      });
+
       rosbridge-library = rosSuper.rosbridge-library.override {
         python3Packages = rosSuper.python3Packages.overrideScope (pySelf: pySuper: {
           bson = pySelf.pymongo;
