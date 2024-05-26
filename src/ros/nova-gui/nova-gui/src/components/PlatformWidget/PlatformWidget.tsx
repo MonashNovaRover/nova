@@ -63,6 +63,7 @@ const PlatformWidget: React.FC<PlatformWidgetProps> = (props) => {
           rosActionType={RosAction.SAMPLE_TRAY}
           locations={SAMPLE_TRAY_LOCATIONS} 
           targetLocationIndex={targetLocationIndex} 
+          setTargetLocationIndex={setTargetLocationIndex}
           setDisableSelector={setDisableSelector} 
           canZero> 
           {picker}

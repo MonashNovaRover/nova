@@ -5,6 +5,7 @@
  */
 import React, {Key, useEffect, useState} from "react";
 import {
+  Button,
   Card,
   CardBody,
   CardHeader, 
@@ -35,7 +36,7 @@ const CarouselWidget: React.FC<CarouselWidgetProps> = (props) => {
   // What values should be sent to the ROS node as positions to go to?
   const instruments : { [key: string] : number} ={
     "Camera": 1,
-    "UV Vis Spec": 16,
+    "UV Vis Spec": 6,
   };
 
   const cuvetteCount = 20;
@@ -116,6 +117,7 @@ const CarouselWidget: React.FC<CarouselWidgetProps> = (props) => {
           rosActionType={RosAction.CAROUSEL_ACTION}
           locations={cuvettes}
           targetLocationIndex={selectedCuvetteIndex}
+          setTargetLocationIndex={setSelectedCuvetteIndex}
           setDisableSelector={setDisableSelector}
           canSet>
           {cuvettePicker}

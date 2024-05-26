@@ -14,6 +14,7 @@ export interface StepperWidgetProps {
   rosActionType: RosAction;
   locations: Location[];
   targetLocationIndex: number;
+  setTargetLocationIndex: React.Dispatch<React.SetStateAction<number>>;
   children: React.ReactNode;
   canZero?: boolean;
   canSet?: boolean;
@@ -22,7 +23,7 @@ export interface StepperWidgetProps {
 
 
 const StepperWidget: React.FC<StepperWidgetProps> = (props) => {
-  const { locations, targetLocationIndex, children, rosActionType, setDisableSelector, canSet=false, canZero=false } = props;
+  const { locations, targetLocationIndex, setTargetLocationIndex, children, rosActionType, setDisableSelector, canSet=false, canZero=false } = props;
   const [currentLocationIndex, setCurrentLocationIndex] = useState<number | null>(null);
   const [targetPosition, setTargetPosition] = useState<number | null>(null);
   const [actionSent, setActionSent] = useState<boolean>(false);
@@ -71,6 +72,19 @@ const StepperWidget: React.FC<StepperWidgetProps> = (props) => {
     setActionSent(false);
     setTargetPosition(null);
   }
+
+  const next = () => {
+    console.log("Next");
+    setTargetLocationIndex((targetLocationIndex + 1) % locations.length);
+    goTo();
+  }
+
+  const prev = () => {
+    console.log("Prev");
+    setTargetLocationIndex((targetLocationIndex - 1) % locations.length);
+    goTo();
+  }
+
   
   
   const pickerRow = (
@@ -78,7 +92,7 @@ const StepperWidget: React.FC<StepperWidgetProps> = (props) => {
       <div className="font-bold">Select Location</div>
       <div className="flex flex-row mt-1.5 gap-3 justify-center ">
         {children}
-        <Button color="primary" isDisabled={actionSent} onPress={() => goTo()}  >
+        <Button color="primary" isDisabled={actionSent} onPress={() => goTo()}>
           Go To
         </Button>
       </div>
@@ -86,10 +100,18 @@ const StepperWidget: React.FC<StepperWidgetProps> = (props) => {
   );
 
   const buttonRow = (
-    <div className="flex flex-row mt-3 gap-5 justify-center">
-      {canZero && <Button color="warning" onPress={() => zero()}>Zero Stepper</Button>}
-      {canSet && <Button color="warning" onPress={() => set()}>Set Stepper</Button>}
-      <Button color="danger" onPress={() => cancel()}>Cancel Action</Button>
+    <div className="flex flex-col mt-3 gap-5 justify-center">
+      <div className="flex flex-row mt-3 gap-5 justify-center">
+        {canZero && <Button color="warning" isDisabled={actionSent} onPress={() => zero()}>Zero Stepper</Button>}
+        {canSet && <Button color="warning" onPress={() => set()}>Set Stepper</Button>}
+        <Button color="primary" isDisabled={actionSent} onPress={() => prev()}>Prev</Button>
+        <Button color="primary" isDisabled={actionSent} onPress={() => next()}>Next</Button>
+        <Button color="danger" onPress={() => cancel()}>Cancel Action</Button>
+     
+      </div>
+        <div className="flex flex-row gap-5 justify-center">
+        
+      </div>
     </div>
   );
 
