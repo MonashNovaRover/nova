@@ -5,7 +5,7 @@
  */
 
 import {Button, Card, CardFooter, Input} from "@nextui-org/react";
-import React, {useEffect, useState} from "react";
+import React, {useCallback, useEffect, useMemo, useState} from "react";
 import { RootState } from "../../redux/RootState";
 import { useBifrost } from "../../redux/actions/bifrost/useBifrostAction";
 import { useSelector } from "react-redux";
@@ -49,11 +49,17 @@ const RamanOutput: React.FC<RamanOutputProps> = (props) => {
         bifrost.syncWithTopic();
     }, [bifrost]);
 
-    const maxOutputValue = Math.max(...spectrumStore.spectrum)
-    const greenLaserOutput = spectrumStore.spectrum.map((element, index) => [Math.round((10**DECIMAL_PLACE_ROUNDING_FROM_MAX)*(LASER_GREEN_START + LASER_GREEN_RANGE*index/spectrumStore.spectrum.length)) / ((10**DECIMAL_PLACE_ROUNDING_FROM_MAX)* 1.0), Math.round((10**DECIMAL_PLACE_ROUNDING_FROM_MAX)*NORMALISED_SCALE_MAX*(1 - (element/maxOutputValue)))/((10**DECIMAL_PLACE_ROUNDING_FROM_MAX) * 1.0)])
-    const redLaserOutput = spectrumStore.spectrum.map((element, index) => [Math.round((10**DECIMAL_PLACE_ROUNDING_FROM_MAX)*(LASER_RED_START + LASER_RED_RANGE*index/spectrumStore.spectrum.length)) / ((10**DECIMAL_PLACE_ROUNDING_FROM_MAX) * 1.0), Math.round((10**DECIMAL_PLACE_ROUNDING_FROM_MAX)*NORMALISED_SCALE_MAX*(1 - (element/maxOutputValue)))/((10**DECIMAL_PLACE_ROUNDING_FROM_MAX) * 1.0)])
+    const maxOutputValue = useMemo(() => (
+      Math.max(...spectrumStore.spectrum)
+    ), [spectrumStore.spectrum])
+    const greenLaserOutput = useMemo(() => (
+      spectrumStore.spectrum.map((element, index) => [Math.round((10**DECIMAL_PLACE_ROUNDING_FROM_MAX)*(LASER_GREEN_START + LASER_GREEN_RANGE*index/spectrumStore.spectrum.length)) / ((10**DECIMAL_PLACE_ROUNDING_FROM_MAX)* 1.0), Math.round((10**DECIMAL_PLACE_ROUNDING_FROM_MAX)*NORMALISED_SCALE_MAX*(1 - (element/maxOutputValue)))/((10**DECIMAL_PLACE_ROUNDING_FROM_MAX) * 1.0)])
+    ), [LASER_GREEN_RANGE, maxOutputValue, spectrumStore.spectrum])
+    const redLaserOutput = useMemo(() => (
+      spectrumStore.spectrum.map((element, index) => [Math.round((10**DECIMAL_PLACE_ROUNDING_FROM_MAX)*(LASER_RED_START + LASER_RED_RANGE*index/spectrumStore.spectrum.length)) / ((10**DECIMAL_PLACE_ROUNDING_FROM_MAX) * 1.0), Math.round((10**DECIMAL_PLACE_ROUNDING_FROM_MAX)*NORMALISED_SCALE_MAX*(1 - (element/maxOutputValue)))/((10**DECIMAL_PLACE_ROUNDING_FROM_MAX) * 1.0)])
+    ), [LASER_RED_RANGE, maxOutputValue, spectrumStore.spectrum])
 
-    const determineOutput = () => {
+    const determinedOutput = useMemo(() => {
         let output = redLaserOutput;
         if (ramanMechState.green_laser_on) {
             output = greenLaserOutput;
@@ -63,23 +69,26 @@ const RamanOutput: React.FC<RamanOutputProps> = (props) => {
             name: "CCD Output",
             data: output
         }]
-    }
+    }, [STEP_VALUE, greenLaserOutput, ramanMechState.green_laser_on, redLaserOutput]);
+
+    // A function called whenever the save button is pressed
+    const onSave = useCallback(() => {
+        // ! I just take the first element of the array. I don't know if this is correct
+        // TODO: Verify correctness
+        const output = determinedOutput[0];
+        props.onSave?.(output.data, graphName);
+    }, [determinedOutput, graphName, props])
 
     return (
         <Card className={spectrumStore.isvalid ? "m-2 p-2" : "m-2 p-2 bg-rose-900"}>
-            <DataChart dataset={determineOutput()} chartOptions={ChartOptions(ChartStyle.Default)} />
+            <DataChart dataset={determinedOutput} chartOptions={ChartOptions(ChartStyle.Default)} />
             <CardFooter>
                 <div className="flex flex-row gap-3 my-3 mb-0">
                     <Input size="sm" placeholder="Graph name" onValueChange={setGraphName} value={graphName}></Input>
                     <Button
                         color={graphName.length > 0 ? "success" : "default"}
                         isDisabled={graphName.length === 0}
-                        onPress={() => {
-                            // ! I just take the first element of the array. I don't know if this is correct
-                            // TODO: Verify correctness
-                            const output = determineOutput()[0];
-                            props.onSave?.(output.data, graphName);
-                        }}
+                        onPress={onSave}
                         size="sm"
                     >
                         Save
