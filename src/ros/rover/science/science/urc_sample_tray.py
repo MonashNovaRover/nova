@@ -152,13 +152,6 @@ class URCSampleTray(ControllerNode):
         ## Start the CAN bus
         self.start_can()
 
-
-    def joystick_l(self, joystick_l: InputJoystick):
-        pass
-
-    def joystick_r(self, joystick_r: InputJoystick):
-        pass
-
 def main():
     rclpy.init()
     node = URCSampleTray()

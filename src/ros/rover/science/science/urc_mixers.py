@@ -100,13 +100,7 @@ class URCAuger(ControllerNode):
         else:
             self.mixer_2.update_velocity(0)
 
-    def joystick_l(self, joystick_l: InputJoystick):
-        pass
-
-    def joystick_r(self, joystick_r: InputJoystick):
-        self.update_auger_actuation(joystick_r)
-        self.update_auger_drill(joystick_r)
-
+            
 def main():
     rclpy.init()
     node = URCAuger()

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import rclpy, time
-from python_control.ControllerNode import ControllerNode
+from python_control.JoystickControllerNode import JoystickControllerNode
 from python_control.controllers.CMDVelocityController import CMDVelocityController
 from python_control.controls.OneAxisVelocityControl import OneAxisVelocityControl
 from python_control.controls.Direction import Direction
@@ -30,7 +30,7 @@ Right thumb button => Move platform down (small increment) + ignore TOF sensor
 """
 
 
-class AnalysisArm(ControllerNode):
+class AnalysisArm(JoystickControllerNode):
 
     # CAN BUS NAME
     # The name of the CAN bus to use
@@ -47,6 +47,7 @@ class AnalysisArm(ControllerNode):
     # CONTROL NAMES
     # Add any CONTROL names here
     PLATFORM_CONTROL_NAME = "platform"
+    TOF_SENSOR_NAME = "tof"
 
     # CONTROL PARAMETERS
     # Max Speed as a Percentage (0.0 to 1.0)
@@ -115,6 +116,8 @@ class AnalysisArm(ControllerNode):
             frame_id=self.CMD_ID,
             control=self.platform,
         )
+        
+        self.add_sensor(self.TOF_SENSOR_NAME, tof_sensor)
 
         ## Add the controllers to the node's of controllers
         self.add_controller(self.PLATFORM_CONTROL_NAME, self.platform_controller)

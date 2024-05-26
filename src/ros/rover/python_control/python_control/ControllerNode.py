@@ -24,15 +24,11 @@ from python_control.limits.Limit import Limit
 from python_control.sensors.Sensor import Sensor
 import jcan, logging
 from rclpy.node import Node
-from rclpy.qos import QoSReliabilityPolicy, QoSProfile
-from rclpy.subscription import SubscriptionEventCallbacks
-from rclpy.duration import Duration
 
 # import the joystick ROS message we are listening to
-from input_interfaces.msg import InputJoystick
 
 
-class ControllerNode(abc.ABC, Node):
+class ControllerNode(Node, metaclass=abc.ABCMeta):
     # ROS parameter names
     CAN_BUS_PARAM = "can_bus"
     LOGGING_LEVEL_PARAM = "logging_level"
@@ -50,24 +46,14 @@ class ControllerNode(abc.ABC, Node):
 
         self.bus = jcan.Bus()
 
-        self.joystick_lock = True
-
         self.controllers : dict[str, Controller] = {}
         self.limits : dict[str, Limit] = {}
         self.sensors : dict[str, Sensor] = {}
-
-        deadline = Duration(nanoseconds=2e8)
-        events = SubscriptionEventCallbacks(deadline=self.deadline_callback)
-        self.qos = QoSProfile(reliability=QoSReliabilityPolicy.BEST_EFFORT, depth=1, deadline=deadline)
-
-        self.joystick_l_sub = self.create_subscription(InputJoystick, "/inputs/input_joystick_l", self.joystick_l_callback, self.qos, event_callbacks=events)
-        self.joystick_r_sub = self.create_subscription(InputJoystick, "/inputs/input_joystick_r", self.joystick_r_callback, self.qos, event_callbacks=events)
 
         self.timer_send_commands = self.create_timer(self.get_parameter(self.COMMAND_PERIOD_PARAM).value, self.callback_send_commands)
         self.timer_jcan_spin = self.create_timer(0.01, self.bus.spin)
 
         self.get_logger().info(f"{self.get_name()} started")
-        self.get_logger().info("Joysticks Locked")
 
     def set_logging_level(self, level: str):
         if level == "DEBUG":
@@ -119,65 +105,4 @@ class ControllerNode(abc.ABC, Node):
         """
         for controller in self.controllers.values():
             controller.stop()
-
-    def check_joystick_lock(self):
-        if self.joystick_lock:
-            self.stop_state()
-            return True
-        return False
-
-    def update_joystick_lock(self, joystick_l: InputJoystick):
-        # Joysticks lock if botton L2 button is pressed on the left joystick
-        if joystick_l.btn_bottom_l2_state >= 1 and not self.joystick_lock:
-            self.get_logger().info("Joysticks Locked")
-            self.joystick_lock = True
-
-        # Joysticks unlocked when bottom l5 button is pressed on the left joystick
-        if joystick_l.btn_bottom_l5_state >= 1 and self.joystick_lock:
-            self.get_logger().info("Joysticks Unlocked")
-            self.joystick_lock = False    
-
-    def joystick_l_callback(self, msg: InputJoystick):
-        """
-        Updates the classes internal msg state
-        :return: None
-        """
-        self.get_logger().debug("Left Joystick")
-
-        self.update_joystick_lock(msg)
-
-        if self.check_joystick_lock():
-            return
-
-        self.joystick_l(msg)
-        
-
-    def joystick_r_callback(self, msg: InputJoystick):
-        """
-        Updates the classes internal msg state
-        :param msg: core.msg.RoverPose message from the subscriber callback
-        :return: None
-        """
-        self.get_logger().debug("Right Joystick")
-
-        if self.check_joystick_lock():
-            return
-        
-        self.joystick_r(msg)
-        
-    @abc.abstractmethod
-    def joystick_r(self, joystick_r: InputJoystick):
-        pass
-
-    @abc.abstractmethod
-    def joystick_l(self, joystick_l: InputJoystick):
-        pass
-  
-        
-
-
-
-
-
-
 

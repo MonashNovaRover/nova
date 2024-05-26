@@ -237,11 +237,6 @@ class URCPumps(ControllerNode):
         self.shot_to_carousel_pump_controller.stop()
 
 
-    def joystick_l(self, joystick_l: InputJoystick):
-        pass
-
-    def joystick_r(self, joystick_r: InputJoystick):
-        pass
 
 def main():
     rclpy.init()

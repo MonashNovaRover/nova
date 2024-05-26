@@ -6,82 +6,73 @@ from python_control.controls.Direction import Direction
 from python_control.controls.OneAxisVelocityControl import OneAxisVelocityControl
 from python_control.controllers.CMDVelocityController import CMDVelocityController
 from python_control.sensors.CommandSensor import CommandSensor
+from python_control.sensors.IntegerSensor import IntegerSensor
 import rclpy
 from python_control.ControllerNode import ControllerNode
 from input_interfaces.msg import InputJoystick
+from nova_interfaces.msg import BMESensor
 
 
-class URCAuger(ControllerNode):
+class URCBMESensor(ControllerNode):
 
     # CAN BUS NAME
     # The name of the CAN bus to use
     CAN_BUS = "can1"
 
-    # SENDING CARD IDS
+    # RECEIVING CARD IDS
     # Add any CONTROL FRAME / CARD IDS here
-    MIXER_1_SEND_FRAME_ID = 0x041
-    MIXER_2_SEND_FRAME_ID = 0x042
+    BME_TEMP_RECV_FRAME_ID = 0x457
+    BME_HUMIDITY_RECV_FRAME_ID = 0x458
 
     # CONTROL NAMES
     # Add any CONTROL names here
-    MIXER_1_NAME = "mixer_1"
-    MIXER_2_NAME = "mixer_2"
+    BME_TEMP_NAME = "bme_temperature"
+    BME_HUMIDITY_NAME = "bme_humidity"
 
-    # CONTROL PARAMETERS
-    # Max Speed as a Percentage (0.0 to 1.0)
-    MIXER_1_MAX_PERCENT = 0.75
-    MIXER_2_MAX_PERCENT = 0.75
-    
-    # CONTROL DIRECTIONS
-    # Add any CONTROL DIRECTIONS here
-    MIXER_1_CLOCKWISE = Direction.POSITIVE
-    MIXER_1_DOWN = Direction.NEGATIVE
-    MIXER_2_CLOCKWISE = Direction.POSITIVE
-    MIXER_2_COUNTERCLOCKWISE = Direction.NEGATIVE    
+    # SENSOR CONSTANTS
+    BME_TEMP_FACTOR = 100
+    BME_HUMIDITY_FACTOR = 100
+
 
     def __init__(self):
-        super(URCAuger, self).__init__(name="URCMixers", can_bus=self.CAN_BUS)
+        super(URCBMESensor, self).__init__(name="URCBMESensor", can_bus=self.CAN_BUS)
         logger = self.get_logger()
 
         # ## Add Publishers
-        # self.bme_publisher = self.create_publisher(, "/science/", 10)
+        self.bme_publisher = self.create_publisher(BMESensor, "/science/bme_sensor", 10)
 
         # ## Create Sensors
-        # self.temperature = IntegerSensor()
-
-
-        ## Create controllers
-        self.mixer_1_controller = CMDVelocityController(
-            logger=logger,
+        self.temperature = IntegerSensor(
             bus=self.bus,
-            frame_id=self.MIXER_1_SEND_FRAME_ID,
-            control=self.mixer_1
+            logger=logger,
+            frame_id=self.BME_TEMP_RECV_FRAME_ID,
+            run_can=True,        
         )
-        self.mixer_2_controller = CMDVelocityController(
-            logger=logger,
+        self.humidity = IntegerSensor(
             bus=self.bus,
-            frame_id=self.MIXER_2_SEND_FRAME_ID,
-            control=self.mixer_2
+            logger=logger,
+            frame_id=self.BME_HUMIDITY_RECV_FRAME_ID,
+            run_can=True,        
         )
 
         ## Add the controllers to the node's of controllers
-        self.add_controller(self.MIXER_1_NAME, self.mixer_1_controller)
-        self.add_controller(self.MIXER_2_NAME, self.mixer_2_controller)
+        self.add_sensor(sensor_name=self.BME_TEMP_NAME, sensor=self.temperature)
+        self.add_sensor(sensor_name=self.BME_HUMIDITY_NAME, sensor=self.humidity)
+
+        self.create_timer(1.0, self.publish_data)
 
         ## Start the CAN bus
         self.start_can()
 
-
-
-    def joystick_l(self, joystick_l: InputJoystick):
-        pass
-
-    def joystick_r(self, joystick_r: InputJoystick):
-        pass
+    def publish_data(self):
+        msg = BMESensor()
+        msg.temperature = float(self.temperature.get_value() / self.BME_TEMP_FACTOR)
+        msg.humidity = float(self.humidity.get_value() / self.BME_HUMIDITY_FACTOR)
+        self.bme_publisher.publish(msg)
 
 def main():
     rclpy.init()
-    node = URCAuger()
+    node = URCBMESensor()
     rclpy.spin(node)
     rclpy.shutdown()
 
