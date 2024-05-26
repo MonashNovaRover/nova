@@ -50,15 +50,15 @@ class RamanServer(Node):
     MASTERCLOCK = 800000
     SPECTRA_SIZE = 3694
     OUTPUT_SIZE = 7388
-    CIRCULAR_BUFFER_START = 69
-    CIRCULAR_BUFFER_END = 82
+    CIRCULAR_BUFFER_START = ord('E')
+    CIRCULAR_BUFFER_END = ord('R')
     SINGLE_COLLECTION_MODE = 0
     CONTINUOUS_COLLECTION_MODE = 1
 
     # Factors for spectrum collection
-    PHASE_SIGNAL = 3675
+    PHASE_SIGNAL = 3730
     MINIMUM_PHASE_LENGTH = 1500
-    SPECTRUM_CROP = 30  # the number of pixels after phase signal ends to ignore
+    SPECTRUM_CROP = 32  # the number of pixels after phase signal ends to ignore
     LOOPS_FOR_SINGLE_COLLECTION = 5
 
     # CAN commands
@@ -129,7 +129,6 @@ class RamanServer(Node):
         """
         Sends all can commands to update mechanical state to what is current 
         """
-        self.get_logger().info("sending CAN commands")
         self.send_laser_command()
         self.send_filter_command()
         self.send_stepper_command()
@@ -205,7 +204,7 @@ class RamanServer(Node):
                 break
 
         for end_of_first_phase_signal in range(start_of_first_phase_signal, len(spectrum)):
-            if spectrum[end_of_first_phase_signal] < RamanServer.PHASE_SIGNAL and spectrum[end_of_first_phase_signal + 5] < RamanServer.PHASE_SIGNAL:
+            if spectrum[end_of_first_phase_signal] < RamanServer.PHASE_SIGNAL and (end_of_first_phase_signal + 5 < len(spectrum) or spectrum[end_of_first_phase_signal + 5] < RamanServer.PHASE_SIGNAL):
                 spectrum_start = end_of_first_phase_signal + RamanServer.SPECTRUM_CROP
                 break
         
@@ -252,6 +251,7 @@ class RamanServer(Node):
         """
         self.mech_state = request.green_laser_on, request.red_laser_on, request.filter_selection, request.stepper_value, request.mirror_servo
         response.success = True
+        self.get_logger().info(f"Raman Mechanical State updated")
         return response
 
 
@@ -273,10 +273,13 @@ class RamanServer(Node):
         loop_count = 0
         while loop_count < RamanServer.LOOPS_FOR_SINGLE_COLLECTION and not spectrum_end: 
             spectrum = self.get_spectrum(port, shperiod, icgperiod, average)
-            time.sleep(0.1)
+            while not spectrum:
+                pass
             spectrum_start, spectrum_end = RamanServer.find_full_phase(spectrum)
+            self.get_logger().info(f"Spectrum start is {spectrum_start}")
             loop_count += 1
         
+        self.get_logger().info(f"length of {spectrum_start - spectrum_end}")
         return spectrum_end is not None, spectrum[spectrum_start:spectrum_end]
 
 
