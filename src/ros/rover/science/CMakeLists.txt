@@ -48,7 +48,6 @@ ament_python_install_package(${PROJECT_NAME})
 # Add all Python executables to this list
 install(PROGRAMS
   science/transmitter.py
-  science/hydraprobe_publisher.py
   science/distance_publisher.py
   science/EMC_publisher.py
   science/kilns_data_publisher.py
@@ -66,7 +65,8 @@ install(PROGRAMS
   science/urc_carousel.py
   science/uv_vis_spec.py
   science/raman_spec_server.py
-  science/theta360cam.py
+  science/urc_hydraprobe.py
+  science/urc_theta_360_cam.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
