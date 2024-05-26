@@ -21,6 +21,7 @@ import { ARCNIRProbeView } from "../views/arc/ARCNIRProbeView.tsx";
 import { ARCMicroscopeView } from "../views/arc/ARCMicroscopeView.tsx";
 import TestWebGLView from "../views/test/TestWebGLView/TestWebGLView.tsx";
 import TestUVVisSpecView from "../views/test/TestUVVisSpecView/TestUVVisSpecView.tsx";
+import Test360CamView from "../views/test/Test360CamView/Test360CamView.tsx";
 
 export const arcRoutes: RouteObject[] = [
   {
@@ -104,6 +105,10 @@ export const testRoutes: RouteObject[] = [
     path: "/test/uvvisspec",
     element: <TestUVVisSpecView/>
   },
+  {
+    path: "/test/360cam",
+    element: <Test360CamView/>
+  }
 ];
 
 const cameraRoutes: RouteObject[] = [

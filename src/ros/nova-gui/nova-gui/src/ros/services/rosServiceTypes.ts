@@ -70,4 +70,6 @@ export interface RosServiceInterface {
     IRosNovaInterfacesRamanMechRequest,
     IRosNovaInterfacesRamanMechResponse
   >;
+
+  [RosService.THETA_360_CAM_CAPTURE]: RosServiceMessage<EmptyMessage, IRosStdSrvsTriggerResponse>;
 }
