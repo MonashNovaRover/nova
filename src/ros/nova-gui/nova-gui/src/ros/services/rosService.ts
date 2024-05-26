@@ -7,7 +7,6 @@
 
 export enum RosService {
   NULL_SERVICE = "",
-  GET_IP_LIST = "/camera_streamer/get_host_ip",
 
   // Arm Related
   READ_RFID = "/electronics/rfid/read",
@@ -15,6 +14,7 @@ export enum RosService {
   // Cameras Related
   START_CAMS = "/camera_streamer/stream/start",
   PAUSE_CAMS = "/camera_streamer/stream/pause",
+  GET_IP_LIST = "/camera_streamer/get_host_ip",
   BLCMD_RESET = "/blcmds/blcmd_reset",
   
   // Science Related

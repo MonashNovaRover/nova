@@ -2,7 +2,6 @@ import { RosService } from "./rosService";
 
 export const rosServiceMessages = {
   [RosService.NULL_SERVICE]: "",
-  [RosService.GET_IP_LIST]: "camera_msgs/srv/GetIPList",
 
   // Arm Related
   [RosService.READ_RFID]: "std_srvs/srv/Trigger",
@@ -10,6 +9,7 @@ export const rosServiceMessages = {
   // Camera Related
   [RosService.START_CAMS]: "camera_msgs/srv/CameraOperation",
   [RosService.PAUSE_CAMS]: "camera_msgs/srv/CameraOperation",
+  [RosService.GET_IP_LIST]: "camera_msgs/srv/GetIPList",
 
   // Error Related
   [RosService.BLCMD_RESET]: "blcmd_interfaces/srv/BLCMDReset",

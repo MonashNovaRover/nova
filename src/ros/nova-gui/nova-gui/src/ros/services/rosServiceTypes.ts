@@ -14,6 +14,7 @@ import {
   IRosNovaInterfacesRamanSpecResponse,
   IRosNovaInterfacesRamanMechRequest,
   IRosNovaInterfacesRamanMechResponse,
+  IRosCameraMsgsGetIpListResponse,
 } from "../rosTypes";
 import { RosService } from "./rosService";
 
@@ -40,6 +41,10 @@ export interface RosServiceInterface {
   [RosService.PAUSE_CAMS]: RosServiceMessage<
     IRosCameraMsgsCameraOperationRequest,
     IRosCameraMsgsCameraOperationResponse
+  >;
+  [RosService.GET_IP_LIST]: RosServiceMessage<
+    EmptyMessage,
+    IRosCameraMsgsGetIpListResponse
   >;
 
   // Error Related

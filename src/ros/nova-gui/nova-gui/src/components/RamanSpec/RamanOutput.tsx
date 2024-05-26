@@ -50,7 +50,7 @@ const RamanOutput: React.FC = () => {
         if (ramanMechState.green_laser_on) {
             output = greenLaserOutput;
         }
-        output = output.filter((value, index) => index % STEP_VALUE == 0)
+        output = output.filter((_, index) => index % STEP_VALUE == 0)
         return [{
             name: "CCD Output",
             data: output
