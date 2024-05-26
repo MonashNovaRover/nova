@@ -11,7 +11,7 @@ from rclpy.action import ActionServer
 from rclpy.executors import MultiThreadedExecutor
 from nova_interfaces.action import Stepper
 
-GAP_STEPS = 10
+GAP_STEPS = -10
 
 class URCCarousel(ControllerNode):
 
