@@ -1,4 +1,4 @@
-import { 
+import {
   IRosBlcmdInterfacesBlcmdStatusArray,
   IRosCameraMsgsCameras,
   IRosBlcmdInterfacesTelemetry,
@@ -11,6 +11,7 @@ import {
   IRosNovaInterfacesMicroscopeServoInfo,
   IRosStdMsgsString,
   IRosNovaInterfacesHydraprobeData,
+  IRosSensorMsgsCompressedImage,
 } from "../rosTypes";
 import { RosTopic } from "./rosTopic";
 
@@ -49,5 +50,5 @@ export interface RosTopicInterfaces {
 
   // Cameras Related
   [RosTopic.CAMERAS]: IRosCameraMsgsCameras;
-
+  [RosTopic.THETA_360_CAM_IMAGE]: IRosSensorMsgsCompressedImage;
 }

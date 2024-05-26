@@ -12,6 +12,7 @@ import {
   IRosStdMsgsString,
   IRosGeometryMsgsPose,
   IRosSensorMsgsRange,
+  IRosSensorMsgsCompressedImage,
   IRosNovaInterfacesHydraprobeData,
   IRosCmdInterfacesCmDsFeedback
 } from "../ros/rosTypes";
@@ -55,4 +56,6 @@ export interface RootState {
   // Science Stores
   microscopeServoStore: IRosNovaInterfacesMicroscopeServoInfo;
   microscopeServiceStore: IRosNovaInterfacesMoveMicroscopeServoResponse;
+
+  theta360CamStore: IRosSensorMsgsCompressedImage;
 }
