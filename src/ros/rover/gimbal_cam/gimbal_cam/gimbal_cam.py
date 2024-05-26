@@ -170,9 +170,9 @@ class GimbalCam(Node):
                 self.get_logger().info(f"Velocity increased to {self.velocity}")
 
             # set the y velocity
-            if SDL_SCANCODE_DOWN in msg.keys_pressed or SDL_SCANCODE_DOWN in msg.keys_repeated:
+            if SDL_SCANCODE_UP in msg.keys_pressed or SDL_SCANCODE_UP in msg.keys_repeated:
                 self.y_velocity = -self.get_velocity_cmd()
-            elif SDL_SCANCODE_UP in msg.keys_pressed or SDL_SCANCODE_UP in msg.keys_repeated:
+            elif SDL_SCANCODE_DOWN in msg.keys_pressed or SDL_SCANCODE_DOWN in msg.keys_repeated:
                 self.y_velocity = self.get_velocity_cmd()
             else:
                 self.y_velocity = 0
