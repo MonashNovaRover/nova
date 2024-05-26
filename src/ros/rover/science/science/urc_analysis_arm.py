@@ -38,7 +38,7 @@ class AnalysisArm(ControllerNode):
 
     # SENDING CARD IDS
     # Add any CONTROL FRAME / CARD IDS here
-    CMD_ID = 0x041
+    CMD_ID = 0x032
 
     # RECEIVING CARD IDS
     # Add any SENSOR FRAME / CARD IDS here
