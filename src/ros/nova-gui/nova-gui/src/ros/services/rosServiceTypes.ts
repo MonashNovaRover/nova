@@ -1,7 +1,6 @@
 import {
   IRosCameraMsgsCameraOperationRequest,
   IRosCameraMsgsCameraOperationResponse,
-  IRosCameraMsgsGetIpListResponse,
   IRosBlcmdInterfacesBlcmdResetRequest,
   IRosBlcmdInterfacesBlcmdResetResponse,
   IRosNovaInterfacesMoveMicroscopeServoRequest,
@@ -11,6 +10,11 @@ import {
   IRosNovaInterfacesKilnCommandResponse,
   IRosNovaInterfacesSetNirProbeLedRequest,
   IRosNovaInterfacesSetNirProbeLedResponse,
+  IRosNovaInterfacesRamanSpecRequest,
+  IRosNovaInterfacesRamanSpecResponse,
+  IRosNovaInterfacesRamanMechRequest,
+  IRosNovaInterfacesRamanMechResponse,
+  IRosCameraMsgsGetIpListResponse,
 } from "../rosTypes";
 import { RosService } from "./rosService";
 
@@ -23,10 +27,7 @@ interface EmptyMessage {}
 
 export interface RosServiceInterface {
   [RosService.NULL_SERVICE]: RosServiceMessage<EmptyMessage, EmptyMessage>;
-  [RosService.GET_IP_LIST]: RosServiceMessage<
-    EmptyMessage,
-    IRosCameraMsgsGetIpListResponse
-  >;
+  
   [RosService.READ_RFID]: RosServiceMessage<
     EmptyMessage,
     IRosStdSrvsTriggerResponse
@@ -40,6 +41,10 @@ export interface RosServiceInterface {
   [RosService.PAUSE_CAMS]: RosServiceMessage<
     IRosCameraMsgsCameraOperationRequest,
     IRosCameraMsgsCameraOperationResponse
+  >;
+  [RosService.GET_IP_LIST]: RosServiceMessage<
+    EmptyMessage,
+    IRosCameraMsgsGetIpListResponse
   >;
 
   // Error Related
@@ -61,6 +66,16 @@ export interface RosServiceInterface {
     IRosNovaInterfacesMoveMicroscopeServoRequest,
     IRosNovaInterfacesMoveMicroscopeServoResponse
   >;
-
-  [RosService.THETA_360_CAM_CAPTURE]: RosServiceMessage<EmptyMessage, IRosStdSrvsTriggerResponse>;
+  [RosService.THETA_360_CAM_CAPTURE]: RosServiceMessage<
+    EmptyMessage, 
+    IRosStdSrvsTriggerResponse
+  >;
+  [RosService.CALL_RAMAN_SPEC]: RosServiceMessage<
+    IRosNovaInterfacesRamanSpecRequest,
+    IRosNovaInterfacesRamanSpecResponse
+  >;
+  [RosService.CALL_RAMAN_MECH]: RosServiceMessage<
+    IRosNovaInterfacesRamanMechRequest,
+    IRosNovaInterfacesRamanMechResponse
+  >;
 }

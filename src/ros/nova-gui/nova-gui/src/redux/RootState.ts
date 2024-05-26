@@ -8,13 +8,17 @@ import {
   IRosNovaInterfacesNirProbeData,
   IRosNovaInterfacesKilnCommandResponse,
   IRosNovaInterfacesKilnData,
+  IRosNovaInterfacesRamanSpecResponse,
+  IRosNovaInterfacesRamanSpectrum,
   IRosBlcmdInterfacesTelemetry,
   IRosStdMsgsString,
   IRosGeometryMsgsPose,
   IRosSensorMsgsRange,
   IRosSensorMsgsCompressedImage,
   IRosNovaInterfacesHydraprobeData,
-  IRosCmdInterfacesCmDsFeedback
+  IRosCmdInterfacesCmDsFeedback, 
+  IRosNovaInterfacesRamanState,
+  IRosNovaInterfacesRamanMechResponse
 } from "../ros/rosTypes";
 
 import { BifrostStatus } from "./models/bifrost/BifrostTypes";
@@ -41,6 +45,10 @@ export interface RootState {
 
   // Error Related Stores
   blcmdStatusStore: IRosBlcmdInterfacesBlcmdStatusArray;
+
+  // Regular Stores
+  uiState: UIState;
+  cameraStreamerState: CameraStreamerState;
   
   // Science Stores
   tofStore: IRosSensorMsgsRange;
@@ -48,14 +56,11 @@ export interface RootState {
   kilnData: IRosNovaInterfacesKilnData;
   kilnCommand: IRosNovaInterfacesKilnCommandResponse;
   hydraprobeData: IRosNovaInterfacesHydraprobeData;
-
-  // Regular Stores
-  uiState: UIState;
-  cameraStreamerState: CameraStreamerState;
-
-  // Science Stores
   microscopeServoStore: IRosNovaInterfacesMicroscopeServoInfo;
   microscopeServiceStore: IRosNovaInterfacesMoveMicroscopeServoResponse;
-
   theta360CamStore: IRosSensorMsgsCompressedImage;
+  ramanSpecServiceStore: IRosNovaInterfacesRamanSpecResponse;
+  ramanSpecMessageStore: IRosNovaInterfacesRamanSpectrum;
+  ramanMechMessageStore: IRosNovaInterfacesRamanState;
+  ramanMechServiceStore: IRosNovaInterfacesRamanMechResponse;
 }

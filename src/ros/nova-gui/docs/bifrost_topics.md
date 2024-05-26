@@ -37,7 +37,7 @@ export const rosMessages = {
 };
 ```
 
-##### [`rosTopicTypes.ts`](../nova-gui/src/ros/rosTopicTypes.ts)
+##### [`rosTopicTypes.ts`](../nova-gui/src/ros/topics/rosTopicTypes.ts)
 
 This file exports an object that links Topics found on `RosTopic.ts` to the message types defined in Nova-GUI on `rosTypes.ts`. In this case, we add the following to the object
 

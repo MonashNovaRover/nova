@@ -5,7 +5,7 @@
 
 import { Card, CardHeader, ScrollShadow } from "@nextui-org/react";
 import { ApexOptions } from "apexcharts";
-import DatasetChart from "./DataChart";
+import DataChart from "./DataChart";
 import { ChartOptions, ChartStyle } from "./ChartOptions";
 import { ApexDataset } from "./DataChart";
 
@@ -21,16 +21,17 @@ interface IOutputComparisonProps {
 const OutputComparison: React.FC<IOutputComparisonProps> = (props: IOutputComparisonProps) => {
     const chartOptions: ApexOptions = ChartOptions(props.style);
 
+
     return (
         <Card className="w-fit p-2 m-1">
             <CardHeader className="shrink-0 w-48 p-1">{props.title}</CardHeader>
             <div className="flex flex-row">
                 <div className="w-1/2 self-center">
-                    <DatasetChart dataset={props.outputData} chartOptions={chartOptions} peaks={props.peakFinder && props.peaksOnMain ? props.peakFinder(props.outputData[0].data) : undefined } />
+                    <DataChart dataset={props.outputData} chartOptions={chartOptions} peaks={props.peakFinder && props.peaksOnMain ? props.peakFinder(props.outputData[0].data) : undefined } />
                 </div>
                 <ScrollShadow hideScrollBar className="w-1/2 h-154">
                         {props.elementData.map( element => (<div className="my-6">
-                            <DatasetChart dataset={element} chartOptions={chartOptions} peaks={props.peakFinder ? props.peakFinder(element[0].data) : undefined } />
+                            <DataChart key={element[0].name} dataset={element} chartOptions={chartOptions} peaks={props.peakFinder ? props.peakFinder(element[0].data) : undefined } />
                         </div>))}
                 </ScrollShadow>
             </div>

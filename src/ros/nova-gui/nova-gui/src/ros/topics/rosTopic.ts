@@ -33,4 +33,6 @@ export enum RosTopic {
   MICROSCOPE_SERVO = "/science/microscope_servo_info",
   THETA_360_CAM_IMAGE = "/science/theta360cam/image",
   HYDRAPROBE_DATA = "/science/hydraprobe_data",
+  RAMAN_SPEC_MSG = "/science/raman_spec_msg",
+  RAMAN_MECH_MSG = "/science/raman_mech_msg",
 }

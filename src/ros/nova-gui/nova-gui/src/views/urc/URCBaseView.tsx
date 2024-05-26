@@ -1,9 +1,9 @@
-import React from "react";
+import RamanSpec from "../../components/RamanSpec/RamanSpec";
 
 const URCBaseView: React.FC = () => {
-  return <div className="p-3 grid auto-cols-fr grid-cols-3">
-
-  </div>;
+  return <>
+    <RamanSpec />
+  </>;
 };
 
 export default URCBaseView;

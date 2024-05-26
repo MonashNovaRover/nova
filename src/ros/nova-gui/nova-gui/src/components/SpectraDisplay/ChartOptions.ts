@@ -41,7 +41,7 @@ export const ChartOptions = (style: ChartStyle): ApexOptions => {
             },
             xaxis: {
                 title: {
-                    text: 'Raman Shift (1/cm)',
+                    text: 'Wavelength (nm)',
                     style: {
                         fontSize: '14px',
                         color: '#fff'
@@ -53,7 +53,7 @@ export const ChartOptions = (style: ChartStyle): ApexOptions => {
             },
             yaxis: {
                 min: 0,
-                max: 100,
+                max: 1,
                 title: {
                     text: 'Normalised intensity',
                     style: {
