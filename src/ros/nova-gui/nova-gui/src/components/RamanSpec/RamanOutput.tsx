@@ -5,7 +5,7 @@
  */
 
 import {Button, Card, CardFooter, Input} from "@nextui-org/react";
-import React, {useCallback, useEffect, useMemo, useState} from "react";
+import React, {memo, useCallback, useEffect, useMemo, useState} from "react";
 import { RootState } from "../../redux/RootState";
 import { useBifrost } from "../../redux/actions/bifrost/useBifrostAction";
 import { useSelector } from "react-redux";
@@ -18,7 +18,7 @@ export interface RamanOutputProps {
 }
 
 
-const RamanOutput: React.FC<RamanOutputProps> = (props) => {
+const RamanOutputUnmemoed: React.FC<RamanOutputProps> = (props) => {
 
     const [graphName, setGraphName] = useState<string>("CCD Output")
 
@@ -99,4 +99,6 @@ const RamanOutput: React.FC<RamanOutputProps> = (props) => {
     )
 }
 
+// This might be overkill
+const RamanOutput = memo(RamanOutputUnmemoed);
 export default RamanOutput;
