@@ -84,7 +84,7 @@ void JoystickTranslate::get_end_effector_inputs(arm_interfaces::msg::ArmControlS
     if (!control_scheme_inputs.input_lock){
         // Set the values for linear actuator and end effector actuation
         end_effector_inputs.linear_actuation = joystick_l.ax_thumb_x;
-        end_effector_inputs.end_effector_actuation = joystick_l.ax_thumb_y * 0.95;
+        end_effector_inputs.end_effector_actuation = joystick_r.ax_thumb_x * 0.95;
         // Plans on moving the laser and hex control to here
         // end_effector_inputs.laser = ;
         // end_effector_inputs.hex_key = ;
