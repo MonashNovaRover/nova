@@ -18,7 +18,12 @@ export interface RosActionInterface {
       sequence: number[];
     };
   };
-  [RosAction.SCIENCE_SAMPLE_TRAY]: {
+  [RosAction.SAMPLE_TRAY]: {
+    goal: IRosNovaInterfacesStepperActionGoal;
+    goalResponse: IRosNovaInterfacesStepperActionResult;
+    feedback: IRosNovaInterfacesStepperActionFeedback;
+  };
+  [RosAction.CAROUSEL_ACTION]: {
     goal: IRosNovaInterfacesStepperActionGoal;
     goalResponse: IRosNovaInterfacesStepperActionResult;
     feedback: IRosNovaInterfacesStepperActionFeedback;

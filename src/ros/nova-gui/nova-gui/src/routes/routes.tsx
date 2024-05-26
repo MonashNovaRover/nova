@@ -98,7 +98,7 @@ export const testRoutes: RouteObject[] = [
   {
     path: "/test/webgl",
     element: <TestWebGLView/>
-  }
+  },
 ];
 
 const cameraRoutes: RouteObject[] = [
