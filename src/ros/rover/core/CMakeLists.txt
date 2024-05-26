@@ -55,18 +55,21 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/KilnTempData.msg"
   "msg/WheelOdometry.msg"
   "msg/RoverPose.msg"
+  "msg/RamanSpectrum.msg"
 
   "srv/CameraCommand.srv"
   "srv/KilnCommand.srv"
   "srv/GimbalCommand.srv"
   "srv/ScienceCommand.srv"
   "srv/LoadCellPoller.srv"
+  "srv/RamanSpec.srv"
   "srv/RFIDCommand.srv"
   "srv/PathPlanningRequest.srv"
   "srv/StringTrigger.srv"
   "srv/GpsOffset.srv"
   "srv/MoveMicroscopeServo.srv"
   "srv/SetNIRProbeLED.srv"
+  "srv/RamanSpec.srv"
 
         # Action definitions
   DEPENDENCIES std_msgs geometry_msgs nav_msgs trajectory_msgs

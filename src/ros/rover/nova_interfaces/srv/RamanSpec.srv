@@ -1,0 +1,14 @@
+# For CCD use in Raman spectra
+# CCD config
+string port
+uint32 shperiod
+uint32 icgperiod
+uint8 average
+
+# Collection mode
+bool singlecollectionmode
+bool continuousendsignal
+
+---
+
+bool continuousendedsignal
