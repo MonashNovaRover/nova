@@ -29,6 +29,15 @@ def generate_launch_description():
 
         Node(
             package='science', executable='urc_auger.py', output='screen', emulate_tty=True),
+        
+        Node(
+            package='science', executable='urc_carousel.py', output='screen', emulate_tty=True),
+
+        Node(
+            package='science', executable='urc_hydraprobe.py', output='screen', emulate_tty=True),
+
+        Node(
+            package='science', executable='urc_mixers.py', output='screen', emulate_tty=True),
 
         Node(
             package='science', executable='urc_pumps.py', output='screen', emulate_tty=True),
@@ -36,9 +45,10 @@ def generate_launch_description():
         Node(
             package='science', executable='urc_sample_tray.py', output='screen', emulate_tty=True),
 
+        Node(
+            package='science', executable='urc_theta_360_cam.py', output='screen', emulate_tty=True),
+
         # Node(
         #     package='science', executable='uv_vis_spec.py', output='screen', emulate_tty=True),
 
-        # Node(
-        #     package='science', executable='theta360cam.py', output='screen', emulate_tty=True),
     ])
