@@ -15,7 +15,7 @@ AUTHOR(S):	Taaj Street
 CREATION:	08/05/2023
 EDITED:		27/05/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
+Q: Does locking the other device matter here? Both are simultaneously working. 
 """
 import rclpy
 from rclpy.node import Node
@@ -24,21 +24,23 @@ from struct import pack
 
 # example of how to import a custom message type
 from input_interfaces.msg import InputJoystick
+from input_interfaces.msg import InputKeyboard
 
 # an example of how to import a standard message type
-from std_msgs.msg import String
 from rclpy.qos import QoSReliabilityPolicy, QoSProfile
 from rclpy.subscription import SubscriptionEventCallbacks
 from rclpy.duration import Duration
 
 
 class GimbalCam(Node):
-
+    CAMERA0 = 0
+    CAMERA1 = 1
+    JOYSTICK = 0
+    KEYBOARD = 1
     def __init__(self):
         super().__init__("gimbal_cam")
 
         self.get_logger().set_level(logging.INFO)
-        self.param_can = self.declare_parameter("can_bus", "can1").value
         self.param_do_pwm = self.declare_parameter("do_pwm", True).value
         self.param_velocity_steps = self.declare_parameter("velocity_steps", 10).value
         self.max_velocity_cmd = self.declare_parameter("max_velocity_cmd", 127).value
@@ -50,17 +52,25 @@ class GimbalCam(Node):
         self.velocity = 0.5
         self.x_velocity = 0
         self.y_velocity = 0
-        self.joystick_lock = True
+        self.device_choice = self.KEYBOARD
 
         deadline = Duration(nanoseconds=2e8)
         events = SubscriptionEventCallbacks(deadline=self.deadline_callback)
         self.qos = QoSProfile(reliability=QoSReliabilityPolicy.BEST_EFFORT, depth=1, deadline=deadline)
 
+        # Subscriptions
         self.joystick_l_sub = self.create_subscription(InputJoystick, "/inputs/input_joystick_l",
                                                        self.joystick_l_callback, self.qos, event_callbacks=events)
+        self.keyboard_sub = self.create_subscription(InputKeyboard, "/inputs/input_keyboard",
+                                                     self.keyboard_callback, self.qos, event_callbacks=events)
 
-        self.bus = jcan.Bus()
-        self.bus.open(self.param_can)
+
+        # CAN buses
+        self.cam_select = 0
+        self.cam0_bus = jcan.Bus()
+        self.cam0_bus.open('can0')
+        self.cam1_bus = jcan.Bus()
+        self.cam1_bus.open("can1")
         self.timer_jcan = self.create_timer(0.05, self.callback_send_can_commands)
 
     def callback_send_can_commands(self):
@@ -69,8 +79,10 @@ class GimbalCam(Node):
         """
         # The list of values will be cast to uint8's by JCAN library - so be careful to double check the values!
         cmd_frame = jcan.Frame(self.velocity_cmd, self.get_can_data())
-        self.bus.send(cmd_frame)
-
+        if self.cam_select == self.CAMERA0:
+            self.cam0_bus.send(cmd_frame)
+        else:
+            self.cam1_bus.send(cmd_frame)
 
     def deadline_callback(self, info):
         # Set all speeds to 0
@@ -85,15 +97,18 @@ class GimbalCam(Node):
         """
         joystick_l = msg
         # Joysticks lock if botton L2 button is pressed on the left joystick
-        if joystick_l.btn_bottom_l2_state >= 1 and not self.joystick_lock:
-            self.get_logger().info("Joysticks Locked")
-            self.joystick_lock = True
-        if joystick_l.btn_bottom_l5_state >= 1 and self.joystick_lock:
-            self.get_logger().info("Joysticks Unlocked")
-            self.joystick_lock = False
+        if self.device_choice != self.KEYBOARD and joystick_l.btn_bottom_l2_state >= 1:
+            self.get_logger().info("Swapped to Keyboard Control")
+            self.device_choice = self.KEYBOARD
 
-        if not self.joystick_lock:
-
+        if self.device_choice == self.JOYSTICK:
+            # This key is also used for enable joint limits
+            if joystick_l.btn_bottom_l3_state == 1:
+                self.cam_select = self.CAMERA0
+                self.get_logger().info("Camera 0 Selected")
+            elif joystick_l.btn_bottom_l6_state == 1:
+                self.cam_select = self.CAMERA1
+                self.get_logger().info("Camera 1 Selected")
             #set the velocity factor
             if joystick_l.btn_bottom_r1_state == 1:
                 self.velocity = max(self.velocity - self.velocity_increment, 0)
@@ -121,6 +136,70 @@ class GimbalCam(Node):
         else:
             self.x_velocity = 0
             self.y_velocity = 0
+
+    def keyboard_callback(self, msg):
+        SDL_SCANCODE_RIGHT = 79
+        SDL_SCANCODE_LEFT = 80
+        SDL_SCANCODE_DOWN = 81
+        SDL_SCANCODE_UP = 82
+        SDL_SCANCODE_1 = 30
+        SDL_SCANCODE_0 = 39
+        
+        keyboard = msg
+        
+        # toggle the lock with ctrl(L)
+        if GimbalCam.ctrl(SDL_SCANCODE_0) in keyboard.keys_pressed:
+            if self.device_choice == self.KEYBOARD:
+                self.get_logger().info("Swapped to Joystick Control")
+                self.device_choice = self.JOYSTICK
+        if self.device_choice == self.KEYBOARD:
+            # Change between the cameras using alt(0) and alt(1)
+            if GimbalCam.alt(SDL_SCANCODE_0) in keyboard.keys_pressed:
+                self.cam_select = self.CAMERA0
+                self.get_logger().info("Camera 0 Selected")
+            elif GimbalCam.alt(SDL_SCANCODE_1) in keyboard.keys_pressed:
+                self.cam_select = self.CAMERA1
+                self.get_logger().info("Camera 1 Selected")
+            #set the velocity factor
+            if GimbalCam.ctrl(SDL_SCANCODE_DOWN) in keyboard.keys_pressed:
+                self.velocity = max(self.velocity - self.velocity_increment, 0)
+                self.get_logger().info(f"Velocity decreased to {self.velocity}")
+            elif GimbalCam.ctrl(SDL_SCANCODE_UP) in keyboard.keys_pressed:
+                self.velocity = min(self.velocity + self.velocity_increment, 1)
+                self.get_logger().info(f"Velocity increased to {self.velocity}")
+
+            # set the y velocity
+            if SDL_SCANCODE_UP in keyboard.keys_pressed or SDL_SCANCODE_UP in keyboard.keys_repeated:
+                self.y_velocity = -self.get_velocity_cmd()
+            elif SDL_SCANCODE_DOWN in keyboard.keys_pressed or SDL_SCANCODE_DOWN in keyboard.keys_repeated:
+                self.y_velocity = self.get_velocity_cmd()
+            else:
+                self.y_velocity = 0
+
+            # set the x velocity
+            if SDL_SCANCODE_LEFT in keyboard.keys_pressed or SDL_SCANCODE_LEFT in keyboard.keys_repeated:
+                self.x_velocity = -self.get_velocity_cmd()
+            elif SDL_SCANCODE_RIGHT in keyboard.keys_pressed or SDL_SCANCODE_RIGHT in keyboard.keys_repeated:
+                self.x_velocity = self.get_velocity_cmd()
+            else:
+                self.x_velocity = 0
+
+        else:
+            self.x_velocity = 0
+            self.y_velocity = 0
+
+    @staticmethod
+    def ctrl(num):
+        return num | (1<<31)
+        
+    @staticmethod
+    def shift(num):
+        return num | (1<<30)
+    
+    @staticmethod
+    def alt(num):
+        return num | (1<<29)
+
 
     def get_velocity_cmd(self):
         return self.velocity*(self.max_velocity_cmd - self.min_velocity_cmd) + self.min_velocity_cmd

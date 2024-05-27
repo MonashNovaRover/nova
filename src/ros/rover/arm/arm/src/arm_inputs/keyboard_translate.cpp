@@ -52,10 +52,10 @@ void KeyboardTranslate::set_key_mappings(){
     key_mappings.base_frame_offset_toggle = shift(SDL_SCANCODE_TAB);
 
     // End Effector
-    key_mappings.end_effector_actuation_increase = SDL_SCANCODE_RIGHT;
-    key_mappings.end_effector_actuation_decrease = SDL_SCANCODE_LEFT;
-    key_mappings.linear_actuation_increase = SDL_SCANCODE_UP;
-    key_mappings.linear_actuation_decrease = SDL_SCANCODE_DOWN;
+    key_mappings.end_effector_actuation_increase = alt(SDL_SCANCODE_RIGHT);
+    key_mappings.end_effector_actuation_decrease = alt(SDL_SCANCODE_LEFT);
+    key_mappings.linear_actuation_increase = alt(SDL_SCANCODE_UP);
+    key_mappings.linear_actuation_decrease = alt(SDL_SCANCODE_DOWN);
     // key_mappings.laser = ctrl(SDL_SCANCODE_RETURN);
     // key_mappings.hex_key_increase = SDL_SCANCODE_;
     // key_mappings.hex_key_decrease = SDL_SCANCODE_;
