@@ -12,7 +12,7 @@ from input_interfaces.msg import InputJoystick
 from std_msgs.msg import SetBool
 
 
-class URCAuger(ControllerNode):
+class URCMixers(ControllerNode):
 
     # CAN BUS NAME
     # The name of the CAN bus to use
@@ -24,8 +24,7 @@ class URCAuger(ControllerNode):
     MIXER_2_SEND_FRAME_ID = 0x042
 
     # ROS2 SERVICES
-    MIXER_1_SERVICE = "/science/mixer_1"
-    MIXER_2_SERVICE = "/science/mixer_2"
+    MIXER_SERVICE = "/science/mixers"
 
     # CONTROL NAMES
     # Add any CONTROL names here
@@ -45,13 +44,12 @@ class URCAuger(ControllerNode):
     MIXER_2_COUNTERCLOCKWISE = Direction.NEGATIVE    
 
     def __init__(self):
-        super(URCAuger, self).__init__(name="URCMixers", can_bus=self.CAN_BUS)
+        super(URCMixers, self).__init__(name="URCMixers", can_bus=self.CAN_BUS)
         logger = self.get_logger()
 
 
         # Create publishers
-        self.create_service(SetBool, self.MIXER_1_SERVICE, self.mixer_1_callback)
-        self.create_service(SetBool, self.MIXER_2_SERVICE, self.mixer_2_callback)
+        self.create_service(SetBool, self.MIXER_SERVICE, self.mixer_callback)
  
 
         ## Create controls
@@ -88,29 +86,27 @@ class URCAuger(ControllerNode):
         ## Start the CAN bus
         self.start_can()
 
-    def mixer_callback(self, request, response, control: OneAxisVelocityControl):
+    def mixer_callback(self, request, response):
         try:
             if request.data:
-                control.set_speed(1.0)
+                self.mixer_1.update_velocity(1.0)
+                self.mixer_2.update_velocity(1.0)
+                response.message = "Mixers STarted"  
             else:
-                control.set_speed(0.0)
+                self.mixer_1.update_velocity(0.0)
+                self.mixer_2.update_velocity(0.0)
+                response.message = "Mixers Stopped"    
             response.success = True
         except Exception as e:
             self.get_logger().error("Error in mixer_callback: {0}".format(e))
             response.success = False
             response.message = str(e)
         return response
-
-    def mixer_1_callback(self, request, response):
-        return self.mixer_callback(request, response, self.mixer_1)
-
-    def mixer_2_callback(self, request, response):
-        return self.mixer_callback(request, response, self.mixer_2)
         
             
 def main():
     rclpy.init()
-    node = URCAuger()
+    node = URCMixers()
     rclpy.spin(node)
     rclpy.shutdown()
 
