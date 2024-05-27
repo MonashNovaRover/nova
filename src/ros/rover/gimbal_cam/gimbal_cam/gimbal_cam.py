@@ -101,9 +101,6 @@ class GimbalCam(Node):
         if self.device_choice != self.KEYBOARD and joystick_l.btn_bottom_l2_state >= 1:
             self.get_logger().info("Swapped to Keyboard Control")
             self.device_choice = self.KEYBOARD
-        # if joystick_l.btn_bottom_l5_state >= 1 and self.joystick_lock:
-        #     self.get_logger().info("Joysticks Unlocked")
-        #     self.joystick_lock = False
 
         if self.device_choice == self.JOYSTICK:
             # This key is also used for enable joint limits
