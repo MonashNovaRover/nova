@@ -67,6 +67,7 @@ install(PROGRAMS
   science/raman_spec_server.py
   science/urc_hydraprobe.py
   science/urc_theta_360_cam.py
+  science/urc_bme_sensor.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

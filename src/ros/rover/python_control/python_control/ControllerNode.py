@@ -34,7 +34,7 @@ class ControllerNode(Node, metaclass=abc.ABCMeta):
     LOGGING_LEVEL_PARAM = "logging_level"
     COMMAND_PERIOD_PARAM = "command_period"
 
-    def __init__(self,  name: str, can_bus: str, log_level: str = "INFO", command_period: float = 0.5):
+    def __init__(self,  name: str, can_bus: str, log_level: str = "INFO", command_period: float = 0.1):
         super().__init__(name)
 
         self.declare_parameter(self.CAN_BUS_PARAM, can_bus)

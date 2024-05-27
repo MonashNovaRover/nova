@@ -9,6 +9,7 @@ from python_control.sensors.CommandSensor import CommandSensor
 import rclpy
 from python_control.ControllerNode import ControllerNode
 from input_interfaces.msg import InputJoystick
+from std_msgs.msg import SetBool
 
 
 class URCAuger(ControllerNode):
@@ -21,6 +22,10 @@ class URCAuger(ControllerNode):
     # Add any CONTROL FRAME / CARD IDS here
     MIXER_1_SEND_FRAME_ID = 0x041
     MIXER_2_SEND_FRAME_ID = 0x042
+
+    # ROS2 SERVICES
+    MIXER_1_SERVICE = "/science/mixer_1"
+    MIXER_2_SERVICE = "/science/mixer_2"
 
     # CONTROL NAMES
     # Add any CONTROL names here
@@ -43,6 +48,10 @@ class URCAuger(ControllerNode):
         super(URCAuger, self).__init__(name="URCMixers", can_bus=self.CAN_BUS)
         logger = self.get_logger()
 
+
+        # Create publishers
+        self.create_service(SetBool, self.MIXER_1_SERVICE, self.mixer_1_callback)
+        self.create_service(SetBool, self.MIXER_2_SERVICE, self.mixer_2_callback)
  
 
         ## Create controls
@@ -79,27 +88,25 @@ class URCAuger(ControllerNode):
         ## Start the CAN bus
         self.start_can()
 
-    def update_auger_actuation(self, joystick_r: InputJoystick):
-        # Auger height direction is determined by the right joystick's x-axis direction
-        self.mixer_1.update_direction(self.MIXER_1_CLOCKWISE if joystick_r.ax_stick_x >= 0 else self.MIXER_1_DOWN)
+    def mixer_callback(self, request, response, control: OneAxisVelocityControl):
+        try:
+            if request.data:
+                control.set_speed(1.0)
+            else:
+                control.set_speed(0.0)
+            response.success = True
+        except Exception as e:
+            self.get_logger().error("Error in mixer_callback: {0}".format(e))
+            response.success = False
+            response.message = str(e)
+        return response
 
-        # Auger velocity is determined by the right joystick's x-axis magnitude
-        self.mixer_1.update_velocity(velocity=abs(joystick_r.ax_stick_x), ignore_limits=(joystick_r.btn_thumb_d_state >= 1))
+    def mixer_1_callback(self, request, response):
+        return self.mixer_callback(request, response, self.mixer_1)
 
-    def update_auger_drill(self, joystick_r: InputJoystick):
-        # Drill spin direction is determined by the right joystick thumb buttons
-        # Thumb right = clockwise, Thumb left = counterclockwise
-        if joystick_r.btn_thumb_r_state >= 1:
-            self.mixer_2.update_direction(self.MIXER_2_CLOCKWISE)
-        elif joystick_r.btn_thumb_l_state >= 1:
-            self.mixer_2.update_direction(self.MIXER_2_COUNTERCLOCKWISE)
+    def mixer_2_callback(self, request, response):
+        return self.mixer_callback(request, response, self.mixer_2)
         
-        # Drill spin velocity is determined by the right joystick trigger
-        if joystick_r.btn_thumb_u_state >= 1:
-            self.mixer_2.update_velocity(1.0)
-        else:
-            self.mixer_2.update_velocity(0)
-
             
 def main():
     rclpy.init()
