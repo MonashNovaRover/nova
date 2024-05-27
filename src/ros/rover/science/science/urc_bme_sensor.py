@@ -58,8 +58,8 @@ class URCBMESensor(ControllerNode):
 
     def publish_data(self):
         msg = BMESensor()
-        msg.temperature = float(self.temperature.get_value() / self.BME_TEMP_FACTOR)
-        msg.humidity = float(self.humidity.get_value() / self.BME_HUMIDITY_FACTOR)
+        msg.temperature = float(self.temperature.get_sensor_value() / self.BME_TEMP_FACTOR)
+        msg.humidity = float(self.humidity.get_sensor_value() / self.BME_HUMIDITY_FACTOR)
         self.bme_publisher.publish(msg)
 
 def main():
