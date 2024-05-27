@@ -83,36 +83,37 @@ class GimbalCam(Node):
         Updates the classes internal msg state
         :return: None
         """
+        joystick_l = msg
         # Joysticks lock if botton L2 button is pressed on the left joystick
-        if msg.btn_bottom_l2_state >= 1 and not self.joystick_lock:
+        if joystick_l.btn_bottom_l2_state >= 1 and not self.joystick_lock:
             self.get_logger().info("Joysticks Locked")
             self.joystick_lock = True
-        if msg.btn_bottom_l5_state >= 1 and self.joystick_lock:
+        if joystick_l.btn_bottom_l5_state >= 1 and self.joystick_lock:
             self.get_logger().info("Joysticks Unlocked")
             self.joystick_lock = False
 
         if not self.joystick_lock:
 
             #set the velocity factor
-            if msg.btn_bottom_r1_state == 1:
+            if joystick_l.btn_bottom_r1_state == 1:
                 self.velocity = max(self.velocity - self.velocity_increment, 0)
                 self.get_logger().info(f"Velocity decreased to {self.velocity}")
-            elif msg.btn_bottom_r3_state == 1:
+            elif joystick_l.btn_bottom_r3_state == 1:
                 self.velocity = min(self.velocity + self.velocity_increment, 1)
                 self.get_logger().info(f"Velocity increased to {self.velocity}")
 
             # set the y velocity
-            if msg.btn_bottom_r2_state >= 1:
+            if joystick_l.btn_bottom_r2_state >= 1:
                 self.y_velocity = -self.get_velocity_cmd()
-            elif msg.btn_bottom_r5_state >= 1:
+            elif joystick_l.btn_bottom_r5_state >= 1:
                 self.y_velocity = self.get_velocity_cmd()
             else:
                 self.y_velocity = 0
 
             # set the x velocity
-            if msg.btn_bottom_r4_state >= 1:
+            if joystick_l.btn_bottom_r4_state >= 1:
                 self.x_velocity = -self.get_velocity_cmd()
-            elif msg.btn_bottom_r6_state >= 1:
+            elif joystick_l.btn_bottom_r6_state >= 1:
                 self.x_velocity = self.get_velocity_cmd()
             else:
                 self.x_velocity = 0

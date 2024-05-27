@@ -30,15 +30,14 @@ class OneAxisVelocityControl(Control):
             if (0.0 <= velocity <= 1.0):
                 self.velocity = velocity
             else:
-                raise ValueError("Invalid velocity")
+                self.velocity = 1.0 if velocity > 1.0 else 0.0  
         
     def update_max_percent(self, max_percent: float):
         """Update the max percent of the motor"""
         if (0.0 <= max_percent <= 1.0):
             self.max_percent = max_percent
         else:
-            raise ValueError("Invalid max_percent")
-        
+            self.max_percent = 1.0 if max_percent > 1.0 else 0.0  
 
     def get_velocity(self):
         """Get the velocity of the motor"""
