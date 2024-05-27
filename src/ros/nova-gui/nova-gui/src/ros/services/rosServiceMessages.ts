@@ -15,6 +15,7 @@ export const rosServiceMessages = {
   [RosService.BLCMD_RESET]: "blcmd_interfaces/srv/BLCMDReset",
 
   // Science Related
+  [RosService.MIXERS]: "std_srvs/srv/SetBool",
   [RosService.KILN_COMMAND]: "nova_interfaces/srv/KilnCommand",
   [RosService.SET_NIR_PROBE_LED]: "nova_interfaces/srv/SetNIRProbeLED",
   [RosService.MOVE_MICROSCOPE_SERVO]: "nova_interfaces/srv/MoveMicroscopeServo",
