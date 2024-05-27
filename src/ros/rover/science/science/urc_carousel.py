@@ -3,15 +3,13 @@
 from python_control.controls.OneAxisPositionControl import OneAxisPositionControl
 from python_control.controllers.StepperPCBController import StepperPCBPositionController
 from python_control.sensors.IntegerSensor import IntegerSensor
-from python_control.sensors.CommandSensor import CommandSensor
 from python_control.ControllerNode import ControllerNode
 import rclpy
-from input_interfaces.msg import InputJoystick
 from rclpy.action import ActionServer
 from rclpy.executors import MultiThreadedExecutor
 from nova_interfaces.action import Stepper
 
-GAP_STEPS = 10
+GAP_STEPS = -10
 
 class URCCarousel(ControllerNode):
 
@@ -112,12 +110,6 @@ class URCCarousel(ControllerNode):
         ## Start the CAN bus
         self.start_can()
 
-
-    def joystick_l(self, joystick_l: InputJoystick):
-        pass
-
-    def joystick_r(self, joystick_r: InputJoystick):
-        pass
 
 def main():
     rclpy.init()

@@ -35,16 +35,13 @@ class IntegerSensor(Sensor[int]):
             (self.command_id is not None and len(frame.data) != 3):
             return
         
-        # Check if the command id is specified
-        if self.command_id is not None:
-            # Check if the command id is correct
-            if frame.data[0] != self.command_id:
-                return
-            # Set the sensor value
-            self.set_sensor_value(int(frame.data[2] + (frame.data[1] << 8)))
-        else:
-            # Set the sensor value
-            self.set_sensor_value(int(frame.data[1] + (frame.data[0] << 8)))
+        # Check if the command id is specified and is correct
+        if self.command_id is not None and frame.data[0] != self.command_id:
+            return
+            
+        # Set the sensor value
+        signed_int = int.from_bytes([frame.data[-2], frame.data[-1]], byteorder='big', signed=True)
+        self.set_sensor_value(signed_int)
 
     def publish_sensor(self):
         pass
