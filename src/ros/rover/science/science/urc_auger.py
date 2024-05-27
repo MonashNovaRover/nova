@@ -115,7 +115,7 @@ class URCAuger(JoystickControllerNode):
         self.auger_actuation.update_direction(self.AUGER_ACTUATION_UP if joystick_r.ax_stick_x <= 0 else self.AUGER_ACTUATION_DOWN)
 
         # Auger velocity is determined by the right joystick's x-axis magnitude
-        if joystick_r.btn_thumb_d_state >= 1:
+        if joystick_r.btn_thumb_d_state >= 1 or joystick_r.ax_stick_x < 0:
             self.auger_bottom_limit.update_limit_hit(False)
         self.auger_actuation.update_velocity(velocity=abs(joystick_r.ax_stick_x))
     

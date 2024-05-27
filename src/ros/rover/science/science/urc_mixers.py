@@ -1,15 +1,11 @@
 #!/usr/bin/env python3
 
-from python_control.sensors.LimitSwitchSensor import LimitSwitchSensor
-from python_control.limits.LimitSwitchLimit import LimitSwitchLimit
 from python_control.controls.Direction import Direction
 from python_control.controls.OneAxisVelocityControl import OneAxisVelocityControl
 from python_control.controllers.CMDVelocityController import CMDVelocityController
-from python_control.sensors.CommandSensor import CommandSensor
 import rclpy
 from python_control.ControllerNode import ControllerNode
-from input_interfaces.msg import InputJoystick
-from std_msgs.msg import SetBool
+from std_srvs.srv import SetBool
 
 
 class URCMixers(ControllerNode):
