@@ -68,6 +68,7 @@ install(PROGRAMS
   science/urc_hydraprobe.py
   science/urc_theta_360_cam.py
   science/urc_bme_sensor.py
+  science/urc_mixers.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
