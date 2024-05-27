@@ -148,6 +148,12 @@ export const rootReducer = {
     { service: RosService.MOVE_MICROSCOPE_SERVO },
     { success: true }
   ),
+
+  theta360CamStore: createBifrostStore(
+    { topic: RosTopic.THETA_360_CAM_IMAGE },
+    { data: [], format: "" }
+  ),
+
   hydraprobeData: createBifrostStore(
     { topic: RosTopic.HYDRAPROBE_DATA },
     {
@@ -188,4 +194,5 @@ export const rootReducer = {
   // Regular Stores
   uiState: uiSlice.reducer,
   cameraStreamerState: cameraStreamerSlice.reducer,
+
 };

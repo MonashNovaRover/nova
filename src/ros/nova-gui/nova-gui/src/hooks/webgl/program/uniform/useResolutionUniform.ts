@@ -49,5 +49,6 @@ export default function useResolutionUniform(gl: GLState, program: GLProgramStat
       program.queue.cancel(frameID);
     };
   }, [gl, program, name, sampler]);
-  
+
+
 }

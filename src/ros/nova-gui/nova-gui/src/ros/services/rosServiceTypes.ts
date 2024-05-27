@@ -28,6 +28,7 @@ interface EmptyMessage {}
 export interface RosServiceInterface {
   [RosService.NULL_SERVICE]: RosServiceMessage<EmptyMessage, EmptyMessage>;
   
+  
   [RosService.READ_RFID]: RosServiceMessage<
     EmptyMessage,
     IRosStdSrvsTriggerResponse
@@ -65,6 +66,10 @@ export interface RosServiceInterface {
   [RosService.MOVE_MICROSCOPE_SERVO]: RosServiceMessage<
     IRosNovaInterfacesMoveMicroscopeServoRequest,
     IRosNovaInterfacesMoveMicroscopeServoResponse
+  >;
+  [RosService.THETA_360_CAM_CAPTURE]: RosServiceMessage<
+    EmptyMessage, 
+    IRosStdSrvsTriggerResponse
   >;
   [RosService.CALL_RAMAN_SPEC]: RosServiceMessage<
     IRosNovaInterfacesRamanSpecRequest,

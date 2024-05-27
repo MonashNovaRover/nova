@@ -14,6 +14,7 @@ import {
   IRosStdMsgsString,
   IRosGeometryMsgsPose,
   IRosSensorMsgsRange,
+  IRosSensorMsgsCompressedImage,
   IRosNovaInterfacesHydraprobeData,
   IRosCmdInterfacesCmDsFeedback, 
   IRosNovaInterfacesRamanState,
@@ -57,6 +58,7 @@ export interface RootState {
   hydraprobeData: IRosNovaInterfacesHydraprobeData;
   microscopeServoStore: IRosNovaInterfacesMicroscopeServoInfo;
   microscopeServiceStore: IRosNovaInterfacesMoveMicroscopeServoResponse;
+  theta360CamStore: IRosSensorMsgsCompressedImage;
   ramanSpecServiceStore: IRosNovaInterfacesRamanSpecResponse;
   ramanSpecMessageStore: IRosNovaInterfacesRamanSpectrum;
   ramanMechMessageStore: IRosNovaInterfacesRamanState;
