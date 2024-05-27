@@ -113,12 +113,6 @@ class URCPumps(ControllerNode):
             control=self.mixer_to_shot_pump,
         )
 
-
-        ## Add the controllers to the node's of controllers
-        # self.add_controller(self.CLEAN_SHEATH_PUMP_NAME, self.clean_sheath_pump_controller)
-        # self.add_controller(self.MIXER_TOSHOT_PUMP_NAME, self.mixer_to_shot_pump_controller)
-        # self.add_controller(self.SHOT_TO_CAROUSEL_PUMP_NAME, self.shot_to_carousel_pump_controller)
-
         self.pumps_action = ActionServer(self, Pumps, self.PUMPS_ACTION, self.pumps_goal_callback)
 
         ## Start the CAN bus

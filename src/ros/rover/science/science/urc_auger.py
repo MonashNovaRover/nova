@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-from python_control.sensors.LimitSwitchSensor import LimitSwitchSensor
 from python_control.limits.LimitSwitchLimit import LimitSwitchLimit
 from python_control.controls.Direction import Direction
 from python_control.controls.OneAxisVelocityControl import OneAxisVelocityControl

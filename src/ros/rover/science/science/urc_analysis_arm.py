@@ -7,8 +7,6 @@ from python_control.controls.OneAxisVelocityControl import OneAxisVelocityContro
 from python_control.controls.Direction import Direction
 from python_control.sensors.RangeSensor import RangeSensor
 from python_control.limits.IntegerLimit import IntegerLimit
-from python_control.limits.LimitSwitchLimit import LimitSwitchLimit
-from python_control.sensors.LimitSwitchSensor import LimitSwitchSensor
 from input_interfaces.msg import InputJoystick
 from sensor_msgs.msg import Range
 

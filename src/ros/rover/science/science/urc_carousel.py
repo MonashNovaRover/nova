@@ -3,7 +3,6 @@
 from python_control.controls.OneAxisPositionControl import OneAxisPositionControl
 from python_control.controllers.StepperPCBController import StepperPCBPositionController
 from python_control.sensors.IntegerSensor import IntegerSensor
-from python_control.sensors.CommandSensor import CommandSensor
 from python_control.ControllerNode import ControllerNode
 import rclpy
 from rclpy.action import ActionServer

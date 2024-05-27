@@ -17,13 +17,9 @@ TODO:
 from typing import Union, List
 from coms_utils.uart_interface import UARTTransceiver
 from pymodbus.client import ModbusSerialClient
-
 import rclpy
 import time
-import datetime
-import csv
 from rclpy.node import Node
-
 from nova_interfaces.msg import HydraprobeData 
 import logging
 import logging.handlers as Handlers
