@@ -46,6 +46,10 @@ export interface RootState {
 
   // Error Related Stores
   blcmdStatusStore: IRosBlcmdInterfacesBlcmdStatusArray;
+
+  // Regular Stores
+  uiState: UIState;
+  cameraStreamerState: CameraStreamerState;
   
   // Science Stores
   tofStore: IRosSensorMsgsRange;
@@ -61,9 +65,5 @@ export interface RootState {
   ramanMechServiceStore: IRosNovaInterfacesRamanMechResponse;
   hydraprobeData: IRosNovaInterfacesHydraprobeData;
   theta360CamStore: IRosSensorMsgsCompressedImage;
-
-  // Regular Stores
-  uiState: UIState;
-  cameraStreamerState: CameraStreamerState;
 
 }

@@ -18,7 +18,6 @@ import {
 } from "../rosTypes";
 import { RosTopic } from "./rosTopic";
 
-
 /**
  * This Interface exists to link Individual topics to The Messages.
  * These Messages are defined as Interfaces on `rosTypes.ts`. This is not to be confused with

@@ -1,9 +1,6 @@
 import {
   IRosCameraMsgsCameraOperationRequest,
   IRosCameraMsgsCameraOperationResponse,
-  IRosCameraMsgsGetIpListResponse,
-  IRosNovaInterfacesRamanSpecRequest,
-  IRosNovaInterfacesRamanSpecResponse,
   IRosBlcmdInterfacesBlcmdResetRequest,
   IRosBlcmdInterfacesBlcmdResetResponse,
   IRosNovaInterfacesMoveMicroscopeServoRequest,
@@ -15,6 +12,9 @@ import {
   IRosNovaInterfacesSetNirProbeLedResponse,
   IRosNovaInterfacesRamanMechRequest,
   IRosNovaInterfacesRamanMechResponse,
+  IRosCameraMsgsGetIpListResponse,
+  IRosStdSrvsSetBoolResponse,
+  IRosStdSrvsSetBoolRequest,
 } from "../rosTypes";
 import { RosService } from "./rosService";
 
@@ -27,11 +27,11 @@ interface EmptyMessage {}
 
 export interface RosServiceInterface {
   [RosService.NULL_SERVICE]: RosServiceMessage<EmptyMessage, EmptyMessage>;
-  [RosService.GET_IP_LIST]: RosServiceMessage<
+  
+  [RosService.READ_RFID]: RosServiceMessage<
     EmptyMessage,
-    IRosCameraMsgsGetIpListResponse
+    IRosStdSrvsTriggerResponse
   >;
-  [RosService.READ_RFID]: RosServiceMessage<EmptyMessage, IRosStdSrvsTriggerResponse>;
 
   // Camera Related
   [RosService.START_CAMS]: RosServiceMessage<
@@ -42,6 +42,10 @@ export interface RosServiceInterface {
     IRosCameraMsgsCameraOperationRequest,
     IRosCameraMsgsCameraOperationResponse
   >;
+  [RosService.GET_IP_LIST]: RosServiceMessage<
+    EmptyMessage,
+    IRosCameraMsgsGetIpListResponse
+  >;
 
   // Error Related
   [RosService.BLCMD_RESET]: RosServiceMessage<
@@ -50,6 +54,10 @@ export interface RosServiceInterface {
   >;
 
   // Science Related
+  [RosService.MIXERS]: RosServiceMessage<
+    IRosStdSrvsSetBoolRequest,
+    IRosStdSrvsSetBoolResponse
+  >;
   [RosService.KILN_COMMAND]: RosServiceMessage<
     IRosNovaInterfacesKilnCommandRequest,
     IRosNovaInterfacesKilnCommandResponse
@@ -62,6 +70,10 @@ export interface RosServiceInterface {
     IRosNovaInterfacesMoveMicroscopeServoRequest,
     IRosNovaInterfacesMoveMicroscopeServoResponse
   >;
+  [RosService.THETA_360_CAM_CAPTURE]: RosServiceMessage<
+    EmptyMessage, 
+    IRosStdSrvsTriggerResponse
+  >;
   [RosService.CALL_RAMAN_SPEC]: RosServiceMessage<
     IRosNovaInterfacesRamanSpecRequest,
     IRosNovaInterfacesRamanSpecResponse
@@ -70,6 +82,4 @@ export interface RosServiceInterface {
     IRosNovaInterfacesRamanMechRequest,
     IRosNovaInterfacesRamanMechResponse
   >;
-
-  [RosService.THETA_360_CAM_CAPTURE]: RosServiceMessage<EmptyMessage, IRosStdSrvsTriggerResponse>;
 }

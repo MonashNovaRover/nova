@@ -8,11 +8,12 @@ import { RootState } from "../../redux/RootState";
 import { useBifrost } from "../../redux/actions/bifrost/useBifrostAction";
 import { RosTopic } from "../../ros/topics/rosTopic";
 import { useEffect } from "react";
-import { Button, Card, CardBody, CardHeader, Modal, ModalContent, ModalHeader, ModalBody, useDisclosure } from "@nextui-org/react";
+import { Button, Card, CardBody, CardHeader, Modal, ModalContent, ModalHeader, ModalBody, useDisclosure, CardProps } from "@nextui-org/react";
 import { HelpCircle } from "react-feather";
 
+interface TOFHeightProps extends CardProps {}
 
-const AnalysisPlatformHeight: React.FC = () => {
+const TOFHeight: React.FC<TOFHeightProps> = (props) => {
     const {isOpen, onOpen, onOpenChange} = useDisclosure();
 
     const tofStore = useSelector(
@@ -55,7 +56,7 @@ const AnalysisPlatformHeight: React.FC = () => {
                 <ModalContent>
                 {() => (
                     <>
-                    <ModalHeader className="flex flex-col gap-1 text-rose-600">Analysis Platform Height (TOF Sensor) Error</ModalHeader>
+                    <ModalHeader className="flex flex-col gap-1 text-rose-600">Height (TOF Sensor) Error</ModalHeader>
                     <ModalBody>
                         <p className="mb-2 text-lg">Error: Height received is out of given range of {rangeMin} mm to {rangeMax} mm (also sent from rover).</p>
                     </ModalBody>
@@ -79,14 +80,18 @@ const AnalysisPlatformHeight: React.FC = () => {
         )
     }
 
-    return <Card>
-        <CardHeader className="text-h1 h-12 p-3 m-0 justify-between">
-            Analysis Platform Height
-            {outOfRange && infoButton()}
-            {infoModal()}
-        </CardHeader>
-        {tofReading()}
-    </Card>;
+    return (
+        <Card {...props}>
+            <CardHeader className="text-h1 h-12 p-3 m-0 justify-between">
+                Height
+                {outOfRange && infoButton()}
+                {infoModal()}
+            </CardHeader>
+            <CardBody>
+                {tofReading()}
+            </CardBody>
+        </Card>
+    );
 }
 
-export default AnalysisPlatformHeight;
+export default TOFHeight;
