@@ -27,7 +27,6 @@ from input_interfaces.msg import InputJoystick
 from input_interfaces.msg import InputKeyboard
 
 # an example of how to import a standard message type
-from std_msgs.msg import String
 from rclpy.qos import QoSReliabilityPolicy, QoSProfile
 from rclpy.subscription import SubscriptionEventCallbacks
 from rclpy.duration import Duration
@@ -145,39 +144,42 @@ class GimbalCam(Node):
         SDL_SCANCODE_UP = 82
         SDL_SCANCODE_1 = 30
         SDL_SCANCODE_0 = 39
+        
+        keyboard = msg
+        
         # toggle the lock with ctrl(L)
-        if GimbalCam.ctrl(SDL_SCANCODE_0) in msg.keys_pressed:
+        if GimbalCam.ctrl(SDL_SCANCODE_0) in keyboard.keys_pressed:
             if self.device_choice == self.KEYBOARD:
                 self.get_logger().info("Swapped to Joystick Control")
                 self.device_choice = self.JOYSTICK
         if self.device_choice == self.KEYBOARD:
             # Change between the cameras using alt(0) and alt(1)
-            if GimbalCam.alt(SDL_SCANCODE_0) in msg.keys_pressed:
+            if GimbalCam.alt(SDL_SCANCODE_0) in keyboard.keys_pressed:
                 self.cam_select = self.CAMERA0
                 self.get_logger().info("Camera 0 Selected")
-            elif GimbalCam.alt(SDL_SCANCODE_1) in msg.keys_pressed:
+            elif GimbalCam.alt(SDL_SCANCODE_1) in keyboard.keys_pressed:
                 self.cam_select = self.CAMERA1
                 self.get_logger().info("Camera 1 Selected")
             #set the velocity factor
-            if GimbalCam.ctrl(SDL_SCANCODE_DOWN) in msg.keys_pressed:
+            if GimbalCam.ctrl(SDL_SCANCODE_DOWN) in keyboard.keys_pressed:
                 self.velocity = max(self.velocity - self.velocity_increment, 0)
                 self.get_logger().info(f"Velocity decreased to {self.velocity}")
-            elif GimbalCam.ctrl(SDL_SCANCODE_UP) in msg.keys_pressed:
+            elif GimbalCam.ctrl(SDL_SCANCODE_UP) in keyboard.keys_pressed:
                 self.velocity = min(self.velocity + self.velocity_increment, 1)
                 self.get_logger().info(f"Velocity increased to {self.velocity}")
 
             # set the y velocity
-            if SDL_SCANCODE_UP in msg.keys_pressed or SDL_SCANCODE_UP in msg.keys_repeated:
+            if SDL_SCANCODE_UP in keyboard.keys_pressed or SDL_SCANCODE_UP in keyboard.keys_repeated:
                 self.y_velocity = -self.get_velocity_cmd()
-            elif SDL_SCANCODE_DOWN in msg.keys_pressed or SDL_SCANCODE_DOWN in msg.keys_repeated:
+            elif SDL_SCANCODE_DOWN in keyboard.keys_pressed or SDL_SCANCODE_DOWN in keyboard.keys_repeated:
                 self.y_velocity = self.get_velocity_cmd()
             else:
                 self.y_velocity = 0
 
             # set the x velocity
-            if SDL_SCANCODE_LEFT in msg.keys_pressed or SDL_SCANCODE_LEFT in msg.keys_repeated:
+            if SDL_SCANCODE_LEFT in keyboard.keys_pressed or SDL_SCANCODE_LEFT in keyboard.keys_repeated:
                 self.x_velocity = -self.get_velocity_cmd()
-            elif SDL_SCANCODE_RIGHT in msg.keys_pressed or SDL_SCANCODE_RIGHT in msg.keys_repeated:
+            elif SDL_SCANCODE_RIGHT in keyboard.keys_pressed or SDL_SCANCODE_RIGHT in keyboard.keys_repeated:
                 self.x_velocity = self.get_velocity_cmd()
             else:
                 self.x_velocity = 0
