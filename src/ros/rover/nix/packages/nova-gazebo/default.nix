@@ -43,6 +43,6 @@ buildRosPackage rec {
 
   postPatch = ''
     substituteInPlace worlds/urc_er.model \
-      --replace 'file:///nova_terrain_directory' '${terrain}'
+      --replace '/nova_terrain_directory' '${terrain}'
   '';
 }
