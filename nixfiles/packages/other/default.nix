@@ -11,4 +11,5 @@
   nova-backgrounds = callPackage ./nova-backgrounds { };
   nova-icons = callPackage ./nova-icons { };
   ros-typescript-generator = callPackage ./ros-typescript-generator { };
+  tileserver-gl = callPackage ./tileserver-gl { };
 }
