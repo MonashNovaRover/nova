@@ -76,7 +76,7 @@ bool JoystickTranslate::get_control_scheme_inputs(arm_interfaces::msg::ArmContro
         control_scheme_inputs.ik_angular = control_scheme_inputs.ik_linear;
     }
 
-    return (joystick_l.btn_bottom_r6_state==1);
+    return (joystick_r.btn_bottom_r6_state==1);
 }
 
 void JoystickTranslate::get_end_effector_inputs(arm_interfaces::msg::ArmControlScheme& control_scheme_inputs, arm_interfaces::msg::EndEffectorInput& end_effector_inputs)
@@ -85,6 +85,7 @@ void JoystickTranslate::get_end_effector_inputs(arm_interfaces::msg::ArmControlS
         // Set the values for linear actuator and end effector actuation
         end_effector_inputs.linear_actuation = joystick_l.ax_thumb_x;
         end_effector_inputs.end_effector_actuation = joystick_r.ax_thumb_x * 0.95;
+        // Plans on moving the laser and hex control to here
         // end_effector_inputs.laser = ;
         // end_effector_inputs.hex_key = ;
         // end_effector_inputs.finger_actuation = ;

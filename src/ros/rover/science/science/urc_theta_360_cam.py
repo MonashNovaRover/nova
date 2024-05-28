@@ -23,7 +23,7 @@ from sensor_msgs.msg import CompressedImage
 from std_srvs.srv import Trigger
 
 
-class Theta360CamPublisher(Node):
+class URCTheta360CamPublisher(Node):
     """ Node to capture images from the 360 cam using MTP (through the gphoto2 library) and publish them as
     compressed images over ROS.
 
@@ -122,7 +122,7 @@ class Theta360CamPublisher(Node):
 def main(args=None):
     # Create the publisher
     rclpy.init(args=args)
-    publisher = Theta360CamPublisher()
+    publisher = URCTheta360CamPublisher()
     rclpy.spin(publisher)
 
     #  Clean up when complete

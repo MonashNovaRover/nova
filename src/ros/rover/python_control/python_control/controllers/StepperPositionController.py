@@ -10,7 +10,7 @@ from rclpy.action import CancelResponse
 
 
 class StepperPositionController(Controller):
-    TIMEOUT = 200
+    TIMEOUT = 1200
 
     """Class to control the CMD card on the CAN bus"""
     def __init__(

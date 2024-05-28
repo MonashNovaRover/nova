@@ -33,6 +33,8 @@ class Controller(abc.ABC):
     
     def control_send_callback(self) -> None:
         frame = self.get_frame()
+        if frame is None:
+            return
         self.get_logger().debug(f"Sending frame: {frame}")
         self.bus.send(frame)
 

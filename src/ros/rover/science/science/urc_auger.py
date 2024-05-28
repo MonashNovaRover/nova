@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 
-from python_control.sensors.LimitSwitchSensor import LimitSwitchSensor
 from python_control.limits.LimitSwitchLimit import LimitSwitchLimit
 from python_control.controls.Direction import Direction
 from python_control.controls.OneAxisVelocityControl import OneAxisVelocityControl
 from python_control.controllers.CMDVelocityController import CMDVelocityController
+from python_control.sensors.CommandSensor import CommandSensor
+from python_control.JoystickControllerNode import JoystickControllerNode
 import rclpy
-from python_control.ControllerNode import ControllerNode
 from input_interfaces.msg import InputJoystick
 
 
-class URCAuger(ControllerNode):
+class URCAuger(JoystickControllerNode):
 
     # CAN BUS NAME
     # The name of the CAN bus to use
@@ -18,12 +18,12 @@ class URCAuger(ControllerNode):
 
     # SENDING CARD IDS
     # Add any CONTROL FRAME / CARD IDS here
-    AUGER_ACTUATION_SEND_FRAME_ID = 0x011
-    AUGER_DRILL_SEND_FRAME_ID = 0x012
+    AUGER_ACTUATION_SEND_FRAME_ID = 0x021
+    AUGER_DRILL_SEND_FRAME_ID = 0x022
     
     # RECEIVING CARD IDS
     # Add any SENSOR FRAME / CARD IDS here
-    AUGER_LIMIT_RECV_ID = 0x4A2
+    AUGER_LIMIT_RECV_ID = 0x452
 
     # CONTROL NAMES
     # Add any CONTROL names here
@@ -41,15 +41,14 @@ class URCAuger(ControllerNode):
 
     # RECEIVING COMMAND IDS
     # Add any SENSOR command ids here
-    AUGER_RECV_LIMIT_TOP_COMMAND_ID = 0x01
-    AUGER_RECV_LIMIT_BOTTOM_COMMAND_ID = 0x02
+    AUGER_RECV_LIMIT_BOTTOM_COMMAND_ID = 0x01
     
     # CONTROL DIRECTIONS
     # Add any CONTROL DIRECTIONS here
-    AUGER_ACTUATION_UP = Direction.POSITIVE
-    AUGER_ACTUATION_DOWN = Direction.NEGATIVE
-    AUGER_DRILL_CLOCKWISE = Direction.POSITIVE
-    AUGER_DRILL_COUNTERCLOCKWISE = Direction.NEGATIVE    
+    AUGER_ACTUATION_UP = Direction.NEGATIVE
+    AUGER_ACTUATION_DOWN = Direction.POSITIVE
+    AUGER_DRILL_CLOCKWISE = Direction.NEGATIVE
+    AUGER_DRILL_COUNTERCLOCKWISE = Direction.POSITIVE    
 
     def __init__(self):
         super(URCAuger, self).__init__(name="URCAuger", can_bus=self.CAN_BUS)
@@ -60,18 +59,11 @@ class URCAuger(ControllerNode):
         self.bus.set_id_filter([self.AUGER_LIMIT_RECV_ID])
 
         ## Create sensors
-        self.bottom_limit_sensor = LimitSwitchSensor(
+        self.bottom_limit_hall_effect = CommandSensor(
             logger=logger,
             bus=self.bus,
             frame_id=self.AUGER_LIMIT_RECV_ID,
             command_id=self.AUGER_RECV_LIMIT_BOTTOM_COMMAND_ID,
-            run_can=False
-        )
-        self.top_limit_sensor = LimitSwitchSensor(
-            logger=logger,
-            bus=self.bus,
-            frame_id=self.AUGER_LIMIT_RECV_ID,
-            command_id=self.AUGER_RECV_LIMIT_TOP_COMMAND_ID,
             run_can=False
         )
 
@@ -79,22 +71,15 @@ class URCAuger(ControllerNode):
         self.auger_bottom_limit = LimitSwitchLimit(
             logger=logger,
             bus=self.bus,
-            limit_switch=self.bottom_limit_sensor
+            limit_switch=self.bottom_limit_hall_effect,
         )
-        self.auger_top_limit = LimitSwitchLimit(
-            logger=logger,
-            bus=self.bus,
-            limit_switch=self.top_limit_sensor
-        )
- 
 
         ## Create controls
         self.auger_actuation = OneAxisVelocityControl(
             logger=logger,
             max_percent=self.AUGER_ACTUATION_MAX_PERCENT,
             direction=self.AUGER_ACTUATION_UP,
-            pos_limit=self.auger_top_limit,
-            neg_limit=self.auger_bottom_limit,
+            pos_limit=self.auger_bottom_limit,
         )
         self.auger_drill = OneAxisVelocityControl(
             logger=logger,
@@ -126,10 +111,13 @@ class URCAuger(ControllerNode):
 
     def update_auger_actuation(self, joystick_r: InputJoystick):
         # Auger height direction is determined by the right joystick's x-axis direction
-        self.auger_actuation.update_direction(self.AUGER_ACTUATION_UP if joystick_r.ax_stick_x >= 0 else self.AUGER_ACTUATION_DOWN)
+        self.auger_actuation.update_direction(self.AUGER_ACTUATION_UP if joystick_r.ax_stick_x <= 0 else self.AUGER_ACTUATION_DOWN)
 
         # Auger velocity is determined by the right joystick's x-axis magnitude
-        self.auger_actuation.update_velocity(abs(joystick_r.ax_stick_x))
+        if joystick_r.btn_thumb_d_state >= 1 or joystick_r.ax_stick_x < 0:
+            self.auger_bottom_limit.update_limit_hit(False)
+        self.auger_actuation.update_velocity(velocity=abs(joystick_r.ax_stick_x))
+    
 
     def update_auger_drill(self, joystick_r: InputJoystick):
         # Drill spin direction is determined by the right joystick thumb buttons

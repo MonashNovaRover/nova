@@ -20,8 +20,8 @@ class URCPumps(ControllerNode):
 
     # SENDING CARD IDS
     # Add any CONTROL FRAME / CARD IDS here
-    CLEAN_SHEATH_PUMP_RUN_SEND_FRAME_ID = 0x021
-    MIXER_TO_SHOT_PUMP_RUN_SEND_FRAME_ID = 0x022
+    CLEAN_SHEATH_PUMP_RUN_SEND_FRAME_ID = 0x011
+    MIXER_TO_SHOT_PUMP_RUN_SEND_FRAME_ID = 0x012
     SHOT_TO_CAROUSEL_PUMP_RUN_SEND_FRAME_ID = 0x031
 
     # CONTROL NAMES
@@ -112,12 +112,6 @@ class URCPumps(ControllerNode):
             frame_id=self.SHOT_TO_CAROUSEL_PUMP_RUN_SEND_FRAME_ID,
             control=self.mixer_to_shot_pump,
         )
-
-
-        ## Add the controllers to the node's of controllers
-        # self.add_controller(self.CLEAN_SHEATH_PUMP_NAME, self.clean_sheath_pump_controller)
-        # self.add_controller(self.MIXER_TOSHOT_PUMP_NAME, self.mixer_to_shot_pump_controller)
-        # self.add_controller(self.SHOT_TO_CAROUSEL_PUMP_NAME, self.shot_to_carousel_pump_controller)
 
         self.pumps_action = ActionServer(self, Pumps, self.PUMPS_ACTION, self.pumps_goal_callback)
 
@@ -237,11 +231,6 @@ class URCPumps(ControllerNode):
         self.shot_to_carousel_pump_controller.stop()
 
 
-    def joystick_l(self, joystick_l: InputJoystick):
-        pass
-
-    def joystick_r(self, joystick_r: InputJoystick):
-        pass
 
 def main():
     rclpy.init()
