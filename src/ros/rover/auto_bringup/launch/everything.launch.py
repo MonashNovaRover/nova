@@ -60,7 +60,7 @@ def generate_launch_description():
         #              https://github.com/ROBOTIS-GIT/turtlebot3_simulations/issues/91
         # default_value=PathJoinSubstitution([get_package_share_directory('turtlebot3_gazebo'),
         # worlds/turtlebot3_worlds/waffle.model')
-        default_value=PathJoinSubstitution([gazebo_dir, "worlds", 'urc_er.model']),
+        default_value=PathJoinSubstitution([gazebo_dir, "worlds", 'flat.model']),
         description='Full path to world model file to load')
 
     params_file_arg = DeclareLaunchArgument(
