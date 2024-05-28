@@ -39,21 +39,17 @@ from typing import Tuple, List
 
 
 class RamanSpecServer(Node):
+    # This a ROS param then decrease it during testing until you only get one phase perfectly (if phase length does not change)
+    INITIAL_SPECTRA_SIZE = 3694                         
+    
     # Constants set by firmware/hardware of STM32F103
     BAUDRATE = 115200
     MASTERCLOCK = 800000
-    INITIAL_SPECTRA_SIZE = 3694                         # This a ROS param then decrease it during testing until you only get one phase perfectly (if phase length does not change)
     OUTPUT_SIZE = 2 * INITIAL_SPECTRA_SIZE
     CIRCULAR_BUFFER_START = ord('E')
     CIRCULAR_BUFFER_END = ord('R')
     SINGLE_COLLECTION_MODE = 0
     CONTINUOUS_COLLECTION_MODE = 1
-
-    # Factors for spectrum collection
-    PHASE_SIGNAL = 3730
-    MINIMUM_PHASE_LENGTH = 1500
-    SPECTRUM_CROP = 32  # the number of pixels after phase signal ends to ignore
-    LOOPS_FOR_SINGLE_COLLECTION = 1
 
     # ROS spec channels
     SPEC_SERVICE = '/science/raman_spec_srv'
@@ -100,17 +96,17 @@ class RamanSpecServer(Node):
 
         # min is 20, max is 4294967295
         shperiodconverted = np.uint32(shperiod)
-        result[2] = (shperiodconverted >> 24) & 0xff
-        result[3] = (shperiodconverted >> 16) & 0xff
-        result[4] = (shperiodconverted >> 8) & 0xff
-        result[5] = shperiodconverted & 0xff
+        result[2] = (shperiodconverted >> 24) & 0xFF
+        result[3] = (shperiodconverted >> 16) & 0xFF
+        result[4] = (shperiodconverted >> 8) & 0xFF
+        result[5] = shperiodconverted & 0xFF
 
         # min is 14776, max is 4294967295
         icgperiodconverted = np.uint32(icgperiod)
-        result[6] = (icgperiodconverted >> 24) & 0xff
-        result[7] = (icgperiodconverted >> 16) & 0xff
-        result[8] = (icgperiodconverted >> 8) & 0xff
-        result[9] = icgperiodconverted & 0xff
+        result[6] = (icgperiodconverted >> 24) & 0xFF
+        result[7] = (icgperiodconverted >> 16) & 0xFF
+        result[8] = (icgperiodconverted >> 8) & 0xFF
+        result[9] = icgperiodconverted & 0xFF
 
         if singlecollectionmode:
             result[10] = RamanSpecServer.SINGLE_COLLECTION_MODE
@@ -122,39 +118,11 @@ class RamanSpecServer(Node):
         return result
 
 
-    def find_full_phase(spectrum: List[int]) -> Tuple[int, int]:
-        """
-        For finding peaks through analysis
-        """
-        spectrum_start = None
-        spectrum_end = None
-
-        if len(spectrum) == 0:
-            return spectrum_start, spectrum_end
-
-        for start_of_first_phase_signal in range(len(spectrum)):
-            if spectrum[start_of_first_phase_signal] > RamanSpecServer.PHASE_SIGNAL:
-                break
-
-        for end_of_first_phase_signal in range(start_of_first_phase_signal, len(spectrum)):
-            if spectrum[end_of_first_phase_signal] < RamanSpecServer.PHASE_SIGNAL and (end_of_first_phase_signal + 5 < len(spectrum) or spectrum[end_of_first_phase_signal + 5] < RamanSpecServer.PHASE_SIGNAL):
-                spectrum_start = end_of_first_phase_signal + RamanSpecServer.SPECTRUM_CROP
-                break
-        
-        if end_of_first_phase_signal + RamanSpecServer.MINIMUM_PHASE_LENGTH < len(spectrum):
-            for start_of_second_phase_signal in range(end_of_first_phase_signal + RamanSpecServer.MINIMUM_PHASE_LENGTH, len(spectrum)):
-                if spectrum[start_of_second_phase_signal] > RamanSpecServer.PHASE_SIGNAL:
-                    spectrum_end = start_of_second_phase_signal - RamanSpecServer.SPECTRUM_CROP
-                    break
-
-        return spectrum_start, spectrum_end
-
-
-    def read_output_to_response(self, output: List[int]) -> List[int]:
+    def read_output_to_response(output: List[int]) -> List[int]:
         """
         Converts 8 bit integers read to 16 bit integers and balances the output (due to left and right sides of shift registers returning different values)
         """
-        current_spectra_size = self.get_parameter('raman_spectrum_length')
+        current_spectra_size = len(output) // 2
         response = [0] * current_spectra_size
 
         # combining 8 bit integer pairs into respective 16 bit integer values
@@ -162,13 +130,13 @@ class RamanSpecServer(Node):
             response[pixel] = (output[2*pixel+1] << 8) + output[2*pixel]
             
         # register has two sides which produce systematically differing values, so to reduce noise, an offset is applied to equal the values
-        offset = 0
+        sum_net_offset = 0
         for pixel in range(current_spectra_size):
             if pixel % 2 == 0:
-                offset += response[pixel]
+                sum_net_offset += response[pixel]
             else:
-                offset -= response[pixel]
-        offset = 2 * offset // current_spectra_size
+                sum_net_offset -= response[pixel]
+        offset = 2 * sum_net_offset // current_spectra_size
 	
         for pixel in range(current_spectra_size // 2):
             if response[2*pixel] > offset:
@@ -183,23 +151,16 @@ class RamanSpecServer(Node):
         """
         Returns a Tuple of True, and single spectrum that has a full phase, or False, and an empty list if a single spectrum that has a full phase is not found
         """
-        spectrum_start = None
-        spectrum_end = None
-        loop_count = 0
-        while loop_count < RamanSpecServer.LOOPS_FOR_SINGLE_COLLECTION: # and not spectrum_end: 
-            spectrum = self.get_spectrum(port, shperiod, icgperiod, average)
-            # spectrum_start, spectrum_end = RamanSpecServer.find_full_phase(spectrum)
-            self.get_logger().info(f"Spectrum start is {spectrum_start}")
-            loop_count += 1
-        
-        return True, spectrum
+        spectrum = self.get_spectrum(port, shperiod, icgperiod, average)
+        return len(spectrum) > 0, spectrum
 
 
     def raman_spec_response(self, request, response):
         """
         Callback for a service request
         """
-        self.get_logger().info("Request received")
+        # Continuous Mode
+        self.get_logger().info(f"Request received with settings of port: {request.port}, shperiod: {request.shperiod}, icgperiod: {request.icgperiod}, average: {request.average}, singlecollectionmode: {request.singlecollectionmode}, and continuousendsignal: {request.continuousendsignal}")
         if request.continuousendsignal:
             self.is_continuous = False
             self.get_logger().info("Continuous mode deactivated")
@@ -214,6 +175,7 @@ class RamanSpecServer(Node):
             self.continuous_settings = request.port, request.shperiod, request.icgperiod, request.average
             return response
 
+        # Single collection
         time_start = time.time()
         
         isvalid, spectrum = self.get_valid_spectrum(request.port, request.shperiod, request.icgperiod, request.average)
@@ -251,7 +213,7 @@ class RamanSpecServer(Node):
 
             ser.close()
 
-            return self.read_output_to_response(output)
+            return RamanSpecServer.read_output_to_response(output)
                
         except SerialException as e:
             self.get_logger().error(f"Failed to process Raman service request: {str(e)}")
