@@ -20,6 +20,7 @@ import GeneralBaseView from "../views/general/GeneralBaseView.tsx";
 import { ARCNIRProbeView } from "../views/arc/ARCNIRProbeView.tsx";
 import { ARCMicroscopeView } from "../views/arc/ARCMicroscopeView.tsx";
 import TestWebGLView from "../views/test/TestWebGLView/TestWebGLView.tsx";
+import TestUVVisSpecView from "../views/test/TestUVVisSpecView/TestUVVisSpecView.tsx";
 import Test360CamView from "../views/test/Test360CamView/Test360CamView.tsx";
 import TestRamanView from "../views/test/TestRamanView/TestRamanView.tsx";
 
@@ -100,6 +101,10 @@ export const testRoutes: RouteObject[] = [
   {
     path: "/test/webgl",
     element: <TestWebGLView/>
+  },
+  {
+    path: "/test/uvvisspec",
+    element: <TestUVVisSpecView/>
   },
   {
     path: "/test/360cam",
