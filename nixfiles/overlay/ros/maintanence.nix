@@ -242,13 +242,13 @@ self: super:
       let
         replaceUbloxSrc = pkg: pkg.overrideAttrs ({ src, version, ... }: {
           src = self.fetchFromGitHub {
-            owner = "leighleighleigh";
-            repo = "ublox_dgnss";
-            rev = "a64e313ddbb01234c91b757c76280a5780bfd0e3";
-            hash = "sha256-/R/RDaKDmMjAy1oTERqi0FtV/Zs32oFcB8ZYe1EdZmE=";
+            owner = "MonashNovaRover";
+            repo = "ublox_dgnss_leigh";
+            rev = "8be8326dcb2e5157b35e54364d2247c4cc253911";
+            hash = "sha256-JfqHRoOdTdd9z7Qweg2+MNZH9IoX0DtpHtIr79ECg1M=";
           };
 
-          version = "0.2.3";
+          version = "0.2.3-unstable-2024-05-28";
         });
       in
       {
