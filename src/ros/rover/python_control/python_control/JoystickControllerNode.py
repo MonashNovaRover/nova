@@ -31,7 +31,7 @@ from input_interfaces.msg import InputJoystick
 class JoystickControllerNode(ControllerNode, metaclass=abc.ABCMeta):
     # ROS parameter names
 
-    def __init__(self,  name: str, can_bus: str, log_level: str = "INFO", command_period: float = 0.5):
+    def __init__(self,  name: str, can_bus: str, log_level: str = "INFO", command_period: float = 0.1):
         super().__init__(name=name,can_bus=can_bus, log_level=log_level, command_period=command_period)
 
         self.joystick_lock = True
