@@ -23,7 +23,7 @@ const RamanMechanicalInputs: React.FC = () => {
     // service bifrost
     const ramanMechRequest = useSelector((state: RootState) => state.ramanMechServiceStore);
     const inputBifrost = useBifrost({ service: RosService.CALL_RAMAN_MECH });
-    const sendRamanMechRequest = (request: IRosNovaInterfacesRamanMechRequest) => inputBifrost.callServiceToRedux(request);
+    const sendRamanMechRequest = (request: IRosNovaInterfacesRamanMechRequest) => inputBifrost.callService(request, { sendToRedux: true });
 
     // topic bifrost
     const ramanMechState = useSelector((state: RootState) => state.ramanMechMessageStore);
