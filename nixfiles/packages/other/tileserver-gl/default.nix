@@ -1,27 +1,24 @@
-{ mkYarnPackage
+{ buildNpmPackage
 , fetchFromGitHub
-, fetchYarnDeps
+, libsForQt5
 }:
 
-mkYarnPackage rec {
-   pname = "tileserver-gl";
-   version = "4.11.1";
+buildNpmPackage {
+  pname = "tileserver-gl";
+  version = "4.11.1";
 
   src = fetchFromGitHub {
-     owner = "maptiler";
-     repo = "tileserver-gl";
-     rev = "v4.11.1"; 
-     sha256 = "IZZq2trDn3HBUI4SU1rplIb1nv5mB7O4bxaAmX5M/W0=";
-   };
+    owner = "maptiler";
+    repo = "tileserver-gl";
+    rev = "v4.11.1";
+    sha256 = "IZZq2trDn3HBUI4SU1rplIb1nv5mB7O4bxaAmX5M/W0=";
+  };
 
-  buildPhase = ''
-    runHook preBuild
+  npmDepsHash = "sha256-OSBBqklF/ozAjsV4Wk3HS44GfnMGRwh6GifglrUcEHM=";
 
-    export HOME="$(mktemp -d)"
-    yarn --offline build
+  npmInstallFlags = [ "--build-from-source=@maplibre/maplibre-gl-native" ];
 
-    runHook postBuild
-  '';
-
-  doDist = false;
+  buildInputs = [
+    libsForQt5.maplibre-gl-native
+  ];
 }
