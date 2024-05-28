@@ -25,6 +25,11 @@ camera_directory:
            '2:1.0': science_payload_down
            '4.1:1.0': science_cuvettes
            '4.3:1.0': science_microscope
+        science_urc_mast:
+           '1:1.0': mast_arm_stow
+           '2:1.0': mast_down
+           '3:1.0': mast_forward
+           '4:1.0': mast_backward
         arm:
           '1:1.0': arm_gimbal
           '2.1:1.0': arm_end_finger
