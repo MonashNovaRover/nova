@@ -1,14 +1,26 @@
 /oak:
   ros__parameters:
     camera:
-      i_nn_type: none
+      i_nn_type: spatial
       i_enable_imu: true
+    nn:
+      i_disable_resize: true
+      i_num_inference_threads: 2
+      i_num_pool_frames: 4
+      i_nn_config_path: src/ros/rover/auto_bringup/resources/URC_V4/URC_V4.json
     imu:
       i_enable_rotation: true
       i_message_type: IMU
         #i_rotation_vector_type: ROTATION_VECTOR
     rgb:
+      i_enable_nn: false
+      i_enable_preview: true
       i_fps: 5.0
+      i_preview_height: 640 #300
+      i_preview_size: 640
+      i_preview_width: 640 #300
+      i_publish_topic: false
+      i_width: 1280
     left:
       i_set_isp_scale: true
       i_fps: 5.0
