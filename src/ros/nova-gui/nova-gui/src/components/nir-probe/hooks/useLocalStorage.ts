@@ -6,12 +6,12 @@ import {DependencyList, useCallback, useEffect, useState} from "react";
  * @param initialValue The initial value to assign when there is nothing in local storage
  * @param dependencies Dependencies to update the value from local storage when changed
  */
-export function useLocalStorage<T>(key: string, initialValue: T, dependencies: DependencyList = [key]) : [T, (newValue: T) => void] {
+export function useLocalStorage<T>(key: string, initialValue: T, dependencies: DependencyList = [key]) : [T, (newValue: T | ((previousValue: T) => T)) => void] {
   const [value, setValue] = useState<T>(initialValue)
 
   useEffect(() => {
     const storedValueJSON = localStorage.getItem(key);
-    if (storedValueJSON === null) {
+    if (storedValueJSON === null || storedValueJSON === undefined || storedValueJSON === "undefined") {
       setValue(initialValue);
       return;
     }
@@ -27,10 +27,12 @@ export function useLocalStorage<T>(key: string, initialValue: T, dependencies: D
     setValue(storedValue);
   }, dependencies)
 
-  const lsSetValue = useCallback((newValue: T) => {
-    setValue(newValue);
-    localStorage.setItem(key, JSON.stringify(newValue));
-  }, [key])
+  const lsSetValue = useCallback((newValue: T | ((previousValue: T) => T)) => {
+    const evaluatedNewValue = newValue instanceof Function ? newValue(value) : newValue
+
+    setValue(evaluatedNewValue);
+    localStorage.setItem(key, JSON.stringify(evaluatedNewValue));
+  }, [key, value]);
 
   return [value, lsSetValue];
 }
