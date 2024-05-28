@@ -4,16 +4,22 @@
  * It accepts responses from the 'raman_spectra' ROS service.
  */
 
-import { Card } from "@nextui-org/react";
-import { useEffect } from "react";
+import {Card, CardFooter} from "@nextui-org/react";
+import React, {memo, useCallback, useEffect, useMemo} from "react";
 import { RootState } from "../../redux/RootState";
 import { useBifrost } from "../../redux/actions/bifrost/useBifrostAction";
 import { useSelector } from "react-redux";
 import { RosTopic } from "../../ros/topics/rosTopic";
 import { ChartOptions, ChartStyle } from "../SpectraDisplay/ChartOptions";
 import DataChart from "../SpectraDisplay/DataChart";
+import RamanLocalStorageSaveButton from "./RamanLocalStorageSaveButton.tsx";
 
-const RamanOutput: React.FC = () => {
+export interface RamanOutputProps {
+    onSave?: (data: number[][], name: string) => void,
+}
+
+
+const RamanOutputUnmemoed: React.FC<RamanOutputProps> = (props) => {
     // units are nm
     const LASER_GREEN_START = 416
     const LASER_GREEN_END = 642
@@ -41,11 +47,17 @@ const RamanOutput: React.FC = () => {
         bifrost.syncWithTopic();
     }, [bifrost]);
 
-    const maxOutputValue = Math.max(...spectrumStore.spectrum)
-    const greenLaserOutput = spectrumStore.spectrum.map((element, index) => [Math.round((10**DECIMAL_PLACE_ROUNDING_FROM_MAX)*(LASER_GREEN_START + LASER_GREEN_RANGE*index/spectrumStore.spectrum.length)) / ((10**DECIMAL_PLACE_ROUNDING_FROM_MAX)* 1.0), Math.round((10**DECIMAL_PLACE_ROUNDING_FROM_MAX)*NORMALISED_SCALE_MAX*(1 - (element/maxOutputValue)))/((10**DECIMAL_PLACE_ROUNDING_FROM_MAX) * 1.0)])
-    const redLaserOutput = spectrumStore.spectrum.map((element, index) => [Math.round((10**DECIMAL_PLACE_ROUNDING_FROM_MAX)*(LASER_RED_START + LASER_RED_RANGE*index/spectrumStore.spectrum.length)) / ((10**DECIMAL_PLACE_ROUNDING_FROM_MAX) * 1.0), Math.round((10**DECIMAL_PLACE_ROUNDING_FROM_MAX)*NORMALISED_SCALE_MAX*(1 - (element/maxOutputValue)))/((10**DECIMAL_PLACE_ROUNDING_FROM_MAX) * 1.0)])
+    const maxOutputValue = useMemo(() => (
+      Math.max(...spectrumStore.spectrum)
+    ), [spectrumStore.spectrum])
+    const greenLaserOutput = useMemo(() => (
+      spectrumStore.spectrum.map((element, index) => [Math.round((10**DECIMAL_PLACE_ROUNDING_FROM_MAX)*(LASER_GREEN_START + LASER_GREEN_RANGE*index/spectrumStore.spectrum.length)) / ((10**DECIMAL_PLACE_ROUNDING_FROM_MAX)* 1.0), Math.round((10**DECIMAL_PLACE_ROUNDING_FROM_MAX)*NORMALISED_SCALE_MAX*(1 - (element/maxOutputValue)))/((10**DECIMAL_PLACE_ROUNDING_FROM_MAX) * 1.0)])
+    ), [LASER_GREEN_RANGE, maxOutputValue, spectrumStore.spectrum])
+    const redLaserOutput = useMemo(() => (
+      spectrumStore.spectrum.map((element, index) => [Math.round((10**DECIMAL_PLACE_ROUNDING_FROM_MAX)*(LASER_RED_START + LASER_RED_RANGE*index/spectrumStore.spectrum.length)) / ((10**DECIMAL_PLACE_ROUNDING_FROM_MAX) * 1.0), Math.round((10**DECIMAL_PLACE_ROUNDING_FROM_MAX)*NORMALISED_SCALE_MAX*(1 - (element/maxOutputValue)))/((10**DECIMAL_PLACE_ROUNDING_FROM_MAX) * 1.0)])
+    ), [LASER_RED_RANGE, maxOutputValue, spectrumStore.spectrum])
 
-    const determineOutput = () => {
+    const determinedOutput = useMemo(() => {
         let output = redLaserOutput;
         if (ramanMechState.green_laser_on) {
             output = greenLaserOutput;
@@ -55,13 +67,26 @@ const RamanOutput: React.FC = () => {
             name: "CCD Output",
             data: output
         }]
-    }
+    }, [STEP_VALUE, greenLaserOutput, ramanMechState.green_laser_on, redLaserOutput]);
+
+    // A function called whenever the save button is pressed
+    const onSave = useCallback((graphName: string) => {
+        // ! I just take the first element of the array. I don't know if this is correct
+        // TODO: Verify correctness
+        const output = determinedOutput[0];
+        props.onSave?.(output.data, graphName);
+    }, [determinedOutput, props])
 
     return (
         <Card className={spectrumStore.isvalid ? "m-2 p-2" : "m-2 p-2 bg-rose-900"}>
-            <DataChart dataset={determineOutput()} chartOptions={ChartOptions(ChartStyle.Default)} />
+            <DataChart dataset={determinedOutput} chartOptions={ChartOptions(ChartStyle.Default)} />
+            <CardFooter>
+                <RamanLocalStorageSaveButton onSave={onSave}/>
+            </CardFooter>
         </Card>
-    ) 
+    )
 }
 
+// This might be overkill
+const RamanOutput = memo(RamanOutputUnmemoed);
 export default RamanOutput;

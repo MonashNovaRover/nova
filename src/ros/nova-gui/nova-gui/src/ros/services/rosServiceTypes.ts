@@ -28,6 +28,7 @@ interface EmptyMessage {}
 export interface RosServiceInterface {
   [RosService.NULL_SERVICE]: RosServiceMessage<EmptyMessage, EmptyMessage>;
   
+  
   [RosService.READ_RFID]: RosServiceMessage<
     EmptyMessage,
     IRosStdSrvsTriggerResponse

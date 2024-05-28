@@ -4,13 +4,13 @@
  * Use for simple layout configuration changes, and exporting.
  */
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { Button, Input, Card } from "@nextui-org/react";
 import RamanCCDInputs from "./RamanCCDInputs";
 import RamanMechanicalInputs from "./RamanMechanicalInputs";
-import RamanOutput from "./RamanOutput";
+import RamanOutput, {RamanOutputProps} from "./RamanOutput";
 
-const RamanSpec: React.FC = () => {
+const RamanSpec: React.FC<RamanOutputProps> = (props) => {
     const sampleFilename = "graph_site1_sample1";
     const example_label = "Example: "
     const [file, setFile] = useState(sampleFilename);
@@ -41,7 +41,7 @@ const RamanSpec: React.FC = () => {
                 </Card>
             </div>
             <div className="w-1/2">
-                <RamanOutput />
+                <RamanOutput onSave={props.onSave}/>
             </div>
         </div>
     )

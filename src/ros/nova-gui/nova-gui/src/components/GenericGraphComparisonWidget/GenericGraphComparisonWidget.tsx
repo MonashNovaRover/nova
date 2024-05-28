@@ -2,7 +2,7 @@
  * A sloppy component for displaying a bunch of graphs. It's not great, but hey, it works.
  * Author: Bailey Chessum
  */
-import React, {ReactNode, useCallback, useMemo} from "react";
+import React, {memo, ReactNode, useCallback, useMemo} from "react";
 import {ApexDataset} from "../SpectraDisplay/DataChart.tsx";
 import {ApexOptions} from "apexcharts";
 import {Button, Card, CardBody, CardHeader, Select, SelectItem} from "@nextui-org/react";
@@ -42,7 +42,7 @@ export function getUniqueName(name: string, existingNames: string[]) {
 }
 
 
-const GenericGraphComparisonWidget: React.FC<GenericGraphComparisonWidgetProps> = (props) => {
+const GenericGraphComparisonWidgetUnmemoed: React.FC<GenericGraphComparisonWidgetProps> = (props) => {
   const graphs = props.graphs;
   const setGraphs = props.setGraphs
   const selectedCharts = props.selectedCharts;
@@ -59,7 +59,7 @@ const GenericGraphComparisonWidget: React.FC<GenericGraphComparisonWidgetProps> 
   }, [setGraphs])
 
   // The options for formatting the chart
-  const options: ApexCharts.ApexOptions = {
+  const options: ApexCharts.ApexOptions = useMemo(() => ({
     series: selectedOutput.map((data) => ({
       data: data.data,
       name: data.name,
@@ -84,7 +84,7 @@ const GenericGraphComparisonWidget: React.FC<GenericGraphComparisonWidgetProps> 
       mode: "dark",
     },
     ...props.options
-  }
+  }), [props.options, selectedOutput])
 
   return (
     <Card>
@@ -123,4 +123,5 @@ const GenericGraphComparisonWidget: React.FC<GenericGraphComparisonWidgetProps> 
   );
 }
 
+const GenericGraphComparisonWidget = memo(GenericGraphComparisonWidgetUnmemoed);
 export default GenericGraphComparisonWidget;
