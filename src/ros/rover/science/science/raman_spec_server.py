@@ -194,7 +194,7 @@ class RamanSpecServer(Node):
         try:
             ser = Serial(port=serialport, baudrate=RamanSpecServer.BAUDRATE)
 
-            current_spectra_size = self.get_parameter('raman_spectrum_length')
+            current_spectra_size = self.get_parameter('raman_spectrum_length').value
 
             #wait to clear the input and output buffers, if they're not empty data is corrupted
             while (ser.in_waiting > 0 or ser.out_waiting > 0):
