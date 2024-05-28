@@ -43,7 +43,7 @@ def generate_launch_description():
                               
         DeclareLaunchArgument(
             'urdf', 
-            default_value='True',
+            default_value='False',
             description="Publish robot_description?"
         ),
 
