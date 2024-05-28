@@ -12,4 +12,5 @@
   nova-icons = callPackage ./nova-icons { };
   ros-typescript-generator = callPackage ./ros-typescript-generator { };
   tileserver-gl = callPackage ./tileserver-gl { };
+  tileserver-gl-shell = callPackage ./tileserver-gl-shell { };
 }
