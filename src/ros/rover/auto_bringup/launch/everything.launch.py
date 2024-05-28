@@ -9,7 +9,7 @@ NODES:
   - robot_state_publisher
   - rover_state_publisher
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-PACKAGE: 	core
+PACKAGE: 	auto_bringup
 CREATION:	27/04/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
@@ -60,7 +60,7 @@ def generate_launch_description():
         #              https://github.com/ROBOTIS-GIT/turtlebot3_simulations/issues/91
         # default_value=PathJoinSubstitution([get_package_share_directory('turtlebot3_gazebo'),
         # worlds/turtlebot3_worlds/waffle.model')
-        default_value=PathJoinSubstitution([gazebo_dir, "worlds", 'flat.model']),
+        default_value=PathJoinSubstitution([gazebo_dir, "worlds", 'urc_er.model']),
         description='Full path to world model file to load')
 
     params_file_arg = DeclareLaunchArgument(
@@ -156,6 +156,20 @@ def generate_launch_description():
         }.items()
     )
 
+    ar_tag = Node(
+            condition=IfCondition(LaunchConfiguration('gazebo')),
+            package='aruco_opencv',
+            executable='aruco_tracker_autostart',
+            arguments=['--ros-args', '--params-file', PathJoinSubstitution([auto_bringup_dir, 'params', 'aruco_tracker.yaml'])],
+    )
+
+    nova_ar_tag = Node(
+            condition=IfCondition(LaunchConfiguration('gazebo')),
+            package='nova_ar_tag',
+            executable='aruco_marker',
+            name='aruco_marker',
+    )
+
     return LaunchDescription([
         namespace_arg,
         namespace_arg,
@@ -177,4 +191,6 @@ def generate_launch_description():
         rviz_cmd,
         led_cmd,
         navigation_cmd,
+        ar_tag,
+        nova_ar_tag,
     ])
