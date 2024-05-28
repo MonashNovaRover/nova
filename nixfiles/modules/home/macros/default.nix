@@ -85,6 +85,11 @@ in
             # Nano v Vim
             set_vim = "export EDITOR=vim";
             set_nano = "export EDITOR=nano";
+
+            # ROS Discovery Server
+            base_dds_client = "FASTRTPS_DEFAULT_PROFILES_FILE=${./base_client_configuration.xml}";
+            rover_dds_client = "FASTRTPS_DEFAULT_PROFILES_FILE=${./rover_client_configuration.xml}";
+            base_pi_dds_client = "FASTRTPS_DEFAULT_PROFILES_FILE=${./base_pi_client_configuration.xml}";
           }
         ];
 
