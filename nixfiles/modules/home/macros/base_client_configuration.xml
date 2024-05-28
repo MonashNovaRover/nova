@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <dds>
     <profiles xmlns="http://www.eprosima.com">
-        <participant profile_name="super_client_profile" is_default_profile="true">
+        <participant profile_name="base_client_profile" is_default_profile="true">
             <rtps>
                 <builtin>
                     <discovery_config>
@@ -18,16 +18,6 @@
                                 </metatrafficUnicastLocatorList>
                             </RemoteServer>
                             <RemoteServer prefix="44.53.01.5f.45.50.52.4f.53.49.4d.41">
-                                <metatrafficUnicastLocatorList>
-                                    <locator>
-                                        <udpv4>
-                                            <address>10.0.0.150</address>
-                                            <port>11811</port>
-                                        </udpv4>
-                                    </locator>
-                                </metatrafficUnicastLocatorList>
-                            </RemoteServer>
-                            <RemoteServer prefix="44.53.02.5f.45.50.52.4f.53.49.4d.41">
                                 <metatrafficUnicastLocatorList>
                                     <locator>
                                         <udpv4>
