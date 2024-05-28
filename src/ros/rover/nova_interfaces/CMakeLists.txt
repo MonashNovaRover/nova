@@ -43,6 +43,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/NIRProbeData.msg"
   "msg/RoverPoseGPS.msg"
   "msg/SpectrometerData.msg"
+  "msg/UVVisSpecData.msg"
   "msg/RamanSpectrum.msg"
   "msg/RamanState.msg"
 

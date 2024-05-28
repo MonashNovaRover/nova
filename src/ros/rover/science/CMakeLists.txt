@@ -64,6 +64,11 @@ install(PROGRAMS
   science/urc_auger.py
   science/urc_sample_tray.py
   science/urc_pumps.py
+  science/urc_carousel.py
+  science/uv_vis_spec.py
+  science/raman_spec_server.py
+  science/theta360cam.py
+  science/raman_mech_server.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

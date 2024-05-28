@@ -69,6 +69,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/GpsOffset.srv"
   "srv/MoveMicroscopeServo.srv"
   "srv/SetNIRProbeLED.srv"
+  "srv/RamanSpec.srv"
 
         # Action definitions
   DEPENDENCIES std_msgs geometry_msgs nav_msgs trajectory_msgs
