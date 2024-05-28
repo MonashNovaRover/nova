@@ -35,6 +35,12 @@ let
       inherit (revisions.nix-ros-overlay) rev hash;
     };
     patches = [
+      # buildEnv: Disable redundant fixup operations
+      # https://github.com/lopsided98/nix-ros-overlay/pull/335
+      (pkgs.fetchpatch {
+        url = "https://github.com/lopsided98/nix-ros-overlay/commit/cb54e58da421397892d8f82e52949af239098ca0.patch";
+        hash = "sha256-f0LpoJ2Waywv/AdptUCzAIh2Rvas8sipgboOkTHEViA=";
+      })
     ];
   });
 
