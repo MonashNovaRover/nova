@@ -159,7 +159,7 @@ local_costmap:
       footprint: "[[0.57, 0.45], [0.57, -0.45], [-0.57, -0.45], [-0.57, 0.45]]"
       footprint_padding: 0.1
       track_unknown_space: False
-      plugins: ["plane_mapper_layer", "height_mapper_layer", "inflation_layer"]
+      plugins: ["plane_mapper_layer", "height_mapper_layer", "denoise_layer", "inflation_layer"]
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 3.0
@@ -207,7 +207,7 @@ local_costmap:
       denoise_layer:
         plugin: "nav2_costmap_2d::DenoiseLayer"
         enabled: false
-        minimal_group_size: 2
+        minimal_group_size: 3
         group_connectivity_type: 8
       always_send_full_costmap: False
 

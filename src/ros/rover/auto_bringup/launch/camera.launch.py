@@ -59,7 +59,7 @@ def launch_setup(context, *args, **kwargs):
             remappings=[('/depth/image', name+'/stereo/image_raw'),
                         ('/depth/image_filtered', name+'/stereo/image_filtered'),
                         ],
-            parameters=[{'t_filter': 0, 'r_filter': 0, 'b_filter': 0, 'l_filter': 0, }] 
+            parameters=[{'t_filter': 0, 'r_filter': 0, 'b_filter': 75, 'l_filter': 0, }] 
         ),
 
         Node(

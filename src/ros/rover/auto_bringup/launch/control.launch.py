@@ -112,7 +112,7 @@ def generate_launch_description():
         urdf_launch_cmd,
         control_node,
         pivot_drive_controller,
-        strafe_controller,
-        nova_diff_drive_controller,
+        #strafe_controller,
+        #nova_diff_drive_controller,
         joint_broad,
     ])
