@@ -10,6 +10,8 @@ import {
   IRosNovaInterfacesKilnCommandResponse,
   IRosNovaInterfacesSetNirProbeLedRequest,
   IRosNovaInterfacesSetNirProbeLedResponse,
+  IRosNovaInterfacesRamanSpecRequest,
+  IRosNovaInterfacesRamanSpecResponse,
   IRosNovaInterfacesRamanMechRequest,
   IRosNovaInterfacesRamanMechResponse,
   IRosCameraMsgsGetIpListResponse,
