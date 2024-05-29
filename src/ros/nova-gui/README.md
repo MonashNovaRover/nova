@@ -73,7 +73,7 @@ For Developing Nova-GUI, the reccomended method of development is using `nova-sh
    ros2 launch rosbridge_server rosbridge_websocket_launch.xml
    ```
 
-4. Maps (OPTIONAL)
+4. Offline Maps (OPTIONAL)
    On separate terminal
 
    ```sh
@@ -87,7 +87,7 @@ For Developing Nova-GUI, the reccomended method of development is using `nova-sh
    npm install -g --prefix ~/.npm-global tileserver-gl
    
    # Run tileserver
-   ~/.npm-global/bin/tileserver-gl
+   ~/.npm-global/bin/tileserver-gl --file <path to tiles>/MDRS_HI_Res.mbtiles
    ```
 
-   You wil also need the offline tiles for URC which are available here: \<INSERT HERE>
+   You will need the offline tiles for URC which are available [here](https://drive.google.com/drive/folders/18x0F8ZD5EzfDROY0BhEAxmZ71OYd6H4y?usp=drive_link).
