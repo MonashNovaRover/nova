@@ -33,14 +33,14 @@ from rclpy.duration import Duration
 
 
 class GimbalCam(Node):
-    CAMERA0 = 0
-    CAMERA1 = 1
-    JOYSTICK = 0
+    CHASSIS_CAM = 0
+    ARM_CAM = 1
     KEYBOARD = 1
     def __init__(self):
         super().__init__("gimbal_cam")
 
         self.get_logger().set_level(logging.INFO)
+        self.param_enable_chassis_cam = self.decalre_parameter("chassis_cam", False).value
         self.param_do_pwm = self.declare_parameter("do_pwm", True).value
         self.param_velocity_steps = self.declare_parameter("velocity_steps", 10).value
         self.max_velocity_cmd = self.declare_parameter("max_velocity_cmd", 127).value
@@ -48,7 +48,8 @@ class GimbalCam(Node):
                                                            self.max_velocity_cmd
         self.velocity_increment = 1/self.param_velocity_steps
         # can commands for gimbal cam
-        self.velocity_cmd = 0x081
+        self.arm_velocity_cmd = 0x081
+        self.chassis_velocity_cmd = 0x0A1
         self.velocity = 0.5
         self.x_velocity = 0
         self.y_velocity = 0
@@ -66,11 +67,11 @@ class GimbalCam(Node):
 
 
         # CAN buses
-        self.cam_select = 0
-        self.cam0_bus = jcan.Bus()
-        self.cam0_bus.open('can0')
-        self.cam1_bus = jcan.Bus()
-        self.cam1_bus.open("can1")
+        self.cam_select = self.ARM_CAM # default to arm, as chassis cam may be disabled
+        self.chassis_cam = jcan.Bus()
+        self.chassis_cam.open('can0')
+        self.arm_cam = jcan.Bus()
+        self.arm_cam.open("can1")
         self.timer_jcan = self.create_timer(0.05, self.callback_send_can_commands)
 
     def callback_send_can_commands(self):
@@ -78,11 +79,12 @@ class GimbalCam(Node):
         Sends can commands for scraper scoop, scraper arm and tile placer together
         """
         # The list of values will be cast to uint8's by JCAN library - so be careful to double check the values!
-        cmd_frame = jcan.Frame(self.velocity_cmd, self.get_can_data())
-        if self.cam_select == self.CAMERA0:
-            self.cam0_bus.send(cmd_frame)
+        cmd = self.arm_velocity_cmd if self.cam_select == self.ARM_CAM else self.chassis_velocity_cmd
+        cmd_frame = jcan.Frame(cmd, self.get_can_data())
+        if self.cam_select == self.CHASSIS_CAM:
+            self.chassis_cam.send(cmd_frame)
         else:
-            self.cam1_bus.send(cmd_frame)
+            self.arm_cam.send(cmd_frame)
 
     def deadline_callback(self, info):
         # Set all speeds to 0
@@ -103,12 +105,15 @@ class GimbalCam(Node):
 
         if self.device_choice == self.JOYSTICK:
             # This key is also used for enable joint limits
-            if joystick_l.btn_bottom_l3_state == 1:
-                self.cam_select = self.CAMERA0
-                self.get_logger().info("Camera 0 Selected")
-            elif joystick_l.btn_bottom_l6_state == 1:
-                self.cam_select = self.CAMERA1
-                self.get_logger().info("Camera 1 Selected")
+            if self.param_enable_chassis_cam:
+                if joystick_l.btn_bottom_l3_state == 1:
+                    self.cam_select = self.CHASSIS_CAM
+                    self.get_logger().info("Chassis Camera Selected")
+                elif joystick_l.btn_bottom_l6_state == 1:
+                    self.cam_select = self.ARM_CAM
+                    self.get_logger().info("Arm Camera Selected")
+            elif joystick_l.btn_bottom_l3_state == 1:
+                self.get_logger().info("Cannot switch, Chassis Camera disabled")
             #set the velocity factor
             if joystick_l.btn_bottom_r1_state == 1:
                 self.velocity = max(self.velocity - self.velocity_increment, 0)
@@ -153,13 +158,16 @@ class GimbalCam(Node):
                 self.get_logger().info("Swapped to Joystick Control")
                 self.device_choice = self.JOYSTICK
         if self.device_choice == self.KEYBOARD:
-            # Change between the cameras using alt(0) and alt(1)
-            if GimbalCam.alt(SDL_SCANCODE_0) in keyboard.keys_pressed:
-                self.cam_select = self.CAMERA0
-                self.get_logger().info("Camera 0 Selected")
-            elif GimbalCam.alt(SDL_SCANCODE_1) in keyboard.keys_pressed:
-                self.cam_select = self.CAMERA1
-                self.get_logger().info("Camera 1 Selected")
+            if self.param_enable_chassis_cam:
+                # Change between the cameras using alt(0) and alt(1)
+                if GimbalCam.alt(SDL_SCANCODE_0) in keyboard.keys_pressed:
+                    self.cam_select = self.CHASSIS_CAM
+                    self.get_logger().info("Chassis Camera Selected")
+                elif GimbalCam.alt(SDL_SCANCODE_1) in keyboard.keys_pressed:
+                    self.cam_select = self.ARM_CAM
+                    self.get_logger().info("Arm Camera Selected")
+            elif GimbalCam.alt(SDL_SCANCODE_0) in keyboard.keys_pressed:
+                self.get_logger().info("Cannot switch, Chassis Camera disabled")
             #set the velocity factor
             if GimbalCam.ctrl(SDL_SCANCODE_DOWN) in keyboard.keys_pressed:
                 self.velocity = max(self.velocity - self.velocity_increment, 0)
