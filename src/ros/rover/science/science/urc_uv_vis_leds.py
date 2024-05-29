@@ -23,8 +23,7 @@ class URCUVVisLeds(ControllerNode):
 
     # RECIEVING CARD IDS
     # Add any CONTROL FRAME / CARD IDS here
-    LED_1_RECV_FRAME_ID = 0x451
-    LED_2_RECV_FRAME_ID = 0x451
+    LED_RECV_FRAME_ID = 0x451
 
     # RECV COMMAND IDS
     # Add any SENSOR command ids here
@@ -54,23 +53,25 @@ class URCUVVisLeds(ControllerNode):
     LED_2_COMMAND_ON = 0x05
     LED_2_COMMAND_OFF = 0x06
 
-    TIMEOUT = 4.0
+    TIMEOUT = 2.0
 
     def __init__(self):
         super(URCUVVisLeds, self).__init__(name="URCUVVisLeds", can_bus=self.CAN_BUS)
         logger = self.get_logger()
 
+        self.bus.set_id_filter([self.LED_RECV_FRAME_ID])
+
 
         # Create publishers
         self.create_service(SetBool, self.LED_1_SERVICE, self.led_1_callback)
-        self.create_service(SetBool, self.LED_2_SERVICE, self.led_1_callback)
+        self.create_service(SetBool, self.LED_2_SERVICE, self.led_2_callback)
  
 
         # Create Sensors
         self.led_1_sensor = ToggleCommandSensor(
             logger=logger,
             bus=self.bus,
-            frame_id=self.LED_1_RECV_FRAME_ID,
+            frame_id=self.LED_RECV_FRAME_ID,
             state_id_on=self.LED_ON_ID,
             state_id_off=self.LED_OFF_ID,
             control_id=self.LED_1_COMMAND,
@@ -79,7 +80,7 @@ class URCUVVisLeds(ControllerNode):
         self.led_2_sensor = ToggleCommandSensor(
             logger=logger,
             bus=self.bus,
-            frame_id=self.LED_2_RECV_FRAME_ID,
+            frame_id=self.LED_RECV_FRAME_ID,
             state_id_on=self.LED_ON_ID,
             state_id_off=self.LED_OFF_ID,
             control_id=self.LED_2_COMMAND,
@@ -116,14 +117,12 @@ class URCUVVisLeds(ControllerNode):
             toggle_command_off=self.LED_2_COMMAND_OFF,
         )
 
-        ## Add the controllers to the node's of controllers
-        self.add_controller(self.LED_1_NAME, self.led_1_controller)
-        self.add_controller(self.LED_2_NAME, self.led_2_controller)
-
         ## Start the CAN busget_name
         self.start_can()
 
-    def led_callback(self, request, response, control, sensor, control_name):
+    def led_callback(self, request, response, controller: ToggleController, sensor: ToggleCommandSensor, control_name: str):
+        self.get_logger().info("LED Callback: {0}".format(request.data))
+        control = controller.get_control()
         try:
             if request.data:
                 control.start()
@@ -131,9 +130,16 @@ class URCUVVisLeds(ControllerNode):
             else:
                 control.stop()
                 response.message = "{0} Stopped".format(control_name) 
+         
   
             start = time.time()
             while time.time() - start < self.TIMEOUT and not sensor.get_sensor_value() == request.data:
+                try:
+                    controller.control_send_callback()
+                    frame = self.bus.receive_with_timeout(200)
+                    sensor.callback_function(frame)
+                except OSError as _:
+                    pass
                 time.sleep(0.1)
 
             if sensor.get_sensor_value() == request.data:
@@ -146,19 +152,20 @@ class URCUVVisLeds(ControllerNode):
             self.get_logger().error("Error in led_callback: {0}".format(e))
             response.success = False
             response.message = str(e)
+        self.get_logger().info("LED Callback Response: {0}".format(response))
         return response
     
     def led_1_callback(self, request, response):
-        self.led_callback(request, response, self.led_1, self.led_1_sensor, "LED 1")
+        return self.led_callback(request, response, self.led_1_controller, self.led_1_sensor, "LED 1")
 
-    def led_1_callback(self, request, response):
-        self.led_callback(request, response, self.led_2, self.led_2_sensor, "LED 2")
+    def led_2_callback(self, request, response):
+        return self.led_callback(request, response, self.led_2_controller, self.led_2_sensor, "LED 2")
         
             
 def main():
     rclpy.init()
     node = URCUVVisLeds()
-    rclpy.spin(node, executor=MultiThreadedExecutor())
+    rclpy.spin(node)
     rclpy.shutdown()
 
 

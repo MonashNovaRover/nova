@@ -4,7 +4,7 @@ from python_control.sensors.Sensor import Sensor
 from logging import Logger
 import jcan
 
-class CommandSensor(Sensor[bool]):
+class ToggleCommandSensor(Sensor[bool]):
     """Class to represent a limit switch sensor"""
     def __init__(
             self, 
