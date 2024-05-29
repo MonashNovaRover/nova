@@ -35,6 +35,7 @@ from rclpy.duration import Duration
 class GimbalCam(Node):
     CHASSIS_CAM = 0
     ARM_CAM = 1
+    JOYSTICK = 0
     KEYBOARD = 1
     def __init__(self):
         super().__init__("gimbal_cam")
@@ -65,11 +66,12 @@ class GimbalCam(Node):
         self.keyboard_sub = self.create_subscription(InputKeyboard, "/inputs/input_keyboard",
                                                      self.keyboard_callback, self.qos, event_callbacks=events)
 
-
+        self.joystick_connected = False
         # CAN buses
         self.cam_select = self.ARM_CAM # default to arm, as chassis cam may be disabled
-        self.chassis_cam = jcan.Bus()
-        self.chassis_cam.open('can0')
+        if self.param_enable_chassis_cam:
+            self.chassis_cam = jcan.Bus()
+            self.chassis_cam.open('can0')
         self.arm_cam = jcan.Bus()
         self.arm_cam.open("can1")
         self.timer_jcan = self.create_timer(0.05, self.callback_send_can_commands)
@@ -98,6 +100,7 @@ class GimbalCam(Node):
         :return: None
         """
         joystick_l = msg
+        self.joystick_connected = joystick_l.connected
         # Joysticks lock if botton L2 button is pressed on the left joystick
         if self.device_choice != self.KEYBOARD and joystick_l.btn_bottom_l2_state >= 1:
             self.get_logger().info("Swapped to Keyboard Control")
@@ -151,9 +154,8 @@ class GimbalCam(Node):
         SDL_SCANCODE_0 = 39
         
         keyboard = msg
-        
-        # toggle the lock with ctrl(L)
-        if GimbalCam.ctrl(SDL_SCANCODE_0) in keyboard.keys_pressed:
+        # toggle the lock with ctrl(L), and swap to joystick control with ctrl(0)
+        if GimbalCam.ctrl(SDL_SCANCODE_0) in keyboard.keys_pressed and self.joystick_connected:
             if self.device_choice == self.KEYBOARD:
                 self.get_logger().info("Swapped to Joystick Control")
                 self.device_choice = self.JOYSTICK
