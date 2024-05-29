@@ -25,6 +25,7 @@ const URCScienceView: React.FC = () => {
       <WheelTelemetryWidget className="row-start-2 w-full col-span-2"/>
       <DriveSpeedWidget className="row-start-3 col-start-5 w-full col-span-2 row-span-1"/>
       <GenericSetBoolWidget className="row-start-4 w-full col-span-1 row-span-1" label="Cache" service={RosService.CACHE}/>
+      <GenericSetBoolWidget className="row-start-4 w-full col-span-1 row-span-1" label="Heater" service={RosService.HEATER}/>
     </div>
   );
 };
