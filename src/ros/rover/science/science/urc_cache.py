@@ -8,7 +8,7 @@ from python_control.controllers.ToggleController import ToggleController
 from python_control.controls.ToggleControl import ToggleControl
 
 
-class Cache(ControllerNode):
+class URCCache(ControllerNode):
     # CAN BUS NAME
     # The name of the CAN bus to use
     CAN_BUS = "can1"
@@ -26,7 +26,7 @@ class Cache(ControllerNode):
     CACHE_SEND_CLOSE = 0x06
 
     def __init__(self):
-        super().__init__(name="cache", can_bus=self.CAN_BUS)
+        super().__init__(name="urc_cache", can_bus=self.CAN_BUS)
         logger = self.get_logger()
 
         self.cache_control = ToggleControl(logger=logger, on=False)
@@ -59,7 +59,7 @@ class Cache(ControllerNode):
 
 def main():
     rclpy.init()
-    node = Cache()
+    node = URCCache()
     rclpy.spin(node)
     rclpy.shutdown()
 

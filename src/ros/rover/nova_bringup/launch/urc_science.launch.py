@@ -49,7 +49,7 @@ def generate_launch_description():
             package='science', executable='urc_theta_360_cam.py', output='screen', emulate_tty=True),
 
         Node(
-            package='science', executable='cache.py', output='screen', emulate_tty=True),
+            package='science', executable='urc_cache.py', output='screen', emulate_tty=True),
 
         Node(
             package='science', executable='urc_heater.py', output='screen', emulate_tty=True),

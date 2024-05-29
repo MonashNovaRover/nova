@@ -58,7 +58,6 @@ install(PROGRAMS
   science/nir_probe_publisher.py
   science/auger.py
   science/analysis_platform.py
-  science/cache.py
   science/raman_spec_server.py
   science/urc_analysis_arm.py
   science/urc_auger.py
@@ -67,6 +66,7 @@ install(PROGRAMS
   science/urc_carousel.py
   science/uv_vis_spec.py
   science/raman_mech_server.py
+  science/urc_cache.py
   science/urc_heater.py
   science/urc_hydraprobe.py
   science/urc_theta_360_cam.py
