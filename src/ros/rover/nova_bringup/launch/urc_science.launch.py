@@ -48,6 +48,9 @@ def generate_launch_description():
         Node(
             package='science', executable='urc_theta_360_cam.py', output='screen', emulate_tty=True),
 
+        Node(
+            package='science', executable='cache.py', output='screen', emulate_tty=True),
+
         # Node(
         #     package='science', executable='uv_vis_spec.py', output='screen', emulate_tty=True),
 
