@@ -6,7 +6,6 @@ from python_control.sensors.IntegerSensor import IntegerSensor
 from python_control.sensors.CommandSensor import CommandSensor
 from python_control.ControllerNode import ControllerNode
 import rclpy
-from input_interfaces.msg import InputJoystick
 from rclpy.action import ActionServer
 from rclpy.executors import MultiThreadedExecutor
 from nova_interfaces.action import Stepper

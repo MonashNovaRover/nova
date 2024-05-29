@@ -87,7 +87,7 @@ class URCMixers(ControllerNode):
             if request.data:
                 self.mixer_1.update_velocity(1.0)
                 self.mixer_2.update_velocity(1.0)
-                response.message = "Mixers STarted"  
+                response.message = "Mixers Started"  
             else:
                 self.mixer_1.update_velocity(0.0)
                 self.mixer_2.update_velocity(0.0)
