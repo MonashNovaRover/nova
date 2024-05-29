@@ -1,4 +1,4 @@
-import { RouteObject } from "react-router-dom";
+import {Navigate, RouteObject} from "react-router-dom";
 import ARCExcavationConstructionView from "../views/arc/ARCEscavationConstructionView";
 import ARCAutonomousView from "../views/arc/ARCMappingAutonomous";
 import ARCPostLandingView from "../views/arc/ARCPostLandingView";
@@ -139,6 +139,10 @@ export const routes: RouteObject[] = [
     path: "/",
     element: <Root />,
     children: [
+      {
+        path: "/",
+        element: <Navigate to="/urc" />,
+      },
       {
         path: "/arc",
         children: arcRoutes,
