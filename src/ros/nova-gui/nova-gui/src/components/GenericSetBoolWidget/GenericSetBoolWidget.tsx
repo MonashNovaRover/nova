@@ -2,9 +2,9 @@ import React, {useEffect, useState} from "react";
 import {useBifrost} from "../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosService} from "../../ros/services/rosService.ts";
 import {IRosStdSrvsSetBoolResponse} from "../../ros/rosTypes.ts";
-import {Card, CardBody, CardHeader, Switch} from "@nextui-org/react";
+import {Card, CardBody, CardHeader, CardProps, Switch} from "@nextui-org/react";
 
-export interface GenericSetBoolWidgetProps {
+export interface GenericSetBoolWidgetProps extends CardProps {
   label?: string
   service: RosService
 }
@@ -28,7 +28,7 @@ const GenericSetBoolWidget: React.FC<GenericSetBoolWidgetProps> = (props) => {
     });
   }
 
-  return <Card>
+  return <Card {...props}>
     <CardHeader>{props.label ?? props.service}</CardHeader>
     <CardBody>
       <Switch isSelected={isOn} onChange={() => changeValue(!isOn)}/>
