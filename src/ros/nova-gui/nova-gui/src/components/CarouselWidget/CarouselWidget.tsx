@@ -115,7 +115,7 @@ const CarouselWidget: React.FC<CarouselWidgetProps> = (props) => {
 
   const ledRow = (
     <div className="flex flex-row gap-5">
-      <div className="my-3">
+      <div>
         <div className="font-bold">LED 1 (Top)</div>
         <Switch 
           className="mt-1.5 mx-1.5" 
@@ -123,7 +123,7 @@ const CarouselWidget: React.FC<CarouselWidgetProps> = (props) => {
           onChange={() => changeLED1(!LED1)}
         />
       </div>
-      <div className="my-3">
+      <div>
         <div className="font-bold">LED 2 (Bottom)</div>
         <Switch 
           className="mt-1.5 mx-1.5" 
@@ -173,18 +173,19 @@ const CarouselWidget: React.FC<CarouselWidgetProps> = (props) => {
         <div className="flex-grow">Carousel</div>
       </CardHeader>
       <CardBody>
-   
-        <StepperWidget 
-          rosActionType={RosAction.CAROUSEL_ACTION}
-          locations={cuvettes}
-          targetLocationIndex={selectedCuvetteIndex}
-          setTargetLocationIndex={setSelectedCuvetteIndex}
-          setDisableSelector={setDisableSelector}
-          canSet>
-          {cuvettePicker}
-          {instrumentPicker}
-        </StepperWidget>
-        {ledRow}
+        <div className="flex flex-col mb-2 mt-2">
+          <StepperWidget 
+            rosActionType={RosAction.CAROUSEL_ACTION}
+            locations={cuvettes}
+            targetLocationIndex={selectedCuvetteIndex}
+            setTargetLocationIndex={setSelectedCuvetteIndex}
+            setDisableSelector={setDisableSelector}
+            canSet>
+            {cuvettePicker}
+            {instrumentPicker}
+          </StepperWidget>
+          {ledRow}
+        </div>
       </CardBody>
 
     </Card>
