@@ -10,13 +10,17 @@ CREATION:    2/05/2024
 EDITED:      2/05/2024
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
+import typing
+
+import camera_msgs.msg
 import rclpy
+from camera_msgs.msg import Camera, Cameras
+from rclpy import qos
 from rclpy.node import Node
 import cv2
 import math
 from typing import List
 from nova_interfaces.msg import UVVisSpecData
-from camera_msgs.msg._cameras import Cameras
 
 
 def rgb_to_luminance(rgb: [int, int, int]) -> float:
@@ -43,8 +47,6 @@ class UVVisSpecPublisher(Node):
         # ./result/bin/ros2 run science uv_vis_spec.py --ros-args -p period:=0.0166666666 -p col_start:=0.425 -p col_end:=0.7 -p row:=0.45 -p range:=0.1 -p port:=
 
         # declare parameters
-        # The port to use to access the spectroscope webcam
-        self.declare_parameter("port", 0)
         # The row to use when sampling the image, from 0 to 1
         self.__row = self.declare_parameter("row", 0.55)
         # Specifies the size of the range of pixels to vertically average to get a reading
@@ -57,13 +59,42 @@ class UVVisSpecPublisher(Node):
         self.__col_end = self.declare_parameter("col_end", 0.95)
 
         # Try get the camera
-        self.camera = cv2.VideoCapture(self.get_parameter("port").value)
+        self.__timer = None
+        self.camera = None
 
+        self.get_logger().info("Waiting for camera directory service...")
+        self.__camera_list_subscription = self.create_subscription(
+            camera_msgs.msg.Cameras,
+            "camera_directory/cameras",
+            self.__begin,
+            qos.QoSProfile(
+                history=qos.HistoryPolicy.KEEP_LAST,
+                depth=1,
+                reliability=qos.ReliabilityPolicy.RELIABLE,
+                durability=qos.DurabilityPolicy.TRANSIENT_LOCAL,
+            ),
+        )
+
+    def __begin(self, cameras: Cameras):
+        if self.camera:
+            return  # TODO: Allow reconnecting the camera
+
+        camera_node = next((typing.cast(Camera, camera).node for camera in cameras.cameras if
+                            typing.cast(Camera, camera).serial == "science_spectroscope"), None)
+        if camera_node:
+            self.get_logger().info(f"uv_vis camera found at {camera_node}.")
+        else:
+            self.get_logger().warn("No uv_vis camera was found. UV Vis Spec. not running.")
+            return
+
+        self.get_logger().info("Beginning UV Vis Spec.")
+
+        self.camera = cv2.VideoCapture(int(camera_node.removeprefix("/dev/video")))  # TODO: Make port selection more robust
         # Only consider 1 frame at a time, as we likely sample the camera slower than it reads pixels
         self.camera.set(cv2.CAP_PROP_BUFFERSIZE, 1)
 
         # Start listening for camera frames
-        self.create_timer(float(self.get_parameter("period").value), self.__get_image)
+        self.__timer = self.create_timer(float(self.get_parameter("period").value), self.__get_image)
 
     def __get_image(self):
         self.camera.grab()
@@ -135,17 +166,3 @@ def main(args=None):
 # Called when the script executes
 if __name__ == "__main__":
     main()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
