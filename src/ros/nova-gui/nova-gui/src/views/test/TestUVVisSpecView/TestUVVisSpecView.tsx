@@ -5,14 +5,12 @@ import {useLocalStorage} from "../../../components/nir-probe/hooks/useLocalStora
 import GenericGraphComparisonWidget, {getUniqueName} from "../../../components/GenericGraphComparisonWidget/GenericGraphComparisonWidget.tsx";
 
 
-
-
-
 const TestUVVisSpecView: React.FC = () => {
   // Saved sets of data
   const [output, setOutputRaw] = useLocalStorage<ApexDataset>("uv-vis-spec-saved-data", []);
   // Sets of data selected for viewing
   const [selectedCharts, setSelectedCharts] = useState<Set<string>>(new Set([]));
+
 
   const setOutput = useCallback((points: number[][], name: string) => {
     const reduction = 4;

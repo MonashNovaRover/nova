@@ -13,6 +13,7 @@ import { RosTopic } from "../../ros/topics/rosTopic";
 import { ChartOptions, ChartStyle } from "../SpectraDisplay/ChartOptions";
 import DataChart from "../SpectraDisplay/DataChart";
 import RamanLocalStorageSaveButton from "./RamanLocalStorageSaveButton.tsx";
+import useDownload from "../../hooks/useDownload.ts";
 
 export interface RamanOutputProps {
     onSave?: (data: number[][], name: string) => void,
@@ -47,6 +48,8 @@ const RamanOutputUnmemoed: React.FC<RamanOutputProps> = (props) => {
         bifrost.syncWithTopic();
     }, [bifrost]);
 
+
+
     const maxOutputValue = useMemo(() => (
       Math.max(...spectrumStore.spectrum)
     ), [spectrumStore.spectrum])
@@ -69,6 +72,14 @@ const RamanOutputUnmemoed: React.FC<RamanOutputProps> = (props) => {
         }]
     }, [STEP_VALUE, greenLaserOutput, ramanMechState.green_laser_on, redLaserOutput]);
 
+    const download = useDownload("raman.csv", () => {
+        const lines = ["wavelength,intensity"];
+        for (let i = 0; i < determinedOutput.length; i++)
+            lines.push(`${determinedOutput[0].data[i][0]},${determinedOutput[0].data[i][1]}`);
+
+        return lines.join('\n');
+    }, [determinedOutput], { type: "text/csv;charset=utf-8" })
+
     // A function called whenever the save button is pressed
     const onSave = useCallback((graphName: string) => {
         // ! I just take the first element of the array. I don't know if this is correct
@@ -81,7 +92,7 @@ const RamanOutputUnmemoed: React.FC<RamanOutputProps> = (props) => {
         <Card className={spectrumStore.isvalid ? "m-2 p-2" : "m-2 p-2 bg-rose-900"}>
             <DataChart dataset={determinedOutput} chartOptions={ChartOptions(ChartStyle.Default)} />
             <CardFooter>
-                <RamanLocalStorageSaveButton onSave={onSave}/>
+                <RamanLocalStorageSaveButton onSave={onSave} onCSVSave={download}/>
             </CardFooter>
         </Card>
     )
