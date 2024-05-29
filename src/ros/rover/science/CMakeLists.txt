@@ -67,6 +67,7 @@ install(PROGRAMS
   science/urc_carousel.py
   science/uv_vis_spec.py
   science/raman_mech_server.py
+  science/urc_heater.py
   science/urc_hydraprobe.py
   science/urc_theta_360_cam.py
   science/urc_bme_sensor.py
