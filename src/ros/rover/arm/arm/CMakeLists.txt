@@ -149,6 +149,8 @@ install(PROGRAMS
         arm/resolver_publisher.py
         arm/zero_resolver_client_terminal.py
         arm/zero_resolver_sector_client_terminal.py
+        arm/hex_key.py
+        arm/lazers.py
         DESTINATION lib/${PROJECT_NAME}
         )
 

@@ -139,7 +139,6 @@ namespace pivot_drive_controller
 
         double target_radius, target_direction, target_speed;
         
-
         double left_angle, right_angle;
 
         if (param_listener_->is_old(params_))
@@ -211,7 +210,7 @@ namespace pivot_drive_controller
             if (age_of_last_command > cmd_vel_timeout_)
             {
                 last_command_msg->drive_input.speed = 0.0;
-                last_command_msg->drive_input.radius = 0.0;
+                last_command_msg->drive_input.radius = INFINITY;
             } 
 
             auto & last_command = previous_commands_.back().drive_input;
@@ -256,13 +255,13 @@ namespace pivot_drive_controller
         int direction;
 
         std::tie(radius, direction) = get_best_effort_radius_direction(target_radius,target_direction);
-        RCLCPP_DEBUG(get_node()->get_logger(), "best_effort radius of %f and direction of %f", radius, direction);
+        //RCLCPP_INFO(get_node()->get_logger(), "best_effort radius of %f and direction of %f", radius, direction);
 
         left_angle = get_pivot_angle_from_radius(radius, true, direction);
         right_angle = get_pivot_angle_from_radius(radius, false, direction);
 
-//        RCLCPP_DEBUG_STREAM(get_node()->get_logger(), "left_angle command: " << left_angle);
-//        RCLCPP_DEBUG_STREAM(get_node()->get_logger(), "right_angle command: " << right_angle);
+        //RCLCPP_INFO(get_node()->get_logger(), "left_angle command: %f", left_angle);
+        //RCLCPP_INFO(get_node()->get_logger(), "right_angle command: %f", right_angle);
 
         registered_left_pivot_handles_.at(0).command.get().set_value(left_angle);
         registered_left_pivot_handles_.at(1).command.get().set_value(-left_angle);

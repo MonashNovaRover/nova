@@ -120,8 +120,8 @@ controller_server:
     general_goal_checker:
       stateful: True
       plugin: "nav2_controller::SimpleGoalChecker"
-      xy_goal_tolerance: 0.25
-      yaw_goal_tolerance: 3.14
+      xy_goal_tolerance: 1.00
+      yaw_goal_tolerance: 0.78
     FollowPath:
       plugin: "nav2_rotation_shim_controller::RotationShimController"
       primary_controller: "dwb_core::DWBLocalPlanner"
@@ -190,7 +190,7 @@ local_costmap:
       resolution: 0.1
       footprint: "[[0.67, 0.55], [0.67, -0.55], [-0.67, -0.55], [-0.67, 0.55]]"
       track_unknown_space: False
-      plugins: ["height_mapper_layer", "inflation_layer"]
+      plugins: ["height_mapper_layer", "denoise_layer", "inflation_layer"]
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 2.0
@@ -238,7 +238,7 @@ local_costmap:
       denoise_layer:
         plugin: "nav2_costmap_2d::DenoiseLayer"
         enabled: false
-        minimal_group_size: 2
+        minimal_group_size: 3
         group_connectivity_type: 8
       always_send_full_costmap: False
 

@@ -42,7 +42,7 @@ class OneAxisPositionControl(Control):
         """Remove a position from the set of available positions"""
         del self.positions[name]
 
-    def go_to_position(self, name: str):
+    def update_position(self, name: str):
         """Go to a specific position"""
         self.position_name = name
 
@@ -68,12 +68,15 @@ class OneAxisPositionControl(Control):
     
     def sensor_callbacks(self, frame):
         """Update the sensor values based on the frame"""
-        self.position_sensor.frame_callback(frame)
-        self.zero_sensor.frame_callback(frame)
+        if self.position_sensor is not None:
+            self.position_sensor.frame_callback(frame)
+        if self.zero_sensor is not None:
+            self.zero_sensor.frame_callback(frame)
 
     def stop(self):
         """Stop the motor"""
-        self.zero_sensor.reset()
+        if self.zero_sensor is not None:
+            self.zero_sensor.reset()
 
 
 

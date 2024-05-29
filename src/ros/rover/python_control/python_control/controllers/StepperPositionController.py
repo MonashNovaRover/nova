@@ -6,10 +6,11 @@ from python_control.controls.OneAxisPositionControl import OneAxisPositionContro
 from python_control.controllers.Controller import Controller
 from python_control.controllers.Card import Card
 from nova_interfaces.action import Stepper
+from rclpy.action import CancelResponse
 
 
 class StepperPositionController(Controller):
-    TIMEOUT = 1000
+    TIMEOUT = 1200
 
     """Class to control the CMD card on the CAN bus"""
     def __init__(
@@ -30,6 +31,7 @@ class StepperPositionController(Controller):
         
         self.zeroing = False
         self.go_to = False
+        self.setting = False
 
     def log_status(self):
         control = self.get_control()
@@ -42,6 +44,7 @@ class StepperPositionController(Controller):
         """Stop the controller"""
         self.zeroing = False
         self.go_to = False
+        self.setting = False
         self.get_control().stop()
 
     def zero(self):
@@ -53,7 +56,12 @@ class StepperPositionController(Controller):
     def go_to_position(self, name: str):
         self.stop()
         self.go_to = True
-        self.get_control().go_to_position(name)
+        self.get_control().update_position(name)
+
+    def set_position(self, name: str):
+        self.stop()
+        self.setting = True
+        self.get_control().update_position(name)
 
 
     def is_zeroing(self):
@@ -61,6 +69,9 @@ class StepperPositionController(Controller):
     
     def is_going_to_position(self):
         return self.go_to
+    
+    def is_setting(self):
+        return self.setting
     
     
     def feedback(self):
@@ -81,7 +92,8 @@ class StepperPositionController(Controller):
         except OSError as _:
             pass
         feedback_msg = self.feedback()
-        goal_handle.publish_feedback(feedback_msg)
+        if not goal_handle.is_cancel_requested:
+            goal_handle.publish_feedback(feedback_msg)
 
     def zeroing_action(self, goal_handle):
         self.get_logger().info('Zeroing Stepper')
@@ -89,6 +101,9 @@ class StepperPositionController(Controller):
 
         i = 0
         while not self.get_control().is_zeroed() and i < self.TIMEOUT:
+            if goal_handle.is_cancel_requested:
+                self.get_logger().info('Canceling Stepper Goal')
+                return False
             self.feedback_loop(goal_handle)
             i += 1
 
@@ -110,6 +125,9 @@ class StepperPositionController(Controller):
         
         i = 0
         while not self.get_control().is_at_position() and i < self.TIMEOUT:
+            if goal_handle.is_cancel_requested:
+                self.get_logger().info('Canceling Stepper Goal')
+                return False
             self.feedback_loop(goal_handle)
             i += 1
 
@@ -124,10 +142,38 @@ class StepperPositionController(Controller):
             self.get_logger().error('Failed to reach position: {0}'.format(goal_name))
 
         return success
+    
+    def setting_position_action(self, goal_handle, goal_name):
+        self.get_logger().info('Setting position: {0}'.format(goal_name))
+        self.set_position(goal_name)
+        
+        i = 0
+        while not self.get_control().is_at_position() and i < self.TIMEOUT:
+            if goal_handle.is_cancel_requested:
+                self.get_logger().info('Canceling Stepper Goal')
+                return False
+            self.feedback_loop(goal_handle)
+            i += 1
 
+        self.log_status()
+
+        success = self.get_control().is_at_position()
+
+        if success:
+            self.get_logger().info('Successfully set position: {0}'.format(goal_name))
+            
+        else:
+            self.get_logger().error('Failed to set position: {0}'.format(goal_name))
+
+        return success
+
+    def stepper_cancel_callback(self, goal_handle):
+        self.get_logger().info('Canceling Stepper Goal')
+        return CancelResponse.ACCEPT
 
     def stepper_action_callback(self, goal_handle):
         goal_name = goal_handle.request.goal
+        action = goal_handle.request.action
         self.get_logger().info('Executing Stepper Goal: {0}'.format(goal_name))
 
         if not self.get_control().valid_position(goal_name):
@@ -138,17 +184,25 @@ class StepperPositionController(Controller):
             return result
 
         success: bool
-        if goal_name == self.get_control().ZERO:
+        if action == goal_handle.request.ZERO:
             success = self.zeroing_action(goal_handle)
-        else:
+        elif action == goal_handle.request.GO_TO:
             success = self.go_to_position_action(goal_handle, goal_name)
+        elif action == goal_handle.request.SET:
+            success = self.setting_position_action(goal_handle, goal_name)
+        else:
+            success = False
+            self.get_logger().error('Invalid action: {0}'.format(action))
 
         self.stop()
 
-        if success:
-            goal_handle.succeed()
+        if not goal_handle.is_cancel_requested:
+            if success:
+                goal_handle.succeed()
+            else:
+                goal_handle.abort()
         else:
-            goal_handle.abort()
+            goal_handle.canceled()
 
         result = Stepper.Result()
         result.success = success
@@ -156,7 +210,7 @@ class StepperPositionController(Controller):
     
     def control_send_callback(self):
         """Send the control frame over the CAN bus"""
-        if self.is_zeroing() or self.is_going_to_position():
+        if self.is_zeroing() or self.is_going_to_position() or self.is_setting():
             super().control_send_callback()
         else:
             self.get_logger().debug("Controller is stopped, not sending frame")

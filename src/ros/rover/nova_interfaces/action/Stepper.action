@@ -1,6 +1,12 @@
 # Request
 # Where to move the motor to
 string goal
+byte action
+
+# Enum for the action
+byte ZERO = 1
+byte GO_TO = 2
+byte SET = 3
 ---
 # Result
 # Whether the motor was able to move to the requested position

@@ -165,4 +165,25 @@ def generate_launch_description():
             condition=IfCondition(sim), 
             emulate_tty=True
         ),
+
+        Node(
+            package='arm', 
+            executable='hex_key.py', 
+            output='screen', 
+            emulate_tty=True
+        ),
+        
+        Node(
+            package='arm',
+            executable='lazers.py',
+            output='screen',
+            emulate_tty=True
+        ),
+
+        Node(
+            package='gimbal_cam', 
+            executable='gimbal_cam', 
+            output='screen', 
+            emulate_tty=True
+        ),
     ])

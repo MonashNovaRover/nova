@@ -11,9 +11,10 @@ class CommandSensor(Sensor[bool]):
             bus: jcan.Bus, 
             logger: Logger, 
             frame_id: hex, 
-            command_id: hex, 
+            command_id: hex,
+            state_id: hex = None,
             initial_value: bool = False,
-            run_can: bool = True
+            run_can: bool = True,
         ):
         super().__init__(
             bus=bus, 
@@ -24,11 +25,20 @@ class CommandSensor(Sensor[bool]):
         )
         # Command ID = 1 Byte, (0x00 - 0xFF)
         self.command_id = command_id # type: hex
+        self.state_id = state_id
 
     def callback_function(self, frame: jcan.Frame):
         """Update the sensor value based on the frame"""
         if frame.data[0] == self.command_id:
-            self.set_sensor_value(True)
+            if self.state_id is not None:
+                if len(frame.data) != 2:
+                    self.get_logger().error("Invalid frame data length")
+                    return
+                elif frame.data[1] == self.state_id:
+                    self.set_sensor_value(True)
+            else:
+                self.set_sensor_value(True)
+        
 
     def reset(self):
         self.set_sensor_value(False)

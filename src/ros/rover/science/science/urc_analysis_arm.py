@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
 
 import rclpy, time
-from python_control.ControllerNode import ControllerNode
+from python_control.JoystickControllerNode import JoystickControllerNode
 from python_control.controllers.CMDVelocityController import CMDVelocityController
 from python_control.controls.OneAxisVelocityControl import OneAxisVelocityControl
 from python_control.controls.Direction import Direction
 from python_control.sensors.RangeSensor import RangeSensor
 from python_control.limits.IntegerLimit import IntegerLimit
-from python_control.limits.LimitSwitchLimit import LimitSwitchLimit
-from python_control.sensors.LimitSwitchSensor import LimitSwitchSensor
 from input_interfaces.msg import InputJoystick
 from sensor_msgs.msg import Range
 
@@ -30,7 +28,7 @@ Right thumb button => Move platform down (small increment) + ignore TOF sensor
 """
 
 
-class AnalysisArm(ControllerNode):
+class AnalysisArm(JoystickControllerNode):
 
     # CAN BUS NAME
     # The name of the CAN bus to use
@@ -38,27 +36,20 @@ class AnalysisArm(ControllerNode):
 
     # SENDING CARD IDS
     # Add any CONTROL FRAME / CARD IDS here
-    CMD_ID = 0x041
+    CMD_ID = 0x032
 
     # RECEIVING CARD IDS
     # Add any SENSOR FRAME / CARD IDS here
-    TOF_FRAME_ID = 0x4A1 
-    LIMIT_SWITCH_FRAME_ID = 0x4A2
+    TOF_FRAME_ID = 0x456 
 
     # CONTROL NAMES
     # Add any CONTROL names here
     PLATFORM_CONTROL_NAME = "platform"
+    TOF_SENSOR_NAME = "tof"
 
     # CONTROL PARAMETERS
     # Max Speed as a Percentage (0.0 to 1.0)
     PLATFORM_MAX_PERCENT = 0.5
-
-    # SENDING COMMAND IDS
-    # Add any CONTROL command ids here
-
-    # RECEIVING COMMAND IDS
-    # Add any SENSOR command ids here
-    LIMIT_SWITCH_COMMAND_ID = 0x01
 
     # CONTROL DIRECTIONS
     # Add any CONTROL DIRECTIONS here
@@ -83,7 +74,7 @@ class AnalysisArm(ControllerNode):
         self.twitch_button_released = True
 
         ## Add CAN ID Filters
-        self.bus.set_id_filter([self.TOF_FRAME_ID, self.LIMIT_SWITCH_FRAME_ID])
+        self.bus.set_id_filter([self.TOF_FRAME_ID])
 
         ## Add Publishers
         self.tof_publisher = self.create_publisher(Range, "/science/analysis_arm", 10)
@@ -100,14 +91,6 @@ class AnalysisArm(ControllerNode):
             run_can=False
         )
 
-        limit_switch_top = LimitSwitchSensor(
-            logger=logger,
-            bus=self.bus,
-            frame_id=self.LIMIT_SWITCH_FRAME_ID,
-            command_id=self.LIMIT_SWITCH_COMMAND_ID,
-            run_can=False
-        )
-
         # Create limits
         platform_bottom_limit = IntegerLimit(
             logger=logger,
@@ -117,18 +100,11 @@ class AnalysisArm(ControllerNode):
             integer_sensor=tof_sensor
         )
 
-        platform_top_limit = LimitSwitchLimit(
-            logger=logger,
-            bus=self.bus,
-            limit_switch=limit_switch_top
-        )
-
         ## Create controls
         self.platform = OneAxisVelocityControl(
             logger=logger,
             max_percent=self.PLATFORM_MAX_PERCENT,
             pos_limit=platform_bottom_limit,
-            neg_limit=platform_top_limit,
         )
 
         ## Create controllers
@@ -138,6 +114,8 @@ class AnalysisArm(ControllerNode):
             frame_id=self.CMD_ID,
             control=self.platform,
         )
+        
+        self.add_sensor(self.TOF_SENSOR_NAME, tof_sensor)
 
         ## Add the controllers to the node's of controllers
         self.add_controller(self.PLATFORM_CONTROL_NAME, self.platform_controller)

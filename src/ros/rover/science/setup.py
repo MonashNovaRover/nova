@@ -20,6 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'raman = science.raman_spec_server:main'
         ],
     },
 )

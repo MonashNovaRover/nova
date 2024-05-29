@@ -6,8 +6,8 @@ from python_control.sensors.IntegerSensor import IntegerSensor
 from python_control.sensors.CommandSensor import CommandSensor
 from python_control.ControllerNode import ControllerNode
 import rclpy
-from input_interfaces.msg import InputJoystick
 from rclpy.action import ActionServer
+from rclpy.executors import MultiThreadedExecutor
 from nova_interfaces.action import Stepper
 
 
@@ -37,12 +37,12 @@ class URCSampleTray(ControllerNode):
 
     # SENDING CARD IDS
     # Add any CONTROL FRAME / CARD IDS here
-    STEPPER_PCB_SEND = 0x006
+    STEPPER_PCB_SEND = 0x060
 
     # RECEIVING CARD IDS
     # Add any SENSOR FRAME / CARD IDS here
-    STEPPER_PCB_RECV_POS = 0x456
-    STEPPER_PCB_RECV_ZERO = 0x406
+    STEPPER_PCB_RECV_POS = 0x465
+    STEPPER_PCB_RECV_ZERO = 0x460
 
 
     # NAMES
@@ -140,22 +140,21 @@ class URCSampleTray(ControllerNode):
         )
 
         # Add Actions
-        self.go_to_action = ActionServer(self, Stepper, self.SAMPLE_TRAY_ACTION, self.sample_tray_controller.stepper_action_callback)
+        self.go_to_action = ActionServer(
+            node=self, 
+            action_type=Stepper, 
+            action_name=self.SAMPLE_TRAY_ACTION, 
+            execute_callback=self.sample_tray_controller.stepper_action_callback, 
+            cancel_callback=self.sample_tray_controller.stepper_cancel_callback,
+        )
 
         ## Start the CAN bus
         self.start_can()
 
-
-    def joystick_l(self, joystick_l: InputJoystick):
-        pass
-
-    def joystick_r(self, joystick_r: InputJoystick):
-        pass
-
 def main():
     rclpy.init()
     node = URCSampleTray()
-    rclpy.spin(node)
+    rclpy.spin(node, executor=MultiThreadedExecutor())
     rclpy.shutdown()
 
 
