@@ -201,6 +201,13 @@ export const rootReducer = {
       dielectric: 0
     } as IRosNovaInterfacesHydraprobeData
   ),
+  bmeSensorStore: createBifrostStore(
+    { topic: RosTopic.BME_SENSOR},
+    {
+      temperature: 0,
+      humidity: 0,
+    }
+  ),
 
 
   // Regular Stores

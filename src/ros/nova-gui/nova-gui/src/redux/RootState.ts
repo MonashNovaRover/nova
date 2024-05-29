@@ -21,6 +21,7 @@ import {
   IRosSensorMsgsCompressedImage,
   IRosNovaInterfacesHydraprobeData,
   IRosStdSrvsSetBoolResponse,
+  IRosNovaInterfacesBmeSensor,
 } from "../ros/rosTypes";
 
 import { BifrostStatus } from "./models/bifrost/BifrostTypes";
@@ -68,5 +69,6 @@ export interface RootState {
   ramanMechServiceStore: IRosNovaInterfacesRamanMechResponse;
   hydraprobeData: IRosNovaInterfacesHydraprobeData;
   theta360CamStore: IRosSensorMsgsCompressedImage;
+  bmeSensorStore: IRosNovaInterfacesBmeSensor;
 
 }

@@ -4,6 +4,7 @@ import HydroprobeWidget from "../../components/HydroprobeWidget/HydroprobeWidget
 import CarouselWidget from "../../components/CarouselWidget/CarouselWidget";
 import TOFHeight from "../../components/AnalysisPlatformHeight/AnalysisPlatformHeight";
 import PumpsWidget from "../../components/PumpsWidget/PumpsWidget";
+import BMESensor from "../../components/BMESensor/BMESensor";
 
 
 const URCScienceView: React.FC = () => {
@@ -11,10 +12,10 @@ const URCScienceView: React.FC = () => {
     <div className="grid w-full gap-3 p-3 grid-cols-6">
       <HydroprobeWidget className="row-start-1 w-full col-span-2" />
       <TOFHeight className="row-start-1 w-full col-span-1"/>
+      <BMESensor className="row-start-1 w-full col-span-1"/>
       <PlatformWidget className="row-start-2 w-full col-span-2" />
       <CarouselWidget className="row-start-2 w-full col-span-2"/>
       <PumpsWidget className="row-start-3 w-full col-span-2"/>
-     
     </div>
   );
 };
