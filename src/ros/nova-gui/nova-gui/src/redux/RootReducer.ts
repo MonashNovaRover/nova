@@ -180,12 +180,18 @@ export const rootReducer = {
     { topic: RosTopic.UV_VIS_SPEC },
     { luminance: [0,0,0] }
   ),
-
+  uvVisLED1Store: createBifrostStore(
+    { service: RosService.UV_VIS_LED_1 },
+    { success: true, message: ""},
+  ),
+  uvVisLED2Store: createBifrostStore(
+    { service: RosService.UV_VIS_LED_2 },
+    { success: true, message: ""},
+  ),
   theta360CamStore: createBifrostStore(
     { topic: RosTopic.THETA_360_CAM_IMAGE },
     { data: [], format: "" }
   ),
-
   hydraprobeData: createBifrostStore(
     { topic: RosTopic.HYDRAPROBE_DATA },
     {
@@ -195,6 +201,7 @@ export const rootReducer = {
       dielectric: 0
     } as IRosNovaInterfacesHydraprobeData
   ),
+
 
   // Regular Stores
   uiState: uiSlice.reducer,

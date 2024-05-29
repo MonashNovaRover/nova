@@ -20,6 +20,7 @@ import {
   IRosNovaInterfacesUvVisSpecData,
   IRosSensorMsgsCompressedImage,
   IRosNovaInterfacesHydraprobeData,
+  IRosStdSrvsSetBoolResponse,
 } from "../ros/rosTypes";
 
 import { BifrostStatus } from "./models/bifrost/BifrostTypes";
@@ -57,6 +58,8 @@ export interface RootState {
   kilnData: IRosNovaInterfacesKilnData;
   kilnCommand: IRosNovaInterfacesKilnCommandResponse;
   uvVisSpecStore: IRosNovaInterfacesUvVisSpecData;
+  uvVisLED1Store: IRosStdSrvsSetBoolResponse;
+  uvVisLED2Store: IRosStdSrvsSetBoolResponse;
   microscopeServoStore: IRosNovaInterfacesMicroscopeServoInfo;
   microscopeServiceStore: IRosNovaInterfacesMoveMicroscopeServoResponse;
   ramanSpecServiceStore: IRosNovaInterfacesRamanSpecResponse;

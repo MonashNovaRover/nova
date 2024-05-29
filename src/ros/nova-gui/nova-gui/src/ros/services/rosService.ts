@@ -25,4 +25,6 @@ export enum RosService {
   THETA_360_CAM_CAPTURE = "/science/theta360cam/capture",
   CALL_RAMAN_SPEC = "/science/raman_spec_srv",
   CALL_RAMAN_MECH = "/science/raman_mech_srv",
+  UV_VIS_LED_1 = "/science/uv_vis_led_1",
+  UV_VIS_LED_2 = "/science/uv_vis_led_2",
 }

@@ -10,10 +10,14 @@ import {
   CardHeader, 
   CardProps,
   Select,
-  SelectItem
+  SelectItem,
+  Switch
 } from "@nextui-org/react";
 import { RosAction } from "../../ros/actions/RosAction";
-import StepperWidget from "../PlatformWidget/StepperWidget";
+import StepperWidget from "../StepperWidget/StepperWidget";
+import { useBifrost } from "../../redux/actions/bifrost/useBifrostAction";
+import { RosService } from "../../ros/services/rosService";
+import { IRosStdSrvsSetBoolResponse } from "../../ros/rosTypes";
 
 /**
  * Props for CarouselWidget
@@ -31,6 +35,11 @@ const CarouselWidget: React.FC<CarouselWidgetProps> = (props) => {
   const [ selectedCuvetteIndex, setSelectedCuvetteIndex ] = useState<number>(0);
   const [ disableSelector, setDisableSelector ] = useState<boolean>(true);
   const [ offset, setOffset ] = useState<number>();
+  const [ LED1, setLED1 ] = useState<boolean>(false);
+  const [ LED2, setLED2 ] = useState<boolean>(false);
+
+  const bifrostLed1 = useBifrost({service: RosService.UV_VIS_LED_1});
+  const bifrostLed2 = useBifrost({service: RosService.UV_VIS_LED_2});
 
   // What values should be sent to the ROS node as positions to go to?
   const instruments : { [key: string] : number} ={
@@ -72,6 +81,51 @@ const CarouselWidget: React.FC<CarouselWidgetProps> = (props) => {
     console.log(e.target.value);
     e.target.value ? setOffset(Number(e.target.value)) : setOffset(1);
   }
+
+  const changeLED1 = (value: boolean) => {
+    bifrostLed1.callService({data: value}, {
+      handleResponse: (response) => {
+        const boolResponse = response as IRosStdSrvsSetBoolResponse;
+        if (boolResponse?.success) {
+          setLED1(value);
+        }
+      }, 
+      sendToRedux: true
+    });
+  }
+
+  const changeLED2 = (value: boolean) => {
+    bifrostLed2.callService({data: value}, {
+      handleResponse: (response) => {
+        const boolResponse = response as IRosStdSrvsSetBoolResponse;
+        if (boolResponse?.success) {
+          setLED2(value);
+        }
+      }
+    });
+  }
+
+  const ledRow = (
+    <div className="flex flex-row gap-5">
+      <div className="my-3">
+        <div className="font-bold">LED 1 (Top)</div>
+        <Switch 
+          className="mt-1.5 mx-1.5" 
+          isSelected={LED1}
+          onChange={() => changeLED1(!LED1)}
+        />
+      </div>
+      <div className="my-3">
+        <div className="font-bold">LED 2 (Bottom)</div>
+        <Switch 
+          className="mt-1.5 mx-1.5" 
+          isSelected={LED2}
+          onChange={() => changeLED2(!LED2)}
+        />
+      </div>
+    </div>
+  );
+
 
   // Picker for where to move the selected cuvette to
   const instrumentPicker = (
@@ -122,6 +176,7 @@ const CarouselWidget: React.FC<CarouselWidgetProps> = (props) => {
           {cuvettePicker}
           {instrumentPicker}
         </StepperWidget>
+        {ledRow}
       </CardBody>
 
     </Card>
