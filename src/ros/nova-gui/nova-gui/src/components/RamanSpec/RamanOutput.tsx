@@ -74,7 +74,7 @@ const RamanOutputUnmemoed: React.FC<RamanOutputProps> = (props) => {
 
     const download = useDownload("raman.csv", () => {
         const lines = ["wavelength,intensity"];
-        for (let i = 0; i < determinedOutput.length; i++)
+        for (let i = 0; i < determinedOutput[0].data.length; i++)
             lines.push(`${determinedOutput[0].data[i][0]},${determinedOutput[0].data[i][1]}`);
 
         return lines.join('\n');
