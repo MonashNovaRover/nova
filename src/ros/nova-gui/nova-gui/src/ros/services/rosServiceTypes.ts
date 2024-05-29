@@ -85,4 +85,12 @@ export interface RosServiceInterface {
     IRosNovaInterfacesRamanMechRequest,
     IRosNovaInterfacesRamanMechResponse
   >;
+  [RosService.UV_VIS_LED_1]: RosServiceMessage<
+    IRosStdSrvsSetBoolRequest,
+    IRosStdSrvsSetBoolResponse
+  >;
+  [RosService.UV_VIS_LED_2]: RosServiceMessage<
+    IRosStdSrvsSetBoolRequest,
+    IRosStdSrvsSetBoolResponse
+  >;
 }
