@@ -1,4 +1,4 @@
-import { IRosNovaInterfacesStepperActionFeedback, IRosNovaInterfacesStepperActionGoal, IRosNovaInterfacesStepperActionResult } from "../rosTypes";
+import { IRosNovaInterfacesPumpsActionFeedback, IRosNovaInterfacesPumpsActionGoal, IRosNovaInterfacesPumpsActionResult, IRosNovaInterfacesStepperActionFeedback, IRosNovaInterfacesStepperActionGoal, IRosNovaInterfacesStepperActionResult } from "../rosTypes";
 import { RosAction } from "./RosAction";
 
 export interface RosActionInterface {
@@ -27,5 +27,10 @@ export interface RosActionInterface {
     goal: IRosNovaInterfacesStepperActionGoal;
     goalResponse: IRosNovaInterfacesStepperActionResult;
     feedback: IRosNovaInterfacesStepperActionFeedback;
+  };
+  [RosAction.PUMPS]: {
+    goal: IRosNovaInterfacesPumpsActionGoal;
+    goalResponse: IRosNovaInterfacesPumpsActionResult;
+    feedback: IRosNovaInterfacesPumpsActionFeedback;
   };
 }

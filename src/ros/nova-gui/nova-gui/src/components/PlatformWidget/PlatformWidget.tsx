@@ -66,7 +66,7 @@ const PlatformWidget: React.FC<PlatformWidgetProps> = (props) => {
 
 
   const mixerRow = (
-    <div className="my-3">
+    <div>
       <div className="font-bold">Mixers</div>
       <Switch 
         className="mt-1.5 mx-1.5" 
@@ -83,16 +83,18 @@ const PlatformWidget: React.FC<PlatformWidgetProps> = (props) => {
       Platform
       </CardHeader>
       <CardBody>
-        <StepperWidget 
-          rosActionType={RosAction.SAMPLE_TRAY}
-          locations={SAMPLE_TRAY_LOCATIONS} 
-          targetLocationIndex={targetLocationIndex} 
-          setTargetLocationIndex={setTargetLocationIndex}
-          setDisableSelector={setDisableSelector} 
-          canZero> 
-          {picker}
-        </StepperWidget>
-        {mixerRow}
+        <div className="flex flex-col mb-2 mt-2">
+          <StepperWidget 
+            rosActionType={RosAction.SAMPLE_TRAY}
+            locations={SAMPLE_TRAY_LOCATIONS} 
+            targetLocationIndex={targetLocationIndex} 
+            setTargetLocationIndex={setTargetLocationIndex}
+            setDisableSelector={setDisableSelector} 
+            canZero> 
+            {picker}
+          </StepperWidget>
+          {mixerRow}
+        </div>
       </CardBody>
     </Card>
   )

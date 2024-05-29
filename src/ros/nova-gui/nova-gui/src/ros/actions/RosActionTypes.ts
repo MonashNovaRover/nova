@@ -5,4 +5,5 @@ export const rosActionMessages = {
   [RosAction.FIBONACCI]: "example_interfaces/Fibonacci",
   [RosAction.SAMPLE_TRAY]: "nova_interfaces/action/Stepper",
   [RosAction.CAROUSEL_ACTION]: "nova_interfaces/actions/Stepper",
+  [RosAction.PUMPS]: "nova_interfaces/actions/Pumps",
 };

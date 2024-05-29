@@ -100,8 +100,8 @@ const StepperWidget: React.FC<StepperWidgetProps> = (props) => {
   );
 
   const buttonRow = (
-    <div className="flex flex-col mt-3 gap-5 justify-center">
-      <div className="flex flex-row mt-3 gap-5 justify-center">
+    <div className="flex flex-col mt-2 gap-5 justify-center">
+      <div className="flex flex-row gap-5 justify-center">
         {canZero && <Button color="warning" isDisabled={actionSent} onPress={() => zero()}>Zero Stepper</Button>}
         {canSet && <Button color="warning" onPress={() => set()}>Set Stepper</Button>}
         <Button color="primary" isDisabled={actionSent} onPress={() => prev()}>Prev</Button>
