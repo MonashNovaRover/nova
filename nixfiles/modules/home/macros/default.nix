@@ -87,12 +87,12 @@ in
             set_nano = "export EDITOR=nano";
 
             # ROS Discovery Server
-            base_dds_client = "FASTRTPS_DEFAULT_PROFILES_FILE=${./base_client_configuration.xml}";
-            rover_dds_client = "FASTRTPS_DEFAULT_PROFILES_FILE=${./rover_client_configuration.xml}";
-            base_pi_dds_client = "FASTRTPS_DEFAULT_PROFILES_FILE=${./base_pi_client_configuration.xml}";
-            base_dds_super_client = "FASTRTPS_DEFAULT_PROFILES_FILE=${./base_super_client_configuration.xml}";
-            rover_dds_super_client = "FASTRTPS_DEFAULT_PROFILES_FILE=${./rover_super_client_configuration.xml}";
-            base_pi_dds_super_client = "FASTRTPS_DEFAULT_PROFILES_FILE=${./base_pi_super_client_configuration.xml}";
+            base_dds_client = "FASTRTPS_DEFAULT_PROFILES_FILE=${./ros_discovery/base_client_configuration.xml}";
+            rover_dds_client = "FASTRTPS_DEFAULT_PROFILES_FILE=${./ros_discovery/rover_client_configuration.xml}";
+            base_pi_dds_client = "FASTRTPS_DEFAULT_PROFILES_FILE=${./ros_discovery/base_pi_client_configuration.xml}";
+            base_dds_super_client = "FASTRTPS_DEFAULT_PROFILES_FILE=${./ros_discovery/base_super_client_configuration.xml}";
+            rover_dds_super_client = "FASTRTPS_DEFAULT_PROFILES_FILE=${./ros_discovery/rover_super_client_configuration.xml}";
+            base_pi_dds_super_client = "FASTRTPS_DEFAULT_PROFILES_FILE=${./ros_discovery/base_pi_super_client_configuration.xml}";
           }
         ];
 
