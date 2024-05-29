@@ -38,6 +38,7 @@ def generate_launch_description():
     urdf_path = LaunchConfiguration('urdf_path')
     rover_urdf = LaunchConfiguration('rover_urdf')
     namespace = LaunchConfiguration('namespace')
+    chassis_cam = LaunchConfiguration('chassis_cam')
     
     return LaunchDescription([      
         DeclareLaunchArgument(
@@ -77,6 +78,10 @@ def generate_launch_description():
         DeclareLaunchArgument(
             'namespace', 
             default_value = '',
+        ),
+        DeclareLaunchArgument(
+            'chassis_cam',
+            default_value = 'False'
         ),
 
         IncludeLaunchDescription(
@@ -182,7 +187,8 @@ def generate_launch_description():
 
         Node(
             package='gimbal_cam', 
-            executable='gimbal_cam', 
+            executable='gimbal_cam',
+            parameters=[{'chassis_cam':chassis_cam}],
             output='screen', 
             emulate_tty=True
         ),

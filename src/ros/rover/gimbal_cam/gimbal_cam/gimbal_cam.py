@@ -41,7 +41,7 @@ class GimbalCam(Node):
         super().__init__("gimbal_cam")
 
         self.get_logger().set_level(logging.INFO)
-        self.param_enable_chassis_cam = self.declare_parameter("chassis_cam", False).value
+        self.declare_parameter("chassis_cam", False)
         self.param_do_pwm = self.declare_parameter("do_pwm", True).value
         self.param_velocity_steps = self.declare_parameter("velocity_steps", 10).value
         self.max_velocity_cmd = self.declare_parameter("max_velocity_cmd", 127).value
@@ -69,9 +69,8 @@ class GimbalCam(Node):
         self.joystick_connected = False
         # CAN buses
         self.cam_select = self.ARM_CAM # default to arm, as chassis cam may be disabled
-        if self.param_enable_chassis_cam:
-            self.chassis_cam = jcan.Bus()
-            self.chassis_cam.open('can0')
+        self.chassis_cam = jcan.Bus()
+        self.chassis_cam.open('can0')
         self.arm_cam = jcan.Bus()
         self.arm_cam.open("can1")
         self.timer_jcan = self.create_timer(0.05, self.callback_send_can_commands)
@@ -107,8 +106,7 @@ class GimbalCam(Node):
             self.device_choice = self.KEYBOARD
 
         if self.device_choice == self.JOYSTICK:
-            # This key is also used for enable joint limits
-            if self.param_enable_chassis_cam:
+            if self.get_parameter('chassis_cam').value:
                 if joystick_l.btn_bottom_l3_state == 1:
                     self.cam_select = self.CHASSIS_CAM
                     self.get_logger().info("Chassis Camera Selected")
@@ -160,7 +158,7 @@ class GimbalCam(Node):
                 self.get_logger().info("Swapped to Joystick Control")
                 self.device_choice = self.JOYSTICK
         if self.device_choice == self.KEYBOARD:
-            if self.param_enable_chassis_cam:
+            if self.get_parameter('chassis_cam').value:
                 # Change between the cameras using alt(0) and alt(1)
                 if GimbalCam.alt(SDL_SCANCODE_0) in keyboard.keys_pressed:
                     self.cam_select = self.CHASSIS_CAM
