@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 from logging import Logger
 import jcan
-from python_control.controls.OneAxisVelocityControl import OneAxisVelocityControl
 from python_control.controllers.CMDVelocityController import CMDVelocityController
 from python_control.controls.TimedOneAxisVelocityControl import TimedOneAxisVelocityControl
 import time

@@ -24,6 +24,7 @@ class Lazers(ControllerNode):
 
     # SENDING COMMAND IDS
     # Add any CONTROL command ids here
+    LAZER_SEND_CONTROL_ID = 0x00
     LAZER_SEND_ON = 0x00
 
 
@@ -42,6 +43,7 @@ class Lazers(ControllerNode):
             logger=logger,
             bus=self.bus,
             frame_id=self.LAZERS_SEND_FRAME,
+            control_id=self.LAZER_SEND_CONTROL_ID,
             toggle_command_on=self.LAZER_SEND_ON,
             control=self.lazers_control,
         )
