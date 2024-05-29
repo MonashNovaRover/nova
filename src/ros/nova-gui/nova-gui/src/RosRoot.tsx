@@ -19,7 +19,6 @@ export const RosRoot: React.FC = () => {
         <SettingsModal />
         <ControllerHelpModal />
         <BLCMDStatusModal />
-
         <Toaster />
       </div>
     </RosProvider>

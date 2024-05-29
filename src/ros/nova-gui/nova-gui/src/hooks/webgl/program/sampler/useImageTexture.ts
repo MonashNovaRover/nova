@@ -1,5 +1,4 @@
 import {useLayoutEffect, useRef} from "react";
-import {loadImageFromURL} from "../../../../utils/webgl/loadTexture.ts";
 
 /**
  * A hook, that creates a ref to an image at the given url, and returns the image
@@ -8,8 +7,15 @@ import {loadImageFromURL} from "../../../../utils/webgl/loadTexture.ts";
 export default function useImageTexture(url: string) {
   const image = useRef<HTMLImageElement | undefined>(undefined);
 
+  if (image.current === undefined) {
+    image.current = new Image();
+  }
+
   useLayoutEffect(() => {
-    image.current = loadImageFromURL(url);
+    if (image.current === undefined)
+      return;
+
+    image.current.src = url;
   }, [url]);
 
   return image.current;

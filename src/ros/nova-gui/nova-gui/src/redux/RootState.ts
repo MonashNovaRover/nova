@@ -8,12 +8,22 @@ import {
   IRosNovaInterfacesNirProbeData,
   IRosNovaInterfacesKilnCommandResponse,
   IRosNovaInterfacesKilnData,
+  IRosNovaInterfacesRamanSpecResponse,
+  IRosNovaInterfacesRamanSpectrum,
   IRosBlcmdInterfacesTelemetry,
   IRosStdMsgsString,
   IRosGeometryMsgsPose,
   IRosSensorMsgsRange,
   IRosCmdInterfacesCmDsFeedback,
   IRosSensorMsgsNavSatFix,
+  IRosCmdInterfacesCmDsFeedback,
+  IRosNovaInterfacesRamanState,
+  IRosNovaInterfacesRamanMechResponse,
+  IRosNovaInterfacesUvVisSpecData,
+  IRosSensorMsgsCompressedImage,
+  IRosNovaInterfacesHydraprobeData,
+  IRosStdSrvsSetBoolResponse,
+  IRosNovaInterfacesBmeSensor,
 } from "../ros/rosTypes";
 
 import { BifrostStatus } from "./models/bifrost/BifrostTypes";
@@ -42,19 +52,28 @@ export interface RootState {
   // Error Related Stores
   blcmdStatusStore: IRosBlcmdInterfacesBlcmdStatusArray;
 
+  // Regular Stores
+  uiState: UIState;
+  cameraStreamerState: CameraStreamerState;
+  
   // Science Stores
   tofStore: IRosSensorMsgsRange;
   nirStore: IRosNovaInterfacesNirProbeData;
   kilnData: IRosNovaInterfacesKilnData;
   kilnCommand: IRosNovaInterfacesKilnCommandResponse;
-
-  // Regular Stores
-  uiState: UIState;
-  cameraStreamerState: CameraStreamerState;
-
-  // Science Stores
+  uvVisSpecStore: IRosNovaInterfacesUvVisSpecData;
+  uvVisLED1Store: IRosStdSrvsSetBoolResponse;
+  uvVisLED2Store: IRosStdSrvsSetBoolResponse;
   microscopeServoStore: IRosNovaInterfacesMicroscopeServoInfo;
   microscopeServiceStore: IRosNovaInterfacesMoveMicroscopeServoResponse;
+  ramanSpecServiceStore: IRosNovaInterfacesRamanSpecResponse;
+  ramanSpecMessageStore: IRosNovaInterfacesRamanSpectrum;
+  ramanMechMessageStore: IRosNovaInterfacesRamanState;
+  ramanMechServiceStore: IRosNovaInterfacesRamanMechResponse;
+  hydraprobeData: IRosNovaInterfacesHydraprobeData;
+  theta360CamStore: IRosSensorMsgsCompressedImage;
+  bmeSensorStore: IRosNovaInterfacesBmeSensor;
+
 
   // Maps Related Stores
   autoRoverLocationStore: IRosSensorMsgsNavSatFix;

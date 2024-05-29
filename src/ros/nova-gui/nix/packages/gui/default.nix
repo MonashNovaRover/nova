@@ -1,5 +1,4 @@
 { lib
-, symlinkJoin
 , buildEnv
 , mkYarnPackage
 , rosbridge-server

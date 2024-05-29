@@ -30,10 +30,14 @@ export const rosTopicMessages = {
   [RosTopic.TOF]: "sensor_msgs/msg/Range",
   [RosTopic.KILN_DATA]: "nova_interfaces/msg/KilnData",
   [RosTopic.NIR_DATA]: "nova_interfaces/msg/NIRProbeData",
-  [RosTopic.MICROSCOPE_SERVO]: "nova_interfaces/msg/MicroscopeServoInfo",
-
-  // Maps Related
   [RosTopic.AUTO_ROVER_LOCATION]: "sensor_msgs/msg/NavSatFix",
   [RosTopic.ROVER_LOCATION]: "sensor_msgs/msg/NavSatFix",
   [RosTopic.BASE_LOCATION]: "sensor_msgs/msg/NavSatFix",
+  [RosTopic.MICROSCOPE_SERVO]: "nova_interfaces/msg/MicroscopeServoInfo",
+  [RosTopic.UV_VIS_SPEC]: "nova_interfaces/msg/UVVisSpecData",
+  [RosTopic.THETA_360_CAM_IMAGE]: "sensor_msgs/msg/CompressedImage",
+  [RosTopic.HYDRAPROBE_DATA]: "nova_interfaces/msg/HydraprobeData",
+  [RosTopic.RAMAN_SPEC_MSG]: "nova_interfaces/msg/RamanSpectrum",
+  [RosTopic.RAMAN_MECH_MSG]: "nova_interfaces/msg/RamanState",
+  [RosTopic.BME_SENSOR]: "nova_interfaces/msg/BMESensor",
 };

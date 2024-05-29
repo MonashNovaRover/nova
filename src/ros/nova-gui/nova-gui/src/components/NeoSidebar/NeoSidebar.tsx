@@ -14,6 +14,7 @@ import novaLogo from "../../assets/nova-logo.png";
 import { Aperture, Camera, Home, Image, Map } from "react-feather";
 import { ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import {URCCompModes} from "../../views/shared/CamerasPage/CameraPageConstants.ts";
 
 interface SidebarEntry {
   title: string;
@@ -25,7 +26,70 @@ interface SidebarInterface {
   [task: string]: SidebarEntry[];
 }
 
-const sidebarData: SidebarInterface = {
+const urcSidebarData: SidebarInterface = {
+  ["Base"]: [
+    {
+      title: "Dashboard",
+      route: "/urc",
+      icon: <Home />,
+    },
+    {
+      title: "Cameras",
+      route: "/urc/cameras",
+      icon: <Camera />,
+    }
+  ],
+  ["Science"]: [
+    {
+      title: "Dashboard",
+      route: "/urc/science",
+      icon: <Home />,
+    },
+    {
+      title: "Cameras",
+      route: `/urc/cameras/${URCCompModes.URC_SCIENCE}`,
+      icon: <Camera />,
+    }
+  ],
+  ["Delivery"]: [
+    {
+      title: "Dashboard",
+      route: "/urc/delivery",
+      icon: <Home />,
+    },
+    {
+      title: "Cameras",
+      route: `/urc/cameras/${URCCompModes.URC_DELIVERY}`,
+      icon: <Camera />,
+    }
+  ],
+  ["Equipment Servicing"]: [
+    {
+      title: "Dashboard",
+      route: "/urc/equipment-servicing",
+      icon: <Home />,
+    },
+    {
+      title: "Cameras",
+      route: `/urc/cameras/${URCCompModes.URC_EQUIPMENT_SERVICING}`,
+      icon: <Camera />,
+    }
+  ],
+  ["Autonomous"]: [
+    {
+      title: "Dashboard",
+      route: "/urc/autonomous-navigation",
+      icon: <Home />,
+    },
+    {
+      title: "Cameras",
+      route: `/urc/cameras/${URCCompModes.URC_AUTONOMOUS}`,
+      icon: <Camera />,
+    }
+  ],
+};
+
+const arcSidebarData: SidebarInterface = {
   ["Post Landing"]: [
     {
       title: "Dashboard",
@@ -99,6 +163,11 @@ export const NeoSidebar = () => {
   const location = useLocation();
 
   const currentPath = location.pathname;
+
+  const sidebarData =
+      location.pathname.startsWith("/arc") ? arcSidebarData :
+      location.pathname.startsWith("/urc") ? urcSidebarData :
+      {};
 
   return (
     <SidebarWrapper

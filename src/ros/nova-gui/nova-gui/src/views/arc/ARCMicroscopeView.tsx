@@ -2,7 +2,7 @@ import DriveModeWidget from "../../components/DriveModeWidget/DriveModeWidget.ts
 import WheelTelemetryWidget from "../../components/WheelTelemetryWidget/WheelTelemetryWidget.tsx";
 import DriveSpeedWidget from "../../components/DriveSpeedWidget/DriveSpeedWidget.tsx";
 import MicroscopeThresholdWidget from "../../components/MicroscopeThresholdWidget/MicroscopeThresholdWidget.tsx";
-import AnalysisPlatformHeight from "../../components/AnalysisPlatformHeight/AnalysisPlatformHeight.tsx";
+import TOFHeight from "../../components/AnalysisPlatformHeight/AnalysisPlatformHeight.tsx";
 import KilnWidget from "../../components/KilnWidget/KilnWidget.tsx";
 
 export const ARCMicroscopeView = () => {
@@ -13,7 +13,7 @@ export const ARCMicroscopeView = () => {
           <MicroscopeThresholdWidget cameraSerial="science_microscope" />
         </div>
         <div className="flex flex-col gap-3 col-span-3">
-          <AnalysisPlatformHeight/>
+          <TOFHeight/>
           <DriveModeWidget />
           <WheelTelemetryWidget />
           <DriveSpeedWidget />

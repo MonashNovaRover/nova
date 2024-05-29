@@ -6,10 +6,17 @@ export interface CameraView {
 }
 
 export enum ARCCompModes {
-  POST_LANDING = "post-landing",
-  EXCAVATION_AND_CONSTRUCTION = "excavation-construction",
-  SPACE_RESOURCES = "space-resources",
-  AUTONOMOUS = "autonomous",
+  ARC_POST_LANDING = "post-landing",
+  ARC_EXCAVATION_AND_CONSTRUCTION = "excavation-construction",
+  ARC_SPACE_RESOURCES = "space-resources",
+  ARC_AUTONOMOUS = "autonomous",
+}
+
+export enum URCCompModes {
+  URC_EQUIPMENT_SERVICING = "equipment-servicing",
+  URC_DELIVERY = "delivery",
+  URC_SCIENCE = "science",
+  URC_AUTONOMOUS = "autonomous-navigation",
 }
 
 export const initialisedFilters: CameraFilters = {
@@ -42,6 +49,12 @@ export enum CameraSerials {
   SCIENCE_AUGER_BOTTOM = "science_auger_bottom",
   SCIENCE_ANALYSIS_BOTTOM = "science_analysis_bottom",
   SCIENCE_MICROSCOPE = "science_microscope",
+
+  URC_SCIENCE_UV_VIS = "science_spectroscope",
+  URC_SCIENCE_MICROSCOPE = "science_microscope",
+  URC_SCIENCE_CUVETTE = "science_cuvettes",
+  URC_SCIENCE_PAYLOAD_FRONT = "science_payload_front",
+  URC_SCIENCE_PAYLOAD_DOWN = "science_payload_down",
 }
 
 export const defaultCamFilters: { [key: string]: CameraFilters } = {
@@ -109,14 +122,53 @@ const ecCams = [
   CameraSerials.EC_SCRAPER_LEG,
 ];
 
-const scienceCams = [
+const arcScienceCams = [
   CameraSerials.SCIENCE_KILN,
   CameraSerials.SCIENCE_AUGER_BOTTOM,
   CameraSerials.SCIENCE_ANALYSIS_BOTTOM,
   CameraSerials.SCIENCE_MICROSCOPE,
 ];
 
+
+const urcScienceCams = [
+  CameraSerials.URC_SCIENCE_CUVETTE,
+  CameraSerials.URC_SCIENCE_MICROSCOPE,
+  CameraSerials.URC_SCIENCE_PAYLOAD_DOWN,
+  CameraSerials.URC_SCIENCE_PAYLOAD_FRONT,
+  CameraSerials.URC_SCIENCE_UV_VIS,
+]
+
 export const post_landing_views: CameraView[] = [
+  {
+    cameraSerials: [...mastCams, ...armCams],
+    viewTitle: "All Cams",
+  },
+  {
+    cameraSerials: mastCams,
+    viewTitle: "Mast Cams",
+  },
+  {
+    cameraSerials: armCams,
+    viewTitle: "Arm Cams",
+  },
+];
+
+export const urc_equipment_servicing_views: CameraView[] = [
+  {
+    cameraSerials: [...mastCams, ...armCams],
+    viewTitle: "All Cams",
+  },
+  {
+    cameraSerials: mastCams,
+    viewTitle: "Mast Cams",
+  },
+  {
+    cameraSerials: armCams,
+    viewTitle: "Arm Cams",
+  },
+];
+
+export const urc_delivery_views: CameraView[] = [
   {
     cameraSerials: [...mastCams, ...armCams],
     viewTitle: "All Cams",
@@ -168,7 +220,7 @@ export const space_resources_views: CameraView[] = [
     viewTitle: "Mast Cams",
   },
   {
-    cameraSerials: scienceCams,
+    cameraSerials: arcScienceCams,
     viewTitle: "Science Cams",
   },
 ];
@@ -184,9 +236,43 @@ export const autonomous_views: CameraView[] = [
   },
 ];
 
-export const cameraSetup = {
-  [ARCCompModes.POST_LANDING]: post_landing_views,
-  [ARCCompModes.EXCAVATION_AND_CONSTRUCTION]: excavation_and_construction_views,
-  [ARCCompModes.SPACE_RESOURCES]: space_resources_views,
-  [ARCCompModes.AUTONOMOUS]: autonomous_views,
+export const urc_autonomous_views: CameraView[] = [
+  {
+    cameraSerials: [...mastCams],
+    viewTitle: "All Cams",
+  },
+  {
+    cameraSerials: mastCams,
+    viewTitle: "Mast Cams",
+  },
+];
+
+export const urc_science_views: CameraView[] = [
+  {
+    cameraSerials: [...mastCams, ...urcScienceCams],
+    viewTitle: "All Cams",
+  },
+  {
+    cameraSerials:  mastCams,
+    viewTitle: "Mast Cams",
+  },
+  {
+    cameraSerials: urcScienceCams,
+    viewTitle: "Science Cams"
+  }
+]
+
+export const arcCameraSetup = {
+  [ARCCompModes.ARC_POST_LANDING]: post_landing_views,
+  [ARCCompModes.ARC_EXCAVATION_AND_CONSTRUCTION]: excavation_and_construction_views,
+  [ARCCompModes.ARC_SPACE_RESOURCES]: space_resources_views,
+  [ARCCompModes.ARC_AUTONOMOUS]: autonomous_views,
+ 
 };
+
+export const urcCameraSetup = {
+  [URCCompModes.URC_EQUIPMENT_SERVICING]: urc_equipment_servicing_views,
+  [URCCompModes.URC_DELIVERY]: urc_delivery_views,
+  [URCCompModes.URC_SCIENCE]: urc_science_views,
+  [URCCompModes.URC_AUTONOMOUS]: urc_autonomous_views,
+}

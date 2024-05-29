@@ -9,6 +9,9 @@ export default {
   ],
   theme: {
     extend: {
+      spacing: {
+      '154': '38.5rem',
+      },    
       colors: {
         292929: "#292929",
         // TODO: Fix issues with different modes
@@ -23,6 +26,9 @@ export default {
         //   navbkground: "#1A1A1A",
         // },
       },
+      spacing: {
+      '154': '38.5rem',
+      }
     },
   },
   darkMode: "class",

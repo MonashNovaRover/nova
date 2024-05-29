@@ -1,4 +1,4 @@
-import { RouteObject } from "react-router-dom";
+import {Navigate, RouteObject} from "react-router-dom";
 import ARCExcavationConstructionView from "../views/arc/ARCEscavationConstructionView";
 import ARCAutonomousView from "../views/arc/ARCMappingAutonomous";
 import ARCPostLandingView from "../views/arc/ARCPostLandingView";
@@ -14,13 +14,18 @@ import { CameraPage } from "../views/shared/CamerasPage/CamerasPage.tsx";
 import { SingleCameraPage } from "../views/shared/SingleCameraPage/SingleCameraPage.tsx";
 import {
   ARCCompModes,
-  cameraSetup,
+  URCCompModes,
+  arcCameraSetup,
+  urcCameraSetup,
 } from "../views/shared/CamerasPage/CameraPageConstants.ts";
 import GeneralBaseView from "../views/general/GeneralBaseView.tsx";
 import { ARCNIRProbeView } from "../views/arc/ARCNIRProbeView.tsx";
 import { ARCMicroscopeView } from "../views/arc/ARCMicroscopeView.tsx";
 import TestWebGLView from "../views/test/TestWebGLView/TestWebGLView.tsx";
 import { URCCartographerView } from "../views/urc/URCCartographerView.tsx";
+import TestUVVisSpecView from "../views/test/TestUVVisSpecView/TestUVVisSpecView.tsx";
+import Test360CamView from "../views/test/Test360CamView/Test360CamView.tsx";
+import TestRamanView from "../views/test/TestRamanView/TestRamanView.tsx";
 
 export const arcRoutes: RouteObject[] = [
   {
@@ -57,11 +62,11 @@ export const arcRoutes: RouteObject[] = [
   },
   {
     path: "/arc/cameras",
-    element: <CameraPage views={cameraSetup[ARCCompModes.POST_LANDING]} />,
+    element: <CameraPage views={arcCameraSetup[ARCCompModes.ARC_POST_LANDING]} />,
   },
   ...Object.values(ARCCompModes).map<RouteObject>((comp) => ({
     path: `/arc/cameras/${comp}`,
-    element: <CameraPage views={cameraSetup[comp]} />,
+    element: <CameraPage views={arcCameraSetup[comp]} />,
   })),
 ];
 
@@ -86,12 +91,20 @@ export const urcRoutes: RouteObject[] = [
     path: "/urc/autonomous-navigation",
     element: <URCAutonomousNavigationView />,
   },
+  {
+    path: "/urc/cameras",
+    element: <CameraPage views={urcCameraSetup[URCCompModes.URC_EQUIPMENT_SERVICING]} />,
+  },
+  ...Object.values(URCCompModes).map<RouteObject>((comp) => ({
+    path: `/urc/cameras/${comp}`,
+    element: <CameraPage views={urcCameraSetup[comp]} />,
+  })),
 ];
 
 export const generalRoutes: RouteObject[] = [
   {
     path: "/general/cameras",
-    element: <CameraPage views={cameraSetup[ARCCompModes.POST_LANDING]} />,
+    element: <CameraPage views={arcCameraSetup[ARCCompModes.ARC_POST_LANDING]} />,
   },
   {
     path: "/general/drive",
@@ -103,13 +116,25 @@ export const testRoutes: RouteObject[] = [
   {
     path: "/test/webgl",
     element: <TestWebGLView/>
+  },
+  {
+    path: "/test/uvvisspec",
+    element: <TestUVVisSpecView/>
+  },
+  {
+    path: "/test/360cam",
+    element: <Test360CamView/>
+  },
+  {
+    path: "/test/raman",
+    element: <TestRamanView/>
   }
 ];
 
 const cameraRoutes: RouteObject[] = [
   {
     path: "/cameras",
-    element: <CameraPage views={cameraSetup[ARCCompModes.POST_LANDING]} />,
+    element: <CameraPage views={arcCameraSetup[ARCCompModes.ARC_POST_LANDING]} />,
   },
   { path: "/cameras/:serial", element: <SingleCameraPage /> },
 ];
@@ -119,6 +144,10 @@ export const routes: RouteObject[] = [
     path: "/",
     element: <Root />,
     children: [
+      {
+        path: "/",
+        element: <Navigate to="/urc" />,
+      },
       {
         path: "/arc",
         children: arcRoutes,
