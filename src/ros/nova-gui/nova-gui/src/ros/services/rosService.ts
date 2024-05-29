@@ -27,4 +27,5 @@ export enum RosService {
   CALL_RAMAN_MECH = "/science/raman_mech_srv",
   UV_VIS_LED_1 = "/science/uv_vis_led_1",
   UV_VIS_LED_2 = "/science/uv_vis_led_2",
+  CACHE = "/science/cache",
 }

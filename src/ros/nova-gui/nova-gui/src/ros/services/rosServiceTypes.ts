@@ -93,4 +93,8 @@ export interface RosServiceInterface {
     IRosStdSrvsSetBoolRequest,
     IRosStdSrvsSetBoolResponse
   >;
+  [RosService.CACHE]: RosServiceMessage<
+    IRosStdSrvsSetBoolRequest,
+    IRosStdSrvsSetBoolResponse
+  >;
 }
