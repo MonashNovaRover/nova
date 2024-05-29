@@ -254,7 +254,7 @@ global_costmap:
       origin_x: -25.0
       origin_y: -25.0
       use_sim_time: False
-      rolling_window: False
+      rolling_window: True
       footprint: "[[0.67, 0.55], [0.67, -0.55], [-0.67, -0.55], [-0.67, 0.55]]"
       resolution: 0.4
       track_unknown_space: False
