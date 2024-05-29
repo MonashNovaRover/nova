@@ -15,6 +15,7 @@ import {
   IRosNovaInterfacesRamanState,
   IRosNovaInterfacesHydraprobeData,
   IRosSensorMsgsCompressedImage,
+  IRosNovaInterfacesBmeSensor,
 } from "../rosTypes";
 import { RosTopic } from "./rosTopic";
 
@@ -53,6 +54,7 @@ export interface RosTopicInterfaces {
   [RosTopic.UV_VIS_SPEC]: IRosNovaInterfacesUvVisSpecData;
   [RosTopic.HYDRAPROBE_DATA]: IRosNovaInterfacesHydraprobeData;
   [RosTopic.THETA_360_CAM_IMAGE]: IRosSensorMsgsCompressedImage;
+  [RosTopic.BME_SENSOR]: IRosNovaInterfacesBmeSensor;
 
   // Cameras Related
   [RosTopic.CAMERAS]: IRosCameraMsgsCameras;
