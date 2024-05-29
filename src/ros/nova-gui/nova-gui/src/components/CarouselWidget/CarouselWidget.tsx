@@ -18,6 +18,7 @@ import StepperWidget from "../StepperWidget/StepperWidget";
 import { useBifrost } from "../../redux/actions/bifrost/useBifrostAction";
 import { RosService } from "../../ros/services/rosService";
 import { IRosStdSrvsSetBoolResponse } from "../../ros/rosTypes";
+import toast from "react-hot-toast";
 
 /**
  * Props for CarouselWidget
@@ -89,8 +90,11 @@ const CarouselWidget: React.FC<CarouselWidgetProps> = (props) => {
         if (boolResponse?.success) {
           setLED1(value);
         }
+        else{
+          toast.error("Failed to switch LED 1")
+        }
       }, 
-      sendToRedux: true
+      sendToRedux: true,
     });
   }
 
@@ -101,7 +105,11 @@ const CarouselWidget: React.FC<CarouselWidgetProps> = (props) => {
         if (boolResponse?.success) {
           setLED2(value);
         }
-      }
+        else{
+          toast.error("Failed to switch LED 2")
+        }
+      },
+      sendToRedux: true,
     });
   }
 
