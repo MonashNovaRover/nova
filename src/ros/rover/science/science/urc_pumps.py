@@ -8,7 +8,6 @@ from python_control.controls.TimedOneAxisVelocityControl import TimedOneAxisVelo
 import rclpy
 from rclpy.action import ActionServer
 from python_control.ControllerNode import ControllerNode
-from input_interfaces.msg import InputJoystick
 from nova_interfaces.action import Pumps
 
 
