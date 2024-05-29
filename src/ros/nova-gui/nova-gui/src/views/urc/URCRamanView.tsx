@@ -1,12 +1,12 @@
 import GenericGraphComparisonWidget
-  , {getUniqueName} from "../../../components/GenericGraphComparisonWidget/GenericGraphComparisonWidget.tsx";
+  , {getUniqueName} from "../../components/GenericGraphComparisonWidget/GenericGraphComparisonWidget.tsx";
 import React, {useCallback, useState} from "react";
-import {useLocalStorage} from "../../../components/nir-probe/hooks/useLocalStorage.ts";
-import {ApexDataset} from "../../../components/SpectraDisplay/DataChart.tsx";
-import RamanSpec from "../../../components/RamanSpec/RamanSpec.tsx";
+import {useLocalStorage} from "../../components/nir-probe/hooks/useLocalStorage.ts";
+import {ApexDataset} from "../../components/SpectraDisplay/DataChart.tsx";
+import RamanSpec from "../../components/RamanSpec/RamanSpec.tsx";
 
 
-const TestRamanView: React.FC = () => {
+const URCRamanView: React.FC = () => {
   const [selectedGraphs, setSelectedGraphs] = useState<Set<string>>(new Set([]));
   const [graphs, setGraphs] = useLocalStorage<ApexDataset>("raman-spec-graphs", []);
 
@@ -37,4 +37,4 @@ const TestRamanView: React.FC = () => {
   </div>;
 };
 
-export default TestRamanView;
+export default URCRamanView;
