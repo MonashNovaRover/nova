@@ -40,7 +40,7 @@ class GimbalCam(Node):
         super().__init__("gimbal_cam")
 
         self.get_logger().set_level(logging.INFO)
-        self.param_enable_chassis_cam = self.decalre_parameter("chassis_cam", False).value
+        self.param_enable_chassis_cam = self.declare_parameter("chassis_cam", False).value
         self.param_do_pwm = self.declare_parameter("do_pwm", True).value
         self.param_velocity_steps = self.declare_parameter("velocity_steps", 10).value
         self.max_velocity_cmd = self.declare_parameter("max_velocity_cmd", 127).value
