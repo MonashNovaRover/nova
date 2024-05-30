@@ -87,7 +87,7 @@ For Developing Nova-GUI, the reccomended method of development is using `nova-sh
    npm install -g --prefix ~/.npm-global tileserver-gl
    
    # Run tileserver
-   ~/.npm-global/bin/tileserver-gl --file <path to tiles>/MDRS_HI_Res.mbtiles
+   ~/.npm-global/bin/tileserver-gl --file <path to tiles>/MDRS_Hi_Res.mbtiles
    ```
 
    You will need the offline tiles for URC which are available [here](https://drive.google.com/drive/folders/18x0F8ZD5EzfDROY0BhEAxmZ71OYd6H4y?usp=drive_link).
