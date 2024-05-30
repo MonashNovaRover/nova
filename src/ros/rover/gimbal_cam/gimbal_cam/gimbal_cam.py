@@ -74,6 +74,8 @@ class GimbalCam(Node):
         self.arm_cam = jcan.Bus()
         self.arm_cam.open("can1")
         self.timer_jcan = self.create_timer(0.05, self.callback_send_can_commands)
+        self.get_logger().info("Gimbal Cam Started")
+
 
     def callback_send_can_commands(self):
         """Take current internal state and publish over CAN
