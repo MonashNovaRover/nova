@@ -69,8 +69,9 @@ class GimbalCam(Node):
         self.joystick_connected = False
         # CAN buses
         self.cam_select = self.ARM_CAM # default to arm, as chassis cam may be disabled
-        self.chassis_cam = jcan.Bus()
-        self.chassis_cam.open('can0')
+        if self.get_parameter('chassis_cam').value:    
+            self.chassis_cam = jcan.Bus()
+            self.chassis_cam.open('can0')
         self.arm_cam = jcan.Bus()
         self.arm_cam.open("can1")
         self.timer_jcan = self.create_timer(0.05, self.callback_send_can_commands)
