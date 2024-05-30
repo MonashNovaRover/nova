@@ -14,7 +14,7 @@ import useUniform, {vec} from "../../hooks/webgl/program/uniform/useUniform.ts";
 import GLWrapMode from "../../hooks/webgl/program/sampler/GLWrapMode.ts";
 import {Image} from "react-feather";
 import ExtendedDownloadButton from "../shared/ExtendedDownload.tsx";
-import {Slider, Tooltip} from "@nextui-org/react";
+import {Input, Slider, Tooltip} from "@nextui-org/react";
 import useImageTexture from "../../hooks/webgl/program/sampler/useImageTexture.ts";
 import Compass from "../../assets/compass.png";
 import {isArray} from "lodash";
@@ -67,9 +67,44 @@ function convertToBlob(base64image: string): [ArrayBuffer] {
 const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
   const gl = useGL();
   const [mousePos, setMousePos] = useState([0, 0]);
-  const [compassAngle, setCompassAngle] = useState<number | number[]>(Math.PI);
+  const [compassAngle, setCompassAngleRaw] = useState<number | number[]>(180);
 
   const compassImage = useImageTexture(Compass);
+  const [textIsValid, setTextIsValid] = useState<boolean>(true);
+  const [textCompassAngle, setTextCompassAngleRaw] = useState<string>("180")
+
+  // Used when changing via input text box
+  const setTextCompassAngle = useCallback((text: string) => {
+    setTextCompassAngleRaw(text)
+
+    // Case for when empty input provided
+    if (text.length === 0) {
+      setTextIsValid(true);
+      return;
+    }
+
+    // Parse the input as a float
+    const number = parseFloat(text);
+
+    // Prevent non-float inputs
+    if (isNaN(number)) {
+      setTextIsValid(false);
+      return;
+    }
+
+    // Apply changes
+    setCompassAngleRaw(number);
+    setTextIsValid(true);
+  }, []);
+
+  // Used when changing via slider
+  const setCompassAngle = useCallback((rawValue: number | number[]) => {
+    const value = isArray(rawValue) ? rawValue[0] : rawValue;
+
+    setCompassAngleRaw(value);
+    setTextCompassAngleRaw(value.toFixed(2));
+    setTextIsValid(true);
+  }, [])
 
   // Allow for panning with the mouse
   const onMouseMove = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
@@ -105,7 +140,7 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
   useResolutionUniform(gl, compassProgram);
   useUniform(compassProgram, "mousePos", () => mousePos as vec, [mousePos]);
   useUniform(compassProgram, "compassAngle", () => (
-    (isArray(compassAngle) ? compassAngle : [compassAngle]) as vec
+    (isArray(compassAngle) ? [compassAngle[0] * Math.PI / 180] : [compassAngle * Math.PI / 180]) as vec
   ), [compassAngle]);
 
   // Called for the screenshot button, to fetch data to put in the file to save
@@ -144,7 +179,11 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
         </div>
 
       </AutosizedGLCanvas>
-      <Slider value={compassAngle} onChange={setCompassAngle} size="lg" maxValue={2 * Math.PI} minValue={0} step={0.01} className="flex-shrink"></Slider>
+      <div className="flex flex-row gap-3 items-center">
+        <Input placeholder="Heading" className="w-48" onValueChange={setTextCompassAngle} isInvalid={!textIsValid} value={textCompassAngle}></Input>
+        <Slider value={compassAngle} onChange={setCompassAngle} size="lg" maxValue={360} minValue={0}
+                step={0.01} className="flex-grow"></Slider>
+      </div>
     </div>
   );
 }
