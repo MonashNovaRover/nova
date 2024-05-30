@@ -7,6 +7,7 @@ from python_control.controllers.TimedCMDVelocityController import TimedCMDVeloci
 from python_control.controls.TimedOneAxisVelocityControl import TimedOneAxisVelocityControl
 import rclpy
 from rclpy.action import ActionServer
+import jcan
 from python_control.ControllerNode import ControllerNode
 from nova_interfaces.action import Pumps
 
@@ -116,6 +117,11 @@ class URCPumps(ControllerNode):
 
         ## Start the CAN bus
         self.start_can()
+ 
+        frames = [jcan.Frame(0x033, 0x7F), jcan.Frame(0x034, 0x7F),  jcan.Frame(0x043, 0x7F),  jcan.Frame(0x044, 0x7F)]
+        for frame in frames:
+            self.bus.send(frame)
+        
 
 
     def valid_action(self, action: str):
