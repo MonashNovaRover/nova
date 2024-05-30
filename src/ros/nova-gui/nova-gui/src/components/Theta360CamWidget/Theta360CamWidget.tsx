@@ -94,15 +94,15 @@ const Theta360CamWidget: React.FC = () => {
   );
 
   return (
-    <Card>
-      <CardHeader className="pb-0 flex flex-row gap-3 max-h-screen">
+    <Card className="absolute bottom-3 top-20 left-3 right-3">
+      <CardHeader className="pb-0 flex flex-row gap-3">
         <div className="flex-grow">360 Camera</div>
         <SegmentedPicker selectedIndex={canvasIndex} onIndexChange={setCanvasIndex}>
           <>Perspective</>
           <>Panorama</>
         </SegmentedPicker>
       </CardHeader>
-      <CardBody className="">
+      <CardBody className="flex flex-col">
         { canvasIndex === 0 ? perspective : panorama }
       </CardBody>
     </Card>
