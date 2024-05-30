@@ -117,10 +117,11 @@ class URCPumps(ControllerNode):
 
         ## Start the CAN bus
         self.start_can()
- 
-        frames = [jcan.Frame(0x033, 0x7F), jcan.Frame(0x034, 0x7F),  jcan.Frame(0x043, 0x7F),  jcan.Frame(0x044, 0x7F)]
-        for frame in frames:
-            self.bus.send(frame)
+
+        frame_ids = [0x33, 0x34, 0x43, 0x44]
+
+        for frame_id in frame_ids:
+            self.bus.send(jcan.Frame(frame_id, [0x7F]))
         
 
 

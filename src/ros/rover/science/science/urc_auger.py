@@ -79,7 +79,7 @@ class URCAuger(JoystickControllerNode):
             logger=logger,
             max_percent=self.AUGER_ACTUATION_MAX_PERCENT,
             direction=self.AUGER_ACTUATION_UP,
-            pos_limit=self.auger_bottom_limit,
+            neg_limit=self.auger_bottom_limit,
         )
         self.auger_drill = OneAxisVelocityControl(
             logger=logger,
