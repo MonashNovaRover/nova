@@ -23,7 +23,7 @@ from typing import List
 from nova_interfaces.msg import UVVisSpecData
 
 
-def rgb_to_luminance(rgb: [int, int, int]) -> float:
+def rgb_to_luminance(rgb: [int, int, int]) -> float: # type: ignore
     """ Converts a 3 colour channel pixel value to a single luminance value. The max value for an RBG array element
     is 255, so the max value of luminance is sqrt(3*255*255) = 441.67295593
     :param rgb: The colour values from the image

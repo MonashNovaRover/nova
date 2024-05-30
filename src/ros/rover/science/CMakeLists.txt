@@ -58,14 +58,14 @@ install(PROGRAMS
   science/nir_probe_publisher.py
   science/auger.py
   science/analysis_platform.py
-  science/raman_spec_server.py
+  science/urc_raman_spec_server.py
   science/urc_analysis_arm.py
   science/urc_auger.py
   science/urc_sample_tray.py
   science/urc_pumps.py
   science/urc_carousel.py
-  science/uv_vis_spec.py
-  science/raman_mech_server.py
+  science/urc_uv_vis_spec.py
+  science/urc_raman_mech_server.py
   science/urc_cache.py
   science/urc_heater.py
   science/urc_hydraprobe.py
