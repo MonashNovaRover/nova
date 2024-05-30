@@ -111,7 +111,7 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
   return (
     <AutosizedGLCanvas
       gl={gl}
-      className="aspect-[16/9] rounded p-3"
+      className="rounded p-3 flex-grow"
       onMouseMove={onMouseMove}
       onWheel={onWheel}
       onMouseEnter={disableScroll}

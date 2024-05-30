@@ -121,10 +121,10 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
   }, [gl]);
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-2.5 flex-grow">
       <AutosizedGLCanvas
         gl={gl}
-        className="aspect-[2/1] rounded p-3"
+        className="rounded p-3 flex-grow"
         onMouseMove={onMouseMove}
         onMouseEnter={disableScroll}
         onMouseLeave={enableScroll}
@@ -144,8 +144,7 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
         </div>
 
       </AutosizedGLCanvas>
-      <Slider value={compassAngle} onChange={setCompassAngle} maxValue={2 * Math.PI} minValue={0} step={0.01}></Slider>
-      {compassAngle}
+      <Slider value={compassAngle} onChange={setCompassAngle} size="lg" maxValue={2 * Math.PI} minValue={0} step={0.01} className="flex-shrink"></Slider>
     </div>
   );
 }
