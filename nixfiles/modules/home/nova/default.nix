@@ -111,7 +111,6 @@ in
       ] ++ lib.optionals config.nova.desktop.enable [
         # Desktop apps
         gitkraken
-        xgps
       ]);
     };
   };
