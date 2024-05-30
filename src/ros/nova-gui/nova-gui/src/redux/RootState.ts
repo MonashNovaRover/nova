@@ -15,6 +15,8 @@ import {
   IRosGeometryMsgsPose,
   IRosSensorMsgsRange,
   IRosCmdInterfacesCmDsFeedback,
+  IRosSensorMsgsNavSatFix,
+  IRosCmdInterfacesCmDsFeedback,
   IRosNovaInterfacesRamanState,
   IRosNovaInterfacesRamanMechResponse,
   IRosNovaInterfacesUvVisSpecData,
@@ -26,6 +28,7 @@ import {
 
 import { BifrostStatus } from "./models/bifrost/BifrostTypes";
 import { CameraStreamerState } from "./models/CameraStreamState";
+import { CartographerState } from "./models/CartographerState";
 
 import { UIState } from "./models/UIState";
 
@@ -71,4 +74,9 @@ export interface RootState {
   theta360CamStore: IRosSensorMsgsCompressedImage;
   bmeSensorStore: IRosNovaInterfacesBmeSensor;
 
+
+  // Maps Related Stores
+  autoRoverLocationStore: IRosSensorMsgsNavSatFix;
+  baseLocationStore: IRosSensorMsgsNavSatFix;
+  cartographerState: CartographerState;
 }
