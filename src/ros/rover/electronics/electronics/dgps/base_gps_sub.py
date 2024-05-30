@@ -49,6 +49,8 @@ class SubToBaseNode(Node):
             self.callback_func,
             qos)
 
+        self.get_logger().info("base_gps_sub started.");
+
 
     def callback_func(self, msg):
         self.parse_rtcm_out(msg.data)
