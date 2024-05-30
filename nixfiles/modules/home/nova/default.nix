@@ -104,12 +104,14 @@ in
       };
 
       packages = with pkgs; builtins.filter (lib.meta.availableOn hostPlatform) ([
-        # Shell ulilities
+        # Shell utilities
         pciutils
         usbutils
+        gpsd
       ] ++ lib.optionals config.nova.desktop.enable [
         # Desktop apps
         gitkraken
+        xgps
       ]);
     };
   };
