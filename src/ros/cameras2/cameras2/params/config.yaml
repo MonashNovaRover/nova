@@ -65,6 +65,8 @@ camera_streamer:
         meta:
           uiProps:
             name: Science - Rock flipper
+      science_spectroscope:
+        autostart: false
 
       # Arm
       arm_gimbal:
