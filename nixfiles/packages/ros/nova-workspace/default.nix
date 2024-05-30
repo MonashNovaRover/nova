@@ -6,6 +6,7 @@
 , rqt
 , rqt-common-plugins
 , gdb
+, gps-umd
 
 , nova-electronics ? throw "electronics is needed, but not available!"
 , nova-science ? throw "science is needed, but not available!"
@@ -100,6 +101,7 @@ in
     inherit
       rviz2
       gazebo
+      gps-umd
       rqt rqt-common-plugins;
   }) // extraPackages;
   prebuiltShellPackages = {
