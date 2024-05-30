@@ -48,32 +48,41 @@ For Developing Nova-GUI, the reccomended method of development is using `nova-sh
 1. Enter the shell environment
 
    ```sh
+   # For runtime dependencies
    nova-shell -A env.nova-gui
 
-   # or (currently working better)
+   # or (currently working better) for dev dependencies
 
    nova-shell -A pkgs.ros.nova-gui
    ```
 
-2. Link in the generated message definitions
+2. Install the dependencies
+   ```sh
+   yarn install
+   ```
+   Errors are likely caused by network issues. Try setting your DNS and restarting your connection. 
+
+3. Link in the generated message definitions
 
    > Run this whenever the included messages change. Nix will always use the
    > latest version when building the package, which may lead to confusion if
    > your copy is out of date.
-
+   
    ```sh
+   # Run with dev dependencies
    ln -sf "$ROS_TS_DEFINITIONS" nova-gui/src/ros/rosTypes.ts
    ```
 
-3. Start rosbridge
+4. Start rosbridge
 
    On ros2 terminal (seperate)
 
    ```sh
+   # Run with runtime dependencies
    ros2 launch rosbridge_server rosbridge_websocket_launch.xml
    ```
 
-4. Offline Maps (OPTIONAL)
+5. Offline Maps (OPTIONAL)
    On separate terminal
 
    ```sh
@@ -91,6 +100,10 @@ For Developing Nova-GUI, the reccomended method of development is using `nova-sh
    ```
 
    You will need the offline tiles for URC which are available [here](https://drive.google.com/drive/folders/18x0F8ZD5EzfDROY0BhEAxmZ71OYd6H4y?usp=drive_link).
+6. Launch the gui
+   '''sh
+      yarn dev
+   '''
 
 ### Science URC - GPS
 **TX2:**
