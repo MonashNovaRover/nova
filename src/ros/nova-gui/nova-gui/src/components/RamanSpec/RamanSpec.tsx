@@ -5,21 +5,27 @@
  */
 
 
+import { Card, CardBody, CardHeader } from "@nextui-org/react";
 import RamanCCDInputs from "./RamanCCDInputs";
 import RamanMechanicalInputs from "./RamanMechanicalInputs";
 import RamanOutput, {RamanOutputProps} from "./RamanOutput";
 
 const RamanSpec: React.FC<RamanOutputProps> = (props) => {
     return (
-        <div className="flex flex-row m-3 rounded-xl bg-zinc-800">
-            <div className="w-1/2 flex flex-col space-y-10 p-2 py-8">
-                <RamanMechanicalInputs />
-                <RamanCCDInputs />
-            </div>
-            <div className="w-1/2">
-                <RamanOutput onSave={props.onSave}/>
-            </div>
-        </div>
+        <Card {...props}>
+            <CardHeader>Raman Spec</CardHeader>
+            <CardBody>
+                <div className="flex flex-row m-3 rounded-xl bg-zinc-800">
+                    <div className="w-1/2 flex flex-col space-y-10 p-2 py-8">
+                        <RamanMechanicalInputs />
+                        <RamanCCDInputs />
+                    </div>
+                    <div className="w-1/2">
+                        <RamanOutput onSave={props.onSave}/>
+                    </div>
+                </div>
+            </CardBody>
+        </Card>
     )
 }
 

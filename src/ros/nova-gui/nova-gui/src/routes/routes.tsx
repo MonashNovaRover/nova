@@ -22,10 +22,10 @@ import GeneralBaseView from "../views/general/GeneralBaseView.tsx";
 import { ARCNIRProbeView } from "../views/arc/ARCNIRProbeView.tsx";
 import { ARCMicroscopeView } from "../views/arc/ARCMicroscopeView.tsx";
 import TestWebGLView from "../views/test/TestWebGLView/TestWebGLView.tsx";
+import URCUVVisSpecView from "../views/urc/URCUVVisSpecView.tsx";
+import URC360CamView from "../views/urc/URC360CamView.tsx";
+import URCRamanView from "../views/urc/URCRamanView.tsx";
 import { URCCartographerView } from "../views/urc/URCCartographerView.tsx";
-import TestUVVisSpecView from "../views/test/TestUVVisSpecView/TestUVVisSpecView.tsx";
-import Test360CamView from "../views/test/Test360CamView/Test360CamView.tsx";
-import TestRamanView from "../views/test/TestRamanView/TestRamanView.tsx";
 
 export const arcRoutes: RouteObject[] = [
   {
@@ -95,6 +95,18 @@ export const urcRoutes: RouteObject[] = [
     path: "/urc/cameras",
     element: <CameraPage views={urcCameraSetup[URCCompModes.URC_EQUIPMENT_SERVICING]} />,
   },
+  {
+    path: "/urc/uv-vis-spec",
+    element: <URCUVVisSpecView/>
+  },
+  {
+    path: "/urc/360cam",
+    element: <URC360CamView/>
+  },
+  {
+    path: "/urc/raman",
+    element: <URCRamanView/>
+  },
   ...Object.values(URCCompModes).map<RouteObject>((comp) => ({
     path: `/urc/cameras/${comp}`,
     element: <CameraPage views={urcCameraSetup[comp]} />,
@@ -117,18 +129,6 @@ export const testRoutes: RouteObject[] = [
     path: "/test/webgl",
     element: <TestWebGLView/>
   },
-  {
-    path: "/test/uvvisspec",
-    element: <TestUVVisSpecView/>
-  },
-  {
-    path: "/test/360cam",
-    element: <Test360CamView/>
-  },
-  {
-    path: "/test/raman",
-    element: <TestRamanView/>
-  }
 ];
 
 const cameraRoutes: RouteObject[] = [

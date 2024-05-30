@@ -9,9 +9,8 @@ import { SidebarWrapper } from "./SidebarWrapper";
 import { RootState } from "../../redux/RootState";
 import { useSelector } from "react-redux";
 import { useUIActions } from "../../redux/actions/useUIActions";
-
 import novaLogo from "../../assets/nova-logo.png";
-import { Aperture, Camera, Home, Image, Map } from "react-feather";
+import {Aperture, BarChart, BarChart2, Camera, Globe, Home, Image, Map} from "react-feather";
 import { ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {URCCompModes} from "../../views/shared/CamerasPage/CameraPageConstants.ts";
@@ -37,13 +36,33 @@ const urcSidebarData: SidebarInterface = {
       title: "Cameras",
       route: "/urc/cameras",
       icon: <Camera />,
-    }
+    },
+    {
+      title: "Cartographer",
+      route: "/urc/cartographer",
+      icon: <Map />,
+    },
   ],
   ["Science"]: [
     {
       title: "Dashboard",
       route: "/urc/science",
       icon: <Home />,
+    },
+    {
+      title: "Raman Spec",
+      route: "/urc/raman",
+      icon: <BarChart />,
+    },
+    {
+      title: "UV Vis Spec",
+      route: "/urc/uv-vis-spec",
+      icon: <BarChart2 />,
+    },
+    {
+      title: "360 Cam",
+      route: "/urc/360cam",
+      icon: <Globe />,
     },
     {
       title: "Cameras",
@@ -147,11 +166,7 @@ const arcSidebarData: SidebarInterface = {
       route: "/arc/cameras/autonomous",
       icon: <Camera />,
     },
-    {
-      title: "Cartographer",
-      route: "/arc/autonomous/cartographer",
-      icon: <Map />,
-    },
+
   ],
 };
 

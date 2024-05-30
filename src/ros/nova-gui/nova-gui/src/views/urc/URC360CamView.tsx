@@ -1,7 +1,7 @@
-import Theta360CamWidget from "../../../components/Theta360CamWidget/Theta360CamWidget.tsx";
+import Theta360CamWidget from "../../components/Theta360CamWidget/Theta360CamWidget.tsx";
 
 
-export default function Test360CamView() {
+export default function URC360CamView() {
 
   return (<div className="h-screen">
     <div className="grid w-full gap-3 p-3 auto-cols-fr max-h-full grid-cols-1 overflow-clip pb-48">

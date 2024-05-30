@@ -1,11 +1,11 @@
 import React, {useCallback, useState} from "react";
-import UVVisSpec from "../../../components/UVVisSpec/UVVisSpec.tsx";
-import {ApexDataset} from "../../../components/SpectraDisplay/DataChart.tsx";
-import {useLocalStorage} from "../../../components/nir-probe/hooks/useLocalStorage.ts";
-import GenericGraphComparisonWidget, {getUniqueName} from "../../../components/GenericGraphComparisonWidget/GenericGraphComparisonWidget.tsx";
+import UVVisSpec from "../../components/UVVisSpec/UVVisSpec.tsx";
+import {ApexDataset} from "../../components/SpectraDisplay/DataChart.tsx";
+import {useLocalStorage} from "../../components/nir-probe/hooks/useLocalStorage.ts";
+import GenericGraphComparisonWidget, {getUniqueName} from "../../components/GenericGraphComparisonWidget/GenericGraphComparisonWidget.tsx";
 
 
-const TestUVVisSpecView: React.FC = () => {
+const URCUVVisSpecView: React.FC = () => {
   // Saved sets of data
   const [output, setOutputRaw] = useLocalStorage<ApexDataset>("uv-vis-spec-saved-data", []);
   // Sets of data selected for viewing
@@ -58,4 +58,4 @@ const TestUVVisSpecView: React.FC = () => {
   </div>;
 };
 
-export default TestUVVisSpecView;
+export default URCUVVisSpecView;
