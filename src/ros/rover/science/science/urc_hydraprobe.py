@@ -221,7 +221,7 @@ class HydraprobePublisher(Node):
 
         # TODO: Update to use actual QoS profile
         self.publisher_ = self.create_publisher(HydraprobeData, '/science/hydraprobe_data', 10)
-        self.__port = self.declare_parameter("port", "/dev/ttyUSB0")
+        self.__port = self.declare_parameter("port", "/dev/serial/by-id/usb-FTDI_FT232R_USB_UART_AQ018NTV-if00-port0")
         self.__soil = self.declare_parameter("soil", "sand")
         self.__filepath = self.declare_parameter("filepath", "")
         self.data = []
