@@ -91,3 +91,22 @@ For Developing Nova-GUI, the reccomended method of development is using `nova-sh
    ```
 
    You will need the offline tiles for URC which are available [here](https://drive.google.com/drive/folders/18x0F8ZD5EzfDROY0BhEAxmZ71OYd6H4y?usp=drive_link).
+
+### Science URC - GPS
+**TX2:**
+```
+sudo systemctl stop gpsd.socket
+sudo gpsd -nG 5 /dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0
+sudo {BUILD}/bin/ros2 launch gpsd_client gpsd_client-launch.py
+sudo {BUILD}/bin/ros2 run electronics base_gps_sub.py --ros-args -p dev:=/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0
+```
+You should be getting a valid fix on `/fix`
+
+**Base:**
+```
+xgps --host 10.0.0.10
+```
+You should be getting an RTK fix and heading here.
+
+**Base station Pi:**
+ublox_dgnss should be run on startup, and should be publishing to `/gps_base/fix`
