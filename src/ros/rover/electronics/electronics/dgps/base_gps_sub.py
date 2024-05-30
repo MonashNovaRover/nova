@@ -35,7 +35,11 @@ class SubToBaseNode(Node):
         super().__init__('getBaseCorrection_pub')
 
         self.ser = serial.Serial()
-        self.config_port(com_no, baud)
+
+        self.declare_parameter('dev', '/dev/ttyUSB0')
+        self.declare_parameter('baud_rate', '115200')
+
+        self.config_port()
 
         self.count = 0
 
@@ -55,10 +59,13 @@ class SubToBaseNode(Node):
         # self.count += 1
         self.ser.write(msg.data)
 
-    def config_port(self, port_name, baud):
-        self.ser.baudrate = baud
-        if port_name == "":
-            port_name = "/dev/ttyUSB0"
+    def config_port(self):
+        port_name = self.get_parameter('dev').value
+        baud_rate = self.get_parameter('baud_rate').value
+
+        self.ser.baudrate = baud_rate
+        #if port_name == "":
+        #    port_name = "/dev/ttyUSB1"
         self.ser.port = port_name
         self.ser.open()
 
@@ -73,7 +80,6 @@ def main (args = None):
 
     subscriber.destroy_node()
     rclpy.shutdown()
-
 
 if __name__ == '__main__':
     main()
