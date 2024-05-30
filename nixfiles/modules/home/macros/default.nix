@@ -101,6 +101,20 @@ in
       ];
     };
 
+    #systemd.user.services.gpsd = {
+    #  Unit = {
+    #    Description = "Start gpsd on boot";
+    #  };
+    #  Install = {
+    #    WantedBy = [ "default.target" ];
+    #  };
+    #  Service = {
+    #    ExecStart = "${pkgs.writeShellScript "start-gpsd" ''
+    #      gpsd -nG /dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0 
+    #    ''}";
+    #  };
+    #};
+
     nixpkgs.overlays = [
       (self: super: with self; {
         nova-scripts = self.lib.makeScope self.newScope (novaSelf: {
