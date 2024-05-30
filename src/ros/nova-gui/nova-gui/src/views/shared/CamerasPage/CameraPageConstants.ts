@@ -82,7 +82,7 @@ export const defaultCamFilters: { [key: string]: CameraFilters } = {
   mast_down: {
     flipCamera: false,
     invertCamera: false,
-    rotation: 90,
+    rotation: 0,
     contrast: 100,
     brightness: 100,
   },
