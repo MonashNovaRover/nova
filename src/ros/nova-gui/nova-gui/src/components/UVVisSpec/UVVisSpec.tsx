@@ -16,7 +16,6 @@ import {
   ModalHeader,
   useDisclosure
 } from "@nextui-org/react";
-// import {getDefaultPeakFinder} from "../SpectraDisplay/ChartAnalysis.ts";
 import {useBifrost} from "../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosTopic} from "../../ros/topics/rosTopic.ts";
 import {useSelector} from "react-redux";
@@ -26,6 +25,8 @@ import {Settings} from "react-feather";
 import useNumberField from "./useNumberField.ts";
 import useGL from "../../hooks/webgl/gl/useGL.ts";
 import {max} from "lodash";
+import useDownload from "../../hooks/useDownload.ts";
+import RamanLocalStorageSaveButton from "../RamanSpec/RamanLocalStorageSaveButton.tsx";
 
 export interface UVVisSpecProps {
   onSave?: (points: number[][], name: string) => void,
@@ -44,8 +45,6 @@ const UVVisSpec: React.FC<UVVisSpecProps> = (props) => {
 
   const [mousePoint, setMousePoint] = useState<[number, number]>([0, 0]);
 
-  const [graphName, setGraphName] = useState<string>("")
-
   const gradient = (endWavelength - startWavelength) / (endColumn - startColumn);
   const viewportStartWavelength = startWavelength - gradient * startColumn;
   const viewportEndWavelength = viewportStartWavelength + gradient;
@@ -54,10 +53,9 @@ const UVVisSpec: React.FC<UVVisSpecProps> = (props) => {
   const colToWavelength = useCallback((v: number) => gradient * v + viewportStartWavelength, [gradient, viewportStartWavelength]);
 
   // Called whenever the user presses the save button
-  const onSave = useCallback(() => {
+  const onSave = useCallback((graphName: string) => {
     if (!props.onSave)
       return;
-
 
     const maxLuminance = Math.max(max(luminance) ?? 441.67295593, 10);
 
@@ -67,7 +65,22 @@ const UVVisSpec: React.FC<UVVisSpecProps> = (props) => {
     ))
 
     props.onSave(points, graphName);
-  }, [colToWavelength, graphName, luminance, props])
+  }, [colToWavelength, luminance, props])
+
+  const download = useDownload("uv-vis-spec.csv", () => {
+    const maxLuminance = Math.max(max(luminance) ?? 441.67295593, 10);
+
+    // [x, y] points to return
+    const points = luminance.map((lum, i) => (
+      [colToWavelength((i) / (luminance.length-1)), lum / maxLuminance]
+    ));
+
+    const lines = ["wavelength,intensity"];
+    for (let i = 0; i < points.length; i++)
+      lines.push(`${points[i][0]},${points[i][1]}`);
+
+    return lines.join('\n');
+  }, [luminance, colToWavelength], { type: "text/csv;charset=utf-8" })
 
   useEffect(() => {
     bifrost.syncWithTopic();
@@ -160,17 +173,7 @@ const UVVisSpec: React.FC<UVVisSpecProps> = (props) => {
       </CardHeader>
       <CardBody>
         {chart}
-        <div className="flex flex-row gap-3 my-3 mb-0">
-          <Input size="sm" placeholder="Graph name" onValueChange={setGraphName}></Input>
-          <Button
-            color={graphName.length > 0 ? "success" : "default"}
-            isDisabled={graphName.length === 0}
-            onPress={onSave}
-            size="sm"
-          >
-            Save
-          </Button>
-        </div>
+        <RamanLocalStorageSaveButton onSave={onSave} onCSVSave={download}></RamanLocalStorageSaveButton>
       </CardBody>
       {modal}
     </Card>
