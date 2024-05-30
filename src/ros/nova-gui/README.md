@@ -96,7 +96,7 @@ For Developing Nova-GUI, the reccomended method of development is using `nova-sh
 **TX2:**
 ```
 sudo systemctl stop gpsd.socket
-sudo gpsd -nG 5 /dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0
+sudo gpsd -nNG -D 5 /dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0
 sudo {BUILD}/bin/ros2 launch gpsd_client gpsd_client-launch.py
 sudo {BUILD}/bin/ros2 run electronics base_gps_sub.py --ros-args -p dev:=/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0
 ```
