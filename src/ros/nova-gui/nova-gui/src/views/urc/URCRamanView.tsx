@@ -22,19 +22,20 @@ const URCRamanView: React.FC = () => {
     setSelectedGraphs(new Set([...selectedGraphs.values(), uniqueName]))
   }, [graphs, selectedGraphs, setGraphs]);
 
-  return <div className="grid grid-flow-col auto-cols-fr grid-cols-1 m-3">
-    <div className="flex flex-col">
-      <RamanSpec onSave={onSave}/>
-      <GenericGraphComparisonWidget
-        graphs={graphs}
-        setGraphs={setGraphs}
-        selectedCharts={selectedGraphs}
-        setSelectedCharts={setSelectedGraphs}
-        title={"RAMAN Spec Saved Graphs"}
-      >
-      </GenericGraphComparisonWidget>
+  return (
+    <div className="grid w-full h-full gap-3 p-3 grid-cols-4">
+        <RamanSpec className="row-start-1 w-full col-span-4 row-span-1" onSave={onSave}/>
+        <div className="row-start-2 w-full col-span-3 row-span-1">
+          <GenericGraphComparisonWidget
+            graphs={graphs}
+            setGraphs={setGraphs}
+            selectedCharts={selectedGraphs}
+            setSelectedCharts={setSelectedGraphs}
+            title={"RAMAN Spec Saved Graphs"}
+          />
+        </div>
     </div>
-  </div>;
+  );
 };
 
 export default URCRamanView;

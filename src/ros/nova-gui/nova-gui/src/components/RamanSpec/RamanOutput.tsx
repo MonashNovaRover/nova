@@ -4,7 +4,7 @@
  * It accepts responses from the 'raman_spectra' ROS service.
  */
 
-import {Card, CardFooter} from "@nextui-org/react";
+import {Card, CardFooter, CardProps} from "@nextui-org/react";
 import React, {memo, useCallback, useEffect, useMemo} from "react";
 import { RootState } from "../../redux/RootState";
 import { useBifrost } from "../../redux/actions/bifrost/useBifrostAction";
@@ -15,7 +15,7 @@ import DataChart from "../SpectraDisplay/DataChart";
 import RamanLocalStorageSaveButton from "./RamanLocalStorageSaveButton.tsx";
 import useDownload from "../../hooks/useDownload.ts";
 
-export interface RamanOutputProps {
+export interface RamanOutputProps extends CardProps {
     onSave?: (data: number[][], name: string) => void,
 }
 
