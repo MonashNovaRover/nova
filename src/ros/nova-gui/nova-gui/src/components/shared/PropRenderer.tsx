@@ -1,8 +1,11 @@
 import humanizeString from "humanize-string";
+import CopyableInput from "../CopyableInput/CopyableInput";
 
 interface PropRendererProps<T> {
   props: T;
   ignoreProps: Array<keyof T>;
+  row?: boolean;
+  size?: "sm" | "md" | "lg";
 }
 
 /**
@@ -13,15 +16,24 @@ interface PropRendererProps<T> {
  */
 export const PropRenderer = <T extends object>(props: PropRendererProps<T>) => {
   return (
-    <div className="w-full">
+    <div
+      className={"w-full flex" + (props.row ? " flex-row gap-1" : " flex-col ")}
+    >
       {Object.keys(props.props)
         .filter((prop) => !props.ignoreProps.includes(prop as keyof T))
-        .map((prop) => (
-          <div className="flex flex-row justify-between">
-            <div className="font-semibold ">{humanizeString(prop)}</div>
-            <div>{String(props.props[prop as keyof T])}</div>
-          </div>
-        ))}
+        .map((prop, i) => {
+          return (
+            <CopyableInput
+              key={i}
+              readOnly
+              variant="faded"
+              label={humanizeString(prop)}
+              value={String(props.props[prop as keyof T])}
+              className="w-full my-1"
+              size={props.size}
+            ></CopyableInput>
+          );
+        })}
     </div>
   );
 };

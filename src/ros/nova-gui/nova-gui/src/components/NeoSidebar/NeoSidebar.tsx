@@ -10,7 +10,7 @@ import { RootState } from "../../redux/RootState";
 import { useSelector } from "react-redux";
 import { useUIActions } from "../../redux/actions/useUIActions";
 import novaLogo from "../../assets/nova-logo.png";
-import {Aperture, BarChart, BarChart2, Camera, Globe, Home, Image} from "react-feather";
+import {Aperture, BarChart, BarChart2, Camera, Globe, Home, Image, Map} from "react-feather";
 import { ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {URCCompModes} from "../../views/shared/CamerasPage/CameraPageConstants.ts";
@@ -36,7 +36,12 @@ const urcSidebarData: SidebarInterface = {
       title: "Cameras",
       route: "/urc/cameras",
       icon: <Camera />,
-    }
+    },
+    {
+      title: "Cartographer",
+      route: "/urc/cartographer",
+      icon: <Map />,
+    },
   ],
   ["Science"]: [
     {
@@ -161,6 +166,7 @@ const arcSidebarData: SidebarInterface = {
       route: "/arc/cameras/autonomous",
       icon: <Camera />,
     },
+
   ],
 };
 

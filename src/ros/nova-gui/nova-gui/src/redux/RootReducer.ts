@@ -9,10 +9,11 @@ import {
   IRosSensorMsgsRange,
   IRosNovaInterfacesHydraprobeData
 } from "../ros/rosTypes";
+import { cartographerSlice } from "./slices/CartographerSlice";
+import { initialNavSatMessage } from "./models/CartographerState";
 import {uiSlice} from "./slices/UISlice";
 import {cameraStreamerSlice} from "./slices/CameraStreamSlice";
 import {BLCMD_INDEX} from "../constants";
-
 
 export const rootReducer = {
   // Bifrost Stores
@@ -86,14 +87,8 @@ export const rootReducer = {
   ),
 
   // Cameras2 Reducers
-  camerasStore: createBifrostStore(
-    { topic: RosTopic.CAMERAS },
-    { cameras: [] }
-  ),
-  ipList: createBifrostStore(
-    { service: RosService.GET_IP_LIST }, 
-    { ips: [] }
-  ),
+  camerasStore: createBifrostStore({ topic: RosTopic.CAMERAS }, { cameras: [] }),
+  ipList: createBifrostStore({ service: RosService.GET_IP_LIST }, { ips: [] }),
 
   blcmdStatusStore: createBifrostStore(
     { topic: RosTopic.BLCMD_ERRORS },
@@ -107,7 +102,7 @@ export const rootReducer = {
       })),
     }
   ),
-  
+
   // Science Reduceers
   kilnData: createBifrostStore(
     { topic: RosTopic.KILN_DATA },
@@ -122,17 +117,14 @@ export const rootReducer = {
       success: true, // whether the last service request succeeded or not: False will show error on Toggle Kiln Button
     }
   ),
-  tofStore: createBifrostStore(
-    { topic: RosTopic.TOF },
-    {
-      header: {
-        frame_id: ""
-      } as IRosSensorMsgsRange["header"],
-      min_range: 0.0,
-      max_range: 150.0,
-      range: 0.0
-    } as IRosSensorMsgsRange
-  ),
+  tofStore: createBifrostStore({ topic: RosTopic.TOF }, {
+    header: {
+      frame_id: "",
+    } as IRosSensorMsgsRange["header"],
+    min_range: 0.0,
+    max_range: 150.0,
+    range: 0.0,
+  } as IRosSensorMsgsRange),
   nirStore: createBifrostStore(
     { topic: RosTopic.NIR_DATA },
     {
@@ -214,4 +206,14 @@ export const rootReducer = {
   uiState: uiSlice.reducer,
   cameraStreamerState: cameraStreamerSlice.reducer,
 
+
+  // Maps Stores
+  autoRoverLocationStore: createBifrostStore(
+    {
+      topic: RosTopic.AUTO_ROVER_LOCATION,
+    },
+    initialNavSatMessage
+  ),
+  baseLocationStore: createBifrostStore({ topic: RosTopic.BASE_LOCATION }, initialNavSatMessage),
+  cartographerState: cartographerSlice.reducer,
 };

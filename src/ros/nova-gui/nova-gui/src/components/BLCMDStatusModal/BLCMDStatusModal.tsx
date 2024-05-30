@@ -85,13 +85,11 @@ export const BLCMDStatusModal = () => {
             aria-label="BLCMD Status Table"
           >
             <TableHeader>
-              <TableHeader>
-                <TableColumn>Motor</TableColumn>
-                <TableColumn>Status</TableColumn>
-                <TableColumn align="end">
-                  <div className="flex flex-row justify-end">Reset</div>
-                </TableColumn>
-              </TableHeader>
+              <TableColumn>Motor</TableColumn>
+              <TableColumn>Status</TableColumn>
+              <TableColumn align="end">
+                <div className="flex flex-row justify-end">Reset</div>
+              </TableColumn>
             </TableHeader>
             <TableBody>
               {blcmdStatuses.map((blcmd) => (
@@ -109,6 +107,7 @@ export const BLCMDStatusModal = () => {
                         variant="flat"
                         color="danger"
                         onPress={() => resetBLCMD(blcmd.id)}
+                        placement={undefined}
                       >
                         <ArrowCounterclockwise />
                       </ToolTipButton>
@@ -120,6 +119,7 @@ export const BLCMDStatusModal = () => {
                         variant="flat"
                         color="danger"
                         onPress={() => zeroResolver(blcmd.id)}
+                        placement={undefined}
                       >
                         123
                       </ToolTipButton>

@@ -11,6 +11,7 @@ import {
   IRosNovaInterfacesMicroscopeServoInfo,
   IRosNovaInterfacesRamanSpectrum,
   IRosStdMsgsString,
+  IRosSensorMsgsNavSatFix,
   IRosNovaInterfacesUvVisSpecData,
   IRosNovaInterfacesRamanState,
   IRosNovaInterfacesHydraprobeData,
@@ -43,7 +44,7 @@ export interface RosTopicInterfaces {
 
   // Errors Related
   [RosTopic.BLCMD_ERRORS]: IRosBlcmdInterfacesBlcmdStatusArray;
-  
+
   // Science Related
   [RosTopic.TOF]: IRosSensorMsgsRange;
   [RosTopic.KILN_DATA]: IRosNovaInterfacesKilnData;
@@ -59,4 +60,8 @@ export interface RosTopicInterfaces {
   // Cameras Related
   [RosTopic.CAMERAS]: IRosCameraMsgsCameras;
 
+  // Maps Related
+  [RosTopic.AUTO_ROVER_LOCATION]: IRosSensorMsgsNavSatFix;
+  [RosTopic.ROVER_LOCATION]: IRosSensorMsgsNavSatFix;
+  [RosTopic.BASE_LOCATION]: IRosSensorMsgsNavSatFix;
 }
