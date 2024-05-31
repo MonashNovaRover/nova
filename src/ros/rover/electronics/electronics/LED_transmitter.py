@@ -88,6 +88,8 @@ class LEDTransmitter(Node):
     self.most_recent_update = time.perf_counter()
     self.display()
 
+    self.can_communicator.turn_off()
+
   def cb_auto_active(self, request, response):
     """
     Turns the LEDs solid red to indicate the rover entering autonomous mode
