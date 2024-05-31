@@ -85,7 +85,7 @@ def generate_launch_description():
         DeclareLaunchArgument('rectify_rgb', default_value='True'),
         DeclareLaunchArgument('use_sim_time', default_value='False'),
         DeclareLaunchArgument('rtabmap_pointcloud', default_value='True'),
-        DeclareLaunchArgument('ar_tag', default_value='False'),
+        DeclareLaunchArgument('ar_tag', default_value='True'),
         DeclareLaunchArgument('use_camera', default_value='True'),
     ]
 
