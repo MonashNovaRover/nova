@@ -53,10 +53,6 @@ export const arcRoutes: RouteObject[] = [
     element: <ARCExcavationConstructionView />,
   },
   {
-    path: "/arc/autonomous/cartographer",
-    element: <URCCartographerView />,
-  },
-  {
     path: "/arc/autonomous",
     element: <ARCAutonomousView />,
   },
@@ -90,6 +86,10 @@ export const urcRoutes: RouteObject[] = [
   {
     path: "/urc/autonomous-navigation",
     element: <URCAutonomousNavigationView />,
+  },
+  {
+    path: "/urc/cartographer",
+    element: <URCCartographerView />,
   },
   {
     path: "/urc/cameras",
