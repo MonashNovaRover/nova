@@ -10,6 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@nextui-org/react";
+import CopyableInput from "../../CopyableInput/CopyableInput.tsx";
 import { useState } from "react";
 import { ChevronDoubleDown, ChevronDoubleUp } from "react-bootstrap-icons";
 import { useSelector } from "react-redux";
@@ -104,6 +105,19 @@ export const BottomOverlay = () => {
                       ))}
                     </TableBody>
                   </Table>
+                  <CopyableInput className="grow basis-1"
+                     size="md" labelPlacement="outside"
+                     label={"ROS2 Action Goal Poses"}
+                     //value={`${points.map(point => `{latitude: ${point.lat.toString()}, longitude: ${point.long.toString()}}`)}`}  
+                     value={`./bt-navigator/bin/ros2 action send_goal /urc_navigator nova_auto_interfaces/action/NavigateURC "{gps_poses: [{${points.map(point => `position: {latitude: ${point.lat.toString()}, longitude: ${point.long.toString()}}`)}}], behavior_tree: '$HOME/src/ros/rover/nav2_autonomous/nova_behavior_tree/behavior_tree/urc/urc_through_poses_search.xml'}" `}
+                     copyValue={`./bt-navigator/bin/ros2 action send_goal /urc_navigator nova_auto_interfaces/action/NavigateURC "{gps_poses: [{${points.map(point => `position: {latitude: ${point.lat.toString()}, longitude: ${point.long.toString()}}`)}}], behavior_tree: '$HOME/src/ros/rover/nav2_autonomous/nova_behavior_tree/behavior_tree/urc/urc_through_poses_search.xml'}"`}
+                     classNames={{
+                       input: "font-mono",
+                       inputWrapper: "data-[hover=true]:bg-default-100"
+                     }}
+                     placeholder={"##.#### %"}>
+                  </CopyableInput>
+
                 </motion.div>
               </motion.div>
             </CardBody>
