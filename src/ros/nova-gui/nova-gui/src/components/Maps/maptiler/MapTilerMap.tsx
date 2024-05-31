@@ -7,6 +7,7 @@ import { RootState } from "../../../redux/RootState";
 import { useCartographerActions } from "../../../redux/actions/useCartographerActions";
 import { useCartographerTracking } from "../hooks/useCartographerTracking";
 import { getLineGeoJSONSource } from "../utils/geojson";
+import { MAP_BOUNDS, MAP_NAME } from "../config";
 
 export const MapTilerMap = (props: { overlay: React.ReactNode }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
@@ -29,17 +30,17 @@ export const MapTilerMap = (props: { overlay: React.ReactNode }) => {
       maptilerLogo: false,
       geolocateControl: false,
       container: mapContainer.current,
-      maxBounds: [-110.809, 38.3917, -110.765, 38.4177],
+      maxBounds: MAP_BOUNDS,
       style: {
         version: 8,
         name: "Cartographer",
         sources: {
           tiles: {
             tiles: [
-              `http://${baseStationIp}:8080/data/MDRS_Hi_Res/{z}/{x}/{y}.png`,
+              `http://${baseStationIp}:8080/data/${MAP_NAME}/{z}/{x}/{y}.png`,
             ],
             type: "raster",
-            bounds: [-110.809, 38.3917, -110.765, 38.4177],
+            bounds: MAP_BOUNDS,
           },
         },
         layers: [
