@@ -62,8 +62,8 @@ class CanLEDCommunicator:
     Tells a given colour line to display 0 intensity
     """
     self.set_led(LedColor.RED, 0)
-    self.set_led(LedColor.GREEN, 0)
-    self.set_led(LedColor.BLUE, 0)
+    # self.set_led(LedColor.GREEN, 0)
+    # self.set_led(LedColor.BLUE, 0)
 
 
 class LEDTransmitter(Node):
