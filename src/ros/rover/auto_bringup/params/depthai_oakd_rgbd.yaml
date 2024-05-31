@@ -14,12 +14,11 @@
         #i_rotation_vector_type: ROTATION_VECTOR
     rgb:
       i_enable_nn: false
-      i_enable_preview: true
+      i_enable_preview: false
       i_fps: 5.0
       i_preview_height: 640 #300
       i_preview_size: 640
       i_preview_width: 640 #300
-      i_publish_topic: false
       i_width: 1280
     left:
       i_set_isp_scale: true
@@ -37,5 +36,6 @@
       i_subpixel: false
       i_fps: 5.0
       i_enable_threshold_filter: true
+      i_publish_right_rect: true
       #WLS filter
       #i_output_disparity: true

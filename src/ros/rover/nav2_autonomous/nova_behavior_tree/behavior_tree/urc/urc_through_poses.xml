@@ -60,7 +60,7 @@ continuously
             <SubTreePlus ID="NavToPoseWithReplanningAndRecovery" goal="{goal}"
               __autoremap="true" />
             <RemovePassedGoals input_goals="{goals}" output_goals="{goals}"
-              radius="0.5" />
+              radius="1.00" />
           </Sequence>
         </KeepRunningUntilFailure>
         <!-- Navigate through search goal poses -->
