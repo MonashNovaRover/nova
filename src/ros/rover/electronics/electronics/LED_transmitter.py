@@ -86,7 +86,7 @@ class LEDTransmitter(Node):
     self.flash_timer = self.create_timer(0.5, self.cb_flash)
     self.flash_counter = 1  # 1 = on, 0 = off
     self.most_recent_update = time.perf_counter()
-    self.display()
+    # self.display()
 
   def cb_auto_active(self, request, response):
     """
@@ -170,7 +170,7 @@ class LEDTransmitter(Node):
     """
     # get colour and brightness
     colour_info = self.get_color()
-    self.can_communicator.turn_off()
+    # self.can_communicator.turn_off()
     self.can_communicator.set_led(*colour_info)
 
 
