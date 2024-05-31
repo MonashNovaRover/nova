@@ -24,7 +24,6 @@
 , image-view
 , navigation2
 , depthai-ros
-, rtabmap-ros
 }:
 
 buildRosPackage rec {
@@ -56,8 +55,7 @@ buildRosPackage rec {
       robot-localization
       gazebo-ros-pkgs
       navigation2
-      depthai-ros
-      rtabmap-ros;
+      depthai-ros;
   };
 
 }
