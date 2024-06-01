@@ -9,6 +9,13 @@ import { CartographerAction } from "../slices/CartographerSlice";
 export const useCartographerActions = () => {
   const dispatch = useDispatch();
 
+  const setPoints = (points: MapPoint[]) =>
+    dispatch({
+      type: CartographerAction.SET_POINTS.type,
+      payload: points,
+    });
+
+
   const addPoint = (point: MapPoint) =>
     dispatch({
       type: CartographerAction.ADD_POINT.type,
@@ -54,6 +61,7 @@ export const useCartographerActions = () => {
     dispatch({ type: CartographerAction.TOGGLE_TRACK_ROVER.type });
 
   return {
+    setPoints,
     addPoint,
     deletePoint,
     setInteractionMode,

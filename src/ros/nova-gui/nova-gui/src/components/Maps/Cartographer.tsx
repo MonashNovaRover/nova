@@ -7,7 +7,7 @@ import { RosTopic } from "../../ros/topics/rosTopic";
 import { MapTilerMap } from "./maptiler/MapTilerMap";
 import { ToolTipButton } from "../shared/TooltipButton";
 import { PropRenderer } from "../shared/PropRenderer";
-import { MapInteractionMode } from "../../redux/models/CartographerState";
+import { MapInteractionMode, MapPoint } from "../../redux/models/CartographerState";
 import { MapPin, X } from "react-feather";
 import { NewMarkerModal } from "./components/NewMarkerModal";
 import { BottomOverlay } from "./components/BottomOverlay";
@@ -18,6 +18,7 @@ import { MapTile } from "./config";
 
 export const Cartographer = () => {
   const [mapTile, setMapTile] = useLocalStorage("mapTile", MapTile.Hanksville);
+  const [storedPoints, setStoredPoints] = useLocalStorage("storedPoints", [] as MapPoint[])
 
   const roverLocationBifrost = useBifrost({
     topic: RosTopic.ROVER_LOCATION,
@@ -38,8 +39,20 @@ export const Cartographer = () => {
     baseLocationBifrost.syncWithTopic();
   }, [baseLocationBifrost]);
 
-  const { addPoint, setInteractionMode, closeNewModal, clearMeasurements } =
+  const { setPoints, setInteractionMode, closeNewModal, clearMeasurements } =
     useCartographerActions();
+
+  const addPoint = (point: MapPoint) => {
+    setStoredPoints([...storedPoints, point])
+  }
+
+  const deletePoint = (point: MapPoint) => {
+    setStoredPoints([...storedPoints.filter(p => p.name !== point.name)])
+  }
+  
+  useEffect(() => {
+    setPoints([...storedPoints])
+  },[storedPoints])
 
   return (
     <div className="w-full ">
@@ -149,7 +162,7 @@ export const Cartographer = () => {
           }
         />
         <div className="fixed bottom-0 w-full">
-          <BottomOverlay mapTile={mapTile} setMapTile={setMapTile}/>
+          <BottomOverlay mapTile={mapTile} setMapTile={setMapTile} deletePoint={deletePoint}/>
         </div>
       </div>
     </div>

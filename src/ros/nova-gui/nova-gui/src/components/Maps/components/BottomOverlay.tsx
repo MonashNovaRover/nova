@@ -22,19 +22,21 @@ import { Navigation, Trash } from "react-feather";
 import { ToolTipButton } from "../../shared/TooltipButton";
 import { useCartographerActions } from "../../../redux/actions/useCartographerActions";
 import { MapTile } from "../config.tsx";
+import { MapPoint } from "../../../redux/models/CartographerState.ts";
 
 interface BottomOverlayProps {
   mapTile: MapTile;
   setMapTile: (tile: MapTile) => void;
+  deletePoint: (point: MapPoint) => void;
 }
 
-export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTile}) => {
+export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTile, deletePoint}) => {
   const [overlayOpen, setOverlayOpen] = useState(false);
   const { points, centerOnRover, trackRover } = useSelector(
     (state: RootState) => state.cartographerState
   );
 
-  const { deletePoint, toggleRoverCentering, toggleRoverTracking } =
+  const { toggleRoverCentering, toggleRoverTracking } =
     useCartographerActions();
 
   return (
