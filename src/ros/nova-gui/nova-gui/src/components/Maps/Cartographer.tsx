@@ -67,12 +67,6 @@ export const Cartographer = () => {
                     )}
 
                   <ToolTipButton
-                    disabled={
-                      ![
-                        MapInteractionMode.PAN,
-                        MapInteractionMode.SELECT,
-                      ].includes(mapInteractionMode)
-                    }
                     placement="left"
                     tooltipContent={"Drop Pins"}
                     className="bottom-0 right-0"
@@ -115,12 +109,6 @@ export const Cartographer = () => {
                     )}
 
                   <ToolTipButton
-                    disabled={
-                      ![
-                        MapInteractionMode.PAN,
-                        MapInteractionMode.MEASURE,
-                      ].includes(mapInteractionMode)
-                    }
                     placement="left"
                     tooltipContent={
                       measure.from && measure.to && !measure.measuring
