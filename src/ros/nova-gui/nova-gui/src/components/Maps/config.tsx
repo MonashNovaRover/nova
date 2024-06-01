@@ -4,6 +4,9 @@ import { RosTopic } from "../../ros/topics/rosTopic";
 
 // This is the Name that comes with the MBTiles File Itself
 export const MAP_NAME = "MDRS";
+export const MAP_BOUNDS: [number, number, number, number] = [
+  -110.809, 38.3917, -110.765, 38.4177,
+];
 
 /*
  * Topic on Which the Rover Location is Broadcasted
