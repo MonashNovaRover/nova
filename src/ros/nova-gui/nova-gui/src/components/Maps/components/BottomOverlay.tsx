@@ -35,6 +35,8 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
   const { points, centerOnRover, trackRover } = useSelector(
     (state: RootState) => state.cartographerState
   );
+  const rover = useSelector((state: RootState) => state.roverLocationStore)
+  const base = useSelector((state: RootState) => state.baseLocationStore)
 
   const { toggleRoverCentering, toggleRoverTracking } =
     useCartographerActions();
@@ -49,7 +51,27 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
       <Card fullWidth className="h-full">
         <CardHeader className="w-full flex flex-row justify-between">
           <div className=""></div>
-          <div className="flex flex-row align-middle gap-2">
+          <div className="flex flex-row align-middle gap-3">
+          <CopyableInput 
+            readOnly
+            value={String(base.latitude)}
+            placeholder={`Base Latitude`}
+            label="Base Latitude"/>
+          <CopyableInput 
+            readOnly
+            value={String(base.longitude)}
+            placeholder={`Base Longitude`}
+            label="Base Longitude"/>
+          <CopyableInput 
+            readOnly
+            value={String(rover.latitude)}
+            placeholder={`Rover Latitude`}
+            label="Rover Latitude"/>
+          <CopyableInput 
+            readOnly
+            value={String(rover.longitude)}
+            placeholder={`Rover Longitude`}
+            label="Rover Longitude"/>
           <Select 
             selectedKeys={[mapTile]}
             label="Map Tiles"
