@@ -8,7 +8,6 @@ import novaLogo from "../../../assets/nova-logo.png";
 
 import { useEffect, useState } from "react";
 import { MapInteractionMode } from "../../../redux/models/CartographerState";
-import { ROVER_LOCATION_TOPIC } from "../config";
 
 export const useCartographerMarkers = (map?: Map) => {
   const [roverMarker, setRoverMarker] = useState<Marker>();
@@ -21,7 +20,7 @@ export const useCartographerMarkers = (map?: Map) => {
   );
 
   const roverLocationBifrost = useBifrost({
-    topic: ROVER_LOCATION_TOPIC,
+    topic: RosTopic.ROVER_LOCATION,
   });
 
   const baseLocationBifrost = useBifrost({
@@ -37,7 +36,7 @@ export const useCartographerMarkers = (map?: Map) => {
   }, [baseLocationBifrost]);
 
   const roverLocation = useSelector(
-    (state: RootState) => state.autoRoverLocationStore
+    (state: RootState) => state.roverLocationStore
   );
 
   const baseLocationStore = useSelector(

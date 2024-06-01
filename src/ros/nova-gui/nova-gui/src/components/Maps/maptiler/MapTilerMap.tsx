@@ -7,7 +7,7 @@ import { RootState } from "../../../redux/RootState";
 import { useCartographerActions } from "../../../redux/actions/useCartographerActions";
 import { useCartographerTracking } from "../hooks/useCartographerTracking";
 import { getLineGeoJSONSource } from "../utils/geojson";
-import { MAP_BOUNDS, MAP_NAME } from "../config";
+import { MAP_BOUNDS } from "../config";
 
 export const MapTilerMap = (props: { overlay: React.ReactNode }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
@@ -16,13 +16,20 @@ export const MapTilerMap = (props: { overlay: React.ReactNode }) => {
   const baseStationIp = useSelector(
     (state: RootState) => state.uiState.baseStationIP
   );
+  const mapTile = useSelector((state: RootState) => state.cartographerState.mapTile);
 
   useCartographerMarkers(map);
   useCartographerTracking(map);
 
   const { updateMousePosition, handleMapClickEvent } = useCartographerActions();
+
+
   useEffect(() => {
-    if (map || !mapContainer.current) return; // stops map from intializing more than once
+    setMap(undefined);
+  }, [mapTile]);
+
+  useEffect(() => {
+    if ((map || !mapContainer.current)) return; // stops map from intializing more than once
 
     maptilersdk.config.apiKey = "PLZ ADD MEMES TO PR'S PLEASE"; // This Comment is to ensure that No API Key is Needed
     const newMap = new maptilersdk.Map({
@@ -30,17 +37,17 @@ export const MapTilerMap = (props: { overlay: React.ReactNode }) => {
       maptilerLogo: false,
       geolocateControl: false,
       container: mapContainer.current,
-      maxBounds: MAP_BOUNDS,
+      maxBounds: MAP_BOUNDS[mapTile],
       style: {
         version: 8,
         name: "Cartographer",
         sources: {
           tiles: {
             tiles: [
-              `http://${baseStationIp}:8080/data/${MAP_NAME}/{z}/{x}/{y}.png`,
+              `http://${baseStationIp}:8080/data/${mapTile}/{z}/{x}/{y}.png`,
             ],
             type: "raster",
-            bounds: MAP_BOUNDS,
+            bounds: MAP_BOUNDS[mapTile],
           },
         },
         layers: [
@@ -114,6 +121,7 @@ export const MapTilerMap = (props: { overlay: React.ReactNode }) => {
     mapContainer,
     map,
     baseStationIp,
+    mapTile,
     updateMousePosition,
     handleMapClickEvent,
   ]);

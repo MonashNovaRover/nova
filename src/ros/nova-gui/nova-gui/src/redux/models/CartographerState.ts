@@ -1,3 +1,4 @@
+import { MapTile } from "../../components/Maps/config";
 import { IRosSensorMsgsNavSatFix } from "../../ros/rosTypes";
 
 export interface MapCoordinate {
@@ -30,6 +31,7 @@ export interface CartographerState {
   };
   centerOnRover: boolean;
   trackRover: boolean;
+  mapTile: MapTile;
 }
 
 export const initialNavSatMessage = <IRosSensorMsgsNavSatFix>{

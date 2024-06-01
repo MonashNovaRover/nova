@@ -208,12 +208,18 @@ export const rootReducer = {
 
 
   // Maps Stores
-  autoRoverLocationStore: createBifrostStore(
+  roverLocationStore: createBifrostStore(
     {
-      topic: RosTopic.AUTO_ROVER_LOCATION,
+      topic: RosTopic.ROVER_LOCATION,
     },
     initialNavSatMessage
   ),
-  baseLocationStore: createBifrostStore({ topic: RosTopic.BASE_LOCATION }, initialNavSatMessage),
+  baseLocationStore: createBifrostStore(
+    { 
+    topic: RosTopic.BASE_LOCATION 
+    }, 
+    initialNavSatMessage
+  ),
+
   cartographerState: cartographerSlice.reducer,
 };

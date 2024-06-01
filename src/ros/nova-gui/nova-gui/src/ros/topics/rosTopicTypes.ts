@@ -61,7 +61,6 @@ export interface RosTopicInterfaces {
   [RosTopic.CAMERAS]: IRosCameraMsgsCameras;
 
   // Maps Related
-  [RosTopic.AUTO_ROVER_LOCATION]: IRosSensorMsgsNavSatFix;
   [RosTopic.ROVER_LOCATION]: IRosSensorMsgsNavSatFix;
   [RosTopic.BASE_LOCATION]: IRosSensorMsgsNavSatFix;
 }

@@ -3,6 +3,8 @@ import {
   Card,
   CardBody,
   CardHeader,
+  Select,
+  SelectItem,
   Table,
   TableBody,
   TableCell,
@@ -19,14 +21,16 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Navigation, Trash } from "react-feather";
 import { ToolTipButton } from "../../shared/TooltipButton";
 import { useCartographerActions } from "../../../redux/actions/useCartographerActions";
+import { MapTile } from "../config.tsx";
 
 export const BottomOverlay = () => {
   const [overlayOpen, setOverlayOpen] = useState(false);
   const { points, centerOnRover, trackRover } = useSelector(
     (state: RootState) => state.cartographerState
   );
+  const mapTile = useSelector((state: RootState) => state.cartographerState.mapTile);
 
-  const { deletePoint, toggleRoverCentering, toggleRoverTracking } =
+  const { deletePoint, toggleRoverCentering, toggleRoverTracking, setMapTile } =
     useCartographerActions();
 
   return (
@@ -40,6 +44,19 @@ export const BottomOverlay = () => {
         <CardHeader className="w-full flex flex-row justify-between ">
           <div className=""></div>
           <div className="flex flex-row align-middle gap-2">
+          <Select 
+            selectedKeys={[mapTile]}
+            label="Map Tiles"
+            placeholder="Select Tiles"
+            onChange={(e) => setMapTile(e.target.value as MapTile)}
+            >
+            {Object.values(MapTile).map((tile) => (
+              <SelectItem 
+                key={tile} >
+                {tile}
+              </SelectItem>
+            ))}
+            </Select>
             <Button
               variant="shadow"
               color={trackRover ? "primary" : "default"}

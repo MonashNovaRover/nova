@@ -75,7 +75,7 @@ export interface RootState {
 
 
   // Maps Related Stores
-  autoRoverLocationStore: IRosSensorMsgsNavSatFix;
+  roverLocationStore: IRosSensorMsgsNavSatFix;
   baseLocationStore: IRosSensorMsgsNavSatFix;
   cartographerState: CartographerState;
 }

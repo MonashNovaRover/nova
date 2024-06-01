@@ -5,6 +5,7 @@ import {
   MapPoint,
 } from "../models/CartographerState";
 import { CartographerAction } from "../slices/CartographerSlice";
+import { MapTile } from "../../components/Maps/config";
 
 export const useCartographerActions = () => {
   const dispatch = useDispatch();
@@ -53,6 +54,12 @@ export const useCartographerActions = () => {
   const toggleRoverTracking = () =>
     dispatch({ type: CartographerAction.TOGGLE_TRACK_ROVER.type });
 
+  const setMapTile = (tile: MapTile) => 
+    dispatch({
+      type: CartographerAction.SET_MAP_TILE.type,
+      payload: tile,
+    });
+
   return {
     addPoint,
     deletePoint,
@@ -63,5 +70,6 @@ export const useCartographerActions = () => {
     clearMeasurements,
     toggleRoverCentering,
     toggleRoverTracking,
+    setMapTile,
   };
 };

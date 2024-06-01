@@ -7,7 +7,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/RootState";
 import { useDebounce } from "@uidotdev/usehooks";
 import { getLineGeoJSONData } from "../utils/geojson";
-import { ROVER_LOCATION_TOPIC } from "../config";
+import { RosTopic } from "../../../ros/topics/rosTopic";
 
 export const useCartographerTracking = (map?: Map) => {
   //   const [trace, setTrace] = useLocalStorage<MapCoordinate[]>("roverTrace", []);
@@ -22,7 +22,7 @@ export const useCartographerTracking = (map?: Map) => {
   };
 
   const roverLocationBifrost = useBifrost({
-    topic: ROVER_LOCATION_TOPIC,
+    topic: RosTopic.ROVER_LOCATION,
   });
 
   useEffect(() => {
@@ -30,7 +30,7 @@ export const useCartographerTracking = (map?: Map) => {
   }, [roverLocationBifrost]);
 
   const roverLocation = useSelector(
-    (state: RootState) => state.autoRoverLocationStore
+    (state: RootState) => state.roverLocationStore
   );
 
   const deBouncedRoverLocation = useDebounce(roverLocation, 100);

@@ -43,8 +43,5 @@ export enum RosTopic {
   // These Topics are for ED and Science
   ROVER_LOCATION = "/fix",
   BASE_LOCATION = "/gps_base/fix",
-
-  // These Topics are for Autonomous
-  AUTO_ROVER_LOCATION = "/gps/filtered",
-  // AUTO_ROVER_HEADING = "/auto/odometry/filtered/global",
+  ROVER_HEADING = "",
 }
