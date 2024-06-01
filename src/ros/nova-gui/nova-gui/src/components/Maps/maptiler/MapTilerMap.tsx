@@ -7,16 +7,17 @@ import { RootState } from "../../../redux/RootState";
 import { useCartographerActions } from "../../../redux/actions/useCartographerActions";
 import { useCartographerTracking } from "../hooks/useCartographerTracking";
 import { getLineGeoJSONSource } from "../utils/geojson";
-import { MAP_BOUNDS } from "../config";
+import { MAP_BOUNDS, MapTile } from "../config";
 
-export const MapTilerMap = (props: { overlay: React.ReactNode }) => {
+export const MapTilerMap = (props: { overlay: React.ReactNode, mapTile: MapTile }) => {
+  const { mapTile } = props;
   const mapContainer = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<maptilersdk.Map>();
 
   const baseStationIp = useSelector(
     (state: RootState) => state.uiState.baseStationIP
   );
-  const mapTile = useSelector((state: RootState) => state.cartographerState.mapTile);
+
 
   useCartographerMarkers(map);
   useCartographerTracking(map);

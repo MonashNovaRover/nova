@@ -5,7 +5,6 @@ import {
   MapInteractionMode,
   MapPoint,
 } from "../models/CartographerState";
-import { MapTile as MapTile } from "../../components/Maps/config";
 
 export const cartographerSlice = createSlice({
   reducers: {
@@ -123,10 +122,6 @@ export const cartographerSlice = createSlice({
       ...state,
       trackRover: !state.trackRover,
     }),
-    SET_MAP_TILE: (state: CartographerState, action: PayloadAction<MapTile>) => ({
-      ...state,
-      mapTile: action.payload,
-    }),
   },
   initialState: <CartographerState>{
     points: [],
@@ -140,7 +135,6 @@ export const cartographerSlice = createSlice({
     },
     centerOnRover: false,
     trackRover: false,
-    mapTile: MapTile.MDRS,
   },
   name: "CartographerReducer",
 });

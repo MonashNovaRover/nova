@@ -13,8 +13,12 @@ import { NewMarkerModal } from "./components/NewMarkerModal";
 import { BottomOverlay } from "./components/BottomOverlay";
 import { Rulers } from "react-bootstrap-icons";
 import { getDistance } from "./utils/geojson";
+import { useLocalStorage } from "../nir-probe/hooks/useLocalStorage";
+import { MapTile } from "./config";
 
 export const Cartographer = () => {
+  const [mapTile, setMapTile] = useLocalStorage("mapTile", MapTile.MDRS);
+
   const roverLocationBifrost = useBifrost({
     topic: RosTopic.ROVER_LOCATION,
   });
@@ -48,6 +52,7 @@ export const Cartographer = () => {
       />
       <div className="flex h-[95vh]">
         <MapTilerMap
+          mapTile={mapTile}
           overlay={
             <>
               <div className="flex flex-col justify-end gap-2 absolute top-2 right-2">
@@ -144,7 +149,7 @@ export const Cartographer = () => {
           }
         />
         <div className="fixed bottom-0 w-full">
-          <BottomOverlay />
+          <BottomOverlay mapTile={mapTile} setMapTile={setMapTile}/>
         </div>
       </div>
     </div>
