@@ -15,4 +15,4 @@ export const MAP_NAME = "MDRS";
  */
 export const ROVER_LOCATION_TOPIC:
   | RosTopic.AUTO_ROVER_LOCATION
-  | RosTopic.ROVER_LOCATION = RosTopic.AUTO_ROVER_LOCATION;
+  | RosTopic.ROVER_LOCATION = RosTopic.ROVER_LOCATION;
