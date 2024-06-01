@@ -100,7 +100,7 @@ export const useCartographerMarkers = (map?: Map) => {
       const latlng = marker.getLngLat();
     
       return points.every(
-        (point) => point.lat !== latlng.lat && point.long !== latlng.lng
+        (point) => !(point.lat === latlng.lat && point.long === latlng.lng)
       );
     });
 
