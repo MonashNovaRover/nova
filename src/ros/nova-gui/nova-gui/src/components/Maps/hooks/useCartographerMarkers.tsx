@@ -91,12 +91,14 @@ export const useCartographerMarkers = (map?: Map) => {
     const newPoints = points.filter((point) =>
       pointMarkers.every((marker) => {
         const lngLat = marker.getLngLat();
-        return lngLat.lat !== point.lat && lngLat.lng !== point.long;
+        console.log("Marker", marker, "Point", point, lngLat.lat !== point.lat && lngLat.lng !== point.long ? "Not Equal" : "Equal")
+        return !(lngLat.lat === point.lat && lngLat.lng === point.long);
       })
     );
 
     const removedPointMarkers = pointMarkers.filter((marker) => {
       const latlng = marker.getLngLat();
+    
       return points.every(
         (point) => point.lat !== latlng.lat && point.long !== latlng.lng
       );
@@ -124,6 +126,10 @@ export const useCartographerMarkers = (map?: Map) => {
     });
 
     setPointMarkers([...finalPointMarkers, ...newMarkers]);
+    console.log("Points", points)
+    console.log("Point Markers", [...finalPointMarkers, ...newMarkers])
+    console.log("Removed Point Markers", removedPointMarkers)
+    console.log("New Point Markers", newMarkers)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map, points]);
 

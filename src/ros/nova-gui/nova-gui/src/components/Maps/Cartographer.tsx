@@ -17,7 +17,7 @@ import { useLocalStorage } from "../nir-probe/hooks/useLocalStorage";
 import { MapTile } from "./config";
 
 export const Cartographer = () => {
-  const [mapTile, setMapTile] = useLocalStorage("mapTile", MapTile.MDRS);
+  const [mapTile, setMapTile] = useLocalStorage("mapTile", MapTile.Hanksville);
 
   const roverLocationBifrost = useBifrost({
     topic: RosTopic.ROVER_LOCATION,
