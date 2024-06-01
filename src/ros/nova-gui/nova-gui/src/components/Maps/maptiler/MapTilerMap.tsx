@@ -25,9 +25,7 @@ export const MapTilerMap = (props: { overlay: React.ReactNode, mapTile: MapTile 
   const { updateMousePosition, handleMapClickEvent } = useCartographerActions();
 
 
-  useEffect(() => {
-    setMap(undefined);
-  }, [mapTile]);
+
 
   useEffect(() => {
     if ((map || !mapContainer.current)) return; // stops map from intializing more than once
