@@ -45,7 +45,7 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
       transition={{ duration: 0.3 }}
     >
       <Card fullWidth className="h-full">
-        <CardHeader className="w-full flex flex-row justify-between ">
+        <CardHeader className="w-full flex flex-row justify-between">
           <div className=""></div>
           <div className="flex flex-row align-middle gap-2">
           <Select 
@@ -97,7 +97,7 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
                 exit={{ opacity: 0 }}
               >
                 <motion.div className="flex-1">
-                  <Table removeWrapper title="Map Points">
+                  <Table removeWrapper title="Map Points" aria-label="Map Points">
                     <TableHeader>
                       <TableColumn>Name</TableColumn>
                       <TableColumn>Latitude</TableColumn>
@@ -108,7 +108,7 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
                     </TableHeader>
                     <TableBody emptyContent="Add Points on the Map to Display here">
                       {points.map((point) => (
-                        <TableRow>
+                        <TableRow key={point.name}>
                           <TableCell>{point.name}</TableCell>
                           <TableCell>{point.lat}</TableCell>
                           <TableCell>{point.long}</TableCell>
