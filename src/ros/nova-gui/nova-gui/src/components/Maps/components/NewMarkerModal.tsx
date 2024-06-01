@@ -13,6 +13,7 @@ import { RootState } from "../../../redux/RootState";
 import { MapPoint } from "../../../redux/models/CartographerState";
 import { useEffect, useState } from "react";
 import CopyableInput from "../../CopyableInput/CopyableInput";
+import toast from "react-hot-toast";
 
 interface NewMarkerModalProps {
   isOpen: boolean;
@@ -27,6 +28,9 @@ export const NewMarkerModal = (props: NewMarkerModalProps) => {
   const [longitude, setLongitude] = useState("");
   const [latitude, setLatitude] = useState("");
 
+
+
+
   const points = useSelector(
     (state: RootState) => state.cartographerState.points
   );
@@ -36,19 +40,24 @@ export const NewMarkerModal = (props: NewMarkerModalProps) => {
       latitude !== "" &&
       longitude !== "" &&
       !isNaN(Number(latitude)) &&
-      !isNaN(Number(longitude))
+      !isNaN(Number(longitude)) && 
+      points.reduce((acc, point) => acc && !(point.lat === Number(latitude) && point.long === Number(longitude)) && point.name !== name, true)
     );
   }
 
   const handleDropPin = () => {
     if (isValidPoint()) {
-      props.addPoint({
+      const newPoint = {
         lat: Number(latitude),
         long: Number(longitude),
         name: !name || name === "" ? `Point ${points.length + 1}` : name,
-      });
+      } as MapPoint
+      props.addPoint(newPoint);
       setName(undefined);
       props.closeModal();
+    }
+    else{
+      toast.error("Point must have unique coordinates and name")
     }
 };
 

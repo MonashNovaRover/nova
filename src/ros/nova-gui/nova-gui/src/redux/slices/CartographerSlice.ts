@@ -122,6 +122,10 @@ export const cartographerSlice = createSlice({
       ...state,
       trackRover: !state.trackRover,
     }),
+    SET_POINTS: (state: CartographerState, action: PayloadAction<MapPoint[]>) => ({
+        ...state,
+        points: [...action.payload],
+    }),
   },
   initialState: <CartographerState>{
     points: [],

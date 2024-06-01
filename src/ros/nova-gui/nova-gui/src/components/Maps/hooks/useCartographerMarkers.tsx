@@ -5,13 +5,13 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/RootState";
 import roverIcon from "../../../assets/rover-top-down-dark.png";
 import novaLogo from "../../../assets/nova-logo.png";
-
 import { useEffect, useState } from "react";
 import { MapInteractionMode } from "../../../redux/models/CartographerState";
 
 export const useCartographerMarkers = (map?: Map) => {
   const [roverMarker, setRoverMarker] = useState<Marker>();
   const [baseMarker, setBaseMarker] = useState<Marker>();
+
 
   const [pointMarkers, setPointMarkers] = useState<Marker[]>([]);
 
@@ -44,7 +44,10 @@ export const useCartographerMarkers = (map?: Map) => {
   );
 
   useEffect(() => {
-    if (!map) return;
+    if (!map){
+      setBaseMarker(undefined);
+      return;
+    } 
 
     if (!baseMarker) {
       const marker = new Marker({
@@ -70,7 +73,10 @@ export const useCartographerMarkers = (map?: Map) => {
   ]);
 
   useEffect(() => {
-    if (!map) return;
+    if (!map) {
+      setRoverMarker(undefined);
+      return;
+    }
 
     if (!roverMarker) {
       const marker = new Marker({
@@ -86,7 +92,10 @@ export const useCartographerMarkers = (map?: Map) => {
 
   // Syncs Markers
   useEffect(() => {
-    if (!map) return;
+    if (!map) {
+      setPointMarkers([])
+      return;
+    }
 
     const newPoints = points.filter((point) =>
       pointMarkers.every((marker) => {
@@ -100,7 +109,7 @@ export const useCartographerMarkers = (map?: Map) => {
       const latlng = marker.getLngLat();
     
       return points.every(
-        (point) => point.lat !== latlng.lat && point.long !== latlng.lng
+        (point) => !(point.lat === latlng.lat && point.long === latlng.lng)
       );
     });
 
