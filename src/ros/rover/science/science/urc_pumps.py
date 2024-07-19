@@ -7,8 +7,8 @@ from python_control.controllers.TimedCMDVelocityController import TimedCMDVeloci
 from python_control.controls.TimedOneAxisVelocityControl import TimedOneAxisVelocityControl
 import rclpy
 from rclpy.action import ActionServer
+import jcan
 from python_control.ControllerNode import ControllerNode
-from input_interfaces.msg import InputJoystick
 from nova_interfaces.action import Pumps
 
 
@@ -21,7 +21,7 @@ class URCPumps(ControllerNode):
     # SENDING CARD IDS
     # Add any CONTROL FRAME / CARD IDS here
     CLEAN_SHEATH_PUMP_RUN_SEND_FRAME_ID = 0x011
-    MIXER_TO_SHOT_PUMP_RUN_SEND_FRAME_ID = 0x012
+    MIXER_TO_SHOT_PUMP_RUN_SEND_FRAME_ID = 0x042
     SHOT_TO_CAROUSEL_PUMP_RUN_SEND_FRAME_ID = 0x031
 
     # CONTROL NAMES
@@ -117,6 +117,12 @@ class URCPumps(ControllerNode):
 
         ## Start the CAN bus
         self.start_can()
+
+        frame_ids = [0x33, 0x34, 0x43, 0x44]
+
+        for frame_id in frame_ids:
+            self.bus.send(jcan.Frame(frame_id, [0x7F]))
+        
 
 
     def valid_action(self, action: str):

@@ -18,8 +18,8 @@ class URCAuger(JoystickControllerNode):
 
     # SENDING CARD IDS
     # Add any CONTROL FRAME / CARD IDS here
-    AUGER_ACTUATION_SEND_FRAME_ID = 0x021
-    AUGER_DRILL_SEND_FRAME_ID = 0x022
+    AUGER_ACTUATION_SEND_FRAME_ID = 0x083
+    AUGER_DRILL_SEND_FRAME_ID = 0x073
     
     # RECEIVING CARD IDS
     # Add any SENSOR FRAME / CARD IDS here
@@ -45,10 +45,10 @@ class URCAuger(JoystickControllerNode):
     
     # CONTROL DIRECTIONS
     # Add any CONTROL DIRECTIONS here
-    AUGER_ACTUATION_UP = Direction.NEGATIVE
-    AUGER_ACTUATION_DOWN = Direction.POSITIVE
-    AUGER_DRILL_CLOCKWISE = Direction.NEGATIVE
-    AUGER_DRILL_COUNTERCLOCKWISE = Direction.POSITIVE    
+    AUGER_ACTUATION_UP = Direction.POSITIVE
+    AUGER_ACTUATION_DOWN = Direction.NEGATIVE
+    AUGER_DRILL_CLOCKWISE = Direction.POSITIVE
+    AUGER_DRILL_COUNTERCLOCKWISE = Direction.NEGATIVE
 
     def __init__(self):
         super(URCAuger, self).__init__(name="URCAuger", can_bus=self.CAN_BUS)
@@ -79,7 +79,7 @@ class URCAuger(JoystickControllerNode):
             logger=logger,
             max_percent=self.AUGER_ACTUATION_MAX_PERCENT,
             direction=self.AUGER_ACTUATION_UP,
-            pos_limit=self.auger_bottom_limit,
+            neg_limit=self.auger_bottom_limit,
         )
         self.auger_drill = OneAxisVelocityControl(
             logger=logger,

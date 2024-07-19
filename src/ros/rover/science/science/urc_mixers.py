@@ -17,7 +17,7 @@ class URCMixers(ControllerNode):
     # SENDING CARD IDS
     # Add any CONTROL FRAME / CARD IDS here
     MIXER_1_SEND_FRAME_ID = 0x041
-    MIXER_2_SEND_FRAME_ID = 0x042
+    # MIXER_2_SEND_FRAME_ID = 0x042
 
     # ROS2 SERVICES
     MIXER_SERVICE = "/science/mixers"
@@ -25,19 +25,19 @@ class URCMixers(ControllerNode):
     # CONTROL NAMES
     # Add any CONTROL names here
     MIXER_1_NAME = "mixer_1"
-    MIXER_2_NAME = "mixer_2"
+    # MIXER_2_NAME = "mixer_2"
 
     # CONTROL PARAMETERS
     # Max Speed as a Percentage (0.0 to 1.0)
     MIXER_1_MAX_PERCENT = 0.75
-    MIXER_2_MAX_PERCENT = 0.75
+    # MIXER_2_MAX_PERCENT = 0.75
     
     # CONTROL DIRECTIONS
     # Add any CONTROL DIRECTIONS here
     MIXER_1_CLOCKWISE = Direction.POSITIVE
     MIXER_1_DOWN = Direction.NEGATIVE
-    MIXER_2_CLOCKWISE = Direction.POSITIVE
-    MIXER_2_COUNTERCLOCKWISE = Direction.NEGATIVE    
+    # MIXER_2_CLOCKWISE = Direction.POSITIVE
+    # MIXER_2_COUNTERCLOCKWISE = Direction.NEGATIVE    
 
     def __init__(self):
         super(URCMixers, self).__init__(name="URCMixers", can_bus=self.CAN_BUS)
@@ -54,11 +54,11 @@ class URCMixers(ControllerNode):
             max_percent=self.MIXER_1_MAX_PERCENT,
             direction=self.MIXER_1_CLOCKWISE,
         )
-        self.mixer_2 = OneAxisVelocityControl(
-            logger=logger,
-            max_percent=self.MIXER_2_MAX_PERCENT,
-            direction=self.MIXER_2_CLOCKWISE,
-        )
+        # self.mixer_2 = OneAxisVelocityControl(
+        #     logger=logger,
+        #     max_percent=self.MIXER_2_MAX_PERCENT,
+        #     direction=self.MIXER_2_CLOCKWISE,
+        # )
 
 
         ## Create controllers
@@ -68,16 +68,16 @@ class URCMixers(ControllerNode):
             frame_id=self.MIXER_1_SEND_FRAME_ID,
             control=self.mixer_1
         )
-        self.mixer_2_controller = CMDVelocityController(
-            logger=logger,
-            bus=self.bus,
-            frame_id=self.MIXER_2_SEND_FRAME_ID,
-            control=self.mixer_2
-        )
+        # self.mixer_2_controller = CMDVelocityController(
+        #     logger=logger,
+        #     bus=self.bus,
+        #     frame_id=self.MIXER_2_SEND_FRAME_ID,
+        #     control=self.mixer_2
+        # )
 
         ## Add the controllers to the node's of controllers
         self.add_controller(self.MIXER_1_NAME, self.mixer_1_controller)
-        self.add_controller(self.MIXER_2_NAME, self.mixer_2_controller)
+        # self.add_controller(self.MIXER_2_NAME, self.mixer_2_controller)
 
         ## Start the CAN bus
         self.start_can()
@@ -86,11 +86,11 @@ class URCMixers(ControllerNode):
         try:
             if request.data:
                 self.mixer_1.update_velocity(1.0)
-                self.mixer_2.update_velocity(1.0)
+                # self.mixer_2.update_velocity(1.0)
                 response.message = "Mixers Started"  
             else:
                 self.mixer_1.update_velocity(0.0)
-                self.mixer_2.update_velocity(0.0)
+                # self.mixer_2.update_velocity(0.0)
                 response.message = "Mixers Stopped"    
             response.success = True
         except Exception as e:

@@ -10,6 +10,7 @@
 , nova-interfaces
 , nova-input-interfaces
 , nova-python-control
+, nova-camera-msgs
 }:
 
 buildRosPackage {
@@ -36,5 +37,6 @@ buildRosPackage {
   [
     nova-python-control
     nova-input-interfaces
+    nova-camera-msgs
   ];
 }
