@@ -186,7 +186,7 @@ To create a VM, simply build the derivation and run the result:
 
 ```
 $ nix-build '<nixpkgs/nixos>' \
-    --arg configuration '(import ./. { }).nixosModule' \
+    --arg configuration ./nixos \
     -A vm
 ```
 
@@ -226,9 +226,9 @@ in `~/Documents/VM.nix`, the VM should be built like so:
 $ nix-build '<nixpkgs/nixos>' \
     --arg configuration "{
       imports = [
-        (import ./. { }).nixosModule
+        ./nixos
         ~/Documents/VM.nix
-      ]
+      ];
     }" \
     -A vm
 ```
