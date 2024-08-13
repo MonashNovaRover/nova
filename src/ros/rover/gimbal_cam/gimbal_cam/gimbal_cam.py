@@ -104,7 +104,7 @@ class GimbalCam(Node):
         joystick_l = msg
         self.joystick_connected = joystick_l.connected
         # Joysticks lock if botton L2 button is pressed on the left joystick
-        if self.device_choice != self.KEYBOARD and joystick_l.btn_bottom_l2_state >= 1:
+        if self.device_choice != self.KEYBOARD and joystick_l.btn_bottom_r2_state >= 1:
             self.get_logger().info("Swapped to Keyboard Control")
             self.device_choice = self.KEYBOARD
 
@@ -156,10 +156,13 @@ class GimbalCam(Node):
         
         keyboard = msg
         # toggle the lock with ctrl(L), and swap to joystick control with ctrl(0)
-        if GimbalCam.ctrl(SDL_SCANCODE_0) in keyboard.keys_pressed and self.joystick_connected:
-            if self.device_choice == self.KEYBOARD:
+        if GimbalCam.ctrl(GimbalCam.shift(SDL_SCANCODE_0)) in keyboard.keys_pressed:
+            if self.device_choice == self.KEYBOARD and self.joystick_connected:
                 self.get_logger().info("Swapped to Joystick Control")
                 self.device_choice = self.JOYSTICK
+            elif not self.joystick_connected:
+                self.get_logger().info("Cannot switch, Joystick not connected")
+                
         if self.device_choice == self.KEYBOARD:
             if self.get_parameter('chassis_cam').value:
                 # Change between the cameras using alt(0) and alt(1)
