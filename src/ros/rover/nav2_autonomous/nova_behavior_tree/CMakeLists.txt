@@ -29,7 +29,7 @@ find_package(aruco_opencv_msgs REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(nav2_util REQUIRED)
 find_package(nav2_behavior_tree REQUIRED)
-find_package(behaviortree_cpp_v3 REQUIRED)
+find_package(behaviortree_cpp REQUIRED)
 
 set(dep_pkgs
   rclcpp
@@ -40,7 +40,7 @@ set(dep_pkgs
   tf2_ros
   nav2_util
   nav2_behavior_tree
-  behaviortree_cpp_v3
+  behaviortree_cpp
 )
 
 # === Build ===
