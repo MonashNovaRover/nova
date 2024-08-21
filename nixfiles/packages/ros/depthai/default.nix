@@ -10,19 +10,19 @@
 
 buildRosPackage rec {
   pname = "depthai";
-  version = "2.24.0";
+  version = "2.26.1";
   buildType = "prebuilt";
 
   src = fetchurl {
     # http://packages.ros.org/ros2/ubuntu/pool/main/r/ros-${rosDistro}-depthai
     humble = {
       x86_64-linux = {
-        url = "http://packages.ros.org/ros2/ubuntu/pool/main/r/ros-humble-depthai/ros-humble-depthai_${version}-1jammy.20240308.165504_amd64.deb";
-        hash = "sha256-P5jsDRwQk08QqZfLp/HDbzedXm5sD9lRp9Qx0zsE+zQ=";
+        url = "http://packages.ros.org/ros2/ubuntu/pool/main/r/ros-humble-depthai/ros-humble-depthai_${version}-1jammy.20240728.193129_amd64.deb";
+        hash = "sha256-nJnQYk+/rwz6KPSQEmInI7OHqosT2BUTqK6IUCsXqHE=";
       };
       aarch64-linux = {
-        url = "http://packages.ros.org/ros2/ubuntu/pool/main/r/ros-humble-depthai/ros-humble-depthai_${version}-1jammy.20240308.165854_arm64.deb";
-        hash = "sha256-BCkGVO4ldSkJZMUKF9ScH2wnZ0NgFFIO/J2miqBu+F8=";
+        url = "http://packages.ros.org/ros2/ubuntu/pool/main/r/ros-humble-depthai/ros-humble-depthai_${version}-1jammy.20240728.200143_arm64.deb";
+        hash = "sha256-ub0aLi2smnOWMkq6SJgSYh9850/xJR/IpKomRM60jw0=";
       };
     };
   }.${ros-environment.rosDistro}.${hostPlatform.system}
@@ -49,10 +49,7 @@ buildRosPackage rec {
     
     for f in depthaiTargets depthaiTargets-none; do
       substituteInPlace "$out/lib/cmake/depthai/$f.cmake" \
-        --replace "\''${_IMPORT_PREFIX}" "$out"
+        --replace-fail "\''${_IMPORT_PREFIX}" "$out"
     done
-
-    substituteInPlace "$out/share/depthai/local_setup.sh" \
-      --replace /opt/ros/${ros-environment.rosDistro} "$out"
   '';
 }

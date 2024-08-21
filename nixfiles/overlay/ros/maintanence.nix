@@ -21,6 +21,7 @@ self: super:
             --replace 'STREQUAL "foxy"' 'STREQUAL "${rosSelf.ros-environment.rosDistro}"'
           substituteInPlace src/base_realsense_node.cpp \
             --replace '#ifdef GALACTIC' '#if 1'
+          sed -i '1i#include <cstdint>' include/constants.h
         '';
       });
       realsense2-camera-msgs = rosSuper.realsense2-camera-msgs.overrideAttrs ({ ... }: {
@@ -39,13 +40,17 @@ self: super:
           hash = "sha256-ba9nziritxqO4BHzxW48cFwRv/cAGeE9Udj7D6uYpMY=";
         };
       });
-      librealsense2 = rosSuper.librealsense2.overrideAttrs ({ ... }: {
+      librealsense2 = rosSuper.librealsense2.overrideAttrs ({ prePatch ? "", ... }: {
         version = "2.48.0-r1";
         src = self.fetchzip {
           url = "https://github.com/IntelRealSense/librealsense2-release/archive/release/foxy/librealsense2/2.48.0-1.tar.gz";
           name = "2.48.0-1.tar.gz";
           hash = "sha256-44iXQiCHMTF8ZJJ8UuVU1osSBLb6cPMk41SbMlzFPLY=";
         };
+        prePatch = prePatch + ''
+          # This line exists in newer versions, and is removed later by nix-ros-overlay.
+          echo 'include(CMake/external_json.cmake)' >> third-party/CMakeLists.txt
+        '';
         passthru.original = {
           inherit (rosSuper.librealsense2) version src;
         };
@@ -76,37 +81,15 @@ self: super:
         sourceRoot = "source/depthai_descriptions";
       });
 
-      rmw-fastrtps-cpp = rosSuper.rmw-fastrtps-cpp.overrideAttrs ({ patches ? [ ], ... }: {
-        patches = patches ++ [
-          # Capture std::bad_alloc on deserializeROSmessage.
-          # https://github.com/ros2/rmw_fastrtps/pull/665
-          (self.fetchpatch {
-            url = "https://github.com/ros2/rmw_fastrtps/commit/4d0be32e6c455edbf708003dffb67b11d512c5a6.patch";
-            stripLen = 1;
-            includes = [ "src/type_support_common.cpp" ];
-            hash = "sha256-SMZHYRdhT7Oww+LIhsq0sDVe9CgwGaS69u2ScHJIcIk=";
-          })
-        ];
-      });
-
-      rmw-fastrtps-dynamic-cpp = rosSuper.rmw-fastrtps-dynamic-cpp.overrideAttrs ({ patches ? [ ], ... }: {
-        patches = patches ++ [
-          # Capture std::bad_alloc on deserializeROSmessage.
-          # https://github.com/ros2/rmw_fastrtps/pull/665
-          (self.fetchpatch {
-            url = "https://github.com/ros2/rmw_fastrtps/commit/4d0be32e6c455edbf708003dffb67b11d512c5a6.patch";
-            stripLen = 1;
-            includes = [ "include/rmw_fastrtps_dynamic_cpp/TypeSupport_impl.hpp" ];
-            hash = "sha256-ZqARJBzAMPbG7Q3oHFvqp5SooGJkhHRB8rTLxTcYXRk=";
-          })
-        ];
-      });
-
       rosbridge-library = rosSuper.rosbridge-library.override {
         python3Packages = rosSuper.python3Packages.overrideScope (pySelf: pySuper: {
           bson = pySelf.pymongo;
         });
       };
+
+      grid-map-cv = rosSuper.grid-map-cv.overrideAttrs ({ CXXFLAGS ? "", ... }: {
+        CXXFLAGS = "${CXXFLAGS} -Wno-error=stringop-overflow";
+      });
     } // (
       let
         fixRtabmapDependent = pkg: pkg.overrideAttrs ({ buildInputs ? [ ], ... }: {
@@ -118,7 +101,9 @@ self: super:
         });
       in
       {
-        inherit (self) rtabmap;
+        rtabmap = self.rtabmap.overrideAttrs {
+          inherit (rosSuper.rtabmap) pname version src;
+        };
 
         rtabmap-ros = rosSuper.rtabmap-ros.overrideAttrs ({ propagatedBuildInputs ? [ ], ... }: {
           propagatedBuildInputs = self.lib.remove rosSelf.rtabmap-demos propagatedBuildInputs;
@@ -216,55 +201,19 @@ self: super:
         dwb-critics = fixNav2Package rosSuper.dwb-critics;
         dwb-plugins = fixNav2Package rosSuper.dwb-plugins;
 
-        ompl = rosSuper.ompl.overrideAttrs ({ patches ? [ ], ... }: {
+        nav2-mppi-controller = rosSuper.nav2-mppi-controller.overrideAttrs ({ patches ? [ ], ... }: {
           patches = patches ++ [
-            # Use full install paths for pkg-config
+            # Ignore warnings in included xtensor library
+            # https://github.com/ros-navigation/navigation2/pull/4285
             (self.fetchpatch {
-              url = "https://github.com/hacker1024/ompl/commit/1ddecbad87b454ac0d8e1821030e4cf7eeff2db2.patch";
-              hash = "sha256-sAQLrWHoR/DhHk8TtUEy8E8VXqrvtXl2BGS5UvElJl8=";
+              url = "https://github.com/ros-navigation/navigation2/commit/c6ccd8e6db1edc138c6cf3650e192cc595d44e7f.patch";
+              stripLen = 1;
+              hash = "sha256-4g2ESEJz7kuPGT4F0OcAkLbZVJ+84R3NQdpFEZW61Ao=";
             })
           ];
         });
       }
-    ) // {
-      aruco-opencv = rosSuper.aruco-opencv.overrideAttrs ({ buildInputs ? [ ], ... }: {
-        buildInputs = buildInputs ++ [
-          # aruco_opencv is not yet compatible with OpenCV 4.7.0+.
-          # https://github.com/fictionlab/ros_aruco_opencv/issues/27
-          #
-          # The package does not actually declare a dependency on OpenCV in its
-          # manifest, and so it is not included in any build input list. This
-          # has not caused any issues as cv_bridge propagates OpenCV.
-          #
-          # By adding OpenCV 4.6.0 as a direct build input, it is used in place
-          # of the propagated version.
-          (self.opencv.overrideAttrs ({ postUnpack ? "", ... }: {
-            version = "4.6.0";
-
-            src = self.fetchFromGitHub {
-              owner = "opencv";
-              repo = "opencv";
-              rev = "4.6.0";
-              hash = "sha256-zPkMc6xEDZU5TlBH3LAzvB17XgocSPeHVMG/U6kfpxg=";
-            };
-
-            postUnpack =
-              let
-                contribSrc = self.fetchFromGitHub {
-                  owner = "opencv";
-                  repo = "opencv_contrib";
-                  rev = "4.6.0";
-                  sha256 = "sha256-hjRqT7V4Sz7t4IEy89F5M+b0x2ObBbqF8GWLKhWFXtE=";
-                };
-              in
-              postUnpack + ''
-                rm -r "$NIX_BUILD_TOP/source/opencv_contrib"
-                cp --no-preserve=mode -r "${contribSrc}/modules" "$NIX_BUILD_TOP/source/opencv_contrib"
-              '';
-          }))
-        ];
-      });
-    } // (
+    ) // (
       let
         replaceUbloxSrc = pkg: pkg.overrideAttrs ({ src, version, ... }: {
           src = self.fetchFromGitHub {

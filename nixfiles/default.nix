@@ -8,39 +8,31 @@
 let
   revisions = builtins.fromJSON (builtins.readFile ./revisions.json);
 
+  maybeApplyPatches = { src, patches, ... }@args: if patches == [ ] then src else pkgs.applyPatches args;
+
   # Pin the version of Nixpkgs to ensure reproducibility.
   # Preferably, this will come from https://github.com/lopsided98/nixpkgs/tree/nix-ros,
   # but upstream Nixpkgs may be used if it a) has merged all pending PRs from
   # nix-ros and b) has newer changes we need.
   # Using the nix-ros branch with specific patches added is preferred because
   # it allows use of the https://ros.cachix.org binary cache.
-  nixpkgs = pkgs.lib.maybeEnv "NIXPKGS_PATH" (pkgs.applyPatches {
+  nixpkgs = pkgs.lib.maybeEnv "NIXPKGS_PATH" (maybeApplyPatches {
     src = pkgs.fetchFromGitHub {
       owner = "NixOS";
       repo = "nixpkgs";
       inherit (revisions.nixpkgs) rev hash;
     };
     patches = [
-      (pkgs.fetchpatch {
-        url = "https://github.com/NixOS/nixpkgs/commit/f7f2acd9c224e3ed80063f107c997bbf35d3909e.patch";
-        hash = "sha256-TXlKrwQ5anwSXntVUEE6XzLFGc22lhPq6XAU2wowIzs=";
-      }) #pynmeagps
     ];
   });
 
-  nix-ros-overlay = pkgs.lib.maybeEnv "NRO_PATH" (pkgs.applyPatches {
+  nix-ros-overlay = pkgs.lib.maybeEnv "NRO_PATH" (maybeApplyPatches {
     src = pkgs.fetchFromGitHub {
       owner = "lopsided98";
       repo = "nix-ros-overlay";
       inherit (revisions.nix-ros-overlay) rev hash;
     };
     patches = [
-      # buildEnv: Disable redundant fixup operations
-      # https://github.com/lopsided98/nix-ros-overlay/pull/335
-      (pkgs.fetchpatch {
-        url = "https://github.com/lopsided98/nix-ros-overlay/commit/cb54e58da421397892d8f82e52949af239098ca0.patch";
-        hash = "sha256-f0LpoJ2Waywv/AdptUCzAIh2Rvas8sipgboOkTHEViA=";
-      })
     ];
   });
 
@@ -60,7 +52,11 @@ let
   novaPkgs = import nixpkgs {
     localSystem = pkgs.buildPlatform;
     crossSystem = pkgs.hostPlatform;
-    inherit (pkgs) config;
+    config = pkgs.config // {
+      permittedInsecurePackages = pkgs.config.permittedInsecurePackages or [ ] ++ [
+        "freeimage-unstable-2021-11-01"
+      ];
+    };
 
     overlays = [
       # Add the nix-ros-overlay. This supplies vanilla ROS packages.
