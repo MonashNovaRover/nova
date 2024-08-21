@@ -40,7 +40,7 @@ self: super:
           hash = "sha256-ba9nziritxqO4BHzxW48cFwRv/cAGeE9Udj7D6uYpMY=";
         };
       });
-      librealsense2 = rosSuper.librealsense2.overrideAttrs ({ prePatch ? "", ... }: {
+      librealsense2 = rosSuper.librealsense2.overrideAttrs ({ prePatch ? "", postPatch ? "", ... }: {
         version = "2.48.0-r1";
         src = self.fetchzip {
           url = "https://github.com/IntelRealSense/librealsense2-release/archive/release/foxy/librealsense2/2.48.0-1.tar.gz";
@@ -50,6 +50,9 @@ self: super:
         prePatch = prePatch + ''
           # This line exists in newer versions, and is removed later by nix-ros-overlay.
           echo 'include(CMake/external_json.cmake)' >> third-party/CMakeLists.txt
+        '';
+        postPatch = postPatch + ''
+          sed -i '1i#include <cstdint>' common/sw-update/http-downloader.h
         '';
         passthru.original = {
           inherit (rosSuper.librealsense2) version src;
