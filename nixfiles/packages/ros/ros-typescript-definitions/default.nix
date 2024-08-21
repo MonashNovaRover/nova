@@ -1,5 +1,5 @@
 { runCommand
-, writeText
+, jq
 , ros-typescript-generator
 , buildEnv
 , ros-environment
@@ -10,19 +10,16 @@
 
 (runCommand "ros-${rosEnv.name}-typescript-definitions" {
   nativeBuildInputs = [
+    jq
     ros-typescript-generator
   ];
 }) ''
   mkdir -p generated
-  ln -s ${writeText "ros-ts-generator-config.json" (builtins.toJSON {
-    output = "./generated/messages.ts";
-    inherit (ros-environment) rosVersion;
-    inherit typePrefix;
-    input = map (name: {
-      namespace = name;
-      path = rosEnv + /share/${name};
-    }) (builtins.attrNames (builtins.readDir (rosEnv + /share)));
-  })} ros-ts-generator-config.json
+  find -L '${rosEnv + /share}' -maxdepth 1 -type d -print0 | while IFS= read -r -d "" d; do echo "{\"namespace\": \""$(basename "$d")"\", \"path\": \"$d\"}"; done | jq --slurp \
+    --arg output ./generated/messages.ts \
+    --argjson rosVersion '${toString ros-environment.rosVersion}' \
+    --arg typePrefix '${typePrefix}' \
+    '{output: $output, rosVersion: $rosVersion, typePrefix: $typePrefix, input: .}' > ros-ts-generator-config.json
   ros-typescript-generator
   mkdir -p "$out/share/ros-typescript-definitions"
   cp -r generated/* "$out/share/ros-typescript-definitions"
