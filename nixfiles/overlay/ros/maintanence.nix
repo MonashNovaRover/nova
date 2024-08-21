@@ -200,18 +200,6 @@ self: super:
         nav2-waypoint-follower = fixNav2Package rosSuper.nav2-waypoint-follower;
         dwb-critics = fixNav2Package rosSuper.dwb-critics;
         dwb-plugins = fixNav2Package rosSuper.dwb-plugins;
-
-        nav2-mppi-controller = rosSuper.nav2-mppi-controller.overrideAttrs ({ patches ? [ ], ... }: {
-          patches = patches ++ [
-            # Ignore warnings in included xtensor library
-            # https://github.com/ros-navigation/navigation2/pull/4285
-            (self.fetchpatch {
-              url = "https://github.com/ros-navigation/navigation2/commit/c6ccd8e6db1edc138c6cf3650e192cc595d44e7f.patch";
-              stripLen = 1;
-              hash = "sha256-4g2ESEJz7kuPGT4F0OcAkLbZVJ+84R3NQdpFEZW61Ao=";
-            })
-          ];
-        });
       }
     ) // (
       let
@@ -258,7 +246,60 @@ self: super:
         ros2doctor = rosSelf.callPackage self.rosPackages.humble.ros2doctor.override { };
       });
 
+      humble = super.rosPackages.humble.overrideScope (rosSelf: rosSuper: {
+        nav2-mppi-controller = rosSuper.nav2-mppi-controller.overrideAttrs ({ patches ? [ ], ... }: {
+          patches = patches ++ [
+            # Ignore warnings in included xtensor library
+            # https://github.com/ros-navigation/navigation2/pull/4285
+            (self.fetchpatch {
+              url = "https://github.com/ros-navigation/navigation2/commit/c6ccd8e6db1edc138c6cf3650e192cc595d44e7f.patch";
+              stripLen = 1;
+              hash = "sha256-4g2ESEJz7kuPGT4F0OcAkLbZVJ+84R3NQdpFEZW61Ao=";
+            })
+          ];
+        });
+      });
+
       jazzy = super.rosPackages.jazzy.overrideScope (rosSelf: rosSuper: {
+        # Gazebo Classic is EOL, and the ROS packages have been removed from the
+        # distro. The Iron releases still work, though, so add them back.
+        gazebo-dev = rosSelf.callPackage (self.nix-ros-overlay + "/distros/iron/gazebo-dev") { };
+        gazebo-plugins = (rosSelf.callPackage (self.nix-ros-overlay + "/distros/iron/gazebo-plugins") { }).overrideAttrs ({ patches ? [ ], ... }: {
+          patches = patches ++ [
+            # Fix deprecation warnings
+            # https://github.com/ros-simulation/gazebo_ros_pkgs/pull/1429
+            (self.fetchpatch {
+              url = "https://github.com/ros-simulation/gazebo_ros_pkgs/commit/4505d7ba69ce1cbf59553d3c499b6f2447cbbbb8.patch";
+              stripLen = 1;
+              includes = [ "CMakeLists.txt" "src/**" ];
+              hash = "sha256-JnCbQrhrVl5jKYAmemUFk+u0W+ByCG/QJPMGAFAxGkA=";
+            })
+          ];
+        });
+        gazebo-ros = (rosSelf.callPackage (self.nix-ros-overlay + "/distros/iron/gazebo-ros") { }).overrideAttrs ({ patches ? [ ], ... }: {
+          patches = patches ++ [
+            # Fix deprecation warnings
+            # https://github.com/ros-simulation/gazebo_ros_pkgs/pull/1429
+            (self.fetchpatch {
+              url = "https://github.com/ros-simulation/gazebo_ros_pkgs/commit/4505d7ba69ce1cbf59553d3c499b6f2447cbbbb8.patch";
+              stripLen = 1;
+              includes = [ "**.py" ];
+              hash = "sha256-2l6Ft+3F7dskjjOpTeQj202AMnEjQSF+h9j81rxrqzk=";
+            })
+          ];
+        });
+        gazebo-ros2-control = (rosSelf.callPackage (self.nix-ros-overlay + "/distros/iron/gazebo-ros2-control") { }).overrideAttrs rec {
+          version = "0.7.2";
+          src = self.fetchFromGitHub {
+            owner = "ros-controls";
+            repo = "gazebo_ros2_control";
+            rev = version;
+            hash = "sha256-ya+HFf6qOGMVpKOVWlv8+Kp3h/G011MZA+Wnrztq3zg=";
+          };
+          sourceRoot = src.name + "/gazebo_ros2_control";
+        };
+        gazebo-ros-pkgs = rosSelf.callPackage (self.nix-ros-overlay + "/distros/iron/gazebo-ros-pkgs") { };
+
         image-proc = rosSuper.image-proc.overrideAttrs ({ patches ? [ ], ... }: {
           patches = patches ++ [
             # Revert "Add TrackMarkerNode to image_proc" (requires OpenCV <= 4.6.0)
