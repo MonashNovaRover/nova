@@ -26,6 +26,7 @@ let
     ];
   });
 
+  # nix-ros-overlay = ../nix-ros-overlay;
   nix-ros-overlay = pkgs.lib.maybeEnv "NRO_PATH" (maybeApplyPatches {
     src = pkgs.fetchFromGitHub {
       owner = "lopsided98";
@@ -39,6 +40,7 @@ let
         url = "https://github.com/lopsided98/nix-ros-overlay/commit/7ae67c10aa15f41998e9336933e7f46f43e63f59.patch";
         hash = "sha256-6rGeyv6xLMWBuhGWlfaVVZkoK3heOQPpvNVZP06l2NA=";
       })
+      ./vendor.patch
 
       # python3Packages.rosinstall-generator: Add distutils to nativeBuildInputs
       # https://github.com/lopsided98/nix-ros-overlay/pull/454

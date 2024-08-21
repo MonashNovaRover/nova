@@ -1,0 +1,35 @@
+--- a/distros/jazzy/overrides.nix
++++ b/distros/jazzy/overrides.nix
+@@ -53,8 +53,8 @@ in {
+   };
+ 
+   gz-fuel-tools-vendor = lib.patchGzAmentVendorGit rosSuper.gz-fuel-tools-vendor {
+-    version = "9.0.3";
+-    hash = "sha256-36WwY3YUeCAUDBY8N+Mbw7FuNRn1fQUifLZvoGhXtcc=";
++    version = "9.1.0";
++    hash = "sha256-txeIzj2vmvL5NDu6O07c7LwcCWE26OFEzvyc9TBrJAw=";
+   };
+ 
+   gz-gui-vendor = (lib.patchGzAmentVendorGit rosSuper.gz-gui-vendor {
+@@ -114,8 +114,8 @@ in {
+   };
+ 
+   gz-sim-vendor = lib.patchGzAmentVendorGit rosSuper.gz-sim-vendor {
+-    version = "8.5.0";
+-    hash = "sha256-10U8H3/EneLv+zQUGr3mkMPKctDlvtMfMhyQp6lacus=";
++    version = "8.6.0";
++    hash = "sha256-zSiPHEh3h2J8hGL342tde5U9FLaGnWs72WD9BqyPf6E=";
+   };
+ 
+   gz-tools-vendor = lib.patchGzAmentVendorGit rosSuper.gz-tools-vendor {
+@@ -185,8 +185,8 @@ in {
+   };
+ 
+   sdformat-vendor = lib.patchGzAmentVendorGit rosSuper.sdformat-vendor {
+-    version = "14.4.0";
+-    hash = "sha256-7JZ8YGk+GLzG22nl9QHUg6aqn5mcrBy3cvzBbG4Ih0w=";
++    version = "14.5.0";
++    hash = "sha256-nGBLnQP0TTKDVbYGyx23Fcs79UCJveajsll2LvyLJwQ=";
+   };
+ 
+   urdfdom = rosSuper.urdfdom.overrideAttrs ({
