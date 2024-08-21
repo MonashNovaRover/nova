@@ -253,11 +253,25 @@ self: super:
 
     # Overlays for individual ROS distros.
     (super.rosPackages // {
-      foxy = super.rosPackages.foxy.overrideScope (rosSelf: rosSuper:
-        {
-          # Use ros2doctor from Humble: https://github.com/lopsided98/nix-ros-overlay/issues/75#issuecomment-1567281292
-          ros2doctor = rosSelf.callPackage self.rosPackages.humble.ros2doctor.override { };
+      foxy = super.rosPackages.foxy.overrideScope (rosSelf: rosSuper: {
+        # Use ros2doctor from Humble: https://github.com/lopsided98/nix-ros-overlay/issues/75#issuecomment-1567281292
+        ros2doctor = rosSelf.callPackage self.rosPackages.humble.ros2doctor.override { };
+      });
+
+      jazzy = super.rosPackages.jazzy.overrideScope (rosSelf: rosSuper: {
+        image-proc = rosSuper.image-proc.overrideAttrs ({ patches ? [ ], ... }: {
+          patches = patches ++ [
+            # Revert "Add TrackMarkerNode to image_proc" (requires OpenCV <= 4.6.0)
+            # https://github.com/ros-perception/image_pipeline/pull/930
+            (self.fetchpatch {
+              url = "https://github.com/ros-perception/image_pipeline/commit/f8c88a2970e7fcc16fd2457f5e5873df6b3e2769.patch";
+              revert = true;
+              stripLen = 1;
+              hash = "sha256-z0hfjFWRx0vBwa5aWIiJ4plICwaCAe1rGAacVPKmgC0=";
+            })
+          ];
         });
+      });
     }));
 
   # Overlays for non-ROS packages

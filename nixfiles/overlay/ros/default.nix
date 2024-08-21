@@ -5,8 +5,9 @@ super.lib.composeManyExtensions [
   (import ./version.nix)
   (import ./lib.nix)
   (import ./qol.nix)
-  (import ./maintanence.nix)
+  (import ./prerelease.nix)
   (import ./backports.nix)
+  (import ./maintanence.nix)
 ]
   self
   super
