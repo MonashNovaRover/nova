@@ -202,10 +202,10 @@ local_costmap:
         max_obstacle_height: 3.0
         observation_sources: depth_camera
         vertical_resolution: 0.025
-        max_safe_val: 1.6
+        max_safe_val: 0.1
         min_plane_density: 0.2
         depth_camera:
-          topic: /oak/no
+          topic: /oak/points
           min_obstacle_height: -1.0
           max_obstacle_height: 3.0
           clearing: False
@@ -225,7 +225,7 @@ local_costmap:
         vertical_resolution: 0.025
         min_plane_density: 0.2
         depth_camera:
-          topic: /oak/no
+          topic: /oak/points
           min_obstacle_height: -1.0
           max_obstacle_height: 3.0
           clearing: False
@@ -266,7 +266,7 @@ global_costmap:
         max_obstacle_height: 3.0
         observation_sources: depth_camera
         vertical_resolution: 0.025
-        max_safe_val: 1.6
+        max_safe_val: 0.1
         min_plane_density: 0.1
         resolution_ratio: 16
         depth_camera:
