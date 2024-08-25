@@ -30,7 +30,6 @@ void PlaneMapperLayer::onInitialize()
   node->get_parameter(name_ + "." + "footprint_clearing_enabled", footprint_clearing_enabled_);
   node->get_parameter(name_ + "." + "min_obstacle_height", min_obstacle_height_);
   node->get_parameter(name_ + "." + "max_obstacle_height", max_obstacle_height_);
-  node->get_parameter(name_ + "." + "combination_method", combination_method_);
   node->get_parameter("track_unknown_space", track_unknown_space);
   node->get_parameter("transform_tolerance", transform_tolerance);
   node->get_parameter(name_ + "." + "observation_sources", topics_string);
@@ -38,6 +37,10 @@ void PlaneMapperLayer::onInitialize()
   node->get_parameter(name_ + "." + "resolution_ratio", resolution_ratio_);
   node->get_parameter(name_ + "." + "min_plane_density", min_plane_density_);
   node->get_parameter(name_ + "." + "plane_overlap", plane_overlap_);
+
+  int combination_method_param{};
+  node->get_parameter(name_ + "." + "combination_method", combination_method_param);
+  combination_method_ = combination_method_from_int(combination_method_param);
 
   dyn_params_handler_ = node->add_on_set_parameters_callback(
     std::bind(
