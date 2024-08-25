@@ -139,7 +139,7 @@ namespace nova_behavior_tree
 
 } // namespace nova_behavior_tree
 
-#include "behaviortree_cpp_v3/bt_factory.h"
+#include "behaviortree_cpp/bt_factory.h"
 BT_REGISTER_NODES(factory)
 {
     factory.registerNodeType<nova_behavior_tree::QueryPositionCondition>("QueryPosition");

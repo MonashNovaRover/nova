@@ -15,14 +15,14 @@
 #ifndef NAV2_BEHAVIOR_TREE__PLUGINS__CONDITION__GET_FINAL_GOAL_CONDITION_HPP_
 #define NAV2_BEHAVIOR_TREE__PLUGINS__CONDITION__GET_FINAL_GOAL_CONDITION_HPP_
 
-#include <behaviortree_cpp_v3/basic_types.h>
+#include <behaviortree_cpp/basic_types.h>
 #include <geometry_msgs/msg/pose_stamped.hpp>
 #include <vector>
 #include <string>
 #include <memory>
 
 #include "rclcpp/rclcpp.hpp"
-#include "behaviortree_cpp_v3/condition_node.h"
+#include "behaviortree_cpp/condition_node.h"
 #include "tf2_ros/buffer.h"
 
 namespace nova_behavior_tree

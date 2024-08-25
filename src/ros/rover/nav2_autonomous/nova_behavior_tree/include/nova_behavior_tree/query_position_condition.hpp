@@ -16,7 +16,7 @@
 #define NAV2_BEHAVIOR_TREE__PLUGINS__CONDITION__QUERY_POSITION_CONDITION_HPP_
 
 #include <aruco_opencv_msgs/msg/aruco_detection.hpp>
-#include <behaviortree_cpp_v3/basic_types.h>
+#include <behaviortree_cpp/basic_types.h>
 #include <rclcpp/callback_group.hpp>
 #include <rclcpp/executors/multi_threaded_executor.hpp>
 #include <rclcpp/subscription.hpp>
@@ -29,7 +29,7 @@
 #include <vision_msgs/msg/detection3_d_array.hpp>
 #include <vision_msgs/msg/detail/detection3_d__struct.hpp>
 
-#include "behaviortree_cpp_v3/condition_node.h"
+#include "behaviortree_cpp/condition_node.h"
 
 using std::placeholders::_1;
 

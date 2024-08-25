@@ -15,7 +15,7 @@
 #ifndef NAV2_BEHAVIOR_TREE__PLUGINS__CONDITION__QUERY_POSITION_CONDITION_HPP_
 #define NAV2_BEHAVIOR_TREE__PLUGINS__CONDITION__QUERY_POSITION_CONDITION_HPP_
 
-#include <behaviortree_cpp_v3/basic_types.h>
+#include <behaviortree_cpp/basic_types.h>
 #include <rclcpp/subscription.hpp>
 #include <string>
 #include <cmath>
@@ -23,7 +23,7 @@
 
 #include <rclcpp/rclcpp.hpp>
 #include <geometry_msgs/msg/pose_stamped.hpp>
-#include "behaviortree_cpp_v3/condition_node.h"
+#include "behaviortree_cpp/condition_node.h"
 
 using std::placeholders::_1;
 
