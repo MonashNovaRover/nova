@@ -34,13 +34,12 @@ let
       inherit (revisions.nix-ros-overlay) rev hash;
     };
     patches = [
-      # Patch and fix gz-*-vendor packages for Jazzy and Rolling 
+      # Patch and fix gz-*-vendor packages for Jazzy and Rolling
       # https://github.com/lopsided98/nix-ros-overlay/pull/422
       (pkgs.fetchpatch {
-        url = "https://github.com/lopsided98/nix-ros-overlay/commit/7ae67c10aa15f41998e9336933e7f46f43e63f59.patch";
-        hash = "sha256-6rGeyv6xLMWBuhGWlfaVVZkoK3heOQPpvNVZP06l2NA=";
+        url = "https://github.com/lopsided98/nix-ros-overlay/commit/aa846d382c40809f812b2f1c7d8b92d901a75da5.patch";
+        hash = "sha256-GdUjgcOgW2+8qceMPGO5EvOMwUc/iMNYYdQqfkCc1UA=";
       })
-      ./vendor.patch
 
       # python3Packages.rosinstall-generator: Add distutils to nativeBuildInputs
       # https://github.com/lopsided98/nix-ros-overlay/pull/454
