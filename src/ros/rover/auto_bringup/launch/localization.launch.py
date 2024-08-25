@@ -28,20 +28,21 @@ from launch_ros.substitutions import FindPackageShare
 
 # Generate the launch file with all inputs
 # TODO: Add IMU, GPS, and any other localisation nodes
+
+
 def launch_setup(context, *args, **kwargs):
 
-    #General Configuartions
+    # General Configuartions
     use_sim_time = LaunchConfiguration('use_sim_time')
-    
-    #Simulation Configurations
-    use_true_odometry = LaunchConfiguration('use_true_odometry').perform(context).lower() == "true"
 
-    use_ekf = LaunchConfiguration('use_ekf')
+    # Simulation Configurations
+    use_real_odometry = LaunchConfiguration('use_real_odometry').perform(context).lower() == "true"
+
     use_slam = LaunchConfiguration('use_slam')
     use_vo = LaunchConfiguration('use_vo')
     gps = LaunchConfiguration('gps')
 
-    #Params File Configurations
+    # Params File Configurations
     ekf_params = LaunchConfiguration('ekf_params_file')
     ukf_params = LaunchConfiguration('ukf_params_file')
 
@@ -56,12 +57,12 @@ def launch_setup(context, *args, **kwargs):
     else:
         raise ValueError("use_ukf must be either True or False")
 
-    true_odom_params = {
+    real_odom_params = {
         "odom0": "/odom/gazebo",
         "odom0_relative": False,
-        "odom0_config": [True,  True,  True,
-                         True,  True,  True,
-                         True,  False, False,
+        "odom0_config": [True, True, True,
+                         True, True, True,
+                         True, False, False,
                          False, False, False,
                          False, False, False],
         "odom0_relative": True,
@@ -70,12 +71,12 @@ def launch_setup(context, *args, **kwargs):
     robot_localisation_node = Node(
         condition=UnlessCondition(gps),
         package='robot_localization',
-        executable= filter_type + '_node',
-        name= filter_type + '_filter_node',
+        executable=filter_type + '_node',
+        name=filter_type + '_filter_node',
         output='screen',
         parameters=[(params_file), 
                     {"use_sim_time": use_sim_time},
-                    true_odom_params if use_true_odometry else {}],
+                    real_odom_params if use_real_odometry else {}],
     )
 
     gps_localisation_odom = Node(
@@ -129,7 +130,7 @@ def launch_setup(context, *args, **kwargs):
         output='screen',
         arguments=['0', '0', '0', '0', '0', '0', 'map', 'odom'],
     )
-    
+
     return [
         robot_localisation_node,
         gps_localisation_odom,
@@ -138,15 +139,16 @@ def launch_setup(context, *args, **kwargs):
         static_transform_node,
         slam_cmd,
     ]
-    
+
+
 def generate_launch_description():
     use_sim_time_arg = DeclareLaunchArgument(
         'use_sim_time',
         default_value='False',
         description='Use simulation clock if true')
 
-    use_true_odom_arg = DeclareLaunchArgument(
-        'use_true_odometry',
+    use_real_odom_arg = DeclareLaunchArgument(
+        'use_real_odometry',
         default_value='False',
         description='Use the ground truth odometry from gazebo'
     )
@@ -159,13 +161,13 @@ def generate_launch_description():
 
     ekf_param_arg = DeclareLaunchArgument(
         'ekf_params_file',
-        default_value=PathJoinSubstitution([FindPackageShare("auto_bringup"),'params','ekf.yaml']),
+        default_value=PathJoinSubstitution([FindPackageShare("auto_bringup"), 'params', 'ekf.yaml']),
         description='Params file for ekf filter node'
     )
 
     ukf_param_arg = DeclareLaunchArgument(
         'ukf_params_file',
-        default_value=PathJoinSubstitution([FindPackageShare("auto_bringup"),'params','ukf.yaml']),
+        default_value=PathJoinSubstitution([FindPackageShare("auto_bringup"), 'params', 'ukf.yaml']),
         description='Params file for ukf filter node'
     )
 
@@ -190,7 +192,7 @@ def generate_launch_description():
     declared_arguments = [
         use_ukf_arg,
         use_sim_time_arg,
-        use_true_odom_arg,
+        use_real_odom_arg,
         use_ukf_arg,
         ekf_param_arg,
         ukf_param_arg,

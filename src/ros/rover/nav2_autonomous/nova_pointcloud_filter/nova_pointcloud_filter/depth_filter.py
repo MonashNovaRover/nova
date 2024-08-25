@@ -47,12 +47,13 @@ class DepthFilter(Node):
     # Custom internal variables
     self.logged_values: bool = False
 
-    # ROS Subscribers
+    # ROS subscribers
     self.sub = self.create_subscription(Image, '/depth/image', self.cb_sub, 10)
 
     # ROS publishers
     self.pub = self.create_publisher(Image, '/depth/image_filtered', 10)
 
+    # ROS params
     self.declare_parameter('t_filter', 0)
     self.declare_parameter('r_filter', 0)
     self.declare_parameter('b_filter', 0)

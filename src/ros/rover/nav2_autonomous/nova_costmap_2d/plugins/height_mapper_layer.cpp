@@ -301,7 +301,6 @@ HeightMapperLayer::updateBounds(
 	cv::Mat bottom_height_map(cv::Size(XS, YS), CV_32FC1, cv::Scalar(C_INF));
 	std::vector<std::vector<bool>> has_data_map(xs, std::vector<bool>(ys));
 
-  // place the new obstacles into a priority queue... each with a priority of zero to begin with
   for (std::vector<nav2_costmap_2d::Observation>::const_iterator it = observations.begin(); it != observations.end(); ++it)
   {
     const nav2_costmap_2d::Observation & obs = *it;

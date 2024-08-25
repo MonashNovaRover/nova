@@ -16,10 +16,11 @@ setup(
     maintainer='Monash Nova Rover',
     maintainer_email='novaroverteam@monash.edu',
     description='Electronics',
-    license='',
+    license='BSD-3-Clause',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'LED_transmitter = electronics.LED_transmitter:main',
         ],
     },
 )
