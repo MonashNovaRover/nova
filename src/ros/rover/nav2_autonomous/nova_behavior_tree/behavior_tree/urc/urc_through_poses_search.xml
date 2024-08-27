@@ -37,7 +37,7 @@ continuously
             service_name="local_costmap/clear_entirely_local_costmap" />
         </RecoveryNode>
       </PipelineSequence>
-      <SubTreePlus ID="Recovery" __autoremap="true" />
+      <SubTree ID="Recovery" __autoremap="true" />
     </RecoveryNode>
   </BehaviorTree>
 
@@ -60,7 +60,7 @@ continuously
             service_name="local_costmap/clear_entirely_local_costmap" />
         </RecoveryNode>
       </PipelineSequence>
-      <SubTreePlus ID="Recovery" __autoremap="true" />
+      <SubTree ID="Recovery" __autoremap="true" />
     </RecoveryNode>
   </BehaviorTree>
 
@@ -81,7 +81,7 @@ continuously
               <KeepRunningUntilFailure>
                 <Sequence>
                   <GetFirstGoal goals="{goals}" first_goal="{goal}" />
-                  <SubTreePlus ID="NavToPoseWithReplanningAndRecovery" goal="{goal}"
+                  <SubTree ID="NavToPoseWithReplanningAndRecovery" goal="{goal}"
                     __autoremap="true" />
                   <RemovePassedGoals input_goals="{goals}" output_goals="{goals}"
                     radius="1.00" />
@@ -110,7 +110,7 @@ continuously
               <KeepRunningUntilFailure>
                 <Sequence>
                   <GetFirstGoal goals="{search_goals}" first_goal="{goal}" />
-                  <SubTreePlus ID="NavToPoseWithReplanningAndRecovery" goal="{goal}"
+                  <SubTree ID="NavToPoseWithReplanningAndRecovery" goal="{goal}"
                     __autoremap="true" />
                   <ForceSuccess>
                     <Spin spin_dist="6.28" time_allowance="25" />
@@ -127,7 +127,7 @@ continuously
         <!-- Object has been found - get it's latest position in the map frame -->
         <QueryPosition detection_type="{detection_type}" id="{detection_id}" position="{position}" />
         <!-- Navigate to object position -->
-        <SubTreePlus ID="NavCloseToPoseWithReplanningAndRecovery" goal="{position}"
+        <SubTree ID="NavCloseToPoseWithReplanningAndRecovery" goal="{position}"
           __autoremap="true" />
       </ReactiveSequence>
       <LED name="Success" service_name="LED/auto_success" />

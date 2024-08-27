@@ -42,7 +42,7 @@ continuously
             service_name="local_costmap/clear_entirely_local_costmap" />
         </RecoveryNode>
       </PipelineSequence>
-      <SubTreePlus ID="Recovery" __autoremap="true" />
+      <SubTree ID="Recovery" __autoremap="true" />
     </RecoveryNode>
   </BehaviorTree>
 
@@ -57,7 +57,7 @@ continuously
         <KeepRunningUntilFailure>
           <Sequence>
             <GetFirstGoal goals="{goals}" first_goal="{goal}" />
-            <SubTreePlus ID="NavToPoseWithReplanningAndRecovery" goal="{goal}"
+            <SubTree ID="NavToPoseWithReplanningAndRecovery" goal="{goal}"
               __autoremap="true" />
             <RemovePassedGoals input_goals="{goals}" output_goals="{goals}"
               radius="1.00" />
