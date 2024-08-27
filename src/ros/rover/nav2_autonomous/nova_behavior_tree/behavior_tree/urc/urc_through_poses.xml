@@ -42,7 +42,7 @@ continuously
             service_name="local_costmap/clear_entirely_local_costmap" />
         </RecoveryNode>
       </PipelineSequence>
-      <SubTree ID="Recovery" __autoremap="true" />
+      <SubTree ID="Recovery" node="{node}" bt_loop_duration="{bt_loop_duration}" server_timeout="{server_timeout}" wait_for_service_timeout="{wait_for_service_timeout}"/>
     </RecoveryNode>
   </BehaviorTree>
 
@@ -57,8 +57,7 @@ continuously
         <KeepRunningUntilFailure>
           <Sequence>
             <GetFirstGoal goals="{goals}" first_goal="{goal}" />
-            <SubTree ID="NavToPoseWithReplanningAndRecovery" goal="{goal}"
-              __autoremap="true" />
+            <SubTree ID="NavToPoseWithReplanningAndRecovery" goal="{goal}" node="{node}" bt_loop_duration="{bt_loop_duration}" server_timeout="{server_timeout}" wait_for_service_timeout="{wait_for_service_timeout}"/>
             <RemovePassedGoals input_goals="{goals}" output_goals="{goals}"
               radius="1.00" />
           </Sequence>

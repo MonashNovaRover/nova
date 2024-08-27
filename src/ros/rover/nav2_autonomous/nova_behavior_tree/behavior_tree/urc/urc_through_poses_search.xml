@@ -37,7 +37,8 @@ continuously
             service_name="local_costmap/clear_entirely_local_costmap" />
         </RecoveryNode>
       </PipelineSequence>
-      <SubTree ID="Recovery" __autoremap="true" />
+      <SubTree ID="Recovery" node="{node}" bt_loop_duration="{bt_loop_duration}" server_timeout="{server_timeout}" wait_for_service_timeout="{wait_for_service_timeout}"/>
+/>
     </RecoveryNode>
   </BehaviorTree>
 
@@ -60,7 +61,7 @@ continuously
             service_name="local_costmap/clear_entirely_local_costmap" />
         </RecoveryNode>
       </PipelineSequence>
-      <SubTree ID="Recovery" __autoremap="true" />
+      <SubTree ID="Recovery" node="{node}" bt_loop_duration="{bt_loop_duration}" server_timeout="{server_timeout}" wait_for_service_timeout="{wait_for_service_timeout}"/>
     </RecoveryNode>
   </BehaviorTree>
 
@@ -82,7 +83,7 @@ continuously
                 <Sequence>
                   <GetFirstGoal goals="{goals}" first_goal="{goal}" />
                   <SubTree ID="NavToPoseWithReplanningAndRecovery" goal="{goal}"
-                    __autoremap="true" />
+                    node="{node}" bt_loop_duration="{bt_loop_duration}" server_timeout="{server_timeout}" wait_for_service_timeout="{wait_for_service_timeout}"/>
                   <RemovePassedGoals input_goals="{goals}" output_goals="{goals}"
                     radius="1.00" />
                 </Sequence>
@@ -111,7 +112,7 @@ continuously
                 <Sequence>
                   <GetFirstGoal goals="{search_goals}" first_goal="{goal}" />
                   <SubTree ID="NavToPoseWithReplanningAndRecovery" goal="{goal}"
-                    __autoremap="true" />
+                    node="{node}" bt_loop_duration="{bt_loop_duration}" server_timeout="{server_timeout}" wait_for_service_timeout="{wait_for_service_timeout}" />
                   <ForceSuccess>
                     <Spin spin_dist="6.28" time_allowance="25" />
                   </ForceSuccess>
@@ -128,7 +129,7 @@ continuously
         <QueryPosition detection_type="{detection_type}" id="{detection_id}" position="{position}" />
         <!-- Navigate to object position -->
         <SubTree ID="NavCloseToPoseWithReplanningAndRecovery" goal="{position}"
-          __autoremap="true" />
+          node="{node}" bt_loop_duration="{bt_loop_duration}" server_timeout="{server_timeout}" wait_for_service_timeout="{wait_for_service_timeout}" />
       </ReactiveSequence>
       <LED name="Success" service_name="LED/auto_success" />
     </Sequence>
