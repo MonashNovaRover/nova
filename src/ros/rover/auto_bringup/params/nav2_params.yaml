@@ -192,7 +192,7 @@ local_costmap:
         cost_scaling_factor: 2.0
         inflation_radius: 2.55
       height_mapper_layer:
-        plugin: "nova_costmap_2d::HeightMapperLayer"
+        plugin: "nova_costmap_2d/HeightMapperLayer"
         enabled: True
         min_obstacle_height: -1.0
         max_obstacle_height: 3.0
@@ -212,7 +212,7 @@ local_costmap:
           obstacle_max_range: 5.5
           obstacle_min_range: 0.0
       plane_mapper_layer:
-        plugin: "nova_costmap_2d::PlaneMapperLayer"
+        plugin: "nova_costmap_2d/PlaneMapperLayer"
         enabled: True
         min_obstacle_height: -1.0
         max_obstacle_height: 3.0
@@ -256,7 +256,7 @@ global_costmap:
       track_unknown_space: False
       plugins: ["height_mapper_layer", "plane_mapper_layer", "inflation_layer"]
       height_mapper_layer:
-        plugin: "nova_costmap_2d::HeightMapperLayer"
+        plugin: "nova_costmap_2d/HeightMapperLayer"
         enabled: True
         min_obstacle_height: -1.0
         max_obstacle_height: 3.0
@@ -277,7 +277,7 @@ global_costmap:
           obstacle_max_range: 12.0
           obstacle_min_range: 0.0
       plane_mapper_layer:
-        plugin: "nova_costmap_2d::PlaneMapperLayer"
+        plugin: "nova_costmap_2d/PlaneMapperLayer"
         enabled: True
         min_obstacle_height: -1.0
         max_obstacle_height: 3.0
