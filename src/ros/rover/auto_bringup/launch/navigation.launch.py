@@ -43,7 +43,7 @@ def generate_launch_description():
                        'planner_server',
                        'behavior_server',
                        'bt_navigator',
-                    #    'waypoint_follower',
+                    'waypoint_follower',
                        'velocity_smoother']
 
     # Map fully qualified names to relative ones so the node's namespace can be prepended.
@@ -148,16 +148,16 @@ def generate_launch_description():
                 parameters=[configured_params],
                 arguments=['--ros-args', '--log-level', log_level],
                 remappings=remappings),
-            # Node(
-            #     package='nav2_waypoint_follower',
-            #     executable='waypoint_follower',
-            #     name='waypoint_follower',
-            #     output='screen',
-            #     respawn=use_respawn,
-            #     respawn_delay=2.0,
-            #     parameters=[configured_params],
-            #     arguments=['--ros-args', '--log-level', log_level],
-            #     remappings=remappings),
+             Node(
+                 package='nav2_waypoint_follower',
+                 executable='waypoint_follower',
+                 name='waypoint_follower',
+                 output='screen',
+                 respawn=use_respawn,
+                 respawn_delay=2.0,
+                 parameters=[configured_params],
+                 arguments=['--ros-args', '--log-level', log_level],
+                 remappings=remappings),
             Node(
                 package='nav2_velocity_smoother',
                 executable='velocity_smoother',
