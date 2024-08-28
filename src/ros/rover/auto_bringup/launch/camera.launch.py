@@ -14,13 +14,16 @@ def launch_setup(context, *args, **kwargs):
     depthai_prefix = get_package_share_directory('depthai_ros_driver')
     bringup_dir = get_package_share_directory('auto_bringup')
 
-    params_file = LaunchConfiguration('params_file')
+    params_file= LaunchConfiguration('params_file')
+    
+    use_sim_time = LaunchConfiguration('use_sim_time')
+    use_camera = LaunchConfiguration('use_camera')
 
     return [
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
                 PathJoinSubstitution([depthai_prefix, 'launch', 'camera.launch.py'])),
-            condition=LaunchConfigurationNotEquals(LaunchConfiguration('sim'), 'True'),
+            condition=IfCondition(use_camera),
             launch_arguments={"name": name,
                               "parent_frame": "camera_link",
                               "params_file": params_file,
@@ -41,7 +44,7 @@ def launch_setup(context, *args, **kwargs):
             ]),
 
         Node(
-            condition=IfCondition(LaunchConfiguration('filter')),
+            condition=IfCondition(LaunchConfiguration('use_camera')),
             package='nova_pointcloud_filter',
             executable='depth_filter',
             name='depth_filter',
@@ -51,10 +54,16 @@ def launch_setup(context, *args, **kwargs):
             parameters=[{'t_filter': 0, 'r_filter': 0, 'b_filter': 75, 'l_filter': 0, }] 
         ),
         Node(
-            condition=IfCondition(LaunchConfiguration('aruco')),
+            condition=IfCondition(LaunchConfiguration('ar_tag')),
             package='aruco_opencv',
             executable='aruco_tracker_autostart',
             arguments=['--ros-args', '--params-file', PathJoinSubstitution([bringup_dir, 'params', 'aruco_tracker.yaml'])],
+        ),
+        Node(
+            condition=IfCondition(LaunchConfiguration('ar_tag')),
+            package='nova_ar_tag',
+            executable='aruco_marker',
+            name='aruco_marker',
         ),
         Node(
             package='imu_transformer',
@@ -74,10 +83,10 @@ def generate_launch_description():
         DeclareLaunchArgument('name', default_value='oak'),
         DeclareLaunchArgument('params_file', default_value=PathJoinSubstitution([auto_bringup_prefix, 'params', 'depthai_oakd_rgbd.yaml'])),
         DeclareLaunchArgument('rectify_rgb', default_value='True'),
+        DeclareLaunchArgument('use_sim_time', default_value='False'),
         DeclareLaunchArgument('rtabmap_pointcloud', default_value='True'),
-        DeclareLaunchArgument('aruco', default_value='False'),
-        DeclareLaunchArgument('filter', default_value='True'),
-        DeclareLaunchArgument('sim', default_value='False'),
+        DeclareLaunchArgument('ar_tag', default_value='True'),
+        DeclareLaunchArgument('use_camera', default_value='True'),
     ]
 
     return LaunchDescription(  

@@ -135,7 +135,7 @@ local_costmap:
       resolution: 0.1
       footprint: "[[0.67, 0.55], [0.67, -0.55], [-0.67, -0.55], [-0.67, 0.55]]"
       track_unknown_space: False
-      plugins: ["height_mapper_layer"] #, "denoise_layer", "inflation_layer"]
+      plugins: ["height_mapper_layer"]#, "denoise_layer", "inflation_layer"]
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 2.0
@@ -147,10 +147,10 @@ local_costmap:
         max_obstacle_height: 3.0
         observation_sources: depth_camera
         vertical_resolution: 0.025
-        max_safe_val: 0.1
+        max_safe_val: 1.6
         min_plane_density: 0.2
         depth_camera:
-          topic: /oak/points
+          topic: /oak/no
           min_obstacle_height: -1.0
           max_obstacle_height: 3.0
           clearing: False
@@ -170,7 +170,7 @@ local_costmap:
         vertical_resolution: 0.025
         min_plane_density: 0.2
         depth_camera:
-          topic: /oak/points
+          topic: /oak/no
           min_obstacle_height: -1.0
           max_obstacle_height: 3.0
           clearing: False
@@ -211,7 +211,7 @@ global_costmap:
         max_obstacle_height: 3.0
         observation_sources: depth_camera
         vertical_resolution: 0.025
-        max_safe_val: 0.1
+        max_safe_val: 1.6
         min_plane_density: 0.1
         resolution_ratio: 16
         depth_camera:
