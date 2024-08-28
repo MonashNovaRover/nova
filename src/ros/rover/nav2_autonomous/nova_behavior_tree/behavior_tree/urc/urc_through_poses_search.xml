@@ -67,7 +67,7 @@ continuously
 
   <BehaviorTree ID="MainTree">
     <Sequence>
-      <LED name="Start" service_name="LED/auto_active" />
+      <!-- <LED name="Start" service_name="LED/auto_active" /> -->
       <ReactiveSequence name="FindAndApproachObject">
         <ReactiveFallback name="NavThroughPosesAndSearchForObject">
           <!-- Exit the fallback when the object is found-->
@@ -131,7 +131,7 @@ continuously
         <SubTree ID="NavCloseToPoseWithReplanningAndRecovery" goal="{position}"
           node="{node}" bt_loop_duration="{bt_loop_duration}" server_timeout="{server_timeout}" wait_for_service_timeout="{wait_for_service_timeout}" />
       </ReactiveSequence>
-      <LED name="Success" service_name="LED/auto_success" />
+      <!-- <LED name="Success" service_name="LED/auto_success" /> -->
     </Sequence>
   </BehaviorTree>
 </root>
