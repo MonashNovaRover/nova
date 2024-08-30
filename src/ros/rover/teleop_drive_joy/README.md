@@ -1,8 +1,8 @@
-ros2/teleop_twist_joy
+#teleop_drive_joy
 ================
 
 # Overview
-The purpose of this package is to provide a generic facility for tele-operating Twist-based ROS2 robots with a standard joystick. 
+The purpose of this package is to provide a generic facility for tele-operating the rover using Twist-based and DriveInput-based control with any standard game controller.
 It converts joy messages to velocity commands.
 
 This node provides no rate limiting or autorepeat functionality. It is expected that you take advantage of the features built into [joy](https://index.ros.org/p/joy/github-ros-drivers-joystick_drivers/#foxy) for this.
