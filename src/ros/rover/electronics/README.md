@@ -15,9 +15,10 @@ All scripts found in this repository are shown in the list below:
 
 ### Setup
 
-Make sure all of the following dependencies are complete prior to running code in this repository. Copy the following lines of code and run them in a Terminal console.
-
-```
-python3 -m pip install --upgrade pip
-pip3 install fabric psutil
-```
+> Make sure all of the following dependencies are complete prior to running code in this repository. Copy the following lines of code and run them in a Terminal console.
+>
+> ```
+> python3 -m pip install --upgrade pip
+> pip3 install fabric psutil
+> ```
+This setup is deprecated now since our migration to nix. Consult nixfiles documentation.
