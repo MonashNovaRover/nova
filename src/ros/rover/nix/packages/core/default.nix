@@ -24,7 +24,6 @@
 , image-view
 , navigation2
 , depthai-ros
-, rtabmap-ros
 }:
 
 buildRosPackage rec {
@@ -37,11 +36,6 @@ buildRosPackage rec {
     filter = lib.novaSourceFilter [ "!worlds/**" ] path;
   };
   
-  meshes = builtins.path {
-    name = "nova-core-meshes";
-    path = src + "/meshes";
-  };
-
   nativeBuildInputs = [ ament-cmake rosidl-default-generators ];
   buildInputs = [ std-msgs nav-msgs trajectory-msgs ];
   propagatedBuildInputs = [ launch launch-ros ];
@@ -61,12 +55,7 @@ buildRosPackage rec {
       robot-localization
       gazebo-ros-pkgs
       navigation2
-      depthai-ros
-      rtabmap-ros;
+      depthai-ros;
   };
 
-  postPatch = ''
-    substituteInPlace  urdf/rover.urdf.xacro \
-      --replace 'STREQUAL "file:///$(find core)"' 'STREQUAL "${meshes}"'
-  '';
 }

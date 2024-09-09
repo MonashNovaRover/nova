@@ -29,13 +29,16 @@ void HeightMapperLayer::onInitialize()
   node->get_parameter(name_ + "." + "footprint_clearing_enabled", footprint_clearing_enabled_);
   node->get_parameter(name_ + "." + "min_obstacle_height", min_obstacle_height_);
   node->get_parameter(name_ + "." + "max_obstacle_height", max_obstacle_height_);
-  node->get_parameter(name_ + "." + "combination_method", combination_method_);
   node->get_parameter("track_unknown_space", track_unknown_space);
   node->get_parameter("transform_tolerance", transform_tolerance);
   node->get_parameter(name_ + "." + "observation_sources", topics_string);
   node->get_parameter(name_ + "." + "max_safe_val", max_safe_val_);
   node->get_parameter(name_ + "." + "resolution_ratio", resolution_ratio_);
   node->get_parameter(name_ + "." + "min_plane_density", min_plane_density_);
+
+  int combination_method_param{};
+  node->get_parameter(name_ + "." + "combination_method", combination_method_param);
+  combination_method_ = combination_method_from_int(combination_method_param);
 
   dyn_params_handler_ = node->add_on_set_parameters_callback(
     std::bind(
@@ -301,7 +304,6 @@ HeightMapperLayer::updateBounds(
 	cv::Mat bottom_height_map(cv::Size(XS, YS), CV_32FC1, cv::Scalar(C_INF));
 	std::vector<std::vector<bool>> has_data_map(xs, std::vector<bool>(ys));
 
-  // place the new obstacles into a priority queue... each with a priority of zero to begin with
   for (std::vector<nav2_costmap_2d::Observation>::const_iterator it = observations.begin(); it != observations.end(); ++it)
   {
     const nav2_costmap_2d::Observation & obs = *it;

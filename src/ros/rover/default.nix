@@ -1,7 +1,5 @@
 {
   rosPackages = pkgs: with pkgs; {
-    # nova-core = callPackage ./nix/packages/core { };
-    # nova-control = callPackage ./nix/packages/control { };
     nova-autonomous = callPackage ./nix/packages/autonomous { };
     nova-electronics = callPackage ./nix/packages/electronics { };
     nova-science = callPackage ./nix/packages/science { };
@@ -11,7 +9,7 @@
     nova-cube-localisation = callPackage ./nix/packages/nova-cube-localisation { };
     nova-teleop-drive-joy = callPackage ./nix/packages/teleop-drive-joy { };
     nova-pointcloud-filter = callPackage ./nix/packages/nova-pointcloud-filter { };
-    nova-drive= callPackage ./nix/packages/drive { };
+    nova-drive = callPackage ./nix/packages/drive { };
     nova-drive-interfaces = callPackage ./nix/packages/drive-interfaces { };
     nova-blcmd-interfaces = callPackage ./nix/packages/blcmd-interfaces { };
     nova-blcmd-utils = callPackage ./nix/packages/blcmd-utils { };
@@ -24,11 +22,15 @@
     nova-gimbal-cam = callPackage ./nix/packages/gimbal-cam { };
     nova-bringup = callPackage ./nix/packages/nova-bringup { };
     nova-auto-bringup = callPackage ./nix/packages/auto-bringup { };
-    nova-interfaces = callPackage ./nix/packages/nova-interfaces{ };
+    nova-interfaces = callPackage ./nix/packages/nova-interfaces { };
     nova-rover-description = callPackage ./nix/packages/rover-description { };
     nova-gazebo = callPackage ./nix/packages/nova-gazebo { };
     nova-python-control = callPackage ./nix/packages/python-control { };
     nova-excavation-construction = callPackage ./nix/packages/excavation-construction { };
+    nova-ar-tag = callPackage ./nix/packages/nova-ar-tag { };
+    nova-detection-overlay = callPackage ./nix/packages/nova-detection-overlay { };
+    nova-bt-navigators = callPackage ./nix/packages/nova-bt-navigators { };
+    nova-auto-interfaces = callPackage ./nix/packages/nova-auto-interfaces { };
     nova-utils = callPackage ./nix/packages/nova-utils { };
     # diff drive, pivot drive, strafe, 
   } // import ./nix/packages/controllers { inherit pkgs; };

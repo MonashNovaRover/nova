@@ -13,11 +13,12 @@
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
 
-  <exec_depend>rclpy</exec_depend>
-
-  <depend>rclcpp</depend>  
+  <depend>rclpy</depend>
+  <depend>rclcpp</depend>
   <depend>nova_interfaces</depend>
   <depend>std_msgs</depend>
+  <depend>std_srvs</depend>
+  <depend>coms_utils</depend>
 
   <export>
     <build_type>ament_cmake</build_type>

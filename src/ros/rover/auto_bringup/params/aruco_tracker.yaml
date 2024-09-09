@@ -1,5 +1,3 @@
-# To run the /aruco_tracker node with these params, input 
-# "ros2 run aruco_opencv aruco_tracker_autostart --ros-args --params-file /home/nova/src/ros/rover/core/params/aruco_tracker.yaml"
 /aruco_tracker:
   ros__parameters:
     aruco:
@@ -23,15 +21,16 @@
       perspectiveRemoveIgnoredMarginPerCell: 0.13
       perspectiveRemovePixelPerCell: 4
       polygonalApproxAccuracyRate: 0.03
-    cam_base_topic: camera/image_raw
-    image_is_rectified: false
+    board_descriptions_path: ''
+    cam_base_topic: /oak/right/image_rect
+    image_is_rectified: true # Only true if subscribed to '/oak/rgb/image_rect' or rectified-image equivalent.
     image_sub_qos:
       depth: 1
       durability: 2
       reliability: 2
     marker_dict: 4X4_50
-    marker_size: 0.0742
-    output_frame: ''
+    marker_size: 0.1500 # marker_size refers to the sidelength of the marker (in m), which for URC 2024, will be 150 mm.
+    output_frame: 'map' # Frame which AR marker position is published relative to.
     publish_tf: true
     qos_overrides:
       /tf:

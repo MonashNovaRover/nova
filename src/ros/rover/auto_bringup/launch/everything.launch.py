@@ -9,7 +9,7 @@ NODES:
   - robot_state_publisher
   - rover_state_publisher
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-PACKAGE: 	core
+PACKAGE: 	auto_bringup
 CREATION:	27/04/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
@@ -28,14 +28,17 @@ from launch_ros.substitutions import FindPackageShare
 import os
 
 # Generate the launch file with all inputs
+
+
 def generate_launch_description():
     # Useful paths
-    auto_bringup_dir = FindPackageShare('auto_bringup')
+    auto_bringup_dir = get_package_share_directory('auto_bringup')
+    gazebo_dir = get_package_share_directory('nova_gazebo')
 
     # Launch Configurations
     namespace = LaunchConfiguration('namespace')
     world = LaunchConfiguration('world')
-    params_file = LaunchConfiguration('nav2_params_file')
+    params_file = LaunchConfiguration('params_file')
     autostart = LaunchConfiguration('autostart')
     use_respawn = LaunchConfiguration('use_respawn')
     localization = LaunchConfiguration('localization')
@@ -57,11 +60,11 @@ def generate_launch_description():
         #              https://github.com/ROBOTIS-GIT/turtlebot3_simulations/issues/91
         # default_value=PathJoinSubstitution([get_package_share_directory('turtlebot3_gazebo'),
         # worlds/turtlebot3_worlds/waffle.model')
-        default_value=PathJoinSubstitution([FindPackageShare('nova_gazebo'), "worlds", 'flat.model']),
+        default_value=PathJoinSubstitution([gazebo_dir, "worlds", 'flat.model']),
         description='Full path to world model file to load')
 
     params_file_arg = DeclareLaunchArgument(
-        'nav2_params_file',
+        'params_file',
         default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2_params.yaml']),
         description='Full path to the ROS2 parameters file to use for all launched nodes')
 
@@ -134,6 +137,11 @@ def generate_launch_description():
         condition=IfCondition(rviz)
     )
 
+    led_cmd = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'led.launch.py'])),
+        condition=IfCondition(gazebo),
+    )
+
     navigation_cmd = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'navigation.launch.py'])),
         condition=IfCondition(navigation),
@@ -146,6 +154,20 @@ def generate_launch_description():
             'container_name': 'nav2_container',
             'log_level': log_level,
         }.items()
+    )
+
+    ar_tag = Node(
+            condition=IfCondition(LaunchConfiguration('gazebo')),
+            package='aruco_opencv',
+            executable='aruco_tracker_autostart',
+            arguments=['--ros-args', '--params-file', PathJoinSubstitution([auto_bringup_dir, 'params', 'aruco_tracker.yaml'])],
+    )
+
+    nova_ar_tag = Node(
+            condition=IfCondition(LaunchConfiguration('gazebo')),
+            package='nova_ar_tag',
+            executable='aruco_marker',
+            name='aruco_marker',
     )
 
     return LaunchDescription([
@@ -167,5 +189,8 @@ def generate_launch_description():
         localization_cmd,
         control_cmd,
         rviz_cmd,
+        led_cmd,
         navigation_cmd,
+        ar_tag,
+        nova_ar_tag,
     ])

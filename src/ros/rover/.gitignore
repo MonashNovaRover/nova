@@ -24,6 +24,7 @@ docs/build/html/
 ## Environments
 .env
 .venv
+.cache
 env/
 venv/
 ENV/
