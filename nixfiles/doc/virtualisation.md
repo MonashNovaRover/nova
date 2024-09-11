@@ -160,8 +160,8 @@ one after installation.
    ```nix
    {
      imports = [
-       /home/nova/nixfiles/nixos
-       /home/nova/nixfiles/nixos/installer/docker
+       /home/nova/nova/nixfiles/nixos
+       /home/nova/nova/nixfiles/nixos/installer/docker
      ];
 
      nova.substituters.nova.password = "tFH6J!#HhrYc3&^m";
