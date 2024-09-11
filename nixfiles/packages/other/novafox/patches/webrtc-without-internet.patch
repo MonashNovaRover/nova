@@ -1,0 +1,26 @@
+From 542eb5d423c235cd0481cf4eee3f707c279a1304 Mon Sep 17 00:00:00 2001
+From: hacker1024 <hacker1024@users.sourceforge.net>
+Date: Sun, 16 Jul 2023 02:13:11 +0000
+Subject: [PATCH] Allow creating RTCPeerConnections when the network is down
+
+https://bugzilla.mozilla.org/show_bug.cgi?id=831926
+---
+ dom/media/PeerConnection.sys.mjs | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/dom/media/PeerConnection.sys.mjs b/dom/media/PeerConnection.sys.mjs
+index adb9cc3ba3d71..573682b1a0c99 100644
+--- a/dom/media/PeerConnection.sys.mjs
++++ b/dom/media/PeerConnection.sys.mjs
+@@ -513,9 +513,8 @@ export class RTCPeerConnection {
+     this._documentPrincipal = Cu.getWebIDLCallerPrincipal();
+ 
+     if (_globalPCList._networkdown) {
+-      throw new this._win.DOMException(
+-        "Can't create RTCPeerConnections when the network is down",
+-        "InvalidStateError"
++      this.logWarning(
++        "Can't create RTCPeerConnections when the network is down"
+       );
+     }
+ 
