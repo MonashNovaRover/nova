@@ -11,4 +11,4 @@ The `nova` repository is a mono-repo which encapsulates:
 - [nixfiles](./nixfiles)
 - [rover](./src/ros/rover)
 - [nova-gui](./src/ros/nova-gui)
-- [cameras2](./src/ros/nova-gui)
+- [cameras2](./src/ros/cameras2)
