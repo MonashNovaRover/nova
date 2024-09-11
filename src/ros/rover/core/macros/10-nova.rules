@@ -1,0 +1,10 @@
+# ARDUINO USB RFID READER
+# by Ariel Elbaum 
+# 1a86:7523
+SUBSYSTEM=="tty", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="7523", SYMLINK+="ttyELBAUMRFID69420", OWNER="root", GROUP="dialout"
+
+# USB-RS485 ADAPTER
+# Used within the chassis, for the Arm resolvers.
+# 0403:6001
+SUBSYSTEM=="tty", ATTRS{serial}=="AB0KSUX3", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6001", SYMLINK+="ttyRS485", OWNER="root", GROUP="dialout"
+

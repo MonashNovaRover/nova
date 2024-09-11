@@ -1,0 +1,60 @@
+
+/* styles used for OverlayedProgress */
+
+.DriveModeProgress {
+
+}
+
+.DriveModeProgressInnerText {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 1px;
+    top: 0;
+
+    mix-blend-mode: overlay;
+    opacity: 100%;
+
+    text-shadow: black 0 1pt 5pt;
+
+    overflow: hidden;
+
+    border-radius: var(--nextui-line-height-small);
+    vertical-align: center;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.DriveModeProgressInnerTextDoubleUp {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 1px;
+    top: 0;
+
+    opacity: 50%;
+
+    mix-blend-mode: normal;
+    text-shadow: black 0 1pt 5pt;
+
+    overflow: hidden;
+
+    border-radius: var(--nextui-line-height-small);
+    vertical-align: center;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}

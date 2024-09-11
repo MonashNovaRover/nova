@@ -1,0 +1,8 @@
+<library path="nova_costmap_2d_core">
+  <class name="nova_costmap_2d/HeightMapperLayer" type="nova_costmap_2d::HeightMapperLayer" base_class_type="nav2_costmap_2d::Layer">
+    <description>Generates a costmap by subtracting convolved height maps containing the highest and lowest points in a pointcloud</description>
+  </class>
+  <class name="nova_costmap_2d/PlaneMapperLayer" type="nova_costmap_2d::PlaneMapperLayer" base_class_type="nav2_costmap_2d::Layer">
+    <description>Generates a costmap by fitting overlapping best-fit planes to the pointcloud</description>
+  </class>
+</library>
