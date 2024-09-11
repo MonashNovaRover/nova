@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="d4b3b170-fd9d-4bcf-ad8b-8c696478216f" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/doc/nixos.md" beforeDir="false" afterPath="$PROJECT_DIR$/doc/nixos.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/doc/ros.md" beforeDir="false" afterPath="$PROJECT_DIR$/doc/ros.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/doc/virtualisation.md" beforeDir="false" afterPath="$PROJECT_DIR$/doc/virtualisation.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/home/macros/default.nix" beforeDir="false" afterPath="$PROJECT_DIR$/modules/home/macros/default.nix" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/home/workspace/sources.nix" beforeDir="false" afterPath="$PROJECT_DIR$/modules/home/workspace/sources.nix" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/nixos/common/ci/master/default.nix" beforeDir="false" afterPath="$PROJECT_DIR$/modules/nixos/common/ci/master/default.nix" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
+  "lastFilter": {
+    "state": "OPEN",
+    "assignee": "BaileyChessum"
+  }
+}]]></component>
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "git@github.com:MonashNovaRover/nova.git",
+    "accountId": "a6906ff9-2c12-4baf-a620-a0c4c036fbfc"
+  }
+}]]></component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "associatedIndex": 7
+}]]></component>
+  <component name="ProjectId" id="2lvWAMrw6a7KzctzOHLDgj7PbgD" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "feat/repos",
+    "last_opened_file_path": "/home/nova/nova/nixfiles",
+    "node.js.detected.package.eslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-js-predefined-d6986cc7102b-410509235cf1-JavaScript-PY-242.20224.428" />
+        <option value="bundled-python-sdk-80e8e15d2b92-39cff9de6eef-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-242.20224.428" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="d4b3b170-fd9d-4bcf-ad8b-8c696478216f" name="Changes" comment="" />
+      <created>1726060885409</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1726060885409</updated>
+      <workItem from="1726060886420" duration="160000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+</project>
