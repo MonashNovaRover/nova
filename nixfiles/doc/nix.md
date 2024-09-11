@@ -1,0 +1,273 @@
+# Using the Nix packages
+
+## Preparation
+
+1. Use any Linux distro. macOS will in theory work to some extent, but is untested. Some of our software requires Linux.
+2. Install [Nix](https://nixos.org/).
+3. Configure Nix to use the [binary caches](./caches.md). This is optional, but highly recommended to cut down on build times.
+4. In the top-level repository directory, run the [checkout script](../scripts/checkout-nova-sources.sh).
+5. Make sure the repositories cloned to [external/src](./external/src) are on up-to-date branches with a `default.nix`.
+
+Any commands in this README starting with `nix-shell`, `nix-build`, etc.
+should be started in the top-level repository directory.
+
+## Execution
+
+There are two alternate ways to enter the Nova Rover ROS workspace.
+
+---
+
+To open a temporary shell in the workspace, run the following command:
+
+```
+nix-shell -p 'with import ./. { }; pkgs.ros.nova-workspace'
+```
+
+Note that the workspace includes all Nova Rover packages by default, which can
+lead to long evaluation and build times. The GUI frontend is one of the [worst
+offenders](https://www.reddit.com/r/ProgrammerHumor/comments/6s0wov).
+
+You may also want to add extra ROS tools to the workspace.
+
+To create a workspace with a specific set of packages, the `novaPackages`
+and `extraPackages` arguments can be set. For example:
+
+```
+nix-shell -p 'with import ./. { }; pkgs.ros.nova-workspace.override {
+  novaPackages = {
+    inherit (pkgs.ros)
+      nova-core
+      nova-control;
+  };
+  extraPackages = {
+    inherit (pkgs.ros) turtlesim;
+  };
+}'
+```
+
+---
+
+Alternatively, for something a little more permanent, you can build the
+workspace and manually add `result/bin` to your `PATH`. `result` is a symbolic
+link that gets updated whenever the workspace package is built. Its existance
+will also prevent Nix from garbage collecting it or any dependencies.
+
+```
+nix-build -A pkgs.ros.nova-workspace
+
+export PATH="$PWD/result/bin:$PATH"
+# Add something similar to your shell init script.
+```
+
+As is explained in the shell example, it is often beneficial to build the
+workspace with a small subset of Nova Rover packages, or with extra ROS tools.
+This can be done like so:
+
+```
+nix-build -E 'with import ./. { }; pkgs.ros.nova-workspace.override {
+  novaPackages = {
+    inherit (pkgs.ros)
+      nova-core
+      nova-control;
+  };
+  extraPackages = {
+    inherit (pkgs.ros) turtlesim;
+  };
+}'
+```
+---
+
+After you are in the workspace, run the following command, which configures
+things like shell completion.
+
+```
+eval "$(mk-workspace-shell-setup)"
+```
+
+Now, the workspace can be used like normal. `ros2 run` to your heart's content.
+
+> Whenever you change any source code, you can re-enter the shell or rebuild the
+> workspace to use the new version. Only the packages that changed will be
+> rebuilt.
+>
+> Note that this is not recommended for general development due to the lack of
+> incremental compilation in individual packages. Read on for development
+> instructions.
+
+## Development
+
+Development can be done in two styles:
+
+1. Using IDEs or build tools like CMake directly (recommended in most cases).
+2. Using [colcon](https://colcon.readthedocs.io/en/released/) as normal
+   (recommended when working on multiple large packages that depend on one another).
+
+### Direct
+
+1. Enter a package development shell. For example, `control`:
+   ```
+   nix-shell -A env.nova-control
+   ```
+
+   You can also enter the combined shell for multiple packages by chaining them.
+   This is useful, for example, to open an IDE through and work on several packages at once.
+   See the [nix-ros-workspace documentation](https://github.com/hacker1024/nix-ros-workspace#composition)
+   for more details.
+
+   ```
+   nix-shell -A env.nova-control.nova-autonomous
+   ```
+
+2. Switch to the package directory.
+   ```
+   cd external/src/ros/rover/control
+   ```
+
+3. CLI development: Build the package with regular build tools.
+   Note that some CMake packages will need `-DBUILD_TESTING=OFF`.
+   ```
+   mkdir -p build
+   cd build
+   cmake .. -DBUILD_TESTING=OFF
+   cmake --build .
+   ```
+
+4. IDE development: See [IDE setup](./ides.md)
+
+### Colcon
+
+1. Enter the workspace development shell.
+   ```
+   nix-shell -A env
+   ```
+
+   (`env` is an alias for `pkgs.ros.nova-workspace.env`.)
+
+2. Switch to a workspace directory.
+   ```
+   cd external/src
+   ```
+
+3. Build the workspace.
+   ```
+   colcon build
+   ```
+
+4. Hack away.
+
+## Advanced Nix usage
+
+### Structure
+
+Importing this repository in Nix will create the entrypoint function.
+
+**Arguments (in an attribute set):**
+
+`pkgs`: Optional. A custom instance of [Nixpkgs](https://github.com/NixOS/nixpkgs). This is used to download pinned revisions of it and other package sources. The build and host platforms are inherited from this instance.
+
+`repos`: Optional. A list of paths to out-of-tree Nova Rover software repositories. (Tip: [Use `--arg` to set this on the CLI.](https://nixos.org/manual/nix/unstable/command-ref/opt-common.html#opt-arg))
+
+**Return values (in an attribute set):**
+
+`pkgs`: An instance of a pinned (non-updating) revision of Nixpkgs with additional packages added.
+
+`env`: An alias to `pkgs.ros.nova-workspace.env`.
+
+`config`, `options`: Results of the out-of-tree module evaluation.
+
+#### Using ROS packages
+
+ROS packages can be accessed through either the `rosPackages` set or the `ros` alias (equivalent to `rosPackages.${defaultVersion}`).
+
+Here are some examples:
+
+- `pkgs.ros.nova-workspace` - The main workspace, with ROS 2 Foxy
+- `pkgs.rosPackages.humble.nova-control` - The `control` package, built against ROS 2 Humble
+- `pkgs.rosPackages.rolling.ros-core` - The [core variant](https://ros.org/reps/rep-2001.html#id32) of ROS 2 Rolling
+
+#### Adding out-of-tree packages
+
+Out-of-tree packages are expected to be structured like so:
+
+```
+├── default.nix
+├── nix
+│  └── packages
+│     ├── <name>
+│     │  └── default.nix
+│     ├── <name>
+│     │  └── default.nix
+│     └── ... (additional packages)
+└── ... (the rest of the repository)
+```
+
+`default.nix` is a NixOS-style module that configures this repository, primarily to add packages.
+
+There are multiple options:
+
+- `packages`: Regular packages to add.
+- `pythonPackages`: Python packages to add.
+- `rosPackages`: ROS packages to add.
+- `shellAliases`: Shell aliases to add.
+
+A typical `default.nix` would look like this:
+
+```nix
+{
+  rosPackages = pkgs: with pkgs; {
+    nova-my-ros-package = callPackage ./nix/packages/my-ros-package { };
+  };
+
+  shellAliases = {
+    my-ros-package = "ros2 launch my-ros-package main.launch.py";
+  };
+}
+```
+
+Consult existing repositories for practical examples.
+
+### Cross compilation
+
+Cross compilation can be achieved by passing in a custom instance of Nixpkgs
+with a different `crossSystem` setting.
+
+For example, if compiling for AArch64 (64-bit ARM), `crossSystem` would be set
+to `aarch64-linux`:
+
+```
+$ nix-build --arg pkgs 'import <nixpkgs> { crossSystem = "aarch64-linux"; }' -A ...
+```
+
+Cross compiling is quite impractical, though, for the following reasons:
+- The build platform's compiler will be used. This changes the build inputs and
+  corresponding output path of every derivation. Only a handful of
+  cross-compiled packages are available in the official binary cache, leading to
+  a lot of local compilation.
+- Cross-compiled packages are of no use to development on the target device.  
+  As the cross-compiled packages and all their dependencies have different build
+  inputs to their natively-compiled counterparts, developent on the target
+  device will require a natively-compiled copy of every dependency.
+- A lot of Nix packages are broken and do not compile in a cross-compilation
+  environment.  
+  Cross-compilation support in Nixpkgs is still fairly new, and has very little
+  testing.
+
+A better solution is emulated compilation.
+
+#### Emulated compilation
+
+Emulated compilation is an alternative to cross compilation. Instead of
+cross-compiling to another architecture, the compiler and all other build tools
+are executed in an emulated environment, as if they were running on the target
+device.
+
+Luckily, Nix makes this easy to set up.
+
+1. Enable QEMU emulation via `binfmt_misc`. This allows foreign executables to
+   run as if they are native programs.
+   - On NixOS, add `aarch64-linux` to [`boot.binfmt.emulatedSystems`](https://search.nixos.org/options?show=boot.binfmt.emulatedSystems).
+   - On Debian/Ubuntu, follow the [instructions in the Debian Wiki](https://wiki.debian.org/QemuUserEmulation). Do not install any multiarch Debian packages; they are not needed when using Nix. Then, add `aarch64-linux` to [`extra-platforms`](https://nixos.org/manual/nix/unstable/command-ref/conf-file.html#conf-extra-platforms) in `nix.conf`.
+2. Build packages with `localSystem` set to `aarch64-linux`. e.g:
+   ```
+   $ nix-build --arg pkgs 'import <nixpkgs> { localSystem = "aarch64-linux"; }' -A pkgs.ros.nova-workspace
+   ```

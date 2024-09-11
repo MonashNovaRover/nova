@@ -1,0 +1,41 @@
+{ config, pkgs, lib, modulesPath, ... }:
+
+{
+  imports = [
+    "${modulesPath}/installer/cd-dvd/installation-cd-base.nix"
+  ];
+
+  isoImage = rec {
+    edition = lib.mkDefault "nova";
+    appendToMenuLabel = " Live System";
+  };
+
+  # For some reason, including documentation crashes the build of the
+  # "lazy-options.json" derivation due to "Argument list too long" when starting
+  # the builder.
+  documentation.nixos.enable = lib.mkForce false;
+
+  # The base installation modules create a "nixos" user.
+  # There is no way to disable this, but the autologin can be disabled.
+  # Users should use the "nova" user instead.
+  services.getty.autologinUser = lib.mkForce null;
+  environment.etc.issue.source = pkgs.writeText "issue" ''
+
+    [1;32m${config.services.getty.greetingLine}[0m
+    To continue, login as the "nova" user.
+
+  '';
+
+  nova = {
+    profile = "shared";
+    desktop.enable = lib.mkOverride 900 false;
+  };
+
+  home-manager.nova.sharedModules = [{
+    nova = {
+      workspace.enable = lib.mkDefault false;
+    };
+  }];
+
+  home-manager.users.nova.home.stateVersion = config.system.nixos.release;
+}
