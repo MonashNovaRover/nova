@@ -13,3 +13,6 @@
 [submodule "src/other/libblcmd"]
 	path = src/other/libblcmd
 	url = git@github.com:MonashNovaRover/libblcmd
+[submodule "src/other/libcanmd"]
+	path = src/other/libcanmd
+	url = git@github.com:MonashNovaRover/libcanmd
