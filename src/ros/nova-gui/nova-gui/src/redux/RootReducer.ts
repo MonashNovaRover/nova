@@ -14,6 +14,7 @@ import { initialNavSatMessage } from "./models/CartographerState";
 import {uiSlice} from "./slices/UISlice";
 import {cameraStreamerSlice} from "./slices/CameraStreamSlice";
 import {BLCMD_INDEX} from "../constants";
+import {localStorageSlice} from "./slices/LocalStorageSlice.ts";
 
 export const rootReducer = {
   // Bifrost Stores
@@ -201,11 +202,10 @@ export const rootReducer = {
     }
   ),
 
-
   // Regular Stores
   uiState: uiSlice.reducer,
   cameraStreamerState: cameraStreamerSlice.reducer,
-
+  localStorageState: localStorageSlice.reducer,
 
   // Maps Stores
   roverLocationStore: createBifrostStore(
