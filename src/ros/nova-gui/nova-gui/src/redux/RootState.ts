@@ -30,6 +30,7 @@ import { CameraStreamerState } from "./models/CameraStreamState";
 import { CartographerState } from "./models/CartographerState";
 
 import { UIState } from "./models/UIState";
+import {LocalStorageState} from "./models/LocalStorageState.ts";
 
 export interface RootState {
   // Bifrost Stores
@@ -54,6 +55,7 @@ export interface RootState {
   // Regular Stores
   uiState: UIState;
   cameraStreamerState: CameraStreamerState;
+  localStorageState: LocalStorageState;
   
   // Science Stores
   tofStore: IRosSensorMsgsRange;

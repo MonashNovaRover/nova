@@ -1,7 +1,7 @@
 import React, {useCallback, useState} from "react";
 import UVVisSpec from "../../components/UVVisSpec/UVVisSpec.tsx";
 import {ApexDataset} from "../../components/SpectraDisplay/DataChart.tsx";
-import {useLocalStorage} from "../../components/nir-probe/hooks/useLocalStorage.ts";
+import {useLocalStorage} from "../../hooks/useLocalStorage.ts";
 import GenericGraphComparisonWidget, {getUniqueName} from "../../components/GenericGraphComparisonWidget/GenericGraphComparisonWidget.tsx";
 
 

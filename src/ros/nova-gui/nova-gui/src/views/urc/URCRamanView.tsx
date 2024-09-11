@@ -1,7 +1,7 @@
 import GenericGraphComparisonWidget
   , {getUniqueName} from "../../components/GenericGraphComparisonWidget/GenericGraphComparisonWidget.tsx";
 import React, {useCallback, useState} from "react";
-import {useLocalStorage} from "../../components/nir-probe/hooks/useLocalStorage.ts";
+import {useLocalStorage} from "../../hooks/useLocalStorage.ts";
 import {ApexDataset} from "../../components/SpectraDisplay/DataChart.tsx";
 import RamanSpec from "../../components/RamanSpec/RamanSpec.tsx";
 

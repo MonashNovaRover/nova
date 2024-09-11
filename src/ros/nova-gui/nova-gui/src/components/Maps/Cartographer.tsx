@@ -13,7 +13,7 @@ import { NewMarkerModal } from "./components/NewMarkerModal";
 import { BottomOverlay } from "./components/BottomOverlay";
 import { Rulers } from "react-bootstrap-icons";
 import { getDistance } from "./utils/geojson";
-import { useLocalStorage } from "../nir-probe/hooks/useLocalStorage";
+import { useLocalStorage } from "../../hooks/useLocalStorage.ts";
 import { MapTile } from "./config";
 
 export const Cartographer = () => {

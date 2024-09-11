@@ -16,7 +16,7 @@ import {
 import CopyableInput from "../CopyableInput/CopyableInput.tsx";
 import {CameraComponentProps} from "../CameraComponent/CameraComponent.tsx";
 import CameraSessionStartStopButton from "../CameraComponent/components/CameraSessionStartStopButton.tsx";
-import {useLocalStorage} from "../nir-probe/hooks/useLocalStorage.ts";
+import {useLocalStorage} from "../../hooks/useLocalStorage.ts";
 import SiteSelectWidget from "../SiteSelectWidget/SiteSelectWidget.tsx";
 import {useBifrost} from "../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosTopic} from "../../ros/topics/rosTopic.ts";

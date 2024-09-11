@@ -6,7 +6,7 @@ import NIRProbeLEDWidget from "../NIRProbeLEDWidget/NIRProbeLEDWidget.tsx";
 import NIRProbeFileTableWidget from "./NIRProbeFileTableWidget.tsx";
 import NIRCalibrationCurveWidget, {EMPTY_CALIBRATION_DATA, NIRCalibrationData} from "./NIRCalibrationCurveWidget.tsx";
 import SpaceResourceSiteType from "../SpaceResourcesSiteType.tsx";
-import {useLocalStorage} from "../hooks/useLocalStorage.ts";
+import {useLocalStorage} from "../../../hooks/useLocalStorage.ts";
 import TOFHeight from "../../AnalysisPlatformHeight/AnalysisPlatformHeight.tsx";
 
 

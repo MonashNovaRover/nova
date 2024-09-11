@@ -1,4 +1,4 @@
-import {useLocalStorage} from "../nir-probe/hooks/useLocalStorage.ts";
+import {useLocalStorage} from "../../hooks/useLocalStorage.ts";
 import {useCallback, useState} from "react";
 import {isNumber} from "lodash";
 
