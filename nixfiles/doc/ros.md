@@ -1,11 +1,11 @@
 # Creating a new ROS Package
 
-To create and use a new ROS package, the following steps must be taken. It is assumed that you have the `nixfiles` repository in `~/nixfiles`, and the source directory in `~/src` with a symbolic link pointing to it in `~/nixfiles/external`.
+To create and use a new ROS package, the following steps must be taken. It is assumed that you have the `nixfiles` repository in `~/nova/nixfiles`, and the source directory in `~/nova/src` with a symbolic link pointing to it in `~/nova/nixfiles/external`.
 
-1. If you’re making a new repository, create a new directory for the package in `~/src/ros`.
+1. If you’re making a new repository, create a new directory for the package in `~/nova/src/ros`.
 2. Add or update the directory’s `default.nix` file, with contents like the following:
 
-`~/src/ros/example/default.nix`
+`~/nova/src/ros/example/default.nix`
 ```nix
 {
   rosPackages = pkgs: with pkgs; {
@@ -18,7 +18,7 @@ To create and use a new ROS package, the following steps must be taken. It is as
 
 3. Add a minimal Nix expression for the new package.
 
-`~/src/ros/example/nix/packages/example/default.nix`
+`~/nova/src/ros/example/nix/packages/example/default.nix`
 ```nix
 { buildRosPackage
 }:
@@ -29,15 +29,15 @@ buildRosPackage {
 }
 ```
 
-4. Add the package to the list of team packages in `~/nixfiles/packages/ros/nova-workspace/default.nix`.
+4. Add the package to the list of team packages in `~/nova/nixfiles/packages/ros/nova-workspace/default.nix`.
 5. Enter the package development environment:
 ```
-nix-shell ~/nixfiles -A env.nova-example
+nix-shell ~/nova/nixfiles -A env.nova-example
 ```
 
 ```
 ros2 pkg create example \
---destination-directory ~/src/ros/example \
+--destination-directory ~/nova/src/ros/example \
 --build-type ament_cmake \
 --maintainer-name 'Monash Nova Rover' \
 --maintainer-email 'novaroverteam@monash.edu'
