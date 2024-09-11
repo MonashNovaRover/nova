@@ -4,3 +4,6 @@
 [submodule "src/ros/rover/nova_gazebo/nova_terrain"]
 	path = src/ros/rover/nova_gazebo/nova_terrain
 	url = git@github.com:pybind/pybind11.git
+[submodule "src/ros/gui"]
+	path = src/ros/gui
+	url = git@github.com:MonashNovaRover/gui
