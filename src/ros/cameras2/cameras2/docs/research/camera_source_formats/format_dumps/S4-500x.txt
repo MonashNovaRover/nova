@@ -1,0 +1,15 @@
+[0]: 'YUYV' (YUYV 4:2:2)
+        Size: Discrete 640x480
+                Interval: Discrete 0.040s (25.000 fps)
+                Interval: Discrete 0.040s (25.000 fps)
+        Size: Discrete 160x120
+                Interval: Discrete 0.040s (25.000 fps)
+        Size: Discrete 176x144
+                Interval: Discrete 0.040s (25.000 fps)
+        Size: Discrete 320x240
+                Interval: Discrete 0.040s (25.000 fps)
+        Size: Discrete 352x288
+                Interval: Discrete 0.040s (25.000 fps)
+        Size: Discrete 640x480
+                Interval: Discrete 0.040s (25.000 fps)
+                Interval: Discrete 0.040s (25.000 fps)
