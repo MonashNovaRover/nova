@@ -1,0 +1,12 @@
+# RFID command service for specific commands
+# This service requires a response before it can perform another action
+
+# A string command to send to the RFID Arduino
+string command
+# Data to write to the RFID tag (when required by the command)
+string data
+---
+
+# This is a string response either containing some error message, a success explanation
+# or the data read from the RFID tag (in the case of read commands)
+string response

@@ -1,0 +1,12 @@
+# Service for load cell polling status for front end graphing.
+
+# Polling enabled
+bool enabled
+
+# Polling interval (5s or 20s) in seconds.
+int8 interval
+
+---
+
+# Each action could fail. This flag shows the output success of the action
+bool success

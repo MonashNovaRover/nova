@@ -1,0 +1,41 @@
+# Documentation
+*.rst
+*.html
+*.css
+*.doctree
+*.pickle
+docs/build/html/
+!docs/source/index.rst
+!docs/source/conf.py
+!docs/source/modules.rst
+!docs/source/_static/custom.css
+
+## IDEs
+## vscode
+.vscode/
+
+## Pycharm
+.idea/
+
+## VIM
+*.swp
+
+
+## Environments
+.env
+.venv
+.cache
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+__pycache__/
+
+
+## Pycache
+__pycache__
+
+
+## Rope project settings
+.ropeproject

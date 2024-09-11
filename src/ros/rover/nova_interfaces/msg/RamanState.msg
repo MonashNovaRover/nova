@@ -1,0 +1,7 @@
+# For raman mechanical state
+
+bool green_laser_on
+bool red_laser_on
+float32 filter_selection
+float32 stepper_value
+float32 mirror_servo
