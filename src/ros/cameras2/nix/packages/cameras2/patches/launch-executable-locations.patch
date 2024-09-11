@@ -1,0 +1,14 @@
+diff --git a/launch/camera_server_launch.py b/launch/camera_server_launch.py
+index a891b64..19df154 100644
+--- a/launch/camera_server_launch.py
++++ b/launch/camera_server_launch.py
+@@ -63,7 +63,7 @@ def generate_launch_description():
+                 description="Select a specific task.",
+             ),
+             ExecuteProcess(
+-                cmd=["gst-webrtc-signalling-server"],
++                cmd=["@gst_plugins_rs@/bin/gst-webrtc-signalling-server"],
+                 additional_env={
+                      @bas-h@
+                     "WEBRTCSINK_SIGNALLING_SERVER_LOG": "warn",
+                 },

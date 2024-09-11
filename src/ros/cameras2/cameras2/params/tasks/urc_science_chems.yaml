@@ -1,0 +1,14 @@
+camera_streamer:
+  ros__parameters:
+    defaults:
+      autostart: false
+
+    cameras:
+      mast_forward.autostart: true
+      science_spectrometer_side.autostart: true
+      science_microscope.autostart: true
+      science_backward.autostart: true
+      science_shotglass.autostart: true
+      mast_down.autostart: true
+      science_spectrometer_top.autostart: true
+      science_rock_flipper.autostart: true
