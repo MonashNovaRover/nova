@@ -10,3 +10,6 @@
 [submodule "src/other/coms_utils"]
 	path = src/other/coms_utils
 	url = git@github.com:MonashNovaRover/coms_utils
+[submodule "src/other/libblcmd"]
+	path = src/other/libblcmd
+	url = git@github.com:MonashNovaRover/libblcmd
