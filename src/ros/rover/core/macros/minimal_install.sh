@@ -1,0 +1,147 @@
+#!/bin/bash
+
+# +--------------------------------------------+
+#               MONASH NOVA ROVER
+# +--------------------------------------------+
+#
+# Sets up all of the repositories and the workspace
+#   for the MNR ROS code. Make sure that this is
+#   the first file that you execute when setting
+#   your machine up to run Nova code.
+#
+# Prior to running this code, make sure you have
+#   been added to the MonashNovaRover GitHub
+#   organisation. You must be a member to have
+#   access to this code, and will need to make
+#   sure you have SSH-key security enabled on
+#   your device. Failing to do so may result in
+#   errors when running this script. 
+#
+# +--------------------------------------------+
+
+# Add the colors
+TITLE='\033[0;36;1m'
+INFO='\033[0;32;1m'
+END='\033[0m'
+
+# Create a print function
+title () {
+    echo 
+    echo "------------------------------"
+    printf "${TITLE}${1^^}${END}\n"
+    echo "------------------------------"
+    echo
+}
+
+# Create an information function
+information () {
+    printf "\n${INFO}${1}${END}\n"
+}
+
+
+# Prompt the user to run program
+title "NOVA ROVER INSTALLATION SCRIPT"
+echo "Make sure you have set up your Git account before starting this installation."
+echo "   This will include having a correct SSH key associated with your MNR account."
+echo "This script will delete the current nova_ws folder, if it exists."
+echo "Enter (Y)es to confirm or any key to cancel."
+read confirmation
+if [[ "$confirmation" != "y"  &&  "$confirmation" != "Y" ]]; then
+    echo "Cancelling Installation."
+    exit 1;
+fi
+
+# Installing ROS 2
+information "Installing ROS 2..."
+sudo apt update && sudo apt install curl gnupg2 lsb-release -y
+curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | sudo apt-key add -
+sudo sh -c 'echo "deb [arch=$(dpkg --print-architecture)] http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" > /etc/apt/sources.list.d/ros2-latest.list'
+sudo apt update -y
+sudo apt install ros-foxy-desktop -y
+source /opt/ros/foxy/setup.bash
+sudo apt install -y python3-pip -y
+pip3 install -U argcomplete -y
+sudo apt install -y python-rosdep -y
+sudo rosdep init -y
+rosdep update -y --include-eol-distros --rosdistro=foxy
+sudo apt install python3-colcon-common-extensions -y
+
+# Installing Text Editors
+information "Installing Editors..."
+sudo apt-get -y install nano
+sudo apt install vim -y
+sudo apt install screen -y
+
+# Install C++
+information "Installing C++..."
+sudo apt install build-essential -y
+sudo apt-get install manpages-dev -y
+sudo apt install libudev-dev -y
+
+# Installing Net Tools
+information "Installing Networking..."
+sudo apt -y install net-tools
+sudo apt -y install can-utils
+sudo apt -y install exfat-fuse exfat-utils
+sudo gpasswd --add ${USER} dialout
+pip3 install python-can==3.3.4
+
+# Installing IK and the arm tools
+sudo apt install libeigen3-dev libcppunit-dev -y
+cd ~
+git clone git@github.com:orocos/orocos_kinematics_dynamics.git
+mkdir -p orocos_kdl_builds/build.1.5.1  # Modify version number as needed
+cd orocos_kdl_builds/build.1.5.1
+cmake ~/orocos_kinematics_dynamics/orocos_kdl
+make
+sudo make install
+cd ~
+rm -rf orocos_kinematics_dynamics
+
+# ---------------------------------------- #
+
+# End dependencies
+fi
+
+# Create the workspace
+information "Creating Nova Workspace..."
+sudo rm -rf ~/nova_ws
+mkdir -p ~/nova_ws/src
+sudo chown -R $USER:$USER ~/nova_ws
+cd ~/nova_ws
+colcon build
+
+# Clone the ROS GitHub files
+information "Cloning Repositories..."
+cd ~/nova_ws/src
+
+# Clones all folders
+git clone git@github.com:MonashNovaRover/rover.git
+
+# Fix submodules installs
+cd ~/nova_ws/src/rover
+git submodule update --init --recursive
+
+# Clone the other GitHub files
+mkdir -p ~/nova_ws/other
+cd ~/nova_ws/other
+git clone git@github.com:MonashNovaRover/arduinos.git
+git clone git@github.com:MonashNovaRover/pics.git
+git clone git@github.com:MonashNovaRover/ik_machine.git
+git clone git@github.com:MonashNovaRover/coms_utils.git
+
+# Add the nova.sh bash script to the bashrc
+information "Setting up Workspace..."
+sudo echo "source ~/nova_ws/src/rover/core/nova.sh" >> ~/.bashrc
+source ~/nova_ws/src/rover/core/nova.sh
+
+# Build the workspace
+cd ~/nova_ws
+export CMAKE_PREFIX_PATH=""
+export AMENT_PREFIX_PATH=""
+colcon build
+
+# Completed
+title "Installation Complete!"
+echo "All Nova files are now located in ~/nova_ws in your home directory."
+cd ~/nova_ws

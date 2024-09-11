@@ -1,0 +1,21 @@
+# This message tunes the PID constants on a particular CMD
+
+# The Bus number to tune (0 or 1)
+int8 bus
+
+# The ID on the Bus to tune (1 to 6)
+int8 id
+
+# The PID constants
+float64 p
+float64 i
+float64 d
+float64 m
+
+# The target velocity (as a fraction from -1 to 1)
+float64 velocity
+
+---
+
+# The result of the tuning (a True, success or False fail)
+bool success
