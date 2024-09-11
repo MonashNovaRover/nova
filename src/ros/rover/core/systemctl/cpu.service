@@ -1,0 +1,15 @@
+[Unit]
+Description=Runs nvpmodel and jetson_clocks to max jetson clock speed
+Requires=network-online.target network.target local-fs.target
+After=network-online.target network.target local-fs.target
+
+[Service]
+User=root
+Group=sudo
+Type=forking
+ExecStart=/home/nvidia/nova_ws/src/rover/core/systemctl/cpu.sh
+TimeoutStartSec=30
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

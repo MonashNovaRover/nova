@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>nova_detection_overlay</name>
+  <version>0.0.0</version>
+  <description>Custom ROS2 node that publishes YOLO model detection overlay</description>
+  <maintainer email="novaroverteam@monash.edu">nova</maintainer>
+  <license>BSD-3-Clause</license>
+
+  <depend>rclpy</depend>
+  <depend>sensor_msgs</depend>
+  <depend>vision_msgs</depend>
+  <depend>std_msgs</depend>
+  <depend>cv2</depend>
+  <depend>cv_bridge</depend>
+  <depend>numpy</depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

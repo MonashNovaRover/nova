@@ -1,0 +1,66 @@
+{
+    "enabled": 1,
+    "hidden": true,
+    "description": "Project jobset generator",
+    "nixexprinput": "nixfiles",
+    "nixexprpath": "ci/default.nix",
+    "checkinterval": 60,
+    "schedulingshares": 100,
+    "enableemail": false,
+    "enable_dynamic_run_command": true,
+    "emailoverride": "",
+    "keepnr": 3,
+    "inputs": {
+        "nixpkgs": {
+            "type": "git",
+            "value": "git@github.com:NixOS/nixpkgs.git nixos-unstable",
+            "emailresponsible": false
+        },
+        "nixfiles": {
+            "type": "git",
+            "value": "git@github.com:MonashNovaRover/nixfiles.git",
+            "emailresponsible": false
+        },
+        "nixfiles-pr-json": {
+            "type": "githubpulls",
+            "value": "MonashNovaRover nixfiles",
+            "emailresponsible": false
+        },
+        "rover-pr-json": {
+            "type": "githubpulls",
+            "value": "MonashNovaRover rover",
+            "emailresponsible": false
+        },
+        "cameras2-pr-json": {
+            "type": "githubpulls",
+            "value": "MonashNovaRover cameras2",
+            "emailresponsible": false
+        },
+        "gui-pr-json": {
+            "type": "githubpulls",
+            "value": "MonashNovaRover gui",
+            "emailresponsible": false
+        },
+        "nova-gui-pr-json": {
+            "type": "githubpulls",
+            "value": "MonashNovaRover nova-gui",
+            "emailresponsible": false
+        },
+        "coms_utils-pr-json": {
+            "type": "githubpulls",
+            "value": "MonashNovaRover coms_utils",
+            "emailresponsible": false
+        },
+        "libblcmd-pr-json": {
+            "type": "githubpulls",
+            "value": "MonashNovaRover libblcmd",
+            "emailresponsible": false
+        },
+        "libcanmd-pr-json": {
+            "type": "githubpulls",
+            "value": "MonashNovaRover libcanmd",
+            "emailresponsibe": false
+        }
+
+    }
+}

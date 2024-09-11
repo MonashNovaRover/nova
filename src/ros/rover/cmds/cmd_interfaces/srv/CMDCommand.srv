@@ -1,0 +1,29 @@
+# This message is used to send a command or some data to
+#   a particular CMD.
+
+# The CAN Bus number to send data (0 or 1)
+int8 can
+
+# The CAN 2-digit HEX id of the CMD to send data
+string id
+
+# The command that will be sent
+int8 command
+
+# The data being sent with the command
+string data
+
+# Whether to use little-endian or small endian
+bool big_endian True
+
+# The number of times to execute the command
+int32 executions 1
+
+# The delay [ms] between each execution
+int32 delay 1
+
+---
+
+# The result of the command sending
+bool success
+

@@ -1,0 +1,46 @@
+{ lib
+, writeShellApplication
+, buildRosPackage
+, ament-cmake
+, rclcpp
+, rclpy
+, sensor-msgs
+, nav-msgs
+, trajectory-msgs
+, vision-msgs
+, pythonPackages
+}:
+
+buildRosPackage {
+  name = "autonomous";
+  buildType = "ament_cmake";
+
+  src = builtins.path rec {
+    name = "autonomous-source";
+    path = ../../../autonomous;
+    filter = lib.novaSourceFilter [ ] path;
+  };
+
+  nativeBuildInputs = [ ament-cmake ];
+  buildInputs = [
+    rclcpp
+  ];
+  propagatedBuildInputs = [
+    rclpy
+    sensor-msgs
+    nav-msgs
+    trajectory-msgs
+    vision-msgs
+    pythonPackages.pyrealsense2
+    pythonPackages.opencv4
+    pythonPackages.ultralytics
+  ];
+
+  postInstall = ''
+    mkdir -p "$out/bin"
+    ln -s ${writeShellApplication {
+      name = "bag_play";
+      text = builtins.readFile ./macros/bag_play.sh;
+    }}/bin/* "$out/bin"
+  '';
+}

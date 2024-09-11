@@ -1,0 +1,14 @@
+{
+  "nixpkgs": {
+    "rev": "8a3354191c0d7144db9756a74755672387b702ba",
+    "hash": "sha256-Grh5PF0+gootJfOJFenTTxDTYPidA3V28dqJ/WV7iis="
+  },
+  "nix-ros-overlay": {
+    "rev": "1992646cf65ac8f036a21a2005e10c4454c9e3fc",
+    "hash": "sha256-syYDeNi50lYGaSajggdgcLbV8P/E3v77F2fF5vTuCoI="
+  },
+  "nix-ros-workspace": {
+    "rev": "d389c0ad68267b85b9ac3b7350801dd0110ed669",
+    "hash": "sha256-FXwNfiKBBarRjo4apAZuBU/OVgrNWa/lwi+S8HwHbvY="
+  }
+}
