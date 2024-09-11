@@ -33,22 +33,22 @@ in
   config = lib.mkIf cfg.enable {
     home.activation.workspace-source-setup = lib.hm.dag.entryAfter [ "writeBoundary" ] (
       ''
-        if [ ! -e ~/nixfiles ] && [ ! -e ~/src ]; then
+        if [ ! -e ~/nova/nixfiles ] && [ ! -e ~/nova/src ]; then
           echo 'Populating initial workspace source tree...'
-          cp -r '${cfg.src}' ~/nixfiles
-          chmod -R u+w ~/nixfiles
+          cp -r '${cfg.src}' ~/nova/nixfiles
+          chmod -R u+w ~/nova/nixfiles
 
-          mkdir -p ~/src
+          mkdir -p ~/nova/src
           ${builtins.concatStringsSep "\n" (lib.mapAttrsToList
             (category: repos: builtins.concatStringsSep "\n"
-              ([ "mkdir -p ~/src/'${category}'" ] ++
+              ([ "mkdir -p ~/nova/src/'${category}'" ] ++
               (lib.mapAttrsToList
-                (repoName: repo: "cp -r '${repo}' ~/src/'${category}'/'${repoName}'")
+                (repoName: repo: "cp -r '${repo}' ~/nova/src/'${category}'/'${repoName}'")
                 repos)))
             cfg.external)}
-          chmod -R u+w ~/src
+          chmod -R u+w ~/nova/src
 
-          ln -s ~/src ~/nixfiles/external/
+          ln -s ~/nova/src ~/nova/nixfiles/external/
         fi
       ''
     );

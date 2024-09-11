@@ -8,7 +8,7 @@ in
     enable = lib.mkEnableOption "team shell macros";
     sourceDir = lib.mkOption {
       type = with lib.types; str;
-      default = "~/src";
+      default = "~/nova/src";
       description = "The source code directory.";
     };
     nixfileDir = lib.mkOption {

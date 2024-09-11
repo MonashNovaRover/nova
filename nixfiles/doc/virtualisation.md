@@ -154,7 +154,7 @@ one after installation.
    ```
 1. Clone this repository:
    ```console
-   $ gh repo clone MonashNovaRover/nixfiles ~/nixfiles
+   $ gh repo clone MonashNovaRover/nixfiles ~/nova/nixfiles
    ```
 1. Use the following template in `/etc/nixos/configuration.nix`:
    ```nix
@@ -220,14 +220,14 @@ this option enabled and disabled, and must be changed in-between runs.
 Customising the virtual machine to suit the hardware of the host platform is
 recommended. A useful pattern is to put the VM hardware configuration in a
 separate Nix file that can be used with all VMs. For example, if the file is put
-in `~/Documents/VM.nix`, the VM should be built like so:
+in `~/nova/Documents/VM.nix`, the VM should be built like so:
 
 ```
 $ nix-build '<nixpkgs/nixos>' \
     --arg configuration "{
       imports = [
         ./nixos
-        ~/Documents/VM.nix
+        ~/nova/Documents/VM.nix
       ];
     }" \
     -A vm
