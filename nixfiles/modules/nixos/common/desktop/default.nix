@@ -48,12 +48,12 @@ in
       sushi.enable = true;
     };
 
-    environment.gnome.excludePackages = with pkgs; [
+    environment.gnome.excludePackages = with pkgs.gnome; [
       # Unneeded GNOME shell components
       # https://gitlab.gnome.org/GNOME/gnome-build-meta/blob/gnome-3-38/elements/core/meta-gnome-core-shell.bst
       gnome-backgrounds # We set custom backgrounds
       gnome-color-manager # We should configure colour profiles in Nix
-      gnome-tour # We know how to use GNOME
+      pkgs.gnome-tour # We know how to use GNOME
 
       # Unneeded GNOME core utilities
       # https://gitlab.gnome.org/GNOME/gnome-build-meta/blob/gnome-3-38/elements/core/meta-gnome-core-utilities.bst
@@ -65,8 +65,8 @@ in
       gnome-contacts
       gnome-maps
       gnome-music
-      gnome-photos
-      gnome-connections
+      pkgs.gnome-photos
+      pkgs.gnome-connections
       gnome-weather
       simple-scan
       totem

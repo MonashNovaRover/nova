@@ -327,18 +327,6 @@ self: super:
             })
           ];
         });
-
-        rosapi = rosSuper.rosapi.overrideAttrs ({ patches ? [ ], ... }: {
-          patches = patches ++ [
-            # Fix invalid import of get_parameter_value in rosapi for ROS2 Jazzy.
-            # https://github.com/RobotWebTools/rosbridge_suite/pull/932
-            (self.fetchpatch {
-              url = "https://github.com/RobotWebTools/rosbridge_suite/commit/d22f102b59e7d9fdeea0ec5e74aa8b98358585d7.patch";
-              stripLen = 1;
-              hash = "sha256-zmRHt7EgZk8kF2Dv1+QvTmox47RR7TBZOOdKfnIySog=";
-            })
-          ];
-        });
       });
     }));
 
