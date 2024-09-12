@@ -13,4 +13,3 @@ The [`nova`](https://github.com/MonashNovaRover/nova) repository is a mono-repo 
 - [`nixfiles`](./nixfiles)
 - [`rover`](./src/ros/rover)
 - [`nova-gui`](./src/ros/nova-gui)
-- [`cameras2`](./src/ros/cameras2)
