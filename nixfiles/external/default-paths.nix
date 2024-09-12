@@ -26,6 +26,6 @@ let
     categories;
 in
 # Only return repositories that have a default.nix file.
-#builtins.filter
-#  (directory: builtins.pathExists (directory + /default.nix))
+builtins.filter
+  (directory: builtins.pathExists (directory + /default.nix))
   repoDirectories
