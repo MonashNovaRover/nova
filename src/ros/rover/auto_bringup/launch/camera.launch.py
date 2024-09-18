@@ -60,12 +60,6 @@ def launch_setup(context, *args, **kwargs):
             arguments=['--ros-args', '--params-file', PathJoinSubstitution([bringup_dir, 'params', 'aruco_tracker.yaml'])],
         ),
         Node(
-            condition=IfCondition(LaunchConfiguration('ar_tag')),
-            package='nova_ar_tag',
-            executable='aruco_marker',
-            name='aruco_marker',
-        ),
-        Node(
             package='imu_transformer',
             executable='imu_transformer_node',
             name='imu_transformer',
