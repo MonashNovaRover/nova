@@ -163,13 +163,6 @@ def generate_launch_description():
             arguments=['--ros-args', '--params-file', PathJoinSubstitution([auto_bringup_dir, 'params', 'aruco_tracker.yaml'])],
     )
 
-    nova_ar_tag = Node(
-            condition=IfCondition(LaunchConfiguration('gazebo')),
-            package='nova_ar_tag',
-            executable='aruco_marker',
-            name='aruco_marker',
-    )
-
     return LaunchDescription([
         namespace_arg,
         namespace_arg,
@@ -192,5 +185,4 @@ def generate_launch_description():
         led_cmd,
         navigation_cmd,
         ar_tag,
-        nova_ar_tag,
     ])
