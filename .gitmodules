@@ -16,6 +16,3 @@
 [submodule "src/ros/rover/nova_gazebo/nova_terrain"]
 	path = src/ros/rover/nova_gazebo/nova_terrain
 	url = git@github.com:MonashNovaRover/nova_terrain
-[submodule "src/ros/cameras2"]
-	path = src/ros/cameras2
-	url = git@github.com:MonashNovaRover/cameras2
