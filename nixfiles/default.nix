@@ -1,0 +1,147 @@
+{ pkgs ? import <nixpkgs> { }
+
+  # The locations of checked-out Nova Rover repositories.
+  # Each repository in this list should have a default.nix module file.
+, repos ? import ./external/default-paths.nix
+}:
+
+let
+  revisions = builtins.fromJSON (builtins.readFile ./revisions.json);
+
+  maybeApplyPatches = { src, patches, ... }@args: if patches == [ ] then src else pkgs.applyPatches args;
+
+  # Pin the version of Nixpkgs to ensure reproducibility.
+  # Preferably, this will come from https://github.com/lopsided98/nixpkgs/tree/nix-ros,
+  # but upstream Nixpkgs may be used if it a) has merged all pending PRs from
+  # nix-ros and b) has newer changes we need.
+  # Using the nix-ros branch with specific patches added is preferred because
+  # it allows use of the https://ros.cachix.org binary cache.
+  nixpkgs = pkgs.lib.maybeEnv "NIXPKGS_PATH" (maybeApplyPatches {
+    src = pkgs.fetchFromGitHub {
+      owner = "NixOS";
+      repo = "nixpkgs";
+      inherit (revisions.nixpkgs) rev hash;
+    };
+    patches = [
+    ];
+  });
+
+  # nix-ros-overlay = ../nix-ros-overlay;
+  nix-ros-overlay = pkgs.lib.maybeEnv "NRO_PATH" (maybeApplyPatches {
+    src = pkgs.fetchFromGitHub {
+      owner = "lopsided98";
+      repo = "nix-ros-overlay";
+      inherit (revisions.nix-ros-overlay) rev hash;
+    };
+    patches = [
+      # Patch and fix gz-*-vendor packages for Jazzy and Rolling
+      # https://github.com/lopsided98/nix-ros-overlay/pull/422
+      (pkgs.fetchpatch {
+        url = "https://github.com/lopsided98/nix-ros-overlay/commit/aa846d382c40809f812b2f1c7d8b92d901a75da5.patch";
+        hash = "sha256-GdUjgcOgW2+8qceMPGO5EvOMwUc/iMNYYdQqfkCc1UA=";
+      })
+
+      # python3Packages.rosinstall-generator: Add distutils to nativeBuildInputs
+      # https://github.com/lopsided98/nix-ros-overlay/pull/454
+      (pkgs.fetchpatch {
+        url = "https://github.com/lopsided98/nix-ros-overlay/commit/b620de3c64484c410fbee3924d3ce251a9e61150.patch";
+        hash = "sha256-B4GQS4afAQdnTEWQ1bxkugjrFtGYDG2ZfQmATSymBsI=";
+      })
+    ];
+  });
+
+  nix-ros-workspace = pkgs.lib.maybeEnv "NRWS_PATH" (pkgs.fetchFromGitHub {
+    owner = "hacker1024";
+    repo = "nix-ros-workspace";
+    inherit (revisions.nix-ros-workspace) rev hash;
+  });
+
+  inherit (pkgs.lib.evalModules {
+    modules = [
+      (import ./external/out-of-tree.nix)
+    ] ++ map import repos;
+  }) config options;
+
+  # Extend Nixpkgs with custom packages.
+  novaPkgs = import nixpkgs {
+    localSystem = pkgs.buildPlatform.system;
+    crossSystem = pkgs.hostPlatform.system;
+    config = pkgs.config // {
+      permittedInsecurePackages = pkgs.config.permittedInsecurePackages or [ ] ++ [
+        "freeimage-unstable-2021-11-01"
+      ];
+    };
+
+    overlays = [
+      # Add the nix-ros-overlay. This supplies vanilla ROS packages.
+      (import (nix-ros-overlay + /overlay.nix))
+
+      # Add the nix-ros-overlay FOD as a package.
+      # This, much like Nixpkgs's path attribute, allows callers to access files
+      # from the project.
+      (self: super: { inherit nix-ros-overlay; })
+
+      # Add the nix-ros-workspace overlay. This adds more functionallity to nix-ros-overlay.
+      (import nix-ros-workspace { }).overlay
+
+      # Add the custom overlay. This:
+      #  - Adds custom library functions
+      #  - Applies patches to existing packages from Nixpkgs and the ROS overlay
+      #  - Creates a "ros" alias pointing to "rosPackages.${version}"
+      (import ./overlay)
+
+      # Add internally defined packages.
+      (self: super: import ./packages/other { inherit (self) callPackage; })
+      (self: super: {
+        pythonPackagesExtensions = super.pythonPackagesExtensions ++ [
+          (pyself: pysuper: import ./packages/python { inherit (pyself) callPackage; })
+        ];
+      })
+      (self: super: {
+        rosPackages = super.rosPackages.appendDistroOverlay
+          (rosSelf: rosSuper: import ./packages/ros { inherit (rosSelf) callPackage; })
+          super.rosPackages;
+      })
+
+      # Add externally defined (out-of-tree) packages.
+      (self: super: config.packages self)
+      (self: super: {
+        pythonPackagesExtensions = super.pythonPackagesExtensions ++ [
+          (pyself: pysuper: config.pythonPackages pyself)
+        ];
+      })
+      (self: super: {
+        rosPackages = super.rosPackages.appendDistroOverlay
+          (rosSelf: rosSuper: config.rosPackages rosSelf)
+          super.rosPackages;
+      })
+
+      # Add the return value of this function. Some other attributes are useful
+      # when  only pkgs is available.
+      (self: super: { nova = result; })
+    ];
+  };
+
+  result = {
+    inherit repos config options;
+
+    # Inputs required for the evaluation of expressions in this repository.
+    # It is useful to keep track of these, because Nix has no built-in way to do
+    # so, and they are often accidentally garbage collected.
+    inputs = {
+      inherit nixpkgs nix-ros-overlay nix-ros-workspace;
+      inherit (novaPkgs) github-gitignore;
+    };
+
+    pkgs = novaPkgs;
+
+    tests = import ./tests {
+      hostPkgs = pkgs;
+      inherit novaPkgs;
+    };
+
+    # Make an alias to the nova-workspace environment for convenience.
+    inherit (result.pkgs.ros.nova-workspace) env;
+  };
+in
+result

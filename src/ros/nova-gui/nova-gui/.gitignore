@@ -1,0 +1,47 @@
+# Node.js
+/node_modules/
+
+# Build artifacts
+/build/
+/dist/
+
+# Dependency directories
+/jspm_packages/
+/bower_components/
+
+# IDE files
+/.idea/
+/.vscode/
+
+# Logs and databases
+/*.log
+/*.sqlite
+
+# Environment files
+/.env
+
+# Build files
+/.DS_Store
+/Thumbs.db
+
+# Yarn
+/yarn-error.log
+
+# Generated sources
+/src/ros/rosTypes.ts
+
+# OS generated files
+/.DS_Store
+/.DS_Store?
+/._*
+/.Spotlight-V100
+/.Trashes
+/Icon?
+/ehthumbs.db
+/Thumbs.db
+
+# npm
+/npm-debug.log
+
+# tiles
+*.mbtiles

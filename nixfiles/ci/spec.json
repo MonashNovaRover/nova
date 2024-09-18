@@ -1,0 +1,51 @@
+{
+    "enabled": 1,
+    "hidden": true,
+    "description": "Project jobset generator",
+    "nixexprinput": "nova",
+    "nixexprpath": "ci/default.nix",
+    "checkinterval": 60,
+    "schedulingshares": 100,
+    "enableemail": false,
+    "enable_dynamic_run_command": true,
+    "emailoverride": "",
+    "keepnr": 3,
+    "inputs": {
+        "nixpkgs": {
+            "type": "git",
+            "value": "git@github.com:NixOS/nixpkgs.git nixos-unstable",
+            "emailresponsible": false
+        },
+        "nova": {
+            "type": "git",
+            "value": "git@github.com:MonashNovaRover/nova.git",
+            "emailresponsible": false
+        },
+        "nova-pr-json": {
+            "type": "githubpulls",
+            "value": "MonashNovaRover nixfiles",
+            "emailresponsible": false
+        },
+        "gui-pr-json": {
+            "type": "githubpulls",
+            "value": "MonashNovaRover gui",
+            "emailresponsible": false
+        },
+        "coms_utils-pr-json": {
+            "type": "githubpulls",
+            "value": "MonashNovaRover coms_utils",
+            "emailresponsible": false
+        },
+        "libblcmd-pr-json": {
+            "type": "githubpulls",
+            "value": "MonashNovaRover libblcmd",
+            "emailresponsible": false
+        },
+        "libcanmd-pr-json": {
+            "type": "githubpulls",
+            "value": "MonashNovaRover libcanmd",
+            "emailresponsibe": false
+        }
+
+    }
+}
