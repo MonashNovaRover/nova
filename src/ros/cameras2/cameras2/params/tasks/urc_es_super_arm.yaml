@@ -1,0 +1,33 @@
+camera_streamer:
+  ros__parameters:
+    defaults:
+      autostart: false
+
+    cameras:
+      arm_gimbal:
+        autostart: true
+        profile: super
+      mast_down:
+        autostart: true
+        profile: snail
+      arm_end_side:
+        autostart: true
+        profile: super
+      mast_arm_stow:
+        autostart: true
+        profile: snail
+      arm_end_forward:
+        autostart: true
+        profile: super
+      mast_forward:
+        autostart: true
+        profile: snail
+      arm_end_top:
+        autostart: true
+        profile: super
+      arm_end_finger:
+        autostart: true
+        profile: super
+      mast_backward:
+        autostart: true
+        profile: snail
