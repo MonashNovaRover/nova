@@ -1,0 +1,2 @@
+string serial
+string node
