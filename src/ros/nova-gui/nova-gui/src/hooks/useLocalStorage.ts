@@ -5,8 +5,7 @@ import {useLocalStorageActions} from "../redux/actions/useLocalStorageActions.ts
 import {isArray, isObject} from "lodash";
 
 export type NoUnion<T, U = T> = T extends U ? [U] extends [T] ? T : never : never;
-export type NotUndefined<T> = Exclude<T, undefined> & NoUnion<T>
-export type NoConflict<T> = T & NotUndefined<T> & NoUnion<T>
+export type NoConflict<T> = T & Exclude<T, undefined> & NoUnion<T>
 
 /**
  * Like useState, but persists using localStorage and redux
