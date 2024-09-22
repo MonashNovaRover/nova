@@ -22,7 +22,7 @@
       perspectiveRemovePixelPerCell: 4
       polygonalApproxAccuracyRate: 0.03
     board_descriptions_path: ''
-    cam_base_topic: /oak/right/image_rect
+    cam_base_topic: /oak/rgb/image_rect
     image_is_rectified: true # Only true if subscribed to '/oak/rgb/image_rect' or rectified-image equivalent.
     image_sub_qos:
       depth: 1
