@@ -56,7 +56,7 @@ export interface RootState {
   uiState: UIState;
   cameraStreamerState: CameraStreamerState;
   localStorageState: LocalStorageState;
-  
+
   // Science Stores
   tofStore: IRosSensorMsgsRange;
   nirStore: IRosNovaInterfacesNirProbeData;
@@ -74,7 +74,6 @@ export interface RootState {
   hydraprobeData: IRosNovaInterfacesHydraprobeData;
   theta360CamStore: IRosSensorMsgsCompressedImage;
   bmeSensorStore: IRosNovaInterfacesBmeSensor;
-
 
   // Maps Related Stores
   roverLocationStore: IRosSensorMsgsNavSatFix;

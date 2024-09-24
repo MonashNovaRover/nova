@@ -26,6 +26,7 @@ import URCUVVisSpecView from "../views/urc/URCUVVisSpecView.tsx";
 import URC360CamView from "../views/urc/URC360CamView.tsx";
 import URCRamanView from "../views/urc/URCRamanView.tsx";
 import { URCCartographerView } from "../views/urc/URCCartographerView.tsx";
+import TestStateView from "../views/test/TestStateView/TestStateView.tsx";
 
 export const arcRoutes: RouteObject[] = [
   {
@@ -128,6 +129,10 @@ export const testRoutes: RouteObject[] = [
   {
     path: "/test/webgl",
     element: <TestWebGLView/>
+  },
+  {
+    path: "/test/state",
+    element: <TestStateView/>
   },
 ];
 

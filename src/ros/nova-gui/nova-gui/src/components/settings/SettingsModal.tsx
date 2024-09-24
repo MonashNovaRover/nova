@@ -10,7 +10,7 @@ import {
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/RootState";
 import { useUIActions } from "../../redux/actions/useUIActions";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { isIPAddress } from "../../utils/regexUtils";
 
@@ -24,6 +24,15 @@ export function SettingsModal() {
 
   const [roverIP, setRoverIP] = useState<string>(uiState.roverIP);
 
+  useEffect(() => {
+    if (uiState.baseStationIP != baseStationIP)
+      setBaseStationIP(uiState.baseStationIP);
+
+    if (uiState.roverIP != roverIP)
+      setRoverIP(uiState.roverIP);
+
+  }, [uiState.baseStationIP, uiState.roverIP]);
+
   const submit = () => {
     if (!isIPAddress(baseStationIP) || !isIPAddress(roverIP)) {
       toast.error("Invalid IP address");
@@ -31,12 +40,7 @@ export function SettingsModal() {
     }
 
     uiActions.updateIP(baseStationIP, roverIP);
-    try {
-      window.localStorage.setItem("baseIP", baseStationIP);
-      window.localStorage.setItem("roverIP", roverIP);
-    } catch (e) {
-      console.log("Local Storage is disabled");
-    }
+
     closeModal();
   };
 

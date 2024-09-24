@@ -17,6 +17,7 @@ export type NoConflict<T> = T & Exclude<T, undefined> & NoUnion<T>
  */
 export function useLocalStorage<T>(key: string, initialValue: NoConflict<T>, dependencies: DependencyList = [key])
   : [NoConflict<T>, (newValue: NoConflict<T> | ((previousValue: NoConflict<T>) => NoConflict<T>)) => void] {
+
   // redux version of value and setValue
   const setValue = useLocalStorageActions().setValue
   const rawValue = useSelector((state: RootState) => state.localStorageState.map[key]) as T;
@@ -32,49 +33,35 @@ export function useLocalStorage<T>(key: string, initialValue: NoConflict<T>, dep
       `match.\n\t${message}`);
   }, [key, initialValue]);
 
+  // parse local storage and set value to whatever is stored there
   useEffect(() => {
-    const storedValueJSON = localStorage.getItem(key);
-    if (storedValueJSON === null || storedValueJSON === undefined || storedValueJSON === "undefined") {
-      setValue({key: key, value: initialValue});
-      localStorage.setItem(key, JSON.stringify(initialValue));
-      return;
-    }
-
-    // Parse JSON and do some checks to make sure it is the correct type
-    const storedValue = JSON.parse(storedValueJSON)
-    if (storedValue === undefined) {
-      setValue({key: key, value: initialValue});
-      localStorage.setItem(key, JSON.stringify(initialValue));
-      return;
-    }
-
     // Ensure basic types are the same
-    if (typeof storedValue !== typeof initialValue)
-      onTypeMismatch(storedValue, `Basic type mismatch. ${typeof storedValue} !== ${typeof initialValue}`);
+    if (typeof value !== typeof initialValue)
+      onTypeMismatch(value, `Basic type mismatch. ${typeof value} !== ${typeof initialValue}`);
 
     // Arrays show up as objects so we need another check
-    else if (isArray(storedValue) !== isArray(initialValue))
-      onTypeMismatch(storedValue, `One value is an array while the other is not...`);
+    else if (isArray(value) !== isArray(initialValue))
+      onTypeMismatch(value, `One value is an array while the other is not...`);
 
     // Ensure objects have the same keys
-    else if (isObject(storedValue) && isObject(initialValue)) {
-      const storedValueKeys = Object.keys(storedValue);
+    else if (isObject(value) && isObject(initialValue)) {
+      const storedValueKeys = Object.keys(value);
       const objectsMatch = Object.keys(initialValue).every(v => storedValueKeys.includes(v));
 
       if (!objectsMatch)
-        onTypeMismatch(storedValue, `Object keys do not match.`);
+        onTypeMismatch(value, `Object keys do not match.`);
     }
 
-    // This value was successfully retrieved from local storage.
-    setValue({key: key, value: storedValue});
+    // The value is a valid value and matches the type of what is in storage.
+    setValue({key: key, value: value});
   }, dependencies)
 
   const lsSetValue = useCallback((newValue: NoConflict<T> | ((previousValue: NoConflict<T>) => NoConflict<T>)) => {
     const evaluatedNewValue = newValue instanceof Function ? newValue(value) : newValue
 
     setValue({key: key, value: evaluatedNewValue});
-    localStorage.setItem(key, JSON.stringify(evaluatedNewValue));
   }, [key, value, setValue]);
 
   return [value, lsSetValue];
 }
+

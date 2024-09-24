@@ -56,13 +56,31 @@ For Developing Nova-GUI, the reccomended method of development is using `nova-sh
    nova-shell -A pkgs.ros.nova-gui
    ```
 
-2. Install the dependencies
+2. Enter the nova-gui directory
+
+   You must be in the nova-gui directory to install the correct packages and run nova-gui. If your nova-gui directory is in the standard location, you may run the command.
+   ```sh
+   cd src/ros/nova-gui/nova-gui
+   ```
+   
+   > If your nova-gui directory is in a non-standard
+   > location, you can find it using the fzf program.
+   ```sh
+   # Install the program to find the directory
+   nix-shell -p fzf
+   # Find the directory then make it the current directory
+   cd $(fzf | dirname src/ros/nova-gui/nova-gui/yarn.lock)
+   fzf > nova-gui/nova-gui
+   ```
+
+3. Install the dependencies
+
    ```sh
    yarn install
    ```
    Errors are likely caused by network issues. Try setting your DNS and restarting your connection. 
 
-3. Link in the generated message definitions
+5. Link in the generated message definitions
 
    > Run this whenever the included messages change. Nix will always use the
    > latest version when building the package, which may lead to confusion if
@@ -73,7 +91,7 @@ For Developing Nova-GUI, the reccomended method of development is using `nova-sh
    ln -sf "$ROS_TS_DEFINITIONS" nova-gui/src/ros/rosTypes.ts
    ```
 
-4. Start rosbridge
+6. Start rosbridge
 
    On ros2 terminal (seperate)
 
@@ -82,7 +100,7 @@ For Developing Nova-GUI, the reccomended method of development is using `nova-sh
    ros2 launch rosbridge_server rosbridge_websocket_launch.xml
    ```
 
-5. Offline Maps (OPTIONAL)
+7. Offline Maps (OPTIONAL)
    On separate terminal
 
    ```sh
@@ -100,10 +118,14 @@ For Developing Nova-GUI, the reccomended method of development is using `nova-sh
    ```
 
    You will need the offline tiles for URC which are available [here](https://drive.google.com/drive/folders/18x0F8ZD5EzfDROY0BhEAxmZ71OYd6H4y?usp=drive_link).
-6. Launch the gui
-   '''sh
-      yarn dev
-   '''
+8. Launch the gui
+
+   ```sh
+   # Launch the server for the gui
+   yarn dev
+   # Open the gui in the browser
+   o
+   ```
 
 ### Science URC - GPS
 **TX2:**

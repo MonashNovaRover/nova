@@ -15,8 +15,9 @@ import {uiSlice} from "./slices/UISlice";
 import {cameraStreamerSlice} from "./slices/CameraStreamSlice";
 import {BLCMD_INDEX} from "../constants";
 import {localStorageSlice} from "./slices/LocalStorageSlice.ts";
+import {combineReducers} from "@reduxjs/toolkit";
 
-export const rootReducer = {
+export const rootReducer = combineReducers({
   // Bifrost Stores
   bifrostStatus: BifrostStatusStore(),
 
@@ -222,4 +223,4 @@ export const rootReducer = {
   ),
 
   cartographerState: cartographerSlice.reducer,
-};
+});
