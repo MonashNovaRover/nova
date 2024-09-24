@@ -8,8 +8,8 @@ export interface UIState {
 }
 
 export const initialUIState: UIState = {
-  baseStationIP: window.localStorage.getItem("baseIP") ?? "10.0.0.101",
-  roverIP: window.localStorage.getItem("roverIP") ?? "10.0.0.10",
+  baseStationIP: "10.0.0.101",
+  roverIP: "10.0.0.10",
   settingsModalOpen: false,
   controllerHelpModalOpen: false,
   sidebarIsVisible: false,
