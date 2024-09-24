@@ -24,7 +24,7 @@ export const useCartographerActions = () => {
 
   const deletePoint = (point: MapPoint) => {
     dispatch({
-      type: CartographerAction.REMOVE_POINT,
+      type: CartographerAction.REMOVE_POINT.type,
       payload: point,
     });
   };

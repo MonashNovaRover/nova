@@ -162,7 +162,7 @@ export const Cartographer = () => {
           }
         />
         <div className="fixed bottom-0 w-full">
-          <BottomOverlay mapTile={mapTile} setMapTile={setMapTile as (title: MapTile) => void} deletePoint={deletePoint}/>
+          <BottomOverlay mapTile={mapTile} setMapTile={setMapTile as (tile: MapTile) => void} deletePoint={deletePoint}/>
         </div>
       </div>
     </div>
