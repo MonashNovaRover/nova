@@ -25,7 +25,8 @@ from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
 
 def launch_setup(context, *args, **kwargs):
-    if LaunchConfiguration('rover').perform(context):
+    if LaunchConfiguration('rover').perform(context) == "True":
+        fixed_frame = 'base_link'
         robot_description = ParameterValue(
             Command(
                 [
@@ -39,11 +40,13 @@ def launch_setup(context, *args, **kwargs):
             value_type=str
         )
     else:
+        fixed_frame = 'arm_link'
         robot_description = ParameterValue(
             Command(
                 [
                     'xacro ', 
                     LaunchConfiguration('arm_urdf_path'),
+                    ' depth_camera:=false'
                 ]
             ),
             value_type=str
@@ -71,7 +74,7 @@ def launch_setup(context, *args, **kwargs):
         namespace='',
         executable='rviz2',
         name='rviz2',
-        arguments=['-d', [PathJoinSubstitution([FindPackageShare('nova_bringup'), 'rviz', 'default.rviz'])]]
+        arguments=['-d', [PathJoinSubstitution([FindPackageShare('nova_bringup'), 'rviz', 'default.rviz'])], '-f', fixed_frame]
     )
 
     return [
