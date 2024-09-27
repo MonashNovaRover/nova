@@ -1,17 +1,18 @@
 { supportedSystems
 , nixpkgs
 , home-manager
-, nixfiles
+, nova-monorepo
 , extraModules ? [ ]
 , ...
 }@args:
 
 let
+  nixfiles = nova-monorepo + "/nixfiles";
   ciLib = import ../lib.nix {
     inherit
       supportedSystems
       nixpkgs
-      nixfiles;
+      nova-monorepo;
     repoNames = [ ];
   };
 
