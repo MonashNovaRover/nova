@@ -11,7 +11,7 @@ let
     inherit
       supportedSystems
       nixpkgs
-      nixfiles;
+      nova-monorepo;
     repoNames = [ ];
   };
 in
