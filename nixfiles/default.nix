@@ -29,7 +29,7 @@ let
   # nix-ros-overlay = ../nix-ros-overlay;
   nix-ros-overlay = pkgs.lib.maybeEnv "NRO_PATH" (maybeApplyPatches {
     src = pkgs.fetchFromGitHub {
-      owner = "muellerbernd";
+      owner = "lopsided98";
       repo = "nix-ros-overlay";
       inherit (revisions.nix-ros-overlay) rev hash;
     };
