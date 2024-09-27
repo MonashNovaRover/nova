@@ -1,11 +1,12 @@
 { supportedSystems
 , nixpkgs
 , home-manager
-, nixfiles
+, nova-monorepo
 , ...
 }:
 
 let
+  nixfiles = nova-monorepo + "/nixfiles";
   lib = import ../lib.nix {
     inherit
       supportedSystems
