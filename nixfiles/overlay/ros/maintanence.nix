@@ -354,6 +354,9 @@ self: super:
           sourceRoot = src.name + "/gazebo_ros2_control";
         };
         gazebo-ros-pkgs = rosSelf.callPackage (self.nix-ros-overlay + "/distros/iron/gazebo-ros-pkgs") { };
+        
+        # Adding gz-vendor packages
+        gz-ros2-control-demos = rosSelf.callPackage (self.nix-ros-overlay + "/distros/jazzy/gz-ros2-control-demos") { };
 
         image-proc = rosSuper.image-proc.overrideAttrs ({ patches ? [ ], ... }: {
           patches = patches ++ [
