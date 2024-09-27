@@ -1,11 +1,13 @@
 { supportedSystems ? [ "x86_64-linux" "aarch64-linux" ]
 , nixpkgs
-, nixfiles
+, nova-monorepo
 , declInput
 , ...
 }@args:
 
 let
+  nixfiles = nova-monorepo + "/nixfiles";
+
   inherit (import ./generation/variation args)
     mergeJobsetPlanners
     planPrJobsets
@@ -25,7 +27,7 @@ let
     enabled = 1;
     hidden = false;
     inherit description;
-    nixexprinput = "nixfiles";
+    nixexprinput = "nova-monorepo";
     inherit nixexprpath;
     checkinterval = 60;
     schedulingshares = 100;
@@ -36,7 +38,7 @@ let
   } // args // {
     inputs = {
       nixpkgs = mkGitHubInput { owner = "NixOS"; repo = "nixpkgs"; branch = "nixos-unstable"; };
-      nixfiles = mkNovaInput { repo = "nixfiles"; };
+      nova-monorepo = mkNovaInput { repo = "nova"; };
       supportedSystems = {
         type = "nix";
         value = "[ \"${builtins.concatStringsSep "\" \"" supportedSystems}\" ]";
@@ -52,22 +54,22 @@ let
   jobsets =
     (mkJobsets (planRosDistroAndPrJobsets "workspaces" {
       description = "Nova Rover software";
-      nixexprpath = "ci/jobsets/workspaces.nix";
+      nixexprpath = "nixfiles/ci/jobsets/workspaces.nix";
       inputs = novaInputs;
     })) //
     (mkJobsets (planRosDistroAndPrJobsets "misc" {
       description = "Miscellaneous packages";
-      nixexprpath = "ci/jobsets/misc.nix";
+      nixexprpath = "nixfiles/ci/jobsets/misc.nix";
     })) //
     {
       docs = mkJobset {
         description = "Nova Rover documentation";
-        nixexprpath = "ci/jobsets/docs.nix";
+        nixexprpath = "nixfiles/ci/jobsets/docs.nix";
         inputs = { home-manager = homeManagerInput; };
       };
       isos = mkJobset {
         description = "Nova Rover ISOs";
-        nixexprpath = "ci/jobsets/isos.nix";
+        nixexprpath = "nixfiles/ci/jobsets/isos.nix";
         inputs = novaInputs // {
           nixpkgs-stable = mkGitHubInput { owner = "NixOS"; repo = "nixpkgs"; branch = "nixos-23.05"; };
           home-manager = homeManagerInput;
@@ -78,13 +80,13 @@ let
       };
       docker = mkJobset {
         description = "Docker images";
-        nixexprpath = "ci/jobsets/docker.nix";
+        nixexprpath = "nixfiles/ci/jobsets/docker.nix";
         inputs = { home-manager = homeManagerInput; };
         checkinterval = 60 * 60 * 24 * 7;
       };
       devices = mkJobset {
         description = "Team device configurations, prebuilt for binary cache convenience";
-        nixexprpath = "ci/jobsets/devices.nix";
+        nixexprpath = "nixfiles/ci/jobsets/devices.nix";
         inputs = novaInputs // {
           home-manager = homeManagerInput;
           jetpack-nixos = jetpackNixosInput;
@@ -93,7 +95,7 @@ let
       };
       slides = mkJobset {
         description = "Workshop slides";
-        nixexprpath = "ci/jobsets/slides.nix";
+        nixexprpath = "nixfiles/ci/jobsets/slides.nix";
         checkinterval = 60 * 60 * 24;
         inputs.slides = mkNovaInput { repo = "slides"; };
       };

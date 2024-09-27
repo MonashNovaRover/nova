@@ -4,13 +4,14 @@
 , home-manager
 , jetpack-nixos
 , nixos-hardware
-, nixfiles
+, nova-monorepo
 , enableCompression ? true
 , extraModules ? [ ]
 , ...
 }@args:
 
 let
+  nixfiles = nova-monorepo + "/nixfiles";
   ciLib = import ../lib.nix args;
 
   mkIso = system: extraPlatformModules:
