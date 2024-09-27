@@ -3,10 +3,7 @@
 
 {
   ros = {
-    rover = null;
-    cameras2 = null;
     gui = "testing";
-    nova-gui = null;
   };
   other = {
     coms_utils = "feature/nix";
