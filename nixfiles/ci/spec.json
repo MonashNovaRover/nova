@@ -3,7 +3,7 @@
     "hidden": true,
     "description": "Project jobset generator",
     "nixexprinput": "nova",
-    "nixexprpath": "ci/default.nix",
+    "nixexprpath": "nixfiles/ci/default.nix",
     "checkinterval": 60,
     "schedulingshares": 100,
     "enableemail": false,
@@ -16,14 +16,14 @@
             "value": "git@github.com:NixOS/nixpkgs.git nixos-unstable",
             "emailresponsible": false
         },
-        "nova": {
+        "nova-monorepo": {
             "type": "git",
-            "value": "git@github.com:MonashNovaRover/nova.git",
+            "value": "git@github.com:MonashNovaRover/nova.git fix/hydra",
             "emailresponsible": false
         },
         "nova-pr-json": {
             "type": "githubpulls",
-            "value": "MonashNovaRover nixfiles",
+            "value": "MonashNovaRover nova",
             "emailresponsible": false
         },
         "gui-pr-json": {
