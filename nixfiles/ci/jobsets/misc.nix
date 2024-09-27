@@ -1,11 +1,12 @@
 { supportedSystems
 , nixpkgs
-, nixfiles
+, nova-monorepo
 , rosDistro
 , ...
 }@args:
 
 let
+  nixfiles = nova-monorepo + "/nixfiles";
   lib = import ../lib.nix {
     inherit
       supportedSystems

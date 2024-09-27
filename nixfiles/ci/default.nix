@@ -1,11 +1,13 @@
 { supportedSystems ? [ "x86_64-linux" "aarch64-linux" ]
 , nixpkgs
-, nixfiles
+, nova-monorepo
 , declInput
 , ...
 }@args:
 
 let
+  nixfiles = nova-monorepo + "/nixfiles";
+
   inherit (import ./generation/variation args)
     mergeJobsetPlanners
     planPrJobsets
