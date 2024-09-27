@@ -11,7 +11,8 @@ in rec {
   pkgs = import nixpkgs { };
   releaseLib = import (pkgs.path + "/pkgs/top-level/release-lib.nix") { inherit supportedSystems; };
 
-  repos = map (repo: args.${repo}) repoNames;
+  # repos = map (repo: args.${repo}) repoNames;
+  repos = import ../external/default-paths.nix;
 
   mkNova = pkgs: import nixfiles { inherit pkgs repos; };
   novaFor = system: mkNova (releaseLib.pkgsFor system);
