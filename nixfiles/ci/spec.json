@@ -3,7 +3,7 @@
     "hidden": true,
     "description": "Project jobset generator",
     "nixexprinput": "nova",
-    "nixexprpath": "ci/default.nix",
+    "nixexprpath": "nixfiles/ci/default.nix",
     "checkinterval": 60,
     "schedulingshares": 100,
     "enableemail": false,
