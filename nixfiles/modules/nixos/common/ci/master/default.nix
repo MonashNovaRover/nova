@@ -49,7 +49,9 @@ in
     services.hydra = {
       enable = true;
       listenHost = "localhost";
-      hydraURL = "https://${cfg.hydra.subdomain}.${cfg.domain}";
+      hydraURL = if (lib.hasPrefix "localhost" cfg.domain)
+        then "http://${cfg.hydra.domain}"
+        else "https://${cfg.hydra.subdomain}.${cfg.domain}";
       notificationSender = "nova@monash.edu";
       useSubstitutes = true;
       buildMachinesFiles =
