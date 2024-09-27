@@ -50,7 +50,7 @@ in
       enable = true;
       listenHost = "localhost";
       hydraURL = if (lib.hasPrefix "localhost" cfg.domain)
-        then "http://${cfg.hydra.domain}"
+        then "http://${cfg.domain}"
         else "https://${cfg.hydra.subdomain}.${cfg.domain}";
       notificationSender = "nova@monash.edu";
       useSubstitutes = true;
