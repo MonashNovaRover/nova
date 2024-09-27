@@ -23,7 +23,7 @@
         },
         "nova-pr-json": {
             "type": "githubpulls",
-            "value": "MonashNovaRover nixfiles",
+            "value": "MonashNovaRover nova",
             "emailresponsible": false
         },
         "gui-pr-json": {
