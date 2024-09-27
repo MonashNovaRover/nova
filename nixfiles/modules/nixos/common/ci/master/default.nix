@@ -123,7 +123,7 @@ in
       '';
     };
 
-    services.caddy = lib.mkIf (cfg.domain != "localhost") {
+    services.caddy = lib.mkIf (!(lib.hasPrefix "localhost" cfg.domain)) {
       enable = true;
       virtualHosts.hydra = {
         hostName = "${cfg.hydra.subdomain}.${cfg.domain}";
