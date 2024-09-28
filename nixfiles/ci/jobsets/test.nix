@@ -16,7 +16,8 @@ let
   evaledSource = builtins.path rec {
     name = "arm-interfaces-source";
     path = ../../external/src/ros/rover/arm/arm_interfaces;
-    filter = (path: type: true);
+    filter = pkgs.lib.novaSourceFilter [ ] path;
+    # filter = (path: type: true);cc
   };
 in
   throw evaledSource
