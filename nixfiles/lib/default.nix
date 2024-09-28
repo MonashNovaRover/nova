@@ -21,6 +21,7 @@ in
     (
     [
       "default.nix"
+      "nix/"
     ]
       #[
         # Nix files in standard locations
