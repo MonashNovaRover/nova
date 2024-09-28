@@ -19,16 +19,17 @@ in
   novaSourceFilter = extraPatterns: root: nix-gitignore.gitignoreFilterPure
     lib.cleanSourceFilter
     (
-      [
+    []
+      #[
         # Nix files in standard locations
-        "default.nix"
-        "shell.nix"
-        "nix/"
+      #  "default.nix"
+      #  "shell.nix"
+      #  "nix/"
 
         # IDE configuration files have no impact on build outputs.
-        ".idea/"
-        ".vscode/"
-      ]
+      #  ".idea/"
+      #  ".vscode/"
+      #]
 
 #      ++ builtins.foldl'
         # While gitignoreFilterPure does support paths in the pattern list, it
