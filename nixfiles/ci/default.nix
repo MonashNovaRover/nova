@@ -61,6 +61,10 @@ let
       description = "Miscellaneous packages";
       nixexprpath = "nixfiles/ci/jobsets/misc.nix";
     })) //
+    (mkJobsets (planRosDistroAndPrJobsets "test" {
+      description = "Evaluation testing jobset";
+      nixexprpath = "nixfiles/ci/jobsets/test.nix";
+    })) //
     {
       docs = mkJobset {
         description = "Nova Rover documentation";
@@ -98,10 +102,6 @@ let
         nixexprpath = "nixfiles/ci/jobsets/slides.nix";
         checkinterval = 60 * 60 * 24;
         inputs.slides = mkNovaInput { repo = "slides"; };
-      };
-      test = mkJobset {
-        description = "test";
-        nixexprpath = "nixfiles/ci/jobsets/test.nix";
       };
     };
 in
