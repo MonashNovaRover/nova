@@ -1,1 +1,1 @@
-import ./nix/packages/arm-interface/test.nix
+import ./nix/packages/arm-interfaces/test.nix
