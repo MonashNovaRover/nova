@@ -19,7 +19,9 @@ in
   novaSourceFilter = extraPatterns: root: nix-gitignore.gitignoreFilterPure
     lib.cleanSourceFilter
     (
-    []
+    [
+      "default.nix"
+    ]
       #[
         # Nix files in standard locations
       #  "default.nix"
