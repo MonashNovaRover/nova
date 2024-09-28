@@ -1,7 +1,6 @@
 { supportedSystems
 , nixpkgs
 , nova-monorepo
-, rosDistro
 , ...
 }@args:
 
