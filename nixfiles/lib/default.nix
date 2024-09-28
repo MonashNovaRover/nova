@@ -29,6 +29,7 @@ in
         ".idea/"
         ".vscode/"
       ]
+
       ++ builtins.foldl'
         # While gitignoreFilterPure does support paths in the pattern list, it
         # is not possible to turn a derivation output path string into a true
