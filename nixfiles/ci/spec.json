@@ -25,27 +25,6 @@
             "type": "githubpulls",
             "value": "MonashNovaRover nova",
             "emailresponsible": false
-        },
-        "gui-pr-json": {
-            "type": "githubpulls",
-            "value": "MonashNovaRover gui",
-            "emailresponsible": false
-        },
-        "coms_utils-pr-json": {
-            "type": "githubpulls",
-            "value": "MonashNovaRover coms_utils",
-            "emailresponsible": false
-        },
-        "libblcmd-pr-json": {
-            "type": "githubpulls",
-            "value": "MonashNovaRover libblcmd",
-            "emailresponsible": false
-        },
-        "libcanmd-pr-json": {
-            "type": "githubpulls",
-            "value": "MonashNovaRover libcanmd",
-            "emailresponsibe": false
         }
-
     }
 }
