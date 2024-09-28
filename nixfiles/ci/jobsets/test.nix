@@ -18,3 +18,6 @@ in
 # /nix/store/w4qxnwr7vj3f45wf7bx62zsashg9pl0i-source/nixfiles/external/src/ros/gui
 # /nix/store/w4qxnwr7vj3f45wf7bx62zsashg9pl0i-source/nixfiles/external/src/ros/nova-gui
 # /nix/store/w4qxnwr7vj3f45wf7bx62zsashg9pl0i-source/nixfiles/external/src/ros/rover ]
+
+# [ /nix/store/6pzhkxnh5yc4zj89z05j5c5wjwh769m5-source/nixfiles/external/src/ros/rover/test.nix
+#   /nix/store/6pzhkxnh5yc4zj89z05j5c5wjwh769m5-source/nixfiles/external/src/ros/rover/nix/packages/arm-interfaces «thunk» ]
