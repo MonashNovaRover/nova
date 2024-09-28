@@ -20,12 +20,12 @@ let
     (directories: category:
       directories
       ++ map
-        (directory: ./src + (/. + category) + (/. + directory))
-        (filterDirectories (builtins.readDir (./src + (/. + category)))))
+        (directory: ./src + ("/" + category) + ("/" + directory))
+        (filterDirectories (builtins.readDir (./src + ("/" + category)))))
     [ ]
     categories;
 in
 # Only return repositories that have a default.nix file.
 builtins.filter
-  (directory: builtins.pathExists (directory + /default.nix))
+  (directory: builtins.pathExists (directory + "/default.nix"))
   repoDirectories
