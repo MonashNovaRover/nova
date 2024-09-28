@@ -8,7 +8,7 @@ let
   nixfiles = nova-monorepo + "/nixfiles";
   lib = import ../lib.nix args;
 
-  pkgs = import <nixpkgs> { overlays = [ (import (nixfiles + "/overlay/lib.nix")) ]; };
+  pkgs = import <nixpkgs> { overlays = [ (import (nixfiles + "/overlay")) ]; };
 
 
   evaledSource = builtins.path rec {
