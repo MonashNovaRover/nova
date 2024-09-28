@@ -23,7 +23,7 @@ in
         # Nix files in standard locations
         "default.nix"
         "shell.nix"
-        "nix/" # This filters everything on the mono-repo!!!
+        "nix/"
 
         # IDE configuration files have no impact on build outputs.
         ".idea/"
