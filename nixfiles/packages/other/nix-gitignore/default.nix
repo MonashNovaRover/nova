@@ -36,6 +36,8 @@ let
   debug = a: trace a a;
   last = l: elemAt l ((length l) - 1);
 in rec {
+  thing = throw "ionadiojadwiojwiojadiojadwiojesfgiodgriojdgriojiorgj";
+
   # [["good/relative/source/file" true] ["bad.tmpfile" false]] -> root -> path
   filterPattern = patterns: root:
     (name: _type:
