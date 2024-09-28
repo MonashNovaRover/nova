@@ -2,12 +2,4 @@
 # correct githubpulls inputs.
 
 {
-  ros = {
-    gui = "testing";
-  };
-  other = {
-    coms_utils = "feature/nix";
-    libblcmd = null;
-    libcanmd = null;
-  };
 }
