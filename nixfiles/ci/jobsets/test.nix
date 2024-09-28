@@ -7,9 +7,15 @@
 let
   nixfiles = nova-monorepo + "/nixfiles";
   lib = import ../lib.nix args;
+
+  evaledSource = builtins.path rec {
+    name = "arm-interfaces-source";
+    path = ../../external/src/ros/rover/arm/arm_interfaces;
+    filter = lib.novaSourceFilter [ ] path;
+  };
 in
   #throw lib.repos
-  throw ([ ../../external/src/ros/rover/test.nix ] ++ (import ../../external/src/ros/rover/test.nix))
+  throw evaledSource
 
 # [ /nix/store/w4qxnwr7vj3f45wf7bx62zsashg9pl0i-source/nixfiles/external/src/other/coms_utils
 # /nix/store/w4qxnwr7vj3f45wf7bx62zsashg9pl0i-source/nixfiles/external/src/other/libblcmd
