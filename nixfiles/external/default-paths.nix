@@ -1,4 +1,6 @@
 let
+  srcDir = ../../src;
+
   # Searches for directories in a directory listing.
   filterDirectories = entries: builtins.foldl'
     (directories: entry:
@@ -10,8 +12,8 @@ let
 
   # Find the categories (the first directory level in ./src)
   categories =
-    if builtins.pathExists ./src
-    then filterDirectories (builtins.readDir ./src)
+    if builtins.pathExists srcDir
+    then filterDirectories (builtins.readDir srcDir)
     else [ ];
 
   # Look inside the category directories for repository directories.
@@ -20,8 +22,8 @@ let
     (directories: category:
       directories
       ++ map
-        (directory: ./src + ("/" + category) + ("/" + directory))
-        (filterDirectories (builtins.readDir (./src + ("/" + category)))))
+        (directory: srcDir + ("/" + category) + ("/" + directory))
+        (filterDirectories (builtins.readDir (srcDir + ("/" + category)))))
     [ ]
     categories;
 in
