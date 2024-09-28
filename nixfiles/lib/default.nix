@@ -31,7 +31,7 @@ in
       #  ".vscode/"
       #]
 
-#      ++ builtins.foldl'
+      ++ builtins.foldl'
         # While gitignoreFilterPure does support paths in the pattern list, it
         # is not possible to turn a derivation output path string into a true
         # path type.
@@ -42,27 +42,27 @@ in
         #
         # The logic from gitignoreCompileIgnore to read patterns from a file
         # is therefore replicated here.
-#        (patterns: file: patterns ++ lib.toList (builtins.readFile file))
-#        [ ]
-#        ([
-#          # Languages and frameworks
-#          "${github-gitignore}/C.gitignore"
-#          # "${github-gitignore}/C++.gitignore # Disabled to reduce evaluation time. Almost completely a subset of C.gitignore".
-#          "${github-gitignore}/Python.gitignore"
-#          "${github-gitignore}/CMake.gitignore"
-#          # "${github-gitignore}/ROS.gitignore" # Faulty - filters out certain message files.
-#          "${github-gitignore}/community/ROS2.gitignore"
-#          "${github-gitignore}/community/Nix.gitignore"
-#
-#          # Operating systems and editors
-#          "${github-gitignore}/Global/Linux.gitignore"
-#          # "${github-gitignore}/Global/macOS.gitignore" # Disabled to reduce evaluation time.
-#          "${github-gitignore}/Global/Vim.gitignore"
-#          "${github-gitignore}/Global/JetBrains.gitignore"
-#          "${github-gitignore}/Global/VisualStudioCode.gitignore"
-#        ])
-#      ++ lib.optional (builtins.pathExists (root + /.gitignore)) (root + /.gitignore)
-#      ++ extraPatterns
+        (patterns: file: patterns ++ lib.toList (builtins.readFile file))
+        [ ]
+        ([
+          # Languages and frameworks
+          "${github-gitignore}/C.gitignore"
+          # "${github-gitignore}/C++.gitignore # Disabled to reduce evaluation time. Almost completely a subset of C.gitignore".
+          "${github-gitignore}/Python.gitignore"
+          "${github-gitignore}/CMake.gitignore"
+          # "${github-gitignore}/ROS.gitignore" # Faulty - filters out certain message files.
+          "${github-gitignore}/community/ROS2.gitignore"
+          "${github-gitignore}/community/Nix.gitignore"
+
+          # Operating systems and editors
+          "${github-gitignore}/Global/Linux.gitignore"
+          # "${github-gitignore}/Global/macOS.gitignore" # Disabled to reduce evaluation time.
+          "${github-gitignore}/Global/Vim.gitignore"
+          "${github-gitignore}/Global/JetBrains.gitignore"
+          "${github-gitignore}/Global/VisualStudioCode.gitignore"
+        ])
+      ++ lib.optional (builtins.pathExists (root + /.gitignore)) (root + /.gitignore)
+      ++ extraPatterns
     )
     root;
 }
