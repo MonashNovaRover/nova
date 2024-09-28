@@ -18,7 +18,7 @@
         },
         "nova-monorepo": {
             "type": "git",
-            "value": "git@github.com:MonashNovaRover/nova.git",
+            "value": "git@github.com:MonashNovaRover/nova.git fix/hydra-evaluation",
             "emailresponsible": false
         },
         "nova-pr-json": {
