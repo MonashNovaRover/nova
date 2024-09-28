@@ -10,7 +10,7 @@ let
 
   pkgs = import <nixpkgs> { overlays = [
     (import (nixfiles + "/overlay"))
-    (self: super: import (nixfiles + /packages/other) { inherit (self) callPackage; })
+    (self: super: import (nixfiles + "/packages/other") { inherit (self) callPackage; })
   ]; };
 
 
