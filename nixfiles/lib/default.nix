@@ -19,20 +19,16 @@ in
   novaSourceFilter = extraPatterns: root: nix-gitignore.gitignoreFilterPure
     lib.cleanSourceFilter
     (
-    [
-      "default.nix"
-      "nix/"
-    ]
-      #[
+      [
         # Nix files in standard locations
-      #  "default.nix"
-      #  "shell.nix"
-      #  "nix/"
+        "default.nix"
+        "shell.nix"
+        "nix/" # This filters everything on the mono-repo!!!
 
         # IDE configuration files have no impact on build outputs.
-      #  ".idea/"
-      #  ".vscode/"
-      #]
+        ".idea/"
+        ".vscode/"
+      ]
 
       ++ builtins.foldl'
         # While gitignoreFilterPure does support paths in the pattern list, it
