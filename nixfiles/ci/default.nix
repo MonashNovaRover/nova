@@ -99,10 +99,6 @@ let
         checkinterval = 60 * 60 * 24;
         inputs.slides = mkNovaInput { repo = "slides"; };
       };
-      test = mkJobset {
-        description = "test";
-        nixexprpath = "nixfiles/ci/jobsets/test.nix";
-      };
     };
 in
 {
