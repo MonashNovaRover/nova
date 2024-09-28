@@ -8,10 +8,13 @@ let
   nixfiles = nova-monorepo + "/nixfiles";
   lib = import ../lib.nix args;
 
+  pkgs = import <nixpkgs> { overlays = [ (import (nixfiles + "/overlay/lib.nix")) ]; };
+
+
   evaledSource = builtins.path rec {
     name = "arm-interfaces-source";
     path = ../../external/src/ros/rover/arm/arm_interfaces;
-    filter = lib.novaSourceFilter [ ] path;
+    filter = pkgs.lib.novaSourceFilter [ ] path;
   };
 in
   #throw lib.repos
