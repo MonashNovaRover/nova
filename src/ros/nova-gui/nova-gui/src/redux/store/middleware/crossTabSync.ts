@@ -69,7 +69,7 @@ export const tabSyncMiddleware = <S, D extends Dispatch>() => {
 
 /**
  * skips any blacklisted stores and actions, and bifrost actions
- * @param blacklist
+ * @param blacklist blacklist of stores and actions
  */
 export const tabSyncPredicate = (blacklist: TabSyncBlacklist) => (action: Action) => {
   // skip any blacklisted actions
