@@ -1,10 +1,9 @@
-import {configureStore, createListenerMiddleware, isAnyOf} from "@reduxjs/toolkit";
+import {configureStore, createListenerMiddleware} from "@reduxjs/toolkit";
 import {rootReducer} from "../RootReducer";
 import {FLUSH, PAUSE, PERSIST, persistReducer, persistStore, PURGE, REGISTER, REHYDRATE} from 'redux-persist'
 import storage from 'redux-persist/lib/storage';
-import {LocalStorageActions} from "../slices/LocalStorageSlice.ts";
 import {UIActions} from "../slices/UISlice.ts";
-import {tabSyncMiddleware} from "../../utils/crossTabSync.ts"; // defaults to localStorage for web
+import {tabSyncMiddleware, tabSyncPredicate} from "./middleware/crossTabSync.ts";
 
 export default function configureRootStore() {
   const persistConfig = {
@@ -12,16 +11,24 @@ export default function configureRootStore() {
     storage,
     // only localStorageState and uiState are persisted
     // any stores that want to persist should be added here
-    whitelist: ["localStorageState", "uiState"]
+    whitelist: ["localStorageState", "uiState", "counter"]
   };
 
   const tabSyncConfig = {
     // whitelist of actions to be synced across tabs upon update
     // any actions that what to be synced across tabs should be added here
-    matcher: isAnyOf(
-      LocalStorageActions.SET_VALUE,
-      UIActions.IP_UPDATE,
-    ),
+    predicate: tabSyncPredicate({
+      stores: [
+        "cameraStreamerState",
+        "persist",
+      ],
+      actions: [
+        UIActions.SETTINGS_MODAL_UPDATE.toString(),
+        UIActions.CONTROLLER_HELP_MODAL_UPDATE.toString(),
+        UIActions.SIDEBAR_UPDATE.toString(),
+        UIActions.BLCMD_STATUS_MODAL_UPDATE.toString(),
+      ],
+    }),
     // the function that is called for every action that matches one of the whitelisted actions.
     effect: tabSyncMiddleware(),
   };
