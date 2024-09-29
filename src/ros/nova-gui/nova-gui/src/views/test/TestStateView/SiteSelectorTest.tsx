@@ -15,6 +15,7 @@ export default function SiteSelectorTest() {
         <SiteSelectWidget
           onValueChanged={setSite}
           hideCard={true}
+          hideSiteType={false}
         />
       </CardBody>
       <CardBody className="text-center">
