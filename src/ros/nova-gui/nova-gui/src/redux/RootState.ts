@@ -31,7 +31,8 @@ import { CartographerState } from "./models/CartographerState";
 
 import { UIState } from "./models/UIState";
 import { LocalStorageState } from "./models/LocalStorageState.ts";
-import { GenericStoreState } from "./store/createGenericStore.ts";
+import { GenericStoreState } from "./models/genericStores/GenericStoreState.ts";
+import SpaceResourceSiteType from "../components/nir-probe/SpaceResourcesSiteType.tsx";
 
 export interface RootState {
   // Bifrost Stores
@@ -83,5 +84,6 @@ export interface RootState {
 
   // Generic Stores
   currentSite: GenericStoreState<string>;
-  counter: GenericStoreState<number>
+  currentSiteType: GenericStoreState<SpaceResourceSiteType>;
+  counter: GenericStoreState<number>;
 }

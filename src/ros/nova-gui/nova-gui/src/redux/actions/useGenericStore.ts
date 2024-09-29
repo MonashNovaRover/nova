@@ -1,7 +1,7 @@
 import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../RootState.ts";
 import {useCallback} from "react";
-import {GenericStoreState} from "../store/createGenericStore.ts";
+import {GenericStoreState} from "../models/genericStores/GenericStoreState.ts";
 
 export function useGenericStore<T>(storeName: string) {
   const value = useSelector((store: RootState) => {

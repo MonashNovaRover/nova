@@ -17,6 +17,7 @@ import {BLCMD_INDEX} from "../constants";
 import {localStorageSlice} from "./slices/LocalStorageSlice.ts";
 import {combineReducers} from "@reduxjs/toolkit";
 import {createGenericStore} from "./store/createGenericStore.ts";
+import SpaceResourceSiteType from "../components/nir-probe/SpaceResourcesSiteType.tsx";
 
 export const rootReducer = combineReducers({
   // Bifrost Stores
@@ -227,6 +228,6 @@ export const rootReducer = combineReducers({
 
   // generic stores
   currentSite: createGenericStore("currentSite", "site1"),
+  currentSiteType: createGenericStore("currentSiteType", SpaceResourceSiteType.WATER),
   counter: createGenericStore("counter", 0),
-
 });
