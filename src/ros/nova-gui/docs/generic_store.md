@@ -40,6 +40,9 @@ export interface RootState {
 }
 ```
 
+if additional type definitions needed (eg need a custom interface) please 
+define the interface/type definition in the `redux/models/genericStores` folder.
+
 ### 2. Define store and initial value in `redux/RootReducer.ts`
 
 Ensure that store name matches here
