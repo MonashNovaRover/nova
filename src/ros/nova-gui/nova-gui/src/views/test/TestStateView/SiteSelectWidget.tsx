@@ -4,6 +4,7 @@ import {Box, Droplet} from "react-feather";
 import SpaceResourceSiteType from "../../../components/nir-probe/SpaceResourcesSiteType.tsx";
 import SpaceResourcesSiteType from "../../../components/nir-probe/SpaceResourcesSiteType.tsx";
 import SegmentedPicker from "../../../components/SegmentedPicker/SegmentedPicker.tsx";
+import {useGenericStore} from "../../../redux/actions/useGenericStore.ts";
 
 export const siteFilenames = [
   "site1",
@@ -13,11 +14,8 @@ export const siteFilenames = [
 ]
 
 export interface SiteSelectWidgetProps extends CardProps {
-  onValueChanged?: (value: string) => void,
   hideSiteType?: boolean,
   hideCard?: boolean,
-  onSiteTypeChanged?: (newType: SpaceResourceSiteType) => void,
-  currentSiteType?: SpaceResourceSiteType,
   pickerClassName?: string,
 }
 
@@ -34,20 +32,23 @@ const siteTypeSelectOptions = [
   }
 ]
 
-const SiteSelectWidget: React.FC<SiteSelectWidgetProps> = ({
-                                                             onValueChanged,
-                                                             currentSiteType,
-                                                             onSiteTypeChanged,
-                                                             hideSiteType,
-                                                             hideCard,
-                                                             pickerClassName,
-                                                             ...cardProps
-                                                           }) => {
+const SiteSelectWidget: React.FC<SiteSelectWidgetProps> = (
+  {
+    hideSiteType,
+    hideCard,
+    pickerClassName,
+    ...cardProps
+  }) => {
+
+  const [currentSite, setCurrentSite] = useGenericStore<number>("currentSite");
+  const [currentSiteType, setCurrentSiteType] = useGenericStore<SpaceResourceSiteType>("currentSiteType");
 
   const picker = (
-    <SegmentedPicker fullWidth
-                     className={"grow " + (pickerClassName ?? "")}
-                     onIndexChange={(i) => onValueChanged?.(siteFilenames[i])}
+    <SegmentedPicker
+      fullWidth
+      className={"grow " + (pickerClassName ?? "")}
+      onIndexChange={setCurrentSite}
+      selectedIndex={currentSite}
     >
       <div className="text-rose-300">Site 1</div>
       <div className="text-amber-200">Site 2</div>
@@ -68,9 +69,9 @@ const SiteSelectWidget: React.FC<SiteSelectWidgetProps> = ({
               className="min-w-unit-32 w-48 shrink"
               size="md"
               labelPlacement="outside-left"
-              onChange={e => onSiteTypeChanged?.(+e.target.value as SpaceResourcesSiteType)}
+              onChange={e => setCurrentSiteType(+e.target.value as SpaceResourcesSiteType)}
               aria-label="Site Type"
-              startContent={siteTypeSelectOptions[currentSiteType ?? 0].icon}
+              startContent={siteTypeSelectOptions[currentSiteType].icon}
             >
               {siteTypeSelectOptions.map(({type, name, icon}) => (
                 <SelectItem key={`${type}`} value={type} startContent={icon}>

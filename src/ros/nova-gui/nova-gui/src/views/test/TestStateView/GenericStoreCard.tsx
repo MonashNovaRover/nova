@@ -7,7 +7,7 @@ import {useGenericStore} from "../../../redux/actions/useGenericStore.ts";
  */
 export default function GenericStoreCard() {
 
-    const {value: counter, setValue: setCounter} = useGenericStore<number>("counter");
+    const [counter, setCounter] = useGenericStore<number>("counter");
 
     if (counter === undefined) {
       return <div/>
