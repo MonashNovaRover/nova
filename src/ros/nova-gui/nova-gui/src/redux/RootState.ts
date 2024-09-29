@@ -30,7 +30,8 @@ import { CameraStreamerState } from "./models/CameraStreamState";
 import { CartographerState } from "./models/CartographerState";
 
 import { UIState } from "./models/UIState";
-import {LocalStorageState} from "./models/LocalStorageState.ts";
+import { LocalStorageState } from "./models/LocalStorageState.ts";
+import { GenericStoreState } from "./store/createGenericStore.ts";
 
 export interface RootState {
   // Bifrost Stores
@@ -79,4 +80,8 @@ export interface RootState {
   roverLocationStore: IRosSensorMsgsNavSatFix;
   baseLocationStore: IRosSensorMsgsNavSatFix;
   cartographerState: CartographerState;
+
+  // Generic Stores
+  // genericStore: GenericStoreState;
+  currentSite: GenericStoreState<string>;
 }
