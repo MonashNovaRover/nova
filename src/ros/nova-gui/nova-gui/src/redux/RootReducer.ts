@@ -227,7 +227,7 @@ export const rootReducer = combineReducers({
   cartographerState: cartographerSlice.reducer,
 
   // generic stores
-  currentSite: createGenericStore("currentSite", "site1"),
+  currentSite: createGenericStore("currentSite", 0),
   currentSiteType: createGenericStore("currentSiteType", SpaceResourceSiteType.WATER),
   counter: createGenericStore("counter", 0),
 });
