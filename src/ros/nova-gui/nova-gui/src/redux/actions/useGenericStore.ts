@@ -3,7 +3,7 @@ import {RootState} from "../RootState.ts";
 import {useCallback} from "react";
 import {GenericStoreState} from "../models/genericStores/GenericStoreState.ts";
 
-export function useGenericStore<T>(storeName: string) {
+export function useGenericStore<T>(storeName: string): [T, (a: T) => void] {
   const value = useSelector((store: RootState) => {
 
     if (!Object.prototype.hasOwnProperty.call(store, storeName))
@@ -25,5 +25,5 @@ export function useGenericStore<T>(storeName: string) {
     })
   }, [])
 
-  return {value, setValue}
+  return [value, setValue]
 }

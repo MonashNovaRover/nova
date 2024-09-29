@@ -1,25 +1,21 @@
-import SiteSelectWidget from "./SiteSelectWidget.tsx";
-import {useState} from "react";
+import SiteSelectWidget, {siteFilenames} from "./SiteSelectWidget.tsx";
 import {Card, CardBody} from "@nextui-org/react";
+import {useGenericStore} from "../../../redux/actions/useGenericStore.ts";
 
 
 export default function SiteSelectorTest() {
 
-
-  const [site, setSite] = useState("site1");
-
+  const [currentSite, _] = useGenericStore<number>("currentSite");
 
   return (
     <Card>
       <CardBody>
         <SiteSelectWidget
-          onValueChanged={setSite}
-          hideCard={true}
           hideSiteType={false}
         />
       </CardBody>
       <CardBody className="text-center">
-        {site}
+        {siteFilenames[currentSite]}
       </CardBody>
     </Card>
   )
