@@ -4,24 +4,31 @@ import {FLUSH, PAUSE, PERSIST, persistReducer, persistStore, PURGE, REGISTER, RE
 import storage from 'redux-persist/lib/storage';
 import {UIActions} from "../slices/UISlice.ts";
 import {tabSyncMiddleware, tabSyncPredicate} from "./middleware/crossTabSync.ts";
+import {bifrostStores} from "./bifrost/bifrostStores.ts";
 
 export default function configureRootStore() {
   const persistConfig = {
     key: 'root',
     storage,
-    // only localStorageState and uiState are persisted
-    // any stores that want to persist should be added here
-    whitelist: ["localStorageState", "uiState", "counter"]
+    // stores that should not be persisted includes all bifrost stores
+    // any stores that should not be persisted should be added here.
+    blacklist: [
+      ...bifrostStores,
+      "cartographerState",
+      "cameraStreamerState",
+    ]
   };
 
   const tabSyncConfig = {
-    // whitelist of actions to be synced across tabs upon update
-    // any actions that what to be synced across tabs should be added here
+    // blacklist of actions to be synced across tabs upon update
+    // any actions that should not be synced across tabs should be added here
     predicate: tabSyncPredicate({
+      // specific stores not to sync
       stores: [
         "cameraStreamerState",
         "persist",
       ],
+      // specific actions not to sync
       actions: [
         UIActions.SETTINGS_MODAL_UPDATE.toString(),
         UIActions.CONTROLLER_HELP_MODAL_UPDATE.toString(),
