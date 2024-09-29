@@ -16,6 +16,7 @@ import {cameraStreamerSlice} from "./slices/CameraStreamSlice";
 import {BLCMD_INDEX} from "../constants";
 import {localStorageSlice} from "./slices/LocalStorageSlice.ts";
 import {combineReducers} from "@reduxjs/toolkit";
+import {createGenericStore} from "./store/createGenericStore.ts";
 
 export const rootReducer = combineReducers({
   // Bifrost Stores
@@ -223,4 +224,9 @@ export const rootReducer = combineReducers({
   ),
 
   cartographerState: cartographerSlice.reducer,
+
+  // generic stores
+  currentSite: createGenericStore("currentSite", "site1"),
+  counter: createGenericStore("counter", 0),
+
 });
