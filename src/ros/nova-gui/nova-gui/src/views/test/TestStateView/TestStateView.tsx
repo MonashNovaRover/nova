@@ -1,4 +1,5 @@
 import LSObjectCard from "./LSObjectCard.tsx";
+import SiteSelectorTest from "./SiteSelectorTest.tsx";
 
 export default function TestStateView () {
 
@@ -7,6 +8,10 @@ export default function TestStateView () {
       <div className="grid grid-cols-2 gap-4">
         <LSObjectCard/>
         <LSObjectCard/>
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <SiteSelectorTest/>
+        <SiteSelectorTest/>
       </div>
     </div>
   );
