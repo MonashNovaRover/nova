@@ -52,7 +52,6 @@ For Developing Nova-GUI, the reccomended method of development is using `nova-sh
    nova-shell -A env.nova-gui
 
    # or (currently working better) for dev dependencies
-
    nova-shell -A pkgs.ros.nova-gui
    ```
 
@@ -81,15 +80,21 @@ For Developing Nova-GUI, the reccomended method of development is using `nova-sh
    Errors are likely caused by network issues. Try setting your DNS and restarting your connection. 
 
 5. Link in the generated message definitions
+   
+   This will create a symlink at `nova-gui/src/ros/rosTypes.ts` to the nix store file containing ros type definitions.
 
-   > Run this whenever the included messages change. Nix will always use the
+   > Run this whenever the included messages change ***including first time running***. Nix will always use the
    > latest version when building the package, which may lead to confusion if
    > your copy is out of date.
    
    ```sh
    # Run with dev dependencies
-   ln -sf "$ROS_TS_DEFINITIONS" nova-gui/src/ros/rosTypes.ts
+   ln -sf "$ROS_TS_DEFINITIONS" src/ros/rosTypes.ts
    ```
+   
+   If getting `No such file or directory` errors, ensure that the path is correct 
+   and the `pkgs.ros.nova-gui` nova shell is used.
+
 
 6. Start rosbridge
 
