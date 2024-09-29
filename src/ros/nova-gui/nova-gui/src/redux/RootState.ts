@@ -82,6 +82,6 @@ export interface RootState {
   cartographerState: CartographerState;
 
   // Generic Stores
-  // genericStore: GenericStoreState;
   currentSite: GenericStoreState<string>;
+  counter: GenericStoreState<number>
 }
