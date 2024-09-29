@@ -1,5 +1,3 @@
-{ config, ... }:
-
 {
   # Some drivers need to be patched for certain kernels.
   nixpkgs.overlays = [
