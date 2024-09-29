@@ -3,7 +3,9 @@
 , buildEnv
 , rviz2
 , gazebo
+, gz-launch-vendor
 , gz-ros2-control-demos
+, ros-gz
 , rqt
 , rqt-common-plugins
 , gdb
@@ -102,7 +104,9 @@ in
     inherit
       rviz2
       gazebo
+      gz-launch-vendor
       gz-ros2-control-demos
+      ros-gz
       gps-umd
       rqt rqt-common-plugins;
   }) // extraPackages;
