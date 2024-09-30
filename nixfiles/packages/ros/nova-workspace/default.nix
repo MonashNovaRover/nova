@@ -2,9 +2,9 @@
 , buildROSWorkspace
 , buildEnv
 , rviz2
-, gazebo
-, gz-launch-vendor
-, gz-ros2-control-demos
+#, gazebo
+#, gz-launch-vendor
+#, gz-ros2-control-demos
 , ros-gz
 , rqt
 , rqt-common-plugins
@@ -35,7 +35,7 @@
 # , nova-strafe-controller ? throw "nova-strafe-controller is needed, but not available!"
 # , nova-diff-drive-controller ? throw "nova-diff-drive-controller is needed, but not available!"
 , nova-teleop-drive-joy ? throw "nova-teleop-drive-joy is needed, but not available!"
-, nova-gazebo ? throw "nova-gazebo is needed, but not available!"
+#, nova-gazebo ? throw "nova-gazebo is needed, but not available!"
 , nova-python-control ? throw "python-control is needed, but not available!"
 , nova-excavation-construction ? throw "excavation-construction is needed, but not available!"
 , nova-utils ? throw "nova-utils is needed, but not available!"
@@ -103,9 +103,9 @@ in
   prebuiltPackages = (lib.optionalAttrs graphical {
     inherit
       rviz2
-      gazebo
-      gz-launch-vendor
-      gz-ros2-control-demos
+      #gazebo
+      #gz-launch-vendor
+      #gz-ros2-control-demos
       ros-gz
       gps-umd
       rqt rqt-common-plugins;
