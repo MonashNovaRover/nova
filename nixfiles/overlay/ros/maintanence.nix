@@ -304,16 +304,16 @@ self: super:
         gazebo-ros-pkgs = rosSelf.callPackage (self.nix-ros-overlay + "/distros/iron/gazebo-ros-pkgs") { };
 
         image-proc = rosSuper.image-proc.overrideAttrs ({ patches ? [ ], ... }: {
-          patches = patches ++ [
-            # Revert "Add TrackMarkerNode to image_proc" (requires OpenCV <= 4.6.0)
-            # https://github.com/ros-perception/image_pipeline/pull/930
-            (self.fetchpatch {
-              url = "https://github.com/ros-perception/image_pipeline/commit/f8c88a2970e7fcc16fd2457f5e5873df6b3e2769.patch";
-              revert = true;
-              stripLen = 1;
-              hash = "sha256-z0hfjFWRx0vBwa5aWIiJ4plICwaCAe1rGAacVPKmgC0=";
-            })
-          ];
+#          patches = patches ++ [
+#            # Revert "Add TrackMarkerNode to image_proc" (requires OpenCV <= 4.6.0)
+#            # https://github.com/ros-perception/image_pipeline/pull/930
+#            (self.fetchpatch {
+#              url = "https://github.com/ros-perception/image_pipeline/commit/f8c88a2970e7fcc16fd2457f5e5873df6b3e2769.patch";
+#              revert = true;
+#              stripLen = 1;
+#              hash = "sha256-z0hfjFWRx0vBwa5aWIiJ4plICwaCAe1rGAacVPKmgC0=";
+#            })
+#          ];
         });
 
         depth-image-proc = rosSuper.depth-image-proc.overrideAttrs ({ patches ? [ ], ... }: {
