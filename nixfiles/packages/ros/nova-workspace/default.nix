@@ -73,7 +73,7 @@
       nova-bringup
       nova-auto-bringup
       nova-rover-description
-      nova-gazebo
+      # nova-gazebo
       nova-python-control
       nova-excavation-construction
       nova-utils;
