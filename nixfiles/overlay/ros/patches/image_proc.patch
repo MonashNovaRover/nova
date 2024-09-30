@@ -1,0 +1,15 @@
+diff --git a/src/track_marker.cpp b/src/track_marker.cpp
+index e103de0..6f2ce40 100644
+--- a/src/track_marker.cpp
++++ b/src/track_marker.cpp
+@@ -64,8 +64,8 @@ TrackMarkerNode::TrackMarkerNode(const rclcpp::NodeOptions & options)
+   // Default dictionary is cv::aruco::DICT_6X6_250
+   int dict_id = this->declare_parameter("dictionary", 10);
+ 
+-  detector_params_ = cv::aruco::DetectorParameters::create();
+-  dictionary_ = cv::aruco::getPredefinedDictionary(dict_id);
++  detector_params_ = cv::makePtr<cv::aruco::DetectorParameters>(cv::aruco::DetectorParameters());
++  dictionary_ = cv::makePtr<cv::aruco::Dictionary>(cv::aruco::getPredefinedDictionary(dict_id));
+ 
+   // Setup lazy subscriber using publisher connection callback
+   rclcpp::PublisherOptions pub_options;
