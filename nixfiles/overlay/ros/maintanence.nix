@@ -318,15 +318,15 @@ self: super:
         });
 
         depth-image-proc = rosSuper.depth-image-proc.overrideAttrs ({ patches ? [ ], ... }: {
-          patches = patches ++ [
-            # Fix signature issue from #943
-            # https://github.com/ros-perception/image_pipeline/pull/1018
-            (self.fetchpatch {
-              url = "https://github.com/ros-perception/image_pipeline/commit/a7c0b09c5e37fcaf7e3153e6d353687a793ee3f9.patch";
-              stripLen = 1;
-              hash = "sha256-wXUSSfRBzCTxrilCvSJFhpq384+7hvL7vxnIyLaW5zs=";
-            })
-          ];
+#          patches = patches ++ [
+#            # Fix signature issue from #943
+#            # https://github.com/ros-perception/image_pipeline/pull/1018
+#            (self.fetchpatch {
+#              url = "https://github.com/ros-perception/image_pipeline/commit/a7c0b09c5e37fcaf7e3153e6d353687a793ee3f9.patch";
+#              stripLen = 1;
+#              hash = "sha256-wXUSSfRBzCTxrilCvSJFhpq384+7hvL7vxnIyLaW5zs=";
+#            })
+#          ];
         });
 
         rosapi = rosSuper.rosapi.overrideAttrs ({ patches ? [ ], ... }: {
