@@ -355,5 +355,22 @@
                 </state_interface>
             </joint>
         </ros2_control>
+        <ros2_control name="Auger" type="system">
+            <xacro:unless value="${use_mock_hardware}">
+                <hardware>
+		    <param name="can_bus_param">can1</param>
+		    <!-- What's the canid? Is it useful? -->
+		    <!-- <param name="canid">8</param> -->
+		    <param name="auger_max_vel">24575</param>
+		    <param name="drill_max_vel">24575</param>
+                </hardware>
+            </xacro:unless>
+            <xacro:if value="${use_mock_hardware}">
+                <hardware>
+                    <plugin>mock_components/GenericSystem</plugin>
+                    <param name="calculate_dynamics">true</param>
+                </hardware>
+            </xacro:if>
+        </ros2_control>
     </xacro:macro>
 </robot>
