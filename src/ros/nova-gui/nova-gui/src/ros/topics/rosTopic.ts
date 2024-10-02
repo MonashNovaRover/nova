@@ -44,4 +44,6 @@ export enum RosTopic {
   ROVER_LOCATION = "/fix",
   BASE_LOCATION = "/gps_base/fix",
   ROVER_HEADING = "",
+
+  BATTERY_STATE = "/battery_state",
 }

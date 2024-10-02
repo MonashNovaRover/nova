@@ -23,6 +23,7 @@ import {
   IRosNovaInterfacesHydraprobeData,
   IRosStdSrvsSetBoolResponse,
   IRosNovaInterfacesBmeSensor,
+  IRosSensorMsgsBatteryState,
 } from "../ros/rosTypes";
 
 import { BifrostStatus } from "./models/bifrost/BifrostTypes";
@@ -79,4 +80,6 @@ export interface RootState {
   roverLocationStore: IRosSensorMsgsNavSatFix;
   baseLocationStore: IRosSensorMsgsNavSatFix;
   cartographerState: CartographerState;
+
+  batteryStore: IRosSensorMsgsBatteryState;
 }

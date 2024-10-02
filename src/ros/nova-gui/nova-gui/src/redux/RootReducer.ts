@@ -223,4 +223,30 @@ export const rootReducer = combineReducers({
   ),
 
   cartographerState: cartographerSlice.reducer,
+
+  batteryStore: createBifrostStore(
+    {
+      topic: RosTopic.BATTERY_STATE
+    },
+    {
+      header: {
+        frame_id: "",
+      } as IRosSensorMsgsRange["header"],
+      voltage: 0,
+      temperature: 0,
+      current: 0,
+      charge: 0,
+      capacity: 0,
+      design_capacity: 0,
+      percentage: 0,
+      power_supply_status: 0,
+      power_supply_health: 0,
+      power_supply_technology: 0,
+      present: false,
+      cell_voltage: [],
+      cell_temperature: [],
+      location: "",
+      serial_number: ""
+    }
+  )
 });
