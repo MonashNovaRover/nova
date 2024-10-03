@@ -9,6 +9,8 @@
 , robot-state-publisher
 , controller-manager
 , ros2-control
+# TODO: Replace with gazebo harmonic, after migrating the launch files
+# https://gazebosim.org/docs/harmonic/migrating_gazebo_classic_ros2_packages/
 #, gazebo-ros
 #, gazebo-ros2-control
 #, gazebo-ros-pkgs
