@@ -2,9 +2,6 @@
 , buildROSWorkspace
 , buildEnv
 , rviz2
-#, gazebo
-#, gz-launch-vendor
-#, gz-ros2-control-demos
 , ros-gz
 , rqt
 , rqt-common-plugins
@@ -31,11 +28,11 @@
 , nova-auto-bringup ? throw "auto-bringup is needed, but not available!"
 , nova-rover-description ? throw "rover-description is needed, but not available!"
 , nova-blcmd-hardware ? throw "nova-blcmd-hardware is needed, but not available!"
-# , nova-pivot-drive-controller ? throw "nova-pivot-drive-controller is needed, but not available!"
-# , nova-strafe-controller ? throw "nova-strafe-controller is needed, but not available!"
-# , nova-diff-drive-controller ? throw "nova-diff-drive-controller is needed, but not available!"
+, nova-pivot-drive-controller ? throw "nova-pivot-drive-controller is needed, but not available!"
+, nova-strafe-controller ? throw "nova-strafe-controller is needed, but not available!"
+, nova-diff-drive-controller ? throw "nova-diff-drive-controller is needed, but not available!"
 , nova-teleop-drive-joy ? throw "nova-teleop-drive-joy is needed, but not available!"
-#, nova-gazebo ? throw "nova-gazebo is needed, but not available!"
+, nova-gazebo ? throw "nova-gazebo is needed, but not available!"
 , nova-python-control ? throw "python-control is needed, but not available!"
 , nova-excavation-construction ? throw "excavation-construction is needed, but not available!"
 , nova-utils ? throw "nova-utils is needed, but not available!"
@@ -56,9 +53,9 @@
       nova-science
       nova-cameras2
       nova-blcmd-hardware
-      # nova-pivot-drive-controller
-      # nova-strafe-controller
-      # nova-diff-drive-controller
+      nova-pivot-drive-controller
+      nova-strafe-controller
+      nova-diff-drive-controller
       nova-teleop-drive-joy
       nova-gui
       nova-drive
@@ -76,7 +73,7 @@
       nova-bringup
       nova-auto-bringup
       nova-rover-description
-      # nova-gazebo
+      nova-gazebo
       nova-python-control
       nova-excavation-construction
       nova-utils;
@@ -103,9 +100,6 @@ in
   prebuiltPackages = (lib.optionalAttrs graphical {
     inherit
       rviz2
-      #gazebo
-      #gz-launch-vendor
-      #gz-ros2-control-demos
       ros-gz
       gps-umd
       rqt rqt-common-plugins;
