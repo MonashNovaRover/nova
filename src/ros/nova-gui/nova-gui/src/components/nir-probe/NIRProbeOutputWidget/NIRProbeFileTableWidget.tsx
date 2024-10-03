@@ -10,8 +10,7 @@ import {
   TableHeader, TableRow
 } from "@nextui-org/react";
 import React, {ReactElement, useCallback} from "react";
-import {ISpaceResourcesFile} from "./NIRProbeWidget.tsx";
-
+import {ISpaceResourcesFile} from "../../../redux/models/genericStores/NIRProbeFilesState.ts";
 
 export interface NIRProbeFileTableWidgetProps extends CardProps {
   file: ISpaceResourcesFile,

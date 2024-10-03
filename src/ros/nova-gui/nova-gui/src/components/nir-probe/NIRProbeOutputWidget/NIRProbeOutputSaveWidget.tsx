@@ -15,9 +15,8 @@ import {useBifrost} from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosTopic} from "../../../ros/topics/rosTopic.ts";
 import {useSelector} from "react-redux";
 import {RootState} from "../../../redux/RootState.ts";
-import {ISpaceResourcesFile} from "./NIRProbeWidget.tsx";
 import {Check, MoreHorizontal} from "react-feather";
-
+import {ISpaceResourcesFile} from "../../../redux/models/genericStores/NIRProbeFilesState.ts";
 
 export interface NIRProbeOutputSaveWidgetProps extends CardProps {
   file: ISpaceResourcesFile,
@@ -37,8 +36,6 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
   const [concentration, setConcentration] = useState<number | undefined>();
   const [manualReading, setManualReading] = useState<number | undefined>();
   const [sampleLabel, setSampleLabel] = useState<string>("");
-
-
 
   useEffect(() => {
     bifrost.syncWithTopic();
