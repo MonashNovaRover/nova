@@ -75,7 +75,12 @@ fi
 
 # If the bitrate parameter exists
 if [[ -z "${3:-}" ]]; then
-    bitrate=200000   # Default
+    if [[ $2 = "can0" ]]
+    then
+        bitrate=250000
+    else
+        bitrate=200000   # Default
+    fi
 else
     bitrate=$3
 fi
