@@ -23,7 +23,7 @@
 , nova-costmap-2d
 , nova-pointcloud-filter
 , nova-rover-description
-#, nova-gazebo
+, nova-gazebo
 , nova-auto-interfaces
 , nova-bt-navigators
 , rviz-imu-plugin
@@ -64,7 +64,7 @@ buildRosPackage rec {
       nova-costmap-2d
       nova-pointcloud-filter
       nova-rover-description
-      #nova-gazebo
+      nova-gazebo
       nova-auto-interfaces
       nova-bt-navigators
       rviz-imu-plugin
