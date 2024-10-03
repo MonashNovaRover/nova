@@ -25,10 +25,9 @@ lib.novaForAllSystems (nova: {
 
     # Temporary
     ## Gazebo and ros2-control
-    #gazebo-ros-pkgs
+    ros-gz
     ros2-control
     ros2-controllers
-    #gazebo-ros2-control
     pluginlib
     ## Nav2
     nav2-bringup
