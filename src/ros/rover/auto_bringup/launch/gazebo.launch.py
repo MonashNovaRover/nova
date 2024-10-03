@@ -34,6 +34,9 @@ def generate_launch_description():
     gazebo_dir = FindPackageShare('ros_gz_sim')
     nova_gazebo_dir = FindPackageShare('nova_gazebo')
 
+    ros_gz_sim = get_package_share_directory('ros_gz_sim')
+    nova_gazebo_dir_alt = get_package_share_path('nova_gazebo')
+
     pose = {'x': LaunchConfiguration('x_pose', default='-2.0'),
             'y': LaunchConfiguration('y_pose', default='-2.0'),
             'z': LaunchConfiguration('z_pose', default='0.05'),
@@ -87,12 +90,12 @@ def generate_launch_description():
     )
 
     start_gazebo_server_cmd = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(PathJoinSubstitution([gazebo_dir, 'launch', 'gz_sim.launch.py'])),
+        PythonLaunchDescriptionSource(os.path.join(ros_gz_sim, 'launch', 'gz_sim.launch.py')),
         launch_arguments={'gz_args': ['-r -s -v4 ', world], 'on_exit_shutdown': 'true'}.items()
     )
 
     start_gazebo_client_cmd = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(PathJoinSubstitution([gazebo_dir, 'launch', 'gz_sim.launch.py'])),
+        PythonLaunchDescriptionSource(os.path.join(ros_gz_sim, 'launch', 'gz_sim.launch.py')),
         launch_arguments={'gz_args': '-g -v4 '}.items(),
         condition=UnlessCondition(headless),
     )
@@ -117,7 +120,7 @@ def generate_launch_description():
 
     set_env_vars_resources = AppendEnvironmentVariable(
         'GZ_SIM_RESOURCE_PATH',
-        os.path.join(nova_gazebo_dir, 'models'))
+        os.path.join(nova_gazebo_dir_alt, 'models'))
 
     return LaunchDescription([
         namespace_arg,
