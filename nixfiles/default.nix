@@ -34,34 +34,6 @@ let
       inherit (revisions.nix-ros-overlay) rev hash;
     };
     patches = [
-      # Patch and fix gz-*-vendor packages for Jazzy and Rolling
-      # https://github.com/lopsided98/nix-ros-overlay/pull/422
-      # (pkgs.fetchpatch {
-      #   url = "https://github.com/lopsided98/nix-ros-overlay/commit/aa846d382c40809f812b2f1c7d8b92d901a75da5.patch";
-      #   hash = "sha256-GdUjgcOgW2+8qceMPGO5EvOMwUc/iMNYYdQqfkCc1UA=";
-      # })
-      # fix: gz vendor
-      # https://github.com/lopsided98/nix-ros-overlay/pull/472
-      # (pkgs.fetchpatch {
-      #   url = "https://github.com/lopsided98/nix-ros-overlay/commit/e79e9b9f1ebafde9f8f342b1a20c97947e859889.patch";
-      #   hash = "sha256-GdUjgcOgW2+8qceMPGO5EvOMwUc/iMNYYdQqfkCc1UA=";
-      # })
-      # (pkgs.fetchpatch {
-      #   url = "https://github.com/lopsided98/nix-ros-overlay/commit/fc4c0ebbe4b1d53aa2dbdca331bd74280645f961.patch";
-      #   hash = "sha256-XLpInAKRg/O5K7pzpzMv99qKjXoXOmdLwDqH1tVMx1c=";
-      # })
-      # (pkgs.fetchpatch {
-      #   url = "https://github.com/lopsided98/nix-ros-overlay/commit/6d04148eac0727be34e5333f6e12cfc7e86673c3.patch";
-      #   hash = "sha256-OKa16KSiZi21PXa8KzxmQQFqzC5SoiGVtXGY7Czzy0Y=";
-      # })
-
-      # python3Packages.rosinstall-generator: Add distutils to nativeBuildInputs
-      # https://github.com/lopsided98/nix-ros-overlay/pull/454
-      # (pkgs.fetchpatch {
-      #   url = "https://github.com/lopsided98/nix-ros-overlay/commit/b620de3c64484c410fbee3924d3ce251a9e61150.patch";
-      #   hash = "sha256-B4GQS4afAQdnTEWQ1bxkugjrFtGYDG2ZfQmATSymBsI=";
-      # })
-
       # fix: gz vendor
       # https://github.com/lopsided98/nix-ros-overlay/pull/472
       (pkgs.fetchpatch {
