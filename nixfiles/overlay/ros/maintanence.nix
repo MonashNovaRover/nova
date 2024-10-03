@@ -305,28 +305,8 @@ self: super:
 
         image-proc = rosSuper.image-proc.overrideAttrs ({ patches ? [ ], ... }: {
           patches = patches ++ [
-#            # Revert "Add TrackMarkerNode to image_proc" (requires OpenCV <= 4.6.0)
-#            # https://github.com/ros-perception/image_pipeline/pull/930
-#            (self.fetchpatch {
-#              url = "https://github.com/ros-perception/image_pipeline/commit/f8c88a2970e7fcc16fd2457f5e5873df6b3e2769.patch";
-#              revert = true;
-#              stripLen = 1;
-#              hash = "sha256-z0hfjFWRx0vBwa5aWIiJ4plICwaCAe1rGAacVPKmgC0=";
-#            })
             ./patches/image_proc.patch
           ];
-        });
-
-        depth-image-proc = rosSuper.depth-image-proc.overrideAttrs ({ patches ? [ ], ... }: {
-#          patches = patches ++ [
-#            # Fix signature issue from #943
-#            # https://github.com/ros-perception/image_pipeline/pull/1018
-#            (self.fetchpatch {
-#              url = "https://github.com/ros-perception/image_pipeline/commit/a7c0b09c5e37fcaf7e3153e6d353687a793ee3f9.patch";
-#              stripLen = 1;
-#              hash = "sha256-wXUSSfRBzCTxrilCvSJFhpq384+7hvL7vxnIyLaW5zs=";
-#            })
-#          ];
         });
 
         rosapi = rosSuper.rosapi.overrideAttrs ({ patches ? [ ], ... }: {
