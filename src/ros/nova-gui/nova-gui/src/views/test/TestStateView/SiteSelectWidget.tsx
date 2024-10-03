@@ -1,11 +1,18 @@
 import {Card, CardBody, CardHeader, CardProps, Select, SelectItem} from "@nextui-org/react";
 import React from "react";
 import {Box, Droplet} from "react-feather";
-import SpaceResourceSiteType from "../nir-probe/SpaceResourcesSiteType.tsx";
-import SpaceResourcesSiteType from "../nir-probe/SpaceResourcesSiteType.tsx";
-import SegmentedPicker from "../SegmentedPicker/SegmentedPicker.tsx";
-import {useGenericStore} from "../../redux/actions/useGenericStore.ts";
-import {CurrentSiteStore} from "../../redux/models/genericStores/CurrentSiteStore.ts";
+import SpaceResourceSiteType from "../../../components/nir-probe/SpaceResourcesSiteType.tsx";
+import SpaceResourcesSiteType from "../../../components/nir-probe/SpaceResourcesSiteType.tsx";
+import SegmentedPicker from "../../../components/SegmentedPicker/SegmentedPicker.tsx";
+import {useGenericStore} from "../../../hooks/useGenericStore.ts";
+import {CurrentSiteStore} from "../../../redux/models/genericStores/CurrentSiteStore.ts";
+
+export const siteFilenames = [
+  "site1",
+  "site2",
+  "site3",
+  "site4"
+]
 
 export interface SiteSelectWidgetProps extends CardProps {
   hideSiteType?: boolean,
@@ -50,6 +57,7 @@ const SiteSelectWidget: React.FC<SiteSelectWidgetProps> = (
     </SegmentedPicker>
   );
 
+
   const card = (
     <Card {...cardProps}>
       <CardHeader className="pb-0 flex flex-row gap-3">
@@ -61,7 +69,7 @@ const SiteSelectWidget: React.FC<SiteSelectWidgetProps> = (
               className="min-w-unit-32 w-48 shrink"
               size="md"
               labelPlacement="outside-left"
-              onChange={e => setCurrentSite({...currentSite, type: +e.target.value as SpaceResourcesSiteType})}
+              onChange={e => setCurrentSite({...currentSite, type: + e.target.value as SpaceResourcesSiteType})}
               aria-label="Site Type"
               startContent={siteTypeSelectOptions[currentSite.type].icon}
             >
