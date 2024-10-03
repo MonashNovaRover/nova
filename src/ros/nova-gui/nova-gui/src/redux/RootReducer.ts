@@ -231,8 +231,8 @@ export const reduxStores = {
   cartographerState: cartographerSlice.reducer,
 
   // generic stores
-  currentSite: createGenericStore("currentSite", 0),
-  currentSiteType: createGenericStore("currentSiteType", SpaceResourceSiteType.WATER),
+  currentSite: createGenericStore("currentSite", {site: Site.SITE_1, type: SpaceResourceSiteType.WATER}),
+  NIRProbeFiles: createGenericStore("NIRProbeFiles", initialNIRProbeFilesState),
   counter: createGenericStore("counter", 0),
 };
 

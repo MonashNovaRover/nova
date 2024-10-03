@@ -5,7 +5,7 @@ import {useGenericStore} from "../../../hooks/useGenericStore.ts";
 
 export default function SiteSelectorTest() {
 
-  const [currentSite, _] = useGenericStore<number>("currentSite");
+  const [currentSite, _] = useGenericStore<CurrentSiteStore>("currentSite");
 
   return (
     <Card>
@@ -15,7 +15,7 @@ export default function SiteSelectorTest() {
         />
       </CardBody>
       <CardBody className="text-center">
-        {siteFilenames[currentSite]}
+        {siteFilenames[currentSite.site]}
       </CardBody>
     </Card>
   )

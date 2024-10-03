@@ -10,13 +10,13 @@ import {
   ModalContent,
   ModalHeader,
 } from "@nextui-org/react";
-import {ISpaceResourcesFile} from "./NIRProbeWidget.tsx";
 import SpaceResourceSiteType from "../SpaceResourcesSiteType.tsx";
 import NIRCalibrationSettingsTable from "./NIRCalibrationSettingsTable.tsx";
 import {MoreHorizontal} from "react-feather";
+import {ISpaceResourcesFile, NIRProbeFilesState} from "../../../redux/models/genericStores/NIRProbeFilesState.ts";
 
 export interface NIRCalibrationCurveWidgetProps {
-  files: {[key: string] : ISpaceResourcesFile},
+  files: NIRProbeFilesState,
   type: SpaceResourceSiteType,
   absorbance: (v: number) => number,
   calibrationFunction: (v: number) => number,
@@ -34,8 +34,6 @@ export interface NIRCalibrationData {
   yIntercept: number,
   gradient: number,
   chemBlankDifference: number,
-
-
 }
 
 export const EMPTY_CALIBRATION_DATA: NIRCalibrationData = {
@@ -51,7 +49,6 @@ export const SITE_GRAPH_COLOURS = [
   "#0ea5e9",
   "#8b5cf6",
 ]
-
 
 const NIRCalibrationCurveWidget: React.FC<NIRCalibrationCurveWidgetProps> = ({
   files, type, calibrationFunction, absorbance, calibrationData, setCalibrationData
