@@ -8,6 +8,9 @@ let
 
   inherit (import ../inputs.nix args) mkGitHubInput;
 
+  # converts "nova" to "nova-monorepo"
+  fixNovaMonorepoInputName = name: if name == "nova" then "nova-monorepo" else name;
+
   novaPrs = builtins.foldl'
     (allPrs: repo:
       let
@@ -23,13 +26,13 @@ let
           (pr.base.ref == (if branch == null then pr.base.repo.default_branch else branch)))
         repoPrs)
     [ ]
-    ([ "nova-monorepo" ] ++ builtins.attrNames allNovaRepos);
+    ([ "nova" ] ++ builtins.attrNames allNovaRepos);
 in
 {
   planPrJobsets = name: { description, inputs ? { }, ... }@args:
     let
       # Exclude PRs for repositories that aren't used in the jobset.
-      repoWhitelist = [ "nova-monorepo" ] ++ builtins.attrNames inputs;
+      repoWhitelist = [ "nova" ] ++ builtins.attrNames inputs;
       relevantPrs = builtins.filter (pr: builtins.elem pr.base.repo.name repoWhitelist) novaPrs;
     in
     { ${name} = args; }
@@ -39,9 +42,9 @@ in
         description = "${description} - ${pr.base.repo.name}#${toString pr.number} (${pr.title})";
         inputs = inputs // {
           # Replace the input in question with the PR's merge ref.
-          ${pr.base.repo.name} = mkGitHubInput {
+          ${fixNovaMonorepoInputName pr.base.repo.name} = mkGitHubInput {
             owner = pr.head.repo.owner.login;
-            repo = pkgs.lib.removeSuffix "-monorepo" pr.head.repo.name;
+            repo = pr.head.repo.name;
             branch = "pull/${pr.number}/merge";
           };
 
