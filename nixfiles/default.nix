@@ -26,6 +26,11 @@ let
     ];
   });
 
+
+
+
+
+
   # nix-ros-overlay = ../nix-ros-overlay;
   nix-ros-overlay = pkgs.lib.maybeEnv "NRO_PATH" (maybeApplyPatches {
     src = pkgs.fetchFromGitHub {
