@@ -21,7 +21,7 @@
             "value": "git@github.com:MonashNovaRover/nova.git",
             "emailresponsible": false
         },
-        "nova-monorepo-pr-json": {
+        "nova-pr-json": {
             "type": "githubpulls",
             "value": "MonashNovaRover nova",
             "emailresponsible": false
