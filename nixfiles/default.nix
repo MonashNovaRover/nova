@@ -41,12 +41,20 @@ let
         excludes = [ "examples/ros2-gz-example.nix" ];
         hash = "sha256-nJD6ltAIpp+yOyegn1PdUA4oK6JB4m+6PpCdsPB2/oU=";
       })
+      ./overlay/ros/patches/nix-ros-workspace.patch
 
       # Some more Gazebo improvements
       # https://github.com/muellerbernd/nix-ros-overlay/pull/2
       (pkgs.fetchpatch {
         url = "https://github.com/lopsided98/nix-ros-overlay/compare/6d04148eac0727be34e5333f6e12cfc7e86673c3...eca9687ce15335bbb2d4b7b14fbf74ce0e957f43.patch";
         hash = "sha256-c6DD2U6Lo2dcs0APxEHg9l0bz1Ioa5aX5FoATajXYAc=";
+      })
+
+      # python3Packages.rosinstall-generator: Add distutils to nativeBuildInputs
+      # https://github.com/lopsided98/nix-ros-overlay/pull/454
+      (pkgs.fetchpatch {
+        url = "https://github.com/lopsided98/nix-ros-overlay/commit/b620de3c64484c410fbee3924d3ce251a9e61150.patch";
+        hash = "sha256-B4GQS4afAQdnTEWQ1bxkugjrFtGYDG2ZfQmATSymBsI=";
       })
     ];
   });
