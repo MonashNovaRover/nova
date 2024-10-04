@@ -23,13 +23,13 @@ let
           (pr.base.ref == (if branch == null then pr.base.repo.default_branch else branch)))
         repoPrs)
     [ ]
-    ([ "nova" ] ++ builtins.attrNames allNovaRepos);
+    ([ "nova-monorepo" ] ++ builtins.attrNames allNovaRepos);
 in
 {
   planPrJobsets = name: { description, inputs ? { }, ... }@args:
     let
       # Exclude PRs for repositories that aren't used in the jobset.
-      repoWhitelist = [ "nova" ] ++ builtins.attrNames inputs;
+      repoWhitelist = [ "nova-monorepo" ] ++ builtins.attrNames inputs;
       relevantPrs = builtins.filter (pr: builtins.elem pr.base.repo.name repoWhitelist) novaPrs;
     in
     { ${name} = args; }
@@ -41,7 +41,7 @@ in
           # Replace the input in question with the PR's merge ref.
           ${pr.base.repo.name} = mkGitHubInput {
             owner = pr.head.repo.owner.login;
-            repo = pr.head.repo.name;
+            repo = pkgs.lib.removeSuffix "-monorepo" pr.head.repo.name;
             branch = "pull/${pr.number}/merge";
           };
 
