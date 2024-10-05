@@ -65,8 +65,6 @@ You should set state versions and a _Nova device profile_.
   # standard user and desktop environment, etc.
   # These things can all be enabled manually even on "personal" configurations,
   # e.g. with nova.desktop.enable = true.
-
-  nova.substituters.nova.password = "tFH6J!#HhrYc3&^m";
 }
 ```
 

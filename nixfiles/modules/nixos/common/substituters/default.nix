@@ -25,19 +25,26 @@ in
     };
   };
 
-  config.nix.settings = lib.mkMerge [
-    (lib.mkIf cfg.ros.enable {
-      substituters = [ "https://ros.cachix.org" ];
-      trusted-public-keys = [ "ros.cachix.org-1:dSyZxI8geDCJrwgvCOHDoAfOm5sV1wCPjBkKL+38Rvo=" ];
-    })
-    (lib.mkIf cfg.nova.enable {
-      substituters = [ cfg.nova.url ];
-      trusted-public-keys = [ cfg.nova.publicKey ];
-      netrc-file = pkgs.writeText "nova-netrc" ''
+  config = {
+    sops.templates."nova-netrc" = {
+      content = ''
         machine ${lib.removePrefix "https://" (lib.removePrefix "http://" cfg.nova.url)}
         login nova
-        password ${cfg.nova.password}
+        password ${config.sops.placeholder."hydra/password"}
       '';
-    })
-  ];
+      mode = "0444" ;
+    };
+
+    nix.settings = lib.mkMerge [
+      (lib.mkIf cfg.ros.enable {
+        substituters = [ "https://ros.cachix.org" ];
+        trusted-public-keys = [ "ros.cachix.org-1:dSyZxI8geDCJrwgvCOHDoAfOm5sV1wCPjBkKL+38Rvo=" ];
+      })
+      (lib.mkIf cfg.nova.enable {
+        substituters = [ cfg.nova.url ];
+        trusted-public-keys = [ cfg.nova.publicKey ];
+        netrc-file = config.sops.templates."nova-netrc".path;
+      })
+    ];
+  };
 }

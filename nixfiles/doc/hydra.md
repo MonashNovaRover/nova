@@ -12,7 +12,10 @@ for various CI and CD tasks, such as:
 ## Using Hydra
 
 Hydra can currently be accessed at https://hydra.novarover.space.
-The username is `nova`, and the password is `tFH6J!#HhrYc3&^m`.
+
+### Credentials
+Username: `nova`, 
+Password: `sops ~/nixfiles/modules/nixos/secrets/secrets.yaml`. It is the value of the key `hydra/password`.
 
 To use the binary cache, see: [Binary caches](./caches.md).
 
@@ -30,7 +33,7 @@ The manual can be found [here](https://nixos.org/hydra/manual).
 is recommended.
 2. Add the [NixOS module](./nixos.md).
 3. Configure the [`nova.ci.master` module](https://hydra.novarover.space/manual/nixos#novacimasterenable).
-4. Log in to Hydra at _hydra.example.org_. The username is `nova` and the password is `tFH6J!#HhrYc3&^m`. You'll need to log in twice - this is due to a layer
+4. Log in to Hydra at _hydra.example.org_ using the credentials stated [here](#credentials). You'll need to log in twice - this is due to a layer
 put in place to protect our binary cache.
 5. Create a project with the following entries:  
 **Identifier**: `nova`  

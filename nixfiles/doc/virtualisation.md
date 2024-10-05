@@ -163,8 +163,6 @@ one after installation.
        /home/nova/nova/nixfiles/nixos
        /home/nova/nova/nixfiles/nixos/installer/docker
      ];
-
-     nova.substituters.nova.password = "tFH6J!#HhrYc3&^m";
    }
    ```
 1. Add the Home Manager channel:

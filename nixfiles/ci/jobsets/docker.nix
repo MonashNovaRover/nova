@@ -32,7 +32,6 @@ let
           installer.cloneConfig = false;
 
           nova = {
-            substituters.nova.password = "tFH6J!#HhrYc3&^m";
             desktop.enable = false;
           };
 

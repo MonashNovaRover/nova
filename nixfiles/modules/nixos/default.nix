@@ -8,6 +8,7 @@
     ./profiles
     ./devices
     ./peripherals
+    ./secrets
   ];
 
   home-manager.nova.sharedModules = [
@@ -16,6 +17,9 @@
       nova = {
         inherit (config.nova) repos;
       };
+    }
+    {
+      home.packages = with pkgs; [ sops ];
     }
   ];
 }

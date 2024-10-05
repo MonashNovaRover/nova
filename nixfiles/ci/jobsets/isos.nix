@@ -87,7 +87,6 @@ let
 
               nova = {
                 inherit (ciLib) repos;
-                substituters.nova.password = "tFH6J!#HhrYc3&^m";
                 desktop.enable = graphical;
                 workspace = {
                   enable = includeWorkspace;
