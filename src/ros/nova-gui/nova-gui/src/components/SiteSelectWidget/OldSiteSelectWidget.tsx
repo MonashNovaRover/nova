@@ -2,8 +2,7 @@ import {Card, CardBody, CardHeader, CardProps, Select, SelectItem} from "@nextui
 import SegmentedPicker from "../SegmentedPicker/SegmentedPicker.tsx";
 import React from "react";
 import {Box, Droplet} from "react-feather";
-import SpaceResourceSiteType from "../nir-probe/SpaceResourcesSiteType.tsx";
-import SpaceResourcesSiteType from "../nir-probe/SpaceResourcesSiteType.tsx";
+import {SpaceResourcesSiteType} from "../nir-probe/SpaceResourcesSiteType.tsx";
 
 export const siteFilenames = [
   "site1",
@@ -16,19 +15,19 @@ export interface SiteSelectWidgetProps extends CardProps {
   onValueChanged?: (value: string) => void,
   hideSiteType?: boolean,
   hideCard?: boolean,
-  onSiteTypeChanged?: (newType: SpaceResourceSiteType) => void,
-  currentSiteType?: SpaceResourceSiteType,
+  onSiteTypeChanged?: (newType: SpaceResourcesSiteType) => void,
+  currentSiteType?: SpaceResourcesSiteType,
   pickerClassName?: string,
 }
 
 const siteTypeSelectOptions = [
   {
-    type: SpaceResourceSiteType.WATER,
+    type: SpaceResourcesSiteType.WATER,
     name: "Water",
     icon: (<Droplet/>)
   },
   {
-    type: SpaceResourceSiteType.ILMENITE,
+    type: SpaceResourcesSiteType.ILMENITE,
     name: "Ilmenite",
     icon: (<Box/>)
   }
