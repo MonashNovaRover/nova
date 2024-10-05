@@ -17,9 +17,9 @@ import {BLCMD_INDEX} from "../constants";
 import {localStorageSlice} from "./slices/LocalStorageSlice.ts";
 import {createGenericStore} from "./store/createGenericStore.ts";
 import {Site} from "./models/genericStores/CurrentSiteStore.ts";
-import {initialSiteDataState} from "./models/genericStores/SiteDataState.ts";
-import {filterStores, getReducers} from "./store/rootReducerFilters.ts";
-import {StoreType} from "./models/StoreContext.ts";
+import {initialNIRProbeFilesState} from "./models/genericStores/SiteDataState.ts";
+import SpaceResourceSiteType from "../components/nir-probe/SpaceResourcesSiteType.tsx";
+import {getReducers} from "./store/rootReducerFilters.ts";
 
 /**
  * reduxStores contains all stores in redux as either it's Reducer
@@ -232,14 +232,11 @@ export const reduxStores = {
 
   cartographerState: cartographerSlice.reducer,
 
-  // Generic stores
+  // generic stores
   currentSite: createGenericStore("currentSite", Site.SITE_1),
-  siteData: createGenericStore("siteData", initialSiteDataState),
+  siteData: createGenericStore("siteData", initialNIRProbeFilesState),
   counter: createGenericStore("counter", 0),
 };
 
 // all store reducers
 export const rootReducer = getReducers(reduxStores);
-
-// names of all bifrost stores
-export const bifrostStores = filterStores(reduxStores, "storeType", StoreType.BIFROST)
