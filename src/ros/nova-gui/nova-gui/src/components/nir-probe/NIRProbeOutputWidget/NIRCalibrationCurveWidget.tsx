@@ -10,14 +10,14 @@ import {
   ModalContent,
   ModalHeader,
 } from "@nextui-org/react";
-import SpaceResourceSiteType from "../SpaceResourcesSiteType.tsx";
+import {ISpaceResourcesFile, SpaceResourcesSiteType} from "../SpaceResourcesSiteType.tsx";
 import NIRCalibrationSettingsTable from "./NIRCalibrationSettingsTable.tsx";
 import {MoreHorizontal} from "react-feather";
-import {ISpaceResourcesFile, NIRProbeFilesState} from "../../../redux/models/genericStores/NIRProbeFilesState.ts";
+import {SiteDataState} from "../../../redux/models/genericStores/SiteDataState.ts";
 
 export interface NIRCalibrationCurveWidgetProps {
-  files: NIRProbeFilesState,
-  type: SpaceResourceSiteType,
+  files: SiteDataState,
+  type: SpaceResourcesSiteType,
   absorbance: (v: number) => number,
   calibrationFunction: (v: number) => number,
   calibrationData: NIRCalibrationData,
@@ -55,7 +55,7 @@ const NIRCalibrationCurveWidget: React.FC<NIRCalibrationCurveWidgetProps> = ({
 }) => {
   const [calibrationModalIsOpen, setCalibrationModalIsOpen] = useState<boolean>(false)
 
-  const typeName = type === SpaceResourceSiteType.WATER ? "Water" : "Ilmenite"
+  const typeName = type === SpaceResourcesSiteType.WATER ? "Water" : "Ilmenite"
 
   const options : ApexCharts.ApexOptions = {
     chart: {

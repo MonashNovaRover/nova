@@ -1,16 +1,16 @@
-import React, {useCallback, useEffect, useState} from "react";
+import React, {useCallback, useState} from "react";
 import SiteSelectWidget from "../../SiteSelectWidget/SiteSelectWidget.tsx";
 import NIRProbeOutputSaveWidget from "./NIRProbeOutputSaveWidget.tsx";
 import NIRProbeLEDWidget from "../NIRProbeLEDWidget/NIRProbeLEDWidget.tsx";
 import NIRProbeFileTableWidget from "./NIRProbeFileTableWidget.tsx";
 import NIRCalibrationCurveWidget, {EMPTY_CALIBRATION_DATA, NIRCalibrationData} from "./NIRCalibrationCurveWidget.tsx";
-import SpaceResourceSiteType from "../SpaceResourcesSiteType.tsx";
 import {useLocalStorage} from "../../../hooks/useLocalStorage.ts";
 import TOFHeight from "../../AnalysisPlatformHeight/AnalysisPlatformHeight.tsx";
 import {DEFAULT_WATER_CALIBRATION} from "./DefaultWaterCalibration.ts";
 import {useGenericStore} from "../../../redux/actions/useGenericStore.ts";
-import {CurrentSiteStore} from "../../../redux/models/genericStores/CurrentSiteStore.ts";
-import {ISpaceResourcesFile, NIRProbeFilesState} from "../../../redux/models/genericStores/NIRProbeFilesState.ts";
+import {Site} from "../../../redux/models/genericStores/CurrentSiteStore.ts";
+import {SiteData, SiteDataState} from "../../../redux/models/genericStores/SiteDataState.ts";
+import {SpaceResourcesSiteType} from "../SpaceResourcesSiteType.tsx";
 
 interface INIRProbeWidgetProps {
 }
@@ -18,31 +18,27 @@ interface INIRProbeWidgetProps {
 const NIRProbeWidget: React.FC<INIRProbeWidgetProps> = () => {
 
   // current site as provided by the site selector
-  const [currentSite, _] = useGenericStore<CurrentSiteStore>("currentSite");
+  const [currentSite, _] = useGenericStore<Site>("currentSite");
 
-  // current space resource files for each site
-  const [files, setFiles] = useGenericStore<NIRProbeFilesState>("NIRProbeFiles");
+  // current space resource siteData for each site
+  const [siteData, setSiteData] = useGenericStore<SiteDataState>("siteData");
 
   // whether to show the advanced capabilities
   const [showAdvanced, setShowAdvanced] = useState<boolean>(false);
 
   // set the current site's file to a new file
-  const setFileForCurrentSite = useCallback((newFile: ISpaceResourcesFile) => {
-    setFiles({...files, [currentSite.site]: newFile})
-  }, [setFiles, files, currentSite.site])
+  const setFileForCurrentSite = useCallback((newFile: SiteData) => {
+    setSiteData({...siteData, [currentSite]: newFile})
+  }, [siteData, currentSite])
 
-  // change the type of the current site's file
-  useEffect(() => {
-    setFileForCurrentSite({...files[currentSite.site], type: currentSite.type})
-  }, [currentSite.type]);
 
   // The currently selected site's file
-  const file = files[currentSite.site];
+  const file = siteData[currentSite];
 
   const [calibrationData, setCalibrationData] = useLocalStorage<NIRCalibrationData>(
-    file.type === SpaceResourceSiteType.WATER ? "nir-calibration-water" : "nir-calibration-ilmenite",
-    file.type === SpaceResourceSiteType.WATER ? DEFAULT_WATER_CALIBRATION : EMPTY_CALIBRATION_DATA,
-    [file.type]
+    file.siteType === SpaceResourcesSiteType.WATER ? "nir-calibration-water" : "nir-calibration-ilmenite",
+    file.siteType === SpaceResourcesSiteType.WATER ? DEFAULT_WATER_CALIBRATION : EMPTY_CALIBRATION_DATA,
+    [file.siteType]
   );
 
   // This function maps differences to predicted concentrations
@@ -59,7 +55,7 @@ const NIRProbeWidget: React.FC<INIRProbeWidgetProps> = () => {
       <div className="flex flex-col gap-3 col-span-3">
         <NIRProbeLEDWidget/>
         <NIRProbeOutputSaveWidget file={file} setFile={setFileForCurrentSite} showAdvanced={showAdvanced} setShowAdvanced={setShowAdvanced}/>
-        <NIRCalibrationCurveWidget files={files} type={file.type} absorbance={absorbance} calibrationFunction={calibrationFunction}
+        <NIRCalibrationCurveWidget files={siteData} type={file.siteType} absorbance={absorbance} calibrationFunction={calibrationFunction}
                                    calibrationData={calibrationData} setCalibrationData={setCalibrationData}/>
       </div>
       <div className="flex flex-col gap-3 col-span-3">
