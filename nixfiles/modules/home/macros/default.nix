@@ -47,12 +47,12 @@ in
             visualisation = "${nova}/src/ros/visualisation";
             visualization = visualisation;
             vis = visualisation;
-            viz = vis;
+            viz = visualisation;
             science = "${nova}/src/ros/rover/science";
             camerasdir = "${nova}/src/ros/cameras2";
             autonomous = "${nova}/src/ros/rover/autonomous";
             auto = autonomous;
-            gui = "${nova}/src/ros/gui";
+            gui = "${nova}/src/ros/nova-gui";
             tutorials = "${nova}/src/ros/tutorials";
             pic = "${nova}/src/other/pics";
             pics = pic;
