@@ -16,8 +16,7 @@ import {
 import CopyableInput from "../CopyableInput/CopyableInput.tsx";
 import {CameraComponentProps} from "../CameraComponent/CameraComponent.tsx";
 import CameraSessionStartStopButton from "../CameraComponent/components/CameraSessionStartStopButton.tsx";
-import {useLocalStorage} from "../../hooks/useLocalStorage.ts";
-import SiteSelectWidget from "../SiteSelectWidget/OldSiteSelectWidget.tsx";
+import SiteSelectWidget from "../SiteSelectWidget/SiteSelectWidget.tsx";
 import {useBifrost} from "../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosTopic} from "../../ros/topics/rosTopic.ts";
 import {useCameraStream} from "../CameraComponent/hooks/useCameraStream.ts";
@@ -28,6 +27,9 @@ import useSampler from "../../hooks/webgl/program/sampler/useSampler.ts";
 import useUniform from "../../hooks/webgl/program/uniform/useUniform.ts";
 import useAttribute from "../../hooks/webgl/program/attribute/useAttribute.ts";
 import AutosizedGLCanvas from "../AutosizedGLCanvas/AutosizedGLCanvas.tsx";
+import {useGenericStore} from "../../redux/actions/useGenericStore.ts";
+import {Site} from "../../redux/models/genericStores/CurrentSiteStore.ts";
+import {SiteData, SiteDataState} from "../../redux/models/genericStores/SiteDataState.ts";
 
 export interface ThresholdingFileEntry {
   threshold: number,
@@ -37,9 +39,6 @@ export interface ThresholdingFileEntry {
 export interface ThresholdingFile {
   entries: ThresholdingFileEntry[]
 }
-const EMPTY_THRESHOLDING_FILE = {
-  entries: []
-} as ThresholdingFile;
 
 const onFloatChanged = (mutator: (x: string) => void) => (userInput: string) => {
   if (userInput.match(/((([1-9]([0-9]*))|0)((.([0-9]*))?))|(^$)/))
@@ -86,28 +85,33 @@ const MicroscopeThresholdWidget: React.FC<CameraComponentProps> = (props) => {
     return (densityRatio * brightness) / (brightness * (densityRatio - 1) + 1);
   }, []);
 
-  const [filename, setFilename] = useState<string>("");
+  // current site and related site data
+  const [currentSite, _] = useGenericStore<Site>("currentSite");
+  const [siteData, setSiteData] = useGenericStore<SiteDataState>("siteData");
 
-  const [file, setFile] = useLocalStorage<ThresholdingFile>(`thresholding-${filename}`,
-    EMPTY_THRESHOLDING_FILE, [filename]);
+  // thresholding entries at the current site
+  const thresholdingEntries = siteData[currentSite].thresholdingEntries;
+
+  // sets the new thresholding entries to the current site
+  const setEntries = useCallback((newEntries: ThresholdingFileEntry[]) => {
+    setSiteData({
+      ...siteData,
+      [currentSite]: {
+        ...siteData[currentSite],
+        thresholdingEntries: newEntries
+      } as SiteData
+    } as SiteDataState)
+  }, [currentSite, siteData])
 
   // Prepends a row to the file
   const prependFileEntry = useCallback((newEntry : ThresholdingFileEntry) => {
-    const newFile = {
-      entries: [newEntry, ...file.entries]
-    };
-
-    setFile(newFile);
-  }, [file, setFile]);
+    setEntries([newEntry, ...thresholdingEntries]);
+  }, [thresholdingEntries, setEntries]);
 
   // Deletes an entry from the file
   const deleteFileEntry = useCallback((index: number) => {
-    const newFile = {
-      entries: file.entries.filter((_, i) => i !== index)
-    }
-
-    setFile(newFile);
-  }, [file, setFile]);
+    setEntries(thresholdingEntries.filter((_, i) => i !== index));
+  }, [thresholdingEntries, setEntries]);
 
   const getBrightness = useCallback(() => {
     if (!gl.canvasRef.current)
@@ -148,7 +152,7 @@ const MicroscopeThresholdWidget: React.FC<CameraComponentProps> = (props) => {
     topicBifrost.syncWithTopic();
   }, [topicBifrost]);
 
-  const readingRows = file.entries.map(({threshold, brightness}, index) => (
+  const readingRows = thresholdingEntries.map(({threshold, brightness}, index) => (
     <TableRow>
       <TableCell className="font-mono">{(100 * threshold).toFixed(4)} %</TableCell>
       <TableCell className="font-mono">{(100 * brightness).toFixed(4)} %</TableCell>
@@ -161,10 +165,10 @@ const MicroscopeThresholdWidget: React.FC<CameraComponentProps> = (props) => {
     </TableRow>
   ));
 
-  const averageThreshold = file.entries
-    .reduce((acc, v) => v.threshold + acc, 0) / Math.max(1, file.entries.length);
-  const averageBrightness = file.entries
-    .reduce((acc, v) => v.brightness + acc, 0) / Math.max(1, file.entries.length);
+  const averageThreshold = thresholdingEntries
+    .reduce((acc, v) => v.threshold + acc, 0) / Math.max(1, thresholdingEntries.length);
+  const averageBrightness = thresholdingEntries
+    .reduce((acc, v) => v.brightness + acc, 0) / Math.max(1, thresholdingEntries.length);
 
   const averageHeaderRow = (
     <TableRow className="relative h-6">
@@ -208,7 +212,7 @@ const MicroscopeThresholdWidget: React.FC<CameraComponentProps> = (props) => {
     </TableRow>
   );
 
-  const tableRows = file.entries.length > 0 ?
+  const tableRows = thresholdingEntries.length > 0 ?
     [averageHeaderRow, averageRow, readingHeaderRow, ...readingRows ] :
     [noReadingHeader];
 
@@ -287,7 +291,7 @@ const MicroscopeThresholdWidget: React.FC<CameraComponentProps> = (props) => {
       </Card>
 
       <div className="flex flex-col bg-default-100 rounded-xl rounded-b-2xl overflow-hidden">
-        <SiteSelectWidget onValueChanged={setFilename} hideCard/>
+        <SiteSelectWidget/>
         <Table aria-label="Thresholding readings"
                className={"shadow-lg z-10"} classNames={{
           wrapper: "rounded-t-none "
