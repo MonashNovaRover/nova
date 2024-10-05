@@ -1,7 +1,7 @@
 import {Card, CardBody, CardHeader, CardProps, Select, SelectItem} from "@nextui-org/react";
 import React from "react";
 import {Box, Droplet} from "react-feather";
-import {useGenericStore} from "../../hooks/useGenericStore.ts";
+import {useGenericStore} from "../../redux/actions/useGenericStore.ts";
 import {SiteData, SiteDataState} from "../../redux/models/genericStores/SiteDataState.ts";
 import {SpaceResourcesSiteType} from "../nir-probe/SpaceResourcesSiteType.tsx";
 import SiteSelectWidget from "./SiteSelectWidget.tsx";

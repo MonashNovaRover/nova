@@ -16,11 +16,11 @@ import {RosTopic} from "../../../ros/topics/rosTopic.ts";
 import {useSelector} from "react-redux";
 import {RootState} from "../../../redux/RootState.ts";
 import {Check, MoreHorizontal} from "react-feather";
-import {ISpaceResourcesFile} from "../../../redux/models/genericStores/NIRProbeFilesState.ts";
+import {SiteData} from "../../../redux/models/genericStores/SiteDataState.ts";
 
 export interface NIRProbeOutputSaveWidgetProps extends CardProps {
-  file: ISpaceResourcesFile,
-  setFile: (newFile: ISpaceResourcesFile) => void,
+  file: SiteData,
+  setFile: (newFile: SiteData) => void,
   showAdvanced : boolean,
   setShowAdvanced : (newShowAdvanced: boolean) => void,
 }
@@ -52,7 +52,7 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
       concentration: concentration,
       label: sampleLabel
     };
-    const newFile = { ...file, entries: [...file.entries, newEntry] };
+    const newFile: SiteData = { ...file, spaceResourcesEntries: [...file.spaceResourcesEntries, newEntry] };
 
     setFile(newFile);
   }, [file, nirData, manualReading, lightBlank, concentration, sampleLabel]);

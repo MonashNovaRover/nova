@@ -16,6 +16,8 @@ import {cameraStreamerSlice} from "./slices/CameraStreamSlice";
 import {BLCMD_INDEX} from "../constants";
 import {localStorageSlice} from "./slices/LocalStorageSlice.ts";
 import {createGenericStore} from "./store/createGenericStore.ts";
+import {Site} from "./models/genericStores/CurrentSiteStore.ts";
+import {initialNIRProbeFilesState} from "./models/genericStores/SiteDataState.ts";
 import SpaceResourceSiteType from "../components/nir-probe/SpaceResourcesSiteType.tsx";
 import {getReducers} from "./store/rootReducerFilters.ts";
 
@@ -231,8 +233,8 @@ export const reduxStores = {
   cartographerState: cartographerSlice.reducer,
 
   // generic stores
-  currentSite: createGenericStore("currentSite", {site: Site.SITE_1, type: SpaceResourceSiteType.WATER}),
-  NIRProbeFiles: createGenericStore("NIRProbeFiles", initialNIRProbeFilesState),
+  currentSite: createGenericStore("currentSite", Site.SITE_1),
+  siteData: createGenericStore("siteData", initialNIRProbeFilesState),
   counter: createGenericStore("counter", 0),
 };
 
