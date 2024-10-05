@@ -1,10 +1,12 @@
 import {Site} from "./CurrentSiteStore.ts";
 import {ISpaceResourcesEntry, SpaceResourcesSiteType} from "../../../components/nir-probe/SpaceResourcesSiteType.tsx";
+import {ThresholdingFileEntry} from "../../../components/MicroscopeThresholdWidget/MicroscopeThresholdWidget.tsx";
 
 // Data that is associated with a site can be stored here.
 export interface SiteData {
   siteType: SpaceResourcesSiteType,
   spaceResourcesEntries: ISpaceResourcesEntry[],
+  thresholdingEntries: ThresholdingFileEntry[]
 }
 
 export interface SiteDataState {
@@ -18,6 +20,7 @@ export interface SiteDataState {
 const EMPTY_SITE_DATA: SiteData = {
   siteType: SpaceResourcesSiteType.WATER,
   spaceResourcesEntries: [],
+  thresholdingEntries: []
 };
 
 export const initialNIRProbeFilesState: SiteDataState = {
