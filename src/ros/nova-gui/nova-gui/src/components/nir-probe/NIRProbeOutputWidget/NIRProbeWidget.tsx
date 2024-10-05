@@ -1,5 +1,4 @@
 import React, {useCallback, useState} from "react";
-import SiteSelectWidget from "../../SiteSelectWidget/SiteSelectWidget.tsx";
 import NIRProbeOutputSaveWidget from "./NIRProbeOutputSaveWidget.tsx";
 import NIRProbeLEDWidget from "../NIRProbeLEDWidget/NIRProbeLEDWidget.tsx";
 import NIRProbeFileTableWidget from "./NIRProbeFileTableWidget.tsx";
@@ -11,6 +10,7 @@ import {useGenericStore} from "../../../redux/actions/useGenericStore.ts";
 import {Site} from "../../../redux/models/genericStores/CurrentSiteStore.ts";
 import {SiteData, SiteDataState} from "../../../redux/models/genericStores/SiteDataState.ts";
 import {SpaceResourcesSiteType} from "../SpaceResourcesSiteType.tsx";
+import SiteTypeSelectWidget from "../../SiteSelectWidget/SiteTypeSelectWidget.tsx";
 
 interface INIRProbeWidgetProps {
 }
@@ -60,7 +60,7 @@ const NIRProbeWidget: React.FC<INIRProbeWidgetProps> = () => {
       </div>
       <div className="flex flex-col gap-3 col-span-3">
         <TOFHeight/>
-        <SiteSelectWidget/>
+        <SiteTypeSelectWidget/>
         <NIRProbeFileTableWidget file={file} setFile={setFileForCurrentSite} showAdvanced={showAdvanced} absorbance={absorbance} calibrationFunction={calibrationFunction}></NIRProbeFileTableWidget>
       </div>
     </div>
